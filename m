@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1734880318
- for <linux-nvdimm@lists.01.org>; Sun,  5 Mar 2017 23:06:50 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon,  6 Mar 2017 00:04:16 -0700
-Message-Id: <1488783873-2614-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v3 00/16] Cleanup chardev instances with helper function
+ by ml01.01.org (Postfix) with ESMTPS id DE08480342
+ for <linux-nvdimm@lists.01.org>; Mon,  6 Mar 2017 13:39:03 -0800 (PST)
+Subject: [PATCH 4/4] ndctl: add device dax error clear test
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 06 Mar 2017 14:39:03 -0700
+Message-ID: <148883634307.72901.8906703230765193251.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148883624600.72901.16358369702902205527.stgit@djiang5-desk3.ch.intel.com>
+References: <148883624600.72901.16358369702902205527.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,173 +18,506 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+Adding a test/example on clearing of error/poison for device DAX. Most of
+the code were moved from the test/libndctl.c check bus commands.
 
-Here's v3 of this patchset. It's based off of v4.11-rc1 which mostly
-rebased clearly except for Jason's IB/ucm patch (but it was pretty
-trivial to fix).
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ test/Makefile.am      |   10 +
+ test/daxdev-errors.c  |  361 +++++++++++++++++++++++++++++++++++++++++++++++++
+ test/daxdev-errors.sh |   71 ++++++++++
+ 3 files changed, 440 insertions(+), 2 deletions(-)
+ create mode 100644 test/daxdev-errors.c
+ create mode 100755 test/daxdev-errors.sh
 
-I've made this set available on github here (cdev_v3 branch):
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 524fafa..cd2226f 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -8,7 +8,8 @@ TESTS =\
+ 	multi-pmem \
+ 	create.sh \
+ 	clear.sh \
+-	dax-errors.sh
++	dax-errors.sh \
++	daxdev-errors.sh
+ 
+ check_PROGRAMS =\
+ 	libndctl \
+@@ -16,7 +17,8 @@ check_PROGRAMS =\
+ 	dpa-alloc \
+ 	parent-uuid \
+ 	multi-pmem \
+-	dax-errors
++	dax-errors \
++	daxdev-errors
+ 
+ if ENABLE_DESTRUCTIVE
+ TESTS +=\
+@@ -72,6 +74,10 @@ dax_dev_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
+ dax_pmd_SOURCES = dax-pmd.c
+ mmap_SOURCES = mmap.c
+ dax_errors_SOURCES = dax-errors.c
++daxdev_errors_SOURCES = daxdev-errors.c \
++			../util/log.c \
++			../util/sysfs.c
++daxdev_errors_LDADD = $(LIBNDCTL_LIB)
+ device_dax_SOURCES = \
+ 		device-dax.c \
+ 		dax-dev.c \
+diff --git a/test/daxdev-errors.c b/test/daxdev-errors.c
+new file mode 100644
+index 0000000..687e593
+--- /dev/null
++++ b/test/daxdev-errors.c
+@@ -0,0 +1,361 @@
++#include <stdio.h>
++#include <stdint.h>
++#include <stdbool.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/types.h>
++#include <sys/wait.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <string.h>
++#include <errno.h>
++#include <sys/ioctl.h>
++#include <stdlib.h>
++#include <linux/fs.h>
++#include <linux/fiemap.h>
++#include <setjmp.h>
++#include <limits.h>
++
++#include <util/log.h>
++#include <util/sysfs.h>
++#include <ccan/array_size/array_size.h>
++#include <ndctl/libndctl.h>
++#include <daxctl/libdaxctl.h>
++#ifdef HAVE_NDCTL_H
++#include <linux/ndctl.h>
++#else
++#include <ndctl.h>
++#endif
++
++#define fail() fprintf(stderr, "%s: failed at: %d\n", __func__, __LINE__)
++
++struct check_cmd {
++	struct ndctl_cmd *cmd;
++	struct ndctl_test *test;
++};
++
++static sigjmp_buf sj_env;
++static int sig_count;
++
++static const char *NFIT_PROVIDER0 = "nfit_test.0";
++static struct check_cmd *check_cmds;
++
++static void sigbus_hdl(int sig, siginfo_t *siginfo, void *ptr)
++{
++	fprintf(stderr, "** Received a SIGBUS **\n");
++	sig_count++;
++	siglongjmp(sj_env, 1);
++}
++
++static int check_ars_cap(struct ndctl_bus *bus, uint64_t start,
++		size_t size, struct check_cmd *check)
++{
++	struct ndctl_cmd *cmd;
++	int rc;
++
++	if (check->cmd != NULL) {
++		fprintf(stderr, "%s: expected a NULL command, by default\n",
++				__func__);
++		return -EINVAL;
++	}
++
++	cmd = ndctl_bus_cmd_new_ars_cap(bus, start, size);
++	if (!cmd) {
++		fprintf(stderr, "%s: bus: %s failed to create cmd\n",
++				__func__, ndctl_bus_get_provider(bus));
++		return -ENOTTY;
++	}
++
++	rc = ndctl_cmd_submit(cmd);
++	if (rc) {
++		fprintf(stderr, "%s: bus: %s failed to submit cmd: %d\n",
++				__func__, ndctl_bus_get_provider(bus), rc);
++		ndctl_cmd_unref(cmd);
++		return rc;
++	}
++
++	if (ndctl_cmd_ars_cap_get_size(cmd) < sizeof(struct nd_cmd_ars_status)){
++		fprintf(stderr, "%s: bus: %s expected size >= %zd got: %d\n",
++				__func__, ndctl_bus_get_provider(bus),
++				sizeof(struct nd_cmd_ars_status),
++				ndctl_cmd_ars_cap_get_size(cmd));
++		ndctl_cmd_unref(cmd);
++		return -ENXIO;
++	}
++
++	check->cmd = cmd;
++	return 0;
++}
++
++static int check_ars_start(struct ndctl_bus *bus, struct check_cmd *check)
++{
++	struct ndctl_cmd *cmd_ars_cap = check_cmds[ND_CMD_ARS_CAP].cmd;
++	struct ndctl_cmd *cmd;
++	int rc;
++
++	if (check->cmd != NULL) {
++		fprintf(stderr, "%s: expected a NULL command, by default\n",
++				__func__);
++		return -ENXIO;
++	}
++
++	cmd = ndctl_bus_cmd_new_ars_start(cmd_ars_cap, ND_ARS_PERSISTENT);
++	if (!cmd) {
++		fprintf(stderr, "%s: bus: %s failed to create cmd\n",
++				__func__, ndctl_bus_get_provider(bus));
++		return -ENOTTY;
++	}
++
++	rc = ndctl_cmd_submit(cmd);
++	if (rc) {
++		fprintf(stderr, "%s: bus: %s failed to submit cmd: %d\n",
++				__func__, ndctl_bus_get_provider(bus), rc);
++		ndctl_cmd_unref(cmd);
++		return rc;
++	}
++
++	check->cmd = cmd;
++	return 0;
++}
++
++static int check_ars_status(struct ndctl_bus *bus, struct check_cmd *check)
++{
++	struct ndctl_cmd *cmd_ars_cap = check_cmds[ND_CMD_ARS_CAP].cmd;
++	struct ndctl_cmd *cmd;
++	unsigned long tmo = 5;
++	unsigned int i;
++	int rc;
++
++	if (check->cmd != NULL) {
++		fprintf(stderr, "%s: expected a NULL command, by default\n",
++				__func__);
++		return -ENXIO;
++	}
++
++ retry:
++	cmd = ndctl_bus_cmd_new_ars_status(cmd_ars_cap);
++	if (!cmd) {
++		fprintf(stderr, "%s: bus: %s failed to create cmd\n",
++				__func__, ndctl_bus_get_provider(bus));
++		return -ENOTTY;
++	}
++
++	rc = ndctl_cmd_submit(cmd);
++	if (rc) {
++		fprintf(stderr, "%s: bus: %s failed to submit cmd: %d\n",
++				__func__, ndctl_bus_get_provider(bus), rc);
++		ndctl_cmd_unref(cmd);
++		return rc;
++	}
++
++	if (!tmo) {
++		fprintf(stderr, "%s: bus: %s ars timeout\n", __func__,
++				ndctl_bus_get_provider(bus));
++		return -EIO;
++	}
++
++	if (ndctl_cmd_ars_in_progress(cmd)) {
++		tmo--;
++		sleep(1);
++		goto retry;
++	}
++
++	for (i = 0; i < ndctl_cmd_ars_num_records(cmd); i++) {
++		fprintf(stderr, "%s: record[%d].addr: 0x%llx\n", __func__, i,
++				ndctl_cmd_ars_get_record_addr(cmd, i));
++		fprintf(stderr, "%s: record[%d].length: 0x%llx\n", __func__, i,
++				ndctl_cmd_ars_get_record_len(cmd, i));
++	}
++
++	check->cmd = cmd;
++	return 0;
++}
++
++static int check_clear_error(struct ndctl_bus *bus, struct check_cmd *check)
++{
++	struct ndctl_cmd *ars_cap = check_cmds[ND_CMD_ARS_CAP].cmd;
++	struct ndctl_cmd *clear_err;
++	unsigned long long cleared;
++	struct ndctl_range range;
++	int rc;
++
++	if (check->cmd != NULL) {
++		fprintf(stderr, "%s: expected a NULL command, by default\n",
++				__func__);
++		return -ENXIO;
++	}
++
++	if (ndctl_cmd_ars_cap_get_range(ars_cap, &range)) {
++		fprintf(stderr, "failed to get ars_cap range\n");
++		return -ENXIO;
++	}
++
++	fprintf(stderr, "%s: clearing at %#llx for %llu bytes\n",
++			__func__, range.address, range.length);
++
++	clear_err = ndctl_bus_cmd_new_clear_error(range.address,
++					range.length, ars_cap);
++	if (!clear_err) {
++		fprintf(stderr, "%s: bus: %s failed to create cmd\n",
++				__func__, ndctl_bus_get_provider(bus));
++		return -ENOTTY;
++	}
++
++	rc = ndctl_cmd_submit(clear_err);
++	if (rc) {
++		fprintf(stderr, "%s: bus: %s failed to submit cmd: %d\n",
++				__func__, ndctl_bus_get_provider(bus), rc);
++		ndctl_cmd_unref(clear_err);
++		return rc;
++	}
++
++	cleared = ndctl_cmd_clear_error_get_cleared(clear_err);
++	if (cleared != range.length) {
++		fprintf(stderr, "%s: bus: %s expected to clear: %lld actual: %lld\
++n",
++				__func__, ndctl_bus_get_provider(bus),
++				range.length, cleared);
++		return -ENXIO;
++	}
++
++	check->cmd = clear_err;
++	return 0;
++}
++
++static struct ndctl_dax * get_dax_region(struct ndctl_region *region)
++{
++	struct ndctl_dax *dax;
++
++	ndctl_dax_foreach(region, dax)
++		if (ndctl_dax_is_enabled(dax) &&
++			ndctl_dax_is_configured(dax))
++			return dax;
++
++	return NULL;
++}
++
++static int test_daxdev_clear_error(void)
++{
++	int rc = 0, i;
++	struct ndctl_ctx *ctx;
++	struct ndctl_bus *bus;
++	struct ndctl_region *region;
++	struct ndctl_dax *dax = NULL;
++	uint64_t base, start, offset, blocks, size;
++        struct check_cmd __bus_cmds[] = {
++                [ND_CMD_ARS_CAP] = {},
++                [ND_CMD_ARS_START] = {},
++                [ND_CMD_ARS_STATUS] = {},
++                [ND_CMD_CLEAR_ERROR] = {},
++        };
++	char path[256];
++	char buf[SYSFS_ATTR_SIZE];
++	struct log_ctx log_ctx;
++
++	log_init(&log_ctx, "test/init", "NDCTL_DAXDEV_TEST");
++	rc = ndctl_new(&ctx);
++	if (rc)
++		return rc;
++
++	bus = ndctl_bus_get_by_provider(ctx, NFIT_PROVIDER0);
++	if (!bus) {
++		rc = -ENODEV;
++		goto cleanup;
++	}
++
++	ndctl_region_foreach(bus, region) {
++		/* find the dax region */
++		dax = get_dax_region(region);
++		if (dax)
++			break;
++	}
++
++	if (!dax) {
++		rc = -ENODEV;
++		goto cleanup;
++	}
++
++	/* get badblocks */
++	if (snprintf(path, 256,
++			"/sys/devices/platform/%s/ndbus0/%s/badblocks",
++			NFIT_PROVIDER0,
++			ndctl_region_get_devname(region)) >= 256) {
++		fprintf(stderr, "%s: buffer too small!\n",
++				ndctl_region_get_devname(region));
++		rc = -ENXIO;
++		goto cleanup;
++	}
++
++	if (__sysfs_read_attr(&log_ctx, path, buf) < 0) {
++		rc = -ENXIO;
++		goto cleanup;
++	}
++
++	/* retrieve badblocks from buf */
++	rc = sscanf(buf, "%lu %lu", &offset, &blocks);
++	if (rc == EOF) {
++		rc = -errno;
++		goto cleanup;
++	}
++
++	/* get resource base */
++	base = ndctl_region_get_resource(region);
++	if (base == ULLONG_MAX) {
++		rc = -ERANGE;
++		goto cleanup;
++	}
++
++	check_cmds = __bus_cmds;
++	start = base + offset * 512;
++	size = 512 * blocks;
++
++	rc = check_ars_cap(bus, start, size, &check_cmds[ND_CMD_ARS_CAP]);
++	if (rc < 0)
++		goto cleanup;
++
++	rc = check_ars_start(bus, &check_cmds[ND_CMD_ARS_START]);
++	if (rc < 0)
++		goto cleanup;
++
++	rc = check_ars_status(bus, &check_cmds[ND_CMD_ARS_STATUS]);
++	if (rc < 0)
++		goto cleanup;
++
++	rc = check_clear_error(bus, &check_cmds[ND_CMD_CLEAR_ERROR]);
++	if (rc < 0)
++		goto cleanup;
++
++	for (i = 1; i < (int)ARRAY_SIZE(__bus_cmds); i++) {
++		if (__bus_cmds[i].cmd) {
++			ndctl_cmd_unref(__bus_cmds[i].cmd);
++			__bus_cmds[i].cmd = NULL;
++                }
++	}
++
++cleanup:
++	ndctl_unref(ctx);
++	return rc;
++}
++
++
++int main(int argc, char *argv[])
++{
++	int rc;
++	struct sigaction act;
++
++	if (argc < 1)
++		return -EINVAL;
++
++	memset(&act, 0, sizeof(act));
++	act.sa_sigaction = sigbus_hdl;
++	act.sa_flags = SA_SIGINFO;
++
++	if (sigaction(SIGBUS, &act, 0)) {
++		fail();
++		return 1;
++	}
++
++	rc = test_daxdev_clear_error();
++
++	return rc;
++}
+diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
+new file mode 100755
+index 0000000..4ba8fb5
+--- /dev/null
++++ b/test/daxdev-errors.sh
+@@ -0,0 +1,71 @@
++#!/bin/bash -x
++
++DEV=""
++NDCTL="../ndctl/ndctl"
++DAXCTL="../daxctl/daxctl"
++BUS="-b nfit_test.0"
++BUS1="-b nfit_test.1"
++rc=77
++
++err() {
++	rc=1
++	echo "test/daxdev-errors: failed at line $1"
++	exit $rc
++}
++
++eval $(uname -r | awk -F. '{print "maj="$1 ";" "min="$2}')
++if [ $maj -lt 4 ]; then
++	echo "kernel $maj.$min lacks dax dev error handling"
++	exit $rc
++elif [ $maj -eq 4 -a $min -lt 10 ]; then
++	echo "kernel $maj.$min lacks dax dev error handling"
++	exit $rc
++fi
++
++set -e
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region $BUS all
++$NDCTL zero-labels $BUS all
++$NDCTL enable-region $BUS all
++
++json=$($NDCTL create-namespace $BUS -t pmem -m dax -a 4096)
++chardev=$(echo $json | jq ". | select(.mode == \"dax\") | .daxregion.devices[0].chardev")
++
++#  "dev":"namespace5.0",
++#  "mode":"dax",
++#  "size":64475136,
++#  "uuid":"068776fa-50e6-4c27-b99a-4b1e710c627c",
++#  "daxregion":{
++#    "id":5,
++#    "size":64475136,
++#    "align":4096,
++#    "devices":[
++#      {
++#        "chardev":"dax5.0",
++#        "size":64475136
++#      }
++#    ]
++#  }
++
++read sector len < /sys/bus/platform/devices/nfit_test.0/ndbus0/region5/badblocks
++echo "sector: $sector len: $len"
++
++# run the daxdev-errors test
++test -x ./daxdev-errors
++./daxdev-errors
++
++# check badblocks, should be empty
++if read sector len < /sys/bus/platform/devices/nfit_test.0/ndbus0/region5/badblocks; then
++	echo "badblocks empty, expected"
++fi
++[ -n "$sector" ] && echo "fail: $LINENO" && exit 1
++
++# cleanup
++$NDCTL disable-region $BUS all
++$NDCTL disable-region $BUS1 all
++modprobe -r nfit_test
++
++exit 0
 
-https://github.com/lsgunth/linux.git
-
-Also, I've noticed these emails aren't getting through to the
-mailing lists at vger.kernel.org. Though, I'm not sure why as my
-email logs show they are accepted. Perhaps it has something to do
-with the number of lists it's addressed to. I won't be surprised if
-v3 doesn't make it either as I'm not sure how to deal with that problem.
-
-Thanks,
-
-Logan
-
-Changes since v2:
-
-* Expanded comments as per Jason's suggestions
-* Collected tags
-* Updated the switchtec patch seeing it's underlying patch set changed
-
-
---
-
-v2 description:
-
-Here's v2 of my chardev cleanup patch-set. I've incorporated some
-feedback and decided to extend the concept a little further. The new
-helper function now includes both cdev_add and device_add which
-significantly simplifies every instance that called it.
-
-Jason's also expressed an interest in creating a general solution to
-the problem that occurs if a user tries to utilize a newly created
-cdev right before device_add fails. This series doesn't address that
-specifically but will make it much easier to do so in future work.
-
-I've also added cdev_set_parent for the cases in IB that set
-the kobject parent without using device_add. This is just to ensure
-the parent setting code is private within char_dev.c and removes the
-lines that appear suspect but are in fact correct. Dan's suggested
-WARN_ON is included in this function.
-
-Seeing the new helper function takes in a bit more than before,
-the instance patches are a bit heavier. Thus, I've refrained from
-collecting the acks and reviews I've already received. In a couple
-of cases (mtd and scsi) the cleanup required was a bit more involved
-than I would have liked and thus these patches probably need more
-attention, review and testing. (Unfortunately, I don't have hardware
-to actually test them.) Hopefully that process doesn't throw too big
-a wrench in the overall series moving forward.
-
-I've included Dan's cdev_leak patch in this series to avoid a merge
-conflict between the two of us.
-
-While the diff stats for the series are much heavier than in v1, we now
-have a net loss of more than 100 lines! So this feels much more like a
-successful cleanup.
-
---
-
-v1 story:
-
-Our story for this patch-set begins with a new driver I wrote and am in
-the process of submitting upstream. That driver creates a fairly
-standard char device and the code for it was copied from a similar
-instance in device-dax. However, upon review, Greg Kroah-Hartman
-noticed [1] a suspicious line that assigned to the parent field of
-the underlying kobject for the char device.
-
-I removed that from my code and endeavoured to remove it from the
-code I copied as well. However, Dan Williams pointed out [2] that this
-code is necessary for correct reference counting of the underlying
-structures. This prompted me to do a fair bit more research and
-investigation into whats going on and I found it to be a common pattern.
-(Although misleading and though required to be correct, frequently
-forgotten.) This pattern is used in at least 15 places in the kernel
-and probably should have been used in at least 5 more.
-
-This patch-set aims to correct this and hopefully prevent future
-developers from wasting their time on it. The first patch introduces
-a new helper API as originally proposed by Dan Williams [3]. Please
-see the commit message for that patch for a longer description of the
-problem and history.
-
-The subsequent patches either update correct instances to use the
-new API or fix incorrect usages to ensure the cdev correctly takes
-a reference count using the new API (this is noted in those patches).
-
-This moves all except four of the cdev.kobj.parent usages into the one
-cdev function, the remaining four are in the infiniband subsystem and
-I've left alone because that subsystem seems to make use of kobjects
-directly (instead of struct devices). These are noted in patch 7 of
-this series.
-
-This series is based on v4.10 with the exception of the last patch
-which is for my new driver which, as yet, has not been accepted
-upstream.
-
-[1] https://lkml.org/lkml/2017/2/10/370
-[2] https://lkml.org/lkml/2017/2/10/607
-[3] https://lkml.org/lkml/2017/2/13/700
-
-Dan Williams (1):
-  device-dax: fix cdev leak
-
-Jason Gunthorpe (1):
-  IB/ucm: utilize new cdev_device_add helper function
-
-Logan Gunthorpe (14):
-  chardev: add helper function to register char devs with a struct
-    device
-  device-dax: utilize new cdev_device_add helper function
-  input: utilize new cdev_device_add helper function
-  gpiolib: utilize new cdev_device_add helper function
-  tpm-chip: utilize new cdev_device_add helper function
-  platform/chrome: cros_ec_dev - utilize new cdev_device_add helper
-    function
-  infiniband: utilize the new cdev_set_parent function
-  iio:core: utilize new cdev_device_add helper function
-  media: utilize new cdev_device_add helper function
-  mtd: utilize new cdev_device_add helper function
-  rapidio: utilize new cdev_device_add helper function
-  rtc: utilize new cdev_device_add helper function
-  scsi: utilize new cdev_device_add helper function
-  switchtec: utilize new device_add_cdev helper function
-
- drivers/char/tpm/tpm-chip.c              | 19 ++-----
- drivers/dax/dax.c                        | 33 ++++++------
- drivers/gpio/gpiolib.c                   | 23 +++-----
- drivers/iio/industrialio-core.c          | 15 ++----
- drivers/infiniband/core/ucm.c            | 35 ++++++------
- drivers/infiniband/core/user_mad.c       |  4 +-
- drivers/infiniband/core/uverbs_main.c    |  2 +-
- drivers/infiniband/hw/hfi1/device.c      |  2 +-
- drivers/input/evdev.c                    | 11 +---
- drivers/input/joydev.c                   | 11 +---
- drivers/input/mousedev.c                 | 11 +---
- drivers/media/cec/cec-core.c             | 16 ++----
- drivers/media/media-devnode.c            | 20 ++-----
- drivers/mtd/ubi/build.c                  | 91 ++++++--------------------------
- drivers/mtd/ubi/vmt.c                    | 49 ++++++-----------
- drivers/pci/switch/switchtec.c           | 11 +---
- drivers/platform/chrome/cros_ec_dev.c    | 31 +++--------
- drivers/rapidio/devices/rio_mport_cdev.c | 24 +++------
- drivers/rtc/class.c                      | 14 +++--
- drivers/rtc/rtc-dev.c                    | 17 ------
- drivers/scsi/osd/osd_uld.c               | 56 +++++++-------------
- fs/char_dev.c                            | 77 +++++++++++++++++++++++++++
- include/linux/cdev.h                     |  4 ++
- 23 files changed, 229 insertions(+), 347 deletions(-)
-
---
-2.1.4
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
