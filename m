@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F3EE802D3
- for <linux-nvdimm@lists.01.org>; Fri,  3 Mar 2017 22:14:26 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 4/7] ccan/bitmap: fix a set of gcc warnings (with
- -Wshadow)
-Date: Fri,  3 Mar 2017 23:13:04 -0700
-Message-Id: <20170304061307.13530-5-vishal.l.verma@intel.com>
-In-Reply-To: <20170304061307.13530-1-vishal.l.verma@intel.com>
-References: <20170304061307.13530-1-vishal.l.verma@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 0770A8030F
+ for <linux-nvdimm@lists.01.org>; Sun,  5 Mar 2017 23:06:48 -0800 (PST)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Mon,  6 Mar 2017 00:04:25 -0700
+Message-Id: <1488783873-2614-10-git-send-email-logang@deltatee.com>
+In-Reply-To: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v3 09/16] infiniband: utilize the new cdev_set_parent function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,158 +17,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGF2aW5nIHRoZSB0eXBlZGVmIG5hbWVkIHRoZSBzYW1lIGFzIGFuIGluc3RhbmNlIG9mIHRoZSBz
-dHJ1Y3QgY2F1c2VzCmdjYyB3aXRoIC1Xc2hhZG93IHRvIHNwZXcgd2FybmluZ3MgbGlrZToKCi4v
-Y2Nhbi9iaXRtYXAvYml0bWFwLmg6IEluIGZ1bmN0aW9uIOKAmGJpdG1hcF9jbGVhcl9iaXTigJk6
-Ci4vY2Nhbi9iaXRtYXAvYml0bWFwLmg6NjM6NDU6IHdhcm5pbmc6IGRlY2xhcmF0aW9uIG9mIOKA
-mGJpdG1hcOKAmSBzaGFkb3dzIGEKZ2xvYmFsIGRlY2xhcmF0aW9uIFstV3NoYWRvd10KIHN0YXRp
-YyBpbmxpbmUgdm9pZCBiaXRtYXBfY2xlYXJfYml0KGJpdG1hcCAqYml0bWFwLCB1bnNpZ25lZCBs
-b25nIG4pCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXn5+fn5+
-Ci4vY2Nhbi9iaXRtYXAvYml0bWFwLmg6MjM6Mzogbm90ZTogc2hhZG93ZWQgZGVjbGFyYXRpb24g
-aXMgaGVyZSB9IGJpdG1hcDsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgXn5+fn5+ClN0b3AgdGhlc2UgYnkgY29udmVydGlu
-ZyB0aGUgdHlwZWRlZiB0byBiaXRtYXBfdCBzbyB0aGF0IGl0IGRvZXNuJ3QKY29uZmxpY3Qgd2l0
-aCB0aGUgbWFueSBwbGFjZXMgYSAnYml0bWFwJyB2YXJpYWJsZSBpcyB1c2VkLgoKQ2M6IERhbiBX
-aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpDYzogUm9zcyBad2lzbGVyIDxyb3Nz
-Lnp3aXNsZXJAbGludXguaW50ZWwuY29tPgpTaWduZWQtb2ZmLWJ5OiBWaXNoYWwgVmVybWEgPHZp
-c2hhbC5sLnZlcm1hQGludGVsLmNvbT4KLS0tCiBjY2FuL2JpdG1hcC9iaXRtYXAuYyB8ICA2ICsr
-Ky0tLQogY2Nhbi9iaXRtYXAvYml0bWFwLmggfCA1MiArKysrKysrKysrKysrKysrKysrKysrKysr
-Ky0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDI5IGluc2VydGlv
-bnMoKyksIDI5IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2NjYW4vYml0bWFwL2JpdG1hcC5j
-IGIvY2Nhbi9iaXRtYXAvYml0bWFwLmMKaW5kZXggZDgxMmFmNi4uNTU0ZTAwMCAxMDA2NDQKLS0t
-IGEvY2Nhbi9iaXRtYXAvYml0bWFwLmMKKysrIGIvY2Nhbi9iaXRtYXAvYml0bWFwLmMKQEAgLTks
-NyArOSw3IEBACiAjZGVmaW5lIEJJVF9BTElHTl9ET1dOKG4pCSgobikgJiB+KEJJVE1BUF9XT1JE
-X0JJVFMgLSAxKSkKICNkZWZpbmUgQklUX0FMSUdOX1VQKG4pCQlCSVRfQUxJR05fRE9XTigobikg
-KyBCSVRNQVBfV09SRF9CSVRTIC0gMSkKIAotdm9pZCBiaXRtYXBfemVyb19yYW5nZShiaXRtYXAg
-KmJpdG1hcCwgdW5zaWduZWQgbG9uZyBuLCB1bnNpZ25lZCBsb25nIG0pCit2b2lkIGJpdG1hcF96
-ZXJvX3JhbmdlKGJpdG1hcF90ICpiaXRtYXAsIHVuc2lnbmVkIGxvbmcgbiwgdW5zaWduZWQgbG9u
-ZyBtKQogewogCXVuc2lnbmVkIGxvbmcgYW4gPSBCSVRfQUxJR05fVVAobik7CiAJdW5zaWduZWQg
-bG9uZyBhbSA9IEJJVF9BTElHTl9ET1dOKG0pOwpAQCAtMzQsNyArMzQsNyBAQCB2b2lkIGJpdG1h
-cF96ZXJvX3JhbmdlKGJpdG1hcCAqYml0bWFwLCB1bnNpZ25lZCBsb25nIG4sIHVuc2lnbmVkIGxv
-bmcgbSkKIAkJQklUTUFQX1dPUkQoYml0bWFwLCBtKSAmPSB+Yml0bWFwX2Jzd2FwKHRhaWxtYXNr
-KTsKIH0KIAotdm9pZCBiaXRtYXBfZmlsbF9yYW5nZShiaXRtYXAgKmJpdG1hcCwgdW5zaWduZWQg
-bG9uZyBuLCB1bnNpZ25lZCBsb25nIG0pCit2b2lkIGJpdG1hcF9maWxsX3JhbmdlKGJpdG1hcF90
-ICpiaXRtYXAsIHVuc2lnbmVkIGxvbmcgbiwgdW5zaWduZWQgbG9uZyBtKQogewogCXVuc2lnbmVk
-IGxvbmcgYW4gPSBCSVRfQUxJR05fVVAobik7CiAJdW5zaWduZWQgbG9uZyBhbSA9IEJJVF9BTElH
-Tl9ET1dOKG0pOwpAQCAtNzYsNyArNzYsNyBAQCBzdGF0aWMgaW50IGJpdG1hcF9jbHooYml0bWFw
-X3dvcmQgdykKICNlbmRpZgogfQogCi11bnNpZ25lZCBsb25nIGJpdG1hcF9mZnMoY29uc3QgYml0
-bWFwICpiaXRtYXAsCit1bnNpZ25lZCBsb25nIGJpdG1hcF9mZnMoY29uc3QgYml0bWFwX3QgKmJp
-dG1hcCwKIAkJCSB1bnNpZ25lZCBsb25nIG4sIHVuc2lnbmVkIGxvbmcgbSkKIHsKIAl1bnNpZ25l
-ZCBsb25nIGFuID0gQklUX0FMSUdOX1VQKG4pOwpkaWZmIC0tZ2l0IGEvY2Nhbi9iaXRtYXAvYml0
-bWFwLmggYi9jY2FuL2JpdG1hcC9iaXRtYXAuaAppbmRleCA5ZTZjMmJiLi41NDk4NDI4IDEwMDY0
-NAotLS0gYS9jY2FuL2JpdG1hcC9iaXRtYXAuaAorKysgYi9jY2FuL2JpdG1hcC9iaXRtYXAuaApA
-QCAtMjAsMTAgKzIwLDEwIEBAIHR5cGVkZWYgdW5zaWduZWQgbG9uZyBiaXRtYXBfd29yZDsKICAq
-LwogdHlwZWRlZiBzdHJ1Y3QgewogCWJpdG1hcF93b3JkIHc7Ci19IGJpdG1hcDsKK30gYml0bWFw
-X3Q7CiAKICNkZWZpbmUgQklUTUFQX0RFQ0xBUkUoX25hbWUsIF9uYml0cykgXAotCWJpdG1hcCAo
-X25hbWUpW0JJVE1BUF9OV09SRFMoX25iaXRzKV0KKwliaXRtYXBfdCAoX25hbWUpW0JJVE1BUF9O
-V09SRFMoX25iaXRzKV0KIAogc3RhdGljIGlubGluZSBzaXplX3QgYml0bWFwX3NpemVvZih1bnNp
-Z25lZCBsb25nIG5iaXRzKQogewpAQCAtNTUsNDcgKzU1LDQ3IEBAIHN0YXRpYyBpbmxpbmUgYml0
-bWFwX3dvcmQgYml0bWFwX2Jzd2FwKGJpdG1hcF93b3JkIHcpCiAjZGVmaW5lIEJJVE1BUF9UQUlM
-KF9ibSwgX25iaXRzKSBcCiAJKEJJVE1BUF9UQUlMV09SRChfYm0sIF9uYml0cykgJiBCSVRNQVBf
-VEFJTEJJVFMoX25iaXRzKSkKIAotc3RhdGljIGlubGluZSB2b2lkIGJpdG1hcF9zZXRfYml0KGJp
-dG1hcCAqYml0bWFwLCB1bnNpZ25lZCBsb25nIG4pCitzdGF0aWMgaW5saW5lIHZvaWQgYml0bWFw
-X3NldF9iaXQoYml0bWFwX3QgKmJpdG1hcCwgdW5zaWduZWQgbG9uZyBuKQogewogCUJJVE1BUF9X
-T1JEKGJpdG1hcCwgbikgfD0gQklUTUFQX1dPUkRCSVQobik7CiB9CiAKLXN0YXRpYyBpbmxpbmUg
-dm9pZCBiaXRtYXBfY2xlYXJfYml0KGJpdG1hcCAqYml0bWFwLCB1bnNpZ25lZCBsb25nIG4pCitz
-dGF0aWMgaW5saW5lIHZvaWQgYml0bWFwX2NsZWFyX2JpdChiaXRtYXBfdCAqYml0bWFwLCB1bnNp
-Z25lZCBsb25nIG4pCiB7CiAJQklUTUFQX1dPUkQoYml0bWFwLCBuKSAmPSB+QklUTUFQX1dPUkRC
-SVQobik7CiB9CiAKLXN0YXRpYyBpbmxpbmUgdm9pZCBiaXRtYXBfY2hhbmdlX2JpdChiaXRtYXAg
-KmJpdG1hcCwgdW5zaWduZWQgbG9uZyBuKQorc3RhdGljIGlubGluZSB2b2lkIGJpdG1hcF9jaGFu
-Z2VfYml0KGJpdG1hcF90ICpiaXRtYXAsIHVuc2lnbmVkIGxvbmcgbikKIHsKIAlCSVRNQVBfV09S
-RChiaXRtYXAsIG4pIF49IEJJVE1BUF9XT1JEQklUKG4pOwogfQogCi1zdGF0aWMgaW5saW5lIGJv
-b2wgYml0bWFwX3Rlc3RfYml0KGNvbnN0IGJpdG1hcCAqYml0bWFwLCB1bnNpZ25lZCBsb25nIG4p
-CitzdGF0aWMgaW5saW5lIGJvb2wgYml0bWFwX3Rlc3RfYml0KGNvbnN0IGJpdG1hcF90ICpiaXRt
-YXAsIHVuc2lnbmVkIGxvbmcgbikKIHsKIAlyZXR1cm4gISEoQklUTUFQX1dPUkQoYml0bWFwLCBu
-KSAmIEJJVE1BUF9XT1JEQklUKG4pKTsKIH0KIAotdm9pZCBiaXRtYXBfemVyb19yYW5nZShiaXRt
-YXAgKmJpdG1hcCwgdW5zaWduZWQgbG9uZyBuLCB1bnNpZ25lZCBsb25nIG0pOwotdm9pZCBiaXRt
-YXBfZmlsbF9yYW5nZShiaXRtYXAgKmJpdG1hcCwgdW5zaWduZWQgbG9uZyBuLCB1bnNpZ25lZCBs
-b25nIG0pOwordm9pZCBiaXRtYXBfemVyb19yYW5nZShiaXRtYXBfdCAqYml0bWFwLCB1bnNpZ25l
-ZCBsb25nIG4sIHVuc2lnbmVkIGxvbmcgbSk7Cit2b2lkIGJpdG1hcF9maWxsX3JhbmdlKGJpdG1h
-cF90ICpiaXRtYXAsIHVuc2lnbmVkIGxvbmcgbiwgdW5zaWduZWQgbG9uZyBtKTsKIAotc3RhdGlj
-IGlubGluZSB2b2lkIGJpdG1hcF96ZXJvKGJpdG1hcCAqYml0bWFwLCB1bnNpZ25lZCBsb25nIG5i
-aXRzKQorc3RhdGljIGlubGluZSB2b2lkIGJpdG1hcF96ZXJvKGJpdG1hcF90ICpiaXRtYXAsIHVu
-c2lnbmVkIGxvbmcgbmJpdHMpCiB7CiAJbWVtc2V0KGJpdG1hcCwgMCwgYml0bWFwX3NpemVvZihu
-Yml0cykpOwogfQogCi1zdGF0aWMgaW5saW5lIHZvaWQgYml0bWFwX2ZpbGwoYml0bWFwICpiaXRt
-YXAsIHVuc2lnbmVkIGxvbmcgbmJpdHMpCitzdGF0aWMgaW5saW5lIHZvaWQgYml0bWFwX2ZpbGwo
-Yml0bWFwX3QgKmJpdG1hcCwgdW5zaWduZWQgbG9uZyBuYml0cykKIHsKIAltZW1zZXQoYml0bWFw
-LCAweGZmLCBiaXRtYXBfc2l6ZW9mKG5iaXRzKSk7CiB9CiAKLXN0YXRpYyBpbmxpbmUgdm9pZCBi
-aXRtYXBfY29weShiaXRtYXAgKmRzdCwgY29uc3QgYml0bWFwICpzcmMsCitzdGF0aWMgaW5saW5l
-IHZvaWQgYml0bWFwX2NvcHkoYml0bWFwX3QgKmRzdCwgY29uc3QgYml0bWFwX3QgKnNyYywKIAkJ
-CSAgICAgICB1bnNpZ25lZCBsb25nIG5iaXRzKQogewogCW1lbWNweShkc3QsIHNyYywgYml0bWFw
-X3NpemVvZihuYml0cykpOwogfQogCiAjZGVmaW5lIEJJVE1BUF9ERUZfQklOT1AoX25hbWUsIF9v
-cCkgXAotCXN0YXRpYyBpbmxpbmUgdm9pZCBiaXRtYXBfIyNfbmFtZShiaXRtYXAgKmRzdCwgYml0
-bWFwICpzcmMxLCBiaXRtYXAgKnNyYzIsIFwKKwlzdGF0aWMgaW5saW5lIHZvaWQgYml0bWFwXyMj
-X25hbWUoYml0bWFwX3QgKmRzdCwgYml0bWFwX3QgKnNyYzEsIGJpdG1hcF90ICpzcmMyLCBcCiAJ
-CQkJCSAgdW5zaWduZWQgbG9uZyBuYml0cykJCVwKIAl7IFwKIAkJdW5zaWduZWQgbG9uZyBpID0g
-MDsgXApAQCAtMTExLDcgKzExMSw3IEBAIEJJVE1BUF9ERUZfQklOT1AoYW5kbm90LCAmIH4pCiAK
-ICN1bmRlZiBCSVRNQVBfREVGX0JJTk9QCiAKLXN0YXRpYyBpbmxpbmUgdm9pZCBiaXRtYXBfY29t
-cGxlbWVudChiaXRtYXAgKmRzdCwgY29uc3QgYml0bWFwICpzcmMsCitzdGF0aWMgaW5saW5lIHZv
-aWQgYml0bWFwX2NvbXBsZW1lbnQoYml0bWFwX3QgKmRzdCwgY29uc3QgYml0bWFwX3QgKnNyYywK
-IAkJCQkgICAgIHVuc2lnbmVkIGxvbmcgbmJpdHMpCiB7CiAJdW5zaWduZWQgbG9uZyBpOwpAQCAt
-MTIwLDcgKzEyMCw3IEBAIHN0YXRpYyBpbmxpbmUgdm9pZCBiaXRtYXBfY29tcGxlbWVudChiaXRt
-YXAgKmRzdCwgY29uc3QgYml0bWFwICpzcmMsCiAJCWRzdFtpXS53ID0gfnNyY1tpXS53OwogfQog
-Ci1zdGF0aWMgaW5saW5lIGJvb2wgYml0bWFwX2VxdWFsKGNvbnN0IGJpdG1hcCAqc3JjMSwgY29u
-c3QgYml0bWFwICpzcmMyLAorc3RhdGljIGlubGluZSBib29sIGJpdG1hcF9lcXVhbChjb25zdCBi
-aXRtYXBfdCAqc3JjMSwgY29uc3QgYml0bWFwX3QgKnNyYzIsCiAJCQkJdW5zaWduZWQgbG9uZyBu
-Yml0cykKIHsKIAlyZXR1cm4gKG1lbWNtcChzcmMxLCBzcmMyLCBCSVRNQVBfSEVBREJZVEVTKG5i
-aXRzKSkgPT0gMCkKQEAgLTEyOCw3ICsxMjgsNyBAQCBzdGF0aWMgaW5saW5lIGJvb2wgYml0bWFw
-X2VxdWFsKGNvbnN0IGJpdG1hcCAqc3JjMSwgY29uc3QgYml0bWFwICpzcmMyLAogCQkgICAgfHwg
-KEJJVE1BUF9UQUlMKHNyYzEsIG5iaXRzKSA9PSBCSVRNQVBfVEFJTChzcmMyLCBuYml0cykpKTsK
-IH0KIAotc3RhdGljIGlubGluZSBib29sIGJpdG1hcF9pbnRlcnNlY3RzKGNvbnN0IGJpdG1hcCAq
-c3JjMSwgY29uc3QgYml0bWFwICpzcmMyLAorc3RhdGljIGlubGluZSBib29sIGJpdG1hcF9pbnRl
-cnNlY3RzKGNvbnN0IGJpdG1hcF90ICpzcmMxLCBjb25zdCBiaXRtYXBfdCAqc3JjMiwKIAkJCQkg
-ICAgIHVuc2lnbmVkIGxvbmcgbmJpdHMpCiB7CiAJdW5zaWduZWQgbG9uZyBpOwpAQCAtMTQzLDcg
-KzE0Myw3IEBAIHN0YXRpYyBpbmxpbmUgYm9vbCBiaXRtYXBfaW50ZXJzZWN0cyhjb25zdCBiaXRt
-YXAgKnNyYzEsIGNvbnN0IGJpdG1hcCAqc3JjMiwKIAlyZXR1cm4gZmFsc2U7CiB9CiAKLXN0YXRp
-YyBpbmxpbmUgYm9vbCBiaXRtYXBfc3Vic2V0KGNvbnN0IGJpdG1hcCAqc3JjMSwgY29uc3QgYml0
-bWFwICpzcmMyLAorc3RhdGljIGlubGluZSBib29sIGJpdG1hcF9zdWJzZXQoY29uc3QgYml0bWFw
-X3QgKnNyYzEsIGNvbnN0IGJpdG1hcF90ICpzcmMyLAogCQkJCSB1bnNpZ25lZCBsb25nIG5iaXRz
-KQogewogCXVuc2lnbmVkIGxvbmcgaTsKQEAgLTE1OCw3ICsxNTgsNyBAQCBzdGF0aWMgaW5saW5l
-IGJvb2wgYml0bWFwX3N1YnNldChjb25zdCBiaXRtYXAgKnNyYzEsIGNvbnN0IGJpdG1hcCAqc3Jj
-MiwKIAlyZXR1cm4gdHJ1ZTsKIH0KIAotc3RhdGljIGlubGluZSBib29sIGJpdG1hcF9mdWxsKGNv
-bnN0IGJpdG1hcCAqYml0bWFwLCB1bnNpZ25lZCBsb25nIG5iaXRzKQorc3RhdGljIGlubGluZSBi
-b29sIGJpdG1hcF9mdWxsKGNvbnN0IGJpdG1hcF90ICpiaXRtYXAsIHVuc2lnbmVkIGxvbmcgbmJp
-dHMpCiB7CiAJdW5zaWduZWQgbG9uZyBpOwogCkBAIC0xNzMsNyArMTczLDcgQEAgc3RhdGljIGlu
-bGluZSBib29sIGJpdG1hcF9mdWxsKGNvbnN0IGJpdG1hcCAqYml0bWFwLCB1bnNpZ25lZCBsb25n
-IG5iaXRzKQogCXJldHVybiB0cnVlOwogfQogCi1zdGF0aWMgaW5saW5lIGJvb2wgYml0bWFwX2Vt
-cHR5KGNvbnN0IGJpdG1hcCAqYml0bWFwLCB1bnNpZ25lZCBsb25nIG5iaXRzKQorc3RhdGljIGlu
-bGluZSBib29sIGJpdG1hcF9lbXB0eShjb25zdCBiaXRtYXBfdCAqYml0bWFwLCB1bnNpZ25lZCBs
-b25nIG5iaXRzKQogewogCXVuc2lnbmVkIGxvbmcgaTsKIApAQCAtMTg3LDIwICsxODcsMjAgQEAg
-c3RhdGljIGlubGluZSBib29sIGJpdG1hcF9lbXB0eShjb25zdCBiaXRtYXAgKmJpdG1hcCwgdW5z
-aWduZWQgbG9uZyBuYml0cykKIAlyZXR1cm4gdHJ1ZTsKIH0KIAotdW5zaWduZWQgbG9uZyBiaXRt
-YXBfZmZzKGNvbnN0IGJpdG1hcCAqYml0bWFwLAordW5zaWduZWQgbG9uZyBiaXRtYXBfZmZzKGNv
-bnN0IGJpdG1hcF90ICpiaXRtYXAsCiAJCQkgdW5zaWduZWQgbG9uZyBuLCB1bnNpZ25lZCBsb25n
-IG0pOwogCiAvKgogICogQWxsb2NhdGlvbiBmdW5jdGlvbnMKICAqLwotc3RhdGljIGlubGluZSBi
-aXRtYXAgKmJpdG1hcF9hbGxvYyh1bnNpZ25lZCBsb25nIG5iaXRzKQorc3RhdGljIGlubGluZSBi
-aXRtYXBfdCAqYml0bWFwX2FsbG9jKHVuc2lnbmVkIGxvbmcgbmJpdHMpCiB7CiAJcmV0dXJuIG1h
-bGxvYyhiaXRtYXBfc2l6ZW9mKG5iaXRzKSk7CiB9CiAKLXN0YXRpYyBpbmxpbmUgYml0bWFwICpi
-aXRtYXBfYWxsb2MwKHVuc2lnbmVkIGxvbmcgbmJpdHMpCitzdGF0aWMgaW5saW5lIGJpdG1hcF90
-ICpiaXRtYXBfYWxsb2MwKHVuc2lnbmVkIGxvbmcgbmJpdHMpCiB7Ci0JYml0bWFwICpiaXRtYXA7
-CisJYml0bWFwX3QgKmJpdG1hcDsKIAogCWJpdG1hcCA9IGJpdG1hcF9hbGxvYyhuYml0cyk7CiAJ
-aWYgKGJpdG1hcCkKQEAgLTIwOCw5ICsyMDgsOSBAQCBzdGF0aWMgaW5saW5lIGJpdG1hcCAqYml0
-bWFwX2FsbG9jMCh1bnNpZ25lZCBsb25nIG5iaXRzKQogCXJldHVybiBiaXRtYXA7CiB9CiAKLXN0
-YXRpYyBpbmxpbmUgYml0bWFwICpiaXRtYXBfYWxsb2MxKHVuc2lnbmVkIGxvbmcgbmJpdHMpCitz
-dGF0aWMgaW5saW5lIGJpdG1hcF90ICpiaXRtYXBfYWxsb2MxKHVuc2lnbmVkIGxvbmcgbmJpdHMp
-CiB7Ci0JYml0bWFwICpiaXRtYXA7CisJYml0bWFwX3QgKmJpdG1hcDsKIAogCWJpdG1hcCA9IGJp
-dG1hcF9hbGxvYyhuYml0cyk7CiAJaWYgKGJpdG1hcCkKQEAgLTIxOCw3ICsyMTgsNyBAQCBzdGF0
-aWMgaW5saW5lIGJpdG1hcCAqYml0bWFwX2FsbG9jMSh1bnNpZ25lZCBsb25nIG5iaXRzKQogCXJl
-dHVybiBiaXRtYXA7CiB9CiAKLXN0YXRpYyBpbmxpbmUgYml0bWFwICpiaXRtYXBfcmVhbGxvYzAo
-Yml0bWFwICpiaXRtYXAsCitzdGF0aWMgaW5saW5lIGJpdG1hcF90ICpiaXRtYXBfcmVhbGxvYzAo
-Yml0bWFwX3QgKmJpdG1hcCwKIAkJCQkgICAgICB1bnNpZ25lZCBsb25nIG9iaXRzLCB1bnNpZ25l
-ZCBsb25nIG5iaXRzKQogewogCWJpdG1hcCA9IHJlYWxsb2MoYml0bWFwLCBiaXRtYXBfc2l6ZW9m
-KG5iaXRzKSk7CkBAIC0yMjksNyArMjI5LDcgQEAgc3RhdGljIGlubGluZSBiaXRtYXAgKmJpdG1h
-cF9yZWFsbG9jMChiaXRtYXAgKmJpdG1hcCwKIAlyZXR1cm4gYml0bWFwOwogfQogCi1zdGF0aWMg
-aW5saW5lIGJpdG1hcCAqYml0bWFwX3JlYWxsb2MxKGJpdG1hcCAqYml0bWFwLAorc3RhdGljIGlu
-bGluZSBiaXRtYXBfdCAqYml0bWFwX3JlYWxsb2MxKGJpdG1hcF90ICpiaXRtYXAsCiAJCQkJICAg
-ICAgdW5zaWduZWQgbG9uZyBvYml0cywgdW5zaWduZWQgbG9uZyBuYml0cykKIHsKIAliaXRtYXAg
-PSByZWFsbG9jKGJpdG1hcCwgYml0bWFwX3NpemVvZihuYml0cykpOwotLSAKMi45LjMKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBt
-YWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+This replaces the suspect looking cdev.kobj.parent lines with the
+equivalent cdev_set_parent function. This is a straightforward change
+that's largely cosmetic but it does push the kobj.parent ownership
+into char_dev.c where it belongs.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ drivers/infiniband/core/user_mad.c    | 4 ++--
+ drivers/infiniband/core/uverbs_main.c | 2 +-
+ drivers/infiniband/hw/hfi1/device.c   | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index aca7ff7..25071b8 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -1183,7 +1183,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 
+ 	cdev_init(&port->cdev, &umad_fops);
+ 	port->cdev.owner = THIS_MODULE;
+-	port->cdev.kobj.parent = &umad_dev->kobj;
++	cdev_set_parent(&port->cdev, &umad_dev->kobj);
+ 	kobject_set_name(&port->cdev.kobj, "umad%d", port->dev_num);
+ 	if (cdev_add(&port->cdev, base, 1))
+ 		goto err_cdev;
+@@ -1202,7 +1202,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 	base += IB_UMAD_MAX_PORTS;
+ 	cdev_init(&port->sm_cdev, &umad_sm_fops);
+ 	port->sm_cdev.owner = THIS_MODULE;
+-	port->sm_cdev.kobj.parent = &umad_dev->kobj;
++	cdev_set_parent(&port->sm_cdev, &umad_dev->kobj);
+ 	kobject_set_name(&port->sm_cdev.kobj, "issm%d", port->dev_num);
+ 	if (cdev_add(&port->sm_cdev, base, 1))
+ 		goto err_sm_cdev;
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 35c788a..f02d7b9 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -1189,7 +1189,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	cdev_init(&uverbs_dev->cdev, NULL);
+ 	uverbs_dev->cdev.owner = THIS_MODULE;
+ 	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
+-	uverbs_dev->cdev.kobj.parent = &uverbs_dev->kobj;
++	cdev_set_parent(&uverbs_dev->cdev, &uverbs_dev->kobj);
+ 	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
+ 	if (cdev_add(&uverbs_dev->cdev, base, 1))
+ 		goto err_cdev;
+diff --git a/drivers/infiniband/hw/hfi1/device.c b/drivers/infiniband/hw/hfi1/device.c
+index bf64b5a..bbb6069 100644
+--- a/drivers/infiniband/hw/hfi1/device.c
++++ b/drivers/infiniband/hw/hfi1/device.c
+@@ -69,7 +69,7 @@ int hfi1_cdev_init(int minor, const char *name,
+ 
+ 	cdev_init(cdev, fops);
+ 	cdev->owner = THIS_MODULE;
+-	cdev->kobj.parent = parent;
++	cdev_set_parent(cdev, parent);
+ 	kobject_set_name(&cdev->kobj, name);
+ 
+ 	ret = cdev_add(cdev, dev, 1);
+-- 
+2.1.4
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
