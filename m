@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0BE1A802D3
- for <linux-nvdimm@lists.01.org>; Fri,  3 Mar 2017 22:14:25 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 0/7] Add ndctl check-namespace
-Date: Fri,  3 Mar 2017 23:13:00 -0700
-Message-Id: <20170304061307.13530-1-vishal.l.verma@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 512E5802AE
+ for <linux-nvdimm@lists.01.org>; Sun,  5 Mar 2017 23:06:44 -0800 (PST)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Mon,  6 Mar 2017 00:04:26 -0700
+Message-Id: <1488783873-2614-11-git-send-email-logang@deltatee.com>
+In-Reply-To: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v3 10/16] iio:core: utilize new cdev_device_add helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,120 +17,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes in v3:
-- Move the addition of ccan/bitmap to its own patch(es) (Dan)
-- Drop the changelog update from the spec (Dan)
-- Fix the [verse] section in the documentation text for check-namespace (Dan)
-- Unify all namespace_disable paths to perform checking for a mounted
-  filesystem (Dan)
-- Change the logging to use util/log.h (Dan)
-- Use BTT_START_OFFSET for the initial offset, and store it in bttc (Jeff, Dan)
-- Fix a number of line > 80 chars (everything but strings) (Jeff)
-- Fix short write error handling, add fsync (Jeff)
-- Save system page size in bttc to avoid calling sysconf repeatedly (Jeff)
-- In check_log_map(), loop through the entire log even in case of an error,
-  and if there was a saved error, fail. (Jeff)
-- btt-check.sh: in the post repair test, validate that the data read back
-  is the same as what was written (Jeff)
-- Stop playing games with pre-adding/subtracting the initial 4K offset (Jeff)
-- btt_read_info doesn't need to use 'rc', return directly.
+Replace the open coded registration of the cdev and dev with the
+new device_add_cdev() helper. The helper replaces a common pattern by
+taking the proper reference against the parent device and adding both
+the cdev and the device.
 
-Changes in v2:
-- Move checking functionality to a separate file (Dan, Jeff)
-- Rename btt-structs.h to check.h (Dan)
-- Don't provide a configure option for building the checker, always
-  build it in. (Dan, Jeff)
-- Fix the Documentation example to also include disable-namespace (Linda)
-- Update the description text to note the namespace needs to be disabled
-  before checking (Linda)
-- Use util/size.h for sizes (Dan)
-- Use --repair to do repairs instead of --dry-run to disable repairs (Dan)
-- Fix btt_read_info short read error handling (Jeff)
-- Simplify the map lookup/write routines (Jeff)
-- Differentiate the use off BTT_PG_SIZE, sysconf(_SC_PAGESIZE), and SZ_4K
-  (for the fixed start offset) in the different places they're used (Jeff)
-- Add the missing msync when copying over info2 (Jeff)
-- Add unit tests to test the checker (Jeff)
-- Add a missing error case check in do_xaction_namespace for check
-- Add a --force option that allows running on an active namespace (Jeff)
-- Add a bitmap test for checking all internal blocks are referenced exactly
-  once between the map and flog (Jeff)
-- Remove unused #defines in check.h
-- Add comments to explain what we do with raw_mode (Jeff)
-- Add some sanity checking when parsing an arena's metadata (Jeff)
-- Refactor some read-verify sequences into a helper that combines the two (Jeff)
-- Additional bounds checking on the 'offset' in recover_first_sb attempt 3 (Jeff)
-- Add a missing ACTION_DESTROY string in parse_namespace_options (Dan)
-- Use uXX, and cpu_to_XX from ccan/endian (Dan)
-- Move the fletcher64 Routing to util/ as it is shared by builtin-dimm.c (Dan)
-- Open the raw block device only once with O_EXCL instead of every time on
-  read/write/mmap (Dan)
-- Add a new 'inform' routing in util/usage.c, and use it for some non-critical
-  messages (Dan)
-- Remove namespace_is_offline() from builtin-check.c. Instead, use
-  util_namespace_active() from util/json.c
-- Add a missing return value check after info block restoration in
-  discover_arenas
+In doing so we have to remove a guard statement from cdev_del,
+but this doesn't appear to be required in any way.
 
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ drivers/iio/industrialio-core.c | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-Vishal Verma (7):
-  libndctl: add a ndctl_namespace_is_active helper
-  libndctl: add a ndctl_namespace_disable_safe() API
-  ccan: Add ccan/bitmap in preparation for the BTT checker
-  ccan/bitmap: fix a set of gcc warnings (with -Wshadow)
-  ndctl: move the fletcher64 routine to util/
-  ndctl: add a BTT check utility
-  ndctl, test: Add a unit test for the BTT checker
-
- Documentation/Makefile.am               |   1 +
- Documentation/ndctl-check-namespace.txt |  64 +++
- Documentation/ndctl.txt                 |   1 +
- Makefile.am                             |   7 +-
- builtin.h                               |   1 +
- ccan/bitmap/LICENSE                     |   1 +
- ccan/bitmap/bitmap.c                    | 125 ++++
- ccan/bitmap/bitmap.h                    | 243 ++++++++
- contrib/ndctl                           |   3 +
- licenses/LGPL-2.1                       | 508 ++++++++++++++++
- ndctl.spec.in                           |   2 +-
- ndctl/Makefile.am                       |   1 +
- ndctl/builtin-check.c                   | 988 ++++++++++++++++++++++++++++++++
- ndctl/builtin-dimm.c                    |  18 +-
- ndctl/builtin-list.c                    |   2 +-
- ndctl/builtin-xaction-namespace.c       | 112 ++--
- ndctl/check.h                           | 127 ++++
- ndctl/lib/libndctl.c                    |  59 ++
- ndctl/lib/libndctl.sym                  |   2 +
- ndctl/libndctl.h.in                     |   3 +
- ndctl/ndctl.c                           |   1 +
- test/Makefile.am                        |   5 +-
- test/btt-check.sh                       | 170 ++++++
- util/fletcher.c                         |  23 +
- util/fletcher.h                         |   8 +
- util/json.c                             |  17 +-
- util/json.h                             |   1 -
- util/util.h                             |   8 +
- 28 files changed, 2423 insertions(+), 78 deletions(-)
- create mode 100644 Documentation/ndctl-check-namespace.txt
- create mode 120000 ccan/bitmap/LICENSE
- create mode 100644 ccan/bitmap/bitmap.c
- create mode 100644 ccan/bitmap/bitmap.h
- create mode 100644 licenses/LGPL-2.1
- create mode 100644 ndctl/builtin-check.c
- create mode 100644 ndctl/check.h
- create mode 100755 test/btt-check.sh
- create mode 100644 util/fletcher.c
- create mode 100644 util/fletcher.h
-
+diff --git a/drivers/iio/industrialio-core.c b/drivers/iio/industrialio-core.c
+index d18ded4..26a03c6 100644
+--- a/drivers/iio/industrialio-core.c
++++ b/drivers/iio/industrialio-core.c
+@@ -1720,18 +1720,13 @@ int iio_device_register(struct iio_dev *indio_dev)
+ 
+ 	cdev_init(&indio_dev->chrdev, &iio_buffer_fileops);
+ 	indio_dev->chrdev.owner = indio_dev->info->driver_module;
+-	indio_dev->chrdev.kobj.parent = &indio_dev->dev.kobj;
+-	ret = cdev_add(&indio_dev->chrdev, indio_dev->dev.devt, 1);
+-	if (ret < 0)
+-		goto error_unreg_eventset;
+ 
+-	ret = device_add(&indio_dev->dev);
++	ret = cdev_device_add(&indio_dev->chrdev, &indio_dev->dev);
+ 	if (ret < 0)
+-		goto error_cdev_del;
++		goto error_unreg_eventset;
+ 
+ 	return 0;
+-error_cdev_del:
+-	cdev_del(&indio_dev->chrdev);
++
+ error_unreg_eventset:
+ 	iio_device_unregister_eventset(indio_dev);
+ error_free_sysfs:
+@@ -1752,10 +1747,8 @@ void iio_device_unregister(struct iio_dev *indio_dev)
+ {
+ 	mutex_lock(&indio_dev->info_exist_lock);
+ 
+-	device_del(&indio_dev->dev);
++	cdev_device_del(&indio_dev->chrdev, &indio_dev->dev);
+ 
+-	if (indio_dev->chrdev.dev)
+-		cdev_del(&indio_dev->chrdev);
+ 	iio_device_unregister_debugfs(indio_dev);
+ 
+ 	iio_disable_all_buffers(indio_dev);
 -- 
-2.9.3
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
