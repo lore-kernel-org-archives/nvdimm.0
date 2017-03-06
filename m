@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CDB428040A
- for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:12:52 -0700 (PDT)
-Subject: [PATCH v4 10/13] mm: prepare for hot-{add,
- remove} of sub-section ranges
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 15 Mar 2017 23:07:41 -0700
-Message-ID: <148964446151.19438.9450441862708278040.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7B2B2802B3
+ for <linux-nvdimm@lists.01.org>; Mon,  6 Mar 2017 00:27:27 -0800 (PST)
+Subject: Re: [PATCH v3 02/16] device-dax: fix cdev leak
+References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+ <1488783873-2614-3-git-send-email-logang@deltatee.com>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Message-ID: <8c14aaaa-2881-c260-87f1-50fb1e6213d8@suse.de>
+Date: Mon, 6 Mar 2017 09:27:18 +0100
 MIME-Version: 1.0
+In-Reply-To: <1488783873-2614-3-git-send-email-logang@deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,298 +19,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
+To: Logan Gunthorpe <logang@deltatee.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepare the memory hot-{add,remove} paths for handling sub-section
-ranges by plumbing the starting page frame and number of pages being
-handled through arch_{add,remove}_memory() to
-sparse_{add,remove}_one_section().
+On 03/06/2017 08:04 AM, Logan Gunthorpe wrote:
+> From: Dan Williams <dan.j.williams@intel.com>
+> =
 
-This is simply plumbing, small cleanups, and some identifier renames. No
-intended functional changes.
+> If device_add() fails, cleanup the cdev. Otherwise, we leak a kobj_map()
+> with a stale device number.
+> =
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/mm/init_64.c          |   11 +++++
- include/linux/memory_hotplug.h |    6 ++-
- mm/memory_hotplug.c            |   85 ++++++++++++++++++++++------------------
- mm/sparse.c                    |    6 ++-
- 4 files changed, 65 insertions(+), 43 deletions(-)
+> As Jason points out, there is a small possibility that userspace has
+> opened and mapped the device in the time between cdev_add() and the
+> device_add() failure. We need a new kill_dax_dev() helper to invalidate
+> any established mappings.
+> =
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 0dbae2469a40..ed860558735f 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -650,6 +650,17 @@ int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
- 
-+	/*
-+	 * Only allow partial section hotplug for ZONE_DEVICE ranges,
-+	 * since register_new_memory() requires section alignment, and
-+	 * CONFIG_SPARSEMEM_VMEMMAP=n requires sections to be fully
-+	 * populated.
-+	 */
-+	if ((!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) || !for_device)
-+			&& ((start & ~PA_SECTION_MASK)
-+				|| (size & ~PA_SECTION_MASK)))
-+		return -EINVAL;
-+
- 	init_memory_mapping(start, start + size);
- 
- 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 134a2f69c21a..2f2c0d1290a1 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -280,8 +280,10 @@ extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern void remove_memory(int nid, u64 start, u64 size);
--extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn);
--extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
-+extern int sparse_add_section(struct zone *zone, unsigned long pfn,
-+		unsigned long nr_pages);
-+extern void sparse_remove_section(struct zone *zone, struct mem_section *ms,
-+		unsigned long pfn, unsigned long nr_pages,
- 		unsigned long map_offset);
- extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
- 					  unsigned long pnum);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index dc6f815c2d37..50fd94871c65 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -474,10 +474,10 @@ static void __meminit grow_pgdat_span(struct pglist_data *pgdat, unsigned long s
- 					pgdat->node_start_pfn;
- }
- 
--static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn)
-+static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn,
-+		unsigned long nr_pages)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
--	int nr_pages = PAGES_PER_SECTION;
- 	int nid = pgdat->node_id;
- 	int zone_type;
- 	unsigned long flags, pfn;
-@@ -507,24 +507,21 @@ static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn)
- }
- 
- static int __meminit __add_section(int nid, struct zone *zone,
--					unsigned long phys_start_pfn)
-+		unsigned long pfn, unsigned long nr_pages)
- {
- 	int ret;
- 
--	if (pfn_valid(phys_start_pfn))
--		return -EEXIST;
--
--	ret = sparse_add_one_section(zone, phys_start_pfn);
-+	ret = sparse_add_section(zone, pfn, nr_pages);
- 
- 	if (ret < 0)
- 		return ret;
- 
--	ret = __add_zone(zone, phys_start_pfn);
-+	ret = __add_zone(zone, pfn, nr_pages);
- 
- 	if (ret < 0)
- 		return ret;
- 
--	return register_new_memory(zone, nid, __pfn_to_section(phys_start_pfn));
-+	return register_new_memory(zone, nid, __pfn_to_section(pfn));
- }
- 
- /*
-@@ -533,7 +530,7 @@ static int __meminit __add_section(int nid, struct zone *zone,
-  * call this function after deciding the zone to which to
-  * add the new pages.
-  */
--int __ref __add_pages(int nid, struct zone *zone, unsigned long phys_start_pfn,
-+int __ref __add_pages(int nid, struct zone *zone, unsigned long pfn,
- 			unsigned long nr_pages)
- {
- 	int err = 0, i, start_sec, end_sec;
-@@ -541,16 +538,12 @@ int __ref __add_pages(int nid, struct zone *zone, unsigned long phys_start_pfn,
- 
- 	clear_zone_contiguous(zone);
- 
--	/* during initialize mem_map, align hot-added range to section */
--	start_sec = pfn_to_section_nr(phys_start_pfn);
--	end_sec = pfn_to_section_nr(phys_start_pfn + nr_pages - 1);
--
--	altmap = to_vmem_altmap((unsigned long) pfn_to_page(phys_start_pfn));
-+	altmap = to_vmem_altmap((unsigned long) pfn_to_page(pfn));
- 	if (altmap) {
- 		/*
- 		 * Validate altmap is within bounds of the total request
- 		 */
--		if (altmap->base_pfn != phys_start_pfn
-+		if (altmap->base_pfn != pfn
- 				|| vmem_altmap_offset(altmap) > nr_pages) {
- 			pr_warn_once("memory add fail, invalid altmap\n");
- 			err = -EINVAL;
-@@ -559,8 +552,16 @@ int __ref __add_pages(int nid, struct zone *zone, unsigned long phys_start_pfn,
- 		altmap->alloc = 0;
- 	}
- 
-+	start_sec = pfn_to_section_nr(pfn);
-+	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
- 	for (i = start_sec; i <= end_sec; i++) {
--		err = __add_section(nid, zone, section_nr_to_pfn(i));
-+		unsigned long pfns;
-+
-+		pfns = min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK));
-+		err = __add_section(nid, zone, pfn, pfns);
-+		pfn += pfns;
-+		nr_pages -= pfns;
- 
- 		/*
- 		 * EEXIST is finally dealt with by ioresource collision
-@@ -766,10 +767,10 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
- 	pgdat->node_spanned_pages = 0;
- }
- 
--static void __remove_zone(struct zone *zone, unsigned long start_pfn)
-+static void __remove_zone(struct zone *zone, unsigned long start_pfn,
-+		unsigned long nr_pages)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
--	int nr_pages = PAGES_PER_SECTION;
- 	int zone_type;
- 	unsigned long flags;
- 
-@@ -781,11 +782,10 @@ static void __remove_zone(struct zone *zone, unsigned long start_pfn)
- 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
- }
- 
--static int __remove_section(struct zone *zone, struct mem_section *ms,
--		unsigned long map_offset)
-+static int __remove_section(struct zone *zone, unsigned long pfn,
-+		unsigned long nr_pages, unsigned long map_offset)
- {
--	unsigned long start_pfn;
--	int scn_nr;
-+	struct mem_section *ms = __nr_to_section(pfn_to_section_nr(pfn));
- 	int ret = -EINVAL;
- 
- 	if (!valid_section(ms))
-@@ -795,11 +795,9 @@ static int __remove_section(struct zone *zone, struct mem_section *ms,
- 	if (ret)
- 		return ret;
- 
--	scn_nr = __section_nr(ms);
--	start_pfn = section_nr_to_pfn(scn_nr);
--	__remove_zone(zone, start_pfn);
-+	__remove_zone(zone, pfn, nr_pages);
- 
--	sparse_remove_one_section(zone, ms, map_offset);
-+	sparse_remove_section(zone, ms, pfn, nr_pages, map_offset);
- 	return 0;
- }
- 
-@@ -814,16 +812,15 @@ static int __remove_section(struct zone *zone, struct mem_section *ms,
-  * sure that pages are marked reserved and zones are adjust properly by
-  * calling offline_pages().
-  */
--int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
-+int __remove_pages(struct zone *zone, unsigned long pfn,
- 		 unsigned long nr_pages)
- {
--	unsigned long i;
- 	unsigned long map_offset = 0;
--	int sections_to_remove, ret = 0;
-+	int i, start_sec, end_sec, ret = 0;
- 
- 	/* In the ZONE_DEVICE case device driver owns the memory region */
- 	if (is_dev_zone(zone)) {
--		struct page *page = pfn_to_page(phys_start_pfn);
-+		struct page *page = pfn_to_page(pfn);
- 		struct vmem_altmap *altmap;
- 
- 		altmap = to_vmem_altmap((unsigned long) page);
-@@ -832,7 +829,7 @@ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
- 	} else {
- 		resource_size_t start, size;
- 
--		start = phys_start_pfn << PAGE_SHIFT;
-+		start = pfn << PAGE_SHIFT;
- 		size = nr_pages * PAGE_SIZE;
- 
- 		ret = release_mem_region_adjustable(&iomem_resource, start,
-@@ -848,16 +845,26 @@ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
- 	clear_zone_contiguous(zone);
- 
- 	/*
--	 * We can only remove entire sections
-+	 * Only ZONE_DEVICE memory is enabled to remove
-+	 * section-unaligned ranges. See register_new_memory() which
-+	 * assumes section alignment and is skipped for ZONE_DEVICE
-+	 * ranges.
- 	 */
--	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
--	BUG_ON(nr_pages % PAGES_PER_SECTION);
-+	if (!is_dev_zone(zone) && ((pfn | nr_pages) & ~PAGE_SECTION_MASK)) {
-+		WARN(1, "section unaligned removal not supported\n");
-+		return -EINVAL;
-+	}
- 
--	sections_to_remove = nr_pages / PAGES_PER_SECTION;
--	for (i = 0; i < sections_to_remove; i++) {
--		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
-+	start_sec = pfn_to_section_nr(pfn);
-+	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
-+	for (i = start_sec; i <= end_sec; i++) {
-+		unsigned long pfns;
- 
--		ret = __remove_section(zone, __pfn_to_section(pfn), map_offset);
-+		pfns = min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK));
-+		ret = __remove_section(zone, pfn, pfns, map_offset);
-+		pfn += pfns;
-+		nr_pages -= pfns;
- 		map_offset = 0;
- 		if (ret)
- 			break;
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 1a51f97ae99e..edb1d2a21a2e 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -753,7 +753,8 @@ static void free_map_bootmem(struct page *memmap)
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
--int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
-+int __meminit sparse_add_section(struct zone *zone, unsigned long start_pfn,
-+		unsigned long nr_pages)
- {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
- 	struct pglist_data *pgdat = zone->zone_pgdat;
-@@ -855,7 +856,8 @@ static void free_section_usage(struct page *memmap,
- 		free_map_bootmem(memmap);
- }
- 
--void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
-+void sparse_remove_section(struct zone *zone, struct mem_section *ms,
-+		unsigned long pfn, unsigned long nr_pages,
- 		unsigned long map_offset)
- {
- 	unsigned long flags;
+> Fixes: ba09c01d2fa8 ("dax: convert to the cdev api")
+> Cc: <stable@vger.kernel.org>
+> Reported-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+> ---
 
+Looks good,
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+
+
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
