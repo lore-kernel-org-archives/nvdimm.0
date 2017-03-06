@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3B1968032B
- for <linux-nvdimm@lists.01.org>; Mon,  6 Mar 2017 13:38:58 -0800 (PST)
-Subject: [PATCH 3/4] ndctl/test: remove the bus check functions
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 06 Mar 2017 14:38:57 -0700
-Message-ID: <148883633749.72901.3091116733746057554.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <148883624600.72901.16358369702902205527.stgit@djiang5-desk3.ch.intel.com>
-References: <148883624600.72901.16358369702902205527.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 3BCCA8031F
+ for <linux-nvdimm@lists.01.org>; Sun,  5 Mar 2017 23:06:55 -0800 (PST)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Mon,  6 Mar 2017 00:04:23 -0700
+Message-Id: <1488783873-2614-8-git-send-email-logang@deltatee.com>
+In-Reply-To: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v3 07/16] platform/chrome: cros_ec_dev - utilize new
+ cdev_device_add helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,266 +18,101 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the addition of support to clear poison list and badblocks on a
-per region level, the bus checking functions will be moved to
-devdax-error test to test directly on device dax. The command issued to
-active pmem are expected to fail.
+Replace the open coded registration of the cdev and dev with the
+new device_add_cdev() helper. The helper replaces a common pattern by
+taking the proper reference against the parent device and adding both
+the cdev and the device.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+At the same time we cleanup the error path through device_probe
+function: we use put_device instead of kfree directly as recommended
+by the device_initialize documentation.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- test/libndctl.c |  217 -------------------------------------------------------
- 1 file changed, 1 insertion(+), 216 deletions(-)
+ drivers/platform/chrome/cros_ec_dev.c | 31 +++++++------------------------
+ 1 file changed, 7 insertions(+), 24 deletions(-)
 
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 8d6e492..39822ee 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -2186,184 +2186,6 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- }
- #endif
+diff --git a/drivers/platform/chrome/cros_ec_dev.c b/drivers/platform/chrome/cros_ec_dev.c
+index 6f09da4..6aa120c 100644
+--- a/drivers/platform/chrome/cros_ec_dev.c
++++ b/drivers/platform/chrome/cros_ec_dev.c
+@@ -391,7 +391,6 @@ static int ec_device_probe(struct platform_device *pdev)
+ 	int retval = -ENOMEM;
+ 	struct device *dev = &pdev->dev;
+ 	struct cros_ec_platform *ec_platform = dev_get_platdata(dev);
+-	dev_t devno = MKDEV(ec_major, pdev->id);
+ 	struct cros_ec_dev *ec = kzalloc(sizeof(*ec), GFP_KERNEL);
  
--#ifdef HAVE_NDCTL_ARS
--static int check_ars_cap(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
--		struct check_cmd *check)
--{
--	struct ndctl_cmd *cmd;
--	int rc;
--
--	if (check->cmd != NULL) {
--		fprintf(stderr, "%s: dimm: %#x expected a NULL command, by default\n",
--				__func__, ndctl_dimm_get_handle(dimm));
--		return -ENXIO;
--	}
--
--	cmd = ndctl_bus_cmd_new_ars_cap(bus, 0, SZ_4K);
--	if (!cmd) {
--		fprintf(stderr, "%s: bus: %s failed to create cmd\n",
--				__func__, ndctl_bus_get_provider(bus));
--		return -ENOTTY;
--	}
--
--	rc = ndctl_cmd_submit(cmd);
--	if (rc) {
--		fprintf(stderr, "%s: bus: %s failed to submit cmd: %d\n",
--				__func__, ndctl_bus_get_provider(bus), rc);
--		ndctl_cmd_unref(cmd);
--		return rc;
--	}
--
--	if (ndctl_cmd_ars_cap_get_size(cmd) < sizeof(struct nd_cmd_ars_status)) {
--		fprintf(stderr, "%s: bus: %s expect size >= %zd got: %d\n",
--				__func__, ndctl_bus_get_provider(bus),
--				sizeof(struct nd_cmd_ars_status),
--				ndctl_cmd_ars_cap_get_size(cmd));
--		ndctl_cmd_unref(cmd);
--		return -ENXIO;
--	}
--
--	check->cmd = cmd;
--	return 0;
--}
--
--static int check_ars_start(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
--		struct check_cmd *check)
--{
--	struct ndctl_cmd *cmd_ars_cap = check_cmds[ND_CMD_ARS_CAP].cmd;
--	struct ndctl_cmd *cmd;
--	int rc;
--
--	if (check->cmd != NULL) {
--		fprintf(stderr, "%s: dimm: %#x expected a NULL command, by default\n",
--				__func__, ndctl_dimm_get_handle(dimm));
--		return -ENXIO;
--	}
--
--	cmd = ndctl_bus_cmd_new_ars_start(cmd_ars_cap, ND_ARS_PERSISTENT);
--	if (!cmd) {
--		fprintf(stderr, "%s: bus: %s failed to create cmd\n",
--				__func__, ndctl_bus_get_provider(bus));
--		return -ENOTTY;
--	}
--
--	rc = ndctl_cmd_submit(cmd);
--	if (rc) {
--		fprintf(stderr, "%s: bus: %s failed to submit cmd: %d\n",
--				__func__, ndctl_bus_get_provider(bus), rc);
--		ndctl_cmd_unref(cmd);
--		return rc;
--	}
--
--	check->cmd = cmd;
--	return 0;
--}
--
--static int check_ars_status(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
--		struct check_cmd *check)
--{
--	struct ndctl_cmd *cmd_ars_cap = check_cmds[ND_CMD_ARS_CAP].cmd;
--	struct ndctl_cmd *cmd;
--	unsigned long tmo = 5;
--	unsigned int i;
--	int rc;
--
--	if (check->cmd != NULL) {
--		fprintf(stderr, "%s: dimm: %#x expected a NULL command, by default\n",
--				__func__, ndctl_dimm_get_handle(dimm));
--		return -ENXIO;
--	}
--
-- retry:
--	cmd = ndctl_bus_cmd_new_ars_status(cmd_ars_cap);
--	if (!cmd) {
--		fprintf(stderr, "%s: bus: %s failed to create cmd\n",
--				__func__, ndctl_bus_get_provider(bus));
--		return -ENOTTY;
--	}
--
--	rc = ndctl_cmd_submit(cmd);
--	if (rc) {
--		fprintf(stderr, "%s: bus: %s failed to submit cmd: %d\n",
--				__func__, ndctl_bus_get_provider(bus), rc);
--		ndctl_cmd_unref(cmd);
--		return rc;
--	}
--
--	if (!tmo) {
--		fprintf(stderr, "%s: bus: %s ars timeout\n", __func__,
--				ndctl_bus_get_provider(bus));
--		return -EIO;
--	}
--
--	if (ndctl_cmd_ars_in_progress(cmd)) {
--		tmo--;
--		sleep(1);
--		goto retry;
--	}
--
--	for (i = 0; i < ndctl_cmd_ars_num_records(cmd); i++) {
--		fprintf(stderr, "%s: record[%d].addr: 0x%llx\n", __func__, i,
--			ndctl_cmd_ars_get_record_addr(cmd, i));
--		fprintf(stderr, "%s: record[%d].length: 0x%llx\n", __func__, i,
--			ndctl_cmd_ars_get_record_len(cmd, i));
--	}
--
--	check->cmd = cmd;
--	return 0;
--}
--
--#ifdef HAVE_NDCTL_CLEAR_ERROR
--static int check_clear_error(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
--		struct check_cmd *check)
--{
--	struct ndctl_cmd *ars_cap = check_cmds[ND_CMD_ARS_CAP].cmd;
--	struct ndctl_cmd *clear_err;
--	unsigned long long cleared;
--	struct ndctl_range range;
--	int rc;
--
--	if (check->cmd != NULL) {
--		fprintf(stderr, "%s: expected a NULL command, by default\n",
--				__func__);
--		return -ENXIO;
--	}
--
--	if (ndctl_cmd_ars_cap_get_range(ars_cap, &range)) {
--		fprintf(stderr, "failed to get ars_cap range\n");
--		return -ENXIO;
--	}
--
--	clear_err = ndctl_bus_cmd_new_clear_error(range.address, SZ_4K,
--			ars_cap);
--	if (!clear_err) {
--		fprintf(stderr, "%s: bus: %s failed to create cmd\n",
--				__func__, ndctl_bus_get_provider(bus));
--		return -ENOTTY;
--	}
--
--	rc = ndctl_cmd_submit(clear_err);
--	if (rc) {
--		fprintf(stderr, "%s: bus: %s failed to submit cmd: %d\n",
--				__func__, ndctl_bus_get_provider(bus), rc);
--		ndctl_cmd_unref(clear_err);
--		return rc;
--	}
--
--	cleared = ndctl_cmd_clear_error_get_cleared(clear_err);
--	if (cleared != SZ_4K) {
--		fprintf(stderr, "%s: bus: %s expected to clear: %d actual: %lld\n",
--				__func__, ndctl_bus_get_provider(bus), SZ_4K,
--				cleared);
--		return -ENXIO;
--	}
--
--	check->cmd = clear_err;
--	return 0;
--}
--#endif /* HAVE_NDCTL_CLEAR_ERROR */
--#endif /* HAVE_NDCTL_ARS */
--
- #define BITS_PER_LONG 32
- static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 		unsigned long bus_commands, unsigned long dimm_commands,
-@@ -2387,16 +2209,7 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 			.test = test,
- 		},
- 	};
--	static struct check_cmd __check_bus_cmds[] = {
--#ifdef HAVE_NDCTL_ARS
--		[ND_CMD_ARS_CAP] = { check_ars_cap },
--		[ND_CMD_ARS_START] = { check_ars_start },
--		[ND_CMD_ARS_STATUS] = { check_ars_status },
--#ifdef HAVE_NDCTL_CLEAR_ERROR
--		[ND_CMD_CLEAR_ERROR] = { check_clear_error },
--#endif
--#endif
--	};
-+
- 	unsigned int i, rc = 0;
+ 	if (!ec)
+@@ -407,23 +406,11 @@ static int ec_device_probe(struct platform_device *pdev)
+ 	cdev_init(&ec->cdev, &fops);
  
  	/*
-@@ -2441,34 +2254,6 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 6, 0)))
- 		goto out;
+-	 * Add the character device
+-	 * Link cdev to the class device to be sure device is not used
+-	 * before unbinding it.
+-	 */
+-	ec->cdev.kobj.parent = &ec->class_dev.kobj;
+-	retval = cdev_add(&ec->cdev, devno, 1);
+-	if (retval) {
+-		dev_err(dev, ": failed to add character device\n");
+-		goto cdev_add_failed;
+-	}
+-
+-	/*
+ 	 * Add the class device
+ 	 * Link to the character device for creating the /dev entry
+ 	 * in devtmpfs.
+ 	 */
+-	ec->class_dev.devt = ec->cdev.dev;
++	ec->class_dev.devt = MKDEV(ec_major, pdev->id);
+ 	ec->class_dev.class = &cros_class;
+ 	ec->class_dev.parent = dev;
+ 	ec->class_dev.release = __remove;
+@@ -431,13 +418,13 @@ static int ec_device_probe(struct platform_device *pdev)
+ 	retval = dev_set_name(&ec->class_dev, "%s", ec_platform->ec_name);
+ 	if (retval) {
+ 		dev_err(dev, "dev_set_name failed => %d\n", retval);
+-		goto set_named_failed;
++		goto failed;
+ 	}
  
--	/* Check Bus commands */
--	check_cmds = __check_bus_cmds;
--	for (i = 1; i < BITS_PER_LONG; i++) {
--		struct check_cmd *check = &check_cmds[i];
--
--		if ((bus_commands & (1UL << i)) == 0)
--			continue;
--		if (!ndctl_bus_is_cmd_supported(bus, i)) {
--			fprintf(stderr, "%s: bus: %s expected cmd: %s supported\n",
--					__func__,
--					ndctl_bus_get_provider(bus),
--					ndctl_bus_get_cmd_name(bus, i));
--			return -ENXIO;
--		}
--
--		if (!check->check_fn)
--			continue;
--		rc = check->check_fn(bus, dimm, check);
--		if (rc)
--			break;
--	}
--
--	for (i = 1; i < ARRAY_SIZE(__check_bus_cmds); i++) {
--		if (__check_bus_cmds[i].cmd)
--			ndctl_cmd_unref(__check_bus_cmds[i].cmd);
--		__check_bus_cmds[i].cmd = NULL;
--	}
--
-  out:
- 	return rc;
+-	retval = device_add(&ec->class_dev);
++	retval = cdev_device_add(&ec->cdev, &ec->class_dev);
+ 	if (retval) {
+-		dev_err(dev, "device_register failed => %d\n", retval);
+-		goto dev_reg_failed;
++		dev_err(dev, "cdev_device_add failed => %d\n", retval);
++		goto failed;
+ 	}
+ 
+ 	/* check whether this EC is a sensor hub. */
+@@ -446,12 +433,8 @@ static int ec_device_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-dev_reg_failed:
+-set_named_failed:
+-	dev_set_drvdata(dev, NULL);
+-	cdev_del(&ec->cdev);
+-cdev_add_failed:
+-	kfree(ec);
++failed:
++	put_device(&ec->class_dev);
+ 	return retval;
  }
+ 
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
