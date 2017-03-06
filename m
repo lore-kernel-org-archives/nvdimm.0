@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 84FDC21A0480D
- for <linux-nvdimm@lists.01.org>; Thu, 30 Mar 2017 15:13:21 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 85603802AE
+ for <linux-nvdimm@lists.01.org>; Sun,  5 Mar 2017 23:06:46 -0800 (PST)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Mar 2017 16:12:38 -0600
-Message-Id: <1490911959-5146-8-git-send-email-logang@deltatee.com>
-In-Reply-To: <1490911959-5146-1-git-send-email-logang@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
-Subject: [RFC 7/8] p2pmem: Support device removal
+Date: Mon,  6 Mar 2017 00:04:20 -0700
+Message-Id: <1488783873-2614-5-git-send-email-logang@deltatee.com>
+In-Reply-To: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v3 04/16] input: utilize new cdev_device_add helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,359 +22,155 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch creates a list of callbacks to notify users of this memory
-that the p2pmem device is going away or gone.
-
-In nvmet-rdma, we disconnect any queue using p2p memory.
-The remote side will then automatically reconnect in a
-couple seconds and regular system memory (or a different p2pmem device)
-will be used.
+Replace the open coded registration of the cdev and dev with the
+new device_add_cdev() helper in evdev, joydev and mousedev. The helper
+replaces a common pattern by taking the proper reference against the
+parent device and adding both the cdev and the device.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/memory/p2pmem.c    | 75 ++++++++++++++++++++++++++++++++---
- drivers/nvme/target/rdma.c | 98 ++++++++++++++++++++++++++--------------------
- include/linux/p2pmem.h     | 19 +++++++--
- 3 files changed, 140 insertions(+), 52 deletions(-)
+ drivers/input/evdev.c    | 11 ++---------
+ drivers/input/joydev.c   | 11 ++---------
+ drivers/input/mousedev.c | 11 ++---------
+ 3 files changed, 6 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/memory/p2pmem.c b/drivers/memory/p2pmem.c
-index 71741c2..499d42c 100644
---- a/drivers/memory/p2pmem.c
-+++ b/drivers/memory/p2pmem.c
-@@ -105,6 +105,21 @@ static void p2pmem_release(struct device *dev)
- 	kfree(p);
- }
+diff --git a/drivers/input/evdev.c b/drivers/input/evdev.c
+index e9ae3d5..9255714 100644
+--- a/drivers/input/evdev.c
++++ b/drivers/input/evdev.c
+@@ -1354,8 +1354,6 @@ static void evdev_cleanup(struct evdev *evdev)
+ 	evdev_mark_dead(evdev);
+ 	evdev_hangup(evdev);
  
-+struct remove_callback {
-+	struct list_head list;
-+	void (*callback)(void *context);
-+	void *context;
-+};
-+
-+static void p2pmem_remove(struct p2pmem_dev *p)
-+{
-+	struct remove_callback *remove_call, *tmp;
-+
-+	p->alive = false;
-+	list_for_each_entry_safe(remove_call, tmp, &p->remove_list, list)
-+		remove_call->callback(remove_call->context);
-+}
-+
- /**
-  * p2pmem_create() - create a new p2pmem device
-  * @parent: the parent device to create it under
-@@ -123,6 +138,10 @@ struct p2pmem_dev *p2pmem_create(struct device *parent)
- 		return ERR_PTR(-ENOMEM);
+-	cdev_del(&evdev->cdev);
+-
+ 	/* evdev is marked dead so no one else accesses evdev->open */
+ 	if (evdev->open) {
+ 		input_flush_device(handle, NULL);
+@@ -1416,12 +1414,8 @@ static int evdev_connect(struct input_handler *handler, struct input_dev *dev,
+ 		goto err_free_evdev;
  
- 	init_completion(&p->cmp);
-+	mutex_init(&p->remove_mutex);
-+	INIT_LIST_HEAD(&p->remove_list);
-+	p->alive = true;
-+
- 	device_initialize(&p->dev);
- 	p->dev.class = p2pmem_class;
- 	p->dev.parent = parent;
-@@ -187,6 +206,7 @@ void p2pmem_unregister(struct p2pmem_dev *p)
+ 	cdev_init(&evdev->cdev, &evdev_fops);
+-	evdev->cdev.kobj.parent = &evdev->dev.kobj;
+-	error = cdev_add(&evdev->cdev, evdev->dev.devt, 1);
+-	if (error)
+-		goto err_unregister_handle;
  
- 	dev_info(&p->dev, "unregistered");
- 	device_del(&p->dev);
-+	p2pmem_remove(p);
- 	ida_simple_remove(&p2pmem_ida, p->id);
- 	put_device(&p->dev);
- }
-@@ -291,6 +311,9 @@ EXPORT_SYMBOL(p2pmem_add_pci_region);
-  */
- void *p2pmem_alloc(struct p2pmem_dev *p, size_t size)
+-	error = device_add(&evdev->dev);
++	error = cdev_device_add(&evdev->cdev, &evdev->dev);
+ 	if (error)
+ 		goto err_cleanup_evdev;
+ 
+@@ -1429,7 +1423,6 @@ static int evdev_connect(struct input_handler *handler, struct input_dev *dev,
+ 
+  err_cleanup_evdev:
+ 	evdev_cleanup(evdev);
+- err_unregister_handle:
+ 	input_unregister_handle(&evdev->handle);
+  err_free_evdev:
+ 	put_device(&evdev->dev);
+@@ -1442,7 +1435,7 @@ static void evdev_disconnect(struct input_handle *handle)
  {
-+	if (!p->alive)
-+		return NULL;
-+
- 	return (void *)gen_pool_alloc(p->pool, size);
- }
- EXPORT_SYMBOL(p2pmem_alloc);
-@@ -349,6 +372,9 @@ static int upstream_bridges_match(struct device *p2pmem,
- 	struct pci_dev *p2p_up;
- 	struct pci_dev *dma_up;
+ 	struct evdev *evdev = handle->private;
  
-+	if (!to_p2pmem(p2pmem)->alive)
-+		return false;
-+
- 	p2p_up = get_upstream_switch_port(p2pmem);
- 	if (!p2p_up) {
- 		dev_warn(p2pmem, "p2pmem is not behind a pci switch");
-@@ -383,6 +409,8 @@ static int upstream_bridges_match(struct device *p2pmem,
-  *	specified devices
-  * @dma_devices: a null terminated array of device pointers which
-  *	all must be compatible with the returned p2pmem device
-+ * @remove_callback: this callback will be called if the p2pmem
-+ *	device is removed.
-  *
-  * For now, we only support cases where all the devices that
-  * will transfer to the p2pmem device are on the same switch.
-@@ -400,9 +428,13 @@ static int upstream_bridges_match(struct device *p2pmem,
-  * (use p2pmem_put to return the reference) or NULL if no compatible
-  * p2pmem device is found.
-  */
--struct p2pmem_dev *p2pmem_find_compat(struct device **dma_devices)
-+struct p2pmem_dev *p2pmem_find_compat(struct device **dma_devices,
-+				      void (*remove_callback)(void *context),
-+				      void *context)
+-	device_del(&evdev->dev);
++	cdev_device_del(&evdev->cdev, &evdev->dev);
+ 	evdev_cleanup(evdev);
+ 	input_free_minor(MINOR(evdev->dev.devt));
+ 	input_unregister_handle(handle);
+diff --git a/drivers/input/joydev.c b/drivers/input/joydev.c
+index 065e67b..29d677c 100644
+--- a/drivers/input/joydev.c
++++ b/drivers/input/joydev.c
+@@ -742,8 +742,6 @@ static void joydev_cleanup(struct joydev *joydev)
+ 	joydev_mark_dead(joydev);
+ 	joydev_hangup(joydev);
+ 
+-	cdev_del(&joydev->cdev);
+-
+ 	/* joydev is marked dead so no one else accesses joydev->open */
+ 	if (joydev->open)
+ 		input_close_device(handle);
+@@ -913,12 +911,8 @@ static int joydev_connect(struct input_handler *handler, struct input_dev *dev,
+ 		goto err_free_joydev;
+ 
+ 	cdev_init(&joydev->cdev, &joydev_fops);
+-	joydev->cdev.kobj.parent = &joydev->dev.kobj;
+-	error = cdev_add(&joydev->cdev, joydev->dev.devt, 1);
+-	if (error)
+-		goto err_unregister_handle;
+ 
+-	error = device_add(&joydev->dev);
++	error = cdev_device_add(&joydev->cdev, &joydev->dev);
+ 	if (error)
+ 		goto err_cleanup_joydev;
+ 
+@@ -926,7 +920,6 @@ static int joydev_connect(struct input_handler *handler, struct input_dev *dev,
+ 
+  err_cleanup_joydev:
+ 	joydev_cleanup(joydev);
+- err_unregister_handle:
+ 	input_unregister_handle(&joydev->handle);
+  err_free_joydev:
+ 	put_device(&joydev->dev);
+@@ -939,7 +932,7 @@ static void joydev_disconnect(struct input_handle *handle)
  {
- 	struct device *dev;
-+	struct p2pmem_dev *p;
-+	struct remove_callback *remove_call;
+ 	struct joydev *joydev = handle->private;
  
- 	dev = class_find_device(p2pmem_class, NULL, dma_devices,
- 				upstream_bridges_match);
-@@ -410,21 +442,54 @@ struct p2pmem_dev *p2pmem_find_compat(struct device **dma_devices)
- 	if (!dev)
- 		return NULL;
+-	device_del(&joydev->dev);
++	cdev_device_del(&joydev->cdev, &joydev->dev);
+ 	joydev_cleanup(joydev);
+ 	input_free_minor(MINOR(joydev->dev.devt));
+ 	input_unregister_handle(handle);
+diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
+index b604564..0e0ff84 100644
+--- a/drivers/input/mousedev.c
++++ b/drivers/input/mousedev.c
+@@ -812,8 +812,6 @@ static void mousedev_cleanup(struct mousedev *mousedev)
+ 	mousedev_mark_dead(mousedev);
+ 	mousedev_hangup(mousedev);
  
--	return to_p2pmem(dev);
-+	p = to_p2pmem(dev);
-+	mutex_lock(&p->remove_mutex);
-+
-+	if (!p->alive) {
-+		p = NULL;
-+		goto out;
-+	}
-+
-+	remove_call = kzalloc(sizeof(*remove_call), GFP_KERNEL);
-+	remove_call->callback = remove_callback;
-+	remove_call->context = context;
-+	INIT_LIST_HEAD(&remove_call->list);
-+	list_add(&remove_call->list, &p->remove_list);
-+
-+out:
-+	mutex_unlock(&p->remove_mutex);
-+	return p;
- }
- EXPORT_SYMBOL(p2pmem_find_compat);
- 
- /**
-  * p2pmem_put() - decrement a p2pmem device reference
-  * @p: p2pmem device to return
-+ * @data: data pointer that was passed to p2pmem_find_compat
-  *
-  * Dereference and free (if last) the device's reference counter.
-  * It's safe to pass a NULL pointer to this function.
-  */
--void p2pmem_put(struct p2pmem_dev *p)
-+void p2pmem_put(struct p2pmem_dev *p, void *context)
- {
--	if (p)
--		put_device(&p->dev);
-+	struct remove_callback *remove_call;
-+
-+	if (!p)
-+		return;
-+
-+	mutex_lock(&p->remove_mutex);
-+
-+	list_for_each_entry(remove_call, &p->remove_list, list) {
-+		if (remove_call->context != context)
-+			continue;
-+
-+		list_del(&remove_call->list);
-+		kfree(remove_call);
-+		break;
-+	}
-+
-+	mutex_unlock(&p->remove_mutex);
-+	put_device(&p->dev);
- }
- EXPORT_SYMBOL(p2pmem_put);
- 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index abab544..9ebcda6 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -1008,7 +1008,7 @@ static void nvmet_rdma_free_queue(struct nvmet_rdma_queue *queue)
- 				!queue->host_qid);
+-	cdev_del(&mousedev->cdev);
+-
+ 	/* mousedev is marked dead so no one else accesses mousedev->open */
+ 	if (mousedev->open)
+ 		input_close_device(handle);
+@@ -901,12 +899,8 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
  	}
- 	nvmet_rdma_free_rsps(queue);
--	p2pmem_put(queue->p2pmem);
-+	p2pmem_put(queue->p2pmem, queue);
- 	ida_simple_remove(&nvmet_rdma_queue_ida, queue->idx);
- 	kfree(queue);
- }
-@@ -1204,6 +1204,58 @@ static int nvmet_rdma_cm_accept(struct rdma_cm_id *cm_id,
- 	return ret;
- }
  
-+static void __nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue)
-+{
-+	bool disconnect = false;
-+	unsigned long flags;
-+
-+	pr_debug("cm_id= %p queue->state= %d\n", queue->cm_id, queue->state);
-+
-+	spin_lock_irqsave(&queue->state_lock, flags);
-+	switch (queue->state) {
-+	case NVMET_RDMA_Q_CONNECTING:
-+	case NVMET_RDMA_Q_LIVE:
-+		queue->state = NVMET_RDMA_Q_DISCONNECTING;
-+	case NVMET_RDMA_IN_DEVICE_REMOVAL:
-+		disconnect = true;
-+		break;
-+	case NVMET_RDMA_Q_DISCONNECTING:
-+		break;
-+	}
-+	spin_unlock_irqrestore(&queue->state_lock, flags);
-+
-+	if (disconnect) {
-+		rdma_disconnect(queue->cm_id);
-+		schedule_work(&queue->release_work);
-+	}
-+}
-+
-+static void nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue)
-+{
-+	bool disconnect = false;
-+
-+	mutex_lock(&nvmet_rdma_queue_mutex);
-+	if (!list_empty(&queue->queue_list)) {
-+		list_del_init(&queue->queue_list);
-+		disconnect = true;
-+	}
-+	mutex_unlock(&nvmet_rdma_queue_mutex);
-+
-+	if (disconnect)
-+		__nvmet_rdma_queue_disconnect(queue);
-+}
-+
-+static void nvmet_rdma_p2pmem_remove(void *context)
-+{
-+	struct nvmet_rdma_queue *queue = context;
-+
-+	if (!queue->p2pmem)
-+		return;
-+
-+	nvmet_rdma_queue_disconnect(queue);
-+	flush_scheduled_work();
-+}
-+
- /*
-  * If allow_p2pmem is set, we will try to use P2P memory for our
-  * sgl lists. This requires the p2pmem device to be compatible with
-@@ -1241,7 +1293,8 @@ static void nvmet_rdma_queue_setup_p2pmem(struct nvmet_rdma_queue *queue)
+ 	cdev_init(&mousedev->cdev, &mousedev_fops);
+-	mousedev->cdev.kobj.parent = &mousedev->dev.kobj;
+-	error = cdev_add(&mousedev->cdev, mousedev->dev.devt, 1);
+-	if (error)
+-		goto err_unregister_handle;
  
- 	dma_devs[i++] = NULL;
+-	error = device_add(&mousedev->dev);
++	error = cdev_device_add(&mousedev->cdev, &mousedev->dev);
+ 	if (error)
+ 		goto err_cleanup_mousedev;
  
--	queue->p2pmem = p2pmem_find_compat(dma_devs);
-+	queue->p2pmem = p2pmem_find_compat(dma_devs, nvmet_rdma_p2pmem_remove,
-+					   queue);
+@@ -914,7 +908,6 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
  
- 	if (queue->p2pmem)
- 		pr_debug("using %s for rdma nvme target queue",
-@@ -1317,47 +1370,6 @@ static void nvmet_rdma_queue_established(struct nvmet_rdma_queue *queue)
- 	spin_unlock_irqrestore(&queue->state_lock, flags);
- }
+  err_cleanup_mousedev:
+ 	mousedev_cleanup(mousedev);
+- err_unregister_handle:
+ 	if (!mixdev)
+ 		input_unregister_handle(&mousedev->handle);
+  err_free_mousedev:
+@@ -927,7 +920,7 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
  
--static void __nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue)
--{
--	bool disconnect = false;
--	unsigned long flags;
--
--	pr_debug("cm_id= %p queue->state= %d\n", queue->cm_id, queue->state);
--
--	spin_lock_irqsave(&queue->state_lock, flags);
--	switch (queue->state) {
--	case NVMET_RDMA_Q_CONNECTING:
--	case NVMET_RDMA_Q_LIVE:
--		queue->state = NVMET_RDMA_Q_DISCONNECTING;
--	case NVMET_RDMA_IN_DEVICE_REMOVAL:
--		disconnect = true;
--		break;
--	case NVMET_RDMA_Q_DISCONNECTING:
--		break;
--	}
--	spin_unlock_irqrestore(&queue->state_lock, flags);
--
--	if (disconnect) {
--		rdma_disconnect(queue->cm_id);
--		schedule_work(&queue->release_work);
--	}
--}
--
--static void nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue)
--{
--	bool disconnect = false;
--
--	mutex_lock(&nvmet_rdma_queue_mutex);
--	if (!list_empty(&queue->queue_list)) {
--		list_del_init(&queue->queue_list);
--		disconnect = true;
--	}
--	mutex_unlock(&nvmet_rdma_queue_mutex);
--
--	if (disconnect)
--		__nvmet_rdma_queue_disconnect(queue);
--}
--
- static void nvmet_rdma_queue_connect_fail(struct rdma_cm_id *cm_id,
- 		struct nvmet_rdma_queue *queue)
+ static void mousedev_destroy(struct mousedev *mousedev)
  {
-diff --git a/include/linux/p2pmem.h b/include/linux/p2pmem.h
-index 4cd6f35..9365b02 100644
---- a/include/linux/p2pmem.h
-+++ b/include/linux/p2pmem.h
-@@ -22,12 +22,16 @@
- struct p2pmem_dev {
- 	struct device dev;
- 	int id;
-+	bool alive;
- 
- 	struct percpu_ref ref;
- 	struct completion cmp;
- 	struct gen_pool *pool;
- 
- 	struct dentry *debugfs_root;
-+
-+	struct mutex remove_mutex;	/* protects the remove callback list */
-+	struct list_head remove_list;
- };
- 
- #ifdef CONFIG_P2PMEM
-@@ -41,8 +45,12 @@ int p2pmem_add_pci_region(struct p2pmem_dev *p, struct pci_dev *pdev, int bar);
- void *p2pmem_alloc(struct p2pmem_dev *p, size_t size);
- void p2pmem_free(struct p2pmem_dev *p, void *addr, size_t size);
- 
--struct p2pmem_dev *p2pmem_find_compat(struct device **dma_devices);
--void p2pmem_put(struct p2pmem_dev *p);
-+struct p2pmem_dev *
-+p2pmem_find_compat(struct device **dma_devices,
-+		   void (*unregister_callback)(void *context),
-+		   void *context);
-+
-+void p2pmem_put(struct p2pmem_dev *p, void *context);
- 
- #else
- 
-@@ -76,12 +84,15 @@ static inline void p2pmem_free(struct p2pmem_dev *p, void *addr, size_t size)
- {
- }
- 
--static inline struct p2pmem_dev *p2pmem_find_compat(struct device **dma_devs)
-+static inline struct p2pmem_dev *
-+p2pmem_find_compat(struct device **dma_devices,
-+		   void (*unregister_callback)(void *context),
-+		   void *context)
- {
- 	return NULL;
- }
- 
--static inline void p2pmem_put(struct p2pmem_dev *p)
-+static inline void p2pmem_put(struct p2pmem_dev *p, void *context)
- {
- }
- 
+-	device_del(&mousedev->dev);
++	cdev_device_del(&mousedev->cdev, &mousedev->dev);
+ 	mousedev_cleanup(mousedev);
+ 	input_free_minor(MINOR(mousedev->dev.devt));
+ 	if (mousedev != mousedev_mix)
 -- 
 2.1.4
 
