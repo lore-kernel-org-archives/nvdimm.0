@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 20ED080401
- for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:12:47 -0700 (PDT)
-Subject: [PATCH v4 09/13] mm: convert kmalloc_section_memmap() to
- populate_section_memmap()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 15 Mar 2017 23:07:36 -0700
-Message-ID: <148964445626.19438.6520118177602807376.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8381F80364
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Mar 2017 13:07:00 -0800 (PST)
+Subject: [PATCH v2 5/5] libnvdimm: providing dax support for nvdimm testing
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 07 Mar 2017 14:06:59 -0700
+Message-ID: <148892081943.46486.11984849130626382982.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148892068983.46486.5008198419806159468.stgit@djiang5-desk3.ch.intel.com>
+References: <148892068983.46486.5008198419806159468.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,272 +22,210 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow sub-section sized ranges to be added to the memmap.
-populate_section_memmap() takes an explict pfn range rather than
-assuming a full section, and those parameters are plumbed all the way
-through to vmmemap_populate(). There should be no sub-section in
-current code. New warnings are added to clarify which memmap allocation
-paths are sub-section capable.
+Adding dax support to the nvdimm testing in tools/testing/nvdimm. The
+memory allocated by the tool is via vmalloc and non-contiguous.
+Overriding pgoff_to_phys() call to support the vmalloc memory.
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- arch/x86/mm/init_64.c |    4 ++-
- include/linux/mm.h    |    3 ++
- mm/sparse-vmemmap.c   |   24 ++++++++++++++------
- mm/sparse.c           |   60 ++++++++++++++++++++++++++++++++-----------------
- 4 files changed, 61 insertions(+), 30 deletions(-)
+ drivers/dax/dax-private.h      |   40 ++++++++++++++++++++++++++++++++++++
+ drivers/dax/dax.c              |   29 +++++---------------------
+ tools/testing/nvdimm/Kbuild    |    3 ++-
+ tools/testing/nvdimm/dax-dev.c |   44 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 91 insertions(+), 25 deletions(-)
+ create mode 100644 drivers/dax/dax-private.h
+ create mode 100644 tools/testing/nvdimm/dax-dev.c
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 879cd1842610..0dbae2469a40 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1215,7 +1215,9 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
- 	struct vmem_altmap *altmap = to_vmem_altmap(start);
- 	int err;
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+new file mode 100644
+index 0000000..1567ea4
+--- /dev/null
++++ b/drivers/dax/dax-private.h
+@@ -0,0 +1,40 @@
++/*
++ * Copyright(c) 2016 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __DAX_PRIVATE_H__
++#define __DAX_PRIVATE_H__
++
++#include <linux/device.h>
++#include <linux/cdev.h>
++
++/**
++ * struct dax_dev - subdivision of a dax region
++ * @region - parent region
++ * @inode - inode
++ * @dev - device backing the character device
++ * @cdev - core chardev data
++ * @alive - !alive + rcu grace period == no new mappings can be established
++ * @id - child id in the region
++ * @num_resources - number of physical address extents in this device
++ * @res - array of physical address ranges
++ */
++struct dax_dev {
++	struct dax_region *region;
++	struct inode *inode;
++	struct device dev;
++	struct cdev cdev;
++	bool alive;
++	int id;
++	int num_resources;
++	struct resource res[0];
++};
++#endif
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index ed758b7..2755ef6 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -21,6 +21,7 @@
+ #include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include "dax-private.h"
+ #include "dax.h"
  
--	if (boot_cpu_has(X86_FEATURE_PSE))
-+	if (end - start < PAGES_PER_SECTION * sizeof(struct page))
-+		err = vmemmap_populate_basepages(start, end, node);
-+	else if (boot_cpu_has(X86_FEATURE_PSE))
- 		err = vmemmap_populate_hugepages(start, end, node, altmap);
- 	else if (altmap) {
- 		pr_err_once("%s: no cpu support for altmap allocations\n",
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 601560ad3981..d94f4f4a27b7 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2404,7 +2404,8 @@ void sparse_mem_maps_populate_node(struct page **map_map,
- 				   unsigned long map_count,
- 				   int nodeid);
+ static dev_t dax_devt;
+@@ -54,27 +55,6 @@ struct dax_region {
+ 	unsigned long pfn_flags;
+ };
  
--struct page *sparse_mem_map_populate(unsigned long pnum, int nid);
-+struct page *__populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid);
- pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
- p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index a56c3989f773..c4dcaa5f87a8 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -264,20 +264,28 @@ int __meminit vmemmap_populate_basepages(unsigned long start,
+-/**
+- * struct dax_dev - subdivision of a dax region
+- * @region - parent region
+- * @dev - device backing the character device
+- * @cdev - core chardev data
+- * @alive - !alive + rcu grace period == no new mappings can be established
+- * @id - child id in the region
+- * @num_resources - number of physical address extents in this device
+- * @res - array of physical address ranges
+- */
+-struct dax_dev {
+-	struct dax_region *region;
+-	struct inode *inode;
+-	struct device dev;
+-	struct cdev cdev;
+-	bool alive;
+-	int id;
+-	int num_resources;
+-	struct resource res[0];
+-};
+-
+ static ssize_t id_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -395,7 +375,8 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
  	return 0;
  }
  
--struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
-+struct page * __meminit __populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid)
+-static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
++/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
++__weak phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
+ 		unsigned long size)
  {
- 	unsigned long start;
- 	unsigned long end;
--	struct page *map;
+ 	struct resource *res;
+@@ -437,7 +418,7 @@ static int __dax_dev_fault(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+ 		return VM_FAULT_SIGBUS;
+ 	}
  
--	map = pfn_to_page(pnum * PAGES_PER_SECTION);
--	start = (unsigned long)map;
--	end = (unsigned long)(map + PAGES_PER_SECTION);
-+	/*
-+	 * The minimum granularity of memmap extensions is
-+	 * SECTION_ACTIVE_SIZE as allocations are tracked in the
-+	 * 'map_active' bitmap of the section.
-+	 */
-+	end = ALIGN(pfn + nr_pages, PHYS_PFN(SECTION_ACTIVE_SIZE));
-+	pfn &= PHYS_PFN(SECTION_ACTIVE_MASK);
-+	nr_pages = end - pfn;
+-	phys = pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
++	phys = dax_pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
+ 				vmf->pgoff);
+@@ -499,7 +480,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ 	}
+ 
+ 	pgoff = linear_page_index(vma, pmd_addr);
+-	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
++	phys = dax_pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
+ 				pgoff);
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 405212b..6dcb3c4 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -28,7 +28,7 @@ obj-$(CONFIG_ND_BTT) += nd_btt.o
+ obj-$(CONFIG_ND_BLK) += nd_blk.o
+ obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
+ obj-$(CONFIG_ACPI_NFIT) += nfit.o
+-obj-$(CONFIG_DEV_DAX) += dax.o
++obj-$(CONFIG_DEV_DAX) += dax.o dax-dev.o
+ obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+ 
+ nfit-y := $(ACPI_SRC)/core.o
+@@ -49,6 +49,7 @@ nd_e820-y := $(NVDIMM_SRC)/e820.o
+ nd_e820-y += config_check.o
+ 
+ dax-y := $(DAX_SRC)/dax.o
++dax-y += dax-dev.o
+ dax-y += config_check.o
+ 
+ dax_pmem-y := $(DAX_SRC)/pmem.o
+diff --git a/tools/testing/nvdimm/dax-dev.c b/tools/testing/nvdimm/dax-dev.c
+new file mode 100644
+index 0000000..1763688
+--- /dev/null
++++ b/tools/testing/nvdimm/dax-dev.c
+@@ -0,0 +1,44 @@
++/*
++ * Copyright (c) 2016, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include "test/nfit_test.h"
++#include <linux/mm.h>
++#include "../../../drivers/dax/dax-private.h"
 +
-+	start = (unsigned long) pfn_to_page(pfn);
-+	end = start + nr_pages * sizeof(struct page);
- 
- 	if (vmemmap_populate(start, end, nid))
- 		return NULL;
- 
--	return map;
-+	return pfn_to_page(pfn);
- }
- 
- void __init sparse_mem_maps_populate_node(struct page **map_map,
-@@ -300,11 +308,13 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
- 
- 	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
- 		struct mem_section *ms;
-+		unsigned long pfn = section_nr_to_pfn(pnum);
- 
- 		if (!present_section_nr(pnum))
- 			continue;
- 
--		map_map[pnum] = sparse_mem_map_populate(pnum, nodeid);
-+		map_map[pnum] = __populate_section_memmap(pfn,
-+				PAGES_PER_SECTION, nodeid);
- 		if (map_map[pnum])
- 			continue;
- 		ms = __nr_to_section(pnum);
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 2265578eedbb..1a51f97ae99e 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -423,7 +423,8 @@ static void __init sparse_early_usemaps_alloc_node(void *data,
- }
- 
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
--struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid)
-+struct page __init *__populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid)
- {
- 	struct page *map;
- 	unsigned long size;
-@@ -475,10 +476,12 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
- 	/* fallback */
- 	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
- 		struct mem_section *ms;
-+		unsigned long pfn = section_nr_to_pfn(pnum);
- 
- 		if (!present_section_nr(pnum))
- 			continue;
--		map_map[pnum] = sparse_mem_map_populate(pnum, nodeid);
-+		map_map[pnum] = __populate_section_memmap(pfn,
-+				PAGES_PER_SECTION, nodeid);
- 		if (map_map[pnum])
- 			continue;
- 		ms = __nr_to_section(pnum);
-@@ -506,7 +509,8 @@ static struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
- 	struct mem_section *ms = __nr_to_section(pnum);
- 	int nid = sparse_early_nid(ms);
- 
--	map = sparse_mem_map_populate(pnum, nid);
-+	map = __populate_section_memmap(section_nr_to_pfn(pnum),
-+			PAGES_PER_SECTION, nid);
- 	if (map)
- 		return map;
- 
-@@ -648,15 +652,16 @@ void __init sparse_init(void)
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid)
-+static struct page *populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid)
- {
--	/* This will make the necessary allocations eventually. */
--	return sparse_mem_map_populate(pnum, nid);
-+	return __populate_section_memmap(pfn, nr_pages, nid);
- }
--static void __kfree_section_memmap(struct page *memmap)
++phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
++		unsigned long size)
++{
 +
-+static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages)
- {
--	unsigned long start = (unsigned long)memmap;
--	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
-+	unsigned long start = (unsigned long) pfn_to_page(pfn);
-+	unsigned long end = start + nr_pages * sizeof(struct page);
- 
- 	vmemmap_free(start, end);
- }
-@@ -670,11 +675,18 @@ static void free_map_bootmem(struct page *memmap)
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #else
--static struct page *__kmalloc_section_memmap(void)
-+struct page *populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid)
- {
- 	struct page *page, *ret;
- 	unsigned long memmap_size = sizeof(struct page) * PAGES_PER_SECTION;
- 
-+	if ((pfn & ~PAGE_SECTION_MASK) || nr_pages != PAGES_PER_SECTION) {
-+		WARN(1, "%s: called with section unaligned parameters\n",
-+				__func__);
-+		return NULL;
++	struct resource *res;
++	phys_addr_t virt;
++	int i;
++
++	for (i = 0; i < dax_dev->num_resources; i++) {
++		res = &dax_dev->res[i];
++		virt = pgoff * PAGE_SIZE + res->start;
++		if (virt >= res->start && virt <= res->end)
++			break;
++		pgoff -= PHYS_PFN(resource_size(res));
 +	}
 +
- 	page = alloc_pages(GFP_KERNEL|__GFP_NOWARN, get_order(memmap_size));
- 	if (page)
- 		goto got_map_page;
-@@ -691,13 +703,16 @@ static struct page *__kmalloc_section_memmap(void)
- 	return ret;
- }
- 
--static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid)
-+static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages)
- {
--	return __kmalloc_section_memmap();
--}
-+	struct page *memmap = pfn_to_page(pfn);
++	if (i < dax_dev->num_resources) {
++		res = &dax_dev->res[i];
++		if (virt + size - 1 <= res->end) {
++			struct page *page;
 +
-+	if ((pfn & ~PAGE_SECTION_MASK) || nr_pages != PAGES_PER_SECTION) {
-+		WARN(1, "%s: called with section unaligned parameters\n",
-+				__func__);
-+		return;
++			page = vmalloc_to_page((void *)virt);
++			return PFN_PHYS(page_to_pfn(page));
++		}
 +	}
- 
--static void __kfree_section_memmap(struct page *memmap)
--{
- 	if (is_vmalloc_addr(memmap))
- 		vfree(memmap);
- 	else
-@@ -755,12 +770,13 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
- 	ret = sparse_index_init(section_nr, pgdat->node_id);
- 	if (ret < 0 && ret != -EEXIST)
- 		return ret;
--	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id);
-+	memmap = populate_section_memmap(start_pfn, PAGES_PER_SECTION,
-+			pgdat->node_id);
- 	if (!memmap)
- 		return -ENOMEM;
- 	usage = __alloc_section_usage();
- 	if (!usage) {
--		__kfree_section_memmap(memmap);
-+		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
- 		return -ENOMEM;
- 	}
- 
-@@ -782,7 +798,7 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
- 	pgdat_resize_unlock(pgdat, &flags);
- 	if (ret < 0 && ret != -EEXIST) {
- 		kfree(usage);
--		__kfree_section_memmap(memmap);
-+		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
- 		return ret;
- 	}
- 	return 0;
-@@ -811,7 +827,8 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
- #endif
- 
- static void free_section_usage(struct page *memmap,
--		struct mem_section_usage *usage)
-+		struct mem_section_usage *usage, unsigned long pfn,
-+		unsigned long nr_pages)
- {
- 	struct page *usemap_page;
- 
-@@ -825,7 +842,7 @@ static void free_section_usage(struct page *memmap,
- 	if (PageSlab(usemap_page) || PageCompound(usemap_page)) {
- 		kfree(usage);
- 		if (memmap)
--			__kfree_section_memmap(memmap);
-+			depopulate_section_memmap(pfn, nr_pages);
- 		return;
- 	}
- 
-@@ -858,7 +875,8 @@ void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
- 
- 	clear_hwpoisoned_pages(memmap + map_offset,
- 			PAGES_PER_SECTION - map_offset);
--	free_section_usage(memmap, usage);
-+	free_section_usage(memmap, usage, section_nr_to_pfn(__section_nr(ms)),
-+			PAGES_PER_SECTION);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_MEMORY_HOTPLUG */
++
++	return -1;
++}
 
 _______________________________________________
 Linux-nvdimm mailing list
