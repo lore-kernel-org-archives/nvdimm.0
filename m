@@ -1,11 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com
- (mail-sn1nam02on0731.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe44::731])
+Received: from NAM01-SN1-obe.outbound.protection.outlook.com
+ (mail-sn1nam01on0708.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe40::708])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EFD6180350
- for <linux-nvdimm@lists.01.org>; Tue,  7 Mar 2017 11:00:17 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id ED41D80345
+ for <linux-nvdimm@lists.01.org>; Mon,  6 Mar 2017 18:13:58 -0800 (PST)
 Subject: Re: [PATCH 2/3] Allow specifying a default DSM family
 References: <cover.1488844291.git.linda.knippers@hpe.com>
  <1773e8607ae49fefbb288509603a0db353a72d91.1488844291.git.linda.knippers@hpe.com>
@@ -13,8 +13,8 @@ References: <cover.1488844291.git.linda.knippers@hpe.com>
  <58BE0E06.7020309@hpe.com>
  <CAPcyv4ivbmCdvRhC_ETWBumP7-UA71Lv3va96s34RQPqOLGNdA@mail.gmail.com>
 From: Linda Knippers <linda.knippers@hpe.com>
-Message-ID: <58BF0336.4090606@hpe.com>
-Date: Tue, 7 Mar 2017 14:00:06 -0500
+Message-ID: <58BE1760.3010603@hpe.com>
+Date: Mon, 6 Mar 2017 21:13:52 -0500
 MIME-Version: 1.0
 In-Reply-To: <CAPcyv4ivbmCdvRhC_ETWBumP7-UA71Lv3va96s34RQPqOLGNdA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -146,15 +146,6 @@ On 03/06/2017 08:56 PM, Dan Williams wrote:
 > +                       if (family < 0 || i == default_dsm_family) {
 > +                               family = i;
 > +                               break;
-
-This actually doesn't work with the break since the for() will break
-on the first match, just like the current code.  It works if I remove
-the break, but then we cycle through all the families even if the
-default_dsm_family parameter isn't used.  Do you care about that?
-
-I think it can be simple or efficient but not both.
-
--- ljk
 > +                       }
 > +               }
 > 
@@ -166,6 +157,11 @@ I think it can be simple or efficient but not both.
 >                 if (disable_vendor_specific)
 > 
 
+I think that will work.  I'll test it in the morning.
+
+Thanks for the feedback. I wasn't crazy about the code myself.
+
+-- ljk
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
