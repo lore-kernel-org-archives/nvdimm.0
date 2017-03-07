@@ -1,24 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x229.google.com (mail-oi0-x229.google.com
- [IPv6:2607:f8b0:4003:c06::229])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM01-BY2-obe.outbound.protection.outlook.com
+ (mail-by2nam01on071b.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe42::71b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DDB5C8030C
- for <linux-nvdimm@lists.01.org>; Tue,  7 Mar 2017 11:26:05 -0800 (PST)
-Received: by mail-oi0-x229.google.com with SMTP id 126so7527699oig.3
- for <linux-nvdimm@lists.01.org>; Tue, 07 Mar 2017 11:26:05 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <58BF0336.4090606@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2D61A80350
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Mar 2017 11:05:47 -0800 (PST)
+Subject: Re: [PATCH 2/3] Allow specifying a default DSM family
 References: <cover.1488844291.git.linda.knippers@hpe.com>
  <1773e8607ae49fefbb288509603a0db353a72d91.1488844291.git.linda.knippers@hpe.com>
  <CAPcyv4gmSTTwnUcfGmsvyp8XSL2Zs9ayXjDrz6XakDhp-rMTbg@mail.gmail.com>
  <58BE0E06.7020309@hpe.com>
  <CAPcyv4ivbmCdvRhC_ETWBumP7-UA71Lv3va96s34RQPqOLGNdA@mail.gmail.com>
  <58BF0336.4090606@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 7 Mar 2017 11:26:04 -0800
-Message-ID: <CAPcyv4hR7h-UCtFqWuo2_piBxKwOF2TA1X3YKOQ5wBF4EX=wdg@mail.gmail.com>
-Subject: Re: [PATCH 2/3] Allow specifying a default DSM family
+From: Linda Knippers <linda.knippers@hpe.com>
+Message-ID: <58BF0485.1090003@hpe.com>
+Date: Tue, 7 Mar 2017 14:05:41 -0500
+MIME-Version: 1.0
+In-Reply-To: <58BF0336.4090606@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,11 +29,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linda Knippers <linda.knippers@hpe.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Mar 7, 2017 at 11:00 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
+On 03/07/2017 02:00 PM, Linda Knippers wrote:
 > On 03/06/2017 08:56 PM, Dan Williams wrote:
 >> On Mon, Mar 6, 2017 at 5:33 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
 >>> On 03/06/2017 07:39 PM, Dan Williams wrote:
@@ -149,15 +148,46 @@ On Tue, Mar 7, 2017 at 11:00 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
 >> +                       if (family < 0 || i == default_dsm_family) {
 >> +                               family = i;
 >> +                               break;
->
+> 
 > This actually doesn't work with the break since the for() will break
 > on the first match, just like the current code.  It works if I remove
 > the break, but then we cycle through all the families even if the
 > default_dsm_family parameter isn't used.  Do you care about that?
->
+> 
 > I think it can be simple or efficient but not both.
 
-It doesn't need to be efficient, this is a slow path.
+Something like this does work.
+
+        for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
+                if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1)) {
+                        if (default_dsm_family != -1) {
+                                if (i == default_dsm_family) {
+                                        family = i;
+                                        break;
+                                }
+                                if (family < 0)
+                                        family = i;
+                        }
+                        else {
+                                family = i;
+                                break;
+                        }
+                }
+
+> 
+> -- ljk
+>> +                       }
+>> +               }
+>>
+>>         /* limit the supported commands to those that are publicly documented */
+>> -       nfit_mem->family = i;
+>> +       nfit_mem->family = family;
+>>         if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
+>>                 dsm_mask = 0x3fe;
+>>                 if (disable_vendor_specific)
+>>
+> 
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
