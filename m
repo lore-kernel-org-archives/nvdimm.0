@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM02-BL2-obe.outbound.protection.outlook.com
+ (mail-bl2nam02on0717.outbound.protection.outlook.com
+ [IPv6:2a01:111:f400:fe46::717])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9ECFA80446
- for <linux-nvdimm@lists.01.org>; Fri, 17 Mar 2017 11:49:56 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:22 -0600
-Message-Id: <1489776503-3151-16-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 15/16] scsi: utilize new cdev_device_add helper function
+ by ml01.01.org (Postfix) with ESMTPS id 25B9180348
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Mar 2017 13:35:41 -0800 (PST)
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: [PATCH 2/3] Allow specifying a default DSM family
+Date: Tue, 7 Mar 2017 16:35:13 -0500
+Message-ID: <24665de46521e86c907e0813ee5a25956bfaf5c7.1488921944.git.linda.knippers@hpe.com>
+In-Reply-To: <cover.1488921944.git.linda.knippers@hpe.com>
+References: <cover.1488921944.git.linda.knippers@hpe.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,160 +20,66 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Hans Verkuil <hans.verkuil@cisco.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Johannes Thumshirn <jthumshirn@suse.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This driver did not set kobj.parent so it likely suffered from
-a potential use after free race if the user unregistered the
-device while it was in use.
+Provide the ability to request a default DSM family. If it is not
+supported, then fall back to the normal discovery order.
 
-This was not so straightforward a conversion but I think this patch
-cleans up its probe's error path significantly.
+This is helpful for testing platforms that support multiple DSM families.
+It will also allow administrators to request the DSM family that their
+management tools support, which may not be the first one found using
+the current discovery order.
 
-This patch adds device_initialize, which is required for
-cdev_device_add. Then it switches to put_device instead of kfree as
-recommended by device_initialize's documentation. This removes a lot
-from the error path which was already in __remove.
-A couple things needed to be re-ordered to be entirely correct, though.
-ida_remove is also moved out of __remove and into unregister to
-simplify things and follow the pattern other devices are using.
-
-This also drop an extra unnecessary get_device/put_device in the code.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Linda Knippers <linda.knippers@hpe.com>
 ---
- drivers/scsi/osd/osd_uld.c | 56 +++++++++++++++++-----------------------------
- 1 file changed, 20 insertions(+), 36 deletions(-)
+ drivers/acpi/nfit/core.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/scsi/osd/osd_uld.c b/drivers/scsi/osd/osd_uld.c
-index e0ce5d2..4101c31 100644
---- a/drivers/scsi/osd/osd_uld.c
-+++ b/drivers/scsi/osd/osd_uld.c
-@@ -400,9 +400,6 @@ static void __remove(struct device *dev)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 97d42ff..0564cd6 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -55,6 +55,11 @@
+ module_param(override_dsm_mask, ulong, S_IRUGO);
+ MODULE_PARM_DESC(override_dsm_mask, "Bitmask of allowed NVDIMM DSM functions");
  
- 	kfree(oud->odi.osdname);
- 
--	if (oud->cdev.owner)
--		cdev_del(&oud->cdev);
--
- 	osd_dev_fini(&oud->od);
- 	scsi_device_put(scsi_device);
- 
-@@ -411,7 +408,6 @@ static void __remove(struct device *dev)
- 
- 	if (oud->disk)
- 		put_disk(oud->disk);
--	ida_remove(&osd_minor_ida, oud->minor);
- 
- 	kfree(oud);
- }
-@@ -446,8 +442,20 @@ static int osd_probe(struct device *dev)
- 	if (NULL == oud)
- 		goto err_retract_minor;
- 
-+	/* class device member */
-+	device_initialize(&oud->class_dev);
- 	dev_set_drvdata(dev, oud);
- 	oud->minor = minor;
-+	oud->class_dev.devt = MKDEV(SCSI_OSD_MAJOR, oud->minor);
-+	oud->class_dev.class = &osd_uld_class;
-+	oud->class_dev.parent = dev;
-+	oud->class_dev.release = __remove;
++static int default_dsm_family = -1;
++module_param(default_dsm_family, int, S_IRUGO);
++MODULE_PARM_DESC(default_dsm_family,
++		"Try this DSM type first when identifying NVDIMM family");
 +
-+	/* hold one more reference to the scsi_device that will get released
-+	 * in __release, in case a logout is happening while fs is mounted
-+	 */
-+	scsi_device_get(scsi_device);
-+	osd_dev_init(&oud->od, scsi_device);
+ LIST_HEAD(acpi_descs);
+ DEFINE_MUTEX(acpi_desc_lock);
  
- 	/* allocate a disk and set it up */
- 	/* FIXME: do we need this since sg has already done that */
-@@ -461,59 +469,34 @@ static int osd_probe(struct device *dev)
- 	sprintf(disk->disk_name, "osd%d", oud->minor);
- 	oud->disk = disk;
+@@ -1372,6 +1377,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	unsigned long dsm_mask;
+ 	const u8 *uuid;
+ 	int i;
++	int family = -1;
  
--	/* hold one more reference to the scsi_device that will get released
--	 * in __release, in case a logout is happening while fs is mounted
--	 */
--	scsi_device_get(scsi_device);
--	osd_dev_init(&oud->od, scsi_device);
--
- 	/* Detect the OSD Version */
- 	error = __detect_osd(oud);
- 	if (error) {
- 		OSD_ERR("osd detection failed, non-compatible OSD device\n");
--		goto err_put_disk;
-+		goto err_free_osd;
- 	}
+ 	/* nfit test assumes 1:1 relationship between commands and dsms */
+ 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
+@@ -1402,10 +1408,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	 */
+ 	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
+ 		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
+-			break;
++			if (family < 0 || i == default_dsm_family)
++				family = i;
  
- 	/* init the char-device for communication with user-mode */
- 	cdev_init(&oud->cdev, &osd_fops);
- 	oud->cdev.owner = THIS_MODULE;
--	error = cdev_add(&oud->cdev,
--			 MKDEV(SCSI_OSD_MAJOR, oud->minor), 1);
--	if (error) {
--		OSD_ERR("cdev_add failed\n");
--		goto err_put_disk;
--	}
- 
--	/* class device member */
--	oud->class_dev.devt = oud->cdev.dev;
--	oud->class_dev.class = &osd_uld_class;
--	oud->class_dev.parent = dev;
--	oud->class_dev.release = __remove;
- 	error = dev_set_name(&oud->class_dev, "%s", disk->disk_name);
- 	if (error) {
- 		OSD_ERR("dev_set_name failed => %d\n", error);
--		goto err_put_cdev;
-+		goto err_free_osd;
- 	}
- 
--	error = device_register(&oud->class_dev);
-+	error = cdev_device_add(&oud->cdev, &oud->class_dev);
- 	if (error) {
- 		OSD_ERR("device_register failed => %d\n", error);
--		goto err_put_cdev;
-+		goto err_free_osd;
- 	}
- 
--	get_device(&oud->class_dev);
--
- 	OSD_INFO("osd_probe %s\n", disk->disk_name);
- 	return 0;
- 
--err_put_cdev:
--	cdev_del(&oud->cdev);
--err_put_disk:
--	scsi_device_put(scsi_device);
--	put_disk(disk);
- err_free_osd:
--	dev_set_drvdata(dev, NULL);
--	kfree(oud);
-+	put_device(&oud->class_dev);
- err_retract_minor:
- 	ida_remove(&osd_minor_ida, minor);
- 	return error;
-@@ -530,9 +513,10 @@ static int osd_remove(struct device *dev)
- 			scsi_device);
- 	}
- 
--	device_unregister(&oud->class_dev);
--
-+	cdev_device_del(&oud->cdev, &oud->class_dev);
-+	ida_remove(&osd_minor_ida, oud->minor);
- 	put_device(&oud->class_dev);
-+
- 	return 0;
- }
- 
+ 	/* limit the supported commands to those that are publicly documented */
+-	nfit_mem->family = i;
++	nfit_mem->family = family;
+ 	if (override_dsm_mask && !disable_vendor_specific)
+ 		dsm_mask = override_dsm_mask;
+ 	else if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
 -- 
-2.1.4
+1.8.3.1
 
 _______________________________________________
 Linux-nvdimm mailing list
