@@ -1,11 +1,15 @@
-From: ikisoto-RDMsDAO5PkrofgOdth7kG0SOELVP2MVsWwjlqLct34t2NF2BUPQPJA@public.gmane.org
-Subject: Status of your UPS delivery ID:6140145
-Date: Wed, 8 Mar 2017 21:35:05 +0300
-Message-ID: <E1clgQW-0023xZ-LA@a2plcpnl0513.prod.iad2.secureserver.net>
+From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: device dax fails with alignments other than 1GB
+Date: Wed, 08 Mar 2017 16:17:15 -0500
+Message-ID: <x49h933qxic.fsf@segfault.boston.devel.redhat.com>
+References: <x49lgsfqzeb.fsf@segfault.boston.devel.redhat.com>
+ <5e517d8e-ab1e-af9f-b2a6-e23f243b53d6@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <5e517d8e-ab1e-af9f-b2a6-e23f243b53d6-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (Dave Jiang's
+ message of "Wed, 8 Mar 2017 13:49:23 -0700")
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,15 +19,20 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Dear Customer,
+Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
 
-We can not deliver your parcel arrived at March 06.
+> I'll take a look. I know I ran fio tests around the time I submitted the
+> dev-dax ioengine and did not run into that. But you are saying it's
+> failing even before the 1G support went in?
 
-Postal label is enclosed to this e-mail. Please check the attachment!
+Correct.  I hardly think that part matters now, though--I just was
+surprised that I couldn't find a kernel that actually worked.
 
-Thank you for your time,
-Matthew Arthur,
-UPS Mail Delivery Clerk.
+Thanks for taking a look!
+
+Cheers,
+Jeff
