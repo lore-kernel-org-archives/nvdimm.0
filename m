@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A5778821CF
- for <linux-nvdimm@lists.01.org>; Wed,  1 Mar 2017 01:16:41 -0800 (PST)
-Subject: [PATCH 2/2] nfit, libnvdimm: fix interleave set cookie calculation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 01 Mar 2017 01:11:30 -0800
-Message-ID: <148835949014.28806.14335060350919963814.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148835947931.28806.15339584183213827869.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148835947931.28806.15339584183213827869.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8D8E58032B
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Mar 2017 12:49:24 -0800 (PST)
+Subject: Re: device dax fails with alignments other than 1GB
+References: <x49lgsfqzeb.fsf@segfault.boston.devel.redhat.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <5e517d8e-ab1e-af9f-b2a6-e23f243b53d6@intel.com>
+Date: Wed, 8 Mar 2017 13:49:23 -0700
 MIME-Version: 1.0
+In-Reply-To: <x49lgsfqzeb.fsf@segfault.boston.devel.redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,175 +22,61 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, stable@vger.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>, "Dan J. Williams" <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The interleave-set cookie is a sum that sanity checks the composition of
-an interleave set has not changed from when the namespace was initially
-created.  The checksum is calculated by sorting the DIMMs by their
-location in the interleave-set. The comparison for the sort must be
-64-bit wide, not byte-by-byte as performed by memcmp() in the broken
-case.
 
-Fix the implementation to accept correct cookie values in addition to
-the Linux "memcmp" order cookies, but only allow correct cookies to be
-generated going forward. It does mean that namespaces created by
-third-party-tooling, or created by newer kernels with this fix, will not
-validate on older kernels. However, there are a couple mitigating
-conditions:
+On 03/08/2017 01:36 PM, Jeff Moyer wrote:
+> Hi,
+> 
+> With a device dax alignment of 4KB or 2MB, I get sigbus when running the
+> attached fio job file for the current kernel (4.11.0-rc1+).  If I
+> specify an alignment of 1GB, it works.
+> 
+> I turned on debug output, and saw that it was failing in the huge fault
+> code.
+> 
+> [ 4614.138357] dax dax1.0: dax_open
+> [ 4614.154838] dax dax1.0: dax_mmap
+> [ 4614.171898] dax dax1.0: dax_dev_huge_fault: fio: write (0x7f08f0a00000 - 0x7f0ce0800000)
+> [ 4614.211720] dax dax1.0: __dax_dev_pud_fault: phys_to_pgoff(0xffffffffcf600) failed
+> [ 4614.568911] dax dax1.0: dax_release
+> 
+> Note that the printk is backwards: it's not phys_to_pgoff but rather
+> pgoff_to_phys that fails.
+> 
+> I don't have time to dig into this right now, so I figured I'd report it
+> in case others do.
+> 
+> This does make me wonder how much testing device dax receives.  I tried
+> 3 different kernels (a 4.10-rc, this one, and then a version just before
+> the huge page support went in) and they all broke in different ways.
+> This test is pretty simple.  Dan, can we add it to whatever regression
+> tests you guys run for each of 4KB, 2MB and 1GB alignments?
 
-    1/ platforms with namespace-label capable NVDIMMs are not widely
-       available.
+I'll take a look. I know I ran fio tests around the time I submitted the
+dev-dax ioengine and did not run into that. But you are saying it's
+failing even before the 1G support went in?
 
-    2/ interleave-sets with a single-dimm are by definition not affected
-       (nothing to sort). This covers the QEMU-KVM NVDIMM emulation case.
 
-The cookie stored in the namespace label can be fixed up by writing
-the namespace "alt_name" attribute in sysfs.
-
-Cc: <stable@vger.kernel.org>
-Fixes: eaf961536e16 ("libnvdimm, nfit: add interleave-set state-tracking infrastructure")
-Reported-by: Nicholas Moulin <nicholas.w.moulin@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c        |   16 +++++++++++++++-
- drivers/nvdimm/namespace_devs.c |   18 ++++++++++++++----
- drivers/nvdimm/nd.h             |    1 +
- drivers/nvdimm/region_devs.c    |    9 +++++++++
- include/linux/libnvdimm.h       |    2 ++
- 5 files changed, 41 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 7361d00818e2..662036bdc65e 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1603,7 +1603,7 @@ static size_t sizeof_nfit_set_info(int num_mappings)
- 		+ num_mappings * sizeof(struct nfit_set_info_map);
- }
- 
--static int cmp_map(const void *m0, const void *m1)
-+static int cmp_map_compat(const void *m0, const void *m1)
- {
- 	const struct nfit_set_info_map *map0 = m0;
- 	const struct nfit_set_info_map *map1 = m1;
-@@ -1612,6 +1612,14 @@ static int cmp_map(const void *m0, const void *m1)
- 			sizeof(u64));
- }
- 
-+static int cmp_map(const void *m0, const void *m1)
-+{
-+	const struct nfit_set_info_map *map0 = m0;
-+	const struct nfit_set_info_map *map1 = m1;
-+
-+	return map0->region_offset - map1->region_offset;
-+}
-+
- /* Retrieve the nth entry referencing this spa */
- static struct acpi_nfit_memory_map *memdev_from_spa(
- 		struct acpi_nfit_desc *acpi_desc, u16 range_index, int n)
-@@ -1667,6 +1675,12 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
- 	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
- 			cmp_map, NULL);
- 	nd_set->cookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
-+
-+	/* support namespaces created with the wrong sort order */
-+	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
-+			cmp_map_compat, NULL);
-+	nd_set->altcookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
-+
- 	ndr_desc->nd_set = nd_set;
- 	devm_kfree(dev, info);
- 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index ce3e8dfa10ad..1b481a5fb966 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1700,6 +1700,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
- struct device *create_namespace_pmem(struct nd_region *nd_region,
- 		struct nd_namespace_label *nd_label)
- {
-+	u64 altcookie = nd_region_interleave_set_altcookie(nd_region);
- 	u64 cookie = nd_region_interleave_set_cookie(nd_region);
- 	struct nd_label_ent *label_ent;
- 	struct nd_namespace_pmem *nspm;
-@@ -1718,7 +1719,11 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
- 	if (__le64_to_cpu(nd_label->isetcookie) != cookie) {
- 		dev_dbg(&nd_region->dev, "invalid cookie in label: %pUb\n",
- 				nd_label->uuid);
--		return ERR_PTR(-EAGAIN);
-+		if (__le64_to_cpu(nd_label->isetcookie) != altcookie)
-+			return ERR_PTR(-EAGAIN);
-+
-+		dev_dbg(&nd_region->dev, "valid altcookie in label: %pUb\n",
-+				nd_label->uuid);
- 	}
- 
- 	nspm = kzalloc(sizeof(*nspm), GFP_KERNEL);
-@@ -1733,9 +1738,14 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
- 	res->name = dev_name(&nd_region->dev);
- 	res->flags = IORESOURCE_MEM;
- 
--	for (i = 0; i < nd_region->ndr_mappings; i++)
--		if (!has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
--			break;
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		if (has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
-+			continue;
-+		if (has_uuid_at_pos(nd_region, nd_label->uuid, altcookie, i))
-+			continue;
-+		break;
-+	}
-+
- 	if (i < nd_region->ndr_mappings) {
- 		struct nvdimm_drvdata *ndd = to_ndd(&nd_region->mapping[i]);
- 
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 35dd75057e16..2a99c83aa19f 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -328,6 +328,7 @@ struct nd_region *to_nd_region(struct device *dev);
- int nd_region_to_nstype(struct nd_region *nd_region);
- int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
- u64 nd_region_interleave_set_cookie(struct nd_region *nd_region);
-+u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region);
- void nvdimm_bus_lock(struct device *dev);
- void nvdimm_bus_unlock(struct device *dev);
- bool is_nvdimm_bus_locked(struct device *dev);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 7cd705f3247c..b7cb5066d961 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -505,6 +505,15 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region)
- 	return 0;
- }
- 
-+u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region)
-+{
-+	struct nd_interleave_set *nd_set = nd_region->nd_set;
-+
-+	if (nd_set)
-+		return nd_set->altcookie;
-+	return 0;
-+}
-+
- void nd_mapping_free_labels(struct nd_mapping *nd_mapping)
- {
- 	struct nd_label_ent *label_ent, *e;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 8458c5351e56..77e7af32543f 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -70,6 +70,8 @@ struct nd_cmd_desc {
- 
- struct nd_interleave_set {
- 	u64 cookie;
-+	/* compatibility with initial buggy Linux implementation */
-+	u64 altcookie;
- };
- 
- struct nd_mapping_desc {
-
+> 
+> Cheers,
+> Jeff
+> 
+> [global]
+> ioengine=dev-dax
+> direct=0
+> filename=/dev/dax0.0
+> bs=2m
+> 
+> [write]
+> rw=write
+> 
+> [read]
+> stonewall
+> rw=read
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
