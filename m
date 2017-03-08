@@ -1,7 +1,7 @@
-From: admins6-fpMPtigGFxnQ45HfdEDjfA@public.gmane.org
-Subject: Parcel ID6273545 delivery problems, please review
-Date: Wed, 8 Mar 2017 04:38:10 +0300
-Message-ID: <20170307233828.DFBF419C203C@myhost.horoscopes-signs.com>
+From: ikisoto-RDMsDAO5PkrofgOdth7kG0SOELVP2MVsWwjlqLct34t2NF2BUPQPJA@public.gmane.org
+Subject: Status of your UPS delivery ID:6140145
+Date: Wed, 8 Mar 2017 21:35:05 +0300
+Message-ID: <E1clgQW-0023xZ-LA@a2plcpnl0513.prod.iad2.secureserver.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,15 +15,15 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-JC7UmRfGjtg@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 Dear Customer,
 
-Your item has arrived at March 06, but our courier was not able to deliver the parcel.
+We can not deliver your parcel arrived at March 06.
 
-Please check the attachment for details!
+Postal label is enclosed to this e-mail. Please check the attachment!
 
-With appreciation,
-Patrick Shepard,
-UPS Senior Office Manager.
+Thank you for your time,
+Matthew Arthur,
+UPS Mail Delivery Clerk.
