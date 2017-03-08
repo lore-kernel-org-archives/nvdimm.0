@@ -1,15 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mail-oi0-x22d.google.com (mail-oi0-x22d.google.com
+ [IPv6:2607:f8b0:4003:c06::22d])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 491FE21A0480D
- for <linux-nvdimm@lists.01.org>; Thu, 30 Mar 2017 15:13:21 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Mar 2017 16:12:36 -0600
-Message-Id: <1490911959-5146-6-git-send-email-logang@deltatee.com>
-In-Reply-To: <1490911959-5146-1-git-send-email-logang@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
-Subject: [RFC 5/8] scatterlist: Modify SG copy functions to support io memory.
+ by ml01.01.org (Postfix) with ESMTPS id BD8FF80348
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Mar 2017 09:10:04 -0800 (PST)
+Received: by mail-oi0-x22d.google.com with SMTP id 126so22837945oig.3
+ for <linux-nvdimm@lists.01.org>; Wed, 08 Mar 2017 09:10:04 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <58C0369C.9060100@hpe.com>
+References: <148883211285.49239.17952572594430933942.stgit@djiang5-desk3.ch.intel.com>
+ <148883236278.49239.9457895421265109054.stgit@djiang5-desk3.ch.intel.com>
+ <58BF4E4D.8000406@hpe.com> <e565aec9-b400-6712-25b2-904a64b87dc4@intel.com>
+ <58C0369C.9060100@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 8 Mar 2017 09:10:03 -0800
+Message-ID: <CAPcyv4jPGJ+C+HRJMhNBH6aHoqj4CyazXU+9Yv1pwuBQEkuSdw@mail.gmail.com>
+Subject: Re: [PATCH 3/5] acpi: cleanup acpi_nfit_ctl calling xlat_status
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,197 +24,89 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org
+To: Linda Knippers <linda.knippers@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that we are using p2pmem SG buffers we occasionally have to copy
-to and from this memory. For this, we add an iomem flag to
-sg_copy_buffer for copying with iomemcpy. We also add the sg_iocopy_
-variants to use this more easily.
+On Wed, Mar 8, 2017 at 8:51 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
+> On 03/08/2017 11:29 AM, Dave Jiang wrote:
+>> On 03/07/2017 05:20 PM, Linda Knippers wrote:
+>>> On 03/06/2017 03:32 PM, Dave Jiang wrote:
+>>>> Make sure that xlat_status is unconditionally called.
+>>>
+>>> Is this just code cleanup or is it fixing something?
+>>
+>> This is code clean up requested by Dan.
+>
+> Ok, then it seems like the commit message above should match
+> the subject.  As it is, it makes it sound like it's important
+> to call xlat_status unconditionally, but I still have a question
+> about that below.
+>
+>>
+>>>
+>>>>
+>>>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>>>> ---
+>>>>  drivers/acpi/nfit/core.c |   15 +++++++--------
+>>>>  1 file changed, 7 insertions(+), 8 deletions(-)
+>>>>
+>>>> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+>>>> index 7361d00..9d4f461 100644
+>>>> --- a/drivers/acpi/nfit/core.c
+>>>> +++ b/drivers/acpi/nfit/core.c
+>>>> @@ -199,7 +199,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+>>>>     acpi_handle handle;
+>>>>     unsigned int func;
+>>>>     const u8 *uuid;
+>>>> -   int rc, i;
+>>>> +   int rc = 0, xlat_rc, i;
+>>>>
+>>>>     func = cmd;
+>>>>     if (cmd == ND_CMD_CALL) {
+>>>> @@ -343,21 +343,20 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+>>>>                      * unfilled in the output buffer
+>>>>                      */
+>>>>                     rc = buf_len - offset - in_buf.buffer.length;
+>>>> -                   if (cmd_rc)
+>>>> -                           *cmd_rc = xlat_status(nvdimm, buf, cmd,
+>>>> -                                           fw_status);
+>>>>             } else {
+>>>>                     dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
+>>>>                                     __func__, dimm_name, cmd_name, buf_len,
+>>>>                                     offset);
+>>>>                     rc = -ENXIO;
+>>>> +                   goto out;
+>>>>             }
+>>>> -   } else {
+>>>> -           rc = 0;
+>>>> -           if (cmd_rc)
+>>>> -                   *cmd_rc = xlat_status(nvdimm, buf, cmd, fw_status);
+>>>>     }
+>>>>
+>>>> +   xlat_rc = xlat_status(nvdimm, buf, cmd, fw_status);
+>>>> +
+>>>> +   if (cmd_rc)
+>>>> +           *cmd_rc = xlat_rc;
+>>>
+>>> Is there some benefit of calling xlat_status and then throwing away the result?
+>>
+>> It's not exactly thrown away. I tried to preserve the original code path
+>> as much as possible.
+>
+> The original code only calls xlat_status if cmd_rc is set, but you call it,
+> then don't use the result if cmd_rc isn't set.  Why call it if you know
+> ahead of time you're not going to use the result?  That's what I don't
+> understand.  Why isn't the call made only 'if (cmd_rc)', like the original
+> code?
+>
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
----
- drivers/scsi/scsi_debug.c   |  7 ++---
- include/linux/scatterlist.h |  7 ++++-
- lib/scatterlist.c           | 64 ++++++++++++++++++++++++++++++++++++++-------
- 3 files changed, 65 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/scsi/scsi_debug.c b/drivers/scsi/scsi_debug.c
-index 17249c3..70c0d9f 100644
---- a/drivers/scsi/scsi_debug.c
-+++ b/drivers/scsi/scsi_debug.c
-@@ -1309,7 +1309,7 @@ static int resp_inquiry(struct scsi_cmnd *scp, struct sdebug_dev_info *devip)
- 		int lu_id_num, port_group_id, target_dev_id, len;
- 		char lu_id_str[6];
- 		int host_no = devip->sdbg_host->shost->host_no;
--		
-+
- 		port_group_id = (((host_no + 1) & 0x7f) << 8) +
- 		    (devip->channel & 0x7f);
- 		if (sdebug_vpd_use_hostno == 0)
-@@ -2381,14 +2381,15 @@ static int do_device_access(struct scsi_cmnd *scmd, u64 lba, u32 num,
- 
- 	ret = sg_copy_buffer(sdb->table.sgl, sdb->table.nents,
- 		   fake_storep + (block * sdebug_sector_size),
--		   (num - rest) * sdebug_sector_size, 0, do_write);
-+		   (num - rest) * sdebug_sector_size, 0, do_write, false);
- 	if (ret != (num - rest) * sdebug_sector_size)
- 		return ret;
- 
- 	if (rest) {
- 		ret += sg_copy_buffer(sdb->table.sgl, sdb->table.nents,
- 			    fake_storep, rest * sdebug_sector_size,
--			    (num - rest) * sdebug_sector_size, do_write);
-+			    (num - rest) * sdebug_sector_size, do_write,
-+				      false);
- 	}
- 
- 	return ret;
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index cb3c8fe..030b92b 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -267,7 +267,7 @@ int sg_alloc_table_from_pages(struct sg_table *sgt,
- 	gfp_t gfp_mask);
- 
- size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
--		      size_t buflen, off_t skip, bool to_buffer);
-+		      size_t buflen, off_t skip, bool to_buffer, bool iomem);
- 
- size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
- 			   const void *buf, size_t buflen);
-@@ -279,6 +279,11 @@ size_t sg_pcopy_from_buffer(struct scatterlist *sgl, unsigned int nents,
- size_t sg_pcopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
- 			  void *buf, size_t buflen, off_t skip);
- 
-+size_t sg_iocopy_from_buffer(struct scatterlist *sgl, unsigned int nents,
-+			     const void *buf, size_t buflen);
-+size_t sg_iocopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
-+			   void *buf, size_t buflen);
-+
- /*
-  * Maximum number of entries that will be allocated in one piece, if
-  * a list larger than this is required then chaining will be utilized.
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index c6cf822..22abd94 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -647,7 +647,7 @@ EXPORT_SYMBOL(sg_miter_stop);
-  *
-  **/
- size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
--		      size_t buflen, off_t skip, bool to_buffer)
-+		      size_t buflen, off_t skip, bool to_buffer, bool iomem)
- {
- 	unsigned int offset = 0;
- 	struct sg_mapping_iter miter;
-@@ -668,10 +668,17 @@ size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
- 
- 		len = min(miter.length, buflen - offset);
- 
--		if (to_buffer)
--			memcpy(buf + offset, miter.addr, len);
--		else
--			memcpy(miter.addr, buf + offset, len);
-+		if (iomem) {
-+			if (to_buffer)
-+				memcpy_fromio(buf + offset,  miter.addr, len);
-+			else
-+				memcpy_toio(miter.addr, buf + offset, len);
-+		} else {
-+			if (to_buffer)
-+				memcpy(buf + offset, miter.addr, len);
-+			else
-+				memcpy(miter.addr, buf + offset, len);
-+		}
- 
- 		offset += len;
- 	}
-@@ -695,7 +702,8 @@ EXPORT_SYMBOL(sg_copy_buffer);
- size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
- 			   const void *buf, size_t buflen)
- {
--	return sg_copy_buffer(sgl, nents, (void *)buf, buflen, 0, false);
-+	return sg_copy_buffer(sgl, nents, (void *)buf, buflen, 0, false,
-+			      false);
- }
- EXPORT_SYMBOL(sg_copy_from_buffer);
- 
-@@ -712,7 +720,7 @@ EXPORT_SYMBOL(sg_copy_from_buffer);
- size_t sg_copy_to_buffer(struct scatterlist *sgl, unsigned int nents,
- 			 void *buf, size_t buflen)
- {
--	return sg_copy_buffer(sgl, nents, buf, buflen, 0, true);
-+	return sg_copy_buffer(sgl, nents, buf, buflen, 0, true, false);
- }
- EXPORT_SYMBOL(sg_copy_to_buffer);
- 
-@@ -730,7 +738,8 @@ EXPORT_SYMBOL(sg_copy_to_buffer);
- size_t sg_pcopy_from_buffer(struct scatterlist *sgl, unsigned int nents,
- 			    const void *buf, size_t buflen, off_t skip)
- {
--	return sg_copy_buffer(sgl, nents, (void *)buf, buflen, skip, false);
-+	return sg_copy_buffer(sgl, nents, (void *)buf, buflen, skip, false,
-+			      false);
- }
- EXPORT_SYMBOL(sg_pcopy_from_buffer);
- 
-@@ -748,6 +757,43 @@ EXPORT_SYMBOL(sg_pcopy_from_buffer);
- size_t sg_pcopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
- 			  void *buf, size_t buflen, off_t skip)
- {
--	return sg_copy_buffer(sgl, nents, buf, buflen, skip, true);
-+	return sg_copy_buffer(sgl, nents, buf, buflen, skip, true, false);
- }
- EXPORT_SYMBOL(sg_pcopy_to_buffer);
-+
-+/**
-+ * sg_iocopy_from_buffer - Copy from a linear buffer to an SG list containing
-+ *	IO memory.
-+ * @sgl:		 The SG list
-+ * @nents:		 Number of SG entries
-+ * @buf:		 Where to copy from
-+ * @buflen:		 The number of bytes to copy
-+ *
-+ * Returns the number of copied bytes.
-+ *
-+ **/
-+size_t sg_iocopy_from_buffer(struct scatterlist *sgl, unsigned int nents,
-+			     const void *buf, size_t buflen)
-+{
-+	return sg_copy_buffer(sgl, nents, (void *)buf, buflen, 0, false,
-+			      true);
-+}
-+EXPORT_SYMBOL(sg_iocopy_from_buffer);
-+
-+/**
-+ * sg_iocopy_to_buffer - Copy from an SG list containing IO memory
-+ *	to a linear buffer
-+ * @sgl:		 The SG list
-+ * @nents:		 Number of SG entries
-+ * @buf:		 Where to copy to
-+ * @buflen:		 The number of bytes to copy
-+ *
-+ * Returns the number of copied bytes.
-+ *
-+ **/
-+size_t sg_iocopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
-+			   void *buf, size_t buflen)
-+{
-+	return sg_copy_buffer(sgl, nents, buf, buflen, 0, true, true);
-+}
-+EXPORT_SYMBOL(sg_iocopy_to_buffer);
--- 
-2.1.4
-
+In a following patch we use the xlat_rc result even in cases when
+cmd_rc is NULL.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
