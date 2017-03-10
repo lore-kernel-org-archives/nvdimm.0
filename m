@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mail-ot0-x232.google.com (mail-ot0-x232.google.com
+ [IPv6:2607:f8b0:4003:c0f::232])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BAAC48033B
- for <linux-nvdimm@lists.01.org>; Sun,  5 Mar 2017 23:06:59 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon,  6 Mar 2017 00:04:17 -0700
-Message-Id: <1488783873-2614-2-git-send-email-logang@deltatee.com>
-In-Reply-To: <1488783873-2614-1-git-send-email-logang@deltatee.com>
-References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v3 01/16] chardev: add helper function to register char devs
- with a struct device
+ by ml01.01.org (Postfix) with ESMTPS id 1DA29803A1
+ for <linux-nvdimm@lists.01.org>; Thu,  9 Mar 2017 16:33:50 -0800 (PST)
+Received: by mail-ot0-x232.google.com with SMTP id 19so67803108oti.0
+ for <linux-nvdimm@lists.01.org>; Thu, 09 Mar 2017 16:33:50 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <725fc1f5-1923-1e0a-b9c2-7b8ac75244bc@intel.com>
+References: <148910376176.27406.3341100457410288547.stgit@djiang5-desk3.ch.intel.com>
+ <148910376733.27406.9048213402296101821.stgit@djiang5-desk3.ch.intel.com>
+ <CAPcyv4hX1Uf+wJ6Qw4ymVpqCpGZQd8M_A9EaPm42AKSFhONtdw@mail.gmail.com>
+ <725fc1f5-1923-1e0a-b9c2-7b8ac75244bc@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 9 Mar 2017 16:33:48 -0800
+Message-ID: <CAPcyv4iU3yEjt_5==3PbV--m6Zmf=t=EeRVwje4AD9k8FBryBw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] dax: fix device-dax fault handling so that it would
+ fallback
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,203 +25,90 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Credit for this patch goes is shared with Dan Williams [1]. I've
-taken things one step further to make the helper function more
-useful and clean up calling code.
+On Thu, Mar 9, 2017 at 4:11 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+>
+>
+> On 03/09/2017 05:03 PM, Dan Williams wrote:
+>> On Thu, Mar 9, 2017 at 3:56 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+>>> Jeff Moyer reports that:
+>>> "
+>>> With a device dax alignment of 4KB or 2MB, I get sigbus when running the
+>>> attached fio job file for the current kernel (4.11.0-rc1+).  If I
+>>> specify an alignment of 1GB, it works.
+>>>
+>>> I turned on debug output, and saw that it was failing in the huge fault
+>>> code.
+>>>
+>>> [ 4614.138357] dax dax1.0: dax_open
+>>> [ 4614.154838] dax dax1.0: dax_mmap
+>>> [ 4614.171898] dax dax1.0: dax_dev_huge_fault: fio: write (0x7f08f0a00000 - 0x7f0ce0800000)
+>>> [ 4614.211720] dax dax1.0: __dax_dev_pud_fault: phys_to_pgoff(0xffffffffcf600) failed
+>>> [ 4614.568911] dax dax1.0: dax_release
+>>>
+>>> fio config for reproduce:
+>>> [global]
+>>> ioengine=dev-dax
+>>> direct=0
+>>> filename=/dev/dax0.0
+>>> bs=2m
+>>>
+>>> [write]
+>>> rw=write
+>>>
+>>> [read]
+>>> stonewall
+>>> rw=read
+>>> "
+>>>
+>>> It looks like the code does not fallback at all when handling faults. The
+>>> fault handlers are missing some boundary checking for the VMA. Also, we need
+>>> to fall back if the alignment requested is less than the P-entry size.
+>>>
+>>> Reported-by: Jeff Moyer <jmoyer@redhat.com>
+>>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>>> ---
+>>>  drivers/dax/dax.c |   22 ++++++++++++++++++++--
+>>>  1 file changed, 20 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+>>> index 174690a..5c7998e 100644
+>>> --- a/drivers/dax/dax.c
+>>> +++ b/drivers/dax/dax.c
+>>> @@ -480,12 +480,21 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+>>>                 return VM_FAULT_SIGBUS;
+>>>         }
+>>>
+>>> +       /* fall back if we are outside of the VMA */
+>>> +       if (pmd_addr < vmf->vma->vm_start)
+>>> +               return VM_FAULT_FALLBACK;
+>>> +       if ((pmd_addr + PMD_SIZE) > vmf->vma->vm_end)
+>>> +               return VM_FAULT_FALLBACK;
+>>
+>> I think these are already handled by check_vma(), and we only want to
+>> fallback if dax_region->align < PMD_SIZE, otherwise we're violating
+>> device-dax's guaranteed fault granularity.
+>
+> I was seeing pud_addr < vmf->vma->vm_start in the pud handler. It
+> doesn't look like check_vma() checks the boundaries.
 
-There's a common pattern in the kernel whereby a struct cdev is placed
-in a structure along side a struct device which manages the life-cycle
-of both. In the naive approach, the reference counting is broken and
-the struct device can free everything before the chardev code
-is entirely released.
+Sorry, yes, we do need to do the vma boundary checks in
+__dax_dev_{pmd,pud}_fault() since check_vma() does not know the fault
+size. We just can't fallback blindly.
 
-Many developers have solved this problem by linking the internal kobjs
-in this fashion:
+> Also, it wouldn't
+> know the pud_addr or pmd_addr. Or are you saying it doesn't matter?
 
-cdev.kobj.parent = &parent_dev.kobj;
-
-The cdev code explicitly gets and puts a reference to it's kobj parent.
-So this seems like it was intended to be used this way. Dmitrty Torokhov
-first put this in place in 2012 with this commit:
-
-2f0157f char_dev: pin parent kobject
-
-and the first instance of the fix was then done in the input subsystem
-in the following commit:
-
-4a215aa Input: fix use-after-free introduced with dynamic minor changes
-
-Subsequently over the years, however, this issue seems to have tripped
-up multiple developers independently. For example, see these commits:
-
-0d5b7da iio: Prevent race between IIO chardev opening and IIO device
-(by Lars-Peter Clausen in 2013)
-
-ba0ef85 tpm: Fix initialization of the cdev
-(by Jason Gunthorpe in 2015)
-
-5b28dde [media] media: fix use-after-free in cdev_put() when app exits
-after driver unbind
-(by Shauh Khan in 2016)
-
-This technique is similarly done in at least 15 places within the kernel
-and probably should have been done so in another, at least, 5 places.
-The kobj line also looks very suspect in that one would not expect
-drivers to have to mess with kobject internals in this way.
-Even highly experienced kernel developers can be surprised by this
-code, as seen in [2].
-
-To help alleviate this situation, and hopefully prevent future
-wasted effort on this problem, this patch introduces a helper function
-to register a char device along with its parent struct device.
-This creates a more regular API for tying a char device to its parent
-without the developer having to set members in the underlying kobject.
-
-This patch introduce cdev_device_add and cdev_device_del which
-replaces a common pattern including setting the kobj parent, calling
-cdev_add and then calling device_add. It also introduces cdev_set_parent
-for the few cases that set the kobject parent without using device_add.
-
-[1] https://lkml.org/lkml/2017/2/13/700
-[2] https://lkml.org/lkml/2017/2/10/370
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
----
- fs/char_dev.c        | 77 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/cdev.h |  4 +++
- 2 files changed, 81 insertions(+)
-
-diff --git a/fs/char_dev.c b/fs/char_dev.c
-index 44a240c..09b93fb 100644
---- a/fs/char_dev.c
-+++ b/fs/char_dev.c
-@@ -471,6 +471,76 @@ int cdev_add(struct cdev *p, dev_t dev, unsigned count)
- 	return 0;
- }
- 
-+/**
-+ * cdev_set_parent() - set the parent kobject for a char device
-+ * @p: the cdev structure
-+ * @kobj: the kobject to take a reference to
-+ *
-+ * cdev_set_parent() sets a parent kobject which will be referenced
-+ * appropriately so the parent is not freed before the cdev. This
-+ * should be called before cdev_add.
-+ */
-+void cdev_set_parent(struct cdev *p, struct kobject *kobj)
-+{
-+	WARN_ON(!kobj->state_initialized);
-+	p->kobj.parent = kobj;
-+}
-+
-+/**
-+ * cdev_device_add() - add a char device and it's corresponding
-+ *	struct device, linkink
-+ * @dev: the device structure
-+ * @cdev: the cdev structure
-+ *
-+ * cdev_device_add() adds the char device represented by @cdev to the system,
-+ * just as cdev_add does. It then adds @dev to the system using device_add
-+ * The dev_t for the char device will be taken from the struct device which
-+ * needs to be initialized first. This helper function correctly takes a
-+ * reference to the parent device so the parent will not get released until
-+ * all references to the cdev are released.
-+ *
-+ * This function should be used whenever the struct cdev and the
-+ * struct device are members of the same structure whose lifetime is
-+ * managed by the struct device.
-+ *
-+ * NOTE: Callers must assume that userspace was able to open the cdev and
-+ * can call cdev fops callbacks at any time, even if this function fails.
-+ */
-+int cdev_device_add(struct cdev *cdev, struct device *dev)
-+{
-+	int rc = 0;
-+
-+	cdev_set_parent(cdev, &dev->kobj);
-+
-+	rc = cdev_add(cdev, dev->devt, 1);
-+	if (rc)
-+		return rc;
-+
-+	rc = device_add(dev);
-+	if (rc)
-+		cdev_del(cdev);
-+
-+	return rc;
-+}
-+
-+/**
-+ * cdev_device_del() - inverse of cdev_device_add
-+ * @dev: the device structure
-+ * @cdev: the cdev structure
-+ *
-+ * cdev_device_del() is a helper function to call cdev_del and device_del.
-+ * It should be used whenever cdev_device_add is used.
-+ *
-+ * NOTE: This guarantees that associated sysfs callbacks are not running
-+ * or runnable, however any cdevs already open will remain and their fops
-+ * will still be callable even after this function returns.
-+ */
-+void cdev_device_del(struct cdev *cdev, struct device *dev)
-+{
-+	device_del(dev);
-+	cdev_del(cdev);
-+}
-+
- static void cdev_unmap(dev_t dev, unsigned count)
- {
- 	kobj_unmap(cdev_map, dev, count);
-@@ -482,6 +552,10 @@ static void cdev_unmap(dev_t dev, unsigned count)
-  *
-  * cdev_del() removes @p from the system, possibly freeing the structure
-  * itself.
-+ *
-+ * NOTE: This guarantees that cdev device will no longer be able to be
-+ * opened, however any cdevs already open will remain and their fops will
-+ * still be callable even after cdev_del returns.
-  */
- void cdev_del(struct cdev *p)
- {
-@@ -570,5 +644,8 @@ EXPORT_SYMBOL(cdev_init);
- EXPORT_SYMBOL(cdev_alloc);
- EXPORT_SYMBOL(cdev_del);
- EXPORT_SYMBOL(cdev_add);
-+EXPORT_SYMBOL(cdev_set_parent);
-+EXPORT_SYMBOL(cdev_device_add);
-+EXPORT_SYMBOL(cdev_device_del);
- EXPORT_SYMBOL(__register_chrdev);
- EXPORT_SYMBOL(__unregister_chrdev);
-diff --git a/include/linux/cdev.h b/include/linux/cdev.h
-index f876361..4c99579 100644
---- a/include/linux/cdev.h
-+++ b/include/linux/cdev.h
-@@ -26,6 +26,10 @@ void cdev_put(struct cdev *p);
- 
- int cdev_add(struct cdev *, dev_t, unsigned);
- 
-+void cdev_set_parent(struct cdev *p, struct kobject *kobj);
-+int cdev_device_add(struct cdev *cdev, struct device *dev);
-+void cdev_device_del(struct cdev *cdev, struct device *dev);
-+
- void cdev_del(struct cdev *);
- 
- void cd_forget(struct inode *);
--- 
-2.1.4
-
+If the fault does not align to the vma we need to fall back, but only
+if the current fault size is > dax_region->align and the fallback
+fault size is >= dax_region->align.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
