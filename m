@@ -1,101 +1,11 @@
-From: "ROY" <lambertkeng249-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: buy more instagram followers
-Date: Sun, 12 Mar 2017 01:31:41 -0800
-Message-ID: <09056654.A1010AF3@gmail.com>
+From: www.sustainablemilton.org-veh53bo6c0KXkFI/j7BbKNBPR1lH4CV8@public.gmane.org
+Subject: Item Delivery Notification
+Date: Mon, 13 Mar 2017 02:58:50 -0700
+Message-ID: <20170313095850.37ED68E8EA8@xenon2.zerolag.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58C5157B.F49D8A62"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_58C5157B.F49D8A62
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hello Here is the link http://www.instadotgram.com/buy-instagram-followers/
-   and IG Likes http://www.instadotgram.com/buy-instagram-likes/ [...] 
-
-Content analysis details:   (10.9 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: instadotgram.com]
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: instadotgram.com]
- 2.8 FSL_HELO_FAKE          No description available.
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-                [Blocked - see <http://www.spamcop.net/bl.shtml?59.100.3.189>]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: instadotgram.com]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (lambertkeng249[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (lambertkeng249[at]gmail.com)
- 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
-                            [score: 0.4924]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_58C5157B.F49D8A62
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cmzqc-0001h4-Jh
-	for gln-linux-nvdimm@m.gmane.org; Sun, 12 Mar 2017 10:31:30 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4DE7F802F0;
-	Sun, 12 Mar 2017 01:31:35 -0800 (PST)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (59-100-3-189.syd.static-ipl.aapt.com.au
- [59.100.3.189]) by ml01.01.org (Postfix) with SMTP id A0AE2802EF
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sun, 12 Mar 2017 01:31:31 -0800 (PST)
-Message-ID: <09056654.A1010AF3-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sun, 12 Mar 2017 01:31:41 -0800
-From: "ROY" <lambertkeng249-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US;
- rv:1.8.1.19) Gecko/20090105 Thunderbird/2.0.0.19
-X-Accept-Language: en-us
-MIME-Version: 1.0
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: re: buy more instagram followers
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -103,48 +13,37 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: ROY <lambertkeng249-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+Dear Customer,
+
+Please check your package delivery details attached!
+
+FedEx
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+t1z75YkFcZsVLgPb6YpnZjRPYqiys78ZpnpcNGkYhfKaEAtkfBbLhJtqtsv39Ho9T3XEt0einfE/
+3HE/RQDhrH8crLoT9IIbIT3k4ca/4B1Vv+tdQZ/vvLguxBXzV1qCOKC1Ojj1tYZC/vFpI8y698DF
+SVe4p4T+/rYNzz490yAI642xSCKJnVzxUOgoCs5b/YQCKzhwPEIYYNuzkMuktWe1EWAblhzznrDL
+FjsABI7ldiAxqYgCQr3HzhhlupM0cqwWGa5upGsXlac2FM56M4Cq8odYD5Q+dse6uzDcc0AxowjY
+ymyl3atAL0kpI1adS1bJNQ5NGzgaa9Ic6zxFGqAVbOeuVP/Vu2AWbmcpdZSm7HHV6tkp6GXqKQi9
+9dBl3jklHmD8pRgqqHGpBNLZs2xPqXoF89HMATzuqA1nmPeuvQtP0eSZl2xUS7ZcHoE8hfyxd8vN
+uKdj2GLlVkPqPrCNzadCmHkv7Be1P+rBT3C+5u4C4o3duBrR5KwSS6wDvJ57aedPfkhlKcNL7/d8
+iuHtd6UIMxoNLSC0Xx1xRyI/IvoTQvFzilCetoDZszhhRg+D8HSGgtDc4IRAdJ7nDRa0WzW84xmK
+RloNeKeu2r/Ymu23tKkW1Q3+d8V8IKXP9PffSM8oFufFWeVFKLaoG+W6IueD27L6y+1BA5WI45BA
+DNjg+GBS5p4CA/d2yNZsNP1yTv06evaiB8wS/tY/AmaU1EeCKiKwFwO+v5OzzgAopRaTXEDVzrLA
+ExWhgbkhGTmmlqBIprbxDZtVrja2mo+oSe/HjURz7sO8BYEvW2lnixq1C47oA1m0D9Kyuk5+kngj
+L8Gcw84Ys00M9Rn/cvC7ps0Z2h1t3a2PC0mCdCa/AjVfojyhNyO0Jf3rbadRpSvNQEFGmpi72zAl
+WbVVm7sn2Zpw1Zq0RQcNzI+kD/ZYTDS0DBR6JHcylOZohnQ6184cHjQOSvWaYKpnc0OnlcBW+SCu
+dXBLAENgpKI7JciSp32ik+5nk2OQkOn8v7mgK7G2XtEszoCuXIXNy3fFx2Awa5xsbbKx9v9k8RkT
+Ig6f/sM0E46N+vcGZRqHZRkP8TQIc9xVe91YfwCfJpUWvW4X4uN0Tewtv/1AfDN3c2IOYqAMTV3G
+rarHHnqD952SFZSWq/GZ6npAA4cwFfrl4fQJhDQluwbl1JVyBuyYF6tdSmLBjcmic4rTGom3oRSY
+Kx/q61GGGNWNPfp7XBOo+AM4/NcHJggPAHgM08rHxX6AOX0Yxni8ntcw2PkoIeUXv2uPNUyApklc
+QbNrWO2PvQO4aa71Ssp+GDI0cA/UAZygE6P1Usdprw==
 
 
-Hello
-
-Here is the link
-http://www.instadotgram.com/buy-instagram-followers/
-
-and IG Likes
-http://www.instadotgram.com/buy-instagram-likes/
-
-
-regards
-ROY
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_58C5157B.F49D8A62--
+-----END PGP PUBLIC KEY BLOCK-----
