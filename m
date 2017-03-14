@@ -1,149 +1,34 @@
-From: "DOUGLAS" <pyledary522-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: buy more instagram followers
-Date: Tue, 14 Mar 2017 08:27:50 -0800
-Message-ID: <32A82B9F.767FBE5F@gmail.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: fsx tests on DAX started to fail with msync failure on 0307
+ -next tree
+Date: Tue, 14 Mar 2017 11:36:10 -0600
+Message-ID: <20170314173609.GA13885@linux.intel.com>
+References: <20170314025642.nwpf7zxbc6655gum@XZHOUW.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58C81A22.DDE2AFB2"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20170314025642.nwpf7zxbc6655gum@XZHOUW.usersys.redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Xiong Zhou <xzhou@redhat.com>
+Cc: linux-nvdimm@ml01.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+On Tue, Mar 14, 2017 at 10:56:42AM +0800, Xiong Zhou wrote:
+> Hi,
+> 
+> xfstests cases:
+> generic/075 generic/112 generic/127 generic/231 generic/263
+> 
+> fail with DAX, pass without it. Both xfs and ext4.
+> 
+> It was okay on 0306 -next tree.
 
-------------=_58C81A22.DDE2AFB2
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Thanks for the report.  I'm looking into it.  -next is all kinds of broken.
+:(
 
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hello Here is the link http://www.instadotgram.com/buy-instagram-followers/
-   and IG Likes http://www.instadotgram.com/buy-instagram-likes/ [...] 
-
-Content analysis details:   (8.2 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-                [Blocked - see <http://www.spamcop.net/bl.shtml?59.100.3.189>]
- 2.8 FSL_HELO_FAKE          No description available.
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: instadotgram.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: instadotgram.com]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (pyledary522[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (pyledary522[at]gmail.com)
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0028]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_58C81A22.DDE2AFB2
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cnpIs-0007UD-JW
-	for gln-linux-nvdimm@m.gmane.org; Tue, 14 Mar 2017 17:28:06 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EDB41803E5;
-	Tue, 14 Mar 2017 09:28:11 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (59-100-3-189.syd.static-ipl.aapt.com.au
- [59.100.3.189]) by ml01.01.org (Postfix) with SMTP id 0CB28803DD
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Tue, 14 Mar 2017 09:28:08 -0700 (PDT)
-Message-ID: <32A82B9F.767FBE5F-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Tue, 14 Mar 2017 08:27:50 -0800
-From: "DOUGLAS" <pyledary522-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB;
- rv:1.8.1.16) Gecko/20080708 Thunderbird/2.0.0.16
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: re: buy more instagram followers
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: DOUGLAS <pyledary522-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-
-Hello
-
-Here is the link
-http://www.instadotgram.com/buy-instagram-followers/
-
-and IG Likes
-http://www.instadotgram.com/buy-instagram-likes/
-
-
-regards
-DOUGLAS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_58C81A22.DDE2AFB2--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
