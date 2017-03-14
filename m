@@ -1,21 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt0-x241.google.com (mail-qt0-x241.google.com
- [IPv6:2607:f8b0:400d:c0d::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3FE45803DA
- for <linux-nvdimm@lists.01.org>; Tue, 14 Mar 2017 12:52:29 -0700 (PDT)
-Received: by mail-qt0-x241.google.com with SMTP id x35so11313345qtc.1
- for <linux-nvdimm@lists.01.org>; Tue, 14 Mar 2017 12:52:29 -0700 (PDT)
-From: Linda Knippers <ljklists@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id B18F48039D
+ for <linux-nvdimm@lists.01.org>; Tue, 14 Mar 2017 12:23:46 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Subject: Re: [ndctl PATCH v3 6/7] ndctl: add a BTT check utility
+Date: Tue, 14 Mar 2017 19:23:45 +0000
+Message-ID: <1489519422.2541.2.camel@intel.com>
 References: <20170304061307.13530-1-vishal.l.verma@intel.com>
- <20170304061307.13530-7-vishal.l.verma@intel.com> <58C72AA6.1020700@hpe.com>
- <1489519422.2541.2.camel@intel.com>
-Message-ID: <58C849F9.3060106@gmail.com>
-Date: Tue, 14 Mar 2017 15:52:25 -0400
+ <20170304061307.13530-7-vishal.l.verma@intel.com>
+ <58C72AA6.1020700@hpe.com>
+In-Reply-To: <58C72AA6.1020700@hpe.com>
+Content-Language: en-US
+Content-ID: <D10E6CE8B4914144880E641319D24955@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1489519422.2541.2.camel@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,166 +22,75 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "linda.knippers@hpe.com" <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 3/14/2017 3:23 PM, Verma, Vishal L wrote:
-> On Mon, 2017-03-13 at 19:26 -0400, Linda Knippers wrote:
->> Hi Vishal,
->>
->> Thanks for all your work on this.  I finally got a chance to do some
->> testing and have a few usability suggestions for you to consider.
->
-> Thanks for the comments, Linda. See below, but yes I can send follow on
-> patches for these.
-
-Great, later is fine.  More below.
->
->>
->> On 03/04/2017 01:13 AM, Vishal Verma wrote:
->> <snip>
->>>
->>> */
->>> +	raw_mode = ndctl_namespace_get_raw_mode(ndns);
->>> +
->>> +	/*
->>> +	 * Putting the namespace into raw mode will allow us to
->>> access
->>> +	 * the btt metadata.
->>> +	 */
->>> +	rc = ndctl_namespace_set_raw_mode(ndns, 1);
->>> +	if (rc < 0) {
->>> +		err(bttc, "%s: failed to set the raw mode flag:
->>> %d\n",
->>> +			devname, rc);
->>> +		goto out_ns;
->>> +	}
->>
->> When I ran the utility as non-root, I got this:
->> $ ndctl check-namespace namespace3.0
->> namespace3.0: namespace_check: namespace3.0: failed to set the raw
->> mode flag: -6
->> error checking namespaces: No such device or address
->>
->> I think it ought to end with Permission denied, which it would do if
->> ndctl_namespace_get_raw_mode() returned with -errno rather than a
->> hard
->> coded ENXIO.
->
-> Good point - I'll fix this (in a follow on patch).
->
->>
->> If that's main reason that setting the raw mode flag can fail, then
->> the
->> err() could be an info().  That would simplify the output.
->
-> I think it should still be an error as it is a fatal problem and we
-> have to abort..
-
-It's just a bit confusing when the most likely cause is not running
-as root.  Otherwise, that error probably can't really happen.
-In other places you don't even check the return value for the function,
-probably because it doesn't really happen.
-
->
-> <snip>
->
->>> +
->>> +	rc = btt_info_read_verify(bttc, btt_sb, bttc->start_off);
->>> +	if (rc) {
->>> +		rc = btt_recover_first_sb(bttc);
->>> +		if (rc) {
->>> +			info(bttc, "Unable to recover any BTT info
->>> blocks\n");
->>> +			goto out_close;
->>
->> When I ran this on a namespace that never had a BTT, I thought I'd
->> get a error
->> basically saying that I'm screwed, but instead I got:
->>
->> $ sudo ndctl check-namespace namespace1.0
->> error checking namespaces: No such device or address
->>
->> It seems like the info() above is rather important and should be an
->> err().
->> For a checker, maybe verbose should be the default anyway.
->
-> Ok - let me revisit the no BTT case and see if we can print out
-> something better.
-
-The message that you have there is probably good enough, it just
-didn't come out without the verbose option.  The "No such device or address"
-part is a bit wrong though because the device is there, there's just
-no btt on it.
->
->>
->>> +		}
->>> +		rc = btt_info_read_verify(bttc, btt_sb, bttc-
->>>> start_off);
->>> +		if (rc)
->>> +			goto out_close;
->>> +	}
->>> +	rc = btt_discover_arenas(bttc);
->>> +	if (rc)
->>> +		goto out_close;
->>> +
->>> +	rc = btt_create_mappings(bttc);
->>> +	if (rc)
->>> +		goto out_close;
->>> +
->>> +	rc = btt_check_arenas(bttc);
->>> +
->>> +	btt_remove_mappings(bttc);
->>> + out_close:
->>> +	close(bttc->fd);
->>> + out_sb:
->>> +	free(btt_sb);
->>> + out_ns:
->>> +	ndctl_namespace_set_raw_mode(ndns, raw_mode);
->>> +	ndctl_namespace_disable_invalidate(ndns);
->>> +	if (disabled_flag)
->>> +		if(ndctl_namespace_enable(ndns) < 0)
->>> +			info(bttc, "%s: failed to re-enable
->>> namespace\n",
->>> +				devname);
->>
->> I didn't get this error but it seems rather important too.
->
-> This should normally never happen, and I had it as an info because at
-> this point we can't really do anything about it. Any check/repair has
-> already completed, and if we weren't able to enable the namespace, the
-> user likely won't either for the same reason.. In any case, it seems
-> more like an informational message since nothing can be done about it,
-> and it doesn't affect any future flow..
-
-The reason I think it should be an error is that something went wrong,
-whether you can do anything about it in the checker or not.  Without an
-error the user will have no idea because the function returns successfully.
-That's actually true for the two ndctl_namespace...() functions above where
-the return value isn't even checked.  If the namespace is left in an
-unclean state or unusable state, that would be good to know before the user
-attempts to use the namespace and gets some other error.
-
-For something like a checker, more information is better, which contradicts
-my first comment. :-)
-
--- ljk
->
->>
->> Thanks,
->>
->> - ljk
->>
->>> + out_bttc:
->>> +	free(bttc);
->>> +	return rc;
->>> +}
->>
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE3LTAzLTEzIGF0IDE5OjI2IC0wNDAwLCBMaW5kYSBLbmlwcGVycyB3cm90ZToN
+Cj4gSGkgVmlzaGFsLA0KPiANCj4gVGhhbmtzIGZvciBhbGwgeW91ciB3b3JrIG9uIHRoaXMuwqDC
+oEkgZmluYWxseSBnb3QgYSBjaGFuY2UgdG8gZG8gc29tZQ0KPiB0ZXN0aW5nIGFuZCBoYXZlIGEg
+ZmV3IHVzYWJpbGl0eSBzdWdnZXN0aW9ucyBmb3IgeW91IHRvIGNvbnNpZGVyLg0KDQpUaGFua3Mg
+Zm9yIHRoZSBjb21tZW50cywgTGluZGEuIFNlZSBiZWxvdywgYnV0IHllcyBJIGNhbiBzZW5kIGZv
+bGxvdyBvbg0KcGF0Y2hlcyBmb3IgdGhlc2UuDQoNCj4gDQo+IE9uIDAzLzA0LzIwMTcgMDE6MTMg
+QU0sIFZpc2hhbCBWZXJtYSB3cm90ZToNCj4gPHNuaXA+DQo+ID4gDQo+ID4gKi8NCj4gPiArCXJh
+d19tb2RlID0gbmRjdGxfbmFtZXNwYWNlX2dldF9yYXdfbW9kZShuZG5zKTsNCj4gPiArDQo+ID4g
+KwkvKg0KPiA+ICsJwqAqIFB1dHRpbmcgdGhlIG5hbWVzcGFjZSBpbnRvIHJhdyBtb2RlIHdpbGwg
+YWxsb3cgdXMgdG8NCj4gPiBhY2Nlc3MNCj4gPiArCcKgKiB0aGUgYnR0IG1ldGFkYXRhLg0KPiA+
+ICsJwqAqLw0KPiA+ICsJcmMgPSBuZGN0bF9uYW1lc3BhY2Vfc2V0X3Jhd19tb2RlKG5kbnMsIDEp
+Ow0KPiA+ICsJaWYgKHJjIDwgMCkgew0KPiA+ICsJCWVycihidHRjLCAiJXM6IGZhaWxlZCB0byBz
+ZXQgdGhlIHJhdyBtb2RlIGZsYWc6DQo+ID4gJWRcbiIsDQo+ID4gKwkJCWRldm5hbWUsIHJjKTsN
+Cj4gPiArCQlnb3RvIG91dF9uczsNCj4gPiArCX0NCj4gDQo+IFdoZW4gSSByYW4gdGhlIHV0aWxp
+dHkgYXMgbm9uLXJvb3QsIEkgZ290IHRoaXM6DQo+ICQgbmRjdGwgY2hlY2stbmFtZXNwYWNlIG5h
+bWVzcGFjZTMuMA0KPiBuYW1lc3BhY2UzLjA6IG5hbWVzcGFjZV9jaGVjazogbmFtZXNwYWNlMy4w
+OiBmYWlsZWQgdG8gc2V0IHRoZSByYXcNCj4gbW9kZSBmbGFnOiAtNg0KPiBlcnJvciBjaGVja2lu
+ZyBuYW1lc3BhY2VzOiBObyBzdWNoIGRldmljZSBvciBhZGRyZXNzDQo+IA0KPiBJIHRoaW5rIGl0
+IG91Z2h0IHRvIGVuZCB3aXRoIFBlcm1pc3Npb24gZGVuaWVkLCB3aGljaCBpdCB3b3VsZCBkbyBp
+Zg0KPiBuZGN0bF9uYW1lc3BhY2VfZ2V0X3Jhd19tb2RlKCkgcmV0dXJuZWQgd2l0aCAtZXJybm8g
+cmF0aGVyIHRoYW4gYQ0KPiBoYXJkDQo+IGNvZGVkIEVOWElPLg0KDQpHb29kIHBvaW50IC0gSSds
+bCBmaXggdGhpcyAoaW4gYSBmb2xsb3cgb24gcGF0Y2gpLg0KDQo+IA0KPiBJZiB0aGF0J3MgbWFp
+biByZWFzb24gdGhhdCBzZXR0aW5nIHRoZSByYXcgbW9kZSBmbGFnIGNhbiBmYWlsLCB0aGVuDQo+
+IHRoZQ0KPiBlcnIoKSBjb3VsZCBiZSBhbiBpbmZvKCkuwqDCoFRoYXQgd291bGQgc2ltcGxpZnkg
+dGhlIG91dHB1dC4NCg0KSSB0aGluayBpdCBzaG91bGQgc3RpbGwgYmUgYW4gZXJyb3IgYXMgaXQg
+aXMgYSBmYXRhbCBwcm9ibGVtIGFuZCB3ZQ0KaGF2ZSB0byBhYm9ydC4uDQoNCjxzbmlwPg0KDQo+
+ID4gKw0KPiA+ICsJcmMgPSBidHRfaW5mb19yZWFkX3ZlcmlmeShidHRjLCBidHRfc2IsIGJ0dGMt
+PnN0YXJ0X29mZik7DQo+ID4gKwlpZiAocmMpIHsNCj4gPiArCQlyYyA9IGJ0dF9yZWNvdmVyX2Zp
+cnN0X3NiKGJ0dGMpOw0KPiA+ICsJCWlmIChyYykgew0KPiA+ICsJCQlpbmZvKGJ0dGMsICJVbmFi
+bGUgdG8gcmVjb3ZlciBhbnkgQlRUIGluZm8NCj4gPiBibG9ja3NcbiIpOw0KPiA+ICsJCQlnb3Rv
+IG91dF9jbG9zZTsNCj4gDQo+IFdoZW4gSSByYW4gdGhpcyBvbiBhIG5hbWVzcGFjZSB0aGF0IG5l
+dmVyIGhhZCBhIEJUVCwgSSB0aG91Z2h0IEknZA0KPiBnZXQgYSBlcnJvcg0KPiBiYXNpY2FsbHkg
+c2F5aW5nIHRoYXQgSSdtIHNjcmV3ZWQsIGJ1dCBpbnN0ZWFkIEkgZ290Og0KPiANCj4gJCBzdWRv
+IG5kY3RsIGNoZWNrLW5hbWVzcGFjZSBuYW1lc3BhY2UxLjANCj4gZXJyb3IgY2hlY2tpbmcgbmFt
+ZXNwYWNlczogTm8gc3VjaCBkZXZpY2Ugb3IgYWRkcmVzcw0KPiANCj4gSXQgc2VlbXMgbGlrZSB0
+aGUgaW5mbygpIGFib3ZlIGlzIHJhdGhlciBpbXBvcnRhbnQgYW5kIHNob3VsZCBiZSBhbg0KPiBl
+cnIoKS4NCj4gRm9yIGEgY2hlY2tlciwgbWF5YmUgdmVyYm9zZSBzaG91bGQgYmUgdGhlIGRlZmF1
+bHQgYW55d2F5Lg0KDQpPayAtIGxldCBtZSByZXZpc2l0IHRoZSBubyBCVFQgY2FzZSBhbmQgc2Vl
+IGlmIHdlIGNhbiBwcmludCBvdXQNCnNvbWV0aGluZyBiZXR0ZXIuDQoNCj4gDQo+ID4gKwkJfQ0K
+PiA+ICsJCXJjID0gYnR0X2luZm9fcmVhZF92ZXJpZnkoYnR0YywgYnR0X3NiLCBidHRjLQ0KPiA+
+ID5zdGFydF9vZmYpOw0KPiA+ICsJCWlmIChyYykNCj4gPiArCQkJZ290byBvdXRfY2xvc2U7DQo+
+ID4gKwl9DQo+ID4gKwlyYyA9IGJ0dF9kaXNjb3Zlcl9hcmVuYXMoYnR0Yyk7DQo+ID4gKwlpZiAo
+cmMpDQo+ID4gKwkJZ290byBvdXRfY2xvc2U7DQo+ID4gKw0KPiA+ICsJcmMgPSBidHRfY3JlYXRl
+X21hcHBpbmdzKGJ0dGMpOw0KPiA+ICsJaWYgKHJjKQ0KPiA+ICsJCWdvdG8gb3V0X2Nsb3NlOw0K
+PiA+ICsNCj4gPiArCXJjID0gYnR0X2NoZWNrX2FyZW5hcyhidHRjKTsNCj4gPiArDQo+ID4gKwli
+dHRfcmVtb3ZlX21hcHBpbmdzKGJ0dGMpOw0KPiA+ICsgb3V0X2Nsb3NlOg0KPiA+ICsJY2xvc2Uo
+YnR0Yy0+ZmQpOw0KPiA+ICsgb3V0X3NiOg0KPiA+ICsJZnJlZShidHRfc2IpOw0KPiA+ICsgb3V0
+X25zOg0KPiA+ICsJbmRjdGxfbmFtZXNwYWNlX3NldF9yYXdfbW9kZShuZG5zLCByYXdfbW9kZSk7
+DQo+ID4gKwluZGN0bF9uYW1lc3BhY2VfZGlzYWJsZV9pbnZhbGlkYXRlKG5kbnMpOw0KPiA+ICsJ
+aWYgKGRpc2FibGVkX2ZsYWcpDQo+ID4gKwkJaWYobmRjdGxfbmFtZXNwYWNlX2VuYWJsZShuZG5z
+KSA8IDApDQo+ID4gKwkJCWluZm8oYnR0YywgIiVzOiBmYWlsZWQgdG8gcmUtZW5hYmxlDQo+ID4g
+bmFtZXNwYWNlXG4iLA0KPiA+ICsJCQkJZGV2bmFtZSk7DQo+IA0KPiBJIGRpZG4ndCBnZXQgdGhp
+cyBlcnJvciBidXQgaXQgc2VlbXMgcmF0aGVyIGltcG9ydGFudCB0b28uDQoNClRoaXMgc2hvdWxk
+IG5vcm1hbGx5IG5ldmVyIGhhcHBlbiwgYW5kIEkgaGFkIGl0IGFzIGFuIGluZm8gYmVjYXVzZSBh
+dA0KdGhpcyBwb2ludCB3ZSBjYW4ndCByZWFsbHkgZG8gYW55dGhpbmcgYWJvdXQgaXQuIEFueSBj
+aGVjay9yZXBhaXIgaGFzDQphbHJlYWR5IGNvbXBsZXRlZCwgYW5kIGlmIHdlIHdlcmVuJ3QgYWJs
+ZSB0byBlbmFibGUgdGhlIG5hbWVzcGFjZSwgdGhlDQp1c2VyIGxpa2VseSB3b24ndCBlaXRoZXIg
+Zm9yIHRoZSBzYW1lIHJlYXNvbi4uIEluIGFueSBjYXNlLCBpdCBzZWVtcw0KbW9yZSBsaWtlIGFu
+IGluZm9ybWF0aW9uYWwgbWVzc2FnZSBzaW5jZSBub3RoaW5nIGNhbiBiZSBkb25lIGFib3V0IGl0
+LA0KYW5kIGl0IGRvZXNuJ3QgYWZmZWN0IGFueSBmdXR1cmUgZmxvdy4uDQoNCj4gDQo+IFRoYW5r
+cywNCj4gDQo+IC0gbGprDQo+IA0KPiA+ICsgb3V0X2J0dGM6DQo+ID4gKwlmcmVlKGJ0dGMpOw0K
+PiA+ICsJcmV0dXJuIHJjOw0KPiA+ICt9DQo+IA0KPiAKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtbnZkaW1tCg==
