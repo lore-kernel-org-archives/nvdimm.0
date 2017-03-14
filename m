@@ -1,137 +1,89 @@
-From: "REVA" <robikris22-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: FW: real and permanent FB Fans
-Date: Mon, 13 Mar 2017 20:42:10 -0100
-Message-ID: <639CFA96.1C6F0D54@gmail.com>
+From: Xiong Zhou <xzhou@redhat.com>
+Subject: fsx tests on DAX started to fail with msync failure on 0307 -next
+ tree
+Date: Tue, 14 Mar 2017 10:56:42 +0800
+Message-ID: <20170314025642.nwpf7zxbc6655gum@XZHOUW.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58C716F4.B2767D60"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-next-owner@vger.kernel.org
+To: linux-nvdimm@ml01.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+Hi,
 
-------------=_58C716F4.B2767D60
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+xfstests cases:
+generic/075 generic/112 generic/127 generic/231 generic/263
 
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
+fail with DAX, pass without it. Both xfs and ext4.
 
-Content preview:  hi yes, here is the link http://www.solercios.com/shop/facebook/
-   Regards REVA Unsubscribe option is available on the footer of our website
-   [...] 
+It was okay on 0306 -next tree.
 
-Content analysis details:   (9.9 points, 5.0 required)
++ ./check generic/075
+FSTYP         -- xfs (non-debug)
+PLATFORM      -- Linux/x86_64 hp-dl360g9-12 4.11.0-rc1-linux-next-5be4921-next-20170310
+MKFS_OPTIONS  -- -f -bsize=4096 /dev/pmem0p2
+MOUNT_OPTIONS -- -o dax -o context=system_u:object_r:nfs_t:s0 /dev/pmem0p2 /daxsch
 
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: solercios.com]
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-                [Blocked - see <http://www.spamcop.net/bl.shtml?61.57.82.101>]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (robikris22[at]gmail.com)
--0.0 BAYES_20               BODY: Bayes spam probability is 5 to 20%
-                            [score: 0.0759]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: solercios.com]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
+generic/075 4s ... [failed, exit status 1] - output mismatch (see /root/xfstests/results//generic/075.out.bad)
+    --- tests/generic/075.out	2016-12-13 14:38:25.984557426 +0800
+    +++ /root/xfstests/results//generic/075.out.bad	2017-03-14 10:40:23.083052839 +0800
+    @@ -4,15 +4,4 @@
+     -----------------------------------------------
+     fsx.0 : -d -N numops -S 0
+     -----------------------------------------------
+    -
+    ------------------------------------------------
+    -fsx.1 : -d -N numops -S 0 -x
+    ------------------------------------------------
+    ...
+    (Run 'diff -u tests/generic/075.out /root/xfstests/results//generic/075.out.bad'  to see the entire diff)
+..
 
+$ diff -u xfstests/tests/generic/075.out /root/xfstests/results//generic/075.out.bad
+--- xfstests/tests/generic/075.out	2016-12-13 14:38:25.984557426 +0800
++++ /root/xfstests/results//generic/075.out.bad	2017-03-14 10:40:23.083052839 +0800
+@@ -4,15 +4,4 @@
+ -----------------------------------------------
+ fsx.0 : -d -N numops -S 0
+ -----------------------------------------------
+-
+------------------------------------------------
+-fsx.1 : -d -N numops -S 0 -x
+------------------------------------------------
+-
+------------------------------------------------
+-fsx.2 : -d -N numops -l filelen -S 0
+------------------------------------------------
+-
+------------------------------------------------
+-fsx.3 : -d -N numops -l filelen -S 0 -x
+------------------------------------------------
++    fsx (-d -N 1000 -S 0) failed, 0 - compare /root/xfstests/results//generic/075.0.{good,bad,fsxlog}
 
+$ diff -u /root/xfstests/results//generic/075.0.{good,fsxlog} | tail -20
+-03cb30 f903 da03 1103 7503 5403 8903 9f03 6b03
+-03cb40 bb03 fb03 5603 7e03 c503 ca03 0103 9603
+-03cb50 7f03 7c03 0c03 5103 ed03 dc03 a403 5c03
+-03cb60 5403 b903 4403 3c03 4b03 a903 2303 1a03
+-03cb70 2b03 5f03 fd03 ee03 1303 9703 2903 d303
+-03cb80 4e03 9903 f903 8003 b803 2503 2203 c903
+-03cb90 6803 7a03 0f03 6303 de03 ba03 6e03 6503
+-03cba0 db03
+-03cba2
++skipping zero size read
++skipping insert range behind EOF
++3 mapwrite	0x2e836 thru	0x3cba1	(0xe36c bytes)
++domapwrite: msync: Invalid argument
++LOG DUMP (3 total operations):
++1(  1 mod 256): SKIPPED (no operation)
++2(  2 mod 256): SKIPPED (no operation)
++3(  3 mod 256): MAPWRITE 0x2e836 thru 0x3cba1	(0xe36c bytes)
++Log of operations saved to "075.0.fsxops"; replay with --replay-ops
++Correct content saved for comparison
++(maybe hexdump "075.0" vs "075.0.fsxgood")
 
-------------=_58C716F4.B2767D60
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cnY2h-00027g-I6
-	for gln-linux-nvdimm@m.gmane.org; Mon, 13 Mar 2017 23:02:15 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 04A9B8036B;
-	Mon, 13 Mar 2017 15:02:21 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [61.57.82.101])
- by ml01.01.org (Postfix) with SMTP id DAC698032B
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Mon, 13 Mar 2017 15:02:18 -0700 (PDT)
-Message-ID: <639CFA96.1C6F0D54-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Mon, 13 Mar 2017 20:42:10 -0100
-From: "REVA" <robikris22-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB;
- rv:1.8.1.17) Gecko/20080914 Thunderbird/2.0.0.17
-X-Accept-Language: en-us
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: FW: real and permanent FB Fans
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.21
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-hi
-yes, here is the link
-http://www.solercios.com/shop/facebook/
-
-Regards
-REVA
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_58C716F4.B2767D60--
+https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git/tree/tests/generic/075
+https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git/tree/ltp/fsx.c
