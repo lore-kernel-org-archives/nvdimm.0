@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A148280328
- for <linux-nvdimm@lists.01.org>; Mon,  6 Mar 2017 12:32:32 -0800 (PST)
-Subject: [PATCH 1/5] libnvdimm: Add mechanism to publish badblocks at nd
- region level
+ by ml01.01.org (Postfix) with ESMTPS id E2F9C8034C
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 11:33:40 -0700 (PDT)
+Subject: [PATCH v3 5/5] libnvdimm: providing dax support for nvdimm testing
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 06 Mar 2017 13:32:32 -0700
-Message-ID: <148883235198.49239.5744626493543231294.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <148883211285.49239.17952572594430933942.stgit@djiang5-desk3.ch.intel.com>
-References: <148883211285.49239.17952572594430933942.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 15 Mar 2017 11:33:40 -0700
+Message-ID: <148960282011.4721.5572367816330663729.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148960279823.4721.5449530412401763266.stgit@djiang5-desk3.ch.intel.com>
+References: <148960279823.4721.5449530412401763266.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,122 +26,215 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-badblocks sysfs file will be export at nd_region level. When nvdimm event
-notifier happens for NVDIMM_REVALIATE_POISON, the badblocks in the nd
-region will be updated.
+Adding dax support to the nvdimm testing in tools/testing/nvdimm. The
+memory allocated by the tool is via vmalloc and non-contiguous.
+Overriding pgoff_to_phys() call to support the vmalloc memory.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- drivers/nvdimm/nd.h          |    1 +
- drivers/nvdimm/region.c      |   24 ++++++++++++++++++++++++
- drivers/nvdimm/region_devs.c |   19 +++++++++++++++++++
- 3 files changed, 44 insertions(+)
+ drivers/dax/dax-private.h      |   40 ++++++++++++++++++++++++++++++++++++
+ drivers/dax/dax.c              |   31 +++++-----------------------
+ tools/testing/nvdimm/Kbuild    |    3 ++-
+ tools/testing/nvdimm/dax-dev.c |   44 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 92 insertions(+), 26 deletions(-)
+ create mode 100644 drivers/dax/dax-private.h
+ create mode 100644 tools/testing/nvdimm/dax-dev.c
 
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 35dd750..d713bf9 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -154,6 +154,7 @@ struct nd_region {
- 	u64 ndr_start;
- 	int id, num_lanes, ro, numa_node;
- 	void *provider_data;
-+	struct badblocks bb;
- 	struct nd_interleave_set *nd_set;
- 	struct nd_percpu_lane __percpu *lane;
- 	struct nd_mapping mapping[0];
-diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
-index 8f24177..869a886 100644
---- a/drivers/nvdimm/region.c
-+++ b/drivers/nvdimm/region.c
-@@ -14,6 +14,7 @@
- #include <linux/module.h>
- #include <linux/device.h>
- #include <linux/nd.h>
-+#include "nd-core.h"
- #include "nd.h"
- 
- static int nd_region_probe(struct device *dev)
-@@ -52,6 +53,17 @@ static int nd_region_probe(struct device *dev)
- 	if (rc && err && rc == err)
- 		return -ENODEV;
- 
-+	if (is_nd_pmem(&nd_region->dev)) {
-+		struct resource ndr_res;
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+new file mode 100644
+index 0000000..1567ea4
+--- /dev/null
++++ b/drivers/dax/dax-private.h
+@@ -0,0 +1,40 @@
++/*
++ * Copyright(c) 2016 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __DAX_PRIVATE_H__
++#define __DAX_PRIVATE_H__
 +
-+		if (devm_init_badblocks(dev, &nd_region->bb))
-+			return -ENODEV;
-+		ndr_res.start = nd_region->ndr_start;
-+		ndr_res.end = nd_region->ndr_start + nd_region->ndr_size - 1;
-+		nvdimm_badblocks_populate(nd_region,
-+				&nd_region->bb, &ndr_res);
-+	}
++#include <linux/device.h>
++#include <linux/cdev.h>
 +
- 	nd_region->btt_seed = nd_btt_create(nd_region);
- 	nd_region->pfn_seed = nd_pfn_create(nd_region);
- 	nd_region->dax_seed = nd_dax_create(nd_region);
-@@ -104,6 +116,18 @@ static int child_notify(struct device *dev, void *data)
- 
- static void nd_region_notify(struct device *dev, enum nvdimm_event event)
- {
-+	if (event == NVDIMM_REVALIDATE_POISON) {
-+		struct nd_region *nd_region = to_nd_region(dev);
-+		struct resource res;
-+
-+		if (is_nd_pmem(&nd_region->dev)) {
-+			res.start = nd_region->ndr_start;
-+			res.end = nd_region->ndr_start +
-+				nd_region->ndr_size - 1;
-+			nvdimm_badblocks_populate(nd_region,
-+					&nd_region->bb, &res);
-+		}
-+	}
- 	device_for_each_child(dev, &event, child_notify);
- }
- 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 7cd705f..4d6db84 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -448,6 +448,21 @@ static ssize_t read_only_store(struct device *dev,
- }
- static DEVICE_ATTR_RW(read_only);
- 
-+static ssize_t nd_badblocks_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	return badblocks_show(&nd_region->bb, buf, 0);
-+}
-+static struct device_attribute dev_attr_nd_badblocks = {
-+	.attr = {
-+		.name = "badblocks",
-+		.mode = S_IRUGO
-+	},
-+	.show = nd_badblocks_show,
++/**
++ * struct dax_dev - subdivision of a dax region
++ * @region - parent region
++ * @inode - inode
++ * @dev - device backing the character device
++ * @cdev - core chardev data
++ * @alive - !alive + rcu grace period == no new mappings can be established
++ * @id - child id in the region
++ * @num_resources - number of physical address extents in this device
++ * @res - array of physical address ranges
++ */
++struct dax_dev {
++	struct dax_region *region;
++	struct inode *inode;
++	struct device dev;
++	struct cdev cdev;
++	bool alive;
++	int id;
++	int num_resources;
++	struct resource res[0];
 +};
-+
- static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_size.attr,
- 	&dev_attr_nstype.attr,
-@@ -460,6 +475,7 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_available_size.attr,
- 	&dev_attr_namespace_seed.attr,
- 	&dev_attr_init_namespaces.attr,
-+	&dev_attr_nd_badblocks.attr,
- 	NULL,
++#endif
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 80c6db279..f3087f0 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -22,6 +22,7 @@
+ #include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include "dax-private.h"
+ #include "dax.h"
+ 
+ static dev_t dax_devt;
+@@ -55,27 +56,6 @@ struct dax_region {
+ 	unsigned long pfn_flags;
  };
  
-@@ -476,6 +492,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
- 	if (!is_nd_pmem(dev) && a == &dev_attr_dax_seed.attr)
- 		return 0;
+-/**
+- * struct dax_dev - subdivision of a dax region
+- * @region - parent region
+- * @dev - device backing the character device
+- * @cdev - core chardev data
+- * @alive - !alive + rcu grace period == no new mappings can be established
+- * @id - child id in the region
+- * @num_resources - number of physical address extents in this device
+- * @res - array of physical address ranges
+- */
+-struct dax_dev {
+-	struct dax_region *region;
+-	struct inode *inode;
+-	struct device dev;
+-	struct cdev cdev;
+-	bool alive;
+-	int id;
+-	int num_resources;
+-	struct resource res[0];
+-};
+-
+ static ssize_t id_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -396,7 +376,8 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+ 	return 0;
+ }
  
-+	if (!is_nd_pmem(dev) && a == &dev_attr_nd_badblocks.attr)
-+		return 0;
+-static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
++/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
++__weak phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
+ 		unsigned long size)
+ {
+ 	struct resource *res;
+@@ -441,7 +422,7 @@ static int __dax_dev_pte_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+ 	if (fault_size != dax_region->align)
+ 		return VM_FAULT_SIGBUS;
+ 
+-	phys = pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
++	phys = dax_pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
+ 				vmf->pgoff);
+@@ -496,7 +477,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	pgoff = linear_page_index(vmf->vma, pmd_addr);
+-	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
++	phys = dax_pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
+ 				pgoff);
+@@ -547,7 +528,7 @@ static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	pgoff = linear_page_index(vmf->vma, pud_addr);
+-	phys = pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
++	phys = dax_pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
+ 				pgoff);
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 405212b..6dcb3c4 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -28,7 +28,7 @@ obj-$(CONFIG_ND_BTT) += nd_btt.o
+ obj-$(CONFIG_ND_BLK) += nd_blk.o
+ obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
+ obj-$(CONFIG_ACPI_NFIT) += nfit.o
+-obj-$(CONFIG_DEV_DAX) += dax.o
++obj-$(CONFIG_DEV_DAX) += dax.o dax-dev.o
+ obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+ 
+ nfit-y := $(ACPI_SRC)/core.o
+@@ -49,6 +49,7 @@ nd_e820-y := $(NVDIMM_SRC)/e820.o
+ nd_e820-y += config_check.o
+ 
+ dax-y := $(DAX_SRC)/dax.o
++dax-y += dax-dev.o
+ dax-y += config_check.o
+ 
+ dax_pmem-y := $(DAX_SRC)/pmem.o
+diff --git a/tools/testing/nvdimm/dax-dev.c b/tools/testing/nvdimm/dax-dev.c
+new file mode 100644
+index 0000000..1763688
+--- /dev/null
++++ b/tools/testing/nvdimm/dax-dev.c
+@@ -0,0 +1,44 @@
++/*
++ * Copyright (c) 2016, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include "test/nfit_test.h"
++#include <linux/mm.h>
++#include "../../../drivers/dax/dax-private.h"
 +
- 	if (a != &dev_attr_set_cookie.attr
- 			&& a != &dev_attr_available_size.attr)
- 		return a->mode;
++phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
++		unsigned long size)
++{
++
++	struct resource *res;
++	phys_addr_t virt;
++	int i;
++
++	for (i = 0; i < dax_dev->num_resources; i++) {
++		res = &dax_dev->res[i];
++		virt = pgoff * PAGE_SIZE + res->start;
++		if (virt >= res->start && virt <= res->end)
++			break;
++		pgoff -= PHYS_PFN(resource_size(res));
++	}
++
++	if (i < dax_dev->num_resources) {
++		res = &dax_dev->res[i];
++		if (virt + size - 1 <= res->end) {
++			struct page *page;
++
++			page = vmalloc_to_page((void *)virt);
++			return PFN_PHYS(page_to_pfn(page));
++		}
++	}
++
++	return -1;
++}
 
 _______________________________________________
 Linux-nvdimm mailing list
