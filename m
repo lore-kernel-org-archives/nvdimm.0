@@ -1,12 +1,12 @@
-From: Parabens Voce Acaba De Ser Premiado<premiado-pcHptt+LwIB5NtD9jto2dCbtMM6wq+HK@public.gmane.org>
-Subject: Cielo Compra Premiada Cliente Premiado
-Date: Tue, 14 Mar 2017 14:23:05 -0600
-Message-ID: <20170314202307.33A6B63F24@emailseguro.com.bz>
+From: "Coco Chen" <cantonfair4-KN7UnAbNpbg@public.gmane.org>
+Subject: =?utf-8?B?WW91ciB2aXNpdCB0byB0aGUgMTIxc3QgQ2FudG9uIEZhaXIgaW4gQ2hpbmEgKDQxKQ==?=
+Date: 15 Mar 2017 18:12:06 +0800
+Message-ID: <20170315101228.73B79803F0@ml01.01.org>
+Reply-To: Coco Chen <cantonfair4-KN7UnAbNpbg@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,5 +19,6 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-  Caso n-o esteja visualizando, Abra Aqui.
-  	 
+Dear Madam/Sir,I am pleased to announce that the 121st Canton Fair is coming. The Canton Fair is co-hosted biannually by the Ministry of Commerce of People Republic of China and the Guangdong Government, every spring and autumn. In the Autumn of 2016, the past120th Canton Fair attracted over 25,000 suppliers to exhibit over 150,000 kinds of quality products with distinctive features, and the annual turnover reached over USD 29 billion.We invite you to join the 121st Canton fair. The first 500 customers signing up for attendance may enjoy the following offers:1) Directory of superior suppliers of and a latest report for all industries.2) VIP permit will be granted3) Assistance on China Visa application4) Free one-way airport transfer and special price for hotel accommodation5) Free local mo
+ bile sim-card6) 2 free SPA couponsWe sincerely believe that you and your company will fruitfully benefit from it. Please find the contact person details as follows:Contact Person : Ms. Coco ChenEmai
+ l:cantonfair4-cS4t20Fld3IYZaMpoT/xXg@public.gmane.org: +971-55-7951168We look forward to your favorable reply.Best regards,Coco Chen- The China Import and Export Fair- Guangdong Emirates Business Union In U.A.E.We hosted Promotion Conferences of Canton Fair in:1.) Sept. 2014, Carlton Hotel, Dubai, U.A.E.2.) April 2015, Radisson Hotel, Dubai, U.A.E.3.) Aug. 2015, Holiday Inn, Abu Dhabi, U.A.E.
