@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 925EE80290
- for <linux-nvdimm@lists.01.org>; Tue,  7 Mar 2017 13:06:32 -0800 (PST)
-Subject: [PATCH v2 0/5] libnvdimm: Adding clear poison path for device DAX
+ by ml01.01.org (Postfix) with ESMTPS id 9723A8036D
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 11:33:24 -0700 (PDT)
+Subject: [PATCH v3 2/5] libnvdimm: Add resource sysfs attrib to nd region
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 07 Mar 2017 14:06:31 -0700
-Message-ID: <148892068983.46486.5008198419806159468.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 15 Mar 2017 11:33:23 -0700
+Message-ID: <148960280384.4721.16547227425992657603.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148960279823.4721.5449530412401763266.stgit@djiang5-desk3.ch.intel.com>
+References: <148960279823.4721.5449530412401763266.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,43 +26,55 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements a way to clear poison for device DAX
-through ndctl from user space. The application can acquire the region's
-base address through the sysfs region resource attribute. From that an
-ioctl can be used to send ND_CMD_CLEAR_ERROR for clearing the poison and
-related badblocks.
+Adding sysfs attribute in order to export the physical address of the
+ND region. This is for supporting of user app poison clear via
+device dax.
 
-v2:
-Addressed formatting comments by Johannes.
-
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
+ drivers/nvdimm/region_devs.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-Dave Jiang (5):
-      libnvdimm: Add mechanism to publish badblocks at nd region level
-      libnvdimm: Add resource sysfs attrib to nd region
-      acpi: cleanup acpi_nfit_ctl calling xlat_status
-      acpi_nfit, libnvdimm: Add support for clear poison list and bad blocks
-      libnvdimm: providing dax support for nvdimm testing
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 3500fc8..8de5a04 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -463,6 +463,15 @@ static struct device_attribute dev_attr_nd_badblocks = {
+ 	.show = nd_badblocks_show,
+ };
+ 
++static ssize_t resource_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
++
++	return sprintf(buf, "%#llx\n", nd_region->ndr_start);
++}
++static DEVICE_ATTR_RO(resource);
++
+ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_size.attr,
+ 	&dev_attr_nstype.attr,
+@@ -476,6 +485,7 @@ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_namespace_seed.attr,
+ 	&dev_attr_init_namespaces.attr,
+ 	&dev_attr_nd_badblocks.attr,
++	&dev_attr_resource.attr,
+ 	NULL,
+ };
+ 
+@@ -495,6 +505,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (!is_nd_pmem(dev) && a == &dev_attr_nd_badblocks.attr)
+ 		return 0;
+ 
++	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
++		return 0;
++
+ 	if (a != &dev_attr_set_cookie.attr
+ 			&& a != &dev_attr_available_size.attr)
+ 		return a->mode;
 
-
- drivers/acpi/nfit/core.c         |   78 ++++++++++++++++++++++++++++++++++----
- drivers/acpi/nfit/nfit.h         |    2 +
- drivers/dax/dax-private.h        |   40 +++++++++++++++++++
- drivers/dax/dax.c                |   29 ++------------
- drivers/nvdimm/bus.c             |   55 +++++++++++++++++++++++----
- drivers/nvdimm/core.c            |   17 ++++++--
- drivers/nvdimm/nd.h              |    1 
- drivers/nvdimm/region.c          |   33 ++++++++++++++++
- drivers/nvdimm/region_devs.c     |   32 ++++++++++++++++
- include/linux/libnvdimm.h        |    6 ++-
- tools/testing/nvdimm/Kbuild      |    3 +
- tools/testing/nvdimm/dax-dev.c   |   44 +++++++++++++++++++++
- tools/testing/nvdimm/test/nfit.c |   23 +++++++----
- 13 files changed, 309 insertions(+), 54 deletions(-)
- create mode 100644 drivers/dax/dax-private.h
- create mode 100644 tools/testing/nvdimm/dax-dev.c
-
---
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
