@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9EB0380415
- for <linux-nvdimm@lists.01.org>; Thu, 16 Mar 2017 15:59:10 -0700 (PDT)
-Subject: [PATCH v4 2/5] libnvdimm: Add resource sysfs attrib to nd region
+ by ml01.01.org (Postfix) with ESMTPS id 051F88036C
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 11:33:29 -0700 (PDT)
+Subject: [PATCH v3 3/5] acpi: code cleanup for acpi_nfit_ctl calling
+ xlat_status
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 16 Mar 2017 15:59:02 -0700
-Message-ID: <148970514210.49411.16069507711383521618.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <148970513650.49411.10791297905780906216.stgit@djiang5-desk3.ch.intel.com>
-References: <148970513650.49411.10791297905780906216.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 15 Mar 2017 11:33:29 -0700
+Message-ID: <148960280935.4721.4767844494740081080.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <148960279823.4721.5449530412401763266.stgit@djiang5-desk3.ch.intel.com>
+References: <148960279823.4721.5449530412401763266.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,54 +27,57 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding sysfs attribute in order to export the physical address of the
-ND region. This is for supporting of user app poison clear via
-device dax.
+Moving the xlat_status() call to a single location to clean up the code
+since it is getting called in the main code paths already. We only need
+to bail on the error path at a single location.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- drivers/nvdimm/region_devs.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/acpi/nfit/core.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 3500fc8..8de5a04 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -463,6 +463,15 @@ static struct device_attribute dev_attr_nd_badblocks = {
- 	.show = nd_badblocks_show,
- };
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 662036b..e7b05df 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -199,7 +199,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	acpi_handle handle;
+ 	unsigned int func;
+ 	const u8 *uuid;
+-	int rc, i;
++	int rc = 0, xlat_rc, i;
  
-+static ssize_t resource_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	return sprintf(buf, "%#llx\n", nd_region->ndr_start);
-+}
-+static DEVICE_ATTR_RO(resource);
-+
- static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_size.attr,
- 	&dev_attr_nstype.attr,
-@@ -476,6 +485,7 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_namespace_seed.attr,
- 	&dev_attr_init_namespaces.attr,
- 	&dev_attr_nd_badblocks.attr,
-+	&dev_attr_resource.attr,
- 	NULL,
- };
+ 	func = cmd;
+ 	if (cmd == ND_CMD_CALL) {
+@@ -343,21 +343,20 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 			 * unfilled in the output buffer
+ 			 */
+ 			rc = buf_len - offset - in_buf.buffer.length;
+-			if (cmd_rc)
+-				*cmd_rc = xlat_status(nvdimm, buf, cmd,
+-						fw_status);
+ 		} else {
+ 			dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
+ 					__func__, dimm_name, cmd_name, buf_len,
+ 					offset);
+ 			rc = -ENXIO;
++			goto out;
+ 		}
+-	} else {
+-		rc = 0;
+-		if (cmd_rc)
+-			*cmd_rc = xlat_status(nvdimm, buf, cmd, fw_status);
+ 	}
  
-@@ -495,6 +505,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
- 	if (!is_nd_pmem(dev) && a == &dev_attr_nd_badblocks.attr)
- 		return 0;
- 
-+	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
-+		return 0;
++	xlat_rc = xlat_status(nvdimm, buf, cmd, fw_status);
 +
- 	if (a != &dev_attr_set_cookie.attr
- 			&& a != &dev_attr_available_size.attr)
- 		return a->mode;
++	if (cmd_rc)
++		*cmd_rc = xlat_rc;
++
+  out:
+ 	ACPI_FREE(out_obj);
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
