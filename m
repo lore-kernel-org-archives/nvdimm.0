@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF4F021A0480E
- for <linux-nvdimm@lists.01.org>; Thu, 30 Mar 2017 15:13:22 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Mar 2017 16:12:37 -0600
-Message-Id: <1490911959-5146-7-git-send-email-logang@deltatee.com>
-In-Reply-To: <1490911959-5146-1-git-send-email-logang@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
-Subject: [RFC 6/8] nvmet: Be careful about using iomem accesses when dealing
- with p2pmem
+ by ml01.01.org (Postfix) with ESMTPS id CDB428040A
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:12:52 -0700 (PDT)
+Subject: [PATCH v4 10/13] mm: prepare for hot-{add,
+ remove} of sub-section ranges
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 15 Mar 2017 23:07:41 -0700
+Message-ID: <148964446151.19438.9450441862708278040.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,205 +19,297 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-p2pmem will always be iomem so if we ever access it, we should be using
-the correct methods to read and write to it.
+Prepare the memory hot-{add,remove} paths for handling sub-section
+ranges by plumbing the starting page frame and number of pages being
+handled through arch_{add,remove}_memory() to
+sparse_{add,remove}_one_section().
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+This is simply plumbing, small cleanups, and some identifier renames. No
+intended functional changes.
+
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvme/target/core.c        | 18 ++++++++++++++++--
- drivers/nvme/target/fabrics-cmd.c | 28 +++++++++++++++-------------
- drivers/nvme/target/nvmet.h       |  1 +
- drivers/nvme/target/rdma.c        | 13 ++++++-------
- 4 files changed, 38 insertions(+), 22 deletions(-)
+ arch/x86/mm/init_64.c          |   11 +++++
+ include/linux/memory_hotplug.h |    6 ++-
+ mm/memory_hotplug.c            |   85 ++++++++++++++++++++++------------------
+ mm/sparse.c                    |    6 ++-
+ 4 files changed, 65 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/nvme/target/core.c b/drivers/nvme/target/core.c
-index 798653b..a1524d5 100644
---- a/drivers/nvme/target/core.c
-+++ b/drivers/nvme/target/core.c
-@@ -45,15 +45,29 @@ static struct nvmet_subsys *nvmet_find_get_subsys(struct nvmet_port *port,
- u16 nvmet_copy_to_sgl(struct nvmet_req *req, off_t off, const void *buf,
- 		size_t len)
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 0dbae2469a40..ed860558735f 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -650,6 +650,17 @@ int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+ 
++	/*
++	 * Only allow partial section hotplug for ZONE_DEVICE ranges,
++	 * since register_new_memory() requires section alignment, and
++	 * CONFIG_SPARSEMEM_VMEMMAP=n requires sections to be fully
++	 * populated.
++	 */
++	if ((!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) || !for_device)
++			&& ((start & ~PA_SECTION_MASK)
++				|| (size & ~PA_SECTION_MASK)))
++		return -EINVAL;
++
+ 	init_memory_mapping(start, start + size);
+ 
+ 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 134a2f69c21a..2f2c0d1290a1 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -280,8 +280,10 @@ extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+ extern void remove_memory(int nid, u64 start, u64 size);
+-extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn);
+-extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
++extern int sparse_add_section(struct zone *zone, unsigned long pfn,
++		unsigned long nr_pages);
++extern void sparse_remove_section(struct zone *zone, struct mem_section *ms,
++		unsigned long pfn, unsigned long nr_pages,
+ 		unsigned long map_offset);
+ extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+ 					  unsigned long pnum);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index dc6f815c2d37..50fd94871c65 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -474,10 +474,10 @@ static void __meminit grow_pgdat_span(struct pglist_data *pgdat, unsigned long s
+ 					pgdat->node_start_pfn;
+ }
+ 
+-static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn)
++static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn,
++		unsigned long nr_pages)
  {
--	if (sg_pcopy_from_buffer(req->sg, req->sg_cnt, buf, len, off) != len)
-+	bool iomem = req->p2pmem;
-+	size_t ret;
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+-	int nr_pages = PAGES_PER_SECTION;
+ 	int nid = pgdat->node_id;
+ 	int zone_type;
+ 	unsigned long flags, pfn;
+@@ -507,24 +507,21 @@ static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn)
+ }
+ 
+ static int __meminit __add_section(int nid, struct zone *zone,
+-					unsigned long phys_start_pfn)
++		unsigned long pfn, unsigned long nr_pages)
+ {
+ 	int ret;
+ 
+-	if (pfn_valid(phys_start_pfn))
+-		return -EEXIST;
+-
+-	ret = sparse_add_one_section(zone, phys_start_pfn);
++	ret = sparse_add_section(zone, pfn, nr_pages);
+ 
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = __add_zone(zone, phys_start_pfn);
++	ret = __add_zone(zone, pfn, nr_pages);
+ 
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	return register_new_memory(zone, nid, __pfn_to_section(phys_start_pfn));
++	return register_new_memory(zone, nid, __pfn_to_section(pfn));
+ }
+ 
+ /*
+@@ -533,7 +530,7 @@ static int __meminit __add_section(int nid, struct zone *zone,
+  * call this function after deciding the zone to which to
+  * add the new pages.
+  */
+-int __ref __add_pages(int nid, struct zone *zone, unsigned long phys_start_pfn,
++int __ref __add_pages(int nid, struct zone *zone, unsigned long pfn,
+ 			unsigned long nr_pages)
+ {
+ 	int err = 0, i, start_sec, end_sec;
+@@ -541,16 +538,12 @@ int __ref __add_pages(int nid, struct zone *zone, unsigned long phys_start_pfn,
+ 
+ 	clear_zone_contiguous(zone);
+ 
+-	/* during initialize mem_map, align hot-added range to section */
+-	start_sec = pfn_to_section_nr(phys_start_pfn);
+-	end_sec = pfn_to_section_nr(phys_start_pfn + nr_pages - 1);
+-
+-	altmap = to_vmem_altmap((unsigned long) pfn_to_page(phys_start_pfn));
++	altmap = to_vmem_altmap((unsigned long) pfn_to_page(pfn));
+ 	if (altmap) {
+ 		/*
+ 		 * Validate altmap is within bounds of the total request
+ 		 */
+-		if (altmap->base_pfn != phys_start_pfn
++		if (altmap->base_pfn != pfn
+ 				|| vmem_altmap_offset(altmap) > nr_pages) {
+ 			pr_warn_once("memory add fail, invalid altmap\n");
+ 			err = -EINVAL;
+@@ -559,8 +552,16 @@ int __ref __add_pages(int nid, struct zone *zone, unsigned long phys_start_pfn,
+ 		altmap->alloc = 0;
+ 	}
+ 
++	start_sec = pfn_to_section_nr(pfn);
++	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
+ 	for (i = start_sec; i <= end_sec; i++) {
+-		err = __add_section(nid, zone, section_nr_to_pfn(i));
++		unsigned long pfns;
 +
-+	ret = sg_copy_buffer(req->sg, req->sg_cnt, (void *)buf, len, off,
-+			     false, iomem);
-+
-+	if (ret != len)
- 		return NVME_SC_SGL_INVALID_DATA | NVME_SC_DNR;
-+
++		pfns = min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK));
++		err = __add_section(nid, zone, pfn, pfns);
++		pfn += pfns;
++		nr_pages -= pfns;
+ 
+ 		/*
+ 		 * EEXIST is finally dealt with by ioresource collision
+@@ -766,10 +767,10 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
+ 	pgdat->node_spanned_pages = 0;
+ }
+ 
+-static void __remove_zone(struct zone *zone, unsigned long start_pfn)
++static void __remove_zone(struct zone *zone, unsigned long start_pfn,
++		unsigned long nr_pages)
+ {
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+-	int nr_pages = PAGES_PER_SECTION;
+ 	int zone_type;
+ 	unsigned long flags;
+ 
+@@ -781,11 +782,10 @@ static void __remove_zone(struct zone *zone, unsigned long start_pfn)
+ 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+ }
+ 
+-static int __remove_section(struct zone *zone, struct mem_section *ms,
+-		unsigned long map_offset)
++static int __remove_section(struct zone *zone, unsigned long pfn,
++		unsigned long nr_pages, unsigned long map_offset)
+ {
+-	unsigned long start_pfn;
+-	int scn_nr;
++	struct mem_section *ms = __nr_to_section(pfn_to_section_nr(pfn));
+ 	int ret = -EINVAL;
+ 
+ 	if (!valid_section(ms))
+@@ -795,11 +795,9 @@ static int __remove_section(struct zone *zone, struct mem_section *ms,
+ 	if (ret)
+ 		return ret;
+ 
+-	scn_nr = __section_nr(ms);
+-	start_pfn = section_nr_to_pfn(scn_nr);
+-	__remove_zone(zone, start_pfn);
++	__remove_zone(zone, pfn, nr_pages);
+ 
+-	sparse_remove_one_section(zone, ms, map_offset);
++	sparse_remove_section(zone, ms, pfn, nr_pages, map_offset);
  	return 0;
  }
  
- u16 nvmet_copy_from_sgl(struct nvmet_req *req, off_t off, void *buf, size_t len)
+@@ -814,16 +812,15 @@ static int __remove_section(struct zone *zone, struct mem_section *ms,
+  * sure that pages are marked reserved and zones are adjust properly by
+  * calling offline_pages().
+  */
+-int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
++int __remove_pages(struct zone *zone, unsigned long pfn,
+ 		 unsigned long nr_pages)
  {
--	if (sg_pcopy_to_buffer(req->sg, req->sg_cnt, buf, len, off) != len)
-+	bool iomem = req->p2pmem;
-+	size_t ret;
-+
-+	ret = sg_copy_buffer(req->sg, req->sg_cnt, buf, len, off, true,
-+			     iomem);
-+
-+	if (ret != len)
- 		return NVME_SC_SGL_INVALID_DATA | NVME_SC_DNR;
-+
- 	return 0;
+-	unsigned long i;
+ 	unsigned long map_offset = 0;
+-	int sections_to_remove, ret = 0;
++	int i, start_sec, end_sec, ret = 0;
+ 
+ 	/* In the ZONE_DEVICE case device driver owns the memory region */
+ 	if (is_dev_zone(zone)) {
+-		struct page *page = pfn_to_page(phys_start_pfn);
++		struct page *page = pfn_to_page(pfn);
+ 		struct vmem_altmap *altmap;
+ 
+ 		altmap = to_vmem_altmap((unsigned long) page);
+@@ -832,7 +829,7 @@ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
+ 	} else {
+ 		resource_size_t start, size;
+ 
+-		start = phys_start_pfn << PAGE_SHIFT;
++		start = pfn << PAGE_SHIFT;
+ 		size = nr_pages * PAGE_SIZE;
+ 
+ 		ret = release_mem_region_adjustable(&iomem_resource, start,
+@@ -848,16 +845,26 @@ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
+ 	clear_zone_contiguous(zone);
+ 
+ 	/*
+-	 * We can only remove entire sections
++	 * Only ZONE_DEVICE memory is enabled to remove
++	 * section-unaligned ranges. See register_new_memory() which
++	 * assumes section alignment and is skipped for ZONE_DEVICE
++	 * ranges.
+ 	 */
+-	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
+-	BUG_ON(nr_pages % PAGES_PER_SECTION);
++	if (!is_dev_zone(zone) && ((pfn | nr_pages) & ~PAGE_SECTION_MASK)) {
++		WARN(1, "section unaligned removal not supported\n");
++		return -EINVAL;
++	}
+ 
+-	sections_to_remove = nr_pages / PAGES_PER_SECTION;
+-	for (i = 0; i < sections_to_remove; i++) {
+-		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
++	start_sec = pfn_to_section_nr(pfn);
++	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
++	for (i = start_sec; i <= end_sec; i++) {
++		unsigned long pfns;
+ 
+-		ret = __remove_section(zone, __pfn_to_section(pfn), map_offset);
++		pfns = min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK));
++		ret = __remove_section(zone, pfn, pfns, map_offset);
++		pfn += pfns;
++		nr_pages -= pfns;
+ 		map_offset = 0;
+ 		if (ret)
+ 			break;
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 1a51f97ae99e..edb1d2a21a2e 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -753,7 +753,8 @@ static void free_map_bootmem(struct page *memmap)
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+-int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn)
++int __meminit sparse_add_section(struct zone *zone, unsigned long start_pfn,
++		unsigned long nr_pages)
+ {
+ 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+@@ -855,7 +856,8 @@ static void free_section_usage(struct page *memmap,
+ 		free_map_bootmem(memmap);
  }
  
-diff --git a/drivers/nvme/target/fabrics-cmd.c b/drivers/nvme/target/fabrics-cmd.c
-index 8bd022af..9d966f0 100644
---- a/drivers/nvme/target/fabrics-cmd.c
-+++ b/drivers/nvme/target/fabrics-cmd.c
-@@ -118,11 +118,13 @@ static u16 nvmet_install_queue(struct nvmet_ctrl *ctrl, struct nvmet_req *req)
- static void nvmet_execute_admin_connect(struct nvmet_req *req)
+-void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
++void sparse_remove_section(struct zone *zone, struct mem_section *ms,
++		unsigned long pfn, unsigned long nr_pages,
+ 		unsigned long map_offset)
  {
- 	struct nvmf_connect_command *c = &req->cmd->connect;
--	struct nvmf_connect_data *d;
-+	struct nvmf_connect_data d;
- 	struct nvmet_ctrl *ctrl = NULL;
- 	u16 status = 0;
- 
--	d = kmap(sg_page(req->sg)) + req->sg->offset;
-+	status = nvmet_copy_from_sgl(req, 0, &d, sizeof(d));
-+	if (status)
-+		goto out;
- 
- 	/* zero out initial completion result, assign values as needed */
- 	req->rsp->result.u32 = 0;
-@@ -134,16 +136,16 @@ static void nvmet_execute_admin_connect(struct nvmet_req *req)
- 		goto out;
- 	}
- 
--	if (unlikely(d->cntlid != cpu_to_le16(0xffff))) {
-+	if (unlikely(d.cntlid != cpu_to_le16(0xffff))) {
- 		pr_warn("connect attempt for invalid controller ID %#x\n",
--			d->cntlid);
-+			d.cntlid);
- 		status = NVME_SC_CONNECT_INVALID_PARAM | NVME_SC_DNR;
- 		req->rsp->result.u32 = IPO_IATTR_CONNECT_DATA(cntlid);
- 		goto out;
- 	}
- 
--	status = nvmet_alloc_ctrl(d->subsysnqn, d->hostnqn, req,
--			le32_to_cpu(c->kato), &ctrl);
-+	status = nvmet_alloc_ctrl(d.subsysnqn, d.hostnqn, req,
-+				  le32_to_cpu(c->kato), &ctrl);
- 	if (status)
- 		goto out;
- 
-@@ -158,19 +160,20 @@ static void nvmet_execute_admin_connect(struct nvmet_req *req)
- 	req->rsp->result.u16 = cpu_to_le16(ctrl->cntlid);
- 
- out:
--	kunmap(sg_page(req->sg));
- 	nvmet_req_complete(req, status);
- }
- 
- static void nvmet_execute_io_connect(struct nvmet_req *req)
- {
- 	struct nvmf_connect_command *c = &req->cmd->connect;
--	struct nvmf_connect_data *d;
-+	struct nvmf_connect_data d;
- 	struct nvmet_ctrl *ctrl = NULL;
- 	u16 qid = le16_to_cpu(c->qid);
- 	u16 status = 0;
- 
--	d = kmap(sg_page(req->sg)) + req->sg->offset;
-+	status = nvmet_copy_from_sgl(req, 0, &d, sizeof(d));
-+	if (status)
-+		goto out;
- 
- 	/* zero out initial completion result, assign values as needed */
- 	req->rsp->result.u32 = 0;
-@@ -182,9 +185,9 @@ static void nvmet_execute_io_connect(struct nvmet_req *req)
- 		goto out;
- 	}
- 
--	status = nvmet_ctrl_find_get(d->subsysnqn, d->hostnqn,
--			le16_to_cpu(d->cntlid),
--			req, &ctrl);
-+	status = nvmet_ctrl_find_get(d.subsysnqn, d.hostnqn,
-+				     le16_to_cpu(d.cntlid),
-+				     req, &ctrl);
- 	if (status)
- 		goto out;
- 
-@@ -205,7 +208,6 @@ static void nvmet_execute_io_connect(struct nvmet_req *req)
- 	pr_info("adding queue %d to ctrl %d.\n", qid, ctrl->cntlid);
- 
- out:
--	kunmap(sg_page(req->sg));
- 	nvmet_req_complete(req, status);
- 	return;
- 
-diff --git a/drivers/nvme/target/nvmet.h b/drivers/nvme/target/nvmet.h
-index ab67175..ccd79ed 100644
---- a/drivers/nvme/target/nvmet.h
-+++ b/drivers/nvme/target/nvmet.h
-@@ -226,6 +226,7 @@ struct nvmet_req {
- 
- 	void (*execute)(struct nvmet_req *req);
- 	struct nvmet_fabrics_ops *ops;
-+	struct p2pmem_dev       *p2pmem;
- };
- 
- static inline void nvmet_set_status(struct nvmet_req *req, u16 status)
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 7fd4840..abab544 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -65,7 +65,6 @@ struct nvmet_rdma_rsp {
- 	struct rdma_rw_ctx	rw;
- 
- 	struct nvmet_req	req;
--	struct p2pmem_dev       *p2pmem;
- 
- 	u8			n_rdma;
- 	u32			flags;
-@@ -501,7 +500,7 @@ static void nvmet_rdma_release_rsp(struct nvmet_rdma_rsp *rsp)
- 
- 	if (rsp->req.sg != &rsp->cmd->inline_sg)
- 		nvmet_rdma_free_sgl(rsp->req.sg, rsp->req.sg_cnt,
--				    rsp->p2pmem);
-+				    rsp->req.p2pmem);
- 
- 	if (unlikely(!list_empty_careful(&queue->rsp_wr_wait_list)))
- 		nvmet_rdma_process_wr_wait_list(queue);
-@@ -642,14 +641,14 @@ static u16 nvmet_rdma_map_sgl_keyed(struct nvmet_rdma_rsp *rsp,
- 	if (!len)
- 		return 0;
- 
--	rsp->p2pmem = rsp->queue->p2pmem;
-+	rsp->req.p2pmem = rsp->queue->p2pmem;
- 	status = nvmet_rdma_alloc_sgl(&rsp->req.sg, &rsp->req.sg_cnt,
--			len, rsp->p2pmem);
-+				      len, rsp->req.p2pmem);
- 
--	if (status && rsp->p2pmem) {
--		rsp->p2pmem = NULL;
-+	if (status && rsp->req.p2pmem) {
-+		rsp->req.p2pmem = NULL;
- 		status = nvmet_rdma_alloc_sgl(&rsp->req.sg, &rsp->req.sg_cnt,
--					      len, rsp->p2pmem);
-+					      len, rsp->req.p2pmem);
- 	}
- 
- 	if (status)
--- 
-2.1.4
+ 	unsigned long flags;
 
 _______________________________________________
 Linux-nvdimm mailing list
