@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 97D2821DFA7BA
- for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 16:19:17 -0700 (PDT)
-Subject: [ndctl PATCH 3/6] Documentation, list: add --mode,
- -m description to man page
+ by ml01.01.org (Postfix) with ESMTPS id 2D23480403
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:12:31 -0700 (PDT)
+Subject: [PATCH v4 06/13] mm: track active portions of a section at boot
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 28 Mar 2017 16:14:07 -0700
-Message-ID: <149074284741.18735.94167498313502915.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 15 Mar 2017 23:07:19 -0700
+Message-ID: <148964443976.19438.3997574185402162716.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,33 +22,131 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Document the new option added in commit b17f21f7fae7 "ndctl, list: add
-option to filter namespace by mode".
+Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
+section active bitmask, each bit representing 2MB (SECTION_SIZE (128M) /
+map_active bitmask length (64)).
 
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/ndctl-list.txt |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/mmzone.h |    3 +++
+ mm/page_alloc.c        |    4 +++-
+ mm/sparse.c            |   53 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 59 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ndctl-list.txt b/Documentation/ndctl-list.txt
-index bb7db47e7af8..444a6f998f19 100644
---- a/Documentation/ndctl-list.txt
-+++ b/Documentation/ndctl-list.txt
-@@ -78,6 +78,11 @@ include::xable-region-options.txt[]
- --type=::
- 	Filter listing by region type ('pmem' or 'blk')
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index a95b83ee65ec..ed08f68ea956 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1085,6 +1085,8 @@ struct mem_section_usage {
+ 	unsigned long pageblock_flags[0];
+ };
  
-+-m::
-+--mode=::
-+	Filter listing by the mode ('raw', 'memory', 'sector' or 'dax')
-+	of the namespace(s).
++void section_active_init(unsigned long pfn, unsigned long nr_pages);
 +
- -B::
- --buses::
- 	Include bus info in the listing
+ struct page;
+ struct page_ext;
+ struct mem_section {
+@@ -1226,6 +1228,7 @@ void sparse_init(void);
+ #else
+ #define sparse_init()	do {} while (0)
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
++#define section_active_init(_pfn, _nr_pages) do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
+ 
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 50858eef1cc4..98729b6e246c 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -6523,10 +6523,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
+ 
+ 	/* Print out the early node map */
+ 	pr_info("Early memory node ranges\n");
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
+ 		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
+ 			(u64)start_pfn << PAGE_SHIFT,
+ 			((u64)end_pfn << PAGE_SHIFT) - 1);
++		section_active_init(start_pfn, end_pfn - start_pfn);
++	}
+ 
+ 	/* Initialise every node */
+ 	mminit_verify_pageflags_layout();
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 886f666ebe35..2265578eedbb 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -168,6 +168,59 @@ void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
+ 	}
+ }
+ 
++static int section_active_index(phys_addr_t phys)
++{
++	return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
++}
++
++static unsigned long section_active_mask(unsigned long pfn,
++		unsigned long nr_pages)
++{
++	int idx_start, idx_size;
++	phys_addr_t start, size;
++
++	if (!nr_pages)
++		return 0;
++
++	start = PFN_PHYS(pfn);
++	size = PFN_PHYS(min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK)));
++	size = ALIGN(size, SECTION_ACTIVE_SIZE);
++
++	idx_start = section_active_index(start);
++	idx_size = section_active_index(size);
++
++	if (idx_size == 0)
++		return -1;
++	return ((1UL << idx_size) - 1) << idx_start;
++}
++
++void section_active_init(unsigned long pfn, unsigned long nr_pages)
++{
++	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
++	int i, start_sec = pfn_to_section_nr(pfn);
++
++	if (!nr_pages)
++		return;
++
++	for (i = start_sec; i <= end_sec; i++) {
++		struct mem_section *ms;
++		unsigned long mask;
++		unsigned long pfns;
++
++		pfns = min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK));
++		mask = section_active_mask(pfn, pfns);
++
++		ms = __nr_to_section(i);
++		pr_debug("%s: sec: %d mask: %#018lx\n", __func__, i, mask);
++		ms->usage->map_active = mask;
++
++		pfn += pfns;
++		nr_pages -= pfns;
++	}
++}
++
+ /* Record a memory area against a node. */
+ void __init memory_present(int nid, unsigned long start, unsigned long end)
+ {
 
 _______________________________________________
 Linux-nvdimm mailing list
