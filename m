@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 814C4803B4
- for <linux-nvdimm@lists.01.org>; Fri, 10 Mar 2017 12:24:38 -0800 (PST)
-Subject: [PATCH v3 2/2] dax: fix device-dax pud fault handling so that it
- would fallback
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 10 Mar 2017 13:24:27 -0700
-Message-ID: <148917746786.14458.9717735467489485885.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <148917746248.14458.15705199130846001839.stgit@djiang5-desk3.ch.intel.com>
-References: <148917746248.14458.15705199130846001839.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4A87480403
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:12:20 -0700 (PDT)
+Subject: [PATCH v4 04/13] mm: introduce common definitions for the size and
+ mask of a section
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 15 Mar 2017 23:07:09 -0700
+Message-ID: <148964442915.19438.13692551999756522608.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,80 +23,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Jeff Moyer reports that:
-"
-With a device dax alignment of 4KB or 2MB, I get sigbus when running the
-attached fio job file for the current kernel (4.11.0-rc1+).  If I
-specify an alignment of 1GB, it works.
+Up-level the local section size and mask from kernel/memremap.c to
+global definitions.  These will be used by the new sub-section hotplug
+support.
 
-I turned on debug output, and saw that it was failing in the huge fault
-code.
-
-[ 4614.138357] dax dax1.0: dax_open
-[ 4614.154838] dax dax1.0: dax_mmap
-[ 4614.171898] dax dax1.0: dax_dev_huge_fault: fio: write (0x7f08f0a00000 - 0x7f0ce0800000)
-[ 4614.211720] dax dax1.0: __dax_dev_pud_fault: phys_to_pgoff(0xffffffffcf600) failed
-[ 4614.568911] dax dax1.0: dax_release
-
-fio config for reproduce:
-[global]
-ioengine=dev-dax
-direct=0
-filename=/dev/dax0.0
-bs=2m
-
-[write]
-rw=write
-
-[read]
-stonewall
-rw=read
-"
-
-It looks like the code does not fallback at all when handling faults. Adding
-additional boundary checks and code that determines when to fallback. This
-patch is part 2 that fixes the pud handler.
-
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/dax.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ include/linux/mmzone.h |    2 ++
+ kernel/memremap.c      |   10 ++++------
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index 828f168..80c6db279 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -518,6 +518,8 @@ static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
- 	pfn_t pfn;
-+	unsigned int fault_size = PUD_SIZE;
-+
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 82a1af3afa04..a95b83ee65ec 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1050,6 +1050,8 @@ static inline unsigned long early_pfn_to_nid(unsigned long pfn)
+  * PFN_SECTION_SHIFT		pfn to/from section number
+  */
+ #define PA_SECTION_SHIFT	(SECTION_SIZE_BITS)
++#define PA_SECTION_SIZE		(1UL << PA_SECTION_SHIFT)
++#define PA_SECTION_MASK		(~(PA_SECTION_SIZE-1))
+ #define PFN_SECTION_SHIFT	(SECTION_SIZE_BITS - PAGE_SHIFT)
  
- 	if (check_vma(dax_dev, vmf->vma, __func__))
- 		return VM_FAULT_SIGBUS;
-@@ -534,6 +536,16 @@ static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- 		return VM_FAULT_SIGBUS;
+ #define NR_MEM_SECTIONS		(1UL << SECTIONS_SHIFT)
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 72e93754c0f4..c4f63346ff52 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -172,8 +172,6 @@ EXPORT_SYMBOL(devm_memunmap);
+ #ifdef CONFIG_ZONE_DEVICE
+ static DEFINE_MUTEX(pgmap_lock);
+ static RADIX_TREE(pgmap_radix, GFP_KERNEL);
+-#define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
+-#define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
+ 
+ struct page_map {
+ 	struct resource res;
+@@ -267,8 +265,8 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
  	}
  
-+	if (fault_size < dax_region->align)
-+		return VM_FAULT_SIGBUS;
-+	else if (fault_size > dax_region->align)
-+		return VM_FAULT_FALLBACK;
-+
-+	/* if we are outside of the VMA */
-+	if (pud_addr < vmf->vma->vm_start ||
-+			(pud_addr + PUD_SIZE) > vmf->vma->vm_end)
-+		return VM_FAULT_SIGBUS;
-+
- 	pgoff = linear_page_index(vmf->vma, pud_addr);
- 	phys = pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
- 	if (phys == -1) {
+ 	/* pages are dead and unused, undo the arch mapping */
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
++	align_start = res->start & PA_SECTION_MASK;
++	align_size = ALIGN(resource_size(res), PA_SECTION_SIZE);
+ 
+ 	mem_hotplug_begin();
+ 	arch_remove_memory(align_start, align_size);
+@@ -316,8 +314,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+ 
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
++	align_start = res->start & PA_SECTION_MASK;
++	align_size = ALIGN(res->start + resource_size(res), PA_SECTION_SIZE)
+ 		- align_start;
+ 	is_ram = region_intersects(align_start, align_size,
+ 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
 
 _______________________________________________
 Linux-nvdimm mailing list
