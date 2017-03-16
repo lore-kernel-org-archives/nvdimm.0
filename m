@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0770A8030F
- for <linux-nvdimm@lists.01.org>; Sun,  5 Mar 2017 23:06:48 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon,  6 Mar 2017 00:04:25 -0700
-Message-Id: <1488783873-2614-10-git-send-email-logang@deltatee.com>
-In-Reply-To: <1488783873-2614-1-git-send-email-logang@deltatee.com>
-References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v3 09/16] infiniband: utilize the new cdev_set_parent function
+ by ml01.01.org (Postfix) with ESMTPS id F1DFB80406
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:13:02 -0700 (PDT)
+Subject: [PATCH v4 12/13] mm: enable section-unaligned devm_memremap_pages()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 15 Mar 2017 23:07:52 -0700
+Message-ID: <148964447222.19438.8770660811344879796.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,77 +18,109 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Johannes Thumshirn <jthumshirn@suse.de>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, Sajjan Vikas C <vikas.cha.sajjan@hpe.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Peter Huewe <peterhuewe@gmx.de>, Marcel Selhorst <tpmdd@selhorst.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Olof Johansson <olof@lixom.net>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Haggai Eran <haggaie@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Boaz Harrosh <ooo@electrozaur.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Stephen Bates <stephen.bates@microsemi.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This replaces the suspect looking cdev.kobj.parent lines with the
-equivalent cdev_set_parent function. This is a straightforward change
-that's largely cosmetic but it does push the kobj.parent ownership
-into char_dev.c where it belongs.
+Teach devm_memremap_pages() about the new sub-section capabilities of
+arch_{add,remove}_memory().
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/infiniband/core/user_mad.c    | 4 ++--
- drivers/infiniband/core/uverbs_main.c | 2 +-
- drivers/infiniband/hw/hfi1/device.c   | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/memremap.c |   24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index aca7ff7..25071b8 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1183,7 +1183,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index c4f63346ff52..e6476a8e8b6a 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -256,7 +256,6 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ {
+ 	struct page_map *page_map = data;
+ 	struct resource *res = &page_map->res;
+-	resource_size_t align_start, align_size;
+ 	struct dev_pagemap *pgmap = &page_map->pgmap;
  
- 	cdev_init(&port->cdev, &umad_fops);
- 	port->cdev.owner = THIS_MODULE;
--	port->cdev.kobj.parent = &umad_dev->kobj;
-+	cdev_set_parent(&port->cdev, &umad_dev->kobj);
- 	kobject_set_name(&port->cdev.kobj, "umad%d", port->dev_num);
- 	if (cdev_add(&port->cdev, base, 1))
- 		goto err_cdev;
-@@ -1202,7 +1202,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
- 	base += IB_UMAD_MAX_PORTS;
- 	cdev_init(&port->sm_cdev, &umad_sm_fops);
- 	port->sm_cdev.owner = THIS_MODULE;
--	port->sm_cdev.kobj.parent = &umad_dev->kobj;
-+	cdev_set_parent(&port->sm_cdev, &umad_dev->kobj);
- 	kobject_set_name(&port->sm_cdev.kobj, "issm%d", port->dev_num);
- 	if (cdev_add(&port->sm_cdev, base, 1))
- 		goto err_sm_cdev;
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 35c788a..f02d7b9 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -1189,7 +1189,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	cdev_init(&uverbs_dev->cdev, NULL);
- 	uverbs_dev->cdev.owner = THIS_MODULE;
- 	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
--	uverbs_dev->cdev.kobj.parent = &uverbs_dev->kobj;
-+	cdev_set_parent(&uverbs_dev->cdev, &uverbs_dev->kobj);
- 	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
- 	if (cdev_add(&uverbs_dev->cdev, base, 1))
- 		goto err_cdev;
-diff --git a/drivers/infiniband/hw/hfi1/device.c b/drivers/infiniband/hw/hfi1/device.c
-index bf64b5a..bbb6069 100644
---- a/drivers/infiniband/hw/hfi1/device.c
-+++ b/drivers/infiniband/hw/hfi1/device.c
-@@ -69,7 +69,7 @@ int hfi1_cdev_init(int minor, const char *name,
+ 	if (percpu_ref_tryget_live(pgmap->ref)) {
+@@ -265,14 +264,10 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ 	}
  
- 	cdev_init(cdev, fops);
- 	cdev->owner = THIS_MODULE;
--	cdev->kobj.parent = parent;
-+	cdev_set_parent(cdev, parent);
- 	kobject_set_name(&cdev->kobj, name);
+ 	/* pages are dead and unused, undo the arch mapping */
+-	align_start = res->start & PA_SECTION_MASK;
+-	align_size = ALIGN(resource_size(res), PA_SECTION_SIZE);
+-
+ 	mem_hotplug_begin();
+-	arch_remove_memory(align_start, align_size);
++	arch_remove_memory(res->start, resource_size(res));
+ 	mem_hotplug_done();
+-
+-	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
++	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
+ 	pgmap_radix_release(res);
+ 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+ 			"%s: failed to free all reserved pages\n", __func__);
+@@ -307,17 +302,13 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t align_start, align_size, align_end;
+ 	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
  
- 	ret = cdev_add(cdev, dev, 1);
--- 
-2.1.4
+-	align_start = res->start & PA_SECTION_MASK;
+-	align_size = ALIGN(res->start + resource_size(res), PA_SECTION_SIZE)
+-		- align_start;
+-	is_ram = region_intersects(align_start, align_size,
++	is_ram = region_intersects(res->start, resource_size(res),
+ 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+ 
+ 	if (is_ram == REGION_MIXED) {
+@@ -350,7 +341,6 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+-	align_end = align_start + align_size - 1;
+ 
+ 	foreach_order_pgoff(res, order, pgoff) {
+ 		struct dev_pagemap *dup;
+@@ -379,13 +369,13 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (nid < 0)
+ 		nid = numa_mem_id();
+ 
+-	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(align_start), 0,
+-			align_size);
++	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(res->start), 0,
++			resource_size(res));
+ 	if (error)
+ 		goto err_pfn_remap;
+ 
+ 	mem_hotplug_begin();
+-	error = arch_add_memory(nid, align_start, align_size, true);
++	error = arch_add_memory(nid, res->start, resource_size(res), true);
+ 	mem_hotplug_done();
+ 	if (error)
+ 		goto err_add_memory;
+@@ -406,7 +396,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	return __va(res->start);
+ 
+  err_add_memory:
+-	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
++	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
+  err_pfn_remap:
+  err_radix:
+ 	pgmap_radix_release(res);
 
 _______________________________________________
 Linux-nvdimm mailing list
