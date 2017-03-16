@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F20EC80390
- for <linux-nvdimm@lists.01.org>; Thu,  9 Mar 2017 15:56:07 -0800 (PST)
-Subject: [PATCH 2/2] dax: fix device-dax fault handling so that it would
- fallback
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 09 Mar 2017 16:56:07 -0700
-Message-ID: <148910376733.27406.9048213402296101821.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <148910376176.27406.3341100457410288547.stgit@djiang5-desk3.ch.intel.com>
-References: <148910376176.27406.3341100457410288547.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A724680403
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:12:09 -0700 (PDT)
+Subject: [PATCH v4 02/13] mm,
+ devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 15 Mar 2017 23:06:58 -0700
+Message-ID: <148964441851.19438.17064347949607509906.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,100 +23,148 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Jeff Moyer reports that:
-"
-With a device dax alignment of 4KB or 2MB, I get sigbus when running the
-attached fio job file for the current kernel (4.11.0-rc1+).  If I
-specify an alignment of 1GB, it works.
+devm_memremap_pages() records mapped ranges in pgmap_radix with an entry
+per section's worth of memory (128MB).  The key for each of those
+entries is a section number.
 
-I turned on debug output, and saw that it was failing in the huge fault
-code.
+This leads to false positives when devm_memremap_pages() is passed a
+section-unaligned range as lookups in the misalignment fail to return
+NULL. We can close this hole by using the pfn as the key for entries in
+the tree.  The number of entries required to describe a remapped range
+is reduced by leveraging multi-order entries.
 
-[ 4614.138357] dax dax1.0: dax_open
-[ 4614.154838] dax dax1.0: dax_mmap
-[ 4614.171898] dax dax1.0: dax_dev_huge_fault: fio: write (0x7f08f0a00000 - 0x7f0ce0800000)
-[ 4614.211720] dax dax1.0: __dax_dev_pud_fault: phys_to_pgoff(0xffffffffcf600) failed
-[ 4614.568911] dax dax1.0: dax_release
+In practice this approach usually yields just one entry in the tree if
+the size and starting address are of the same power-of-2 alignment.
+Previously we always needed nr_entries = mapping_size / 128MB.
 
-fio config for reproduce:
-[global]
-ioengine=dev-dax
-direct=0
-filename=/dev/dax0.0
-bs=2m
-
-[write]
-rw=write
-
-[read]
-stonewall
-rw=read
-"
-
-It looks like the code does not fallback at all when handling faults. The
-fault handlers are missing some boundary checking for the VMA. Also, we need
-to fall back if the alignment requested is less than the P-entry size.
-
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Link: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006666.html
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/dax.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ kernel/memremap.c |   52 ++++++++++++++++++++++++++++++++++++++--------------
+ mm/Kconfig        |    1 +
+ 2 files changed, 39 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index 174690a..5c7998e 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -480,12 +480,21 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- 		return VM_FAULT_SIGBUS;
- 	}
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 07e85e5229da..72e93754c0f4 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -194,18 +194,41 @@ void put_zone_device_page(struct page *page)
+ }
+ EXPORT_SYMBOL(put_zone_device_page);
  
-+	/* fall back if we are outside of the VMA */
-+	if (pmd_addr < vmf->vma->vm_start)
-+		return VM_FAULT_FALLBACK;
-+	if ((pmd_addr + PMD_SIZE) > vmf->vma->vm_end)
-+		return VM_FAULT_FALLBACK;
-+
-+	if (dax_region->align < PMD_SIZE)
-+		return VM_FAULT_FALLBACK;
-+
- 	pgoff = linear_page_index(vmf->vma, pmd_addr);
- 	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
- 	if (phys == -1) {
- 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
- 				pgoff);
--		return VM_FAULT_SIGBUS;
-+		return VM_FAULT_FALLBACK;
- 	}
+-static void pgmap_radix_release(struct resource *res)
++static unsigned long order_at(struct resource *res, unsigned long pgoff)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
++	unsigned long nr_pages, mask;
  
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-@@ -519,12 +528,21 @@ static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- 		return VM_FAULT_SIGBUS;
- 	}
- 
-+	/* fall back if we are outside of the VMA */
-+	if (pud_addr < vmf->vma->vm_start)
-+		return VM_FAULT_FALLBACK;
-+	if ((pud_addr + PUD_SIZE) > vmf->vma->vm_end)
-+		return VM_FAULT_FALLBACK;
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+-	align_end = align_start + align_size - 1;
++	nr_pages = PHYS_PFN(resource_size(res));
++	if (nr_pages == pgoff)
++		return ULONG_MAX;
 +
-+	if (dax_region->align < PUD_SIZE)
-+		return VM_FAULT_FALLBACK;
++	/*
++	 * What is the largest aligned power-of-2 range available from
++	 * this resource pgoff to the end of the resource range,
++	 * considering the alignment of the current pgoff?
++	 */
++	mask = phys_pgoff | rounddown_pow_of_two(nr_pages - pgoff);
++	if (!mask)
++		return ULONG_MAX;
 +
- 	pgoff = linear_page_index(vmf->vma, pud_addr);
- 	phys = pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
- 	if (phys == -1) {
- 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
- 				pgoff);
--		return VM_FAULT_SIGBUS;
-+		return VM_FAULT_FALLBACK;
- 	}
++	return find_first_bit(&mask, BITS_PER_LONG);
++}
++
++#define foreach_order_pgoff(res, order, pgoff) \
++	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
++			pgoff += 1UL << order, order = order_at((res), pgoff))
++
++static void pgmap_radix_release(struct resource *res)
++{
++	unsigned long pgoff, order;
  
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 	mutex_lock(&pgmap_lock);
+-	for (key = res->start; key <= res->end; key += SECTION_SIZE)
+-		radix_tree_delete(&pgmap_radix, key >> PA_SECTION_SHIFT);
++	foreach_order_pgoff(res, order, pgoff)
++		radix_tree_delete(&pgmap_radix, PHYS_PFN(res->start) + pgoff);
+ 	mutex_unlock(&pgmap_lock);
++
++	synchronize_rcu();
+ }
+ 
+ static unsigned long pfn_first(struct page_map *page_map)
+@@ -264,7 +287,7 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ 
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+ 
+-	page_map = radix_tree_lookup(&pgmap_radix, phys >> PA_SECTION_SHIFT);
++	page_map = radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
+ 	return page_map ? &page_map->pgmap : NULL;
+ }
+ 
+@@ -286,12 +309,12 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	resource_size_t align_start, align_size, align_end;
++	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+-	unsigned long pfn;
+ 
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
+@@ -330,11 +353,12 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+ 	align_end = align_start + align_size - 1;
+-	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
++
++	foreach_order_pgoff(res, order, pgoff) {
+ 		struct dev_pagemap *dup;
+ 
+ 		rcu_read_lock();
+-		dup = find_dev_pagemap(key);
++		dup = find_dev_pagemap(res->start + PFN_PHYS(pgoff));
+ 		rcu_read_unlock();
+ 		if (dup) {
+ 			dev_err(dev, "%s: %pr collides with mapping for %s\n",
+@@ -342,8 +366,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 			error = -EBUSY;
+ 			break;
+ 		}
+-		error = radix_tree_insert(&pgmap_radix, key >> PA_SECTION_SHIFT,
+-				page_map);
++		error = __radix_tree_insert(&pgmap_radix,
++				PHYS_PFN(res->start) + pgoff, order, page_map);
+ 		if (error) {
+ 			dev_err(dev, "%s: failed: %d\n", __func__, error);
+ 			break;
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 9b8fccb969dc..4aff67e042f1 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -690,6 +690,7 @@ config ZONE_DEVICE
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
+ 	depends on X86_64 #arch_add_memory() comprehends device memory
++	select RADIX_TREE_MULTIORDER
+ 
+ 	help
+ 	  Device memory hotplug support allows for establishing pmem,
 
 _______________________________________________
 Linux-nvdimm mailing list
