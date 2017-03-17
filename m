@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM02-BL2-obe.outbound.protection.outlook.com
- (mail-bl2nam02on0717.outbound.protection.outlook.com
- [IPv6:2a01:111:f400:fe46::717])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 25B9180348
- for <linux-nvdimm@lists.01.org>; Tue,  7 Mar 2017 13:35:41 -0800 (PST)
-From: Linda Knippers <linda.knippers@hpe.com>
-Subject: [PATCH 2/3] Allow specifying a default DSM family
-Date: Tue, 7 Mar 2017 16:35:13 -0500
-Message-ID: <24665de46521e86c907e0813ee5a25956bfaf5c7.1488921944.git.linda.knippers@hpe.com>
-In-Reply-To: <cover.1488921944.git.linda.knippers@hpe.com>
-References: <cover.1488921944.git.linda.knippers@hpe.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 55DDF8043E
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Mar 2017 11:49:57 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:09 -0600
+Message-Id: <1489776503-3151-3-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 02/16] device-dax: fix cdev leak
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,66 +17,80 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Hans Verkuil <hans.verkuil@cisco.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Johannes Thumshirn <jthumshirn@suse.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide the ability to request a default DSM family. If it is not
-supported, then fall back to the normal discovery order.
+From: Dan Williams <dan.j.williams@intel.com>
 
-This is helpful for testing platforms that support multiple DSM families.
-It will also allow administrators to request the DSM family that their
-management tools support, which may not be the first one found using
-the current discovery order.
+If device_add() fails, cleanup the cdev. Otherwise, we leak a kobj_map()
+with a stale device number.
 
-Signed-off-by: Linda Knippers <linda.knippers@hpe.com>
+As Jason points out, there is a small possibility that userspace has
+opened and mapped the device in the time between cdev_add() and the
+device_add() failure. We need a new kill_dax_dev() helper to invalidate
+any established mappings.
+
+Fixes: ba09c01d2fa8 ("dax: convert to the cdev api")
+Cc: <stable@vger.kernel.org>
+Reported-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- drivers/acpi/nfit/core.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/dax/dax.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 97d42ff..0564cd6 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -55,6 +55,11 @@
- module_param(override_dsm_mask, ulong, S_IRUGO);
- MODULE_PARM_DESC(override_dsm_mask, "Bitmask of allowed NVDIMM DSM functions");
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 8d9829f..a5ed59a 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -675,13 +675,10 @@ static void dax_dev_release(struct device *dev)
+ 	kfree(dax_dev);
+ }
  
-+static int default_dsm_family = -1;
-+module_param(default_dsm_family, int, S_IRUGO);
-+MODULE_PARM_DESC(default_dsm_family,
-+		"Try this DSM type first when identifying NVDIMM family");
+-static void unregister_dax_dev(void *dev)
++static void kill_dax_dev(struct dax_dev *dax_dev)
+ {
+-	struct dax_dev *dax_dev = to_dax_dev(dev);
+ 	struct cdev *cdev = &dax_dev->cdev;
+ 
+-	dev_dbg(dev, "%s\n", __func__);
+-
+ 	/*
+ 	 * Note, rcu is not protecting the liveness of dax_dev, rcu is
+ 	 * ensuring that any fault handlers that might have seen
+@@ -693,6 +690,15 @@ static void unregister_dax_dev(void *dev)
+ 	synchronize_rcu();
+ 	unmap_mapping_range(dax_dev->inode->i_mapping, 0, 0, 1);
+ 	cdev_del(cdev);
++}
 +
- LIST_HEAD(acpi_descs);
- DEFINE_MUTEX(acpi_desc_lock);
++static void unregister_dax_dev(void *dev)
++{
++	struct dax_dev *dax_dev = to_dax_dev(dev);
++
++	dev_dbg(dev, "%s\n", __func__);
++
++	kill_dax_dev(dax_dev);
+ 	device_unregister(dev);
+ }
  
-@@ -1372,6 +1377,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	unsigned long dsm_mask;
- 	const u8 *uuid;
- 	int i;
-+	int family = -1;
- 
- 	/* nfit test assumes 1:1 relationship between commands and dsms */
- 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
-@@ -1402,10 +1408,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	 */
- 	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
- 		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
--			break;
-+			if (family < 0 || i == default_dsm_family)
-+				family = i;
- 
- 	/* limit the supported commands to those that are publicly documented */
--	nfit_mem->family = i;
-+	nfit_mem->family = family;
- 	if (override_dsm_mask && !disable_vendor_specific)
- 		dsm_mask = override_dsm_mask;
- 	else if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
+@@ -769,6 +775,7 @@ struct dax_dev *devm_create_dax_dev(struct dax_region *dax_region,
+ 	dev_set_name(dev, "dax%d.%d", dax_region->id, dax_dev->id);
+ 	rc = device_add(dev);
+ 	if (rc) {
++		kill_dax_dev(dax_dev);
+ 		put_device(dev);
+ 		return ERR_PTR(rc);
+ 	}
 -- 
-1.8.3.1
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
