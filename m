@@ -2,14 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C31CD21A0480E
- for <linux-nvdimm@lists.01.org>; Thu, 30 Mar 2017 15:13:21 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 0A450802B1
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Mar 2017 11:51:01 -0700 (PDT)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Mar 2017 16:12:39 -0600
-Message-Id: <1490911959-5146-9-git-send-email-logang@deltatee.com>
-In-Reply-To: <1490911959-5146-1-git-send-email-logang@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
-Subject: [RFC 8/8] p2pmem: Added char device user interface
+Date: Fri, 17 Mar 2017 12:48:08 -0600
+Message-Id: <1489776503-3151-2-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 01/16] chardev: add helper function to register char devs
+ with a struct device
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,343 +23,212 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Hans Verkuil <hans.verkuil@cisco.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Johannes Thumshirn <jthumshirn@suse.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This creates a userspace interface to use p2pmemory. A user can use
-mmap on the p2pmem char device to get buffers from the corresponding
-device. This allows a user to use p2p memory with existing
-interfaces like RDMA and O_DIRECT.
+Credit for this patch goes is shared with Dan Williams [1]. I've
+taken things one step further to make the helper function more
+useful and clean up calling code.
 
-This patch is a bit more controversial because people don't want to
-expose these interfaces to userspace without more consideration.
-However, this patch is _very_ useful for expirementing with p2p memory.
+There's a common pattern in the kernel whereby a struct cdev is placed
+in a structure along side a struct device which manages the life-cycle
+of both. In the naive approach, the reference counting is broken and
+the struct device can free everything before the chardev code
+is entirely released.
 
-For example, with this patch, you can test with commands like:
+Many developers have solved this problem by linking the internal kobjs
+in this fashion:
 
-ib_write_bw -R --mmap=/dev/p2pmem0 -D 30
+cdev.kobj.parent = &parent_dev.kobj;
 
-or use an fio script like:
+The cdev code explicitly gets and puts a reference to it's kobj parent.
+So this seems like it was intended to be used this way. Dmitrty Torokhov
+first put this in place in 2012 with this commit:
 
-[rdma-server]
-rw=read
-mem=mmapshared:/dev/p2pmem0
-ioengine=rdma
-port=14242
-bs=64k
-size=10G
-iodepth=2
+2f0157f char_dev: pin parent kobject
 
-which would test the bandwidth of RDMA to/from the specified p2p memory.
+and the first instance of the fix was then done in the input subsystem
+in the following commit:
+
+4a215aa Input: fix use-after-free introduced with dynamic minor changes
+
+Subsequently over the years, however, this issue seems to have tripped
+up multiple developers independently. For example, see these commits:
+
+0d5b7da iio: Prevent race between IIO chardev opening and IIO device
+(by Lars-Peter Clausen in 2013)
+
+ba0ef85 tpm: Fix initialization of the cdev
+(by Jason Gunthorpe in 2015)
+
+5b28dde [media] media: fix use-after-free in cdev_put() when app exits
+after driver unbind
+(by Shauh Khan in 2016)
+
+This technique is similarly done in at least 15 places within the kernel
+and probably should have been done so in another, at least, 5 places.
+The kobj line also looks very suspect in that one would not expect
+drivers to have to mess with kobject internals in this way.
+Even highly experienced kernel developers can be surprised by this
+code, as seen in [2].
+
+To help alleviate this situation, and hopefully prevent future
+wasted effort on this problem, this patch introduces a helper function
+to register a char device along with its parent struct device.
+This creates a more regular API for tying a char device to its parent
+without the developer having to set members in the underlying kobject.
+
+This patch introduce cdev_device_add and cdev_device_del which
+replaces a common pattern including setting the kobj parent, calling
+cdev_add and then calling device_add. It also introduces cdev_set_parent
+for the few cases that set the kobject parent without using device_add.
+
+[1] https://lkml.org/lkml/2017/2/13/700
+[2] https://lkml.org/lkml/2017/2/10/370
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 ---
- drivers/memory/p2pmem.c | 184 +++++++++++++++++++++++++++++++++++++++++++++++-
- include/linux/p2pmem.h  |   4 ++
- 2 files changed, 186 insertions(+), 2 deletions(-)
+ fs/char_dev.c        | 86 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/cdev.h |  5 +++
+ 2 files changed, 91 insertions(+)
 
-diff --git a/drivers/memory/p2pmem.c b/drivers/memory/p2pmem.c
-index 499d42c..129c49c 100644
---- a/drivers/memory/p2pmem.c
-+++ b/drivers/memory/p2pmem.c
-@@ -19,14 +19,20 @@
- #include <linux/genalloc.h>
- #include <linux/memremap.h>
- #include <linux/debugfs.h>
-+#include <linux/pfn_t.h>
- 
- MODULE_DESCRIPTION("Peer 2 Peer Memory Device");
- MODULE_VERSION("0.1");
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Microsemi Corporation");
- 
-+static int max_devices = 16;
-+module_param(max_devices, int, 0444);
-+MODULE_PARM_DESC(max_devices, "Maximum number of char devices");
-+
- static struct class *p2pmem_class;
- static DEFINE_IDA(p2pmem_ida);
-+static dev_t p2pmem_devt;
- 
- static struct dentry *p2pmem_debugfs_root;
- 
-@@ -67,6 +73,144 @@ static struct p2pmem_dev *to_p2pmem(struct device *dev)
- 	return container_of(dev, struct p2pmem_dev, dev);
- }
- 
-+struct p2pmem_vma {
-+	struct p2pmem_dev *p2pmem_dev;
-+	atomic_t mmap_count;
-+	size_t nr_pages;
-+
-+	/* Protects the used_pages array */
-+	struct mutex mutex;
-+	struct page *used_pages[];
-+};
-+
-+static void p2pmem_vma_open(struct vm_area_struct *vma)
-+{
-+	struct p2pmem_vma *pv = vma->vm_private_data;
-+
-+	atomic_inc(&pv->mmap_count);
-+}
-+
-+static void p2pmem_vma_free_pages(struct vm_area_struct *vma)
-+{
-+	int i;
-+	struct p2pmem_vma *pv = vma->vm_private_data;
-+
-+	mutex_lock(&pv->mutex);
-+
-+	for (i = 0; i < pv->nr_pages; i++) {
-+		if (pv->used_pages[i]) {
-+			p2pmem_free_page(pv->p2pmem_dev, pv->used_pages[i]);
-+			pv->used_pages[i] = NULL;
-+		}
-+	}
-+
-+	mutex_unlock(&pv->mutex);
-+}
-+
-+static void p2pmem_vma_close(struct vm_area_struct *vma)
-+{
-+	struct p2pmem_vma *pv = vma->vm_private_data;
-+
-+	if (!atomic_dec_and_test(&pv->mmap_count))
-+		return;
-+
-+	p2pmem_vma_free_pages(vma);
-+
-+	dev_dbg(&pv->p2pmem_dev->dev, "vma close");
-+	kfree(pv);
-+}
-+
-+static int p2pmem_vma_fault(struct vm_fault *vmf)
-+{
-+	struct p2pmem_vma *pv = vmf->vma->vm_private_data;
-+	unsigned int pg_idx;
-+	struct page *pg;
-+	pfn_t pfn;
-+	int rc;
-+
-+	if (!pv->p2pmem_dev->alive)
-+		return VM_FAULT_SIGBUS;
-+
-+	pg_idx = (vmf->address - vmf->vma->vm_start) / PAGE_SIZE;
-+
-+	mutex_lock(&pv->mutex);
-+
-+	if (pv->used_pages[pg_idx])
-+		pg = pv->used_pages[pg_idx];
-+	else
-+		pg = p2pmem_alloc_page(pv->p2pmem_dev);
-+
-+	if (!pg)
-+		return VM_FAULT_OOM;
-+
-+	pv->used_pages[pg_idx] = pg;
-+
-+	pfn = phys_to_pfn_t(page_to_phys(pg), PFN_DEV | PFN_MAP);
-+	rc = vm_insert_mixed(vmf->vma, vmf->address, pfn);
-+
-+	mutex_unlock(&pv->mutex);
-+
-+	if (rc == -ENOMEM)
-+		return VM_FAULT_OOM;
-+	if (rc < 0 && rc != -EBUSY)
-+		return VM_FAULT_SIGBUS;
-+
-+	return VM_FAULT_NOPAGE;
-+}
-+
-+const struct vm_operations_struct p2pmem_vmops = {
-+	.open = p2pmem_vma_open,
-+	.close = p2pmem_vma_close,
-+	.fault = p2pmem_vma_fault,
-+};
-+
-+static int p2pmem_open(struct inode *inode, struct file *filp)
-+{
-+	struct p2pmem_dev *p;
-+
-+	p = container_of(inode->i_cdev, struct p2pmem_dev, cdev);
-+	filp->private_data = p;
-+	p->inode = inode;
-+
-+	return 0;
-+}
-+
-+static int p2pmem_mmap(struct file *filp, struct vm_area_struct *vma)
-+{
-+	struct p2pmem_dev *p = filp->private_data;
-+	struct p2pmem_vma *pv;
-+	size_t nr_pages = (vma->vm_end - vma->vm_start) / PAGE_SIZE;
-+
-+	if ((vma->vm_flags & VM_MAYSHARE) != VM_MAYSHARE) {
-+		dev_warn(&p->dev, "mmap failed: can't create private mapping\n");
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(&p->dev, "Allocating mmap with %zd pages.\n", nr_pages);
-+
-+	pv = kzalloc(sizeof(*pv) + sizeof(pv->used_pages[0]) * nr_pages,
-+		     GFP_KERNEL);
-+	if (!pv)
-+		return -ENOMEM;
-+
-+	mutex_init(&pv->mutex);
-+	pv->nr_pages = nr_pages;
-+	pv->p2pmem_dev = p;
-+	atomic_set(&pv->mmap_count, 1);
-+
-+	vma->vm_private_data = pv;
-+	vma->vm_ops = &p2pmem_vmops;
-+	vma->vm_flags |= VM_MIXEDMAP;
-+
-+	return 0;
-+}
-+
-+static const struct file_operations p2pmem_fops = {
-+	.owner = THIS_MODULE,
-+	.open = p2pmem_open,
-+	.mmap = p2pmem_mmap,
-+};
-+
- static void p2pmem_percpu_release(struct percpu_ref *ref)
- {
- 	struct p2pmem_dev *p = container_of(ref, struct p2pmem_dev, ref);
-@@ -114,10 +258,23 @@ struct remove_callback {
- static void p2pmem_remove(struct p2pmem_dev *p)
- {
- 	struct remove_callback *remove_call, *tmp;
-+	struct vm_area_struct *vma;
- 
- 	p->alive = false;
- 	list_for_each_entry_safe(remove_call, tmp, &p->remove_list, list)
- 		remove_call->callback(remove_call->context);
-+
-+	if (!p->inode)
-+		return;
-+
-+	unmap_mapping_range(p->inode->i_mapping, 0, 0, 1);
-+
-+	i_mmap_lock_write(p->inode->i_mapping);
-+	vma_interval_tree_foreach(vma, &p->inode->i_mapping->i_mmap, 0,
-+				  ULONG_MAX) {
-+		p2pmem_vma_free_pages(vma);
-+	}
-+	i_mmap_unlock_write(p->inode->i_mapping);
- }
- 
- /**
-@@ -147,6 +304,10 @@ struct p2pmem_dev *p2pmem_create(struct device *parent)
- 	p->dev.parent = parent;
- 	p->dev.release = p2pmem_release;
- 
-+	cdev_init(&p->cdev, &p2pmem_fops);
-+	p->cdev.owner = THIS_MODULE;
-+	p->cdev.kobj.parent = &p->dev.kobj;
-+
- 	p->id = ida_simple_get(&p2pmem_ida, 0, 0, GFP_KERNEL);
- 	if (p->id < 0) {
- 		rc = p->id;
-@@ -154,6 +315,7 @@ struct p2pmem_dev *p2pmem_create(struct device *parent)
- 	}
- 
- 	dev_set_name(&p->dev, "p2pmem%d", p->id);
-+	p->dev.devt = MKDEV(MAJOR(p2pmem_devt), p->id);
- 
- 	p->pool = gen_pool_create(PAGE_SHIFT, nid);
- 	if (!p->pool) {
-@@ -177,14 +339,20 @@ struct p2pmem_dev *p2pmem_create(struct device *parent)
- 			setup_debugfs(p);
- 	}
- 
--	rc = device_add(&p->dev);
-+	rc = cdev_add(&p->cdev, p->dev.devt, 1);
- 	if (rc)
- 		goto err_id;
- 
--	dev_info(&p->dev, "registered");
-+	rc = device_add(&p->dev);
-+	if (rc)
-+		goto err_cdev;
- 
-+	dev_info(&p->dev, "registered");
- 	return p;
- 
-+err_cdev:
-+	cdev_del(&p->cdev);
-+	p2pmem_remove(p);
- err_id:
- 	ida_simple_remove(&p2pmem_ida, p->id);
- err_free:
-@@ -206,6 +374,7 @@ void p2pmem_unregister(struct p2pmem_dev *p)
- 
- 	dev_info(&p->dev, "unregistered");
- 	device_del(&p->dev);
-+	cdev_del(&p->cdev);
- 	p2pmem_remove(p);
- 	ida_simple_remove(&p2pmem_ida, p->id);
- 	put_device(&p->dev);
-@@ -495,21 +664,32 @@ EXPORT_SYMBOL(p2pmem_put);
- 
- static int __init p2pmem_init(void)
- {
-+	int rc;
-+
- 	p2pmem_class = class_create(THIS_MODULE, "p2pmem");
- 	if (IS_ERR(p2pmem_class))
- 		return PTR_ERR(p2pmem_class);
- 
-+	rc = alloc_chrdev_region(&p2pmem_devt, 0, max_devices, "iopmemc");
-+	if (rc)
-+		goto err_chrdev;
-+
- 	p2pmem_debugfs_root = debugfs_create_dir("p2pmem", NULL);
- 	if (!p2pmem_debugfs_root)
- 		pr_info("could not create debugfs entry, continuing\n");
- 
+diff --git a/fs/char_dev.c b/fs/char_dev.c
+index 44a240c..fb8507f 100644
+--- a/fs/char_dev.c
++++ b/fs/char_dev.c
+@@ -471,6 +471,85 @@ int cdev_add(struct cdev *p, dev_t dev, unsigned count)
  	return 0;
-+
-+err_chrdev:
-+	class_destroy(p2pmem_class);
-+	return rc;
  }
- module_init(p2pmem_init);
  
- static void __exit p2pmem_exit(void)
- {
- 	debugfs_remove_recursive(p2pmem_debugfs_root);
-+	unregister_chrdev_region(p2pmem_devt, max_devices);
- 	class_destroy(p2pmem_class);
- 
- 	pr_info(KBUILD_MODNAME ": unloaded.\n");
-diff --git a/include/linux/p2pmem.h b/include/linux/p2pmem.h
-index 9365b02..aeee60d 100644
---- a/include/linux/p2pmem.h
-+++ b/include/linux/p2pmem.h
-@@ -18,6 +18,7 @@
- 
- #include <linux/device.h>
- #include <linux/pci.h>
-+#include <linux/cdev.h>
- 
- struct p2pmem_dev {
- 	struct device dev;
-@@ -32,6 +33,9 @@ struct p2pmem_dev {
- 
- 	struct mutex remove_mutex;	/* protects the remove callback list */
- 	struct list_head remove_list;
++/**
++ * cdev_set_parent() - set the parent kobject for a char device
++ * @p: the cdev structure
++ * @kobj: the kobject to take a reference to
++ *
++ * cdev_set_parent() sets a parent kobject which will be referenced
++ * appropriately so the parent is not freed before the cdev. This
++ * should be called before cdev_add.
++ */
++void cdev_set_parent(struct cdev *p, struct kobject *kobj)
++{
++	WARN_ON(!kobj->state_initialized);
++	p->kobj.parent = kobj;
++}
 +
-+	struct cdev cdev;
-+	struct inode *inode;
- };
++/**
++ * cdev_device_add() - add a char device and it's corresponding
++ *	struct device, linkink
++ * @dev: the device structure
++ * @cdev: the cdev structure
++ *
++ * cdev_device_add() adds the char device represented by @cdev to the system,
++ * just as cdev_add does. It then adds @dev to the system using device_add
++ * The dev_t for the char device will be taken from the struct device which
++ * needs to be initialized first. This helper function correctly takes a
++ * reference to the parent device so the parent will not get released until
++ * all references to the cdev are released.
++ *
++ * This helper uses dev->devt for the device number. If it is not set
++ * it will not add the cdev and it will be equivalent to device_add.
++ *
++ * This function should be used whenever the struct cdev and the
++ * struct device are members of the same structure whose lifetime is
++ * managed by the struct device.
++ *
++ * NOTE: Callers must assume that userspace was able to open the cdev and
++ * can call cdev fops callbacks at any time, even if this function fails.
++ */
++int cdev_device_add(struct cdev *cdev, struct device *dev)
++{
++	int rc = 0;
++
++	if (dev->devt) {
++		cdev_set_parent(cdev, &dev->kobj);
++
++		rc = cdev_add(cdev, dev->devt, 1);
++		if (rc)
++			return rc;
++	}
++
++	rc = device_add(dev);
++	if (rc)
++		cdev_del(cdev);
++
++	return rc;
++}
++
++/**
++ * cdev_device_del() - inverse of cdev_device_add
++ * @dev: the device structure
++ * @cdev: the cdev structure
++ *
++ * cdev_device_del() is a helper function to call cdev_del and device_del.
++ * It should be used whenever cdev_device_add is used.
++ *
++ * If dev->devt is not set it will not remove the cdev and will be equivalent
++ * to device_del.
++ *
++ * NOTE: This guarantees that associated sysfs callbacks are not running
++ * or runnable, however any cdevs already open will remain and their fops
++ * will still be callable even after this function returns.
++ */
++void cdev_device_del(struct cdev *cdev, struct device *dev)
++{
++	device_del(dev);
++	if (dev->devt)
++		cdev_del(cdev);
++}
++
+ static void cdev_unmap(dev_t dev, unsigned count)
+ {
+ 	kobj_unmap(cdev_map, dev, count);
+@@ -482,6 +561,10 @@ static void cdev_unmap(dev_t dev, unsigned count)
+  *
+  * cdev_del() removes @p from the system, possibly freeing the structure
+  * itself.
++ *
++ * NOTE: This guarantees that cdev device will no longer be able to be
++ * opened, however any cdevs already open will remain and their fops will
++ * still be callable even after cdev_del returns.
+  */
+ void cdev_del(struct cdev *p)
+ {
+@@ -570,5 +653,8 @@ EXPORT_SYMBOL(cdev_init);
+ EXPORT_SYMBOL(cdev_alloc);
+ EXPORT_SYMBOL(cdev_del);
+ EXPORT_SYMBOL(cdev_add);
++EXPORT_SYMBOL(cdev_set_parent);
++EXPORT_SYMBOL(cdev_device_add);
++EXPORT_SYMBOL(cdev_device_del);
+ EXPORT_SYMBOL(__register_chrdev);
+ EXPORT_SYMBOL(__unregister_chrdev);
+diff --git a/include/linux/cdev.h b/include/linux/cdev.h
+index f876361..408bc09 100644
+--- a/include/linux/cdev.h
++++ b/include/linux/cdev.h
+@@ -4,6 +4,7 @@
+ #include <linux/kobject.h>
+ #include <linux/kdev_t.h>
+ #include <linux/list.h>
++#include <linux/device.h>
  
- #ifdef CONFIG_P2PMEM
+ struct file_operations;
+ struct inode;
+@@ -26,6 +27,10 @@ void cdev_put(struct cdev *p);
+ 
+ int cdev_add(struct cdev *, dev_t, unsigned);
+ 
++void cdev_set_parent(struct cdev *p, struct kobject *kobj);
++int cdev_device_add(struct cdev *cdev, struct device *dev);
++void cdev_device_del(struct cdev *cdev, struct device *dev);
++
+ void cdev_del(struct cdev *);
+ 
+ void cd_forget(struct inode *);
 -- 
 2.1.4
 
