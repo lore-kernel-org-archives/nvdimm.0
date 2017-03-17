@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4A87480403
- for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:12:20 -0700 (PDT)
-Subject: [PATCH v4 04/13] mm: introduce common definitions for the size and
- mask of a section
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 15 Mar 2017 23:07:09 -0700
-Message-ID: <148964442915.19438.13692551999756522608.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id DDED180447
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Mar 2017 11:49:57 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:12 -0600
+Message-Id: <1489776503-3151-6-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 05/16] gpiolib: utilize new cdev_device_add helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,79 +17,78 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Mel Gorman <mgorman@techsingularity.net>, linux-kernel@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Vlastimil Babka <vbabka@suse.cz>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Hans Verkuil <hans.verkuil@cisco.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Johannes Thumshirn <jthumshirn@suse.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Up-level the local section size and mask from kernel/memremap.c to
-global definitions.  These will be used by the new sub-section hotplug
-support.
+Replace the open coded registration of the cdev and dev with the
+new device_add_cdev() helper. The helper replaces a common pattern by
+taking the proper reference against the parent device and adding both
+the cdev and the device.
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- include/linux/mmzone.h |    2 ++
- kernel/memremap.c      |   10 ++++------
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/gpio/gpiolib.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 82a1af3afa04..a95b83ee65ec 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1050,6 +1050,8 @@ static inline unsigned long early_pfn_to_nid(unsigned long pfn)
-  * PFN_SECTION_SHIFT		pfn to/from section number
-  */
- #define PA_SECTION_SHIFT	(SECTION_SIZE_BITS)
-+#define PA_SECTION_SIZE		(1UL << PA_SECTION_SHIFT)
-+#define PA_SECTION_MASK		(~(PA_SECTION_SIZE-1))
- #define PFN_SECTION_SHIFT	(SECTION_SIZE_BITS - PAGE_SHIFT)
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 8b4d721..3ce2a27 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1035,18 +1035,14 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
  
- #define NR_MEM_SECTIONS		(1UL << SECTIONS_SHIFT)
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 72e93754c0f4..c4f63346ff52 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -172,8 +172,6 @@ EXPORT_SYMBOL(devm_memunmap);
- #ifdef CONFIG_ZONE_DEVICE
- static DEFINE_MUTEX(pgmap_lock);
- static RADIX_TREE(pgmap_radix, GFP_KERNEL);
--#define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
--#define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
+ 	cdev_init(&gdev->chrdev, &gpio_fileops);
+ 	gdev->chrdev.owner = THIS_MODULE;
+-	gdev->chrdev.kobj.parent = &gdev->dev.kobj;
+ 	gdev->dev.devt = MKDEV(MAJOR(gpio_devt), gdev->id);
+-	status = cdev_add(&gdev->chrdev, gdev->dev.devt, 1);
+-	if (status < 0)
+-		chip_warn(gdev->chip, "failed to add char device %d:%d\n",
+-			  MAJOR(gpio_devt), gdev->id);
+-	else
+-		chip_dbg(gdev->chip, "added GPIO chardev (%d:%d)\n",
+-			 MAJOR(gpio_devt), gdev->id);
+-	status = device_add(&gdev->dev);
++
++	status = cdev_device_add(&gdev->chrdev, &gdev->dev);
+ 	if (status)
+-		goto err_remove_chardev;
++		return status;
++
++	chip_dbg(gdev->chip, "added GPIO chardev (%d:%d)\n",
++		 MAJOR(gpio_devt), gdev->id);
  
- struct page_map {
- 	struct resource res;
-@@ -267,8 +265,8 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
- 	}
+ 	status = gpiochip_sysfs_register(gdev);
+ 	if (status)
+@@ -1061,9 +1057,7 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
+ 	return 0;
  
- 	/* pages are dead and unused, undo the arch mapping */
--	align_start = res->start & ~(SECTION_SIZE - 1);
--	align_size = ALIGN(resource_size(res), SECTION_SIZE);
-+	align_start = res->start & PA_SECTION_MASK;
-+	align_size = ALIGN(resource_size(res), PA_SECTION_SIZE);
+ err_remove_device:
+-	device_del(&gdev->dev);
+-err_remove_chardev:
+-	cdev_del(&gdev->chrdev);
++	cdev_device_del(&gdev->chrdev, &gdev->dev);
+ 	return status;
+ }
  
- 	mem_hotplug_begin();
- 	arch_remove_memory(align_start, align_size);
-@@ -316,8 +314,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	struct page_map *page_map;
- 	int error, nid, is_ram;
- 
--	align_start = res->start & ~(SECTION_SIZE - 1);
--	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-+	align_start = res->start & PA_SECTION_MASK;
-+	align_size = ALIGN(res->start + resource_size(res), PA_SECTION_SIZE)
- 		- align_start;
- 	is_ram = region_intersects(align_start, align_size,
- 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+@@ -1347,8 +1341,7 @@ void gpiochip_remove(struct gpio_chip *chip)
+ 	 * be removed, else it will be dangling until the last user is
+ 	 * gone.
+ 	 */
+-	cdev_del(&gdev->chrdev);
+-	device_del(&gdev->dev);
++	cdev_device_del(&gdev->chrdev, &gdev->dev);
+ 	put_device(&gdev->dev);
+ }
+ EXPORT_SYMBOL_GPL(gpiochip_remove);
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
