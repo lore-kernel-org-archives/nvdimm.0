@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4210221DFA91C
- for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 16:19:07 -0700 (PDT)
-Subject: [ndctl PATCH 1/6] ndctl: drop "builtin" prefix from source file names
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 28 Mar 2017 16:13:57 -0700
-Message-ID: <149074283709.18735.7744448841642627131.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 2F3F880446
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Mar 2017 11:49:58 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:13 -0600
+Message-Id: <1489776503-3151-7-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 06/16] tpm-chip: utilize new cdev_device_add helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,133 +17,81 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Hans Verkuil <hans.verkuil@cisco.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Johannes Thumshirn <jthumshirn@suse.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The "builtin" designation is a hold over from the initial duplication of
-git infrastructure where builtin commands are differentiated from shell
-helper commands. Since ndctl only has the former the prefix is not
-useful.
+Replace the open coded registration of the cdev and dev with the
+new device_add_cdev() helper. The helper replaces a common pattern by
+taking the proper reference against the parent device and adding both
+the cdev and the device.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
 ---
- ndctl/Makefile.am                 |   16 ++++++++--------
- ndctl/bat.c                       |    0 
- ndctl/check.c                     |    0 
- ndctl/create-nfit.c               |    0 
- ndctl/dimm.c                      |    0 
- ndctl/list.c                      |    0 
- ndctl/namespace.c                 |    0 
- ndctl/region.c                    |    0 
- ndctl/test.c                      |    0 
- test/Makefile.am                  |    8 ++++----
- 10 files changed, 12 insertions(+), 12 deletions(-)
- rename ndctl/{builtin-bat.c => bat.c} (100%)
- rename ndctl/{builtin-check.c => check.c} (100%)
- rename ndctl/{builtin-create-nfit.c => create-nfit.c} (100%)
- rename ndctl/{builtin-dimm.c => dimm.c} (100%)
- rename ndctl/{builtin-list.c => list.c} (100%)
- rename ndctl/{builtin-xaction-namespace.c => namespace.c} (100%)
- rename ndctl/{builtin-xable-region.c => region.c} (100%)
- rename ndctl/{builtin-test.c => test.c} (100%)
+ drivers/char/tpm/tpm-chip.c | 19 +++----------------
+ 1 file changed, 3 insertions(+), 16 deletions(-)
 
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index f9158d9cce63..d346c041d74b 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -3,14 +3,14 @@ include $(top_srcdir)/Makefile.am.in
- bin_PROGRAMS = ndctl
+diff --git a/drivers/char/tpm/tpm-chip.c b/drivers/char/tpm/tpm-chip.c
+index c406343..935f0e9 100644
+--- a/drivers/char/tpm/tpm-chip.c
++++ b/drivers/char/tpm/tpm-chip.c
+@@ -187,7 +187,6 @@ struct tpm_chip *tpm_chip_alloc(struct device *pdev,
  
- ndctl_SOURCES = ndctl.c \
--		builtin-create-nfit.c \
--		builtin-xaction-namespace.c \
--		builtin-check.c \
--		builtin-xable-region.c \
--		builtin-dimm.c \
-+		create-nfit.c \
-+		namespace.c \
-+		check.c \
-+		region.c \
-+		dimm.c \
- 		 ../util/log.c \
--		builtin-list.c \
--		builtin-test.c \
-+		list.c \
-+		test.c \
- 		../util/json.c
+ 	cdev_init(&chip->cdev, &tpm_fops);
+ 	chip->cdev.owner = THIS_MODULE;
+-	chip->cdev.kobj.parent = &chip->dev.kobj;
  
- if ENABLE_SMART
-@@ -20,7 +20,7 @@ endif
- if ENABLE_DESTRUCTIVE
- ndctl_SOURCES += ../test/blk_namespaces.c \
- 		 ../test/pmem_namespaces.c
--ndctl_SOURCES += builtin-bat.c
-+ndctl_SOURCES += bat.c
- endif
+ 	return chip;
  
- ndctl_LDADD =\
-diff --git a/ndctl/builtin-bat.c b/ndctl/bat.c
-similarity index 100%
-rename from ndctl/builtin-bat.c
-rename to ndctl/bat.c
-diff --git a/ndctl/builtin-check.c b/ndctl/check.c
-similarity index 100%
-rename from ndctl/builtin-check.c
-rename to ndctl/check.c
-diff --git a/ndctl/builtin-create-nfit.c b/ndctl/create-nfit.c
-similarity index 100%
-rename from ndctl/builtin-create-nfit.c
-rename to ndctl/create-nfit.c
-diff --git a/ndctl/builtin-dimm.c b/ndctl/dimm.c
-similarity index 100%
-rename from ndctl/builtin-dimm.c
-rename to ndctl/dimm.c
-diff --git a/ndctl/builtin-list.c b/ndctl/list.c
-similarity index 100%
-rename from ndctl/builtin-list.c
-rename to ndctl/list.c
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/namespace.c
-similarity index 100%
-rename from ndctl/builtin-xaction-namespace.c
-rename to ndctl/namespace.c
-diff --git a/ndctl/builtin-xable-region.c b/ndctl/region.c
-similarity index 100%
-rename from ndctl/builtin-xable-region.c
-rename to ndctl/region.c
-diff --git a/ndctl/builtin-test.c b/ndctl/test.c
-similarity index 100%
-rename from ndctl/builtin-test.c
-rename to ndctl/test.c
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 3fdd2272b4eb..969fe055b35e 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -79,8 +79,8 @@ device_dax_SOURCES = \
- 		dax-dev.c \
- 		dax-pmd.c \
- 		$(testcore) \
--		../ndctl/builtin-xaction-namespace.c \
--		../ndctl/builtin-check.c \
-+		../ndctl/namespace.c \
-+		../ndctl/check.c \
- 		../util/json.c
- device_dax_LDADD = \
- 		$(LIBNDCTL_LIB) \
-@@ -91,8 +91,8 @@ device_dax_LDADD = \
- multi_pmem_SOURCES = \
- 		multi-pmem.c \
- 		$(testcore) \
--		../ndctl/builtin-xaction-namespace.c \
--		../ndctl/builtin-check.c \
-+		../ndctl/namespace.c \
-+		../ndctl/check.c \
- 		../util/json.c
- multi_pmem_LDADD = \
- 		$(LIBNDCTL_LIB) \
+@@ -230,27 +229,16 @@ static int tpm_add_char_device(struct tpm_chip *chip)
+ {
+ 	int rc;
+ 
+-	rc = cdev_add(&chip->cdev, chip->dev.devt, 1);
++	rc = cdev_device_add(&chip->cdev, &chip->dev);
+ 	if (rc) {
+ 		dev_err(&chip->dev,
+-			"unable to cdev_add() %s, major %d, minor %d, err=%d\n",
++			"unable to cdev_device_add() %s, major %d, minor %d, err=%d\n",
+ 			dev_name(&chip->dev), MAJOR(chip->dev.devt),
+ 			MINOR(chip->dev.devt), rc);
+ 
+ 		return rc;
+ 	}
+ 
+-	rc = device_add(&chip->dev);
+-	if (rc) {
+-		dev_err(&chip->dev,
+-			"unable to device_register() %s, major %d, minor %d, err=%d\n",
+-			dev_name(&chip->dev), MAJOR(chip->dev.devt),
+-			MINOR(chip->dev.devt), rc);
+-
+-		cdev_del(&chip->cdev);
+-		return rc;
+-	}
+-
+ 	/* Make the chip available. */
+ 	mutex_lock(&idr_lock);
+ 	idr_replace(&dev_nums_idr, chip, chip->dev_num);
+@@ -261,8 +249,7 @@ static int tpm_add_char_device(struct tpm_chip *chip)
+ 
+ static void tpm_del_char_device(struct tpm_chip *chip)
+ {
+-	cdev_del(&chip->cdev);
+-	device_del(&chip->dev);
++	cdev_device_del(&chip->cdev, &chip->dev);
+ 
+ 	/* Make the chip unavailable. */
+ 	mutex_lock(&idr_lock);
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
