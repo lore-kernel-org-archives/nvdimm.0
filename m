@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 38E23802B5
- for <linux-nvdimm@lists.01.org>; Fri, 10 Mar 2017 12:24:23 -0800 (PST)
-Subject: [PATCH v3 1/2] dax: fix device-dax pmd/pte fault handling so that
- it would fallback
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 10 Mar 2017 13:24:22 -0700
-Message-ID: <148917746248.14458.15705199130846001839.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 1B14A80331
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Mar 2017 11:49:55 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:16 -0600
+Message-Id: <1489776503-3151-10-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 09/16] infiniband: utilize the new cdev_set_parent function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,102 +17,77 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Hans Verkuil <hans.verkuil@cisco.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Johannes Thumshirn <jthumshirn@suse.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Jeff Moyer reports that:
-"
-With a device dax alignment of 4KB or 2MB, I get sigbus when running the
-attached fio job file for the current kernel (4.11.0-rc1+).  If I
-specify an alignment of 1GB, it works.
+This replaces the suspect looking cdev.kobj.parent lines with the
+equivalent cdev_set_parent function. This is a straightforward change
+that's largely cosmetic but it does push the kobj.parent ownership
+into char_dev.c where it belongs.
 
-I turned on debug output, and saw that it was failing in the huge fault
-code.
-
-[ 4614.138357] dax dax1.0: dax_open
-[ 4614.154838] dax dax1.0: dax_mmap
-[ 4614.171898] dax dax1.0: dax_dev_huge_fault: fio: write (0x7f08f0a00000 -
-[ 4614.211720] dax dax1.0: __dax_dev_pud_fault: phys_to_pgoff(0xffffffffcf60
-[ 4614.568911] dax dax1.0: dax_release
-
-fio config for reproduce:
-[global]
-ioengine=dev-dax
-direct=0
-filename=/dev/dax0.0
-bs=2m
-
-[write]
-rw=write
-
-[read]
-stonewall
-rw=read
-"
-
-It looks like the code does not fallback at all when handling faults. Adding
-additional boundary checks and code that determines when to fallback. Will
-be splitting the fix into pte/pmd (for stable backport) handling and pud
-handling.
-
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/dax/dax.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/infiniband/core/user_mad.c    | 4 ++--
+ drivers/infiniband/core/uverbs_main.c | 2 +-
+ drivers/infiniband/hw/hfi1/device.c   | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
-index 174690a..828f168 100644
---- a/drivers/dax/dax.c
-+++ b/drivers/dax/dax.c
-@@ -427,6 +427,7 @@ static int __dax_dev_pte_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- 	int rc = VM_FAULT_SIGBUS;
- 	phys_addr_t phys;
- 	pfn_t pfn;
-+	unsigned int fault_size = PAGE_SIZE;
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index aca7ff7..25071b8 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -1183,7 +1183,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
  
- 	if (check_vma(dax_dev, vmf->vma, __func__))
- 		return VM_FAULT_SIGBUS;
-@@ -437,6 +438,9 @@ static int __dax_dev_pte_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- 		return VM_FAULT_SIGBUS;
- 	}
+ 	cdev_init(&port->cdev, &umad_fops);
+ 	port->cdev.owner = THIS_MODULE;
+-	port->cdev.kobj.parent = &umad_dev->kobj;
++	cdev_set_parent(&port->cdev, &umad_dev->kobj);
+ 	kobject_set_name(&port->cdev.kobj, "umad%d", port->dev_num);
+ 	if (cdev_add(&port->cdev, base, 1))
+ 		goto err_cdev;
+@@ -1202,7 +1202,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 	base += IB_UMAD_MAX_PORTS;
+ 	cdev_init(&port->sm_cdev, &umad_sm_fops);
+ 	port->sm_cdev.owner = THIS_MODULE;
+-	port->sm_cdev.kobj.parent = &umad_dev->kobj;
++	cdev_set_parent(&port->sm_cdev, &umad_dev->kobj);
+ 	kobject_set_name(&port->sm_cdev.kobj, "issm%d", port->dev_num);
+ 	if (cdev_add(&port->sm_cdev, base, 1))
+ 		goto err_sm_cdev;
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 35c788a..f02d7b9 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -1189,7 +1189,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	cdev_init(&uverbs_dev->cdev, NULL);
+ 	uverbs_dev->cdev.owner = THIS_MODULE;
+ 	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
+-	uverbs_dev->cdev.kobj.parent = &uverbs_dev->kobj;
++	cdev_set_parent(&uverbs_dev->cdev, &uverbs_dev->kobj);
+ 	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
+ 	if (cdev_add(&uverbs_dev->cdev, base, 1))
+ 		goto err_cdev;
+diff --git a/drivers/infiniband/hw/hfi1/device.c b/drivers/infiniband/hw/hfi1/device.c
+index bf64b5a..bbb6069 100644
+--- a/drivers/infiniband/hw/hfi1/device.c
++++ b/drivers/infiniband/hw/hfi1/device.c
+@@ -69,7 +69,7 @@ int hfi1_cdev_init(int minor, const char *name,
  
-+	if (fault_size != dax_region->align)
-+		return VM_FAULT_SIGBUS;
-+
- 	phys = pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
- 	if (phys == -1) {
- 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
-@@ -464,6 +468,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
- 	pfn_t pfn;
-+	unsigned int fault_size = PMD_SIZE;
+ 	cdev_init(cdev, fops);
+ 	cdev->owner = THIS_MODULE;
+-	cdev->kobj.parent = parent;
++	cdev_set_parent(cdev, parent);
+ 	kobject_set_name(&cdev->kobj, name);
  
- 	if (check_vma(dax_dev, vmf->vma, __func__))
- 		return VM_FAULT_SIGBUS;
-@@ -480,6 +485,16 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- 		return VM_FAULT_SIGBUS;
- 	}
- 
-+	if (fault_size < dax_region->align)
-+		return VM_FAULT_SIGBUS;
-+	else if (fault_size > dax_region->align)
-+		return VM_FAULT_FALLBACK;
-+
-+	/* if we are outside of the VMA */
-+	if (pmd_addr < vmf->vma->vm_start ||
-+			(pmd_addr + PMD_SIZE) > vmf->vma->vm_end)
-+		return VM_FAULT_SIGBUS;
-+
- 	pgoff = linear_page_index(vmf->vma, pmd_addr);
- 	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
- 	if (phys == -1) {
+ 	ret = cdev_add(cdev, dev, 1);
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
