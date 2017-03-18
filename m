@@ -1,12 +1,12 @@
-From: =?GB2312?B?va+cc+nF?= <newangxue-URCha1EQes5zgfUjMnZDow@public.gmane.org>
-Subject: =?GB2312?B?u9i4tKO6ubm9qLL6xre53MDtzOXPtbrNxeDR+LL6xre+rcDt?=
-Date: Sat, 18 Mar 2017 15:34:40 +0000 (UTC)
-Message-ID: <20170318153436.F337A80436@ml01.01.org>
+From: Superlinha - Central de Atendimento -
+ Santander<Atendimento-pcHptt+LwIB5NtD9jto2dCbtMM6wq+HK@public.gmane.org>
+Subject: Superlinha - Central de Atendimento - Santander
+Date: Sat, 18 Mar 2017 11:36:01 -0600
+Message-ID: <20170318173602.7EBC68766E@emailseguro.com.bz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============4912415359099800888=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Date: Sun, 19 Mar 2017 23:37:27 +0800
+Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,8 +16,26 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+You will not see this in a MIME-aware mail reader.
 
-linux-nvdimm
+--===============4912415359099800888==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Description: Mail message body
+
+ Caso n=E3o esteja visualizando, Abra Aqui APERTE PARA VISUALIZAR    =20
+--===============4912415359099800888==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============4912415359099800888==--
