@@ -1,8 +1,7 @@
-From: "FedEx Express" <w5750-6qBTbMGb+IVBDgjK7y7TUQ@public.gmane.org>
-Subject: Delivery Problem, FedEx Parcel #610007736
-Date: Thu, 23 Mar 2017 01:41:17 -0700
-Message-ID: <A059CE97.4AC1606D@stewart.com>
-Reply-To: FedEx Delivery Services <w5750-6qBTbMGb+IVBDgjK7y7TUQ@public.gmane.org>
+From: "FedEx Package Delivery" <wozuniy23108201-NzU1GAUq92GgMbh0pXVFDA@public.gmane.org>
+Subject: We have tried to deliver your FedEx Parcel #118370622
+Date: Thu, 23 Mar 2017 04:20:40 -0700
+Message-ID: <CE6B39B9.6B791DAE@bowers.me.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,9 +20,9 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-We couldn't deliver your parcel arrived today.
+We can not deliver your parcel arrived today.
 
-We kindly ask you to check the document enclosed for more details.
+Kindly ask you to check shipment notice in the delivery notice enclosed.
 
-Thank you for your consideration.
-Janie Bekius -  FedEx Support Services
+Thank you for your trust.
+Velma Toal -  FedEx Customer Support Manager
