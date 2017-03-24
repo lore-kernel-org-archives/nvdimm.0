@@ -1,8 +1,8 @@
-From: "USPS Ground" <zuxii2040761-xxIbUeC/gDnGJ0tF+bYoyAh0onu2mTI+@public.gmane.org>
-Subject: We have delivery problems with your parcel # 626855011
-Date: Thu, 23 Mar 2017 21:08:53 -0700
-Message-ID: <F27F29DF.AB045542@confiancacor.com.br>
-Reply-To: USPS International <zuxii2040761-xxIbUeC/gDnGJ0tF+bYoyAh0onu2mTI+@public.gmane.org>
+From: "FedEx Customer Service" <becapfet142353-/BmhiyOyO4XNezXgkwm82wC/G2K4zDHf@public.gmane.org>
+Subject: Delivery Unsuccessful, FedEx Delivery #651000777
+Date: Fri, 24 Mar 2017 22:53:27 +0100
+Message-ID: <562F1E05.F6B147AC@jewelshangout.com>
+Reply-To: FedEx Express Packages <becapfet142353-/BmhiyOyO4XNezXgkwm82wC/G2K4zDHf@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,9 +21,9 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-This is to confirm that your item has been shipped at  Thu, 23 Mar 2017
-21:08:53 -0700. 
-Review the document that is attached to this e-mail!
+FedEx delivery agent wasn't able to deliver your parcel today.
 
-With many thanks.
-Benedetta Burtenshaw -  USPS Chief Delivery Manager.
+Please, find the document for more information.
+
+Many thanks for using FedEx.
+Gloriana Kobara -  FedEx Logistics Support
