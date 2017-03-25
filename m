@@ -1,10 +1,10 @@
-From: "Iluminada Irby  " <davishal182-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Improve ml01.01.org SERP Position
-Date: Sat, 25 Mar 2017 10:08:31 +0200
-Message-ID: <89BA980E.A5E4B6E9@gmail.com>
-Reply-To: Iluminada Irby   <davishal182-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "Kenyatta Adamek  " <marilore504-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: social traffic for ml01.01.org
+Date: Sat, 25 Mar 2017 10:24:02 +0200
+Message-ID: <F49EDBBF.35FE9788@gmail.com>
+Reply-To: Kenyatta Adamek   <marilore504-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4697641679444305153=="
+Content-Type: multipart/mixed; boundary="===============3349496814208016450=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -20,34 +20,33 @@ List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
 
---===============4697641679444305153==
+--===============3349496814208016450==
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-Very powerful SERP Booster Plan, that contains high diversified manual SEO
-work activities.
-
-Quality links from high authority websites
-
-- Article Links
-- Press Reseases
-- Web 2.0
-- PDF sharing
-- social sharing and bookmarking
-- image sharing
-
-All content is written by the hand
-
-Please check the SEO Report attached
-
+hi
+Cheap Social and Search traffic
+See the offer in the html attachment
 
 Regards
-Iluminada Irby  
+Kenyatta Adamek  
 
 
---===============4697641679444305153==
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+--===============3349496814208016450==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -58,4 +57,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============4697641679444305153==--
+--===============3349496814208016450==--
