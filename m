@@ -1,8 +1,7 @@
-From: "FedEx Package Support" <r6-OKcfqr3NS1yUMv50RIWt3wC/G2K4zDHf@public.gmane.org>
-Subject: Automatic Delivery Notification: FedEx Package #341160813 Delivery
- Failed
-Date: Sun, 26 Mar 2017 12:16:58 -0700
-Message-ID: <D1239E43.6E7C25BD@santillanausa.com>
+From: "USPS SameDay" <ikiwosah3257740-ar1i7ApK9Xbx6bdJBgxz33M00V5IAfUQ@public.gmane.org>
+Subject: New status of your USPS delivery code: 025357684
+Date: Mon, 27 Mar 2017 05:58:40 +0800
+Message-ID: <FB02B290.A026DCD8@leomarcantoniostudio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,15 +15,14 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Postmaster <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-By this letter, we'd like to let you know that we have tried to deliver
-your parcel today.
+Your item has arrived at the USPS Post Office at  Mon, 27 Mar 2017 05:58:40
++0800, but the courier was unable to deliver parcel to you. 
+Postal label is enclosed to this e-mail. Please check the attachment!
 
-Important information is in the document attached below.
-
-Thanks for your consideration.
-Jemima Duggar -  FedEx Logistics Manager
+Respectfully.
+Jodee Colyar -  USPS Parcels Delivery Clerk.
