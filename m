@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A724680403
- for <linux-nvdimm@lists.01.org>; Wed, 15 Mar 2017 23:12:09 -0700 (PDT)
-Subject: [PATCH v4 02/13] mm,
- devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
+ by ml01.01.org (Postfix) with ESMTPS id 1E19C21DFA7BA
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 16:19:02 -0700 (PDT)
+Subject: [ndctl PATCH 0/6] ndctl: 'write-labels' and other misc updates
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 15 Mar 2017 23:06:58 -0700
-Message-ID: <148964441851.19438.17064347949607509906.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <148964440651.19438.2288075389153762985.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 28 Mar 2017 16:13:51 -0700
+Message-ID: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,149 +20,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Nicholas Moulin <nicholas.w.moulin@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-devm_memremap_pages() records mapped ranges in pgmap_radix with an entry
-per section's worth of memory (128MB).  The key for each of those
-entries is a section number.
+The primary change is the creation of a new 'write-labels' utility that
+can replay the output from 'read-labels' back onto a given device
+(nmem). This capability is then used to regression test label
+compatibility.
 
-This leads to false positives when devm_memremap_pages() is passed a
-section-unaligned range as lookups in the misalignment fail to return
-NULL. We can close this hole by using the pfn as the key for entries in
-the tree.  The number of entries required to describe a remapped range
-is reduced by leveraging multi-order entries.
+Unrelated to write-labels support this series also takes the opportunity
+to:
 
-In practice this approach usually yields just one entry in the tree if
-the size and starting address are of the same power-of-2 alignment.
-Previously we always needed nr_entries = mapping_size / 128MB.
+* clean up the source file names for the ndctl utility commands
+* add some missing documentation
+* fixup the summary output of dimm-related commands
 
-Link: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006666.html
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- kernel/memremap.c |   52 ++++++++++++++++++++++++++++++++++++++--------------
- mm/Kconfig        |    1 +
- 2 files changed, 39 insertions(+), 14 deletions(-)
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 07e85e5229da..72e93754c0f4 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -194,18 +194,41 @@ void put_zone_device_page(struct page *page)
- }
- EXPORT_SYMBOL(put_zone_device_page);
- 
--static void pgmap_radix_release(struct resource *res)
-+static unsigned long order_at(struct resource *res, unsigned long pgoff)
- {
--	resource_size_t key, align_start, align_size, align_end;
-+	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
-+	unsigned long nr_pages, mask;
- 
--	align_start = res->start & ~(SECTION_SIZE - 1);
--	align_size = ALIGN(resource_size(res), SECTION_SIZE);
--	align_end = align_start + align_size - 1;
-+	nr_pages = PHYS_PFN(resource_size(res));
-+	if (nr_pages == pgoff)
-+		return ULONG_MAX;
-+
-+	/*
-+	 * What is the largest aligned power-of-2 range available from
-+	 * this resource pgoff to the end of the resource range,
-+	 * considering the alignment of the current pgoff?
-+	 */
-+	mask = phys_pgoff | rounddown_pow_of_two(nr_pages - pgoff);
-+	if (!mask)
-+		return ULONG_MAX;
-+
-+	return find_first_bit(&mask, BITS_PER_LONG);
-+}
-+
-+#define foreach_order_pgoff(res, order, pgoff) \
-+	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
-+			pgoff += 1UL << order, order = order_at((res), pgoff))
-+
-+static void pgmap_radix_release(struct resource *res)
-+{
-+	unsigned long pgoff, order;
- 
- 	mutex_lock(&pgmap_lock);
--	for (key = res->start; key <= res->end; key += SECTION_SIZE)
--		radix_tree_delete(&pgmap_radix, key >> PA_SECTION_SHIFT);
-+	foreach_order_pgoff(res, order, pgoff)
-+		radix_tree_delete(&pgmap_radix, PHYS_PFN(res->start) + pgoff);
- 	mutex_unlock(&pgmap_lock);
-+
-+	synchronize_rcu();
- }
- 
- static unsigned long pfn_first(struct page_map *page_map)
-@@ -264,7 +287,7 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
- 
- 	WARN_ON_ONCE(!rcu_read_lock_held());
- 
--	page_map = radix_tree_lookup(&pgmap_radix, phys >> PA_SECTION_SHIFT);
-+	page_map = radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
- 	return page_map ? &page_map->pgmap : NULL;
- }
- 
-@@ -286,12 +309,12 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
- void *devm_memremap_pages(struct device *dev, struct resource *res,
- 		struct percpu_ref *ref, struct vmem_altmap *altmap)
- {
--	resource_size_t key, align_start, align_size, align_end;
-+	resource_size_t align_start, align_size, align_end;
-+	unsigned long pfn, pgoff, order;
- 	pgprot_t pgprot = PAGE_KERNEL;
- 	struct dev_pagemap *pgmap;
- 	struct page_map *page_map;
- 	int error, nid, is_ram;
--	unsigned long pfn;
- 
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-@@ -330,11 +353,12 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	mutex_lock(&pgmap_lock);
- 	error = 0;
- 	align_end = align_start + align_size - 1;
--	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
-+
-+	foreach_order_pgoff(res, order, pgoff) {
- 		struct dev_pagemap *dup;
- 
- 		rcu_read_lock();
--		dup = find_dev_pagemap(key);
-+		dup = find_dev_pagemap(res->start + PFN_PHYS(pgoff));
- 		rcu_read_unlock();
- 		if (dup) {
- 			dev_err(dev, "%s: %pr collides with mapping for %s\n",
-@@ -342,8 +366,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 			error = -EBUSY;
- 			break;
- 		}
--		error = radix_tree_insert(&pgmap_radix, key >> PA_SECTION_SHIFT,
--				page_map);
-+		error = __radix_tree_insert(&pgmap_radix,
-+				PHYS_PFN(res->start) + pgoff, order, page_map);
- 		if (error) {
- 			dev_err(dev, "%s: failed: %d\n", __func__, error);
- 			break;
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 9b8fccb969dc..4aff67e042f1 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -690,6 +690,7 @@ config ZONE_DEVICE
- 	depends on MEMORY_HOTREMOVE
- 	depends on SPARSEMEM_VMEMMAP
- 	depends on X86_64 #arch_add_memory() comprehends device memory
-+	select RADIX_TREE_MULTIORDER
- 
- 	help
- 	  Device memory hotplug support allows for establishing pmem,
+Dan Williams (6):
+      ndctl: drop "builtin" prefix from source file names
+      Documentation, list: add --device-dax, -X description to man page
+      Documentation, list: add --mode, -m description to man page
+      ndctl, dimm: add 'write-labels' command
+      ndctl, dimm: fix count display in the presence of errors
+      test: add interleave set compatibility test
 
+
+ Documentation/ndctl-list.txt      |   28 ++++++++
+ builtin.h                         |    1 
+ ndctl/Makefile.am                 |   16 ++--
+ ndctl/bat.c                       |    0 
+ ndctl/check.c                     |    0 
+ ndctl/create-nfit.c               |    0 
+ ndctl/dimm.c                      |  138 +++++++++++++++++++++++++++++++++----
+ ndctl/list.c                      |    0 
+ ndctl/namespace.c                 |    0 
+ ndctl/ndctl.c                     |    1 
+ ndctl/region.c                    |    0 
+ ndctl/test.c                      |    0 
+ test/Makefile.am                  |   11 ++-
+ test/label-compat.sh              |   61 ++++++++++++++++
+ test/nmem1.bin                    |  Bin
+ test/nmem2.bin                    |  Bin
+ test/nmem3.bin                    |  Bin
+ test/nmem4.bin                    |  Bin
+ 18 files changed, 228 insertions(+), 28 deletions(-)
+ rename ndctl/{builtin-bat.c => bat.c} (100%)
+ rename ndctl/{builtin-check.c => check.c} (100%)
+ rename ndctl/{builtin-create-nfit.c => create-nfit.c} (100%)
+ rename ndctl/{builtin-dimm.c => dimm.c} (88%)
+ rename ndctl/{builtin-list.c => list.c} (100%)
+ rename ndctl/{builtin-xaction-namespace.c => namespace.c} (100%)
+ rename ndctl/{builtin-xable-region.c => region.c} (100%)
+ rename ndctl/{builtin-test.c => test.c} (100%)
+ create mode 100755 test/label-compat.sh
+ create mode 100644 test/nmem1.bin
+ create mode 100644 test/nmem2.bin
+ create mode 100644 test/nmem3.bin
+ create mode 100644 test/nmem4.bin
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
