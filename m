@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 65FB821DFA7BA
- for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 16:19:12 -0700 (PDT)
-Subject: [ndctl PATCH 2/6] Documentation, list: add --device-dax,
- -X description to man page
+ by ml01.01.org (Postfix) with ESMTPS id 1380F21DFA7BA
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 16:19:28 -0700 (PDT)
+Subject: [ndctl PATCH 5/6] ndctl,
+ dimm: fix count display in the presence of errors
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 28 Mar 2017 16:14:02 -0700
-Message-ID: <149074284233.18735.14242091635636742934.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 28 Mar 2017 16:14:17 -0700
+Message-ID: <149074285782.18735.18215464978773558065.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -26,49 +26,39 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Document the new option added in commit 10663a60d723 "ndctl, list: add
-'--device-dax' option".
+The dimm commands return zero when some operations succeed, return the
+count separately from the error code.
 
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
+    Before:
+    # ndctl zero-labels all
+    zeroed 0 nmem
+
+    After:
+    # ndctl zero-labels all
+    zeroed 6 nmems
+
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/ndctl-list.txt |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ ndctl/dimm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/ndctl-list.txt b/Documentation/ndctl-list.txt
-index 2e362e818bbc..bb7db47e7af8 100644
---- a/Documentation/ndctl-list.txt
-+++ b/Documentation/ndctl-list.txt
-@@ -105,6 +105,29 @@ include::xable-region-options.txt[]
-   }
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index b20a84911489..4d25417fb2ae 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -952,9 +952,9 @@ static int dimm_action(int argc, const char **argv, void *ctx,
+ 	 * count if some actions succeeded, 0 if none were attempted,
+ 	 * negative error code otherwise.
+ 	 */
+-	if (rc < 0)
+-		return rc;
+-	return count;
++	if (count > 0)
++		return count;
++	return rc;
  }
  
-+-X::
-+--device-dax::
-+	Include device-dax ("daxregion") details when a namespace is in
-+	"dax" mode.
-+[verse]
-+{
-+  "dev":"namespace0.0",
-+  "mode":"dax",
-+  "size":4225761280,
-+  "uuid":"18ae1bbb-bb62-4efc-86df-4a5caacb5dcc",
-+  "daxregion":{
-+    "id":0,
-+    "size":4225761280,
-+    "align":2097152,
-+    "devices":[
-+      {
-+        "chardev":"dax0.0",
-+        "size":4225761280
-+      }
-+    ]
-+  }
-+}
-+
- -R::
- --regions::
- 	Include region info in the listing
+ int cmd_write_labels(int argc, const char **argv, void *ctx)
 
 _______________________________________________
 Linux-nvdimm mailing list
