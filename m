@@ -1,11 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from jxbro.net (unknown [111.78.186.246])
- by ml01.01.org (Postfix) with ESMTP id 86645803A6
- for <linux-nvdimm@lists.01.org>; Tue, 21 Mar 2017 13:10:44 -0700 (PDT)
-Message-ID: <20170322041045785733@jxbro.net>
-From: "fjgqmsp" <jbeo@jxbro.net>
-Subject: =?utf-8?B?5Zue5aSN77ya5rex5Zyz6YCa5Lia56eR5oqA6IKh5Lu95pyJ6ZmQ5YWs5Y+45Y2X5paH?=
-Date: Wed, 22 Mar 2017 04:10:38 +0800
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 97D2821DFA7BA
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 16:19:17 -0700 (PDT)
+Subject: [ndctl PATCH 3/6] Documentation, list: add --mode,
+ -m description to man page
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 28 Mar 2017 16:14:07 -0700
+Message-ID: <149074284741.18735.94167498313502915.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -14,20 +19,39 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-6LaF57qn5a6e55So6LWE5paZ77yaDQoxLuihjC7lvoEu566hLueQhi7lhagu5aWXLuWIti7luqYN
-CjIu566hLueQhi7okL0u5ZywLuW3pS7lhbcNCjMu5YqeLuWFrC7lrqQu5YWoLuWlly7lspcu5L2N
-LuivtC7mmI4u6K+0DQo0LuWbui7lrpou6LWELuS6py7nrqEu55CGDQo1LumihC7nrpcu566hLueQ
-hiANCjYu57uPLuWFuC7nrqEu55CGLuS5pi7nsY0uMTUu5Lu9DQo3LlBQVC7mqKEu54mILuWbvi7o
-oagu57SgLuadkC41MDAu5Lu9DQo4LuS8gS7kuJou5paHLuWMli7mqKEu54mILue0oC7mnZA1MC7k
-u70NCuS7ty7lgLwuNS4wLjAu5YWD77yM6ZmQLuaXti7lhY0u6LS5Lui1oC7pgIEgICAgICAgICAg
-IA0K5YqgLuW+ri7kv6EuOS43LjEuNy4wLjAuNy4zLjIg6K+3LuazqC7mmI4u6LWELuaWmSAgCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
-bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Document the new option added in commit b17f21f7fae7 "ndctl, list: add
+option to filter namespace by mode".
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ Documentation/ndctl-list.txt |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Documentation/ndctl-list.txt b/Documentation/ndctl-list.txt
+index bb7db47e7af8..444a6f998f19 100644
+--- a/Documentation/ndctl-list.txt
++++ b/Documentation/ndctl-list.txt
+@@ -78,6 +78,11 @@ include::xable-region-options.txt[]
+ --type=::
+ 	Filter listing by region type ('pmem' or 'blk')
+ 
++-m::
++--mode=::
++	Filter listing by the mode ('raw', 'memory', 'sector' or 'dax')
++	of the namespace(s).
++
+ -B::
+ --buses::
+ 	Include bus info in the listing
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
