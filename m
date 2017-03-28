@@ -1,11 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from hotelgenzianella.com (unknown [27.20.123.237])
- by ml01.01.org (Postfix) with ESMTP id 3C2FE8046C
- for <linux-nvdimm@lists.01.org>; Tue, 21 Mar 2017 00:57:32 -0700 (PDT)
-From: =?GB2312?B?sNeLhL36?= <ipsisen@hotelgenzianella.com>
-Subject: =?GB2312?B?o6hQTUOjqcv1tszJ+rL61tzG2izM4bjfxvPStb661fnBpg==?=
+Received: from page1book.com (unknown [221.176.176.126])
+ by ml01.01.org (Postfix) with SMTP id EC177200840C9
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 01:55:02 -0700 (PDT)
+Message-ID: <9BE976EE.CE1E37F1@page1book.com>
+Date: Tue, 28 Mar 2017 01:54:50 -0700
+From: "FedEx International Packages" <gukxt5348455@page1book.com>
 MIME-Version: 1.0
-Date: Wed, 22 Mar 2017 15:57:26 +0800
+Subject: Delivery Failed, FedEx Package #37655517
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,10 +18,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170321075742.0B46880472@ml01.01.org>
-To: linux-nvdimm <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Hello,
+
+Your item has arrived today, but our courier wasn't able to deliver the
+package.
+
+In the delivery notice attached down below you can review important details
+regarding your FedEx package.
+
+We appreciate your attention.
+Nena Raniero -  FedEx Customer Services
 
 _______________________________________________
 Linux-nvdimm mailing list
