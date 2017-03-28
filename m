@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2354.austin.hpe.com (g2t2354.austin.hpe.com [15.233.44.27])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E7CE621A0482F
- for <linux-nvdimm@lists.01.org>; Fri, 31 Mar 2017 12:44:23 -0700 (PDT)
-From: Linda Knippers <linda.knippers@hpe.com>
-Subject: [RFC PATCH] Report the Health Status Detail for the HPE1 DSM family
-Date: Fri, 31 Mar 2017 15:43:41 -0400
-Message-ID: <1490989421-20872-1-git-send-email-linda.knippers@hpe.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0D41521DFA7BA
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 16:19:33 -0700 (PDT)
+Subject: [ndctl PATCH 6/6] test: add interleave set compatibility test
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 28 Mar 2017 16:14:23 -0700
+Message-ID: <149074286304.18735.6004278612978978955.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149074283171.18735.16381597942269607973.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,283 +22,212 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Nicholas Moulin <nicholas.w.moulin@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan, 
-This is an RFC because I'd like some initial feedback on the
-approach.  I think this is what you had in mind from your last
-exchanges with Brian but I wanted to check a few things before
-going too far.
+Per the realization that Linux was incompatible with other
+implementations of the interleave-set-cookie algorithm [1], add a
+regression test to check for compatibility with the original Linux
+implementation.
 
-1) Do we want to export a library function for what could be a long
-list of DSM-family-specific health information?  I think there
-could be some common information between the HPE1 and MSFT DSM
-but much will not be common.
-2) If we do export the functions, would we need to also export
-the ndctl-hpe1.h include file or consolidate the information into
-an already exported file?
-3) Do you want json-smart.c to keep growing or should new smart
-functions provide their own matching json functions?
-4) The code in json-smart.c with a macro was a quick prototype
-but if you have feedback on the json parts, that would be appreciated.
-Right now the detail is reported as a string if all is well and an 
-array if there are errors.  I'm not sure about that or whether 
-the strings should have spaces.  
+This also serves as a unit test for the new 'write-labels' command.
 
-Anyway, here's the patch ...
+[1]: commit 86ef58a4e35e ("nfit, libnvdimm: fix interleave set cookie calculation")
 
-This patch adds a new interface to provide Health Status Detail.
-This field is reported as part of the Smart Health with the HPE1
-DSM family so the function for the Intel family is NULL.  If
-the field is available, the ndctl --health option will decode
-the bits that make up the field.
-
-On a healthy device, the output would look something like:
-{
-    "dev":"nmem0",
-    "id":"802c-01-1521-b300bdbc",
-    "health":{
-      "health_state":"ok",
-      "temperature_celsius":25.000000,
-      "spares_percentage":99,
-      "alarm_temperature":false,
-      "alarm_spares":false,
-      "temperature_threshold":50.000000,
-      "spares_threshold":20,
-      "life_used_percentage":2,
-      "shutdown_state":"clean",
-      "health_status_detail":"ok"
-    }
-  }
-
-A device with every possible error could look like this:
-
- {
-    "dev":"nmem0",
-    "id":"802c-01-1521-b300bdbc",
-    "health":{
-      "health_state":"ok",
-      "temperature_celsius":25.000000,
-      "spares_percentage":99,
-      "alarm_temperature":false,
-      "alarm_spares":false,
-      "temperature_threshold":50.000000,
-      "spares_threshold":20,
-      "life_used_percentage":2,
-      "shutdown_state":"clean",
-      "health_status_detail":[
-        "energy source error",
-        "controller error",
-        "UC ECC error",
-        "CE trip",
-        "save error",
-        "restore error",
-        "arm error",
-        "erase error",
-        "configuration error",
-        "firmware error",
-        "vendor specific error"
-      ]
-    }
-  }
-
+Reported-by: Nicholas Moulin <nicholas.w.moulin@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/lib/libndctl-hpe1.c    | 12 ++++++++++++
- ndctl/lib/libndctl-private.h |  1 +
- ndctl/lib/libndctl-smart.c   |  2 ++
- ndctl/lib/libndctl.sym       |  1 +
- ndctl/libndctl.h.in          |  5 +++++
- ndctl/ndctl.h                |  1 +
- ndctl/util/json-smart.c      | 46 ++++++++++++++++++++++++++++++++++++++++++++
- 7 files changed, 68 insertions(+)
+ test/Makefile.am     |    3 ++
+ test/label-compat.sh |   61 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ test/nmem1.bin       |  Bin
+ test/nmem2.bin       |  Bin
+ test/nmem3.bin       |  Bin
+ test/nmem4.bin       |  Bin
+ 6 files changed, 63 insertions(+), 1 deletion(-)
+ create mode 100755 test/label-compat.sh
+ create mode 100644 test/nmem1.bin
+ create mode 100644 test/nmem2.bin
+ create mode 100644 test/nmem3.bin
+ create mode 100644 test/nmem4.bin
 
-diff --git a/ndctl/lib/libndctl-hpe1.c b/ndctl/lib/libndctl-hpe1.c
-index ec54252..23b76a4 100644
---- a/ndctl/lib/libndctl-hpe1.c
-+++ b/ndctl/lib/libndctl-hpe1.c
-@@ -63,6 +63,7 @@ static struct ndctl_cmd *hpe1_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- 	hpe1->u.smart.in_valid_flags |= NDN_HPE1_SMART_USED_VALID;
- 	hpe1->u.smart.in_valid_flags |= NDN_HPE1_SMART_SHUTDOWN_VALID;
- 	hpe1->u.smart.in_valid_flags |= NDN_HPE1_SMART_VENDOR_VALID;
-+	hpe1->u.smart.in_valid_flags |= NDN_HPE1_SMART_DETAIL_VALID;
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 969fe055b35e..d2a0cf9fe2ba 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -9,7 +9,8 @@ TESTS =\
+ 	create.sh \
+ 	clear.sh \
+ 	dax-errors.sh \
+-	btt-check.sh
++	btt-check.sh \
++	label-compat.sh
  
- 	cmd->firmware_status = &hpe1->u.smart.status;
- 
-@@ -104,6 +105,8 @@ static unsigned int hpe1_cmd_smart_get_flags(struct ndctl_cmd *cmd)
- 		flags |= ND_SMART_SHUTDOWN_VALID;
- 	if (hpe1flags & NDN_HPE1_SMART_VENDOR_VALID)
- 		flags |= ND_SMART_VENDOR_VALID;
-+	if (hpe1flags & NDN_HPE1_SMART_DETAIL_VALID)
-+		flags |= ND_SMART_DETAIL_VALID;
- 
- 	return flags;
- }
-@@ -282,6 +285,14 @@ static unsigned int hpe1_cmd_smart_threshold_get_spares(struct ndctl_cmd *cmd)
- 
- 	return CMD_HPE1_SMART_THRESH(cmd)->spare_block_threshold;
- }
-+static unsigned int hpe1_cmd_smart_get_detail(struct ndctl_cmd *cmd)
+ check_PROGRAMS =\
+ 	libndctl \
+diff --git a/test/label-compat.sh b/test/label-compat.sh
+new file mode 100755
+index 000000000000..f103f64ae7ff
+--- /dev/null
++++ b/test/label-compat.sh
+@@ -0,0 +1,61 @@
++#!/bin/bash -x
++NDCTL="../ndctl/ndctl"
++BUS="-b nfit_test.0"
++BUS1="-b nfit_test.1"
++rc=77
++
++set -e
++
++err() {
++	echo "test/label-compat.sh: failed at line $1"
++	exit $rc
++}
++
++check_min_kver()
 +{
-+	if (hpe1_smart_valid(cmd) < 0)
-+		return UINT_MAX;
++	local ver="$1"
++	: "${KVER:=$(uname -r)}"
 +
-+	return CMD_HPE1_SMART(cmd)->mod_hlth_stat;
++	[ -n "$ver" ] || return 1
++	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
 +}
 +
- 
- struct ndctl_smart_ops * const hpe1_smart_ops = &(struct ndctl_smart_ops) {
- 	.new_smart = hpe1_dimm_cmd_new_smart,
-@@ -298,4 +309,5 @@ struct ndctl_smart_ops * const hpe1_smart_ops = &(struct ndctl_smart_ops) {
- 	.smart_threshold_get_alarm_control = hpe1_cmd_smart_threshold_get_alarm_control,
- 	.smart_threshold_get_temperature = hpe1_cmd_smart_threshold_get_temperature,
- 	.smart_threshold_get_spares = hpe1_cmd_smart_threshold_get_spares,
-+	.smart_get_detail = hpe1_cmd_smart_get_detail,
- };
-diff --git a/ndctl/lib/libndctl-private.h b/ndctl/lib/libndctl-private.h
-index 3e67db0..e379e7d 100644
---- a/ndctl/lib/libndctl-private.h
-+++ b/ndctl/lib/libndctl-private.h
-@@ -221,6 +221,7 @@ struct ndctl_smart_ops {
- 	unsigned int (*smart_threshold_get_alarm_control)(struct ndctl_cmd *);
- 	unsigned int (*smart_threshold_get_temperature)(struct ndctl_cmd *);
- 	unsigned int (*smart_threshold_get_spares)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_detail)(struct ndctl_cmd *);
- };
- 
- #if HAS_SMART == 1
-diff --git a/ndctl/lib/libndctl-smart.c b/ndctl/lib/libndctl-smart.c
-index 73a49ef..890fa47 100644
---- a/ndctl/lib/libndctl-smart.c
-+++ b/ndctl/lib/libndctl-smart.c
-@@ -63,6 +63,7 @@ smart_cmd_op(ndctl_cmd_smart_get_vendor_data, smart_get_vendor_data, unsigned ch
- smart_cmd_op(ndctl_cmd_smart_threshold_get_alarm_control, smart_threshold_get_alarm_control, unsigned int, 0)
- smart_cmd_op(ndctl_cmd_smart_threshold_get_temperature, smart_threshold_get_temperature, unsigned int, 0)
- smart_cmd_op(ndctl_cmd_smart_threshold_get_spares, smart_threshold_get_spares, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_detail, smart_get_detail, unsigned int, 0)
- 
- /*
-  * The following intel_dimm_*() and intel_smart_*() functions implement
-@@ -202,4 +203,5 @@ struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
- 	.smart_threshold_get_alarm_control = intel_cmd_smart_threshold_get_alarm_control,
- 	.smart_threshold_get_temperature = intel_cmd_smart_threshold_get_temperature,
- 	.smart_threshold_get_spares = intel_cmd_smart_threshold_get_spares,
-+	.smart_get_detail = NULL,
- };
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index be2e368..d3a55f4 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -110,6 +110,7 @@ global:
- 	ndctl_cmd_smart_threshold_get_alarm_control;
- 	ndctl_cmd_smart_threshold_get_temperature;
- 	ndctl_cmd_smart_threshold_get_spares;
-+	ndctl_cmd_smart_get_detail;
- 	ndctl_dimm_zero_labels;
- 	ndctl_dimm_get_available_labels;
- 	ndctl_region_get_first;
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index c27581d..d215c48 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -280,6 +280,7 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(struct ndctl_dimm *dimm);
- unsigned int ndctl_cmd_smart_threshold_get_alarm_control(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_threshold_get_temperature(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_threshold_get_spares(struct ndctl_cmd *cmd);
-+unsigned int ndctl_cmd_smart_get_detail(struct ndctl_cmd *cmd);
- #else
- static inline struct ndctl_cmd *ndctl_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- {
-@@ -341,6 +342,10 @@ static inline unsigned int ndctl_cmd_smart_threshold_get_spares(
- {
- 	return 0;
- }
-+static inline unsigned int ndctl_cmd_smart_get_detail(struct ndctl_cmd *cmd)
-+{
-+	return 0;
-+}
- #endif
- 
- struct ndctl_cmd *ndctl_dimm_cmd_new_vendor_specific(struct ndctl_dimm *dimm,
-diff --git a/ndctl/ndctl.h b/ndctl/ndctl.h
-index 3b1d703..0bdf96f 100644
---- a/ndctl/ndctl.h
-+++ b/ndctl/ndctl.h
-@@ -28,6 +28,7 @@ struct nd_cmd_smart {
- #define ND_SMART_ALARM_VALID	(1 << 9)
- #define ND_SMART_SHUTDOWN_VALID	(1 << 10)
- #define ND_SMART_VENDOR_VALID	(1 << 11)
-+#define ND_SMART_DETAIL_VALID	(1 << 13)
- #define ND_SMART_SPARE_TRIP	(1 << 0)
- #define ND_SMART_TEMP_TRIP	(1 << 1)
- #define ND_SMART_CTEMP_TRIP	(1 << 2)
-diff --git a/ndctl/util/json-smart.c b/ndctl/util/json-smart.c
-index 94519da..304a66a 100644
---- a/ndctl/util/json-smart.c
-+++ b/ndctl/util/json-smart.c
-@@ -10,6 +10,7 @@
- #else
- #include <ndctl.h>
- #endif
-+#include "lib/ndctl-hpe1.h"
- 
- static double parse_smart_temperature(unsigned int temp)
- {
-@@ -151,6 +152,51 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
- 			json_object_object_add(jhealth, "shutdown_state", jobj);
- 	}
- 
-+#define json_detail(jobj,jstring,detail,bit,string) \
-+{ \
-+	if (detail & bit) { \
-+		jstring = json_object_new_string(string); \
-+		if (jstring) \
-+			json_object_array_add(jobj,jstring); \
-+	} \
-+}
++check_min_kver "4.11" || { echo "kernel $KVER may not provide reliable isetcookie values"; exit $rc; }
 +
-+	if (flags & ND_SMART_DETAIL_VALID) {
-+		unsigned int detail = ndctl_cmd_smart_get_detail(cmd);
-+		if (detail) {
-+			jobj = json_object_new_array();
-+			json_object *jstring = NULL;
++set -e
++trap 'err $LINENO' ERR
 +
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_ES_FAILURE, "energy source error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_CTLR_FAILURE, "controller error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_UE_TRIP, "UC ECC error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_CE_TRIP, "CE trip")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_SAVE_FAILED, "save error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_RESTORE_FAILED, "restore error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_ARM_FAILED, "arm error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_ERASE_FAILED, "erase error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_CONFIG_ERROR, "configuration error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_FW_ERROR, "firmware error")
-+			json_detail(jobj, jstring, detail,
-+				NDN_HPE1_SMART_VENDOR_ERROR, "vendor specific error")
-+		}
-+		else
-+			jobj = json_object_new_string("ok");
-+		if (jobj)
-+			json_object_object_add(jhealth, "health_status_detail",
-+				jobj);
-+	}
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region $BUS all
++$NDCTL zero-labels $BUS all
 +
- 	ndctl_cmd_unref(cmd);
- 	return jhealth;
-  err:
--- 
-1.8.3.1
++# grab the largest pmem region on $BUS
++query=". | sort_by(.available_size) | reverse | .[0].dev"
++region=$($NDCTL list $BUS -t pmem -Ri | jq -r "$query")
++
++# we assume that $region is comprised of 4 dimms
++query=". | .regions[0].mappings | sort_by(.dimm) | .[].dimm"
++dimms=$($NDCTL list -DRi -r $region | jq -r "$query" | xargs)
++i=1
++for d in $dimms
++do
++	$NDCTL write-labels $d -i nmem${i}.bin
++	i=$((i+1))
++done
++
++$NDCTL enable-region $BUS all
++
++len=$($NDCTL list -r 7 -N | jq -r "length")
++
++if [ -z $len ]; then
++	rc=1
++	echo "failed to find legacy isetcookie namespace"
++	exit 1
++fi
++
++$NDCTL disable-region $BUS all
++$NDCTL disable-region $BUS1 all
++modprobe -r nfit_test
++
++exit 0
+diff --git a/test/nmem1.bin b/test/nmem1.bin
+new file mode 100644
+index 0000000000000000000000000000000000000000..1ef8dfd802e6735073230f7e6a8ec3365c555f39
+GIT binary patch
+literal 131072
+zcmeIuF=_%)6a~;f8HFss71*ZH(nc^kg++!y8aoS{Y{4D51|i#+WC@m5B1%lY=x?Hh
+z*l6IqVYs{p19MN=dnw*td;MZOEC<CXoJ@ASq<lE+>pX-kK6$tOH5*JeKewHe-@f!v
+zp6MT}?aLh|<#7#v`qyLsr{QF?`=|ZiTg%S0@!XwP&5zmlqDnQd&Byp*Exy}b$Uay3
+zeod1kQ>MElK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&U
+zAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C7
+z2oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N
+z0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+
+z009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBly
+zK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF
+z5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk
+z1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs
+z0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZ
+zfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&U
+zAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C7
+J2oSg<fnS9n8x8;f
+
+literal 0
+HcmV?d00001
+
+diff --git a/test/nmem2.bin b/test/nmem2.bin
+new file mode 100644
+index 0000000000000000000000000000000000000000..adf45b5c586667e77f83f74b0574adc7369f0df4
+GIT binary patch
+literal 131072
+zcmeIuF=_%)6a~;f8HFss71*ZH(nc^kg++!y8aoS{Y{4D51|i#+WC@m5B1%lY=x?Hh
+z*l6IqUtHdUfw`yby%cY+y?!wsmV;sxP9{5EQa&8^bsj<%U*2th%?6Xr&u!=Aw=X@E
+zXZpu#`*Md#d0fMv{`J`ZX*k*J{%QaB*0M8gJa^|+^JDhCs8Y>q^D%x{i+I~z$Uay3
+zeod1kQ>MElK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&U
+zAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C7
+z2oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N
+z0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+
+z009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBly
+zK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF
+z5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk
+z1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs
+z0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZ
+zfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&U
+zAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C7
+J2oSg<fnS2?8xH^g
+
+literal 0
+HcmV?d00001
+
+diff --git a/test/nmem3.bin b/test/nmem3.bin
+new file mode 100644
+index 0000000000000000000000000000000000000000..bf7334e28cbc26accbcfbb79bcedf8a8f7a9000b
+GIT binary patch
+literal 131072
+zcmeIuF=_%)6a~;f8HFss71*ZH(nc^kg++!y8aoS{Y{4D51|i#+WC@m5B1%lY=x?Hh
+z*l6IqUtHdUfw`yby%cY+y?!wsmV;sxP9{5EQa&8^bsj<%U*2th%?6Xr&u!=Aw=X@E
+zXZpu#`*Md#d0fMv{`J`ZX*k*J{%QaB*0M8gJa^|+^JDhCs8Y>q^D%x{i%8pD$Uay3
+zeod1kQ>MElK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&U
+zAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C7
+z2oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N
+z0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+
+z009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBly
+zK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF
+z5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk
+z1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs
+z0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZ
+zfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&U
+zAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C7
+J2oSg<fnR{I8xQ~h
+
+literal 0
+HcmV?d00001
+
+diff --git a/test/nmem4.bin b/test/nmem4.bin
+new file mode 100644
+index 0000000000000000000000000000000000000000..24485122e9d8ecfc25ab6b27449c76a2b4f527bf
+GIT binary patch
+literal 131072
+zcmeIuF=_%)6a~;fnFv`xR$yxrOB=z&DW-4`Z0u6lxCM9Q8iZ_PbP1MLAt;WH=x;Pd
+zNRtTX{o?W-49q=6Z;*|Ky|?T=FZ$Uy+)Q%0#C$mKUug(Q{nBoGHSbThhrgYh-~Q>L
+z_@;kd?NshOF)wSl>ffmQxAMuhy3_vCmrZB({MucV&5!whUB;Tf&8Paq$B>3y6_Vv=
+zdRpT|$(Zpj2@oJafB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk
+z1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs
+z0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZ
+zfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&U
+zAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C7
+z2oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N
+z0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+
+z009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBly
+zK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF
+z5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk
+z1PBlyK!5-N0t5&UAV7cs0RjXF5FkK+009C72oNAZfB*pk1PBlyK!5-N0t5&UAV7cs
+K0Rja6k-!mtcpDJ_
+
+literal 0
+HcmV?d00001
+
 
 _______________________________________________
 Linux-nvdimm mailing list
