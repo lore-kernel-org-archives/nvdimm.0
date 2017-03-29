@@ -1,8 +1,8 @@
-From: "USPS International" <kgo31-KtjN1/20XzpBDgjK7y7TUQ@public.gmane.org>
-Subject: We have delivery problems with your parcel # 546354452
-Date: Wed, 29 Mar 2017 01:39:44 -0700
-Message-ID: <DAD51F4F.83D1A80B@bilalis.com>
-Reply-To: USPS Priority Parcels <kgo31-KtjN1/20XzpBDgjK7y7TUQ@public.gmane.org>
+From: "Coco Chen" <cantonfair4-KN7UnAbNpbg@public.gmane.org>
+Subject: =?utf-8?B?WW91ciB2aXNpdCB0byB0aGUgMTIxc3QgQ2FudG9uIEZhaXIgaW4gQ2hpbmEgKDQ2KQ==?=
+Date: 29 Mar 2017 18:27:52 +0800
+Message-ID: <20170329102822.3B13D20D2C3B9@ml01.01.org>
+Reply-To: Coco Chen <cantonfair4-KN7UnAbNpbg@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,10 +19,6 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello,
-Your item has arrived at Wed, 29 Mar 2017 01:39:44 -0700, but our courier
-was not able to deliver the parcel. 
-You can download the shipment label attached!
-
-Thank you for your time.
-Knight Staberg -  USPS Senior Support Manager.
+Dear Madam/Sir,&nbsp;I am pleased to announce that the 121st Canton Fair is coming. The Canton Fair is co-hosted biannually by the Ministry of Commerce of People Republic of China and the Guangdong Government, every spring and autumn. In the Autumn of 2016, the past120th Canton Fair attracted over 25,000 suppliers to exhibit over 150,000 kinds of quality products with distinctive features, and the annual turnover reached over USD 29 billion.We invite you to join the 121st Canton fair. The first 500 customers signing up for attendance may enjoy the following offers:1) Directory of superior suppliers of and a latest report for all industries.2) VIP permit will be granted3) Assistance on China Visa application4) Free one-way airport transfer and special price for hotel accommodation5) Free lo
+ cal mobile sim-card6) 2 free SPA couponsWe sincerely believe that you and your company will fruitfully benefit from it. Please find the contact person details as follows:Contact Person : Ms. Coco Ch
+ enEmail:cantonfair4-cS4t20Fld3IYZaMpoT/xXg@public.gmane.org: +971-55-7951168We look forward to your favorable reply.&nbsp;Best regards,Coco Chen- The China Import and Export Fair- Guangdong Emirates Business Union In U.A.E.We hosted Promotion Conferences of Canton Fair in:1.) Sept. 2014, Carlton Hotel, Dubai, U.A.E.2.) April 2015,&nbsp; Radisson Hotel, Dubai, U.A.E.3.) Aug. 2015,&nbsp; Holiday Inn, Abu Dhabi, U.A.E.
