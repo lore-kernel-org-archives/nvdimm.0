@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A2258802B1
- for <linux-nvdimm@lists.01.org>; Fri, 17 Mar 2017 11:49:52 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:18 -0600
-Message-Id: <1489776503-3151-12-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 11/16] media: utilize new cdev_device_add helper function
+ by ml01.01.org (Postfix) with ESMTPS id E732C2041FBD0
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Mar 2017 22:06:51 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl, {read,
+ write}-labels: add long options for -i and -o
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 28 Mar 2017 22:01:41 -0700
+Message-ID: <149076370167.25786.11455901992745209762.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,122 +17,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Hans Verkuil <hans.verkuil@cisco.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Johannes Thumshirn <jthumshirn@suse.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Replace the open coded registration of the cdev and dev with the
-new device_add_cdev() helper. The helper replaces a common pattern by
-taking the proper reference against the parent device and adding both
-the cdev and the device.
+Without long options the bash completion code is unable to determine the
+available options with "--list-opts".
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/media/cec/cec-core.c  | 16 ++++------------
- drivers/media/media-devnode.c | 20 +++++---------------
- 2 files changed, 9 insertions(+), 27 deletions(-)
+ Documentation/ndctl-read-labels.txt |    1 +
+ ndctl/dimm.c                        |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 37217e2..3163e03 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -137,24 +137,17 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
+diff --git a/Documentation/ndctl-read-labels.txt b/Documentation/ndctl-read-labels.txt
+index 9c3acede8723..ecef164c3283 100644
+--- a/Documentation/ndctl-read-labels.txt
++++ b/Documentation/ndctl-read-labels.txt
+@@ -18,6 +18,7 @@ OPTIONS
+ -------
+ include::labels-options.txt[]
+ -o::
++--output::
+ 	output file
+ -j::
+ --json::
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 4d25417fb2ae..f6a07a7f4c6e 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -790,12 +790,12 @@ OPT_STRING('b', "bus", &param.bus, "bus-id", \
+ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
  
- 	/* Part 2: Initialize and register the character device */
- 	cdev_init(&devnode->cdev, &cec_devnode_fops);
--	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 	devnode->cdev.owner = owner;
+ #define READ_OPTIONS() \
+-OPT_STRING('o', NULL, &param.outfile, "output-file", \
++OPT_STRING('o', "output", &param.outfile, "output-file", \
+ 	"filename to write label area contents"), \
+ OPT_BOOLEAN('j', "json", &param.json, "parse label data into json")
  
--	ret = cdev_add(&devnode->cdev, devnode->dev.devt, 1);
--	if (ret < 0) {
--		pr_err("%s: cdev_add failed\n", __func__);
-+	ret = cdev_device_add(&devnode->cdev, &devnode->dev);
-+	if (ret) {
-+		pr_err("%s: cdev_device_add failed\n", __func__);
- 		goto clr_bit;
- 	}
+ #define WRITE_OPTIONS() \
+-OPT_STRING('i', NULL, &param.infile, "input-file", \
++OPT_STRING('i', "input", &param.infile, "input-file", \
+ 	"filename to read label area data")
  
--	ret = device_add(&devnode->dev);
--	if (ret)
--		goto cdev_del;
--
- 	devnode->registered = true;
- 	return 0;
- 
--cdev_del:
--	cdev_del(&devnode->cdev);
- clr_bit:
- 	mutex_lock(&cec_devnode_lock);
- 	clear_bit(devnode->minor, cec_devnode_nums);
-@@ -190,8 +183,7 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	devnode->unregistered = true;
- 	mutex_unlock(&devnode->lock);
- 
--	device_del(&devnode->dev);
--	cdev_del(&devnode->cdev);
-+	cdev_device_del(&devnode->cdev, &devnode->dev);
- 	put_device(&devnode->dev);
- }
- 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index ae46753..423248f 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -248,31 +248,22 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	dev_set_name(&devnode->dev, "media%d", devnode->minor);
- 	device_initialize(&devnode->dev);
- 
--	/* Part 2: Initialize and register the character device */
-+	/* Part 2: Initialize the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
- 	devnode->cdev.owner = owner;
--	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 
--	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-+	/* Part 3: Add the media and char device */
-+	ret = cdev_device_add(&devnode->cdev, &devnode->dev);
- 	if (ret < 0) {
--		pr_err("%s: cdev_add failed\n", __func__);
-+		pr_err("%s: cdev_device_add failed\n", __func__);
- 		goto cdev_add_error;
- 	}
- 
--	/* Part 3: Add the media device */
--	ret = device_add(&devnode->dev);
--	if (ret < 0) {
--		pr_err("%s: device_add failed\n", __func__);
--		goto device_add_error;
--	}
--
- 	/* Part 4: Activate this minor. The char device can now be used. */
- 	set_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
- 
- 	return 0;
- 
--device_add_error:
--	cdev_del(&devnode->cdev);
- cdev_add_error:
- 	mutex_lock(&media_devnode_lock);
- 	clear_bit(devnode->minor, media_devnode_nums);
-@@ -298,9 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
- {
- 	mutex_lock(&media_devnode_lock);
- 	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
-+	cdev_device_del(&devnode->cdev, &devnode->dev);
- 	mutex_unlock(&media_devnode_lock);
--	device_del(&devnode->dev);
- 	devnode->media_dev = NULL;
- 	put_device(&devnode->dev);
- }
--- 
-2.1.4
+ #define INIT_OPTIONS() \
 
 _______________________________________________
 Linux-nvdimm mailing list
