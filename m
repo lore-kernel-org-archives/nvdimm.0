@@ -1,202 +1,155 @@
-From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ndctl PATCH v2 2/3] ndctl: add a BTT check utility
-Date: Tue, 28 Feb 2017 22:31:17 +0000
-Message-ID: <1488321002.4873.17.camel@intel.com>
-References: <20170222224724.7696-1-vishal.l.verma@intel.com>
- <20170222224724.7696-3-vishal.l.verma@intel.com>
- <x49a89610mr.fsf@segfault.boston.devel.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <x49a89610mr.fsf-RRHT56Q3PSP4kTEheFKJxxDDeQx5vsVwAInAS/Ez/D0@public.gmane.org>
-Content-Language: en-US
-Content-ID: <4F74AC7B978E0841B5209E5C41D2BDE9-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id BD71B21A0480E
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Mar 2017 15:13:36 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 30 Mar 2017 16:12:35 -0600
+Message-Id: <1490911959-5146-5-git-send-email-logang@deltatee.com>
+In-Reply-To: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+Subject: [RFC 4/8] p2pmem: Add debugfs "stats" file
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org
+List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE3LTAyLTI4IGF0IDE2OjExIC0wNTAwLCBKZWZmIE1veWVyIHdyb3RlOg0KPiBI
-aSwgVmlzaGFsLA0KPiANCj4gVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+
-IHdyaXRlczoNCj4gDQo+ID4gQWRkIHRoZSBjaGVjay1uYW1lc3BhY2UgY29tbWFuZCB0byBuZGN0
-bC4gVGhpcyB3aWxsIGNoZWNrIHRoZSBCVFQNCj4gPiBtZXRhZGF0YSBsYXlvdXQgZm9yIHRoZSBn
-aXZlbiBuYW1lc3BhY2UsIGFuZCBpZiByZXF1ZXN0ZWQsIGNvcnJlY3QNCj4gPiBhbnkNCj4gPiBl
-cnJvcnMgZm91bmQuIE5vdCBhbGwgbWV0YWRhdGEgY29ycnVwdGlvbiBpcyBkZXRlY3RhYmxlIG9y
-IGZpeGFibGUuDQo+IA0KPiBUaGFua3MgZm9yIHRoZSBuaWNlIGNoYW5nZWxvZyBpbiB0aGUgMHRo
-IG1lc3NhZ2UsIGJ1dCBpdCB3b3VsZCBiZSBuaWNlDQo+IHRvIGluY2x1ZGUgcmVsZXZhbnQgZW50
-cmllcyBpbiB0aGUgaW5kaXZpZHVhbCBwYXRjaGVzLg0KDQpPaywgd2lsbCBkby4NCg0KPiANCj4g
-LSBEaWZmZXJlbnRpYXRlIHRoZSB1c2Ugb2ZmIEJUVF9QR19TSVpFLCBzeXNjb25mKF9TQ19QQUdF
-U0laRSksIGFuZA0KPiBTWl80Sw0KPiDCoCAoZm9yIHRoZSBmaXhlZCBzdGFydCBvZmZzZXQpIGlu
-IHRoZSBkaWZmZXJlbnQgcGxhY2VzIHRoZXkncmUgdXNlZA0KPiAoSmVmZikNCj4gDQo+IEkgdGhp
-bmsgeW91IGNvdWxkIGdvIGV2ZW4gZnVydGhlciB3aXRoIHRoaXMuwqDCoEZvciBleGFtcGxlLCB5
-b3UgY291ZA0KPiB1c2UNCj4gQlRUX1NUQVJUX09GRlNFVCBmb3IgdGhlIGluaXRpYWwgb2Zmc2V0
-IGZyb20gdGhlIGJlZ2lubmluZyBvZiB0aGUgcmF3DQo+IG5hbWVzcGFjZSB0byB0aGUgZmlyc3Qg
-YnR0IGluZm8gYmxvY2suwqDCoFVzaW5nIHRoZSBwYWdlIHNpemUgZm9yIHRoZQ0KPiBzaXplDQo+
-IG9mIHRoZSBpbmZvIGJsb2NrIGlzIGFsc28gbGVzcyBpbmZvcm1hdGl2ZSB0aGFuIGl0IGNvdWxk
-IGJlLsKgwqBJbnN0ZWFkLA0KPiBjb25zaWRlciBhZGRpbmcgQlRUX0lORk9fU0laRS7CoMKgQWZ0
-ZXIgdGhhdCwgYWxsIG9mIHlvdXIgbWF0aCBzdGFydHMgdG8NCj4gbG9vayBhIGJpdCBtb3JlIHJl
-YWRhYmxlIHRvIG15IGV5ZS4NCg0KSSB0aG91Z2h0IG9mIHNvbWV0aGluZyBhbG9uZyB0aGVzZSBs
-aW5lcywgYnV0IGVuZGVkIHVwIG5vdCBkb2luZyB0aGlzIHRvDQpzdGF5IGNvbnNpc3RlbnQgd2l0
-aCB0aGUgJ0JUVF9QR19TSVpFJyB1c2FnZSBpbiB0aGUga2VybmVsLiBCdXQgbWF5YmUNCnRoZSBr
-ZXJuZWwgY291bGQgdXNlIHNvbWUgY2xlYW5pbmcgdXAgaW4gdGhpcyByZWdhcmQgOikNCg0KPiAN
-Cj4gVGhlcmUncyBubyBzdXBwb3J0IGZvciBwYXJzaW5nIHRoZSBiYWRibG9ja3MgbGlzdCBvciBo
-YW5kbGluZw0KPiBTSUdCVVMvU0lHU0VHVi7CoMKgSSB0aGluayB0aGF0J3Mgc29tZXRoaW5nIHRo
-YXQgc2hvdWxkIGJlIGFkZGVkLCBidXQgaXQNCj4gY291bGQgYmUgZG9uZSBpbiBhIGZvbGxvdy11
-cCBwYXRjaC4NCg0KWWVwLCBJJ2xsIHNlbmQgZm9sbG93IG9uIHBhdGNoZXMgZm9yIHRoaXMuDQoN
-Cj4gDQo+IFlvdSBnbyBvdmVyIDgwIGNvbHVtbnMgYWxsIG92ZXIgdGhlIHBsYWNlLsKgwqBXb3Vs
-ZCB5b3UgbWluZCBmaXhpbmcgdGhhdA0KPiB1cD8NCg0KSSB0aGluayBJIG9ubHkgZG8gdGhhdCBm
-b3Igc3RyaW5ncywgd2hpY2ggSSB0aG91Z2h0IHdhcyBhY2NlcHRhYmxlLCBidXQNCkknbGwgZG8g
-YSBzd2VlcCBhbmQgbWFrZSBzdXJlIGl0IGlzIG9ubHkgZm9yIHN0cmluZ3MuIEkgdGhpbmsgY2hl
-Y2twYXRjaA0Kd2lsbCBpbiBmYWN0IHByb2R1Y2UgYSB3YXJuaW5nIGZvciBzcGxpdCBzdHJpbmdz
-Li4NCg0KPiANCj4gTW9yZSBjb21tZW50cyBpbmxpbmVkIGJlbG93Lg0KPiANCj4gPiBDYzogRGFu
-IFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4gQ2M6IEplZmYgTW95ZXIg
-PGptb3llckByZWRoYXQuY29tPg0KPiA+IENjOiBMaW5kYSBLbmlwcGVycyA8bGluZGEua25pcHBl
-cnNAaHBlLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZl
-cm1hQGludGVsLmNvbT4NCj4gPiAtLS0NCj4gPiDCoERvY3VtZW50YXRpb24vTWFrZWZpbGUuYW3C
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgMSArDQo+ID4gwqBEb2N1bWVudGF0
-aW9uL25kY3RsLWNoZWNrLW5hbWVzcGFjZS50eHQgfMKgwqA2NCArKysNCj4gPiDCoERvY3VtZW50
-YXRpb24vbmRjdGwudHh0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAx
-ICsNCj4gPiDCoE1ha2VmaWxlLmFtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA0ICstDQo+ID4gwqBidWlsdGluLmjCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzC
-oMKgwqAxICsNCj4gPiDCoGNjYW4vYml0bWFwL0xJQ0VOU0XCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgMSArDQo+ID4gwqBjY2FuL2JpdG1hcC9iaXRtYXAu
-Y8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8IDEyNSArKysrKw0KPiA+
-IMKgY2Nhbi9iaXRtYXAvYml0bWFwLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgfCAyNDMgKysrKysrKysrDQo+IA0KPiBJIGFncmVlIHdpdGggRGFuLCBwbGVhc2Ugc3Bs
-aXQgb3V0IHRoZSBiaXRtYXAgY29kZSB0byBhIHNlcGFyYXRlDQo+IHBhdGNoLg0KDQpZZXAsIGFs
-cmVhZHkgaGF2ZSB0aGF0IHF1ZXVlZC4NCg0KPiANCj4gPiArLyoqDQo+ID4gKyAqIGJ0dF93cml0
-ZV9pbmZvIC0gd3JpdGUgYW4gaW5mbyBibG9jayB0byB0aGUgZ2l2ZW4gb2Zmc2V0DQo+ID4gKyAq
-IEBidHRjOgl0aGUgbWFpbiBidHRfY2hrIHN0cnVjdHVyZSBmb3IgdGhpcyBidHQNCj4gPiArICog
-QGJ0dF9zYjoJc3RydWN0IGJ0dF9zYiB3aGVyZSB0aGUgaW5mbyBibG9jayB3aWxsIGJlDQo+ID4g
-Y29waWVkIGZyb20NCj4gPiArICogQG9mZnNldDoJb2Zmc2V0IGluIHRoZSByYXcgbmFtZXNwYWNl
-IHRvIHdyaXRlIHRoZSBpbmZvDQo+ID4gYmxvY2sgdG8NCj4gPiArICoNCj4gPiArICogVGhlIGlu
-aXRpYWwgNEsgb2Zmc2V0IHdpbGwgZ2V0IGFkZGVkIGluIGJ5IHRoaXMgcm91dGluZS4gVGhpcw0K
-PiA+IHdpbGwNCj4gDQo+IFN0aWxsIG5vdCBhIGZhbiBvZiB0aGlzLsKgwqA6KQ0KDQpJIGRvbid0
-IGtub3cgaWYgSSdtIHNlZWluZyBhIGNsZWFuZXIgd2F5IG91dC4uLiA6KQ0KDQo+IA0KPiA+ICsg
-KiBhbHNvIHVzZSAncHdyaXRlJyB0byB3cml0ZSB0aGUgaW5mbyBibG9jaywgYW5kIG5vdCBtbWFw
-K3N0b3Jlcw0KPiA+IGFzIHRoaXMNCj4gPiArICogaXMgdXNlZCBiZWZvcmUgdGhlIG1hcHBpbmdz
-IGFyZSBzZXQgdXAuDQo+ID4gKyAqLw0KPiA+ICtzdGF0aWMgaW50IGJ0dF93cml0ZV9pbmZvKHN0
-cnVjdCBidHRfY2hrICpidHRjLCBzdHJ1Y3QgYnR0X3NiDQo+ID4gKmJ0dF9zYiwgdTY0IG9mZikN
-Cj4gPiArew0KPiA+ICsJc3NpemVfdCBzaXplOw0KPiA+ICsJaW50IHJjID0gMDsNCj4gPiArDQo+
-ID4gKwlpZiAoIWJ0dGMtPm9wdHMtPnJlcGFpcikgew0KPiA+ICsJCWVycm9yKCJCVFQgaW5mbyBi
-bG9jayBhdCBvZmZzZXQgJSNseCBuZWVkcyB0byBiZQ0KPiA+IHJlc3RvcmVkXG4iLCBvZmYpOw0K
-PiA+ICsJCXJlcGFpcl9tc2coKTsNCj4gPiArCQlyZXR1cm4gLTE7DQo+ID4gKwl9DQo+ID4gKwlw
-cmludGYoIlJlc3RvcmluZyBCVFQgaW5mbyBibG9jayBhdCBvZmZzZXQgJSNseFxuIiwgb2ZmKTsN
-Cj4gDQo+IFRoZSBvZmZzZXRzIHlvdSBwcmludCBhcmUgb2ZmIGJ5IDRrLsKgwqBZb3UgZG8gdGhh
-dCBpbiBqdXN0IGFib3V0IGV2ZXJ5DQo+IHBsYWNlIHlvdSBwcmludCBvdXQgdGhlIG9mZnNldCBv
-ZiB0aGUgYnR0IGluZm8uDQoNCk9mZiBieSA0ayBkdWUgdG8gdGhlIDRrIGluaXRpYWwgb2Zmc2V0
-IHJpZ2h0PyBJIHRoaW5rIHdlIHNob3VsZCBwcmludA0KdGhlIHJhdyBuYW1lc3BhY2Ugb2Zmc2V0
-cywgaW5jbHVkaW5nIHRoZSBpbml0aWFsIDRrIGV2ZXJ5IHRpbWUuIExldCBlbQ0KbWFrZSBzdXJl
-IHRoYXQgaXMgdGhlIGNhc2Ugd2hlcmV2ZXIgd2UgcHJpbnQgdGhlbSwgYW5kIGlmIGl0IGlzbid0
-IHRoZW4NCkknbGwgZml4IHRob3NlLg0KDQo+IA0KPiA+ICsNCj4gPiArCXNpemUgPSBwd3JpdGUo
-YnR0Yy0+ZmQsIGJ0dF9zYiwgc2l6ZW9mKCpidHRfc2IpLCBvZmYgKw0KPiA+IFNaXzRLKTsNCj4g
-PiArCWlmIChzaXplICE9IHNpemVvZigqYnR0X3NiKSkgew0KPiA+ICsJCWVycm9yKCJ1bmFibGUg
-dG8gd3JpdGUgdGhlIGluZm8gYmxvY2s6ICVzXG4iLA0KPiA+IHN0cmVycm9yKGVycm5vKSk7DQo+
-ID4gKwkJcmMgPSAtZXJybm87DQo+ID4gKwl9DQo+IA0KPiBJZiB5b3UgZ2V0IGEgc2hvcnQgd3Jp
-dGUsIGVycm5vIHdpbGwgbm90IGJlIHZhbGlkLsKgwqBZb3UgY291bGQgdmVyeQ0KPiB3ZWxsDQo+
-IHJldHVybiBzdWNjZXNzIGZyb20gdGhpcyByb3V0aW5lIHdoZW4gaXQgc2hvdWxkIGhhdmUgZmFp
-bGVkLg0KDQpBaCwgSSB0aGluayBJIGZpeGVkIGl0IGZvciB0aGUgcmVhZCBjYXNlLCBidXQgbmVn
-bGVjdGVkIHRoZSB3cml0ZS4uIFdpbGwNCmZpeC4NCg0KPiANCj4gSSB0aGluayB5b3UncmUgbWlz
-c2luZyBhbiBmc3luYygpIGhlcmUuDQoNCkdvb2QgY2F0Y2gsIEknbGwgYWRkIGl0Lg0KDQo+IA0K
-PiA+ICsJcmV0dXJuIHJjOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICsvKioNCj4gPiArICogYnR0X2Nv
-cHlfdG9faW5mbzIgLSByZXN0b3JlIHRoZSBiYWNrdXAgaW5mbyBibG9jayB1c2luZyB0aGUgbWFp
-bg0KPiA+IG9uZQ0KPiA+ICsgKiBAYToJCXRoZSBhcmVuYV9pbmZvIGhhbmRsZSBmb3IgdGhpcyBh
-cmVuYQ0KPiA+ICsgKg0KPiA+ICsgKiBDYWxsZWQgd2hlbiBhIGNvcnJ1cHRlZCBiYWNrdXAgaW5m
-byBibG9jayBpcyBkZXRlY3RlZC4gQ29waWVzDQo+ID4gdGhlDQo+ID4gKyAqIG1haW4gaW5mbyBi
-bG9jayBvdmVyIHRvIHRoZSBiYWNrdXAgbG9jYXRpb24uIFRoaXMgaXMgZG9uZSB1c2luZw0KPiA+
-ICsgKiBtbWFwICsgc3RvcmVzLCBhbmQgdGh1cyBuZWVkcyBhIG1zeW5jLg0KPiA+ICsgKi8NCj4g
-PiArc3RhdGljIGludCBidHRfY29weV90b19pbmZvMihzdHJ1Y3QgYXJlbmFfaW5mbyAqYSkNCj4g
-PiArew0KPiA+ICsJdm9pZCAqbXNfYWxpZ247DQo+ID4gKwlzaXplX3QgbXNfc2l6ZTsNCj4gPiAr
-DQo+ID4gKwlpZiAoIWEtPmJ0dGMtPm9wdHMtPnJlcGFpcikgew0KPiA+ICsJCWVycm9yKCJBcmVu
-YSAlZDogQlRUIGluZm8yIG5lZWRzIHRvIGJlIHJlc3RvcmVkXG4iLA0KPiA+IGEtPm51bSk7DQo+
-ID4gKwkJcmV0dXJuIHJlcGFpcl9tc2coKTsNCj4gPiArCX0NCj4gPiArCXByaW50ZigiQXJlbmEg
-JWQ6IFJlc3RvcmluZyBCVFQgaW5mbzJcbiIsIGEtPm51bSk7DQo+ID4gKwltZW1jcHkoYS0+bWFw
-LmluZm8yLCBhLT5tYXAuaW5mbywgQlRUX1BHX1NJWkUpOw0KPiA+ICsNCj4gPiArCW1zX2FsaWdu
-ID0gKHZvaWQgKilyb3VuZGRvd24oKHU2NClhLT5tYXAuaW5mbzIsDQo+ID4gKwkJCXN5c2NvbmYo
-X1NDX1BBR0VTSVpFKSk7DQo+ID4gKwltc19zaXplID0gbWF4KEJUVF9QR19TSVpFLCBzeXNjb25m
-KF9TQ19QQUdFU0laRSkpOw0KPiANCj4gWW91IGNhbGwgc3lzY29uZiA0IHRpbWVzLsKgwqBZb3Ug
-bWlnaHQgY29uc2lkZXIgc3RvcmluZyB0aGUgcmVzdWx0IGluIGENCj4gZ2xvYmFsLg0KDQpZZXAs
-IHdpbGwgZG8uDQoNCj4gDQo+IFtzbmlwXQ0KPiANCj4gPiArLyogQ2hlY2sgdGhhdCBlYWNoIGZs
-b2cgZW50cnkgaGFzIHRoZSBjb3JyZWN0IGNvcnJlc3BvbmRpbmcgbWFwDQo+ID4gZW50cnkgKi8N
-Cj4gPiArc3RhdGljIGludCBidHRfY2hlY2tfbG9nX21hcChzdHJ1Y3QgYXJlbmFfaW5mbyAqYSkN
-Cj4gPiArew0KPiA+ICsJdW5zaWduZWQgaW50IGk7DQo+ID4gKwl1MzIgbWFwcGluZzsNCj4gPiAr
-CWludCByYyA9IDA7DQo+ID4gKw0KPiA+ICsJZm9yIChpID0gMDsgaSA8IGEtPm5mcmVlOyBpKysp
-IHsNCj4gPiArCQlzdHJ1Y3QgbG9nX2VudHJ5IGxvZzsNCj4gPiArDQo+ID4gKwkJcmMgPSBidHRf
-bG9nX3JlYWQoYSwgaSwgJmxvZyk7DQo+ID4gKwkJaWYgKHJjKQ0KPiA+ICsJCQlyZXR1cm4gcmM7
-DQo+ID4gKwkJbWFwcGluZyA9IGJ0dF9tYXBfbG9va3VwKGEsIGxvZy5sYmEpOw0KPiA+ICsNCj4g
-PiArCQkvKg0KPiA+ICsJCcKgKiBDYXNlIHdoZXJlIHRoZSBmbG9nIHdhcyB3cml0dGVuLCBidXQg
-bWFwDQo+ID4gY291bGRuJ3QgYmUgdXBkYXRlZC4NCj4gPiArCQnCoCogVGhlIGtlcm5lbCBzaG91
-bGQgYWxzbyBiZSBhYmxlIHRvIGRldGVjdCBhbmQgZml4DQo+ID4gdGhpcyBjb25kaXRpb24NCj4g
-PiArCQnCoCovDQo+ID4gKwkJaWYgKGxvZy5uZXdfbWFwICE9IG1hcHBpbmcgJiYgbG9nLm9sZF9t
-YXAgPT0NCj4gPiBtYXBwaW5nKSB7DQo+ID4gKwkJCWluZm9ybSgiYXJlbmEgJWQ6IGxvZ1slZF0u
-bmV3X21hcCAoJSN4KQ0KPiA+IGRvZXNuJ3QgbWF0Y2ggbWFwWyUjeF0gKCUjeCkiLA0KPiA+ICsJ
-CQkJYS0+bnVtLCBpLCBsb2cubmV3X21hcCwgbG9nLmxiYSwNCj4gPiBtYXBwaW5nKTsNCj4gPiAr
-CQkJcmMgPSBidHRfbWFwX3dyaXRlKGEsIGxvZy5sYmEsDQo+ID4gbG9nLm5ld19tYXApOw0KPiA+
-ICsJCQlpZiAocmMpDQo+ID4gKwkJCQlyZXR1cm4gQlRUX0xPR19NQVBfRVJSOw0KPiANCj4gV2hh
-dCBkbyB5b3UgdGhpbmsgYWJvdXQgc3RvcmluZyB0aGUgcmV0dXJuIGNvZGUgYnV0IGNvbnRpbnVp
-bmcgdG8gbG9vcA0KPiB0aHJvdWdoIHRoZSByZXN0IG9mIHRoZSBsb2c/DQoNClllcCBjYW4gZG8u
-IEkndmUgYmVlbiBkZWZhdWx0aW5nIHRvIGV4aXQgb24gZmlyc3QgZXJyb3IsIGJ1dCBJIGNhbiBz
-ZWUNCndoZXJlIGl0IG1ha2VzIHNlbnNlIHRvIGtlZXAgZ29pbmcgYW5kIHJlcG9ydCBtdWx0aXBs
-ZSBlcnJvcnMsIGFuZCBkbw0KdGhhdC4NCg0KPiANCj4gW3NuaXBdDQo+IA0KPiA+ICtzdGF0aWMg
-aW50IGJ0dF9jaGVja19iaXRtYXAoc3RydWN0IGFyZW5hX2luZm8gKmEpDQo+ID4gK3sNCj4gPiAr
-CWJpdG1hcF90ICpibTsNCj4gPiArCXUzMiBpLCBtYXBwaW5nOw0KPiA+ICsJaW50IHJjOw0KPiA+
-ICsNCj4gPiArCWJtID0gYml0bWFwX2FsbG9jMChhLT5pbnRlcm5hbF9ubGJhKTsNCj4gPiArCWlm
-IChibSA9PSBOVUxMKQ0KPiA+ICsJCXJldHVybiAtRU5PTUVNOw0KPiA+ICsNCj4gPiArCS8qIG1h
-cCAnZXh0ZXJuYWxfbmxiYScgbnVtYmVyIG9mIG1hcCBlbnRyaWVzICovDQo+ID4gKwlmb3IgKGkg
-PSAwOyBpIDwgYS0+ZXh0ZXJuYWxfbmxiYTsgaSsrKSB7DQo+ID4gKwkJbWFwcGluZyA9IGJ0dF9t
-YXBfbG9va3VwKGEsIGkpOw0KPiA+ICsJCWlmIChiaXRtYXBfdGVzdF9iaXQoYm0sIG1hcHBpbmcp
-KSB7DQo+ID4gKwkJCWluZm9ybSgiYXJlbmEgJWQ6IGludGVybmFsIGJsb2NrICUjeCBpcw0KPiA+
-IHJlZmVyZW5jZWQgYnkgdHdvIG1hcCBlbnRyaWVzIiwNCj4gPiArCQkJCWEtPm51bSwgbWFwcGlu
-Zyk7DQo+ID4gKwkJCXJjID0gQlRUX0JJVE1BUF9FUlJPUjsNCj4gPiArCQkJZ290byBvdXQ7DQo+
-ID4gKwkJfQ0KPiA+ICsJCWJpdG1hcF9zZXRfYml0KGJtLCBtYXBwaW5nKTsNCj4gPiArCX0NCj4g
-PiArDQo+ID4gKwkvKiBtYXAgJ25mcmVlJyBudW1iZXIgb2YgZmxvZyBlbnRyaWVzICovDQo+ID4g
-Kwlmb3IgKGkgPSAwOyBpIDwgYS0+bmZyZWU7IGkrKykgew0KPiA+ICsJCXN0cnVjdCBsb2dfZW50
-cnkgbG9nOw0KPiA+ICsNCj4gPiArCQlyYyA9IGJ0dF9sb2dfcmVhZChhLCBpLCAmbG9nKTsNCj4g
-PiArCQlpZiAocmMpDQo+ID4gKwkJCWdvdG8gb3V0Ow0KPiA+ICsJCWlmIChiaXRtYXBfdGVzdF9i
-aXQoYm0sIGxvZy5vbGRfbWFwKSkgew0KPiA+ICsJCQlpbmZvcm0oImFyZW5hICVkOiBpbnRlcm5h
-bCBibG9jayAlI3ggaXMNCj4gPiByZWZlcmVuY2VkIGJ5IHR3byBtYXAvbG9nIGVudHJpZXMiLA0K
-PiA+ICsJCQkJYS0+bnVtLCBsb2cub2xkX21hcCk7DQo+ID4gKwkJCXJjID0gQlRUX0JJVE1BUF9F
-UlJPUjsNCj4gPiArCQkJZ290byBvdXQ7DQo+ID4gKwkJfQ0KPiA+ICsJCWJpdG1hcF9zZXRfYml0
-KGJtLCBsb2cub2xkX21hcCk7DQo+ID4gKwl9DQo+ID4gKw0KPiA+ICsJLyogY2hlY2sgdGhhdCB0
-aGUgYml0bWFwIGlzIGZ1bGwgKi8NCj4gPiArCWlmICghYml0bWFwX2Z1bGwoYm0sIGEtPmludGVy
-bmFsX25sYmEpKQ0KPiA+ICsJCXJjID0gQlRUX0JJVE1BUF9FUlJPUjsNCj4gDQo+IFRoaXMgc2Vl
-bXMgbGlrZSBhIGxvc3Qgb3Bwb3J0dW5pdHkuwqDCoElmIGEgYmxvY2sgaXNuJ3QgcmVmZXJlbmNl
-ZCwNCj4gc2hvdWxkbid0IHdlIGxpbmsgaXQgYmFjayBpbj8NCg0KSSBkb24ndCBrbm93IGlmIHdl
-IGhhdmUgZW5vdWdoIGluZm9ybWF0aW9uIHRvIGRvIHRoYXQ/DQpJZiBhIGJsb2NrIGlzIHJlZmVy
-ZW5jZWQgYnkgdHdvIG1hcCBlbnRyaWVzLCBhbmQgYW5vdGhlciBibG9jayBpcyBub3QNCnJlZmVy
-ZW5jZWQgYXQgYWxsLCB3ZSBjYW4gZ3Vlc3MgdGhhdCBvbmUgb2YgdGhlIG1hcCBlbnRyaWVzIHNo
-b3VsZA0KYWN0dWFsbHkgcG9pbnQgdG8gdGhhdCB1bnJlZmVyZW5jZWQgYmxvY2sgKGFuZCBldmVu
-IHRoYXQgaXMNCnNwZWN1bGF0aW9uKSwgYnV0IHdlIHN0aWxsIGRvbid0IGtub3cgd2hpY2ggb2Yg
-dGhlIHR3byBlbnRyaWVzDQpyZWZlcmVuY2luZyB0aGUgc2FtZSBibG9jayB0byAnbW92ZScuLg0K
-DQo+IA0KPiBbc25pcF0NCj4gDQo+ID4gK3N0YXRpYyBpbnQgYnR0X2NyZWF0ZV9tYXBwaW5ncyhz
-dHJ1Y3QgYnR0X2NoayAqYnR0YykNCj4gPiArew0KPiA+ICsJc3RydWN0IGFyZW5hX2luZm8gKmE7
-DQo+ID4gKwlpbnQgbW1hcF9mbGFnczsNCj4gPiArCWludCBpOw0KPiA+ICsNCj4gPiArCWlmICgh
-YnR0Yy0+b3B0cy0+cmVwYWlyKQ0KPiA+ICsJCW1tYXBfZmxhZ3MgPSBQUk9UX1JFQUQ7DQo+ID4g
-KwllbHNlDQo+ID4gKwkJbW1hcF9mbGFncyA9IFBST1RfUkVBRHxQUk9UX1dSSVRFOw0KPiA+ICsN
-Cj4gPiArCWZvciAoaSA9IDA7IGkgPCBidHRjLT5udW1fYXJlbmFzOyBpKyspIHsNCj4gPiArCQlh
-ID0gJmJ0dGMtPmFyZW5hW2ldOw0KPiA+ICsJCWEtPm1hcC5pbmZvX2xlbiA9IEJUVF9QR19TSVpF
-Ow0KPiA+ICsJCWEtPm1hcC5pbmZvID0gbW1hcChOVUxMLCBhLT5tYXAuaW5mb19sZW4sDQo+ID4g
-bW1hcF9mbGFncywNCj4gPiArCQkJTUFQX1NIQVJFRCwgYnR0Yy0+ZmQsIGEtPmluZm9vZmYgKyBT
-Wl80Syk7DQo+IA0KPiBJcyB0aGUgb2Zmc2V0IGluIHRoZSBtbWFwIGNhbGwgY29ycmVjdCBmb3Ig
-YXJlbmFzIG90aGVyIHRoYW4gdGhlDQo+IGZpcnN0Pw0KDQpZZXMuLiBzYi0+aW5mb29mZiBpcyBy
-ZWxhdGl2ZSB0byB0aGF0IGFyZW5hLCBidXQgd2hlbiB3ZSBwb3B1bGF0ZSANCmFyZW5hLT5pbmZv
-b2ZmIGluIGJ0dF9wYXJzZV9tZXRhKCksIHdlIGRvOg0KDQphcmVuYS0+aW5mb29mZiA9IGFyZW5h
-X29mZjsNCg0KV2hlcmUgYXJlbmFfb2ZmIGlzIHBhc3NlZCBpbiBhcyB0aGUgcmF3IG9mZnNldCBm
-b3IgdGhlIHN0YXJ0IG9mIHRoZQ0KYXJlbmEuDQpUaGlzIG1ha2VzIGFsbCBhcmVuYS0+Km9mZiAn
-YWJzb2x1dGUnLCBpLmUuIGJhc2VkIG9uIHRoZSByYXcgbmFtZXNwYWNlLA0KYW5kIHRoZSBtbWFw
-IGNhbGxzIGNhbiBqdXN0IHVzZSB0aGF0IG9mZnNldCBkaXJlY3RseS4gSXQgaXMgYSBiaXQNCmNv
-bmZ1c2luZywgYW5kIEknbGwgYWRkIGEgY29tbWVudCBleHBsYWluaW5nIHRoaXMsIGJ1dCBJIGJl
-bGlldmUgdGhpcyBpcw0KYWxzbyB3aGF0IHdlIGRvIGluIHRoZSBrZXJuZWwgOikNCg0KPiANCj4g
-Q2hlZXJzLA0KPiBKZWZmCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+From: Steve Wise <swise@opengridcomputing.com>
+
+For each p2pmem instance, add a "stats" file to show
+the gen_pool statistics.
+
+Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Stephen Bates <sbates@raithlin.com>
+---
+ drivers/memory/p2pmem.c | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/p2pmem.h  |  2 ++
+ 2 files changed, 51 insertions(+)
+
+diff --git a/drivers/memory/p2pmem.c b/drivers/memory/p2pmem.c
+index c4ea311..71741c2 100644
+--- a/drivers/memory/p2pmem.c
++++ b/drivers/memory/p2pmem.c
+@@ -18,6 +18,7 @@
+ #include <linux/slab.h>
+ #include <linux/genalloc.h>
+ #include <linux/memremap.h>
++#include <linux/debugfs.h>
+ 
+ MODULE_DESCRIPTION("Peer 2 Peer Memory Device");
+ MODULE_VERSION("0.1");
+@@ -27,6 +28,40 @@ MODULE_AUTHOR("Microsemi Corporation");
+ static struct class *p2pmem_class;
+ static DEFINE_IDA(p2pmem_ida);
+ 
++static struct dentry *p2pmem_debugfs_root;
++
++static int stats_show(struct seq_file *seq, void *v)
++{
++	struct p2pmem_dev *p = seq->private;
++
++	if (p->pool) {
++		seq_printf(seq, "total size: %lu\n", gen_pool_size(p->pool));
++		seq_printf(seq, "available:  %lu\n", gen_pool_avail(p->pool));
++	}
++	return 0;
++}
++
++static int stats_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, stats_show, inode->i_private);
++}
++
++static const struct file_operations stats_debugfs_fops = {
++	.owner   = THIS_MODULE,
++	.open    = stats_open,
++	.release = single_release,
++	.read	 = seq_read,
++	.llseek  = seq_lseek,
++};
++
++static void setup_debugfs(struct p2pmem_dev *p)
++{
++	struct dentry *de;
++
++	de = debugfs_create_file("stats", 0400, p->debugfs_root,
++				 (void *)p, &stats_debugfs_fops);
++}
++
+ static struct p2pmem_dev *to_p2pmem(struct device *dev)
+ {
+ 	return container_of(dev, struct p2pmem_dev, dev);
+@@ -62,6 +97,8 @@ static void p2pmem_release(struct device *dev)
+ {
+ 	struct p2pmem_dev *p = to_p2pmem(dev);
+ 
++	debugfs_remove_recursive(p->debugfs_root);
++
+ 	if (p->pool)
+ 		gen_pool_destroy(p->pool);
+ 
+@@ -114,6 +151,13 @@ struct p2pmem_dev *p2pmem_create(struct device *parent)
+ 	if (rc)
+ 		goto err_id;
+ 
++	if (p2pmem_debugfs_root) {
++		p->debugfs_root = debugfs_create_dir(dev_name(&p->dev),
++						     p2pmem_debugfs_root);
++		if (p->debugfs_root)
++			setup_debugfs(p);
++	}
++
+ 	rc = device_add(&p->dev);
+ 	if (rc)
+ 		goto err_id;
+@@ -390,12 +434,17 @@ static int __init p2pmem_init(void)
+ 	if (IS_ERR(p2pmem_class))
+ 		return PTR_ERR(p2pmem_class);
+ 
++	p2pmem_debugfs_root = debugfs_create_dir("p2pmem", NULL);
++	if (!p2pmem_debugfs_root)
++		pr_info("could not create debugfs entry, continuing\n");
++
+ 	return 0;
+ }
+ module_init(p2pmem_init);
+ 
+ static void __exit p2pmem_exit(void)
+ {
++	debugfs_remove_recursive(p2pmem_debugfs_root);
+ 	class_destroy(p2pmem_class);
+ 
+ 	pr_info(KBUILD_MODNAME ": unloaded.\n");
+diff --git a/include/linux/p2pmem.h b/include/linux/p2pmem.h
+index 71dc1e1..4cd6f35 100644
+--- a/include/linux/p2pmem.h
++++ b/include/linux/p2pmem.h
+@@ -26,6 +26,8 @@ struct p2pmem_dev {
+ 	struct percpu_ref ref;
+ 	struct completion cmp;
+ 	struct gen_pool *pool;
++
++	struct dentry *debugfs_root;
+ };
+ 
+ #ifdef CONFIG_P2PMEM
+-- 
+2.1.4
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
