@@ -2,14 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6C1EB21954068
- for <linux-nvdimm@lists.01.org>; Thu, 20 Apr 2017 14:05:02 -0700 (PDT)
-Subject: [ndctl PATCH 2/5] test, libndctl: gate dax and pfn tests on 4.8
+ by ml01.01.org (Postfix) with ESMTPS id 795A92193930C
+ for <linux-nvdimm@lists.01.org>; Sat,  1 Apr 2017 12:33:12 -0700 (PDT)
+Subject: [ndctl PATCH] test: blk allocation exhaustion
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 20 Apr 2017 13:59:09 -0700
-Message-ID: <149272194976.23427.2063717455117169640.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149272193912.23427.11500536718990091103.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149272193912.23427.11500536718990091103.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 01 Apr 2017 12:28:02 -0700
+Message-ID: <149107488272.16325.8536491917958323727.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,54 +23,86 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The current tests require the nfit_test conversion from cma to vmalloc.
-Disable the tests on earlier kernels.
+Test that the kernel properly accounts for all blk allocations when all
+aliased pmem is allocated before un-aliased blk. This targets a
+regression that was introduced with commit a1f3e4d6a0c3 ("libnvdimm,
+region: update nd_region_available_dpa() for multi-pmem support").
 
+Cc: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/libndctl.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ test/Makefile.am    |    3 ++-
+ test/blk-exhaust.sh |   47 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+), 1 deletion(-)
+ create mode 100755 test/blk-exhaust.sh
 
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 39822ee71c0e..f5a6abe50edd 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -2405,16 +2405,21 @@ static int do_test0(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 	ndctl_region_foreach(bus, region)
- 		ndctl_region_enable(region);
+diff --git a/test/Makefile.am b/test/Makefile.am
+index d2a0cf9fe2ba..4567f7465ebd 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -10,7 +10,8 @@ TESTS =\
+ 	clear.sh \
+ 	dax-errors.sh \
+ 	btt-check.sh \
+-	label-compat.sh
++	label-compat.sh \
++	blk-exhaust.sh
  
--	if (ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0))) {
-+	/* pfn and dax tests require vmalloc-enabled nfit_test */
-+	if (ndctl_test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
- 		rc = check_regions(bus, regions0, ARRAY_SIZE(regions0), DAX);
- 		if (rc)
- 			return rc;
- 		reset_bus(bus);
- 	}
--	rc = check_regions(bus, regions0, ARRAY_SIZE(regions0), PFN);
--	if (rc)
--		return rc;
--	reset_bus(bus);
+ check_PROGRAMS =\
+ 	libndctl \
+diff --git a/test/blk-exhaust.sh b/test/blk-exhaust.sh
+new file mode 100755
+index 000000000000..24a1ec216767
+--- /dev/null
++++ b/test/blk-exhaust.sh
+@@ -0,0 +1,47 @@
++#!/bin/bash -x
++NDCTL="../ndctl/ndctl"
++BUS="-b nfit_test.0"
++BUS1="-b nfit_test.1"
++rc=77
 +
-+	if (ndctl_test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
-+		rc = check_regions(bus, regions0, ARRAY_SIZE(regions0), PFN);
-+		if (rc)
-+			return rc;
-+		reset_bus(bus);
-+	}
++set -e
 +
- 	return check_regions(bus, regions0, ARRAY_SIZE(regions0), BTT);
- }
- 
-@@ -2464,7 +2469,7 @@ int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
- 	daxctl_set_log_priority(daxctl_ctx, loglevel);
- 	ndctl_set_private_data(ctx, test);
- 
--	err = nfit_test_init(&kmod_ctx, &mod, loglevel);
-+	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
- 	if (err < 0) {
- 		ndctl_test_skip(test);
- 		fprintf(stderr, "nfit_test unavailable skipping tests\n");
++err() {
++	echo "test/label-compat.sh: failed at line $1"
++	exit $rc
++}
++
++check_min_kver()
++{
++	local ver="$1"
++	: "${KVER:=$(uname -r)}"
++
++	[ -n "$ver" ] || return 1
++	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
++}
++
++check_min_kver "4.11" || { echo "kernel $KVER may lack blk-exhaustion fix"; exit $rc; }
++
++set -e
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region $BUS all
++$NDCTL zero-labels $BUS all
++$NDCTL enable-region $BUS all
++
++# if the kernel accounting is correct we should be able to create two
++# pmem and two blk namespaces on nfit_test.0
++rc=1
++$NDCTL create-namespace $BUS -t pmem
++$NDCTL create-namespace $BUS -t pmem
++$NDCTL create-namespace $BUS -t blk -m raw
++$NDCTL create-namespace $BUS -t blk -m raw
++
++# clearnup and exit
++$NDCTL disable-region $BUS all
++$NDCTL disable-region $BUS1 all
++modprobe -r nfit_test
++
++exit 0
 
 _______________________________________________
 Linux-nvdimm mailing list
