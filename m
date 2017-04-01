@@ -1,7 +1,7 @@
-From: kjahds-F8si0RIJypfQT0dZR+AlfA@public.gmane.org
-Subject: Returned mail: see transcript for details
-Date: Sat, 1 Apr 2017 06:36:39 +0800
-Message-ID: <20170331223404.D0BB421A04826@ml01.01.org>
+From: "USPS Ground" <umaxopm674601-mJJwbSa/Gn3Jm4kN3eLLxFAUjnlXr6A1@public.gmane.org>
+Subject: Delivery problem, parcel USPS #604658633
+Date: Sat, 01 Apr 2017 03:29:00 +0200
+Message-ID: <FC93FB9D.61FC297E@construmil.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,13 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Sat, 1 Apr 2017 06:36:39 +0800
-from kjahds.com [65.189.118.252]
+Hello,
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+We can not deliver your parcel arrived at  Sat, 01 Apr 2017 03:29:00 +0200.
 
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:kjahds-F8si0RIJypfQT0dZR+AlfA@public.gmane.org
-<<< 501 kjahds-F8si0RIJypemdvSpIQae8A@public.gmane.org Refused
+Postal label is enclosed to this e-mail. Please check the attachment!
+
+All the best.
+Deneen Iliff -  USPS Mail Delivery Clerk.
