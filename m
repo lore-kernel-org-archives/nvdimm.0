@@ -1,7 +1,7 @@
-From: "USPS Delivery" <yxaid18067347-6XyJ2gKd1UFKjGPxOn7K8RxZW9W5cXbT@public.gmane.org>
-Subject: Re:
-Date: Sat, 01 Apr 2017 06:31:34 +0100
-Message-ID: <059A9417.0A3690BD@golfarrangementen.net>
+From: "USPS Parcels Delivery" <yhodgai84860114-qw6QB7/foO7QT0dZR+AlfA@public.gmane.org>
+Subject: Our USPS courier can not contact you parcel # 584320244
+Date: Sat, 01 Apr 2017 14:29:02 -0700
+Message-ID: <36272528.613950F9@talk21.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,9 +19,10 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 Hello,
-Your item has arrived at Sat, 01 Apr 2017 06:31:34 +0100, but our courier
-was not able to deliver the parcel. 
-Review the document that is attached to this e-mail!
 
-Most sincerely.
-Gertruda Hendry -  USPS Mail Delivery Agent.
+Your parcel was successfully delivered at Sat, 01 Apr 2017 14:29:02 -0700
+to USPS Station, but our courier could not contact you. 
+You can download the shipment label attached!
+
+Your help is greatly appreciated.
+Leone Swarthout -  USPS Senior Office Manager.
