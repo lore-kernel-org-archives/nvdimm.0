@@ -1,7 +1,7 @@
-From: "Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Mail System Error - Returned Mail
-Date: Sun, 2 Apr 2017 11:43:06 +0800
-Message-ID: <20170402034028.E5E0F21DFA8F1@ml01.01.org>
+From: "FedEx Express Delivery" <qiiid2031437-+DYenmFsUn8AvxtiuMwx3w@public.gmane.org>
+Subject: Delivery Failed, Express FedEx Parcel #67482635
+Date: Sun, 02 Apr 2017 06:16:56 -0700
+Message-ID: <B021BC0C.30E96451@aaemi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,8 +18,12 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Sun, 2 Apr 2017 11:43:06 +0800
-from lists.01.org [94.214.62.115]
+Hello,
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+We would like to notify you that today was the first attempt to deliver
+your package #556278347.
+
+Please find the shipment label attached.
+
+Thanks for using FedEx.
+Sidonnie Dorsett -  FedEx International Delivery
