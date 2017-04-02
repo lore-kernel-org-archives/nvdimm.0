@@ -1,7 +1,7 @@
-From: "USPS Parcels Delivery" <yhodgai84860114-qw6QB7/foO7QT0dZR+AlfA@public.gmane.org>
-Subject: Our USPS courier can not contact you parcel # 584320244
-Date: Sat, 01 Apr 2017 14:29:02 -0700
-Message-ID: <36272528.613950F9@talk21.com>
+From: "Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Mail System Error - Returned Mail
+Date: Sun, 2 Apr 2017 11:43:06 +0800
+Message-ID: <20170402034028.E5E0F21DFA8F1@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,11 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello,
+The original message was received at Sun, 2 Apr 2017 11:43:06 +0800
+from lists.01.org [94.214.62.115]
 
-Your parcel was successfully delivered at Sat, 01 Apr 2017 14:29:02 -0700
-to USPS Station, but our courier could not contact you. 
-You can download the shipment label attached!
-
-Your help is greatly appreciated.
-Leone Swarthout -  USPS Senior Office Manager.
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
