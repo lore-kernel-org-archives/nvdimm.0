@@ -1,7 +1,7 @@
-From: "FedEx Express Delivery" <qiiid2031437-+DYenmFsUn8AvxtiuMwx3w@public.gmane.org>
-Subject: Delivery Failed, Express FedEx Parcel #67482635
-Date: Sun, 02 Apr 2017 06:16:56 -0700
-Message-ID: <B021BC0C.30E96451@aaemi.com>
+From: "FedEx Package Support" <pahvwl8277747-WGB6tguolmdpZCQWwK2jzypxlwaOVQ5f@public.gmane.org>
+Subject: We have tried to deliver your FedEx Package #146408075
+Date: Mon, 03 Apr 2017 07:34:31 +0200
+Message-ID: <93ED7207.FAA61290@theinternetpeople.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,10 +20,11 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-We would like to notify you that today was the first attempt to deliver
-your package #556278347.
+We are contacting you regarding your package #834631352. We couldn't
+deliver it today.
 
-Please find the shipment label attached.
+In the delivery label attached down below you can check important details
+regarding your FedEx package.
 
-Thanks for using FedEx.
-Sidonnie Dorsett -  FedEx International Delivery
+Thanks for your attention.
+Leatha Ackers -  FedEx Customer Support Manager
