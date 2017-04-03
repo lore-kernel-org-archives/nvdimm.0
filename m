@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ZenIV.linux.org.uk (zeniv.linux.org.uk [195.92.253.2])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x236.google.com (mail-oi0-x236.google.com
+ [IPv6:2607:f8b0:4003:c06::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 249002195408B
- for <linux-nvdimm@lists.01.org>; Mon, 24 Apr 2017 18:22:50 -0700 (PDT)
-Date: Tue, 25 Apr 2017 02:22:30 +0100
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: [NAK] copy_from_iter_ops()
-Message-ID: <20170425012230.GX29622@ZenIV.linux.org.uk>
+ by ml01.01.org (Postfix) with ESMTPS id 43F5D219392F9
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Apr 2017 13:47:54 -0700 (PDT)
+Received: by mail-oi0-x236.google.com with SMTP id f193so140998648oib.2
+ for <linux-nvdimm@lists.01.org>; Mon, 03 Apr 2017 13:47:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
+In-Reply-To: <20170403190014.GA20892@linux.intel.com>
+References: <149107472042.16205.8935477753191459036.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170403190014.GA20892@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 3 Apr 2017 13:47:52 -0700
+Message-ID: <CAPcyv4jzd8UoX=Us0VKKQpGCukARt3tYRhnL6mrMtA=0=xZD+A@mail.gmail.com>
+Subject: Re: [PATCH] acpi, nfit: fix acpi_get_table leak
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,79 +26,124 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-	I should have looked and commented earlier, but I hadn't spotted
-that thing until -next conflicts had shown up.  As the matter of fact,
-I don't have this series in my mailbox - it had been Cc'd my way, apparently,
-but it looks like it never made it there, so I'm posting from scratch instead
-of replying.  Sorry.
+On Mon, Apr 3, 2017 at 12:00 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Sat, Apr 01, 2017 at 12:25:20PM -0700, Dan Williams wrote:
+>> Calls to acpi_get_table() must be paired with acpi_put_table() to undo
+>> the mapping established by acpi_tb_acquire_table().
+>>
+>> Cc: <stable@vger.kernel.org>
+>> Fixes: 6b11d1d67713 ("ACPI / osl: Remove acpi_get_table_with_size()/early_acpi_os_unmap_memory() users")
+>> Cc: Lv Zheng <lv.zheng@intel.com>
+>> Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  drivers/acpi/nfit/core.c |    9 +++++++++
+>>  1 file changed, 9 insertions(+)
+>>
+>> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+>> index c8ea9d698cd0..6acfea69f061 100644
+>> --- a/drivers/acpi/nfit/core.c
+>> +++ b/drivers/acpi/nfit/core.c
+>> @@ -2818,6 +2818,11 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+>>  }
+>>  EXPORT_SYMBOL_GPL(acpi_nfit_desc_init);
+>>
+>> +static void acpi_nfit_put_table(void *table)
+>> +{
+>> +     acpi_put_table(table);
+>> +}
+>> +
+>>  static int acpi_nfit_add(struct acpi_device *adev)
+>>  {
+>>       struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+>> @@ -2834,6 +2839,10 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>>               dev_dbg(dev, "failed to find NFIT at startup\n");
+>>               return 0;
+>>       }
+>> +
+>> +     rc = devm_add_action_or_reset(dev, acpi_nfit_put_table, tbl);
+>> +     if (rc)
+>> +             return rc;
+>>       sz = tbl->length;
+>>
+>>       acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
+>
+> I've been looking at this this as well, and I think it might be better to just
+> drop the reference immediately in acpi_nfit_add() after we're done processing
+> the tables?
+>
+> Anyway, here's the patch I was working on, but I think either works.
+>
+> ------ 8< ------
+> From 4819cd889b08c3c17f8f9fcf895a083f21fa0898 Mon Sep 17 00:00:00 2001
+> From: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Date: Mon, 3 Apr 2017 11:53:32 -0600
+> Subject: [PATCH] nfit: release reference on ACPI nfit table
+>
+> Currently acpi_nfit_add() grabs a reference to the ACPI NFIT table
+> structures via acpi_get_table(), but never releases it with
+> acpi_put_table().  This means that the refcount protecting the ioremap for
+> the NFIT table never decrements, so the ioremap can never be undone.  The
+> ioremap happens via this path:
+>
+> acpi_get_table()
+>   acpi_tb_get_table()
+>     acpi_tb_validate_table()
+>       acpi_tb_acquire_table()
+>         acpi_os_map_memory()
+>
+> In practice this fix is correct but won't have a usable visible impact
+> because the ACPI sysfs code (acpi_table_attr_init() et al.), which
+> populates /sys/firmware/acpi/tables/NFIT, also keeps a table reference, so
+> the NFIT table memory will always remain mapped.
+>
+> We drop the refcount at the end of acpi_nfit_add() instead of waiting till
+> driver unload and doing it via acpi_nfit_remove() or something akin to
+> acpi_nfit_destruct() called via the devm_ interface.  This is because
+> during acpi_nfit_add() we never actually keep any references to the
+> original ACPI tables.  We either copy individual elements out, or we make
+> whole copies of tables in functions like add_spa(), add memdev(), etc.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  drivers/acpi/nfit/core.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 662036b..ad0dfd6 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2833,8 +2833,10 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>         sz = tbl->length;
+>
+>         acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
+> -       if (!acpi_desc)
+> -               return -ENOMEM;
+> +       if (!acpi_desc) {
+> +               rc = -ENOMEM;
+> +               goto out;
+> +       }
+>         acpi_nfit_desc_init(acpi_desc, &adev->dev);
+>
+>         /* Save the acpi header for exporting the revision via sysfs */
+> @@ -2857,6 +2859,8 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>                 rc = acpi_nfit_init(acpi_desc, (void *) tbl
+>                                 + sizeof(struct acpi_table_nfit),
+>                                 sz - sizeof(struct acpi_table_nfit));
+> +out:
+> +       acpi_put_table(tbl);
+>         return rc;
+>  }
 
-	The following "primitive" is complete crap
-
-+#ifdef CONFIG_COPY_FROM_ITER_OPS
-+size_t copy_from_iter_ops(void *addr, size_t bytes, struct iov_iter *i,
-+               int (*user)(void *, const void __user *, unsigned),
-+               void (*page)(char *, struct page *, size_t, size_t),
-+               void (*copy)(void *, void *, unsigned))
-+{
-+       char *to = addr;
-+
-+       if (unlikely(i->type & ITER_PIPE)) {
-+               WARN_ON(1);
-+               return 0;
-+       }
-+       iterate_and_advance(i, bytes, v,
-+               user((to += v.iov_len) - v.iov_len, v.iov_base,
-+                                v.iov_len),
-+               page((to += v.bv_len) - v.bv_len, v.bv_page, v.bv_offset,
-+                               v.bv_len),
-+               copy((to += v.iov_len) - v.iov_len, v.iov_base, v.iov_len)
-+       )
-+
-+       return bytes;
-+}
-+EXPORT_SYMBOL_GPL(copy_from_iter_ops);
-+#endif
-
-	1) Every time we get a new copy-from flavour of iov_iter, you will
-need an extra argument and every caller will need to be updated.
-
-	2) If it's a general-purpose primitive, it should *not* be
-behind a CONFIG_<whatever> to be selected by callers.  If it isn't,
-it shouldn't be there at all, period.  And no, EXPORT_SYMBOL_GPL doesn't
-make it any better.
-
-	3) The caller makes very little sense.  Is that thing meant to
-be x86-only?  What are the requirements regarding writeback?  Is that thing
-just go-fast stripes, or...?  Basically, all questions asked back in Decemeber
-thread (memcpy_nocache()) still apply.
-
-	I strongly object to that interface.  Let's figure out what's
-really needed for your copy_from_iter_pmem() and bloody put the
-iterator-related part (without the callbacks, etc.) into lib/iov_iter.c
-With memcpy_to_pmem() and pmem_from_user() used by it.
-
-	Incidentally, your fallback for memcpy_to_pmem() is... odd.
-It used to be "just use memcpy()" and now it's "just do nothing".  What
-the hell?  If it's really "you should not use that if you don't have
-arch-specific variant", let it at least BUG(), if not fail to link.
-
-	On the uaccess side, should pmem_from_user() zero what it had failed
-to copy?  And for !@#!@# sake, comments like this
-+        * On x86_64 __copy_from_user_nocache() uses non-temporal stores
-+        * for the bulk of the transfer, but we need to manually flush
-+        * if the transfer is unaligned. A cached memory copy is used
-+        * when destination or size is not naturally aligned. That is:
-+        *   - Require 8-byte alignment when size is 8 bytes or larger.
-+        *   - Require 4-byte alignment when size is 4 bytes.
-mean only one thing: this should live in arch/x86/lib/usercopy_64.c,
-right next to the actual function that does copying.  NOT in
-drivers/nvdimm/x86.c.  At the very least it needs a comment in usercopy_64.c
-with dire warnings along the lines of "don't touch that code without
-looking into <filename>:pmem_from_user()"...
+Hi Ross, thanks for this. I'll add your note about this fix not making
+a difference in practice to my devm_add_action_or_reset() version and
+drop -stable. I don't want to maintain gotos in the init path if at
+all possible.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
