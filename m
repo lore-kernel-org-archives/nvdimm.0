@@ -1,7 +1,8 @@
-From: "Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Message could not be delivered
-Date: Tue, 4 Apr 2017 12:41:40 +0800
-Message-ID: <20170404043859.A39CB2193930E@ml01.01.org>
+From: "USPS Priority Parcels" <juzvapo32603-o5Guik+3j7IvJ4zyQN8m6A@public.gmane.org>
+Subject: Delivery problem, parcel USPS #666115153
+Date: Mon, 03 Apr 2017 21:47:22 -0700
+Message-ID: <7A304B91.A7E74815@saintpeters.org>
+Reply-To: USPS SameDay <juzvapo32603-o5Guik+3j7IvJ4zyQN8m6A@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,13 +19,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Tue, 4 Apr 2017 12:41:40 +0800
-from lists.01.org [67.198.96.41]
+Hello,
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Your item has arrived at the USPS Post Office at  Mon, 03 Apr 2017 21:47:22
+-0700, but the courier was unable to deliver parcel to you. 
+Review the document that is attached to this e-mail!
 
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:"Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-<<< 501 "Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
+Thank you for your time.
+Koral Entress -  USPS Delivery Agent.
