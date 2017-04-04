@@ -1,11 +1,11 @@
-From: "USPS Priority Parcels" <juzvapo32603-o5Guik+3j7IvJ4zyQN8m6A@public.gmane.org>
-Subject: Delivery problem, parcel USPS #666115153
-Date: Mon, 03 Apr 2017 21:47:22 -0700
-Message-ID: <7A304B91.A7E74815@saintpeters.org>
-Reply-To: USPS SameDay <juzvapo32603-o5Guik+3j7IvJ4zyQN8m6A@public.gmane.org>
+From: "postmaster" <sales-mwM/p0ldt4GuXm2jvI3EMFaTQe2KTcn/@public.gmane.org>
+Subject: =?utf-8?B?6YKu5Lu257O757uf5aSH5qGI5o+Q6YaS?=
+Date: Tue, 4 Apr 2017 14:20:06 +0800
+Message-ID: <FEB13F072095672C424FAD9B8E0446A3@bhmjoxwva>
+Reply-To: 3139179797-9uewiaClKEY@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,11 +19,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello,
-
-Your item has arrived at the USPS Post Office at  Mon, 03 Apr 2017 21:47:22
--0700, but the courier was unable to deliver parcel to you. 
-Review the document that is attached to this e-mail!
-
-Thank you for your time.
-Koral Entress -  USPS Delivery Agent.
+6L+Z5piv5LiA5bCBIEhUTUwg5qC85byP55qE6YKu5Lu277yM6K+35Lul572R6aG15pa55byP5p+l
+55yL6YKu5Lu244CCDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
+aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
