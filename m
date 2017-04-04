@@ -1,13 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9D3502193930C
- for <linux-nvdimm@lists.01.org>; Sat,  1 Apr 2017 12:33:07 -0700 (PDT)
-Subject: [ndctl PATCH] test: fix kernel version detection in dax-errors.sh
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 01 Apr 2017 12:27:57 -0700
-Message-ID: <149107487750.16325.8238092319248519520.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from lists.01.org (unknown [221.131.113.43])
+ by ml01.01.org (Postfix) with ESMTP id 13D7F2193930D
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Apr 2017 21:38:55 -0700 (PDT)
+From: "Bounced mail" <noreply@lists.01.org>
+Subject: Message could not be delivered
+Date: Tue, 4 Apr 2017 12:41:40 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,47 +17,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Message-Id: <20170404043859.A57812193930F@ml01.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Honor the KVER environment variable for overriding kernel version
-detection.
+The original message was received at Tue, 4 Apr 2017 12:41:40 +0800
+from lists.01.org [67.198.96.41]
 
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/dax-errors.sh |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm@lists.01.org>
 
-diff --git a/test/dax-errors.sh b/test/dax-errors.sh
-index a383b14fcd5e..25615df44180 100755
---- a/test/dax-errors.sh
-+++ b/test/dax-errors.sh
-@@ -23,14 +23,16 @@ err() {
- 	exit $rc
- }
- 
--eval $(uname -r | awk -F. '{print "maj="$1 ";" "min="$2}')
--if [ $maj -lt 4 ]; then
--	echo "kernel $maj.$min lacks dax error handling"
--	exit $rc
--elif [ $maj -eq 4 -a $min -lt 7 ]; then
--	echo "kernel $maj.$min lacks dax error handling"
--	exit $rc
--fi
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+check_min_kver "4.7" || { echo "kernel $KVER may lack dax error handling"; exit $rc; }
- 
- set -e
- mkdir -p $MNT
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:"Bounced mail" <noreply@lists.01.org>
+<<< 501 "Bounced mail" <noreply@lists.01.org>... Refused
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
