@@ -1,8 +1,7 @@
-From: "FedEx Express Support" <r1712352-rQWt/qRB2vXQ4tFLR8X5nw@public.gmane.org>
-Subject: Delivery Problem, Express FedEx Parcel #550271720
-Date: Mon, 03 Apr 2017 02:26:54 -0700
-Message-ID: <8792C71C.6ED2B007@ankaras.com.br>
-Reply-To: FedEx International Express <r1712352-rQWt/qRB2vXQ4tFLR8X5nw@public.gmane.org>
+From: "USPS Parcels Delivery" <sygigiy676-Fdr74k7FO8FWk0Htik3J/w@public.gmane.org>
+Subject: New status of your USPS delivery code: 570651465
+Date: Mon, 03 Apr 2017 18:19:54 -0700
+Message-ID: <38254096.9B5FF635@bikeexif.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,10 +20,8 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-There's a problem with your home address. Our courier was not able to
-locate your address.
+USPS courier was unable to contact you for your parcel delivery. 
+Postal label is enclosed to this e-mail. Please check the attachment!
 
-Please, see more details in the file attached.
-
-We are happy to help you with your delivery.
-Benny Lortz -  FedEx Office Manager
+Yours sincerely.
+Prudence Mcmahen -  USPS Senior Support Manager.
