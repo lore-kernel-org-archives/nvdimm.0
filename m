@@ -1,7 +1,7 @@
-From: "USPS Parcels Delivery" <sygigiy676-Fdr74k7FO8FWk0Htik3J/w@public.gmane.org>
-Subject: New status of your USPS delivery code: 570651465
-Date: Mon, 03 Apr 2017 18:19:54 -0700
-Message-ID: <38254096.9B5FF635@bikeexif.com>
+From: "Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Message could not be delivered
+Date: Tue, 4 Apr 2017 12:41:40 +0800
+Message-ID: <20170404043859.A39CB2193930E@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,10 +18,13 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello,
+The original message was received at Tue, 4 Apr 2017 12:41:40 +0800
+from lists.01.org [67.198.96.41]
 
-USPS courier was unable to contact you for your parcel delivery. 
-Postal label is enclosed to this e-mail. Please check the attachment!
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-Yours sincerely.
-Prudence Mcmahen -  USPS Senior Support Manager.
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:"Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+<<< 501 "Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
