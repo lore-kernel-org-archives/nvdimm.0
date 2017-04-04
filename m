@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
+ [IPv6:2607:f8b0:4003:c06::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A930921939239
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:11 -0700 (PDT)
-Subject: [resend PATCH v2 07/33] brd: add dax_operations support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:09:27 -0700
-Message-ID: <149245616744.10206.871365891826305046.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 90D49219392F8
+ for <linux-nvdimm@lists.01.org>; Tue,  4 Apr 2017 12:14:52 -0700 (PDT)
+Received: by mail-oi0-x233.google.com with SMTP id b187so174897213oif.0
+ for <linux-nvdimm@lists.01.org>; Tue, 04 Apr 2017 12:14:52 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <149132944123.29984.5373689791849935147.stgit@djiang5-desk3.ch.intel.com>
+References: <149132944123.29984.5373689791849935147.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 4 Apr 2017 12:14:50 -0700
+Message-ID: <CAPcyv4jG8OOgDyCiJug-jY3mbpUSkDGyuCacLSZz+Y1uxabA_w@mail.gmail.com>
+Subject: Re: [PATCH v2] device-dax, tools/testing/nvdimm: enable device-dax
+ with mock resources
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,171 +26,221 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Setup a dax_inode to have the same lifetime as the brd block device and
-add a ->direct_access() method that is equivalent to
-brd_direct_access(). Once fs/dax.c has been converted to use
-dax_operations the old brd_direct_access() will be removed.
+On Tue, Apr 4, 2017 at 11:11 AM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Provide a replacement pgoff_to_phys() that translates an nfit_test
+> resource (allocated by vmalloc()) to a pfn.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>
+> Fixed up issue when doing nfit testing with memmap based memory. The function
+> assumed that the address was via vmalloc and not actual physical.
+>
+>
+>  drivers/dax/dax-private.h      |   40 +++++++++++++++++++++++++++++++++++
+>  drivers/dax/dax.c              |   31 +++++----------------------
+>  tools/testing/nvdimm/Kbuild    |    3 ++-
+>  tools/testing/nvdimm/dax-dev.c |   46 ++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 94 insertions(+), 26 deletions(-)
+>  create mode 100644 drivers/dax/dax-private.h
+>  create mode 100644 tools/testing/nvdimm/dax-dev.c
+>
+> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+> new file mode 100644
+> index 0000000..1567ea4
+> --- /dev/null
+> +++ b/drivers/dax/dax-private.h
+> @@ -0,0 +1,40 @@
+> +/*
+> + * Copyright(c) 2016 Intel Corporation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of version 2 of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +#ifndef __DAX_PRIVATE_H__
+> +#define __DAX_PRIVATE_H__
+> +
+> +#include <linux/device.h>
+> +#include <linux/cdev.h>
+> +
+> +/**
+> + * struct dax_dev - subdivision of a dax region
+> + * @region - parent region
+> + * @inode - inode
+> + * @dev - device backing the character device
+> + * @cdev - core chardev data
+> + * @alive - !alive + rcu grace period == no new mappings can be established
+> + * @id - child id in the region
+> + * @num_resources - number of physical address extents in this device
+> + * @res - array of physical address ranges
+> + */
+> +struct dax_dev {
+> +       struct dax_region *region;
+> +       struct inode *inode;
+> +       struct device dev;
+> +       struct cdev cdev;
+> +       bool alive;
+> +       int id;
+> +       int num_resources;
+> +       struct resource res[0];
+> +};
+> +#endif
+> diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+> index 80c6db279..f3087f0 100644
+> --- a/drivers/dax/dax.c
+> +++ b/drivers/dax/dax.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/dax.h>
+>  #include <linux/fs.h>
+>  #include <linux/mm.h>
+> +#include "dax-private.h"
+>  #include "dax.h"
+>
+>  static dev_t dax_devt;
+> @@ -55,27 +56,6 @@ struct dax_region {
+>         unsigned long pfn_flags;
+>  };
+>
+> -/**
+> - * struct dax_dev - subdivision of a dax region
+> - * @region - parent region
+> - * @dev - device backing the character device
+> - * @cdev - core chardev data
+> - * @alive - !alive + rcu grace period == no new mappings can be established
+> - * @id - child id in the region
+> - * @num_resources - number of physical address extents in this device
+> - * @res - array of physical address ranges
+> - */
+> -struct dax_dev {
+> -       struct dax_region *region;
+> -       struct inode *inode;
+> -       struct device dev;
+> -       struct cdev cdev;
+> -       bool alive;
+> -       int id;
+> -       int num_resources;
+> -       struct resource res[0];
+> -};
+> -
+>  static ssize_t id_show(struct device *dev,
+>                 struct device_attribute *attr, char *buf)
+>  {
+> @@ -396,7 +376,8 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
+>         return 0;
+>  }
+>
+> -static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
+> +/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
+> +__weak phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
+>                 unsigned long size)
+>  {
+>         struct resource *res;
+> @@ -441,7 +422,7 @@ static int __dax_dev_pte_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+>         if (fault_size != dax_region->align)
+>                 return VM_FAULT_SIGBUS;
+>
+> -       phys = pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
+> +       phys = dax_pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
+>         if (phys == -1) {
+>                 dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
+>                                 vmf->pgoff);
+> @@ -496,7 +477,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+>                 return VM_FAULT_SIGBUS;
+>
+>         pgoff = linear_page_index(vmf->vma, pmd_addr);
+> -       phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+> +       phys = dax_pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+>         if (phys == -1) {
+>                 dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
+>                                 pgoff);
+> @@ -547,7 +528,7 @@ static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+>                 return VM_FAULT_SIGBUS;
+>
+>         pgoff = linear_page_index(vmf->vma, pud_addr);
+> -       phys = pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
+> +       phys = dax_pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
+>         if (phys == -1) {
+>                 dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
+>                                 pgoff);
+> diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+> index 405212b..6dcb3c4 100644
+> --- a/tools/testing/nvdimm/Kbuild
+> +++ b/tools/testing/nvdimm/Kbuild
+> @@ -28,7 +28,7 @@ obj-$(CONFIG_ND_BTT) += nd_btt.o
+>  obj-$(CONFIG_ND_BLK) += nd_blk.o
+>  obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
+>  obj-$(CONFIG_ACPI_NFIT) += nfit.o
+> -obj-$(CONFIG_DEV_DAX) += dax.o
+> +obj-$(CONFIG_DEV_DAX) += dax.o dax-dev.o
+>  obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+>
+>  nfit-y := $(ACPI_SRC)/core.o
+> @@ -49,6 +49,7 @@ nd_e820-y := $(NVDIMM_SRC)/e820.o
+>  nd_e820-y += config_check.o
+>
+>  dax-y := $(DAX_SRC)/dax.o
+> +dax-y += dax-dev.o
+>  dax-y += config_check.o
+>
+>  dax_pmem-y := $(DAX_SRC)/pmem.o
+> diff --git a/tools/testing/nvdimm/dax-dev.c b/tools/testing/nvdimm/dax-dev.c
+> new file mode 100644
+> index 0000000..895507e
+> --- /dev/null
+> +++ b/tools/testing/nvdimm/dax-dev.c
+> @@ -0,0 +1,46 @@
+> +/*
+> + * Copyright (c) 2016, Intel Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + */
+> +#include "test/nfit_test.h"
+> +#include <linux/mm.h>
+> +#include "../../../drivers/dax/dax-private.h"
+> +
+> +phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
+> +               unsigned long size)
+> +{
+> +       struct resource *res;
+> +       phys_addr_t addr;
+> +       int i;
+> +
+> +       for (i = 0; i < dax_dev->num_resources; i++) {
+> +               res = &dax_dev->res[i];
+> +               addr = pgoff * PAGE_SIZE + res->start;
+> +               if (addr >= res->start && addr <= res->end)
+> +                       break;
+> +               pgoff -= PHYS_PFN(resource_size(res));
+> +       }
+> +
+> +       if (i < dax_dev->num_resources) {
+> +               res = &dax_dev->res[i];
+> +               if (addr + size - 1 <= res->end) {
+> +                       if (get_nfit_res(addr)) {
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/block/Kconfig |    1 +
- drivers/block/brd.c   |   65 +++++++++++++++++++++++++++++++++++++++++--------
- 2 files changed, 55 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
-index f744de7a0f9b..e66956fc2c88 100644
---- a/drivers/block/Kconfig
-+++ b/drivers/block/Kconfig
-@@ -339,6 +339,7 @@ config BLK_DEV_SX8
- 
- config BLK_DEV_RAM
- 	tristate "RAM block device support"
-+	select DAX if BLK_DEV_RAM_DAX
- 	---help---
- 	  Saying Y here will allow you to use a portion of your RAM memory as
- 	  a block device, so that you can make file systems on it, read and
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 3adc32a3153b..60f3193c9ce2 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -21,6 +21,7 @@
- #include <linux/slab.h>
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- #include <linux/pfn_t.h>
-+#include <linux/dax.h>
- #endif
- 
- #include <linux/uaccess.h>
-@@ -41,6 +42,9 @@ struct brd_device {
- 
- 	struct request_queue	*brd_queue;
- 	struct gendisk		*brd_disk;
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+	struct dax_device	*dax_dev;
-+#endif
- 	struct list_head	brd_list;
- 
- 	/*
-@@ -375,30 +379,53 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
- }
- 
- #ifdef CONFIG_BLK_DEV_RAM_DAX
--static long brd_direct_access(struct block_device *bdev, sector_t sector,
--			void **kaddr, pfn_t *pfn, long size)
-+static long __brd_direct_access(struct brd_device *brd, pgoff_t pgoff,
-+		long nr_pages, void **kaddr, pfn_t *pfn)
- {
--	struct brd_device *brd = bdev->bd_disk->private_data;
- 	struct page *page;
- 
- 	if (!brd)
- 		return -ENODEV;
--	page = brd_insert_page(brd, sector);
-+	page = brd_insert_page(brd, PFN_PHYS(pgoff) / 512);
- 	if (!page)
- 		return -ENOSPC;
- 	*kaddr = page_address(page);
- 	*pfn = page_to_pfn_t(page);
- 
--	return PAGE_SIZE;
-+	return 1;
-+}
-+
-+static long brd_blk_direct_access(struct block_device *bdev, sector_t sector,
-+			void **kaddr, pfn_t *pfn, long size)
-+{
-+	struct brd_device *brd = bdev->bd_disk->private_data;
-+	long nr_pages = __brd_direct_access(brd, PHYS_PFN(sector * 512),
-+			PHYS_PFN(size), kaddr, pfn);
-+
-+	if (nr_pages < 0)
-+		return nr_pages;
-+	return nr_pages * PAGE_SIZE;
-+}
-+
-+static long brd_dax_direct_access(struct dax_device *dax_dev,
-+		pgoff_t pgoff, long nr_pages, void **kaddr, pfn_t *pfn)
-+{
-+	struct brd_device *brd = dax_get_private(dax_dev);
-+
-+	return __brd_direct_access(brd, pgoff, nr_pages, kaddr, pfn);
- }
-+
-+static const struct dax_operations brd_dax_ops = {
-+	.direct_access = brd_dax_direct_access,
-+};
- #else
--#define brd_direct_access NULL
-+#define brd_blk_direct_access NULL
- #endif
- 
- static const struct block_device_operations brd_fops = {
- 	.owner =		THIS_MODULE,
- 	.rw_page =		brd_rw_page,
--	.direct_access =	brd_direct_access,
-+	.direct_access =	brd_blk_direct_access,
- };
- 
- /*
-@@ -441,7 +468,9 @@ static struct brd_device *brd_alloc(int i)
- {
- 	struct brd_device *brd;
- 	struct gendisk *disk;
--
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+	struct dax_device *dax_dev;
-+#endif
- 	brd = kzalloc(sizeof(*brd), GFP_KERNEL);
- 	if (!brd)
- 		goto out;
-@@ -469,9 +498,6 @@ static struct brd_device *brd_alloc(int i)
- 	blk_queue_max_discard_sectors(brd->brd_queue, UINT_MAX);
- 	brd->brd_queue->limits.discard_zeroes_data = 1;
- 	queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, brd->brd_queue);
--#ifdef CONFIG_BLK_DEV_RAM_DAX
--	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
--#endif
- 	disk = brd->brd_disk = alloc_disk(max_part);
- 	if (!disk)
- 		goto out_free_queue;
-@@ -484,8 +510,21 @@ static struct brd_device *brd_alloc(int i)
- 	sprintf(disk->disk_name, "ram%d", i);
- 	set_capacity(disk, rd_size * 2);
- 
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
-+	dax_dev = alloc_dax(brd, disk->disk_name, &brd_dax_ops);
-+	if (!dax_dev)
-+		goto out_free_inode;
-+#endif
-+
-+
- 	return brd;
- 
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+out_free_inode:
-+	kill_dax(dax_dev);
-+	put_dax(dax_dev);
-+#endif
- out_free_queue:
- 	blk_cleanup_queue(brd->brd_queue);
- out_free_dev:
-@@ -525,6 +564,10 @@ static struct brd_device *brd_init_one(int i, bool *new)
- static void brd_del_one(struct brd_device *brd)
- {
- 	list_del(&brd->brd_list);
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+	kill_dax(brd->dax_dev);
-+	put_dax(brd->dax_dev);
-+#endif
- 	del_gendisk(brd->brd_disk);
- 	brd_free(brd);
- }
-
+I think we need one more safety check here to fail requests when the
+dax_dev alignment is not 4K.  If get_nfit_res() is true and the
+dax_region alignment is > 4K then we should return -1 to fail the
+mapping attempt.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
