@@ -1,12 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sovet.kz (unknown [113.8.194.3])
- by ml01.01.org (Postfix) with SMTP id 70FA92195407C
- for <linux-nvdimm@lists.01.org>; Sun, 30 Apr 2017 07:34:44 -0700 (PDT)
-Message-ID: <4326B6DE.38A90B94@sovet.kz>
-Date: Sun, 30 Apr 2017 16:33:54 +0200
-From: "FedEx Services" <qukeadmy31150@sovet.kz>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B21B4219392FA
+ for <linux-nvdimm@lists.01.org>; Tue,  4 Apr 2017 14:32:19 -0700 (PDT)
+Subject: [PATCH v2] libnvdimm: fix blk free space accounting
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 04 Apr 2017 14:27:09 -0700
+Message-ID: <149134122950.34285.9937231819628960636.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Subject: Our courier couldn't deliver your package, FedEx Delivery #450184324
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,17 +21,166 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Dariusz Dokupil <dariusz.dokupil@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+Commit a1f3e4d6a0c3 "libnvdimm, region: update nd_region_available_dpa()
+for multi-pmem support" reworked blk dpa (DIMM Physical Address)
+accounting to comprehend multiple pmem namespace allocations aliasing
+with a given blk-dpa range.
 
-Package status notification: our delivery agent was not able to deliver
-your package today.
+The following call trace is a result of failing to account for allocated
+blk capacity.
 
-Please review the notice attached.
+ WARNING: CPU: 1 PID: 2433 at tools/testing/nvdimm/../../../drivers/nvdimm/names
+4 size_store+0x6f3/0x930 [libnvdimm]
+ nd_region region5: allocation underrun: 0x0 of 0x1000000 bytes
+ [..]
+ Call Trace:
+  dump_stack+0x86/0xc3
+  __warn+0xcb/0xf0
+  warn_slowpath_fmt+0x5f/0x80
+  size_store+0x6f3/0x930 [libnvdimm]
+  dev_attr_store+0x18/0x30
 
-Thanks for choosing our services.
-Saudra Stollar -  FedEx Customer Manager
+If a given blk-dpa allocation does not alias with any pmem ranges then
+the full allocation should be accounted as busy space, not the size of
+the current pmem contribution to the region.
+
+The thinkos that led to this confusion was not realizing that the struct
+resource management is already guaranteeing no collisions between pmem
+allocations and blk allocations on the same dimm. Also, we do not try to
+support blk allocations in aliased pmem holes.
+
+Cc: <stable@vger.kernel.org>
+Fixes: a1f3e4d6a0c3 ("libnvdimm, region: update nd_region_available_dpa() for multi-pmem support").
+Reported-by: Dariusz Dokupil <dariusz.dokupil@intel.com>
+Reported-by: Dave Jiang <dave.jiang@intel.com>
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Tested-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/dimm_devs.c |   77 ++++++--------------------------------------
+ 1 file changed, 11 insertions(+), 66 deletions(-)
+
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 0eedc49e0d47..8b721321be5b 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -395,7 +395,7 @@ EXPORT_SYMBOL_GPL(nvdimm_create);
+ 
+ int alias_dpa_busy(struct device *dev, void *data)
+ {
+-	resource_size_t map_end, blk_start, new, busy;
++	resource_size_t map_end, blk_start, new;
+ 	struct blk_alloc_info *info = data;
+ 	struct nd_mapping *nd_mapping;
+ 	struct nd_region *nd_region;
+@@ -436,29 +436,19 @@ int alias_dpa_busy(struct device *dev, void *data)
+  retry:
+ 	/*
+ 	 * Find the free dpa from the end of the last pmem allocation to
+-	 * the end of the interleave-set mapping that is not already
+-	 * covered by a blk allocation.
++	 * the end of the interleave-set mapping.
+ 	 */
+-	busy = 0;
+ 	for_each_dpa_resource(ndd, res) {
++		if (strncmp(res->name, "pmem", 4) != 0)
++			continue;
+ 		if ((res->start >= blk_start && res->start < map_end)
+ 				|| (res->end >= blk_start
+ 					&& res->end <= map_end)) {
+-			if (strncmp(res->name, "pmem", 4) == 0) {
+-				new = max(blk_start, min(map_end + 1,
+-							res->end + 1));
+-				if (new != blk_start) {
+-					blk_start = new;
+-					goto retry;
+-				}
+-			} else
+-				busy += min(map_end, res->end)
+-					- max(nd_mapping->start, res->start) + 1;
+-		} else if (nd_mapping->start > res->start
+-				&& map_end < res->end) {
+-			/* total eclipse of the PMEM region mapping */
+-			busy += nd_mapping->size;
+-			break;
++			new = max(blk_start, min(map_end + 1, res->end + 1));
++			if (new != blk_start) {
++				blk_start = new;
++				goto retry;
++			}
+ 		}
+ 	}
+ 
+@@ -470,52 +460,11 @@ int alias_dpa_busy(struct device *dev, void *data)
+ 		return 1;
+ 	}
+ 
+-	info->available -= blk_start - nd_mapping->start + busy;
++	info->available -= blk_start - nd_mapping->start;
+ 
+ 	return 0;
+ }
+ 
+-static int blk_dpa_busy(struct device *dev, void *data)
+-{
+-	struct blk_alloc_info *info = data;
+-	struct nd_mapping *nd_mapping;
+-	struct nd_region *nd_region;
+-	resource_size_t map_end;
+-	int i;
+-
+-	if (!is_nd_pmem(dev))
+-		return 0;
+-
+-	nd_region = to_nd_region(dev);
+-	for (i = 0; i < nd_region->ndr_mappings; i++) {
+-		nd_mapping  = &nd_region->mapping[i];
+-		if (nd_mapping->nvdimm == info->nd_mapping->nvdimm)
+-			break;
+-	}
+-
+-	if (i >= nd_region->ndr_mappings)
+-		return 0;
+-
+-	map_end = nd_mapping->start + nd_mapping->size - 1;
+-	if (info->res->start >= nd_mapping->start
+-			&& info->res->start < map_end) {
+-		if (info->res->end <= map_end) {
+-			info->busy = 0;
+-			return 1;
+-		} else {
+-			info->busy -= info->res->end - map_end;
+-			return 0;
+-		}
+-	} else if (info->res->end >= nd_mapping->start
+-			&& info->res->end <= map_end) {
+-		info->busy -= nd_mapping->start - info->res->start;
+-		return 0;
+-	} else {
+-		info->busy -= nd_mapping->size;
+-		return 0;
+-	}
+-}
+-
+ /**
+  * nd_blk_available_dpa - account the unused dpa of BLK region
+  * @nd_mapping: container of dpa-resource-root + labels
+@@ -545,11 +494,7 @@ resource_size_t nd_blk_available_dpa(struct nd_region *nd_region)
+ 	for_each_dpa_resource(ndd, res) {
+ 		if (strncmp(res->name, "blk", 3) != 0)
+ 			continue;
+-
+-		info.res = res;
+-		info.busy = resource_size(res);
+-		device_for_each_child(&nvdimm_bus->dev, &info, blk_dpa_busy);
+-		info.available -= info.busy;
++		info.available -= resource_size(res);
+ 	}
+ 
+ 	return info.available;
 
 _______________________________________________
 Linux-nvdimm mailing list
