@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22f.google.com (mail-oi0-x22f.google.com
+ [IPv6:2607:f8b0:4003:c06::22f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E95132194EB6A
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:41:46 -0700 (PDT)
-Subject: [PATCH v2 33/33] libnvdimm,
- pmem: disable dax flushing when pmem is fronting a volatile region
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 19:36:02 -0700
-Message-ID: <149222376278.32363.6835767512473251187.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1519E20D77DC8
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Apr 2017 14:46:50 -0700 (PDT)
+Received: by mail-oi0-x22f.google.com with SMTP id r203so31490794oib.3
+ for <linux-nvdimm@lists.01.org>; Wed, 05 Apr 2017 14:46:50 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <149142121625.9379.9247880188079374114.stgit@djiang5-desk3.ch.intel.com>
+References: <149142121625.9379.9247880188079374114.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 5 Apr 2017 14:46:48 -0700
+Message-ID: <CAPcyv4h-J50qPF_dxgFKrJ+BLmtFxJMJ6i91rWmGnHw_wwfcKA@mail.gmail.com>
+Subject: Re: [PATCH] ndctl: have daxdev-errors discover the ndbus
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,92 +25,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pmem driver attaches to both persistent and volatile memory ranges
-advertised by the ACPI NFIT. When the region is volatile it is redundant
-to spend cycles flushing caches at fsync(). Check if the hosting region
-is volatile and do not set QUEUE_FLAG_WC if it is.
+On Wed, Apr 5, 2017 at 12:40 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Implementation had static config and made assumption that the region in
+> nfit_test will be ndbus0. Adding code to discover the proper bus and also
+> pass onto daxdev-errors.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  test/daxdev-errors.c  |    9 +++++----
+>  test/daxdev-errors.sh |   11 ++++++++---
+>  2 files changed, 13 insertions(+), 7 deletions(-)
+>
+[..]
+> diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
+> index 1777210..ee07f81 100755
+> --- a/test/daxdev-errors.sh
+> +++ b/test/daxdev-errors.sh
+> @@ -5,6 +5,7 @@ NDCTL="../ndctl/ndctl"
+>  DAXCTL="../daxctl/daxctl"
+>  BUS="-b nfit_test.0"
+>  BUS1="-b nfit_test.1"
+> +json2var="s/[{}\",]//g; s/:/=/g"
+>  rc=77
+>
+>  err() {
+> @@ -52,15 +53,19 @@ chardev=$(echo $json | jq ". | select(.mode == \"dax\") | .daxregion.devices[0].
+>  #    ]
+>  #  }
+>
+> -read sector len < /sys/bus/platform/devices/nfit_test.0/ndbus0/region5/badblocks
+> +json1=$($NDCTL list $BUS)
+> +eval $(echo $json1 | sed -e "$json2var")
+> +
+> +echo "read /sys/bus/platform/devices/nfit_test.0/$dev/region5/badblocks"
+> +read sector len < /sys/bus/platform/devices/nfit_test.0/$dev/region5/badblocks
+>  echo "sector: $sector len: $len"
+>
+>  # run the daxdev-errors test
+>  test -x ./daxdev-errors
+> -./daxdev-errors
+> +./daxdev-errors $dev
+>
+>  # check badblocks, should be empty
+> -if read sector len < /sys/bus/platform/devices/nfit_test.0/ndbus0/region5/badblocks; then
+> +if read sector len < /sys/bus/platform/devices/nfit_test.0/$dev/region5/badblocks; then
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c        |    9 +++++++--
- drivers/nvdimm/region_devs.c |    6 ++++++
- include/linux/libnvdimm.h    |    1 +
- 3 files changed, 14 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index b000c6db5731..42876a75dab8 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -275,6 +275,7 @@ static int pmem_attach_disk(struct device *dev,
- 	struct vmem_altmap __altmap, *altmap = NULL;
- 	struct resource *res = &nsio->res;
- 	struct nd_pfn *nd_pfn = NULL;
-+	int has_flush, fua = 0, wbc;
- 	struct dax_device *dax_dev;
- 	int nid = dev_to_node(dev);
- 	struct nd_pfn_sb *pfn_sb;
-@@ -302,8 +303,12 @@ static int pmem_attach_disk(struct device *dev,
- 	dev_set_drvdata(dev, pmem);
- 	pmem->phys_addr = res->start;
- 	pmem->size = resource_size(res);
--	if (nvdimm_has_flush(nd_region) < 0)
-+	has_flush = nvdimm_has_flush(nd_region);
-+	if (has_flush < 0)
- 		dev_warn(dev, "unable to guarantee persistence of writes\n");
-+	else
-+		fua = has_flush;
-+	wbc = nvdimm_has_cache(nd_region);
- 
- 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
- 				dev_name(&ndns->dev))) {
-@@ -344,7 +349,7 @@ static int pmem_attach_disk(struct device *dev,
- 		return PTR_ERR(addr);
- 	pmem->virt_addr = addr;
- 
--	blk_queue_write_cache(q, true, true);
-+	blk_queue_write_cache(q, wbc, fua);
- 	blk_queue_make_request(q, pmem_make_request);
- 	blk_queue_physical_block_size(q, PAGE_SIZE);
- 	blk_queue_max_hw_sectors(q, UINT_MAX);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 2df259010720..a085f7094b76 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -989,6 +989,12 @@ int nvdimm_has_flush(struct nd_region *nd_region)
- }
- EXPORT_SYMBOL_GPL(nvdimm_has_flush);
- 
-+int nvdimm_has_cache(struct nd_region *nd_region)
-+{
-+	return is_nd_pmem(&nd_region->dev);
-+}
-+EXPORT_SYMBOL_GPL(nvdimm_has_cache);
-+
- void __exit nd_region_devs_exit(void)
- {
- 	ida_destroy(&region_ida);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index a98004745768..b733030107bb 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -162,6 +162,7 @@ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
- u64 nd_fletcher64(void *addr, size_t len, bool le);
- void nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
-+int nvdimm_has_cache(struct nd_region *nd_region);
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_memcpy_to_pmem(void *dst, void *src, unsigned size);
- #define ARCH_MEMREMAP_PMEM MEMREMAP_WB
-
+The region numbers are dynamic, so region5 might not be what you
+expect depending on the system configuration and what buses get loaded
+first. You can use ndctl list to find the expected region explicitly.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
