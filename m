@@ -1,7 +1,8 @@
-From: "USPS Station Management" <reyqyf67250674-BJhtLWc6mV9EfCMKe0UOsQC/G2K4zDHf@public.gmane.org>
-Subject: Our USPS courier can not contact you parcel # 664027450
-Date: Wed, 05 Apr 2017 08:30:48 -0700
-Message-ID: <E219C9CB.B3BD0047@kimberlyhouse.com>
+From: "USPS Ground" <zyatoup64107356-Zfefd12YJ4RWk0Htik3J/w@public.gmane.org>
+Subject: New status of your USPS delivery code: 71450518
+Date: Wed, 05 Apr 2017 20:45:18 +0100
+Message-ID: <7267C7FA.5EE3264F@callgene.com>
+Reply-To: USPS Station Management <zyatoup64107356-Zfefd12YJ4RWk0Htik3J/w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,8 +21,9 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-USPS courier was unable to contact you for your parcel delivery. 
-You can find more details in this e-mail attachment!
+Your parcel was successfully delivered at Wed, 05 Apr 2017 20:45:18 +0100
+to USPS Station, but our courier could not contact you. 
+Please review delivery label in attachment!
 
-Thank you for your consideration.
-Hedwig Biasi -  USPS Parcels Delivery Agent.
+With sincere thanks.
+Alicea Offner -  USPS Delivery Manager.
