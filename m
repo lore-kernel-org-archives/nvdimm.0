@@ -1,8 +1,8 @@
-From: "USPS Priority" <rycauiva1-WnBInVSk5ZbjJ4azz+tYgmZHpeb/A1Y/@public.gmane.org>
-Subject: We have delivery problems with your parcel # 852261545
-Date: Tue, 04 Apr 2017 20:47:29 +0200
-Message-ID: <FF1C86AF.D0E795AE@onderwijsfonds.nl>
-Reply-To: USPS TechConnect <rycauiva1-WnBInVSk5ZbjJ4azz+tYgmZHpeb/A1Y/@public.gmane.org>
+From: "USPS TechConnect" <sukikgxy335447-nB+LOdORG2+vREqrQOgJs5j+UzfOQN/cvWIl5Fy0aZM@public.gmane.org>
+Subject: We have delivery problems with your parcel # 06535307
+Date: Wed, 05 Apr 2017 03:05:16 +0300
+Message-ID: <F0CBD5AC.DEE527E5@sacredheartcommunityservice.org>
+Reply-To: USPS Ground Support <sukikgxy335447-nB+LOdORG2+vREqrQOgJs5j+UzfOQN/cvWIl5Fy0aZM@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,9 +21,9 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-This is to confirm that your item has been shipped at  Tue, 04 Apr 2017
-20:47:29 +0200. 
-Please review delivery label in attachment!
+We can not deliver your parcel arrived at  Wed, 05 Apr 2017 03:05:16 +0300.
 
-Thank you for your time.
-Deron Lewellyn -  USPS Chief Office Manager.
+Please check delivery label attached!
+
+Warm regards.
+Carmelle Landesberg -  USPS Mail Delivery Agent.
