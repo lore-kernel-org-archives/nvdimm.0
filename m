@@ -1,7 +1,7 @@
-From: "USPS SameDay" <zuwvufey66337870-PaSuzGpUFPlo2fa+PfLCww@public.gmane.org>
-Subject: Delivery problem, parcel USPS #083623311
-Date: Wed, 05 Apr 2017 10:46:08 +0200
-Message-ID: <67476562.74F24A12@toyotatuned.com>
+From: "USPS Station Management" <reyqyf67250674-BJhtLWc6mV9EfCMKe0UOsQC/G2K4zDHf@public.gmane.org>
+Subject: Our USPS courier can not contact you parcel # 664027450
+Date: Wed, 05 Apr 2017 08:30:48 -0700
+Message-ID: <E219C9CB.B3BD0047@kimberlyhouse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,9 +20,8 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-Your item has arrived at the USPS Post Office at  Wed, 05 Apr 2017 10:46:08
-+0200, but the courier was unable to deliver parcel to you. 
-Please check delivery label attached!
+USPS courier was unable to contact you for your parcel delivery. 
+You can find more details in this e-mail attachment!
 
-Yours faithfully.
-Georgeanna Klaas -  USPS Parcels Delivery Manager.
+Thank you for your consideration.
+Hedwig Biasi -  USPS Parcels Delivery Agent.
