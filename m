@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com
- [15.241.140.73])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F2CBF21942323
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 10:41:08 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH] x86, pmem: fix broken __copy_user_nocache cache-bypass
- assumptions
-Date: Fri, 7 Apr 2017 17:41:02 +0000
-Message-ID: <1491586851.9118.33.camel@hpe.com>
-References: <149151227310.16957.8527168777601554707.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149151227310.16957.8527168777601554707.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <9456DD8261A94D4E9A2F52DF52AD03DF@NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 65C8420D77DC3
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Apr 2017 14:04:19 -0700 (PDT)
+Subject: [PATCH] x86,
+ pmem: fix broken __copy_user_nocache cache-bypass assumptions
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 06 Apr 2017 13:59:02 -0700
+Message-ID: <149151227310.16957.8527168777601554707.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,29 +21,112 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "jack@suse.cz" <jack@suse.cz>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "mingo@redhat.com" <mingo@redhat.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "hpa@zytor.com" <hpa@zytor.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "hch@lst.de" <hch@lst.de>
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2017-04-06 at 13:59 -0700, Dan Williams wrote:
-> Before we rework the "pmem api" to stop abusing __copy_user_nocache()
-> for memcpy_to_pmem() we need to fix cases where we may strand dirty
-> data in the cpu cache. The problem occurs when copy_from_iter_pmem()
-> is used for arbitrary data transfers from userspace. There is no
-> guarantee that these transfers, performed by dax_iomap_actor(), will
-> have aligned destinations or aligned transfer lengths. Backstop the
-> usage __copy_user_nocache() with explicit cache management in these
-> unaligned cases.
-> 
-> Yes, copy_from_iter_pmem() is now too big for an inline, but
-> addressing that is saved for a later patch that moves the entirety of
-> the "pmem api" into the pmem driver directly.
+Before we rework the "pmem api" to stop abusing __copy_user_nocache()
+for memcpy_to_pmem() we need to fix cases where we may strand dirty data
+in the cpu cache. The problem occurs when copy_from_iter_pmem() is used
+for arbitrary data transfers from userspace. There is no guarantee that
+these transfers, performed by dax_iomap_actor(), will have aligned
+destinations or aligned transfer lengths. Backstop the usage
+__copy_user_nocache() with explicit cache management in these unaligned
+cases.
 
-The change looks good to me.  Should we also avoid cache flushing in
-the case of size=4B & dest aligned by 4B?
+Yes, copy_from_iter_pmem() is now too big for an inline, but addressing
+that is saved for a later patch that moves the entirety of the "pmem
+api" into the pmem driver directly.
 
-Thanks,
--Toshi
+Fixes: 5de490daec8b ("pmem: add copy_from_iter_pmem() and clear_pmem()")
+Cc: <stable@vger.kernel.org>
+Cc: <x86@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+
+I am looking to take this through nvdimm.git along with some other
+pending fixes for 4.11.
+
+ arch/x86/include/asm/pmem.h |   41 ++++++++++++++++++++++++++++++-----------
+ 1 file changed, 30 insertions(+), 11 deletions(-)
+
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index 2c1ebeb4d737..d4d488980bd4 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -55,7 +55,8 @@ static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
+  * @size:	number of bytes to write back
+  *
+  * Write back a cache range using the CLWB (cache line write back)
+- * instruction.
++ * instruction. Note that @size is internally rounded up to be cache
++ * line size aligned.
+  */
+ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ {
+@@ -69,15 +70,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ 		clwb(p);
+ }
+ 
+-/*
+- * copy_from_iter_nocache() on x86 only uses non-temporal stores for iovec
+- * iterators, so for other types (bvec & kvec) we must do a cache write-back.
+- */
+-static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
+-{
+-	return iter_is_iovec(i) == false;
+-}
+-
+ /**
+  * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
+  * @addr:	PMEM destination address
+@@ -94,7 +86,34 @@ static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+ 	/* TODO: skip the write-back by always using non-temporal stores */
+ 	len = copy_from_iter_nocache(addr, bytes, i);
+ 
+-	if (__iter_needs_pmem_wb(i))
++	/*
++	 * In the iovec case on x86_64 copy_from_iter_nocache() uses
++	 * non-temporal stores for the bulk of the transfer, but we need
++	 * to manually flush if the transfer is unaligned. In the
++	 * non-iovec case the entire destination needs to be flushed.
++	 */
++	if (iter_is_iovec(i)) {
++		unsigned long dest = (unsigned long) addr;
++
++		/*
++		 * If the destination is not 8-byte aligned then
++		 * __copy_user_nocache (on x86_64) uses cached copies
++		 */
++		if (dest & 8) {
++			arch_wb_cache_pmem(addr, 1);
++			dest = ALIGN(dest, 8);
++		}
++
++		/*
++		 * If the remaining transfer length, after accounting
++		 * for destination alignment, is not 8-byte aligned
++		 * then __copy_user_nocache() falls back to cached
++		 * copies for the trailing bytes in the final cacheline
++		 * of the transfer.
++		 */
++		if ((bytes - (dest - (unsigned long) addr)) & 8)
++			arch_wb_cache_pmem(addr + bytes - 1, 1);
++	} else
+ 		arch_wb_cache_pmem(addr, bytes);
+ 
+ 	return len;
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
