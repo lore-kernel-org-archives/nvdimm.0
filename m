@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0719121A0480F
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 15:33:32 -0700 (PDT)
-Subject: [PATCH v6 3/4] libnvdimm: add support for clear poison list and
+ by ml01.01.org (Postfix) with ESMTPS id 0D3FB21A0480F
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 15:07:55 -0700 (PDT)
+Subject: [PATCH v5 3/4] libnvdimm: add support for clear poison list and
  badblocks for device dax
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 07 Apr 2017 15:33:31 -0700
-Message-ID: <149160441134.52935.6717319508825616605.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <149160440045.52935.12075328472007815165.stgit@djiang5-desk3.ch.intel.com>
-References: <149160440045.52935.12075328472007815165.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 07 Apr 2017 15:07:54 -0700
+Message-ID: <149160287433.35898.11185611077109003916.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <149160286313.35898.16564013661054174450.stgit@djiang5-desk3.ch.intel.com>
+References: <149160286313.35898.16564013661054174450.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -37,14 +37,14 @@ only be done via the ioctl+dsm path.
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- drivers/nvdimm/bus.c      |   82 ++++++++++++++++++++++++++++++++++++++++-----
- drivers/nvdimm/core.c     |   17 +++++++--
+ drivers/nvdimm/bus.c      |   78 +++++++++++++++++++++++++++++++++++++++++----
+ drivers/nvdimm/core.c     |   17 ++++++++--
  drivers/nvdimm/region.c   |   25 ++++++++++++++
  include/linux/libnvdimm.h |    7 +++-
- 4 files changed, 117 insertions(+), 14 deletions(-)
+ 4 files changed, 115 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 351bac8..2ae7658 100644
+index 351bac8..af64e9c 100644
 --- a/drivers/nvdimm/bus.c
 +++ b/drivers/nvdimm/bus.c
 @@ -27,6 +27,7 @@
@@ -146,15 +146,6 @@ index 351bac8..2ae7658 100644
  
  	if (!nvdimm || cmd != ND_CMD_SET_CONFIG_DATA)
  		return 0;
-@@ -820,7 +868,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	const char *cmd_name, *dimm_name;
- 	unsigned long cmd_mask;
- 	void *buf;
--	int rc, i;
-+	int rc, i, cmd_rc;
- 
- 	if (nvdimm) {
- 		desc = nd_cmd_dimm_desc(cmd);
 @@ -927,13 +975,29 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
  	}
  
@@ -164,12 +155,11 @@ index 351bac8..2ae7658 100644
  	if (rc)
  		goto out_unlock;
  
--	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, NULL);
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, &cmd_rc);
+ 	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, NULL);
  	if (rc < 0)
  		goto out_unlock;
 +
-+	if (!nvdimm && cmd == ND_CMD_CLEAR_ERROR && cmd_rc >= 0) {
++	if (cmd == ND_CMD_CLEAR_ERROR) {
 +		struct nd_cmd_clear_error *clear_err = buf;
 +		struct resource res;
 +
