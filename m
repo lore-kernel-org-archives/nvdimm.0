@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B2ED221939248
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:11 -0700 (PDT)
-Subject: [resend PATCH v2 18/33] x86, dax,
- pmem: remove indirection around memcpy_from_pmem()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:10:27 -0700
-Message-ID: <149245622727.10206.9207175325089032123.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 386D42194235C
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 16:19:42 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 6/6] ndctl, test: Add a unit test for the BTT checker
+Date: Fri,  7 Apr 2017 17:18:03 -0600
+Message-Id: <20170407231803.14936-7-vishal.l.verma@intel.com>
+In-Reply-To: <20170407231803.14936-1-vishal.l.verma@intel.com>
+References: <20170407231803.14936-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,172 +17,222 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Tony Luck <tony.luck@intel.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-memcpy_from_pmem() maps directly to memcpy_mcsafe(). The wrapper
-serves no real benefit aside from affording a more generic function name
-than the x86-specific 'mcsafe'. However this would not be the first time
-that x86 terminology leaked into the global namespace. For lack of
-better name, just use memcpy_mcsafe() directly.
+Add a new unit test that will set up BTTs, corrupt them in known ways,
+and test that the checker is able to detect or repair the corruption in
+the expected way.
 
-This conversion also catches a place where we should have been using
-plain memcpy, acpi_nfit_blk_single_io().
-
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h      |    5 -----
- arch/x86/include/asm/string_64.h |    1 +
- drivers/acpi/nfit/core.c         |    3 +--
- drivers/nvdimm/claim.c           |    2 +-
- drivers/nvdimm/pmem.c            |    2 +-
- include/linux/pmem.h             |   23 -----------------------
- include/linux/string.h           |    8 ++++++++
- 7 files changed, 12 insertions(+), 32 deletions(-)
+ test/Makefile.am  |   3 +-
+ test/btt-check.sh | 172 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 174 insertions(+), 1 deletion(-)
+ create mode 100755 test/btt-check.sh
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 529bb4a6487a..d5a22bac9988 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -44,11 +44,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 		BUG();
- }
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 24afcea..b09d2dd 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -9,7 +9,8 @@ TESTS =\
+ 	create.sh \
+ 	clear.sh \
+ 	dax-errors.sh \
+-	daxdev-errors.sh
++	daxdev-errors.sh \
++	btt-check.sh
  
--static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
--{
--	return memcpy_mcsafe(dst, src, n);
--}
--
- /**
-  * arch_wb_cache_pmem - write back a cache range with CLWB
-  * @vaddr:	virtual start address
-diff --git a/arch/x86/include/asm/string_64.h b/arch/x86/include/asm/string_64.h
-index a164862d77e3..733bae07fb29 100644
---- a/arch/x86/include/asm/string_64.h
-+++ b/arch/x86/include/asm/string_64.h
-@@ -79,6 +79,7 @@ int strcmp(const char *cs, const char *ct);
- #define memset(s, c, n) __memset(s, c, n)
- #endif
- 
-+#define __HAVE_ARCH_MEMCPY_MCSAFE 1
- __must_check int memcpy_mcsafe_unrolled(void *dst, const void *src, size_t cnt);
- DECLARE_STATIC_KEY_FALSE(mcsafe_key);
- 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index c8ea9d698cd0..d0c07b2344e4 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1783,8 +1783,7 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
- 				mmio_flush_range((void __force *)
- 					mmio->addr.aperture + offset, c);
- 
--			memcpy_from_pmem(iobuf + copied,
--					mmio->addr.aperture + offset, c);
-+			memcpy(iobuf + copied, mmio->addr.aperture + offset, c);
- 		}
- 
- 		copied += c;
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index ca6d572c48fc..3a35e8028b9c 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -239,7 +239,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	if (rw == READ) {
- 		if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
- 			return -EIO;
--		return memcpy_from_pmem(buf, nsio->addr + offset, size);
-+		return memcpy_mcsafe(buf, nsio->addr + offset, size);
- 	}
- 
- 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 85b85633d674..3b3dab73d741 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -89,7 +89,7 @@ static int read_pmem(struct page *page, unsigned int off,
- 	int rc;
- 	void *mem = kmap_atomic(page);
- 
--	rc = memcpy_from_pmem(mem + off, pmem_addr, len);
-+	rc = memcpy_mcsafe(mem + off, pmem_addr, len);
- 	kunmap_atomic(mem);
- 	if (rc)
- 		return -EIO;
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index e856c2cb0fe8..71ecf3d46aac 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -31,12 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 	BUG();
- }
- 
--static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
--{
--	BUG();
--	return -EFAULT;
--}
--
- static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
- 		struct iov_iter *i)
- {
-@@ -65,23 +59,6 @@ static inline bool arch_has_pmem_api(void)
- 	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API);
- }
- 
--/*
-- * memcpy_from_pmem - read from persistent memory with error handling
-- * @dst: destination buffer
-- * @src: source buffer
-- * @size: transfer length
-- *
-- * Returns 0 on success negative error code on failure.
-- */
--static inline int memcpy_from_pmem(void *dst, void const *src, size_t size)
--{
--	if (arch_has_pmem_api())
--		return arch_memcpy_from_pmem(dst, src, size);
--	else
--		memcpy(dst, src, size);
--	return 0;
--}
--
- /**
-  * memcpy_to_pmem - copy data to persistent memory
-  * @dst: destination buffer for the copy
-diff --git a/include/linux/string.h b/include/linux/string.h
-index 26b6f6a66f83..9d6f189157e2 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -114,6 +114,14 @@ extern int memcmp(const void *,const void *,__kernel_size_t);
- #ifndef __HAVE_ARCH_MEMCHR
- extern void * memchr(const void *,int,__kernel_size_t);
- #endif
-+#ifndef __HAVE_ARCH_MEMCPY_MCSAFE
-+static inline __must_check int memcpy_mcsafe(void *dst, const void *src,
-+		size_t cnt)
+ check_PROGRAMS =\
+ 	libndctl \
+diff --git a/test/btt-check.sh b/test/btt-check.sh
+new file mode 100755
+index 0000000..11821d2
+--- /dev/null
++++ b/test/btt-check.sh
+@@ -0,0 +1,172 @@
++#!/bin/bash -E
++
++[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] && ndctl="../ndctl/ndctl"
++[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
++[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
++bus="nfit_test.0"
++json2var="s/[{}\",]//g; s/:/=/g"
++dev=""
++mode=""
++size=""
++sector_size=""
++blockdev=""
++bs=4096
++rc=77
++
++trap 'err $LINENO' ERR
++
++# sample json:
++# {
++#   "dev":"namespace5.0",
++#   "mode":"sector",
++#   "size":32440320,
++#   "uuid":"51805176-e124-4635-ae17-0e6a4a16671a",
++#   "sector_size":4096,
++#   "blockdev":"pmem5s"
++# }
++
++# $1: Line number
++# $2: exit code
++err()
 +{
-+	memcpy(dst, src, cnt);
-+	return 0;
++	[ -n "$2" ] && rc="$2"
++	echo "test/btt-check: failed at line $1"
++	exit "$rc"
 +}
-+#endif
- void *memchr_inv(const void *s, int c, size_t n);
- char *strreplace(char *s, char old, char new);
- 
++
++create()
++{
++	json=$($ndctl create-namespace -b "$bus" -t pmem -m sector)
++	eval "$(echo "$json" | sed -e "$json2var")"
++	[ -n "$dev" ] || err "$LINENO" 2
++	[ "$mode" = "sector" ] || err "$LINENO" 2
++	[ -n "$size" ] || err "$LINENO" 2
++	[ -n "$sector_size" ] || err "$LINENO" 2
++	[ -n "$blockdev" ] || err "$LINENO" 2
++	[ $size -gt 0 ] || err "$LINENO" 2
++}
++
++reset()
++{
++	$ndctl disable-region -b "$bus" all
++	$ndctl zero-labels -b "$bus" all
++	$ndctl enable-region -b "$bus" all
++}
++
++# re-enable the BTT namespace, and do IO to it in an attempt to
++# verify it still comes up ok, and functions as expected
++post_repair_test()
++{
++	echo "${FUNCNAME[0]}: I/O to BTT namespace"
++	test -b /dev/$blockdev
++	dd if=/dev/urandom of=test-bin bs=$sector_size count=$((size/sector_size)) > /dev/null 2>&1
++	dd if=test-bin of=/dev/$blockdev bs=$sector_size count=$((size/sector_size)) > /dev/null 2>&1
++	dd if=/dev/$blockdev of=test-bin-read bs=$sector_size count=$((size/sector_size)) > /dev/null 2>&1
++	diff test-bin test-bin-read
++	rm -f test-bin*
++	echo "done"
++}
++
++test_normal()
++{
++	echo "=== ${FUNCNAME[0]} ==="
++	# disable the namespace
++	$ndctl disable-namespace $dev
++	$ndctl check-namespace $dev
++	$ndctl enable-namespace $dev
++	post_repair_test
++}
++
++test_force()
++{
++	echo "=== ${FUNCNAME[0]} ==="
++	$ndctl check-namespace --force $dev
++	post_repair_test
++}
++
++set_raw()
++{
++	$ndctl disable-namespace $dev
++	echo -n "set raw_mode: "
++	echo 1 | tee /sys/bus/nd/devices/$dev/force_raw
++	$ndctl enable-namespace $dev
++	raw_bdev="${blockdev%%s}"
++	test -b /dev/$raw_bdev
++	raw_size="$(cat /sys/bus/nd/devices/$dev/size)"
++}
++
++unset_raw()
++{
++	$ndctl disable-namespace $dev
++	echo -n "set raw_mode: "
++	echo 0 | tee /sys/bus/nd/devices/$dev/force_raw
++	$ndctl enable-namespace $dev
++	raw_bdev=""
++}
++
++test_bad_info2()
++{
++	echo "=== ${FUNCNAME[0]} ==="
++	set_raw
++	seek="$((raw_size/bs - 1))"
++	echo "wiping info2 block (offset = $seek blocks)"
++	dd if=/dev/zero of=/dev/$raw_bdev bs=$bs count=1 seek=$seek
++	unset_raw
++	$ndctl disable-namespace $dev
++	$ndctl check-namespace $dev 2>&1 | grep "info2 needs to be restored"
++	$ndctl check-namespace --repair $dev
++	$ndctl enable-namespace $dev
++	post_repair_test
++}
++
++test_bad_info()
++{
++	echo "=== ${FUNCNAME[0]} ==="
++	set_raw
++	echo "wiping info block"
++	dd if=/dev/zero of=/dev/$raw_bdev bs=$bs count=1 seek=1
++	unset_raw
++	$ndctl disable-namespace $dev
++	$ndctl check-namespace $dev 2>&1 | grep "info block at offset 0x1000 needs to be restored"
++	$ndctl check-namespace --repair $dev
++	$ndctl enable-namespace $dev
++	post_repair_test
++}
++
++test_bitmap()
++{
++	echo "=== ${FUNCNAME[0]} ==="
++	reset && create
++	set_raw
++	# scribble over the last 4K of the map
++	rm -f /tmp/scribble
++	for (( i=0 ; i<512 ; i++ )); do
++		echo -n -e \\x1e\\x1e\\x00\\xc0\\x1e\\x1e\\x00\\xc0 >> /tmp/scribble
++	done
++	seek="$((raw_size/bs - (256*64/bs) - 2))"
++	echo "scribbling over map entries (offset = $seek blocks)"
++	dd if=/tmp/scribble of=/dev/$raw_bdev bs=$bs seek=$seek
++	rm -f /tmp/scribble
++	unset_raw
++	$ndctl disable-namespace $dev
++	$ndctl check-namespace $dev 2>&1 | grep "bitmap error"
++	# This is not repairable
++	reset && create
++}
++
++do_tests()
++{
++	test_normal
++	test_force
++	test_bad_info2
++	test_bad_info
++	test_bitmap
++}
++
++# setup (reset nfit_test dimms, create the BTT namespace)
++modprobe nfit_test
++rc=1
++reset && create
++do_tests
++reset
++exit 0
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
