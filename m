@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 50C6021939239
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:17 -0700 (PDT)
-Subject: [resend PATCH v2 08/33] dcssblk: add dax_operations support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:09:32 -0700
-Message-ID: <149245617283.10206.846177305206642788.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 37ED121A0480F
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 15:33:21 -0700 (PDT)
+Subject: [PATCH v6 1/4] libnvdimm: add mechanism to publish badblocks at the
+ region level
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 07 Apr 2017 15:33:20 -0700
+Message-ID: <149160440045.52935.12075328472007815165.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,164 +21,128 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, hch@lst.de, Gerald Schaefer <gerald.schaefer@de.ibm.com>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Setup a dax_dev to have the same lifetime as the dcssblk block device
-and add a ->direct_access() method that is equivalent to
-dcssblk_direct_access(). Once fs/dax.c has been converted to use
-dax_operations the old dcssblk_direct_access() will be removed.
+badblocks sysfs file will be export at region level. When nvdimm event
+notifier happens for NVDIMM_REVALIATE_POISON, the badblocks in the
+region will be updated.
 
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/s390/block/Kconfig   |    1 +
- drivers/s390/block/dcssblk.c |   54 +++++++++++++++++++++++++++++++++++-------
- 2 files changed, 46 insertions(+), 9 deletions(-)
+ drivers/nvdimm/nd.h          |    1 +
+ drivers/nvdimm/region.c      |   24 ++++++++++++++++++++++++
+ drivers/nvdimm/region_devs.c |   19 +++++++++++++++++++
+ 3 files changed, 44 insertions(+)
 
-diff --git a/drivers/s390/block/Kconfig b/drivers/s390/block/Kconfig
-index 4a3b62326183..0acb8c2f9475 100644
---- a/drivers/s390/block/Kconfig
-+++ b/drivers/s390/block/Kconfig
-@@ -14,6 +14,7 @@ config BLK_DEV_XPRAM
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 2a99c83..c3b33cf 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -154,6 +154,7 @@ struct nd_region {
+ 	u64 ndr_start;
+ 	int id, num_lanes, ro, numa_node;
+ 	void *provider_data;
++	struct badblocks bb;
+ 	struct nd_interleave_set *nd_set;
+ 	struct nd_percpu_lane __percpu *lane;
+ 	struct nd_mapping mapping[0];
+diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+index 8f24177..869a886 100644
+--- a/drivers/nvdimm/region.c
++++ b/drivers/nvdimm/region.c
+@@ -14,6 +14,7 @@
+ #include <linux/module.h>
+ #include <linux/device.h>
+ #include <linux/nd.h>
++#include "nd-core.h"
+ #include "nd.h"
  
- config DCSSBLK
- 	def_tristate m
-+	select DAX
- 	prompt "DCSSBLK support"
- 	depends on S390 && BLOCK
- 	help
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 415d10a67b7a..682a9eb4934d 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -18,6 +18,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/pfn_t.h>
-+#include <linux/dax.h>
- #include <asm/extmem.h>
- #include <asm/io.h>
+ static int nd_region_probe(struct device *dev)
+@@ -52,6 +53,17 @@ static int nd_region_probe(struct device *dev)
+ 	if (rc && err && rc == err)
+ 		return -ENODEV;
  
-@@ -30,8 +31,10 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
- static void dcssblk_release(struct gendisk *disk, fmode_t mode);
- static blk_qc_t dcssblk_make_request(struct request_queue *q,
- 						struct bio *bio);
--static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
-+static long dcssblk_blk_direct_access(struct block_device *bdev, sector_t secnum,
- 			 void **kaddr, pfn_t *pfn, long size);
-+static long dcssblk_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
-+		long nr_pages, void **kaddr, pfn_t *pfn);
++	if (is_nd_pmem(&nd_region->dev)) {
++		struct resource ndr_res;
++
++		if (devm_init_badblocks(dev, &nd_region->bb))
++			return -ENODEV;
++		ndr_res.start = nd_region->ndr_start;
++		ndr_res.end = nd_region->ndr_start + nd_region->ndr_size - 1;
++		nvdimm_badblocks_populate(nd_region,
++				&nd_region->bb, &ndr_res);
++	}
++
+ 	nd_region->btt_seed = nd_btt_create(nd_region);
+ 	nd_region->pfn_seed = nd_pfn_create(nd_region);
+ 	nd_region->dax_seed = nd_dax_create(nd_region);
+@@ -104,6 +116,18 @@ static int child_notify(struct device *dev, void *data)
  
- static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ static void nd_region_notify(struct device *dev, enum nvdimm_event event)
+ {
++	if (event == NVDIMM_REVALIDATE_POISON) {
++		struct nd_region *nd_region = to_nd_region(dev);
++		struct resource res;
++
++		if (is_nd_pmem(&nd_region->dev)) {
++			res.start = nd_region->ndr_start;
++			res.end = nd_region->ndr_start +
++				nd_region->ndr_size - 1;
++			nvdimm_badblocks_populate(nd_region,
++					&nd_region->bb, &res);
++		}
++	}
+ 	device_for_each_child(dev, &event, child_notify);
+ }
  
-@@ -40,7 +43,11 @@ static const struct block_device_operations dcssblk_devops = {
- 	.owner   	= THIS_MODULE,
- 	.open    	= dcssblk_open,
- 	.release 	= dcssblk_release,
--	.direct_access 	= dcssblk_direct_access,
-+	.direct_access 	= dcssblk_blk_direct_access,
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index b7cb506..3500fc8 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -448,6 +448,21 @@ static ssize_t read_only_store(struct device *dev,
+ }
+ static DEVICE_ATTR_RW(read_only);
+ 
++static ssize_t nd_badblocks_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
++
++	return badblocks_show(&nd_region->bb, buf, 0);
++}
++static struct device_attribute dev_attr_nd_badblocks = {
++	.attr = {
++		.name = "badblocks",
++		.mode = S_IRUGO
++	},
++	.show = nd_badblocks_show,
 +};
 +
-+static const struct dax_operations dcssblk_dax_ops = {
-+	.direct_access = dcssblk_dax_direct_access,
+ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_size.attr,
+ 	&dev_attr_nstype.attr,
+@@ -460,6 +475,7 @@ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_available_size.attr,
+ 	&dev_attr_namespace_seed.attr,
+ 	&dev_attr_init_namespaces.attr,
++	&dev_attr_nd_badblocks.attr,
+ 	NULL,
  };
  
- struct dcssblk_dev_info {
-@@ -57,6 +64,7 @@ struct dcssblk_dev_info {
- 	struct request_queue *dcssblk_queue;
- 	int num_of_segments;
- 	struct list_head seg_list;
-+	struct dax_device *dax_dev;
- };
+@@ -476,6 +492,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (!is_nd_pmem(dev) && a == &dev_attr_dax_seed.attr)
+ 		return 0;
  
- struct segment_info {
-@@ -389,6 +397,8 @@ dcssblk_shared_store(struct device *dev, struct device_attribute *attr, const ch
- 	}
- 	list_del(&dev_info->lh);
- 
-+	kill_dax(dev_info->dax_dev);
-+	put_dax(dev_info->dax_dev);
- 	del_gendisk(dev_info->gd);
- 	blk_cleanup_queue(dev_info->dcssblk_queue);
- 	dev_info->gd->queue = NULL;
-@@ -525,6 +535,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 	int rc, i, j, num_of_segments;
- 	struct dcssblk_dev_info *dev_info;
- 	struct segment_info *seg_info, *temp;
-+	struct dax_device *dax_dev;
- 	char *local_buf;
- 	unsigned long seg_byte_size;
- 
-@@ -654,6 +665,11 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 	if (rc)
- 		goto put_dev;
- 
-+	dax_dev = alloc_dax(dev_info, dev_info->gd->disk_name,
-+			&dcssblk_dax_ops);
-+	if (!dax_dev)
-+		goto put_dev;
++	if (!is_nd_pmem(dev) && a == &dev_attr_nd_badblocks.attr)
++		return 0;
 +
- 	get_device(&dev_info->dev);
- 	device_add_disk(&dev_info->dev, dev_info->gd);
- 
-@@ -752,6 +768,8 @@ dcssblk_remove_store(struct device *dev, struct device_attribute *attr, const ch
- 	}
- 
- 	list_del(&dev_info->lh);
-+	kill_dax(dev_info->dax_dev);
-+	put_dax(dev_info->dax_dev);
- 	del_gendisk(dev_info->gd);
- 	blk_cleanup_queue(dev_info->dcssblk_queue);
- 	dev_info->gd->queue = NULL;
-@@ -883,21 +901,39 @@ dcssblk_make_request(struct request_queue *q, struct bio *bio)
- }
- 
- static long
--dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
-+__dcssblk_direct_access(struct dcssblk_dev_info *dev_info, pgoff_t pgoff,
-+		long nr_pages, void **kaddr, pfn_t *pfn)
-+{
-+	resource_size_t offset = pgoff * PAGE_SIZE;
-+	unsigned long dev_sz;
-+
-+	dev_sz = dev_info->end - dev_info->start + 1;
-+	*kaddr = (void *) dev_info->start + offset;
-+	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
-+
-+	return (dev_sz - offset) / PAGE_SIZE;
-+}
-+
-+static long
-+dcssblk_blk_direct_access(struct block_device *bdev, sector_t secnum,
- 			void **kaddr, pfn_t *pfn, long size)
- {
- 	struct dcssblk_dev_info *dev_info;
--	unsigned long offset, dev_sz;
- 
- 	dev_info = bdev->bd_disk->private_data;
- 	if (!dev_info)
- 		return -ENODEV;
--	dev_sz = dev_info->end - dev_info->start + 1;
--	offset = secnum * 512;
--	*kaddr = (void *) dev_info->start + offset;
--	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
-+	return __dcssblk_direct_access(dev_info, PHYS_PFN(secnum * 512),
-+			PHYS_PFN(size), kaddr, pfn) * PAGE_SIZE;
-+}
-+
-+static long
-+dcssblk_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
-+		long nr_pages, void **kaddr, pfn_t *pfn)
-+{
-+	struct dcssblk_dev_info *dev_info = dax_get_private(dax_dev);
- 
--	return dev_sz - offset;
-+	return __dcssblk_direct_access(dev_info, pgoff, nr_pages, kaddr, pfn);
- }
- 
- static void
+ 	if (a != &dev_attr_set_cookie.attr
+ 			&& a != &dev_attr_available_size.attr)
+ 		return a->mode;
 
 _______________________________________________
 Linux-nvdimm mailing list
