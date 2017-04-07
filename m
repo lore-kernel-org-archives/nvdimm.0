@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4463A21951C8C
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:26 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:20:57 -0600
-Message-Id: <1493144468-22493-11-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 10/21] RDS: Make use of the new sg_map helper function
+ by ml01.01.org (Postfix) with ESMTPS id 0355D2194235E
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 16:19:35 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 2/6] libndctl: add a ndctl_namespace_disable_safe()
+ API
+Date: Fri,  7 Apr 2017 17:17:59 -0600
+Message-Id: <20170407231803.14936-3-vishal.l.verma@intel.com>
+In-Reply-To: <20170407231803.14936-1-vishal.l.verma@intel.com>
+References: <20170407231803.14936-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,50 +23,185 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
-Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Sumit Semwal <sumit.semwal@linaro.org>, "David S. Miller" <davem@davemloft.net>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Straightforward conversion except there's no error path, so we
-make use of SG_MAP_MUST_NOT_FAIL which may BUG_ON in certain cases
-in the future.
+Disabling a namespace which has a filesystem mounted on it is unsafe as
+filesystems are not prepared for a block device to be yanked from under
+them. The destroy_namespace routine checked for an active mount by
+performing an O_EXCL open of the backing block device, but many other
+callers of ndctl_namespace_disable* could benefit from this checking.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Codify the mounted filesystem check in a new libndctl API -
+ndctl_namespace_disable_safe(), and use it for the destroy/disable
+namespace ndctl commands as well as the upcoming check-namespace
+command.
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- net/rds/ib_recv.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ ndctl/builtin-xaction-namespace.c | 46 +++++++--------------------------------
+ ndctl/lib/libndctl.c              | 44 +++++++++++++++++++++++++++++++++++++
+ ndctl/lib/libndctl.sym            |  1 +
+ ndctl/libndctl.h.in               |  1 +
+ 4 files changed, 54 insertions(+), 38 deletions(-)
 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index e10624a..c665689 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -800,10 +800,10 @@ static void rds_ib_cong_recv(struct rds_connection *conn,
+diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
+index 46d651e..d6b0c37 100644
+--- a/ndctl/builtin-xaction-namespace.c
++++ b/ndctl/builtin-xaction-namespace.c
+@@ -731,10 +731,7 @@ static int namespace_destroy(struct ndctl_region *region,
+ 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
+ 	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
+ 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
+-	const char *bdev = NULL;
+-	bool dax_active = false;
+-	char path[50];
+-	int fd, rc;
++	int rc;
  
- 		to_copy = min(RDS_FRAG_SIZE - frag_off, PAGE_SIZE - map_off);
- 		BUG_ON(to_copy & 7); /* Must be 64bit aligned. */
-+		addr = sg_map(&frag->f_sg, 0,
-+			      SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
+ 	if (ndctl_region_get_ro(region)) {
+ 		error("%s: read-only, re-configuration disabled\n",
+@@ -742,42 +739,15 @@ static int namespace_destroy(struct ndctl_region *region,
+ 		return -ENXIO;
+ 	}
  
--		addr = kmap_atomic(sg_page(&frag->f_sg));
+-	if (pfn && ndctl_pfn_is_enabled(pfn))
+-		bdev = ndctl_pfn_get_block_device(pfn);
+-	else if (dax && ndctl_dax_is_enabled(dax))
+-		dax_active = true;
+-	else if (btt && ndctl_btt_is_enabled(btt))
+-		bdev = ndctl_btt_get_block_device(btt);
+-	else if (ndctl_namespace_is_enabled(ndns))
+-		bdev = ndctl_namespace_get_block_device(ndns);
 -
--		src = addr + frag->f_sg.offset + frag_off;
-+		src = addr + frag_off;
- 		dst = (void *)map->m_page_addrs[map_page] + map_off;
- 		for (k = 0; k < to_copy; k += 8) {
- 			/* Record ports that became uncongested, ie
-@@ -811,7 +811,7 @@ static void rds_ib_cong_recv(struct rds_connection *conn,
- 			uncongested |= ~(*src) & *dst;
- 			*dst++ = *src++;
- 		}
--		kunmap_atomic(addr);
-+		sg_unmap(&frag->f_sg, addr, 0, SG_KMAP_ATOMIC);
+-	if ((bdev || dax_active) && !force) {
++	if (ndctl_namespace_is_active(ndns) && !force) {
+ 		error("%s is active, specify --force for re-configuration\n",
+ 				devname);
+ 		return -EBUSY;
+-	} else if (bdev) {
+-		sprintf(path, "/dev/%s", bdev);
+-		fd = open(path, O_RDWR|O_EXCL);
+-		if (fd >= 0) {
+-			/*
+-			 * Got it, now block new mounts while we have it
+-			 * pinned.
+-			 */
+-			ndctl_namespace_disable_invalidate(ndns);
+-			close(fd);
+-		} else {
+-			/*
+-			 * Yes, TOCTOU hole, but if you're racing namespace
+-			 * creation you have other problems, and there's nothing
+-			 * stopping the !bdev case from racing to mount an fs or
+-			 * re-enabling the namepace.
+-			 */
+-			error("%s: %s failed exlusive open: %s\n",
+-					devname, bdev, strerror(errno));
+-			return -errno;
+-		}
+-	} else if (dax_active)
+-		ndctl_namespace_disable_invalidate(ndns);
++	} else {
++		rc = ndctl_namespace_disable_safe(ndns);
++		if (rc)
++			return rc;
++	}
  
- 		copied += to_copy;
+ 	if (pfn || btt || dax) {
+ 		rc = zero_info_block(ndns);
+@@ -869,7 +839,7 @@ static int do_xaction_namespace(const char *namespace,
+ 					continue;
+ 				switch (action) {
+ 				case ACTION_DISABLE:
+-					rc = ndctl_namespace_disable_invalidate(ndns);
++					rc = ndctl_namespace_disable_safe(ndns);
+ 					break;
+ 				case ACTION_ENABLE:
+ 					rc = ndctl_namespace_enable(ndns);
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index ae029c5..a3481b1 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -3346,6 +3346,50 @@ NDCTL_EXPORT int ndctl_namespace_disable_invalidate(struct ndctl_namespace *ndns
+ 	return ndctl_namespace_disable(ndns);
+ }
  
++NDCTL_EXPORT int ndctl_namespace_disable_safe(struct ndctl_namespace *ndns)
++{
++	const char *devname = ndctl_namespace_get_devname(ndns);
++	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
++	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
++	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
++	const char *bdev = NULL;
++	char path[50];
++	int fd;
++
++	if (pfn && ndctl_pfn_is_enabled(pfn))
++		bdev = ndctl_pfn_get_block_device(pfn);
++	else if (btt && ndctl_btt_is_enabled(btt))
++		bdev = ndctl_btt_get_block_device(btt);
++	else if (ndctl_namespace_is_enabled(ndns))
++		bdev = ndctl_namespace_get_block_device(ndns);
++
++	if (bdev) {
++		sprintf(path, "/dev/%s", bdev);
++		fd = open(path, O_RDWR|O_EXCL);
++		if (fd >= 0) {
++			/*
++			 * Got it, now block new mounts while we have it
++			 * pinned.
++			 */
++			ndctl_namespace_disable_invalidate(ndns);
++			close(fd);
++		} else {
++			/*
++			 * Yes, TOCTOU hole, but if you're racing namespace
++			 * creation you have other problems, and there's nothing
++			 * stopping the !bdev case from racing to mount an fs or
++			 * re-enabling the namepace.
++			 */
++			dbg(ctx, "%s: %s failed exclusive open: %s\n",
++					devname, bdev, strerror(errno));
++			return -errno;
++		}
++	} else
++		ndctl_namespace_disable_invalidate(ndns);
++
++	return 0;
++}
++
+ static int pmem_namespace_is_configured(struct ndctl_namespace *ndns)
+ {
+ 	if (ndctl_namespace_get_size(ndns) < ND_MIN_NAMESPACE_SIZE)
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 705ec4c..9d2a568 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -172,6 +172,7 @@ global:
+ 	ndctl_namespace_enable;
+ 	ndctl_namespace_disable;
+ 	ndctl_namespace_disable_invalidate;
++	ndctl_namespace_disable_safe;
+ 	ndctl_namespace_is_active;
+ 	ndctl_namespace_is_valid;
+ 	ndctl_namespace_is_configured;
+diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
+index 586eb26..bcc569c 100644
+--- a/ndctl/libndctl.h.in
++++ b/ndctl/libndctl.h.in
+@@ -485,6 +485,7 @@ int ndctl_namespace_is_enabled(struct ndctl_namespace *ndns);
+ int ndctl_namespace_enable(struct ndctl_namespace *ndns);
+ int ndctl_namespace_disable(struct ndctl_namespace *ndns);
+ int ndctl_namespace_disable_invalidate(struct ndctl_namespace *ndns);
++int ndctl_namespace_disable_safe(struct ndctl_namespace *ndns);
+ bool ndctl_namespace_is_active(struct ndctl_namespace *ndns);
+ int ndctl_namespace_is_valid(struct ndctl_namespace *ndns);
+ int ndctl_namespace_is_configured(struct ndctl_namespace *ndns);
 -- 
-2.1.4
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
