@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 37ED121A0480F
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 15:33:21 -0700 (PDT)
-Subject: [PATCH v6 1/4] libnvdimm: add mechanism to publish badblocks at the
+ by ml01.01.org (Postfix) with ESMTPS id 8C04D21A0480F
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 15:07:44 -0700 (PDT)
+Subject: [PATCH v5 1/4] libnvdimm: add mechanism to publish badblocks at the
  region level
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 07 Apr 2017 15:33:20 -0700
-Message-ID: <149160440045.52935.12075328472007815165.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 07 Apr 2017 15:07:43 -0700
+Message-ID: <149160286313.35898.16564013661054174450.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
