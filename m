@@ -1,58 +1,163 @@
-From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 6/8] nvmet: Be careful about using iomem accesses when
- dealing with p2pmem
-Date: Fri, 7 Apr 2017 11:19:30 +0000
-Message-ID: <3E85B4D4-9EBC-4299-8209-2D8740947764@raithlin.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-7-git-send-email-logang@deltatee.com>
- <080b68b4-eba3-861c-4f29-5d829425b5e7@grimberg.me>
- <20170404154629.GA13552@obsidianresearch.com>
- <4df229d8-8124-664a-9bc4-6401bc034be1@grimberg.me>
+From: "Stefani Tarpey  " <eddigena73-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: Alexa Rank for ml01.01.org
+Date: Fri, 07 Apr 2017 06:01:39 -0700
+Message-ID: <5AFE0362.5AF00850@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4df229d8-8124-664a-9bc4-6401bc034be1-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
-Content-ID: <170DB2A444BB8A4E942185B78B7D54E9-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="----------=_58E79106.1DF695FA"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-T24gMjAxNy0wNC0wNiwgNjozMyBBTSwgIlNhZ2kgR3JpbWJlcmciIDxzYWdpQGdyaW1iZXJnLm1l
-PiB3cm90ZToNCg0KPiBTYXkgaXQncyBjb25uZWN0ZWQgdmlhIDIgbGVncywgdGhlIGJhciBpcyBh
-Y2Nlc3NlZCBmcm9tIGxlZyBBIGFuZCB0aGUNCj4gZGF0YSBmcm9tIHRoZSBkaXNrIGNvbWVzIHZp
-YSBsZWcgQi4gSW4gdGhpcyBjYXNlLCB0aGUgZGF0YSBpcyBoZWFkaW5nDQo+IHRvd2FyZHMgdGhl
-IHAycCBkZXZpY2UgdmlhIGxlZyBCIChtaWdodCBiZSBjb25nZXN0ZWQpLCB0aGUgY29tcGxldGlv
-bg0KPiBnb2VzIGRpcmVjdGx5IHRvIHRoZSBSQywgYW5kIHRoZW4gdGhlIGhvc3QgaXNzdWVzIGEg
-cmVhZCBmcm9tIHRoZQ0KPiBiYXIgdmlhIGxlZyBBLiBJIGRvbid0IHVuZGVyc3RhbmQgd2hhdCBj
-YW4gZ3VhcmFudGVlIG9yZGVyaW5nIGhlcmUuDQoNCj4gU3RlcGhlbiB0b2xkIG1lIHRoYXQgdGhp
-cyBzdGlsbCBndWFyYW50ZWVzIG9yZGVyaW5nLCBidXQgSSBob25lc3RseQ0KPiBjYW4ndCB1bmRl
-cnN0YW5kIGhvdywgcGVyaGFwcyBzb21lb25lIGNhbiBleHBsYWluIHRvIG1lIGluIGEgc2ltcGxl
-DQo+IHdheSB0aGF0IEkgY2FuIHVuZGVyc3RhbmQuDQoNClNhZ2kNCg0KQXMgbG9uZyBhcyBsZWdB
-LCBsZWdCIGFuZCB0aGUgUkMgYXJlIGFsbCBjb25uZWN0ZWQgdG8gdGhlIHNhbWUgc3dpdGNoIHRo
-ZW4gb3JkZXJpbmcgd2lsbCBiZSBwcmVzZXJ2ZWQgKEkgdGhpbmsgbWFueSBvdGhlciB0b3BvbG9n
-aWVzIGFsc28gd29yaykuIEhlcmUgaXMgaG93IGl0IHdvdWxkIHdvcmsgZm9yIHRoZSBwcm9ibGVt
-IGNhc2UgeW91IGFyZSBjb25jZXJuZWQgYWJvdXQgKHdoaWNoIGlzIGEgcmVhZCBmcm9tIHRoZSBO
-Vk1lIGRyaXZlKS4NCg0KMS4gRGlzayBkZXZpY2UgRE1BcyBvdXQgdGhlIGRhdGEgdG8gdGhlIHAy
-cG1lbSBkZXZpY2UgdmlhIGEgc3RyaW5nIG9mIFBDSWUgTWVtV3IgVExQcy4NCjIuIERpc2sgZGV2
-aWNlIHdyaXRlcyB0byB0aGUgY29tcGxldGlvbiBxdWV1ZSAoaW4gc3lzdGVtIG1lbW9yeSkgdmlh
-IGEgTWVtV3IgVExQLg0KMy4gVGhlIGxhc3Qgb2YgdGhlIE1lbVdycyBmcm9tIHN0ZXAgMSBtaWdo
-dCBoYXZlIGdvdCBzdGFsbGVkIGluIHRoZSBQQ0llIHN3aXRjaCBkdWUgdG8gY29uZ2VzdGlvbiBi
-dXQgaWYgc28gdGhleSBhcmUgc3RhbGxlZCBpbiB0aGUgZWdyZXNzIHBhdGggb2YgdGhlIHN3aXRj
-aCBmb3IgdGhlIHAycG1lbSBwb3J0Lg0KNC4gVGhlIFJDIGRldGVybWluZXMgdGhlIElPIGlzIGNv
-bXBsZXRlIHdoZW4gdGhlIFRMUCBhc3NvY2lhdGVkIHdpdGggc3RlcCAyIHVwZGF0ZXMgdGhlIG1l
-bW9yeSBhc3NvY2lhdGVkIHdpdGggdGhlIENRLiBJdCBpc3N1ZXMgc29tZSBvcGVyYXRpb24gdG8g
-cmVhZCB0aGUgcDJwbWVtLg0KNS4gUmVnYXJkbGVzcyBvZiB3aGV0aGVyIHRoZSBNZW1SZCBUTFAg
-Y29tZXMgZnJvbSB0aGUgUkMgb3IgYW5vdGhlciBkZXZpY2UgY29ubmVjdGVkIHRvIHRoZSBzd2l0
-Y2ggaXQgaXMgcXVldWVkIGluIHRoZSBlZ3Jlc3MgcXVldWUgZm9yIHRoZSBwMnBtZW0gRklPIGJl
-aGluZCB0aGUgbGFzdCBETUEgVExQIChmcm9tIHN0ZXAgMSkuIFBDSWUgb3JkZXJpbmcgZW5zdXJl
-cyB0aGF0IHRoaXMgTWVtUmQgY2Fubm90IG92ZXJ0YWtlIHRoZSBNZW1XciAoUmVhZHMgY2FuIG5l
-dmVyIHBhc3Mgd3JpdGVzKS4gVGhlcmVmb3JlIHRoZSBNZW1SZCBjYW4gbmV2ZXIgZ2V0IHRvIHRo
-ZSBwMnBtZW0gZGV2aWNlIHVudGlsIGFmdGVyIHRoZSBsYXN0IERNQSBNZW1XciBoYXMuDQoNCkkg
-aG9wZSB0aGlzIGhlbHBzIQ0KDQpTdGVwaGVuDQoNCg0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is a multi-part message in MIME format.
+
+------------=_58E79106.1DF695FA
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  here i#s the request@ed information http://www.alexa-packages.com/
+   Thank you Stefani Tarpey Unsubscribe option available in the footer of our
+   website [...] 
+
+Content analysis details:   (10.5 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: alexa-packages.com]
+ 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
+                            [203.14.188.88 listed in dnsbl.sorbs.net]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+               [Blocked - see <http://www.spamcop.net/bl.shtml?203.14.188.88>]
+ 2.8 FSL_HELO_FAKE          No description available.
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (eddigena73[at]gmail.com)
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0000]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: alexa-packages.com]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: alexa-packages.com]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.alexa-packages.com]
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.alexa-packages.com]
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+The original message was not completely plain text, and may be unsafe to
+open with some email clients; in particular, it may contain a virus,
+or confirm that your address can receive spam.  If you wish to view
+it, it may be safer to save it to a file and open it with an editor.
+
+
+------------=_58E79106.1DF695FA
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: attachment
+Content-Transfer-Encoding: 8bit
+
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1cwTjj-00017t-1e
+	for gln-linux-nvdimm@m.gmane.org; Fri, 07 Apr 2017 15:15:35 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 32B242194235C;
+	Fri,  7 Apr 2017 06:15:40 -0700 (PDT)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (lync-mediation.hosted.chinatelecomglobal.com
+ [203.14.188.88]) by ml01.01.org (Postfix) with SMTP id C5CAF21942349
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Fri,  7 Apr 2017 06:15:37 -0700 (PDT)
+Message-ID: <5AFE0362.5AF00850-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Fri, 07 Apr 2017 06:01:39 -0700
+From: "Stefani Tarpey  " <eddigena73-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-US;
+ rv:1.8.1.14) Gecko/20080421 Thunderbird/2.0.0.14
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: re: Alexa Rank for ml01.01.org
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============2261018161417293275=="
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+--===============2261018161417293275==
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+here i#s the request@ed information
+http://www.alexa-packages.com/
+
+Thank you
+Stefani Tarpey  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option available in the footer of our website
+
+
+
+--===============2261018161417293275==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============2261018161417293275==--
+
+
+------------=_58E79106.1DF695FA--
