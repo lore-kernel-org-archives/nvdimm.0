@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C175D2194EB5C
- for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 13:02:47 -0700 (PDT)
-Subject: [PATCH v5] libnvdimm: fix clear poison locking with spinlock and
- GFP_NOWAIT allocation
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Apr 2017 13:02:46 -0700
-Message-ID: <149211329997.65042.10283420064460739184.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 3E45220D77DB3
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 16:19:37 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 3/6] ndctl: move the fletcher64 routine to util/
+Date: Fri,  7 Apr 2017 17:18:00 -0600
+Message-Id: <20170407231803.14936-4-vishal.l.verma@intel.com>
+In-Reply-To: <20170407231803.14936-1-vishal.l.verma@intel.com>
+References: <20170407231803.14936-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,269 +17,131 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following warning results from holding a lane spinlock,
-preempt_disable(), or the btt map spinlock and then trying to take the
-reconfig_mutex to walk the poison list and potentially add new entries.
+In preparation for check-namespace, since it will also use the
+fletcher64 routine, move it to util/ so that it can be shared by both
+builtin-check.c and builtin-dimm.c
 
-BUG: sleeping function called from invalid context at kernel/locking/mutex.
-c:747
-in_atomic(): 1, irqs_disabled(): 0, pid: 17159, name: dd
-[..]
-Call Trace:
-dump_stack+0x85/0xc8
-___might_sleep+0x184/0x250
-__might_sleep+0x4a/0x90
-__mutex_lock+0x58/0x9b0
-? nvdimm_bus_lock+0x21/0x30 [libnvdimm]
-? __nvdimm_bus_badblocks_clear+0x2f/0x60 [libnvdimm]
-? acpi_nfit_forget_poison+0x79/0x80 [nfit]
-? _raw_spin_unlock+0x27/0x40
-mutex_lock_nested+0x1b/0x20
-nvdimm_bus_lock+0x21/0x30 [libnvdimm]
-nvdimm_forget_poison+0x25/0x50 [libnvdimm]
-nvdimm_clear_poison+0x106/0x140 [libnvdimm]
-nsio_rw_bytes+0x164/0x270 [libnvdimm]
-btt_write_pg+0x1de/0x3e0 [nd_btt]
-? blk_queue_enter+0x30/0x290
-btt_make_request+0x11a/0x310 [nd_btt]
-? blk_queue_enter+0xb7/0x290
-? blk_queue_enter+0x30/0x290
-generic_make_request+0x118/0x3b0
-
-A spinlock is introduced to protect the poison list. This allows us to not
-having to acquire the reconfig_mutex for touching the poison list. The
-add_poison() function has been broken out into two helper functions. One to
-allocate the poison entry and the other to apppend the entry. This allows us
-to unlock the poison_lock in non-I/O path and continue to be able to allocate
-the poison entry with GFP_KERNEL. We will use GFP_NOWAIT in the I/O path in
-order to satisfy being in atomic context.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ Makefile.am          |  3 ++-
+ ndctl/builtin-dimm.c | 18 ++----------------
+ util/fletcher.c      | 23 +++++++++++++++++++++++
+ util/fletcher.h      |  8 ++++++++
+ 4 files changed, 35 insertions(+), 17 deletions(-)
+ create mode 100644 util/fletcher.c
+ create mode 100644 util/fletcher.h
 
-v2:
-Dan
-- remove mempool and just use GFP_NOWAIT
-
-v3:
-Vishal
-- remove unneeded code
-
-v4:
-Dan 
-- fixup commit header
-- GFP_NOWAIT only in I/O path
-
-v5:
-Dan
-- address issue where when lock released to allocate, the list has updated
-
- drivers/nvdimm/bus.c      |    7 +++--
- drivers/nvdimm/core.c     |   65 ++++++++++++++++++++++++++++-----------------
- drivers/nvdimm/nd-core.h  |    1 +
- include/linux/libnvdimm.h |    2 -
- 4 files changed, 46 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 5ad2e59..d214ac44 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -296,6 +296,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 	init_waitqueue_head(&nvdimm_bus->probe_wait);
- 	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
- 	mutex_init(&nvdimm_bus->reconfig_mutex);
-+	spin_lock_init(&nvdimm_bus->poison_lock);
- 	if (nvdimm_bus->id < 0) {
- 		kfree(nvdimm_bus);
- 		return NULL;
-@@ -364,9 +365,9 @@ static int nd_bus_remove(struct device *dev)
- 	nd_synchronize();
- 	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
+diff --git a/Makefile.am b/Makefile.am
+index 06cd1b0..5453b2a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -68,6 +68,7 @@ libutil_a_SOURCES = \
+ 	util/help.c \
+ 	util/strbuf.c \
+ 	util/wrapper.c \
+-	util/filter.c
++	util/filter.c \
++	util/fletcher.c
  
--	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	spin_lock(&nvdimm_bus->poison_lock);
- 	free_poison_list(&nvdimm_bus->poison_list);
--	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+	spin_unlock(&nvdimm_bus->poison_lock);
- 
- 	nvdimm_bus_destroy_ndctl(nvdimm_bus);
- 
-@@ -990,7 +991,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 
- 		if (clear_err->cleared) {
- 			/* clearing the poison list we keep track of */
--			__nvdimm_forget_poison(nvdimm_bus, clear_err->address,
-+			nvdimm_forget_poison(nvdimm_bus, clear_err->address,
- 					clear_err->cleared);
- 
- 			/* now sync the badblocks lists */
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 40a3da0..280ab69 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -518,28 +518,48 @@ void nvdimm_badblocks_populate(struct nd_region *nd_region,
- }
- EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
- 
-+static struct nd_poison * alloc_poison_entry(struct nvdimm_bus *nvdimm_bus,
-+		gfp_t flags)
-+{
-+	return kzalloc(sizeof(struct nd_poison), flags);
-+}
-+
-+static void append_poison_entry(struct nvdimm_bus *nvdimm_bus,
-+		struct nd_poison *pl, u64 addr, u64 length)
-+{
-+	lockdep_assert_held(&nvdimm_bus->poison_lock);
-+	pl->start = addr;
-+	pl->length = length;
-+	list_add_tail(&pl->list, &nvdimm_bus->poison_list);
-+}
-+
- static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length,
- 			gfp_t flags)
- {
- 	struct nd_poison *pl;
- 
--	pl = kzalloc(sizeof(*pl), flags);
-+	pl = alloc_poison_entry(nvdimm_bus, flags);
- 	if (!pl)
- 		return -ENOMEM;
- 
--	pl->start = addr;
--	pl->length = length;
--	list_add_tail(&pl->list, &nvdimm_bus->poison_list);
--
-+	append_poison_entry(nvdimm_bus, pl, addr, length);
- 	return 0;
- }
- 
- static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- {
--	struct nd_poison *pl;
-+	struct nd_poison *pl, *pl_new;
- 
--	if (list_empty(&nvdimm_bus->poison_list))
--		return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
-+	spin_unlock(&nvdimm_bus->poison_lock);
-+	pl_new = alloc_poison_entry(nvdimm_bus, GFP_KERNEL);
-+	spin_lock(&nvdimm_bus->poison_lock);
-+
-+	if (list_empty(&nvdimm_bus->poison_list)) {
-+		if (!pl_new)
-+			return -ENOMEM;
-+		append_poison_entry(nvdimm_bus, pl_new, addr, length);
-+		return 0;
-+	}
- 
- 	/*
- 	 * There is a chance this is a duplicate, check for those first.
-@@ -551,6 +571,8 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 			/* If length has changed, update this list entry */
- 			if (pl->length != length)
- 				pl->length = length;
-+			if (pl_new)
-+				kfree(pl_new);
- 			return 0;
- 		}
- 
-@@ -559,30 +581,33 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 	 * as any overlapping ranges will get resolved when the list is consumed
- 	 * and converted to badblocks
- 	 */
--	return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
-+	if (!pl_new)
-+		return -ENOMEM;
-+	append_poison_entry(nvdimm_bus, pl_new, addr, length);
-+
-+	return 0;
- }
- 
- int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- {
- 	int rc;
- 
--	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	spin_lock(&nvdimm_bus->poison_lock);
- 	rc = bus_add_poison(nvdimm_bus, addr, length);
--	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+	spin_unlock(&nvdimm_bus->poison_lock);
- 
- 	return rc;
- }
- EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
- 
--void __nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus, phys_addr_t start,
-+void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus, phys_addr_t start,
- 		unsigned int len)
- {
- 	struct list_head *poison_list = &nvdimm_bus->poison_list;
- 	u64 clr_end = start + len - 1;
- 	struct nd_poison *pl, *next;
- 
--	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
--
-+	spin_lock(&nvdimm_bus->poison_lock);
- 	WARN_ON_ONCE(list_empty(poison_list));
- 
- 	/*
-@@ -629,21 +654,13 @@ void __nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus, phys_addr_t start,
- 			u64 new_len = pl_end - new_start + 1;
- 
- 			/* Add new entry covering the right half */
--			add_poison(nvdimm_bus, new_start, new_len, GFP_NOIO);
-+			add_poison(nvdimm_bus, new_start, new_len, GFP_NOWAIT);
- 			/* Adjust this entry to cover the left half */
- 			pl->length = start - pl->start;
- 			continue;
- 		}
- 	}
--}
--EXPORT_SYMBOL_GPL(__nvdimm_forget_poison);
--
--void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
--		phys_addr_t start, unsigned int len)
--{
--	nvdimm_bus_lock(&nvdimm_bus->dev);
--	__nvdimm_forget_poison(nvdimm_bus, start, len);
--	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+	spin_unlock(&nvdimm_bus->poison_lock);
- }
- EXPORT_SYMBOL_GPL(nvdimm_forget_poison);
- 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 8623e57..4c4bd20 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -32,6 +32,7 @@ struct nvdimm_bus {
- 	struct list_head poison_list;
- 	struct list_head mapping_list;
- 	struct mutex reconfig_mutex;
-+	spinlock_t poison_lock;
+ nobase_include_HEADERS = daxctl/libdaxctl.h
+diff --git a/ndctl/builtin-dimm.c b/ndctl/builtin-dimm.c
+index 637b10b..93f9530 100644
+--- a/ndctl/builtin-dimm.c
++++ b/ndctl/builtin-dimm.c
+@@ -22,6 +22,7 @@
+ #include <util/json.h>
+ #include <util/filter.h>
+ #include <json-c/json.h>
++#include <util/fletcher.h>
+ #include <ndctl/libndctl.h>
+ #include <util/parse-options.h>
+ #include <ccan/minmax/minmax.h>
+@@ -358,7 +359,7 @@ struct nvdimm_data {
  };
  
- struct nvdimm {
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 1c609e8..98b2076 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -122,8 +122,6 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
- int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
- void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
- 		phys_addr_t start, unsigned int len);
--void __nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
--		phys_addr_t start, unsigned int len);
- struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 		struct nvdimm_bus_descriptor *nfit_desc);
- void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
+ /*
+- * Note, best_seq(), inc_seq(), fletcher64(), sizeof_namespace_index()
++ * Note, best_seq(), inc_seq(), sizeof_namespace_index()
+  * nvdimm_num_label_slots(), label_validate(), and label_write_index()
+  * are copied from drivers/nvdimm/label.c in the Linux kernel with the
+  * following modifications:
+@@ -371,21 +372,6 @@ struct nvdimm_data {
+  * 7/ dropped clear_bit_le() usage in label_write_index
+  */
+ 
+-static u64 fletcher64(void *addr, size_t len, bool le)
+-{
+-	u32 *buf = addr;
+-	u32 lo32 = 0;
+-	u64 hi32 = 0;
+-	size_t i;
+-
+-	for (i = 0; i < len / sizeof(u32); i++) {
+-		lo32 += le ? le32_to_cpu((le32) buf[i]) : buf[i];
+-		hi32 += lo32;
+-	}
+-
+-	return hi32 << 32 | lo32;
+-}
+-
+ static unsigned inc_seq(unsigned seq)
+ {
+ 	static const unsigned next[] = { 0, 2, 3, 1 };
+diff --git a/util/fletcher.c b/util/fletcher.c
+new file mode 100644
+index 0000000..cee2fc3
+--- /dev/null
++++ b/util/fletcher.c
+@@ -0,0 +1,23 @@
++#include <stdlib.h>
++#include <stdbool.h>
++#include <util/fletcher.h>
++#include <ccan/endian/endian.h>
++#include <ccan/short_types/short_types.h>
++
++/*
++ * Note, fletcher64() is copied from drivers/nvdimm/label.c in the Linux kernel
++ */
++u64 fletcher64(void *addr, size_t len, bool le)
++{
++	u32 *buf = addr;
++	u32 lo32 = 0;
++	u64 hi32 = 0;
++	size_t i;
++
++	for (i = 0; i < len / sizeof(u32); i++) {
++		lo32 += le ? le32_to_cpu((le32) buf[i]) : buf[i];
++		hi32 += lo32;
++	}
++
++	return hi32 << 32 | lo32;
++}
+diff --git a/util/fletcher.h b/util/fletcher.h
+new file mode 100644
+index 0000000..e3bbce3
+--- /dev/null
++++ b/util/fletcher.h
+@@ -0,0 +1,8 @@
++#ifndef _NDCTL_FLETCHER_H_
++#define _NDCTL_FLETCHER_H_
++
++#include <ccan/short_types/short_types.h>
++
++u64 fletcher64(void *addr, size_t len, bool le);
++
++#endif /* _NDCTL_FLETCHER_H_ */
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
