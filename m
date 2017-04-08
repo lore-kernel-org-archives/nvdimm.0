@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 32F0A21A0480F
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 21:08:46 -0700 (PDT)
-Date: Sat, 8 Apr 2017 12:08:37 +0800
+ by ml01.01.org (Postfix) with ESMTPS id 703EC21A0480F
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 19:51:17 -0700 (PDT)
+Date: Sat, 8 Apr 2017 10:51:07 +0800
 From: Baoquan He <bhe@redhat.com>
 Subject: Re: KASLR causes intermittent boot failures on some systems
-Message-ID: <20170408040837.GD4111@x1>
+Message-ID: <20170408025107.GC4111@x1>
 References: <x49shlk700k.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
 Content-Disposition: inline
@@ -27,6 +27,20 @@ To: Jeff Moyer <jmoyer@redhat.com>
 Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, thgarnie@google.com, mingo@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Hi Jeff,
+
+You are testing a upstream kernel, right? the crashkernel=auto is rhel
+only implementation, not accepted by upstream. So your crashkernel
+reservation failed, please see below message. If possible, please specify
+the value manually, like crashkernel=512M.
+
+0.000000] kexec_core: crashkernel: memory value expected
+
+OR may I borrow your testing machine to have a look?
+
+Thanks
+Baoquan
+
 On 04/07/17 at 10:41am, Jeff Moyer wrote:
 > Hi,
 > 
@@ -42,14 +56,6 @@ On 04/07/17 at 10:41am, Jeff Moyer wrote:
 > experience a failed boot maybe 20-30% of the time.  To reproduce it,
 > configure some emulated pmem on your system.  You can find directions
 > for that here: https://nvdimm.wiki.kernel.org/
-
-I got below problem when configure ndctl, didn't find a package named
-libkmod:
-
-~~~~~~~~~
-configure: error: Package requirements (libkmod) were not met:
-
-No package 'libkmod' found
 > 
 > Install ndctl (https://github.com/pmem/ndctl).
 > Configure the namespace:
