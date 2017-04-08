@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x241.google.com (mail-pf0-x241.google.com
- [IPv6:2607:f8b0:400e:c00::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 439B820D7648E
- for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 10:42:55 -0700 (PDT)
-Received: by mail-pf0-x241.google.com with SMTP id c198so670511pfc.0
- for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 10:42:55 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH 1/9] mm/huge_memory: Use zap_deposited_table() more
-Date: Wed, 12 Apr 2017 03:42:25 +1000
-Message-Id: <20170411174233.21902-2-oohall@gmail.com>
-In-Reply-To: <20170411174233.21902-1-oohall@gmail.com>
-References: <20170411174233.21902-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id D0DFB21A0480F
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 17:21:23 -0700 (PDT)
+Subject: [PATCH] device-dax: switch to srcu,
+ fix rcu_read_lock() vs pte allocation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 07 Apr 2017 17:15:39 -0700
+Message-ID: <149161053920.38854.15695030295325179621.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,67 +17,141 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linuxppc-dev@lists.ozlabs.org
-Cc: linux-nvdimm@lists.01.org, bsingharora@gmail.com, arbab@linux.vnet.ibm.com, linux-mm@kvack.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Depending flags of the PMD being zapped there may or may not be a
-deposited pgtable to be freed. In two of the three cases this is open
-coded while the third uses the zap_deposited_table() helper. This patch
-converts the others to use the helper to clean things up a bit.
+The following warning triggers with a new unit test that stresses the
+device-dax interface.
 
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: linux-mm@kvack.org
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+ ===============================
+ [ ERR: suspicious RCU usage.  ]
+ 4.11.0-rc4+ #1049 Tainted: G           O
+ -------------------------------
+ ./include/linux/rcupdate.h:521 Illegal context switch in RCU read-side critical section!
+
+ other info that might help us debug this:
+
+ rcu_scheduler_active = 2, debug_locks = 0
+ 2 locks held by fio/9070:
+  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff8d0739d7>] __do_page_fault+0x167/0x4f0
+  #1:  (rcu_read_lock){......}, at: [<ffffffffc03fbd02>] dax_dev_huge_fault+0x32/0x620 [dax]
+
+ Call Trace:
+  dump_stack+0x86/0xc3
+  lockdep_rcu_suspicious+0xd7/0x110
+  ___might_sleep+0xac/0x250
+  __might_sleep+0x4a/0x80
+  __alloc_pages_nodemask+0x23a/0x360
+  alloc_pages_current+0xa1/0x1f0
+  pte_alloc_one+0x17/0x80
+  __pte_alloc+0x1e/0x120
+  __get_locked_pte+0x1bf/0x1d0
+  insert_pfn.isra.70+0x3a/0x100
+  ? lookup_memtype+0xa6/0xd0
+  vm_insert_mixed+0x64/0x90
+  dax_dev_huge_fault+0x520/0x620 [dax]
+  ? dax_dev_huge_fault+0x32/0x620 [dax]
+  dax_dev_fault+0x10/0x20 [dax]
+  __do_fault+0x1e/0x140
+  __handle_mm_fault+0x9af/0x10d0
+  handle_mm_fault+0x16d/0x370
+  ? handle_mm_fault+0x47/0x370
+  __do_page_fault+0x28c/0x4f0
+  trace_do_page_fault+0x58/0x2a0
+  do_async_page_fault+0x1a/0xa0
+  async_page_fault+0x28/0x30
+
+Inserting a page table entry may trigger an allocation while we are
+holding a read lock to keep the device instance alive for the duration
+of the fault. Use srcu for this keep-alive protection.
+
+Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-For reference:
+ drivers/dax/Kconfig |    1 +
+ drivers/dax/dax.c   |   13 +++++++------
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-void zap_deposited_table(struct mm_struct *mm, pmd_t *pmd)
-{
-        pgtable_t pgtable;
-
-        pgtable = pgtable_trans_huge_withdraw(mm, pmd);
-        pte_free(mm, pgtable);
-        atomic_long_dec(&mm->nr_ptes);
-}
----
- mm/huge_memory.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index b787c4cfda0e..aa01dd47cc65 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1615,8 +1615,7 @@ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		if (is_huge_zero_pmd(orig_pmd))
- 			tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
- 	} else if (is_huge_zero_pmd(orig_pmd)) {
--		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
--		atomic_long_dec(&tlb->mm->nr_ptes);
-+		zap_deposited_table(tlb->mm, pmd);
- 		spin_unlock(ptl);
- 		tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
- 	} else {
-@@ -1625,10 +1624,7 @@ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
- 		VM_BUG_ON_PAGE(!PageHead(page), page);
- 		if (PageAnon(page)) {
--			pgtable_t pgtable;
--			pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
--			pte_free(tlb->mm, pgtable);
--			atomic_long_dec(&tlb->mm->nr_ptes);
-+			zap_deposited_table(tlb->mm, pmd);
- 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
- 		} else {
- 			if (arch_needs_pgtable_deposit())
--- 
-2.9.3
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index 3e2ab3b14eea..9e95bf94eb13 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -2,6 +2,7 @@ menuconfig DEV_DAX
+ 	tristate "DAX: direct access to differentiated memory"
+ 	default m if NVDIMM_DAX
+ 	depends on TRANSPARENT_HUGEPAGE
++	select SRCU
+ 	help
+ 	  Support raw access to differentiated (persistence, bandwidth,
+ 	  latency...) memory via an mmap(2) capable character
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 80c6db279ae1..806f180c80d8 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -25,6 +25,7 @@
+ #include "dax.h"
+ 
+ static dev_t dax_devt;
++DEFINE_STATIC_SRCU(dax_srcu);
+ static struct class *dax_class;
+ static DEFINE_IDA(dax_minor_ida);
+ static int nr_dax = CONFIG_NR_DEV_DAX;
+@@ -60,7 +61,7 @@ struct dax_region {
+  * @region - parent region
+  * @dev - device backing the character device
+  * @cdev - core chardev data
+- * @alive - !alive + rcu grace period == no new mappings can be established
++ * @alive - !alive + srcu grace period == no new mappings can be established
+  * @id - child id in the region
+  * @num_resources - number of physical address extents in this device
+  * @res - array of physical address ranges
+@@ -569,7 +570,7 @@ static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
+ static int dax_dev_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+-	int rc;
++	int rc, id;
+ 	struct file *filp = vmf->vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
+ 
+@@ -578,7 +579,7 @@ static int dax_dev_huge_fault(struct vm_fault *vmf,
+ 			? "write" : "read",
+ 			vmf->vma->vm_start, vmf->vma->vm_end);
+ 
+-	rcu_read_lock();
++	id = srcu_read_lock(&dax_srcu);
+ 	switch (pe_size) {
+ 	case PE_SIZE_PTE:
+ 		rc = __dax_dev_pte_fault(dax_dev, vmf);
+@@ -592,7 +593,7 @@ static int dax_dev_huge_fault(struct vm_fault *vmf,
+ 	default:
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	rcu_read_unlock();
++	srcu_read_unlock(&dax_srcu, id);
+ 
+ 	return rc;
+ }
+@@ -713,11 +714,11 @@ static void unregister_dax_dev(void *dev)
+ 	 * Note, rcu is not protecting the liveness of dax_dev, rcu is
+ 	 * ensuring that any fault handlers that might have seen
+ 	 * dax_dev->alive == true, have completed.  Any fault handlers
+-	 * that start after synchronize_rcu() has started will abort
++	 * that start after synchronize_srcu() has started will abort
+ 	 * upon seeing dax_dev->alive == false.
+ 	 */
+ 	dax_dev->alive = false;
+-	synchronize_rcu();
++	synchronize_srcu(&dax_srcu);
+ 	unmap_mapping_range(dax_dev->inode->i_mapping, 0, 0, 1);
+ 	cdev_del(cdev);
+ 	device_unregister(dev);
 
 _______________________________________________
 Linux-nvdimm mailing list
