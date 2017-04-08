@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22e.google.com (mail-oi0-x22e.google.com
+ [IPv6:2607:f8b0:4003:c06::22e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BB8CE2194EB6A
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:40:58 -0700 (PDT)
-Subject: [PATCH v2 24/33] filesystem-dax: convert to dax_flush()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 19:35:15 -0700
-Message-ID: <149222371487.32363.16728425894829983497.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9B3DE21A0480F
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 19:14:49 -0700 (PDT)
+Received: by mail-oi0-x22e.google.com with SMTP id b187so104243767oif.0
+ for <linux-nvdimm@lists.01.org>; Fri, 07 Apr 2017 19:14:49 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170407231803.14936-1-vishal.l.verma@intel.com>
+References: <20170407231803.14936-1-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 7 Apr 2017 19:14:48 -0700
+Message-ID: <CAPcyv4hWo+KvySB+TVDKAPkBui_41PvvsEjp6KYQ0dgz1t9GdQ@mail.gmail.com>
+Subject: Re: [ndctl PATCH v4 0/6] Add ndctl check-namespace
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,44 +25,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Filesystem-DAX flushes caches whenever it writes to the address returned
-through dax_direct_access() and when writing back dirty radix entries.
-That flushing is only required in the pmem case, so the dax_flush()
-helper skips cache management work when the underlying driver does not
-specify a flush method.
+On Fri, Apr 7, 2017 at 4:17 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Changes in v4:
+> - Change the bitmap code to the kernel's GPLv2 Routines instead of the
+>   LGPL ccan/bitmap.
+> - Upgrade a few messages from 'info' to 'err'
 
-We still do all the dirty tracking since the radix entry will already be
-there for locking purposes. However, the work to clean the entry will be
-a nop for some dax drivers.
+Thanks Vishal! Applied and pushed out to 'pending'.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 11b9909c91df..edbf988de86c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -798,7 +798,7 @@ static int dax_writeback_one(struct block_device *bdev,
- 	}
- 
- 	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(pfn));
--	wb_cache_pmem(kaddr, size);
-+	dax_flush(dax_dev, pgoff, kaddr, size);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
- 	 * cannot be new dirty data in the pfn after the flush has completed as
-
+https://github.com/pmem/ndctl/tree/pending
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
