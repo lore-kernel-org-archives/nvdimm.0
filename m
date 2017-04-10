@@ -1,105 +1,19 @@
-From: "Jerald Jiminez  " <geracore539-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: Alexa Rank for lists.01.org
-Date: Sun, 09 Apr 2017 16:27:21 -0500
-Message-ID: <F4E9C9BC.34A819C2@gmail.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [RFC 6/8] nvmet: Be careful about using iomem accesses when
+ dealing with p2pmem
+Date: Mon, 10 Apr 2017 11:29:57 +0300
+Message-ID: <7fcc3ac8-8b96-90f5-3942-87f999c7499d@grimberg.me>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1490911959-5146-7-git-send-email-logang@deltatee.com>
+ <080b68b4-eba3-861c-4f29-5d829425b5e7@grimberg.me>
+ <20170404154629.GA13552@obsidianresearch.com>
+ <4df229d8-8124-664a-9bc4-6401bc034be1@grimberg.me>
+ <3E85B4D4-9EBC-4299-8209-2D8740947764@raithlin.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58EAA89F.4028EC81"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_58EAA89F.4028EC81
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  here is the requested inform%ation http://www.alexa-packages.com/index.php/alexa-rank-packages/
-   Thank you Jerald Jiminez Unsubscribe option available in the footer of our
-   website [...] 
-
-Content analysis details:   (11.9 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: alexa-packages.com]
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [203.14.188.88 listed in dnsbl.sorbs.net]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.alexa-packages.com]
- 2.8 FSL_HELO_FAKE          No description available.
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.alexa-packages.com]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?203.14.188.88>]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (geracore539[at]gmail.com)
--0.5 BAYES_05               BODY: Bayes spam probability is 1 to 5%
-                            [score: 0.0407]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: alexa-packages.com]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: alexa-packages.com]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_58EAA89F.4028EC81
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1cxKSP-0004Ln-3r
-	for gln-linux-nvdimm@m.gmane.org; Sun, 09 Apr 2017 23:33:13 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8891F219392F4;
-	Sun,  9 Apr 2017 14:33:17 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (lync-mediation.hosted.chinatelecomglobal.com
- [203.14.188.88]) by ml01.01.org (Postfix) with SMTP id DB68A219392F4
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sun,  9 Apr 2017 14:33:14 -0700 (PDT)
-Message-ID: <F4E9C9BC.34A819C2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sun, 09 Apr 2017 16:27:21 -0500
-From: "Jerald Jiminez  " <geracore539-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; fr-FR;
- rv:1.7.10) Gecko/20050716 Thunderbird/1.0.6
-MIME-Version: 1.0
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: re: Alexa Rank for lists.01.org
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <3E85B4D4-9EBC-4299-8209-2D8740947764-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -107,40 +21,28 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-here is the requested inform%ation
-http://www.alexa-packages.com/index.php/alexa-rank-packages/
-
-Thank you
-Jerald Jiminez =A0
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
 
+> Sagi
+>
+> As long as legA, legB and the RC are all connected to the same switch then ordering will be preserved (I think many other topologies also work). Here is how it would work for the problem case you are concerned about (which is a read from the NVMe drive).
+>
+> 1. Disk device DMAs out the data to the p2pmem device via a string of PCIe MemWr TLPs.
+> 2. Disk device writes to the completion queue (in system memory) via a MemWr TLP.
+> 3. The last of the MemWrs from step 1 might have got stalled in the PCIe switch due to congestion but if so they are stalled in the egress path of the switch for the p2pmem port.
+> 4. The RC determines the IO is complete when the TLP associated with step 2 updates the memory associated with the CQ. It issues some operation to read the p2pmem.
+> 5. Regardless of whether the MemRd TLP comes from the RC or another device connected to the switch it is queued in the egress queue for the p2pmem FIO behind the last DMA TLP (from step 1).
+> PCIe ordering ensures that this MemRd cannot overtake the MemWr (Reads can never pass writes).
+> Therefore the MemRd can never get to the p2pmem device until after the last DMA MemWr has.
 
+What you are saying is surprising to me. The switch needs to preserve
+ordering across different switch ports ??
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option available in the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_58EAA89F.4028EC81--
+You are suggesting that there is a *switch-wide* state that tracks
+MemRds never pass MemWrs across all the switch ports? That is a very
+non-trivial statement...
