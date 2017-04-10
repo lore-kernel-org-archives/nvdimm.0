@@ -2,16 +2,21 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5F3C720D7649F
- for <linux-nvdimm@lists.01.org>; Wed, 12 Apr 2017 01:24:40 -0700 (PDT)
-Date: Wed, 12 Apr 2017 16:24:33 +0800
-From: Dave Young <dyoung@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6BCCB21939222
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Apr 2017 12:18:16 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: KASLR causes intermittent boot failures on some systems
-Message-ID: <20170412082433.GA3546@dhcp-128-65.nay.redhat.com>
 References: <x49shlk700k.fsf@segfault.boston.devel.redhat.com>
+ <CAGXu5jJ-Pny8_rrEBtO8W86zjw2Edk7a-My4EfRf7jePS4sQeg@mail.gmail.com>
+ <x49d1ck5kkk.fsf@segfault.boston.devel.redhat.com>
+ <CAGXu5jLN=HNRj1DGwzWP5kU9iZ54oxzYoPYnnnqzWc9M-gcwfw@mail.gmail.com>
+ <x49vaqc3yww.fsf@segfault.boston.devel.redhat.com>
+ <CAGXu5jLRFYbJ_pDj1MKzES3qfmTq4krON3CwAFfPsD0X_KXG6w@mail.gmail.com>
+Date: Mon, 10 Apr 2017 15:18:14 -0400
+In-Reply-To: <CAGXu5jLRFYbJ_pDj1MKzES3qfmTq4krON3CwAFfPsD0X_KXG6w@mail.gmail.com>
+ (Kees Cook's message of "Mon, 10 Apr 2017 12:03:55 -0700")
+Message-ID: <x49r3103wcp.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <x49shlk700k.fsf@segfault.boston.devel.redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,49 +28,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: bhe@redhat.com, linux-nvdimm@lists.01.org, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, mingo@kernel.org, thgarnie@google.com
+To: Kees Cook <keescook@chromium.org>
+Cc: Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Thomas Garnier <thgarnie@google.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 04/07/17 at 10:41am, Jeff Moyer wrote:
-> Hi,
-> 
-> commit 021182e52fe01 ("x86/mm: Enable KASLR for physical mapping memory
-> regions") causes some of my systems with persistent memory (whether real
-> or emulated) to fail to boot with a couple of different crash
-> signatures.  The first signature is a NMI watchdog lockup of all but 1
-> cpu, which causes much difficulty in extracting useful information from
-> the console.  The second variant is an invalid paging request, listed
-> below.
-> 
-> On some systems, I haven't hit this problem at all.  Other systems
-> experience a failed boot maybe 20-30% of the time.  To reproduce it,
-> configure some emulated pmem on your system.  You can find directions
-> for that here: https://nvdimm.wiki.kernel.org/
-> 
-> Install ndctl (https://github.com/pmem/ndctl).
-> Configure the namespace:
-> # ndctl create-namespace -f -e namespace0.0 -m memory
-> 
-> Then just reboot several times (5 should be enough), and hopefully
-> you'll hit the issue.
-> 
-> I've attached both my .config and the dmesg output from a successful
-> boot at the end of this mail.
-> 
-[snip]
+Kees Cook <keescook@chromium.org> writes:
 
-I did some tests about emulated pmem via memmap=, kdump kernel hangs or
-just reboots early during compressing kernel, no clue how to handle it.
-Since for kdump kernel kaslr is pointless a workaround is use "nokaslr"
+> On Mon, Apr 10, 2017 at 11:22 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
+>> Kees Cook <keescook@chromium.org> writes:
+>>
+>>> On Mon, Apr 10, 2017 at 8:49 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
+>>>> Kees Cook <keescook@chromium.org> writes:
+>>>>
+>>>>> On Fri, Apr 7, 2017 at 7:41 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> commit 021182e52fe01 ("x86/mm: Enable KASLR for physical mapping memory
+>>>>>> regions") causes some of my systems with persistent memory (whether real
+>>>>>> or emulated) to fail to boot with a couple of different crash
+>>>>>> signatures.  The first signature is a NMI watchdog lockup of all but 1
+>>>>>> cpu, which causes much difficulty in extracting useful information from
+>>>>>> the console.  The second variant is an invalid paging request, listed
+>>>>>> below.
+>>>>>
+>>>>> Just to rule out some of the stuff in the boot path, does booting with
+>>>>> "nokaslr" solve this? (i.e. I want to figure out if this is from some
+>>>>> of the rearrangements done that are exposed under that commit, or if
+>>>>> it is genuinely the randomization that is killing the systems...)
+>>>>
+>>>> Adding "nokaslr" to the boot line does indeed make the problem go away.
+>>>
+>>> Are you booting with a memmap= flag?
+>>
+>> From my first email:
+>>
+>> [ 0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.11.0-rc5+
+>> root=/dev/mapper/rhel_intel--lizardhead--04-root ro memmap=192G!1024G
+>> crashkernel=auto rd.lvm.lv=rhel_intel-lizardhead-04/root
+>> rd.lvm.lv=rhel_intel-lizardhead-04/swap console=ttyS0,115200n81
+>> LANG=en_US.UTF-8
+>>
+>> Did you not receive the attachments?
+>
+> I see it now, thanks!
+>
+> The memmap parsing was added in -rc1 (f28442497b5ca), so I'd expect
+> that to be handled. Hmmm.
 
-In Fedora or RHEL, just add "nokaslr" in KDUMP_COMMANDLINE_APPEND
-in /etc/sysconfig/kdump 
+I can also reproduce this on a system with real persistent memory, which
+does not require the memmap parameter.
 
-Can you try if this works?
-
-Thanks
-Dave
+Cheers,
+Jeff
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
