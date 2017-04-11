@@ -1,18 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 605412095C3BE
- for <linux-nvdimm@lists.01.org>; Wed, 12 Apr 2017 02:15:02 -0700 (PDT)
-Date: Wed, 12 Apr 2017 11:14:42 +0200
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [RFC PATCH] x86, mce: change the mce notifier to 'blocking' from
- 'atomic'
-Message-ID: <20170412091442.dwonfr4dwyta7nvx@pd.tnic>
-References: <20170411224457.24777-1-vishal.l.verma@intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20170411224457.24777-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E36BC21A04823
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 15:46:31 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [RFC PATCH] x86,
+ mce: change the mce notifier to 'blocking' from 'atomic'
+Date: Tue, 11 Apr 2017 16:44:57 -0600
+Message-Id: <20170411224457.24777-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,58 +16,129 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>, linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>, linux-nvdimm@lists.01.org, x86@kernel.org, Borislav Petkov <bp@suse.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCBBcHIgMTEsIDIwMTcgYXQgMDQ6NDQ6NTdQTSAtMDYwMCwgVmlzaGFsIFZlcm1hIHdy
-b3RlOgo+IFRoZSBORklUIE1DRSBoYW5kbGVyIGNhbGxiYWNrIChmb3IgaGFuZGxpbmcgbWVkaWEg
-ZXJyb3JzIG9uIE5WRElNTXMpCj4gdGFrZXMgYSBtdXRleCB0byBhZGQgdGhlIGxvY2F0aW9uIG9m
-IGEgbWVtb3J5IGVycm9yIHRvIGEgbGlzdC4gQnV0IHNpbmNlCj4gdGhlIG5vdGlmaWVyIGNhbGwg
-Y2hhaW4gZm9yIG1hY2hpbmUgY2hlY2tzICh4ODZfbWNlX2RlY29kZXJfY2hhaW4pIGlzCj4gYXRv
-bWljLCB3ZSBnZXQgYSBsb2NrZGVwIHNwbGF0IGxpa2U6Cj4gCj4gICBCVUc6IHNsZWVwaW5nIGZ1
-bmN0aW9uIGNhbGxlZCBmcm9tIGludmFsaWQgY29udGV4dCBhdCBrZXJuZWwvbG9ja2luZy9tdXRl
-eC5jOjYyMAo+ICAgaW5fYXRvbWljKCk6IDEsIGlycXNfZGlzYWJsZWQoKTogMCwgcGlkOiA0LCBu
-YW1lOiBrd29ya2VyLzA6MAo+ICAgWy4uXQo+ICAgQ2FsbCBUcmFjZToKPiAgICBkdW1wX3N0YWNr
-KzB4ODYvMHhjMwo+ICAgIF9fX21pZ2h0X3NsZWVwKzB4MTc4LzB4MjQwCj4gICAgX19taWdodF9z
-bGVlcCsweDRhLzB4ODAKPiAgICBtdXRleF9sb2NrX25lc3RlZCsweDQzLzB4M2YwCj4gICAgPyBf
-X2xvY2tfYWNxdWlyZSsweGNiYy8weDEyOTAKPiAgICBuZml0X2hhbmRsZV9tY2UrMHgzMy8weDE4
-MCBbbmZpdF0KPiAgICBub3RpZmllcl9jYWxsX2NoYWluKzB4NGEvMHg3MAo+ICAgIGF0b21pY19u
-b3RpZmllcl9jYWxsX2NoYWluKzB4NmUvMHgxMTAKPiAgICA/IGF0b21pY19ub3RpZmllcl9jYWxs
-X2NoYWluKzB4NS8weDExMAo+ICAgIG1jZV9nZW5fcG9vbF9wcm9jZXNzKzB4NDEvMHg3MAo+IAo+
-IENvbW1pdCA2NDhlZDk0MDM4YzAzMDI0NWEwNmU0YmU1OTc0NGZkNWNkYzE4YzQwCj4gICAgICAg
-eDg2L21jZTogUHJvdmlkZSBhIGxvY2tsZXNzIG1lbW9yeSBwb29sIHRvIHNhdmUgZXJyb3IgcmVj
-b3Jkcwo+IENoYW5nZXMgdGhlIG1jZSBub3RpZmllciBjYWxsYmFja3MgdG8gYmUgcnVuIGluIGEg
-cHJvY2VzcyBjb250ZXh0LCBhbmQKPiB0aGlzIGNhbiBhbGxvdyB1cyB0byB1c2UgdGhlICdibG9j
-a2luZycgdHlwZSBub3RpZmllciwgd2hlcmUgd2UgY2FuIHRha2UKPiBtdXRleGVzIGV0Yy4gaW4g
-dGhlIGNhbGwgY2hhaW4gZnVuY3Rpb25zLgo+IAo+IFJlcG9ydGVkLWJ5OiBSb3NzIFp3aXNsZXIg
-PHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+Cj4gQ2M6IEJvcmlzbGF2IFBldGtvdiA8YnBA
-c3VzZS5kZT4KPiBDYzogVG9ueSBMdWNrIDx0b255Lmx1Y2tAaW50ZWwuY29tPgo+IENjOiBEYW4g
-V2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBWaXNo
-YWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4KPiAtLS0KPiAgYXJjaC94ODYva2Vy
-bmVsL2NwdS9tY2hlY2svbWNlLWdlbnBvb2wuYyAgfCAyICstCj4gIGFyY2gveDg2L2tlcm5lbC9j
-cHUvbWNoZWNrL21jZS1pbnRlcm5hbC5oIHwgMiArLQo+ICBhcmNoL3g4Ni9rZXJuZWwvY3B1L21j
-aGVjay9tY2UuYyAgICAgICAgICB8IDggKysrKy0tLS0KPiAgMyBmaWxlcyBjaGFuZ2VkLCA2IGlu
-c2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCj4gCj4gV2hpbGUgdGhpcyBwYXRjaCBhbG1vc3Qg
-c29sdmVzIHRoZSBwcm9ibGVtLCBJIHRoaW5rIGl0IGlzIG5vdCBxdWl0ZSByaWdodC4KPiBUaGUg
-eDg2X21jZV9kZWNvZGVyX2NoYWluIGlzIGFsc28gY2FsbGVkIGZyb20gcHJpbnRfbWNlIGZvciBm
-YXRhbCBtYWNoaW5lCj4gY2hlY2tzLCBhbmQgdGhhdCBpcywgYWZhaWN0LCBzdGlsbCBmcm9tIGFu
-IGF0b21pYyBjb250ZXh0LiBPbmUgdGhpbmcgVG9ueQo+IHN1Z2dlc3RlZCB3YXMgc3BsaXR0aW5n
-IHRoZSBub3RpZmllciBjaGFpbiBpbnRvIHR3byBkaXN0aW5jdCBjaGFpbnMsIG9uZQo+IGZvciBy
-ZWd1bGFyIGxvZ2dpbmcgYW5kIHJlY292ZXJhYmxlIGFjdGlvbnMgdGhhdCBhbGxvd3MgYmxvY2tp
-bmcsIHRoZQo+IG90aGVyIGZyb20gdGhlIHBhbmljIHBhdGguCgpXZWxsLCBpZiBNb2hhbW1hZCB3
-b24ndCBjb21lIHRvIHRoZSBtb3VudGFpbi4uLgoKU28gdGhlIE5GSVQgaGFuZGxlciBoYXM6Cgog
-ICAgICAgIC8qIFdlIG9ubHkgY2FyZSBhYm91dCBtZW1vcnkgZXJyb3JzICovCiAgICAgICAgaWYg
-KCEobWNlLT5zdGF0dXMgJiBNQ0FDT0QpKQogICAgICAgICAgICAgICAgcmV0dXJuIE5PVElGWV9E
-T05FOwoKd2hhdCBzZXZlcml0eSBhcmUgd2UgdGFsa2luZyBoZXJlPyBFcnJvcnMgd2hpY2ggY2Fu
-IGJlIHJlcG9ydGVkIG9uIHRoZQpwYW5pYyBwYXRoLCBpLmUuLCBpbiBhdG9taWMgY29udGV4dCBv
-ciBvbmx5IEFPL0FSIG9uZXMgd2hpY2ggZG9uJ3QgcmFpc2UKYW4gI01DIGV4Y2VwdGlvbj8KCi0t
-IApSZWdhcmRzL0dydXNzLAogICAgQm9yaXMuCgpTVVNFIExpbnV4IEdtYkgsIEdGOiBGZWxpeCBJ
-bWVuZMO2cmZmZXIsIEphbmUgU21pdGhhcmQsIEdyYWhhbSBOb3J0b24sIEhSQiAyMTI4NCAoQUcg
-TsO8cm5iZXJnKQotLSAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+The NFIT MCE handler callback (for handling media errors on NVDIMMs)
+takes a mutex to add the location of a memory error to a list. But since
+the notifier call chain for machine checks (x86_mce_decoder_chain) is
+atomic, we get a lockdep splat like:
+
+  BUG: sleeping function called from invalid context at kernel/locking/mutex.c:620
+  in_atomic(): 1, irqs_disabled(): 0, pid: 4, name: kworker/0:0
+  [..]
+  Call Trace:
+   dump_stack+0x86/0xc3
+   ___might_sleep+0x178/0x240
+   __might_sleep+0x4a/0x80
+   mutex_lock_nested+0x43/0x3f0
+   ? __lock_acquire+0xcbc/0x1290
+   nfit_handle_mce+0x33/0x180 [nfit]
+   notifier_call_chain+0x4a/0x70
+   atomic_notifier_call_chain+0x6e/0x110
+   ? atomic_notifier_call_chain+0x5/0x110
+   mce_gen_pool_process+0x41/0x70
+
+Commit 648ed94038c030245a06e4be59744fd5cdc18c40
+      x86/mce: Provide a lockless memory pool to save error records
+Changes the mce notifier callbacks to be run in a process context, and
+this can allow us to use the 'blocking' type notifier, where we can take
+mutexes etc. in the call chain functions.
+
+Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ arch/x86/kernel/cpu/mcheck/mce-genpool.c  | 2 +-
+ arch/x86/kernel/cpu/mcheck/mce-internal.h | 2 +-
+ arch/x86/kernel/cpu/mcheck/mce.c          | 8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+While this patch almost solves the problem, I think it is not quite right.
+The x86_mce_decoder_chain is also called from print_mce for fatal machine
+checks, and that is, afaict, still from an atomic context. One thing Tony
+suggested was splitting the notifier chain into two distinct chains, one
+for regular logging and recoverable actions that allows blocking, the
+other from the panic path.
+
+diff --git a/arch/x86/kernel/cpu/mcheck/mce-genpool.c b/arch/x86/kernel/cpu/mcheck/mce-genpool.c
+index 1e5a50c..217cd44 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce-genpool.c
++++ b/arch/x86/kernel/cpu/mcheck/mce-genpool.c
+@@ -85,7 +85,7 @@ void mce_gen_pool_process(struct work_struct *__unused)
+ 	head = llist_reverse_order(head);
+ 	llist_for_each_entry_safe(node, tmp, head, llnode) {
+ 		mce = &node->mce;
+-		atomic_notifier_call_chain(&x86_mce_decoder_chain, 0, mce);
++		blocking_notifier_call_chain(&x86_mce_decoder_chain, 0, mce);
+ 		gen_pool_free(mce_evt_pool, (unsigned long)node, sizeof(*node));
+ 	}
+ }
+diff --git a/arch/x86/kernel/cpu/mcheck/mce-internal.h b/arch/x86/kernel/cpu/mcheck/mce-internal.h
+index 903043e..19592ba 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce-internal.h
++++ b/arch/x86/kernel/cpu/mcheck/mce-internal.h
+@@ -13,7 +13,7 @@ enum severity_level {
+ 	MCE_PANIC_SEVERITY,
+ };
+ 
+-extern struct atomic_notifier_head x86_mce_decoder_chain;
++extern struct blocking_notifier_head x86_mce_decoder_chain;
+ 
+ #define ATTR_LEN		16
+ #define INITIAL_CHECK_INTERVAL	5 * 60 /* 5 minutes */
+diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
+index 8e9725c..b39ca29 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -121,7 +121,7 @@ static void (*quirk_no_way_out)(int bank, struct mce *m, struct pt_regs *regs);
+  * CPU/chipset specific EDAC code can register a notifier call here to print
+  * MCE errors in a human-readable form.
+  */
+-ATOMIC_NOTIFIER_HEAD(x86_mce_decoder_chain);
++BLOCKING_NOTIFIER_HEAD(x86_mce_decoder_chain);
+ 
+ /* Do initial initialization of a struct mce */
+ void mce_setup(struct mce *m)
+@@ -218,7 +218,7 @@ void mce_register_decode_chain(struct notifier_block *nb)
+ 
+ 	WARN_ON(nb->priority > MCE_PRIO_LOWEST && nb->priority < MCE_PRIO_EDAC);
+ 
+-	atomic_notifier_chain_register(&x86_mce_decoder_chain, nb);
++	blocking_notifier_chain_register(&x86_mce_decoder_chain, nb);
+ }
+ EXPORT_SYMBOL_GPL(mce_register_decode_chain);
+ 
+@@ -226,7 +226,7 @@ void mce_unregister_decode_chain(struct notifier_block *nb)
+ {
+ 	atomic_dec(&num_notifiers);
+ 
+-	atomic_notifier_chain_unregister(&x86_mce_decoder_chain, nb);
++	blocking_notifier_chain_unregister(&x86_mce_decoder_chain, nb);
+ }
+ EXPORT_SYMBOL_GPL(mce_unregister_decode_chain);
+ 
+@@ -327,7 +327,7 @@ static void print_mce(struct mce *m)
+ 	 * Print out human-readable details about the MCE error,
+ 	 * (if the CPU has an implementation for that)
+ 	 */
+-	ret = atomic_notifier_call_chain(&x86_mce_decoder_chain, 0, m);
++	ret = blocking_notifier_call_chain(&x86_mce_decoder_chain, 0, m);
+ 	if (ret == NOTIFY_STOP)
+ 		return;
+ 
+-- 
+2.9.3
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
