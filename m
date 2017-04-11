@@ -1,18 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A34FF21A04823
- for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 15:17:58 -0700 (PDT)
-Subject: Re: [PATCH v2] libnvdimm: fix clear poison locking with spinlock and
- mempool
+ by ml01.01.org (Postfix) with ESMTPS id 513D020D76485
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 15:13:53 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v2] libnvdimm: fix clear poison locking with spinlock
+ and mempool
+Date: Tue, 11 Apr 2017 22:13:52 +0000
+Message-ID: <1491948751.2738.11.camel@intel.com>
 References: <149194856068.47527.14334115580831385512.stgit@djiang5-desk3.ch.intel.com>
- <1491948751.2738.11.camel@intel.com>
-From: Dave Jiang <dave.jiang@intel.com>
-Message-ID: <ef336d38-e443-4d31-a86d-220789b7b574@intel.com>
-Date: Tue, 11 Apr 2017 15:17:57 -0700
+In-Reply-To: <149194856068.47527.14334115580831385512.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <E50454C513E9BE43B9C24E4E54F9E721@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1491948751.2738.11.camel@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,236 +21,147 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 04/11/2017 03:13 PM, Verma, Vishal L wrote:
-> On Tue, 2017-04-11 at 15:09 -0700, Dave Jiang wrote:
->> The following warning results from holding a lane spinlock,
->> preempt_disable(), or the btt map spinlock and then trying to take the
->> reconfig_mutex to walk the poison list and potentially add new
->> entries.
->>
->> BUG: sleeping function called from invalid context at
->> kernel/locking/mutex.
->> c:747
->> in_atomic(): 1, irqs_disabled(): 0, pid: 17159, name: dd
->> [..]
->> Call Trace:
->> dump_stack+0x85/0xc8
->> ___might_sleep+0x184/0x250
->> __might_sleep+0x4a/0x90
->> __mutex_lock+0x58/0x9b0
->> ? nvdimm_bus_lock+0x21/0x30 [libnvdimm]
->> ? __nvdimm_bus_badblocks_clear+0x2f/0x60 [libnvdimm]
->> ? acpi_nfit_forget_poison+0x79/0x80 [nfit]
->> ? _raw_spin_unlock+0x27/0x40
->> mutex_lock_nested+0x1b/0x20
->> nvdimm_bus_lock+0x21/0x30 [libnvdimm]
->> nvdimm_forget_poison+0x25/0x50 [libnvdimm]
->> nvdimm_clear_poison+0x106/0x140 [libnvdimm]
->> nsio_rw_bytes+0x164/0x270 [libnvdimm]
->> btt_write_pg+0x1de/0x3e0 [nd_btt]
->> ? blk_queue_enter+0x30/0x290
->> btt_make_request+0x11a/0x310 [nd_btt]
->> ? blk_queue_enter+0xb7/0x290
->> ? blk_queue_enter+0x30/0x290
->> generic_make_request+0x118/0x3b0
->>
->> Two things are done to address this issue. First, we introduce a
->> spinlock to
->> protect the poison list. This allows us to not having to acquire the
->> reconfig_mutex for touching the poison list. Second, we allocate the
->> poison
->> entries using GFP_NOWAIT and avoid the sleep with GFP_KERNEL.
->>
->> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
->> ---
->>  drivers/nvdimm/bus.c      |   12 +++++++-----
->>  drivers/nvdimm/core.c     |   25 ++++++++-----------------
->>  drivers/nvdimm/nd-core.h  |    1 +
->>  include/linux/libnvdimm.h |    2 --
->>  4 files changed, 16 insertions(+), 24 deletions(-)
->>
->> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
->> index 5ad2e59..fe41146 100644
->> --- a/drivers/nvdimm/bus.c
->> +++ b/drivers/nvdimm/bus.c
->> @@ -296,6 +296,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct
->> device *parent,
->>  	init_waitqueue_head(&nvdimm_bus->probe_wait);
->>  	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
->>  	mutex_init(&nvdimm_bus->reconfig_mutex);
->> +	spin_lock_init(&nvdimm_bus->poison_lock);
->>  	if (nvdimm_bus->id < 0) {
->>  		kfree(nvdimm_bus);
->>  		return NULL;
->> @@ -342,8 +343,9 @@ static int child_unregister(struct device *dev,
->> void *data)
->>  	return 0;
->>  }
->>  
->> -static void free_poison_list(struct list_head *poison_list)
->> +static void free_poison_list(struct nvdimm_bus *nvdimm_bus)
->>  {
->> +	struct list_head *poison_list = &nvdimm_bus->poison_list;
->>  	struct nd_poison *pl, *next;
-> 
-> This change isn't needed anymore in v2 right? (and the caller below)
-
-Good catch!
-
-> 
->>  
->>  	list_for_each_entry_safe(pl, next, poison_list, list) {
->> @@ -364,9 +366,9 @@ static int nd_bus_remove(struct device *dev)
->>  	nd_synchronize();
->>  	device_for_each_child(&nvdimm_bus->dev, NULL,
->> child_unregister);
->>  
->> -	nvdimm_bus_lock(&nvdimm_bus->dev);
->> -	free_poison_list(&nvdimm_bus->poison_list);
->> -	nvdimm_bus_unlock(&nvdimm_bus->dev);
->> +	spin_lock(&nvdimm_bus->poison_lock);
->> +	free_poison_list(nvdimm_bus);
->> +	spin_unlock(&nvdimm_bus->poison_lock);
->>  
->>  	nvdimm_bus_destroy_ndctl(nvdimm_bus);
->>  
->> @@ -990,7 +992,7 @@ static int __nd_ioctl(struct nvdimm_bus
->> *nvdimm_bus, struct nvdimm *nvdimm,
->>  
->>  		if (clear_err->cleared) {
->>  			/* clearing the poison list we keep track of
->> */
->> -			__nvdimm_forget_poison(nvdimm_bus, clear_err-
->>> address,
->> +			nvdimm_forget_poison(nvdimm_bus, clear_err-
->>> address,
->>  					clear_err->cleared);
->>  
->>  			/* now sync the badblocks lists */
->> diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
->> index 40a3da0..9567b08 100644
->> --- a/drivers/nvdimm/core.c
->> +++ b/drivers/nvdimm/core.c
->> @@ -539,7 +539,7 @@ static int bus_add_poison(struct nvdimm_bus
->> *nvdimm_bus, u64 addr, u64 length)
->>  	struct nd_poison *pl;
->>  
->>  	if (list_empty(&nvdimm_bus->poison_list))
->> -		return add_poison(nvdimm_bus, addr, length,
->> GFP_KERNEL);
->> +		return add_poison(nvdimm_bus, addr, length,
->> GFP_NOWAIT);
->>  
->>  	/*
->>  	 * There is a chance this is a duplicate, check for those
->> first.
->> @@ -559,30 +559,29 @@ static int bus_add_poison(struct nvdimm_bus
->> *nvdimm_bus, u64 addr, u64 length)
->>  	 * as any overlapping ranges will get resolved when the list
->> is consumed
->>  	 * and converted to badblocks
->>  	 */
->> -	return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
->> +	return add_poison(nvdimm_bus, addr, length, GFP_NOWAIT);
->>  }
->>  
->>  int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr,
->> u64 length)
->>  {
->>  	int rc;
->>  
->> -	nvdimm_bus_lock(&nvdimm_bus->dev);
->> +	spin_lock(&nvdimm_bus->poison_lock);
->>  	rc = bus_add_poison(nvdimm_bus, addr, length);
->> -	nvdimm_bus_unlock(&nvdimm_bus->dev);
->> +	spin_unlock(&nvdimm_bus->poison_lock);
->>  
->>  	return rc;
->>  }
->>  EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
->>  
->> -void __nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
->> phys_addr_t start,
->> +void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus, phys_addr_t
->> start,
->>  		unsigned int len)
->>  {
->>  	struct list_head *poison_list = &nvdimm_bus->poison_list;
->>  	u64 clr_end = start + len - 1;
->>  	struct nd_poison *pl, *next;
->>  
->> -	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
->> -
->> +	spin_lock(&nvdimm_bus->poison_lock);
->>  	WARN_ON_ONCE(list_empty(poison_list));
->>  
->>  	/*
->> @@ -629,21 +628,13 @@ void __nvdimm_forget_poison(struct nvdimm_bus
->> *nvdimm_bus, phys_addr_t start,
->>  			u64 new_len = pl_end - new_start + 1;
->>  
->>  			/* Add new entry covering the right half */
->> -			add_poison(nvdimm_bus, new_start, new_len,
->> GFP_NOIO);
->> +			add_poison(nvdimm_bus, new_start, new_len,
->> GFP_NOWAIT);
->>  			/* Adjust this entry to cover the left half
->> */
->>  			pl->length = start - pl->start;
->>  			continue;
->>  		}
->>  	}
->> -}
->> -EXPORT_SYMBOL_GPL(__nvdimm_forget_poison);
->> -
->> -void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
->> -		phys_addr_t start, unsigned int len)
->> -{
->> -	nvdimm_bus_lock(&nvdimm_bus->dev);
->> -	__nvdimm_forget_poison(nvdimm_bus, start, len);
->> -	nvdimm_bus_unlock(&nvdimm_bus->dev);
->> +	spin_unlock(&nvdimm_bus->poison_lock);
->>  }
->>  EXPORT_SYMBOL_GPL(nvdimm_forget_poison);
->>  
->> diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
->> index 8623e57..4c4bd20 100644
->> --- a/drivers/nvdimm/nd-core.h
->> +++ b/drivers/nvdimm/nd-core.h
->> @@ -32,6 +32,7 @@ struct nvdimm_bus {
->>  	struct list_head poison_list;
->>  	struct list_head mapping_list;
->>  	struct mutex reconfig_mutex;
->> +	spinlock_t poison_lock;
->>  };
->>  
->>  struct nvdimm {
->> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
->> index 1c609e8..98b2076 100644
->> --- a/include/linux/libnvdimm.h
->> +++ b/include/linux/libnvdimm.h
->> @@ -122,8 +122,6 @@ static inline struct nd_blk_region_desc
->> *to_blk_region_desc(
->>  int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr,
->> u64 length);
->>  void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
->>  		phys_addr_t start, unsigned int len);
->> -void __nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
->> -		phys_addr_t start, unsigned int len);
->>  struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
->>  		struct nvdimm_bus_descriptor *nfit_desc);
->>  void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCAyMDE3LTA0LTExIGF0IDE1OjA5IC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOg0KPiBU
+aGUgZm9sbG93aW5nIHdhcm5pbmcgcmVzdWx0cyBmcm9tIGhvbGRpbmcgYSBsYW5lIHNwaW5sb2Nr
+LA0KPiBwcmVlbXB0X2Rpc2FibGUoKSwgb3IgdGhlIGJ0dCBtYXAgc3BpbmxvY2sgYW5kIHRoZW4g
+dHJ5aW5nIHRvIHRha2UgdGhlDQo+IHJlY29uZmlnX211dGV4IHRvIHdhbGsgdGhlIHBvaXNvbiBs
+aXN0IGFuZCBwb3RlbnRpYWxseSBhZGQgbmV3DQo+IGVudHJpZXMuDQo+IA0KPiBCVUc6IHNsZWVw
+aW5nIGZ1bmN0aW9uIGNhbGxlZCBmcm9tIGludmFsaWQgY29udGV4dCBhdA0KPiBrZXJuZWwvbG9j
+a2luZy9tdXRleC4NCj4gYzo3NDcNCj4gaW5fYXRvbWljKCk6IDEsIGlycXNfZGlzYWJsZWQoKTog
+MCwgcGlkOiAxNzE1OSwgbmFtZTogZGQNCj4gWy4uXQ0KPiBDYWxsIFRyYWNlOg0KPiBkdW1wX3N0
+YWNrKzB4ODUvMHhjOA0KPiBfX19taWdodF9zbGVlcCsweDE4NC8weDI1MA0KPiBfX21pZ2h0X3Ns
+ZWVwKzB4NGEvMHg5MA0KPiBfX211dGV4X2xvY2srMHg1OC8weDliMA0KPiA/IG52ZGltbV9idXNf
+bG9jaysweDIxLzB4MzAgW2xpYm52ZGltbV0NCj4gPyBfX252ZGltbV9idXNfYmFkYmxvY2tzX2Ns
+ZWFyKzB4MmYvMHg2MCBbbGlibnZkaW1tXQ0KPiA/IGFjcGlfbmZpdF9mb3JnZXRfcG9pc29uKzB4
+NzkvMHg4MCBbbmZpdF0NCj4gPyBfcmF3X3NwaW5fdW5sb2NrKzB4MjcvMHg0MA0KPiBtdXRleF9s
+b2NrX25lc3RlZCsweDFiLzB4MjANCj4gbnZkaW1tX2J1c19sb2NrKzB4MjEvMHgzMCBbbGlibnZk
+aW1tXQ0KPiBudmRpbW1fZm9yZ2V0X3BvaXNvbisweDI1LzB4NTAgW2xpYm52ZGltbV0NCj4gbnZk
+aW1tX2NsZWFyX3BvaXNvbisweDEwNi8weDE0MCBbbGlibnZkaW1tXQ0KPiBuc2lvX3J3X2J5dGVz
+KzB4MTY0LzB4MjcwIFtsaWJudmRpbW1dDQo+IGJ0dF93cml0ZV9wZysweDFkZS8weDNlMCBbbmRf
+YnR0XQ0KPiA/IGJsa19xdWV1ZV9lbnRlcisweDMwLzB4MjkwDQo+IGJ0dF9tYWtlX3JlcXVlc3Qr
+MHgxMWEvMHgzMTAgW25kX2J0dF0NCj4gPyBibGtfcXVldWVfZW50ZXIrMHhiNy8weDI5MA0KPiA/
+IGJsa19xdWV1ZV9lbnRlcisweDMwLzB4MjkwDQo+IGdlbmVyaWNfbWFrZV9yZXF1ZXN0KzB4MTE4
+LzB4M2IwDQo+IA0KPiBUd28gdGhpbmdzIGFyZSBkb25lIHRvIGFkZHJlc3MgdGhpcyBpc3N1ZS4g
+Rmlyc3QsIHdlIGludHJvZHVjZSBhDQo+IHNwaW5sb2NrIHRvDQo+IHByb3RlY3QgdGhlIHBvaXNv
+biBsaXN0LiBUaGlzIGFsbG93cyB1cyB0byBub3QgaGF2aW5nIHRvIGFjcXVpcmUgdGhlDQo+IHJl
+Y29uZmlnX211dGV4IGZvciB0b3VjaGluZyB0aGUgcG9pc29uIGxpc3QuIFNlY29uZCwgd2UgYWxs
+b2NhdGUgdGhlDQo+IHBvaXNvbg0KPiBlbnRyaWVzIHVzaW5nIEdGUF9OT1dBSVQgYW5kIGF2b2lk
+IHRoZSBzbGVlcCB3aXRoIEdGUF9LRVJORUwuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBEYXZlIEpp
+YW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4NCj4gLS0tDQo+IMKgZHJpdmVycy9udmRpbW0vYnVz
+LmPCoMKgwqDCoMKgwqB8wqDCoMKgMTIgKysrKysrKy0tLS0tDQo+IMKgZHJpdmVycy9udmRpbW0v
+Y29yZS5jwqDCoMKgwqDCoHzCoMKgwqAyNSArKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tDQo+IMKg
+ZHJpdmVycy9udmRpbW0vbmQtY29yZS5owqDCoHzCoMKgwqDCoDEgKw0KPiDCoGluY2x1ZGUvbGlu
+dXgvbGlibnZkaW1tLmggfMKgwqDCoMKgMiAtLQ0KPiDCoDQgZmlsZXMgY2hhbmdlZCwgMTYgaW5z
+ZXJ0aW9ucygrKSwgMjQgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9u
+dmRpbW0vYnVzLmMgYi9kcml2ZXJzL252ZGltbS9idXMuYw0KPiBpbmRleCA1YWQyZTU5Li5mZTQx
+MTQ2IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL252ZGltbS9idXMuYw0KPiArKysgYi9kcml2ZXJz
+L252ZGltbS9idXMuYw0KPiBAQCAtMjk2LDYgKzI5Niw3IEBAIHN0cnVjdCBudmRpbW1fYnVzICpu
+dmRpbW1fYnVzX3JlZ2lzdGVyKHN0cnVjdA0KPiBkZXZpY2UgKnBhcmVudCwNCj4gwqAJaW5pdF93
+YWl0cXVldWVfaGVhZCgmbnZkaW1tX2J1cy0+cHJvYmVfd2FpdCk7DQo+IMKgCW52ZGltbV9idXMt
+PmlkID0gaWRhX3NpbXBsZV9nZXQoJm5kX2lkYSwgMCwgMCwgR0ZQX0tFUk5FTCk7DQo+IMKgCW11
+dGV4X2luaXQoJm52ZGltbV9idXMtPnJlY29uZmlnX211dGV4KTsNCj4gKwlzcGluX2xvY2tfaW5p
+dCgmbnZkaW1tX2J1cy0+cG9pc29uX2xvY2spOw0KPiDCoAlpZiAobnZkaW1tX2J1cy0+aWQgPCAw
+KSB7DQo+IMKgCQlrZnJlZShudmRpbW1fYnVzKTsNCj4gwqAJCXJldHVybiBOVUxMOw0KPiBAQCAt
+MzQyLDggKzM0Myw5IEBAIHN0YXRpYyBpbnQgY2hpbGRfdW5yZWdpc3RlcihzdHJ1Y3QgZGV2aWNl
+ICpkZXYsDQo+IHZvaWQgKmRhdGEpDQo+IMKgCXJldHVybiAwOw0KPiDCoH0NCj4gwqANCj4gLXN0
+YXRpYyB2b2lkIGZyZWVfcG9pc29uX2xpc3Qoc3RydWN0IGxpc3RfaGVhZCAqcG9pc29uX2xpc3Qp
+DQo+ICtzdGF0aWMgdm9pZCBmcmVlX3BvaXNvbl9saXN0KHN0cnVjdCBudmRpbW1fYnVzICpudmRp
+bW1fYnVzKQ0KPiDCoHsNCj4gKwlzdHJ1Y3QgbGlzdF9oZWFkICpwb2lzb25fbGlzdCA9ICZudmRp
+bW1fYnVzLT5wb2lzb25fbGlzdDsNCj4gwqAJc3RydWN0IG5kX3BvaXNvbiAqcGwsICpuZXh0Ow0K
+DQpUaGlzIGNoYW5nZSBpc24ndCBuZWVkZWQgYW55bW9yZSBpbiB2MiByaWdodD8gKGFuZCB0aGUg
+Y2FsbGVyIGJlbG93KQ0KDQo+IMKgDQo+IMKgCWxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZShwbCwg
+bmV4dCwgcG9pc29uX2xpc3QsIGxpc3QpIHsNCj4gQEAgLTM2NCw5ICszNjYsOSBAQCBzdGF0aWMg
+aW50IG5kX2J1c19yZW1vdmUoc3RydWN0IGRldmljZSAqZGV2KQ0KPiDCoAluZF9zeW5jaHJvbml6
+ZSgpOw0KPiDCoAlkZXZpY2VfZm9yX2VhY2hfY2hpbGQoJm52ZGltbV9idXMtPmRldiwgTlVMTCwN
+Cj4gY2hpbGRfdW5yZWdpc3Rlcik7DQo+IMKgDQo+IC0JbnZkaW1tX2J1c19sb2NrKCZudmRpbW1f
+YnVzLT5kZXYpOw0KPiAtCWZyZWVfcG9pc29uX2xpc3QoJm52ZGltbV9idXMtPnBvaXNvbl9saXN0
+KTsNCj4gLQludmRpbW1fYnVzX3VubG9jaygmbnZkaW1tX2J1cy0+ZGV2KTsNCj4gKwlzcGluX2xv
+Y2soJm52ZGltbV9idXMtPnBvaXNvbl9sb2NrKTsNCj4gKwlmcmVlX3BvaXNvbl9saXN0KG52ZGlt
+bV9idXMpOw0KPiArCXNwaW5fdW5sb2NrKCZudmRpbW1fYnVzLT5wb2lzb25fbG9jayk7DQo+IMKg
+DQo+IMKgCW52ZGltbV9idXNfZGVzdHJveV9uZGN0bChudmRpbW1fYnVzKTsNCj4gwqANCj4gQEAg
+LTk5MCw3ICs5OTIsNyBAQCBzdGF0aWMgaW50IF9fbmRfaW9jdGwoc3RydWN0IG52ZGltbV9idXMN
+Cj4gKm52ZGltbV9idXMsIHN0cnVjdCBudmRpbW0gKm52ZGltbSwNCj4gwqANCj4gwqAJCWlmIChj
+bGVhcl9lcnItPmNsZWFyZWQpIHsNCj4gwqAJCQkvKiBjbGVhcmluZyB0aGUgcG9pc29uIGxpc3Qg
+d2Uga2VlcCB0cmFjayBvZg0KPiAqLw0KPiAtCQkJX19udmRpbW1fZm9yZ2V0X3BvaXNvbihudmRp
+bW1fYnVzLCBjbGVhcl9lcnItDQo+ID5hZGRyZXNzLA0KPiArCQkJbnZkaW1tX2ZvcmdldF9wb2lz
+b24obnZkaW1tX2J1cywgY2xlYXJfZXJyLQ0KPiA+YWRkcmVzcywNCj4gwqAJCQkJCWNsZWFyX2Vy
+ci0+Y2xlYXJlZCk7DQo+IMKgDQo+IMKgCQkJLyogbm93IHN5bmMgdGhlIGJhZGJsb2NrcyBsaXN0
+cyAqLw0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vY29yZS5jIGIvZHJpdmVycy9udmRp
+bW0vY29yZS5jDQo+IGluZGV4IDQwYTNkYTAuLjk1NjdiMDggMTAwNjQ0DQo+IC0tLSBhL2RyaXZl
+cnMvbnZkaW1tL2NvcmUuYw0KPiArKysgYi9kcml2ZXJzL252ZGltbS9jb3JlLmMNCj4gQEAgLTUz
+OSw3ICs1MzksNyBAQCBzdGF0aWMgaW50IGJ1c19hZGRfcG9pc29uKHN0cnVjdCBudmRpbW1fYnVz
+DQo+ICpudmRpbW1fYnVzLCB1NjQgYWRkciwgdTY0IGxlbmd0aCkNCj4gwqAJc3RydWN0IG5kX3Bv
+aXNvbiAqcGw7DQo+IMKgDQo+IMKgCWlmIChsaXN0X2VtcHR5KCZudmRpbW1fYnVzLT5wb2lzb25f
+bGlzdCkpDQo+IC0JCXJldHVybiBhZGRfcG9pc29uKG52ZGltbV9idXMsIGFkZHIsIGxlbmd0aCwN
+Cj4gR0ZQX0tFUk5FTCk7DQo+ICsJCXJldHVybiBhZGRfcG9pc29uKG52ZGltbV9idXMsIGFkZHIs
+IGxlbmd0aCwNCj4gR0ZQX05PV0FJVCk7DQo+IMKgDQo+IMKgCS8qDQo+IMKgCcKgKiBUaGVyZSBp
+cyBhIGNoYW5jZSB0aGlzIGlzIGEgZHVwbGljYXRlLCBjaGVjayBmb3IgdGhvc2UNCj4gZmlyc3Qu
+DQo+IEBAIC01NTksMzAgKzU1OSwyOSBAQCBzdGF0aWMgaW50IGJ1c19hZGRfcG9pc29uKHN0cnVj
+dCBudmRpbW1fYnVzDQo+ICpudmRpbW1fYnVzLCB1NjQgYWRkciwgdTY0IGxlbmd0aCkNCj4gwqAJ
+wqAqIGFzIGFueSBvdmVybGFwcGluZyByYW5nZXMgd2lsbCBnZXQgcmVzb2x2ZWQgd2hlbiB0aGUg
+bGlzdA0KPiBpcyBjb25zdW1lZA0KPiDCoAnCoCogYW5kIGNvbnZlcnRlZCB0byBiYWRibG9ja3MN
+Cj4gwqAJwqAqLw0KPiAtCXJldHVybiBhZGRfcG9pc29uKG52ZGltbV9idXMsIGFkZHIsIGxlbmd0
+aCwgR0ZQX0tFUk5FTCk7DQo+ICsJcmV0dXJuIGFkZF9wb2lzb24obnZkaW1tX2J1cywgYWRkciwg
+bGVuZ3RoLCBHRlBfTk9XQUlUKTsNCj4gwqB9DQo+IMKgDQo+IMKgaW50IG52ZGltbV9idXNfYWRk
+X3BvaXNvbihzdHJ1Y3QgbnZkaW1tX2J1cyAqbnZkaW1tX2J1cywgdTY0IGFkZHIsDQo+IHU2NCBs
+ZW5ndGgpDQo+IMKgew0KPiDCoAlpbnQgcmM7DQo+IMKgDQo+IC0JbnZkaW1tX2J1c19sb2NrKCZu
+dmRpbW1fYnVzLT5kZXYpOw0KPiArCXNwaW5fbG9jaygmbnZkaW1tX2J1cy0+cG9pc29uX2xvY2sp
+Ow0KPiDCoAlyYyA9IGJ1c19hZGRfcG9pc29uKG52ZGltbV9idXMsIGFkZHIsIGxlbmd0aCk7DQo+
+IC0JbnZkaW1tX2J1c191bmxvY2soJm52ZGltbV9idXMtPmRldik7DQo+ICsJc3Bpbl91bmxvY2so
+Jm52ZGltbV9idXMtPnBvaXNvbl9sb2NrKTsNCj4gwqANCj4gwqAJcmV0dXJuIHJjOw0KPiDCoH0N
+Cj4gwqBFWFBPUlRfU1lNQk9MX0dQTChudmRpbW1fYnVzX2FkZF9wb2lzb24pOw0KPiDCoA0KPiAt
+dm9pZCBfX252ZGltbV9mb3JnZXRfcG9pc29uKHN0cnVjdCBudmRpbW1fYnVzICpudmRpbW1fYnVz
+LA0KPiBwaHlzX2FkZHJfdCBzdGFydCwNCj4gK3ZvaWQgbnZkaW1tX2ZvcmdldF9wb2lzb24oc3Ry
+dWN0IG52ZGltbV9idXMgKm52ZGltbV9idXMsIHBoeXNfYWRkcl90DQo+IHN0YXJ0LA0KPiDCoAkJ
+dW5zaWduZWQgaW50IGxlbikNCj4gwqB7DQo+IMKgCXN0cnVjdCBsaXN0X2hlYWQgKnBvaXNvbl9s
+aXN0ID0gJm52ZGltbV9idXMtPnBvaXNvbl9saXN0Ow0KPiDCoAl1NjQgY2xyX2VuZCA9IHN0YXJ0
+ICsgbGVuIC0gMTsNCj4gwqAJc3RydWN0IG5kX3BvaXNvbiAqcGwsICpuZXh0Ow0KPiDCoA0KPiAt
+CWxvY2tkZXBfYXNzZXJ0X2hlbGQoJm52ZGltbV9idXMtPnJlY29uZmlnX211dGV4KTsNCj4gLQ0K
+PiArCXNwaW5fbG9jaygmbnZkaW1tX2J1cy0+cG9pc29uX2xvY2spOw0KPiDCoAlXQVJOX09OX09O
+Q0UobGlzdF9lbXB0eShwb2lzb25fbGlzdCkpOw0KPiDCoA0KPiDCoAkvKg0KPiBAQCAtNjI5LDIx
+ICs2MjgsMTMgQEAgdm9pZCBfX252ZGltbV9mb3JnZXRfcG9pc29uKHN0cnVjdCBudmRpbW1fYnVz
+DQo+ICpudmRpbW1fYnVzLCBwaHlzX2FkZHJfdCBzdGFydCwNCj4gwqAJCQl1NjQgbmV3X2xlbiA9
+IHBsX2VuZCAtIG5ld19zdGFydCArIDE7DQo+IMKgDQo+IMKgCQkJLyogQWRkIG5ldyBlbnRyeSBj
+b3ZlcmluZyB0aGUgcmlnaHQgaGFsZiAqLw0KPiAtCQkJYWRkX3BvaXNvbihudmRpbW1fYnVzLCBu
+ZXdfc3RhcnQsIG5ld19sZW4sDQo+IEdGUF9OT0lPKTsNCj4gKwkJCWFkZF9wb2lzb24obnZkaW1t
+X2J1cywgbmV3X3N0YXJ0LCBuZXdfbGVuLA0KPiBHRlBfTk9XQUlUKTsNCj4gwqAJCQkvKiBBZGp1
+c3QgdGhpcyBlbnRyeSB0byBjb3ZlciB0aGUgbGVmdCBoYWxmDQo+ICovDQo+IMKgCQkJcGwtPmxl
+bmd0aCA9IHN0YXJ0IC0gcGwtPnN0YXJ0Ow0KPiDCoAkJCWNvbnRpbnVlOw0KPiDCoAkJfQ0KPiDC
+oAl9DQo+IC19DQo+IC1FWFBPUlRfU1lNQk9MX0dQTChfX252ZGltbV9mb3JnZXRfcG9pc29uKTsN
+Cj4gLQ0KPiAtdm9pZCBudmRpbW1fZm9yZ2V0X3BvaXNvbihzdHJ1Y3QgbnZkaW1tX2J1cyAqbnZk
+aW1tX2J1cywNCj4gLQkJcGh5c19hZGRyX3Qgc3RhcnQsIHVuc2lnbmVkIGludCBsZW4pDQo+IC17
+DQo+IC0JbnZkaW1tX2J1c19sb2NrKCZudmRpbW1fYnVzLT5kZXYpOw0KPiAtCV9fbnZkaW1tX2Zv
+cmdldF9wb2lzb24obnZkaW1tX2J1cywgc3RhcnQsIGxlbik7DQo+IC0JbnZkaW1tX2J1c191bmxv
+Y2soJm52ZGltbV9idXMtPmRldik7DQo+ICsJc3Bpbl91bmxvY2soJm52ZGltbV9idXMtPnBvaXNv
+bl9sb2NrKTsNCj4gwqB9DQo+IMKgRVhQT1JUX1NZTUJPTF9HUEwobnZkaW1tX2ZvcmdldF9wb2lz
+b24pOw0KPiDCoA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vbmQtY29yZS5oIGIvZHJp
+dmVycy9udmRpbW0vbmQtY29yZS5oDQo+IGluZGV4IDg2MjNlNTcuLjRjNGJkMjAgMTAwNjQ0DQo+
+IC0tLSBhL2RyaXZlcnMvbnZkaW1tL25kLWNvcmUuaA0KPiArKysgYi9kcml2ZXJzL252ZGltbS9u
+ZC1jb3JlLmgNCj4gQEAgLTMyLDYgKzMyLDcgQEAgc3RydWN0IG52ZGltbV9idXMgew0KPiDCoAlz
+dHJ1Y3QgbGlzdF9oZWFkIHBvaXNvbl9saXN0Ow0KPiDCoAlzdHJ1Y3QgbGlzdF9oZWFkIG1hcHBp
+bmdfbGlzdDsNCj4gwqAJc3RydWN0IG11dGV4IHJlY29uZmlnX211dGV4Ow0KPiArCXNwaW5sb2Nr
+X3QgcG9pc29uX2xvY2s7DQo+IMKgfTsNCj4gwqANCj4gwqBzdHJ1Y3QgbnZkaW1tIHsNCj4gZGlm
+ZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbGlibnZkaW1tLmggYi9pbmNsdWRlL2xpbnV4L2xpYm52
+ZGltbS5oDQo+IGluZGV4IDFjNjA5ZTguLjk4YjIwNzYgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUv
+bGludXgvbGlibnZkaW1tLmgNCj4gKysrIGIvaW5jbHVkZS9saW51eC9saWJudmRpbW0uaA0KPiBA
+QCAtMTIyLDggKzEyMiw2IEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0IG5kX2Jsa19yZWdpb25fZGVz
+Yw0KPiAqdG9fYmxrX3JlZ2lvbl9kZXNjKA0KPiDCoGludCBudmRpbW1fYnVzX2FkZF9wb2lzb24o
+c3RydWN0IG52ZGltbV9idXMgKm52ZGltbV9idXMsIHU2NCBhZGRyLA0KPiB1NjQgbGVuZ3RoKTsN
+Cj4gwqB2b2lkIG52ZGltbV9mb3JnZXRfcG9pc29uKHN0cnVjdCBudmRpbW1fYnVzICpudmRpbW1f
+YnVzLA0KPiDCoAkJcGh5c19hZGRyX3Qgc3RhcnQsIHVuc2lnbmVkIGludCBsZW4pOw0KPiAtdm9p
+ZCBfX252ZGltbV9mb3JnZXRfcG9pc29uKHN0cnVjdCBudmRpbW1fYnVzICpudmRpbW1fYnVzLA0K
+PiAtCQlwaHlzX2FkZHJfdCBzdGFydCwgdW5zaWduZWQgaW50IGxlbik7DQo+IMKgc3RydWN0IG52
+ZGltbV9idXMgKm52ZGltbV9idXNfcmVnaXN0ZXIoc3RydWN0IGRldmljZSAqcGFyZW50LA0KPiDC
+oAkJc3RydWN0IG52ZGltbV9idXNfZGVzY3JpcHRvciAqbmZpdF9kZXNjKTsNCj4gwqB2b2lkIG52
+ZGltbV9idXNfdW5yZWdpc3RlcihzdHJ1Y3QgbnZkaW1tX2J1cyAqbnZkaW1tX2J1cyk7DQo+IApf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
+bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
+MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
