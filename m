@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg0-x241.google.com (mail-pg0-x241.google.com
+ [IPv6:2607:f8b0:400e:c05::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 198E921954077
- for <linux-nvdimm@lists.01.org>; Sun, 23 Apr 2017 04:53:13 -0700 (PDT)
-In-Reply-To: <20170411174233.21902-8-oohall@gmail.com>
-From: Michael Ellerman <patch-notifications@ellerman.id.au>
-Subject: Re: [7/9] powerpc/mm: Wire up ioremap_cache
-Message-Id: <3w9nsx3nzqz9s2G@ozlabs.org>
-Date: Sun, 23 Apr 2017 21:53:09 +1000 (AEST)
+ by ml01.01.org (Postfix) with ESMTPS id 41359219428A1
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 10:43:14 -0700 (PDT)
+Received: by mail-pg0-x241.google.com with SMTP id o123so689838pga.1
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 10:43:14 -0700 (PDT)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH 7/9] powerpc/mm: Wire up ioremap_cache
+Date: Wed, 12 Apr 2017 03:42:31 +1000
+Message-Id: <20170411174233.21902-8-oohall@gmail.com>
+In-Reply-To: <20170411174233.21902-1-oohall@gmail.com>
+References: <20170411174233.21902-1-oohall@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,22 +25,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Oliver O'Halloran <oohall@gmail.com>, linuxppc-dev@lists.ozlabs.org
-Cc: arbab@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+To: linuxppc-dev@lists.ozlabs.org
+Cc: bsingharora@gmail.com, arbab@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 2017-04-11 at 17:42:31 UTC, Oliver O'Halloran wrote:
-> The default implementation of ioremap_cache() is aliased to ioremap().
-> On powerpc ioremap() creates cache-inhibited mappings by default which
-> is almost certainly not what you wanted.
-> 
-> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+The default implementation of ioremap_cache() is aliased to ioremap().
+On powerpc ioremap() creates cache-inhibited mappings by default which
+is almost certainly not what you wanted.
 
-Applied to powerpc next, thanks.
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+---
+ arch/powerpc/include/asm/io.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-https://git.kernel.org/powerpc/c/f855b2f544d664cfa3055edb7ffd20
+diff --git a/arch/powerpc/include/asm/io.h b/arch/powerpc/include/asm/io.h
+index 5ed292431b5b..839eb031857f 100644
+--- a/arch/powerpc/include/asm/io.h
++++ b/arch/powerpc/include/asm/io.h
+@@ -757,6 +757,8 @@ extern void __iomem *ioremap_prot(phys_addr_t address, unsigned long size,
+ extern void __iomem *ioremap_wc(phys_addr_t address, unsigned long size);
+ #define ioremap_nocache(addr, size)	ioremap((addr), (size))
+ #define ioremap_uc(addr, size)		ioremap((addr), (size))
++#define ioremap_cache(addr, size) \
++	ioremap_prot((addr), (size), pgprot_val(PAGE_KERNEL))
+ 
+ extern void iounmap(volatile void __iomem *addr);
+ 
+-- 
+2.9.3
 
-cheers
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
