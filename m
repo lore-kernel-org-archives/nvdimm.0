@@ -1,17 +1,40 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 16CE421A0480F
- for <linux-nvdimm@lists.01.org>; Wed, 19 Apr 2017 10:11:31 -0700 (PDT)
-Subject: [4.4-stable PATCH 1/2] x86,
- pmem: fix broken __copy_user_nocache cache-bypass assumptions
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 19 Apr 2017 10:05:47 -0700
-Message-ID: <149262154726.9164.12749668242715319890.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149262154180.9164.2041560731963237508.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149262154180.9164.2041560731963237508.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4960A21A0483B
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 22:51:47 -0700 (PDT)
+Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id
+ v3C5mZVJ140480
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Apr 2017 01:51:46 -0400
+Received: from e28smtp01.in.ibm.com (e28smtp01.in.ibm.com [125.16.236.1])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 29s05evbwk-1
+ (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Apr 2017 01:51:46 -0400
+Received: from localhost
+ by e28smtp01.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.vnet.ibm.com>;
+ Wed, 12 Apr 2017 11:21:43 +0530
+Received: from d28av02.in.ibm.com (d28av02.in.ibm.com [9.184.220.64])
+ by d28relay03.in.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id
+ v3C5peHi14483608
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Apr 2017 11:21:40 +0530
+Received: from d28av02.in.ibm.com (localhost [127.0.0.1])
+ by d28av02.in.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id
+ v3C5pc84012552
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Apr 2017 11:21:39 +0530
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: Re: [PATCH 2/9] mm/huge_memory: Deposit a pgtable for DAX PMD faults
+ when required
+In-Reply-To: <20170411174233.21902-3-oohall@gmail.com>
+References: <20170411174233.21902-1-oohall@gmail.com>
+ <20170411174233.21902-3-oohall@gmail.com>
+Date: Wed, 12 Apr 2017 11:21:35 +0530
 MIME-Version: 1.0
+Message-Id: <8760iaqil4.fsf@skywalker.in.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,113 +46,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: stable@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, x86@kernel.org, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
+To: Oliver O'Halloran <oohall@gmail.com>, linuxppc-dev@lists.ozlabs.org
+Cc: linux-mm@kvack.org, bsingharora@gmail.com, arbab@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-commit 11e63f6d920d6f2dfd3cd421e939a4aec9a58dcd upstream.
+Oliver O'Halloran <oohall@gmail.com> writes:
 
-Before we rework the "pmem api" to stop abusing __copy_user_nocache()
-for memcpy_to_pmem() we need to fix cases where we may strand dirty data
-in the cpu cache. The problem occurs when copy_from_iter_pmem() is used
-for arbitrary data transfers from userspace. There is no guarantee that
-these transfers, performed by dax_iomap_actor(), will have aligned
-destinations or aligned transfer lengths. Backstop the usage
-__copy_user_nocache() with explicit cache management in these unaligned
-cases.
+> Although all architectures use a deposited page table for THP on anonymous VMAs
+> some architectures (s390 and powerpc) require the deposited storage even for
+> file backed VMAs due to quirks of their MMUs. This patch adds support for
+> depositing a table in DAX PMD fault handling path for archs that require it.
+> Other architectures should see no functional changes.
+>
+> Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+> Cc: linux-mm@kvack.org
+> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 
-Yes, copy_from_iter_pmem() is now too big for an inline, but addressing
-that is saved for a later patch that moves the entirety of the "pmem
-api" into the pmem driver directly.
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 
-Fixes: 5de490daec8b ("pmem: add copy_from_iter_pmem() and clear_pmem()")
-Cc: <stable@vger.kernel.org>
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/pmem.h |   45 +++++++++++++++++++++++++++++++------------
- 1 file changed, 32 insertions(+), 13 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index d8ce3ec816ab..bd8ce6bcdfc9 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -72,8 +72,8 @@ static inline void arch_wmb_pmem(void)
-  * @size:	number of bytes to write back
-  *
-  * Write back a cache range using the CLWB (cache line write back)
-- * instruction.  This function requires explicit ordering with an
-- * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
-+ * instruction. Note that @size is internally rounded up to be cache
-+ * line size aligned.
-  */
- static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
- {
-@@ -87,15 +87,6 @@ static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
- 		clwb(p);
- }
- 
--/*
-- * copy_from_iter_nocache() on x86 only uses non-temporal stores for iovec
-- * iterators, so for other types (bvec & kvec) we must do a cache write-back.
-- */
--static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
--{
--	return iter_is_iovec(i) == false;
--}
--
- /**
-  * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
-  * @addr:	PMEM destination address
-@@ -114,8 +105,36 @@ static inline size_t arch_copy_from_iter_pmem(void __pmem *addr, size_t bytes,
- 	/* TODO: skip the write-back by always using non-temporal stores */
- 	len = copy_from_iter_nocache(vaddr, bytes, i);
- 
--	if (__iter_needs_pmem_wb(i))
--		__arch_wb_cache_pmem(vaddr, bytes);
-+	/*
-+	 * In the iovec case on x86_64 copy_from_iter_nocache() uses
-+	 * non-temporal stores for the bulk of the transfer, but we need
-+	 * to manually flush if the transfer is unaligned. A cached
-+	 * memory copy is used when destination or size is not naturally
-+	 * aligned. That is:
-+	 *   - Require 8-byte alignment when size is 8 bytes or larger.
-+	 *   - Require 4-byte alignment when size is 4 bytes.
-+	 *
-+	 * In the non-iovec case the entire destination needs to be
-+	 * flushed.
-+	 */
-+	if (iter_is_iovec(i)) {
-+		unsigned long flushed, dest = (unsigned long) addr;
-+
-+		if (bytes < 8) {
-+			if (!IS_ALIGNED(dest, 4) || (bytes != 4))
-+				__arch_wb_cache_pmem(addr, 1);
-+		} else {
-+			if (!IS_ALIGNED(dest, 8)) {
-+				dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
-+				__arch_wb_cache_pmem(addr, 1);
-+			}
-+
-+			flushed = dest - (unsigned long) addr;
-+			if (bytes > flushed && !IS_ALIGNED(bytes - flushed, 8))
-+				__arch_wb_cache_pmem(addr + bytes - 1, 1);
-+		}
-+	} else
-+		__arch_wb_cache_pmem(addr, bytes);
- 
- 	return len;
- }
+> ---
+>  mm/huge_memory.c | 20 ++++++++++++++++++--
+>  1 file changed, 18 insertions(+), 2 deletions(-)
+>
+> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+> index aa01dd47cc65..a84909cf20d3 100644
+> --- a/mm/huge_memory.c
+> +++ b/mm/huge_memory.c
+> @@ -715,7 +715,8 @@ int do_huge_pmd_anonymous_page(struct vm_fault *vmf)
+>  }
+>
+>  static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+> -		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write)
+> +		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write,
+> +		pgtable_t pgtable)
+>  {
+>  	struct mm_struct *mm = vma->vm_mm;
+>  	pmd_t entry;
+> @@ -729,6 +730,12 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+>  		entry = pmd_mkyoung(pmd_mkdirty(entry));
+>  		entry = maybe_pmd_mkwrite(entry, vma);
+>  	}
+> +
+> +	if (pgtable) {
+> +		pgtable_trans_huge_deposit(mm, pmd, pgtable);
+> +		atomic_long_inc(&mm->nr_ptes);
+> +	}
+> +
+>  	set_pmd_at(mm, addr, pmd, entry);
+>  	update_mmu_cache_pmd(vma, addr, pmd);
+>  	spin_unlock(ptl);
+> @@ -738,6 +745,7 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+>  			pmd_t *pmd, pfn_t pfn, bool write)
+>  {
+>  	pgprot_t pgprot = vma->vm_page_prot;
+> +	pgtable_t pgtable = NULL;
+>  	/*
+>  	 * If we had pmd_special, we could avoid all these restrictions,
+>  	 * but we need to be consistent with PTEs and architectures that
+> @@ -752,9 +760,15 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+>  	if (addr < vma->vm_start || addr >= vma->vm_end)
+>  		return VM_FAULT_SIGBUS;
+>
+> +	if (arch_needs_pgtable_deposit()) {
+> +		pgtable = pte_alloc_one(vma->vm_mm, addr);
+> +		if (!pgtable)
+> +			return VM_FAULT_OOM;
+> +	}
+> +
+>  	track_pfn_insert(vma, &pgprot, pfn);
+>
+> -	insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
+> +	insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write, pgtable);
+>  	return VM_FAULT_NOPAGE;
+>  }
+>  EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd);
+> @@ -1611,6 +1625,8 @@ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+>  			tlb->fullmm);
+>  	tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
+>  	if (vma_is_dax(vma)) {
+> +		if (arch_needs_pgtable_deposit())
+> +			zap_deposited_table(tlb->mm, pmd);
+>  		spin_unlock(ptl);
+>  		if (is_huge_zero_pmd(orig_pmd))
+>  			tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
+> -- 
+> 2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
