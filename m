@@ -1,22 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Thu, 13 Apr 2017 13:31:59 +0200
-From: Borislav Petkov <bp@suse.de>
+Date: Wed, 12 Apr 2017 16:45:59 -0700
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: [RFC PATCH] x86, mce: change the mce notifier to 'blocking' from
  'atomic'
-Message-ID: <20170413113159.rc32ebiswn64nzrr@pd.tnic>
-References: <20170412202238.5d327vmwjqvbzzop@pd.tnic>
+References: <20170411224457.24777-1-vishal.l.verma@intel.com>
+ <20170412091442.dwonfr4dwyta7nvx@pd.tnic>
+ <20170412195903.GA29506@omniknight.lm.intel.com>
+ <20170412202238.5d327vmwjqvbzzop@pd.tnic>
  <1492028744.2738.14.camel@intel.com>
- <20170412205229.GA13659@intel.com>
- <CAPcyv4j1=Cs84nn6n-9vygSJ2Ei9Z3Gw7hCzyBzo+GyLKWaTUg@mail.gmail.com>
- <alpine.DEB.2.20.1704122259490.2548@nanos>
- <20170412211931.GA15771@intel.com>
- <20170412214749.jyt7cmyhovivtb2m@pd.tnic>
- <20170412221639.5klmqk4mjbvy6btx@pd.tnic>
- <20170412222619.GA17839@intel.com>
- <20170412222925.r3izasv3yuyjy62e@pd.tnic>
+ <20170412211302.3d2cxe34sgiu3dag@pd.tnic>
+ <alpine.DEB.2.20.1704122342130.2548@nanos>
+ <20170412224232.GM3956@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20170412222925.r3izasv3yuyjy62e@pd.tnic>
+In-Reply-To: <20170412224232.GM3956@linux.vnet.ibm.com>
+Message-Id: <20170412234559.GA31667@linux.vnet.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,121 +22,100 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Reply-To: paulmck@linux.vnet.ibm.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Borislav Petkov <bp@suse.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCBBcHIgMTMsIDIwMTcgYXQgMTI6Mjk6MjVBTSArMDIwMCwgQm9yaXNsYXYgUGV0a292
-IHdyb3RlOgo+IE9uIFdlZCwgQXByIDEyLCAyMDE3IGF0IDAzOjI2OjE5UE0gLTA3MDAsIEx1Y2ss
-IFRvbnkgd3JvdGU6Cj4gPiBXZSBjYW4gZnV0eiB3aXRoIHRoYXQgYW5kIGhhdmUgdGhlbSBzcGVj
-aWZ5IHdoaWNoIGNoYWluIChvciBib3RoKQo+ID4gdGhhdCB0aGV5IHdhbnQgdG8gYmUgYWRkZWQg
-dG8uCj4gCj4gV2VsbCwgSSBkaWRuJ3Qgd2FudCB0aGUgYXRvbWljIGNoYWluIHRvIGJlIGEgbm90
-aWZpZXIgYmVjYXVzZSB3ZSBjYW4KPiBrZWVwIGl0IHNpbXBsZSBhbmQgbm9uLWJsb2NraW5nLiBP
-bmx5IHRoZSBwcm9jZXNzIGNvbnRleHQgb25lIHdpbGwgYmUuCj4gCj4gU28gdGhlIHF1ZXN0aW9u
-IGlzLCBkbyB3ZSBldmVuIGhhdmUgYSB1c2UgY2FzZSBmb3Igb3V0c2lkZSBjb25zdW1lcnMKPiBo
-YW5naW5nIG9uIHRoZSBhdG9taWMgY2hhaW4/IEJlY2F1c2UgaWYgbm90LCB3ZSdyZSBnb29kIHRv
-IGdvLgoKT2ssIG5ldyBkYXksIG5ldyBwYXRjaC4KCkJlbG93IGlzIHdoYXQgd2UgY291bGQgZG86
-IHdlIGRvbid0IGNhbGwgdGhlIG5vdGlmaWVyIGF0IGFsbCBvbiB0aGUKYXRvbWljIHBhdGggYnV0
-IG9ubHkgcHJpbnQgdGhlIE1DRXMuIFdlIGRvIGxvZyB0aGVtIGFuZCBpZiB0aGUgbWFjaGluZQpz
-dXJ2aXZlcywgd2UgcHJvY2VzcyB0aGVtIGFjY29yZGluZ2x5LiBUaGlzIGlzIG9ubHkgYSBmaXgg
-Zm9yIHVwc3RyZWFtCnNvIHRoYXQgdGhlIGN1cnJlbnQgaXNzdWUgYXQgaGFuZCBpcyBhZGRyZXNz
-ZWQuCgpGb3IgbGF0ZXIsIHdlJ2QgbmVlZCB0byBzcGxpdCB0aGUgcGF0aHMgaW46Cgpjcml0aWNh
-bF9wcmludF9tY2UoKQoKb3Igc29tZXN1Y2ggd2hpY2ggaW1tZWRpYXRlbHkgZHVtcHMgdGhlIE1D
-RSB0byBkbWVzZywgYW5kCgptY2VfbG9nKCkKCndoaWNoIGRvZXMgdGhlIHNsb3cgcGF0aCBvZiBs
-b2dnaW5nIE1DRXMgYW5kIGNhbGxpbmcgdGhlIGJsb2NraW5nCm5vdGlmaWVyLgoKTm93LCBJJ2Qg
-d2FudCB0byBoYXZlIGRlY29kaW5nIG9mIHRoZSBNQ0Ugb24gdGhlIGNyaXRpY2FsIHBhdGggdG9v
-IHNvCkkgaGF2ZSB0byB0aGluayBhYm91dCBob3cgdG8gZG8gdGhhdCBuaWNlbHkuIE1heWJlIG1v
-dmUgdGhlIGRlY29kaW5nCmJpdHMgd2hpY2ggYXJlIHRoZSBzYW1lIGJldHdlZW4gSW50ZWwgYW5k
-IEFNRCBpbiBtY2UuYyBhbmQgaGF2ZSBzb21lCnZlbmRvci1zcGVjaWZpYywgZmFzdCBjYWxscy4g
-V2UnbGwgc2VlLiBCdHcsIHRoaXMgaXMgc29tZXRoaW5nIEluZ28gaGFzCmJlZW4gbWVudGlvbmlu
-ZyBmb3IgYSB3aGlsZS4KCkFueXdheSwgaGVyZSdzIGp1c3QgdGhlIHVyZ2VudCBmaXggZm9yIG5v
-dy4KClRoYW5rcy4KCi0tLQpGcm9tOiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVs
-LmNvbT4KRGF0ZTogVHVlLCAxMSBBcHIgMjAxNyAxNjo0NDo1NyAtMDYwMApTdWJqZWN0OiBbUEFU
-Q0hdIHg4Ni9tY2U6IE1ha2UgdGhlIE1DRSBub3RpZmllciBhIGJsb2NraW5nIG9uZQoKVGhlIE5G
-SVQgTUNFIGhhbmRsZXIgY2FsbGJhY2sgKGZvciBoYW5kbGluZyBtZWRpYSBlcnJvcnMgb24gTlZE
-SU1NcykKdGFrZXMgYSBtdXRleCB0byBhZGQgdGhlIGxvY2F0aW9uIG9mIGEgbWVtb3J5IGVycm9y
-IHRvIGEgbGlzdC4gQnV0IHNpbmNlCnRoZSBub3RpZmllciBjYWxsIGNoYWluIGZvciBtYWNoaW5l
-IGNoZWNrcyAoeDg2X21jZV9kZWNvZGVyX2NoYWluKSBpcwphdG9taWMsIHdlIGdldCBhIGxvY2tk
-ZXAgc3BsYXQgbGlrZToKCiAgQlVHOiBzbGVlcGluZyBmdW5jdGlvbiBjYWxsZWQgZnJvbSBpbnZh
-bGlkIGNvbnRleHQgYXQga2VybmVsL2xvY2tpbmcvbXV0ZXguYzo2MjAKICBpbl9hdG9taWMoKTog
-MSwgaXJxc19kaXNhYmxlZCgpOiAwLCBwaWQ6IDQsIG5hbWU6IGt3b3JrZXIvMDowCiAgWy4uXQog
-IENhbGwgVHJhY2U6CiAgIGR1bXBfc3RhY2sKICAgX19fbWlnaHRfc2xlZXAKICAgX19taWdodF9z
-bGVlcAogICBtdXRleF9sb2NrX25lc3RlZAogICA/IF9fbG9ja19hY3F1aXJlCiAgIG5maXRfaGFu
-ZGxlX21jZQogICBub3RpZmllcl9jYWxsX2NoYWluCiAgIGF0b21pY19ub3RpZmllcl9jYWxsX2No
-YWluCiAgID8gYXRvbWljX25vdGlmaWVyX2NhbGxfY2hhaW4KICAgbWNlX2dlbl9wb29sX3Byb2Nl
-c3MKCkNvbnZlcnQgdGhlIG5vdGlmaWVyIHRvIGEgYmxvY2tpbmcgb25lIHdoaWNoIGdldHMgdG8g
-cnVuIG9ubHkgaW4gcHJvY2Vzcwpjb250ZXh0LgoKQm9yaXM6IHJlbW92ZSB0aGUgbm90aWZpZXIg
-Y2FsbCBpbiBhdG9taWMgY29udGV4dCBpbiBwcmludF9tY2UoKS4gRm9yCm5vdywgbGV0J3MgcHJp
-bnQgdGhlIE1DRSBvbiB0aGUgYXRvbWljIHBhdGggc28gdGhhdCB3ZSBjYW4gbWFrZSBzdXJlIGl0
-CmdvZXMgb3V0LiBXZSBzdGlsbCBsb2cgaXQgZm9yIHByb2Nlc3MgY29udGV4dCBsYXRlci4KClJl
-cG9ydGVkLWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+ClNp
-Z25lZC1vZmYtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPgpDYzog
-VG9ueSBMdWNrIDx0b255Lmx1Y2tAaW50ZWwuY29tPgpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53
-aWxsaWFtc0BpbnRlbC5jb20+CkNjOiBsaW51eC1lZGFjIDxsaW51eC1lZGFjQHZnZXIua2VybmVs
-Lm9yZz4KQ2M6IHg4Ni1tbCA8eDg2QGtlcm5lbC5vcmc+CkNjOiA8c3RhYmxlQHZnZXIua2VybmVs
-Lm9yZz4KTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9yLzIwMTcwNDExMjI0NDU3LjI0Nzc3
-LTEtdmlzaGFsLmwudmVybWFAaW50ZWwuY29tCkZpeGVzOiA2ODM5YTZkOTZmNGUgKCJuZml0OiBk
-byBhbiBBUlMgc2NydWIgb24gaGl0dGluZyBhIGxhdGVudCBtZWRpYSBlcnJvciIpClNpZ25lZC1v
-ZmYtYnk6IEJvcmlzbGF2IFBldGtvdiA8YnBAc3VzZS5kZT4KLS0tCiBhcmNoL3g4Ni9rZXJuZWwv
-Y3B1L21jaGVjay9tY2UtZ2VucG9vbC5jICB8ICAyICstCiBhcmNoL3g4Ni9rZXJuZWwvY3B1L21j
-aGVjay9tY2UtaW50ZXJuYWwuaCB8ICAyICstCiBhcmNoL3g4Ni9rZXJuZWwvY3B1L21jaGVjay9t
-Y2UuYyAgICAgICAgICB8IDE4ICsrKystLS0tLS0tLS0tLS0tLQogMyBmaWxlcyBjaGFuZ2VkLCA2
-IGluc2VydGlvbnMoKyksIDE2IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gveDg2L2tl
-cm5lbC9jcHUvbWNoZWNrL21jZS1nZW5wb29sLmMgYi9hcmNoL3g4Ni9rZXJuZWwvY3B1L21jaGVj
-ay9tY2UtZ2VucG9vbC5jCmluZGV4IDFlNWE1MGMxMWQzYy4uMjE3Y2Q0NDQ5YmM5IDEwMDY0NAot
-LS0gYS9hcmNoL3g4Ni9rZXJuZWwvY3B1L21jaGVjay9tY2UtZ2VucG9vbC5jCisrKyBiL2FyY2gv
-eDg2L2tlcm5lbC9jcHUvbWNoZWNrL21jZS1nZW5wb29sLmMKQEAgLTg1LDcgKzg1LDcgQEAgdm9p
-ZCBtY2VfZ2VuX3Bvb2xfcHJvY2VzcyhzdHJ1Y3Qgd29ya19zdHJ1Y3QgKl9fdW51c2VkKQogCWhl
-YWQgPSBsbGlzdF9yZXZlcnNlX29yZGVyKGhlYWQpOwogCWxsaXN0X2Zvcl9lYWNoX2VudHJ5X3Nh
-ZmUobm9kZSwgdG1wLCBoZWFkLCBsbG5vZGUpIHsKIAkJbWNlID0gJm5vZGUtPm1jZTsKLQkJYXRv
-bWljX25vdGlmaWVyX2NhbGxfY2hhaW4oJng4Nl9tY2VfZGVjb2Rlcl9jaGFpbiwgMCwgbWNlKTsK
-KwkJYmxvY2tpbmdfbm90aWZpZXJfY2FsbF9jaGFpbigmeDg2X21jZV9kZWNvZGVyX2NoYWluLCAw
-LCBtY2UpOwogCQlnZW5fcG9vbF9mcmVlKG1jZV9ldnRfcG9vbCwgKHVuc2lnbmVkIGxvbmcpbm9k
-ZSwgc2l6ZW9mKCpub2RlKSk7CiAJfQogfQpkaWZmIC0tZ2l0IGEvYXJjaC94ODYva2VybmVsL2Nw
-dS9tY2hlY2svbWNlLWludGVybmFsLmggYi9hcmNoL3g4Ni9rZXJuZWwvY3B1L21jaGVjay9tY2Ut
-aW50ZXJuYWwuaAppbmRleCA5MDMwNDNlNmE2MmIuLjE5NTkyYmExYTMyMCAxMDA2NDQKLS0tIGEv
-YXJjaC94ODYva2VybmVsL2NwdS9tY2hlY2svbWNlLWludGVybmFsLmgKKysrIGIvYXJjaC94ODYv
-a2VybmVsL2NwdS9tY2hlY2svbWNlLWludGVybmFsLmgKQEAgLTEzLDcgKzEzLDcgQEAgZW51bSBz
-ZXZlcml0eV9sZXZlbCB7CiAJTUNFX1BBTklDX1NFVkVSSVRZLAogfTsKIAotZXh0ZXJuIHN0cnVj
-dCBhdG9taWNfbm90aWZpZXJfaGVhZCB4ODZfbWNlX2RlY29kZXJfY2hhaW47CitleHRlcm4gc3Ry
-dWN0IGJsb2NraW5nX25vdGlmaWVyX2hlYWQgeDg2X21jZV9kZWNvZGVyX2NoYWluOwogCiAjZGVm
-aW5lIEFUVFJfTEVOCQkxNgogI2RlZmluZSBJTklUSUFMX0NIRUNLX0lOVEVSVkFMCTUgKiA2MCAv
-KiA1IG1pbnV0ZXMgKi8KZGlmZiAtLWdpdCBhL2FyY2gveDg2L2tlcm5lbC9jcHUvbWNoZWNrL21j
-ZS5jIGIvYXJjaC94ODYva2VybmVsL2NwdS9tY2hlY2svbWNlLmMKaW5kZXggNWFjY2ZiZGVlM2Yw
-Li44ZTQ3MDczNWIxNmIgMTAwNjQ0Ci0tLSBhL2FyY2gveDg2L2tlcm5lbC9jcHUvbWNoZWNrL21j
-ZS5jCisrKyBiL2FyY2gveDg2L2tlcm5lbC9jcHUvbWNoZWNrL21jZS5jCkBAIC0xMjMsNyArMTIz
-LDcgQEAgc3RhdGljIHZvaWQgKCpxdWlya19ub193YXlfb3V0KShpbnQgYmFuaywgc3RydWN0IG1j
-ZSAqbSwgc3RydWN0IHB0X3JlZ3MgKnJlZ3MpOwogICogQ1BVL2NoaXBzZXQgc3BlY2lmaWMgRURB
-QyBjb2RlIGNhbiByZWdpc3RlciBhIG5vdGlmaWVyIGNhbGwgaGVyZSB0byBwcmludAogICogTUNF
-IGVycm9ycyBpbiBhIGh1bWFuLXJlYWRhYmxlIGZvcm0uCiAgKi8KLUFUT01JQ19OT1RJRklFUl9I
-RUFEKHg4Nl9tY2VfZGVjb2Rlcl9jaGFpbik7CitCTE9DS0lOR19OT1RJRklFUl9IRUFEKHg4Nl9t
-Y2VfZGVjb2Rlcl9jaGFpbik7CiAKIC8qIERvIGluaXRpYWwgaW5pdGlhbGl6YXRpb24gb2YgYSBz
-dHJ1Y3QgbWNlICovCiB2b2lkIG1jZV9zZXR1cChzdHJ1Y3QgbWNlICptKQpAQCAtMjIwLDcgKzIy
-MCw3IEBAIHZvaWQgbWNlX3JlZ2lzdGVyX2RlY29kZV9jaGFpbihzdHJ1Y3Qgbm90aWZpZXJfYmxv
-Y2sgKm5iKQogCiAJV0FSTl9PTihuYi0+cHJpb3JpdHkgPiBNQ0VfUFJJT19MT1dFU1QgJiYgbmIt
-PnByaW9yaXR5IDwgTUNFX1BSSU9fRURBQyk7CiAKLQlhdG9taWNfbm90aWZpZXJfY2hhaW5fcmVn
-aXN0ZXIoJng4Nl9tY2VfZGVjb2Rlcl9jaGFpbiwgbmIpOworCWJsb2NraW5nX25vdGlmaWVyX2No
-YWluX3JlZ2lzdGVyKCZ4ODZfbWNlX2RlY29kZXJfY2hhaW4sIG5iKTsKIH0KIEVYUE9SVF9TWU1C
-T0xfR1BMKG1jZV9yZWdpc3Rlcl9kZWNvZGVfY2hhaW4pOwogCkBAIC0yMjgsNyArMjI4LDcgQEAg
-dm9pZCBtY2VfdW5yZWdpc3Rlcl9kZWNvZGVfY2hhaW4oc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpu
-YikKIHsKIAlhdG9taWNfZGVjKCZudW1fbm90aWZpZXJzKTsKIAotCWF0b21pY19ub3RpZmllcl9j
-aGFpbl91bnJlZ2lzdGVyKCZ4ODZfbWNlX2RlY29kZXJfY2hhaW4sIG5iKTsKKwlibG9ja2luZ19u
-b3RpZmllcl9jaGFpbl91bnJlZ2lzdGVyKCZ4ODZfbWNlX2RlY29kZXJfY2hhaW4sIG5iKTsKIH0K
-IEVYUE9SVF9TWU1CT0xfR1BMKG1jZV91bnJlZ2lzdGVyX2RlY29kZV9jaGFpbik7CiAKQEAgLTMy
-MSwxOCArMzIxLDggQEAgc3RhdGljIHZvaWQgX19wcmludF9tY2Uoc3RydWN0IG1jZSAqbSkKIAog
-c3RhdGljIHZvaWQgcHJpbnRfbWNlKHN0cnVjdCBtY2UgKm0pCiB7Ci0JaW50IHJldCA9IDA7Ci0K
-IAlfX3ByaW50X21jZShtKTsKLQotCS8qCi0JICogUHJpbnQgb3V0IGh1bWFuLXJlYWRhYmxlIGRl
-dGFpbHMgYWJvdXQgdGhlIE1DRSBlcnJvciwKLQkgKiAoaWYgdGhlIENQVSBoYXMgYW4gaW1wbGVt
-ZW50YXRpb24gZm9yIHRoYXQpCi0JICovCi0JcmV0ID0gYXRvbWljX25vdGlmaWVyX2NhbGxfY2hh
-aW4oJng4Nl9tY2VfZGVjb2Rlcl9jaGFpbiwgMCwgbSk7Ci0JaWYgKHJldCA9PSBOT1RJRllfU1RP
-UCkKLQkJcmV0dXJuOwotCisJbWNlX2xvZyhtKTsKIAlwcl9lbWVyZ19yYXRlbGltaXRlZChIV19F
-UlIgIlJ1biB0aGUgYWJvdmUgdGhyb3VnaCAnbWNlbG9nIC0tYXNjaWknXG4iKTsKIH0KIAotLSAK
-Mi4xMS4wCgpTVVNFIExpbnV4IEdtYkgsIEdGOiBGZWxpeCBJbWVuZMO2cmZmZXIsIEphbmUgU21p
-dGhhcmQsIEdyYWhhbSBOb3J0b24sIEhSQiAyMTI4NCAoQUcgTsO8cm5iZXJnKQotLSAKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
-aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Wed, Apr 12, 2017 at 03:42:32PM -0700, Paul E. McKenney wrote:
+> On Wed, Apr 12, 2017 at 11:50:45PM +0200, Thomas Gleixner wrote:
+> > On Wed, 12 Apr 2017, Borislav Petkov wrote:
+> > 
+> > > On Wed, Apr 12, 2017 at 08:27:05PM +0000, Verma, Vishal L wrote:
+> > > > But isn't the atomic notifier call chain always called in atomic
+> > > > context?
+> > > 
+> > > No, it isn't. We're calling it in normal process context in
+> > > mce_gen_pool_process() too.
+> > > 
+> > > So this early exit will avoid any sleeping in atomic context. And since
+> > > there's nothing you can do about the errors reported in atomic context,
+> > > we can actually use that fact.
+> > 
+> > No, you can't.
+> > 
+> > CONFIG_RCU_PREEMPT=n + CONFIG_PREEMPT_COUNT will disable preemption from
+> > within __atomic_notifier_call_chain() via rcu_read_lock(). Ergo you wont
+> > ever enter the handler.
+> > 
+> > The behaviour in the RCU code is inconsistent. CONFIG_RCU_PREEMPT=y does
+> > obviouly not disable preemption, but it should still trigger the
+> > might_sleep() check when a blocking function is called from within a rcu
+> > read side critical section.
+> 
+> Maybe something like the (untested) patch below.  Please note that this
+> would need some help to work correctly in -rt.  This applies only against
+> -rcu tip, but in that case you can just get it directly from -rcu.
+
+So I injected a schedule_timeout_interruptible() into rcutorture's RCU
+read-side critical section, and the patch complained as expected.  But is
+also got a "scheduling while atomic" and a "DEBUG_LOCKS_WARN_ON(val >
+preempt_count())" and a warning at "kernel/time/timer.c:1275", which
+is this:
+
+	if (count != preempt_count()) {
+		WARN_ONCE(1, "timer: %pF preempt leak: %08x -> %08x\n",
+			  fn, count, preempt_count());
+		/*
+		 * Restore the preempt count. That gives us a decent
+		 * chance to survive and extract information. If the
+		 * callback kept a lock held, bad luck, but not worse
+		 * than the BUG() we had.
+		 */
+		preempt_count_set(count);
+	}
+
+So you are saying that you are seeing blocking in RCU-preempt read-side
+critical sections being ignored?
+
+Here is the Kconfig fragment used by this test:
+
+	CONFIG_SMP=y
+	CONFIG_NR_CPUS=8
+	CONFIG_PREEMPT_NONE=n
+	CONFIG_PREEMPT_VOLUNTARY=n
+	CONFIG_PREEMPT=y
+	#CHECK#CONFIG_PREEMPT_RCU=y
+	CONFIG_HZ_PERIODIC=n
+	CONFIG_NO_HZ_IDLE=y
+	CONFIG_NO_HZ_FULL=n
+	CONFIG_RCU_FAST_NO_HZ=n
+	CONFIG_RCU_TRACE=n
+	CONFIG_HOTPLUG_CPU=n
+	CONFIG_SUSPEND=n
+	CONFIG_HIBERNATION=n
+	CONFIG_RCU_FANOUT=3
+	CONFIG_RCU_FANOUT_LEAF=3
+	CONFIG_RCU_NOCB_CPU=n
+	CONFIG_DEBUG_LOCK_ALLOC=y
+	CONFIG_PROVE_LOCKING=n
+	CONFIG_RCU_BOOST=n
+	CONFIG_RCU_EXPERT=y
+	CONFIG_RCU_TORTURE_TEST_SLOW_CLEANUP=y
+	CONFIG_RCU_TORTURE_TEST_SLOW_INIT=y
+	CONFIG_RCU_TORTURE_TEST_SLOW_PREINIT=y
+	CONFIG_DEBUG_OBJECTS=y
+	CONFIG_DEBUG_OBJECTS_RCU_HEAD=y
+
+I will run other scenarios overnight.
+
+							Thanx, Paul
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
