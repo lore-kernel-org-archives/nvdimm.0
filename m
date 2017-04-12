@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22d.google.com (mail-oi0-x22d.google.com
+ [IPv6:2607:f8b0:4003:c06::22d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CA9F021A18AAB
- for <linux-nvdimm@lists.01.org>; Tue, 18 Apr 2017 11:11:57 -0700 (PDT)
-Subject: [PATCH] acpi, nfit: fix module unload vs workqueue shutdown race
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Apr 2017 11:06:09 -0700
-Message-ID: <149253869300.4222.11825248275497461939.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B3B9F21A0483B
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 20:11:12 -0700 (PDT)
+Received: by mail-oi0-x22d.google.com with SMTP id r203so17928323oib.3
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 20:11:12 -0700 (PDT)
 MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 11 Apr 2017 20:11:11 -0700
+Message-ID: <CAPcyv4jTHdai-OpBuxdXvjgLnTtTkWxB=Lp8H2F+RW0w8e1PSg@mail.gmail.com>
+Subject: Re: [PATCH v3] libnvdimm: fix clear poison locking with spinlock and
+ mempool
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,206 +24,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The workqueue may still be running when the devres callbacks start
-firing to deallocate an acpi_nfit_desc instance. Stop and flush the
-workqueue before letting any other devres de-allocations proceed.
+On Tue, Apr 11, 2017 at 3:19 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> The following warning results from holding a lane spinlock,
+> preempt_disable(), or the btt map spinlock and then trying to take the
+> reconfig_mutex to walk the poison list and potentially add new entries.
+>
+> BUG: sleeping function called from invalid context at kernel/locking/mutex.
+> c:747
+> in_atomic(): 1, irqs_disabled(): 0, pid: 17159, name: dd
+> [..]
+> Call Trace:
+> dump_stack+0x85/0xc8
+> ___might_sleep+0x184/0x250
+> __might_sleep+0x4a/0x90
+> __mutex_lock+0x58/0x9b0
+> ? nvdimm_bus_lock+0x21/0x30 [libnvdimm]
+> ? __nvdimm_bus_badblocks_clear+0x2f/0x60 [libnvdimm]
+> ? acpi_nfit_forget_poison+0x79/0x80 [nfit]
+> ? _raw_spin_unlock+0x27/0x40
+> mutex_lock_nested+0x1b/0x20
+> nvdimm_bus_lock+0x21/0x30 [libnvdimm]
+> nvdimm_forget_poison+0x25/0x50 [libnvdimm]
+> nvdimm_clear_poison+0x106/0x140 [libnvdimm]
+> nsio_rw_bytes+0x164/0x270 [libnvdimm]
+> btt_write_pg+0x1de/0x3e0 [nd_btt]
+> ? blk_queue_enter+0x30/0x290
+> btt_make_request+0x11a/0x310 [nd_btt]
+> ? blk_queue_enter+0xb7/0x290
+> ? blk_queue_enter+0x30/0x290
+> generic_make_request+0x118/0x3b0
+>
+> Two things are done to address this issue. First, we introduce a spinlock to
+> protect the poison list. This allows us to not having to acquire the
+> reconfig_mutex for touching the poison list. Second, we allocate the poison
+> entries using GFP_NOWAIT and avoid the sleep with GFP_KERNEL.
 
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-
-I was able to produce a reliable nfit_test crash failure by running the
-tests on hardware *and* disabling all debug messages. That last detail
-may be why I have been seeing much less frequent failures. With this
-change, in addition to the previous fix [1], I was again able to
-complete a successful run.
-
-[1]: https://patchwork.kernel.org/patch/9681861/
-
- drivers/acpi/nfit/core.c         |   76 +++++++++++++++++++++++---------------
- drivers/acpi/nfit/nfit.h         |    1 +
- tools/testing/nvdimm/test/nfit.c |    4 ++
- 3 files changed, 51 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 69c6cc77130c..261eea1d2906 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2604,7 +2604,8 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
- 				return rc;
- 		}
- 
--	queue_work(nfit_wq, &acpi_desc->work);
-+	if (!acpi_desc->cancel)
-+		queue_work(nfit_wq, &acpi_desc->work);
- 	return 0;
- }
- 
-@@ -2650,32 +2651,11 @@ static int acpi_nfit_desc_init_scrub_attr(struct acpi_nfit_desc *acpi_desc)
- 	return 0;
- }
- 
--static void acpi_nfit_destruct(void *data)
-+static void acpi_nfit_unregister(void *data)
- {
- 	struct acpi_nfit_desc *acpi_desc = data;
--	struct device *bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
- 
--	/*
--	 * Destruct under acpi_desc_lock so that nfit_handle_mce does not
--	 * race teardown
--	 */
--	mutex_lock(&acpi_desc_lock);
--	acpi_desc->cancel = 1;
--	/*
--	 * Bounce the nvdimm bus lock to make sure any in-flight
--	 * acpi_nfit_ars_rescan() submissions have had a chance to
--	 * either submit or see ->cancel set.
--	 */
--	device_lock(bus_dev);
--	device_unlock(bus_dev);
--
--	flush_workqueue(nfit_wq);
--	if (acpi_desc->scrub_count_state)
--		sysfs_put(acpi_desc->scrub_count_state);
- 	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
--	acpi_desc->nvdimm_bus = NULL;
--	list_del(&acpi_desc->list);
--	mutex_unlock(&acpi_desc_lock);
- }
- 
- int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
-@@ -2693,7 +2673,7 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- 		if (!acpi_desc->nvdimm_bus)
- 			return -ENOMEM;
- 
--		rc = devm_add_action_or_reset(dev, acpi_nfit_destruct,
-+		rc = devm_add_action_or_reset(dev, acpi_nfit_unregister,
- 				acpi_desc);
- 		if (rc)
- 			return rc;
-@@ -2787,9 +2767,10 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
- 
- 	/* bounce the init_mutex to make init_complete valid */
- 	mutex_lock(&acpi_desc->init_mutex);
--	mutex_unlock(&acpi_desc->init_mutex);
--	if (acpi_desc->init_complete)
-+	if (acpi_desc->cancel || acpi_desc->init_complete) {
-+		mutex_unlock(&acpi_desc->init_mutex);
- 		return 0;
-+	}
- 
- 	/*
- 	 * Scrub work could take 10s of seconds, userspace may give up so we
-@@ -2798,6 +2779,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
- 	INIT_WORK_ONSTACK(&flush.work, flush_probe);
- 	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
- 	queue_work(nfit_wq, &flush.work);
-+	mutex_unlock(&acpi_desc->init_mutex);
- 
- 	rc = wait_for_completion_interruptible(&flush.cmp);
- 	cancel_work_sync(&flush.work);
-@@ -2834,10 +2816,12 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
- 	if (work_busy(&acpi_desc->work))
- 		return -EBUSY;
- 
--	if (acpi_desc->cancel)
-+	mutex_lock(&acpi_desc->init_mutex);
-+	if (acpi_desc->cancel) {
-+		mutex_unlock(&acpi_desc->init_mutex);
- 		return 0;
-+	}
- 
--	mutex_lock(&acpi_desc->init_mutex);
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
- 		struct acpi_nfit_system_address *spa = nfit_spa->spa;
- 
-@@ -2886,6 +2870,35 @@ static void acpi_nfit_put_table(void *table)
- 	acpi_put_table(table);
- }
- 
-+void acpi_nfit_shutdown(void *data)
-+{
-+	struct acpi_nfit_desc *acpi_desc = data;
-+	struct device *bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
-+
-+	/*
-+	 * Destruct under acpi_desc_lock so that nfit_handle_mce does not
-+	 * race teardown
-+	 */
-+	mutex_lock(&acpi_desc_lock);
-+	list_del(&acpi_desc->list);
-+	mutex_unlock(&acpi_desc_lock);
-+
-+	mutex_lock(&acpi_desc->init_mutex);
-+	acpi_desc->cancel = 1;
-+	mutex_unlock(&acpi_desc->init_mutex);
-+
-+	/*
-+	 * Bounce the nvdimm bus lock to make sure any in-flight
-+	 * acpi_nfit_ars_rescan() submissions have had a chance to
-+	 * either submit or see ->cancel set.
-+	 */
-+	device_lock(bus_dev);
-+	device_unlock(bus_dev);
-+
-+	flush_workqueue(nfit_wq);
-+}
-+EXPORT_SYMBOL_GPL(acpi_nfit_shutdown);
-+
- static int acpi_nfit_add(struct acpi_device *adev)
- {
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
-@@ -2933,12 +2946,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 		rc = acpi_nfit_init(acpi_desc, (void *) tbl
- 				+ sizeof(struct acpi_table_nfit),
- 				sz - sizeof(struct acpi_table_nfit));
--	return rc;
-+
-+	if (rc)
-+		return rc;
-+	return devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
- }
- 
- static int acpi_nfit_remove(struct acpi_device *adev)
- {
--	/* see acpi_nfit_destruct */
-+	/* see acpi_nfit_unregister */
- 	return 0;
- }
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index fac098bfa585..58fb7d68e04a 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -239,6 +239,7 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
- 
- const u8 *to_nfit_uuid(enum nfit_uuids id);
- int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
-+void acpi_nfit_shutdown(void *data);
- void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event);
- void __acpi_nvdimm_notify(struct device *dev, u32 event);
- int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index d7fb1b894128..c2187178fb13 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1851,6 +1851,10 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	if (rc)
- 		return rc;
- 
-+	rc = devm_add_action_or_reset(&pdev->dev, acpi_nfit_shutdown, acpi_desc);
-+	if (rc)
-+		return rc;
-+
- 	if (nfit_test->setup != nfit_test0_setup)
- 		return 0;
- 
-
+Need to drop the mempool references out of the subject and changelog,
+also I only think we should use GFP_NOWAIT in the I/O path. In the
+other add_poison() paths that are currently using GFP_KERNEL we can
+just drop the lock to do the allocation. That limits the damage of a
+memory allocation failure to clearing errors, not tracking new errors.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
