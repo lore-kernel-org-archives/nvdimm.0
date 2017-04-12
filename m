@@ -1,11 +1,14 @@
-From: =?GB2312?B?ssyVRs2s?= <cmyjiapang-SmLBZ8Ku14fQT0dZR+AlfA@public.gmane.org>
-Subject: =?GB2312?B?yOe6zrf+zvG6w7/Nu6e9q9b31NfG89K1yfrLwLTmzfY=?=
-Date: Wed, 12 Apr 2017 22:05:37 +0800
-Message-ID: <20170412140545.3B7B021939234@ml01.01.org>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
+Date: Wed, 12 Apr 2017 11:09:53 -0600
+Message-ID: <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1491974532.7236.43.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1491974532.7236.43.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,131 +18,84 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-MjI6MDU6MjUK08XWyr/Nu6e3/s7x0+u/zbunzbbL36GisafUubSmwO28vMfJzOHJ/S0tv86zzLzy
-vekKbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwqhvsqxvOS12LXjob8gMjAxN8TqNNTCMTgtMTnI
-1bGxvqkgICA11MIxNy0xOMjVye7b2iAgICA21MIwNi0wN8jVyc+6owqhvrLOvNO21M/zob8gv827
-p7f+zvG+rcDtoaK/zbunt/7O8db3udyhor/Nu6e3/s7xyMvUsaGiz/rK27T6se2hosrQs6Gyv7yw
-z+C52Lmk1/fIy9SxoaMKob7K2r/Ot73KvaG/ILC4wP231s/toaLKtc7xt9bO9qGiu6W2r8zWwtuh
-osrTxrW40MrcoaLF4NG1087Pt7XICqG+0afPsLfR08OhvyAzODAw1KovyMujqLqswb3M7NbQss2h
-ota4tqhQREaw5rG+vcyyxKGisui146Git6LGsbXIo6kKsajD+9fJ0a+157uwo7owNzU1LTYxMi04
-OC4wMzUgICAwMTAtNTE2LTYxLjg2MyAgIDAyMS0zMTItNjEuNTgwIArU2s/f18nRryBRUaO6Njk4
-MzQzNiAgILGow/vQxc/ko7o2OTgzNDM2QHFxLmNvbSAgKLGow/vH67vYuLTOssSpsajD+7Hto6kg
-IAoKv86zzLGzvrAKoaEgxvPStbXEvrnV+dLRvq3TybL6xre8sLzbuPHXqtLGtb221L/Nu6e1xL65
-1fmjrL/Nu6e3/s7x0tG+rbPJzqrW99TXxvPStcn6y8C05s32tcSho7/Nu6e3/s7xzOXPtbXE19rW
-vMrHIr/Nu6fTwNS2yse12tK7zrsio6y007/Nu6e1xMq1vMrQ6Mfzs/a3oqOszqq/zbunzOG5qdXm
-1f3T0Lzb1rW1xLf+zvGjrLDv1vq/zbunuPy6w7XYyrnTw7L6xreho8zlz9bByyLBvLrDtcS/zbf+
-0M7P86Giwby6w7XEvLzK9aGiwby6w7XEv827p7nYz7WhosG8usO1xMa3xcYitcS6y9DEt/7O8cDt
-xO6jrNKqx/PS1Nfu16jStdDUtcS3/s7xttPO6aOsvLDKsbrNyKu3vc67tdi52Neiv827p7XEw7/S
-u7j2t/7O8dDox/OjrLKizai5/czhuam547e6oaLIq8Pmus2/7L3dtcS3/s7xo6zKub/Nu6fM5dHp
-tb3O3rSmsrvU2rXEwvrS4rrNv8nQxcC1tcTM+dDEuNDK3KGjvNnI59fUvLrT0L6rw+61xNPF1sq/
-zbunt/7O8c3FttOhorK7tau/ydLUy7W3/sDPv827pyy7ub/J0tS6zdDCv827p72owaLQwrXEwby6
-w7rP1/e52M+1LsHuv827p8L60uK2yMzhyf2howqhoSC/zbunvKvWrsfp0Pe7r6OsucrS4sz0zN7O
-0sPHtcSy+sa3o6zWuNTwztLDx7XEt/7O8aOsvfy69c7ewO3IocTWo6HL+8PHtcQisrvC+tLiIrHI
-yrLDtLa81tjSqqOsyLTX3MrH1NrO0sPHtcTS4sHP1q7N4qOhv827p7f+zvHS0bPJzqrG89K1y9zU
-7LPW0Pi+utX508XKxrXEusvQxNelytaju9O109Cz1tD4vrrV+dPFysa1xMbz0rW1xNSxuaTSssTc
-tNPVvcLUsuPD5tLUye7l5LXEv827p9Dox/PPyLz7xNzBprb41fe3/r/Nu6ehorDBytPIutDbo7u0
-8tTs0rvB97XEv827p7f+zvHE3MGm0tGzyc6qxvPStb661fm1xNDCvbm146O7tvi/zbuntcSyu8L6
-oaKxp9S5oaLNtsvfysfG89K10+u/zbunvdO0pbXEusvQxLu3vdqjrLj8ysfG89K1xNy38c2ouf2/
-zbunt/7O8cuuxr3M4cn919/P8rvUu821xLfWy67B66O7udjXorbU09q/zbunsrvC+qGisafUuaGi
-zbbL37XEtKbA7crHzOHJ/cbz0rXV+8zlt/7O8cuuxr21xLnYvPw/Cgq/zrPMxL+1xAqhoSDT0LXE
-xvPStcrHyMO/zcjLwvrS4qOs09C1xMbz0rXKx8jDv83Iy7jQtq+jrLb409C1xMbz0rXKx8jDv83I
-y7zIwvrS4tPWuNC2r6Gjzai5/b/Os8zRp8+wo6zVxs7VyOe6zsjDv827p7zIwvrS4tPWuNC2r6O/
-CjGhorOs1L2/zbunxtrN+7XEv827p7f+zvGjuyAKMqGiwcu94tPF1sq/zbunt/7O8bXExsC829a4
-seqjuwozoaLBy73iv827p8v5yM/OqtbY0qq1xMrHyrLDtKO7CjShotXGztUiv827p7f+zvHRrbu3
-IiC1xLjFxO6jrLKi1rjE3NPD1q7T2sq1vPmjuwo1oaLVxs7VyOe6zszhyf2/zbunt/7O8by8x8mj
-uwo2oaLE3Lm71qq1wMjnus6/7MvZveK+9r/Nu6exp9S5tKbA7by8x8m6zbe9t6ijuyAKN6GiycbT
-2rTTuf3Kp9bQvqG/7LvWuLSyotfcveG9zNG1oaPM4bjf06ax5LSmwO3NtsvfzsrM4rXExNzBpqOs
-sqK96Lv6sNHHsdTatcS/zbunsafUudeqs8m5q8u+1sLKpLXEu/q74aGjCgq/zrPMtPO42Qq12tK7
-sr+31qGiIMXg0fi7/byr1ve2r7XEt/7O8dLiyrYK0ruhosjPyra3/s7xo78KMaGit/7O8bXEyP24
-9rLjtM4KICCzrNS9xtrN+9a1t/4tLdbSs8+2yAqhob/NyMu1xNbSs8+2yMrHxvPStbXEusvQxL65
-1fnTxcrGCqGhLS2wuMD9o7q829a1NjUw0trDwL3wv8m/2r/JwNa5q8u+o6yxu7rk1ai687/J1NrS
-u7j21MLE2rvWuLQKICC4vbzT1rW3/s7xLS3C+tLitsgKoaEtLbC4wP2juri9vNPWtdT21rW3/s7x
-y/m0+MC0tcTQp9LmCiAgu/mxvrf+zvEtLc7e1LnR1AoyoaK/zcjLwvrS4rXEyP249rLjw+YKoaEg
-yczGty0t1rG90wqhoSC3/s7xLS3Wsb3TCqGhIMbz0rXQzs/zLS285L3TCjOhor/NyMvC+tLit/7O
-8bXENbj20vLL2AqhoSC/yb+/0NQtLcystsgKoaEgz+zTptDULS23tNOmCqGhILCyyKvQ1C0t16jS
-tQqhoSDSxsfp0NQtLcTN0MQKICAg09DQztDULS3Sx8jdCjShotPF1sq1xL/Nu6e3/s7xse3P1i0t
-sumy6cTjz9bU2rXEt/7O8cuuxr0KoaEgLS3Qodfp0dDM1qO6v827p86qus6yu8L6CqGhIC0tz9az
-ocSjxOKjurf+zvHEv7Hqo7oKoaEg1NrX7rbMtcTKsbzko6zTw9fuydm1xNfK1LSjrLuo1+7QobXE
-xazBpqOsyKG1w9fuv+zL2aGitO+1vdfu09DQp7XEt/7O8cuu17yhowoKtdq2/rK/t9YgILm5vajS
-u8H3tcS/zbunt/7O8czlz7UKLS3N6snGtcS1xL/Nu6e3/s7xzOXPtcrH1fvM5bf+zvHHscGmt6K7
-07XEv8m/v7Gj1c8K0ruhosjPyra/zbunt/7O8czlz7UKMaGiv827p7f+zvHM5c+1tcS/8rzcCjKh
-otPFu6+/zbunt/7O8cH3s8wKoaEgLS3QodfpzNbC26O61vjD+8bz0rW1xL/Nu6e3/s7xzOXPtbC4
-wP3R0MzWCjOhoszhyf2/zbunt/7O8bHq17wKoaEgt/7O8bHq17zTycutvva2qAqhoSDO0rXE0NDO
-qsjnus7TsM/st/7O8bHq17wKoaEgt/7O8bHq17zM4cn90+vN6snGtcS7+tbGsaPVzwqhoSAtLc/W
-s6HR3cG3o7rOyszitbzP8go0oaK/zbunt/7O8bncwO3M5c+1tcTWxrbIoaK55re2oaLOxLz+IAqh
-oSC/zbunt/7O8bncwO3P4LnY1sa2yLD8uqy1xNb30qrE2sjdIAqhoSC/zbunt/7O8bncwO3WxrbI
-vajJ6LXEvLjW1su8wrcgCqGhIL/Nu6e3/s7xudzA7dbGtsi9qMno0+u3otW5tcTUrdTyIAogICAt
-LbC4wP231s/tv827p7f+zvG53MDt1sa2yAoKtdrI/bK/t9YgIL/Nu6fC+tLitsjT69bSs8+2yLnc
-wO0K0ruhotOwz+y/zbunwvrS4rbItcTI/bj21K3S8goxoaKy+sa3o6+3/s7x0+u/zbun0OjH89au
-vOTGpcXktcSzzLbIo6htYXRjaKOpCjKhotbKwb+jr7f+zvGxvsnttcTWysG/o6hxdWFsaXR5o6kK
-MqGivNu48aOocHJpY2WjqQq2/qGiv827p8L60uK2yMzhyf3T67/Nu6e3/s7xtcTD3MfQudjPtQox
-oaK/zbunzezB9LLfwtQKMqGivajBor/Nu6fW0rPPtsi1xLrL0MTFprT4CjOhotbSs8+/zbuntb2/
-zbun1tKzzwqhoSDSqs780v3Su7j2v83Iy6Osy/m7qLfRtcSzybG+ysfSqrHIwfTXodK7uPa/zcjL
-tcSzybG+NS0tN7G2o7sKoaEg0qrP+7P90ru49ri6w+bToc/zo6zQ6NKqMTK49tX9w+bToc/zssXE
-3MPWsrmjuy0t0KHA7r+0z+C6w9Pru7XP4KGjCqGhIMbz0rXOqrK5vsi3/s7xxrfWyse3vNG1xMrX
-tM7P+7fR1d+1xNOhz/OjrM35zfnSqrbgu6gyNSXWwTUwJbXEs8mxvqGjCqGhINK7sNnOu8L60uK1
-xL/NyMu/ydHcyfqz9jE1zrvQwr/NyMujuwqhoSDDv9K7zruxp9S5tcS/zcjLsbO686OsxuTKtbu5
-09AyMLj2v83Iy7K7wvrS4qOouObL38bky/vIy6Opo7sKoaEgzOG437/NyMu1xNbSs8+2yMD7yPO/
-ydT2s6Q11sExN7G2o7vKub/NyMu1xNbSs8+2yMzhuN81JaOsxvPStbXE1PazpMD7yPO/ybTvtb0y
-NSXWwTg1JaO7CjShor/NyMvW0rPPtsi1xNbY0qrQ1AqhoSA5MCW1xL/NyMu74bHcv6qy7rXEt/7O
-8bmry74KoaEgODAltcS/zcjLu+HV0rf+zvG6w7XEuavLvqO7CqGhIDIwJbXEv83Iy86qtcO1vbrD
-t/7O8aOsxP7UuLbgu6jHrqO7CqGhILvYzbe/zbvhzqq5q8u+tPjAtDUwJS0tODAltcTA+8jzo7sK
-oaEgsLjA/bfWzva0+Lj4tcTG9Mq+LS3E/tS40rvIy8C0x6e72KOssrvUuMenyMvAtNK7u9ijrNf2
-usO3/s7xysexo9akxvPStbPJuaa1xMPYvvehowoKtdrLxLK/t9Ygv827p7f+zvHIy9SxtcTE3MGm
-zOHJ/QrSu6Giv827p7W9tdfSqsLyyrLDtAqhoSAgt/7O8bT6se21xMTcwaYgCqGhICCh+iAgQS0t
-IEF1dGhvcml0eSBBY3Rpb24gCqGhICCh+iAgRS0tIEVkdWNhdGlvbiAKoaEgIKH6ICBILS0gSHVt
-b3IgCqGhICCh+iAgTC0tIExpc3RlbiAKoaEgIKH6ICBOLS0gTmVlZHMgCqGhICCh+iAgUC0tIFBh
-c3Npb24gCqGhIKH6ICBTLS0gU2VydmljZSBTbWFydCBTbWlsZSCjpiBTcGVlY2ggCiAgICAtLbfW
-z+2jur/Nu6e3/s7xtPqx7bXEy9jWyi0tLTNIMUYgo6hIZWFkIEhlYXJ0IEhhbmQgRm9vdKOpCgq1
-2s7lsr+31iAgzbbL38rHvfAtLdX9yLfIz8q2v827p822y98K0ruhor/Nu6fNtsvfsvrJ+rXE1K3S
-8gq2/qGiv827p822y9+y+sn6tcTEv7XECsj9oaK/zbunzbbL37L6yfq1xLrDtKYKy8Shosbz0rXB
-98qnv827p7XE1vfSqtSt0vIKIAoKtdrB+bK/t9YgILSmwO2/zbunzbbL37XEt723qArSu6GitKbA
-7c22y9+1xLv5sb63vbeoCrb+oaK0psDtyf28ts22y9+1xLy8x8kKyP2horSmwO3SycTRzbbL37XE
-vLzHyQrLxKGivqHX7rTzxazBpsjDv827p8L60uLKx7SmwO2/zbunsafUucqxtcS7/byrzKy2yArO
-5aGitKbA7b/Nu6fNtsvfysfU2tGw1dLLq9OutcTGvbriteMKwfmhorWvu9jKvbf+zvHD1rK5vLzH
-yaOoQm91bmNpbmdCYWNro6mjuwrG36Gi1cbO1dPQ0Ke4p86/x+nQ97jftsi8pLavv827p7XEt723
-qKO7IAqhoaGhLS2wuMD9t9bO9qO619y94dPr0d3Bt7SmwO2/zbunsafUubXEwfmyvb741dAKoaGh
-oS0tvcfJq7Dn0d2jutHdwbe907T9zbbL37XEQ0xFQVK8vMfJCrDLoaK0psDtucu/zc22y9/T67Gn
-1Lm1xLe9t6gKvsWhotbYtPPNtsvftKbA7QrKrqGisru72LHcsqLV0rP21K3S8iAKoaGhodfcveGj
-uqGhIMewysKyu838o6y688rC1q7KpiAKoaGhoS0tytPGtbfWz+28sLC4wP231s72o7ogy8nPwrXE
-v827p7Gn1LnW0NDECiAKvbLKprzyvekKttjGvSDAz8qmCiAJw9jK6dCtu+HK18+vucvOyryw1+7K
-3NGn1LHPsrCutcS437y2xeDRtcqmCiAJuLvKv7+1Is2o08O53MDtv86zzCIiyMvBptfK1LTPtcHQ
-v86zzCLM2Ma4vbLKpgoKvq3A+tPrt+e48QqhoaGhoaE4xOrXqNawvczKpqGiMsTq18nRr7nLzsqh
-ojEwxOrG89K10NDV/sPYyum53MDtvq3R6aOswPq+rbbguPbQ0NK1oaO4+b7dtuDE6rXEytq/zr6t
-0emjrM2ouf221Mbz0rXQ0NX+vLC53MDtyMvUsbXEsru2z8Xg0bWhosq1vPmhosu8v7yjrNPIxuTK
-x9Pr0afUsbXEu6W2r6Os1NrMvcv31tCyu7bPzerJxrrNuMS9+KOs1vCyvdDOs8m/zszDyc/X7s78
-0v3K3NG1yMvUsbXEysfG5LXk0M2wuMD9t9bO9qGiu6W2r9HQzNa40M7yoaK+q7HZ19y94cn9u6qh
-osq1zvGy2df3wbfPsM/gveG6z7XExeDRtdDOyr2jrMq5tcPT0NK7tqi53MDtyrW8+b6t0em1xNGn
-1LGy+sn6u+3Iu7+qwMqhorb6xL/Su9DCtcS40L71oaPF4NG1t+e48cnuyOvHs7P2oaLM9cDtx+XO
-+qGiv87Mw8b4t9XH4cvJo6zKtdW90NTHv6GjCqGhoaGhobbYxr3Az8qmysfSu867ye7b2sPxxvO1
-xNPF0OO437LjudzA7dXfo6zU2sbz0rXK3LTzu7e+s9Owz+yjrNDttuDG89K10/a1vc6ju/qjrLbY
-xr3Az8qmwdnOo8raw/zG89K1uN+53KOs1NrG89K118q98LbMyLGjrMrQs6G33bbuvPXJ2bXEx+m/
-9s/Co6zTw8fQus/G89K1yrW8yrXEudzA7be9yr26zb/G0ae1xLncwO23vbeoo6yw79b6wcu24LzS
-w/HG87bIuf3E0bnYo6zTydPattjGvcDPyqbT0L3Px7+1xMbz0rWy2df3yrW8+cTcwaa6zb3PusO1
-xMDtwtu5prXXo6y/zrPMsLjA/dXmyrWhos/Ku+7H0tPQyrXTw9DUo6y4/LzTzPm9/Mbz0rXKtbzK
-o6zTrrXD0afUscPHtcTIz7/JoaMgCrK/t9bF4NG1uf21xMbz0rUKtdiy+tK1o7rH2rPPtO+5+rzK
-v9i5ybyvzcWjqLe/tdiy+qOpo7vJ7tvazKm4u7uqtdiy+qO7s6Szx87v0rWju7fwyb3N8r/Gzu/S
-taO7tqvduLvjvrC12LL6o7u589H0vNLT97XYsvqju7njtqu087q9tdiy+qO7ycfNt9LLu6q12LL6
-o7uzyba8wNawsr7Ttdiy+qGizu/StaO7uKO9qNTGtqW12LL6o7vW2Mfsu6q2vLXYsvqhraGtCtbG
-1OzStaO6uLvKv7+1vK/NxaOoye7b2qGisbG+qaGizOy98qOpo7vBqtLmtO+/xry809DP3rmry76j
-u7e91f3OorXn19PT0M/euavLvqO7Csyo18q1wrCutefX06O7sci/y7Xns9iju8nu29q48cjwxtW1
-57PYo7vW0MW1tee7sKO71tDT7tSq0rvK/cLrv8a8vNPQz965q8u+o7vJ7tvazOy7+bXnxviju8nu
-29q5+sGi1sfE3LXnwaa/xry809DP3rmry76ju9Hv1t3Rx8bVxvuztaO70e/W3bGmuuq8r83Foa2h
-rQrG5Mv8o7rJ7tvauauwss+1zbOju8nu29rIvMb4vK/NxaO7ye7b2rn6zai8r83FoaLEz7e9tefN
-+KGi1eO9rdLGtq/NqNDFo7vJz7qjzajTw7Tz0MvG+7O1vK/NxaO7uePW3bvjt+HF9Mb7s7U0U7Xq
-o7vW0Ln6xvPStbTz0aejqMnu29rK0Naw0rW+rcDto6mju7nz1t280tP317DKzqGis8m2vMWp0rXS
-+NDQo7vJ7tva1rDStdG1wbfRp9S6o7vJvc73zKvUrb36yczS+NDQo7vJvc73zKvUrcWptOXQxdPD
-yeeju7njzvexsbqjwsPTzrTT0rXIy9SxxeDRtaOovsa16rH2ud2hosLD0NDJ56Opoa2hrQoKCtPF
-1sq/zbunt/7O8dPrv827p822y9+horGn1Lm0psDtvLzHyczhyf0tLbGow/vQxc+iCgrO0rWlzru5
-siAgICDIy8i3tqixqMP7ss680yAyMDE3xOogICAg1MIgICAgyNXU2iAgICAgIL7ZsOy1xKG208XW
-yr/Nu6e3/s7x0+u/zbunzbbL36GisafUubSmwO28vMfJzOHJ/aG3xeDRtbDgoaMKtaXOu8P7s8Y6
-CQq12CDWtzoJCsGqz7XIy9DVw/s6CQnQ1CCx8DoJCsrWILv6OgkJtecgu7A6CQqyv8PFL9awzvE6
-CQlFLW1haWw6CQqyzrvh0afUsdDFz6IK0NUgw/s6CdDUILHwOgnWsCDOuzoJytYgu/o6CUUtbWFp
-bDoK0NUgw/s6CdDUILHwOgnWsCDOuzoJytYgu/o6CUUtbWFpbDoK0NUgw/s6CdDUILHwOgnWsCDO
-uzoJytYgu/o6CUUtbWFpbDoKCQkJCQkKvcm30be9yr0gofUg16rVyiAgIKH1IM/WvfAgIKOox+vR
-odTxINTaofW08qHMo6kJCQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
-cmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+
+
+On 11/04/17 11:22 PM, Benjamin Herrenschmidt wrote:
+> Another issue of course is that not all systems support P2P
+> between host bridges :-) (Though almost all switches can enable it).
+
+Yes, I'm either going to just let the user enable and test or limit it
+to switches only to start. However, currently our bigger issue is
+working on a way to not violate iomem safety.
+
+> Ok. I suppose that's a reasonable starting point. Do I haven't looked
+> at the patches in detail yet but it would be nice if that policy was in
+> a well isolated component so it can potentially be affected by
+> arch/platform code.
+
+The policy is isolated in the new p2pmem driver. There's no reason the
+policy couldn't become arbitrarily complex with specific arch
+exceptions. It's just people would have to do the work to create those
+exceptions.
+
+> Do you handle funky address translation too ? IE. the fact that the PCI
+> addresses aren't the same as the CPU physical addresses for a BAR ?
+
+No, we use the CPU physical address of the BAR. If it's not mapped that
+way we can't use it.
+
+>> This will mean many setups that could likely
+>> work well will not be supported so that we can be more confident it
+>> will work and not place any responsibility on the user to understand
+>> their topology. (We've chosen to go this route based on feedback we
+>> received at LSF).
+>>
+>> In order to enable this functionality we introduce a new p2pmem device
+>> which can be instantiated by PCI drivers. The device will register some
+>> PCI memory as ZONE_DEVICE and provide an genalloc based allocator for
+>> users of these devices to get buffers.
+> 
+> I don't completely understand this. This is actual memory on the PCI
+> bus ? Where does it come from ? Or are you just trying to create struct
+> pages that cover your PCIe DMA target ?
+
+Yes, the memory is on the PCI bus in a BAR. For now we have a special
+PCI card for this, but in the future it would likely be the CMB in an
+NVMe card. These patches create struct pages to map these BAR addresses
+using ZONE_DEVICE.
+
+
+> So correct me if I'm wrong, you are trying to create struct page's that
+> map a PCIe BAR right ? I'm trying to understand how that interacts with
+> what Jerome is doing for HMM.
+
+Yes, well we are using ZONE_DEVICE in the exact same way as the dax code
+is. These patches use the existing API with no modifications. As I
+understand it, HMM was using ZONE_DEVICE in a way that was quite
+different to how it was originally designed.
+
+> The reason is that the HMM currently creates the struct pages with
+> "fake" PFNs pointing to a hole in the address space rather than
+> covering the actual PCIe memory of the GPU. He does that to deal with
+> the fact that some GPUs have a smaller aperture on PCIe than their
+> total memory.
+
+I'm aware of what HMM is trying to do and although I'm not familiar with
+the intimate details, I saw it as fairly orthogonal to what we are
+attempting to do.
+
+> However, I have asked him to only apply that policy if the aperture is
+> indeed smaller, and if not, create struct pages that directly cover the
+> PCIe BAR of the GPU instead, which will work better on systems or
+> architecture that don't have a "pinhole" window limitation.
+> However he was under the impression that this was going to collide with
+> what you guys are doing, so I'm trying to understand how. 
+
+I'm not sure I understand how either. However, I suspect if you collide
+with these patches then you'd also be breaking dax too.
+
+Logan
