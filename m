@@ -1,13 +1,99 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Wed, 12 Apr 2017 15:22:12 +1000
-Message-ID: <1491974532.7236.43.camel@kernel.crashing.org>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+From: "USPS Priority Parcels" <ep20752384-qnsoavBp+9i2A1rF2R9IDg@public.gmane.org>
+Subject: There's been an issue with your package
+Date: Wed, 12 Apr 2017 04:17:18 -0700
+Message-ID: <9cd201d2b343$ac89d2e0$f154d365@ep20752384>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_58EE0CD8.7F75B4F1"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_58EE0CD8.7F75B4F1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Please use more information to learn all about the payment
+   details, estimated date of delivery and the contents of your parcel, #72113714.
+   To learn your order's current status, please click on the URL provided below.
+   [...] 
+
+Content analysis details:   (9.1 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+ 1.3 URIBL_MW_SURBL         Contains a Malware Domain or IP listed in the MW SURBL
+                             blocklist
+                            [URIs: ideliverys.com]
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: ideliverys.com]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+               [Blocked - see <http://www.spamcop.net/bl.shtml?118.53.153.37>]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: ideliverys.com]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
+                            [score: 0.4510]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+
+
+
+------------=_58EE0CD8.7F75B4F1
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1490911959-5146-1-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1cyGHI-0001p5-VI
+	for gln-linux-nvdimm@m.gmane.org; Wed, 12 Apr 2017 13:17:37 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id E9BFB2008316C;
+	Wed, 12 Apr 2017 04:17:41 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from hutoszuro.hu (unknown [118.53.153.37])
+ by ml01.01.org (Postfix) with SMTP id 9BE792095C3BE
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed, 12 Apr 2017 04:17:37 -0700 (PDT)
+Message-ID: <9cd201d2b343$ac89d2e0$f154d365@ep20752384>
+From: "USPS Priority Parcels" <ep20752384-qnsoavBp+9i2A1rF2R9IDg@public.gmane.org>
+To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: There's been an issue with your package
+Date: Wed, 12 Apr 2017 04:17:18 -0700
+MIME-Version: 1.0
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5512
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.5994
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,121 +101,28 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
 
-T24gVGh1LCAyMDE3LTAzLTMwIGF0IDE2OjEyIC0wNjAwLCBMb2dhbiBHdW50aG9ycGUgd3JvdGU6
-Cj4gSGVsbG8sCj4gCj4gQXMgZGlzY3Vzc2VkIGF0IExTRi9NTSB3ZSdkIGxpa2UgdG8gcHJlc2Vu
-dCBvdXIgd29yayB0byBlbmFibGUKPiBjb3B5IG9mZmxvYWQgc3VwcG9ydCBpbiBOVk1lIGZhYnJp
-Y3MgUkRNQSB0YXJnZXRzLiBXZSdkIGFwcHJlY2lhdGUKPiBzb21lIHJldmlldyBhbmQgZmVlZGJh
-Y2sgZnJvbSB0aGUgY29tbXVuaXR5IG9uIG91ciBkaXJlY3Rpb24uCj4gVGhpcyBzZXJpZXMgaXMg
-bm90IGludGVuZGVkIHRvIGdvIHVwc3RyZWFtIGF0IHRoaXMgcG9pbnQuCj4gCj4gVGhlIGNvbmNl
-cHQgaGVyZSBpcyB0byB1c2UgbWVtb3J5IHRoYXQncyBleHBvc2VkIG9uIGEgUENJIEJBUiBhcwo+
-IGRhdGEgYnVmZmVycyBpbiB0aGUgTlZNRSB0YXJnZXQgY29kZSBzdWNoIHRoYXQgZGF0YSBjYW4g
-YmUgdHJhbnNmZXJyZWQKPiBmcm9tIGFuIFJETUEgTklDIHRvIHRoZSBzcGVjaWFsIG1lbW9yeSBh
-bmQgdGhlbiBkaXJlY3RseSB0byBhbiBOVk1lCj4gZGV2aWNlIGF2b2lkaW5nIHN5c3RlbSBtZW1v
-cnkgZW50aXJlbHkuIFRoZSB1cHNpZGUgb2YgdGhpcyBpcyBiZXR0ZXIKPiBRb1MgZm9yIGFwcGxp
-Y2F0aW9ucyBydW5uaW5nIG9uIHRoZSBDUFUgdXRpbGl6aW5nIG1lbW9yeSBhbmQgbG93ZXIKPiBQ
-Q0kgYmFuZHdpZHRoIHJlcXVpcmVkIHRvIHRoZSBDUFUgKHN1Y2ggdGhhdCBzeXN0ZW1zIGNvdWxk
-IGJlIGRlc2lnbmVkCj4gd2l0aCBmZXdlciBsYW5lcyBjb25uZWN0ZWQgdG8gdGhlIENQVSkuIEhv
-d2V2ZXIsIHByZXNlbnRseSwgdGhlIHRyYWRlLW9mZgo+IGlzIGN1cnJlbnRseSBhIHJlZHVjdGlv
-biBpbiBvdmVyYWxsIHRocm91Z2hwdXQuIChMYXJnZWx5IGR1ZSB0byBoYXJkd2FyZQo+IGlzc3Vl
-cyB0aGF0IHdvdWxkIGNlcnRhaW5seSBpbXByb3ZlIGluIHRoZSBmdXR1cmUpLgoKQW5vdGhlciBp
-c3N1ZSBvZiBjb3Vyc2UgaXMgdGhhdCBub3QgYWxsIHN5c3RlbXMgc3VwcG9ydCBQMlAKYmV0d2Vl
-biBob3N0IGJyaWRnZXMgOi0pIChUaG91Z2ggYWxtb3N0IGFsbCBzd2l0Y2hlcyBjYW4gZW5hYmxl
-IGl0KS4KCj4gRHVlIHRvIHRoZXNlIHRyYWRlLW9mZnMgd2UndmUgZGVzaWduZWQgdGhlIHN5c3Rl
-bSB0byBvbmx5IGVuYWJsZSB1c2luZwo+IHRoZSBQQ0kgbWVtb3J5IGluIGNhc2VzIHdoZXJlIHRo
-ZSBOSUMsIE5WTWUgZGV2aWNlcyBhbmQgbWVtb3J5IGFyZSBhbGwKPiBiZWhpbmQgdGhlIHNhbWUg
-UENJIHN3aXRjaC4KCk9rLiBJIHN1cHBvc2UgdGhhdCdzIGEgcmVhc29uYWJsZSBzdGFydGluZyBw
-b2ludC4gRG8gSSBoYXZlbid0IGxvb2tlZAphdCB0aGUgcGF0Y2hlcyBpbiBkZXRhaWwgeWV0IGJ1
-dCBpdCB3b3VsZCBiZSBuaWNlIGlmIHRoYXQgcG9saWN5IHdhcyBpbgphIHdlbGwgaXNvbGF0ZWQg
-Y29tcG9uZW50IHNvIGl0IGNhbiBwb3RlbnRpYWxseSBiZSBhZmZlY3RlZCBieQphcmNoL3BsYXRm
-b3JtIGNvZGUuCgpEbyB5b3UgaGFuZGxlIGZ1bmt5IGFkZHJlc3MgdHJhbnNsYXRpb24gdG9vID8g
-SUUuIHRoZSBmYWN0IHRoYXQgdGhlIFBDSQphZGRyZXNzZXMgYXJlbid0IHRoZSBzYW1lIGFzIHRo
-ZSBDUFUgcGh5c2ljYWwgYWRkcmVzc2VzIGZvciBhIEJBUiA/Cgo+IFRoaXMgd2lsbCBtZWFuIG1h
-bnkgc2V0dXBzIHRoYXQgY291bGQgbGlrZWx5Cj4gd29yayB3ZWxsIHdpbGwgbm90IGJlIHN1cHBv
-cnRlZCBzbyB0aGF0IHdlIGNhbiBiZSBtb3JlIGNvbmZpZGVudCBpdAo+IHdpbGwgd29yayBhbmQg
-bm90IHBsYWNlIGFueSByZXNwb25zaWJpbGl0eSBvbiB0aGUgdXNlciB0byB1bmRlcnN0YW5kCj4g
-dGhlaXIgdG9wb2xvZ3kuIChXZSd2ZSBjaG9zZW4gdG8gZ28gdGhpcyByb3V0ZSBiYXNlZCBvbiBm
-ZWVkYmFjayB3ZQo+IHJlY2VpdmVkIGF0IExTRikuCj4gCj4gSW4gb3JkZXIgdG8gZW5hYmxlIHRo
-aXMgZnVuY3Rpb25hbGl0eSB3ZSBpbnRyb2R1Y2UgYSBuZXcgcDJwbWVtIGRldmljZQo+IHdoaWNo
-IGNhbiBiZSBpbnN0YW50aWF0ZWQgYnkgUENJIGRyaXZlcnMuIFRoZSBkZXZpY2Ugd2lsbCByZWdp
-c3RlciBzb21lCj4gUENJIG1lbW9yeSBhcyBaT05FX0RFVklDRSBhbmQgcHJvdmlkZSBhbiBnZW5h
-bGxvYyBiYXNlZCBhbGxvY2F0b3IgZm9yCj4gdXNlcnMgb2YgdGhlc2UgZGV2aWNlcyB0byBnZXQg
-YnVmZmVycy4KCkkgZG9uJ3QgY29tcGxldGVseSB1bmRlcnN0YW5kIHRoaXMuIFRoaXMgaXMgYWN0
-dWFsIG1lbW9yeSBvbiB0aGUgUENJCmJ1cyA/IFdoZXJlIGRvZXMgaXQgY29tZSBmcm9tID8gT3Ig
-YXJlIHlvdSBqdXN0IHRyeWluZyB0byBjcmVhdGUgc3RydWN0CnBhZ2VzIHRoYXQgY292ZXIgeW91
-ciBQQ0llIERNQSB0YXJnZXQgPwogCj4gV2UgZ2l2ZSBhbiBleGFtcGxlIG9mIGVuYWJsaW5nCj4g
-cDJwIG1lbW9yeSB3aXRoIHRoZSBjeGdiNCBkcml2ZXIsIGhvd2V2ZXIgY3VycmVudGx5IHRoZXNl
-IGRldmljZXMgaGF2ZQo+IHNvbWUgaGFyZHdhcmUgaXNzdWVzIHRoYXQgcHJldmVudCB0aGVpciB1
-c2Ugc28gd2Ugd2lsbCBsaWtlbHkgYmUKPiBkcm9wcGluZyB0aGlzIHBhdGNoIGluIHRoZSBmdXR1
-cmUuIElkZWFsbHksIHdlJ2Qgd2FudCB0byBlbmFibGUgdGhpcwo+IGZ1bmN0aW9uYWxpdHkgd2l0
-aCBOVk1FIENNQiBidWZmZXJzLCBob3dldmVyIHdlIGRvbid0IGhhdmUgYW55IGhhcmR3YXJlCj4g
-d2l0aCB0aGlzIGZlYXR1cmUgYXQgdGhpcyB0aW1lLgoKU28gY29ycmVjdCBtZSBpZiBJJ20gd3Jv
-bmcsIHlvdSBhcmUgdHJ5aW5nIHRvIGNyZWF0ZSBzdHJ1Y3QgcGFnZSdzIHRoYXQKbWFwIGEgUENJ
-ZSBCQVIgcmlnaHQgPyBJJ20gdHJ5aW5nIHRvIHVuZGVyc3RhbmQgaG93IHRoYXQgaW50ZXJhY3Rz
-IHdpdGgKd2hhdCBKZXJvbWUgaXMgZG9pbmcgZm9yIEhNTS4KClRoZSByZWFzb24gaXMgdGhhdCB0
-aGUgSE1NIGN1cnJlbnRseSBjcmVhdGVzIHRoZSBzdHJ1Y3QgcGFnZXMgd2l0aAoiZmFrZSIgUEZO
-cyBwb2ludGluZyB0byBhIGhvbGUgaW4gdGhlIGFkZHJlc3Mgc3BhY2UgcmF0aGVyIHRoYW4KY292
-ZXJpbmcgdGhlIGFjdHVhbCBQQ0llIG1lbW9yeSBvZiB0aGUgR1BVLiBIZSBkb2VzIHRoYXQgdG8g
-ZGVhbCB3aXRoCnRoZSBmYWN0IHRoYXQgc29tZSBHUFVzIGhhdmUgYSBzbWFsbGVyIGFwZXJ0dXJl
-IG9uIFBDSWUgdGhhbiB0aGVpcgp0b3RhbCBtZW1vcnkuCgpIb3dldmVyLCBJIGhhdmUgYXNrZWQg
-aGltIHRvIG9ubHkgYXBwbHkgdGhhdCBwb2xpY3kgaWYgdGhlIGFwZXJ0dXJlIGlzCmluZGVlZCBz
-bWFsbGVyLCBhbmQgaWYgbm90LCBjcmVhdGUgc3RydWN0IHBhZ2VzIHRoYXQgZGlyZWN0bHkgY292
-ZXIgdGhlClBDSWUgQkFSIG9mIHRoZSBHUFUgaW5zdGVhZCwgd2hpY2ggd2lsbCB3b3JrIGJldHRl
-ciBvbiBzeXN0ZW1zIG9yCmFyY2hpdGVjdHVyZSB0aGF0IGRvbid0IGhhdmUgYSAicGluaG9sZSIg
-d2luZG93IGxpbWl0YXRpb24uCgpIb3dldmVyIGhlIHdhcyB1bmRlciB0aGUgaW1wcmVzc2lvbiB0
-aGF0IHRoaXMgd2FzIGdvaW5nIHRvIGNvbGxpZGUgd2l0aAp3aGF0IHlvdSBndXlzIGFyZSBkb2lu
-Zywgc28gSSdtIHRyeWluZyB0byB1bmRlcnN0YW5kIGhvdy4gCgo+IEluIG52bWV0LXJkbWEsIHdl
-IGF0dGVtcHQgdG8gZ2V0IGFuIGFwcHJvcHJpYXRlIHAycG1lbSBkZXZpY2UgYXQKPiBxdWV1ZSBj
-cmVhdGlvbiB0aW1lIGFuZCBpZiBhIHN1aXRhYmxlIG9uZSBpcyBmb3VuZCB3ZSB3aWxsIHVzZSBp
-dCBmb3IKPiBhbGwgdGhlIChub24taW5saW5lZCkgbWVtb3J5IGluIHRoZSBxdWV1ZS4gQW4gJ2Fs
-bG93X3AycG1lbScgY29uZmlnZnMKPiBhdHRyaWJ1dGUgaXMgYWxzbyBjcmVhdGVkIHdoaWNoIGlz
-IHJlcXVpcmVkIHRvIGJlIHNldCBiZWZvcmUgYW55IHAycG1lbQo+IGlzIGF0dGVtcHRlZC4KPiAK
-PiBUaGlzIHBhdGNoc2V0IGFsc28gaW5jbHVkZXMgYSBtb3JlIGNvbnRyb3ZlcnNpYWwgcGF0Y2gg
-d2hpY2ggcHJvdmlkZXMgYW4KPiBpbnRlcmZhY2UgZm9yIHVzZXJzcGFjZSB0byBvYnRhaW4gcDJw
-bWVtIGJ1ZmZlcnMgdGhyb3VnaCBhbiBtbWFwIGNhbGwgb24KPiBhIGNkZXYuIFRoaXMgZW5hYmxl
-cyB1c2Vyc3BhY2UgdG8gZmFpcmx5IGVhc2lseSB1c2UgcDJwbWVtIHdpdGggUkRNQSBhbmQKPiBP
-X0RJUkVDVCBpbnRlcmZhY2VzLiBIb3dldmVyLCB0aGUgdXNlciB3b3VsZCBiZSBlbnRpcmVseSBy
-ZXNwb25zaWJsZSBmb3IKPiBrbm93aW5nIHdoYXQgdGhlaXIgZG9pbmcgYW5kIGluc3BlY3Rpbmcg
-c3lzZnMgdG8gdW5kZXJzdGFuZCB0aGUgcGNpCj4gdG9wb2xvZ3kgYW5kIG9ubHkgdXNpbmcgaXQg
-aW4gc2FuZSBzaXR1YXRpb25zLgo+IAo+IFRoYW5rcywKPiAKPiBMb2dhbgo+IAo+IAo+IExvZ2Fu
-IEd1bnRob3JwZSAoNik6Cj4gwqAgSW50cm9kdWNlIFBlZXItdG8tUGVlciBtZW1vcnkgKHAycG1l
-bSkgZGV2aWNlCj4gwqAgbnZtZXQ6IFVzZSBwMnBtZW0gaW4gbnZtZSB0YXJnZXQKPiDCoCBzY2F0
-dGVybGlzdDogTW9kaWZ5IFNHIGNvcHkgZnVuY3Rpb25zIHRvIHN1cHBvcnQgaW8gbWVtb3J5Lgo+
-IMKgIG52bWV0OiBCZSBjYXJlZnVsIGFib3V0IHVzaW5nIGlvbWVtIGFjY2Vzc2VzIHdoZW4gZGVh
-bGluZyB3aXRoIHAycG1lbQo+IMKgIHAycG1lbTogU3VwcG9ydCBkZXZpY2UgcmVtb3ZhbAo+IMKg
-IHAycG1lbTogQWRkZWQgY2hhciBkZXZpY2UgdXNlciBpbnRlcmZhY2UKPiAKPiBTdGV2ZSBXaXNl
-ICgyKToKPiDCoCBjeGdiNDogc2V0dXAgcGNpZSBtZW1vcnkgd2luZG93IDQgYW5kIGNyZWF0ZSBw
-MnBtZW0gcmVnaW9uCj4gwqAgcDJwbWVtOiBBZGQgZGVidWdmcyAic3RhdHMiIGZpbGUKPiAKPiDC
-oGRyaXZlcnMvbWVtb3J5L0tjb25maWfCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDUgKwo+IMKgZHJpdmVycy9tZW1vcnkvTWFrZWZpbGXC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAy
-ICsKPiDCoGRyaXZlcnMvbWVtb3J5L3AycG1lbS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8IDY5NyArKysrKysrKysrKysrKysrKysrKysrKysKPiDC
-oGRyaXZlcnMvbmV0L2V0aGVybmV0L2NoZWxzaW8vY3hnYjQvY3hnYjQuaMKgwqDCoMKgwqDCoHzC
-oMKgwqAzICsKPiDCoGRyaXZlcnMvbmV0L2V0aGVybmV0L2NoZWxzaW8vY3hnYjQvY3hnYjRfbWFp
-bi5jIHzCoMKgOTcgKysrLQo+IMKgZHJpdmVycy9uZXQvZXRoZXJuZXQvY2hlbHNpby9jeGdiNC90
-NF9yZWdzLmjCoMKgwqDCoHzCoMKgwqA1ICsKPiDCoGRyaXZlcnMvbnZtZS90YXJnZXQvY29uZmln
-ZnMuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgMzEgKysKPiDCoGRy
-aXZlcnMvbnZtZS90YXJnZXQvY29yZS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqB8wqDCoDE4ICstCj4gwqBkcml2ZXJzL252bWUvdGFyZ2V0L2ZhYnJpY3MtY21k
-LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDI4ICstCj4gwqBkcml2ZXJzL252
-bWUvdGFyZ2V0L252bWV0LmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqB8wqDCoMKgMiArCj4gwqBkcml2ZXJzL252bWUvdGFyZ2V0L3JkbWEuY8KgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfCAxODMgKysrKystLQo+IMKgZHJpdmVycy9z
-Y3NpL3Njc2lfZGVidWcuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqB8wqDCoMKgNyArLQo+IMKgaW5jbHVkZS9saW51eC9wMnBtZW0uaMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8IDEyMCArKysrCj4gwqBpbmNs
-dWRlL2xpbnV4L3NjYXR0ZXJsaXN0LmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqB8wqDCoMKgNyArLQo+IMKgbGliL3NjYXR0ZXJsaXN0LmPCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgNjQgKyst
-Cj4gwqAxNSBmaWxlcyBjaGFuZ2VkLCAxMTg5IGluc2VydGlvbnMoKyksIDgwIGRlbGV0aW9ucygt
-KQo+IMKgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbWVtb3J5L3AycG1lbS5jCj4gwqBjcmVh
-dGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9saW51eC9wMnBtZW0uaAo+IAo+IC0tCj4gMi4xLjQKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1t
-IG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Please use more information to learn all about the payment details,
+estimated date of delivery and the contents of your parcel, #72113714.
+To learn your order's current status, please click on the URL provided
+below.
+
+http://uspsjejeoef64734514.ideliverys.com/gaa5
+
+
+
+With sincere appreciation.
+Bernarda Bednarczyk -  USPS Parcels Delivery Manager.
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_58EE0CD8.7F75B4F1--
