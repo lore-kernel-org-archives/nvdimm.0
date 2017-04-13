@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c06::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C3FF721A6F105
- for <linux-nvdimm@lists.01.org>; Mon, 10 Apr 2017 17:40:46 -0700 (PDT)
-Subject: [PATCH v3] x86,
- pmem: fix broken __copy_user_nocache cache-bypass assumptions
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 10 Apr 2017 17:35:02 -0700
-Message-ID: <149187075199.40875.9829505688202257056.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8589D2008319B
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Apr 2017 17:51:18 -0700 (PDT)
+Received: by mail-oi0-x22a.google.com with SMTP id f22so50527306oib.2
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Apr 2017 17:51:18 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <149202093948.14586.10025145039608378870.stgit@djiang5-desk3.ch.intel.com>
+References: <149202093948.14586.10025145039608378870.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 12 Apr 2017 17:51:17 -0700
+Message-ID: <CAPcyv4jz5k-n0UL=WFzXf=pjjueT68dd9vFx-DyQwhPoYKWenA@mail.gmail.com>
+Subject: Re: [PATCH v4] libnvdimm: fix clear poison locking with spinlock and
+ GFP_NOWAIT allocation
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,116 +26,149 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Before we rework the "pmem api" to stop abusing __copy_user_nocache()
-for memcpy_to_pmem() we need to fix cases where we may strand dirty data
-in the cpu cache. The problem occurs when copy_from_iter_pmem() is used
-for arbitrary data transfers from userspace. There is no guarantee that
-these transfers, performed by dax_iomap_actor(), will have aligned
-destinations or aligned transfer lengths. Backstop the usage
-__copy_user_nocache() with explicit cache management in these unaligned
-cases.
+On Wed, Apr 12, 2017 at 11:15 AM, Dave Jiang <dave.jiang@intel.com> wrote:
+> The following warning results from holding a lane spinlock,
+> preempt_disable(), or the btt map spinlock and then trying to take the
+> reconfig_mutex to walk the poison list and potentially add new entries.
+>
+> BUG: sleeping function called from invalid context at kernel/locking/mutex.
+> c:747
+> in_atomic(): 1, irqs_disabled(): 0, pid: 17159, name: dd
+> [..]
+> Call Trace:
+> dump_stack+0x85/0xc8
+> ___might_sleep+0x184/0x250
+> __might_sleep+0x4a/0x90
+> __mutex_lock+0x58/0x9b0
+> ? nvdimm_bus_lock+0x21/0x30 [libnvdimm]
+> ? __nvdimm_bus_badblocks_clear+0x2f/0x60 [libnvdimm]
+> ? acpi_nfit_forget_poison+0x79/0x80 [nfit]
+> ? _raw_spin_unlock+0x27/0x40
+> mutex_lock_nested+0x1b/0x20
+> nvdimm_bus_lock+0x21/0x30 [libnvdimm]
+> nvdimm_forget_poison+0x25/0x50 [libnvdimm]
+> nvdimm_clear_poison+0x106/0x140 [libnvdimm]
+> nsio_rw_bytes+0x164/0x270 [libnvdimm]
+> btt_write_pg+0x1de/0x3e0 [nd_btt]
+> ? blk_queue_enter+0x30/0x290
+> btt_make_request+0x11a/0x310 [nd_btt]
+> ? blk_queue_enter+0xb7/0x290
+> ? blk_queue_enter+0x30/0x290
+> generic_make_request+0x118/0x3b0
+>
+> A spinlock is introduced to protect the poison list. This allows us to not
+> having to acquire the reconfig_mutex for touching the poison list. The
+> add_poison() function has been broken out into two helper functions. One to
+> allocate the poison entry and the other to apppend the entry. This allows us
+> to unlock the poison_lock in non-I/O path and continue to be able to allocate
+> the poison entry with GFP_KERNEL. We will use GFP_NOWAIT in the I/O path in
+> order to satisfy being in atomic context.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/nvdimm/bus.c      |    7 +++--
+>  drivers/nvdimm/core.c     |   61 ++++++++++++++++++++++++++++-----------------
+>  drivers/nvdimm/nd-core.h  |    1 +
+>  include/linux/libnvdimm.h |    2 -
+>  4 files changed, 43 insertions(+), 28 deletions(-)
+>
+> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+> index 5ad2e59..d214ac44 100644
+> --- a/drivers/nvdimm/bus.c
+> +++ b/drivers/nvdimm/bus.c
+> @@ -296,6 +296,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
+>         init_waitqueue_head(&nvdimm_bus->probe_wait);
+>         nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
+>         mutex_init(&nvdimm_bus->reconfig_mutex);
+> +       spin_lock_init(&nvdimm_bus->poison_lock);
+>         if (nvdimm_bus->id < 0) {
+>                 kfree(nvdimm_bus);
+>                 return NULL;
+> @@ -364,9 +365,9 @@ static int nd_bus_remove(struct device *dev)
+>         nd_synchronize();
+>         device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
+>
+> -       nvdimm_bus_lock(&nvdimm_bus->dev);
+> +       spin_lock(&nvdimm_bus->poison_lock);
+>         free_poison_list(&nvdimm_bus->poison_list);
+> -       nvdimm_bus_unlock(&nvdimm_bus->dev);
+> +       spin_unlock(&nvdimm_bus->poison_lock);
+>
+>         nvdimm_bus_destroy_ndctl(nvdimm_bus);
+>
+> @@ -990,7 +991,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+>
+>                 if (clear_err->cleared) {
+>                         /* clearing the poison list we keep track of */
+> -                       __nvdimm_forget_poison(nvdimm_bus, clear_err->address,
+> +                       nvdimm_forget_poison(nvdimm_bus, clear_err->address,
+>                                         clear_err->cleared);
+>
+>                         /* now sync the badblocks lists */
+> diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+> index 40a3da0..dfd5ba6 100644
+> --- a/drivers/nvdimm/core.c
+> +++ b/drivers/nvdimm/core.c
+> @@ -518,28 +518,47 @@ void nvdimm_badblocks_populate(struct nd_region *nd_region,
+>  }
+>  EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
+>
+> +static struct nd_poison * alloc_poison_entry(struct nvdimm_bus *nvdimm_bus,
+> +               gfp_t flags)
+> +{
+> +       return (struct nd_poison *)kzalloc(sizeof(struct nd_poison), flags);
 
-Yes, copy_from_iter_pmem() is now too big for an inline, but addressing
-that is saved for a later patch that moves the entirety of the "pmem
-api" into the pmem driver directly.
+No need to cast since kzalloc() returns (void *).
 
-Fixes: 5de490daec8b ("pmem: add copy_from_iter_pmem() and clear_pmem()")
-Cc: <stable@vger.kernel.org>
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes in v3:
-* match the implementation to the notes at the top of
-  __copy_user_nocache (Toshi)
+> +}
+> +
+> +static void append_poison_entry(struct nvdimm_bus *nvdimm_bus,
+> +               struct nd_poison *pl, u64 addr, u64 length)
+> +{
+> +       lockdep_assert_held(&nvdimm_bus->poison_lock);
+> +       pl->start = addr;
+> +       pl->length = length;
+> +       list_add_tail(&pl->list, &nvdimm_bus->poison_list);
+> +}
+> +
+>  static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length,
+>                         gfp_t flags)
+>  {
+>         struct nd_poison *pl;
+>
+> -       pl = kzalloc(sizeof(*pl), flags);
+> +       pl = alloc_poison_entry(nvdimm_bus, flags);
+>         if (!pl)
+>                 return -ENOMEM;
+>
+> -       pl->start = addr;
+> -       pl->length = length;
+> -       list_add_tail(&pl->list, &nvdimm_bus->poison_list);
+> -
+> +       append_poison_entry(nvdimm_bus, pl, addr, length);
+>         return 0;
+>  }
+>
+>  static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
+>  {
+>         struct nd_poison *pl;
+> +       int rc;
+>
+> -       if (list_empty(&nvdimm_bus->poison_list))
+> -               return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
+> +       if (list_empty(&nvdimm_bus->poison_list)) {
+> +               spin_unlock(&nvdimm_bus->poison_lock);
+> +               pl = alloc_poison_entry(nvdimm_bus, GFP_KERNEL);
+> +               spin_lock(&nvdimm_bus->poison_lock);
 
-* Switch to using the IS_ALIGNED() macro to make alignment checks easier
-  to read and harder to get wrong like they were in v2. (Toshi, Dan)
-
- arch/x86/include/asm/pmem.h |   42 +++++++++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 11 deletions(-)
-
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 2c1ebeb4d737..529bb4a6487a 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -55,7 +55,8 @@ static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
-  * @size:	number of bytes to write back
-  *
-  * Write back a cache range using the CLWB (cache line write back)
-- * instruction.
-+ * instruction. Note that @size is internally rounded up to be cache
-+ * line size aligned.
-  */
- static inline void arch_wb_cache_pmem(void *addr, size_t size)
- {
-@@ -69,15 +70,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
- 		clwb(p);
- }
- 
--/*
-- * copy_from_iter_nocache() on x86 only uses non-temporal stores for iovec
-- * iterators, so for other types (bvec & kvec) we must do a cache write-back.
-- */
--static inline bool __iter_needs_pmem_wb(struct iov_iter *i)
--{
--	return iter_is_iovec(i) == false;
--}
--
- /**
-  * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
-  * @addr:	PMEM destination address
-@@ -94,7 +86,35 @@ static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
- 	/* TODO: skip the write-back by always using non-temporal stores */
- 	len = copy_from_iter_nocache(addr, bytes, i);
- 
--	if (__iter_needs_pmem_wb(i))
-+	/*
-+	 * In the iovec case on x86_64 copy_from_iter_nocache() uses
-+	 * non-temporal stores for the bulk of the transfer, but we need
-+	 * to manually flush if the transfer is unaligned. A cached
-+	 * memory copy is used when destination or size is not naturally
-+	 * aligned. That is:
-+	 *   - Require 8-byte alignment when size is 8 bytes or larger.
-+	 *   - Require 4-byte alignment when size is 4 bytes.
-+	 *
-+	 * In the non-iovec case the entire destination needs to be
-+	 * flushed.
-+	 */
-+	if (iter_is_iovec(i)) {
-+		unsigned long flushed, dest = (unsigned long) addr;
-+
-+		if (bytes < 8) {
-+			if (!IS_ALIGNED(dest, 4) || (bytes != 4))
-+				arch_wb_cache_pmem(addr, 1);
-+		} else {
-+			if (!IS_ALIGNED(dest, 8)) {
-+				dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
-+				arch_wb_cache_pmem(addr, 1);
-+			}
-+
-+			flushed = dest - (unsigned long) addr;
-+			if (bytes > flushed && !IS_ALIGNED(bytes - flushed, 8))
-+				arch_wb_cache_pmem(addr + bytes - 1, 1);
-+		}
-+	} else
- 		arch_wb_cache_pmem(addr, bytes);
- 
- 	return len;
-
+As soon as we drop the lock the list_empty() check we did 2 lines back
+is invalidated. In other words, how does this handle the case where
+the new entry needs to be merged with one that another thread added?
+This needs to re-validate assumptions after re-acquiring the lock.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
