@@ -1,11 +1,99 @@
-From: apache-hJsGNPoL4amUaCJ4VEHvu2ZHpeb/A1Y/@public.gmane.org (Apache)
-Subject: Parcel Delivery Notification
-Date: Wed, 12 Apr 2017 23:56:27 +0200
-Message-ID: <20170412215627.C37401EC41F@vm905.proserve.nl>
+From: "JUAN" <thivisid08-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Reach Millions of FB Group Members
+Date: Thu, 13 Apr 2017 09:22:01 +0300
+Message-ID: <2DCC0916.B712768E@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="----------=_58EF191A.67267937"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_58EF191A.67267937
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Hello, FB Gro*ups posting servi*ce to re*ach millions of FB
+   users: http://www.socialflowgroup.com/detail.php?id=12 Regards JUAN Unsubscribe
+   option is available on the footer of our website [...] 
+
+Content analysis details:   (8.0 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: socialflowgroup.com]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 2.8 FSL_HELO_FAKE          No description available.
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+               [Blocked - see <http://www.spamcop.net/bl.shtml?112.121.164.2>]
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: socialflowgroup.com]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (thivisid08[at]gmail.com)
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0007]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+
+
+------------=_58EF191A.67267937
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1cyY8x-00031z-Bc
+	for gln-linux-nvdimm@m.gmane.org; Thu, 13 Apr 2017 08:22:11 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 744AD2194EB5B;
+	Wed, 12 Apr 2017 23:22:16 -0700 (PDT)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (unknown [112.121.164.2])
+ by ml01.01.org (Postfix) with SMTP id 2BA7321A0483A
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Wed, 12 Apr 2017 23:22:13 -0700 (PDT)
+Message-ID: <2DCC0916.B712768E-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Thu, 13 Apr 2017 09:22:01 +0300
+From: "JUAN" <thivisid08-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US;
+ rv:1.8.1.18) Gecko/20081105 Thunderbird/2.0.0.18
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: Reach Millions of FB Group Members
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,37 +101,30 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
 
-Dear Customer,
+Hello,
+FB Gro*ups posting servi*ce to re*ach millions of FB users:
+http://www.socialflowgroup.com/detail.php?id=3D12
 
-Please check the attachment for your item delivery details!
-
-FedEx
-
------BEGIN PGP PUBLIC KEY BLOCK-----
-
-90ilDW3rrHDWTpcuXpG0+tt9m2qdofgj7GpT5cAdaEt32MGdPYoLpsWKpr2WJDmwD2RzNg2nrD9I
-gr9ppc/Ps2M3uxLW/b+fD3hfnsCdg9zIwpGYrY0Yq51YSROi55QnpDkfen3Che2Ywe0TRFPxLtK8
-kJbw9TVXVJhfyLAYFVlM3jBC8g5B2E7N5Nwcl4w4SGIBbwbOoGc1vSXUbERkXBYj1oCDdafPDZDS
-H2zWywSF/H8TbhES9WcqYzYR/iq13EEX7G6hBx6K+ZczHpkGUz4N3bl0gQGVGg6GPUCgzHgZDHy4
-GX/hp1Zo1UeykV9STcu0xWw82LrzAPWrXlPAv7faxsnp86evSbXovSfnUqNqqQMJQiIezqnPcv/2
-BUXOULDnwHuDUUK4R9nGXlLkPCmwkv71Jv2yqMh78j9k1kLDwVnnkpcMso3bSlrO3cuH4O8AByMN
-eRD28dhv4ZjPPiu6dhw04pG8hOQFkL56mmC9K4gB5fLYHN6mim1owhivzGhTdB7hq8kxNDiCtKcT
-XfCAPoI4goab2HdE6olPOeti8ZMrgO9HW7WF0JQS5OeuSdBgKi6xM4eZG34Qz/6zLFf2yYq6HruO
-llXs1YgmoHqGoJ2deQgmNK0d8l1FWS7yVaQWzSKrGSRUohaAxl6eeGSj5sNTn1aSI1X5n0hD/X1R
-YLiQY6ykQuGwxPgnWRbkP38fu8XocREIH7JjJQ5t3PbGB2eNg25lX097aS836TuMqRgDU6vFb2bU
-0K8flz0py9PYlowRTDhE8kvoytmJpNwdaLzCmOcxInD9PKpXCtWKRYdJgAeQB4fdswkedr+CFWgZ
-lGqvWWa1vsLhFUvs2bxO6dfxvoo4vSRUIvSBEvMuQ1jd0v9mKAHsgEbNnYaGhNJN36hsPCqoC+lp
-Wom5MtDa/8vYCdlBt5EGmTb0JGq2P5chiURHvhwWwhEUlqXLPkCFfrHi04DDgfEkhQQ/r/bleeYD
-NQS+9Y7rIgYGJco+1A6pszuXQTUMKSlwjPsX5NtptE0uyV9UiOjGwqHsC9+Ktvd4CezgkZE1+iVZ
-I51iD+kC9zj3S6cbG4VbFeQ0G+rZ7L0QMel5c/Lyi/3nNzmULz3AOi+Lq0NzgQ/Kc46LT4CLK6Ho
-F//KT21cv3Y4QhC1as8q6ZAmY7U6oLUK/fGxcA11jqlw4nj+DGUSF4EN9uSiRalfgEGCMdsrRtNF
-326kaU4hv7NYC0R5cWKJoCdToRWA+j5n9+6YvKnj4dq0uAvfQJ5gofThMjSwCWerUdbnHYEEatf1
-Ey/XaR8oxQm6I/TXkrA+qv0ujwf6DsCRcQBrAiZB9A==
+Regards
+JUAN
+=A0
 
 
------END PGP PUBLIC KEY BLOCK-----
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_58EF191A.67267937--
