@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 240042194EB79
- for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 15:06:45 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id CA14C2194EB6F
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 15:06:19 -0700 (PDT)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:26 -0600
-Message-Id: <1492121135-4437-14-git-send-email-logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:27 -0600
+Message-Id: <1492121135-4437-15-git-send-email-logang@deltatee.com>
 In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
 References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 13/22] scsi: hisi_sas, mvsas,
- gdth: Make use of the new sg_map helper function
+Subject: [PATCH 14/22] scsi: arcmsr, ips,
+ megaraid: Make use of the new sg_map helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,123 +27,104 @@ To: Christoph Hellwig <hch@lst.de>, "Martin K. Petersen" <martin.petersen@oracle
 Cc: Steve Wise <swise@opengridcomputing.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Very straightforward conversion of three scsi drivers.
+Very straightforward conversion of three scsi drivers
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/scsi/gdth.c                    |  9 +++++++--
- drivers/scsi/hisi_sas/hisi_sas_v1_hw.c | 14 +++++++++-----
- drivers/scsi/hisi_sas/hisi_sas_v2_hw.c | 13 +++++++++----
- drivers/scsi/mvsas/mv_sas.c            | 10 +++++-----
- 4 files changed, 30 insertions(+), 16 deletions(-)
+ drivers/scsi/arcmsr/arcmsr_hba.c | 16 ++++++++++++----
+ drivers/scsi/ips.c               |  8 ++++----
+ drivers/scsi/megaraid.c          |  9 +++++++--
+ 3 files changed, 23 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/scsi/gdth.c b/drivers/scsi/gdth.c
-index d020a13..82c9fba 100644
---- a/drivers/scsi/gdth.c
-+++ b/drivers/scsi/gdth.c
-@@ -2301,10 +2301,15 @@ static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
-                 return;
-             }
-             local_irq_save(flags);
--            address = kmap_atomic(sg_page(sl)) + sl->offset;
-+            address = sg_map(sl, SG_KMAP_ATOMIC);
-+            if (IS_ERR(address)) {
-+                scp->result = DID_ERROR << 16;
-+                return;
-+	    }
-+
-             memcpy(address, buffer, cpnow);
-             flush_dcache_page(sg_page(sl));
--            kunmap_atomic(address);
-+            sg_unmap(sl, address, SG_KMAP_ATOMIC);
-             local_irq_restore(flags);
-             if (cpsum == cpcount)
-                 break;
-diff --git a/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c b/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
-index 854fbea..30408f8 100644
---- a/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
-+++ b/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
-@@ -1377,18 +1377,22 @@ static int slot_complete_v1_hw(struct hisi_hba *hisi_hba,
- 		void *to;
- 		struct scatterlist *sg_resp = &task->smp_task.smp_resp;
+diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
+index af032c4..3cd485c 100644
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c
++++ b/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -2306,7 +2306,10 @@ static int arcmsr_iop_message_xfer(struct AdapterControlBlock *acb,
  
--		ts->stat = SAM_STAT_GOOD;
--		to = kmap_atomic(sg_page(sg_resp));
-+		to = sg_map(sg_resp, SG_KMAP_ATOMIC);
-+		if (IS_ERR(to)) {
-+			dev_err(dev, "slot complete: error mapping memory");
-+			ts->stat = SAS_SG_ERR;
-+			break;
+ 	use_sg = scsi_sg_count(cmd);
+ 	sg = scsi_sglist(cmd);
+-	buffer = kmap_atomic(sg_page(sg)) + sg->offset;
++	buffer = sg_map(sg, SG_KMAP_ATOMIC);
++	if (IS_ERR(buffer))
++		return ARCMSR_MESSAGE_FAIL;
++
+ 	if (use_sg > 1) {
+ 		retvalue = ARCMSR_MESSAGE_FAIL;
+ 		goto message_out;
+@@ -2539,7 +2542,7 @@ static int arcmsr_iop_message_xfer(struct AdapterControlBlock *acb,
+ message_out:
+ 	if (use_sg) {
+ 		struct scatterlist *sg = scsi_sglist(cmd);
+-		kunmap_atomic(buffer - sg->offset);
++		sg_unmap(sg, buffer, SG_KMAP_ATOMIC);
+ 	}
+ 	return retvalue;
+ }
+@@ -2590,11 +2593,16 @@ static void arcmsr_handle_virtual_command(struct AdapterControlBlock *acb,
+ 		strncpy(&inqdata[32], "R001", 4); /* Product Revision */
+ 
+ 		sg = scsi_sglist(cmd);
+-		buffer = kmap_atomic(sg_page(sg)) + sg->offset;
++		buffer = sg_map(sg, SG_KMAP_ATOMIC);
++		if (IS_ERR(buffer)) {
++			cmd->result = (DID_ERROR << 16);
++			cmd->scsi_done(cmd);
++			return;
 +		}
  
-+		ts->stat = SAM_STAT_GOOD;
- 		dma_unmap_sg(dev, &task->smp_task.smp_resp, 1,
- 			     DMA_FROM_DEVICE);
- 		dma_unmap_sg(dev, &task->smp_task.smp_req, 1,
- 			     DMA_TO_DEVICE);
--		memcpy(to + sg_resp->offset,
--		       slot->status_buffer +
-+		memcpy(to, slot->status_buffer +
- 		       sizeof(struct hisi_sas_err_record),
- 		       sg_dma_len(sg_resp));
--		kunmap_atomic(to);
-+		sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
- 		break;
+ 		memcpy(buffer, inqdata, sizeof(inqdata));
+ 		sg = scsi_sglist(cmd);
+-		kunmap_atomic(buffer - sg->offset);
++		sg_unmap(sg, buffer, SG_KMAP_ATOMIC);
+ 
+ 		cmd->scsi_done(cmd);
  	}
- 	case SAS_PROTOCOL_SATA:
-diff --git a/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c b/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
-index 1b21445..0907947 100644
---- a/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
-+++ b/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
-@@ -1796,18 +1796,23 @@ slot_complete_v2_hw(struct hisi_hba *hisi_hba, struct hisi_sas_slot *slot,
- 		struct scatterlist *sg_resp = &task->smp_task.smp_resp;
- 		void *to;
- 
-+		to = sg_map(sg_resp, SG_KMAP_ATOMIC);
-+		if (IS_ERR(to)) {
-+			dev_err(dev, "slot complete: error mapping memory");
-+			ts->stat = SAS_SG_ERR;
-+			break;
-+		}
-+
- 		ts->stat = SAM_STAT_GOOD;
--		to = kmap_atomic(sg_page(sg_resp));
- 
- 		dma_unmap_sg(dev, &task->smp_task.smp_resp, 1,
- 			     DMA_FROM_DEVICE);
- 		dma_unmap_sg(dev, &task->smp_task.smp_req, 1,
- 			     DMA_TO_DEVICE);
--		memcpy(to + sg_resp->offset,
--		       slot->status_buffer +
-+		memcpy(to, slot->status_buffer +
- 		       sizeof(struct hisi_sas_err_record),
- 		       sg_dma_len(sg_resp));
--		kunmap_atomic(to);
-+		sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
- 		break;
+diff --git a/drivers/scsi/ips.c b/drivers/scsi/ips.c
+index 3419e1b..a44291d 100644
+--- a/drivers/scsi/ips.c
++++ b/drivers/scsi/ips.c
+@@ -1506,14 +1506,14 @@ static int ips_is_passthru(struct scsi_cmnd *SC)
+                 /* kmap_atomic() ensures addressability of the user buffer.*/
+                 /* local_irq_save() protects the KM_IRQ0 address slot.     */
+                 local_irq_save(flags);
+-                buffer = kmap_atomic(sg_page(sg)) + sg->offset;
+-                if (buffer && buffer[0] == 'C' && buffer[1] == 'O' &&
++                buffer = sg_map(sg, SG_KMAP_ATOMIC);
++                if (!IS_ERR(buffer) && buffer[0] == 'C' && buffer[1] == 'O' &&
+                     buffer[2] == 'P' && buffer[3] == 'P') {
+-                        kunmap_atomic(buffer - sg->offset);
++                        sg_unmap(sg, buffer, SG_KMAP_ATOMIC);
+                         local_irq_restore(flags);
+                         return 1;
+                 }
+-                kunmap_atomic(buffer - sg->offset);
++                sg_unmap(sg, buffer, SG_KMAP_ATOMIC);
+                 local_irq_restore(flags);
  	}
- 	case SAS_PROTOCOL_SATA:
-diff --git a/drivers/scsi/mvsas/mv_sas.c b/drivers/scsi/mvsas/mv_sas.c
-index c7cc803..374d0e0 100644
---- a/drivers/scsi/mvsas/mv_sas.c
-+++ b/drivers/scsi/mvsas/mv_sas.c
-@@ -1798,11 +1798,11 @@ int mvs_slot_complete(struct mvs_info *mvi, u32 rx_desc, u32 flags)
- 	case SAS_PROTOCOL_SMP: {
- 			struct scatterlist *sg_resp = &task->smp_task.smp_resp;
- 			tstat->stat = SAM_STAT_GOOD;
--			to = kmap_atomic(sg_page(sg_resp));
--			memcpy(to + sg_resp->offset,
--				slot->response + sizeof(struct mvs_err_info),
--				sg_dma_len(sg_resp));
--			kunmap_atomic(to);
-+			to = sg_map(sg_resp, SG_KMAP_ATOMIC);
-+			memcpy(to,
-+			       slot->response + sizeof(struct mvs_err_info),
-+			       sg_dma_len(sg_resp));
-+			sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
- 			break;
- 		}
+ 	return 0;
+diff --git a/drivers/scsi/megaraid.c b/drivers/scsi/megaraid.c
+index 3c63c29..0b66e50 100644
+--- a/drivers/scsi/megaraid.c
++++ b/drivers/scsi/megaraid.c
+@@ -663,10 +663,15 @@ mega_build_cmd(adapter_t *adapter, Scsi_Cmnd *cmd, int *busy)
+ 			struct scatterlist *sg;
  
+ 			sg = scsi_sglist(cmd);
+-			buf = kmap_atomic(sg_page(sg)) + sg->offset;
++			buf = sg_map(sg, SG_KMAP_ATOMIC);
++			if (IS_ERR(buf)) {
++                                cmd->result = (DID_ERROR << 16);
++				cmd->scsi_done(cmd);
++				return NULL;
++			}
+ 
+ 			memset(buf, 0, cmd->cmnd[4]);
+-			kunmap_atomic(buf - sg->offset);
++			sg_unmap(sg, buf, SG_KMAP_ATOMIC);
+ 
+ 			cmd->result = (DID_OK << 16);
+ 			cmd->scsi_done(cmd);
 -- 
 2.1.4
 
