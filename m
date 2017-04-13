@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 795A92193930C
- for <linux-nvdimm@lists.01.org>; Sat,  1 Apr 2017 12:33:12 -0700 (PDT)
-Subject: [ndctl PATCH] test: blk allocation exhaustion
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 01 Apr 2017 12:28:02 -0700
-Message-ID: <149107488272.16325.8536491917958323727.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 240042194EB79
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 15:06:45 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:26 -0600
+Message-Id: <1492121135-4437-14-git-send-email-logang@deltatee.com>
+In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH 13/22] scsi: hisi_sas, mvsas,
+ gdth: Make use of the new sg_map helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,93 +18,134 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Christoph Hellwig <hch@lst.de>, "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Sumit Semwal <sumit.semwal@linaro.org>, Ming Lin <ming.l@ssi.samsung.com>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Steve Wise <swise@opengridcomputing.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Test that the kernel properly accounts for all blk allocations when all
-aliased pmem is allocated before un-aliased blk. This targets a
-regression that was introduced with commit a1f3e4d6a0c3 ("libnvdimm,
-region: update nd_region_available_dpa() for multi-pmem support").
+Very straightforward conversion of three scsi drivers.
 
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- test/Makefile.am    |    3 ++-
- test/blk-exhaust.sh |   47 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+), 1 deletion(-)
- create mode 100755 test/blk-exhaust.sh
+ drivers/scsi/gdth.c                    |  9 +++++++--
+ drivers/scsi/hisi_sas/hisi_sas_v1_hw.c | 14 +++++++++-----
+ drivers/scsi/hisi_sas/hisi_sas_v2_hw.c | 13 +++++++++----
+ drivers/scsi/mvsas/mv_sas.c            | 10 +++++-----
+ 4 files changed, 30 insertions(+), 16 deletions(-)
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index d2a0cf9fe2ba..4567f7465ebd 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -10,7 +10,8 @@ TESTS =\
- 	clear.sh \
- 	dax-errors.sh \
- 	btt-check.sh \
--	label-compat.sh
-+	label-compat.sh \
-+	blk-exhaust.sh
+diff --git a/drivers/scsi/gdth.c b/drivers/scsi/gdth.c
+index d020a13..82c9fba 100644
+--- a/drivers/scsi/gdth.c
++++ b/drivers/scsi/gdth.c
+@@ -2301,10 +2301,15 @@ static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
+                 return;
+             }
+             local_irq_save(flags);
+-            address = kmap_atomic(sg_page(sl)) + sl->offset;
++            address = sg_map(sl, SG_KMAP_ATOMIC);
++            if (IS_ERR(address)) {
++                scp->result = DID_ERROR << 16;
++                return;
++	    }
++
+             memcpy(address, buffer, cpnow);
+             flush_dcache_page(sg_page(sl));
+-            kunmap_atomic(address);
++            sg_unmap(sl, address, SG_KMAP_ATOMIC);
+             local_irq_restore(flags);
+             if (cpsum == cpcount)
+                 break;
+diff --git a/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c b/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
+index 854fbea..30408f8 100644
+--- a/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
++++ b/drivers/scsi/hisi_sas/hisi_sas_v1_hw.c
+@@ -1377,18 +1377,22 @@ static int slot_complete_v1_hw(struct hisi_hba *hisi_hba,
+ 		void *to;
+ 		struct scatterlist *sg_resp = &task->smp_task.smp_resp;
  
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/blk-exhaust.sh b/test/blk-exhaust.sh
-new file mode 100755
-index 000000000000..24a1ec216767
---- /dev/null
-+++ b/test/blk-exhaust.sh
-@@ -0,0 +1,47 @@
-+#!/bin/bash -x
-+NDCTL="../ndctl/ndctl"
-+BUS="-b nfit_test.0"
-+BUS1="-b nfit_test.1"
-+rc=77
+-		ts->stat = SAM_STAT_GOOD;
+-		to = kmap_atomic(sg_page(sg_resp));
++		to = sg_map(sg_resp, SG_KMAP_ATOMIC);
++		if (IS_ERR(to)) {
++			dev_err(dev, "slot complete: error mapping memory");
++			ts->stat = SAS_SG_ERR;
++			break;
++		}
+ 
++		ts->stat = SAM_STAT_GOOD;
+ 		dma_unmap_sg(dev, &task->smp_task.smp_resp, 1,
+ 			     DMA_FROM_DEVICE);
+ 		dma_unmap_sg(dev, &task->smp_task.smp_req, 1,
+ 			     DMA_TO_DEVICE);
+-		memcpy(to + sg_resp->offset,
+-		       slot->status_buffer +
++		memcpy(to, slot->status_buffer +
+ 		       sizeof(struct hisi_sas_err_record),
+ 		       sg_dma_len(sg_resp));
+-		kunmap_atomic(to);
++		sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
+ 		break;
+ 	}
+ 	case SAS_PROTOCOL_SATA:
+diff --git a/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c b/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
+index 1b21445..0907947 100644
+--- a/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
++++ b/drivers/scsi/hisi_sas/hisi_sas_v2_hw.c
+@@ -1796,18 +1796,23 @@ slot_complete_v2_hw(struct hisi_hba *hisi_hba, struct hisi_sas_slot *slot,
+ 		struct scatterlist *sg_resp = &task->smp_task.smp_resp;
+ 		void *to;
+ 
++		to = sg_map(sg_resp, SG_KMAP_ATOMIC);
++		if (IS_ERR(to)) {
++			dev_err(dev, "slot complete: error mapping memory");
++			ts->stat = SAS_SG_ERR;
++			break;
++		}
 +
-+set -e
-+
-+err() {
-+	echo "test/label-compat.sh: failed at line $1"
-+	exit $rc
-+}
-+
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+check_min_kver "4.11" || { echo "kernel $KVER may lack blk-exhaustion fix"; exit $rc; }
-+
-+set -e
-+trap 'err $LINENO' ERR
-+
-+# setup (reset nfit_test dimms)
-+modprobe nfit_test
-+$NDCTL disable-region $BUS all
-+$NDCTL zero-labels $BUS all
-+$NDCTL enable-region $BUS all
-+
-+# if the kernel accounting is correct we should be able to create two
-+# pmem and two blk namespaces on nfit_test.0
-+rc=1
-+$NDCTL create-namespace $BUS -t pmem
-+$NDCTL create-namespace $BUS -t pmem
-+$NDCTL create-namespace $BUS -t blk -m raw
-+$NDCTL create-namespace $BUS -t blk -m raw
-+
-+# clearnup and exit
-+$NDCTL disable-region $BUS all
-+$NDCTL disable-region $BUS1 all
-+modprobe -r nfit_test
-+
-+exit 0
+ 		ts->stat = SAM_STAT_GOOD;
+-		to = kmap_atomic(sg_page(sg_resp));
+ 
+ 		dma_unmap_sg(dev, &task->smp_task.smp_resp, 1,
+ 			     DMA_FROM_DEVICE);
+ 		dma_unmap_sg(dev, &task->smp_task.smp_req, 1,
+ 			     DMA_TO_DEVICE);
+-		memcpy(to + sg_resp->offset,
+-		       slot->status_buffer +
++		memcpy(to, slot->status_buffer +
+ 		       sizeof(struct hisi_sas_err_record),
+ 		       sg_dma_len(sg_resp));
+-		kunmap_atomic(to);
++		sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
+ 		break;
+ 	}
+ 	case SAS_PROTOCOL_SATA:
+diff --git a/drivers/scsi/mvsas/mv_sas.c b/drivers/scsi/mvsas/mv_sas.c
+index c7cc803..374d0e0 100644
+--- a/drivers/scsi/mvsas/mv_sas.c
++++ b/drivers/scsi/mvsas/mv_sas.c
+@@ -1798,11 +1798,11 @@ int mvs_slot_complete(struct mvs_info *mvi, u32 rx_desc, u32 flags)
+ 	case SAS_PROTOCOL_SMP: {
+ 			struct scatterlist *sg_resp = &task->smp_task.smp_resp;
+ 			tstat->stat = SAM_STAT_GOOD;
+-			to = kmap_atomic(sg_page(sg_resp));
+-			memcpy(to + sg_resp->offset,
+-				slot->response + sizeof(struct mvs_err_info),
+-				sg_dma_len(sg_resp));
+-			kunmap_atomic(to);
++			to = sg_map(sg_resp, SG_KMAP_ATOMIC);
++			memcpy(to,
++			       slot->response + sizeof(struct mvs_err_info),
++			       sg_dma_len(sg_resp));
++			sg_unmap(sg_resp, to, SG_KMAP_ATOMIC);
+ 			break;
+ 		}
+ 
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
