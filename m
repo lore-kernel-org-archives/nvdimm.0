@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3DC7E2194EB6D
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:14:50 -0700 (PDT)
-Subject: [resend PATCH v2 03/33] dax: add a facility to lookup a dax device
- by 'host' device name
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:09:06 -0700
-Message-ID: <149245614636.10206.11168446999520208016.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 143B52095C3D2
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 15:06:21 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 13 Apr 2017 16:05:35 -0600
+Message-Id: <1492121135-4437-23-git-send-email-logang@deltatee.com>
+In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH 22/22] memstick: Make use of the new sg_map helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,227 +17,131 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
+To: Christoph Hellwig <hch@lst.de>, "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Sumit Semwal <sumit.semwal@linaro.org>, Ming Lin <ming.l@ssi.samsung.com>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Steve Wise <swise@opengridcomputing.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-For the current block_device based filesystem-dax path, we need a way
-for it to lookup the dax_device associated with a block_device. Add a
-'host' property of a dax_device that can be used for this purpose. It is
-a free form string, but for a dax_device associated with a block device
-it is the bdev name.
+Straightforward conversion, but we have to WARN if unmappable
+memory finds its way into the sgl.
 
-This is a stop-gap until filesystems are able to mount on a dax-inode
-directly.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- drivers/dax/dax.h    |    2 +
- drivers/dax/device.c |    2 +
- drivers/dax/super.c  |   83 ++++++++++++++++++++++++++++++++++++++++++++++++--
- include/linux/dax.h  |    1 +
- 4 files changed, 82 insertions(+), 6 deletions(-)
+ drivers/memstick/host/jmb38x_ms.c | 23 ++++++++++++++++++-----
+ drivers/memstick/host/tifm_ms.c   | 22 +++++++++++++++++-----
+ 2 files changed, 35 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
-index 2472d9da96db..246a24d68d4c 100644
---- a/drivers/dax/dax.h
-+++ b/drivers/dax/dax.h
-@@ -13,7 +13,7 @@
- #ifndef __DAX_H__
- #define __DAX_H__
- struct dax_device;
--struct dax_device *alloc_dax(void *private);
-+struct dax_device *alloc_dax(void *private, const char *host);
- void put_dax(struct dax_device *dax_dev);
- bool dax_alive(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 19a42edbfa03..db68f4fa8ce0 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -645,7 +645,7 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
- 		goto err_id;
- 	}
+diff --git a/drivers/memstick/host/jmb38x_ms.c b/drivers/memstick/host/jmb38x_ms.c
+index 48db922..256cf41 100644
+--- a/drivers/memstick/host/jmb38x_ms.c
++++ b/drivers/memstick/host/jmb38x_ms.c
+@@ -303,7 +303,6 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 	unsigned int off;
+ 	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+-	struct page *pg;
+ 	unsigned long flags = 0;
  
--	dax_dev = alloc_dax(dev_dax);
-+	dax_dev = alloc_dax(dev_dax, NULL);
- 	if (!dax_dev)
- 		goto err_dax;
+ 	if (host->req->long_data) {
+@@ -318,14 +317,26 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 		unsigned int uninitialized_var(p_off);
  
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index c9f85f1c086e..bb22956a106b 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -30,6 +30,10 @@ static DEFINE_IDA(dax_minor_ida);
- static struct kmem_cache *dax_cache __read_mostly;
- static struct super_block *dax_superblock __read_mostly;
+ 		if (host->req->long_data) {
+-			pg = nth_page(sg_page(&host->req->sg),
+-				      off >> PAGE_SHIFT);
+ 			p_off = offset_in_page(off);
+ 			p_cnt = PAGE_SIZE - p_off;
+ 			p_cnt = min(p_cnt, length);
  
-+#define DAX_HASH_SIZE (PAGE_SIZE / sizeof(struct hlist_head))
-+static struct hlist_head dax_host_list[DAX_HASH_SIZE];
-+static DEFINE_SPINLOCK(dax_host_lock);
+ 			local_irq_save(flags);
+-			buf = kmap_atomic(pg) + p_off;
++			buf = sg_map_offset(&host->req->sg,
++					     off - host->req->sg.offset,
++					     SG_KMAP_ATOMIC);
++			if (IS_ERR(buf)) {
++				/*
++				 * This should really never happen unless
++				 * the code is changed to use memory that is
++				 * not mappable in the sg. Seeing there doesn't
++				 * seem to be any error path out of here,
++				 * we can only WARN.
++				 */
++				WARN(1, "Non-mappable memory used in sg!");
++				break;
++			}
 +
- int dax_read_lock(void)
- {
- 	return srcu_read_lock(&dax_srcu);
-@@ -46,12 +50,15 @@ EXPORT_SYMBOL_GPL(dax_read_unlock);
-  * struct dax_device - anchor object for dax services
-  * @inode: core vfs
-  * @cdev: optional character interface for "device dax"
-+ * @host: optional name for lookups where the device path is not available
-  * @private: dax driver private data
-  * @alive: !alive + rcu grace period == no new operations / mappings
-  */
- struct dax_device {
-+	struct hlist_node list;
- 	struct inode inode;
- 	struct cdev cdev;
-+	const char *host;
- 	void *private;
- 	bool alive;
- };
-@@ -63,6 +70,11 @@ bool dax_alive(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(dax_alive);
+ 		} else {
+ 			buf = host->req->data + host->block_pos;
+ 			p_cnt = host->req->data_len - host->block_pos;
+@@ -341,7 +352,9 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 				 : jmb38x_ms_read_reg_data(host, buf, p_cnt);
  
-+static int dax_host_hash(const char *host)
-+{
-+	return hashlen_hash(hashlen_string("DAX", host)) % DAX_HASH_SIZE;
-+}
-+
- /*
-  * Note, rcu is not protecting the liveness of dax_dev, rcu is ensuring
-  * that any fault handlers or operations that might have seen
-@@ -75,6 +87,12 @@ void kill_dax(struct dax_device *dax_dev)
- 		return;
+ 		if (host->req->long_data) {
+-			kunmap_atomic(buf - p_off);
++			sg_unmap_offset(&host->req->sg, buf,
++					 off - host->req->sg.offset,
++					 SG_KMAP_ATOMIC);
+ 			local_irq_restore(flags);
+ 		}
  
- 	dax_dev->alive = false;
-+
-+	spin_lock(&dax_host_lock);
-+	if (!hlist_unhashed(&dax_dev->list))
-+		hlist_del_init(&dax_dev->list);
-+	spin_unlock(&dax_host_lock);
-+
- 	synchronize_srcu(&dax_srcu);
- 	dax_dev->private = NULL;
- }
-@@ -98,6 +116,8 @@ static void dax_i_callback(struct rcu_head *head)
- 	struct inode *inode = container_of(head, struct inode, i_rcu);
- 	struct dax_device *dax_dev = to_dax_dev(inode);
+diff --git a/drivers/memstick/host/tifm_ms.c b/drivers/memstick/host/tifm_ms.c
+index 7bafa72..c0bc40e 100644
+--- a/drivers/memstick/host/tifm_ms.c
++++ b/drivers/memstick/host/tifm_ms.c
+@@ -186,7 +186,6 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 	unsigned int off;
+ 	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+-	struct page *pg;
+ 	unsigned long flags = 0;
  
-+	kfree(dax_dev->host);
-+	dax_dev->host = NULL;
- 	ida_simple_remove(&dax_minor_ida, MINOR(inode->i_rdev));
- 	kmem_cache_free(dax_cache, dax_dev);
- }
-@@ -169,26 +189,49 @@ static struct dax_device *dax_dev_get(dev_t devt)
- 	return dax_dev;
- }
+ 	if (host->req->long_data) {
+@@ -203,14 +202,25 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 		unsigned int uninitialized_var(p_off);
  
--struct dax_device *alloc_dax(void *private)
-+static void dax_add_host(struct dax_device *dax_dev, const char *host)
-+{
-+	int hash;
-+
-+	INIT_HLIST_NODE(&dax_dev->list);
-+	if (!host)
-+		return;
-+
-+	dax_dev->host = host;
-+	hash = dax_host_hash(host);
-+	spin_lock(&dax_host_lock);
-+	hlist_add_head(&dax_dev->list, &dax_host_list[hash]);
-+	spin_unlock(&dax_host_lock);
-+}
-+
-+struct dax_device *alloc_dax(void *private, const char *__host)
- {
- 	struct dax_device *dax_dev;
-+	const char *host;
- 	dev_t devt;
- 	int minor;
+ 		if (host->req->long_data) {
+-			pg = nth_page(sg_page(&host->req->sg),
+-				      off >> PAGE_SHIFT);
+ 			p_off = offset_in_page(off);
+ 			p_cnt = PAGE_SIZE - p_off;
+ 			p_cnt = min(p_cnt, length);
  
-+	host = kstrdup(__host, GFP_KERNEL);
-+	if (__host && !host)
-+		return NULL;
-+
- 	minor = ida_simple_get(&dax_minor_ida, 0, nr_dax, GFP_KERNEL);
- 	if (minor < 0)
--		return NULL;
-+		goto err_minor;
+ 			local_irq_save(flags);
+-			buf = kmap_atomic(pg) + p_off;
++			buf = sg_map_offset(&host->req->sg,
++					     off - host->req->sg.offset,
++					     SG_KMAP_ATOMIC);
++			if (IS_ERR(buf)) {
++				/*
++				 * This should really never happen unless
++				 * the code is changed to use memory that is
++				 * not mappable in the sg. Seeing there doesn't
++				 * seem to be any error path out of here,
++				 * we can only WARN.
++				 */
++				WARN(1, "Non-mappable memory used in sg!");
++				break;
++			}
+ 		} else {
+ 			buf = host->req->data + host->block_pos;
+ 			p_cnt = host->req->data_len - host->block_pos;
+@@ -221,7 +231,9 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 			 : tifm_ms_read_data(host, buf, p_cnt);
  
- 	devt = MKDEV(MAJOR(dax_devt), minor);
- 	dax_dev = dax_dev_get(devt);
- 	if (!dax_dev)
--		goto err_inode;
-+		goto err_dev;
+ 		if (host->req->long_data) {
+-			kunmap_atomic(buf - p_off);
++			sg_unmap_offset(&host->req->sg, buf,
++					 off - host->req->sg.offset,
++					 SG_KMAP_ATOMIC);
+ 			local_irq_restore(flags);
+ 		}
  
-+	dax_add_host(dax_dev, host);
- 	dax_dev->private = private;
- 	return dax_dev;
- 
-- err_inode:
-+ err_dev:
- 	ida_simple_remove(&dax_minor_ida, minor);
-+ err_minor:
-+	kfree(host);
- 	return NULL;
- }
- EXPORT_SYMBOL_GPL(alloc_dax);
-@@ -202,6 +245,38 @@ void put_dax(struct dax_device *dax_dev)
- EXPORT_SYMBOL_GPL(put_dax);
- 
- /**
-+ * dax_get_by_host() - temporary lookup mechanism for filesystem-dax
-+ * @host: alternate name for the device registered by a dax driver
-+ */
-+struct dax_device *dax_get_by_host(const char *host)
-+{
-+	struct dax_device *dax_dev, *found = NULL;
-+	int hash, id;
-+
-+	if (!host)
-+		return NULL;
-+
-+	hash = dax_host_hash(host);
-+
-+	id = dax_read_lock();
-+	spin_lock(&dax_host_lock);
-+	hlist_for_each_entry(dax_dev, &dax_host_list[hash], list) {
-+		if (!dax_alive(dax_dev)
-+				|| strcmp(host, dax_dev->host) != 0)
-+			continue;
-+
-+		if (igrab(&dax_dev->inode))
-+			found = dax_dev;
-+		break;
-+	}
-+	spin_unlock(&dax_host_lock);
-+	dax_read_unlock(id);
-+
-+	return found;
-+}
-+EXPORT_SYMBOL_GPL(dax_get_by_host);
-+
-+/**
-  * inode_dax: convert a public inode into its dax_dev
-  * @inode: An inode with i_cdev pointing to a dax_dev
-  *
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 5b62f5d19aea..9b2d5ba10d7d 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -10,6 +10,7 @@ struct iomap_ops;
- 
- int dax_read_lock(void);
- void dax_read_unlock(int id);
-+struct dax_device *dax_get_by_host(const char *host);
- 
- /*
-  * We use lowest available bit in exceptional entry for locking, one bit for
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
