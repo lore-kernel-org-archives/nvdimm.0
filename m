@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 61B4F2194EB6A
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:41:15 -0700 (PDT)
-Subject: [PATCH v2 27/33] x86, libnvdimm,
- pmem: move arch_invalidate_pmem() to libnvdimm
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 19:35:31 -0700
-Message-ID: <149222373107.32363.2544320223078515418.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 77C722194EB64
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 09:03:57 -0700 (PDT)
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-10-git-send-email-logang@deltatee.com>
+ <20170414083921.GC25471@lst.de>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
+Date: Fri, 14 Apr 2017 10:03:43 -0600
 MIME-Version: 1.0
+In-Reply-To: <20170414083921.GC25471@lst.de>
+Subject: Re: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4
+ call sites
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,149 +25,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Steve Wise <swise@opengridcomputing.com>, linux-nvme@lists.infradead.org, target-devel@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-scsi@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, Ming Lin <ming.l@ssi.samsung.com>, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, dri-devel@lists.freedesktop.org, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, linaro-mm-sig@lists.linaro.org, "Martin K. Petersen" <martin.petersen@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-nvdimm@lists.01.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, Tejun Heo <tj@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Kill this globally defined wrapper and move to libnvdimm so that we can
-ultimately remove the public pmem api.
 
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/pmem.h |    4 ----
- drivers/nvdimm/claim.c      |    3 ++-
- drivers/nvdimm/pmem.c       |    2 +-
- drivers/nvdimm/pmem.h       |    4 ++++
- drivers/nvdimm/x86.c        |    6 ++++++
- include/linux/pmem.h        |   19 -------------------
- 6 files changed, 13 insertions(+), 25 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 4759a179aa52..ded2541a7ba9 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -44,9 +44,5 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 		BUG();
- }
- 
--static inline void arch_invalidate_pmem(void *addr, size_t size)
--{
--	clflush_cache_range(addr, size);
--}
- #endif /* CONFIG_ARCH_HAS_PMEM_API */
- #endif /* __ASM_X86_PMEM_H__ */
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 3a35e8028b9c..1e13a196ce4b 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -14,6 +14,7 @@
- #include <linux/sizes.h>
- #include <linux/pmem.h>
- #include "nd-core.h"
-+#include "pmem.h"
- #include "pfn.h"
- #include "btt.h"
- #include "nd.h"
-@@ -261,7 +262,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 				cleared /= 512;
- 				badblocks_clear(&nsio->bb, sector, cleared);
- 			}
--			invalidate_pmem(nsio->addr + offset, size);
-+			arch_invalidate_pmem(nsio->addr + offset, size);
- 		} else
- 			rc = -EIO;
- 	}
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index c77a3a757729..769a510c20e8 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -69,7 +69,7 @@ static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
- 		badblocks_clear(&pmem->bb, sector, cleared);
- 	}
- 
--	invalidate_pmem(pmem->virt_addr + offset, len);
-+	arch_invalidate_pmem(pmem->virt_addr + offset, len);
- 
- 	return rc;
- }
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index c4b3371c7f88..00005900c1b7 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -7,10 +7,14 @@
- 
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_wb_cache_pmem(void *addr, size_t size);
-+void arch_invalidate_pmem(void *addr, size_t size);
- #else
- static inline void arch_wb_cache_pmem(void *addr, size_t size)
- {
- }
-+static inline void arch_invalidate_pmem(void *addr, size_t size)
-+{
-+}
- #endif
- 
- /* this definition is in it's own header for tools/testing/nvdimm to consume */
-diff --git a/drivers/nvdimm/x86.c b/drivers/nvdimm/x86.c
-index 79d7267da4d2..07478ed7ce97 100644
---- a/drivers/nvdimm/x86.c
-+++ b/drivers/nvdimm/x86.c
-@@ -34,3 +34,9 @@ void arch_wb_cache_pmem(void *addr, size_t size)
- 		clwb(p);
- }
- EXPORT_SYMBOL_GPL(arch_wb_cache_pmem);
-+
-+void arch_invalidate_pmem(void *addr, size_t size)
-+{
-+	clflush_cache_range(addr, size);
-+}
-+EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 33ae761f010a..559c00848583 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -30,11 +30,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- {
- 	BUG();
- }
--
--static inline void arch_invalidate_pmem(void *addr, size_t size)
--{
--	BUG();
--}
- #endif
- 
- static inline bool arch_has_pmem_api(void)
-@@ -61,18 +56,4 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
- 	else
- 		memcpy(dst, src, n);
- }
--
--/**
-- * invalidate_pmem - flush a pmem range from the cache hierarchy
-- * @addr:	virtual start address
-- * @size:	bytes to invalidate (internally aligned to cache line size)
-- *
-- * For platforms that support clearing poison this flushes any poisoned
-- * ranges out of the cache
-- */
--static inline void invalidate_pmem(void *addr, size_t size)
--{
--	if (arch_has_pmem_api())
--		arch_invalidate_pmem(addr, size);
--}
- #endif /* __PMEM_H__ */
+On 14/04/17 02:39 AM, Christoph Hellwig wrote:
+> On Thu, Apr 13, 2017 at 04:05:22PM -0600, Logan Gunthorpe wrote:
+>> Very straightforward conversion to the new function in all four spots.
+> 
+> I think the right fix here is to switch dm-crypt to the ahash API
+> that takes a scatterlist.
 
+Hmm, well I'm not sure I understand the code enough to make that
+conversion. But I was looking at it. One tricky bit seems to be that
+crypt_iv_lmk_one adds a seed, skips the first 16 bytes in the page and
+then hashes another 16 bytes from other data. What would you do
+construct a new sgl for it and pass it to the ahash api?
+
+The other thing is crypt_iv_lmk_post also seems to modify the page after
+the hash with a  crypto_xor so you'd still need at least one kmap in there.
+
+Logan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
