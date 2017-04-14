@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D6E822194EB64
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 15:03:11 -0700 (PDT)
-Subject: [PATCH v2 4/7] acpi, nfit: support "map failed" dimms
+ by ml01.01.org (Postfix) with ESMTPS id 117882194EB64
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 10:04:17 -0700 (PDT)
+Subject: [PATCH 4/5] acpi, nfit: support "map failed" dimms
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 14:57:27 -0700
-Message-ID: <149220704691.36563.10986793740530987407.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 14 Apr 2017 09:58:32 -0700
+Message-ID: <149218911271.3926.4006907031326342869.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Stop requiring dimms be successfully mapped into a
@@ -36,21 +36,14 @@ Reported-by: Toshi Kani <toshi.kani@hpe.com>
 Reported-by: Linda Knippers <linda.knippers@hpe.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |   53 ++++++++++++++++++++++++++++++++++++----------
- drivers/acpi/nfit/nfit.h |    2 +-
- 2 files changed, 42 insertions(+), 13 deletions(-)
+ drivers/acpi/nfit/core.c |   44 ++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 36 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 05829de43b1d..2bd842c46fbb 100644
+index 05829de43b1d..06738df477db 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -738,28 +738,38 @@ static void nfit_mem_init_bdw(struct acpi_nfit_desc *acpi_desc,
- 	}
- }
- 
--static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
-+static int __nfit_mem_init(struct acpi_nfit_desc *acpi_desc,
- 		struct acpi_nfit_system_address *spa)
+@@ -743,23 +743,33 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
  {
  	struct nfit_mem *nfit_mem, *found;
  	struct nfit_memdev *nfit_memdev;
@@ -120,8 +113,7 @@ index 05829de43b1d..2bd842c46fbb 100644
  	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
 -		int rc;
 -
--		rc = nfit_mem_dcr_init(acpi_desc, nfit_spa->spa);
-+		rc = __nfit_mem_init(acpi_desc, nfit_spa->spa);
+ 		rc = nfit_mem_dcr_init(acpi_desc, nfit_spa->spa);
  		if (rc)
  			return rc;
  	}
@@ -131,7 +123,7 @@ index 05829de43b1d..2bd842c46fbb 100644
 +	 * SPA entries above. Find and register all the unmapped DIMMs
 +	 * for reporting and recovery purposes.
 +	 */
-+	rc = __nfit_mem_init(acpi_desc, NULL);
++	rc = nfit_mem_dcr_init(acpi_desc, NULL);
 +	if (rc)
 +		return rc;
 +
@@ -156,35 +148,6 @@ index 05829de43b1d..2bd842c46fbb 100644
  	if (a == &dev_attr_format1.attr && num_nvdimm_formats(nvdimm) <= 1)
  		return 0;
  	return a->mode;
-@@ -1522,12 +1550,13 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		if ((mem_flags & ACPI_NFIT_MEM_FAILED_MASK) == 0)
- 			continue;
- 
--		dev_info(acpi_desc->dev, "%s flags:%s%s%s%s\n",
-+		dev_info(acpi_desc->dev, "%s flags:%s%s%s%s%s\n",
- 				nvdimm_name(nvdimm),
- 		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? " save_fail" : "",
- 		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? " restore_fail":"",
- 		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? " flush_fail" : "",
--		  mem_flags & ACPI_NFIT_MEM_NOT_ARMED ? " not_armed" : "");
-+		  mem_flags & ACPI_NFIT_MEM_NOT_ARMED ? " not_armed" : "",
-+		  mem_flags & ACPI_NFIT_MEM_MAP_FAILED ? " map_fail" : "");
- 
- 	}
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index fc29c2e9832e..aaabd2721f8e 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -37,7 +37,7 @@
- 
- #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
--		| ACPI_NFIT_MEM_NOT_ARMED)
-+		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
- 
- enum nfit_uuids {
- 	/* for simplicity alias the uuid index with the family id */
 
 _______________________________________________
 Linux-nvdimm mailing list
