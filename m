@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 751FD2194EB64
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 15:03:00 -0700 (PDT)
-Subject: [PATCH v2 2/7] acpi, nfit: add support for acpi 6.1 dimm state flags
+ by ml01.01.org (Postfix) with ESMTPS id 5F6132194EB64
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 10:04:22 -0700 (PDT)
+Subject: [PATCH 2/5] acpi, nfit: add support for acpi 6.1 dimm state flags
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 14:57:16 -0700
-Message-ID: <149220703619.36563.13778038601265074941.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 14 Apr 2017 09:58:22 -0700
+Message-ID: <149218910195.3926.13927602427357940056.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Add support for the ACPI_NFIT_MEM_MAP_FAILED ("map_fail") and
