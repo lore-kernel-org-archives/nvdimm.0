@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1D2CF2194EB65
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 13:32:00 -0700 (PDT)
-From: "Rudoff, Andy" <andy.rudoff@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CA7502194EB65
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 13:28:06 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Subject: Re: [ndctl PATCH] ndctl, check: Add a sigbus handler to detect
  metadata corruption
-Date: Fri, 14 Apr 2017 20:31:57 +0000
-Message-ID: <AA5E9ABD-5FD4-4AB0-9E70-6EA2A1D7EA61@intel.com>
+Date: Fri, 14 Apr 2017 20:28:04 +0000
+Message-ID: <1492201682.1657.6.camel@intel.com>
 References: <20170414000251.23904-1-vishal.l.verma@intel.com>
  <F7CF62AA-B1F5-486D-AA87-F61674B86AC5@intel.com>
  <1492196446.1657.1.camel@intel.com>
@@ -16,10 +16,9 @@ References: <20170414000251.23904-1-vishal.l.verma@intel.com>
  <D56299A3-A5A4-4B49-AFC6-5F03118F1F85@intel.com>
  <1492198820.1657.3.camel@intel.com>
  <01C2D860-110D-407F-A8FA-2892AF38EB88@intel.com>
- <1492201682.1657.6.camel@intel.com>
-In-Reply-To: <1492201682.1657.6.camel@intel.com>
+In-Reply-To: <01C2D860-110D-407F-A8FA-2892AF38EB88@intel.com>
 Content-Language: en-US
-Content-ID: <EA04E2BBB9FF284C94D0CD28BF9E14E8@intel.com>
+Content-ID: <9085ABB37B54174EA297DA8CC955D966@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -28,28 +27,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Rudoff, Andy" <andy.rudoff@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
->Maybe what we need here is during BTT creation, check for at least
->known badblocks, and initialize them so that we know at least new BTTs
->are clean.
-
-I totally agree with this one.  Sounds like a must-have to me.  The
-idea of poison in a location that sticks around even after you recreate
-the BTT makes me shudder.
-
-Thanks,
-
--andy
- 
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE3LTA0LTE0IGF0IDE5OjUyICswMDAwLCBSdWRvZmYsIEFuZHkgd3JvdGU6DQo+
+IMKgwqDCoMKgPklmIHdlIGhpdCBhIGtub3duIGJhZGJsb2NrLCB0aGF0IGlzIDUxMkIgd29ydGgg
+b2YgbWFwIGVudHJpZXMNCj4gKDEyOCkuDQo+IMKgwqDCoMKgPlNob3VsZCB3ZSByZWFsbHkgKGFs
+bW9zdCBjZXJ0YWlubHkpIHNjcmFtYmxlIDY0IGJsb2Nrcz8gOikNCj4gwqDCoMKgwqA+SWYgaXQg
+aXMgYSBsYXRlbnQgZXJyb3IsIGl0IHdpbGwgc3RpbGwgYmUgYXQgbGVhc3QgYSBjYWNoZSBsaW5l
+DQo+IHdvcnRoDQo+IMKgwqDCoMKgPm9mIG1hcCBlbnRyaWVzLCBpLmUuIDE2Lg0KPiDCoMKgwqDC
+oD4NCj4gwqDCoMKgwqA+SWYgYW4gZXJyb3IgaXMgaW4gdGhlIGxvZywgdGhlbiBpbiB0aGUgYmFk
+YmxvY2sgY2FzZSwgd2UgbG9zZQ0KPiBib3RoIGxvZw0KPiDCoMKgwqDCoD5hbmQgbG9nJyBmb3Ig
+Zm91ciBsYW5lcy4gV2hpY2ggbWVhbnMgd2UgY2FuJ3QgdGVsbCBpcyBvbmUgb2YNCj4gdGhvc2Ug
+NA0KPiDCoMKgwqDCoD5lbnRyaWVzIG5lZWRlZCBhIG1hcCB1cGRhdGUsIGxlYXZpbmcgYSBwb3Rl
+bnRpYWwgY29ycnVwdGlvbg0KPiB3aW5kb3cNCj4gwqDCoMKgwqA+b3Blbi4NCj4gwqDCoMKgwqAN
+Cj4gQmVmb3JlIHJlc3BvbmRpbmcgdG8gdGhpcywgY2FuIHlvdSB3YWxrIG1lIHRocm91Z2ggdGhl
+IHN0ZXBzDQo+IGEgdXNlciBpcyBleHBlY3RlZCB0byB0YWtlIGlmIHBvaXNvbiBhcHBlYXJzIHRo
+ZSBmbG9nLCBmb3IgZXhhbXBsZT8NCj4gU2F5IEkganVzdCB3YW50IHRvIGNvcHkgb3V0IGFzIG11
+Y2ggZGF0YSBhcyBJIGNhbiBnZXQsIHRoZW4gcmVjcmVhdGUNCj4gYSBmcmVzaCBCVFQuwqDCoEkg
+dGhpbmsgeW914oCZcmUgdGVsbGluZyBtZSB0aGF0IGEgcG9pc29uZWQgZmxvZyBwcmV2ZW50cw0K
+PiBtZSBmcm9tIHVzaW5nIHRoZSBlbnRpcmUgZGV2aWNlLCBidXQgbWF5YmUgSeKAmW0gd3Jvbmcg
+YW5kIHlvdeKAmXJlDQo+IHNheWluZyBJIGNhbiBzdGlsbCBnZXQgdG8gdGhlIG90aGVyIGFyZW5h
+cz8NCg0KU28gSSB0aGluayBjdXJyZW50bHkgdGhlIGJlc3Qgd2F5IGlzIHRvIHJlY3JlYXRlIHRo
+ZSBuYW1lc3BhY2UgYW5kDQpyZXN0b3JlIGZyb20gYSBiYWNrdXAuLiBJIHdvbmRlciBpZiB3ZSBo
+YXZlIGEgcHJvYmxlbSBoaWRpbmcgZXZlbiBoZXJlLA0KYnV0IG1vcmUgb24gdGhhdCBiZWxvdy4N
+CkkgZG9uJ3QgdGhpbmsgYWxsIGFjY2VzcyB3aWxsIGJlIHByZXZlbnRlZCwgZXZlbiB0byB0aGF0
+IGFyZW5hLCBhbmQNCmNlcnRhaW5seSBub3QgdGhlIHdob2xlIGRldmljZS4gTXkgcG9pbnQgd2Fz
+IG9ubHkgdGhhdCB3ZSBjYW4ndCBjbGVhcg0KdGhlIHBvaXNvbiwgYmVjYXVzZSB0aGVuIGFsbCBu
+b3RpZmljYXRpb24gb2YgInNvbWV0aGluZyB3ZW50IHdyb25nIiBpcw0KbG9zdC4NCg0KT25lIG9w
+dGlvbiBjb3VsZCBiZSB0byBjbGVhciB0aGUgYm9jayBvZiBwb2lzb25lZCBtYXAgZW50cmllcywg
+YW5kDQpyZXBsYWNlIHRoZW0gd2l0aCAnZXJyb3InIGVudHJpZXMgKHRoZSBlcnJvciBiaXQgaW4g
+ZWFjaCBtYXAgZW50cnkpLg0KVGhhdCB3YXkgcmVhZHMgd2lsbCBjb250aW51ZSB0byBmYWlsLCBh
+bmQgd3JpdGVzIHRvIHRob3NlIGVudHJpZXMgd2lsbA0KZml4IHRoZW0uIEknbGwgaGF2ZSB0byB3
+b3JrIHRocm91Z2ggaXQgYW5kIG1ha2Ugc3VyZSB0aGlzIHdvcmtzIG9uIHRoZQ0Ka2VybmVsIHNp
+ZGUgZmlyc3QuLg0KDQo+IA0KPiBBbnl3YXksIGFmdGVyIGNvcHlpbmcgb3V0IHdoYXQgSSBjYW4s
+IGhvdyBkbyBJIHJlY3JlYXRlIHRoZSBCVFQ/DQo+IFdoZW4gdGhlIEJUVCBjcmVhdGlvbiBjb2Rl
+IHN0YXJ0cyB3cml0aW5nIHRoZSBuZXcgZmxvZywgd2lsbCB0aGF0DQo+IGNsZWFyIHRoZSBwb2lz
+b24/wqDCoERvZXMgdGhlIEJUVCBjcmVhdGlvbiBjb2RlIGRvIGJpZyBlbm91Z2ggd3JpdGVzDQo+
+IHNvIHRoZSBkcml2ZXIgd2lsbCBpc3N1ZSBDbGVhciBVbmNvcnJlY3RhYmxlIGNvbW1hbmRzPw0K
+DQpBZnRlciA0LjEyLCB3ZSB3aWxsIGF0IGxlYXN0IGhhdmUgdGhlIGFiaWxpdHkgdG8gY2xlYXIg
+cG9pc29uIGZvciBkYXRhDQpibG9ja3MuIGkuZS4gd2hlbiB0aGUgcmVxdWVzdHMgZ29pbmcgdGhy
+b3VnaCByd19ieXRlcyBhcmUgYWxpZ25lZCBhbmQNCnNpemVkIHRvIDUxMkIgc2VjdG9ycy4gTWFw
+IGFuZCBmbG9nIHdyaXRlcyBhcmUgbm90IGxhcmdlIGVub3VnaCwgYW5kIHNvDQp3b24ndCBjbGVh
+ciBlcnJvcnMuLg0KQW5kIG1heWJlIHRoaXMgaXMgc29tZXRoaW5nIHdlIG5lZWQgdG8gZml4IG90
+aGVyd2lzZS4NCg0KQ29uc2lkZXIgYSBzY2VuYXJpbyB3aGVyZSB3ZSBoYWQgbWV0YWRhdGEgcG9p
+c29uLCB3ZSBkZWxldGUgYW5kDQpyZWNyZWF0ZSB0aGUgbmFtZXNwYWNlLiBUaGlzIGluIGl0c2Vs
+ZiBkb2Vzbid0IGhpdCB0aGUgcG9pc29uLiBXZSB3aWxsDQplbmQgdXAgaGl0dGluZyBDTUNJcyB3
+aGVuIHdlIHdyaXRlIG1ldGFkZGF0YSBhbmQgVW5jb3JyZWN0YWJsZXMgb24NCnJlYWRzIGFnYWlu
+IHNpbmNlIHRoZSBwb2lzb24gd2Fzbid0IGNsZWFyZWQuDQoNCk1heWJlIHdoYXQgd2UgbmVlZCBo
+ZXJlIGlzIGR1cmluZyBCVFQgY3JlYXRpb24sIGNoZWNrIGZvciBhdCBsZWFzdA0Ka25vd24gYmFk
+YmxvY2tzLCBhbmQgaW5pdGlhbGl6ZSB0aGVtIHNvIHRoYXQgd2Uga25vdyBhdCBsZWFzdCBuZXcg
+QlRUcw0KYXJlIGNsZWFuLg0KDQo+IA0KPiBXaXRoIHlvdXIgYW5zd2VycywgSSB0aGluayB3ZSBj
+YW4gY3JlYXRlIGEgdHlwaWNhbCB1c2VyIGZsb3csDQo+IHdoZXJlIHRoZSB1c2VyIGdldHMgZXJy
+b3IgbWVzc2FnZXMgYW5kIHRyaWVzIHRvIHVzZSBvdXIgdG9vbHMNCj4gdG8gZml4IHRoaW5ncy7C
+oMKgVGhhdCBzaG91bGQgdGVsbCB1cyBpZiB3ZeKAmXJlIG9uIHRoZSByaWdodCB0cmFjaw0KPiBv
+ciBpZiB3ZeKAmXJlIHN0cmFuZGluZyB0aGUgcG9vciB1c2VyIHdpdGggbm8gd2F5IHRvIHJlY292
+ZXLigKYNCg0KQWdyZWVkLCBjdXJyZW50IHJlY292ZXJ5IHBhdGggKGZyb20gcG9pc29uKSBzdXJl
+IGludm9sdmVzIHNsYXlpbmcNCmRyYWdvbnMgOikNCg0KPiANCj4gVGhhbmtzLA0KPiANCj4gLWFu
+ZHkNCj4gDQo+IApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
+cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
