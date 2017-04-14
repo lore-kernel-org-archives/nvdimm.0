@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 73E6F20D7A3D2
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:43 -0700 (PDT)
-Subject: [resend PATCH v2 24/33] filesystem-dax: convert to dax_flush()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:10:59 -0700
-Message-ID: <149245625960.10206.13531754204477404679.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5EFB32194EB64
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 08:34:50 -0700 (PDT)
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-2-git-send-email-logang@deltatee.com>
+ <20170414083518.GA25471@lst.de>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <18f05078-5b2c-2e9b-c8ad-e23c02942b58@deltatee.com>
+Date: Fri, 14 Apr 2017 09:34:28 -0600
 MIME-Version: 1.0
+In-Reply-To: <20170414083518.GA25471@lst.de>
+Subject: Re: [PATCH 01/22] scatterlist: Introduce sg_map helper functions
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,43 +24,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, dm-devel@redhat.com, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Christoph Hellwig <hch@lst.de>
+Cc: Steve Wise <swise@opengridcomputing.com>, linux-nvme@lists.infradead.org, target-devel@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-scsi@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, Ming Lin <ming.l@ssi.samsung.com>, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, dri-devel@lists.freedesktop.org, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, linaro-mm-sig@lists.linaro.org, "Martin K. Petersen" <martin.petersen@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-nvdimm@lists.01.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, Tejun Heo <tj@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Filesystem-DAX flushes caches whenever it writes to the address returned
-through dax_direct_access() and when writing back dirty radix entries.
-That flushing is only required in the pmem case, so the dax_flush()
-helper skips cache management work when the underlying driver does not
-specify a flush method.
 
-We still do all the dirty tracking since the radix entry will already be
-there for locking purposes. However, the work to clean the entry will be
-a nop for some dax drivers.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 14/04/17 02:35 AM, Christoph Hellwig wrote:
+>> +
+>>  static inline int is_dma_buf_file(struct file *);
+>>  
+>>  struct dma_buf_list {
+> 
+> I think the right fix here is to rename the operation to unmap_atomic
+> and send out a little patch for that ASAP.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 11b9909c91df..edbf988de86c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -798,7 +798,7 @@ static int dax_writeback_one(struct block_device *bdev,
- 	}
- 
- 	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(pfn));
--	wb_cache_pmem(kaddr, size);
-+	dax_flush(dax_dev, pgoff, kaddr, size);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
- 	 * cannot be new dirty data in the pfn after the flush has completed as
+Ok, I can do that next week.
+
+> I'd rather have separate functions for kmap vs kmap_atomic instead of
+> the flags parameter.  And while you're at it just always pass the 0
+> offset parameter instead of adding a wrapper..
+> 
+> Otherwise this looks good to me.
+
+I settled on the flags because I thought the interface could be expanded
+to do more things like automatically copy iomem to a bounce buffer (with
+a flag). It'd also be possible to add things like vmap and
+physical_address to the interface which would cover even more sg_page
+users. All the implementations would then share the common offset
+calculations, and switching between them becomes a matter of changing a
+couple flags.
+
+If you're still not convinced by the above arguments  then I'll change
+it but I did have reasons for choosing to do it this way.
+
+I am fine with removing the offset versions. I will make that change.
+
+Thanks,
+
+Logan
 
 _______________________________________________
 Linux-nvdimm mailing list
