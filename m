@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 386D42194235C
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 16:19:42 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 6/6] ndctl, test: Add a unit test for the BTT checker
-Date: Fri,  7 Apr 2017 17:18:03 -0600
-Message-Id: <20170407231803.14936-7-vishal.l.verma@intel.com>
-In-Reply-To: <20170407231803.14936-1-vishal.l.verma@intel.com>
-References: <20170407231803.14936-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 60CB32194EB64
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 15:02:52 -0700 (PDT)
+Subject: [PATCH v2 0/7] libnvdimm: acpi updates and a revert
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 14 Apr 2017 14:57:05 -0700
+Message-ID: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,223 +16,52 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new unit test that will set up BTTs, corrupt them in known ways,
-and test that the checker is able to detect or repair the corruption in
-the expected way.
+Changes since v1:
+* moved the rename of nfit_mem_dcr_init() to __nfit_mem_init() to "acpi,
+  nfit: support 'map failed' dimms"
+* added "acpi, nfit: collate health state flags"
+* added "tools/testing/nvdimm: fix nfit_test shutdown crashes"
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/Makefile.am  |   3 +-
- test/btt-check.sh | 172 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 174 insertions(+), 1 deletion(-)
- create mode 100755 test/btt-check.sh
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 24afcea..b09d2dd 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -9,7 +9,8 @@ TESTS =\
- 	create.sh \
- 	clear.sh \
- 	dax-errors.sh \
--	daxdev-errors.sh
-+	daxdev-errors.sh \
-+	btt-check.sh
- 
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/btt-check.sh b/test/btt-check.sh
-new file mode 100755
-index 0000000..11821d2
---- /dev/null
-+++ b/test/btt-check.sh
-@@ -0,0 +1,172 @@
-+#!/bin/bash -E
-+
-+[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] && ndctl="../ndctl/ndctl"
-+[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
-+[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
-+bus="nfit_test.0"
-+json2var="s/[{}\",]//g; s/:/=/g"
-+dev=""
-+mode=""
-+size=""
-+sector_size=""
-+blockdev=""
-+bs=4096
-+rc=77
-+
-+trap 'err $LINENO' ERR
-+
-+# sample json:
-+# {
-+#   "dev":"namespace5.0",
-+#   "mode":"sector",
-+#   "size":32440320,
-+#   "uuid":"51805176-e124-4635-ae17-0e6a4a16671a",
-+#   "sector_size":4096,
-+#   "blockdev":"pmem5s"
-+# }
-+
-+# $1: Line number
-+# $2: exit code
-+err()
-+{
-+	[ -n "$2" ] && rc="$2"
-+	echo "test/btt-check: failed at line $1"
-+	exit "$rc"
-+}
-+
-+create()
-+{
-+	json=$($ndctl create-namespace -b "$bus" -t pmem -m sector)
-+	eval "$(echo "$json" | sed -e "$json2var")"
-+	[ -n "$dev" ] || err "$LINENO" 2
-+	[ "$mode" = "sector" ] || err "$LINENO" 2
-+	[ -n "$size" ] || err "$LINENO" 2
-+	[ -n "$sector_size" ] || err "$LINENO" 2
-+	[ -n "$blockdev" ] || err "$LINENO" 2
-+	[ $size -gt 0 ] || err "$LINENO" 2
-+}
-+
-+reset()
-+{
-+	$ndctl disable-region -b "$bus" all
-+	$ndctl zero-labels -b "$bus" all
-+	$ndctl enable-region -b "$bus" all
-+}
-+
-+# re-enable the BTT namespace, and do IO to it in an attempt to
-+# verify it still comes up ok, and functions as expected
-+post_repair_test()
-+{
-+	echo "${FUNCNAME[0]}: I/O to BTT namespace"
-+	test -b /dev/$blockdev
-+	dd if=/dev/urandom of=test-bin bs=$sector_size count=$((size/sector_size)) > /dev/null 2>&1
-+	dd if=test-bin of=/dev/$blockdev bs=$sector_size count=$((size/sector_size)) > /dev/null 2>&1
-+	dd if=/dev/$blockdev of=test-bin-read bs=$sector_size count=$((size/sector_size)) > /dev/null 2>&1
-+	diff test-bin test-bin-read
-+	rm -f test-bin*
-+	echo "done"
-+}
-+
-+test_normal()
-+{
-+	echo "=== ${FUNCNAME[0]} ==="
-+	# disable the namespace
-+	$ndctl disable-namespace $dev
-+	$ndctl check-namespace $dev
-+	$ndctl enable-namespace $dev
-+	post_repair_test
-+}
-+
-+test_force()
-+{
-+	echo "=== ${FUNCNAME[0]} ==="
-+	$ndctl check-namespace --force $dev
-+	post_repair_test
-+}
-+
-+set_raw()
-+{
-+	$ndctl disable-namespace $dev
-+	echo -n "set raw_mode: "
-+	echo 1 | tee /sys/bus/nd/devices/$dev/force_raw
-+	$ndctl enable-namespace $dev
-+	raw_bdev="${blockdev%%s}"
-+	test -b /dev/$raw_bdev
-+	raw_size="$(cat /sys/bus/nd/devices/$dev/size)"
-+}
-+
-+unset_raw()
-+{
-+	$ndctl disable-namespace $dev
-+	echo -n "set raw_mode: "
-+	echo 0 | tee /sys/bus/nd/devices/$dev/force_raw
-+	$ndctl enable-namespace $dev
-+	raw_bdev=""
-+}
-+
-+test_bad_info2()
-+{
-+	echo "=== ${FUNCNAME[0]} ==="
-+	set_raw
-+	seek="$((raw_size/bs - 1))"
-+	echo "wiping info2 block (offset = $seek blocks)"
-+	dd if=/dev/zero of=/dev/$raw_bdev bs=$bs count=1 seek=$seek
-+	unset_raw
-+	$ndctl disable-namespace $dev
-+	$ndctl check-namespace $dev 2>&1 | grep "info2 needs to be restored"
-+	$ndctl check-namespace --repair $dev
-+	$ndctl enable-namespace $dev
-+	post_repair_test
-+}
-+
-+test_bad_info()
-+{
-+	echo "=== ${FUNCNAME[0]} ==="
-+	set_raw
-+	echo "wiping info block"
-+	dd if=/dev/zero of=/dev/$raw_bdev bs=$bs count=1 seek=1
-+	unset_raw
-+	$ndctl disable-namespace $dev
-+	$ndctl check-namespace $dev 2>&1 | grep "info block at offset 0x1000 needs to be restored"
-+	$ndctl check-namespace --repair $dev
-+	$ndctl enable-namespace $dev
-+	post_repair_test
-+}
-+
-+test_bitmap()
-+{
-+	echo "=== ${FUNCNAME[0]} ==="
-+	reset && create
-+	set_raw
-+	# scribble over the last 4K of the map
-+	rm -f /tmp/scribble
-+	for (( i=0 ; i<512 ; i++ )); do
-+		echo -n -e \\x1e\\x1e\\x00\\xc0\\x1e\\x1e\\x00\\xc0 >> /tmp/scribble
-+	done
-+	seek="$((raw_size/bs - (256*64/bs) - 2))"
-+	echo "scribbling over map entries (offset = $seek blocks)"
-+	dd if=/tmp/scribble of=/dev/$raw_bdev bs=$bs seek=$seek
-+	rm -f /tmp/scribble
-+	unset_raw
-+	$ndctl disable-namespace $dev
-+	$ndctl check-namespace $dev 2>&1 | grep "bitmap error"
-+	# This is not repairable
-+	reset && create
-+}
-+
-+do_tests()
-+{
-+	test_normal
-+	test_force
-+	test_bad_info2
-+	test_bad_info
-+	test_bitmap
-+}
-+
-+# setup (reset nfit_test dimms, create the BTT namespace)
-+modprobe nfit_test
-+rc=1
-+reset && create
-+do_tests
-+reset
-+exit 0
--- 
-2.9.3
+With Dave's recent fix [1], we can restore error clearing for btt i/o in
+4.12.
 
+ACPI 6.1 introduced new health state flags. Beyond reflecting them in
+the dimmX/flags sysfs attribute we also need to handle the deeper
+implications of the ACPI_NFIT_MEM_MAP_FAILED flag which changes
+assumptions on how the driver discovers dimms. In the "map failed" case
+there may missing or no SPA entries associated with a dimm. Those dimms
+should still be registered with libnvdimm so that the error state can be
+communicated and recovery attempted.
+
+[1]: https://patchwork.kernel.org/patch/9680035/
+
+---
+
+Dan Williams (7):
+      Revert "libnvdimm: band aid btt vs clear poison locking"
+      acpi, nfit: add support for acpi 6.1 dimm state flags
+      tools/testing/nvdimm: test acpi 6.1 health state flags
+      acpi, nfit: support "map failed" dimms
+      acpi, nfit: collate health state flags
+      acpi, nfit: limit ->flush_probe() to initialization work
+      tools/testing/nvdimm: fix nfit_test shutdown crashes
+
+
+ drivers/acpi/nfit/core.c         |   82 +++++++++++++++++++++++++++++++-------
+ drivers/acpi/nfit/nfit.h         |    3 +
+ drivers/nvdimm/claim.c           |   10 -----
+ tools/testing/nvdimm/test/nfit.c |   50 +++++++++++++++++++++--
+ 4 files changed, 115 insertions(+), 30 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
