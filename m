@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 07EE82194EB64
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 15:02:55 -0700 (PDT)
-Subject: [PATCH v2 1/7] Revert "libnvdimm: band aid btt vs clear poison
- locking"
+ by ml01.01.org (Postfix) with ESMTPS id AA12C2194EB64
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 10:04:00 -0700 (PDT)
+Subject: [PATCH 1/5] Revert "libnvdimm: band aid btt vs clear poison locking"
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 14:57:11 -0700
-Message-ID: <149220703105.36563.1290518071230049126.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 14 Apr 2017 09:58:16 -0700
+Message-ID: <149218909642.3926.2657031890982247617.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 This reverts commit 4aa5615e080a "libnvdimm: band aid btt vs clear
@@ -34,8 +33,6 @@ Now that poison list locking has been converted to a spinlock and poison
 list entry allocation during i/o has been converted to GFP_NOWAIT,
 revert the band-aid that disabled error clearing from btt i/o.
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
  drivers/nvdimm/claim.c |   10 +---------
