@@ -1,22 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x230.google.com (mail-oi0-x230.google.com
+ [IPv6:2607:f8b0:4003:c06::230])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BEE472194EB69
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 12:26:51 -0700 (PDT)
-From: "Rudoff, Andy" <andy.rudoff@intel.com>
-Subject: Re: [ndctl PATCH] ndctl, check: Add a sigbus handler to detect
- metadata corruption
-Date: Fri, 14 Apr 2017 19:26:49 +0000
-Message-ID: <D56299A3-A5A4-4B49-AFC6-5F03118F1F85@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5AF8F2194EB69
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 12:04:01 -0700 (PDT)
+Received: by mail-oi0-x230.google.com with SMTP id x184so10979139oia.1
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 12:04:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1492196446.1657.1.camel@intel.com>
 References: <20170414000251.23904-1-vishal.l.verma@intel.com>
  <F7CF62AA-B1F5-486D-AA87-F61674B86AC5@intel.com>
  <1492196446.1657.1.camel@intel.com>
- <CAPcyv4hc8d15yUs133ZG5V4+7R+CfdPaDA0661JX95ZcnLK0sw@mail.gmail.com>
-In-Reply-To: <CAPcyv4hc8d15yUs133ZG5V4+7R+CfdPaDA0661JX95ZcnLK0sw@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <95A804EAFB54764798069D5BCF8EC2BC@intel.com>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 14 Apr 2017 12:04:00 -0700
+Message-ID: <CAPcyv4hc8d15yUs133ZG5V4+7R+CfdPaDA0661JX95ZcnLK0sw@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl, check: Add a sigbus handler to detect
+ metadata corruption
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,65 +24,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ICAgIE9uIEZyaSwgQXByIDE0LCAyMDE3IGF0IDEyOjAwIFBNLCBWZXJtYSwgVmlzaGFsIEwNCiAg
-ICA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPiB3cm90ZToNCiAgICA+IE9uIEZyaSwgMjAxNy0w
-NC0xNCBhdCAwMDoxMCArMDAwMCwgUnVkb2ZmLCBBbmR5IHdyb3RlOg0KICAgID4+ID4gSWYgd2Ug
-aGF2ZSBwb2lzb24vYmFkYmxvY2tzIGluIHRoZSBCVFQgbWV0YWRhdGEgc2VjdGlvbnMsIHRoZSBt
-bWFwLQ0KICAgID4+ID4gcmVhZHMNCiAgICA+PiA+IGhhcHBlbmluZyBpbiB0aGUgY2hlY2tlciB3
-aWxsIHRyaWdnZXIgYSBTSUdCVVMsIGFuZCB0aGUgcHJvZ3JhbQ0KICAgID4+ID4gd2lsbA0KICAg
-ID4+ID4gaGFsdCBhYnJ1cHRseS4gQWRkIGEgc2lnYnVzIGhhbmRsZXIgd2hpY2ggbm90aWZpZXMg
-dGhlIHVzZXIgb2YNCiAgICA+PiA+IHRoaXMsIGFuZA0KICAgID4+ID4gcHJpbnRzIG91dCBhIHJl
-bGV2YW50IGVycm9yIG1lc3NhZ2U6DQogICAgPj4gPg0KICAgID4+ID4gIG5hbWVzcGFjZTUuMDog
-bmFtZXNwYWNlX2NoZWNrOiBjaGVja2luZyBuYW1lc3BhY2U1LjANCiAgICA+PiA+ICBuYW1lc3Bh
-Y2U1LjA6IGJ0dF9kaXNjb3Zlcl9hcmVuYXM6IGZvdW5kIDEgQlRUIGFyZW5hDQogICAgPj4gPiAg
-bmFtZXNwYWNlNS4wOiBidHRfY2hlY2tfYXJlbmFzOiBjaGVja2luZyBhcmVuYSAwDQogICAgPj4g
-PiAgbmFtZXNwYWNlNS4wOiBuYW1lc3BhY2VfY2hlY2s6IFJlY2VpdmVkIGEgU0lHQlVTDQogICAg
-Pj4gPiAgbmFtZXNwYWNlNS4wOiBuYW1lc3BhY2VfY2hlY2s6IE1ldGFkYXRhIGNvcnJ1cHRpb24g
-Zm91bmQsIHJlY292ZXJ5DQogICAgPj4gPiBpcyBub3QgcG9zc2libGUNCiAgICA+PiA+ICBlcnJv
-ciBjaGVja2luZyBuYW1lc3BhY2VzOiBCYWQgYWRkcmVzcw0KICAgID4+DQogICAgPj4gSWYgaW4g
-cmVwYWlyIG1vZGUsIHNob3VsZCBhIFNJR0JVUyBjYXVzZSB5b3UgdG8gc2V0IHRoZSBlcnJvciBz
-dGF0ZQ0KICAgID4+IGluIHRoZSBhc3NvY2lhdGVkIGFyZW5hPw0KICAgID4+DQogICAgPj4gLWFu
-ZHkNCiAgICA+Pg0KICAgID4gU28gSSB0aG91Z2h0IGEgYml0IGFib3V0IHRoaXMgLQ0KICAgID4g
-V2hpbGUgd2UgY2FuIHNldCB0aGUgZXJyb3Igc3RhdGUsIHRoYXQgbGVhdmVzIHRoZSBCVFQgd2l0
-aCBubyB3YXkgdG8NCiAgICA+IGdldCBhbnkgZGF0YSBvZmYgaXQgKGN1cnJlbnRseSkuDQogICAg
-Pg0KICAgID4gSWYgd2UgYWxsb3cgdGhlIGtlcm5lbCB0byBlbmFibGUgdGhlIG5hbWVzcGFjZSwg
-dGhlIHVzZXIgaGFzIHNvbWUNCiAgICA+IGNoYW5jZSB0byBkbyBhdCBsZWFzdCBwYXJ0aWFsIHJl
-Y292ZXJ5IHVudGlsIHRoZXkgaGl0IHRoZSBiYWRibG9jay4NCiAgICA+IChhc3N1bWluZyB0aGUg
-YmFkYmxvY2sgaXMgaW4gdGhlIG1hcCwgd2hpY2ggaXMgdGhlIGxhcmdlc3Qgb24tZGlzaw0KICAg
-ID4gc3RydWN0dXJlKS4gSWYgaXQgaXMgb24gdGhlIGZsb2cgb3IgaW5mbyBibG9jaywgdGhlbiwg
-eWVzLCB0aGVyZSBpcyBubw0KICAgID4gcmVjb3ZlcnkuDQogICAgDQpZZWFoLCBJIHRob3VnaHQg
-YWJvdXQgdGhpcyBhIGxpdHRsZSBtb3JlIHRvby4gIEhlcmXigJlzIHdoYXQgSSB0aGluayBzaG91
-bGQgaGFwcGVuOg0KDQpXaXRob3V0IC0tcmVwYWlyLCBJIGFncmVlIHdpdGggdGhpcyBwYXRjaCwg
-YWx0aG91Z2ggdGhlIGVycm9yIG1lc3NhZ2UgbWlnaHQNCnRlbGwgdGhlIHBvb3IgdXNlciB0aGF0
-IHJ1bm5pbmcgd2l0aCAtLXJlcGFpciBpcyB0aGUgbmV4dCBzdGVwIGlmIHRoZXkgd2FudCB0bw0K
-dHJ5IHRvIGZpeCBpdCAoc2VlIGJlbG93KS4NCg0KV2l0aCAtLXJlcGFpciwgdGhlIHJlcGFpciBj
-b2RlIHNob3VsZCB0cnkgdG8gcmVwbGFjZSB0aGUgcG9pc29uIHdpdGgNCnJlcGFpcmVkIG1ldGFk
-YXRhLCBjbGVhcmluZyB0aGUgYXBwcm9wcmlhdGUgZXJyb3IgYml0cyB3aGVuIGRvbmUuDQoNCkZv
-ciBleGFtcGxlLCBpZiB0aGUgcG9pc29uIGlzIGluIHRoZSBtYXAsIHRoZSByZXBhaXIgY29kZSBz
-aG91bGQgZmlndXJlDQpvdXQgd2hpY2ggZW50cmllcyBoYXZlIG5vIG1hcCBlbnRyeSwgY2xlYXIg
-dGhlIHBvaXNvbiwgYW5kIHVwZGF0ZSB0aGUNCm1hcCwgcHJpbnRpbmcgYSBzdHJvbmcgd2Fybmlu
-ZyB0aGF0IHRoZSBibG9ja3Mgd2VyZSByZXBhaXJlZCBidXQgbWF5DQpub3QgYmUgaW4gdGhlIHJp
-Z2h0IHBsYWNlIGFueSBtb3JlLiAgSWYgdGhlIHBvaXNvbiBpcyBpbiBzb21ldGhpbmcgbGlrZQ0K
-dGhlIGFyZW5hIGluZm8gYmxvY2ssIGEgcmVwbGFjZW1lbnQgY2FuIGJlIGNvbnN0cnVjdGVkIGZy
-b20gdGhlDQpiYWNrdXAgaW5mby4gIFRoZSBwb2ludCBpcyB0aGF0IHRoZSB0b29sIHNob3VsZG7i
-gJl0IGRpZSBvbiBwb2lzb24sIGl0DQpzaG91bGQgYmUgdGhlIHdheSB5b3UgZml4IGl0IGFuZCBn
-ZXQgcmlkIG9mIHRoZSBwb2lzb24uDQoNCkZpbmFsbHksIHRoZSBrZXJuZWwgc2hvdWxkIGJlIHNl
-dHRpbmcgYW5kIGhvbm9yaW5nIHRoZSBlcnJvciBiaXRzLCBib3RoDQppbiBtYXAgZW50cmllcyBh
-bmQgYXJlbmEgaW5mbyBibG9ja3MuICBXaGVuIHBvaXNvbiBpcyBkaXNjb3ZlcmVkIGluDQptZXRh
-ZGF0YSwgdGhlIGFyZW5hIGluZm8gYmxvY2sgZXJyb3Igc3RhdGUgc2hvdWxkIGJlIHNldCBhbmQg
-dGhhdA0Kc2hvdWxkIG5vdCBkaXNhbGxvdyBnZXR0aW5nIHRvIGFueSBhdmFpbGFibGUgZGF0YSBh
-cyB5b3Ugc3RhdGVkLCBidXQNCnNob3VsZCBpbnN0ZWFkIG1ha2UgdGhhdCBhcmVuYSByZWFkLW9u
-bHkuICBUaGUgb25seSB3YXkgdG8gZ2V0IG91dA0Kb2YgcmVhZC1vbmx5IG1vZGUgZm9yIHRoZSBh
-cmVuYSBzaG91bGQgYmUgdG8gcnVuIHRoZSBjaGVjayB0b29sDQp3aXRoIC0tcmVwYWlyIGFuZCBh
-bGwgdGhlIHN0dWZmIEkgc2FpZCBhYm92ZSB0aGVuIGhhcHBlbnMuDQogDQoNCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
-IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Fri, Apr 14, 2017 at 12:00 PM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+> On Fri, 2017-04-14 at 00:10 +0000, Rudoff, Andy wrote:
+>> > If we have poison/badblocks in the BTT metadata sections, the mmap-
+>> > reads
+>> > happening in the checker will trigger a SIGBUS, and the program
+>> > will
+>> > halt abruptly. Add a sigbus handler which notifies the user of
+>> > this, and
+>> > prints out a relevant error message:
+>> >
+>> >  namespace5.0: namespace_check: checking namespace5.0
+>> >  namespace5.0: btt_discover_arenas: found 1 BTT arena
+>> >  namespace5.0: btt_check_arenas: checking arena 0
+>> >  namespace5.0: namespace_check: Received a SIGBUS
+>> >  namespace5.0: namespace_check: Metadata corruption found, recovery
+>> > is not possible
+>> >  error checking namespaces: Bad address
+>>
+>> If in repair mode, should a SIGBUS cause you to set the error state
+>> in the associated arena?
+>>
+>> -andy
+>>
+> So I thought a bit about this -
+> While we can set the error state, that leaves the BTT with no way to
+> get any data off it (currently).
+>
+> If we allow the kernel to enable the namespace, the user has some
+> chance to do at least partial recovery until they hit the badblock.
+> (assuming the badblock is in the map, which is the largest on-disk
+> structure). If it is on the flog or info block, then, yes, there is no
+> recovery.
+
+Also, the kernel currently does nothing with the error bit besides
+print out that it saw it.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
