@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x236.google.com (mail-oi0-x236.google.com
+ [IPv6:2607:f8b0:4003:c06::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CB67820D7A3A4
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:22 -0700 (PDT)
-Subject: [resend PATCH v2 20/33] dm: add ->copy_from_iter() dax operation
- support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:10:38 -0700
-Message-ID: <149245623835.10206.17481761679193180574.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 95C672194EB65
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 09:13:11 -0700 (PDT)
+Received: by mail-oi0-x236.google.com with SMTP id r203so95671724oib.3
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 09:13:11 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <149211841881.15608.18107264434663008282.stgit@djiang5-desk3.ch.intel.com>
+References: <149211841881.15608.18107264434663008282.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 14 Apr 2017 09:13:10 -0700
+Message-ID: <CAPcyv4gRG9oj8hig89jLYGh8Fxj9fi3UsQKE982skTtakD+-fg@mail.gmail.com>
+Subject: Re: [PATCH v6] libnvdimm: fix clear poison locking with spinlock and
+ GFP_NOWAIT allocation
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,219 +26,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Mike Snitzer <snitzer@redhat.com>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow device-mapper to route copy_from_iter operations to the
-per-target implementation. In order for the device stacking to work we
-need a dax_dev and a pgoff relative to that device. This gives each
-layer of the stack the information it needs to look up the operation
-pointer for the next level.
+On Thu, Apr 13, 2017 at 2:25 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> The following warning results from holding a lane spinlock,
+> preempt_disable(), or the btt map spinlock and then trying to take the
+> reconfig_mutex to walk the poison list and potentially add new entries.
+>
+> BUG: sleeping function called from invalid context at kernel/locking/mutex.
+> c:747
+> in_atomic(): 1, irqs_disabled(): 0, pid: 17159, name: dd
+> [..]
+> Call Trace:
+> dump_stack+0x85/0xc8
+> ___might_sleep+0x184/0x250
+> __might_sleep+0x4a/0x90
+> __mutex_lock+0x58/0x9b0
+> ? nvdimm_bus_lock+0x21/0x30 [libnvdimm]
+> ? __nvdimm_bus_badblocks_clear+0x2f/0x60 [libnvdimm]
+> ? acpi_nfit_forget_poison+0x79/0x80 [nfit]
+> ? _raw_spin_unlock+0x27/0x40
+> mutex_lock_nested+0x1b/0x20
+> nvdimm_bus_lock+0x21/0x30 [libnvdimm]
+> nvdimm_forget_poison+0x25/0x50 [libnvdimm]
+> nvdimm_clear_poison+0x106/0x140 [libnvdimm]
+> nsio_rw_bytes+0x164/0x270 [libnvdimm]
+> btt_write_pg+0x1de/0x3e0 [nd_btt]
+> ? blk_queue_enter+0x30/0x290
+> btt_make_request+0x11a/0x310 [nd_btt]
+> ? blk_queue_enter+0xb7/0x290
+> ? blk_queue_enter+0x30/0x290
+> generic_make_request+0x118/0x3b0
+>
+> A spinlock is introduced to protect the poison list. This allows us to not
+> having to acquire the reconfig_mutex for touching the poison list. The
+> add_poison() function has been broken out into two helper functions. One to
+> allocate the poison entry and the other to apppend the entry. This allows us
+> to unlock the poison_lock in non-I/O path and continue to be able to allocate
+> the poison entry with GFP_KERNEL. We will use GFP_NOWAIT in the I/O path in
+> order to satisfy being in atomic context.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 
-This conceptually allows for an array of mixed device drivers with
-varying copy_from_iter implementations.
-
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/super.c           |   13 +++++++++++++
- drivers/md/dm-linear.c        |   15 +++++++++++++++
- drivers/md/dm-stripe.c        |   20 ++++++++++++++++++++
- drivers/md/dm.c               |   26 ++++++++++++++++++++++++++
- include/linux/dax.h           |    2 ++
- include/linux/device-mapper.h |    3 +++
- 6 files changed, 79 insertions(+)
-
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 23ce3ab49f10..73f0da8e5d27 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -17,6 +17,7 @@
- #include <linux/cdev.h>
- #include <linux/hash.h>
- #include <linux/slab.h>
-+#include <linux/uio.h>
- #include <linux/dax.h>
- #include <linux/fs.h>
- 
-@@ -104,6 +105,18 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
- }
- EXPORT_SYMBOL_GPL(dax_direct_access);
- 
-+size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t bytes, struct iov_iter *i)
-+{
-+	if (!dax_alive(dax_dev))
-+		return 0;
-+
-+	if (!dax_dev->ops->copy_from_iter)
-+		return copy_from_iter(addr, bytes, i);
-+	return dax_dev->ops->copy_from_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+EXPORT_SYMBOL_GPL(dax_copy_from_iter);
-+
- bool dax_alive(struct dax_device *dax_dev)
- {
- 	lockdep_assert_held(&dax_srcu);
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index c5a52f4dae81..5fe44a0ddfab 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -158,6 +158,20 @@ static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
- }
- 
-+static size_t linear_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct linear_c *lc = ti->private;
-+	struct block_device *bdev = lc->dev->bdev;
-+	struct dax_device *dax_dev = lc->dev->dax_dev;
-+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
-+
-+	dev_sector = linear_map_sector(ti, sector);
-+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+
- static struct target_type linear_target = {
- 	.name   = "linear",
- 	.version = {1, 3, 0},
-@@ -169,6 +183,7 @@ static struct target_type linear_target = {
- 	.prepare_ioctl = linear_prepare_ioctl,
- 	.iterate_devices = linear_iterate_devices,
- 	.direct_access = linear_dax_direct_access,
-+	.dax_copy_from_iter = linear_dax_copy_from_iter,
- };
- 
- int __init dm_linear_init(void)
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index cb4b1e9e16ab..4f45d23249b2 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -330,6 +330,25 @@ static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
- }
- 
-+static size_t stripe_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
-+	struct stripe_c *sc = ti->private;
-+	struct dax_device *dax_dev;
-+	struct block_device *bdev;
-+	uint32_t stripe;
-+
-+	stripe_map_sector(sc, sector, &stripe, &dev_sector);
-+	dev_sector += sc->stripe[stripe].physical_start;
-+	dax_dev = sc->stripe[stripe].dev->dax_dev;
-+	bdev = sc->stripe[stripe].dev->bdev;
-+
-+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+
- /*
-  * Stripe status:
-  *
-@@ -448,6 +467,7 @@ static struct target_type stripe_target = {
- 	.iterate_devices = stripe_iterate_devices,
- 	.io_hints = stripe_io_hints,
- 	.direct_access = stripe_dax_direct_access,
-+	.dax_copy_from_iter = stripe_dax_copy_from_iter,
- };
- 
- int __init dm_stripe_init(void)
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 79d5f5fd823e..8c8579efcba2 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -19,6 +19,7 @@
- #include <linux/dax.h>
- #include <linux/slab.h>
- #include <linux/idr.h>
-+#include <linux/uio.h>
- #include <linux/hdreg.h>
- #include <linux/delay.h>
- #include <linux/wait.h>
-@@ -957,6 +958,30 @@ static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return ret;
- }
- 
-+static size_t dm_dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct mapped_device *md = dax_get_private(dax_dev);
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+	struct dm_target *ti;
-+	long ret = 0;
-+	int srcu_idx;
-+
-+	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
-+
-+	if (!ti)
-+		goto out;
-+	if (!ti->type->dax_copy_from_iter) {
-+		ret = copy_from_iter(addr, bytes, i);
-+		goto out;
-+	}
-+	ret = ti->type->dax_copy_from_iter(ti, pgoff, addr, bytes, i);
-+ out:
-+	dm_put_live_table(md, srcu_idx);
-+
-+	return ret;
-+}
-+
- /*
-  * A target may call dm_accept_partial_bio only from the map routine.  It is
-  * allowed for all bio types except REQ_PREFLUSH.
-@@ -2818,6 +2843,7 @@ static const struct block_device_operations dm_blk_dops = {
- 
- static const struct dax_operations dm_dax_ops = {
- 	.direct_access = dm_dax_direct_access,
-+	.copy_from_iter = dm_dax_copy_from_iter,
- };
- 
- /*
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 156f067d4db5..cd8561bb21f3 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -32,6 +32,8 @@ void kill_dax(struct dax_device *dax_dev);
- void *dax_get_private(struct dax_device *dax_dev);
- long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
- 		void **kaddr, pfn_t *pfn);
-+size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t bytes, struct iov_iter *i);
- 
- /*
-  * We use lowest available bit in exceptional entry for locking, one bit for
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index df830d167892..e18e4277d09d 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -130,6 +130,8 @@ typedef int (*dm_busy_fn) (struct dm_target *ti);
-  */
- typedef long (*dm_dax_direct_access_fn) (struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn);
-+typedef size_t (*dm_dax_copy_from_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i);
- #define PAGE_SECTORS (PAGE_SIZE / 512)
- 
- void dm_error(const char *message);
-@@ -179,6 +181,7 @@ struct target_type {
- 	dm_iterate_devices_fn iterate_devices;
- 	dm_io_hints_fn io_hints;
- 	dm_dax_direct_access_fn direct_access;
-+	dm_dax_copy_from_iter_fn dax_copy_from_iter;
- 
- 	/* For internal device-mapper use. */
- 	struct list_head list;
-
+Looks good, passes testing, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
