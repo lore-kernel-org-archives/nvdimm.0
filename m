@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ACC5A21DFA7AF
- for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 15:06:20 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:16 -0600
-Message-Id: <1492121135-4437-4-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 03/22] libiscsi: Make use of new the sg_map helper function
+ by ml01.01.org (Postfix) with ESMTPS id D9B7A2194EB6A
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:39:24 -0700 (PDT)
+Subject: [PATCH v2 06/33] axon_ram: add dax_operations support
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 14 Apr 2017 19:33:40 -0700
+Message-ID: <149222362054.32363.1172632799775852233.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,130 +18,151 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Sumit Semwal <sumit.semwal@linaro.org>, Ming Lin <ming.l@ssi.samsung.com>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Convert the kmap and kmap_atomic uses to the sg_map function. We now
-store the flags for the kmap instead of a boolean to indicate
-atomicitiy. We also propogate a possible kmap error down and create
-a new ISCSI_TCP_INTERNAL_ERR error type for this.
+Setup a dax_device to have the same lifetime as the axon_ram block
+device and add a ->direct_access() method that is equivalent to
+axon_ram_direct_access(). Once fs/dax.c has been converted to use
+dax_operations the old axon_ram_direct_access() will be removed.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/scsi/cxgbi/libcxgbi.c |  5 +++++
- drivers/scsi/libiscsi_tcp.c   | 32 ++++++++++++++++++++------------
- include/scsi/libiscsi_tcp.h   |  3 ++-
- 3 files changed, 27 insertions(+), 13 deletions(-)
+ arch/powerpc/platforms/Kconfig |    1 +
+ arch/powerpc/sysdev/axonram.c  |   48 +++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 43 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/scsi/cxgbi/libcxgbi.c b/drivers/scsi/cxgbi/libcxgbi.c
-index bd7d39e..e38d0c1 100644
---- a/drivers/scsi/cxgbi/libcxgbi.c
-+++ b/drivers/scsi/cxgbi/libcxgbi.c
-@@ -1556,6 +1556,11 @@ static inline int read_pdu_skb(struct iscsi_conn *conn,
- 		 */
- 		iscsi_conn_printk(KERN_ERR, conn, "Invalid pdu or skb.");
- 		return -EFAULT;
-+	case ISCSI_TCP_INTERNAL_ERR:
-+		pr_info("skb 0x%p, off %u, %d, TCP_INTERNAL_ERR.\n",
-+			skb, offset, offloaded);
-+		iscsi_conn_printk(KERN_ERR, conn, "Internal error.");
-+		return -EFAULT;
- 	case ISCSI_TCP_SEGMENT_DONE:
- 		log_debug(1 << CXGBI_DBG_PDU_RX,
- 			"skb 0x%p, off %u, %d, TCP_SEG_DONE, rc %d.\n",
-diff --git a/drivers/scsi/libiscsi_tcp.c b/drivers/scsi/libiscsi_tcp.c
-index 63a1d69..a2427699 100644
---- a/drivers/scsi/libiscsi_tcp.c
-+++ b/drivers/scsi/libiscsi_tcp.c
-@@ -133,25 +133,23 @@ static void iscsi_tcp_segment_map(struct iscsi_segment *segment, int recv)
- 	if (page_count(sg_page(sg)) >= 1 && !recv)
- 		return;
+diff --git a/arch/powerpc/platforms/Kconfig b/arch/powerpc/platforms/Kconfig
+index 7e3a2ebba29b..33244e3d9375 100644
+--- a/arch/powerpc/platforms/Kconfig
++++ b/arch/powerpc/platforms/Kconfig
+@@ -284,6 +284,7 @@ config CPM2
+ config AXON_RAM
+ 	tristate "Axon DDR2 memory device driver"
+ 	depends on PPC_IBM_CELL_BLADE && BLOCK
++	select DAX
+ 	default m
+ 	help
+ 	  It registers one block device per Axon's DDR2 memory bank found
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index f523ac883150..ad857d5e81b1 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -25,6 +25,7 @@
  
--	if (recv) {
--		segment->atomic_mapped = true;
--		segment->sg_mapped = kmap_atomic(sg_page(sg));
--	} else {
--		segment->atomic_mapped = false;
--		/* the xmit path can sleep with the page mapped so use kmap */
--		segment->sg_mapped = kmap(sg_page(sg));
-+	/* the xmit path can sleep with the page mapped so don't use atomic */
-+	segment->sg_map_flags = recv ? SG_KMAP_ATOMIC : SG_KMAP;
-+	segment->sg_mapped = sg_map(sg, segment->sg_map_flags);
-+
-+	if (IS_ERR(segment->sg_mapped)) {
-+		segment->sg_mapped = NULL;
-+		return;
- 	}
- 
--	segment->data = segment->sg_mapped + sg->offset + segment->sg_offset;
-+	segment->data = segment->sg_mapped + segment->sg_offset;
+ #include <linux/bio.h>
+ #include <linux/blkdev.h>
++#include <linux/dax.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/fs.h>
+@@ -62,6 +63,7 @@ static int azfs_major, azfs_minor;
+ struct axon_ram_bank {
+ 	struct platform_device	*device;
+ 	struct gendisk		*disk;
++	struct dax_device	*dax_dev;
+ 	unsigned int		irq_id;
+ 	unsigned long		ph_addr;
+ 	unsigned long		io_addr;
+@@ -137,25 +139,47 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+ 	return BLK_QC_T_NONE;
  }
  
- void iscsi_tcp_segment_unmap(struct iscsi_segment *segment)
++static long
++__axon_ram_direct_access(struct axon_ram_bank *bank, pgoff_t pgoff, long nr_pages,
++		       void **kaddr, pfn_t *pfn)
++{
++	resource_size_t offset = pgoff * PAGE_SIZE;
++
++	*kaddr = (void *) bank->io_addr + offset;
++	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
++	return (bank->size - offset) / PAGE_SIZE;
++}
++
+ /**
+  * axon_ram_direct_access - direct_access() method for block device
+  * @device, @sector, @data: see block_device_operations method
+  */
+ static long
+-axon_ram_direct_access(struct block_device *device, sector_t sector,
++axon_ram_blk_direct_access(struct block_device *device, sector_t sector,
+ 		       void **kaddr, pfn_t *pfn, long size)
  {
- 	if (segment->sg_mapped) {
--		if (segment->atomic_mapped)
--			kunmap_atomic(segment->sg_mapped);
--		else
--			kunmap(sg_page(segment->sg));
-+		sg_unmap(segment->sg, segment->sg_mapped,
-+			  segment->sg_map_flags);
- 		segment->sg_mapped = NULL;
- 		segment->data = NULL;
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+-	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
+ 
+-	*kaddr = (void *) bank->io_addr + offset;
+-	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
+-	return bank->size - offset;
++	return __axon_ram_direct_access(bank, (sector * 512) / PAGE_SIZE,
++			size / PAGE_SIZE, kaddr, pfn) * PAGE_SIZE;
+ }
+ 
+ static const struct block_device_operations axon_ram_devops = {
+ 	.owner		= THIS_MODULE,
+-	.direct_access	= axon_ram_direct_access
++	.direct_access	= axon_ram_blk_direct_access
++};
++
++static long
++axon_ram_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
++		       void **kaddr, pfn_t *pfn)
++{
++	struct axon_ram_bank *bank = dax_get_private(dax_dev);
++
++	return __axon_ram_direct_access(bank, pgoff, nr_pages, kaddr, pfn);
++}
++
++static const struct dax_operations axon_ram_dax_ops = {
++	.direct_access = axon_ram_dax_direct_access,
+ };
+ 
+ /**
+@@ -219,6 +243,7 @@ static int axon_ram_probe(struct platform_device *device)
+ 		goto failed;
  	}
-@@ -304,6 +302,9 @@ iscsi_tcp_segment_recv(struct iscsi_tcp_conn *tcp_conn,
- 			break;
+ 
++
+ 	bank->disk->major = azfs_major;
+ 	bank->disk->first_minor = azfs_minor;
+ 	bank->disk->fops = &axon_ram_devops;
+@@ -227,6 +252,11 @@ static int axon_ram_probe(struct platform_device *device)
+ 	sprintf(bank->disk->disk_name, "%s%d",
+ 			AXON_RAM_DEVICE_NAME, axon_ram_bank_id);
+ 
++	bank->dax_dev = alloc_dax(bank, bank->disk->disk_name,
++			&axon_ram_dax_ops);
++	if (!bank->dax_dev)
++		goto failed;
++
+ 	bank->disk->queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (bank->disk->queue == NULL) {
+ 		dev_err(&device->dev, "Cannot register disk queue\n");
+@@ -278,6 +308,10 @@ static int axon_ram_probe(struct platform_device *device)
+ 				del_gendisk(bank->disk);
+ 			put_disk(bank->disk);
  		}
- 
-+		if (segment->data)
-+			return -EFAULT;
-+
- 		copy = min(len - copied, segment->size - segment->copied);
- 		ISCSI_DBG_TCP(tcp_conn->iscsi_conn, "copying %d\n", copy);
- 		memcpy(segment->data + segment->copied, ptr + copied, copy);
-@@ -927,6 +928,13 @@ int iscsi_tcp_recv_skb(struct iscsi_conn *conn, struct sk_buff *skb,
- 			      avail);
- 		rc = iscsi_tcp_segment_recv(tcp_conn, segment, ptr, avail);
- 		BUG_ON(rc == 0);
-+		if (rc < 0) {
-+			ISCSI_DBG_TCP(conn, "memory fault. Consumed %d\n",
-+				      consumed);
-+			*status = ISCSI_TCP_INTERNAL_ERR;
-+			goto skb_done;
++		if (bank->dax_dev) {
++			kill_dax(bank->dax_dev);
++			put_dax(bank->dax_dev);
 +		}
-+
- 		consumed += rc;
+ 		device->dev.platform_data = NULL;
+ 		if (bank->io_addr != 0)
+ 			iounmap((void __iomem *) bank->io_addr);
+@@ -300,6 +334,8 @@ axon_ram_remove(struct platform_device *device)
  
- 		if (segment->total_copied >= segment->total_size) {
-diff --git a/include/scsi/libiscsi_tcp.h b/include/scsi/libiscsi_tcp.h
-index 30520d5..58c79af 100644
---- a/include/scsi/libiscsi_tcp.h
-+++ b/include/scsi/libiscsi_tcp.h
-@@ -47,7 +47,7 @@ struct iscsi_segment {
- 	struct scatterlist	*sg;
- 	void			*sg_mapped;
- 	unsigned int		sg_offset;
--	bool			atomic_mapped;
-+	int			sg_map_flags;
- 
- 	iscsi_segment_done_fn_t	*done;
- };
-@@ -92,6 +92,7 @@ enum {
- 	ISCSI_TCP_SKB_DONE,		/* skb is out of data */
- 	ISCSI_TCP_CONN_ERR,		/* iscsi layer has fired a conn err */
- 	ISCSI_TCP_SUSPENDED,		/* conn is suspended */
-+	ISCSI_TCP_INTERNAL_ERR,         /* an internal error occurred */
- };
- 
- extern void iscsi_tcp_hdr_recv_prep(struct iscsi_tcp_conn *tcp_conn);
--- 
-2.1.4
+ 	device_remove_file(&device->dev, &dev_attr_ecc);
+ 	free_irq(bank->irq_id, device);
++	kill_dax(bank->dax_dev);
++	put_dax(bank->dax_dev);
+ 	del_gendisk(bank->disk);
+ 	put_disk(bank->disk);
+ 	iounmap((void __iomem *) bank->io_addr);
 
 _______________________________________________
 Linux-nvdimm mailing list
