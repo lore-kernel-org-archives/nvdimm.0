@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6E1652194EB6A
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:41:04 -0700 (PDT)
-Subject: [PATCH v2 25/33] x86,
- dax: replace clear_pmem() with open coded memset + dax_ops->flush
+ by ml01.01.org (Postfix) with ESMTPS id 4D67E2194EB6A
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:40:06 -0700 (PDT)
+Subject: [PATCH v2 14/33] Revert "block: use DAX for partition table reads"
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 19:35:20 -0700
-Message-ID: <149222372003.32363.10078966018095100759.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 14 Apr 2017 19:34:22 -0700
+Message-ID: <149222366233.32363.9991641438992568890.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -24,110 +23,122 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The clear_pmem() helper simply combines a memset() plus a cache flush.
-Now that the flush routine is optionally provided by the dax device
-driver we can avoid unnecessary cache management on dax devices fronting
-volatile memory.
+commit d1a5f2b4d8a1 ("block: use DAX for partition table reads") was
+part of a stalled effort to allow dax mappings of block devices. Since
+then the device-dax mechanism has filled the role of dax-mapping static
+device ranges.
 
-With clear_pmem() gone we can follow on with a patch to make pmem cache
-management completely defined within the pmem driver.
+Now that we are moving ->direct_access() from a block_device operation
+to a dax_inode operation we would need block devices to map and carry
+their own dax_inode reference.
 
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+Unless / until we decide to revive dax mapping of raw block devices
+through the dax_inode scheme, there is no need to carry
+read_dax_sector(). Its removal in turn allows for the removal of
+bdev_direct_access() and should have been included in commit
+223757016837 ("block_dev: remove DAX leftovers").
+
 Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h |   13 -------------
- fs/dax.c                    |    3 ++-
- include/linux/pmem.h        |   21 ---------------------
- 3 files changed, 2 insertions(+), 35 deletions(-)
+ block/partition-generic.c |   17 ++---------------
+ fs/dax.c                  |   20 --------------------
+ include/linux/dax.h       |    6 ------
+ 3 files changed, 2 insertions(+), 41 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 60e8edbe0205..f4c119d253f3 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -65,19 +65,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
- 		clwb(p);
+diff --git a/block/partition-generic.c b/block/partition-generic.c
+index 7afb9907821f..5dfac337b0f2 100644
+--- a/block/partition-generic.c
++++ b/block/partition-generic.c
+@@ -16,7 +16,6 @@
+ #include <linux/kmod.h>
+ #include <linux/ctype.h>
+ #include <linux/genhd.h>
+-#include <linux/dax.h>
+ #include <linux/blktrace_api.h>
+ 
+ #include "partitions/check.h"
+@@ -631,24 +630,12 @@ int invalidate_partitions(struct gendisk *disk, struct block_device *bdev)
+ 	return 0;
  }
  
--/**
-- * arch_clear_pmem - zero a PMEM memory range
-- * @addr:	virtual start address
-- * @size:	number of bytes to zero
-- *
-- * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-- */
--static inline void arch_clear_pmem(void *addr, size_t size)
+-static struct page *read_pagecache_sector(struct block_device *bdev, sector_t n)
 -{
--	memset(addr, 0, size);
--	arch_wb_cache_pmem(addr, size);
+-	struct address_space *mapping = bdev->bd_inode->i_mapping;
+-
+-	return read_mapping_page(mapping, (pgoff_t)(n >> (PAGE_SHIFT-9)),
+-				 NULL);
 -}
 -
- static inline void arch_invalidate_pmem(void *addr, size_t size)
+ unsigned char *read_dev_sector(struct block_device *bdev, sector_t n, Sector *p)
  {
- 	clflush_cache_range(addr, size);
++	struct address_space *mapping = bdev->bd_inode->i_mapping;
+ 	struct page *page;
+ 
+-	/* don't populate page cache for dax capable devices */
+-	if (IS_DAX(bdev->bd_inode))
+-		page = read_dax_sector(bdev, n);
+-	else
+-		page = read_pagecache_sector(bdev, n);
+-
++	page = read_mapping_page(mapping, (pgoff_t)(n >> (PAGE_SHIFT-9)), NULL);
+ 	if (!IS_ERR(page)) {
+ 		if (PageError(page))
+ 			goto fail;
 diff --git a/fs/dax.c b/fs/dax.c
-index edbf988de86c..edee7e8298bc 100644
+index de622d4282a6..b78a6947c4f5 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -982,7 +982,8 @@ int __dax_zero_page_range(struct block_device *bdev,
- 			dax_read_unlock(id);
- 			return rc;
- 		}
--		clear_pmem(kaddr + offset, size);
-+		memset(kaddr + offset, 0, size);
-+		dax_flush(dax_dev, pgoff, kaddr + offset, size);
- 		dax_read_unlock(id);
- 	}
- 	return 0;
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 9d542a5600e4..772bd02a5b52 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -31,11 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 	BUG();
+@@ -101,26 +101,6 @@ static int dax_is_empty_entry(void *entry)
+ 	return (unsigned long)entry & RADIX_DAX_EMPTY;
  }
  
--static inline void arch_clear_pmem(void *addr, size_t size)
+-struct page *read_dax_sector(struct block_device *bdev, sector_t n)
 -{
--	BUG();
+-	struct page *page = alloc_pages(GFP_KERNEL, 0);
+-	struct blk_dax_ctl dax = {
+-		.size = PAGE_SIZE,
+-		.sector = n & ~((((int) PAGE_SIZE) / 512) - 1),
+-	};
+-	long rc;
+-
+-	if (!page)
+-		return ERR_PTR(-ENOMEM);
+-
+-	rc = dax_map_atomic(bdev, &dax);
+-	if (rc < 0)
+-		return ERR_PTR(rc);
+-	memcpy_from_pmem(page_address(page), dax.addr, PAGE_SIZE);
+-	dax_unmap_atomic(bdev, &dax);
+-	return page;
 -}
 -
- static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ /*
+  * DAX radix tree locking
+  */
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 7e62e280c11f..0d0d890f9186 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -70,15 +70,9 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+ 		pgoff_t index, void *entry, bool wake_all);
+ 
+ #ifdef CONFIG_FS_DAX
+-struct page *read_dax_sector(struct block_device *bdev, sector_t n);
+ int __dax_zero_page_range(struct block_device *bdev, sector_t sector,
+ 		unsigned int offset, unsigned int length);
+ #else
+-static inline struct page *read_dax_sector(struct block_device *bdev,
+-		sector_t n)
+-{
+-	return ERR_PTR(-ENXIO);
+-}
+ static inline int __dax_zero_page_range(struct block_device *bdev,
+ 		sector_t sector, unsigned int offset, unsigned int length)
  {
- 	BUG();
-@@ -73,22 +68,6 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
- }
- 
- /**
-- * clear_pmem - zero a PMEM memory range
-- * @addr:	virtual start address
-- * @size:	number of bytes to zero
-- *
-- * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-- * See blkdev_issue_flush() note for memcpy_to_pmem().
-- */
--static inline void clear_pmem(void *addr, size_t size)
--{
--	if (arch_has_pmem_api())
--		arch_clear_pmem(addr, size);
--	else
--		memset(addr, 0, size);
--}
--
--/**
-  * invalidate_pmem - flush a pmem range from the cache hierarchy
-  * @addr:	virtual start address
-  * @size:	bytes to invalidate (internally aligned to cache line size)
 
 _______________________________________________
 Linux-nvdimm mailing list
