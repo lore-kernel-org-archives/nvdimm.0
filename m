@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
- [IPv6:2607:f8b0:4003:c06::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 645492195406F
- for <linux-nvdimm@lists.01.org>; Fri, 21 Apr 2017 00:12:43 -0700 (PDT)
-Received: by mail-oi0-x244.google.com with SMTP id m34so8478954oik.2
- for <linux-nvdimm@lists.01.org>; Fri, 21 Apr 2017 00:12:43 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH 2/3] ndctl, create-namespace: read default alignment from sysfs
-Date: Fri, 21 Apr 2017 17:12:18 +1000
-Message-Id: <20170421071219.18744-2-oohall@gmail.com>
-In-Reply-To: <20170421071219.18744-1-oohall@gmail.com>
-References: <20170421071219.18744-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id E95132194EB6A
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:41:46 -0700 (PDT)
+Subject: [PATCH v2 33/33] libnvdimm,
+ pmem: disable dax flushing when pmem is fronting a volatile region
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 14 Apr 2017 19:36:02 -0700
+Message-ID: <149222376278.32363.6835767512473251187.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,172 +19,95 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Read the default alignment from the hpage_pmd_size in sysfs. On PPC the
-PMD size depends on the MMU being used. When the traditional hash MMU is
-used (P9 and earlier) the PMD size is 16MB while the newer radix MMU
-uses a 2MB PMD size. The choice of MMU is done at runtime depending on
-what the hardware supports so we need to detect this at runtime rather
-than hardcoding it.
+The pmem driver attaches to both persistent and volatile memory ranges
+advertised by the ACPI NFIT. When the region is volatile it is redundant
+to spend cycles flushing caches at fsync(). Check if the hosting region
+is volatile and do not set QUEUE_FLAG_WC if it is.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/Makefile.am                 |  3 ++-
- ndctl/builtin-xaction-namespace.c | 41 +++++++++++++++++++++++++++++----------
- 2 files changed, 33 insertions(+), 11 deletions(-)
+ drivers/nvdimm/pmem.c        |    9 +++++++--
+ drivers/nvdimm/region_devs.c |    6 ++++++
+ include/linux/libnvdimm.h    |    1 +
+ 3 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index c563e9411cc3..6d565c643efd 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -10,7 +10,8 @@ ndctl_SOURCES = ndctl.c \
- 		 ../util/log.c \
- 		builtin-list.c \
- 		builtin-test.c \
--		../util/json.c
-+		../util/json.c \
-+		../util/sysfs.c
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index b000c6db5731..42876a75dab8 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -275,6 +275,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	struct vmem_altmap __altmap, *altmap = NULL;
+ 	struct resource *res = &nsio->res;
+ 	struct nd_pfn *nd_pfn = NULL;
++	int has_flush, fua = 0, wbc;
+ 	struct dax_device *dax_dev;
+ 	int nid = dev_to_node(dev);
+ 	struct nd_pfn_sb *pfn_sb;
+@@ -302,8 +303,12 @@ static int pmem_attach_disk(struct device *dev,
+ 	dev_set_drvdata(dev, pmem);
+ 	pmem->phys_addr = res->start;
+ 	pmem->size = resource_size(res);
+-	if (nvdimm_has_flush(nd_region) < 0)
++	has_flush = nvdimm_has_flush(nd_region);
++	if (has_flush < 0)
+ 		dev_warn(dev, "unable to guarantee persistence of writes\n");
++	else
++		fua = has_flush;
++	wbc = nvdimm_has_cache(nd_region);
  
- if ENABLE_SMART
- ndctl_SOURCES += util/json-smart.c
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index d6c38dc15984..713a95987d91 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -22,6 +22,7 @@
- #include <sys/types.h>
- #include <util/size.h>
- #include <util/json.h>
-+#include <util/sysfs.h>
- #include <json-c/json.h>
- #include <util/filter.h>
- #include <ndctl/libndctl.h>
-@@ -54,6 +55,8 @@ static struct parameters {
- 	const char *align;
- } param;
+ 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+ 				dev_name(&ndns->dev))) {
+@@ -344,7 +349,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		return PTR_ERR(addr);
+ 	pmem->virt_addr = addr;
  
-+char default_align_buf[SYSFS_ATTR_SIZE];
-+
- void builtin_xaction_namespace_reset(void)
- {
- 	/*
-@@ -137,7 +140,24 @@ enum namespace_action {
- 	ACTION_DESTROY,
- };
+-	blk_queue_write_cache(q, true, true);
++	blk_queue_write_cache(q, wbc, fua);
+ 	blk_queue_make_request(q, pmem_make_request);
+ 	blk_queue_physical_block_size(q, PAGE_SIZE);
+ 	blk_queue_max_hw_sectors(q, UINT_MAX);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 2df259010720..a085f7094b76 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -989,6 +989,12 @@ int nvdimm_has_flush(struct nd_region *nd_region)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_has_flush);
  
--static int set_defaults(enum namespace_action mode)
-+const char *sysfs_read_default_align(struct ndctl_ctx *ctx, const char *def,
-+		const char *path)
++int nvdimm_has_cache(struct nd_region *nd_region)
 +{
-+	/*
-+	 * HACK: The command handlers aren't supposed to write into
-+	 *       the ndctl command context, but we want the debug
-+	 *       output to go somewhere sensible.
-+	 */
-+	if (__sysfs_read_attr((struct log_ctx *)ctx, path, default_align_buf))
-+		return strdup(def);
-+
-+	if (!strlen(default_align_buf))
-+		return def;
-+
-+	return default_align_buf;
++	return is_nd_pmem(&nd_region->dev);
 +}
++EXPORT_SYMBOL_GPL(nvdimm_has_cache);
 +
-+static int set_defaults(enum namespace_action mode, struct ndctl_ctx *ctx)
+ void __exit nd_region_devs_exit(void)
  {
- 	int rc = 0;
- 
-@@ -213,7 +233,8 @@ static int set_defaults(enum namespace_action mode)
- 				param.align);
- 		rc = -EINVAL;
- 	} else if (!param.align) {
--		param.align = "2M";
-+		param.align = sysfs_read_default_align(ctx, "2M",
-+			"/sys/kernel/mm/transparent_hugepage/hpage_pmd_size");
- 		param.align_default = true;
- 	}
- 
-@@ -254,7 +275,7 @@ static int set_defaults(enum namespace_action mode)
-  */
- static const char *parse_namespace_options(int argc, const char **argv,
- 		enum namespace_action mode, const struct option *options,
--		char *xable_usage)
-+		char *xable_usage, struct ndctl_ctx *ctx)
- {
- 	const char * const u[] = {
- 		xable_usage,
-@@ -265,7 +286,7 @@ static const char *parse_namespace_options(int argc, const char **argv,
- 	param.do_scan = argc == 1;
-         argc = parse_options(argc, argv, options, u, 0);
- 
--	rc = set_defaults(mode);
-+	rc = set_defaults(mode, ctx);
- 
- 	if (argc == 0 && mode != ACTION_CREATE) {
- 		error("specify a namespace to %s, or \"all\"\n",
-@@ -397,7 +418,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		struct ndctl_namespace *ndns, struct parsed_parameters *p)
- {
- 	const char *region_name = ndctl_region_get_devname(region);
--	unsigned long long size_align, units = 1;
-+	unsigned long long size_align = 1, units = 1;
- 	unsigned int ways;
- 	int rc = 0;
- 
-@@ -900,7 +921,7 @@ int cmd_disable_namespace(int argc, const char **argv, void *ctx)
- {
- 	char *xable_usage = "ndctl disable-namespace <namespace> [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
--			ACTION_DISABLE, base_options, xable_usage);
-+			ACTION_DISABLE, base_options, xable_usage, ctx);
- 	int disabled = do_xaction_namespace(namespace, ACTION_DISABLE, ctx);
- 
- 	if (disabled < 0) {
-@@ -921,7 +942,7 @@ int cmd_enable_namespace(int argc, const char **argv, void *ctx)
- {
- 	char *xable_usage = "ndctl enable-namespace <namespace> [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
--			ACTION_ENABLE, base_options, xable_usage);
-+			ACTION_ENABLE, base_options, xable_usage, ctx);
- 	int enabled = do_xaction_namespace(namespace, ACTION_ENABLE, ctx);
- 
- 	if (enabled < 0) {
-@@ -942,7 +963,7 @@ int cmd_create_namespace(int argc, const char **argv, void *ctx)
- {
- 	char *xable_usage = "ndctl create-namespace [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
--			ACTION_CREATE, create_options, xable_usage);
-+			ACTION_CREATE, create_options, xable_usage, ctx);
- 	int created = do_xaction_namespace(namespace, ACTION_CREATE, ctx);
- 
- 	if (created < 1 && param.do_scan) {
-@@ -952,7 +973,7 @@ int cmd_create_namespace(int argc, const char **argv, void *ctx)
- 		 */
- 		memset(&param, 0, sizeof(param));
- 		param.type = "blk";
--		set_defaults(ACTION_CREATE);
-+		set_defaults(ACTION_CREATE, ctx);
- 		created = do_xaction_namespace(NULL, ACTION_CREATE, ctx);
- 	}
- 
-@@ -981,7 +1002,7 @@ int cmd_destroy_namespace(int argc , const char **argv, void *ctx)
- {
- 	char *xable_usage = "ndctl destroy-namespace <namespace> [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
--			ACTION_DESTROY, destroy_options, xable_usage);
-+			ACTION_DESTROY, destroy_options, xable_usage, ctx);
- 	int destroyed = do_xaction_namespace(namespace, ACTION_DESTROY, ctx);
- 
- 	if (destroyed < 0) {
--- 
-2.9.3
+ 	ida_destroy(&region_ida);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index a98004745768..b733030107bb 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -162,6 +162,7 @@ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
+ u64 nd_fletcher64(void *addr, size_t len, bool le);
+ void nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
++int nvdimm_has_cache(struct nd_region *nd_region);
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ void arch_memcpy_to_pmem(void *dst, void *src, unsigned size);
+ #define ARCH_MEMREMAP_PMEM MEMREMAP_WB
 
 _______________________________________________
 Linux-nvdimm mailing list
