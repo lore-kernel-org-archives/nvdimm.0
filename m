@@ -1,22 +1,11 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Sat, 15 Apr 2017 08:07:23 +1000
-Message-ID: <1492207643.25766.18.camel@kernel.crashing.org>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1491974532.7236.43.camel@kernel.crashing.org>
- <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
- <1492034124.7236.77.camel@kernel.crashing.org>
- <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2@deltatee.com>
- <20170413232631.GB24910@bhelgaas-glaptop.roam.corp.google.com>
- <20170414041656.GA30694@obsidianresearch.com>
- <1492169849.25766.3.camel@kernel.crashing.org>
- <630c1c63-ff17-1116-e069-2b8f93e50fa2@deltatee.com>
- <20170414190452.GA15679@bhelgaas-glaptop.roam.corp.google.com>
+From: "Lean Lippman  " <burkelynn19-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: seo ranking factors 2017
+Date: Sat, 15 Apr 2017 15:15:43 +0300
+Message-ID: <69CED82E.61B7AD27@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170414190452.GA15679-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,58 +15,15 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-T24gRnJpLCAyMDE3LTA0LTE0IGF0IDE0OjA0IC0wNTAwLCBCam9ybiBIZWxnYWFzIHdyb3RlOgo+
-IEknbSBhIGxpdHRsZSBoZXNpdGFudCBhYm91dCBleGNsdWRpbmcgb2Zmc2V0IHN1cHBvcnQsIHNv
-IEknZCBsaWtlIHRvCj4gaGVhciBtb3JlIGFib3V0IHRoaXMuCj4gCj4gSXMgdGhlIGlzc3VlIHJl
-bGF0ZWQgdG8gUENJIEJBUnMgdGhhdCBhcmUgbm90IGNvbXBsZXRlbHkgYWRkcmVzc2FibGUKPiBi
-eSB0aGUgQ1BVP8KgIElmIHNvLCB0aGF0IHNvdW5kcyBsaWtlIGEgZmlyc3QtY2xhc3MgaXNzdWUg
-dGhhdCBzaG91bGQKPiBiZSByZXNvbHZlZCB1cCBmcm9udCBiZWNhdXNlIEkgZG9uJ3QgdGhpbmsg
-dGhlIFBDSSBjb3JlIGluIGdlbmVyYWwKPiB3b3VsZCBkZWFsIHdlbGwgd2l0aCB0aGF0Lgo+IAo+
-IElmIGFsbCB0aGUgUENJIG1lbW9yeSBvZiBpbnRlcmVzdCBpcyBpbiBmYWN0IGFkZHJlc3NhYmxl
-IGJ5IHRoZSBDUFUsCj4gSSB3b3VsZCB0aGluayBpdCB3b3VsZCBiZSBwcmV0dHkgc3RyYWlnaHRm
-b3J3YXJkIHRvIHN1cHBvcnQgb2Zmc2V0cwo+IC0tCj4gZXZlcnl3aGVyZSB5b3UgY3VycmVudGx5
-IHVzZSBhIFBDSSBidXMgYWRkcmVzcywgeW91IGp1c3QgdXNlIHRoZQo+IGNvcnJlc3BvbmRpbmcg
-Q1BVIHBoeXNpY2FsIGFkZHJlc3MgaW5zdGVhZC4KCkl0J3Mgbm90ICp0aGF0KiBlYXN5IHNhZGx5
-LiBUaGUgcmVhc29uIGlzIHRoYXQgbm9ybWFsIGRtYSBtYXAgQVBJcwphc3N1bWUgdGhlICJ0YXJn
-ZXQiIG9mIHRoZSBETUFzIGFyZSBzeXN0ZW0gbWVtb3J5LCB0aGVyZSBpcyBubyB3YXkgdG8KcGFz
-cyBpdCAiYW5vdGhlciBkZXZpY2UiLCBpbiBhIHdheSB0aGF0IGFsbG93cyBpdCB0byB1bmRlcnN0
-YW5kIHRoZQpvZmZzZXRzIGlmIG5lZWRlZC4KClRoYXQgc2FpZCwgZG1hX21hcCB3aWxsIGFscmVh
-ZHkgYmUgcHJvYmxlbWF0aWMgd2hlbiBkb2luZyBwMnAgYmVoaW5kCnRoZSBzYW1lIGJyaWRnZSBk
-dWUgdG8gdGhlIGZhY3QgdGhhdCB0aGUgaW9tbXUgaXMgbm90IGluIHRoZSB3YXkgc28geW91CmNh
-bid0IHVzZSB0aGUgYXJjaCBzdGFuZGFyZCBvcHMgdGhlcmUuCgpTbyBJIGFzc3VtZSB0aGUgcDJw
-IGNvZGUgcHJvdmlkZXMgYSB3YXkgdG8gYWRkcmVzcyB0aGF0IHRvbyB2aWEgc3BlY2lhbApkbWFf
-b3BzID8gT3Igd3JhcHBlcnMgPwoKQmFzaWNhbGx5IHRoZXJlIGFyZSB0d28gdmVyeSBkaWZmZXJl
-bnQgd2F5cyB5b3UgY2FuIGRvIHAycCwgZWl0aGVyCmJlaGluZCB0aGUgc2FtZSBob3N0IGJyaWRn
-ZSBvciBhY2Nyb3NzIHR3byBob3N0IGJyaWRnZXM6CgogLSBCZWhpbmQgdGhlIHNhbWUgaG9zdCBi
-cmlkZ2UsIHlvdSBkb24ndCBnbyB0aHJvdWdoIHRoZSBpb21tdSwgd2hpY2gKbWVhbnMgdGhhdCBl
-dmVuIGlmIHlvdXIgdGFyZ2V0IGxvb2tzIGxpa2UgYSBzdHJ1Y3QgcGFnZSwgeW91IGNhbid0IGp1
-c3QKdXNlIGRtYV9tYXBfKiBvbiBpdCBiZWNhdXNlIHdoYXQgeW91J2xsIGdldCBiYWNrIGZyb20g
-dGhhdCBpcyBhbiBpb21tdQp0b2tlbiwgbm90IGEgc2libGluZyBCQVIgb2Zmc2V0LiBBZGRpdGlv
-bmFsbHksIGlmIHlvdSB1c2UgdGhlIHRhcmdldApzdHJ1Y3QgcmVzb3VyY2UgYWRkcmVzcywgeW91
-IHdpbGwgbmVlZCB0byBvZmZzZXQgaXQgdG8gZ2V0IGJhY2sgdG8gdGhlCmFjdHVhbCBCQVIgdmFs
-dWUgb24gdGhlIFBDSWUgYnVzLgoKIC0gQmVoaW5kIGRpZmZlcmVudCBob3N0IGJyaWRnZXMsIHRo
-ZW4geW91IGdvIHRocm91Z2ggdGhlIGlvbW11IGFuZCB0aGUKaG9zdCByZW1hcHBpbmcuIElFLiB0
-aGF0J3MgYWN0dWFsbHkgdGhlIGVhc3kgY2FzZS4gWW91IGNhbiBwcm9iYWJseQpqdXN0IHVzZSB0
-aGUgbm9ybWFsIGlvbW11IHBhdGggYW5kIG5vcm1hbCBkbWEgbWFwcGluZyBvcHMsIHlvdSBqdXN0
-Cm5lZWQgdG8gaGF2ZSB5b3VyIHN0cnVjdCBwYWdlIHJlcHJlc2VudGluZyB0aGUgdGFyZ2V0IGRl
-dmljZSBCQVIgKmluCkNQVSBzcGFjZSogdGhpcyB0aW1lLiBTbyBubyBvZmZzZXR0aW5nIHJlcXVp
-cmVkIGVpdGhlci4KClRoZSBwcm9ibGVtIGlzIHRoYXQgdGhlIGxhdHRlciB3aGlsZSBzZWVtaW5n
-bHkgZWFzaWVyLCBpcyBhbHNvIHNsb3dlcgphbmQgbm90IHN1cHBvcnRlZCBieSBhbGwgcGxhdGZv
-cm1zIGFuZCBhcmNoaXRlY3R1cmVzIChmb3IgZXhhbXBsZSwKUE9XRVIgY3VycmVudGx5IHdvbid0
-IGFsbG93IGl0LCBvciByYXRoZXIgb25seSBhbGxvd3MgYSBzdG9yZS1vbmx5CnN1YnNldCBvZiBp
-dCB1bmRlciBzcGVjaWFsIGNpcmN1bXN0YW5jZXMpLgoKU28gd2hhdCBwZW9wbGUgcHJhY3RpY2Fs
-bHkgd2FudCB0byBkbyBpcyB0byBoYXZlIDIgZGV2aWNlcyBiZWhpbmQgYQpzd2l0Y2ggRE1BJ2lu
-ZyB0by9mcm9tIGVhY2ggb3RoZXIuCgpCdXQgdGhhdCBicmluZ3MgdGhlIDIgcHJvYmxlbXMgYWJv
-dmUuCgpJIGRvbid0IGZ1bGx5IHVuZGVyc3RhbmQgaG93IHAycG1lbSAic29sdmVzIiB0aGF0IGJ5
-IGNyZWF0aW5nIHN0cnVjdApwYWdlcy4gVGhlIG9mZnNldCBwcm9ibGVtIGlzIG9uZSBpc3N1ZS4g
-QnV0IHRoZXJlJ3MgdGhlIGlvbW11IGlzc3VlIGFzCndlbGwsIHRoZSBkcml2ZXIgY2Fubm90IGp1
-c3QgdXNlIHRoZSBub3JtYWwgZG1hX21hcCBvcHMuCgpJIGhhdmVuJ3QgaGFkIGEgY2hhbmNlIHRv
-IGxvb2sgYXQgdGhlIGRldGFpbHMgb2YgdGhlIHBhdGNoZXMgYnV0IGl0J3MKbm90IGNsZWFyIGZy
-b20gdGhlIGRlc2NyaXB0aW9uIGluIHBhdGNoIDAgaG93IHRoYXQgaXMgc29sdmVkLgoKQ2hlZXJz
-LApCZW4uCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
-aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
-Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+
+Move ahead of everybody with 2017 SEO Strategies
+Don`t let others take down your own profits.
+
+Please check the SEO Report attached
+
+
+Regards
+Lean Lippman =A0
