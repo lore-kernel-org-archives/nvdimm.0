@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE4332194EB64
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 15:03:26 -0700 (PDT)
-Subject: [PATCH v2 7/7] tools/testing/nvdimm: fix nfit_test shutdown crashes
+ by ml01.01.org (Postfix) with ESMTPS id 9E36C2194EB6A
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:40:48 -0700 (PDT)
+Subject: [PATCH v2 22/33] dax,
+ pmem: introduce an optional 'flush' dax_operation
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 14:57:42 -0700
-Message-ID: <149220706287.36563.2986440928438769021.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 14 Apr 2017 19:35:04 -0700
+Message-ID: <149222370431.32363.14712321407388916940.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,73 +24,67 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+Cc: Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Keep the nfit_test instances alive until after nfit_test_teardown(), as
-we may be doing resource lookups until the final un-registrations have
-completed. This fixes crashes of the form.
+Filesystem-DAX flushes caches whenever it writes to the address returned
+through dax_direct_access() and when writing back dirty radix entries.
+That flushing is only required in the pmem case, so add a dax operation
+to allow pmem to take this extra action, but skip it for other dax
+capable devices that do not provide a flush routine.
 
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000038
- IP: __release_resource+0x12/0x90
- Call Trace:
-  remove_resource+0x23/0x40
-  __wrap_remove_resource+0x29/0x30 [nfit_test_iomap]
-  acpi_nfit_remove_resource+0xe/0x10 [nfit]
-  devm_action_release+0xf/0x20
-  release_nodes+0x16d/0x2b0
-  devres_release_all+0x3c/0x60
-  device_release+0x21/0x90
-  kobject_release+0x6a/0x170
-  kobject_put+0x2f/0x60
-  put_device+0x17/0x20
-  platform_device_unregister+0x20/0x30
-  nfit_test_exit+0x36/0x960 [nfit_test]
+An example for this differentiation might be a volatile ram disk where
+there is no expectation of persistence. In fact the pmem driver itself might
+front such an address range specified by the NFIT. So, this "no flush"
+property might be something passed down by the bus / libnvdimm.
 
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/test/nfit.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/nvdimm/pmem.c |   11 +++++++++++
+ include/linux/dax.h   |    2 ++
+ 2 files changed, 13 insertions(+)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index bc02f28ed8b8..d7fb1b894128 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1958,6 +1958,7 @@ static __init int nfit_test_init(void)
- 			put_device(&pdev->dev);
- 			goto err_register;
- 		}
-+		get_device(&pdev->dev);
- 
- 		rc = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
- 		if (rc)
-@@ -1976,6 +1977,10 @@ static __init int nfit_test_init(void)
- 		if (instances[i])
- 			platform_device_unregister(&instances[i]->pdev);
- 	nfit_test_teardown();
-+	for (i = 0; i < NUM_NFITS; i++)
-+		if (instances[i])
-+			put_device(&instances[i]->pdev.dev);
-+
- 	return rc;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index e501df4ab4b4..822b85fb3365 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -276,9 +276,20 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
+ 	return __pmem_direct_access(pmem, pgoff, nr_pages, kaddr, pfn);
  }
  
-@@ -1983,10 +1988,13 @@ static __exit void nfit_test_exit(void)
- {
- 	int i;
- 
--	platform_driver_unregister(&nfit_test_driver);
- 	for (i = 0; i < NUM_NFITS; i++)
- 		platform_device_unregister(&instances[i]->pdev);
-+	platform_driver_unregister(&nfit_test_driver);
- 	nfit_test_teardown();
++static void pmem_dax_flush(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t size)
++{
++	/*
++	 * TODO: move arch specific cache management into the driver
++	 * directly.
++	 */
++	wb_cache_pmem(addr, size);
++}
 +
-+	for (i = 0; i < NUM_NFITS; i++)
-+		put_device(&instances[i]->pdev.dev);
- 	class_destroy(nfit_test_dimm);
- }
+ static const struct dax_operations pmem_dax_ops = {
+ 	.direct_access = pmem_dax_direct_access,
+ 	.copy_from_iter = pmem_copy_from_iter,
++	.flush = pmem_dax_flush,
+ };
  
+ static void pmem_release_queue(void *q)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index cd8561bb21f3..c88bbcba26d9 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -19,6 +19,8 @@ struct dax_operations {
+ 	/* copy_from_iter: dax-driver override for default copy_from_iter */
+ 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
+ 			struct iov_iter *);
++	/* flush: optional driver-specific cache management after writes */
++	void (*flush)(struct dax_device *, pgoff_t, void *, size_t);
+ };
+ 
+ int dax_read_lock(void);
 
 _______________________________________________
 Linux-nvdimm mailing list
