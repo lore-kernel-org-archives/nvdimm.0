@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1A34A21939248
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:55 -0700 (PDT)
-Subject: [resend PATCH v2 25/33] x86,
- dax: replace clear_pmem() with open coded memset + dax_ops->flush
+ by ml01.01.org (Postfix) with ESMTPS id 426992194EB6A
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:40:01 -0700 (PDT)
+Subject: [PATCH v2 13/33] ext2, ext4,
+ xfs: retrieve dax_device for iomap operations
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:11:04 -0700
-Message-ID: <149245626477.10206.6621037965629437437.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 14 Apr 2017 19:34:17 -0700
+Message-ID: <149222365699.32363.13273021920688842115.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,110 +24,137 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The clear_pmem() helper simply combines a memset() plus a cache flush.
-Now that the flush routine is optionally provided by the dax device
-driver we can avoid unnecessary cache management on dax devices fronting
-volatile memory.
+In preparation for converting fs/dax.c to use dax_direct_access()
+instead of bdev_direct_access(), add the plumbing to retrieve the
+dax_device associated with a given block_device.
 
-With clear_pmem() gone we can follow on with a patch to make pmem cache
-management completely defined within the pmem driver.
-
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h |   13 -------------
- fs/dax.c                    |    3 ++-
- include/linux/pmem.h        |   21 ---------------------
- 3 files changed, 2 insertions(+), 35 deletions(-)
+ fs/ext2/inode.c       |    9 ++++++++-
+ fs/ext4/inode.c       |    9 ++++++++-
+ fs/xfs/xfs_iomap.c    |   10 ++++++++++
+ include/linux/iomap.h |    1 +
+ 4 files changed, 27 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index 60e8edbe0205..f4c119d253f3 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -65,19 +65,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
- 		clwb(p);
- }
- 
--/**
-- * arch_clear_pmem - zero a PMEM memory range
-- * @addr:	virtual start address
-- * @size:	number of bytes to zero
-- *
-- * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-- */
--static inline void arch_clear_pmem(void *addr, size_t size)
--{
--	memset(addr, 0, size);
--	arch_wb_cache_pmem(addr, size);
--}
--
- static inline void arch_invalidate_pmem(void *addr, size_t size)
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 128cce540645..4c9d2d44e879 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -799,6 +799,7 @@ int ext2_get_block(struct inode *inode, sector_t iblock,
+ static int ext2_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+ 		unsigned flags, struct iomap *iomap)
  {
- 	clflush_cache_range(addr, size);
-diff --git a/fs/dax.c b/fs/dax.c
-index edbf988de86c..edee7e8298bc 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -982,7 +982,8 @@ int __dax_zero_page_range(struct block_device *bdev,
- 			dax_read_unlock(id);
- 			return rc;
- 		}
--		clear_pmem(kaddr + offset, size);
-+		memset(kaddr + offset, 0, size);
-+		dax_flush(dax_dev, pgoff, kaddr + offset, size);
- 		dax_read_unlock(id);
++	struct block_device *bdev;
+ 	unsigned int blkbits = inode->i_blkbits;
+ 	unsigned long first_block = offset >> blkbits;
+ 	unsigned long max_blocks = (length + (1 << blkbits) - 1) >> blkbits;
+@@ -812,8 +813,13 @@ static int ext2_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+ 		return ret;
+ 
+ 	iomap->flags = 0;
+-	iomap->bdev = inode->i_sb->s_bdev;
++	bdev = inode->i_sb->s_bdev;
++	iomap->bdev = bdev;
+ 	iomap->offset = (u64)first_block << blkbits;
++	if (blk_queue_dax(bdev->bd_queue))
++		iomap->dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
++	else
++		iomap->dax_dev = NULL;
+ 
+ 	if (ret == 0) {
+ 		iomap->type = IOMAP_HOLE;
+@@ -835,6 +841,7 @@ static int
+ ext2_iomap_end(struct inode *inode, loff_t offset, loff_t length,
+ 		ssize_t written, unsigned flags, struct iomap *iomap)
+ {
++	put_dax(iomap->dax_dev);
+ 	if (iomap->type == IOMAP_MAPPED &&
+ 	    written < length &&
+ 	    (flags & IOMAP_WRITE))
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 4247d8d25687..2cb2634daa99 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3305,6 +3305,7 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
+ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+ 			    unsigned flags, struct iomap *iomap)
+ {
++	struct block_device *bdev;
+ 	unsigned int blkbits = inode->i_blkbits;
+ 	unsigned long first_block = offset >> blkbits;
+ 	unsigned long last_block = (offset + length - 1) >> blkbits;
+@@ -3373,7 +3374,12 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
  	}
+ 
+ 	iomap->flags = 0;
+-	iomap->bdev = inode->i_sb->s_bdev;
++	bdev = inode->i_sb->s_bdev;
++	iomap->bdev = bdev;
++	if (blk_queue_dax(bdev->bd_queue))
++		iomap->dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
++	else
++		iomap->dax_dev = NULL;
+ 	iomap->offset = first_block << blkbits;
+ 
+ 	if (ret == 0) {
+@@ -3406,6 +3412,7 @@ static int ext4_iomap_end(struct inode *inode, loff_t offset, loff_t length,
+ 	int blkbits = inode->i_blkbits;
+ 	bool truncate = false;
+ 
++	put_dax(iomap->dax_dev);
+ 	if (!(flags & IOMAP_WRITE) || (flags & IOMAP_FAULT))
+ 		return 0;
+ 
+diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+index 288ee5b840d7..4b47403f8089 100644
+--- a/fs/xfs/xfs_iomap.c
++++ b/fs/xfs/xfs_iomap.c
+@@ -976,6 +976,7 @@ xfs_file_iomap_begin(
+ 	int			nimaps = 1, error = 0;
+ 	bool			shared = false, trimmed = false;
+ 	unsigned		lockmode;
++	struct block_device	*bdev;
+ 
+ 	if (XFS_FORCED_SHUTDOWN(mp))
+ 		return -EIO;
+@@ -1063,6 +1064,14 @@ xfs_file_iomap_begin(
+ 	}
+ 
+ 	xfs_bmbt_to_iomap(ip, iomap, &imap);
++
++	/* optionally associate a dax device with the iomap bdev */
++	bdev = iomap->bdev;
++	if (blk_queue_dax(bdev->bd_queue))
++		iomap->dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
++	else
++		iomap->dax_dev = NULL;
++
+ 	if (shared)
+ 		iomap->flags |= IOMAP_F_SHARED;
  	return 0;
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 9d542a5600e4..772bd02a5b52 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -31,11 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 	BUG();
- }
- 
--static inline void arch_clear_pmem(void *addr, size_t size)
--{
--	BUG();
--}
--
- static inline void arch_wb_cache_pmem(void *addr, size_t size)
+@@ -1140,6 +1149,7 @@ xfs_file_iomap_end(
+ 	unsigned		flags,
+ 	struct iomap		*iomap)
  {
- 	BUG();
-@@ -73,22 +68,6 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
- }
++	put_dax(iomap->dax_dev);
+ 	if ((flags & IOMAP_WRITE) && iomap->type == IOMAP_DELALLOC)
+ 		return xfs_file_iomap_end_delalloc(XFS_I(inode), offset,
+ 				length, written, iomap);
+diff --git a/include/linux/iomap.h b/include/linux/iomap.h
+index 7291810067eb..f753e788da31 100644
+--- a/include/linux/iomap.h
++++ b/include/linux/iomap.h
+@@ -41,6 +41,7 @@ struct iomap {
+ 	u16			type;	/* type of mapping */
+ 	u16			flags;	/* flags for mapping */
+ 	struct block_device	*bdev;	/* block device for I/O */
++	struct dax_device	*dax_dev; /* dax_dev for dax operations */
+ };
  
- /**
-- * clear_pmem - zero a PMEM memory range
-- * @addr:	virtual start address
-- * @size:	number of bytes to zero
-- *
-- * Write zeros into the memory range starting at 'addr' for 'size' bytes.
-- * See blkdev_issue_flush() note for memcpy_to_pmem().
-- */
--static inline void clear_pmem(void *addr, size_t size)
--{
--	if (arch_has_pmem_api())
--		arch_clear_pmem(addr, size);
--	else
--		memset(addr, 0, size);
--}
--
--/**
-  * invalidate_pmem - flush a pmem range from the cache hierarchy
-  * @addr:	virtual start address
-  * @size:	bytes to invalidate (internally aligned to cache line size)
+ /*
 
 _______________________________________________
 Linux-nvdimm mailing list
