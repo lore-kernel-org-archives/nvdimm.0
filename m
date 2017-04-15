@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7F9842195406C
- for <linux-nvdimm@lists.01.org>; Thu, 27 Apr 2017 15:41:20 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH] test: regression test for a kernel panic on running ARS for
- BTTs
-Date: Thu, 27 Apr 2017 16:39:56 -0600
-Message-Id: <20170427223956.9216-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6E1652194EB6A
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:41:04 -0700 (PDT)
+Subject: [PATCH v2 25/33] x86,
+ dax: replace clear_pmem() with open coded memset + dax_ops->flush
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 14 Apr 2017 19:35:20 -0700
+Message-ID: <149222372003.32363.10078966018095100759.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,142 +19,115 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Runing an Address Range Scrub on a region with a BTT namespace would
-cause a kernel null pointer dereference. This tests we don't regress
-that.
+The clear_pmem() helper simply combines a memset() plus a cache flush.
+Now that the flush routine is optionally provided by the dax device
+driver we can avoid unnecessary cache management on dax devices fronting
+volatile memory.
 
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+With clear_pmem() gone we can follow on with a patch to make pmem cache
+management completely defined within the pmem driver.
+
+Cc: <x86@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/Makefile.am      |  3 +-
- test/btt-ars-panic.sh | 93 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 95 insertions(+), 1 deletion(-)
- create mode 100755 test/btt-ars-panic.sh
+ arch/x86/include/asm/pmem.h |   13 -------------
+ fs/dax.c                    |    3 ++-
+ include/linux/pmem.h        |   21 ---------------------
+ 3 files changed, 2 insertions(+), 35 deletions(-)
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 9353a34..4d31a88 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -12,7 +12,8 @@ TESTS =\
- 	daxdev-errors.sh \
- 	btt-check.sh \
- 	label-compat.sh \
--	blk-exhaust.sh
-+	blk-exhaust.sh \
-+	btt-ars-panic.sh
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index 60e8edbe0205..f4c119d253f3 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -65,19 +65,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ 		clwb(p);
+ }
  
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/btt-ars-panic.sh b/test/btt-ars-panic.sh
-new file mode 100755
-index 0000000..725d260
---- /dev/null
-+++ b/test/btt-ars-panic.sh
-@@ -0,0 +1,93 @@
-+#!/bin/bash -E
-+
-+[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] && ndctl="../ndctl/ndctl"
-+[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
-+[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
-+bus="nfit_test.0"
-+json2var="s/[{}\",]//g; s/:/=/g"
-+dev=""
-+mode=""
-+size=""
-+sector_size=""
-+blockdev=""
-+rc=77
-+
-+trap 'err $LINENO' ERR
-+
-+# sample json:
-+# {
-+#   "dev":"namespace5.0",
-+#   "mode":"sector",
-+#   "size":32440320,
-+#   "uuid":"51805176-e124-4635-ae17-0e6a4a16671a",
-+#   "sector_size":4096,
-+#   "blockdev":"pmem5s"
-+# }
-+
-+# $1: Line number
-+# $2: exit code
-+err()
-+{
-+	[ -n "$2" ] && rc="$2"
-+	echo "test/btt-ars-panic: failed at line $1"
-+	exit "$rc"
-+}
-+
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+check_min_kver "4.12" || { echo "kernel $KVER is known to panic after an ARS"; exit "$rc"; }
-+
-+create()
-+{
-+	json=$($ndctl create-namespace -b "$bus" -t pmem -m sector)
-+	eval "$(echo "$json" | sed -e "$json2var")"
-+	[ -n "$dev" ] || err "$LINENO" 2
-+	[ "$mode" = "sector" ] || err "$LINENO" 2
-+	[ -n "$size" ] || err "$LINENO" 2
-+	[ -n "$sector_size" ] || err "$LINENO" 2
-+	[ -n "$blockdev" ] || err "$LINENO" 2
-+	[ $size -gt 0 ] || err "$LINENO" 2
-+}
-+
-+reset()
-+{
-+	$ndctl disable-region -b "$bus" all
-+	$ndctl zero-labels -b "$bus" all
-+	$ndctl enable-region -b "$bus" all
-+}
-+
-+run_ars_scrub()
-+{
-+	query=".dev"
-+	ndbus=$($ndctl list -b $bus -t pmem | jq -r "$query")
-+	scrub_file="/sys/bus/nd/devices/$ndbus/nfit/scrub"
-+	echo "starting scrub: $scrub_file"
-+	echo 1 > "$scrub_file"
-+	sleep 3
-+}
-+
-+test_pass()
-+{
-+	# If the test failed, there would have been a kernel null pointer
-+	# dereference, and a subsequent ndctl disable-region would hang
-+	$ndctl disable-region all &
-+	pid=$!
-+	sleep 3
-+	kill -0 $pid && { echo "Test failed, ndctl is hung after the scrub (reboot required)"; err "$LINENO" 3 ; }
-+	wait
-+}
-+
-+# setup (reset nfit_test dimms, create the BTT namespace)
-+modprobe nfit_test
-+rc=1
-+reset && create
-+run_ars_scrub
-+test_pass
-+exit 0
--- 
-2.9.3
+-/**
+- * arch_clear_pmem - zero a PMEM memory range
+- * @addr:	virtual start address
+- * @size:	number of bytes to zero
+- *
+- * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+- */
+-static inline void arch_clear_pmem(void *addr, size_t size)
+-{
+-	memset(addr, 0, size);
+-	arch_wb_cache_pmem(addr, size);
+-}
+-
+ static inline void arch_invalidate_pmem(void *addr, size_t size)
+ {
+ 	clflush_cache_range(addr, size);
+diff --git a/fs/dax.c b/fs/dax.c
+index edbf988de86c..edee7e8298bc 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -982,7 +982,8 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 			dax_read_unlock(id);
+ 			return rc;
+ 		}
+-		clear_pmem(kaddr + offset, size);
++		memset(kaddr + offset, 0, size);
++		dax_flush(dax_dev, pgoff, kaddr + offset, size);
+ 		dax_read_unlock(id);
+ 	}
+ 	return 0;
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 9d542a5600e4..772bd02a5b52 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -31,11 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ 	BUG();
+ }
+ 
+-static inline void arch_clear_pmem(void *addr, size_t size)
+-{
+-	BUG();
+-}
+-
+ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+@@ -73,22 +68,6 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
+ }
+ 
+ /**
+- * clear_pmem - zero a PMEM memory range
+- * @addr:	virtual start address
+- * @size:	number of bytes to zero
+- *
+- * Write zeros into the memory range starting at 'addr' for 'size' bytes.
+- * See blkdev_issue_flush() note for memcpy_to_pmem().
+- */
+-static inline void clear_pmem(void *addr, size_t size)
+-{
+-	if (arch_has_pmem_api())
+-		arch_clear_pmem(addr, size);
+-	else
+-		memset(addr, 0, size);
+-}
+-
+-/**
+  * invalidate_pmem - flush a pmem range from the cache hierarchy
+  * @addr:	virtual start address
+  * @size:	bytes to invalidate (internally aligned to cache line size)
 
 _______________________________________________
 Linux-nvdimm mailing list
