@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F37FC20D7A3D3
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:17:27 -0700 (PDT)
-Subject: [resend PATCH v2 32/33] filesystem-dax: gate calls to dax_flush()
- on QUEUE_FLAG_WC
+ by ml01.01.org (Postfix) with ESMTPS id 0D9152194EB6D
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:40:43 -0700 (PDT)
+Subject: [PATCH v2 21/33] filesystem-dax: convert to dax_copy_from_iter()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:11:43 -0700
-Message-ID: <149245630377.10206.16395058260450137463.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 14 Apr 2017 19:34:59 -0700
+Message-ID: <149222369915.32363.6442797697848246786.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,52 +23,137 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, dm-devel@redhat.com, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Some platforms arrange for cpu caches to be flushed on power-fail. On
-those platforms there is no requirement that the kernel track and flush
-potentially dirty cache lines. Given that we still insert entries into
-the radix for locking purposes this patch only disables the cache flush
-loop, not the dirty tracking.
+Now that all possible providers of the dax_operations copy_from_iter
+method are implemented, switch filesytem-dax to call the driver rather
+than copy_to_iter_pmem.
 
-Userspace can override the default cache setting via the block device
-queue "write_cache" attribute in sysfs.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/pmem.h |   50 -------------------------------------------
+ fs/dax.c                    |    3 ++-
+ include/linux/pmem.h        |   24 ---------------------
+ 3 files changed, 2 insertions(+), 75 deletions(-)
 
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index d5a22bac9988..60e8edbe0205 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -66,56 +66,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ }
+ 
+ /**
+- * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
+- * @addr:	PMEM destination address
+- * @bytes:	number of bytes to copy
+- * @i:		iterator with source data
+- *
+- * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+- */
+-static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+-		struct iov_iter *i)
+-{
+-	size_t len;
+-
+-	/* TODO: skip the write-back by always using non-temporal stores */
+-	len = copy_from_iter_nocache(addr, bytes, i);
+-
+-	/*
+-	 * In the iovec case on x86_64 copy_from_iter_nocache() uses
+-	 * non-temporal stores for the bulk of the transfer, but we need
+-	 * to manually flush if the transfer is unaligned. A cached
+-	 * memory copy is used when destination or size is not naturally
+-	 * aligned. That is:
+-	 *   - Require 8-byte alignment when size is 8 bytes or larger.
+-	 *   - Require 4-byte alignment when size is 4 bytes.
+-	 *
+-	 * In the non-iovec case the entire destination needs to be
+-	 * flushed.
+-	 */
+-	if (iter_is_iovec(i)) {
+-		unsigned long flushed, dest = (unsigned long) addr;
+-
+-		if (bytes < 8) {
+-			if (!IS_ALIGNED(dest, 4) || (bytes != 4))
+-				arch_wb_cache_pmem(addr, 1);
+-		} else {
+-			if (!IS_ALIGNED(dest, 8)) {
+-				dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
+-				arch_wb_cache_pmem(addr, 1);
+-			}
+-
+-			flushed = dest - (unsigned long) addr;
+-			if (bytes > flushed && !IS_ALIGNED(bytes - flushed, 8))
+-				arch_wb_cache_pmem(addr + bytes - 1, 1);
+-		}
+-	} else
+-		arch_wb_cache_pmem(addr, bytes);
+-
+-	return len;
+-}
+-
+-/**
+  * arch_clear_pmem - zero a PMEM memory range
+  * @addr:	virtual start address
+  * @size:	number of bytes to zero
 diff --git a/fs/dax.c b/fs/dax.c
-index f37ed21e4093..5b7ee1bc74d0 100644
+index ce9dc9c3e829..11b9909c91df 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -797,7 +797,8 @@ static int dax_writeback_one(struct block_device *bdev,
- 	}
+@@ -1061,7 +1061,8 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 			map_len = end - pos;
  
- 	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(pfn));
--	dax_flush(dax_dev, pgoff, kaddr, size);
-+	if (test_bit(QUEUE_FLAG_WC, &bdev->bd_queue->queue_flags))
-+		dax_flush(dax_dev, pgoff, kaddr, size);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
- 	 * cannot be new dirty data in the pfn after the flush has completed as
-@@ -982,7 +983,8 @@ int __dax_zero_page_range(struct block_device *bdev,
- 			return rc;
- 		}
- 		memset(kaddr + offset, 0, size);
--		dax_flush(dax_dev, pgoff, kaddr + offset, size);
-+		if (test_bit(QUEUE_FLAG_WC, &bdev->bd_queue->queue_flags))
-+			dax_flush(dax_dev, pgoff, kaddr + offset, size);
- 		dax_read_unlock(id);
- 	}
- 	return 0;
+ 		if (iov_iter_rw(iter) == WRITE)
+-			map_len = copy_from_iter_pmem(kaddr, map_len, iter);
++			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
++					map_len, iter);
+ 		else
+ 			map_len = copy_to_iter(kaddr, map_len, iter);
+ 		if (map_len <= 0) {
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 71ecf3d46aac..9d542a5600e4 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -31,13 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ 	BUG();
+ }
+ 
+-static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+-		struct iov_iter *i)
+-{
+-	BUG();
+-	return 0;
+-}
+-
+ static inline void arch_clear_pmem(void *addr, size_t size)
+ {
+ 	BUG();
+@@ -80,23 +73,6 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
+ }
+ 
+ /**
+- * copy_from_iter_pmem - copy data from an iterator to PMEM
+- * @addr:	PMEM destination address
+- * @bytes:	number of bytes to copy
+- * @i:		iterator with source data
+- *
+- * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+- * See blkdev_issue_flush() note for memcpy_to_pmem().
+- */
+-static inline size_t copy_from_iter_pmem(void *addr, size_t bytes,
+-		struct iov_iter *i)
+-{
+-	if (arch_has_pmem_api())
+-		return arch_copy_from_iter_pmem(addr, bytes, i);
+-	return copy_from_iter_nocache(addr, bytes, i);
+-}
+-
+-/**
+  * clear_pmem - zero a PMEM memory range
+  * @addr:	virtual start address
+  * @size:	number of bytes to zero
 
 _______________________________________________
 Linux-nvdimm mailing list
