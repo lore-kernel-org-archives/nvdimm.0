@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0355D2194235E
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 16:19:35 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 2/6] libndctl: add a ndctl_namespace_disable_safe()
- API
-Date: Fri,  7 Apr 2017 17:17:59 -0600
-Message-Id: <20170407231803.14936-3-vishal.l.verma@intel.com>
-In-Reply-To: <20170407231803.14936-1-vishal.l.verma@intel.com>
-References: <20170407231803.14936-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E16FC2194EB6A
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:39:34 -0700 (PDT)
+Subject: [PATCH v2 08/33] dcssblk: add dax_operations support
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 14 Apr 2017 19:33:51 -0700
+Message-ID: <149222363102.32363.14256839764917380996.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,190 +18,168 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Disabling a namespace which has a filesystem mounted on it is unsafe as
-filesystems are not prepared for a block device to be yanked from under
-them. The destroy_namespace routine checked for an active mount by
-performing an O_EXCL open of the backing block device, but many other
-callers of ndctl_namespace_disable* could benefit from this checking.
+Setup a dax_dev to have the same lifetime as the dcssblk block device
+and add a ->direct_access() method that is equivalent to
+dcssblk_direct_access(). Once fs/dax.c has been converted to use
+dax_operations the old dcssblk_direct_access() will be removed.
 
-Codify the mounted filesystem check in a new libndctl API -
-ndctl_namespace_disable_safe(), and use it for the destroy/disable
-namespace ndctl commands as well as the upcoming check-namespace
-command.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/builtin-xaction-namespace.c | 46 +++++++--------------------------------
- ndctl/lib/libndctl.c              | 44 +++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym            |  1 +
- ndctl/libndctl.h.in               |  1 +
- 4 files changed, 54 insertions(+), 38 deletions(-)
+ drivers/s390/block/Kconfig   |    1 +
+ drivers/s390/block/dcssblk.c |   54 +++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 46 insertions(+), 9 deletions(-)
 
-diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
-index 46d651e..d6b0c37 100644
---- a/ndctl/builtin-xaction-namespace.c
-+++ b/ndctl/builtin-xaction-namespace.c
-@@ -731,10 +731,7 @@ static int namespace_destroy(struct ndctl_region *region,
- 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
- 	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
- 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
--	const char *bdev = NULL;
--	bool dax_active = false;
--	char path[50];
--	int fd, rc;
-+	int rc;
+diff --git a/drivers/s390/block/Kconfig b/drivers/s390/block/Kconfig
+index 4a3b62326183..0acb8c2f9475 100644
+--- a/drivers/s390/block/Kconfig
++++ b/drivers/s390/block/Kconfig
+@@ -14,6 +14,7 @@ config BLK_DEV_XPRAM
  
- 	if (ndctl_region_get_ro(region)) {
- 		error("%s: read-only, re-configuration disabled\n",
-@@ -742,42 +739,15 @@ static int namespace_destroy(struct ndctl_region *region,
- 		return -ENXIO;
+ config DCSSBLK
+ 	def_tristate m
++	select DAX
+ 	prompt "DCSSBLK support"
+ 	depends on S390 && BLOCK
+ 	help
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 415d10a67b7a..682a9eb4934d 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -18,6 +18,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/pfn_t.h>
++#include <linux/dax.h>
+ #include <asm/extmem.h>
+ #include <asm/io.h>
+ 
+@@ -30,8 +31,10 @@ static int dcssblk_open(struct block_device *bdev, fmode_t mode);
+ static void dcssblk_release(struct gendisk *disk, fmode_t mode);
+ static blk_qc_t dcssblk_make_request(struct request_queue *q,
+ 						struct bio *bio);
+-static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
++static long dcssblk_blk_direct_access(struct block_device *bdev, sector_t secnum,
+ 			 void **kaddr, pfn_t *pfn, long size);
++static long dcssblk_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
++		long nr_pages, void **kaddr, pfn_t *pfn);
+ 
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -40,7 +43,11 @@ static const struct block_device_operations dcssblk_devops = {
+ 	.owner   	= THIS_MODULE,
+ 	.open    	= dcssblk_open,
+ 	.release 	= dcssblk_release,
+-	.direct_access 	= dcssblk_direct_access,
++	.direct_access 	= dcssblk_blk_direct_access,
++};
++
++static const struct dax_operations dcssblk_dax_ops = {
++	.direct_access = dcssblk_dax_direct_access,
+ };
+ 
+ struct dcssblk_dev_info {
+@@ -57,6 +64,7 @@ struct dcssblk_dev_info {
+ 	struct request_queue *dcssblk_queue;
+ 	int num_of_segments;
+ 	struct list_head seg_list;
++	struct dax_device *dax_dev;
+ };
+ 
+ struct segment_info {
+@@ -389,6 +397,8 @@ dcssblk_shared_store(struct device *dev, struct device_attribute *attr, const ch
+ 	}
+ 	list_del(&dev_info->lh);
+ 
++	kill_dax(dev_info->dax_dev);
++	put_dax(dev_info->dax_dev);
+ 	del_gendisk(dev_info->gd);
+ 	blk_cleanup_queue(dev_info->dcssblk_queue);
+ 	dev_info->gd->queue = NULL;
+@@ -525,6 +535,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
+ 	int rc, i, j, num_of_segments;
+ 	struct dcssblk_dev_info *dev_info;
+ 	struct segment_info *seg_info, *temp;
++	struct dax_device *dax_dev;
+ 	char *local_buf;
+ 	unsigned long seg_byte_size;
+ 
+@@ -654,6 +665,11 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
+ 	if (rc)
+ 		goto put_dev;
+ 
++	dax_dev = alloc_dax(dev_info, dev_info->gd->disk_name,
++			&dcssblk_dax_ops);
++	if (!dax_dev)
++		goto put_dev;
++
+ 	get_device(&dev_info->dev);
+ 	device_add_disk(&dev_info->dev, dev_info->gd);
+ 
+@@ -752,6 +768,8 @@ dcssblk_remove_store(struct device *dev, struct device_attribute *attr, const ch
  	}
  
--	if (pfn && ndctl_pfn_is_enabled(pfn))
--		bdev = ndctl_pfn_get_block_device(pfn);
--	else if (dax && ndctl_dax_is_enabled(dax))
--		dax_active = true;
--	else if (btt && ndctl_btt_is_enabled(btt))
--		bdev = ndctl_btt_get_block_device(btt);
--	else if (ndctl_namespace_is_enabled(ndns))
--		bdev = ndctl_namespace_get_block_device(ndns);
--
--	if ((bdev || dax_active) && !force) {
-+	if (ndctl_namespace_is_active(ndns) && !force) {
- 		error("%s is active, specify --force for re-configuration\n",
- 				devname);
- 		return -EBUSY;
--	} else if (bdev) {
--		sprintf(path, "/dev/%s", bdev);
--		fd = open(path, O_RDWR|O_EXCL);
--		if (fd >= 0) {
--			/*
--			 * Got it, now block new mounts while we have it
--			 * pinned.
--			 */
--			ndctl_namespace_disable_invalidate(ndns);
--			close(fd);
--		} else {
--			/*
--			 * Yes, TOCTOU hole, but if you're racing namespace
--			 * creation you have other problems, and there's nothing
--			 * stopping the !bdev case from racing to mount an fs or
--			 * re-enabling the namepace.
--			 */
--			error("%s: %s failed exlusive open: %s\n",
--					devname, bdev, strerror(errno));
--			return -errno;
--		}
--	} else if (dax_active)
--		ndctl_namespace_disable_invalidate(ndns);
-+	} else {
-+		rc = ndctl_namespace_disable_safe(ndns);
-+		if (rc)
-+			return rc;
-+	}
- 
- 	if (pfn || btt || dax) {
- 		rc = zero_info_block(ndns);
-@@ -869,7 +839,7 @@ static int do_xaction_namespace(const char *namespace,
- 					continue;
- 				switch (action) {
- 				case ACTION_DISABLE:
--					rc = ndctl_namespace_disable_invalidate(ndns);
-+					rc = ndctl_namespace_disable_safe(ndns);
- 					break;
- 				case ACTION_ENABLE:
- 					rc = ndctl_namespace_enable(ndns);
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index ae029c5..a3481b1 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -3346,6 +3346,50 @@ NDCTL_EXPORT int ndctl_namespace_disable_invalidate(struct ndctl_namespace *ndns
- 	return ndctl_namespace_disable(ndns);
+ 	list_del(&dev_info->lh);
++	kill_dax(dev_info->dax_dev);
++	put_dax(dev_info->dax_dev);
+ 	del_gendisk(dev_info->gd);
+ 	blk_cleanup_queue(dev_info->dcssblk_queue);
+ 	dev_info->gd->queue = NULL;
+@@ -883,21 +901,39 @@ dcssblk_make_request(struct request_queue *q, struct bio *bio)
  }
  
-+NDCTL_EXPORT int ndctl_namespace_disable_safe(struct ndctl_namespace *ndns)
+ static long
+-dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
++__dcssblk_direct_access(struct dcssblk_dev_info *dev_info, pgoff_t pgoff,
++		long nr_pages, void **kaddr, pfn_t *pfn)
 +{
-+	const char *devname = ndctl_namespace_get_devname(ndns);
-+	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
-+	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
-+	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
-+	const char *bdev = NULL;
-+	char path[50];
-+	int fd;
++	resource_size_t offset = pgoff * PAGE_SIZE;
++	unsigned long dev_sz;
 +
-+	if (pfn && ndctl_pfn_is_enabled(pfn))
-+		bdev = ndctl_pfn_get_block_device(pfn);
-+	else if (btt && ndctl_btt_is_enabled(btt))
-+		bdev = ndctl_btt_get_block_device(btt);
-+	else if (ndctl_namespace_is_enabled(ndns))
-+		bdev = ndctl_namespace_get_block_device(ndns);
++	dev_sz = dev_info->end - dev_info->start + 1;
++	*kaddr = (void *) dev_info->start + offset;
++	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
 +
-+	if (bdev) {
-+		sprintf(path, "/dev/%s", bdev);
-+		fd = open(path, O_RDWR|O_EXCL);
-+		if (fd >= 0) {
-+			/*
-+			 * Got it, now block new mounts while we have it
-+			 * pinned.
-+			 */
-+			ndctl_namespace_disable_invalidate(ndns);
-+			close(fd);
-+		} else {
-+			/*
-+			 * Yes, TOCTOU hole, but if you're racing namespace
-+			 * creation you have other problems, and there's nothing
-+			 * stopping the !bdev case from racing to mount an fs or
-+			 * re-enabling the namepace.
-+			 */
-+			dbg(ctx, "%s: %s failed exclusive open: %s\n",
-+					devname, bdev, strerror(errno));
-+			return -errno;
-+		}
-+	} else
-+		ndctl_namespace_disable_invalidate(ndns);
-+
-+	return 0;
++	return (dev_sz - offset) / PAGE_SIZE;
 +}
 +
- static int pmem_namespace_is_configured(struct ndctl_namespace *ndns)
++static long
++dcssblk_blk_direct_access(struct block_device *bdev, sector_t secnum,
+ 			void **kaddr, pfn_t *pfn, long size)
  {
- 	if (ndctl_namespace_get_size(ndns) < ND_MIN_NAMESPACE_SIZE)
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 705ec4c..9d2a568 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -172,6 +172,7 @@ global:
- 	ndctl_namespace_enable;
- 	ndctl_namespace_disable;
- 	ndctl_namespace_disable_invalidate;
-+	ndctl_namespace_disable_safe;
- 	ndctl_namespace_is_active;
- 	ndctl_namespace_is_valid;
- 	ndctl_namespace_is_configured;
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index 586eb26..bcc569c 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -485,6 +485,7 @@ int ndctl_namespace_is_enabled(struct ndctl_namespace *ndns);
- int ndctl_namespace_enable(struct ndctl_namespace *ndns);
- int ndctl_namespace_disable(struct ndctl_namespace *ndns);
- int ndctl_namespace_disable_invalidate(struct ndctl_namespace *ndns);
-+int ndctl_namespace_disable_safe(struct ndctl_namespace *ndns);
- bool ndctl_namespace_is_active(struct ndctl_namespace *ndns);
- int ndctl_namespace_is_valid(struct ndctl_namespace *ndns);
- int ndctl_namespace_is_configured(struct ndctl_namespace *ndns);
--- 
-2.9.3
+ 	struct dcssblk_dev_info *dev_info;
+-	unsigned long offset, dev_sz;
+ 
+ 	dev_info = bdev->bd_disk->private_data;
+ 	if (!dev_info)
+ 		return -ENODEV;
+-	dev_sz = dev_info->end - dev_info->start + 1;
+-	offset = secnum * 512;
+-	*kaddr = (void *) dev_info->start + offset;
+-	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
++	return __dcssblk_direct_access(dev_info, PHYS_PFN(secnum * 512),
++			PHYS_PFN(size), kaddr, pfn) * PAGE_SIZE;
++}
++
++static long
++dcssblk_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
++		long nr_pages, void **kaddr, pfn_t *pfn)
++{
++	struct dcssblk_dev_info *dev_info = dax_get_private(dax_dev);
+ 
+-	return dev_sz - offset;
++	return __dcssblk_direct_access(dev_info, pgoff, nr_pages, kaddr, pfn);
+ }
+ 
+ static void
 
 _______________________________________________
 Linux-nvdimm mailing list
