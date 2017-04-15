@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8432E21942349
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 16:19:34 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 1/6] libndctl: add a ndctl_namespace_is_active helper
-Date: Fri,  7 Apr 2017 17:17:58 -0600
-Message-Id: <20170407231803.14936-2-vishal.l.verma@intel.com>
-In-Reply-To: <20170407231803.14936-1-vishal.l.verma@intel.com>
-References: <20170407231803.14936-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6C1AC2194EB6A
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:39:14 -0700 (PDT)
+Subject: [PATCH v2 04/33] dax: introduce dax_operations
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 14 Apr 2017 19:33:29 -0700
+Message-ID: <149222360969.32363.248417721881973963.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,151 +18,127 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pattern of checking if a namespace is currently active was repeated
-in many places. Convert the scattered usage into a libndctl API. This
-gets rid of util_namespace_active from util/json.c which was an awkward
-place for this anyway.
+Track a set of dax_operations per dax_device that can be set at
+alloc_dax() time. These operations will be used to stop the abuse of
+block_device_operations for communicating dax capabilities to
+filesystems. It will also be used to replace the "pmem api" and move
+pmem-specific cache maintenance, and other dax-driver-specific
+filesystem-dax operations, to dax device methods. In particular this
+allows us to stop abusing __copy_user_nocache(), via memcpy_to_pmem(),
+with a driver specific replacement.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+This is a standalone introduction of the operations. Follow on patches
+convert each dax-driver and teach fs/dax.c to use ->direct_access() from
+dax_operations instead of block_device_operations.
+
+Suggested-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/builtin-list.c   |  2 +-
- ndctl/lib/libndctl.c   | 15 +++++++++++++++
- ndctl/lib/libndctl.sym |  1 +
- ndctl/libndctl.h.in    |  2 ++
- util/json.c            | 17 +----------------
- util/json.h            |  1 -
- 6 files changed, 20 insertions(+), 18 deletions(-)
+ drivers/dax/dax.h    |    4 +++-
+ drivers/dax/device.c |    6 +++++-
+ drivers/dax/super.c  |    6 +++++-
+ include/linux/dax.h  |   10 ++++++++++
+ 4 files changed, 23 insertions(+), 3 deletions(-)
 
-diff --git a/ndctl/builtin-list.c b/ndctl/builtin-list.c
-index e8d0070..536d333 100644
---- a/ndctl/builtin-list.c
-+++ b/ndctl/builtin-list.c
-@@ -84,7 +84,7 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
- 		if (param.mode && mode_to_type(param.mode) != mode)
- 			continue;
- 
--		if (!list.idle && !util_namespace_active(ndns))
-+		if (!list.idle && !ndctl_namespace_is_active(ndns))
- 			continue;
- 
- 		if (!jnamespaces) {
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 090ec0b..ae029c5 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -3234,6 +3234,21 @@ static void region_refresh_children(struct ndctl_region *region)
- 	daxs_init(region);
- }
- 
-+NDCTL_EXPORT bool ndctl_namespace_is_active(struct ndctl_namespace *ndns)
-+{
-+	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
-+	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
-+	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
-+
-+	if ((btt && ndctl_btt_is_enabled(btt))
-+			|| (pfn && ndctl_pfn_is_enabled(pfn))
-+			|| (dax && ndctl_dax_is_enabled(dax))
-+			|| (!btt && !pfn && !dax
-+				&& ndctl_namespace_is_enabled(ndns)))
-+		return true;
-+	return false;
-+}
-+
- /*
-  * Return 0 if enabled, < 0 if failed to enable, and > 0 if claimed by
-  * another device and that device is enabled.  In the > 0 case a
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index ca5165a..705ec4c 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -172,6 +172,7 @@ global:
- 	ndctl_namespace_enable;
- 	ndctl_namespace_disable;
- 	ndctl_namespace_disable_invalidate;
-+	ndctl_namespace_is_active;
- 	ndctl_namespace_is_valid;
- 	ndctl_namespace_is_configured;
- 	ndctl_namespace_delete;
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index d38aa45..586eb26 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -13,6 +13,7 @@
- #ifndef _LIBNDCTL_H_
- #define _LIBNDCTL_H_
- 
-+#include <stdbool.h>
- #include <stdarg.h>
- #include <unistd.h>
- 
-@@ -484,6 +485,7 @@ int ndctl_namespace_is_enabled(struct ndctl_namespace *ndns);
- int ndctl_namespace_enable(struct ndctl_namespace *ndns);
- int ndctl_namespace_disable(struct ndctl_namespace *ndns);
- int ndctl_namespace_disable_invalidate(struct ndctl_namespace *ndns);
-+bool ndctl_namespace_is_active(struct ndctl_namespace *ndns);
- int ndctl_namespace_is_valid(struct ndctl_namespace *ndns);
- int ndctl_namespace_is_configured(struct ndctl_namespace *ndns);
- int ndctl_namespace_delete(struct ndctl_namespace *ndns);
-diff --git a/util/json.c b/util/json.c
-index d6a8d4c..82d8073 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -86,21 +86,6 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm)
- 	return NULL;
- }
- 
--bool util_namespace_active(struct ndctl_namespace *ndns)
--{
--	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
--	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
--	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
--
--	if ((btt && ndctl_btt_is_enabled(btt))
--			|| (pfn && ndctl_pfn_is_enabled(pfn))
--			|| (dax && ndctl_dax_is_enabled(dax))
--			|| (!btt && !pfn && !dax
--				&& ndctl_namespace_is_enabled(ndns)))
--		return true;
--	return false;
--}
--
- struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev)
- {
- 	const char *devname = daxctl_dev_get_devname(dev);
-@@ -334,7 +319,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 		json_object_object_add(jndns, "blockdev", jobj);
+diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
+index 246a24d68d4c..617bbc24be2b 100644
+--- a/drivers/dax/dax.h
++++ b/drivers/dax/dax.h
+@@ -13,7 +13,9 @@
+ #ifndef __DAX_H__
+ #define __DAX_H__
+ struct dax_device;
+-struct dax_device *alloc_dax(void *private, const char *host);
++struct dax_operations;
++struct dax_device *alloc_dax(void *private, const char *host,
++		const struct dax_operations *ops);
+ void put_dax(struct dax_device *dax_dev);
+ bool dax_alive(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index db68f4fa8ce0..a0db055054a4 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -645,7 +645,11 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
+ 		goto err_id;
  	}
  
--	if (!util_namespace_active(ndns)) {
-+	if (!ndctl_namespace_is_active(ndns)) {
- 		jobj = json_object_new_string("disabled");
- 		if (!jobj)
- 			goto err;
-diff --git a/util/json.h b/util/json.h
-index a9afb2d..2449c2d 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -6,7 +6,6 @@
+-	dax_dev = alloc_dax(dev_dax, NULL);
++	/*
++	 * No 'host' or dax_operations since there is no access to this
++	 * device outside of mmap of the resulting character device.
++	 */
++	dax_dev = alloc_dax(dev_dax, NULL, NULL);
+ 	if (!dax_dev)
+ 		goto err_dax;
  
- struct json_object;
- void util_display_json_array(FILE *f_out, struct json_object *jarray, int jflag);
--bool util_namespace_active(struct ndctl_namespace *ndns);
- struct json_object *util_bus_to_json(struct ndctl_bus *bus);
- struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm);
- struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping);
--- 
-2.9.3
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index bb22956a106b..45ccfc043da8 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -17,6 +17,7 @@
+ #include <linux/cdev.h>
+ #include <linux/hash.h>
+ #include <linux/slab.h>
++#include <linux/dax.h>
+ #include <linux/fs.h>
+ 
+ static int nr_dax = CONFIG_NR_DEV_DAX;
+@@ -61,6 +62,7 @@ struct dax_device {
+ 	const char *host;
+ 	void *private;
+ 	bool alive;
++	const struct dax_operations *ops;
+ };
+ 
+ bool dax_alive(struct dax_device *dax_dev)
+@@ -204,7 +206,8 @@ static void dax_add_host(struct dax_device *dax_dev, const char *host)
+ 	spin_unlock(&dax_host_lock);
+ }
+ 
+-struct dax_device *alloc_dax(void *private, const char *__host)
++struct dax_device *alloc_dax(void *private, const char *__host,
++		const struct dax_operations *ops)
+ {
+ 	struct dax_device *dax_dev;
+ 	const char *host;
+@@ -225,6 +228,7 @@ struct dax_device *alloc_dax(void *private, const char *__host)
+ 		goto err_dev;
+ 
+ 	dax_add_host(dax_dev, host);
++	dax_dev->ops = ops;
+ 	dax_dev->private = private;
+ 	return dax_dev;
+ 
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 9b2d5ba10d7d..74ebb92b625a 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -7,6 +7,16 @@
+ #include <asm/pgtable.h>
+ 
+ struct iomap_ops;
++struct dax_device;
++struct dax_operations {
++	/*
++	 * direct_access: translate a device-relative
++	 * logical-page-offset into an absolute physical pfn. Return the
++	 * number of pages available for DAX at that pfn.
++	 */
++	long (*direct_access)(struct dax_device *, pgoff_t, long,
++			void **, pfn_t *);
++};
+ 
+ int dax_read_lock(void);
+ void dax_read_unlock(int id);
 
 _______________________________________________
 Linux-nvdimm mailing list
