@@ -1,13 +1,27 @@
 From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Mon, 17 Apr 2017 08:23:16 +1000
-Message-ID: <1492381396.25766.43.camel@kernel.crashing.org>
-References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
+Date: Mon, 17 Apr 2017 08:26:17 +1000
+Message-ID: <1492381577.25766.46.camel@kernel.crashing.org>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1491974532.7236.43.camel@kernel.crashing.org>
+ <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
+ <1492034124.7236.77.camel@kernel.crashing.org>
+ <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2@deltatee.com>
+ <20170413232631.GB24910@bhelgaas-glaptop.roam.corp.google.com>
+ <20170414041656.GA30694@obsidianresearch.com>
+ <1492169849.25766.3.camel@kernel.crashing.org>
+ <630c1c63-ff17-1116-e069-2b8f93e50fa2@deltatee.com>
+ <20170414190452.GA15679@bhelgaas-glaptop.roam.corp.google.com>
+ <1492207643.25766.18.camel@kernel.crashing.org>
+ <bff1e503-95a9-e19f-bfd9-0ff962c63a81@deltatee.com>
+ <CAPcyv4jUeKzKDARp6Z35kdPLKnP-M6aF8X5KpOx55CLyjnj4dA@mail.gmail.com>
+ <1492311719.25766.37.camel@kernel.crashing.org>
+ <CAPcyv4iqnz1B00Q3xG-nGrLXdOyB7ditxmwZyotksLFgUqr+jA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAPcyv4iqnz1B00Q3xG-nGrLXdOyB7ditxmwZyotksLFgUqr+jA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,90 +31,30 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James
+ E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gU3VuLCAyMDE3LTA0LTE2IGF0IDA4OjQ0IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
-VGhlIGRpZmZlcmVuY2UgaXMgdGhhdCB0aGVyZSB3YXMgbm90aGluZyBmdW5kYW1lbnRhbCBpbiB0
-aGUgY29yZQo+IGRlc2lnbiBvZiBwbWVtICsgREFYIHRoYXQgcHJldmVudGVkIG90aGVyIGFyY2hz
-IGZyb20gZ3Jvd2luZyBwbWVtCj4gc3VwcG9ydC4KCkluZGVlZC4gSW4gZmFjdCB3ZSBoYXZlIHdv
-cmsgaW4gcHJvZ3Jlc3Mgc3VwcG9ydCBmb3IgcG1lbSBvbiBwb3dlcgp1c2luZyBleHBlcmltZW50
-YWwgSFcuCgo+IFRIUCBhbmQgbWVtb3J5IGhvdHBsdWcgZXhpc3RlZCBvbiBvdGhlciBhcmNoaXRl
-Y3R1cmVzIGFuZAo+IHRoZXkganVzdCBuZWVkIHRvIHBsdWcgaW4gdGhlaXIgYXJjaC1zcGVjaWZp
-YyBlbmFibGluZy4gcDJwIHN1cHBvcnQKPiBuZWVkcyB0aGUgc2FtZSBzdGFydGluZyBwb2ludCBv
-ZiBzb21ldGhpbmcgbW9yZSB0aGFuIG9uZSBhcmNoaXRlY3R1cmUKPiBjYW4gcGx1ZyBpbnRvLCBh
-bmQgaGFuZGxpbmcgdGhlIGJ1cyBhZGRyZXNzIG9mZnNldCBjYXNlIG5lZWRzIHRvIGJlCj4gaW5j
-b3Jwb3JhdGVkIGludG8gdGhlIGRlc2lnbi4KPiAKPiBwbWVtICsgZGF4IGRpZCBub3QgY2hhbmdl
-IHRoZSBtZWFuaW5nIG9mIHdoYXQgYSBkbWFfYWRkcl90IGlzLCBwMnAgZG9lcy4KClRoZSBtb3Jl
-IEkgdGhpbmsgYWJvdXQgaXQsIHRoZSBtb3JlIEkgdGVuZCB0b3dhcmQgc29tZXRoaW5nIGFsb25n
-IHRoZQpsaW5lcyBvZiBoYXZpbmcgdGhlIGFyY2ggRE1BIG9wcyBiZWluZyBhYmxlIHRvIHF1aWNr
-bHkgZGlmZmVyZW50aWF0ZQpiZXR3ZWVuICJub3JtYWwiIG1lbW9yeSAod2hpY2ggaW5jbHVkZXMg
-bm9uLVBDSSBwbWVtIGluIHNvbWUgY2FzZXMsCml0J3MgYW4gYXJjaGl0ZWN0dXJlIGNob2ljZSBJ
-IHN1cHBvc2UpIGFuZCAic3BlY2lhbCBkZXZpY2UiIChwYWdlIGZsYWcKPyBwZm4gYml0ID8gLi4u
-IHRoZXJlIGFyZSBvcHRpb25zKS4KCkZyb20gdGhlcmUsIHdlIGtlZXAgb3VyIGV4aXN0aW5nIGZh
-c3QgcGF0aCBmb3IgdGhlIG5vcm1hbCBjYXNlLgoKRm9yIHRoZSBzcGVjaWFsIGNhc2UsIHdlIG5l
-ZWQgdG8gcHJvdmlkZSBhIGZhc3QgbG9va3VwIG1lY2hhbmlzbQooYXNzdW1pbmcgd2UgY2FuJ3Qg
-c3Rhc2ggZW5vdWdoIHN0dWZmIGluIHN0cnVjdCBwYWdlIG9yIHRoZSBwZm4pCnRvIGdldCBiYWNr
-IHRvIGEgc3RydWN0IG9mIHNvbWUgc29ydCB0aGF0IHByb3ZpZGVzIHRoZSBuZWNlc3NhcnkKaW5m
-b3JtYXRpb24gdG8gcmVzb2x2ZSB0aGUgdHJhbnNsYXRpb24uCgpUaGlzICpjb3VsZCogYmUgc29t
-ZXRoaW5nIGxpa2UgYSBzdHJ1Y3QgcDJtZW0gZGV2aWNlIHRoYXQgY2FycmllcwphIHNwZWNpYWwg
-c2V0IG9mIERNQSBvcHMsIHRob3VnaCB3ZSBwcm9iYWJseSBzaG91bGRuJ3QgbWFrZSB0aGUgZ2Vu
-ZXJpYwpzdHJ1Y3R1cmUgUENJIHNwZWNpZmljLgoKVGhpcyBpcyBhIHNsaWdodGx5IHNsb3dlciBw
-YXRoLCBidXQgdGhhdCAic3R1YiIgc3RydWN0dXJlIGFsbG93cyB0aGUKc3BlY2lhbCBETUEgb3Bz
-IHRvIHByb3ZpZGUgdGhlIG5lY2Vzc2FyeSBidXMtc3BlY2lmaWMga25vd2xlZGdlLCB3aGljaApm
-b3IgUENJIGZvciBleGFtcGxlLCBjYW4gY2hlY2sgd2hldGhlciB0aGUgZGV2aWNlcyBhcmUgb24g
-dGhlIHNhbWUKc2VnbWVudCwgd2hldGhlciB0aGUgc3dpdGNoZXMgYXJlIGNvbmZpZ3VyZWQgdG8g
-YWxsb3cgcDJwLCBldGMuLi4KCldoYXQgZm9ybSBzaG91bGQgdGhhdCBmYXN0IGxvb2t1cCB0YWtl
-ID8gSXQncyBub3QgY29tcGxldGVseSBjbGVhciB0bwptZSBhdCB0aGF0IHBvaW50LiBXZSBjb3Vs
-ZCBzdGFydCB3aXRoIGEgc2ltcGxlIGxpbmVhciBsb29rdXAgSSBzdXBwb3NlCmFuZCBpbXByb3Zl
-IGluIGEgc2Vjb25kIHN0YWdlLgoKT2YgY291cnNlIHRoaXMgcGlwZXMgaW50byB0aGUgb2xkIGRp
-c2N1c3Npb24gYWJvdXQgZGlzY29ubmVjdGluZwp0aGUgRE1BIG9wcyBmcm9tIHN0cnVjdCBwYWdl
-LiBJZiB3ZSBrZWVwIHN0cnVjdCBwYWdlLCBhbnkgZGV2aWNlIHRoYXQKd2FudHMgdG8gYmUgYSBw
-b3RlbnRpYWwgRE1BIHRhcmdldCB3aWxsIG5lZWQgdG8gZG8gc29tZXRoaW5nICJzcGVjaWFsIgp0
-byBjcmVhdGUgdGhvc2Ugc3RydWN0IHBhZ2VzIGV0Yy4uIHRob3VnaCB3ZSBjb3VsZCBtYWtlIHRo
-YXQgYSBzaW1wbGUKcGNpIGhlbHBlciB0aGF0IHBvcHMgdGhlIG5lY2Vzc2FyeSBiaXRzIGFuZCBw
-aWVjZXMgZm9yIGEgZ2l2ZW4gQkFSICYKcmFuZ2UuCgpJZiB3ZSBkb24ndCBuZWVkIHN0cnVjdCBw
-YWdlLCB0aGVuIGl0IG1pZ2h0IGJlIHBvc3NpYmxlIHRvIGhpZGUgaXQgYWxsCmluIHRoZSBQQ0kg
-aW5mcmFzdHJ1Y3R1cmUuCgo+ID4gVmlydHVhbGl6YXRpb24gc3BlY2lmaWNhbGx5IHdvdWxkIGJl
-IGEgX2xvdF8gbW9yZSBkaWZmaWN1bHQgdGhhbiBzaW1wbHkKPiA+IHN1cHBvcnRpbmcgb2Zmc2V0
-cy4gVGhlIGFjdHVhbCB0b3BvbG9neSBvZiB0aGUgYnVzIHdpbGwgcHJvYmFibHkgYmUgbG9zdAo+
-ID4gb24gdGhlIGd1ZXN0IE9TIGFuZCBpdCB3b3VsZCB0aGVyZWZvciBoYXZlIGEgZGlmZmljdWx0
-IHRpbWUgZmlndXJpbmcgb3V0Cj4gPiB3aGVuIGl0J3MgYWNjZXB0YWJsZSB0byB1c2UgcDJwbWVt
-LiBJIGFsc28gaGF2ZSBhIGRpZmZpY3VsdCB0aW1lIHNlZWluZwo+ID4gYSB1c2UgY2FzZSBmb3Ig
-aXQgYW5kIHRodXMgSSBoYXZlIGEgaGFyZCB0aW1lIHdpdGggdGhlIGFyZ3VtZW50IHRoYXQgd2UK
-PiA+IGNhbid0IHN1cHBvcnQgdXNlIGNhc2VzIHRoYXQgZG8gd2FudCBpdCBiZWNhdXNlIHVzZSBj
-YXNlcyB0aGF0IGRvbid0Cj4gPiB3YW50IGl0IChwZXJoYXBzIHlldCkgd29uJ3Qgd29yay4KPiA+
-IAo+ID4gPiBUaGlzIGlzIGFuIGludGVyZXN0aW5nIGV4cGVyaWVtZW50IHRvIGxvb2sgYXQgSSBz
-dXBwb3NlLCBidXQgaWYgeW91Cj4gPiA+IGV2ZXIgd2FudCB0aGlzIHVwc3RyZWFtIEkgd291bGQg
-bGlrZSBhdCBsZWFzdCBmb3IgeW91IHRvIGRldmVsb3AgYQo+ID4gPiBzdHJhdGVneSB0byBzdXBw
-b3J0IHRoZSB3aWRlciBjYXNlLCBpZiBub3QgYW4gYWN0dWFsIGltcGxlbWVudGF0aW9uLgo+ID4g
-Cj4gPiBJIHRoaW5rIHRoZXJlIGFyZSBwbGVudHkgb2YgYXZlbnVlcyBmb3J3YXJkIHRvIHN1cHBv
-cnQgb2Zmc2V0cywgZXRjLgo+ID4gSXQncyBqdXN0IHdvcmsuIE5vdGhpbmcgd2UnZCBiZSBwcm9w
-b3Npbmcgd291bGQgYmUgaW5jb21wYXRpYmxlIHdpdGggaXQuCj4gPiBXZSBqdXN0IGRvbid0IHdh
-bnQgdG8gaGF2ZSB0byBkbyBpdCBhbGwgdXBmcm9udCBlc3BlY2lhbGx5IHdoZW4gbm8gb25lCj4g
-PiByZWFsbHkga25vd3MgaG93IHdlbGwgdmFyaW91cyBhcmNoaXRlY3R1cmUncyBoYXJkd2FyZSBz
-dXBwb3J0cyB0aGlzIG9yCj4gPiBpZiBhbnlvbmUgZXZlbiB3YW50cyB0byBydW4gaXQgb24gc3lz
-dGVtcyBzdWNoIGFzIHRob3NlLiAoS2VlcCBpbiBtaW5kCj4gPiB0aGlzIGlzIGEgcHJldHR5IHNw
-ZWNpZmljIG9wdGltaXphdGlvbiB0aGF0IG1vc3RseSBoZWxwcyBzeXN0ZW1zCj4gPiBkZXNpZ25l
-ZCBpbiBzcGVjaWZpYyB3YXlzIC0tIG5vdCBhIGdlbmVyYWwgImV2ZXJ5Ym9keSBnZXRzIGZhc3Rl
-ciIgdHlwZQo+ID4gc2l0dWF0aW9uLikgR2V0IHRoZSBjYXNlcyB3b3JraW5nIHdlIGtub3cgd2ls
-bCB3b3JrLCBjYW4gZWFzaWx5IHN1cHBvcnQKPiA+IGFuZCBwZW9wbGUgYWN0dWFsbHkgd2FudC7C
-oCBUaGVuIGV4cGFuZCBpdCB0byBzdXBwb3J0IG90aGVycyBhcyBwZW9wbGUKPiA+IGNvbWUgYXJv
-dW5kIHdpdGggaGFyZHdhcmUgdG8gdGVzdCBhbmQgdXNlIGNhc2VzIGZvciBpdC4KPiAKPiBJIHRo
-aW5rIHlvdSBuZWVkIHRvIGdpdmUgb3RoZXIgYXJjaHMgYSBjaGFuY2UgdG8gc3VwcG9ydCB0aGlz
-IHdpdGggYQo+IGRlc2lnbiB0aGF0IGNvbnNpZGVycyB0aGUgb2Zmc2V0IGNhc2UgYXMgYSBmaXJz
-dCBjbGFzcyBjaXRpemVuIHJhdGhlcgo+IHRoYW4gYW4gYWZ0ZXJ0aG91Z2h0LgoKVGhhbmtzIDot
-KSBUaGVyZSdzIGEgcmVhc29uIHdoeSBJJ20gaW5zaXN0aW5nIG9uIHRoaXMuIFdlIGhhdmUgY29u
-c3RhbnQKcmVxdWVzdHMgZm9yIHRoaXMgdG9kYXkuIFdlIGhhdmUgaGFja3MgaW4gdGhlIEdQVSBk
-cml2ZXJzIHRvIGRvIGl0IGZvcgpHUFVzIGJlaGluZCBhIHN3aXRjaCwgYnV0IHRob3NlIGFyZSBq
-dXN0IHRoYXQsIGFkLWhvYyBoYWNrcyBpbiB0aGUKZHJpdmVycy4gV2UgaGF2ZSBzaW1pbGFyIGdy
-b3NzbmVzcyBhcm91bmQgdGhlIGNvcm5lciB3aXRoIHNvbWUgQ0FQSQpOSUNzIHRyeWluZyB0byBE
-TUEgdG8gR1BVcy4gSSBoYXZlIHBlb3BsZSB0cnlpbmcgdG8gdXNlIFBMWCBETUEgZW5naW5lcwp0
-byB3aGFjayBuVk1FIGRldmljZXMuCgpJJ20gdmVyeSBpbnRlcmVzdGVkIGluIGEgbW9yZSBnZW5l
-cmljIHNvbHV0aW9uIHRvIGRlYWwgd2l0aCB0aGUgcHJvYmxlbQpvZiBQMlAgYmV0d2VlbiBkZXZp
-Y2VzLiBJJ20gaGFwcHkgdG8gY29udHJpYnV0ZSB3aXRoIGNvZGUgdG8gaGFuZGxlIHRoZQpwb3dl
-cnBjIGJpdHMgYnV0IHdlIG5lZWQgdG8gYWdyZWUgb24gdGhlIGRlc2lnbiBmaXJzdCA6KQoKQ2hl
-ZXJzLApCZW4uCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
-cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Sun, 2017-04-16 at 08:53 -0700, Dan Williams wrote:
+> > Just thinking out loud ... I don't have a firm idea or a design. But
+> > peer to peer is definitely a problem we need to tackle generically, the
+> > demand for it keeps coming up.
+> 
+> ZONE_DEVICE allows you to redirect via get_dev_pagemap() to retrieve
+> context about the physical address in question. I'm thinking you can
+> hang bus address translation data off of that structure. This seems
+> vaguely similar to what HMM is doing.
+
+Ok, that's interesting. That would be a way to handle the "lookup" I
+was mentioning in the email I sent a few minutes ago.
+
+We would probably need to put some "structure" to that context.
+
+I'm very short on time to look into the details of this for at least
+a month (I'm taking about 3 weeks off for personal reasons next week),
+but I'm happy to dive more into this when I'm back and sort out with
+Jerome how to make it all co-habitate nicely with HMM.
+
+Cheers,
+Ben.
