@@ -1,16 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AD1DE21A0480F
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 15:07:49 -0700 (PDT)
-Subject: [PATCH v5 2/4] libnvdimm: Add 'resource' sysfs attribute to regions
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 07 Apr 2017 15:07:48 -0700
-Message-ID: <149160286876.35898.9695220097945901368.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <149160286313.35898.16564013661054174450.stgit@djiang5-desk3.ch.intel.com>
-References: <149160286313.35898.16564013661054174450.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BAFBD21A0480E
+ for <linux-nvdimm@lists.01.org>; Sun, 16 Apr 2017 11:55:58 -0700 (PDT)
+Subject: Re: panics related to nfit_test?
+References: <58E793E8.8070507@hpe.com>
+ <CAPcyv4jfCZMpNAC=-vG0a_koAfe-Vrr_+xcHXw1=TD+3DsqN+Q@mail.gmail.com>
+ <58E7C875.8050008@hpe.com> <58E7F689.8010709@hpe.com>
+ <CAPcyv4gS+z_HiMrgvayDaQr2qNKtZ+6boMdDZj0hQrxJhc+U6g@mail.gmail.com>
+ <58E80ABB.3040807@ymail.com>
+ <CAPcyv4i7LURhWQvDtxu6Bdtr2sEEHqjPqaE6a7oBYX7raNqyCw@mail.gmail.com>
+ <58F1494F.2080107@hpe.com>
+ <CAPcyv4hYa2B8Zg9Tw1RfBFNwXX9+m+DnwytyxwqZwWsVW-o+Ug@mail.gmail.com>
+ <58F15BD0.9040708@hpe.com>
+ <CAPcyv4i2PiiRbUwcps0eb-1TK3gw2z1RMeFtAeB6FESfd05uxw@mail.gmail.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Message-ID: <f1eee168-3195-1eef-99a9-e9adcd8bacf3@hpe.com>
+Date: Sun, 16 Apr 2017 14:55:47 -0400
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4i2PiiRbUwcps0eb-1TK3gw2z1RMeFtAeB6FESfd05uxw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,63 +27,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding sysfs attribute in order to export the physical address of the
-region. This is for supporting of user app poison clear via
-ND_IOCTL_CLEAR_ERROR.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/region_devs.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 3500fc8..8de5a04 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -463,6 +463,15 @@ static struct device_attribute dev_attr_nd_badblocks = {
- 	.show = nd_badblocks_show,
- };
- 
-+static ssize_t resource_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	return sprintf(buf, "%#llx\n", nd_region->ndr_start);
-+}
-+static DEVICE_ATTR_RO(resource);
-+
- static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_size.attr,
- 	&dev_attr_nstype.attr,
-@@ -476,6 +485,7 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_namespace_seed.attr,
- 	&dev_attr_init_namespaces.attr,
- 	&dev_attr_nd_badblocks.attr,
-+	&dev_attr_resource.attr,
- 	NULL,
- };
- 
-@@ -495,6 +505,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
- 	if (!is_nd_pmem(dev) && a == &dev_attr_nd_badblocks.attr)
- 		return 0;
- 
-+	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
-+		return 0;
-+
- 	if (a != &dev_attr_set_cookie.attr
- 			&& a != &dev_attr_available_size.attr)
- 		return a->mode;
+On 4/14/2017 7:42 PM, Dan Williams wrote:
+> On Fri, Apr 14, 2017 at 4:31 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>> On 04/14/2017 06:28 PM, Dan Williams wrote:
+>>>
+>>> I have not, but I did send out a new patch that makes sure to shutdown
+>>> the nfit_test trickery before freeing the test objects.  Does this
+>>> patch cleanup any of the failures you are seeing?
+>>>
+>>> https://patchwork.kernel.org/patch/9681861/
+>>>
+>>
+>> I tried it and got similar results.  On my server, once it panicked in rmmod, once it
+>> panicked when disabling the regions.  I got excited on my laptop because it survived
+>> the rmmod, but then panicked a few seconds later.  I also got a panic that might
+>> have been during the modprobe but I can't be sure because I don't get good information
+>> when my laptop crashes.
+>>
+>> I see people posting tests so it's working for some people.  Anyone else
+>> interested in sharing what you're running on and exactly how you're building
+>> and installing your kernel and these modules?
+>>
+>
+> So I reproduced it! ...but only once, and then it went away which is
+> why I thought that fix might have been good. That at least tells us
+> that it is something more fundamental and that even my build
+> environment can hit this sometimes. I think it might be a case where
+> we get false results from get_nfit_res() and that leads to random
+> memory corruption.
+
+I'm so happy to hear that you reproduced it, even once.  I was
+perfectly willing to accept that I was doing something wrong, and still
+might be since it is so reproducible for me, but maybe there's just
+a race that I keep losing. :-)
+
+-- ljk
 
 _______________________________________________
 Linux-nvdimm mailing list
