@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2FC9521951C8D
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:18 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:20:55 -0600
-Message-Id: <1493144468-22493-9-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 08/21] dm-crypt: Make use of the new sg_map helper in 4
- call sites
+ by ml01.01.org (Postfix) with ESMTPS id EB40E2194EB79
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:36 -0700 (PDT)
+Subject: [resend PATCH v2 19/33] dax,
+ pmem: introduce 'copy_from_iter' dax operation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 17 Apr 2017 12:10:32 -0700
+Message-ID: <149245623288.10206.11548740991639475206.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,101 +19,111 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
-Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Mike Snitzer <snitzer@redhat.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, dm-devel@redhat.com, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Very straightforward conversion to the new function in all four spots.
+The direct-I/O write path for a pmem device must ensure that data is
+flushed to a power-fail safe zone when the operation is complete.
+However, other dax capable block devices, like brd, do not have this
+requirement.  Introduce a 'copy_from_iter' dax operation so that pmem
+can inject cache management without imposing this overhead on other dax
+capable block_device drivers.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
+This is also a first step of moving all architecture-specific
+pmem-operations to the pmem driver.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/md/dm-crypt.c | 39 ++++++++++++++++++++++++++-------------
- 1 file changed, 26 insertions(+), 13 deletions(-)
+ drivers/nvdimm/pmem.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dax.h   |    3 +++
+ 2 files changed, 46 insertions(+)
 
-diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
-index 8dbecf1..841f1fc 100644
---- a/drivers/md/dm-crypt.c
-+++ b/drivers/md/dm-crypt.c
-@@ -635,9 +635,12 @@ static int crypt_iv_lmk_gen(struct crypt_config *cc, u8 *iv,
- 
- 	if (bio_data_dir(dmreq->ctx->bio_in) == WRITE) {
- 		sg = crypt_get_sg_data(cc, dmreq->sg_in);
--		src = kmap_atomic(sg_page(sg));
--		r = crypt_iv_lmk_one(cc, iv, dmreq, src + sg->offset);
--		kunmap_atomic(src);
-+		src = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(src))
-+			return PTR_ERR(src);
-+
-+		r = crypt_iv_lmk_one(cc, iv, dmreq, src);
-+		sg_unmap(sg, src, 0, SG_KMAP_ATOMIC);
- 	} else
- 		memset(iv, 0, cc->iv_size);
- 
-@@ -655,14 +658,18 @@ static int crypt_iv_lmk_post(struct crypt_config *cc, u8 *iv,
- 		return 0;
- 
- 	sg = crypt_get_sg_data(cc, dmreq->sg_out);
--	dst = kmap_atomic(sg_page(sg));
--	r = crypt_iv_lmk_one(cc, iv, dmreq, dst + sg->offset);
-+	dst = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst))
-+		return PTR_ERR(dst);
-+
-+	r = crypt_iv_lmk_one(cc, iv, dmreq, dst);
- 
- 	/* Tweak the first block of plaintext sector */
- 	if (!r)
--		crypto_xor(dst + sg->offset, iv, cc->iv_size);
-+		crypto_xor(dst, iv, cc->iv_size);
-+
-+	sg_unmap(sg, dst, 0, SG_KMAP_ATOMIC);
- 
--	kunmap_atomic(dst);
- 	return r;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 3b3dab73d741..e501df4ab4b4 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -220,6 +220,48 @@ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 	return PHYS_PFN(pmem->size - pmem->pfn_pad - offset);
  }
  
-@@ -786,9 +793,12 @@ static int crypt_iv_tcw_gen(struct crypt_config *cc, u8 *iv,
- 	/* Remove whitening from ciphertext */
- 	if (bio_data_dir(dmreq->ctx->bio_in) != WRITE) {
- 		sg = crypt_get_sg_data(cc, dmreq->sg_in);
--		src = kmap_atomic(sg_page(sg));
--		r = crypt_iv_tcw_whitening(cc, dmreq, src + sg->offset);
--		kunmap_atomic(src);
-+		src = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(src))
-+			return PTR_ERR(src);
++static size_t pmem_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	size_t len;
 +
-+		r = crypt_iv_tcw_whitening(cc, dmreq, src);
-+		sg_unmap(sg, src, 0, SG_KMAP_ATOMIC);
- 	}
- 
- 	/* Calculate IV */
-@@ -812,9 +822,12 @@ static int crypt_iv_tcw_post(struct crypt_config *cc, u8 *iv,
- 
- 	/* Apply whitening on ciphertext */
- 	sg = crypt_get_sg_data(cc, dmreq->sg_out);
--	dst = kmap_atomic(sg_page(sg));
--	r = crypt_iv_tcw_whitening(cc, dmreq, dst + sg->offset);
--	kunmap_atomic(dst);
-+	dst = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst))
-+		return PTR_ERR(dst);
++	/* TODO: skip the write-back by always using non-temporal stores */
++	len = copy_from_iter_nocache(addr, bytes, i);
 +
-+	r = crypt_iv_tcw_whitening(cc, dmreq, dst);
-+	sg_unmap(sg, dst, 0, SG_KMAP_ATOMIC);
++	/*
++	 * In the iovec case on x86_64 copy_from_iter_nocache() uses
++	 * non-temporal stores for the bulk of the transfer, but we need
++	 * to manually flush if the transfer is unaligned. A cached
++	 * memory copy is used when destination or size is not naturally
++	 * aligned. That is:
++	 *   - Require 8-byte alignment when size is 8 bytes or larger.
++	 *   - Require 4-byte alignment when size is 4 bytes.
++	 *
++	 * In the non-iovec case the entire destination needs to be
++	 * flushed.
++	 */
++	if (iter_is_iovec(i)) {
++		unsigned long flushed, dest = (unsigned long) addr;
++
++		if (bytes < 8) {
++			if (!IS_ALIGNED(dest, 4) || (bytes != 4))
++				wb_cache_pmem(addr, 1);
++		} else {
++			if (!IS_ALIGNED(dest, 8)) {
++				dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
++				wb_cache_pmem(addr, 1);
++			}
++
++			flushed = dest - (unsigned long) addr;
++			if (bytes > flushed && !IS_ALIGNED(bytes - flushed, 8))
++				wb_cache_pmem(addr + bytes - 1, 1);
++		}
++	} else
++		wb_cache_pmem(addr, bytes);
++
++	return len;
++}
++
+ static const struct block_device_operations pmem_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.rw_page =		pmem_rw_page,
+@@ -236,6 +278,7 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
  
- 	return r;
- }
--- 
-2.1.4
+ static const struct dax_operations pmem_dax_ops = {
+ 	.direct_access = pmem_dax_direct_access,
++	.copy_from_iter = pmem_copy_from_iter,
+ };
+ 
+ static void pmem_release_queue(void *q)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index d3158e74a59e..156f067d4db5 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -16,6 +16,9 @@ struct dax_operations {
+ 	 */
+ 	long (*direct_access)(struct dax_device *, pgoff_t, long,
+ 			void **, pfn_t *);
++	/* copy_from_iter: dax-driver override for default copy_from_iter */
++	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
++			struct iov_iter *);
+ };
+ 
+ int dax_read_lock(void);
 
 _______________________________________________
 Linux-nvdimm mailing list
