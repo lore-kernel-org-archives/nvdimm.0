@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B21B4219392FA
- for <linux-nvdimm@lists.01.org>; Tue,  4 Apr 2017 14:32:19 -0700 (PDT)
-Subject: [PATCH v2] libnvdimm: fix blk free space accounting
+ by ml01.01.org (Postfix) with ESMTPS id A930921939239
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:11 -0700 (PDT)
+Subject: [resend PATCH v2 07/33] brd: add dax_operations support
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 04 Apr 2017 14:27:09 -0700
-Message-ID: <149134122950.34285.9937231819628960636.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 17 Apr 2017 12:09:27 -0700
+Message-ID: <149245616744.10206.871365891826305046.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,166 +23,169 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Dariusz Dokupil <dariusz.dokupil@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit a1f3e4d6a0c3 "libnvdimm, region: update nd_region_available_dpa()
-for multi-pmem support" reworked blk dpa (DIMM Physical Address)
-accounting to comprehend multiple pmem namespace allocations aliasing
-with a given blk-dpa range.
+Setup a dax_inode to have the same lifetime as the brd block device and
+add a ->direct_access() method that is equivalent to
+brd_direct_access(). Once fs/dax.c has been converted to use
+dax_operations the old brd_direct_access() will be removed.
 
-The following call trace is a result of failing to account for allocated
-blk capacity.
-
- WARNING: CPU: 1 PID: 2433 at tools/testing/nvdimm/../../../drivers/nvdimm/names
-4 size_store+0x6f3/0x930 [libnvdimm]
- nd_region region5: allocation underrun: 0x0 of 0x1000000 bytes
- [..]
- Call Trace:
-  dump_stack+0x86/0xc3
-  __warn+0xcb/0xf0
-  warn_slowpath_fmt+0x5f/0x80
-  size_store+0x6f3/0x930 [libnvdimm]
-  dev_attr_store+0x18/0x30
-
-If a given blk-dpa allocation does not alias with any pmem ranges then
-the full allocation should be accounted as busy space, not the size of
-the current pmem contribution to the region.
-
-The thinkos that led to this confusion was not realizing that the struct
-resource management is already guaranteeing no collisions between pmem
-allocations and blk allocations on the same dimm. Also, we do not try to
-support blk allocations in aliased pmem holes.
-
-Cc: <stable@vger.kernel.org>
-Fixes: a1f3e4d6a0c3 ("libnvdimm, region: update nd_region_available_dpa() for multi-pmem support").
-Reported-by: Dariusz Dokupil <dariusz.dokupil@intel.com>
-Reported-by: Dave Jiang <dave.jiang@intel.com>
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Tested-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/dimm_devs.c |   77 ++++++--------------------------------------
- 1 file changed, 11 insertions(+), 66 deletions(-)
+ drivers/block/Kconfig |    1 +
+ drivers/block/brd.c   |   65 +++++++++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 55 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 0eedc49e0d47..8b721321be5b 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -395,7 +395,7 @@ EXPORT_SYMBOL_GPL(nvdimm_create);
+diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
+index f744de7a0f9b..e66956fc2c88 100644
+--- a/drivers/block/Kconfig
++++ b/drivers/block/Kconfig
+@@ -339,6 +339,7 @@ config BLK_DEV_SX8
  
- int alias_dpa_busy(struct device *dev, void *data)
- {
--	resource_size_t map_end, blk_start, new, busy;
-+	resource_size_t map_end, blk_start, new;
- 	struct blk_alloc_info *info = data;
- 	struct nd_mapping *nd_mapping;
- 	struct nd_region *nd_region;
-@@ -436,29 +436,19 @@ int alias_dpa_busy(struct device *dev, void *data)
-  retry:
+ config BLK_DEV_RAM
+ 	tristate "RAM block device support"
++	select DAX if BLK_DEV_RAM_DAX
+ 	---help---
+ 	  Saying Y here will allow you to use a portion of your RAM memory as
+ 	  a block device, so that you can make file systems on it, read and
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 3adc32a3153b..60f3193c9ce2 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -21,6 +21,7 @@
+ #include <linux/slab.h>
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ #include <linux/pfn_t.h>
++#include <linux/dax.h>
+ #endif
+ 
+ #include <linux/uaccess.h>
+@@ -41,6 +42,9 @@ struct brd_device {
+ 
+ 	struct request_queue	*brd_queue;
+ 	struct gendisk		*brd_disk;
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	struct dax_device	*dax_dev;
++#endif
+ 	struct list_head	brd_list;
+ 
  	/*
- 	 * Find the free dpa from the end of the last pmem allocation to
--	 * the end of the interleave-set mapping that is not already
--	 * covered by a blk allocation.
-+	 * the end of the interleave-set mapping.
- 	 */
--	busy = 0;
- 	for_each_dpa_resource(ndd, res) {
-+		if (strncmp(res->name, "pmem", 4) != 0)
-+			continue;
- 		if ((res->start >= blk_start && res->start < map_end)
- 				|| (res->end >= blk_start
- 					&& res->end <= map_end)) {
--			if (strncmp(res->name, "pmem", 4) == 0) {
--				new = max(blk_start, min(map_end + 1,
--							res->end + 1));
--				if (new != blk_start) {
--					blk_start = new;
--					goto retry;
--				}
--			} else
--				busy += min(map_end, res->end)
--					- max(nd_mapping->start, res->start) + 1;
--		} else if (nd_mapping->start > res->start
--				&& map_end < res->end) {
--			/* total eclipse of the PMEM region mapping */
--			busy += nd_mapping->size;
--			break;
-+			new = max(blk_start, min(map_end + 1, res->end + 1));
-+			if (new != blk_start) {
-+				blk_start = new;
-+				goto retry;
-+			}
- 		}
- 	}
- 
-@@ -470,52 +460,11 @@ int alias_dpa_busy(struct device *dev, void *data)
- 		return 1;
- 	}
- 
--	info->available -= blk_start - nd_mapping->start + busy;
-+	info->available -= blk_start - nd_mapping->start;
- 
- 	return 0;
+@@ -375,30 +379,53 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
  }
  
--static int blk_dpa_busy(struct device *dev, void *data)
--{
--	struct blk_alloc_info *info = data;
--	struct nd_mapping *nd_mapping;
--	struct nd_region *nd_region;
--	resource_size_t map_end;
--	int i;
--
--	if (!is_nd_pmem(dev))
--		return 0;
--
--	nd_region = to_nd_region(dev);
--	for (i = 0; i < nd_region->ndr_mappings; i++) {
--		nd_mapping  = &nd_region->mapping[i];
--		if (nd_mapping->nvdimm == info->nd_mapping->nvdimm)
--			break;
--	}
--
--	if (i >= nd_region->ndr_mappings)
--		return 0;
--
--	map_end = nd_mapping->start + nd_mapping->size - 1;
--	if (info->res->start >= nd_mapping->start
--			&& info->res->start < map_end) {
--		if (info->res->end <= map_end) {
--			info->busy = 0;
--			return 1;
--		} else {
--			info->busy -= info->res->end - map_end;
--			return 0;
--		}
--	} else if (info->res->end >= nd_mapping->start
--			&& info->res->end <= map_end) {
--		info->busy -= nd_mapping->start - info->res->start;
--		return 0;
--	} else {
--		info->busy -= nd_mapping->size;
--		return 0;
--	}
--}
--
- /**
-  * nd_blk_available_dpa - account the unused dpa of BLK region
-  * @nd_mapping: container of dpa-resource-root + labels
-@@ -545,11 +494,7 @@ resource_size_t nd_blk_available_dpa(struct nd_region *nd_region)
- 	for_each_dpa_resource(ndd, res) {
- 		if (strncmp(res->name, "blk", 3) != 0)
- 			continue;
--
--		info.res = res;
--		info.busy = resource_size(res);
--		device_for_each_child(&nvdimm_bus->dev, &info, blk_dpa_busy);
--		info.available -= info.busy;
-+		info.available -= resource_size(res);
- 	}
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+-static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void **kaddr, pfn_t *pfn, long size)
++static long __brd_direct_access(struct brd_device *brd, pgoff_t pgoff,
++		long nr_pages, void **kaddr, pfn_t *pfn)
+ {
+-	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
  
- 	return info.available;
+ 	if (!brd)
+ 		return -ENODEV;
+-	page = brd_insert_page(brd, sector);
++	page = brd_insert_page(brd, PFN_PHYS(pgoff) / 512);
+ 	if (!page)
+ 		return -ENOSPC;
+ 	*kaddr = page_address(page);
+ 	*pfn = page_to_pfn_t(page);
+ 
+-	return PAGE_SIZE;
++	return 1;
++}
++
++static long brd_blk_direct_access(struct block_device *bdev, sector_t sector,
++			void **kaddr, pfn_t *pfn, long size)
++{
++	struct brd_device *brd = bdev->bd_disk->private_data;
++	long nr_pages = __brd_direct_access(brd, PHYS_PFN(sector * 512),
++			PHYS_PFN(size), kaddr, pfn);
++
++	if (nr_pages < 0)
++		return nr_pages;
++	return nr_pages * PAGE_SIZE;
++}
++
++static long brd_dax_direct_access(struct dax_device *dax_dev,
++		pgoff_t pgoff, long nr_pages, void **kaddr, pfn_t *pfn)
++{
++	struct brd_device *brd = dax_get_private(dax_dev);
++
++	return __brd_direct_access(brd, pgoff, nr_pages, kaddr, pfn);
+ }
++
++static const struct dax_operations brd_dax_ops = {
++	.direct_access = brd_dax_direct_access,
++};
+ #else
+-#define brd_direct_access NULL
++#define brd_blk_direct_access NULL
+ #endif
+ 
+ static const struct block_device_operations brd_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.rw_page =		brd_rw_page,
+-	.direct_access =	brd_direct_access,
++	.direct_access =	brd_blk_direct_access,
+ };
+ 
+ /*
+@@ -441,7 +468,9 @@ static struct brd_device *brd_alloc(int i)
+ {
+ 	struct brd_device *brd;
+ 	struct gendisk *disk;
+-
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	struct dax_device *dax_dev;
++#endif
+ 	brd = kzalloc(sizeof(*brd), GFP_KERNEL);
+ 	if (!brd)
+ 		goto out;
+@@ -469,9 +498,6 @@ static struct brd_device *brd_alloc(int i)
+ 	blk_queue_max_discard_sectors(brd->brd_queue, UINT_MAX);
+ 	brd->brd_queue->limits.discard_zeroes_data = 1;
+ 	queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, brd->brd_queue);
+-#ifdef CONFIG_BLK_DEV_RAM_DAX
+-	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
+-#endif
+ 	disk = brd->brd_disk = alloc_disk(max_part);
+ 	if (!disk)
+ 		goto out_free_queue;
+@@ -484,8 +510,21 @@ static struct brd_device *brd_alloc(int i)
+ 	sprintf(disk->disk_name, "ram%d", i);
+ 	set_capacity(disk, rd_size * 2);
+ 
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
++	dax_dev = alloc_dax(brd, disk->disk_name, &brd_dax_ops);
++	if (!dax_dev)
++		goto out_free_inode;
++#endif
++
++
+ 	return brd;
+ 
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++out_free_inode:
++	kill_dax(dax_dev);
++	put_dax(dax_dev);
++#endif
+ out_free_queue:
+ 	blk_cleanup_queue(brd->brd_queue);
+ out_free_dev:
+@@ -525,6 +564,10 @@ static struct brd_device *brd_init_one(int i, bool *new)
+ static void brd_del_one(struct brd_device *brd)
+ {
+ 	list_del(&brd->brd_list);
++#ifdef CONFIG_BLK_DEV_RAM_DAX
++	kill_dax(brd->dax_dev);
++	put_dax(brd->dax_dev);
++#endif
+ 	del_gendisk(brd->brd_disk);
+ 	brd_free(brd);
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
