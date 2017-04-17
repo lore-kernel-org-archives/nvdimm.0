@@ -1,7 +1,7 @@
-From: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Mon, 17 Apr 2017 14:04:23 -0400
-Message-ID: <20170417180421.GA6015@redhat.com>
+Date: Tue, 18 Apr 2017 07:11:37 +1000
+Message-ID: <1492463497.25766.55.camel@kernel.crashing.org>
 References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
  <6e732d6a-9baf-1768-3e9c-f6c887a836b2@deltatee.com>
  <1492381958.25766.50.camel@kernel.crashing.org>
@@ -9,10 +9,9 @@ References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
  <1492413640.25766.52.camel@kernel.crashing.org>
  <ac643c73-43e9-1658-ffcb-d5628f80cbc1@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <ac643c73-43e9-1658-ffcb-d5628f80cbc1-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -23,177 +22,157 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Apr 17, 2017 at 10:52:29AM -0600, Logan Gunthorpe wrote:
-> =
-
-> =
-
-> On 17/04/17 01:20 AM, Benjamin Herrenschmidt wrote:
-> > But is it ? For example take a GPU, does it, in your scheme, need an
-> > additional "p2pmem" child ? Why can't the GPU driver just use some
-> > helper to instantiate the necessary struct pages ? What does having an
-> > actual "struct device" child buys you ?
-> =
-
-> Yes, in this scheme, it needs an additional p2pmem child. Why is that an
-> issue? It certainly makes it a lot easier for the user to understand the
-> p2pmem memory in the system (through the sysfs tree) and reason about
-> the topology and when to use it. This is important.
-
-I disagree here. I would rather see Peer-to-Peer mapping as a form
-of helper so that device driver can opt-in for multiple mecanisms
-concurrently. Like HMM and p2p.
-
-Also it seems you are having a static vision for p2p. For GPU and
-network the use case is you move some buffer into the device memory
-and then you create mapping for some network adapter while the buffer
-is in device memory. But this is only temporary and buffer might
-move to different device memory. So usecase is highly dynamic (well
-mapping lifetime is still probably few second/minutes).
-
-I see no reason for exposing sysfs tree to userspace for all this.
-This isn't too dynamic, either 2 devices can access each others
-memory, either they can't. This can be hidden through the device
-kernel API. Again for GPU the idea is that it is always do-able
-in the sense that when it is not you fallback to using system
-memory.
-
-
-> >> 2) In order to create the struct pages we use the ZONE_DEVICE
-> >> infrastructure which requires a struct device. (See
-> >> devm_memremap_pages.)
-> > =
-
-> > Yup, but you already have one in the actual pci_dev ... What is the
-> > benefit of adding a second one ?
-> =
-
-> But that would tie all of this very tightly to be pci only and may get
-> hard to differentiate if more users of ZONE_DEVICE crop up who happen to
-> be using a pci device. Having a specific class for this makes it very
-> clear how this memory would be handled. For example, although I haven't
-> looked into it, this could very well be a point of conflict with HMM. If
-> they were to use the pci device to populate the dev_pagemap then we
-> couldn't also use the pci device. I feel it's much better for users of
-> dev_pagemap to have their struct devices they own to avoid such conflicts.
-
-Yes this could conflict and that's why i would rather see this as a set
-of helper like HMM is doing. So device driver can opt-in HMM and p2pmem
-at the same time.
-
-
-> >>  This amazingly gets us the get_dev_pagemap
-> >> architecture which also uses a struct device. So by using a p2pmem
-> >> device we can go from struct page to struct device to p2pmem device
-> >> quickly and effortlessly.
-> > =
-
-> > Which isn't terribly useful in itself right ? What you care about is
-> > the "enclosing" pci_dev no ? Or am I missing something ?
-> =
-
-> Sure it is. What if we want to someday support p2pmem that's on another b=
-us?
-> =
-
-> >> 3) You wouldn't want to use the pci's struct device because it doesn't
-> >> really describe what's going on. For example, there may be multiple
-> >> devices on the pci device in question: eg. an NVME card and some p2pme=
-m.
-> > =
-
-> > What is "some p2pmem" ?
-> >> Or it could be a NIC with some p2pmem.
-> > =
-
-> > Again what is "some p2pmem" ?
-> =
-
-> Some device local memory intended for use as a DMA target from a
-> neighbour device or itself. On a PCI device, this would be a BAR, or a
-> portion of a BAR with memory behind it.
-> =
-
-> Keep in mind device classes tend to carve out common use cases and don't
-> have a one to one mapping with a physical pci card.
-> =
-
-> > That a device might have some memory-like buffer space is all well and
-> > good but does it need to be specifically distinguished at the device
-> > level ? It could be inherent to what the device is... for example again
-> > take the GPU example, why would you call the FB memory "p2pmem" ? =
-
-> =
-
-> Well if you are using it for p2p transactions why wouldn't you call it
-> p2pmem? There's no technical downside here except some vague argument
-> over naming. Once registered as p2pmem, that device will handle all the
-> dma map stuff for you and have a central obvious place to put code which
-> helps decide whether to use it or not based on topology.
-> =
-
-> I can certainly see an issue you'd have with the current RFC in that the
-> p2pmem device currently also handles memory allocation which a GPU would
->  want to do itself. There are plenty of solutions to this though: we
-> could provide hooks for the parent device to override allocation or
-> something like that. However, the use cases I'm concerned with don't do
-> their own allocation so that is an important feature for them.
-
-This seems to duplicate things that already exist in each individual
-driver. If a device has memory than device driver already have some
-form of memory management and most likely expose some API to userspace
-to allow program to use that memory.
-
-Peer to peer DMA mapping is orthogonal to memory management, it is
-an optimization ie you have some buffer allocated through some device
-driver specific IOCTL and now you want some other device to directly
-access it. Having to first do another allocation in a different device
-driver for that to happen seems overkill.
-
-What you really want from device driver point of view is an helper to
-first tell you if 2 device can access each other and second an helper
-that allow the second device to import the other device memory to allow
-direct access.
-
-
-> > Again I'm not sure why it needs to "instanciate a p2pmem" device. Maybe
-> > it's the term "p2pmem" that offputs me. If p2pmem allowed to have a
-> > standard way to lookup the various offsets etc... I mentioned earlier,
-> > then yes, it would make sense to have it as a staging point. As-is, I
-> > don't know. =
-
-> =
-
-> Well of course, at some point it would have a standard way to lookup
-> offsets and figure out what's necessary for a mapping. We wouldn't make
-> that separate from this, that would make no sense.
-> =
-
-> I also forgot:
-> =
-
-> 4) We need someway in the kernel to configure drivers that use p2pmem.
-> That means it needs a unique name that the user can understand, lookup
-> and pass to other drivers. Then a way for those drivers to find it in
-> the system. A specific device class gets that for us in a very simple
-> fashion. We also don't want to have drivers like nvmet having to walk
-> every pci device to figure out where the p2p memory is and whether it
-> can use it.
-> =
-
-> IMO there are many clear benefits here and you haven't really offered an
-> alternative that provides the same features and potential for future use
-> cases.
-
-Discovering possible peer is a onetime only thing and designing around
-that is wrong in my view. There is already existing hierarchy in kernel
-for that in the form of the bus hierarchy (i am thinking pci bus here).
-So there is already existing way to discover this and you are just
-duplicating informations here.
-
-Cheers,
-J=E9r=F4me
+T24gTW9uLCAyMDE3LTA0LTE3IGF0IDEwOjUyIC0wNjAwLCBMb2dhbiBHdW50aG9ycGUgd3JvdGU6
+Cj4gCj4gT24gMTcvMDQvMTcgMDE6MjAgQU0sIEJlbmphbWluIEhlcnJlbnNjaG1pZHQgd3JvdGU6
+Cj4gPiBCdXQgaXMgaXQgPyBGb3IgZXhhbXBsZSB0YWtlIGEgR1BVLCBkb2VzIGl0LCBpbiB5b3Vy
+IHNjaGVtZSwgbmVlZCBhbgo+ID4gYWRkaXRpb25hbCAicDJwbWVtIiBjaGlsZCA/IFdoeSBjYW4n
+dCB0aGUgR1BVIGRyaXZlciBqdXN0IHVzZSBzb21lCj4gPiBoZWxwZXIgdG8gaW5zdGFudGlhdGUg
+dGhlIG5lY2Vzc2FyeSBzdHJ1Y3QgcGFnZXMgPyBXaGF0IGRvZXMgaGF2aW5nIGFuCj4gPiBhY3R1
+YWwgInN0cnVjdCBkZXZpY2UiIGNoaWxkIGJ1eXMgeW91ID8KPiAKPiBZZXMsIGluIHRoaXMgc2No
+ZW1lLCBpdCBuZWVkcyBhbiBhZGRpdGlvbmFsIHAycG1lbSBjaGlsZC4gV2h5IGlzIHRoYXQgYW4K
+PiBpc3N1ZT8gSXQgY2VydGFpbmx5IG1ha2VzIGl0IGEgbG90IGVhc2llciBmb3IgdGhlIHVzZXIg
+dG8gdW5kZXJzdGFuZCB0aGUKPiBwMnBtZW0gbWVtb3J5IGluIHRoZSBzeXN0ZW0gKHRocm91Z2gg
+dGhlIHN5c2ZzIHRyZWUpIGFuZCByZWFzb24gYWJvdXQKPiB0aGUgdG9wb2xvZ3kgYW5kIHdoZW4g
+dG8gdXNlIGl0LiBUaGlzIGlzIGltcG9ydGFudC4KCklzIGl0ID8gQWdhaW4sIHlvdSBjcmVhdGUg
+YSAiY29uY2VwdCIgdGhlIHVzZXIgbWF5IGhhdmUgbm8gaWRlYSBhYm91dCwKInAycG1lbSBtZW1v
+cnkiLiBTbyBub3cgYW55IGtpbmQgb2YgbWVtb3J5IGJ1ZmZlciBvbiBhIGRldmljZSBjYW4gY291
+bGQKYmUgdXNlIGZvciBwMnAgYnV0IGFsc28gcG90ZW50aWFsbHkgYSBidW5jaCBvZiBvdGhlciB0
+aGluZ3MgYmVjb21lcwpzcGVjaWFsIGFuZCBjYWxsZWQgInAycG1lbSIgLi4uCgo+ID4gPiAyKSBJ
+biBvcmRlciB0byBjcmVhdGUgdGhlIHN0cnVjdCBwYWdlcyB3ZSB1c2UgdGhlIFpPTkVfREVWSUNF
+Cj4gPiA+IGluZnJhc3RydWN0dXJlIHdoaWNoIHJlcXVpcmVzIGEgc3RydWN0IGRldmljZS4gKFNl
+ZQo+ID4gPiBkZXZtX21lbXJlbWFwX3BhZ2VzLikKPiA+IAo+ID4gWXVwLCBidXQgeW91IGFscmVh
+ZHkgaGF2ZSBvbmUgaW4gdGhlIGFjdHVhbCBwY2lfZGV2IC4uLiBXaGF0IGlzIHRoZQo+ID4gYmVu
+ZWZpdCBvZiBhZGRpbmcgYSBzZWNvbmQgb25lID8KPiAKPiBCdXQgdGhhdCB3b3VsZCB0aWUgYWxs
+IG9mIHRoaXMgdmVyeSB0aWdodGx5IHRvIGJlIHBjaSBvbmx5IGFuZCBtYXkgZ2V0Cj4gaGFyZCB0
+byBkaWZmZXJlbnRpYXRlIGlmIG1vcmUgdXNlcnMgb2YgWk9ORV9ERVZJQ0UgY3JvcCB1cCB3aG8g
+aGFwcGVuIHRvCj4gYmUgdXNpbmcgYSBwY2kgZGV2aWNlLgoKQnV0IHdoYXQgZG8geW91IGhhdmUg
+aW4gcDJwbWVtIHRoYXQgc29tZWJvZHkgYmVuZWZpdHMgZnJvbS4gQWdhaW4gSQpkb24ndCB1bmRl
+cnN0YW5kIHdoYXQgdGhhdCAicDJwbWVtIiBkZXZpY2UgYnV5cyB5b3UgaW4gdGVybSBvZgpmdW5j
+dGlvbmFsaXR5IHZzLiBoYXZpbmcgdGhlIGRldmljZSBqdXN0IGluc3RhbmNpYXRlIHRoZSBwYWdl
+cy4KCk5vdyBoYXZpbmcgc29tZSBraW5kIG9mIHdheSB0byBvdmVycmlkZSB0aGUgZG1hX29wcywg
+eWVzIEkgZG8gZ2V0IHRoYXQsCmFuZCBpdCBjb3VsZCBiZSB0aGF0IHRoaXMgInAycG1lbSIgaXMg
+dHlwaWNhbGx5IHRoZSB3YXkgdG8gZG8gaXQsIGJ1dAphdCB0aGUgbW9tZW50IHlvdSBkb24ndCBl
+dmVuIGhhdmUgdGhhdC4gU28gSSdtIGEgYml0IGF0IGEgbG9zcyBoZXJlLgogCj4gIEhhdmluZyBh
+IHNwZWNpZmljIGNsYXNzIGZvciB0aGlzIG1ha2VzIGl0IHZlcnkKPiBjbGVhciBob3cgdGhpcyBt
+ZW1vcnkgd291bGQgYmUgaGFuZGxlZC4KCkJ1dCBpdCBkb2Vzbid0ICpoYXZlKiB0byBiZS4gQWdh
+aW4sIHRha2UgbXkgR1BVIGV4YW1wbGUuIFRoZSBmYWN0IHRoYXQKYSBOSUMgbWlnaHQgYmUgYWJs
+ZSB0byBETUEgaW50byBpdCBkb2Vzbid0IG1ha2UgaXQgc3BlY2lmaWNhbGx5ICJwMnAKbWVtb3J5
+Ii4KCkVzc2VudGlhbGx5IHlvdSBhcmUgc2F5aW5nIHRoYXQgYW55IGRldmljZSB0aGF0IGhhcHBl
+bnMgdG8gaGF2ZSBhIHBpZWNlCm9mIG1hcHBhYmxlICJtZW1vcnkiIChvciBzb21ldGhpbmcgdGhh
+dCBiZWhhdmVzIGxpa2UgaXQpIGFuZCBjYW4gYmUKRE1BJ2VkIGludG8gc2hvdWxkIG5vdyBoYXZl
+IHRoYXQgInAycG1lbSIgdGhpbmcgYXR0YWNoZWQgdG8gaXQuCgpOb3cgdGFrZSBhbiBleGFtcGxl
+IHdoZXJlIHRoYXQgYmVjb21lcyByZWFsbHkgYXdrd2FyZCAoaXQncyBhbHNvIGEgcmVhbApleGFt
+cGxlIG9mIHNvbWV0aGluZyBwZW9wbGUgd2FudCB0byBkbykuIEkgaGF2ZSBhIE5JQyBhbmQgYSBH
+UFUsIHRoZQpOSUMgRE1BJ3MgZGF0YSB0by9mcm9tIHRoZSBHUFUsIGJ1dCB0aGV5IGFsc28gd2Fu
+dCB0byBwb2tlIGF0IGVhY2gKb3RoZXIgZG9vcmJlbGwsIHRoZSBHUFUgdG8ga2ljayB0aGUgTklD
+IGludG8gYWN0aW9uIHdoZW4gZGF0YSBpcyByZWFkeQp0byBzZW5kLCB0aGUgTklDIHRvIHBva2Ug
+dGhlIEdQVSB3aGVuIGRhdGEgaGFzIGJlZW4gcmVjZWl2ZWQuCgpUaG9zZSBkb29yYmVsbHMgYXJl
+IE1NSU8gcmVnaXN0ZXJzLgoKU28gbm93IHlvdXIgInAycG1lbSIgZGV2aWNlIG5lZWRzIHRvIGFs
+c28gYmUgbGFpZCBvdXQgb24gdG9wIG9mIHRob3NlCk1NSU8gcmVnaXN0ZXJzID8gSXQncyBiZWNv
+bWluZyB3ZWlyZC4KClNlZSwgYmFzaWNhbGx5LCBkb2luZyBwZWVyIDIgcGVlciBiZXR3ZWVuIGRl
+dmljZXMgaGFzIDMgbWFpbiBjaGFsbGVuZ2VzCnRvZGF5OiBUaGUgRE1BIEFQSSBuZWVkaW5nIHN0
+cnVjdCBwYWdlcywgdGhlIE1NSU8gdHJhbnNsYXRpb24gaXNzdWVzCmFuZCB0aGUgSU9NTVUgdHJh
+bnNsYXRpb24gaXNzdWVzLgoKWW91IHNlZW0gdG8gY3JlYXRlIHRoYXQgYWRkZWQgZGV2aWNlIGFz
+IHNvbWUga2luZCBvZiAib3duZXIiIGZvciB0aGUKc3RydWN0IHBhZ2VzLCBzb2x2aW5nICMxLCBi
+dXQgbGVhdmUgIzIgYW5kICMzIGFsb25lLgoKTm93LCBhcyBJIHNhaWQsIGl0IGNvdWxkIHZlcnkg
+d2VsbCBiZSB0aGF0IGhhdmluZyB0aGUgZGV2bWFwIHBvaW50ZXIKcG9pbnQgdG8gc29tZSBzcGVj
+aWZpYyBkZXZpY2UtdHlwZSB3aXRoIGEgd2VsbCBrbm93biBzdHJ1Y3R1cmUgdG8KcHJvdmlkZSBz
+b2x1dGlvbnMgZm9yICMyIGFuZCAjMyBzdWNoIGFzIGRtYV9vcHMgb3ZlcnJpZGVzLCBpcyBpbmRl
+ZWQKdGhlIHJpZ2h0IHdheSB0byBzb2x2ZSB0aGVzZSBwcm9ibGVtcy4KCklmIHdlIGdvIGRvd24g
+dGhhdCBwYXRoLCB0aG91Z2gsIHJhdGhlciB0aGFuIGNhbGxpbmcgaXQgcDJwbWVtIEkgd291bGQK
+Y2FsbCBpdCBzb21ldGhpbmcgbGlrZSBkbWFfdGFyZ2V0IHdoaWNoIEkgZmluZCBtdWNoIGNsZWFy
+ZXIgZXNwZWNpYWxseQpzaW5jZSBpdCBkb2Vzbid0IGhhdmUgdG8gYmUganVzdCBtZW1vcnkuCgpG
+b3IgdGhlIHNvbGUgY2FzZSBvZiBjcmVhdGluZyBzdHJ1Y3QgcGFnZSdzIGhvd2V2ZXIsIEkgZmFp
+bCB0byBzZWUgdGhlCnBvaW50LgoKPiAgRm9yIGV4YW1wbGUsIGFsdGhvdWdoIEkgaGF2ZW4ndAo+
+IGxvb2tlZCBpbnRvIGl0LCB0aGlzIGNvdWxkIHZlcnkgd2VsbCBiZSBhIHBvaW50IG9mIGNvbmZs
+aWN0IHdpdGggSE1NLiBJZgo+IHRoZXkgd2VyZSB0byB1c2UgdGhlIHBjaSBkZXZpY2UgdG8gcG9w
+dWxhdGUgdGhlIGRldl9wYWdlbWFwIHRoZW4gd2UKPiBjb3VsZG4ndCBhbHNvIHVzZSB0aGUgcGNp
+IGRldmljZS4gSSBmZWVsIGl0J3MgbXVjaCBiZXR0ZXIgZm9yIHVzZXJzIG9mCj4gZGV2X3BhZ2Vt
+YXAgdG8gaGF2ZSB0aGVpciBzdHJ1Y3QgZGV2aWNlcyB0aGV5IG93biB0byBhdm9pZCBzdWNoIGNv
+bmZsaWN0cy4KCklmIHdlIGFyZSBnb2luZyB0byBjcmVhdGUgc29tZSBzb3J0IG9mIHN0cnVjdCBk
+bWFfdGFyZ2V0LCBITU0gY291bGQKcG90ZW50aWFsbHkganVzdCBsb29rIGZvciB0aGUgcGFyZW50
+IGlmIGl0IG5lZWRzIHRoZSBQQ0kgZGV2aWNlLgoKPiA+ID4gwqBUaGlzIGFtYXppbmdseSBnZXRz
+IHVzIHRoZSBnZXRfZGV2X3BhZ2VtYXAKPiA+ID4gYXJjaGl0ZWN0dXJlIHdoaWNoIGFsc28gdXNl
+cyBhIHN0cnVjdCBkZXZpY2UuIFNvIGJ5IHVzaW5nIGEgcDJwbWVtCj4gPiA+IGRldmljZSB3ZSBj
+YW4gZ28gZnJvbSBzdHJ1Y3QgcGFnZSB0byBzdHJ1Y3QgZGV2aWNlIHRvIHAycG1lbSBkZXZpY2UK
+PiA+ID4gcXVpY2tseSBhbmQgZWZmb3J0bGVzc2x5Lgo+ID4gCj4gPiBXaGljaCBpc24ndCB0ZXJy
+aWJseSB1c2VmdWwgaW4gaXRzZWxmIHJpZ2h0ID8gV2hhdCB5b3UgY2FyZSBhYm91dCBpcwo+ID4g
+dGhlICJlbmNsb3NpbmciIHBjaV9kZXYgbm8gPyBPciBhbSBJIG1pc3Npbmcgc29tZXRoaW5nID8K
+PiAKPiBTdXJlIGl0IGlzLiBXaGF0IGlmIHdlIHdhbnQgdG8gc29tZWRheSBzdXBwb3J0IHAycG1l
+bSB0aGF0J3Mgb24gYW5vdGhlciBidXM/CgpCdXQgd2h5IG5vdCBkaXJlY3RseSB1c2UgdGhhdCBv
+dGhlciBidXMnIGRldmljZSBpbiB0aGF0IGNhc2UgPwoKPiA+ID4gMykgWW91IHdvdWxkbid0IHdh
+bnQgdG8gdXNlIHRoZSBwY2kncyBzdHJ1Y3QgZGV2aWNlIGJlY2F1c2UgaXQgZG9lc24ndAo+ID4g
+PiByZWFsbHkgZGVzY3JpYmUgd2hhdCdzIGdvaW5nIG9uLiBGb3IgZXhhbXBsZSwgdGhlcmUgbWF5
+IGJlIG11bHRpcGxlCj4gPiA+IGRldmljZXMgb24gdGhlIHBjaSBkZXZpY2UgaW4gcXVlc3Rpb246
+IGVnLiBhbiBOVk1FIGNhcmQgYW5kIHNvbWUgcDJwbWVtLgo+ID4gCj4gPiBXaGF0IGlzICJzb21l
+IHAycG1lbSIgPwo+ID4gPiBPciBpdCBjb3VsZCBiZSBhIE5JQyB3aXRoIHNvbWUgcDJwbWVtLgo+
+ID4gCj4gPiBBZ2FpbiB3aGF0IGlzICJzb21lIHAycG1lbSIgPwo+IAo+IFNvbWUgZGV2aWNlIGxv
+Y2FsIG1lbW9yeSBpbnRlbmRlZCBmb3IgdXNlIGFzIGEgRE1BIHRhcmdldCBmcm9tIGEKPiBuZWln
+aGJvdXIgZGV2aWNlIG9yIGl0c2VsZi4gT24gYSBQQ0kgZGV2aWNlLCB0aGlzIHdvdWxkIGJlIGEg
+QkFSLCBvciBhCj4gcG9ydGlvbiBvZiBhIEJBUiB3aXRoIG1lbW9yeSBiZWhpbmQgaXQuCgpTbyBi
+YWNrIHRvIG15IGJhc2Ugb2JqZWN0aW9uczoKCiAtIFRoZXJlIGlzIG5vIHJlYXNvbiB3aHkgdGhp
+cyBoYXMgdG8ganVzdCBiZSBtZW1vcnkuIFRoZXJlIGFyZSBnb29kCnJlYXNvbnMgdG8gd2FudCB0
+byBkbyBwZWVyIERNQSB0byBNTUlPIHJlZ2lzdGVycyAoc2VlIGFib3ZlKQoKIC0gVGhlcmUgaXMg
+bm8gcmVhc29uIHdoeSB0aGF0IG1lbW9yeSBvbiBhIGRldmljZSBpcyBzcGVjaWZpY2FsbHkKZGVk
+aWNhdGVkIHRvICJwZWVyIHRvIHBlZXIiIGFuZCB0aHVzIGNhbGxpbmcgaXQgInAycG1lbSIgaXMg
+c29tZXRoaW5nCkkgZmluZCBhY3R1YWxseSBjb25mdXNpbmcuCgo+IEtlZXAgaW4gbWluZCBkZXZp
+Y2UgY2xhc3NlcyB0ZW5kIHRvIGNhcnZlIG91dCBjb21tb24gdXNlIGNhc2VzIGFuZCBkb24ndAo+
+IGhhdmUgYSBvbmUgdG8gb25lIG1hcHBpbmcgd2l0aCBhIHBoeXNpY2FsIHBjaSBjYXJkLgo+IAo+
+ID4gVGhhdCBhIGRldmljZSBtaWdodCBoYXZlIHNvbWUgbWVtb3J5LWxpa2UgYnVmZmVyIHNwYWNl
+IGlzIGFsbCB3ZWxsIGFuZAo+ID4gZ29vZCBidXQgZG9lcyBpdCBuZWVkIHRvIGJlIHNwZWNpZmlj
+YWxseSBkaXN0aW5ndWlzaGVkIGF0IHRoZSBkZXZpY2UKPiA+IGxldmVsID8gSXQgY291bGQgYmUg
+aW5oZXJlbnQgdG8gd2hhdCB0aGUgZGV2aWNlIGlzLi4uIGZvciBleGFtcGxlIGFnYWluCj4gPiB0
+YWtlIHRoZSBHUFUgZXhhbXBsZSwgd2h5IHdvdWxkIHlvdSBjYWxsIHRoZSBGQiBtZW1vcnkgInAy
+cG1lbSIgP8KgCj4gCj4gV2VsbCBpZiB5b3UgYXJlIHVzaW5nIGl0IGZvciBwMnAgdHJhbnNhY3Rp
+b25zIHdoeSB3b3VsZG4ndCB5b3UgY2FsbCBpdAo+IHAycG1lbT8KCkltIG5vdCBvbmx5IHVzaW5n
+IGl0IGZvciB0aGF0IDopCgo+ICBUaGVyZSdzIG5vIHRlY2huaWNhbCBkb3duc2lkZSBoZXJlIGV4
+Y2VwdCBzb21lIHZhZ3VlIGFyZ3VtZW50Cj4gb3ZlciBuYW1pbmcuIE9uY2UgcmVnaXN0ZXJlZCBh
+cyBwMnBtZW0sIHRoYXQgZGV2aWNlIHdpbGwgaGFuZGxlIGFsbCB0aGUKPiBkbWEgbWFwIHN0dWZm
+IGZvciB5b3UgYW5kIGhhdmUgYSBjZW50cmFsIG9idmlvdXMgcGxhY2UgdG8gcHV0IGNvZGUgd2hp
+Y2gKPiBoZWxwcyBkZWNpZGUgd2hldGhlciB0byB1c2UgaXQgb3Igbm90IGJhc2VkIG9uIHRvcG9s
+b2d5LgoKRXhjZXB0IGl0IGRvZXNuJ3QgaGFuZGxlIGFueSBvZiB0aGUgZG1hX21hcCBzdHVmZiB0
+b2RheSBhcyBmYXIgYXMgSSBjYW4Kc2VlLgoKPiBJIGNhbiBjZXJ0YWlubHkgc2VlIGFuIGlzc3Vl
+IHlvdSdkIGhhdmUgd2l0aCB0aGUgY3VycmVudCBSRkMgaW4gdGhhdCB0aGUKPiBwMnBtZW0gZGV2
+aWNlIGN1cnJlbnRseSBhbHNvIGhhbmRsZXMgbWVtb3J5IGFsbG9jYXRpb24gd2hpY2ggYSBHUFUg
+d291bGQKPiDCoHdhbnQgdG8gZG8gaXRzZWxmLgoKVGhlIG1lbW9yeSBhbGxvY2F0aW9uIHNob3Vs
+ZCBiZSBhIGNvbXBsZXRlbHkgb3J0aG9nb25hbCBhbmQgc2VwYXJhdGUKdGhpbmcgeWVzLiBZb3Ug
+YXJlIGNvbmZsYXRpbmcgdHdvIGNvbXBsZXRlbHkgZGlmZmVyZW50IHRoaW5ncyBub3cgaW50bwph
+IHNpbmdsZSBjb25jZXB0LgoKPiAgVGhlcmUgYXJlIHBsZW50eSBvZiBzb2x1dGlvbnMgdG8gdGhp
+cyB0aG91Z2g6IHdlCj4gY291bGQgcHJvdmlkZSBob29rcyBmb3IgdGhlIHBhcmVudCBkZXZpY2Ug
+dG8gb3ZlcnJpZGUgYWxsb2NhdGlvbiBvcgo+IHNvbWV0aGluZyBsaWtlIHRoYXQuIEhvd2V2ZXIs
+IHRoZSB1c2UgY2FzZXMgSSdtIGNvbmNlcm5lZCB3aXRoIGRvbid0IGRvCj4gdGhlaXIgb3duIGFs
+bG9jYXRpb24gc28gdGhhdCBpcyBhbiBpbXBvcnRhbnQgZmVhdHVyZSBmb3IgdGhlbS4KCk5vLCB0
+aGUgYWxsb2NhdGlvbiBzaG91bGQgbm90IGV2ZW4gaGF2ZSBsaW5rcyB0byB0aGUgRE1BIHBlZXJp
+bmcKbWVjaGFuaXNtLiBUaGlzIGlzIGNvbXBsZXRlbHkgb3J0aG9nb25hbC4KCkkgZmVlbCBtb3Jl
+IGFuZCBtb3JlIGxpa2UgeW91ciBlbnRpcmUgaW5mcmFzdHJ1Y3R1cmUgaXMgZGVzaWduZWQgZm9y
+IGEKc3BlY2lhbCB1c2UgY2FzZSBhbmQgY29uZmxhdGVzIHNldmVyYWwgcHJvYmxlbXMgb2YgdGhh
+dCBzcGVjaWZpYyB1c2UKY2FzZSBpbnRvIG9uZSBzaW5nbGUgInNvbHV0aW9uIiByYXRoZXIgdGhh
+biBzZXBhcmF0aW5nIHRoZSB2YXJpb3VzCnByb2JsZW1zIGFuZCBzb2x2aW5nIHRoZW0gaW5kZXBl
+bmRlbnRseS4KCj4gPiBBZ2FpbiBJJ20gbm90IHN1cmUgd2h5IGl0IG5lZWRzIHRvICJpbnN0YW5j
+aWF0ZSBhIHAycG1lbSIgZGV2aWNlLiBNYXliZQo+ID4gaXQncyB0aGUgdGVybSAicDJwbWVtIiB0
+aGF0IG9mZnB1dHMgbWUuIElmIHAycG1lbSBhbGxvd2VkIHRvIGhhdmUgYQo+ID4gc3RhbmRhcmQg
+d2F5IHRvIGxvb2t1cCB0aGUgdmFyaW91cyBvZmZzZXRzIGV0Yy4uLiBJIG1lbnRpb25lZCBlYXJs
+aWVyLAo+ID4gdGhlbiB5ZXMsIGl0IHdvdWxkIG1ha2Ugc2Vuc2UgdG8gaGF2ZSBpdCBhcyBhIHN0
+YWdpbmcgcG9pbnQuIEFzLWlzLCBJCj4gPiBkb24ndCBrbm93LsKgCj4gCj4gV2VsbCBvZiBjb3Vy
+c2UsIGF0IHNvbWUgcG9pbnQgaXQgd291bGQgaGF2ZSBhIHN0YW5kYXJkIHdheSB0byBsb29rdXAK
+PiBvZmZzZXRzIGFuZCBmaWd1cmUgb3V0IHdoYXQncyBuZWNlc3NhcnkgZm9yIGEgbWFwcGluZy4g
+V2Ugd291bGRuJ3QgbWFrZQo+IHRoYXQgc2VwYXJhdGUgZnJvbSB0aGlzLCB0aGF0IHdvdWxkIG1h
+a2Ugbm8gc2Vuc2UuCj4gCj4gSSBhbHNvIGZvcmdvdDoKPiAKPiA0KSBXZSBuZWVkIHNvbWV3YXkg
+aW4gdGhlIGtlcm5lbCB0byBjb25maWd1cmUgZHJpdmVycyB0aGF0IHVzZSBwMnBtZW0uCj4gVGhh
+dCBtZWFucyBpdCBuZWVkcyBhIHVuaXF1ZSBuYW1lIHRoYXQgdGhlIHVzZXIgY2FuIHVuZGVyc3Rh
+bmQsIGxvb2t1cAo+IGFuZCBwYXNzIHRvIG90aGVyIGRyaXZlcnMuIFRoZW4gYSB3YXkgZm9yIHRo
+b3NlIGRyaXZlcnMgdG8gZmluZCBpdCBpbgo+IHRoZSBzeXN0ZW0uIEEgc3BlY2lmaWMgZGV2aWNl
+IGNsYXNzIGdldHMgdGhhdCBmb3IgdXMgaW4gYSB2ZXJ5IHNpbXBsZQo+IGZhc2hpb24uIFdlIGFs
+c28gZG9uJ3Qgd2FudCB0byBoYXZlIGRyaXZlcnMgbGlrZSBudm1ldCBoYXZpbmcgdG8gd2Fsawo+
+IGV2ZXJ5IHBjaSBkZXZpY2UgdG8gZmlndXJlIG91dCB3aGVyZSB0aGUgcDJwIG1lbW9yeSBpcyBh
+bmQgd2hldGhlciBpdAo+IGNhbiB1c2UgaXQuCj4gCj4gSU1PIHRoZXJlIGFyZSBtYW55IGNsZWFy
+IGJlbmVmaXRzIGhlcmUgYW5kIHlvdSBoYXZlbid0IHJlYWxseSBvZmZlcmVkIGFuCj4gYWx0ZXJu
+YXRpdmUgdGhhdCBwcm92aWRlcyB0aGUgc2FtZSBmZWF0dXJlcyBhbmQgcG90ZW50aWFsIGZvciBm
+dXR1cmUgdXNlCj4gY2FzZXMuCj4gCj4gTG9nYW4KX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRp
+bW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
+dXgtbnZkaW1tCg==
