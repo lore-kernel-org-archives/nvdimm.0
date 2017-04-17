@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 59D2121939239
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:22 -0700 (PDT)
-Subject: [resend PATCH v2 09/33] block: kill bdev_dax_capable()
+ by ml01.01.org (Postfix) with ESMTPS id 2EDC621DFA7AF
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:50 -0700 (PDT)
+Subject: [resend PATCH v2 14/33] Revert "block: use DAX for partition table
+ reads"
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:09:38 -0700
-Message-ID: <149245617829.10206.728860403459694493.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 17 Apr 2017 12:10:06 -0700
+Message-ID: <149245620593.10206.1616718006783093047.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -23,65 +24,122 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
+Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is leftover dead code that has since been replaced by
-bdev_dax_supported().
+commit d1a5f2b4d8a1 ("block: use DAX for partition table reads") was
+part of a stalled effort to allow dax mappings of block devices. Since
+then the device-dax mechanism has filled the role of dax-mapping static
+device ranges.
 
+Now that we are moving ->direct_access() from a block_device operation
+to a dax_inode operation we would need block devices to map and carry
+their own dax_inode reference.
+
+Unless / until we decide to revive dax mapping of raw block devices
+through the dax_inode scheme, there is no need to carry
+read_dax_sector(). Its removal in turn allows for the removal of
+bdev_direct_access() and should have been included in commit
+223757016837 ("block_dev: remove DAX leftovers").
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/block_dev.c         |   24 ------------------------
- include/linux/blkdev.h |    1 -
- 2 files changed, 25 deletions(-)
+ block/partition-generic.c |   17 ++---------------
+ fs/dax.c                  |   20 --------------------
+ include/linux/dax.h       |    6 ------
+ 3 files changed, 2 insertions(+), 41 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 2eca00ec4370..7f40ea2f0875 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -807,30 +807,6 @@ int bdev_dax_supported(struct super_block *sb, int blocksize)
- }
- EXPORT_SYMBOL_GPL(bdev_dax_supported);
+diff --git a/block/partition-generic.c b/block/partition-generic.c
+index 7afb9907821f..5dfac337b0f2 100644
+--- a/block/partition-generic.c
++++ b/block/partition-generic.c
+@@ -16,7 +16,6 @@
+ #include <linux/kmod.h>
+ #include <linux/ctype.h>
+ #include <linux/genhd.h>
+-#include <linux/dax.h>
+ #include <linux/blktrace_api.h>
  
--/**
-- * bdev_dax_capable() - Return if the raw device is capable for dax
-- * @bdev: The device for raw block device access
-- */
--bool bdev_dax_capable(struct block_device *bdev)
+ #include "partitions/check.h"
+@@ -631,24 +630,12 @@ int invalidate_partitions(struct gendisk *disk, struct block_device *bdev)
+ 	return 0;
+ }
+ 
+-static struct page *read_pagecache_sector(struct block_device *bdev, sector_t n)
 -{
+-	struct address_space *mapping = bdev->bd_inode->i_mapping;
+-
+-	return read_mapping_page(mapping, (pgoff_t)(n >> (PAGE_SHIFT-9)),
+-				 NULL);
+-}
+-
+ unsigned char *read_dev_sector(struct block_device *bdev, sector_t n, Sector *p)
+ {
++	struct address_space *mapping = bdev->bd_inode->i_mapping;
+ 	struct page *page;
+ 
+-	/* don't populate page cache for dax capable devices */
+-	if (IS_DAX(bdev->bd_inode))
+-		page = read_dax_sector(bdev, n);
+-	else
+-		page = read_pagecache_sector(bdev, n);
+-
++	page = read_mapping_page(mapping, (pgoff_t)(n >> (PAGE_SHIFT-9)), NULL);
+ 	if (!IS_ERR(page)) {
+ 		if (PageError(page))
+ 			goto fail;
+diff --git a/fs/dax.c b/fs/dax.c
+index de622d4282a6..b78a6947c4f5 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -101,26 +101,6 @@ static int dax_is_empty_entry(void *entry)
+ 	return (unsigned long)entry & RADIX_DAX_EMPTY;
+ }
+ 
+-struct page *read_dax_sector(struct block_device *bdev, sector_t n)
+-{
+-	struct page *page = alloc_pages(GFP_KERNEL, 0);
 -	struct blk_dax_ctl dax = {
 -		.size = PAGE_SIZE,
+-		.sector = n & ~((((int) PAGE_SIZE) / 512) - 1),
 -	};
+-	long rc;
 -
--	if (!IS_ENABLED(CONFIG_FS_DAX))
--		return false;
+-	if (!page)
+-		return ERR_PTR(-ENOMEM);
 -
--	dax.sector = 0;
--	if (bdev_direct_access(bdev, &dax) < 0)
--		return false;
--
--	dax.sector = bdev->bd_part->nr_sects - (PAGE_SIZE / 512);
--	if (bdev_direct_access(bdev, &dax) < 0)
--		return false;
--
--	return true;
+-	rc = dax_map_atomic(bdev, &dax);
+-	if (rc < 0)
+-		return ERR_PTR(rc);
+-	memcpy_from_pmem(page_address(page), dax.addr, PAGE_SIZE);
+-	dax_unmap_atomic(bdev, &dax);
+-	return page;
 -}
 -
  /*
-  * pseudo-fs
+  * DAX radix tree locking
   */
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 5a7da607ca04..f72708399b83 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1958,7 +1958,6 @@ extern int bdev_write_page(struct block_device *, sector_t, struct page *,
- 						struct writeback_control *);
- extern long bdev_direct_access(struct block_device *, struct blk_dax_ctl *);
- extern int bdev_dax_supported(struct super_block *, int);
--extern bool bdev_dax_capable(struct block_device *);
- #else /* CONFIG_BLOCK */
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 7e62e280c11f..0d0d890f9186 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -70,15 +70,9 @@ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+ 		pgoff_t index, void *entry, bool wake_all);
  
- struct block_device;
+ #ifdef CONFIG_FS_DAX
+-struct page *read_dax_sector(struct block_device *bdev, sector_t n);
+ int __dax_zero_page_range(struct block_device *bdev, sector_t sector,
+ 		unsigned int offset, unsigned int length);
+ #else
+-static inline struct page *read_dax_sector(struct block_device *bdev,
+-		sector_t n)
+-{
+-	return ERR_PTR(-ENXIO);
+-}
+ static inline int __dax_zero_page_range(struct block_device *bdev,
+ 		sector_t sector, unsigned int offset, unsigned int length)
+ {
 
 _______________________________________________
 Linux-nvdimm mailing list
