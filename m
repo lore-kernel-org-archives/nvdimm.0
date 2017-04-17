@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD4532193DFA5
- for <linux-nvdimm@lists.01.org>; Thu, 20 Apr 2017 14:05:30 -0700 (PDT)
-Subject: [ndctl PATCH 5/5] test, create.sh: gate test on v4.5+
+ by ml01.01.org (Postfix) with ESMTPS id 47DB621939239
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:06 -0700 (PDT)
+Subject: [resend PATCH v2 06/33] axon_ram: add dax_operations support
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 20 Apr 2017 13:59:25 -0700
-Message-ID: <149272196500.23427.16512180505514852858.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149272193912.23427.11500536718990091103.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149272193912.23427.11500536718990091103.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 17 Apr 2017 12:09:22 -0700
+Message-ID: <149245616209.10206.7635523768920777081.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,38 +23,146 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The "create.sh" test depends on commit commit 0731de0dd95b "libnvdimm,
-pfn: move 'memory mode' indication to sysfs".
+Setup a dax_device to have the same lifetime as the axon_ram block
+device and add a ->direct_access() method that is equivalent to
+axon_ram_direct_access(). Once fs/dax.c has been converted to use
+dax_operations the old axon_ram_direct_access() will be removed.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/create.sh |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/powerpc/platforms/Kconfig |    1 +
+ arch/powerpc/sysdev/axonram.c  |   48 +++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 43 insertions(+), 6 deletions(-)
 
-diff --git a/test/create.sh b/test/create.sh
-index 1a5d7d77bf25..992f2ff48ad0 100755
---- a/test/create.sh
-+++ b/test/create.sh
-@@ -13,6 +13,17 @@ err() {
- 	exit $rc
+diff --git a/arch/powerpc/platforms/Kconfig b/arch/powerpc/platforms/Kconfig
+index 7e3a2ebba29b..33244e3d9375 100644
+--- a/arch/powerpc/platforms/Kconfig
++++ b/arch/powerpc/platforms/Kconfig
+@@ -284,6 +284,7 @@ config CPM2
+ config AXON_RAM
+ 	tristate "Axon DDR2 memory device driver"
+ 	depends on PPC_IBM_CELL_BLADE && BLOCK
++	select DAX
+ 	default m
+ 	help
+ 	  It registers one block device per Axon's DDR2 memory bank found
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index f523ac883150..ad857d5e81b1 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -25,6 +25,7 @@
+ 
+ #include <linux/bio.h>
+ #include <linux/blkdev.h>
++#include <linux/dax.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/fs.h>
+@@ -62,6 +63,7 @@ static int azfs_major, azfs_minor;
+ struct axon_ram_bank {
+ 	struct platform_device	*device;
+ 	struct gendisk		*disk;
++	struct dax_device	*dax_dev;
+ 	unsigned int		irq_id;
+ 	unsigned long		ph_addr;
+ 	unsigned long		io_addr;
+@@ -137,25 +139,47 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
+ 	return BLK_QC_T_NONE;
  }
  
-+check_min_kver()
++static long
++__axon_ram_direct_access(struct axon_ram_bank *bank, pgoff_t pgoff, long nr_pages,
++		       void **kaddr, pfn_t *pfn)
 +{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
++	resource_size_t offset = pgoff * PAGE_SIZE;
 +
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
++	*kaddr = (void *) bank->io_addr + offset;
++	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
++	return (bank->size - offset) / PAGE_SIZE;
 +}
 +
-+check_min_kver "4.5" || { echo "kernel $KVER may lack namespace mode attribute"; exit $rc; }
-+
- set -e
- trap 'err $LINENO' ERR
+ /**
+  * axon_ram_direct_access - direct_access() method for block device
+  * @device, @sector, @data: see block_device_operations method
+  */
+ static long
+-axon_ram_direct_access(struct block_device *device, sector_t sector,
++axon_ram_blk_direct_access(struct block_device *device, sector_t sector,
+ 		       void **kaddr, pfn_t *pfn, long size)
+ {
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+-	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
  
+-	*kaddr = (void *) bank->io_addr + offset;
+-	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
+-	return bank->size - offset;
++	return __axon_ram_direct_access(bank, (sector * 512) / PAGE_SIZE,
++			size / PAGE_SIZE, kaddr, pfn) * PAGE_SIZE;
+ }
+ 
+ static const struct block_device_operations axon_ram_devops = {
+ 	.owner		= THIS_MODULE,
+-	.direct_access	= axon_ram_direct_access
++	.direct_access	= axon_ram_blk_direct_access
++};
++
++static long
++axon_ram_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
++		       void **kaddr, pfn_t *pfn)
++{
++	struct axon_ram_bank *bank = dax_get_private(dax_dev);
++
++	return __axon_ram_direct_access(bank, pgoff, nr_pages, kaddr, pfn);
++}
++
++static const struct dax_operations axon_ram_dax_ops = {
++	.direct_access = axon_ram_dax_direct_access,
+ };
+ 
+ /**
+@@ -219,6 +243,7 @@ static int axon_ram_probe(struct platform_device *device)
+ 		goto failed;
+ 	}
+ 
++
+ 	bank->disk->major = azfs_major;
+ 	bank->disk->first_minor = azfs_minor;
+ 	bank->disk->fops = &axon_ram_devops;
+@@ -227,6 +252,11 @@ static int axon_ram_probe(struct platform_device *device)
+ 	sprintf(bank->disk->disk_name, "%s%d",
+ 			AXON_RAM_DEVICE_NAME, axon_ram_bank_id);
+ 
++	bank->dax_dev = alloc_dax(bank, bank->disk->disk_name,
++			&axon_ram_dax_ops);
++	if (!bank->dax_dev)
++		goto failed;
++
+ 	bank->disk->queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (bank->disk->queue == NULL) {
+ 		dev_err(&device->dev, "Cannot register disk queue\n");
+@@ -278,6 +308,10 @@ static int axon_ram_probe(struct platform_device *device)
+ 				del_gendisk(bank->disk);
+ 			put_disk(bank->disk);
+ 		}
++		if (bank->dax_dev) {
++			kill_dax(bank->dax_dev);
++			put_dax(bank->dax_dev);
++		}
+ 		device->dev.platform_data = NULL;
+ 		if (bank->io_addr != 0)
+ 			iounmap((void __iomem *) bank->io_addr);
+@@ -300,6 +334,8 @@ axon_ram_remove(struct platform_device *device)
+ 
+ 	device_remove_file(&device->dev, &dev_attr_ecc);
+ 	free_irq(bank->irq_id, device);
++	kill_dax(bank->dax_dev);
++	put_dax(bank->dax_dev);
+ 	del_gendisk(bank->disk);
+ 	put_disk(bank->disk);
+ 	iounmap((void __iomem *) bank->io_addr);
 
 _______________________________________________
 Linux-nvdimm mailing list
