@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD2AE21A6F108
- for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 15:06:25 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:29 -0600
-Message-Id: <1492121135-4437-17-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 16/22] xen-blkfront: Make use of the new sg_map helper function
+ by ml01.01.org (Postfix) with ESMTPS id CB67820D7A3A4
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:22 -0700 (PDT)
+Subject: [resend PATCH v2 20/33] dm: add ->copy_from_iter() dax operation
+ support
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 17 Apr 2017 12:10:38 -0700
+Message-ID: <149245623835.10206.17481761679193180574.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,91 +19,222 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Sumit Semwal <sumit.semwal@linaro.org>, Ming Lin <ming.l@ssi.samsung.com>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>
+To: linux-nvdimm@lists.01.org
+Cc: Mike Snitzer <snitzer@redhat.com>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Straightforward conversion to the new helper, except due to
-the lack of error path, we have to warn if unmapable memory
-is ever present in the sgl.
+Allow device-mapper to route copy_from_iter operations to the
+per-target implementation. In order for the device stacking to work we
+need a dax_dev and a pgoff relative to that device. This gives each
+layer of the stack the information it needs to look up the operation
+pointer for the next level.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+This conceptually allows for an array of mixed device drivers with
+varying copy_from_iter implementations.
+
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Mike Snitzer <snitzer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/block/xen-blkfront.c | 33 +++++++++++++++++++++++++++------
- 1 file changed, 27 insertions(+), 6 deletions(-)
+ drivers/dax/super.c           |   13 +++++++++++++
+ drivers/md/dm-linear.c        |   15 +++++++++++++++
+ drivers/md/dm-stripe.c        |   20 ++++++++++++++++++++
+ drivers/md/dm.c               |   26 ++++++++++++++++++++++++++
+ include/linux/dax.h           |    2 ++
+ include/linux/device-mapper.h |    3 +++
+ 6 files changed, 79 insertions(+)
 
-diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-index 5067a0a..7dcf41d 100644
---- a/drivers/block/xen-blkfront.c
-+++ b/drivers/block/xen-blkfront.c
-@@ -807,8 +807,19 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
- 		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 23ce3ab49f10..73f0da8e5d27 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -17,6 +17,7 @@
+ #include <linux/cdev.h>
+ #include <linux/hash.h>
+ #include <linux/slab.h>
++#include <linux/uio.h>
+ #include <linux/dax.h>
+ #include <linux/fs.h>
  
- 		if (setup.need_copy) {
--			setup.bvec_off = sg->offset;
--			setup.bvec_data = kmap_atomic(sg_page(sg));
-+			setup.bvec_off = 0;
-+			setup.bvec_data = sg_map(sg, SG_KMAP_ATOMIC);
-+			if (IS_ERR(setup.bvec_data)) {
-+				/*
-+				 * This should really never happen unless
-+				 * the code is changed to use memory that is
-+				 * not mappable in the sg. Seeing there is a
-+				 * questionable error path out of here,
-+				 * we WARN.
-+				 */
-+				WARN(1, "Non-mappable memory used in sg!");
-+				return 1;
-+			}
- 		}
+@@ -104,6 +105,18 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
+ }
+ EXPORT_SYMBOL_GPL(dax_direct_access);
  
- 		gnttab_foreach_grant_in_range(sg_page(sg),
-@@ -818,7 +829,7 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
- 					      &setup);
++size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
++		size_t bytes, struct iov_iter *i)
++{
++	if (!dax_alive(dax_dev))
++		return 0;
++
++	if (!dax_dev->ops->copy_from_iter)
++		return copy_from_iter(addr, bytes, i);
++	return dax_dev->ops->copy_from_iter(dax_dev, pgoff, addr, bytes, i);
++}
++EXPORT_SYMBOL_GPL(dax_copy_from_iter);
++
+ bool dax_alive(struct dax_device *dax_dev)
+ {
+ 	lockdep_assert_held(&dax_srcu);
+diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+index c5a52f4dae81..5fe44a0ddfab 100644
+--- a/drivers/md/dm-linear.c
++++ b/drivers/md/dm-linear.c
+@@ -158,6 +158,20 @@ static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+ 	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
+ }
  
- 		if (setup.need_copy)
--			kunmap_atomic(setup.bvec_data);
-+			sg_unmap(sg, setup.bvec_data, SG_KMAP_ATOMIC);
- 	}
- 	if (setup.segments)
- 		kunmap_atomic(setup.segments);
-@@ -1468,8 +1479,18 @@ static bool blkif_completion(unsigned long *id,
- 		for_each_sg(s->sg, sg, num_sg, i) {
- 			BUG_ON(sg->offset + sg->length > PAGE_SIZE);
++static size_t linear_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct linear_c *lc = ti->private;
++	struct block_device *bdev = lc->dev->bdev;
++	struct dax_device *dax_dev = lc->dev->dax_dev;
++	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
++
++	dev_sector = linear_map_sector(ti, sector);
++	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
++		return 0;
++	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
++}
++
+ static struct target_type linear_target = {
+ 	.name   = "linear",
+ 	.version = {1, 3, 0},
+@@ -169,6 +183,7 @@ static struct target_type linear_target = {
+ 	.prepare_ioctl = linear_prepare_ioctl,
+ 	.iterate_devices = linear_iterate_devices,
+ 	.direct_access = linear_dax_direct_access,
++	.dax_copy_from_iter = linear_dax_copy_from_iter,
+ };
  
--			data.bvec_offset = sg->offset;
--			data.bvec_data = kmap_atomic(sg_page(sg));
-+			data.bvec_offset = 0;
-+			data.bvec_data = sg_map(sg, SG_KMAP_ATOMIC);
-+			if (IS_ERR(data.bvec_data)) {
-+				/*
-+				 * This should really never happen unless
-+				 * the code is changed to use memory that is
-+				 * not mappable in the sg. Seeing there is no
-+				 * clear error path, we WARN.
-+				 */
-+				WARN(1, "Non-mappable memory used in sg!");
-+				return 1;
-+			}
+ int __init dm_linear_init(void)
+diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
+index cb4b1e9e16ab..4f45d23249b2 100644
+--- a/drivers/md/dm-stripe.c
++++ b/drivers/md/dm-stripe.c
+@@ -330,6 +330,25 @@ static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+ 	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
+ }
  
- 			gnttab_foreach_grant_in_range(sg_page(sg),
- 						      sg->offset,
-@@ -1477,7 +1498,7 @@ static bool blkif_completion(unsigned long *id,
- 						      blkif_copy_from_grant,
- 						      &data);
++static size_t stripe_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
++	struct stripe_c *sc = ti->private;
++	struct dax_device *dax_dev;
++	struct block_device *bdev;
++	uint32_t stripe;
++
++	stripe_map_sector(sc, sector, &stripe, &dev_sector);
++	dev_sector += sc->stripe[stripe].physical_start;
++	dax_dev = sc->stripe[stripe].dev->dax_dev;
++	bdev = sc->stripe[stripe].dev->bdev;
++
++	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
++		return 0;
++	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
++}
++
+ /*
+  * Stripe status:
+  *
+@@ -448,6 +467,7 @@ static struct target_type stripe_target = {
+ 	.iterate_devices = stripe_iterate_devices,
+ 	.io_hints = stripe_io_hints,
+ 	.direct_access = stripe_dax_direct_access,
++	.dax_copy_from_iter = stripe_dax_copy_from_iter,
+ };
  
--			kunmap_atomic(data.bvec_data);
-+			sg_unmap(sg, data.bvec_data, SG_KMAP_ATOMIC);
- 		}
- 	}
- 	/* Add the persistent grant into the list of free grants */
--- 
-2.1.4
+ int __init dm_stripe_init(void)
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index 79d5f5fd823e..8c8579efcba2 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -19,6 +19,7 @@
+ #include <linux/dax.h>
+ #include <linux/slab.h>
+ #include <linux/idr.h>
++#include <linux/uio.h>
+ #include <linux/hdreg.h>
+ #include <linux/delay.h>
+ #include <linux/wait.h>
+@@ -957,6 +958,30 @@ static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
+ 	return ret;
+ }
+ 
++static size_t dm_dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct mapped_device *md = dax_get_private(dax_dev);
++	sector_t sector = pgoff * PAGE_SECTORS;
++	struct dm_target *ti;
++	long ret = 0;
++	int srcu_idx;
++
++	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
++
++	if (!ti)
++		goto out;
++	if (!ti->type->dax_copy_from_iter) {
++		ret = copy_from_iter(addr, bytes, i);
++		goto out;
++	}
++	ret = ti->type->dax_copy_from_iter(ti, pgoff, addr, bytes, i);
++ out:
++	dm_put_live_table(md, srcu_idx);
++
++	return ret;
++}
++
+ /*
+  * A target may call dm_accept_partial_bio only from the map routine.  It is
+  * allowed for all bio types except REQ_PREFLUSH.
+@@ -2818,6 +2843,7 @@ static const struct block_device_operations dm_blk_dops = {
+ 
+ static const struct dax_operations dm_dax_ops = {
+ 	.direct_access = dm_dax_direct_access,
++	.copy_from_iter = dm_dax_copy_from_iter,
+ };
+ 
+ /*
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 156f067d4db5..cd8561bb21f3 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -32,6 +32,8 @@ void kill_dax(struct dax_device *dax_dev);
+ void *dax_get_private(struct dax_device *dax_dev);
+ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
+ 		void **kaddr, pfn_t *pfn);
++size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
++		size_t bytes, struct iov_iter *i);
+ 
+ /*
+  * We use lowest available bit in exceptional entry for locking, one bit for
+diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
+index df830d167892..e18e4277d09d 100644
+--- a/include/linux/device-mapper.h
++++ b/include/linux/device-mapper.h
+@@ -130,6 +130,8 @@ typedef int (*dm_busy_fn) (struct dm_target *ti);
+  */
+ typedef long (*dm_dax_direct_access_fn) (struct dm_target *ti, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn);
++typedef size_t (*dm_dax_copy_from_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i);
+ #define PAGE_SECTORS (PAGE_SIZE / 512)
+ 
+ void dm_error(const char *message);
+@@ -179,6 +181,7 @@ struct target_type {
+ 	dm_iterate_devices_fn iterate_devices;
+ 	dm_io_hints_fn io_hints;
+ 	dm_dax_direct_access_fn direct_access;
++	dm_dax_copy_from_iter_fn dax_copy_from_iter;
+ 
+ 	/* For internal device-mapper use. */
+ 	struct list_head list;
 
 _______________________________________________
 Linux-nvdimm mailing list
