@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 82ED42194EB6A
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:39:19 -0700 (PDT)
-Subject: [PATCH v2 05/33] pmem: add dax_operations support
+ by ml01.01.org (Postfix) with ESMTPS id E61DF21939239
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:00 -0700 (PDT)
+Subject: [resend PATCH v2 05/33] pmem: add dax_operations support
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 19:33:35 -0700
-Message-ID: <149222361505.32363.15505567789140462857.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 17 Apr 2017 12:09:16 -0700
+Message-ID: <149245615669.10206.5525594166204113189.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
 Setup a dax_device to have the same lifetime as the pmem block device
