@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E956C21A04830
- for <linux-nvdimm@lists.01.org>; Wed, 19 Apr 2017 15:37:37 -0700 (PDT)
-Subject: [PATCH v3] dax: add a facility to lookup a dax device by 'host'
- device name
+ by ml01.01.org (Postfix) with ESMTPS id F04572194EB6E
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:29 -0700 (PDT)
+Subject: [resend PATCH v2 10/33] dax: introduce dax_direct_access()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 19 Apr 2017 15:31:53 -0700
-Message-ID: <149264098308.36586.14533308558533384197.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 17 Apr 2017 12:09:43 -0700
+Message-ID: <149245618344.10206.8650696772151680840.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,225 +26,141 @@ To: linux-nvdimm@lists.01.org
 Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-For the current block_device based filesystem-dax path, we need a way
-for it to lookup the dax_device associated with a block_device. Add a
-'host' property of a dax_device that can be used for this purpose. It is
-a free form string, but for a dax_device associated with a block device
-it is the bdev name.
+Replace bdev_direct_access() with dax_direct_access() that uses
+dax_device and dax_operations instead of a block_device and
+block_device_operations for dax. Once all consumers of the old api have
+been converted bdev_direct_access() will be deleted.
 
-This is a stop-gap until filesystems are able to mount on a dax-inode
-directly.
+Given that block device partitioning decisions can cause dax page
+alignment constraints to be violated this also introduces the
+bdev_dax_pgoff() helper. It handles calculating a logical pgoff relative
+to the dax_device and also checks for page alignment.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes since v2:
-* fixed slab corruption due to non-null dax_dev->host at
-  dax_i_callback() time
+ block/Kconfig          |    1 +
+ drivers/dax/super.c    |   39 +++++++++++++++++++++++++++++++++++++++
+ fs/block_dev.c         |   14 ++++++++++++++
+ include/linux/blkdev.h |    1 +
+ include/linux/dax.h    |    2 ++
+ 5 files changed, 57 insertions(+)
 
- drivers/dax/dax.h    |    2 +
- drivers/dax/device.c |    2 +
- drivers/dax/super.c  |   87 ++++++++++++++++++++++++++++++++++++++++++++++++--
- include/linux/dax.h  |    1 +
- 4 files changed, 86 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
-index 2472d9da96db..246a24d68d4c 100644
---- a/drivers/dax/dax.h
-+++ b/drivers/dax/dax.h
-@@ -13,7 +13,7 @@
- #ifndef __DAX_H__
- #define __DAX_H__
- struct dax_device;
--struct dax_device *alloc_dax(void *private);
-+struct dax_device *alloc_dax(void *private, const char *host);
- void put_dax(struct dax_device *dax_dev);
- bool dax_alive(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 19a42edbfa03..db68f4fa8ce0 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -645,7 +645,7 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
- 		goto err_id;
- 	}
- 
--	dax_dev = alloc_dax(dev_dax);
-+	dax_dev = alloc_dax(dev_dax, NULL);
- 	if (!dax_dev)
- 		goto err_dax;
+diff --git a/block/Kconfig b/block/Kconfig
+index e9f780f815f5..93da7fc3f254 100644
+--- a/block/Kconfig
++++ b/block/Kconfig
+@@ -6,6 +6,7 @@ menuconfig BLOCK
+        default y
+        select SBITMAP
+        select SRCU
++       select DAX
+        help
+ 	 Provide block layer support for the kernel.
  
 diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index c9f85f1c086e..8d446674c1da 100644
+index 45ccfc043da8..23ce3ab49f10 100644
 --- a/drivers/dax/super.c
 +++ b/drivers/dax/super.c
-@@ -30,6 +30,10 @@ static DEFINE_IDA(dax_minor_ida);
- static struct kmem_cache *dax_cache __read_mostly;
- static struct super_block *dax_superblock __read_mostly;
- 
-+#define DAX_HASH_SIZE (PAGE_SIZE / sizeof(struct hlist_head))
-+static struct hlist_head dax_host_list[DAX_HASH_SIZE];
-+static DEFINE_SPINLOCK(dax_host_lock);
-+
- int dax_read_lock(void)
- {
- 	return srcu_read_lock(&dax_srcu);
-@@ -46,12 +50,15 @@ EXPORT_SYMBOL_GPL(dax_read_unlock);
-  * struct dax_device - anchor object for dax services
-  * @inode: core vfs
-  * @cdev: optional character interface for "device dax"
-+ * @host: optional name for lookups where the device path is not available
-  * @private: dax driver private data
-  * @alive: !alive + rcu grace period == no new operations / mappings
-  */
- struct dax_device {
-+	struct hlist_node list;
- 	struct inode inode;
- 	struct cdev cdev;
-+	const char *host;
- 	void *private;
- 	bool alive;
+@@ -65,6 +65,45 @@ struct dax_device {
+ 	const struct dax_operations *ops;
  };
-@@ -63,6 +70,11 @@ bool dax_alive(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(dax_alive);
  
-+static int dax_host_hash(const char *host)
++/**
++ * dax_direct_access() - translate a device pgoff to an absolute pfn
++ * @dax_dev: a dax_device instance representing the logical memory range
++ * @pgoff: offset in pages from the start of the device to translate
++ * @nr_pages: number of consecutive pages caller can handle relative to @pfn
++ * @kaddr: output parameter that returns a virtual address mapping of pfn
++ * @pfn: output parameter that returns an absolute pfn translation of @pgoff
++ *
++ * Return: negative errno if an error occurs, otherwise the number of
++ * pages accessible at the device relative @pgoff.
++ */
++long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
++		void **kaddr, pfn_t *pfn)
 +{
-+	return hashlen_hash(hashlen_string("DAX", host)) % DAX_HASH_SIZE;
-+}
-+
- /*
-  * Note, rcu is not protecting the liveness of dax_dev, rcu is ensuring
-  * that any fault handlers or operations that might have seen
-@@ -75,7 +87,13 @@ void kill_dax(struct dax_device *dax_dev)
- 		return;
- 
- 	dax_dev->alive = false;
-+
- 	synchronize_srcu(&dax_srcu);
-+
-+	spin_lock(&dax_host_lock);
-+	hlist_del_init(&dax_dev->list);
-+	spin_unlock(&dax_host_lock);
-+
- 	dax_dev->private = NULL;
- }
- EXPORT_SYMBOL_GPL(kill_dax);
-@@ -98,6 +116,8 @@ static void dax_i_callback(struct rcu_head *head)
- 	struct inode *inode = container_of(head, struct inode, i_rcu);
- 	struct dax_device *dax_dev = to_dax_dev(inode);
- 
-+	kfree(dax_dev->host);
-+	dax_dev->host = NULL;
- 	ida_simple_remove(&dax_minor_ida, MINOR(inode->i_rdev));
- 	kmem_cache_free(dax_cache, dax_dev);
- }
-@@ -169,26 +189,53 @@ static struct dax_device *dax_dev_get(dev_t devt)
- 	return dax_dev;
- }
- 
--struct dax_device *alloc_dax(void *private)
-+static void dax_add_host(struct dax_device *dax_dev, const char *host)
-+{
-+	int hash;
++	long avail;
 +
 +	/*
-+	 * Unconditionally init dax_dev since it's coming from a
-+	 * non-zeroed slab cache
++	 * The device driver is allowed to sleep, in order to make the
++	 * memory directly accessible.
 +	 */
-+	INIT_HLIST_NODE(&dax_dev->list);
-+	dax_dev->host = host;
-+	if (!host)
-+		return;
++	might_sleep();
 +
-+	hash = dax_host_hash(host);
-+	spin_lock(&dax_host_lock);
-+	hlist_add_head(&dax_dev->list, &dax_host_list[hash]);
-+	spin_unlock(&dax_host_lock);
++	if (!dax_dev)
++		return -EOPNOTSUPP;
++
++	if (!dax_alive(dax_dev))
++		return -ENXIO;
++
++	if (nr_pages < 0)
++		return nr_pages;
++
++	avail = dax_dev->ops->direct_access(dax_dev, pgoff, nr_pages,
++			kaddr, pfn);
++	if (!avail)
++		return -ERANGE;
++	return min(avail, nr_pages);
 +}
++EXPORT_SYMBOL_GPL(dax_direct_access);
 +
-+struct dax_device *alloc_dax(void *private, const char *__host)
+ bool dax_alive(struct dax_device *dax_dev)
  {
- 	struct dax_device *dax_dev;
-+	const char *host;
- 	dev_t devt;
- 	int minor;
- 
-+	host = kstrdup(__host, GFP_KERNEL);
-+	if (__host && !host)
-+		return NULL;
-+
- 	minor = ida_simple_get(&dax_minor_ida, 0, nr_dax, GFP_KERNEL);
- 	if (minor < 0)
--		return NULL;
-+		goto err_minor;
- 
- 	devt = MKDEV(MAJOR(dax_devt), minor);
- 	dax_dev = dax_dev_get(devt);
- 	if (!dax_dev)
--		goto err_inode;
-+		goto err_dev;
- 
-+	dax_add_host(dax_dev, host);
- 	dax_dev->private = private;
- 	return dax_dev;
- 
-- err_inode:
-+ err_dev:
- 	ida_simple_remove(&dax_minor_ida, minor);
-+ err_minor:
-+	kfree(host);
- 	return NULL;
+ 	lockdep_assert_held(&dax_srcu);
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 7f40ea2f0875..2f7885712575 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ #include <linux/blkpg.h>
+ #include <linux/magic.h>
++#include <linux/dax.h>
+ #include <linux/buffer_head.h>
+ #include <linux/swap.h>
+ #include <linux/pagevec.h>
+@@ -762,6 +763,19 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
  }
- EXPORT_SYMBOL_GPL(alloc_dax);
-@@ -202,6 +249,38 @@ void put_dax(struct dax_device *dax_dev)
- EXPORT_SYMBOL_GPL(put_dax);
+ EXPORT_SYMBOL_GPL(bdev_direct_access);
  
- /**
-+ * dax_get_by_host() - temporary lookup mechanism for filesystem-dax
-+ * @host: alternate name for the device registered by a dax driver
-+ */
-+struct dax_device *dax_get_by_host(const char *host)
++int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
++		pgoff_t *pgoff)
 +{
-+	struct dax_device *dax_dev, *found = NULL;
-+	int hash, id;
++	phys_addr_t phys_off = (get_start_sect(bdev) + sector) * 512;
 +
-+	if (!host)
-+		return NULL;
-+
-+	hash = dax_host_hash(host);
-+
-+	id = dax_read_lock();
-+	spin_lock(&dax_host_lock);
-+	hlist_for_each_entry(dax_dev, &dax_host_list[hash], list) {
-+		if (!dax_alive(dax_dev)
-+				|| strcmp(host, dax_dev->host) != 0)
-+			continue;
-+
-+		if (igrab(&dax_dev->inode))
-+			found = dax_dev;
-+		break;
-+	}
-+	spin_unlock(&dax_host_lock);
-+	dax_read_unlock(id);
-+
-+	return found;
++	if (pgoff)
++		*pgoff = PHYS_PFN(phys_off);
++	if (phys_off % PAGE_SIZE || size % PAGE_SIZE)
++		return -EINVAL;
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(dax_get_by_host);
++EXPORT_SYMBOL(bdev_dax_pgoff);
 +
-+/**
-  * inode_dax: convert a public inode into its dax_dev
-  * @inode: An inode with i_cdev pointing to a dax_dev
-  *
+ /**
+  * bdev_dax_supported() - Check if the device supports dax for filesystem
+  * @sb: The superblock of the device
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index f72708399b83..612c497d1461 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1958,6 +1958,7 @@ extern int bdev_write_page(struct block_device *, sector_t, struct page *,
+ 						struct writeback_control *);
+ extern long bdev_direct_access(struct block_device *, struct blk_dax_ctl *);
+ extern int bdev_dax_supported(struct super_block *, int);
++int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
+ #else /* CONFIG_BLOCK */
+ 
+ struct block_device;
 diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 5b62f5d19aea..9b2d5ba10d7d 100644
+index 39a0312c45c3..7e62e280c11f 100644
 --- a/include/linux/dax.h
 +++ b/include/linux/dax.h
-@@ -10,6 +10,7 @@ struct iomap_ops;
- 
- int dax_read_lock(void);
- void dax_read_unlock(int id);
-+struct dax_device *dax_get_by_host(const char *host);
+@@ -27,6 +27,8 @@ void put_dax(struct dax_device *dax_dev);
+ bool dax_alive(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+ void *dax_get_private(struct dax_device *dax_dev);
++long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
++		void **kaddr, pfn_t *pfn);
  
  /*
   * We use lowest available bit in exceptional entry for locking, one bit for
