@@ -1,7 +1,7 @@
-From: Logan Gunthorpe <logang@deltatee.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Tue, 18 Apr 2017 14:48:03 -0600
-Message-ID: <1cdeee61-2107-a392-4e5e-77a6aa10354f@deltatee.com>
+Date: Tue, 18 Apr 2017 15:03:39 -0600
+Message-ID: <20170418210339.GA24257@obsidianresearch.com>
 References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
  <1492381396.25766.43.camel@kernel.crashing.org>
  <20170418164557.GA7181@obsidianresearch.com>
@@ -9,51 +9,90 @@ References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
  <20170418190138.GH7181@obsidianresearch.com>
  <df1351d8-b86c-2e21-1948-4688ece5dc2b@deltatee.com>
  <CAPcyv4gScx6A7vG9VEHpNF41GOy1Nxst7QQ3QC3uZ54bWoxbMg@mail.gmail.com>
- <1565047873.28680036.1492547352121.JavaMail.zimbra@redhat.com>
- <CAPcyv4hTWbXkdeCEO9O0UM-EPcSjpdHCh7vDpSoNs1kB-Kup3A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4hTWbXkdeCEO9O0UM-EPcSjpdHCh7vDpSoNs1kB-Kup3A@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Jerome Glisse <jglisse@redhat.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <helgaas@kernel.org>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Keith Busch <keith.busch@intel.com>, linux-pci@vger.kernel.org, linux-scsi <linux-scsi@vger.kernel.org>, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm <linux-nvdimm@ml01.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gScx6A7vG9VEHpNF41GOy1Nxst7QQ3QC3uZ54bWoxbMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
+On Tue, Apr 18, 2017 at 12:48:35PM -0700, Dan Williams wrote:
 
-
-On 18/04/17 02:31 PM, Dan Williams wrote:
-> On Tue, Apr 18, 2017 at 1:29 PM, Jerome Glisse <jglisse@redhat.com> wrote:
->>> On Tue, Apr 18, 2017 at 12:35 PM, Logan Gunthorpe <logang@deltatee.com>
->>> wrote:
->>>>
->>>>
->>>> On 18/04/17 01:01 PM, Jason Gunthorpe wrote:
->>>>> Ultimately every dma_ops will need special code to support P2P with
->>>>> the special hardware that ops is controlling, so it makes some sense
->>>>> to start by pushing the check down there in the first place. This
->>>>> advice is partially motivated by how dma_map_sg is just a small
->>>>> wrapper around the function pointer call...
->>>>
->>>> Yes, I noticed this problem too and that makes sense. It just means
->>>> every dma_ops will probably need to be modified to either support p2p
->>>> pages or fail on them. Though, the only real difficulty there is that it
->>>> will be a lot of work.
->>>
->>> I don't think you need to go touch all dma_ops, I think you can just
->>> arrange for devices that are going to do dma to get redirected to a
->>> p2p aware provider of operations that overrides the system default
->>> dma_ops. I.e. just touch get_dma_ops().
->>
->> This would not work well for everyone, for instance on GPU we usualy
->> have buffer object with a mix of device memory and regular system
->> memory but call dma sg map once for the list.
->>
+> > Yes, I noticed this problem too and that makes sense. It just means
+> > every dma_ops will probably need to be modified to either support p2p
+> > pages or fail on them. Though, the only real difficulty there is that it
+> > will be a lot of work.
 > 
-> ...and that dma_map goes through get_dma_ops(), so I don't see the conflict?
+> I don't think you need to go touch all dma_ops, I think you can just
+> arrange for devices that are going to do dma to get redirected to a
+> p2p aware provider of operations that overrides the system default
+> dma_ops. I.e. just touch get_dma_ops().
 
-The main conflict is in dma_map_sg which only does get_dma_ops once but
-the sg may contain memory of different types.
+I don't follow, when does get_dma_ops() return a p2p aware provider?
+It has no way to know if the DMA is going to involve p2p, get_dma_ops
+is called with the device initiating the DMA.
 
-Logan
+So you'd always return the P2P shim on a system that has registered
+P2P memory?
+
+Even so, how does this shim work? dma_ops are not really intended to
+be stacked. How would we make unmap work, for instance? What happens
+when the underlying iommu dma ops actually natively understands p2p
+and doesn't want the shim?
+
+I think this opens an even bigger can of worms..
+
+Lets find a strategy to safely push this into dma_ops.
+
+What about something more incremental like this instead:
+- dma_ops will set map_sg_p2p == map_sg when they are updated to
+  support p2p, otherwise DMA on P2P pages will fail for those ops.
+- When all ops support p2p we remove the if and ops->map_sg then
+  just call map_sg_p2p
+- For now the scatterlist maintains a bit when pages are added indicating if
+  p2p memory might be present in the list.
+- Unmap for p2p and non-p2p is the same, the underlying ops driver has
+  to make it work.
+
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 0977317c6835c2..505ed7d502053d 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -103,6 +103,9 @@ struct dma_map_ops {
+ 	int (*map_sg)(struct device *dev, struct scatterlist *sg,
+ 		      int nents, enum dma_data_direction dir,
+ 		      unsigned long attrs);
++	int (*map_sg_p2p)(struct device *dev, struct scatterlist *sg,
++			  int nents, enum dma_data_direction dir,
++			  unsigned long attrs);
+ 	void (*unmap_sg)(struct device *dev,
+ 			 struct scatterlist *sg, int nents,
+ 			 enum dma_data_direction dir,
+@@ -244,7 +247,15 @@ static inline int dma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
+ 	for_each_sg(sg, s, nents, i)
+ 		kmemcheck_mark_initialized(sg_virt(s), s->length);
+ 	BUG_ON(!valid_dma_direction(dir));
+-	ents = ops->map_sg(dev, sg, nents, dir, attrs);
++
++	if (sg_has_p2p(sg)) {
++		if (ops->map_sg_p2p)
++			ents = ops->map_sg_p2p(dev, sg, nents, dir, attrs);
++		else
++			return 0;
++	} else
++		ents = ops->map_sg(dev, sg, nents, dir, attrs);
++
+ 	BUG_ON(ents < 0);
+ 	debug_dma_map_sg(dev, sg, nents, ents, dir);
