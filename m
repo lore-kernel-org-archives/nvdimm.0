@@ -1,19 +1,19 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Mon, 17 Apr 2017 23:22:30 -0600
-Message-ID: <bd28298b-c679-d02e-c014-0af5843b0795@deltatee.com>
+Date: Mon, 17 Apr 2017 23:43:24 -0600
+Message-ID: <e5645535-8da0-6965-1d5f-ed43ab634600@deltatee.com>
 References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
  <6e732d6a-9baf-1768-3e9c-f6c887a836b2@deltatee.com>
  <1492381958.25766.50.camel@kernel.crashing.org>
  <6149ab5e-c981-6881-8c5a-22349561c3e8@deltatee.com>
  <1492413640.25766.52.camel@kernel.crashing.org>
  <ac643c73-43e9-1658-ffcb-d5628f80cbc1@deltatee.com>
- <CAPcyv4guU68waLZ1XBT9GPq1b1iZFDhTpsAven18jhr2JU6ScQ@mail.gmail.com>
+ <1492463497.25766.55.camel@kernel.crashing.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4guU68waLZ1XBT9GPq1b1iZFDhTpsAven18jhr2JU6ScQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1492463497.25766.55.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,33 +23,84 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
 
 
-On 17/04/17 11:04 AM, Dan Williams wrote:
->> Yes, in this scheme, it needs an additional p2pmem child. Why is that an
->> issue? It certainly makes it a lot easier for the user to understand the
->> p2pmem memory in the system (through the sysfs tree) and reason about
->> the topology and when to use it. This is important.
-> 
-> I think you want to go the other way in the hierarchy and find a
-> shared *parent* to land the p2pmem capability. Because that same agent
-> is going to be responsible handling address translation for the peers.
->
-> Peer-dma is always going to be a property of the bus and not the end
-> devices. Requiring each bus implementation to explicitly enable
-> peer-to-peer support is a feature not a bug.
-> 
-> We shouldn't design for some future possible use case. Solve it for
-> pci and when / if another bus comes along then look at a more generic
-> abstraction.
+On 17/04/17 03:11 PM, Benjamin Herrenschmidt wrote:
+> Is it ? Again, you create a "concept" the user may have no idea about,
+> "p2pmem memory". So now any kind of memory buffer on a device can could
+> be use for p2p but also potentially a bunch of other things becomes
+> special and called "p2pmem" ...
 
-Thanks Dan, these are some good points. Wedding it closer to the PCI
-code makes more sense to me now. I'd still think you'd want some struct
-device though to appear in the device hierarchy and allow reasoning
-about topology.
+The user is going to have to have an idea about it if they are designing
+systems to make use of it. I've said it before many times: this is an
+optimization with significant trade-offs so the user does have to make
+decisions regarding when to enable it.
+
+
+> But what do you have in p2pmem that somebody benefits from. Again I
+> don't understand what that "p2pmem" device buys you in term of
+> functionality vs. having the device just instanciate the pages.
+
+Well thanks for just taking a big shit on all of our work without even
+reading the patches. Bravo.
+
+> Now having some kind of way to override the dma_ops, yes I do get that,
+> and it could be that this "p2pmem" is typically the way to do it, but
+> at the moment you don't even have that. So I'm a bit at a loss here.
+
+Yes, we've already said many times that this is something we will need
+to add.
+
+> But it doesn't *have* to be. Again, take my GPU example. The fact that
+> a NIC might be able to DMA into it doesn't make it specifically "p2p
+> memory".
+
+Just because you use it for other things doesn't mean it can't also
+provide the service of a "p2pmem" device.
+
+> So now your "p2pmem" device needs to also be laid out on top of those
+> MMIO registers ? It's becoming weird.
+
+Yes, Max Gurtovoy has also expressed an interest in expanding this work
+to cover things other than memory. He's suggested simply calling it a
+p2p device, but until we figure out what exactly that all means we can't
+really finalize a name.
+
+> See, basically, doing peer 2 peer between devices has 3 main challenges
+> today: The DMA API needing struct pages, the MMIO translation issues
+> and the IOMMU translation issues.
+> 
+> You seem to create that added device as some kind of "owner" for the
+> struct pages, solving #1, but leave #2 and #3 alone.
+
+Well there are other challenges too. Like figuring out when it's
+appropriate to use, tying together the device that provides the memory
+with the driver tring to use it in DMA transactions, etc, etc. Our patch
+set tackles these latter issues.
+
+> If we go down that path, though, rather than calling it p2pmem I would
+> call it something like dma_target which I find much clearer especially
+> since it doesn't have to be just memory.
+
+I'm not set on the name. My arguments have been specifically for the
+existence of an independent struct device. But I'm not really interested
+in getting into bike shedding arguments over what to call it at this
+time when we don't even really know what it's going to end up doing in
+the end.
+
+> The memory allocation should be a completely orthogonal and separate
+> thing yes. You are conflating two completely different things now into
+> a single concept.
+
+Well we need a uniform way for a driver trying to coordinate a p2p dma
+to find and obtain memory from devices that supply it. We are not
+dealing with GPUs that already have complicated allocators. We are
+dealing with people adding memory to their devices for the _sole_
+purpose of enabling p2p transfers. So having a common allocation setup
+is seen as a benefit to us.
 
 Logan
