@@ -1,19 +1,19 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Mon, 17 Apr 2017 23:43:24 -0600
-Message-ID: <e5645535-8da0-6965-1d5f-ed43ab634600@deltatee.com>
+Date: Tue, 18 Apr 2017 00:14:16 -0600
+Message-ID: <39af53d6-a1c1-83d4-e4d6-c1da3b8f95c7@deltatee.com>
 References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
  <6e732d6a-9baf-1768-3e9c-f6c887a836b2@deltatee.com>
  <1492381958.25766.50.camel@kernel.crashing.org>
  <6149ab5e-c981-6881-8c5a-22349561c3e8@deltatee.com>
  <1492413640.25766.52.camel@kernel.crashing.org>
  <ac643c73-43e9-1658-ffcb-d5628f80cbc1@deltatee.com>
- <1492463497.25766.55.camel@kernel.crashing.org>
+ <20170417180421.GA6015@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1492463497.25766.55.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20170417180421.GA6015-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,84 +23,97 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
 
 
-On 17/04/17 03:11 PM, Benjamin Herrenschmidt wrote:
-> Is it ? Again, you create a "concept" the user may have no idea about,
-> "p2pmem memory". So now any kind of memory buffer on a device can could
-> be use for p2p but also potentially a bunch of other things becomes
-> special and called "p2pmem" ...
+On 17/04/17 12:04 PM, Jerome Glisse wrote:
+> I disagree here. I would rather see Peer-to-Peer mapping as a form
+> of helper so that device driver can opt-in for multiple mecanisms
+> concurrently. Like HMM and p2p.
 
-The user is going to have to have an idea about it if they are designing
-systems to make use of it. I've said it before many times: this is an
-optimization with significant trade-offs so the user does have to make
-decisions regarding when to enable it.
+I'm not against moving some of the common stuff into a library. It
+sounds like the problems p2pmem solves don't overlap much with the
+problems of the GPU and moving the stuff we have in common somewhere
+else seems sensible.
+
+> Also it seems you are having a static vision for p2p. For GPU and
+> network the use case is you move some buffer into the device memory
+> and then you create mapping for some network adapter while the buffer
+> is in device memory. But this is only temporary and buffer might
+> move to different device memory. So usecase is highly dynamic (well
+> mapping lifetime is still probably few second/minutes).
+
+I feel like you will need to pin the memory while it's the target of a
+DMA transaction. If some network peer is sending you data and you just
+invalidated the memory it is headed to then you are just going to break
+applications. But really this isn't our concern: the memory we are using
+with this work will be static and not prone to disappearing.
+
+> I see no reason for exposing sysfs tree to userspace for all this.
+> This isn't too dynamic, either 2 devices can access each others
+> memory, either they can't. This can be hidden through the device
+> kernel API. Again for GPU the idea is that it is always do-able
+> in the sense that when it is not you fallback to using system
+> memory.
+
+The user has to make a decision to use it or not. This is an
+optimization with significant trade-offs that may differ significantly
+based on system design.
+
+> Yes this could conflict and that's why i would rather see this as a set
+> of helper like HMM is doing. So device driver can opt-in HMM and p2pmem
+> at the same time.
+
+I don't understand how that addresses the conflict. We need to each be
+using unique and identifiable struct devices in the ZONE_DEVICE
+dev_pagemap so we don't apply p2p dma mappings to hmm memory and vice-versa.
+
+> This seems to duplicate things that already exist in each individual
+> driver. If a device has memory than device driver already have some
+> form of memory management and most likely expose some API to userspace
+> to allow program to use that memory.
+
+> Peer to peer DMA mapping is orthogonal to memory management, it is
+> an optimization ie you have some buffer allocated through some device
+> driver specific IOCTL and now you want some other device to directly
+> access it. Having to first do another allocation in a different device
+> driver for that to happen seems overkill.
+
+The devices we are working with are adding memory specifically for
+enabling p2p applications. The memory is new and there are no allocators
+for any of it yet.
+
+Also note: we've gotten _significant_ push back against exposing any of
+this memory to userspace. Letting the user unknowingly have to deal with
+the issues of iomem is not anything anyone wants to see. Thus we are
+dealing with in-kernel users only and they need a common interface to
+get the memory from.
+
+> What you really want from device driver point of view is an helper to
+> first tell you if 2 device can access each other and second an helper
+> that allow the second device to import the other device memory to allow
+> direct access.
+
+Well, actually it's a bit more complicated than that but essentially
+correct: There can be N devices in the mix and quite likely another
+driver completely separate from all N devices. (eg. for our main use
+case we have N nvme cards being talked to through an RDMA NIC with it
+all being coordinated by the nvme-target driver).
 
 
-> But what do you have in p2pmem that somebody benefits from. Again I
-> don't understand what that "p2pmem" device buys you in term of
-> functionality vs. having the device just instanciate the pages.
+> Discovering possible peer is a onetime only thing and designing around
+> that is wrong in my view. There is already existing hierarchy in kernel
+> for that in the form of the bus hierarchy (i am thinking pci bus here).
+> So there is already existing way to discover this and you are just
+> duplicating informations here.
 
-Well thanks for just taking a big shit on all of our work without even
-reading the patches. Bravo.
-
-> Now having some kind of way to override the dma_ops, yes I do get that,
-> and it could be that this "p2pmem" is typically the way to do it, but
-> at the moment you don't even have that. So I'm a bit at a loss here.
-
-Yes, we've already said many times that this is something we will need
-to add.
-
-> But it doesn't *have* to be. Again, take my GPU example. The fact that
-> a NIC might be able to DMA into it doesn't make it specifically "p2p
-> memory".
-
-Just because you use it for other things doesn't mean it can't also
-provide the service of a "p2pmem" device.
-
-> So now your "p2pmem" device needs to also be laid out on top of those
-> MMIO registers ? It's becoming weird.
-
-Yes, Max Gurtovoy has also expressed an interest in expanding this work
-to cover things other than memory. He's suggested simply calling it a
-p2p device, but until we figure out what exactly that all means we can't
-really finalize a name.
-
-> See, basically, doing peer 2 peer between devices has 3 main challenges
-> today: The DMA API needing struct pages, the MMIO translation issues
-> and the IOMMU translation issues.
-> 
-> You seem to create that added device as some kind of "owner" for the
-> struct pages, solving #1, but leave #2 and #3 alone.
-
-Well there are other challenges too. Like figuring out when it's
-appropriate to use, tying together the device that provides the memory
-with the driver tring to use it in DMA transactions, etc, etc. Our patch
-set tackles these latter issues.
-
-> If we go down that path, though, rather than calling it p2pmem I would
-> call it something like dma_target which I find much clearer especially
-> since it doesn't have to be just memory.
-
-I'm not set on the name. My arguments have been specifically for the
-existence of an independent struct device. But I'm not really interested
-in getting into bike shedding arguments over what to call it at this
-time when we don't even really know what it's going to end up doing in
-the end.
-
-> The memory allocation should be a completely orthogonal and separate
-> thing yes. You are conflating two completely different things now into
-> a single concept.
-
-Well we need a uniform way for a driver trying to coordinate a p2p dma
-to find and obtain memory from devices that supply it. We are not
-dealing with GPUs that already have complicated allocators. We are
-dealing with people adding memory to their devices for the _sole_
-purpose of enabling p2p transfers. So having a common allocation setup
-is seen as a benefit to us.
+I really don't see the solution you are proposing here. Have the user
+specify a pci device name and just have them guess which ones have
+suitable memory? Or do they have to walk the entire pci tree to find
+ones that have such memory? There was no "duplicate" information created
+by our patch set.
 
 Logan
