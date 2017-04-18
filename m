@@ -1,7 +1,7 @@
-From: fnwummxdse-L1WV62XgavAMxEXbsEqcx/TrpNNmqYR+mpATvIKMPHk@public.gmane.org
-Subject: Shipment delivery problem #7185722
-Date: Tue, 18 Apr 2017 13:47:20 +0000
-Message-ID: <20170418134720.09CF84A129@32270-23911.cloudwaysapps.com>
+From: andreas-nJONrVjOgt4@public.gmane.org
+Subject: Returned mail: see transcript for details
+Date: Wed, 19 Apr 2017 00:19:16 +0800
+Message-ID: <20170418161953.017E221A0480E@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,15 +15,11 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Dear Customer,
+The original message was received at Wed, 19 Apr 2017 00:19:16 +0800
+from meetr.de [109.132.140.89]
 
-Your item has arrived at April 14, but our courier was not able to deliver the parcel.
-
-Please check the attachment for complete details!
-
-All the best,
-Mario Donaldson,
-UPS Office Clerk.
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
