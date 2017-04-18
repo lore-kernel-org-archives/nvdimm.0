@@ -1,37 +1,33 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from uskudarisleremlak.com (unknown [185.108.215.216])
- by ml01.01.org (Postfix) with SMTP id 00E7A21942321
- for <linux-nvdimm@lists.01.org>; Thu,  6 Apr 2017 02:25:06 -0700 (PDT)
-Message-ID: <20887D15.02FEFB08@uskudarisleremlak.com>
-Date: Thu, 06 Apr 2017 08:12:54 -0100
-From: "USPS Support" <xlalazea65516707@uskudarisleremlak.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 18 Apr 2017 14:35:06 -0700 (PDT)
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH 1/9] mm/huge_memory: Use zap_deposited_table() more
+In-Reply-To: <20170411174233.21902-2-oohall@gmail.com>
+Message-ID: <alpine.DEB.2.10.1704181434520.112481@chino.kir.corp.google.com>
+References: <20170411174233.21902-1-oohall@gmail.com> <20170411174233.21902-2-oohall@gmail.com>
 MIME-Version: 1.0
-Subject: Status of your USPS delivery ID: 508841272
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: AOL Users <linux-nvdimm@lists.01.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: owner-linux-mm@kvack.org
+To: Oliver O'Halloran <oohall@gmail.com>
+Cc: linuxppc-dev@lists.ozlabs.org, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+On Wed, 12 Apr 2017, Oliver O'Halloran wrote:
 
-We can not deliver your parcel arrived at  Thu, 06 Apr 2017 08:12:54 -0100.
+> Depending flags of the PMD being zapped there may or may not be a
+> deposited pgtable to be freed. In two of the three cases this is open
+> coded while the third uses the zap_deposited_table() helper. This patch
+> converts the others to use the helper to clean things up a bit.
+> 
+> Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+> Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+> Cc: linux-mm@kvack.org
+> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 
-Please check the attachment for details!
+Acked-by: David Rientjes <rientjes@google.com>
 
-Respectfully yours.
-Perry Oestreich -  USPS Senior Station Manager.
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
