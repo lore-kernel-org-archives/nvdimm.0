@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7526621954068
- for <linux-nvdimm@lists.01.org>; Thu, 20 Apr 2017 14:05:07 -0700 (PDT)
-Subject: [ndctl PATCH 3/5] test,
- libndctl: gate ndctl_namespace_get_mode() on v4.5+
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 20 Apr 2017 13:59:14 -0700
-Message-ID: <149272195485.23427.477956361004200064.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149272193912.23427.11500536718990091103.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149272193912.23427.11500536718990091103.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 18 Apr 2017 09:28:22 -0700
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: Re: [RFC PATCH] x86, mce: change the mce notifier to 'blocking' from
+ 'atomic'
+Message-ID: <20170418162822.GA2358@intel.com>
+References: <20170412205229.GA13659@intel.com>
+ <CAPcyv4j1=Cs84nn6n-9vygSJ2Ei9Z3Gw7hCzyBzo+GyLKWaTUg@mail.gmail.com>
+ <alpine.DEB.2.20.1704122259490.2548@nanos>
+ <20170412211931.GA15771@intel.com>
+ <20170412214749.jyt7cmyhovivtb2m@pd.tnic>
+ <20170412221639.5klmqk4mjbvy6btx@pd.tnic>
+ <20170412222619.GA17839@intel.com>
+ <20170412222925.r3izasv3yuyjy62e@pd.tnic>
+ <20170413113159.rc32ebiswn64nzrr@pd.tnic>
+ <20170413121215.kzflalrar7hpxvjh@pd.tnic>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170413121215.kzflalrar7hpxvjh@pd.tnic>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,49 +28,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Borislav Petkov <bp@suse.de>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This support was added upstream with commit 0731de0dd95b "libnvdimm, pfn:
-move 'memory mode' indication to sysfs".
+On Thu, Apr 13, 2017 at 02:12:16PM +0200, Borislav Petkov wrote:
+> On Thu, Apr 13, 2017 at 01:31:59PM +0200, Borislav Petkov wrote:
+> > @@ -321,18 +321,8 @@ static void __print_mce(struct mce *m)
+> >  
+> >  static void print_mce(struct mce *m)
+> >  {
+> > -	int ret = 0;
+> > -
+> >  	__print_mce(m);
+> > -
+> > -	/*
+> > -	 * Print out human-readable details about the MCE error,
+> > -	 * (if the CPU has an implementation for that)
+> > -	 */
+> > -	ret = atomic_notifier_call_chain(&x86_mce_decoder_chain, 0, m);
+> > -	if (ret == NOTIFY_STOP)
+> > -		return;
+> > -
+> > +	mce_log(m);
+> 
+> Actually, we don't need that call here because do_machine_check()
+> already does it.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/libndctl.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+Yes. Don't add mce_log(m) here. We've already done it.
 
-diff --git a/test/libndctl.c b/test/libndctl.c
-index f5a6abe50edd..38a0bb746905 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -1033,6 +1033,8 @@ static int check_btt_size(struct ndctl_btt *btt)
- static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace *ndns,
- 		struct namespace *namespace)
- {
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-+	struct ndctl_test *test = ndctl_get_private_data(ctx);
- 	struct btt *btt_s = namespace->btt_settings;
- 	int i, fd, retry = 10;
- 	struct ndctl_btt *btt;
-@@ -1070,10 +1072,13 @@ static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace
- 			goto err;
- 		}
- 
--		mode = ndctl_namespace_get_mode(ndns);
--		if (mode >= 0 && mode != NDCTL_NS_MODE_SAFE)
--			fprintf(stderr, "%s: expected safe mode got: %d\n",
--					devname, mode);
-+		/* prior to v4.5 the mode attribute did not exist */
-+		if (ndctl_test_attempt(test, KERNEL_VERSION(4, 5, 0))) {
-+			mode = ndctl_namespace_get_mode(ndns);
-+			if (mode >= 0 && mode != NDCTL_NS_MODE_SAFE)
-+				fprintf(stderr, "%s: expected safe mode got: %d\n",
-+						devname, mode);
-+		}
- 
- 		rc = check_btt_size(btt);
- 		if (rc)
+With this change:
 
+Acked-by: Tony Luck <tony.luck@intel.com>
+
+-Tony
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
