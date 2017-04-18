@@ -1,103 +1,17 @@
-From: "MATTHEW" <kipemilf56-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Increase exposure of  ml01.01.org with FB Groups Post Reach
-Date: Tue, 18 Apr 2017 11:48:27 -0700
-Message-ID: <C957C1A8.917054EC@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
+Date: Tue, 18 Apr 2017 13:01:38 -0600
+Message-ID: <20170418190138.GH7181@obsidianresearch.com>
+References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
+ <1492381396.25766.43.camel@kernel.crashing.org>
+ <20170418164557.GA7181@obsidianresearch.com>
+ <cce00131-1f28-27b3-40ab-04f8783f1e5a@deltatee.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_58F65F83.287F0A40"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_58F65F83.287F0A40
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Hello, FB Groups posting !service to reach millions of FB
-  users: http://www.socialflowgroup.com/detail.php?id=12 Regards MATTHEW Unsubscribe
-   option is available on the footer of our website [...] 
-
-Content analysis details:   (13.1 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.7 URIBL_BLACK            Contains an URL listed in the URIBL blacklist
-                            [URIs: socialflowgroup.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: socialflowgroup.com]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?182.16.74.250>]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.socialflowgroup.com]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: socialflowgroup.com]
- 2.8 FSL_HELO_FAKE          No description available.
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (kipemilf56[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (kipemilf56[at]gmail.com)
--0.5 BAYES_05               BODY: Bayes spam probability is 1 to 5%
-                            [score: 0.0109]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.socialflowgroup.com]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_58F65F83.287F0A40
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1d0YAu-0005op-Vw
-	for gln-linux-nvdimm@m.gmane.org; Tue, 18 Apr 2017 20:48:29 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5267021A04823;
-	Tue, 18 Apr 2017 11:48:34 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [182.16.74.250])
- by ml01.01.org (Postfix) with SMTP id 39E5B21A04820
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Tue, 18 Apr 2017 11:48:31 -0700 (PDT)
-Message-ID: <C957C1A8.917054EC-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Tue, 18 Apr 2017 11:48:27 -0700
-From: "MATTHEW" <kipemilf56-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US;
- rv:1.8.1.24) Gecko/20100317 Thunderbird/2.0.0.24
-X-Accept-Language: en-us
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: Increase exposure of  ml01.01.org with FB Groups Post Reach
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+Content-Disposition: inline
+In-Reply-To: <cce00131-1f28-27b3-40ab-04f8783f1e5a-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -105,31 +19,51 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: MATTHEW <kipemilf56-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-Hello,
-FB Groups posting !service to reach millions of FB users:
-http://www.socialflowgroup.com/detail.php?id=3D12
+On Tue, Apr 18, 2017 at 12:30:59PM -0600, Logan Gunthorpe wrote:
 
-Regards
-MATTHEW
-=A0
+> >  - The dma ops provider must be able to tell if source memory is bar
+> >    mapped and recover the pci device backing the mapping.
+> 
+> Do you mean to say that every dma-ops provider needs to be taught about
+> p2p backed pages? I was hoping we could have dma_map_* just use special
+> p2p dma-ops if it was passed p2p pages (though there are some
+> complications to this too).
 
+I think that is how it will end up working out if this is the path..
 
+Ultimately every dma_ops will need special code to support P2P with
+the special hardware that ops is controlling, so it makes some sense
+to start by pushing the check down there in the first place. This
+advice is partially motivated by how dma_map_sg is just a small
+wrapper around the function pointer call...
 
+Something like:
 
+foo_dma_map_sg(...)
+{
+  for (every page in sg)
+      if (page is p2p)
+           dma_addr[I] = p2p_same_segment_map_page(...);
+}
 
-Unsubscribe option is available on the footer of our website
+Where p2p_same_segment_map_page checks if the two devices are on the
+'same switch' and if so returns the address translated to match the
+bus address programmed into the BAR or fails. We knows this case is
+required to work by the PCI spec, so it makes sense to use it as the
+first canned helper.
 
+This also proves out the basic idea that the dma ops can recover the
+pci device and perform an inspection of the traversed fabric path.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+>From there every arch would have to expand the implementation to
+support a wider range of things. Eg x86 with no iommu and no offset
+could allow every address to be used based on a host bridge white
+list.
 
-
-------------=_58F65F83.287F0A40--
+Jason
