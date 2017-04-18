@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
- [IPv6:2607:f8b0:4003:c06::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF9C521A6F106
- for <linux-nvdimm@lists.01.org>; Tue, 18 Apr 2017 16:05:57 -0700 (PDT)
-Received: by mail-oi0-x233.google.com with SMTP id x184so9231856oia.1
- for <linux-nvdimm@lists.01.org>; Tue, 18 Apr 2017 16:05:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <58F68D20.5090607@hpe.com>
-References: <149253869300.4222.11825248275497461939.stgit@dwillia2-desk3.amr.corp.intel.com>
- <58F68D20.5090607@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Apr 2017 16:05:56 -0700
-Message-ID: <CAPcyv4jGGiVGigQZMaXo_KfReEAJP=XgmD2GVbDW8hCLaF47Kg@mail.gmail.com>
+Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D2B3721A6F106
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Apr 2017 15:03:19 -0700 (PDT)
 Subject: Re: [PATCH] acpi, nfit: fix module unload vs workqueue shutdown race
+References: <149253869300.4222.11825248275497461939.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Message-ID: <58F68D20.5090607@hpe.com>
+Date: Tue, 18 Apr 2017 18:03:12 -0400
+MIME-Version: 1.0
+In-Reply-To: <149253869300.4222.11825248275497461939.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,43 +22,218 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linda Knippers <linda.knippers@hpe.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Apr 18, 2017 at 3:03 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
-> On 04/18/2017 02:06 PM, Dan Williams wrote:
->> The workqueue may still be running when the devres callbacks start
->> firing to deallocate an acpi_nfit_desc instance. Stop and flush the
->> workqueue before letting any other devres de-allocations proceed.
->>
->> Reported-by: Linda Knippers <linda.knippers@hpe.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>
->> I was able to produce a reliable nfit_test crash failure by running the
->> tests on hardware *and* disabling all debug messages. That last detail
->> may be why I have been seeing much less frequent failures. With this
->> change, in addition to the previous fix [1], I was again able to
->> complete a successful run.
->
-> It seems a bit better because I can sometimes get a test to complete
-> but then I'll get a panic when I try again.
+On 04/18/2017 02:06 PM, Dan Williams wrote:
+> The workqueue may still be running when the devres callbacks start
+> firing to deallocate an acpi_nfit_desc instance. Stop and flush the
+> workqueue before letting any other devres de-allocations proceed.
+> 
+> Reported-by: Linda Knippers <linda.knippers@hpe.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> 
+> I was able to produce a reliable nfit_test crash failure by running the
+> tests on hardware *and* disabling all debug messages. That last detail
+> may be why I have been seeing much less frequent failures. With this
+> change, in addition to the previous fix [1], I was again able to
+> complete a successful run.
 
-Some forward progress... let me go back and try your test script on my
-bare metal config because this patch only addressed the reliable
-failure I was seeing for a single run of "make check".
+It seems a bit better because I can sometimes get a test to complete
+but then I'll get a panic when I try again.  The footprints are the same
+as before, sometimes when unloading the module but sometimes in a kfree
+or related function.
 
-> The footprints are the same
-> as before, sometimes when unloading the module but sometimes in a kfree
-> or related function.
->
-> I'd be interested in your .config file and exactly how you're building
-> your bare metal kernel.
+I'd be interested in your .config file and exactly how you're building
+your bare metal kernel.
 
-Here's the config and build + install steps I'm performing.
+-- ljk
+> 
+> [1]: https://patchwork.kernel.org/patch/9681861/
+> 
+>  drivers/acpi/nfit/core.c         |   76 +++++++++++++++++++++++---------------
+>  drivers/acpi/nfit/nfit.h         |    1 +
+>  tools/testing/nvdimm/test/nfit.c |    4 ++
+>  3 files changed, 51 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 69c6cc77130c..261eea1d2906 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2604,7 +2604,8 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+>  				return rc;
+>  		}
+>  
+> -	queue_work(nfit_wq, &acpi_desc->work);
+> +	if (!acpi_desc->cancel)
+> +		queue_work(nfit_wq, &acpi_desc->work);
+>  	return 0;
+>  }
+>  
+> @@ -2650,32 +2651,11 @@ static int acpi_nfit_desc_init_scrub_attr(struct acpi_nfit_desc *acpi_desc)
+>  	return 0;
+>  }
+>  
+> -static void acpi_nfit_destruct(void *data)
+> +static void acpi_nfit_unregister(void *data)
+>  {
+>  	struct acpi_nfit_desc *acpi_desc = data;
+> -	struct device *bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
+>  
+> -	/*
+> -	 * Destruct under acpi_desc_lock so that nfit_handle_mce does not
+> -	 * race teardown
+> -	 */
+> -	mutex_lock(&acpi_desc_lock);
+> -	acpi_desc->cancel = 1;
+> -	/*
+> -	 * Bounce the nvdimm bus lock to make sure any in-flight
+> -	 * acpi_nfit_ars_rescan() submissions have had a chance to
+> -	 * either submit or see ->cancel set.
+> -	 */
+> -	device_lock(bus_dev);
+> -	device_unlock(bus_dev);
+> -
+> -	flush_workqueue(nfit_wq);
+> -	if (acpi_desc->scrub_count_state)
+> -		sysfs_put(acpi_desc->scrub_count_state);
+>  	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> -	acpi_desc->nvdimm_bus = NULL;
+> -	list_del(&acpi_desc->list);
+> -	mutex_unlock(&acpi_desc_lock);
+>  }
+>  
+>  int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
+> @@ -2693,7 +2673,7 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
+>  		if (!acpi_desc->nvdimm_bus)
+>  			return -ENOMEM;
+>  
+> -		rc = devm_add_action_or_reset(dev, acpi_nfit_destruct,
+> +		rc = devm_add_action_or_reset(dev, acpi_nfit_unregister,
+>  				acpi_desc);
+>  		if (rc)
+>  			return rc;
+> @@ -2787,9 +2767,10 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+>  
+>  	/* bounce the init_mutex to make init_complete valid */
+>  	mutex_lock(&acpi_desc->init_mutex);
+> -	mutex_unlock(&acpi_desc->init_mutex);
+> -	if (acpi_desc->init_complete)
+> +	if (acpi_desc->cancel || acpi_desc->init_complete) {
+> +		mutex_unlock(&acpi_desc->init_mutex);
+>  		return 0;
+> +	}
+>  
+>  	/*
+>  	 * Scrub work could take 10s of seconds, userspace may give up so we
+> @@ -2798,6 +2779,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+>  	INIT_WORK_ONSTACK(&flush.work, flush_probe);
+>  	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
+>  	queue_work(nfit_wq, &flush.work);
+> +	mutex_unlock(&acpi_desc->init_mutex);
+>  
+>  	rc = wait_for_completion_interruptible(&flush.cmp);
+>  	cancel_work_sync(&flush.work);
+> @@ -2834,10 +2816,12 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
+>  	if (work_busy(&acpi_desc->work))
+>  		return -EBUSY;
+>  
+> -	if (acpi_desc->cancel)
+> +	mutex_lock(&acpi_desc->init_mutex);
+> +	if (acpi_desc->cancel) {
+> +		mutex_unlock(&acpi_desc->init_mutex);
+>  		return 0;
+> +	}
+>  
+> -	mutex_lock(&acpi_desc->init_mutex);
+>  	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+>  		struct acpi_nfit_system_address *spa = nfit_spa->spa;
+>  
+> @@ -2886,6 +2870,35 @@ static void acpi_nfit_put_table(void *table)
+>  	acpi_put_table(table);
+>  }
+>  
+> +void acpi_nfit_shutdown(void *data)
+> +{
+> +	struct acpi_nfit_desc *acpi_desc = data;
+> +	struct device *bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
+> +
+> +	/*
+> +	 * Destruct under acpi_desc_lock so that nfit_handle_mce does not
+> +	 * race teardown
+> +	 */
+> +	mutex_lock(&acpi_desc_lock);
+> +	list_del(&acpi_desc->list);
+> +	mutex_unlock(&acpi_desc_lock);
+> +
+> +	mutex_lock(&acpi_desc->init_mutex);
+> +	acpi_desc->cancel = 1;
+> +	mutex_unlock(&acpi_desc->init_mutex);
+> +
+> +	/*
+> +	 * Bounce the nvdimm bus lock to make sure any in-flight
+> +	 * acpi_nfit_ars_rescan() submissions have had a chance to
+> +	 * either submit or see ->cancel set.
+> +	 */
+> +	device_lock(bus_dev);
+> +	device_unlock(bus_dev);
+> +
+> +	flush_workqueue(nfit_wq);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_nfit_shutdown);
+> +
+>  static int acpi_nfit_add(struct acpi_device *adev)
+>  {
+>  	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+> @@ -2933,12 +2946,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>  		rc = acpi_nfit_init(acpi_desc, (void *) tbl
+>  				+ sizeof(struct acpi_table_nfit),
+>  				sz - sizeof(struct acpi_table_nfit));
+> -	return rc;
+> +
+> +	if (rc)
+> +		return rc;
+> +	return devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
+>  }
+>  
+>  static int acpi_nfit_remove(struct acpi_device *adev)
+>  {
+> -	/* see acpi_nfit_destruct */
+> +	/* see acpi_nfit_unregister */
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+> index fac098bfa585..58fb7d68e04a 100644
+> --- a/drivers/acpi/nfit/nfit.h
+> +++ b/drivers/acpi/nfit/nfit.h
+> @@ -239,6 +239,7 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
+>  
+>  const u8 *to_nfit_uuid(enum nfit_uuids id);
+>  int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
+> +void acpi_nfit_shutdown(void *data);
+>  void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event);
+>  void __acpi_nvdimm_notify(struct device *dev, u32 event);
+>  int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+> index d7fb1b894128..c2187178fb13 100644
+> --- a/tools/testing/nvdimm/test/nfit.c
+> +++ b/tools/testing/nvdimm/test/nfit.c
+> @@ -1851,6 +1851,10 @@ static int nfit_test_probe(struct platform_device *pdev)
+>  	if (rc)
+>  		return rc;
+>  
+> +	rc = devm_add_action_or_reset(&pdev->dev, acpi_nfit_shutdown, acpi_desc);
+> +	if (rc)
+> +		return rc;
+> +
+>  	if (nfit_test->setup != nfit_test0_setup)
+>  		return 0;
+>  
+> 
 
-https://gist.github.com/djbw/73946ed4e8623aa1ded1b3615ba6d82b
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
