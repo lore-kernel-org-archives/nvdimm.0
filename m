@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 204BF20D7A3B2
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:38 -0700 (PDT)
-Subject: [resend PATCH v2 21/33] filesystem-dax: convert to
- dax_copy_from_iter()
+ by ml01.01.org (Postfix) with ESMTPS id E956C21A04830
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Apr 2017 15:37:37 -0700 (PDT)
+Subject: [PATCH v3] dax: add a facility to lookup a dax device by 'host'
+ device name
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:10:43 -0700
-Message-ID: <149245624377.10206.2326016724409668277.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 19 Apr 2017 15:31:53 -0700
+Message-ID: <149264098308.36586.14533308558533384197.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,134 +25,228 @@ To: linux-nvdimm@lists.01.org
 Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that all possible providers of the dax_operations copy_from_iter
-method are implemented, switch filesytem-dax to call the driver rather
-than copy_to_iter_pmem.
+For the current block_device based filesystem-dax path, we need a way
+for it to lookup the dax_device associated with a block_device. Add a
+'host' property of a dax_device that can be used for this purpose. It is
+a free form string, but for a dax_device associated with a block device
+it is the bdev name.
+
+This is a stop-gap until filesystems are able to mount on a dax-inode
+directly.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h |   50 -------------------------------------------
- fs/dax.c                    |    3 ++-
- include/linux/pmem.h        |   24 ---------------------
- 3 files changed, 2 insertions(+), 75 deletions(-)
+Changes since v2:
+* fixed slab corruption due to non-null dax_dev->host at
+  dax_i_callback() time
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index d5a22bac9988..60e8edbe0205 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -66,56 +66,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
- }
+ drivers/dax/dax.h    |    2 +
+ drivers/dax/device.c |    2 +
+ drivers/dax/super.c  |   87 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ include/linux/dax.h  |    1 +
+ 4 files changed, 86 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/dax/dax.h b/drivers/dax/dax.h
+index 2472d9da96db..246a24d68d4c 100644
+--- a/drivers/dax/dax.h
++++ b/drivers/dax/dax.h
+@@ -13,7 +13,7 @@
+ #ifndef __DAX_H__
+ #define __DAX_H__
+ struct dax_device;
+-struct dax_device *alloc_dax(void *private);
++struct dax_device *alloc_dax(void *private, const char *host);
+ void put_dax(struct dax_device *dax_dev);
+ bool dax_alive(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 19a42edbfa03..db68f4fa8ce0 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -645,7 +645,7 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
+ 		goto err_id;
+ 	}
  
- /**
-- * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
-- * @addr:	PMEM destination address
-- * @bytes:	number of bytes to copy
-- * @i:		iterator with source data
-- *
-- * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
-- */
--static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
--		struct iov_iter *i)
--{
--	size_t len;
--
--	/* TODO: skip the write-back by always using non-temporal stores */
--	len = copy_from_iter_nocache(addr, bytes, i);
--
--	/*
--	 * In the iovec case on x86_64 copy_from_iter_nocache() uses
--	 * non-temporal stores for the bulk of the transfer, but we need
--	 * to manually flush if the transfer is unaligned. A cached
--	 * memory copy is used when destination or size is not naturally
--	 * aligned. That is:
--	 *   - Require 8-byte alignment when size is 8 bytes or larger.
--	 *   - Require 4-byte alignment when size is 4 bytes.
--	 *
--	 * In the non-iovec case the entire destination needs to be
--	 * flushed.
--	 */
--	if (iter_is_iovec(i)) {
--		unsigned long flushed, dest = (unsigned long) addr;
--
--		if (bytes < 8) {
--			if (!IS_ALIGNED(dest, 4) || (bytes != 4))
--				arch_wb_cache_pmem(addr, 1);
--		} else {
--			if (!IS_ALIGNED(dest, 8)) {
--				dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
--				arch_wb_cache_pmem(addr, 1);
--			}
--
--			flushed = dest - (unsigned long) addr;
--			if (bytes > flushed && !IS_ALIGNED(bytes - flushed, 8))
--				arch_wb_cache_pmem(addr + bytes - 1, 1);
--		}
--	} else
--		arch_wb_cache_pmem(addr, bytes);
--
--	return len;
--}
--
--/**
-  * arch_clear_pmem - zero a PMEM memory range
-  * @addr:	virtual start address
-  * @size:	number of bytes to zero
-diff --git a/fs/dax.c b/fs/dax.c
-index ce9dc9c3e829..11b9909c91df 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1061,7 +1061,8 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 			map_len = end - pos;
+-	dax_dev = alloc_dax(dev_dax);
++	dax_dev = alloc_dax(dev_dax, NULL);
+ 	if (!dax_dev)
+ 		goto err_dax;
  
- 		if (iov_iter_rw(iter) == WRITE)
--			map_len = copy_from_iter_pmem(kaddr, map_len, iter);
-+			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
-+					map_len, iter);
- 		else
- 			map_len = copy_to_iter(kaddr, map_len, iter);
- 		if (map_len <= 0) {
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 71ecf3d46aac..9d542a5600e4 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -31,13 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 	BUG();
- }
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index c9f85f1c086e..8d446674c1da 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -30,6 +30,10 @@ static DEFINE_IDA(dax_minor_ida);
+ static struct kmem_cache *dax_cache __read_mostly;
+ static struct super_block *dax_superblock __read_mostly;
  
--static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
--		struct iov_iter *i)
--{
--	BUG();
--	return 0;
--}
--
- static inline void arch_clear_pmem(void *addr, size_t size)
++#define DAX_HASH_SIZE (PAGE_SIZE / sizeof(struct hlist_head))
++static struct hlist_head dax_host_list[DAX_HASH_SIZE];
++static DEFINE_SPINLOCK(dax_host_lock);
++
+ int dax_read_lock(void)
  {
- 	BUG();
-@@ -80,23 +73,6 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
+ 	return srcu_read_lock(&dax_srcu);
+@@ -46,12 +50,15 @@ EXPORT_SYMBOL_GPL(dax_read_unlock);
+  * struct dax_device - anchor object for dax services
+  * @inode: core vfs
+  * @cdev: optional character interface for "device dax"
++ * @host: optional name for lookups where the device path is not available
+  * @private: dax driver private data
+  * @alive: !alive + rcu grace period == no new operations / mappings
+  */
+ struct dax_device {
++	struct hlist_node list;
+ 	struct inode inode;
+ 	struct cdev cdev;
++	const char *host;
+ 	void *private;
+ 	bool alive;
+ };
+@@ -63,6 +70,11 @@ bool dax_alive(struct dax_device *dax_dev)
+ }
+ EXPORT_SYMBOL_GPL(dax_alive);
+ 
++static int dax_host_hash(const char *host)
++{
++	return hashlen_hash(hashlen_string("DAX", host)) % DAX_HASH_SIZE;
++}
++
+ /*
+  * Note, rcu is not protecting the liveness of dax_dev, rcu is ensuring
+  * that any fault handlers or operations that might have seen
+@@ -75,7 +87,13 @@ void kill_dax(struct dax_device *dax_dev)
+ 		return;
+ 
+ 	dax_dev->alive = false;
++
+ 	synchronize_srcu(&dax_srcu);
++
++	spin_lock(&dax_host_lock);
++	hlist_del_init(&dax_dev->list);
++	spin_unlock(&dax_host_lock);
++
+ 	dax_dev->private = NULL;
+ }
+ EXPORT_SYMBOL_GPL(kill_dax);
+@@ -98,6 +116,8 @@ static void dax_i_callback(struct rcu_head *head)
+ 	struct inode *inode = container_of(head, struct inode, i_rcu);
+ 	struct dax_device *dax_dev = to_dax_dev(inode);
+ 
++	kfree(dax_dev->host);
++	dax_dev->host = NULL;
+ 	ida_simple_remove(&dax_minor_ida, MINOR(inode->i_rdev));
+ 	kmem_cache_free(dax_cache, dax_dev);
+ }
+@@ -169,26 +189,53 @@ static struct dax_device *dax_dev_get(dev_t devt)
+ 	return dax_dev;
  }
  
+-struct dax_device *alloc_dax(void *private)
++static void dax_add_host(struct dax_device *dax_dev, const char *host)
++{
++	int hash;
++
++	/*
++	 * Unconditionally init dax_dev since it's coming from a
++	 * non-zeroed slab cache
++	 */
++	INIT_HLIST_NODE(&dax_dev->list);
++	dax_dev->host = host;
++	if (!host)
++		return;
++
++	hash = dax_host_hash(host);
++	spin_lock(&dax_host_lock);
++	hlist_add_head(&dax_dev->list, &dax_host_list[hash]);
++	spin_unlock(&dax_host_lock);
++}
++
++struct dax_device *alloc_dax(void *private, const char *__host)
+ {
+ 	struct dax_device *dax_dev;
++	const char *host;
+ 	dev_t devt;
+ 	int minor;
+ 
++	host = kstrdup(__host, GFP_KERNEL);
++	if (__host && !host)
++		return NULL;
++
+ 	minor = ida_simple_get(&dax_minor_ida, 0, nr_dax, GFP_KERNEL);
+ 	if (minor < 0)
+-		return NULL;
++		goto err_minor;
+ 
+ 	devt = MKDEV(MAJOR(dax_devt), minor);
+ 	dax_dev = dax_dev_get(devt);
+ 	if (!dax_dev)
+-		goto err_inode;
++		goto err_dev;
+ 
++	dax_add_host(dax_dev, host);
+ 	dax_dev->private = private;
+ 	return dax_dev;
+ 
+- err_inode:
++ err_dev:
+ 	ida_simple_remove(&dax_minor_ida, minor);
++ err_minor:
++	kfree(host);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(alloc_dax);
+@@ -202,6 +249,38 @@ void put_dax(struct dax_device *dax_dev)
+ EXPORT_SYMBOL_GPL(put_dax);
+ 
  /**
-- * copy_from_iter_pmem - copy data from an iterator to PMEM
-- * @addr:	PMEM destination address
-- * @bytes:	number of bytes to copy
-- * @i:		iterator with source data
-- *
-- * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
-- * See blkdev_issue_flush() note for memcpy_to_pmem().
-- */
--static inline size_t copy_from_iter_pmem(void *addr, size_t bytes,
--		struct iov_iter *i)
--{
--	if (arch_has_pmem_api())
--		return arch_copy_from_iter_pmem(addr, bytes, i);
--	return copy_from_iter_nocache(addr, bytes, i);
--}
--
--/**
-  * clear_pmem - zero a PMEM memory range
-  * @addr:	virtual start address
-  * @size:	number of bytes to zero
++ * dax_get_by_host() - temporary lookup mechanism for filesystem-dax
++ * @host: alternate name for the device registered by a dax driver
++ */
++struct dax_device *dax_get_by_host(const char *host)
++{
++	struct dax_device *dax_dev, *found = NULL;
++	int hash, id;
++
++	if (!host)
++		return NULL;
++
++	hash = dax_host_hash(host);
++
++	id = dax_read_lock();
++	spin_lock(&dax_host_lock);
++	hlist_for_each_entry(dax_dev, &dax_host_list[hash], list) {
++		if (!dax_alive(dax_dev)
++				|| strcmp(host, dax_dev->host) != 0)
++			continue;
++
++		if (igrab(&dax_dev->inode))
++			found = dax_dev;
++		break;
++	}
++	spin_unlock(&dax_host_lock);
++	dax_read_unlock(id);
++
++	return found;
++}
++EXPORT_SYMBOL_GPL(dax_get_by_host);
++
++/**
+  * inode_dax: convert a public inode into its dax_dev
+  * @inode: An inode with i_cdev pointing to a dax_dev
+  *
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 5b62f5d19aea..9b2d5ba10d7d 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -10,6 +10,7 @@ struct iomap_ops;
+ 
+ int dax_read_lock(void);
+ void dax_read_unlock(int id);
++struct dax_device *dax_get_by_host(const char *host);
+ 
+ /*
+  * We use lowest available bit in exceptional entry for locking, one bit for
 
 _______________________________________________
 Linux-nvdimm mailing list
