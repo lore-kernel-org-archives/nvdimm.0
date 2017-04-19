@@ -1,9 +1,8 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+From: Logan Gunthorpe <logang@deltatee.com>
 Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Wed, 19 Apr 2017 12:01:39 -0600
-Message-ID: <b0234176-e86b-6e7c-686d-b4fef719aad7@deltatee.com>
-References: <1492381396.25766.43.camel@kernel.crashing.org>
- <20170418164557.GA7181@obsidianresearch.com>
+Date: Wed, 19 Apr 2017 12:11:28 -0600
+Message-ID: <c75b6f6e-2814-1be3-d044-e153849263ce@deltatee.com>
+References: <20170418164557.GA7181@obsidianresearch.com>
  <cce00131-1f28-27b3-40ab-04f8783f1e5a@deltatee.com>
  <20170418190138.GH7181@obsidianresearch.com>
  <df1351d8-b86c-2e21-1948-4688ece5dc2b@deltatee.com>
@@ -12,69 +11,48 @@ References: <1492381396.25766.43.camel@kernel.crashing.org>
  <1492564806.25766.124.camel@kernel.crashing.org>
  <20170419155557.GA8497@obsidianresearch.com>
  <4899b011-bdfb-18d8-ef00-33a1516216a6@deltatee.com>
- <20170419171451.GA10020@obsidianresearch.com>
+ <CAPcyv4iJ9H8Ykwnjqa2R_D1qG6PsSQmi=QxYH-rKLF_ihrsWyw@mail.gmail.com>
+ <20170419173225.GA11255@redhat.com>
+ <CAPcyv4gxBgVsbSez7_dZYkZojUWU0X0txs7FxiJ+Z3xsMt6TqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170419171451.GA10020-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAPcyv4gxBgVsbSez7_dZYkZojUWU0X0txs7FxiJ+Z3xsMt6TqQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Jerome Glisse <jglisse@redhat.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <helgaas@kernel.org>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Keith Busch <keith.busch@intel.com>, linux-pci@vger.kernel.org, linux-scsi <linux-scsi@vger.kernel.org>, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm <linux-nvdimm@ml01.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-nvdimm@lists.01.org
 
 
 
-On 19/04/17 11:14 AM, Jason Gunthorpe wrote:
-> I don't see a use for the dma_map function pointer at this point..
+On 19/04/17 11:41 AM, Dan Williams wrote:
+> No, not quite ;-). I still don't think we should require the non-HMM
+> to pass NULL for all the HMM arguments. What I like about Logan's
+> proposal is to have a separate create and register steps dev_pagemap.
+> That way call paths that don't care about HMM specifics can just turn
+> around and register the vanilla dev_pagemap.
 
-Yes, it is kind of like designing for the future. I just find it a
-little odd calling the pci functions in the iommu.
+Would you necessarily even need a create step? I was thinking more along
+the lines that struct dev_pagemap _could_ just be a member in another
+structure. The caller would set the attributes they needed and pass it
+to devm_memremap. (Similar to how we commonly do things with struct
+device, et al). Potentially, that could also get rid of the need for the
+*data pointer HMM is using to get back the struct hmm_devmem seeing
+container_of could be used instead.
 
+>> Note i won't make any change now on that front but if it make sense
+>> i am happy to do it as separate patchset on top of HMM.
+>>
+>> Also i don't want p2pmem to be an exclusive or with HMM, we will want
+>> GPU to do peer to peer DMA and thus HMM ZONE_DEVICE pages to support
+>> this too.
+> 
+> Yes, this makes sense I think we really just want to distinguish host
+> memory or not in terms of the dev_pagemap type.
 
-> It doesn't make alot of sense for the completor of the DMA to provide
-> a mapping op, the mapping process is *path* specific, not specific to
-> a completer/initiator.
-
-I'm just spit balling here but if HMM wanted to use unaddressable memory
-as a DMA target, it could set that function to create a window ine gpu
-memory, then call the pci_p2p_same_segment and return the result as the
-dma address.
-
-
-> dma_addr_t pci_p2p_same_segment(struct device *initator,
->                                 struct device *completer,
-> 				struct page *page)
-
-I'm not sure I like the name pci_p2p_same_segment. It reads as though
-it's only checking if the devices are not the same segment. It also may
-be that, in the future, it supports devices on different segments. I'd
-call it more like pci_p2p_dma_map.
-
-
-> for (each sgl) {
-
-Thanks, this code fleshes things out nicely
-
-
-> To me it looks like the code duplication across the iommu stuff comes
-> from just duplicating the basic iommu algorithm in every driver.
-
-Yes, this is true.
-
-> To clean that up I think someone would need to hoist the overall sgl
-> loop and use more ops callbacks eg allocate_iommu_range,
-> assign_page_to_rage, dealloc_range, etc. This is a problem p2p makes
-> worse, but isn't directly causing :\
-
-Yup.
+That depends though. If unaddressable memory needs different steps to
+get to the DMA address (ie if it has to setup a gpu window) then we may
+still need a way to distinguish the two types of non-host memory.
 
 Logan
