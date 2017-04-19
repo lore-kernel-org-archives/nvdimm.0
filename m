@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk0-x235.google.com (mail-qk0-x235.google.com
- [IPv6:2607:f8b0:400d:c09::235])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8A25D20082EEF
- for <linux-nvdimm@lists.01.org>; Thu, 20 Apr 2017 02:19:26 -0700 (PDT)
-Received: by mail-qk0-x235.google.com with SMTP id f133so41084269qke.2
- for <linux-nvdimm@lists.01.org>; Thu, 20 Apr 2017 02:19:26 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A352421954069
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Apr 2017 10:11:36 -0700 (PDT)
+Subject: [4.4-stable PATCH 2/2] block: fix del_gendisk() vs blkdev_ioctl crash
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 19 Apr 2017 10:05:52 -0700
+Message-ID: <149262155241.9164.7368226401310075825.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149262154180.9164.2041560731963237508.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149262154180.9164.2041560731963237508.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-From: Yigal Korman <yigal@plexistor.com>
-Date: Thu, 20 Apr 2017 12:19:05 +0300
-Message-ID: <CACTTzNaOc2K5tgfbp-zfr=C9Xd2s1g-9y6rXiNbjPH9iK-HsWw@mail.gmail.com>
-Subject: qemu-kvm hangs with DAX
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,54 +22,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: stable@vger.kernel.org
+Cc: Jens Axboe <axboe@fb.com>, Robert Hu <robert.hu@intel.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi everyone,
+commit ac34f15e0c6d2fd58480052b6985f6991fb53bcc upstream.
 
-I have an interesting issue with DAX and KVM - I'm trying to boot a VM
-with its memory mapped to a DAX-mounted file (kernel 4.9).
+When tearing down a block device early in its lifetime, userspace may
+still be performing discovery actions like blkdev_ioctl() to re-read
+partitions.
 
-The use case is a bit wacky but I'm trying to recreate something
-similar to what clearlinux[1] described (although they don't use this
-method anymore).
+The nvdimm_revalidate_disk() implementation depends on
+disk->driverfs_dev to be valid at entry.  However, it is set to NULL in
+del_gendisk() and fatally this is happening *before* the disk device is
+deleted from userspace view.
 
-When mapping the memory to a regular ext4 file, the VM boots fine.
-But when mapping to ext4+dax, the VM won't boot or perhaps boots
-extremely slowly.
-In both cases the FS is on a memory pmem device.
+There's no reason for del_gendisk() to clear ->driverfs_dev.  That
+device is the parent of the disk.  It is guaranteed to not be freed
+until the disk, as a child, drops its ->parent reference.
 
-Here's a snippet of how I load things:
+We could also fix this issue locally in nvdimm_revalidate_disk() by
+using disk_to_dev(disk)->parent, but lets fix it globally since
+->driverfs_dev follows the lifetime of the parent.  Longer term we
+should probably just add a @parent parameter to add_disk(), and stop
+carrying this pointer in the gendisk.
 
-mkfs.ext4 /dev/pmem0
-mount /dev/pmem0 /mnt
-fallocate -l 512M /mnt/mem
-qemu-system-x86_64 -nodefconfig -nodefaults \
- -drive if=virtio,file=centos7.qcow2,index=0,media=disk \
- --enable-kvm -serial telnet:localhost:4443,server,nowait \
- -device sga -m 512 -smp 1,sockets=1,cores=1,threads=1 \
- -object memory-backend-file,prealloc=yes,mem-path=/mnt/mem,share=on,size=512M,id=ram
-\
- -numa node,nodeid=0,cpus=0,memdev=ram \
- -net nic,model=virtio,vlan=0 \
- -net user,vlan=0,hostname=vm,hostfwd=tcp:127.0.0.1:8001-:22 \
- -name test -monitor telnet:localhost:4444,server,nowait
+ BUG: unable to handle kernel NULL pointer dereference at           (null)
+ IP: [<ffffffffa00340a8>] nvdimm_revalidate_disk+0x18/0x90 [libnvdimm]
+ CPU: 2 PID: 538 Comm: systemd-udevd Tainted: G           O    4.4.0-rc5 #2257
+ [..]
+ Call Trace:
+  [<ffffffff8143e5c7>] rescan_partitions+0x87/0x2c0
+  [<ffffffff810f37f9>] ? __lock_is_held+0x49/0x70
+  [<ffffffff81438c62>] __blkdev_reread_part+0x72/0xb0
+  [<ffffffff81438cc5>] blkdev_reread_part+0x25/0x40
+  [<ffffffff8143982d>] blkdev_ioctl+0x4fd/0x9c0
+  [<ffffffff811246c9>] ? current_kernel_time64+0x69/0xd0
+  [<ffffffff812916dd>] block_ioctl+0x3d/0x50
+  [<ffffffff81264c38>] do_vfs_ioctl+0x308/0x560
+  [<ffffffff8115dbd1>] ? __audit_syscall_entry+0xb1/0x100
+  [<ffffffff810031d6>] ? do_audit_syscall_entry+0x66/0x70
+  [<ffffffff81264f09>] SyS_ioctl+0x79/0x90
+  [<ffffffff81902672>] entry_SYSCALL_64_fastpath+0x12/0x76
 
-I use a headless host so I usually connect to the VM with 'telnet
-localhost 4443'.
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
+Reported-by: Robert Hu <robert.hu@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ block/genhd.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-The above works and the VM boots in seconds.
-When adding '-o dax' to the mount command, I can catch the grub menu
-during boot but it gets stuck.
-Sometimes if I wait about 20 minutes, I see some kernel boot messages
-appear, but no errors.
+diff --git a/block/genhd.c b/block/genhd.c
+index a5bed6bc869d..3032453a89e6 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -664,7 +664,6 @@ void del_gendisk(struct gendisk *disk)
+ 
+ 	kobject_put(disk->part0.holder_dir);
+ 	kobject_put(disk->slave_dir);
+-	disk->driverfs_dev = NULL;
+ 	if (!sysfs_deprecated)
+ 		sysfs_remove_link(block_depr, dev_name(disk_to_dev(disk)));
+ 	pm_runtime_set_memalloc_noio(disk_to_dev(disk), false);
 
-Any thoughts?
-
-Regards,
-Yigal
-
-[1] https://lwn.net/Articles/644675/
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
