@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8224D20081A87
- for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 15:06:27 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:18 -0600
-Message-Id: <1492121135-4437-6-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 05/22] drm/i915: Make use of the new sg_map helper function
+ by ml01.01.org (Postfix) with ESMTPS id 9AD5121A0483B
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Apr 2017 10:47:15 -0700 (PDT)
+Subject: [4.9, 4.10 -stable PATCH] device-dax: switch to srcu,
+ fix rcu_read_lock() vs pte allocation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 19 Apr 2017 10:41:28 -0700
+Message-ID: <149262368870.23714.15890323452545563405.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,83 +17,137 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Sumit Semwal <sumit.semwal@linaro.org>, Ming Lin <ming.l@ssi.samsung.com>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>
+To: stable@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a single straightforward conversion from kmap to sg_map.
+commit 956a4cd2c957acf638ff29951aabaa9d8e92bbc2 upstream.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+The following warning triggers with a new unit test that stresses the
+device-dax interface.
+
+ ===============================
+ [ ERR: suspicious RCU usage.  ]
+ 4.11.0-rc4+ #1049 Tainted: G           O
+ -------------------------------
+ ./include/linux/rcupdate.h:521 Illegal context switch in RCU read-side critical section!
+
+ other info that might help us debug this:
+
+ rcu_scheduler_active = 2, debug_locks = 0
+ 2 locks held by fio/9070:
+  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff8d0739d7>] __do_page_fault+0x167/0x4f0
+  #1:  (rcu_read_lock){......}, at: [<ffffffffc03fbd02>] dax_dev_huge_fault+0x32/0x620 [dax]
+
+ Call Trace:
+  dump_stack+0x86/0xc3
+  lockdep_rcu_suspicious+0xd7/0x110
+  ___might_sleep+0xac/0x250
+  __might_sleep+0x4a/0x80
+  __alloc_pages_nodemask+0x23a/0x360
+  alloc_pages_current+0xa1/0x1f0
+  pte_alloc_one+0x17/0x80
+  __pte_alloc+0x1e/0x120
+  __get_locked_pte+0x1bf/0x1d0
+  insert_pfn.isra.70+0x3a/0x100
+  ? lookup_memtype+0xa6/0xd0
+  vm_insert_mixed+0x64/0x90
+  dax_dev_huge_fault+0x520/0x620 [dax]
+  ? dax_dev_huge_fault+0x32/0x620 [dax]
+  dax_dev_fault+0x10/0x20 [dax]
+  __do_fault+0x1e/0x140
+  __handle_mm_fault+0x9af/0x10d0
+  handle_mm_fault+0x16d/0x370
+  ? handle_mm_fault+0x47/0x370
+  __do_page_fault+0x28c/0x4f0
+  trace_do_page_fault+0x58/0x2a0
+  do_async_page_fault+0x1a/0xa0
+  async_page_fault+0x28/0x30
+
+Inserting a page table entry may trigger an allocation while we are
+holding a read lock to keep the device instance alive for the duration
+of the fault. Use srcu for this keep-alive protection.
+
+Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/gpu/drm/i915/i915_gem.c | 27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+ drivers/dax/Kconfig |    1 +
+ drivers/dax/dax.c   |   13 +++++++------
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
-index 67b1fc5..1b1b91a 100644
---- a/drivers/gpu/drm/i915/i915_gem.c
-+++ b/drivers/gpu/drm/i915/i915_gem.c
-@@ -2188,6 +2188,15 @@ static void __i915_gem_object_reset_page_iter(struct drm_i915_gem_object *obj)
- 		radix_tree_delete(&obj->mm.get_page.radix, iter.index);
- }
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index 3e2ab3b14eea..9e95bf94eb13 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -2,6 +2,7 @@ menuconfig DEV_DAX
+ 	tristate "DAX: direct access to differentiated memory"
+ 	default m if NVDIMM_DAX
+ 	depends on TRANSPARENT_HUGEPAGE
++	select SRCU
+ 	help
+ 	  Support raw access to differentiated (persistence, bandwidth,
+ 	  latency...) memory via an mmap(2) capable character
+diff --git a/drivers/dax/dax.c b/drivers/dax/dax.c
+index 20ab6bf9d1c7..53a016c3dffa 100644
+--- a/drivers/dax/dax.c
++++ b/drivers/dax/dax.c
+@@ -24,6 +24,7 @@
+ #include "dax.h"
  
-+static void i915_gem_object_unmap(const struct drm_i915_gem_object *obj,
-+				  void *ptr)
-+{
-+	if (is_vmalloc_addr(ptr))
-+		vunmap(ptr);
-+	else
-+		sg_unmap(obj->mm.pages->sgl, ptr, SG_KMAP);
-+}
-+
- void __i915_gem_object_put_pages(struct drm_i915_gem_object *obj,
- 				 enum i915_mm_subclass subclass)
+ static dev_t dax_devt;
++DEFINE_STATIC_SRCU(dax_srcu);
+ static struct class *dax_class;
+ static DEFINE_IDA(dax_minor_ida);
+ static int nr_dax = CONFIG_NR_DEV_DAX;
+@@ -59,7 +60,7 @@ struct dax_region {
+  * @region - parent region
+  * @dev - device backing the character device
+  * @cdev - core chardev data
+- * @alive - !alive + rcu grace period == no new mappings can be established
++ * @alive - !alive + srcu grace period == no new mappings can be established
+  * @id - child id in the region
+  * @num_resources - number of physical address extents in this device
+  * @res - array of physical address ranges
+@@ -530,7 +531,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev,
+ static int dax_dev_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 		pmd_t *pmd, unsigned int flags)
  {
-@@ -2215,10 +2224,7 @@ void __i915_gem_object_put_pages(struct drm_i915_gem_object *obj,
- 		void *ptr;
+-	int rc;
++	int rc, id;
+ 	struct file *filp = vma->vm_file;
+ 	struct dax_dev *dax_dev = filp->private_data;
  
- 		ptr = ptr_mask_bits(obj->mm.mapping);
--		if (is_vmalloc_addr(ptr))
--			vunmap(ptr);
--		else
--			kunmap(kmap_to_page(ptr));
-+		i915_gem_object_unmap(obj, ptr);
+@@ -538,9 +539,9 @@ static int dax_dev_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 			current->comm, (flags & FAULT_FLAG_WRITE)
+ 			? "write" : "read", vma->vm_start, vma->vm_end);
  
- 		obj->mm.mapping = NULL;
- 	}
-@@ -2475,8 +2481,11 @@ static void *i915_gem_object_map(const struct drm_i915_gem_object *obj,
- 	void *addr;
+-	rcu_read_lock();
++	id = srcu_read_lock(&dax_srcu);
+ 	rc = __dax_dev_pmd_fault(dax_dev, vma, addr, pmd, flags);
+-	rcu_read_unlock();
++	srcu_read_unlock(&dax_srcu, id);
  
- 	/* A single page can always be kmapped */
--	if (n_pages == 1 && type == I915_MAP_WB)
--		return kmap(sg_page(sgt->sgl));
-+	if (n_pages == 1 && type == I915_MAP_WB) {
-+		addr = sg_map(sgt->sgl, SG_KMAP);
-+		if (IS_ERR(addr))
-+			return NULL;
-+	}
- 
- 	if (n_pages > ARRAY_SIZE(stack_pages)) {
- 		/* Too big for stack -- allocate temporary array instead */
-@@ -2543,11 +2552,7 @@ void *i915_gem_object_pin_map(struct drm_i915_gem_object *obj,
- 			goto err_unpin;
- 		}
- 
--		if (is_vmalloc_addr(ptr))
--			vunmap(ptr);
--		else
--			kunmap(kmap_to_page(ptr));
--
-+		i915_gem_object_unmap(obj, ptr);
- 		ptr = obj->mm.mapping = NULL;
- 	}
- 
--- 
-2.1.4
+ 	return rc;
+ }
+@@ -656,11 +657,11 @@ static void unregister_dax_dev(void *dev)
+ 	 * Note, rcu is not protecting the liveness of dax_dev, rcu is
+ 	 * ensuring that any fault handlers that might have seen
+ 	 * dax_dev->alive == true, have completed.  Any fault handlers
+-	 * that start after synchronize_rcu() has started will abort
++	 * that start after synchronize_srcu() has started will abort
+ 	 * upon seeing dax_dev->alive == false.
+ 	 */
+ 	dax_dev->alive = false;
+-	synchronize_rcu();
++	synchronize_srcu(&dax_srcu);
+ 	unmap_mapping_range(dax_dev->inode->i_mapping, 0, 0, 1);
+ 	cdev_del(cdev);
+ 	device_unregister(dev);
 
 _______________________________________________
 Linux-nvdimm mailing list
