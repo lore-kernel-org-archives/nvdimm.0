@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6A46A21A04830
- for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 14:25:20 -0700 (PDT)
-Subject: [PATCH v6] libnvdimm: fix clear poison locking with spinlock and
- GFP_NOWAIT allocation
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Apr 2017 14:25:17 -0700
-Message-ID: <149211841881.15608.18107264434663008282.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D40892194EB63
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Apr 2017 14:04:57 -0700 (PDT)
+Subject: [ndctl PATCH 1/5] test: teach nfit_test_init to only expect
+ device-dax on v4.7+
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 20 Apr 2017 13:59:04 -0700
+Message-ID: <149272194448.23427.1991038457299500600.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149272193912.23427.11500536718990091103.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149272193912.23427.11500536718990091103.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,260 +23,141 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following warning results from holding a lane spinlock,
-preempt_disable(), or the btt map spinlock and then trying to take the
-reconfig_mutex to walk the poison list and potentially add new entries.
-
-BUG: sleeping function called from invalid context at kernel/locking/mutex.
-c:747
-in_atomic(): 1, irqs_disabled(): 0, pid: 17159, name: dd
-[..]
-Call Trace:
-dump_stack+0x85/0xc8
-___might_sleep+0x184/0x250
-__might_sleep+0x4a/0x90
-__mutex_lock+0x58/0x9b0
-? nvdimm_bus_lock+0x21/0x30 [libnvdimm]
-? __nvdimm_bus_badblocks_clear+0x2f/0x60 [libnvdimm]
-? acpi_nfit_forget_poison+0x79/0x80 [nfit]
-? _raw_spin_unlock+0x27/0x40
-mutex_lock_nested+0x1b/0x20
-nvdimm_bus_lock+0x21/0x30 [libnvdimm]
-nvdimm_forget_poison+0x25/0x50 [libnvdimm]
-nvdimm_clear_poison+0x106/0x140 [libnvdimm]
-nsio_rw_bytes+0x164/0x270 [libnvdimm]
-btt_write_pg+0x1de/0x3e0 [nd_btt]
-? blk_queue_enter+0x30/0x290
-btt_make_request+0x11a/0x310 [nd_btt]
-? blk_queue_enter+0xb7/0x290
-? blk_queue_enter+0x30/0x290
-generic_make_request+0x118/0x3b0
-
-A spinlock is introduced to protect the poison list. This allows us to not
-having to acquire the reconfig_mutex for touching the poison list. The
-add_poison() function has been broken out into two helper functions. One to
-allocate the poison entry and the other to apppend the entry. This allows us
-to unlock the poison_lock in non-I/O path and continue to be able to allocate
-the poison entry with GFP_KERNEL. We will use GFP_NOWAIT in the I/O path in
-order to satisfy being in atomic context.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ test.h                 |    2 +-
+ test/blk_namespaces.c  |    2 +-
+ test/core.c            |   11 ++++++++++-
+ test/dpa-alloc.c       |    2 +-
+ test/dsm-fail.c        |    2 +-
+ test/multi-pmem.c      |    2 +-
+ test/parent-uuid.c     |    2 +-
+ test/pmem_namespaces.c |    2 +-
+ 8 files changed, 17 insertions(+), 8 deletions(-)
 
-v2:
-Dan
-- remove mempool and just use GFP_NOWAIT
-
-v3:
-Vishal
-- remove unneeded code
-
-v4:
-Dan
-- fixup commit header
-- GFP_NOWAIT only in I/O path
-
-v5:
-Dan
-- address issue where when lock released to allocate, the list has updated
-
-v6:
-Dan
-- open code poison entry allocation
-- remove NULL check for kfree()
-
- drivers/nvdimm/bus.c      |    7 +++---
- drivers/nvdimm/core.c     |   56 +++++++++++++++++++++++++++------------------
- drivers/nvdimm/nd-core.h  |    1 +
- include/linux/libnvdimm.h |    2 --
- 4 files changed, 38 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 5ad2e59..d214ac44 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -296,6 +296,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 	init_waitqueue_head(&nvdimm_bus->probe_wait);
- 	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
- 	mutex_init(&nvdimm_bus->reconfig_mutex);
-+	spin_lock_init(&nvdimm_bus->poison_lock);
- 	if (nvdimm_bus->id < 0) {
- 		kfree(nvdimm_bus);
- 		return NULL;
-@@ -364,9 +365,9 @@ static int nd_bus_remove(struct device *dev)
- 	nd_synchronize();
- 	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
+diff --git a/test.h b/test.h
+index 5d17398c02f4..8abe13dd410c 100644
+--- a/test.h
++++ b/test.h
+@@ -17,7 +17,7 @@ void builtin_xaction_namespace_reset(void);
+ struct kmod_ctx;
+ struct kmod_module;
+ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+-	int log_level);
++	int log_level, struct ndctl_test *test);
  
--	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	spin_lock(&nvdimm_bus->poison_lock);
- 	free_poison_list(&nvdimm_bus->poison_list);
--	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+	spin_unlock(&nvdimm_bus->poison_lock);
+ struct ndctl_ctx;
+ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+diff --git a/test/blk_namespaces.c b/test/blk_namespaces.c
+index 1f112744e605..178f73cacb16 100644
+--- a/test/blk_namespaces.c
++++ b/test/blk_namespaces.c
+@@ -244,7 +244,7 @@ int test_blk_namespaces(int log_level, struct ndctl_test *test,
  
- 	nvdimm_bus_destroy_ndctl(nvdimm_bus);
- 
-@@ -990,7 +991,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 
- 		if (clear_err->cleared) {
- 			/* clearing the poison list we keep track of */
--			__nvdimm_forget_poison(nvdimm_bus, clear_err->address,
-+			nvdimm_forget_poison(nvdimm_bus, clear_err->address,
- 					clear_err->cleared);
- 
- 			/* now sync the badblocks lists */
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 40a3da0..2dee908 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -518,6 +518,15 @@ void nvdimm_badblocks_populate(struct nd_region *nd_region,
- }
- EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
- 
-+static void append_poison_entry(struct nvdimm_bus *nvdimm_bus,
-+		struct nd_poison *pl, u64 addr, u64 length)
-+{
-+	lockdep_assert_held(&nvdimm_bus->poison_lock);
-+	pl->start = addr;
-+	pl->length = length;
-+	list_add_tail(&pl->list, &nvdimm_bus->poison_list);
-+}
-+
- static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length,
- 			gfp_t flags)
- {
-@@ -527,19 +536,24 @@ static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length,
- 	if (!pl)
- 		return -ENOMEM;
- 
--	pl->start = addr;
--	pl->length = length;
--	list_add_tail(&pl->list, &nvdimm_bus->poison_list);
--
-+	append_poison_entry(nvdimm_bus, pl, addr, length);
- 	return 0;
+ 	if (!bus) {
+ 		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+-		rc = nfit_test_init(&kmod_ctx, &mod, log_level);
++		rc = nfit_test_init(&kmod_ctx, &mod, log_level, test);
+ 		ndctl_invalidate(ctx);
+ 		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+ 		if (rc < 0 || !bus) {
+diff --git a/test/core.c b/test/core.c
+index a2f2c76b1d29..1f6dd5966404 100644
+--- a/test/core.c
++++ b/test/core.c
+@@ -104,7 +104,7 @@ int ndctl_test_get_skipped(struct ndctl_test *test)
  }
  
- static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- {
--	struct nd_poison *pl;
-+	struct nd_poison *pl, *pl_new;
- 
--	if (list_empty(&nvdimm_bus->poison_list))
--		return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
-+	spin_unlock(&nvdimm_bus->poison_lock);
-+	pl_new = kzalloc(sizeof(*pl_new), GFP_KERNEL);
-+	spin_lock(&nvdimm_bus->poison_lock);
-+
-+	if (list_empty(&nvdimm_bus->poison_list)) {
-+		if (!pl_new)
-+			return -ENOMEM;
-+		append_poison_entry(nvdimm_bus, pl_new, addr, length);
-+		return 0;
-+	}
- 
- 	/*
- 	 * There is a chance this is a duplicate, check for those first.
-@@ -551,6 +565,7 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 			/* If length has changed, update this list entry */
- 			if (pl->length != length)
- 				pl->length = length;
-+			kfree(pl_new);
- 			return 0;
- 		}
- 
-@@ -559,30 +574,33 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 	 * as any overlapping ranges will get resolved when the list is consumed
- 	 * and converted to badblocks
- 	 */
--	return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
-+	if (!pl_new)
-+		return -ENOMEM;
-+	append_poison_entry(nvdimm_bus, pl_new, addr, length);
-+
-+	return 0;
- }
- 
- int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
+ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+-		int log_level)
++		int log_level, struct ndctl_test *test)
  {
  	int rc;
+ 	unsigned int i;
+@@ -142,6 +142,15 @@ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+ 		int state;
  
--	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	spin_lock(&nvdimm_bus->poison_lock);
- 	rc = bus_add_poison(nvdimm_bus, addr, length);
--	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+	spin_unlock(&nvdimm_bus->poison_lock);
+ 		name = list[i];
++
++		/*
++		 * Don't check for device-dax modules on kernels older
++		 * than 4.7.
++		 */
++		if (strstr(name, "dax")
++				&& !ndctl_test_attempt(test,
++					KERNEL_VERSION(4, 7, 0)))
++			continue;
+ retry:
+ 		rc = kmod_module_new_from_name(*ctx, name, mod);
+ 		if (rc) {
+diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
+index 53656cab1004..9c80fa3fc8c9 100644
+--- a/test/dpa-alloc.c
++++ b/test/dpa-alloc.c
+@@ -299,7 +299,7 @@ int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+ 		return 77;
  
- 	return rc;
- }
- EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
+ 	ndctl_set_log_priority(ctx, loglevel);
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel);
++	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
+ 	if (err < 0) {
+ 		ndctl_test_skip(test);
+ 		fprintf(stderr, "nfit_test unavailable skipping tests\n");
+diff --git a/test/dsm-fail.c b/test/dsm-fail.c
+index 0f82e7e3c4ad..22ec94451146 100644
+--- a/test/dsm-fail.c
++++ b/test/dsm-fail.c
+@@ -171,7 +171,7 @@ int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+ 	int result = EXIT_FAILURE, err;
  
--void __nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus, phys_addr_t start,
-+void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus, phys_addr_t start,
- 		unsigned int len)
- {
- 	struct list_head *poison_list = &nvdimm_bus->poison_list;
- 	u64 clr_end = start + len - 1;
- 	struct nd_poison *pl, *next;
+ 	ndctl_set_log_priority(ctx, loglevel);
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel);
++	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
+ 	if (err < 0) {
+ 		result = 77;
+ 		ndctl_test_skip(test);
+diff --git a/test/multi-pmem.c b/test/multi-pmem.c
+index a8c286cc49c7..abd5f3657eed 100644
+--- a/test/multi-pmem.c
++++ b/test/multi-pmem.c
+@@ -253,7 +253,7 @@ int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx
  
--	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
--
-+	spin_lock(&nvdimm_bus->poison_lock);
- 	WARN_ON_ONCE(list_empty(poison_list));
+ 	ndctl_set_log_priority(ctx, loglevel);
  
- 	/*
-@@ -629,21 +647,13 @@ void __nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus, phys_addr_t start,
- 			u64 new_len = pl_end - new_start + 1;
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel);
++	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
+ 	if (err < 0) {
+ 		result = 77;
+ 		ndctl_test_skip(test);
+diff --git a/test/parent-uuid.c b/test/parent-uuid.c
+index fbe1c5b0c8ee..87ea4d75b5a5 100644
+--- a/test/parent-uuid.c
++++ b/test/parent-uuid.c
+@@ -229,7 +229,7 @@ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ct
+ 		return 77;
  
- 			/* Add new entry covering the right half */
--			add_poison(nvdimm_bus, new_start, new_len, GFP_NOIO);
-+			add_poison(nvdimm_bus, new_start, new_len, GFP_NOWAIT);
- 			/* Adjust this entry to cover the left half */
- 			pl->length = start - pl->start;
- 			continue;
- 		}
- 	}
--}
--EXPORT_SYMBOL_GPL(__nvdimm_forget_poison);
--
--void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
--		phys_addr_t start, unsigned int len)
--{
--	nvdimm_bus_lock(&nvdimm_bus->dev);
--	__nvdimm_forget_poison(nvdimm_bus, start, len);
--	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+	spin_unlock(&nvdimm_bus->poison_lock);
- }
- EXPORT_SYMBOL_GPL(nvdimm_forget_poison);
+ 	ndctl_set_log_priority(ctx, loglevel);
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel);
++	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
+ 	if (err < 0) {
+ 		ndctl_test_skip(test);
+ 		fprintf(stderr, "nfit_test unavailable skipping tests\n");
+diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
+index 2d3ad736b0bb..94a5986955b3 100644
+--- a/test/pmem_namespaces.c
++++ b/test/pmem_namespaces.c
+@@ -208,7 +208,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
  
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 8623e57..4c4bd20 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -32,6 +32,7 @@ struct nvdimm_bus {
- 	struct list_head poison_list;
- 	struct list_head mapping_list;
- 	struct mutex reconfig_mutex;
-+	spinlock_t poison_lock;
- };
- 
- struct nvdimm {
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 1c609e8..98b2076 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -122,8 +122,6 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
- int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
- void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
- 		phys_addr_t start, unsigned int len);
--void __nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
--		phys_addr_t start, unsigned int len);
- struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 		struct nvdimm_bus_descriptor *nfit_desc);
- void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
+ 	if (!bus) {
+ 		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+-		rc = nfit_test_init(&kmod_ctx, &mod, log_level);
++		rc = nfit_test_init(&kmod_ctx, &mod, log_level, test);
+ 		ndctl_invalidate(ctx);
+ 		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+ 		if (rc < 0 || !bus) {
 
 _______________________________________________
 Linux-nvdimm mailing list
