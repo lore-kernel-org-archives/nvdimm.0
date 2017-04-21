@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0E4B92194EB6F
- for <linux-nvdimm@lists.01.org>; Thu, 13 Apr 2017 15:06:42 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 13 Apr 2017 16:05:22 -0600
-Message-Id: <1492121135-4437-10-git-send-email-logang@deltatee.com>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4 call
- sites
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+ by ml01.01.org (Postfix) with ESMTP id B7D5A2193DFCA
+ for <linux-nvdimm@lists.01.org>; Fri, 21 Apr 2017 14:14:45 -0700 (PDT)
+Date: Fri, 21 Apr 2017 23:07:04 +0200
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH] acpi, nfit: fix the memory error check in nfit_handle_mce
+Message-ID: <20170421210704.c5pvpn6zivvruzx3@pd.tnic>
+References: <20170420221818.23522-1-vishal.l.verma@intel.com>
+ <CAPcyv4ijU2V-4WOPysL12ByOovAXDO=Mci1D4wNDFqxRjdvT2w@mail.gmail.com>
+ <1492804517.2738.25.camel@intel.com>
+ <3908561D78D1C84285E8C5FCA982C28F6127653B@ORSMSX114.amr.corp.intel.com>
+ <CAPcyv4jAkCE2QBuxfxxmZfQZLCVOGLrLXqDu5TyGCVA+xJMEVg@mail.gmail.com>
+ <20170421202741.GA16423@intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170421202741.GA16423@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,99 +22,34 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Sumit Semwal <sumit.semwal@linaro.org>, Ming Lin <ming.l@ssi.samsung.com>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Steve Wise <swise@opengridcomputing.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Very straightforward conversion to the new function in all four spots.
+On Fri, Apr 21, 2017 at 01:27:41PM -0700, Luck, Tony wrote:
+> Boris: you coded up a "static bool memory_error(struct mce *m)"
+> function inside the patches for the corrected error thingy.
+> 
+> Perhaps when it goes upstream it should be available for other
+> users too?
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/md/dm-crypt.c | 38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+I don't see why not. struct mce.cpuvendor even has the vendor in there
+so memory_error() wouldn't even have to look at boot_cpu_data when doing
+per-vendor decision.
 
-diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
-index 389a363..6bd0ffc 100644
---- a/drivers/md/dm-crypt.c
-+++ b/drivers/md/dm-crypt.c
-@@ -589,9 +589,12 @@ static int crypt_iv_lmk_gen(struct crypt_config *cc, u8 *iv,
- 	int r = 0;
- 
- 	if (bio_data_dir(dmreq->ctx->bio_in) == WRITE) {
--		src = kmap_atomic(sg_page(&dmreq->sg_in));
--		r = crypt_iv_lmk_one(cc, iv, dmreq, src + dmreq->sg_in.offset);
--		kunmap_atomic(src);
-+		src = sg_map(&dmreq->sg_in, SG_KMAP_ATOMIC);
-+		if (IS_ERR(src))
-+			return PTR_ERR(src);
-+
-+		r = crypt_iv_lmk_one(cc, iv, dmreq, src);
-+		sg_unmap(&dmreq->sg_in, src, SG_KMAP_ATOMIC);
- 	} else
- 		memset(iv, 0, cc->iv_size);
- 
-@@ -607,14 +610,17 @@ static int crypt_iv_lmk_post(struct crypt_config *cc, u8 *iv,
- 	if (bio_data_dir(dmreq->ctx->bio_in) == WRITE)
- 		return 0;
- 
--	dst = kmap_atomic(sg_page(&dmreq->sg_out));
--	r = crypt_iv_lmk_one(cc, iv, dmreq, dst + dmreq->sg_out.offset);
-+	dst = sg_map(&dmreq->sg_out, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst))
-+		return PTR_ERR(dst);
-+
-+	r = crypt_iv_lmk_one(cc, iv, dmreq, dst);
- 
- 	/* Tweak the first block of plaintext sector */
- 	if (!r)
--		crypto_xor(dst + dmreq->sg_out.offset, iv, cc->iv_size);
-+		crypto_xor(dst, iv, cc->iv_size);
- 
--	kunmap_atomic(dst);
-+	sg_unmap(&dmreq->sg_out, dst, SG_KMAP_ATOMIC);
- 	return r;
- }
- 
-@@ -731,9 +737,12 @@ static int crypt_iv_tcw_gen(struct crypt_config *cc, u8 *iv,
- 
- 	/* Remove whitening from ciphertext */
- 	if (bio_data_dir(dmreq->ctx->bio_in) != WRITE) {
--		src = kmap_atomic(sg_page(&dmreq->sg_in));
--		r = crypt_iv_tcw_whitening(cc, dmreq, src + dmreq->sg_in.offset);
--		kunmap_atomic(src);
-+		src = sg_map(&dmreq->sg_in, SG_KMAP_ATOMIC);
-+		if (IS_ERR(src))
-+			return PTR_ERR(src);
-+
-+		r = crypt_iv_tcw_whitening(cc, dmreq, src);
-+		sg_unmap(&dmreq->sg_in, src, SG_KMAP_ATOMIC);
- 	}
- 
- 	/* Calculate IV */
-@@ -755,9 +764,12 @@ static int crypt_iv_tcw_post(struct crypt_config *cc, u8 *iv,
- 		return 0;
- 
- 	/* Apply whitening on ciphertext */
--	dst = kmap_atomic(sg_page(&dmreq->sg_out));
--	r = crypt_iv_tcw_whitening(cc, dmreq, dst + dmreq->sg_out.offset);
--	kunmap_atomic(dst);
-+	dst = sg_map(&dmreq->sg_out, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst))
-+		return PTR_ERR(dst);
-+
-+	r = crypt_iv_tcw_whitening(cc, dmreq, dst);
-+	sg_unmap(&dmreq->sg_out, dst, SG_KMAP_ATOMIC);
- 
- 	return r;
- }
+I guess we should rename it to something more global namespace-y like
+"mce_is_memory_error() or so, though, before we expose it to wider
+audience...
+
 -- 
-2.1.4
+Regards/Gruss,
+    Boris.
 
+Good mailing practices for 400: avoid top-posting and trim the reply.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
