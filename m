@@ -1,25 +1,85 @@
-From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH] x86, mce: change the mce notifier to 'blocking'
- from 'atomic'
-Date: Fri, 21 Apr 2017 21:39:45 +0000
-Message-ID: <1492810703.2738.27.camel@intel.com>
-References: <20170412202238.5d327vmwjqvbzzop@pd.tnic>
- <1492028744.2738.14.camel@intel.com> <20170412205229.GA13659@intel.com>
- <CAPcyv4j1=Cs84nn6n-9vygSJ2Ei9Z3Gw7hCzyBzo+GyLKWaTUg@mail.gmail.com>
- <alpine.DEB.2.20.1704122259490.2548@nanos>
- <20170412211931.GA15771@intel.com>
- <20170412214749.jyt7cmyhovivtb2m@pd.tnic>
- <20170412221639.5klmqk4mjbvy6btx@pd.tnic>
- <20170412222619.GA17839@intel.com>
- <20170412222925.r3izasv3yuyjy62e@pd.tnic>
- <20170413113159.rc32ebiswn64nzrr@pd.tnic>
+From: "Mail Administrator" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery reports about your e-mail
+Date: Sat, 22 Apr 2017 19:57:05 +0800
+Message-ID: <20170422115703.81E3621A04822@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_58FB450F.3BD26810"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_58FB450F.3BD26810
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  The original message was included as attachment Linux-nvdimm
+   mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
+   [...] 
+
+Content analysis details:   (5.7 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+-0.5 BAYES_05               BODY: Bayes spam probability is 1 to 5%
+                            [score: 0.0162]
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+
+
+------------=_58FB450F.3BD26810
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170413113159.rc32ebiswn64nzrr-fF5Pk5pvG8Y@public.gmane.org>
-Content-Language: en-US
-Content-ID: <827E35C5767ABA4DB933C03C84D49F84-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1d1tes-0001OH-RA
+	for gln-linux-nvdimm@m.gmane.org; Sat, 22 Apr 2017 13:56:59 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 81E3621A04822;
+	Sat, 22 Apr 2017 04:57:03 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from lists.01.org (unknown [221.131.113.43])
+ by ml01.01.org (Postfix) with ESMTP id 33BC621A04817
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sat, 22 Apr 2017 04:56:58 -0700 (PDT)
+From: "Mail Administrator" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: Delivery reports about your e-mail
+Date: Sat, 22 Apr 2017 19:57:05 +0800
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.22
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,78 +87,18 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bp-l3A5Bk7waGM@public.gmane.org" <bp-l3A5Bk7waGM@public.gmane.org>
-Cc: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org" <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
+Message-Id: <20170422115703.81E3621A04822-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-T24gVGh1LCAyMDE3LTA0LTEzIGF0IDEzOjMxICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
-DQo+IE9uIFRodSwgQXByIDEzLCAyMDE3IGF0IDEyOjI5OjI1QU0gKzAyMDAsIEJvcmlzbGF2IFBl
-dGtvdiB3cm90ZToNCj4gPiBPbiBXZWQsIEFwciAxMiwgMjAxNyBhdCAwMzoyNjoxOVBNIC0wNzAw
-LCBMdWNrLCBUb255IHdyb3RlOg0KPiA+ID4gV2UgY2FuIGZ1dHogd2l0aCB0aGF0IGFuZCBoYXZl
-IHRoZW0gc3BlY2lmeSB3aGljaCBjaGFpbiAob3IgYm90aCkNCj4gPiA+IHRoYXQgdGhleSB3YW50
-IHRvIGJlIGFkZGVkIHRvLg0KPiA+IA0KPiA+IFdlbGwsIEkgZGlkbid0IHdhbnQgdGhlIGF0b21p
-YyBjaGFpbiB0byBiZSBhIG5vdGlmaWVyIGJlY2F1c2Ugd2UgY2FuDQo+ID4ga2VlcCBpdCBzaW1w
-bGUgYW5kIG5vbi1ibG9ja2luZy4gT25seSB0aGUgcHJvY2VzcyBjb250ZXh0IG9uZSB3aWxsDQo+
-ID4gYmUuDQo+ID4gDQo+ID4gU28gdGhlIHF1ZXN0aW9uIGlzLCBkbyB3ZSBldmVuIGhhdmUgYSB1
-c2UgY2FzZSBmb3Igb3V0c2lkZSBjb25zdW1lcnMNCj4gPiBoYW5naW5nIG9uIHRoZSBhdG9taWMg
-Y2hhaW4/IEJlY2F1c2UgaWYgbm90LCB3ZSdyZSBnb29kIHRvIGdvLg0KPiANCj4gT2ssIG5ldyBk
-YXksIG5ldyBwYXRjaC4NCj4gDQo+IEJlbG93IGlzIHdoYXQgd2UgY291bGQgZG86IHdlIGRvbid0
-IGNhbGwgdGhlIG5vdGlmaWVyIGF0IGFsbCBvbiB0aGUNCj4gYXRvbWljIHBhdGggYnV0IG9ubHkg
-cHJpbnQgdGhlIE1DRXMuIFdlIGRvIGxvZyB0aGVtIGFuZCBpZiB0aGUgbWFjaGluZQ0KPiBzdXJ2
-aXZlcywgd2UgcHJvY2VzcyB0aGVtIGFjY29yZGluZ2x5LiBUaGlzIGlzIG9ubHkgYSBmaXggZm9y
-IHVwc3RyZWFtDQo+IHNvIHRoYXQgdGhlIGN1cnJlbnQgaXNzdWUgYXQgaGFuZCBpcyBhZGRyZXNz
-ZWQuDQo+IA0KPiBGb3IgbGF0ZXIsIHdlJ2QgbmVlZCB0byBzcGxpdCB0aGUgcGF0aHMgaW46DQo+
-IA0KPiBjcml0aWNhbF9wcmludF9tY2UoKQ0KPiANCj4gb3Igc29tZXN1Y2ggd2hpY2ggaW1tZWRp
-YXRlbHkgZHVtcHMgdGhlIE1DRSB0byBkbWVzZywgYW5kDQo+IA0KPiBtY2VfbG9nKCkNCj4gDQo+
-IHdoaWNoIGRvZXMgdGhlIHNsb3cgcGF0aCBvZiBsb2dnaW5nIE1DRXMgYW5kIGNhbGxpbmcgdGhl
-IGJsb2NraW5nDQo+IG5vdGlmaWVyLg0KPiANCj4gTm93LCBJJ2Qgd2FudCB0byBoYXZlIGRlY29k
-aW5nIG9mIHRoZSBNQ0Ugb24gdGhlIGNyaXRpY2FsIHBhdGggdG9vIHNvDQo+IEkgaGF2ZSB0byB0
-aGluayBhYm91dCBob3cgdG8gZG8gdGhhdCBuaWNlbHkuIE1heWJlIG1vdmUgdGhlIGRlY29kaW5n
-DQo+IGJpdHMgd2hpY2ggYXJlIHRoZSBzYW1lIGJldHdlZW4gSW50ZWwgYW5kIEFNRCBpbiBtY2Uu
-YyBhbmQgaGF2ZSBzb21lDQo+IHZlbmRvci1zcGVjaWZpYywgZmFzdCBjYWxscy4gV2UnbGwgc2Vl
-LiBCdHcsIHRoaXMgaXMgc29tZXRoaW5nIEluZ28NCj4gaGFzDQo+IGJlZW4gbWVudGlvbmluZyBm
-b3IgYSB3aGlsZS4NCj4gDQo+IEFueXdheSwgaGVyZSdzIGp1c3QgdGhlIHVyZ2VudCBmaXggZm9y
-IG5vdy4NCj4gDQo+IFRoYW5rcy4NCj4gDQo+IC0tLQ0KPiBGcm9tOiBWaXNoYWwgVmVybWEgPHZp
-c2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gRGF0ZTogVHVlLCAxMSBBcHIgMjAxNyAxNjo0NDo1
-NyAtMDYwMA0KPiBTdWJqZWN0OiBbUEFUQ0hdIHg4Ni9tY2U6IE1ha2UgdGhlIE1DRSBub3RpZmll
-ciBhIGJsb2NraW5nIG9uZQ0KPiANCj4gVGhlIE5GSVQgTUNFIGhhbmRsZXIgY2FsbGJhY2sgKGZv
-ciBoYW5kbGluZyBtZWRpYSBlcnJvcnMgb24gTlZESU1NcykNCj4gdGFrZXMgYSBtdXRleCB0byBh
-ZGQgdGhlIGxvY2F0aW9uIG9mIGEgbWVtb3J5IGVycm9yIHRvIGEgbGlzdC4gQnV0DQo+IHNpbmNl
-DQo+IHRoZSBub3RpZmllciBjYWxsIGNoYWluIGZvciBtYWNoaW5lIGNoZWNrcyAoeDg2X21jZV9k
-ZWNvZGVyX2NoYWluKSBpcw0KPiBhdG9taWMsIHdlIGdldCBhIGxvY2tkZXAgc3BsYXQgbGlrZToN
-Cj4gDQo+IMKgIEJVRzogc2xlZXBpbmcgZnVuY3Rpb24gY2FsbGVkIGZyb20gaW52YWxpZCBjb250
-ZXh0IGF0DQo+IGtlcm5lbC9sb2NraW5nL211dGV4LmM6NjIwDQo+IMKgIGluX2F0b21pYygpOiAx
-LCBpcnFzX2Rpc2FibGVkKCk6IDAsIHBpZDogNCwgbmFtZToga3dvcmtlci8wOjANCj4gwqAgWy4u
-XQ0KPiDCoCBDYWxsIFRyYWNlOg0KPiDCoMKgwqBkdW1wX3N0YWNrDQo+IMKgwqDCoF9fX21pZ2h0
-X3NsZWVwDQo+IMKgwqDCoF9fbWlnaHRfc2xlZXANCj4gwqDCoMKgbXV0ZXhfbG9ja19uZXN0ZWQN
-Cj4gwqDCoMKgPyBfX2xvY2tfYWNxdWlyZQ0KPiDCoMKgwqBuZml0X2hhbmRsZV9tY2UNCj4gwqDC
-oMKgbm90aWZpZXJfY2FsbF9jaGFpbg0KPiDCoMKgwqBhdG9taWNfbm90aWZpZXJfY2FsbF9jaGFp
-bg0KPiDCoMKgwqA/IGF0b21pY19ub3RpZmllcl9jYWxsX2NoYWluDQo+IMKgwqDCoG1jZV9nZW5f
-cG9vbF9wcm9jZXNzDQo+IA0KPiBDb252ZXJ0IHRoZSBub3RpZmllciB0byBhIGJsb2NraW5nIG9u
-ZSB3aGljaCBnZXRzIHRvIHJ1biBvbmx5IGluDQo+IHByb2Nlc3MNCj4gY29udGV4dC4NCj4gDQo+
-IEJvcmlzOiByZW1vdmUgdGhlIG5vdGlmaWVyIGNhbGwgaW4gYXRvbWljIGNvbnRleHQgaW4gcHJp
-bnRfbWNlKCkuIEZvcg0KPiBub3csIGxldCdzIHByaW50IHRoZSBNQ0Ugb24gdGhlIGF0b21pYyBw
-YXRoIHNvIHRoYXQgd2UgY2FuIG1ha2Ugc3VyZQ0KPiBpdA0KPiBnb2VzIG91dC4gV2Ugc3RpbGwg
-bG9nIGl0IGZvciBwcm9jZXNzIGNvbnRleHQgbGF0ZXIuDQo+IA0KPiBSZXBvcnRlZC1ieTogUm9z
-cyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KPiBTaWduZWQtb2ZmLWJ5
-OiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gQ2M6IFRvbnkgTHVj
-ayA8dG9ueS5sdWNrQGludGVsLmNvbT4NCj4gQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlh
-bXNAaW50ZWwuY29tPg0KPiBDYzogbGludXgtZWRhYyA8bGludXgtZWRhY0B2Z2VyLmtlcm5lbC5v
-cmc+DQo+IENjOiB4ODYtbWwgPHg4NkBrZXJuZWwub3JnPg0KPiBDYzogPHN0YWJsZUB2Z2VyLmtl
-cm5lbC5vcmc+DQo+IExpbms6IGh0dHA6Ly9sa21sLmtlcm5lbC5vcmcvci8yMDE3MDQxMTIyNDQ1
-Ny4yNDc3Ny0xLXZpc2hhbC5sLnZlcm1hQGkNCj4gbnRlbC5jb20NCj4gRml4ZXM6IDY4MzlhNmQ5
-NmY0ZSAoIm5maXQ6IGRvIGFuIEFSUyBzY3J1YiBvbiBoaXR0aW5nIGEgbGF0ZW50IG1lZGlhDQo+
-IGVycm9yIikNCj4gU2lnbmVkLW9mZi1ieTogQm9yaXNsYXYgUGV0a292IDxicEBzdXNlLmRlPg0K
-PiAtLS0NCj4gwqBhcmNoL3g4Ni9rZXJuZWwvY3B1L21jaGVjay9tY2UtZ2VucG9vbC5jwqDCoHzC
-oMKgMiArLQ0KPiDCoGFyY2gveDg2L2tlcm5lbC9jcHUvbWNoZWNrL21jZS1pbnRlcm5hbC5oIHzC
-oMKgMiArLQ0KPiDCoGFyY2gveDg2L2tlcm5lbC9jcHUvbWNoZWNrL21jZS5jwqDCoMKgwqDCoMKg
-wqDCoMKgwqB8IDE4ICsrKystLS0tLS0tLS0tLS0tLQ0KPiDCoDMgZmlsZXMgY2hhbmdlZCwgNiBp
-bnNlcnRpb25zKCspLCAxNiBkZWxldGlvbnMoLSkNCj4gDQoNCkkgbm90aWNlZCB0aGlzIHBhdGNo
-IHdhcyBwaWNrZWQgdXAgaW4gdGlwLCBpbiByYXMvdXJnZW50LCBidXQgZGlkbid0IHNlZQ0KYSBw
-dWxsIHJlcXVlc3QgZm9yIDQuMTEgLSB3YXMgdGhpcyB0aGUgaW50ZW50aW9uPyBPciB3aWxsIGl0
-IGp1c3QgYmUNCmFkZGVkIGZvciA0LjEyPw0KDQoJLVZpc2hhbApfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1udmRpbW0K
+The original message was included as attachment
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_58FB450F.3BD26810--
