@@ -1,15 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
+ [IPv6:2607:f8b0:4003:c06::22c])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 57F9F21951C9B
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:26 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:21:04 -0600
-Message-Id: <1493144468-22493-18-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 17/21] mmc: spi: Make use of the new sg_map helper function
+ by ml01.01.org (Postfix) with ESMTPS id 6A4B72195407C
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Apr 2017 14:26:26 -0700 (PDT)
+Received: by mail-oi0-x22c.google.com with SMTP id x184so151776118oia.1
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Apr 2017 14:26:26 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAOSf1CG3fL=PrtnfotFsCYtMwJnEk0PQky2uyxGZ_48sEf_h0Q@mail.gmail.com>
+References: <20170421071219.18744-1-oohall@gmail.com>
+ <20170421071219.18744-2-oohall@gmail.com>
+ <CAPcyv4i3KRK7ede=qh7Br0Aw0JXviAFkfyjJyzDObuvhd3zddQ@mail.gmail.com>
+ <CAOSf1CG3fL=PrtnfotFsCYtMwJnEk0PQky2uyxGZ_48sEf_h0Q@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 24 Apr 2017 14:26:25 -0700
+Message-ID: <CAPcyv4h4PYD7LL08yo6HEHd4i-5nWp+ErY5ixq2LKPLba4CCJw@mail.gmail.com>
+Subject: Re: [PATCH 2/3] ndctl,
+ create-namespace: read default alignment from sysfs
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,107 +25,119 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
-Cc: Jens Axboe <axboe@kernel.dk>, Ulf Hansson <ulf.hansson@linaro.org>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Christoph Hellwig <hch@lst.de>
+To: Oliver O'Halloran <oohall@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We use the sg_map helper but it's slightly more complicated
-as we only check for the error when the mapping actually gets used.
-Such that if the mapping failed but wasn't needed then no
-error occurs.
+On Sat, Apr 22, 2017 at 12:04 AM, Oliver O'Halloran <oohall@gmail.com> wrote:
+> On Sat, Apr 22, 2017 at 3:19 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> On Fri, Apr 21, 2017 at 12:12 AM, Oliver O'Halloran <oohall@gmail.com> wrote:
+>>> Read the default alignment from the hpage_pmd_size in sysfs. On PPC the
+>>> PMD size depends on the MMU being used. When the traditional hash MMU is
+>>> used (P9 and earlier) the PMD size is 16MB while the newer radix MMU
+>>> uses a 2MB PMD size. The choice of MMU is done at runtime depending on
+>>> what the hardware supports so we need to detect this at runtime rather
+>>> than hardcoding it.
+>>>
+>>> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+>>> ---
+>>>  ndctl/Makefile.am                 |  3 ++-
+>>>  ndctl/builtin-xaction-namespace.c | 41 +++++++++++++++++++++++++++++----------
+>>>  2 files changed, 33 insertions(+), 11 deletions(-)
+>>>
+>>> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+>>> index c563e9411cc3..6d565c643efd 100644
+>>> --- a/ndctl/Makefile.am
+>>> +++ b/ndctl/Makefile.am
+>>> @@ -10,7 +10,8 @@ ndctl_SOURCES = ndctl.c \
+>>>                  ../util/log.c \
+>>>                 builtin-list.c \
+>>>                 builtin-test.c \
+>>> -               ../util/json.c
+>>> +               ../util/json.c \
+>>> +               ../util/sysfs.c
+>>>
+>>>  if ENABLE_SMART
+>>>  ndctl_SOURCES += util/json-smart.c
+>>> diff --git a/ndctl/builtin-xaction-namespace.c b/ndctl/builtin-xaction-namespace.c
+>>> index d6c38dc15984..713a95987d91 100644
+>>> --- a/ndctl/builtin-xaction-namespace.c
+>>> +++ b/ndctl/builtin-xaction-namespace.c
+>>> @@ -22,6 +22,7 @@
+>>>  #include <sys/types.h>
+>>>  #include <util/size.h>
+>>>  #include <util/json.h>
+>>> +#include <util/sysfs.h>
+>>>  #include <json-c/json.h>
+>>>  #include <util/filter.h>
+>>>  #include <ndctl/libndctl.h>
+>>> @@ -54,6 +55,8 @@ static struct parameters {
+>>>         const char *align;
+>>>  } param;
+>>>
+>>> +char default_align_buf[SYSFS_ATTR_SIZE];
+>>> +
+>>>  void builtin_xaction_namespace_reset(void)
+>>>  {
+>>>         /*
+>>> @@ -137,7 +140,24 @@ enum namespace_action {
+>>>         ACTION_DESTROY,
+>>>  };
+>>>
+>>> -static int set_defaults(enum namespace_action mode)
+>>> +const char *sysfs_read_default_align(struct ndctl_ctx *ctx, const char *def,
+>>> +               const char *path)
+>>> +{
+>>> +       /*
+>>> +        * HACK: The command handlers aren't supposed to write into
+>>> +        *       the ndctl command context, but we want the debug
+>>> +        *       output to go somewhere sensible.
+>>> +        */
+>>> +       if (__sysfs_read_attr((struct log_ctx *)ctx, path, default_align_buf))
+>>> +               return strdup(def);
+>>> +
+>>> +       if (!strlen(default_align_buf))
+>>> +               return def;
+>>> +
+>>> +       return default_align_buf;
+>>
+>> I chatted with Dave Hansen about this and we're thinking we should go
+>> ahead and add a new attribute to the device-dax sysfs with the list of
+>> supported alignments, similar to what we have in the btt case for
+>> supported sector sizes.
+>>
+>> The reason is that the sensitivity to page sizes is a device-dax
+>> internal requirement. Theoretically device-dax could support any
+>> alignment and handle it with a mix of page sizes. However, since
+>> device-dax wants to be strict and predictable about the tlb size
+>> backing a given device-dax mapping then it should list the possible
+>> options.
+>
+> Sounds good to me. Using the thp sysfs entries was always going to be
+> a bit of hack job, but I couldn't find anything better to use as a
+> sane default. I'll post a patch Monday (unless you already wrote one?)
+>
+>> Looking at the transparent_hugepage sysfs is a bit of a layering
+>> violation. There is no strict guarantee that device-dax is tied to thp
+>> in the longterm. The thp sysfs is also awkward because it does not
+>> tell us the pud page size.
+>
+> Are there any concrete plans on moving device-dax away from THP? THP
+> under hash has some horrible quirks and although the hardware supports
+> up to 16G pages they're impossible to use outside of hugetlbfs. It
+> would be nice to make use of the larger page sizes with dax devs, but
+> I'm not sure I want to jump down that rabbit hole...
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/mmc/host/mmc_spi.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+Yes, we have done this for the 1GB / pud case on x86_64. We added the
+base THP primitives for pud support [1] even though the rest of the
+THP implementation only understands pmds.
 
-diff --git a/drivers/mmc/host/mmc_spi.c b/drivers/mmc/host/mmc_spi.c
-index 476e53d..d614f36 100644
---- a/drivers/mmc/host/mmc_spi.c
-+++ b/drivers/mmc/host/mmc_spi.c
-@@ -676,9 +676,15 @@ mmc_spi_writeblock(struct mmc_spi_host *host, struct spi_transfer *t,
- 	struct scratch		*scratch = host->data;
- 	u32			pattern;
- 
--	if (host->mmc->use_spi_crc)
-+	if (host->mmc->use_spi_crc) {
-+		if (IS_ERR(t->tx_buf))
-+			return PTR_ERR(t->tx_buf);
-+
- 		scratch->crc_val = cpu_to_be16(
- 				crc_itu_t(0, t->tx_buf, t->len));
-+		t->tx_buf += t->len;
-+	}
-+
- 	if (host->dma_dev)
- 		dma_sync_single_for_device(host->dma_dev,
- 				host->data_dma, sizeof(*scratch),
-@@ -743,7 +749,6 @@ mmc_spi_writeblock(struct mmc_spi_host *host, struct spi_transfer *t,
- 		return status;
- 	}
- 
--	t->tx_buf += t->len;
- 	if (host->dma_dev)
- 		t->tx_dma += t->len;
- 
-@@ -809,6 +814,11 @@ mmc_spi_readblock(struct mmc_spi_host *host, struct spi_transfer *t,
- 	}
- 	leftover = status << 1;
- 
-+	if (bitshift || host->mmc->use_spi_crc) {
-+		if (IS_ERR(t->rx_buf))
-+			return PTR_ERR(t->rx_buf);
-+	}
-+
- 	if (host->dma_dev) {
- 		dma_sync_single_for_device(host->dma_dev,
- 				host->data_dma, sizeof(*scratch),
-@@ -860,9 +870,10 @@ mmc_spi_readblock(struct mmc_spi_host *host, struct spi_transfer *t,
- 					scratch->crc_val, crc, t->len);
- 			return -EILSEQ;
- 		}
-+
-+		t->rx_buf += t->len;
- 	}
- 
--	t->rx_buf += t->len;
- 	if (host->dma_dev)
- 		t->rx_dma += t->len;
- 
-@@ -933,11 +944,11 @@ mmc_spi_data_do(struct mmc_spi_host *host, struct mmc_command *cmd,
- 		}
- 
- 		/* allow pio too; we don't allow highmem */
--		kmap_addr = kmap(sg_page(sg));
-+		kmap_addr = sg_map(sg, 0, SG_KMAP);
- 		if (direction == DMA_TO_DEVICE)
--			t->tx_buf = kmap_addr + sg->offset;
-+			t->tx_buf = kmap_addr;
- 		else
--			t->rx_buf = kmap_addr + sg->offset;
-+			t->rx_buf = kmap_addr;
- 
- 		/* transfer each block, and update request status */
- 		while (length) {
-@@ -967,7 +978,8 @@ mmc_spi_data_do(struct mmc_spi_host *host, struct mmc_command *cmd,
- 		/* discard mappings */
- 		if (direction == DMA_FROM_DEVICE)
- 			flush_kernel_dcache_page(sg_page(sg));
--		kunmap(sg_page(sg));
-+		if (!IS_ERR(kmap_addr))
-+			sg_unmap(sg, kmap_addr, 0, SG_KMAP);
- 		if (dma_dev)
- 			dma_unmap_page(dma_dev, dma_addr, PAGE_SIZE, dir);
- 
--- 
-2.1.4
-
+[1]: commit a00cc7d9dd93 mm, x86: add support for PUD-sized
+transparent hugepages
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
