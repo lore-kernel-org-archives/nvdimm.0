@@ -1,7 +1,7 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Mon, 24 Apr 2017 09:36:37 +0200
-Message-ID: <1493019397.3171.118.camel@oracle.com>
+Date: Mon, 24 Apr 2017 10:14:35 -0600
+Message-ID: <9b6c0830-a728-c7ca-e6c6-2135f3f760ed@deltatee.com>
 References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
  <1491974532.7236.43.camel@kernel.crashing.org>
  <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
@@ -19,11 +19,12 @@ References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
  <CAPcyv4iqnz1B00Q3xG-nGrLXdOyB7ditxmwZyotksLFgUqr+jA@mail.gmail.com>
  <5e43818e-8c6b-8be8-23ff-b798633d2a73@deltatee.com>
  <1492381907.25766.49.camel@kernel.crashing.org>
+ <1493019397.3171.118.camel@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1492381907.25766.49.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1493019397.3171.118.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,53 +34,23 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gTW9uLCAyMDE3LTA0LTE3IGF0IDA4OjMxICsxMDAwLCBCZW5qYW1pbiBIZXJyZW5zY2htaWR0
-IHdyb3RlOgo+IE9uIFN1biwgMjAxNy0wNC0xNiBhdCAxMDozNCAtMDYwMCwgTG9nYW4gR3VudGhv
-cnBlIHdyb3RlOgo+ID7CoAo+ID4gT24gMTYvMDQvMTcgMDk6NTMgQU0sIERhbiBXaWxsaWFtcyB3
-cm90ZToKPiA+ID4gWk9ORV9ERVZJQ0UgYWxsb3dzIHlvdSB0byByZWRpcmVjdCB2aWEgZ2V0X2Rl
-dl9wYWdlbWFwKCkgdG8gcmV0cmlldmUKPiA+ID4gY29udGV4dCBhYm91dCB0aGUgcGh5c2ljYWwg
-YWRkcmVzcyBpbiBxdWVzdGlvbi4gSSdtIHRoaW5raW5nIHlvdSBjYW4KPiA+ID4gaGFuZyBidXMg
-YWRkcmVzcyB0cmFuc2xhdGlvbiBkYXRhIG9mZiBvZiB0aGF0IHN0cnVjdHVyZS4gVGhpcyBzZWVt
-cwo+ID4gPiB2YWd1ZWx5IHNpbWlsYXIgdG8gd2hhdCBITU0gaXMgZG9pbmcuCj4gPsKgCj4gPiBU
-aGFua3MhIEkgZGlkbid0IHJlYWxpemUgeW91IGhhZCB0aGUgaW5mcmFzdHJ1Y3R1cmUgdG8gbG9v
-ayB1cCBhIGRldmljZQo+ID4gZnJvbSBhIHBmbi9wYWdlLiBUaGF0IHdvdWxkIHJlYWxseSBjb21l
-IGluIGhhbmR5IGZvciB1cy4KPiAKPiBJdCBkb2VzIGluZGVlZC4gSSB3b24ndCBiZSBhYmxlIHRv
-IHBsYXkgd2l0aCB0aGF0IG11Y2ggZm9yIGEgZmV3IHdlZWtzCj4gKHNlZSBteSBvdGhlciBlbWFp
-bCkgc28gaWYgeW91J3JlIGdvaW5nIHRvIHRhY2tsZSB0aGlzIHdoaWxlIEknbSBhd2F5LAo+IGNh
-biB5b3Ugd29yayB3aXRoIEplcm9tZSB0byBtYWtlIHN1cmUgeW91IGRvbid0IGNvbmZsaWN0IHdp
-dGggSE1NID8KPiAKPiBJIHJlYWxseSB3YW50IGEgd2F5IGZvciBITU0gdG8gYmUgYWJsZSB0byBs
-YXlvdXQgc3RydWN0IHBhZ2VzIG92ZXIgdGhlCj4gR1BVIEJBUnMgcmF0aGVyIHRoYW4gaW4gImFs
-bG9jYXRlZCBmcmVlIHNwYWNlIiBmb3IgdGhlIGNhc2Ugd2hlcmUgdGhlCj4gQkFSIGlzIGJpZyBl
-bm91Z2ggdG8gY292ZXIgYWxsIG9mIHRoZSBHUFUgbWVtb3J5Lgo+IAo+IEluIGdlbmVyYWwsIEkn
-ZCBsaWtlIGEgc2ltcGxlICYgZ2VuZXJpYyB3YXkgZm9yIGFueSBkcml2ZXIgdG8gYXNrIHRoZQo+
-IGNvcmUgdG8gbGF5b3V0IERNQSdibGUgc3RydWN0IHBhZ2VzIG92ZXIgQkFSIHNwYWNlLiBJIGFu
-IG5vdCBjb252aW5jZWQKPiB0aGlzIHJlcXVpcmVzIGEgInAybWVtIGRldmljZSIgdG8gYmUgY3Jl
-YXRlZCBvbiB0b3Agb2YgdGhpcyB0aG91Z2ggYnV0Cj4gdGhhdCdzIGEgZGlmZmVyZW50IGRpc2N1
-c3Npb24uCj4gCj4gT2YgY291cnNlIHRoZSBhY3R1YWwgYWJpbGl0eSB0byBwZXJmb3JtIHRoZSBE
-TUEgbWFwcGluZyB3aWxsIGJlIHN1YmplY3QKPiB0byB2YXJpb3VzIHJlc3RyaWN0aW9ucyB0aGF0
-IHdpbGwgaGF2ZSB0byBiZSBpbXBsZW1lbnRlZCBpbiB0aGUgYWN0dWFsCj4gImRtYV9vcHMgb3Zl
-cnJpZGUiIGJhY2tlbmQuIFdlIGNhbiBoYXZlIGdlbmVyaWMgY29kZSB0byBoYW5kbGUgdGhlIGNh
-c2UKPiB3aGVyZSBkZXZpY2VzIHJlc2lkZSBvbiB0aGUgc2FtZSBkb21haW4sIHdoaWNoIGNhbiBk
-ZWFsIHdpdGggc3dpdGNoCj4gY29uZmlndXJhdGlvbiBldGMuLi4gd2Ugd2lsbCBuZWVkIHRvIGhh
-dmUgaW9tbXUgc3BlY2lmaWMgY29kZSB0byBoYW5kbGUKPiB0aGUgY2FzZSBnb2luZyB0aHJvdWdo
-IHRoZSBmYWJyaWMuwqAKPiAKPiBWaXJ0dWFsaXphdGlvbiBpcyBhIHNlcGFyYXRlIGNhbiBvZiB3
-b3JtcyBkdWUgdG8gaG93IHFlbXUgY29tcGxldGVseQo+IGZha2VzIHRoZSBNTUlPIHNwYWNlLCB3
-ZSBjYW4gbG9vayBpbnRvIHRoYXQgbGF0ZXIuCgpNeSBmaXJzdCByZWZsZXggd2hlbiByZWFkaW5n
-IHRoaXMgdGhyZWFkIHdhcyB0byB0aGluayB0aGF0IHRoaXMgd2hvbGUgZG9tYWluCmxlbmRzIGl0
-IHNlbGYgZXhjZWxsZW50bHkgdG8gdGVzdGluZyB2aWEgUWVtdS4gQ291bGQgaXQgYmUgdGhhdCBk
-b2luZyB0aGlzIGluwqAKdGhlIG9wcG9zaXRlIGRpcmVjdGlvbiBtaWdodCBiZSBhIHNhZmVyIGFw
-cHJvYWNoIGluIHRoZSBsb25nIHJ1biBldmVuIHRob3VnaMKgCihzaWduaWZpY2FudCkgbW9yZSB3
-b3JrIHVwLWZyb250PwoKRWcuIHN0YXJ0IGJ5IGZpeGluZy9wcm92aWRpbmcvZG9jdW1lbnRpbmcg
-c3VpdGFibGUgbW9kZWwocynCoApmb3IgdGVzdGluZyB0aGlzIGluIFFlbXUsIHRoZW4gaW1wbGVt
-ZW50IHRoZSBwYXRjaCBzZXQgYmFzZWTCoApvbiB0aG9zZSBtb2RlbHM/CgpUaGFua3MsCktudXQK
-Cj4gCj4gQ2hlZXJzLAo+IEJlbi4KPiAKPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
-aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbgo+IHRoZSBib2R5
-IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4gTW9yZSBtYWpvcmRv
-bW8gaW5mbyBhdMKgwqBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
-aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
-MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+
+
+On 24/04/17 01:36 AM, Knut Omang wrote:
+> My first reflex when reading this thread was to think that this whole domain
+> lends it self excellently to testing via Qemu. Could it be that doing this in 
+> the opposite direction might be a safer approach in the long run even though 
+> (significant) more work up-front?
+
+That's an interesting idea. We did do some very limited testing on qemu
+with one iteration of our work. However, it's difficult because there is
+no support for any RDMA devices which are a part of our primary use
+case. I also imagine it would be quite difficult to develop those models
+given the array of hardware that needs to be supported and the deep
+functional knowledge required to figure out appropriate restrictions.
+
+Logan
