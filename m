@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 379C421A04830
- for <linux-nvdimm@lists.01.org>; Wed, 19 Apr 2017 15:37:57 -0700 (PDT)
-Subject: [PATCH v3] axon_ram: add dax_operations support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 19 Apr 2017 15:32:13 -0700
-Message-ID: <149264111867.36586.15762148888692084363.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 91ED321951C9B
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:30 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Apr 2017 12:21:07 -0600
+Message-Id: <1493144468-22493-21-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 20/21] mmc: tifm_sd: Make use of the new sg_map helper
+ function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,155 +18,177 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, hch@lst.de, Gerald Schaefer <gerald.schaefer@de.ibm.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, Ulf Hansson <ulf.hansson@linaro.org>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Alex Dubov <oakad@yahoo.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Setup a dax_device to have the same lifetime as the axon_ram block
-device and add a ->direct_access() method that is equivalent to
-axon_ram_direct_access(). Once fs/dax.c has been converted to use
-dax_operations the old axon_ram_direct_access() will be removed.
+This conversion is a bit complicated. We modiy the read_fifo,
+write_fifo and copy_page functions to take a scatterlist instead of a
+page. Thus we can use sg_map instead of kmap_atomic. There's a bit of
+accounting that needed to be done for the offset for this to work.
+(Seeing sg_map takes care of the offset but it's already added and
+used earlier in the code.)
 
-Reported-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+There's also no error path, so we use SG_MAP_MUST_NOT_FAIL which may
+BUG_ON in certain cases in the future.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
 ---
-Changes since v2:
-* fix return code in the alloc_dax() failure case (Gerald)
+ drivers/mmc/host/tifm_sd.c | 50 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 29 insertions(+), 21 deletions(-)
 
- arch/powerpc/platforms/Kconfig |    1 +
- arch/powerpc/sysdev/axonram.c  |   48 +++++++++++++++++++++++++++++++++++-----
- 2 files changed, 43 insertions(+), 6 deletions(-)
-
-diff --git a/arch/powerpc/platforms/Kconfig b/arch/powerpc/platforms/Kconfig
-index 7e3a2ebba29b..33244e3d9375 100644
---- a/arch/powerpc/platforms/Kconfig
-+++ b/arch/powerpc/platforms/Kconfig
-@@ -284,6 +284,7 @@ config CPM2
- config AXON_RAM
- 	tristate "Axon DDR2 memory device driver"
- 	depends on PPC_IBM_CELL_BLADE && BLOCK
-+	select DAX
- 	default m
- 	help
- 	  It registers one block device per Axon's DDR2 memory bank found
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index f523ac883150..171ba86a3494 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -25,6 +25,7 @@
- 
- #include <linux/bio.h>
- #include <linux/blkdev.h>
-+#include <linux/dax.h>
- #include <linux/device.h>
- #include <linux/errno.h>
- #include <linux/fs.h>
-@@ -62,6 +63,7 @@ static int azfs_major, azfs_minor;
- struct axon_ram_bank {
- 	struct platform_device	*device;
- 	struct gendisk		*disk;
-+	struct dax_device	*dax_dev;
- 	unsigned int		irq_id;
- 	unsigned long		ph_addr;
- 	unsigned long		io_addr;
-@@ -137,25 +139,47 @@ axon_ram_make_request(struct request_queue *queue, struct bio *bio)
- 	return BLK_QC_T_NONE;
- }
- 
-+static long
-+__axon_ram_direct_access(struct axon_ram_bank *bank, pgoff_t pgoff, long nr_pages,
-+		       void **kaddr, pfn_t *pfn)
-+{
-+	resource_size_t offset = pgoff * PAGE_SIZE;
-+
-+	*kaddr = (void *) bank->io_addr + offset;
-+	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
-+	return (bank->size - offset) / PAGE_SIZE;
-+}
-+
- /**
-  * axon_ram_direct_access - direct_access() method for block device
-  * @device, @sector, @data: see block_device_operations method
-  */
- static long
--axon_ram_direct_access(struct block_device *device, sector_t sector,
-+axon_ram_blk_direct_access(struct block_device *device, sector_t sector,
- 		       void **kaddr, pfn_t *pfn, long size)
- {
- 	struct axon_ram_bank *bank = device->bd_disk->private_data;
--	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
- 
--	*kaddr = (void *) bank->io_addr + offset;
--	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
--	return bank->size - offset;
-+	return __axon_ram_direct_access(bank, (sector * 512) / PAGE_SIZE,
-+			size / PAGE_SIZE, kaddr, pfn) * PAGE_SIZE;
- }
- 
- static const struct block_device_operations axon_ram_devops = {
- 	.owner		= THIS_MODULE,
--	.direct_access	= axon_ram_direct_access
-+	.direct_access	= axon_ram_blk_direct_access
-+};
-+
-+static long
-+axon_ram_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
-+		       void **kaddr, pfn_t *pfn)
-+{
-+	struct axon_ram_bank *bank = dax_get_private(dax_dev);
-+
-+	return __axon_ram_direct_access(bank, pgoff, nr_pages, kaddr, pfn);
-+}
-+
-+static const struct dax_operations axon_ram_dax_ops = {
-+	.direct_access = axon_ram_dax_direct_access,
+diff --git a/drivers/mmc/host/tifm_sd.c b/drivers/mmc/host/tifm_sd.c
+index 93c4b40..e64345a 100644
+--- a/drivers/mmc/host/tifm_sd.c
++++ b/drivers/mmc/host/tifm_sd.c
+@@ -111,14 +111,16 @@ struct tifm_sd {
  };
  
- /**
-@@ -219,6 +243,7 @@ static int axon_ram_probe(struct platform_device *device)
- 		goto failed;
- 	}
+ /* for some reason, host won't respond correctly to readw/writew */
+-static void tifm_sd_read_fifo(struct tifm_sd *host, struct page *pg,
++static void tifm_sd_read_fifo(struct tifm_sd *host, struct scatterlist *sg,
+ 			      unsigned int off, unsigned int cnt)
+ {
+ 	struct tifm_dev *sock = host->dev;
+ 	unsigned char *buf;
+ 	unsigned int pos = 0, val;
  
+-	buf = kmap_atomic(pg) + off;
++	buf = sg_map(sg, off - sg->offset,
++		     SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
 +
- 	bank->disk->major = azfs_major;
- 	bank->disk->first_minor = azfs_minor;
- 	bank->disk->fops = &axon_ram_devops;
-@@ -227,6 +252,13 @@ static int axon_ram_probe(struct platform_device *device)
- 	sprintf(bank->disk->disk_name, "%s%d",
- 			AXON_RAM_DEVICE_NAME, axon_ram_bank_id);
- 
-+	bank->dax_dev = alloc_dax(bank, bank->disk->disk_name,
-+			&axon_ram_dax_ops);
-+	if (!bank->dax_dev) {
-+		rc = -ENOMEM;
-+		goto failed;
-+	}
-+
- 	bank->disk->queue = blk_alloc_queue(GFP_KERNEL);
- 	if (bank->disk->queue == NULL) {
- 		dev_err(&device->dev, "Cannot register disk queue\n");
-@@ -278,6 +310,8 @@ static int axon_ram_probe(struct platform_device *device)
- 				del_gendisk(bank->disk);
- 			put_disk(bank->disk);
+ 	if (host->cmd_flags & DATA_CARRY) {
+ 		buf[pos++] = host->bounce_buf_data[0];
+ 		host->cmd_flags &= ~DATA_CARRY;
+@@ -134,17 +136,19 @@ static void tifm_sd_read_fifo(struct tifm_sd *host, struct page *pg,
  		}
-+		kill_dax(bank->dax_dev);
-+		put_dax(bank->dax_dev);
- 		device->dev.platform_data = NULL;
- 		if (bank->io_addr != 0)
- 			iounmap((void __iomem *) bank->io_addr);
-@@ -300,6 +334,8 @@ axon_ram_remove(struct platform_device *device)
+ 		buf[pos++] = (val >> 8) & 0xff;
+ 	}
+-	kunmap_atomic(buf - off);
++	sg_unmap(sg, buf, off - sg->offset, SG_KMAP_ATOMIC);
+ }
  
- 	device_remove_file(&device->dev, &dev_attr_ecc);
- 	free_irq(bank->irq_id, device);
-+	kill_dax(bank->dax_dev);
-+	put_dax(bank->dax_dev);
- 	del_gendisk(bank->disk);
- 	put_disk(bank->disk);
- 	iounmap((void __iomem *) bank->io_addr);
+-static void tifm_sd_write_fifo(struct tifm_sd *host, struct page *pg,
++static void tifm_sd_write_fifo(struct tifm_sd *host, struct scatterlist *sg,
+ 			       unsigned int off, unsigned int cnt)
+ {
+ 	struct tifm_dev *sock = host->dev;
+ 	unsigned char *buf;
+ 	unsigned int pos = 0, val;
+ 
+-	buf = kmap_atomic(pg) + off;
++	buf = sg_map(sg, off - sg->offset,
++		     SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
++
+ 	if (host->cmd_flags & DATA_CARRY) {
+ 		val = host->bounce_buf_data[0] | ((buf[pos++] << 8) & 0xff00);
+ 		writel(val, sock->addr + SOCK_MMCSD_DATA);
+@@ -161,7 +165,7 @@ static void tifm_sd_write_fifo(struct tifm_sd *host, struct page *pg,
+ 		val |= (buf[pos++] << 8) & 0xff00;
+ 		writel(val, sock->addr + SOCK_MMCSD_DATA);
+ 	}
+-	kunmap_atomic(buf - off);
++	sg_unmap(sg, buf, off - sg->offset, SG_KMAP_ATOMIC);
+ }
+ 
+ static void tifm_sd_transfer_data(struct tifm_sd *host)
+@@ -170,7 +174,6 @@ static void tifm_sd_transfer_data(struct tifm_sd *host)
+ 	struct scatterlist *sg = r_data->sg;
+ 	unsigned int off, cnt, t_size = TIFM_MMCSD_FIFO_SIZE * 2;
+ 	unsigned int p_off, p_cnt;
+-	struct page *pg;
+ 
+ 	if (host->sg_pos == host->sg_len)
+ 		return;
+@@ -192,33 +195,39 @@ static void tifm_sd_transfer_data(struct tifm_sd *host)
+ 		}
+ 		off = sg[host->sg_pos].offset + host->block_pos;
+ 
+-		pg = nth_page(sg_page(&sg[host->sg_pos]), off >> PAGE_SHIFT);
+ 		p_off = offset_in_page(off);
+ 		p_cnt = PAGE_SIZE - p_off;
+ 		p_cnt = min(p_cnt, cnt);
+ 		p_cnt = min(p_cnt, t_size);
+ 
+ 		if (r_data->flags & MMC_DATA_READ)
+-			tifm_sd_read_fifo(host, pg, p_off, p_cnt);
++			tifm_sd_read_fifo(host, &sg[host->sg_pos], p_off,
++					  p_cnt);
+ 		else if (r_data->flags & MMC_DATA_WRITE)
+-			tifm_sd_write_fifo(host, pg, p_off, p_cnt);
++			tifm_sd_write_fifo(host, &sg[host->sg_pos], p_off,
++					   p_cnt);
+ 
+ 		t_size -= p_cnt;
+ 		host->block_pos += p_cnt;
+ 	}
+ }
+ 
+-static void tifm_sd_copy_page(struct page *dst, unsigned int dst_off,
+-			      struct page *src, unsigned int src_off,
++static void tifm_sd_copy_page(struct scatterlist *dst, unsigned int dst_off,
++			      struct scatterlist *src, unsigned int src_off,
+ 			      unsigned int count)
+ {
+-	unsigned char *src_buf = kmap_atomic(src) + src_off;
+-	unsigned char *dst_buf = kmap_atomic(dst) + dst_off;
++	unsigned char *src_buf, *dst_buf;
++
++	src_off -= src->offset;
++	dst_off -= dst->offset;
++
++	src_buf = sg_map(src, src_off, SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
++	dst_buf = sg_map(dst, dst_off, SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
+ 
+ 	memcpy(dst_buf, src_buf, count);
+ 
+-	kunmap_atomic(dst_buf - dst_off);
+-	kunmap_atomic(src_buf - src_off);
++	sg_unmap(dst, dst_buf, dst_off, SG_KMAP_ATOMIC);
++	sg_unmap(src, src_buf, src_off, SG_KMAP_ATOMIC);
+ }
+ 
+ static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
+@@ -227,7 +236,6 @@ static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
+ 	unsigned int t_size = r_data->blksz;
+ 	unsigned int off, cnt;
+ 	unsigned int p_off, p_cnt;
+-	struct page *pg;
+ 
+ 	dev_dbg(&host->dev->dev, "bouncing block\n");
+ 	while (t_size) {
+@@ -241,18 +249,18 @@ static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
+ 		}
+ 		off = sg[host->sg_pos].offset + host->block_pos;
+ 
+-		pg = nth_page(sg_page(&sg[host->sg_pos]), off >> PAGE_SHIFT);
+ 		p_off = offset_in_page(off);
+ 		p_cnt = PAGE_SIZE - p_off;
+ 		p_cnt = min(p_cnt, cnt);
+ 		p_cnt = min(p_cnt, t_size);
+ 
+ 		if (r_data->flags & MMC_DATA_WRITE)
+-			tifm_sd_copy_page(sg_page(&host->bounce_buf),
++			tifm_sd_copy_page(&host->bounce_buf,
+ 					  r_data->blksz - t_size,
+-					  pg, p_off, p_cnt);
++					  &sg[host->sg_pos], p_off, p_cnt);
+ 		else if (r_data->flags & MMC_DATA_READ)
+-			tifm_sd_copy_page(pg, p_off, sg_page(&host->bounce_buf),
++			tifm_sd_copy_page(&sg[host->sg_pos], p_off,
++					  &host->bounce_buf,
+ 					  r_data->blksz - t_size, p_cnt);
+ 
+ 		t_size -= p_cnt;
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
