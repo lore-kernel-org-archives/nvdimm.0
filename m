@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 609E620081A7B
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:00 -0700 (PDT)
-Subject: [resend PATCH v2 16/33] block,
- dax: convert bdev_dax_supported() to dax_direct_access()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:10:16 -0700
-Message-ID: <149245621655.10206.6212373965558626649.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id A5DD921951C9D
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:30 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Apr 2017 12:21:06 -0600
+Message-Id: <1493144468-22493-20-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 19/21] mmc: sdricoh_cs: Make use of the new sg_map helper
+ function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,89 +18,56 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, Ulf Hansson <ulf.hansson@linaro.org>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Sascha Sommer <saschasommer@freenet.de>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Kill of the final user of bdev_direct_access() and struct blk_dax_ctl.
+This is a straightforward conversion to the new function.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Sascha Sommer <saschasommer@freenet.de>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- fs/block_dev.c |   48 ++++++++++++++++++++++++++++--------------------
- 1 file changed, 28 insertions(+), 20 deletions(-)
+ drivers/mmc/host/sdricoh_cs.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 2f7885712575..ecbdc8f9f718 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -788,35 +788,43 @@ EXPORT_SYMBOL(bdev_dax_pgoff);
-  */
- int bdev_dax_supported(struct super_block *sb, int blocksize)
- {
--	struct blk_dax_ctl dax = {
--		.sector = 0,
--		.size = PAGE_SIZE,
--	};
--	int err;
-+	struct block_device *bdev = sb->s_bdev;
-+	struct dax_device *dax_dev;
-+	pgoff_t pgoff;
-+	int err, id;
-+	void *kaddr;
-+	pfn_t pfn;
-+	long len;
+diff --git a/drivers/mmc/host/sdricoh_cs.c b/drivers/mmc/host/sdricoh_cs.c
+index 5ff26ab..03225c3 100644
+--- a/drivers/mmc/host/sdricoh_cs.c
++++ b/drivers/mmc/host/sdricoh_cs.c
+@@ -319,16 +319,20 @@ static void sdricoh_request(struct mmc_host *mmc, struct mmc_request *mrq)
+ 		for (i = 0; i < data->blocks; i++) {
+ 			size_t len = data->blksz;
+ 			u8 *buf;
+-			struct page *page;
+ 			int result;
+-			page = sg_page(data->sg);
  
- 	if (blocksize != PAGE_SIZE) {
- 		vfs_msg(sb, KERN_ERR, "error: unsupported blocksize for dax");
- 		return -EINVAL;
- 	}
- 
--	err = bdev_direct_access(sb->s_bdev, &dax);
--	if (err < 0) {
--		switch (err) {
--		case -EOPNOTSUPP:
--			vfs_msg(sb, KERN_ERR,
--				"error: device does not support dax");
--			break;
--		case -EINVAL:
--			vfs_msg(sb, KERN_ERR,
--				"error: unaligned partition for dax");
--			break;
--		default:
--			vfs_msg(sb, KERN_ERR,
--				"error: dax access failed (%d)", err);
--		}
-+	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
-+	if (err) {
-+		vfs_msg(sb, KERN_ERR, "error: unaligned partition for dax");
- 		return err;
- 	}
- 
-+	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
-+	if (!dax_dev) {
-+		vfs_msg(sb, KERN_ERR, "error: device does not support dax");
-+		return -EOPNOTSUPP;
-+	}
+-			buf = kmap(page) + data->sg->offset + (len * i);
++			buf = sg_map(data->sg, (len * i), SG_KMAP);
++			if (IS_ERR(buf)) {
++				cmd->error = PTR_ERR(buf);
++				break;
++			}
 +
-+	id = dax_read_lock();
-+	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
-+	dax_read_unlock(id);
+ 			result =
+ 				sdricoh_blockio(host,
+ 					data->flags & MMC_DATA_READ, buf, len);
+-			kunmap(page);
+-			flush_dcache_page(page);
++			sg_unmap(data->sg, buf, (len * i), SG_KMAP);
 +
-+	put_dax(dax_dev);
-+
-+	if (len < 1) {
-+		vfs_msg(sb, KERN_ERR,
-+				"error: dax access failed (%d)", len);
-+		return len < 0 ? len : -EIO;
-+	}
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(bdev_dax_supported);
++			flush_dcache_page(sg_page(data->sg));
+ 			if (result) {
+ 				dev_err(dev, "sdricoh_request: cmd %i "
+ 					"block transfer failed\n", cmd->opcode);
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
