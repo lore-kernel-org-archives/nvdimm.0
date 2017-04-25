@@ -1,18 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg0-x243.google.com (mail-pg0-x243.google.com
- [IPv6:2607:f8b0:400e:c05::243])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1C0C92095C3C9
- for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 10:43:08 -0700 (PDT)
-Received: by mail-pg0-x243.google.com with SMTP id 79so696145pgf.0
- for <linux-nvdimm@lists.01.org>; Tue, 11 Apr 2017 10:43:08 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH 5/9] powerpc/vmemmap: Add altmap support
-Date: Wed, 12 Apr 2017 03:42:29 +1000
-Message-Id: <20170411174233.21902-6-oohall@gmail.com>
-In-Reply-To: <20170411174233.21902-1-oohall@gmail.com>
-References: <20170411174233.21902-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3EAF721951C95
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:20 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Apr 2017 12:20:47 -0600
+Message-Id: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+MIME-Version: 1.0
+Subject: [PATCH v2 00/21] Introduce common scatterlist map function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,132 +16,135 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linuxppc-dev@lists.ozlabs.org
-Cc: bsingharora@gmail.com, arbab@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adds support to powerpc for the altmap feature of ZONE_DEVICE memory. An
-altmap is a driver provided region that is used to provide the backing
-storage for the struct pages of ZONE_DEVICE memory. In situations where
-large amount of ZONE_DEVICE memory is being added to the system the
-altmap reduces pressure on main system memory by allowing the mm/
-metadata to be stored on the device itself rather in main memory.
+Changes since v1:
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
----
- arch/powerpc/mm/init_64.c | 20 +++++++++++++++-----
- arch/powerpc/mm/mem.c     | 16 +++++++++++++---
- 2 files changed, 28 insertions(+), 8 deletions(-)
+* Rebased onto next-20170424
+* Removed the _offset version of these functions per Christoph's
+  suggestion
+* Added an SG_MAP_MUST_NOT_FAIL flag which will BUG_ON in future cases
+  that can't gracefully fail. This removes a bunch of the noise added
+  in v1 to a couple of the drivers. (Per David Laight's suggestion)
+  This flag is only meant for old code
+* Split the libiscsi patch into two (per Christoph's suggestion)
+  the prep patch (patch 2 in this series) has already been
+  sent separately
+* Fixed a locking mistake in the target patch (pointed out by a bot)
+* Dropped the nvmet patch and handled it with a different patch
+  that has been sent separately
+* Dropped the chcr patch as they have already removed the code that
+  needed to be changed
 
-diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-index f8124edb6ffa..225fbb8034e6 100644
---- a/arch/powerpc/mm/init_64.c
-+++ b/arch/powerpc/mm/init_64.c
-@@ -44,6 +44,7 @@
- #include <linux/slab.h>
- #include <linux/of_fdt.h>
- #include <linux/libfdt.h>
-+#include <linux/memremap.h>
- 
- #include <asm/pgalloc.h>
- #include <asm/page.h>
-@@ -171,13 +172,17 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
- 	pr_debug("vmemmap_populate %lx..%lx, node %d\n", start, end, node);
- 
- 	for (; start < end; start += page_size) {
-+		struct vmem_altmap *altmap;
- 		void *p;
- 		int rc;
- 
- 		if (vmemmap_populated(start, page_size))
- 			continue;
- 
--		p = vmemmap_alloc_block(page_size, node);
-+		/* altmap lookups only work at section boundaries */
-+		altmap = to_vmem_altmap(SECTION_ALIGN_DOWN(start));
-+
-+		p =  __vmemmap_alloc_block_buf(page_size, node, altmap);
- 		if (!p)
- 			return -ENOMEM;
- 
-@@ -241,9 +246,10 @@ void __ref vmemmap_free(unsigned long start, unsigned long end)
- 	pr_debug("vmemmap_free %lx...%lx\n", start, end);
- 
- 	for (; start < end; start += page_size) {
--		struct page *page = pfn_to_page(addr >> PAGE_SHIFT);
--		unsigned int nr_pages;
--		unsigned long addr;
-+		unsigned long nr_pages, addr;
-+		struct vmem_altmap *altmap;
-+		struct page *section_base;
-+		struct page *page;
- 
- 		/*
- 		 * the section has already be marked as invalid, so
-@@ -258,9 +264,13 @@ void __ref vmemmap_free(unsigned long start, unsigned long end)
- 			continue;
- 
- 		page = pfn_to_page(addr >> PAGE_SHIFT);
-+		section_base = pfn_to_page(vmemmap_section_start(start));
- 		nr_pages = 1 << page_order;
- 
--		if (PageReserved(page)) {
-+		altmap = to_vmem_altmap((unsigned long) section_base);
-+		if (altmap) {
-+			vmem_altmap_free(altmap, nr_pages);
-+		} else if (PageReserved(page)) {
- 			/* allocated from bootmem */
- 			if (page_size < PAGE_SIZE) {
- 				/*
-diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
-index 3bbba178b464..6f7b64eaa9d8 100644
---- a/arch/powerpc/mm/mem.c
-+++ b/arch/powerpc/mm/mem.c
-@@ -36,6 +36,7 @@
- #include <linux/hugetlb.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
-+#include <linux/memremap.h>
- 
- #include <asm/pgalloc.h>
- #include <asm/prom.h>
-@@ -176,7 +177,8 @@ int arch_remove_memory(u64 start, u64 size, enum memory_type type)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
--	struct zone *zone;
-+	struct vmem_altmap *altmap;
-+	struct page *page;
- 	int ret;
- 
- 	/*
-@@ -193,8 +195,16 @@ int arch_remove_memory(u64 start, u64 size, enum memory_type type)
- 		return -EINVAL;
- 	}
- 
--	zone = page_zone(pfn_to_page(start_pfn));
--	ret = __remove_pages(zone, start_pfn, nr_pages);
-+	/*
-+	 * If we have an altmap then we need to skip over any reserved PFNs
-+	 * when querying the zone.
-+	 */
-+	page = pfn_to_page(start_pfn);
-+	altmap = to_vmem_altmap((unsigned long) page);
-+	if (altmap)
-+		page += vmem_altmap_offset(altmap);
-+
-+	ret = __remove_pages(page_zone(page), start_pfn, nr_pages);
- 	if (ret)
- 		return ret;
- 
--- 
-2.9.3
+I'm still hoping to only get Patch 1 in the series merged. (Any
+volunteers?) I'm willing to chase down the maintainers for the remaining
+patches separately after the first patch is in.
 
+The patchset is based on next-20170424 and can be found in the sg_map_v2
+branch from this git tree:
+
+https://github.com/sbates130272/linux-p2pmem.git
+
+--
+
+Hi Everyone,
+
+As part of my effort to enable P2P DMA transactions with PCI cards,
+we've identified the need to be able to safely put IO memory into
+scatterlists (and eventually other spots). This probably involves a
+conversion from struct page to pfn_t but that migration is a ways off
+and those decisions are yet to be made.
+
+As an initial step in that direction, I've started cleaning up some of the
+scatterlist code by trying to carve out a better defined layer between it
+and it's users. The longer term goal would be to remove sg_page or replace
+it with something that can potentially fail.
+
+This patchset is the first step in that effort. I've introduced
+a common function to map scatterlist memory and converted all the common
+kmap(sg_page()) cases. This removes about 66 sg_page calls (of ~331).
+
+Seeing this is a fairly large cleanup set that touches a wide swath of
+the kernel I have limited the people I've sent this to. I'd suggest we look
+toward merging the first patch and then I can send the individual subsystem
+patches on to their respective maintainers and get them merged
+independantly. (This is to avoid the conflicts I created with my last
+cleanup set... Sorry) Though, I'm certainly open to other suggestions to get
+it merged.
+
+Logan Gunthorpe (21):
+  scatterlist: Introduce sg_map helper functions
+  libiscsi: Add an internal error code
+  libiscsi: Make use of new the sg_map helper function
+  target: Make use of the new sg_map function at 16 call sites
+  drm/i915: Make use of the new sg_map helper function
+  crypto: hifn_795x: Make use of the new sg_map helper function
+  crypto: shash, caam: Make use of the new sg_map helper function
+  dm-crypt: Make use of the new sg_map helper in 4 call sites
+  staging: unisys: visorbus: Make use of the new sg_map helper function
+  RDS: Make use of the new sg_map helper function
+  scsi: ipr, pmcraid, isci: Make use of the new sg_map helper
+  scsi: hisi_sas, mvsas, gdth: Make use of the new sg_map helper
+    function
+  scsi: arcmsr, ips, megaraid: Make use of the new sg_map helper
+    function
+  scsi: libfc, csiostor: Change to sg_copy_buffer in two drivers
+  xen-blkfront: Make use of the new sg_map helper function
+  mmc: sdhci: Make use of the new sg_map helper function
+  mmc: spi: Make use of the new sg_map helper function
+  mmc: tmio: Make use of the new sg_map helper function
+  mmc: sdricoh_cs: Make use of the new sg_map helper function
+  mmc: tifm_sd: Make use of the new sg_map helper function
+  memstick: Make use of the new sg_map helper function
+
+ crypto/shash.c                                  |   9 ++-
+ drivers/block/xen-blkfront.c                    |  20 ++---
+ drivers/crypto/caam/caamalg.c                   |   8 +-
+ drivers/crypto/hifn_795x.c                      |  32 +++++---
+ drivers/gpu/drm/i915/i915_gem.c                 |  27 ++++---
+ drivers/md/dm-crypt.c                           |  39 ++++++---
+ drivers/memstick/host/jmb38x_ms.c               |  11 +--
+ drivers/memstick/host/tifm_ms.c                 |  11 +--
+ drivers/mmc/host/mmc_spi.c                      |  26 ++++--
+ drivers/mmc/host/sdhci.c                        |  14 ++--
+ drivers/mmc/host/sdricoh_cs.c                   |  14 ++--
+ drivers/mmc/host/tifm_sd.c                      |  50 +++++++-----
+ drivers/mmc/host/tmio_mmc.h                     |   7 +-
+ drivers/mmc/host/tmio_mmc_pio.c                 |  12 +++
+ drivers/scsi/arcmsr/arcmsr_hba.c                |  16 +++-
+ drivers/scsi/csiostor/csio_scsi.c               |  54 +------------
+ drivers/scsi/cxgbi/libcxgbi.c                   |   5 ++
+ drivers/scsi/gdth.c                             |   9 ++-
+ drivers/scsi/hisi_sas/hisi_sas_v1_hw.c          |  14 ++--
+ drivers/scsi/hisi_sas/hisi_sas_v2_hw.c          |  13 ++-
+ drivers/scsi/ipr.c                              |  27 ++++---
+ drivers/scsi/ips.c                              |   8 +-
+ drivers/scsi/isci/request.c                     |  42 ++++++----
+ drivers/scsi/libfc/fc_libfc.c                   |  49 +++--------
+ drivers/scsi/libiscsi_tcp.c                     |  32 +++++---
+ drivers/scsi/megaraid.c                         |   9 ++-
+ drivers/scsi/mvsas/mv_sas.c                     |  10 +--
+ drivers/scsi/pmcraid.c                          |  19 +++--
+ drivers/staging/unisys/visorhba/visorhba_main.c |  12 +--
+ drivers/target/iscsi/iscsi_target.c             |  29 ++++---
+ drivers/target/target_core_rd.c                 |   3 +-
+ drivers/target/target_core_sbc.c                | 103 +++++++++++++++---------
+ drivers/target/target_core_transport.c          |  18 +++--
+ drivers/target/target_core_user.c               |  45 ++++++++---
+ include/linux/scatterlist.h                     |  85 +++++++++++++++++++
+ include/scsi/libiscsi_tcp.h                     |   3 +-
+ include/target/target_core_backend.h            |   4 +-
+ net/rds/ib_recv.c                               |   8 +-
+ 38 files changed, 553 insertions(+), 344 deletions(-)
+
+--
+2.1.4
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
