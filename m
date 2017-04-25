@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1BC5C219493C2
- for <linux-nvdimm@lists.01.org>; Fri, 28 Apr 2017 14:35:02 -0700 (PDT)
-Subject: [PATCH 3/3] acpi, nfit: kill ACPI_NFIT_DEBUG,
- switch to dynamic_hex_dump()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 28 Apr 2017 14:29:09 -0700
-Message-ID: <149341494933.35578.4269653029034926839.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149341493336.35578.13631055553267152302.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149341493336.35578.13631055553267152302.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 6B68721951C9D
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:25 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Apr 2017 12:21:08 -0600
+Message-Id: <1493144468-22493-22-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 21/21] memstick: Make use of the new sg_map helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,88 +17,110 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Alex Dubov <oakad@yahoo.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Inevitably when one actually needs to debug a DSM issue it's on a
-distribution kernel that has CONFIG_ACPI_NFIT_DEBUG=n. The config symbol
-is only there to avoid the compile error due to the missing fallback for
-print_hex_dump_debug in the CONFIG_DYNAMIC_DEBUG=n case. Now that the
-compile error is fixed the nfit driver can call dynamic_hex_dump()
-directly, and enable debug of unmodified distro kernels.
+Straightforward conversion, but we have to make use of
+SG_MAP_MUST_NOT_FAIL which may BUG_ON in certain cases
+in the future.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 ---
- drivers/acpi/nfit/Kconfig |   12 ------------
- drivers/acpi/nfit/core.c  |   21 ++++++++-------------
- 2 files changed, 8 insertions(+), 25 deletions(-)
+ drivers/memstick/host/jmb38x_ms.c | 11 ++++++-----
+ drivers/memstick/host/tifm_ms.c   | 11 ++++++-----
+ 2 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/nfit/Kconfig b/drivers/acpi/nfit/Kconfig
-index dd0d53c52552..6d3351452ea2 100644
---- a/drivers/acpi/nfit/Kconfig
-+++ b/drivers/acpi/nfit/Kconfig
-@@ -12,15 +12,3 @@ config ACPI_NFIT
+diff --git a/drivers/memstick/host/jmb38x_ms.c b/drivers/memstick/host/jmb38x_ms.c
+index 48db922..9019e37 100644
+--- a/drivers/memstick/host/jmb38x_ms.c
++++ b/drivers/memstick/host/jmb38x_ms.c
+@@ -303,7 +303,6 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 	unsigned int off;
+ 	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+-	struct page *pg;
+ 	unsigned long flags = 0;
  
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called nfit.
--
--config ACPI_NFIT_DEBUG
--	bool "NFIT DSM debug"
--	depends on ACPI_NFIT
--	depends on DYNAMIC_DEBUG
--	default n
--	help
--	  Enabling this option causes the nfit driver to dump the
--	  input and output buffers of _DSM operations on the ACPI0012
--	  device and its children.  This can be very verbose, so leave
--	  it disabled unless you are debugging a hardware / firmware
--	  issue.
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 261eea1d2906..ca391a2cbe63 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -268,14 +268,11 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		in_buf.buffer.length = call_pkg->nd_size_in;
- 	}
+ 	if (host->req->long_data) {
+@@ -318,14 +317,14 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 		unsigned int uninitialized_var(p_off);
  
--	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
--		dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
--				__func__, dimm_name, cmd, func,
--				in_buf.buffer.length);
--		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
-+	dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
-+			__func__, dimm_name, cmd, func, in_buf.buffer.length);
-+	dynamic_hex_dump("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
- 			in_buf.buffer.pointer,
- 			min_t(u32, 256, in_buf.buffer.length), true);
--	}
+ 		if (host->req->long_data) {
+-			pg = nth_page(sg_page(&host->req->sg),
+-				      off >> PAGE_SHIFT);
+ 			p_off = offset_in_page(off);
+ 			p_cnt = PAGE_SIZE - p_off;
+ 			p_cnt = min(p_cnt, length);
  
- 	out_obj = acpi_evaluate_dsm(handle, uuid, 1, func, &in_obj);
- 	if (!out_obj) {
-@@ -307,13 +304,11 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		goto out;
- 	}
+ 			local_irq_save(flags);
+-			buf = kmap_atomic(pg) + p_off;
++			buf = sg_map(&host->req->sg,
++				     off - host->req->sg.offset,
++				     SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
+ 		} else {
+ 			buf = host->req->data + host->block_pos;
+ 			p_cnt = host->req->data_len - host->block_pos;
+@@ -341,7 +340,9 @@ static int jmb38x_ms_transfer_data(struct jmb38x_ms_host *host)
+ 				 : jmb38x_ms_read_reg_data(host, buf, p_cnt);
  
--	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
--		dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__,
--				dimm_name, cmd_name, out_obj->buffer.length);
--		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
--				4, out_obj->buffer.pointer, min_t(u32, 128,
--					out_obj->buffer.length), true);
--	}
-+	dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__, dimm_name,
-+			cmd_name, out_obj->buffer.length);
-+	dynamic_hex_dump(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
-+			out_obj->buffer.pointer,
-+			min_t(u32, 128, out_obj->buffer.length), true);
+ 		if (host->req->long_data) {
+-			kunmap_atomic(buf - p_off);
++			sg_unmap(&host->req->sg, buf,
++				 off - host->req->sg.offset,
++				 SG_KMAP_ATOMIC);
+ 			local_irq_restore(flags);
+ 		}
  
- 	for (i = 0, offset = 0; i < desc->out_num; i++) {
- 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
+diff --git a/drivers/memstick/host/tifm_ms.c b/drivers/memstick/host/tifm_ms.c
+index 7bafa72..304985d 100644
+--- a/drivers/memstick/host/tifm_ms.c
++++ b/drivers/memstick/host/tifm_ms.c
+@@ -186,7 +186,6 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 	unsigned int off;
+ 	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+-	struct page *pg;
+ 	unsigned long flags = 0;
+ 
+ 	if (host->req->long_data) {
+@@ -203,14 +202,14 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 		unsigned int uninitialized_var(p_off);
+ 
+ 		if (host->req->long_data) {
+-			pg = nth_page(sg_page(&host->req->sg),
+-				      off >> PAGE_SHIFT);
+ 			p_off = offset_in_page(off);
+ 			p_cnt = PAGE_SIZE - p_off;
+ 			p_cnt = min(p_cnt, length);
+ 
+ 			local_irq_save(flags);
+-			buf = kmap_atomic(pg) + p_off;
++			buf = sg_map(&host->req->sg,
++				     off - host->req->sg.offset,
++				     SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
+ 		} else {
+ 			buf = host->req->data + host->block_pos;
+ 			p_cnt = host->req->data_len - host->block_pos;
+@@ -221,7 +220,9 @@ static unsigned int tifm_ms_transfer_data(struct tifm_ms *host)
+ 			 : tifm_ms_read_data(host, buf, p_cnt);
+ 
+ 		if (host->req->long_data) {
+-			kunmap_atomic(buf - p_off);
++			sg_unmap(&host->req->sg, buf,
++				 off - host->req->sg.offset,
++				 SG_KMAP_ATOMIC | SG_MAP_MUST_NOT_FAIL);
+ 			local_irq_restore(flags);
+ 		}
+ 
+-- 
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
