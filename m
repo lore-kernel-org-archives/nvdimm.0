@@ -1,16 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBE532194EB6E
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:32 -0700 (PDT)
-Subject: [resend PATCH v2 11/33] dm: add dax_device and dax_operations support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:09:48 -0700
-Message-ID: <149245618859.10206.13182319600260215993.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2CEDB21951CB7
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 14:09:03 -0700 (PDT)
+Date: Tue, 25 Apr 2017 15:07:41 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 1/2] x86/MCE: Export memory_error()
+Message-ID: <20170425210740.GA15722@omniknight.lm.intel.com>
+References: <20170420221818.23522-1-vishal.l.verma@intel.com>
+ <CAPcyv4ijU2V-4WOPysL12ByOovAXDO=Mci1D4wNDFqxRjdvT2w@mail.gmail.com>
+ <1492804517.2738.25.camel@intel.com>
+ <3908561D78D1C84285E8C5FCA982C28F6127653B@ORSMSX114.amr.corp.intel.com>
+ <CAPcyv4jAkCE2QBuxfxxmZfQZLCVOGLrLXqDu5TyGCVA+xJMEVg@mail.gmail.com>
+ <20170421202741.GA16423@intel.com>
+ <20170421210704.c5pvpn6zivvruzx3@pd.tnic>
+ <20170424113620.6iq2466yhkhb33rp@pd.tnic>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170424113620.6iq2466yhkhb33rp@pd.tnic>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,217 +30,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Mike Snitzer <snitzer@redhat.com>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Borislav Petkov <bp@alien8.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck," Tony" <tony.luck@intel.com>, "stable@vger.kernel.org, " <stable@vger.kernel.org>, linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allocate a dax_device to represent the capacity of a device-mapper
-instance. Provide a ->direct_access() method via the new dax_operations
-indirection that mirrors the functionality of the current direct_access
-support via block_device_operations.  Once fs/dax.c has been converted
-to use dax_operations the old dm_blk_direct_access() will be removed.
+On 04/24, Borislav Petkov wrote:
+> From: Borislav Petkov <bp@suse.de>
+> Date: Mon, 24 Apr 2017 13:16:50 +0200
+> Subject: [PATCH 1/2] x86/MCE: Export memory_error()
+> 
+> Export the function which checks whether an MCE is a memory error to
+> other users so that we can reuse the logic. Drop the boot_cpu_data use,
+> while at it, as mce.cpuvendor already has the CPU vendor in there.
+> 
+> Signed-off-by: Borislav Petkov <bp@suse.de>
+> ---
+>  arch/x86/include/asm/mce.h       |  1 +
+>  arch/x86/kernel/cpu/mcheck/mce.c | 12 +++++-------
+>  2 files changed, 6 insertions(+), 7 deletions(-)
+> 
+Here is the updated patch to use the above helper:
 
-A new helper dm_dax_get_live_target() is introduced to separate some of
-the dm-specifics from the direct_access implementation.
+8<-----
 
-This enabling is only for the top-level dm representation to upper
-layers. Converting target direct_access implementations is deferred to a
-separate patch.
 
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>From 9661a85799c9067d762ecf29630f2b7f69897628 Mon Sep 17 00:00:00 2001
+From: Vishal Verma <vishal.l.verma@intel.com>
+Date: Tue, 25 Apr 2017 15:00:58 -0600
+Subject: [PATCH v2] acpi, nfit: fix the memory error check in nfit_handle_mce
+
+The check for an MCE being a memory error in the NFIT mce handler was
+bogus. Export the new mce_is_memory_error helper, and use that tp
+perform the correct check in the handler.
+
+Reported-by: Tony Luck <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/md/Kconfig            |    1 
- drivers/md/dm-core.h          |    1 
- drivers/md/dm.c               |   84 ++++++++++++++++++++++++++++++++++-------
- include/linux/device-mapper.h |    1 
- 4 files changed, 73 insertions(+), 14 deletions(-)
+ arch/x86/kernel/cpu/mcheck/mce.c | 1 +
+ drivers/acpi/nfit/mce.c          | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index b7767da50c26..1de8372d9459 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -200,6 +200,7 @@ config BLK_DEV_DM_BUILTIN
- config BLK_DEV_DM
- 	tristate "Device mapper support"
- 	select BLK_DEV_DM_BUILTIN
-+	select DAX
- 	---help---
- 	  Device-mapper is a low level volume manager.  It works by allowing
- 	  people to specify mappings for ranges of logical sectors.  Various
-diff --git a/drivers/md/dm-core.h b/drivers/md/dm-core.h
-index 136fda3ff9e5..538630190f66 100644
---- a/drivers/md/dm-core.h
-+++ b/drivers/md/dm-core.h
-@@ -58,6 +58,7 @@ struct mapped_device {
- 	struct target_type *immutable_target_type;
+This applies on tip/master + Borislav's patches in this thread above.
+I'm not sure what the right process for queueing this for both
+upstream and -stable is, so just replying here. Should I post it
+independently?
+
+diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
+index 361865ca..5cfbaeb 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -527,6 +527,7 @@ bool mce_is_memory_error(struct mce *m)
  
- 	struct gendisk *disk;
-+	struct dax_device *dax_dev;
- 	char name[16];
- 
- 	void *interface_ptr;
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index dfb75979e455..bd56dfe43a99 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -16,6 +16,7 @@
- #include <linux/blkpg.h>
- #include <linux/bio.h>
- #include <linux/mempool.h>
-+#include <linux/dax.h>
- #include <linux/slab.h>
- #include <linux/idr.h>
- #include <linux/hdreg.h>
-@@ -908,31 +909,68 @@ int dm_set_target_max_io_len(struct dm_target *ti, sector_t len)
+ 	return false;
  }
- EXPORT_SYMBOL_GPL(dm_set_target_max_io_len);
++EXPORT_SYMBOL_GPL(mce_is_memory_error);
  
--static long dm_blk_direct_access(struct block_device *bdev, sector_t sector,
--				 void **kaddr, pfn_t *pfn, long size)
-+static struct dm_target *dm_dax_get_live_target(struct mapped_device *md,
-+		sector_t sector, int *srcu_idx)
+ static bool cec_add_mce(struct mce *m)
  {
--	struct mapped_device *md = bdev->bd_disk->private_data;
- 	struct dm_table *map;
- 	struct dm_target *ti;
--	int srcu_idx;
--	long len, ret = -EIO;
+diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
+index 3ba1c34..fd86bec 100644
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -26,7 +26,7 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+ 	struct nfit_spa *nfit_spa;
  
--	map = dm_get_live_table(md, &srcu_idx);
-+	map = dm_get_live_table(md, srcu_idx);
- 	if (!map)
--		goto out;
-+		return NULL;
+ 	/* We only care about memory errors */
+-	if (!(mce->status & MCACOD))
++	if (!mce_is_memory_error(mce))
+ 		return NOTIFY_DONE;
  
- 	ti = dm_table_find_target(map, sector);
- 	if (!dm_target_is_valid(ti))
--		goto out;
-+		return NULL;
- 
--	len = max_io_len(sector, ti) << SECTOR_SHIFT;
--	size = min(len, size);
-+	return ti;
-+}
- 
--	if (ti->type->direct_access)
--		ret = ti->type->direct_access(ti, sector, kaddr, pfn, size);
--out:
-+static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
-+		long nr_pages, void **kaddr, pfn_t *pfn)
-+{
-+	struct mapped_device *md = dax_get_private(dax_dev);
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+	struct dm_target *ti;
-+	long len, ret = -EIO;
-+	int srcu_idx;
-+
-+	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
-+
-+	if (!ti)
-+		goto out;
-+	if (!ti->type->direct_access)
-+		goto out;
-+	len = max_io_len(sector, ti) / PAGE_SECTORS;
-+	if (len < 1)
-+		goto out;
-+	nr_pages = min(len, nr_pages);
-+	if (ti->type->direct_access) {
-+		ret = ti->type->direct_access(ti, sector, kaddr, pfn,
-+				nr_pages * PAGE_SIZE);
-+		/*
-+		 * FIXME: convert ti->type->direct_access to return
-+		 * nr_pages directly.
-+		 */
-+		if (ret >= 0)
-+			ret /= PAGE_SIZE;
-+	}
-+ out:
- 	dm_put_live_table(md, srcu_idx);
--	return min(ret, size);
-+
-+	return ret;
-+}
-+
-+static long dm_blk_direct_access(struct block_device *bdev, sector_t sector,
-+		void **kaddr, pfn_t *pfn, long size)
-+{
-+	struct mapped_device *md = bdev->bd_disk->private_data;
-+	struct dax_device *dax_dev = md->dax_dev;
-+	long nr_pages = size / PAGE_SIZE;
-+
-+	nr_pages = dm_dax_direct_access(dax_dev, sector / PAGE_SECTORS,
-+			nr_pages, kaddr, pfn);
-+	return nr_pages < 0 ? nr_pages : nr_pages * PAGE_SIZE;
- }
- 
- /*
-@@ -1437,6 +1475,7 @@ static int next_free_minor(int *minor)
- }
- 
- static const struct block_device_operations dm_blk_dops;
-+static const struct dax_operations dm_dax_ops;
- 
- static void dm_wq_work(struct work_struct *work);
- 
-@@ -1483,6 +1522,12 @@ static void cleanup_mapped_device(struct mapped_device *md)
- 	if (md->bs)
- 		bioset_free(md->bs);
- 
-+	if (md->dax_dev) {
-+		kill_dax(md->dax_dev);
-+		put_dax(md->dax_dev);
-+		md->dax_dev = NULL;
-+	}
-+
- 	if (md->disk) {
- 		spin_lock(&_minor_lock);
- 		md->disk->private_data = NULL;
-@@ -1510,6 +1555,7 @@ static void cleanup_mapped_device(struct mapped_device *md)
- static struct mapped_device *alloc_dev(int minor)
- {
- 	int r, numa_node_id = dm_get_numa_node();
-+	struct dax_device *dax_dev;
- 	struct mapped_device *md;
- 	void *old_md;
- 
-@@ -1574,6 +1620,12 @@ static struct mapped_device *alloc_dev(int minor)
- 	md->disk->queue = md->queue;
- 	md->disk->private_data = md;
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
-+
-+	dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
-+	if (!dax_dev)
-+		goto bad;
-+	md->dax_dev = dax_dev;
-+
- 	add_disk(md->disk);
- 	format_dev_t(md->name, MKDEV(_major, minor));
- 
-@@ -2781,6 +2833,10 @@ static const struct block_device_operations dm_blk_dops = {
- 	.owner = THIS_MODULE
- };
- 
-+static const struct dax_operations dm_dax_ops = {
-+	.direct_access = dm_dax_direct_access,
-+};
-+
- /*
-  * module hooks
-  */
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index a7e6903866fd..bcba4d89089c 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -130,6 +130,7 @@ typedef int (*dm_busy_fn) (struct dm_target *ti);
-  */
- typedef long (*dm_direct_access_fn) (struct dm_target *ti, sector_t sector,
- 				     void **kaddr, pfn_t *pfn, long size);
-+#define PAGE_SECTORS (PAGE_SIZE / 512)
- 
- void dm_error(const char *message);
- 
+ 	/*
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
