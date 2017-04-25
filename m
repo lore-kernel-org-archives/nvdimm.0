@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
- [IPv6:2607:f8b0:4003:c06::231])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com
+ [15.241.140.73])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 02D9921951C94
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 16:07:20 -0700 (PDT)
-Received: by mail-oi0-x231.google.com with SMTP id j201so190116655oih.2
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 16:07:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170425230413.363-1-toshi.kani@hpe.com>
-References: <20170425230413.363-1-toshi.kani@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 25 Apr 2017 16:07:18 -0700
-Message-ID: <CAPcyv4jNpCc=qCsRM0-U3Ov=iFn2e_n53_ZgPdDV3pttS0P9Ew@mail.gmail.com>
-Subject: Re: [PATCH] pmem: fix a NULL pointer BUG in nd_pmem_notify
+ by ml01.01.org (Postfix) with ESMTPS id 9F15321951C94
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 16:04:47 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH] pmem: fix a NULL pointer BUG in nd_pmem_notify
+Date: Tue, 25 Apr 2017 17:04:13 -0600
+Message-Id: <20170425230413.363-1-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,112 +16,106 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Apr 25, 2017 at 4:04 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> The following BUG was observed when nd_pmem_notify() was called
-> for a BTT device.  The use of a pmem_device pointer is not valid
-> with BTT.
->
->  BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
->  IP: nd_pmem_notify+0x30/0xf0 [nd_pmem]
->  Call Trace:
->   nd_device_notify+0x40/0x50
->   child_notify+0x10/0x20
->   device_for_each_child+0x50/0x90
->   nd_region_notify+0x20/0x30
->   nd_device_notify+0x40/0x50
->   nvdimm_region_notify+0x27/0x30
->   acpi_nfit_scrub+0x341/0x590 [nfit]
->   process_one_work+0x197/0x450
->   worker_thread+0x4e/0x4a0
->   kthread+0x109/0x140
->
-> Fix nd_pmem_notify() by setting nd_region and badblocks pointers
-> properly for BTT.
->
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
+The following BUG was observed when nd_pmem_notify() was called
+for a BTT device.  The use of a pmem_device pointer is not valid
+with BTT.
 
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
+ IP: nd_pmem_notify+0x30/0xf0 [nd_pmem]
+ Call Trace:
+  nd_device_notify+0x40/0x50
+  child_notify+0x10/0x20
+  device_for_each_child+0x50/0x90
+  nd_region_notify+0x20/0x30
+  nd_device_notify+0x40/0x50
+  nvdimm_region_notify+0x27/0x30
+  acpi_nfit_scrub+0x341/0x590 [nfit]
+  process_one_work+0x197/0x450
+  worker_thread+0x4e/0x4a0
+  kthread+0x109/0x140
 
-Hi Toshi, how did you trigger this? I'd like to get your test into the
-regression suite.
+Fix nd_pmem_notify() by setting nd_region and badblocks pointers
+properly for BTT.
 
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/pmem.c |   37 +++++++++++++++++++++++++------------
+ 1 file changed, 25 insertions(+), 12 deletions(-)
 
-> ---
->  drivers/nvdimm/pmem.c |   37 +++++++++++++++++++++++++------------
->  1 file changed, 25 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index 5b536be..0fc1826 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -388,12 +388,12 @@ static void nd_pmem_shutdown(struct device *dev)
->
->  static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
->  {
-> -       struct pmem_device *pmem = dev_get_drvdata(dev);
-> -       struct nd_region *nd_region = to_region(pmem);
-> +       struct nd_region *nd_region;
->         resource_size_t offset = 0, end_trunc = 0;
->         struct nd_namespace_common *ndns;
->         struct nd_namespace_io *nsio;
->         struct resource res;
-> +       struct badblocks *bb;
->
->         if (event != NVDIMM_REVALIDATE_POISON)
->                 return;
-> @@ -402,20 +402,33 @@ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
->                 struct nd_btt *nd_btt = to_nd_btt(dev);
->
->                 ndns = nd_btt->ndns;
-> -       } else if (is_nd_pfn(dev)) {
-> -               struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-> -               struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
-> +               nd_region = to_nd_region(ndns->dev.parent);
-> +               nsio = to_nd_namespace_io(&ndns->dev);
-> +               bb = &nsio->bb;
-> +       } else {
-> +               struct pmem_device *pmem = dev_get_drvdata(dev);
->
-> -               ndns = nd_pfn->ndns;
-> -               offset = pmem->data_offset + __le32_to_cpu(pfn_sb->start_pad);
-> -               end_trunc = __le32_to_cpu(pfn_sb->end_trunc);
-> -       } else
-> -               ndns = to_ndns(dev);
-> +               nd_region = to_region(pmem);
-> +               bb = &pmem->bb;
-> +
-> +               if (is_nd_pfn(dev)) {
-> +                       struct nd_pfn *nd_pfn = to_nd_pfn(dev);
-> +                       struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
-> +
-> +                       ndns = nd_pfn->ndns;
-> +                       offset = pmem->data_offset +
-> +                                       __le32_to_cpu(pfn_sb->start_pad);
-> +                       end_trunc = __le32_to_cpu(pfn_sb->end_trunc);
-> +               } else {
-> +                       ndns = to_ndns(dev);
-> +               }
-> +
-> +               nsio = to_nd_namespace_io(&ndns->dev);
-> +       }
->
-> -       nsio = to_nd_namespace_io(&ndns->dev);
->         res.start = nsio->res.start + offset;
->         res.end = nsio->res.end - end_trunc;
-> -       nvdimm_badblocks_populate(nd_region, &pmem->bb, &res);
-> +       nvdimm_badblocks_populate(nd_region, bb, &res);
->  }
->
->  MODULE_ALIAS("pmem");
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 5b536be..0fc1826 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -388,12 +388,12 @@ static void nd_pmem_shutdown(struct device *dev)
+ 
+ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
+ {
+-	struct pmem_device *pmem = dev_get_drvdata(dev);
+-	struct nd_region *nd_region = to_region(pmem);
++	struct nd_region *nd_region;
+ 	resource_size_t offset = 0, end_trunc = 0;
+ 	struct nd_namespace_common *ndns;
+ 	struct nd_namespace_io *nsio;
+ 	struct resource res;
++	struct badblocks *bb;
+ 
+ 	if (event != NVDIMM_REVALIDATE_POISON)
+ 		return;
+@@ -402,20 +402,33 @@ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
+ 		struct nd_btt *nd_btt = to_nd_btt(dev);
+ 
+ 		ndns = nd_btt->ndns;
+-	} else if (is_nd_pfn(dev)) {
+-		struct nd_pfn *nd_pfn = to_nd_pfn(dev);
+-		struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
++		nd_region = to_nd_region(ndns->dev.parent);
++		nsio = to_nd_namespace_io(&ndns->dev);
++		bb = &nsio->bb;
++	} else {
++		struct pmem_device *pmem = dev_get_drvdata(dev);
+ 
+-		ndns = nd_pfn->ndns;
+-		offset = pmem->data_offset + __le32_to_cpu(pfn_sb->start_pad);
+-		end_trunc = __le32_to_cpu(pfn_sb->end_trunc);
+-	} else
+-		ndns = to_ndns(dev);
++		nd_region = to_region(pmem);
++		bb = &pmem->bb;
++
++		if (is_nd_pfn(dev)) {
++			struct nd_pfn *nd_pfn = to_nd_pfn(dev);
++			struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
++
++			ndns = nd_pfn->ndns;
++			offset = pmem->data_offset +
++					__le32_to_cpu(pfn_sb->start_pad);
++			end_trunc = __le32_to_cpu(pfn_sb->end_trunc);
++		} else {
++			ndns = to_ndns(dev);
++		}
++
++		nsio = to_nd_namespace_io(&ndns->dev);
++	}
+ 
+-	nsio = to_nd_namespace_io(&ndns->dev);
+ 	res.start = nsio->res.start + offset;
+ 	res.end = nsio->res.end - end_trunc;
+-	nvdimm_badblocks_populate(nd_region, &pmem->bb, &res);
++	nvdimm_badblocks_populate(nd_region, bb, &res);
+ }
+ 
+ MODULE_ALIAS("pmem");
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
