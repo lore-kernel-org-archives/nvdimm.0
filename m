@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B68902195406F
- for <linux-nvdimm@lists.01.org>; Thu, 20 Apr 2017 20:44:46 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/2] dax: fix data corruption due to stale mmap reads
-Date: Thu, 20 Apr 2017 21:44:37 -0600
-Message-Id: <20170421034437.4359-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170421034437.4359-1-ross.zwisler@linux.intel.com>
-References: <20170420191446.GA21694@linux.intel.com>
- <20170421034437.4359-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2FC9521951C8D
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:18 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Apr 2017 12:20:55 -0600
+Message-Id: <1493144468-22493-9-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 08/21] dm-crypt: Make use of the new sg_map helper in 4
+ call sites
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,99 +23,96 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Jan Kara <jack@suse.cz>, Trond Myklebust <trond.myklebust@primarydata.com>, linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>, linux-cifs@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Eric Van Hensbergen <ericvh@gmail.com>, linux-nvdimm@lists.01.org, Alexander Viro <viro@zeniv.linux.org.uk>, v9fs-developer@lists.sourceforge.net, Jens Axboe <axboe@kernel.dk>, linux-nfs@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, samba-technical@lists.samba.org, Steve French <sfrench@samba.org>, Alexey Kuznetsov <kuznet@virtuozzo.com>, Johannes Weiner <hannes@cmpxchg.org>, linux-fsdevel@vger.kernel.org, Ron Minnich <rminnich@sandia.gov>, Anna Schumaker <anna.schumaker@netapp.com>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Mike Snitzer <snitzer@redhat.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Users of DAX can suffer data corruption from stale mmap reads via the
-following sequence:
+Very straightforward conversion to the new function in all four spots.
 
-- open an mmap over a 2MiB hole
-
-- read from a 2MiB hole, faulting in a 2MiB zero page
-
-- write to the hole with write(3p).  The write succeeds but we incorrectly
-  leave the 2MiB zero page mapping intact.
-
-- via the mmap, read the data that was just written.  Since the zero page
-  mapping is still intact we read back zeroes instead of the new data.
-
-We fix this by unconditionally calling invalidate_inode_pages2_range() in
-dax_iomap_actor() for new block allocations, and by enhancing
-__dax_invalidate_mapping_entry() so that it properly unmaps the DAX entry
-being removed from the radix tree.
-
-This is based on an initial patch from Jan Kara.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Fixes: c6dcf52c23d2 ("mm: Invalidate DAX radix tree entries only if appropriate")
-Reported-by: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>    [4.10+]
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mike Snitzer <snitzer@redhat.com>
 ---
- fs/dax.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ drivers/md/dm-crypt.c | 39 ++++++++++++++++++++++++++-------------
+ 1 file changed, 26 insertions(+), 13 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 166504c..3f445d5 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -468,23 +468,35 @@ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
- 					  pgoff_t index, bool trunc)
- {
- 	int ret = 0;
--	void *entry;
-+	void *entry, **slot;
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
+diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
+index 8dbecf1..841f1fc 100644
+--- a/drivers/md/dm-crypt.c
++++ b/drivers/md/dm-crypt.c
+@@ -635,9 +635,12 @@ static int crypt_iv_lmk_gen(struct crypt_config *cc, u8 *iv,
  
- 	spin_lock_irq(&mapping->tree_lock);
--	entry = get_unlocked_mapping_entry(mapping, index, NULL);
-+	entry = get_unlocked_mapping_entry(mapping, index, &slot);
- 	if (!entry || !radix_tree_exceptional_entry(entry))
- 		goto out;
- 	if (!trunc &&
- 	    (radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_DIRTY) ||
- 	     radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE)))
- 		goto out;
+ 	if (bio_data_dir(dmreq->ctx->bio_in) == WRITE) {
+ 		sg = crypt_get_sg_data(cc, dmreq->sg_in);
+-		src = kmap_atomic(sg_page(sg));
+-		r = crypt_iv_lmk_one(cc, iv, dmreq, src + sg->offset);
+-		kunmap_atomic(src);
++		src = sg_map(sg, 0, SG_KMAP_ATOMIC);
++		if (IS_ERR(src))
++			return PTR_ERR(src);
 +
-+	/*
-+	 * Make sure 'entry' remains valid while we drop mapping->tree_lock to
-+	 * do the unmap_mapping_range() call.
-+	 */
-+	entry = lock_slot(mapping, slot);
-+	spin_unlock_irq(&mapping->tree_lock);
++		r = crypt_iv_lmk_one(cc, iv, dmreq, src);
++		sg_unmap(sg, src, 0, SG_KMAP_ATOMIC);
+ 	} else
+ 		memset(iv, 0, cc->iv_size);
+ 
+@@ -655,14 +658,18 @@ static int crypt_iv_lmk_post(struct crypt_config *cc, u8 *iv,
+ 		return 0;
+ 
+ 	sg = crypt_get_sg_data(cc, dmreq->sg_out);
+-	dst = kmap_atomic(sg_page(sg));
+-	r = crypt_iv_lmk_one(cc, iv, dmreq, dst + sg->offset);
++	dst = sg_map(sg, 0, SG_KMAP_ATOMIC);
++	if (IS_ERR(dst))
++		return PTR_ERR(dst);
 +
-+	unmap_mapping_range(mapping, (loff_t)index << PAGE_SHIFT,
-+			(loff_t)PAGE_SIZE << dax_radix_order(entry), 0);
++	r = crypt_iv_lmk_one(cc, iv, dmreq, dst);
+ 
+ 	/* Tweak the first block of plaintext sector */
+ 	if (!r)
+-		crypto_xor(dst + sg->offset, iv, cc->iv_size);
++		crypto_xor(dst, iv, cc->iv_size);
 +
-+	spin_lock_irq(&mapping->tree_lock);
- 	radix_tree_delete(page_tree, index);
- 	mapping->nrexceptional--;
- 	ret = 1;
- out:
--	put_unlocked_mapping_entry(mapping, index, entry);
- 	spin_unlock_irq(&mapping->tree_lock);
-+	dax_wake_mapping_entry_waiter(mapping, index, entry, true);
- 	return ret;
++	sg_unmap(sg, dst, 0, SG_KMAP_ATOMIC);
+ 
+-	kunmap_atomic(dst);
+ 	return r;
  }
- /*
-@@ -999,11 +1011,11 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		return -EIO;
  
- 	/*
--	 * Write can allocate block for an area which has a hole page mapped
--	 * into page tables. We have to tear down these mappings so that data
--	 * written by write(2) is visible in mmap.
-+	 * Write can allocate block for an area which has a hole page or zero
-+	 * PMD entry in the radix tree.  We have to tear down these mappings so
-+	 * that data written by write(2) is visible in mmap.
- 	 */
--	if ((iomap->flags & IOMAP_F_NEW) && inode->i_mapping->nrpages) {
-+	if (iomap->flags & IOMAP_F_NEW) {
- 		invalidate_inode_pages2_range(inode->i_mapping,
- 					      pos >> PAGE_SHIFT,
- 					      (end - 1) >> PAGE_SHIFT);
+@@ -786,9 +793,12 @@ static int crypt_iv_tcw_gen(struct crypt_config *cc, u8 *iv,
+ 	/* Remove whitening from ciphertext */
+ 	if (bio_data_dir(dmreq->ctx->bio_in) != WRITE) {
+ 		sg = crypt_get_sg_data(cc, dmreq->sg_in);
+-		src = kmap_atomic(sg_page(sg));
+-		r = crypt_iv_tcw_whitening(cc, dmreq, src + sg->offset);
+-		kunmap_atomic(src);
++		src = sg_map(sg, 0, SG_KMAP_ATOMIC);
++		if (IS_ERR(src))
++			return PTR_ERR(src);
++
++		r = crypt_iv_tcw_whitening(cc, dmreq, src);
++		sg_unmap(sg, src, 0, SG_KMAP_ATOMIC);
+ 	}
+ 
+ 	/* Calculate IV */
+@@ -812,9 +822,12 @@ static int crypt_iv_tcw_post(struct crypt_config *cc, u8 *iv,
+ 
+ 	/* Apply whitening on ciphertext */
+ 	sg = crypt_get_sg_data(cc, dmreq->sg_out);
+-	dst = kmap_atomic(sg_page(sg));
+-	r = crypt_iv_tcw_whitening(cc, dmreq, dst + sg->offset);
+-	kunmap_atomic(dst);
++	dst = sg_map(sg, 0, SG_KMAP_ATOMIC);
++	if (IS_ERR(dst))
++		return PTR_ERR(dst);
++
++	r = crypt_iv_tcw_whitening(cc, dmreq, dst);
++	sg_unmap(sg, dst, 0, SG_KMAP_ATOMIC);
+ 
+ 	return r;
+ }
 -- 
-2.9.3
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
