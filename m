@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from SMTP.EU.CITRIX.COM (smtp.eu.citrix.com [185.25.65.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F0FE21951C86
- for <linux-nvdimm@lists.01.org>; Wed, 26 Apr 2017 00:37:31 -0700 (PDT)
-Date: Wed, 26 Apr 2017 08:37:20 +0100
-From: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>
-Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
- function
-Message-ID: <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
+ by ml01.01.org (Postfix) with ESMTPS id 05F2F21951C93
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:29 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Apr 2017 12:21:02 -0600
+Message-Id: <1493144468-22493-16-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
 References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-16-git-send-email-logang@deltatee.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1493144468-22493-16-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
+ function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,103 +19,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>, dri-devel@lists.freedesktop.org, dm-devel@redhat.com, target-devel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, devel@driverdev.osuosl.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, Juergen Gross <jgross@suse.com>, Julien Grall <julien.grall@arm.com>, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, "Martin K. Petersen" <martin.petersen@oracle.com>, netdev@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, Juergen Gross <jgross@suse.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Christoph Hellwig <hch@lst.de>, =?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Apr 25, 2017 at 12:21:02PM -0600, Logan Gunthorpe wrote:
-> Straightforward conversion to the new helper, except due to the lack
-> of error path, we have to use SG_MAP_MUST_NOT_FAIL which may BUG_ON in
-> certain cases in the future.
-> =
-
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-> Cc: Juergen Gross <jgross@suse.com>
-> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> Cc: "Roger Pau Monn=E9" <roger.pau@citrix.com>
-> ---
->  drivers/block/xen-blkfront.c | 20 +++++++++++---------
->  1 file changed, 11 insertions(+), 9 deletions(-)
-> =
-
-> diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-> index 3945963..ed62175 100644
-> --- a/drivers/block/xen-blkfront.c
-> +++ b/drivers/block/xen-blkfront.c
-> @@ -816,8 +816,9 @@ static int blkif_queue_rw_req(struct request *req, st=
-ruct blkfront_ring_info *ri
->  		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
->  =
-
->  		if (setup.need_copy) {
-> -			setup.bvec_off =3D sg->offset;
-> -			setup.bvec_data =3D kmap_atomic(sg_page(sg));
-> +			setup.bvec_off =3D 0;
-> +			setup.bvec_data =3D sg_map(sg, 0, SG_KMAP_ATOMIC |
-> +						 SG_MAP_MUST_NOT_FAIL);
-
-I assume that sg_map already adds sg->offset to the address?
-
-Also wondering whether we can get rid of bvec_off and just increment bvec_d=
-ata,
-adding Julien who IIRC added this code.
-
->  		}
->  =
-
->  		gnttab_foreach_grant_in_range(sg_page(sg),
-> @@ -827,7 +828,7 @@ static int blkif_queue_rw_req(struct request *req, st=
-ruct blkfront_ring_info *ri
->  					      &setup);
->  =
-
->  		if (setup.need_copy)
-> -			kunmap_atomic(setup.bvec_data);
-> +			sg_unmap(sg, setup.bvec_data, 0, SG_KMAP_ATOMIC);
->  	}
->  	if (setup.segments)
->  		kunmap_atomic(setup.segments);
-> @@ -1053,7 +1054,7 @@ static int xen_translate_vdev(int vdevice, int *min=
-or, unsigned int *offset)
->  		case XEN_SCSI_DISK5_MAJOR:
->  		case XEN_SCSI_DISK6_MAJOR:
->  		case XEN_SCSI_DISK7_MAJOR:
-> -			*offset =3D (*minor / PARTS_PER_DISK) + =
-
-> +			*offset =3D (*minor / PARTS_PER_DISK) +
->  				((major - XEN_SCSI_DISK1_MAJOR + 1) * 16) +
->  				EMULATED_SD_DISK_NAME_OFFSET;
->  			*minor =3D *minor +
-> @@ -1068,7 +1069,7 @@ static int xen_translate_vdev(int vdevice, int *min=
-or, unsigned int *offset)
->  		case XEN_SCSI_DISK13_MAJOR:
->  		case XEN_SCSI_DISK14_MAJOR:
->  		case XEN_SCSI_DISK15_MAJOR:
-> -			*offset =3D (*minor / PARTS_PER_DISK) + =
-
-> +			*offset =3D (*minor / PARTS_PER_DISK) +
->  				((major - XEN_SCSI_DISK8_MAJOR + 8) * 16) +
->  				EMULATED_SD_DISK_NAME_OFFSET;
->  			*minor =3D *minor +
-> @@ -1119,7 +1120,7 @@ static int xlvbd_alloc_gendisk(blkif_sector_t capac=
-ity,
->  	if (!VDEV_IS_EXTENDED(info->vdevice)) {
->  		err =3D xen_translate_vdev(info->vdevice, &minor, &offset);
->  		if (err)
-> -			return err;		=
-
-> +			return err;
-
-Cosmetic changes should go in a separate patch please.
-
-Roger.
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+U3RyYWlnaHRmb3J3YXJkIGNvbnZlcnNpb24gdG8gdGhlIG5ldyBoZWxwZXIsIGV4Y2VwdCBkdWUg
+dG8gdGhlIGxhY2sKb2YgZXJyb3IgcGF0aCwgd2UgaGF2ZSB0byB1c2UgU0dfTUFQX01VU1RfTk9U
+X0ZBSUwgd2hpY2ggbWF5IEJVR19PTiBpbgpjZXJ0YWluIGNhc2VzIGluIHRoZSBmdXR1cmUuCgpT
+aWduZWQtb2ZmLWJ5OiBMb2dhbiBHdW50aG9ycGUgPGxvZ2FuZ0BkZWx0YXRlZS5jb20+CkNjOiBC
+b3JpcyBPc3Ryb3Zza3kgPGJvcmlzLm9zdHJvdnNreUBvcmFjbGUuY29tPgpDYzogSnVlcmdlbiBH
+cm9zcyA8amdyb3NzQHN1c2UuY29tPgpDYzogS29ucmFkIFJ6ZXN6dXRlayBXaWxrIDxrb25yYWQu
+d2lsa0BvcmFjbGUuY29tPgpDYzogIlJvZ2VyIFBhdSBNb25uw6kiIDxyb2dlci5wYXVAY2l0cml4
+LmNvbT4KLS0tCiBkcml2ZXJzL2Jsb2NrL3hlbi1ibGtmcm9udC5jIHwgMjAgKysrKysrKysrKyst
+LS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygt
+KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmxvY2sveGVuLWJsa2Zyb250LmMgYi9kcml2ZXJzL2Js
+b2NrL3hlbi1ibGtmcm9udC5jCmluZGV4IDM5NDU5NjMuLmVkNjIxNzUgMTAwNjQ0Ci0tLSBhL2Ry
+aXZlcnMvYmxvY2sveGVuLWJsa2Zyb250LmMKKysrIGIvZHJpdmVycy9ibG9jay94ZW4tYmxrZnJv
+bnQuYwpAQCAtODE2LDggKzgxNiw5IEBAIHN0YXRpYyBpbnQgYmxraWZfcXVldWVfcndfcmVxKHN0
+cnVjdCByZXF1ZXN0ICpyZXEsIHN0cnVjdCBibGtmcm9udF9yaW5nX2luZm8gKnJpCiAJCUJVR19P
+TihzZy0+b2Zmc2V0ICsgc2ctPmxlbmd0aCA+IFBBR0VfU0laRSk7CiAKIAkJaWYgKHNldHVwLm5l
+ZWRfY29weSkgewotCQkJc2V0dXAuYnZlY19vZmYgPSBzZy0+b2Zmc2V0OwotCQkJc2V0dXAuYnZl
+Y19kYXRhID0ga21hcF9hdG9taWMoc2dfcGFnZShzZykpOworCQkJc2V0dXAuYnZlY19vZmYgPSAw
+OworCQkJc2V0dXAuYnZlY19kYXRhID0gc2dfbWFwKHNnLCAwLCBTR19LTUFQX0FUT01JQyB8CisJ
+CQkJCQkgU0dfTUFQX01VU1RfTk9UX0ZBSUwpOwogCQl9CiAKIAkJZ250dGFiX2ZvcmVhY2hfZ3Jh
+bnRfaW5fcmFuZ2Uoc2dfcGFnZShzZyksCkBAIC04MjcsNyArODI4LDcgQEAgc3RhdGljIGludCBi
+bGtpZl9xdWV1ZV9yd19yZXEoc3RydWN0IHJlcXVlc3QgKnJlcSwgc3RydWN0IGJsa2Zyb250X3Jp
+bmdfaW5mbyAqcmkKIAkJCQkJICAgICAgJnNldHVwKTsKIAogCQlpZiAoc2V0dXAubmVlZF9jb3B5
+KQotCQkJa3VubWFwX2F0b21pYyhzZXR1cC5idmVjX2RhdGEpOworCQkJc2dfdW5tYXAoc2csIHNl
+dHVwLmJ2ZWNfZGF0YSwgMCwgU0dfS01BUF9BVE9NSUMpOwogCX0KIAlpZiAoc2V0dXAuc2VnbWVu
+dHMpCiAJCWt1bm1hcF9hdG9taWMoc2V0dXAuc2VnbWVudHMpOwpAQCAtMTA1Myw3ICsxMDU0LDcg
+QEAgc3RhdGljIGludCB4ZW5fdHJhbnNsYXRlX3ZkZXYoaW50IHZkZXZpY2UsIGludCAqbWlub3Is
+IHVuc2lnbmVkIGludCAqb2Zmc2V0KQogCQljYXNlIFhFTl9TQ1NJX0RJU0s1X01BSk9SOgogCQlj
+YXNlIFhFTl9TQ1NJX0RJU0s2X01BSk9SOgogCQljYXNlIFhFTl9TQ1NJX0RJU0s3X01BSk9SOgot
+CQkJKm9mZnNldCA9ICgqbWlub3IgLyBQQVJUU19QRVJfRElTSykgKyAKKwkJCSpvZmZzZXQgPSAo
+Km1pbm9yIC8gUEFSVFNfUEVSX0RJU0spICsKIAkJCQkoKG1ham9yIC0gWEVOX1NDU0lfRElTSzFf
+TUFKT1IgKyAxKSAqIDE2KSArCiAJCQkJRU1VTEFURURfU0RfRElTS19OQU1FX09GRlNFVDsKIAkJ
+CSptaW5vciA9ICptaW5vciArCkBAIC0xMDY4LDcgKzEwNjksNyBAQCBzdGF0aWMgaW50IHhlbl90
+cmFuc2xhdGVfdmRldihpbnQgdmRldmljZSwgaW50ICptaW5vciwgdW5zaWduZWQgaW50ICpvZmZz
+ZXQpCiAJCWNhc2UgWEVOX1NDU0lfRElTSzEzX01BSk9SOgogCQljYXNlIFhFTl9TQ1NJX0RJU0sx
+NF9NQUpPUjoKIAkJY2FzZSBYRU5fU0NTSV9ESVNLMTVfTUFKT1I6Ci0JCQkqb2Zmc2V0ID0gKCpt
+aW5vciAvIFBBUlRTX1BFUl9ESVNLKSArIAorCQkJKm9mZnNldCA9ICgqbWlub3IgLyBQQVJUU19Q
+RVJfRElTSykgKwogCQkJCSgobWFqb3IgLSBYRU5fU0NTSV9ESVNLOF9NQUpPUiArIDgpICogMTYp
+ICsKIAkJCQlFTVVMQVRFRF9TRF9ESVNLX05BTUVfT0ZGU0VUOwogCQkJKm1pbm9yID0gKm1pbm9y
+ICsKQEAgLTExMTksNyArMTEyMCw3IEBAIHN0YXRpYyBpbnQgeGx2YmRfYWxsb2NfZ2VuZGlzayhi
+bGtpZl9zZWN0b3JfdCBjYXBhY2l0eSwKIAlpZiAoIVZERVZfSVNfRVhURU5ERUQoaW5mby0+dmRl
+dmljZSkpIHsKIAkJZXJyID0geGVuX3RyYW5zbGF0ZV92ZGV2KGluZm8tPnZkZXZpY2UsICZtaW5v
+ciwgJm9mZnNldCk7CiAJCWlmIChlcnIpCi0JCQlyZXR1cm4gZXJyOwkJCisJCQlyZXR1cm4gZXJy
+OwogIAkJbnJfcGFydHMgPSBQQVJUU19QRVJfRElTSzsKIAl9IGVsc2UgewogCQltaW5vciA9IEJM
+S0lGX01JTk9SX0VYVChpbmZvLT52ZGV2aWNlKTsKQEAgLTE0ODMsOCArMTQ4NCw5IEBAIHN0YXRp
+YyBib29sIGJsa2lmX2NvbXBsZXRpb24odW5zaWduZWQgbG9uZyAqaWQsCiAJCWZvcl9lYWNoX3Nn
+KHMtPnNnLCBzZywgbnVtX3NnLCBpKSB7CiAJCQlCVUdfT04oc2ctPm9mZnNldCArIHNnLT5sZW5n
+dGggPiBQQUdFX1NJWkUpOwogCi0JCQlkYXRhLmJ2ZWNfb2Zmc2V0ID0gc2ctPm9mZnNldDsKLQkJ
+CWRhdGEuYnZlY19kYXRhID0ga21hcF9hdG9taWMoc2dfcGFnZShzZykpOworCQkJZGF0YS5idmVj
+X29mZnNldCA9IDA7CisJCQlkYXRhLmJ2ZWNfZGF0YSA9IHNnX21hcChzZywgMCwgU0dfS01BUF9B
+VE9NSUMgfAorCQkJCQkJU0dfTUFQX01VU1RfTk9UX0ZBSUwpOwogCiAJCQlnbnR0YWJfZm9yZWFj
+aF9ncmFudF9pbl9yYW5nZShzZ19wYWdlKHNnKSwKIAkJCQkJCSAgICAgIHNnLT5vZmZzZXQsCkBA
+IC0xNDkyLDcgKzE0OTQsNyBAQCBzdGF0aWMgYm9vbCBibGtpZl9jb21wbGV0aW9uKHVuc2lnbmVk
+IGxvbmcgKmlkLAogCQkJCQkJICAgICAgYmxraWZfY29weV9mcm9tX2dyYW50LAogCQkJCQkJICAg
+ICAgJmRhdGEpOwogCi0JCQlrdW5tYXBfYXRvbWljKGRhdGEuYnZlY19kYXRhKTsKKwkJCXNnX3Vu
+bWFwKHNnLCBkYXRhLmJ2ZWNfZGF0YSwgMCwgU0dfS01BUF9BVE9NSUMpOwogCQl9CiAJfQogCS8q
+IEFkZCB0aGUgcGVyc2lzdGVudCBncmFudCBpbnRvIHRoZSBsaXN0IG9mIGZyZWUgZ3JhbnRzICov
+Ci0tIAoyLjEuNAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0
+dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
