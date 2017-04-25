@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x234.google.com (mail-oi0-x234.google.com
+ [IPv6:2607:f8b0:4003:c06::234])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B9D572194EB6A
- for <linux-nvdimm@lists.01.org>; Fri, 14 Apr 2017 19:39:29 -0700 (PDT)
-Subject: [PATCH v2 07/33] brd: add dax_operations support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Apr 2017 19:33:45 -0700
-Message-ID: <149222362569.32363.6031497410218983460.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149222358726.32363.15876405696577002849.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 09E7B20D770A5
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 08:35:02 -0700 (PDT)
+Received: by mail-oi0-x234.google.com with SMTP id x184so176903326oia.1
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 08:35:02 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170425044547.GA23498@anatevka.americas.hpqcorp.net>
+References: <1493073410-80159-1-git-send-email-jerry.hoemann@hpe.com>
+ <CAPcyv4jzOdQKTQ-iLxcR+uU25bi3dD7ujONvi9pMSg_JR3PKSg@mail.gmail.com>
+ <20170424233032.GC18527@anatevka.americas.hpqcorp.net>
+ <20170425044547.GA23498@anatevka.americas.hpqcorp.net>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 25 Apr 2017 08:35:00 -0700
+Message-ID: <CAPcyv4gVWwYNs2Ot-WqDDhXFSOEyBxVO+xp6Gimf1mi-FExRxg@mail.gmail.com>
+Subject: Re: [RFC] nvdimm: Unitialized variable used in DSM calls
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,171 +28,95 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Setup a dax_inode to have the same lifetime as the brd block device and
-add a ->direct_access() method that is equivalent to
-brd_direct_access(). Once fs/dax.c has been converted to use
-dax_operations the old brd_direct_access() will be removed.
+On Mon, Apr 24, 2017 at 9:45 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> On Mon, Apr 24, 2017 at 05:30:32PM -0600, Jerry Hoemann wrote:
+>> On Mon, Apr 24, 2017 at 03:56:50PM -0700, Dan Williams wrote:
+>> > On Mon, Apr 24, 2017 at 3:36 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+>> > > nd_cmd_out_size is called by __nd_ioctl to size the buffer passed to
+>> > > acpi_nfit_ctl.  If the DSM function being called has a variable
+>> > > sized output, nd_cmd_out_size will look at the return field to
+>> > > determine buffer size.   However, the DSM call hasn't been made yet,
+>> > > so output size is core residue.
+>> > >
+>> > > Have nd_cmd_out_size be bimodal with version "early" to be called
+>> > > before the DSM call is made.  For variable sized output fields
+>> > > have it return ND_IOCTL_MAX_BUFLEN.  __nd_ioctl sees new return
+>> > > values and adjust buffer size accordingly.
+>> > >
+>> > > The downside to this approach are:
+>> > > 1) Requires user buffer input size to be ND_IOCTL_MAX_BUFLEN (4 MB) for
+>> > >    calls to DSM with variable return.
+>> > > 2) The needless copyin of 4MB
+>> > >
+>> > > An alternative approach (not yet prototyped) would move the call
+>> > > to nd_cmd_out_size until after the return from acpi_nfit_ctl.  Here,
+>> > > the call has been made and return size would be known.
+>> > >
+>> > > The size of the buffer allocated in would always be ND_IOCTL_MAX_BUFLEN.
+>> > >
+>> > > Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+>> > > ---
+>> > >  drivers/nvdimm/bus.c | 30 ++++++++++++++++++++++++------
+>> > >  1 file changed, 24 insertions(+), 6 deletions(-)
+>> > >
+>> > > diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+>> > > index 23d4a17..50f8cc6 100644
+>> > > --- a/drivers/nvdimm/bus.c
+>> > > +++ b/drivers/nvdimm/bus.c
+>> > > @@ -713,9 +713,9 @@ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+>> > >  }
+>> > >  EXPORT_SYMBOL_GPL(nd_cmd_in_size);
+>> > >
+>> > > -u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+>> > > +u32 nd_cmd_out_size_early(struct nvdimm *nvdimm, int cmd,
+>> > >                 const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
+>> > > -               const u32 *out_field, unsigned long remainder)
+>> > > +               const u32 *out_field, unsigned long remainder, int early)
+>> > >  {
+>> > >         if (idx >= desc->out_num)
+>> > >                 return UINT_MAX;
+>> > > @@ -725,9 +725,13 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+>> > >
+>> > >         if (nvdimm && cmd == ND_CMD_GET_CONFIG_DATA && idx == 1)
+>> > >                 return in_field[1];
+>> > > -       else if (nvdimm && cmd == ND_CMD_VENDOR && idx == 2)
+>> > > +       else if (nvdimm && cmd == ND_CMD_VENDOR && idx == 2) {
+>> > > +               if (early)
+>> > > +                       return ND_IOCTL_MAX_BUFLEN;
+>> > >                 return out_field[1];
+>> >
+>> > Are you using ndctl_dimm_cmd_new_vendor_specific() to submit a vendor
+>> > specific command? It already pre-populates out_field[1] with the
+>> > initial output size.
+>>
+>>
+>> I was actually concerned w/ calling the DSM for nd_cmd_ars_status and changed
+>> ND_CMD_VENDOR on spec as it looked like it had the same pattern.
+>>
+>> Hit this using a stand alone test tool I have.
+>>
+>> For nd_cmd_ars_status, does the caller want to set the output field
+>> "num_records" before making the IOCTL call?  I.e. setting the maximum number
+>> of records the caller is prepared to accept?
+>
+>   sorry, that should have been out_length not num_records.
+>
+>   The ioctl caller sets the output field out_length to be maximum
+>   return size allowed prior to making the ioctl call.
+>
+>>
+>> I took a quick look at the ndctl source and its not obvious that
+>> is what the tool is doing.  But I might have missed it.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/block/Kconfig |    1 +
- drivers/block/brd.c   |   65 +++++++++++++++++++++++++++++++++++++++++--------
- 2 files changed, 55 insertions(+), 11 deletions(-)
+In the ARS status case since we don't know how big the output will be
+we always tell the kernel that we can handle the max ars_status
+payload size. See this line in ndctl_bus_cmd_new_ars_status():
 
-diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
-index f744de7a0f9b..e66956fc2c88 100644
---- a/drivers/block/Kconfig
-+++ b/drivers/block/Kconfig
-@@ -339,6 +339,7 @@ config BLK_DEV_SX8
- 
- config BLK_DEV_RAM
- 	tristate "RAM block device support"
-+	select DAX if BLK_DEV_RAM_DAX
- 	---help---
- 	  Saying Y here will allow you to use a portion of your RAM memory as
- 	  a block device, so that you can make file systems on it, read and
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 3adc32a3153b..60f3193c9ce2 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -21,6 +21,7 @@
- #include <linux/slab.h>
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- #include <linux/pfn_t.h>
-+#include <linux/dax.h>
- #endif
- 
- #include <linux/uaccess.h>
-@@ -41,6 +42,9 @@ struct brd_device {
- 
- 	struct request_queue	*brd_queue;
- 	struct gendisk		*brd_disk;
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+	struct dax_device	*dax_dev;
-+#endif
- 	struct list_head	brd_list;
- 
- 	/*
-@@ -375,30 +379,53 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
- }
- 
- #ifdef CONFIG_BLK_DEV_RAM_DAX
--static long brd_direct_access(struct block_device *bdev, sector_t sector,
--			void **kaddr, pfn_t *pfn, long size)
-+static long __brd_direct_access(struct brd_device *brd, pgoff_t pgoff,
-+		long nr_pages, void **kaddr, pfn_t *pfn)
- {
--	struct brd_device *brd = bdev->bd_disk->private_data;
- 	struct page *page;
- 
- 	if (!brd)
- 		return -ENODEV;
--	page = brd_insert_page(brd, sector);
-+	page = brd_insert_page(brd, PFN_PHYS(pgoff) / 512);
- 	if (!page)
- 		return -ENOSPC;
- 	*kaddr = page_address(page);
- 	*pfn = page_to_pfn_t(page);
- 
--	return PAGE_SIZE;
-+	return 1;
-+}
-+
-+static long brd_blk_direct_access(struct block_device *bdev, sector_t sector,
-+			void **kaddr, pfn_t *pfn, long size)
-+{
-+	struct brd_device *brd = bdev->bd_disk->private_data;
-+	long nr_pages = __brd_direct_access(brd, PHYS_PFN(sector * 512),
-+			PHYS_PFN(size), kaddr, pfn);
-+
-+	if (nr_pages < 0)
-+		return nr_pages;
-+	return nr_pages * PAGE_SIZE;
-+}
-+
-+static long brd_dax_direct_access(struct dax_device *dax_dev,
-+		pgoff_t pgoff, long nr_pages, void **kaddr, pfn_t *pfn)
-+{
-+	struct brd_device *brd = dax_get_private(dax_dev);
-+
-+	return __brd_direct_access(brd, pgoff, nr_pages, kaddr, pfn);
- }
-+
-+static const struct dax_operations brd_dax_ops = {
-+	.direct_access = brd_dax_direct_access,
-+};
- #else
--#define brd_direct_access NULL
-+#define brd_blk_direct_access NULL
- #endif
- 
- static const struct block_device_operations brd_fops = {
- 	.owner =		THIS_MODULE,
- 	.rw_page =		brd_rw_page,
--	.direct_access =	brd_direct_access,
-+	.direct_access =	brd_blk_direct_access,
- };
- 
- /*
-@@ -441,7 +468,9 @@ static struct brd_device *brd_alloc(int i)
- {
- 	struct brd_device *brd;
- 	struct gendisk *disk;
--
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+	struct dax_device *dax_dev;
-+#endif
- 	brd = kzalloc(sizeof(*brd), GFP_KERNEL);
- 	if (!brd)
- 		goto out;
-@@ -469,9 +498,6 @@ static struct brd_device *brd_alloc(int i)
- 	blk_queue_max_discard_sectors(brd->brd_queue, UINT_MAX);
- 	brd->brd_queue->limits.discard_zeroes_data = 1;
- 	queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, brd->brd_queue);
--#ifdef CONFIG_BLK_DEV_RAM_DAX
--	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
--#endif
- 	disk = brd->brd_disk = alloc_disk(max_part);
- 	if (!disk)
- 		goto out_free_queue;
-@@ -484,8 +510,21 @@ static struct brd_device *brd_alloc(int i)
- 	sprintf(disk->disk_name, "ram%d", i);
- 	set_capacity(disk, rd_size * 2);
- 
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
-+	dax_dev = alloc_dax(brd, disk->disk_name, &brd_dax_ops);
-+	if (!dax_dev)
-+		goto out_free_inode;
-+#endif
-+
-+
- 	return brd;
- 
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+out_free_inode:
-+	kill_dax(dax_dev);
-+	put_dax(dax_dev);
-+#endif
- out_free_queue:
- 	blk_cleanup_queue(brd->brd_queue);
- out_free_dev:
-@@ -525,6 +564,10 @@ static struct brd_device *brd_init_one(int i, bool *new)
- static void brd_del_one(struct brd_device *brd)
- {
- 	list_del(&brd->brd_list);
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
-+	kill_dax(brd->dax_dev);
-+	put_dax(brd->dax_dev);
-+#endif
- 	del_gendisk(brd->brd_disk);
- 	brd_free(brd);
- }
-
+    cmd->ars_status->out_length = ars_cap_cmd->max_ars_out;
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
