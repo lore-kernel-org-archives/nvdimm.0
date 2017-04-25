@@ -2,13 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3EAF721951C95
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:20 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 17E9321951C8C
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:24 -0700 (PDT)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:20:47 -0600
-Message-Id: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-MIME-Version: 1.0
-Subject: [PATCH v2 00/21] Introduce common scatterlist map function
+Date: Tue, 25 Apr 2017 12:20:58 -0600
+Message-Id: <1493144468-22493-12-git-send-email-logang@deltatee.com>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v2 11/21] scsi: ipr, pmcraid,
+ isci: Make use of the new sg_map helper
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,135 +18,242 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
-Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Artur Paszkiewicz <artur.paszkiewicz@intel.com>, Brian King <brking@us.ibm.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1:
+Very straightforward conversion of three scsi drivers.
 
-* Rebased onto next-20170424
-* Removed the _offset version of these functions per Christoph's
-  suggestion
-* Added an SG_MAP_MUST_NOT_FAIL flag which will BUG_ON in future cases
-  that can't gracefully fail. This removes a bunch of the noise added
-  in v1 to a couple of the drivers. (Per David Laight's suggestion)
-  This flag is only meant for old code
-* Split the libiscsi patch into two (per Christoph's suggestion)
-  the prep patch (patch 2 in this series) has already been
-  sent separately
-* Fixed a locking mistake in the target patch (pointed out by a bot)
-* Dropped the nvmet patch and handled it with a different patch
-  that has been sent separately
-* Dropped the chcr patch as they have already removed the code that
-  needed to be changed
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Brian King <brking@us.ibm.com>
+Cc: Artur Paszkiewicz <artur.paszkiewicz@intel.com>
+---
+ drivers/scsi/ipr.c          | 27 ++++++++++++++-------------
+ drivers/scsi/isci/request.c | 42 +++++++++++++++++++++++++-----------------
+ drivers/scsi/pmcraid.c      | 19 ++++++++++++-------
+ 3 files changed, 51 insertions(+), 37 deletions(-)
 
-I'm still hoping to only get Patch 1 in the series merged. (Any
-volunteers?) I'm willing to chase down the maintainers for the remaining
-patches separately after the first patch is in.
-
-The patchset is based on next-20170424 and can be found in the sg_map_v2
-branch from this git tree:
-
-https://github.com/sbates130272/linux-p2pmem.git
-
---
-
-Hi Everyone,
-
-As part of my effort to enable P2P DMA transactions with PCI cards,
-we've identified the need to be able to safely put IO memory into
-scatterlists (and eventually other spots). This probably involves a
-conversion from struct page to pfn_t but that migration is a ways off
-and those decisions are yet to be made.
-
-As an initial step in that direction, I've started cleaning up some of the
-scatterlist code by trying to carve out a better defined layer between it
-and it's users. The longer term goal would be to remove sg_page or replace
-it with something that can potentially fail.
-
-This patchset is the first step in that effort. I've introduced
-a common function to map scatterlist memory and converted all the common
-kmap(sg_page()) cases. This removes about 66 sg_page calls (of ~331).
-
-Seeing this is a fairly large cleanup set that touches a wide swath of
-the kernel I have limited the people I've sent this to. I'd suggest we look
-toward merging the first patch and then I can send the individual subsystem
-patches on to their respective maintainers and get them merged
-independantly. (This is to avoid the conflicts I created with my last
-cleanup set... Sorry) Though, I'm certainly open to other suggestions to get
-it merged.
-
-Logan Gunthorpe (21):
-  scatterlist: Introduce sg_map helper functions
-  libiscsi: Add an internal error code
-  libiscsi: Make use of new the sg_map helper function
-  target: Make use of the new sg_map function at 16 call sites
-  drm/i915: Make use of the new sg_map helper function
-  crypto: hifn_795x: Make use of the new sg_map helper function
-  crypto: shash, caam: Make use of the new sg_map helper function
-  dm-crypt: Make use of the new sg_map helper in 4 call sites
-  staging: unisys: visorbus: Make use of the new sg_map helper function
-  RDS: Make use of the new sg_map helper function
-  scsi: ipr, pmcraid, isci: Make use of the new sg_map helper
-  scsi: hisi_sas, mvsas, gdth: Make use of the new sg_map helper
-    function
-  scsi: arcmsr, ips, megaraid: Make use of the new sg_map helper
-    function
-  scsi: libfc, csiostor: Change to sg_copy_buffer in two drivers
-  xen-blkfront: Make use of the new sg_map helper function
-  mmc: sdhci: Make use of the new sg_map helper function
-  mmc: spi: Make use of the new sg_map helper function
-  mmc: tmio: Make use of the new sg_map helper function
-  mmc: sdricoh_cs: Make use of the new sg_map helper function
-  mmc: tifm_sd: Make use of the new sg_map helper function
-  memstick: Make use of the new sg_map helper function
-
- crypto/shash.c                                  |   9 ++-
- drivers/block/xen-blkfront.c                    |  20 ++---
- drivers/crypto/caam/caamalg.c                   |   8 +-
- drivers/crypto/hifn_795x.c                      |  32 +++++---
- drivers/gpu/drm/i915/i915_gem.c                 |  27 ++++---
- drivers/md/dm-crypt.c                           |  39 ++++++---
- drivers/memstick/host/jmb38x_ms.c               |  11 +--
- drivers/memstick/host/tifm_ms.c                 |  11 +--
- drivers/mmc/host/mmc_spi.c                      |  26 ++++--
- drivers/mmc/host/sdhci.c                        |  14 ++--
- drivers/mmc/host/sdricoh_cs.c                   |  14 ++--
- drivers/mmc/host/tifm_sd.c                      |  50 +++++++-----
- drivers/mmc/host/tmio_mmc.h                     |   7 +-
- drivers/mmc/host/tmio_mmc_pio.c                 |  12 +++
- drivers/scsi/arcmsr/arcmsr_hba.c                |  16 +++-
- drivers/scsi/csiostor/csio_scsi.c               |  54 +------------
- drivers/scsi/cxgbi/libcxgbi.c                   |   5 ++
- drivers/scsi/gdth.c                             |   9 ++-
- drivers/scsi/hisi_sas/hisi_sas_v1_hw.c          |  14 ++--
- drivers/scsi/hisi_sas/hisi_sas_v2_hw.c          |  13 ++-
- drivers/scsi/ipr.c                              |  27 ++++---
- drivers/scsi/ips.c                              |   8 +-
- drivers/scsi/isci/request.c                     |  42 ++++++----
- drivers/scsi/libfc/fc_libfc.c                   |  49 +++--------
- drivers/scsi/libiscsi_tcp.c                     |  32 +++++---
- drivers/scsi/megaraid.c                         |   9 ++-
- drivers/scsi/mvsas/mv_sas.c                     |  10 +--
- drivers/scsi/pmcraid.c                          |  19 +++--
- drivers/staging/unisys/visorhba/visorhba_main.c |  12 +--
- drivers/target/iscsi/iscsi_target.c             |  29 ++++---
- drivers/target/target_core_rd.c                 |   3 +-
- drivers/target/target_core_sbc.c                | 103 +++++++++++++++---------
- drivers/target/target_core_transport.c          |  18 +++--
- drivers/target/target_core_user.c               |  45 ++++++++---
- include/linux/scatterlist.h                     |  85 +++++++++++++++++++
- include/scsi/libiscsi_tcp.h                     |   3 +-
- include/target/target_core_backend.h            |   4 +-
- net/rds/ib_recv.c                               |   8 +-
- 38 files changed, 553 insertions(+), 344 deletions(-)
-
---
+diff --git a/drivers/scsi/ipr.c b/drivers/scsi/ipr.c
+index b0c68d2..b2324e1 100644
+--- a/drivers/scsi/ipr.c
++++ b/drivers/scsi/ipr.c
+@@ -3895,7 +3895,7 @@ static void ipr_free_ucode_buffer(struct ipr_sglist *sglist)
+ static int ipr_copy_ucode_buffer(struct ipr_sglist *sglist,
+ 				 u8 *buffer, u32 len)
+ {
+-	int bsize_elem, i, result = 0;
++	int bsize_elem, i;
+ 	struct scatterlist *scatterlist;
+ 	void *kaddr;
+ 
+@@ -3905,32 +3905,33 @@ static int ipr_copy_ucode_buffer(struct ipr_sglist *sglist,
+ 	scatterlist = sglist->scatterlist;
+ 
+ 	for (i = 0; i < (len / bsize_elem); i++, buffer += bsize_elem) {
+-		struct page *page = sg_page(&scatterlist[i]);
++		kaddr = sg_map(&scatterlist[i], 0, SG_KMAP);
++		if (IS_ERR(kaddr)) {
++			ipr_trace;
++			return PTR_ERR(kaddr);
++		}
+ 
+-		kaddr = kmap(page);
+ 		memcpy(kaddr, buffer, bsize_elem);
+-		kunmap(page);
++		sg_unmap(&scatterlist[i], kaddr, 0, SG_KMAP);
+ 
+ 		scatterlist[i].length = bsize_elem;
+-
+-		if (result != 0) {
+-			ipr_trace;
+-			return result;
+-		}
+ 	}
+ 
+ 	if (len % bsize_elem) {
+-		struct page *page = sg_page(&scatterlist[i]);
++		kaddr = sg_map(&scatterlist[i], 0, SG_KMAP);
++		if (IS_ERR(kaddr)) {
++			ipr_trace;
++			return PTR_ERR(kaddr);
++		}
+ 
+-		kaddr = kmap(page);
+ 		memcpy(kaddr, buffer, len % bsize_elem);
+-		kunmap(page);
++		sg_unmap(&scatterlist[i], kaddr, 0, SG_KMAP);
+ 
+ 		scatterlist[i].length = len % bsize_elem;
+ 	}
+ 
+ 	sglist->buffer_len = len;
+-	return result;
++	return 0;
+ }
+ 
+ /**
+diff --git a/drivers/scsi/isci/request.c b/drivers/scsi/isci/request.c
+index 47f66e9..6f5521b 100644
+--- a/drivers/scsi/isci/request.c
++++ b/drivers/scsi/isci/request.c
+@@ -1424,12 +1424,14 @@ sci_stp_request_pio_data_in_copy_data_buffer(struct isci_stp_request *stp_req,
+ 		sg = task->scatter;
+ 
+ 		while (total_len > 0) {
+-			struct page *page = sg_page(sg);
+-
+ 			copy_len = min_t(int, total_len, sg_dma_len(sg));
+-			kaddr = kmap_atomic(page);
+-			memcpy(kaddr + sg->offset, src_addr, copy_len);
+-			kunmap_atomic(kaddr);
++			kaddr = sg_map(sg, 0, SG_KMAP_ATOMIC);
++			if (IS_ERR(kaddr))
++				return SCI_FAILURE;
++
++			memcpy(kaddr, src_addr, copy_len);
++			sg_unmap(sg, kaddr, 0, SG_KMAP_ATOMIC);
++
+ 			total_len -= copy_len;
+ 			src_addr += copy_len;
+ 			sg = sg_next(sg);
+@@ -1771,14 +1773,16 @@ sci_io_request_frame_handler(struct isci_request *ireq,
+ 	case SCI_REQ_SMP_WAIT_RESP: {
+ 		struct sas_task *task = isci_request_access_task(ireq);
+ 		struct scatterlist *sg = &task->smp_task.smp_resp;
+-		void *frame_header, *kaddr;
++		void *frame_header;
+ 		u8 *rsp;
+ 
+ 		sci_unsolicited_frame_control_get_header(&ihost->uf_control,
+ 							 frame_index,
+ 							 &frame_header);
+-		kaddr = kmap_atomic(sg_page(sg));
+-		rsp = kaddr + sg->offset;
++		rsp = sg_map(sg, 0, SG_KMAP_ATOMIC);
++		if (IS_ERR(rsp))
++			return SCI_FAILURE;
++
+ 		sci_swab32_cpy(rsp, frame_header, 1);
+ 
+ 		if (rsp[0] == SMP_RESPONSE) {
+@@ -1814,7 +1818,7 @@ sci_io_request_frame_handler(struct isci_request *ireq,
+ 			ireq->sci_status = SCI_FAILURE_CONTROLLER_SPECIFIC_IO_ERR;
+ 			sci_change_state(&ireq->sm, SCI_REQ_COMPLETED);
+ 		}
+-		kunmap_atomic(kaddr);
++		sg_unmap(sg, rsp, 0, SG_KMAP_ATOMIC);
+ 
+ 		sci_controller_release_frame(ihost, frame_index);
+ 
+@@ -2919,15 +2923,18 @@ static void isci_request_io_request_complete(struct isci_host *ihost,
+ 	case SAS_PROTOCOL_SMP: {
+ 		struct scatterlist *sg = &task->smp_task.smp_req;
+ 		struct smp_req *smp_req;
+-		void *kaddr;
+ 
+ 		dma_unmap_sg(&ihost->pdev->dev, sg, 1, DMA_TO_DEVICE);
+ 
+ 		/* need to swab it back in case the command buffer is re-used */
+-		kaddr = kmap_atomic(sg_page(sg));
+-		smp_req = kaddr + sg->offset;
++		smp_req = sg_map(sg, 0, SG_KMAP_ATOMIC);
++		if (IS_ERR(smp_req)) {
++			status = SAS_ABORTED_TASK;
++			break;
++		}
++
+ 		sci_swab32_cpy(smp_req, smp_req, sg->length / sizeof(u32));
+-		kunmap_atomic(kaddr);
++		sg_unmap(sg, smp_req, 0, SG_KMAP_ATOMIC);
+ 		break;
+ 	}
+ 	default:
+@@ -3190,12 +3197,13 @@ sci_io_request_construct_smp(struct device *dev,
+ 	struct scu_task_context *task_context;
+ 	struct isci_port *iport;
+ 	struct smp_req *smp_req;
+-	void *kaddr;
+ 	u8 req_len;
+ 	u32 cmd;
+ 
+-	kaddr = kmap_atomic(sg_page(sg));
+-	smp_req = kaddr + sg->offset;
++	smp_req = sg_map(sg, 0, SG_KMAP_ATOMIC);
++	if (IS_ERR(smp_req))
++		return SCI_FAILURE;
++
+ 	/*
+ 	 * Look at the SMP requests' header fields; for certain SAS 1.x SMP
+ 	 * functions under SAS 2.0, a zero request length really indicates
+@@ -3220,7 +3228,7 @@ sci_io_request_construct_smp(struct device *dev,
+ 	req_len = smp_req->req_len;
+ 	sci_swab32_cpy(smp_req, smp_req, sg->length / sizeof(u32));
+ 	cmd = *(u32 *) smp_req;
+-	kunmap_atomic(kaddr);
++	sg_unmap(sg, smp_req, 0, SG_KMAP_ATOMIC);
+ 
+ 	if (!dma_map_sg(dev, sg, 1, DMA_TO_DEVICE))
+ 		return SCI_FAILURE;
+diff --git a/drivers/scsi/pmcraid.c b/drivers/scsi/pmcraid.c
+index 49e70a3..e0d041a 100644
+--- a/drivers/scsi/pmcraid.c
++++ b/drivers/scsi/pmcraid.c
+@@ -3342,9 +3342,12 @@ static int pmcraid_copy_sglist(
+ 	scatterlist = sglist->scatterlist;
+ 
+ 	for (i = 0; i < (len / bsize_elem); i++, buffer += bsize_elem) {
+-		struct page *page = sg_page(&scatterlist[i]);
++		kaddr = sg_map(&scatterlist[i], 0, SG_KMAP);
++		if (IS_ERR(kaddr)) {
++			pmcraid_err("failed to copy user data into sg list\n");
++			return PTR_ERR(kaddr);
++		}
+ 
+-		kaddr = kmap(page);
+ 		if (direction == DMA_TO_DEVICE)
+ 			rc = __copy_from_user(kaddr,
+ 					      (void *)buffer,
+@@ -3352,7 +3355,7 @@ static int pmcraid_copy_sglist(
+ 		else
+ 			rc = __copy_to_user((void *)buffer, kaddr, bsize_elem);
+ 
+-		kunmap(page);
++		sg_unmap(&scatterlist[i], kaddr, 0, SG_KMAP);
+ 
+ 		if (rc) {
+ 			pmcraid_err("failed to copy user data into sg list\n");
+@@ -3363,9 +3366,11 @@ static int pmcraid_copy_sglist(
+ 	}
+ 
+ 	if (len % bsize_elem) {
+-		struct page *page = sg_page(&scatterlist[i]);
+-
+-		kaddr = kmap(page);
++		kaddr = sg_map(&scatterlist[i], 0, SG_KMAP);
++		if (IS_ERR(kaddr)) {
++			pmcraid_err("failed to copy user data into sg list\n");
++			return PTR_ERR(kaddr);
++		}
+ 
+ 		if (direction == DMA_TO_DEVICE)
+ 			rc = __copy_from_user(kaddr,
+@@ -3376,7 +3381,7 @@ static int pmcraid_copy_sglist(
+ 					    kaddr,
+ 					    len % bsize_elem);
+ 
+-		kunmap(page);
++		sg_unmap(&scatterlist[i], kaddr, 0, SG_KMAP);
+ 
+ 		scatterlist[i].length = len % bsize_elem;
+ 	}
+-- 
 2.1.4
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
