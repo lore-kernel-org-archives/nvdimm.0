@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F04572194EB6E
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:15:29 -0700 (PDT)
-Subject: [resend PATCH v2 10/33] dax: introduce dax_direct_access()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:09:43 -0700
-Message-ID: <149245618344.10206.8650696772151680840.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id A2D2321A0480F
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Apr 2017 15:44:32 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH] nvdimm, btt: make sure initializing new metadata clears poison
+Date: Wed, 26 Apr 2017 16:43:07 -0600
+Message-Id: <20170426224307.28075-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,152 +15,125 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-kernel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Replace bdev_direct_access() with dax_direct_access() that uses
-dax_device and dax_operations instead of a block_device and
-block_device_operations for dax. Once all consumers of the old api have
-been converted bdev_direct_access() will be deleted.
+If we had badblocks/poison in the metadata area of a BTT, recreating the
+BTT would not clear the poison in all cases, notably the flog area. This
+is because rw_bytes will only clear errors if the request being sent
+down is 512B aligned and sized.
 
-Given that block device partitioning decisions can cause dax page
-alignment constraints to be violated this also introduces the
-bdev_dax_pgoff() helper. It handles calculating a logical pgoff relative
-to the dax_device and also checks for page alignment.
+Make sure that when writing the map and info blocks, the rw_bytes being
+sent are of the correct size/alignment. For the flog, instead of doing
+the smaller log_entry writes only, first do a 'wipe' of the entire area
+by writing zeroes in large enough chunks so that errors get cleared.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- block/Kconfig          |    1 +
- drivers/dax/super.c    |   39 +++++++++++++++++++++++++++++++++++++++
- fs/block_dev.c         |   14 ++++++++++++++
- include/linux/blkdev.h |    1 +
- include/linux/dax.h    |    2 ++
- 5 files changed, 57 insertions(+)
+ drivers/nvdimm/btt.c | 54 +++++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 47 insertions(+), 7 deletions(-)
 
-diff --git a/block/Kconfig b/block/Kconfig
-index e9f780f815f5..93da7fc3f254 100644
---- a/block/Kconfig
-+++ b/block/Kconfig
-@@ -6,6 +6,7 @@ menuconfig BLOCK
-        default y
-        select SBITMAP
-        select SRCU
-+       select DAX
-        help
- 	 Provide block layer support for the kernel.
- 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 45ccfc043da8..23ce3ab49f10 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -65,6 +65,45 @@ struct dax_device {
- 	const struct dax_operations *ops;
- };
- 
-+/**
-+ * dax_direct_access() - translate a device pgoff to an absolute pfn
-+ * @dax_dev: a dax_device instance representing the logical memory range
-+ * @pgoff: offset in pages from the start of the device to translate
-+ * @nr_pages: number of consecutive pages caller can handle relative to @pfn
-+ * @kaddr: output parameter that returns a virtual address mapping of pfn
-+ * @pfn: output parameter that returns an absolute pfn translation of @pgoff
-+ *
-+ * Return: negative errno if an error occurs, otherwise the number of
-+ * pages accessible at the device relative @pgoff.
-+ */
-+long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
-+		void **kaddr, pfn_t *pfn)
-+{
-+	long avail;
-+
-+	/*
-+	 * The device driver is allowed to sleep, in order to make the
-+	 * memory directly accessible.
-+	 */
-+	might_sleep();
-+
-+	if (!dax_dev)
-+		return -EOPNOTSUPP;
-+
-+	if (!dax_alive(dax_dev))
-+		return -ENXIO;
-+
-+	if (nr_pages < 0)
-+		return nr_pages;
-+
-+	avail = dax_dev->ops->direct_access(dax_dev, pgoff, nr_pages,
-+			kaddr, pfn);
-+	if (!avail)
-+		return -ERANGE;
-+	return min(avail, nr_pages);
-+}
-+EXPORT_SYMBOL_GPL(dax_direct_access);
-+
- bool dax_alive(struct dax_device *dax_dev)
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 368795a..6054e83 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -57,6 +57,14 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
  {
- 	lockdep_assert_held(&dax_srcu);
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 7f40ea2f0875..2f7885712575 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -18,6 +18,7 @@
- #include <linux/module.h>
- #include <linux/blkpg.h>
- #include <linux/magic.h>
-+#include <linux/dax.h>
- #include <linux/buffer_head.h>
- #include <linux/swap.h>
- #include <linux/pagevec.h>
-@@ -762,6 +763,19 @@ long bdev_direct_access(struct block_device *bdev, struct blk_dax_ctl *dax)
+ 	int ret;
+ 
++	/*
++	 * infooff and info2off should always be at least 512B aligned.
++	 * We rely on that to make sure rw_bytes does error clearing
++	 * correctly, so make sure that is the case.
++	 */
++	WARN_ON_ONCE(!IS_ALIGNED(arena->infooff, 512));
++	WARN_ON_ONCE(!IS_ALIGNED(arena->info2off, 512));
++
+ 	ret = arena_write_bytes(arena, arena->info2off, super,
+ 			sizeof(struct btt_sb));
+ 	if (ret)
+@@ -393,9 +401,17 @@ static int btt_map_init(struct arena_info *arena)
+ 	if (!zerobuf)
+ 		return -ENOMEM;
+ 
++	/*
++	 * mapoff should always be at least 512B  aligned. We rely on that to
++	 * make sure rw_bytes does error clearing correctly, so make sure that
++	 * is the case.
++	 */
++	WARN_ON_ONCE(!IS_ALIGNED(arena->mapoff, 512));
++
+ 	while (mapsize) {
+ 		size_t size = min(mapsize, chunk_size);
+ 
++		WARN_ON_ONCE(size < 512);
+ 		ret = arena_write_bytes(arena, arena->mapoff + offset, zerobuf,
+ 				size);
+ 		if (ret)
+@@ -417,11 +433,36 @@ static int btt_map_init(struct arena_info *arena)
+  */
+ static int btt_log_init(struct arena_info *arena)
+ {
++	size_t logsize = arena->info2off - arena->logoff;
++	size_t chunk_size = SZ_4K, offset = 0;
++	struct log_entry log;
++	void *zerobuf;
+ 	int ret;
+ 	u32 i;
+-	struct log_entry log, zerolog;
+ 
+-	memset(&zerolog, 0, sizeof(zerolog));
++	zerobuf = kzalloc(chunk_size, GFP_KERNEL);
++	if (!zerobuf)
++		return -ENOMEM;
++	/*
++	 * logoff should always be at least 512B  aligned. We rely on that to
++	 * make sure rw_bytes does error clearing correctly, so make sure that
++	 * is the case.
++	 */
++	WARN_ON_ONCE(!IS_ALIGNED(arena->logoff, 512));
++
++	while (logsize) {
++		size_t size = min(logsize, chunk_size);
++
++		WARN_ON_ONCE(size < 512);
++		ret = arena_write_bytes(arena, arena->logoff + offset, zerobuf,
++				size);
++		if (ret)
++			goto free;
++
++		offset += size;
++		logsize -= size;
++		cond_resched();
++	}
+ 
+ 	for (i = 0; i < arena->nfree; i++) {
+ 		log.lba = cpu_to_le32(i);
+@@ -430,13 +471,12 @@ static int btt_log_init(struct arena_info *arena)
+ 		log.seq = cpu_to_le32(LOG_SEQ_INIT);
+ 		ret = __btt_log_write(arena, i, 0, &log);
+ 		if (ret)
+-			return ret;
+-		ret = __btt_log_write(arena, i, 1, &zerolog);
+-		if (ret)
+-			return ret;
++			goto free;
+ 	}
+ 
+-	return 0;
++ free:
++	kfree(zerobuf);
++	return ret;
  }
- EXPORT_SYMBOL_GPL(bdev_direct_access);
  
-+int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
-+		pgoff_t *pgoff)
-+{
-+	phys_addr_t phys_off = (get_start_sect(bdev) + sector) * 512;
-+
-+	if (pgoff)
-+		*pgoff = PHYS_PFN(phys_off);
-+	if (phys_off % PAGE_SIZE || size % PAGE_SIZE)
-+		return -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL(bdev_dax_pgoff);
-+
- /**
-  * bdev_dax_supported() - Check if the device supports dax for filesystem
-  * @sb: The superblock of the device
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index f72708399b83..612c497d1461 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1958,6 +1958,7 @@ extern int bdev_write_page(struct block_device *, sector_t, struct page *,
- 						struct writeback_control *);
- extern long bdev_direct_access(struct block_device *, struct blk_dax_ctl *);
- extern int bdev_dax_supported(struct super_block *, int);
-+int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #else /* CONFIG_BLOCK */
- 
- struct block_device;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 39a0312c45c3..7e62e280c11f 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -27,6 +27,8 @@ void put_dax(struct dax_device *dax_dev);
- bool dax_alive(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void *dax_get_private(struct dax_device *dax_dev);
-+long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
-+		void **kaddr, pfn_t *pfn);
- 
- /*
-  * We use lowest available bit in exceptional entry for locking, one bit for
+ static int btt_freelist_init(struct arena_info *arena)
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
