@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 51E682195406C
- for <linux-nvdimm@lists.01.org>; Wed, 26 Apr 2017 23:53:41 -0700 (PDT)
-Date: Thu, 27 Apr 2017 08:53:38 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
-Message-ID: <20170427065338.GA20677@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id E516B21951C80
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Apr 2017 16:31:00 -0700 (PDT)
 References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
  <1493144468-22493-2-git-send-email-logang@deltatee.com>
- <20170426074416.GA7936@lst.de>
- <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
+ <5dfc5bf5-482c-b5bb-029c-7cee80925f37@amd.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <5958e5fc-e73f-1457-781f-05378fa1fd46@deltatee.com>
+Date: Wed, 26 Apr 2017 17:30:47 -0600
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
+In-Reply-To: <5dfc5bf5-482c-b5bb-029c-7cee80925f37@amd.com>
+Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,52 +24,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: dri-devel@lists.freedesktop.org, dm-devel@redhat.com, target-devel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, devel@driverdev.osuosl.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, "Martin K. Petersen" <martin.petersen@oracle.com>, netdev@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Apr 26, 2017 at 12:11:33PM -0600, Logan Gunthorpe wrote:
-> Ok, well for starters I think you are mistaken about kmap being able to
-> fail. I'm having a hard time finding many users of that function that
-> bother to check for an error when calling it.
 
-A quick audit of the arch code shows you're right - kmap can't fail
-anywhere anymore.
 
-> The main difficulty we
-> have now is that neither of those functions are expected to fail and we
-> need them to be able to in cases where the page doesn't map to system
-> RAM. This patch series is trying to address it for users of scatterlist.
-> I'm certainly open to other suggestions.
+On 26/04/17 02:59 AM,   wrote:
+> Good to know that somebody is working on this. Those problems troubled
+> us as well.
 
-I think you'll need to follow the existing kmap semantics and never
-fail the iomem version either.  Otherwise you'll have a special case
-that's almost never used that has a different error path.
+Thanks Christian. It's a daunting problem and a there's a lot of work to
+do before we will ever be where we need to be so any help, even an ack,
+is greatly appreciated.
 
-> There are a fair number of cases in the kernel that do something like:
-> 
-> if (something)
->     x = kmap(page);
-> else
->     x = kmap_atomic(page);
-> ...
-> if (something)
->     kunmap(page)
-> else
->     kunmap_atomic(x)
-> 
-> Which just seems cumbersome to me.
+Logan
 
-Passing a different flag based on something isn't really much better.
-
-> In any case, if you can accept an sg_kmap and sg_kmap_atomic api just
-> say so and I'll make the change. But I'll still need a flags variable
-> for SG_MAP_MUST_NOT_FAIL to support legacy cases that have no fail path
-> and both of those functions will need to be pretty nearly replicas of
-> each other.
-
-Again, wrong way.  Suddenly making things fail for your special case
-that normally don't fail is a receipe for bugs.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
