@@ -1,19 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x230.google.com (mail-oi0-x230.google.com
- [IPv6:2607:f8b0:4003:c06::230])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 37BC821A0480F
- for <linux-nvdimm@lists.01.org>; Fri, 28 Apr 2017 14:48:07 -0700 (PDT)
-Received: by mail-oi0-x230.google.com with SMTP id x184so41645043oia.1
- for <linux-nvdimm@lists.01.org>; Fri, 28 Apr 2017 14:48:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170427225706.26791-1-toshi.kani@hpe.com>
-References: <20170427225706.26791-1-toshi.kani@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 28 Apr 2017 14:48:05 -0700
-Message-ID: <CAPcyv4i+U62GMyK=xNXB9ZjzS-028q4Qch=kxa9_pkwXrFJdsA@mail.gmail.com>
-Subject: Re: [PATCH 1/2] libnvdimm: fix clear length of nvdimm_forget_poison()
+ by ml01.01.org (Postfix) with ESMTPS id 9F8832195406C
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Apr 2017 15:57:41 -0700 (PDT)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 1/2] libnvdimm: fix clear length of nvdimm_forget_poison()
+Date: Thu, 27 Apr 2017 16:57:05 -0600
+Message-Id: <20170427225706.26791-1-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,51 +15,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Apr 27, 2017 at 3:57 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> ND_CMD_CLEAR_ERROR command returns 'clear_err.cleared', the length
-> of error actually cleared, which may be smaller than its requested
-> 'len'.
->
-> Change nvdimm_clear_poison() to call nvdimm_forget_poison() with
-> 'clear_err.cleared' when this value is valid.
->
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> ---
-> Based on 'libnvdimm-for-next'.
-> ---
->  drivers/nvdimm/bus.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-> index d214ac44..43ddfd4 100644
-> --- a/drivers/nvdimm/bus.c
-> +++ b/drivers/nvdimm/bus.c
-> @@ -219,7 +219,9 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
->         if (cmd_rc < 0)
->                 return cmd_rc;
->
-> -       nvdimm_forget_poison(nvdimm_bus, phys, len);
-> +       if (clear_err.cleared > 0)
-> +               nvdimm_forget_poison(nvdimm_bus, phys, clear_err.cleared);
-> +
->         return clear_err.cleared;
+ND_CMD_CLEAR_ERROR command returns 'clear_err.cleared', the length
+of error actually cleared, which may be smaller than its requested
+'len'.
 
-Looks, good we need to mark this for -stable since the bug is also
-present in current mainline.
+Change nvdimm_clear_poison() to call nvdimm_forget_poison() with
+'clear_err.cleared' when this value is valid.
 
-Fixes: e046114af5fc ("libnvdimm: clear the internal poison_list when
-clearing badblocks")
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+---
+Based on 'libnvdimm-for-next'.
+---
+ drivers/nvdimm/bus.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index d214ac44..43ddfd4 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -219,7 +219,9 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	if (cmd_rc < 0)
+ 		return cmd_rc;
+ 
+-	nvdimm_forget_poison(nvdimm_bus, phys, len);
++	if (clear_err.cleared > 0)
++		nvdimm_forget_poison(nvdimm_bus, phys, clear_err.cleared);
++
+ 	return clear_err.cleared;
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_clear_poison);
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
