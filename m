@@ -1,11 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-it0-x22b.google.com (mail-it0-x22b.google.com
+ [IPv6:2607:f8b0:4001:c0b::22b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BC6662195406C
- for <linux-nvdimm@lists.01.org>; Thu, 27 Apr 2017 12:40:43 -0700 (PDT)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
+ by ml01.01.org (Postfix) with ESMTPS id 7A89E21951C80
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Apr 2017 12:21:55 -0700 (PDT)
+Received: by mail-it0-x22b.google.com with SMTP id f187so22348296ite.1
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Apr 2017 12:21:55 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
 References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
  <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
  <x49zif23nvl.fsf@segfault.boston.devel.redhat.com>
@@ -14,11 +17,10 @@ References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.cor
  <CAPcyv4jOP6fhk4wXahdEWH2O_93LQe9yzrWYZatSXXDwEk5OBA@mail.gmail.com>
  <x49d1bxsngb.fsf@segfault.boston.devel.redhat.com>
  <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
-Date: Thu, 27 Apr 2017 15:40:41 -0400
-In-Reply-To: <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
- (Dan Williams's message of "Thu, 27 Apr 2017 12:17:49 -0700")
-Message-ID: <x497f25prk6.fsf@segfault.boston.devel.redhat.com>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 27 Apr 2017 12:21:54 -0700
+Message-ID: <CAPcyv4hDmwSO8szjn+mqL6xpW2H92WsTDn=8qLtJi7Y8kduX5Q@mail.gmail.com>
+Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,12 +32,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Williams <dan.j.williams@intel.com> writes:
-
+On Thu, Apr 27, 2017 at 12:17 PM, Dan Williams <dan.j.williams@intel.com> wrote:
 > On Thu, Apr 27, 2017 at 11:41 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
 >> Dan Williams <dan.j.williams@intel.com> writes:
 >>
@@ -62,36 +63,23 @@ Dan Williams <dan.j.williams@intel.com> writes:
 >
 > I'm teetering, but still leaning towards sysfs. The use case that
 > needs this is device-dax because we otherwise silently do this behind
-> the application's back on filesystem-dax for fsync / msync.
-
-We may yet get file system support for flush from userspace (NOVA, for
-example).  So I don't think we should restrict ourselves to only
-thinking about the device dax use case.
-
-> A device-dax ioctl would be straightforward, but 'deep flush' assumes
-> that the device-dax instance is fronting persistent memory.  There's
+> the application's back on filesystem-dax for fsync / msync. A
+> device-dax ioctl would be straightforward, but 'deep flush' assumes
+> that the device-dax instance is fronting persistent memory. There's
 > nothing persistent memory specific about device-dax except that today
 > only the nvdimm sub-system knows how to create them, but there's
 > nothing that prevents other memory regions from being mapped this way.
-
-You're concerned that applications operating on device dax instances
-that are not backed by pmem will try to issue a deep flush?  Why would
-they do that, and why can't you just return failure from the ioctl?
-
 > So I'd rather this persistent memory specific mechanism stay with the
 > persistent memory specific portion of the interface rather than plumb
 > persistent memory details out through the generic device-dax interface
 > since we have no other intercept point like we do in the
 > filesystem-dax case to hide this flush.
 
-Look at the block layer.  You can issue an ioctl on a block device, and
-if the generic block layer can handle it, it does.  If not, it gets
-passed down to lower layers until either it gets handled, or it bubbles
-back up because nobody knew what to do with it.  I think you can do the
-same thing here, and that solves your layering violation.
-
-Cheers,
-Jeff
+We also still seem to need a discovery mechanism as I've had questions
+about "how do I tell if my system supports deep flush?". That's where
+sysfs is much better than an ioctl. The need for deep flush discovery
+tips the scales, at least for me, to also do deep flush triggering
+through the same interface.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
