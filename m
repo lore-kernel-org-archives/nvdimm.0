@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x244.google.com (mail-pf0-x244.google.com
+ [IPv6:2607:f8b0:400e:c00::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A352421954069
- for <linux-nvdimm@lists.01.org>; Wed, 19 Apr 2017 10:11:36 -0700 (PDT)
-Subject: [4.4-stable PATCH 2/2] block: fix del_gendisk() vs blkdev_ioctl crash
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 19 Apr 2017 10:05:52 -0700
-Message-ID: <149262155241.9164.7368226401310075825.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149262154180.9164.2041560731963237508.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149262154180.9164.2041560731963237508.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id BCE7021951C94
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Apr 2017 02:15:13 -0700 (PDT)
+Received: by mail-pf0-x244.google.com with SMTP id a188so8053102pfa.2
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Apr 2017 02:15:13 -0700 (PDT)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH 4/4] ndctl: print alignment for dax and pfn devs
+Date: Thu, 27 Apr 2017 19:14:54 +1000
+Message-Id: <20170427091454.17412-4-oohall@gmail.com>
+In-Reply-To: <20170427091454.17412-1-oohall@gmail.com>
+References: <20170427091454.17412-1-oohall@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,73 +20,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: stable@vger.kernel.org
-Cc: Jens Axboe <axboe@fb.com>, Robert Hu <robert.hu@intel.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-commit ac34f15e0c6d2fd58480052b6985f6991fb53bcc upstream.
+It's handy to know. Doubly so if the user didn't supply an alignment.
 
-When tearing down a block device early in its lifetime, userspace may
-still be performing discovery actions like blkdev_ioctl() to re-read
-partitions.
-
-The nvdimm_revalidate_disk() implementation depends on
-disk->driverfs_dev to be valid at entry.  However, it is set to NULL in
-del_gendisk() and fatally this is happening *before* the disk device is
-deleted from userspace view.
-
-There's no reason for del_gendisk() to clear ->driverfs_dev.  That
-device is the parent of the disk.  It is guaranteed to not be freed
-until the disk, as a child, drops its ->parent reference.
-
-We could also fix this issue locally in nvdimm_revalidate_disk() by
-using disk_to_dev(disk)->parent, but lets fix it globally since
-->driverfs_dev follows the lifetime of the parent.  Longer term we
-should probably just add a @parent parameter to add_disk(), and stop
-carrying this pointer in the gendisk.
-
- BUG: unable to handle kernel NULL pointer dereference at           (null)
- IP: [<ffffffffa00340a8>] nvdimm_revalidate_disk+0x18/0x90 [libnvdimm]
- CPU: 2 PID: 538 Comm: systemd-udevd Tainted: G           O    4.4.0-rc5 #2257
- [..]
- Call Trace:
-  [<ffffffff8143e5c7>] rescan_partitions+0x87/0x2c0
-  [<ffffffff810f37f9>] ? __lock_is_held+0x49/0x70
-  [<ffffffff81438c62>] __blkdev_reread_part+0x72/0xb0
-  [<ffffffff81438cc5>] blkdev_reread_part+0x25/0x40
-  [<ffffffff8143982d>] blkdev_ioctl+0x4fd/0x9c0
-  [<ffffffff811246c9>] ? current_kernel_time64+0x69/0xd0
-  [<ffffffff812916dd>] block_ioctl+0x3d/0x50
-  [<ffffffff81264c38>] do_vfs_ioctl+0x308/0x560
-  [<ffffffff8115dbd1>] ? __audit_syscall_entry+0xb1/0x100
-  [<ffffffff810031d6>] ? do_audit_syscall_entry+0x66/0x70
-  [<ffffffff81264f09>] SyS_ioctl+0x79/0x90
-  [<ffffffff81902672>] entry_SYSCALL_64_fastpath+0x12/0x76
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@fb.com>
-Reported-by: Robert Hu <robert.hu@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
- block/genhd.c |    1 -
- 1 file changed, 1 deletion(-)
+ util/json.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index a5bed6bc869d..3032453a89e6 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -664,7 +664,6 @@ void del_gendisk(struct gendisk *disk)
+diff --git a/util/json.c b/util/json.c
+index d6a8d4c899ed..f454163df0e9 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -217,6 +217,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	struct ndctl_btt *btt;
+ 	struct ndctl_pfn *pfn;
+ 	struct ndctl_dax *dax;
++	unsigned long align = 0;
+ 	char buf[40];
+ 	uuid_t uuid;
  
- 	kobject_put(disk->part0.holder_dir);
- 	kobject_put(disk->slave_dir);
--	disk->driverfs_dev = NULL;
- 	if (!sysfs_deprecated)
- 		sysfs_remove_link(block_depr, dev_name(disk_to_dev(disk)));
- 	pm_runtime_set_memalloc_noio(disk_to_dev(disk), false);
+@@ -283,6 +284,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 
+ 		bdev = ndctl_btt_get_block_device(btt);
+ 	} else if (pfn) {
++		align = ndctl_pfn_get_align(pfn);
+ 		ndctl_pfn_get_uuid(pfn, uuid);
+ 		uuid_unparse(uuid, buf);
+ 		jobj = json_object_new_string(buf);
+@@ -293,6 +295,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	} else if (dax) {
+ 		struct daxctl_region *dax_region;
+ 
++		align = ndctl_dax_get_align(dax);
+ 		ndctl_dax_get_uuid(dax, uuid);
+ 		uuid_unparse(uuid, buf);
+ 		jobj = json_object_new_string(buf);
+@@ -327,6 +330,13 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	} else
+ 		bdev = ndctl_namespace_get_block_device(ndns);
+ 
++	if (align) {
++		jobj = json_object_new_int64(align);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jndns, "align", jobj);
++	}
++
+ 	if (bdev && bdev[0]) {
+ 		jobj = json_object_new_string(bdev);
+ 		if (!jobj)
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
