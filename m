@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 67E7020D7A3B2
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:38 -0700 (PDT)
-Subject: [resend PATCH v2 23/33] dm: add ->flush() dax operation support
+ by ml01.01.org (Postfix) with ESMTPS id E2A562195406C
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Apr 2017 15:23:17 -0700 (PDT)
+Subject: [PATCH v5] libnvdimm, region: sysfs trigger for nvdimm_flush()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:10:54 -0700
-Message-ID: <149245625444.10206.17427373360396242265.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 27 Apr 2017 15:17:25 -0700
+Message-ID: <149333144522.4906.620839784941994429.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149324959589.17912.8116722315071483296.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149324959589.17912.8116722315071483296.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,194 +23,112 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Mike Snitzer <snitzer@redhat.com>, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow device-mapper to route flush operations to the
-per-target implementation. In order for the device stacking to work we
-need a dax_dev and a pgoff relative to that device. This gives each
-layer of the stack the information it needs to look up the operation
-pointer for the next level.
+The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+(asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+platform WPQ (write-pending-queue) buffers when power is removed. The
+nvdimm_flush() mechanism performs that same function on-demand.
 
-This conceptually allows for an array of mixed device drivers with
-varying flush implementations.
+When a pmem namespace is associated with a block device, an
+nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+request. These requests are typically associated with filesystem
+metadata updates. However, when a namespace is in device-dax mode,
+userspace (think database metadata) needs another path to perform the
+same flushing. In other words this is not required to make data
+persistent, but in the case of metadata it allows for a smaller failure
+domain in the unlikely event of an ADR failure.
 
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
+The new 'deep_flush' attribute is visible when the individual DIMMs
+backing a given interleave-set are described by platform firmware. In
+ACPI terms this is "NVDIMM Region Mapping Structures" and associated
+"Flush Hint Address Structures". Reads return "1" if the region supports
+triggering WPQ flushes on all DIMMs. Reads return "0" the flush
+operation is a platform nop, and in that case the attribute is
+read-only.
+
+Why sysfs and not an ioctl? An ioctl requires establishing a new
+ioctl function number space for device-dax. Given that this would be
+called on a device-dax fd an application could be forgiven for
+accidentally calling this on a filesystem-dax fd. Placing this interface
+in libnvdimm sysfs removes that potential for collision with a
+filesystem ioctl, and it keeps ioctls out of the generic device-dax
+implementation.
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/super.c           |   11 +++++++++++
- drivers/md/dm-linear.c        |   15 +++++++++++++++
- drivers/md/dm-stripe.c        |   20 ++++++++++++++++++++
- drivers/md/dm.c               |   19 +++++++++++++++++++
- include/linux/dax.h           |    2 ++
- include/linux/device-mapper.h |    3 +++
- 6 files changed, 70 insertions(+)
+ drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 73f0da8e5d27..1253c05a2e53 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -117,6 +117,17 @@ size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 24abceda986a..53d1ba4e6d99 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -255,6 +255,35 @@ static ssize_t size_show(struct device *dev,
  }
- EXPORT_SYMBOL_GPL(dax_copy_from_iter);
+ static DEVICE_ATTR_RO(size);
  
-+void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t size)
++static ssize_t deep_flush_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	if (!dax_alive(dax_dev))
-+		return;
++	struct nd_region *nd_region = to_nd_region(dev);
 +
-+	if (dax_dev->ops->flush)
-+		dax_dev->ops->flush(dax_dev, pgoff, addr, size);
++	/*
++	 * NOTE: in the nvdimm_has_flush() error case this attribute is
++	 * not visible.
++	 */
++	return sprintf(buf, "%d\n", nvdimm_has_flush(nd_region));
 +}
-+EXPORT_SYMBOL_GPL(dax_flush);
 +
- bool dax_alive(struct dax_device *dax_dev)
++static ssize_t deep_flush_store(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t len)
++{
++	bool flush;
++	int rc = strtobool(buf, &flush);
++	struct nd_region *nd_region = to_nd_region(dev);
++
++	if (rc)
++		return rc;
++	if (!flush)
++		return -EINVAL;
++	nvdimm_flush(nd_region);
++
++	return len;
++}
++static DEVICE_ATTR_RW(deep_flush);
++
+ static ssize_t mappings_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	lockdep_assert_held(&dax_srcu);
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 5fe44a0ddfab..70d8439a1b63 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -172,6 +172,20 @@ static size_t linear_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
+@@ -479,6 +508,7 @@ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_btt_seed.attr,
+ 	&dev_attr_pfn_seed.attr,
+ 	&dev_attr_dax_seed.attr,
++	&dev_attr_deep_flush.attr,
+ 	&dev_attr_read_only.attr,
+ 	&dev_attr_set_cookie.attr,
+ 	&dev_attr_available_size.attr,
+@@ -508,6 +538,17 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
+ 		return 0;
  
-+static void linear_dax_flush(struct dm_target *ti, pgoff_t pgoff, void *addr,
-+		size_t size)
-+{
-+	struct linear_c *lc = ti->private;
-+	struct block_device *bdev = lc->dev->bdev;
-+	struct dax_device *dax_dev = lc->dev->dax_dev;
-+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
++	if (a == &dev_attr_deep_flush.attr) {
++		int has_flush = nvdimm_has_flush(nd_region);
 +
-+	dev_sector = linear_map_sector(ti, sector);
-+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(size, PAGE_SIZE), &pgoff))
-+		return;
-+	dax_flush(dax_dev, pgoff, addr, size);
-+}
++		if (has_flush == 1)
++			return a->mode;
++		else if (has_flush == 0)
++			return 0444;
++		else
++			return 0;
++	}
 +
- static struct target_type linear_target = {
- 	.name   = "linear",
- 	.version = {1, 3, 0},
-@@ -184,6 +198,7 @@ static struct target_type linear_target = {
- 	.iterate_devices = linear_iterate_devices,
- 	.direct_access = linear_dax_direct_access,
- 	.dax_copy_from_iter = linear_dax_copy_from_iter,
-+	.dax_flush = linear_dax_flush,
- };
- 
- int __init dm_linear_init(void)
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index 4f45d23249b2..829fd438318d 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -349,6 +349,25 @@ static size_t stripe_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
-+static void stripe_dax_flush(struct dm_target *ti, pgoff_t pgoff, void *addr,
-+		size_t size)
-+{
-+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
-+	struct stripe_c *sc = ti->private;
-+	struct dax_device *dax_dev;
-+	struct block_device *bdev;
-+	uint32_t stripe;
-+
-+	stripe_map_sector(sc, sector, &stripe, &dev_sector);
-+	dev_sector += sc->stripe[stripe].physical_start;
-+	dax_dev = sc->stripe[stripe].dev->dax_dev;
-+	bdev = sc->stripe[stripe].dev->bdev;
-+
-+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(size, PAGE_SIZE), &pgoff))
-+		return;
-+	dax_flush(dax_dev, pgoff, addr, size);
-+}
-+
- /*
-  * Stripe status:
-  *
-@@ -468,6 +487,7 @@ static struct target_type stripe_target = {
- 	.io_hints = stripe_io_hints,
- 	.direct_access = stripe_dax_direct_access,
- 	.dax_copy_from_iter = stripe_dax_copy_from_iter,
-+	.dax_flush = stripe_dax_flush,
- };
- 
- int __init dm_stripe_init(void)
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 8c8579efcba2..6a97711cdbdf 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -982,6 +982,24 @@ static size_t dm_dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return ret;
- }
- 
-+static void dm_dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t size)
-+{
-+	struct mapped_device *md = dax_get_private(dax_dev);
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+	struct dm_target *ti;
-+	int srcu_idx;
-+
-+	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
-+
-+	if (!ti)
-+		goto out;
-+	if (ti->type->dax_flush)
-+		ti->type->dax_flush(ti, pgoff, addr, size);
-+ out:
-+	dm_put_live_table(md, srcu_idx);
-+}
-+
- /*
-  * A target may call dm_accept_partial_bio only from the map routine.  It is
-  * allowed for all bio types except REQ_PREFLUSH.
-@@ -2844,6 +2862,7 @@ static const struct block_device_operations dm_blk_dops = {
- static const struct dax_operations dm_dax_ops = {
- 	.direct_access = dm_dax_direct_access,
- 	.copy_from_iter = dm_dax_copy_from_iter,
-+	.flush = dm_dax_flush,
- };
- 
- /*
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index c88bbcba26d9..2a4f533ef5e7 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -36,6 +36,8 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
- 		void **kaddr, pfn_t *pfn);
- size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
-+void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t size);
- 
- /*
-  * We use lowest available bit in exceptional entry for locking, one bit for
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index e18e4277d09d..3c5eab2d2a75 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -132,6 +132,8 @@ typedef long (*dm_dax_direct_access_fn) (struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn);
- typedef size_t (*dm_dax_copy_from_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i);
-+typedef void (*dm_dax_flush_fn)(struct dm_target *ti, pgoff_t pgoff, void *addr,
-+		size_t size);
- #define PAGE_SECTORS (PAGE_SIZE / 512)
- 
- void dm_error(const char *message);
-@@ -182,6 +184,7 @@ struct target_type {
- 	dm_io_hints_fn io_hints;
- 	dm_dax_direct_access_fn direct_access;
- 	dm_dax_copy_from_iter_fn dax_copy_from_iter;
-+	dm_dax_flush_fn dax_flush;
- 
- 	/* For internal device-mapper use. */
- 	struct list_head list;
+ 	if (a != &dev_attr_set_cookie.attr
+ 			&& a != &dev_attr_available_size.attr)
+ 		return a->mode;
 
 _______________________________________________
 Linux-nvdimm mailing list
