@@ -1,7 +1,8 @@
-From: =?GB2312?B?0Oybs8PO?= <ogxnshachuai-v9bnBGI3pbtBDgjK7y7TUQ@public.gmane.org>
-Subject: =?GB2312?B?t8eyxs7xyMvUscjnus62wbaussbO8bGose0=?=
-Date: Fri, 28 Apr 2017 12:37:34 +0800
-Message-ID: <20170428043732.79C7D2195406F@ml01.01.org>
+From: "USPS Ground Support" <ziejd23034310-2unx/JJxlKPDX78VGIip7w@public.gmane.org>
+Subject: Re:
+Date: Fri, 28 Apr 2017 11:27:27 -0700
+Message-ID: <795B955A.41A8A23A@mailathome.me.uk>
+Reply-To: USPS Home Delivery <ziejd23034310-2unx/JJxlKPDX78VGIip7w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,7 +16,14 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-12:37:32
+Hello,
+
+Your item has arrived at the USPS Post Office at  Fri, 28 Apr 2017 11:27:27
+-0700, but the courier was unable to deliver parcel to you. 
+You can download the shipment label attached!
+
+With gratitude.
+Lashan Simmering -  USPS Support Manager.
