@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 03C5A21951C95
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:20 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:20:50 -0600
-Message-Id: <1493144468-22493-4-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 03/21] libiscsi: Make use of new the sg_map helper function
+ by ml01.01.org (Postfix) with ESMTPS id 1BC5C219493C2
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Apr 2017 14:35:02 -0700 (PDT)
+Subject: [PATCH 3/3] acpi, nfit: kill ACPI_NFIT_DEBUG,
+ switch to dynamic_hex_dump()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 28 Apr 2017 14:29:09 -0700
+Message-ID: <149341494933.35578.4269653029034926839.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149341493336.35578.13631055553267152302.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149341493336.35578.13631055553267152302.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,107 +19,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
-Cc: Jens Axboe <axboe@kernel.dk>, Chris Leech <cleech@redhat.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Lee Duncan <lduncan@suse.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Convert the kmap and kmap_atomic uses to the sg_map function. We now
-store the flags for the kmap instead of a boolean to indicate
-atomicitiy. We use ISCSI_TCP_INTERNAL_ERR error type that was prepared
-earlier for this.
+Inevitably when one actually needs to debug a DSM issue it's on a
+distribution kernel that has CONFIG_ACPI_NFIT_DEBUG=n. The config symbol
+is only there to avoid the compile error due to the missing fallback for
+print_hex_dump_debug in the CONFIG_DYNAMIC_DEBUG=n case. Now that the
+compile error is fixed the nfit driver can call dynamic_hex_dump()
+directly, and enable debug of unmodified distro kernels.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Lee Duncan <lduncan@suse.com>
-Cc: Chris Leech <cleech@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/scsi/libiscsi_tcp.c | 32 ++++++++++++++++++++------------
- include/scsi/libiscsi_tcp.h |  2 +-
- 2 files changed, 21 insertions(+), 13 deletions(-)
+ drivers/acpi/nfit/Kconfig |   12 ------------
+ drivers/acpi/nfit/core.c  |   21 ++++++++-------------
+ 2 files changed, 8 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/scsi/libiscsi_tcp.c b/drivers/scsi/libiscsi_tcp.c
-index 63a1d69..a34e25c 100644
---- a/drivers/scsi/libiscsi_tcp.c
-+++ b/drivers/scsi/libiscsi_tcp.c
-@@ -133,25 +133,23 @@ static void iscsi_tcp_segment_map(struct iscsi_segment *segment, int recv)
- 	if (page_count(sg_page(sg)) >= 1 && !recv)
- 		return;
+diff --git a/drivers/acpi/nfit/Kconfig b/drivers/acpi/nfit/Kconfig
+index dd0d53c52552..6d3351452ea2 100644
+--- a/drivers/acpi/nfit/Kconfig
++++ b/drivers/acpi/nfit/Kconfig
+@@ -12,15 +12,3 @@ config ACPI_NFIT
  
--	if (recv) {
--		segment->atomic_mapped = true;
--		segment->sg_mapped = kmap_atomic(sg_page(sg));
--	} else {
--		segment->atomic_mapped = false;
--		/* the xmit path can sleep with the page mapped so use kmap */
--		segment->sg_mapped = kmap(sg_page(sg));
-+	/* the xmit path can sleep with the page mapped so don't use atomic */
-+	segment->sg_map_flags = recv ? SG_KMAP_ATOMIC : SG_KMAP;
-+	segment->sg_mapped = sg_map(sg, 0, segment->sg_map_flags);
-+
-+	if (IS_ERR(segment->sg_mapped)) {
-+		segment->sg_mapped = NULL;
-+		return;
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called nfit.
+-
+-config ACPI_NFIT_DEBUG
+-	bool "NFIT DSM debug"
+-	depends on ACPI_NFIT
+-	depends on DYNAMIC_DEBUG
+-	default n
+-	help
+-	  Enabling this option causes the nfit driver to dump the
+-	  input and output buffers of _DSM operations on the ACPI0012
+-	  device and its children.  This can be very verbose, so leave
+-	  it disabled unless you are debugging a hardware / firmware
+-	  issue.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 261eea1d2906..ca391a2cbe63 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -268,14 +268,11 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		in_buf.buffer.length = call_pkg->nd_size_in;
  	}
  
--	segment->data = segment->sg_mapped + sg->offset + segment->sg_offset;
-+	segment->data = segment->sg_mapped + segment->sg_offset;
- }
+-	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
+-				__func__, dimm_name, cmd, func,
+-				in_buf.buffer.length);
+-		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
++	dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
++			__func__, dimm_name, cmd, func, in_buf.buffer.length);
++	dynamic_hex_dump("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
+ 			in_buf.buffer.pointer,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
+-	}
  
- void iscsi_tcp_segment_unmap(struct iscsi_segment *segment)
- {
- 	if (segment->sg_mapped) {
--		if (segment->atomic_mapped)
--			kunmap_atomic(segment->sg_mapped);
--		else
--			kunmap(sg_page(segment->sg));
-+		sg_unmap(segment->sg, segment->sg_mapped, 0,
-+			 segment->sg_map_flags);
- 		segment->sg_mapped = NULL;
- 		segment->data = NULL;
+ 	out_obj = acpi_evaluate_dsm(handle, uuid, 1, func, &in_obj);
+ 	if (!out_obj) {
+@@ -307,13 +304,11 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		goto out;
  	}
-@@ -304,6 +302,9 @@ iscsi_tcp_segment_recv(struct iscsi_tcp_conn *tcp_conn,
- 			break;
- 		}
  
-+		if (segment->data)
-+			return -EFAULT;
-+
- 		copy = min(len - copied, segment->size - segment->copied);
- 		ISCSI_DBG_TCP(tcp_conn->iscsi_conn, "copying %d\n", copy);
- 		memcpy(segment->data + segment->copied, ptr + copied, copy);
-@@ -927,6 +928,13 @@ int iscsi_tcp_recv_skb(struct iscsi_conn *conn, struct sk_buff *skb,
- 			      avail);
- 		rc = iscsi_tcp_segment_recv(tcp_conn, segment, ptr, avail);
- 		BUG_ON(rc == 0);
-+		if (rc < 0) {
-+			ISCSI_DBG_TCP(conn, "memory fault. Consumed %d\n",
-+				      consumed);
-+			*status = ISCSI_TCP_INTERNAL_ERR;
-+			goto skb_done;
-+		}
-+
- 		consumed += rc;
+-	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__,
+-				dimm_name, cmd_name, out_obj->buffer.length);
+-		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
+-				4, out_obj->buffer.pointer, min_t(u32, 128,
+-					out_obj->buffer.length), true);
+-	}
++	dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__, dimm_name,
++			cmd_name, out_obj->buffer.length);
++	dynamic_hex_dump(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
++			out_obj->buffer.pointer,
++			min_t(u32, 128, out_obj->buffer.length), true);
  
- 		if (segment->total_copied >= segment->total_size) {
-diff --git a/include/scsi/libiscsi_tcp.h b/include/scsi/libiscsi_tcp.h
-index 90691ad..58c79af 100644
---- a/include/scsi/libiscsi_tcp.h
-+++ b/include/scsi/libiscsi_tcp.h
-@@ -47,7 +47,7 @@ struct iscsi_segment {
- 	struct scatterlist	*sg;
- 	void			*sg_mapped;
- 	unsigned int		sg_offset;
--	bool			atomic_mapped;
-+	int			sg_map_flags;
- 
- 	iscsi_segment_done_fn_t	*done;
- };
--- 
-2.1.4
+ 	for (i = 0, offset = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
 
 _______________________________________________
 Linux-nvdimm mailing list
