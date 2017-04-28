@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 840BC21951CA2
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:25 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:20:53 -0600
-Message-Id: <1493144468-22493-7-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 06/21] crypto: hifn_795x: Make use of the new sg_map helper
- function
+ by ml01.01.org (Postfix) with ESMTPS id 827AA21A04817
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Apr 2017 16:54:04 -0700 (PDT)
+Subject: [PATCH v2] acpi, nfit: kill ACPI_NFIT_DEBUG
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 28 Apr 2017 16:48:12 -0700
+Message-ID: <149342311149.438.10499300640043562280.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149341494933.35578.4269653029034926839.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149341494933.35578.4269653029034926839.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,116 +18,95 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
-Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Herbert Xu <herbert@gondor.apana.org.au>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, "David S. Miller" <davem@davemloft.net>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
+Cc: Joe Perches <joe@perches.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Conversion of a couple kmap_atomic instances to the sg_map helper
-function.
+Inevitably when one actually needs to debug a DSM issue it's on a
+distribution kernel that has CONFIG_ACPI_NFIT_DEBUG=n. The config symbol
+was only there to avoid the compile error due to the missing fallback for
+print_hex_dump_debug in the CONFIG_DYNAMIC_DEBUG=n case. That was fixed
+with commit cdf17449af1d "hexdump: do not print debug dumps for
+!CONFIG_DEBUG", so the config symbol can just be dropped.
 
-However, it looks like there was a bug in the original code: the source
-scatter lists offset (t->offset) was passed to ablkcipher_get which
-added it to the destination address. This doesn't make a lot of
-sense, but t->offset is likely always zero anyway. So, this patch cleans
-that brokeness up.
-
-Also, a change to the error path: if ablkcipher_get failed, everything
-seemed to proceed as if it hadn't. Setting 'error' should hopefully
-clear that up.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/crypto/hifn_795x.c | 32 +++++++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
+Changes in v2:
+* Thanks to Joe for pointing out the misunderstanding about
+  print_hex_dump_debug() compilation being broken in the
+  CONFIG_DYNAMIC_DEBUG=n case. Since commit cdf17449af1d we can rely on
+  print_hex_dump_debug() to do the right thing by default.
 
-diff --git a/drivers/crypto/hifn_795x.c b/drivers/crypto/hifn_795x.c
-index e09d405..34b1870 100644
---- a/drivers/crypto/hifn_795x.c
-+++ b/drivers/crypto/hifn_795x.c
-@@ -1619,7 +1619,7 @@ static int hifn_start_device(struct hifn_device *dev)
- 	return 0;
- }
+ drivers/acpi/nfit/Kconfig |   12 ------------
+ drivers/acpi/nfit/core.c  |   21 ++++++++-------------
+ 2 files changed, 8 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/acpi/nfit/Kconfig b/drivers/acpi/nfit/Kconfig
+index dd0d53c52552..6d3351452ea2 100644
+--- a/drivers/acpi/nfit/Kconfig
++++ b/drivers/acpi/nfit/Kconfig
+@@ -12,15 +12,3 @@ config ACPI_NFIT
  
--static int ablkcipher_get(void *saddr, unsigned int *srestp, unsigned int offset,
-+static int ablkcipher_get(void *saddr, unsigned int *srestp,
- 		struct scatterlist *dst, unsigned int size, unsigned int *nbytesp)
- {
- 	unsigned int srest = *srestp, nbytes = *nbytesp, copy;
-@@ -1632,15 +1632,17 @@ static int ablkcipher_get(void *saddr, unsigned int *srestp, unsigned int offset
- 	while (size) {
- 		copy = min3(srest, dst->length, size);
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called nfit.
+-
+-config ACPI_NFIT_DEBUG
+-	bool "NFIT DSM debug"
+-	depends on ACPI_NFIT
+-	depends on DYNAMIC_DEBUG
+-	default n
+-	help
+-	  Enabling this option causes the nfit driver to dump the
+-	  input and output buffers of _DSM operations on the ACPI0012
+-	  device and its children.  This can be very verbose, so leave
+-	  it disabled unless you are debugging a hardware / firmware
+-	  issue.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 261eea1d2906..ced95a79c1a1 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -268,14 +268,11 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		in_buf.buffer.length = call_pkg->nd_size_in;
+ 	}
  
--		daddr = kmap_atomic(sg_page(dst));
--		memcpy(daddr + dst->offset + offset, saddr, copy);
--		kunmap_atomic(daddr);
-+		daddr = sg_map(dst, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(daddr))
-+			return PTR_ERR(daddr);
-+
-+		memcpy(daddr, saddr, copy);
-+		sg_unmap(dst, daddr, 0, SG_KMAP_ATOMIC);
+-	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
+-				__func__, dimm_name, cmd, func,
+-				in_buf.buffer.length);
+-		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
++	dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
++			__func__, dimm_name, cmd, func, in_buf.buffer.length);
++	print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
+ 			in_buf.buffer.pointer,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
+-	}
  
- 		nbytes -= copy;
- 		size -= copy;
- 		srest -= copy;
- 		saddr += copy;
--		offset = 0;
+ 	out_obj = acpi_evaluate_dsm(handle, uuid, 1, func, &in_obj);
+ 	if (!out_obj) {
+@@ -307,13 +304,11 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		goto out;
+ 	}
  
- 		pr_debug("%s: copy: %u, size: %u, srest: %u, nbytes: %u.\n",
- 			 __func__, copy, size, srest, nbytes);
-@@ -1671,11 +1673,12 @@ static inline void hifn_complete_sa(struct hifn_device *dev, int i)
+-	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__,
+-				dimm_name, cmd_name, out_obj->buffer.length);
+-		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
+-				4, out_obj->buffer.pointer, min_t(u32, 128,
+-					out_obj->buffer.length), true);
+-	}
++	dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__, dimm_name,
++			cmd_name, out_obj->buffer.length);
++	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
++			out_obj->buffer.pointer,
++			min_t(u32, 128, out_obj->buffer.length), true);
  
- static void hifn_process_ready(struct ablkcipher_request *req, int error)
- {
-+	int err;
- 	struct hifn_request_context *rctx = ablkcipher_request_ctx(req);
- 
- 	if (rctx->walk.flags & ASYNC_FLAGS_MISALIGNED) {
- 		unsigned int nbytes = req->nbytes;
--		int idx = 0, err;
-+		int idx = 0;
- 		struct scatterlist *dst, *t;
- 		void *saddr;
- 
-@@ -1695,17 +1698,24 @@ static void hifn_process_ready(struct ablkcipher_request *req, int error)
- 				continue;
- 			}
- 
--			saddr = kmap_atomic(sg_page(t));
-+			saddr = sg_map(t, 0, SG_KMAP_ATOMIC);
-+			if (IS_ERR(saddr)) {
-+				if (!error)
-+					error = PTR_ERR(saddr);
-+				break;
-+			}
-+
-+			err = ablkcipher_get(saddr, &t->length,
-+					     dst, nbytes, &nbytes);
-+			sg_unmap(t, saddr, 0, SG_KMAP_ATOMIC);
- 
--			err = ablkcipher_get(saddr, &t->length, t->offset,
--					dst, nbytes, &nbytes);
- 			if (err < 0) {
--				kunmap_atomic(saddr);
-+				if (!error)
-+					error = err;
- 				break;
- 			}
- 
- 			idx += err;
--			kunmap_atomic(saddr);
- 		}
- 
- 		hifn_cipher_walk_exit(&rctx->walk);
--- 
-2.1.4
+ 	for (i = 0, offset = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
 
 _______________________________________________
 Linux-nvdimm mailing list
