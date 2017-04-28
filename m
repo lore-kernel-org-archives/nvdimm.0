@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1154020D77DB3
- for <linux-nvdimm@lists.01.org>; Fri,  7 Apr 2017 16:19:39 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 4/6] util: add util/bitmap in preparation for the BTT
- checker
-Date: Fri,  7 Apr 2017 17:18:01 -0600
-Message-Id: <20170407231803.14936-5-vishal.l.verma@intel.com>
-In-Reply-To: <20170407231803.14936-1-vishal.l.verma@intel.com>
-References: <20170407231803.14936-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 07D4921A04817
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Apr 2017 12:01:56 -0700 (PDT)
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-8-git-send-email-logang@deltatee.com>
+ <20170427035603.GA32212@gondor.apana.org.au>
+ <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
+ <20170428063039.GB6817@gondor.apana.org.au>
+ <5a08708b-c3b8-41fe-96de-607a109eacbd@deltatee.com>
+ <20170428175147.GA9596@gondor.apana.org.au>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <d5242ef0-2670-63e4-02ce-a6d2368b7292@deltatee.com>
+Date: Fri, 28 Apr 2017 13:01:39 -0600
+MIME-Version: 1.0
+In-Reply-To: <20170428175147.GA9596@gondor.apana.org.au>
+Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
+ helper function
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,226 +25,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: dri-devel@lists.freedesktop.org, dm-devel@redhat.com, target-devel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, devel@driverdev.osuosl.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, "Martin K. Petersen" <martin.petersen@oracle.com>, netdev@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "David S. Miller" <davem@davemloft.net>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The BTT checker will include a bitmap test where we mark a bit for
-each post-map and free block, and check if the bitmap is full. Add
-util/bitmap based on the kernels bitmap code to facilitate this.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- Makefile.am   |   3 +-
- util/bitmap.c | 115 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- util/bitmap.h |  32 ++++++++++++++++
- util/util.h   |  11 ++++++
- 4 files changed, 160 insertions(+), 1 deletion(-)
- create mode 100644 util/bitmap.c
- create mode 100644 util/bitmap.h
 
-diff --git a/Makefile.am b/Makefile.am
-index 5453b2a..2b46736 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -69,6 +69,7 @@ libutil_a_SOURCES = \
- 	util/strbuf.c \
- 	util/wrapper.c \
- 	util/filter.c \
--	util/fletcher.c
-+	util/fletcher.c\
-+	util/bitmap.c
- 
- nobase_include_HEADERS = daxctl/libdaxctl.h
-diff --git a/util/bitmap.c b/util/bitmap.c
-new file mode 100644
-index 0000000..31e8c3a
---- /dev/null
-+++ b/util/bitmap.c
-@@ -0,0 +1,115 @@
-+#include <stdlib.h>
-+#include <util/size.h>
-+#include <util/util.h>
-+#include <util/bitmap.h>
-+#include <ccan/endian/endian.h>
-+#include <ccan/minmax/minmax.h>
-+#include <ccan/short_types/short_types.h>
-+
-+unsigned long *bitmap_alloc(unsigned long nbits)
-+{
-+	return calloc(BITS_TO_LONGS(nbits), sizeof(unsigned long));
-+}
-+
-+void bitmap_set(unsigned long *map, unsigned int start, int len)
-+{
-+	unsigned long *p = map + BIT_WORD(start);
-+	const unsigned int size = start + len;
-+	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (len - bits_to_set >= 0) {
-+		*p |= mask_to_set;
-+		len -= bits_to_set;
-+		bits_to_set = BITS_PER_LONG;
-+		mask_to_set = ~0UL;
-+		p++;
-+	}
-+	if (len) {
-+		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
-+		*p |= mask_to_set;
-+	}
-+}
-+
-+void bitmap_clear(unsigned long *map, unsigned int start, int len)
-+{
-+	unsigned long *p = map + BIT_WORD(start);
-+	const unsigned int size = start + len;
-+	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (len - bits_to_clear >= 0) {
-+		*p &= ~mask_to_clear;
-+		len -= bits_to_clear;
-+		bits_to_clear = BITS_PER_LONG;
-+		mask_to_clear = ~0UL;
-+		p++;
-+	}
-+	if (len) {
-+		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
-+		*p &= ~mask_to_clear;
-+	}
-+}
-+
-+/**
-+ * test_bit - Determine whether a bit is set
-+ * @nr: bit number to test
-+ * @addr: Address to start counting from
-+ */
-+int test_bit(unsigned int nr, const volatile unsigned long *addr)
-+{
-+	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
-+}
-+
-+/*
-+ * This is a common helper function for find_next_bit and
-+ * find_next_zero_bit.  The difference is the "invert" argument, which
-+ * is XORed with each fetched word before searching it for one bits.
-+ */
-+static unsigned long _find_next_bit(const unsigned long *addr,
-+		unsigned long nbits, unsigned long start, unsigned long invert)
-+{
-+	unsigned long tmp;
-+
-+	if (!nbits || start >= nbits)
-+		return nbits;
-+
-+	tmp = addr[start / BITS_PER_LONG] ^ invert;
-+
-+	/* Handle 1st word. */
-+	tmp &= BITMAP_FIRST_WORD_MASK(start);
-+	start = round_down(start, BITS_PER_LONG);
-+
-+	while (!tmp) {
-+		start += BITS_PER_LONG;
-+		if (start >= nbits)
-+			return nbits;
-+
-+		tmp = addr[start / BITS_PER_LONG] ^ invert;
-+	}
-+
-+	return min(start + __builtin_ffsl(tmp), nbits);
-+}
-+
-+/*
-+ * Find the next set bit in a memory region.
-+ */
-+unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
-+			    unsigned long offset)
-+{
-+	return _find_next_bit(addr, size, offset, 0UL);
-+}
-+
-+unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
-+				 unsigned long offset)
-+{
-+	return _find_next_bit(addr, size, offset, ~0UL);
-+}
-+
-+int bitmap_full(const unsigned long *src, unsigned int nbits)
-+{
-+	if (small_const_nbits(nbits))
-+		return ! (~(*src) & BITMAP_LAST_WORD_MASK(nbits));
-+
-+	return find_next_zero_bit(src, nbits, 0UL) == nbits;
-+}
-diff --git a/util/bitmap.h b/util/bitmap.h
-new file mode 100644
-index 0000000..826ae28
---- /dev/null
-+++ b/util/bitmap.h
-@@ -0,0 +1,32 @@
-+#ifndef _NDCTL_BITMAP_H_
-+#define _NDCTL_BITMAP_H_
-+
-+#include <util/size.h>
-+#include <ccan/short_types/short_types.h>
-+
-+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-+
-+#define BIT(nr)			(1UL << (nr))
-+#define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
-+#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
-+#define BITS_PER_BYTE		8
-+#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
-+
-+#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) & (BITS_PER_LONG - 1)))
-+#define BITMAP_LAST_WORD_MASK(nbits) (~0UL >> (-(nbits) & (BITS_PER_LONG - 1)))
-+
-+#define small_const_nbits(nbits) \
-+	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
-+
-+unsigned long *bitmap_alloc(unsigned long nbits);
-+void bitmap_set(unsigned long *map, unsigned int start, int len);
-+void bitmap_clear(unsigned long *map, unsigned int start, int len);
-+int test_bit(unsigned int nr, const volatile unsigned long *addr);
-+unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
-+			    unsigned long offset);
-+unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
-+				 unsigned long offset);
-+int bitmap_full(const unsigned long *src, unsigned int nbits);
-+
-+
-+#endif /* _NDCTL_BITMAP_H_ */
-diff --git a/util/util.h b/util/util.h
-index e0e5f26..620eb1c 100644
---- a/util/util.h
-+++ b/util/util.h
-@@ -23,6 +23,17 @@
- 
- #define alloc_nr(x) (((x)+16)*3/2)
- 
-+#define __round_mask(x, y) ((__typeof__(x))((y)-1))
-+#define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
-+#define round_down(x, y) ((x) & ~__round_mask(x, y))
-+
-+#define rounddown(x, y) (				\
-+{							\
-+	typeof(x) __x = (x);				\
-+	__x - (__x % (y));				\
-+}							\
-+)
-+
- /*
-  * Realloc the buffer pointed at by variable 'x' so that it can hold
-  * at least 'nr' entries; the number of entries currently allocated
--- 
-2.9.3
+On 28/04/17 11:51 AM, Herbert Xu wrote:
+> On Fri, Apr 28, 2017 at 10:53:45AM -0600, Logan Gunthorpe wrote:
+>>
+>>
+>> On 28/04/17 12:30 AM, Herbert Xu wrote:
+>>> You are right.  Indeed the existing code looks buggy as they
+>>> don't take sg->offset into account when doing the kmap.  Could
+>>> you send me some patches that fix these problems first so that
+>>> they can be easily backported?
+>>
+>> Ok, I think the only buggy one in crypto is hifn_795x. Shash and caam
+>> both do have the sg->offset accounted for. I'll send a patch for the
+>> buggy one shortly.
+> 
+> I think they're all buggy when sg->offset is greater than PAGE_SIZE.
 
+Yes, technically. But that's a _very_ common mistake. Pretty nearly
+every case I looked at did not take that into account. I don't think
+sg's that point to more than one continuous page are all that common.
+
+Fixing all those cases without making a common function is a waste of
+time IMO.
+
+Logan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
