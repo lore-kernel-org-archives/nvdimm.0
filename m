@@ -1,19 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
+ [IPv6:2607:f8b0:4003:c06::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E00C721A0480E
- for <linux-nvdimm@lists.01.org>; Sun, 30 Apr 2017 02:16:14 -0700 (PDT)
-Subject: Re: task ndctl:5155 blocked for more than 120 seconds observed during
- pmem/btt/dax switch test
+ by ml01.01.org (Postfix) with ESMTPS id 521A421951CB9
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Apr 2017 22:35:24 -0700 (PDT)
+Received: by mail-oi0-x235.google.com with SMTP id y11so47408428oie.0
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Apr 2017 22:35:24 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1482421304.370160.1493046815781.JavaMail.zimbra@redhat.com>
 References: <895281518.353931.1493045976821.JavaMail.zimbra@redhat.com>
  <1482421304.370160.1493046815781.JavaMail.zimbra@redhat.com>
- <CAPcyv4jufPjoxKZ+82WBSEHs8VafEfZv1nozDsF29f45=0Us=A@mail.gmail.com>
-From: Yi Zhang <yizhan@redhat.com>
-Message-ID: <0193aa84-a6ad-8472-43de-a49ea8617fc4@redhat.com>
-Date: Sun, 30 Apr 2017 17:16:06 +0800
-MIME-Version: 1.0
-In-Reply-To: <CAPcyv4jufPjoxKZ+82WBSEHs8VafEfZv1nozDsF29f45=0Us=A@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 28 Apr 2017 22:35:22 -0700
+Message-ID: <CAPcyv4jufPjoxKZ+82WBSEHs8VafEfZv1nozDsF29f45=0Us=A@mail.gmail.com>
+Subject: Re: task ndctl:5155 blocked for more than 120 seconds observed during
+ pmem/btt/dax switch test
+Content-Type: multipart/mixed; boundary=001a113def3a778f09054e478e1d
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,291 +24,167 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Yi Zhang <yizhan@redhat.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 04/29/2017 01:35 PM, Dan Williams wrote:
-> On Mon, Apr 24, 2017 at 8:13 AM, Yi Zhang <yizhan@redhat.com> wrote:
->> Hello
->>
->> I reproduced ndctl blocked issue on 4.11.0-rc8, here is the reproduce steps and kernel log, could you help check it? Thanks.
->>
->> Reproduce steps:
->> function pmem_btt_dax_switch() {
->>          sector_size_list="512 520 528 4096 4104 4160 4224"
->>          for sector_size in $sector_size_list; do
->>                  ndctl create-namespace -f -e namespace${1}.0 --mode=sector -l $sector_size
->>                  ndctl create-namespace -f -e namespace${1}.0 --mode=raw
->>                  ndctl create-namespace -f -e namespace${1}.0 --mode=dax
->>          done
->> }
->> for i in 0 1 2 3; do
->>          pmem_btt_dax_switch $i &
->> done
-> Thanks for the report!
->
-> I couldn't run your script directly, do you have 4 memmap= regions
-> defined, or...?
-Here is my environment[1], pls try script [2]
-[1]
-# ndctl list -NB
-{
-   "provider":"ACPI.NFIT",
-   "dev":"ndbus0",
-   "namespaces":[
-     {
-       "dev":"namespace1.0",
-       "mode":"dax",
-       "size":8453619712,
-       "uuid":"83bb25db-4a60-4613-a1c8-89d0f8f68c0d"
-     },
-     {
-       "dev":"namespace3.0",
-       "mode":"dax",
-       "size":8453619712,
-       "uuid":"243ab8f4-1d29-43c3-b5f1-be2e470b3a85"
-     },
-     {
-       "dev":"namespace0.0",
-       "mode":"dax",
-       "size":8453619712,
-       "uuid":"38d3a3ad-b6e2-4e4f-bf58-b793f9c039ea"
-     },
-     {
-       "dev":"namespace2.0",
-       "mode":"dax",
-       "size":8453619712,
-       "uuid":"f1887ded-7f8b-4fe0-bacb-303f88584711"
-     }
-   ]
-}
+--001a113def3a778f09054e478e1d
+Content-Type: text/plain; charset=UTF-8
 
-[2]
-#!/bin/bash
-function pmem_btt_switch() {
-         sector_size_list="512 520 528 4096 4104 4160 4224"
-         for sector_size in $sector_size_list; do
-                 ndctl create-namespace -f -e namespace${1}.0 
---mode=sector -l $sector_size
-                 ndctl create-namespace -f -e namespace${1}.0 --mode=raw
-                 ndctl create-namespace -f -e namespace${1}.0 --mode=dax
-         done
-}
-num=0
-while [ $num -lt 500 ]; do
-         for i in 0 1 2 3; do
-                 pmem_btt_switch $i &
-         done
-         wait
-         ((num++))
-done
-
-> I was able to find a locking problem with a debug patch that turned on
-> lockdep coverage for the device_lock(). Can you give the attached
-> patch a try to see if it resolves your lockup?
+On Mon, Apr 24, 2017 at 8:13 AM, Yi Zhang <yizhan@redhat.com> wrote:
+> Hello
 >
-> This is against latest nvdimm.git/libnvdimm-for-next
-I tried the attached patch against bellow code[3], seems reproduced this 
-issue again, pls check below log[4]
-[3]
-git clone -b libnvdimm-for-next 
-git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
-[4]
-[  637.673117] nd_pmem btt3.0: No existing arenas
-[  637.673118] nd_pmem btt1.0: No existing arenas
-[  637.692493] pmem1s: detected capacity change from 0 to 7582678528
-[  637.694980] pmem0: detected capacity change from 0 to 8589934592
-[  637.778798] pmem3s: detected capacity change from 0 to 7582678528
-[  637.812557] pmem2: detected capacity change from 0 to 8589934592
-[  637.868725] nd_pmem btt0.0: No existing arenas
-[  637.908019] pmem0s: detected capacity change from 0 to 7582678528
-[  637.951486] nd_pmem btt2.0: No existing arenas
-[  637.978690] pmem2s: detected capacity change from 0 to 7582678528
-[  638.034491] pmem3: detected capacity change from 0 to 8589934592
-[  638.068756] pmem1: detected capacity change from 0 to 8589934592
-[  638.107573] pmem0: detected capacity change from 0 to 8589934592
-[  638.199041] pmem0: detected capacity change from 0 to 8589934592
-[  638.199041] pmem3: detected capacity change from 0 to 8589934592
-[  638.199098] pmem1: detected capacity change from 0 to 8589934592
-[  638.308711] pmem2: detected capacity change from 0 to 8589934592
-[  865.258436] INFO: task ndctl:21792 blocked for more than 120 seconds.
-[  865.292282]       Not tainted 4.11.0-rc4+ #1
-[  865.311971] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" 
-disables this message.
-[  865.347460] ndctl           D    0 21792  21791 0x00000080
-[  865.371985] Call Trace:
-[  865.382907]  __schedule+0x289/0x8f0
-[  865.398556]  schedule+0x36/0x80
-[  865.412599]  schedule_preempt_disabled+0xe/0x10
-[  865.432906]  __mutex_lock.isra.8+0x266/0x500
-[  865.452217]  ? mntput+0x24/0x40
-[  865.466262]  __mutex_lock_slowpath+0x13/0x20
-[  865.486238]  mutex_lock+0x2f/0x40
-[  865.501470]  region_size_show+0x20/0x70 [device_dax]
-[  865.523976]  dev_attr_show+0x20/0x50
-[  865.539997]  ? mutex_lock+0x12/0x40
-[  865.555749]  sysfs_kf_seq_show+0xbf/0x1a0
-[  865.573689]  kernfs_seq_show+0x21/0x30
-[  865.590477]  seq_read+0x115/0x390
-[  865.605305]  ? do_filp_open+0xa5/0x100
-[  865.621728]  kernfs_fop_read+0xff/0x180
-[  865.638917]  __vfs_read+0x37/0x150
-[  865.653763]  ? security_file_permission+0x9d/0xc0
-[  865.674791]  vfs_read+0x8c/0x130
-[  865.688887]  SyS_read+0x55/0xc0
-[  865.703026]  do_syscall_64+0x67/0x180
-[  865.719498]  entry_SYSCALL64_slow_path+0x25/0x25
-[  865.740944] RIP: 0033:0x7f1fcf5b47e0
-[  865.757730] RSP: 002b:00007ffca0272138 EFLAGS: 00000246 ORIG_RAX: 
-0000000000000000
-[  865.793826] RAX: ffffffffffffffda RBX: 0000000000000004 RCX: 
-00007f1fcf5b47e0
-[  865.828479] RDX: 0000000000000400 RSI: 00007ffca0272160 RDI: 
-0000000000000004
-[  865.861314] RBP: 00000000012c54f0 R08: 00007f1fcf513988 R09: 
-0000000000000027
-[  865.893963] R10: 000000000000000a R11: 0000000000000246 R12: 
-00007ffca0272160
-[  865.926206] R13: 00000000012c8260 R14: 00007ffca0272160 R15: 
-00000000012c8343
-[  865.958196] INFO: task ndctl:21815 blocked for more than 120 seconds.
-[  865.987044]       Not tainted 4.11.0-rc4+ #1
-[  866.006393] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" 
-disables this message.
-[  866.041532] ndctl           D    0 21815  21814 0x00000080
-[  866.066062] Call Trace:
-[  866.077166]  __schedule+0x289/0x8f0
-[  866.093101]  schedule+0x36/0x80
-[  866.107348]  schedule_preempt_disabled+0xe/0x10
-[  866.128397]  __mutex_lock.isra.8+0x266/0x500
-[  866.150235]  ? refcount_dec_and_test+0x11/0x20
-[  866.171204]  ? wait_probe_show+0x70/0x70 [libnvdimm]
-[  866.195722]  __mutex_lock_slowpath+0x13/0x20
-[  866.215658]  mutex_lock+0x2f/0x40
-[  866.231182]  flush_regions_dimms+0x1b/0x40 [libnvdimm]
-[  866.255614]  device_for_each_child+0x50/0x90
-[  866.275489]  wait_probe_show+0x46/0x70 [libnvdimm]
-[  866.299264]  dev_attr_show+0x20/0x50
-[  866.318946]  ? mutex_lock+0x12/0x40
-[  866.335740]  sysfs_kf_seq_show+0xbf/0x1a0
-[  866.354608]  kernfs_seq_show+0x21/0x30
-[  866.372248]  seq_read+0x115/0x390
-[  866.387589]  ? do_filp_open+0xa5/0x100
-[  866.405202]  kernfs_fop_read+0xff/0x180
-[  866.423176]  __vfs_read+0x37/0x150
-[  866.439121]  ? security_file_permission+0x9d/0xc0
-[  866.461188]  vfs_read+0x8c/0x130
-[  866.476212]  SyS_read+0x55/0xc0
-[  866.490824]  do_syscall_64+0x67/0x180
-[  866.507892]  entry_SYSCALL64_slow_path+0x25/0x25
-[  866.529750] RIP: 0033:0x7f362c9077e0
-[  866.546371] RSP: 002b:00007ffcc956d2c8 EFLAGS: 00000246 ORIG_RAX: 
-0000000000000000
-[  866.582011] RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 
-00007f362c9077e0
-[  866.615492] RDX: 0000000000000400 RSI: 00007ffcc956d2f0 RDI: 
-0000000000000003
-[  866.649106] RBP: 0000000000000000 R08: 00007f362c866988 R09: 
-0000000000000046
-[  866.682500] R10: 0000000000000046 R11: 0000000000000246 R12: 
-00007ffcc956d2f0
-[  866.715817] R13: 0000000000000000 R14: 0000000000001388 R15: 
-00007ffcc956d2f0
-[  866.749426] INFO: task ndctl:21818 blocked for more than 120 seconds.
-[  866.779733]       Not tainted 4.11.0-rc4+ #1
-[  866.800190] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" 
-disables this message.
-[  866.840889] ndctl           D    0 21818  21816 0x00000080
-[  866.866559] Call Trace:
-[  866.877997]  __schedule+0x289/0x8f0
-[  866.894153]  schedule+0x36/0x80
-[  866.909009]  __kernfs_remove+0x169/0x220
-[  866.927326]  ? remove_wait_queue+0x60/0x60
-[  866.946570]  kernfs_remove_by_name_ns+0x43/0xa0
-[  866.967736]  remove_files.isra.1+0x36/0x70
-[  866.986964]  sysfs_remove_group+0x44/0x90
-[  867.005536]  sysfs_remove_groups+0x2e/0x50
-[  867.025658]  dax_region_unregister+0x21/0x40 [device_dax]
-[  867.051102]  devm_action_release+0xf/0x20
-[  867.069917]  release_nodes+0x218/0x260
-[  867.087469]  devres_release_all+0x3c/0x60
-[  867.106331]  device_release_driver_internal+0x151/0x1f0
-[  867.130551]  device_release_driver+0x12/0x20
-[  867.150939]  unbind_store+0xba/0xe0
-[  867.167331]  drv_attr_store+0x24/0x30
-[  867.184559]  sysfs_kf_write+0x3a/0x50
-[  867.201805]  kernfs_fop_write+0xff/0x180
-[  867.220111]  __vfs_write+0x37/0x160
-[  867.236342]  ? selinux_file_permission+0xe5/0x120
-[  867.258348]  ? security_file_permission+0x3b/0xc0
-[  867.280189]  vfs_write+0xb2/0x1b0
-[  867.295622]  ? syscall_trace_enter+0x1d0/0x2b0
-[  867.317865]  SyS_write+0x55/0xc0
-[  867.334608]  do_syscall_64+0x67/0x180
-[  867.353717]  entry_SYSCALL64_slow_path+0x25/0x25
-[  867.375047] RIP: 0033:0x7f6252c56840
-[  867.391768] RSP: 002b:00007ffe36b4cc38 EFLAGS: 00000246 ORIG_RAX: 
-0000000000000001
-[  867.427789] RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 
-00007f6252c56840
-[  867.461738] RDX: 0000000000000007 RSI: 0000000000b49ba0 RDI: 
-0000000000000003
-[  867.495312] RBP: 0000000000b49ba0 R08: 00007f6252bb5988 R09: 
-0000000000000046
-[  867.528377] R10: 00007ffe36b4c950 R11: 0000000000000246 R12: 
-0000000000000007
-[  867.561816] R13: 0000000000000000 R14: 0000000000000000 R15: 
-0000000000000002
-[  867.595562] INFO: task ndctl:21819 blocked for more than 120 seconds.
-[  867.625845]       Not tainted 4.11.0-rc4+ #1
-[  867.645436] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" 
-disables this message.
-[  867.682041] ndctl           D    0 21819  21817 0x00000080
-[  867.708043] Call Trace:
-[  867.719637]  __schedule+0x289/0x8f0
-[  867.736425]  schedule+0x36/0x80
-[  867.751222]  schedule_preempt_disabled+0xe/0x10
-[  867.772404]  __mutex_lock.isra.8+0x266/0x500
-[  867.792365]  ? refcount_dec_and_test+0x11/0x20
-[  867.813359]  ? wait_probe_show+0x70/0x70 [libnvdimm]
-[  867.838480]  __mutex_lock_slowpath+0x13/0x20
-[  867.859706]  mutex_lock+0x2f/0x40
-[  867.875377]  flush_regions_dimms+0x1b/0x40 [libnvdimm]
-[  867.899479]  device_for_each_child+0x50/0x90
-[  867.919187]  wait_probe_show+0x46/0x70 [libnvdimm]
-[  867.940749]  dev_attr_show+0x20/0x50
-[  867.957176]  ? mutex_lock+0x12/0x40
-[  867.973416]  sysfs_kf_seq_show+0xbf/0x1a0
-[  867.992291]  kernfs_seq_show+0x21/0x30
-[  868.009818]  seq_read+0x115/0x390
-[  868.025295]  ? do_filp_open+0xa5/0x100
-[  868.042770]  kernfs_fop_read+0xff/0x180
-[  868.060784]  __vfs_read+0x37/0x150
-[  868.076791]  ? security_file_permission+0x9d/0xc0
-[  868.100003]  vfs_read+0x8c/0x130
-[  868.115039]  SyS_read+0x55/0xc0
-[  868.129758]  do_syscall_64+0x67/0x180
-[  868.146826]  entry_SYSCALL64_slow_path+0x25/0x25
-[  868.168842] RIP: 0033:0x7f727cade7e0
-[  868.185547] RSP: 002b:00007ffc3adfdd98 EFLAGS: 00000246 ORIG_RAX: 
-0000000000000000
-[  868.220933] RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 
-00007f727cade7e0
-[  868.254185] RDX: 0000000000000400 RSI: 00007ffc3adfddc0 RDI: 
-0000000000000003
-[  868.287336] RBP: 000000000093b570 R08: 000000000093ea50 R09: 
-00007f727d3da310
-[  868.321130] R10: 0000000000000000 R11: 0000000000000246 R12: 
-00007ffc3adfddc0
-[  868.356791] R13: 0000000000000000 R14: 0000000000001388 R15: 
-00007ffc3adfddc0
+> I reproduced ndctl blocked issue on 4.11.0-rc8, here is the reproduce steps and kernel log, could you help check it? Thanks.
+>
+> Reproduce steps:
+> function pmem_btt_dax_switch() {
+>         sector_size_list="512 520 528 4096 4104 4160 4224"
+>         for sector_size in $sector_size_list; do
+>                 ndctl create-namespace -f -e namespace${1}.0 --mode=sector -l $sector_size
+>                 ndctl create-namespace -f -e namespace${1}.0 --mode=raw
+>                 ndctl create-namespace -f -e namespace${1}.0 --mode=dax
+>         done
+> }
+> for i in 0 1 2 3; do
+>         pmem_btt_dax_switch $i &
+> done
+
+Thanks for the report!
+
+I couldn't run your script directly, do you have 4 memmap= regions
+defined, or...?
+
+I was able to find a locking problem with a debug patch that turned on
+lockdep coverage for the device_lock(). Can you give the attached
+patch a try to see if it resolves your lockup?
+
+This is against latest nvdimm.git/libnvdimm-for-next
+
+--001a113def3a778f09054e478e1d
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-libnvdimm-fix-nvdimm_bus_lock-vs-device_lock-orderin.patch"
+Content-Disposition: attachment;
+	filename="0001-libnvdimm-fix-nvdimm_bus_lock-vs-device_lock-orderin.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_j22u19pv0
+
+RnJvbSBjNzE3MjBkODA1NDAxZWJmYzVkNTNlZDFjNDI0MWVjNTY2NTU0ZTYwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
+bT4KRGF0ZTogRnJpLCAyOCBBcHIgMjAxNyAyMjowNToxNCAtMDcwMApTdWJqZWN0OiBbUEFUQ0hd
+IGxpYm52ZGltbTogZml4IG52ZGltbV9idXNfbG9jaygpIHZzIGRldmljZV9sb2NrKCkgb3JkZXJp
+bmcKCkEgZGVidWcgcGF0Y2ggdG8gdHVybiB0aGUgc3RhbmRhcmQgZGV2aWNlX2xvY2soKSBpbnRv
+IHNvbWV0aGluZyB0aGF0CmxvY2tkZXAgY2FuIGFuYWx5emUgeWllbGRlZCB0aGUgZm9sbG93aW5n
+OgoKID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PQogWyBJTkZPOiBwb3NzaWJsZSBjaXJjdWxhciBsb2NraW5nIGRlcGVuZGVuY3kgZGV0ZWN0ZWQg
+XQogNC4xMS4wLXJjNCsgIzEwNiBUYWludGVkOiBHICAgICAgICAgICBPCiAtLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiBsdC1saWJuZGN0bC8x
+ODk4IGlzIHRyeWluZyB0byBhY3F1aXJlIGxvY2s6CiAgKCZkZXYtPm52ZGltbV9tdXRleC8zKXsr
+LisuKy59LCBhdDogWzxmZmZmZmZmZmMwMjNjOTQ4Pl0gbmRfYXR0YWNoX25kbnMrMHgxNzgvMHgx
+YjAgW2xpYm52ZGltbV0KCiBidXQgdGFzayBpcyBhbHJlYWR5IGhvbGRpbmcgbG9jazoKICAoJm52
+ZGltbV9idXMtPnJlY29uZmlnX211dGV4KXsrLisuKy59LCBhdDogWzxmZmZmZmZmZmMwMjJlMGIx
+Pl0gbnZkaW1tX2J1c19sb2NrKzB4MjEvMHgzMCBbbGlibnZkaW1tXQoKIHdoaWNoIGxvY2sgYWxy
+ZWFkeSBkZXBlbmRzIG9uIHRoZSBuZXcgbG9jay4KCiB0aGUgZXhpc3RpbmcgZGVwZW5kZW5jeSBj
+aGFpbiAoaW4gcmV2ZXJzZSBvcmRlcikgaXM6CgogLT4gIzEgKCZudmRpbW1fYnVzLT5yZWNvbmZp
+Z19tdXRleCl7Ky4rLisufToKICAgICAgICBsb2NrX2FjcXVpcmUrMHhmNi8weDFmMAogICAgICAg
+IF9fbXV0ZXhfbG9jaysweDg4LzB4OTgwCiAgICAgICAgbXV0ZXhfbG9ja19uZXN0ZWQrMHgxYi8w
+eDIwCiAgICAgICAgbnZkaW1tX2J1c19sb2NrKzB4MjEvMHgzMCBbbGlibnZkaW1tXQogICAgICAg
+IG52ZGltbV9uYW1lc3BhY2VfY2FwYWNpdHkrMHgxYi8weDQwIFtsaWJudmRpbW1dCiAgICAgICAg
+bnZkaW1tX25hbWVzcGFjZV9jb21tb25fcHJvYmUrMHgyMzAvMHg1MTAgW2xpYm52ZGltbV0KICAg
+ICAgICBuZF9wbWVtX3Byb2JlKzB4MTQvMHgxODAgW25kX3BtZW1dCiAgICAgICAgbnZkaW1tX2J1
+c19wcm9iZSsweGE5LzB4MjYwIFtsaWJudmRpbW1dCgogLT4gIzAgKCZkZXYtPm52ZGltbV9tdXRl
+eC8zKXsrLisuKy59OgogICAgICAgIF9fbG9ja19hY3F1aXJlKzB4MTEwNy8weDEyODAKICAgICAg
+ICBsb2NrX2FjcXVpcmUrMHhmNi8weDFmMAogICAgICAgIF9fbXV0ZXhfbG9jaysweDg4LzB4OTgw
+CiAgICAgICAgbXV0ZXhfbG9ja19uZXN0ZWQrMHgxYi8weDIwCiAgICAgICAgbmRfYXR0YWNoX25k
+bnMrMHgxNzgvMHgxYjAgW2xpYm52ZGltbV0KICAgICAgICBuZF9uYW1lc3BhY2Vfc3RvcmUrMHgz
+MDgvMHgzYzAgW2xpYm52ZGltbV0KICAgICAgICBuYW1lc3BhY2Vfc3RvcmUrMHg4Ny8weDIyMCBb
+bGlibnZkaW1tXQoKSW4gdGhpcyBjYXNlICcmZGV2LT5udmRpbW1fbXV0ZXgvMycgbWlycm9ycyAn
+JmRldi0+bXV0ZXgnLgoKRml4IHRoaXMgYnkgcmVwbGFjaW5nIHRoZSB1c2Ugb2YgZGV2aWNlX2xv
+Y2soKSB3aXRoIG52ZGltbV9idXNfbG9jaygpIHRvIHByb3RlY3QKbmRfe2F0dGFjaCxkZXRhY2h9
+X25kbnMoKSBvcGVyYXRpb25zLgoKQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPgpGaXhlczog
+OGMyZjdlODY1OGRmICgibGlibnZkaW1tOiBpbmZyYXN0cnVjdHVyZSBmb3IgYnR0IGRldmljZXMi
+KQpSZXBvcnRlZC1ieTogWWkgWmhhbmcgPHlpemhhbkByZWRoYXQuY29tPgpTaWduZWQtb2ZmLWJ5
+OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KLS0tCiBkcml2ZXJzL252
+ZGltbS9idHRfZGV2cy5jIHwgIDIgKy0KIGRyaXZlcnMvbnZkaW1tL2NsYWltLmMgICAgfCAyMyAr
+KysrKysrKysrKysrKystLS0tLS0tLQogZHJpdmVycy9udmRpbW0vZGF4X2RldnMuYyB8ICAyICst
+CiBkcml2ZXJzL252ZGltbS9wZm5fZGV2cy5jIHwgIDIgKy0KIDQgZmlsZXMgY2hhbmdlZCwgMTgg
+aW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRp
+bW0vYnR0X2RldnMuYyBiL2RyaXZlcnMvbnZkaW1tL2J0dF9kZXZzLmMKaW5kZXggOTdkZDI5MjVl
+ZDZlLi40Yjc2YWYyYjg3MTUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbnZkaW1tL2J0dF9kZXZzLmMK
+KysrIGIvZHJpdmVycy9udmRpbW0vYnR0X2RldnMuYwpAQCAtMzE0LDcgKzMxNCw3IEBAIGludCBu
+ZF9idHRfcHJvYmUoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgbmRfbmFtZXNwYWNlX2NvbW1v
+biAqbmRucykKIAlpZiAocmMgPCAwKSB7CiAJCXN0cnVjdCBuZF9idHQgKm5kX2J0dCA9IHRvX25k
+X2J0dChidHRfZGV2KTsKIAotCQlfX25kX2RldGFjaF9uZG5zKGJ0dF9kZXYsICZuZF9idHQtPm5k
+bnMpOworCQluZF9kZXRhY2hfbmRucyhidHRfZGV2LCAmbmRfYnR0LT5uZG5zKTsKIAkJcHV0X2Rl
+dmljZShidHRfZGV2KTsKIAl9CiAKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL2NsYWltLmMg
+Yi9kcml2ZXJzL252ZGltbS9jbGFpbS5jCmluZGV4IDJjMTliYzdmYzA1Ni4uMzViMjEwZGMxZTU2
+IDEwMDY0NAotLS0gYS9kcml2ZXJzL252ZGltbS9jbGFpbS5jCisrKyBiL2RyaXZlcnMvbnZkaW1t
+L2NsYWltLmMKQEAgLTIxLDggKzIxLDEzIEBACiB2b2lkIF9fbmRfZGV0YWNoX25kbnMoc3RydWN0
+IGRldmljZSAqZGV2LCBzdHJ1Y3QgbmRfbmFtZXNwYWNlX2NvbW1vbiAqKl9uZG5zKQogewogCXN0
+cnVjdCBuZF9uYW1lc3BhY2VfY29tbW9uICpuZG5zID0gKl9uZG5zOworCXN0cnVjdCBudmRpbW1f
+YnVzICpudmRpbW1fYnVzOwogCi0JbG9ja2RlcF9hc3NlcnRfaGVsZCgmbmRucy0+ZGV2Lm11dGV4
+KTsKKwlpZiAoIW5kbnMpCisJCXJldHVybjsKKworCW52ZGltbV9idXMgPSB3YWxrX3RvX252ZGlt
+bV9idXMoJm5kbnMtPmRldik7CisJbG9ja2RlcF9hc3NlcnRfaGVsZCgmbnZkaW1tX2J1cy0+cmVj
+b25maWdfbXV0ZXgpOwogCWRldl9XQVJOX09OQ0UoZGV2LCBuZG5zLT5jbGFpbSAhPSBkZXYsICIl
+czogaW52YWxpZCBjbGFpbVxuIiwgX19mdW5jX18pOwogCW5kbnMtPmNsYWltID0gTlVMTDsKIAkq
+X25kbnMgPSBOVUxMOwpAQCAtMzcsMTggKzQyLDIwIEBAIHZvaWQgbmRfZGV0YWNoX25kbnMoc3Ry
+dWN0IGRldmljZSAqZGV2LAogCWlmICghbmRucykKIAkJcmV0dXJuOwogCWdldF9kZXZpY2UoJm5k
+bnMtPmRldik7Ci0JZGV2aWNlX2xvY2soJm5kbnMtPmRldik7CisJbnZkaW1tX2J1c19sb2NrKCZu
+ZG5zLT5kZXYpOwogCV9fbmRfZGV0YWNoX25kbnMoZGV2LCBfbmRucyk7Ci0JZGV2aWNlX3VubG9j
+aygmbmRucy0+ZGV2KTsKKwludmRpbW1fYnVzX3VubG9jaygmbmRucy0+ZGV2KTsKIAlwdXRfZGV2
+aWNlKCZuZG5zLT5kZXYpOwogfQogCiBib29sIF9fbmRfYXR0YWNoX25kbnMoc3RydWN0IGRldmlj
+ZSAqZGV2LCBzdHJ1Y3QgbmRfbmFtZXNwYWNlX2NvbW1vbiAqYXR0YWNoLAogCQlzdHJ1Y3QgbmRf
+bmFtZXNwYWNlX2NvbW1vbiAqKl9uZG5zKQogeworCXN0cnVjdCBudmRpbW1fYnVzICpudmRpbW1f
+YnVzID0gd2Fsa190b19udmRpbW1fYnVzKCZhdHRhY2gtPmRldik7CisKIAlpZiAoYXR0YWNoLT5j
+bGFpbSkKIAkJcmV0dXJuIGZhbHNlOwotCWxvY2tkZXBfYXNzZXJ0X2hlbGQoJmF0dGFjaC0+ZGV2
+Lm11dGV4KTsKKwlsb2NrZGVwX2Fzc2VydF9oZWxkKCZudmRpbW1fYnVzLT5yZWNvbmZpZ19tdXRl
+eCk7CiAJZGV2X1dBUk5fT05DRShkZXYsICpfbmRucywgIiVzOiBpbnZhbGlkIGNsYWltXG4iLCBf
+X2Z1bmNfXyk7CiAJYXR0YWNoLT5jbGFpbSA9IGRldjsKIAkqX25kbnMgPSBhdHRhY2g7CkBAIC02
+MSw5ICs2OCw5IEBAIGJvb2wgbmRfYXR0YWNoX25kbnMoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1
+Y3QgbmRfbmFtZXNwYWNlX2NvbW1vbiAqYXR0YWNoLAogewogCWJvb2wgY2xhaW1lZDsKIAotCWRl
+dmljZV9sb2NrKCZhdHRhY2gtPmRldik7CisJbnZkaW1tX2J1c19sb2NrKCZhdHRhY2gtPmRldik7
+CiAJY2xhaW1lZCA9IF9fbmRfYXR0YWNoX25kbnMoZGV2LCBhdHRhY2gsIF9uZG5zKTsKLQlkZXZp
+Y2VfdW5sb2NrKCZhdHRhY2gtPmRldik7CisJbnZkaW1tX2J1c191bmxvY2soJmF0dGFjaC0+ZGV2
+KTsKIAlyZXR1cm4gY2xhaW1lZDsKIH0KIApAQCAtMTE0LDcgKzEyMSw3IEBAIHN0YXRpYyB2b2lk
+IG5kX2RldGFjaF9hbmRfcmVzZXQoc3RydWN0IGRldmljZSAqZGV2LAogCQlzdHJ1Y3QgbmRfbmFt
+ZXNwYWNlX2NvbW1vbiAqKl9uZG5zKQogewogCS8qIGRldGFjaCB0aGUgbmFtZXNwYWNlIGFuZCBk
+ZXN0cm95IC8gcmVzZXQgdGhlIGRldmljZSAqLwotCW5kX2RldGFjaF9uZG5zKGRldiwgX25kbnMp
+OworCV9fbmRfZGV0YWNoX25kbnMoZGV2LCBfbmRucyk7CiAJaWYgKGlzX2lkbGUoZGV2LCAqX25k
+bnMpKSB7CiAJCW5kX2RldmljZV91bnJlZ2lzdGVyKGRldiwgTkRfQVNZTkMpOwogCX0gZWxzZSBp
+ZiAoaXNfbmRfYnR0KGRldikpIHsKQEAgLTE4NCw3ICsxOTEsNyBAQCBzc2l6ZV90IG5kX25hbWVz
+cGFjZV9zdG9yZShzdHJ1Y3QgZGV2aWNlICpkZXYsCiAJfQogCiAJV0FSTl9PTl9PTkNFKCFpc19u
+dmRpbW1fYnVzX2xvY2tlZChkZXYpKTsKLQlpZiAoIW5kX2F0dGFjaF9uZG5zKGRldiwgbmRucywg
+X25kbnMpKSB7CisJaWYgKCFfX25kX2F0dGFjaF9uZG5zKGRldiwgbmRucywgX25kbnMpKSB7CiAJ
+CWRldl9kYmcoZGV2LCAiJXMgYWxyZWFkeSBjbGFpbWVkXG4iLAogCQkJCWRldl9uYW1lKCZuZG5z
+LT5kZXYpKTsKIAkJbGVuID0gLUVCVVNZOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vZGF4
+X2RldnMuYyBiL2RyaXZlcnMvbnZkaW1tL2RheF9kZXZzLmMKaW5kZXggNDVmYTgyY2FlODdjLi5j
+MWI2NTU2YWVhNmUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbnZkaW1tL2RheF9kZXZzLmMKKysrIGIv
+ZHJpdmVycy9udmRpbW0vZGF4X2RldnMuYwpAQCAtMTI0LDcgKzEyNCw3IEBAIGludCBuZF9kYXhf
+cHJvYmUoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgbmRfbmFtZXNwYWNlX2NvbW1vbiAqbmRu
+cykKIAlkZXZfZGJnKGRldiwgIiVzOiBkYXg6ICVzXG4iLCBfX2Z1bmNfXywKIAkJCXJjID09IDAg
+PyBkZXZfbmFtZShkYXhfZGV2KSA6ICI8bm9uZT4iKTsKIAlpZiAocmMgPCAwKSB7Ci0JCV9fbmRf
+ZGV0YWNoX25kbnMoZGF4X2RldiwgJm5kX3Bmbi0+bmRucyk7CisJCW5kX2RldGFjaF9uZG5zKGRh
+eF9kZXYsICZuZF9wZm4tPm5kbnMpOwogCQlwdXRfZGV2aWNlKGRheF9kZXYpOwogCX0gZWxzZQog
+CQlfX25kX2RldmljZV9yZWdpc3RlcihkYXhfZGV2KTsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZk
+aW1tL3Bmbl9kZXZzLmMgYi9kcml2ZXJzL252ZGltbS9wZm5fZGV2cy5jCmluZGV4IDZjMDMzYzlh
+MmYwNi4uYzM4NTY2ZjRkYTdkIDEwMDY0NAotLS0gYS9kcml2ZXJzL252ZGltbS9wZm5fZGV2cy5j
+CisrKyBiL2RyaXZlcnMvbnZkaW1tL3Bmbl9kZXZzLmMKQEAgLTQ4NCw3ICs0ODQsNyBAQCBpbnQg
+bmRfcGZuX3Byb2JlKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IG5kX25hbWVzcGFjZV9jb21t
+b24gKm5kbnMpCiAJZGV2X2RiZyhkZXYsICIlczogcGZuOiAlc1xuIiwgX19mdW5jX18sCiAJCQly
+YyA9PSAwID8gZGV2X25hbWUocGZuX2RldikgOiAiPG5vbmU+Iik7CiAJaWYgKHJjIDwgMCkgewot
+CQlfX25kX2RldGFjaF9uZG5zKHBmbl9kZXYsICZuZF9wZm4tPm5kbnMpOworCQluZF9kZXRhY2hf
+bmRucyhwZm5fZGV2LCAmbmRfcGZuLT5uZG5zKTsKIAkJcHV0X2RldmljZShwZm5fZGV2KTsKIAl9
+IGVsc2UKIAkJX19uZF9kZXZpY2VfcmVnaXN0ZXIocGZuX2Rldik7Ci0tIAoyLjkuMwoK
+--001a113def3a778f09054e478e1d
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--001a113def3a778f09054e478e1d--
