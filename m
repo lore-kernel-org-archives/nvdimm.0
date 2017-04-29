@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5712921951C9E
- for <linux-nvdimm@lists.01.org>; Tue, 25 Apr 2017 11:21:20 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Apr 2017 12:20:54 -0600
-Message-Id: <1493144468-22493-8-git-send-email-logang@deltatee.com>
-In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v2 07/21] crypto: shash,
- caam: Make use of the new sg_map helper function
+ by ml01.01.org (Postfix) with ESMTPS id D628B21A04822
+ for <linux-nvdimm@lists.01.org>; Sat, 29 Apr 2017 01:46:45 -0700 (PDT)
+Date: Sat, 29 Apr 2017 16:46:10 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 2/3] virtio, rpmsg: switch to dynamic_hex_dump()
+Message-ID: <201704291610.sI4vYOud%fengguang.wu@intel.com>
+MIME-Version: 1.0
+In-Reply-To: <149341494418.35578.561981766577089185.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,85 +18,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
-Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Herbert Xu <herbert@gondor.apana.org.au>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, "David S. Miller" <davem@davemloft.net>, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-nvdimm@lists.01.org, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Andersson <bjorn.andersson@linaro.org>, linux-acpi@vger.kernel.org, kbuild-all@01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Very straightforward conversion to the new function in the caam driver
-and shash library.
+Hi Dan,
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
+[auto build test ERROR on pm/linux-next]
+[also build test ERROR on v4.11-rc8 next-20170428]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/dynamic_hex_dump-cleanup/20170429-135503
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+config: arm-multi_v7_defconfig (attached as .config)
+compiler: arm-linux-gnueabi-gcc (Debian 6.1.1-9) 6.1.1 20160705
+reproduce:
+        wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=arm 
+
+All errors (new ones prefixed by >>):
+
+   drivers//rpmsg/virtio_rpmsg_bus.c: In function 'rpmsg_send_offchannel_raw':
+>> drivers//rpmsg/virtio_rpmsg_bus.c:602:2: error: implicit declaration of function 'dynamic_hex_dump' [-Werror=implicit-function-declaration]
+     dynamic_hex_dump("rpmsg_virtio TX: ", DUMP_PREFIX_NONE, 16, 1,
+     ^~~~~~~~~~~~~~~~
+   cc1: some warnings being treated as errors
+
+vim +/dynamic_hex_dump +602 drivers//rpmsg/virtio_rpmsg_bus.c
+
+bcabbcca Ohad Ben-Cohen 2011-10-20  596  	msg->dst = dst;
+bcabbcca Ohad Ben-Cohen 2011-10-20  597  	msg->reserved = 0;
+bcabbcca Ohad Ben-Cohen 2011-10-20  598  	memcpy(msg->data, data, len);
+bcabbcca Ohad Ben-Cohen 2011-10-20  599  
+bcabbcca Ohad Ben-Cohen 2011-10-20  600  	dev_dbg(dev, "TX From 0x%x, To 0x%x, Len %d, Flags %d, Reserved %d\n",
+0963679c Anna, Suman    2016-08-12  601  		msg->src, msg->dst, msg->len, msg->flags, msg->reserved);
+211e3a93 Anna, Suman    2016-08-12 @602  	dynamic_hex_dump("rpmsg_virtio TX: ", DUMP_PREFIX_NONE, 16, 1,
+bcabbcca Ohad Ben-Cohen 2011-10-20  603  			 msg, sizeof(*msg) + msg->len, true);
+bcabbcca Ohad Ben-Cohen 2011-10-20  604  
+bcabbcca Ohad Ben-Cohen 2011-10-20  605  	sg_init_one(&sg, msg, sizeof(*msg) + len);
+
+:::::: The code at line 602 was first introduced by commit
+:::::: 211e3a93e5b5933e64ddfb299eee462ac7c7d500 rpmsg: use dynamic_hex_dump for hex dump traces
+
+:::::: TO: Anna, Suman <s-anna@ti.com>
+:::::: CC: Bjorn Andersson <bjorn.andersson@linaro.org>
+
 ---
- crypto/shash.c                | 9 ++++++---
- drivers/crypto/caam/caamalg.c | 8 +++-----
- 2 files changed, 9 insertions(+), 8 deletions(-)
-
-diff --git a/crypto/shash.c b/crypto/shash.c
-index 5e31c8d..5914881 100644
---- a/crypto/shash.c
-+++ b/crypto/shash.c
-@@ -283,10 +283,13 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
- 	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
- 		void *data;
- 
--		data = kmap_atomic(sg_page(sg));
--		err = crypto_shash_digest(desc, data + offset, nbytes,
-+		data = sg_map(sg, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(data))
-+			return PTR_ERR(data);
-+
-+		err = crypto_shash_digest(desc, data, nbytes,
- 					  req->result);
--		kunmap_atomic(data);
-+		sg_unmap(sg, data, 0, SG_KMAP_ATOMIC);
- 		crypto_yield(desc->flags);
- 	} else
- 		err = crypto_shash_init(desc) ?:
-diff --git a/drivers/crypto/caam/caamalg.c b/drivers/crypto/caam/caamalg.c
-index 398807d..62d2f5d 100644
---- a/drivers/crypto/caam/caamalg.c
-+++ b/drivers/crypto/caam/caamalg.c
-@@ -89,7 +89,6 @@ static void dbg_dump_sg(const char *level, const char *prefix_str,
- 			struct scatterlist *sg, size_t tlen, bool ascii)
- {
- 	struct scatterlist *it;
--	void *it_page;
- 	size_t len;
- 	void *buf;
- 
-@@ -98,19 +97,18 @@ static void dbg_dump_sg(const char *level, const char *prefix_str,
- 		 * make sure the scatterlist's page
- 		 * has a valid virtual memory mapping
- 		 */
--		it_page = kmap_atomic(sg_page(it));
--		if (unlikely(!it_page)) {
-+		buf = sg_map(it, 0, SG_KMAP_ATOMIC);
-+		if (IS_ERR(buf)) {
- 			printk(KERN_ERR "dbg_dump_sg: kmap failed\n");
- 			return;
- 		}
- 
--		buf = it_page + it->offset;
- 		len = min_t(size_t, tlen, it->length);
- 		print_hex_dump(level, prefix_str, prefix_type, rowsize,
- 			       groupsize, buf, len, ascii);
- 		tlen -= len;
- 
--		kunmap_atomic(it_page);
-+		sg_unmap(it, buf, 0, SG_KMAP_ATOMIC);
- 	}
- }
- #endif
--- 
-2.1.4
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
