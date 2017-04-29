@@ -1,8 +1,8 @@
-From: "USPS Ground Support" <ziejd23034310-2unx/JJxlKPDX78VGIip7w@public.gmane.org>
+From: "USPS Station Management" <u528803-/HwZ+a/Wr1rELLbFHfFBGw@public.gmane.org>
 Subject: Re:
-Date: Fri, 28 Apr 2017 11:27:27 -0700
-Message-ID: <795B955A.41A8A23A@mailathome.me.uk>
-Reply-To: USPS Home Delivery <ziejd23034310-2unx/JJxlKPDX78VGIip7w@public.gmane.org>
+Date: Sat, 29 Apr 2017 15:53:09 -0700
+Message-ID: <AAC6A96D.87366E1F@blindarte.com.br>
+Reply-To: USPS Express Delivery <u528803-/HwZ+a/Wr1rELLbFHfFBGw@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,9 +21,9 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-Your item has arrived at the USPS Post Office at  Fri, 28 Apr 2017 11:27:27
+Your item has arrived at the USPS Post Office at  Sat, 29 Apr 2017 15:53:09
 -0700, but the courier was unable to deliver parcel to you. 
-You can download the shipment label attached!
+You can find more details in this e-mail attachment!
 
-With gratitude.
-Lashan Simmering -  USPS Support Manager.
+With thanks and appreciation.
+Fermina Khan -  USPS Support Agent.
