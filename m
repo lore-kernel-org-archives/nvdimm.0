@@ -1,8 +1,9 @@
-From: "USPS Station Management" <u528803-/HwZ+a/Wr1rELLbFHfFBGw@public.gmane.org>
-Subject: Re:
-Date: Sat, 29 Apr 2017 15:53:09 -0700
-Message-ID: <AAC6A96D.87366E1F@blindarte.com.br>
-Reply-To: USPS Express Delivery <u528803-/HwZ+a/Wr1rELLbFHfFBGw@public.gmane.org>
+From: "FedEx International Services" <ysbhox28730-+bLLt0eSTtBQFI55V6+gNQ@public.gmane.org>
+Subject: We're sad to let you know that our 1st try was unusuccessful... FedEx
+ Parcel #871607536
+Date: Sun, 30 Apr 2017 15:08:13 +0100
+Message-ID: <DE02D9B9.2CB2F086@kj.ind.br>
+Reply-To: FedEx Corporation <ysbhox28730-+bLLt0eSTtBQFI55V6+gNQ@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,9 +22,9 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-Your item has arrived at the USPS Post Office at  Sat, 29 Apr 2017 15:53:09
--0700, but the courier was unable to deliver parcel to you. 
-You can find more details in this e-mail attachment!
+FedEx courier was unable to locate your delivery address.
 
-With thanks and appreciation.
-Fermina Khan -  USPS Support Agent.
+Attached you can review the file with more details about your parcel.
+
+It's our pleasure to assist you.
+Marguerita Koback -  FedEx Delivery Services
