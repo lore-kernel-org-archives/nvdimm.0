@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BBA3621939248
- for <linux-nvdimm@lists.01.org>; Mon, 17 Apr 2017 12:16:54 -0700 (PDT)
-Subject: [resend PATCH v2 26/33] x86, dax,
- libnvdimm: move wb_cache_pmem() to libnvdimm
+ by ml01.01.org (Postfix) with ESMTPS id 7FD4821A0480E
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Apr 2017 05:44:54 -0700 (PDT)
+Subject: [PATCH] libnvdimm: rework region badblocks clearing
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Apr 2017 12:11:10 -0700
-Message-ID: <149245627028.10206.369315439901964176.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149245612770.10206.15496018295337908594.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sun, 30 Apr 2017 05:39:01 -0700
+Message-ID: <149355594185.9917.1577772489949690281.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,227 +21,241 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, dm-devel@redhat.com, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-With all calls to this routine re-directed through the pmem driver, we
-can kill the pmem api indirection. arch_wb_cache_pmem() is now
-optionally supplied by an arch specific extension to libnvdimm.  Same as
-before, pmem flushing is only defined for x86_64, but it is
-straightforward to add other archs in the future.
+Toshi noticed that the new support for a region-level badblocks missed
+the case where errors are cleared due to BTT I/O.
 
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Oliver O'Halloran <oohall@gmail.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+An initial attempt to fix this ran into a "sleeping while atomic"
+warning due to taking the nvdimm_bus_lock() in the BTT I/O path to
+satisfy the locking requirements of __nvdimm_bus_badblocks_clear().
+However, that lock is not needed since we are not acting any data that
+is subject to change due to a change of state of the bus / region. The
+badblocks instance has its own internal lock to handle mutations of the
+error list.
+
+So, to make it clear that we are just acting on region devices and don't
+need the lock rename __nvdimm_bus_badblocks_clear() to
+nvdimm_clear_badblocks_regions(). Eliminate the lock and consolidate all
+routines in drivers/nvdimm/bus.c. Also, make some cleanups to remove
+unnecessary casts, make the calling convention of
+nvdimm_clear_badblocks_regions() clearer by replacing struct resource
+with the minimal struct clear_badblocks_context, and use the DEVICE_ATTR
+macro.
+
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/pmem.h |   21 ---------------------
- drivers/nvdimm/Makefile     |    1 +
- drivers/nvdimm/pmem.c       |   14 +++++---------
- drivers/nvdimm/pmem.h       |    8 ++++++++
- drivers/nvdimm/x86.c        |   36 ++++++++++++++++++++++++++++++++++++
- include/linux/pmem.h        |   19 -------------------
- tools/testing/nvdimm/Kbuild |    1 +
- 7 files changed, 51 insertions(+), 49 deletions(-)
- create mode 100644 drivers/nvdimm/x86.c
+ drivers/nvdimm/bus.c         |   76 ++++++++++++++++++++++++++++++------------
+ drivers/nvdimm/region.c      |   25 --------------
+ drivers/nvdimm/region_devs.c |   15 +++-----
+ include/linux/libnvdimm.h    |    3 --
+ 4 files changed, 59 insertions(+), 60 deletions(-)
 
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index f4c119d253f3..4759a179aa52 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -44,27 +44,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 		BUG();
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 43ddfd487c85..e9361bffe5ee 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -172,6 +172,57 @@ void nvdimm_region_notify(struct nd_region *nd_region, enum nvdimm_event event)
  }
+ EXPORT_SYMBOL_GPL(nvdimm_region_notify);
  
--/**
-- * arch_wb_cache_pmem - write back a cache range with CLWB
-- * @vaddr:	virtual start address
-- * @size:	number of bytes to write back
-- *
-- * Write back a cache range using the CLWB (cache line write back)
-- * instruction. Note that @size is internally rounded up to be cache
-- * line size aligned.
-- */
--static inline void arch_wb_cache_pmem(void *addr, size_t size)
--{
--	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
--	unsigned long clflush_mask = x86_clflush_size - 1;
--	void *vend = addr + size;
--	void *p;
--
--	for (p = (void *)((unsigned long)addr & ~clflush_mask);
--	     p < vend; p += x86_clflush_size)
--		clwb(p);
--}
--
- static inline void arch_invalidate_pmem(void *addr, size_t size)
- {
- 	clflush_cache_range(addr, size);
-diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
-index 909554c3f955..9eafb1dd2876 100644
---- a/drivers/nvdimm/Makefile
-+++ b/drivers/nvdimm/Makefile
-@@ -24,3 +24,4 @@ libnvdimm-$(CONFIG_ND_CLAIM) += claim.o
- libnvdimm-$(CONFIG_BTT) += btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
- libnvdimm-$(CONFIG_NVDIMM_DAX) += dax_devs.o
-+libnvdimm-$(CONFIG_X86_64) += x86.o
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 822b85fb3365..c77a3a757729 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -245,19 +245,19 @@ static size_t pmem_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 
- 		if (bytes < 8) {
- 			if (!IS_ALIGNED(dest, 4) || (bytes != 4))
--				wb_cache_pmem(addr, 1);
-+				arch_wb_cache_pmem(addr, 1);
- 		} else {
- 			if (!IS_ALIGNED(dest, 8)) {
- 				dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
--				wb_cache_pmem(addr, 1);
-+				arch_wb_cache_pmem(addr, 1);
- 			}
- 
- 			flushed = dest - (unsigned long) addr;
- 			if (bytes > flushed && !IS_ALIGNED(bytes - flushed, 8))
--				wb_cache_pmem(addr + bytes - 1, 1);
-+				arch_wb_cache_pmem(addr + bytes - 1, 1);
- 		}
- 	} else
--		wb_cache_pmem(addr, bytes);
-+		arch_wb_cache_pmem(addr, bytes);
- 
- 	return len;
- }
-@@ -279,11 +279,7 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
- static void pmem_dax_flush(struct dax_device *dax_dev, pgoff_t pgoff,
- 		void *addr, size_t size)
- {
--	/*
--	 * TODO: move arch specific cache management into the driver
--	 * directly.
--	 */
--	wb_cache_pmem(addr, size);
-+	arch_wb_cache_pmem(addr, size);
- }
- 
- static const struct dax_operations pmem_dax_ops = {
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index 7f4dbd72a90a..c4b3371c7f88 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -5,6 +5,14 @@
- #include <linux/pfn_t.h>
- #include <linux/fs.h>
- 
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+void arch_wb_cache_pmem(void *addr, size_t size);
-+#else
-+static inline void arch_wb_cache_pmem(void *addr, size_t size)
++struct clear_badblocks_context {
++	resource_size_t phys, cleared;
++};
++
++static int nvdimm_clear_badblocks_region(struct device *dev, void *data)
 +{
++	struct clear_badblocks_context *ctx = data;
++	struct nd_region *nd_region;
++	resource_size_t ndr_end;
++	sector_t sector;
++
++	/* make sure device is a region */
++	if (!is_nd_pmem(dev))
++		return 0;
++
++	nd_region = to_nd_region(dev);
++	ndr_end = nd_region->ndr_start + nd_region->ndr_size - 1;
++
++	/* make sure we are in the region */
++	if (ctx->phys < nd_region->ndr_start
++			|| (ctx->phys + ctx->cleared) > ndr_end)
++		return 0;
++
++	sector = (ctx->phys - nd_region->ndr_start) / 512;
++	badblocks_clear(&nd_region->bb, sector, ctx->cleared / 512);
++
++	return 0;
 +}
-+#endif
 +
- /* this definition is in it's own header for tools/testing/nvdimm to consume */
- struct pmem_device {
- 	/* One contiguous memory region per device */
-diff --git a/drivers/nvdimm/x86.c b/drivers/nvdimm/x86.c
-new file mode 100644
-index 000000000000..79d7267da4d2
---- /dev/null
-+++ b/drivers/nvdimm/x86.c
-@@ -0,0 +1,36 @@
-+/*
-+ * Copyright(c) 2015 - 2017 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <asm/cacheflush.h>
-+#include <asm/cpufeature.h>
-+#include <asm/special_insns.h>
-+
-+/**
-+ * arch_wb_cache_pmem - write back a cache range with CLWB
-+ * @vaddr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * Write back a cache range using the CLWB (cache line write back)
-+ * instruction.
-+ */
-+void arch_wb_cache_pmem(void *addr, size_t size)
++static void nvdimm_clear_badblocks_regions(struct nvdimm_bus *nvdimm_bus,
++		phys_addr_t phys, u64 cleared)
 +{
-+	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
-+	unsigned long clflush_mask = x86_clflush_size - 1;
-+	void *vend = addr + size;
-+	void *p;
++	struct clear_badblocks_context ctx = {
++		.phys = phys,
++		.cleared = cleared,
++	};
 +
-+	for (p = (void *)((unsigned long)addr & ~clflush_mask);
-+	     p < vend; p += x86_clflush_size)
-+		clwb(p);
++	device_for_each_child(&nvdimm_bus->dev, &ctx,
++			nvdimm_clear_badblocks_region);
 +}
-+EXPORT_SYMBOL_GPL(arch_wb_cache_pmem);
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-index 772bd02a5b52..33ae761f010a 100644
---- a/include/linux/pmem.h
-+++ b/include/linux/pmem.h
-@@ -31,11 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
- 	BUG();
- }
- 
--static inline void arch_wb_cache_pmem(void *addr, size_t size)
--{
--	BUG();
--}
--
- static inline void arch_invalidate_pmem(void *addr, size_t size)
++
++static void nvdimm_account_cleared_poison(struct nvdimm_bus *nvdimm_bus,
++		phys_addr_t phys, u64 cleared)
++{
++	if (cleared > 0)
++		nvdimm_forget_poison(nvdimm_bus, phys, cleared);
++
++	if (cleared > 0 && cleared / 512)
++		nvdimm_clear_badblocks_regions(nvdimm_bus, phys, cleared);
++}
++
+ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 		unsigned int len)
  {
- 	BUG();
-@@ -80,18 +75,4 @@ static inline void invalidate_pmem(void *addr, size_t size)
- 	if (arch_has_pmem_api())
- 		arch_invalidate_pmem(addr, size);
- }
--
--/**
-- * wb_cache_pmem - write back processor cache for PMEM memory range
-- * @addr:	virtual start address
-- * @size:	number of bytes to write back
-- *
-- * Write back the processor cache range starting at 'addr' for 'size' bytes.
-- * See blkdev_issue_flush() note for memcpy_to_pmem().
-- */
--static inline void wb_cache_pmem(void *addr, size_t size)
--{
--	if (arch_has_pmem_api())
--		arch_wb_cache_pmem(addr, size);
--}
- #endif /* __PMEM_H__ */
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 2033ad03b8cd..0e0c444737e9 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -72,6 +72,7 @@ libnvdimm-$(CONFIG_ND_CLAIM) += $(NVDIMM_SRC)/claim.o
- libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
- libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
-+libnvdimm-$(CONFIG_X86_64) += $(NVDIMM_SRC)/x86.o
- libnvdimm-y += config_check.o
+@@ -219,22 +270,12 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	if (cmd_rc < 0)
+ 		return cmd_rc;
  
- obj-m += test/
+-	if (clear_err.cleared > 0)
+-		nvdimm_forget_poison(nvdimm_bus, phys, clear_err.cleared);
++	nvdimm_account_cleared_poison(nvdimm_bus, phys, clear_err.cleared);
+ 
+ 	return clear_err.cleared;
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_clear_poison);
+ 
+-void __nvdimm_bus_badblocks_clear(struct nvdimm_bus *nvdimm_bus,
+-		struct resource *res)
+-{
+-	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
+-	device_for_each_child(&nvdimm_bus->dev, (void *)res,
+-			nvdimm_region_badblocks_clear);
+-}
+-EXPORT_SYMBOL_GPL(__nvdimm_bus_badblocks_clear);
+-
+ static int nvdimm_bus_match(struct device *dev, struct device_driver *drv);
+ 
+ static struct bus_type nvdimm_bus_type = {
+@@ -989,18 +1030,9 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 
+ 	if (!nvdimm && cmd == ND_CMD_CLEAR_ERROR && cmd_rc >= 0) {
+ 		struct nd_cmd_clear_error *clear_err = buf;
+-		struct resource res;
+-
+-		if (clear_err->cleared) {
+-			/* clearing the poison list we keep track of */
+-			nvdimm_forget_poison(nvdimm_bus, clear_err->address,
+-					clear_err->cleared);
+ 
+-			/* now sync the badblocks lists */
+-			res.start = clear_err->address;
+-			res.end = clear_err->address + clear_err->cleared - 1;
+-			__nvdimm_bus_badblocks_clear(nvdimm_bus, &res);
+-		}
++		nvdimm_account_cleared_poison(nvdimm_bus, clear_err->address,
++				clear_err->cleared);
+ 	}
+ 	nvdimm_bus_unlock(&nvdimm_bus->dev);
+ 
+diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+index 23c4307d254c..869a886c292e 100644
+--- a/drivers/nvdimm/region.c
++++ b/drivers/nvdimm/region.c
+@@ -131,31 +131,6 @@ static void nd_region_notify(struct device *dev, enum nvdimm_event event)
+ 	device_for_each_child(dev, &event, child_notify);
+ }
+ 
+-int nvdimm_region_badblocks_clear(struct device *dev, void *data)
+-{
+-	struct resource *res = (struct resource *)data;
+-	struct nd_region *nd_region;
+-	resource_size_t ndr_end;
+-	sector_t sector;
+-
+-	/* make sure device is a region */
+-	if (!is_nd_pmem(dev))
+-		return 0;
+-
+-	nd_region = to_nd_region(dev);
+-	ndr_end = nd_region->ndr_start + nd_region->ndr_size - 1;
+-
+-	/* make sure we are in the region */
+-	if (res->start < nd_region->ndr_start || res->end > ndr_end)
+-		return 0;
+-
+-	sector = (res->start - nd_region->ndr_start) >> 9;
+-	badblocks_clear(&nd_region->bb, sector, resource_size(res) >> 9);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(nvdimm_region_badblocks_clear);
+-
+ static struct nd_device_driver nd_region_driver = {
+ 	.probe = nd_region_probe,
+ 	.remove = nd_region_remove,
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 53d1ba4e6d99..07756b2e1cd5 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -477,20 +477,15 @@ static ssize_t read_only_store(struct device *dev,
+ }
+ static DEVICE_ATTR_RW(read_only);
+ 
+-static ssize_t nd_badblocks_show(struct device *dev,
++static ssize_t region_badblocks_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev);
+ 
+ 	return badblocks_show(&nd_region->bb, buf, 0);
+ }
+-static struct device_attribute dev_attr_nd_badblocks = {
+-	.attr = {
+-		.name = "badblocks",
+-		.mode = S_IRUGO
+-	},
+-	.show = nd_badblocks_show,
+-};
++
++static DEVICE_ATTR(badblocks, 0444, region_badblocks_show, NULL);
+ 
+ static ssize_t resource_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+@@ -514,7 +509,7 @@ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_available_size.attr,
+ 	&dev_attr_namespace_seed.attr,
+ 	&dev_attr_init_namespaces.attr,
+-	&dev_attr_nd_badblocks.attr,
++	&dev_attr_badblocks.attr,
+ 	&dev_attr_resource.attr,
+ 	NULL,
+ };
+@@ -532,7 +527,7 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (!is_nd_pmem(dev) && a == &dev_attr_dax_seed.attr)
+ 		return 0;
+ 
+-	if (!is_nd_pmem(dev) && a == &dev_attr_nd_badblocks.attr)
++	if (!is_nd_pmem(dev) && a == &dev_attr_badblocks.attr)
+ 		return 0;
+ 
+ 	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 98b207611b06..f07b1b14159a 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -162,7 +162,4 @@ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
+ u64 nd_fletcher64(void *addr, size_t len, bool le);
+ void nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
+-int nvdimm_region_badblocks_clear(struct device *dev, void *data);
+-void __nvdimm_bus_badblocks_clear(struct nvdimm_bus *nvdimm_bus,
+-		struct resource *res);
+ #endif /* __LIBNVDIMM_H__ */
 
 _______________________________________________
 Linux-nvdimm mailing list
