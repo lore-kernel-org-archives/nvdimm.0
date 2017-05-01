@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x22b.google.com (mail-it0-x22b.google.com
- [IPv6:2607:f8b0:4001:c0b::22b])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 39B4A21A04823
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 08:43:55 -0700 (PDT)
-Received: by mail-it0-x22b.google.com with SMTP id x188so73812323itb.0
- for <linux-nvdimm@lists.01.org>; Mon, 01 May 2017 08:43:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1493652871.30303.15.camel@hpe.com>
-References: <149355594185.9917.1577772489949690281.stgit@dwillia2-desk3.amr.corp.intel.com>
- <1493652871.30303.15.camel@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 1 May 2017 08:43:53 -0700
-Message-ID: <CAPcyv4g4G_fJf6OOGpWbpyMdNioPWEFoJ2eO7+dSTcep+OerFw@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id C16D121A04823
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 08:34:35 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: [PATCH] libnvdimm: rework region badblocks clearing
+Date: Mon, 1 May 2017 15:34:32 +0000
+Message-ID: <1493652871.30303.15.camel@hpe.com>
+References: <149355594185.9917.1577772489949690281.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149355594185.9917.1577772489949690281.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <AE3E6840285559448A597D6C5D5385B5@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,50 +20,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, May 1, 2017 at 8:34 AM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
-> On Sun, 2017-04-30 at 05:39 -0700, Dan Williams wrote:
->> Toshi noticed that the new support for a region-level badblocks
->> missed the case where errors are cleared due to BTT I/O.
->>
->> An initial attempt to fix this ran into a "sleeping while atomic"
->> warning due to taking the nvdimm_bus_lock() in the BTT I/O path to
->> satisfy the locking requirements of __nvdimm_bus_badblocks_clear().
->> However, that lock is not needed since we are not acting any data
->> that is subject to change due to a change of state of the bus /
->> region. The badblocks instance has its own internal lock to handle
->> mutations of the error list.
->>
->> So, to make it clear that we are just acting on region devices and
->> don't need the lock rename __nvdimm_bus_badblocks_clear() to
->> nvdimm_clear_badblocks_regions(). Eliminate the lock and consolidate
->> all routines in drivers/nvdimm/bus.c. Also, make some cleanups to
->> remove unnecessary casts, make the calling convention of
->> nvdimm_clear_badblocks_regions() clearer by replacing struct resource
->> with the minimal struct clear_badblocks_context, and use the
->> DEVICE_ATTR macro.
->
-> Hi Dan,
->
-> I was testing the change with CONFIG_DEBUG_ATOMIC_SLEEP set this time,
-> and hit the following BUG with BTT.  This is a separate issue (not
-> introduced by this patch), but it shows that we have an issue with the
-> DSM call path as well.
-
-Ah, great find, thanks! We don't see this in the unit tests because
-the nfit_test infrastructure takes no sleeping actions in its
-simulated DSM path. Outside of converting btt to use sleeping locks
-I'm not sure I see a path forward. I wonder how bad the performance
-impact of that would be? Perhaps with opportunistic spinning it won't
-be so bad, but I don't see another choice.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gU3VuLCAyMDE3LTA0LTMwIGF0IDA1OjM5IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IFRvc2hpIG5vdGljZWQgdGhhdCB0aGUgbmV3IHN1cHBvcnQgZm9yIGEgcmVnaW9uLWxldmVsIGJh
+ZGJsb2Nrcw0KPiBtaXNzZWQgdGhlIGNhc2Ugd2hlcmUgZXJyb3JzIGFyZSBjbGVhcmVkIGR1ZSB0
+byBCVFQgSS9PLg0KPiANCj4gQW4gaW5pdGlhbCBhdHRlbXB0IHRvIGZpeCB0aGlzIHJhbiBpbnRv
+IGEgInNsZWVwaW5nIHdoaWxlIGF0b21pYyINCj4gd2FybmluZyBkdWUgdG8gdGFraW5nIHRoZSBu
+dmRpbW1fYnVzX2xvY2soKSBpbiB0aGUgQlRUIEkvTyBwYXRoIHRvDQo+IHNhdGlzZnkgdGhlIGxv
+Y2tpbmcgcmVxdWlyZW1lbnRzIG9mIF9fbnZkaW1tX2J1c19iYWRibG9ja3NfY2xlYXIoKS4NCj4g
+SG93ZXZlciwgdGhhdCBsb2NrIGlzIG5vdCBuZWVkZWQgc2luY2Ugd2UgYXJlIG5vdCBhY3Rpbmcg
+YW55IGRhdGENCj4gdGhhdCBpcyBzdWJqZWN0IHRvIGNoYW5nZSBkdWUgdG8gYSBjaGFuZ2Ugb2Yg
+c3RhdGUgb2YgdGhlIGJ1cyAvDQo+IHJlZ2lvbi4gVGhlIGJhZGJsb2NrcyBpbnN0YW5jZSBoYXMg
+aXRzIG93biBpbnRlcm5hbCBsb2NrIHRvIGhhbmRsZQ0KPiBtdXRhdGlvbnMgb2YgdGhlIGVycm9y
+IGxpc3QuDQo+IA0KPiBTbywgdG8gbWFrZSBpdCBjbGVhciB0aGF0IHdlIGFyZSBqdXN0IGFjdGlu
+ZyBvbiByZWdpb24gZGV2aWNlcyBhbmQNCj4gZG9uJ3QgbmVlZCB0aGUgbG9jayByZW5hbWUgX19u
+dmRpbW1fYnVzX2JhZGJsb2Nrc19jbGVhcigpIHRvDQo+IG52ZGltbV9jbGVhcl9iYWRibG9ja3Nf
+cmVnaW9ucygpLiBFbGltaW5hdGUgdGhlIGxvY2sgYW5kIGNvbnNvbGlkYXRlDQo+IGFsbCByb3V0
+aW5lcyBpbiBkcml2ZXJzL252ZGltbS9idXMuYy4gQWxzbywgbWFrZSBzb21lIGNsZWFudXBzIHRv
+DQo+IHJlbW92ZSB1bm5lY2Vzc2FyeSBjYXN0cywgbWFrZSB0aGUgY2FsbGluZyBjb252ZW50aW9u
+IG9mDQo+IG52ZGltbV9jbGVhcl9iYWRibG9ja3NfcmVnaW9ucygpIGNsZWFyZXIgYnkgcmVwbGFj
+aW5nIHN0cnVjdCByZXNvdXJjZQ0KPiB3aXRoIHRoZSBtaW5pbWFsIHN0cnVjdCBjbGVhcl9iYWRi
+bG9ja3NfY29udGV4dCwgYW5kIHVzZSB0aGUNCj4gREVWSUNFX0FUVFIgbWFjcm8uDQoNCkhpIERh
+biwNCg0KSSB3YXMgdGVzdGluZyB0aGUgY2hhbmdlIHdpdGggQ09ORklHX0RFQlVHX0FUT01JQ19T
+TEVFUCBzZXQgdGhpcyB0aW1lLA0KYW5kIGhpdCB0aGUgZm9sbG93aW5nIEJVRyB3aXRoIEJUVC4g
+IFRoaXMgaXPCoGEgc2VwYXJhdGUgaXNzdWUgKG5vdA0KaW50cm9kdWNlZCBieSB0aGlzIHBhdGNo
+KSwgYnV0IGl0IHNob3dzIHRoYXQgd2UgaGF2ZSBhbiBpc3N1ZSB3aXRoIHRoZQ0KRFNNIGNhbGwg
+cGF0aCBhcyB3ZWxsLg0KDQpbIDEyNzkuNzEyOTMzXSBuZml0IEFDUEkwMDEyOjAwOiBhY3BpX25m
+aXRfY3RsOmJ1cyBjbWQ6IDE6IGZ1bmM6IDENCmlucHV0IGxlbmd0aDogMTYNClsgMTI3OS43MjEx
+MTFdIG52ZGltbSBpbsKgwqAwMDAwMDAwMDogNjAwMDAwMDAgMDAwMDAwMDIgMDAwMDEwMDANCjAw
+MDAwMDAwwqDCoC4uLmAuLi4uLi4uLi4uLi4NClsgMTI3OS43Mjk3OTldIEJVRzogc2xlZXBpbmcg
+ZnVuY3Rpb24gY2FsbGVkIGZyb20gaW52YWxpZCBjb250ZXh0IGF0DQptbS9zbGFiLmg6NDMyDQpb
+IDEyNzkuNzM4MDA1XSBpbl9hdG9taWMoKTogMSwgaXJxc19kaXNhYmxlZCgpOiAwLCBwaWQ6IDEz
+MzUzLCBuYW1lOiBkZA0KWyAxMjc5Ljc0NTE4N10gSU5GTzogbG9ja2RlcCBpcyB0dXJuZWQgb2Zm
+Lg0KIDoNClsgMTI3OS43Njc5MDhdIENhbGwgVHJhY2U6DQpbIDEyNzkuNzcxMTE2XcKgwqBkdW1w
+X3N0YWNrKzB4ODYvMHhjMw0KWyAxMjc5Ljc3NTIwMV3CoMKgX19fbWlnaHRfc2xlZXArMHgxN2Qv
+MHgyNTANClsgMTI3OS43Nzk4MDhdwqDCoF9fbWlnaHRfc2xlZXArMHg0YS8weDgwDQpbIDEyNzku
+Nzg0MjE0XcKgwqBfX2ttYWxsb2MrMHgxYzAvMHgyZTANClsgMTI3OS43ODgzODhdwqDCoGFjcGlf
+b3NfYWxsb2NhdGVfemVyb2VkKzB4MmQvMHgyZg0KWyAxMjc5Ljc5MzYwNF3CoMKgYWNwaV9ldmFs
+dWF0ZV9vYmplY3QrMHg1OS8weDNiMQ0KWyAxMjc5Ljc5ODY0MF3CoMKgYWNwaV9ldmFsdWF0ZV9k
+c20rMHhiZC8weDEwYw0KWyAxMjc5LjgwMzQ1OF3CoMKgYWNwaV9uZml0X2N0bCsweDFlZi8weDdj
+MCBbbmZpdF0NClsgMTI3OS44MDg1ODRdwqDCoD8gbnNpb19yd19ieXRlcysweDE1Mi8weDI4MA0K
+WyAxMjc5LjgxMzI1OF3CoMKgbnZkaW1tX2NsZWFyX3BvaXNvbisweDc3LzB4MTQwDQpbIDEyNzku
+ODE4MTkzXcKgwqBuc2lvX3J3X2J5dGVzKzB4MThmLzB4MjgwDQpbIDEyNzkuODIyNjg0XcKgwqBi
+dHRfd3JpdGVfcGcrMHgxZDQvMHgzZDAgW25kX2J0dF0NClsgMTI3OS44Mjc4NjldwqDCoGJ0dF9t
+YWtlX3JlcXVlc3QrMHgxMTkvMHgyZDAgW25kX2J0dF0NClsgMTI3OS44MzMzOThdwqDCoD8gZ2Vu
+ZXJpY19tYWtlX3JlcXVlc3QrMHhlZi8weDNiMA0KWyAxMjc5LjgzODU3NV3CoMKgZ2VuZXJpY19t
+YWtlX3JlcXVlc3QrMHgxMjIvMHgzYjANClsgMTI3OS44NDM2NjFdwqDCoD8gaW92X2l0ZXJfZ2V0
+X3BhZ2VzKzB4YmQvMHgzODANClsgMTI3OS44NDg2NjZdwqDCoHN1Ym1pdF9iaW8rMHg3My8weDE1
+MA0KWyAxMjc5Ljg1MjgwMV3CoMKgPyBiaW9faW92X2l0ZXJfZ2V0X3BhZ2VzKzB4ZDcvMHgxMjAN
+ClsgMTI3OS44NTgxNjZdwqDCoD8gX19ibGtkZXZfZGlyZWN0X0lPX3NpbXBsZSsweDE3Yi8weDM0
+MA0KWyAxMjc5Ljg2Mzg3N13CoMKgX19ibGtkZXZfZGlyZWN0X0lPX3NpbXBsZSsweDE3Ny8weDM0
+MA0KWyAxMjc5Ljg2OTQ1M13CoMKgPyBiZHB1dCsweDIwLzB4MjANClsgMTI3OS44NzMyMzFdwqDC
+oGJsa2Rldl9kaXJlY3RfSU8rMHgzYjEvMHgzYzANClsgMTI3OS44Nzc5NjNdwqDCoD8gY3VycmVu
+dF90aW1lKzB4MTgvMHg3MA0KWyAxMjc5Ljg4MjM0NF3CoMKgZ2VuZXJpY19maWxlX2RpcmVjdF93
+cml0ZSsweGJhLzB4MTgwDQpbIDEyNzkuODg3NzY1XcKgwqBfX2dlbmVyaWNfZmlsZV93cml0ZV9p
+dGVyKzB4YzAvMHgxYzANClsgMTI3OS44OTMxODVdwqDCoD8gX19jbGVhcl91c2VyKzB4MjMvMHg3
+MA0KWyAxMjc5Ljg5NzU1MF3CoMKgYmxrZGV2X3dyaXRlX2l0ZXIrMHg4Yi8weDEwMA0KWyAxMjc5
+LjkwMjI1OF3CoMKgPyBfX21pZ2h0X3NsZWVwKzB4NGEvMHg4MA0KWyAxMjc5LjkwNjY5OV3CoMKg
+X192ZnNfd3JpdGUrMHhlOC8weDE2MA0KWyAxMjc5LjkxMDg3Nl3CoMKgdmZzX3dyaXRlKzB4Y2Iv
+MHgxZjANClsgMTI3OS45MTQ4NjddwqDCoFN5U193cml0ZSsweDU4LzB4YzANClsgMTI3OS45MTg3
+NzNdwqDCoGRvX3N5c2NhbGxfNjQrMHg2Yy8weDFmMA0KWyAxMjc5LjkyMzEyMF3CoMKgZW50cnlf
+U1lTQ0FMTDY0X3Nsb3dfcGF0aCsweDI1LzB4MjUNCg0KVGhhbmtzLA0KLVRvc2hpCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
