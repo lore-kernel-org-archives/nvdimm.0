@@ -1,18 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com
+ [15.241.140.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 64D6D2193FD61
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 14:02:42 -0700 (PDT)
-Date: Mon, 1 May 2017 14:02:41 -0700
-From: "Jiang, Dave" <dave.jiang@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4640A21A04830
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 13:25:48 -0700 (PDT)
+Received: from G9W8454.americas.hpqcorp.net (g9w8454.houston.hp.com
+ [16.216.161.4])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by g4t3427.houston.hpe.com (Postfix) with ESMTPS id 8824155
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 20:25:47 +0000 (UTC)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: [PATCH v2] ndctl: add clear error support for ndctl
-Message-ID: <20170501210241.GA11607@djiang5-desk3.ch.intel.com>
+Date: Mon, 1 May 2017 20:25:45 +0000
+Message-ID: <1493670342.30303.24.camel@hpe.com>
 References: <149333241780.23371.243937948027874332.stgit@djiang5-desk3.ch.intel.com>
- <1493670342.30303.24.camel@hpe.com>
+In-Reply-To: <149333241780.23371.243937948027874332.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <E8E7EB80768B3E45B22216AC46B14B95@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1493670342.30303.24.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,93 +27,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, May 01, 2017 at 01:25:45PM -0700, Kani, Toshimitsu wrote:
-> On Thu, 2017-04-27 at 15:38 -0700, Dave Jiang wrote:
-> > Adding ndctl support that will allow clearing of bad blocks for a
-> > device. Initial implementation will only support device dax devices.
-> > The ndctl takes a device path and parameters of the starting bad
-> > block, and the number of bad blocks to clear.
-> >
-> > Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> 
-> Hi Dave,
-> 
-> I am seeing a failure to open "badblocks" on my system since its sysfs
-> path with "/sys/devcies/platform/ACPI.NFIT" is not valid (not sure how
-> I got "ACPI.NFIT" here - I hope I did not mess up my build with test
-> cases).
-> 
-> As you can see below, other open paths use
-> "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/" for "nbus0".  If
-> you go from "/sys/devices/platform", a valid path seems to be:
-> "/sys/devices/platform/ACPI0012:00/firmware_node"
-> 
-> # strace ndctl clear-error -f /dev/dax0.0 -s 1048576 -l 1
-> execve("/usr/bin/ndctl", ["ndctl", "clear-error", "-f", "/dev/dax0.0",
-> "-s", "1048576", "-l", "1"], [/* 60 vars */]) = 0
->  :
-> open("/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/d
-> ax0.0/resource", O_RDONLY|O_CLOEXEC) = 4
-> read(4, "0x250200000\n", 1024)          = 12
-> close(4)                                = 0
-> open("/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/d
-> ax0.0/size", O_RDONLY|O_CLOEXEC) = 4
-> read(4, "16909336576\n", 1024)          = 12
-> close(4)                                = 0
-> getdents(3, /* 0 entries */, 32768)     = 0
-> close(3)                                = 0
-> open("/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/r
-> esource", O_RDONLY|O_CLOEXEC) = 3
-> read(3, "0x240000000\n", 1024)          = 12
-> close(3)                                = 0
-> open("/sys/devices/platform/ACPI.NFIT/ndbus0/region0/badblocks",
-> O_RDONLY) = -1 ENOENT (No such file or directory)
-> write(2, "libndctl: regions_badblocks_init"..., 34libndctl:
-> regions_badblocks_init: ) = 34
-> write(2, "region badblocks fopen failed\n", 30region badblocks fopen
-> failed
-> ) = 30
-> exit_group(234)                         = ?
-> +++ exited with 234 +++
-> 
-> Thanks,
-> -Toshi
-
-Toshi,
-Can you please try this and see if that fixes the issue? Thanks!
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 7399729..44fc2f3 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -1882,10 +1882,8 @@ static int regions_badblocks_init(struct ndctl_region *region)
- 		region->badblocks = NULL;
- 	}
- 
--	if (asprintf(&bb_path, "/sys/devices/platform/%s/%s/%s/badblocks",
--				ndctl_bus_get_provider(bus),
--				ndctl_bus_get_devname(bus),
--				ndctl_region_get_devname(region)) < 0) {
-+	if (asprintf(&bb_path, "%s/badblocks",
-+				region->region_path) < 0) {
- 		rc = -errno;
- 		err(ctx, "region badblocks path allocation failure\n");
- 		return rc;
--- 
-
-Dave Jiang
-Software Engineer, Data Center Group
-Intel Corp.
-dave.jiang@intel.com
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCAyMDE3LTA0LTI3IGF0IDE1OjM4IC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOg0KPiBB
+ZGRpbmcgbmRjdGwgc3VwcG9ydCB0aGF0IHdpbGwgYWxsb3cgY2xlYXJpbmcgb2YgYmFkIGJsb2Nr
+cyBmb3IgYQ0KPiBkZXZpY2UuIEluaXRpYWwgaW1wbGVtZW50YXRpb24gd2lsbCBvbmx5IHN1cHBv
+cnQgZGV2aWNlIGRheCBkZXZpY2VzLg0KPiBUaGUgbmRjdGwgdGFrZXMgYSBkZXZpY2UgcGF0aCBh
+bmQgcGFyYW1ldGVycyBvZiB0aGUgc3RhcnRpbmcgYmFkDQo+IGJsb2NrLCBhbmQgdGhlIG51bWJl
+ciBvZiBiYWQgYmxvY2tzIHRvIGNsZWFyLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogRGF2ZSBKaWFu
+ZyA8ZGF2ZS5qaWFuZ0BpbnRlbC5jb20+DQoNCkhpIERhdmUsDQoNCkkgYW0gc2VlaW5nIGEgZmFp
+bHVyZSB0byBvcGVuICJiYWRibG9ja3MiIG9uIG15IHN5c3RlbSBzaW5jZSBpdHMgc3lzZnMNCnBh
+dGggd2l0aCAiL3N5cy9kZXZjaWVzL3BsYXRmb3JtL0FDUEkuTkZJVCIgaXMgbm90IHZhbGlkIChu
+b3Qgc3VyZSBob3cNCkkgZ290ICJBQ1BJLk5GSVQiIGhlcmUgLSBJIGhvcGUgSSBkaWQgbm90IG1l
+c3MgdXAgbXkgYnVpbGQgd2l0aCB0ZXN0DQpjYXNlcykuDQoNCkFzIHlvdSBjYW4gc2VlIGJlbG93
+LCBvdGhlciBvcGVuIHBhdGhzIHVzZQ0KIi9zeXMvZGV2aWNlcy9MTlhTWVNUTTowMC9MTlhTWUJV
+UzowMC9BQ1BJMDAxMjowMC8iIGZvciAibmJ1czAiLiAgSWYNCnlvdSBnbyBmcm9tICIvc3lzL2Rl
+dmljZXMvcGxhdGZvcm0iLCBhIHZhbGlkIHBhdGggc2VlbXMgdG8gYmU6DQoiL3N5cy9kZXZpY2Vz
+L3BsYXRmb3JtL0FDUEkwMDEyOjAwL2Zpcm13YXJlX25vZGUiDQoNCiMgc3RyYWNlIG5kY3RsIGNs
+ZWFyLWVycm9yIC1mIC9kZXYvZGF4MC4wIC1zIDEwNDg1NzYgLWwgMQ0KZXhlY3ZlKCIvdXNyL2Jp
+bi9uZGN0bCIsIFsibmRjdGwiLCAiY2xlYXItZXJyb3IiLCAiLWYiLCAiL2Rldi9kYXgwLjAiLA0K
+Ii1zIiwgIjEwNDg1NzYiLCAiLWwiLCAiMSJdLCBbLyogNjAgdmFycyAqL10pID0gMA0KIDoNCm9w
+ZW4oIi9zeXMvZGV2aWNlcy9MTlhTWVNUTTowMC9MTlhTWUJVUzowMC9BQ1BJMDAxMjowMC9uZGJ1
+czAvcmVnaW9uMC9kDQpheDAuMC9yZXNvdXJjZSIsIE9fUkRPTkxZfE9fQ0xPRVhFQykgPSA0DQpy
+ZWFkKDQsICIweDI1MDIwMDAwMFxuIiwgMTAyNCnCoMKgwqDCoMKgwqDCoMKgwqDCoD0gMTINCmNs
+b3NlKDQpwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoD0gMA0Kb3BlbigiL3N5cy9kZXZpY2VzL0xOWFNZU1RNOjAwL0xOWFNZQlVT
+OjAwL0FDUEkwMDEyOjAwL25kYnVzMC9yZWdpb24wL2QNCmF4MC4wL3NpemUiLCBPX1JET05MWXxP
+X0NMT0VYRUMpID0gNA0KcmVhZCg0LCAiMTY5MDkzMzY1NzZcbiIsIDEwMjQpwqDCoMKgwqDCoMKg
+wqDCoMKgwqA9IDEyDQpjbG9zZSg0KcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqA9IDANCmdldGRlbnRzKDMsIC8qIDAgZW50cmll
+cyAqLywgMzI3NjgpwqDCoMKgwqDCoD0gMA0KY2xvc2UoMynCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgPSAwDQpvcGVuKCIvc3lz
+L2RldmljZXMvTE5YU1lTVE06MDAvTE5YU1lCVVM6MDAvQUNQSTAwMTI6MDAvbmRidXMwL3JlZ2lv
+bjAvcg0KZXNvdXJjZSIsIE9fUkRPTkxZfE9fQ0xPRVhFQykgPSAzDQpyZWFkKDMsICIweDI0MDAw
+MDAwMFxuIiwgMTAyNCnCoMKgwqDCoMKgwqDCoMKgwqDCoD0gMTINCmNsb3NlKDMpwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoD0g
+MA0Kb3BlbigiL3N5cy9kZXZpY2VzL3BsYXRmb3JtL0FDUEkuTkZJVC9uZGJ1czAvcmVnaW9uMC9i
+YWRibG9ja3MiLA0KT19SRE9OTFkpID0gLTEgRU5PRU5UIChObyBzdWNoIGZpbGUgb3IgZGlyZWN0
+b3J5KQ0Kd3JpdGUoMiwgImxpYm5kY3RsOiByZWdpb25zX2JhZGJsb2Nrc19pbml0Ii4uLiwgMzRs
+aWJuZGN0bDoNCnJlZ2lvbnNfYmFkYmxvY2tzX2luaXQ6ICkgPSAzNA0Kd3JpdGUoMiwgInJlZ2lv
+biBiYWRibG9ja3MgZm9wZW4gZmFpbGVkXG4iLCAzMHJlZ2lvbiBiYWRibG9ja3MgZm9wZW4NCmZh
+aWxlZA0KKSA9IDMwDQpleGl0X2dyb3VwKDIzNCnCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoD0gPw0KKysrIGV4aXRlZCB3aXRoIDIzNCArKysNCg0KVGhh
+bmtzLA0KLVRvc2hpDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
+aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
