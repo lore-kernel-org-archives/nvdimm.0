@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 970932095A33E
- for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 14:43:20 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Wed, 24 May 2017 15:42:13 -0600
-Message-Id: <1495662147-18277-3-git-send-email-logang@deltatee.com>
-In-Reply-To: <1495662147-18277-1-git-send-email-logang@deltatee.com>
-References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
-Subject: [RFC PATCH 02/16] staging: ccree: Cleanup: remove references to
- page_link
+ by ml01.01.org (Postfix) with ESMTPS id 931F321A04830
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 16:04:52 -0700 (PDT)
+Subject: [ndctl PATCH] test, btt-check: bump supported version to 4.13
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 01 May 2017 15:58:59 -0700
+Message-ID: <149367953971.14481.15896479342915007512.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,86 +16,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Johannes Berg <johannes.berg@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ming Lei <ming.lei@canonical.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a layering violation so we replace it with calls to
-sg_page. This is a prep patch for replacing page_link and this
-is one of the very few uses outside of scatterlist.h.
+Given that the kernel needs to carry the BTT error clearing workaround
+for another cycle [1], bump the default expectations of this test to
+4.13. It is worth noting that the nfit_test bus provider does not suffer
+from the same sleeping while atomic issue in its emulation of the "clear
+error DSM", so this kernel band-aid can be reverted when testing through
+that path.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
+[1]: https://patchwork.kernel.org/patch/9706741/
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/staging/ccree/ssi_buffer_mgr.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ test/btt-check.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/ccree/ssi_buffer_mgr.c b/drivers/staging/ccree/ssi_buffer_mgr.c
-index 038e2ff..07bbf8f 100644
---- a/drivers/staging/ccree/ssi_buffer_mgr.c
-+++ b/drivers/staging/ccree/ssi_buffer_mgr.c
-@@ -43,8 +43,8 @@
- #ifdef CC_DEBUG
- #define DUMP_SGL(sg) \
- 	while (sg) { \
--		SSI_LOG_DEBUG("page=%lu offset=%u length=%u (dma_len=%u) " \
--			     "dma_addr=%08x\n", (sg)->page_link, (sg)->offset, \
-+		SSI_LOG_DEBUG("page=%p offset=%u length=%u (dma_len=%u) " \
-+			     "dma_addr=%08x\n", sg_page(sg), (sg)->offset, \
- 			(sg)->length, sg_dma_len(sg), (sg)->dma_address); \
- 		(sg) = sg_next(sg); \
- 	}
-@@ -442,10 +442,10 @@ static int ssi_buffer_mgr_map_scatterlist(
- 			return -ENOMEM;
- 		} 
- 		SSI_LOG_DEBUG("Mapped sg: dma_address=0x%llX "
--			     "page_link=0x%08lX addr=%pK offset=%u "
-+			     "page=%p addr=%pK offset=%u "
- 			     "length=%u\n",
- 			     (unsigned long long)sg_dma_address(sg), 
--			     sg->page_link, 
-+			     sg_page(sg),
- 			     sg_virt(sg), 
- 			     sg->offset, sg->length);
- 		*lbytes = nbytes;
-@@ -505,10 +505,10 @@ ssi_aead_handle_config_buf(struct device *dev,
- 			return -ENOMEM;
- 	}
- 	SSI_LOG_DEBUG("Mapped curr_buff: dma_address=0x%llX "
--		     "page_link=0x%08lX addr=%pK "
-+		     "page=%p addr=%pK "
- 		     "offset=%u length=%u\n",
- 		     (unsigned long long)sg_dma_address(&areq_ctx->ccm_adata_sg), 
--		     areq_ctx->ccm_adata_sg.page_link, 
-+		     sg_page(&areq_ctx->ccm_adata_sg),
- 		     sg_virt(&areq_ctx->ccm_adata_sg),
- 		     areq_ctx->ccm_adata_sg.offset, 
- 		     areq_ctx->ccm_adata_sg.length);
-@@ -540,10 +540,10 @@ static inline int ssi_ahash_handle_curr_buf(struct device *dev,
- 			return -ENOMEM;
- 	}
- 	SSI_LOG_DEBUG("Mapped curr_buff: dma_address=0x%llX "
--		     "page_link=0x%08lX addr=%pK "
-+		     "page=%p addr=%pK "
- 		     "offset=%u length=%u\n",
- 		     (unsigned long long)sg_dma_address(areq_ctx->buff_sg), 
--		     areq_ctx->buff_sg->page_link, 
-+		     sg_page(areq_ctx->buff_sg),
- 		     sg_virt(areq_ctx->buff_sg),
- 		     areq_ctx->buff_sg->offset, 
- 		     areq_ctx->buff_sg->length);
-@@ -1870,4 +1870,3 @@ int ssi_buffer_mgr_fini(struct ssi_drvdata *drvdata)
- 	}
- 	return 0;
+diff --git a/test/btt-check.sh b/test/btt-check.sh
+index 2dde2461ec81..4c328fecbe88 100755
+--- a/test/btt-check.sh
++++ b/test/btt-check.sh
+@@ -43,7 +43,7 @@ check_min_kver()
+ 	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
  }
--
--- 
-2.1.4
+ 
+-check_min_kver "4.12" || { echo "kernel $KVER may not support badblocks clearing on pmem via btt"; exit $rc; }
++check_min_kver "4.13" || { echo "kernel $KVER may not support badblocks clearing on pmem via btt"; exit $rc; }
+ 
+ create()
+ {
 
 _______________________________________________
 Linux-nvdimm mailing list
