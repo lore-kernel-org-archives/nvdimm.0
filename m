@@ -1,15 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F08BB21A134AC
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 10:27:04 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 5/4] dax: Fix PMD data corruption when fault races with write
-Date: Wed, 10 May 2017 11:27:00 -0600
-Message-Id: <20170510172700.18991-1-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170510085419.27601-5-jack@suse.cz>
-References: <20170510085419.27601-5-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id B70462195DA43
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 08:05:50 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH 2/2] libnvdimm: clear region badblock in
+ nvdimm_clear_poison()
+Date: Mon, 1 May 2017 15:05:46 +0000
+Message-ID: <1493651145.30303.13.camel@hpe.com>
+References: <20170427225706.26791-1-toshi.kani@hpe.com>
+ <20170427225706.26791-2-toshi.kani@hpe.com>
+ <CAPcyv4j9QPSwpqs9YPjFo=O8RA+NmpsAZhARfNcSqA0TqqMhLA@mail.gmail.com>
+ <CAPcyv4gbTEXjLAP6fT2+tT4tqwA9_8D6MYzzD7wZC8cOQNUVKw@mail.gmail.com>
+ <CAPcyv4jQGiDEW6QJYi3EeF5f0UkC=FEx4uA-K+_RaEN-JpZGEw@mail.gmail.com>
+In-Reply-To: <CAPcyv4jQGiDEW6QJYi3EeF5f0UkC=FEx4uA-K+_RaEN-JpZGEw@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <969166676757964D8986BBE663CEF769@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,136 +26,45 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>
-Cc: linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is based on a patch from Jan Kara that fixed the equivalent race in
-the DAX PTE fault path.
-
-Currently DAX PMD read fault can race with write(2) in the following way:
-
-CPU1 - write(2)                 CPU2 - read fault
-                                dax_iomap_pmd_fault()
-                                  ->iomap_begin() - sees hole
-
-dax_iomap_rw()
-  iomap_apply()
-    ->iomap_begin - allocates blocks
-    dax_iomap_actor()
-      invalidate_inode_pages2_range()
-        - there's nothing to invalidate
-
-                                  grab_mapping_entry()
-				  - we add huge zero page to the radix tree
-				    and map it to page tables
-
-The result is that hole page is mapped into page tables (and thus zeros
-are seen in mmap) while file has data written in that place.
-
-Fix the problem by locking exception entry before mapping blocks for the
-fault. That way we are sure invalidate_inode_pages2_range() call for
-racing write will either block on entry lock waiting for the fault to
-finish (and unmap stale page tables after that) or read fault will see
-already allocated blocks by write(2).
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
-CC: stable@vger.kernel.org
----
-
-Jan, I just realized that we need an equivalent fix in the PMD path.  Let's
-keep this with the rest of your series so they get applied together,
-applied to stable together, etc.
-
-This applies cleanly to the current linux/master (56868a460b83) + the four
-patches from Jan's series.  I've run it through xfstests and some targeted
-testing for the PMD path.
-
----
- fs/dax.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 32f020c..93ae872 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1388,6 +1388,16 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- 		goto fallback;
- 
- 	/*
-+	 * grab_mapping_entry() will make sure we get a 2M empty entry, a DAX
-+	 * PMD or a HZP entry.  If it can't (because a 4k page is already in
-+	 * the tree, for instance), it will return -EEXIST and we just fall
-+	 * back to 4k entries.
-+	 */
-+	entry = grab_mapping_entry(mapping, pgoff, RADIX_DAX_PMD);
-+	if (IS_ERR(entry))
-+		goto fallback;
-+
-+	/*
- 	 * Note that we don't use iomap_apply here.  We aren't doing I/O, only
- 	 * setting up a mapping, so really we're using iomap_begin() as a way
- 	 * to look up our filesystem block.
-@@ -1395,21 +1405,11 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- 	pos = (loff_t)pgoff << PAGE_SHIFT;
- 	error = ops->iomap_begin(inode, pos, PMD_SIZE, iomap_flags, &iomap);
- 	if (error)
--		goto fallback;
-+		goto unlock_entry;
- 
- 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
- 		goto finish_iomap;
- 
--	/*
--	 * grab_mapping_entry() will make sure we get a 2M empty entry, a DAX
--	 * PMD or a HZP entry.  If it can't (because a 4k page is already in
--	 * the tree, for instance), it will return -EEXIST and we just fall
--	 * back to 4k entries.
--	 */
--	entry = grab_mapping_entry(mapping, pgoff, RADIX_DAX_PMD);
--	if (IS_ERR(entry))
--		goto finish_iomap;
--
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
- 		result = dax_pmd_insert_mapping(vmf, &iomap, pos, &entry);
-@@ -1417,7 +1417,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- 	case IOMAP_UNWRITTEN:
- 	case IOMAP_HOLE:
- 		if (WARN_ON_ONCE(write))
--			goto unlock_entry;
-+			break;
- 		result = dax_pmd_load_hole(vmf, &iomap, &entry);
- 		break;
- 	default:
-@@ -1425,8 +1425,6 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- 		break;
- 	}
- 
-- unlock_entry:
--	put_locked_mapping_entry(mapping, pgoff, entry);
-  finish_iomap:
- 	if (ops->iomap_end) {
- 		int copied = PMD_SIZE;
-@@ -1442,6 +1440,8 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- 		ops->iomap_end(inode, pos, PMD_SIZE, copied, iomap_flags,
- 				&iomap);
- 	}
-+ unlock_entry:
-+	put_locked_mapping_entry(mapping, pgoff, entry);
-  fallback:
- 	if (result == VM_FAULT_FALLBACK) {
- 		split_huge_pmd(vma, vmf->pmd, vmf->address);
--- 
-2.9.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE3LTA0LTI4IGF0IDE3OjM1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIEZyaSwgQXByIDI4LCAyMDE3IGF0IDU6MTIgUE0sIERhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
+bGlhbXNAaW50ZWwuYw0KPiBvbT4gd3JvdGU6DQo+ID4gT24gRnJpLCBBcHIgMjgsIDIwMTcgYXQg
+NToxMCBQTSwgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbA0KPiA+IC5jb20+IHdy
+b3RlOg0KPiA+ID4gT24gVGh1LCBBcHIgMjcsIDIwMTcgYXQgMzo1NyBQTSwgVG9zaGkgS2FuaSA8
+dG9zaGkua2FuaUBocGUuY29tPg0KPiA+ID4gd3JvdGU6DQo+ID4gPiA+IEJhZGJsb2NrcyBhcmUg
+dHJhY2tlZCBhdCBib3RoIHJlZ2lvbiBhbmQgZGV2aWNlIGxldmVscy4NCj4gPiA+ID4gcG1lbV9j
+bGVhcl9wb2lzb24oKSBhbmQgbnNpb19yd19ieXRlcygpIGNhbGwNCj4gPiA+ID4gbnZkaW1tX2Ns
+ZWFyX3BvaXNvbigpIGFuZCB0aGVuIGJhZGJsb2Nrc19jbGVhcigpIHRvIGNsZWFyDQo+ID4gPiA+
+IGJhZGJsb2NrcyBhdCB0aGUgZGV2aWNlIGxldmVsLiBIb3dldmVyLCBpdCBkb2VzIG5vdCB1cGRh
+dGUNCj4gPiA+ID4gYmFkYmxvY2tzIGF0IHRoZSByZWdpb24gbGV2ZWwsIHdoaWNoIG1ha2VzIHRo
+ZW0gaW5jb25zaXN0ZW50Lg0KPiA+ID4gPiANCj4gPiA+ID4gQ2hhbmdlIG52ZGltbV9jbGVhcl9w
+b2lzb24oKSB0byB1cGRhdGUgYmFja2Jsb2NrcyBhdCB0aGUgcmVnaW9uDQo+ID4gPiA+IGxldmVs
+IHRvIGtlZXAgdGhlbSBjb25zaXN0ZW50Lg0KPiA+ID4gPiANCj4gPiA+ID4gU2lnbmVkLW9mZi1i
+eTogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0KPiA+ID4gPiBDYzogRGFuIFdpbGxp
+YW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4gPiA+IENjOiBEYXZlIEppYW5nIDxk
+YXZlLmppYW5nQGludGVsLmNvbT4NCj4gPiA+ID4gQ2M6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
+dmVybWFAaW50ZWwuY29tPg0KPiA+ID4gDQo+ID4gPiBUaGlzIGxvb2tzIGdvb2QsIGFuZCBpdCBz
+ZWVtcyB3ZSBoYXZlIGEgYnVnIGluIHRoZSBvdGhlciBsb2NhdGlvbg0KPiA+ID4gdGhhdCBkb2Vz
+IHRoaXMgaW4gX19uZF9pb2N0bCgpLiBUaGF0IG90aGVyIG9uZSBpcyBtaXNzaW5nIHRoZQ0KPiA+
+ID4gImNsZWFyX2Vyci5jbGVhcmVkIC8gNTEyIiBjaGVjay4gQ2FuIHlvdSByZXNwaW4gdGhpcyBh
+bmQgZGVmaW5lIGENCj4gPiA+IGNvbW1vbiBoZWxwZXIgdGhhdCBib3RoIGxvY2F0aW9ucyBjYW4g
+Y2FsbD8NCj4gPiANCj4gPiBPbiBzZWNvbmQgdGhvdWdodCwgSSdsbCB0YWtlIHRoaXMgYW5kIHNw
+aW4gbXkgb3duIGNsZWFudXAgLyBmaXggb24NCj4gPiB0b3AuDQo+ID4gDQo+ID4gVGhhbmtzIFRv
+c2hpIQ0KPiANCj4gLi4uYW5kIEkgbmVlZCB0byBkcm9wIGl0IGFnYWluIGJlY2F1c2UgaXQgY2F1
+c2VzIHRoaXM6DQo+IA0KPiBbwqDCoDEwNi45NzQ4ODldIEJVRzogc2xlZXBpbmcgZnVuY3Rpb24g
+Y2FsbGVkIGZyb20gaW52YWxpZCBjb250ZXh0IGF0DQo+IGtlcm5lbC9sb2NraW5nL211dGV4LmM6
+NzQ3DQo+IFvCoMKgMTA2Ljk3NzMyOF0gaW5fYXRvbWljKCk6IDEsIGlycXNfZGlzYWJsZWQoKTog
+MCwgcGlkOiA1NTg0LCBuYW1lOg0KPiBkZA0KDQpTb3JyeSwgSSBzaG91bGQgaGF2ZSB0ZXN0ZWQg
+d2l0aCBDT05GSUdfREVCVUdfQVRPTUlDX1NMRUVQIHNldC4gIFRoYW5rcw0KZm9yIHN0cmFpZ2h0
+ZW4gaXQgb3V0IGluIHlvdXIgcGF0Y2ghwqANCg0KLVRvc2hpIA0KX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
+dGluZm8vbGludXgtbnZkaW1tCg==
