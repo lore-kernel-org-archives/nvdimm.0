@@ -1,27 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3426.houston.hpe.com (g4t3426.houston.hpe.com
- [15.241.140.75])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5F3A921A04823
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 14:12:21 -0700 (PDT)
-Received: from G2W6310.americas.hpqcorp.net (g2w6310.austin.hp.com
- [16.197.64.52])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
- (No client certificate requested)
- by g4t3426.houston.hpe.com (Postfix) with ESMTPS id ACCFC4F
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 21:12:20 +0000 (UTC)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 64D6D2193FD61
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 14:02:42 -0700 (PDT)
+Date: Mon, 1 May 2017 14:02:41 -0700
+From: "Jiang, Dave" <dave.jiang@intel.com>
 Subject: Re: [PATCH v2] ndctl: add clear error support for ndctl
-Date: Mon, 1 May 2017 21:12:18 +0000
-Message-ID: <1493673137.30303.26.camel@hpe.com>
+Message-ID: <20170501210241.GA11607@djiang5-desk3.ch.intel.com>
 References: <149333241780.23371.243937948027874332.stgit@djiang5-desk3.ch.intel.com>
  <1493670342.30303.24.camel@hpe.com>
- <20170501210241.GA11607@djiang5-desk3.ch.intel.com>
-In-Reply-To: <20170501210241.GA11607@djiang5-desk3.ch.intel.com>
-Content-Language: en-US
-Content-ID: <670F6E44FA1D5C4C89D3C62010683428@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1493670342.30303.24.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,37 +20,93 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dave.jiang@intel.com" <dave.jiang@intel.com>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE3LTA1LTAxIGF0IDE0OjAyIC0wNzAwLCBKaWFuZywgRGF2ZSB3cm90ZToNCj4g
-T24gTW9uLCBNYXkgMDEsIDIwMTcgYXQgMDE6MjU6NDVQTSAtMDcwMCwgS2FuaSwgVG9zaGltaXRz
-dSB3cm90ZToNCj4gPiBPbiBUaHUsIDIwMTctMDQtMjcgYXQgMTU6MzggLTA3MDAsIERhdmUgSmlh
-bmcgd3JvdGU6DQogOg0KPiANCj4gVG9zaGksDQo+IENhbiB5b3UgcGxlYXNlIHRyeSB0aGlzIGFu
-ZCBzZWUgaWYgdGhhdCBmaXhlcyB0aGUgaXNzdWU/IFRoYW5rcyENCj4gDQo+IGRpZmYgLS1naXQg
-YS9uZGN0bC9saWIvbGlibmRjdGwuYyBiL25kY3RsL2xpYi9saWJuZGN0bC5jDQo+IGluZGV4IDcz
-OTk3MjkuLjQ0ZmMyZjMgMTAwNjQ0DQo+IC0tLSBhL25kY3RsL2xpYi9saWJuZGN0bC5jDQo+ICsr
-KyBiL25kY3RsL2xpYi9saWJuZGN0bC5jDQo+IEBAIC0xODgyLDEwICsxODgyLDggQEAgc3RhdGlj
-IGludCByZWdpb25zX2JhZGJsb2Nrc19pbml0KHN0cnVjdA0KPiBuZGN0bF9yZWdpb24gKnJlZ2lv
-bikNCj4gwqAJCXJlZ2lvbi0+YmFkYmxvY2tzID0gTlVMTDsNCj4gwqAJfQ0KPiDCoA0KPiAtCWlm
-IChhc3ByaW50ZigmYmJfcGF0aCwNCj4gIi9zeXMvZGV2aWNlcy9wbGF0Zm9ybS8lcy8lcy8lcy9i
-YWRibG9ja3MiLA0KPiAtCQkJCW5kY3RsX2J1c19nZXRfcHJvdmlkZXIoYnVzKSwNCj4gLQkJCQlu
-ZGN0bF9idXNfZ2V0X2Rldm5hbWUoYnVzKSwNCj4gLQkJCQluZGN0bF9yZWdpb25fZ2V0X2Rldm5h
-bWUocmVnaW9uKSkgPA0KPiAwKSB7DQo+ICsJaWYgKGFzcHJpbnRmKCZiYl9wYXRoLCAiJXMvYmFk
-YmxvY2tzIiwNCj4gKwkJCQlyZWdpb24tPnJlZ2lvbl9wYXRoKSA8IDApIHsNCj4gwqAJCXJjID0g
-LWVycm5vOw0KPiDCoAkJZXJyKGN0eCwgInJlZ2lvbiBiYWRibG9ja3MgcGF0aCBhbGxvY2F0aW9u
-DQo+IGZhaWx1cmVcbiIpOw0KPiDCoAkJcmV0dXJuIHJjOw0KDQpZZXMsIHRoaXMgZml4ZXMgdGhl
-IGlzc3VlLiA6LSkgIE5vdGljZWQgdGhhdCB0aGVyZSBpcyBhIHdhcm5pbmcuDQoNCsKgIENDwqDC
-oMKgwqDCoMKgwqBsaWJuZGN0bC5sbw0KbGlibmRjdGwuYzogSW4gZnVuY3Rpb24gJ3JlZ2lvbnNf
-YmFkYmxvY2tzX2luaXQnOg0KbGlibmRjdGwuYzoxODc1OjIwOiB3YXJuaW5nOiB1bnVzZWQgdmFy
-aWFibGUgJ2J1cycgWy1XdW51c2VkLXZhcmlhYmxlXQ0KwqAgc3RydWN0IG5kY3RsX2J1cyAqYnVz
-ID0gbmRjdGxfcmVnaW9uX2dldF9idXMocmVnaW9uKTsNCsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqBeDQpUaGFua3MhIQ0KLVRvc2hpCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGlu
-dXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LW52ZGltbQo=
+On Mon, May 01, 2017 at 01:25:45PM -0700, Kani, Toshimitsu wrote:
+> On Thu, 2017-04-27 at 15:38 -0700, Dave Jiang wrote:
+> > Adding ndctl support that will allow clearing of bad blocks for a
+> > device. Initial implementation will only support device dax devices.
+> > The ndctl takes a device path and parameters of the starting bad
+> > block, and the number of bad blocks to clear.
+> >
+> > Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> 
+> Hi Dave,
+> 
+> I am seeing a failure to open "badblocks" on my system since its sysfs
+> path with "/sys/devcies/platform/ACPI.NFIT" is not valid (not sure how
+> I got "ACPI.NFIT" here - I hope I did not mess up my build with test
+> cases).
+> 
+> As you can see below, other open paths use
+> "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/" for "nbus0".  If
+> you go from "/sys/devices/platform", a valid path seems to be:
+> "/sys/devices/platform/ACPI0012:00/firmware_node"
+> 
+> # strace ndctl clear-error -f /dev/dax0.0 -s 1048576 -l 1
+> execve("/usr/bin/ndctl", ["ndctl", "clear-error", "-f", "/dev/dax0.0",
+> "-s", "1048576", "-l", "1"], [/* 60 vars */]) = 0
+>  :
+> open("/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/d
+> ax0.0/resource", O_RDONLY|O_CLOEXEC) = 4
+> read(4, "0x250200000\n", 1024)          = 12
+> close(4)                                = 0
+> open("/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/d
+> ax0.0/size", O_RDONLY|O_CLOEXEC) = 4
+> read(4, "16909336576\n", 1024)          = 12
+> close(4)                                = 0
+> getdents(3, /* 0 entries */, 32768)     = 0
+> close(3)                                = 0
+> open("/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/r
+> esource", O_RDONLY|O_CLOEXEC) = 3
+> read(3, "0x240000000\n", 1024)          = 12
+> close(3)                                = 0
+> open("/sys/devices/platform/ACPI.NFIT/ndbus0/region0/badblocks",
+> O_RDONLY) = -1 ENOENT (No such file or directory)
+> write(2, "libndctl: regions_badblocks_init"..., 34libndctl:
+> regions_badblocks_init: ) = 34
+> write(2, "region badblocks fopen failed\n", 30region badblocks fopen
+> failed
+> ) = 30
+> exit_group(234)                         = ?
+> +++ exited with 234 +++
+> 
+> Thanks,
+> -Toshi
+
+Toshi,
+Can you please try this and see if that fixes the issue? Thanks!
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 7399729..44fc2f3 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -1882,10 +1882,8 @@ static int regions_badblocks_init(struct ndctl_region *region)
+ 		region->badblocks = NULL;
+ 	}
+ 
+-	if (asprintf(&bb_path, "/sys/devices/platform/%s/%s/%s/badblocks",
+-				ndctl_bus_get_provider(bus),
+-				ndctl_bus_get_devname(bus),
+-				ndctl_region_get_devname(region)) < 0) {
++	if (asprintf(&bb_path, "%s/badblocks",
++				region->region_path) < 0) {
+ 		rc = -errno;
+ 		err(ctx, "region badblocks path allocation failure\n");
+ 		return rc;
+-- 
+
+Dave Jiang
+Software Engineer, Data Center Group
+Intel Corp.
+dave.jiang@intel.com
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
