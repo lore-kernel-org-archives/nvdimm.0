@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B87FF21A16EC7
- for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:20:17 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 11/22] xfs: remove uuid_getnodeuniq and xfs_uu_t
-Date: Sun, 28 May 2017 13:19:57 +0300
-Message-Id: <20170528102008.30276-12-hch@lst.de>
-In-Reply-To: <20170528102008.30276-1-hch@lst.de>
-References: <20170528102008.30276-1-hch@lst.de>
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8109421A04830
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 16:04:57 -0700 (PDT)
+Subject: [ndctl PATCH] test, label-compat.sh: fix region determination
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 01 May 2017 15:59:05 -0700
+Message-ID: <149367954530.14481.331986452118782394.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,90 +16,36 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Opencode uuid_getnodeuniq in the only caller, and directly decode
-the uuid_t representation instead of using a structure cast for it.
+The test is accidentally hard-coding the test region, "7", which we
+should be determining programmatically. Replace "7" with "$region", the
+largest pmem region on the "nfit_test.0" bus. Otherwise, the test can
+fail just based on the initialization order of various nvdimm buses.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/uuid.c      | 25 -------------------------
- fs/xfs/uuid.h      |  1 -
- fs/xfs/xfs_mount.c |  5 ++++-
- 3 files changed, 4 insertions(+), 27 deletions(-)
+ test/label-compat.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
-index 29ed78c8637b..737c186ea98b 100644
---- a/fs/xfs/uuid.c
-+++ b/fs/xfs/uuid.c
-@@ -17,31 +17,6 @@
-  */
- #include <xfs.h>
+diff --git a/test/label-compat.sh b/test/label-compat.sh
+index f103f64ae7ff..ed26a583a320 100755
+--- a/test/label-compat.sh
++++ b/test/label-compat.sh
+@@ -46,7 +46,7 @@ done
  
--/* IRIX interpretation of an uuid_t */
--typedef struct {
--	__be32	uu_timelow;
--	__be16	uu_timemid;
--	__be16	uu_timehi;
--	__be16	uu_clockseq;
--	__be16	uu_node[3];
--} xfs_uu_t;
--
--/*
-- * uuid_getnodeuniq - obtain the node unique fields of a UUID.
-- *
-- * This is not in any way a standard or condoned UUID function;
-- * it just something that's needed for user-level file handles.
-- */
--void
--uuid_getnodeuniq(uuid_t *uuid, int fsid [2])
--{
--	xfs_uu_t *uup = (xfs_uu_t *)uuid;
--
--	fsid[0] = (be16_to_cpu(uup->uu_clockseq) << 16) |
--		   be16_to_cpu(uup->uu_timemid);
--	fsid[1] = be32_to_cpu(uup->uu_timelow);
--}
--
- int
- uuid_is_nil(uuid_t *uuid)
- {
-diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
-index 86bbed071e79..5aea49bf0963 100644
---- a/fs/xfs/uuid.h
-+++ b/fs/xfs/uuid.h
-@@ -19,6 +19,5 @@
- #define __XFS_SUPPORT_UUID_H__
+ $NDCTL enable-region $BUS all
  
- extern int uuid_is_nil(uuid_t *uuid);
--extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
+-len=$($NDCTL list -r 7 -N | jq -r "length")
++len=$($NDCTL list -r $region -N | jq -r "length")
  
- #endif	/* __XFS_SUPPORT_UUID_H__ */
-diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
-index 2eaf81859166..51f7d03ef86c 100644
---- a/fs/xfs/xfs_mount.c
-+++ b/fs/xfs/xfs_mount.c
-@@ -793,7 +793,10 @@ xfs_mountfs(
- 	 *  Copies the low order bits of the timestamp and the randomly
- 	 *  set "sequence" number out of a UUID.
- 	 */
--	uuid_getnodeuniq(&sbp->sb_uuid, mp->m_fixedfsid);
-+	mp->m_fixedfsid[0] =
-+		(get_unaligned_be16(&sbp->sb_uuid.b[8]) << 16) |
-+		 get_unaligned_be16(&sbp->sb_uuid.b[4]);
-+	mp->m_fixedfsid[1] = get_unaligned_be32(&sbp->sb_uuid.b[0]);
- 
- 	mp->m_dmevmask = 0;	/* not persistent; set after each mount */
- 
--- 
-2.11.0
+ if [ -z $len ]; then
+ 	rc=1
 
 _______________________________________________
 Linux-nvdimm mailing list
