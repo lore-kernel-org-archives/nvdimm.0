@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2975021A16EFB
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:27:28 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 03/23] uuid: remove uuid_be defintions from the uapi header
-Date: Thu, 18 May 2017 08:26:45 +0200
-Message-Id: <20170518062705.25902-4-hch@lst.de>
-In-Reply-To: <20170518062705.25902-1-hch@lst.de>
-References: <20170518062705.25902-1-hch@lst.de>
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B558A21A18AA9
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 04:32:38 -0700 (PDT)
+Date: Mon, 1 May 2017 19:32:32 +0800
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: KASLR causes intermittent boot failures on some systems
+Message-ID: <20170501113232.GA24218@x1>
+References: <x49shlk700k.fsf@segfault.boston.devel.redhat.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <x49shlk700k.fsf@segfault.boston.devel.redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,89 +19,50 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: keescook@chromium.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, mingo@kernel.org, dyoung@redhat.com, thgarnie@google.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-We don't use uuid_be and the UUID_BE constants in any uapi headers, so make
-them private to the kernel.
+Hi,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/uuid.h      | 15 +++++++++++++++
- include/uapi/linux/uuid.h | 16 ----------------
- 2 files changed, 15 insertions(+), 16 deletions(-)
+The root cause has been found out finally. It's caused by code bug in
+sync_global_pgds which is wrong for loop count calculation.
 
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 4dff73a89758..de3aea206562 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -18,6 +18,21 @@
- 
- #include <uapi/linux/uuid.h>
- 
-+typedef struct {
-+	__u8 b[16];
-+} uuid_be;
-+
-+#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
-+((uuid_be)								\
-+{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
-+   ((b) >> 8) & 0xff, (b) & 0xff,					\
-+   ((c) >> 8) & 0xff, (c) & 0xff,					\
-+   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
-+
-+#define NULL_UUID_BE							\
-+	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
-+		0x00, 0x00, 0x00, 0x00)
-+
- /*
-  * V1 (time-based) UUID definition [RFC 4122].
-  * - the timestamp is a 60-bit value, split 32/16/12, and goes in 100ns
-diff --git a/include/uapi/linux/uuid.h b/include/uapi/linux/uuid.h
-index 3738e5fb6a4d..0099756c4bac 100644
---- a/include/uapi/linux/uuid.h
-+++ b/include/uapi/linux/uuid.h
-@@ -24,10 +24,6 @@ typedef struct {
- 	__u8 b[16];
- } uuid_le;
- 
--typedef struct {
--	__u8 b[16];
--} uuid_be;
--
- #define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
- ((uuid_le)								\
- {{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
-@@ -35,20 +31,8 @@ typedef struct {
-    (c) & 0xff, ((c) >> 8) & 0xff,					\
-    (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
- 
--#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
--((uuid_be)								\
--{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
--   ((b) >> 8) & 0xff, (b) & 0xff,					\
--   ((c) >> 8) & 0xff, (c) & 0xff,					\
--   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
--
- #define NULL_UUID_LE							\
- 	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
- 		0x00, 0x00, 0x00, 0x00)
- 
--#define NULL_UUID_BE							\
--	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
--		0x00, 0x00, 0x00, 0x00)
--
--
- #endif /* _UAPI_LINUX_UUID_H_ */
--- 
-2.11.0
+Will post patch.
 
+Thanks
+Baoquan
+
+On 04/07/17 at 10:41am, Jeff Moyer wrote:
+> Hi,
+> 
+> commit 021182e52fe01 ("x86/mm: Enable KASLR for physical mapping memory
+> regions") causes some of my systems with persistent memory (whether real
+> or emulated) to fail to boot with a couple of different crash
+> signatures.  The first signature is a NMI watchdog lockup of all but 1
+> cpu, which causes much difficulty in extracting useful information from
+> the console.  The second variant is an invalid paging request, listed
+> below.
+> 
+> On some systems, I haven't hit this problem at all.  Other systems
+> experience a failed boot maybe 20-30% of the time.  To reproduce it,
+> configure some emulated pmem on your system.  You can find directions
+> for that here: https://nvdimm.wiki.kernel.org/
+> 
+> Install ndctl (https://github.com/pmem/ndctl).
+> Configure the namespace:
+> # ndctl create-namespace -f -e namespace0.0 -m memory
+> 
+> Then just reboot several times (5 should be enough), and hopefully
+> you'll hit the issue.
+> 
+> I've attached both my .config and the dmesg output from a successful
+> boot at the end of this mail.
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
