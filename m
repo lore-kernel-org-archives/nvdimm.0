@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C328321A16EFB
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:28:01 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 12/23] xfs: remove uuid_getnodeuniq and xfs_uu_t
-Date: Thu, 18 May 2017 08:26:54 +0200
-Message-Id: <20170518062705.25902-13-hch@lst.de>
-In-Reply-To: <20170518062705.25902-1-hch@lst.de>
-References: <20170518062705.25902-1-hch@lst.de>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E14B021A04823
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 10:25:43 -0700 (PDT)
+Subject: [PATCH] libnvdimm: restore "libnvdimm: band aid btt vs clear poison
+ locking"
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 01 May 2017 10:19:48 -0700
+Message-ID: <149365918855.23471.2493940794453999099.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,90 +17,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Directly use the v1 intepretation of uuid_t instead.
+This continues the 4.11 status quo of disabling of error clearing from
+the BTT I/O path. Toshi found that even though we have eliminated all
+the libnvdimm sources of sleeping-while-atomic triggers, we still have
+sleeping operations that will occur in the path to send the ACPI DSM to
+the DIMM to clear the error:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+ BUG: sleeping function called from invalid context at mm/slab.h:432
+ in_atomic(): 1, irqs_disabled(): 0, pid: 13353, name: dd
+ Call Trace:
+  dump_stack+0x86/0xc3
+  ___might_sleep+0x17d/0x250
+  __might_sleep+0x4a/0x80
+  __kmalloc+0x1c0/0x2e0
+  acpi_os_allocate_zeroed+0x2d/0x2f
+  acpi_evaluate_object+0x59/0x3b1
+  acpi_evaluate_dsm+0xbd/0x10c
+  acpi_nfit_ctl+0x1ef/0x7c0 [nfit]
+  ? nsio_rw_bytes+0x152/0x280
+  nvdimm_clear_poison+0x77/0x140
+  nsio_rw_bytes+0x18f/0x280
+  btt_write_pg+0x1d4/0x3d0 [nd_btt]
+  btt_make_request+0x119/0x2d0 [nd_btt]
+
+A solution for tracking and handling media errors natively in the BTT is
+needed.
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/uuid.c      | 25 -------------------------
- fs/xfs/uuid.h      |  1 -
- fs/xfs/xfs_mount.c |  6 +++++-
- 3 files changed, 5 insertions(+), 27 deletions(-)
+ drivers/nvdimm/claim.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
-index 29ed78c8637b..737c186ea98b 100644
---- a/fs/xfs/uuid.c
-+++ b/fs/xfs/uuid.c
-@@ -17,31 +17,6 @@
-  */
- #include <xfs.h>
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index 35b210dc1e56..6945e35058bf 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -250,7 +250,16 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	}
  
--/* IRIX interpretation of an uuid_t */
--typedef struct {
--	__be32	uu_timelow;
--	__be16	uu_timemid;
--	__be16	uu_timehi;
--	__be16	uu_clockseq;
--	__be16	uu_node[3];
--} xfs_uu_t;
--
--/*
-- * uuid_getnodeuniq - obtain the node unique fields of a UUID.
-- *
-- * This is not in any way a standard or condoned UUID function;
-- * it just something that's needed for user-level file handles.
-- */
--void
--uuid_getnodeuniq(uuid_t *uuid, int fsid [2])
--{
--	xfs_uu_t *uup = (xfs_uu_t *)uuid;
--
--	fsid[0] = (be16_to_cpu(uup->uu_clockseq) << 16) |
--		   be16_to_cpu(uup->uu_timemid);
--	fsid[1] = be32_to_cpu(uup->uu_timelow);
--}
--
- int
- uuid_is_nil(uuid_t *uuid)
- {
-diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
-index 86bbed071e79..5aea49bf0963 100644
---- a/fs/xfs/uuid.h
-+++ b/fs/xfs/uuid.h
-@@ -19,6 +19,5 @@
- #define __XFS_SUPPORT_UUID_H__
+ 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+-		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)) {
++		/*
++		 * FIXME: nsio_rw_bytes() may be called from atomic
++		 * context in the btt case and the ACPI DSM path for
++		 * clearing the error takes sleeping locks and allocates
++		 * memory. An explicit error clearing path, and support
++		 * for tracking badblocks in BTT metadata is needed to
++		 * work around this collision.
++		 */
++		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
++				&& (!ndns->claim || !is_nd_btt(ndns->claim))) {
+ 			long cleared;
  
- extern int uuid_is_nil(uuid_t *uuid);
--extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
- 
- #endif	/* __XFS_SUPPORT_UUID_H__ */
-diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
-index 2eaf81859166..742e4a61c0bc 100644
---- a/fs/xfs/xfs_mount.c
-+++ b/fs/xfs/xfs_mount.c
-@@ -793,7 +793,11 @@ xfs_mountfs(
- 	 *  Copies the low order bits of the timestamp and the randomly
- 	 *  set "sequence" number out of a UUID.
- 	 */
--	uuid_getnodeuniq(&sbp->sb_uuid, mp->m_fixedfsid);
-+	mp->m_fixedfsid[0] =
-+		((u32)sbp->sb_uuid.v1.clock_seq_hi_and_reserved << 24) |
-+		((u32)sbp->sb_uuid.v1.clock_seq_low << 16) |
-+		 be16_to_cpu(sbp->sb_uuid.v1.time_mid);
-+	mp->m_fixedfsid[1] = be32_to_cpu(sbp->sb_uuid.v1.time_low);
- 
- 	mp->m_dmevmask = 0;	/* not persistent; set after each mount */
- 
--- 
-2.11.0
+ 			cleared = nvdimm_clear_poison(&ndns->dev,
 
 _______________________________________________
 Linux-nvdimm mailing list
