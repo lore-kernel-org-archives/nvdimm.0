@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-it0-x234.google.com (mail-it0-x234.google.com
+ [IPv6:2607:f8b0:4001:c0b::234])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 371BA21A04823
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 09:43:12 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] libnvdimm: rework region badblocks clearing
-Date: Mon, 1 May 2017 16:42:51 +0000
-Message-ID: <1493656965.4424.0.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3BB8521A04823
+ for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 09:38:28 -0700 (PDT)
+Received: by mail-it0-x234.google.com with SMTP id e65so26325975ita.1
+ for <linux-nvdimm@lists.01.org>; Mon, 01 May 2017 09:38:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1493655607.30303.19.camel@hpe.com>
 References: <149355594185.9917.1577772489949690281.stgit@dwillia2-desk3.amr.corp.intel.com>
  <1493652871.30303.15.camel@hpe.com>
  <CAPcyv4g4G_fJf6OOGpWbpyMdNioPWEFoJ2eO7+dSTcep+OerFw@mail.gmail.com>
@@ -15,11 +16,10 @@ References: <149355594185.9917.1577772489949690281.stgit@dwillia2-desk3.amr.corp
  <1493655131.30303.17.camel@hpe.com>
  <CAPcyv4hwt8nf5+ADQyj_ahtACZq+if__SqC3dBZTCd==4OWZXA@mail.gmail.com>
  <1493655607.30303.19.camel@hpe.com>
- <CAPcyv4gLND=U9OUa7yFYDNDgmfk_Fx-pgdbxZpsaxhH8KU4xsA@mail.gmail.com>
-In-Reply-To: <CAPcyv4gLND=U9OUa7yFYDNDgmfk_Fx-pgdbxZpsaxhH8KU4xsA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <76B174B9D19ABE4FB9B96FD1F9CEB868@intel.com>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 1 May 2017 09:38:27 -0700
+Message-ID: <CAPcyv4gLND=U9OUa7yFYDNDgmfk_Fx-pgdbxZpsaxhH8KU4xsA@mail.gmail.com>
+Subject: Re: [PATCH] libnvdimm: rework region badblocks clearing
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,63 +27,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE3LTA1LTAxIGF0IDA5OjM4IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIE1vbiwgTWF5IDEsIDIwMTcgYXQgOToyMCBBTSwgS2FuaSwgVG9zaGltaXRzdSA8dG9zaGku
-a2FuaUBocGUuY29tPg0KPiB3cm90ZToNCj4gPiBPbiBNb24sIDIwMTctMDUtMDEgYXQgMDk6MTYg
-LTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiA+IE9uIE1vbiwgTWF5IDEsIDIwMTcgYXQg
-OToxMiBBTSwgS2FuaSwgVG9zaGltaXRzdSA8dG9zaGkua2FuaUBocGUuDQo+ID4gPiBjb20+DQo+
-ID4gPiB3cm90ZToNCj4gPiA+ID4gT24gTW9uLCAyMDE3LTA1LTAxIGF0IDA4OjUyIC0wNzAwLCBE
-YW4gV2lsbGlhbXMgd3JvdGU6DQo+ID4gPiA+ID4gT24gTW9uLCBNYXkgMSwgMjAxNyBhdCA4OjQz
-IEFNLCBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQA0KPiA+ID4gPiA+IGludGUNCj4gPiA+
-ID4gPiBsLmNvDQo+ID4gPiA+ID4gbT4gd3JvdGU6DQo+ID4gPiA+ID4gPiBPbiBNb24sIE1heSAx
-LCAyMDE3IGF0IDg6MzQgQU0sIEthbmksIFRvc2hpbWl0c3UgPHRvc2hpLmthbg0KPiA+ID4gPiA+
-ID4gaUBocA0KPiA+ID4gPiA+ID4gZS5jbw0KPiA+ID4gPiA+ID4gbT4gd3JvdGU6DQo+ID4gPiA+
-ID4gPiA+IE9uIFN1biwgMjAxNy0wNC0zMCBhdCAwNTozOSAtMDcwMCwgRGFuIFdpbGxpYW1zIHdy
-b3RlOg0KPiA+ID4gPiANCj4gPiA+ID4gwqA6DQo+ID4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4g
-PiBIaSBEYW4sDQo+ID4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gPiBJIHdhcyB0ZXN0aW5nIHRo
-ZSBjaGFuZ2Ugd2l0aCBDT05GSUdfREVCVUdfQVRPTUlDX1NMRUVQDQo+ID4gPiA+ID4gPiA+IHNl
-dA0KPiA+ID4gPiA+ID4gPiB0aGlzIHRpbWUsIGFuZCBoaXQgdGhlIGZvbGxvd2luZyBCVUcgd2l0
-aCBCVFQuwqDCoFRoaXMgaXMgYQ0KPiA+ID4gPiA+ID4gPiBzZXBhcmF0ZSBpc3N1ZSAobm90IGlu
-dHJvZHVjZWQgYnkgdGhpcyBwYXRjaCksIGJ1dCBpdA0KPiA+ID4gPiA+ID4gPiBzaG93cw0KPiA+
-ID4gPiA+ID4gPiB0aGF0IHdlIGhhdmUgYW4gaXNzdWUgd2l0aCB0aGUgRFNNIGNhbGwgcGF0aCBh
-cyB3ZWxsLg0KPiA+ID4gPiA+ID4gDQo+ID4gPiA+ID4gPiBBaCwgZ3JlYXQgZmluZCwgdGhhbmtz
-ISBXZSBkb24ndCBzZWUgdGhpcyBpbiB0aGUgdW5pdCB0ZXN0cw0KPiA+ID4gPiA+ID4gYmVjYXVz
-ZSB0aGUgbmZpdF90ZXN0IGluZnJhc3RydWN0dXJlIHRha2VzIG5vIHNsZWVwaW5nDQo+ID4gPiA+
-ID4gPiBhY3Rpb25zDQo+ID4gPiA+ID4gPiBpbiBpdHMgc2ltdWxhdGVkIERTTSBwYXRoLiBPdXRz
-aWRlIG9mIGNvbnZlcnRpbmcgYnR0IHRvIHVzZQ0KPiA+ID4gPiA+ID4gc2xlZXBpbmcgbG9ja3Mg
-SSdtIG5vdCBzdXJlIEkgc2VlIGEgcGF0aCBmb3J3YXJkLiBJIHdvbmRlcg0KPiA+ID4gPiA+ID4g
-aG93DQo+ID4gPiA+ID4gPiBiYWQgdGhlIHBlcmZvcm1hbmNlIGltcGFjdCBvZiB0aGF0IHdvdWxk
-IGJlPyBQZXJoYXBzIHdpdGgNCj4gPiA+ID4gPiA+IG9wcG9ydHVuaXN0aWMgc3Bpbm5pbmcgaXQg
-d29uJ3QgYmUgc28gYmFkLCBidXQgSSBkb24ndCBzZWUNCj4gPiA+ID4gPiA+IGFub3RoZXIgY2hv
-aWNlLg0KPiA+ID4gPiA+IA0KPiA+ID4gPiA+IEl0J3Mgd29yc2UgdGhhbiB0aGF0LiBQYXJ0IG9m
-IHRoZSBwZXJmb3JtYW5jZSBvcHRpbWl6YXRpb24gb2YNCj4gPiA+ID4gPiBCVFQNCj4gPiA+ID4g
-PiBJL08gd2FzIHRvIGF2b2lkIGxvY2tpbmcgYWx0b2dldGhlciB3aGVuIHdlIGNvdWxkIHJlbHkg
-b24gYQ0KPiA+ID4gPiA+IEJUVA0KPiA+ID4gPiA+IGxhbmUgcGVyY3B1LCBzbyB0aGF0IHdvdWxk
-IGFsc28gbmVlZCB0byBiZSByZW1vdmVkLg0KPiA+ID4gPiANCj4gPiA+ID4gSSBkbyBub3QgaGF2
-ZSBhIGdvb2QgaWRlYSBlaXRoZXIsIGJ1dCBJJ2QgcmF0aGVyIGRpc2FibGUgdGhpcw0KPiA+ID4g
-PiBjbGVhcmluZyBpbiB0aGUgcmVndWxhciBCVFQgd3JpdGUgcGF0aCB0aGFuIGFkZGluZyBzbGVl
-cGluZw0KPiA+ID4gPiBsb2Nrcw0KPiA+ID4gPiB0byBCVFQuIENsZWFyaW5nIGEgYmFkIGJsb2Nr
-IGluIHRoZSBCVFQgd3JpdGUgcGF0aCBpcw0KPiA+ID4gPiBkaWZmaWN1bHQvY2hhbGxlbmdpbmcg
-c2luY2UgaXQgYWxsb2NhdGVzIGEgbmV3IGJsb2NrLg0KPiA+ID4gDQo+ID4gPiBBY3R1YWxseSwg
-dGhhdCBtYXkgbWFrZSB0aGluZ3MgZWFzaWVyLiBDYW4gd2UgdGVhY2ggQlRUIHRvIHRyYWNrDQo+
-ID4gPiBlcnJvciBibG9ja3MgYW5kIGNsZWFyIHRoZW0gYmVmb3JlIHRoZXkgYXJlIHJlYXNzaWdu
-ZWQ/DQo+ID4gDQo+ID4gSSB3YXMgdGhpbmtpbmcgdGhlIHNhbWUgYWZ0ZXIgc2VuZGluZyBpdC7C
-oMKgSSB0aGluayB3ZSBzaG91bGQgYmUNCj4gPiBhYmxlIHRvDQo+ID4gZG8gdGhhdC4NCj4gDQo+
-IE9rLCBidXQgd2Ugb2J2aW91c2x5IGNhbid0IGRldmVsb3Agc29tZXRoaW5nIHRoYXQgZGV0YWls
-ZWQgd2hpbGUgdGhlDQo+IG1lcmdlIHdpbmRvdyBpcyBvcGVuLCBzbyBJIHRoaW5rIHRoYXQgbWVh
-bnMgd2UgbmVlZCB0byByZXZlcnQgY29tbWl0DQo+IGU4OGRhNzk5OGQ3ZCAiUmV2ZXJ0ICdsaWJu
-dmRpbW06IGJhbmQgYWlkIGJ0dCB2cyBjbGVhciBwb2lzb24NCj4gbG9ja2luZyciIGFuZCBsZWF2
-ZSBCVFQgSS9PLWVycm9yLWNsZWFyaW5nIGRpc2FibGVkIGZvciB0aGlzIGN5Y2xlDQo+IGFuZA0K
-PiB0cnkgYWdhaW4gZm9yIDQuMTMuDQoNCkFncmVlZCwgSSdsbCB3b3JrIG9uIHNvbWV0aGluZyB0
-byB0cmFjayBiYWRibG9ja3MgYW5kIGNsZWFyIHRoZW0NCm91dHNpZGUgdGhlIElPIHBhdGguCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
-bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Mon, May 1, 2017 at 9:20 AM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
+> On Mon, 2017-05-01 at 09:16 -0700, Dan Williams wrote:
+>> On Mon, May 1, 2017 at 9:12 AM, Kani, Toshimitsu <toshi.kani@hpe.com>
+>> wrote:
+>> > On Mon, 2017-05-01 at 08:52 -0700, Dan Williams wrote:
+>> > > On Mon, May 1, 2017 at 8:43 AM, Dan Williams <dan.j.williams@inte
+>> > > l.co
+>> > > m> wrote:
+>> > > > On Mon, May 1, 2017 at 8:34 AM, Kani, Toshimitsu <toshi.kani@hp
+>> > > > e.co
+>> > > > m> wrote:
+>> > > > > On Sun, 2017-04-30 at 05:39 -0700, Dan Williams wrote:
+>> >
+>> >  :
+>> > > > >
+>> > > > > Hi Dan,
+>> > > > >
+>> > > > > I was testing the change with CONFIG_DEBUG_ATOMIC_SLEEP set
+>> > > > > this time, and hit the following BUG with BTT.  This is a
+>> > > > > separate issue (not introduced by this patch), but it shows
+>> > > > > that we have an issue with the DSM call path as well.
+>> > > >
+>> > > > Ah, great find, thanks! We don't see this in the unit tests
+>> > > > because the nfit_test infrastructure takes no sleeping actions
+>> > > > in its simulated DSM path. Outside of converting btt to use
+>> > > > sleeping locks I'm not sure I see a path forward. I wonder how
+>> > > > bad the performance impact of that would be? Perhaps with
+>> > > > opportunistic spinning it won't be so bad, but I don't see
+>> > > > another choice.
+>> > >
+>> > > It's worse than that. Part of the performance optimization of BTT
+>> > > I/O was to avoid locking altogether when we could rely on a BTT
+>> > > lane percpu, so that would also need to be removed.
+>> >
+>> > I do not have a good idea either, but I'd rather disable this
+>> > clearing in the regular BTT write path than adding sleeping locks
+>> > to BTT. Clearing a bad block in the BTT write path is
+>> > difficult/challenging since it allocates a new block.
+>>
+>> Actually, that may make things easier. Can we teach BTT to track
+>> error blocks and clear them before they are reassigned?
+>
+> I was thinking the same after sending it.  I think we should be able to
+> do that.
+
+Ok, but we obviously can't develop something that detailed while the
+merge window is open, so I think that means we need to revert commit
+e88da7998d7d "Revert 'libnvdimm: band aid btt vs clear poison
+locking'" and leave BTT I/O-error-clearing disabled for this cycle and
+try again for 4.13.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
