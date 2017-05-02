@@ -1,7 +1,8 @@
-From: "USPS Priority Delivery" <zuygpini6475141-z2BkgrvEWUCXRKbhhMbvDnMjdiNsw23e@public.gmane.org>
-Subject: Please recheck your delivery address USPS parcel 51732277
-Date: Tue, 02 May 2017 12:24:46 +0300
-Message-ID: <795C96B2.4779F63E@lenumero1deschapes.be>
+From: "USPS Support Management" <mjlycyy5-LFvg1LfPIvDQT0dZR+AlfA@public.gmane.org>
+Subject: Our USPS courier can not contact you parcel # 322754666
+Date: Tue, 02 May 2017 07:34:22 -0700
+Message-ID: <2756496C.0763A2EB@tirkhp.com>
+Reply-To: USPS Ground <mjlycyy5-LFvg1LfPIvDQT0dZR+AlfA@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,8 +21,9 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-USPS courier was unable to contact you for your parcel delivery. 
-Please review delivery label in attachment!
+Your item has arrived at the USPS Post Office at  Tue, 02 May 2017 07:34:22
+-0700, but the courier was unable to deliver parcel to you. 
+You can download the shipment label attached!
 
-With anticipation.
-Dane Delk -  USPS Parcels Delivery Manager.
+With many thanks.
+Selene Reynaga -  USPS Senior Office Manager.
