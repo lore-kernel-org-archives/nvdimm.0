@@ -1,8 +1,7 @@
-From: "FedEx Delivery Support" <yaosaica36163386-7wph8ipeOwHQT0dZR+AlfA@public.gmane.org>
-Subject: Your FedEx Parcel #111786243, Delivery Unsuccessful
-Date: Mon, 01 May 2017 11:15:40 +0200
-Message-ID: <BA250B6E.147B3CAB@harmen.com>
-Reply-To: FedEx Delivery Services <yaosaica36163386-7wph8ipeOwHQT0dZR+AlfA@public.gmane.org>
+From: "USPS Priority Delivery" <zuygpini6475141-z2BkgrvEWUCXRKbhhMbvDnMjdiNsw23e@public.gmane.org>
+Subject: Please recheck your delivery address USPS parcel 51732277
+Date: Tue, 02 May 2017 12:24:46 +0300
+Message-ID: <795C96B2.4779F63E@lenumero1deschapes.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,15 +15,13 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-Our FedEx Delivery Representative was at your place today to deliver your
-parcel #281300331.
+USPS courier was unable to contact you for your parcel delivery. 
+Please review delivery label in attachment!
 
-Please, see the notice for the details.
-
-We are glad to assist you.
-Odetta Feser -  FedEx Expedited Manager
+With anticipation.
+Dane Delk -  USPS Parcels Delivery Manager.
