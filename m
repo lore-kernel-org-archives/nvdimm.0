@@ -1,23 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-io0-x22a.google.com (mail-io0-x22a.google.com
- [IPv6:2607:f8b0:4001:c06::22a])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g4t3426.houston.hpe.com (g4t3426.houston.hpe.com
+ [15.241.140.75])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40AD221A13482
- for <linux-nvdimm@lists.01.org>; Wed,  3 May 2017 14:48:54 -0700 (PDT)
-Received: by mail-io0-x22a.google.com with SMTP id p80so200355959iop.3
- for <linux-nvdimm@lists.01.org>; Wed, 03 May 2017 14:48:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1493837209.30303.47.camel@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 749F221A13492
+ for <linux-nvdimm@lists.01.org>; Wed,  3 May 2017 11:46:57 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [RFC PATCH] dax: add badblocks check to Device DAX
+Date: Wed, 3 May 2017 18:46:54 +0000
+Message-ID: <1493837209.30303.47.camel@hpe.com>
 References: <20170503153103.30756-1-toshi.kani@hpe.com>
  <CAPcyv4hu9iW-EEaggOj4ax_P6=Y28adi5Hb7Rp1Q1xBTWenJuQ@mail.gmail.com>
  <1493827750.30303.44.camel@hpe.com>
  <CAPcyv4gthc8Gc7SUyxqecDrd+dtOfOzY19bs5sY1qMepQKh=kQ@mail.gmail.com>
- <1493837209.30303.47.camel@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 3 May 2017 14:48:52 -0700
-Message-ID: <CAPcyv4ifW-tpo=WzhL8W4pxfv6XWw=QSxCApXtcXnhbK3Nf6YQ@mail.gmail.com>
-Subject: Re: [RFC PATCH] dax: add badblocks check to Device DAX
+In-Reply-To: <CAPcyv4gthc8Gc7SUyxqecDrd+dtOfOzY19bs5sY1qMepQKh=kQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <1525569F81A4294E9F7B5AEADFF66DA0@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,64 +24,49 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 3, 2017 at 11:46 AM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
-> On Wed, 2017-05-03 at 09:30 -0700, Dan Williams wrote:
->> On Wed, May 3, 2017 at 9:09 AM, Kani, Toshimitsu <toshi.kani@hpe.com>
->> wrote:
->> > On Wed, 2017-05-03 at 08:52 -0700, Dan Williams wrote:
->> > > On Wed, May 3, 2017 at 8:31 AM, Toshi Kani <toshi.kani@hpe.com>
->> > > wrote:
->> > > > This is a RFC patch for seeking suggestions.  It adds support
->> > > > of badblocks check in Device DAX by using region-level
->> > > > badblocks list.  This patch is only briefly tested.
->> > > >
->> > > > device_dax is a well-isolated self-contained module as it calls
->> > > > alloc_dax() with dev_dax, which is private to device_dax.  For
->> > > > checking badblocks, it needs to call dax_pmem to check with
->> > > > region-level badblocks.
->> > > >
->> > > > This patch attempts to keep device_dax self-contained.  It adds
->> > > > check_error() to dax_operations, and dax_check_error() as a
->> > > > stub with *dev_dax and *dev pointers to convey it to
->> > > > dax_pmem.  I am wondering if this is the right direction, or we
->> > > > should change the modularity to let dax_pmem call alloc_dax()
->> > > > with its dax_pmem (or I completely missed something).
->> > >
->> > > The problem is that device-dax guarantees a given fault
->> > > granularity. To make that guarantee we can't fallback from 1G or
->> > > 2M mappings due to an error. We also can't reasonably go the
->> > > other way and fail mappings that contain a badblock because that
->> > > would change the blast radius of a media error to the fault size.
->> >
->> > Does it mean we expect users to have CPUs with MCE recovery for
->> > Device DAX?  Can we add an attributes like allow error-check &
->> > fall-back?
->>
->> Yes, without MCE recovery device-dax mappings that consume errors
->> will reboot. If an application needs the kernel protection it should
->> be using filesystem-dax.
->
-> Understood.  Are we going to provide sysfs "badblocks" for Device DAX
-> as it is also needed for ndctl clear-error?
-
-No, I had started that way, but badblocks really needs write(2) or
-fallocate(PUNCH_HOLE) support for clearing errors. Since we don't want
-to support write(2) and were NAKd from supporting fallocate() the only
-interface that was left was sending clear-error-DSM ioctls directly to
- the nvdimm bus. Since that is a very libnvdimm specific interface it
-made sense to then add badblocks at the libnvdimm-region level. The
-"ndctl clear-error" command is there to do the translation of error
-offsets in user space and supersedes the need for the kernel to carry
-a badblocks file for device-dax.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gV2VkLCAyMDE3LTA1LTAzIGF0IDA5OjMwIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFdlZCwgTWF5IDMsIDIwMTcgYXQgOTowOSBBTSwgS2FuaSwgVG9zaGltaXRzdSA8dG9zaGku
+a2FuaUBocGUuY29tPg0KPiB3cm90ZToNCj4gPiBPbiBXZWQsIDIwMTctMDUtMDMgYXQgMDg6NTIg
+LTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiA+IE9uIFdlZCwgTWF5IDMsIDIwMTcgYXQg
+ODozMSBBTSwgVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0KPiA+ID4gd3JvdGU6DQo+
+ID4gPiA+IFRoaXMgaXMgYSBSRkMgcGF0Y2ggZm9yIHNlZWtpbmcgc3VnZ2VzdGlvbnMuwqDCoEl0
+IGFkZHMgc3VwcG9ydA0KPiA+ID4gPiBvZiBiYWRibG9ja3MgY2hlY2sgaW4gRGV2aWNlIERBWCBi
+eSB1c2luZyByZWdpb24tbGV2ZWwNCj4gPiA+ID4gYmFkYmxvY2tzIGxpc3QuICBUaGlzIHBhdGNo
+IGlzIG9ubHkgYnJpZWZseSB0ZXN0ZWQuDQo+ID4gPiA+IA0KPiA+ID4gPiBkZXZpY2VfZGF4IGlz
+IGEgd2VsbC1pc29sYXRlZCBzZWxmLWNvbnRhaW5lZCBtb2R1bGUgYXMgaXQgY2FsbHMNCj4gPiA+
+ID4gYWxsb2NfZGF4KCkgd2l0aCBkZXZfZGF4LCB3aGljaCBpcyBwcml2YXRlIHRvIGRldmljZV9k
+YXguwqDCoEZvcg0KPiA+ID4gPiBjaGVja2luZyBiYWRibG9ja3MsIGl0IG5lZWRzIHRvIGNhbGwg
+ZGF4X3BtZW0gdG8gY2hlY2sgd2l0aA0KPiA+ID4gPiByZWdpb24tbGV2ZWwgYmFkYmxvY2tzLg0K
+PiA+ID4gPiANCj4gPiA+ID4gVGhpcyBwYXRjaCBhdHRlbXB0cyB0byBrZWVwIGRldmljZV9kYXgg
+c2VsZi1jb250YWluZWQuwqDCoEl0IGFkZHMNCj4gPiA+ID4gY2hlY2tfZXJyb3IoKSB0byBkYXhf
+b3BlcmF0aW9ucywgYW5kIGRheF9jaGVja19lcnJvcigpIGFzIGENCj4gPiA+ID4gc3R1YiB3aXRo
+ICpkZXZfZGF4IGFuZCAqZGV2IHBvaW50ZXJzIHRvIGNvbnZleSBpdCB0bw0KPiA+ID4gPiBkYXhf
+cG1lbS7CoMKgSSBhbSB3b25kZXJpbmcgaWYgdGhpcyBpcyB0aGUgcmlnaHQgZGlyZWN0aW9uLCBv
+ciB3ZQ0KPiA+ID4gPiBzaG91bGQgY2hhbmdlIHRoZSBtb2R1bGFyaXR5IHRvIGxldCBkYXhfcG1l
+bSBjYWxsIGFsbG9jX2RheCgpDQo+ID4gPiA+IHdpdGggaXRzIGRheF9wbWVtIChvciBJIGNvbXBs
+ZXRlbHkgbWlzc2VkIHNvbWV0aGluZykuDQo+ID4gPiANCj4gPiA+IFRoZSBwcm9ibGVtIGlzIHRo
+YXQgZGV2aWNlLWRheCBndWFyYW50ZWVzIGEgZ2l2ZW4gZmF1bHQNCj4gPiA+IGdyYW51bGFyaXR5
+LiBUbyBtYWtlIHRoYXQgZ3VhcmFudGVlIHdlIGNhbid0IGZhbGxiYWNrIGZyb20gMUcgb3INCj4g
+PiA+IDJNIG1hcHBpbmdzIGR1ZSB0byBhbiBlcnJvci4gV2UgYWxzbyBjYW4ndCByZWFzb25hYmx5
+IGdvIHRoZQ0KPiA+ID4gb3RoZXIgd2F5IGFuZCBmYWlsIG1hcHBpbmdzIHRoYXQgY29udGFpbiBh
+IGJhZGJsb2NrIGJlY2F1c2UgdGhhdA0KPiA+ID4gd291bGQgY2hhbmdlIHRoZSBibGFzdCByYWRp
+dXMgb2YgYSBtZWRpYSBlcnJvciB0byB0aGUgZmF1bHQgc2l6ZS4NCj4gPiANCj4gPiBEb2VzIGl0
+IG1lYW4gd2UgZXhwZWN0IHVzZXJzIHRvIGhhdmUgQ1BVcyB3aXRoIE1DRSByZWNvdmVyeSBmb3IN
+Cj4gPiBEZXZpY2UgREFYP8KgwqBDYW4gd2UgYWRkIGFuIGF0dHJpYnV0ZXMgbGlrZSBhbGxvdyBl
+cnJvci1jaGVjayAmDQo+ID4gZmFsbC1iYWNrPw0KPiANCj4gWWVzLCB3aXRob3V0IE1DRSByZWNv
+dmVyeSBkZXZpY2UtZGF4IG1hcHBpbmdzIHRoYXQgY29uc3VtZSBlcnJvcnMNCj4gd2lsbCByZWJv
+b3QuIElmIGFuIGFwcGxpY2F0aW9uIG5lZWRzIHRoZSBrZXJuZWwgcHJvdGVjdGlvbiBpdCBzaG91
+bGQNCj4gYmUgdXNpbmcgZmlsZXN5c3RlbS1kYXguDQoNClVuZGVyc3Rvb2QuICBBcmUgd2UgZ29p
+bmcgdG8gcHJvdmlkZSBzeXNmcyAiYmFkYmxvY2tzIiBmb3IgRGV2aWNlIERBWA0KYXMgaXQgaXMg
+YWxzbyBuZWVkZWQgZm9yIG5kY3RsIGNsZWFyLWVycm9yPw0KDQpUaGFua3MsDQotVG9zaGkNCiAK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
+aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
+MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
