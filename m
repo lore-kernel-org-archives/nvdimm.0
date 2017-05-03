@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-io0-x22b.google.com (mail-io0-x22b.google.com
- [IPv6:2607:f8b0:4001:c06::22b])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1C23121A13493
- for <linux-nvdimm@lists.01.org>; Wed,  3 May 2017 19:01:24 -0700 (PDT)
-Received: by mail-io0-x22b.google.com with SMTP id f102so3037124ioi.2
- for <linux-nvdimm@lists.01.org>; Wed, 03 May 2017 19:01:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1493854569.30303.53.camel@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3A75721A13493
+ for <linux-nvdimm@lists.01.org>; Wed,  3 May 2017 16:36:16 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [RFC PATCH] dax: add badblocks check to Device DAX
+Date: Wed, 3 May 2017 23:36:13 +0000
+Message-ID: <1493854569.30303.53.camel@hpe.com>
 References: <20170503153103.30756-1-toshi.kani@hpe.com>
  <CAPcyv4hu9iW-EEaggOj4ax_P6=Y28adi5Hb7Rp1Q1xBTWenJuQ@mail.gmail.com>
  <1493827750.30303.44.camel@hpe.com>
@@ -18,11 +17,11 @@ References: <20170503153103.30756-1-toshi.kani@hpe.com>
  <1493851282.30303.49.camel@hpe.com>
  <CAPcyv4hj3Ynm06LTJwDYKTWmWSnvjUgVQSWpVWMXQCU+tUj0fQ@mail.gmail.com>
  <CAPcyv4g4-H76AMYv2TUtwmFZSc_p58UeiqVmKpJJbOY3g26FwA@mail.gmail.com>
- <1493853934.30303.51.camel@hpe.com> <1493854569.30303.53.camel@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 3 May 2017 19:01:22 -0700
-Message-ID: <CAPcyv4i5_6gNRAipcuV2fk2OpfgXD1gY-Q-Zh-re7j=AODSLZA@mail.gmail.com>
-Subject: Re: [RFC PATCH] dax: add badblocks check to Device DAX
+ <1493853934.30303.51.camel@hpe.com>
+In-Reply-To: <1493853934.30303.51.camel@hpe.com>
+Content-Language: en-US
+Content-ID: <7FD3C72861743F4D8057037C92C9CECD@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,115 +29,58 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 3, 2017 at 4:36 PM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
-> On Wed, 2017-05-03 at 17:25 -0600, Toshi Kani wrote:
->> On Wed, 2017-05-03 at 16:08 -0700, Dan Williams wrote:
->> > On Wed, May 3, 2017 at 3:51 PM, Dan Williams <dan.j.williams@intel.
->> > co
->> > m> wrote:
->> > > On Wed, May 3, 2017 at 3:41 PM, Kani, Toshimitsu <toshi.kani@hpe.
->> > > co
->> > > m> wrote:
->> > > > On Wed, 2017-05-03 at 14:48 -0700, Dan Williams wrote:
->>
->>  :
->> > >
->> > > I believe we already have all the data needed to calculate the
->> > > data
->> > > offset. Given the following sysfs path:
->> > >
->> > >     /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/regio
->> > > n1
->> > > /dax1.1/dax/dax1.0
->> > >
->> > > ...we can find the associated namespace device from that dax1.1.
->> > > From
->> > > there we have the base address of the namespace and the size
->> > > device-dax instance.
->> > >
->> > >     device_dax_data_offset == namespace_base + namespace_size -
->> > > device_dax_size
->> >
->> > Dave reminds me that we do have the data offset of the device-dax
->> > instance at the libnvdimm level:
->> >
->> >     /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region1
->> > /d
->> > ax1.1/resource
->> >
->> > ...in this example, which maps to ndctl_dax_get_resource().
->>
->> Thanks for the info!  I noticed why I did not catch this info before.
->>
->> # ll /dev/dax*
->> crw------- 1 root root 251, 3 May  3 04:28 /dev/dax0.0
->>
->> # pwd
->> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/dax0.
->> 0
->>
->> # grep . *
->> align:2097152
->> devtype:nd_dax
->> modalias:nd:t7
->> mode:none
->> numa_node:0
->> grep: power: Is a directory
->> grep: resource: No such device or address
->> grep: size: No such device or address
->> grep: subsystem: Is a directory
->> uevent:DEVTYPE=nd_dax
->> uevent:MODALIAS=nd:t7
->>
->> But I noticed that "resource" and "size" that are under
->> ".../region0/dax0.1" work.  Is this intended?
-
-You mean that region0/dax0.1 and region0/dax0.1/dax/dax0.0 are
-functional, but region0/dax0.0 is not? Yes, that is expected the
-libnvdimm "struct nd_dax" device is on a different device numbering
-scheme than the "struct dev_dax" instance. Depending on load and
-namespace reconfiguration order you can expect those names to not
-match. The dev_dax instance name is "dax region id"."sub-division
-instance"
-
->
-> Here is an output from dax0.1 (I removed the size value).  Noticed that
-> mode is different.
->
-> # pwd
-> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/dax0.1
->
-> # grep . *
-> align:2097152
-> grep: dax: Is a directory
-> grep: dax_region: Is a directory
-> devtype:nd_dax
-> grep: driver: Is a directory
-> modalias:nd:t7
-> mode:pmem
-> namespace:namespace0.0
-> numa_node:0
-> grep: power: Is a directory
-> resource:0x250200000
-> size:(size value)
-> grep: subsystem: Is a directory
-> uevent:DEVTYPE=nd_dax
-> uevent:DRIVER=dax_pmem
-> uevent:MODALIAS=nd:t7
-> uuid:8c71811f-260d-4788-8487-db88d829d393
-
-The "mode" in this instance is the mode for the struct page
-allocation, i.e. whether it is coming from main memory "mem" or the
-persistent memory itself "pmem" in this case.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gV2VkLCAyMDE3LTA1LTAzIGF0IDE3OjI1IC0wNjAwLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiBP
+biBXZWQsIDIwMTctMDUtMDMgYXQgMTY6MDggLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4g
+PiBPbiBXZWQsIE1heSAzLCAyMDE3IGF0IDM6NTEgUE0sIERhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
+bGlhbXNAaW50ZWwuDQo+ID4gY28NCj4gPiBtPiB3cm90ZToNCj4gPiA+IE9uIFdlZCwgTWF5IDMs
+IDIwMTcgYXQgMzo0MSBQTSwgS2FuaSwgVG9zaGltaXRzdSA8dG9zaGkua2FuaUBocGUuDQo+ID4g
+PiBjbw0KPiA+ID4gbT4gd3JvdGU6DQo+ID4gPiA+IE9uIFdlZCwgMjAxNy0wNS0wMyBhdCAxNDo0
+OCAtMDcwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOg0KPiANCj4gwqA6DQo+ID4gPiANCj4gPiA+IEkg
+YmVsaWV2ZSB3ZSBhbHJlYWR5IGhhdmUgYWxsIHRoZSBkYXRhIG5lZWRlZCB0byBjYWxjdWxhdGUg
+dGhlDQo+ID4gPiBkYXRhDQo+ID4gPiBvZmZzZXQuIEdpdmVuIHRoZSBmb2xsb3dpbmcgc3lzZnMg
+cGF0aDoNCj4gPiA+IA0KPiA+ID4gwqDCoMKgwqAvc3lzL2RldmljZXMvTE5YU1lTVE06MDAvTE5Y
+U1lCVVM6MDAvQUNQSTAwMTI6MDAvbmRidXMwL3JlZ2lvDQo+ID4gPiBuMQ0KPiA+ID4gL2RheDEu
+MS9kYXgvZGF4MS4wDQo+ID4gPiANCj4gPiA+IC4uLndlIGNhbiBmaW5kIHRoZSBhc3NvY2lhdGVk
+IG5hbWVzcGFjZSBkZXZpY2UgZnJvbSB0aGF0IGRheDEuMS4NCj4gPiA+IEZyb20NCj4gPiA+IHRo
+ZXJlIHdlIGhhdmUgdGhlIGJhc2UgYWRkcmVzcyBvZiB0aGUgbmFtZXNwYWNlIGFuZCB0aGUgc2l6
+ZQ0KPiA+ID4gZGV2aWNlLWRheCBpbnN0YW5jZS4NCj4gPiA+IA0KPiA+ID4gwqDCoMKgwqBkZXZp
+Y2VfZGF4X2RhdGFfb2Zmc2V0ID09IG5hbWVzcGFjZV9iYXNlICsgbmFtZXNwYWNlX3NpemUgLQ0K
+PiA+ID4gZGV2aWNlX2RheF9zaXplDQo+ID4gDQo+ID4gRGF2ZSByZW1pbmRzIG1lIHRoYXQgd2Ug
+ZG8gaGF2ZSB0aGUgZGF0YSBvZmZzZXQgb2YgdGhlIGRldmljZS1kYXgNCj4gPiBpbnN0YW5jZSBh
+dCB0aGUgbGlibnZkaW1tIGxldmVsOg0KPiA+IA0KPiA+IMKgwqDCoMKgL3N5cy9kZXZpY2VzL0xO
+WFNZU1RNOjAwL0xOWFNZQlVTOjAwL0FDUEkwMDEyOjAwL25kYnVzMC9yZWdpb24xDQo+ID4gL2QN
+Cj4gPiBheDEuMS9yZXNvdXJjZQ0KPiA+IA0KPiA+IC4uLmluIHRoaXMgZXhhbXBsZSwgd2hpY2gg
+bWFwcyB0byBuZGN0bF9kYXhfZ2V0X3Jlc291cmNlKCkuDQo+IA0KPiBUaGFua3MgZm9yIHRoZSBp
+bmZvIcKgwqBJIG5vdGljZWQgd2h5IEkgZGlkIG5vdCBjYXRjaCB0aGlzIGluZm8gYmVmb3JlLg0K
+PiANCj4gIyBsbCAvZGV2L2RheCoNCj4gY3J3LS0tLS0tLSAxIHJvb3Qgcm9vdCAyNTEsIDMgTWF5
+wqDCoDMgMDQ6MjggL2Rldi9kYXgwLjANCj4gDQo+ICMgcHdkDQo+IC9zeXMvZGV2aWNlcy9MTlhT
+WVNUTTowMC9MTlhTWUJVUzowMC9BQ1BJMDAxMjowMC9uZGJ1czAvcmVnaW9uMC9kYXgwLg0KPiAw
+DQo+IA0KPiAjIGdyZXAgLiAqDQo+IGFsaWduOjIwOTcxNTINCj4gZGV2dHlwZTpuZF9kYXgNCj4g
+bW9kYWxpYXM6bmQ6dDcNCj4gbW9kZTpub25lDQo+IG51bWFfbm9kZTowDQo+IGdyZXA6IHBvd2Vy
+OiBJcyBhIGRpcmVjdG9yeQ0KPiBncmVwOiByZXNvdXJjZTogTm8gc3VjaCBkZXZpY2Ugb3IgYWRk
+cmVzcw0KPiBncmVwOiBzaXplOiBObyBzdWNoIGRldmljZSBvciBhZGRyZXNzDQo+IGdyZXA6IHN1
+YnN5c3RlbTogSXMgYSBkaXJlY3RvcnkNCj4gdWV2ZW50OkRFVlRZUEU9bmRfZGF4DQo+IHVldmVu
+dDpNT0RBTElBUz1uZDp0Nw0KPiANCj4gQnV0IEkgbm90aWNlZCB0aGF0ICJyZXNvdXJjZSIgYW5k
+ICJzaXplIiB0aGF0IGFyZSB1bmRlcg0KPiAiLi4uL3JlZ2lvbjAvZGF4MC4xIiB3b3JrLsKgwqBJ
+cyB0aGlzIGludGVuZGVkPw0KDQpIZXJlIGlzIGFuIG91dHB1dCBmcm9tIGRheDAuMSAoSSByZW1v
+dmVkIHRoZSBzaXplIHZhbHVlKS4gIE5vdGljZWQgdGhhdA0KbW9kZSBpcyBkaWZmZXJlbnQuDQoN
+CiMgcHdkDQovc3lzL2RldmljZXMvTE5YU1lTVE06MDAvTE5YU1lCVVM6MDAvQUNQSTAwMTI6MDAv
+bmRidXMwL3JlZ2lvbjAvZGF4MC4xDQoNCiMgZ3JlcCAuICoNCmFsaWduOjIwOTcxNTINCmdyZXA6
+IGRheDogSXMgYSBkaXJlY3RvcnkNCmdyZXA6IGRheF9yZWdpb246IElzIGEgZGlyZWN0b3J5DQpk
+ZXZ0eXBlOm5kX2RheA0KZ3JlcDogZHJpdmVyOiBJcyBhIGRpcmVjdG9yeQ0KbW9kYWxpYXM6bmQ6
+dDcNCm1vZGU6cG1lbQ0KbmFtZXNwYWNlOm5hbWVzcGFjZTAuMA0KbnVtYV9ub2RlOjANCmdyZXA6
+IHBvd2VyOiBJcyBhIGRpcmVjdG9yeQ0KcmVzb3VyY2U6MHgyNTAyMDAwMDANCnNpemU6KHNpemUg
+dmFsdWUpDQpncmVwOiBzdWJzeXN0ZW06IElzIGEgZGlyZWN0b3J5DQp1ZXZlbnQ6REVWVFlQRT1u
+ZF9kYXgNCnVldmVudDpEUklWRVI9ZGF4X3BtZW0NCnVldmVudDpNT0RBTElBUz1uZDp0Nw0KdXVp
+ZDo4YzcxODExZi0yNjBkLTQ3ODgtODQ4Ny1kYjg4ZDgyOWQzOTMNCg0KVGhhbmtzLA0KLVRvc2hp
+DQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
+dmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0
+cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
