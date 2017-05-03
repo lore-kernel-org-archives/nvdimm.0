@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
- [IPv6:2607:f8b0:4003:c06::231])
+Received: from mail-it0-x231.google.com (mail-it0-x231.google.com
+ [IPv6:2607:f8b0:4001:c0b::231])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DFD4821A13498
- for <linux-nvdimm@lists.01.org>; Fri, 12 May 2017 16:01:17 -0700 (PDT)
-Received: by mail-oi0-x231.google.com with SMTP id h4so81851983oib.3
- for <linux-nvdimm@lists.01.org>; Fri, 12 May 2017 16:01:17 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 2475D21A1348F
+ for <linux-nvdimm@lists.01.org>; Wed,  3 May 2017 08:38:15 -0700 (PDT)
+Received: by mail-it0-x231.google.com with SMTP id e65so38357669ita.1
+ for <linux-nvdimm@lists.01.org>; Wed, 03 May 2017 08:38:15 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4jZEw_28ROTLiQkzg_cQMuO=m-sT89nVSsedecB1ah+-Q@mail.gmail.com>
+In-Reply-To: <CAOSf1CHLiO85NN1mo+4AmgDc2RvqNmiLEcp1cANX58Ojn0sSqA@mail.gmail.com>
 References: <20170427091552.17694-1-oohall@gmail.com>
  <CAPcyv4id9q+6mKtqqJYzGdVN74Q5=-Rzirizs+U0RiJ-oF2Kyw@mail.gmail.com>
  <CAOSf1CEh379QGym155L6ALxU14xvF5pm6fyN=LDcKM_Q+wFGuA@mail.gmail.com>
@@ -16,10 +16,9 @@ References: <20170427091552.17694-1-oohall@gmail.com>
  <CAOSf1CE2ugvN8WANYA5x-UhLiUA=sH1jTVEZUCR4wW8uGU_EMw@mail.gmail.com>
  <CAPcyv4g+mf4t=MjawD7hFf5hvs0H2DWMTjvPV3=zAShHpyQvTA@mail.gmail.com>
  <CAOSf1CHLiO85NN1mo+4AmgDc2RvqNmiLEcp1cANX58Ojn0sSqA@mail.gmail.com>
- <CAPcyv4jZEw_28ROTLiQkzg_cQMuO=m-sT89nVSsedecB1ah+-Q@mail.gmail.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 12 May 2017 16:01:16 -0700
-Message-ID: <CAPcyv4jJFCJ31RQWTQXn18DXjgYOPv4johTqiq936O8UHxOt6g@mail.gmail.com>
+Date: Wed, 3 May 2017 08:38:13 -0700
+Message-ID: <CAPcyv4jZEw_28ROTLiQkzg_cQMuO=m-sT89nVSsedecB1ah+-Q@mail.gmail.com>
 Subject: Re: [PATCH] nvdimm: Export supported alignments via sysfs
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -36,45 +35,38 @@ To: Oliver O'Halloran <oohall@gmail.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 3, 2017 at 8:38 AM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Wed, May 3, 2017 at 12:08 AM, Oliver O'Halloran <oohall@gmail.com> wrote:
->> On Wed, May 3, 2017 at 2:17 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> [..]
->>>> Fair enough.
->>>
->>> All that said, there's nothing stopping us from making 'align' it's
->>> own mechanism. Where the first entry in the list is the current
->>> setting, in contrast to btt that decorates the current sector-size
->>> setting with square brackets.
+On Wed, May 3, 2017 at 12:08 AM, Oliver O'Halloran <oohall@gmail.com> wrote:
+> On Wed, May 3, 2017 at 2:17 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+[..]
+>>> Fair enough.
 >>
->> I'd be okay with this provided we force the alignment to one of the
->> supported values. Currently the only validation done by the kernel is:
->>
->>         if (!is_power_of_2(val) || val < PAGE_SIZE || val > SZ_1G)
->>                 return -EINVAL;
+>> All that said, there's nothing stopping us from making 'align' it's
+>> own mechanism. Where the first entry in the list is the current
+>> setting, in contrast to btt that decorates the current sector-size
+>> setting with square brackets.
 >
-> Yes, we'd need to validate the input against the supported values.
-> There are no known binaries in the wild that I  know of that depend on
-> this looser definition, so we should be ok to change it.
+> I'd be okay with this provided we force the alignment to one of the
+> supported values. Currently the only validation done by the kernel is:
 >
->> So you can set an unsupported value by poking at sysfs directly. This
->> behaviour is useful for testing since you can use it to force an
->> alignment failure in the DAX fault handler.
->
-> I'd rather move that test support to something like the nfit_test
-> infrastructure.
->
->> I'm not overly concerned
->> if it goes, but it's something to keep in mind. I still think it would
->> be cleaner if we just added a separate attribute.
->
-> I'm still having a hard time seeing how redundant sysfs attributes is "clean".
+>         if (!is_power_of_2(val) || val < PAGE_SIZE || val > SZ_1G)
+>                 return -EINVAL;
 
-It turns out the NVML project is also parsing the 'align' attribute
-outside of ndctl. So, now I'm with you, I think it would better to
-move the 'possible alignments' to its own read-only attribute
-('aligns'?) and leave 'align' as the interface to read/write the
-current setting.
+Yes, we'd need to validate the input against the supported values.
+There are no known binaries in the wild that I  know of that depend on
+this looser definition, so we should be ok to change it.
+
+> So you can set an unsupported value by poking at sysfs directly. This
+> behaviour is useful for testing since you can use it to force an
+> alignment failure in the DAX fault handler.
+
+I'd rather move that test support to something like the nfit_test
+infrastructure.
+
+> I'm not overly concerned
+> if it goes, but it's something to keep in mind. I still think it would
+> be cleaner if we just added a separate attribute.
+
+I'm still having a hard time seeing how redundant sysfs attributes is "clean".
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
