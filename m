@@ -1,24 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1F4D521A13484
- for <linux-nvdimm@lists.01.org>; Wed,  3 May 2017 15:41:30 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3B22321A13491
+ for <linux-nvdimm@lists.01.org>; Wed,  3 May 2017 14:56:23 -0700 (PDT)
 Subject: Re: [RFC PATCH] dax: add badblocks check to Device DAX
-Date: Wed, 3 May 2017 22:41:26 +0000
-Message-ID: <1493851282.30303.49.camel@hpe.com>
 References: <20170503153103.30756-1-toshi.kani@hpe.com>
  <CAPcyv4hu9iW-EEaggOj4ax_P6=Y28adi5Hb7Rp1Q1xBTWenJuQ@mail.gmail.com>
  <1493827750.30303.44.camel@hpe.com>
  <CAPcyv4gthc8Gc7SUyxqecDrd+dtOfOzY19bs5sY1qMepQKh=kQ@mail.gmail.com>
  <1493837209.30303.47.camel@hpe.com>
  <CAPcyv4ifW-tpo=WzhL8W4pxfv6XWw=QSxCApXtcXnhbK3Nf6YQ@mail.gmail.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <e0a4feaa-e3b5-5b92-203c-ca9339282820@intel.com>
+Date: Wed, 3 May 2017 14:56:21 -0700
+MIME-Version: 1.0
 In-Reply-To: <CAPcyv4ifW-tpo=WzhL8W4pxfv6XWw=QSxCApXtcXnhbK3Nf6YQ@mail.gmail.com>
 Content-Language: en-US
-Content-ID: <FE0C6BF2851C9B47BE72CA24E7702D4A@NAMPRD84.PROD.OUTLOOK.COM>
-MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,72 +24,69 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE3LTA1LTAzIGF0IDE0OjQ4IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFdlZCwgTWF5IDMsIDIwMTcgYXQgMTE6NDYgQU0sIEthbmksIFRvc2hpbWl0c3UgPHRvc2hp
-LmthbmlAaHBlLmNvbQ0KPiA+IHdyb3RlOg0KPiA+IE9uIFdlZCwgMjAxNy0wNS0wMyBhdCAwOToz
-MCAtMDcwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOg0KPiA+ID4gT24gV2VkLCBNYXkgMywgMjAxNyBh
-dCA5OjA5IEFNLCBLYW5pLCBUb3NoaW1pdHN1IDx0b3NoaS5rYW5pQGhwZS4NCj4gPiA+IGNvbT4N
-Cj4gPiA+IHdyb3RlOg0KPiA+ID4gPiBPbiBXZWQsIDIwMTctMDUtMDMgYXQgMDg6NTIgLTA3MDAs
-IERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiA+ID4gPiBPbiBXZWQsIE1heSAzLCAyMDE3IGF0IDg6
-MzEgQU0sIFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHBlLmNvDQo+ID4gPiA+ID4gbT4NCj4gPiA+
-ID4gPiB3cm90ZToNCj4gPiA+ID4gPiA+IFRoaXMgaXMgYSBSRkMgcGF0Y2ggZm9yIHNlZWtpbmcg
-c3VnZ2VzdGlvbnMuwqDCoEl0IGFkZHMNCj4gPiA+ID4gPiA+IHN1cHBvcnQgb2YgYmFkYmxvY2tz
-IGNoZWNrIGluIERldmljZSBEQVggYnkgdXNpbmcgcmVnaW9uLQ0KPiA+ID4gPiA+ID4gbGV2ZWwg
-YmFkYmxvY2tzIGxpc3QuwqDCoFRoaXMgcGF0Y2ggaXMgb25seSBicmllZmx5IHRlc3RlZC4NCj4g
-PiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gZGV2aWNlX2RheCBpcyBhIHdlbGwtaXNvbGF0ZWQgc2Vs
-Zi1jb250YWluZWQgbW9kdWxlIGFzIGl0DQo+ID4gPiA+ID4gPiBjYWxscyBhbGxvY19kYXgoKSB3
-aXRoIGRldl9kYXgsIHdoaWNoIGlzIHByaXZhdGUgdG8NCj4gPiA+ID4gPiA+IGRldmljZV9kYXgu
-wqDCoEZvciBjaGVja2luZyBiYWRibG9ja3MsIGl0IG5lZWRzIHRvIGNhbGwNCj4gPiA+ID4gPiA+
-IGRheF9wbWVtIHRvIGNoZWNrIHdpdGggcmVnaW9uLWxldmVsIGJhZGJsb2Nrcy4NCj4gPiA+ID4g
-PiA+IA0KPiA+ID4gPiA+ID4gVGhpcyBwYXRjaCBhdHRlbXB0cyB0byBrZWVwIGRldmljZV9kYXgg
-c2VsZi1jb250YWluZWQuwqDCoEl0DQo+ID4gPiA+ID4gPiBhZGRzIGNoZWNrX2Vycm9yKCkgdG8g
-ZGF4X29wZXJhdGlvbnMsIGFuZCBkYXhfY2hlY2tfZXJyb3IoKQ0KPiA+ID4gPiA+ID4gYXMgYSBz
-dHViIHdpdGggKmRldl9kYXggYW5kICpkZXYgcG9pbnRlcnMgdG8gY29udmV5IGl0IHRvDQo+ID4g
-PiA+ID4gPiBkYXhfcG1lbS7CoMKgSSBhbSB3b25kZXJpbmcgaWYgdGhpcyBpcyB0aGUgcmlnaHQg
-ZGlyZWN0aW9uLA0KPiA+ID4gPiA+ID4gb3Igd2Ugc2hvdWxkIGNoYW5nZSB0aGUgbW9kdWxhcml0
-eSB0byBsZXQgZGF4X3BtZW0gY2FsbA0KPiA+ID4gPiA+ID4gYWxsb2NfZGF4KCkgd2l0aCBpdHMg
-ZGF4X3BtZW0gKG9yIEkgY29tcGxldGVseSBtaXNzZWQNCj4gPiA+ID4gPiA+IHNvbWV0aGluZyku
-DQo+ID4gPiA+ID4gDQo+ID4gPiA+ID4gVGhlIHByb2JsZW0gaXMgdGhhdCBkZXZpY2UtZGF4IGd1
-YXJhbnRlZXMgYSBnaXZlbiBmYXVsdA0KPiA+ID4gPiA+IGdyYW51bGFyaXR5LiBUbyBtYWtlIHRo
-YXQgZ3VhcmFudGVlIHdlIGNhbid0IGZhbGxiYWNrIGZyb20gMUcNCj4gPiA+ID4gPiBvciAyTSBt
-YXBwaW5ncyBkdWUgdG8gYW4gZXJyb3IuIFdlIGFsc28gY2FuJ3QgcmVhc29uYWJseSBnbw0KPiA+
-ID4gPiA+IHRoZSBvdGhlciB3YXkgYW5kIGZhaWwgbWFwcGluZ3MgdGhhdCBjb250YWluIGEgYmFk
-YmxvY2sNCj4gPiA+ID4gPiBiZWNhdXNlIHRoYXQgd291bGQgY2hhbmdlIHRoZSBibGFzdCByYWRp
-dXMgb2YgYSBtZWRpYSBlcnJvcg0KPiA+ID4gPiA+IHRvIHRoZSBmYXVsdCBzaXplLg0KPiA+ID4g
-PiANCj4gPiA+ID4gRG9lcyBpdCBtZWFuIHdlIGV4cGVjdCB1c2VycyB0byBoYXZlIENQVXMgd2l0
-aCBNQ0UgcmVjb3ZlcnkgZm9yDQo+ID4gPiA+IERldmljZSBEQVg/wqDCoENhbiB3ZSBhZGQgYW4g
-YXR0cmlidXRlcyBsaWtlIGFsbG93IGVycm9yLWNoZWNrICYNCj4gPiA+ID4gZmFsbC1iYWNrPw0K
-PiA+ID4gDQo+ID4gPiBZZXMsIHdpdGhvdXQgTUNFIHJlY292ZXJ5IGRldmljZS1kYXggbWFwcGlu
-Z3MgdGhhdCBjb25zdW1lIGVycm9ycw0KPiA+ID4gd2lsbCByZWJvb3QuIElmIGFuIGFwcGxpY2F0
-aW9uIG5lZWRzIHRoZSBrZXJuZWwgcHJvdGVjdGlvbiBpdA0KPiA+ID4gc2hvdWxkIGJlIHVzaW5n
-IGZpbGVzeXN0ZW0tZGF4Lg0KPiA+IA0KPiA+IFVuZGVyc3Rvb2QuwqDCoEFyZSB3ZSBnb2luZyB0
-byBwcm92aWRlIHN5c2ZzICJiYWRibG9ja3MiIGZvciBEZXZpY2UNCj4gPiBEQVggYXMgaXQgaXMg
-YWxzbyBuZWVkZWQgZm9yIG5kY3RsIGNsZWFyLWVycm9yPw0KPiANCj4gTm8sIEkgaGFkIHN0YXJ0
-ZWQgdGhhdCB3YXksIGJ1dCBiYWRibG9ja3MgcmVhbGx5IG5lZWRzIHdyaXRlKDIpIG9yDQo+IGZh
-bGxvY2F0ZShQVU5DSF9IT0xFKSBzdXBwb3J0IGZvciBjbGVhcmluZyBlcnJvcnMuIFNpbmNlIHdl
-IGRvbid0DQo+IHdhbnQgdG8gc3VwcG9ydCB3cml0ZSgyKSBhbmQgd2VyZSBOQUtkIGZyb20gc3Vw
-cG9ydGluZyBmYWxsb2NhdGUoKQ0KPiB0aGUgb25seSBpbnRlcmZhY2UgdGhhdCB3YXMgbGVmdCB3
-YXMgc2VuZGluZyBjbGVhci1lcnJvci1EU00gaW9jdGxzDQo+IGRpcmVjdGx5IHRvIMKgdGhlIG52
-ZGltbSBidXMuIFNpbmNlIHRoYXQgaXMgYSB2ZXJ5IGxpYm52ZGltbSBzcGVjaWZpYw0KPiBpbnRl
-cmZhY2UgaXQgbWFkZSBzZW5zZSB0byB0aGVuIGFkZCBiYWRibG9ja3MgYXQgdGhlIGxpYm52ZGlt
-bS1yZWdpb24gDQo+IGxldmVsLiBUaGUgIm5kY3RsIGNsZWFyLWVycm9yIiBjb21tYW5kIGlzIHRo
-ZXJlIHRvIGRvIHRoZSB0cmFuc2xhdGlvbg0KPiBvZiBlcnJvciBvZmZzZXRzIGluIHVzZXIgc3Bh
-Y2UgYW5kIHN1cGVyc2VkZXMgdGhlIG5lZWQgZm9yIHRoZSBrZXJuZWwNCj4gdG8gY2FycnkgYSBi
-YWRibG9ja3MgZmlsZSBmb3IgZGV2aWNlLWRheC4NCg0KSSBhbSBmaW5lIHdpdGggdXNpbmcgbmRj
-dGwgdG8gY2xlYXIgZXJyb3JzLiAgV2hhdCBJIG5lZWQgaXMgdG8gYWxsb3cgYW4NCmFwcGxpY2F0
-aW9uIHRvIGF2b2lkIGFjY2Vzc2luZyB0byBiYWQgYmxvY2tzIGJ5IHJlYWRpbmcgYSBzeXNmcyBm
-aWxlDQphbmQgbWFuYWdpbmcgdGhlIGJhZCBibG9ja3MgbGlzdCBieSBpdHNlbGYgc2luY2UgdGhl
-IGtlcm5lbCBkb2VzIG5vdA0KcHJvdGVjdCBpdCBhdCBwYWdlIGZhdWx0cy4gIEF0IGxlYXN0LCBk
-YXRhIG9mZnNldCBvZiBEZXZpY2UgREFYIHNob3VsZA0KYmUgcHJvdmlkZWQgZm9yIHN1Y2ggYXBw
-bGljYXRpb24gdG8gZG8gdGhlIHRyYW5zbGF0aW9uIGJ5IGl0c2VsZi4gDQoNClRoYW5rcywNCi1U
-b3NoaQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
-dXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8v
-bGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On 05/03/2017 02:48 PM, Dan Williams wrote:
+> On Wed, May 3, 2017 at 11:46 AM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
+>> On Wed, 2017-05-03 at 09:30 -0700, Dan Williams wrote:
+>>> On Wed, May 3, 2017 at 9:09 AM, Kani, Toshimitsu <toshi.kani@hpe.com>
+>>> wrote:
+>>>> On Wed, 2017-05-03 at 08:52 -0700, Dan Williams wrote:
+>>>>> On Wed, May 3, 2017 at 8:31 AM, Toshi Kani <toshi.kani@hpe.com>
+>>>>> wrote:
+>>>>>> This is a RFC patch for seeking suggestions.  It adds support
+>>>>>> of badblocks check in Device DAX by using region-level
+>>>>>> badblocks list.  This patch is only briefly tested.
+>>>>>>
+>>>>>> device_dax is a well-isolated self-contained module as it calls
+>>>>>> alloc_dax() with dev_dax, which is private to device_dax.  For
+>>>>>> checking badblocks, it needs to call dax_pmem to check with
+>>>>>> region-level badblocks.
+>>>>>>
+>>>>>> This patch attempts to keep device_dax self-contained.  It adds
+>>>>>> check_error() to dax_operations, and dax_check_error() as a
+>>>>>> stub with *dev_dax and *dev pointers to convey it to
+>>>>>> dax_pmem.  I am wondering if this is the right direction, or we
+>>>>>> should change the modularity to let dax_pmem call alloc_dax()
+>>>>>> with its dax_pmem (or I completely missed something).
+>>>>>
+>>>>> The problem is that device-dax guarantees a given fault
+>>>>> granularity. To make that guarantee we can't fallback from 1G or
+>>>>> 2M mappings due to an error. We also can't reasonably go the
+>>>>> other way and fail mappings that contain a badblock because that
+>>>>> would change the blast radius of a media error to the fault size.
+>>>>
+>>>> Does it mean we expect users to have CPUs with MCE recovery for
+>>>> Device DAX?  Can we add an attributes like allow error-check &
+>>>> fall-back?
+>>>
+>>> Yes, without MCE recovery device-dax mappings that consume errors
+>>> will reboot. If an application needs the kernel protection it should
+>>> be using filesystem-dax.
+>>
+>> Understood.  Are we going to provide sysfs "badblocks" for Device DAX
+>> as it is also needed for ndctl clear-error?
+> 
+> No, I had started that way, but badblocks really needs write(2) or
+> fallocate(PUNCH_HOLE) support for clearing errors. Since we don't want
+> to support write(2) and were NAKd from supporting fallocate() the only
+> interface that was left was sending clear-error-DSM ioctls directly to
+>  the nvdimm bus. Since that is a very libnvdimm specific interface it
+> made sense to then add badblocks at the libnvdimm-region level. The
+> "ndctl clear-error" command is there to do the translation of error
+> offsets in user space and supersedes the need for the kernel to carry
+> a badblocks file for device-dax.
+> 
+
+Toshi, I'm also working on ndctl list-errors in relations to dev dax so
+that you get a list of badblocks that are fixed up for dev dax.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
