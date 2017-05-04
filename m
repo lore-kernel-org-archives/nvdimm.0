@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E039821A16EFB
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:27:52 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 10/23] afs: switch to use uuid_t and uuid_gen
-Date: Thu, 18 May 2017 08:26:52 +0200
-Message-Id: <20170518062705.25902-11-hch@lst.de>
-In-Reply-To: <20170518062705.25902-1-hch@lst.de>
-References: <20170518062705.25902-1-hch@lst.de>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 4370A21A1349E
+ for <linux-nvdimm@lists.01.org>; Thu,  4 May 2017 15:49:02 -0700 (PDT)
+Subject: [PATCH 2/2] libnvdimm: handle locked label storage areas
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 04 May 2017 15:43:10 -0700
+Message-ID: <149393778992.34042.6110586296081480841.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149393778452.34042.11808841820577827779.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149393778452.34042.11808841820577827779.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,167 +18,150 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: David Howells <dhowells@redhat.com>
----
- fs/afs/cmservice.c | 46 +++++++++++++++++++++++-----------------------
- fs/afs/internal.h  |  2 +-
- fs/afs/main.c      |  4 ++--
- 3 files changed, 26 insertions(+), 26 deletions(-)
+Per the latest version of the "NVDIMM DSM Interface Example" [1], the
+label data retrieval routine can report a "locked" status. In this case
+all regions associated with that DIMM are disabled until the label area
+is unlocked. Provide generic libnvdimm enabling for NVDIMMs with label
+data area locking capabilities.
 
-diff --git a/fs/afs/cmservice.c b/fs/afs/cmservice.c
-index 3062cceb5c2a..d4e77d12570c 100644
---- a/fs/afs/cmservice.c
-+++ b/fs/afs/cmservice.c
-@@ -350,7 +350,7 @@ static int afs_deliver_cb_init_call_back_state3(struct afs_call *call)
+[1]: http://pmem.io/documents/
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c        |   21 ++++++++++++++++++---
+ drivers/nvdimm/dimm.c           |    2 ++
+ drivers/nvdimm/dimm_devs.c      |    8 ++++++--
+ drivers/nvdimm/namespace_devs.c |   17 ++++++++++++-----
+ include/uapi/linux/ndctl.h      |    1 +
+ 5 files changed, 39 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index a26c2297c1ed..891bd49ada0b 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -184,14 +184,29 @@ static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
+ 	return 0;
+ }
+ 
++static int xlat_nvdimm_status(void *buf, unsigned int cmd, u32 status)
++{
++	switch (cmd) {
++	case ND_CMD_GET_CONFIG_SIZE:
++		if (status >> 16 & ND_CONFIG_LOCKED)
++			return -EACCES;
++		break;
++	default:
++		break;
++	}
++
++	/* all other non-zero status results in an error */
++	if (status)
++		return -EIO;
++	return 0;
++}
++
+ static int xlat_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
+ 		u32 status)
  {
- 	struct sockaddr_rxrpc srx;
- 	struct afs_server *server;
--	struct uuid_v1 *r;
-+	uuid_t *r;
- 	unsigned loop;
- 	__be32 *b;
- 	int ret;
-@@ -380,20 +380,20 @@ static int afs_deliver_cb_init_call_back_state3(struct afs_call *call)
+ 	if (!nvdimm)
+ 		return xlat_bus_status(buf, cmd, status);
+-	if (status)
+-		return -EIO;
+-	return 0;
++	return xlat_nvdimm_status(buf, cmd, status);
+ }
+ 
+ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
+index ee0b412827bf..e0f0e3ce1a32 100644
+--- a/drivers/nvdimm/dimm.c
++++ b/drivers/nvdimm/dimm.c
+@@ -49,6 +49,8 @@ static int nvdimm_probe(struct device *dev)
+ 	kref_init(&ndd->kref);
+ 
+ 	rc = nvdimm_init_nsarea(ndd);
++	if (rc == -EACCES)
++		nvdimm_set_locked(dev);
+ 	if (rc)
+ 		goto err;
+ 
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 7d1a3dbc7d5d..fac1e9fbd11d 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -67,6 +67,7 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(ndd->dev);
+ 	struct nvdimm_bus_descriptor *nd_desc;
+ 	int rc = validate_dimm(ndd);
++	int cmd_rc = 0;
+ 
+ 	if (rc)
+ 		return rc;
+@@ -76,8 +77,11 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
+ 
+ 	memset(cmd, 0, sizeof(*cmd));
+ 	nd_desc = nvdimm_bus->nd_desc;
+-	return nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
+-			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd), NULL);
++	rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
++			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd), &cmd_rc);
++	if (rc < 0)
++		return rc;
++	return cmd_rc;
+ }
+ 
+ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 2f2d8afc684a..2f9dfbd2dbec 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -2236,14 +2236,21 @@ static int init_active_labels(struct nd_region *nd_region)
+ 		int count, j;
+ 
+ 		/*
+-		 * If the dimm is disabled then prevent the region from
+-		 * being activated if it aliases DPA.
++		 * If the dimm is disabled then we may need to prevent
++		 * the region from being activated.
+ 		 */
+ 		if (!ndd) {
+-			if (!test_bit(NDD_ALIASING, &nvdimm->flags))
++			if (test_bit(NDD_LOCKED, &nvdimm->flags))
++				/* fail, label data may be unreadable */;
++			else if (test_bit(NDD_ALIASING, &nvdimm->flags))
++				/* fail, labels needed to disambiguate dpa */;
++			else
+ 				return 0;
+-			dev_dbg(&nd_region->dev, "%s: is disabled, failing probe\n",
+-					dev_name(&nd_mapping->nvdimm->dev));
++
++			dev_err(&nd_region->dev, "%s: is %s, failing probe\n",
++					dev_name(&nd_mapping->nvdimm->dev),
++					test_bit(NDD_LOCKED, &nvdimm->flags)
++					? "locked" : "disabled");
+ 			return -ENXIO;
  		}
+ 		nd_mapping->ndd = ndd;
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index ede5c6a62164..7ad3863cb88b 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -169,6 +169,7 @@ enum {
+ enum {
+ 	ND_ARS_VOLATILE = 1,
+ 	ND_ARS_PERSISTENT = 2,
++	ND_CONFIG_LOCKED = 1,
+ };
  
- 		_debug("unmarshall UUID");
--		call->request = kmalloc(sizeof(struct uuid_v1), GFP_KERNEL);
-+		call->request = kmalloc(sizeof(uuid_t), GFP_KERNEL);
- 		if (!call->request)
- 			return -ENOMEM;
- 
- 		b = call->buffer;
- 		r = call->request;
--		r->time_low			= b[0];
--		r->time_mid			= htons(ntohl(b[1]));
--		r->time_hi_and_version		= htons(ntohl(b[2]));
--		r->clock_seq_hi_and_reserved 	= ntohl(b[3]);
--		r->clock_seq_low		= ntohl(b[4]);
-+		r->v1.time_low			= b[0];
-+		r->v1.time_mid			= htons(ntohl(b[1]));
-+		r->v1.time_hi_and_version	= htons(ntohl(b[2]));
-+		r->v1.clock_seq_hi_and_reserved = ntohl(b[3]);
-+		r->v1.clock_seq_low		= ntohl(b[4]);
- 
- 		for (loop = 0; loop < 6; loop++)
--			r->node[loop] = ntohl(b[loop + 5]);
-+			r->v1.node[loop] = ntohl(b[loop + 5]);
- 
- 		call->offset = 0;
- 		call->unmarshall++;
-@@ -453,7 +453,7 @@ static int afs_deliver_cb_probe(struct afs_call *call)
- static void SRXAFSCB_ProbeUuid(struct work_struct *work)
- {
- 	struct afs_call *call = container_of(work, struct afs_call, work);
--	struct uuid_v1 *r = call->request;
-+	uuid_t *r = call->request;
- 
- 	struct {
- 		__be32	match;
-@@ -476,7 +476,7 @@ static void SRXAFSCB_ProbeUuid(struct work_struct *work)
-  */
- static int afs_deliver_cb_probe_uuid(struct afs_call *call)
- {
--	struct uuid_v1 *r;
-+	uuid_t *r;
- 	unsigned loop;
- 	__be32 *b;
- 	int ret;
-@@ -502,20 +502,20 @@ static int afs_deliver_cb_probe_uuid(struct afs_call *call)
- 		}
- 
- 		_debug("unmarshall UUID");
--		call->request = kmalloc(sizeof(struct uuid_v1), GFP_KERNEL);
-+		call->request = kmalloc(sizeof(uuid_t), GFP_KERNEL);
- 		if (!call->request)
- 			return -ENOMEM;
- 
- 		b = call->buffer;
- 		r = call->request;
--		r->time_low			= b[0];
--		r->time_mid			= htons(ntohl(b[1]));
--		r->time_hi_and_version		= htons(ntohl(b[2]));
--		r->clock_seq_hi_and_reserved 	= ntohl(b[3]);
--		r->clock_seq_low		= ntohl(b[4]);
-+		r->v1.time_low			= b[0];
-+		r->v1.time_mid			= htons(ntohl(b[1]));
-+		r->v1.time_hi_and_version	= htons(ntohl(b[2]));
-+		r->v1.clock_seq_hi_and_reserved = ntohl(b[3]);
-+		r->v1.clock_seq_low		= ntohl(b[4]);
- 
- 		for (loop = 0; loop < 6; loop++)
--			r->node[loop] = ntohl(b[loop + 5]);
-+			r->v1.node[loop] = ntohl(b[loop + 5]);
- 
- 		call->offset = 0;
- 		call->unmarshall++;
-@@ -568,13 +568,13 @@ static void SRXAFSCB_TellMeAboutYourself(struct work_struct *work)
- 	memset(&reply, 0, sizeof(reply));
- 	reply.ia.nifs = htonl(nifs);
- 
--	reply.ia.uuid[0] = afs_uuid.time_low;
--	reply.ia.uuid[1] = htonl(ntohs(afs_uuid.time_mid));
--	reply.ia.uuid[2] = htonl(ntohs(afs_uuid.time_hi_and_version));
--	reply.ia.uuid[3] = htonl((s8) afs_uuid.clock_seq_hi_and_reserved);
--	reply.ia.uuid[4] = htonl((s8) afs_uuid.clock_seq_low);
-+	reply.ia.uuid[0] = afs_uuid.v1.time_low;
-+	reply.ia.uuid[1] = htonl(ntohs(afs_uuid.v1.time_mid));
-+	reply.ia.uuid[2] = htonl(ntohs(afs_uuid.v1.time_hi_and_version));
-+	reply.ia.uuid[3] = htonl((s8) afs_uuid.v1.clock_seq_hi_and_reserved);
-+	reply.ia.uuid[4] = htonl((s8) afs_uuid.v1.clock_seq_low);
- 	for (loop = 0; loop < 6; loop++)
--		reply.ia.uuid[loop + 5] = htonl((s8) afs_uuid.node[loop]);
-+		reply.ia.uuid[loop + 5] = htonl((s8) afs_uuid.v1.node[loop]);
- 
- 	if (ifs) {
- 		for (loop = 0; loop < nifs; loop++) {
-diff --git a/fs/afs/internal.h b/fs/afs/internal.h
-index 393672997cc2..7de45c8686a2 100644
---- a/fs/afs/internal.h
-+++ b/fs/afs/internal.h
-@@ -544,7 +544,7 @@ extern int afs_drop_inode(struct inode *);
-  * main.c
-  */
- extern struct workqueue_struct *afs_wq;
--extern struct uuid_v1 afs_uuid;
-+extern uuid_t afs_uuid;
- 
- /*
-  * misc.c
-diff --git a/fs/afs/main.c b/fs/afs/main.c
-index 51d7d17bca57..75b3d3a8b1ba 100644
---- a/fs/afs/main.c
-+++ b/fs/afs/main.c
-@@ -31,7 +31,7 @@ static char *rootcell;
- module_param(rootcell, charp, 0);
- MODULE_PARM_DESC(rootcell, "root AFS cell name and VL server IP addr list");
- 
--struct uuid_v1 afs_uuid;
-+uuid_t afs_uuid;
- struct workqueue_struct *afs_wq;
- 
- /*
-@@ -43,7 +43,7 @@ static int __init afs_init(void)
- 
- 	printk(KERN_INFO "kAFS: Red Hat AFS client v0.1 registering.\n");
- 
--	generate_random_uuid((unsigned char *)&afs_uuid);
-+	uuid_gen(&afs_uuid);
- 
- 	/* create workqueue */
- 	ret = -ENOMEM;
--- 
-2.11.0
+ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
 
 _______________________________________________
 Linux-nvdimm mailing list
