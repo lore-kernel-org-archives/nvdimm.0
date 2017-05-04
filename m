@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5256421A0BAB3
- for <linux-nvdimm@lists.01.org>; Fri, 19 May 2017 09:24:25 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.12-rc2
-Date: Fri, 19 May 2017 16:24:24 +0000
-Message-ID: <1495211062.15885.13.camel@intel.com>
-Content-Language: en-US
-Content-ID: <91695BE091FB65478AD2336DCC217684@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C9E9C21A070BA
+ for <linux-nvdimm@lists.01.org>; Thu,  4 May 2017 15:48:56 -0700 (PDT)
+Subject: [PATCH 1/2] libnvdimm: convert NDD_ flags to use bitops,
+ introduce NDD_LOCKED
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 04 May 2017 15:43:04 -0700
+Message-ID: <149393778452.34042.11808841820577827779.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,243 +21,145 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+This is a preparation patch for handling locked nvdimm label regions, a
+new concept as introduced by the latest DSM document on pmem.io [1]. A
+future patch will leverage nvdimm_set_locked() at DIMM probe time to
+flag regions that can not be enabled. There should be no functional
+difference resulting from this change.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-for-next
+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface_Example-V1.3.pdf
 
-...to receive a couple compile fixes for 4.12-rc2.
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c        |    4 ++--
+ drivers/nvdimm/dimm_devs.c      |   11 +++++++++--
+ drivers/nvdimm/namespace_devs.c |    2 +-
+ drivers/nvdimm/nd.h             |    1 +
+ drivers/nvdimm/region_devs.c    |    4 ++--
+ include/linux/libnvdimm.h       |    6 ++++--
+ 6 files changed, 19 insertions(+), 9 deletions(-)
 
-With the removal of the ->direct_access() method from
-block_device_operations in favor of a new dax_device + dax_operations
-we broke 2 configurations. The CONFIG_BLOCK=n case is fixed by
-compiling out the block+dax helpers in the dax core. Configurations
-with FS_DAX=n EXT4=y / XFS=y and DAX=m fail due to the helpers the
-builtin filesystem needs being in a module, so we stub out the helpers
-in the FS_DAX=n case.
-
-The following changes since commit 2ea659a9ef488125eb46da6eb571de5eae5c43f6:
-
-  Linux 4.12-rc1 (2017-05-13 13:19:49 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-for-next
-
-for you to fetch changes up to f5705aa8cfed142d980ecac12bee0d81b756479e:
-
-  dax, xfs, ext4: compile out iomap-dax paths in the FS_DAX=n case (2017-05-13 17:52:16 -0700)
-
-----------------------------------------------------------------
-Dan Williams (2):
-      dax: fix false CONFIG_BLOCK dependency
-      dax, xfs, ext4: compile out iomap-dax paths in the FS_DAX=n case
-
- drivers/dax/super.c |  2 ++
- fs/ext2/inode.c     |  4 ++--
- fs/ext4/inode.c     |  4 ++--
- fs/xfs/xfs_iomap.c  |  4 ++--
- include/linux/dax.h | 34 +++++++++++++++++++++++++++-------
- 5 files changed, 35 insertions(+), 13 deletions(-)
-
-commit 9d109081c261d87fc84e0cce245796796ae4c460
-Author: Dan Williams <dan.j.williams@intel.com>
-Date:   Sat May 13 16:18:21 2017 -0700
-
-    dax: fix false CONFIG_BLOCK dependency
-    
-    In the BLOCK=n case the dax core does not need to / must not emit the
-    block-device-dax helpers. Otherwise it leads to compile errors.
-    
-    Cc: Arnd Bergmann <arnd@arndb.de>
-    Reported-by: Fabian Frederick <fabf@skynet.be>
-    Fixes: ef51042472f5 ("block, dax: move 'select DAX' from BLOCK to FS_DAX")
-    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-commit f5705aa8cfed142d980ecac12bee0d81b756479e
-Author: Dan Williams <dan.j.williams@intel.com>
-Date:   Sat May 13 16:31:05 2017 -0700
-
-    dax, xfs, ext4: compile out iomap-dax paths in the FS_DAX=n case
-    
-    Tetsuo reports:
-    
-      fs/built-in.o: In function `xfs_file_iomap_end':
-      xfs_iomap.c:(.text+0xe0ef9): undefined reference to `put_dax'
-      fs/built-in.o: In function `xfs_file_iomap_begin':
-      xfs_iomap.c:(.text+0xe1a7f): undefined reference to `dax_get_by_host'
-      make: *** [vmlinux] Error 1
-      $ grep DAX .config
-      CONFIG_DAX=m
-      # CONFIG_DEV_DAX is not set
-      # CONFIG_FS_DAX is not set
-    
-    When FS_DAX=n we can/must throw away the dax code in filesystems.
-    Implement 'fs_' versions of dax_get_by_host() and put_dax() that are
-    nops in the FS_DAX=n case.
-    
-    Cc: <linux-xfs@vger.kernel.org>
-    Cc: <linux-ext4@vger.kernel.org>
-    Cc: Jan Kara <jack@suse.com>
-    Cc: "Theodore Ts'o" <tytso@mit.edu>
-    Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-    Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-    Tested-by: Tony Luck <tony.luck@intel.com>
-    Fixes: ef51042472f5 ("block, dax: move 'select DAX' from BLOCK to FS_DAX")
-    Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index ebf43f531ada..6ed32aac8bbe 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -44,6 +44,7 @@ void dax_read_unlock(int id)
- }
- EXPORT_SYMBOL_GPL(dax_read_unlock);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index ced95a79c1a1..a26c2297c1ed 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1512,7 +1512,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		}
  
-+#ifdef CONFIG_BLOCK
- int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
- 		pgoff_t *pgoff)
+ 		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
+-			flags |= NDD_ALIASING;
++			set_bit(NDD_ALIASING, &flags);
+ 
+ 		/* collate flags across all memdevs for this dimm */
+ 		list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+@@ -1527,7 +1527,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 
+ 		mem_flags = __to_nfit_memdev(nfit_mem)->flags;
+ 		if (mem_flags & ACPI_NFIT_MEM_NOT_ARMED)
+-			flags |= NDD_UNARMED;
++			set_bit(NDD_UNARMED, &flags);
+ 
+ 		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
+ 		if (rc)
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 8b721321be5b..7d1a3dbc7d5d 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -34,7 +34,7 @@ int nvdimm_check_config_data(struct device *dev)
+ 
+ 	if (!nvdimm->cmd_mask ||
+ 	    !test_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm->cmd_mask)) {
+-		if (nvdimm->flags & NDD_ALIASING)
++		if (test_bit(NDD_ALIASING, &nvdimm->flags))
+ 			return -ENXIO;
+ 		else
+ 			return -ENOTTY;
+@@ -188,7 +188,14 @@ void nvdimm_set_aliasing(struct device *dev)
  {
-@@ -112,6 +113,7 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(__bdev_dax_supported);
-+#endif
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
  
- /**
-  * struct dax_device - anchor object for dax services
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 26d77f9f8c12..2dcbd5698884 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -817,7 +817,7 @@ static int ext2_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
- 	iomap->bdev = bdev;
- 	iomap->offset = (u64)first_block << blkbits;
- 	if (blk_queue_dax(bdev->bd_queue))
--		iomap->dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
-+		iomap->dax_dev = fs_dax_get_by_host(bdev->bd_disk->disk_name);
- 	else
- 		iomap->dax_dev = NULL;
- 
-@@ -841,7 +841,7 @@ static int
- ext2_iomap_end(struct inode *inode, loff_t offset, loff_t length,
- 		ssize_t written, unsigned flags, struct iomap *iomap)
- {
--	put_dax(iomap->dax_dev);
-+	fs_put_dax(iomap->dax_dev);
- 	if (iomap->type == IOMAP_MAPPED &&
- 	    written < length &&
- 	    (flags & IOMAP_WRITE))
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 5834c4d76be8..1bd0bfa547f6 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3412,7 +3412,7 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
- 	bdev = inode->i_sb->s_bdev;
- 	iomap->bdev = bdev;
- 	if (blk_queue_dax(bdev->bd_queue))
--		iomap->dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
-+		iomap->dax_dev = fs_dax_get_by_host(bdev->bd_disk->disk_name);
- 	else
- 		iomap->dax_dev = NULL;
- 	iomap->offset = first_block << blkbits;
-@@ -3447,7 +3447,7 @@ static int ext4_iomap_end(struct inode *inode, loff_t offset, loff_t length,
- 	int blkbits = inode->i_blkbits;
- 	bool truncate = false;
- 
--	put_dax(iomap->dax_dev);
-+	fs_put_dax(iomap->dax_dev);
- 	if (!(flags & IOMAP_WRITE) || (flags & IOMAP_FAULT))
- 		return 0;
- 
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index a63f61c256bd..94e5bdf7304c 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -1068,7 +1068,7 @@ xfs_file_iomap_begin(
- 	/* optionally associate a dax device with the iomap bdev */
- 	bdev = iomap->bdev;
- 	if (blk_queue_dax(bdev->bd_queue))
--		iomap->dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
-+		iomap->dax_dev = fs_dax_get_by_host(bdev->bd_disk->disk_name);
- 	else
- 		iomap->dax_dev = NULL;
- 
-@@ -1149,7 +1149,7 @@ xfs_file_iomap_end(
- 	unsigned		flags,
- 	struct iomap		*iomap)
- {
--	put_dax(iomap->dax_dev);
-+	fs_put_dax(iomap->dax_dev);
- 	if ((flags & IOMAP_WRITE) && iomap->type == IOMAP_DELALLOC)
- 		return xfs_file_iomap_end_delalloc(XFS_I(inode), offset,
- 				length, written, iomap);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 00ebac854bb7..5ec1f6c47716 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -18,6 +18,20 @@ struct dax_operations {
- 			void **, pfn_t *);
- };
- 
-+#if IS_ENABLED(CONFIG_DAX)
-+struct dax_device *dax_get_by_host(const char *host);
-+void put_dax(struct dax_device *dax_dev);
-+#else
-+static inline struct dax_device *dax_get_by_host(const char *host)
-+{
-+	return NULL;
+-	nvdimm->flags |= NDD_ALIASING;
++	set_bit(NDD_ALIASING, &nvdimm->flags);
 +}
 +
-+static inline void put_dax(struct dax_device *dax_dev)
++void nvdimm_set_locked(struct device *dev)
 +{
-+}
-+#endif
++	struct nvdimm *nvdimm = to_nvdimm(dev);
 +
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #if IS_ENABLED(CONFIG_FS_DAX)
- int __bdev_dax_supported(struct super_block *sb, int blocksize);
-@@ -25,23 +39,29 @@ static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
- {
- 	return __bdev_dax_supported(sb, blocksize);
- }
-+
-+static inline struct dax_device *fs_dax_get_by_host(const char *host)
-+{
-+	return dax_get_by_host(host);
-+}
-+
-+static inline void fs_put_dax(struct dax_device *dax_dev)
-+{
-+	put_dax(dax_dev);
-+}
-+
- #else
- static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
- {
- 	return -EOPNOTSUPP;
- }
--#endif
- 
--#if IS_ENABLED(CONFIG_DAX)
--struct dax_device *dax_get_by_host(const char *host);
--void put_dax(struct dax_device *dax_dev);
--#else
--static inline struct dax_device *dax_get_by_host(const char *host)
-+static inline struct dax_device *fs_dax_get_by_host(const char *host)
- {
- 	return NULL;
++	set_bit(NDD_LOCKED, &nvdimm->flags);
  }
  
--static inline void put_dax(struct dax_device *dax_dev)
-+static inline void fs_put_dax(struct dax_device *dax_dev)
- {
- }
- #endif
+ static void nvdimm_release(struct device *dev)
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 1b481a5fb966..2f2d8afc684a 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -2240,7 +2240,7 @@ static int init_active_labels(struct nd_region *nd_region)
+ 		 * being activated if it aliases DPA.
+ 		 */
+ 		if (!ndd) {
+-			if ((nvdimm->flags & NDD_ALIASING) == 0)
++			if (!test_bit(NDD_ALIASING, &nvdimm->flags))
+ 				return 0;
+ 			dev_dbg(&nd_region->dev, "%s: is disabled, failing probe\n",
+ 					dev_name(&nd_mapping->nvdimm->dev));
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index c3b33cf655fb..77d032192bf7 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -240,6 +240,7 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 		unsigned int len);
+ void nvdimm_set_aliasing(struct device *dev);
++void nvdimm_set_locked(struct device *dev);
+ struct nd_btt *to_nd_btt(struct device *dev);
+ 
+ struct nd_gen_sb {
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 07756b2e1cd5..b550edf2571f 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -222,7 +222,7 @@ int nd_region_to_nstype(struct nd_region *nd_region)
+ 			struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 			struct nvdimm *nvdimm = nd_mapping->nvdimm;
+ 
+-			if (nvdimm->flags & NDD_ALIASING)
++			if (test_bit(NDD_ALIASING, &nvdimm->flags))
+ 				alias++;
+ 		}
+ 		if (alias)
+@@ -881,7 +881,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 			return NULL;
+ 		}
+ 
+-		if (nvdimm->flags & NDD_UNARMED)
++		if (test_bit(NDD_UNARMED, &nvdimm->flags))
+ 			ro = 1;
+ 	}
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f07b1b14159a..6c807017128d 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -20,9 +20,11 @@
+ 
+ enum {
+ 	/* when a dimm supports both PMEM and BLK access a label is required */
+-	NDD_ALIASING = 1 << 0,
++	NDD_ALIASING = 0,
+ 	/* unarmed memory devices may not persist writes */
+-	NDD_UNARMED = 1 << 1,
++	NDD_UNARMED = 1,
++	/* locked memory devices should not be accessed */
++	NDD_LOCKED = 2,
+ 
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
