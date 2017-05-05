@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 96F6621A13489
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 14:02:59 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 1/2] libnvdimm: add an atomic vs process context flag to
- rw_bytes
-Date: Wed, 10 May 2017 15:01:30 -0600
-Message-Id: <20170510210131.27157-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8D04F21A134AE
+ for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 00:25:10 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 2/4] mm: Fix data corruption due to stale mmap reads
+Date: Fri,  5 May 2017 09:24:58 +0200
+Message-Id: <20170505072500.25692-3-jack@suse.cz>
+In-Reply-To: <20170505072500.25692-1-jack@suse.cz>
+References: <20170505072500.25692-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,411 +22,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-nsio_rw_bytes can clear media errors, but this cannot be done while we
-are in an atomic context due to locking within ACPI. From the BTT,
-->rw_bytes may be called either from atomic or process context depending
-on whether the calls happen during initialization or during IO.
+Currently, we didn't invalidate page tables during
+invalidate_inode_pages2() for DAX. That could result in e.g. 2MiB zero
+page being mapped into page tables while there were already underlying
+blocks allocated and thus data seen through mmap were different from
+data seen by read(2). The following sequence reproduces the problem:
 
-During init, we want to ensure error clearing happens, and the flag
-marking process context allows nsio_rw_bytes to do that. When called
-during IO, we're in atomic context, and error clearing can be skipped.
+- open an mmap over a 2MiB hole
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+- read from a 2MiB hole, faulting in a 2MiB zero page
+
+- write to the hole with write(3p).  The write succeeds but we
+  incorrectly leave the 2MiB zero page mapping intact.
+
+- via the mmap, read the data that was just written.  Since the zero
+  page mapping is still intact we read back zeroes instead of the new
+  data.
+
+Fix the problem by unconditionally calling
+invalidate_inode_pages2_range() in dax_iomap_actor() for new block
+allocations and by properly invalidating page tables in
+invalidate_inode_pages2_range() for DAX mappings.
+
+Fixes: c6dcf52c23d2d3fb5235cec42d7dd3f786b87d55
+CC: stable@vger.kernel.org
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/blk.c      |  3 ++-
- drivers/nvdimm/btt.c      | 67 +++++++++++++++++++++++++----------------------
- drivers/nvdimm/btt_devs.c |  2 +-
- drivers/nvdimm/claim.c    |  6 +++--
- drivers/nvdimm/nd.h       |  1 +
- drivers/nvdimm/pfn_devs.c |  4 +--
- include/linux/nd.h        | 12 +++++----
- 7 files changed, 53 insertions(+), 42 deletions(-)
+ fs/dax.c      |  2 +-
+ mm/truncate.c | 12 +++++++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index 9faaa96..822198a 100644
---- a/drivers/nvdimm/blk.c
-+++ b/drivers/nvdimm/blk.c
-@@ -218,7 +218,8 @@ static blk_qc_t nd_blk_make_request(struct request_queue *q, struct bio *bio)
- }
- 
- static int nsblk_rw_bytes(struct nd_namespace_common *ndns,
--		resource_size_t offset, void *iobuf, size_t n, int rw)
-+		resource_size_t offset, void *iobuf, size_t n, int rw,
-+		unsigned long flags)
- {
- 	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(&ndns->dev);
- 	struct nd_blk_region *ndbr = to_ndbr(nsblk);
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 368795a..aa977cd 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -32,25 +32,25 @@ enum log_ent_request {
- };
- 
- static int arena_read_bytes(struct arena_info *arena, resource_size_t offset,
--		void *buf, size_t n)
-+		void *buf, size_t n, unsigned long flags)
- {
- 	struct nd_btt *nd_btt = arena->nd_btt;
- 	struct nd_namespace_common *ndns = nd_btt->ndns;
- 
- 	/* arena offsets are 4K from the base of the device */
- 	offset += SZ_4K;
--	return nvdimm_read_bytes(ndns, offset, buf, n);
-+	return nvdimm_read_bytes(ndns, offset, buf, n, flags);
- }
- 
- static int arena_write_bytes(struct arena_info *arena, resource_size_t offset,
--		void *buf, size_t n)
-+		void *buf, size_t n, unsigned long flags)
- {
- 	struct nd_btt *nd_btt = arena->nd_btt;
- 	struct nd_namespace_common *ndns = nd_btt->ndns;
- 
- 	/* arena offsets are 4K from the base of the device */
- 	offset += SZ_4K;
--	return nvdimm_write_bytes(ndns, offset, buf, n);
-+	return nvdimm_write_bytes(ndns, offset, buf, n, flags);
- }
- 
- static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
-@@ -58,19 +58,19 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
- 	int ret;
- 
- 	ret = arena_write_bytes(arena, arena->info2off, super,
--			sizeof(struct btt_sb));
-+			sizeof(struct btt_sb), 0);
- 	if (ret)
- 		return ret;
- 
- 	return arena_write_bytes(arena, arena->infooff, super,
--			sizeof(struct btt_sb));
-+			sizeof(struct btt_sb), 0);
- }
- 
- static int btt_info_read(struct arena_info *arena, struct btt_sb *super)
- {
- 	WARN_ON(!super);
- 	return arena_read_bytes(arena, arena->infooff, super,
--			sizeof(struct btt_sb));
-+			sizeof(struct btt_sb), 0);
- }
- 
- /*
-@@ -79,16 +79,17 @@ static int btt_info_read(struct arena_info *arena, struct btt_sb *super)
-  *   mapping is in little-endian
-  *   mapping contains 'E' and 'Z' flags as desired
-  */
--static int __btt_map_write(struct arena_info *arena, u32 lba, __le32 mapping)
-+static int __btt_map_write(struct arena_info *arena, u32 lba, __le32 mapping,
-+		unsigned long flags)
- {
- 	u64 ns_off = arena->mapoff + (lba * MAP_ENT_SIZE);
- 
- 	WARN_ON(lba >= arena->external_nlba);
--	return arena_write_bytes(arena, ns_off, &mapping, MAP_ENT_SIZE);
-+	return arena_write_bytes(arena, ns_off, &mapping, MAP_ENT_SIZE, flags);
- }
- 
- static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
--			u32 z_flag, u32 e_flag)
-+			u32 z_flag, u32 e_flag, unsigned long rwb_flags)
- {
- 	u32 ze;
- 	__le32 mapping_le;
-@@ -127,11 +128,11 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
+diff --git a/fs/dax.c b/fs/dax.c
+index 565c2ea63135..72853669a356 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1003,7 +1003,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 	 * into page tables. We have to tear down these mappings so that data
+ 	 * written by write(2) is visible in mmap.
+ 	 */
+-	if ((iomap->flags & IOMAP_F_NEW) && inode->i_mapping->nrpages) {
++	if (iomap->flags & IOMAP_F_NEW) {
+ 		invalidate_inode_pages2_range(inode->i_mapping,
+ 					      pos >> PAGE_SHIFT,
+ 					      (end - 1) >> PAGE_SHIFT);
+diff --git a/mm/truncate.c b/mm/truncate.c
+index 706cff171a15..6479ed2afc53 100644
+--- a/mm/truncate.c
++++ b/mm/truncate.c
+@@ -686,7 +686,17 @@ int invalidate_inode_pages2_range(struct address_space *mapping,
+ 		cond_resched();
+ 		index++;
  	}
- 
- 	mapping_le = cpu_to_le32(mapping);
--	return __btt_map_write(arena, lba, mapping_le);
-+	return __btt_map_write(arena, lba, mapping_le, rwb_flags);
- }
- 
- static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
--			int *trim, int *error)
-+			int *trim, int *error, unsigned long rwb_flags)
- {
- 	int ret;
- 	__le32 in;
-@@ -140,7 +141,7 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
- 
- 	WARN_ON(lba >= arena->external_nlba);
- 
--	ret = arena_read_bytes(arena, ns_off, &in, MAP_ENT_SIZE);
-+	ret = arena_read_bytes(arena, ns_off, &in, MAP_ENT_SIZE, rwb_flags);
- 	if (ret)
- 		return ret;
- 
-@@ -189,7 +190,7 @@ static int btt_log_read_pair(struct arena_info *arena, u32 lane,
- 	WARN_ON(!ent);
- 	return arena_read_bytes(arena,
- 			arena->logoff + (2 * lane * LOG_ENT_SIZE), ent,
--			2 * LOG_ENT_SIZE);
-+			2 * LOG_ENT_SIZE, 0);
- }
- 
- static struct dentry *debugfs_root;
-@@ -335,7 +336,7 @@ static int btt_log_read(struct arena_info *arena, u32 lane,
-  * btt_flog_write is the wrapper for updating the freelist elements
-  */
- static int __btt_log_write(struct arena_info *arena, u32 lane,
--			u32 sub, struct log_entry *ent)
-+			u32 sub, struct log_entry *ent, unsigned long flags)
- {
- 	int ret;
- 	/*
-@@ -350,13 +351,13 @@ static int __btt_log_write(struct arena_info *arena, u32 lane,
- 	void *src = ent;
- 
- 	/* split the 16B write into atomic, durable halves */
--	ret = arena_write_bytes(arena, ns_off, src, log_half);
-+	ret = arena_write_bytes(arena, ns_off, src, log_half, flags);
- 	if (ret)
- 		return ret;
- 
- 	ns_off += log_half;
- 	src += log_half;
--	return arena_write_bytes(arena, ns_off, src, log_half);
-+	return arena_write_bytes(arena, ns_off, src, log_half, flags);
- }
- 
- static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
-@@ -364,7 +365,7 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
- {
- 	int ret;
- 
--	ret = __btt_log_write(arena, lane, sub, ent);
-+	ret = __btt_log_write(arena, lane, sub, ent, NVDIMM_IO_ATOMIC);
- 	if (ret)
- 		return ret;
- 
-@@ -397,7 +398,7 @@ static int btt_map_init(struct arena_info *arena)
- 		size_t size = min(mapsize, chunk_size);
- 
- 		ret = arena_write_bytes(arena, arena->mapoff + offset, zerobuf,
--				size);
-+				size, 0);
- 		if (ret)
- 			goto free;
- 
-@@ -428,10 +429,10 @@ static int btt_log_init(struct arena_info *arena)
- 		log.old_map = cpu_to_le32(arena->external_nlba + i);
- 		log.new_map = cpu_to_le32(arena->external_nlba + i);
- 		log.seq = cpu_to_le32(LOG_SEQ_INIT);
--		ret = __btt_log_write(arena, i, 0, &log);
-+		ret = __btt_log_write(arena, i, 0, &log, 0);
- 		if (ret)
- 			return ret;
--		ret = __btt_log_write(arena, i, 1, &zerolog);
-+		ret = __btt_log_write(arena, i, 1, &zerolog, 0);
- 		if (ret)
- 			return ret;
- 	}
-@@ -470,7 +471,7 @@ static int btt_freelist_init(struct arena_info *arena)
- 
- 		/* Check if map recovery is needed */
- 		ret = btt_map_read(arena, le32_to_cpu(log_new.lba), &map_entry,
--				NULL, NULL);
-+				NULL, NULL, 0);
- 		if (ret)
- 			return ret;
- 		if ((le32_to_cpu(log_new.new_map) != map_entry) &&
-@@ -480,7 +481,7 @@ static int btt_freelist_init(struct arena_info *arena)
- 			 * to complete the map write. So fix up the map.
- 			 */
- 			ret = btt_map_write(arena, le32_to_cpu(log_new.lba),
--					le32_to_cpu(log_new.new_map), 0, 0);
-+					le32_to_cpu(log_new.new_map), 0, 0, 0);
- 			if (ret)
- 				return ret;
- 		}
-@@ -875,7 +876,7 @@ static int btt_data_read(struct arena_info *arena, struct page *page,
- 	u64 nsoff = to_namespace_offset(arena, lba);
- 	void *mem = kmap_atomic(page);
- 
--	ret = arena_read_bytes(arena, nsoff, mem + off, len);
-+	ret = arena_read_bytes(arena, nsoff, mem + off, len, NVDIMM_IO_ATOMIC);
- 	kunmap_atomic(mem);
- 
+-
++	/*
++	 * For DAX we invalidate page tables after invalidating radix tree.  We
++	 * could invalidate page tables while invalidating each entry however
++	 * that would be expensive. And doing range unmapping before doesn't
++	 * work as we have no cheap way to find whether radix tree entry didn't
++	 * get remapped later.
++	 */
++	if (dax_mapping(mapping)) {
++		unmap_mapping_range(mapping, (loff_t)start << PAGE_SHIFT,
++				    (loff_t)(end - start + 1) << PAGE_SHIFT, 0);
++	}
+ out:
+ 	cleancache_invalidate_inode(mapping);
  	return ret;
-@@ -888,7 +889,7 @@ static int btt_data_write(struct arena_info *arena, u32 lba,
- 	u64 nsoff = to_namespace_offset(arena, lba);
- 	void *mem = kmap_atomic(page);
- 
--	ret = arena_write_bytes(arena, nsoff, mem + off, len);
-+	ret = arena_write_bytes(arena, nsoff, mem + off, len, NVDIMM_IO_ATOMIC);
- 	kunmap_atomic(mem);
- 
- 	return ret;
-@@ -931,10 +932,12 @@ static int btt_rw_integrity(struct btt *btt, struct bio_integrity_payload *bip,
- 		mem = kmap_atomic(bv.bv_page);
- 		if (rw)
- 			ret = arena_write_bytes(arena, meta_nsoff,
--					mem + bv.bv_offset, cur_len);
-+					mem + bv.bv_offset, cur_len,
-+					NVDIMM_IO_ATOMIC);
- 		else
- 			ret = arena_read_bytes(arena, meta_nsoff,
--					mem + bv.bv_offset, cur_len);
-+					mem + bv.bv_offset, cur_len,
-+					NVDIMM_IO_ATOMIC);
- 
- 		kunmap_atomic(mem);
- 		if (ret)
-@@ -976,7 +979,8 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 
- 		cur_len = min(btt->sector_size, len);
- 
--		ret = btt_map_read(arena, premap, &postmap, &t_flag, &e_flag);
-+		ret = btt_map_read(arena, premap, &postmap, &t_flag, &e_flag,
-+				NVDIMM_IO_ATOMIC);
- 		if (ret)
- 			goto out_lane;
- 
-@@ -1006,7 +1010,7 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 			barrier();
- 
- 			ret = btt_map_read(arena, premap, &new_map, &t_flag,
--						&e_flag);
-+						&e_flag, NVDIMM_IO_ATOMIC);
- 			if (ret)
- 				goto out_rtt;
- 
-@@ -1093,7 +1097,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		}
- 
- 		lock_map(arena, premap);
--		ret = btt_map_read(arena, premap, &old_postmap, NULL, NULL);
-+		ret = btt_map_read(arena, premap, &old_postmap, NULL, NULL,
-+				NVDIMM_IO_ATOMIC);
- 		if (ret)
- 			goto out_map;
- 		if (old_postmap >= arena->internal_nlba) {
-@@ -1110,7 +1115,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		if (ret)
- 			goto out_map;
- 
--		ret = btt_map_write(arena, premap, new_postmap, 0, 0);
-+		ret = btt_map_write(arena, premap, new_postmap, 0, 0, 0);
- 		if (ret)
- 			goto out_map;
- 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index 4b76af2..ae00dc0 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -273,7 +273,7 @@ static int __nd_btt_probe(struct nd_btt *nd_btt,
- 	if (!btt_sb || !ndns || !nd_btt)
- 		return -ENODEV;
- 
--	if (nvdimm_read_bytes(ndns, SZ_4K, btt_sb, sizeof(*btt_sb)))
-+	if (nvdimm_read_bytes(ndns, SZ_4K, btt_sb, sizeof(*btt_sb), 0))
- 		return -ENXIO;
- 
- 	if (nvdimm_namespace_capacity(ndns) < SZ_16M)
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 93d128d..7ceb5fa 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -228,7 +228,8 @@ u64 nd_sb_checksum(struct nd_gen_sb *nd_gen_sb)
- EXPORT_SYMBOL(nd_sb_checksum);
- 
- static int nsio_rw_bytes(struct nd_namespace_common *ndns,
--		resource_size_t offset, void *buf, size_t size, int rw)
-+		resource_size_t offset, void *buf, size_t size, int rw,
-+		unsigned long flags)
- {
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
-@@ -259,7 +260,8 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 		 * work around this collision.
- 		 */
- 		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
--				&& (!ndns->claim || !is_nd_btt(ndns->claim))) {
-+				&& !(flags & NVDIMM_IO_ATOMIC)
-+				&& !ndns->claim) {
- 			long cleared;
- 
- 			cleared = nvdimm_clear_poison(&ndns->dev,
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 77d0321..03852d7 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -31,6 +31,7 @@ enum {
- 	ND_MAX_LANES = 256,
- 	SECTOR_SHIFT = 9,
- 	INT_LBASIZE_ALIGNMENT = 64,
-+	NVDIMM_IO_ATOMIC = 1,
- };
- 
- struct nd_poison {
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 335c817..a6c4036 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -357,7 +357,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 	if (!is_nd_pmem(nd_pfn->dev.parent))
- 		return -ENODEV;
- 
--	if (nvdimm_read_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb)))
-+	if (nvdimm_read_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb), 0))
- 		return -ENXIO;
- 
- 	if (memcmp(pfn_sb->signature, sig, PFN_SIG_LEN) != 0)
-@@ -662,7 +662,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
- 
--	return nvdimm_write_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb));
-+	return nvdimm_write_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb), 0);
- }
- 
- /*
-diff --git a/include/linux/nd.h b/include/linux/nd.h
-index fa66aee..194b8e0 100644
---- a/include/linux/nd.h
-+++ b/include/linux/nd.h
-@@ -48,7 +48,7 @@ struct nd_namespace_common {
- 	struct device dev;
- 	struct device *claim;
- 	int (*rw_bytes)(struct nd_namespace_common *, resource_size_t offset,
--			void *buf, size_t size, int rw);
-+			void *buf, size_t size, int rw, unsigned long flags);
- };
- 
- static inline struct nd_namespace_common *to_ndns(struct device *dev)
-@@ -134,9 +134,10 @@ static inline struct nd_namespace_blk *to_nd_namespace_blk(const struct device *
-  * @buf is up-to-date upon return from this routine.
-  */
- static inline int nvdimm_read_bytes(struct nd_namespace_common *ndns,
--		resource_size_t offset, void *buf, size_t size)
-+		resource_size_t offset, void *buf, size_t size,
-+		unsigned long flags)
- {
--	return ndns->rw_bytes(ndns, offset, buf, size, READ);
-+	return ndns->rw_bytes(ndns, offset, buf, size, READ, flags);
- }
- 
- /**
-@@ -152,9 +153,10 @@ static inline int nvdimm_read_bytes(struct nd_namespace_common *ndns,
-  * to media is handled internal to the @ndns driver, if at all.
-  */
- static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
--		resource_size_t offset, void *buf, size_t size)
-+		resource_size_t offset, void *buf, size_t size,
-+		unsigned long flags)
- {
--	return ndns->rw_bytes(ndns, offset, buf, size, WRITE);
-+	return ndns->rw_bytes(ndns, offset, buf, size, WRITE, flags);
- }
- 
- #define MODULE_ALIAS_ND_DEVICE(type) \
 -- 
-2.9.3
+2.12.0
 
 _______________________________________________
 Linux-nvdimm mailing list
