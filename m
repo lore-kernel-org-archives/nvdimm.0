@@ -1,19 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 87D9D21A134BC
- for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 10:15:02 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id C24E721A134BC
+ for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 10:07:31 -0700 (PDT)
+Received: from G4W9120.americas.hpqcorp.net (exchangepmrr1.us.hpecorp.net
+ [16.210.21.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by g9t5008.houston.hpe.com (Postfix) with ESMTPS id 5C76551
+ for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 17:07:30 +0000 (UTC)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: [PATCH v6 2/3] ndctl: add list-errors support
+Date: Fri, 5 May 2017 17:07:27 +0000
+Message-ID: <1494004041.30303.59.camel@hpe.com>
 References: <149393422747.2642.5136375594842641153.stgit@djiang5-desk3.ch.intel.com>
  <149393454673.2642.10490569511477839936.stgit@djiang5-desk3.ch.intel.com>
- <1494004041.30303.59.camel@hpe.com>
-From: Dave Jiang <dave.jiang@intel.com>
-Message-ID: <caa48123-9daa-4ca6-2110-ef7e2a409ca3@intel.com>
-Date: Fri, 5 May 2017 10:14:59 -0700
-MIME-Version: 1.0
-In-Reply-To: <1494004041.30303.59.camel@hpe.com>
+In-Reply-To: <149393454673.2642.10490569511477839936.stgit@djiang5-desk3.ch.intel.com>
 Content-Language: en-US
+Content-ID: <650128CB8B852045BF5B45D3C312A592@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,89 +27,46 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 05/05/2017 10:07 AM, Kani, Toshimitsu wrote:
-> On Thu, 2017-05-04 at 14:49 -0700, Dave Jiang wrote:
->> Adding list-errors command to support displaying of all badblocks in
->> relation to the device rather than the region. This allows the user
->> to know what badblocks to pass in when doing clear-error calls.
->>
->> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
->> ---
->>  Documentation/ndctl-list-errors.txt |   26 +++++++
->>  builtin.h                           |    1
->>  ndctl/clear-error.c                 |  133
->> ++++++++++++++++++++++++++++++++---
->>  ndctl/ndctl.c                       |    1
->>  4 files changed, 151 insertions(+), 10 deletions(-)
->>  create mode 100644 Documentation/ndctl-list-errors.txt
->>
->> diff --git a/Documentation/ndctl-list-errors.txt
->> b/Documentation/ndctl-list-errors.txt
->> new file mode 100644
->> index 0000000..f831ba0
->> --- /dev/null
->> +++ b/Documentation/ndctl-list-errors.txt
->> @@ -0,0 +1,26 @@
->> +ndctl-list-errors(1)
->> +====================
->> +
->> +NAME
->> +----
->> +ndctl-list-errors - list badblocks specifically in relation to a
->> device
->> +
->> +SYNOPSIS
->> +--------
->> +[verse]
->> +'ndctl list-errors' [<options>]
->> +
->> +EXAMPLES
->> +--------
->> +
->> +List bad blocks for the provided device
->> +[verse]
->> +ndctl list-errors -f /dev/dax0.0
->> +
->> +List all badblocks for device /dev/dax0.0.
-> 
-> Hi Dave,
-> 
-> I am not getting sensible values from list-errors.  Also, please
-> describe the output format of this command in the document.
-> 
-> # cat /sys/bus/nd/devices/region0/size
-> 17179869184
-> 
-> # cat /sys/class/dax/dax0.0/size
-> 16909336576
-> 
-> # cat /sys/bus/nd/devices/region0/badblocks
-> 1048576 1
-> 1572864 1
-> 
-> # ndctl list-errors -f /dev/dax0.0
-> 0 3145729
-> 0 3670017
-
-That is very strange. It looks correct with nfit_test for me. How do I
-reproduce your case or do I actually need actual hardware?
-
-
-> 
-> Thanks,
-> -Toshi
-> 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCAyMDE3LTA1LTA0IGF0IDE0OjQ5IC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOg0KPiBB
+ZGRpbmcgbGlzdC1lcnJvcnMgY29tbWFuZCB0byBzdXBwb3J0IGRpc3BsYXlpbmcgb2YgYWxsIGJh
+ZGJsb2NrcyBpbg0KPiByZWxhdGlvbiB0byB0aGUgZGV2aWNlIHJhdGhlciB0aGFuIHRoZSByZWdp
+b24uIFRoaXMgYWxsb3dzIHRoZSB1c2VyDQo+IHRvIGtub3cgd2hhdCBiYWRibG9ja3MgdG8gcGFz
+cyBpbiB3aGVuIGRvaW5nIGNsZWFyLWVycm9yIGNhbGxzLg0KPiANCj4gU2lnbmVkLW9mZi1ieTog
+RGF2ZSBKaWFuZyA8ZGF2ZS5qaWFuZ0BpbnRlbC5jb20+DQo+IC0tLQ0KPiDCoERvY3VtZW50YXRp
+b24vbmRjdGwtbGlzdC1lcnJvcnMudHh0IHzCoMKgwqAyNiArKysrKysrDQo+IMKgYnVpbHRpbi5o
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKg
+wqDCoMKgMcKgDQo+IMKgbmRjdGwvY2xlYXItZXJyb3IuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqB8wqDCoDEzMw0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0t
+LQ0KPiDCoG5kY3RsL25kY3RsLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgfMKgwqDCoMKgMcKgDQo+IMKgNCBmaWxlcyBjaGFuZ2VkLCAxNTEgaW5zZXJ0aW9u
+cygrKSwgMTAgZGVsZXRpb25zKC0pDQo+IMKgY3JlYXRlIG1vZGUgMTAwNjQ0IERvY3VtZW50YXRp
+b24vbmRjdGwtbGlzdC1lcnJvcnMudHh0DQo+IA0KPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlv
+bi9uZGN0bC1saXN0LWVycm9ycy50eHQNCj4gYi9Eb2N1bWVudGF0aW9uL25kY3RsLWxpc3QtZXJy
+b3JzLnR4dA0KPiBuZXcgZmlsZSBtb2RlIDEwMDY0NA0KPiBpbmRleCAwMDAwMDAwLi5mODMxYmEw
+DQo+IC0tLSAvZGV2L251bGwNCj4gKysrIGIvRG9jdW1lbnRhdGlvbi9uZGN0bC1saXN0LWVycm9y
+cy50eHQNCj4gQEAgLTAsMCArMSwyNiBAQA0KPiArbmRjdGwtbGlzdC1lcnJvcnMoMSkNCj4gKz09
+PT09PT09PT09PT09PT09PT09DQo+ICsNCj4gK05BTUUNCj4gKy0tLS0NCj4gK25kY3RsLWxpc3Qt
+ZXJyb3JzIC0gbGlzdCBiYWRibG9ja3Mgc3BlY2lmaWNhbGx5IGluIHJlbGF0aW9uIHRvIGENCj4g
+ZGV2aWNlDQo+ICsNCj4gK1NZTk9QU0lTDQo+ICstLS0tLS0tLQ0KPiArW3ZlcnNlXQ0KPiArJ25k
+Y3RsIGxpc3QtZXJyb3JzJyBbPG9wdGlvbnM+XQ0KPiArDQo+ICtFWEFNUExFUw0KPiArLS0tLS0t
+LS0NCj4gKw0KPiArTGlzdCBiYWQgYmxvY2tzIGZvciB0aGUgcHJvdmlkZWQgZGV2aWNlDQo+ICtb
+dmVyc2VdDQo+ICtuZGN0bCBsaXN0LWVycm9ycyAtZiAvZGV2L2RheDAuMA0KPiArDQo+ICtMaXN0
+IGFsbCBiYWRibG9ja3MgZm9yIGRldmljZSAvZGV2L2RheDAuMC4NCg0KSGkgRGF2ZSwNCg0KSSBh
+bSBub3QgZ2V0dGluZyBzZW5zaWJsZSB2YWx1ZXMgZnJvbSBsaXN0LWVycm9ycy4gIEFsc28sIHBs
+ZWFzZQ0KZGVzY3JpYmUgdGhlIG91dHB1dCBmb3JtYXQgb2YgdGhpcyBjb21tYW5kIGluIHRoZSBk
+b2N1bWVudC4NCg0KIyBjYXQgL3N5cy9idXMvbmQvZGV2aWNlcy9yZWdpb24wL3NpemUNCjE3MTc5
+ODY5MTg0DQoNCiMgY2F0IC9zeXMvY2xhc3MvZGF4L2RheDAuMC9zaXplDQoxNjkwOTMzNjU3Ng0K
+DQojIGNhdCAvc3lzL2J1cy9uZC9kZXZpY2VzL3JlZ2lvbjAvYmFkYmxvY2tzDQoxMDQ4NTc2IDEN
+CjE1NzI4NjQgMQ0KDQojIG5kY3RsIGxpc3QtZXJyb3JzIC1mIC9kZXYvZGF4MC4wDQowIDMxNDU3
+MjkNCjAgMzY3MDAxNw0KDQpUaGFua3MsDQotVG9zaGkNCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgt
+bnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xpbnV4LW52ZGltbQo=
