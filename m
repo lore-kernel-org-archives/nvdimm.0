@@ -1,22 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 731C021A1348D
- for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 15:44:44 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2] x86, uaccess: introduce copy_from_iter_wt for pmem /
- writethrough operations
-Date: Fri, 5 May 2017 22:44:40 +0000
-Message-ID: <1494024273.30303.71.camel@hpe.com>
+Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
+ [IPv6:2607:f8b0:4003:c06::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7351421A1348E
+ for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 15:25:04 -0700 (PDT)
+Received: by mail-oi0-x233.google.com with SMTP id w10so2374093oif.0
+ for <linux-nvdimm@lists.01.org>; Fri, 05 May 2017 15:25:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1494016773.30303.69.camel@hpe.com>
 References: <20170427063054.soejyqocqqrihfdw@gmail.com>
  <149340820800.28724.16189291963486607562.stgit@dwillia2-desk3.amr.corp.intel.com>
  <1494016773.30303.69.camel@hpe.com>
- <CAPcyv4igCk9EBXSCVr8W1B-oNwq8q5kr7AMTkwvnMAhdwMgjRA@mail.gmail.com>
-In-Reply-To: <CAPcyv4igCk9EBXSCVr8W1B-oNwq8q5kr7AMTkwvnMAhdwMgjRA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <8A23498DC05EBE4FACADA88123ACAA65@NAMPRD84.PROD.OUTLOOK.COM>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 5 May 2017 15:25:03 -0700
+Message-ID: <CAPcyv4igCk9EBXSCVr8W1B-oNwq8q5kr7AMTkwvnMAhdwMgjRA@mail.gmail.com>
+Subject: Re: [PATCH v2] x86, uaccess: introduce copy_from_iter_wt for pmem /
+ writethrough operations
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,40 +24,78 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Cc: "jack@suse.cz" <jack@suse.cz>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "mingo@redhat.com" <mingo@redhat.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "hpa@zytor.com" <hpa@zytor.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "hch@lst.de" <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE3LTA1LTA1IGF0IDE1OjI1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIEZyaSwgTWF5IDUsIDIwMTcgYXQgMTozOSBQTSwgS2FuaSwgVG9zaGltaXRzdSA8dG9zaGku
-a2FuaUBocGUuY29tPg0KPiB3cm90ZToNCiA6DQo+ID4gPiAtLS0NCj4gPiA+IENoYW5nZXMgc2lu
-Y2UgdGhlIGluaXRpYWwgUkZDOg0KPiA+ID4gKiBzL3dyaXRldGhydS93dC8gc2luY2Ugd2UgYWxy
-ZWFkeSBoYXZlIGlvcmVtYXBfd3QoKSwNCj4gPiA+IHNldF9tZW1vcnlfd3QoKSwgZXRjLiAoSW5n
-bykNCj4gPiANCj4gPiBTb3JyeSBJIHNob3VsZCBoYXZlIHNhaWQgZWFybGllciwgYnV0IEkgdGhp
-bmsgdGhlIHRlcm0gInd0IiBpcw0KPiA+IG1pc2xlYWRpbmcuwqDCoE5vbi10ZW1wb3JhbCBzdG9y
-ZXMgdXNlZCBpbiBtZW1jcHlfd3QoKSBwcm92aWRlIFdDDQo+ID4gc2VtYW50aWNzLCBub3QgV1Qg
-c2VtYW50aWNzLg0KPiANCj4gVGhlIG5vbi10ZW1wb3JhbCBzdG9yZXMgZG8sIGJ1dCBtZW1jcHlf
-d3QoKSBpcyB1c2luZyBhIGNvbWJpbmF0aW9uIG9mDQo+IG5vbi10ZW1wb3JhbCBzdG9yZXMgYW5k
-IGV4cGxpY2l0IGNhY2hlIGZsdXNoaW5nLg0KPiANCj4gPiBIb3cgYWJvdXQgdXNpbmcgIm5vY2Fj
-aGUiIGFzIGl0J3MgYmVlbg0KPiA+IHVzZWQgaW4gX19jb3B5X3VzZXJfbm9jYWNoZSgpPw0KPiAN
-Cj4gVGhlIGRpZmZlcmVuY2UgaW4gbXkgbWluZCBpcyB0aGF0IHRoZSAiX25vY2FjaGUiIHN1ZmZp
-eCBpbmRpY2F0ZXMNCj4gb3Bwb3J0dW5pc3RpYyAvIG9wdGlvbmFsIGNhY2hlIHBvbGx1dGlvbiBh
-dm9pZGFuY2Ugd2hlcmVhcyAiX3d0Ig0KPiBzdHJpY3RseSBhcnJhbmdlcyBmb3IgY2FjaGVzIG5v
-dCB0byBjb250YWluIGRpcnR5IGRhdGEgdXBvbg0KPiBjb21wbGV0aW9uIG9mIHRoZSByb3V0aW5l
-LiBGb3IgZXhhbXBsZSwgbm9uLXRlbXBvcmFsIHN0b3JlcyBvbiBvbGRlcg0KPiB4ODYgY3B1cyBj
-b3VsZCBwb3RlbnRpYWxseSBsZWF2ZSBkaXJ0eSBkYXRhIGluIHRoZSBjYWNoZSwgc28NCj4gbWVt
-Y3B5X3d0IG9uIHRob3NlIGNwdXMgd291bGQgbmVlZCB0byB1c2UgZXhwbGljaXQgY2FjaGUgZmx1
-c2hpbmcuDQoNCkkgc2VlLiAgSSBhZ3JlZSB0aGF0IGl0cyBiZWhhdmlvciBpcyBkaWZmZXJlbnQg
-ZnJvbSB0aGUgZXhpc3Rpbmcgb25lDQp3aXRoICJfbm9jYWNoZSIuICAgVGhhdCBzYWlkLCBJIHRo
-aW5rICJ3dCIgb3IgIndyaXRlLXRocm91Z2giIGdlbmVyYWxseQ0KbWVhbnMgdGhhdCB3cml0ZXMg
-YWxsb2NhdGUgY2FjaGVsaW5lcyBhbmQga2VlcCB0aGVtIGNsZWFuIGJ5IHdyaXRpbmcgdG8NCm1l
-bW9yeS4gIFNvLCBzdWJzZXF1ZW50IHJlYWRzIHRvIHRoZSBkZXN0aW5hdGlvbiB3aWxsIGhpdCB0
-aGUNCmNhY2hlbGluZXMuICBUaGlzIGlzIG5vdCB0aGUgY2FzZSB3aXRoIHRoaXMgaW50ZXJmYWNl
-Lg0KDQpUaGFua3MsDQotVG9zaGkNCiAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+On Fri, May 5, 2017 at 1:39 PM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
+> On Fri, 2017-04-28 at 12:39 -0700, Dan Williams wrote:
+>> The pmem driver has a need to transfer data with a persistent memory
+>> destination and be able to rely on the fact that the destination
+>> writes are not cached. It is sufficient for the writes to be flushed
+>> to a cpu-store-buffer (non-temporal / "movnt" in x86 terms), as we
+>> expect userspace to call fsync() to ensure data-writes have reached a
+>> power-fail-safe zone in the platform. The fsync() triggers a REQ_FUA
+>> or REQ_FLUSH to the pmem driver which will turn around and fence
+>> previous writes with an "sfence".
+>>
+>> Implement a __copy_from_user_inatomic_wt, memcpy_page_wt, and
+>> memcpy_wt, that guarantee that the destination buffer is not dirty in
+>> the cpu cache on completion. The new copy_from_iter_wt and sub-
+>> routines will be used to replace the "pmem api" (include/linux/pmem.h
+>> + arch/x86/include/asm/pmem.h). The availability of
+>> copy_from_iter_wt() and memcpy_wt() are gated by the
+>> CONFIG_ARCH_HAS_UACCESS_WT config symbol, and fallback to
+>> copy_from_iter_nocache() and plain memcpy() otherwise.
+>>
+>> This is meant to satisfy the concern from Linus that if a driver
+>> wants to do something beyond the normal nocache semantics it should
+>> be something private to that driver [1], and Al's concern that
+>> anything uaccess related belongs with the rest of the uaccess code
+>> [2].
+>>
+>> [1]: https://lists.01.org/pipermail/linux-nvdimm/2017-January/008364.
+>> html
+>> [2]: https://lists.01.org/pipermail/linux-nvdimm/2017-April/009942.ht
+>> ml
+>>
+>> Cc: <x86@kernel.org>
+>> Cc: Jan Kara <jack@suse.cz>
+>> Cc: Jeff Moyer <jmoyer@redhat.com>
+>> Cc: Ingo Molnar <mingo@redhat.com>
+>> Cc: Christoph Hellwig <hch@lst.de>
+>> Cc: "H. Peter Anvin" <hpa@zytor.com>
+>> Cc: Al Viro <viro@zeniv.linux.org.uk>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Matthew Wilcox <mawilcox@microsoft.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>> Changes since the initial RFC:
+>> * s/writethru/wt/ since we already have ioremap_wt(),
+>> set_memory_wt(), etc. (Ingo)
+>
+> Sorry I should have said earlier, but I think the term "wt" is
+> misleading.  Non-temporal stores used in memcpy_wt() provide WC
+> semantics, not WT semantics.
+
+The non-temporal stores do, but memcpy_wt() is using a combination of
+non-temporal stores and explicit cache flushing.
+
+> How about using "nocache" as it's been
+> used in __copy_user_nocache()?
+
+The difference in my mind is that the "_nocache" suffix indicates
+opportunistic / optional cache pollution avoidance whereas "_wt"
+strictly arranges for caches not to contain dirty data upon completion
+of the routine. For example, non-temporal stores on older x86 cpus
+could potentially leave dirty data in the cache, so memcpy_wt on those
+cpus would need to use explicit cache flushing.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
