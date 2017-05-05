@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6B40721AF39B6
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:17:40 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: cleanup UUID types V6
-Date: Wed, 31 May 2017 18:18:02 +0200
-Message-Id: <20170531161826.23243-1-hch@lst.de>
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B583B2195DA6F
+ for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 00:25:10 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 3/4] ext4: Return back to starting transaction in
+ ext4_dax_huge_fault()
+Date: Fri,  5 May 2017 09:24:59 +0200
+Message-Id: <20170505072500.25692-4-jack@suse.cz>
+In-Reply-To: <20170505072500.25692-1-jack@suse.cz>
+References: <20170505072500.25692-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,39 +23,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi all,
+DAX will return to locking exceptional entry before mapping blocks
+for a page fault to fix possible races with concurrent writes. To avoid
+lock inversion between exceptional entry lock and transaction start,
+start the transaction already in ext4_dax_huge_fault().
 
-this series, which is a combined effort from Amir, Andy and me introduces
-new uuid_t and guid_t type names that are less confusing than the existing
-types, adds new helpers for them and starts switching the fs code over to
-it.  Andy has additional patches on top to convert many of the users
-that use char arrays for UUIDs and GUIDs to these (or rather a predecessor
-for now until updated).
+Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
+CC: stable@vger.kernel.org
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ fs/ext4/file.c | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-Changes since V5:
- - fix the AFS revert to respect endianess
- - rename uuid_to_bin to uuid_parse
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index cefa9835f275..831fd6beebf0 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -257,6 +257,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+ 	int result;
++	handle_t *handle = NULL;
+ 	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+@@ -264,12 +265,24 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+ 	if (write) {
+ 		sb_start_pagefault(sb);
+ 		file_update_time(vmf->vma->vm_file);
++		down_read(&EXT4_I(inode)->i_mmap_sem);
++		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
++					       EXT4_DATA_TRANS_BLOCKS(sb));
++	} else {
++		down_read(&EXT4_I(inode)->i_mmap_sem);
+ 	}
+-	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
+-	up_read(&EXT4_I(inode)->i_mmap_sem);
+-	if (write)
++	if (!IS_ERR(handle))
++		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
++	else
++		result = VM_FAULT_SIGBUS;
++	if (write) {
++		if (!IS_ERR(handle))
++			ext4_journal_stop(handle);
++		up_read(&EXT4_I(inode)->i_mmap_sem);
+ 		sb_end_pagefault(sb);
++	} else {
++		up_read(&EXT4_I(inode)->i_mmap_sem);
++	}
+ 
+ 	return result;
+ }
+-- 
+2.12.0
 
-Changes since V4:
- - removed the patch to remove uuid_be for now
- - move the md patch to the front of the queue
- - remove the union for V1 uuids and provide accessors instead
- - new patch to set s_uuid for tmpfs
- - revert the patch that moved struct uuid_v1 from afs to the core
- - implement the fsid generation differently in XFS due to the
-   change above
- - add a MAINTAINERS entry
-
-Changes since V3:
- - stop exposing uuid_be/uuid_t to userspace
- - remove uuid_be entirely
-
-Changes since V2:
- - various cleanups
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
