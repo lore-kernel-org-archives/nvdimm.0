@@ -1,26 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wm0-x242.google.com (mail-wm0-x242.google.com
- [IPv6:2a00:1450:400c:c09::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A15A821A1348A
- for <linux-nvdimm@lists.01.org>; Sat,  6 May 2017 02:46:57 -0700 (PDT)
-Received: by mail-wm0-x242.google.com with SMTP id z129so5582037wmb.1
- for <linux-nvdimm@lists.01.org>; Sat, 06 May 2017 02:46:57 -0700 (PDT)
-Date: Sat, 6 May 2017 11:46:52 +0200
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2] x86, uaccess: introduce copy_from_iter_wt for pmem /
+ by ml01.01.org (Postfix) with ESMTPS id 8ACDA21A1348D
+ for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 20:17:24 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: RE: [PATCH v2] x86, uaccess: introduce copy_from_iter_wt for pmem /
  writethrough operations
-Message-ID: <20170506094652.sgiwijzursabbiab@gmail.com>
+Date: Sat, 6 May 2017 03:17:19 +0000
+Message-ID: <AT5PR84MB02607F504E354866D8762CD182E80@AT5PR84MB0260.NAMPRD84.PROD.OUTLOOK.COM>
 References: <20170427063054.soejyqocqqrihfdw@gmail.com>
  <149340820800.28724.16189291963486607562.stgit@dwillia2-desk3.amr.corp.intel.com>
  <1494016773.30303.69.camel@hpe.com>
  <CAPcyv4igCk9EBXSCVr8W1B-oNwq8q5kr7AMTkwvnMAhdwMgjRA@mail.gmail.com>
  <1494024273.30303.71.camel@hpe.com>
  <CAPcyv4iHGAGfb1ZUDYovUKs1+tr48CxEbngCHE-QiSFXAjeChA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
 In-Reply-To: <CAPcyv4iHGAGfb1ZUDYovUKs1+tr48CxEbngCHE-QiSFXAjeChA@mail.gmail.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -36,10 +33,8 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: "jack@suse.cz" <jack@suse.cz>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "mingo@redhat.com" <mingo@redhat.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "hpa@zytor.com" <hpa@zytor.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "hch@lst.de" <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-* Dan Williams <dan.j.williams@intel.com> wrote:
-
-> On Fri, May 5, 2017 at 3:44 PM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
+> On Fri, May 5, 2017 at 3:44 PM, Kani, Toshimitsu <toshi.kani@hpe.com>
+> wrote:
 > > On Fri, 2017-05-05 at 15:25 -0700, Dan Williams wrote:
 > >> On Fri, May 5, 2017 at 1:39 PM, Kani, Toshimitsu <toshi.kani@hpe.com>
 > >> wrote:
@@ -77,12 +72,13 @@ List-ID: <linux-nvdimm@lists.01.org>
 > after memcpy_wt(), at which point we can ask "why not just use plain
 > memcpy then?", or set the page-attributes to WT.
 
-Perhaps a _nocache_flush() postfix, to signal both that it's non-temporal and that 
-no cache line is left around afterwards (dirty or clean)?
+I prefer _nocache_strict(), if it's not too long, since it avoids any
+confusion.  If other arches actually implement it with WT semantics,
+we might become the one to change it, instead of the caller.
 
 Thanks,
+-Toshi
 
-	Ingo
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
