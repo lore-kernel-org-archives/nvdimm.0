@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x244.google.com (mail-it0-x244.google.com
- [IPv6:2607:f8b0:4001:c0b::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6858D21A0BABD
- for <linux-nvdimm@lists.01.org>; Tue,  9 May 2017 00:57:21 -0700 (PDT)
-Received: by mail-it0-x244.google.com with SMTP id c26so9691700itd.1
- for <linux-nvdimm@lists.01.org>; Tue, 09 May 2017 00:57:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201705090658.bE7SNvsF%fengguang.wu@intel.com>
-References: <149427742346.38205.12361226658239922137.stgit@dwillia2-desk3.amr.corp.intel.com>
- <201705090658.bE7SNvsF%fengguang.wu@intel.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 9 May 2017 09:57:19 +0200
-Message-ID: <CAMuHMdVpHHY-XGDtDYCt2wN8w_VPQU5t6E4FMr2S42zN7vyN4w@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id EA3C321A0BAA6
+ for <linux-nvdimm@lists.01.org>; Mon,  8 May 2017 15:37:35 -0700 (PDT)
+Date: Tue, 9 May 2017 06:36:55 +0800
+From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH 1/2] block, dax: move "select DAX" from BLOCK to FS_DAX
+Message-ID: <201705090658.bE7SNvsF%fengguang.wu@intel.com>
+MIME-Version: 1.0
+In-Reply-To: <149427742346.38205.12361226658239922137.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,59 +18,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-block@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, kbuild test robot <lkp@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, kbuild-all@01.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgRGFuLAoKT24gVHVlLCBNYXkgOSwgMjAxNyBhdCAxMjozNiBBTSwga2J1aWxkIHRlc3Qgcm9i
-b3QgPGxrcEBpbnRlbC5jb20+IHdyb3RlOgo+IFthdXRvIGJ1aWxkIHRlc3QgRVJST1Igb24gbGlu
-dXMvbWFzdGVyXQo+IFthbHNvIGJ1aWxkIHRlc3QgRVJST1Igb24gbmV4dC0yMDE3MDUwOF0KPiBb
-Y2Fubm90IGFwcGx5IHRvIHY0LjExXQo+IFtpZiB5b3VyIHBhdGNoIGlzIGFwcGxpZWQgdG8gdGhl
-IHdyb25nIGdpdCB0cmVlLCBwbGVhc2UgZHJvcCB1cyBhIG5vdGUgdG8gaGVscCBpbXByb3ZlIHRo
-ZSBzeXN0ZW1dCj4KPiB1cmw6ICAgIGh0dHBzOi8vZ2l0aHViLmNvbS8wZGF5LWNpL2xpbnV4L2Nv
-bW1pdHMvRGFuLVdpbGxpYW1zL2Jsb2NrLWRheC1tb3ZlLXNlbGVjdC1EQVgtZnJvbS1CTE9DSy10
-by1GU19EQVgvMjAxNzA1MDktMDUxNTIyCj4gY29uZmlnOiBwYXJpc2MtYzMwMDBfZGVmY29uZmln
-IChhdHRhY2hlZCBhcyAuY29uZmlnKQo+IGNvbXBpbGVyOiBocHBhLWxpbnV4LWdudS1nY2MgKERl
-YmlhbiA2LjEuMS05KSA2LjEuMSAyMDE2MDcwNQo+IHJlcHJvZHVjZToKPiAgICAgICAgIHdnZXQg
-aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tLzAxb3JnL2xrcC10ZXN0cy9tYXN0ZXIv
-c2Jpbi9tYWtlLmNyb3NzIC1PIH4vYmluL21ha2UuY3Jvc3MKPiAgICAgICAgIGNobW9kICt4IH4v
-YmluL21ha2UuY3Jvc3MKPiAgICAgICAgICMgc2F2ZSB0aGUgYXR0YWNoZWQgLmNvbmZpZyB0byBs
-aW51eCBidWlsZCB0cmVlCj4gICAgICAgICBtYWtlLmNyb3NzIEFSQ0g9cGFyaXNjCj4KPiBBbGwg
-ZXJyb3JzIChuZXcgb25lcyBwcmVmaXhlZCBieSA+Pik6Cj4KPiAgICBmcy9idWlsdC1pbi5vOiBJ
-biBmdW5jdGlvbiBgYmRldl9kYXhfc3VwcG9ydGVkJzoKPj4+ICgudGV4dC5iZGV2X2RheF9zdXBw
-b3J0ZWQrMHg0Yyk6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYGRheF9nZXRfYnlfaG9zdCcKPiAg
-ICBmcy9idWlsdC1pbi5vOiBJbiBmdW5jdGlvbiBgYmRldl9kYXhfc3VwcG9ydGVkJzoKPj4+ICgu
-dGV4dC5iZGV2X2RheF9zdXBwb3J0ZWQrMHg1Yyk6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYGRh
-eF9yZWFkX2xvY2snCj4gICAgZnMvYnVpbHQtaW4ubzogSW4gZnVuY3Rpb24gYGJkZXZfZGF4X3N1
-cHBvcnRlZCc6Cj4+PiAoLnRleHQuYmRldl9kYXhfc3VwcG9ydGVkKzB4N2MpOiB1bmRlZmluZWQg
-cmVmZXJlbmNlIHRvIGBkYXhfZGlyZWN0X2FjY2VzcycKPiAgICBmcy9idWlsdC1pbi5vOiBJbiBm
-dW5jdGlvbiBgYmRldl9kYXhfc3VwcG9ydGVkJzoKPj4+ICgudGV4dC5iZGV2X2RheF9zdXBwb3J0
-ZWQrMHg4OCk6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYGRheF9yZWFkX3VubG9jaycKPiAgICBm
-cy9idWlsdC1pbi5vOiBJbiBmdW5jdGlvbiBgYmRldl9kYXhfc3VwcG9ydGVkJzoKPj4+ICgudGV4
-dC5iZGV2X2RheF9zdXBwb3J0ZWQrMHg5MCk6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYHB1dF9k
-YXgnCgpJIHJhbiBpbnRvIHRoZSBzYW1lIGlzc3VlIGlmIENPTkZJR19EQVg9bSAoaXQncyBzdGls
-bCBzZWxlY3RlZCBieSBzb21lIG90aGVyCm1vZHVsYXIgc3ltYm9sKS4gI2lmIElTX0VOQUJMRUQo
-Q09ORklHX0RBWCkgaXMgdHJ1ZSBpbiB0aGUgbW9kdWxhciBjYXNlLCBzbwp0aGUgZHVtbWllcyBw
-cm92aWRlZCBieSBpbmNsdWRlL2xpbnV4L2RheC5oIGFyZSBub3QgdXNlZC4KCkhvd2V2ZXIsIHdo
-aWxlIGNoYW5naW5nIGl0IHRvICNpZmRlZiBDT05GSUdfREFYIGFsbG93cyB0byBidWlsZCB2bWxp
-bnV4LCBpdApsZWFkcyB0byBvdGhlciBpc3N1ZXMgYXMgREFYIGlzIGNvbXBpbGVkIGFzIGEgbW9k
-dWxlOgoKICAgIGRyaXZlcnMvZGF4L3N1cGVyLmM6MzU6IGVycm9yOiByZWRlZmluaXRpb24gb2Yg
-4oCYZGF4X3JlYWRfbG9ja+KAmQogICAgaW5jbHVkZS9saW51eC9kYXguaDozMDogZXJyb3I6IHBy
-ZXZpb3VzIGRlZmluaXRpb24gb2YK4oCYZGF4X3JlYWRfbG9ja+KAmSB3YXMgaGVyZQoKWWVzLCBj
-YWxsaW5nIGludG8gb3B0aW9uYWwgbW9kdWxhciBjb2RlIGZyb20gYnVpbHRpbiBjb2RlIGluIGZz
-L2Jsb2NrZGV2LmMgaXMKdHJpY2t5IDstKCAgUGVyaGFwcyB5b3UgY2FuIG1ha2UgYmRldl9kYXhf
-c3VwcG9ydGVkKCkgYSBzbWFsbCB3cmFwcGVyCnRoYXQgY2FsbHMgaW50byB0aGUgcmVhbCBjb2Rl
-IHRocm91Z2ggYSBmdW5jdGlvbiBwb2ludGVyLCB3aGVuIHRoZSBEQVggbW9kdWxlCmlzIGF2YWls
-YWJsZT8KCkdye29ldGplLGVldGluZ31zLAoKICAgICAgICAgICAgICAgICAgICAgICAgR2VlcnQK
-Ci0tCkdlZXJ0IFV5dHRlcmhvZXZlbiAtLSBUaGVyZSdzIGxvdHMgb2YgTGludXggYmV5b25kIGlh
-MzIgLS0gZ2VlcnRAbGludXgtbTY4ay5vcmcKCkluIHBlcnNvbmFsIGNvbnZlcnNhdGlvbnMgd2l0
-aCB0ZWNobmljYWwgcGVvcGxlLCBJIGNhbGwgbXlzZWxmIGEgaGFja2VyLiBCdXQKd2hlbiBJJ20g
-dGFsa2luZyB0byBqb3VybmFsaXN0cyBJIGp1c3Qgc2F5ICJwcm9ncmFtbWVyIiBvciBzb21ldGhp
-bmcgbGlrZSB0aGF0LgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC0tIExpbnVzIFRv
-cnZhbGRzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
-L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Hi Dan,
+
+[auto build test ERROR on linus/master]
+[also build test ERROR on next-20170508]
+[cannot apply to v4.11]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/block-dax-move-select-DAX-from-BLOCK-to-FS_DAX/20170509-051522
+config: parisc-c3000_defconfig (attached as .config)
+compiler: hppa-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
+reproduce:
+        wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=parisc 
+
+All errors (new ones prefixed by >>):
+
+   fs/built-in.o: In function `bdev_dax_supported':
+>> (.text.bdev_dax_supported+0x4c): undefined reference to `dax_get_by_host'
+   fs/built-in.o: In function `bdev_dax_supported':
+>> (.text.bdev_dax_supported+0x5c): undefined reference to `dax_read_lock'
+   fs/built-in.o: In function `bdev_dax_supported':
+>> (.text.bdev_dax_supported+0x7c): undefined reference to `dax_direct_access'
+   fs/built-in.o: In function `bdev_dax_supported':
+>> (.text.bdev_dax_supported+0x88): undefined reference to `dax_read_unlock'
+   fs/built-in.o: In function `bdev_dax_supported':
+>> (.text.bdev_dax_supported+0x90): undefined reference to `put_dax'
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
