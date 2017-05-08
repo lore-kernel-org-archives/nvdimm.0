@@ -1,24 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x236.google.com (mail-oi0-x236.google.com
+ [IPv6:2607:f8b0:4003:c06::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B70462195DA43
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 08:05:50 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH 2/2] libnvdimm: clear region badblock in
- nvdimm_clear_poison()
-Date: Mon, 1 May 2017 15:05:46 +0000
-Message-ID: <1493651145.30303.13.camel@hpe.com>
-References: <20170427225706.26791-1-toshi.kani@hpe.com>
- <20170427225706.26791-2-toshi.kani@hpe.com>
- <CAPcyv4j9QPSwpqs9YPjFo=O8RA+NmpsAZhARfNcSqA0TqqMhLA@mail.gmail.com>
- <CAPcyv4gbTEXjLAP6fT2+tT4tqwA9_8D6MYzzD7wZC8cOQNUVKw@mail.gmail.com>
- <CAPcyv4jQGiDEW6QJYi3EeF5f0UkC=FEx4uA-K+_RaEN-JpZGEw@mail.gmail.com>
-In-Reply-To: <CAPcyv4jQGiDEW6QJYi3EeF5f0UkC=FEx4uA-K+_RaEN-JpZGEw@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <969166676757964D8986BBE663CEF769@NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 7F58121A134A6
+ for <linux-nvdimm@lists.01.org>; Mon,  8 May 2017 13:40:09 -0700 (PDT)
+Received: by mail-oi0-x236.google.com with SMTP id h4so65061569oib.3
+ for <linux-nvdimm@lists.01.org>; Mon, 08 May 2017 13:40:09 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170508203220.GA29073@linux.intel.com>
+References: <20170427063054.soejyqocqqrihfdw@gmail.com>
+ <149340820800.28724.16189291963486607562.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170508203220.GA29073@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 8 May 2017 13:40:08 -0700
+Message-ID: <CAPcyv4hsuxPkFo=4B8DgMmwcPQon8yEktzZtCTqvgFLkfBe8ww@mail.gmail.com>
+Subject: Re: [PATCH v2] x86, uaccess: introduce copy_from_iter_wt for pmem /
+ writethrough operations
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,45 +24,63 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, X86 ML <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-block@vger.kernel.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, jmoyer <jmoyer@redhat.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE3LTA0LTI4IGF0IDE3OjM1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIEZyaSwgQXByIDI4LCAyMDE3IGF0IDU6MTIgUE0sIERhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
-bGlhbXNAaW50ZWwuYw0KPiBvbT4gd3JvdGU6DQo+ID4gT24gRnJpLCBBcHIgMjgsIDIwMTcgYXQg
-NToxMCBQTSwgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbA0KPiA+IC5jb20+IHdy
-b3RlOg0KPiA+ID4gT24gVGh1LCBBcHIgMjcsIDIwMTcgYXQgMzo1NyBQTSwgVG9zaGkgS2FuaSA8
-dG9zaGkua2FuaUBocGUuY29tPg0KPiA+ID4gd3JvdGU6DQo+ID4gPiA+IEJhZGJsb2NrcyBhcmUg
-dHJhY2tlZCBhdCBib3RoIHJlZ2lvbiBhbmQgZGV2aWNlIGxldmVscy4NCj4gPiA+ID4gcG1lbV9j
-bGVhcl9wb2lzb24oKSBhbmQgbnNpb19yd19ieXRlcygpIGNhbGwNCj4gPiA+ID4gbnZkaW1tX2Ns
-ZWFyX3BvaXNvbigpIGFuZCB0aGVuIGJhZGJsb2Nrc19jbGVhcigpIHRvIGNsZWFyDQo+ID4gPiA+
-IGJhZGJsb2NrcyBhdCB0aGUgZGV2aWNlIGxldmVsLiBIb3dldmVyLCBpdCBkb2VzIG5vdCB1cGRh
-dGUNCj4gPiA+ID4gYmFkYmxvY2tzIGF0IHRoZSByZWdpb24gbGV2ZWwsIHdoaWNoIG1ha2VzIHRo
-ZW0gaW5jb25zaXN0ZW50Lg0KPiA+ID4gPiANCj4gPiA+ID4gQ2hhbmdlIG52ZGltbV9jbGVhcl9w
-b2lzb24oKSB0byB1cGRhdGUgYmFja2Jsb2NrcyBhdCB0aGUgcmVnaW9uDQo+ID4gPiA+IGxldmVs
-IHRvIGtlZXAgdGhlbSBjb25zaXN0ZW50Lg0KPiA+ID4gPiANCj4gPiA+ID4gU2lnbmVkLW9mZi1i
-eTogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0KPiA+ID4gPiBDYzogRGFuIFdpbGxp
-YW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4gPiA+IENjOiBEYXZlIEppYW5nIDxk
-YXZlLmppYW5nQGludGVsLmNvbT4NCj4gPiA+ID4gQ2M6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
-dmVybWFAaW50ZWwuY29tPg0KPiA+ID4gDQo+ID4gPiBUaGlzIGxvb2tzIGdvb2QsIGFuZCBpdCBz
-ZWVtcyB3ZSBoYXZlIGEgYnVnIGluIHRoZSBvdGhlciBsb2NhdGlvbg0KPiA+ID4gdGhhdCBkb2Vz
-IHRoaXMgaW4gX19uZF9pb2N0bCgpLiBUaGF0IG90aGVyIG9uZSBpcyBtaXNzaW5nIHRoZQ0KPiA+
-ID4gImNsZWFyX2Vyci5jbGVhcmVkIC8gNTEyIiBjaGVjay4gQ2FuIHlvdSByZXNwaW4gdGhpcyBh
-bmQgZGVmaW5lIGENCj4gPiA+IGNvbW1vbiBoZWxwZXIgdGhhdCBib3RoIGxvY2F0aW9ucyBjYW4g
-Y2FsbD8NCj4gPiANCj4gPiBPbiBzZWNvbmQgdGhvdWdodCwgSSdsbCB0YWtlIHRoaXMgYW5kIHNw
-aW4gbXkgb3duIGNsZWFudXAgLyBmaXggb24NCj4gPiB0b3AuDQo+ID4gDQo+ID4gVGhhbmtzIFRv
-c2hpIQ0KPiANCj4gLi4uYW5kIEkgbmVlZCB0byBkcm9wIGl0IGFnYWluIGJlY2F1c2UgaXQgY2F1
-c2VzIHRoaXM6DQo+IA0KPiBbwqDCoDEwNi45NzQ4ODldIEJVRzogc2xlZXBpbmcgZnVuY3Rpb24g
-Y2FsbGVkIGZyb20gaW52YWxpZCBjb250ZXh0IGF0DQo+IGtlcm5lbC9sb2NraW5nL211dGV4LmM6
-NzQ3DQo+IFvCoMKgMTA2Ljk3NzMyOF0gaW5fYXRvbWljKCk6IDEsIGlycXNfZGlzYWJsZWQoKTog
-MCwgcGlkOiA1NTg0LCBuYW1lOg0KPiBkZA0KDQpTb3JyeSwgSSBzaG91bGQgaGF2ZSB0ZXN0ZWQg
-d2l0aCBDT05GSUdfREVCVUdfQVRPTUlDX1NMRUVQIHNldC4gIFRoYW5rcw0KZm9yIHN0cmFpZ2h0
-ZW4gaXQgb3V0IGluIHlvdXIgcGF0Y2ghwqANCg0KLVRvc2hpIA0KX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbnZkaW1tCg==
+On Mon, May 8, 2017 at 1:32 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Fri, Apr 28, 2017 at 12:39:12PM -0700, Dan Williams wrote:
+>> The pmem driver has a need to transfer data with a persistent memory
+>> destination and be able to rely on the fact that the destination writes
+>> are not cached. It is sufficient for the writes to be flushed to a
+>> cpu-store-buffer (non-temporal / "movnt" in x86 terms), as we expect
+>> userspace to call fsync() to ensure data-writes have reached a
+>> power-fail-safe zone in the platform. The fsync() triggers a REQ_FUA or
+>> REQ_FLUSH to the pmem driver which will turn around and fence previous
+>> writes with an "sfence".
+>>
+>> Implement a __copy_from_user_inatomic_wt, memcpy_page_wt, and memcpy_wt,
+>> that guarantee that the destination buffer is not dirty in the cpu cache
+>> on completion. The new copy_from_iter_wt and sub-routines will be used
+>> to replace the "pmem api" (include/linux/pmem.h +
+>> arch/x86/include/asm/pmem.h). The availability of copy_from_iter_wt()
+>> and memcpy_wt() are gated by the CONFIG_ARCH_HAS_UACCESS_WT config
+>> symbol, and fallback to copy_from_iter_nocache() and plain memcpy()
+>> otherwise.
+>>
+>> This is meant to satisfy the concern from Linus that if a driver wants
+>> to do something beyond the normal nocache semantics it should be
+>> something private to that driver [1], and Al's concern that anything
+>> uaccess related belongs with the rest of the uaccess code [2].
+>>
+>> [1]: https://lists.01.org/pipermail/linux-nvdimm/2017-January/008364.html
+>> [2]: https://lists.01.org/pipermail/linux-nvdimm/2017-April/009942.html
+>>
+>> Cc: <x86@kernel.org>
+>> Cc: Jan Kara <jack@suse.cz>
+>> Cc: Jeff Moyer <jmoyer@redhat.com>
+>> Cc: Ingo Molnar <mingo@redhat.com>
+>> Cc: Christoph Hellwig <hch@lst.de>
+>> Cc: "H. Peter Anvin" <hpa@zytor.com>
+>> Cc: Al Viro <viro@zeniv.linux.org.uk>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Matthew Wilcox <mawilcox@microsoft.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+[..]
+> I took a pretty hard look at the changes in arch/x86/lib/usercopy_64.c, and
+> they look correct to me.  The inline assembly for non-temporal copies mixed
+> with C for loop control is IMHO much easier to follow than the pure assembly
+> of __copy_user_nocache().
+>
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+
+Thanks Ross, I appreciate it.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
