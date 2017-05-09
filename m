@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 66AF321A16EC7
- for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:20:34 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 18/22] sysctl: switch to use uuid_t
-Date: Sun, 28 May 2017 13:20:04 +0300
-Message-Id: <20170528102008.30276-19-hch@lst.de>
-In-Reply-To: <20170528102008.30276-1-hch@lst.de>
-References: <20170528102008.30276-1-hch@lst.de>
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D14A221A0BABF
+ for <linux-nvdimm@lists.01.org>; Tue,  9 May 2017 05:18:57 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 0/4 v3] mm,dax: Fix data corruption due to mmap inconsistency
+Date: Tue,  9 May 2017 14:18:33 +0200
+Message-Id: <20170509121837.26153-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,42 +20,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- kernel/sysctl_binary.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Hello,
 
-diff --git a/kernel/sysctl_binary.c b/kernel/sysctl_binary.c
-index ece4b177052b..1ae520eed53c 100644
---- a/kernel/sysctl_binary.c
-+++ b/kernel/sysctl_binary.c
-@@ -1119,7 +1119,7 @@ static ssize_t bin_uuid(struct file *file,
- 	/* Only supports reads */
- 	if (oldval && oldlen) {
- 		char buf[UUID_STRING_LEN + 1];
--		uuid_be uuid;
-+		uuid_t uuid;
- 
- 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
- 		if (result < 0)
-@@ -1128,7 +1128,7 @@ static ssize_t bin_uuid(struct file *file,
- 		buf[result] = '\0';
- 
- 		result = -EIO;
--		if (uuid_be_to_bin(buf, &uuid))
-+		if (uuid_to_bin(buf, &uuid))
- 			goto out;
- 
- 		if (oldlen > 16)
--- 
-2.11.0
+this series fixes data corruption that can happen for DAX mounts when
+page faults race with write(2) and as a result page tables get out of sync
+with block mappings in the filesystem and thus data seen through mmap is
+different from data seen through read(2).
 
+The series passes testing with t_mmap_stale test program from Ross and also
+other mmap related tests on DAX filesystem.
+
+Andrew, can you please merge these patches? Thanks!
+
+Changes since v2:
+* Added reviewed-by tag from Ross
+
+Changes since v1:
+* Improved performance of unmapping pages
+* Changed fault locking to fix another write vs fault race
+
+								Honza
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
