@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BC00421A0BAA8
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 14:02:59 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 2AA4221A0BAA8
+ for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 12:27:06 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 2/2] libnvdimm,
+Subject: [PATCH v2 2/2] libnvdimm,
  btt: ensure that initializing metadata clears poison
-Date: Wed, 10 May 2017 15:01:31 -0600
-Message-Id: <20170510210131.27157-2-vishal.l.verma@intel.com>
-In-Reply-To: <20170510210131.27157-1-vishal.l.verma@intel.com>
-References: <20170510210131.27157-1-vishal.l.verma@intel.com>
+Date: Wed, 10 May 2017 13:25:31 -0600
+Message-Id: <20170510192531.13032-2-vishal.l.verma@intel.com>
+In-Reply-To: <20170510192531.13032-1-vishal.l.verma@intel.com>
+References: <20170510192531.13032-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -44,7 +44,7 @@ Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
  1 file changed, 47 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index aa977cd..983718b 100644
+index 5cdc3aa..0f06570 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
 @@ -57,6 +57,14 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
@@ -60,7 +60,7 @@ index aa977cd..983718b 100644
 +	WARN_ON_ONCE(!IS_ALIGNED(arena->info2off, 512));
 +
  	ret = arena_write_bytes(arena, arena->info2off, super,
- 			sizeof(struct btt_sb), 0);
+ 			sizeof(struct btt_sb), NVDIMM_IO_NORMAL);
  	if (ret)
 @@ -394,9 +402,17 @@ static int btt_map_init(struct arena_info *arena)
  	if (!zerobuf)
@@ -78,7 +78,7 @@ index aa977cd..983718b 100644
  
 +		WARN_ON_ONCE(size < 512);
  		ret = arena_write_bytes(arena, arena->mapoff + offset, zerobuf,
- 				size, 0);
+ 				size, NVDIMM_IO_NORMAL);
  		if (ret)
 @@ -418,11 +434,36 @@ static int btt_map_init(struct arena_info *arena)
   */
@@ -108,7 +108,7 @@ index aa977cd..983718b 100644
 +
 +		WARN_ON_ONCE(size < 512);
 +		ret = arena_write_bytes(arena, arena->logoff + offset, zerobuf,
-+				size, 0);
++				size, NVDIMM_IO_NORMAL);
 +		if (ret)
 +			goto free;
 +
@@ -121,10 +121,10 @@ index aa977cd..983718b 100644
  		log.lba = cpu_to_le32(i);
 @@ -431,13 +472,12 @@ static int btt_log_init(struct arena_info *arena)
  		log.seq = cpu_to_le32(LOG_SEQ_INIT);
- 		ret = __btt_log_write(arena, i, 0, &log, 0);
+ 		ret = __btt_log_write(arena, i, 0, &log, NVDIMM_IO_NORMAL);
  		if (ret)
 -			return ret;
--		ret = __btt_log_write(arena, i, 1, &zerolog, 0);
+-		ret = __btt_log_write(arena, i, 1, &zerolog, NVDIMM_IO_NORMAL);
 -		if (ret)
 -			return ret;
 +			goto free;
