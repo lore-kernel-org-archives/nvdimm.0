@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 18CFC21A16E28
- for <linux-nvdimm@lists.01.org>; Thu, 11 May 2017 15:07:38 -0700 (PDT)
-Subject: [ndctl PATCH 4/4] ndctl, list: hide badblock_count by default
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 11 May 2017 15:01:46 -0700
-Message-ID: <149454010604.30857.15214297566335127724.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149454009049.30857.6643219237076670086.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149454009049.30857.6643219237076670086.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 80AA621A134AC
+ for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 11:02:27 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 01/16] xfs: use uuid_copy() helper to abstract uuid_t
+Date: Wed, 10 May 2017 20:01:59 +0200
+Message-Id: <20170510180214.16852-2-hch@lst.de>
+In-Reply-To: <20170510180214.16852-1-hch@lst.de>
+References: <20170510180214.16852-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,77 +17,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In order to keep the default listing as compact as possible, hide
-badblock_count when it is zero.
+From: Amir Goldstein <amir73il@gmail.com>
 
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+uuid_t definition is about to change.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- ndctl/list.c |   12 +++++++-----
- util/json.c  |   14 ++++++++------
- 2 files changed, 15 insertions(+), 11 deletions(-)
+ fs/xfs/xfs_inode_item.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/ndctl/list.c b/ndctl/list.c
-index cf26d8c08183..befb3cfc6ffd 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -209,12 +209,14 @@ static struct json_object *region_to_json(struct ndctl_region *region,
- 
- 	jbbs = util_region_badblocks_to_json(region, include_media_errors,
- 			&bb_count);
--	jobj = json_object_new_int(bb_count);
--	if (!jobj) {
--		json_object_put(jbbs);
--		goto err;
-+	if (bb_count) {
-+		jobj = json_object_new_int(bb_count);
-+		if (!jobj) {
-+			json_object_put(jbbs);
-+			goto err;
-+		}
-+		json_object_object_add(jregion, "badblock_count", jobj);
- 	}
--	json_object_object_add(jregion, "badblock_count", jobj);
- 	if (include_media_errors && jbbs)
- 		json_object_object_add(jregion, "badblocks", jbbs);
- 
-diff --git a/util/json.c b/util/json.c
-index 17595267c34c..4ca33a628381 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -568,15 +568,17 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 				ndctl_namespace_get_region(ndns),
- 				include_media_errors, &bb_count);
- 
--	jobj = json_object_new_int(bb_count);
--	if (!jobj) {
--		json_object_put(jbbs);
--		goto err;
-+	if (bb_count) {
-+		jobj = json_object_new_int(bb_count);
-+		if (!jobj) {
-+			json_object_put(jbbs);
-+			goto err;
-+		}
-+		json_object_object_add(jndns, "badblock_count", jobj);
- 	}
- 
--	json_object_object_add(jndns, "badblock_count", jobj);
- 	if (include_media_errors && jbbs)
--			json_object_object_add(jndns, "badblocks", jbbs);
-+		json_object_object_add(jndns, "badblocks", jbbs);
- 
- 	return jndns;
-  err:
+diff --git a/fs/xfs/xfs_inode_item.c b/fs/xfs/xfs_inode_item.c
+index 08cb7d1a4a3a..013cc78d7daf 100644
+--- a/fs/xfs/xfs_inode_item.c
++++ b/fs/xfs/xfs_inode_item.c
+@@ -834,9 +834,7 @@ xfs_inode_item_format_convert(
+ 		in_f->ilf_dsize = in_f32->ilf_dsize;
+ 		in_f->ilf_ino = in_f32->ilf_ino;
+ 		/* copy biggest field of ilf_u */
+-		memcpy(in_f->ilf_u.ilfu_uuid.__u_bits,
+-		       in_f32->ilf_u.ilfu_uuid.__u_bits,
+-		       sizeof(uuid_t));
++		uuid_copy(&in_f->ilf_u.ilfu_uuid, &in_f32->ilf_u.ilfu_uuid);
+ 		in_f->ilf_blkno = in_f32->ilf_blkno;
+ 		in_f->ilf_len = in_f32->ilf_len;
+ 		in_f->ilf_boffset = in_f32->ilf_boffset;
+@@ -851,9 +849,7 @@ xfs_inode_item_format_convert(
+ 		in_f->ilf_dsize = in_f64->ilf_dsize;
+ 		in_f->ilf_ino = in_f64->ilf_ino;
+ 		/* copy biggest field of ilf_u */
+-		memcpy(in_f->ilf_u.ilfu_uuid.__u_bits,
+-		       in_f64->ilf_u.ilfu_uuid.__u_bits,
+-		       sizeof(uuid_t));
++		uuid_copy(&in_f->ilf_u.ilfu_uuid, &in_f64->ilf_u.ilfu_uuid);
+ 		in_f->ilf_blkno = in_f64->ilf_blkno;
+ 		in_f->ilf_len = in_f64->ilf_len;
+ 		in_f->ilf_boffset = in_f64->ilf_boffset;
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
