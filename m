@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1361221A0BAB0
- for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:17 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 01/17] xfs: use uuid_copy() helper to abstract uuid_t
-Date: Mon, 15 May 2017 17:42:52 +0200
-Message-Id: <20170515154308.26739-2-hch@lst.de>
-In-Reply-To: <20170515154308.26739-1-hch@lst.de>
-References: <20170515154308.26739-1-hch@lst.de>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C6A9421A18AAB
+ for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 15:33:37 -0700 (PDT)
+Date: Wed, 10 May 2017 16:32:15 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v3 1/2] ndctl: add foreach helper for region badblocks in
+ libndctl
+Message-ID: <20170510223214.GC11414@omniknight.lm.intel.com>
+References: <149443923101.16024.9360569471346131929.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <149443923101.16024.9360569471346131929.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,53 +20,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Amir Goldstein <amir73il@gmail.com>
+On 05/10, Dave Jiang wrote:
+> The helper function allow iteration through the badblocks file that's part
+> of the region sysfs attributes. This will support the region list badblocks
+> code that's coming.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+> 
+> v2: added cleanup of opened badblocks file from Dan's comments.
+> v3: fixed inconsistent return code from Andy Rudoff's comments.
+> 
+>  ndctl/lib/libndctl.c   |   74 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym |    2 +
+>  ndctl/libndctl.h.in    |   10 ++++++
+>  3 files changed, 86 insertions(+)
+> 
+[...]
+> +
+> +NDCTL_EXPORT struct badblock *ndctl_region_get_next_badblock(struct ndctl_region *region)
+> +{
+> +	int rc;
+> +	char *buf = NULL;
+> +	size_t rlen = 0;
+> +
+> +	if (!region->badblocks)
+> +		return NULL;
+> +
+> +	rc = getline(&buf, &rlen, region->badblocks);
+> +	if (rc == -1) {
+> +		free(buf);
+> +		return NULL;
+> +	}
+> +
+> +	rc = sscanf(buf, "%llu %u", &region->bb.offset, &region->bb.len);
+> +	free(buf);
+> +	if (rc != 2) {
+> +		/* end of the road, clean up */
 
-uuid_t definition is about to change.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/xfs/xfs_inode_item.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/fs/xfs/xfs_inode_item.c b/fs/xfs/xfs_inode_item.c
-index 08cb7d1a4a3a..013cc78d7daf 100644
---- a/fs/xfs/xfs_inode_item.c
-+++ b/fs/xfs/xfs_inode_item.c
-@@ -834,9 +834,7 @@ xfs_inode_item_format_convert(
- 		in_f->ilf_dsize = in_f32->ilf_dsize;
- 		in_f->ilf_ino = in_f32->ilf_ino;
- 		/* copy biggest field of ilf_u */
--		memcpy(in_f->ilf_u.ilfu_uuid.__u_bits,
--		       in_f32->ilf_u.ilfu_uuid.__u_bits,
--		       sizeof(uuid_t));
-+		uuid_copy(&in_f->ilf_u.ilfu_uuid, &in_f32->ilf_u.ilfu_uuid);
- 		in_f->ilf_blkno = in_f32->ilf_blkno;
- 		in_f->ilf_len = in_f32->ilf_len;
- 		in_f->ilf_boffset = in_f32->ilf_boffset;
-@@ -851,9 +849,7 @@ xfs_inode_item_format_convert(
- 		in_f->ilf_dsize = in_f64->ilf_dsize;
- 		in_f->ilf_ino = in_f64->ilf_ino;
- 		/* copy biggest field of ilf_u */
--		memcpy(in_f->ilf_u.ilfu_uuid.__u_bits,
--		       in_f64->ilf_u.ilfu_uuid.__u_bits,
--		       sizeof(uuid_t));
-+		uuid_copy(&in_f->ilf_u.ilfu_uuid, &in_f64->ilf_u.ilfu_uuid);
- 		in_f->ilf_blkno = in_f64->ilf_blkno;
- 		in_f->ilf_len = in_f64->ilf_len;
- 		in_f->ilf_boffset = in_f64->ilf_boffset;
--- 
-2.11.0
+Quick nit - "end of road" doesn't make sense any more as this isn't
+reached for EOF
 
 _______________________________________________
 Linux-nvdimm mailing list
