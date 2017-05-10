@@ -1,25 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm0-x241.google.com (mail-wm0-x241.google.com
+ [IPv6:2a00:1450:400c:c09::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 29EB721A0BAA8
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 07:50:18 -0700 (PDT)
-Received: from G9W8455.americas.hpqcorp.net (g9w8455.houston.hp.com
- [16.216.161.94])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
- (No client certificate requested)
- by g9t5008.houston.hpe.com (Postfix) with ESMTPS id 6830E6B
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 14:50:16 +0000 (UTC)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2 2/2] ndctl: add list --media-errors support
-Date: Wed, 10 May 2017 14:50:08 +0000
-Message-ID: <1494427797.30303.75.camel@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 10B4D21A0BAA8
+ for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 07:26:49 -0700 (PDT)
+Received: by mail-wm0-x241.google.com with SMTP id v4so187394wmb.2
+ for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 07:26:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <149437264268.67960.7347964981686229026.stgit@djiang5-desk3.ch.intel.com>
 References: <149437257526.67960.3751792583137095911.stgit@djiang5-desk3.ch.intel.com>
  <149437264268.67960.7347964981686229026.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <149437264268.67960.7347964981686229026.stgit@djiang5-desk3.ch.intel.com>
-Content-Language: en-US
-Content-ID: <9757ACFD2A240A4E89F338C689B3E50B@NAMPRD84.PROD.OUTLOOK.COM>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 10 May 2017 07:26:46 -0700
+Message-ID: <CAA9_cmctE-uX4BnswWc5emQgXObHu0iatmVxi1Ao_oiRU=Cwrg@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] ndctl: add list --media-errors support
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,32 +22,130 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE3LTA1LTA5IGF0IDE2OjMxIC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOg0KPiBB
-ZGRpbmcgb3B0aW9uIGZvciBuZGN0bCBsaXN0IGNvbW1hbmQgdG8gc2hvdyBiYWRibG9ja3MgZm9y
-IHJlZ2lvbiBhbmQNCj4gZGV2aWNlLiBUaGUgZGV2aWNlIGJhZGJsb2NrcyBhcmUgY2FsY3VsYXRl
-ZCBmcm9tIHRoZSByZWdpb24NCj4gYmFkYmxvY2tzLg0KPiBUaGlzIGFsbG93cyB0aGUgdXNlciB0
-byBwcm92aWRlIHRoZSBwcm9wZXIgYmFkYmxvY2sgb2Zmc2V0IGFuZCBsZW5ndGgNCj4gZm9yIGNs
-ZWFyaW5nIGxhdGVyIG9uLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogRGF2ZSBKaWFuZyA8ZGF2ZS5q
-aWFuZ0BpbnRlbC5jb20+DQoNCkhpIERhdmUsDQoNCkEgYmFkYmxvY2sgaW4gbWV0YWRhdGEgaXMg
-c2hvd24gYXMgb2Zmc2V0IDAgd2l0aCBhIG5lZ2F0aXZlIGxlbmd0aC4gDQpQZXJoYXBzLCB5b3Ug
-bWF5IHdhbnQgdG8gYWRkIG1vcmUgdGVzdCBjYXNlcy4NCg0KIyBjYXQgL3N5cy9idXMvbmQvZGV2
-aWNlcy9yZWdpb24wL2JhZGJsb2Nrcw0KMjA0OCAxDQoxMDQ4NTc2IDENCjE1NzI4NjQgMQ0KDQoj
-IG5kY3RsIGxpc3QgLS1tZWRpYS1lcnJvcnMgLS1tb2RlPWRheA0Kew0KwqAgImRldiI6Im5hbWVz
-cGFjZTAuMCIsDQrCoCAibW9kZSI6ImRheCIsDQrCoCAic2l6ZSI6MTY5MDkzMzY1NzYsDQrCoCAi
-dXVpZCI6IjhjNzE4MTFmLTI2MGQtNDc4OC04NDg3LWRiODhkODI5ZDM5MyIsDQrCoCAiYmFkYmxv
-Y2tzIjpbDQrCoMKgwqDCoHsNCsKgwqDCoMKgwqDCoCJvZmZzZXQiOjAsDQrCoMKgwqDCoMKgwqAi
-bGVuZ3RoIjotNTI2MzM1DQrCoMKgwqDCoH0sDQrCoMKgwqDCoHsNCsKgwqDCoMKgwqDCoCJvZmZz
-ZXQiOjUyMDE5MiwNCsKgwqDCoMKgwqDCoCJsZW5ndGgiOjENCsKgwqDCoMKgfSwNCsKgwqDCoMKg
-ew0KwqDCoMKgwqDCoMKgIm9mZnNldCI6MTA0NDQ4MCwNCsKgwqDCoMKgwqDCoCJsZW5ndGgiOjEN
-CsKgwqDCoMKgfQ0KwqAgXQ0KfQ0KDQpUaGFua3MsDQotVG9zaGkKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbnZkaW1tCg==
+On Tue, May 9, 2017 at 4:31 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Adding option for ndctl list command to show badblocks for region and
+> device. The device badblocks are calculated from the region badblocks.
+> This allows the user to provide the proper badblock offset and length
+> for clearing later on.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>
+> v2: added fix to badblocks display from Toshi's testing result.
+>
+>  ndctl/list.c      |   17 ++++-
+>  ndctl/namespace.c |    2 -
+>  util/json.c       |  165 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  util/json.h       |    5 +-
+>  4 files changed, 183 insertions(+), 6 deletions(-)
+>
+> diff --git a/ndctl/list.c b/ndctl/list.c
+> index 536d333..264b613 100644
+> --- a/ndctl/list.c
+> +++ b/ndctl/list.c
+> @@ -24,6 +24,7 @@ static struct {
+>         bool idle;
+>         bool health;
+>         bool dax;
+> +       bool media_errs;
+>  } list;
+>
+>  static struct {
+> @@ -99,7 +100,8 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
+>                                                 jnamespaces);
+>                 }
+>
+> -               jndns = util_namespace_to_json(ndns, list.idle, list.dax);
+> +               jndns = util_namespace_to_json(ndns, list.idle, list.dax,
+> +                               list.media_errs);
+>                 if (!jndns) {
+>                         fail("\n");
+>                         continue;
+> @@ -117,7 +119,8 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
+>         return NULL;
+>  }
+>
+> -static struct json_object *region_to_json(struct ndctl_region *region)
+> +static struct json_object *region_to_json(struct ndctl_region *region,
+> +               bool include_media_err)
+>  {
+>         struct json_object *jregion = json_object_new_object();
+>         struct json_object *jobj, *jmappings = NULL;
+> @@ -203,6 +206,12 @@ static struct json_object *region_to_json(struct ndctl_region *region)
+>                 json_object_object_add(jregion, "state", jobj);
+>         }
+>
+> +       if (include_media_err) {
+> +               jobj = util_region_badblocks_to_json(region);
+> +               if (jobj)
+> +                       json_object_object_add(jregion, "badblocks", jobj);
+> +       }
+> +
+>         list_namespaces(region, jregion, NULL, false);
+>         return jregion;
+>   err:
+> @@ -240,6 +249,8 @@ int cmd_list(int argc, const char **argv, void *ctx)
+>                 OPT_BOOLEAN('X', "device-dax", &list.dax,
+>                                 "include device-dax info"),
+>                 OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
+> +               OPT_BOOLEAN('M', "media-errors", &list.media_errs,
+> +                               "include media errors"),
+>                 OPT_END(),
+>         };
+>         const char * const u[] = {
+> @@ -404,7 +415,7 @@ int cmd_list(int argc, const char **argv, void *ctx)
+>                                                         jregions);
+>                         }
+>
+> -                       jregion = region_to_json(region);
+> +                       jregion = region_to_json(region, list.media_errs);
+>                         if (!jregion) {
+>                                 fail("\n");
+>                                 continue;
+> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+> index 89b9b6a..6e150b1 100644
+> --- a/ndctl/namespace.c
+> +++ b/ndctl/namespace.c
+> @@ -392,7 +392,7 @@ static int setup_namespace(struct ndctl_region *region,
+>                 error("%s: failed to enable\n",
+>                                 ndctl_namespace_get_devname(ndns));
+>         } else {
+> -               struct json_object *jndns = util_namespace_to_json(ndns, 0, 1);
+> +               struct json_object *jndns = util_namespace_to_json(ndns, 0, 1, 0);
+>
+>                 if (jndns)
+>                         printf("%s\n", json_object_to_json_string_ext(jndns,
+> diff --git a/util/json.c b/util/json.c
+> index 07fd113..958ac51 100644
+> --- a/util/json.c
+> +++ b/util/json.c
+> @@ -233,8 +233,150 @@ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
+>         return NULL;
+>  }
+>
+> +struct json_object *util_region_badblocks_to_json(struct ndctl_region *region)
+> +{
+> +       struct json_object *jbbs = NULL, *jbb_array, *jobj;
+
+Just a naming quibble to follow the convention of the other json
+helpers. The other json routines use  j<objectname> for the individual
+instance and j<plural objectname> for the array. So that would be:
+
+s/jbbs/jbb/
+s/jbb_array/jbbs/
+
+...and if we're fixing up naming lets also:
+
+s/media_errs/media_errors/
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
