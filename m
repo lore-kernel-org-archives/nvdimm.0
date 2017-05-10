@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B144821A0BAB0
- for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:44:00 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 6A49621A04E01
+ for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 11:02:45 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 16/17] ima/policy: switch to use uuid_t
-Date: Mon, 15 May 2017 17:43:07 +0200
-Message-Id: <20170515154308.26739-17-hch@lst.de>
-In-Reply-To: <20170515154308.26739-1-hch@lst.de>
-References: <20170515154308.26739-1-hch@lst.de>
+Subject: [PATCH 09/16] md: namespace private helper names
+Date: Wed, 10 May 2017 20:02:07 +0200
+Message-Id: <20170510180214.16852-10-hch@lst.de>
+In-Reply-To: <20170510180214.16852-1-hch@lst.de>
+References: <20170510180214.16852-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,58 +26,58 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73i
 Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+From: Amir Goldstein <amir73il@gmail.com>
+
+The md private helper uuid_equal() collides with a generic helper
+of the same name.
+
+Rename the md private helper to md_uuid_equal() and do the same for
+md_sb_equal().
+
+Cc: Shaohua Li <shli@kernel.org>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- security/integrity/ima/ima_policy.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/md/md.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
-index 49fbc3e8f012..da3e7d50e0d7 100644
---- a/security/integrity/ima/ima_policy.c
-+++ b/security/integrity/ima/ima_policy.c
-@@ -61,7 +61,7 @@ struct ima_rule_entry {
- 	enum ima_hooks func;
- 	int mask;
- 	unsigned long fsmagic;
--	u8 fsuuid[16];
-+	uuid_t fsuuid;
- 	kuid_t uid;
- 	kuid_t fowner;
- 	bool (*uid_op)(kuid_t, kuid_t);    /* Handlers for operators       */
-@@ -244,7 +244,7 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
- 	    && rule->fsmagic != inode->i_sb->s_magic)
- 		return false;
- 	if ((rule->flags & IMA_FSUUID) &&
--	    memcmp(rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
-+	    memcmp(&rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
- 		return false;
- 	if ((rule->flags & IMA_UID) && !rule->uid_op(cred->uid, rule->uid))
- 		return false;
-@@ -711,13 +711,12 @@ static int ima_parse_rule(char *rule, struct ima_rule_entry *entry)
- 		case Opt_fsuuid:
- 			ima_log_string(ab, "fsuuid", args[0].from);
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index 82f798be964f..65795cc4cb7d 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -825,7 +825,7 @@ static int read_disk_sb(struct md_rdev *rdev, int size)
+ 	return -EINVAL;
+ }
  
--			if (memchr_inv(entry->fsuuid, 0x00,
--				       sizeof(entry->fsuuid))) {
-+			if (uuid_is_null(&entry->fsuuid)) {
- 				result = -EINVAL;
- 				break;
- 			}
+-static int uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
++static int md_uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ {
+ 	return	sb1->set_uuid0 == sb2->set_uuid0 &&
+ 		sb1->set_uuid1 == sb2->set_uuid1 &&
+@@ -833,7 +833,7 @@ static int uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ 		sb1->set_uuid3 == sb2->set_uuid3;
+ }
  
--			result = uuid_to_bin(args[0].from, (uuid_t *)&entry->fsuuid);
-+			result = uuid_to_bin(args[0].from, &entry->fsuuid);
- 			if (!result)
- 				entry->flags |= IMA_FSUUID;
- 			break;
-@@ -1086,7 +1085,7 @@ int ima_policy_show(struct seq_file *m, void *v)
- 	}
- 
- 	if (entry->flags & IMA_FSUUID) {
--		seq_printf(m, "fsuuid=%pU", entry->fsuuid);
-+		seq_printf(m, "fsuuid=%pU", &entry->fsuuid);
- 		seq_puts(m, " ");
- 	}
- 
+-static int sb_equal(mdp_super_t *sb1, mdp_super_t *sb2)
++static int md_sb_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ {
+ 	int ret;
+ 	mdp_super_t *tmp1, *tmp2;
+@@ -1025,12 +1025,12 @@ static int super_90_load(struct md_rdev *rdev, struct md_rdev *refdev, int minor
+ 	} else {
+ 		__u64 ev1, ev2;
+ 		mdp_super_t *refsb = page_address(refdev->sb_page);
+-		if (!uuid_equal(refsb, sb)) {
++		if (!md_uuid_equal(refsb, sb)) {
+ 			pr_warn("md: %s has different UUID to %s\n",
+ 				b, bdevname(refdev->bdev,b2));
+ 			goto abort;
+ 		}
+-		if (!sb_equal(refsb, sb)) {
++		if (!md_sb_equal(refsb, sb)) {
+ 			pr_warn("md: %s has same UUID but different superblock to %s\n",
+ 				b, bdevname(refdev->bdev, b2));
+ 			goto abort;
 -- 
 2.11.0
 
