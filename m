@@ -1,11 +1,106 @@
-From: =?utf-8?B?6LC35bCU?= <zpp-Z6xqKAwzpCVAfugRpC6u6w@public.gmane.org>
-Subject: =?utf-8?B?5aaC5L2V5b+r6YCf6Kej5Yaz5a6i5oi35oqx5oCo5aSE55CG5oqA5ben5ZKM5pa55rOV?=
-Date: Wed, 10 May 2017 22:28:53 +0800
-Message-ID: <9F72875037D25FA2ED2E26639BA8162F@dhbtdiw.org>
+From: "Lita Demas  " <koepketemi17-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: Alexa Rank for ml01.01.org
+Date: Wed, 10 May 2017 19:46:54 -0100
+Message-ID: <8C763F00.458DF90E@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_59137EFB.ED99740E"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_59137EFB.ED99740E
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  here is the requested informa$tion http://www.alexa-packages.com/index.php/alexa-rank-packages/
+   We will improve your Alexa Ranks or we will refund you every cent. Thank
+  you Lita Demas [...] 
+
+Content analysis details:   (9.9 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: alexa-packages.com]
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: alexa-packages.com]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: alexa-packages.com]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+             [Blocked - see <http://www.spamcop.net/bl.shtml?112.121.186.122>]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.alexa-packages.com]
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.alexa-packages.com]
+ 2.8 FSL_HELO_FAKE          No description available.
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (koepketemi17[at]gmail.com)
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (koepketemi17[at]gmail.com)
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0000]
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+
+
+------------=_59137EFB.ED99740E
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1d8Ygo-0007Q4-3j
+	for gln-linux-nvdimm@m.gmane.org; Wed, 10 May 2017 22:58:30 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 4AF0C21A0BAA8;
+	Wed, 10 May 2017 13:58:35 -0700 (PDT)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (unknown [112.121.186.122])
+ by ml01.01.org (Postfix) with SMTP id CDCC421A13489
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Wed, 10 May 2017 13:58:33 -0700 (PDT)
+Message-ID: <8C763F00.458DF90E-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Wed, 10 May 2017 19:46:54 -0100
+From: "Lita Demas  " <koepketemi17-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.0; de;
+ rv:1.8.1.18) Gecko/20081105 Thunderbird/2.0.0.18
+X-Accept-Language: en-us
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: re: Alexa Rank for ml01.01.org
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,15 +108,43 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: Lita Demas   <koepketemi17-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
 
-5bqPIOWPt++8mjcxMTIxNzExMg0KbGludXgtbnZkaW1t77ya5LqyDQrkuLrku4DkuYjlrqLmiLfm
-noHkuYvmg4Xnu6rljJbvvIzmlYXmhI/mjJHliZTmiJHku6znmoTkuqflk4HvvIzmjIfotKPmiJHk
-u6znmoTmnI3liqHvvIzov5HkuY7ml6DnkIblj5bpl7nvvIENCuaJvuWIsOino+WGs+eahOaWueaz
-leS6huWQl++8nw0K6K+35Y+C6ICD6ZmE5Lu277yM5Lik5aSp5Li65oKo6Kej5Yaz5LiA5YiH6Zeu
-6aKYCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
-LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
-c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+here is the requested informa$tion
+http://www.alexa-packages.com/index.php/alexa-rank-packages/
+
+We will improve your Alexa Ranks or we will refund you every cent.
+
+Thank you
+Lita Demas =A0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option available in the footer of our website
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_59137EFB.ED99740E--
