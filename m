@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
- [IPv6:2607:f8b0:4003:c06::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5269021A6F108
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 12:15:52 -0700 (PDT)
-Received: by mail-oi0-x233.google.com with SMTP id b204so6095323oii.1
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 12:15:52 -0700 (PDT)
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id F1CBD21A04E09
+ for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 11:20:42 -0700 (PDT)
+From: David Howells <dhowells@redhat.com>
 In-Reply-To: <20170510180214.16852-4-hch@lst.de>
-References: <20170510180214.16852-1-hch@lst.de>
- <20170510180214.16852-4-hch@lst.de>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 10 May 2017 22:15:51 +0300
-Message-ID: <CAOQ4uxjSpCgM=RK5jXkuY5HmseQT2EKh_huntvK2ADKBuNqi4A@mail.gmail.com>
+References: <20170510180214.16852-4-hch@lst.de>
+ <20170510180214.16852-1-hch@lst.de>
 Subject: Re: [PATCH 03/16] uuid: rename uuid types
+MIME-Version: 1.0
+Content-ID: <2611.1494440436.1@warthog.procyon.org.uk>
+Date: Wed, 10 May 2017 19:20:36 +0100
+Message-ID: <2612.1494440436@warthog.procyon.org.uk>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,54 +25,28 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Christoph Hellwig <hch@lst.de>
-Cc: linux-xfs <linux-xfs@vger.kernel.org>, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-kernel <linux-kernel@vger.kernel.org>, David Howells <dhowells@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Shaohua Li <shli@kernel.org>, Steven Whitehouse <swhiteho@redhat.com>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org, dhowells@redhat.com, linux-fsdevel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Shaohua Li <shli@kernel.org>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 10, 2017 at 9:02 PM, Christoph Hellwig <hch@lst.de> wrote:
-> Our "little endian" UUID really is a Wintel GUID, so rename it and its
-> helpers such (guid_t).  The big endian UUID is the only true one, so
-> give it the name uuid_t.  The uuid_le and uuid_be names are retained for,
-> but will hopefully go away soon.
->
-> Also remove the existing typedef in XFS that's now been superceeded by
-> the generic type name.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> [andy: also updated the UUID_LE/UUID_BE macros including fallout]
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
-[...]
+Christoph Hellwig <hch@lst.de> wrote:
 
->
-> -static inline int uuid_le_cmp(const uuid_le u1, const uuid_le u2)
-> +static inline int guid_cmp(const guid_t u1, const guid_t u2)
->  {
-> -       return memcmp(&u1, &u2, sizeof(uuid_le));
-> +       return memcmp(&u1, &u2, sizeof(guid_t));
->  }
->
-> -static inline int uuid_be_cmp(const uuid_be u1, const uuid_be u2)
-> +static inline int uuid_cmp(const uuid_t u1, const uuid_t u2)
->  {
-> -       return memcmp(&u1, &u2, sizeof(uuid_be));
-> +       return memcmp(&u1, &u2, sizeof(uuid_t));
->  }
->
+> -#define NULL_UUID_LE							\
+> -	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+> -		0x00, 0x00, 0x00, 0x00)
+> +#define NULL_GUID							\
+> +	GUID(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+> +	     0x00, 0x00, 0x00, 0x00)
+>  
+> -#define NULL_UUID_BE							\
+> -	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+> -		0x00, 0x00, 0x00, 0x00)
+> +#define NULL_UUID							\
+> +	UUID(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+> +	     0x00, 0x00, 0x00, 0x00)
 
+These are UAPI and ought not to be renamed.
 
-I think we should use this opportunity to change these to (uuid_t *, uuid_t *)
-which is more in line with the rest of the helpers including the new helpers
-hoisted from xfs.
-
-[...]
-
-> +/* backwards compatibility, don't use in new code */
-> +#define uuid_le_cmp(u1, u2)    guid_cmp(u1, u2)
-> +#define uuid_be_cmp(u1, u2)    uuid_cmp(u1, u2)
-
-Therefore:
-#define uuid_le_cmp(u1, u2)    guid_cmp(&(u1), &(u2))
-#define uuid_be_cmp(u1, u2)    uuid_cmp(&(u1), &(u2))
+David
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
