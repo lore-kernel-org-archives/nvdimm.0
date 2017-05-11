@@ -2,14 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4370A21A1349E
- for <linux-nvdimm@lists.01.org>; Thu,  4 May 2017 15:49:02 -0700 (PDT)
-Subject: [PATCH 2/2] libnvdimm: handle locked label storage areas
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 04 May 2017 15:43:10 -0700
-Message-ID: <149393778992.34042.6110586296081480841.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149393778452.34042.11808841820577827779.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149393778452.34042.11808841820577827779.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CAFFD21A13493
+ for <linux-nvdimm@lists.01.org>; Thu, 11 May 2017 09:14:57 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v3 1/2] libnvdimm: add an atomic vs process context flag
+ to rw_bytes
+Date: Thu, 11 May 2017 16:14:52 +0000
+Message-ID: <1494519209.20330.11.camel@intel.com>
+References: <20170510210131.27157-1-vishal.l.verma@intel.com>
+ <CAPcyv4jbSZB-QFywszWpK2ZRODSR-J7t8KkPX-uMKaMRW1RYVQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4jbSZB-QFywszWpK2ZRODSR-J7t8KkPX-uMKaMRW1RYVQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <A677315721D3D44CA30514ED202A59D4@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,152 +22,236 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Per the latest version of the "NVDIMM DSM Interface Example" [1], the
-label data retrieval routine can report a "locked" status. In this case
-all regions associated with that DIMM are disabled until the label area
-is unlocked. Provide generic libnvdimm enabling for NVDIMMs with label
-data area locking capabilities.
-
-[1]: http://pmem.io/documents/
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c        |   21 ++++++++++++++++++---
- drivers/nvdimm/dimm.c           |    2 ++
- drivers/nvdimm/dimm_devs.c      |    8 ++++++--
- drivers/nvdimm/namespace_devs.c |   17 ++++++++++++-----
- include/uapi/linux/ndctl.h      |    1 +
- 5 files changed, 39 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index a26c2297c1ed..891bd49ada0b 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -184,14 +184,29 @@ static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
- 	return 0;
- }
- 
-+static int xlat_nvdimm_status(void *buf, unsigned int cmd, u32 status)
-+{
-+	switch (cmd) {
-+	case ND_CMD_GET_CONFIG_SIZE:
-+		if (status >> 16 & ND_CONFIG_LOCKED)
-+			return -EACCES;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	/* all other non-zero status results in an error */
-+	if (status)
-+		return -EIO;
-+	return 0;
-+}
-+
- static int xlat_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
- 		u32 status)
- {
- 	if (!nvdimm)
- 		return xlat_bus_status(buf, cmd, status);
--	if (status)
--		return -EIO;
--	return 0;
-+	return xlat_nvdimm_status(buf, cmd, status);
- }
- 
- int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index ee0b412827bf..e0f0e3ce1a32 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -49,6 +49,8 @@ static int nvdimm_probe(struct device *dev)
- 	kref_init(&ndd->kref);
- 
- 	rc = nvdimm_init_nsarea(ndd);
-+	if (rc == -EACCES)
-+		nvdimm_set_locked(dev);
- 	if (rc)
- 		goto err;
- 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 7d1a3dbc7d5d..fac1e9fbd11d 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -67,6 +67,7 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(ndd->dev);
- 	struct nvdimm_bus_descriptor *nd_desc;
- 	int rc = validate_dimm(ndd);
-+	int cmd_rc = 0;
- 
- 	if (rc)
- 		return rc;
-@@ -76,8 +77,11 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
- 
- 	memset(cmd, 0, sizeof(*cmd));
- 	nd_desc = nvdimm_bus->nd_desc;
--	return nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
--			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd), NULL);
-+	rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
-+			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd), &cmd_rc);
-+	if (rc < 0)
-+		return rc;
-+	return cmd_rc;
- }
- 
- int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 2f2d8afc684a..2f9dfbd2dbec 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -2236,14 +2236,21 @@ static int init_active_labels(struct nd_region *nd_region)
- 		int count, j;
- 
- 		/*
--		 * If the dimm is disabled then prevent the region from
--		 * being activated if it aliases DPA.
-+		 * If the dimm is disabled then we may need to prevent
-+		 * the region from being activated.
- 		 */
- 		if (!ndd) {
--			if (!test_bit(NDD_ALIASING, &nvdimm->flags))
-+			if (test_bit(NDD_LOCKED, &nvdimm->flags))
-+				/* fail, label data may be unreadable */;
-+			else if (test_bit(NDD_ALIASING, &nvdimm->flags))
-+				/* fail, labels needed to disambiguate dpa */;
-+			else
- 				return 0;
--			dev_dbg(&nd_region->dev, "%s: is disabled, failing probe\n",
--					dev_name(&nd_mapping->nvdimm->dev));
-+
-+			dev_err(&nd_region->dev, "%s: is %s, failing probe\n",
-+					dev_name(&nd_mapping->nvdimm->dev),
-+					test_bit(NDD_LOCKED, &nvdimm->flags)
-+					? "locked" : "disabled");
- 			return -ENXIO;
- 		}
- 		nd_mapping->ndd = ndd;
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index ede5c6a62164..7ad3863cb88b 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -169,6 +169,7 @@ enum {
- enum {
- 	ND_ARS_VOLATILE = 1,
- 	ND_ARS_PERSISTENT = 2,
-+	ND_CONFIG_LOCKED = 1,
- };
- 
- static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gV2VkLCAyMDE3LTA1LTEwIGF0IDIyOjE1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFdlZCwgTWF5IDEwLCAyMDE3IGF0IDI6MDEgUE0sIFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
+dmVybWFAaW50ZWwuY28NCj4gbT4gd3JvdGU6DQo+ID4gbnNpb19yd19ieXRlcyBjYW4gY2xlYXIg
+bWVkaWEgZXJyb3JzLCBidXQgdGhpcyBjYW5ub3QgYmUgZG9uZSB3aGlsZQ0KPiA+IHdlDQo+ID4g
+YXJlIGluIGFuIGF0b21pYyBjb250ZXh0IGR1ZSB0byBsb2NraW5nIHdpdGhpbiBBQ1BJLiBGcm9t
+IHRoZSBCVFQsDQo+ID4gLT5yd19ieXRlcyBtYXkgYmUgY2FsbGVkIGVpdGhlciBmcm9tIGF0b21p
+YyBvciBwcm9jZXNzIGNvbnRleHQNCj4gPiBkZXBlbmRpbmcNCj4gPiBvbiB3aGV0aGVyIHRoZSBj
+YWxscyBoYXBwZW4gZHVyaW5nIGluaXRpYWxpemF0aW9uIG9yIGR1cmluZyBJTy4NCj4gPiANCj4g
+PiBEdXJpbmcgaW5pdCwgd2Ugd2FudCB0byBlbnN1cmUgZXJyb3IgY2xlYXJpbmcgaGFwcGVucywg
+YW5kIHRoZSBmbGFnDQo+ID4gbWFya2luZyBwcm9jZXNzIGNvbnRleHQgYWxsb3dzIG5zaW9fcndf
+Ynl0ZXMgdG8gZG8gdGhhdC4gV2hlbiBjYWxsZWQNCj4gPiBkdXJpbmcgSU8sIHdlJ3JlIGluIGF0
+b21pYyBjb250ZXh0LCBhbmQgZXJyb3IgY2xlYXJpbmcgY2FuIGJlDQo+ID4gc2tpcHBlZC4NCj4g
+PiANCj4gPiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4g
+U2lnbmVkLW9mZi1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+
+IA0KPiBUaGFua3MgVmlzaGFsLCB0aGlzIG9uZSBhbmQgdGhlIG5leHQgbG9vayBnb29kIHRvIG1l
+Lg0KDQpUaGFua3MgLSBJIGhhZCBwdXNoZWQgdGhpcyB0byBteSBleHRlcm5hbCBudmRpbW0uZ2l0
+IHRyZWUgYW5kIGl0IGhhcw0KcmVjZWl2ZWQgYSBzdWNjZXNzIG5vdGlmaWNhdGlvbiAtDQoNCg0K
+ICAgIGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3Zpc2hh
+bC9udmRpbW0uZ2l0ICAgIMKgwqBsaQ0KICAgIGJudmRpbW0tYnR0LWZvci00LjEyDQogICAgNzUz
+NWVkOWFkZDg3YWFkMzJhZjJlMTEyN2RjNjRlYjEwN2QwMjM2OMKgwqBsaWJudmRpbW0sIGJ0dDog
+ZW5zdXJlIHRoYXQNCiAgICBpbml0aWFsaXppbmcgbWV0YWRhdGEgY2xlYXJzIHBvaXNvbg0KDQog
+ICAgZWxhcHNlZCB0aW1lOiAzOTFtDQoNCiAgICBjb25maWdzIHRlc3RlZDogMTU2DQoNCiAgICBU
+aGUgZm9sbG93aW5nIGNvbmZpZ3MgaGF2ZSBiZWVuIGJ1aWx0IHN1Y2Nlc3NmdWxseS4NCiAgICBN
+b3JlIGNvbmZpZ3MgbWF5IGJlIHRlc3RlZCBpbiB0aGUgY29taW5nIGRheXMuDQoNCiAgICBjcmlz
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGV0cmF4LTEwMGx4X3YyX2RlZmNvbmZp
+Zw0KICAgIGJsYWNrZmluwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgVENNLUJG
+NTM3X2RlZmNvbmZpZw0KICAgIGJsYWNrZmluwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgQkY1NjEt
+RVpLSVQtU01QX2RlZmNvbmZpZw0KICAgIGJsYWNrZmluwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqBCRjUzMy1FWktJVF9kZWZjb25maWcNCiAgICBibGFja2ZpbsKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgQkY1MjYtRVpCUkRfZGVmY29uZmlnDQogICAgc2jCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYWxs
+bm9jb25maWcNCiAgICBzaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqByc2s3MjY5X2RlZmNvbmZpZw0KICAgIHNowqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgc2g3Nzg1bGNyXzMyYml0X2RlZmNvbmZpZw0KICAgIHNowqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB0aXRhbl9kZWZj
+b25maWcNCiAgICB4ODZfNjTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25m
+aWctaW4wLTA1MTEwOTE4DQogICAgeDg2XzY0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoHJhbmRjb25maWcteDAxNS0yMDE3MTkNCiAgICB4ODZfNjTCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDEyLTIwMTcxOQ0KICAgIHg4Nl82NMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmlnLXgwMTAtMjAxNzE5DQogICAgeDg2
+XzY0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAxNy0yMDE3
+MTkNCiAgICB4ODZfNjTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZp
+Zy14MDExLTIwMTcxOQ0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqByYW5kY29uZmlnLXgwMTgtMjAxNzE5DQogICAgeDg2XzY0wqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAxNC0yMDE3MTkNCiAgICB4ODZfNjTCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDEzLTIwMTcxOQ0KICAgIHg4Nl82
+NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmlnLXgwMTYtMjAxNzE5
+DQogICAgeDg2XzY0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWct
+eDAxOS0yMDE3MTkNCiAgICBpYTY0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYWxsbm9jb25maWcNCiAgICBpYTY0wqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRlZmNv
+bmZpZw0KICAgIGlhNjTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgYWxsZGVmY29uZmlnDQogICAgeDg2XzY0wqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBrZXhlYw0K
+ICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByaGVsDQogICAgeDg2XzY0wqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByaGVsLTcuMg0KICAg
+IGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWctYTAt
+MDUxMDIzNDINCiAgICB4ODZfNjTCoMKgwqDCoMKgwqDCoG5mc3Jvb3QrQ09ORklHX0RFQlVHX0lO
+Rk9fUkVEVUNFRA0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBhY3BpLXJlZGVmDQogICAgeDg2XzY0wqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYWxseWVzZGViaWFuDQog
+ICAgeDg2XzY0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoG5mc3Jvb3QNCiAgICBwYXJpc2PCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBjMzAwMF9kZWZjb25maWcNCiAgICBwYXJpc2PCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGIxODBfZGVmY29u
+ZmlnDQogICAgcGFyaXNjwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgZGVmY29uZmlnDQogICAgYWxwaGHCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRlZmNvbmZpZw0KICAg
+IHBhcmlzY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgYWxsbm9jb25maWcNCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGFsbG1vZGNvbmZpZw0KICAgIG02OGvCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzdW4zX2RlZmNv
+bmZpZw0KICAgIG02OGvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgbXVsdGlfZGVmY29uZmlnDQogICAgbTY4a8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBtNTQ3NWV2Yl9kZWZjb25maWcNCiAgICBtaXBzwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoGp6NDc0MA0KICAgIG1pcHPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoG1hbHRhX2t2bV9kZWZjb25maWcNCiAgICBtaXBzwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqA2NHI2ZWxfZGVmY29uZmlnDQogICAgbWlw
+c8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoDMy
+cjJfZGVmY29uZmlnDQogICAgbWlwc8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGFsbG5vY29uZmlnDQogICAgbWlwc8KgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZnVsb29uZzJlX2RlZmNvbmZpZw0KICAg
+IG1pcHPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHR4eDkNCiAgICBwb3dlcnBjwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYWxsbm9jb25maWcNCiAgICBwb3dl
+cnBjwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoGRlZmNvbmZpZw0KICAgIHBvd2VycGPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgcHBjNjRfZGVmY29uZmlnDQogICAgczM5MMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRlZmF1bHRfZGVmY29uZmlnDQogICAgeDg2
+XzY0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWctaTAtMDUxMDIz
+MjYNCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29u
+ZmlnLWkxLTA1MTAyMzU1DQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgcmFuZGNvbmZpZy1pMC0wNTEwMjM1NQ0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGFsbG1vZGNvbmZpZw0KICAgIG1p
+cHPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYXRo
+NzlfZGVmY29uZmlnDQogICAgYzZ4wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgZXZtYzY2NzhfZGVmY29uZmlnDQogICAgeHRlbnNhwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGNvbW1vbl9kZWZjb25maWcNCiAgICBtMzJy
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG0zMjEwNHV0X2Rl
+ZmNvbmZpZw0KICAgIHh0ZW5zYcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqBpc3NfZGVmY29uZmlnDQogICAgbTMycsKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgb3BzcHV0X2RlZmNvbmZpZw0KICAgIG0zMnLC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB1c3J2
+X2RlZmNvbmZpZw0KICAgIG0zMnLCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqBtYXBwaTMuc21wX2RlZmNvbmZpZw0KICAgIG5pb3MywqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAxMG01MF9kZWZjb25maWcNCiAgICBoODMwMMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBoODMwMGgtc2ltX2RlZmNvbmZp
+Zw0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14
+MDEwLTA1MTAyMzQyDQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBy
+YW5kY29uZmlnLXgwMTEtMDUxMDIzNDINCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoHJhbmRjb25maWcteDAxMi0wNTEwMjM0Mg0KICAgIGkzODbCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDEzLTA1MTAyMzQyDQogICAgaTM4NsKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmlnLXgwMTQtMDUxMDIzNDIN
+CiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAx
+NS0wNTEwMjM0Mg0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFu
+ZGNvbmZpZy14MDE2LTA1MTAyMzQyDQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqByYW5kY29uZmlnLXgwMTctMDUxMDIzNDINCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAxOC0wNTEwMjM0Mg0KICAgIGkzODbCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDE5LTA1MTAyMzQyDQog
+ICAgbWlwc8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqBkZWZjb25maWcNCiAgICB4ODZfNjTCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoHJhbmRjb25maWctbmUwLTA1MTExMTEwDQogICAgaTM4NsKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgdGlueWNvbmZp
+Zw0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14
+MDE5LTA1MTAyMzI5DQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBy
+YW5kY29uZmlnLXgwMTUtMDUxMDIzMjkNCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoHJhbmRjb25maWcteDAxMi0wNTEwMjMyOQ0KICAgIGkzODbCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDExLTA1MTAyMzI5DQogICAgaTM4NsKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmlnLXgwMTctMDUxMDIzMjkN
+CiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAx
+My0wNTEwMjMyOQ0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFu
+ZGNvbmZpZy14MDE2LTA1MTAyMzI5DQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqByYW5kY29uZmlnLXgwMTAtMDUxMDIzMjkNCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAxOC0wNTEwMjMyOQ0KICAgIGkzODbCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDE0LTA1MTAyMzI5DQog
+ICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy1u
+MC0wNTEwMjMzMA0KICAgIG1uMTAzMDDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqBhc2IyMzY0X2RlZmNvbmZpZw0KICAgIG9wZW5yaXNjwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoG9yMWtzaW1fZGVmY29uZmlnDQogICAgdW3CoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB4ODZfNjRfZGVmY29u
+ZmlnDQogICAgdW3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgaTM4Nl9kZWZjb25maWcNCiAgICBmcnbCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkZWZjb25maWcNCiAg
+ICB0aWxlwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB0
+aWxlZ3hfZGVmY29uZmlnDQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqByYW5kY29uZmlnLXgwNzItMDUxMDIzNTQNCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDA3Ny0wNTEwMjM1NA0KICAgIGkzODbCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDc5LTA1MTAyMzU0DQogICAgaTM4
+NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmlnLXgwNzgtMDUxMDIz
+NTQNCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWct
+eDA3NS0wNTEwMjM1NA0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+cmFuZGNvbmZpZy14MDcxLTA1MTAyMzU0DQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqByYW5kY29uZmlnLXgwNzAtMDUxMDIzNTQNCiAgICBpMzg2wqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDA3Ni0wNTEwMjM1NA0KICAgIGkzODbC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDczLTA1MTAyMzU0
+DQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmlnLXgw
+NzQtMDUxMDIzNTQNCiAgICBtaWNyb2JsYXplwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqBtbXVfZGVmY29uZmlnDQogICAgbWljcm9ibGF6ZcKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBub21tdV9kZWZjb25maWcNCiAgICBzcGFyY8KgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+ZGVmY29uZmlnDQogICAgc3BhcmM2NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoGFsbG5vY29uZmlnDQogICAgc3BhcmM2NMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkZWZjb25maWcNCiAg
+ICBzY29yZcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc3BjdDY2
+MDBfZGVmY29uZmlnDQogICAgYXJtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBhbGxub2NvbmZpZw0KICAgIGFybcKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYXQ5MV9kdF9kZWZjb25maWcN
+CiAgICBhcm3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqBlZm0zMl9kZWZjb25maWcNCiAgICBhcm3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZXh5bm9zX2RlZmNvbmZpZw0KICAgIGFybcKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG11bHRpX3Y1X2RlZmNvbmZp
+Zw0KICAgIGFybcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oG11bHRpX3Y3X2RlZmNvbmZpZw0KICAgIGFybcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoHNobW9iaWxlX2RlZmNvbmZpZw0KICAgIGFybcKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHN1bnhpX2RlZmNvbmZp
+Zw0KICAgIGFybTY0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoGFsbG5vY29uZmlnDQogICAgYXJtNjTCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRlZmNvbmZpZw0KICAgIGkz
+ODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDcwLTA1MTAy
+MzMwDQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmln
+LXgwNzEtMDUxMDIzMzANCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oHJhbmRjb25maWcteDA3Mi0wNTEwMjMzMA0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDczLTA1MTAyMzMwDQogICAgaTM4NsKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmlnLXgwNzQtMDUxMDIzMzANCiAgICBpMzg2
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDA3NS0wNTEwMjMz
+MA0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14
+MDc2LTA1MTAyMzMwDQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBy
+YW5kY29uZmlnLXgwNzctMDUxMDIzMzANCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoHJhbmRjb25maWcteDA3OC0wNTEwMjMzMA0KICAgIGkzODbCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDc5LTA1MTAyMzMwDQogICAgaTM4NsKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oGFsbG5vY29uZmlnDQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkZWZjb25maWcNCiAgICBpMzg2wqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGFsbGRlZmNv
+bmZpZw0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWct
+eDAwNS0wNTEwMjMyNA0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJh
+bmRjb25maWcteDAwOS0wNTEwMjMyNA0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoHJhbmRjb25maWcteDAwNi0wNTEwMjMyNA0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAwMC0wNTEwMjMyNA0KICAgIHg4Nl82NMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAwMi0wNTEwMjMyNA0KICAgIHg4
+Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAwNC0wNTEwMjMy
+NA0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAw
+OC0wNTEwMjMyNA0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRj
+b25maWcteDAwMS0wNTEwMjMyNA0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoHJhbmRjb25maWcteDAwMy0wNTEwMjMyNA0KICAgIHg4Nl82NMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAwNy0wNTEwMjMyNA0KICAgIGkzODbCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWctcjAtMDUxMDIzMjUNCiAgICB4
+ODZfNjTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy1yMC0wNTEw
+MjMyNQ0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZp
+Zy14MDAzLTA1MTAyMzIyDQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqByYW5kY29uZmlnLXgwMDktMDUxMDIzMjINCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAwNS0wNTEwMjMyMg0KICAgIGkzODbCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDAyLTA1MTAyMzIyDQogICAgaTM4
+NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYW5kY29uZmlnLXgwMDgtMDUxMDIz
+MjINCiAgICBpMzg2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWct
+eDAwMS0wNTEwMjMyMg0KICAgIGkzODbCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+cmFuZGNvbmZpZy14MDA3LTA1MTAyMzIyDQogICAgaTM4NsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqByYW5kY29uZmlnLXgwMDAtMDUxMDIzMjINCiAgICBpMzg2wqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJhbmRjb25maWcteDAwNi0wNTEwMjMyMg0KICAgIGkzODbC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmFuZGNvbmZpZy14MDA0LTA1MTAyMzIy
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
+ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
+LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
