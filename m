@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C16D121A04823
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 08:34:35 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH] libnvdimm: rework region badblocks clearing
-Date: Mon, 1 May 2017 15:34:32 +0000
-Message-ID: <1493652871.30303.15.camel@hpe.com>
-References: <149355594185.9917.1577772489949690281.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149355594185.9917.1577772489949690281.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <AE3E6840285559448A597D6C5D5385B5@NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 3B37921A16E28
+ for <linux-nvdimm@lists.01.org>; Thu, 11 May 2017 15:07:27 -0700 (PDT)
+Subject: [ndctl PATCH 2/4] ndctl,
+ list: clarify dev_badblocks_to_json() usage with btt and documentation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 11 May 2017 15:01:35 -0700
+Message-ID: <149454009571.30857.13396023187046049358.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149454009049.30857.6643219237076670086.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149454009049.30857.6643219237076670086.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,74 +19,205 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gU3VuLCAyMDE3LTA0LTMwIGF0IDA1OjM5IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IFRvc2hpIG5vdGljZWQgdGhhdCB0aGUgbmV3IHN1cHBvcnQgZm9yIGEgcmVnaW9uLWxldmVsIGJh
-ZGJsb2Nrcw0KPiBtaXNzZWQgdGhlIGNhc2Ugd2hlcmUgZXJyb3JzIGFyZSBjbGVhcmVkIGR1ZSB0
-byBCVFQgSS9PLg0KPiANCj4gQW4gaW5pdGlhbCBhdHRlbXB0IHRvIGZpeCB0aGlzIHJhbiBpbnRv
-IGEgInNsZWVwaW5nIHdoaWxlIGF0b21pYyINCj4gd2FybmluZyBkdWUgdG8gdGFraW5nIHRoZSBu
-dmRpbW1fYnVzX2xvY2soKSBpbiB0aGUgQlRUIEkvTyBwYXRoIHRvDQo+IHNhdGlzZnkgdGhlIGxv
-Y2tpbmcgcmVxdWlyZW1lbnRzIG9mIF9fbnZkaW1tX2J1c19iYWRibG9ja3NfY2xlYXIoKS4NCj4g
-SG93ZXZlciwgdGhhdCBsb2NrIGlzIG5vdCBuZWVkZWQgc2luY2Ugd2UgYXJlIG5vdCBhY3Rpbmcg
-YW55IGRhdGENCj4gdGhhdCBpcyBzdWJqZWN0IHRvIGNoYW5nZSBkdWUgdG8gYSBjaGFuZ2Ugb2Yg
-c3RhdGUgb2YgdGhlIGJ1cyAvDQo+IHJlZ2lvbi4gVGhlIGJhZGJsb2NrcyBpbnN0YW5jZSBoYXMg
-aXRzIG93biBpbnRlcm5hbCBsb2NrIHRvIGhhbmRsZQ0KPiBtdXRhdGlvbnMgb2YgdGhlIGVycm9y
-IGxpc3QuDQo+IA0KPiBTbywgdG8gbWFrZSBpdCBjbGVhciB0aGF0IHdlIGFyZSBqdXN0IGFjdGlu
-ZyBvbiByZWdpb24gZGV2aWNlcyBhbmQNCj4gZG9uJ3QgbmVlZCB0aGUgbG9jayByZW5hbWUgX19u
-dmRpbW1fYnVzX2JhZGJsb2Nrc19jbGVhcigpIHRvDQo+IG52ZGltbV9jbGVhcl9iYWRibG9ja3Nf
-cmVnaW9ucygpLiBFbGltaW5hdGUgdGhlIGxvY2sgYW5kIGNvbnNvbGlkYXRlDQo+IGFsbCByb3V0
-aW5lcyBpbiBkcml2ZXJzL252ZGltbS9idXMuYy4gQWxzbywgbWFrZSBzb21lIGNsZWFudXBzIHRv
-DQo+IHJlbW92ZSB1bm5lY2Vzc2FyeSBjYXN0cywgbWFrZSB0aGUgY2FsbGluZyBjb252ZW50aW9u
-IG9mDQo+IG52ZGltbV9jbGVhcl9iYWRibG9ja3NfcmVnaW9ucygpIGNsZWFyZXIgYnkgcmVwbGFj
-aW5nIHN0cnVjdCByZXNvdXJjZQ0KPiB3aXRoIHRoZSBtaW5pbWFsIHN0cnVjdCBjbGVhcl9iYWRi
-bG9ja3NfY29udGV4dCwgYW5kIHVzZSB0aGUNCj4gREVWSUNFX0FUVFIgbWFjcm8uDQoNCkhpIERh
-biwNCg0KSSB3YXMgdGVzdGluZyB0aGUgY2hhbmdlIHdpdGggQ09ORklHX0RFQlVHX0FUT01JQ19T
-TEVFUCBzZXQgdGhpcyB0aW1lLA0KYW5kIGhpdCB0aGUgZm9sbG93aW5nIEJVRyB3aXRoIEJUVC4g
-IFRoaXMgaXPCoGEgc2VwYXJhdGUgaXNzdWUgKG5vdA0KaW50cm9kdWNlZCBieSB0aGlzIHBhdGNo
-KSwgYnV0IGl0IHNob3dzIHRoYXQgd2UgaGF2ZSBhbiBpc3N1ZSB3aXRoIHRoZQ0KRFNNIGNhbGwg
-cGF0aCBhcyB3ZWxsLg0KDQpbIDEyNzkuNzEyOTMzXSBuZml0IEFDUEkwMDEyOjAwOiBhY3BpX25m
-aXRfY3RsOmJ1cyBjbWQ6IDE6IGZ1bmM6IDENCmlucHV0IGxlbmd0aDogMTYNClsgMTI3OS43MjEx
-MTFdIG52ZGltbSBpbsKgwqAwMDAwMDAwMDogNjAwMDAwMDAgMDAwMDAwMDIgMDAwMDEwMDANCjAw
-MDAwMDAwwqDCoC4uLmAuLi4uLi4uLi4uLi4NClsgMTI3OS43Mjk3OTldIEJVRzogc2xlZXBpbmcg
-ZnVuY3Rpb24gY2FsbGVkIGZyb20gaW52YWxpZCBjb250ZXh0IGF0DQptbS9zbGFiLmg6NDMyDQpb
-IDEyNzkuNzM4MDA1XSBpbl9hdG9taWMoKTogMSwgaXJxc19kaXNhYmxlZCgpOiAwLCBwaWQ6IDEz
-MzUzLCBuYW1lOiBkZA0KWyAxMjc5Ljc0NTE4N10gSU5GTzogbG9ja2RlcCBpcyB0dXJuZWQgb2Zm
-Lg0KIDoNClsgMTI3OS43Njc5MDhdIENhbGwgVHJhY2U6DQpbIDEyNzkuNzcxMTE2XcKgwqBkdW1w
-X3N0YWNrKzB4ODYvMHhjMw0KWyAxMjc5Ljc3NTIwMV3CoMKgX19fbWlnaHRfc2xlZXArMHgxN2Qv
-MHgyNTANClsgMTI3OS43Nzk4MDhdwqDCoF9fbWlnaHRfc2xlZXArMHg0YS8weDgwDQpbIDEyNzku
-Nzg0MjE0XcKgwqBfX2ttYWxsb2MrMHgxYzAvMHgyZTANClsgMTI3OS43ODgzODhdwqDCoGFjcGlf
-b3NfYWxsb2NhdGVfemVyb2VkKzB4MmQvMHgyZg0KWyAxMjc5Ljc5MzYwNF3CoMKgYWNwaV9ldmFs
-dWF0ZV9vYmplY3QrMHg1OS8weDNiMQ0KWyAxMjc5Ljc5ODY0MF3CoMKgYWNwaV9ldmFsdWF0ZV9k
-c20rMHhiZC8weDEwYw0KWyAxMjc5LjgwMzQ1OF3CoMKgYWNwaV9uZml0X2N0bCsweDFlZi8weDdj
-MCBbbmZpdF0NClsgMTI3OS44MDg1ODRdwqDCoD8gbnNpb19yd19ieXRlcysweDE1Mi8weDI4MA0K
-WyAxMjc5LjgxMzI1OF3CoMKgbnZkaW1tX2NsZWFyX3BvaXNvbisweDc3LzB4MTQwDQpbIDEyNzku
-ODE4MTkzXcKgwqBuc2lvX3J3X2J5dGVzKzB4MThmLzB4MjgwDQpbIDEyNzkuODIyNjg0XcKgwqBi
-dHRfd3JpdGVfcGcrMHgxZDQvMHgzZDAgW25kX2J0dF0NClsgMTI3OS44Mjc4NjldwqDCoGJ0dF9t
-YWtlX3JlcXVlc3QrMHgxMTkvMHgyZDAgW25kX2J0dF0NClsgMTI3OS44MzMzOThdwqDCoD8gZ2Vu
-ZXJpY19tYWtlX3JlcXVlc3QrMHhlZi8weDNiMA0KWyAxMjc5LjgzODU3NV3CoMKgZ2VuZXJpY19t
-YWtlX3JlcXVlc3QrMHgxMjIvMHgzYjANClsgMTI3OS44NDM2NjFdwqDCoD8gaW92X2l0ZXJfZ2V0
-X3BhZ2VzKzB4YmQvMHgzODANClsgMTI3OS44NDg2NjZdwqDCoHN1Ym1pdF9iaW8rMHg3My8weDE1
-MA0KWyAxMjc5Ljg1MjgwMV3CoMKgPyBiaW9faW92X2l0ZXJfZ2V0X3BhZ2VzKzB4ZDcvMHgxMjAN
-ClsgMTI3OS44NTgxNjZdwqDCoD8gX19ibGtkZXZfZGlyZWN0X0lPX3NpbXBsZSsweDE3Yi8weDM0
-MA0KWyAxMjc5Ljg2Mzg3N13CoMKgX19ibGtkZXZfZGlyZWN0X0lPX3NpbXBsZSsweDE3Ny8weDM0
-MA0KWyAxMjc5Ljg2OTQ1M13CoMKgPyBiZHB1dCsweDIwLzB4MjANClsgMTI3OS44NzMyMzFdwqDC
-oGJsa2Rldl9kaXJlY3RfSU8rMHgzYjEvMHgzYzANClsgMTI3OS44Nzc5NjNdwqDCoD8gY3VycmVu
-dF90aW1lKzB4MTgvMHg3MA0KWyAxMjc5Ljg4MjM0NF3CoMKgZ2VuZXJpY19maWxlX2RpcmVjdF93
-cml0ZSsweGJhLzB4MTgwDQpbIDEyNzkuODg3NzY1XcKgwqBfX2dlbmVyaWNfZmlsZV93cml0ZV9p
-dGVyKzB4YzAvMHgxYzANClsgMTI3OS44OTMxODVdwqDCoD8gX19jbGVhcl91c2VyKzB4MjMvMHg3
-MA0KWyAxMjc5Ljg5NzU1MF3CoMKgYmxrZGV2X3dyaXRlX2l0ZXIrMHg4Yi8weDEwMA0KWyAxMjc5
-LjkwMjI1OF3CoMKgPyBfX21pZ2h0X3NsZWVwKzB4NGEvMHg4MA0KWyAxMjc5LjkwNjY5OV3CoMKg
-X192ZnNfd3JpdGUrMHhlOC8weDE2MA0KWyAxMjc5LjkxMDg3Nl3CoMKgdmZzX3dyaXRlKzB4Y2Iv
-MHgxZjANClsgMTI3OS45MTQ4NjddwqDCoFN5U193cml0ZSsweDU4LzB4YzANClsgMTI3OS45MTg3
-NzNdwqDCoGRvX3N5c2NhbGxfNjQrMHg2Yy8weDFmMA0KWyAxMjc5LjkyMzEyMF3CoMKgZW50cnlf
-U1lTQ0FMTDY0X3Nsb3dfcGF0aCsweDI1LzB4MjUNCg0KVGhhbmtzLA0KLVRvc2hpCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Rather than pass include_media_errors through to dev_badblocks_to_json()
+in the btt case only to throw it away, just tell dev_badblocks_to_json()
+not to bother. The commentary about why we do not support badblocks
+listing is moved internal to the util_btt_badblocks_to_json() helper.
+
+This also takes the opportunity to s/jobj2/jbbs/ for readability, and
+s/include_media_err/include_media_errors/ for consistency.
+
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ Documentation/ndctl-list.txt |   12 +++++++--
+ ndctl/list.c                 |   12 ++++-----
+ util/json.c                  |   57 ++++++++++++++++++++----------------------
+ 3 files changed, 42 insertions(+), 39 deletions(-)
+
+diff --git a/Documentation/ndctl-list.txt b/Documentation/ndctl-list.txt
+index 0ac08a8024c0..da90860e061f 100644
+--- a/Documentation/ndctl-list.txt
++++ b/Documentation/ndctl-list.txt
+@@ -148,9 +148,15 @@ include::xable-region-options.txt[]
+ 
+ -M::
+ --media-errors::
+-	Include media errors (badblocks) in the listing. badblocks_count
+-	may count blocks that are not in the data space of the namespace
+-	for sector mode.
++	Include media errors (badblocks) in the listing. Note that the
++	'badblock_count' property is included in the listing by default
++	when the count is non-zero, otherwise it is hidden. Also, if the
++	namespace is in 'sector' mode the 'badblocks' listing is not
++	included and 'badblock_count' property may include blocks that are
++	located in metadata, or unused capacity in the namespace. Convert
++	a 'sector' namespace into 'raw' mode to list precise 'badblocks'
++	offsets.
++
+ [verse]
+ {
+   "dev":"namespace7.0",
+diff --git a/ndctl/list.c b/ndctl/list.c
+index 8d912e654476..cf26d8c08183 100644
+--- a/ndctl/list.c
++++ b/ndctl/list.c
+@@ -120,10 +120,10 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
+ }
+ 
+ static struct json_object *region_to_json(struct ndctl_region *region,
+-		bool include_media_err)
++		bool include_media_errors)
+ {
+ 	struct json_object *jregion = json_object_new_object();
+-	struct json_object *jobj, *jobj2, *jmappings = NULL;
++	struct json_object *jobj, *jbbs, *jmappings = NULL;
+ 	struct ndctl_interleave_set *iset;
+ 	struct ndctl_mapping *mapping;
+ 	unsigned int bb_count;
+@@ -207,16 +207,16 @@ static struct json_object *region_to_json(struct ndctl_region *region,
+ 		json_object_object_add(jregion, "state", jobj);
+ 	}
+ 
+-	jobj2 = util_region_badblocks_to_json(region, include_media_err,
++	jbbs = util_region_badblocks_to_json(region, include_media_errors,
+ 			&bb_count);
+ 	jobj = json_object_new_int(bb_count);
+ 	if (!jobj) {
+-		json_object_put(jobj2);
++		json_object_put(jbbs);
+ 		goto err;
+ 	}
+ 	json_object_object_add(jregion, "badblock_count", jobj);
+-	if (include_media_err && jobj2)
+-		json_object_object_add(jregion, "badblocks", jobj2);
++	if (include_media_errors && jbbs)
++		json_object_object_add(jregion, "badblocks", jbbs);
+ 
+ 	list_namespaces(region, jregion, NULL, false);
+ 	return jregion;
+diff --git a/util/json.c b/util/json.c
+index b2c84181cadb..f72ffca910ae 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -374,8 +374,8 @@ static struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
+ 			include_media_errors, bb_count);
+ }
+ 
+-static struct json_object *util_btt_badblocks_to_json(struct ndctl_btt *btt,
+-		bool include_media_errors, unsigned int *bb_count)
++static void util_btt_badblocks_to_json(struct ndctl_btt *btt,
++		unsigned int *bb_count)
+ {
+ 	struct ndctl_region *region = ndctl_btt_get_region(btt);
+ 	struct ndctl_namespace *ndns = ndctl_btt_get_namespace(btt);
+@@ -383,14 +383,22 @@ static struct json_object *util_btt_badblocks_to_json(struct ndctl_btt *btt,
+ 
+ 	btt_begin = ndctl_namespace_get_resource(ndns);
+ 	if (btt_begin == ULLONG_MAX)
+-		return NULL;
++		return;
+ 
+ 	btt_size = ndctl_btt_get_size(btt);
+ 	if (btt_size == ULLONG_MAX)
+-		return NULL;
+-
+-	return dev_badblocks_to_json(region, btt_begin, btt_size,
+-			include_media_errors, bb_count);
++		return;
++
++	/*
++	 * The dev_badblocks_to_json() for BTT is not accurate with
++	 * respect to data vs metadata badblocks, and is only useful for
++	 * a potential bb_count.
++	 *
++	 * FIXME: switch to native BTT badblocks representation
++	 * when / if the kernel provides it.
++	 */
++	dev_badblocks_to_json(region, btt_begin, btt_size,
++			false, bb_count);
+ }
+ 
+ static struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
+@@ -416,16 +424,16 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		bool include_media_errors)
+ {
+ 	struct json_object *jndns = json_object_new_object();
++	struct json_object *jobj, *jbbs = NULL;
+ 	unsigned long long size = ULLONG_MAX;
+ 	enum ndctl_namespace_mode mode;
+-	struct json_object *jobj, *jobj2;
+ 	const char *bdev = NULL;
++	unsigned int bb_count;
+ 	struct ndctl_btt *btt;
+ 	struct ndctl_pfn *pfn;
+ 	struct ndctl_dax *dax;
+ 	char buf[40];
+ 	uuid_t uuid;
+-	unsigned int bb_count;
+ 
+ 	if (!jndns)
+ 		return NULL;
+@@ -549,38 +557,27 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	}
+ 
+ 	if (pfn)
+-		jobj2 = util_pfn_badblocks_to_json(pfn, include_media_errors,
++		jbbs = util_pfn_badblocks_to_json(pfn, include_media_errors,
+ 				&bb_count);
+ 	else if (dax)
+-		jobj2 = util_dax_badblocks_to_json(dax, include_media_errors,
++		jbbs = util_dax_badblocks_to_json(dax, include_media_errors,
+ 				&bb_count);
+-	else if (btt) {
+-		jobj2 = util_btt_badblocks_to_json(btt, include_media_errors,
+-				&bb_count);
+-		/*
+-		 * Discard the jobj2, the badblocks for BTT is not,
+-		 * accurate and there will be a good method to caculate
+-		 * them later. We just want a bb count and not the specifics
+-		 * for now.
+-		 */
+-		jobj2 = NULL;
+-	} else {
+-		struct ndctl_region *region =
+-			ndctl_namespace_get_region(ndns);
+-
+-		jobj2 = util_region_badblocks_to_json(region,
++	else if (btt)
++		util_btt_badblocks_to_json(btt, &bb_count);
++	else
++		jbbs = util_region_badblocks_to_json(
++				ndctl_namespace_get_region(ndns),
+ 				include_media_errors, &bb_count);
+-	}
+ 
+ 	jobj = json_object_new_int(bb_count);
+ 	if (!jobj) {
+-		json_object_put(jobj2);
++		json_object_put(jbbs);
+ 		goto err;
+ 	}
+ 
+ 	json_object_object_add(jndns, "badblock_count", jobj);
+-	if (include_media_errors && jobj2)
+-			json_object_object_add(jndns, "badblocks", jobj2);
++	if (include_media_errors && jbbs)
++			json_object_object_add(jndns, "badblocks", jbbs);
+ 
+ 	return jndns;
+  err:
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
