@@ -1,16 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 839EA21A16E36
- for <linux-nvdimm@lists.01.org>; Thu, 11 May 2017 10:37:54 -0700 (PDT)
-Subject: [PATCH v5 2/2] ndctl: add list --media-errors support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 11 May 2017 10:37:53 -0700
-Message-ID: <149452423401.25868.12072221454250478213.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <149452421176.25868.9410889126303443053.stgit@djiang5-desk3.ch.intel.com>
-References: <149452421176.25868.9410889126303443053.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
+In-Reply-To: <1494431760-6455-1-git-send-email-pagupta@redhat.com>
+References: <1494431760-6455-1-git-send-email-pagupta@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 11 May 2017 15:06:01 -0700
+Message-ID: <CAA9_cmffgsC6cQwQRxHOmK00YEjpx22U6zjLYJUf+fZj6_orLw@mail.gmail.com>
+Subject: Re: [Qemu-devel] KVM "fake DAX" device flushing
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,395 +13,146 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: kwolf@redhat.com, KVM list <kvm@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, qemu-devel@nongnu.org, stefanha@redhat.com, Paolo Bonzini <pbonzini@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI NFIT enabled platforms provide media errors as absolute phyiscal
-address offsets. Add an option to ndctl to display those media errors
-tranlsated to region and namespace device level offsets in an "ndctl
-list" listing. BTT badblocks show is not supported in this iteration and
-will come later.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-
-v2: added fix to badblocks display from Toshi's testing result.
-v3: fixed naming issues from Dan's comments.
-    fixed badblocks boundary offset calculations from Toshi's testing.
-v4: Add indicator to show badblocks exist or not, per Toshi's comments.
-v5: Add BTT badblock_count from Toshi and Dan's comments.
-
- ndctl/list.c      |   25 +++++-
- ndctl/namespace.c |    2 
- util/json.c       |  218 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- util/json.h       |   10 ++
- 4 files changed, 247 insertions(+), 8 deletions(-)
-
-diff --git a/ndctl/list.c b/ndctl/list.c
-index 536d333..8d912e6 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -24,6 +24,7 @@ static struct {
- 	bool idle;
- 	bool health;
- 	bool dax;
-+	bool media_errors;
- } list;
- 
- static struct {
-@@ -99,7 +100,8 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
- 						jnamespaces);
- 		}
- 
--		jndns = util_namespace_to_json(ndns, list.idle, list.dax);
-+		jndns = util_namespace_to_json(ndns, list.idle, list.dax,
-+				list.media_errors);
- 		if (!jndns) {
- 			fail("\n");
- 			continue;
-@@ -117,12 +119,14 @@ static struct json_object *list_namespaces(struct ndctl_region *region,
- 	return NULL;
- }
- 
--static struct json_object *region_to_json(struct ndctl_region *region)
-+static struct json_object *region_to_json(struct ndctl_region *region,
-+		bool include_media_err)
- {
- 	struct json_object *jregion = json_object_new_object();
--	struct json_object *jobj, *jmappings = NULL;
-+	struct json_object *jobj, *jobj2, *jmappings = NULL;
- 	struct ndctl_interleave_set *iset;
- 	struct ndctl_mapping *mapping;
-+	unsigned int bb_count;
- 
- 	if (!jregion)
- 		return NULL;
-@@ -203,6 +207,17 @@ static struct json_object *region_to_json(struct ndctl_region *region)
- 		json_object_object_add(jregion, "state", jobj);
- 	}
- 
-+	jobj2 = util_region_badblocks_to_json(region, include_media_err,
-+			&bb_count);
-+	jobj = json_object_new_int(bb_count);
-+	if (!jobj) {
-+		json_object_put(jobj2);
-+		goto err;
-+	}
-+	json_object_object_add(jregion, "badblock_count", jobj);
-+	if (include_media_err && jobj2)
-+		json_object_object_add(jregion, "badblocks", jobj2);
-+
- 	list_namespaces(region, jregion, NULL, false);
- 	return jregion;
-  err:
-@@ -240,6 +255,8 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 		OPT_BOOLEAN('X', "device-dax", &list.dax,
- 				"include device-dax info"),
- 		OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
-+		OPT_BOOLEAN('M', "media-errors", &list.media_errors,
-+				"include media errors"),
- 		OPT_END(),
- 	};
- 	const char * const u[] = {
-@@ -404,7 +421,7 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 							jregions);
- 			}
- 
--			jregion = region_to_json(region);
-+			jregion = region_to_json(region, list.media_errors);
- 			if (!jregion) {
- 				fail("\n");
- 				continue;
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 89b9b6a..6e150b1 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -392,7 +392,7 @@ static int setup_namespace(struct ndctl_region *region,
- 		error("%s: failed to enable\n",
- 				ndctl_namespace_get_devname(ndns));
- 	} else {
--		struct json_object *jndns = util_namespace_to_json(ndns, 0, 1);
-+		struct json_object *jndns = util_namespace_to_json(ndns, 0, 1, 0);
- 
- 		if (jndns)
- 			printf("%s\n", json_object_to_json_string_ext(jndns,
-diff --git a/util/json.c b/util/json.c
-index 07fd113..744b0db 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -233,19 +233,199 @@ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
- 	return NULL;
- }
- 
-+struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
-+		bool include_media_errors, unsigned int *bb_count)
-+{
-+	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
-+	struct badblock *bb;
-+	int bbs = 0;
-+
-+	if (include_media_errors) {
-+		jbbs = json_object_new_array();
-+		if (!jbbs)
-+			return NULL;
-+	}
-+
-+	ndctl_region_badblock_foreach(region, bb) {
-+		if (include_media_errors) {
-+			jbb = json_object_new_object();
-+			if (!jbb)
-+				goto err_array;
-+
-+			jobj = json_object_new_int64(bb->offset);
-+			if (!jobj)
-+				goto err;
-+			json_object_object_add(jbb, "offset", jobj);
-+
-+			jobj = json_object_new_int(bb->len);
-+			if (!jobj)
-+				goto err;
-+			json_object_object_add(jbb, "length", jobj);
-+
-+			json_object_array_add(jbbs, jbb);
-+		}
-+
-+		bbs++;
-+	}
-+
-+	*bb_count = bbs;
-+
-+	if (bbs)
-+		return jbbs;
-+
-+ err:
-+	json_object_put(jbb);
-+ err_array:
-+	json_object_put(jbbs);
-+	return NULL;
-+}
-+
-+static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
-+		unsigned long long dev_begin, unsigned long long dev_size,
-+		bool include_media_errors, unsigned int *bb_count)
-+{
-+	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
-+	unsigned long long region_begin, dev_end, offset;
-+	unsigned int len, bbs = 0;
-+	struct badblock *bb;
-+
-+	region_begin = ndctl_region_get_resource(region);
-+	if (region_begin == ULLONG_MAX)
-+		return NULL;
-+
-+	dev_end = dev_begin + dev_size - 1;
-+
-+	if (include_media_errors) {
-+		jbbs = json_object_new_array();
-+		if (!jbbs)
-+			return NULL;
-+	}
-+
-+	ndctl_region_badblock_foreach(region, bb) {
-+		unsigned long long bb_begin, bb_end, begin, end;
-+
-+		bb_begin = region_begin + (bb->offset << 9);
-+		bb_end = bb_begin + (bb->len << 9) - 1;
-+
-+		if (bb_end <= dev_begin || bb_begin >= dev_end)
-+			continue;
-+
-+		if (bb_begin < dev_begin)
-+			begin = dev_begin;
-+		else
-+			begin = bb_begin;
-+
-+		if (bb_end > dev_end)
-+			end = dev_end;
-+		else
-+			end = bb_end;
-+
-+		offset = (begin - dev_begin) >> 9;
-+		len = (end - begin + 1) >> 9;
-+
-+		if (include_media_errors) {
-+			/* add to json */
-+			jbb = json_object_new_object();
-+			if (!jbb)
-+				goto err_array;
-+
-+			jobj = json_object_new_int64(offset);
-+			if (!jobj)
-+				goto err;
-+			json_object_object_add(jbb, "offset", jobj);
-+
-+			jobj = json_object_new_int(len);
-+			if (!jobj)
-+				goto err;
-+			json_object_object_add(jbb, "length", jobj);
-+
-+			json_object_array_add(jbbs, jbb);
-+		}
-+		bbs++;
-+	}
-+
-+	*bb_count = bbs;
-+
-+	if (bbs)
-+		return jbbs;
-+
-+ err:
-+	json_object_put(jbb);
-+ err_array:
-+	json_object_put(jbbs);
-+	return NULL;
-+}
-+
-+struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
-+		bool include_media_errors, unsigned int *bb_count)
-+{
-+	struct ndctl_region *region = ndctl_pfn_get_region(pfn);
-+	unsigned long long pfn_begin, pfn_size;
-+
-+	pfn_begin = ndctl_pfn_get_resource(pfn);
-+	if (pfn_begin == ULLONG_MAX)
-+		return NULL;
-+
-+	pfn_size = ndctl_pfn_get_size(pfn);
-+	if (pfn_size == ULLONG_MAX)
-+		return NULL;
-+
-+	return dev_badblocks_to_json(region, pfn_begin, pfn_size,
-+			include_media_errors, bb_count);
-+}
-+
-+struct json_object *util_btt_badblocks_to_json(struct ndctl_btt *btt,
-+		bool include_media_errors, unsigned int *bb_count)
-+{
-+	struct ndctl_region *region = ndctl_btt_get_region(btt);
-+	struct ndctl_namespace *ndns = ndctl_btt_get_namespace(btt);
-+	unsigned long long btt_begin, btt_size;
-+
-+	btt_begin = ndctl_namespace_get_resource(ndns);
-+	if (btt_begin == ULLONG_MAX)
-+		return NULL;
-+
-+	btt_size = ndctl_btt_get_size(btt);
-+	if (btt_size == ULLONG_MAX)
-+		return NULL;
-+
-+	return dev_badblocks_to_json(region, btt_begin, btt_size,
-+			include_media_errors, bb_count);
-+}
-+
-+struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
-+		bool include_media_errors, unsigned int *bb_count)
-+{
-+	struct ndctl_region *region = ndctl_dax_get_region(dax);
-+	unsigned long long dax_begin, dax_size;
-+
-+	dax_begin = ndctl_dax_get_resource(dax);
-+	if (dax_begin == ULLONG_MAX)
-+		return NULL;
-+
-+	dax_size = ndctl_dax_get_size(dax);
-+	if (dax_size == ULLONG_MAX)
-+		return NULL;
-+
-+	return dev_badblocks_to_json(region, dax_begin, dax_size,
-+			include_media_errors, bb_count);
-+}
-+
- struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
--		bool include_idle, bool include_dax)
-+		bool include_idle, bool include_dax,
-+		bool include_media_errors)
- {
- 	struct json_object *jndns = json_object_new_object();
- 	unsigned long long size = ULLONG_MAX;
- 	enum ndctl_namespace_mode mode;
--	struct json_object *jobj;
-+	struct json_object *jobj, *jobj2;
- 	const char *bdev = NULL;
- 	struct ndctl_btt *btt;
- 	struct ndctl_pfn *pfn;
- 	struct ndctl_dax *dax;
- 	char buf[40];
- 	uuid_t uuid;
-+	unsigned int bb_count;
- 
- 	if (!jndns)
- 		return NULL;
-@@ -368,6 +548,40 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 		json_object_object_add(jndns, "state", jobj);
- 	}
- 
-+	if (pfn)
-+		jobj2 = util_pfn_badblocks_to_json(pfn, include_media_errors,
-+				&bb_count);
-+	else if (dax)
-+		jobj2 = util_dax_badblocks_to_json(dax, include_media_errors,
-+				&bb_count);
-+	else if (btt) {
-+		jobj2 = util_btt_badblocks_to_json(btt, include_media_errors,
-+				&bb_count);
-+		/*
-+		 * Discard the jobj2, the badblocks for BTT is not,
-+		 * accurate and there will be a good method to caculate
-+		 * them later. We just want a bb count and not the specifics
-+		 * for now.
-+		 */
-+		jobj2 = NULL;
-+	} else {
-+		struct ndctl_region *region =
-+			ndctl_namespace_get_region(ndns);
-+
-+		jobj2 = util_region_badblocks_to_json(region,
-+				include_media_errors, &bb_count);
-+	}
-+
-+	jobj = json_object_new_int(bb_count);
-+	if (!jobj) {
-+		json_object_put(jobj2);
-+		goto err;
-+	}
-+
-+	json_object_object_add(jndns, "badblock_count", jobj);
-+	if (include_media_errors && jobj2)
-+			json_object_object_add(jndns, "badblocks", jobj2);
-+
- 	return jndns;
-  err:
- 	json_object_put(jndns);
-diff --git a/util/json.h b/util/json.h
-index 2449c2d..b3bc208 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -10,9 +10,17 @@ struct json_object *util_bus_to_json(struct ndctl_bus *bus);
- struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm);
- struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping);
- struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
--		bool include_idle, bool include_dax);
-+		bool include_idle, bool include_dax, bool include_media_errs);
- struct daxctl_region;
- struct daxctl_dev;
-+struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
-+		bool include_media_errors, unsigned int *bb_count);
-+struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
-+		bool include_media_errors, unsigned int *bb_count);
-+struct json_object *util_btt_badblocks_to_json(struct ndctl_btt *btt,
-+		bool include_media_errors, unsigned int *bb_count);
-+struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
-+		bool include_media_errors, unsigned int *bb_count);
- struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
- 		bool include_devs, const char *ident, bool include_idle);
- struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev);
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+WyBhZGRpbmcgbnZkaW1tIG1haWxpbmcgbGlzdCBdCgpPbiBXZWQsIE1heSAxMCwgMjAxNyBhdCA4
+OjU2IEFNLCBQYW5rYWogR3VwdGEgPHBhZ3VwdGFAcmVkaGF0LmNvbT4gd3JvdGU6Cj4gV2UgYXJl
+IHNoYXJpbmcgaW5pdGlhbCBwcm9qZWN0IHByb3Bvc2FsIGZvcgo+ICdLVk0gImZha2UgREFYIiBk
+ZXZpY2UgZmx1c2hpbmcnIHByb2plY3QgZm9yIGZlZWRiYWNrLgo+IEdvdCB0aGUgaWRlYSBkdXJp
+bmcgZGlzY3Vzc2lvbiB3aXRoICdSaWsgdmFuIFJpZWwnLgo+Cj4gQWxzbywgcmVxdWVzdCBhbnN3
+ZXJzIHRvICdRdWVzdGlvbnMnIHNlY3Rpb24uCj4KPiBBYnN0cmFjdCA6Cj4gLS0tLS0tLS0tLQo+
+IFByb2plY3QgaWRlYSBpcyB0byB1c2UgZmFrZSBwZXJzaXN0ZW50IG1lbW9yeSB3aXRoIGRpcmVj
+dAo+IGFjY2VzcyhEQVgpIGluIHZpcnR1YWwgbWFjaGluZXMuIE92ZXJhbGwgZ29hbCBvZiBwcm9q
+ZWN0Cj4gaXMgdG8gaW5jcmVhc2UgdGhlIG51bWJlciBvZiB2aXJ0dWFsIG1hY2hpbmVzIHRoYXQg
+Y2FuIGJlCj4gcnVuIG9uIGEgcGh5c2ljYWwgbWFjaGluZSwgaW4gb3JkZXIgdG8gaW5jcmVhc2Ug
+dGhlIGRlbnNpdHkKPiBvZiBjdXN0b21lciB2aXJ0dWFsIG1hY2hpbmVzLgo+Cj4gVGhlIGlkZWEg
+aXMgdG8gYXZvaWQgdGhlIGd1ZXN0IHBhZ2UgY2FjaGUsIGFuZCBtaW5pbWl6ZSB0aGUKPiBtZW1v
+cnkgZm9vdHByaW50IG9mIHZpcnR1YWwgbWFjaGluZXMuIEJ5IHByZXNlbnRpbmcgYSBkaXNrCj4g
+aW1hZ2UgYXMgYSBudmRpbW0gZGlyZWN0IGFjY2VzcyAoREFYKSBtZW1vcnkgcmVnaW9uIGluIGEK
+PiB2aXJ0dWFsIG1hY2hpbmUsIHRoZSBndWVzdCBPUyBjYW4gYXZvaWQgdXNpbmcgcGFnZSBjYWNo
+ZQo+IG1lbW9yeSBmb3IgbW9zdCBmaWxlIGFjY2Vzc2VzLgo+Cj4gUHJvYmxlbSBTdGF0ZW1lbnQg
+Ogo+IC0tLS0tLS0tLS0tLS0tLS0tLQo+ICogR3Vlc3QgdXNlcyBwYWdlIGNhY2hlIGluIG1lbW9y
+eSB0byBwcm9jZXNzIGZhc3QgcmVxdWVzdHMKPiAgIGZvciBkaXNrIHJlYWQvd3JpdGUuIFRoaXMg
+cmVzdWx0cyBpbiBiaWcgbWVtb3J5IGZvb3RwcmludAo+ICAgb2YgZ3Vlc3RzIHdpdGhvdXQgaG9z
+dCBrbm93aW5nIG11Y2ggZGV0YWlscyBvZiB0aGUgZ3Vlc3QKPiAgIG1lbW9yeS4KPgo+ICogSWYg
+Z3Vlc3RzIHVzZSBkaXJlY3QgYWNjZXNzKERBWCkgd2l0aCBmYWtlIHBlcnNpc3RlbnQKPiAgIHN0
+b3JhZ2UsIHRoZSBob3N0IG1hbmFnZXMgdGhlIHBhZ2UgY2FjaGUgZm9yIGd1ZXN0cywKPiAgIGFs
+bG93aW5nIHRoZSBob3N0IHRvIGVhc2lseSByZWNsYWltL2V2aWN0IGxlc3MgZnJlcXVlbnRseQo+
+ICAgdXNlZCBwYWdlIGNhY2hlIHBhZ2VzIHdpdGhvdXQgcmVxdWlyaW5nIGd1ZXN0IGNvb3BlcmF0
+aW9uLAo+ICAgbGlrZSBiYWxsb29uaW5nIHdvdWxkLgo+Cj4gKiBIb3N0IG1hbmFnZXMgZ3Vlc3Qg
+Y2FjaGUgYXMg4oCYbW1hcGVk4oCZIGRpc2sgaW1hZ2UgYXJlYSBpbgo+ICAgcWVtdSBhZGRyZXNz
+IHNwYWNlLiBUaGlzIHJlZ2lvbiBpcyBwYXNzZWQgdG8gZ3Vlc3QgYXMgZmFrZQo+ICAgcGVyc2lz
+dGVudCBtZW1vcnkgcmFuZ2UuIFdlIG5lZWQgYSBuZXcgZmx1c2hpbmcgaW50ZXJmYWNlCj4gICB0
+byBmbHVzaCB0aGlzIGNhY2hlIHRvIHNlY29uZGFyeSBzdG9yYWdlIHRvIHBlcnNpc3QgZ3Vlc3QK
+PiAgIHdyaXRlcy4KPgo+ICogTmV3IGFzeW5jaHJvbm91cyBmbHVzaGluZyBpbnRlcmZhY2Ugd2ls
+bCBhbGxvdyBndWVzdHMgdG8KPiAgIGNhdXNlIHRoZSBob3N0IGZsdXNoIHRoZSBkaXJ0eSBkYXRh
+IHRvIGJhY2t1cCBzdG9yYWdlIGZpbGUuCj4gICBTeXN0ZW1zIHdpdGggcG1lbSBzdG9yYWdlIG1h
+a2UgdXNlIG9mIENMRkxVU0ggaW5zdHJ1Y3Rpb24KPiAgIHRvIGZsdXNoIHNpbmdsZSBjYWNoZSBs
+aW5lIHRvIHBlcnNpc3RlbnQgc3RvcmFnZSBhbmQgaXQKPiAgIHRha2VzIGNhcmUgb2YgZmx1c2hp
+bmcuIFdpdGggZmFrZSBwZXJzaXN0ZW50IHN0b3JhZ2UgaW4KPiAgIGd1ZXN0IHdlIGNhbm5vdCBk
+ZXBlbmQgb24gQ0xGTFVTSCBpbnN0cnVjdGlvbiB0byBmbHVzaCBlbnRpcmUKPiAgIGRpcnR5IGNh
+Y2hlIHRvIGJhY2tpbmcgc3RvcmFnZS4gRXZlbiBJZiB3ZSB0cmFwIGFuZCBlbXVsYXRlCj4gICBD
+TEZMVVNIIGluc3RydWN0aW9uIGd1ZXN0IHZDUFUgaGFzIHRvIHdhaXQgdGlsbCB3ZSBmbHVzaCBh
+bGwKPiAgIHRoZSBkaXJ0eSBtZW1vcnkuIEluc3RlYWQgb2YgdGhpcyB3ZSBuZWVkIHRvIGltcGxl
+bWVudCBhIG5ldwo+ICAgYXN5bmNocm9ub3VzIGd1ZXN0IGZsdXNoaW5nIGludGVyZmFjZSwgd2hp
+Y2ggYWxsb3dzIHRoZSBndWVzdAo+ICAgdG8gc3BlY2lmeSBhIGxhcmdlciByYW5nZSB0byBiZSBm
+bHVzaGVkIGF0IG9uY2UsIGFuZCBhbGxvd3MKPiAgIHRoZSB2Q1BVIHRvIHJ1biBzb21ldGhpbmcg
+ZWxzZSB3aGlsZSB0aGUgZGF0YSBpcyBiZWluZyBzeW5jZWQKPiAgIHRvIGRpc2suCj4KPiAqIE5l
+dyBmbHVzaGluZyBpbnRlcmZhY2Ugd2lsbCBjb25zaXN0cyBvZiBhIHBhcmEgdmlydCBkcml2ZXIg
+dG8KPiAgIG5ldyBmYWtlIG52ZGltbSBsaWtlIGRldmljZSB3aGljaCB3aWxsIHByb2Nlc3MgZ3Vl
+c3QgZmx1c2hpbmcKPiAgIHJlcXVlc3RzIGxpa2UgZnN5bmMvbXN5bmMgZXRjIGluc3RlYWQgb2Yg
+cG1lbSBsaWJyYXJ5IGNhbGxzCj4gICBsaWtlIGNsZmx1c2guIFRoZSBjb3JyZXNwb25kaW5nIGRl
+dmljZSBhdCBob3N0IHNpZGUgd2lsbCBiZQo+ICAgcmVzcG9uc2libGUgZm9yIGZsdXNoaW5nIHJl
+cXVlc3RzIGZvciBndWVzdCBkaXJ0eSBwYWdlcy4KPiAgIEd1ZXN0IGNhbiBwdXQgY3VycmVudCB0
+YXNrIGluIHNsZWVwIGFuZCB2Q1BVIGNhbiBydW4gYW55IG90aGVyCj4gICB0YXNrIHdoaWxlIGhv
+c3Qgc2lkZSBmbHVzaGluZyBvZiBndWVzdHMgcGFnZXMgaXMgaW4gcHJvZ3Jlc3MuCj4KPiBIb3N0
+IGNvbnRyb2xsZWQgZmFrZSBudmRpbW0gREFYIHRvIGF2b2lkIGd1ZXN0IHBhZ2UgY2FjaGUgOgo+
+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KPiAqIEJ5cGFzcyBndWVzdCBwYWdlIGNhY2hlIGJ5IHVzaW5nIGEgZmFrZSBwZXJzaXN0
+ZW50IHN0b3JhZ2UKPiAgIGxpa2UgbnZkaW1tICYgREFYLiBHdWVzdCBSZWFkL1dyaXRlIGlzIGRp
+cmVjdGx5IGRvbmUgb24KPiAgIGZha2UgcGVyc2lzdGVudCBzdG9yYWdlIHdpdGhvdXQgaW52b2x2
+aW5nIGd1ZXN0IGtlcm5lbCBmb3IKPiAgIGNhY2hpbmcgZGF0YS4KPgo+ICogRmFrZSBudmRpbW0g
+ZGV2aWNlIHBhc3NlZCB0byBndWVzdCBpcyBiYWNrZWQgYnkgYSByZWd1bGFyCj4gICBmaWxlIGlu
+IGhvc3Qgc3RvcmVkIGluIHNlY29uZGFyeSBzdG9yYWdlLgo+Cj4gKiBRZW11IGhhcyBpbXBsZW1l
+bnRhdGlvbiBvZiBmYWtlIE5WRElNTS9EQVggZGV2aWNlLiBVc2UgdGhpcwo+ICAgY2FwYWJpbGl0
+eSBvZiBwYXNzaW5nIHJlZ3VsYXIgaG9zdCBmaWxlKGRpc2spIGFzIG52ZGltbSBkZXZpY2UKPiAg
+IHRvIGd1ZXN0Lgo+Cj4gKiBOdmRpbW0gd2l0aCBEQVggd29ya3MgZm9yIGV4dDQveGZzIGZpbGVz
+eXN0ZW0uIFN1cHBvcnRlZAo+ICAgZmlsZXN5c3RlbSBzaG91bGQgYmUgREFYIGNvbXBhdGlibGUu
+Cj4KPiAqIEFzIHdlIGFyZSB1c2luZyBndWVzdCBkaXNrIGFzIGZha2UgREFYL05WRElNTSBkZXZp
+Y2UsIHdlCj4gICBuZWVkIGEgbWVjaGFuaXNtIGZvciBwZXJzaXN0ZW5jZSBvZiBkYXRhIGJhY2tl
+ZCBvbiByZWd1bGFyCj4gICBob3N0IHN0b3JhZ2UgZmlsZS4KPgo+ICogRm9yIGxpdmUgbWlncmF0
+aW9uIHVzZSBjYXNlLCBpZiBob3N0IHNpZGUgYmFja2luZyBmaWxlIGlzCj4gICBzaGFyZWQgc3Rv
+cmFnZSwgd2UgbmVlZCB0byBmbHVzaCB0aGUgcGFnZSBjYWNoZSBmb3IgdGhlIGRpc2sKPiAgIGlt
+YWdlIGF0IHRoZSBkZXN0aW5hdGlvbiAobmV3IGZhZHZpc2UgaW50ZXJmYWNlLCBGQURWX0lOVkFM
+SURBVEVfQ0FDSEU/KQo+ICAgYmVmb3JlIHN0YXJ0aW5nIGV4ZWN1dGlvbiBvZiB0aGUgZ3Vlc3Qg
+b24gdGhlIGRlc3RpbmF0aW9uIGhvc3QuCj4KPiBEZXNpZ24gOgo+IC0tLS0tLS0tLQo+ICogSW4g
+b3JkZXIgdG8gbm90IGhhdmUgcGFnZSBjYWNoZSBpbnNpZGUgdGhlIGd1ZXN0LCBxZW11IHdvdWxk
+Ogo+Cj4gIDEpIG1tYXAgdGhlIGd1ZXN0J3MgZGlzayBpbWFnZSBhbmQgcHJlc2VudCB0aGF0IGRp
+c2sgaW1hZ2UgdG8KPiAgICAgdGhlIGd1ZXN0IGFzIGEgcGVyc2lzdGVudCBtZW1vcnkgcmFuZ2Uu
+Cj4KPiAgMikgUHJlc2VudCBpbmZvcm1hdGlvbiB0byB0aGUgZ3Vlc3QgdGVsbGluZyBpdCB0aGF0
+IHRoZSBwZXJzaXN0ZW50Cj4gICAgIG1lbW9yeSByYW5nZSBpcyBub3QgcGh5c2ljYWwgcGVyc2lz
+dGVudCBtZW1vcnkuCj4KPiAgMykgUHJlc2VudCBhbiBhZGRpdGlvbmFsIHBhcmF2aXJ0IGRldmlj
+ZSBhbG9uZ3NpZGUgdGhlIHBlcnNpc3RlbnQKPiAgICAgbWVtb3J5IHJhbmdlLCB0aGF0IGNhbiBi
+ZSB1c2VkIHRvIHN5bmMgKHJhbmdlcyBvZikgZGF0YSB0byBkaXNrLgo+Cj4gKiBHdWVzdCB3b3Vs
+ZCB1c2UgdGhlIGRpc2sgaW1hZ2UgbW9zdGx5IGxpa2UgYSBwZXJzaXN0ZW50IG1lbW9yeQo+ICAg
+ZGV2aWNlLCB3aXRoIHR3byBleGNlcHRpb25zOgo+Cj4gICAxKSBJdCB3b3VsZCBub3QgdGVsbCB1
+c2Vyc3BhY2UgdGhhdCB0aGUgZmlsZXMgb24gdGhhdCBkZXZpY2UgYXJlCj4gICAgICBwZXJzaXN0
+ZW50IG1lbW9yeS4gVGhpcyBpcyAgZG9uZSBzbyB1c2Vyc3BhY2Uga25vd3MgdG8gY2FsbAo+ICAg
+ICAgZnN5bmMvbXN5bmMsIGluc3RlYWQgb2YgdGhlIHBtZW0gY2xmbHVzaCBsaWJyYXJ5IGNhbGwu
+CgpUaGVyZSBhcmUgbm8gKHNhZmUpIHBtZW0gYXBwbGljYXRpb25zIHRvZGF5IHRoYXQgY2FuIGdl
+dCBieSB3aXRob3V0CmNhbGxpbmcgZnN5bmMvbXN5bmMgYWZ0ZXIgYW4gbW1hcCB3cml0ZSB0byBh
+IGZpbGUgb24gZXh0NCBvciB4ZnMuCldlJ3JlIHRyeWluZyB0byBmaXggdGhhdCwgbW9yZSBkZXRh
+aWxzIGJlbG93LgoKPiAgIDIpIFdoZW4gdXNlcnNwYWNlIGNhbGxzIGZzeW5jL21zeW5jIG9uIGZp
+bGVzIG9uIHRoZSBmYWtlIHBlcnNpc3RlbnQKPiAgICAgIG1lbW9yeSBkZXZpY2UsIGlzc3VlIGEg
+cmVxdWVzdCB0aHJvdWdoIHRoZSBwYXJhdmlydCBkZXZpY2UgdGhhdAo+ICAgICAgY2F1c2VzIHRo
+ZSBob3N0IHRvIGZsdXNoIHRoZSBkZXZpY2UgYmFjayBlbmQuCgpXZSBuZWVkIHRoaXMgaW4gZ2Vu
+ZXJhbCBmb3IgdGhlIHBlcnNpc3RlbnQgbWVtb3J5IHVzZSBjYXNlLiBUaGVyZSBoYXMKYmVlbiBw
+cm9wb3NhbHMgYWJvdXQgdXNpbmcgdGhlICJmbHVzaCBoaW50IiBhZGRyZXNzZXMgYXMgZGVmaW5l
+ZCBieQpBQ1BJIDYsIGJ1dCB0aG9zZSBhcmUgYXdrd2FyZCBiZWNhdXNlIGl0J3Mgbm90IGEgcXVl
+dWVkIGludGVyZmFjZSBhbmQKdGhleSBhcmUgbm90IGRlZmluZWQgdG8gYmUgcGFydCBvZiB0aGUg
+cGVyc2lzdGVuY2UgcGF0aCwgc28KYXBwbGljYXRpb25zIG1heSBiZSB3cml0dGVuIHRvIG5vdCB0
+cmlnZ2VyIGEgImRlZXAgZmx1c2giLiBEZXZpY2UtREFYCmlzIGFuIGludGVyZmFjZSB0aGF0IGJ5
+cGFzc2VzIHRoZSBmbHVzaCBoaW50IG1lY2hhbmlzbSBieSBkZWZhdWx0LgoKPgo+ICogR3Vlc3Qg
+dXNlcyBmYWtlIHBlcnNpc3RlbnQgc3RvcmFnZSBkYXRhIHVwZGF0ZXMgY2FuIGJlIHN0aWxsIGlu
+Cj4gICBxZW11IG1lbW9yeS4gV2UgbmVlZCBhIHdheSB0byBmbHVzaCBjYWNoZWQgZGF0YSBpbiBo
+b3N0IHRvIGJhY2tlZAo+ICAgc2Vjb25kYXJ5IHN0b3JhZ2UuCj4KPiAqIE9uY2UgdGhlIGd1ZXN0
+IHJlY2VpdmVzIGEgY29tcGxldGlvbiBldmVudCBmcm9tIHRoZSBob3N0LCBpdCB3aWxsCj4gICBh
+bGxvdyB1c2Vyc3BhY2UgcHJvZ3JhbXMgdGhhdCB3ZXJlIHdhaXRpbmcgb24gdGhlIGZzeW5jL21z
+eW5jIHRvCj4gICBjb250aW51ZSBydW5uaW5nLgo+Cj4gKiBIb3N0IGlzIHJlc3BvbnNpYmxlIGZv
+ciBwYWdpbmcgaW4gcGFnZXMgaW4gaG9zdCBiYWNraW5nIGFyZWEgZm9yCj4gICBndWVzdCBwZXJz
+aXN0ZW50IG1lbW9yeSBhcyB0aGV5IGFyZSBhY2Nlc3NlZCBieSB0aGUgZ3Vlc3QsIGFuZAo+ICAg
+Zm9yIGV2aWN0aW5nIHBhZ2VzIGFzIGhvc3QgbWVtb3J5IGZpbGxzIHVwLgo+Cj4gUXVlc3Rpb25z
+IDoKPiAtLS0tLS0tLS0tLQo+ICogV2hhdCBzaG91bGQgdGhlIGZsdXNoaW5nIGludGVyZmFjZSBi
+ZXR3ZWVuIGd1ZXN0IGFuZCBob3N0IGxvb2sKPiAgIGxpa2U/CgpJJ20gdmVyeSBpbnRlcmVzdGVk
+IGluIHRoaXMgYmVjYXVzZSB3ZSBoYXZlIGFub3RoZXIgbmVlZCBmb3IgYSBuZXcKZmx1c2hpbmcg
+aW50ZXJmYWNlIHRvIHN1cHBvcnQgcGFzc2luZyBEQVggY2FwYWJsZSBtZW1vcnkgcmFuZ2VzCnRo
+cm91Z2ggdG8gdGhlIGd1ZXN0IGluIHRoZSBnZW5lcmFsIGNhc2UuICBTb21lIG9mIHRoZSBiYWNr
+Z3JvdW5kIGlzCmhlcmU6CgogICAgaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9xZW11LWRl
+dmVsQG5vbmdudS5vcmcvbXNnNDQ0NDczLmh0bWwKCi4uLmJ1dCB3ZSBuZWVkIGFuIGludGVyZmFj
+ZSB0byBpbXBsZW1lbnQgbGlnaHR3ZWlnaHQgZmx1c2hpbmcgb2YgZGF0YQp1cGRhdGVzIHRvIHBl
+cnNpc3RlbmNlIGZvciBhcHBsaWNhdGlvbnMgdGhhdCB3YW50IHRvIHVzZSBwZXJzaXN0CnVwZGF0
+ZXMgdG8gZGF0YSBzdHJ1Y3R1cmVzIG9uIGEgZnJlcXVlbnQgYmFzaXMsIHRoaW5rIGEgcGVyc2lz
+dGVudApidHJlZS4gVGhpcyBuZXcgZmx1c2ggaW50ZXJmYWNlIG5lZWRzIGEgaG9zdCBzaWRlIGlt
+cGxlbWVudGF0aW9uLCBidXQKYWxzbyBhIHdheSBmb3IgZ3Vlc3RzIHRvIGtub3cgd2hlbiBhIGd1
+ZXN0LWZzeW5jIG5lZWRzIHRvIHRyaWdnZXIKaG9zdC1mc3luYy4KCgo+Cj4gKiBBbnkgc3VnZ2Vz
+dGlvbnMgdG8gaG9vayB0aGUgSU8gY2FjaGluZyBjb2RlIHdpdGggS1ZNL1FlbXUgb3IKPiAgIHRo
+b3VnaHRzIG9uIGhvdyB3ZSBzaG91bGQgZG8gaXQ/Cj4KPiAqIFRoaW5raW5nIG9mIGltcGxlbWVu
+dGluZyBhIGd1ZXN0IHBhcmEgdmlydCBkcml2ZXIgd2hpY2ggd2lsbCBzZW5kCj4gICBndWVzdCBy
+ZXF1ZXN0cyB0byBRZW11IHRvIGZsdXNoIGRhdGEgdG8gZGlzay4gTm90IHN1cmUgYXQgdGhpcwo+
+ICAgcG9pbnQgaG93IHRvIHRlbGwgdXNlcnNwYWNlIHRvIHdvcmsgb24gdGhpcyBkZXZpY2UgYXMg
+YW55IHJlZ3VsYXIKPiAgIGRldmljZSB3aXRob3V0IGNvbnNpZGVyaW5nIGl0IGFzIHBlcnNpc3Rl
+bnQgZGV2aWNlLiBBbnkgc3VnZ2VzdGlvbnMKPiAgIG9uIHRoaXM/Cj4KPiAqIE5vdCB0aG91Z2h0
+IHlldCBhYm91dCBiYWxsb29uaW5nIGltcGFjdC4gQnV0IGZlZWwgdGhpcyBzb2x1dGlvbgo+ICAg
+Y291bGQgYmUgYmV0dGVyIHRoYW4gYmFsbG9vbmluZyBpbiBsb25nIHRlcm0/IEFzIHdlIHdpbGwg
+YmUKPiAgIG1hbmFnaW5nIGFsbCBndWVzdHMgY2FjaGUgZnJvbSBob3N0IHNpZGUuCj4KPiAqIE5v
+dCBzdXJlIHRoaXMgc29sdXRpb24gd29ya3MgZm9yIEFSTSBhbmQgb3RoZXIgYXJjaGl0ZWN0dXJl
+cyBhbmQKPiAgIFdpbmRvd3M/Cj4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMu
+MDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1t
+Cg==
