@@ -1,15 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+Received: from g2t2354.austin.hpe.com (g2t2354.austin.hpe.com [15.233.44.27])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7836921A16EFB
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:28:21 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 18/23] overlayfs: use uuid_t instead of uuid_be
-Date: Thu, 18 May 2017 08:27:00 +0200
-Message-Id: <20170518062705.25902-19-hch@lst.de>
-In-Reply-To: <20170518062705.25902-1-hch@lst.de>
-References: <20170518062705.25902-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id D6EB321A16E5D
+ for <linux-nvdimm@lists.01.org>; Thu, 11 May 2017 15:34:53 -0700 (PDT)
+Received: from G4W9119.americas.hpqcorp.net (g4w9119.houston.hp.com
+ [16.210.20.214])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by g2t2354.austin.hpe.com (Postfix) with ESMTPS id 1AA1268
+ for <linux-nvdimm@lists.01.org>; Thu, 11 May 2017 22:34:53 +0000 (UTC)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [ndctl PATCH 4/4] ndctl, list: hide badblock_count by default
+Date: Thu, 11 May 2017 22:33:51 +0000
+Message-ID: <1494542018.30303.101.camel@hpe.com>
+References: <149454009049.30857.6643219237076670086.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <149454010604.30857.15214297566335127724.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149454010604.30857.15214297566335127724.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <F87C7207690DA444A97FFFFD46047A7F@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,50 +27,28 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/overlayfs/copy_up.c   | 2 +-
- fs/overlayfs/overlayfs.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+On Thu, 2017-05-11 at 15:01 -0700, Dan Williams wrote:
+> In order to keep the default listing as compact as possible, hide
+> badblock_count when it is zero.
+> 
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Cc: Toshi Kani <toshi.kani@hpe.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 5b795873f7fa..2a67e8c13098 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -233,7 +233,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 	return err;
- }
- 
--static struct ovl_fh *ovl_encode_fh(struct dentry *lower, uuid_be *uuid)
-+static struct ovl_fh *ovl_encode_fh(struct dentry *lower, uuid_t *uuid)
- {
- 	struct ovl_fh *fh;
- 	int fh_type, fh_len, dwords;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index caa36cb9c46d..cb0fc450419b 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -55,7 +55,7 @@ struct ovl_fh {
- 	u8 len;		/* size of this header + size of fid */
- 	u8 flags;	/* OVL_FH_FLAG_* */
- 	u8 type;	/* fid_type of fid */
--	uuid_be uuid;	/* uuid of filesystem */
-+	uuid_t uuid;	/* uuid of filesystem */
- 	u8 fid[0];	/* file identifier */
- } __packed;
- 
--- 
-2.11.0
+Works as expected.  For the series:
 
+Tested-by: Toshi Kani <toshi.kani@hpe.com>
+
+Thanks!
+-Toshi
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
