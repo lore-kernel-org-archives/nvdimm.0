@@ -1,7 +1,7 @@
-From: "FedEx Services" <us3-JoTykvUe82ItOFnURD7zi/egYHeGw8Jk@public.gmane.org>
-Subject: FedEx Parcel Service: Parcel Problem, 1st Attempt
-Date: Fri, 12 May 2017 07:17:17 -0700
-Message-ID: <CB1607CF.17818D23@onthescenecleanup.com>
+From: "uk38436112" <eeb81856-962F20u7sem/jqZjXxflCwC/G2K4zDHf@public.gmane.org>
+Subject: kliioeyg87
+Date: Fri, 12 May 2017 07:47:50 -0700
+Message-ID: <DC6C2980.31B018DF@binhminhdecor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,11 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello,
+u156631
+Hi hey world
 
-Unfortunately, we could not deliver your parcel #15306032.
-
-Please review the confirmation notice enclosed.
-
-Thanks for using our services.
-Esther Fletcher -  Fedex Support Supervisor
+rew836182
+xoalvar48461dg14cy03
