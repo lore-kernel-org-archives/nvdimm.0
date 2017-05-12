@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E225C21A16EC7
- for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:19:24 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 01/22] Revert "afs: Move UUID struct to linux/uuid.h"
-Date: Sun, 28 May 2017 13:19:47 +0300
-Message-Id: <20170528102008.30276-2-hch@lst.de>
-In-Reply-To: <20170528102008.30276-1-hch@lst.de>
-References: <20170528102008.30276-1-hch@lst.de>
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 246AF21A04E28
+ for <linux-nvdimm@lists.01.org>; Fri, 12 May 2017 14:35:51 -0700 (PDT)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.12-rc1
+Date: Fri, 12 May 2017 21:35:49 +0000
+Message-ID: <1494624947.21094.31.camel@intel.com>
+Content-Language: en-US
+Content-ID: <5DB5B0AA054AFC4B87647FB260A3B87D@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,209 +18,183 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This reverts commit ff548773106ec7f8031bc6172e0234bd2a02c19c.
-
-The V1 uuid intrepreatation in struct form isn't really useful to the
-rest of the kernel, and not really compatible to it either, so move it
-back to AFS instead of polluting the global uuid.h.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/afs/cmservice.c   | 28 ++++++++++++++--------------
- fs/afs/internal.h    | 26 +++++++++++++++++++++++++-
- fs/afs/main.c        |  2 +-
- include/linux/uuid.h | 24 ------------------------
- 4 files changed, 40 insertions(+), 40 deletions(-)
-
-diff --git a/fs/afs/cmservice.c b/fs/afs/cmservice.c
-index 3062cceb5c2a..734604829a13 100644
---- a/fs/afs/cmservice.c
-+++ b/fs/afs/cmservice.c
-@@ -350,7 +350,7 @@ static int afs_deliver_cb_init_call_back_state3(struct afs_call *call)
- {
- 	struct sockaddr_rxrpc srx;
- 	struct afs_server *server;
--	struct uuid_v1 *r;
-+	struct afs_uuid *r;
- 	unsigned loop;
- 	__be32 *b;
- 	int ret;
-@@ -380,15 +380,15 @@ static int afs_deliver_cb_init_call_back_state3(struct afs_call *call)
- 		}
- 
- 		_debug("unmarshall UUID");
--		call->request = kmalloc(sizeof(struct uuid_v1), GFP_KERNEL);
-+		call->request = kmalloc(sizeof(struct afs_uuid), GFP_KERNEL);
- 		if (!call->request)
- 			return -ENOMEM;
- 
- 		b = call->buffer;
- 		r = call->request;
--		r->time_low			= b[0];
--		r->time_mid			= htons(ntohl(b[1]));
--		r->time_hi_and_version		= htons(ntohl(b[2]));
-+		r->time_low			= ntohl(b[0]);
-+		r->time_mid			= ntohl(b[1]);
-+		r->time_hi_and_version		= ntohl(b[2]);
- 		r->clock_seq_hi_and_reserved 	= ntohl(b[3]);
- 		r->clock_seq_low		= ntohl(b[4]);
- 
-@@ -453,7 +453,7 @@ static int afs_deliver_cb_probe(struct afs_call *call)
- static void SRXAFSCB_ProbeUuid(struct work_struct *work)
- {
- 	struct afs_call *call = container_of(work, struct afs_call, work);
--	struct uuid_v1 *r = call->request;
-+	struct afs_uuid *r = call->request;
- 
- 	struct {
- 		__be32	match;
-@@ -476,7 +476,7 @@ static void SRXAFSCB_ProbeUuid(struct work_struct *work)
-  */
- static int afs_deliver_cb_probe_uuid(struct afs_call *call)
- {
--	struct uuid_v1 *r;
-+	struct afs_uuid *r;
- 	unsigned loop;
- 	__be32 *b;
- 	int ret;
-@@ -502,15 +502,15 @@ static int afs_deliver_cb_probe_uuid(struct afs_call *call)
- 		}
- 
- 		_debug("unmarshall UUID");
--		call->request = kmalloc(sizeof(struct uuid_v1), GFP_KERNEL);
-+		call->request = kmalloc(sizeof(struct afs_uuid), GFP_KERNEL);
- 		if (!call->request)
- 			return -ENOMEM;
- 
- 		b = call->buffer;
- 		r = call->request;
--		r->time_low			= b[0];
--		r->time_mid			= htons(ntohl(b[1]));
--		r->time_hi_and_version		= htons(ntohl(b[2]));
-+		r->time_low			= ntohl(b[0]);
-+		r->time_mid			= ntohl(b[1]);
-+		r->time_hi_and_version		= ntohl(b[2]);
- 		r->clock_seq_hi_and_reserved 	= ntohl(b[3]);
- 		r->clock_seq_low		= ntohl(b[4]);
- 
-@@ -568,9 +568,9 @@ static void SRXAFSCB_TellMeAboutYourself(struct work_struct *work)
- 	memset(&reply, 0, sizeof(reply));
- 	reply.ia.nifs = htonl(nifs);
- 
--	reply.ia.uuid[0] = afs_uuid.time_low;
--	reply.ia.uuid[1] = htonl(ntohs(afs_uuid.time_mid));
--	reply.ia.uuid[2] = htonl(ntohs(afs_uuid.time_hi_and_version));
-+	reply.ia.uuid[0] = htonl(afs_uuid.time_low);
-+	reply.ia.uuid[1] = htonl(afs_uuid.time_mid);
-+	reply.ia.uuid[2] = htonl(afs_uuid.time_hi_and_version);
- 	reply.ia.uuid[3] = htonl((s8) afs_uuid.clock_seq_hi_and_reserved);
- 	reply.ia.uuid[4] = htonl((s8) afs_uuid.clock_seq_low);
- 	for (loop = 0; loop < 6; loop++)
-diff --git a/fs/afs/internal.h b/fs/afs/internal.h
-index 393672997cc2..fb63b8ee4d40 100644
---- a/fs/afs/internal.h
-+++ b/fs/afs/internal.h
-@@ -410,6 +410,30 @@ struct afs_interface {
- 	unsigned	mtu;		/* MTU of interface */
- };
- 
-+/*
-+ * UUID definition [internet draft]
-+ * - the timestamp is a 60-bit value, split 32/16/12, and goes in 100ns
-+ *   increments since midnight 15th October 1582
-+ *   - add AFS_UUID_TO_UNIX_TIME to convert unix time in 100ns units to UUID
-+ *     time
-+ * - the clock sequence is a 14-bit counter to avoid duplicate times
-+ */
-+struct afs_uuid {
-+	u32		time_low;			/* low part of timestamp */
-+	u16		time_mid;			/* mid part of timestamp */
-+	u16		time_hi_and_version;		/* high part of timestamp and version  */
-+#define AFS_UUID_TO_UNIX_TIME	0x01b21dd213814000ULL
-+#define AFS_UUID_TIMEHI_MASK	0x0fff
-+#define AFS_UUID_VERSION_TIME	0x1000	/* time-based UUID */
-+#define AFS_UUID_VERSION_NAME	0x3000	/* name-based UUID */
-+#define AFS_UUID_VERSION_RANDOM	0x4000	/* (pseudo-)random generated UUID */
-+	u8		clock_seq_hi_and_reserved;	/* clock seq hi and variant */
-+#define AFS_UUID_CLOCKHI_MASK	0x3f
-+#define AFS_UUID_VARIANT_STD	0x80
-+	u8		clock_seq_low;			/* clock seq low */
-+	u8		node[6];			/* spatially unique node ID (MAC addr) */
-+};
-+
- /*****************************************************************************/
- /*
-  * cache.c
-@@ -544,7 +568,7 @@ extern int afs_drop_inode(struct inode *);
-  * main.c
-  */
- extern struct workqueue_struct *afs_wq;
--extern struct uuid_v1 afs_uuid;
-+extern struct afs_uuid afs_uuid;
- 
- /*
-  * misc.c
-diff --git a/fs/afs/main.c b/fs/afs/main.c
-index 51d7d17bca57..9944770849da 100644
---- a/fs/afs/main.c
-+++ b/fs/afs/main.c
-@@ -31,7 +31,7 @@ static char *rootcell;
- module_param(rootcell, charp, 0);
- MODULE_PARM_DESC(rootcell, "root AFS cell name and VL server IP addr list");
- 
--struct uuid_v1 afs_uuid;
-+struct afs_uuid afs_uuid;
- struct workqueue_struct *afs_wq;
- 
- /*
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 4dff73a89758..2d095fc60204 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -19,30 +19,6 @@
- #include <uapi/linux/uuid.h>
- 
- /*
-- * V1 (time-based) UUID definition [RFC 4122].
-- * - the timestamp is a 60-bit value, split 32/16/12, and goes in 100ns
-- *   increments since midnight 15th October 1582
-- *   - add AFS_UUID_TO_UNIX_TIME to convert unix time in 100ns units to UUID
-- *     time
-- * - the clock sequence is a 14-bit counter to avoid duplicate times
-- */
--struct uuid_v1 {
--	__be32		time_low;			/* low part of timestamp */
--	__be16		time_mid;			/* mid part of timestamp */
--	__be16		time_hi_and_version;		/* high part of timestamp and version  */
--#define UUID_TO_UNIX_TIME	0x01b21dd213814000ULL
--#define UUID_TIMEHI_MASK	0x0fff
--#define UUID_VERSION_TIME	0x1000	/* time-based UUID */
--#define UUID_VERSION_NAME	0x3000	/* name-based UUID */
--#define UUID_VERSION_RANDOM	0x4000	/* (pseudo-)random generated UUID */
--	u8		clock_seq_hi_and_reserved;	/* clock seq hi and variant */
--#define UUID_CLOCKHI_MASK	0x3f
--#define UUID_VARIANT_STD	0x80
--	u8		clock_seq_low;			/* clock seq low */
--	u8		node[6];			/* spatially unique node ID (MAC addr) */
--};
--
--/*
-  * The length of a UUID string ("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
-  * not including trailing NUL.
-  */
--- 
-2.11.0
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
+Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4udG8g
+cmVjZWl2ZSBzb21lIGluY3JlbWVudGFsIGZpeGVzIGFuZCBhIHNtYWxsIGZlYXR1cmUgYWRkaXRp
+b24KcmVsYXRpdmUgdG8gdGhlIGxpYm52ZGltbSA0LjEyIHB1bGwgcmVxdWVzdC4KCiogR2VlcnQg
+bm90aWNlZCB0aGF0IHRpbnljb25maWcgd2FzIGJsb2F0ZWQgYnkgQkxPQ0sgc2VsZWN0aW5nIERB
+WC4gVGhlCnNpemUgcmVncmVzc2lvbiBpcyBmaXhlZCBieSBtb3ZpbmcgYWxsIGRheCBoZWxwZXJz
+IGludG8gdGhlIGRheC1jb3JlCmFuZCBvbmx5IHNwZWNpZnlpbmcgInNlbGVjdCBEQVgiIGZvciBG
+U19EQVggYW5kIGRheC1jYXBhYmxlIGRyaXZlcnMuIEhlCmFsc28gYXNrZWQgZm9yIGNsYXJpZmlj
+YXRpb24gb2YgdGhlIE5SX0RFVl9EQVggY29uZmlnIG9wdGlvbiB3aGljaCwgb24KY2xvc2VyIGxv
+b2ssIGRvZXMgbm90IG5lZWQgdG8gYmUgYSBjb25maWcgb3B0aW9uIGF0IGFsbC4gTWlrZSBhbHNv
+CnRocm93cyBpbiBhIERFVl9EQVhfUE1FTSBmaXh1cCBmb3IgZ29vZCBtZWFzdXJlLgoKKiBCZW4n
+cyBhdHRlbnRpb24gdG8gZGV0YWlsIG9uIC1zdGFibGUgcGF0Y2ggc3VibWlzc2lvbnMgY2F1Z2h0
+IGEgY2FzZQp3aGVyZSB0aGUgcmVjZW50IGZpeGVzIHRvK0FLQS1hcmNoX2NvcHlfZnJvbV9pdGVy
+X3BtZW0oKSBtaXNzZWQgYSBjb25kaXRpb24Kd2hlcmUgd2Ugc3RyYW5kIGRpcnR5IGRhdGEgaW4g
+dGhlIGNhY2hlLiBUaGlzIGlzIHRhZ2dlZCBmb3IgLXN0YWJsZSBhbmQKd2lsbCBhbHNvIGJlIGlu
+Y2x1ZGVkIGluIHRoZSByZXdvcmsgb2YgdGhlIHBtZW0gYXBpIHRvIGEgcHJvcG9zZWQKe21lbWNw
+eSxjb3B5X3VzZXJ9X2ZsdXNoY2FjaGUoKSBpbnRlcmZhY2UgZm9yIDQuMTMuCgoqIFZpc2hhbCBh
+ZGRzIGEgZmVhdHVyZSB0aGF0IG1pc3NlZCB0aGUgaW5pdGlhbCBwdWxsIGR1ZSB0byBwZW5kaW5n
+CnJldmlldyBmZWVkYmFjay4gSXQgYWxsb3dzIHRoZSBrZXJuZWwgdG8gY2xlYXIgbWVkaWEgZXJy
+b3JzIHdoZW4KaW5pdGlhbGl6aW5nIGEgQlRUIChhdG9taWMgc2VjdG9yIHVwZGF0ZSBkcml2ZXIp
+IGluc3RhbmNlIG9uIGEgcG1lbQpuYW1lc3BhY2UuCgoqIFJvc3Mgbm90aWNlZCB0aGF0IHRoZSBk
+YXhfZGV2aWNlICstIGRheF9vcGVyYXRpb25zIGNvbnZlcnNpb24gYnJva2UKX19kYXhfemVyb19w
+YWdlX3JhbmdlKCkuIFRoZSBudmRpbW0gdW5pdCB0ZXN0cyBmYWlsIHRvIGNoZWNrIHRoaXMgcGF0
+aCwKYnV0IHhmc3Rlc3RzIGltbWVkaWF0ZWx5IHRyaXBzIG92ZXIgaXQuIE5vIGV4Y3VzZSBmb3Ig
+bWlzc2luZyB0aGlzCmJlZm9yZSBzdWJtaXR0aW5nIHRoZSA0LjEyIHB1bGwgcmVxdWVzdC4KClRo
+ZXNlIGFsbCBwYXNzIHRoZSBudmRpbW0gdW5pdCB0ZXN0cyBhbmQgYW4geGZzdGVzdHMgc3BvdCBj
+aGVjay4gVGhlCnNldCBoYXMgcmVjZWl2ZWQgYSBidWlsZCBzdWNjZXNzIG5vdGlmaWNhdGlvbiBm
+cm9tIHRoZSBrYnVpbGQgcm9ib3QuCgotLS0KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBj
+b21taXQgNzM2MTYzNjcxYmNiMTYzZmM4MjYwMGI0NmM4M2RmYTg5ZDUzMmQ5NToKCiAgTWVyZ2Ug
+YnJhbmNoICdmb3ItNC4xMi9kYXgnIGludG8gbGlibnZkaW1tLWZvci1uZXh0ICgyMDE3LTA1LTA0
+IDIzOjM4OjQzIC0wNzAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6
+CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0v
+bnZkaW1tIGxpYm52ZGltbS1maXhlcwoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIGU4
+NGI4M2I5ZWUyMTg3ODE3Y2Y4OTU0NzE2NzVmMWNjZGY2NGNkNTM6CgogIGZpbGVzeXN0ZW0tZGF4
+OiBmaXggYnJva2VuIF9fZGF4X3plcm9fcGFnZV9yYW5nZSgpIGNvbnZlcnNpb24gKDIwMTctMDUt
+MTAgMjE6NDY6NTUgLTA3MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkJlbiBIdXRjaGluZ3MgKDEpOgogICAgICB4ODYs
+IHBtZW06IEZpeCBjYWNoZSBmbHVzaGluZyBmb3IgaW92ZWMgd3JpdGUgPCA4IGJ5dGVzCgpEYW4g
+V2lsbGlhbXMgKDMpOgogICAgICBibG9jaywgZGF4OiBtb3ZlICJzZWxlY3QgREFYIiBmcm9tIEJM
+T0NLIHRvIEZTX0RBWAogICAgICBkZXZpY2UtZGF4OiBraWxsIE5SX0RFVl9EQVgKICAgICAgZmls
+ZXN5c3RlbS1kYXg6IGZpeCBicm9rZW4gX19kYXhfemVyb19wYWdlX3JhbmdlKCkgY29udmVyc2lv
+bgoKTWlrZSBHYWxicmFpdGggKDEpOgogICAgICBkZXZpY2UtZGF4OiBUZWxsIGtidWlsZCBERVZf
+REFYX1BNRU0gZGVwZW5kcyBvbiBERVZfREFYCgpWaXNoYWwgVmVybWEgKDIpOgogICAgICBsaWJu
+dmRpbW06IGFkZCBhbiBhdG9taWMgdnMgcHJvY2VzcyBjb250ZXh0IGZsYWcgdG8gcndfYnl0ZXMK
+ICAgICAgbGlibnZkaW1tLCBidHQ6IGVuc3VyZSB0aGF0IGluaXRpYWxpemluZyBtZXRhZGF0YSBj
+bGVhcnMgcG9pc29uCgogYXJjaC94ODYvaW5jbHVkZS9hc20vcG1lbS5oIHwgICAyICstLQogYmxv
+Y2svS2NvbmZpZyAgICAgICAgICAgICAgIHwgICAxIC0KIGRyaXZlcnMvZGF4L0tjb25maWcgICAg
+ICAgICB8ICAgNyArLS0tCiBkcml2ZXJzL2RheC9zdXBlci5jICAgICAgICAgfCAgODEgKy0rLSst
+Ky0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstLS0tCiBkcml2
+ZXJzL252ZGltbS9ibGsuYyAgICAgICAgfCAgIDMgKy0tCiBkcml2ZXJzL252ZGltbS9idHQuYyAg
+ICAgICAgfCAxMTkgKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0r
+LSstKy0rLSstKy0rLSstLS0tLS0tLS0tLS0tLS0KIGRyaXZlcnMvbnZkaW1tL2J0dF9kZXZzLmMg
+ICB8ICAgMiArLS0KIGRyaXZlcnMvbnZkaW1tL2NsYWltLmMgICAgICB8ICAgNiArLSstLQogZHJp
+dmVycy9udmRpbW0vbmQuaCAgICAgICAgIHwgICAxICstCiBkcml2ZXJzL252ZGltbS9wZm5fZGV2
+cy5jICAgfCAgIDQgKy0tCiBmcy9LY29uZmlnICAgICAgICAgICAgICAgICAgfCAgIDEgKy0KIGZz
+L2Jsb2NrX2Rldi5jICAgICAgICAgICAgICB8ICA2NiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
+IGZzL2RheC5jICAgICAgICAgICAgICAgICAgICB8ICAgNCArLS0KIGZzL2V4dDIvc3VwZXIuYyAg
+ICAgICAgICAgICB8ICAgMSArLQogZnMvZXh0NC9zdXBlci5jICAgICAgICAgICAgIHwgICAxICst
+CiBmcy94ZnMveGZzX3N1cGVyLmMgICAgICAgICAgfCAgIDEgKy0KIGluY2x1ZGUvbGludXgvYmxr
+ZGV2LmggICAgICB8ICAgMiAtCiBpbmNsdWRlL2xpbnV4L2RheC5oICAgICAgICAgfCAgMzAgKy0r
+LSstKy0rLSstKy0rLSstKy0tCiBpbmNsdWRlL2xpbnV4L25kLmggICAgICAgICAgfCAgMTIgKy0r
+LSstLS0KIDE5IGZpbGVzIGNoYW5nZWQsIDIwOCBpbnNlcnRpb25zKCstKSwgMTM2IGRlbGV0aW9u
+cygtKQoKY29tbWl0IDc0ZDcxYTAxYWJlZjM3ZjcxZDkxNGYyMTA1YTRjYjg3MTJhMmJlYjgKQXV0
+aG9yOiBNaWtlIEdhbGJyYWl0aCA8ZWZhdWx0QGdteC5kZT4KRGF0ZTogICBTYXQgTWF5IDYgMDY6
+MTQ6NDMgMjAxNyArLTAyMDAKCiAgICBkZXZpY2UtZGF4OiBUZWxsIGtidWlsZCBERVZfREFYX1BN
+RU0gZGVwZW5kcyBvbiBERVZfREFYCiAgICAKICAgIEVSUk9SOiAiZGV2bV9jcmVhdGVfZGV2X2Rh
+eCIgW2RyaXZlcnMvZGF4L2RheF9wbWVtLmtvXSB1bmRlZmluZWQhCiAgICBFUlJPUjogImFsbG9j
+X2RheF9yZWdpb24iIFtkcml2ZXJzL2RheC9kYXhfcG1lbS5rb10gdW5kZWZpbmVkIQogICAgRVJS
+T1I6ICJkYXhfcmVnaW9uX3B1dCIgW2RyaXZlcnMvZGF4L2RheF9wbWVtLmtvXSB1bmRlZmluZWQh
+CiAgICAKICAgIFNpZ25lZC1vZmYtYnk6IE1pa2UgR2FsYnJhaXRoIDxlZmF1bHRAZ214LmRlPgog
+ICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
+Cgpjb21taXQgZWY1MTA0MjQ3MmY1NWIzMjVmZDdmMmIyNmEyZTI5ZmQ4OTc1NzIzNApBdXRob3I6
+IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpEYXRlOiAgIE1vbiBNYXkg
+OCAxMDo1NToyNyAyMDE3IC0wNzAwCgogICAgYmxvY2ssIGRheDogbW92ZSAic2VsZWN0IERBWCIg
+ZnJvbSBCTE9DSyB0byBGU19EQVgKICAgIAogICAgRm9yIGNvbmZpZ3VyYXRpb25zIHRoYXQgZG8g
+bm90IGVuYWJsZSBEQVggZmlsZXN5c3RlbXMgb3IgZHJpdmVycywgZG8gbm90CiAgICByZXF1aXJl
+IHRoZSBEQVggY29yZSB0byBiZSBidWlsdC4KICAgIAogICAgR2l2ZW4gdGhhdCB0aGUgJ2RpcmVj
+dF9hY2Nlc3MnIG1ldGhvZCBoYXMgYmVlbiByZW1vdmVkIGZyb20KICAgICdibG9ja19kZXZpY2Vf
+b3BlcmF0aW9ucycsIHdlIGNhbiBhbHNvIGdvIGFoZWFkIGFuZCByZW1vdmUgdGhlCiAgICBibG9j
+ay1yZWxhdGVkIGRheCBoZWxwZXIgZnVuY3Rpb25zIGZyb20gZnMvYmxvY2tfZGV2LmMgdG8KICAg
+IGRyaXZlcnMvZGF4L3N1cGVyLmMuIFRoaXMga2VlcHMgZGF4IGRldGFpbHMgb3V0IG9mIHRoZSBi
+bG9jayBsYXllciBhbmQKICAgIGxldHMgdGhlIERBWCBjb3JlIGJlIGJ1aWx0IGFzIGEgbW9kdWxl
+IGluIHRoZSBGU19EQVg9biBjYXNlLgogICAgCiAgICBGaWxlc3lzdGVtcyBuZWVkIHRvIGluY2x1
+ZGUgZGF4LmggdG8gY2FsbCBiZGV2X2RheF9zdXBwb3J0ZWQoKS4KICAgIAogICAgQ2M6IGxpbnV4
+LXhmc0B2Z2VyLmtlcm5lbC5vcmcKICAgIENjOiBKZW5zIEF4Ym9lIDxheGJvZUBrZXJuZWwuZGs+
+CiAgICBDYzogIlRoZW9kb3JlIFRzJ28iIDx0eXRzb0BtaXQuZWR1PgogICAgQ2M6IE1hdHRoZXcg
+V2lsY294IDxtYXdpbGNveEBtaWNyb3NvZnQuY29tPgogICAgQ2M6IEFsZXhhbmRlciBWaXJvIDx2
+aXJvQHplbml2LmxpbnV4Lm9yZy51az4KICAgIENjOiAiRGFycmljayBKLiBXb25nIiA8ZGFycmlj
+ay53b25nQG9yYWNsZS5jb20+CiAgICBDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGlu
+dXguaW50ZWwuY29tPgogICAgUmV2aWV3ZWQtYnk6IEphbiBLYXJhIDxqYWNrQHN1c2UuY29tPgog
+ICAgUmVwb3J0ZWQtYnk6IEdlZXJ0IFV5dHRlcmhvZXZlbiA8Z2VlcnRAbGludXgtbTY4ay5vcmc+
+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
+bT4KCmNvbW1pdCBjZjFlMjI4OTFiZWUzOWY1MGUwNThiZWUwODI3MDg2ZmQ3NWE4NzE3CkF1dGhv
+cjogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkRhdGU6ICAgTW9uIE1h
+eSA4IDEyOjMzOjUzIDIwMTcgLTA3MDAKCiAgICBkZXZpY2UtZGF4OiBraWxsIE5SX0RFVl9EQVgK
+ICAgIAogICAgVGhlcmUgaXMgbm8gcG9pbnQgdG8gYXNrIGhvdyBtYW55IGRldmljZS1kYXggaW5z
+dGFuY2VzIHRoZSBrZXJuZWwgc2hvdWxkCiAgICBzdXBwb3J0LiBTaW5jZSB3ZSBhcmUgYWxyZWFk
+eSB1c2luZyBhIGR5bmFtaWMgbWFqb3IgbnVtYmVyLCBqdXN0IGFsbG93CiAgICB0aGUgbWF4IG51
+bWJlciBvZiBtaW5vcnMgYnkgZGVmYXVsdCBhbmQgYmUgZG9uZS4gVGhpcyBhbHNvIGZpeGVzIHRo
+ZQogICAgZmFjdCB0aGF0IHRoZSBwcm9wb3NlZCBtYXggZm9yIHRoZSBOUl9ERVZfREFYIHJhbmdl
+IHdhcyBsYXJnZXIgdGhhbiB3aGF0CiAgICBjb3VsZCBiZSBzdXBwb3J0ZWQgYnkgYWxsb2NfY2hy
+ZGV2X3JlZ2lvbigpLgogICAgCiAgICBGaXhlczogYmEwOWMwMWQyZmE4ICgiZGF4OiBjb252ZXJ0
+IHRvIHRoZSBjZGV2IGFwaSIpCiAgICBSZXBvcnRlZC1ieTogR2VlcnQgVXl0dGVyaG9ldmVuIDxn
+ZWVydEBsaW51eC1tNjhrLm9yZz4KICAgIFRlc3RlZC1ieTogR2VlcnQgVXl0dGVyaG9ldmVuIDxn
+ZWVydEBsaW51eC1tNjhrLm9yZz4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFu
+Lmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IDgzNzZlZmQzMWQzZDdjNDRiZDA1YmUzMzdh
+ZGRlMDIzY2M1MzFmYTEKQXV0aG9yOiBCZW4gSHV0Y2hpbmdzIDxiZW4uaHV0Y2hpbmdzQGNvZGV0
+aGluay5jby51az4KRGF0ZTogICBUdWUgTWF5IDkgMTg6MDA6NDMgMjAxNyArLTAxMDAKCiAgICB4
+ODYsIHBtZW06IEZpeCBjYWNoZSBmbHVzaGluZyBmb3IgaW92ZWMgd3JpdGUgPCA4IGJ5dGVzCiAg
+ICAKICAgIENvbW1pdCAxMWU2M2Y2ZDkyMGQgYWRkZWQgY2FjaGUgZmx1c2hpbmcgZm9yIHVuYWxp
+Z25lZCB3cml0ZXMgZnJvbSBhbgogICAgaW92ZWMsIGNvdmVyaW5nIHRoZSBmaXJzdCBhbmQgbGFz
+dCBjYWNoZSBsaW5lIG9mIGEgPj0gOCBieXRlIHdyaXRlIGFuZAogICAgdGhlIGZpcnN0IGNhY2hl
+IGxpbmUgb2YgYSA8IDggYnl0ZSB3cml0ZS4gIEJ1dCBhbiB1bmFsaWduZWQgd3JpdGUgb2YKICAg
+IDItNyBieXRlcyBjYW4gc3RpbGwgY292ZXIgdHdvIGNhY2hlIGxpbmVzLCBzbyBtYWtlIHN1cmUg
+d2UgZmx1c2ggYm90aAogICAgaW4gdGhhdCBjYXNlLgogICAgCiAgICBDYzogPHN0YWJsZUB2Z2Vy
+Lmtlcm5lbC5vcmc+CiAgICBGaXhlczogMTFlNjNmNmQ5MjBkICgieDg2LCBwbWVtOiBmaXggYnJv
+a2VuIF9fY29weV91c2VyX25vY2FjaGUgLi4uIikKICAgIFNpZ25lZC1vZmYtYnk6IEJlbiBIdXRj
+aGluZ3MgPGJlbi5odXRjaGluZ3NAY29kZXRoaW5rLmNvLnVrPgogICAgU2lnbmVkLW9mZi1ieTog
+RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cgpjb21taXQgM2FlM2Q2N2Jh
+NzA1Yzc1NGEzYzkxYWMwMDlmOWNlNzNhMGU3Mjg2YQpBdXRob3I6IFZpc2hhbCBWZXJtYSA8dmlz
+aGFsLmwudmVybWFAaW50ZWwuY29tPgpEYXRlOiAgIFdlZCBNYXkgMTAgMTU6MDE6MzAgMjAxNyAt
+MDYwMAoKICAgIGxpYm52ZGltbTogYWRkIGFuIGF0b21pYyB2cyBwcm9jZXNzIGNvbnRleHQgZmxh
+ZyB0byByd19ieXRlcwogICAgCiAgICBuc2lvX3J3X2J5dGVzIGNhbiBjbGVhciBtZWRpYSBlcnJv
+cnMsIGJ1dCB0aGlzIGNhbm5vdCBiZSBkb25lIHdoaWxlIHdlCiAgICBhcmUgaW4gYW4gYXRvbWlj
+IGNvbnRleHQgZHVlIHRvIGxvY2tpbmcgd2l0aGluIEFDUEkuIEZyb20gdGhlIEJUVCwKICAgIC0+
+cndfYnl0ZXMgbWF5IGJlIGNhbGxlZCBlaXRoZXIgZnJvbSBhdG9taWMgb3IgcHJvY2VzcyBjb250
+ZXh0IGRlcGVuZGluZwogICAgb24gd2hldGhlciB0aGUgY2FsbHMgaGFwcGVuIGR1cmluZyBpbml0
+aWFsaXphdGlvbiBvciBkdXJpbmcgSU8uCiAgICAKICAgIER1cmluZyBpbml0LCB3ZSB3YW50IHRv
+IGVuc3VyZSBlcnJvciBjbGVhcmluZyBoYXBwZW5zLCBhbmQgdGhlIGZsYWcKICAgIG1hcmtpbmcg
+cHJvY2VzcyBjb250ZXh0IGFsbG93cyBuc2lvX3J3X2J5dGVzIHRvIGRvIHRoYXQuIFdoZW4gY2Fs
+bGVkCiAgICBkdXJpbmcgSU8sIHdlJ3JlIGluIGF0b21pYyBjb250ZXh0LCBhbmQgZXJyb3IgY2xl
+YXJpbmcgY2FuIGJlIHNraXBwZWQuCiAgICAKICAgIENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndp
+bGxpYW1zQGludGVsLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFs
+LmwudmVybWFAaW50ZWwuY29tPgogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4u
+ai53aWxsaWFtc0BpbnRlbC5jb20+Cgpjb21taXQgYjE3N2ZlODVkZDI3ZGUxZWU0YzI5ZjU5YzRl
+ODJiM2VhM2I3ODc4NApBdXRob3I6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwu
+Y29tPgpEYXRlOiAgIFdlZCBNYXkgMTAgMTU6MDE6MzEgMjAxNyAtMDYwMAoKICAgIGxpYm52ZGlt
+bSwgYnR0OiBlbnN1cmUgdGhhdCBpbml0aWFsaXppbmcgbWV0YWRhdGEgY2xlYXJzIHBvaXNvbgog
+ICAgCiAgICBJZiB3ZSBoYWQgYmFkYmxvY2tzL3BvaXNvbiBpbiB0aGUgbWV0YWRhdGEgYXJlYSBv
+ZiBhIEJUVCwgcmVjcmVhdGluZyB0aGUKICAgIEJUVCB3b3VsZCBub3QgY2xlYXIgdGhlIHBvaXNv
+biBpbiBhbGwgY2FzZXMsIG5vdGFibHkgdGhlIGZsb2cgYXJlYS4gVGhpcwogICAgaXMgYmVjYXVz
+ZSByd19ieXRlcyB3aWxsIG9ubHkgY2xlYXIgZXJyb3JzIGlmIHRoZSByZXF1ZXN0IGJlaW5nIHNl
+bnQKICAgIGRvd24gaXMgNTEyQiBhbGlnbmVkIGFuZCBzaXplZC4KICAgIAogICAgTWFrZSBzdXJl
+IHRoYXQgd2hlbiB3cml0aW5nIHRoZSBtYXAgYW5kIGluZm8gYmxvY2tzLCB0aGUgcndfYnl0ZXMg
+YmVpbmcKICAgIHNlbnQgYXJlIG9mIHRoZSBjb3JyZWN0IHNpemUvYWxpZ25tZW50LiBGb3IgdGhl
+IGZsb2csIGluc3RlYWQgb2YgZG9pbmcKICAgIHRoZSBzbWFsbGVyIGxvZ19lbnRyeSB3cml0ZXMg
+b25seSwgZmlyc3QgZG8gYSAnd2lwZScgb2YgdGhlIGVudGlyZSBhcmVhCiAgICBieSB3cml0aW5n
+IHplcm9lcyBpbiBsYXJnZSBlbm91Z2ggY2h1bmtzIHNvIHRoYXQgZXJyb3JzIGdldCBjbGVhcmVk
+LgogICAgCiAgICBDYzogQW5keSBSdWRvZmYgPGFuZHkucnVkb2ZmQGludGVsLmNvbT4KICAgIENj
+OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KICAgIFNpZ25lZC1vZmYt
+Ynk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPgogICAgU2lnbmVkLW9m
+Zi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cgpjb21taXQgZTg0
+YjgzYjllZTIxODc4MTdjZjg5NTQ3MTY3NWYxY2NkZjY0Y2Q1MwpBdXRob3I6IERhbiBXaWxsaWFt
+cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpEYXRlOiAgIFdlZCBNYXkgMTAgMTk6Mzg6MTMg
+MjAxNyAtMDcwMAoKICAgIGZpbGVzeXN0ZW0tZGF4OiBmaXggYnJva2VuIF9fZGF4X3plcm9fcGFn
+ZV9yYW5nZSgpIGNvbnZlcnNpb24KICAgIAogICAgVGhlIGNvbnZlcnNpb24gb2YgX19kYXhfemVy
+b19wYWdlX3JhbmdlKCkgdG8gJ3N0cnVjdCBkYXhfb3BlcmF0aW9ucycKICAgIGNhdXNlZCBpdCB0
+byBmcmVxdWVudGx5IGZhaWwuIFRoZSBtaXN0YWtlIHdhcyB0cmVhdGluZyB0aGUgQHNpemUKICAg
+IHBhcmFtZXRlciBhcyBhIGRheCBtYXBwaW5nIGxlbmd0aCByYXRoZXIgdGhhbiBqdXN0IGEgbGVu
+Z3RoIG9mIHRoZQogICAgY2xlYXJfcG1lbSgpIG9wZXJhdGlvbi4gVGhlIGRheCBtYXBwaW5nIGxl
+bmd0aCBpcyBhc3N1bWVkIHRvIGJlIGhhcmQKICAgIGNvZGVkIGFzIFBBR0VfU0laRS4KICAgIAog
+ICAgV2l0aG91dCB0aGlzIGZpeCBhbnkgcGFnZSB1bmFsaWduZWQgemVyb2luZyByZXF1ZXN0IHdp
+bGwgdHJpZ2dlciBhCiAgICAtRUlOVkFMIHJldHVybiBmcm9tIGJkZXZfZGF4X3Bnb2ZmKCkuCiAg
+ICAKICAgIENjOiBKYW4gS2FyYSA8amFja0BzdXNlLmNvbT4KICAgIENjOiBDaHJpc3RvcGggSGVs
+bHdpZyA8aGNoQGxzdC5kZT4KICAgIFJlcG9ydGVkLWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Muendp
+c2xlckBsaW51eC5pbnRlbC5jb20+CiAgICBUZXN0ZWQtYnk6IFJvc3MgWndpc2xlciA8cm9zcy56
+d2lzbGVyQGxpbnV4LmludGVsLmNvbT4KICAgIEZpeGVzOiBjY2NiY2U2NzE1ODIgKCJmaWxlc3lz
+dGVtLWRheDogY29udmVydCB0byBkYXhfZGlyZWN0X2FjY2VzcygpIikKICAgIFNpZ25lZC1vZmYt
+Ynk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
+aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
+bi9saXN0aW5mby9saW51eC1udmRpbW0K
