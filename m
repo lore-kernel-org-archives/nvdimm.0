@@ -1,8 +1,7 @@
-From: "w3742" <cemiq0730128-tyHMkbBPSJ9BDgjK7y7TUQ@public.gmane.org>
-Subject: b648238
-Date: Fri, 12 May 2017 12:52:56 -0700
-Message-ID: <86619752.4513ABFD@meritec.com>
-Reply-To: tigakidw0813 <cemiq0730128-tyHMkbBPSJ9BDgjK7y7TUQ@public.gmane.org>
+From: "Pratt Brothers" <admin-0iJ74vpWpdCakBO8gow8eQ@public.gmane.org>
+Subject: Pratt Is Now Earth Works Jacksonville
+Date: Sat, 13 May 2017 01:39:00 +0300
+Message-ID: <33645732.EA9E8C54@prattguys.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,11 +15,18 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-i88584246
-Hi hey world
+Dear Customer,
+Pratt is now Earth Works Jacksonville!
 
-hv623656
-u70830448ugyuuj4731237t547
+We are pleased to announce that Pratt has been acquired by Earth Works of
+Jacksonville.  This new combined company will expand and provide even
+greater hardscape and outdoor living space services for our valued
+customers.
+
+Please visit our new website at http://www.earthworksjax.com
+
+Thank you for your valued business,
+Pratt Brothers
