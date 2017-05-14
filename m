@@ -1,11 +1,9 @@
-From: =?utf-8?B?6JOf5rao?= <oifg-JgkhqQoH52deoWH0uzbU5w@public.gmane.org>
-Subject: =?utf-8?B?bGludXgtbnZkaW1tOuaCqOWlve+8geivpeWmguS9leWBmg==?=
- =?utf-8?B?5aW95LiA5L2N5ZCI5qC855qE5Lqn5ZOB57uP55CG5ZGi77yf?=
-Date: Sun, 14 May 2017 15:40:13 +0800
-Message-ID: <F1DA9787B9F7536CAADF89D13338068F@dxdsh.net>
+From: =?GB2312?B?xe2V09Pq?= <xbqgchuangchong-7v2+eCb5V/UAvxtiuMwx3w@public.gmane.org>
+Subject: =?GB2312?B?1sIg0MIgyM4gudwgwO0gsuM=?=
+Date: Sun, 14 May 2017 15:56:10 +0800
+Message-ID: <20170514075636.77FBA21A134B9@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============3088495218929209298=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -16,11 +14,29 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-bGludXgtbnZkaW1t77ya5LqyDQror7cg5Y+CIOiAgyDpmYQg5Lu277yM5LikIOWkqSDkuLog5oKo
-IOinoyDlhrMg5LiAIOWIhyDpl64g6aKYIApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBs
-aXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1u
-dmRpbW0K
+This is a multi-part message in MIME format
+
+--===============3088495218929209298==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+linux-nvdimm±àºÅ£º894589458945
+
+Ç×£º¸½ ¼þ Îª ´ó ¸Ù£¬Çë²éÔÄ
+
+
+--===============3088495218929209298==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============3088495218929209298==--
