@@ -1,8 +1,8 @@
-From: "FedEx International Delivery" <k1062-tJQIFuiopxPsq35pWSNszA@public.gmane.org>
-Subject: Priority FedEx Parcel #385806656, Delivery Problem
-Date: Sun, 14 May 2017 21:54:57 +0100
-Message-ID: <804D0079.3A7DDE5E@marconsa.eu>
-Reply-To: FedEx Corporation <k1062-tJQIFuiopxPsq35pWSNszA@public.gmane.org>
+From: "FedEx Express" <weizauel3228415-eagHVp8rl28Lq18GOOCk/wC/G2K4zDHf@public.gmane.org>
+Subject: FedEx Delivery - Status Notification: (Failure)
+Date: Sun, 14 May 2017 23:51:24 +0200
+Message-ID: <acee01d2cd0c$fecb1770$ce59d159@weizauel3228415>
+Reply-To: FedEx Priority <weizauel3228415-eagHVp8rl28Lq18GOOCk/wC/G2K4zDHf@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,15 +16,15 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-Regrettably, we were not able to deliver your parcel #706025171.
+Our FedEx Delivery Representative was at your place today to deliver your
+package #31065471.
 
-Attached you can see the delivery confirmation with more information about
-your package.
+Please, review the attachment for the details.
 
-We are happy to assist you with your delivery.
-Quyen Fingleton -  FedEx Station Manager
+Thank you for being with us.
+Loreal Arnzen -  FedEx Logistics Manager
