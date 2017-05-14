@@ -1,109 +1,12 @@
-From: "Hai Howe  " <harremme142-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: re: I need traffic for ml01.01.org
-Date: Sun, 14 May 2017 16:23:23 +0300
-Message-ID: <3B35FBD2.C5E000F8@gmail.com>
+From: "FedEx International Delivery" <k1062-tJQIFuiopxPsq35pWSNszA@public.gmane.org>
+Subject: Priority FedEx Parcel #385806656, Delivery Problem
+Date: Sun, 14 May 2017 21:54:57 +0100
+Message-ID: <804D0079.3A7DDE5E@marconsa.eu>
+Reply-To: FedEx Corporation <k1062-tJQIFuiopxPsq35pWSNszA@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_59185A5A.6818327B"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_59185A5A.6818327B
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  hi Cheap Social,# Search or% Niche Targeted t%raffic Low bounce,
-   long visit duration, pageviews, engagement. http://www.basedbusinesstraffic.com
-   [...] 
-
-Content analysis details:   (11.3 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 2.8 FSL_HELO_FAKE          No description available.
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
- 0.6 URIBL_PH_SURBL         Contains an URL listed in the PH SURBL blocklist
-                            [URIs: basedbusinesstraffic.com]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: basedbusinesstraffic.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: basedbusinesstraffic.com]
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [222.112.205.200 listed in dnsbl.sorbs.net]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-             [Blocked - see <http://www.spamcop.net/bl.shtml?222.112.205.200>]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.basedbusinesstraffic.com]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.basedbusinesstraffic.com]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (harremme142[at]gmail.com)
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (harremme142[at]gmail.com)
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0001]
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_59185A5A.6818327B
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1d9tUg-0008TZ-Az
-	for gln-linux-nvdimm@m.gmane.org; Sun, 14 May 2017 15:23:30 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BACBC21AF0316;
-	Sun, 14 May 2017 06:23:28 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [222.112.205.200])
- by ml01.01.org (Postfix) with SMTP id C439521A16E5D
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Sun, 14 May 2017 06:23:26 -0700 (PDT)
-Message-ID: <3B35FBD2.C5E000F8-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sun, 14 May 2017 16:23:23 +0300
-From: "Hai Howe  " <harremme142-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-GB;
- rv:1.8.1.18) Gecko/20081105 Thunderbird/2.0.0.18
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: re: I need traffic for ml01.01.org
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -111,40 +14,17 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: Hai Howe   <harremme142-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
-hi
-Cheap Social,# Search or% Niche Targeted t%raffic
+Hello,
 
-Low bounce, long visit duration, pageviews, engagement.
+Regrettably, we were not able to deliver your parcel #706025171.
 
-http://www.basedbusinesstraffic.com
+Attached you can see the delivery confirmation with more information about
+your package.
 
-Regards
-Hai Howe =A0
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_59185A5A.6818327B--
+We are happy to assist you with your delivery.
+Quyen Fingleton -  FedEx Station Manager
