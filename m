@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 239A621A16E28
- for <linux-nvdimm@lists.01.org>; Thu, 11 May 2017 15:07:22 -0700 (PDT)
-Subject: [ndctl PATCH 1/4] util: mark badblocks helpers static
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 11 May 2017 15:01:30 -0700
-Message-ID: <149454009049.30857.6643219237076670086.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DEFD821A0BAB0
+ for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:51 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 14/17] xfs: use the common helper uuid_is_null()
+Date: Mon, 15 May 2017 17:43:05 +0200
+Message-Id: <20170515154308.26739-15-hch@lst.de>
+In-Reply-To: <20170515154308.26739-1-hch@lst.de>
+References: <20170515154308.26739-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,69 +17,190 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-These helpers are only used internal to util/json.c.
+From: Amir Goldstein <amir73il@gmail.com>
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Use the common helper uuid_is_null() and remove the xfs specific
+helper uuid_is_nil().
+
+The common helper does not check for the NULL pointer value as
+xfs helper did, but xfs code never calls the helper with a pointer
+that can be NULL.
+
+Conform comments and warning strings to use the term 'null uuid'
+instead of 'nil uuid', because this is the terminology used by
+lib/uuid.c and its users. It is also the terminology used in
+userspace by libuuid and xfsprogs.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+[hch: remove now unused uuid.[ch]]
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- util/json.c |    6 +++---
- util/json.h |    6 ------
- 2 files changed, 3 insertions(+), 9 deletions(-)
+ fs/xfs/Makefile          |  3 +--
+ fs/xfs/uuid.c            | 32 --------------------------------
+ fs/xfs/uuid.h            | 23 -----------------------
+ fs/xfs/xfs_linux.h       |  1 -
+ fs/xfs/xfs_log_recover.c |  6 +++---
+ fs/xfs/xfs_mount.c       |  8 ++++----
+ 6 files changed, 8 insertions(+), 65 deletions(-)
+ delete mode 100644 fs/xfs/uuid.c
+ delete mode 100644 fs/xfs/uuid.h
 
-diff --git a/util/json.c b/util/json.c
-index 0092017262bd..b2c84181cadb 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -356,7 +356,7 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 	return NULL;
- }
+diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
+index 5c90f82b8f6b..a6e955bfead8 100644
+--- a/fs/xfs/Makefile
++++ b/fs/xfs/Makefile
+@@ -98,8 +98,7 @@ xfs-y				+= xfs_aops.o \
+ 				   xfs_sysfs.o \
+ 				   xfs_trans.o \
+ 				   xfs_xattr.o \
+-				   kmem.o \
+-				   uuid.o
++				   kmem.o
  
--struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
-+static struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
- 		bool include_media_errors, unsigned int *bb_count)
- {
- 	struct ndctl_region *region = ndctl_pfn_get_region(pfn);
-@@ -374,7 +374,7 @@ struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
- 			include_media_errors, bb_count);
- }
+ # low-level transaction/log code
+ xfs-y				+= xfs_log.o \
+diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
+deleted file mode 100644
+index 737c186ea98b..000000000000
+--- a/fs/xfs/uuid.c
++++ /dev/null
+@@ -1,32 +0,0 @@
+-/*
+- * Copyright (c) 2000-2003,2005 Silicon Graphics, Inc.
+- * All Rights Reserved.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it would be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write the Free Software Foundation,
+- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+- */
+-#include <xfs.h>
+-
+-int
+-uuid_is_nil(uuid_t *uuid)
+-{
+-	int	i;
+-	char	*cp = (char *)uuid;
+-
+-	if (uuid == NULL)
+-		return 0;
+-	/* implied check of version number here... */
+-	for (i = 0; i < sizeof *uuid; i++)
+-		if (*cp++) return 0;	/* not nil */
+-	return 1;	/* is nil */
+-}
+diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
+deleted file mode 100644
+index 5aea49bf0963..000000000000
+--- a/fs/xfs/uuid.h
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/*
+- * Copyright (c) 2000-2003,2005 Silicon Graphics, Inc.
+- * All Rights Reserved.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it would be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write the Free Software Foundation,
+- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+- */
+-#ifndef __XFS_SUPPORT_UUID_H__
+-#define __XFS_SUPPORT_UUID_H__
+-
+-extern int uuid_is_nil(uuid_t *uuid);
+-
+-#endif	/* __XFS_SUPPORT_UUID_H__ */
+diff --git a/fs/xfs/xfs_linux.h b/fs/xfs/xfs_linux.h
+index 2c33d915e550..2d167fe643ec 100644
+--- a/fs/xfs/xfs_linux.h
++++ b/fs/xfs/xfs_linux.h
+@@ -43,7 +43,6 @@ typedef __u32			xfs_nlink_t;
  
--struct json_object *util_btt_badblocks_to_json(struct ndctl_btt *btt,
-+static struct json_object *util_btt_badblocks_to_json(struct ndctl_btt *btt,
- 		bool include_media_errors, unsigned int *bb_count)
- {
- 	struct ndctl_region *region = ndctl_btt_get_region(btt);
-@@ -393,7 +393,7 @@ struct json_object *util_btt_badblocks_to_json(struct ndctl_btt *btt,
- 			include_media_errors, bb_count);
- }
+ #include "kmem.h"
+ #include "mrlock.h"
+-#include "uuid.h"
  
--struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
-+static struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
- 		bool include_media_errors, unsigned int *bb_count)
+ #include <linux/semaphore.h>
+ #include <linux/mm.h>
+diff --git a/fs/xfs/xfs_log_recover.c b/fs/xfs/xfs_log_recover.c
+index cd0b077deb35..8cec1e5505a4 100644
+--- a/fs/xfs/xfs_log_recover.c
++++ b/fs/xfs/xfs_log_recover.c
+@@ -352,13 +352,13 @@ xlog_header_check_mount(
  {
- 	struct ndctl_region *region = ndctl_dax_get_region(dax);
-diff --git a/util/json.h b/util/json.h
-index b3bc2084b621..1a6caeeb6e9e 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -13,12 +13,6 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 		bool include_idle, bool include_dax, bool include_media_errs);
- struct daxctl_region;
- struct daxctl_dev;
--struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
--		bool include_media_errors, unsigned int *bb_count);
--struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
--		bool include_media_errors, unsigned int *bb_count);
--struct json_object *util_btt_badblocks_to_json(struct ndctl_btt *btt,
--		bool include_media_errors, unsigned int *bb_count);
- struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 		bool include_media_errors, unsigned int *bb_count);
- struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
+ 	ASSERT(head->h_magicno == cpu_to_be32(XLOG_HEADER_MAGIC_NUM));
+ 
+-	if (uuid_is_nil(&head->h_fs_uuid)) {
++	if (uuid_is_null(&head->h_fs_uuid)) {
+ 		/*
+ 		 * IRIX doesn't write the h_fs_uuid or h_fmt fields. If
+-		 * h_fs_uuid is nil, we assume this log was last mounted
++		 * h_fs_uuid is null, we assume this log was last mounted
+ 		 * by IRIX and continue.
+ 		 */
+-		xfs_warn(mp, "nil uuid in log - IRIX style log");
++		xfs_warn(mp, "null uuid in log - IRIX style log");
+ 	} else if (unlikely(!uuid_equal(&mp->m_sb.sb_uuid, &head->h_fs_uuid))) {
+ 		xfs_warn(mp, "log has mismatched uuid - can't recover");
+ 		xlog_header_check_dump(mp, head);
+diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
+index 742e4a61c0bc..682b336a7a6a 100644
+--- a/fs/xfs/xfs_mount.c
++++ b/fs/xfs/xfs_mount.c
+@@ -80,14 +80,14 @@ xfs_uuid_mount(
+ 	if (mp->m_flags & XFS_MOUNT_NOUUID)
+ 		return 0;
+ 
+-	if (uuid_is_nil(uuid)) {
+-		xfs_warn(mp, "Filesystem has nil UUID - can't mount");
++	if (uuid_is_null(uuid)) {
++		xfs_warn(mp, "Filesystem has null UUID - can't mount");
+ 		return -EINVAL;
+ 	}
+ 
+ 	mutex_lock(&xfs_uuid_table_mutex);
+ 	for (i = 0, hole = -1; i < xfs_uuid_table_size; i++) {
+-		if (uuid_is_nil(&xfs_uuid_table[i])) {
++		if (uuid_is_null(&xfs_uuid_table[i])) {
+ 			hole = i;
+ 			continue;
+ 		}
+@@ -124,7 +124,7 @@ xfs_uuid_unmount(
+ 
+ 	mutex_lock(&xfs_uuid_table_mutex);
+ 	for (i = 0; i < xfs_uuid_table_size; i++) {
+-		if (uuid_is_nil(&xfs_uuid_table[i]))
++		if (uuid_is_null(&xfs_uuid_table[i]))
+ 			continue;
+ 		if (!uuid_equal(uuid, &xfs_uuid_table[i]))
+ 			continue;
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
