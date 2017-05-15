@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1CB1721A16EFB
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:27:50 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B144821A0BAB0
+ for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:44:00 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 09/23] S390/sysinfo: use uuid_is_null instead of opencoding it
-Date: Thu, 18 May 2017 08:26:51 +0200
-Message-Id: <20170518062705.25902-10-hch@lst.de>
-In-Reply-To: <20170518062705.25902-1-hch@lst.de>
-References: <20170518062705.25902-1-hch@lst.de>
+Subject: [PATCH 16/17] ima/policy: switch to use uuid_t
+Date: Mon, 15 May 2017 17:43:07 +0200
+Message-Id: <20170515154308.26739-17-hch@lst.de>
+In-Reply-To: <20170515154308.26739-1-hch@lst.de>
+References: <20170515154308.26739-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,50 +26,58 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73i
 Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-.. and switch to use uuid_t instead of the old uuid_be type while we're
-at it.
-
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/s390/include/asm/sysinfo.h | 4 ++--
- arch/s390/kernel/sysinfo.c      | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ security/integrity/ima/ima_policy.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/arch/s390/include/asm/sysinfo.h b/arch/s390/include/asm/sysinfo.h
-index 73bff45ced55..e7f8e1b77d92 100644
---- a/arch/s390/include/asm/sysinfo.h
-+++ b/arch/s390/include/asm/sysinfo.h
-@@ -109,7 +109,7 @@ struct sysinfo_2_2_2 {
- 	unsigned short cpus_shared;
- 	char reserved_4[3];
- 	unsigned char vsne;
--	uuid_be uuid;
-+	uuid_t uuid;
- 	char reserved_5[160];
- 	char ext_name[256];
- };
-@@ -134,7 +134,7 @@ struct sysinfo_3_2_2 {
- 		char reserved_1[3];
- 		unsigned char evmne;
- 		unsigned int reserved_2;
--		uuid_be uuid;
-+		uuid_t uuid;
- 	} vm[8];
- 	char reserved_3[1504];
- 	char ext_names[8][256];
-diff --git a/arch/s390/kernel/sysinfo.c b/arch/s390/kernel/sysinfo.c
-index eefcb54872a5..fb869b103825 100644
---- a/arch/s390/kernel/sysinfo.c
-+++ b/arch/s390/kernel/sysinfo.c
-@@ -242,7 +242,7 @@ static void print_ext_name(struct seq_file *m, int lvl,
+diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
+index 49fbc3e8f012..da3e7d50e0d7 100644
+--- a/security/integrity/ima/ima_policy.c
++++ b/security/integrity/ima/ima_policy.c
+@@ -61,7 +61,7 @@ struct ima_rule_entry {
+ 	enum ima_hooks func;
+ 	int mask;
+ 	unsigned long fsmagic;
+-	u8 fsuuid[16];
++	uuid_t fsuuid;
+ 	kuid_t uid;
+ 	kuid_t fowner;
+ 	bool (*uid_op)(kuid_t, kuid_t);    /* Handlers for operators       */
+@@ -244,7 +244,7 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
+ 	    && rule->fsmagic != inode->i_sb->s_magic)
+ 		return false;
+ 	if ((rule->flags & IMA_FSUUID) &&
+-	    memcmp(rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
++	    memcmp(&rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
+ 		return false;
+ 	if ((rule->flags & IMA_UID) && !rule->uid_op(cred->uid, rule->uid))
+ 		return false;
+@@ -711,13 +711,12 @@ static int ima_parse_rule(char *rule, struct ima_rule_entry *entry)
+ 		case Opt_fsuuid:
+ 			ima_log_string(ab, "fsuuid", args[0].from);
  
- static void print_uuid(struct seq_file *m, int i, struct sysinfo_3_2_2 *info)
- {
--	if (!memcmp(&info->vm[i].uuid, &NULL_UUID_BE, sizeof(uuid_be)))
-+	if (uuid_is_null(&info->vm[i].uuid))
- 		return;
- 	seq_printf(m, "VM%02d UUID:            %pUb\n", i, &info->vm[i].uuid);
- }
+-			if (memchr_inv(entry->fsuuid, 0x00,
+-				       sizeof(entry->fsuuid))) {
++			if (uuid_is_null(&entry->fsuuid)) {
+ 				result = -EINVAL;
+ 				break;
+ 			}
+ 
+-			result = uuid_to_bin(args[0].from, (uuid_t *)&entry->fsuuid);
++			result = uuid_to_bin(args[0].from, &entry->fsuuid);
+ 			if (!result)
+ 				entry->flags |= IMA_FSUUID;
+ 			break;
+@@ -1086,7 +1085,7 @@ int ima_policy_show(struct seq_file *m, void *v)
+ 	}
+ 
+ 	if (entry->flags & IMA_FSUUID) {
+-		seq_printf(m, "fsuuid=%pU", entry->fsuuid);
++		seq_printf(m, "fsuuid=%pU", &entry->fsuuid);
+ 		seq_puts(m, " ");
+ 	}
+ 
 -- 
 2.11.0
 
