@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CA46621A16EFB
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:27:34 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 80DC621A0BAB0
+ for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:21 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 04/23] uuid: rename uuid types
-Date: Thu, 18 May 2017 08:26:46 +0200
-Message-Id: <20170518062705.25902-5-hch@lst.de>
-In-Reply-To: <20170518062705.25902-1-hch@lst.de>
-References: <20170518062705.25902-1-hch@lst.de>
+Subject: [PATCH 03/17] uuid: rename uuid types
+Date: Mon, 15 May 2017 17:42:54 +0200
+Message-Id: <20170515154308.26739-4-hch@lst.de>
+In-Reply-To: <20170515154308.26739-1-hch@lst.de>
+References: <20170515154308.26739-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -37,16 +37,16 @@ Also remove the existing typedef in XFS that's now been superceeded by
 the generic type name.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-[andy: also update the UUID_LE/UUID_BE macros including fallout]
+[andy: also updated the UUID_LE/UUID_BE macros including fallout]
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
  fs/xfs/xfs_linux.h        |  2 --
- include/linux/uuid.h      | 55 +++++++++++++++++++++++++++--------------------
- include/uapi/linux/uuid.h | 12 +++++++----
- lib/test_uuid.c           | 32 +++++++++++++--------------
- lib/uuid.c                | 28 ++++++++++++------------
+ include/linux/uuid.h      | 38 ++++++++++++++++++++++----------------
+ include/uapi/linux/uuid.h | 32 +++++++++++++++++++-------------
+ lib/test_uuid.c           | 32 ++++++++++++++++----------------
+ lib/uuid.c                | 28 ++++++++++++++--------------
  lib/vsprintf.c            |  4 ++--
- 6 files changed, 72 insertions(+), 61 deletions(-)
+ 6 files changed, 73 insertions(+), 63 deletions(-)
 
 diff --git a/fs/xfs/xfs_linux.h b/fs/xfs/xfs_linux.h
 index 89ee5ec66837..2c33d915e550 100644
@@ -62,33 +62,10 @@ index 89ee5ec66837..2c33d915e550 100644
  
  #include "kmem.h"
 diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index de3aea206562..0410cd002282 100644
+index 4dff73a89758..a0c32f364b09 100644
 --- a/include/linux/uuid.h
 +++ b/include/linux/uuid.h
-@@ -20,19 +20,15 @@
- 
- typedef struct {
- 	__u8 b[16];
--} uuid_be;
-+} uuid_t;
- 
--#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
--((uuid_be)								\
-+#define UUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
-+((uuid_t)								\
- {{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
-    ((b) >> 8) & 0xff, (b) & 0xff,					\
-    ((c) >> 8) & 0xff, (c) & 0xff,					\
-    (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
- 
--#define NULL_UUID_BE							\
--	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
--		0x00, 0x00, 0x00, 0x00)
--
- /*
-  * V1 (time-based) UUID definition [RFC 4122].
-  * - the timestamp is a 60-bit value, split 32/16/12, and goes in 100ns
-@@ -63,27 +59,40 @@ struct uuid_v1 {
+@@ -48,27 +48,33 @@ struct uuid_v1 {
   */
  #define	UUID_STRING_LEN		36
  
@@ -122,13 +99,6 @@ index de3aea206562..0410cd002282 100644
 -int uuid_le_to_bin(const char *uuid, uuid_le *u);
 -int uuid_be_to_bin(const char *uuid, uuid_be *u);
 +/* backwards compatibility, don't use in new code */
-+typedef uuid_t uuid_be;
-+#define UUID_BE(a, _b, c, d0, d1, d2, d3, d4, d5, d6, d7) \
-+	UUID(a, _b, c, d0, d1, d2, d3, d4, d5, d6, d7)
-+#define NULL_UUID_BE 							\
-+	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
-+	     0x00, 0x00, 0x00, 0x00)
-+
 +#define uuid_le_gen(u)		guid_gen(u)
 +#define uuid_be_gen(u)		uuid_gen(u)
 +#define uuid_le_to_bin(guid, u)	guid_to_bin(guid, u)
@@ -146,16 +116,20 @@ index de3aea206562..0410cd002282 100644
  
  #endif
 diff --git a/include/uapi/linux/uuid.h b/include/uapi/linux/uuid.h
-index 0099756c4bac..1eeeca973315 100644
+index 3738e5fb6a4d..c31fc94695b9 100644
 --- a/include/uapi/linux/uuid.h
 +++ b/include/uapi/linux/uuid.h
-@@ -22,17 +22,21 @@
+@@ -22,33 +22,39 @@
  
  typedef struct {
  	__u8 b[16];
 -} uuid_le;
 +} guid_t;
  
+-typedef struct {
+-	__u8 b[16];
+-} uuid_be;
+-
 -#define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
 -((uuid_le)								\
 +#define GUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
@@ -165,6 +139,19 @@ index 0099756c4bac..1eeeca973315 100644
     (c) & 0xff, ((c) >> 8) & 0xff,					\
     (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
  
+-#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
+-((uuid_be)								\
++typedef struct {
++	__u8 b[16];
++} uuid_t;
++
++#define UUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
++((uuid_t)								\
+ {{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
+    ((b) >> 8) & 0xff, (b) & 0xff,					\
+    ((c) >> 8) & 0xff, (c) & 0xff,					\
+    (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
+ 
 +/* backwards compatibility, don't use in new code */
 +typedef guid_t uuid_le;
 +#define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
@@ -172,6 +159,16 @@ index 0099756c4bac..1eeeca973315 100644
  #define NULL_UUID_LE							\
  	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
 -		0x00, 0x00, 0x00, 0x00)
++	     0x00, 0x00, 0x00, 0x00)
+ 
+-#define NULL_UUID_BE							\
++typedef uuid_t uuid_be;
++#define UUID_BE(a, _b, c, d0, d1, d2, d3, d4, d5, d6, d7) \
++	UUID(a, _b, c, d0, d1, d2, d3, d4, d5, d6, d7)
++#define NULL_UUID_BE 							\
+ 	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+-		0x00, 0x00, 0x00, 0x00)
+-
 +	     0x00, 0x00, 0x00, 0x00)
  
  #endif /* _UAPI_LINUX_UUID_H_ */
