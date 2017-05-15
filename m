@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5E38F21B0E535
- for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 14:43:20 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Wed, 24 May 2017 15:42:22 -0600
-Message-Id: <1495662147-18277-12-git-send-email-logang@deltatee.com>
-In-Reply-To: <1495662147-18277-1-git-send-email-logang@deltatee.com>
-References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
-Subject: [RFC PATCH 11/16] bvec: convert to using pfn_t internally
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 269D421A0BAB0
+ for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:45 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 12/17] xfs: remove uuid_getnodeuniq and xfs_uu_t
+Date: Mon, 15 May 2017 17:43:03 +0200
+Message-Id: <20170515154308.26739-13-hch@lst.de>
+In-Reply-To: <20170515154308.26739-1-hch@lst.de>
+References: <20170515154308.26739-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,134 +22,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Johannes Berg <johannes.berg@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ming Lei <ming.lei@canonical.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-With bv_page fenced off, we can now convert it to a pfn_t fairly simply.
-Everything should work the same with the exception of a BUG_ON
-for potentially unmappable pfns.
+Directly use the v1 intepretation of uuid_t instead.
 
-A couple of initializers that assign {NULL} to a bio_vec had to also be
-changed to {} to prevent a warning seeing pfn_t is actually a struct.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- block/blk-integrity.c |  4 ++--
- block/blk-merge.c     |  6 +++---
- include/linux/bvec.h  | 13 +++++++++----
- 3 files changed, 14 insertions(+), 9 deletions(-)
+ fs/xfs/uuid.c      | 25 -------------------------
+ fs/xfs/uuid.h      |  1 -
+ fs/xfs/xfs_mount.c |  6 +++++-
+ 3 files changed, 5 insertions(+), 27 deletions(-)
 
-diff --git a/block/blk-integrity.c b/block/blk-integrity.c
-index 857138a..2ba66f7 100644
---- a/block/blk-integrity.c
-+++ b/block/blk-integrity.c
-@@ -40,7 +40,7 @@
+diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
+index 29ed78c8637b..737c186ea98b 100644
+--- a/fs/xfs/uuid.c
++++ b/fs/xfs/uuid.c
+@@ -17,31 +17,6 @@
   */
- int blk_rq_count_integrity_sg(struct request_queue *q, struct bio *bio)
+ #include <xfs.h>
+ 
+-/* IRIX interpretation of an uuid_t */
+-typedef struct {
+-	__be32	uu_timelow;
+-	__be16	uu_timemid;
+-	__be16	uu_timehi;
+-	__be16	uu_clockseq;
+-	__be16	uu_node[3];
+-} xfs_uu_t;
+-
+-/*
+- * uuid_getnodeuniq - obtain the node unique fields of a UUID.
+- *
+- * This is not in any way a standard or condoned UUID function;
+- * it just something that's needed for user-level file handles.
+- */
+-void
+-uuid_getnodeuniq(uuid_t *uuid, int fsid [2])
+-{
+-	xfs_uu_t *uup = (xfs_uu_t *)uuid;
+-
+-	fsid[0] = (be16_to_cpu(uup->uu_clockseq) << 16) |
+-		   be16_to_cpu(uup->uu_timemid);
+-	fsid[1] = be32_to_cpu(uup->uu_timelow);
+-}
+-
+ int
+ uuid_is_nil(uuid_t *uuid)
  {
--	struct bio_vec iv, ivprv = { NULL };
-+	struct bio_vec iv, ivprv = {};
- 	unsigned int segments = 0;
- 	unsigned int seg_size = 0;
- 	struct bvec_iter iter;
-@@ -86,7 +86,7 @@ EXPORT_SYMBOL(blk_rq_count_integrity_sg);
- int blk_rq_map_integrity_sg(struct request_queue *q, struct bio *bio,
- 			    struct scatterlist *sglist)
- {
--	struct bio_vec iv, ivprv = { NULL };
-+	struct bio_vec iv, ivprv = {};
- 	struct scatterlist *sg = NULL;
- 	unsigned int segments = 0;
- 	struct bvec_iter iter;
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index 65dcee9..93e87fe 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -245,7 +245,7 @@ static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
- 					     struct bio *bio,
- 					     bool no_sg_merge)
- {
--	struct bio_vec bv, bvprv = { NULL };
-+	struct bio_vec bv, bvprv = {};
- 	int cluster, prev = 0;
- 	unsigned int seg_size, nr_phys_segs;
- 	struct bio *fbio, *bbio;
-@@ -347,7 +347,7 @@ EXPORT_SYMBOL(blk_recount_segments);
- static int blk_phys_contig_segment(struct request_queue *q, struct bio *bio,
- 				   struct bio *nxt)
- {
--	struct bio_vec end_bv = { NULL }, nxt_bv;
-+	struct bio_vec end_bv = {}, nxt_bv;
+diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
+index 86bbed071e79..5aea49bf0963 100644
+--- a/fs/xfs/uuid.h
++++ b/fs/xfs/uuid.h
+@@ -19,6 +19,5 @@
+ #define __XFS_SUPPORT_UUID_H__
  
- 	if (!blk_queue_cluster(q))
- 		return 0;
-@@ -430,7 +430,7 @@ static int __blk_bios_map_sg(struct request_queue *q, struct bio *bio,
- 			     struct scatterlist *sglist,
- 			     struct scatterlist **sg)
- {
--	struct bio_vec bvec, bvprv = { NULL };
-+	struct bio_vec bvec, bvprv = {};
- 	struct bvec_iter iter;
- 	int cluster = blk_queue_cluster(q), nsegs = 0;
+ extern int uuid_is_nil(uuid_t *uuid);
+-extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
  
-diff --git a/include/linux/bvec.h b/include/linux/bvec.h
-index b53b879..d950288 100644
---- a/include/linux/bvec.h
-+++ b/include/linux/bvec.h
-@@ -22,12 +22,13 @@
+ #endif	/* __XFS_SUPPORT_UUID_H__ */
+diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
+index 2eaf81859166..742e4a61c0bc 100644
+--- a/fs/xfs/xfs_mount.c
++++ b/fs/xfs/xfs_mount.c
+@@ -793,7 +793,11 @@ xfs_mountfs(
+ 	 *  Copies the low order bits of the timestamp and the randomly
+ 	 *  set "sequence" number out of a UUID.
+ 	 */
+-	uuid_getnodeuniq(&sbp->sb_uuid, mp->m_fixedfsid);
++	mp->m_fixedfsid[0] =
++		((u32)sbp->sb_uuid.v1.clock_seq_hi_and_reserved << 24) |
++		((u32)sbp->sb_uuid.v1.clock_seq_low << 16) |
++		 be16_to_cpu(sbp->sb_uuid.v1.time_mid);
++	mp->m_fixedfsid[1] = be32_to_cpu(sbp->sb_uuid.v1.time_low);
  
- #include <linux/kernel.h>
- #include <linux/bug.h>
-+#include <linux/pfn_t.h>
+ 	mp->m_dmevmask = 0;	/* not persistent; set after each mount */
  
- /*
-  * was unsigned short, but we might as well be ready for > 64kB I/O pages
-  */
- struct bio_vec {
--	struct page	*bv_page;
-+	pfn_t		bv_pfn;
- 	unsigned int	bv_len;
- 	unsigned int	bv_offset;
- };
-@@ -45,12 +46,13 @@ struct bvec_iter {
- 
- static inline struct page *bvec_page(const struct bio_vec *bvec)
- {
--	return bvec->bv_page;
-+	BUG_ON(!pfn_t_is_always_mappable(bvec->bv_pfn));
-+	return pfn_t_to_page(bvec->bv_pfn);
- }
- 
- static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
- {
--	bvec->bv_page = page;
-+	bvec->bv_pfn = page_to_pfn_t(page);
- }
- 
- /*
-@@ -59,6 +61,9 @@ static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
-  */
- #define __bvec_iter_bvec(bvec, iter)	(&(bvec)[(iter).bi_idx])
- 
-+#define bvec_iter_pfn_t(bvec, iter)				\
-+	(__bvec_iter_bvec((bvec), (iter))->bv_pfn)
-+
- #define bvec_iter_page(bvec, iter)				\
- 	(bvec_page(__bvec_iter_bvec((bvec), (iter))))
- 
-@@ -71,7 +76,7 @@ static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
- 
- #define bvec_iter_bvec(bvec, iter)				\
- ((struct bio_vec) {						\
--	.bv_page	= bvec_iter_page((bvec), (iter)),	\
-+	.bv_pfn		= bvec_iter_pfn_t((bvec), (iter)),	\
- 	.bv_len		= bvec_iter_len((bvec), (iter)),	\
- 	.bv_offset	= bvec_iter_offset((bvec), (iter)),	\
- })
 -- 
-2.1.4
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
