@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0BA7E21AF39D2
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:18:43 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 55066203BF108
+ for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:41 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 11/24] uuid: hoist uuid_is_null() helper from libnvdimm
-Date: Wed, 31 May 2017 18:18:13 +0200
-Message-Id: <20170531161826.23243-12-hch@lst.de>
-In-Reply-To: <20170531161826.23243-1-hch@lst.de>
-References: <20170531161826.23243-1-hch@lst.de>
+Subject: [PATCH 10/17] afs: switch to use uuid_t and uuid_gen
+Date: Mon, 15 May 2017 17:43:01 +0200
+Message-Id: <20170515154308.26739-11-hch@lst.de>
+In-Reply-To: <20170515154308.26739-1-hch@lst.de>
+References: <20170515154308.26739-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,111 +23,159 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hoist the libnvdimm helper as an inline helper to linux/uuid.h
-using an auxiliary const variable uuid_null in lib/uuid.c.
-
-[hch: also add the guid variant.  Both do the same but I'd like
-to keep casts to a minimum]
-
-The common helper uses the new abstract type uuid_t * instead of
-u8 *.
-
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[hch: added guid_is_null]
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: David Howells <dhowells@redhat.com>
 ---
- drivers/nvdimm/btt_devs.c |  9 +--------
- include/linux/uuid.h      | 13 +++++++++++++
- lib/uuid.c                |  5 +++++
- 3 files changed, 19 insertions(+), 8 deletions(-)
+ fs/afs/cmservice.c | 46 +++++++++++++++++++++++-----------------------
+ fs/afs/internal.h  |  2 +-
+ fs/afs/main.c      |  4 ++--
+ 3 files changed, 26 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index ae00dc0d9791..4c989bb9a8a0 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -222,13 +222,6 @@ struct device *nd_btt_create(struct nd_region *nd_region)
- 	return dev;
- }
+diff --git a/fs/afs/cmservice.c b/fs/afs/cmservice.c
+index 3062cceb5c2a..d4e77d12570c 100644
+--- a/fs/afs/cmservice.c
++++ b/fs/afs/cmservice.c
+@@ -350,7 +350,7 @@ static int afs_deliver_cb_init_call_back_state3(struct afs_call *call)
+ {
+ 	struct sockaddr_rxrpc srx;
+ 	struct afs_server *server;
+-	struct uuid_v1 *r;
++	uuid_t *r;
+ 	unsigned loop;
+ 	__be32 *b;
+ 	int ret;
+@@ -380,20 +380,20 @@ static int afs_deliver_cb_init_call_back_state3(struct afs_call *call)
+ 		}
  
--static bool uuid_is_null(u8 *uuid)
--{
--	static const u8 null_uuid[16];
--
--	return (memcmp(uuid, null_uuid, 16) == 0);
--}
--
- /**
-  * nd_btt_arena_is_valid - check if the metadata layout is valid
-  * @nd_btt:	device with BTT geometry and backing device info
-@@ -249,7 +242,7 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
- 	if (memcmp(super->signature, BTT_SIG, BTT_SIG_LEN) != 0)
- 		return false;
+ 		_debug("unmarshall UUID");
+-		call->request = kmalloc(sizeof(struct uuid_v1), GFP_KERNEL);
++		call->request = kmalloc(sizeof(uuid_t), GFP_KERNEL);
+ 		if (!call->request)
+ 			return -ENOMEM;
  
--	if (!uuid_is_null(super->parent_uuid))
-+	if (!guid_is_null((guid_t *)&super->parent_uuid))
- 		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
- 			return false;
+ 		b = call->buffer;
+ 		r = call->request;
+-		r->time_low			= b[0];
+-		r->time_mid			= htons(ntohl(b[1]));
+-		r->time_hi_and_version		= htons(ntohl(b[2]));
+-		r->clock_seq_hi_and_reserved 	= ntohl(b[3]);
+-		r->clock_seq_low		= ntohl(b[4]);
++		r->v1.time_low			= b[0];
++		r->v1.time_mid			= htons(ntohl(b[1]));
++		r->v1.time_hi_and_version	= htons(ntohl(b[2]));
++		r->v1.clock_seq_hi_and_reserved = ntohl(b[3]);
++		r->v1.clock_seq_low		= ntohl(b[4]);
  
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 9f97fe5ad964..51602200b539 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -35,6 +35,9 @@ typedef struct {
+ 		for (loop = 0; loop < 6; loop++)
+-			r->node[loop] = ntohl(b[loop + 5]);
++			r->v1.node[loop] = ntohl(b[loop + 5]);
+ 
+ 		call->offset = 0;
+ 		call->unmarshall++;
+@@ -453,7 +453,7 @@ static int afs_deliver_cb_probe(struct afs_call *call)
+ static void SRXAFSCB_ProbeUuid(struct work_struct *work)
+ {
+ 	struct afs_call *call = container_of(work, struct afs_call, work);
+-	struct uuid_v1 *r = call->request;
++	uuid_t *r = call->request;
+ 
+ 	struct {
+ 		__be32	match;
+@@ -476,7 +476,7 @@ static void SRXAFSCB_ProbeUuid(struct work_struct *work)
   */
- #define	UUID_STRING_LEN		36
- 
-+extern const guid_t guid_null;
-+extern const uuid_t uuid_null;
-+
- static inline bool guid_equal(const guid_t *u1, const guid_t *u2)
+ static int afs_deliver_cb_probe_uuid(struct afs_call *call)
  {
- 	return memcmp(u1, u2, sizeof(guid_t)) == 0;
-@@ -45,6 +48,11 @@ static inline void guid_copy(guid_t *dst, const guid_t *src)
- 	memcpy(dst, src, sizeof(guid_t));
- }
+-	struct uuid_v1 *r;
++	uuid_t *r;
+ 	unsigned loop;
+ 	__be32 *b;
+ 	int ret;
+@@ -502,20 +502,20 @@ static int afs_deliver_cb_probe_uuid(struct afs_call *call)
+ 		}
  
-+static inline bool guid_is_null(guid_t *guid)
-+{
-+	return guid_equal(guid, &guid_null);
-+}
-+
- static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
- {
- 	return memcmp(u1, u2, sizeof(uuid_t)) == 0;
-@@ -55,6 +63,11 @@ static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
- 	memcpy(dst, src, sizeof(uuid_t));
- }
+ 		_debug("unmarshall UUID");
+-		call->request = kmalloc(sizeof(struct uuid_v1), GFP_KERNEL);
++		call->request = kmalloc(sizeof(uuid_t), GFP_KERNEL);
+ 		if (!call->request)
+ 			return -ENOMEM;
  
-+static inline bool uuid_is_null(uuid_t *uuid)
-+{
-+	return uuid_equal(uuid, &uuid_null);
-+}
-+
- void generate_random_uuid(unsigned char uuid[16]);
+ 		b = call->buffer;
+ 		r = call->request;
+-		r->time_low			= b[0];
+-		r->time_mid			= htons(ntohl(b[1]));
+-		r->time_hi_and_version		= htons(ntohl(b[2]));
+-		r->clock_seq_hi_and_reserved 	= ntohl(b[3]);
+-		r->clock_seq_low		= ntohl(b[4]);
++		r->v1.time_low			= b[0];
++		r->v1.time_mid			= htons(ntohl(b[1]));
++		r->v1.time_hi_and_version	= htons(ntohl(b[2]));
++		r->v1.clock_seq_hi_and_reserved = ntohl(b[3]);
++		r->v1.clock_seq_low		= ntohl(b[4]);
  
- extern void guid_gen(guid_t *u);
-diff --git a/lib/uuid.c b/lib/uuid.c
-index f7116ed88e01..680b9fb9ba09 100644
---- a/lib/uuid.c
-+++ b/lib/uuid.c
-@@ -21,6 +21,11 @@
- #include <linux/uuid.h>
- #include <linux/random.h>
+ 		for (loop = 0; loop < 6; loop++)
+-			r->node[loop] = ntohl(b[loop + 5]);
++			r->v1.node[loop] = ntohl(b[loop + 5]);
  
-+const guid_t guid_null;
-+EXPORT_SYMBOL(guid_null);
-+const uuid_t uuid_null;
-+EXPORT_SYMBOL(uuid_null);
-+
- const u8 guid_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
- const u8 uuid_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+ 		call->offset = 0;
+ 		call->unmarshall++;
+@@ -568,13 +568,13 @@ static void SRXAFSCB_TellMeAboutYourself(struct work_struct *work)
+ 	memset(&reply, 0, sizeof(reply));
+ 	reply.ia.nifs = htonl(nifs);
  
+-	reply.ia.uuid[0] = afs_uuid.time_low;
+-	reply.ia.uuid[1] = htonl(ntohs(afs_uuid.time_mid));
+-	reply.ia.uuid[2] = htonl(ntohs(afs_uuid.time_hi_and_version));
+-	reply.ia.uuid[3] = htonl((s8) afs_uuid.clock_seq_hi_and_reserved);
+-	reply.ia.uuid[4] = htonl((s8) afs_uuid.clock_seq_low);
++	reply.ia.uuid[0] = afs_uuid.v1.time_low;
++	reply.ia.uuid[1] = htonl(ntohs(afs_uuid.v1.time_mid));
++	reply.ia.uuid[2] = htonl(ntohs(afs_uuid.v1.time_hi_and_version));
++	reply.ia.uuid[3] = htonl((s8) afs_uuid.v1.clock_seq_hi_and_reserved);
++	reply.ia.uuid[4] = htonl((s8) afs_uuid.v1.clock_seq_low);
+ 	for (loop = 0; loop < 6; loop++)
+-		reply.ia.uuid[loop + 5] = htonl((s8) afs_uuid.node[loop]);
++		reply.ia.uuid[loop + 5] = htonl((s8) afs_uuid.v1.node[loop]);
+ 
+ 	if (ifs) {
+ 		for (loop = 0; loop < nifs; loop++) {
+diff --git a/fs/afs/internal.h b/fs/afs/internal.h
+index 393672997cc2..7de45c8686a2 100644
+--- a/fs/afs/internal.h
++++ b/fs/afs/internal.h
+@@ -544,7 +544,7 @@ extern int afs_drop_inode(struct inode *);
+  * main.c
+  */
+ extern struct workqueue_struct *afs_wq;
+-extern struct uuid_v1 afs_uuid;
++extern uuid_t afs_uuid;
+ 
+ /*
+  * misc.c
+diff --git a/fs/afs/main.c b/fs/afs/main.c
+index 51d7d17bca57..75b3d3a8b1ba 100644
+--- a/fs/afs/main.c
++++ b/fs/afs/main.c
+@@ -31,7 +31,7 @@ static char *rootcell;
+ module_param(rootcell, charp, 0);
+ MODULE_PARM_DESC(rootcell, "root AFS cell name and VL server IP addr list");
+ 
+-struct uuid_v1 afs_uuid;
++uuid_t afs_uuid;
+ struct workqueue_struct *afs_wq;
+ 
+ /*
+@@ -43,7 +43,7 @@ static int __init afs_init(void)
+ 
+ 	printk(KERN_INFO "kAFS: Red Hat AFS client v0.1 registering.\n");
+ 
+-	generate_random_uuid((unsigned char *)&afs_uuid);
++	uuid_gen(&afs_uuid);
+ 
+ 	/* create workqueue */
+ 	ret = -ENOMEM;
 -- 
 2.11.0
 
