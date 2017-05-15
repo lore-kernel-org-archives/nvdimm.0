@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C1D3C21A0BAB0
- for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:31 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 636C121A0BAB0
+ for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:48 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 07/17] uuid: remove the now unused uuid_be_cmp helper
-Date: Mon, 15 May 2017 17:42:58 +0200
-Message-Id: <20170515154308.26739-8-hch@lst.de>
+Subject: [PATCH 13/17] md: namespace private helper names
+Date: Mon, 15 May 2017 17:43:04 +0200
+Message-Id: <20170515154308.26739-14-hch@lst.de>
 In-Reply-To: <20170515154308.26739-1-hch@lst.de>
 References: <20170515154308.26739-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -26,25 +26,58 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73i
 Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+From: Amir Goldstein <amir73il@gmail.com>
+
+The md private helper uuid_equal() collides with a generic helper
+of the same name.
+
+Rename the md private helper to md_uuid_equal() and do the same for
+md_sb_equal().
+
+Cc: Shaohua Li <shli@kernel.org>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- include/linux/uuid.h | 5 -----
- 1 file changed, 5 deletions(-)
+ drivers/md/md.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index aef21b580b17..21218351ae26 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -92,9 +92,4 @@ static inline int uuid_le_cmp(const guid_t u1, const guid_t u2)
- 	return memcmp(&u1, &u2, sizeof(guid_t));
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index 82f798be964f..65795cc4cb7d 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -825,7 +825,7 @@ static int read_disk_sb(struct md_rdev *rdev, int size)
+ 	return -EINVAL;
  }
  
--static inline int uuid_be_cmp(const uuid_t u1, const uuid_t u2)
--{
--	return memcmp(&u1, &u2, sizeof(uuid_t));
--}
--
- #endif
+-static int uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
++static int md_uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ {
+ 	return	sb1->set_uuid0 == sb2->set_uuid0 &&
+ 		sb1->set_uuid1 == sb2->set_uuid1 &&
+@@ -833,7 +833,7 @@ static int uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ 		sb1->set_uuid3 == sb2->set_uuid3;
+ }
+ 
+-static int sb_equal(mdp_super_t *sb1, mdp_super_t *sb2)
++static int md_sb_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ {
+ 	int ret;
+ 	mdp_super_t *tmp1, *tmp2;
+@@ -1025,12 +1025,12 @@ static int super_90_load(struct md_rdev *rdev, struct md_rdev *refdev, int minor
+ 	} else {
+ 		__u64 ev1, ev2;
+ 		mdp_super_t *refsb = page_address(refdev->sb_page);
+-		if (!uuid_equal(refsb, sb)) {
++		if (!md_uuid_equal(refsb, sb)) {
+ 			pr_warn("md: %s has different UUID to %s\n",
+ 				b, bdevname(refdev->bdev,b2));
+ 			goto abort;
+ 		}
+-		if (!sb_equal(refsb, sb)) {
++		if (!md_sb_equal(refsb, sb)) {
+ 			pr_warn("md: %s has same UUID but different superblock to %s\n",
+ 				b, bdevname(refdev->bdev, b2));
+ 			goto abort;
 -- 
 2.11.0
 
