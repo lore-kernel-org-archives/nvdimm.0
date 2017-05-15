@@ -1,8 +1,8 @@
-From: "FedEx Express" <weizauel3228415-eagHVp8rl28Lq18GOOCk/wC/G2K4zDHf@public.gmane.org>
-Subject: FedEx Delivery - Status Notification: (Failure)
-Date: Sun, 14 May 2017 23:51:24 +0200
-Message-ID: <acee01d2cd0c$fecb1770$ce59d159@weizauel3228415>
-Reply-To: FedEx Priority <weizauel3228415-eagHVp8rl28Lq18GOOCk/wC/G2K4zDHf@public.gmane.org>
+From: "Pratt Brothers" <admin-0iJ74vpWpdCakBO8gow8eQ@public.gmane.org>
+Subject: Pratt Is Now Earth Works Jacksonville
+Date: Mon, 15 May 2017 13:35:03 +0300
+Message-ID: <ECDA9376.F26EECFE@prattguys.com>
+Reply-To: Pratt Brothers <admin-0iJ74vpWpdCakBO8gow8eQ@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,15 +16,18 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello,
+Dear Customer,
+Pratt is now Earth Works Jacksonville!
 
-Our FedEx Delivery Representative was at your place today to deliver your
-package #31065471.
+We are pleased to announce that Pratt has been acquired by Earth Works of
+Jacksonville.  This new combined company will expand and provide even
+greater hardscape and outdoor living space services for our valued
+customers.
 
-Please, review the attachment for the details.
+Please visit our new website at http://www.earthworksjax.com
 
-Thank you for being with us.
-Loreal Arnzen -  FedEx Logistics Manager
+Thank you for your valued business,
+Pratt Brothers
