@@ -1,20 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
- [IPv6:2607:f8b0:4003:c06::22a])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8E4C421A1349E
- for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 10:48:22 -0700 (PDT)
-Received: by mail-oi0-x22a.google.com with SMTP id l18so139918393oig.2
- for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 10:48:22 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170515154308.26739-9-hch@lst.de>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 6D62E203BF10F
+ for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:36 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 08/17] uuid: hoist uuid_is_null() helper from libnvdimm
+Date: Mon, 15 May 2017 17:42:59 +0200
+Message-Id: <20170515154308.26739-9-hch@lst.de>
+In-Reply-To: <20170515154308.26739-1-hch@lst.de>
 References: <20170515154308.26739-1-hch@lst.de>
- <20170515154308.26739-9-hch@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 15 May 2017 10:48:21 -0700
-Message-ID: <CAPcyv4hzosqta=KcAHs08MAMrzgEt0CbAHTZMZ9d+jh3ymeWFA@mail.gmail.com>
-Subject: Re: [PATCH 08/17] uuid: hoist uuid_is_null() helper from libnvdimm
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,33 +17,121 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: linux-xfs@vger.kernel.org, linux-raid <linux-raid@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Amir Goldstein <amir73il@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Howells <dhowells@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Shaohua Li <shli@kernel.org>, Steven Whitehouse <swhiteho@redhat.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, May 15, 2017 at 8:42 AM, Christoph Hellwig <hch@lst.de> wrote:
-> Hoist the libnvdimm helper as an inline helper to linux/uuid.h
-> using an auxiliary const variable uuid_null in lib/uuid.c.
->
-> [hch: also add the guid variant.  Both do the same but I'd like
-> to keep casts to a minimum]
->
-> The common helper uses the new abstract type uuid_t * instead of
-> u8 *.
->
-> Suggested-by: Christoph Hellwig <hch@lst.de>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Cc: David Howells <dhowells@redhat.com>
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> [hch: added guid_is_null]
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+Hoist the libnvdimm helper as an inline helper to linux/uuid.h
+using an auxiliary const variable uuid_null in lib/uuid.c.
 
-Acked-by: Dan Williams <dan.j.williams@intel.com>
+[hch: also add the guid variant.  Both do the same but I'd like
+to keep casts to a minimum]
+
+The common helper uses the new abstract type uuid_t * instead of
+u8 *.
+
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+[hch: added guid_is_null]
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/nvdimm/btt_devs.c |  9 +--------
+ include/linux/uuid.h      | 13 +++++++++++++
+ lib/uuid.c                |  5 +++++
+ 3 files changed, 19 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index ae00dc0d9791..4c989bb9a8a0 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -222,13 +222,6 @@ struct device *nd_btt_create(struct nd_region *nd_region)
+ 	return dev;
+ }
+ 
+-static bool uuid_is_null(u8 *uuid)
+-{
+-	static const u8 null_uuid[16];
+-
+-	return (memcmp(uuid, null_uuid, 16) == 0);
+-}
+-
+ /**
+  * nd_btt_arena_is_valid - check if the metadata layout is valid
+  * @nd_btt:	device with BTT geometry and backing device info
+@@ -249,7 +242,7 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
+ 	if (memcmp(super->signature, BTT_SIG, BTT_SIG_LEN) != 0)
+ 		return false;
+ 
+-	if (!uuid_is_null(super->parent_uuid))
++	if (!guid_is_null((guid_t *)&super->parent_uuid))
+ 		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
+ 			return false;
+ 
+diff --git a/include/linux/uuid.h b/include/linux/uuid.h
+index 21218351ae26..f0e2a645e2bb 100644
+--- a/include/linux/uuid.h
++++ b/include/linux/uuid.h
+@@ -48,6 +48,9 @@ struct uuid_v1 {
+  */
+ #define	UUID_STRING_LEN		36
+ 
++extern const guid_t guid_null;
++extern const uuid_t uuid_null;
++
+ static inline bool guid_equal(const guid_t *u1, const guid_t *u2)
+ {
+ 	return memcmp(u1, u2, sizeof(guid_t)) == 0;
+@@ -58,6 +61,11 @@ static inline void guid_copy(guid_t *dst, const guid_t *src)
+ 	memcpy(dst, src, sizeof(guid_t));
+ }
+ 
++static inline bool guid_is_null(guid_t *guid)
++{
++	return guid_equal(guid, &guid_null);
++}
++
+ static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
+ {
+ 	return memcmp(u1, u2, sizeof(uuid_t)) == 0;
+@@ -68,6 +76,11 @@ static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
+ 	memcpy(dst, src, sizeof(uuid_t));
+ }
+ 
++static inline bool uuid_is_null(uuid_t *uuid)
++{
++	return uuid_equal(uuid, &uuid_null);
++}
++
+ void generate_random_uuid(unsigned char uuid[16]);
+ 
+ extern void guid_gen(guid_t *u);
+diff --git a/lib/uuid.c b/lib/uuid.c
+index 003bf6823003..25145bfb0eaa 100644
+--- a/lib/uuid.c
++++ b/lib/uuid.c
+@@ -21,6 +21,11 @@
+ #include <linux/uuid.h>
+ #include <linux/random.h>
+ 
++const guid_t guid_null;
++EXPORT_SYMBOL(guid_null);
++const uuid_t uuid_null;
++EXPORT_SYMBOL(uuid_null);
++
+ const u8 guid_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
+ const u8 uuid_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+ 
+-- 
+2.11.0
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
