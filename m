@@ -1,13 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9155721A16EED
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 12:06:45 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+ by ml01.01.org (Postfix) with ESMTP id 979A021959702
+ for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 05:38:58 -0700 (PDT)
+Date: Wed, 17 May 2017 14:38:39 +0200
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH 1/2] x86/MCE: Export memory_error()
-Date: Wed, 17 May 2017 18:58:00 +0000
-Message-ID: <1495047396.20330.16.camel@intel.com>
+Message-ID: <20170517123839.xkd25bcj3bf7rdlc@pd.tnic>
 References: <20170425210740.GA15722@omniknight.lm.intel.com>
  <1494444606.20330.2.camel@intel.com>
  <20170510200406.mphusoidfuyq24ee@pd.tnic>
@@ -18,11 +16,9 @@ References: <20170425210740.GA15722@omniknight.lm.intel.com>
  <1494453738.20330.8.camel@intel.com>
  <20170510221631.3ue63iw3mgh2d6xt@pd.tnic>
  <1494454869.20330.9.camel@intel.com>
- <20170517123839.xkd25bcj3bf7rdlc@pd.tnic>
-In-Reply-To: <20170517123839.xkd25bcj3bf7rdlc@pd.tnic>
-Content-Language: en-US
-Content-ID: <432CD4436F17744BA6447795DC8ACE24@intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1494454869.20330.9.camel@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -34,36 +30,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "bp@alien8.de" <bp@alien8.de>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck," Tony" <tony.luck@intel.com>, "stable@vger.kernel.org, " <stable@vger.kernel.org>, linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, 2017-05-17 at 14:38 +0200, Borislav Petkov wrote:
-> On Wed, May 10, 2017 at 10:22:32PM +0000, Verma, Vishal L wrote:
-> > > I'll prep the queue next week and run tests.
-> > > 
+On Wed, May 10, 2017 at 10:22:32PM +0000, Verma, Vishal L wrote:
+> > I'll prep the queue next week and run tests.
 > > 
-> > Ok, Thanks Boris!
-> 
-> Ok, I've pushed a branch:
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git/log/?h=tip-r
-> as-pending
-> 
-> Please have a look, test, poke, etc...
+> Ok, Thanks Boris!
 
-Quick/minor observation - you moved the EXPORT_SYMBOL_GPL into your
-original patch, but the commit message of mine still talks about
-exporting. Perhaps it should read:
+Ok, I've pushed a branch:
 
-"Use the new mce_is_memory_error() helper.."
+https://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git/log/?h=tip-ras-pending
 
-Thanks,
-	Vishal
+Please have a look, test, poke, etc...
 
-> 
-> Thanks.
-> 
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
