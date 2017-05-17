@@ -1,97 +1,276 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3D35921A0BAB0
- for <linux-nvdimm@lists.01.org>; Mon, 15 May 2017 08:43:38 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 05/17] uuid: add the v1 layout to uuid_t
-Date: Mon, 15 May 2017 17:42:56 +0200
-Message-Id: <20170515154308.26739-6-hch@lst.de>
-In-Reply-To: <20170515154308.26739-1-hch@lst.de>
-References: <20170515154308.26739-1-hch@lst.de>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH] generic: add regression test for DAX PTE/PMD races
+Date: Wed, 17 May 2017 11:17:42 -0600
+Message-Id: <20170517171742.14848-1-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170517171639.14501-2-ross.zwisler@linux.intel.com>
+References: <20170517171639.14501-2-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: fstests@vger.kernel.org, Xiong Zhou <xzhou@redhat.com>, Eryu Guan <eguan@redhat.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Pawel Lebioda <pawel.lebioda@intel.com>, Dave Jiang <dave.jiang@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Turn the content of uuid_t into a union and add the fields for the v1
-interpretation to it.
+This adds a regression test for the following kernel patches:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: David Howells <dhowells@redhat.com>
+  mm: avoid spurious 'bad pmd' warning messages
+  dax: Fix race between colliding PMD & PTE entries
+
+The above patches fix two related PMD vs PTE races in the DAX code.  These
+can both be easily triggered by having two threads reading and writing
+simultaneously to the same private mapping, with the key being that private
+mapping reads can be handled with PMDs but private mapping writes are
+always handled with PTEs so that we can COW.
+
+Without this 2-patch kernel series, the newly added test will result in the
+following errors:
+
+  run fstests generic/435 at 2017-05-16 16:53:43
+  mm/pgtable-generic.c:39: bad pmd ffff8808daa49b88(84000001006000a5)
+  	... a bunch of the bad pmd messages ...
+  BUG: Bad rss-counter state mm:ffff8800a8c1b700 idx:1 val:1
+  BUG: non-zero nr_ptes on freeing mm: 38
+  XFS (pmem0p1): Unmounting Filesystem
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- include/uapi/linux/uuid.h | 39 +++++++++++++++++++++++++++++++++------
- 1 file changed, 33 insertions(+), 6 deletions(-)
+ .gitignore            |   1 +
+ src/Makefile          |   3 +-
+ src/t_mmap_cow_race.c | 106 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/435     |  61 +++++++++++++++++++++++++++++
+ tests/generic/435.out |   2 +
+ tests/generic/group   |   1 +
+ 6 files changed, 173 insertions(+), 1 deletion(-)
+ create mode 100644 src/t_mmap_cow_race.c
+ create mode 100755 tests/generic/435
+ create mode 100644 tests/generic/435.out
 
-diff --git a/include/uapi/linux/uuid.h b/include/uapi/linux/uuid.h
-index c31fc94695b9..6b6a583ec1fe 100644
---- a/include/uapi/linux/uuid.h
-+++ b/include/uapi/linux/uuid.h
-@@ -32,15 +32,42 @@ typedef struct {
-    (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
+diff --git a/.gitignore b/.gitignore
+index 38f3a00..a6ac25e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -149,6 +149,7 @@
+ /src/t_rename_overwrite
+ /src/t_mmap_dio
+ /src/t_mmap_stale_pmd
++/src/t_mmap_cow_race
  
- typedef struct {
--	__u8 b[16];
-+	union {
-+		__u8			b[16];
+ # dmapi/ binaries
+ /dmapi/src/common/cmd/read_invis
+diff --git a/src/Makefile b/src/Makefile
+index e5042c9..b505b42 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -12,7 +12,8 @@ TARGETS = dirstress fill fill2 getpagesize holes lstat64 \
+ 	godown resvtest writemod makeextents itrash rename \
+ 	multi_open_unlink dmiperf unwritten_sync genhashnames t_holes \
+ 	t_mmap_writev t_truncate_cmtime dirhash_collide t_rename_overwrite \
+-	holetest t_truncate_self t_mmap_dio af_unix t_mmap_stale_pmd
++	holetest t_truncate_self t_mmap_dio af_unix t_mmap_stale_pmd \
++	t_mmap_cow_race
+ 
+ LINUX_TARGETS = xfsctl bstat t_mtab getdevicesize preallo_rw_pattern_reader \
+ 	preallo_rw_pattern_writer ftrunc trunc fs_perms testx looptest \
+diff --git a/src/t_mmap_cow_race.c b/src/t_mmap_cow_race.c
+new file mode 100644
+index 0000000..207ba42
+--- /dev/null
++++ b/src/t_mmap_cow_race.c
+@@ -0,0 +1,106 @@
++#include <errno.h>
++#include <fcntl.h>
++#include <libgen.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <unistd.h>
 +
-+		/*
-+		 * V1 (time-based) UUID definition [RFC 4122]:
-+		 * - the timestamp is a 60-bit value, split 32/16/12, and goes
-+		 *   in 100ns increments since midnight 15th October 1582
-+		 *   - add UUID_TO_UNIX_TIME to convert unix time in 100ns
-+		 *     units to UUID time
-+		 * - the clock sequence is a 14-bit counter to avoid duplicate
-+		 *   times
-+		 */
-+		struct {
-+			__be32		time_low;
-+			__be16		time_mid;
-+			__be16		time_hi_and_version;
-+#define UUID_TO_UNIX_TIME	0x01b21dd213814000ULL
-+#define UUID_TIMEHI_MASK	0x0fff
-+#define UUID_VERSION_TIME	0x1000	/* time-based UUID */
-+#define UUID_VERSION_NAME	0x3000	/* name-based UUID */
-+#define UUID_VERSION_RANDOM	0x4000	/* (pseudo-)random generated UUID */
-+			u8		clock_seq_hi_and_reserved;
-+#define UUID_CLOCKHI_MASK	0x3f
-+#define UUID_VARIANT_STD	0x80
-+			u8		clock_seq_low;
-+			u8		node[6];
-+		} v1;
-+	};
- } uuid_t;
- 
--#define UUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
--((uuid_t)								\
--{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
--   ((b) >> 8) & 0xff, (b) & 0xff,					\
-+#define UUID(a, _b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
-+{ .b = {								\
-+   ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
-+   ((_b) >> 8) & 0xff, (_b) & 0xff,					\
-    ((c) >> 8) & 0xff, (c) & 0xff,					\
--   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
-+   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }}
- 
- /* backwards compatibility, don't use in new code */
- typedef guid_t uuid_le;
++#define MiB(a) ((a)*1024*1024)
++#define NUM_THREADS 2
++
++void err_exit(char *op)
++{
++	fprintf(stderr, "%s: %s\n", op, strerror(errno));
++	exit(1);
++}
++
++void worker_fn(void *ptr)
++{
++	char *data = (char *)ptr;
++	volatile int a;
++	int i, err;
++
++	for (i = 0; i < 10; i++) {
++		a = data[0];
++		data[0] = a;
++
++		err = madvise(data, MiB(2), MADV_DONTNEED);
++		if (err < 0)
++			err_exit("madvise");
++
++		/* Mix up the thread timings to encourage the race. */
++		err = usleep(rand() % 100);
++		if (err < 0)
++			err_exit("usleep");
++	}
++}
++
++int main(int argc, char *argv[])
++{
++	pthread_t thread[NUM_THREADS];
++	int i, j, fd, err;
++	char *data;
++
++	if (argc < 2) {
++		printf("Usage: %s <file>\n", basename(argv[0]));
++		exit(0);
++	}
++
++	fd = open(argv[1], O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
++	if (fd < 0)
++		err_exit("fd");
++
++	/* This allows us to map a huge page. */
++	ftruncate(fd, 0);
++	ftruncate(fd, MiB(2));
++
++	/*
++	 * First we set up a shared mapping.  Our write will (hopefully) get
++	 * the filesystem to give us a 2MiB huge page DAX mapping.  We will
++	 * then use this 2MiB page for our private mapping race.
++	 */
++	data = mmap(NULL, MiB(2), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
++	if (data == MAP_FAILED)
++		err_exit("shared mmap");
++
++	data[0] = 1;
++
++	err = munmap(data, MiB(2));
++	if (err < 0)
++		err_exit("shared munmap");
++
++	for (i = 0; i < 500; i++) {
++		data = mmap(NULL, MiB(2), PROT_READ|PROT_WRITE, MAP_PRIVATE,
++				fd, 0);
++		if (data == MAP_FAILED)
++			err_exit("private mmap");
++
++		for (j = 0; j < NUM_THREADS; j++) {
++			err = pthread_create(&thread[j], NULL,
++					(void*)&worker_fn, data);
++			if (err)
++				err_exit("pthread_create");
++		}
++
++		for (j = 0; j < NUM_THREADS; j++) {
++			err = pthread_join(thread[j], NULL);
++			if (err)
++				err_exit("pthread_join");
++		}
++
++		err = munmap(data, MiB(2));
++		if (err < 0)
++			err_exit("private munmap");
++	}
++
++	err = close(fd);
++	if (err < 0)
++		err_exit("close");
++
++	return 0;
++}
+diff --git a/tests/generic/435 b/tests/generic/435
+new file mode 100755
+index 0000000..f1413f1
+--- /dev/null
++++ b/tests/generic/435
+@@ -0,0 +1,61 @@
++#! /bin/bash
++# FS QA Test 435
++#
++# This is a regression test for kernel patches:
++#   mm: avoid spurious 'bad pmd' warning messages
++#   dax: Fix race between colliding PMD & PTE entries
++# created by Ross Zwisler <ross.zwisler@linux.intel.com>
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2017 Intel Corporation.  All Rights Reserved.
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# Modify as appropriate.
++_supported_fs generic
++_supported_os Linux
++_require_test
++_require_test_program "t_mmap_cow_race"
++
++# real QA test starts here
++src/t_mmap_cow_race $TEST_DIR/testfile
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/generic/435.out b/tests/generic/435.out
+new file mode 100644
+index 0000000..6a175d3
+--- /dev/null
++++ b/tests/generic/435.out
+@@ -0,0 +1,2 @@
++QA output created by 435
++Silence is golden
+diff --git a/tests/generic/group b/tests/generic/group
+index c4911b8..ac43f42 100644
+--- a/tests/generic/group
++++ b/tests/generic/group
+@@ -437,3 +437,4 @@
+ 432 auto quick copy
+ 433 auto quick copy
+ 434 auto quick copy
++435 auto quick
 -- 
-2.11.0
+2.9.4
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
