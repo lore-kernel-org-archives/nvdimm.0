@@ -1,11 +1,9 @@
-From: "USPS Parcels Delivery" <qcu3-qwNuRYkNC0oUy0mseJX/+Sp2UmYkHbXO@public.gmane.org>
-Subject: Re:
-Date: Wed, 17 May 2017 00:46:58 +0200
-Message-ID: <4C876631.B9074AC3@avionicssupport.co.uk>
-Reply-To: USPS Home Delivery <qcu3-qwNuRYkNC0oUy0mseJX/+Sp2UmYkHbXO@public.gmane.org>
+From: =?GB2312?B?0vzFrsq/?= <dpnrundang-g5/Yu5PIwxJBDgjK7y7TUQ@public.gmane.org>
+Subject: =?GB2312?B?16q3oqO6yOe6zrWxusPB7LW8tcQiudy80iI=?=
+Date: Wed, 17 May 2017 22:06:18 +0800
+Message-ID: <20170517140554.22BFE21A0708A@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1079217033458203493=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -16,14 +14,32 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Hello,
+This is a multi-part message in MIME format
 
-Your item has arrived at the USPS Post Office at  Wed, 17 May 2017 00:46:58
-+0200, but the courier was unable to deliver parcel to you. 
-You can download the shipment label attached!
+--===============1079217033458203493==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Yours respectfully.
-Mellicent Northan -  USPS Operation Manager.
+Message-ID: <89458945894589458945894589458945>
+From: =linux-nvdimm= <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: <dpnrundang-g5/Yu5PIwxJBDgjK7y7TUQ@public.gmane.org>
+
+亲！需了解详细内容请您查阅附件
+
+发送时间:2017-05-17  22:06:16
+
+--===============1079217033458203493==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============1079217033458203493==--
