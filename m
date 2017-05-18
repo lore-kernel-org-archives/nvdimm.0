@@ -2,15 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 996EF21A04E01
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 11:02:50 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 526AF21A16EFB
+ for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:28:25 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 10/16] uuid: hoist helpers uuid_equal() and uuid_copy() from
- xfs
-Date: Wed, 10 May 2017 20:02:08 +0200
-Message-Id: <20170510180214.16852-11-hch@lst.de>
-In-Reply-To: <20170510180214.16852-1-hch@lst.de>
-References: <20170510180214.16852-1-hch@lst.de>
+Subject: [PATCH 19/23] partitions/ldm: switch to use uuid_t
+Date: Thu, 18 May 2017 08:27:01 +0200
+Message-Id: <20170518062705.25902-20-hch@lst.de>
+In-Reply-To: <20170518062705.25902-1-hch@lst.de>
+References: <20170518062705.25902-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,86 +26,94 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73i
 Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Amir Goldstein <amir73il@gmail.com>
+And the uuid helpers.
 
-These helper are used to compare and copy two uuid_t type objects.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[hch: also provide the respective guid_ versions]
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/xfs/uuid.c        |  6 ------
- fs/xfs/uuid.h        |  7 -------
- include/linux/uuid.h | 20 ++++++++++++++++++++
- 3 files changed, 20 insertions(+), 13 deletions(-)
+ block/partitions/ldm.c | 10 +++++-----
+ block/partitions/ldm.h |  6 ++----
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
-index 937deaf2128d..737c186ea98b 100644
---- a/fs/xfs/uuid.c
-+++ b/fs/xfs/uuid.c
-@@ -30,9 +30,3 @@ uuid_is_nil(uuid_t *uuid)
- 		if (*cp++) return 0;	/* not nil */
- 	return 1;	/* is nil */
+diff --git a/block/partitions/ldm.c b/block/partitions/ldm.c
+index edcea70674c9..bbf929e80b94 100644
+--- a/block/partitions/ldm.c
++++ b/block/partitions/ldm.c
+@@ -115,7 +115,7 @@ static bool ldm_parse_privhead(const u8 *data, struct privhead *ph)
+ 		ldm_error("PRIVHEAD disk size doesn't match real disk size");
+ 		return false;
+ 	}
+-	if (uuid_be_to_bin(data + 0x0030, (uuid_be *)ph->disk_id)) {
++	if (uuid_to_bin(data + 0x0030, &ph->disk_id)) {
+ 		ldm_error("PRIVHEAD contains an invalid GUID.");
+ 		return false;
+ 	}
+@@ -234,7 +234,7 @@ static bool ldm_compare_privheads (const struct privhead *ph1,
+ 		(ph1->logical_disk_size  == ph2->logical_disk_size)	&&
+ 		(ph1->config_start       == ph2->config_start)		&&
+ 		(ph1->config_size        == ph2->config_size)		&&
+-		!memcmp (ph1->disk_id, ph2->disk_id, GUID_SIZE));
++		uuid_equal(&ph1->disk_id, &ph2->disk_id));
  }
+ 
+ /**
+@@ -557,7 +557,7 @@ static struct vblk * ldm_get_disk_objid (const struct ldmdb *ldb)
+ 
+ 	list_for_each (item, &ldb->v_disk) {
+ 		struct vblk *v = list_entry (item, struct vblk, list);
+-		if (!memcmp (v->vblk.disk.disk_id, ldb->ph.disk_id, GUID_SIZE))
++		if (uuid_equal(&v->vblk.disk.disk_id, &ldb->ph.disk_id))
+ 			return v;
+ 	}
+ 
+@@ -892,7 +892,7 @@ static bool ldm_parse_dsk3 (const u8 *buffer, int buflen, struct vblk *vb)
+ 	disk = &vb->vblk.disk;
+ 	ldm_get_vstr (buffer + 0x18 + r_diskid, disk->alt_name,
+ 		sizeof (disk->alt_name));
+-	if (uuid_be_to_bin(buffer + 0x19 + r_name, (uuid_be *)disk->disk_id))
++	if (uuid_to_bin(buffer + 0x19 + r_name, &disk->disk_id))
+ 		return false;
+ 
+ 	return true;
+@@ -927,7 +927,7 @@ static bool ldm_parse_dsk4 (const u8 *buffer, int buflen, struct vblk *vb)
+ 		return false;
+ 
+ 	disk = &vb->vblk.disk;
+-	memcpy (disk->disk_id, buffer + 0x18 + r_name, GUID_SIZE);
++	uuid_copy(&disk->disk_id, (uuid_t *)(buffer + 0x18 + r_name));
+ 	return true;
+ }
+ 
+diff --git a/block/partitions/ldm.h b/block/partitions/ldm.h
+index 374242c0971a..f4c6055df956 100644
+--- a/block/partitions/ldm.h
++++ b/block/partitions/ldm.h
+@@ -112,8 +112,6 @@ struct frag {				/* VBLK Fragment handling */
+ 
+ /* In memory LDM database structures. */
+ 
+-#define GUID_SIZE		16
 -
--int
--uuid_equal(uuid_t *uuid1, uuid_t *uuid2)
--{
--	return memcmp(uuid1, uuid2, sizeof(uuid_t)) ? 0 : 1;
--}
-diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
-index 65b5cebf2f99..5aea49bf0963 100644
---- a/fs/xfs/uuid.h
-+++ b/fs/xfs/uuid.h
-@@ -19,12 +19,5 @@
- #define __XFS_SUPPORT_UUID_H__
+ struct privhead {			/* Offsets and sizes are in sectors. */
+ 	u16	ver_major;
+ 	u16	ver_minor;
+@@ -121,7 +119,7 @@ struct privhead {			/* Offsets and sizes are in sectors. */
+ 	u64	logical_disk_size;
+ 	u64	config_start;
+ 	u64	config_size;
+-	u8	disk_id[GUID_SIZE];
++	uuid_t	disk_id;
+ };
  
- extern int uuid_is_nil(uuid_t *uuid);
--extern int uuid_equal(uuid_t *uuid1, uuid_t *uuid2);
--
--static inline void
--uuid_copy(uuid_t *dst, uuid_t *src)
--{
--	memcpy(dst, src, sizeof(uuid_t));
--}
+ struct tocblock {			/* We have exactly two bitmaps. */
+@@ -154,7 +152,7 @@ struct vblk_dgrp {			/* VBLK Disk Group */
+ };
  
- #endif	/* __XFS_SUPPORT_UUID_H__ */
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 28a5a894b926..b7fec8b266eb 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -29,11 +29,31 @@ static inline int guid_cmp(const guid_t u1, const guid_t u2)
- 	return memcmp(&u1, &u2, sizeof(guid_t));
- }
+ struct vblk_disk {			/* VBLK Disk */
+-	u8	disk_id[GUID_SIZE];
++	uuid_t	disk_id;
+ 	u8	alt_name[128];
+ };
  
-+static inline bool guid_equal(const guid_t *u1, const guid_t *u2)
-+{
-+	return memcmp(u1, u2, sizeof(guid_t)) == 0;
-+}
-+
-+static inline void guid_copy(guid_t *dst, const guid_t *src)
-+{
-+	memcpy(dst, src, sizeof(guid_t));
-+}
-+
- static inline int uuid_cmp(const uuid_t u1, const uuid_t u2)
- {
- 	return memcmp(&u1, &u2, sizeof(uuid_t));
- }
- 
-+static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
-+{
-+	return memcmp(u1, u2, sizeof(uuid_t)) == 0;
-+}
-+
-+static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
-+{
-+	memcpy(dst, src, sizeof(uuid_t));
-+}
-+
- void generate_random_uuid(unsigned char uuid[16]);
- 
- extern void guid_gen(guid_t *u);
 -- 
 2.11.0
 
