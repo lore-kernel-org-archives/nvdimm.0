@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B725E21A134B8
- for <linux-nvdimm@lists.01.org>; Mon, 22 May 2017 11:52:31 -0700 (PDT)
-Message-ID: <1495479147.6967.70.camel@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B2EE621A13499
+ for <linux-nvdimm@lists.01.org>; Thu, 18 May 2017 11:32:06 -0700 (PDT)
+Date: Thu, 18 May 2017 11:32:04 -0700
+From: Shaohua Li <shli@kernel.org>
 Subject: Re: [PATCH 13/23] md: namespace private helper names
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Date: Mon, 22 May 2017 21:52:27 +0300
-In-Reply-To: <20170518062705.25902-14-hch@lst.de>
+Message-ID: <20170518183204.adade5y4dcwpeslz@kernel.org>
 References: <20170518062705.25902-1-hch@lst.de>
  <20170518062705.25902-14-hch@lst.de>
-Mime-Version: 1.0
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170518062705.25902-14-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,50 +20,28 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-fsdevel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE3LTA1LTE4IGF0IDA4OjI2ICswMjAwLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90
-ZToKPiBGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgo+IAo+IFRoZSBt
-ZCBwcml2YXRlIGhlbHBlciB1dWlkX2VxdWFsKCkgY29sbGlkZXMgd2l0aCBhIGdlbmVyaWMgaGVs
-cGVyCj4gb2YgdGhlIHNhbWUgbmFtZS4KPiAKPiBSZW5hbWUgdGhlIG1kIHByaXZhdGUgaGVscGVy
-IHRvIG1kX3V1aWRfZXF1YWwoKSBhbmQgZG8gdGhlIHNhbWUgZm9yCj4gbWRfc2JfZXF1YWwoKS4K
-PiAKCldoaWxlIHBhdGNoIGlzIGdvb2QsIHNob3VsZG4ndCBpdCBnbyBiZWZvcmUgd2UgaW50cm9k
-dWNlIHRob3NlIGhlbHBlcnM/Cgo+IENjOiBTaGFvaHVhIExpIDxzaGxpQGtlcm5lbC5vcmc+Cj4g
-U2lnbmVkLW9mZi1ieTogQW1pciBHb2xkc3RlaW4gPGFtaXI3M2lsQGdtYWlsLmNvbT4KPiBTaWdu
-ZWQtb2ZmLWJ5OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KPiAtLS0KPiDCoGRyaXZl
-cnMvbWQvbWQuYyB8IDggKysrKy0tLS0KPiDCoDEgZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlvbnMo
-KyksIDQgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWQvbWQuYyBiL2Ry
-aXZlcnMvbWQvbWQuYwo+IGluZGV4IDgyZjc5OGJlOTY0Zi4uNjU3OTVjYzRjYjdkIDEwMDY0NAo+
-IC0tLSBhL2RyaXZlcnMvbWQvbWQuYwo+ICsrKyBiL2RyaXZlcnMvbWQvbWQuYwo+IEBAIC04MjUs
-NyArODI1LDcgQEAgc3RhdGljIGludCByZWFkX2Rpc2tfc2Ioc3RydWN0IG1kX3JkZXYgKnJkZXYs
-IGludAo+IHNpemUpCj4gwqAJcmV0dXJuIC1FSU5WQUw7Cj4gwqB9Cj4gwqAKPiAtc3RhdGljIGlu
-dCB1dWlkX2VxdWFsKG1kcF9zdXBlcl90ICpzYjEsIG1kcF9zdXBlcl90ICpzYjIpCj4gK3N0YXRp
-YyBpbnQgbWRfdXVpZF9lcXVhbChtZHBfc3VwZXJfdCAqc2IxLCBtZHBfc3VwZXJfdCAqc2IyKQo+
-IMKgewo+IMKgCXJldHVybglzYjEtPnNldF91dWlkMCA9PSBzYjItPnNldF91dWlkMCAmJgo+IMKg
-CQlzYjEtPnNldF91dWlkMSA9PSBzYjItPnNldF91dWlkMSAmJgo+IEBAIC04MzMsNyArODMzLDcg
-QEAgc3RhdGljIGludCB1dWlkX2VxdWFsKG1kcF9zdXBlcl90ICpzYjEsCj4gbWRwX3N1cGVyX3Qg
-KnNiMikKPiDCoAkJc2IxLT5zZXRfdXVpZDMgPT0gc2IyLT5zZXRfdXVpZDM7Cj4gwqB9Cj4gwqAK
-PiAtc3RhdGljIGludCBzYl9lcXVhbChtZHBfc3VwZXJfdCAqc2IxLCBtZHBfc3VwZXJfdCAqc2Iy
-KQo+ICtzdGF0aWMgaW50IG1kX3NiX2VxdWFsKG1kcF9zdXBlcl90ICpzYjEsIG1kcF9zdXBlcl90
-ICpzYjIpCj4gwqB7Cj4gwqAJaW50IHJldDsKPiDCoAltZHBfc3VwZXJfdCAqdG1wMSwgKnRtcDI7
-Cj4gQEAgLTEwMjUsMTIgKzEwMjUsMTIgQEAgc3RhdGljIGludCBzdXBlcl85MF9sb2FkKHN0cnVj
-dCBtZF9yZGV2ICpyZGV2LAo+IHN0cnVjdCBtZF9yZGV2ICpyZWZkZXYsIGludCBtaW5vcgo+IMKg
-CX0gZWxzZSB7Cj4gwqAJCV9fdTY0IGV2MSwgZXYyOwo+IMKgCQltZHBfc3VwZXJfdCAqcmVmc2Ig
-PSBwYWdlX2FkZHJlc3MocmVmZGV2LT5zYl9wYWdlKTsKPiAtCQlpZiAoIXV1aWRfZXF1YWwocmVm
-c2IsIHNiKSkgewo+ICsJCWlmICghbWRfdXVpZF9lcXVhbChyZWZzYiwgc2IpKSB7Cj4gwqAJCQlw
-cl93YXJuKCJtZDogJXMgaGFzIGRpZmZlcmVudCBVVUlEIHRvICVzXG4iLAo+IMKgCQkJCWIsIGJk
-ZXZuYW1lKHJlZmRldi0+YmRldixiMikpOwo+IMKgCQkJZ290byBhYm9ydDsKPiDCoAkJfQo+IC0J
-CWlmICghc2JfZXF1YWwocmVmc2IsIHNiKSkgewo+ICsJCWlmICghbWRfc2JfZXF1YWwocmVmc2Is
-IHNiKSkgewo+IMKgCQkJcHJfd2FybigibWQ6ICVzIGhhcyBzYW1lIFVVSUQgYnV0IGRpZmZlcmVu
-dAo+IHN1cGVyYmxvY2sgdG8gJXNcbiIsCj4gwqAJCQkJYiwgYmRldm5hbWUocmVmZGV2LT5iZGV2
-LCBiMikpOwo+IMKgCQkJZ290byBhYm9ydDsKCi0tIApBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5z
-aGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4KSW50ZWwgRmlubGFuZCBPeQpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Thu, May 18, 2017 at 08:26:55AM +0200, Christoph Hellwig wrote:
+> From: Amir Goldstein <amir73il@gmail.com>
+> 
+> The md private helper uuid_equal() collides with a generic helper
+> of the same name.
+> 
+> Rename the md private helper to md_uuid_equal() and do the same for
+> md_sb_equal().
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+
+Reviewed-by: Shaohua Li <shli@kernel.org>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
