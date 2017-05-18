@@ -1,25 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com
- [15.241.140.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4640A21A04830
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 13:25:48 -0700 (PDT)
-Received: from G9W8454.americas.hpqcorp.net (g9w8454.houston.hp.com
- [16.216.161.4])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
- (No client certificate requested)
- by g4t3427.houston.hpe.com (Postfix) with ESMTPS id 8824155
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 20:25:47 +0000 (UTC)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2] ndctl: add clear error support for ndctl
-Date: Mon, 1 May 2017 20:25:45 +0000
-Message-ID: <1493670342.30303.24.camel@hpe.com>
-References: <149333241780.23371.243937948027874332.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <149333241780.23371.243937948027874332.stgit@djiang5-desk3.ch.intel.com>
-Content-Language: en-US
-Content-ID: <E8E7EB80768B3E45B22216AC46B14B95@NAMPRD84.PROD.OUTLOOK.COM>
-MIME-Version: 1.0
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9EC2821A16EFB
+ for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:28:28 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 20/23] sysctl: switch to use uuid_t
+Date: Thu, 18 May 2017 08:27:02 +0200
+Message-Id: <20170518062705.25902-21-hch@lst.de>
+In-Reply-To: <20170518062705.25902-1-hch@lst.de>
+References: <20170518062705.25902-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,54 +17,46 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCAyMDE3LTA0LTI3IGF0IDE1OjM4IC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOg0KPiBB
-ZGRpbmcgbmRjdGwgc3VwcG9ydCB0aGF0IHdpbGwgYWxsb3cgY2xlYXJpbmcgb2YgYmFkIGJsb2Nr
-cyBmb3IgYQ0KPiBkZXZpY2UuIEluaXRpYWwgaW1wbGVtZW50YXRpb24gd2lsbCBvbmx5IHN1cHBv
-cnQgZGV2aWNlIGRheCBkZXZpY2VzLg0KPiBUaGUgbmRjdGwgdGFrZXMgYSBkZXZpY2UgcGF0aCBh
-bmQgcGFyYW1ldGVycyBvZiB0aGUgc3RhcnRpbmcgYmFkDQo+IGJsb2NrLCBhbmQgdGhlIG51bWJl
-ciBvZiBiYWQgYmxvY2tzIHRvIGNsZWFyLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogRGF2ZSBKaWFu
-ZyA8ZGF2ZS5qaWFuZ0BpbnRlbC5jb20+DQoNCkhpIERhdmUsDQoNCkkgYW0gc2VlaW5nIGEgZmFp
-bHVyZSB0byBvcGVuICJiYWRibG9ja3MiIG9uIG15IHN5c3RlbSBzaW5jZSBpdHMgc3lzZnMNCnBh
-dGggd2l0aCAiL3N5cy9kZXZjaWVzL3BsYXRmb3JtL0FDUEkuTkZJVCIgaXMgbm90IHZhbGlkIChu
-b3Qgc3VyZSBob3cNCkkgZ290ICJBQ1BJLk5GSVQiIGhlcmUgLSBJIGhvcGUgSSBkaWQgbm90IG1l
-c3MgdXAgbXkgYnVpbGQgd2l0aCB0ZXN0DQpjYXNlcykuDQoNCkFzIHlvdSBjYW4gc2VlIGJlbG93
-LCBvdGhlciBvcGVuIHBhdGhzIHVzZQ0KIi9zeXMvZGV2aWNlcy9MTlhTWVNUTTowMC9MTlhTWUJV
-UzowMC9BQ1BJMDAxMjowMC8iIGZvciAibmJ1czAiLiAgSWYNCnlvdSBnbyBmcm9tICIvc3lzL2Rl
-dmljZXMvcGxhdGZvcm0iLCBhIHZhbGlkIHBhdGggc2VlbXMgdG8gYmU6DQoiL3N5cy9kZXZpY2Vz
-L3BsYXRmb3JtL0FDUEkwMDEyOjAwL2Zpcm13YXJlX25vZGUiDQoNCiMgc3RyYWNlIG5kY3RsIGNs
-ZWFyLWVycm9yIC1mIC9kZXYvZGF4MC4wIC1zIDEwNDg1NzYgLWwgMQ0KZXhlY3ZlKCIvdXNyL2Jp
-bi9uZGN0bCIsIFsibmRjdGwiLCAiY2xlYXItZXJyb3IiLCAiLWYiLCAiL2Rldi9kYXgwLjAiLA0K
-Ii1zIiwgIjEwNDg1NzYiLCAiLWwiLCAiMSJdLCBbLyogNjAgdmFycyAqL10pID0gMA0KIDoNCm9w
-ZW4oIi9zeXMvZGV2aWNlcy9MTlhTWVNUTTowMC9MTlhTWUJVUzowMC9BQ1BJMDAxMjowMC9uZGJ1
-czAvcmVnaW9uMC9kDQpheDAuMC9yZXNvdXJjZSIsIE9fUkRPTkxZfE9fQ0xPRVhFQykgPSA0DQpy
-ZWFkKDQsICIweDI1MDIwMDAwMFxuIiwgMTAyNCnCoMKgwqDCoMKgwqDCoMKgwqDCoD0gMTINCmNs
-b3NlKDQpwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoD0gMA0Kb3BlbigiL3N5cy9kZXZpY2VzL0xOWFNZU1RNOjAwL0xOWFNZQlVT
-OjAwL0FDUEkwMDEyOjAwL25kYnVzMC9yZWdpb24wL2QNCmF4MC4wL3NpemUiLCBPX1JET05MWXxP
-X0NMT0VYRUMpID0gNA0KcmVhZCg0LCAiMTY5MDkzMzY1NzZcbiIsIDEwMjQpwqDCoMKgwqDCoMKg
-wqDCoMKgwqA9IDEyDQpjbG9zZSg0KcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqA9IDANCmdldGRlbnRzKDMsIC8qIDAgZW50cmll
-cyAqLywgMzI3NjgpwqDCoMKgwqDCoD0gMA0KY2xvc2UoMynCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgPSAwDQpvcGVuKCIvc3lz
-L2RldmljZXMvTE5YU1lTVE06MDAvTE5YU1lCVVM6MDAvQUNQSTAwMTI6MDAvbmRidXMwL3JlZ2lv
-bjAvcg0KZXNvdXJjZSIsIE9fUkRPTkxZfE9fQ0xPRVhFQykgPSAzDQpyZWFkKDMsICIweDI0MDAw
-MDAwMFxuIiwgMTAyNCnCoMKgwqDCoMKgwqDCoMKgwqDCoD0gMTINCmNsb3NlKDMpwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoD0g
-MA0Kb3BlbigiL3N5cy9kZXZpY2VzL3BsYXRmb3JtL0FDUEkuTkZJVC9uZGJ1czAvcmVnaW9uMC9i
-YWRibG9ja3MiLA0KT19SRE9OTFkpID0gLTEgRU5PRU5UIChObyBzdWNoIGZpbGUgb3IgZGlyZWN0
-b3J5KQ0Kd3JpdGUoMiwgImxpYm5kY3RsOiByZWdpb25zX2JhZGJsb2Nrc19pbml0Ii4uLiwgMzRs
-aWJuZGN0bDoNCnJlZ2lvbnNfYmFkYmxvY2tzX2luaXQ6ICkgPSAzNA0Kd3JpdGUoMiwgInJlZ2lv
-biBiYWRibG9ja3MgZm9wZW4gZmFpbGVkXG4iLCAzMHJlZ2lvbiBiYWRibG9ja3MgZm9wZW4NCmZh
-aWxlZA0KKSA9IDMwDQpleGl0X2dyb3VwKDIzNCnCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoD0gPw0KKysrIGV4aXRlZCB3aXRoIDIzNCArKysNCg0KVGhh
-bmtzLA0KLVRvc2hpDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
-aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ kernel/sysctl_binary.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/sysctl_binary.c b/kernel/sysctl_binary.c
+index ece4b177052b..1ae520eed53c 100644
+--- a/kernel/sysctl_binary.c
++++ b/kernel/sysctl_binary.c
+@@ -1119,7 +1119,7 @@ static ssize_t bin_uuid(struct file *file,
+ 	/* Only supports reads */
+ 	if (oldval && oldlen) {
+ 		char buf[UUID_STRING_LEN + 1];
+-		uuid_be uuid;
++		uuid_t uuid;
+ 
+ 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
+ 		if (result < 0)
+@@ -1128,7 +1128,7 @@ static ssize_t bin_uuid(struct file *file,
+ 		buf[result] = '\0';
+ 
+ 		result = -EIO;
+-		if (uuid_be_to_bin(buf, &uuid))
++		if (uuid_to_bin(buf, &uuid))
+ 			goto out;
+ 
+ 		if (oldlen > 16)
+-- 
+2.11.0
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
