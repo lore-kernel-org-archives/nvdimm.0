@@ -1,7 +1,7 @@
-From: "FedEx Package Priority" <aje62757652-PLjm5N+tXOOlhrz25klD0epIXO+b5PPcEK66K81epY8@public.gmane.org>
-Subject: Delivery Failed, FedEx Delivery #017003178
-Date: Thu, 18 May 2017 06:30:51 -0700
-Message-ID: <B5C3E5DC.1D0D0BFC@jandersonconsulting.com.au>
+From: "USPS Ground" <tdieufob82006-eypgZoI7Zl0JBBnbVQ8SfA@public.gmane.org>
+Subject: Delivery problem, parcel USPS #417640312
+Date: Thu, 18 May 2017 16:14:06 -0700
+Message-ID: <AE5BC748.6B06EE84@aoriginal.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,10 +20,9 @@ List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-We could not deliver your package #327128733 as our courier was not able to
-locate your address.
+Your item has arrived at the USPS Post Office at  Thu, 18 May 2017 16:14:06
+-0700, but the courier was unable to deliver parcel to you. 
+Please check the attachment for details!
 
-Urgent details is in the shipment notice attached below.
-
-We are happy to help you with your delivery.
-Shawnna Klem -  FedEx Customer Support Manager
+Sincerely.
+Karalee Humphreys -  USPS Parcels Delivery Agent.
