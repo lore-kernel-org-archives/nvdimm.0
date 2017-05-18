@@ -1,16 +1,39 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF47C21955DAF
- for <linux-nvdimm@lists.01.org>; Tue,  9 May 2017 05:18:57 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 3/4] ext4: Return back to starting transaction in
- ext4_dax_huge_fault()
-Date: Tue,  9 May 2017 14:18:36 +0200
-Message-Id: <20170509121837.26153-4-jack@suse.cz>
-In-Reply-To: <20170509121837.26153-1-jack@suse.cz>
-References: <20170509121837.26153-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 325CA21A16ED8
+ for <linux-nvdimm@lists.01.org>; Thu, 18 May 2017 16:17:23 -0700 (PDT)
+Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
+ by mx0b-001b2d01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id
+ v4IN8quj008906
+ for <linux-nvdimm@lists.01.org>; Thu, 18 May 2017 19:17:22 -0400
+Received: from e23smtp08.au.ibm.com (e23smtp08.au.ibm.com [202.81.31.141])
+ by mx0b-001b2d01.pphosted.com with ESMTP id 2ahjca6a02-1
+ (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Thu, 18 May 2017 19:17:22 -0400
+Received: from localhost
+ by e23smtp08.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <zohar@linux.vnet.ibm.com>;
+ Fri, 19 May 2017 09:17:19 +1000
+Received: from d23av03.au.ibm.com (d23av03.au.ibm.com [9.190.234.97])
+ by d23relay06.au.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id
+ v4INH97M1114538
+ for <linux-nvdimm@lists.01.org>; Fri, 19 May 2017 09:17:17 +1000
+Received: from d23av03.au.ibm.com (localhost [127.0.0.1])
+ by d23av03.au.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id
+ v4INGbrD017950
+ for <linux-nvdimm@lists.01.org>; Fri, 19 May 2017 09:16:38 +1000
+Subject: Re: [PATCH 16/23] ima/policy: switch to use uuid_t
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Date: Thu, 18 May 2017 19:16:14 -0400
+In-Reply-To: <20170518062705.25902-17-hch@lst.de>
+References: <20170518062705.25902-1-hch@lst.de>
+ <20170518062705.25902-17-hch@lst.de>
+Mime-Version: 1.0
+Message-Id: <1495149374.3404.3.camel@linux.vnet.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,70 +41,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Shaohua Li <shli@kernel.org>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX will return to locking exceptional entry before mapping blocks
-for a page fault to fix possible races with concurrent writes. To avoid
-lock inversion between exceptional entry lock and transaction start,
-start the transaction already in ext4_dax_huge_fault().
+On Thu, 2017-05-18 at 08:26 +0200, Christoph Hellwig wrote:
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
-CC: stable@vger.kernel.org
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/ext4/file.c | 21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+Thanks!
+Acked-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index cefa9835f275..831fd6beebf0 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -257,6 +257,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
- 	int result;
-+	handle_t *handle = NULL;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	struct super_block *sb = inode->i_sb;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-@@ -264,12 +265,24 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 	if (write) {
- 		sb_start_pagefault(sb);
- 		file_update_time(vmf->vma->vm_file);
-+		down_read(&EXT4_I(inode)->i_mmap_sem);
-+		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
-+					       EXT4_DATA_TRANS_BLOCKS(sb));
-+	} else {
-+		down_read(&EXT4_I(inode)->i_mmap_sem);
- 	}
--	down_read(&EXT4_I(inode)->i_mmap_sem);
--	result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
--	up_read(&EXT4_I(inode)->i_mmap_sem);
--	if (write)
-+	if (!IS_ERR(handle))
-+		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
-+	else
-+		result = VM_FAULT_SIGBUS;
-+	if (write) {
-+		if (!IS_ERR(handle))
-+			ext4_journal_stop(handle);
-+		up_read(&EXT4_I(inode)->i_mmap_sem);
- 		sb_end_pagefault(sb);
-+	} else {
-+		up_read(&EXT4_I(inode)->i_mmap_sem);
-+	}
- 
- 	return result;
- }
--- 
-2.12.0
+> ---
+>  security/integrity/ima/ima_policy.c | 11 +++++------
+>  1 file changed, 5 insertions(+), 6 deletions(-)
+> 
+> diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
+> index 49fbc3e8f012..da3e7d50e0d7 100644
+> --- a/security/integrity/ima/ima_policy.c
+> +++ b/security/integrity/ima/ima_policy.c
+> @@ -61,7 +61,7 @@ struct ima_rule_entry {
+>  	enum ima_hooks func;
+>  	int mask;
+>  	unsigned long fsmagic;
+> -	u8 fsuuid[16];
+> +	uuid_t fsuuid;
+>  	kuid_t uid;
+>  	kuid_t fowner;
+>  	bool (*uid_op)(kuid_t, kuid_t);    /* Handlers for operators       */
+> @@ -244,7 +244,7 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
+>  	    && rule->fsmagic != inode->i_sb->s_magic)
+>  		return false;
+>  	if ((rule->flags & IMA_FSUUID) &&
+> -	    memcmp(rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
+> +	    memcmp(&rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
+>  		return false;
+>  	if ((rule->flags & IMA_UID) && !rule->uid_op(cred->uid, rule->uid))
+>  		return false;
+> @@ -711,13 +711,12 @@ static int ima_parse_rule(char *rule, struct ima_rule_entry *entry)
+>  		case Opt_fsuuid:
+>  			ima_log_string(ab, "fsuuid", args[0].from);
+> 
+> -			if (memchr_inv(entry->fsuuid, 0x00,
+> -				       sizeof(entry->fsuuid))) {
+> +			if (uuid_is_null(&entry->fsuuid)) {
+>  				result = -EINVAL;
+>  				break;
+>  			}
+> 
+> -			result = uuid_to_bin(args[0].from, (uuid_t *)&entry->fsuuid);
+> +			result = uuid_to_bin(args[0].from, &entry->fsuuid);
+>  			if (!result)
+>  				entry->flags |= IMA_FSUUID;
+>  			break;
+> @@ -1086,7 +1085,7 @@ int ima_policy_show(struct seq_file *m, void *v)
+>  	}
+> 
+>  	if (entry->flags & IMA_FSUUID) {
+> -		seq_printf(m, "fsuuid=%pU", entry->fsuuid);
+> +		seq_printf(m, "fsuuid=%pU", &entry->fsuuid);
+>  		seq_puts(m, " ");
+>  	}
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
