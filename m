@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F04462095A581
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:19:17 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 9889021A16EFB
+ for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:27:45 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 18/24] overlayfs: use uuid_t instead of uuid_be
-Date: Wed, 31 May 2017 18:18:20 +0200
-Message-Id: <20170531161826.23243-19-hch@lst.de>
-In-Reply-To: <20170531161826.23243-1-hch@lst.de>
-References: <20170531161826.23243-1-hch@lst.de>
+Subject: [PATCH 08/23] uuid: hoist uuid_is_null() helper from libnvdimm
+Date: Thu, 18 May 2017 08:26:50 +0200
+Message-Id: <20170518062705.25902-9-hch@lst.de>
+In-Reply-To: <20170518062705.25902-1-hch@lst.de>
+References: <20170518062705.25902-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,42 +23,111 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- fs/overlayfs/copy_up.c   | 2 +-
- fs/overlayfs/overlayfs.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Hoist the libnvdimm helper as an inline helper to linux/uuid.h
+using an auxiliary const variable uuid_null in lib/uuid.c.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 5b795873f7fa..2a67e8c13098 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -233,7 +233,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 	return err;
+[hch: also add the guid variant.  Both do the same but I'd like
+to keep casts to a minimum]
+
+The common helper uses the new abstract type uuid_t * instead of
+u8 *.
+
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+[hch: added guid_is_null]
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/btt_devs.c |  9 +--------
+ include/linux/uuid.h      | 13 +++++++++++++
+ lib/uuid.c                |  5 +++++
+ 3 files changed, 19 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index ae00dc0d9791..4c989bb9a8a0 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -222,13 +222,6 @@ struct device *nd_btt_create(struct nd_region *nd_region)
+ 	return dev;
  }
  
--static struct ovl_fh *ovl_encode_fh(struct dentry *lower, uuid_be *uuid)
-+static struct ovl_fh *ovl_encode_fh(struct dentry *lower, uuid_t *uuid)
+-static bool uuid_is_null(u8 *uuid)
+-{
+-	static const u8 null_uuid[16];
+-
+-	return (memcmp(uuid, null_uuid, 16) == 0);
+-}
+-
+ /**
+  * nd_btt_arena_is_valid - check if the metadata layout is valid
+  * @nd_btt:	device with BTT geometry and backing device info
+@@ -249,7 +242,7 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
+ 	if (memcmp(super->signature, BTT_SIG, BTT_SIG_LEN) != 0)
+ 		return false;
+ 
+-	if (!uuid_is_null(super->parent_uuid))
++	if (!guid_is_null((guid_t *)&super->parent_uuid))
+ 		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
+ 			return false;
+ 
+diff --git a/include/linux/uuid.h b/include/linux/uuid.h
+index 7aff929007dd..47ca06d846d4 100644
+--- a/include/linux/uuid.h
++++ b/include/linux/uuid.h
+@@ -64,6 +64,9 @@ typedef struct {
+  */
+ #define	UUID_STRING_LEN		36
+ 
++extern const guid_t guid_null;
++extern const uuid_t uuid_null;
++
+ static inline bool guid_equal(const guid_t *u1, const guid_t *u2)
  {
- 	struct ovl_fh *fh;
- 	int fh_type, fh_len, dwords;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index caa36cb9c46d..cb0fc450419b 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -55,7 +55,7 @@ struct ovl_fh {
- 	u8 len;		/* size of this header + size of fid */
- 	u8 flags;	/* OVL_FH_FLAG_* */
- 	u8 type;	/* fid_type of fid */
--	uuid_be uuid;	/* uuid of filesystem */
-+	uuid_t uuid;	/* uuid of filesystem */
- 	u8 fid[0];	/* file identifier */
- } __packed;
+ 	return memcmp(u1, u2, sizeof(guid_t)) == 0;
+@@ -74,6 +77,11 @@ static inline void guid_copy(guid_t *dst, const guid_t *src)
+ 	memcpy(dst, src, sizeof(guid_t));
+ }
+ 
++static inline bool guid_is_null(guid_t *guid)
++{
++	return guid_equal(guid, &guid_null);
++}
++
+ static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
+ {
+ 	return memcmp(u1, u2, sizeof(uuid_t)) == 0;
+@@ -84,6 +92,11 @@ static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
+ 	memcpy(dst, src, sizeof(uuid_t));
+ }
+ 
++static inline bool uuid_is_null(uuid_t *uuid)
++{
++	return uuid_equal(uuid, &uuid_null);
++}
++
+ void generate_random_uuid(unsigned char uuid[16]);
+ 
+ extern void guid_gen(guid_t *u);
+diff --git a/lib/uuid.c b/lib/uuid.c
+index 003bf6823003..25145bfb0eaa 100644
+--- a/lib/uuid.c
++++ b/lib/uuid.c
+@@ -21,6 +21,11 @@
+ #include <linux/uuid.h>
+ #include <linux/random.h>
+ 
++const guid_t guid_null;
++EXPORT_SYMBOL(guid_null);
++const uuid_t uuid_null;
++EXPORT_SYMBOL(uuid_null);
++
+ const u8 guid_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
+ const u8 uuid_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
  
 -- 
 2.11.0
