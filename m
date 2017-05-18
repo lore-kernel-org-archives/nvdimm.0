@@ -1,7 +1,7 @@
-From: "USPS Ground" <tdieufob82006-eypgZoI7Zl0JBBnbVQ8SfA@public.gmane.org>
-Subject: Delivery problem, parcel USPS #417640312
-Date: Thu, 18 May 2017 16:14:06 -0700
-Message-ID: <AE5BC748.6B06EE84@aoriginal.com.br>
+From: "USPS Delivery" <reu2-sv3+MbXDZjlxzNn65uwS3w@public.gmane.org>
+Subject: Status of your USPS delivery ID: 482786271
+Date: Thu, 18 May 2017 10:20:12 -0700
+Message-ID: <E46F3F09.43B66D12@advantagere.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,14 +15,14 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 Hello,
 
-Your item has arrived at the USPS Post Office at  Thu, 18 May 2017 16:14:06
--0700, but the courier was unable to deliver parcel to you. 
-Please check the attachment for details!
+Your parcel was successfully delivered at Thu, 18 May 2017 10:20:12 -0700
+to USPS Station, but our courier could not contact you. 
+Please check delivery label attached!
 
-Sincerely.
-Karalee Humphreys -  USPS Parcels Delivery Agent.
+Thanks.
+Lesia Longsworth -  USPS Parcels Delivery Clerk.
