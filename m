@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
- [IPv6:2607:f8b0:4003:c06::231])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3314521A0BA8D
- for <linux-nvdimm@lists.01.org>; Mon,  8 May 2017 10:00:13 -0700 (PDT)
-Received: by mail-oi0-x231.google.com with SMTP id w10so57833224oif.0
- for <linux-nvdimm@lists.01.org>; Mon, 08 May 2017 10:00:13 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A544221AEBAAF
+ for <linux-nvdimm@lists.01.org>; Thu, 18 May 2017 06:27:17 -0700 (PDT)
+Date: Thu, 18 May 2017 09:27:15 -0400
+From: Brian Foster <bfoster@redhat.com>
+Subject: Re: [PATCH 12/23] xfs: remove uuid_getnodeuniq and xfs_uu_t
+Message-ID: <20170518132714.GE18240@bfoster.bfoster>
+References: <20170518062705.25902-1-hch@lst.de>
+ <20170518062705.25902-13-hch@lst.de>
 MIME-Version: 1.0
-In-Reply-To: <20170426224307.28075-1-vishal.l.verma@intel.com>
-References: <20170426224307.28075-1-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 8 May 2017 10:00:11 -0700
-Message-ID: <CAPcyv4hHRf6MEUxj1WvOjb9+JUmTBEh0x4RGGXEHg=kJT+anmg@mail.gmail.com>
-Subject: Re: [PATCH] nvdimm,
- btt: make sure initializing new metadata clears poison
+Content-Disposition: inline
+In-Reply-To: <20170518062705.25902-13-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,28 +24,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-fsdevel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Shaohua Li <shli@kernel.org>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Apr 26, 2017 at 3:43 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
-> If we had badblocks/poison in the metadata area of a BTT, recreating the
-> BTT would not clear the poison in all cases, notably the flog area. This
-> is because rw_bytes will only clear errors if the request being sent
-> down is 512B aligned and sized.
->
-> Make sure that when writing the map and info blocks, the rw_bytes being
-> sent are of the correct size/alignment. For the flog, instead of doing
-> the smaller log_entry writes only, first do a 'wipe' of the entire area
-> by writing zeroes in large enough chunks so that errors get cleared.
+On Thu, May 18, 2017 at 08:26:54AM +0200, Christoph Hellwig wrote:
+> Directly use the v1 intepretation of uuid_t instead.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
 
-These eventually nsio_rw_bytes() while the namespace is claimed by a
-btt instance, so this collides with the hack to disable error clearing
-for btt. If we want to fix this up for 4.12 I think we need to pass a
-'flags' parameter to the ->rw_bytes() routine to indicate that we are
-in atomic context (NVDIMM_IO_ATOMIC), rather than assuming that all
-BTT I/O is atomic. Care to code that up? I think we can include it in
-a pull request before the merge window closes.
+Reviewed-by: Brian Foster <bfoster@redhat.com>
+
+>  fs/xfs/uuid.c      | 25 -------------------------
+>  fs/xfs/uuid.h      |  1 -
+>  fs/xfs/xfs_mount.c |  6 +++++-
+>  3 files changed, 5 insertions(+), 27 deletions(-)
+> 
+> diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
+> index 29ed78c8637b..737c186ea98b 100644
+> --- a/fs/xfs/uuid.c
+> +++ b/fs/xfs/uuid.c
+> @@ -17,31 +17,6 @@
+>   */
+>  #include <xfs.h>
+>  
+> -/* IRIX interpretation of an uuid_t */
+> -typedef struct {
+> -	__be32	uu_timelow;
+> -	__be16	uu_timemid;
+> -	__be16	uu_timehi;
+> -	__be16	uu_clockseq;
+> -	__be16	uu_node[3];
+> -} xfs_uu_t;
+> -
+> -/*
+> - * uuid_getnodeuniq - obtain the node unique fields of a UUID.
+> - *
+> - * This is not in any way a standard or condoned UUID function;
+> - * it just something that's needed for user-level file handles.
+> - */
+> -void
+> -uuid_getnodeuniq(uuid_t *uuid, int fsid [2])
+> -{
+> -	xfs_uu_t *uup = (xfs_uu_t *)uuid;
+> -
+> -	fsid[0] = (be16_to_cpu(uup->uu_clockseq) << 16) |
+> -		   be16_to_cpu(uup->uu_timemid);
+> -	fsid[1] = be32_to_cpu(uup->uu_timelow);
+> -}
+> -
+>  int
+>  uuid_is_nil(uuid_t *uuid)
+>  {
+> diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
+> index 86bbed071e79..5aea49bf0963 100644
+> --- a/fs/xfs/uuid.h
+> +++ b/fs/xfs/uuid.h
+> @@ -19,6 +19,5 @@
+>  #define __XFS_SUPPORT_UUID_H__
+>  
+>  extern int uuid_is_nil(uuid_t *uuid);
+> -extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
+>  
+>  #endif	/* __XFS_SUPPORT_UUID_H__ */
+> diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
+> index 2eaf81859166..742e4a61c0bc 100644
+> --- a/fs/xfs/xfs_mount.c
+> +++ b/fs/xfs/xfs_mount.c
+> @@ -793,7 +793,11 @@ xfs_mountfs(
+>  	 *  Copies the low order bits of the timestamp and the randomly
+>  	 *  set "sequence" number out of a UUID.
+>  	 */
+> -	uuid_getnodeuniq(&sbp->sb_uuid, mp->m_fixedfsid);
+> +	mp->m_fixedfsid[0] =
+> +		((u32)sbp->sb_uuid.v1.clock_seq_hi_and_reserved << 24) |
+> +		((u32)sbp->sb_uuid.v1.clock_seq_low << 16) |
+> +		 be16_to_cpu(sbp->sb_uuid.v1.time_mid);
+> +	mp->m_fixedfsid[1] = be32_to_cpu(sbp->sb_uuid.v1.time_low);
+>  
+>  	mp->m_dmevmask = 0;	/* not persistent; set after each mount */
+>  
+> -- 
+> 2.11.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
