@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 706E021A04823
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 09:54:54 -0700 (PDT)
-Date: Mon, 1 May 2017 10:54:51 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH 1/2] dax: prevent invalidation of mapped DAX entries
-Message-ID: <20170501165451.GB14837@linux.intel.com>
-References: <20170420191446.GA21694@linux.intel.com>
- <20170421034437.4359-1-ross.zwisler@linux.intel.com>
- <20170425101041.GG2793@quack2.suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 6C44321AEBAAF
+ for <linux-nvdimm@lists.01.org>; Thu, 18 May 2017 06:27:14 -0700 (PDT)
+Date: Thu, 18 May 2017 09:27:09 -0400
+From: Brian Foster <bfoster@redhat.com>
+Subject: Re: [PATCH 02/23] xfs: use uuid_be to implement the uuid_t type
+Message-ID: <20170518132709.GD18240@bfoster.bfoster>
+References: <20170518062705.25902-1-hch@lst.de>
+ <20170518062705.25902-3-hch@lst.de>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20170425101041.GG2793@quack2.suse.cz>
+In-Reply-To: <20170518062705.25902-3-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,52 +24,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Trond Myklebust <trond.myklebust@primarydata.com>, linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>, linux-cifs@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Eric Van Hensbergen <ericvh@gmail.com>, linux-nvdimm@lists.01.org, Alexander Viro <viro@zeniv.linux.org.uk>, v9fs-developer@lists.sourceforge.net, Jens Axboe <axboe@kernel.dk>, linux-nfs@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, Steve French <sfrench@samba.org>, Alexey Kuznetsov <kuznet@virtuozzo.com>, Johannes Weiner <hannes@cmpxchg.org>, linux-fsdevel@vger.kernel.org, Ron Minnich <rminnich@sandia.gov>, Andrew Morton <akpm@linux-foundation.org>, Anna Schumaker <anna.schumaker@netapp.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-fsdevel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Shaohua Li <shli@kernel.org>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Apr 25, 2017 at 12:10:41PM +0200, Jan Kara wrote:
-> On Thu 20-04-17 21:44:36, Ross Zwisler wrote:
-> > dax_invalidate_mapping_entry() currently removes DAX exceptional entries
-> > only if they are clean and unlocked.  This is done via:
-> > 
-> > invalidate_mapping_pages()
-> >   invalidate_exceptional_entry()
-> >     dax_invalidate_mapping_entry()
-> > 
-> > However, for page cache pages removed in invalidate_mapping_pages() there
-> > is an additional criteria which is that the page must not be mapped.  This
-> > is noted in the comments above invalidate_mapping_pages() and is checked in
-> > invalidate_inode_page().
-> > 
-> > For DAX entries this means that we can can end up in a situation where a
-> > DAX exceptional entry, either a huge zero page or a regular DAX entry,
-> > could end up mapped but without an associated radix tree entry. This is
-> > inconsistent with the rest of the DAX code and with what happens in the
-> > page cache case.
-> > 
-> > We aren't able to unmap the DAX exceptional entry because according to its
-> > comments invalidate_mapping_pages() isn't allowed to block, and
-> > unmap_mapping_range() takes a write lock on the mapping->i_mmap_rwsem.
-> > 
-> > Since we essentially never have unmapped DAX entries to evict from the
-> > radix tree, just remove dax_invalidate_mapping_entry().
-> > 
-> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> > Fixes: c6dcf52c23d2 ("mm: Invalidate DAX radix tree entries only if appropriate")
-> > Reported-by: Jan Kara <jack@suse.cz>
-> > Cc: <stable@vger.kernel.org>    [4.10+]
+On Thu, May 18, 2017 at 08:26:44AM +0200, Christoph Hellwig wrote:
+> Use the generic Linux definition to implement our UUID type, this will
+> allow using more generic infrastructure in the future.
 > 
-> Just as a side note - we wouldn't really have to unmap the mapping range
-> covered by the DAX exceptional entry. It would be enough to find out
-> whether such range is mapped and bail out in that case. But that would
-> still be pretty expensive for DAX - we'd have to do rmap walk similar as in
-> dax_mapping_entry_mkclean() and IMHO it is not worth it. So I agree with
-> what you did. You can add:
-> 
-> Reviewed-by: Jan Kara <jack@suse.cz>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
 
-Yep, that makes sense.  Thanks for the review.
+Reviewed-by: Brian Foster <bfoster@redhat.com>
+
+>  fs/xfs/uuid.h      | 4 ----
+>  fs/xfs/xfs_linux.h | 3 +++
+>  2 files changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
+> index 104db0f3bed6..4f1441ba4fa5 100644
+> --- a/fs/xfs/uuid.h
+> +++ b/fs/xfs/uuid.h
+> @@ -18,10 +18,6 @@
+>  #ifndef __XFS_SUPPORT_UUID_H__
+>  #define __XFS_SUPPORT_UUID_H__
+>  
+> -typedef struct {
+> -	unsigned char	__u_bits[16];
+> -} uuid_t;
+> -
+>  extern int uuid_is_nil(uuid_t *uuid);
+>  extern int uuid_equal(uuid_t *uuid1, uuid_t *uuid2);
+>  extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
+> diff --git a/fs/xfs/xfs_linux.h b/fs/xfs/xfs_linux.h
+> index 044fb0e15390..89ee5ec66837 100644
+> --- a/fs/xfs/xfs_linux.h
+> +++ b/fs/xfs/xfs_linux.h
+> @@ -19,6 +19,7 @@
+>  #define __XFS_LINUX__
+>  
+>  #include <linux/types.h>
+> +#include <linux/uuid.h>
+>  
+>  /*
+>   * Kernel specific type declarations for XFS
+> @@ -38,6 +39,8 @@ typedef __s64			xfs_daddr_t;	/* <disk address> type */
+>  typedef __u32			xfs_dev_t;
+>  typedef __u32			xfs_nlink_t;
+>  
+> +typedef uuid_be			uuid_t;
+> +
+>  #include "xfs_types.h"
+>  
+>  #include "kmem.h"
+> -- 
+> 2.11.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
