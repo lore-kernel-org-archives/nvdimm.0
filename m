@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9889021A16EFB
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:27:45 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 7914321A16EFB
+ for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:27:35 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 08/23] uuid: hoist uuid_is_null() helper from libnvdimm
-Date: Thu, 18 May 2017 08:26:50 +0200
-Message-Id: <20170518062705.25902-9-hch@lst.de>
+Subject: [PATCH 06/23] uuid: add the v1 layout to uuid_t
+Date: Thu, 18 May 2017 08:26:48 +0200
+Message-Id: <20170518062705.25902-7-hch@lst.de>
 In-Reply-To: <20170518062705.25902-1-hch@lst.de>
 References: <20170518062705.25902-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -26,109 +26,92 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73i
 Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hoist the libnvdimm helper as an inline helper to linux/uuid.h
-using an auxiliary const variable uuid_null in lib/uuid.c.
+Turn the content of uuid_t into a union and add the fields for the v1
+interpretation to it.
 
-[hch: also add the guid variant.  Both do the same but I'd like
-to keep casts to a minimum]
-
-The common helper uses the new abstract type uuid_t * instead of
-u8 *.
-
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[hch: added guid_is_null]
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: David Howells <dhowells@redhat.com>
 ---
- drivers/nvdimm/btt_devs.c |  9 +--------
- include/linux/uuid.h      | 13 +++++++++++++
- lib/uuid.c                |  5 +++++
- 3 files changed, 19 insertions(+), 8 deletions(-)
+ include/linux/uuid.h | 59 ++++++++++++++++++++++++++++------------------------
+ 1 file changed, 32 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index ae00dc0d9791..4c989bb9a8a0 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -222,13 +222,6 @@ struct device *nd_btt_create(struct nd_region *nd_region)
- 	return dev;
- }
- 
--static bool uuid_is_null(u8 *uuid)
--{
--	static const u8 null_uuid[16];
--
--	return (memcmp(uuid, null_uuid, 16) == 0);
--}
--
- /**
-  * nd_btt_arena_is_valid - check if the metadata layout is valid
-  * @nd_btt:	device with BTT geometry and backing device info
-@@ -249,7 +242,7 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
- 	if (memcmp(super->signature, BTT_SIG, BTT_SIG_LEN) != 0)
- 		return false;
- 
--	if (!uuid_is_null(super->parent_uuid))
-+	if (!guid_is_null((guid_t *)&super->parent_uuid))
- 		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
- 			return false;
- 
 diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 7aff929007dd..47ca06d846d4 100644
+index 0410cd002282..8bd1da4ec95d 100644
 --- a/include/linux/uuid.h
 +++ b/include/linux/uuid.h
-@@ -64,6 +64,9 @@ typedef struct {
-  */
- #define	UUID_STRING_LEN		36
+@@ -18,40 +18,45 @@
  
-+extern const guid_t guid_null;
-+extern const uuid_t uuid_null;
+ #include <uapi/linux/uuid.h>
+ 
+-typedef struct {
+-	__u8 b[16];
+-} uuid_t;
+-
+-#define UUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
+-((uuid_t)								\
+-{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
+-   ((b) >> 8) & 0xff, (b) & 0xff,					\
+-   ((c) >> 8) & 0xff, (c) & 0xff,					\
+-   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
+-
+-/*
+- * V1 (time-based) UUID definition [RFC 4122].
+- * - the timestamp is a 60-bit value, split 32/16/12, and goes in 100ns
+- *   increments since midnight 15th October 1582
+- *   - add AFS_UUID_TO_UNIX_TIME to convert unix time in 100ns units to UUID
+- *     time
+- * - the clock sequence is a 14-bit counter to avoid duplicate times
+- */
+-struct uuid_v1 {
+-	__be32		time_low;			/* low part of timestamp */
+-	__be16		time_mid;			/* mid part of timestamp */
+-	__be16		time_hi_and_version;		/* high part of timestamp and version  */
++/* v1 UUID defintions: */
+ #define UUID_TO_UNIX_TIME	0x01b21dd213814000ULL
+ #define UUID_TIMEHI_MASK	0x0fff
+ #define UUID_VERSION_TIME	0x1000	/* time-based UUID */
+ #define UUID_VERSION_NAME	0x3000	/* name-based UUID */
+ #define UUID_VERSION_RANDOM	0x4000	/* (pseudo-)random generated UUID */
+-	u8		clock_seq_hi_and_reserved;	/* clock seq hi and variant */
+ #define UUID_CLOCKHI_MASK	0x3f
+ #define UUID_VARIANT_STD	0x80
+-	u8		clock_seq_low;			/* clock seq low */
+-	u8		node[6];			/* spatially unique node ID (MAC addr) */
+-};
 +
- static inline bool guid_equal(const guid_t *u1, const guid_t *u2)
- {
- 	return memcmp(u1, u2, sizeof(guid_t)) == 0;
-@@ -74,6 +77,11 @@ static inline void guid_copy(guid_t *dst, const guid_t *src)
- 	memcpy(dst, src, sizeof(guid_t));
- }
- 
-+static inline bool guid_is_null(guid_t *guid)
-+{
-+	return guid_equal(guid, &guid_null);
-+}
++typedef struct {
++	union {
++		__u8			b[16];
 +
- static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
- {
- 	return memcmp(u1, u2, sizeof(uuid_t)) == 0;
-@@ -84,6 +92,11 @@ static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
- 	memcpy(dst, src, sizeof(uuid_t));
- }
- 
-+static inline bool uuid_is_null(uuid_t *uuid)
-+{
-+	return uuid_equal(uuid, &uuid_null);
-+}
++		/*
++		 * V1 (time-based) UUID definition [RFC 4122]:
++		 * - the timestamp is a 60-bit value, split 32/16/12, and goes
++		 *   in 100ns increments since midnight 15th October 1582
++		 *   - add UUID_TO_UNIX_TIME to convert unix time in 100ns
++		 *     units to UUID time
++		 * - the clock sequence is a 14-bit counter to avoid duplicate
++		 *   times
++		 */
++		struct uuid_v1 {
++			__be32		time_low;
++			__be16		time_mid;
++			__be16		time_hi_and_version;
++			u8		clock_seq_hi_and_reserved;
++			u8		clock_seq_low;
++			u8		node[6];
++		} v1;
++	};
++} uuid_t;
 +
- void generate_random_uuid(unsigned char uuid[16]);
++#define UUID(a, _b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
++{.b = {									\
++   ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
++   ((_b) >> 8) & 0xff, (_b) & 0xff,					\
++   ((c) >> 8) & 0xff, (c) & 0xff,					\
++   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }}
  
- extern void guid_gen(guid_t *u);
-diff --git a/lib/uuid.c b/lib/uuid.c
-index 003bf6823003..25145bfb0eaa 100644
---- a/lib/uuid.c
-+++ b/lib/uuid.c
-@@ -21,6 +21,11 @@
- #include <linux/uuid.h>
- #include <linux/random.h>
- 
-+const guid_t guid_null;
-+EXPORT_SYMBOL(guid_null);
-+const uuid_t uuid_null;
-+EXPORT_SYMBOL(uuid_null);
-+
- const u8 guid_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
- const u8 uuid_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
- 
+ /*
+  * The length of a UUID string ("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
 -- 
 2.11.0
 
