@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C026121959D3F
- for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 00:25:10 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 4/4] dax: Fix data corruption when fault races with write
-Date: Fri,  5 May 2017 09:25:00 +0200
-Message-Id: <20170505072500.25692-5-jack@suse.cz>
-In-Reply-To: <20170505072500.25692-1-jack@suse.cz>
-References: <20170505072500.25692-1-jack@suse.cz>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2DFA221A16EFB
+ for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:28:35 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 22/23] scsi_debug: switch to uuid_t
+Date: Thu, 18 May 2017 08:27:04 +0200
+Message-Id: <20170518062705.25902-23-hch@lst.de>
+In-Reply-To: <20170518062705.25902-1-hch@lst.de>
+References: <20170518062705.25902-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,127 +22,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently DAX read fault can race with write(2) in the following way:
-
-CPU1 - write(2)			CPU2 - read fault
-				dax_iomap_pte_fault()
-				  ->iomap_begin() - sees hole
-dax_iomap_rw()
-  iomap_apply()
-    ->iomap_begin - allocates blocks
-    dax_iomap_actor()
-      invalidate_inode_pages2_range()
-        - there's nothing to invalidate
-				  grab_mapping_entry()
-				  - we add zero page in the radix tree
-				    and map it to page tables
-
-The result is that hole page is mapped into page tables (and thus zeros
-are seen in mmap) while file has data written in that place.
-
-Fix the problem by locking exception entry before mapping blocks for the
-fault. That way we are sure invalidate_inode_pages2_range() call for
-racing write will either block on entry lock waiting for the fault to
-finish (and unmap stale page tables after that) or read fault will see
-already allocated blocks by write(2).
-
-Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
-CC: stable@vger.kernel.org
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/dax.c | 32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ drivers/scsi/scsi_debug.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 72853669a356..f5071249d456 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1124,23 +1124,23 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	if ((vmf->flags & FAULT_FLAG_WRITE) && !vmf->cow_page)
- 		flags |= IOMAP_WRITE;
- 
-+	entry = grab_mapping_entry(mapping, vmf->pgoff, 0);
-+	if (IS_ERR(entry))
-+		return dax_fault_return(PTR_ERR(entry));
-+
- 	/*
- 	 * Note that we don't bother to use iomap_apply here: DAX required
- 	 * the file system block size to be equal the page size, which means
- 	 * that we never have to deal with more than a single extent here.
- 	 */
- 	error = ops->iomap_begin(inode, pos, PAGE_SIZE, flags, &iomap);
--	if (error)
--		return dax_fault_return(error);
--	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
--		vmf_ret = dax_fault_return(-EIO);	/* fs corruption? */
--		goto finish_iomap;
-+	if (error) {
-+		vmf_ret = dax_fault_return(error);
-+		goto unlock_entry;
- 	}
--
--	entry = grab_mapping_entry(mapping, vmf->pgoff, 0);
--	if (IS_ERR(entry)) {
--		vmf_ret = dax_fault_return(PTR_ERR(entry));
--		goto finish_iomap;
-+	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
-+		error = -EIO;	/* fs corruption? */
-+		goto error_finish_iomap;
- 	}
- 
- 	sector = dax_iomap_sector(&iomap, pos);
-@@ -1162,13 +1162,13 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		}
- 
- 		if (error)
--			goto error_unlock_entry;
-+			goto error_finish_iomap;
- 
- 		__SetPageUptodate(vmf->cow_page);
- 		vmf_ret = finish_fault(vmf);
- 		if (!vmf_ret)
- 			vmf_ret = VM_FAULT_DONE_COW;
--		goto unlock_entry;
-+		goto finish_iomap;
- 	}
- 
- 	switch (iomap.type) {
-@@ -1188,7 +1188,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	case IOMAP_HOLE:
- 		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
- 			vmf_ret = dax_load_hole(mapping, &entry, vmf);
--			goto unlock_entry;
-+			goto finish_iomap;
- 		}
- 		/*FALLTHRU*/
- 	default:
-@@ -1197,10 +1197,8 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		break;
- 	}
- 
-- error_unlock_entry:
-+ error_finish_iomap:
- 	vmf_ret = dax_fault_return(error) | major;
-- unlock_entry:
--	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-  finish_iomap:
- 	if (ops->iomap_end) {
- 		int copied = PAGE_SIZE;
-@@ -1215,6 +1213,8 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		 */
- 		ops->iomap_end(inode, pos, PAGE_SIZE, copied, flags, &iomap);
- 	}
-+ unlock_entry:
-+	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
- 	return vmf_ret;
+diff --git a/drivers/scsi/scsi_debug.c b/drivers/scsi/scsi_debug.c
+index 17249c3650fe..35ee09644cfb 100644
+--- a/drivers/scsi/scsi_debug.c
++++ b/drivers/scsi/scsi_debug.c
+@@ -245,7 +245,7 @@ struct sdebug_dev_info {
+ 	unsigned int channel;
+ 	unsigned int target;
+ 	u64 lun;
+-	uuid_be lu_name;
++	uuid_t lu_name;
+ 	struct sdebug_host_info *sdbg_host;
+ 	unsigned long uas_bm[1];
+ 	atomic_t num_in_q;
+@@ -965,7 +965,7 @@ static const u64 naa3_comp_c = 0x3111111000000000ULL;
+ static int inquiry_vpd_83(unsigned char *arr, int port_group_id,
+ 			  int target_dev_id, int dev_id_num,
+ 			  const char *dev_id_str, int dev_id_str_len,
+-			  const uuid_be *lu_name)
++			  const uuid_t *lu_name)
+ {
+ 	int num, port_a;
+ 	char b[32];
+@@ -3568,7 +3568,7 @@ static void sdebug_q_cmd_wq_complete(struct work_struct *work)
  }
  
+ static bool got_shared_uuid;
+-static uuid_be shared_uuid;
++static uuid_t shared_uuid;
+ 
+ static struct sdebug_dev_info *sdebug_device_create(
+ 			struct sdebug_host_info *sdbg_host, gfp_t flags)
+@@ -3578,12 +3578,12 @@ static struct sdebug_dev_info *sdebug_device_create(
+ 	devip = kzalloc(sizeof(*devip), flags);
+ 	if (devip) {
+ 		if (sdebug_uuid_ctl == 1)
+-			uuid_be_gen(&devip->lu_name);
++			uuid_gen(&devip->lu_name);
+ 		else if (sdebug_uuid_ctl == 2) {
+ 			if (got_shared_uuid)
+ 				devip->lu_name = shared_uuid;
+ 			else {
+-				uuid_be_gen(&shared_uuid);
++				uuid_gen(&shared_uuid);
+ 				got_shared_uuid = true;
+ 				devip->lu_name = shared_uuid;
+ 			}
 -- 
-2.12.0
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
