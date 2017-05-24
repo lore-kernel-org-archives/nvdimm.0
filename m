@@ -1,7 +1,7 @@
 From: "Nicholas Meyler" <nickm-PMdw8XHZ8+ZWk0Htik3J/w@public.gmane.org>
-Subject: Exciting Retained Searches: 3D Printing and Electroplating
-Date: Tue, 23 May 2017 16:34:30 -0700
-Message-ID: <300.0.15.233.1D2D41D949F9FFC.F54E6@me-ss2-ieksw9.mailengine1.com>
+Subject: Great Opportunities in 3D Printing: Ventura, CA (Retained Searches)
+Date: Tue, 23 May 2017 21:45:12 -0700
+Message-ID: <300.0.15.211.1D2D448FE2DA9CA.2031B@me-ss2-ieksw9.mailengine1.com>
 Reply-To: "Nicholas J. Meyler" <nickm-PMdw8XHZ8+ZWk0Htik3J/w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -283,7 +283,7 @@ cG9uZCB3aXRoIGEgcmVzdW1lLiBSZWZlcnJhbHMgYW5kIHJlY29tbWVuZGF0aW9ucyBhcmUgYWxz
 byB3ZWxjb21lZC4KCkJlc3QgUmVnYXJkcywKCk5pY2hvbGFzIE1leWxlcgpQcmVzaWRlbnQvR00s
 IFRlY2hub2xvZ3kKV2luZ2F0ZSBEdW5yb3NzLCBJbmMuCnBoICg4MTgpNTk3LTMyMDAgZXh0LiAy
 MTEKPG5pY2ttQHdkc2VhcmNoLmNvbT4KCgoKCmh0dHA6Ly9hcHAuc3RyZWFtc2VuZC5jb20vcHJp
-dmF0ZS91NEt0L25LUi9yUE96cGpvL3Vuc3Vic2NyaWJlLzI5MDAxOTMxCl9fX19fX19fX19fX19f
+dmF0ZS91NEt0L25LUi9yUE96cGpvL3Vuc3Vic2NyaWJlLzI5MDAyMjM1Cl9fX19fX19fX19fX19f
 X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxp
 c3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFu
 L2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
