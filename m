@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 831752095A581
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:19:09 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 16/24] ima/policy: switch to use uuid_t
-Date: Wed, 31 May 2017 18:18:18 +0200
-Message-Id: <20170531161826.23243-17-hch@lst.de>
-In-Reply-To: <20170531161826.23243-1-hch@lst.de>
-References: <20170531161826.23243-1-hch@lst.de>
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7356B2095A334
+ for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 14:43:20 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 24 May 2017 15:42:25 -0600
+Message-Id: <1495662147-18277-15-git-send-email-logang@deltatee.com>
+In-Reply-To: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 14/16] block: bio: go straight from pfn_t to phys instead
+ of through page
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,67 +23,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Johannes Berg <johannes.berg@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ming Lei <ming.lei@canonical.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Acked-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- security/integrity/ima/ima_policy.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+Going straight from pfn_t to physical address is cheaper and
+avoids the potential BUG_ON in bvec_page for unmappable memory.
 
-diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
-index 49fbc3e8f012..9a7c7cbdbe7c 100644
---- a/security/integrity/ima/ima_policy.c
-+++ b/security/integrity/ima/ima_policy.c
-@@ -61,7 +61,7 @@ struct ima_rule_entry {
- 	enum ima_hooks func;
- 	int mask;
- 	unsigned long fsmagic;
--	u8 fsuuid[16];
-+	uuid_t fsuuid;
- 	kuid_t uid;
- 	kuid_t fowner;
- 	bool (*uid_op)(kuid_t, kuid_t);    /* Handlers for operators       */
-@@ -244,7 +244,7 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
- 	    && rule->fsmagic != inode->i_sb->s_magic)
- 		return false;
- 	if ((rule->flags & IMA_FSUUID) &&
--	    memcmp(rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
-+	    memcmp(&rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
- 		return false;
- 	if ((rule->flags & IMA_UID) && !rule->uid_op(cred->uid, rule->uid))
- 		return false;
-@@ -711,13 +711,12 @@ static int ima_parse_rule(char *rule, struct ima_rule_entry *entry)
- 		case Opt_fsuuid:
- 			ima_log_string(ab, "fsuuid", args[0].from);
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Stephen Bates <sbates@raithlin.com>
+---
+ include/linux/bio.h | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index bc5f5d3..890c94d 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -46,6 +46,8 @@
+ #define bio_iter_iovec(bio, iter)				\
+ 	bvec_iter_bvec((bio)->bi_io_vec, (iter))
  
--			if (memchr_inv(entry->fsuuid, 0x00,
--				       sizeof(entry->fsuuid))) {
-+			if (uuid_is_null(&entry->fsuuid)) {
- 				result = -EINVAL;
- 				break;
- 			}
++#define bio_iter_pfn_t(bio, iter)				\
++	bvec_iter_pfn_t((bio)->bi_io_vec, (iter))
+ #define bio_iter_page(bio, iter)				\
+ 	bvec_iter_page((bio)->bi_io_vec, (iter))
+ #define bio_iter_len(bio, iter)					\
+@@ -53,6 +55,7 @@
+ #define bio_iter_offset(bio, iter)				\
+ 	bvec_iter_offset((bio)->bi_io_vec, (iter))
  
--			result = uuid_to_bin(args[0].from, (uuid_t *)&entry->fsuuid);
-+			result = uuid_parse(args[0].from, &entry->fsuuid);
- 			if (!result)
- 				entry->flags |= IMA_FSUUID;
- 			break;
-@@ -1086,7 +1085,7 @@ int ima_policy_show(struct seq_file *m, void *v)
- 	}
++#define bio_pfn_t(bio)		bio_iter_pfn_t((bio), (bio)->bi_iter)
+ #define bio_page(bio)		bio_iter_page((bio), (bio)->bi_iter)
+ #define bio_offset(bio)		bio_iter_offset((bio), (bio)->bi_iter)
+ #define bio_iovec(bio)		bio_iter_iovec((bio), (bio)->bi_iter)
+@@ -118,8 +121,8 @@ static inline void *bio_data(struct bio *bio)
+ /*
+  * will die
+  */
+-#define bio_to_phys(bio)	(page_to_phys(bio_page((bio))) + (unsigned long) bio_offset((bio)))
+-#define bvec_to_phys(bv)	(page_to_phys(bvec_page((bv))) + (unsigned long) (bv)->bv_offset)
++#define bio_to_phys(bio)	(pfn_t_to_phys(bio_pfn_t((bio))) + (unsigned long) bio_offset((bio)))
++#define bvec_to_phys(bv)	(pfn_t_to_phys((bv)->bv_pfn) + (unsigned long) (bv)->bv_offset)
  
- 	if (entry->flags & IMA_FSUUID) {
--		seq_printf(m, "fsuuid=%pU", entry->fsuuid);
-+		seq_printf(m, "fsuuid=%pU", &entry->fsuuid);
- 		seq_puts(m, " ");
- 	}
- 
+ /*
+  * queues that have highmem support enabled may still need to revert to
 -- 
-2.11.0
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
