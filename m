@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B1F4721A16ECF
- for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:19:52 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 08/22] uuid: hoist helpers uuid_equal() and uuid_copy() from
- xfs
-Date: Sun, 28 May 2017 13:19:54 +0300
-Message-Id: <20170528102008.30276-9-hch@lst.de>
-In-Reply-To: <20170528102008.30276-1-hch@lst.de>
-References: <20170528102008.30276-1-hch@lst.de>
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 970932095A33E
+ for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 14:43:20 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 24 May 2017 15:42:13 -0600
+Message-Id: <1495662147-18277-3-git-send-email-logang@deltatee.com>
+In-Reply-To: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 02/16] staging: ccree: Cleanup: remove references to
+ page_link
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,110 +23,81 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Johannes Berg <johannes.berg@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ming Lei <ming.lei@canonical.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-These helper are used to compare and copy two uuid_t type objects.
+This is a layering violation so we replace it with calls to
+sg_page. This is a prep patch for replacing page_link and this
+is one of the very few uses outside of scatterlist.h.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[hch: also provide the respective guid_ versions]
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Stephen Bates <sbates@raithlin.com>
 ---
- fs/xfs/uuid.c        |  6 ------
- fs/xfs/uuid.h        |  7 -------
- include/linux/uuid.h | 20 ++++++++++++++++++++
- lib/test_uuid.c      |  4 ++--
- 4 files changed, 22 insertions(+), 15 deletions(-)
+ drivers/staging/ccree/ssi_buffer_mgr.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
-index b83f76b6d410..29ed78c8637b 100644
---- a/fs/xfs/uuid.c
-+++ b/fs/xfs/uuid.c
-@@ -55,9 +55,3 @@ uuid_is_nil(uuid_t *uuid)
- 		if (*cp++) return 0;	/* not nil */
- 	return 1;	/* is nil */
+diff --git a/drivers/staging/ccree/ssi_buffer_mgr.c b/drivers/staging/ccree/ssi_buffer_mgr.c
+index 038e2ff..07bbf8f 100644
+--- a/drivers/staging/ccree/ssi_buffer_mgr.c
++++ b/drivers/staging/ccree/ssi_buffer_mgr.c
+@@ -43,8 +43,8 @@
+ #ifdef CC_DEBUG
+ #define DUMP_SGL(sg) \
+ 	while (sg) { \
+-		SSI_LOG_DEBUG("page=%lu offset=%u length=%u (dma_len=%u) " \
+-			     "dma_addr=%08x\n", (sg)->page_link, (sg)->offset, \
++		SSI_LOG_DEBUG("page=%p offset=%u length=%u (dma_len=%u) " \
++			     "dma_addr=%08x\n", sg_page(sg), (sg)->offset, \
+ 			(sg)->length, sg_dma_len(sg), (sg)->dma_address); \
+ 		(sg) = sg_next(sg); \
+ 	}
+@@ -442,10 +442,10 @@ static int ssi_buffer_mgr_map_scatterlist(
+ 			return -ENOMEM;
+ 		} 
+ 		SSI_LOG_DEBUG("Mapped sg: dma_address=0x%llX "
+-			     "page_link=0x%08lX addr=%pK offset=%u "
++			     "page=%p addr=%pK offset=%u "
+ 			     "length=%u\n",
+ 			     (unsigned long long)sg_dma_address(sg), 
+-			     sg->page_link, 
++			     sg_page(sg),
+ 			     sg_virt(sg), 
+ 			     sg->offset, sg->length);
+ 		*lbytes = nbytes;
+@@ -505,10 +505,10 @@ ssi_aead_handle_config_buf(struct device *dev,
+ 			return -ENOMEM;
+ 	}
+ 	SSI_LOG_DEBUG("Mapped curr_buff: dma_address=0x%llX "
+-		     "page_link=0x%08lX addr=%pK "
++		     "page=%p addr=%pK "
+ 		     "offset=%u length=%u\n",
+ 		     (unsigned long long)sg_dma_address(&areq_ctx->ccm_adata_sg), 
+-		     areq_ctx->ccm_adata_sg.page_link, 
++		     sg_page(&areq_ctx->ccm_adata_sg),
+ 		     sg_virt(&areq_ctx->ccm_adata_sg),
+ 		     areq_ctx->ccm_adata_sg.offset, 
+ 		     areq_ctx->ccm_adata_sg.length);
+@@ -540,10 +540,10 @@ static inline int ssi_ahash_handle_curr_buf(struct device *dev,
+ 			return -ENOMEM;
+ 	}
+ 	SSI_LOG_DEBUG("Mapped curr_buff: dma_address=0x%llX "
+-		     "page_link=0x%08lX addr=%pK "
++		     "page=%p addr=%pK "
+ 		     "offset=%u length=%u\n",
+ 		     (unsigned long long)sg_dma_address(areq_ctx->buff_sg), 
+-		     areq_ctx->buff_sg->page_link, 
++		     sg_page(areq_ctx->buff_sg),
+ 		     sg_virt(areq_ctx->buff_sg),
+ 		     areq_ctx->buff_sg->offset, 
+ 		     areq_ctx->buff_sg->length);
+@@ -1870,4 +1870,3 @@ int ssi_buffer_mgr_fini(struct ssi_drvdata *drvdata)
+ 	}
+ 	return 0;
  }
 -
--int
--uuid_equal(uuid_t *uuid1, uuid_t *uuid2)
--{
--	return memcmp(uuid1, uuid2, sizeof(uuid_t)) ? 0 : 1;
--}
-diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
-index 4f1441ba4fa5..86bbed071e79 100644
---- a/fs/xfs/uuid.h
-+++ b/fs/xfs/uuid.h
-@@ -19,13 +19,6 @@
- #define __XFS_SUPPORT_UUID_H__
- 
- extern int uuid_is_nil(uuid_t *uuid);
--extern int uuid_equal(uuid_t *uuid1, uuid_t *uuid2);
- extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
- 
--static inline void
--uuid_copy(uuid_t *dst, uuid_t *src)
--{
--	memcpy(dst, src, sizeof(uuid_t));
--}
--
- #endif	/* __XFS_SUPPORT_UUID_H__ */
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index a9d0fdba5404..b4b147f52d6c 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -35,6 +35,26 @@ typedef struct {
-  */
- #define	UUID_STRING_LEN		36
- 
-+static inline bool guid_equal(const guid_t *u1, const guid_t *u2)
-+{
-+	return memcmp(u1, u2, sizeof(guid_t)) == 0;
-+}
-+
-+static inline void guid_copy(guid_t *dst, const guid_t *src)
-+{
-+	memcpy(dst, src, sizeof(guid_t));
-+}
-+
-+static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
-+{
-+	return memcmp(u1, u2, sizeof(uuid_t)) == 0;
-+}
-+
-+static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
-+{
-+	memcpy(dst, src, sizeof(uuid_t));
-+}
-+
- void generate_random_uuid(unsigned char uuid[16]);
- 
- extern void guid_gen(guid_t *u);
-diff --git a/lib/test_uuid.c b/lib/test_uuid.c
-index 9cad846fd805..4d05189e5f87 100644
---- a/lib/test_uuid.c
-+++ b/lib/test_uuid.c
-@@ -71,7 +71,7 @@ static void __init test_uuid_test(const struct test_uuid_data *data)
- 		test_uuid_failed("conversion", false, false, data->uuid, NULL);
- 
- 	total_tests++;
--	if (uuid_le_cmp(data->le, le)) {
-+	if (!guid_equal(&data->le, &le)) {
- 		sprintf(buf, "%pUl", &le);
- 		test_uuid_failed("cmp", false, false, data->uuid, buf);
- 	}
-@@ -82,7 +82,7 @@ static void __init test_uuid_test(const struct test_uuid_data *data)
- 		test_uuid_failed("conversion", false, true, data->uuid, NULL);
- 
- 	total_tests++;
--	if (uuid_be_cmp(data->be, be)) {
-+	if (uuid_equal(&data->be, &be)) {
- 		sprintf(buf, "%pUb", &be);
- 		test_uuid_failed("cmp", false, true, data->uuid, buf);
- 	}
 -- 
-2.11.0
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
