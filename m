@@ -1,276 +1,147 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] generic: add regression test for DAX PTE/PMD races
-Date: Wed, 17 May 2017 11:17:42 -0600
-Message-Id: <20170517171742.14848-1-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170517171639.14501-2-ross.zwisler@linux.intel.com>
-References: <20170517171639.14501-2-ross.zwisler@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: fstests@vger.kernel.org, Xiong Zhou <xzhou@redhat.com>, Eryu Guan <eguan@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Pawel Lebioda <pawel.lebioda@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8961921B0E53E
+ for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 14:43:20 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 24 May 2017 15:42:24 -0600
+Message-Id: <1495662147-18277-14-git-send-email-logang@deltatee.com>
+In-Reply-To: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 13/16] block: bio: introduce bio_add_pfn
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Johannes Berg <johannes.berg@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ming Lei <ming.lei@canonical.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This adds a regression test for the following kernel patches:
+We introduce bio_add_pfn which is the same as bio_add_page but expects a
+pfn_t instead of a page pointer. bio_add_page is then converted to be
+an inline call to bio_add_pfn.
 
-  mm: avoid spurious 'bad pmd' warning messages
-  dax: Fix race between colliding PMD & PTE entries
-
-The above patches fix two related PMD vs PTE races in the DAX code.  These
-can both be easily triggered by having two threads reading and writing
-simultaneously to the same private mapping, with the key being that private
-mapping reads can be handled with PMDs but private mapping writes are
-always handled with PTEs so that we can COW.
-
-Without this 2-patch kernel series, the newly added test will result in the
-following errors:
-
-  run fstests generic/435 at 2017-05-16 16:53:43
-  mm/pgtable-generic.c:39: bad pmd ffff8808daa49b88(84000001006000a5)
-  	... a bunch of the bad pmd messages ...
-  BUG: Bad rss-counter state mm:ffff8800a8c1b700 idx:1 val:1
-  BUG: non-zero nr_ptes on freeing mm: 38
-  XFS (pmem0p1): Unmounting Filesystem
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Stephen Bates <sbates@raithlin.com>
 ---
- .gitignore            |   1 +
- src/Makefile          |   3 +-
- src/t_mmap_cow_race.c | 106 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/435     |  61 +++++++++++++++++++++++++++++
- tests/generic/435.out |   2 +
- tests/generic/group   |   1 +
- 6 files changed, 173 insertions(+), 1 deletion(-)
- create mode 100644 src/t_mmap_cow_race.c
- create mode 100755 tests/generic/435
- create mode 100644 tests/generic/435.out
+ block/bio.c           | 16 ++++++++--------
+ include/linux/bio.h   | 19 ++++++++++++++++++-
+ include/linux/pfn_t.h |  5 +++++
+ 3 files changed, 31 insertions(+), 9 deletions(-)
 
-diff --git a/.gitignore b/.gitignore
-index 38f3a00..a6ac25e 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -149,6 +149,7 @@
- /src/t_rename_overwrite
- /src/t_mmap_dio
- /src/t_mmap_stale_pmd
-+/src/t_mmap_cow_race
+diff --git a/block/bio.c b/block/bio.c
+index e785f50..d8b6aeb 100644
+--- a/block/bio.c
++++ b/block/bio.c
+@@ -810,17 +810,17 @@ int bio_add_pc_page(struct request_queue *q, struct bio *bio, struct page
+ EXPORT_SYMBOL(bio_add_pc_page);
  
- # dmapi/ binaries
- /dmapi/src/common/cmd/read_invis
-diff --git a/src/Makefile b/src/Makefile
-index e5042c9..b505b42 100644
---- a/src/Makefile
-+++ b/src/Makefile
-@@ -12,7 +12,8 @@ TARGETS = dirstress fill fill2 getpagesize holes lstat64 \
- 	godown resvtest writemod makeextents itrash rename \
- 	multi_open_unlink dmiperf unwritten_sync genhashnames t_holes \
- 	t_mmap_writev t_truncate_cmtime dirhash_collide t_rename_overwrite \
--	holetest t_truncate_self t_mmap_dio af_unix t_mmap_stale_pmd
-+	holetest t_truncate_self t_mmap_dio af_unix t_mmap_stale_pmd \
-+	t_mmap_cow_race
+ /**
+- *	bio_add_page	-	attempt to add page to bio
++ *	bio_add_pfn	-	attempt to add pfn to bio
+  *	@bio: destination bio
+- *	@page: page to add
++ *	@pfn: pfn to add
+  *	@len: vec entry length
+  *	@offset: vec entry offset
+  *
+- *	Attempt to add a page to the bio_vec maplist. This will only fail
++ *	Attempt to add a pfn to the bio_vec maplist. This will only fail
+  *	if either bio->bi_vcnt == bio->bi_max_vecs or it's a cloned bio.
+  */
+-int bio_add_page(struct bio *bio, struct page *page,
+-		 unsigned int len, unsigned int offset)
++int bio_add_pfn(struct bio *bio, pfn_t pfn, unsigned int len,
++		unsigned int offset)
+ {
+ 	struct bio_vec *bv;
  
- LINUX_TARGETS = xfsctl bstat t_mtab getdevicesize preallo_rw_pattern_reader \
- 	preallo_rw_pattern_writer ftrunc trunc fs_perms testx looptest \
-diff --git a/src/t_mmap_cow_race.c b/src/t_mmap_cow_race.c
-new file mode 100644
-index 0000000..207ba42
---- /dev/null
-+++ b/src/t_mmap_cow_race.c
-@@ -0,0 +1,106 @@
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <libgen.h>
-+#include <pthread.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <unistd.h>
+@@ -838,7 +838,7 @@ int bio_add_page(struct bio *bio, struct page *page,
+ 	if (bio->bi_vcnt > 0) {
+ 		bv = &bio->bi_io_vec[bio->bi_vcnt - 1];
+ 
+-		if (page == bvec_page(bv) &&
++		if (pfn_t_equal(pfn, bv->bv_pfn) &&
+ 		    offset == bv->bv_offset + bv->bv_len) {
+ 			bv->bv_len += len;
+ 			goto done;
+@@ -849,7 +849,7 @@ int bio_add_page(struct bio *bio, struct page *page,
+ 		return 0;
+ 
+ 	bv		= &bio->bi_io_vec[bio->bi_vcnt];
+-	bvec_set_page(bv, page);
++	bv->bv_pfn	= pfn;
+ 	bv->bv_len	= len;
+ 	bv->bv_offset	= offset;
+ 
+@@ -858,7 +858,7 @@ int bio_add_page(struct bio *bio, struct page *page,
+ 	bio->bi_iter.bi_size += len;
+ 	return len;
+ }
+-EXPORT_SYMBOL(bio_add_page);
++EXPORT_SYMBOL(bio_add_pfn);
+ 
+ /**
+  * bio_iov_iter_get_pages - pin user or kernel pages and add them to a bio
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index 16c0b02..bc5f5d3 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -429,7 +429,24 @@ extern void bio_init(struct bio *bio, struct bio_vec *table,
+ extern void bio_reset(struct bio *);
+ void bio_chain(struct bio *, struct bio *);
+ 
+-extern int bio_add_page(struct bio *, struct page *, unsigned int,unsigned int);
++extern int bio_add_pfn(struct bio *bio, pfn_t, unsigned int, unsigned int);
 +
-+#define MiB(a) ((a)*1024*1024)
-+#define NUM_THREADS 2
-+
-+void err_exit(char *op)
++/**
++ *	bio_add_page	-	attempt to add page to bio
++ *	@bio: destination bio
++ *	@page: page to add
++ *	@len: vec entry length
++ *	@offset: vec entry offset
++ *
++ *	Attempt to add a pfn to the bio_vec maplist. This will only fail
++ *	if either bio->bi_vcnt == bio->bi_max_vecs or it's a cloned bio.
++ */
++static inline int bio_add_page(struct bio *bio, struct page *page,
++			       unsigned int len, unsigned int offset)
 +{
-+	fprintf(stderr, "%s: %s\n", op, strerror(errno));
-+	exit(1);
++	return bio_add_pfn(bio, page_to_pfn_t(page), len, offset);
 +}
 +
-+void worker_fn(void *ptr)
+ extern int bio_add_pc_page(struct request_queue *, struct bio *, struct page *,
+ 			   unsigned int, unsigned int);
+ int bio_iov_iter_get_pages(struct bio *bio, struct iov_iter *iter);
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index 07bd5ba..9612c87 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -48,6 +48,11 @@ static inline pfn_t phys_to_pfn_t(phys_addr_t addr, u64 flags)
+ 	return __pfn_to_pfn_t(addr >> PAGE_SHIFT, flags);
+ }
+ 
++static inline bool pfn_t_equal(pfn_t a, pfn_t b)
 +{
-+	char *data = (char *)ptr;
-+	volatile int a;
-+	int i, err;
-+
-+	for (i = 0; i < 10; i++) {
-+		a = data[0];
-+		data[0] = a;
-+
-+		err = madvise(data, MiB(2), MADV_DONTNEED);
-+		if (err < 0)
-+			err_exit("madvise");
-+
-+		/* Mix up the thread timings to encourage the race. */
-+		err = usleep(rand() % 100);
-+		if (err < 0)
-+			err_exit("usleep");
-+	}
++	return a.val == b.val;
 +}
 +
-+int main(int argc, char *argv[])
-+{
-+	pthread_t thread[NUM_THREADS];
-+	int i, j, fd, err;
-+	char *data;
-+
-+	if (argc < 2) {
-+		printf("Usage: %s <file>\n", basename(argv[0]));
-+		exit(0);
-+	}
-+
-+	fd = open(argv[1], O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
-+	if (fd < 0)
-+		err_exit("fd");
-+
-+	/* This allows us to map a huge page. */
-+	ftruncate(fd, 0);
-+	ftruncate(fd, MiB(2));
-+
-+	/*
-+	 * First we set up a shared mapping.  Our write will (hopefully) get
-+	 * the filesystem to give us a 2MiB huge page DAX mapping.  We will
-+	 * then use this 2MiB page for our private mapping race.
-+	 */
-+	data = mmap(NULL, MiB(2), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-+	if (data == MAP_FAILED)
-+		err_exit("shared mmap");
-+
-+	data[0] = 1;
-+
-+	err = munmap(data, MiB(2));
-+	if (err < 0)
-+		err_exit("shared munmap");
-+
-+	for (i = 0; i < 500; i++) {
-+		data = mmap(NULL, MiB(2), PROT_READ|PROT_WRITE, MAP_PRIVATE,
-+				fd, 0);
-+		if (data == MAP_FAILED)
-+			err_exit("private mmap");
-+
-+		for (j = 0; j < NUM_THREADS; j++) {
-+			err = pthread_create(&thread[j], NULL,
-+					(void*)&worker_fn, data);
-+			if (err)
-+				err_exit("pthread_create");
-+		}
-+
-+		for (j = 0; j < NUM_THREADS; j++) {
-+			err = pthread_join(thread[j], NULL);
-+			if (err)
-+				err_exit("pthread_join");
-+		}
-+
-+		err = munmap(data, MiB(2));
-+		if (err < 0)
-+			err_exit("private munmap");
-+	}
-+
-+	err = close(fd);
-+	if (err < 0)
-+		err_exit("close");
-+
-+	return 0;
-+}
-diff --git a/tests/generic/435 b/tests/generic/435
-new file mode 100755
-index 0000000..f1413f1
---- /dev/null
-+++ b/tests/generic/435
-@@ -0,0 +1,61 @@
-+#! /bin/bash
-+# FS QA Test 435
-+#
-+# This is a regression test for kernel patches:
-+#   mm: avoid spurious 'bad pmd' warning messages
-+#   dax: Fix race between colliding PMD & PTE entries
-+# created by Ross Zwisler <ross.zwisler@linux.intel.com>
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Intel Corporation.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# Modify as appropriate.
-+_supported_fs generic
-+_supported_os Linux
-+_require_test
-+_require_test_program "t_mmap_cow_race"
-+
-+# real QA test starts here
-+src/t_mmap_cow_race $TEST_DIR/testfile
-+
-+# success, all done
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/generic/435.out b/tests/generic/435.out
-new file mode 100644
-index 0000000..6a175d3
---- /dev/null
-+++ b/tests/generic/435.out
-@@ -0,0 +1,2 @@
-+QA output created by 435
-+Silence is golden
-diff --git a/tests/generic/group b/tests/generic/group
-index c4911b8..ac43f42 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -437,3 +437,4 @@
- 432 auto quick copy
- 433 auto quick copy
- 434 auto quick copy
-+435 auto quick
+ static inline bool pfn_t_has_page(pfn_t pfn)
+ {
+ 	return (pfn.val & PFN_MAP) == PFN_MAP || (pfn.val & PFN_DEV) == 0;
 -- 
-2.9.4
+2.1.4
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
