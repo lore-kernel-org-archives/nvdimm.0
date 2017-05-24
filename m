@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5CF3E21A16EFB
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 23:28:32 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 21/23] nvme: switch to uuid_t
-Date: Thu, 18 May 2017 08:27:03 +0200
-Message-Id: <20170518062705.25902-22-hch@lst.de>
-In-Reply-To: <20170518062705.25902-1-hch@lst.de>
-References: <20170518062705.25902-1-hch@lst.de>
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 5E38F21B0E535
+ for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 14:43:20 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 24 May 2017 15:42:22 -0600
+Message-Id: <1495662147-18277-12-git-send-email-logang@deltatee.com>
+In-Reply-To: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 11/16] bvec: convert to using pfn_t internally
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,135 +22,134 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Johannes Berg <johannes.berg@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ming Lei <ming.lei@canonical.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/nvme/host/fabrics.c | 8 ++++----
- drivers/nvme/host/fabrics.h | 2 +-
- drivers/nvme/host/fc.c      | 3 +--
- drivers/nvme/target/nvmet.h | 1 +
- include/linux/nvme-fc.h     | 3 +--
- include/linux/nvme.h        | 2 +-
- 6 files changed, 9 insertions(+), 10 deletions(-)
+With bv_page fenced off, we can now convert it to a pfn_t fairly simply.
+Everything should work the same with the exception of a BUG_ON
+for potentially unmappable pfns.
 
-diff --git a/drivers/nvme/host/fabrics.c b/drivers/nvme/host/fabrics.c
-index 990e6fb32a63..c190d7e36900 100644
---- a/drivers/nvme/host/fabrics.c
-+++ b/drivers/nvme/host/fabrics.c
-@@ -58,7 +58,7 @@ static struct nvmf_host *nvmf_host_add(const char *hostnqn)
+A couple of initializers that assign {NULL} to a bio_vec had to also be
+changed to {} to prevent a warning seeing pfn_t is actually a struct.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Stephen Bates <sbates@raithlin.com>
+---
+ block/blk-integrity.c |  4 ++--
+ block/blk-merge.c     |  6 +++---
+ include/linux/bvec.h  | 13 +++++++++----
+ 3 files changed, 14 insertions(+), 9 deletions(-)
+
+diff --git a/block/blk-integrity.c b/block/blk-integrity.c
+index 857138a..2ba66f7 100644
+--- a/block/blk-integrity.c
++++ b/block/blk-integrity.c
+@@ -40,7 +40,7 @@
+  */
+ int blk_rq_count_integrity_sg(struct request_queue *q, struct bio *bio)
+ {
+-	struct bio_vec iv, ivprv = { NULL };
++	struct bio_vec iv, ivprv = {};
+ 	unsigned int segments = 0;
+ 	unsigned int seg_size = 0;
+ 	struct bvec_iter iter;
+@@ -86,7 +86,7 @@ EXPORT_SYMBOL(blk_rq_count_integrity_sg);
+ int blk_rq_map_integrity_sg(struct request_queue *q, struct bio *bio,
+ 			    struct scatterlist *sglist)
+ {
+-	struct bio_vec iv, ivprv = { NULL };
++	struct bio_vec iv, ivprv = {};
+ 	struct scatterlist *sg = NULL;
+ 	unsigned int segments = 0;
+ 	struct bvec_iter iter;
+diff --git a/block/blk-merge.c b/block/blk-merge.c
+index 65dcee9..93e87fe 100644
+--- a/block/blk-merge.c
++++ b/block/blk-merge.c
+@@ -245,7 +245,7 @@ static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
+ 					     struct bio *bio,
+ 					     bool no_sg_merge)
+ {
+-	struct bio_vec bv, bvprv = { NULL };
++	struct bio_vec bv, bvprv = {};
+ 	int cluster, prev = 0;
+ 	unsigned int seg_size, nr_phys_segs;
+ 	struct bio *fbio, *bbio;
+@@ -347,7 +347,7 @@ EXPORT_SYMBOL(blk_recount_segments);
+ static int blk_phys_contig_segment(struct request_queue *q, struct bio *bio,
+ 				   struct bio *nxt)
+ {
+-	struct bio_vec end_bv = { NULL }, nxt_bv;
++	struct bio_vec end_bv = {}, nxt_bv;
  
- 	kref_init(&host->ref);
- 	memcpy(host->nqn, hostnqn, NVMF_NQN_SIZE);
--	uuid_be_gen(&host->id);
-+	uuid_gen(&host->id);
+ 	if (!blk_queue_cluster(q))
+ 		return 0;
+@@ -430,7 +430,7 @@ static int __blk_bios_map_sg(struct request_queue *q, struct bio *bio,
+ 			     struct scatterlist *sglist,
+ 			     struct scatterlist **sg)
+ {
+-	struct bio_vec bvec, bvprv = { NULL };
++	struct bio_vec bvec, bvprv = {};
+ 	struct bvec_iter iter;
+ 	int cluster = blk_queue_cluster(q), nsegs = 0;
  
- 	list_add_tail(&host->list, &nvmf_hosts);
- out_unlock:
-@@ -75,7 +75,7 @@ static struct nvmf_host *nvmf_host_default(void)
- 		return NULL;
+diff --git a/include/linux/bvec.h b/include/linux/bvec.h
+index b53b879..d950288 100644
+--- a/include/linux/bvec.h
++++ b/include/linux/bvec.h
+@@ -22,12 +22,13 @@
  
- 	kref_init(&host->ref);
--	uuid_be_gen(&host->id);
-+	uuid_gen(&host->id);
- 	snprintf(host->nqn, NVMF_NQN_SIZE,
- 		"nqn.2014-08.org.nvmexpress:NVMf:uuid:%pUb", &host->id);
+ #include <linux/kernel.h>
+ #include <linux/bug.h>
++#include <linux/pfn_t.h>
  
-@@ -395,7 +395,7 @@ int nvmf_connect_admin_queue(struct nvme_ctrl *ctrl)
- 	if (!data)
- 		return -ENOMEM;
- 
--	memcpy(&data->hostid, &ctrl->opts->host->id, sizeof(uuid_be));
-+	uuid_copy(&data->hostid, &ctrl->opts->host->id);
- 	data->cntlid = cpu_to_le16(0xffff);
- 	strncpy(data->subsysnqn, ctrl->opts->subsysnqn, NVMF_NQN_SIZE);
- 	strncpy(data->hostnqn, ctrl->opts->host->nqn, NVMF_NQN_SIZE);
-@@ -454,7 +454,7 @@ int nvmf_connect_io_queue(struct nvme_ctrl *ctrl, u16 qid)
- 	if (!data)
- 		return -ENOMEM;
- 
--	memcpy(&data->hostid, &ctrl->opts->host->id, sizeof(uuid_be));
-+	uuid_copy(&data->hostid, &ctrl->opts->host->id);
- 	data->cntlid = cpu_to_le16(ctrl->cntlid);
- 	strncpy(data->subsysnqn, ctrl->opts->subsysnqn, NVMF_NQN_SIZE);
- 	strncpy(data->hostnqn, ctrl->opts->host->nqn, NVMF_NQN_SIZE);
-diff --git a/drivers/nvme/host/fabrics.h b/drivers/nvme/host/fabrics.h
-index f5a9c1fb186f..29be7600689d 100644
---- a/drivers/nvme/host/fabrics.h
-+++ b/drivers/nvme/host/fabrics.h
-@@ -36,7 +36,7 @@ struct nvmf_host {
- 	struct kref		ref;
- 	struct list_head	list;
- 	char			nqn[NVMF_NQN_SIZE];
--	uuid_be			id;
-+	uuid_t			id;
+ /*
+  * was unsigned short, but we might as well be ready for > 64kB I/O pages
+  */
+ struct bio_vec {
+-	struct page	*bv_page;
++	pfn_t		bv_pfn;
+ 	unsigned int	bv_len;
+ 	unsigned int	bv_offset;
  };
+@@ -45,12 +46,13 @@ struct bvec_iter {
  
- /**
-diff --git a/drivers/nvme/host/fc.c b/drivers/nvme/host/fc.c
-index 70e689bf1cad..da95e85cadec 100644
---- a/drivers/nvme/host/fc.c
-+++ b/drivers/nvme/host/fc.c
-@@ -882,8 +882,7 @@ nvme_fc_connect_admin_queue(struct nvme_fc_ctrl *ctrl,
- 	assoc_rqst->assoc_cmd.sqsize = cpu_to_be16(qsize);
- 	/* Linux supports only Dynamic controllers */
- 	assoc_rqst->assoc_cmd.cntlid = cpu_to_be16(0xffff);
--	memcpy(&assoc_rqst->assoc_cmd.hostid, &ctrl->ctrl.opts->host->id,
--		min_t(size_t, FCNVME_ASSOC_HOSTID_LEN, sizeof(uuid_be)));
-+	uuid_copy(&assoc_rqst->assoc_cmd.hostid, &ctrl->ctrl.opts->host->id);
- 	strncpy(assoc_rqst->assoc_cmd.hostnqn, ctrl->ctrl.opts->host->nqn,
- 		min(FCNVME_ASSOC_HOSTNQN_LEN, NVMF_NQN_SIZE));
- 	strncpy(assoc_rqst->assoc_cmd.subnqn, ctrl->ctrl.opts->subsysnqn,
-diff --git a/drivers/nvme/target/nvmet.h b/drivers/nvme/target/nvmet.h
-index 7cb77ba5993b..204f4066c971 100644
---- a/drivers/nvme/target/nvmet.h
-+++ b/drivers/nvme/target/nvmet.h
-@@ -21,6 +21,7 @@
- #include <linux/percpu-refcount.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
-+#include <linux/uuid.h>
- #include <linux/nvme.h>
- #include <linux/configfs.h>
- #include <linux/rcupdate.h>
-diff --git a/include/linux/nvme-fc.h b/include/linux/nvme-fc.h
-index e997c4a49a88..bc711a10be05 100644
---- a/include/linux/nvme-fc.h
-+++ b/include/linux/nvme-fc.h
-@@ -177,7 +177,6 @@ struct fcnvme_lsdesc_rjt {
- };
+ static inline struct page *bvec_page(const struct bio_vec *bvec)
+ {
+-	return bvec->bv_page;
++	BUG_ON(!pfn_t_is_always_mappable(bvec->bv_pfn));
++	return pfn_t_to_page(bvec->bv_pfn);
+ }
  
+ static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
+ {
+-	bvec->bv_page = page;
++	bvec->bv_pfn = page_to_pfn_t(page);
+ }
  
--#define FCNVME_ASSOC_HOSTID_LEN		16
- #define FCNVME_ASSOC_HOSTNQN_LEN	256
- #define FCNVME_ASSOC_SUBNQN_LEN		256
+ /*
+@@ -59,6 +61,9 @@ static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
+  */
+ #define __bvec_iter_bvec(bvec, iter)	(&(bvec)[(iter).bi_idx])
  
-@@ -191,7 +190,7 @@ struct fcnvme_lsdesc_cr_assoc_cmd {
- 	__be16	cntlid;
- 	__be16	sqsize;
- 	__be32	rsvd52;
--	u8	hostid[FCNVME_ASSOC_HOSTID_LEN];
-+	uuid_t	hostid;
- 	u8	hostnqn[FCNVME_ASSOC_HOSTNQN_LEN];
- 	u8	subnqn[FCNVME_ASSOC_SUBNQN_LEN];
- 	u8	rsvd632[384];
-diff --git a/include/linux/nvme.h b/include/linux/nvme.h
-index b625bacf37ef..d88e925f82ce 100644
---- a/include/linux/nvme.h
-+++ b/include/linux/nvme.h
-@@ -843,7 +843,7 @@ struct nvmf_connect_command {
- };
++#define bvec_iter_pfn_t(bvec, iter)				\
++	(__bvec_iter_bvec((bvec), (iter))->bv_pfn)
++
+ #define bvec_iter_page(bvec, iter)				\
+ 	(bvec_page(__bvec_iter_bvec((bvec), (iter))))
  
- struct nvmf_connect_data {
--	__u8		hostid[16];
-+	uuid_t		hostid;
- 	__le16		cntlid;
- 	char		resv4[238];
- 	char		subsysnqn[NVMF_NQN_FIELD_LEN];
+@@ -71,7 +76,7 @@ static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
+ 
+ #define bvec_iter_bvec(bvec, iter)				\
+ ((struct bio_vec) {						\
+-	.bv_page	= bvec_iter_page((bvec), (iter)),	\
++	.bv_pfn		= bvec_iter_pfn_t((bvec), (iter)),	\
+ 	.bv_len		= bvec_iter_len((bvec), (iter)),	\
+ 	.bv_offset	= bvec_iter_offset((bvec), (iter)),	\
+ })
 -- 
-2.11.0
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
