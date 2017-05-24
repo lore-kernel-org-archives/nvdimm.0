@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2175321A13489
- for <linux-nvdimm@lists.01.org>; Wed, 10 May 2017 12:27:06 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 1/2] libnvdimm: add an atomic vs process context flag to
- rw_bytes
-Date: Wed, 10 May 2017 13:25:30 -0600
-Message-Id: <20170510192531.13032-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 270A921B0E535
+ for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 14:43:20 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 24 May 2017 15:42:18 -0600
+Message-Id: <1495662147-18277-8-git-send-email-logang@deltatee.com>
+In-Reply-To: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 07/16] scatterlist: support unmappable memory in the
+ scatterlist
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,418 +23,256 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Johannes Berg <johannes.berg@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ming Lei <ming.lei@canonical.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-nsio_rw_bytes can clear media errors, but this cannot be done while we
-are in an atomic context due to locking within ACPI. From the BTT,
-->rw_bytes may be called either from atomic or process context depending
-on whether the calls happen during initialization or during IO.
+This patch introduces the PFN_MAYBE_UNMAPPABLE flag which indicates the
+sgl or pfn may point to unmappable memory. This flag would be set by a
+call to sg_init_unmappable_table which sets the flag for all entries in
+the table. Once set, any attempt to call sg_page, sg_virt, etc on the sgl
+will BUG_ON. It can also indicate to other parts of the kernel that
+a specific pfn_t may not always return a valid page or virtual address.
 
-During init, we want to ensure error clearing happens, and the flag
-marking process context allows nsio_rw_bytes to do that. When called
-during IO, we're in atomic context, and error clearing can be skipped.
+When it is set, it also allows assigning pfns that may be backed by
+IO memory or may not have struct pages. (Indicated by the new PFN_IOMEM
+flags).
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+This new functionality is disabled unless a driver explicitly selects
+CONFIG_SG_UNMAPPABLE seeing it may cause unexpected BUG_ONs with drivers
+or dma_map implementations that aren't prepared for it.
+
+With this patch, we can start safely supporting IO memory in sgl lists
+without needing to cleanup all the existing use cases in the kernel
+and deal with the ugly cases that assume memory within an sgl is always
+mappable. Developers that want to support io memory then just need
+to optionally depend on CONFIG_SG_UNMAPPABLE, call
+sg_init_unmappable_table and fix any BUG_ONs that may result. They may
+then safely DMA to io memory, memory that is unmappable, or memory that
+doesn't have struct page backings.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Stephen Bates <sbates@raithlin.com>
 ---
- drivers/nvdimm/blk.c      |  3 ++-
- drivers/nvdimm/btt.c      | 69 ++++++++++++++++++++++++++---------------------
- drivers/nvdimm/btt_devs.c |  3 ++-
- drivers/nvdimm/claim.c    |  6 +++--
- drivers/nvdimm/nd.h       |  5 ++++
- drivers/nvdimm/pfn_devs.c |  6 +++--
- include/linux/nd.h        | 10 +++----
- 7 files changed, 60 insertions(+), 42 deletions(-)
+ include/linux/pfn_t.h       | 37 ++++++++++++++++++++++++++++++++++++-
+ include/linux/scatterlist.h | 31 +++++++++++++++++++++++++++++--
+ lib/Kconfig                 | 11 +++++++++++
+ lib/scatterlist.c           | 30 ++++++++++++++++++++++++++++++
+ 4 files changed, 106 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index 9faaa96..7cf6f7b 100644
---- a/drivers/nvdimm/blk.c
-+++ b/drivers/nvdimm/blk.c
-@@ -218,7 +218,8 @@ static blk_qc_t nd_blk_make_request(struct request_queue *q, struct bio *bio)
- }
- 
- static int nsblk_rw_bytes(struct nd_namespace_common *ndns,
--		resource_size_t offset, void *iobuf, size_t n, int rw)
-+		resource_size_t offset, void *iobuf, size_t n, int rw,
-+		u32 flags)
- {
- 	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(&ndns->dev);
- 	struct nd_blk_region *ndbr = to_ndbr(nsblk);
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 368795a..5cdc3aa 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -32,25 +32,25 @@ enum log_ent_request {
- };
- 
- static int arena_read_bytes(struct arena_info *arena, resource_size_t offset,
--		void *buf, size_t n)
-+		void *buf, size_t n, u32 flags)
- {
- 	struct nd_btt *nd_btt = arena->nd_btt;
- 	struct nd_namespace_common *ndns = nd_btt->ndns;
- 
- 	/* arena offsets are 4K from the base of the device */
- 	offset += SZ_4K;
--	return nvdimm_read_bytes(ndns, offset, buf, n);
-+	return nvdimm_read_bytes(ndns, offset, buf, n, flags);
- }
- 
- static int arena_write_bytes(struct arena_info *arena, resource_size_t offset,
--		void *buf, size_t n)
-+		void *buf, size_t n, u32 flags)
- {
- 	struct nd_btt *nd_btt = arena->nd_btt;
- 	struct nd_namespace_common *ndns = nd_btt->ndns;
- 
- 	/* arena offsets are 4K from the base of the device */
- 	offset += SZ_4K;
--	return nvdimm_write_bytes(ndns, offset, buf, n);
-+	return nvdimm_write_bytes(ndns, offset, buf, n, flags);
- }
- 
- static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
-@@ -58,19 +58,19 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
- 	int ret;
- 
- 	ret = arena_write_bytes(arena, arena->info2off, super,
--			sizeof(struct btt_sb));
-+			sizeof(struct btt_sb), NVDIMM_IO_NORMAL);
- 	if (ret)
- 		return ret;
- 
- 	return arena_write_bytes(arena, arena->infooff, super,
--			sizeof(struct btt_sb));
-+			sizeof(struct btt_sb), NVDIMM_IO_NORMAL);
- }
- 
- static int btt_info_read(struct arena_info *arena, struct btt_sb *super)
- {
- 	WARN_ON(!super);
- 	return arena_read_bytes(arena, arena->infooff, super,
--			sizeof(struct btt_sb));
-+			sizeof(struct btt_sb), NVDIMM_IO_NORMAL);
- }
- 
- /*
-@@ -79,16 +79,17 @@ static int btt_info_read(struct arena_info *arena, struct btt_sb *super)
-  *   mapping is in little-endian
-  *   mapping contains 'E' and 'Z' flags as desired
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index a49b325..07bd5ba 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -8,6 +8,10 @@
+  * PFN_SG_LAST - pfn references a page and is the last scatterlist entry
+  * PFN_DEV - pfn is not covered by system memmap by default
+  * PFN_MAP - pfn has a dynamic page mapping established by a device driver
++ * PFN_MAYBE_UNMAPPABLE - flag used by SG and others to indicate that the
++ *	pfn may sometimes be unmappable and should not be mixed with
++ *	code that tries to map it.
++ * PFN_IOMEM - pfn points to io memory
   */
--static int __btt_map_write(struct arena_info *arena, u32 lba, __le32 mapping)
-+static int __btt_map_write(struct arena_info *arena, u32 lba, __le32 mapping,
-+		u32 flags)
- {
- 	u64 ns_off = arena->mapoff + (lba * MAP_ENT_SIZE);
+ #define PFN_FLAGS_MASK (((u64) ~PAGE_MASK) << (BITS_PER_LONG_LONG - PAGE_SHIFT))
+ #define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
+@@ -15,6 +19,11 @@
+ #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
+ #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
  
- 	WARN_ON(lba >= arena->external_nlba);
--	return arena_write_bytes(arena, ns_off, &mapping, MAP_ENT_SIZE);
-+	return arena_write_bytes(arena, ns_off, &mapping, MAP_ENT_SIZE, flags);
- }
- 
- static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
--			u32 z_flag, u32 e_flag)
-+			u32 z_flag, u32 e_flag, u32 rwb_flags)
- {
- 	u32 ze;
- 	__le32 mapping_le;
-@@ -127,11 +128,11 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
- 	}
- 
- 	mapping_le = cpu_to_le32(mapping);
--	return __btt_map_write(arena, lba, mapping_le);
-+	return __btt_map_write(arena, lba, mapping_le, rwb_flags);
- }
- 
- static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
--			int *trim, int *error)
-+			int *trim, int *error, u32 rwb_flags)
- {
- 	int ret;
- 	__le32 in;
-@@ -140,7 +141,7 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
- 
- 	WARN_ON(lba >= arena->external_nlba);
- 
--	ret = arena_read_bytes(arena, ns_off, &in, MAP_ENT_SIZE);
-+	ret = arena_read_bytes(arena, ns_off, &in, MAP_ENT_SIZE, rwb_flags);
- 	if (ret)
- 		return ret;
- 
-@@ -189,7 +190,7 @@ static int btt_log_read_pair(struct arena_info *arena, u32 lane,
- 	WARN_ON(!ent);
- 	return arena_read_bytes(arena,
- 			arena->logoff + (2 * lane * LOG_ENT_SIZE), ent,
--			2 * LOG_ENT_SIZE);
-+			2 * LOG_ENT_SIZE, NVDIMM_IO_NORMAL);
- }
- 
- static struct dentry *debugfs_root;
-@@ -335,7 +336,7 @@ static int btt_log_read(struct arena_info *arena, u32 lane,
-  * btt_flog_write is the wrapper for updating the freelist elements
-  */
- static int __btt_log_write(struct arena_info *arena, u32 lane,
--			u32 sub, struct log_entry *ent)
-+			u32 sub, struct log_entry *ent, u32 flags)
- {
- 	int ret;
- 	/*
-@@ -350,13 +351,13 @@ static int __btt_log_write(struct arena_info *arena, u32 lane,
- 	void *src = ent;
- 
- 	/* split the 16B write into atomic, durable halves */
--	ret = arena_write_bytes(arena, ns_off, src, log_half);
-+	ret = arena_write_bytes(arena, ns_off, src, log_half, flags);
- 	if (ret)
- 		return ret;
- 
- 	ns_off += log_half;
- 	src += log_half;
--	return arena_write_bytes(arena, ns_off, src, log_half);
-+	return arena_write_bytes(arena, ns_off, src, log_half, flags);
- }
- 
- static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
-@@ -364,7 +365,7 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
- {
- 	int ret;
- 
--	ret = __btt_log_write(arena, lane, sub, ent);
-+	ret = __btt_log_write(arena, lane, sub, ent, NVDIMM_IO_ATOMIC);
- 	if (ret)
- 		return ret;
- 
-@@ -397,7 +398,7 @@ static int btt_map_init(struct arena_info *arena)
- 		size_t size = min(mapsize, chunk_size);
- 
- 		ret = arena_write_bytes(arena, arena->mapoff + offset, zerobuf,
--				size);
-+				size, NVDIMM_IO_NORMAL);
- 		if (ret)
- 			goto free;
- 
-@@ -428,10 +429,10 @@ static int btt_log_init(struct arena_info *arena)
- 		log.old_map = cpu_to_le32(arena->external_nlba + i);
- 		log.new_map = cpu_to_le32(arena->external_nlba + i);
- 		log.seq = cpu_to_le32(LOG_SEQ_INIT);
--		ret = __btt_log_write(arena, i, 0, &log);
-+		ret = __btt_log_write(arena, i, 0, &log, NVDIMM_IO_NORMAL);
- 		if (ret)
- 			return ret;
--		ret = __btt_log_write(arena, i, 1, &zerolog);
-+		ret = __btt_log_write(arena, i, 1, &zerolog, NVDIMM_IO_NORMAL);
- 		if (ret)
- 			return ret;
- 	}
-@@ -470,7 +471,7 @@ static int btt_freelist_init(struct arena_info *arena)
- 
- 		/* Check if map recovery is needed */
- 		ret = btt_map_read(arena, le32_to_cpu(log_new.lba), &map_entry,
--				NULL, NULL);
-+				NULL, NULL, NVDIMM_IO_NORMAL);
- 		if (ret)
- 			return ret;
- 		if ((le32_to_cpu(log_new.new_map) != map_entry) &&
-@@ -480,7 +481,8 @@ static int btt_freelist_init(struct arena_info *arena)
- 			 * to complete the map write. So fix up the map.
- 			 */
- 			ret = btt_map_write(arena, le32_to_cpu(log_new.lba),
--					le32_to_cpu(log_new.new_map), 0, 0);
-+					le32_to_cpu(log_new.new_map), 0, 0,
-+					NVDIMM_IO_NORMAL);
- 			if (ret)
- 				return ret;
- 		}
-@@ -875,7 +877,7 @@ static int btt_data_read(struct arena_info *arena, struct page *page,
- 	u64 nsoff = to_namespace_offset(arena, lba);
- 	void *mem = kmap_atomic(page);
- 
--	ret = arena_read_bytes(arena, nsoff, mem + off, len);
-+	ret = arena_read_bytes(arena, nsoff, mem + off, len, NVDIMM_IO_ATOMIC);
- 	kunmap_atomic(mem);
- 
- 	return ret;
-@@ -888,7 +890,7 @@ static int btt_data_write(struct arena_info *arena, u32 lba,
- 	u64 nsoff = to_namespace_offset(arena, lba);
- 	void *mem = kmap_atomic(page);
- 
--	ret = arena_write_bytes(arena, nsoff, mem + off, len);
-+	ret = arena_write_bytes(arena, nsoff, mem + off, len, NVDIMM_IO_ATOMIC);
- 	kunmap_atomic(mem);
- 
- 	return ret;
-@@ -931,10 +933,12 @@ static int btt_rw_integrity(struct btt *btt, struct bio_integrity_payload *bip,
- 		mem = kmap_atomic(bv.bv_page);
- 		if (rw)
- 			ret = arena_write_bytes(arena, meta_nsoff,
--					mem + bv.bv_offset, cur_len);
-+					mem + bv.bv_offset, cur_len,
-+					NVDIMM_IO_ATOMIC);
- 		else
- 			ret = arena_read_bytes(arena, meta_nsoff,
--					mem + bv.bv_offset, cur_len);
-+					mem + bv.bv_offset, cur_len,
-+					NVDIMM_IO_ATOMIC);
- 
- 		kunmap_atomic(mem);
- 		if (ret)
-@@ -976,7 +980,8 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 
- 		cur_len = min(btt->sector_size, len);
- 
--		ret = btt_map_read(arena, premap, &postmap, &t_flag, &e_flag);
-+		ret = btt_map_read(arena, premap, &postmap, &t_flag, &e_flag,
-+				NVDIMM_IO_ATOMIC);
- 		if (ret)
- 			goto out_lane;
- 
-@@ -1006,7 +1011,7 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 			barrier();
- 
- 			ret = btt_map_read(arena, premap, &new_map, &t_flag,
--						&e_flag);
-+						&e_flag, NVDIMM_IO_ATOMIC);
- 			if (ret)
- 				goto out_rtt;
- 
-@@ -1093,7 +1098,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		}
- 
- 		lock_map(arena, premap);
--		ret = btt_map_read(arena, premap, &old_postmap, NULL, NULL);
-+		ret = btt_map_read(arena, premap, &old_postmap, NULL, NULL,
-+				NVDIMM_IO_ATOMIC);
- 		if (ret)
- 			goto out_map;
- 		if (old_postmap >= arena->internal_nlba) {
-@@ -1110,7 +1116,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		if (ret)
- 			goto out_map;
- 
--		ret = btt_map_write(arena, premap, new_postmap, 0, 0);
-+		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
-+			NVDIMM_IO_NORMAL);
- 		if (ret)
- 			goto out_map;
- 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index 4b76af2..0ecb001 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -273,7 +273,8 @@ static int __nd_btt_probe(struct nd_btt *nd_btt,
- 	if (!btt_sb || !ndns || !nd_btt)
- 		return -ENODEV;
- 
--	if (nvdimm_read_bytes(ndns, SZ_4K, btt_sb, sizeof(*btt_sb)))
-+	if (nvdimm_read_bytes(ndns, SZ_4K, btt_sb, sizeof(*btt_sb),
-+		NVDIMM_IO_NORMAL))
- 		return -ENXIO;
- 
- 	if (nvdimm_namespace_capacity(ndns) < SZ_16M)
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 93d128d..a89f63e 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -228,7 +228,8 @@ u64 nd_sb_checksum(struct nd_gen_sb *nd_gen_sb)
- EXPORT_SYMBOL(nd_sb_checksum);
- 
- static int nsio_rw_bytes(struct nd_namespace_common *ndns,
--		resource_size_t offset, void *buf, size_t size, int rw)
-+		resource_size_t offset, void *buf, size_t size, int rw,
-+		u32 flags)
- {
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
-@@ -259,7 +260,8 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 		 * work around this collision.
- 		 */
- 		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
--				&& (!ndns->claim || !is_nd_btt(ndns->claim))) {
-+				&& !(flags & NVDIMM_IO_ATOMIC)
-+				&& !ndns->claim) {
- 			long cleared;
- 
- 			cleared = nvdimm_clear_poison(&ndns->dev,
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 77d0321..12be701 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -33,6 +33,11 @@ enum {
- 	INT_LBASIZE_ALIGNMENT = 64,
- };
- 
-+enum {
-+	NVDIMM_IO_NORMAL = 0,
-+	NVDIMM_IO_ATOMIC = 1,
-+};
++#ifdef CONFIG_SG_UNMAPPABLE
++#define PFN_MAYBE_UNMAPPABLE (1ULL << (BITS_PER_LONG_LONG - 5))
++#define PFN_IOMEM (1ULL << (BITS_PER_LONG_LONG - 6))
++#endif
 +
- struct nd_poison {
- 	u64 start;
- 	u64 length;
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 335c817..efa87f4 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -357,7 +357,8 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 	if (!is_nd_pmem(nd_pfn->dev.parent))
- 		return -ENODEV;
- 
--	if (nvdimm_read_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb)))
-+	if (nvdimm_read_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb),
-+		NVDIMM_IO_NORMAL))
- 		return -ENXIO;
- 
- 	if (memcmp(pfn_sb->signature, sig, PFN_SIG_LEN) != 0)
-@@ -662,7 +663,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
- 
--	return nvdimm_write_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb));
-+	return nvdimm_write_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb),
-+		NVDIMM_IO_NORMAL);
+ #define PFN_FLAGS_TRACE \
+ 	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
+ 	{ PFN_SG_LAST,	"SG_LAST" }, \
+@@ -44,6 +53,32 @@ static inline bool pfn_t_has_page(pfn_t pfn)
+ 	return (pfn.val & PFN_MAP) == PFN_MAP || (pfn.val & PFN_DEV) == 0;
  }
  
- /*
-diff --git a/include/linux/nd.h b/include/linux/nd.h
-index fa66aee..a1a46d3 100644
---- a/include/linux/nd.h
-+++ b/include/linux/nd.h
-@@ -48,7 +48,7 @@ struct nd_namespace_common {
- 	struct device dev;
- 	struct device *claim;
- 	int (*rw_bytes)(struct nd_namespace_common *, resource_size_t offset,
--			void *buf, size_t size, int rw);
-+			void *buf, size_t size, int rw, u32 flags);
- };
- 
- static inline struct nd_namespace_common *to_ndns(struct device *dev)
-@@ -134,9 +134,9 @@ static inline struct nd_namespace_blk *to_nd_namespace_blk(const struct device *
-  * @buf is up-to-date upon return from this routine.
-  */
- static inline int nvdimm_read_bytes(struct nd_namespace_common *ndns,
--		resource_size_t offset, void *buf, size_t size)
-+		resource_size_t offset, void *buf, size_t size, u32 flags)
++#ifdef CONFIG_SG_UNMAPPABLE
++
++static inline bool pfn_t_is_always_mappable(pfn_t pfn)
++{
++	return !(pfn.val & (PFN_MAYBE_UNMAPPABLE | PFN_IOMEM));
++}
++
++static inline bool pfn_t_is_iomem(pfn_t pfn)
++{
++	return pfn.val & PFN_IOMEM;
++}
++
++#else
++
++static inline bool pfn_t_is_always_mappable(pfn_t pfn)
++{
++	return 1;
++}
++
++static inline bool pfn_t_is_iomem(pfn_t pfn)
++{
++	return 0;
++}
++
++#endif /* CONFIG_SG_UNMAPPABLE */
++
+ static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
  {
--	return ndns->rw_bytes(ndns, offset, buf, size, READ);
-+	return ndns->rw_bytes(ndns, offset, buf, size, READ, flags);
+ 	return pfn.val & ~PFN_FLAGS_MASK;
+@@ -63,7 +98,7 @@ static inline phys_addr_t pfn_t_to_phys(pfn_t pfn)
+ 
+ static inline void *pfn_t_to_virt(pfn_t pfn)
+ {
+-	if (pfn_t_has_page(pfn))
++	if (pfn_t_has_page(pfn) && !pfn_t_is_iomem(pfn))
+ 		return __va(pfn_t_to_phys(pfn));
+ 	return NULL;
+ }
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index cce3af9..8cb662c 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -71,6 +71,12 @@ static inline struct scatterlist *sg_chain_ptr(struct scatterlist *sg)
+ 	return sg->__chain;
  }
  
++#ifdef CONFIG_SG_UNMAPPABLE
++#define SG_STICKY_FLAGS (PFN_SG_LAST | PFN_MAYBE_UNMAPPABLE)
++#else
++#define SG_STICKY_FLAGS PFN_SG_LAST
++#endif
++
  /**
-@@ -152,9 +152,9 @@ static inline int nvdimm_read_bytes(struct nd_namespace_common *ndns,
-  * to media is handled internal to the @ndns driver, if at all.
-  */
- static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
--		resource_size_t offset, void *buf, size_t size)
-+		resource_size_t offset, void *buf, size_t size, u32 flags)
+  * sg_assign_pfn - Assign a given pfn to an SG entry
+  * @sg:		   SG entry
+@@ -83,10 +89,14 @@ static inline struct scatterlist *sg_chain_ptr(struct scatterlist *sg)
+  **/
+ static inline void sg_assign_pfn(struct scatterlist *sg, pfn_t pfn)
  {
--	return ndns->rw_bytes(ndns, offset, buf, size, WRITE);
-+	return ndns->rw_bytes(ndns, offset, buf, size, WRITE, flags);
+-	u64 flags = sg->__pfn.val & PFN_SG_LAST;
++	u64 flags = sg->__pfn.val & SG_STICKY_FLAGS;
+ 
+ 	pfn.val &= ~(PFN_SG_CHAIN | PFN_SG_LAST);
+-	BUG_ON(!pfn_t_has_page(pfn));
++
++	if (likely(pfn_t_is_always_mappable(sg->__pfn))) {
++		BUG_ON(!pfn_t_has_page(pfn) ||
++		       !pfn_t_is_always_mappable(pfn));
++	}
+ 
+ #ifdef CONFIG_DEBUG_SG
+ 	BUG_ON(sg->sg_magic != SG_MAGIC);
+@@ -159,6 +169,8 @@ static inline struct page *sg_page(struct scatterlist *sg)
+ 	BUG_ON(sg->sg_magic != SG_MAGIC);
+ 	BUG_ON(sg_is_chain(sg));
+ #endif
++
++	BUG_ON(!pfn_t_is_always_mappable(sg->__pfn));
+ 	return pfn_t_to_page(sg->__pfn);
  }
  
- #define MODULE_ALIAS_ND_DEVICE(type) \
+@@ -172,6 +184,11 @@ static inline pfn_t sg_pfn_t(struct scatterlist *sg)
+ 	return sg->__pfn;
+ }
+ 
++static inline bool sg_is_always_mappable(struct scatterlist *sg)
++{
++	return pfn_t_is_always_mappable(sg->__pfn);
++}
++
+ /**
+  * sg_set_buf - Set sg entry to point at given data
+  * @sg:		 SG entry
+@@ -207,6 +224,9 @@ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
+ static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
+ 			    struct scatterlist *sgl)
+ {
++	BUG_ON(pfn_t_is_always_mappable(prv->__pfn) !=
++	       pfn_t_is_always_mappable(sgl->__pfn));
++
+ 	prv[prv_nents - 1].__pfn = __pfn_to_pfn_t(0, PFN_SG_CHAIN);
+ 	prv[prv_nents - 1].__chain = sgl;
+ }
+@@ -283,6 +303,13 @@ int sg_nents_for_len(struct scatterlist *sg, u64 len);
+ struct scatterlist *sg_next(struct scatterlist *);
+ struct scatterlist *sg_last(struct scatterlist *s, unsigned int);
+ void sg_init_table(struct scatterlist *, unsigned int);
++
++#ifdef CONFIG_SG_UNMAPPABLE
++void sg_init_unmappable_table(struct scatterlist *sg, unsigned int nents);
++#else
++#define sg_init_unmappable_table sg_init_table
++#endif
++
+ void sg_init_one(struct scatterlist *, const void *, unsigned int);
+ int sg_split(struct scatterlist *in, const int in_mapped_nents,
+ 	     const off_t skip, const int nb_splits,
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 0c8b78a..a953cf7 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -538,6 +538,17 @@ config SG_POOL
+ 	 selected by a driver or an API which whishes to allocate chained
+ 	 scatterlist.
+ 
++config SG_UNMAPPABLE
++	def_bool n
++	help
++	  This turns on support to enable safely putting unmappable memory
++	  into scatter-gather lists. It turns on a number of BUG_ONs
++	  that may prevent drivers that expect memory to always be mappable
++	  from working with drivers that are using unmappable memory.
++	  This should be selected by a driver wishing to enable
++	  DMA transfers to unmappable memory (eg. Peer-2-Peer DMA transfers
++	  or struct page-less dma).
++
+ #
+ # sg chaining option
+ #
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index c6cf822..6bc33e0 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -143,6 +143,36 @@ void sg_init_table(struct scatterlist *sgl, unsigned int nents)
+ }
+ EXPORT_SYMBOL(sg_init_table);
+ 
++#ifdef CONFIG_SG_UNMAPPABLE
++
++/**
++ * sg_init_unmappable_table - Initialize SG table for use with unmappable
++ *	memory
++ * @sgl:	   The SG table
++ * @nents:	   Number of entries in table
++ *
++ * Notes:
++ *   Unmappable scatterlists have more restrictions than regular scatter
++ *   list that may trigger unexpected BUG_ONs with code that is not ready
++ *   for them. However, they are safe to add IO memory or struct page-less
++ *   memory.
++ *
++ *   Also see the notes for sg_init_table
++ *
++ **/
++void sg_init_unmappable_table(struct scatterlist *sgl, unsigned int nents)
++{
++	unsigned int i;
++
++	sg_init_table(sgl, nents);
++
++	for (i = 0; i < nents; i++)
++		sgl[i].__pfn.val |= PFN_MAYBE_UNMAPPABLE;
++}
++EXPORT_SYMBOL(sg_init_unmappable_table);
++
++#endif
++
+ /**
+  * sg_init_one - Initialize a single entry sg list
+  * @sg:		 SG entry
 -- 
-2.9.3
+2.1.4
 
 _______________________________________________
 Linux-nvdimm mailing list
