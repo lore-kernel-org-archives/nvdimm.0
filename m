@@ -1,11 +1,13 @@
-From: =?utf-8?B?5oKo5aW977ya?= <tmlgf-GANB5pFd+8w@public.gmane.org>
-Subject: =?utf-8?B?5aaC5L2V6IOc5Lu76L2m6Ze0566h55CG5bel5L2c?=
-Date: Wed, 24 May 2017 20:21:21 +0800
-Message-ID: <0F1F2F25DDEAD4E416014072D7E34499@oy.net>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: [RFC PATCH 12/16] bvec: use sg_set_pfn when mapping a bio to an sgl
+Date: Wed, 24 May 2017 15:42:23 -0600
+Message-ID: <1495662147-18277-13-git-send-email-logang@deltatee.com>
+References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1495662147-18277-1-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,213 +17,161 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-LS0tLS0tLS0g6L2s5Y+R6YKu5Lu25L+h5oGvIC0tLS0tLS0tDQrlj5Hku7bkurrvvJp0bWxnZkBv
-eS5uZXQNCuWPkemAgeaXpeacn++8mjIwMTctNS0yNCAgMjA6MjE6MjcNCuaUtuS7tuS6uu+8mmxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCuWFqOiDveWei+i9pumXtOS4u+S7u+WunuaImOaKgOiD
-veivvueoi+eJueiJsuS4juiDjOaZrw0KIDA25pyIMTAtMTHml6Xmt7HlnLMgICAwNuaciDI0LTI1
-5pel5LiK5rW3ICAgDQror77nqIvog4zmma8NCiAgICDliLbpgKDnrqHnkIbkuJPlrrbpmYjlv5fl
-jY7ogIHluIjlhajlm73njovniYzor77nqIvigJTigJTjgIrlhajog73lnovovabpl7TkuLvku7vl
-rp7miJjmioDog73orq3nu4PjgIvvvIzlnKjlhajlm73mjqjlub/kuIPlubTku6XmnaXvvIzmt7Hl
-j5flm73lhoXlpJbkvIHkuJroj4HojrHjgILlnKjlhajlm73miJDlip/kuL7lip7lhazlvIDor77k
-uKTnmb7kvZnlnLrmrKHvvIzlubbooqvlvojlpJrkvIHkuJrlvJXov5vlhoXorq3vvIzlsKTlhbbm
-mK/kuK3lrZflpLTkvIHkuJrlkozoo4XlpIfliLbpgKDkvIHkuJrjgILlnKjkuL7lip7ov4fnqIvk
-uK3vvIzlrablkZjlr7nor77nqIvlkozogIHluIjnmoTor4Tku7flj6/nu7zlkIjkuLrlhavkuKrl
-rZfvvJrigJzlrp7lnKjigJ3jgIHigJzlrp7nlKjigJ3jgIHigJzlrp7miJjigJ3jgIHigJzlrp7p
-mYXigJ3jgIINCg0KICAgIOS4g+W5tOaOoue0ouOAgeS4g+W5tOWPkeWxleOAgeS4g+W5tOayieeU
-uO+8jOmZiOW/l+WNjuiAgeW4iOacieS6huabtOWkmueahOaEn+aCn+S4juaPkOWNh+OAguS4uuS6
-hui/m+S4gOatpeWKoOW8uuivvueoi+eahOacieaViOaAp+OAgeezu+e7n+aAp+WSjOenkeWtpuaA
-p++8jDIwMTblubTlho3luqbmlLnniYjljYfnuqfjgILor77nqIvku6Xnp5HlrabnrqHnkIbkuLrn
-urLjgIHku6Xns7vnu5/ljJbkuLrpoobjgIHku6XpspzmtLvnmoTpl67popjkuLrkvovvvIzliqnl
-ipvlub/lpKflrablkZjmlLnlj5gg4oCc5Lmg5oOv5oCn5oCd57u04oCd77yM5pS+5byD4oCc57uP
-6aqM5Li6546L4oCd55qE566h55CG6aOO5qC844CCMjAxNueJiOOAiuWFqOiDveWei+i9pumXtOS4
-u+S7u+WunuaImOaKgOiDveiuree7g+OAi+S4ieWkp+eJueeCue+8mg0KDQogICAgMeOAgea3seWF
-pea1heWHuu+8jOeUn+WKqOaYk+aHgu+8jOWvueW5tOm+hOWSjOWtpiDljobmsqHmnInopoHmsYLv
-vJsNCiAgICAy44CB566A5Y2V5pyJ5pWI77yM54G15rS76auY5pWI77yM6JC95Zyw5oCn5by677yb
-DQogICAgM+OAgeaXoOmrmOWkp+S4iuamguW/te+8jOabtOaXoOeQhuiuuuaAp+aooeW8j+aIluao
-oeWei+OAgg0KDQogICAg5a2m5ZGY6K++5ZCO5L2c5Lia5oiW5a6e6Le177yI5oSf5oKf5LiO5pS2
-6I6377yJDQogICAg77yI5LiA77yJ5oSf5oKf6YOo5Lu9DQogICAgMeOAgeWvueS6juW3peS9nOS4
-reWHuueOsOeahOmXrumimO+8jOaIkeS7rOmAmuW4uOabtOWkmuWcsOW9kuagueS6juKAnOayn+mA
-mumanOeijeKAneOAgeKAnOWNj+iwg+S4jeW9k+KAneOAgeKAnOaJp+ihjOS4jeW8uuKAneetiemX
-rumimOOAguS7juihqOmdouS4iueci+ehruWunuaYr+i/meS6m+mXrumimOOAguS7lOe7huaDs+aD
-s++8jOS5n+iuuOS9oOS8muWPkeeOsOS4gOS6m+eWkemXru+8mumavumBk+S6uuS4juS6uuS5i+mX
-tOWwsemCo+S5iOmavuS7peayn+mAmuWQl++8n+mDqOmXqOS5i+mXtOmavumBk+WwsemCo+S5iOma
-vuS7peWNj+iwg+WQl++8n+WxnuS4i+mavumBk+WwseS4jeaDs+aKiuW3peS9nOWujOaIkOWQl++8
-n+WvueatpOmXrumimOS9oOacieS9leaEn+aDs++8nw0KDQogICAgMuOAgeWmguaenOivtOeuoeeQ
-huaYr+S4gOmXqOiJuuacr++8jOiAjOiJuuacr+acgOeyvuWNjueahOWwseaYr+WIm+aEj+OAguS9
-nOS4uuS4gOWQjeS4reWfuuWxgumihuWvvOiAhe+8jOmdouWvueaWsOeUn+S7o+aIluiAheWPpuex
-u+eahOWRmOW3pee+pOS9k++8jOWcqOi/h+W+gOeahOeuoeeQhui/h+eoi+S4reaJgOWBmueahOS4
-gOWIh++8jOaYr+WFiOiuqeS9oOaIluS9oOeahOS4iuWPuOaEn+WFtOi2o++8jOi/mOaYr+WFiOiu
-qeWRmOW3peaEn+WFtOi2o+WRou+8n+euoeeQhueahOWIm+aEj+S9oOacieS6huWQl++8n+WRmOW3
-peWvueS9oOeahOeuoeeQhuaEn+WFtOi2o+S6huWQl++8n+S8mOengOeahOWRmOW3peWFtuWunumc
-gOimgeabtOS8mOengOeahOeuoeeQhuiAheOAgg0KDQogICAgM+OAgemAmui/h+ivpeivvueoi+aI
-keS7rOW3sue7j+efpemBk+S6huS6uueahOesrOS4gOi1hOS6p+aYr+S6uuagvOWwiuS4peOAgueQ
-huino+i1t+adpeWFtuWunuW+iOWuueaYk++8jOWPr+aYr+WBmui1t+adpeecn+eahOW+iOmavuOA
-guWcqOS7iuWQjueahOW3peS9nOS4reS9oOaJk+eul+aAjuagt+WOu+S/neaKpOWlveWRmOW3peea
-hOS6uuagvOWwiuS4peOAgg0KDQogICAg77yI5LqM77yJ5a6e6Le16YOo5Lu9DQogICAgMeOAgeWw
-veeuoeS4reWbveS8geS4mueahOS4gOe6v+WRmOW3peWFtuWunuW3sue7j+W+iOS8mOengOS6hu+8
-jOS9huWcqOW3peWOguaIlui9pumXtOWPquimgeWHuueOsOi0qOmHj+mXrumimOaIluiAheaYr+S6
-pOacn+mXrumimO+8jOWRmOW3pei/mOaYr+e9qui0o+mavumAg+OAguacrOivvueoi+WujOWQjuS9
-oOWbnuWIsOWFrOWPuOaKveWbm+S4quWwj+aXtueahOaXtumXtOermeWIsOS4gOS4quinhuinieiJ
-r+WlveeahOWcsOaWueinguWvn+S4gOS4i+S9oOeahOWRmOW3peS9nOS4mueahOeKtuaAge+8jOWw
-seS8muaYjueZvei0qOmHj+S4uuS7gOS5iOS4jeeos+Wumu+8jOeci+S4iuWOu+eDreeBq+acneWk
-qeS4uuS7gOS5iOaAu+aYr+S6pOS4jeWHuui0p+OAguivt+S9oOinguWvn+WQjuaJvuWHuuWOn+Wb
-oOW5tuWIkua4hee9qui0o+OAgg0KDQogICAgMuOAgeacrOivvueoi+WujOaIkOWQjuivt+S9oOWb
-nuWIsOWFrOWPuOeUqOS4gOW8oEEz55qE57q45oqK5L2g55qE6L2m6Ze05bmz6Z2i5Zu+5YiS5LiL
-5p2l44CC5YaN55So5Y2K5aSp55qE5pe26Ze06KeC5a+f6L2m6Ze055qE5a6e6ZmF5Lq65rWB44CB
-54mp5rWB44CB5L+h5oGv5rWB546w54q277yM5bm25oqK5q+P5LiA5qyh5rWB5Yqo6Lev57q/5Zyo
-QTPnurjkuIrov5vooYzov57mjqXjgILor7fkvaDlho3nnIvnnIvpgqPlvKDlubPpnaLlm77mmK/k
-u4DkuYjnirblhrXvvIzlubbnlLHmraTmjqjmlq3kvaDliLDlupXlh7rkuobku4DkuYjpl67popjj
-gIINCg0KICAgIDPjgIHnm67liY3kuK3lm73lt6XljoLmr4/lpKnlh6DkuY7lj6rlnKjkuLrkuIDk
-uKrpl67popjlv5nnoozvvIzpgqPlsLHmmK/otbbotKfvvIHliLDlupXmmK/orqLljZXph4/lpKrl
-pKfmsqHms5Xmib/lj5fvvIzov5jmmK/nmoTnoa7nlJ/kuqfog73lipvmnInpmZDvvIzmiJbogIXm
-mK/nlJ/kuqfmlYjnjoflpKrkvY7lkaLvvJ/ov5nkuKrpl67popjmiYDmnInkurrpg73og73nrZTl
-vpfkuIrmnaXvvIzkvYblj4jmnInlh6DkuKrkurrnmoTnrZTmoYjmmK/lr7nnmoTlkaLvvJ/lpoLm
-npzmiYDmnInkurrpg73nrZTlr7nkuobvvIzpgqPkuLrku4DkuYjov5jmmK/lpKnlpKnov5nmoLfv
-vJ/lr7nmraTkvaDmnInkvZXmhJ/mg7PvvJ8NCuivvueoi+Wkp+e6sg0K56ys5LiA6K6y44CB56eR
-5a2m566h55CG4oCU4oCU5pa55ZCR5q+U5Yqq5Yqb5pu06YeN6KaBIA0K74G2IOmioOimhuS5oOaD
-r++8jOaRhuiEseS8oOe7nyANCumXrumimDHvvJrlrablvpflpJrnlKjlvpflsJHvvIzlrabml7bm
-mJPnlKjml7bpmr4gDQrpl67popgy77ya57O757uf44CB5pa55rOV44CB5bel5YW35a6e6Le15pe2
-6YO95Y675ZOq5YS/5ZGi77yfIA0K6Zeu6aKYM++8muS4uuS7gOS5iOaIkeS7rOaAu+aYr+W+iOW/
-me+8nyANCumXrumimDTvvJrkuLrku4DkuYjlj6rnn6XpgZPliqDnj63jgIHliqDkurrjgIHliqDo
-rr7lpIfvvJ8g74G2IOmioOimhueuoeS6uueahOe6oOe7k++8jOi9rOWQkeW3peS9nOeahOacrOi6
-qyANCumXrumimDXvvJrnrqHnkIbnmoTmoLjlv4PlsLHmmK/nrqHkurrmmK/kuIDnp43or6/lr7zv
-vJ8gDQrpl67popg277ya566h55CG55qE5qC45b+D5b+F6aG75piv56CU56m25bel5L2c55qE5pys
-6Lqr77yfIO+BtiDlt6XkvZzmnKzouqvlj6rmnInkuKTkuKrpoobln5/vvJrml7bpl7TnoJTnqbbk
-uI7mlrnms5XnoJTnqbYgDQrpl67popg377ya5Li65L2V5bel5L2c5pe26Ze06YKj5LmI6ZW/6ICM
-5Ye66LSn6YKj5LmI5bCR77yfIA0K5pa55rOVMe+8muS6ieWIhuWkuuenku+8jOatpeiwg+S4gOiH
-tO+8gSANCuaWueazlTLvvJrlt6XmrLLlloTlhbbkuovlv4XlhYjliKnlhbblmajvvIEg74G2IOW3
-peWFt+WIhuS6q++8muWHj+Wwkei2hei0n+iNt+WKoOePreeahOWFq+Wkp+imgeeCuSDnrKzkuozo
-rrLjgIHov5vlhaXop5LoibLigJTigJTljpjmuIXoh6rmiJHjgIHorqTnn6XnrqHnkIYgDQrvgbYg
-5Y6Y5riF6Lqr5Lu977yM5qyy5pyb5q+U6IO95Yqb5pu06YeNIA0K6Zeu6aKYMe+8mui9pumXtOS4
-u+S7u+S4juePremVv+WIsOW6leaYr+S4jeaYr+ecn+ato+eahOmihuWvvO+8nyANCumXrumimDLv
-vJrpooblr7zliLDlupXmmK/kurrmiYvov5jmmK/kurrmiY3vvJ8gDQrpl67popgz77ya6aKG5a+8
-55qE5b+F5aSH55qE5Lik5aSn5Z+65pys5p2h5Lu25piv5LuA5LmI77yfIA0K6Zeu6aKYNO+8mumi
-huWvvOeahOS4ieS7tuS6i+S4juS4pOWkp+S7u+WKoe+8nyANCuimgeeCuTHvvJrlkZjlt6XmmYvl
-jYfluLjniq/nmoTlm5vlpKfplJnor68g74G2IOiupOefpeeuoeeQhueahOS4ieWkp+WfuuacrOeJ
-ueeCuSANCumXrumimDXvvJrnrqHnkIbkuLrkvZXkuI7ml7bpl7Tmga/mga/nm7jlhbPvvJ8gDQrp
-l67popg277ya5Li65LuA5LmI6YOo5bGe5a+55L2g55qE566h55CG5LiN5oSf5YW06Laj77yfIA0K
-6Zeu6aKYN++8muWmguS9leWQkeS4iue6p+S4juebuOmCu+mDqOmXqOWAn+WKm++8nyDvgbYg5bel
-5YW35YiG5Lqr77ya5ZCR5LiK57qn5YCf5Yqb55qE5LqU5aSn6KaB54K5IOesrOS4ieiusuOAgeaK
-k+S9j+WFs+mUruKAlOKAlOS9oOeahOW3peS9nOatouS6juS9oOeahOebtOaOpemDqOS4iyANCu+B
-tiDovabpl7TkuLvku7vkv67ouqvkuInku7bkuosgDQrpl67popgx77ya5Zub56eN6Lqr5Lu96KeS
-6Imy77yI5LiN5piv6IO95Yqb77yM6ICM5piv6auY5bqm77yJIA0K6Zeu6aKYMu+8muWvueW+heS8
-geS4muS4juaKpemFrOeahOS4pOenjeW/g+aAge+8iOS4jeaYr+aUtuWFpe+8jOaYr+S7t+WAvO+8
-iSANCumXrumimDPvvJrlr7nlvoXkuIvlsZ7nmoTkuInlpKfopoHngrnvvIjkuI3mmK/pg6jlsZ7m
-l6Dog73vvIzmmK/mhJ/op4nkuI3lr7nvvIkg74G2IOWunuaImOiuree7g++8mueuoeS4jeWlveeP
-remVv++8jOWwseeuoeS4jeWlvei9pumXtCANCumXrumimDTvvJrkuIDlj6Xor53lrprkvY3nj63n
-u4Tplb/op5LoibLvvJ8gDQrpl67popg177ya5LiA5Y+l6K+d5a6a5LmJ54+t6ZW/55qE6IGM6LSj
-77yfIA0K6Zeu6aKYNu+8muePree7hOmVv+acieWTquWbm+Wkp+iHtOWRveeahOW3peS9nOe8uumZ
-kO+8nyANCumXrumimDfvvJrkuLrku4DkuYjmuLjnprvnirbmgIHnmoTkvZzkuJrmsqHmnInmlYjn
-jofvvJ8gDQrmlrnms5Ux77ya54+t57uE6ZW/55qE5Zub5a2X5bel5L2c5rOV77yI55yL44CB5o6S
-44CB6Lef44CB55uv77yJIA0K5pa55rOVMu+8muePremVv+acgOWWnOasoueahOS4pOenjeW3peS9
-nOaWueW8j+aYr+S7gOS5iO+8nyANCuaWueazlTPvvJrnj63plb/ljY/osIPnmoTliqPlir/kuI7m
-nIDkvbPojIPlm7Qg74G2IOeOsOWcuueuoeeQhuW3peWFt++8muKAnOS4ieS4jeWdmuWuiOWOn+WI
-meKAneWGs+WumuS6p+iDvemHiuaUviANCuesrOWbm+iusuOAgeeOsOWcuueuoeeQhuKAlOKAlOS7
-jueOr+iKguWIsOezu+e7n+eahOiupOefpSANCu+BtiDnkIblv7XlhrPlrprlt6XkvZzmiJDmnpwg
-DQrnkIblv7Ux77ya5a6e5bmy5YW05LyB77yM56m66LCI6K+v5LqLIA0K55CG5b+1Mu+8muezu+e7
-n+aAp+WGs+WumumXrumimOino+WGs+eahOeoi+W6piDvgbYg5bi46K+G5piv57O757uf77yM5pu0
-5piv5bqU55SoIA0K6Zeu6aKYMe+8muS7gOS5iOeOsOWcuueuoeeQhueahOS6lOWkp+Wvueixoe+8
-nyANCumXrumimDLvvJrku4DkuYjmmK/njrDlnLrnrqHnkIbnmoTlha3lpKfpobnnm67kuI7kuInl
-pKfmoLjlv4PvvJ8gDQrpl67popgz77ya5LuA5LmI5piv546w5Zy6566h55CG55qE5Zub5aSn5Z+6
-55+z77yfIA0K6Zeu6aKYNO+8muS7gOS5iOaYr+eOsOWcuueuoeeQhueahOS4ieWkp+i0peeslO+8
-nyDvgbYg5a6e5oiY5YiG5LqrIA0K5pa55rOVMe+8mueugOWNleacieaViOWcsOaOjOaPoemDqOmX
-qOeahOW3peS9nOmHjeW/gyANCuaWueazlTLvvJrlpoLkvZXmnoTlu7rnjrDlnLrnmoTkuIDkuKrk
-uK3lv4PkuKTkuKrln7rmnKzngrkg56ys5LqU6K6y44CB5oqK6ISJ5bi46K+G4oCU4oCUUUNE5piv
-5bmy5Ye65p2l55qEIA0K74G2IOayoeenkeWtpuWPquaYr+iQveWQju+8jOayoeW4uOivhuS8muaY
-r+eBvumaviANCuW4uOivhjHvvJrmlYjnjofkuI7nlJ/kuqfog73lipvkuI3mmK/kuIDlm57kuosg
-DQrluLjor4Yy77ya5Y6f55CG5LiO5pa55byP55u45LqS5L2c55SoIA0K5bi46K+GM++8mua1gee6
-v+WMluS4jua1geeoi+WMlueUqOmAlOS4jeS4gCDvgbYg6Zeu6aKY5YiG5p6Q77yaIA0K6Zeu6aKY
-Me+8mu+8iOS5sea1geOAgeWAkua1geOAgee7lea1geeahOW9ouaIkOWIhuaekOS4juWvueetlu+8
-iSANCumXrumimDLvvJrku4DkuYjmmK/moIflh4bljJbnmoTnjrDlnLrnrqHnkIbvvJ8gDQrpl67p
-opgz77ya5LuA5LmI5piv5qCH5YeG5YyW5L2c5Lia77yfIA0K6Zeu6aKYNO+8muS7gOS5iOaYr+S9
-nOS4muagh+WHhuWMlu+8nyANCumXrumimDXvvJrnu4/mtY7liqjkvZznmoTkuInkuI3ljp/liJnv
-vJ8g74G2IOW3peWFt+WIhuS6q++8mui9puS6p+eJqea1geeuoeeQhueahOKAnOS4ieS4jeaUv+et
-luKAnSANCu+BtiDmioDog73orq3nu4PvvJrlubPooaHmlYjnjofkuI7lubPooaHmjZ/lpLHnjofn
-moTorqHnrpcgDQrvgbYg5a6e5oiY5YiG5Lqr77ya55Sf5Lqn57q/5LiN5bmz6KGh55qE5Y2B5aSn
-5Y6f5Zug5YiG5p6QIOesrOWFreiusuOAgeWRmOW3peeuoeeQhuKAlOKAlOi/juWQiOOAgeWuveWu
-ueOAgeWunuWcqOOAgeWdmuaMgSANCuKAuyDmsqHmnInnrqHkuI3lpb3nmoTkurrvvIzlj6rmnInk
-uI3kvJrnrqHnmoTkurogDQropoHngrkx77ya5a+5OTDlkI7lkZjlt6XnrqHnkIbnmoTkuIPlpKfl
-j43mgJ0gDQropoHngrky77ya5a+5OTDlkI7lkZjlt6XnrqHnkIbnmoTkuIPlpKfopoHngrkgDQri
-gLsg5ZGY5bel566h55CG55qE5Z+65pys6Zeu6aKY5YiG5p6QIA0K6Zeu6aKYMe+8muWRmOW3peS4
-uuS7gOS5iOS8mueKr+mUmT8gDQrpl67popgy77ya5ZGY5bel5Li65LuA5LmI5Lya5rWB5aSxPyAN
-CumXrumimDPvvJrmgI7moLfmiY3og73nrqHnkIblpb3kvaDnmoTlkZjlt6U/IO+BtiDlkZjlt6Xn
-rqHnkIblrp7miJjorq3nu4PvvJogDQrmlrnms5Ux77ya5LiK5Y+45pyA5LiN5aal5b2T55qE4oCc
-5YWr5aSn6IKi5L2T6K+t6KiA4oCdIA0K5pa55rOVMu+8muS4iuWPuOacgOS4jeWmpeW9k+eahOKA
-nOWNgeWkp+WPo+WktOivreiogOKAnSANCuaWueazlTPvvJrkuIrlj7jlsIrph43lkZjlt6Xkurrm
-oLznmoTigJzljYHlpKfopoHngrnigJ0gDQrmlrnms5U077ya5aaC5L2V6Z2i5a+55ZGY5bel6KaB
-6IOB55qE4oCc5LqU5aSn5a+5562W4oCdIO+BtiDlt6XlhbfliIbkuqvvvJogDQrlt6Xlhbcx77ya
-5bel5L2c5pWZ5a+84oCc5Zub6Zi25q615rOV4oCd55qE5bqU55SoIA0K5bel5YW3Me+8muWbm+en
-jemXrumimOWRmOW3peeahOeuoeeQhuaWueW8jyANCuivvueoi+S4u+iusg0KICAgIA0KICAgIOmZ
-iOW/l+WNji9TVEVWRU4gQ0hBTiANCiAgICDliLbpgKDnrqHnkIbkuJPlrrYv5bel5ZWG566h55CG
-56GV5aOrIA0KICAgIE1NQ++8iOWItumAoOeuoeeQhuS4reW/g++8iei1hOa3semhvumXriANCiAg
-ICAgICAgICANCiAgICDpmYjogIHluIjljobku7vkuJbnlYzkupTnmb7lvLrml6XotYTkvIHkuJro
-rr7lpIfkuLvnrqHjgIHlt6XoibrlvIDlj5Hnu4/nkIbjgIHliLbpgKDnu4/nkIbnrYnogYzjgILl
-nKjlm73pmYXnn6XlkI3liLbpgKDkvIHkuJrku7vogYzml7bpl7Tplb/ovr7ljYHkuInlubTjgILk
-uI3kvYbmi6XmnInkuLDlr4znmoTnjrDlnLrnrqHnkIblrp7miJjnu4/pqows6ICM5LiU5bel5L2c
-5YW26Ze05pu+5biI5LuO5bCP5bed5LiA5Lmf77yI5pel5pysV0YmSUXnoJTnqbbnrKzkuIDkurrv
-vIzml6XmnKzliLbpgKDkuJrnoJTnqbbnmoTlm73lrp3nuqfkurrnianvvInvvIzkuJPkuJrnoJTn
-qbblt6XkuJrlt6XnqIvnrqHnkIbnp5HlrablkozmtYHnur/ljJbnlJ/kuqflrp7liqHjgILlsKTl
-hbbnsr7pgJrnlLXlrZDjgIHmnLrmorAo5bel56iL5py65qKwL+axvei9puWItumAoC/oiLnoiLbl
-iLbpgKAp44CB5Yi26I2v44CB5paw5p2Q5paZ562J5Yi26YCg5LyB5Lia55qE57K+57uG5YyW546w
-5Zy6566h55CG44CC4oCc5a6e5oiY5oCn5by65LiO5a6e55So5oCn5by677yM5r+A5oOF5bm96buY
-4oCd5piv5Lia55WM5a+56ZmI6ICB5biI55qE5LiA6Ie06K+E5Lu344CCICAgICDku7vliLbpgKDk
-uJrorrLluIjkuI7lkqjor6LluIjlhavlubTku6XmnaXvvIzlt7LliqnmjqjlpJrlrrbmsJHokKXk
-vIHkuJrlrp7njrDkuobot6jotorlvI/lj5HlsZXjgILvvIjlnKjplb/mspnmnInlqIHog5zpm4bl
-m6LjgIHkuIflvoHotKfovabovabmnrbjgIHkvJflhbTmlrDmnZDmlpnnp5HmioDmnInpmZDlhazl
-j7jvvInkuLrlm73lhoXlpJbkuIrljYPlrrbkvIHkuJrnmoTnrqHnkIbkurrlkZjjgIHlpJrmiYDp
-q5jmoKHlrabnlJ/jgIHpg6jliIblm73lrrbnuqfnu4/lvIDljLrmj5Dkvpvov4fln7norq3jgIIg
-ICAgIOmZiOiAgeW4iOabvue7j+i+heWvvOaIluWfueiurei/h+eahOS8geS4muacie+8muS4reWb
-veS4reeUteOAgeS4reWbveS4remTgeOAgeS4reWbveaguOW3peS4miDjgIHkuK3lm73nlJ/nianl
-iLblk4Eg44CB5Lit6Ii56ZuG5Zui44CB5Lit6ZOd6ZuG5Zui44CB5Lit55S15oyv5Y2OKDA4M+WG
-m+W3pSkg44CB5Lit5Zu955+z5rK544CB5Lit5Zu95Y2X6L2m44CB5LiJ5LiA6YeN5bel44CB5b6Q
-5bee6YeN5bel44CB5aiB6IOc6ZuG5Zui44CB56eR5Yqb6L+cKOaWsOadkOaWmSkg44CB5paw5Y2O
-6IGU6ZuG5Zui44CB5Y2O5ram6ZuG5Zui44CB6IGU5oOz6ZuG5Zui44CB5p2+5LiL56m66LCDIOOA
-geWNoeilv+asp+eUteWtkCDjgIHlpKnmsLTljY7lpKkg44CB6KW/6Zeo5a2Q5Yaw566x44CB5Lic
-6aOO5pys55Sw5Y+R5Yqo5py644CB5rW35L+h6ZuG5Zui44CB5aWH55Ge5rG96L2m44CB5rGf6ZOD
-5rG96L2m44CB5LiA5rG944CB5Yib57u06ZuG5Zui44CB5a+M5aOr5pa95LmQ44CB5Lic6L2v6aOe
-5Yip6JKy44CB5rGf6Zi05rWa6ZGr56eR5oqA44CB5YWI6ZSL6I2v5Lia44CB55m+5Li96Z6L5Lia
-44CB5Lmd6Ziz5a6255S144CB576O55qE5a6255So55S15Zmo44CB5Y2X6YO955S15rqQ5Yqo5Yqb
-44CB5aWl5omY56uL5aSr44CBQ1RT44CB5rKZ5aOr5ZCJ5omT6YeN5bel77yI5b635Zu977yJ44CB
-5b635Zu96LSd5bCU44CB6Iux5o+Q5bCU77yI5Yqg5ou/5aSn77yJ44CB5LyK5oiI5bCU55S15rCU
-562J44CCICAgICDpmYjogIHluIjokZfmnInjgIrlj43nnIHkuK3lm73lvI/lt6XljoLnrqHnkIbj
-gIvjgIHjgIo5MOWQjuS4gOe6v+WRmOW3peeuoeeQhuOAi+etieS5puexjeOAguW5tuWPl+W+iOWk
-muS8geS4mueahOeDreaNp+S4juaUr+aMgeOAguOAiumrmOeyvuW6puagh+WHhuW3peaXtuezu+e7
-n+aehOetkeOAi+OAgeOAiuWKs+WKqOWumumineeuoeeQhuezu+e7n+aehOetkeOAi+OAgeOAiuWm
-guS9leWunueOsOWkmuaKgOiDveWRmOW3peeahOWfueWFu+OAi+OAgeOAiui9pumXtC/nj63nu4Tl
-rp7miJjmioDog73orq3nu4PjgIvjgIHjgIrnsr7nm4rnlJ/kuqfku7flgLzmtYHkvZPns7vnmoTm
-noTlu7rjgIvnrYnor77popjnmoTlrp7miJjmgKflnKjlhajlm73lj5fliLDkvJflpJrlrablkZjn
-moTlpb3or4TvvIEgIA0K6K++56iL5a+56LGhDQrkvIHkuJrljoLplb/jgIHliLbpgKDkuJrnlJ/k
-uqfmgLvnm5HjgIHnlJ/kuqfnu4/nkIbjgIHovabpl7TkuLvku7vlj4rnlJ/kuqfliLbpgKDkuLvn
-rqHlj4rkuIDnur/lubLpg6gNCuWkhyAg5rOoDQror77nqIvotLnnlKjvvJozMjAw5YWDMeS6uu+8
-iOWQq+i1hOaWmei0ueOAgeWNiOmkkOOAgeiMtueCueOAgeWPkeelqO+8iQ0K6K++56iL5pe26Ze0
-77yaMDbmnIgxMC0xMeaXpea3seWcsyAgIDA25pyIMjQtMjXml6XkuIrmtbcNCuaKpeWQjeWSqOiv
-oueUteivne+8mjA3NTUtNjEyLTg4LjAzNSAgIDAxMC01MTYtNjEuODYzICAgMDIxLTMxMi02MS41
-ODAgIOWcqOe6v+WSqOivoiBRUe+8mjY5ODM0MzYgICANCijlnKjnur/miqXlkI3or7fkuIvovb3p
-mYTku7bmiqXlkI3lm57miafooajloavlhpnlkI7lj5HpgIEg6Iez5L+h566xIDY5ODM0MzZAcXEu
-Y29tKQ0K4paT4paT4paT4paT4paT4paT4paT4paT4paTIOWfuSDorq0g5ZueIOaJpyDooagg77yI
-5q2k6KGo5aSN5Yi25pyJ5pWI77yJ4paT4paT4paT4paT4paT4paT4paT4paTDQrmiJHljZXkvY3l
-hbHvvL/vvL/vvL8g5Lq65oql5ZCN5Y+C5YqgIDIwMTflubRfX19fX19fIOWcqCBfX19fX18g5Li+
-5Yqe55qEIO+8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8
-v++8v++8v++8v+ePre+8mw0K5Y2V5L2N5ZCN56ew77ya77y/77y/77y/77y/77y/77y/77y/77y/
-77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/
-77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/DQrln7norq3ogZTns7vkurrvvJrvvL/v
-vL/vvL/vvL/vvL/vvL/vvL/vvL/vvL8g6IGU57O755S16K+d77ya77y/77y/77y/77y/77y/77y/
-77y/77y/77y/IOiBlOezu+S8oOecn++8mu+8v++8v++8v++8v++8v++8v++8v++8vw0K56e75Yqo
-55S16K+d77ya77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/77y/IOeUteWtkOmCrueu
-se+8mu+8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8v++8
-vw0K5Y+C5Yqg5Lq65pWw77ya77y/77y/77y/77y/IOS6uiDotLnnlKjmgLvorqHvvJrvvL/vvL/v
-vL/vvL/vvL/vvL8g5YWDDQrlj4Ig5LyaIOS6uu+8mu+8v++8v++8v++8v++8v++8v++8v++8vyDm
-iYDku7vogYzliqHvvJrvvL/vvL/vvL/vvL/vvL/vvL/vvL/vvL/vvL/vvL8g56e75Yqo55S16K+d
-77ya77y/77y/77y/77y/77y/77y/77y/77y/77y/DQrlj4Ig5LyaIOS6uu+8mu+8v++8v++8v++8
-v++8v++8v++8v++8vyDmiYDku7vogYzliqHvvJrvvL/vvL/vvL/vvL/vvL/vvL/vvL/vvL/vvL/v
-vL8g56e75Yqo55S16K+d77ya77y/77y/77y/77y/77y/77y/77y/77y/77y/DQrlj4Ig5LyaIOS6
-uu+8mu+8v++8v++8v++8v++8v++8v++8v++8vyDmiYDku7vogYzliqHvvJrvvL/vvL/vvL/vvL/v
-vL/vvL/vvL/vvL/vvL/vvL8g56e75Yqo55S16K+d77ya77y/77y/77y/77y/77y/77y/77y/77y/
-77y/IA0K4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ
-4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ
-4pWQ4pWQ4pWQ4pWQ4pWQ4pWQCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAx
-Lm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Going through bvec_page and sg_set_page now implies a conversion
+to and then from a struct page as well as a potential unnecessary BUG_ON
+check. Instead we go directly from bv_pfn to sg_set_pfn.
+
+This is done easily with the following coccinelle patch:
+
+@@
+expression sg;
+expression bv;
+expression len;
+expression offset;
+@@
+-sg_set_page(sg, bvec_page(&bv), len, offset);
++sg_set_pfn(sg, bv.bv_pfn, len, offset);
+
+@@
+expression sg;
+expression bv;
+expression len;
+expression offset;
+@@
+-sg_set_page(sg, bvec_page(bv), len, offset);
++sg_set_pfn(sg, bv->bv_pfn, len, offset);
+
+Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+---
+ block/blk-integrity.c                                  |  3 +--
+ block/blk-merge.c                                      |  4 ++--
+ drivers/block/drbd/drbd_worker.c                       |  3 +--
+ drivers/md/dm-crypt.c                                  | 14 ++++++--------
+ drivers/md/dm-verity-target.c                          |  2 +-
+ drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd_cb.c |  4 ++--
+ 6 files changed, 13 insertions(+), 17 deletions(-)
+
+diff --git a/block/blk-integrity.c b/block/blk-integrity.c
+index 2ba66f7..5ed474b 100644
+--- a/block/blk-integrity.c
++++ b/block/blk-integrity.c
+@@ -114,8 +114,7 @@ int blk_rq_map_integrity_sg(struct request_queue *q, struct bio *bio,
+ 				sg = sg_next(sg);
+ 			}
+ 
+-			sg_set_page(sg, bvec_page(&iv), iv.bv_len,
+-				    iv.bv_offset);
++			sg_set_pfn(sg, iv.bv_pfn, iv.bv_len, iv.bv_offset);
+ 			segments++;
+ 		}
+ 
+diff --git a/block/blk-merge.c b/block/blk-merge.c
+index 93e87fe..1cf9df6 100644
+--- a/block/blk-merge.c
++++ b/block/blk-merge.c
+@@ -412,7 +412,7 @@ __blk_segment_map_sg(struct request_queue *q, struct bio_vec *bvec,
+ 			*sg = sg_next(*sg);
+ 		}
+ 
+-		sg_set_page(*sg, bvec_page(bvec), nbytes, bvec->bv_offset);
++		sg_set_pfn(*sg, bvec->bv_pfn, nbytes, bvec->bv_offset);
+ 		(*nsegs)++;
+ 	}
+ 	*bvprv = *bvec;
+@@ -422,7 +422,7 @@ static inline int __blk_bvec_map_sg(struct request_queue *q, struct bio_vec bv,
+ 		struct scatterlist *sglist, struct scatterlist **sg)
+ {
+ 	*sg = sglist;
+-	sg_set_page(*sg, bvec_page(&bv), bv.bv_len, bv.bv_offset);
++	sg_set_pfn(*sg, bv.bv_pfn, bv.bv_len, bv.bv_offset);
+ 	return 1;
+ }
+ 
+diff --git a/drivers/block/drbd/drbd_worker.c b/drivers/block/drbd/drbd_worker.c
+index 719d025..90baaea 100644
+--- a/drivers/block/drbd/drbd_worker.c
++++ b/drivers/block/drbd/drbd_worker.c
+@@ -327,8 +327,7 @@ void drbd_csum_bio(struct crypto_ahash *tfm, struct bio *bio, void *digest)
+ 	crypto_ahash_init(req);
+ 
+ 	bio_for_each_segment(bvec, bio, iter) {
+-		sg_set_page(&sg, bvec_page(&bvec), bvec.bv_len,
+-			    bvec.bv_offset);
++		sg_set_pfn(&sg, bvec.bv_pfn, bvec.bv_len, bvec.bv_offset);
+ 		ahash_request_set_crypt(req, &sg, NULL, sg.length);
+ 		crypto_ahash_update(req);
+ 		/* REQ_OP_WRITE_SAME has only one segment,
+diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
+index a10a9c7..9b93c83 100644
+--- a/drivers/md/dm-crypt.c
++++ b/drivers/md/dm-crypt.c
+@@ -1089,15 +1089,15 @@ static int crypt_convert_block_aead(struct crypt_config *cc,
+ 	sg_init_table(dmreq->sg_in, 4);
+ 	sg_set_buf(&dmreq->sg_in[0], sector, sizeof(uint64_t));
+ 	sg_set_buf(&dmreq->sg_in[1], org_iv, cc->iv_size);
+-	sg_set_page(&dmreq->sg_in[2], bvec_page(&bv_in), cc->sector_size,
+-		    bv_in.bv_offset);
++	sg_set_pfn(&dmreq->sg_in[2], bv_in.bv_pfn, cc->sector_size,
++		   bv_in.bv_offset);
+ 	sg_set_buf(&dmreq->sg_in[3], tag, cc->integrity_tag_size);
+ 
+ 	sg_init_table(dmreq->sg_out, 4);
+ 	sg_set_buf(&dmreq->sg_out[0], sector, sizeof(uint64_t));
+ 	sg_set_buf(&dmreq->sg_out[1], org_iv, cc->iv_size);
+-	sg_set_page(&dmreq->sg_out[2], bvec_page(&bv_out), cc->sector_size,
+-		    bv_out.bv_offset);
++	sg_set_pfn(&dmreq->sg_out[2], bv_out.bv_pfn, cc->sector_size,
++		   bv_out.bv_offset);
+ 	sg_set_buf(&dmreq->sg_out[3], tag, cc->integrity_tag_size);
+ 
+ 	if (cc->iv_gen_ops) {
+@@ -1180,12 +1180,10 @@ static int crypt_convert_block_skcipher(struct crypt_config *cc,
+ 	sg_out = &dmreq->sg_out[0];
+ 
+ 	sg_init_table(sg_in, 1);
+-	sg_set_page(sg_in, bvec_page(&bv_in), cc->sector_size,
+-		    bv_in.bv_offset);
++	sg_set_pfn(sg_in, bv_in.bv_pfn, cc->sector_size, bv_in.bv_offset);
+ 
+ 	sg_init_table(sg_out, 1);
+-	sg_set_page(sg_out, bvec_page(&bv_out), cc->sector_size,
+-		    bv_out.bv_offset);
++	sg_set_pfn(sg_out, bv_out.bv_pfn, cc->sector_size, bv_out.bv_offset);
+ 
+ 	if (cc->iv_gen_ops) {
+ 		/* For READs use IV stored in integrity metadata */
+diff --git a/drivers/md/dm-verity-target.c b/drivers/md/dm-verity-target.c
+index d444c7a..7df3ab1 100644
+--- a/drivers/md/dm-verity-target.c
++++ b/drivers/md/dm-verity-target.c
+@@ -412,7 +412,7 @@ int verity_for_io_block(struct dm_verity *v, struct dm_verity_io *io,
+ 		 * until you consider the typical block size is 4,096B.
+ 		 * Going through this loops twice should be very rare.
+ 		 */
+-		sg_set_page(&sg, bvec_page(&bv), len, bv.bv_offset);
++		sg_set_pfn(&sg, bv.bv_pfn, len, bv.bv_offset);
+ 		ahash_request_set_crypt(req, &sg, NULL, len);
+ 		r = verity_complete_op(res, crypto_ahash_update(req));
+ 
+diff --git a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd_cb.c b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd_cb.c
+index 10637e0..88a478a 100644
+--- a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd_cb.c
++++ b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd_cb.c
+@@ -724,8 +724,8 @@ kiblnd_setup_rd_kiov(struct lnet_ni *ni, struct kib_tx *tx,
+ 
+ 		fragnob = min((int)(kiov->bv_len - offset), nob);
+ 
+-		sg_set_page(sg, bvec_page(kiov), fragnob,
+-			    kiov->bv_offset + offset);
++		sg_set_pfn(sg, kiov->bv_pfn, fragnob,
++			   kiov->bv_offset + offset);
+ 		sg = sg_next(sg);
+ 		if (!sg) {
+ 			CERROR("lacking enough sg entries to map tx\n");
+-- 
+2.1.4
