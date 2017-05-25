@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B320C21A16ECF
- for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:19:57 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 09/22] uuid: hoist uuid_is_null() helper from libnvdimm
-Date: Sun, 28 May 2017 13:19:55 +0300
-Message-Id: <20170528102008.30276-10-hch@lst.de>
-In-Reply-To: <20170528102008.30276-1-hch@lst.de>
-References: <20170528102008.30276-1-hch@lst.de>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0267021B0E54D
+ for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 23:47:01 -0700 (PDT)
+From: "Huang, Ying" <ying.huang@intel.com>
+Subject: [PATCH -mm 05/13] block,
+ THP: Make block_device_operations.rw_page support THP
+Date: Thu, 25 May 2017 14:46:27 +0800
+Message-Id: <20170525064635.2832-6-ying.huang@intel.com>
+In-Reply-To: <20170525064635.2832-1-ying.huang@intel.com>
+References: <20170525064635.2832-1-ying.huang@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,112 +23,147 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Minchan Kim <minchan@kernel.org>, Huang Ying <ying.huang@intel.com>, Ross Zwisler <ross.zwisler@intel.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hoist the libnvdimm helper as an inline helper to linux/uuid.h
-using an auxiliary const variable uuid_null in lib/uuid.c.
+From: Huang Ying <ying.huang@intel.com>
 
-[hch: also add the guid variant.  Both do the same but I'd like
-to keep casts to a minimum]
+The .rw_page in struct block_device_operations is used by the swap
+subsystem to read/write the page contents from/into the corresponding
+swap slot in the swap device.  To support the THP (Transparent Huge
+Page) swap optimization, the .rw_page is enhanced to support to
+read/write THP if possible.
 
-The common helper uses the new abstract type uuid_t * instead of
-u8 *.
-
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[hch: added guid_is_null]
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@intel.com>
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: linux-nvdimm@lists.01.org
 ---
- drivers/nvdimm/btt_devs.c |  9 +--------
- include/linux/uuid.h      | 13 +++++++++++++
- lib/uuid.c                |  5 +++++
- 3 files changed, 19 insertions(+), 8 deletions(-)
+ drivers/block/brd.c           |  6 +++++-
+ drivers/block/zram/zram_drv.c |  2 ++
+ drivers/nvdimm/btt.c          |  4 +++-
+ drivers/nvdimm/pmem.c         | 42 +++++++++++++++++++++++++++++++-----------
+ 4 files changed, 41 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index ae00dc0d9791..4c989bb9a8a0 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -222,13 +222,6 @@ struct device *nd_btt_create(struct nd_region *nd_region)
- 	return dev;
- }
- 
--static bool uuid_is_null(u8 *uuid)
--{
--	static const u8 null_uuid[16];
--
--	return (memcmp(uuid, null_uuid, 16) == 0);
--}
--
- /**
-  * nd_btt_arena_is_valid - check if the metadata layout is valid
-  * @nd_btt:	device with BTT geometry and backing device info
-@@ -249,7 +242,7 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
- 	if (memcmp(super->signature, BTT_SIG, BTT_SIG_LEN) != 0)
- 		return false;
- 
--	if (!uuid_is_null(super->parent_uuid))
-+	if (!guid_is_null((guid_t *)&super->parent_uuid))
- 		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
- 			return false;
- 
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index b4b147f52d6c..06224311b0d0 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -35,6 +35,9 @@ typedef struct {
-  */
- #define	UUID_STRING_LEN		36
- 
-+extern const guid_t guid_null;
-+extern const uuid_t uuid_null;
-+
- static inline bool guid_equal(const guid_t *u1, const guid_t *u2)
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 57b574f2f66a..4240d2a9dcf9 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -324,7 +324,11 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ 		       struct page *page, bool is_write)
  {
- 	return memcmp(u1, u2, sizeof(guid_t)) == 0;
-@@ -45,6 +48,11 @@ static inline void guid_copy(guid_t *dst, const guid_t *src)
- 	memcpy(dst, src, sizeof(guid_t));
- }
- 
-+static inline bool guid_is_null(guid_t *guid)
-+{
-+	return guid_equal(guid, &guid_null);
-+}
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+-	int err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
++	int err;
 +
- static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
++	if (PageTransHuge(page))
++		return -ENOTSUPP;
++	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
+ 	page_endio(page, is_write, err);
+ 	return err;
+ }
+diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
+index 5f2a862d8e31..09b11286c927 100644
+--- a/drivers/block/zram/zram_drv.c
++++ b/drivers/block/zram/zram_drv.c
+@@ -1049,6 +1049,8 @@ static int zram_rw_page(struct block_device *bdev, sector_t sector,
+ 	struct zram *zram;
+ 	struct bio_vec bv;
+ 
++	if (PageTransHuge(page))
++		return -ENOTSUPP;
+ 	zram = bdev->bd_disk->private_data;
+ 
+ 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 983718b8fd9b..46d4a0bd2ae6 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1248,8 +1248,10 @@ static int btt_rw_page(struct block_device *bdev, sector_t sector,
+ 		struct page *page, bool is_write)
  {
- 	return memcmp(u1, u2, sizeof(uuid_t)) == 0;
-@@ -55,6 +63,11 @@ static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
- 	memcpy(dst, src, sizeof(uuid_t));
+ 	struct btt *btt = bdev->bd_disk->private_data;
++	unsigned int len;
+ 
+-	btt_do_bvec(btt, NULL, page, PAGE_SIZE, 0, is_write, sector);
++	len = hpage_nr_pages(page) * PAGE_SIZE;
++	btt_do_bvec(btt, NULL, page, len, 0, is_write, sector);
+ 	page_endio(page, is_write, 0);
+ 	return 0;
+ }
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index c544d466ea51..e644115d56a7 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -78,22 +78,40 @@ static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
+ static void write_pmem(void *pmem_addr, struct page *page,
+ 		unsigned int off, unsigned int len)
+ {
+-	void *mem = kmap_atomic(page);
+-
+-	memcpy_to_pmem(pmem_addr, mem + off, len);
+-	kunmap_atomic(mem);
++	unsigned int chunk;
++	void *mem;
++
++	while (len) {
++		mem = kmap_atomic(page);
++		chunk = min_t(unsigned int, len, PAGE_SIZE);
++		memcpy_to_pmem(pmem_addr, mem + off, chunk);
++		kunmap_atomic(mem);
++		len -= chunk;
++		off = 0;
++		page++;
++		pmem_addr += PAGE_SIZE;
++	}
  }
  
-+static inline bool uuid_is_null(uuid_t *uuid)
-+{
-+	return uuid_equal(uuid, &uuid_null);
-+}
+ static int read_pmem(struct page *page, unsigned int off,
+ 		void *pmem_addr, unsigned int len)
+ {
++	unsigned int chunk;
+ 	int rc;
+-	void *mem = kmap_atomic(page);
+-
+-	rc = memcpy_mcsafe(mem + off, pmem_addr, len);
+-	kunmap_atomic(mem);
+-	if (rc)
+-		return -EIO;
++	void *mem;
 +
- void generate_random_uuid(unsigned char uuid[16]);
++	while (len) {
++		mem = kmap_atomic(page);
++		chunk = min_t(unsigned int, len, PAGE_SIZE);
++		rc = memcpy_mcsafe(mem + off, pmem_addr, chunk);
++		kunmap_atomic(mem);
++		if (rc)
++			return -EIO;
++		len -= chunk;
++		off = 0;
++		page++;
++		pmem_addr += PAGE_SIZE;
++	}
+ 	return 0;
+ }
  
- extern void guid_gen(guid_t *u);
-diff --git a/lib/uuid.c b/lib/uuid.c
-index 003bf6823003..25145bfb0eaa 100644
---- a/lib/uuid.c
-+++ b/lib/uuid.c
-@@ -21,6 +21,11 @@
- #include <linux/uuid.h>
- #include <linux/random.h>
+@@ -184,9 +202,11 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 		       struct page *page, bool is_write)
+ {
+ 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
++	unsigned int len;
+ 	int rc;
  
-+const guid_t guid_null;
-+EXPORT_SYMBOL(guid_null);
-+const uuid_t uuid_null;
-+EXPORT_SYMBOL(uuid_null);
-+
- const u8 guid_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
- const u8 uuid_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+-	rc = pmem_do_bvec(pmem, page, PAGE_SIZE, 0, is_write, sector);
++	len = hpage_nr_pages(page) * PAGE_SIZE;
++	rc = pmem_do_bvec(pmem, page, len, 0, is_write, sector);
  
+ 	/*
+ 	 * The ->rw_page interface is subtle and tricky.  The core
 -- 
 2.11.0
 
