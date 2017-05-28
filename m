@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B558A21A18AA9
- for <linux-nvdimm@lists.01.org>; Mon,  1 May 2017 04:32:38 -0700 (PDT)
-Date: Mon, 1 May 2017 19:32:32 +0800
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: KASLR causes intermittent boot failures on some systems
-Message-ID: <20170501113232.GA24218@x1>
-References: <x49shlk700k.fsf@segfault.boston.devel.redhat.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <x49shlk700k.fsf@segfault.boston.devel.redhat.com>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 77B0021A16EC7
+ for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:20:29 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 17/22] partitions/ldm: switch to use uuid_t
+Date: Sun, 28 May 2017 13:20:03 +0300
+Message-Id: <20170528102008.30276-18-hch@lst.de>
+In-Reply-To: <20170528102008.30276-1-hch@lst.de>
+References: <20170528102008.30276-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,50 +17,108 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: keescook@chromium.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, mingo@kernel.org, dyoung@redhat.com, thgarnie@google.com
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+And the uuid helpers.
 
-The root cause has been found out finally. It's caused by code bug in
-sync_global_pgds which is wrong for loop count calculation.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ block/partitions/ldm.c | 10 +++++-----
+ block/partitions/ldm.h |  6 ++----
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
-Will post patch.
+diff --git a/block/partitions/ldm.c b/block/partitions/ldm.c
+index edcea70674c9..bbf929e80b94 100644
+--- a/block/partitions/ldm.c
++++ b/block/partitions/ldm.c
+@@ -115,7 +115,7 @@ static bool ldm_parse_privhead(const u8 *data, struct privhead *ph)
+ 		ldm_error("PRIVHEAD disk size doesn't match real disk size");
+ 		return false;
+ 	}
+-	if (uuid_be_to_bin(data + 0x0030, (uuid_be *)ph->disk_id)) {
++	if (uuid_to_bin(data + 0x0030, &ph->disk_id)) {
+ 		ldm_error("PRIVHEAD contains an invalid GUID.");
+ 		return false;
+ 	}
+@@ -234,7 +234,7 @@ static bool ldm_compare_privheads (const struct privhead *ph1,
+ 		(ph1->logical_disk_size  == ph2->logical_disk_size)	&&
+ 		(ph1->config_start       == ph2->config_start)		&&
+ 		(ph1->config_size        == ph2->config_size)		&&
+-		!memcmp (ph1->disk_id, ph2->disk_id, GUID_SIZE));
++		uuid_equal(&ph1->disk_id, &ph2->disk_id));
+ }
+ 
+ /**
+@@ -557,7 +557,7 @@ static struct vblk * ldm_get_disk_objid (const struct ldmdb *ldb)
+ 
+ 	list_for_each (item, &ldb->v_disk) {
+ 		struct vblk *v = list_entry (item, struct vblk, list);
+-		if (!memcmp (v->vblk.disk.disk_id, ldb->ph.disk_id, GUID_SIZE))
++		if (uuid_equal(&v->vblk.disk.disk_id, &ldb->ph.disk_id))
+ 			return v;
+ 	}
+ 
+@@ -892,7 +892,7 @@ static bool ldm_parse_dsk3 (const u8 *buffer, int buflen, struct vblk *vb)
+ 	disk = &vb->vblk.disk;
+ 	ldm_get_vstr (buffer + 0x18 + r_diskid, disk->alt_name,
+ 		sizeof (disk->alt_name));
+-	if (uuid_be_to_bin(buffer + 0x19 + r_name, (uuid_be *)disk->disk_id))
++	if (uuid_to_bin(buffer + 0x19 + r_name, &disk->disk_id))
+ 		return false;
+ 
+ 	return true;
+@@ -927,7 +927,7 @@ static bool ldm_parse_dsk4 (const u8 *buffer, int buflen, struct vblk *vb)
+ 		return false;
+ 
+ 	disk = &vb->vblk.disk;
+-	memcpy (disk->disk_id, buffer + 0x18 + r_name, GUID_SIZE);
++	uuid_copy(&disk->disk_id, (uuid_t *)(buffer + 0x18 + r_name));
+ 	return true;
+ }
+ 
+diff --git a/block/partitions/ldm.h b/block/partitions/ldm.h
+index 374242c0971a..f4c6055df956 100644
+--- a/block/partitions/ldm.h
++++ b/block/partitions/ldm.h
+@@ -112,8 +112,6 @@ struct frag {				/* VBLK Fragment handling */
+ 
+ /* In memory LDM database structures. */
+ 
+-#define GUID_SIZE		16
+-
+ struct privhead {			/* Offsets and sizes are in sectors. */
+ 	u16	ver_major;
+ 	u16	ver_minor;
+@@ -121,7 +119,7 @@ struct privhead {			/* Offsets and sizes are in sectors. */
+ 	u64	logical_disk_size;
+ 	u64	config_start;
+ 	u64	config_size;
+-	u8	disk_id[GUID_SIZE];
++	uuid_t	disk_id;
+ };
+ 
+ struct tocblock {			/* We have exactly two bitmaps. */
+@@ -154,7 +152,7 @@ struct vblk_dgrp {			/* VBLK Disk Group */
+ };
+ 
+ struct vblk_disk {			/* VBLK Disk */
+-	u8	disk_id[GUID_SIZE];
++	uuid_t	disk_id;
+ 	u8	alt_name[128];
+ };
+ 
+-- 
+2.11.0
 
-Thanks
-Baoquan
-
-On 04/07/17 at 10:41am, Jeff Moyer wrote:
-> Hi,
-> 
-> commit 021182e52fe01 ("x86/mm: Enable KASLR for physical mapping memory
-> regions") causes some of my systems with persistent memory (whether real
-> or emulated) to fail to boot with a couple of different crash
-> signatures.  The first signature is a NMI watchdog lockup of all but 1
-> cpu, which causes much difficulty in extracting useful information from
-> the console.  The second variant is an invalid paging request, listed
-> below.
-> 
-> On some systems, I haven't hit this problem at all.  Other systems
-> experience a failed boot maybe 20-30% of the time.  To reproduce it,
-> configure some emulated pmem on your system.  You can find directions
-> for that here: https://nvdimm.wiki.kernel.org/
-> 
-> Install ndctl (https://github.com/pmem/ndctl).
-> Configure the namespace:
-> # ndctl create-namespace -f -e namespace0.0 -m memory
-> 
-> Then just reboot several times (5 should be enough), and hopefully
-> you'll hit the issue.
-> 
-> I've attached both my .config and the dmesg output from a successful
-> boot at the end of this mail.
-> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
