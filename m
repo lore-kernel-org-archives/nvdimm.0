@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 45AA421B0E538
- for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 14:43:20 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Wed, 24 May 2017 15:42:26 -0600
-Message-Id: <1495662147-18277-16-git-send-email-logang@deltatee.com>
-In-Reply-To: <1495662147-18277-1-git-send-email-logang@deltatee.com>
-References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
-Subject: [RFC PATCH 15/16] dma-mapping: introduce and use unmappable safe
- sg_virt call
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 6DE7121A16EC7
+ for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:20:49 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 21/22] tmpfs: generate random sb->s_uuid
+Date: Sun, 28 May 2017 13:20:07 +0300
+Message-Id: <20170528102008.30276-22-hch@lst.de>
+In-Reply-To: <20170528102008.30276-1-hch@lst.de>
+References: <20170528102008.30276-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,73 +22,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Johannes Berg <johannes.berg@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ming Lei <ming.lei@canonical.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce sg_try_virt which is safe to call with a potentially
-unmappable sgl. sg_try_virt returns NULL in cases that the sgl doesn't
-have an accessible virtual address to return.
+From: Amir Goldstein <amir73il@gmail.com>
 
-Then, in dma_map_sg_attrs, we use the new function instead of sg_virt
-when marking memory as initialized.
+This is used by overlayfs to encode intrasystem unique file handles.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
+Suggested-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- include/linux/dma-mapping.h |  9 +++++++--
- include/linux/scatterlist.h | 16 ++++++++++++++++
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ mm/shmem.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 4f3eece..5ef1ab5 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -241,8 +241,13 @@ static inline int dma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
- 	int i, ents;
- 	struct scatterlist *s;
+diff --git a/mm/shmem.c b/mm/shmem.c
+index e67d6ba4e98e..391f2dcca727 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -75,6 +75,7 @@ static struct vfsmount *shm_mnt;
+ #include <uapi/linux/memfd.h>
+ #include <linux/userfaultfd_k.h>
+ #include <linux/rmap.h>
++#include <linux/uuid.h>
  
--	for_each_sg(sg, s, nents, i)
--		kmemcheck_mark_initialized(sg_virt(s), s->length);
-+	for_each_sg(sg, s, nents, i) {
-+		void *addr = sg_try_virt(sg);
-+
-+		if (addr)
-+			kmemcheck_mark_initialized(addr, s->length);
-+	}
-+
- 	BUG_ON(!valid_dma_direction(dir));
- 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
- 	BUG_ON(ents < 0);
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index 2c54c6c..1e11af9 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -298,6 +298,22 @@ static inline void *sg_virt(struct scatterlist *sg)
- 	return page_address(sg_page(sg)) + sg->offset;
- }
+ #include <linux/uaccess.h>
+ #include <asm/pgtable.h>
+@@ -3761,6 +3762,7 @@ int shmem_fill_super(struct super_block *sb, void *data, int silent)
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	sb->s_flags |= MS_POSIXACL;
+ #endif
++	uuid_gen(&sb->s_uuid);
  
-+/**
-+ * sg_try_virt - Return virtual address of an sg entry or NULL if it is
-+ *	unmappable
-+ * @sg:      SG entry
-+ *
-+ * Description:
-+ *   This is the same as sg_virt but is safe to call with unmappable
-+ *   memory. This function will return NULL in case the sg is is
-+ *   unmappable.
-+ *
-+ **/
-+static inline void *sg_try_virt(struct scatterlist *sg)
-+{
-+	return pfn_t_to_virt(sg->__pfn);
-+}
-+
- int sg_nents(struct scatterlist *sg);
- int sg_nents_for_len(struct scatterlist *sg, u64 len);
- struct scatterlist *sg_next(struct scatterlist *);
+ 	inode = shmem_get_inode(sb, NULL, S_IFDIR | sbinfo->mode, 0, VM_NORESERVE);
+ 	if (!inode)
 -- 
-2.1.4
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
