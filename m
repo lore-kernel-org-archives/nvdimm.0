@@ -1,22 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wr0-x241.google.com (mail-wr0-x241.google.com
- [IPv6:2a00:1450:400c:c0c::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4DBAE21A134AE
- for <linux-nvdimm@lists.01.org>; Thu,  4 May 2017 23:54:09 -0700 (PDT)
-Received: by mail-wr0-x241.google.com with SMTP id v42so3416407wrc.3
- for <linux-nvdimm@lists.01.org>; Thu, 04 May 2017 23:54:09 -0700 (PDT)
-Date: Fri, 5 May 2017 08:54:04 +0200
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2] x86, uaccess: introduce copy_from_iter_wt for pmem /
- writethrough operations
-Message-ID: <20170505065404.llj4ym3thrmmlhyo@gmail.com>
-References: <20170427063054.soejyqocqqrihfdw@gmail.com>
- <149340820800.28724.16189291963486607562.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <149340820800.28724.16189291963486607562.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DA91C21A16ECF
+ for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:19:40 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 05/22] uuid: remove uuid_be defintions from the uapi header
+Date: Sun, 28 May 2017 13:19:51 +0300
+Message-Id: <20170528102008.30276-6-hch@lst.de>
+In-Reply-To: <20170528102008.30276-1-hch@lst.de>
+References: <20170528102008.30276-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,66 +17,91 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, Ingo Molnar <mingo@redhat.com>, viro@zeniv.linux.org.uk, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+We don't use uuid_be and the UUID_BE constants in any uapi headers, so make
+them private to the kernel.
 
-* Dan Williams <dan.j.williams@intel.com> wrote:
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ include/linux/uuid.h      | 15 +++++++++++++++
+ include/uapi/linux/uuid.h | 16 ----------------
+ 2 files changed, 15 insertions(+), 16 deletions(-)
 
-> The pmem driver has a need to transfer data with a persistent memory
-> destination and be able to rely on the fact that the destination writes
-> are not cached. It is sufficient for the writes to be flushed to a
-> cpu-store-buffer (non-temporal / "movnt" in x86 terms), as we expect
-> userspace to call fsync() to ensure data-writes have reached a
-> power-fail-safe zone in the platform. The fsync() triggers a REQ_FUA or
-> REQ_FLUSH to the pmem driver which will turn around and fence previous
-> writes with an "sfence".
-> 
-> Implement a __copy_from_user_inatomic_wt, memcpy_page_wt, and memcpy_wt,
-> that guarantee that the destination buffer is not dirty in the cpu cache
-> on completion. The new copy_from_iter_wt and sub-routines will be used
-> to replace the "pmem api" (include/linux/pmem.h +
-> arch/x86/include/asm/pmem.h). The availability of copy_from_iter_wt()
-> and memcpy_wt() are gated by the CONFIG_ARCH_HAS_UACCESS_WT config
-> symbol, and fallback to copy_from_iter_nocache() and plain memcpy()
-> otherwise.
-> 
-> This is meant to satisfy the concern from Linus that if a driver wants
-> to do something beyond the normal nocache semantics it should be
-> something private to that driver [1], and Al's concern that anything
-> uaccess related belongs with the rest of the uaccess code [2].
-> 
-> [1]: https://lists.01.org/pipermail/linux-nvdimm/2017-January/008364.html
-> [2]: https://lists.01.org/pipermail/linux-nvdimm/2017-April/009942.html
-> 
-> Cc: <x86@kernel.org>
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Jeff Moyer <jmoyer@redhat.com>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: Al Viro <viro@zeniv.linux.org.uk>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Matthew Wilcox <mawilcox@microsoft.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
-> Changes since the initial RFC:
-> * s/writethru/wt/ since we already have ioremap_wt(), set_memory_wt(),
->   etc. (Ingo)
+diff --git a/include/linux/uuid.h b/include/linux/uuid.h
+index 2d095fc60204..30fb13018e29 100644
+--- a/include/linux/uuid.h
++++ b/include/linux/uuid.h
+@@ -18,6 +18,21 @@
+ 
+ #include <uapi/linux/uuid.h>
+ 
++typedef struct {
++	__u8 b[16];
++} uuid_be;
++
++#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
++((uuid_be)								\
++{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
++   ((b) >> 8) & 0xff, (b) & 0xff,					\
++   ((c) >> 8) & 0xff, (c) & 0xff,					\
++   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
++
++#define NULL_UUID_BE							\
++	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
++		0x00, 0x00, 0x00, 0x00)
++
+ /*
+  * The length of a UUID string ("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+  * not including trailing NUL.
+diff --git a/include/uapi/linux/uuid.h b/include/uapi/linux/uuid.h
+index 3738e5fb6a4d..0099756c4bac 100644
+--- a/include/uapi/linux/uuid.h
++++ b/include/uapi/linux/uuid.h
+@@ -24,10 +24,6 @@ typedef struct {
+ 	__u8 b[16];
+ } uuid_le;
+ 
+-typedef struct {
+-	__u8 b[16];
+-} uuid_be;
+-
+ #define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
+ ((uuid_le)								\
+ {{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
+@@ -35,20 +31,8 @@ typedef struct {
+    (c) & 0xff, ((c) >> 8) & 0xff,					\
+    (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
+ 
+-#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
+-((uuid_be)								\
+-{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
+-   ((b) >> 8) & 0xff, (b) & 0xff,					\
+-   ((c) >> 8) & 0xff, (c) & 0xff,					\
+-   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
+-
+ #define NULL_UUID_LE							\
+ 	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+ 		0x00, 0x00, 0x00, 0x00)
+ 
+-#define NULL_UUID_BE							\
+-	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+-		0x00, 0x00, 0x00, 0x00)
+-
+-
+ #endif /* _UAPI_LINUX_UUID_H_ */
+-- 
+2.11.0
 
-Looks good to me. I suspect you'd like to carry this in the nvdimm tree?
-
-Acked-by: Ingo Molnar <mingo@kernel.org>
-
-Thanks,
-
-	Ingo
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
