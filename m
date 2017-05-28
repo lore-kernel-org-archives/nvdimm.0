@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DE5DE21A16EED
- for <linux-nvdimm@lists.01.org>; Wed, 17 May 2017 10:16:55 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 1/2] mm: avoid spurious 'bad pmd' warning messages
-Date: Wed, 17 May 2017 11:16:38 -0600
-Message-Id: <20170517171639.14501-1-ross.zwisler@linux.intel.com>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D782F21A16EC6
+ for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:19:25 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 02/22] xfs: use uuid_copy() helper to abstract uuid_t
+Date: Sun, 28 May 2017 13:19:48 +0300
+Message-Id: <20170528102008.30276-3-hch@lst.de>
+In-Reply-To: <20170528102008.30276-1-hch@lst.de>
+References: <20170528102008.30276-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,72 +22,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, stable@vger.kernel.org, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When the pmd_devmap() checks were added by:
+From: Amir Goldstein <amir73il@gmail.com>
 
-commit 5c7fb56e5e3f ("mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd")
+uuid_t definition is about to change.
 
-to add better support for DAX huge pages, they were all added to the end of
-if() statements after existing pmd_trans_huge() checks.  So, things like:
-
--       if (pmd_trans_huge(*pmd))
-+       if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
-
-When further checks were added after pmd_trans_unstable() checks by:
-
-commit 7267ec008b5c ("mm: postpone page table allocation until we have page
-to map")
-
-they were also added at the end of the conditional:
-
-+       if (pmd_trans_unstable(fe->pmd) || pmd_devmap(*fe->pmd))
-
-This ordering is fine for pmd_trans_huge(), but doesn't work for
-pmd_trans_unstable().  This is because DAX huge pages trip the bad_pmd()
-check inside of pmd_none_or_trans_huge_or_clear_bad() (called by
-pmd_trans_unstable()), which prints out a warning and returns 1.  So, we do
-end up doing the right thing, but only after spamming dmesg with suspicious
-looking messages:
-
-mm/pgtable-generic.c:39: bad pmd ffff8808daa49b88(84000001006000a5)
-
-Reorder these checks so that pmd_devmap() is checked first, avoiding the
-error messages.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Fixes: commit 7267ec008b5c ("mm: postpone page table allocation until we have page to map")
-Cc: stable@vger.kernel.org
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Brian Foster <bfoster@redhat.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 ---
- mm/memory.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/xfs/xfs_inode_item.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index 6ff5d72..1ee269d 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3061,7 +3061,7 @@ static int pte_alloc_one_map(struct vm_fault *vmf)
- 	 * through an atomic read in C, which is what pmd_trans_unstable()
- 	 * provides.
- 	 */
--	if (pmd_trans_unstable(vmf->pmd) || pmd_devmap(*vmf->pmd))
-+	if (pmd_devmap(*vmf->pmd) || pmd_trans_unstable(vmf->pmd))
- 		return VM_FAULT_NOPAGE;
- 
- 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
-@@ -3690,7 +3690,7 @@ static int handle_pte_fault(struct vm_fault *vmf)
- 		vmf->pte = NULL;
- 	} else {
- 		/* See comment in pte_alloc_one_map() */
--		if (pmd_trans_unstable(vmf->pmd) || pmd_devmap(*vmf->pmd))
-+		if (pmd_devmap(*vmf->pmd) || pmd_trans_unstable(vmf->pmd))
- 			return 0;
- 		/*
- 		 * A regular pmd is established and it can't morph into a huge
+diff --git a/fs/xfs/xfs_inode_item.c b/fs/xfs/xfs_inode_item.c
+index 08cb7d1a4a3a..013cc78d7daf 100644
+--- a/fs/xfs/xfs_inode_item.c
++++ b/fs/xfs/xfs_inode_item.c
+@@ -834,9 +834,7 @@ xfs_inode_item_format_convert(
+ 		in_f->ilf_dsize = in_f32->ilf_dsize;
+ 		in_f->ilf_ino = in_f32->ilf_ino;
+ 		/* copy biggest field of ilf_u */
+-		memcpy(in_f->ilf_u.ilfu_uuid.__u_bits,
+-		       in_f32->ilf_u.ilfu_uuid.__u_bits,
+-		       sizeof(uuid_t));
++		uuid_copy(&in_f->ilf_u.ilfu_uuid, &in_f32->ilf_u.ilfu_uuid);
+ 		in_f->ilf_blkno = in_f32->ilf_blkno;
+ 		in_f->ilf_len = in_f32->ilf_len;
+ 		in_f->ilf_boffset = in_f32->ilf_boffset;
+@@ -851,9 +849,7 @@ xfs_inode_item_format_convert(
+ 		in_f->ilf_dsize = in_f64->ilf_dsize;
+ 		in_f->ilf_ino = in_f64->ilf_ino;
+ 		/* copy biggest field of ilf_u */
+-		memcpy(in_f->ilf_u.ilfu_uuid.__u_bits,
+-		       in_f64->ilf_u.ilfu_uuid.__u_bits,
+-		       sizeof(uuid_t));
++		uuid_copy(&in_f->ilf_u.ilfu_uuid, &in_f64->ilf_u.ilfu_uuid);
+ 		in_f->ilf_blkno = in_f64->ilf_blkno;
+ 		in_f->ilf_len = in_f64->ilf_len;
+ 		in_f->ilf_boffset = in_f64->ilf_boffset;
 -- 
-2.9.4
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
