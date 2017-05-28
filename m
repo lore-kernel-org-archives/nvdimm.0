@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C14212095A581
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:19:22 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 4D6E821A16EC7
+ for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:20:13 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 19/24] partitions/ldm: switch to use uuid_t
-Date: Wed, 31 May 2017 18:18:21 +0200
-Message-Id: <20170531161826.23243-20-hch@lst.de>
-In-Reply-To: <20170531161826.23243-1-hch@lst.de>
-References: <20170531161826.23243-1-hch@lst.de>
+Subject: [PATCH 13/22] block: remove blk_part_pack_uuid
+Date: Sun, 28 May 2017 13:19:59 +0300
+Message-Id: <20170528102008.30276-14-hch@lst.de>
+In-Reply-To: <20170528102008.30276-1-hch@lst.de>
+References: <20170528102008.30276-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,96 +26,61 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73i
 Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-And the uuid helpers.
+This helper was only used by IMA of all things, which would get spurious
+errors if CONFIG_BLOCK is disabled.  Just opencode the call there.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Acked-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- block/partitions/ldm.c | 10 +++++-----
- block/partitions/ldm.h |  6 ++----
- 2 files changed, 7 insertions(+), 9 deletions(-)
+ include/linux/genhd.h               | 11 -----------
+ security/integrity/ima/ima_policy.c |  3 +--
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/block/partitions/ldm.c b/block/partitions/ldm.c
-index edcea70674c9..2a365c756648 100644
---- a/block/partitions/ldm.c
-+++ b/block/partitions/ldm.c
-@@ -115,7 +115,7 @@ static bool ldm_parse_privhead(const u8 *data, struct privhead *ph)
- 		ldm_error("PRIVHEAD disk size doesn't match real disk size");
- 		return false;
- 	}
--	if (uuid_be_to_bin(data + 0x0030, (uuid_be *)ph->disk_id)) {
-+	if (uuid_parse(data + 0x0030, &ph->disk_id)) {
- 		ldm_error("PRIVHEAD contains an invalid GUID.");
- 		return false;
- 	}
-@@ -234,7 +234,7 @@ static bool ldm_compare_privheads (const struct privhead *ph1,
- 		(ph1->logical_disk_size  == ph2->logical_disk_size)	&&
- 		(ph1->config_start       == ph2->config_start)		&&
- 		(ph1->config_size        == ph2->config_size)		&&
--		!memcmp (ph1->disk_id, ph2->disk_id, GUID_SIZE));
-+		uuid_equal(&ph1->disk_id, &ph2->disk_id));
+diff --git a/include/linux/genhd.h b/include/linux/genhd.h
+index acff9437e5c3..e619fae2f037 100644
+--- a/include/linux/genhd.h
++++ b/include/linux/genhd.h
+@@ -219,12 +219,6 @@ static inline struct gendisk *part_to_disk(struct hd_struct *part)
+ 	return NULL;
  }
  
- /**
-@@ -557,7 +557,7 @@ static struct vblk * ldm_get_disk_objid (const struct ldmdb *ldb)
- 
- 	list_for_each (item, &ldb->v_disk) {
- 		struct vblk *v = list_entry (item, struct vblk, list);
--		if (!memcmp (v->vblk.disk.disk_id, ldb->ph.disk_id, GUID_SIZE))
-+		if (uuid_equal(&v->vblk.disk.disk_id, &ldb->ph.disk_id))
- 			return v;
- 	}
- 
-@@ -892,7 +892,7 @@ static bool ldm_parse_dsk3 (const u8 *buffer, int buflen, struct vblk *vb)
- 	disk = &vb->vblk.disk;
- 	ldm_get_vstr (buffer + 0x18 + r_diskid, disk->alt_name,
- 		sizeof (disk->alt_name));
--	if (uuid_be_to_bin(buffer + 0x19 + r_name, (uuid_be *)disk->disk_id))
-+	if (uuid_parse(buffer + 0x19 + r_name, &disk->disk_id))
- 		return false;
- 
- 	return true;
-@@ -927,7 +927,7 @@ static bool ldm_parse_dsk4 (const u8 *buffer, int buflen, struct vblk *vb)
- 		return false;
- 
- 	disk = &vb->vblk.disk;
--	memcpy (disk->disk_id, buffer + 0x18 + r_name, GUID_SIZE);
-+	uuid_copy(&disk->disk_id, (uuid_t *)(buffer + 0x18 + r_name));
- 	return true;
- }
- 
-diff --git a/block/partitions/ldm.h b/block/partitions/ldm.h
-index 374242c0971a..f4c6055df956 100644
---- a/block/partitions/ldm.h
-+++ b/block/partitions/ldm.h
-@@ -112,8 +112,6 @@ struct frag {				/* VBLK Fragment handling */
- 
- /* In memory LDM database structures. */
- 
--#define GUID_SIZE		16
+-static inline int blk_part_pack_uuid(const u8 *uuid_str, u8 *to)
+-{
+-	uuid_be_to_bin(uuid_str, (uuid_be *)to);
+-	return 0;
+-}
 -
- struct privhead {			/* Offsets and sizes are in sectors. */
- 	u16	ver_major;
- 	u16	ver_minor;
-@@ -121,7 +119,7 @@ struct privhead {			/* Offsets and sizes are in sectors. */
- 	u64	logical_disk_size;
- 	u64	config_start;
- 	u64	config_size;
--	u8	disk_id[GUID_SIZE];
-+	uuid_t	disk_id;
- };
+ static inline int disk_max_parts(struct gendisk *disk)
+ {
+ 	if (disk->flags & GENHD_FL_EXT_DEVT)
+@@ -736,11 +730,6 @@ static inline dev_t blk_lookup_devt(const char *name, int partno)
+ 	dev_t devt = MKDEV(0, 0);
+ 	return devt;
+ }
+-
+-static inline int blk_part_pack_uuid(const u8 *uuid_str, u8 *to)
+-{
+-	return -EINVAL;
+-}
+ #endif /* CONFIG_BLOCK */
  
- struct tocblock {			/* We have exactly two bitmaps. */
-@@ -154,7 +152,7 @@ struct vblk_dgrp {			/* VBLK Disk Group */
- };
+ #endif /* _LINUX_GENHD_H */
+diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
+index 3ab1067db624..49fbc3e8f012 100644
+--- a/security/integrity/ima/ima_policy.c
++++ b/security/integrity/ima/ima_policy.c
+@@ -717,8 +717,7 @@ static int ima_parse_rule(char *rule, struct ima_rule_entry *entry)
+ 				break;
+ 			}
  
- struct vblk_disk {			/* VBLK Disk */
--	u8	disk_id[GUID_SIZE];
-+	uuid_t	disk_id;
- 	u8	alt_name[128];
- };
- 
+-			result = blk_part_pack_uuid(args[0].from,
+-						    entry->fsuuid);
++			result = uuid_to_bin(args[0].from, (uuid_t *)&entry->fsuuid);
+ 			if (!result)
+ 				entry->flags |= IMA_FSUUID;
+ 			break;
 -- 
 2.11.0
 
