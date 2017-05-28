@@ -2,12 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AC26021A16ECB
- for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:20:07 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B1F4721A16ECF
+ for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:19:52 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 12/22] xfs: use the common helper uuid_is_null()
-Date: Sun, 28 May 2017 13:19:58 +0300
-Message-Id: <20170528102008.30276-13-hch@lst.de>
+Subject: [PATCH 08/22] uuid: hoist helpers uuid_equal() and uuid_copy() from
+ xfs
+Date: Sun, 28 May 2017 13:19:54 +0300
+Message-Id: <20170528102008.30276-9-hch@lst.de>
 In-Reply-To: <20170528102008.30276-1-hch@lst.de>
 References: <20170528102008.30276-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -26,181 +27,104 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73i
 Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Amir Goldstein <amir73il@gmail.com>
-
-Use the common helper uuid_is_null() and remove the xfs specific
-helper uuid_is_nil().
-
-The common helper does not check for the NULL pointer value as
-xfs helper did, but xfs code never calls the helper with a pointer
-that can be NULL.
-
-Conform comments and warning strings to use the term 'null uuid'
-instead of 'nil uuid', because this is the terminology used by
-lib/uuid.c and its users. It is also the terminology used in
-userspace by libuuid and xfsprogs.
+These helper are used to compare and copy two uuid_t type objects.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[hch: remove now unused uuid.[ch]]
+[hch: also provide the respective guid_ versions]
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Brian Foster <bfoster@redhat.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- fs/xfs/Makefile          |  3 +--
- fs/xfs/uuid.c            | 32 --------------------------------
- fs/xfs/uuid.h            | 23 -----------------------
- fs/xfs/xfs_linux.h       |  1 -
- fs/xfs/xfs_log_recover.c |  6 +++---
- fs/xfs/xfs_mount.c       |  8 ++++----
- 6 files changed, 8 insertions(+), 65 deletions(-)
- delete mode 100644 fs/xfs/uuid.c
- delete mode 100644 fs/xfs/uuid.h
+ fs/xfs/uuid.c        |  6 ------
+ fs/xfs/uuid.h        |  7 -------
+ include/linux/uuid.h | 20 ++++++++++++++++++++
+ lib/test_uuid.c      |  4 ++--
+ 4 files changed, 22 insertions(+), 15 deletions(-)
 
-diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
-index 5c90f82b8f6b..a6e955bfead8 100644
---- a/fs/xfs/Makefile
-+++ b/fs/xfs/Makefile
-@@ -98,8 +98,7 @@ xfs-y				+= xfs_aops.o \
- 				   xfs_sysfs.o \
- 				   xfs_trans.o \
- 				   xfs_xattr.o \
--				   kmem.o \
--				   uuid.o
-+				   kmem.o
- 
- # low-level transaction/log code
- xfs-y				+= xfs_log.o \
 diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
-deleted file mode 100644
-index 737c186ea98b..000000000000
+index b83f76b6d410..29ed78c8637b 100644
 --- a/fs/xfs/uuid.c
-+++ /dev/null
-@@ -1,32 +0,0 @@
--/*
-- * Copyright (c) 2000-2003,2005 Silicon Graphics, Inc.
-- * All Rights Reserved.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it would be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write the Free Software Foundation,
-- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-- */
--#include <xfs.h>
++++ b/fs/xfs/uuid.c
+@@ -55,9 +55,3 @@ uuid_is_nil(uuid_t *uuid)
+ 		if (*cp++) return 0;	/* not nil */
+ 	return 1;	/* is nil */
+ }
 -
 -int
--uuid_is_nil(uuid_t *uuid)
+-uuid_equal(uuid_t *uuid1, uuid_t *uuid2)
 -{
--	int	i;
--	char	*cp = (char *)uuid;
--
--	if (uuid == NULL)
--		return 0;
--	/* implied check of version number here... */
--	for (i = 0; i < sizeof *uuid; i++)
--		if (*cp++) return 0;	/* not nil */
--	return 1;	/* is nil */
+-	return memcmp(uuid1, uuid2, sizeof(uuid_t)) ? 0 : 1;
 -}
 diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
-deleted file mode 100644
-index 5aea49bf0963..000000000000
+index 4f1441ba4fa5..86bbed071e79 100644
 --- a/fs/xfs/uuid.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/*
-- * Copyright (c) 2000-2003,2005 Silicon Graphics, Inc.
-- * All Rights Reserved.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it would be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write the Free Software Foundation,
-- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-- */
--#ifndef __XFS_SUPPORT_UUID_H__
--#define __XFS_SUPPORT_UUID_H__
++++ b/fs/xfs/uuid.h
+@@ -19,13 +19,6 @@
+ #define __XFS_SUPPORT_UUID_H__
+ 
+ extern int uuid_is_nil(uuid_t *uuid);
+-extern int uuid_equal(uuid_t *uuid1, uuid_t *uuid2);
+ extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
+ 
+-static inline void
+-uuid_copy(uuid_t *dst, uuid_t *src)
+-{
+-	memcpy(dst, src, sizeof(uuid_t));
+-}
 -
--extern int uuid_is_nil(uuid_t *uuid);
--
--#endif	/* __XFS_SUPPORT_UUID_H__ */
-diff --git a/fs/xfs/xfs_linux.h b/fs/xfs/xfs_linux.h
-index 2c33d915e550..2d167fe643ec 100644
---- a/fs/xfs/xfs_linux.h
-+++ b/fs/xfs/xfs_linux.h
-@@ -43,7 +43,6 @@ typedef __u32			xfs_nlink_t;
+ #endif	/* __XFS_SUPPORT_UUID_H__ */
+diff --git a/include/linux/uuid.h b/include/linux/uuid.h
+index a9d0fdba5404..b4b147f52d6c 100644
+--- a/include/linux/uuid.h
++++ b/include/linux/uuid.h
+@@ -35,6 +35,26 @@ typedef struct {
+  */
+ #define	UUID_STRING_LEN		36
  
- #include "kmem.h"
- #include "mrlock.h"
--#include "uuid.h"
++static inline bool guid_equal(const guid_t *u1, const guid_t *u2)
++{
++	return memcmp(u1, u2, sizeof(guid_t)) == 0;
++}
++
++static inline void guid_copy(guid_t *dst, const guid_t *src)
++{
++	memcpy(dst, src, sizeof(guid_t));
++}
++
++static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
++{
++	return memcmp(u1, u2, sizeof(uuid_t)) == 0;
++}
++
++static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
++{
++	memcpy(dst, src, sizeof(uuid_t));
++}
++
+ void generate_random_uuid(unsigned char uuid[16]);
  
- #include <linux/semaphore.h>
- #include <linux/mm.h>
-diff --git a/fs/xfs/xfs_log_recover.c b/fs/xfs/xfs_log_recover.c
-index cd0b077deb35..8cec1e5505a4 100644
---- a/fs/xfs/xfs_log_recover.c
-+++ b/fs/xfs/xfs_log_recover.c
-@@ -352,13 +352,13 @@ xlog_header_check_mount(
- {
- 	ASSERT(head->h_magicno == cpu_to_be32(XLOG_HEADER_MAGIC_NUM));
+ extern void guid_gen(guid_t *u);
+diff --git a/lib/test_uuid.c b/lib/test_uuid.c
+index 9cad846fd805..4d05189e5f87 100644
+--- a/lib/test_uuid.c
++++ b/lib/test_uuid.c
+@@ -71,7 +71,7 @@ static void __init test_uuid_test(const struct test_uuid_data *data)
+ 		test_uuid_failed("conversion", false, false, data->uuid, NULL);
  
--	if (uuid_is_nil(&head->h_fs_uuid)) {
-+	if (uuid_is_null(&head->h_fs_uuid)) {
- 		/*
- 		 * IRIX doesn't write the h_fs_uuid or h_fmt fields. If
--		 * h_fs_uuid is nil, we assume this log was last mounted
-+		 * h_fs_uuid is null, we assume this log was last mounted
- 		 * by IRIX and continue.
- 		 */
--		xfs_warn(mp, "nil uuid in log - IRIX style log");
-+		xfs_warn(mp, "null uuid in log - IRIX style log");
- 	} else if (unlikely(!uuid_equal(&mp->m_sb.sb_uuid, &head->h_fs_uuid))) {
- 		xfs_warn(mp, "log has mismatched uuid - can't recover");
- 		xlog_header_check_dump(mp, head);
-diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
-index 51f7d03ef86c..54452967e35e 100644
---- a/fs/xfs/xfs_mount.c
-+++ b/fs/xfs/xfs_mount.c
-@@ -80,14 +80,14 @@ xfs_uuid_mount(
- 	if (mp->m_flags & XFS_MOUNT_NOUUID)
- 		return 0;
- 
--	if (uuid_is_nil(uuid)) {
--		xfs_warn(mp, "Filesystem has nil UUID - can't mount");
-+	if (uuid_is_null(uuid)) {
-+		xfs_warn(mp, "Filesystem has null UUID - can't mount");
- 		return -EINVAL;
+ 	total_tests++;
+-	if (uuid_le_cmp(data->le, le)) {
++	if (!guid_equal(&data->le, &le)) {
+ 		sprintf(buf, "%pUl", &le);
+ 		test_uuid_failed("cmp", false, false, data->uuid, buf);
  	}
+@@ -82,7 +82,7 @@ static void __init test_uuid_test(const struct test_uuid_data *data)
+ 		test_uuid_failed("conversion", false, true, data->uuid, NULL);
  
- 	mutex_lock(&xfs_uuid_table_mutex);
- 	for (i = 0, hole = -1; i < xfs_uuid_table_size; i++) {
--		if (uuid_is_nil(&xfs_uuid_table[i])) {
-+		if (uuid_is_null(&xfs_uuid_table[i])) {
- 			hole = i;
- 			continue;
- 		}
-@@ -124,7 +124,7 @@ xfs_uuid_unmount(
- 
- 	mutex_lock(&xfs_uuid_table_mutex);
- 	for (i = 0; i < xfs_uuid_table_size; i++) {
--		if (uuid_is_nil(&xfs_uuid_table[i]))
-+		if (uuid_is_null(&xfs_uuid_table[i]))
- 			continue;
- 		if (!uuid_equal(uuid, &xfs_uuid_table[i]))
- 			continue;
+ 	total_tests++;
+-	if (uuid_be_cmp(data->be, be)) {
++	if (uuid_equal(&data->be, &be)) {
+ 		sprintf(buf, "%pUb", &be);
+ 		test_uuid_failed("cmp", false, true, data->uuid, buf);
+ 	}
 -- 
 2.11.0
 
