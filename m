@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0DA0921AF39D3
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:18:56 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 14/24] xfs: use the common helper uuid_is_null()
-Date: Wed, 31 May 2017 18:18:16 +0200
-Message-Id: <20170531161826.23243-15-hch@lst.de>
-In-Reply-To: <20170531161826.23243-1-hch@lst.de>
-References: <20170531161826.23243-1-hch@lst.de>
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D6DEA21A18AA9
+ for <linux-nvdimm@lists.01.org>; Mon, 29 May 2017 05:16:52 -0700 (PDT)
+Date: Mon, 29 May 2017 14:17:47 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH] dax: improve fix for colliding PMD & PTE entries
+Message-ID: <20170529121747.GH3608@quack2.suse.cz>
+References: <20170522215749.23516-2-ross.zwisler@linux.intel.com>
+ <20170526195932.32178-1-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170526195932.32178-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,193 +20,98 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Amir Goldstein <amir73il@gmail.com>
+On Fri 26-05-17 13:59:32, Ross Zwisler wrote:
+> This commit, which has not yet made it upstream but is in the -mm tree:
+> 
+>     dax: Fix race between colliding PMD & PTE entries
+> 
+> fixed a pair of race conditions where racing DAX PTE and PMD faults could
+> corrupt page tables.  This fix had two shortcomings which are addressed by
+> this patch:
+> 
+> 1) In the PTE fault handler we only checked for a collision using
+> pmd_devmap().  The pmd_devmap() check will trigger when we have raced with
+> a PMD that has real DAX storage, but to account for the case where we
+> collide with a huge zero page entry we also need to check for
+> pmd_trans_huge().
+> 
+> 2) In the PMD fault handler we only continued with the fault if no PMD at
+> all was present (pmd_none()).  This is the case when we are faulting in a
+> PMD for the first time, but there are two other cases to consider.  The
+> first is that we are servicing a write fault over a PMD huge zero page,
+> which we detect with pmd_trans_huge().  The second is that we are servicing
+> a write fault over a DAX PMD with real storage, which we address with
+> pmd_devmap().
+> 
+> Fix both of these, and instead of manually triggering a fallback in the PMD
+> collision case instead be consistent with the other collision detection
+> code in the fault handlers and just retry.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: stable@vger.kernel.org
 
-Use the common helper uuid_is_null() and remove the xfs specific
-helper uuid_is_nil().
+Ugh, right. I forgot zero page in page tables will not pass the devmap
+check... You can add:
 
-The common helper does not check for the NULL pointer value as
-xfs helper did, but xfs code never calls the helper with a pointer
-that can be NULL.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Conform comments and warning strings to use the term 'null uuid'
-instead of 'nil uuid', because this is the terminology used by
-lib/uuid.c and its users. It is also the terminology used in
-userspace by libuuid and xfsprogs.
+								Honza
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[hch: remove now unused uuid.[ch]]
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Brian Foster <bfoster@redhat.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- fs/xfs/Makefile          |  3 +--
- fs/xfs/uuid.c            | 32 --------------------------------
- fs/xfs/uuid.h            | 23 -----------------------
- fs/xfs/xfs_linux.h       |  1 -
- fs/xfs/xfs_log_recover.c |  6 +++---
- fs/xfs/xfs_mount.c       |  8 ++++----
- 6 files changed, 8 insertions(+), 65 deletions(-)
- delete mode 100644 fs/xfs/uuid.c
- delete mode 100644 fs/xfs/uuid.h
-
-diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
-index 5c90f82b8f6b..a6e955bfead8 100644
---- a/fs/xfs/Makefile
-+++ b/fs/xfs/Makefile
-@@ -98,8 +98,7 @@ xfs-y				+= xfs_aops.o \
- 				   xfs_sysfs.o \
- 				   xfs_trans.o \
- 				   xfs_xattr.o \
--				   kmem.o \
--				   uuid.o
-+				   kmem.o
- 
- # low-level transaction/log code
- xfs-y				+= xfs_log.o \
-diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
-deleted file mode 100644
-index 737c186ea98b..000000000000
---- a/fs/xfs/uuid.c
-+++ /dev/null
-@@ -1,32 +0,0 @@
--/*
-- * Copyright (c) 2000-2003,2005 Silicon Graphics, Inc.
-- * All Rights Reserved.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it would be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write the Free Software Foundation,
-- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-- */
--#include <xfs.h>
--
--int
--uuid_is_nil(uuid_t *uuid)
--{
--	int	i;
--	char	*cp = (char *)uuid;
--
--	if (uuid == NULL)
--		return 0;
--	/* implied check of version number here... */
--	for (i = 0; i < sizeof *uuid; i++)
--		if (*cp++) return 0;	/* not nil */
--	return 1;	/* is nil */
--}
-diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
-deleted file mode 100644
-index 5aea49bf0963..000000000000
---- a/fs/xfs/uuid.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/*
-- * Copyright (c) 2000-2003,2005 Silicon Graphics, Inc.
-- * All Rights Reserved.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it would be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write the Free Software Foundation,
-- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-- */
--#ifndef __XFS_SUPPORT_UUID_H__
--#define __XFS_SUPPORT_UUID_H__
--
--extern int uuid_is_nil(uuid_t *uuid);
--
--#endif	/* __XFS_SUPPORT_UUID_H__ */
-diff --git a/fs/xfs/xfs_linux.h b/fs/xfs/xfs_linux.h
-index 2c33d915e550..2d167fe643ec 100644
---- a/fs/xfs/xfs_linux.h
-+++ b/fs/xfs/xfs_linux.h
-@@ -43,7 +43,6 @@ typedef __u32			xfs_nlink_t;
- 
- #include "kmem.h"
- #include "mrlock.h"
--#include "uuid.h"
- 
- #include <linux/semaphore.h>
- #include <linux/mm.h>
-diff --git a/fs/xfs/xfs_log_recover.c b/fs/xfs/xfs_log_recover.c
-index cd0b077deb35..8cec1e5505a4 100644
---- a/fs/xfs/xfs_log_recover.c
-+++ b/fs/xfs/xfs_log_recover.c
-@@ -352,13 +352,13 @@ xlog_header_check_mount(
- {
- 	ASSERT(head->h_magicno == cpu_to_be32(XLOG_HEADER_MAGIC_NUM));
- 
--	if (uuid_is_nil(&head->h_fs_uuid)) {
-+	if (uuid_is_null(&head->h_fs_uuid)) {
- 		/*
- 		 * IRIX doesn't write the h_fs_uuid or h_fmt fields. If
--		 * h_fs_uuid is nil, we assume this log was last mounted
-+		 * h_fs_uuid is null, we assume this log was last mounted
- 		 * by IRIX and continue.
- 		 */
--		xfs_warn(mp, "nil uuid in log - IRIX style log");
-+		xfs_warn(mp, "null uuid in log - IRIX style log");
- 	} else if (unlikely(!uuid_equal(&mp->m_sb.sb_uuid, &head->h_fs_uuid))) {
- 		xfs_warn(mp, "log has mismatched uuid - can't recover");
- 		xlog_header_check_dump(mp, head);
-diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
-index 51f7d03ef86c..54452967e35e 100644
---- a/fs/xfs/xfs_mount.c
-+++ b/fs/xfs/xfs_mount.c
-@@ -80,14 +80,14 @@ xfs_uuid_mount(
- 	if (mp->m_flags & XFS_MOUNT_NOUUID)
- 		return 0;
- 
--	if (uuid_is_nil(uuid)) {
--		xfs_warn(mp, "Filesystem has nil UUID - can't mount");
-+	if (uuid_is_null(uuid)) {
-+		xfs_warn(mp, "Filesystem has null UUID - can't mount");
- 		return -EINVAL;
- 	}
- 
- 	mutex_lock(&xfs_uuid_table_mutex);
- 	for (i = 0, hole = -1; i < xfs_uuid_table_size; i++) {
--		if (uuid_is_nil(&xfs_uuid_table[i])) {
-+		if (uuid_is_null(&xfs_uuid_table[i])) {
- 			hole = i;
- 			continue;
- 		}
-@@ -124,7 +124,7 @@ xfs_uuid_unmount(
- 
- 	mutex_lock(&xfs_uuid_table_mutex);
- 	for (i = 0; i < xfs_uuid_table_size; i++) {
--		if (uuid_is_nil(&xfs_uuid_table[i]))
-+		if (uuid_is_null(&xfs_uuid_table[i]))
- 			continue;
- 		if (!uuid_equal(uuid, &xfs_uuid_table[i]))
- 			continue;
+> ---
+> 
+> For both the -mm tree and for stable, feel free to squash this with the
+> original commit if you think that is appropriate.
+> 
+> This has passed targeted testing and an xfstests run.
+> ---
+>  fs/dax.c | 11 +++++++----
+>  1 file changed, 7 insertions(+), 4 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index fc62f36..2a6889b 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1160,7 +1160,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+>  	 * the PTE we need to set up.  If so just return and the fault will be
+>  	 * retried.
+>  	 */
+> -	if (pmd_devmap(*vmf->pmd)) {
+> +	if (pmd_trans_huge(*vmf->pmd) || pmd_devmap(*vmf->pmd)) {
+>  		vmf_ret = VM_FAULT_NOPAGE;
+>  		goto unlock_entry;
+>  	}
+> @@ -1411,11 +1411,14 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
+>  	/*
+>  	 * It is possible, particularly with mixed reads & writes to private
+>  	 * mappings, that we have raced with a PTE fault that overlaps with
+> -	 * the PMD we need to set up.  If so we just fall back to a PTE fault
+> -	 * ourselves.
+> +	 * the PMD we need to set up.  If so just return and the fault will be
+> +	 * retried.
+>  	 */
+> -	if (!pmd_none(*vmf->pmd))
+> +	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd) &&
+> +			!pmd_devmap(*vmf->pmd)) {
+> +		result = 0;
+>  		goto unlock_entry;
+> +	}
+>  
+>  	/*
+>  	 * Note that we don't use iomap_apply here.  We aren't doing I/O, only
+> -- 
+> 2.9.4
+> 
 -- 
-2.11.0
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
