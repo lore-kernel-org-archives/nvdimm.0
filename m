@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 77B3821A0910B
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 16:12:51 -0700 (PDT)
-Subject: [PATCH] ndctl: add numa_node to --list command
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 31 May 2017 16:13:51 -0700
-Message-ID: <149627243165.15800.17084928523692021655.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 43DA721A16EED
+ for <linux-nvdimm@lists.01.org>; Tue, 30 May 2017 16:45:07 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [RFC PATCH] acpi: change memory allocations to GFP_NOIO
+Date: Tue, 30 May 2017 17:42:53 -0600
+Message-Id: <20170530234253.16510-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,48 +15,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding numa_node of a namesapce to the --list command. If numa_node is -1,
-numa_node will not be display as there's no NUMA node.
+With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
+Specifically, the DSM to clear media errors is called during writes, so
+that we can provide a writes-fix-errors model.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+However it is easy to imagine a scenario like:
+ - write through the nvdimm driver
+ - acpi allocation
+ - writeback, causes more IO through the nvdimm driver
+ - deadlock
+
+Making the acpi allocations GPF_NOIO would ensure that it doesn't
+trigger writeback, and avoids the above deadlock.
+
+Cc: <linux-acpi@vger.kernel.org>
+Cc: <linux-nvdimm@lists.01.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- util/json.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
 
-diff --git a/util/json.c b/util/json.c
-index b718d74..a9b733a 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -445,6 +445,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 	struct ndctl_dax *dax;
- 	char buf[40];
- 	uuid_t uuid;
-+	int numa;
+Is this too invasive a change? ACPI code in general appears
+to be good about error-checking allocations, and in our scenario
+above, a failed allocation would just mean the attempt to issue
+the DSM would fail, and the IO would simply fail.
+
+ include/acpi/platform/aclinuxex.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
+index efdff52..9bd54ec 100644
+--- a/include/acpi/platform/aclinuxex.h
++++ b/include/acpi/platform/aclinuxex.h
+@@ -83,12 +83,12 @@ acpi_status acpi_os_terminate(void);
+  */
+ static inline void *acpi_os_allocate(acpi_size size)
+ {
+-	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
  
- 	if (!jndns)
- 		return NULL;
-@@ -567,6 +568,13 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 		json_object_object_add(jndns, "state", jobj);
- 	}
+ static inline void *acpi_os_allocate_zeroed(acpi_size size)
+ {
+-	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
  
-+	numa = ndctl_namespace_get_numa_node(ndns);
-+	if (numa >= 0) {
-+		jobj = json_object_new_int(numa);
-+		if (jobj)
-+			json_object_object_add(jndns, "numa_node", jobj);
-+	}
-+
- 	if (pfn)
- 		jbbs = util_pfn_badblocks_to_json(pfn, include_media_errors,
- 				&bb_count);
+ static inline void acpi_os_free(void *memory)
+@@ -99,7 +99,7 @@ static inline void acpi_os_free(void *memory)
+ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+ {
+ 	return kmem_cache_zalloc(cache,
+-				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++				 irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
+ 
+ static inline acpi_thread_id acpi_os_get_thread_id(void)
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
