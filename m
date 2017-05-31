@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0267021B0E54D
- for <linux-nvdimm@lists.01.org>; Wed, 24 May 2017 23:47:01 -0700 (PDT)
-From: "Huang, Ying" <ying.huang@intel.com>
-Subject: [PATCH -mm 05/13] block,
- THP: Make block_device_operations.rw_page support THP
-Date: Thu, 25 May 2017 14:46:27 +0800
-Message-Id: <20170525064635.2832-6-ying.huang@intel.com>
-In-Reply-To: <20170525064635.2832-1-ying.huang@intel.com>
-References: <20170525064635.2832-1-ying.huang@intel.com>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3343321AF39C0
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:18:14 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 06/24] uuid: rename uuid types
+Date: Wed, 31 May 2017 18:18:08 +0200
+Message-Id: <20170531161826.23243-7-hch@lst.de>
+In-Reply-To: <20170531161826.23243-1-hch@lst.de>
+References: <20170531161826.23243-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,147 +22,334 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>, Minchan Kim <minchan@kernel.org>, Huang Ying <ying.huang@intel.com>, Ross Zwisler <ross.zwisler@intel.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, linux-nvdimm@lists.01.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huang Ying <ying.huang@intel.com>
+Our "little endian" UUID really is a Wintel GUID, so rename it and its
+helpers such (guid_t).  The big endian UUID is the only true one, so
+give it the name uuid_t.  The uuid_le and uuid_be names are retained for
+now, but will hopefully go away soon.  The exception to that are the _cmp
+helpers that will be replaced by better primitives ASAP and thus don't
+get the new names.
 
-The .rw_page in struct block_device_operations is used by the swap
-subsystem to read/write the page contents from/into the corresponding
-swap slot in the swap device.  To support the THP (Transparent Huge
-Page) swap optimization, the .rw_page is enhanced to support to
-read/write THP if possible.
+Also remove the existing typedef in XFS that's now been superceeded by
+the generic type name.
 
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@intel.com>
-Cc: Vishal L Verma <vishal.l.verma@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: linux-nvdimm@lists.01.org
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+[andy: also update the UUID_LE/UUID_BE macros including fallout]
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/block/brd.c           |  6 +++++-
- drivers/block/zram/zram_drv.c |  2 ++
- drivers/nvdimm/btt.c          |  4 +++-
- drivers/nvdimm/pmem.c         | 42 +++++++++++++++++++++++++++++++-----------
- 4 files changed, 41 insertions(+), 13 deletions(-)
+ fs/xfs/xfs_linux.h        |  2 --
+ include/linux/uuid.h      | 55 +++++++++++++++++++++++++++--------------------
+ include/uapi/linux/uuid.h | 12 +++++++----
+ lib/test_uuid.c           | 32 +++++++++++++--------------
+ lib/uuid.c                | 28 ++++++++++++------------
+ lib/vsprintf.c            |  4 ++--
+ 6 files changed, 72 insertions(+), 61 deletions(-)
 
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 57b574f2f66a..4240d2a9dcf9 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -324,7 +324,11 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
- 		       struct page *page, bool is_write)
- {
- 	struct brd_device *brd = bdev->bd_disk->private_data;
--	int err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
-+	int err;
+diff --git a/fs/xfs/xfs_linux.h b/fs/xfs/xfs_linux.h
+index 89ee5ec66837..2c33d915e550 100644
+--- a/fs/xfs/xfs_linux.h
++++ b/fs/xfs/xfs_linux.h
+@@ -39,8 +39,6 @@ typedef __s64			xfs_daddr_t;	/* <disk address> type */
+ typedef __u32			xfs_dev_t;
+ typedef __u32			xfs_nlink_t;
+ 
+-typedef uuid_be			uuid_t;
+-
+ #include "xfs_types.h"
+ 
+ #include "kmem.h"
+diff --git a/include/linux/uuid.h b/include/linux/uuid.h
+index 30fb13018e29..a9d0fdba5404 100644
+--- a/include/linux/uuid.h
++++ b/include/linux/uuid.h
+@@ -20,46 +20,55 @@
+ 
+ typedef struct {
+ 	__u8 b[16];
+-} uuid_be;
++} uuid_t;
+ 
+-#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
+-((uuid_be)								\
++#define UUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
++((uuid_t)								\
+ {{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
+    ((b) >> 8) & 0xff, (b) & 0xff,					\
+    ((c) >> 8) & 0xff, (c) & 0xff,					\
+    (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
+ 
+-#define NULL_UUID_BE							\
+-	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+-		0x00, 0x00, 0x00, 0x00)
+-
+ /*
+  * The length of a UUID string ("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+  * not including trailing NUL.
+  */
+ #define	UUID_STRING_LEN		36
+ 
+-static inline int uuid_le_cmp(const uuid_le u1, const uuid_le u2)
+-{
+-	return memcmp(&u1, &u2, sizeof(uuid_le));
+-}
+-
+-static inline int uuid_be_cmp(const uuid_be u1, const uuid_be u2)
+-{
+-	return memcmp(&u1, &u2, sizeof(uuid_be));
+-}
+-
+ void generate_random_uuid(unsigned char uuid[16]);
+ 
+-extern void uuid_le_gen(uuid_le *u);
+-extern void uuid_be_gen(uuid_be *u);
++extern void guid_gen(guid_t *u);
++extern void uuid_gen(uuid_t *u);
+ 
+ bool __must_check uuid_is_valid(const char *uuid);
+ 
+-extern const u8 uuid_le_index[16];
+-extern const u8 uuid_be_index[16];
++extern const u8 guid_index[16];
++extern const u8 uuid_index[16];
 +
-+	if (PageTransHuge(page))
-+		return -ENOTSUPP;
-+	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
- 	page_endio(page, is_write, err);
- 	return err;
- }
-diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
-index 5f2a862d8e31..09b11286c927 100644
---- a/drivers/block/zram/zram_drv.c
-+++ b/drivers/block/zram/zram_drv.c
-@@ -1049,6 +1049,8 @@ static int zram_rw_page(struct block_device *bdev, sector_t sector,
- 	struct zram *zram;
- 	struct bio_vec bv;
++int guid_to_bin(const char *uuid, guid_t *u);
++int uuid_to_bin(const char *uuid, uuid_t *u);
  
-+	if (PageTransHuge(page))
-+		return -ENOTSUPP;
- 	zram = bdev->bd_disk->private_data;
+-int uuid_le_to_bin(const char *uuid, uuid_le *u);
+-int uuid_be_to_bin(const char *uuid, uuid_be *u);
++/* backwards compatibility, don't use in new code */
++typedef uuid_t uuid_be;
++#define UUID_BE(a, _b, c, d0, d1, d2, d3, d4, d5, d6, d7) \
++	UUID(a, _b, c, d0, d1, d2, d3, d4, d5, d6, d7)
++#define NULL_UUID_BE 							\
++	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
++	     0x00, 0x00, 0x00, 0x00)
++
++#define uuid_le_gen(u)		guid_gen(u)
++#define uuid_be_gen(u)		uuid_gen(u)
++#define uuid_le_to_bin(guid, u)	guid_to_bin(guid, u)
++#define uuid_be_to_bin(uuid, u)	uuid_to_bin(uuid, u)
++
++static inline int uuid_le_cmp(const guid_t u1, const guid_t u2)
++{
++	return memcmp(&u1, &u2, sizeof(guid_t));
++}
++
++static inline int uuid_be_cmp(const uuid_t u1, const uuid_t u2)
++{
++	return memcmp(&u1, &u2, sizeof(uuid_t));
++}
  
- 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 983718b8fd9b..46d4a0bd2ae6 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1248,8 +1248,10 @@ static int btt_rw_page(struct block_device *bdev, sector_t sector,
- 		struct page *page, bool is_write)
+ #endif
+diff --git a/include/uapi/linux/uuid.h b/include/uapi/linux/uuid.h
+index 0099756c4bac..1eeeca973315 100644
+--- a/include/uapi/linux/uuid.h
++++ b/include/uapi/linux/uuid.h
+@@ -22,17 +22,21 @@
+ 
+ typedef struct {
+ 	__u8 b[16];
+-} uuid_le;
++} guid_t;
+ 
+-#define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
+-((uuid_le)								\
++#define GUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)			\
++((guid_t)								\
+ {{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
+    (b) & 0xff, ((b) >> 8) & 0xff,					\
+    (c) & 0xff, ((c) >> 8) & 0xff,					\
+    (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
+ 
++/* backwards compatibility, don't use in new code */
++typedef guid_t uuid_le;
++#define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
++	GUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)
+ #define NULL_UUID_LE							\
+ 	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
+-		0x00, 0x00, 0x00, 0x00)
++	     0x00, 0x00, 0x00, 0x00)
+ 
+ #endif /* _UAPI_LINUX_UUID_H_ */
+diff --git a/lib/test_uuid.c b/lib/test_uuid.c
+index 547d3127a3cf..9cad846fd805 100644
+--- a/lib/test_uuid.c
++++ b/lib/test_uuid.c
+@@ -11,25 +11,25 @@
+ 
+ struct test_uuid_data {
+ 	const char *uuid;
+-	uuid_le le;
+-	uuid_be be;
++	guid_t le;
++	uuid_t be;
+ };
+ 
+ static const struct test_uuid_data test_uuid_test_data[] = {
+ 	{
+ 		.uuid = "c33f4995-3701-450e-9fbf-206a2e98e576",
+-		.le = UUID_LE(0xc33f4995, 0x3701, 0x450e, 0x9f, 0xbf, 0x20, 0x6a, 0x2e, 0x98, 0xe5, 0x76),
+-		.be = UUID_BE(0xc33f4995, 0x3701, 0x450e, 0x9f, 0xbf, 0x20, 0x6a, 0x2e, 0x98, 0xe5, 0x76),
++		.le = GUID(0xc33f4995, 0x3701, 0x450e, 0x9f, 0xbf, 0x20, 0x6a, 0x2e, 0x98, 0xe5, 0x76),
++		.be = UUID(0xc33f4995, 0x3701, 0x450e, 0x9f, 0xbf, 0x20, 0x6a, 0x2e, 0x98, 0xe5, 0x76),
+ 	},
+ 	{
+ 		.uuid = "64b4371c-77c1-48f9-8221-29f054fc023b",
+-		.le = UUID_LE(0x64b4371c, 0x77c1, 0x48f9, 0x82, 0x21, 0x29, 0xf0, 0x54, 0xfc, 0x02, 0x3b),
+-		.be = UUID_BE(0x64b4371c, 0x77c1, 0x48f9, 0x82, 0x21, 0x29, 0xf0, 0x54, 0xfc, 0x02, 0x3b),
++		.le = GUID(0x64b4371c, 0x77c1, 0x48f9, 0x82, 0x21, 0x29, 0xf0, 0x54, 0xfc, 0x02, 0x3b),
++		.be = UUID(0x64b4371c, 0x77c1, 0x48f9, 0x82, 0x21, 0x29, 0xf0, 0x54, 0xfc, 0x02, 0x3b),
+ 	},
+ 	{
+ 		.uuid = "0cb4ddff-a545-4401-9d06-688af53e7f84",
+-		.le = UUID_LE(0x0cb4ddff, 0xa545, 0x4401, 0x9d, 0x06, 0x68, 0x8a, 0xf5, 0x3e, 0x7f, 0x84),
+-		.be = UUID_BE(0x0cb4ddff, 0xa545, 0x4401, 0x9d, 0x06, 0x68, 0x8a, 0xf5, 0x3e, 0x7f, 0x84),
++		.le = GUID(0x0cb4ddff, 0xa545, 0x4401, 0x9d, 0x06, 0x68, 0x8a, 0xf5, 0x3e, 0x7f, 0x84),
++		.be = UUID(0x0cb4ddff, 0xa545, 0x4401, 0x9d, 0x06, 0x68, 0x8a, 0xf5, 0x3e, 0x7f, 0x84),
+ 	},
+ };
+ 
+@@ -61,13 +61,13 @@ static void __init test_uuid_failed(const char *prefix, bool wrong, bool be,
+ 
+ static void __init test_uuid_test(const struct test_uuid_data *data)
  {
- 	struct btt *btt = bdev->bd_disk->private_data;
-+	unsigned int len;
+-	uuid_le le;
+-	uuid_be be;
++	guid_t le;
++	uuid_t be;
+ 	char buf[48];
  
--	btt_do_bvec(btt, NULL, page, PAGE_SIZE, 0, is_write, sector);
-+	len = hpage_nr_pages(page) * PAGE_SIZE;
-+	btt_do_bvec(btt, NULL, page, len, 0, is_write, sector);
- 	page_endio(page, is_write, 0);
+ 	/* LE */
+ 	total_tests++;
+-	if (uuid_le_to_bin(data->uuid, &le))
++	if (guid_to_bin(data->uuid, &le))
+ 		test_uuid_failed("conversion", false, false, data->uuid, NULL);
+ 
+ 	total_tests++;
+@@ -78,7 +78,7 @@ static void __init test_uuid_test(const struct test_uuid_data *data)
+ 
+ 	/* BE */
+ 	total_tests++;
+-	if (uuid_be_to_bin(data->uuid, &be))
++	if (uuid_to_bin(data->uuid, &be))
+ 		test_uuid_failed("conversion", false, true, data->uuid, NULL);
+ 
+ 	total_tests++;
+@@ -90,17 +90,17 @@ static void __init test_uuid_test(const struct test_uuid_data *data)
+ 
+ static void __init test_uuid_wrong(const char *data)
+ {
+-	uuid_le le;
+-	uuid_be be;
++	guid_t le;
++	uuid_t be;
+ 
+ 	/* LE */
+ 	total_tests++;
+-	if (!uuid_le_to_bin(data, &le))
++	if (!guid_to_bin(data, &le))
+ 		test_uuid_failed("negative", true, false, data, NULL);
+ 
+ 	/* BE */
+ 	total_tests++;
+-	if (!uuid_be_to_bin(data, &be))
++	if (!uuid_to_bin(data, &be))
+ 		test_uuid_failed("negative", true, true, data, NULL);
+ }
+ 
+diff --git a/lib/uuid.c b/lib/uuid.c
+index 37687af77ff8..f80dc63f6ca8 100644
+--- a/lib/uuid.c
++++ b/lib/uuid.c
+@@ -21,10 +21,10 @@
+ #include <linux/uuid.h>
+ #include <linux/random.h>
+ 
+-const u8 uuid_le_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
+-EXPORT_SYMBOL(uuid_le_index);
+-const u8 uuid_be_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+-EXPORT_SYMBOL(uuid_be_index);
++const u8 guid_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
++EXPORT_SYMBOL(guid_index);
++const u8 uuid_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
++EXPORT_SYMBOL(uuid_index);
+ 
+ /***************************************************************
+  * Random UUID interface
+@@ -53,21 +53,21 @@ static void __uuid_gen_common(__u8 b[16])
+ 	b[8] = (b[8] & 0x3F) | 0x80;
+ }
+ 
+-void uuid_le_gen(uuid_le *lu)
++void guid_gen(guid_t *lu)
+ {
+ 	__uuid_gen_common(lu->b);
+ 	/* version 4 : random generation */
+ 	lu->b[7] = (lu->b[7] & 0x0F) | 0x40;
+ }
+-EXPORT_SYMBOL_GPL(uuid_le_gen);
++EXPORT_SYMBOL_GPL(guid_gen);
+ 
+-void uuid_be_gen(uuid_be *bu)
++void uuid_gen(uuid_t *bu)
+ {
+ 	__uuid_gen_common(bu->b);
+ 	/* version 4 : random generation */
+ 	bu->b[6] = (bu->b[6] & 0x0F) | 0x40;
+ }
+-EXPORT_SYMBOL_GPL(uuid_be_gen);
++EXPORT_SYMBOL_GPL(uuid_gen);
+ 
+ /**
+   * uuid_is_valid - checks if UUID string valid
+@@ -115,14 +115,14 @@ static int __uuid_to_bin(const char *uuid, __u8 b[16], const u8 ei[16])
  	return 0;
  }
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index c544d466ea51..e644115d56a7 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -78,22 +78,40 @@ static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
- static void write_pmem(void *pmem_addr, struct page *page,
- 		unsigned int off, unsigned int len)
+ 
+-int uuid_le_to_bin(const char *uuid, uuid_le *u)
++int guid_to_bin(const char *uuid, guid_t *u)
  {
--	void *mem = kmap_atomic(page);
--
--	memcpy_to_pmem(pmem_addr, mem + off, len);
--	kunmap_atomic(mem);
-+	unsigned int chunk;
-+	void *mem;
-+
-+	while (len) {
-+		mem = kmap_atomic(page);
-+		chunk = min_t(unsigned int, len, PAGE_SIZE);
-+		memcpy_to_pmem(pmem_addr, mem + off, chunk);
-+		kunmap_atomic(mem);
-+		len -= chunk;
-+		off = 0;
-+		page++;
-+		pmem_addr += PAGE_SIZE;
-+	}
+-	return __uuid_to_bin(uuid, u->b, uuid_le_index);
++	return __uuid_to_bin(uuid, u->b, guid_index);
  }
+-EXPORT_SYMBOL(uuid_le_to_bin);
++EXPORT_SYMBOL(guid_to_bin);
  
- static int read_pmem(struct page *page, unsigned int off,
- 		void *pmem_addr, unsigned int len)
+-int uuid_be_to_bin(const char *uuid, uuid_be *u)
++int uuid_to_bin(const char *uuid, uuid_t *u)
  {
-+	unsigned int chunk;
- 	int rc;
--	void *mem = kmap_atomic(page);
--
--	rc = memcpy_mcsafe(mem + off, pmem_addr, len);
--	kunmap_atomic(mem);
--	if (rc)
--		return -EIO;
-+	void *mem;
-+
-+	while (len) {
-+		mem = kmap_atomic(page);
-+		chunk = min_t(unsigned int, len, PAGE_SIZE);
-+		rc = memcpy_mcsafe(mem + off, pmem_addr, chunk);
-+		kunmap_atomic(mem);
-+		if (rc)
-+			return -EIO;
-+		len -= chunk;
-+		off = 0;
-+		page++;
-+		pmem_addr += PAGE_SIZE;
-+	}
- 	return 0;
+-	return __uuid_to_bin(uuid, u->b, uuid_be_index);
++	return __uuid_to_bin(uuid, u->b, uuid_index);
  }
+-EXPORT_SYMBOL(uuid_be_to_bin);
++EXPORT_SYMBOL(uuid_to_bin);
+diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+index 2d41de3f98a1..9f37d6208e99 100644
+--- a/lib/vsprintf.c
++++ b/lib/vsprintf.c
+@@ -1308,14 +1308,14 @@ char *uuid_string(char *buf, char *end, const u8 *addr,
+ 	char uuid[UUID_STRING_LEN + 1];
+ 	char *p = uuid;
+ 	int i;
+-	const u8 *index = uuid_be_index;
++	const u8 *index = uuid_index;
+ 	bool uc = false;
  
-@@ -184,9 +202,11 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 		       struct page *page, bool is_write)
- {
- 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
-+	unsigned int len;
- 	int rc;
- 
--	rc = pmem_do_bvec(pmem, page, PAGE_SIZE, 0, is_write, sector);
-+	len = hpage_nr_pages(page) * PAGE_SIZE;
-+	rc = pmem_do_bvec(pmem, page, len, 0, is_write, sector);
- 
- 	/*
- 	 * The ->rw_page interface is subtle and tricky.  The core
+ 	switch (*(++fmt)) {
+ 	case 'L':
+ 		uc = true;		/* fall-through */
+ 	case 'l':
+-		index = uuid_le_index;
++		index = guid_index;
+ 		break;
+ 	case 'B':
+ 		uc = true;
 -- 
 2.11.0
 
