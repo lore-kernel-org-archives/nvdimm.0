@@ -1,21 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x230.google.com (mail-oi0-x230.google.com
- [IPv6:2607:f8b0:4003:c06::230])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0216621A134A4
- for <linux-nvdimm@lists.01.org>; Tue,  2 May 2017 14:57:57 -0700 (PDT)
-Received: by mail-oi0-x230.google.com with SMTP id b204so2547394oii.1
- for <linux-nvdimm@lists.01.org>; Tue, 02 May 2017 14:57:56 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOSf1CEh379QGym155L6ALxU14xvF5pm6fyN=LDcKM_Q+wFGuA@mail.gmail.com>
-References: <20170427091552.17694-1-oohall@gmail.com>
- <CAPcyv4id9q+6mKtqqJYzGdVN74Q5=-Rzirizs+U0RiJ-oF2Kyw@mail.gmail.com>
- <CAOSf1CEh379QGym155L6ALxU14xvF5pm6fyN=LDcKM_Q+wFGuA@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 2 May 2017 14:57:55 -0700
-Message-ID: <CAPcyv4gLZiM_rBCOHiUdczTwbVB=QPa-eWVNVrG8tU82LKUjAw@mail.gmail.com>
-Subject: Re: [PATCH] nvdimm: Export supported alignments via sysfs
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 12A7D21AF39C0
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:18:05 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 04/24] md: namespace private helper names
+Date: Wed, 31 May 2017 18:18:06 +0200
+Message-Id: <20170531161826.23243-5-hch@lst.de>
+In-Reply-To: <20170531161826.23243-1-hch@lst.de>
+References: <20170531161826.23243-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,121 +17,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Oliver O'Halloran <oohall@gmail.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Apr 28, 2017 at 12:31 AM, Oliver O'Halloran <oohall@gmail.com> wrote:
-> On Fri, Apr 28, 2017 at 1:59 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->> On Thu, Apr 27, 2017 at 2:15 AM, Oliver O'Halloran <oohall@gmail.com> wrote:
->>> Adds two new sysfs attributes for pfn (and dax) devices:
->>> supported_alignements and default_alignment. These advertise to
->>> userspace what alignments this kernel supports, and provides a nominal
->>> default alignment to use.
->>>
->>> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
->>> ---
->>> I'm not sure it makes sense to provide these for pfn devices. In the dax
->>> case we have hard restrictions because of how fault handling works, but
->>> I'm not convinced this makes sense for the pfn case since it's going to
->>> be used with fs-dax.
->
->> We still want this for fs-dax so we can make sure that the namespace
->> is aligned to allow for opportunistic large mappings. We have pmd
->> support for fs-dax currently shipping, and looking to expand that to
->> pud support.
->
-> Sure, but whether we can use a PUD for userspace mappings mostly
-> depends on the allocation decisions of the filesystem rather than the
-> alignment of the namespace. The reservations for the PFN superblock,
-> altmap and dax labels mean the namespace is always going to be
-> unaligned so forcing a PUD alignment will result in a lot of wasted
-> space for dubious benefits. I suppose there's no reason not to provide
-> the functionality, but I don't see it buying us much.
->
->>> ---
->>>  drivers/nvdimm/pfn_devs.c | 26 ++++++++++++++++++++++++++
->>>  1 file changed, 26 insertions(+)
->>>
->>> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
->>> index 6c033c9a2f06..5157e7d89f0b 100644
->>> --- a/drivers/nvdimm/pfn_devs.c
->>> +++ b/drivers/nvdimm/pfn_devs.c
->>> @@ -260,6 +260,30 @@ static ssize_t size_show(struct device *dev,
->>>  }
->>>  static DEVICE_ATTR_RO(size);
->>>
->>> +static ssize_t supported_alignments_show(struct device *dev,
->>> +               struct device_attribute *attr, char *buf)
->>> +{
->>> +       /* Fun fact: These aren't always constants! */
->>> +       unsigned long supported_alignments[] = {
->>> +               PAGE_SIZE,
->>> +               HPAGE_PMD_SIZE,
->>> +#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
->>> +               HPAGE_PUD_SIZE,
->>> +#endif
->>> +               0,
->>> +       };
->>> +
->>> +       return nd_sector_size_show(0, supported_alignments, buf);
->>> +}
->>> +DEVICE_ATTR_RO(supported_alignments);
->>> +
->>> +static ssize_t default_alignment_show(struct device *dev,
->>> +               struct device_attribute *attr, char *buf)
->>> +{
->>> +       return sprintf(buf, "%ld\n", HPAGE_PMD_SIZE);
->>> +}
->>> +DEVICE_ATTR_RO(default_alignment);
->>> +
->>>  static struct attribute *nd_pfn_attributes[] = {
->>>         &dev_attr_mode.attr,
->>>         &dev_attr_namespace.attr,
->>> @@ -267,6 +291,8 @@ static struct attribute *nd_pfn_attributes[] = {
->>>         &dev_attr_align.attr,
->>>         &dev_attr_resource.attr,
->>>         &dev_attr_size.attr,
->>> +       &dev_attr_supported_alignments.attr,
->>> +       &dev_attr_default_alignment.attr,
->>>         NULL,
->>
->> So, we don't need DEVICE_ATTR_RO(default_alignment), that can be
->> reflected by setting nd_pfn->align to HPAGE_PMD_SIZE by default.
->
-> Hmm true, if we do this then we can use the alignment of the seed as
-> the default rather than having a separate attribute.
->
->> passing nd_pfn->align to nd_sector_size_show(). Should probably rename
->> nd_sector_size_show() to nd_size_select_show().
->
-> I agree. I figured another respin would be required so I kept the
-> changes to a minimum.
->
->> The other concern is that the current DEVICE_ATTR_RW(align) can be
->> made redundant by this new interface if you make it writable. I wonder
->> if we can avoid breaking old ndctl versions by making the current
->> align setting the first one in the output? Worse comes to worse we can
->> live with two attributes 'align' and 'aligns', but I'd like to see if
->> can add this to the existing attribute.
->
-> I'd rather have a small amount of redundancy and keep the the
-> attribute consistent with the the btt sector size attribute.
+From: Amir Goldstein <amir73il@gmail.com>
 
-I'd rather not, that's expanding the kernel-user ABI for only vanity
-reasons as far as I can see.
+The md private helper uuid_equal() collides with a generic helper
+of the same name.
 
-> We could
-> always remove align some time down the track since I imagine ndctl is
-> the only thing that consumes that part of the interface and ndctl
-> already handles align being missing.
+Rename the md private helper to md_uuid_equal() and do the same for
+md_sb_equal().
 
-No, that breaks old ndctl binaries that depend on the align attribute
-to be there if the kernel supports device-dax.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Shaohua Li <shli@kernel.org>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/md/md.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index 10367ffe92e3..b9ab268ba7f9 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -825,7 +825,7 @@ static int read_disk_sb(struct md_rdev *rdev, int size)
+ 	return -EINVAL;
+ }
+ 
+-static int uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
++static int md_uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ {
+ 	return	sb1->set_uuid0 == sb2->set_uuid0 &&
+ 		sb1->set_uuid1 == sb2->set_uuid1 &&
+@@ -833,7 +833,7 @@ static int uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ 		sb1->set_uuid3 == sb2->set_uuid3;
+ }
+ 
+-static int sb_equal(mdp_super_t *sb1, mdp_super_t *sb2)
++static int md_sb_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ {
+ 	int ret;
+ 	mdp_super_t *tmp1, *tmp2;
+@@ -1025,12 +1025,12 @@ static int super_90_load(struct md_rdev *rdev, struct md_rdev *refdev, int minor
+ 	} else {
+ 		__u64 ev1, ev2;
+ 		mdp_super_t *refsb = page_address(refdev->sb_page);
+-		if (!uuid_equal(refsb, sb)) {
++		if (!md_uuid_equal(refsb, sb)) {
+ 			pr_warn("md: %s has different UUID to %s\n",
+ 				b, bdevname(refdev->bdev,b2));
+ 			goto abort;
+ 		}
+-		if (!sb_equal(refsb, sb)) {
++		if (!md_sb_equal(refsb, sb)) {
+ 			pr_warn("md: %s has same UUID but different superblock to %s\n",
+ 				b, bdevname(refdev->bdev, b2));
+ 			goto abort;
+-- 
+2.11.0
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
