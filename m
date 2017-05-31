@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A014621A070BD
- for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 00:25:10 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 1/4] dax: prevent invalidation of mapped DAX entries
-Date: Fri,  5 May 2017 09:24:57 +0200
-Message-Id: <20170505072500.25692-2-jack@suse.cz>
-In-Reply-To: <20170505072500.25692-1-jack@suse.cz>
-References: <20170505072500.25692-1-jack@suse.cz>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 55D6921B03878
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:18:52 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 13/24] xfs: remove uuid_getnodeuniq and xfs_uu_t
+Date: Wed, 31 May 2017 18:18:15 +0200
+Message-Id: <20170531161826.23243-14-hch@lst.de>
+In-Reply-To: <20170531161826.23243-1-hch@lst.de>
+References: <20170531161826.23243-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,127 +22,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "[4.10+]" <stable@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Opencode uuid_getnodeuniq in the only caller, and directly decode
+the uuid_t representation instead of using a structure cast for it.
 
-dax_invalidate_mapping_entry() currently removes DAX exceptional entries
-only if they are clean and unlocked.  This is done via:
-
-invalidate_mapping_pages()
-  invalidate_exceptional_entry()
-    dax_invalidate_mapping_entry()
-
-However, for page cache pages removed in invalidate_mapping_pages() there
-is an additional criteria which is that the page must not be mapped.  This
-is noted in the comments above invalidate_mapping_pages() and is checked in
-invalidate_inode_page().
-
-For DAX entries this means that we can can end up in a situation where a
-DAX exceptional entry, either a huge zero page or a regular DAX entry,
-could end up mapped but without an associated radix tree entry. This is
-inconsistent with the rest of the DAX code and with what happens in the
-page cache case.
-
-We aren't able to unmap the DAX exceptional entry because according to its
-comments invalidate_mapping_pages() isn't allowed to block, and
-unmap_mapping_range() takes a write lock on the mapping->i_mmap_rwsem.
-
-Since we essentially never have unmapped DAX entries to evict from the
-radix tree, just remove dax_invalidate_mapping_entry().
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Fixes: c6dcf52c23d2 ("mm: Invalidate DAX radix tree entries only if appropriate")
-Reported-by: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>    [4.10+]
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/dax.c            | 29 -----------------------------
- include/linux/dax.h |  1 -
- mm/truncate.c       |  9 +++------
- 3 files changed, 3 insertions(+), 36 deletions(-)
+ fs/xfs/uuid.c      | 25 -------------------------
+ fs/xfs/uuid.h      |  1 -
+ fs/xfs/xfs_mount.c |  5 ++++-
+ 3 files changed, 4 insertions(+), 27 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 6433650be833..565c2ea63135 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -507,35 +507,6 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index)
- }
+diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
+index 29ed78c8637b..737c186ea98b 100644
+--- a/fs/xfs/uuid.c
++++ b/fs/xfs/uuid.c
+@@ -17,31 +17,6 @@
+  */
+ #include <xfs.h>
  
- /*
-- * Invalidate exceptional DAX entry if easily possible. This handles DAX
-- * entries for invalidate_inode_pages() so we evict the entry only if we can
-- * do so without blocking.
-- */
--int dax_invalidate_mapping_entry(struct address_space *mapping, pgoff_t index)
--{
--	int ret = 0;
--	void *entry, **slot;
--	struct radix_tree_root *page_tree = &mapping->page_tree;
--
--	spin_lock_irq(&mapping->tree_lock);
--	entry = __radix_tree_lookup(page_tree, index, NULL, &slot);
--	if (!entry || !radix_tree_exceptional_entry(entry) ||
--	    slot_locked(mapping, slot))
--		goto out;
--	if (radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_DIRTY) ||
--	    radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
--		goto out;
--	radix_tree_delete(page_tree, index);
--	mapping->nrexceptional--;
--	ret = 1;
--out:
--	spin_unlock_irq(&mapping->tree_lock);
--	if (ret)
--		dax_wake_mapping_entry_waiter(mapping, index, entry, true);
--	return ret;
--}
+-/* IRIX interpretation of an uuid_t */
+-typedef struct {
+-	__be32	uu_timelow;
+-	__be16	uu_timemid;
+-	__be16	uu_timehi;
+-	__be16	uu_clockseq;
+-	__be16	uu_node[3];
+-} xfs_uu_t;
 -
 -/*
-  * Invalidate exceptional DAX entry if it is clean.
-  */
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index d8a3dc042e1c..f8e1833f81f6 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -41,7 +41,6 @@ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
- 		    const struct iomap_ops *ops);
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
--int dax_invalidate_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
- void dax_wake_mapping_entry_waiter(struct address_space *mapping,
-diff --git a/mm/truncate.c b/mm/truncate.c
-index 83a059e8cd1d..706cff171a15 100644
---- a/mm/truncate.c
-+++ b/mm/truncate.c
-@@ -67,17 +67,14 @@ static void truncate_exceptional_entry(struct address_space *mapping,
- 
- /*
-  * Invalidate exceptional entry if easily possible. This handles exceptional
-- * entries for invalidate_inode_pages() so for DAX it evicts only unlocked and
-- * clean entries.
-+ * entries for invalidate_inode_pages().
-  */
- static int invalidate_exceptional_entry(struct address_space *mapping,
- 					pgoff_t index, void *entry)
+- * uuid_getnodeuniq - obtain the node unique fields of a UUID.
+- *
+- * This is not in any way a standard or condoned UUID function;
+- * it just something that's needed for user-level file handles.
+- */
+-void
+-uuid_getnodeuniq(uuid_t *uuid, int fsid [2])
+-{
+-	xfs_uu_t *uup = (xfs_uu_t *)uuid;
+-
+-	fsid[0] = (be16_to_cpu(uup->uu_clockseq) << 16) |
+-		   be16_to_cpu(uup->uu_timemid);
+-	fsid[1] = be32_to_cpu(uup->uu_timelow);
+-}
+-
+ int
+ uuid_is_nil(uuid_t *uuid)
  {
--	/* Handled by shmem itself */
--	if (shmem_mapping(mapping))
-+	/* Handled by shmem itself, or for DAX we do nothing. */
-+	if (shmem_mapping(mapping) || dax_mapping(mapping))
- 		return 1;
--	if (dax_mapping(mapping))
--		return dax_invalidate_mapping_entry(mapping, index);
- 	clear_shadow_entry(mapping, index, entry);
- 	return 1;
- }
+diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
+index 86bbed071e79..5aea49bf0963 100644
+--- a/fs/xfs/uuid.h
++++ b/fs/xfs/uuid.h
+@@ -19,6 +19,5 @@
+ #define __XFS_SUPPORT_UUID_H__
+ 
+ extern int uuid_is_nil(uuid_t *uuid);
+-extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
+ 
+ #endif	/* __XFS_SUPPORT_UUID_H__ */
+diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
+index 2eaf81859166..51f7d03ef86c 100644
+--- a/fs/xfs/xfs_mount.c
++++ b/fs/xfs/xfs_mount.c
+@@ -793,7 +793,10 @@ xfs_mountfs(
+ 	 *  Copies the low order bits of the timestamp and the randomly
+ 	 *  set "sequence" number out of a UUID.
+ 	 */
+-	uuid_getnodeuniq(&sbp->sb_uuid, mp->m_fixedfsid);
++	mp->m_fixedfsid[0] =
++		(get_unaligned_be16(&sbp->sb_uuid.b[8]) << 16) |
++		 get_unaligned_be16(&sbp->sb_uuid.b[4]);
++	mp->m_fixedfsid[1] = get_unaligned_be32(&sbp->sb_uuid.b[0]);
+ 
+ 	mp->m_dmevmask = 0;	/* not persistent; set after each mount */
+ 
 -- 
-2.12.0
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
