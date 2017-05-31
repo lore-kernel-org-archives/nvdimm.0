@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B583B2195DA6F
- for <linux-nvdimm@lists.01.org>; Fri,  5 May 2017 00:25:10 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 3/4] ext4: Return back to starting transaction in
- ext4_dax_huge_fault()
-Date: Fri,  5 May 2017 09:24:59 +0200
-Message-Id: <20170505072500.25692-4-jack@suse.cz>
-In-Reply-To: <20170505072500.25692-1-jack@suse.cz>
-References: <20170505072500.25692-1-jack@suse.cz>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9D4412095A581
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:19:31 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 21/24] nvme: switch to uuid_t
+Date: Wed, 31 May 2017 18:18:23 +0200
+Message-Id: <20170531161826.23243-22-hch@lst.de>
+In-Reply-To: <20170531161826.23243-1-hch@lst.de>
+References: <20170531161826.23243-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,65 +22,145 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX will return to locking exceptional entry before mapping blocks
-for a page fault to fix possible races with concurrent writes. To avoid
-lock inversion between exceptional entry lock and transaction start,
-start the transaction already in ext4_dax_huge_fault().
-
-Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
-CC: stable@vger.kernel.org
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- fs/ext4/file.c | 21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ drivers/nvme/host/fabrics.c | 8 ++++----
+ drivers/nvme/host/fabrics.h | 2 +-
+ drivers/nvme/host/fc.c      | 3 +--
+ drivers/nvme/target/nvmet.h | 1 +
+ include/linux/nvme-fc.h     | 3 +--
+ include/linux/nvme.h        | 3 ++-
+ 6 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index cefa9835f275..831fd6beebf0 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -257,6 +257,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
- 	int result;
-+	handle_t *handle = NULL;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	struct super_block *sb = inode->i_sb;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-@@ -264,12 +265,24 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 	if (write) {
- 		sb_start_pagefault(sb);
- 		file_update_time(vmf->vma->vm_file);
-+		down_read(&EXT4_I(inode)->i_mmap_sem);
-+		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
-+					       EXT4_DATA_TRANS_BLOCKS(sb));
-+	} else {
-+		down_read(&EXT4_I(inode)->i_mmap_sem);
- 	}
--	down_read(&EXT4_I(inode)->i_mmap_sem);
--	result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
--	up_read(&EXT4_I(inode)->i_mmap_sem);
--	if (write)
-+	if (!IS_ERR(handle))
-+		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
-+	else
-+		result = VM_FAULT_SIGBUS;
-+	if (write) {
-+		if (!IS_ERR(handle))
-+			ext4_journal_stop(handle);
-+		up_read(&EXT4_I(inode)->i_mmap_sem);
- 		sb_end_pagefault(sb);
-+	} else {
-+		up_read(&EXT4_I(inode)->i_mmap_sem);
-+	}
+diff --git a/drivers/nvme/host/fabrics.c b/drivers/nvme/host/fabrics.c
+index 990e6fb32a63..c190d7e36900 100644
+--- a/drivers/nvme/host/fabrics.c
++++ b/drivers/nvme/host/fabrics.c
+@@ -58,7 +58,7 @@ static struct nvmf_host *nvmf_host_add(const char *hostnqn)
  
- 	return result;
- }
+ 	kref_init(&host->ref);
+ 	memcpy(host->nqn, hostnqn, NVMF_NQN_SIZE);
+-	uuid_be_gen(&host->id);
++	uuid_gen(&host->id);
+ 
+ 	list_add_tail(&host->list, &nvmf_hosts);
+ out_unlock:
+@@ -75,7 +75,7 @@ static struct nvmf_host *nvmf_host_default(void)
+ 		return NULL;
+ 
+ 	kref_init(&host->ref);
+-	uuid_be_gen(&host->id);
++	uuid_gen(&host->id);
+ 	snprintf(host->nqn, NVMF_NQN_SIZE,
+ 		"nqn.2014-08.org.nvmexpress:NVMf:uuid:%pUb", &host->id);
+ 
+@@ -395,7 +395,7 @@ int nvmf_connect_admin_queue(struct nvme_ctrl *ctrl)
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	memcpy(&data->hostid, &ctrl->opts->host->id, sizeof(uuid_be));
++	uuid_copy(&data->hostid, &ctrl->opts->host->id);
+ 	data->cntlid = cpu_to_le16(0xffff);
+ 	strncpy(data->subsysnqn, ctrl->opts->subsysnqn, NVMF_NQN_SIZE);
+ 	strncpy(data->hostnqn, ctrl->opts->host->nqn, NVMF_NQN_SIZE);
+@@ -454,7 +454,7 @@ int nvmf_connect_io_queue(struct nvme_ctrl *ctrl, u16 qid)
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	memcpy(&data->hostid, &ctrl->opts->host->id, sizeof(uuid_be));
++	uuid_copy(&data->hostid, &ctrl->opts->host->id);
+ 	data->cntlid = cpu_to_le16(ctrl->cntlid);
+ 	strncpy(data->subsysnqn, ctrl->opts->subsysnqn, NVMF_NQN_SIZE);
+ 	strncpy(data->hostnqn, ctrl->opts->host->nqn, NVMF_NQN_SIZE);
+diff --git a/drivers/nvme/host/fabrics.h b/drivers/nvme/host/fabrics.h
+index f5a9c1fb186f..29be7600689d 100644
+--- a/drivers/nvme/host/fabrics.h
++++ b/drivers/nvme/host/fabrics.h
+@@ -36,7 +36,7 @@ struct nvmf_host {
+ 	struct kref		ref;
+ 	struct list_head	list;
+ 	char			nqn[NVMF_NQN_SIZE];
+-	uuid_be			id;
++	uuid_t			id;
+ };
+ 
+ /**
+diff --git a/drivers/nvme/host/fc.c b/drivers/nvme/host/fc.c
+index 5b14cbefb724..96b983bb44bd 100644
+--- a/drivers/nvme/host/fc.c
++++ b/drivers/nvme/host/fc.c
+@@ -878,8 +878,7 @@ nvme_fc_connect_admin_queue(struct nvme_fc_ctrl *ctrl,
+ 	assoc_rqst->assoc_cmd.sqsize = cpu_to_be16(qsize);
+ 	/* Linux supports only Dynamic controllers */
+ 	assoc_rqst->assoc_cmd.cntlid = cpu_to_be16(0xffff);
+-	memcpy(&assoc_rqst->assoc_cmd.hostid, &ctrl->ctrl.opts->host->id,
+-		min_t(size_t, FCNVME_ASSOC_HOSTID_LEN, sizeof(uuid_be)));
++	uuid_copy(&assoc_rqst->assoc_cmd.hostid, &ctrl->ctrl.opts->host->id);
+ 	strncpy(assoc_rqst->assoc_cmd.hostnqn, ctrl->ctrl.opts->host->nqn,
+ 		min(FCNVME_ASSOC_HOSTNQN_LEN, NVMF_NQN_SIZE));
+ 	strncpy(assoc_rqst->assoc_cmd.subnqn, ctrl->ctrl.opts->subsysnqn,
+diff --git a/drivers/nvme/target/nvmet.h b/drivers/nvme/target/nvmet.h
+index cfc5c7fb0ab7..8ff6e430b30a 100644
+--- a/drivers/nvme/target/nvmet.h
++++ b/drivers/nvme/target/nvmet.h
+@@ -21,6 +21,7 @@
+ #include <linux/percpu-refcount.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
++#include <linux/uuid.h>
+ #include <linux/nvme.h>
+ #include <linux/configfs.h>
+ #include <linux/rcupdate.h>
+diff --git a/include/linux/nvme-fc.h b/include/linux/nvme-fc.h
+index e997c4a49a88..bc711a10be05 100644
+--- a/include/linux/nvme-fc.h
++++ b/include/linux/nvme-fc.h
+@@ -177,7 +177,6 @@ struct fcnvme_lsdesc_rjt {
+ };
+ 
+ 
+-#define FCNVME_ASSOC_HOSTID_LEN		16
+ #define FCNVME_ASSOC_HOSTNQN_LEN	256
+ #define FCNVME_ASSOC_SUBNQN_LEN		256
+ 
+@@ -191,7 +190,7 @@ struct fcnvme_lsdesc_cr_assoc_cmd {
+ 	__be16	cntlid;
+ 	__be16	sqsize;
+ 	__be32	rsvd52;
+-	u8	hostid[FCNVME_ASSOC_HOSTID_LEN];
++	uuid_t	hostid;
+ 	u8	hostnqn[FCNVME_ASSOC_HOSTNQN_LEN];
+ 	u8	subnqn[FCNVME_ASSOC_SUBNQN_LEN];
+ 	u8	rsvd632[384];
+diff --git a/include/linux/nvme.h b/include/linux/nvme.h
+index b625bacf37ef..e400a69fa1d3 100644
+--- a/include/linux/nvme.h
++++ b/include/linux/nvme.h
+@@ -16,6 +16,7 @@
+ #define _LINUX_NVME_H
+ 
+ #include <linux/types.h>
++#include <linux/uuid.h>
+ 
+ /* NQN names in commands fields specified one size */
+ #define NVMF_NQN_FIELD_LEN	256
+@@ -843,7 +844,7 @@ struct nvmf_connect_command {
+ };
+ 
+ struct nvmf_connect_data {
+-	__u8		hostid[16];
++	uuid_t		hostid;
+ 	__le16		cntlid;
+ 	char		resv4[238];
+ 	char		subsysnqn[NVMF_NQN_FIELD_LEN];
 -- 
-2.12.0
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
