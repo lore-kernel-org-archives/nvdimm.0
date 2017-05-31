@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 95F1B21A09139
- for <linux-nvdimm@lists.01.org>; Tue, 23 May 2017 14:26:09 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 0/3] add fallback reason strings to DAX PMD path
-Date: Tue, 23 May 2017 15:25:57 -0600
-Message-Id: <20170523212600.26477-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C5EE121A09124
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 12:39:13 -0700 (PDT)
+Date: Wed, 31 May 2017 21:40:12 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 08/24] uuid: rename uuid_to_bin to uuid_parse
+Message-ID: <20170531194012.GC6906@lst.de>
+References: <20170531161826.23243-1-hch@lst.de>
+ <20170531161826.23243-9-hch@lst.de>
+ <1496254475.28981.36.camel@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1496254475.28981.36.camel@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,83 +21,28 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Steven Rostedt <rostedt@goodmis.org>, linux-nvdimm@lists.01.org, Ingo Molnar <mingo@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org, Steven Whitehouse <swhiteho@redhat.com>, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, Shaohua Li <shli@kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-One of the primary motivations for adding tracepoints to the DAX PMD path
-was to allow the user to diagnose whether their system was actually using
-PMDs, and if not to help them understand why.  For me at least this has
-worked okay in some situations, but many times I find myself adding more
-debugging to diagnose fallback reasons that aren't immediately obvious, or
-situations where the current tracepoints are simply insufficient because
-they don't give you enough information.
+On Wed, May 31, 2017 at 09:14:35PM +0300, Andy Shevchenko wrote:
+> On Wed, 2017-05-31 at 18:18 +0200, Christoph Hellwig wrote:
+> > This matches the userspace version of it, and describes the
+> > functionality
+> > much better.=A0=A0Also do the same for the guid version.
+> > =
 
-This series adds short fallback reason strings to the tracepoints in the
-PMD path with the intention of giving the user better information about why
-their system is falling back to PTEs.
+> =
 
-So, for example, the recent case on my system was that I forgot to move my
-namespace from "raw" mode to "memory" mode, which resulted in this output:
+> No objections for renaming, though I'm pretty sure it should be squashed
+> to patch 6.
 
-big-1046  [000] ....   103.930950: dax_pmd_fault: dev 259:0 ino 0xc shared
-WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start 0x10200000
-vm_end 0x10700000 pgoff 0x305 max_pgoff 0x1400 
-
-big-1046  [000] ....   103.931220: dax_pmd_insert_mapping_fallback: dev
-259:0 ino 0xc shared write address 0x10505000 length 0x200000 pfn 0x24a200
-DEV radix_entry 0x0
-
-big-1046  [000] ....   103.931222: dax_pmd_fault_done: dev 259:0 ino 0xc
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
-0x10200000 vm_end 0x10700000 pgoff 0x305 max_pgoff 0x1400 FALLBACK
-
-The issue is that the PFN_MAP flag isn't set because we're lacking struct
-page for our PMEM namespace.  It's not immediately obvious why this
-fallback happened, and actually you can't even diagnose it because we mask
-off the pfn_t flags before printing the PFN.  :(
-
-This new output:
-
-big-1011  [000] ....    36.164708: dax_pmd_fault: dev 259:0 ino 0xc shared
-WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start 0x10200000
-vm_end 0x10700000 pgoff 0x305 max_pgoff 0x1400  
-
-big-1011  [000] ....    36.165521: dax_pmd_insert_mapping_fallback: dev
-259:0 ino 0xc shared write address 0x10505000 length 0x200000 pfn
-0x2000000000249200 DEV radix_entry 0x0 pfn_t not devmap
-
-big-1011  [000] ....    36.165524: dax_pmd_fault_done: dev 259:0 ino 0xc
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
-0x10200000 vm_end 0x10700000 pgoff 0x305 max_pgoff 0x1400 FALLBACK 
-
-adds the "pfn_t not devmap" string to the second line, telling the user
-exactly what's going on.  I also stopped masking off the pfn_t flags so the
-output was more complete.
-
-My only concern is that somehow adding strings like this to tracepoint
-output, brief and useful though they may be, is somehow breaking what
-tracepoints are supposed to be doing.  If anyone feels strongly about this
-I guess I can just keep these changes locally and try to keep enhancing the
-existing output without adding strings.
-
-Ross Zwisler (3):
-  dax: add fallback reason to dax_iomap_pmd_fault()
-  dax: add fallback reason to dax_pmd_insert_mapping()
-  dax: add fallback reason to dax_pmd_load_hole()
-
- fs/dax.c                      | 76 +++++++++++++++++++++++++++++++------------
- include/trace/events/fs_dax.h | 50 +++++++++++++++++-----------
- 2 files changed, 86 insertions(+), 40 deletions(-)
-
--- 
-2.9.4
-
+Fine with me, it just seemed like a unrelated enough change to justify
+keeping it separate.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
