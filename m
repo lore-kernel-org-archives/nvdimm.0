@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 615B82095A58F
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:19:45 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 93CA421AF39BB
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:18:31 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 23/24] tmpfs: generate random sb->s_uuid
-Date: Wed, 31 May 2017 18:18:25 +0200
-Message-Id: <20170531161826.23243-24-hch@lst.de>
+Subject: [PATCH 09/24] uuid: don't export guid_index and uuid_index
+Date: Wed, 31 May 2017 18:18:11 +0200
+Message-Id: <20170531161826.23243-10-hch@lst.de>
 In-Reply-To: <20170531161826.23243-1-hch@lst.de>
 References: <20170531161826.23243-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -23,42 +23,33 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Amir Goldstein <amir73il@gmail.com>
+These are only used in uuid.c and vsprintf.c and aren't something modules
+should use directly.
 
-This is used by overlayfs to encode intrasystem unique file handles.
-
-Suggested-by: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- mm/shmem.c | 2 ++
- 1 file changed, 2 insertions(+)
+ lib/uuid.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/mm/shmem.c b/mm/shmem.c
-index e67d6ba4e98e..391f2dcca727 100644
---- a/mm/shmem.c
-+++ b/mm/shmem.c
-@@ -75,6 +75,7 @@ static struct vfsmount *shm_mnt;
- #include <uapi/linux/memfd.h>
- #include <linux/userfaultfd_k.h>
- #include <linux/rmap.h>
-+#include <linux/uuid.h>
+diff --git a/lib/uuid.c b/lib/uuid.c
+index 90bee73f7bd7..f7116ed88e01 100644
+--- a/lib/uuid.c
++++ b/lib/uuid.c
+@@ -22,9 +22,7 @@
+ #include <linux/random.h>
  
- #include <linux/uaccess.h>
- #include <asm/pgtable.h>
-@@ -3761,6 +3762,7 @@ int shmem_fill_super(struct super_block *sb, void *data, int silent)
- #ifdef CONFIG_TMPFS_POSIX_ACL
- 	sb->s_flags |= MS_POSIXACL;
- #endif
-+	uuid_gen(&sb->s_uuid);
+ const u8 guid_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
+-EXPORT_SYMBOL(guid_index);
+ const u8 uuid_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+-EXPORT_SYMBOL(uuid_index);
  
- 	inode = shmem_get_inode(sb, NULL, S_IFDIR | sbinfo->mode, 0, VM_NORESERVE);
- 	if (!inode)
+ /***************************************************************
+  * Random UUID interface
 -- 
 2.11.0
 
