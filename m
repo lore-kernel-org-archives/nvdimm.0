@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8BEB221952CD8
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 11:13:39 -0700 (PDT)
-Message-ID: <1496254475.28981.36.camel@linux.intel.com>
-Subject: Re: [PATCH 08/24] uuid: rename uuid_to_bin to uuid_parse
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Date: Wed, 31 May 2017 21:14:35 +0300
-In-Reply-To: <20170531161826.23243-9-hch@lst.de>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3118221AF39BB
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:18:26 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 08/24] uuid: rename uuid_to_bin to uuid_parse
+Date: Wed, 31 May 2017 18:18:10 +0200
+Message-Id: <20170531161826.23243-9-hch@lst.de>
+In-Reply-To: <20170531161826.23243-1-hch@lst.de>
 References: <20170531161826.23243-1-hch@lst.de>
- <20170531161826.23243-9-hch@lst.de>
-Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,83 +17,126 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
 Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE3LTA1LTMxIGF0IDE4OjE4ICswMjAwLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90
-ZToKPiBUaGlzIG1hdGNoZXMgdGhlIHVzZXJzcGFjZSB2ZXJzaW9uIG9mIGl0LCBhbmQgZGVzY3Jp
-YmVzIHRoZQo+IGZ1bmN0aW9uYWxpdHkKPiBtdWNoIGJldHRlci7CoMKgQWxzbyBkbyB0aGUgc2Ft
-ZSBmb3IgdGhlIGd1aWQgdmVyc2lvbi4KPiAKCk5vIG9iamVjdGlvbnMgZm9yIHJlbmFtaW5nLCB0
-aG91Z2ggSSdtIHByZXR0eSBzdXJlIGl0IHNob3VsZCBiZSBzcXVhc2hlZAp0byBwYXRjaCA2LgoK
-PiBTaWduZWQtb2ZmLWJ5OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KPiAtLS0KPiDC
-oGluY2x1ZGUvbGludXgvdXVpZC5oIHzCoMKgOCArKysrLS0tLQo+IMKgbGliL3Rlc3RfdXVpZC5j
-wqDCoMKgwqDCoMKgfMKgwqA4ICsrKystLS0tCj4gwqBsaWIvdXVpZC5jwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoHwgMTQgKysrKysrKy0tLS0tLS0KPiDCoDMgZmlsZXMgY2hhbmdlZCwgMTUgaW5zZXJ0
-aW9ucygrKSwgMTUgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgv
-dXVpZC5oIGIvaW5jbHVkZS9saW51eC91dWlkLmgKPiBpbmRleCBhOWQwZmRiYTU0MDQuLjgyYjE2
-NWI1NzlmNSAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL2xpbnV4L3V1aWQuaAo+ICsrKyBiL2luY2x1
-ZGUvbGludXgvdXVpZC5oCj4gQEAgLTQ1LDggKzQ1LDggQEAgYm9vbCBfX211c3RfY2hlY2sgdXVp
-ZF9pc192YWxpZChjb25zdCBjaGFyICp1dWlkKTsKPiDCoGV4dGVybiBjb25zdCB1OCBndWlkX2lu
-ZGV4WzE2XTsKPiDCoGV4dGVybiBjb25zdCB1OCB1dWlkX2luZGV4WzE2XTsKPiDCoAo+IC1pbnQg
-Z3VpZF90b19iaW4oY29uc3QgY2hhciAqdXVpZCwgZ3VpZF90ICp1KTsKPiAtaW50IHV1aWRfdG9f
-YmluKGNvbnN0IGNoYXIgKnV1aWQsIHV1aWRfdCAqdSk7Cj4gK2ludCBndWlkX3BhcnNlKGNvbnN0
-IGNoYXIgKnV1aWQsIGd1aWRfdCAqdSk7Cj4gK2ludCB1dWlkX3BhcnNlKGNvbnN0IGNoYXIgKnV1
-aWQsIHV1aWRfdCAqdSk7Cj4gwqAKPiDCoC8qIGJhY2t3YXJkcyBjb21wYXRpYmlsaXR5LCBkb24n
-dCB1c2UgaW4gbmV3IGNvZGUgKi8KPiDCoHR5cGVkZWYgdXVpZF90IHV1aWRfYmU7Cj4gQEAgLTU4
-LDggKzU4LDggQEAgdHlwZWRlZiB1dWlkX3QgdXVpZF9iZTsKPiDCoAo+IMKgI2RlZmluZSB1dWlk
-X2xlX2dlbih1KQkJZ3VpZF9nZW4odSkKPiDCoCNkZWZpbmUgdXVpZF9iZV9nZW4odSkJCXV1aWRf
-Z2VuKHUpCj4gLSNkZWZpbmUgdXVpZF9sZV90b19iaW4oZ3VpZCwgdSkJZ3VpZF90b19iaW4oZ3Vp
-ZCwgdSkKPiAtI2RlZmluZSB1dWlkX2JlX3RvX2Jpbih1dWlkLCB1KQl1dWlkX3RvX2Jpbih1dWlk
-LCB1KQo+ICsjZGVmaW5lIHV1aWRfbGVfdG9fYmluKGd1aWQsIHUpCWd1aWRfcGFyc2UoZ3VpZCwg
-dSkKPiArI2RlZmluZSB1dWlkX2JlX3RvX2Jpbih1dWlkLCB1KQl1dWlkX3BhcnNlKHV1aWQsIHUp
-Cj4gwqAKPiDCoHN0YXRpYyBpbmxpbmUgaW50IHV1aWRfbGVfY21wKGNvbnN0IGd1aWRfdCB1MSwg
-Y29uc3QgZ3VpZF90IHUyKQo+IMKgewo+IGRpZmYgLS1naXQgYS9saWIvdGVzdF91dWlkLmMgYi9s
-aWIvdGVzdF91dWlkLmMKPiBpbmRleCA5Y2FkODQ2ZmQ4MDUuLmVkZGE1MzZhN2I0NSAxMDA2NDQK
-PiAtLS0gYS9saWIvdGVzdF91dWlkLmMKPiArKysgYi9saWIvdGVzdF91dWlkLmMKPiBAQCAtNjcs
-NyArNjcsNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgdGVzdF91dWlkX3Rlc3QoY29uc3Qgc3RydWN0
-Cj4gdGVzdF91dWlkX2RhdGEgKmRhdGEpCj4gwqAKPiDCoAkvKiBMRSAqLwo+IMKgCXRvdGFsX3Rl
-c3RzKys7Cj4gLQlpZiAoZ3VpZF90b19iaW4oZGF0YS0+dXVpZCwgJmxlKSkKPiArCWlmIChndWlk
-X3BhcnNlKGRhdGEtPnV1aWQsICZsZSkpCj4gwqAJCXRlc3RfdXVpZF9mYWlsZWQoImNvbnZlcnNp
-b24iLCBmYWxzZSwgZmFsc2UsIGRhdGEtCj4gPnV1aWQsIE5VTEwpOwo+IMKgCj4gwqAJdG90YWxf
-dGVzdHMrKzsKPiBAQCAtNzgsNyArNzgsNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgdGVzdF91dWlk
-X3Rlc3QoY29uc3Qgc3RydWN0Cj4gdGVzdF91dWlkX2RhdGEgKmRhdGEpCj4gwqAKPiDCoAkvKiBC
-RSAqLwo+IMKgCXRvdGFsX3Rlc3RzKys7Cj4gLQlpZiAodXVpZF90b19iaW4oZGF0YS0+dXVpZCwg
-JmJlKSkKPiArCWlmICh1dWlkX3BhcnNlKGRhdGEtPnV1aWQsICZiZSkpCj4gwqAJCXRlc3RfdXVp
-ZF9mYWlsZWQoImNvbnZlcnNpb24iLCBmYWxzZSwgdHJ1ZSwgZGF0YS0KPiA+dXVpZCwgTlVMTCk7
-Cj4gwqAKPiDCoAl0b3RhbF90ZXN0cysrOwo+IEBAIC05NSwxMiArOTUsMTIgQEAgc3RhdGljIHZv
-aWQgX19pbml0IHRlc3RfdXVpZF93cm9uZyhjb25zdCBjaGFyCj4gKmRhdGEpCj4gwqAKPiDCoAkv
-KiBMRSAqLwo+IMKgCXRvdGFsX3Rlc3RzKys7Cj4gLQlpZiAoIWd1aWRfdG9fYmluKGRhdGEsICZs
-ZSkpCj4gKwlpZiAoIWd1aWRfcGFyc2UoZGF0YSwgJmxlKSkKPiDCoAkJdGVzdF91dWlkX2ZhaWxl
-ZCgibmVnYXRpdmUiLCB0cnVlLCBmYWxzZSwgZGF0YSwKPiBOVUxMKTsKPiDCoAo+IMKgCS8qIEJF
-ICovCj4gwqAJdG90YWxfdGVzdHMrKzsKPiAtCWlmICghdXVpZF90b19iaW4oZGF0YSwgJmJlKSkK
-PiArCWlmICghdXVpZF9wYXJzZShkYXRhLCAmYmUpKQo+IMKgCQl0ZXN0X3V1aWRfZmFpbGVkKCJu
-ZWdhdGl2ZSIsIHRydWUsIHRydWUsIGRhdGEsIE5VTEwpOwo+IMKgfQo+IMKgCj4gZGlmZiAtLWdp
-dCBhL2xpYi91dWlkLmMgYi9saWIvdXVpZC5jCj4gaW5kZXggZjgwZGM2M2Y2Y2E4Li45MGJlZTcz
-ZjdiZDcgMTAwNjQ0Cj4gLS0tIGEvbGliL3V1aWQuYwo+ICsrKyBiL2xpYi91dWlkLmMKPiBAQCAt
-OTcsNyArOTcsNyBAQCBib29sIHV1aWRfaXNfdmFsaWQoY29uc3QgY2hhciAqdXVpZCkKPiDCoH0K
-PiDCoEVYUE9SVF9TWU1CT0wodXVpZF9pc192YWxpZCk7Cj4gwqAKPiAtc3RhdGljIGludCBfX3V1
-aWRfdG9fYmluKGNvbnN0IGNoYXIgKnV1aWQsIF9fdTggYlsxNl0sIGNvbnN0IHU4Cj4gZWlbMTZd
-KQo+ICtzdGF0aWMgaW50IF9fdXVpZF9wYXJzZShjb25zdCBjaGFyICp1dWlkLCBfX3U4IGJbMTZd
-LCBjb25zdCB1OAo+IGVpWzE2XSkKPiDCoHsKPiDCoAlzdGF0aWMgY29uc3QgdTggc2lbMTZdID0K
-PiB7MCwyLDQsNiw5LDExLDE0LDE2LDE5LDIxLDI0LDI2LDI4LDMwLDMyLDM0fTsKPiDCoAl1bnNp
-Z25lZCBpbnQgaTsKPiBAQCAtMTE1LDE0ICsxMTUsMTQgQEAgc3RhdGljIGludCBfX3V1aWRfdG9f
-YmluKGNvbnN0IGNoYXIgKnV1aWQsIF9fdTgKPiBiWzE2XSwgY29uc3QgdTggZWlbMTZdKQo+IMKg
-CXJldHVybiAwOwo+IMKgfQo+IMKgCj4gLWludCBndWlkX3RvX2Jpbihjb25zdCBjaGFyICp1dWlk
-LCBndWlkX3QgKnUpCj4gK2ludCBndWlkX3BhcnNlKGNvbnN0IGNoYXIgKnV1aWQsIGd1aWRfdCAq
-dSkKPiDCoHsKPiAtCXJldHVybiBfX3V1aWRfdG9fYmluKHV1aWQsIHUtPmIsIGd1aWRfaW5kZXgp
-Owo+ICsJcmV0dXJuIF9fdXVpZF9wYXJzZSh1dWlkLCB1LT5iLCBndWlkX2luZGV4KTsKPiDCoH0K
-PiAtRVhQT1JUX1NZTUJPTChndWlkX3RvX2Jpbik7Cj4gK0VYUE9SVF9TWU1CT0woZ3VpZF9wYXJz
-ZSk7Cj4gwqAKPiAtaW50IHV1aWRfdG9fYmluKGNvbnN0IGNoYXIgKnV1aWQsIHV1aWRfdCAqdSkK
-PiAraW50IHV1aWRfcGFyc2UoY29uc3QgY2hhciAqdXVpZCwgdXVpZF90ICp1KQo+IMKgewo+IC0J
-cmV0dXJuIF9fdXVpZF90b19iaW4odXVpZCwgdS0+YiwgdXVpZF9pbmRleCk7Cj4gKwlyZXR1cm4g
-X191dWlkX3BhcnNlKHV1aWQsIHUtPmIsIHV1aWRfaW5kZXgpOwo+IMKgfQo+IC1FWFBPUlRfU1lN
-Qk9MKHV1aWRfdG9fYmluKTsKPiArRVhQT1JUX1NZTUJPTCh1dWlkX3BhcnNlKTsKCi0tIApBbmR5
-IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4KSW50ZWwgRmlu
-bGFuZCBPeQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
-aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
-Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+This matches the userspace version of it, and describes the functionality
+much better.  Also do the same for the guid version.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/uuid.h |  8 ++++----
+ lib/test_uuid.c      |  8 ++++----
+ lib/uuid.c           | 14 +++++++-------
+ 3 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/include/linux/uuid.h b/include/linux/uuid.h
+index a9d0fdba5404..82b165b579f5 100644
+--- a/include/linux/uuid.h
++++ b/include/linux/uuid.h
+@@ -45,8 +45,8 @@ bool __must_check uuid_is_valid(const char *uuid);
+ extern const u8 guid_index[16];
+ extern const u8 uuid_index[16];
+ 
+-int guid_to_bin(const char *uuid, guid_t *u);
+-int uuid_to_bin(const char *uuid, uuid_t *u);
++int guid_parse(const char *uuid, guid_t *u);
++int uuid_parse(const char *uuid, uuid_t *u);
+ 
+ /* backwards compatibility, don't use in new code */
+ typedef uuid_t uuid_be;
+@@ -58,8 +58,8 @@ typedef uuid_t uuid_be;
+ 
+ #define uuid_le_gen(u)		guid_gen(u)
+ #define uuid_be_gen(u)		uuid_gen(u)
+-#define uuid_le_to_bin(guid, u)	guid_to_bin(guid, u)
+-#define uuid_be_to_bin(uuid, u)	uuid_to_bin(uuid, u)
++#define uuid_le_to_bin(guid, u)	guid_parse(guid, u)
++#define uuid_be_to_bin(uuid, u)	uuid_parse(uuid, u)
+ 
+ static inline int uuid_le_cmp(const guid_t u1, const guid_t u2)
+ {
+diff --git a/lib/test_uuid.c b/lib/test_uuid.c
+index 9cad846fd805..edda536a7b45 100644
+--- a/lib/test_uuid.c
++++ b/lib/test_uuid.c
+@@ -67,7 +67,7 @@ static void __init test_uuid_test(const struct test_uuid_data *data)
+ 
+ 	/* LE */
+ 	total_tests++;
+-	if (guid_to_bin(data->uuid, &le))
++	if (guid_parse(data->uuid, &le))
+ 		test_uuid_failed("conversion", false, false, data->uuid, NULL);
+ 
+ 	total_tests++;
+@@ -78,7 +78,7 @@ static void __init test_uuid_test(const struct test_uuid_data *data)
+ 
+ 	/* BE */
+ 	total_tests++;
+-	if (uuid_to_bin(data->uuid, &be))
++	if (uuid_parse(data->uuid, &be))
+ 		test_uuid_failed("conversion", false, true, data->uuid, NULL);
+ 
+ 	total_tests++;
+@@ -95,12 +95,12 @@ static void __init test_uuid_wrong(const char *data)
+ 
+ 	/* LE */
+ 	total_tests++;
+-	if (!guid_to_bin(data, &le))
++	if (!guid_parse(data, &le))
+ 		test_uuid_failed("negative", true, false, data, NULL);
+ 
+ 	/* BE */
+ 	total_tests++;
+-	if (!uuid_to_bin(data, &be))
++	if (!uuid_parse(data, &be))
+ 		test_uuid_failed("negative", true, true, data, NULL);
+ }
+ 
+diff --git a/lib/uuid.c b/lib/uuid.c
+index f80dc63f6ca8..90bee73f7bd7 100644
+--- a/lib/uuid.c
++++ b/lib/uuid.c
+@@ -97,7 +97,7 @@ bool uuid_is_valid(const char *uuid)
+ }
+ EXPORT_SYMBOL(uuid_is_valid);
+ 
+-static int __uuid_to_bin(const char *uuid, __u8 b[16], const u8 ei[16])
++static int __uuid_parse(const char *uuid, __u8 b[16], const u8 ei[16])
+ {
+ 	static const u8 si[16] = {0,2,4,6,9,11,14,16,19,21,24,26,28,30,32,34};
+ 	unsigned int i;
+@@ -115,14 +115,14 @@ static int __uuid_to_bin(const char *uuid, __u8 b[16], const u8 ei[16])
+ 	return 0;
+ }
+ 
+-int guid_to_bin(const char *uuid, guid_t *u)
++int guid_parse(const char *uuid, guid_t *u)
+ {
+-	return __uuid_to_bin(uuid, u->b, guid_index);
++	return __uuid_parse(uuid, u->b, guid_index);
+ }
+-EXPORT_SYMBOL(guid_to_bin);
++EXPORT_SYMBOL(guid_parse);
+ 
+-int uuid_to_bin(const char *uuid, uuid_t *u)
++int uuid_parse(const char *uuid, uuid_t *u)
+ {
+-	return __uuid_to_bin(uuid, u->b, uuid_index);
++	return __uuid_parse(uuid, u->b, uuid_index);
+ }
+-EXPORT_SYMBOL(uuid_to_bin);
++EXPORT_SYMBOL(uuid_parse);
+-- 
+2.11.0
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
