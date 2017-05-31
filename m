@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6DE7121A16EC7
- for <linux-nvdimm@lists.01.org>; Sun, 28 May 2017 03:20:49 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 269FD2095A583
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:19:48 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 21/22] tmpfs: generate random sb->s_uuid
-Date: Sun, 28 May 2017 13:20:07 +0300
-Message-Id: <20170528102008.30276-22-hch@lst.de>
-In-Reply-To: <20170528102008.30276-1-hch@lst.de>
-References: <20170528102008.30276-1-hch@lst.de>
+Subject: [PATCH 24/24] MAINTAINERS: add uuid entry
+Date: Wed, 31 May 2017 18:18:26 +0200
+Message-Id: <20170531161826.23243-25-hch@lst.de>
+In-Reply-To: <20170531161826.23243-1-hch@lst.de>
+References: <20170531161826.23243-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,42 +23,39 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Amir Goldstein <amir73il@gmail.com>
+I'll keep maintaining whatever little changed we need here, with Andy as
+my designated reviewer.
 
-This is used by overlayfs to encode intrasystem unique file handles.
-
-Suggested-by: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- mm/shmem.c | 2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/mm/shmem.c b/mm/shmem.c
-index e67d6ba4e98e..391f2dcca727 100644
---- a/mm/shmem.c
-+++ b/mm/shmem.c
-@@ -75,6 +75,7 @@ static struct vfsmount *shm_mnt;
- #include <uapi/linux/memfd.h>
- #include <linux/userfaultfd_k.h>
- #include <linux/rmap.h>
-+#include <linux/uuid.h>
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 053c3bdd1fe5..660c14729205 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13463,6 +13463,17 @@ W:	http://en.wikipedia.org/wiki/Util-linux
+ T:	git git://git.kernel.org/pub/scm/utils/util-linux/util-linux.git
+ S:	Maintained
  
- #include <linux/uaccess.h>
- #include <asm/pgtable.h>
-@@ -3761,6 +3762,7 @@ int shmem_fill_super(struct super_block *sb, void *data, int silent)
- #ifdef CONFIG_TMPFS_POSIX_ACL
- 	sb->s_flags |= MS_POSIXACL;
- #endif
-+	uuid_gen(&sb->s_uuid);
- 
- 	inode = shmem_get_inode(sb, NULL, S_IFDIR | sbinfo->mode, 0, VM_NORESERVE);
- 	if (!inode)
++UUID HELPERS
++M:	Christoph Hellwig <hch@lst.de>
++R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
++L:	linux-kernel@vger.kernel.org
++T:	git git://git.infradead.org/users/hch/uuid.git
++F:	lib/uuid.c
++F:	lib/test_uuid.c
++F:	include/linux/uuid.h
++F:	include/uapi/linux/uuid.h
++S:	Maintained
++
+ UVESAFB DRIVER
+ M:	Michal Januszewski <spock@gentoo.org>
+ L:	linux-fbdev@vger.kernel.org
 -- 
 2.11.0
 
