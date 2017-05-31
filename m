@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 066B621AF39C0
- for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 09:18:09 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 05/24] uuid: remove uuid_be defintions from the uapi header
-Date: Wed, 31 May 2017 18:18:07 +0200
-Message-Id: <20170531161826.23243-6-hch@lst.de>
-In-Reply-To: <20170531161826.23243-1-hch@lst.de>
-References: <20170531161826.23243-1-hch@lst.de>
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 77B3821A0910B
+ for <linux-nvdimm@lists.01.org>; Wed, 31 May 2017 16:12:51 -0700 (PDT)
+Subject: [PATCH] ndctl: add numa_node to --list command
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 31 May 2017 16:13:51 -0700
+Message-ID: <149627243165.15800.17084928523692021655.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,90 +16,48 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, Shaohua Li <shli@kernel.org>, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-block@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Steven Whitehouse <swhiteho@redhat.com>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We don't use uuid_be and the UUID_BE constants in any uapi headers, so make
-them private to the kernel.
+Adding numa_node of a namesapce to the --list command. If numa_node is -1,
+numa_node will not be display as there's no NUMA node.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- include/linux/uuid.h      | 15 +++++++++++++++
- include/uapi/linux/uuid.h | 16 ----------------
- 2 files changed, 15 insertions(+), 16 deletions(-)
+ util/json.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 2d095fc60204..30fb13018e29 100644
---- a/include/linux/uuid.h
-+++ b/include/linux/uuid.h
-@@ -18,6 +18,21 @@
+diff --git a/util/json.c b/util/json.c
+index b718d74..a9b733a 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -445,6 +445,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	struct ndctl_dax *dax;
+ 	char buf[40];
+ 	uuid_t uuid;
++	int numa;
  
- #include <uapi/linux/uuid.h>
+ 	if (!jndns)
+ 		return NULL;
+@@ -567,6 +568,13 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		json_object_object_add(jndns, "state", jobj);
+ 	}
  
-+typedef struct {
-+	__u8 b[16];
-+} uuid_be;
++	numa = ndctl_namespace_get_numa_node(ndns);
++	if (numa >= 0) {
++		jobj = json_object_new_int(numa);
++		if (jobj)
++			json_object_object_add(jndns, "numa_node", jobj);
++	}
 +
-+#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
-+((uuid_be)								\
-+{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
-+   ((b) >> 8) & 0xff, (b) & 0xff,					\
-+   ((c) >> 8) & 0xff, (c) & 0xff,					\
-+   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
-+
-+#define NULL_UUID_BE							\
-+	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
-+		0x00, 0x00, 0x00, 0x00)
-+
- /*
-  * The length of a UUID string ("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
-  * not including trailing NUL.
-diff --git a/include/uapi/linux/uuid.h b/include/uapi/linux/uuid.h
-index 3738e5fb6a4d..0099756c4bac 100644
---- a/include/uapi/linux/uuid.h
-+++ b/include/uapi/linux/uuid.h
-@@ -24,10 +24,6 @@ typedef struct {
- 	__u8 b[16];
- } uuid_le;
- 
--typedef struct {
--	__u8 b[16];
--} uuid_be;
--
- #define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
- ((uuid_le)								\
- {{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
-@@ -35,20 +31,8 @@ typedef struct {
-    (c) & 0xff, ((c) >> 8) & 0xff,					\
-    (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
- 
--#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
--((uuid_be)								\
--{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
--   ((b) >> 8) & 0xff, (b) & 0xff,					\
--   ((c) >> 8) & 0xff, (c) & 0xff,					\
--   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
--
- #define NULL_UUID_LE							\
- 	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
- 		0x00, 0x00, 0x00, 0x00)
- 
--#define NULL_UUID_BE							\
--	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
--		0x00, 0x00, 0x00, 0x00)
--
--
- #endif /* _UAPI_LINUX_UUID_H_ */
--- 
-2.11.0
+ 	if (pfn)
+ 		jbbs = util_pfn_badblocks_to_json(pfn, include_media_errors,
+ 				&bb_count);
 
 _______________________________________________
 Linux-nvdimm mailing list
