@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 49BF821AE30D7
- for <linux-nvdimm@lists.01.org>; Mon,  5 Jun 2017 12:50:01 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 6B85F21C93EC8
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Jun 2017 13:59:04 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [resend RFC 6/6] hmem: add performance attributes
-Date: Mon,  5 Jun 2017 13:50:57 -0600
-Message-Id: <20170605195057.31492-7-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170605195057.31492-1-ross.zwisler@linux.intel.com>
+Subject: [RFC 6/6] hmem: add performance attributes
+Date: Fri,  2 Jun 2017 14:59:56 -0600
+Message-Id: <20170602205956.28351-7-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
 References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
- <20170605195057.31492-1-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +23,7 @@ Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org
-Cc: "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Nachimuthu,, Lukasz, Robert, David, Joonas, "Lukasz  <lukasz.odzioba@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Zheng, Lv" <lv.zheng@intel.com>, devel@acpica.org, Schmauss,
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Box,, "Lv  <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, Robert, Lukasz, "Erik  <erik.schmauss@intel.com>, Len Brown" <lenb@kernel.org>, devel@acpica.org, "Kogut, Jaroslaw  <Jaroslaw.Kogut@intel.com>, Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Nachimuthu, Murugasamy  <murugasamy.nachimuthu@intel.com>, Rafael J. Wysocki" <rjw@rjwysocki.net>, Lahtinen,
 List-ID: <linux-nvdimm@lists.01.org>
 
 QWRkIHBlcmZvcm1hbmNlIGluZm9ybWF0aW9uIGZvdW5kIGluIHRoZSBITUFUIHRvIHRoZSBzeXNm
