@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0E63D21B02BAD
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:59:18 -0700 (PDT)
-Subject: [PATCH v4 16/16] libnvdimm,
- pmem: disable dax flushing when pmem is fronting a volatile region
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 29 Jun 2017 10:54:23 -0700
-Message-ID: <149875886311.10031.10601519086242129020.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9DFA821945DC1
+ for <linux-nvdimm@lists.01.org>; Sun,  4 Jun 2017 17:59:39 -0700 (PDT)
+From: "Huang\, Ying" <ying.huang@intel.com>
+Subject: Re: [PATCH -mm 05/13] block,
+ THP: Make block_device_operations.rw_page support THP
+References: <20170525064635.2832-1-ying.huang@intel.com>
+ <20170525064635.2832-6-ying.huang@intel.com>
+ <20170602055759.GC5909@linux.intel.com>
+Date: Mon, 05 Jun 2017 09:00:42 +0800
+In-Reply-To: <20170602055759.GC5909@linux.intel.com> (Ross Zwisler's message
+ of "Thu, 1 Jun 2017 23:57:59 -0600")
+Message-ID: <87a85n1c5h.fsf@yhuang-dev.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,104 +26,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Ross Zwisler <ross.zwisler@intel.com>, linux-kernel@vger.kernel.org, Minchan Kim <minchan@kernel.org>, "Huang," Ying" <ying.huang@intel.com>, Andrew Morton <akpm@linux-foundation.org>," linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pmem driver attaches to both persistent and volatile memory ranges
-advertised by the ACPI NFIT. When the region is volatile it is redundant
-to spend cycles flushing caches at fsync(). Check if the hosting region
-is volatile and do not set dax_write_cache() if it is.
+Ross Zwisler <ross.zwisler@linux.intel.com> writes:
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c        |   13 ++++++++-----
- drivers/nvdimm/region_devs.c |    6 ++++++
- include/linux/libnvdimm.h    |    1 +
- 3 files changed, 15 insertions(+), 5 deletions(-)
+> On Thu, May 25, 2017 at 02:46:27PM +0800, Huang, Ying wrote:
+>> From: Huang Ying <ying.huang@intel.com>
+>> 
+>> The .rw_page in struct block_device_operations is used by the swap
+>> subsystem to read/write the page contents from/into the corresponding
+>> swap slot in the swap device.  To support the THP (Transparent Huge
+>> Page) swap optimization, the .rw_page is enhanced to support to
+>> read/write THP if possible.
+>> 
+>> Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+>> Cc: Johannes Weiner <hannes@cmpxchg.org>
+>> Cc: Minchan Kim <minchan@kernel.org>
+>> Cc: Dan Williams <dan.j.williams@intel.com>
+>> Cc: Ross Zwisler <ross.zwisler@intel.com>
+>> Cc: Vishal L Verma <vishal.l.verma@intel.com>
+>> Cc: Jens Axboe <axboe@kernel.dk>
+>> Cc: linux-nvdimm@lists.01.org
+>> ---
+>>  drivers/block/brd.c           |  6 +++++-
+>>  drivers/block/zram/zram_drv.c |  2 ++
+>>  drivers/nvdimm/btt.c          |  4 +++-
+>>  drivers/nvdimm/pmem.c         | 42 +++++++++++++++++++++++++++++++-----------
+>>  4 files changed, 41 insertions(+), 13 deletions(-)
+>
+> The changes in brd.c, zram_drv.c and pmem.c look good to me.  For those bits
+> you can add: 
+>
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 7339d184070e..e7a40f77f729 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -284,10 +284,10 @@ static int pmem_attach_disk(struct device *dev,
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
- 	struct vmem_altmap __altmap, *altmap = NULL;
-+	int nid = dev_to_node(dev), fua, wbc;
- 	struct resource *res = &nsio->res;
- 	struct nd_pfn *nd_pfn = NULL;
- 	struct dax_device *dax_dev;
--	int nid = dev_to_node(dev);
- 	struct nd_pfn_sb *pfn_sb;
- 	struct pmem_device *pmem;
- 	struct resource pfn_res;
-@@ -314,9 +314,12 @@ static int pmem_attach_disk(struct device *dev,
- 	dev_set_drvdata(dev, pmem);
- 	pmem->phys_addr = res->start;
- 	pmem->size = resource_size(res);
--	if (!IS_ENABLED(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE)
--			|| nvdimm_has_flush(nd_region) < 0)
-+	fua = nvdimm_has_flush(nd_region);
-+	if (!IS_ENABLED(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE) || fua < 0) {
- 		dev_warn(dev, "unable to guarantee persistence of writes\n");
-+		fua = 0;
-+	}
-+	wbc = nvdimm_has_cache(nd_region);
- 
- 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
- 				dev_name(&ndns->dev))) {
-@@ -360,7 +363,7 @@ static int pmem_attach_disk(struct device *dev,
- 		return PTR_ERR(addr);
- 	pmem->virt_addr = addr;
- 
--	blk_queue_write_cache(q, true, true);
-+	blk_queue_write_cache(q, wbc, fua);
- 	blk_queue_make_request(q, pmem_make_request);
- 	blk_queue_physical_block_size(q, PAGE_SIZE);
- 	blk_queue_max_hw_sectors(q, UINT_MAX);
-@@ -390,7 +393,7 @@ static int pmem_attach_disk(struct device *dev,
- 		put_disk(disk);
- 		return -ENOMEM;
- 	}
--	dax_write_cache(dax_dev, true);
-+	dax_write_cache(dax_dev, wbc);
- 	pmem->dax_dev = dax_dev;
- 
- 	gendev = disk_to_dev(disk);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 53a64a16aba4..0c3b089b280a 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1060,6 +1060,12 @@ int nvdimm_has_flush(struct nd_region *nd_region)
- }
- EXPORT_SYMBOL_GPL(nvdimm_has_flush);
- 
-+int nvdimm_has_cache(struct nd_region *nd_region)
-+{
-+	return is_nd_pmem(&nd_region->dev);
-+}
-+EXPORT_SYMBOL_GPL(nvdimm_has_cache);
-+
- void __exit nd_region_devs_exit(void)
- {
- 	ida_destroy(&region_ida);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index b2f659bd661d..a8ee1d0afd70 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -165,4 +165,5 @@ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
- u64 nd_fletcher64(void *addr, size_t len, bool le);
- void nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
-+int nvdimm_has_cache(struct nd_region *nd_region);
- #endif /* __LIBNVDIMM_H__ */
+Thanks!
 
+> I think we still want Vishal to make sure that the BTT changes are okay.  I
+> don't know that code well enough to know whether it's safe to throw 512 pages
+> at btt_[read|write]_pg().
+>
+> Also, Ying, next time can you please CC me (and probably the linux-nvdimm
+> list) on the whole series?  It would give us more context on what the larger
+> change is, allow us to see the cover letter, allow us to test with all the
+> patches in the series, etc.  It's pretty easy for reviewers to skip over the
+> patches we don't care about or aren't in our area.
+
+Sure.
+
+Best Regards,
+Huang, Ying
+
+> Thanks,
+> - Ross
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
