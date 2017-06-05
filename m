@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5DEE421BBC431
- for <linux-nvdimm@lists.01.org>; Fri, 23 Jun 2017 00:13:27 -0700 (PDT)
-From: "Huang, Ying" <ying.huang@intel.com>
-Subject: [PATCH -mm -v2 04/12] mm, THP,
- swap: Don't allocate huge cluster for file backed swap device
-Date: Fri, 23 Jun 2017 15:12:55 +0800
-Message-Id: <20170623071303.13469-5-ying.huang@intel.com>
-In-Reply-To: <20170623071303.13469-1-ying.huang@intel.com>
-References: <20170623071303.13469-1-ying.huang@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4076021AE30D7
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Jun 2017 12:50:00 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [resend RFC 5/6] sysfs: add sysfs_add_group_link()
+Date: Mon,  5 Jun 2017 13:50:56 -0600
+Message-Id: <20170605195057.31492-6-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170605195057.31492-1-ross.zwisler@linux.intel.com>
+References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
+ <20170605195057.31492-1-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,54 +19,91 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Rik van Riel <riel@redhat.com>, linux-nvdimm@lists.01.org, Huang Ying <ying.huang@intel.com>, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Minchan Kim <minchan@kernel.org>, Shaohua Li <shli@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tim Chen <tim.c.chen@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Nachimuthu,, Lukasz, Robert, David, Joonas, "Lukasz  <lukasz.odzioba@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Zheng, Lv" <lv.zheng@intel.com>, devel@acpica.org, Schmauss,
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huang Ying <ying.huang@intel.com>
-
-It's hard to write a whole transparent huge page (THP) to a file
-backed swap device during swapping out and the file backed swap device
-isn't very popular.  So the huge cluster allocation for the file
-backed swap device is disabled.
-
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
----
- mm/swapfile.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/mm/swapfile.c b/mm/swapfile.c
-index c5d2ab1416a2..d3329b209d12 100644
---- a/mm/swapfile.c
-+++ b/mm/swapfile.c
-@@ -948,9 +948,10 @@ int get_swap_pages(int n_goal, bool cluster, swp_entry_t swp_entries[])
- 			spin_unlock(&si->lock);
- 			goto nextsi;
- 		}
--		if (cluster)
--			n_ret = swap_alloc_cluster(si, swp_entries);
--		else
-+		if (cluster) {
-+			if (!(si->flags & SWP_FILE))
-+				n_ret = swap_alloc_cluster(si, swp_entries);
-+		} else
- 			n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
- 						    n_goal, swp_entries);
- 		spin_unlock(&si->lock);
--- 
-2.11.0
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlIGN1cnJlbnQgX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooKSBjb2Rl
+IGFsbG93cyB1cyB0bwpjcmVhdGUgc3ltYm9saWMgbGlua3MgaW4gc3lzZnMgdG8gZ3JvdXBzIG9y
+IGF0dHJpYnV0ZXMuICBTb21ldGhpbmcgbGlrZToKCi9zeXMvLi4uL2VudHJ5MS9ncm91cEEgLT4g
+L3N5cy8uLi4vZW50cnkyL2dyb3VwQQoKVGhpcyBwYXRjaCBleHRlbmRzIHRoaXMgZnVuY3Rpb25h
+bGl0eSB3aXRoIGEgbmV3IHN5c2ZzX2FkZF9ncm91cF9saW5rKCkKY2FsbCB0aGF0IGFsbG93cyB0
+aGUgbGluayB0byBoYXZlIGEgZGlmZmVyZW50IG5hbWUgdGhhbiB0aGUgZ3JvdXAgb3IKYXR0cmli
+dXRlLCBzbzoKCi9zeXMvLi4uL2VudHJ5MS9saW5rX25hbWUgLT4gL3N5cy8uLi4vZW50cnkyL2dy
+b3VwQQoKX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooKSBub3cganVzdCBj
+YWxscwpzeXNmc19hZGRfZ3JvdXBfbGluaygpLCBwYXNzaW5nIGluIHRoZSBzYW1lIG5hbWUgZm9y
+IGJvdGggdGhlCmdyb3VwL2F0dHJpYnV0ZSBhbmQgZm9yIHRoZSBsaW5rIG5hbWUuCgpUaGlzIGlz
+IG5lZWRlZCBieSB0aGUgQUNQSSBITUFUIGVuYWJsaW5nIHdvcmsgYmVjYXVzZSB3ZSB3YW50IHRv
+IGhhdmUgYQpncm91cCBvZiBwZXJmb3JtYW5jZSBhdHRyaWJ1dGVzIHRoYXQgbGl2ZSBpbiBhIG1l
+bW9yeSB0YXJnZXQuICBUaGlzIGdyb3VwCnJlcHJlc2VudHMgdGhlIHBlcmZvcm1hbmNlIGJldHdl
+ZW4gdGhlIChpbml0aWF0b3IsdGFyZ2V0KSBwYWlyLCBhbmQgaW4gdGhlCnRhcmdldCB0aGUgYXR0
+cmlidXRlIGdyb3VwIGlzIG5hbWVkICJ2aWFfbWVtX2luaXRYIiB0byByZXByZXNlbnQgdGhpcwpw
+YWlyaW5nOgoKICAjIHRyZWUgbWVtX3RndDIvdmlhX21lbV9pbml0MC8KICBtZW1fdGd0Mi92aWFf
+bWVtX2luaXQwLwogIOKUnOKUgOKUgCBtZW1faW5pdDAgLT4gLi4vLi4vbWVtX2luaXQwCiAg4pSc
+4pSA4pSAIG1lbV90Z3QyIC0+IC4uLy4uL21lbV90Z3QyCiAg4pSc4pSA4pSAIHJlYWRfYndfTUJw
+cwogIOKUnOKUgOKUgCByZWFkX2xhdF9uc2VjCiAg4pSc4pSA4pSAIHdyaXRlX2J3X01CcHMKICDi
+lJTilIDilIAgd3JpdGVfbGF0X25zZWMKCldlIHRoZW4gd2FudCB0byBsaW5rIHRvIHRoaXMgYXR0
+cmlidXRlIGdyb3VwIGZyb20gdGhlIGluaXRpYXRvciwgYnV0IGNoYW5nZQp0aGUgbmFtZSB0byAi
+dmlhX21lbV90Z3RYIiBzaW5jZSB3ZSdyZSBub3cgbG9va2luZyBhdCBpdCBmcm9tIHRoZQppbml0
+aWF0b3IncyBwZXJzcGVjdGl2ZToKCiAgIyBscyAtbCBtZW1faW5pdDAvdmlhX21lbV90Z3QyCiAg
+bHJ3eHJ3eHJ3eC4gMSByb290IHJvb3QgMCBKdW4gIDEgMTA6MDAgbWVtX2luaXQwL3ZpYV9tZW1f
+dGd0MiAtPgogIC4uL21lbV90Z3QyL3ZpYV9tZW1faW5pdDAKClNpZ25lZC1vZmYtYnk6IFJvc3Mg
+Wndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4KLS0tCiBmcy9zeXNmcy9ncm91
+cC5jICAgICAgfCAzMCArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0KIGluY2x1ZGUvbGlu
+dXgvc3lzZnMuaCB8ICAyICsrCiAyIGZpbGVzIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDcg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZnMvc3lzZnMvZ3JvdXAuYyBiL2ZzL3N5c2ZzL2dy
+b3VwLmMKaW5kZXggYWMyZGUwZS4uMTlkYjU3YzggMTAwNjQ0Ci0tLSBhL2ZzL3N5c2ZzL2dyb3Vw
+LmMKKysrIGIvZnMvc3lzZnMvZ3JvdXAuYwpAQCAtMzY3LDE1ICszNjcsMTUgQEAgdm9pZCBzeXNm
+c19yZW1vdmVfbGlua19mcm9tX2dyb3VwKHN0cnVjdCBrb2JqZWN0ICprb2JqLCBjb25zdCBjaGFy
+ICpncm91cF9uYW1lLAogRVhQT1JUX1NZTUJPTF9HUEwoc3lzZnNfcmVtb3ZlX2xpbmtfZnJvbV9n
+cm91cCk7CiAKIC8qKgotICogX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmog
+LSBhZGQgYSBzeW1saW5rIHRvIGEga29iamVjdCBwb2ludGluZwotICogdG8gYSBncm91cCBvciBh
+biBhdHRyaWJ1dGUKKyAqIHN5c2ZzX2FkZF9ncm91cF9saW5rIC0gYWRkIGEgc3ltbGluayB0byBh
+IGtvYmplY3QgcG9pbnRpbmcgdG8gYSBncm91cCBvcgorICogYW4gYXR0cmlidXRlCiAgKiBAa29i
+ajoJCVRoZSBrb2JqZWN0IGNvbnRhaW5pbmcgdGhlIGdyb3VwLgogICogQHRhcmdldF9rb2JqOglU
+aGUgdGFyZ2V0IGtvYmplY3QuCiAgKiBAdGFyZ2V0X25hbWU6CVRoZSBuYW1lIG9mIHRoZSB0YXJn
+ZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgorICogQGxpbmtfbmFtZToJCVRoZSBuYW1lIG9mIHRoZSBs
+aW5rIHRvIHRoZSB0YXJnZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgogICovCi1pbnQgX19jb21wYXRf
+b25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooc3RydWN0IGtvYmplY3QgKmtvYmosCi0JCQkJ
+ICAgICAgc3RydWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAotCQkJCSAgICAgIGNvbnN0IGNoYXIg
+KnRhcmdldF9uYW1lKQoraW50IHN5c2ZzX2FkZF9ncm91cF9saW5rKHN0cnVjdCBrb2JqZWN0ICpr
+b2JqLCBzdHJ1Y3Qga29iamVjdCAqdGFyZ2V0X2tvYmosCisJCWNvbnN0IGNoYXIgKnRhcmdldF9u
+YW1lLCBjb25zdCBjaGFyICpsaW5rX25hbWUpCiB7CiAJc3RydWN0IGtlcm5mc19ub2RlICp0YXJn
+ZXQ7CiAJc3RydWN0IGtlcm5mc19ub2RlICplbnRyeTsKQEAgLTQwMCwxMiArNDAwLDI4IEBAIGlu
+dCBfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaihzdHJ1Y3Qga29iamVjdCAq
+a29iaiwKIAkJcmV0dXJuIC1FTk9FTlQ7CiAJfQogCi0JbGluayA9IGtlcm5mc19jcmVhdGVfbGlu
+ayhrb2JqLT5zZCwgdGFyZ2V0X25hbWUsIGVudHJ5KTsKKwlsaW5rID0ga2VybmZzX2NyZWF0ZV9s
+aW5rKGtvYmotPnNkLCBsaW5rX25hbWUsIGVudHJ5KTsKIAlpZiAoSVNfRVJSKGxpbmspICYmIFBU
+Ul9FUlIobGluaykgPT0gLUVFWElTVCkKLQkJc3lzZnNfd2Fybl9kdXAoa29iai0+c2QsIHRhcmdl
+dF9uYW1lKTsKKwkJc3lzZnNfd2Fybl9kdXAoa29iai0+c2QsIGxpbmtfbmFtZSk7CiAKIAlrZXJu
+ZnNfcHV0KGVudHJ5KTsKIAlrZXJuZnNfcHV0KHRhcmdldCk7CiAJcmV0dXJuIElTX0VSUihsaW5r
+KSA/IFBUUl9FUlIobGluaykgOiAwOwogfQorRVhQT1JUX1NZTUJPTF9HUEwoc3lzZnNfYWRkX2dy
+b3VwX2xpbmspOworCisvKioKKyAqIF9fY29tcGF0X29ubHlfc3lzZnNfbGlua19lbnRyeV90b19r
+b2JqIC0gYWRkIGEgc3ltbGluayB0byBhIGtvYmplY3QgcG9pbnRpbmcKKyAqIHRvIGEgZ3JvdXAg
+b3IgYW4gYXR0cmlidXRlCisgKiBAa29iajoJCVRoZSBrb2JqZWN0IGNvbnRhaW5pbmcgdGhlIGdy
+b3VwLgorICogQHRhcmdldF9rb2JqOglUaGUgdGFyZ2V0IGtvYmplY3QuCisgKiBAdGFyZ2V0X25h
+bWU6CVRoZSBuYW1lIG9mIHRoZSB0YXJnZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgorICovCitpbnQg
+X19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooc3RydWN0IGtvYmplY3QgKmtv
+YmosCisJCQkJICAgICAgc3RydWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAorCQkJCSAgICAgIGNv
+bnN0IGNoYXIgKnRhcmdldF9uYW1lKQoreworCXJldHVybiBzeXNmc19hZGRfZ3JvdXBfbGluayhr
+b2JqLCB0YXJnZXRfa29iaiwgdGFyZ2V0X25hbWUsCisJCQl0YXJnZXRfbmFtZSk7Cit9CiBFWFBP
+UlRfU1lNQk9MX0dQTChfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaik7CmRp
+ZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3N5c2ZzLmggYi9pbmNsdWRlL2xpbnV4L3N5c2ZzLmgK
+aW5kZXggYzZmMGYwZC4uODY1ZjQ5OSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9zeXNmcy5o
+CisrKyBiL2luY2x1ZGUvbGludXgvc3lzZnMuaApAQCAtMjc4LDYgKzI3OCw4IEBAIGludCBzeXNm
+c19hZGRfbGlua190b19ncm91cChzdHJ1Y3Qga29iamVjdCAqa29iaiwgY29uc3QgY2hhciAqZ3Jv
+dXBfbmFtZSwKIAkJCSAgICBzdHJ1Y3Qga29iamVjdCAqdGFyZ2V0LCBjb25zdCBjaGFyICpsaW5r
+X25hbWUpOwogdm9pZCBzeXNmc19yZW1vdmVfbGlua19mcm9tX2dyb3VwKHN0cnVjdCBrb2JqZWN0
+ICprb2JqLCBjb25zdCBjaGFyICpncm91cF9uYW1lLAogCQkJCSAgY29uc3QgY2hhciAqbGlua19u
+YW1lKTsKK2ludCBzeXNmc19hZGRfZ3JvdXBfbGluayhzdHJ1Y3Qga29iamVjdCAqa29iaiwgc3Ry
+dWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAorCQljb25zdCBjaGFyICp0YXJnZXRfbmFtZSwgY29u
+c3QgY2hhciAqbGlua19uYW1lKTsKIGludCBfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlf
+dG9fa29iaihzdHJ1Y3Qga29iamVjdCAqa29iaiwKIAkJCQkgICAgICBzdHJ1Y3Qga29iamVjdCAq
+dGFyZ2V0X2tvYmosCiAJCQkJICAgICAgY29uc3QgY2hhciAqdGFyZ2V0X25hbWUpOwotLSAKMi45
+LjQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
+LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
+c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
