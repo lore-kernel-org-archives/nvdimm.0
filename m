@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
+Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2815021A6F106
- for <linux-nvdimm@lists.01.org>; Tue, 13 Jun 2017 19:41:31 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 82A53AC0154
- for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 11:42:40 +0900 (JST)
-Date: Wed, 14 Jun 2017 11:41:58 +0900
+ by ml01.01.org (Postfix) with ESMTPS id 51E2C2095CC55
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Jun 2017 17:32:37 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id E2D21AC00D6
+ for <linux-nvdimm@lists.01.org>; Wed,  7 Jun 2017 09:33:37 +0900 (JST)
+Date: Wed, 07 Jun 2017 09:33:31 +0900
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
 Subject: Re: Panic when make check for ndctl
-In-Reply-To: <20170607093328.BE75.E1E9C6FF@jp.fujitsu.com>
-References: <CAPcyv4gaPFQhkdRYPo3UDQRWqPw4W31P9pazeHqUkHKpBU9WCQ@mail.gmail.com>
- <20170607093328.BE75.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170614114155.6D1E.E1E9C6FF@jp.fujitsu.com>
+In-Reply-To: <CAPcyv4gaPFQhkdRYPo3UDQRWqPw4W31P9pazeHqUkHKpBU9WCQ@mail.gmail.com>
+References: <20170606145109.7B82.E1E9C6FF@jp.fujitsu.com>
+ <CAPcyv4gaPFQhkdRYPo3UDQRWqPw4W31P9pazeHqUkHKpBU9WCQ@mail.gmail.com>
+Message-Id: <20170607093328.BE75.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -30,103 +31,42 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, Dan-san, Linda-san,
+> > Hmmm, though I made Fedora 25 environment, this panic still occurs...
+> > I'll attach syslog and .config again.
+> >
+> >
+> [..]
+> > [  117.804948] general protection fault: 0000 [#1] SMP
+> [..]
+> > [  117.820866] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+> [..]
+> > [  117.843262] Call Trace:
+> > [  117.843985]  release_nodes+0x76/0x260
+> > [  117.845062]  devres_release_all+0x3c/0x50
+> > [  117.846225]  device_release_driver_internal+0x159/0x200
+> > [  117.847748]  device_release_driver+0x12/0x20
+> > [  117.849029]  bus_remove_device+0xfd/0x170
+> > [  117.850192]  device_del+0x1e8/0x330
+> > [  117.851284]  platform_device_del+0x28/0x90
+> > [  117.852485]  platform_device_unregister+0x12/0x30
+> > [  117.853846]  nfit_test_exit+0x2a/0x93b [nfit_test]
+> > [  117.855219]  SyS_delete_module+0x171/0x250
+> > [  117.856403]  entry_SYSCALL_64_fastpath+0x1a/0xa5
+> 
+> Can you also attach the qemu-kvm command line you are using?
+> 
+>     ps aux | grep qemu
 
-I had chased the root cause of this panic problem, and maybe I found it.
-
-> > > Hmmm, though I made Fedora 25 environment, this panic still occurs...
-> > > I'll attach syslog and .config again.
-> > >
-> > >
-> > [..]
-> > > [  117.804948] general protection fault: 0000 [#1] SMP
-> > [..]
-> > > [  117.820866] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
-> > [..]
-> > > [  117.843262] Call Trace:
-> > > [  117.843985]  release_nodes+0x76/0x260
-> > > [  117.845062]  devres_release_all+0x3c/0x50
-> > > [  117.846225]  device_release_driver_internal+0x159/0x200
-> > > [  117.847748]  device_release_driver+0x12/0x20
-> > > [  117.849029]  bus_remove_device+0xfd/0x170
-> > > [  117.850192]  device_del+0x1e8/0x330
-> > > [  117.851284]  platform_device_del+0x28/0x90
-> > > [  117.852485]  platform_device_unregister+0x12/0x30
-> > > [  117.853846]  nfit_test_exit+0x2a/0x93b [nfit_test]
-> > > [  117.855219]  SyS_delete_module+0x171/0x250
-> > > [  117.856403]  entry_SYSCALL_64_fastpath+0x1a/0xa5
-> > 
-> > Can you also attach the qemu-kvm command line you are using?
-> > 
-> >     ps aux | grep qemu
-
-
-The cause of this problem is the num_pm of nfit_test1 is wrong.
-Though 1 is specified for num_pm at nfit_test_init(), it must be 2.
-
-----
-static __init int nfit_test_init(void)
-{
-        int rc, i;
-        :
-        :
-                case 1:
-                        nfit_test->num_pm = 1;            <---- !!!
-                        nfit_test->dcr_idx = NUM_DCR;
------
-
-The num_pm affects size of devm_kcalloc() at nfit_test_probe().
-
-----
-static int nfit_test_probe(struct platform_device *pdev)
-{
-        if (nfit_test->num_pm) {
-                int num = nfit_test->num_pm;   <----!!!
-
-                nfit_test->spa_set = devm_kcalloc(dev, num, sizeof(void *),
-                                GFP_KERNEL);   <---!!!!
-                nfit_test->spa_set_dma = devm_kcalloc(dev, num,   
-                                sizeof(dma_addr_t), GFP_KERNEL);
------
-
-However,  spa_set[] array needs 2 elements at nfit_test1_alloc().
+Sure!
 
 ---
-static int nfit_test1_alloc(struct nfit_test *t)
-{
-               :
-        t->spa_set[0] = test_alloc(t, SPA2_SIZE, &t->spa_set_dma[0]);  <--- first element
-        if (!t->spa_set[0])
-                return -ENOMEM;
-               :
-
-       t->spa_set[1] = test_alloc(t, SPA_VCD_SIZE, &t->spa_set_dma[1]);  <---- The second element!!!!
------
-
-This breaks other area, and the area is often the link list of devres.
-As a result, the panic occured on release_nodes().
-
-I confirmed that this panic never occurred with the following patch.
-
----
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index c218717..548b6d4 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1943,7 +1943,7 @@ static __init int nfit_test_init(void)
-                        nfit_test->setup = nfit_test0_setup;
-                        break;
-                case 1:
--                       nfit_test->num_pm = 1;
-+                       nfit_test->num_pm = 2;
-                        nfit_test->dcr_idx = NUM_DCR;
-                        nfit_test->num_dcr = 2;
-                        nfit_test->alloc = nfit_test1_alloc;
+$ ps auxw |grep qemu |grep goto-fedora
+qemu     45082  2.1 16.9 17408108 5547508 ?    Sl   Jun06  30:37 /usr/libexec/qemu-kvm -name goto-fedora -S -machine pc-i440fx-rhel7.0.0,accel=kvm,usb=off -cpu Nehalem -m 16384 -realtime mlock=off -smp 12,sockets=12,cores=1,threads=1 -uuid b9802ae7-404e-453b-8998-24dfc81567f2 -nographic -no-user-config -nodefaults -chardev socket,id=charmonitor,path=/var/lib/libvirt/qemu/domain-26-goto-fedora/monitor.sock,server,nowait -mon chardev=charmonitor,id=monitor,mode=control -rtc base=utc,driftfix=slew -global kvm-pit.lost_tick_policy=discard -no-hpet -no-shutdown -global PIIX4_PM.disable_s3=1 -global PIIX4_PM.disable_s4=1 -boot strict=on -device ich9-usb-ehci1,id=usb,bus=pci.0,addr=0x5.0x7 -device ich9-usb-uhci1,masterbus=usb.0,firstport=0,bus=pci.0,multifunction=on,addr=0x5 -device ich9-usb-uhci2,masterbus=usb.0,firstport=2,bus=pci.0,addr=0x5.0x1 -device ich9-usb-uhci3,masterbus=usb.0,firstport=4,bus=pci.0,addr=0x5.0x2 -device virtio-serial-pci,id=virtio-serial0,bus=pci.0,addr=0x4 -drive f
+ ile=/var/lib/libvirt/images/goto-fedora.img,format=qcow2,if=none,id=drive-virtio-disk0 -device virtio-blk-pci,scsi=off,bus=pci.0,addr=0x6,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=1 -drive if=none,id=drive-ide0-0-0,readonly=on -device ide-cd,bus=ide.0,unit=0,drive=drive-ide0-0-0,id=ide0-0-0 -netdev tap,fd=26,id=hostnet0,vhost=on,vhostfd=28 -device virtio-net-pci,netdev=hostnet0,id=net0,mac=52:54:00:fa:94:a9,bus=pci.0,addr=0x3 -chardev pty,id=charserial0 -device isa-serial,chardev=charserial0,id=serial0 -chardev socket,id=charchannel0,path=/var/lib/libvirt/qemu/channel/target/domain-26-goto-fedora/org.qemu.guest_agent.0,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=1,chardev=charchannel0,id=channel0,name=org.qemu.guest_agent.0 -device usb-tablet,id=input0,bus=usb.0,port=1 -device virtio-balloon-pci,id=balloon0,bus=pci.0,addr=0x7 -msg timestamp=on
 ----
 
-Thanks,
+---
 Yasunori Goto
-
 
 _______________________________________________
 Linux-nvdimm mailing list
