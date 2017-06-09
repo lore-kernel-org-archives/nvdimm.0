@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 991E921BBC43A
- for <linux-nvdimm@lists.01.org>; Fri, 23 Jun 2017 00:13:27 -0700 (PDT)
-From: "Huang, Ying" <ying.huang@intel.com>
-Subject: [PATCH -mm -v2 05/12] block,
- THP: Make block_device_operations.rw_page support THP
-Date: Fri, 23 Jun 2017 15:12:56 +0800
-Message-Id: <20170623071303.13469-6-ying.huang@intel.com>
-In-Reply-To: <20170623071303.13469-1-ying.huang@intel.com>
-References: <20170623071303.13469-1-ying.huang@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4448420082E7E
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Jun 2017 22:14:34 -0700 (PDT)
+Subject: [PATCH 5/9] libnvdimm,
+ label: populate 'isetcookie' for blk-aperture namespaces
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 08 Jun 2017 22:09:17 -0700
+Message-ID: <149698495727.11651.1303472971386238629.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,151 +19,110 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>, linux-nvdimm@lists.01.org, Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Minchan Kim <minchan@kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huang Ying <ying.huang@intel.com>
+Starting with the v1.2 definition of namespace labels, the isetcookie
+field is populated and validated for blk-aperture namespaces. This adds
+some safety against inadvertent copying of namespace labels from one
+DIMM-device to another.
 
-The .rw_page in struct block_device_operations is used by the swap
-subsystem to read/write the page contents from/into the corresponding
-swap slot in the swap device.  To support the THP (Transparent Huge
-Page) swap optimization, the .rw_page is enhanced to support to
-read/write THP if possible.
-
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal L Verma <vishal.l.verma@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: linux-nvdimm@lists.01.org
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/block/brd.c           |  6 +++++-
- drivers/block/zram/zram_drv.c |  2 ++
- drivers/nvdimm/btt.c          |  4 +++-
- drivers/nvdimm/pmem.c         | 41 ++++++++++++++++++++++++++++++-----------
- 4 files changed, 40 insertions(+), 13 deletions(-)
+ drivers/acpi/nfit/core.c        |    7 +------
+ drivers/nvdimm/label.c          |   12 +++++++++++-
+ drivers/nvdimm/namespace_devs.c |   20 ++++++++++++++------
+ 3 files changed, 26 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 57b574f2f66a..4240d2a9dcf9 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -324,7 +324,11 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
- 		       struct page *page, bool is_write)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 83ee3c829411..47d2dbb45695 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1736,12 +1736,12 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
+ 		struct nd_region_desc *ndr_desc,
+ 		struct acpi_nfit_system_address *spa)
  {
- 	struct brd_device *brd = bdev->bd_disk->private_data;
--	int err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
-+	int err;
-+
-+	if (PageTransHuge(page))
-+		return -ENOTSUPP;
-+	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
- 	page_endio(page, is_write, err);
- 	return err;
- }
-diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
-index d3e3af22a088..9f4973f6ba56 100644
---- a/drivers/block/zram/zram_drv.c
-+++ b/drivers/block/zram/zram_drv.c
-@@ -927,6 +927,8 @@ static int zram_rw_page(struct block_device *bdev, sector_t sector,
- 	struct zram *zram;
- 	struct bio_vec bv;
+-	int i, spa_type = nfit_spa_type(spa);
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nd_interleave_set *nd_set;
+ 	u16 nr = ndr_desc->num_mappings;
+ 	struct nfit_set_info2 *info2;
+ 	struct nfit_set_info *info;
++	int i;
  
-+	if (PageTransHuge(page))
-+		return -ENOTSUPP;
- 	zram = bdev->bd_disk->private_data;
+ 	nd_set = devm_kzalloc(dev, sizeof(*nd_set), GFP_KERNEL);
+ 	if (!nd_set)
+@@ -1749,11 +1749,6 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
+ 	ndr_desc->nd_set = nd_set;
+ 	guid_copy(&nd_set->type_guid, (guid_t *) spa->range_guid);
  
- 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 31b2d14e210d..6ec2250b5276 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1248,8 +1248,10 @@ static int btt_rw_page(struct block_device *bdev, sector_t sector,
- 		struct page *page, bool is_write)
- {
- 	struct btt *btt = bdev->bd_disk->private_data;
-+	unsigned int len;
- 
--	btt_do_bvec(btt, NULL, page, PAGE_SIZE, 0, is_write, sector);
-+	len = hpage_nr_pages(page) * PAGE_SIZE;
-+	btt_do_bvec(btt, NULL, page, len, 0, is_write, sector);
- 	page_endio(page, is_write, 0);
- 	return 0;
- }
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 7bd383aeea14..72e3fbaefee9 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -78,22 +78,40 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
- static void write_pmem(void *pmem_addr, struct page *page,
- 		unsigned int off, unsigned int len)
- {
--	void *mem = kmap_atomic(page);
+-	if (spa_type == NFIT_SPA_PM || spa_type == NFIT_SPA_VOLATILE)
+-		/* pass */;
+-	else
+-		return 0;
 -
--	memcpy_to_pmem(pmem_addr, mem + off, len);
--	kunmap_atomic(mem);
-+	unsigned int chunk;
-+	void *mem;
+ 	info = devm_kzalloc(dev, sizeof_nfit_set_info(nr), GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index d8b87d3a0ebe..ba0582fb0e21 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -787,7 +787,17 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 		nd_label->flags = __cpu_to_le32(NSLABEL_FLAG_LOCAL);
+ 		nd_label->nlabel = __cpu_to_le16(0); /* N/A */
+ 		nd_label->position = __cpu_to_le16(0); /* N/A */
+-		nd_label->isetcookie = __cpu_to_le64(0); /* N/A */
 +
-+	while (len) {
-+		mem = kmap_atomic(page);
-+		chunk = min_t(unsigned int, len, PAGE_SIZE);
-+		memcpy_to_pmem(pmem_addr, mem + off, chunk);
-+		kunmap_atomic(mem);
-+		len -= chunk;
-+		off = 0;
-+		page++;
-+		pmem_addr += PAGE_SIZE;
-+	}
- }
- 
- static blk_status_t read_pmem(struct page *page, unsigned int off,
- 		void *pmem_addr, unsigned int len)
- {
-+	unsigned int chunk;
- 	int rc;
--	void *mem = kmap_atomic(page);
--
--	rc = memcpy_mcsafe(mem + off, pmem_addr, len);
--	kunmap_atomic(mem);
--	if (rc)
--		return BLK_STS_IOERR;
-+	void *mem;
++		/*
++		 * Use the presence of the type_guid as a flag to
++		 * determine isetcookie usage for blk-aperture
++		 * namespaces.
++		 */
++		if (namespace_label_has(ndd, type_guid))
++			nd_label->isetcookie = __cpu_to_le64(nd_set->cookie2);
++		else
++			nd_label->isetcookie = __cpu_to_le64(0); /* N/A */
 +
-+	while (len) {
-+		mem = kmap_atomic(page);
-+		chunk = min_t(unsigned int, len, PAGE_SIZE);
-+		rc = memcpy_mcsafe(mem + off, pmem_addr, chunk);
-+		kunmap_atomic(mem);
-+		if (rc)
-+			return BLK_STS_IOERR;
-+		len -= chunk;
-+		off = 0;
-+		page++;
-+		pmem_addr += PAGE_SIZE;
-+	}
- 	return BLK_STS_OK;
- }
+ 		nd_label->dpa = __cpu_to_le64(res->start);
+ 		nd_label->rawsize = __cpu_to_le64(resource_size(res));
+ 		nd_label->lbasize = __cpu_to_le64(nsblk->lbasize);
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index e101aec186c7..7aba9a569c8e 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -2065,12 +2065,20 @@ struct device *create_namespace_blk(struct nd_region *nd_region,
+ 	struct device *dev = NULL;
+ 	struct resource *res;
  
-@@ -186,7 +204,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
- 	blk_status_t rc;
+-	if (namespace_label_has(ndd, type_guid)
+-			&& !guid_equal(&nd_set->type_guid,
+-				&nd_label->type_guid)) {
+-		dev_dbg(ndd->dev, "expect type_guid %pUb got %pUb\n",
+-				nd_set->type_guid.b, nd_label->type_guid.b);
+-		return ERR_PTR(-EAGAIN);
++	if (namespace_label_has(ndd, type_guid)) {
++		if (!guid_equal(&nd_set->type_guid, &nd_label->type_guid)) {
++			dev_dbg(ndd->dev, "expect type_guid %pUb got %pUb\n",
++					nd_set->type_guid.b,
++					nd_label->type_guid.b);
++			return ERR_PTR(-EAGAIN);
++		}
++
++		if (nd_label->isetcookie != __cpu_to_le64(nd_set->cookie2)) {
++			dev_dbg(ndd->dev, "expect cookie %#llx got %#llx\n",
++					nd_set->cookie2,
++					__le64_to_cpu(nd_label->isetcookie));
++			return ERR_PTR(-EAGAIN);
++		}
+ 	}
  
--	rc = pmem_do_bvec(pmem, page, PAGE_SIZE, 0, is_write, sector);
-+	rc = pmem_do_bvec(pmem, page, hpage_nr_pages(page) * PAGE_SIZE,
-+			  0, is_write, sector);
- 
- 	/*
- 	 * The ->rw_page interface is subtle and tricky.  The core
--- 
-2.11.0
+ 	nsblk = kzalloc(sizeof(*nsblk), GFP_KERNEL);
 
 _______________________________________________
 Linux-nvdimm mailing list
