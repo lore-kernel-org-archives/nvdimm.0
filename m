@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 253562095D215
- for <linux-nvdimm@lists.01.org>; Tue, 20 Jun 2017 09:50:32 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v2 4/7] acpi, nfit: Use bus_dsm_mask for passthru
-Date: Tue, 20 Jun 2017 10:51:23 -0600
-Message-Id: <d597b2ce2d394d9cae199d1b8209fbe66314c753.1497939166.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
-References: <cover.1497939166.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
-References: <cover.1497939166.git.jerry.hoemann@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id AA8C821959CAA
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Jun 2017 14:10:16 -0700 (PDT)
+Subject: [ndctl PATCH v2] util: distinguish error codes for sysfs_{read,
+ write}_attr()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 09 Jun 2017 14:04:59 -0700
+Message-ID: <149704229930.26749.7610142989390389569.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,47 +17,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Populate bus_dsm_mask and use it to filter dsm calls that user can
-make through the pass thru interface.
+There are occasions where it would be good to know the difference
+between a sysfs attribute failing to be accessed because we could not
+open versus could not read/write.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: Linda Knippers <linda.knippers@hpe.com>
+[ljk: just return the errno directly]
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ util/sysfs.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index b46fca2..9d281a4 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -253,6 +253,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		cmd_name = nvdimm_bus_cmd_name(cmd);
- 		cmd_mask = nd_desc->cmd_mask;
- 		dsm_mask = cmd_mask;
-+		if (cmd == ND_CMD_CALL) dsm_mask = nd_desc->bus_dsm_mask;
- 		desc = nd_cmd_bus_desc(cmd);
- 		uuid = to_nfit_uuid(NFIT_DEV_BUS);
- 		handle = adev->handle;
-@@ -1624,6 +1625,9 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
- 			set_bit(i, &nd_desc->cmd_mask);
- 	set_bit(ND_CMD_CALL, &nd_desc->cmd_mask);
-+	for (i = 0; i < ND_CMD_CALL; i++)
-+		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
-+			set_bit(i, &nd_desc->bus_dsm_mask);
- }
+diff --git a/util/sysfs.c b/util/sysfs.c
+index 31d1a898eba2..4178aeced087 100644
+--- a/util/sysfs.c
++++ b/util/sysfs.c
+@@ -34,13 +34,13 @@ int __sysfs_read_attr(struct log_ctx *ctx, const char *path, char *buf)
  
- static ssize_t range_index_show(struct device *dev,
--- 
-1.8.5.6
+ 	if (fd < 0) {
+ 		log_dbg(ctx, "failed to open %s: %s\n", path, strerror(errno));
+-		return -1;
++		return -errno;
+ 	}
+ 	n = read(fd, buf, SYSFS_ATTR_SIZE);
+ 	close(fd);
+ 	if (n < 0 || n >= SYSFS_ATTR_SIZE) {
+ 		log_dbg(ctx, "failed to read %s: %s\n", path, strerror(errno));
+-		return -1;
++		return -errno;
+ 	}
+ 	buf[n] = 0;
+ 	if (n && buf[n-1] == '\n')
+@@ -56,7 +56,7 @@ static int write_attr(struct log_ctx *ctx, const char *path,
+ 
+ 	if (fd < 0) {
+ 		log_dbg(ctx, "failed to open %s: %s\n", path, strerror(errno));
+-		return -1;
++		return -errno;
+ 	}
+ 	n = write(fd, buf, len);
+ 	close(fd);
+@@ -64,7 +64,7 @@ static int write_attr(struct log_ctx *ctx, const char *path,
+ 		if (!quiet)
+ 			log_dbg(ctx, "failed to write %s to %s: %s\n", buf, path,
+ 					strerror(errno));
+-		return -1;
++		return -errno;
+ 	}
+ 	return 0;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
