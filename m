@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ACA0D21A18AAA
- for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 16:22:04 -0700 (PDT)
-Subject: [PATCH v2 2/9] libnvdimm,
- label: add v1.2 interleave-set-cookie algorithm
+ by ml01.01.org (Postfix) with ESMTPS id 4DB2720082E7E
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Jun 2017 22:14:18 -0700 (PDT)
+Subject: [PATCH 2/9] libnvdimm, label: add v1.2 interleave-set-cookie algorithm
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 14 Jun 2017 16:16:53 -0700
-Message-ID: <149748212892.10258.10541304827185663576.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149698494141.11651.11254238772643685302.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149698494141.11651.11254238772643685302.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 08 Jun 2017 22:09:01 -0700
+Message-ID: <149698494141.11651.11254238772643685302.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,21 +23,15 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, Nicholas Moulin <nicholas.w.moulin@intel.com>, Kaushik Kanetkar <kaushik.a.kanetkar@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 The interleave-set-cookie algorithm is extended to incorporate all the
 same components that are used to generate an nvdimm unique-id. For
 backwards compatibility we still maintain the old v1.1 definition.
 
-Reported-by: Nicholas Moulin <nicholas.w.moulin@intel.com>
-Reported-by: Kaushik Kanetkar <kaushik.a.kanetkar@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes since v1:
-* fixed acpi_nfit_init_interleave_set() to use the correct input
-  ('info2' vs 'info') for generating the new cookie value
-
  drivers/acpi/nfit/core.c        |   53 ++++++++++++++++++++++++++++++++++++++-
  drivers/nvdimm/label.c          |    3 +-
  drivers/nvdimm/namespace_devs.c |    9 +++++--
@@ -48,7 +41,7 @@ Changes since v1:
  6 files changed, 104 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 097eff0b963d..e744ab38eaf9 100644
+index 097eff0b963d..db21f5b62562 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
 @@ -1663,12 +1663,29 @@ struct nfit_set_info {
@@ -145,7 +138,7 @@ index 097eff0b963d..e744ab38eaf9 100644
 +	/* v1.2 namespaces */
 +	sort(&info2->mapping[0], nr, sizeof(struct nfit_set_info_map2),
 +			cmp_map2, NULL);
-+	nd_set->cookie2 = nd_fletcher64(info2, sizeof_nfit_set_info2(nr), 0);
++	nd_set->cookie2 = nd_fletcher64(info, sizeof_nfit_set_info2(nr), 0);
  
 -	/* support namespaces created with the wrong sort order */
 +	/* support v1.1 namespaces created with the wrong sort order */
