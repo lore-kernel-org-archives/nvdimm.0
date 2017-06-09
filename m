@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D53121AE30D7
- for <linux-nvdimm@lists.01.org>; Sun, 11 Jun 2017 17:34:37 -0700 (PDT)
-Subject: [PATCH v4 08/14] x86, dax,
+ by ml01.01.org (Postfix) with ESMTPS id A560920082E7E
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Jun 2017 13:29:47 -0700 (PDT)
+Subject: [PATCH v3 08/14] x86, dax,
  libnvdimm: move wb_cache_pmem() to libnvdimm
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 11 Jun 2017 17:29:22 -0700
-Message-ID: <149722735182.16201.12649888866099961756.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149703986971.20620.10303247412197996310.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149703986971.20620.10303247412197996310.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 09 Jun 2017 13:24:29 -0700
+Message-ID: <149703986971.20620.10303247412197996310.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +24,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, Ingo Molnar <mingo@redhat.com>, viro@zeniv.linux.org.uk, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
 With all calls to this routine re-directed through the pmem driver, we can kill
@@ -44,17 +44,13 @@ Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Change since v3:
-* move the asm/pmem.h include inside CONFIG_ARCH_HAS_PMEM_API ifdef
-  guard
-
  arch/x86/include/asm/pmem.h       |   18 +-----------------
  arch/x86/include/asm/uaccess_64.h |    1 +
  arch/x86/lib/usercopy_64.c        |    3 ++-
  drivers/nvdimm/pmem.c             |    2 +-
- drivers/nvdimm/pmem.h             |    8 ++++++++
+ drivers/nvdimm/pmem.h             |    7 +++++++
  include/linux/pmem.h              |   19 -------------------
- 6 files changed, 13 insertions(+), 38 deletions(-)
+ 6 files changed, 12 insertions(+), 38 deletions(-)
 
 diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
 index f4c119d253f3..862be3a9275c 100644
@@ -134,24 +130,23 @@ index 823b07774244..3b87702d46bb 100644
  
  static const struct dax_operations pmem_dax_ops = {
 diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index 7f4dbd72a90a..0169a0422b88 100644
+index 7f4dbd72a90a..9137ec80b85f 100644
 --- a/drivers/nvdimm/pmem.h
 +++ b/drivers/nvdimm/pmem.h
-@@ -5,6 +5,14 @@
+@@ -4,6 +4,13 @@
+ #include <linux/types.h>
  #include <linux/pfn_t.h>
  #include <linux/fs.h>
- 
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
 +#include <asm/pmem.h>
-+#else
++
++#ifndef CONFIG_ARCH_HAS_PMEM_API
 +static inline void arch_wb_cache_pmem(void *addr, size_t size)
 +{
 +}
 +#endif
-+
+ 
  /* this definition is in it's own header for tools/testing/nvdimm to consume */
  struct pmem_device {
- 	/* One contiguous memory region per device */
 diff --git a/include/linux/pmem.h b/include/linux/pmem.h
 index 772bd02a5b52..33ae761f010a 100644
 --- a/include/linux/pmem.h
