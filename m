@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x231.google.com (mail-ot0-x231.google.com
+ [IPv6:2607:f8b0:4003:c0f::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AA8C821959CAA
- for <linux-nvdimm@lists.01.org>; Fri,  9 Jun 2017 14:10:16 -0700 (PDT)
-Subject: [ndctl PATCH v2] util: distinguish error codes for sysfs_{read,
- write}_attr()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Jun 2017 14:04:59 -0700
-Message-ID: <149704229930.26749.7610142989390389569.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2659821A143F1
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Jun 2017 13:52:40 -0700 (PDT)
+Received: by mail-ot0-x231.google.com with SMTP id a2so44540453oth.2
+ for <linux-nvdimm@lists.01.org>; Fri, 09 Jun 2017 13:53:50 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <593B008C.60502@hpe.com>
+References: <149698606405.12023.3409783083697026090.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <593B008C.60502@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 9 Jun 2017 13:53:49 -0700
+Message-ID: <CAPcyv4gJUqb_KHsZOAexEmaEn4MxRW--tTT9zAWFfAMqiAW05g@mail.gmail.com>
+Subject: Re: [ndctl PATCH] util: distinguish error codes for sysfs_{read,
+ write}_attr()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,59 +27,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Linda Knippers <linda.knippers@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are occasions where it would be good to know the difference
-between a sysfs attribute failing to be accessed because we could not
-open versus could not read/write.
+On Fri, Jun 9, 2017 at 1:09 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+> On 06/09/2017 01:27 AM, Dan Williams wrote:
+>> There are occasions where it would be good to know the difference
+>> between a sysfs attribute failing to be accessed because we could not
+>> open versus could not read/write.
+>
+> I think it would be really helpful if you returned the actual errno value
+> rather than something hard coded.  The most common reason for not being able to write
+> something is that it requires running as root, in which case you should
+> get an EPERM. I think an accurate errno will help users figure out what's
+> gone wrong.
 
-Cc: Linda Knippers <linda.knippers@hpe.com>
-[ljk: just return the errno directly]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- util/sysfs.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/util/sysfs.c b/util/sysfs.c
-index 31d1a898eba2..4178aeced087 100644
---- a/util/sysfs.c
-+++ b/util/sysfs.c
-@@ -34,13 +34,13 @@ int __sysfs_read_attr(struct log_ctx *ctx, const char *path, char *buf)
- 
- 	if (fd < 0) {
- 		log_dbg(ctx, "failed to open %s: %s\n", path, strerror(errno));
--		return -1;
-+		return -errno;
- 	}
- 	n = read(fd, buf, SYSFS_ATTR_SIZE);
- 	close(fd);
- 	if (n < 0 || n >= SYSFS_ATTR_SIZE) {
- 		log_dbg(ctx, "failed to read %s: %s\n", path, strerror(errno));
--		return -1;
-+		return -errno;
- 	}
- 	buf[n] = 0;
- 	if (n && buf[n-1] == '\n')
-@@ -56,7 +56,7 @@ static int write_attr(struct log_ctx *ctx, const char *path,
- 
- 	if (fd < 0) {
- 		log_dbg(ctx, "failed to open %s: %s\n", path, strerror(errno));
--		return -1;
-+		return -errno;
- 	}
- 	n = write(fd, buf, len);
- 	close(fd);
-@@ -64,7 +64,7 @@ static int write_attr(struct log_ctx *ctx, const char *path,
- 		if (!quiet)
- 			log_dbg(ctx, "failed to write %s to %s: %s\n", buf, path,
- 					strerror(errno));
--		return -1;
-+		return -errno;
- 	}
- 	return 0;
- }
-
+Will do.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
