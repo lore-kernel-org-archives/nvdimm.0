@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C877E21C8D623
- for <linux-nvdimm@lists.01.org>; Fri,  2 Jun 2017 13:59:00 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [RFC 3/6] acpi: HMAT support in acpi_parse_entries_array()
-Date: Fri,  2 Jun 2017 14:59:53 -0600
-Message-Id: <20170602205956.28351-4-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
-References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3E63520082E7E
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Jun 2017 22:14:13 -0700 (PDT)
+Subject: [PATCH 1/9] libnvdimm, label: add v1.2 nvdimm label definitions
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 08 Jun 2017 22:08:56 -0700
+Message-ID: <149698493608.11651.9608124801423367020.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,148 +18,336 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Box,, "Lv  <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, Robert, Lukasz, "Erik  <erik.schmauss@intel.com>, Len Brown" <lenb@kernel.org>, devel@acpica.org, "Kogut, Jaroslaw  <Jaroslaw.Kogut@intel.com>, Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Nachimuthu, Murugasamy  <murugasamy.nachimuthu@intel.com>, Rafael J. Wysocki" <rjw@rjwysocki.net>, Lahtinen,
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The current implementation of acpi_parse_entries_array() assumes that each
-subtable has a standard ACPI subtable entry of type struct
-acpi_sutbable_header.  This standard subtable header has a one byte length
-followed by a one byte type.
+In support of improved interoperability between operating systems and pre-boot
+environments the Intel proposed NVDIMM Namespace Specification [1], has been
+adopted and modified to the the UEFI 2.7 NVDIMM Label Protocol [2].
 
-The HMAT subtables have to allow for a longer length so they have subtable
-headers of type struct acpi_hmat_structure which has a 2 byte type and a 4
-byte length.
+Update the definitions of the namespace label data structures so that the new
+format can be supported alongside the existing label format.
 
-Enhance the subtable parsing in acpi_parse_entries_array() so that it can
-handle these new HMAT subtables.
+The new specification changes the default label size to 256 bytes, so
+everywhere that relied on sizeof(struct nd_namespace_label) must now use the
+sizeof_namespace_label() helper.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+There should be no functional differences from these changes as the
+default is still the v1.1 128-byte format. Future patches will move the
+default to the v1.2 definition.
+
+[1]: http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf
+[2]: http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/numa.c   |  2 +-
- drivers/acpi/tables.c | 52 ++++++++++++++++++++++++++++++++++++++++-----------
- 2 files changed, 42 insertions(+), 12 deletions(-)
+ drivers/nvdimm/label.c |   95 +++++++++++++++++++++++++++++++++++++++---------
+ drivers/nvdimm/label.h |   15 +++++++-
+ drivers/nvdimm/nd.h    |    8 ++++
+ 3 files changed, 97 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index edb0c79..917f1cc 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -443,7 +443,7 @@ int __init acpi_numa_init(void)
- 	 * So go over all cpu entries in SRAT to get apicid to node mapping.
- 	 */
- 
--	/* SRAT: Static Resource Affinity Table */
-+	/* SRAT: System Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
- 		struct acpi_subtable_proc srat_proc[3];
- 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index ff42539..7979171 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -218,6 +218,33 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
- 	}
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index dd615345699f..d6233d220bfd 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -34,6 +34,11 @@ static u32 best_seq(u32 a, u32 b)
+ 		return a;
  }
  
-+static unsigned long __init
-+acpi_get_entry_type(char *id, void *entry)
++unsigned sizeof_namespace_label(struct nvdimm_drvdata *ndd)
 +{
-+	if (!strncmp(id, ACPI_SIG_HMAT, 4))
-+		return ((struct acpi_hmat_structure *)entry)->type;
-+	else
-+		return ((struct acpi_subtable_header *)entry)->type;
++	return ndd->nslabel_size;
 +}
 +
-+static unsigned long __init
-+acpi_get_entry_length(char *id, void *entry)
-+{
-+	if (!strncmp(id, ACPI_SIG_HMAT, 4))
-+		return ((struct acpi_hmat_structure *)entry)->length;
-+	else
-+		return ((struct acpi_subtable_header *)entry)->length;
-+}
-+
-+static unsigned long __init
-+acpi_get_subtable_header_length(char *id)
-+{
-+	if (!strncmp(id, ACPI_SIG_HMAT, 4))
-+		return sizeof(struct acpi_hmat_structure);
-+	else
-+		return sizeof(struct acpi_subtable_header);
-+}
-+
- /**
-  * acpi_parse_entries_array - for each proc_num find a suitable subtable
-  *
-@@ -242,10 +269,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 		struct acpi_subtable_proc *proc, int proc_num,
- 		unsigned int max_entries)
+ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
  {
--	struct acpi_subtable_header *entry;
--	unsigned long table_end;
-+	unsigned long table_end, subtable_header_length;
- 	int count = 0;
- 	int errs = 0;
-+	void *entry;
- 	int i;
+ 	u32 index_span;
+@@ -49,7 +54,7 @@ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
+ 	 * starts to waste space at larger config_sizes, but it's
+ 	 * unlikely we'll ever see anything but 128K.
+ 	 */
+-	index_span = ndd->nsarea.config_size / 129;
++	index_span = ndd->nsarea.config_size / (sizeof_namespace_label(ndd) + 1);
+ 	index_span /= NSINDEX_ALIGN * 2;
+ 	ndd->nsindex_size = index_span * NSINDEX_ALIGN;
  
- 	if (acpi_disabled)
-@@ -263,19 +290,23 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 	}
+@@ -58,10 +63,10 @@ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
  
- 	table_end = (unsigned long)table_header + table_header->length;
-+	subtable_header_length = acpi_get_subtable_header_length(id);
+ int nvdimm_num_label_slots(struct nvdimm_drvdata *ndd)
+ {
+-	return ndd->nsarea.config_size / 129;
++	return ndd->nsarea.config_size / (sizeof_namespace_label(ndd) + 1);
+ }
  
- 	/* Parse all entries looking for a match. */
+-int nd_label_validate(struct nvdimm_drvdata *ndd)
++static int __nd_label_validate(struct nvdimm_drvdata *ndd)
+ {
+ 	/*
+ 	 * On media label format consists of two index blocks followed
+@@ -104,6 +109,7 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
+ 		u32 nslot;
+ 		u8 sig[NSINDEX_SIG_LEN];
+ 		u64 sum_save, sum, size;
++		unsigned int version, labelsize;
  
--	entry = (struct acpi_subtable_header *)
--	    ((unsigned long)table_header + table_size);
-+	entry = (void *)table_header + table_size;
+ 		memcpy(sig, nsindex[i]->sig, NSINDEX_SIG_LEN);
+ 		if (memcmp(sig, NSINDEX_SIGNATURE, NSINDEX_SIG_LEN) != 0) {
+@@ -111,6 +117,21 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
+ 					__func__, i);
+ 			continue;
+ 		}
 +
-+	while (((unsigned long)entry) + subtable_header_length  < table_end) {
-+		unsigned long entry_type, entry_length;
- 
--	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
--	       table_end) {
- 		if (max_entries && count >= max_entries)
- 			break;
- 
-+		entry_type = acpi_get_entry_type(id, entry);
-+		entry_length = acpi_get_entry_length(id, entry);
++		/* label sizes larger than 128 arrived with v1.2 */
++		version = __le16_to_cpu(nsindex[i]->major) * 100
++			+ __le16_to_cpu(nsindex[i]->minor);
++		if (version >= 102)
++			labelsize = 1 << (7 + nsindex[i]->labelsize);
++		else
++			labelsize = 128;
 +
- 		for (i = 0; i < proc_num; i++) {
--			if (entry->type != proc[i].id)
-+			if (entry_type != proc[i].id)
- 				continue;
- 			if (!proc[i].handler ||
- 			     (!errs && proc[i].handler(entry, table_end))) {
-@@ -290,16 +321,15 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 			count++;
- 
- 		/*
--		 * If entry->length is 0, break from this loop to avoid
-+		 * If entry_length is 0, break from this loop to avoid
- 		 * infinite loop.
- 		 */
--		if (entry->length == 0) {
-+		if (entry_length == 0) {
- 			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
- 			return -EINVAL;
++		if (labelsize != sizeof_namespace_label(ndd)) {
++			dev_dbg(dev, "%s: nsindex%d labelsize %d invalid\n",
++					__func__, i, nsindex[i]->labelsize);
++			continue;
++		}
++
+ 		sum_save = __le64_to_cpu(nsindex[i]->checksum);
+ 		nsindex[i]->checksum = __cpu_to_le64(0);
+ 		sum = nd_fletcher64(nsindex[i], sizeof_namespace_index(ndd), 1);
+@@ -153,7 +174,7 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
  		}
  
--		entry = (struct acpi_subtable_header *)
--		    ((unsigned long)entry + entry->length);
-+		entry += entry_length;
+ 		nslot = __le32_to_cpu(nsindex[i]->nslot);
+-		if (nslot * sizeof(struct nd_namespace_label)
++		if (nslot * sizeof_namespace_label(ndd)
+ 				+ 2 * sizeof_namespace_index(ndd)
+ 				> ndd->nsarea.config_size) {
+ 			dev_dbg(dev, "%s: nsindex%d nslot: %u invalid, config_size: %#x\n",
+@@ -189,6 +210,28 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
+ 	return -1;
+ }
+ 
++int nd_label_validate(struct nvdimm_drvdata *ndd)
++{
++	/*
++	 * In order to probe for and validate namespace index blocks we
++	 * need to know the size of the labels, and we can't trust the
++	 * size of the labels until we validate the index blocks.
++	 * Resolve this dependency loop by probing for known label
++	 * sizes.
++	 */
++	int label_size[] = { 256, 128 };
++	int i, rc;
++
++	for (i = 0; i < ARRAY_SIZE(label_size); i++) {
++		ndd->nslabel_size = label_size[i];
++		rc = __nd_label_validate(ndd);
++		if (rc >= 0)
++			return rc;
++	}
++
++	return -1;
++}
++
+ void nd_label_copy(struct nvdimm_drvdata *ndd, struct nd_namespace_index *dst,
+ 		struct nd_namespace_index *src)
+ {
+@@ -210,7 +253,22 @@ static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
+ static int to_slot(struct nvdimm_drvdata *ndd,
+ 		struct nd_namespace_label *nd_label)
+ {
+-	return nd_label - nd_label_base(ndd);
++	unsigned long label, base;
++
++	label = (unsigned long) nd_label;
++	base = (unsigned long) nd_label_base(ndd);
++
++	return (label - base) / sizeof_namespace_label(ndd);
++}
++
++static struct nd_namespace_label *to_label(struct nvdimm_drvdata *ndd, int slot)
++{
++	unsigned long label, base;
++
++	base = (unsigned long) nd_label_base(ndd);
++	label = base + sizeof_namespace_label(ndd) * slot;
++
++	return (struct nd_namespace_label *) label;
+ }
+ 
+ #define for_each_clear_bit_le(bit, addr, size) \
+@@ -299,7 +357,7 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+ 		struct resource *res;
+ 		u32 flags;
+ 
+-		nd_label = nd_label_base(ndd) + slot;
++		nd_label = to_label(ndd, slot);
+ 
+ 		if (!slot_valid(nd_label, slot))
+ 			continue;
+@@ -331,7 +389,7 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
+ 	for_each_clear_bit_le(slot, free, nslot) {
+ 		struct nd_namespace_label *nd_label;
+ 
+-		nd_label = nd_label_base(ndd) + slot;
++		nd_label = to_label(ndd, slot);
+ 
+ 		if (!slot_valid(nd_label, slot)) {
+ 			u32 label_slot = __le32_to_cpu(nd_label->slot);
+@@ -360,12 +418,12 @@ struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
+ 	for_each_clear_bit_le(slot, free, nslot) {
+ 		struct nd_namespace_label *nd_label;
+ 
+-		nd_label = nd_label_base(ndd) + slot;
++		nd_label = to_label(ndd, slot);
+ 		if (!slot_valid(nd_label, slot))
+ 			continue;
+ 
+ 		if (n-- == 0)
+-			return nd_label_base(ndd) + slot;
++			return to_label(ndd, slot);
  	}
  
- 	if (max_entries && count > max_entries) {
--- 
-2.9.4
+ 	return NULL;
+@@ -437,7 +495,8 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
+ 		nslot = __le32_to_cpu(nsindex->nslot);
+ 
+ 	memcpy(nsindex->sig, NSINDEX_SIGNATURE, NSINDEX_SIG_LEN);
+-	nsindex->flags = __cpu_to_le32(0);
++	memset(&nsindex->flags, 0, 3);
++	nsindex->labelsize = sizeof_namespace_label(ndd) >> 8;
+ 	nsindex->seq = __cpu_to_le32(seq);
+ 	offset = (unsigned long) nsindex
+ 		- (unsigned long) to_namespace_index(ndd, 0);
+@@ -525,8 +584,8 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 		return -ENXIO;
+ 	dev_dbg(ndd->dev, "%s: allocated: %d\n", __func__, slot);
+ 
+-	nd_label = nd_label_base(ndd) + slot;
+-	memset(nd_label, 0, sizeof(struct nd_namespace_label));
++	nd_label = to_label(ndd, slot);
++	memset(nd_label, 0, sizeof_namespace_label(ndd));
+ 	memcpy(nd_label->uuid, nspm->uuid, NSLABEL_UUID_LEN);
+ 	if (nspm->alt_name)
+ 		memcpy(nd_label->name, nspm->alt_name, NSLABEL_NAME_LEN);
+@@ -542,7 +601,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 	/* update label */
+ 	offset = nd_label_offset(ndd, nd_label);
+ 	rc = nvdimm_set_config_data(ndd, offset, nd_label,
+-			sizeof(struct nd_namespace_label));
++			sizeof_namespace_label(ndd));
+ 	if (rc < 0)
+ 		return rc;
+ 
+@@ -668,7 +727,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 
+ 		/* mark unused labels for garbage collection */
+ 		for_each_clear_bit_le(slot, free, nslot) {
+-			nd_label = nd_label_base(ndd) + slot;
++			nd_label = to_label(ndd, slot);
+ 			memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
+ 			if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
+ 				continue;
+@@ -714,8 +773,8 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 			goto abort;
+ 		dev_dbg(ndd->dev, "%s: allocated: %d\n", __func__, slot);
+ 
+-		nd_label = nd_label_base(ndd) + slot;
+-		memset(nd_label, 0, sizeof(struct nd_namespace_label));
++		nd_label = to_label(ndd, slot);
++		memset(nd_label, 0, sizeof_namespace_label(ndd));
+ 		memcpy(nd_label->uuid, nsblk->uuid, NSLABEL_UUID_LEN);
+ 		if (nsblk->alt_name)
+ 			memcpy(nd_label->name, nsblk->alt_name,
+@@ -732,7 +791,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 		/* update label */
+ 		offset = nd_label_offset(ndd, nd_label);
+ 		rc = nvdimm_set_config_data(ndd, offset, nd_label,
+-				sizeof(struct nd_namespace_label));
++				sizeof_namespace_label(ndd));
+ 		if (rc < 0)
+ 			goto abort;
+ 	}
+@@ -790,7 +849,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 		goto out;
+ 	}
+ 	for_each_clear_bit_le(slot, free, nslot) {
+-		nd_label = nd_label_base(ndd) + slot;
++		nd_label = to_label(ndd, slot);
+ 		memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
+ 		if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
+ 			continue;
+diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+index a59ef6eef2a3..f39bfb31f72f 100644
+--- a/drivers/nvdimm/label.h
++++ b/drivers/nvdimm/label.h
+@@ -15,6 +15,7 @@
+ 
+ #include <linux/ndctl.h>
+ #include <linux/sizes.h>
++#include <linux/uuid.h>
+ #include <linux/io.h>
+ 
+ enum {
+@@ -60,7 +61,8 @@ static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
+  */
+ struct nd_namespace_index {
+ 	u8 sig[NSINDEX_SIG_LEN];
+-	__le32 flags;
++	u8 flags[3];
++	u8 labelsize;
+ 	__le32 seq;
+ 	__le64 myoff;
+ 	__le64 mysize;
+@@ -98,7 +100,16 @@ struct nd_namespace_label {
+ 	__le64 dpa;
+ 	__le64 rawsize;
+ 	__le32 slot;
+-	__le32 unused;
++	/*
++	 * Accessing fields past this point should be gated by a
++	 * namespace_label_has() check.
++	 */
++	u8 align;
++	u8 reserved[3];
++	guid_t type_guid;
++	guid_t abstraction_guid;
++	u8 reserved2[88];
++	__le64 checksum;
+ };
+ 
+ /**
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 03852d738eec..28d9f4481547 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -42,7 +42,7 @@ struct nd_poison {
+ 
+ struct nvdimm_drvdata {
+ 	struct device *dev;
+-	int nsindex_size;
++	int nsindex_size, nslabel_size;
+ 	struct nd_cmd_get_config_size nsarea;
+ 	void *data;
+ 	int ns_current, ns_next;
+@@ -96,6 +96,12 @@ static inline struct nd_namespace_index *to_next_namespace_index(
+ 	return to_namespace_index(ndd, ndd->ns_next);
+ }
+ 
++unsigned sizeof_namespace_label(struct nvdimm_drvdata *ndd);
++
++#define namespace_label_has(ndd, field) \
++	(offsetof(struct nd_namespace_label, field) \
++		< sizeof_namespace_label(ndd))
++
+ #define nd_dbg_dpa(r, d, res, fmt, arg...) \
+ 	dev_dbg((r) ? &(r)->dev : (d)->dev, "%s: %.13s: %#llx @ %#llx " fmt, \
+ 		(r) ? dev_name((d)->dev) : "", res ? res->name : "null", \
 
 _______________________________________________
 Linux-nvdimm mailing list
