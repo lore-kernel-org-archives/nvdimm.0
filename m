@@ -1,10 +1,11 @@
-From: =?GB2312?B?wu2GtM71?= <heughengnuo-Riqr+uPUvL4AvxtiuMwx3w@public.gmane.org>
-Subject: =?GB2312?B?vLzK9deq0M3I57rOv+zL2dffz/K53MDtuNrOuw==?=
-Date: Mon, 12 Jun 2017 23:06:28 +0800
-Message-ID: <20170612150522.DE0E821A02F37@ml01.01.org>
+From: =?GB2312?B?t7aWT9z3?= <blwruansai-F2PUhITZm5nKwkZrjTKbpdBPR1lH4CV8@public.gmane.org>
+Subject: =?GB2312?B?tPPK/b7dyrG0+qOssNHO1b/Nu6e1xL6r17zQ6Mfz?=
+Date: Mon, 12 Jun 2017 15:21:42 +0000 (UTC)
+Message-ID: <20170612152025.2295021A02F37@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6038508190079828608=="
+Content-Type: multipart/mixed; boundary="===============5139663192431078202=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Date: Tue, 12 Jun 2029 23:22:15 +0800
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,23 +20,20 @@ List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format
 
---===============6038508190079828608==
+--===============5139663192431078202==
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 
 From: linux-nvdimm<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-1.角色不能转换，过度关注技术细节；
-2.认真帮助下属可是他们并不买账；
-3.凡事亲力亲为，忙得焦头烂额，可是上司却嫌效率太低；
-4.希望下属多提意见，可是他们却什么都不说，不愿意承担责任；
-5.上司让制定工作计划，可却无从下手；
-6.不知道如何分派工作，如何领导团队，更不知道如何确保你的团队不出差错；
+大数据技术结合互联网营销、移动营销极大的改变了中国的市场环境，
+让企业有机会把握客户的精准需求，并且抓住客户的碎片化时间，
+在合适的时间，通过合适的载体，以合适的方式，将产品投给合适的人。
 
-23:06:26   如何迅速解决以上问题，附件请查阅
+23:22:11
 
---===============6038508190079828608==
+--===============5139663192431078202==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -46,4 +44,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============6038508190079828608==--
+--===============5139663192431078202==--
