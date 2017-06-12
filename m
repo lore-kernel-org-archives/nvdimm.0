@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2D44921A08D63
- for <linux-nvdimm@lists.01.org>; Tue, 13 Jun 2017 06:11:36 -0700 (PDT)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [ndctl PATCH] ndctl,
- create-namespace: fix uninitialized 'size_align'
+ by ml01.01.org (Postfix) with ESMTPS id A5BE421BB251E
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Jun 2017 13:52:32 -0700 (PDT)
+Date: Mon, 12 Jun 2017 14:52:13 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] ndctl, create-namespace: fix uninitialized
+ 'size_align'
+Message-ID: <20170612205213.GA7794@omniknight.lm.intel.com>
 References: <149730020007.28869.12430033783348592440.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Tue, 13 Jun 2017 09:12:49 -0400
-In-Reply-To: <149730020007.28869.12430033783348592440.stgit@dwillia2-desk3.amr.corp.intel.com>
- (Dan Williams's message of "Mon, 12 Jun 2017 13:43:20 -0700")
-Message-ID: <x49wp8gt4j2.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <149730020007.28869.12430033783348592440.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,23 +28,19 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Williams <dan.j.williams@intel.com> writes:
-
+On 06/12, Dan Williams wrote:
 > Static analysis reports that 'size_align' could be used uninitialized,
 > so set the default at definition time.
-
-Right.  I looked into this previously and decided it was a false
-positive.  Still, I'm happy to see an obvious fix.  :)
-
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
-
-
->
+> 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
 >  ndctl/namespace.c |    4 +---
 >  1 file changed, 1 insertion(+), 3 deletions(-)
->
+
+Looks good.
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+
+> 
 > diff --git a/ndctl/namespace.c b/ndctl/namespace.c
 > index 895e39bb8c7d..4e39975d5b6a 100644
 > --- a/ndctl/namespace.c
@@ -67,11 +63,7 @@ Acked-by: Jeff Moyer <jmoyer@redhat.com>
 >  	}
 >  
 >  	/* (re-)validate that the size satisfies the alignment */
->
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm@lists.01.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
