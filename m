@@ -1,9 +1,9 @@
-From: =?GB2312?B?0vzW98jO?= <gcstuansha-8oA7p1P95UXp4P8CbLYnNQ@public.gmane.org>
-Subject: =?GB2312?B?09DQp7ykwPi2+LK7yqe/2NbGyKjKx8jnus7Ktc/WtcSjvw==?=
-Date: Mon, 12 Jun 2017 22:55:16 +0800
-Message-ID: <20170612145318.CF28F21AE30CC@ml01.01.org>
+From: =?GB2312?B?wu2GtM71?= <heughengnuo-Riqr+uPUvL4AvxtiuMwx3w@public.gmane.org>
+Subject: =?GB2312?B?vLzK9deq0M3I57rOv+zL2dffz/K53MDtuNrOuw==?=
+Date: Mon, 12 Jun 2017 23:06:28 +0800
+Message-ID: <20170612150522.DE0E821A02F37@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7116276796995260774=="
+Content-Type: multipart/mixed; boundary="===============6038508190079828608=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,23 +19,23 @@ List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format
 
---===============7116276796995260774==
+--===============6038508190079828608==
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 
 From: linux-nvdimm<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-1、掌握合伙人的甄选、估值、分钱、退出机制。
-2、掌握5种控制权丧失的有效处理方法。
-3、学会规避合伙人风险的4种方法。
-4、掌握合伙人与股权设计的区别。
-5、情景式教学：剖析合伙人改革案例，借鉴经验、方法和教训。
-6、咨询式培训：得到大量表单、工具包，拿回即用；解决培训效果的转化问题。
+1.角色不能转换，过度关注技术细节；
+2.认真帮助下属可是他们并不买账；
+3.凡事亲力亲为，忙得焦头烂额，可是上司却嫌效率太低；
+4.希望下属多提意见，可是他们却什么都不说，不愿意承担责任；
+5.上司让制定工作计划，可却无从下手；
+6.不知道如何分派工作，如何领导团队，更不知道如何确保你的团队不出差错；
 
-22:55:15
+23:06:26   如何迅速解决以上问题，附件请查阅
 
---===============7116276796995260774==
+--===============6038508190079828608==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -46,4 +46,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============7116276796995260774==--
+--===============6038508190079828608==--
