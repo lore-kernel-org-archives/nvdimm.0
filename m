@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2F70721A00AD5
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 09:55:13 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 0/7] Enable DSM pass thru for root functions
-Date: Thu, 29 Jun 2017 10:56:25 -0600
-Message-Id: <cover.1498754314.git.jerry.hoemann@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 42BAB21A143E3
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 03:57:20 -0700 (PDT)
+Date: Wed, 14 Jun 2017 12:58:33 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v3 03/14] filesystem-dax: convert to dax_copy_from_iter()
+Message-ID: <20170614105833.GH21506@quack2.suse.cz>
+References: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <149703984208.20620.7803227571371078891.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <149703984208.20620.7803227571371078891.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,71 +20,154 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ACPI 6.2 spec added NVDIMM root DSM functions that managibility
-and test software need to call.
+On Fri 09-06-17 13:24:02, Dan Williams wrote:
+> Now that all possible providers of the dax_operations copy_from_iter
+> method are implemented, switch filesytem-dax to call the driver rather
+> than copy_to_iter_pmem.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-This patch set enables the calling of root functions DSMs via the
-pass thru mechanism.
+Looks good to me. You can add:
 
-Changes v3
-----------
-1. Fix checkpatch warnings
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-2. modify bus_dsm_mask_show to display name "dsm_mask" in sysfs.
+								Honza
 
-3. modified submittal comments.
-
-Changes v2
-----------
-1. Add bus_dsm_mask to filter root pass thru calls.
-
-2. Add bus_dsm_mask_show to display bus_dsm_mask in sysfs
-
-3. Extend override_dsm_mask to be used for bus_dms_mask also.
-
-
-
-
-Details v1
-----------
-
-__nd_ioctl:
-Check pass thru functions against nd_cmd_clear_to_send.
-
-acpi_nfit_init_dsms:
-Set additional bits in cmd_mask for new functions.
-
-ndctl.h:
-Define data structure for the new 6.2 functions.
-
-
-Jerry Hoemann (7):
-  libnvdimm: passthru functions clear to send
-  acpi, nfit: Enable DSM pass thru for root functions.
-  libnvdimm: Add bus level dsm mask.
-  acpi, nfit: Use bus_dsm_mask for passthru
-  acpi, nfit: Show bus_dsm_mask in sysfs
-  libnvdimm: New ACPI 6.2 DSM functions
-  acpi, nfit: override mask
-
- drivers/acpi/nfit/core.c   | 23 +++++++++++++++++++++++
- drivers/nvdimm/bus.c       |  4 +++-
- include/linux/libnvdimm.h  |  1 +
- include/uapi/linux/ndctl.h | 41 ++++++++++++++++++++++++++++++++++++++++-
- 4 files changed, 67 insertions(+), 2 deletions(-)
-
+> ---
+>  arch/x86/include/asm/pmem.h |   50 -------------------------------------------
+>  fs/dax.c                    |    3 ++-
+>  include/linux/pmem.h        |   24 ---------------------
+>  3 files changed, 2 insertions(+), 75 deletions(-)
+> 
+> diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+> index 0ff8fe71b255..60e8edbe0205 100644
+> --- a/arch/x86/include/asm/pmem.h
+> +++ b/arch/x86/include/asm/pmem.h
+> @@ -66,56 +66,6 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+>  }
+>  
+>  /**
+> - * arch_copy_from_iter_pmem - copy data from an iterator to PMEM
+> - * @addr:	PMEM destination address
+> - * @bytes:	number of bytes to copy
+> - * @i:		iterator with source data
+> - *
+> - * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+> - */
+> -static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+> -		struct iov_iter *i)
+> -{
+> -	size_t len;
+> -
+> -	/* TODO: skip the write-back by always using non-temporal stores */
+> -	len = copy_from_iter_nocache(addr, bytes, i);
+> -
+> -	/*
+> -	 * In the iovec case on x86_64 copy_from_iter_nocache() uses
+> -	 * non-temporal stores for the bulk of the transfer, but we need
+> -	 * to manually flush if the transfer is unaligned. A cached
+> -	 * memory copy is used when destination or size is not naturally
+> -	 * aligned. That is:
+> -	 *   - Require 8-byte alignment when size is 8 bytes or larger.
+> -	 *   - Require 4-byte alignment when size is 4 bytes.
+> -	 *
+> -	 * In the non-iovec case the entire destination needs to be
+> -	 * flushed.
+> -	 */
+> -	if (iter_is_iovec(i)) {
+> -		unsigned long flushed, dest = (unsigned long) addr;
+> -
+> -		if (bytes < 8) {
+> -			if (!IS_ALIGNED(dest, 4) || (bytes != 4))
+> -				arch_wb_cache_pmem(addr, bytes);
+> -		} else {
+> -			if (!IS_ALIGNED(dest, 8)) {
+> -				dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
+> -				arch_wb_cache_pmem(addr, 1);
+> -			}
+> -
+> -			flushed = dest - (unsigned long) addr;
+> -			if (bytes > flushed && !IS_ALIGNED(bytes - flushed, 8))
+> -				arch_wb_cache_pmem(addr + bytes - 1, 1);
+> -		}
+> -	} else
+> -		arch_wb_cache_pmem(addr, bytes);
+> -
+> -	return len;
+> -}
+> -
+> -/**
+>   * arch_clear_pmem - zero a PMEM memory range
+>   * @addr:	virtual start address
+>   * @size:	number of bytes to zero
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 2a6889b3585f..b459948de427 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1054,7 +1054,8 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+>  			map_len = end - pos;
+>  
+>  		if (iov_iter_rw(iter) == WRITE)
+> -			map_len = copy_from_iter_pmem(kaddr, map_len, iter);
+> +			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
+> +					map_len, iter);
+>  		else
+>  			map_len = copy_to_iter(kaddr, map_len, iter);
+>  		if (map_len <= 0) {
+> diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+> index 71ecf3d46aac..9d542a5600e4 100644
+> --- a/include/linux/pmem.h
+> +++ b/include/linux/pmem.h
+> @@ -31,13 +31,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+>  	BUG();
+>  }
+>  
+> -static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
+> -		struct iov_iter *i)
+> -{
+> -	BUG();
+> -	return 0;
+> -}
+> -
+>  static inline void arch_clear_pmem(void *addr, size_t size)
+>  {
+>  	BUG();
+> @@ -80,23 +73,6 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
+>  }
+>  
+>  /**
+> - * copy_from_iter_pmem - copy data from an iterator to PMEM
+> - * @addr:	PMEM destination address
+> - * @bytes:	number of bytes to copy
+> - * @i:		iterator with source data
+> - *
+> - * Copy data from the iterator 'i' to the PMEM buffer starting at 'addr'.
+> - * See blkdev_issue_flush() note for memcpy_to_pmem().
+> - */
+> -static inline size_t copy_from_iter_pmem(void *addr, size_t bytes,
+> -		struct iov_iter *i)
+> -{
+> -	if (arch_has_pmem_api())
+> -		return arch_copy_from_iter_pmem(addr, bytes, i);
+> -	return copy_from_iter_nocache(addr, bytes, i);
+> -}
+> -
+> -/**
+>   * clear_pmem - zero a PMEM memory range
+>   * @addr:	virtual start address
+>   * @size:	number of bytes to zero
+> 
 -- 
-1.8.5.6
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
