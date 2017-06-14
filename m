@@ -2,13 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8A66621A143E7
- for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 05:44:08 -0700 (PDT)
-Date: Wed, 14 Jun 2017 14:45:20 +0200
-From: Michal Hocko <mhocko@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id E6D8521A143E0
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 02:59:37 -0700 (PDT)
+Date: Wed, 14 Jun 2017 12:00:51 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v2 1/2] mm: improve readability of
  transparent_hugepage_enabled()
-Message-ID: <20170614124520.GA8537@dhcp22.suse.cz>
+Message-ID: <20170614100051.GB20247@quack2.suse.cz>
 References: <149739530052.20686.9000645746376519779.stgit@dwillia2-desk3.amr.corp.intel.com>
  <149739530612.20686.14760671150202647861.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -40,12 +40,11 @@ On Tue 13-06-17 16:08:26, Dan Williams wrote:
 > Acked-by: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-This is really a nice deobfuscation! Please note this will conflict with
-http://lkml.kernel.org/r/1496415802-30944-1-git-send-email-rppt@linux.vnet.ibm.com
+Looks good. You can add:
 
-Trivial to resolve but I thought I should give you a heads up.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Acked-by: Michal Hocko <mhocko@suse.com>
+								Honza
 
 > ---
 >  include/linux/huge_mm.h |   32 +++++++++++++++++++++-----------
@@ -109,15 +108,9 @@ Acked-by: Michal Hocko <mhocko@suse.com>
 >  static inline void prep_transhuge_page(struct page *page) {}
 >  
 > 
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-
 -- 
-Michal Hocko
-SUSE Labs
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
