@@ -1,18 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 58ED22095D225
- for <linux-nvdimm@lists.01.org>; Tue, 20 Jun 2017 09:50:32 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v2 5/7] acpi, nfit: Show bus_dsm_mask
-Date: Tue, 20 Jun 2017 10:51:24 -0600
-Message-Id: <658db8f8c7a5042a2049e5fe08c0c68b4586526e.1497939166.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
-References: <cover.1497939166.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
-References: <cover.1497939166.git.jerry.hoemann@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7B67721A143C3
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 03:47:59 -0700 (PDT)
+Date: Wed, 14 Jun 2017 12:49:12 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v3 09/14] x86, libnvdimm, pmem: move
+ arch_invalidate_pmem() to libnvdimm
+Message-ID: <20170614104912.GC21506@quack2.suse.cz>
+References: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <149703987543.20620.15705330305343743783.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <149703987543.20620.15705330305343743783.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,53 +21,129 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, dm-devel@redhat.com, Ingo Molnar <mingo@redhat.com>, viro@zeniv.linux.org.uk, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add bus_dsm_mask to sysfs display under /sys/bus/nd/devices/ndbusX/nfit.
+On Fri 09-06-17 13:24:35, Dan Williams wrote:
+> Kill this globally defined wrapper and move to libnvdimm so that we can
+> ultimately remove include/linux/pmem.h.
+> 
+> Cc: <x86@kernel.org>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Matthew Wilcox <mawilcox@microsoft.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
----
- drivers/acpi/nfit/core.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Looks good to me. You can add:
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 9d281a4..f133b3e 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -928,6 +928,15 @@ static int nfit_mem_init(struct acpi_nfit_desc *acpi_desc)
- 	return 0;
- }
- 
-+static ssize_t bus_dsm_mask_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	return sprintf(buf, "%#lx\n", nd_desc->bus_dsm_mask);
-+}
-+static DEVICE_ATTR_RO(bus_dsm_mask);
-+
- static ssize_t revision_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -1064,6 +1073,7 @@ static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
- 	&dev_attr_revision.attr,
- 	&dev_attr_scrub.attr,
- 	&dev_attr_hw_error_scrub.attr,
-+	&dev_attr_bus_dsm_mask.attr,
- 	NULL,
- };
- 
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+> ---
+>  drivers/nvdimm/claim.c |    3 ++-
+>  drivers/nvdimm/pmem.c  |    2 +-
+>  drivers/nvdimm/pmem.h  |    3 +++
+>  include/linux/pmem.h   |   19 -------------------
+>  4 files changed, 6 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+> index b8b9c8ca7862..d2e16c0401df 100644
+> --- a/drivers/nvdimm/claim.c
+> +++ b/drivers/nvdimm/claim.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/sizes.h>
+>  #include <linux/pmem.h>
+>  #include "nd-core.h"
+> +#include "pmem.h"
+>  #include "pfn.h"
+>  #include "btt.h"
+>  #include "nd.h"
+> @@ -272,7 +273,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+>  				cleared /= 512;
+>  				badblocks_clear(&nsio->bb, sector, cleared);
+>  			}
+> -			invalidate_pmem(nsio->addr + offset, size);
+> +			arch_invalidate_pmem(nsio->addr + offset, size);
+>  		} else
+>  			rc = -EIO;
+>  	}
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 3b87702d46bb..68737bc68a07 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -71,7 +71,7 @@ static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
+>  		badblocks_clear(&pmem->bb, sector, cleared);
+>  	}
+>  
+> -	invalidate_pmem(pmem->virt_addr + offset, len);
+> +	arch_invalidate_pmem(pmem->virt_addr + offset, len);
+>  
+>  	return rc;
+>  }
+> diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+> index 9137ec80b85f..d579c7095a45 100644
+> --- a/drivers/nvdimm/pmem.h
+> +++ b/drivers/nvdimm/pmem.h
+> @@ -10,6 +10,9 @@
+>  static inline void arch_wb_cache_pmem(void *addr, size_t size)
+>  {
+>  }
+> +static inline void arch_invalidate_pmem(void *addr, size_t size)
+> +{
+> +}
+>  #endif
+>  
+>  /* this definition is in it's own header for tools/testing/nvdimm to consume */
+> diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+> index 33ae761f010a..559c00848583 100644
+> --- a/include/linux/pmem.h
+> +++ b/include/linux/pmem.h
+> @@ -30,11 +30,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+>  {
+>  	BUG();
+>  }
+> -
+> -static inline void arch_invalidate_pmem(void *addr, size_t size)
+> -{
+> -	BUG();
+> -}
+>  #endif
+>  
+>  static inline bool arch_has_pmem_api(void)
+> @@ -61,18 +56,4 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
+>  	else
+>  		memcpy(dst, src, n);
+>  }
+> -
+> -/**
+> - * invalidate_pmem - flush a pmem range from the cache hierarchy
+> - * @addr:	virtual start address
+> - * @size:	bytes to invalidate (internally aligned to cache line size)
+> - *
+> - * For platforms that support clearing poison this flushes any poisoned
+> - * ranges out of the cache
+> - */
+> -static inline void invalidate_pmem(void *addr, size_t size)
+> -{
+> -	if (arch_has_pmem_api())
+> -		arch_invalidate_pmem(addr, size);
+> -}
+>  #endif /* __PMEM_H__ */
+> 
 -- 
-1.8.5.6
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
