@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9792121A18AAA
- for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 14:14:42 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 996BD21A18AAA
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 13:59:48 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2] daxctl: add bash completion
-Date: Wed, 14 Jun 2017 15:14:23 -0600
-Message-Id: <20170614211423.28938-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] daxctl: add bash completion
+Date: Wed, 14 Jun 2017 14:59:09 -0600
+Message-Id: <20170614205909.26619-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,9 +28,6 @@ Add bash completion for the daxctl utility.
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
-
-v2: parsing 'ls' is a Bad Thing. Use shell globs instead.
-
  Makefile.am    |   2 +-
  contrib/daxctl | 233 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  ndctl.spec.in  |   1 +
@@ -52,7 +49,7 @@ index 2b46736..1ae5a7a 100644
  noinst_LIBRARIES = libccan.a
 diff --git a/contrib/daxctl b/contrib/daxctl
 new file mode 100644
-index 0000000..cc9e008
+index 0000000..3d1f203
 --- /dev/null
 +++ b/contrib/daxctl
 @@ -0,0 +1,233 @@
@@ -160,12 +157,12 @@ index 0000000..cc9e008
 +
 +__daxctl_get_devs()
 +{
-+	for f in /sys/bus/nd/devices/dax*; do sed "s/dax//" <<< "$(basename "$f")"; done
++	ls /sys/bus/nd/devices/ | grep dax | grep -oE "[0-9]+.*"
 +}
 +
 +__daxctl_get_regions()
 +{
-+	for f in /sys/bus/nd/devices/region*; do sed "s/region//" <<< "$(basename "$f")"; done
++	ls /sys/bus/nd/devices/ | grep region | grep -oE "[0-9]+.*"
 +}
 +
 +__daxctl_comp_options()
