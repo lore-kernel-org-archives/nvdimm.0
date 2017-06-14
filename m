@@ -2,18 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1696021A6F106
- for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 09:53:05 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 8A66621A143E7
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 05:44:08 -0700 (PDT)
+Date: Wed, 14 Jun 2017 14:45:20 +0200
+From: Michal Hocko <mhocko@kernel.org>
 Subject: Re: [PATCH v2 1/2] mm: improve readability of
  transparent_hugepage_enabled()
+Message-ID: <20170614124520.GA8537@dhcp22.suse.cz>
 References: <149739530052.20686.9000645746376519779.stgit@dwillia2-desk3.amr.corp.intel.com>
  <149739530612.20686.14760671150202647861.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Vlastimil Babka <vbabka@suse.cz>
-Message-ID: <e944ba00-3139-8da0-a1f9-642be9300c7c@suse.cz>
-Date: Wed, 14 Jun 2017 18:53:40 +0200
 MIME-Version: 1.0
+Content-Disposition: inline
 In-Reply-To: <149739530612.20686.14760671150202647861.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,11 +25,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, hch@lst.de, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 06/14/2017 01:08 AM, Dan Williams wrote:
+On Tue 13-06-17 16:08:26, Dan Williams wrote:
 > Turn the macro into a static inline and rewrite the condition checks for
 > better readability in preparation for adding another condition.
 > 
@@ -40,38 +40,12 @@ On 06/14/2017 01:08 AM, Dan Williams wrote:
 > Acked-by: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+This is really a nice deobfuscation! Please note this will conflict with
+http://lkml.kernel.org/r/1496415802-30944-1-git-send-email-rppt@linux.vnet.ibm.com
 
-vbabka@gusiac:~/wrk/cbmc> cbmc test-thp.c
-CBMC version 5.3 64-bit x86_64 linux
-Parsing test-thp.c
-file <command-line> line 0: <command-line>:0:0: warning:
-"__STDC_VERSION__" redefined
-file <command-line> line 0: <built-in>: note: this is the location of
-the previous definition
-Converting
-Type-checking test-thp
-file test-thp.c line 75 function main: function `assert' is not declared
-Generating GOTO Program
-Adding CPROVER library
-Function Pointer Removal
-Partial Inlining
-Generic Property Instrumentation
-Starting Bounded Model Checking
-size of program expression: 171 steps
-simple slicing removed 3 assignments
-Generated 1 VCC(s), 1 remaining after simplification
-Passing problem to propositional reduction
-converting SSA
-Running propositional reduction
-Post-processing
-Solving with MiniSAT 2.2.0 with simplifier
-4899 variables, 13228 clauses
-SAT checker: negated claim is UNSATISFIABLE, i.e., holds
-Runtime decision procedure: 0.008s
-VERIFICATION SUCCESSFUL
+Trivial to resolve but I thought I should give you a heads up.
 
-(and yeah, the v1 version fails :)
+Acked-by: Michal Hocko <mhocko@suse.com>
 
 > ---
 >  include/linux/huge_mm.h |   32 +++++++++++++++++++++-----------
@@ -140,8 +114,10 @@ VERIFICATION SUCCESSFUL
 > the body to majordomo@kvack.org.  For more info on Linux MM,
 > see: http://www.linux-mm.org/ .
 > Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-> 
 
+-- 
+Michal Hocko
+SUSE Labs
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
