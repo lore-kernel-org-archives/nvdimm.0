@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EF30E21A07A94
- for <linux-nvdimm@lists.01.org>; Fri, 16 Jun 2017 21:08:09 -0700 (PDT)
-Date: Fri, 16 Jun 2017 22:09:26 -0600
+ by ml01.01.org (Postfix) with ESMTPS id AF7B521A07A81
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Jun 2017 12:43:20 -0700 (PDT)
+Date: Fri, 16 Jun 2017 13:44:37 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH v2 1/3] mm: add vm_insert_mixed_mkwrite()
-Message-ID: <20170617040926.GA26554@linux.intel.com>
+Message-ID: <20170616194437.GA20742@linux.intel.com>
 References: <20170614172211.19820-1-ross.zwisler@linux.intel.com>
  <20170614172211.19820-2-ross.zwisler@linux.intel.com>
  <20170615144204.GN1764@quack2.suse.cz>
@@ -71,42 +71,12 @@ On Thu, Jun 15, 2017 at 04:42:04PM +0200, Jan Kara wrote:
 > properly detect PTE / PMD case, read / write case etc., check that PTE did
 > not change from orig_pte, and handle all the nasty details instead of
 > messing with insert_pfn?
+> 
+> 								Honza
 
-I played around with this some today, and I wasn't super happy with the
-results.  Here were some issues I encountered:
+Sounds good, I'll figure this out for v3.
 
-1) The pte_mkyoung(), maybe_mkwrite() and pte_mkdirty() calls need to happen
-with the PTE locked, and I'm currently able to piggy-back on the locking done
-in insert_pfn().  If I keep those steps out of insert_pfn() I either have to
-essentially duplicate all the work done by insert_pfn() into another function
-so I can do everything I need under one lock, or I have to insert the PFN via
-insert_pfn() (which as you point out, will just leave the pfn alone if it's
-already present), then for writes I have to re-grab the PTE lock and set do
-the mkwrite steps.
-
-Either of these work, but they both also seem kind of gross...
-
-2) Combining the PTE and PMD cases into a common function will require
-mm/memory.c to call vmf_insert_pfn_pmd(), which depends on
-CONFIG_TRANSPARENT_HUGEPAGE being defined.  This works, it just means some
-more #ifdef CONFIG_TRANSPARENT_HUGEPAGE hackery in mm/memory.c.
-
-I agree that unconditionally overwriting the PTE when mkwrite is set is
-undesireable, and should be fixed.  My implementation of the wrapper just
-didn't seem that natural, which usually tells me I'm headed down the wrong
-path.  Maybe I'm just not fully understanding what you intended?
-
-In any case, my current favorite soultion for this issue is still what I had
-in v1:
-
-https://patchwork.kernel.org/patch/9772809/
-
-with perhaps the removal of the new vm_insert_mixed_mkwrite() symbol, and just
-adding a 'write' flag to vm_insert_mixed() and updating all the call sites,
-and fixing the flow where mkwrite unconditionally overwrites the PTE?
-
-If not, can you help me understand what you think is ugly about the 'write'
-flag to vm_insert_mixed() and vmf_insert_pfn_pmd()?
+Thanks for the review!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
