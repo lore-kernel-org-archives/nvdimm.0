@@ -1,21 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x22c.google.com (mail-ot0-x22c.google.com
- [IPv6:2607:f8b0:4003:c0f::22c])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E505021A143F1
- for <linux-nvdimm@lists.01.org>; Fri, 16 Jun 2017 17:45:40 -0700 (PDT)
-Received: by mail-ot0-x22c.google.com with SMTP id s7so40315693otb.3
- for <linux-nvdimm@lists.01.org>; Fri, 16 Jun 2017 17:46:59 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CS1PR84MB0104A87F4AAB23AADF88656282C60@CS1PR84MB0104.NAMPRD84.PROD.OUTLOOK.COM>
+Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 936F221A143F1
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Jun 2017 17:34:37 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: RE: [PATCH v2] libnvdimm, pmem: Add sysfs notifications to badblocks
+Date: Sat, 17 Jun 2017 00:35:52 +0000
+Message-ID: <CS1PR84MB0104A87F4AAB23AADF88656282C60@CS1PR84MB0104.NAMPRD84.PROD.OUTLOOK.COM>
 References: <20170612222511.22030-1-toshi.kani@hpe.com>
  <CAPcyv4i03dU37tgqyRaMugGTqjagWeZ+WAtc7deJyZkkAbO9mA@mail.gmail.com>
- <CS1PR84MB0104A87F4AAB23AADF88656282C60@CS1PR84MB0104.NAMPRD84.PROD.OUTLOOK.COM>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 16 Jun 2017 17:46:58 -0700
-Message-ID: <CAPcyv4geo4mhj9Ly9ro+uAS0kLNbeGgv+2eUQr1cZbJfhPKQMw@mail.gmail.com>
-Subject: Re: [PATCH v2] libnvdimm, pmem: Add sysfs notifications to badblocks
+In-Reply-To: <CAPcyv4i03dU37tgqyRaMugGTqjagWeZ+WAtc7deJyZkkAbO9mA@mail.gmail.com>
+Content-Language: en-US
+Content-Type: multipart/mixed;
+ boundary="_002_CS1PR84MB0104A87F4AAB23AADF88656282C60CS1PR84MB0104NAMP_"
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,45 +22,78 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jun 16, 2017 at 5:35 PM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
->> On Mon, Jun 12, 2017 at 3:25 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
->> > Sysfs "badblocks" information may be updated during run-time that:
->> >  - MCE, SCI, and sysfs "scrub" may add new bad blocks
->> >  - Writes and ioctl() may clear bad blocks
->> >
->> > Add support to send sysfs notifications to sysfs "badblocks" file
->> > under region and pmem directories when their badblocks information
->> > is re-evaluated (but is not necessarily changed) during run-time.
->> >
->> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
->> > Cc: Dan Williams <dan.j.williams@intel.com>
->> > Cc: Vishal Verma <vishal.l.verma@intel.com>
->> > Cc: Linda Knippers <linda.knippers@hpe.com>
->> > ---
->> > v2: Send notifications for the clearing case
->> > ---
->>
->> This looks good to me, I've applied it, but I also want to extend the
->> ndctl unit tests to cover this mechanism.
->
-> Right.  For the time being, would you mind to use the attached test
-> program for your sanity tests?  It simply monitors sysfs notifications
-> and prints badblocks info...  Sorry for inconvenience.
->
-> Since I am not familiar with the ndctl unit tests and I am traveling for
-> the rest of the month, I may have to look into it after I am back.
->
+--_002_CS1PR84MB0104A87F4AAB23AADF88656282C60CS1PR84MB0104NAMP_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-No worries, I'll take a look at integrating this. Have a nice trip!
+PiBPbiBNb24sIEp1biAxMiwgMjAxNyBhdCAzOjI1IFBNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5p
+QGhwZS5jb20+IHdyb3RlOg0KPiA+IFN5c2ZzICJiYWRibG9ja3MiIGluZm9ybWF0aW9uIG1heSBi
+ZSB1cGRhdGVkIGR1cmluZyBydW4tdGltZSB0aGF0Og0KPiA+ICAtIE1DRSwgU0NJLCBhbmQgc3lz
+ZnMgInNjcnViIiBtYXkgYWRkIG5ldyBiYWQgYmxvY2tzDQo+ID4gIC0gV3JpdGVzIGFuZCBpb2N0
+bCgpIG1heSBjbGVhciBiYWQgYmxvY2tzDQo+ID4NCj4gPiBBZGQgc3VwcG9ydCB0byBzZW5kIHN5
+c2ZzIG5vdGlmaWNhdGlvbnMgdG8gc3lzZnMgImJhZGJsb2NrcyIgZmlsZQ0KPiA+IHVuZGVyIHJl
+Z2lvbiBhbmQgcG1lbSBkaXJlY3RvcmllcyB3aGVuIHRoZWlyIGJhZGJsb2NrcyBpbmZvcm1hdGlv
+bg0KPiA+IGlzIHJlLWV2YWx1YXRlZCAoYnV0IGlzIG5vdCBuZWNlc3NhcmlseSBjaGFuZ2VkKSBk
+dXJpbmcgcnVuLXRpbWUuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBUb3NoaSBLYW5pIDx0b3No
+aS5rYW5pQGhwZS5jb20+DQo+ID4gQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50
+ZWwuY29tPg0KPiA+IENjOiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4N
+Cj4gPiBDYzogTGluZGEgS25pcHBlcnMgPGxpbmRhLmtuaXBwZXJzQGhwZS5jb20+DQo+ID4gLS0t
+DQo+ID4gdjI6IFNlbmQgbm90aWZpY2F0aW9ucyBmb3IgdGhlIGNsZWFyaW5nIGNhc2UNCj4gPiAt
+LS0NCj4gDQo+IFRoaXMgbG9va3MgZ29vZCB0byBtZSwgSSd2ZSBhcHBsaWVkIGl0LCBidXQgSSBh
+bHNvIHdhbnQgdG8gZXh0ZW5kIHRoZQ0KPiBuZGN0bCB1bml0IHRlc3RzIHRvIGNvdmVyIHRoaXMg
+bWVjaGFuaXNtLg0KDQpSaWdodC4gIEZvciB0aGUgdGltZSBiZWluZywgd291bGQgeW91IG1pbmQg
+dG8gdXNlIHRoZSBhdHRhY2hlZCB0ZXN0DQpwcm9ncmFtIGZvciB5b3VyIHNhbml0eSB0ZXN0cz8g
+IEl0IHNpbXBseSBtb25pdG9ycyBzeXNmcyBub3RpZmljYXRpb25zDQphbmQgcHJpbnRzIGJhZGJs
+b2NrcyBpbmZvLi4uICBTb3JyeSBmb3IgaW5jb252ZW5pZW5jZS4NCg0KU2luY2UgSSBhbSBub3Qg
+ZmFtaWxpYXIgd2l0aCB0aGUgbmRjdGwgdW5pdCB0ZXN0cyBhbmQgSSBhbSB0cmF2ZWxpbmcgZm9y
+DQp0aGUgcmVzdCBvZiB0aGUgbW9udGgsIEkgbWF5IGhhdmUgdG8gbG9vayBpbnRvIGl0IGFmdGVy
+IEkgYW0gYmFjay4NCg0KVGhhbmtzIQ0KLVRvc2hpDQoNCg0K
+
+--_002_CS1PR84MB0104A87F4AAB23AADF88656282C60CS1PR84MB0104NAMP_
+Content-Type: text/plain; name="test_sysfs_notify.c"
+Content-Description: test_sysfs_notify.c
+Content-Disposition: attachment; filename="test_sysfs_notify.c"; size=1160;
+	creation-date="Sat, 17 Jun 2017 00:03:55 GMT";
+	modification-date="Fri, 16 Jun 2017 23:04:01 GMT"
+Content-Transfer-Encoding: base64
+
+LyoKICogQ29weXJpZ2h0IChDKSAyMDE3ICBIZXdsZXR0IFBhY2thcmQgRW50ZXJwcmlzZSBEZXZl
+bG9wbWVudCBMUAogKgogKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiBy
+ZWRpc3RyaWJ1dGUgaXQgYW5kL29yCiAqIG1vZGlmeSBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhl
+IEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCiAqIGFzIHB1Ymxpc2hlZCBieSB0aGUgRnJlZSBT
+b2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyCiAqIG9mIHRoZSBMaWNlbnNlLCBv
+ciAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgogKi8KI2luY2x1ZGUgPHN0ZGlv
+Lmg+CiNpbmNsdWRlIDxzdGRsaWIuaD4KI2luY2x1ZGUgPHN0cmluZy5oPgojaW5jbHVkZSA8dW5p
+c3RkLmg+CiNpbmNsdWRlIDxmY250bC5oPgojaW5jbHVkZSA8c3lzL3R5cGVzLmg+IAojaW5jbHVk
+ZSA8c3lzL3N0YXQuaD4gCgppbnQgbWFpbihpbnQgYXJnYywgY2hhciAqKmFyZ3YpCnsKCWludCBm
+ZCwgcmV0OwoJZmRfc2V0IGZkczsKCWNoYXIgYnVmWzI1Nl07CgoJaWYgKGFyZ2MgIT0gMikgewoJ
+CXByaW50ZigiVVNBR0U6IHRlc3Rfc3lzZnNfbm90aWZ5IGJhZGJsb2Nrcy1wYXRoXG4iKTsKCQll
+eGl0KDEpOwoJfQoKCWlmICgoZmQgPSBvcGVuKGFyZ3ZbMV0sIE9fUkRPTkxZKSkgPCAwKSB7CgkJ
+cHJpbnRmKCJVbmFibGUgdG8gb3BlbiAlc1xuIiwgYXJndlsxXSk7CgkJZXhpdCgxKTsKCX0KCXBy
+aW50ZigiTW9uaXRvcmluZyAlcyAtIGN0bC1jIHRvIHN0b3BcbiIsIGFyZ3ZbMV0pOwoKCXdoaWxl
+ICgxKSB7CgkJbWVtc2V0KGJ1ZiwgMCwgc2l6ZW9mKGJ1ZikpOwoJCXJldCA9IGxzZWVrKGZkLCAw
+LCBTRUVLX1NFVCk7CgkJcmV0ID0gcmVhZChmZCwgYnVmLCBzaXplb2YoYnVmKSk7CgkJcHJpbnRm
+KCIlc1xuIiwgYnVmKTsKCgkJRkRfWkVSTygmZmRzKTsKCQlGRF9TRVQoZmQsICZmZHMpOwoKCQly
+ZXQgPSBzZWxlY3QoZmQgKyAxLCBOVUxMLCBOVUxMLCAmZmRzLCBOVUxMKTsKCQlpZiAocmV0IDw9
+IDApIHsKCQkJcHJpbnRmKCJlcnJvciAoJWQpXG4iLCByZXQpOwoJCQlleGl0KDEpOwoJCX0gZWxz
+ZSBpZiAoRkRfSVNTRVQoZmQsICZmZHMpKSB7CgkJCXByaW50ZigiTk9USUZJRUQhIVxuIik7CgkJ
+fQoJfQoKCWNsb3NlKGZkKTsKfQo=
+
+--_002_CS1PR84MB0104A87F4AAB23AADF88656282C60CS1PR84MB0104NAMP_
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--_002_CS1PR84MB0104A87F4AAB23AADF88656282C60CS1PR84MB0104NAMP_--
