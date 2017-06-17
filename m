@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0A6B621A16ED1
- for <linux-nvdimm@lists.01.org>; Tue, 13 Jun 2017 16:13:39 -0700 (PDT)
-Subject: [PATCH v2 1/2] mm: improve readability of
- transparent_hugepage_enabled()
+ by ml01.01.org (Postfix) with ESMTPS id 6400F21A143F1
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Jun 2017 18:20:33 -0700 (PDT)
+Subject: [RFC PATCH 0/2] daxfile: enable byte-addressable updates to pmem
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 13 Jun 2017 16:08:26 -0700
-Message-ID: <149739530612.20686.14760671150202647861.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149739530052.20686.9000645746376519779.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149739530052.20686.9000645746376519779.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 16 Jun 2017 18:15:24 -0700
+Message-ID: <149766212410.22552.15957843500156182524.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,80 +21,75 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Turn the macro into a static inline and rewrite the condition checks for
-better readability in preparation for adding another condition.
+Quoting PATCH 2/2:
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-[ross: fix logic to make conversion equivalent]
-Acked-by: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+    To date, the full promise of byte-addressable access to persistent
+    memory has only been half realized via the filesystem-dax interface. The
+    current filesystem-dax mechanism allows an application to consume (read)
+    data from persistent storage at byte-size granularity, bypassing the
+    full page reads required by traditional storage devices.
+    
+    Now, for writes, applications still need to contend with
+    page-granularity dirtying and flushing semantics as well as filesystem
+    coordination for metadata updates after any mmap write. The current
+    situation precludes use cases that leverage byte-granularity / in-place
+    updates to persistent media.
+    
+    To get around this limitation there are some specialized applications
+    that are using the device-dax interface to bypass the overhead and
+    data-safety problems of the current filesystem-dax mmap-write path.
+    QEMU-KVM is forced to use device-dax to safely pass through persistent
+    memory to a guest [1]. Some specialized databases are using device-dax
+    for byte-granularity writes. Outside of those cases, device-dax is
+    difficult for general purpose persistent memory applications to consume.
+    There is demand for access to pmem without needing to contend with
+    special device configuration and other device-dax limitations.
+    
+    The 'daxfile' interface satisfies this demand and realizes one of Dave
+    Chinner's ideas for allowing pmem applications to safely bypass
+    fsync/msync requirements. The idea is to make the file immutable with
+    respect to the offset-to-block mappings for every extent in the file
+    [2]. It turns out that filesystems already need to make this guarantee
+    today. This property is needed for files marked as swap files.
+    
+    The new daxctl() syscall manages setting a file into 'static-dax' mode
+    whereby it arranges for the file to be treated as a swapfile as far as
+    the filesystem is concerned, but not registered with the core-mm as
+    swapfile space. A file in this mode is then safe to be mapped and
+    written without the requirement to fsync/msync the writes.  The cpu
+    cache management for flushing data to persistence can be handled
+    completely in userspace.
+   
+As can be seen in the patches there are still some TODOs to resolve in
+the code, but this otherwise appears to solve the problem of persistent
+memory applications needing to coordinate any and all writes to a file
+mapping with fsync/msync.
+
+[1]: https://lists.gnu.org/archive/html/qemu-devel/2017-06/msg01207.html
+[2]: https://lkml.org/lkml/2016/9/11/159
+
 ---
- include/linux/huge_mm.h |   32 +++++++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
 
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index a3762d49ba39..c8119e856eb1 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -85,14 +85,23 @@ extern struct kobj_attribute shmem_enabled_attr;
- 
- extern bool is_vma_temporary_stack(struct vm_area_struct *vma);
- 
--#define transparent_hugepage_enabled(__vma)				\
--	((transparent_hugepage_flags &					\
--	  (1<<TRANSPARENT_HUGEPAGE_FLAG) ||				\
--	  (transparent_hugepage_flags &					\
--	   (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG) &&			\
--	   ((__vma)->vm_flags & VM_HUGEPAGE))) &&			\
--	 !((__vma)->vm_flags & VM_NOHUGEPAGE) &&			\
--	 !is_vma_temporary_stack(__vma))
-+extern unsigned long transparent_hugepage_flags;
-+
-+static inline bool transparent_hugepage_enabled(struct vm_area_struct *vma)
-+{
-+	if ((vma->vm_flags & VM_NOHUGEPAGE) || is_vma_temporary_stack(vma))
-+		return false;
-+
-+	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
-+		return true;
-+
-+	if (transparent_hugepage_flags &
-+				(1 << TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
-+		return !!(vma->vm_flags & VM_HUGEPAGE);
-+
-+	return false;
-+}
-+
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
- 	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
-@@ -104,8 +113,6 @@ extern bool is_vma_temporary_stack(struct vm_area_struct *vma);
- #define transparent_hugepage_debug_cow() 0
- #endif /* CONFIG_DEBUG_VM */
- 
--extern unsigned long transparent_hugepage_flags;
--
- extern unsigned long thp_get_unmapped_area(struct file *filp,
- 		unsigned long addr, unsigned long len, unsigned long pgoff,
- 		unsigned long flags);
-@@ -223,7 +230,10 @@ void mm_put_huge_zero_page(struct mm_struct *mm);
- 
- #define hpage_nr_pages(x) 1
- 
--#define transparent_hugepage_enabled(__vma) 0
-+static inline bool transparent_hugepage_enabled(struct vm_area_struct *vma)
-+{
-+	return false;
-+}
- 
- static inline void prep_transhuge_page(struct page *page) {}
- 
+Dan Williams (2):
+      mm: introduce bmap_walk()
+      mm, fs: daxfile, an interface for byte-addressable updates to pmem
 
+
+ arch/x86/entry/syscalls/syscall_64.tbl |    1 
+ include/linux/dax.h                    |    9 ++
+ include/linux/fs.h                     |    3 +
+ include/linux/syscalls.h               |    1 
+ include/uapi/linux/dax.h               |    8 +
+ mm/Kconfig                             |    5 +
+ mm/Makefile                            |    1 
+ mm/daxfile.c                           |  186 ++++++++++++++++++++++++++++++++
+ mm/page_io.c                           |  117 +++++++++++++++++---
+ 9 files changed, 312 insertions(+), 19 deletions(-)
+ create mode 100644 include/uapi/linux/dax.h
+ create mode 100644 mm/daxfile.c
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
