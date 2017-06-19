@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail05.adl6.internode.on.net (ipmail05.adl6.internode.on.net
- [150.101.137.143])
- by ml01.01.org (Postfix) with ESMTP id 20C4821A07A8C
- for <linux-nvdimm@lists.01.org>; Mon, 19 Jun 2017 18:12:59 -0700 (PDT)
-Date: Tue, 20 Jun 2017 10:46:53 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [RFC PATCH 2/2] mm, fs: daxfile, an interface for
- byte-addressable updates to pmem
-Message-ID: <20170620004653.GI17542@dastard>
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0255C21C8F61C
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Jun 2017 08:21:11 -0700 (PDT)
+Received: from mail-ua0-f182.google.com (mail-ua0-f182.google.com
+ [209.85.217.182])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by mail.kernel.org (Postfix) with ESMTPSA id 8B889239F5
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Jun 2017 15:22:32 +0000 (UTC)
+Received: by mail-ua0-f182.google.com with SMTP id 68so61266749uas.0
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Jun 2017 08:22:32 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170619132107.GG11993@dastard>
 References: <149766212410.22552.15957843500156182524.stgit@dwillia2-desk3.amr.corp.intel.com>
  <149766213493.22552.4057048843646200083.stgit@dwillia2-desk3.amr.corp.intel.com>
  <CALCETrU1Hg=q4cdQDex--3nVBfwRC1o=9pC6Ss77Z8Lxg7ZJLg@mail.gmail.com>
@@ -16,10 +22,11 @@ References: <149766212410.22552.15957843500156182524.stgit@dwillia2-desk3.amr.co
  <CAPcyv4iPb69e+rE3fJUzm9U_P_dLfhantU9mvYmV-R0oQee4rA@mail.gmail.com>
  <CALCETrVY38h2ajpod2U_2pdHSp8zO4mG2p19h=OnnHmhGTairw@mail.gmail.com>
  <20170619132107.GG11993@dastard>
- <CALCETrUe0igzK0RZTSSondkCY3ApYQti89tOh00f0j_APrf_dQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CALCETrUe0igzK0RZTSSondkCY3ApYQti89tOh00f0j_APrf_dQ@mail.gmail.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 19 Jun 2017 08:22:10 -0700
+Message-ID: <CALCETrUe0igzK0RZTSSondkCY3ApYQti89tOh00f0j_APrf_dQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 2/2] mm, fs: daxfile, an interface for
+ byte-addressable updates to pmem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -31,177 +38,136 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Lutomirski <luto@kernel.org>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andy Lutomirski <luto@kernel.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 19, 2017 at 08:22:10AM -0700, Andy Lutomirski wrote:
-> On Mon, Jun 19, 2017 at 6:21 AM, Dave Chinner <david@fromorbit.com> wrote:
-> > On Sat, Jun 17, 2017 at 10:05:45PM -0700, Andy Lutomirski wrote:
-> >> On Sat, Jun 17, 2017 at 8:15 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> >> > On Sat, Jun 17, 2017 at 4:50 PM, Andy Lutomirski <luto@kernel.org> wrote:
-> >> >> My other objection is that the syscall intentionally leaks a reference
-> >> >> to the file.  This means it needs overflow protection and it probably
-> >> >> shouldn't ever be allowed to use it without privilege.
-> >> >
-> >> > We only hold the one reference while S_DAXFILE is set, so I think the
-> >> > protection is there, and per Dave's original proposal this requires
-> >> > CAP_LINUX_IMMUTABLE.
-> >> >
-> >> >> Why can't the underlying issue be easily fixed, though?  Could
-> >> >> .page_mkwrite just make sure that metadata is synced when the FS uses
-> >> >> DAX?
-> >> >
-> >> > Yes, it most definitely could and that idea has been floated.
-> >> >
-> >> >> On a DAX fs, syncing metadata should be extremely fast.
-> >
-> > <sigh>
-> >
-> > This again....
-> >
-> > Persistent memory means the *I/O* is fast. It does not mean that
-> > *complex filesystem operations* are fast.
-> >
-> > Don't forget that there's an shitload of CPU that gets burnt to make
-> > sure that the metadata is synced correctly. Do that /synchronously/
-> > on *every* write page fault (which, BTW, modify mtime, so will
-> > always have dirty metadata to sync) and now you have a serious
-> > performance problem with your "fast" DAX access method.
-> 
-> I think the mtime issue can and should be solved separately.  But it'
-> s a fair point that there would be workloads for which this could be
-> excessively expensive.  In particular, simply creating a file,
-> mmapping a large range, and touching the pages one by one -- delalloc
-> would be completely defeated.
-> 
-> But here's a strawman for solving both issues.  First, mtime.  I
-> consider it to be either a bug or a misfeature that .page_mkwrite
-> *ever* dirties an inode just to update mtime.  I have old patches to
-> fix this, and those patches could be updated and merged.  With them
-> applied, there's just a set_bit() in .page_mkwrite() to handle mtime.
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/luto/linux.git/log/?h=mmap_mtime/patch_v4
+On Mon, Jun 19, 2017 at 6:21 AM, Dave Chinner <david@fromorbit.com> wrote:
+> On Sat, Jun 17, 2017 at 10:05:45PM -0700, Andy Lutomirski wrote:
+>> On Sat, Jun 17, 2017 at 8:15 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> > On Sat, Jun 17, 2017 at 4:50 PM, Andy Lutomirski <luto@kernel.org> wrote:
+>> >> My other objection is that the syscall intentionally leaks a reference
+>> >> to the file.  This means it needs overflow protection and it probably
+>> >> shouldn't ever be allowed to use it without privilege.
+>> >
+>> > We only hold the one reference while S_DAXFILE is set, so I think the
+>> > protection is there, and per Dave's original proposal this requires
+>> > CAP_LINUX_IMMUTABLE.
+>> >
+>> >> Why can't the underlying issue be easily fixed, though?  Could
+>> >> .page_mkwrite just make sure that metadata is synced when the FS uses
+>> >> DAX?
+>> >
+>> > Yes, it most definitely could and that idea has been floated.
+>> >
+>> >> On a DAX fs, syncing metadata should be extremely fast.
+>
+> <sigh>
+>
+> This again....
+>
+> Persistent memory means the *I/O* is fast. It does not mean that
+> *complex filesystem operations* are fast.
+>
+> Don't forget that there's an shitload of CPU that gets burnt to make
+> sure that the metadata is synced correctly. Do that /synchronously/
+> on *every* write page fault (which, BTW, modify mtime, so will
+> always have dirty metadata to sync) and now you have a serious
+> performance problem with your "fast" DAX access method.
 
-Yup, I remember that - it delays the update to data writeback time,
-IOWs the proposed MAP_SYNC page fault semantics result in the same
-(poor) behaviour because the sync operation will trigger mtime
-updates instead of the page fault.
+I think the mtime issue can and should be solved separately.  But it'
+s a fair point that there would be workloads for which this could be
+excessively expensive.  In particular, simply creating a file,
+mmapping a large range, and touching the pages one by one -- delalloc
+would be completely defeated.
 
-Unless, of course, you are implying that MAP_SYNC should not
-actually sync all known dirty metadata on an inode.
+But here's a strawman for solving both issues.  First, mtime.  I
+consider it to be either a bug or a misfeature that .page_mkwrite
+*ever* dirties an inode just to update mtime.  I have old patches to
+fix this, and those patches could be updated and merged.  With them
+applied, there's just a set_bit() in .page_mkwrite() to handle mtime.
 
-<smacks head on desk>
+https://git.kernel.org/pub/scm/linux/kernel/git/luto/linux.git/log/?h=mmap_mtime/patch_v4
 
-> Second: syncing extents.  Here's a straw man.  Forget the mmap() flag.
-> Instead add a new msync() operation:
-> 
-> msync(start, length, MSYNC_PMEM_PREPARE_WRITE);
+Second: syncing extents.  Here's a straw man.  Forget the mmap() flag.
+Instead add a new msync() operation:
 
-How's this any different from the fallocate command I proposed to do
-this (apart from the fact that msync() is not intended to be abused
-as a file preallocation/zeroing interface)?
+msync(start, length, MSYNC_PMEM_PREPARE_WRITE);
 
-> If this operation succeeds, it guarantees that all future writes
-> through this mapping on this range will hit actual storage and that
-> all the metadata operations needed to make this write persistent will
-> hit storage such that they are ordered before the user's writes.
-> As an implementation detail, this will flush out the extents if
-> needed.  In addition, if the FS has any mechanism that would cause
-> problems asyncronously later on (dedupe?  deallocated extents full
-> of zeros?  defrag?),
+If this operation succeeds, it guarantees that all future writes
+through this mapping on this range will hit actual storage and that
+all the metadata operations needed to make this write persistent will
+hit storage such that they are ordered before the user's writes.
 
-Hole punch, truncate, reflink, dedupe, snapshots, scrubbing and
-other background filesystem maintenance operations, etc can all
-change the extent layout asynchronously if there's no mechanism to
-tell the fs not to modify the inode extent layout.
+As an implementation detail, this will flush out the extents if
+needed.  In addition, if the FS has any mechanism that would cause
+problems asyncronously later on (dedupe?  deallocated extents full of
+zeros?  defrag?), it may also need to set a flag on the VMA that
+changes the behavior of future .page_mkwrite operations.
 
-> it may also need to set a flag on the VMA
-> that changes the behavior of future .page_mkwrite operations.
-> 
-> (On x86, for example, this would permit the FS to do WC/streaming
-> writes without SFENCE if the FS were structured in a way that this
-> worked.)
-> 
-> Now we have an API that should work going forward without
-> introducing baggage.  And XFS is free to implement this API by
-> making the entire file act like a swap file if XFS wants to do so,
-> but this doesn't force other filesystems (ext4? NOVA?) to do the
-> same thing.
+(On x86, for example, this would permit the FS to do WC/streaming
+writes without SFENCE if the FS were structured in a way that this
+worked.)
 
-Sure, you are providing a simple programmatic API, but this does not
-provide a viable feature management strategy.
+Now we have an API that should work going forward without introducing
+baggage.  And XFS is free to implement this API by making the entire
+file act like a swap file if XFS wants to do so, but this doesn't
+force other filesystems (ext4? NOVA?) to do the same thing.
 
-i.e. the API you are now proposing requires the filesystem to ensure
-an inode's extent map cannot be modified ever again in the future
-(that "guarantees all future writes" bit).  This requires, at
-minimum, a persistent flag to be set on the inode so the VFS and
-filesystem implementations can use it to prevent anything that, for
-example, relies on copy-on-write semantics being done on those
-files. That means the proposed msync operation will need to check
-the filesystem can support this feature and *fail* if it can't.
+>
+> And that's before we even consider all the problems with running
+> sync operations in page fault context....
+>
+>> >> This
+>> >> could be conditioned on an madvise or mmap flag if performance might
+>> >> be an issue.  As far as I know, this change alone should be
+>> >> sufficient.
+>> >
+>> > The hang up is that it requires per-fs enabling as it needs to be
+>> > careful to manage mmap_sem vs fs journal locks for example. I know the
+>> > in-development NOVA [1] filesystem is planning to support this out of
+>> > the gate. ext4 would be open to implementing it, but I think xfs is
+>> > cold on the idea. Christoph originally proposed it here [2], before
+>> > Dave went on to propose immutable semantics.
+>>
+>> Hmm.  Given a choice between a very clean API that works without
+>> privilege but is awkward to implement on XFS and an awkward-to-use
+>> API, I'd personally choose the former.
+>
+> Yup, you have the choice of a clean kernel API that will be
+> substantially slower than the existing "dirty page" tracking and
+> having the app run fsync() when necessary, or having to do a little
+> more work in a library routine that preallocates a file and sets a
+> flag on it?
+>
+> The apps will use the library API, not the kernel API, so who really
+> cares if there's a few steps to setting up the file state
+> appropriately?
+>
+>> Dave, even with the lock ordering issue, couldn't XFS implement
+>> MAP_PMEM_AWARE by having .page_mkwrite work roughly like this:
+>>
+>> if (metadata is dirty) {
+>>   up_write(&mmap_sem);
+>>   sync the metadata;
+>>   down_write(&mmap_sem);
+>>   return 0;  /* retry the fault */
+>> } else {
+>>   return whatever success code;
+>> }
+>
+> How do you know that there is dependent filesystem metadata that
+> needs syncing at a level that you can safely manipulate the
+> mmap_sem? And how, exactly, do you do this without races?
 
-Further, administrators need to be aware of this application
-requirement so they can plan their backup and disaster recovery
-operations appropriately (e.g. reflink and/or snapshots cannot be
-used as part of thei backup strategy). Hence the point of such
-restricted file manipulation functionality requiring permissions to
-be granted - it ensures sysadmins know they've got something less
-than obvious going on they may need special processes to handle
-safely.
+I have no idea, but I expect that all the locking issues are solvable.
 
-Unsurprisingly, this is exactly what the "DAX immutable" inode flag
-I proposed provides.  It provides an explicit, standardised and
-*documented* management strategy that is common across all
-filesystems. It uses mechanisms that *already exist*, the VFS and
-filesystems already implement, and adminstrators are familiar with
-using to manage their systems (e.g. setting the "NODUMP" inode flag
-to exclude files from backups). This also avoids the management
-level fragmentation which would occur if filesystems each solve the
-"DAX userspace data sync" problem differently via different
-management tools, behaviours and semantics.
+> It'd be
+> trivial to DOS such retryable DAX faults simply by touching the file
+> in a tight loop in a separate process...
 
-Keep in mind that there are more uses for immutable extent maps than
-just DAX. e.g. every so often someone pops up and says "I have this
-high speed data aquisition hardware and we'd like to DMA data direct
-to the storage because it's far too slow pushing it through memory
-and then the OS to get it to storage. How do I map the storage
-blocks and guarantee the mapping won't change while we are
-transferring data direct from the hardware?". A file with an
-allocated, immutable extent map solves this problem for these sorts
-of esoteric applications.
-
-As such, can we please drop all the mmap/msync special API snowflake
-proposals and instead address the problem how to set up and manage
-files with immutable extent maps efficiently through fallocate?
-Once we have them, pmem aware applications don't need to do anything
-special with mmap to be able to use userspace data sync instructions
-safely.  i.e. the pmem library should select the correct data sync
-method according to how the file was set up and what functionality
-the underlying filesystem DAX implementation supports.
-
-> >> Dave, even with the lock ordering issue, couldn't XFS implement
-> >> MAP_PMEM_AWARE by having .page_mkwrite work roughly like this:
-> >>
-> >> if (metadata is dirty) { up_write(&mmap_sem); sync the
-> >> metadata; down_write(&mmap_sem); return 0;  /* retry the fault
-> >> */ } else { return whatever success code; }
-> >
-> > How do you know that there is dependent filesystem metadata that
-> > needs syncing at a level that you can safely manipulate the
-> > mmap_sem? And how, exactly, do you do this without races?
-> 
-> I have no idea, but I expect that all the locking issues are
-> solvable.
-
-Yay, Dunning-Kruger to the rescue!
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+If the code were smart enough to only cause a retry when the extent
+being touched is dirty, this problem wouldn't exist.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
