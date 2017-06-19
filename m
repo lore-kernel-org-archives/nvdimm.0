@@ -1,23 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail05.adl6.internode.on.net (ipmail05.adl6.internode.on.net
- [150.101.137.143])
- by ml01.01.org (Postfix) with ESMTP id C0D3020945549
- for <linux-nvdimm@lists.01.org>; Mon, 19 Jun 2017 06:20:09 -0700 (PDT)
-Date: Mon, 19 Jun 2017 23:21:07 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [RFC PATCH 2/2] mm, fs: daxfile, an interface for
- byte-addressable updates to pmem
-Message-ID: <20170619132107.GG11993@dastard>
+Received: from mail-ot0-x235.google.com (mail-ot0-x235.google.com
+ [IPv6:2607:f8b0:4003:c0f::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 60E3C21C8F603
+ for <linux-nvdimm@lists.01.org>; Sun, 18 Jun 2017 18:50:30 -0700 (PDT)
+Received: by mail-ot0-x235.google.com with SMTP id y47so36583086oty.0
+ for <linux-nvdimm@lists.01.org>; Sun, 18 Jun 2017 18:51:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170618081850.GA26332@lst.de>
 References: <149766212410.22552.15957843500156182524.stgit@dwillia2-desk3.amr.corp.intel.com>
  <149766213493.22552.4057048843646200083.stgit@dwillia2-desk3.amr.corp.intel.com>
  <CALCETrU1Hg=q4cdQDex--3nVBfwRC1o=9pC6Ss77Z8Lxg7ZJLg@mail.gmail.com>
  <CAPcyv4j4UEegViDJcLZjVv5AFGC18-DcvHFnhZatB0hH3BY85g@mail.gmail.com>
  <CALCETrUfv26pvmyQ1gOkKbzfSXK2DnmeBG6VmSWjFy1WBhknTw@mail.gmail.com>
  <CAPcyv4iPb69e+rE3fJUzm9U_P_dLfhantU9mvYmV-R0oQee4rA@mail.gmail.com>
- <CALCETrVY38h2ajpod2U_2pdHSp8zO4mG2p19h=OnnHmhGTairw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CALCETrVY38h2ajpod2U_2pdHSp8zO4mG2p19h=OnnHmhGTairw@mail.gmail.com>
+ <20170618081850.GA26332@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 18 Jun 2017 18:51:49 -0700
+Message-ID: <CAPcyv4jt2EMfiVB-5uOdjKMuYfLrqUdK4vYkteqAqXkSRqTs5g@mail.gmail.com>
+Subject: Re: [RFC PATCH 2/2] mm, fs: daxfile, an interface for
+ byte-addressable updates to pmem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,95 +32,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Lutomirski <luto@kernel.org>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andy Lutomirski <luto@kernel.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sat, Jun 17, 2017 at 10:05:45PM -0700, Andy Lutomirski wrote:
-> On Sat, Jun 17, 2017 at 8:15 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> > On Sat, Jun 17, 2017 at 4:50 PM, Andy Lutomirski <luto@kernel.org> wrote:
-> >> My other objection is that the syscall intentionally leaks a reference
-> >> to the file.  This means it needs overflow protection and it probably
-> >> shouldn't ever be allowed to use it without privilege.
-> >
-> > We only hold the one reference while S_DAXFILE is set, so I think the
-> > protection is there, and per Dave's original proposal this requires
-> > CAP_LINUX_IMMUTABLE.
-> >
-> >> Why can't the underlying issue be easily fixed, though?  Could
-> >> .page_mkwrite just make sure that metadata is synced when the FS uses
-> >> DAX?
-> >
-> > Yes, it most definitely could and that idea has been floated.
-> >
-> >> On a DAX fs, syncing metadata should be extremely fast.
+On Sun, Jun 18, 2017 at 1:18 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Sat, Jun 17, 2017 at 08:15:05PM -0700, Dan Williams wrote:
+>> The hang up is that it requires per-fs enabling as it needs to be
+>> careful to manage mmap_sem vs fs journal locks for example. I know the
+>> in-development NOVA [1] filesystem is planning to support this out of
+>> the gate. ext4 would be open to implementing it, but I think xfs is
+>> cold on the idea. Christoph originally proposed it here [2], before
+>> Dave went on to propose immutable semantics.
+>>
+>> [1]: https://github.com/NVSL/NOVA
+>> [2]: https://lists.01.org/pipermail/linux-nvdimm/2016-February/004609.html
+>
+> And I stand to that statement.  Let's get DAX stable first, and
+> properly cleaned up (e.g. follow on work with separating it entirely
+> from the block device).  Then think hard about how most of the
+> persistent memory technologies actually work, including the point that
+> for a lot of workloads page cache will be required at least on the
+> write side.   And then come up with actual real use cases and we can
+> look into it.
 
-<sigh>
+I see it differently. We're already at a good point in time to start
+iterating on a fix for this issue. Ross and Jan have done a lot of
+good work on the dax stability front, and the block-device separation
+of dax is well underway.
 
-This again....
+> And stop trying to shoe-horn crap like this in.
 
-Persistent memory means the *I/O* is fast. It does not mean that
-*complex filesystem operations* are fast.
-
-Don't forget that there's an shitload of CPU that gets burnt to make
-sure that the metadata is synced correctly. Do that /synchronously/
-on *every* write page fault (which, BTW, modify mtime, so will
-always have dirty metadata to sync) and now you have a serious
-performance problem with your "fast" DAX access method.
-
-And that's before we even consider all the problems with running
-sync operations in page fault context....
-
-> >> This
-> >> could be conditioned on an madvise or mmap flag if performance might
-> >> be an issue.  As far as I know, this change alone should be
-> >> sufficient.
-> >
-> > The hang up is that it requires per-fs enabling as it needs to be
-> > careful to manage mmap_sem vs fs journal locks for example. I know the
-> > in-development NOVA [1] filesystem is planning to support this out of
-> > the gate. ext4 would be open to implementing it, but I think xfs is
-> > cold on the idea. Christoph originally proposed it here [2], before
-> > Dave went on to propose immutable semantics.
-> 
-> Hmm.  Given a choice between a very clean API that works without
-> privilege but is awkward to implement on XFS and an awkward-to-use
-> API, I'd personally choose the former.
-
-Yup, you have the choice of a clean kernel API that will be
-substantially slower than the existing "dirty page" tracking and
-having the app run fsync() when necessary, or having to do a little
-more work in a library routine that preallocates a file and sets a
-flag on it?
-
-The apps will use the library API, not the kernel API, so who really
-cares if there's a few steps to setting up the file state
-appropriately?
-
-> Dave, even with the lock ordering issue, couldn't XFS implement
-> MAP_PMEM_AWARE by having .page_mkwrite work roughly like this:
-> 
-> if (metadata is dirty) {
->   up_write(&mmap_sem);
->   sync the metadata;
->   down_write(&mmap_sem);
->   return 0;  /* retry the fault */
-> } else {
->   return whatever success code;
-> }
-
-How do you know that there is dependent filesystem metadata that
-needs syncing at a level that you can safely manipulate the
-mmap_sem? And how, exactly, do you do this without races? It'd be
-trivial to DOS such retryable DAX faults simply by touching the file
-in a tight loop in a separate process...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+The kernel shoe-horning all pmem+filesystem-dax applications into
+abiding page-cache semantics is a problem, and this RFC has already
+helped move the needle on a couple fronts. 1/ Swapfiles are subtly
+broken which is something worth fixing, and if it gets us a
+synchronous-dax mode without major filesystem surgery then that's all
+for the better. 2/ There's an appetite for just fixing this
+incrementally in each filesystem's fault handler, so if ext4 was able
+to prove out an interface / implementation for synchronous faults we
+could go with that instead of a pre-allocated + immutable interface
+and let other filesystems set their own timelines.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
