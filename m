@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
+ [IPv6:2607:f8b0:4003:c06::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4801921B02B9D
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:58:23 -0700 (PDT)
-Subject: [PATCH v4 06/16] filesystem-dax: convert to dax_flush()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 29 Jun 2017 10:53:29 -0700
-Message-ID: <149875880940.10031.11442019937386170339.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id AE89221C8F608
+ for <linux-nvdimm@lists.01.org>; Sun, 18 Jun 2017 19:01:34 -0700 (PDT)
+Received: by mail-oi0-x231.google.com with SMTP id b6so47002889oia.1
+ for <linux-nvdimm@lists.01.org>; Sun, 18 Jun 2017 19:02:55 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170618082841.GA26456@lst.de>
+References: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <149703983098.20620.14791162611225792317.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170618082841.GA26456@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 18 Jun 2017 19:02:54 -0700
+Message-ID: <CAPcyv4iLtL5bJbxcLYwkJzTPk69Fam8xHdpdyGYPgNqNUC9qbQ@mail.gmail.com>
+Subject: Re: [PATCH v3 01/14] x86, uaccess: introduce copy_from_iter_flushcache
+ for pmem / cache-bypass operations
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,44 +28,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, X86 ML <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, dm-devel@redhat.com, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Filesystem-DAX flushes caches whenever it writes to the address returned
-through dax_direct_access() and when writing back dirty radix entries.
-That flushing is only required in the pmem case, so the dax_flush()
-helper skips cache management work when the underlying driver does not
-specify a flush method.
+On Sun, Jun 18, 2017 at 1:28 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Fri, Jun 09, 2017 at 01:23:51PM -0700, Dan Williams wrote:
+>> Implement a __copy_from_user_inatomic_flushcache, memcpy_page_flushcache, and
+>> memcpy_flushcache, that guarantee that the destination buffer is not dirty in
+>> the cpu cache on completion. The new copy_from_iter_flushcache and sub-routines
+>
+> Wouldn't writethrough be a better name?
 
-We still do all the dirty tracking since the radix entry will already be
-there for locking purposes. However, the work to clean the entry will be
-a nop for some dax drivers.
+I started with _writethrough, Ingo suggested _wt, and then Toshi
+rightly pointed out that _wt might lead applications to assume that
+the involved cache-lines are valid on return which may not be true. So
+we settled on _flushcache in this thread [1].
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[1]: https://lkml.org/lkml/2017/5/6/99
 
-diff --git a/fs/dax.c b/fs/dax.c
-index b459948de427..0933fc460ada 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -784,7 +784,7 @@ static int dax_writeback_one(struct block_device *bdev,
- 	}
- 
- 	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(pfn));
--	wb_cache_pmem(kaddr, size);
-+	dax_flush(dax_dev, pgoff, kaddr, size);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
- 	 * cannot be new dirty data in the pfn after the flush has completed as
+>> will be used to replace the "pmem api" (include/linux/pmem.h +
+>> arch/x86/include/asm/pmem.h). The availability of copy_from_iter_flushcache()
+>> and memcpy_flushcache() are gated by the CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE
+>> config symbol, and fallback to copy_from_iter_nocache() and plain memcpy()
+>> otherwise.
+>
+> What is UACCESS about memcpy_flushcache?
 
+The uaccess part comes from the fact that the conversion provides all
+the _flushcache versions of the copy_from_iter() operations
+(__copy_from_user_flushcache, memcpy_page_flushcache,
+memcpy_flushcache). It also stems from Al asking that
+__copy_user_flushcache() live in arch/x86/lib/usercopy_64.c. That
+said, I wouldn't object to a different name for the config symbol.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
