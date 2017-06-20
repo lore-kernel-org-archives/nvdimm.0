@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EABCD21BADADB
- for <linux-nvdimm@lists.01.org>; Fri, 30 Jun 2017 17:33:43 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH] ndctl: add lbasize to read-label json output
-Date: Fri, 30 Jun 2017 18:33:21 -0600
-Message-Id: <20170701003321.13360-2-vishal.l.verma@intel.com>
-In-Reply-To: <20170701003321.13360-1-vishal.l.verma@intel.com>
-References: <20170701003321.13360-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2A72F21962338
+ for <linux-nvdimm@lists.01.org>; Tue, 20 Jun 2017 09:50:31 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v2 1/7] libnvdimm: passthru functions clear to send
+Date: Tue, 20 Jun 2017 10:51:20 -0600
+Message-Id: <4454f90ea68f67a04546d92b22901c20b540e99e.1497939166.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
+References: <cover.1497939166.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
+References: <cover.1497939166.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,36 +25,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The UEFI 2.7 spec labels add a new lbasize field to labels. Add it to
-the json output of read-labels.
+Have dsm functions called via the pass thru mechanism also
+be checked against clear to send.
 
-Reported-by: Kaushik Kanetkar <kaushik.a.kanetkar@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- ndctl/dimm.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/nvdimm/bus.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index f6a07a7..d0de4d4 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -159,6 +159,11 @@ static struct json_object *dump_label_json(struct ndctl_cmd *cmd_read, ssize_t s
- 			break;
- 		json_object_object_add(jlabel, "isetcookie", jobj);
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index e9361bf..e16427d 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -907,6 +907,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	static char in_env[ND_CMD_MAX_ENVELOPE];
+ 	const struct nd_cmd_desc *desc = NULL;
+ 	unsigned int cmd = _IOC_NR(ioctl_cmd);
++	unsigned int func = cmd;
+ 	void __user *p = (void __user *) arg;
+ 	struct device *dev = &nvdimm_bus->dev;
+ 	struct nd_cmd_pkg pkg;
+@@ -972,6 +973,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	}
  
-+		jobj = json_object_new_int64(le64_to_cpu(nslabel.lbasize));
-+		if (!jobj)
-+			break;
-+		json_object_object_add(jlabel, "lbasize", jobj);
-+
- 		jobj = json_object_new_int64(le64_to_cpu(nslabel.dpa));
- 		if (!jobj)
- 			break;
+ 	if (cmd == ND_CMD_CALL) {
++		func = pkg.nd_command;
+ 		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
+ 				__func__, dimm_name, pkg.nd_command,
+ 				in_len, out_len, buf_len);
+@@ -1020,7 +1022,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	}
+ 
+ 	nvdimm_bus_lock(&nvdimm_bus->dev);
+-	rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, cmd, buf);
++	rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, func, buf);
+ 	if (rc)
+ 		goto out_unlock;
+ 
 -- 
-2.9.3
+1.8.5.6
 
 _______________________________________________
 Linux-nvdimm mailing list
