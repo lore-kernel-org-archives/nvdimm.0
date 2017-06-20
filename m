@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from g4t3426.houston.hpe.com (g4t3426.houston.hpe.com
+ [15.241.140.75])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 86E7221A18AAA
- for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 10:21:04 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/3] mm: add vm_insert_mixed_mkwrite()
-Date: Wed, 14 Jun 2017 11:22:09 -0600
-Message-Id: <20170614172211.19820-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170614172211.19820-1-ross.zwisler@linux.intel.com>
-References: <20170614172211.19820-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 41B1621BBC42F
+ for <linux-nvdimm@lists.01.org>; Tue, 20 Jun 2017 09:50:33 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v2 7/7] acpi, nfit: override mask
+Date: Tue, 20 Jun 2017 10:51:26 -0600
+Message-Id: <a9511b97feab5d3963c6e98391176c5c782277d5.1497939166.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
+References: <cover.1497939166.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
+References: <cover.1497939166.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,144 +25,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Jonathan Corbet <corbet@lwn.net>, Steven Rostedt <rostedt@goodmis.org>, linux-doc@vger.kernel.org, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-To be able to use the common 4k zero page in DAX we need to have our PTE
-fault path look more like our PMD fault path where a PTE entry can be
-marked as dirty and writeable as it is first inserted, rather than waiting
-for a follow-up dax_pfn_mkwrite() => finish_mkwrite_fault() call.
+Add module parameter override_dsm_mask_root for overriding
+the dsm_mask like we do for non-root dsm calls.
 
-Right now we can rely on having a dax_pfn_mkwrite() call because we can
-distinguish between these two cases in do_wp_page():
-
-	case 1: 4k zero page => writable DAX storage
-	case 2: read-only DAX storage => writeable DAX storage
-
-This distinction is made by via vm_normal_page().  vm_normal_page() returns
-false for the common 4k zero page, though, just as it does for DAX ptes.
-Instead of special casing the DAX + 4k zero page case, we will simplify our
-DAX PTE page fault sequence so that it matches our DAX PMD sequence, and
-get rid of dax_pfn_mkwrite() completely.
-
-This means that insert_pfn() needs to follow the lead of insert_pfn_pmd()
-and allow us to pass in a 'mkwrite' flag.  If 'mkwrite' is set insert_pfn()
-will do the work that was previously done by wp_page_reuse() as part of the
-dax_pfn_mkwrite() call path.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- include/linux/mm.h |  2 ++
- mm/memory.c        | 49 +++++++++++++++++++++++++++++++++++++++++++++----
- 2 files changed, 47 insertions(+), 4 deletions(-)
+ drivers/acpi/nfit/core.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index b892e95..0ea79e6 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2296,6 +2296,8 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
- 			unsigned long pfn, pgprot_t pgprot);
- int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn);
-+int vm_insert_mixed_mkwrite(struct vm_area_struct *vma, unsigned long addr,
-+			pfn_t pfn);
- int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index f133b3e..456fcc2 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1624,6 +1624,7 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+ 	struct nvdimm_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
+ 	const u8 *uuid = to_nfit_uuid(NFIT_DEV_BUS);
+ 	struct acpi_device *adev;
++	unsigned long dsm_mask;
+ 	int i;
  
- 
-diff --git a/mm/memory.c b/mm/memory.c
-index 2e65df1..38d7c4f 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1646,7 +1646,7 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
- EXPORT_SYMBOL(vm_insert_page);
- 
- static int insert_pfn(struct vm_area_struct *vma, unsigned long addr,
--			pfn_t pfn, pgprot_t prot)
-+			pfn_t pfn, pgprot_t prot, bool mkwrite)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	int retval;
-@@ -1658,7 +1658,7 @@ static int insert_pfn(struct vm_area_struct *vma, unsigned long addr,
- 	if (!pte)
- 		goto out;
- 	retval = -EBUSY;
--	if (!pte_none(*pte))
-+	if (!pte_none(*pte) && !mkwrite)
- 		goto out_unlock;
- 
- 	/* Ok, finally just insert the thing.. */
-@@ -1666,6 +1666,12 @@ static int insert_pfn(struct vm_area_struct *vma, unsigned long addr,
- 		entry = pte_mkdevmap(pfn_t_pte(pfn, prot));
- 	else
- 		entry = pte_mkspecial(pfn_t_pte(pfn, prot));
+ 	nd_desc->cmd_mask = acpi_desc->bus_cmd_force_en;
+@@ -1635,7 +1636,11 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+ 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
+ 			set_bit(i, &nd_desc->cmd_mask);
+ 	set_bit(ND_CMD_CALL, &nd_desc->cmd_mask);
+-	for (i = 0; i < ND_CMD_CALL; i++)
 +
-+	if (mkwrite) {
-+		entry = pte_mkyoung(entry);
-+		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-+	}
-+
- 	set_pte_at(mm, addr, pte, entry);
- 	update_mmu_cache(vma, addr, pte); /* XXX: why not for insert_page? */
- 
-@@ -1736,7 +1742,8 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
- 
- 	track_pfn_insert(vma, &pgprot, __pfn_to_pfn_t(pfn, PFN_DEV));
- 
--	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot);
-+	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot,
-+			false);
- 
- 	return ret;
++	dsm_mask = 0x3bf;
++	if (override_dsm_mask)
++		dsm_mask = override_dsm_mask;
++	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
+ 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
+ 			set_bit(i, &nd_desc->bus_dsm_mask);
  }
-@@ -1772,10 +1779,44 @@ int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 		page = pfn_to_page(pfn_t_to_pfn(pfn));
- 		return insert_page(vma, addr, page, pgprot);
- 	}
--	return insert_pfn(vma, addr, pfn, pgprot);
-+	return insert_pfn(vma, addr, pfn, pgprot, false);
- }
- EXPORT_SYMBOL(vm_insert_mixed);
- 
-+int vm_insert_mixed_mkwrite(struct vm_area_struct *vma, unsigned long addr,
-+			pfn_t pfn)
-+{
-+	pgprot_t pgprot = vma->vm_page_prot;
-+
-+	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
-+
-+	if (addr < vma->vm_start || addr >= vma->vm_end)
-+		return -EFAULT;
-+
-+	track_pfn_insert(vma, &pgprot, pfn);
-+
-+	/*
-+	 * If we don't have pte special, then we have to use the pfn_valid()
-+	 * based VM_MIXEDMAP scheme (see vm_normal_page), and thus we *must*
-+	 * refcount the page if pfn_valid is true (hence insert_page rather
-+	 * than insert_pfn).  If a zero_pfn were inserted into a VM_MIXEDMAP
-+	 * without pte special, it would there be refcounted as a normal page.
-+	 */
-+	if (!HAVE_PTE_SPECIAL && !pfn_t_devmap(pfn) && pfn_t_valid(pfn)) {
-+		struct page *page;
-+
-+		/*
-+		 * At this point we are committed to insert_page()
-+		 * regardless of whether the caller specified flags that
-+		 * result in pfn_t_has_page() == false.
-+		 */
-+		page = pfn_to_page(pfn_t_to_pfn(pfn));
-+		return insert_page(vma, addr, page, pgprot);
-+	}
-+	return insert_pfn(vma, addr, pfn, pgprot, true);
-+}
-+EXPORT_SYMBOL(vm_insert_mixed_mkwrite);
-+
- /*
-  * maps a range of physical memory into the requested pages. the old
-  * mappings are removed. any references to nonexistent pages results
 -- 
-2.9.4
+1.8.5.6
 
 _______________________________________________
 Linux-nvdimm mailing list
