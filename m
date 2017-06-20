@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
- [150.101.137.129])
- by ml01.01.org (Postfix) with ESMTP id DF81B21962338
- for <linux-nvdimm@lists.01.org>; Tue, 20 Jun 2017 03:10:31 -0700 (PDT)
-Date: Tue, 20 Jun 2017 20:11:45 +1000
-From: Dave Chinner <david@fromorbit.com>
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E6BCA21AE2639
+ for <linux-nvdimm@lists.01.org>; Tue, 20 Jun 2017 01:48:03 -0700 (PDT)
+Date: Tue, 20 Jun 2017 10:49:24 +0200
+From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [RFC PATCH 2/2] mm, fs: daxfile, an interface for
  byte-addressable updates to pmem
-Message-ID: <20170620101145.GJ17542@dastard>
+Message-ID: <20170620084924.GA9752@lst.de>
 References: <149766213493.22552.4057048843646200083.stgit@dwillia2-desk3.amr.corp.intel.com>
  <CALCETrU1Hg=q4cdQDex--3nVBfwRC1o=9pC6Ss77Z8Lxg7ZJLg@mail.gmail.com>
  <CAPcyv4j4UEegViDJcLZjVv5AFGC18-DcvHFnhZatB0hH3BY85g@mail.gmail.com>
@@ -33,82 +34,39 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Andy Lutomirski <luto@kernel.org>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+[stripped giant fullquotes]
+
 On Mon, Jun 19, 2017 at 10:53:12PM -0700, Andy Lutomirski wrote:
-> On Mon, Jun 19, 2017 at 5:46 PM, Dave Chinner <david@fromorbit.com> wrote:
-> > On Mon, Jun 19, 2017 at 08:22:10AM -0700, Andy Lutomirski wrote:
-> >> Second: syncing extents.  Here's a straw man.  Forget the mmap() flag.
-> >> Instead add a new msync() operation:
-> >>
-> >> msync(start, length, MSYNC_PMEM_PREPARE_WRITE);
-> >
-> > How's this any different from the fallocate command I proposed to do
-> > this (apart from the fact that msync() is not intended to be abused
-> > as a file preallocation/zeroing interface)?
-> 
-> I must have missed that suggestion.
-> 
-> But it's different in a major way.  fallocate() takes an fd parameter,
-> which means that, if some flag gets set, it's set on the struct file.
-
-DAX is a property of the inode, not the VMA or struct file as it
-needs to be consistent across all VMAs and struct files that
-reference that inode. Also, fallocate() manipulates state and
-metadata hidden behind the struct inode, not the struct file, so it
-seems to me like the right API to use.
-
-And, as mmap() requires a fd to set up the mapping and fallocate()
-would have to be run *before* mmap() is used to access the data
-directly, I don't see why using fallocate would be a problem here...
-
-> >> If this operation succeeds, it guarantees that all future writes
-> >> through this mapping on this range will hit actual storage and that
-> >> all the metadata operations needed to make this write persistent will
-> >> hit storage such that they are ordered before the user's writes.
-> >> As an implementation detail, this will flush out the extents if
-> >> needed.  In addition, if the FS has any mechanism that would cause
-> >> problems asyncronously later on (dedupe?  deallocated extents full
-> >> of zeros?  defrag?),
-> >
-> > Hole punch, truncate, reflink, dedupe, snapshots, scrubbing and
-> > other background filesystem maintenance operations, etc can all
-> > change the extent layout asynchronously if there's no mechanism to
-> > tell the fs not to modify the inode extent layout.
-> 
 > But that's my whole point.  The kernel doesn't really need to prevent
 > all these background maintenance operations -- it just needs to block
 > .page_mkwrite until they are synced.  I think that whatever new
 > mechanism we add for this should be sticky, but I see no reason why
 > the filesystem should have to block reflink on a DAX file entirely.
 
-I understand the problem quite well, thank you very much. Yes,
-COW operations (and other things) can be handled by invalidating DAX
-mappings and blocking new page faults.  I see little difference
-between this and running the sync path after page-mkwrite has
-triggered filesystem metadata changes (e.g.  block allocation). i.e.
-If MAP_SYNC is going to be used, then all the things you are talking
-about comes along for the ride via invalidations.
+Agreed - IFF we want to support write through semantics this is the
+only somewhat feasible way.  It still has massive downsides of forcing
+the full sync machinery to run from the page fauly handler, which
+I'm rather scared off, but that's still better than creating a magic
+special case that isn't managable at all.
 
-The MAP_SYNC proposal is effectively "run the metadata side of
-fdatasync() on every page fault". If the inode is not metadata
-dirty, then it will do nothing, otherwise it will do what it needs
-to stabilise the inode for userspace to be able to sync the data and
-it will block until it is done.
+> If, instead, we had a nice unprivileged per-vma or per-fd mechanism to
+> tell the filesystem that I want DAX durability, I could just use it
+> without any fuss.  If it worked on ext4 before it worked on xfs, then
+> I'd use ext4.  If it ended up being heavier weight on XFS than it was
+> on ext4 because XFS needed to lock down the extent map for the inode
+> whereas ext4 could manage it through .page_mkwrite(), then I'd
+> benchmark it and see which fs would win.  (For my particular use case,
+> I doubt it would matter, since I aggressively offload fs metadata
+> operations to a thread whose performance I don't really care about.)
 
-Prediction for the MAP_SYNC future: frequent bug reports about huge,
-unpredictable page fault latencies on DAX files because every so
-often a page fault is required to sync tens of thousands of
-unrelated dirty objects because of filesystem journal ordering
-constraints....
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+ext4 and XFS have the same fundamental issue:  both have a file system
+wide log of modified data that needs to be flushed to stable storage
+to ensure everything is safe.  So if you solve the issue for one of
+them you've solved it for the other one as well modulo implementation
+details.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
