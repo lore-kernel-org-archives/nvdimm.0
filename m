@@ -1,11 +1,11 @@
-From: =?GB2312?B?s8ybpdHj?= <eufgwengyo-zYz0+YNY98PQT0dZR+AlfA@public.gmane.org>
-Subject: =?GB2312?B?uMTJxtPrtLTQwsrHzqjSu7P2wrc=?=
-Date: Sun, 18 Jun 2017 14:23:57 +0000 (UTC)
-Message-ID: <20170618142236.A50E321CA35A9@ml01.01.org>
+From: =?utf-8?B?5YiB5ZeF?= <loc-ycrigNmkKYNWk0Htik3J/w@public.gmane.org>
+Subject: =?utf-8?B?5YWo6Z2i5o6M5o+h5L6b5bqU5ZWG566h55CG5bel5L2c55qE5pa55rOV5LiO5pa55ZCR?=
+Date: Wed, 21 Jun 2017 23:23:08 +0800
+Message-ID: <1EDB9F5709900E5F987007A19889ED69@fzclikdt.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8883648666411931916=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Date: Mon, 18 Jun 2029 22:23:35 +0800
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,33 +15,12 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format
-
---===============8883648666411931916==
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-
-供给侧改革，拉动了持续下跌四年的PPI回升
-由此带动了煤炭、钢铁等一大批相关材料上涨
-在材料、人工、运营成本持续上涨
-国内/国际环境复杂多变的大背景下
-企业利润空间被不断挤压
-如何赢利与生存正在考验每一家企业
-未来的3-5年，竟争将更加惨烈
-
---===============8883648666411931916==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============8883648666411931916==--
+TWVzc2FnZS1JRDogMTA0NDA3ODMwMjI4NA0KRnJvbTogPT9seG5pZ3FkPz89IDxsaW51eC1udmRp
+bW1AbGlzdHMuMDEub3JnPg0KVG86IDxsb2NAZnpjbGlrZHQuY29tPg0KDQoNCg0KDQror6Yg5oOF
+IOivtyDpmIUg6K+7IOmZhCDku7YKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMu
+MDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1t
+Cg==
