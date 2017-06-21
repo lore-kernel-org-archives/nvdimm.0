@@ -1,11 +1,12 @@
-From: =?utf-8?B?5qiK5bSH?= <lzqifh-UCVEyamoixw@public.gmane.org>
-Subject: =?utf-8?B?55So5bel6aOO6Zmp6KeE6YG/5Y+K5raI6Zmk5rOV5b6L6K+v5Yy6?=
-Date: Wed, 21 Jun 2017 23:33:23 +0800
-Message-ID: <BB12C0567ED2D27B5882354B3175B2C6@wu.net>
+From: =?utf-8?B?5aes5YeM?= <xpiztbxi-Xyyp875F973YtjvyW6yDsg@public.gmane.org>
+Subject: =?utf-8?B?5aaC5L2V5oul5pyJ6LaF6IO95Yqb6YC76L6R5oCd57u0?=
+Date: Wed, 21 Jun 2017 15:54:13 +0000 (UTC)
+Message-ID: <918941FAB06049CBBE42617D59D782AF@isnpx.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Date: Thu, 21 Jun 2029 23:54:38 +0800
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,6 +19,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-2017-6-21  23:33:28 
-From: =?yeteo??= <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: <lzqifh-UCVEyamoixw@public.gmane.org>
+TWVzc2FnZS1JRDogNTU1NzM0MDg2MDE2NQ0KRnJvbTogPT9nej8/PSA8bGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZz4NClRvOiA8eHBpenRieGlAaXNucHgub3JnPg0K5Y+R6YCB5pe26Ze0OjIwMjkt
+Ni0yMSAgMjM6NTQ6NDcgCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
+ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
