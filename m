@@ -1,7 +1,7 @@
-From: =?utf-8?B?6YeR5bqc?= <ebizf-/48A0ydBieceIZ0/mPfg9Q@public.gmane.org>
-Subject: =?utf-8?B?6KeE6YG/5ZCI5LyZ5Lq66aOO6Zmp55qENOenjeaWueazlQ==?=
-Date: Wed, 21 Jun 2017 23:28:46 +0800
-Message-ID: <20F197CC1C7926F40D56355212A3A37E@hufavgpyt.net>
+From: =?utf-8?B?5qiK5bSH?= <lzqifh-UCVEyamoixw@public.gmane.org>
+Subject: =?utf-8?B?55So5bel6aOO6Zmp6KeE6YG/5Y+K5raI6Zmk5rOV5b6L6K+v5Yy6?=
+Date: Wed, 21 Jun 2017 23:33:23 +0800
+Message-ID: <BB12C0567ED2D27B5882354B3175B2C6@wu.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,6 +18,6 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Message-ID: 018099821894
-From: =?ruodrpw??= <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: <ebizf-/48A0ydBieceIZ0/mPfg9Q@public.gmane.org>
+2017-6-21  23:33:28 
+From: =?yeteo??= <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: <lzqifh-UCVEyamoixw@public.gmane.org>
