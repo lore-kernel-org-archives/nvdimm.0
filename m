@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 16DCB21A143F1
- for <linux-nvdimm@lists.01.org>; Fri,  9 Jun 2017 13:29:58 -0700 (PDT)
-Subject: [PATCH v3 10/14] pmem: remove global pmem api
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Jun 2017 13:24:40 -0700
-Message-ID: <149703988061.20620.2077699148888013311.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 12CB121BBC431
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Jun 2017 00:13:27 -0700 (PDT)
+From: "Huang, Ying" <ying.huang@intel.com>
+Subject: [PATCH -mm -v2 02/12] mm, THP,
+ swap: Support to reclaim swap space for THP swapped out
+Date: Fri, 23 Jun 2017 15:12:53 +0800
+Message-Id: <20170623071303.13469-3-ying.huang@intel.com>
+In-Reply-To: <20170623071303.13469-1-ying.huang@intel.com>
+References: <20170623071303.13469-1-ying.huang@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,269 +18,219 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, x86@kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, Ingo Molnar <mingo@redhat.com>, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Rik van Riel <riel@redhat.com>, linux-nvdimm@lists.01.org, Huang Ying <ying.huang@intel.com>, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Minchan Kim <minchan@kernel.org>, Shaohua Li <shli@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that all callers of the pmem api have been converted to dax helpers that
-call back to the pmem driver, we can remove include/linux/pmem.h.
+From: Huang Ying <ying.huang@intel.com>
 
-Cc: <x86@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Oliver O'Halloran <oohall@gmail.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The normal swap slot reclaiming can be done when the swap count
+reaches SWAP_HAS_CACHE.  But for the swap slot which is backing a THP,
+all swap slots backing one THP must be reclaimed together, because the
+swap slot may be used again when the THP is swapped out again later.
+So the swap slots backing one THP can be reclaimed together when the
+swap count for all swap slots for the THP reached SWAP_HAS_CACHE.  In
+the patch, the functions to check whether the swap count for all swap
+slots backing one THP reached SWAP_HAS_CACHE are implemented and used
+when checking whether a swap slot can be reclaimed.
+
+To make it easier to determine whether a swap slot is backing a THP, a
+new swap cluster flag named CLUSTER_FLAG_HUGE is added to mark a swap
+cluster which is backing a THP (Transparent Huge Page).  Because THP
+swap in as a whole isn't supported now.  After deleting the THP from
+the swap cache (for example, swapping out finished), the
+CLUSTER_FLAG_HUGE flag will be cleared.  So that, the normal pages
+inside THP can be swapped in individually.
+
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 ---
- MAINTAINERS                     |    1 -
- drivers/acpi/nfit/core.c        |    3 +-
- drivers/nvdimm/claim.c          |    1 -
- drivers/nvdimm/dimm_devs.c      |    8 +++++
- drivers/nvdimm/namespace_devs.c |    6 +---
- drivers/nvdimm/pmem.c           |    1 -
- drivers/nvdimm/pmem.h           |    5 +++
- drivers/nvdimm/region_devs.c    |    1 -
- fs/dax.c                        |    1 -
- include/linux/libnvdimm.h       |    1 +
- include/linux/pmem.h            |   59 ---------------------------------------
- 11 files changed, 15 insertions(+), 72 deletions(-)
- delete mode 100644 include/linux/pmem.h
+ include/linux/swap.h |  1 +
+ mm/swapfile.c        | 78 +++++++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 72 insertions(+), 7 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7a28acd7f525..d77ad3194adc 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7593,7 +7593,6 @@ L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/pmem.c
--F:	include/linux/pmem.h
- F:	arch/*/include/asm/pmem.h
+diff --git a/include/linux/swap.h b/include/linux/swap.h
+index 61e7180cee21..a6207f8cc260 100644
+--- a/include/linux/swap.h
++++ b/include/linux/swap.h
+@@ -188,6 +188,7 @@ struct swap_cluster_info {
+ };
+ #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
+ #define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
++#define CLUSTER_FLAG_HUGE 4 /* This cluster is backing a transparent huge page */
  
- LIGHTNVM PLATFORM SUPPORT
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index cbd5596e7562..ac2436538b7e 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -20,7 +20,6 @@
- #include <linux/list.h>
- #include <linux/acpi.h>
- #include <linux/sort.h>
--#include <linux/pmem.h>
- #include <linux/io.h>
- #include <linux/nd.h>
- #include <asm/cacheflush.h>
-@@ -1956,7 +1955,7 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 	nfit_blk->bdw_offset = nfit_mem->bdw->offset;
- 	mmio = &nfit_blk->mmio[BDW];
- 	mmio->addr.base = devm_nvdimm_memremap(dev, nfit_mem->spa_bdw->address,
--                        nfit_mem->spa_bdw->length, ARCH_MEMREMAP_PMEM);
-+                        nfit_mem->spa_bdw->length, nd_blk_memremap_flags(ndbr));
- 	if (!mmio->addr.base) {
- 		dev_dbg(dev, "%s: %s failed to map bdw\n", __func__,
- 				nvdimm_name(nvdimm));
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index d2e16c0401df..3beedf173902 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -12,7 +12,6 @@
-  */
- #include <linux/device.h>
- #include <linux/sizes.h>
--#include <linux/pmem.h>
- #include "nd-core.h"
- #include "pmem.h"
- #include "pfn.h"
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 9852a3355509..6a1e7a3c0c17 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -20,6 +20,7 @@
- #include <linux/mm.h>
- #include "nd-core.h"
- #include "label.h"
-+#include "pmem.h"
- #include "nd.h"
- 
- static DEFINE_IDA(dimm_ida);
-@@ -235,6 +236,13 @@ struct nvdimm *nd_blk_region_to_dimm(struct nd_blk_region *ndbr)
+ /*
+  * We assign a cluster to each CPU, so each CPU can allocate swap entry from
+diff --git a/mm/swapfile.c b/mm/swapfile.c
+index c32e9b23d642..7db19846f8c7 100644
+--- a/mm/swapfile.c
++++ b/mm/swapfile.c
+@@ -265,6 +265,16 @@ static inline void cluster_set_null(struct swap_cluster_info *info)
+ 	info->data = 0;
  }
- EXPORT_SYMBOL_GPL(nd_blk_region_to_dimm);
  
-+unsigned long nd_blk_memremap_flags(struct nd_blk_region *ndbr)
++static inline bool cluster_is_huge(struct swap_cluster_info *info)
 +{
-+	/* pmem mapping properties are private to libnvdimm */
-+	return ARCH_MEMREMAP_PMEM;
++	return info->flags & CLUSTER_FLAG_HUGE;
 +}
-+EXPORT_SYMBOL_GPL(nd_blk_memremap_flags);
 +
- struct nvdimm_drvdata *to_ndd(struct nd_mapping *nd_mapping)
++static inline void cluster_clear_huge(struct swap_cluster_info *info)
++{
++	info->flags &= ~CLUSTER_FLAG_HUGE;
++}
++
+ static inline struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
+ 						     unsigned long offset)
  {
- 	struct nvdimm *nvdimm = nd_mapping->nvdimm;
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 2f9dfbd2dbec..4e9261ef8a95 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -14,10 +14,10 @@
- #include <linux/device.h>
- #include <linux/sort.h>
- #include <linux/slab.h>
--#include <linux/pmem.h>
- #include <linux/list.h>
- #include <linux/nd.h>
- #include "nd-core.h"
-+#include "pmem.h"
- #include "nd.h"
+@@ -846,7 +856,7 @@ static int swap_alloc_cluster(struct swap_info_struct *si, swp_entry_t *slot)
+ 	offset = idx * SWAPFILE_CLUSTER;
+ 	ci = lock_cluster(si, offset);
+ 	alloc_cluster(si, idx);
+-	cluster_set_count_flag(ci, SWAPFILE_CLUSTER, 0);
++	cluster_set_count_flag(ci, SWAPFILE_CLUSTER, CLUSTER_FLAG_HUGE);
  
- static void namespace_io_release(struct device *dev)
-@@ -155,11 +155,7 @@ bool pmem_should_map_pages(struct device *dev)
- 				IORES_DESC_NONE) == REGION_MIXED)
- 		return false;
+ 	map = si->swap_map + offset;
+ 	for (i = 0; i < SWAPFILE_CLUSTER; i++)
+@@ -1176,6 +1186,7 @@ static void swapcache_free_cluster(swp_entry_t entry)
+ 		return;
  
--#ifdef ARCH_MEMREMAP_PMEM
- 	return ARCH_MEMREMAP_PMEM == MEMREMAP_WB;
--#else
--	return false;
--#endif
+ 	ci = lock_cluster(si, offset);
++	VM_BUG_ON(!cluster_is_huge(ci));
+ 	map = si->swap_map + offset;
+ 	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
+ 		val = map[i];
+@@ -1187,6 +1198,7 @@ static void swapcache_free_cluster(swp_entry_t entry)
+ 		for (i = 0; i < SWAPFILE_CLUSTER; i++)
+ 			map[i] &= ~SWAP_HAS_CACHE;
+ 	}
++	cluster_clear_huge(ci);
+ 	unlock_cluster(ci);
+ 	if (free_entries == SWAPFILE_CLUSTER) {
+ 		spin_lock(&si->lock);
+@@ -1350,6 +1362,54 @@ int swp_swapcount(swp_entry_t entry)
+ 	return count;
  }
- EXPORT_SYMBOL(pmem_should_map_pages);
  
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 68737bc68a07..06f6c27ec1e9 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -28,7 +28,6 @@
- #include <linux/blk-mq.h>
- #include <linux/pfn_t.h>
- #include <linux/slab.h>
--#include <linux/pmem.h>
- #include <linux/uio.h>
- #include <linux/dax.h>
- #include <linux/nd.h>
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index d579c7095a45..2b02e00b44eb 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -6,7 +6,10 @@
- #include <linux/fs.h>
- #include <asm/pmem.h>
- 
--#ifndef CONFIG_ARCH_HAS_PMEM_API
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
++#ifdef CONFIG_THP_SWAP
++static bool swap_page_trans_huge_swapped(struct swap_info_struct *si,
++					 swp_entry_t entry)
++{
++	struct swap_cluster_info *ci;
++	unsigned char *map = si->swap_map;
++	unsigned long roffset = swp_offset(entry);
++	unsigned long offset = round_down(roffset, SWAPFILE_CLUSTER);
++	int i;
++	bool ret = false;
++
++	ci = lock_cluster_or_swap_info(si, offset);
++	if (!cluster_is_huge(ci)) {
++		if (map[roffset] != SWAP_HAS_CACHE)
++			ret = true;
++		goto unlock_out;
++	}
++	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
++		if (map[offset + i] != SWAP_HAS_CACHE) {
++			ret = true;
++			break;
++		}
++	}
++unlock_out:
++	unlock_cluster_or_swap_info(si, ci);
++	return ret;
++}
++
++static bool page_swapped(struct page *page)
++{
++	swp_entry_t entry;
++	struct swap_info_struct *si;
++
++	if (likely(!PageTransCompound(page)))
++		return page_swapcount(page) != 0;
++
++	page = compound_head(page);
++	entry.val = page_private(page);
++	si = _swap_info_get(entry);
++	if (si)
++		return swap_page_trans_huge_swapped(si, entry);
++	return false;
++}
 +#else
-+#define ARCH_MEMREMAP_PMEM MEMREMAP_WT
- static inline void arch_wb_cache_pmem(void *addr, size_t size)
- {
- }
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 985b0e11bd73..3c06a6ea6958 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -15,7 +15,6 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/hash.h>
--#include <linux/pmem.h>
- #include <linux/sort.h>
- #include <linux/io.h>
- #include <linux/nd.h>
-diff --git a/fs/dax.c b/fs/dax.c
-index 554b8e7d921c..6d8699feae2e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -25,7 +25,6 @@
- #include <linux/mm.h>
- #include <linux/mutex.h>
- #include <linux/pagevec.h>
--#include <linux/pmem.h>
- #include <linux/sched.h>
- #include <linux/sched/signal.h>
- #include <linux/uio.h>
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 6c807017128d..b2f659bd661d 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -159,6 +159,7 @@ void *nd_region_provider_data(struct nd_region *nd_region);
- void *nd_blk_region_provider_data(struct nd_blk_region *ndbr);
- void nd_blk_region_set_provider_data(struct nd_blk_region *ndbr, void *data);
- struct nvdimm *nd_blk_region_to_dimm(struct nd_blk_region *ndbr);
-+unsigned long nd_blk_memremap_flags(struct nd_blk_region *ndbr);
- unsigned int nd_region_acquire_lane(struct nd_region *nd_region);
- void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
- u64 nd_fletcher64(void *addr, size_t len, bool le);
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-deleted file mode 100644
-index 559c00848583..000000000000
---- a/include/linux/pmem.h
-+++ /dev/null
-@@ -1,59 +0,0 @@
--/*
-- * Copyright(c) 2015 Intel Corporation. All rights reserved.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- */
--#ifndef __PMEM_H__
--#define __PMEM_H__
--
--#include <linux/io.h>
--#include <linux/uio.h>
--
--#ifdef CONFIG_ARCH_HAS_PMEM_API
--#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
--#include <asm/pmem.h>
--#else
--#define ARCH_MEMREMAP_PMEM MEMREMAP_WT
--/*
-- * These are simply here to enable compilation, all call sites gate
-- * calling these symbols with arch_has_pmem_api() and redirect to the
-- * implementation in asm/pmem.h.
-- */
--static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
--{
--	BUG();
--}
--#endif
--
--static inline bool arch_has_pmem_api(void)
--{
--	return IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API);
--}
--
--/**
-- * memcpy_to_pmem - copy data to persistent memory
-- * @dst: destination buffer for the copy
-- * @src: source buffer for the copy
-- * @n: length of the copy in bytes
-- *
-- * Perform a memory copy that results in the destination of the copy
-- * being effectively evicted from, or never written to, the processor
-- * cache hierarchy after the copy completes.  After memcpy_to_pmem()
-- * data may still reside in cpu or platform buffers, so this operation
-- * must be followed by a blkdev_issue_flush() on the pmem block device.
-- */
--static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
--{
--	if (arch_has_pmem_api())
--		arch_memcpy_to_pmem(dst, src, n);
--	else
--		memcpy(dst, src, n);
--}
--#endif /* __PMEM_H__ */
++#define swap_page_trans_huge_swapped(si, entry)	swap_swapcount(si, entry)
++#define page_swapped(page)			(page_swapcount(page) != 0)
++#endif
++
+ /*
+  * We can write to an anon page without COW if there are no other references
+  * to it.  And as a side-effect, free up its swap: because the old content
+@@ -1404,7 +1464,7 @@ int try_to_free_swap(struct page *page)
+ 		return 0;
+ 	if (PageWriteback(page))
+ 		return 0;
+-	if (page_swapcount(page))
++	if (page_swapped(page))
+ 		return 0;
+ 
+ 	/*
+@@ -1425,6 +1485,7 @@ int try_to_free_swap(struct page *page)
+ 	if (pm_suspended_storage())
+ 		return 0;
+ 
++	page = compound_head(page);
+ 	delete_from_swap_cache(page);
+ 	SetPageDirty(page);
+ 	return 1;
+@@ -1446,7 +1507,8 @@ int free_swap_and_cache(swp_entry_t entry)
+ 	p = _swap_info_get(entry);
+ 	if (p) {
+ 		count = __swap_entry_free(p, entry, 1);
+-		if (count == SWAP_HAS_CACHE) {
++		if (count == SWAP_HAS_CACHE &&
++		    !swap_page_trans_huge_swapped(p, entry)) {
+ 			page = find_get_page(swap_address_space(entry),
+ 					     swp_offset(entry));
+ 			if (page && !trylock_page(page)) {
+@@ -1463,7 +1525,8 @@ int free_swap_and_cache(swp_entry_t entry)
+ 		 */
+ 		if (PageSwapCache(page) && !PageWriteback(page) &&
+ 		    (!page_mapped(page) || mem_cgroup_swap_full(page)) &&
+-		    !swap_swapcount(p, entry)) {
++		    !swap_page_trans_huge_swapped(p, entry)) {
++			page = compound_head(page);
+ 			delete_from_swap_cache(page);
+ 			SetPageDirty(page);
+ 		}
+@@ -2017,7 +2080,7 @@ int try_to_unuse(unsigned int type, bool frontswap,
+ 				.sync_mode = WB_SYNC_NONE,
+ 			};
+ 
+-			swap_writepage(page, &wbc);
++			swap_writepage(compound_head(page), &wbc);
+ 			lock_page(page);
+ 			wait_on_page_writeback(page);
+ 		}
+@@ -2030,8 +2093,9 @@ int try_to_unuse(unsigned int type, bool frontswap,
+ 		 * delete, since it may not have been written out to swap yet.
+ 		 */
+ 		if (PageSwapCache(page) &&
+-		    likely(page_private(page) == entry.val))
+-			delete_from_swap_cache(page);
++		    likely(page_private(page) == entry.val) &&
++		    !page_swapped(page))
++			delete_from_swap_cache(compound_head(page));
+ 
+ 		/*
+ 		 * So we could skip searching mms once swap count went
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
