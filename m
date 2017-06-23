@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 62B6C21A16ED1
- for <linux-nvdimm@lists.01.org>; Tue, 13 Jun 2017 16:13:44 -0700 (PDT)
-Subject: [PATCH v2 2/2] mm: always enable thp for dax mappings
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 13 Jun 2017 16:08:31 -0700
-Message-ID: <149739531127.20686.15813586620597484283.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149739530052.20686.9000645746376519779.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149739530052.20686.9000645746376519779.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 991E921BBC43A
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Jun 2017 00:13:27 -0700 (PDT)
+From: "Huang, Ying" <ying.huang@intel.com>
+Subject: [PATCH -mm -v2 05/12] block,
+ THP: Make block_device_operations.rw_page support THP
+Date: Fri, 23 Jun 2017 15:12:56 +0800
+Message-Id: <20170623071303.13469-6-ying.huang@intel.com>
+In-Reply-To: <20170623071303.13469-1-ying.huang@intel.com>
+References: <20170623071303.13469-1-ying.huang@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,109 +18,151 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jens Axboe <axboe@kernel.dk>, linux-nvdimm@lists.01.org, Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Johannes Weiner <hannes@cmpxchg.org>, Minchan Kim <minchan@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The madvise policy for transparent huge pages is meant to avoid unwanted
-allocations of transparent huge pages. It allows a policy of disabling
-the extra memory pressure and effort to arrange for a huge page when it
-is not needed.
+From: Huang Ying <ying.huang@intel.com>
 
-DAX by definition never incurs this overhead since it is statically
-allocated. The policy choice makes even less sense for device-dax which
-tries to guarantee a given tlb-fault size. Specifically, the following
-setting:
+The .rw_page in struct block_device_operations is used by the swap
+subsystem to read/write the page contents from/into the corresponding
+swap slot in the swap device.  To support the THP (Transparent Huge
+Page) swap optimization, the .rw_page is enhanced to support to
+read/write THP if possible.
 
-	echo never > /sys/kernel/mm/transparent_hugepage/enabled
-
-...violates that guarantee and silently disables all device-dax
-instances with a 2M or 1G alignment. So, let's avoid that non-obvious
-side effect by force enabling thp for dax mappings in all cases.
-
-It is worth noting that the reason this uses vma_is_dax(), and the
-resulting header include changes, is that previous attempts to add a
-VM_DAX flag were NAKd.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: linux-nvdimm@lists.01.org
 ---
- include/linux/dax.h     |    5 -----
- include/linux/fs.h      |    6 ++++++
- include/linux/huge_mm.h |    5 +++++
- 3 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/block/brd.c           |  6 +++++-
+ drivers/block/zram/zram_drv.c |  2 ++
+ drivers/nvdimm/btt.c          |  4 +++-
+ drivers/nvdimm/pmem.c         | 41 ++++++++++++++++++++++++++++++-----------
+ 4 files changed, 40 insertions(+), 13 deletions(-)
 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 1f6b6072af64..cbaf3d53d66b 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -151,11 +151,6 @@ static inline unsigned int dax_radix_order(void *entry)
- #endif
- int dax_pfn_mkwrite(struct vm_fault *vmf);
- 
--static inline bool vma_is_dax(struct vm_area_struct *vma)
--{
--	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
--}
--
- static inline bool dax_mapping(struct address_space *mapping)
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 57b574f2f66a..4240d2a9dcf9 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -324,7 +324,11 @@ static int brd_rw_page(struct block_device *bdev, sector_t sector,
+ 		       struct page *page, bool is_write)
  {
- 	return mapping->host && IS_DAX(mapping->host);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 803e5a9b2654..5916ab3a12d5 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -18,6 +18,7 @@
- #include <linux/bug.h>
- #include <linux/mutex.h>
- #include <linux/rwsem.h>
-+#include <linux/mm_types.h>
- #include <linux/capability.h>
- #include <linux/semaphore.h>
- #include <linux/fiemap.h>
-@@ -3042,6 +3043,11 @@ static inline bool io_is_direct(struct file *filp)
- 	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+-	int err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
++	int err;
++
++	if (PageTransHuge(page))
++		return -ENOTSUPP;
++	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
+ 	page_endio(page, is_write, err);
+ 	return err;
+ }
+diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
+index d3e3af22a088..9f4973f6ba56 100644
+--- a/drivers/block/zram/zram_drv.c
++++ b/drivers/block/zram/zram_drv.c
+@@ -927,6 +927,8 @@ static int zram_rw_page(struct block_device *bdev, sector_t sector,
+ 	struct zram *zram;
+ 	struct bio_vec bv;
+ 
++	if (PageTransHuge(page))
++		return -ENOTSUPP;
+ 	zram = bdev->bd_disk->private_data;
+ 
+ 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 31b2d14e210d..6ec2250b5276 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1248,8 +1248,10 @@ static int btt_rw_page(struct block_device *bdev, sector_t sector,
+ 		struct page *page, bool is_write)
+ {
+ 	struct btt *btt = bdev->bd_disk->private_data;
++	unsigned int len;
+ 
+-	btt_do_bvec(btt, NULL, page, PAGE_SIZE, 0, is_write, sector);
++	len = hpage_nr_pages(page) * PAGE_SIZE;
++	btt_do_bvec(btt, NULL, page, len, 0, is_write, sector);
+ 	page_endio(page, is_write, 0);
+ 	return 0;
+ }
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 7bd383aeea14..72e3fbaefee9 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -78,22 +78,40 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ static void write_pmem(void *pmem_addr, struct page *page,
+ 		unsigned int off, unsigned int len)
+ {
+-	void *mem = kmap_atomic(page);
+-
+-	memcpy_to_pmem(pmem_addr, mem + off, len);
+-	kunmap_atomic(mem);
++	unsigned int chunk;
++	void *mem;
++
++	while (len) {
++		mem = kmap_atomic(page);
++		chunk = min_t(unsigned int, len, PAGE_SIZE);
++		memcpy_to_pmem(pmem_addr, mem + off, chunk);
++		kunmap_atomic(mem);
++		len -= chunk;
++		off = 0;
++		page++;
++		pmem_addr += PAGE_SIZE;
++	}
  }
  
-+static inline bool vma_is_dax(struct vm_area_struct *vma)
-+{
-+	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
-+}
-+
- static inline int iocb_flags(struct file *file)
+ static blk_status_t read_pmem(struct page *page, unsigned int off,
+ 		void *pmem_addr, unsigned int len)
  {
- 	int res = 0;
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index c8119e856eb1..5a86f615f3cb 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -1,6 +1,8 @@
- #ifndef _LINUX_HUGE_MM_H
- #define _LINUX_HUGE_MM_H
- 
-+#include <linux/fs.h> /* only for vma_is_dax() */
++	unsigned int chunk;
+ 	int rc;
+-	void *mem = kmap_atomic(page);
+-
+-	rc = memcpy_mcsafe(mem + off, pmem_addr, len);
+-	kunmap_atomic(mem);
+-	if (rc)
+-		return BLK_STS_IOERR;
++	void *mem;
 +
- extern int do_huge_pmd_anonymous_page(struct vm_fault *vmf);
- extern int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 			 pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
-@@ -95,6 +97,9 @@ static inline bool transparent_hugepage_enabled(struct vm_area_struct *vma)
- 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
- 		return true;
++	while (len) {
++		mem = kmap_atomic(page);
++		chunk = min_t(unsigned int, len, PAGE_SIZE);
++		rc = memcpy_mcsafe(mem + off, pmem_addr, chunk);
++		kunmap_atomic(mem);
++		if (rc)
++			return BLK_STS_IOERR;
++		len -= chunk;
++		off = 0;
++		page++;
++		pmem_addr += PAGE_SIZE;
++	}
+ 	return BLK_STS_OK;
+ }
  
-+	if (vma_is_dax(vma))
-+		return true;
-+
- 	if (transparent_hugepage_flags &
- 				(1 << TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
- 		return !!(vma->vm_flags & VM_HUGEPAGE);
+@@ -186,7 +204,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
+ 	blk_status_t rc;
+ 
+-	rc = pmem_do_bvec(pmem, page, PAGE_SIZE, 0, is_write, sector);
++	rc = pmem_do_bvec(pmem, page, hpage_nr_pages(page) * PAGE_SIZE,
++			  0, is_write, sector);
+ 
+ 	/*
+ 	 * The ->rw_page interface is subtle and tricky.  The core
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
