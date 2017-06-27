@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com
- [15.241.140.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x242.google.com (mail-pf0-x242.google.com
+ [IPv6:2607:f8b0:400e:c00::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8EE0E21BBC430
- for <linux-nvdimm@lists.01.org>; Tue, 20 Jun 2017 09:50:31 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v2 2/7] acpi, nfit: Enable DSM pass thru for root functions.
-Date: Tue, 20 Jun 2017 10:51:21 -0600
-Message-Id: <dacd23f457ac46d07b2e7175a5c842bac7b588ea.1497939166.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
-References: <cover.1497939166.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
-References: <cover.1497939166.git.jerry.hoemann@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 72ACA21A00AC1
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Jun 2017 01:14:24 -0700 (PDT)
+Received: by mail-pf0-x242.google.com with SMTP id e199so3763618pfh.0
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Jun 2017 01:15:54 -0700 (PDT)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH 1/4] libndctl: rename parse_lbasize to parse_sizes
+Date: Tue, 27 Jun 2017 18:15:28 +1000
+Message-Id: <20170627081531.7389-1-oohall@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,45 +23,97 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Set ND_CMD_CALL in the cmd_mask to enable calling root
-functions via the pass trhu mechanism.
+We want to re-use this code to parse the list of supported alignments
+for dax and PFN devices so rename the function to reflect the more
+generic usage.
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
- drivers/acpi/nfit/core.c   | 1 +
- include/uapi/linux/ndctl.h | 1 +
- 2 files changed, 2 insertions(+)
+ ndctl/lib/libndctl.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 656acb5..b46fca2 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1623,6 +1623,7 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
- 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
- 			set_bit(i, &nd_desc->cmd_mask);
-+	set_bit(ND_CMD_CALL, &nd_desc->cmd_mask);
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 4acebc05d6db..aa262f03303e 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -234,12 +234,12 @@ struct ndctl_region {
+ };
+ 
+ /**
+- * struct ndctl_lbasize - lbasize info for btt and blk-namespace devices
++ * struct ndctl_sizes - list of supported sector or alignments
+  * @select: currently selected sector_size
+  * @supported: possible sector_size options
+  * @num: number of entries in @supported
+  */
+-struct ndctl_lbasize {
++struct ndctl_sizes {
+ 	int select;
+ 	unsigned int *supported;
+ 	int num;
+@@ -270,7 +270,7 @@ struct ndctl_namespace {
+ 	unsigned long long resource, size;
+ 	char *alt_name;
+ 	uuid_t uuid;
+-	struct ndctl_lbasize lbasize;
++	struct ndctl_sizes lbasize;
+ 	int numa_node;
+ };
+ 
+@@ -291,7 +291,7 @@ struct ndctl_btt {
+ 	struct ndctl_region *region;
+ 	struct ndctl_namespace *ndns;
+ 	struct list_node list;
+-	struct ndctl_lbasize lbasize;
++	struct ndctl_sizes lbasize;
+ 	unsigned long long size;
+ 	char *btt_path;
+ 	char *btt_buf;
+@@ -2855,8 +2855,8 @@ static char *get_block_device(struct ndctl_ctx *ctx, const char *block_path)
+ 	return bdev_name;
  }
  
- static ssize_t range_index_show(struct device *dev,
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 7ad3863..e23c37f 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -179,6 +179,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- 		[ND_CMD_ARS_START] = "ars_start",
- 		[ND_CMD_ARS_STATUS] = "ars_status",
- 		[ND_CMD_CLEAR_ERROR] = "clear_error",
-+		[ND_CMD_CALL] = "cmd_call",
- 	};
+-static int parse_lbasize_supported(struct ndctl_ctx *ctx, const char *devname,
+-		const char *buf, struct ndctl_lbasize *lba);
++static int parse_sizes(struct ndctl_ctx *ctx, const char *devname,
++		const char *buf, struct ndctl_sizes *lba);
  
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
+ static void *add_namespace(void *parent, int id, const char *ndns_base)
+ {
+@@ -2908,7 +2908,7 @@ static void *add_namespace(void *parent, int id, const char *ndns_base)
+ 		sprintf(path, "%s/sector_size", ndns_base);
+ 		if (sysfs_read_attr(ctx, path, buf) < 0)
+ 			goto err_read;
+-		if (parse_lbasize_supported(ctx, devname, buf, &ndns->lbasize) < 0)
++		if (parse_sizes(ctx, devname, buf, &ndns->lbasize) < 0)
+ 			goto err_read;
+ 		/* fall through */
+ 	case ND_DEVICE_NAMESPACE_PMEM:
+@@ -3738,8 +3738,8 @@ NDCTL_EXPORT int ndctl_namespace_delete(struct ndctl_namespace *ndns)
+ 	return 0;
+ }
+ 
+-static int parse_lbasize_supported(struct ndctl_ctx *ctx, const char *devname,
+-		const char *buf, struct ndctl_lbasize *lba)
++static int parse_sizes(struct ndctl_ctx *ctx, const char *devname,
++		const char *buf, struct ndctl_sizes *lba)
+ {
+ 	char *s = strdup(buf), *end, *field;
+ 	void *temp;
+@@ -3830,7 +3830,7 @@ static void *add_btt(void *parent, int id, const char *btt_base)
+ 	sprintf(path, "%s/sector_size", btt_base);
+ 	if (sysfs_read_attr(ctx, path, buf) < 0)
+ 		goto err_read;
+-	if (parse_lbasize_supported(ctx, devname, buf, &btt->lbasize) < 0)
++	if (parse_sizes(ctx, devname, buf, &btt->lbasize) < 0)
+ 		goto err_read;
+ 
+ 	sprintf(path, "%s/size", btt_base);
 -- 
-1.8.5.6
+2.9.4
 
 _______________________________________________
 Linux-nvdimm mailing list
