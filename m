@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x242.google.com (mail-pf0-x242.google.com
+ [IPv6:2607:f8b0:400e:c00::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ABEF621B02B9D
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:59:00 -0700 (PDT)
-Subject: [PATCH v4 13/16] dax: remove default copy_from_iter fallback
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 29 Jun 2017 10:54:07 -0700
-Message-ID: <149875884723.10031.5829298075873663997.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 47D8121A143C1
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Jun 2017 01:14:28 -0700 (PDT)
+Received: by mail-pf0-x242.google.com with SMTP id z6so3753068pfk.3
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Jun 2017 01:15:58 -0700 (PDT)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH 3/4] libndctl: Add helpers to check supported sector sizes
+Date: Tue, 27 Jun 2017 18:15:30 +1000
+Message-Id: <20170627081531.7389-3-oohall@gmail.com>
+In-Reply-To: <20170627081531.7389-1-oohall@gmail.com>
+References: <20170627081531.7389-1-oohall@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,139 +20,164 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Require all dax-drivers to register a ->copy_from_iter() operation so
-that it is clear which dax_operations are optional and which must be
-implemented for filesystem-dax to operate.
+libndctl now has the ndctl_{dax|pfn}_supports_align() helper functions
+for checking if PFN and DAX regions support a given alignment. The
+sector size of a BTT region is similar to the region alignment so add an
+equivilent helper to maintain a consistent API across region types.
 
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Adds:
+	ndctl_namespace_supports_sector_size()
+	ndctl_btt_supports_sector_size()
+
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
- arch/powerpc/sysdev/axonram.c |    8 ++++++++
- drivers/block/brd.c           |    8 ++++++++
- drivers/dax/super.c           |    2 --
- drivers/s390/block/dcssblk.c  |    8 ++++++++
- include/linux/dax.h           |    2 +-
- 5 files changed, 25 insertions(+), 3 deletions(-)
+ ndctl/lib/libndctl.c   | 12 ++++++++++++
+ ndctl/lib/libndctl.sym |  2 ++
+ ndctl/libndctl.h.in    |  3 +++
+ ndctl/namespace.c      | 30 ++++++++++++------------------
+ 4 files changed, 29 insertions(+), 18 deletions(-)
 
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index a7fe5fee744f..2799706106c6 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -45,6 +45,7 @@
- #include <linux/of_device.h>
- #include <linux/of_platform.h>
- #include <linux/pfn_t.h>
-+#include <linux/uio.h>
- 
- #include <asm/page.h>
- #include <asm/prom.h>
-@@ -163,8 +164,15 @@ axon_ram_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pa
- 	return __axon_ram_direct_access(bank, pgoff, nr_pages, kaddr, pfn);
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index d21d372891a4..9668d8c5d34e 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -3586,6 +3586,12 @@ NDCTL_EXPORT int ndctl_namespace_get_num_sector_sizes(struct ndctl_namespace *nd
+ 	return ndns->lbasize.num;
  }
  
-+static size_t axon_ram_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
++NDCTL_EXPORT int ndctl_namespace_supports_sector_size(
++		struct ndctl_namespace *ndns, unsigned long size)
 +{
-+	return copy_from_iter(addr, bytes, i);
++	return sizes_contains(&ndns->lbasize, size);
 +}
 +
- static const struct dax_operations axon_ram_dax_ops = {
- 	.direct_access = axon_ram_dax_direct_access,
-+	.copy_from_iter = axon_ram_copy_from_iter,
- };
- 
- /**
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 57b574f2f66a..f2a7ac350f6a 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -22,6 +22,7 @@
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- #include <linux/pfn_t.h>
- #include <linux/dax.h>
-+#include <linux/uio.h>
- #endif
- 
- #include <linux/uaccess.h>
-@@ -354,8 +355,15 @@ static long brd_dax_direct_access(struct dax_device *dax_dev,
- 	return __brd_direct_access(brd, pgoff, nr_pages, kaddr, pfn);
+ NDCTL_EXPORT int ndctl_namespace_set_sector_size(struct ndctl_namespace *ndns,
+ 		unsigned int sector_size)
+ {
+@@ -3912,6 +3918,12 @@ NDCTL_EXPORT int ndctl_btt_get_num_sector_sizes(struct ndctl_btt *btt)
+ 	return btt->lbasize.num;
  }
  
-+static size_t brd_dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
++NDCTL_EXPORT int ndctl_btt_supports_sector_size(
++		struct ndctl_btt *btt, unsigned long size)
 +{
-+	return copy_from_iter(addr, bytes, i);
++	return sizes_contains(&btt->lbasize, size);
 +}
 +
- static const struct dax_operations brd_dax_ops = {
- 	.direct_access = brd_dax_direct_access,
-+	.copy_from_iter = brd_dax_copy_from_iter,
- };
- #endif
+ NDCTL_EXPORT struct ndctl_namespace *ndctl_btt_get_namespace(struct ndctl_btt *btt)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_btt_get_ctx(btt);
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 547d1bf133c6..4039f7311222 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -192,6 +192,7 @@ global:
+ 	ndctl_namespace_get_sector_size;
+ 	ndctl_namespace_get_num_sector_sizes;
+ 	ndctl_namespace_set_sector_size;
++	ndctl_namespace_supports_sector_size;
+ 	ndctl_namespace_get_raw_mode;
+ 	ndctl_namespace_set_raw_mode;
+ 	ndctl_namespace_get_numa_node;
+@@ -204,6 +205,7 @@ global:
+ 	ndctl_btt_get_supported_sector_size;
+ 	ndctl_btt_get_sector_size;
+ 	ndctl_btt_get_num_sector_sizes;
++	ndctl_btt_supports_sector_size;
+ 	ndctl_btt_get_namespace;
+ 	ndctl_btt_get_uuid;
+ 	ndctl_btt_get_size;
+diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
+index 1d0924999b03..feefb9653c88 100644
+--- a/ndctl/libndctl.h.in
++++ b/ndctl/libndctl.h.in
+@@ -513,6 +513,8 @@ int ndctl_namespace_set_size(struct ndctl_namespace *ndns,
+ 		unsigned long long size);
+ unsigned int ndctl_namespace_get_supported_sector_size(
+ 		struct ndctl_namespace *ndns, int i);
++int ndctl_namespace_supports_sector_size(
++		struct ndctl_namespace *ndns, unsigned long size);
+ unsigned int ndctl_namespace_get_sector_size(struct ndctl_namespace *ndns);
+ int ndctl_namespace_get_num_sector_sizes(struct ndctl_namespace *ndns);
+ int ndctl_namespace_set_sector_size(struct ndctl_namespace *ndns,
+@@ -538,6 +540,7 @@ struct ndctl_ctx *ndctl_btt_get_ctx(struct ndctl_btt *btt);
+ struct ndctl_bus *ndctl_btt_get_bus(struct ndctl_btt *btt);
+ struct ndctl_region *ndctl_btt_get_region(struct ndctl_btt *btt);
+ unsigned int ndctl_btt_get_id(struct ndctl_btt *btt);
++int ndctl_btt_supports_sector_size(struct ndctl_btt *btt, unsigned long size);
+ unsigned int ndctl_btt_get_supported_sector_size(struct ndctl_btt *btt, int i);
+ unsigned int ndctl_btt_get_sector_size(struct ndctl_btt *btt);
+ int ndctl_btt_get_num_sector_sizes(struct ndctl_btt *btt);
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 895e39bb8c7d..0f402e8790a6 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -570,25 +570,21 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 	}
  
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index b7729e4d351a..9e0160b950d7 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -179,8 +179,6 @@ size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 	if (!dax_alive(dax_dev))
- 		return 0;
+ 	if (param.sector_size) {
+-		struct ndctl_btt *btt;
+-		int num, i;
++		unsigned long long size = parse_size64(param.sector_size);
  
--	if (!dax_dev->ops->copy_from_iter)
--		return copy_from_iter(addr, bytes, i);
- 	return dax_dev->ops->copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- EXPORT_SYMBOL_GPL(dax_copy_from_iter);
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 36e5280af3e4..88fa7b3f7a9d 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -18,6 +18,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/pfn_t.h>
-+#include <linux/uio.h>
- #include <linux/dax.h>
- #include <asm/extmem.h>
- #include <asm/io.h>
-@@ -43,8 +44,15 @@ static const struct block_device_operations dcssblk_devops = {
- 	.release 	= dcssblk_release,
- };
- 
-+static size_t dcssblk_dax_copy_from_iter(struct dax_device *dax_dev,
-+		pgoff_t pgoff, void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	return copy_from_iter(addr, bytes, i);
-+}
+-		p->sector_size = parse_size64(param.sector_size);
+-		btt = ndctl_region_get_btt_seed(region);
+ 		if (p->mode == NDCTL_NS_MODE_SAFE) {
++			struct ndctl_btt *btt =
++				ndctl_region_get_btt_seed(region);
 +
- static const struct dax_operations dcssblk_dax_ops = {
- 	.direct_access = dcssblk_dax_direct_access,
-+	.copy_from_iter = dcssblk_dax_copy_from_iter,
- };
+ 			if (!btt) {
+ 				debug("%s: does not support 'sector' mode\n",
+ 						region_name);
+ 				return -EINVAL;
+ 			}
+-			num = ndctl_btt_get_num_sector_sizes(btt);
+-			for (i = 0; i < num; i++)
+-				if (ndctl_btt_get_supported_sector_size(btt, i)
+-						== p->sector_size)
+-					break;
+-			if (i >= num) {
++
++			if (!ndctl_btt_supports_sector_size(btt, size)) {
+ 				debug("%s: does not support btt sector_size %lu\n",
+-						region_name, p->sector_size);
++						region_name, size);
+ 				return -EINVAL;
+ 			}
+ 		} else {
+@@ -596,17 +592,15 @@ static int validate_namespace_options(struct ndctl_region *region,
  
- struct dcssblk_dev_info {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 1f6b6072af64..73fca1bebaf3 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -16,7 +16,7 @@ struct dax_operations {
- 	 */
- 	long (*direct_access)(struct dax_device *, pgoff_t, long,
- 			void **, pfn_t *);
--	/* copy_from_iter: dax-driver override for default copy_from_iter */
-+	/* copy_from_iter: required operation for fs-dax direct-i/o */
- 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
- 			struct iov_iter *);
- 	/* flush: optional driver-specific cache management after writes */
+ 			if (!seed)
+ 				seed = ndctl_region_get_namespace_seed(region);
+-			num = ndctl_namespace_get_num_sector_sizes(seed);
+-			for (i = 0; i < num; i++)
+-				if (ndctl_namespace_get_supported_sector_size(seed, i)
+-						== p->sector_size)
+-					break;
+-			if (i >= num) {
++
++			if (!ndctl_namespace_supports_sector_size(seed, size)) {
+ 				debug("%s: does not support namespace sector_size %lu\n",
+-						region_name, p->sector_size);
++						region_name, size);
+ 				return -EINVAL;
+ 			}
+ 		}
++
++		p->sector_size = size;
+ 	} else if (ndns) {
+ 		struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
+ 
+-- 
+2.9.4
 
 _______________________________________________
 Linux-nvdimm mailing list
