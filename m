@@ -1,18 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x241.google.com (mail-pf0-x241.google.com
+ [IPv6:2607:f8b0:400e:c00::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A85012095D215
- for <linux-nvdimm@lists.01.org>; Tue, 20 Jun 2017 09:50:32 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v2 6/7] libnvdimm: New ACPI 6.2 DSM functions
-Date: Tue, 20 Jun 2017 10:51:25 -0600
-Message-Id: <1f95797092f647a92ee382e80b9b739b18518ee3.1497939166.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
-References: <cover.1497939166.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1497939166.git.jerry.hoemann@hpe.com>
-References: <cover.1497939166.git.jerry.hoemann@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4356521A143C1
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Jun 2017 01:14:30 -0700 (PDT)
+Received: by mail-pf0-x241.google.com with SMTP id e199so3763936pfh.0
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Jun 2017 01:16:00 -0700 (PDT)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH 4/4] ndctl,
+ create-namespace: use seed device to check alignments
+Date: Tue, 27 Jun 2017 18:15:31 +1000
+Message-Id: <20170627081531.7389-4-oohall@gmail.com>
+In-Reply-To: <20170627081531.7389-1-oohall@gmail.com>
+References: <20170627081531.7389-1-oohall@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,82 +26,137 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.2 added new NVDIMM root DSM functions.  Define their
-data structures.
+The possible alignments for DAX and PFN regions depends on what is
+supported by the current kernel. Previously we have assumed that 4K,
+2M and 1G alignments are valid since those are the hardware page sizes
+available on x86, but these are not universal. This patch reworks the
+alignment validation so that the valid alignments are what the seed
+device supports. It also uses the seed device alignment as the default
+alignment since this is chosen by the kernel and should be a reasonable
+default.
 
-Update the definition of nd_cmd_ars_cap to match the 6.2 spec.
-
-Add the new 6.2 functions names to nvdimm_bus_cmd_name.
-
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
- include/uapi/linux/ndctl.h | 40 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+ ndctl/namespace.c | 79 +++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 42 insertions(+), 37 deletions(-)
 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index e23c37f..e15768f 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -105,7 +105,8 @@ struct nd_cmd_ars_cap {
- 	__u32 status;
- 	__u32 max_ars_out;
- 	__u32 clear_err_unit;
--	__u32 reserved;
-+	__u16 flags;
-+	__u16 reserved;
- } __packed;
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 0f402e8790a6..1900032cd362 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -428,7 +428,7 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		struct ndctl_namespace *ndns, struct parsed_parameters *p)
+ {
+ 	const char *region_name = ndctl_region_get_devname(region);
+-	unsigned long long size_align, units = 1;
++	unsigned long long size_align = SZ_4K, units = 1;
+ 	unsigned int ways;
+ 	int rc = 0;
  
- struct nd_cmd_ars_start {
-@@ -144,6 +145,43 @@ struct nd_cmd_clear_error {
- 	__u64 cleared;
- } __packed;
+@@ -491,57 +491,62 @@ static int validate_namespace_options(struct ndctl_region *region,
  
-+struct nd_cmd_trans_spa {
-+	__u64 spa;
-+	__u32 status;
-+	__u8  flags;
-+	__u8  _reserved[3];
-+	__u64 trans_length;
-+	__u32 num_nvdimms;
-+	struct nd_nvdimm_device {
-+		__u32 nfit_device_handle;
-+		__u32 _reserved;
-+		__u64 dpa;
-+	} __packed devices[0];
-+
-+} __packed;
-+
-+struct nd_cmd_ars_err_inj {
-+	__u64 err_inj_spa_range_base;
-+	__u64 err_inj_spa_range_length;
-+	__u8  err_inj_options;
-+	__u32 status;
-+} __packed;
-+
-+struct nd_cmd_ars_err_inj_clr {
-+	__u64 err_inj_clr_spa_range_base;
-+	__u64 err_inj_clr_spa_range_length;
-+	__u32 status;
-+} __packed;
-+
-+struct nd_cmd_ars_err_inj_stat {
-+	__u32 status;
-+	__u32 inj_err_rec_count;
-+	struct nd_error_stat_query_record {
-+		__u64 err_inj_stat_spa_range_base;
-+		__u64 err_inj_stat_spa_range_length;
-+	} __packed record[0];
-+} __packed;
-+
- enum {
- 	ND_CMD_IMPLEMENTED = 0,
+ 		p->align = parse_size64(param.align);
  
+-		if (p->mode == NDCTL_NS_MODE_MEMORY && p->align != SZ_2M
+-				&& (!pfn || !ndctl_pfn_has_align(pfn))) {
++		if (p->mode == NDCTL_NS_MODE_MEMORY) {
++			if (!pfn) {
++				debug("%s does not support memory mode\n",
++					region_name);
++				return -EAGAIN;
++			}
++
+ 			/*
+ 			 * Initial pfn device support in the kernel
+ 			 * supported a 2M default alignment when
+ 			 * ndctl_pfn_has_align() returns false.
+ 			 */
+-			debug("%s not support 'align' for memory mode\n",
++			if (p->align != SZ_2M && !ndctl_pfn_has_align(pfn)) {
++				debug("%s not support 'align' for memory mode\n",
+ 					region_name);
+-			return -EAGAIN;
+-		} else if (p->mode == NDCTL_NS_MODE_DAX
+-				&& (!dax || !ndctl_dax_has_align(dax))) {
++				return -EAGAIN;
++			}
++
++			if (param.align_default)
++				p->align = ndctl_pfn_get_align(pfn);
++
++			if (!ndctl_pfn_supports_align(pfn, p->align)) {
++				error("unsupported alignment for memory mode: %s\n",
++					param.align);
++				return -EINVAL;
++			}
++
++			size_align = p->align;
++		} else if (p->mode == NDCTL_NS_MODE_DAX) {
+ 			/*
+ 			 * Unlike the pfn case, we require the kernel to
+ 			 * have 'align' support for device-dax.
+ 			 */
+-			debug("%s not support 'align' for dax mode\n",
+-					region_name);
+-			return -EAGAIN;
+-		} else if (!param.align_default
+-				&& (p->mode == NDCTL_NS_MODE_SAFE
+-					|| p->mode == NDCTL_NS_MODE_RAW)) {
+-			/*
+-			 * Specifying an alignment has no effect for
+-			 * raw, or btt mode namespaces.
+-			 */
++			if (!dax || !ndctl_dax_has_align(dax)) {
++				debug("%s not support 'align' for dax mode\n",
++						region_name);
++				return -EAGAIN;
++			}
++
++			if (param.align_default)
++				p->align = ndctl_dax_get_align(dax);
++
++			if (!ndctl_dax_supports_align(dax, p->align)) {
++				error("unsupported alignment for dax mode: %s\n",
++					param.align);
++				return -EINVAL;
++			}
++
++			size_align = p->align;
++		} else if (!param.align_default) {
++			/* in other cases the user should not supply an alignment */
+ 			error("%s mode does not support setting an alignment\n",
+ 					p->mode == NDCTL_NS_MODE_SAFE
+ 					? "sector" : "raw");
+ 			return -ENXIO;
+ 		}
+-
+-		switch (p->align) {
+-		case SZ_4K:
+-		case SZ_2M:
+-		case SZ_1G:
+-			break;
+-		default:
+-			error("unsupported align: %s\n", param.align);
+-			return -ENXIO;
+-		}
+-
+-		/*
+-		 * 'raw' and 'sector' mode namespaces don't support an
+-		 * alignment attribute.
+-		 */
+-		if (p->mode == NDCTL_NS_MODE_MEMORY
+-				|| p->mode == NDCTL_NS_MODE_DAX)
+-			size_align = p->align;
+-		else
+-			size_align = SZ_4K;
+ 	}
+ 
+ 	/* (re-)validate that the size satisfies the alignment */
 -- 
-1.8.5.6
+2.9.4
 
 _______________________________________________
 Linux-nvdimm mailing list
