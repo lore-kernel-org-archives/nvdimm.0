@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb0-x22f.google.com (mail-yb0-x22f.google.com
+ [IPv6:2607:f8b0:4002:c09::22f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3E63520082E7E
- for <linux-nvdimm@lists.01.org>; Thu,  8 Jun 2017 22:14:13 -0700 (PDT)
-Subject: [PATCH 1/9] libnvdimm, label: add v1.2 nvdimm label definitions
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 08 Jun 2017 22:08:56 -0700
-Message-ID: <149698493608.11651.9608124801423367020.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DD57221CB74A4
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 16:29:37 -0700 (PDT)
+Received: by mail-yb0-x22f.google.com with SMTP id b81so23872298yba.2
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 16:31:10 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4jB8oWv=KmtDt783Ro6ZujvN4sDYNzGW-vGpeMyZ4u6DA@mail.gmail.com>
+References: <cover.1497939166.git.jerry.hoemann@hpe.com>
+ <658db8f8c7a5042a2049e5fe08c0c68b4586526e.1497939166.git.jerry.hoemann@hpe.com>
+ <CAPcyv4ifdcdhmG3AuyJ0RwB=TSObp=Gg1qk9CnzJWmGs4etYGw@mail.gmail.com>
+ <20170628231519.GC26439@anatevka.americas.hpqcorp.net>
+ <CAPcyv4jB8oWv=KmtDt783Ro6ZujvN4sDYNzGW-vGpeMyZ4u6DA@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 28 Jun 2017 16:31:08 -0700
+Message-ID: <CAPcyv4iNDdTXN+sziZUh9xR4Sr6yqRpO6oUkZ8X3Bm89TYs3gA@mail.gmail.com>
+Subject: Re: [PATCH v2 5/7] acpi, nfit: Show bus_dsm_mask
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,333 +29,69 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of improved interoperability between operating systems and pre-boot
-environments the Intel proposed NVDIMM Namespace Specification [1], has been
-adopted and modified to the the UEFI 2.7 NVDIMM Label Protocol [2].
+On Wed, Jun 28, 2017 at 4:29 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Wed, Jun 28, 2017 at 4:15 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+>> On Wed, Jun 28, 2017 at 02:07:20PM -0700, Dan Williams wrote:
+>>> On Tue, Jun 20, 2017 at 9:51 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+>>> > Add bus_dsm_mask to sysfs display under /sys/bus/nd/devices/ndbusX/nfit.
+>>> >
+>>> > Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+>>> > ---
+>>> >  drivers/acpi/nfit/core.c | 10 ++++++++++
+>>> >  1 file changed, 10 insertions(+)
+>>> >
+>>> > diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+>>> > index 9d281a4..f133b3e 100644
+>>> > --- a/drivers/acpi/nfit/core.c
+>>> > +++ b/drivers/acpi/nfit/core.c
+>>> > @@ -928,6 +928,15 @@ static int nfit_mem_init(struct acpi_nfit_desc *acpi_desc)
+>>> >         return 0;
+>>> >  }
+>>> >
+>>> > +static ssize_t bus_dsm_mask_show(struct device *dev,
+>>> > +               struct device_attribute *attr, char *buf)
+>>> > +{
+>>> > +       struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
+>>> > +       struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
+>>> > +       return sprintf(buf, "%#lx\n", nd_desc->bus_dsm_mask);
+>>> > +}
+>>> > +static DEVICE_ATTR_RO(bus_dsm_mask);
+>>> > +
+>>> >  static ssize_t revision_show(struct device *dev,
+>>> >                 struct device_attribute *attr, char *buf)
+>>> >  {
+>>> > @@ -1064,6 +1073,7 @@ static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
+>>> >         &dev_attr_revision.attr,
+>>> >         &dev_attr_scrub.attr,
+>>> >         &dev_attr_hw_error_scrub.attr,
+>>> > +       &dev_attr_bus_dsm_mask.attr,
+>>> >         NULL,
+>>> >  };
+>>>
+>>> I think it's redundant to keep 'bus_' in the name of the attribute
+>>> since 'bus' is included in the sysfs path. You can use DEVICE_ATTR()
+>>> instead of DEVICE_ATTR_RO() to specify the attribute name manually,
+>>> and get around the collision with the existing dsm_mash_show()
+>>> routine.
+>>
+>> DEVICE_ATTR and DEVICE_ATTR_RO uses the same tokenization & stringification
+>> schemes, so that doesn't disambiguate.  They need to be different
+>> case sensitive names if they are to be in same source file.
+>>
+>> Do you want me to change name to root_dsm_mask?  or change case: DSM_MASK?
+>
+> I'm saying do something like this:
+>
+>    DEVICE_ATTR(dsm_mask, 0444, bus_dsm_mask_show, NULL)
+>
+> ...so that the attribute name in sysfs is just 'dsm_mask'.
 
-Update the definitions of the namespace label data structures so that the new
-format can be supported alongside the existing label format.
-
-The new specification changes the default label size to 256 bytes, so
-everywhere that relied on sizeof(struct nd_namespace_label) must now use the
-sizeof_namespace_label() helper.
-
-There should be no functional differences from these changes as the
-default is still the v1.1 128-byte format. Future patches will move the
-default to the v1.2 definition.
-
-[1]: http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf
-[2]: http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/label.c |   95 +++++++++++++++++++++++++++++++++++++++---------
- drivers/nvdimm/label.h |   15 +++++++-
- drivers/nvdimm/nd.h    |    8 ++++
- 3 files changed, 97 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index dd615345699f..d6233d220bfd 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -34,6 +34,11 @@ static u32 best_seq(u32 a, u32 b)
- 		return a;
- }
- 
-+unsigned sizeof_namespace_label(struct nvdimm_drvdata *ndd)
-+{
-+	return ndd->nslabel_size;
-+}
-+
- size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
- {
- 	u32 index_span;
-@@ -49,7 +54,7 @@ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
- 	 * starts to waste space at larger config_sizes, but it's
- 	 * unlikely we'll ever see anything but 128K.
- 	 */
--	index_span = ndd->nsarea.config_size / 129;
-+	index_span = ndd->nsarea.config_size / (sizeof_namespace_label(ndd) + 1);
- 	index_span /= NSINDEX_ALIGN * 2;
- 	ndd->nsindex_size = index_span * NSINDEX_ALIGN;
- 
-@@ -58,10 +63,10 @@ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
- 
- int nvdimm_num_label_slots(struct nvdimm_drvdata *ndd)
- {
--	return ndd->nsarea.config_size / 129;
-+	return ndd->nsarea.config_size / (sizeof_namespace_label(ndd) + 1);
- }
- 
--int nd_label_validate(struct nvdimm_drvdata *ndd)
-+static int __nd_label_validate(struct nvdimm_drvdata *ndd)
- {
- 	/*
- 	 * On media label format consists of two index blocks followed
-@@ -104,6 +109,7 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
- 		u32 nslot;
- 		u8 sig[NSINDEX_SIG_LEN];
- 		u64 sum_save, sum, size;
-+		unsigned int version, labelsize;
- 
- 		memcpy(sig, nsindex[i]->sig, NSINDEX_SIG_LEN);
- 		if (memcmp(sig, NSINDEX_SIGNATURE, NSINDEX_SIG_LEN) != 0) {
-@@ -111,6 +117,21 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
- 					__func__, i);
- 			continue;
- 		}
-+
-+		/* label sizes larger than 128 arrived with v1.2 */
-+		version = __le16_to_cpu(nsindex[i]->major) * 100
-+			+ __le16_to_cpu(nsindex[i]->minor);
-+		if (version >= 102)
-+			labelsize = 1 << (7 + nsindex[i]->labelsize);
-+		else
-+			labelsize = 128;
-+
-+		if (labelsize != sizeof_namespace_label(ndd)) {
-+			dev_dbg(dev, "%s: nsindex%d labelsize %d invalid\n",
-+					__func__, i, nsindex[i]->labelsize);
-+			continue;
-+		}
-+
- 		sum_save = __le64_to_cpu(nsindex[i]->checksum);
- 		nsindex[i]->checksum = __cpu_to_le64(0);
- 		sum = nd_fletcher64(nsindex[i], sizeof_namespace_index(ndd), 1);
-@@ -153,7 +174,7 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
- 		}
- 
- 		nslot = __le32_to_cpu(nsindex[i]->nslot);
--		if (nslot * sizeof(struct nd_namespace_label)
-+		if (nslot * sizeof_namespace_label(ndd)
- 				+ 2 * sizeof_namespace_index(ndd)
- 				> ndd->nsarea.config_size) {
- 			dev_dbg(dev, "%s: nsindex%d nslot: %u invalid, config_size: %#x\n",
-@@ -189,6 +210,28 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
- 	return -1;
- }
- 
-+int nd_label_validate(struct nvdimm_drvdata *ndd)
-+{
-+	/*
-+	 * In order to probe for and validate namespace index blocks we
-+	 * need to know the size of the labels, and we can't trust the
-+	 * size of the labels until we validate the index blocks.
-+	 * Resolve this dependency loop by probing for known label
-+	 * sizes.
-+	 */
-+	int label_size[] = { 256, 128 };
-+	int i, rc;
-+
-+	for (i = 0; i < ARRAY_SIZE(label_size); i++) {
-+		ndd->nslabel_size = label_size[i];
-+		rc = __nd_label_validate(ndd);
-+		if (rc >= 0)
-+			return rc;
-+	}
-+
-+	return -1;
-+}
-+
- void nd_label_copy(struct nvdimm_drvdata *ndd, struct nd_namespace_index *dst,
- 		struct nd_namespace_index *src)
- {
-@@ -210,7 +253,22 @@ static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
- static int to_slot(struct nvdimm_drvdata *ndd,
- 		struct nd_namespace_label *nd_label)
- {
--	return nd_label - nd_label_base(ndd);
-+	unsigned long label, base;
-+
-+	label = (unsigned long) nd_label;
-+	base = (unsigned long) nd_label_base(ndd);
-+
-+	return (label - base) / sizeof_namespace_label(ndd);
-+}
-+
-+static struct nd_namespace_label *to_label(struct nvdimm_drvdata *ndd, int slot)
-+{
-+	unsigned long label, base;
-+
-+	base = (unsigned long) nd_label_base(ndd);
-+	label = base + sizeof_namespace_label(ndd) * slot;
-+
-+	return (struct nd_namespace_label *) label;
- }
- 
- #define for_each_clear_bit_le(bit, addr, size) \
-@@ -299,7 +357,7 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
- 		struct resource *res;
- 		u32 flags;
- 
--		nd_label = nd_label_base(ndd) + slot;
-+		nd_label = to_label(ndd, slot);
- 
- 		if (!slot_valid(nd_label, slot))
- 			continue;
-@@ -331,7 +389,7 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
- 	for_each_clear_bit_le(slot, free, nslot) {
- 		struct nd_namespace_label *nd_label;
- 
--		nd_label = nd_label_base(ndd) + slot;
-+		nd_label = to_label(ndd, slot);
- 
- 		if (!slot_valid(nd_label, slot)) {
- 			u32 label_slot = __le32_to_cpu(nd_label->slot);
-@@ -360,12 +418,12 @@ struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
- 	for_each_clear_bit_le(slot, free, nslot) {
- 		struct nd_namespace_label *nd_label;
- 
--		nd_label = nd_label_base(ndd) + slot;
-+		nd_label = to_label(ndd, slot);
- 		if (!slot_valid(nd_label, slot))
- 			continue;
- 
- 		if (n-- == 0)
--			return nd_label_base(ndd) + slot;
-+			return to_label(ndd, slot);
- 	}
- 
- 	return NULL;
-@@ -437,7 +495,8 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
- 		nslot = __le32_to_cpu(nsindex->nslot);
- 
- 	memcpy(nsindex->sig, NSINDEX_SIGNATURE, NSINDEX_SIG_LEN);
--	nsindex->flags = __cpu_to_le32(0);
-+	memset(&nsindex->flags, 0, 3);
-+	nsindex->labelsize = sizeof_namespace_label(ndd) >> 8;
- 	nsindex->seq = __cpu_to_le32(seq);
- 	offset = (unsigned long) nsindex
- 		- (unsigned long) to_namespace_index(ndd, 0);
-@@ -525,8 +584,8 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 		return -ENXIO;
- 	dev_dbg(ndd->dev, "%s: allocated: %d\n", __func__, slot);
- 
--	nd_label = nd_label_base(ndd) + slot;
--	memset(nd_label, 0, sizeof(struct nd_namespace_label));
-+	nd_label = to_label(ndd, slot);
-+	memset(nd_label, 0, sizeof_namespace_label(ndd));
- 	memcpy(nd_label->uuid, nspm->uuid, NSLABEL_UUID_LEN);
- 	if (nspm->alt_name)
- 		memcpy(nd_label->name, nspm->alt_name, NSLABEL_NAME_LEN);
-@@ -542,7 +601,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	/* update label */
- 	offset = nd_label_offset(ndd, nd_label);
- 	rc = nvdimm_set_config_data(ndd, offset, nd_label,
--			sizeof(struct nd_namespace_label));
-+			sizeof_namespace_label(ndd));
- 	if (rc < 0)
- 		return rc;
- 
-@@ -668,7 +727,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 
- 		/* mark unused labels for garbage collection */
- 		for_each_clear_bit_le(slot, free, nslot) {
--			nd_label = nd_label_base(ndd) + slot;
-+			nd_label = to_label(ndd, slot);
- 			memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
- 			if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
- 				continue;
-@@ -714,8 +773,8 @@ static int __blk_label_update(struct nd_region *nd_region,
- 			goto abort;
- 		dev_dbg(ndd->dev, "%s: allocated: %d\n", __func__, slot);
- 
--		nd_label = nd_label_base(ndd) + slot;
--		memset(nd_label, 0, sizeof(struct nd_namespace_label));
-+		nd_label = to_label(ndd, slot);
-+		memset(nd_label, 0, sizeof_namespace_label(ndd));
- 		memcpy(nd_label->uuid, nsblk->uuid, NSLABEL_UUID_LEN);
- 		if (nsblk->alt_name)
- 			memcpy(nd_label->name, nsblk->alt_name,
-@@ -732,7 +791,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 		/* update label */
- 		offset = nd_label_offset(ndd, nd_label);
- 		rc = nvdimm_set_config_data(ndd, offset, nd_label,
--				sizeof(struct nd_namespace_label));
-+				sizeof_namespace_label(ndd));
- 		if (rc < 0)
- 			goto abort;
- 	}
-@@ -790,7 +849,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 		goto out;
- 	}
- 	for_each_clear_bit_le(slot, free, nslot) {
--		nd_label = nd_label_base(ndd) + slot;
-+		nd_label = to_label(ndd, slot);
- 		memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
- 		if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
- 			continue;
-diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-index a59ef6eef2a3..f39bfb31f72f 100644
---- a/drivers/nvdimm/label.h
-+++ b/drivers/nvdimm/label.h
-@@ -15,6 +15,7 @@
- 
- #include <linux/ndctl.h>
- #include <linux/sizes.h>
-+#include <linux/uuid.h>
- #include <linux/io.h>
- 
- enum {
-@@ -60,7 +61,8 @@ static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
-  */
- struct nd_namespace_index {
- 	u8 sig[NSINDEX_SIG_LEN];
--	__le32 flags;
-+	u8 flags[3];
-+	u8 labelsize;
- 	__le32 seq;
- 	__le64 myoff;
- 	__le64 mysize;
-@@ -98,7 +100,16 @@ struct nd_namespace_label {
- 	__le64 dpa;
- 	__le64 rawsize;
- 	__le32 slot;
--	__le32 unused;
-+	/*
-+	 * Accessing fields past this point should be gated by a
-+	 * namespace_label_has() check.
-+	 */
-+	u8 align;
-+	u8 reserved[3];
-+	guid_t type_guid;
-+	guid_t abstraction_guid;
-+	u8 reserved2[88];
-+	__le64 checksum;
- };
- 
- /**
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 03852d738eec..28d9f4481547 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -42,7 +42,7 @@ struct nd_poison {
- 
- struct nvdimm_drvdata {
- 	struct device *dev;
--	int nsindex_size;
-+	int nsindex_size, nslabel_size;
- 	struct nd_cmd_get_config_size nsarea;
- 	void *data;
- 	int ns_current, ns_next;
-@@ -96,6 +96,12 @@ static inline struct nd_namespace_index *to_next_namespace_index(
- 	return to_namespace_index(ndd, ndd->ns_next);
- }
- 
-+unsigned sizeof_namespace_label(struct nvdimm_drvdata *ndd);
-+
-+#define namespace_label_has(ndd, field) \
-+	(offsetof(struct nd_namespace_label, field) \
-+		< sizeof_namespace_label(ndd))
-+
- #define nd_dbg_dpa(r, d, res, fmt, arg...) \
- 	dev_dbg((r) ? &(r)->dev : (d)->dev, "%s: %.13s: %#llx @ %#llx " fmt, \
- 		(r) ? dev_name((d)->dev) : "", res ? res->name : "null", \
-
+Actually, you'll need to go further and use __ATTR() directly to
+initialize a bus_dsm_mask_attr.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
