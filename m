@@ -1,19 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x22e.google.com (mail-yw0-x22e.google.com
- [IPv6:2607:f8b0:4002:c05::22e])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4F2EC21A00ACB
- for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:13:22 -0700 (PDT)
-Received: by mail-yw0-x22e.google.com with SMTP id 63so29196506ywr.0
- for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:14:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170628200742.26795-1-vishal.l.verma@intel.com>
-References: <20170628200742.26795-1-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 28 Jun 2017 13:14:52 -0700
-Message-ID: <CAPcyv4hxNLNQ6d0P2tEOwU+LQ4gbc_WEYEOuZZ+zZYQJE3kw7Q@mail.gmail.com>
-Subject: Re: [PATCH v4] libnvdimm, btt: BTT updates for UEFI 2.7 format
+ by ml01.01.org (Postfix) with ESMTPS id 7BF2A21CB74A9
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:07:48 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4] libnvdimm, btt: BTT updates for UEFI 2.7 format
+Date: Wed, 28 Jun 2017 14:07:42 -0600
+Message-Id: <20170628200742.26795-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,84 +15,373 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jun 28, 2017 at 1:07 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
-> The UEFI 2.7 specification defines an updated BTT metadata format,
-> bumping the revision to 2.0. Add support for the new format, while
-> retaining compatibility for the old 1.1 format.
->
-> Cc: Toshi Kani <toshi.kani@hpe.com>
-> Cc: Linda Knippers <linda.knippers@hpe.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-[..]
-> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-> index f05d9b0..09e7e76 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
-> @@ -1411,6 +1411,58 @@ static ssize_t dpa_extents_show(struct device *dev,
->  }
->  static DEVICE_ATTR_RO(dpa_extents);
->
-> +static int btt_claim_class(struct device *dev)
-> +{
-> +       struct nd_region *nd_region = to_nd_region(dev->parent);
-> +       int i, loop_bitmask = 0;
-> +
-> +       for (i = 0; i < nd_region->ndr_mappings; i++) {
-> +               struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-> +               struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-> +               struct nd_namespace_index *nsindex;
-> +
-> +               nsindex = to_namespace_index(ndd, ndd->ns_current);
-> +               if (nsindex == NULL)
-> +                       loop_bitmask |= 1;
-> +               else {
-> +                       /* check whether existing labels are v1.1 or v1.2 */
-> +                       if (__le16_to_cpu(nsindex->major) == 1
-> +                                       && __le16_to_cpu(nsindex->minor) == 1)
-> +                               loop_bitmask |= 2;
-> +                       else
-> +                               loop_bitmask |= 4;
-> +               }
-> +       }
-> +       /*
-> +        * If nsindex is null loop_bitmask's bit 0 will be set, and if an index
-> +        * block is found, a v1.1 label for any mapping will set bit 1, and a
-> +        * v1.2 label will set bit 2.
-> +        *
-> +        * At the end of the loop, only one of the three bits must be set.
-> +        * If multiple bits were set, it means the different mappings disagree
-> +        * about their labels, and this must be cleaned up first.
-> +        *
-> +        * If all the label index blocks are found to agree, nsindex of NULL
-> +        * implies labels haven't been initialized yet, and when they will,
-> +        * they will be of the 1.2 format, so we can assume BTT2.0
-> +        *
-> +        * If 1.1 labels are found, we enforce BTT1.1, and if 1.2 labels are
-> +        * found, we enforce BTT2.0
-> +        *
-> +        * If the loop was never entered, default to BTT1.1 (legacy namespaces)
-> +        */
-> +       switch (loop_bitmask) {
-> +       case 0:
-> +       case 2:
-> +               return NVDIMM_CCLASS_BTT;
-> +       case 1:
-> +       case 4:
-> +               return NVDIMM_CCLASS_BTT2;
-> +       default:
-> +               return -ENXIO;
-> +       }
+The UEFI 2.7 specification defines an updated BTT metadata format,
+bumping the revision to 2.0. Add support for the new format, while
+retaining compatibility for the old 1.1 format.
 
-Clever, looks good to me. I'll get this queued.
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Linda Knippers <linda.knippers@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+
+v4:
+ - Fix up dereferencing of nd_region->mappings (Dan)
+ - Check all the mappings for label consistency (Dan)
+ - Refactor figuring out the BTT claim class into its own helper (Dan)
+v3:
+ - Add athe actual BTT2 guid from the UEFI spec, and plumb a new
+   claim class for it (Dan)
+v2:
+ - Don't enforce new BTTs being v2, base that decision on the holder class (Dan)
+ - Refactor nd_btt_version slightly, and get rid of the version enum.
+
+ drivers/nvdimm/btt.c            | 28 ++++++++++++++------
+ drivers/nvdimm/btt.h            |  2 ++
+ drivers/nvdimm/btt_devs.c       | 46 +++++++++++++++++++++++++++++----
+ drivers/nvdimm/claim.c          |  1 +
+ drivers/nvdimm/label.c          |  6 +++++
+ drivers/nvdimm/label.h          |  1 +
+ drivers/nvdimm/namespace_devs.c | 57 +++++++++++++++++++++++++++++++++++++++--
+ drivers/nvdimm/nd.h             |  3 +++
+ include/linux/nd.h              |  1 +
+ 9 files changed, 130 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 983718b..7ca11df 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -37,8 +37,8 @@ static int arena_read_bytes(struct arena_info *arena, resource_size_t offset,
+ 	struct nd_btt *nd_btt = arena->nd_btt;
+ 	struct nd_namespace_common *ndns = nd_btt->ndns;
+ 
+-	/* arena offsets are 4K from the base of the device */
+-	offset += SZ_4K;
++	/* arena offsets may be shifted from the base of the device */
++	offset += arena->nd_btt->initial_offset;
+ 	return nvdimm_read_bytes(ndns, offset, buf, n, flags);
+ }
+ 
+@@ -48,8 +48,8 @@ static int arena_write_bytes(struct arena_info *arena, resource_size_t offset,
+ 	struct nd_btt *nd_btt = arena->nd_btt;
+ 	struct nd_namespace_common *ndns = nd_btt->ndns;
+ 
+-	/* arena offsets are 4K from the base of the device */
+-	offset += SZ_4K;
++	/* arena offsets may be shifted from the base of the device */
++	offset += arena->nd_btt->initial_offset;
+ 	return nvdimm_write_bytes(ndns, offset, buf, n, flags);
+ }
+ 
+@@ -576,8 +576,8 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
+ 	arena->internal_lbasize = roundup(arena->external_lbasize,
+ 					INT_LBASIZE_ALIGNMENT);
+ 	arena->nfree = BTT_DEFAULT_NFREE;
+-	arena->version_major = 1;
+-	arena->version_minor = 1;
++	arena->version_major = btt->nd_btt->version_major;
++	arena->version_minor = btt->nd_btt->version_minor;
+ 
+ 	if (available % BTT_PG_SIZE)
+ 		available -= (available % BTT_PG_SIZE);
+@@ -1425,6 +1425,7 @@ int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns)
+ {
+ 	struct nd_btt *nd_btt = to_nd_btt(ndns->claim);
+ 	struct nd_region *nd_region;
++	struct btt_sb *btt_sb;
+ 	struct btt *btt;
+ 	size_t rawsize;
+ 
+@@ -1433,10 +1434,21 @@ int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns)
+ 		return -ENODEV;
+ 	}
+ 
+-	rawsize = nvdimm_namespace_capacity(ndns) - SZ_4K;
++	btt_sb = devm_kzalloc(&nd_btt->dev, sizeof(*btt_sb), GFP_KERNEL);
++
++	/*
++	 * If this returns < 0, that is ok as it just means there wasn't
++	 * an existing BTT, and we're creating a new one. We still need to
++	 * call this as we need the version dependent fields in nd_btt to be
++	 * set correctly based on the holder class
++	 */
++	nd_btt_version(nd_btt, ndns, btt_sb);
++
++	rawsize = nvdimm_namespace_capacity(ndns) - nd_btt->initial_offset;
+ 	if (rawsize < ARENA_MIN_SIZE) {
+ 		dev_dbg(&nd_btt->dev, "%s must be at least %ld bytes\n",
+-				dev_name(&ndns->dev), ARENA_MIN_SIZE + SZ_4K);
++				dev_name(&ndns->dev),
++				ARENA_MIN_SIZE + nd_btt->initial_offset);
+ 		return -ENXIO;
+ 	}
+ 	nd_region = to_nd_region(nd_btt->dev.parent);
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index b2f8651..888e862 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -184,5 +184,7 @@ struct btt {
+ };
+ 
+ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super);
++int nd_btt_version(struct nd_btt *nd_btt, struct nd_namespace_common *ndns,
++		struct btt_sb *btt_sb);
+ 
+ #endif
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index 31d875a..3e359d2 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -260,20 +260,55 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
+ }
+ EXPORT_SYMBOL(nd_btt_arena_is_valid);
+ 
++int nd_btt_version(struct nd_btt *nd_btt, struct nd_namespace_common *ndns,
++		struct btt_sb *btt_sb)
++{
++	if (ndns->claim_class == NVDIMM_CCLASS_BTT2) {
++		/* Probe/setup for BTT v2.0 */
++		nd_btt->initial_offset = 0;
++		nd_btt->version_major = 2;
++		nd_btt->version_minor = 0;
++		if (nvdimm_read_bytes(ndns, 0, btt_sb, sizeof(*btt_sb), 0))
++			return -ENXIO;
++		if (!nd_btt_arena_is_valid(nd_btt, btt_sb))
++			return -ENODEV;
++		if ((le16_to_cpu(btt_sb->version_major) != 2) ||
++				(le16_to_cpu(btt_sb->version_minor) != 0))
++			return -ENODEV;
++	} else {
++		/*
++		 * Probe/setup for BTT v1.1 (NVDIMM_CCLASS_NONE or
++		 * NVDIMM_CCLASS_BTT)
++		 */
++		nd_btt->initial_offset = SZ_4K;
++		nd_btt->version_major = 1;
++		nd_btt->version_minor = 1;
++		if (nvdimm_read_bytes(ndns, SZ_4K, btt_sb, sizeof(*btt_sb), 0))
++			return -ENXIO;
++		if (!nd_btt_arena_is_valid(nd_btt, btt_sb))
++			return -ENODEV;
++		if ((le16_to_cpu(btt_sb->version_major) != 1) ||
++				(le16_to_cpu(btt_sb->version_minor) != 1))
++			return -ENODEV;
++	}
++	return 0;
++}
++EXPORT_SYMBOL(nd_btt_version);
++
+ static int __nd_btt_probe(struct nd_btt *nd_btt,
+ 		struct nd_namespace_common *ndns, struct btt_sb *btt_sb)
+ {
++	int rc;
++
+ 	if (!btt_sb || !ndns || !nd_btt)
+ 		return -ENODEV;
+ 
+-	if (nvdimm_read_bytes(ndns, SZ_4K, btt_sb, sizeof(*btt_sb), 0))
+-		return -ENXIO;
+-
+ 	if (nvdimm_namespace_capacity(ndns) < SZ_16M)
+ 		return -ENXIO;
+ 
+-	if (!nd_btt_arena_is_valid(nd_btt, btt_sb))
+-		return -ENODEV;
++	rc = nd_btt_version(nd_btt, ndns, btt_sb);
++	if (rc < 0)
++		return rc;
+ 
+ 	nd_btt->lbasize = le32_to_cpu(btt_sb->external_lbasize);
+ 	nd_btt->uuid = kmemdup(btt_sb->uuid, 16, GFP_KERNEL);
+@@ -298,6 +333,7 @@ int nd_btt_probe(struct device *dev, struct nd_namespace_common *ndns)
+ 	switch (ndns->claim_class) {
+ 	case NVDIMM_CCLASS_NONE:
+ 	case NVDIMM_CCLASS_BTT:
++	case NVDIMM_CCLASS_BTT2:
+ 		break;
+ 	default:
+ 		return -ENODEV;
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index de9b1cc..8d23f68 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -189,6 +189,7 @@ ssize_t nd_namespace_store(struct device *dev,
+ 	case NVDIMM_CCLASS_NONE:
+ 		break;
+ 	case NVDIMM_CCLASS_BTT:
++	case NVDIMM_CCLASS_BTT2:
+ 		if (!is_nd_btt(dev)) {
+ 			len = -EBUSY;
+ 			goto out_attach;
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 235f208..922b687 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -21,6 +21,7 @@
+ #include "nd.h"
+ 
+ static guid_t nvdimm_btt_guid;
++static guid_t nvdimm_btt2_guid;
+ static guid_t nvdimm_pfn_guid;
+ static guid_t nvdimm_dax_guid;
+ 
+@@ -578,6 +579,8 @@ enum nvdimm_claim_class to_nvdimm_cclass(guid_t *guid)
+ {
+ 	if (guid_equal(guid, &nvdimm_btt_guid))
+ 		return NVDIMM_CCLASS_BTT;
++	else if (guid_equal(guid, &nvdimm_btt2_guid))
++		return NVDIMM_CCLASS_BTT2;
+ 	else if (guid_equal(guid, &nvdimm_pfn_guid))
+ 		return NVDIMM_CCLASS_PFN;
+ 	else if (guid_equal(guid, &nvdimm_dax_guid))
+@@ -593,6 +596,8 @@ static const guid_t *to_abstraction_guid(enum nvdimm_claim_class claim_class,
+ {
+ 	if (claim_class == NVDIMM_CCLASS_BTT)
+ 		return &nvdimm_btt_guid;
++	else if (claim_class == NVDIMM_CCLASS_BTT2)
++		return &nvdimm_btt2_guid;
+ 	else if (claim_class == NVDIMM_CCLASS_PFN)
+ 		return &nvdimm_pfn_guid;
+ 	else if (claim_class == NVDIMM_CCLASS_DAX)
+@@ -1158,6 +1163,7 @@ int nd_blk_namespace_label_update(struct nd_region *nd_region,
+ int __init nd_label_init(void)
+ {
+ 	WARN_ON(guid_parse(NVDIMM_BTT_GUID, &nvdimm_btt_guid));
++	WARN_ON(guid_parse(NVDIMM_BTT2_GUID, &nvdimm_btt2_guid));
+ 	WARN_ON(guid_parse(NVDIMM_PFN_GUID, &nvdimm_pfn_guid));
+ 	WARN_ON(guid_parse(NVDIMM_DAX_GUID, &nvdimm_dax_guid));
+ 
+diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+index 7c8e2cc..1ebf4d3 100644
+--- a/drivers/nvdimm/label.h
++++ b/drivers/nvdimm/label.h
+@@ -113,6 +113,7 @@ struct nd_namespace_label {
+ };
+ 
+ #define NVDIMM_BTT_GUID "8aed63a2-29a2-4c66-8b12-f05d15d3922a"
++#define NVDIMM_BTT2_GUID "18633bfc-1735-4217-8ac9-17239282d3f8"
+ #define NVDIMM_PFN_GUID "266400ba-fb9f-4677-bcb0-968f11d0d225"
+ #define NVDIMM_DAX_GUID "97a86d9c-3cdd-4eda-986f-5068b4f80088"
+ 
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index f05d9b0..09e7e76 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1411,6 +1411,58 @@ static ssize_t dpa_extents_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(dpa_extents);
+ 
++static int btt_claim_class(struct device *dev)
++{
++	struct nd_region *nd_region = to_nd_region(dev->parent);
++	int i, loop_bitmask = 0;
++
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++		struct nd_namespace_index *nsindex;
++
++		nsindex = to_namespace_index(ndd, ndd->ns_current);
++		if (nsindex == NULL)
++			loop_bitmask |= 1;
++		else {
++			/* check whether existing labels are v1.1 or v1.2 */
++			if (__le16_to_cpu(nsindex->major) == 1
++					&& __le16_to_cpu(nsindex->minor) == 1)
++				loop_bitmask |= 2;
++			else
++				loop_bitmask |= 4;
++		}
++	}
++	/*
++	 * If nsindex is null loop_bitmask's bit 0 will be set, and if an index
++	 * block is found, a v1.1 label for any mapping will set bit 1, and a
++	 * v1.2 label will set bit 2.
++	 *
++	 * At the end of the loop, only one of the three bits must be set.
++	 * If multiple bits were set, it means the different mappings disagree
++	 * about their labels, and this must be cleaned up first.
++	 *
++	 * If all the label index blocks are found to agree, nsindex of NULL
++	 * implies labels haven't been initialized yet, and when they will,
++	 * they will be of the 1.2 format, so we can assume BTT2.0
++	 *
++	 * If 1.1 labels are found, we enforce BTT1.1, and if 1.2 labels are
++	 * found, we enforce BTT2.0
++	 *
++	 * If the loop was never entered, default to BTT1.1 (legacy namespaces)
++	 */
++	switch (loop_bitmask) {
++	case 0:
++	case 2:
++		return NVDIMM_CCLASS_BTT;
++	case 1:
++	case 4:
++		return NVDIMM_CCLASS_BTT2;
++	default:
++		return -ENXIO;
++	}
++}
++
+ static ssize_t holder_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -1433,7 +1485,7 @@ static ssize_t __holder_class_store(struct device *dev, const char *buf)
+ 		return -EBUSY;
+ 
+ 	if (strcmp(buf, "btt") == 0 || strcmp(buf, "btt\n") == 0)
+-		ndns->claim_class = NVDIMM_CCLASS_BTT;
++		ndns->claim_class = btt_claim_class(dev);
+ 	else if (strcmp(buf, "pfn") == 0 || strcmp(buf, "pfn\n") == 0)
+ 		ndns->claim_class = NVDIMM_CCLASS_PFN;
+ 	else if (strcmp(buf, "dax") == 0 || strcmp(buf, "dax\n") == 0)
+@@ -1474,7 +1526,8 @@ static ssize_t holder_class_show(struct device *dev,
+ 	device_lock(dev);
+ 	if (ndns->claim_class == NVDIMM_CCLASS_NONE)
+ 		rc = sprintf(buf, "\n");
+-	else if (ndns->claim_class == NVDIMM_CCLASS_BTT)
++	else if ((ndns->claim_class == NVDIMM_CCLASS_BTT) ||
++			(ndns->claim_class == NVDIMM_CCLASS_BTT2))
+ 		rc = sprintf(buf, "btt\n");
+ 	else if (ndns->claim_class == NVDIMM_CCLASS_PFN)
+ 		rc = sprintf(buf, "pfn\n");
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 8cabd83..1496ef9 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -194,6 +194,9 @@ struct nd_btt {
+ 	u64 size;
+ 	u8 *uuid;
+ 	int id;
++	int initial_offset;
++	u16 version_major;
++	u16 version_minor;
+ };
+ 
+ enum nd_pfn_mode {
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index 96069c5..5dc6b69 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -24,6 +24,7 @@ enum nvdimm_event {
+ enum nvdimm_claim_class {
+ 	NVDIMM_CCLASS_NONE,
+ 	NVDIMM_CCLASS_BTT,
++	NVDIMM_CCLASS_BTT2,
+ 	NVDIMM_CCLASS_PFN,
+ 	NVDIMM_CCLASS_DAX,
+ 	NVDIMM_CCLASS_UNKNOWN,
+-- 
+2.9.3
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
