@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
+Received: from muon.cran.org.uk (muon.bluestop.org [74.50.51.35])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8B19121B02B8F
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 18:17:40 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 56400AC00F2
- for <linux-nvdimm@lists.01.org>; Fri, 30 Jun 2017 10:19:04 +0900 (JST)
-Date: Fri, 30 Jun 2017 10:18:58 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id B60B121A00AC9
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 11:45:23 -0700 (PDT)
+Date: Wed, 28 Jun 2017 12:46:53 -0600
+From: Rebecca Cran <rebecca@bluestop.org>
 Subject: Re: Standardization of ACPI NVDIMM DSMs
+Message-ID: <20170628124653.00006283@bluestop.org>
 In-Reply-To: <9f16559d-fc0f-ad0d-2c13-1fc0b38aa733@hpe.com>
 References: <20170628094025.00001fc0@bluestop.org>
  <9f16559d-fc0f-ad0d-2c13-1fc0b38aa733@hpe.com>
-Message-Id: <20170630101854.B36F.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -31,7 +27,8 @@ To: Linda Knippers <linda.knippers@hpe.com>
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello, Linda-san,
+On Wed, 28 Jun 2017 11:59:04 -0400
+Linda Knippers <linda.knippers@hpe.com> wrote:
 
 > There is more standardization that will likely happen.  The most
 > interesting is probably standard health status information.  Today
@@ -39,16 +36,17 @@ Hello, Linda-san,
 > and it hides some of the differences by calling the appropriate
 > DSM for the platform/NVDIMM combination but we need to do more
 > work there.
+> 
+> Does this help?
 
-Could you tell me what works are necessary?
+Thanks, that's perfect! I will continue working on the proposal to add
+SMART/Health data into ACPI in that case, since it _does_ look like
+there's sufficient commonality that standardization should be
+relatively easy. I'm really working on an NVDIMM-P product, but it will
+be applicable to NVDIMM-N modules too.
 
-I also have concern around here, and I'm investgating source code of 
-ndctl and NVDIMM drivers to check what works are still needed.
-So, your opinion will be very helpful for me.
-
-Thanks.
-
-
+-- 
+Rebecca Cran
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
