@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb0-x232.google.com (mail-yb0-x232.google.com
+ [IPv6:2607:f8b0:4002:c09::232])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A4E2421A143F1
- for <linux-nvdimm@lists.01.org>; Fri,  9 Jun 2017 13:29:25 -0700 (PDT)
-Subject: [PATCH v3 04/14] dax,
- pmem: introduce an optional 'flush' dax_operation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Jun 2017 13:24:07 -0700
-Message-ID: <149703984722.20620.1577767383686219477.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149703982465.20620.14881139332926778446.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id ED7C721CB74AF
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 14:07:54 -0700 (PDT)
+Received: by mail-yb0-x232.google.com with SMTP id s9so22997263ybe.3
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 14:09:26 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <d597b2ce2d394d9cae199d1b8209fbe66314c753.1497939166.git.jerry.hoemann@hpe.com>
+References: <cover.1497939166.git.jerry.hoemann@hpe.com>
+ <d597b2ce2d394d9cae199d1b8209fbe66314c753.1497939166.git.jerry.hoemann@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 28 Jun 2017 14:09:25 -0700
+Message-ID: <CAPcyv4jLs8ogu2_=RFecgeFKO3prrF0SPhKm+rh5j2XKY+GhFQ@mail.gmail.com>
+Subject: Re: [PATCH v2 4/7] acpi, nfit: Use bus_dsm_mask for passthru
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,65 +26,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Filesystem-DAX flushes caches whenever it writes to the address returned
-through dax_direct_access() and when writing back dirty radix entries.
-That flushing is only required in the pmem case, so add a dax operation
-to allow pmem to take this extra action, but skip it for other dax
-capable devices that do not provide a flush routine.
+On Tue, Jun 20, 2017 at 9:51 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> Populate bus_dsm_mask and use it to filter dsm calls that user can
+> make through the pass thru interface.
+>
+> Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+> ---
+>  drivers/acpi/nfit/core.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index b46fca2..9d281a4 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -253,6 +253,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+>                 cmd_name = nvdimm_bus_cmd_name(cmd);
+>                 cmd_mask = nd_desc->cmd_mask;
+>                 dsm_mask = cmd_mask;
+> +               if (cmd == ND_CMD_CALL) dsm_mask = nd_desc->bus_dsm_mask;
 
-An example for this differentiation might be a volatile ram disk where
-there is no expectation of persistence. In fact the pmem driver itself might
-front such an address range specified by the NFIT. So, this "no flush"
-property might be something passed down by the bus / libnvdimm.
+Checkpatch complains about this:
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c |    7 +++++++
- include/linux/dax.h   |    2 ++
- 2 files changed, 9 insertions(+)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 2f3aefe565c6..823b07774244 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -242,9 +242,16 @@ static size_t pmem_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return copy_from_iter_flushcache(addr, bytes, i);
- }
- 
-+static void pmem_dax_flush(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t size)
-+{
-+	wb_cache_pmem(addr, size);
-+}
-+
- static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_dax_direct_access,
- 	.copy_from_iter = pmem_copy_from_iter,
-+	.flush = pmem_dax_flush,
- };
- 
- static void pmem_release_queue(void *q)
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 28e398f8c59e..407dd3ff6e54 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -19,6 +19,8 @@ struct dax_operations {
- 	/* copy_from_iter: dax-driver override for default copy_from_iter */
- 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
- 			struct iov_iter *);
-+	/* flush: optional driver-specific cache management after writes */
-+	void (*flush)(struct dax_device *, pgoff_t, void *, size_t);
- };
- 
- #if IS_ENABLED(CONFIG_DAX)
-
+ERROR: trailing statements should be on next line
+#118: FILE: drivers/acpi/nfit/core.c:256:
++ if (cmd == ND_CMD_CALL) dsm_mask = nd_desc->bus_dsm_mask;
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
