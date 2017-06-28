@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6E98521CB74A9
- for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:06:36 -0700 (PDT)
-Subject: [4.11-stable PATCH] x86/mm: Fix boot crash caused by incorrect loop
+ by ml01.01.org (Postfix) with ESMTPS id F33BC21CB74A9
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:05:59 -0700 (PDT)
+Subject: [4.9-stable PATCH] x86/mm: Fix boot crash caused by incorrect loop
  count calculation in sync_global_pgds()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 28 Jun 2017 13:01:41 -0700
-Message-ID: <149868010109.40257.15716722972134715054.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 28 Jun 2017 13:00:53 -0700
+Message-ID: <149868005301.40163.12845524970445215160.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -101,12 +101,12 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 15173d37f399..e1e3f7b4bdb0 100644
+index 14b9dd71d9e8..9a324fc8bed8 100644
 --- a/arch/x86/mm/init_64.c
 +++ b/arch/x86/mm/init_64.c
 @@ -94,10 +94,10 @@ __setup("noexec32=", nonx32_setup);
   */
- void sync_global_pgds(unsigned long start, unsigned long end)
+ void sync_global_pgds(unsigned long start, unsigned long end, int removed)
  {
 -	unsigned long address;
 +	unsigned long addr;
@@ -117,8 +117,8 @@ index 15173d37f399..e1e3f7b4bdb0 100644
 +		const pgd_t *pgd_ref = pgd_offset_k(addr);
  		struct page *page;
  
- 		if (pgd_none(*pgd_ref))
-@@ -108,7 +108,7 @@ void sync_global_pgds(unsigned long start, unsigned long end)
+ 		/*
+@@ -113,7 +113,7 @@ void sync_global_pgds(unsigned long start, unsigned long end, int removed)
  			pgd_t *pgd;
  			spinlock_t *pgt_lock;
  
