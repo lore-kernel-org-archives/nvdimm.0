@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw0-x22e.google.com (mail-yw0-x22e.google.com
+ [IPv6:2607:f8b0:4002:c05::22e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8FCF721CB74AA
- for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:18:44 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v4] libnvdimm, btt: BTT updates for UEFI 2.7 format
-Date: Wed, 28 Jun 2017 20:20:15 +0000
-Message-ID: <1498681119.6401.41.camel@intel.com>
-References: <20170628200742.26795-1-vishal.l.verma@intel.com>
- <CAPcyv4hxNLNQ6d0P2tEOwU+LQ4gbc_WEYEOuZZ+zZYQJE3kw7Q@mail.gmail.com>
-In-Reply-To: <CAPcyv4hxNLNQ6d0P2tEOwU+LQ4gbc_WEYEOuZZ+zZYQJE3kw7Q@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <77428FFAC39E55499309E7716FC07AC8@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4F2EC21A00ACB
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:13:22 -0700 (PDT)
+Received: by mail-yw0-x22e.google.com with SMTP id 63so29196506ywr.0
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:14:54 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170628200742.26795-1-vishal.l.verma@intel.com>
+References: <20170628200742.26795-1-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 28 Jun 2017 13:14:52 -0700
+Message-ID: <CAPcyv4hxNLNQ6d0P2tEOwU+LQ4gbc_WEYEOuZZ+zZYQJE3kw7Q@mail.gmail.com>
+Subject: Re: [PATCH v4] libnvdimm, btt: BTT updates for UEFI 2.7 format
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,85 +21,85 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE3LTA2LTI4IGF0IDEzOjE0IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFdlZCwgSnVuIDI4LCAyMDE3IGF0IDE6MDcgUE0sIFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
-dmVybWFAaW50ZWwuY28NCj4gbT4gd3JvdGU6DQo+ID4gVGhlIFVFRkkgMi43IHNwZWNpZmljYXRp
-b24gZGVmaW5lcyBhbiB1cGRhdGVkIEJUVCBtZXRhZGF0YSBmb3JtYXQsDQo+ID4gYnVtcGluZyB0
-aGUgcmV2aXNpb24gdG8gMi4wLiBBZGQgc3VwcG9ydCBmb3IgdGhlIG5ldyBmb3JtYXQsIHdoaWxl
-DQo+ID4gcmV0YWluaW5nIGNvbXBhdGliaWxpdHkgZm9yIHRoZSBvbGQgMS4xIGZvcm1hdC4NCj4g
-PiANCj4gPiBDYzogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0KPiA+IENjOiBMaW5k
-YSBLbmlwcGVycyA8bGluZGEua25pcHBlcnNAaHBlLmNvbT4NCj4gPiBDYzogRGFuIFdpbGxpYW1z
-IDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogVmlzaGFsIFZl
-cm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IA0KPiBbLi5dDQo+ID4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLmMNCj4gPiBiL2RyaXZlcnMvbnZkaW1t
-L25hbWVzcGFjZV9kZXZzLmMNCj4gPiBpbmRleCBmMDVkOWIwLi4wOWU3ZTc2IDEwMDY0NA0KPiA+
-IC0tLSBhL2RyaXZlcnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLmMNCj4gPiArKysgYi9kcml2ZXJz
-L252ZGltbS9uYW1lc3BhY2VfZGV2cy5jDQo+ID4gQEAgLTE0MTEsNiArMTQxMSw1OCBAQCBzdGF0
-aWMgc3NpemVfdCBkcGFfZXh0ZW50c19zaG93KHN0cnVjdCBkZXZpY2UNCj4gPiAqZGV2LA0KPiA+
-IMKgfQ0KPiA+IMKgc3RhdGljIERFVklDRV9BVFRSX1JPKGRwYV9leHRlbnRzKTsNCj4gPiANCj4g
-PiArc3RhdGljIGludCBidHRfY2xhaW1fY2xhc3Moc3RydWN0IGRldmljZSAqZGV2KQ0KPiA+ICt7
-DQo+ID4gK8KgwqDCoMKgwqDCoMKgc3RydWN0IG5kX3JlZ2lvbiAqbmRfcmVnaW9uID0gdG9fbmRf
-cmVnaW9uKGRldi0+cGFyZW50KTsNCj4gPiArwqDCoMKgwqDCoMKgwqBpbnQgaSwgbG9vcF9iaXRt
-YXNrID0gMDsNCj4gPiArDQo+ID4gK8KgwqDCoMKgwqDCoMKgZm9yIChpID0gMDsgaSA8IG5kX3Jl
-Z2lvbi0+bmRyX21hcHBpbmdzOyBpKyspIHsNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgc3RydWN0IG5kX21hcHBpbmcgKm5kX21hcHBpbmcgPSAmbmRfcmVnaW9uLQ0KPiA+ID5t
-YXBwaW5nW2ldOw0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3QgbnZk
-aW1tX2RydmRhdGEgKm5kZCA9IHRvX25kZChuZF9tYXBwaW5nKTsNCj4gPiArwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IG5kX25hbWVzcGFjZV9pbmRleCAqbnNpbmRleDsNCj4g
-PiArDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5zaW5kZXggPSB0b19uYW1l
-c3BhY2VfaW5kZXgobmRkLCBuZGQtPm5zX2N1cnJlbnQpOw0KPiA+ICvCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqBpZiAobnNpbmRleCA9PSBOVUxMKQ0KPiA+ICvCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbG9vcF9iaXRtYXNrIHw9IDE7DQo+ID4gK8Kg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGVsc2Ugew0KPiA+ICvCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgLyogY2hlY2sgd2hldGhlciBleGlzdGluZyBs
-YWJlbHMgYXJlIHYxLjEgb3INCj4gPiB2MS4yICovDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpZiAoX19sZTE2X3RvX2NwdShuc2luZGV4LT5tYWpv
-cikgPT0gMQ0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAmJiBfX2xlMTZfdG9fY3B1KG5zaW5k
-ZXgtDQo+ID4gPm1pbm9yKSA9PSAxKQ0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGxvb3BfYml0bWFzayB8PSAyOw0KPiA+
-ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZWxzZQ0KPiA+
-ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoGxvb3BfYml0bWFzayB8PSA0Ow0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqB9DQo+ID4gK8KgwqDCoMKgwqDCoMKgfQ0KPiA+ICvCoMKgwqDCoMKgwqDCoC8qDQo+ID4g
-K8KgwqDCoMKgwqDCoMKgwqAqIElmIG5zaW5kZXggaXMgbnVsbCBsb29wX2JpdG1hc2sncyBiaXQg
-MCB3aWxsIGJlIHNldCwgYW5kDQo+ID4gaWYgYW4gaW5kZXgNCj4gPiArwqDCoMKgwqDCoMKgwqDC
-oCogYmxvY2sgaXMgZm91bmQsIGEgdjEuMSBsYWJlbCBmb3IgYW55IG1hcHBpbmcgd2lsbCBzZXQg
-Yml0DQo+ID4gMSwgYW5kIGENCj4gPiArwqDCoMKgwqDCoMKgwqDCoCogdjEuMiBsYWJlbCB3aWxs
-IHNldCBiaXQgMi4NCj4gPiArwqDCoMKgwqDCoMKgwqDCoCoNCj4gPiArwqDCoMKgwqDCoMKgwqDC
-oCogQXQgdGhlIGVuZCBvZiB0aGUgbG9vcCwgb25seSBvbmUgb2YgdGhlIHRocmVlIGJpdHMgbXVz
-dA0KPiA+IGJlIHNldC4NCj4gPiArwqDCoMKgwqDCoMKgwqDCoCogSWYgbXVsdGlwbGUgYml0cyB3
-ZXJlIHNldCwgaXQgbWVhbnMgdGhlIGRpZmZlcmVudA0KPiA+IG1hcHBpbmdzIGRpc2FncmVlDQo+
-ID4gK8KgwqDCoMKgwqDCoMKgwqAqIGFib3V0IHRoZWlyIGxhYmVscywgYW5kIHRoaXMgbXVzdCBi
-ZSBjbGVhbmVkIHVwIGZpcnN0Lg0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgKg0KPiA+ICvCoMKgwqDC
-oMKgwqDCoMKgKiBJZiBhbGwgdGhlIGxhYmVsIGluZGV4IGJsb2NrcyBhcmUgZm91bmQgdG8gYWdy
-ZWUsIG5zaW5kZXgNCj4gPiBvZiBOVUxMDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqAqIGltcGxpZXMg
-bGFiZWxzIGhhdmVuJ3QgYmVlbiBpbml0aWFsaXplZCB5ZXQsIGFuZCB3aGVuDQo+ID4gdGhleSB3
-aWxsLA0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgKiB0aGV5IHdpbGwgYmUgb2YgdGhlIDEuMiBmb3Jt
-YXQsIHNvIHdlIGNhbiBhc3N1bWUgQlRUMi4wDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqAqDQo+ID4g
-K8KgwqDCoMKgwqDCoMKgwqAqIElmIDEuMSBsYWJlbHMgYXJlIGZvdW5kLCB3ZSBlbmZvcmNlIEJU
-VDEuMSwgYW5kIGlmIDEuMg0KPiA+IGxhYmVscyBhcmUNCj4gPiArwqDCoMKgwqDCoMKgwqDCoCog
-Zm91bmQsIHdlIGVuZm9yY2UgQlRUMi4wDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqAqDQo+ID4gK8Kg
-wqDCoMKgwqDCoMKgwqAqIElmIHRoZSBsb29wIHdhcyBuZXZlciBlbnRlcmVkLCBkZWZhdWx0IHRv
-IEJUVDEuMSAobGVnYWN5DQo+ID4gbmFtZXNwYWNlcykNCj4gPiArwqDCoMKgwqDCoMKgwqDCoCov
-DQo+ID4gK8KgwqDCoMKgwqDCoMKgc3dpdGNoIChsb29wX2JpdG1hc2spIHsNCj4gPiArwqDCoMKg
-wqDCoMKgwqBjYXNlIDA6DQo+ID4gK8KgwqDCoMKgwqDCoMKgY2FzZSAyOg0KPiA+ICvCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gTlZESU1NX0NDTEFTU19CVFQ7DQo+ID4gK8Kg
-wqDCoMKgwqDCoMKgY2FzZSAxOg0KPiA+ICvCoMKgwqDCoMKgwqDCoGNhc2UgNDoNCj4gPiArwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIE5WRElNTV9DQ0xBU1NfQlRUMjsNCj4g
-PiArwqDCoMKgwqDCoMKgwqBkZWZhdWx0Og0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqByZXR1cm4gLUVOWElPOw0KPiA+ICvCoMKgwqDCoMKgwqDCoH0NCj4gDQo+IENsZXZlciwg
-bG9va3MgZ29vZCB0byBtZS4gSSdsbCBnZXQgdGhpcyBxdWV1ZWQuDQoNCkVyciBIb2xkIG9uLCBJ
-IGp1c3Qgbm90aWNlZCBJIGZvcmdvdCB0byBwcm9wZXJseSBwcm9wYWdhdGUgdGhlIEVOWElPIGlu
-DQpfX2hvbGRlcl9jbGFzc19zdG9yZS4NCg0KdjUgaW5jb21pbmcuCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
-TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Wed, Jun 28, 2017 at 1:07 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> The UEFI 2.7 specification defines an updated BTT metadata format,
+> bumping the revision to 2.0. Add support for the new format, while
+> retaining compatibility for the old 1.1 format.
+>
+> Cc: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Linda Knippers <linda.knippers@hpe.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+[..]
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index f05d9b0..09e7e76 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1411,6 +1411,58 @@ static ssize_t dpa_extents_show(struct device *dev,
+>  }
+>  static DEVICE_ATTR_RO(dpa_extents);
+>
+> +static int btt_claim_class(struct device *dev)
+> +{
+> +       struct nd_region *nd_region = to_nd_region(dev->parent);
+> +       int i, loop_bitmask = 0;
+> +
+> +       for (i = 0; i < nd_region->ndr_mappings; i++) {
+> +               struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+> +               struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+> +               struct nd_namespace_index *nsindex;
+> +
+> +               nsindex = to_namespace_index(ndd, ndd->ns_current);
+> +               if (nsindex == NULL)
+> +                       loop_bitmask |= 1;
+> +               else {
+> +                       /* check whether existing labels are v1.1 or v1.2 */
+> +                       if (__le16_to_cpu(nsindex->major) == 1
+> +                                       && __le16_to_cpu(nsindex->minor) == 1)
+> +                               loop_bitmask |= 2;
+> +                       else
+> +                               loop_bitmask |= 4;
+> +               }
+> +       }
+> +       /*
+> +        * If nsindex is null loop_bitmask's bit 0 will be set, and if an index
+> +        * block is found, a v1.1 label for any mapping will set bit 1, and a
+> +        * v1.2 label will set bit 2.
+> +        *
+> +        * At the end of the loop, only one of the three bits must be set.
+> +        * If multiple bits were set, it means the different mappings disagree
+> +        * about their labels, and this must be cleaned up first.
+> +        *
+> +        * If all the label index blocks are found to agree, nsindex of NULL
+> +        * implies labels haven't been initialized yet, and when they will,
+> +        * they will be of the 1.2 format, so we can assume BTT2.0
+> +        *
+> +        * If 1.1 labels are found, we enforce BTT1.1, and if 1.2 labels are
+> +        * found, we enforce BTT2.0
+> +        *
+> +        * If the loop was never entered, default to BTT1.1 (legacy namespaces)
+> +        */
+> +       switch (loop_bitmask) {
+> +       case 0:
+> +       case 2:
+> +               return NVDIMM_CCLASS_BTT;
+> +       case 1:
+> +       case 4:
+> +               return NVDIMM_CCLASS_BTT2;
+> +       default:
+> +               return -ENXIO;
+> +       }
+
+Clever, looks good to me. I'll get this queued.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
