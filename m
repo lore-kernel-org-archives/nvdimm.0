@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0B0A221C8EFCE
- for <linux-nvdimm@lists.01.org>; Fri, 23 Jun 2017 19:18:08 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl, test: unit test updates for the BTT 2.0 format
-Date: Fri, 23 Jun 2017 20:17:58 -0600
-Message-Id: <20170624021758.26815-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6E98521CB74A9
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Jun 2017 13:06:36 -0700 (PDT)
+Subject: [4.11-stable PATCH] x86/mm: Fix boot crash caused by incorrect loop
+ count calculation in sync_global_pgds()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 28 Jun 2017 13:01:41 -0700
+Message-ID: <149868010109.40257.15716722972134715054.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,75 +17,116 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: stable@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, x86@kernel.org, Dave Young <dyoung@redhat.com>, Denys Vlasenko <dvlasenk@redhat.com>, Kees Cook <keescook@chromium.org>, Brian Gerst <brgerst@gmail.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Jinbum Park <jinb.park7@gmail.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Garnier <thgarnie@google.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the BTT 2.0 update, a couple of minor updates to the unit tests are
-needed:
-test/libndctl: Update expected BTT sizes
-test/libndctl: in btt_autodetect, when wiping an old BTT, wipe the first
-two 4K pages instead of one.
+From: Baoquan He <bhe@redhat.com>
 
+commit fc5f9d5f151c9fff21d3d1d2907b888a5aec3ff7 upstream.
+
+Jeff Moyer reported that on his system with two memory regions 0~64G and
+1T~1T+192G, and kernel option "memmap=192G!1024G" added, enabling KASLR
+will make the system hang intermittently during boot. While adding 'nokaslr'
+won't.
+
+The back trace is:
+
+ Oops: 0000 [#1] SMP
+
+ RIP: memcpy_erms()
+ [ .... ]
+ Call Trace:
+  pmem_rw_page()
+  bdev_read_page()
+  do_mpage_readpage()
+  mpage_readpages()
+  blkdev_readpages()
+  __do_page_cache_readahead()
+  force_page_cache_readahead()
+  page_cache_sync_readahead()
+  generic_file_read_iter()
+  blkdev_read_iter()
+  __vfs_read()
+  vfs_read()
+  SyS_read()
+  entry_SYSCALL_64_fastpath()
+
+This crash happens because the for loop count calculation in sync_global_pgds()
+is not correct. When a mapping area crosses PGD entries, we should
+calculate the starting address of region which next PGD covers and assign
+it to next for loop count, but not add PGDIR_SIZE directly. The old
+code works right only if the mapping area is an exact multiple of PGDIR_SIZE,
+otherwize the end region could be skipped so that it can't be synchronized
+to all other processes from kernel PGD init_mm.pgd.
+
+In Jeff's system, emulated pmem area [1024G, 1216G) is smaller than
+PGDIR_SIZE. While 'nokaslr' works because PAGE_OFFSET is 1T aligned, it
+makes this area be mapped inside one PGD entry. With KASLR enabled,
+this area could cross two PGD entries, then the next PGD entry won't
+be synced to all other processes. That is why we saw empty PGD.
+
+Fix it.
+
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brian Gerst <brgerst@gmail.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jinbum Park <jinb.park7@gmail.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Link: http://lkml.kernel.org/r/1493864747-8506-1-git-send-email-bhe@redhat.com
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/libndctl.c | 19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ arch/x86/mm/init_64.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 24aff36..89c4c02 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -994,16 +994,16 @@ static int check_btt_size(struct ndctl_btt *btt)
- 	int size_select, sect_select;
- 	unsigned long long expect_table[][2] = {
- 		[0] = {
--			[0] = 0x11b4400,
--			[1] = 0x8da2000,
-+			[0] = 0x11b5400,
-+			[1] = 0x8daa000,
- 		},
- 		[1] = {
--			[0] = 0x13b0400,
--			[1] = 0x9d82000,
-+			[0] = 0x13b1400,
-+			[1] = 0x9d8a000,
- 		},
- 		[2] = {
--			[0] = 0x1aa2600,
--			[1] = 0xd513000,
-+			[0] = 0x1aa3600,
-+			[1] = 0xd51b000,
- 		},
- 	};
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 15173d37f399..e1e3f7b4bdb0 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -94,10 +94,10 @@ __setup("noexec32=", nonx32_setup);
+  */
+ void sync_global_pgds(unsigned long start, unsigned long end)
+ {
+-	unsigned long address;
++	unsigned long addr;
  
-@@ -1517,12 +1517,19 @@ static int check_btt_autodetect(struct ndctl_bus *bus,
- 	}
+-	for (address = start; address <= end; address += PGDIR_SIZE) {
+-		const pgd_t *pgd_ref = pgd_offset_k(address);
++	for (addr = start; addr <= end; addr = ALIGN(addr + 1, PGDIR_SIZE)) {
++		const pgd_t *pgd_ref = pgd_offset_k(addr);
+ 		struct page *page;
  
- 	memset(buf, 0, 4096);
-+	/* Delete both the first and second 4K pages */
- 	rc = pwrite(fd, buf, 4096, 4096);
- 	if (rc < 4096) {
- 		rc = -ENXIO;
- 		fprintf(stderr, "%s: failed to overwrite btt on %s\n",
- 				devname, bdev);
- 	}
-+	rc = pwrite(fd, buf, 4096, 0);
-+	if (rc < 4096) {
-+		rc = -ENXIO;
-+		fprintf(stderr, "%s: failed to overwrite btt on %s\n",
-+				devname, bdev);
-+	}
-  out:
- 	ndctl_region_set_ro(region, namespace->ro);
- 	ndctl_namespace_set_raw_mode(ndns, 0);
--- 
-2.9.3
+ 		if (pgd_none(*pgd_ref))
+@@ -108,7 +108,7 @@ void sync_global_pgds(unsigned long start, unsigned long end)
+ 			pgd_t *pgd;
+ 			spinlock_t *pgt_lock;
+ 
+-			pgd = (pgd_t *)page_address(page) + pgd_index(address);
++			pgd = (pgd_t *)page_address(page) + pgd_index(addr);
+ 			/* the pgt_lock only for Xen */
+ 			pgt_lock = &pgd_page_get_mm(page)->page_table_lock;
+ 			spin_lock(pgt_lock);
 
 _______________________________________________
 Linux-nvdimm mailing list
