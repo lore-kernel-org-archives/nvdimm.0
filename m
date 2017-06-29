@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ABFD120082E7E
- for <linux-nvdimm@lists.01.org>; Thu,  8 Jun 2017 22:14:54 -0700 (PDT)
-Subject: [PATCH 9/9] libnvdimm, label: switch to using v1.2 labels by default
+ by ml01.01.org (Postfix) with ESMTPS id B9BED21B02B9D
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:58:39 -0700 (PDT)
+Subject: [PATCH v4 09/16] x86, libnvdimm,
+ pmem: move arch_invalidate_pmem() to libnvdimm
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 08 Jun 2017 22:09:38 -0700
-Message-ID: <149698497813.11651.7323633285531215656.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 29 Jun 2017 10:53:45 -0700
+Message-ID: <149875882519.10031.1368449021493047801.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,56 +24,151 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, viro@zeniv.linux.org.uk, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The rules for which version of the label specification are in effect at
-any given point in time are as follows:
+Kill this globally defined wrapper and move to libnvdimm so that we can
+ultimately remove include/linux/pmem.h and asm/pmem.h.
 
-1/ If a DIMM has an existing / valid index block then the version
-   specified is used regardless if it is a previous version.
-
-2/ By default when the kernel is initializing new index blocks the
-   latest specification version (v1.2 at time of writing) is used.
-
-3/ An environment that wants to force create v1.1 label-sets must
-   arrange for userspace to disable all active regions / namespaces /
-   dimms and write a valid set of v1.1 index blocks to the dimms.
-
+Cc: <x86@kernel.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/label.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/pmem.h |    5 -----
+ arch/x86/mm/pageattr.c      |    6 ++++++
+ drivers/nvdimm/claim.c      |    3 ++-
+ drivers/nvdimm/pmem.c       |    2 +-
+ drivers/nvdimm/pmem.h       |    4 ++++
+ include/linux/pmem.h        |   19 -------------------
+ 6 files changed, 13 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 837bf21c8555..235f2089fab2 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -222,9 +222,10 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
- 	 * need to know the size of the labels, and we can't trust the
- 	 * size of the labels until we validate the index blocks.
- 	 * Resolve this dependency loop by probing for known label
--	 * sizes.
-+	 * sizes, but default to v1.2 256-byte namespace labels if
-+	 * discovery fails.
- 	 */
--	int label_size[] = { 256, 128 };
-+	int label_size[] = { 128, 256 };
- 	int i, rc;
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index 4759a179aa52..b61a25a895a7 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -43,10 +43,5 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ 				__func__, dst, src, rem))
+ 		BUG();
+ }
+-
+-static inline void arch_invalidate_pmem(void *addr, size_t size)
+-{
+-	clflush_cache_range(addr, size);
+-}
+ #endif /* CONFIG_ARCH_HAS_PMEM_API */
+ #endif /* __ASM_X86_PMEM_H__ */
+diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
+index c8520b2c62d2..757b0bcdf712 100644
+--- a/arch/x86/mm/pageattr.c
++++ b/arch/x86/mm/pageattr.c
+@@ -150,6 +150,12 @@ void clflush_cache_range(void *vaddr, unsigned int size)
+ }
+ EXPORT_SYMBOL_GPL(clflush_cache_range);
  
- 	for (i = 0; i < ARRAY_SIZE(label_size); i++) {
-@@ -532,7 +533,10 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
- 	nsindex->labeloff = __cpu_to_le64(offset);
- 	nsindex->nslot = __cpu_to_le32(nslot);
- 	nsindex->major = __cpu_to_le16(1);
--	nsindex->minor = __cpu_to_le16(1);
-+	if (sizeof_namespace_label(ndd) < 256)
-+		nsindex->minor = __cpu_to_le16(1);
-+	else
-+		nsindex->minor = __cpu_to_le16(2);
- 	nsindex->checksum = __cpu_to_le64(0);
- 	if (flags & ND_NSINDEX_INIT) {
- 		unsigned long *free = (unsigned long *) nsindex->free;
++void arch_invalidate_pmem(void *addr, size_t size)
++{
++	clflush_cache_range(addr, size);
++}
++EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
++
+ static void __cpa_flush_all(void *arg)
+ {
+ 	unsigned long cache = (unsigned long)arg;
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index b8b9c8ca7862..d2e16c0401df 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -14,6 +14,7 @@
+ #include <linux/sizes.h>
+ #include <linux/pmem.h>
+ #include "nd-core.h"
++#include "pmem.h"
+ #include "pfn.h"
+ #include "btt.h"
+ #include "nd.h"
+@@ -272,7 +273,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 				cleared /= 512;
+ 				badblocks_clear(&nsio->bb, sector, cleared);
+ 			}
+-			invalidate_pmem(nsio->addr + offset, size);
++			arch_invalidate_pmem(nsio->addr + offset, size);
+ 		} else
+ 			rc = -EIO;
+ 	}
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 3b87702d46bb..68737bc68a07 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -71,7 +71,7 @@ static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
+ 		badblocks_clear(&pmem->bb, sector, cleared);
+ 	}
+ 
+-	invalidate_pmem(pmem->virt_addr + offset, len);
++	arch_invalidate_pmem(pmem->virt_addr + offset, len);
+ 
+ 	return rc;
+ }
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index c4b3371c7f88..00005900c1b7 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -7,10 +7,14 @@
+ 
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ void arch_wb_cache_pmem(void *addr, size_t size);
++void arch_invalidate_pmem(void *addr, size_t size);
+ #else
+ static inline void arch_wb_cache_pmem(void *addr, size_t size)
+ {
+ }
++static inline void arch_invalidate_pmem(void *addr, size_t size)
++{
++}
+ #endif
+ 
+ /* this definition is in it's own header for tools/testing/nvdimm to consume */
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 33ae761f010a..559c00848583 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -30,11 +30,6 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
+ {
+ 	BUG();
+ }
+-
+-static inline void arch_invalidate_pmem(void *addr, size_t size)
+-{
+-	BUG();
+-}
+ #endif
+ 
+ static inline bool arch_has_pmem_api(void)
+@@ -61,18 +56,4 @@ static inline void memcpy_to_pmem(void *dst, const void *src, size_t n)
+ 	else
+ 		memcpy(dst, src, n);
+ }
+-
+-/**
+- * invalidate_pmem - flush a pmem range from the cache hierarchy
+- * @addr:	virtual start address
+- * @size:	bytes to invalidate (internally aligned to cache line size)
+- *
+- * For platforms that support clearing poison this flushes any poisoned
+- * ranges out of the cache
+- */
+-static inline void invalidate_pmem(void *addr, size_t size)
+-{
+-	if (arch_has_pmem_api())
+-		arch_invalidate_pmem(addr, size);
+-}
+ #endif /* __PMEM_H__ */
 
 _______________________________________________
 Linux-nvdimm mailing list
