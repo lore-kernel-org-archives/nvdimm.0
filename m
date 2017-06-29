@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg0-x242.google.com (mail-pg0-x242.google.com
- [IPv6:2607:f8b0:400e:c05::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E7A9821BBC401
- for <linux-nvdimm@lists.01.org>; Tue, 27 Jun 2017 01:11:43 -0700 (PDT)
-Received: by mail-pg0-x242.google.com with SMTP id f127so3398263pgc.2
- for <linux-nvdimm@lists.01.org>; Tue, 27 Jun 2017 01:13:14 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH] ndctl: Add alignment to the namespace JSON output
-Date: Tue, 27 Jun 2017 18:13:04 +1000
-Message-Id: <20170627081304.6534-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 440B221A00ADA
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 09:55:13 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v3 1/7] libnvdimm: passthru functions clear to send
+Date: Thu, 29 Jun 2017 10:56:26 -0600
+Message-Id: <4454f90ea68f67a04546d92b22901c20b540e99e.1498754314.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1498754314.git.jerry.hoemann@hpe.com>
+References: <cover.1498754314.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1498754314.git.jerry.hoemann@hpe.com>
+References: <cover.1498754314.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,61 +25,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Automated tooling probably wants to know this and it's helpful output
-for command line users for ndctl.
+Have dsm functions called via the pass thru mechanism also
+be checked against clear to send.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- util/json.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/nvdimm/bus.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/util/json.c b/util/json.c
-index b718d747c285..9e4aa2655514 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -443,6 +443,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 	struct ndctl_btt *btt;
- 	struct ndctl_pfn *pfn;
- 	struct ndctl_dax *dax;
-+	unsigned long align = 0;
- 	char buf[40];
- 	uuid_t uuid;
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index e9361bf..e16427d 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -907,6 +907,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	static char in_env[ND_CMD_MAX_ENVELOPE];
+ 	const struct nd_cmd_desc *desc = NULL;
+ 	unsigned int cmd = _IOC_NR(ioctl_cmd);
++	unsigned int func = cmd;
+ 	void __user *p = (void __user *) arg;
+ 	struct device *dev = &nvdimm_bus->dev;
+ 	struct nd_cmd_pkg pkg;
+@@ -972,6 +973,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	}
  
-@@ -509,6 +510,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	if (cmd == ND_CMD_CALL) {
++		func = pkg.nd_command;
+ 		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
+ 				__func__, dimm_name, pkg.nd_command,
+ 				in_len, out_len, buf_len);
+@@ -1020,7 +1022,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	}
  
- 		bdev = ndctl_btt_get_block_device(btt);
- 	} else if (pfn) {
-+		align = ndctl_pfn_get_align(pfn);
- 		ndctl_pfn_get_uuid(pfn, uuid);
- 		uuid_unparse(uuid, buf);
- 		jobj = json_object_new_string(buf);
-@@ -519,6 +521,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 	} else if (dax) {
- 		struct daxctl_region *dax_region;
+ 	nvdimm_bus_lock(&nvdimm_bus->dev);
+-	rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, cmd, buf);
++	rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, func, buf);
+ 	if (rc)
+ 		goto out_unlock;
  
-+		align = ndctl_dax_get_align(dax);
- 		ndctl_dax_get_uuid(dax, uuid);
- 		uuid_unparse(uuid, buf);
- 		jobj = json_object_new_string(buf);
-@@ -553,6 +556,13 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 	} else
- 		bdev = ndctl_namespace_get_block_device(ndns);
- 
-+	if (align) {
-+		jobj = json_object_new_int64(align);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "align", jobj);
-+	}
-+
- 	if (bdev && bdev[0]) {
- 		jobj = json_object_new_string(bdev);
- 		if (!jobj)
 -- 
-2.9.4
+1.8.5.6
 
 _______________________________________________
 Linux-nvdimm mailing list
