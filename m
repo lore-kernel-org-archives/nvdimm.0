@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C055221A18AAA
- for <linux-nvdimm@lists.01.org>; Wed, 14 Jun 2017 10:21:03 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 0/3] DAX common 4k zero page
-Date: Wed, 14 Jun 2017 11:22:08 -0600
-Message-Id: <20170614172211.19820-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0E63D21B02BAD
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:59:18 -0700 (PDT)
+Subject: [PATCH v4 16/16] libnvdimm,
+ pmem: disable dax flushing when pmem is fronting a volatile region
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 29 Jun 2017 10:54:23 -0700
+Message-ID: <149875886311.10031.10601519086242129020.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,58 +19,107 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Jonathan Corbet <corbet@lwn.net>, Steven Rostedt <rostedt@goodmis.org>, linux-doc@vger.kernel.org, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-When servicing mmap() reads from file holes the current DAX code allocates
-a page cache page of all zeroes and places the struct page pointer in the
-mapping->page_tree radix tree.  This has two major drawbacks:
+The pmem driver attaches to both persistent and volatile memory ranges
+advertised by the ACPI NFIT. When the region is volatile it is redundant
+to spend cycles flushing caches at fsync(). Check if the hosting region
+is volatile and do not set dax_write_cache() if it is.
 
-1) It consumes memory unnecessarily.  For every 4k page that is read via a
-DAX mmap() over a hole, we allocate a new page cache page.  This means that
-if you read 1GiB worth of pages, you end up using 1GiB of zeroed memory.
-
-2) The fact that we had to check for both DAX exceptional entries and for
-page cache pages in the radix tree made the DAX code more complex.
-
-This series solves these issues by following the lead of the DAX PMD code
-and using a common 4k zero page instead.  This reduces memory usage for
-some workloads, and it also simplifies the code in fs/dax.c, removing about
-100 lines of code.
-
-My hope is to have this reviewed and merged in time for v4.13 via the MM
-tree, so if you could spare some review cycles I'd be grateful.
-
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes since v1:
- - Leave vm_insert_mixed() instact with previous functionality and add
-   vm_insert_mixed_mkwrite() as a peer so it is more readable/greppable.
-   (Dan)
+ drivers/nvdimm/pmem.c        |   13 ++++++++-----
+ drivers/nvdimm/region_devs.c |    6 ++++++
+ include/linux/libnvdimm.h    |    1 +
+ 3 files changed, 15 insertions(+), 5 deletions(-)
 
-Ross Zwisler (3):
-  mm: add vm_insert_mixed_mkwrite()
-  dax: relocate dax_load_hole()
-  dax: use common 4k zero page for dax mmap reads
-
- Documentation/filesystems/dax.txt |   5 +-
- fs/dax.c                          | 265 ++++++++++++--------------------------
- fs/ext2/file.c                    |  25 +---
- fs/ext4/file.c                    |  32 +----
- fs/xfs/xfs_file.c                 |   2 +-
- include/linux/dax.h               |  13 +-
- include/linux/mm.h                |   2 +
- include/trace/events/fs_dax.h     |   2 -
- mm/memory.c                       |  49 ++++++-
- 9 files changed, 141 insertions(+), 254 deletions(-)
-
--- 
-2.9.4
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 7339d184070e..e7a40f77f729 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -284,10 +284,10 @@ static int pmem_attach_disk(struct device *dev,
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 	struct vmem_altmap __altmap, *altmap = NULL;
++	int nid = dev_to_node(dev), fua, wbc;
+ 	struct resource *res = &nsio->res;
+ 	struct nd_pfn *nd_pfn = NULL;
+ 	struct dax_device *dax_dev;
+-	int nid = dev_to_node(dev);
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct pmem_device *pmem;
+ 	struct resource pfn_res;
+@@ -314,9 +314,12 @@ static int pmem_attach_disk(struct device *dev,
+ 	dev_set_drvdata(dev, pmem);
+ 	pmem->phys_addr = res->start;
+ 	pmem->size = resource_size(res);
+-	if (!IS_ENABLED(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE)
+-			|| nvdimm_has_flush(nd_region) < 0)
++	fua = nvdimm_has_flush(nd_region);
++	if (!IS_ENABLED(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE) || fua < 0) {
+ 		dev_warn(dev, "unable to guarantee persistence of writes\n");
++		fua = 0;
++	}
++	wbc = nvdimm_has_cache(nd_region);
+ 
+ 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+ 				dev_name(&ndns->dev))) {
+@@ -360,7 +363,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		return PTR_ERR(addr);
+ 	pmem->virt_addr = addr;
+ 
+-	blk_queue_write_cache(q, true, true);
++	blk_queue_write_cache(q, wbc, fua);
+ 	blk_queue_make_request(q, pmem_make_request);
+ 	blk_queue_physical_block_size(q, PAGE_SIZE);
+ 	blk_queue_max_hw_sectors(q, UINT_MAX);
+@@ -390,7 +393,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		put_disk(disk);
+ 		return -ENOMEM;
+ 	}
+-	dax_write_cache(dax_dev, true);
++	dax_write_cache(dax_dev, wbc);
+ 	pmem->dax_dev = dax_dev;
+ 
+ 	gendev = disk_to_dev(disk);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 53a64a16aba4..0c3b089b280a 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1060,6 +1060,12 @@ int nvdimm_has_flush(struct nd_region *nd_region)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_has_flush);
+ 
++int nvdimm_has_cache(struct nd_region *nd_region)
++{
++	return is_nd_pmem(&nd_region->dev);
++}
++EXPORT_SYMBOL_GPL(nvdimm_has_cache);
++
+ void __exit nd_region_devs_exit(void)
+ {
+ 	ida_destroy(&region_ida);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index b2f659bd661d..a8ee1d0afd70 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -165,4 +165,5 @@ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
+ u64 nd_fletcher64(void *addr, size_t len, bool le);
+ void nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
++int nvdimm_has_cache(struct nd_region *nd_region);
+ #endif /* __LIBNVDIMM_H__ */
 
 _______________________________________________
 Linux-nvdimm mailing list
