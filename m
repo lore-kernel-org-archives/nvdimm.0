@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6E71421967BE8
- for <linux-nvdimm@lists.01.org>; Thu,  8 Jun 2017 11:36:17 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 1/2] acpi/nfit: Add support of NVDIMM memory error
- notification in ACPI 6.2
-Date: Thu,  8 Jun 2017 12:36:57 -0600
-Message-Id: <20170608183658.24731-2-toshi.kani@hpe.com>
-In-Reply-To: <20170608183658.24731-1-toshi.kani@hpe.com>
-References: <20170608183658.24731-1-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id D87A721B02B9D
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:58:12 -0700 (PDT)
+Subject: [PATCH v4 04/16] dax,
+ pmem: introduce an optional 'flush' dax_operation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 29 Jun 2017 10:53:18 -0700
+Message-ID: <149875879887.10031.9920495428788852398.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,104 +19,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.2 defines a new ACPI notification value to NVDIMM Root Device
-in Table 5-169.
+Filesystem-DAX flushes caches whenever it writes to the address returned
+through dax_direct_access() and when writing back dirty radix entries.
+That flushing is only required in the pmem case, so add a dax operation
+to allow pmem to take this extra action, but skip it for other dax
+capable devices that do not provide a flush routine.
 
- 0x81 Unconsumed Uncorrectable Memory Error Detected
-      Used to pro-actively notify OSPM of uncorrectable memory errors
-      detected (for example a memory scrubbing engine that continuously
-      scans the NVDIMMs memory). This is an optional notification. Only
-      locations that were mapped in to SPA by the platform will generate
-      a notification.
+An example for this differentiation might be a volatile ram disk where
+there is no expectation of persistence. In fact the pmem driver itself might
+front such an address range specified by the NFIT. So, this "no flush"
+property might be something passed down by the bus / libnvdimm.
 
-Add support of this notification value by initiating an ARS scan. This
-will find new error locations and add their badblocks information.
-
-Link: http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |   28 ++++++++++++++++++++++------
- drivers/acpi/nfit/nfit.h |    1 +
- 2 files changed, 23 insertions(+), 6 deletions(-)
+ drivers/nvdimm/pmem.c |    7 +++++++
+ include/linux/dax.h   |    2 ++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 656acb5..cc22778 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2967,7 +2967,7 @@ static int acpi_nfit_remove(struct acpi_device *adev)
- 	return 0;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 2f3aefe565c6..823b07774244 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -242,9 +242,16 @@ static size_t pmem_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
+ 	return copy_from_iter_flushcache(addr, bytes, i);
  }
  
--void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
-+static void acpi_nfit_update_notify(struct device *dev, acpi_handle handle)
- {
- 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(dev);
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
-@@ -2975,11 +2975,6 @@ void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
- 	acpi_status status;
- 	int ret;
- 
--	dev_dbg(dev, "%s: event: %d\n", __func__, event);
--
--	if (event != NFIT_NOTIFY_UPDATE)
--		return;
--
- 	if (!dev->driver) {
- 		/* dev->driver may be null if we're being removed */
- 		dev_dbg(dev, "%s: no driver found for dev\n", __func__);
-@@ -3016,6 +3011,27 @@ void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
- 		dev_err(dev, "Invalid _FIT\n");
- 	kfree(buf.pointer);
- }
-+
-+static void acpi_nfit_uc_error_notify(struct device *dev, acpi_handle handle)
++static void pmem_dax_flush(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t size)
 +{
-+	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(dev);
-+
-+	acpi_nfit_ars_rescan(acpi_desc);
++	wb_cache_pmem(addr, size);
 +}
 +
-+void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
-+{
-+	dev_dbg(dev, "%s: event: 0x%x\n", __func__, event);
-+
-+	switch (event) {
-+	case NFIT_NOTIFY_UPDATE:
-+		return acpi_nfit_update_notify(dev, handle);
-+	case NFIT_NOTIFY_UC_MEMORY_ERROR:
-+		return acpi_nfit_uc_error_notify(dev, handle);
-+	default:
-+		return;
-+	}
-+}
- EXPORT_SYMBOL_GPL(__acpi_nfit_notify);
- 
- static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 58fb7d6..6cf9d21 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -80,6 +80,7 @@ enum {
- 
- enum nfit_root_notifiers {
- 	NFIT_NOTIFY_UPDATE = 0x80,
-+	NFIT_NOTIFY_UC_MEMORY_ERROR = 0x81,
+ static const struct dax_operations pmem_dax_ops = {
+ 	.direct_access = pmem_dax_direct_access,
+ 	.copy_from_iter = pmem_copy_from_iter,
++	.flush = pmem_dax_flush,
  };
  
- enum nfit_dimm_notifiers {
+ static void pmem_release_queue(void *q)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 28e398f8c59e..407dd3ff6e54 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -19,6 +19,8 @@ struct dax_operations {
+ 	/* copy_from_iter: dax-driver override for default copy_from_iter */
+ 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
+ 			struct iov_iter *);
++	/* flush: optional driver-specific cache management after writes */
++	void (*flush)(struct dax_device *, pgoff_t, void *, size_t);
+ };
+ 
+ #if IS_ENABLED(CONFIG_DAX)
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
