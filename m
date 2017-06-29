@@ -1,14 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x22f.google.com (mail-yw0-x22f.google.com
- [IPv6:2607:f8b0:4002:c05::22f])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2BEBC21A143C6
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 15:57:16 -0700 (PDT)
-Received: by mail-yw0-x22f.google.com with SMTP id 63so43034507ywr.0
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 15:58:49 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <d545a1ea-0199-7462-58c5-067cdc22cacc@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3A90021B02B8B
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 15:48:27 -0700 (PDT)
+Subject: Re: [PATCH v4 12/16] libnvdimm, nfit: enable support for volatile
+ ranges
 References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
  <149875884190.10031.6179599135820559644.stgit@dwillia2-desk3.amr.corp.intel.com>
  <595552F5.5040008@hpe.com>
@@ -19,12 +17,11 @@ References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.co
  <CAPcyv4huf0ENTz=LEVC6xC7xKRPc-GAZJsZMTSYpy+UoaduTMg@mail.gmail.com>
  <595580A6.9000004@hpe.com>
  <CAPcyv4gtTYEUELPtr9mi5QkGL+cm=jcFR-Oe07OCuNM9izh6jA@mail.gmail.com>
- <d545a1ea-0199-7462-58c5-067cdc22cacc@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 29 Jun 2017 15:58:48 -0700
-Message-ID: <CAPcyv4gnkpWXJ7jOJ7r0kWLKoLfuqJzdHTjANBUPztyTWUrOjA@mail.gmail.com>
-Subject: Re: [PATCH v4 12/16] libnvdimm,
- nfit: enable support for volatile ranges
+From: Linda Knippers <linda.knippers@hpe.com>
+Message-ID: <d545a1ea-0199-7462-58c5-067cdc22cacc@hpe.com>
+Date: Thu, 29 Jun 2017 18:49:52 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4gtTYEUELPtr9mi5QkGL+cm=jcFR-Oe07OCuNM9izh6jA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -32,27 +29,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linda Knippers <linda.knippers@hpe.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, X86 ML <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jun 29, 2017 at 3:49 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
->> The parent region of the namespace will have a 'volatile' type:
+
+
+On 6/29/2017 6:43 PM, Dan Williams wrote:
+> On Thu, Jun 29, 2017 at 3:35 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>> On 06/29/2017 06:28 PM, Dan Williams wrote:
+>>> On Thu, Jun 29, 2017 at 3:12 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>>> [..]
+>>>>> The /dev/pmem
+>>>>> device name just tells you that your block device is hosted by a
+>>>>> driver that knows how to handle persistent memory constraints, but any
+>>>>> other details about the nature of the address range need to come from
+>>>>> other sources of information, and potentially information sources that
+>>>>> the kernel does not know about.
+>>>>
+>>>>
+>>>> I'm asking about the other source of information in this specific case
+>>>> where we're exposing pmem devices that will never ever be persistent.
+>>>> Before we add these devices, I think we should be able to tell the user
+>>>> how they can know the properties of the underlying device.
+>>>
+>>> The only way I can think to indicate this is with a platform + device
+>>> whitelist in a tool like ndctl. Where the tool says "yes, these
+>>> xyz-vendor DIMMs on this abc-vendor platform with this 123-version
+>>> BIOS" is a known good persistent configuration.
 >>
->> # cat /sys/bus/nd/devices/region0/devtype
->> nd_volatile
+>> Doesn't the kernel know that something will never ever be persistent
+>> because the NFIT type says NFIT_SPA_VDISK, NFIT_SPA_VCD, or NFIT_SPA_VOLATILE?
+>> That's the case I'm asking about here.   In this patch, you're adding support
+>> for creating /dev/pmem devices for those address ranges.  My question is
+>> how the admin/user knows that those devices will never ever be persistent.
 >
+> The parent region of the namespace will have a 'volatile' type:
 >
-> If all I know is the /dev/pmem device name, how do I find that?
->
+> # cat /sys/bus/nd/devices/region0/devtype
+> nd_volatile
 
-    cat $(readlink -f /sys/block/pmem0/device)/../devtype
+If all I know is the /dev/pmem device name, how do I find that?
 
-...this is where 'ndctl list' will get the information.
+-- ljk
+>
+>> I don't think we need ndctl to know which vendors' hardware/firmware
+>> actually works as advertised.
+>
+> Certification stickers is what I was thinking, but I was missing your
+> direction question.
+>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
