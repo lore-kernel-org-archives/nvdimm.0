@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D87A721B02B9D
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:58:12 -0700 (PDT)
-Subject: [PATCH v4 04/16] dax,
- pmem: introduce an optional 'flush' dax_operation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 29 Jun 2017 10:53:18 -0700
-Message-ID: <149875879887.10031.9920495428788852398.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 2F70721A00AD5
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 09:55:13 -0700 (PDT)
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v3 0/7] Enable DSM pass thru for root functions
+Date: Thu, 29 Jun 2017 10:56:25 -0600
+Message-Id: <cover.1498754314.git.jerry.hoemann@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,69 +15,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: dan.j.williams@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Filesystem-DAX flushes caches whenever it writes to the address returned
-through dax_direct_access() and when writing back dirty radix entries.
-That flushing is only required in the pmem case, so add a dax operation
-to allow pmem to take this extra action, but skip it for other dax
-capable devices that do not provide a flush routine.
+The ACPI 6.2 spec added NVDIMM root DSM functions that managibility
+and test software need to call.
 
-An example for this differentiation might be a volatile ram disk where
-there is no expectation of persistence. In fact the pmem driver itself might
-front such an address range specified by the NFIT. So, this "no flush"
-property might be something passed down by the bus / libnvdimm.
+This patch set enables the calling of root functions DSMs via the
+pass thru mechanism.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c |    7 +++++++
- include/linux/dax.h   |    2 ++
- 2 files changed, 9 insertions(+)
+Changes v3
+----------
+1. Fix checkpatch warnings
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 2f3aefe565c6..823b07774244 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -242,9 +242,16 @@ static size_t pmem_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return copy_from_iter_flushcache(addr, bytes, i);
- }
- 
-+static void pmem_dax_flush(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t size)
-+{
-+	wb_cache_pmem(addr, size);
-+}
-+
- static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_dax_direct_access,
- 	.copy_from_iter = pmem_copy_from_iter,
-+	.flush = pmem_dax_flush,
- };
- 
- static void pmem_release_queue(void *q)
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 28e398f8c59e..407dd3ff6e54 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -19,6 +19,8 @@ struct dax_operations {
- 	/* copy_from_iter: dax-driver override for default copy_from_iter */
- 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
- 			struct iov_iter *);
-+	/* flush: optional driver-specific cache management after writes */
-+	void (*flush)(struct dax_device *, pgoff_t, void *, size_t);
- };
- 
- #if IS_ENABLED(CONFIG_DAX)
+2. modify bus_dsm_mask_show to display name "dsm_mask" in sysfs.
+
+3. modified submittal comments.
+
+Changes v2
+----------
+1. Add bus_dsm_mask to filter root pass thru calls.
+
+2. Add bus_dsm_mask_show to display bus_dsm_mask in sysfs
+
+3. Extend override_dsm_mask to be used for bus_dms_mask also.
+
+
+
+
+Details v1
+----------
+
+__nd_ioctl:
+Check pass thru functions against nd_cmd_clear_to_send.
+
+acpi_nfit_init_dsms:
+Set additional bits in cmd_mask for new functions.
+
+ndctl.h:
+Define data structure for the new 6.2 functions.
+
+
+Jerry Hoemann (7):
+  libnvdimm: passthru functions clear to send
+  acpi, nfit: Enable DSM pass thru for root functions.
+  libnvdimm: Add bus level dsm mask.
+  acpi, nfit: Use bus_dsm_mask for passthru
+  acpi, nfit: Show bus_dsm_mask in sysfs
+  libnvdimm: New ACPI 6.2 DSM functions
+  acpi, nfit: override mask
+
+ drivers/acpi/nfit/core.c   | 23 +++++++++++++++++++++++
+ drivers/nvdimm/bus.c       |  4 +++-
+ include/linux/libnvdimm.h  |  1 +
+ include/uapi/linux/ndctl.h | 41 ++++++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 67 insertions(+), 2 deletions(-)
+
+-- 
+1.8.5.6
 
 _______________________________________________
 Linux-nvdimm mailing list
