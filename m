@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3AD5621B02B9D
- for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:59:06 -0700 (PDT)
-Subject: [PATCH v4 14/16] dax: convert to bitmask for flags
+ by ml01.01.org (Postfix) with ESMTPS id ABEF621B02B9D
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 10:59:00 -0700 (PDT)
+Subject: [PATCH v4 13/16] dax: remove default copy_from_iter fallback
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 29 Jun 2017 10:54:12 -0700
-Message-ID: <149875885239.10031.8327478660509602792.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 29 Jun 2017 10:54:07 -0700
+Message-ID: <149875884723.10031.5829298075873663997.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -23,86 +23,134 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, x86@kernel.org, hch@lst.de, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, hch@lst.de, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for adding more flags, convert the existing flag to a
-bit-flag.
+Require all dax-drivers to register a ->copy_from_iter() operation so
+that it is clear which dax_operations are optional and which must be
+implemented for filesystem-dax to operate.
 
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Suggested-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/super.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ arch/powerpc/sysdev/axonram.c |    8 ++++++++
+ drivers/block/brd.c           |    8 ++++++++
+ drivers/dax/super.c           |    2 --
+ drivers/s390/block/dcssblk.c  |    8 ++++++++
+ include/linux/dax.h           |    2 +-
+ 5 files changed, 25 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 9e0160b950d7..8bf71195921b 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -116,13 +116,18 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- EXPORT_SYMBOL_GPL(__bdev_dax_supported);
- #endif
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index a7fe5fee744f..2799706106c6 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -45,6 +45,7 @@
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
+ #include <linux/pfn_t.h>
++#include <linux/uio.h>
  
-+enum dax_device_flags {
-+	/* !alive + rcu grace period == no new operations / mappings */
-+	DAXDEV_ALIVE,
-+};
+ #include <asm/page.h>
+ #include <asm/prom.h>
+@@ -163,8 +164,15 @@ axon_ram_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pa
+ 	return __axon_ram_direct_access(bank, pgoff, nr_pages, kaddr, pfn);
+ }
+ 
++static size_t axon_ram_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	return copy_from_iter(addr, bytes, i);
++}
 +
- /**
-  * struct dax_device - anchor object for dax services
-  * @inode: core vfs
-  * @cdev: optional character interface for "device dax"
-  * @host: optional name for lookups where the device path is not available
-  * @private: dax driver private data
-- * @alive: !alive + rcu grace period == no new operations / mappings
-+ * @flags: state and boolean properties
-  */
- struct dax_device {
- 	struct hlist_node list;
-@@ -130,7 +135,7 @@ struct dax_device {
- 	struct cdev cdev;
- 	const char *host;
- 	void *private;
--	bool alive;
-+	unsigned long flags;
- 	const struct dax_operations *ops;
+ static const struct dax_operations axon_ram_dax_ops = {
+ 	.direct_access = axon_ram_dax_direct_access,
++	.copy_from_iter = axon_ram_copy_from_iter,
  };
  
-@@ -197,7 +202,7 @@ EXPORT_SYMBOL_GPL(dax_flush);
- bool dax_alive(struct dax_device *dax_dev)
- {
- 	lockdep_assert_held(&dax_srcu);
--	return dax_dev->alive;
-+	return test_bit(DAXDEV_ALIVE, &dax_dev->flags);
+ /**
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 57b574f2f66a..f2a7ac350f6a 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -22,6 +22,7 @@
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ #include <linux/pfn_t.h>
+ #include <linux/dax.h>
++#include <linux/uio.h>
+ #endif
+ 
+ #include <linux/uaccess.h>
+@@ -354,8 +355,15 @@ static long brd_dax_direct_access(struct dax_device *dax_dev,
+ 	return __brd_direct_access(brd, pgoff, nr_pages, kaddr, pfn);
  }
- EXPORT_SYMBOL_GPL(dax_alive);
  
-@@ -217,7 +222,7 @@ void kill_dax(struct dax_device *dax_dev)
- 	if (!dax_dev)
- 		return;
++static size_t brd_dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	return copy_from_iter(addr, bytes, i);
++}
++
+ static const struct dax_operations brd_dax_ops = {
+ 	.direct_access = brd_dax_direct_access,
++	.copy_from_iter = brd_dax_copy_from_iter,
+ };
+ #endif
  
--	dax_dev->alive = false;
-+	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index b7729e4d351a..9e0160b950d7 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -179,8 +179,6 @@ size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+ 	if (!dax_alive(dax_dev))
+ 		return 0;
  
- 	synchronize_srcu(&dax_srcu);
- 
-@@ -257,7 +262,7 @@ static void dax_destroy_inode(struct inode *inode)
- {
- 	struct dax_device *dax_dev = to_dax_dev(inode);
- 
--	WARN_ONCE(dax_dev->alive,
-+	WARN_ONCE(test_bit(DAXDEV_ALIVE, &dax_dev->flags),
- 			"kill_dax() must be called before final iput()\n");
- 	call_rcu(&inode->i_rcu, dax_i_callback);
+-	if (!dax_dev->ops->copy_from_iter)
+-		return copy_from_iter(addr, bytes, i);
+ 	return dax_dev->ops->copy_from_iter(dax_dev, pgoff, addr, bytes, i);
  }
-@@ -309,7 +314,7 @@ static struct dax_device *dax_dev_get(dev_t devt)
+ EXPORT_SYMBOL_GPL(dax_copy_from_iter);
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 36e5280af3e4..88fa7b3f7a9d 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -18,6 +18,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/pfn_t.h>
++#include <linux/uio.h>
+ #include <linux/dax.h>
+ #include <asm/extmem.h>
+ #include <asm/io.h>
+@@ -43,8 +44,15 @@ static const struct block_device_operations dcssblk_devops = {
+ 	.release 	= dcssblk_release,
+ };
  
- 	dax_dev = to_dax_dev(inode);
- 	if (inode->i_state & I_NEW) {
--		dax_dev->alive = true;
-+		set_bit(DAXDEV_ALIVE, &dax_dev->flags);
- 		inode->i_cdev = &dax_dev->cdev;
- 		inode->i_mode = S_IFCHR;
- 		inode->i_flags = S_DAX;
++static size_t dcssblk_dax_copy_from_iter(struct dax_device *dax_dev,
++		pgoff_t pgoff, void *addr, size_t bytes, struct iov_iter *i)
++{
++	return copy_from_iter(addr, bytes, i);
++}
++
+ static const struct dax_operations dcssblk_dax_ops = {
+ 	.direct_access = dcssblk_dax_direct_access,
++	.copy_from_iter = dcssblk_dax_copy_from_iter,
+ };
+ 
+ struct dcssblk_dev_info {
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 1f6b6072af64..73fca1bebaf3 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -16,7 +16,7 @@ struct dax_operations {
+ 	 */
+ 	long (*direct_access)(struct dax_device *, pgoff_t, long,
+ 			void **, pfn_t *);
+-	/* copy_from_iter: dax-driver override for default copy_from_iter */
++	/* copy_from_iter: required operation for fs-dax direct-i/o */
+ 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
+ 			struct iov_iter *);
+ 	/* flush: optional driver-specific cache management after writes */
 
 _______________________________________________
 Linux-nvdimm mailing list
