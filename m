@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2354.austin.hpe.com (g2t2354.austin.hpe.com [15.233.44.27])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8821B21BADAD8
- for <linux-nvdimm@lists.01.org>; Fri, 30 Jun 2017 09:08:23 -0700 (PDT)
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v3 0/7] Enable DSM pass thru for root functions
-Date: Fri, 30 Jun 2017 10:09:33 -0600
-Message-Id: <cover.1498810220.git.jerry.hoemann@hpe.com>
+Received: from mail-yb0-x229.google.com (mail-yb0-x229.google.com
+ [IPv6:2607:f8b0:4002:c09::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 4ED9C21A143D6
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 18:31:16 -0700 (PDT)
+Received: by mail-yb0-x229.google.com with SMTP id v197so8189394ybv.3
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Jun 2017 18:32:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170629225911.7896-1-vishal.l.verma@intel.com>
+References: <20170629225911.7896-1-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 29 Jun 2017 18:32:48 -0700
+Message-ID: <CAPcyv4iyy-Q7UMRoV8KQfLBL1Y2MZjOdNusSijJ7VCxFQmUQfw@mail.gmail.com>
+Subject: Re: [PATCH] libnvdimm, btt: fix btt_rw_page not returning errors
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,73 +21,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ACPI 6.2 spec added NVDIMM root DSM functions that managibility
-and test software need to call.
+On Thu, Jun 29, 2017 at 3:59 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> btt_rw_page was not propagating errors frm btt_do_bvec, resulting in any
+> IO errors via the rw_page path going unnoticed. the pmem driver recently
+> fixed this in e10624f pmem: fail io-requests to known bad blocks
+> but same problem in BTT went neglected.
+>
+> Fixes: 5212e11 nd_btt: atomic sector updates
+> Cc: <stable@vger.kernel.org>
+> Cc: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/nvdimm/btt.c | 9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> index 7ca11df..4e56e72 100644
+> --- a/drivers/nvdimm/btt.c
+> +++ b/drivers/nvdimm/btt.c
+> @@ -1248,10 +1248,13 @@ static int btt_rw_page(struct block_device *bdev, sector_t sector,
+>                 struct page *page, bool is_write)
+>  {
+>         struct btt *btt = bdev->bd_disk->private_data;
+> +       int rc;
+>
+> -       btt_do_bvec(btt, NULL, page, PAGE_SIZE, 0, is_write, sector);
+> -       page_endio(page, is_write, 0);
+> -       return 0;
+> +       rc = btt_do_bvec(btt, NULL, page, PAGE_SIZE, 0, is_write, sector);
+> +       if (rc == 0)
+> +               page_endio(page, is_write, 0);
+> +
+> +       return rc;
+>  }
 
-This patch set enables the calling of root functions DSMs via the
-pass thru mechanism.
-
-Changes v4
-----------
-1. Minor refactoring of patch sequence.
-
-Changes v3
-----------
-1. Fix checkpatch warnings
-
-2. modify bus_dsm_mask_show to display name "dsm_mask" in sysfs.
-
-3. modified submittal comments.
-
-Changes v2
-----------
-1. Add bus_dsm_mask to filter root pass thru calls.
-
-2. Add bus_dsm_mask_show to display bus_dsm_mask in sysfs
-
-3. Extend override_dsm_mask to be used for bus_dms_mask also.
-
-
-
-
-Details v1
-----------
-
-__nd_ioctl:
-Check pass thru functions against nd_cmd_clear_to_send.
-
-acpi_nfit_init_dsms:
-Set additional bits in cmd_mask for new functions.
-
-ndctl.h:
-Define data structure for the new 6.2 functions.
-
-Jerry Hoemann (6):
-  libnvdimm: passthru functions clear to send
-  acpi, nfit: Enable DSM pass thru for root functions.
-  libnvdimm, acpi, nfit: Add bus level dsm mask for pass thru.
-  acpi, nfit: Show bus_dsm_mask in sysfs
-  libnvdimm: New ACPI 6.2 DSM functions
-  nfit allow override of root dsm mask
-
- drivers/acpi/nfit/core.c   | 23 +++++++++++++++++++++++
- drivers/nvdimm/bus.c       |  4 +++-
- include/linux/libnvdimm.h  |  1 +
- include/uapi/linux/ndctl.h | 41 ++++++++++++++++++++++++++++++++++++++++-
- 4 files changed, 67 insertions(+), 2 deletions(-)
-
--- 
-1.8.5.6
-
+Looks obviously correct, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
