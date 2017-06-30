@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2354.austin.hpe.com (g2t2354.austin.hpe.com [15.233.44.27])
+Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1324D20945549
- for <linux-nvdimm@lists.01.org>; Fri, 30 Jun 2017 09:08:25 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id C476520945549
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Jun 2017 09:08:24 -0700 (PDT)
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v4 5/6] libnvdimm: New ACPI 6.2 DSM functions
-Date: Fri, 30 Jun 2017 10:09:38 -0600
-Message-Id: <4023d434270cf22f908eeeb21a3eea474e726393.1498810220.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v4 4/6] acpi, nfit: Show bus_dsm_mask in sysfs
+Date: Fri, 30 Jun 2017 10:09:37 -0600
+Message-Id: <198c0eaf15bda1fb48dea29ccee1b437206c1635.1498810220.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1498810220.git.jerry.hoemann@hpe.com>
 References: <cover.1498810220.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1498810220.git.jerry.hoemann@hpe.com>
@@ -28,71 +28,42 @@ To: dan.j.williams@intel.com
 Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.2 added new NVDIMM root DSM functions.  Define their
-data structures.
+Display bus_dsm_mask in sysfs as /sys/bus/nd/devices/ndbusX/nfit/dsm_mask.
 
 Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- include/uapi/linux/ndctl.h | 40 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+ drivers/acpi/nfit/core.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index e23c37f..e15768f 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -105,7 +105,8 @@ struct nd_cmd_ars_cap {
- 	__u32 status;
- 	__u32 max_ars_out;
- 	__u32 clear_err_unit;
--	__u32 reserved;
-+	__u16 flags;
-+	__u16 reserved;
- } __packed;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 5e4c137..4e24d69 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -929,6 +929,17 @@ static int nfit_mem_init(struct acpi_nfit_desc *acpi_desc)
+ 	return 0;
+ }
  
- struct nd_cmd_ars_start {
-@@ -144,6 +145,43 @@ struct nd_cmd_clear_error {
- 	__u64 cleared;
- } __packed;
- 
-+struct nd_cmd_trans_spa {
-+	__u64 spa;
-+	__u32 status;
-+	__u8  flags;
-+	__u8  _reserved[3];
-+	__u64 trans_length;
-+	__u32 num_nvdimms;
-+	struct nd_nvdimm_device {
-+		__u32 nfit_device_handle;
-+		__u32 _reserved;
-+		__u64 dpa;
-+	} __packed devices[0];
++static ssize_t bus_dsm_mask_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
 +
-+} __packed;
++	return sprintf(buf, "%#lx\n", nd_desc->bus_dsm_mask);
++}
++static struct device_attribute dev_attr_bus_dsm_mask =
++		__ATTR(dsm_mask, 0444, bus_dsm_mask_show, NULL);
 +
-+struct nd_cmd_ars_err_inj {
-+	__u64 err_inj_spa_range_base;
-+	__u64 err_inj_spa_range_length;
-+	__u8  err_inj_options;
-+	__u32 status;
-+} __packed;
-+
-+struct nd_cmd_ars_err_inj_clr {
-+	__u64 err_inj_clr_spa_range_base;
-+	__u64 err_inj_clr_spa_range_length;
-+	__u32 status;
-+} __packed;
-+
-+struct nd_cmd_ars_err_inj_stat {
-+	__u32 status;
-+	__u32 inj_err_rec_count;
-+	struct nd_error_stat_query_record {
-+		__u64 err_inj_stat_spa_range_base;
-+		__u64 err_inj_stat_spa_range_length;
-+	} __packed record[0];
-+} __packed;
-+
- enum {
- 	ND_CMD_IMPLEMENTED = 0,
+ static ssize_t revision_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -1065,6 +1076,7 @@ static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	&dev_attr_revision.attr,
+ 	&dev_attr_scrub.attr,
+ 	&dev_attr_hw_error_scrub.attr,
++	&dev_attr_bus_dsm_mask.attr,
+ 	NULL,
+ };
  
 -- 
 1.8.5.6
