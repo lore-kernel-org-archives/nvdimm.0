@@ -1,87 +1,15 @@
-From: "Post Office" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: TGVBRLNPHFHGHNMZ
-Date: Sat, 1 Jul 2017 18:05:57 +0800
-Message-ID: <20170701100419.14F1621B02B8D@ml01.01.org>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_5957740B.C8E51DA2"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_5957740B.C8E51DA2
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  This Message was undeliverable due to the following reason:
-   Your message was not delivered because the destination computer was not reachable
-   within the allowed queue period. The amount of time a message is queued before
-   it is returned depends on local configura- tion parameters. [...] 
-
-Content analysis details:   (5.7 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: 01.org]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0001]
- 1.4 PYZOR_CHECK            Listed in Pyzor (http://pyzor.sf.net/)
- 2.6 MSOE_MID_WRONG_CASE    No description available.
- 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
- 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
-
-
-
-------------=_5957740B.C8E51DA2
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+From: Socer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ND_MIN_NAMESPACE_SIZE
+Date: Sat, 1 Jul 2017 12:08:55 -0700
+Message-ID: <DAEBDB4D-788F-4082-8B6D-EBDC54870450@yahoo.com>
+References: <1158028069.2624087.1498868468565.ref@mail.yahoo.com>
+ <1158028069.2624087.1498868468565@mail.yahoo.com>
+ <CAPcyv4hiWY-6Bdf=U1QR+bCVvPy8Fq+eaL0+-qzLvbpcEuwn4A@mail.gmail.com>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1dRFHm-0004F1-6E
-	for gln-linux-nvdimm@m.gmane.org; Sat, 01 Jul 2017 12:05:54 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 14F1621B02B8D;
-	Sat,  1 Jul 2017 03:04:19 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from lists.01.org (unknown [183.14.135.223])
- by ml01.01.org (Postfix) with ESMTP id A704D21B02B8D
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sat,  1 Jul 2017 03:04:08 -0700 (PDT)
-From: "Post Office" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Subject: TGVBRLNPHFHGHNMZ
-Date: Sat, 1 Jul 2017 18:05:57 +0800
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-Content-Filtered-By: Mailman/MimeDel 2.1.22
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <CAPcyv4hiWY-6Bdf=U1QR+bCVvPy8Fq+eaL0+-qzLvbpcEuwn4A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -89,38 +17,43 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20170701100419.14F1621B02B8D-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
+Here is our usage case:
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+We are trying to represent each Docker container image layer in a read-only persist memory device before injecting into a guest Linux VM for constructing a union file system as part of the container execution preparation task.
+ Those read-only persistent memory devices are RAM emulated, not the real PMEM devices. Their sizes are very flexible. On top of that, the sizes of those docker layers could be well below 4MB. Looking at the nvdimm code, NV_MIN_NAMESPACE does not seem to be used in any other context other than the initial size checking. So I built a private kernel with a redefined NV_MIN_NAMESPACE_SIZE to much smaller number, such 64kb, and the persistent memory devices for smaller layers start functioning as expected.
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
 
-Your message was not delivered within 4 days:
-Host 120.194.42.234 is not responding.
-
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+Thanks 
+Cheng-mean
 
 
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-
-------------=_5957740B.C8E51DA2--
+> On Jun 30, 2017, at 6:53 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> 
+> 4M was picked as the smallest "reasonable" size for a disk. We could
+> make it smaller, but what is the use case?
+> 
+>> On Fri, Jun 30, 2017 at 5:21 PM, Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> wrote:
+>> Hi all:
+>> I noticed that ND_MIN_NAMESPACE_SIZE is defined as 4MB.
+>> nvdimm_namespace_common_probe(..){..
+>>   if (size < ND_MIN_NAMESPACE_SIZE) {
+>> dev_dbg(&ndns->dev, "%pa, too small must be at least %#x\n",
+>> &size, ND_MIN_NAMESPACE_SIZE);
+>> return ERR_PTR(-ENODEV);
+>> }...}
+>> In our configuration, we have a host based software enumerated PMEM device that could be much smaller than 4MB.Because of above failure, no PMEM device was exposed.
+>> I changed ND_MIN_NAMESPACE_SIZE to smaller size (such as 256 KB) and a smaller size (<4MB) Persistent Memory starts working.Is there any reason that it cannot be smaller?
+>> Thanks
+>> Cheng-mean
+>> _______________________________________________
+>> Linux-nvdimm mailing list
+>> Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+>> https://lists.01.org/mailman/listinfo/linux-nvdimm
