@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D997221D1B280
- for <linux-nvdimm@lists.01.org>; Wed, 19 Jul 2017 11:37:57 -0700 (PDT)
-Subject: [ndctl PATCH 6/6] test: add multi-dax test
+ by ml01.01.org (Postfix) with ESMTPS id 8412921A00AC9
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jul 2017 14:04:39 -0700 (PDT)
+Subject: [PATCH] libnvdimm, namespace: record 'lbasize' for pmem namespaces
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 19 Jul 2017 11:33:27 -0700
-Message-ID: <150048920777.12895.10251738236110732171.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150048917662.12895.15953645444185664230.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150048917662.12895.15953645444185664230.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 05 Jul 2017 13:59:52 -0700
+Message-ID: <149928839261.28044.16763403749209224411.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,98 +21,32 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a simple sanity check for multiple dax instances per
-libnvdimm-region support. This is known to fail with a sysfs duplicate
-filename warning on kernels prior to 4.13-final.
+Commit f979b13c3cc5 "libnvdimm, label: honor the lba size specified in
+v1.2 labels") neglected to update the 'lbasize' in the label when the
+namespace sector_size attribute was written. We need this value in the
+label for inter-OS / pre-OS compatibility.
 
+Fixes: f979b13c3cc5 ("libnvdimm, label: honor the lba size specified in v1.2 labels")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/Makefile.am  |    1 +
- test/multi-dax.sh |   61 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 62 insertions(+)
- create mode 100755 test/multi-dax.sh
+ drivers/nvdimm/label.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 9353a34326c1..ac3547e22ccb 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -10,6 +10,7 @@ TESTS =\
- 	clear.sh \
- 	dax-errors.sh \
- 	daxdev-errors.sh \
-+	multi-dax.sh \
- 	btt-check.sh \
- 	label-compat.sh \
- 	blk-exhaust.sh
-diff --git a/test/multi-dax.sh b/test/multi-dax.sh
-new file mode 100755
-index 000000000000..751f16f5b07b
---- /dev/null
-+++ b/test/multi-dax.sh
-@@ -0,0 +1,61 @@
-+#!/bin/bash -x
-+
-+# Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
-+#
-+# This program is free software; you can redistribute it and/or modify it
-+# under the terms of version 2 of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it will be useful, but
-+# WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# General Public License for more details.
-+
-+DEV=""
-+NDCTL="../ndctl/ndctl"
-+DAXCTL="../daxctl/daxctl"
-+BUS="-b nfit_test.0"
-+BUS1="-b nfit_test.1"
-+json2var="s/[{}\",]//g; s/:/=/g"
-+rc=77
-+
-+err() {
-+	rc=1
-+	echo "test/multi-dax: failed at line $1"
-+	exit $rc
-+}
-+
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+check_min_kver "4.13" || { echo "kernel $KVER may lack multi-dax support"; exit $rc; }
-+
-+set -e
-+trap 'err $LINENO' ERR
-+
-+# setup (reset nfit_test dimms)
-+modprobe nfit_test
-+$NDCTL disable-region $BUS all
-+$NDCTL zero-labels $BUS all
-+$NDCTL enable-region $BUS all
-+
-+query=". | sort_by(.available_size) | reverse | .[0].dev"
-+region=$($NDCTL list $BUS -t pmem -Ri | jq -r "$query")
-+
-+json=$($NDCTL create-namespace $BUS -r $region -t pmem -m dax -a 4096 -s 16M)
-+chardev1=$(echo $json | jq ". | select(.mode == \"dax\") | .daxregion.devices[0].chardev")
-+json=$($NDCTL create-namespace $BUS -r $region -t pmem -m dax -a 4096 -s 16M)
-+chardev2=$(echo $json | jq ". | select(.mode == \"dax\") | .daxregion.devices[0].chardev")
-+
-+# cleanup
-+$NDCTL disable-region $BUS all
-+$NDCTL disable-region $BUS1 all
-+modprobe -r nfit_test
-+
-+exit 0
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 922b68718a1a..87796f840777 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -660,6 +660,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 	nd_label->position = __cpu_to_le16(pos);
+ 	nd_label->isetcookie = __cpu_to_le64(cookie);
+ 	nd_label->rawsize = __cpu_to_le64(resource_size(res));
++	nd_label->lbasize = __cpu_to_le64(nspm->lbasize);
+ 	nd_label->dpa = __cpu_to_le64(res->start);
+ 	nd_label->slot = __cpu_to_le32(slot);
+ 	if (namespace_label_has(ndd, type_guid))
 
 _______________________________________________
 Linux-nvdimm mailing list
