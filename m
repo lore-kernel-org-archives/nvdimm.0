@@ -1,21 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AAC0021B06E91
- for <linux-nvdimm@lists.01.org>; Sun, 23 Jul 2017 22:49:43 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 2D40AAC008E
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 14:51:34 +0900 (JST)
-Date: Mon, 24 Jul 2017 14:50:44 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Daemon of NVDIMM event notification/monitoring(Re: Standardization of
- ACPI NVDIMM DSMs)
-In-Reply-To: <20170710171649.731E.E1E9C6FF@jp.fujitsu.com>
-References: <d77f5643-7cd2-8f0f-02b7-118d0305e547@hpe.com>
- <20170710171649.731E.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170724145040.8409.E1E9C6FF@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8C10C20958969
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jul 2017 13:53:23 -0700 (PDT)
+Subject: [ndctl PATCH 0/6] ndctl updates for v1.2 namespace labels
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 05 Jul 2017 13:48:35 -0700
+Message-ID: <149928771519.25150.13314997328838983545.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -31,63 +23,29 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Update test/libndctl, init-labels, and read-labels for the new format.
 
-Hi,
+An update to ndctl.h for the new ACPI 6.2 command formats is also
+included. A later patch series will implement library helpers for those
+new commands.
 
-> >   Another approach could be to integrate NVDIMM event
-> > monitoring into some other utility, like the rasdaemon.  I'm interested in
-> > your thoughts.
-> 
-> Though I'm not sure which (existing or new) utility is appropriate yet.
-> I prefer this way. So, I'll think about it.
-
-I investigated the issue that notification/monitoring feature of over-
-threshold event with my co-worker. Here is current our understandings.
-
-
-a) rasdaemon
-  It is good tools for machine check error, and if machine check occurs on
-  NVDIMM, I suppose it will work not only traditional RAM but also NVDIMM.
-  But, it may not fit the purpose of notification/monitoring threshold event.
-
-
-b) smartmontools (https://www.smartmontools.org/)
-  This tool may fit the purpose of notification/monitoring of health of NVDIMMs.
-  However, it may a bit troublesome due to the followings.
-
-    - The smartd seems to check smart values of each devices with
-      ioctl() periodically (In other words, "polling"). 
-      Probably, other devices does not have the
-      notification interface like "ndctl_dimm_get_health_eventfd()
-      and poll()/select()".
-      
-    - smartmontools supports many OSs (Windows, darwin, xxxBSDs, os2(!)).
-      I'm not sure other OSs have similar notification interface like Linux.
-      So, it may need to "polling" like other devices.
-
-c) udev
-   Udev can kick any programs if udev.rules is created.
-   However, there is no uevent for the event of over-threshold currently.
-   In addition, I'm not sure that udev fits this type of event notification.
-
-
-d) make a new tiny daemon in ndctl tree
-   This may be simpler way. 
-   It can use ndctl_dimm_get_health_eventfd() and poll()/select().
-    
-   But, ndctl may be included in kernel source,
-   and I don't know whether kernel includes other daemon tools or not.
-
-
-Though I feel like selecting d) now.....
-Any thoughts? 
-
-
-Thanks,
 ---
-Yasunori Goto
+
+Dan Williams (6):
+      ndctl, test: push btt-check test back to 4.14
+      ndctl, test: unit test new pmem sector_size support
+      ndctl: update to latest ndctl.h
+      ndctl, read-labels: updates for v1.2 of the namespace specification
+      ndctl, init-labels: allow opt-in to new v1.2 label format
+      ndctl, create-namespace: set pmem namespace sector size
 
 
+ ndctl/dimm.c      |  243 ++++++++++++++++++++++++++++++++++++++++++++---------
+ ndctl/namespace.c |   40 +++++----
+ ndctl/ndctl.h     |   42 +++++++++
+ test/btt-check.sh |    2 
+ test/libndctl.c   |   59 ++++++++++---
+ 5 files changed, 314 insertions(+), 72 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
