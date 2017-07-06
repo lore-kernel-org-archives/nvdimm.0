@@ -1,61 +1,56 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0A492095D2BB
- for <linux-nvdimm@lists.01.org>; Fri, 14 Jul 2017 15:11:37 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 0/6] BTT error clearing rework
-Date: Fri, 14 Jul 2017 16:11:42 -0600
-Message-Id: <20170714221148.11232-1-vishal.l.verma@intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+In-Reply-To: <20170706215233.11329-2-ross.zwisler@linux.intel.com>
+References: <20170706215233.11329-1-ross.zwisler@linux.intel.com> <20170706215233.11329-2-ross.zwisler@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 7 Jul 2017 00:08:36 +0200
+Message-ID: <CAJZ5v0hsNT6VzgxsC7KG2+N1wv0Yc54qQEG3WWt2Lro+ij8ZEA@mail.gmail.com>
+Subject: Re: [RFC v2 1/5] acpi: add missing include in acpi_numa.h
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jerome Glisse <jglisse@redhat.com>, Len Brown <lenb@kernel.org>, Tim Chen <tim.c.chen@linux.intel.com>, "devel@acpica.org" <devel@acpica.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Clearing errors or badblocks during a BTT write requires sending an ACPI
-DSM, which means potentially sleeping. Since a BTT IO happens in atomic
-context (preemption disabled, spinlocks may be held), we cannot perform
-error clearing in the course of an IO. Due to this error clearing for
-BTT IOs has hitherto been disabled.
+On Thu, Jul 6, 2017 at 11:52 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Right now if a file includes acpi_numa.h and they don't happen to include
+> linux/numa.h before it, they get the following warning:
+>
+> ./include/acpi/acpi_numa.h:9:5: warning: "MAX_NUMNODES" is not defined [-Wundef]
+>  #if MAX_NUMNODES > 256
+>      ^~~~~~~~~~~~
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-This series fixes these problems by moving the error clearing out of
-the atomic sections in the BTT.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Patch 5 makes a core ACPI change and I would like some views on it
-from the ACPI guys - does the problem make sense, and is this the right
-approach to solve it?
+> ---
+>  include/acpi/acpi_numa.h | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
+> index d4b7294..1e3a74f 100644
+> --- a/include/acpi/acpi_numa.h
+> +++ b/include/acpi/acpi_numa.h
+> @@ -3,6 +3,7 @@
+>
+>  #ifdef CONFIG_ACPI_NUMA
+>  #include <linux/kernel.h>
+> +#include <linux/numa.h>
+>
+>  /* Proximity bitmap length */
+>  #if MAX_NUMNODES > 256
+> --
+> 2.9.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
-Vishal Verma (6):
-  btt: fix a missed NVDIMM_IO_ATOMIC case in the write path
-  btt: refactor map entry operations with macros
-  btt: ensure that flags were also unchanged during a map_read
-  btt: cache sector_size in arena_info
-  acpi: change memory allocations to GFP_NOIO
-  libnvdimm, btt: rework error clearing
-
- drivers/nvdimm/btt.c              | 111 ++++++++++++++++++++++++++++++++------
- drivers/nvdimm/btt.h              |  11 ++++
- drivers/nvdimm/claim.c            |   9 +---
- include/acpi/platform/aclinuxex.h |   6 +--
- 4 files changed, 109 insertions(+), 28 deletions(-)
-
--- 
-2.9.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
