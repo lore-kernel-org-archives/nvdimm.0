@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yb0-x230.google.com (mail-yb0-x230.google.com
- [IPv6:2607:f8b0:4002:c09::230])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8576920958985
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jul 2017 19:07:15 -0700 (PDT)
-Received: by mail-yb0-x230.google.com with SMTP id e201so1875419ybb.1
- for <linux-nvdimm@lists.01.org>; Wed, 05 Jul 2017 19:08:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1499303324.2042.7.camel@hpe.com>
+Received: from g2t2354.austin.hpe.com (g2t2354.austin.hpe.com [15.233.44.27])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id CEBB620958969
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jul 2017 18:17:52 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v4 12/16] libnvdimm, nfit: enable support for volatile
+ ranges
+Date: Thu, 6 Jul 2017 01:17:45 +0000
+Message-ID: <1499303324.2042.7.camel@hpe.com>
 References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.corp.intel.com>
  <149875884190.10031.6179599135820559644.stgit@dwillia2-desk3.amr.corp.intel.com>
  <595552F5.5040008@hpe.com>
@@ -25,12 +25,10 @@ References: <149875877608.10031.17813337234536358002.stgit@dwillia2-desk3.amr.co
  <CAPcyv4iTaXc92ggQcBnqJ=P0jsMF9HhnV4nAsr1Qos4pjrRDLA@mail.gmail.com>
  <1499297819.2042.5.camel@hpe.com>
  <CAPcyv4ixQFNT_8tGFyf2ABqxpPd-jmtXKVeLBRdzBW12u3TJbg@mail.gmail.com>
- <1499303324.2042.7.camel@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 5 Jul 2017 19:08:54 -0700
-Message-ID: <CAPcyv4gL25svXg=7dmftmxMoqd7Fns_JV1WsGx_iFXRGBJT-CA@mail.gmail.com>
-Subject: Re: [PATCH v4 12/16] libnvdimm,
- nfit: enable support for volatile ranges
+In-Reply-To: <CAPcyv4ixQFNT_8tGFyf2ABqxpPd-jmtXKVeLBRdzBW12u3TJbg@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <B75AD631902C9741BCA2DF2D8438F2F3@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -38,37 +36,77 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
 Cc: "x86@kernel.org" <x86@kernel.org>, "jack@suse.cz" <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-[ adding Jeff, and Johannes ]
-
-On Wed, Jul 5, 2017 at 6:17 PM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
-> On Wed, 2017-07-05 at 17:07 -0700, Dan Williams wrote:
-[..]
->> We have symlinks in /dev/disk/by* to make it easier to identify
->> storage devices, I think it makes sense to add udev rules for
->> identifying volatile pmem and not try to differentiate this in the
->> default kernel device name.
->
-> I am not sure what might be a good way, but I am concerned because a
-> single block device naming do not represent both volatile and
-> persistent media today.
-
-We do have time to changes this if we find out this is critical. Maybe
-it's best to ask Linux distro folks what would be easier for them?
-
-Jeff, Johannes, any thoughts on whether we should produce a
-"/dev/vmemX" device when we know the backing memory range is volatile?
-In this patch everything shows up as /dev/pmemX and you need to look
-elsewhere in sysfs to find that the memory range is defined as
-volatile by the NFIT.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gV2VkLCAyMDE3LTA3LTA1IGF0IDE3OjA3IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFdlZCwgSnVsIDUsIDIwMTcgYXQgNDo0NiBQTSwgS2FuaSwgVG9zaGltaXRzdSA8dG9zaGku
+a2FuaUBocGUuY29tPg0KPiB3cm90ZToNCj4gPiBPbiBUaHUsIDIwMTctMDYtMjkgYXQgMTg6Mjgg
+LTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCiA6DQo+ID4gDQo+ID4gU29ycnkgZm9yIGJlaW5n
+IGxhdGUgdG8gcmVzcG9uZCwgYnV0IEkgYWdyZWUgd2l0aCBMaW5kYSB0aGF0IHRoaXMNCj4gPiBu
+YW1pbmcgcG9saWN5IGlzIGxpa2VseSB0byBjb25mdXNlIHVzZXJzLsKgwqBJIGFsc28gY2FyZSBs
+ZXNzIGFib3V0DQo+ID4gdGhlIGN1cnJlbnQgdXNlcnMgd2hvIHVzZSBtZW1tYXAgb3B0aW9uLsKg
+wqBUaGlzIGNhc2UgaXMgcG1lbS0NCj4gPiBlbXVsYXRpb24gYW5kIHRoZXkga25vdyB3aGF0IHRo
+ZXkgYXJlIGRvaW5nLg0KPiA+IA0KPiA+IEFzc3VtaW5nIGJsb2NrIGRldmljZSBpbnRlcmZhY2Ug
+aXMgbmVlZGVkIChpbiBhZGRpdGlvbiB0byBkZXZpY2UtDQo+ID4gZGF4KSBmb3Igdm9sYXRpbGUg
+cmFuZ2UgZm9yIHVzZS1jYXNlcyBsaWtlIHN3YXAgZGV2aWNlLCBJIHdvbmRlciBpZg0KPiA+IHVz
+ZXIgY2FuIGFjdHVhbGx5IHNwZWNpZnkgYSByaWdodCBwbWVtIGRldmljZSBmb3Igc3dhcCBmcm9t
+IE9TLQ0KPiA+IGluc3RhbGwgR1VJIHdoZW4gYm90aCB2b2xhdGlsZSBhbmQgcGVyc2lzdGVudCBi
+bG9jayBkZXZpY2VzIGFyZQ0KPiA+IGxpc3RlZCBhcyAvZGV2L3BtZW1OLiAgU29tZXRpbWVzIHdl
+IGFyZSByZXN0cmljdGVkIHdpdGggR1VJDQo+ID4gbWVudS7CoMKgU29tZSB1c2VycyB1c2UgR1VJ
+IGFsbCB0aGUgdGltZSBsaWtlIFdpbmRvd3MgYXMgd2VsbC4NCj4gPiANCj4gPiBDYW4gd2UgZGlm
+ZmVyZW50aWF0ZSB0aGUgbmFtaW5nIGJ5IGFkZGluZyAndicgbGlrZSAncG1lbU52JyAoaWYgeW91
+DQo+ID4gY2FuJ3QgZ28gd2l0aCAndm1lbU4nKT/CoMKgSSBkb24ndCB0aGluayBoYXZpbmcgJ3Mn
+IGZvciBCVFQgd2FzIHRoYXQNCj4gPiBiYWQuIMKgSXQncyBiZWVuIGhlbHBmdWwgdG8gdGVsbCB1
+c2VycyB0aGF0IHRoZXNlIHBtZW0gZGV2aWNlcyBhcmUNCj4gPiBub3QgYnl0ZS1hZGRyZXNzYWJs
+ZS7CoMKgSSBhbHNvIHRoaW5rIHRoYXQgQlRUIGZvciB2b2xhdGlsZSByYW5nZQ0KPiA+IG1ha2Vz
+IG5vIHNlbnNlICh1bmxlc3MgZW11bGF0ZWQgYXMgcGVyc2lzdGVudCBtZW1vcnkgYnkgbWVtbWFw
+DQo+ID4gb3B0aW9uKS4NCj4gDQo+IEknbSBtb3JlIHdvcnJpZWQgYWJvdXQgc2VuZGluZyB0aGUg
+d3Jvbmcgc2lnbmFsIHRoZSBvdGhlciB3YXkuIFRoYXQNCj4gdXNlcnMgYmVsaWV2ZSB0aGF0IHRo
+ZSAncCcgbWVhbnMgZGVmaW5pdGVseSAicGVyc2lzdGVudCIgd2hlbiB3ZSBoYXZlDQo+IG5vIHdh
+eSB0byBndWFyYW50ZWUgdGhhdC4NCg0KVGhhdCdzIGEgdmFsaWQgcG9pbnQuICBCdXQgaXNuJ3Qg
+aXQgdmVuZG9ycycgcmVzcG9uc2liaWxpdHkgdG8NCmd1YXJhbnRlZSBpdCB3aGVuIHRoZWlyIGRl
+dmljZXMgYXJlIGRlc2NyaWJlZCBhcyBwZXJzaXN0ZW50IGluIG9uZSB3YXkNCm9yIHRoZSBvdGhl
+ciBpbiBGVz8NCg0KPiBJZiBpdCB3YXMgb25seSBtZW1tYXA9IHRoYXQgd2UgaGFkIHRvIHdvcnJ5
+IGFib3V0IHRoYXQgd291bGQgYmUgb25lDQo+IHRoaW5nLCBidXQgd2UgYXBwYXJlbnRseSBoYXZl
+IHZlbmRvcnMgdGhhdCBhcmUgc2hpcHBpbmcgImU4MjAtdHlwZS0xMg0KPiBtZW1vcnkiIGFzIHRo
+ZWlyIE5WRElNTSBzb2x1dGlvbiBbMV0uDQoNClR5cGUtMTIgaXMgcGVyc2lzdGVudCBtZW1vcnkg
+aW4gYSBub24tc3RhbmRhcmQgRlcgaW50ZXJmYWNlLiAgU28sIGl0DQptYWtlcyBzZW5zZSB0byBz
+aG93IGl0IGFzIHBtZW0uDQoNCj4gV2UndmUgYWxzbyBiZWVuIHNoaXBwaW5nIHRoZSBwb2xpY3kg
+dGhhdCAncG1lbScgbWF5IGZyb250IGEgdm9sYXRpbGUNCj4gcmFuZ2UgZXZlciBzaW5jZSB2NC44
+IChjb21taXQgYzJmMzJhY2RmODQ4ICJhY3BpLCBuZml0OiB0cmVhdCB2aXJ0dWFsDQo+IHJhbWRp
+c2sgU1BBIGFzIHBtZW0gcmVnaW9uIikuIEF0IGxlYXN0IG5vdyB3ZSBoYXZlIHRoZSAibmRfdm9s
+YXRpbGUiDQo+IHJlZ2lvbiB0eXBlLiBBbnkgY2hhbmdlIG9mIHRoZSBkZXZpY2UgbmFtZSBub3cg
+aXMgcG90ZW50aWFsbHkgYQ0KPiByZWdyZXNzaW9uIGZvciBlbnZpcm9ubWVudHMgdGhhdCBhcmUg
+YWxyZWFkeSBleHBlY3RpbmcgL2Rldi9wbWVtWC4NCg0KSG1tLi4uIEkgdGhvdWdodCB0aGlzIHdh
+cyBmb3IgbWFwcGluZyBJU08gaW1hZ2UgZm9yIGJvb3RpbmcuICBEb2VzIGl0DQpnZXQgbGlzdGVk
+IGFzIGEgcmVndWxhciBwbWVtIGRldmljZSBhbmQgYWxsb3cgdXNlciB0byBtb2RpZnkgaXRzDQpj
+b250ZW50PyAgSSBkb3VidCB0aGlzIGNhc2UgYmVpbmcgdXNlZCB0b2RheSwgdGhvdWdoLiAgKEl0
+IHdhcw0KcHJvdG90eXBlZCBvbiBhbiBIUEUgYm94IGFuZCBJIGNhbiBjaGVjayB0aGUgc3RhdHVz
+IGlmIG5lZWRlZC4pDQoNCj4gQXMgZmFyIGFzIEkga25vdyB0aGVyZSBhcmUgbm8gT1MgaW5zdGFs
+bGVycyB0aGF0IHVuZGVyc3RhbmQgcG1lbS4gDQoNCkl0J3MgYWN0dWFsbHkgdGhlIG90aGVyIHdh
+eSBhcm91bmQuICBJdCB3YXMgY2hhbmdlZCBub3QgdG8gbGlzdCBwbWVtDQpkZXZpY2VzIHNpbmNl
+IE9TIGNhbm5vdCBib290IGZyb20gYSBwbWVtIHlldC4uLg0KDQo+IFdoZW4gdGhleSBkbyBhZGQg
+c3VwcG9ydCBJIHRoaW5rIGl0IHdvdWxkIGJlIHN0cmFpZ2h0Zm9yd2FyZCB0byBhdm9pZA0KPiBj
+b25mdXNpb24gYW5kIGZpbHRlciAidm9sYXRpbGUiIGhvc3RlZCBwbWVtIGRldmljZXMgZnJvbSB0
+aGUgaW5zdGFsbA0KPiB0YXJnZXQgbGlzdC4gSSBkb24ndCBzZWUgdGhpcyBiZWluZyBtdWNoIGRp
+ZmZlcmVudCBmcm9tIHRoZSBjb25mdXNpb24NCj4gd2hlbiB1c2VycyBjYW4gbm90IGRpZmZlcmVu
+dGlhdGUgdGhlaXIgJ3NkJyBkZXZpY2UgYmV0d2VlbiBVU0IgYW5kDQo+IFNBVEEuIA0KDQpSaWdo
+dCwgc3VjaCBjaGFuZ2VzIGNhbiBiZSBtYWRlLiAgSXQgd2FzIGp1c3QgYW4gZXhhbXBsZSB0aGF0
+IHR5cGljYWwNCnVzZS1jYXNlcyB0b2RheSBkbyBub3QgcmVxdWlyZSBhZGRpdGlvbmFsIHN0ZXAg
+dG8gY2hlY2sgcGVyc2lzdGVuY2Ugb2YNCmJsb2NrIGRldmljZXMuDQoNCj4gV2UgaGF2ZSBzeW1s
+aW5rcyBpbiAvZGV2L2Rpc2svYnkqIHRvIG1ha2UgaXQgZWFzaWVyIHRvIGlkZW50aWZ5DQo+IHN0
+b3JhZ2UgZGV2aWNlcywgSSB0aGluayBpdCBtYWtlcyBzZW5zZSB0byBhZGQgdWRldiBydWxlcyBm
+b3INCj4gaWRlbnRpZnlpbmcgdm9sYXRpbGUgcG1lbSBhbmQgbm90IHRyeSB0byBkaWZmZXJlbnRp
+YXRlIHRoaXMgaW4gdGhlDQo+IGRlZmF1bHQga2VybmVsIGRldmljZSBuYW1lLg0KDQpJIGFtIG5v
+dCBzdXJlIHdoYXQgbWlnaHQgYmUgYSBnb29kIHdheSwgYnV0IEkgYW0gY29uY2VybmVkIGJlY2F1
+c2UgYQ0Kc2luZ2xlIGJsb2NrIGRldmljZSBuYW1pbmcgZG8gbm90IHJlcHJlc2VudCBib3RoIHZv
+bGF0aWxlIGFuZA0KcGVyc2lzdGVudCBtZWRpYSB0b2RheS4NCg0KVGhhbmtzLA0KLVRvc2hpDQoN
+Cg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
+bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
+dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
