@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4CAA021D0B667
- for <linux-nvdimm@lists.01.org>; Tue, 11 Jul 2017 23:43:23 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 2D94CAC00CA
- for <linux-nvdimm@lists.01.org>; Wed, 12 Jul 2017 15:45:01 +0900 (JST)
-Date: Wed, 12 Jul 2017 15:44:46 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [PATCH v3] ndctl list should show more hardware information
-Message-Id: <20170712154441.C680.E1E9C6FF@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id CA16A21C9E7C0
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Jul 2017 14:51:07 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [RFC v2 4/5] sysfs: add sysfs_add_group_link()
+Date: Thu,  6 Jul 2017 15:52:32 -0600
+Message-Id: <20170706215233.11329-5-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
+References: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,130 +18,92 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: linux-kernel@vger.kernel.org
+Cc: "Box, David E" <david.e.box@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, Robert, Lukasz, "Erik  <erik.schmauss@intel.com>, Len Brown" <lenb@kernel.org>, Jerome Glisse <jglisse@redhat.com>, devel@acpica.org, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Lahtinen, Joonas  <joonas.lahtinen@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen" <tim.c.chen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, 
-
-I made the v3 of output hardware id .
-If this patch is ok, please apply.
-
---
-Change log
-
-v3 :  - rebased on human readable option patch.
-
-
-v2 :  - use json_object_new_int() for each data.
-      - check MAX value for each data.
-      - phys_id becomes unsigned short from signed short.
-
----
-   The current "id" data of dimm (ndctl list -D) shows the information
-   of DIMM module vendor or serial number.  However, I think it is not enough. 
- 
-   If a NVDIMM becomes broken, users need to know its physical place
-   rather than vendor or serial number to replace the NVDIMM.
-
-   There are 2 candidate of such information. 
-     a) NFIT Device Handle (_ADR of the NVDIMM device)
-        This date includes node controller id and socket id.
-     b) NVDIMM Physical ID (Handle for the SMBIOS Memory Device (Type 17)).
-        The dmidecode can show this handle with more information like "Locator"
-        So, user can find the location of NVDIMM.
-
-   At first, I think _ADR is enough information. 
-
-   However, when I talked with our firmware team about this requirement, 
-   they said it may not be good data, because the node contoller ID is not
-   stable on our server due to "partitioning" feature.
-   (Our server can have plural partition on one box, and may have plural
-    node 0.)
-
-   So, I make the ndctl shows not only NFIT Device Handle but also
-   NVDIMM Physical ID. Then, user can find the location with dmidecode.
-
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
----
-
-diff --git a/ndctl/list.c b/ndctl/list.c
-index d81d646..7f8db66 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -388,7 +388,7 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 					json_object_object_add(jbus, "dimms", jdimms);
- 			}
- 
--			jdimm = util_dimm_to_json(dimm);
-+			jdimm = util_dimm_to_json(dimm, listopts_to_flags());
- 			if (!jdimm) {
- 				fail("\n");
- 				continue;
-diff --git a/util/json.c b/util/json.c
-index 0878979..80512bd 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -148,10 +148,13 @@ struct json_object *util_bus_to_json(struct ndctl_bus *bus)
- 	return NULL;
- }
- 
--struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm)
-+struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
-+		unsigned long flags)
- {
- 	struct json_object *jdimm = json_object_new_object();
- 	const char *id = ndctl_dimm_get_unique_id(dimm);
-+	unsigned int handle = ndctl_dimm_get_handle(dimm);
-+	unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
- 	struct json_object *jobj;
- 
- 	if (!jdimm)
-@@ -169,6 +172,20 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm)
- 		json_object_object_add(jdimm, "id", jobj);
- 	}
- 
-+	if (handle < UINT_MAX) {
-+		jobj = util_json_object_hex(handle, flags);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "handle", jobj);
-+	}
-+
-+	if (phys_id < USHRT_MAX) {
-+		jobj = util_json_object_hex(phys_id, flags);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "phys_id", jobj);
-+	}
-+
- 	if (!ndctl_dimm_is_enabled(dimm)) {
- 		jobj = json_object_new_string("disabled");
- 		if (!jobj)
-diff --git a/util/json.h b/util/json.h
-index ec394b6..d885ead 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -26,7 +26,8 @@ enum util_json_flags {
- struct json_object;
- void util_display_json_array(FILE *f_out, struct json_object *jarray, int jflag);
- struct json_object *util_bus_to_json(struct ndctl_bus *bus);
--struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm);
-+struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
-+		unsigned long flags);
- struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
- 		unsigned long flags);
- struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
-
----
-Yasunori Goto
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlIGN1cnJlbnQgX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooKSBjb2Rl
+IGFsbG93cyB1cyB0bwpjcmVhdGUgc3ltYm9saWMgbGlua3MgaW4gc3lzZnMgdG8gZ3JvdXBzIG9y
+IGF0dHJpYnV0ZXMuICBTb21ldGhpbmcgbGlrZToKCi9zeXMvLi4uL2VudHJ5MS9ncm91cEEgLT4g
+L3N5cy8uLi4vZW50cnkyL2dyb3VwQQoKVGhpcyBwYXRjaCBleHRlbmRzIHRoaXMgZnVuY3Rpb25h
+bGl0eSB3aXRoIGEgbmV3IHN5c2ZzX2FkZF9ncm91cF9saW5rKCkKY2FsbCB0aGF0IGFsbG93cyB0
+aGUgbGluayB0byBoYXZlIGEgZGlmZmVyZW50IG5hbWUgdGhhbiB0aGUgZ3JvdXAgb3IKYXR0cmli
+dXRlLCBzbzoKCi9zeXMvLi4uL2VudHJ5MS9saW5rX25hbWUgLT4gL3N5cy8uLi4vZW50cnkyL2dy
+b3VwQQoKX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooKSBub3cganVzdCBj
+YWxscwpzeXNmc19hZGRfZ3JvdXBfbGluaygpLCBwYXNzaW5nIGluIHRoZSBzYW1lIG5hbWUgZm9y
+IGJvdGggdGhlCmdyb3VwL2F0dHJpYnV0ZSBhbmQgZm9yIHRoZSBsaW5rIG5hbWUuCgpUaGlzIGlz
+IG5lZWRlZCBieSB0aGUgQUNQSSBITUFUIGVuYWJsaW5nIHdvcmsgYmVjYXVzZSB3ZSB3YW50IHRv
+IGhhdmUgYQpncm91cCBvZiBwZXJmb3JtYW5jZSBhdHRyaWJ1dGVzIHRoYXQgbGl2ZSBpbiBhIG1l
+bW9yeSB0YXJnZXQuICBUaGlzIGdyb3VwCnJlcHJlc2VudHMgdGhlIHBlcmZvcm1hbmNlIGJldHdl
+ZW4gYSBtZW1vcnkgdGFyZ2V0IGFuZCBpdHMgbG9jYWwKaW5pdGl0YXRvci4gIEluIHRoZSB0YXJn
+ZXQgdGhlIGF0dHJpYnV0ZSBncm91cCBpcyBuYW1lZCAibG9jYWxfaW5pdCI6CgogICMgdHJlZSBt
+ZW1fdGd0Mi9sb2NhbF9pbml0LwogIG1lbV90Z3QyL2xvY2FsX2luaXQvCiAg4pSc4pSA4pSAIG1l
+bV9pbml0MCAtPiAuLi8uLi9tZW1faW5pdDAKICDilJzilIDilIAgbWVtX3RndDIgLT4gLi4vLi4v
+bWVtX3RndDIKICDilJzilIDilIAgcmVhZF9id19NQnBzCiAg4pSc4pSA4pSAIHJlYWRfbGF0X25z
+ZWMKICDilJzilIDilIAgd3JpdGVfYndfTUJwcwogIOKUlOKUgOKUgCB3cml0ZV9sYXRfbnNlYwoK
+V2UgdGhlbiB3YW50IHRvIGxpbmsgdG8gdGhpcyBhdHRyaWJ1dGUgZ3JvdXAgZnJvbSB0aGUgaW5p
+dGlhdG9yLCBidXQgY2hhbmdlCnRoZSBuYW1lIG9mIHRoZSBsaW5rIHRvICJtZW1fdGd0WCIgc2lu
+Y2Ugd2UncmUgbm93IGxvb2tpbmcgYXQgaXQgZnJvbSB0aGUKaW5pdGlhdG9yJ3MgcGVyc3BlY3Rp
+dmUsIGFuZCBiZWNhdXNlIGEgZ2l2ZW4gaW5pdGlhdG9yIGNhbiBoYXZlIG11bHRpcGxlCmxvY2Fs
+IG1lbW9yeSB0YXJnZXRzOgoKICAjIGxzIC1sIG1lbV9pbml0MC9tZW1fdGd0MgogIGxyd3hyd3hy
+d3guIDEgcm9vdCByb290IDAgSnVsICA1IDE0OjM4IG1lbV9pbml0MC9tZW1fdGd0MiAtPgogIC4u
+L21lbV90Z3QyL2xvY2FsX2luaXQKClNpZ25lZC1vZmYtYnk6IFJvc3MgWndpc2xlciA8cm9zcy56
+d2lzbGVyQGxpbnV4LmludGVsLmNvbT4KLS0tCiBmcy9zeXNmcy9ncm91cC5jICAgICAgfCAzMCAr
+KysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0KIGluY2x1ZGUvbGludXgvc3lzZnMuaCB8ICAy
+ICsrCiAyIGZpbGVzIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDcgZGVsZXRpb25zKC0pCgpk
+aWZmIC0tZ2l0IGEvZnMvc3lzZnMvZ3JvdXAuYyBiL2ZzL3N5c2ZzL2dyb3VwLmMKaW5kZXggYWMy
+ZGUwZS4uMTlkYjU3YzggMTAwNjQ0Ci0tLSBhL2ZzL3N5c2ZzL2dyb3VwLmMKKysrIGIvZnMvc3lz
+ZnMvZ3JvdXAuYwpAQCAtMzY3LDE1ICszNjcsMTUgQEAgdm9pZCBzeXNmc19yZW1vdmVfbGlua19m
+cm9tX2dyb3VwKHN0cnVjdCBrb2JqZWN0ICprb2JqLCBjb25zdCBjaGFyICpncm91cF9uYW1lLAog
+RVhQT1JUX1NZTUJPTF9HUEwoc3lzZnNfcmVtb3ZlX2xpbmtfZnJvbV9ncm91cCk7CiAKIC8qKgot
+ICogX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmogLSBhZGQgYSBzeW1saW5r
+IHRvIGEga29iamVjdCBwb2ludGluZwotICogdG8gYSBncm91cCBvciBhbiBhdHRyaWJ1dGUKKyAq
+IHN5c2ZzX2FkZF9ncm91cF9saW5rIC0gYWRkIGEgc3ltbGluayB0byBhIGtvYmplY3QgcG9pbnRp
+bmcgdG8gYSBncm91cCBvcgorICogYW4gYXR0cmlidXRlCiAgKiBAa29iajoJCVRoZSBrb2JqZWN0
+IGNvbnRhaW5pbmcgdGhlIGdyb3VwLgogICogQHRhcmdldF9rb2JqOglUaGUgdGFyZ2V0IGtvYmpl
+Y3QuCiAgKiBAdGFyZ2V0X25hbWU6CVRoZSBuYW1lIG9mIHRoZSB0YXJnZXQgZ3JvdXAgb3IgYXR0
+cmlidXRlLgorICogQGxpbmtfbmFtZToJCVRoZSBuYW1lIG9mIHRoZSBsaW5rIHRvIHRoZSB0YXJn
+ZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgogICovCi1pbnQgX19jb21wYXRfb25seV9zeXNmc19saW5r
+X2VudHJ5X3RvX2tvYmooc3RydWN0IGtvYmplY3QgKmtvYmosCi0JCQkJICAgICAgc3RydWN0IGtv
+YmplY3QgKnRhcmdldF9rb2JqLAotCQkJCSAgICAgIGNvbnN0IGNoYXIgKnRhcmdldF9uYW1lKQor
+aW50IHN5c2ZzX2FkZF9ncm91cF9saW5rKHN0cnVjdCBrb2JqZWN0ICprb2JqLCBzdHJ1Y3Qga29i
+amVjdCAqdGFyZ2V0X2tvYmosCisJCWNvbnN0IGNoYXIgKnRhcmdldF9uYW1lLCBjb25zdCBjaGFy
+ICpsaW5rX25hbWUpCiB7CiAJc3RydWN0IGtlcm5mc19ub2RlICp0YXJnZXQ7CiAJc3RydWN0IGtl
+cm5mc19ub2RlICplbnRyeTsKQEAgLTQwMCwxMiArNDAwLDI4IEBAIGludCBfX2NvbXBhdF9vbmx5
+X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaihzdHJ1Y3Qga29iamVjdCAqa29iaiwKIAkJcmV0dXJu
+IC1FTk9FTlQ7CiAJfQogCi0JbGluayA9IGtlcm5mc19jcmVhdGVfbGluayhrb2JqLT5zZCwgdGFy
+Z2V0X25hbWUsIGVudHJ5KTsKKwlsaW5rID0ga2VybmZzX2NyZWF0ZV9saW5rKGtvYmotPnNkLCBs
+aW5rX25hbWUsIGVudHJ5KTsKIAlpZiAoSVNfRVJSKGxpbmspICYmIFBUUl9FUlIobGluaykgPT0g
+LUVFWElTVCkKLQkJc3lzZnNfd2Fybl9kdXAoa29iai0+c2QsIHRhcmdldF9uYW1lKTsKKwkJc3lz
+ZnNfd2Fybl9kdXAoa29iai0+c2QsIGxpbmtfbmFtZSk7CiAKIAlrZXJuZnNfcHV0KGVudHJ5KTsK
+IAlrZXJuZnNfcHV0KHRhcmdldCk7CiAJcmV0dXJuIElTX0VSUihsaW5rKSA/IFBUUl9FUlIobGlu
+aykgOiAwOwogfQorRVhQT1JUX1NZTUJPTF9HUEwoc3lzZnNfYWRkX2dyb3VwX2xpbmspOworCisv
+KioKKyAqIF9fY29tcGF0X29ubHlfc3lzZnNfbGlua19lbnRyeV90b19rb2JqIC0gYWRkIGEgc3lt
+bGluayB0byBhIGtvYmplY3QgcG9pbnRpbmcKKyAqIHRvIGEgZ3JvdXAgb3IgYW4gYXR0cmlidXRl
+CisgKiBAa29iajoJCVRoZSBrb2JqZWN0IGNvbnRhaW5pbmcgdGhlIGdyb3VwLgorICogQHRhcmdl
+dF9rb2JqOglUaGUgdGFyZ2V0IGtvYmplY3QuCisgKiBAdGFyZ2V0X25hbWU6CVRoZSBuYW1lIG9m
+IHRoZSB0YXJnZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgorICovCitpbnQgX19jb21wYXRfb25seV9z
+eXNmc19saW5rX2VudHJ5X3RvX2tvYmooc3RydWN0IGtvYmplY3QgKmtvYmosCisJCQkJICAgICAg
+c3RydWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAorCQkJCSAgICAgIGNvbnN0IGNoYXIgKnRhcmdl
+dF9uYW1lKQoreworCXJldHVybiBzeXNmc19hZGRfZ3JvdXBfbGluayhrb2JqLCB0YXJnZXRfa29i
+aiwgdGFyZ2V0X25hbWUsCisJCQl0YXJnZXRfbmFtZSk7Cit9CiBFWFBPUlRfU1lNQk9MX0dQTChf
+X2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaik7CmRpZmYgLS1naXQgYS9pbmNs
+dWRlL2xpbnV4L3N5c2ZzLmggYi9pbmNsdWRlL2xpbnV4L3N5c2ZzLmgKaW5kZXggYzZmMGYwZC4u
+ODY1ZjQ5OSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9zeXNmcy5oCisrKyBiL2luY2x1ZGUv
+bGludXgvc3lzZnMuaApAQCAtMjc4LDYgKzI3OCw4IEBAIGludCBzeXNmc19hZGRfbGlua190b19n
+cm91cChzdHJ1Y3Qga29iamVjdCAqa29iaiwgY29uc3QgY2hhciAqZ3JvdXBfbmFtZSwKIAkJCSAg
+ICBzdHJ1Y3Qga29iamVjdCAqdGFyZ2V0LCBjb25zdCBjaGFyICpsaW5rX25hbWUpOwogdm9pZCBz
+eXNmc19yZW1vdmVfbGlua19mcm9tX2dyb3VwKHN0cnVjdCBrb2JqZWN0ICprb2JqLCBjb25zdCBj
+aGFyICpncm91cF9uYW1lLAogCQkJCSAgY29uc3QgY2hhciAqbGlua19uYW1lKTsKK2ludCBzeXNm
+c19hZGRfZ3JvdXBfbGluayhzdHJ1Y3Qga29iamVjdCAqa29iaiwgc3RydWN0IGtvYmplY3QgKnRh
+cmdldF9rb2JqLAorCQljb25zdCBjaGFyICp0YXJnZXRfbmFtZSwgY29uc3QgY2hhciAqbGlua19u
+YW1lKTsKIGludCBfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaihzdHJ1Y3Qg
+a29iamVjdCAqa29iaiwKIAkJCQkgICAgICBzdHJ1Y3Qga29iamVjdCAqdGFyZ2V0X2tvYmosCiAJ
+CQkJICAgICAgY29uc3QgY2hhciAqdGFyZ2V0X25hbWUpOwotLSAKMi45LjQKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
+IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
