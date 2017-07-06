@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7CAE021CC5353
- for <linux-nvdimm@lists.01.org>; Thu,  6 Jul 2017 06:29:34 -0700 (PDT)
-Subject: Re: [RFC/PATCH] ndctl list should show more hardware information
-References: <595D2B03.6010408@hpe.com>
- <CAPcyv4hKFLE3FTnPXCvMRhaM_H05x_4d33V0Z6uZy9AJXQRsZw@mail.gmail.com>
- <20170706131301.4A07.E1E9C6FF@jp.fujitsu.com>
- <CAPcyv4gNnuUugTotxtiHmv49MtVbmRD3V2nrHYf+S-egE9R1dQ@mail.gmail.com>
-From: Linda Knippers <linda.knippers@hpe.com>
-Message-ID: <dfdbac16-ebe6-5c5d-9558-b4295c453bc2@hpe.com>
-Date: Thu, 6 Jul 2017 09:31:05 -0400
+Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8BD3121CC5354
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Jul 2017 02:22:04 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 8F361AC03A0
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Jul 2017 18:23:37 +0900 (JST)
+Date: Thu, 06 Jul 2017 18:23:32 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [PATCH v2] ndctl list should show more hardware information
+Message-Id: <20170706182328.669B.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4gNnuUugTotxtiHmv49MtVbmRD3V2nrHYf+S-egE9R1dQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,50 +20,89 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+Hi, 
+
+I made v2 patch. Please check it.
+
+--
+Change log
+v2 :  - use json_object_new_int() for each data.
+        - check MAX value for each data.
+        - phys_id becomes unsigned short from signed short.
+
+---
+   The current "id" data of dimm (ndctl list -D) shows the information
+   of DIMM module vendor or serial number.  However, I think it is not enough. 
+ 
+   If a NVDIMM becomes broken, users need to know its physical place
+   rather than vendor or serial number to replace the NVDIMM.
+
+   There are 2 candidate of such information. 
+     a) NFIT Device Handle (_ADR of the NVDIMM device)
+        This date includes node controller id and socket id.
+     b) NVDIMM Physical ID (Handle for the SMBIOS Memory Device (Type 17)).
+        The dmidecode can show this handle with more information like "Locator"
+        So, user can find the location of NVDIMM.
+
+   At first, I think _ADR is enough information. 
+
+   However, when I talked with our firmware team about this requirement, 
+   they said it may not be good data, because the node contoller ID is not
+   stable on our server due to "partitioning" feature.
+   (Our server can have plural partition on one box, and may have plural
+    node 0.)
+
+   So, I make the ndctl shows not only NFIT Device Handle but also
+   NVDIMM Physical ID. Then, user can find the location with dmidecode.
 
 
-On 7/6/2017 1:41 AM, Dan Williams wrote:
-> On Wed, Jul 5, 2017 at 9:13 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
-> [..]
->>> Yes, that would be great. Last I checked the "json-c" library that
->>> ndctl is using did not support this, but I don't think anything
->>> prevents json-c from growing this support. I.e. as far as I know it
->>> supports hex numbers for input, so I think it is valid json either
->>> way.
->>
->> Sorry, maybe I could not follow here. Please let me confirm.
->> In conclusion, json_object_new_int() should be used at here?
->>
->
-> Yes.
->
->> Since I tried to output hex values for user to compare with dmidecode's output easily,
->> I translated to hex strings at here.
->> But, I should json_object_new_int() in conclusion, and should expect that json-c
->> library will be able to output hex value in future?
->
-> I checked, it seems hex output is not valid json. However, I think
-> what I will do is add a "--hex" option to "ndctl list" that will make
-> util_display_json_array() manually print the json output object and
-> convert all integers to hex in the process. While that option will
-> make the output not machine readable by standards compliant json
-> parsers it will make it easier for humans to read in some cases.
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+---
 
-Will that convert all integers to hex if that option is used?  Some values
-are more useful as decimal and some are more useful as hex.  In this case
-where the value is never really useful as decimal, I thought the original
-code did pretty well.  I'd prefer that to yet another option.
+diff --git a/util/json.c b/util/json.c
+index b718d74..a6775a0 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -68,6 +68,8 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm)
+ {
+ 	struct json_object *jdimm = json_object_new_object();
+ 	const char *id = ndctl_dimm_get_unique_id(dimm);
++	unsigned int handle = ndctl_dimm_get_handle(dimm);
++	unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
+ 	struct json_object *jobj;
+ 
+ 	if (!jdimm)
+@@ -85,6 +87,20 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm)
+ 		json_object_object_add(jdimm, "id", jobj);
+ 	}
+ 
++	if (handle < UINT_MAX) {
++		jobj = json_object_new_int(handle);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jdimm, "handle", jobj);
++	}
++
++	if (phys_id < USHRT_MAX) {
++		jobj = json_object_new_int(phys_id);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jdimm, "phys_id", jobj);
++	}
++
+ 	if (!ndctl_dimm_is_enabled(dimm)) {
+ 		jobj = json_object_new_string("disabled");
+ 		if (!jobj)
 
--- ljk
-
+---
+Yasunori Goto
 
 _______________________________________________
 Linux-nvdimm mailing list
