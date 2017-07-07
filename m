@@ -1,14 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from klopotovaschool.com
- (static.82.203.76.144.clients.your-server.de [144.76.203.82])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E25E21B02BAF
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jul 2017 12:52:44 -0700 (PDT)
-Subject: Parcel ID003785832 delivery problems, please review
-Date: Fri, 7 Jul 2017 19:54:15 +0000
-Message-Id: <20170707195415.B8A9BB866F8@klopotovaschool.com>
-From: admin4@vena-ee.com
+Received: from ds5.datahost.gr (unknown [93.174.122.210])
+ by ml01.01.org (Postfix) with ESMTP id EA6F521B02BBE
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Jul 2017 20:38:42 -0700 (PDT)
+Subject: UPS parcel #03390834 delivery problem
+Date: Fri, 7 Jul 2017 06:38:17 +0300
+From: postmaster@ds5.datahost.gr
+Message-ID: <auto-000003969175@ds5.datahost.gr>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,13 +23,13 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 Dear Customer,
 
-Your parcel was successfully delivered July 03 to UPS Station, but our courier cound not contact you.
+Your item has arrived at the UPS Post Office at July 06, but the courier was unable to deliver parcel to you.
 
-You can download the shipment label attached!
+Please check delivery label attached!
 
-Thanks,
+With sincere appreciation,
  ,
-UPS Chief Support Manager.
+UPS Delivery Agent.
 
 _______________________________________________
 Linux-nvdimm mailing list
