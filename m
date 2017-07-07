@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1C95821CF25AD
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jul 2017 09:29:18 -0700 (PDT)
-Date: Fri, 7 Jul 2017 10:30:58 -0600
+ by ml01.01.org (Postfix) with ESMTPS id DF9A721CF25AC
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Jul 2017 09:23:32 -0700 (PDT)
+Date: Fri, 7 Jul 2017 10:25:12 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [RFC v2 0/5] surface heterogeneous memory performance information
-Message-ID: <20170707163058.GB22856@linux.intel.com>
+Message-ID: <20170707162512.GA22856@linux.intel.com>
 References: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
- <7cb3b9c4-9082-97e9-ebfd-542243bf652b@nvidia.com>
+ <1499408836.23251.3.camel@gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <7cb3b9c4-9082-97e9-ebfd-542243bf652b@nvidia.com>
+In-Reply-To: <1499408836.23251.3.camel@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,56 +20,130 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: John Hubbard <jhubbard@nvidia.com>
+To: Balbir Singh <bsingharora@gmail.com>
 Cc: "Box, David E" <david.e.box@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, Robert, Lukasz, "Erik  <erik.schmauss@intel.com>, Len Brown" <lenb@kernel.org>, Jerome Glisse <jglisse@redhat.com>, devel@acpica.org, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jul 06, 2017 at 10:30:46PM -0700, John Hubbard wrote:
-> On 07/06/2017 02:52 PM, Ross Zwisler wrote:
-> [...]
-> > 
-> > The naming collision between Jerome's "Heterogeneous Memory Management
-> > (HMM)" and this "Heterogeneous Memory (HMEM)" series is unfortunate, but I
-> > was trying to stick with the word "Heterogeneous" because of the naming of
-> > the ACPI 6.2 Heterogeneous Memory Attribute Table table.  Suggestions for
-> > better naming are welcome.
-> > 
-> 
-> Hi Ross,
-> 
-> Say, most of the places (file names, function and variable names, and even
-> print statements) where this patchset uses hmem or HMEM, it really seems to
-> mean, the Heterogeneous Memory Attribute Table. That's not *always* true, but
-> given that it's a pretty severe naming conflict, how about just changing:
-> 
-> hmem --> hmat
-> HMEM --> HMAT
-> 
-> ...everywhere? Then you still have Heterogeneous Memory in the name, but
-> there is enough lexical distance (is that a thing? haha) between HMM and HMAT
-> to keep us all sane. :)
-> 
-> With or without the above suggestion, there are a few places (Kconfig, comments,
-> prints) where we can more easily make it clear that HMM != HMEM (or HMAT), 
-> so for those I can just comment on them separately in the individual patches.
-> 
-> thanks,
-> john h
-
-Hi John,
-
-Sure, that change makes sense to me.  I had initially tried to make this
-enabling more generic so that other, non-ACPI systems could use the same sysfs
-representation even if they got their performance numbers from some other
-source, but while implementing it pretty quickly became very tightly tied to
-the ACPI HMAT.
-
-- Ross
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCBKdWwgMDcsIDIwMTcgYXQgMDQ6Mjc6MTZQTSArMTAwMCwgQmFsYmlyIFNpbmdoIHdy
+b3RlOgo+IE9uIFRodSwgMjAxNy0wNy0wNiBhdCAxNTo1MiAtMDYwMCwgUm9zcyBad2lzbGVyIHdy
+b3RlOgo+ID4gPT09PSBRdWljayBTdW1tYXJ5ID09PT0KPiA+IAo+ID4gUGxhdGZvcm1zIGluIHRo
+ZSB2ZXJ5IG5lYXIgZnV0dXJlIHdpbGwgaGF2ZSBtdWx0aXBsZSB0eXBlcyBvZiBtZW1vcnkKPiA+
+IGF0dGFjaGVkIHRvIGEgc2luZ2xlIENQVS4gIFRoZXNlIGRpc3BhcmF0ZSBtZW1vcnkgcmFuZ2Vz
+IHdpbGwgaGF2ZSBzb21lCj4gPiBjaGFyYWN0ZXJpc3RpY3MgaW4gY29tbW9uLCBzdWNoIGFzIENQ
+VSBjYWNoZSBjb2hlcmVuY2UsIGJ1dCB0aGV5IGNhbiBoYXZlCj4gPiB3aWRlIHJhbmdlcyBvZiBw
+ZXJmb3JtYW5jZSBib3RoIGluIHRlcm1zIG9mIGxhdGVuY3kgYW5kIGJhbmR3aWR0aC4KPiA+IAo+
+ID4gRm9yIGV4YW1wbGUsIGNvbnNpZGVyIGEgc3lzdGVtIHRoYXQgY29udGFpbnMgcGVyc2lzdGVu
+dCBtZW1vcnksIHN0YW5kYXJkCj4gPiBERFIgbWVtb3J5IGFuZCBIaWdoIEJhbmR3aWR0aCBNZW1v
+cnkgKEhCTSksIGFsbCBhdHRhY2hlZCB0byB0aGUgc2FtZSBDUFUuCj4gPiBUaGVyZSBjb3VsZCBw
+b3RlbnRpYWxseSBiZSBhbiBvcmRlciBvZiBtYWduaXR1ZGUgb3IgbW9yZSBkaWZmZXJlbmNlIGlu
+Cj4gPiBwZXJmb3JtYW5jZSBiZXR3ZWVuIHRoZSBzbG93ZXN0IGFuZCBmYXN0ZXN0IG1lbW9yeSBh
+dHRhY2hlZCB0byB0aGF0IENQVS4KPiA+IAo+ID4gV2l0aCB0aGUgY3VycmVudCBMaW51eCBjb2Rl
+IE5VTUEgbm9kZXMgYXJlIENQVS1jZW50cmljLCBzbyBhbGwgdGhlIG1lbW9yeQo+ID4gYXR0YWNo
+ZWQgdG8gYSBnaXZlbiBDUFUgd2lsbCBiZSBsdW1wZWQgaW50byB0aGUgc2FtZSBOVU1BIG5vZGUu
+ICBUaGlzIG1ha2VzCj4gPiBpdCB2ZXJ5IGRpZmZpY3VsdCBmb3IgdXNlcnNwYWNlIGFwcGxpY2F0
+aW9ucyB0byB1bmRlcnN0YW5kIHRoZSBwZXJmb3JtYW5jZQo+ID4gb2YgZGlmZmVyZW50IG1lbW9y
+eSByYW5nZXMgb24gYSBnaXZlbiBDUFUuCj4gPiAKPiA+IFdlIHNvbHZlIHRoaXMgaXNzdWUgYnkg
+cHJvdmlkaW5nIHVzZXJzcGFjZSB3aXRoIHBlcmZvcm1hbmNlIGluZm9ybWF0aW9uIG9uCj4gPiBp
+bmRpdmlkdWFsIG1lbW9yeSByYW5nZXMuICBUaGlzIHBlcmZvcm1hbmNlIGluZm9ybWF0aW9uIGlz
+IGV4cG9zZWQgdmlhCj4gPiBzeXNmczoKPiA+IAo+ID4gICAjIGdyZXAgLiBtZW1fdGd0Mi8qIG1l
+bV90Z3QyL2xvY2FsX2luaXQvKiAyPi9kZXYvbnVsbAo+ID4gICBtZW1fdGd0Mi9maXJtd2FyZV9p
+ZDoxCj4gPiAgIG1lbV90Z3QyL2lzX2NhY2hlZDowCj4gPiAgIG1lbV90Z3QyL2lzX2VuYWJsZWQ6
+MQo+ID4gICBtZW1fdGd0Mi9pc19pc29sYXRlZDowCj4gCj4gQ291bGQgeW91IHBsZWFzZSBleHBs
+YWluIHRoZXNlIGNoYXJhY3RlcnNpdGljcywgYXJlIHRoZXkgaW4gdGhlIHBhdGNoZXMKPiB0byBm
+b2xsb3c/CgpZZWEsIHNvcnJ5LCB0aGVzZSBkbyBuZWVkIG1vcmUgZXhwbGFuYXRpb24uICBUaGVz
+ZSB2YWx1ZXMgYXJlIGRlcml2ZWQgZnJvbSB0aGUKQUNQSSBTUkFUL0hNQVQgdGFibGVzOgoKPiA+
+ICAgbWVtX3RndDIvZmlybXdhcmVfaWQ6MQoKVGhpcyBpcyB0aGUgcHJveGltaXR5IGRvbWFpbiwg
+YXMgZGVmaW5lZCBpbiB0aGUgU1JBVCBhbmQgSE1BVC4gIEJhc2ljYWxseQpldmVyeSBBQ1BJIHBy
+b3hpbWl0eSBkb21haW4gd2lsbCBlbmQgdXAgYmVpbmcgYSB1bmlxdWUgTlVNQSBub2RlIGluIExp
+bnV4LCBidXQKdGhlIG51bWJlcnMgbWF5IGdldCByZW9yZGVyZWQgYW5kIExpbnV4IGNhbiBjcmVh
+dGUgZXh0cmEgTlVNQSBub2RlcyB0aGF0IGRvbid0Cm1hcCBiYWNrIHRvIEFDUEkgcHJveGltaXR5
+IGRvbWFpbnMuICBTbywgdGhpcyB2YWx1ZSBpcyBuZWVkZWQgaWYgYW55b25lIGV2ZXIKd2FudHMg
+dG8gbG9vayBhdCB0aGUgQUNQSSBITUFUIGFuZCBTUkFUIHRhYmxlcyBkaXJlY3RseSBhbmQgbWFr
+ZSBzZW5zZSBvZiBob3cKdGhleSBtYXAgdG8gTlVNQSBub2RlcyBpbiBMaW51eC4KCj4gPiAgIG1l
+bV90Z3QyL2lzX2NhY2hlZDowCgpUaGUgSE1BVCBwcm92aWRlcyBsb3RzIG9mIGRldGFpbGVkIGlu
+Zm9ybWF0aW9uIHdoZW4gYSBtZW1vcnkgcmVnaW9uIGhhcwpjYWNoaW5nIGxheWVycy4gIEZvciBl
+YWNoIGxheWVyIG9mIG1lbW9yeSBjYWNoaW5nIGl0IGhhcyB0aGUgYWJpbGl0eSB0bwpwcm92aWRl
+IGxhdGVuY3kgYW5kIGJhbmR3aWR0aCBpbmZvcm1hdGlvbiBmb3IgYm90aCByZWFkcyBhbmQgd3Jp
+dGVzLAppbmZvcm1hdGlvbiBhYm91dCB0aGUgY2FjaGluZyBhc3NvY2lhdGl2aXR5IChkaXJlY3Qg
+bWFwcGVkLCBzb21ldGhpbmcgbW9yZQpjb21wbGV4KSwgdGhlIHdyaXRlYmFjayBwb2xpY3kgKFdC
+LCBXVCksIHRoZSBjYWNoZSBsaW5lIHNpemUsIGV0Yy4KCkZvciBzaW1wbGljaXR5IHRoaXMgc3lz
+ZnMgaW50ZXJmYWNlIGRvZXNuJ3QgZXhwb3NlIHRoYXQgbGV2ZWwgb2YgZGV0YWlsIHRvIHRoZQp1
+c2VyLCBhbmQgdGhpcyBmbGFnIGp1c3QgbGV0cyB0aGUgdXNlciBrbm93IHdoZXRoZXIgdGhlIG1l
+bW9yeSByZWdpb24gdGhleSBhcmUKbG9va2luZyBhdCBoYXMgY2FjaGluZyBsYXllcnMgb3Igbm90
+LiAgUmlnaHQgbm93IHRoZSBhZGRpdGlvbmFsIGRldGFpbHMsIGlmCmRlc2lyZWQsIGNhbiBiZSBn
+YXRoZXJlZCBieSBsb29raW5nIGF0IHRoZSByYXcgdGFibGVzLgoKPiA+ICAgbWVtX3RndDIvaXNf
+ZW5hYmxlZDoxCgpUZWxscyB3aGV0aGVyIHRoZSBtZW1vcnkgcmVnaW9uIGlzIGVuYWJsZWQsIGFz
+IGRlZmluZWQgYnkgdGhlIGZsYWdzIGluIHRoZQpTUkFULiAgQWN0dWFsbHksIHRob3VnaCwgaW4g
+dGhpcyB2ZXJzaW9uIG9mIHRoZSBwYXRjaCBzZXJpZXMgd2UgZG9uJ3QgY3JlYXRlCmVudHJpZXMg
+Zm9yIENQVXMgb3IgbWVtb3J5IHJlZ2lvbnMgdGhhdCBhcmVuJ3QgZW5hYmxlZCwgc28gdGhpcyBp
+c24ndCBuZWVkZWQuCkknbGwgcmVtb3ZlIGZvciB2My4KCj4gPiAgIG1lbV90Z3QyL2lzX2lzb2xh
+dGVkOjAKClRoaXMgc3VyZmFjZXMgYSBmbGFnIGluIHRoZSBITUFUJ3MgTWVtb3J5IFN1YnN5c3Rl
+bSBBZGRyZXNzIFJhbmdlIFN0cnVjdHVyZToKCiAgQml0IFsyXTogUmVzZXJ2YXRpb24gaGludOKA
+lGlmIHNldCB0byAxLCBpdCBpcyByZWNvbW1lbmRlZAogIHRoYXQgdGhlIG9wZXJhdGluZyBzeXN0
+ZW0gYXZvaWQgcGxhY2luZyBhbGxvY2F0aW9ucyBpbgogIHRoaXMgcmVnaW9uIGlmIGl0IGNhbm5v
+dCByZWxvY2F0ZSAoZS5nLiBPUyBjb3JlIG1lbW9yeQogIG1hbmFnZW1lbnQgc3RydWN0dXJlcywg
+T1MgY29yZSBleGVjdXRhYmxlKS4gQW55CiAgYWxsb2NhdGlvbnMgcGxhY2VkIGhlcmUgc2hvdWxk
+IGJlIGFibGUgdG8gYmUgcmVsb2NhdGVkCiAgKGUuZy4gZGlzayBjYWNoZSkgaWYgdGhlIG1lbW9y
+eSBpcyBuZWVkZWQgZm9yIGFub3RoZXIKICBwdXJwb3NlLgoKQWRkaW5nIGtlcm5lbCBzdXBwb3J0
+IGZvciB0aGlzIGhpbnQgKGkuZS4gYWN0dWFsbHkgcmVzZXJ2aW5nIHRoZSBtZW1vcnkgcmVnaW9u
+CmR1cmluZyBib290IHNvIGl0IGlzbid0IHVzZWQgYnkgdGhlIGtlcm5lbCBvciB1c2Vyc3BhY2Us
+IGFuZCBpcyBmdWxseQphdmFpbGFibGUgZm9yIGV4cGxpY2l0IGFsbG9jYXRpb24pIGlzIHBhcnQg
+b2YgdGhlIGZ1dHVyZSB3b3JrIHRoYXQgd2UnZCBkbyBpbgpmb2xsb3ctb24gcGF0Y2ggc2VyaWVz
+LgoKPiA+ICAgbWVtX3RndDIvcGh5c19hZGRyX2Jhc2U6MHgwCj4gPiAgIG1lbV90Z3QyL3BoeXNf
+bGVuZ3RoX2J5dGVzOjB4ODAwMDAwMDAwCj4gPiAgIG1lbV90Z3QyL2xvY2FsX2luaXQvcmVhZF9i
+d19NQnBzOjMwNzIwCj4gPiAgIG1lbV90Z3QyL2xvY2FsX2luaXQvcmVhZF9sYXRfbnNlYzoxMDAK
+PiA+ICAgbWVtX3RndDIvbG9jYWxfaW5pdC93cml0ZV9id19NQnBzOjMwNzIwCj4gPiAgIG1lbV90
+Z3QyL2xvY2FsX2luaXQvd3JpdGVfbGF0X25zZWM6MTAwCj4gCj4gSG93IHRvIHRoZXNlIG51bWJl
+cnMgY29tcGFyZSB0byBub3JtYWwgc3lzdGVtIG1lbW9yeT8KClRoZXNlIGFyZSBnYXJiYWdlIG51
+bWJlcnMgdGhhdCBJIG1hZGUgdXAgaW4gbXkgaGFja2VkLXVwIFFFTVUgdGFyZ2V0LiA6KSAgCgo+
+ID4gVGhpcyBhbGxvd3MgYXBwbGljYXRpb25zIHRvIGVhc2lseSBmaW5kIHRoZSBtZW1vcnkgdGhh
+dCB0aGV5IHdhbnQgdG8gdXNlLgo+ID4gV2UgZXhwZWN0IHRoYXQgdGhlIGV4aXN0aW5nIE5VTUEg
+QVBJcyB3aWxsIGJlIGVuaGFuY2VkIHRvIHVzZSB0aGlzIG5ldwo+ID4gaW5mb3JtYXRpb24gc28g
+dGhhdCBhcHBsaWNhdGlvbnMgY2FuIGNvbnRpbnVlIHRvIHVzZSB0aGVtIHRvIHNlbGVjdCB0aGVp
+cgo+ID4gZGVzaXJlZCBtZW1vcnkuCj4gPiAKPiA+IFRoaXMgc2VyaWVzIGlzIGJ1aWx0IHVwb24g
+YWNwaWNhLTE3MDU6Cj4gPiAKPiA+IGh0dHBzOi8vZ2l0aHViLmNvbS96ZXRhbG9nL2xpbnV4L2Nv
+bW1pdHMvYWNwaWNhLTE3MDUKPiA+IAo+ID4gQW5kIHlvdSBjYW4gZmluZCBhIHdvcmtpbmcgdHJl
+ZSBoZXJlOgo+ID4gCj4gPiBodHRwczovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2Vy
+bmVsL2dpdC96d2lzbGVyL2xpbnV4LmdpdC9sb2cvP2g9aG1lbV9zeXNmcwo+ID4gCj4gPiA9PT09
+IExvdHMgb2YgRGV0YWlscyA9PT09Cj4gPiAKPiA+IFRoaXMgcGF0Y2ggc2V0IGlzIG9ubHkgY29u
+Y2VybmVkIHdpdGggQ1BVLWFkZHJlc3NhYmxlIG1lbW9yeSB0eXBlcywgbm90Cj4gPiBvbi1kZXZp
+Y2UgbWVtb3J5IGxpa2Ugd2hhdCB3ZSBoYXZlIHdpdGggSmVyb21lIEdsaXNzZSdzIEhNTSBzZXJp
+ZXM6Cj4gPiAKPiA+IGh0dHBzOi8vbHduLm5ldC9BcnRpY2xlcy83MjY2OTEvCj4gPiAKPiA+IFRo
+aXMgcGF0Y2ggc2V0IHdvcmtzIGJ5IGVuYWJsaW5nIHRoZSBuZXcgSGV0ZXJvZ2VuZW91cyBNZW1v
+cnkgQXR0cmlidXRlCj4gPiBUYWJsZSAoSE1BVCkgdGFibGUsIG5ld2x5IGRlZmluZWQgaW4gQUNQ
+SSA2LjIuIE9uZSBtYWpvciBjb25jZXB0dWFsIGNoYW5nZQo+ID4gaW4gQUNQSSA2LjIgcmVsYXRl
+ZCB0byB0aGlzIHdvcmsgaXMgdGhhdCBwcm94aW1pdHkgZG9tYWlucyBubyBsb25nZXIgbmVlZAo+
+ID4gdG8gY29udGFpbiBhIHByb2Nlc3Nvci4gIFdlIGNhbiBub3cgaGF2ZSBtZW1vcnktb25seSBw
+cm94aW1pdHkgZG9tYWlucywKPiA+IHdoaWNoIG1lYW5zIHRoYXQgd2UgY2FuIG5vdyBoYXZlIG1l
+bW9yeS1vbmx5IExpbnV4IE5VTUEgbm9kZXMuCj4gPiAKPiA+IEhlcmUgaXMgYW4gZXhhbXBsZSBj
+b25maWd1cmF0aW9uIHdoZXJlIHdlIGhhdmUgYSBzaW5nbGUgcHJvY2Vzc29yLCBvbmUKPiA+IHJh
+bmdlIG9mIHJlZ3VsYXIgbWVtb3J5IGFuZCBvbmUgcmFuZ2Ugb2YgSEJNOgo+ID4gCj4gPiAgICst
+LS0tLS0tLS0tLS0tLS0rICAgKy0tLS0tLS0tLS0tLS0tLS0rCj4gPiAgIHwgUHJvY2Vzc29yICAg
+ICB8ICAgfCBNZW1vcnkgICAgICAgICB8Cj4gPiAgIHwgcHJveCBkb21haW4gMCArLS0tKyBwcm94
+IGRvbWFpbiAxICB8Cj4gPiAgIHwgTlVNQSBub2RlIDEgICB8ICAgfCBOVU1BIG5vZGUgMiAgICB8
+Cj4gPiAgICstLS0tLS0tKy0tLS0tLS0rICAgKy0tLS0tLS0tLS0tLS0tLS0rCj4gPiAgICAgICAg
+ICAgfAo+ID4gICArLS0tLS0tLSstLS0tLS0tLS0tKwo+ID4gICB8IEhCTSAgICAgICAgICAgICAg
+fAo+ID4gICB8IHByb3ggZG9tYWluIDIgICAgfAo+ID4gICB8IE5VTUEgbm9kZSAwICAgICAgfAo+
+ID4gICArLS0tLS0tLS0tLS0tLS0tLS0tKwo+ID4gCj4gPiBUaGlzIGdpdmVzIHVzIG9uZSBpbml0
+aWF0b3IgKHRoZSBwcm9jZXNzb3IpIGFuZCB0d28gdGFyZ2V0cyAodGhlIHR3byBtZW1vcnkKPiA+
+IHJhbmdlcykuICBFYWNoIG9mIHRoZXNlIHRocmVlIGhhcyBpdHMgb3duIEFDUEkgcHJveGltaXR5
+IGRvbWFpbiBhbmQKPiA+IGFzc29jaWF0ZWQgTGludXggTlVNQSBub2RlLiAgTm90ZSBhbHNvIHRo
+YXQgd2hpbGUgdGhlcmUgaXMgYSAxOjEgbWFwcGluZwo+ID4gZnJvbSBlYWNoIHByb3hpbWl0eSBk
+b21haW4gdG8gZWFjaCBOVU1BIG5vZGUsIHRoZSBudW1iZXJzIGRvbid0IG5lY2Vzc2FyaWx5Cj4g
+PiBtYXRjaCB1cC4gIEFkZGl0aW9uYWxseSB3ZSBjYW4gaGF2ZSBleHRyYSBOVU1BIG5vZGVzIHRo
+YXQgZG9uJ3QgbWFwIGJhY2sgdG8KPiA+IEFDUEkgcHJveGltaXR5IGRvbWFpbnMuCj4gCj4gQ291
+bGQgeW91IGV4cGFuZCBvbiBwcm94aW1pdHkgZG9tYWlucywgYXJlIHRoZXkgdGhlIHNhbWUgYXMg
+bm9kZSBkaXN0YW5jZQo+IG9yIGlzIHRoaXMgQUNQSSB0ZXJtaW5vbG9neSBmb3Igc29tZXRoaW5n
+IG1vcmU/CgpJIHRoaW5rIEkgYW5zd2VyZWQgdGhpcyBhYm92ZSBpbiBteSBleHBsYW5hdGlvbiBv
+ZiB0aGUgImZpcm13YXJlX2lkIiBmaWVsZCwKYnV0IHBsZWFzZSBsZXQgbWUga25vdyBpZiB5b3Ug
+aGF2ZSBhbnkgbW9yZSBxdWVzdGlvbnMuICBCYXNpY2FsbHksIGEgcHJveGltaXR5CmRvbWFpbiBp
+cyBhbiBBQ1BJIGNvbmNlcHQgdGhhdCBpcyB2ZXJ5IHNpbWlsYXIgdG8gYSBMaW51eCBOVU1BIG5v
+ZGUsIGFuZCBldmVyeQpBQ1BJIHByb3hpbWl0eSBkb21haW4gZ2VuZXJhdGVzIGFuZCBjYW4gYmUg
+bWFwcGVkIHRvIGEgdW5pcXVlIExpbnV4IE5VTUEgbm9kZS4KX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51
+eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtbnZkaW1tCg==
