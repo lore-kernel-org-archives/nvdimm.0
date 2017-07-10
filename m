@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 41F5D21B02BAF
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jul 2017 13:41:53 -0700 (PDT)
-Subject: [ndctl PATCH 0/2] Be kind to humans
+ by ml01.01.org (Postfix) with ESMTPS id E534E2095D2C1
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Jul 2017 13:39:45 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl, test: fix check_btt_autodetect() exit condition
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 07 Jul 2017 13:37:08 -0700
-Message-ID: <149945982889.8106.13607379131149182964.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 10 Jul 2017 13:35:05 -0700
+Message-ID: <149971890518.36155.4733103499126457965.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,33 +21,30 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prompted by Yasunori's patch to add a few more fields to the "ndctl list
---dimm" output we realized it would be nice to have listings be more
-user-friendly by default. These patches take advantage of json-c's
-ability to specify a custom object serializer so that we can select
-'human' vs 'machine' friendly output.
+Static analysis reports that we fail to act on a pwrite() error
+initializing the info block to zero.
 
-This of course opens the door to things like colorized output to reflect
-the health state of a dimm.
-
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ test/libndctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-Dan Williams (2):
-      ndctl, list: convert json control flags to bit-flags
-      ndctl, daxctl, list: make terminal output human readable by default
+diff --git a/test/libndctl.c b/test/libndctl.c
+index e1c8ee9aabf8..9c9263930554 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -1534,6 +1534,7 @@ static int check_btt_autodetect(struct ndctl_bus *bus,
+ 		rc = -ENXIO;
+ 		fprintf(stderr, "%s: failed to overwrite btt on %s\n",
+ 				devname, bdev);
++		goto out;
+ 	}
+ 	rc = pwrite(fd, buf, 4096, 0);
+ 	if (rc < 4096) {
 
-
- Documentation/daxctl/daxctl-list.txt |   21 ++++
- Documentation/ndctl/ndctl-list.txt   |   30 ++++++
- daxctl/list.c                        |   36 +++++++-
- ndctl/list.c                         |   59 ++++++++++--
- ndctl/namespace.c                    |    6 +
- util/json.c                          |  162 ++++++++++++++++++++++++++--------
- util/json.h                          |   25 ++++-
- 7 files changed, 279 insertions(+), 60 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
