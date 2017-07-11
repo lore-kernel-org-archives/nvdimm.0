@@ -1,16 +1,110 @@
-From: "Cheng-mean Liu (SOCCER)" <soccerl-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [PATCH] nvdimm: Remove minimum size requirement
-Date: Mon, 10 Jul 2017 20:32:13 +0000
-Message-ID: <MWHPR21MB0143A16C836BDD523C12A0EEA6A90@MWHPR21MB0143.namprd21.prod.outlook.com>
-References: <20170710183248.2417-1-willy@infradead.org>
- <CAPcyv4ioWUmiHbaGVcpxuK-j0JrcGk-_VcpR6yQtQMUwcRTRcQ@mail.gmail.com>
- <20170710203012.GB22476@bombadil.infradead.org>
+From: "Felton Farber  " <ninabuck952-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: fw: Manual Offpage SEO work for ml01.01.org
+Date: Tue, 11 Jul 2017 03:46:15 +0300
+Message-ID: <497DA7AC.2DE1CA6F@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="----------=_59641FD5.342E4F6E"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_59641FD5.342E4F6E
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  hi there Here it is, cheap, manual and effective http://www.serp-booster.com/detail.php?id=147
+   Regards Felton Farber Linux-nvdimm mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+   https://lists.01.org/mailman/listinfo/linux-nvdimm [...] 
+
+Content analysis details:   (12.6 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+               [Blocked - see <http://www.spamcop.net/bl.shtml?182.16.19.226>]
+ 2.8 FSL_HELO_FAKE          No description available.
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (ninabuck952[at]gmail.com)
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (ninabuck952[at]gmail.com)
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
+                            [score: 0.4873]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: serp-booster.com]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: serp-booster.com]
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.serp-booster.com]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.serp-booster.com]
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+The original message was not completely plain text, and may be unsafe to
+open with some email clients; in particular, it may contain a virus,
+or confirm that your address can receive spam.  If you wish to view
+it, it may be safer to save it to a file and open it with an editor.
+
+
+------------=_59641FD5.342E4F6E
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: attachment
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170710203012.GB22476-PfSpb0PWhxZc2C7mugBRk2EX/6BAtgUQ@public.gmane.org>
-Content-Language: en-US
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1dUjJV-0001H2-Hj
+	for gln-linux-nvdimm@m.gmane.org; Tue, 11 Jul 2017 02:46:05 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id A0F6621CF25CB;
+	Mon, 10 Jul 2017 17:44:24 -0700 (PDT)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (unknown [182.16.19.226])
+ by ml01.01.org (Postfix) with SMTP id 2C0C021A00AC1
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Mon, 10 Jul 2017 17:44:21 -0700 (PDT)
+Message-ID: <497DA7AC.2DE1CA6F-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Tue, 11 Jul 2017 03:46:15 +0300
+From: "Felton Farber  " <ninabuck952-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.0; en-GB;
+ rv:1.8.1.17) Gecko/20080914 Thunderbird/2.0.0.17
+X-Accept-Language: en-us
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: fw: Manual Offpage SEO work for ml01.01.org
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,32 +112,38 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: Felton Farber   <ninabuck952-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============5352403577553816661=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
 
-I have tough time to image any scenarios that could make sense a zero-sized device.
+--===============5352403577553816661==
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
------Original Message-----
-From: Matthew Wilcox [mailto:willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org] 
-Sent: Monday, July 10, 2017 1:30 PM
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org; Cheng-mean Liu (SOCCER) <soccerl-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>; Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: Re: [PATCH] nvdimm: Remove minimum size requirement
+hi there
+Here it is, cheap, manual and effective
+http://www.serp-booster.com/detail.php?id=147
 
-On Mon, Jul 10, 2017 at 11:41:08AM -0700, Dan Williams wrote:
-> >         size = nvdimm_namespace_capacity(ndns);
-> > -       if (size < ND_MIN_NAMESPACE_SIZE) {
-> > -               dev_dbg(&ndns->dev, "%pa, too small must be at least %#x\n",
-> > -                               &size, ND_MIN_NAMESPACE_SIZE);
-> > +       if (size < PAGE_SIZE) {
-> 
-> If we're going to change the print level away from 'debug' then I 
-> think this should be "if (size && size < PAGE_SIZE)". The sub-system 
-> pre-creates 0-sized devices that are later configured into full 
-> namespaces, in those cases we shouldn't fire the warning.
 
-Should we allow drivers to claim zero-sized devices?  If not, then the
-dev_warn() should be predicated on size being non-zero, but the return -ENODEV should still trigger.
+Regards
+Felton Farber  
+
+
+
+--===============5352403577553816661==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============5352403577553816661==--
+
+
+------------=_59641FD5.342E4F6E--
