@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7FE612095D9C2
- for <linux-nvdimm@lists.01.org>; Fri, 21 Jul 2017 15:38:04 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 0/5] DAX common 4k zero page
-Date: Fri, 21 Jul 2017 16:39:50 -0600
-Message-Id: <20170721223956.29485-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DC3A721A00AFA
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Jul 2017 22:42:47 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id B4546AC0128
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Jul 2017 14:44:31 +0900 (JST)
+Date: Thu, 13 Jul 2017 14:44:26 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: Some thoughts of ndctl list command output
+In-Reply-To: <CAPcyv4iyU5EQJMazRuQ=TM3o15kOJwX0RnCnnxgRcfBbaJyQMw@mail.gmail.com>
+References: <20170713133545.4ABF.E1E9C6FF@jp.fujitsu.com>
+ <CAPcyv4iyU5EQJMazRuQ=TM3o15kOJwX0RnCnnxgRcfBbaJyQMw@mail.gmail.com>
+Message-Id: <20170713144423.4AC2.E1E9C6FF@jp.fujitsu.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,80 +22,120 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-doc@vger.kernel.org, David Airlie <airlied@linux.ie>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Christoph Hellwig <hch@lst.de>, linux-samsung-soc@vger.kernel.org, Joonyoung Shim <jy0922.shim@samsung.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, Ingo Molnar <mingo@redhat.com>, linux-ext4@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-arm-msm@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Inki Dae <inki.dae@samsung.com>, linux-nvdimm@lists.01.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Theodore Ts'o <tytso@mit.edu>, Jonathan Corbet <corbet@lwn.net>, Seung-Woo Kim <sw0312.kim@samsung.com>, linux-xfs@vger.kernel.org, Rob Clark <robdclark@gmail.com>, Kukjin Kim <kgene@kernel.org>, linux-fsdevel@vger.kernel.org, freedreno@lists.freedesktop.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v3:
- - Rebased onto the current linux/master which is based on v4.13-rc1.
+> On Wed, Jul 12, 2017 at 9:35 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+> >> On Wed, Jul 12, 2017 at 3:25 AM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+> >> > Hello,
+> >> >
+> >> > I wrote current impression about ndctl.
+> >> > If my understanding/thoughts is wrong, please correct me.
+> >> >
+> >> >
+> >> > Please imagine the following situation.
+> >> >
+> >> >   - There are 2 NVDIMMs like the following figure.
+> >> >   - An interleaved region(namespace) is created on NVDIMM 1 and 2,
+> >> >     and it is /dev/pmem1.
+> >> >   - A storage region is created on NVDIMM 1 too, it is /dev/pmem2s.
+> >> >   - Another storage region is created on NVDIMM 2 as /dev/pmem3s.
+> >> >
+> >> >   +-------------------+-------------------+
+> >> >   |                   |    /dev/pmem2s    |   NVDIMM 1 (nmem1)
+> >> >   |/dev/pmem1     X   +-------------------+
+> >> >   |                   |    /dev/pmem3s    |   NVDIMM 2 (nmem2)
+> >> >   +-------------------+-------------------+
+> >> >
+> >> >
+> >> >   If a place (in the above figure, place "X") is broken and scrubbing can not
+> >> >   solve error, user will need to replace broken NVDIMM.
+> >> >
+> >> >   But, how does user can know which NVDIMM is broken?
+> >> >   Currently, badblock data belongs to region, not DIMM module,
+> >> >   there is no information which nvdimm has badblock.
+> >> >
+> >> >   In addition, even if user can find that badblock is included in NVDIMM 2
+> >> >   fortunately, then he/she needs to become aware that /dev/pmem3s is
+> >> >   also included in NVDIMM 2, because he/she need to backup the region
+> >> >   before replacing NVDIMM 2.
+> >> >
+> >> >   However, I suppose it may be a bit difficult for user to be aware of it.
+> >> >   Because current ndctl does NOT output
+> >> >   "Which region is included on the (broken) NVDIMM module."
+> >> >   It can output only
+> >> >   "Which NVDIMM is used for the region by "ndctl list -RD".
+> >> >
+> >> >   As a result, he/she has to SEARCH all of the regions which is mapped on
+> >> >   "nmem2". It may be a bit troublesome for users, I think.
+> >> >
+> >> >
+> >> >   In summary, I think...
+> >> >     - Badblock information on each NVDIMM will be helpful for user to replace
+> >> >       wrong NVDIMM.
+> >> >     - ndctl list -D need to output the information which regions/namespaces
+> >> >       are placed on each NVDIMM.
+> >>
+> >> You analysis is correct.
+> >>
+> >> Prior to ACPI 6.2 we would need to walk through the
+> >> interleave-descriptor tables to discover the translation of the
+> >> system-physical-address to a DIMM+offset. However, we now have the
+> >> "Translate SPA" _DSM which should make it easy for ndctl to translate
+> >> "badblocks" information at a region level back to a specific DIMM.
+> >
+> > Hmm, I checked "Translate SPA" in ACPI6.2 spec, but I have a question yet.
+> >
+> > The spec says...
+> >  "For a HW mirrored interleave set, the Flags Bit[0] - Mirrored
+> >   SPA Location bit is set and all NVDIMM Devices the SPA translates
+> >   to are included in the returned NVDIMM Device List."
+> >
+> >   Then, this issue will be more complex.
+> >   If one DIMM which belongs to a mirrored interleave set has badblocks,
+> >   which scenario will happen?
+> >
+> >
+> >   a) Bad block is reported, but _DSM says such SPA is mapped plural
+> >      DIMMs by the above specs, then user can not find which is wrong DIMM....
+> >      (This is worst scenario...)
+> >
+> >   b) Another DIMM's SPA is still good status, so badblock is
+> >      not showen/not reported to user. However user need to check health status
+> >      of each DIMMs periodically. It must be before both DIMM becomes fatal.
+> >
+> >   c) If one of DIMM has a bad block in mirrored interleave set,
+> >      driver can notify such event to userland.
+> >
+> >   d) etc?
+> 
+> My hope is that if one of the DIMMs in the mirror has a badblock that
+> it can be repaired from the other side of the mirror, but I assume
+> that type of capability would be platform implementation specific. For
+> now though I don't think that stops ndctl from using Translate SPA for
+> the non-mirrored case to identify a DIMM with a badblock.
+> 
+> However, I don't think identifying a DIMM with a badblocks will be the
+> common case for replacing a device. The Clear Uncorrectable Error
+> command implies DIMM devices can be repaired. If a DIMM device cannot
+> be repaired that will show in the SMART health of the DIMM. So, I
+> don't think it is critical to provide this badblock-to-DIMM
+> translation for remediation purposes, but I agree it's good for
+> statistical monitoring.
+> 
 
- - Instead of adding vm_insert_mkwrite_mixed() and duplicating code from
-   vm_insert_mixed(), instead just add a 'mkwrite' parameter to
-   vm_insert_mixed() and update all call sites.  (Vivek)
+Hmm, OK. Thank you for your comment.
+Anyway, I'll try to make patches for the badblock issues.
 
- - Added a sanity check to the mkwrite case of insert_pfn() to be sure the
-   pfn for the pte we are about to make writable matches the pfn for our
-   fault. (Jan)
-
- - Fixed up some changelog wording for clarity. (Jan)
-
+Bye,
 ---
+Yasunori Goto
 
-When servicing mmap() reads from file holes the current DAX code allocates
-a page cache page of all zeroes and places the struct page pointer in the
-mapping->page_tree radix tree.  This has three major drawbacks:
-
-1) It consumes memory unnecessarily.  For every 4k page that is read via a
-DAX mmap() over a hole, we allocate a new page cache page.  This means that
-if you read 1GiB worth of pages, you end up using 1GiB of zeroed memory.
-
-2) It is slower than using a common zero page because each page fault has
-more work to do.  Instead of just inserting a common zero page we have to
-allocate a page cache page, zero it, and then insert it.
-
-3) The fact that we had to check for both DAX exceptional entries and for
-page cache pages in the radix tree made the DAX code more complex.
-
-This series solves these issues by following the lead of the DAX PMD code
-and using a common 4k zero page instead.  This reduces memory usage and
-decreases latencies for some workloads, and it simplifies the DAX code,
-removing over 100 lines in total.
-
-This series has passed my targeted testing and a full xfstests run on both
-XFS and ext4.
-
-Ross Zwisler (5):
-  mm: add mkwrite param to vm_insert_mixed()
-  dax: relocate some dax functions
-  dax: use common 4k zero page for dax mmap reads
-  dax: remove DAX code from page_cache_tree_insert()
-  dax: move all DAX radix tree defs to fs/dax.c
-
- Documentation/filesystems/dax.txt       |   5 +-
- drivers/dax/device.c                    |   2 +-
- drivers/gpu/drm/exynos/exynos_drm_gem.c |   3 +-
- drivers/gpu/drm/gma500/framebuffer.c    |   2 +-
- drivers/gpu/drm/msm/msm_gem.c           |   3 +-
- drivers/gpu/drm/omapdrm/omap_gem.c      |   6 +-
- drivers/gpu/drm/ttm/ttm_bo_vm.c         |   2 +-
- fs/dax.c                                | 342 +++++++++++++-------------------
- fs/ext2/file.c                          |  25 +--
- fs/ext4/file.c                          |  32 +--
- fs/xfs/xfs_file.c                       |   2 +-
- include/linux/dax.h                     |  45 -----
- include/linux/mm.h                      |   2 +-
- include/trace/events/fs_dax.h           |   2 -
- mm/filemap.c                            |  13 +-
- mm/memory.c                             |  27 ++-
- 16 files changed, 181 insertions(+), 332 deletions(-)
-
--- 
-2.9.4
 
 _______________________________________________
 Linux-nvdimm mailing list
