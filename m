@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B701A2095D2D6
- for <linux-nvdimm@lists.01.org>; Mon, 10 Jul 2017 11:31:36 -0700 (PDT)
-From: Matthew Wilcox <willy@infradead.org>
-Subject: [PATCH] nvdimm: Remove minimum size requirement
-Date: Mon, 10 Jul 2017 11:32:48 -0700
-Message-Id: <20170710183248.2417-1-willy@infradead.org>
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3CBE321D0B65F
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Jul 2017 15:11:41 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 4/6] btt: cache sector_size in arena_info
+Date: Fri, 14 Jul 2017 16:11:46 -0600
+Message-Id: <20170714221148.11232-5-vishal.l.verma@intel.com>
+In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
+References: <20170714221148.11232-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,60 +22,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Cheng-mean Liu <soccerl@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
+In preparation for the error clearing rework, add sector_size in the
+arena_info struct.
 
-There was no need to have a minimum size of 4MB for NV-DIMMs; it was
-just a sanity check.  Keep a check that it's at least one page in size
-because we really can't add less than a page to the memory map.  Promote
-the print statement from 'debug' level to 'warning', since there was no
-information for my colleague who stumbled over this problem while
-attempting to add a 2MB chunk of memory.
-
-Reported-by: Cheng-mean Liu <soccerl@microsoft.com>
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/namespace_devs.c | 6 +++---
- include/uapi/linux/ndctl.h      | 4 ----
- 2 files changed, 3 insertions(+), 7 deletions(-)
+ drivers/nvdimm/btt.c | 1 +
+ drivers/nvdimm/btt.h | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 5f1c6756e57c..95169308078a 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1689,9 +1689,9 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
- 	}
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 304dac4..6b84eae 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
+ 	if (!arena)
+ 		return NULL;
+ 	arena->nd_btt = btt->nd_btt;
++	arena->sector_size = btt->sector_size;
  
- 	size = nvdimm_namespace_capacity(ndns);
--	if (size < ND_MIN_NAMESPACE_SIZE) {
--		dev_dbg(&ndns->dev, "%pa, too small must be at least %#x\n",
--				&size, ND_MIN_NAMESPACE_SIZE);
-+	if (size < PAGE_SIZE) {
-+		dev_warn(&ndns->dev, "%pa, too small must be at least %ld\n",
-+				&size, PAGE_SIZE);
- 		return ERR_PTR(-ENODEV);
- 	}
- 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 6d3c54264d8e..3ad1623bb585 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -299,10 +299,6 @@ enum nd_driver_flags {
- 	ND_DRIVER_DAX_PMEM	  = 1 << ND_DEVICE_DAX_PMEM,
- };
- 
--enum {
--	ND_MIN_NAMESPACE_SIZE = 0x00400000,
--};
--
- enum ars_masks {
- 	ARS_STATUS_MASK = 0x0000FFFF,
- 	ARS_EXT_STATUS_SHIFT = 16,
+ 	if (!size)
+ 		return arena;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 09fabf5..2bc0d10b 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -108,6 +108,7 @@ struct aligned_lock {
+  *			handle incoming writes.
+  * @version_major:	Metadata layout version major.
+  * @version_minor:	Metadata layout version minor.
++ * @sector_size:	The Linux sector size - 512 or 4096
+  * @nextoff:		Offset in bytes to the start of the next arena.
+  * @infooff:		Offset in bytes to the info block of this arena.
+  * @dataoff:		Offset in bytes to the data area of this arena.
+@@ -135,6 +136,7 @@ struct arena_info {
+ 	u32 nfree;
+ 	u16 version_major;
+ 	u16 version_minor;
++	u32 sector_size;
+ 	/* Byte offsets to the different on-media structures */
+ 	u64 nextoff;
+ 	u64 infooff;
 -- 
-2.11.0
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
