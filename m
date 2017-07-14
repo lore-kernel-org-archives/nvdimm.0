@@ -1,11 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.31.186])
- by ml01.01.org (Postfix) with ESMTP id B8E8721D0DE68
- for <linux-nvdimm@lists.01.org>; Wed, 19 Jul 2017 00:18:45 -0700 (PDT)
-From: "MAILER-DAEMON" <noreply@lists.01.org>
-Subject: Returned mail: see transcript for details
-Date: Wed, 19 Jul 2017 15:21:50 +0800
-MIME-Version: 1.0
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id AEA992095D2BC
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Jul 2017 15:11:38 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 1/6] btt: fix a missed NVDIMM_IO_ATOMIC case in the write path
+Date: Fri, 14 Jul 2017 16:11:43 -0600
+Message-Id: <20170714221148.11232-2-vishal.l.verma@intel.com>
+In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
+References: <20170714221148.11232-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,35 +17,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170719071853.E81E521D0DE78@ml01.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This Message was undeliverable due to the following reason:
+The IO context conversion for rw_bytes missed a case in the BTT write
+path (btt_map_write) which should've been marked as atomic.
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+In reality this should not cause a problem, because map writes are to
+small for nsio_rw_bytes to attempt error clearing, but it should be
+fixed for posterity.
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
+Add a might_sleep() in the non-atomic section of nsio_rw_bytes so that
+things like the nfit unit tests, which don't actually sleep, can catch
+bugs like this.
 
-Your message was not delivered within 5 days:
-Host 61.57.94.113 is not responding.
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c   | 3 ++-
+ drivers/nvdimm/claim.c | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-The following recipients did not receive this message:
-<linux-nvdimm@lists.01.org>
-
-Please reply to postmaster@lists.01.org
-if you feel this message to be in error.
-
-
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 2af329d..52aa96f 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1155,7 +1155,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		if (ret)
+ 			goto out_map;
+ 
+-		ret = btt_map_write(arena, premap, new_postmap, 0, 0, 0);
++		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
++			NVDIMM_IO_ATOMIC);
+ 		if (ret)
+ 			goto out_map;
+ 
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index f8ad92b..8f29937 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -292,6 +292,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 				&& !(flags & NVDIMM_IO_ATOMIC)) {
+ 			long cleared;
+ 
++			might_sleep();
+ 			cleared = nvdimm_clear_poison(&ndns->dev,
+ 					nsio->res.start + offset, size);
+ 			if (cleared < size)
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
