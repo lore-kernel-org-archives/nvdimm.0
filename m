@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
- [140.211.169.12])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 685432095D9CA
- for <linux-nvdimm@lists.01.org>; Fri, 21 Jul 2017 16:19:33 -0700 (PDT)
-Date: Fri, 21 Jul 2017 16:21:29 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH -mm -v2 00/12] mm, THP, swap: Delay splitting THP after
- swapped out
-Message-Id: <20170721162129.077f7d9b4c77c8593e47aed9@linux-foundation.org>
-In-Reply-To: <20170623071303.13469-1-ying.huang@intel.com>
-References: <20170623071303.13469-1-ying.huang@intel.com>
-Mime-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 62F192095D2BB
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Jul 2017 15:11:40 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 3/6] btt: ensure that flags were also unchanged during a
+ map_read
+Date: Fri, 14 Jul 2017 16:11:45 -0600
+Message-Id: <20170714221148.11232-4-vishal.l.verma@intel.com>
+In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
+References: <20170714221148.11232-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,62 +18,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Rik van Riel <riel@redhat.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, Jens Axboe <axboe@fb.com>, Minchan Kim <minchan@kernel.org>, Johannes Weiner <hannes@cmpxchg.org>, Ming Lei <ming.lei@redhat.com>, Shaohua Li <shli@kernel.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 23 Jun 2017 15:12:51 +0800 "Huang, Ying" <ying.huang@intel.com> wrote:
+In btt_map_read, we read the map twice to make sure that the map entry
+didn't change after we added it to the read tracking table. In
+anticipation of expanding the use of the error bit, also make sure that
+the error and zero flags are constant across the two map reads.
 
-> From: Huang Ying <ying.huang@intel.com>
-> 
-> Hi, Andrew, could you help me to check whether the overall design is
-> reasonable?
-> 
-> Hi, Johannes and Minchan, Thanks a lot for your review to the first
-> step of the THP swap optimization!  Could you help me to review the
-> second step in this patchset?
-> 
-> Hi, Hugh, Shaohua, Minchan and Rik, could you help me to review the
-> swap part of the patchset?  Especially [01/12], [02/12], [03/12],
-> [04/12], [11/12], and [12/12].
-> 
-> Hi, Andrea and Kirill, could you help me to review the THP part of the
-> patchset?  Especially [01/12], [03/12], [07/12], [08/12], [09/12],
-> [11/12].
-> 
-> Hi, Johannes, Michal, could you help me to review the cgroup part of
-> the patchset?  Especially [08/12], [09/12], and [10/12].
-> 
-> And for all, Any comment is welcome!
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-I guess it's time for a resend.  Folks, could we please get some more
-review&test going here?
-
-> Because the THP swap writing support patch [06/12] needs to be rebased
-> on multipage bvec patchset which hasn't been merged yet.  The [06/12]
-> in this patchset is just a test patch and will be rewritten later.
-> The patchset depends on multipage bvec patchset too.
-
-Are these dependency issues any simpler now?
-
-> This is the second step of THP (Transparent Huge Page) swap
-> optimization.  In the first step, the splitting huge page is delayed
-> from almost the first step of swapping out to after allocating the
-> swap space for the THP and adding the THP into the swap cache.  In the
-> second step, the splitting is delayed further to after the swapping
-> out finished.  The plan is to delay splitting THP step by step,
-> finally avoid splitting THP for the THP swapping out and swap out/in
-> the THP as a whole.
-> 
-> In the patchset, more operations for the anonymous THP reclaiming,
-> such as TLB flushing, writing the THP to the swap device, removing the
-> THP from the swap cache are batched.  So that the performance of
-> anonymous THP swapping out are improved.
-> 
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 3aa6bc0..304dac4 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1031,6 +1031,7 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		 */
+ 		while (1) {
+ 			u32 new_map;
++			int new_t, new_e;
+ 
+ 			if (t_flag) {
+ 				zero_fill_data(page, off, cur_len);
+@@ -1049,15 +1050,18 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			 */
+ 			barrier();
+ 
+-			ret = btt_map_read(arena, premap, &new_map, &t_flag,
+-						&e_flag, NVDIMM_IO_ATOMIC);
++			ret = btt_map_read(arena, premap, &new_map, &new_t,
++						&new_e, NVDIMM_IO_ATOMIC);
+ 			if (ret)
+ 				goto out_rtt;
+ 
+-			if (postmap == new_map)
++			if ((postmap == new_map) && (t_flag == new_t) &&
++					(e_flag == new_e))
+ 				break;
+ 
+ 			postmap = new_map;
++			t_flag = new_t;
++			e_flag = new_e;
+ 		}
+ 
+ 		ret = btt_data_read(arena, page, off, postmap, cur_len);
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
