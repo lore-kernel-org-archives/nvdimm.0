@@ -1,22 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x22b.google.com (mail-yw0-x22b.google.com
- [IPv6:2607:f8b0:4002:c05::22b])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0E8862193B801
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 15:30:18 -0700 (PDT)
-Received: by mail-yw0-x22b.google.com with SMTP id a12so881971ywh.3
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 15:32:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1500329958.6401.56.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2A01D21CB02E0
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 15:19:17 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v2 5/6] libnvdimm, btt: rework error clearing
+Date: Mon, 17 Jul 2017 22:20:56 +0000
+Message-ID: <1500329958.6401.56.camel@intel.com>
 References: <20170717212739.5411-1-vishal.l.verma@intel.com>
  <20170717212739.5411-6-vishal.l.verma@intel.com>
  <CAPcyv4jcy1VN4O9fSy-mDgnxYtWWiVOqDaGqbqFYt7_5TX=hsw@mail.gmail.com>
- <1500329958.6401.56.camel@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Jul 2017 15:32:09 -0700
-Message-ID: <CAPcyv4jE3YfOjUVbMAJ2n83YaMRQR5H3L4Xx=ijVioZ1pBN9kA@mail.gmail.com>
-Subject: Re: [PATCH v2 5/6] libnvdimm, btt: rework error clearing
+In-Reply-To: <CAPcyv4jcy1VN4O9fSy-mDgnxYtWWiVOqDaGqbqFYt7_5TX=hsw@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <2A4BC6EBB3B5D74E9A8D3AABE9536C6A@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,102 +22,76 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
 Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jul 17, 2017 at 3:20 PM, Verma, Vishal L
-<vishal.l.verma@intel.com> wrote:
-> On Mon, 2017-07-17 at 15:00 -0700, Dan Williams wrote:
->> On Mon, Jul 17, 2017 at 2:27 PM, Vishal Verma <vishal.l.verma@intel.co
->> m> wrote:
->> > Clearing errors or badblocks during a BTT write requires sending an
->> > ACPI
->> > DSM, which means potentially sleeping. Since a BTT IO happens in
->> > atomic
->> > context (preemption disabled, spinlocks may be held), we cannot
->> > perform
->> > error clearing in the course of an IO. Due to this error clearing
->> > for
->> > BTT IOs has hitherto been disabled.
->> >
->> > In this patch we move error clearing out of the atomic section, and
->> > thus
->> > re-enable error clearing with BTTs. When we are about to add a block
->> > to
->> > the free list, we check if it was previously marked as an error, and
->> > if
->> > it was, we add it to the freelist, but also set a flag that says
->> > error
->> > clearing will be required. We then drop the lane (ending the atomic
->> > context), and send a zero buffer so that the error can be cleared.
->> > The
->> > error flag in the free list is protected by the nd 'lane', and is
->> > set
->> > only be a thread while it holds that lane. When the error is
->> > cleared,
->> > the flag is cleared, but while holding a mutex for that freelist
->> > index.
->> >
->> > When writing, we check for two things -
->> > 1/ If the freelist mutex is held or if the error flag is set. If so,
->> > this is an error block that is being (or about to be) cleared.
->> > 2/ If the block is a known badblock based on nsio->bb
->> >
->> > The second check is required because the BTT map error flag for a
->> > map
->> > entry only gets set when an error LBA is read. If we write to a new
->> > location that may not have the map error flag set, but still might
->> > be in
->> > the region's badblock list, we can trigger an EIO on the write,
->> > which is
->> > undesirable and completely avoidable.
->> >
->> > Cc: Jeff Moyer <jmoyer@redhat.com>
->> > Cc: Toshi Kani <toshi.kani@hpe.com>
->> > Cc: Dan Williams <dan.j.williams@intel.com>
->> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->> > ---
->> >  drivers/nvdimm/btt.c   | 89
->> > +++++++++++++++++++++++++++++++++++++++++++++-----
->> >  drivers/nvdimm/btt.h   |  5 +++
->> >  drivers/nvdimm/claim.c |  8 -----
->> >  3 files changed, 85 insertions(+), 17 deletions(-)
->> >
->
-> <>
->
->> > +static int arena_clear_freelist_error(struct arena_info *arena, u32
->> > lane)
->> > +{
->> > +       int ret = 0;
->> > +
->> > +       if (arena->freelist[lane].has_err) {
->> > +               u32 lba = arena->freelist[lane].block;
->> > +               u64 nsoff = to_namespace_offset(arena, lba);
->> > +               void *zerobuf;
->> > +
->> > +               zerobuf = kzalloc(arena->sector_size, GFP_KERNEL);
->> > +               if (!zerobuf)
->> > +                       return -ENOMEM;
->>
->> Hmm, can this just use the system zero page (empty_zero_page)? Also,
->> even if it can't, I'd prefer the NOIO fix for this case be folded into
->> this patch. The NOIO fixup for the acpi dsm path should be separate.
->>
->> Another consideration if we can't use the system zero page, do we need
->> to allocate this on demand? Seems like something we could just
->> pre-allocate at init time.
->
-> I had started out using the empty_zero_page, but to use that you have to
-> kmap_atomic the page, which ends up creating an atomic section again :)
-
-I think it is safe to assume that the zero page is never in highmem.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE3LTA3LTE3IGF0IDE1OjAwIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIE1vbiwgSnVsIDE3LCAyMDE3IGF0IDI6MjcgUE0sIFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
+dmVybWFAaW50ZWwuY28NCj4gbT4gd3JvdGU6DQo+ID4gQ2xlYXJpbmcgZXJyb3JzIG9yIGJhZGJs
+b2NrcyBkdXJpbmcgYSBCVFQgd3JpdGUgcmVxdWlyZXMgc2VuZGluZyBhbg0KPiA+IEFDUEkNCj4g
+PiBEU00sIHdoaWNoIG1lYW5zIHBvdGVudGlhbGx5IHNsZWVwaW5nLiBTaW5jZSBhIEJUVCBJTyBo
+YXBwZW5zIGluDQo+ID4gYXRvbWljDQo+ID4gY29udGV4dCAocHJlZW1wdGlvbiBkaXNhYmxlZCwg
+c3BpbmxvY2tzIG1heSBiZSBoZWxkKSwgd2UgY2Fubm90DQo+ID4gcGVyZm9ybQ0KPiA+IGVycm9y
+IGNsZWFyaW5nIGluIHRoZSBjb3Vyc2Ugb2YgYW4gSU8uIER1ZSB0byB0aGlzIGVycm9yIGNsZWFy
+aW5nDQo+ID4gZm9yDQo+ID4gQlRUIElPcyBoYXMgaGl0aGVydG8gYmVlbiBkaXNhYmxlZC4NCj4g
+PiANCj4gPiBJbiB0aGlzIHBhdGNoIHdlIG1vdmUgZXJyb3IgY2xlYXJpbmcgb3V0IG9mIHRoZSBh
+dG9taWMgc2VjdGlvbiwgYW5kDQo+ID4gdGh1cw0KPiA+IHJlLWVuYWJsZSBlcnJvciBjbGVhcmlu
+ZyB3aXRoIEJUVHMuIFdoZW4gd2UgYXJlIGFib3V0IHRvIGFkZCBhIGJsb2NrDQo+ID4gdG8NCj4g
+PiB0aGUgZnJlZSBsaXN0LCB3ZSBjaGVjayBpZiBpdCB3YXMgcHJldmlvdXNseSBtYXJrZWQgYXMg
+YW4gZXJyb3IsIGFuZA0KPiA+IGlmDQo+ID4gaXQgd2FzLCB3ZSBhZGQgaXQgdG8gdGhlIGZyZWVs
+aXN0LCBidXQgYWxzbyBzZXQgYSBmbGFnIHRoYXQgc2F5cw0KPiA+IGVycm9yDQo+ID4gY2xlYXJp
+bmcgd2lsbCBiZSByZXF1aXJlZC4gV2UgdGhlbiBkcm9wIHRoZSBsYW5lIChlbmRpbmcgdGhlIGF0
+b21pYw0KPiA+IGNvbnRleHQpLCBhbmQgc2VuZCBhIHplcm8gYnVmZmVyIHNvIHRoYXQgdGhlIGVy
+cm9yIGNhbiBiZSBjbGVhcmVkLg0KPiA+IFRoZQ0KPiA+IGVycm9yIGZsYWcgaW4gdGhlIGZyZWUg
+bGlzdCBpcyBwcm90ZWN0ZWQgYnkgdGhlIG5kICdsYW5lJywgYW5kIGlzDQo+ID4gc2V0DQo+ID4g
+b25seSBiZSBhIHRocmVhZCB3aGlsZSBpdCBob2xkcyB0aGF0IGxhbmUuIFdoZW4gdGhlIGVycm9y
+IGlzDQo+ID4gY2xlYXJlZCwNCj4gPiB0aGUgZmxhZyBpcyBjbGVhcmVkLCBidXQgd2hpbGUgaG9s
+ZGluZyBhIG11dGV4IGZvciB0aGF0IGZyZWVsaXN0DQo+ID4gaW5kZXguDQo+ID4gDQo+ID4gV2hl
+biB3cml0aW5nLCB3ZSBjaGVjayBmb3IgdHdvIHRoaW5ncyAtDQo+ID4gMS8gSWYgdGhlIGZyZWVs
+aXN0IG11dGV4IGlzIGhlbGQgb3IgaWYgdGhlIGVycm9yIGZsYWcgaXMgc2V0LiBJZiBzbywNCj4g
+PiB0aGlzIGlzIGFuIGVycm9yIGJsb2NrIHRoYXQgaXMgYmVpbmcgKG9yIGFib3V0IHRvIGJlKSBj
+bGVhcmVkLg0KPiA+IDIvIElmIHRoZSBibG9jayBpcyBhIGtub3duIGJhZGJsb2NrIGJhc2VkIG9u
+IG5zaW8tPmJiDQo+ID4gDQo+ID4gVGhlIHNlY29uZCBjaGVjayBpcyByZXF1aXJlZCBiZWNhdXNl
+IHRoZSBCVFQgbWFwIGVycm9yIGZsYWcgZm9yIGENCj4gPiBtYXANCj4gPiBlbnRyeSBvbmx5IGdl
+dHMgc2V0IHdoZW4gYW4gZXJyb3IgTEJBIGlzIHJlYWQuIElmIHdlIHdyaXRlIHRvIGEgbmV3DQo+
+ID4gbG9jYXRpb24gdGhhdCBtYXkgbm90IGhhdmUgdGhlIG1hcCBlcnJvciBmbGFnIHNldCwgYnV0
+IHN0aWxsIG1pZ2h0DQo+ID4gYmUgaW4NCj4gPiB0aGUgcmVnaW9uJ3MgYmFkYmxvY2sgbGlzdCwg
+d2UgY2FuIHRyaWdnZXIgYW4gRUlPIG9uIHRoZSB3cml0ZSwNCj4gPiB3aGljaCBpcw0KPiA+IHVu
+ZGVzaXJhYmxlIGFuZCBjb21wbGV0ZWx5IGF2b2lkYWJsZS4NCj4gPiANCj4gPiBDYzogSmVmZiBN
+b3llciA8am1veWVyQHJlZGhhdC5jb20+DQo+ID4gQ2M6IFRvc2hpIEthbmkgPHRvc2hpLmthbmlA
+aHBlLmNvbT4NCj4gPiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
+DQo+ID4gU2lnbmVkLW9mZi1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5j
+b20+DQo+ID4gLS0tDQo+ID4gwqBkcml2ZXJzL252ZGltbS9idHQuY8KgwqDCoHwgODkNCj4gPiAr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLQ0KPiA+IMKg
+ZHJpdmVycy9udmRpbW0vYnR0LmjCoMKgwqB8wqDCoDUgKysrDQo+ID4gwqBkcml2ZXJzL252ZGlt
+bS9jbGFpbS5jIHzCoMKgOCAtLS0tLQ0KPiA+IMKgMyBmaWxlcyBjaGFuZ2VkLCA4NSBpbnNlcnRp
+b25zKCspLCAxNyBkZWxldGlvbnMoLSkNCj4gPiANCg0KPD4NCg0KPiA+ICtzdGF0aWMgaW50IGFy
+ZW5hX2NsZWFyX2ZyZWVsaXN0X2Vycm9yKHN0cnVjdCBhcmVuYV9pbmZvICphcmVuYSwgdTMyDQo+
+ID4gbGFuZSkNCj4gPiArew0KPiA+ICvCoMKgwqDCoMKgwqDCoGludCByZXQgPSAwOw0KPiA+ICsN
+Cj4gPiArwqDCoMKgwqDCoMKgwqBpZiAoYXJlbmEtPmZyZWVsaXN0W2xhbmVdLmhhc19lcnIpIHsN
+Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgdTMyIGxiYSA9IGFyZW5hLT5mcmVl
+bGlzdFtsYW5lXS5ibG9jazsNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgdTY0
+IG5zb2ZmID0gdG9fbmFtZXNwYWNlX29mZnNldChhcmVuYSwgbGJhKTsNCj4gPiArwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgdm9pZCAqemVyb2J1ZjsNCj4gPiArDQo+ID4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHplcm9idWYgPSBremFsbG9jKGFyZW5hLT5zZWN0b3Jfc2l6
+ZSwgR0ZQX0tFUk5FTCk7DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGlmICgh
+emVyb2J1ZikNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoHJldHVybiAtRU5PTUVNOw0KPiANCj4gSG1tLCBjYW4gdGhpcyBqdXN0IHVzZSB0aGUgc3lz
+dGVtIHplcm8gcGFnZSAoZW1wdHlfemVyb19wYWdlKT8gQWxzbywNCj4gZXZlbiBpZiBpdCBjYW4n
+dCwgSSdkIHByZWZlciB0aGUgTk9JTyBmaXggZm9yIHRoaXMgY2FzZSBiZSBmb2xkZWQgaW50bw0K
+PiB0aGlzIHBhdGNoLiBUaGUgTk9JTyBmaXh1cCBmb3IgdGhlIGFjcGkgZHNtIHBhdGggc2hvdWxk
+IGJlIHNlcGFyYXRlLg0KPiANCj4gQW5vdGhlciBjb25zaWRlcmF0aW9uIGlmIHdlIGNhbid0IHVz
+ZSB0aGUgc3lzdGVtIHplcm8gcGFnZSwgZG8gd2UgbmVlZA0KPiB0byBhbGxvY2F0ZSB0aGlzIG9u
+IGRlbWFuZD8gU2VlbXMgbGlrZSBzb21ldGhpbmcgd2UgY291bGQganVzdA0KPiBwcmUtYWxsb2Nh
+dGUgYXQgaW5pdCB0aW1lLg0KDQpJIGhhZCBzdGFydGVkIG91dCB1c2luZyB0aGUgZW1wdHlfemVy
+b19wYWdlLCBidXQgdG8gdXNlIHRoYXQgeW91IGhhdmUgdG8NCmttYXBfYXRvbWljIHRoZSBwYWdl
+LCB3aGljaCBlbmRzIHVwIGNyZWF0aW5nIGFuIGF0b21pYyBzZWN0aW9uIGFnYWluIDopDQoNClNv
+dW5kcyBnb29kIG9uIHByZWFsbG9jYXRpbmcgYSB6ZXJvIHBhZ2UgYXQgaW5pdC4NCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
