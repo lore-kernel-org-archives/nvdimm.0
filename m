@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A02AB21CB0301
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 16:56:40 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 01B4521CB02E2
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 14:27:38 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 0/6] BTT error clearing rework
-Date: Mon, 17 Jul 2017 17:56:49 -0600
-Message-Id: <20170717235655.26424-1-vishal.l.verma@intel.com>
+Subject: [PATCH v2 0/6] BTT error clearing rework
+Date: Mon, 17 Jul 2017 15:27:33 -0600
+Message-Id: <20170717212739.5411-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,12 +23,6 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
-
-Changes in v3:
- - Change the dynamically allocated (during IO) zerobuf to the kernel's
-   ZERO_PAGE for error clearing (patch 5) (Dan).
- - Move the NOIO fixes a level down into nvdimm_clear_poison since both
-   btt and pmem poison clearing goes through that (Dan).
 
 Changes in v2:
  - Drop the ACPI allocation change patch. Instead use
@@ -54,17 +48,16 @@ Vishal Verma (6):
   btt: ensure that flags were also unchanged during a map_read
   btt: cache sector_size in arena_info
   libnvdimm, btt: rework error clearing
-  libnvdimm: fix potential deadlock while clearing errors
+  pmem, btt: fix potential deadlock while clearing errors
 
  drivers/nvdimm/btt.c   | 117 ++++++++++++++++++++++++++++++++++++++++++-------
  drivers/nvdimm/btt.h   |  11 +++++
- drivers/nvdimm/bus.c   |   6 +++
  drivers/nvdimm/claim.c |   9 +---
- 4 files changed, 118 insertions(+), 25 deletions(-)
+ drivers/nvdimm/pmem.c  |   4 ++
+ 4 files changed, 116 insertions(+), 25 deletions(-)
 
 -- 
 2.9.3
-
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
