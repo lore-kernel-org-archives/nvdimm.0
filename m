@@ -1,21 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x230.google.com (mail-yw0-x230.google.com
- [IPv6:2607:f8b0:4002:c05::230])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D601421D0DE47
- for <linux-nvdimm@lists.01.org>; Thu, 20 Jul 2017 20:21:38 -0700 (PDT)
-Received: by mail-yw0-x230.google.com with SMTP id a12so19952684ywh.3
- for <linux-nvdimm@lists.01.org>; Thu, 20 Jul 2017 20:23:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170717235655.26424-7-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9FC6821CB0310
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 16:56:45 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 6/6] libnvdimm: fix potential deadlock while clearing errors
+Date: Mon, 17 Jul 2017 17:56:55 -0600
+Message-Id: <20170717235655.26424-7-vishal.l.verma@intel.com>
+In-Reply-To: <20170717235655.26424-1-vishal.l.verma@intel.com>
 References: <20170717235655.26424-1-vishal.l.verma@intel.com>
- <20170717235655.26424-7-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 20 Jul 2017 20:23:34 -0700
-Message-ID: <CAPcyv4jbMwtZLnNuwpaVF-W21HLc8QD5rYn6b7wBxcnV5eDAow@mail.gmail.com>
-Subject: Re: [PATCH v3 6/6] libnvdimm: fix potential deadlock while clearing
- errors
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,39 +17,84 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jul 17, 2017 at 4:56 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
-> With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-> Specifically, the DSM to clear media errors is called during writes, so
-> that we can provide a writes-fix-errors model.
->
-> However it is easy to imagine a scenario like:
->  -> write through the nvdimm driver
->    -> acpi allocation
->      -> writeback, causes more IO through the nvdimm driver
->        -> deadlock
->
-> Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-> flag for the current scope when issuing commands/IOs that are expected
-> to clear errors.
->
-> Cc: <linux-acpi@vger.kernel.org>
-> Cc: <linux-nvdimm@lists.01.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
+Specifically, the DSM to clear media errors is called during writes, so
+that we can provide a writes-fix-errors model.
 
-Looks good to me. Please move this up in the series before we start
-calling nvdimm_clear_poison() in the btt I/O path so there's no
-bisection point where this deadlock comes back.
+However it is easy to imagine a scenario like:
+ -> write through the nvdimm driver
+   -> acpi allocation
+     -> writeback, causes more IO through the nvdimm driver
+       -> deadlock
+
+Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
+flag for the current scope when issuing commands/IOs that are expected
+to clear errors.
+
+Cc: <linux-acpi@vger.kernel.org>
+Cc: <linux-nvdimm@lists.01.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/bus.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index e9361bf..56c81ac 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -11,6 +11,7 @@
+  * General Public License for more details.
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/sched/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
+@@ -231,6 +232,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	struct nd_cmd_clear_error clear_err;
+ 	struct nd_cmd_ars_cap ars_cap;
+ 	u32 clear_err_unit, mask;
++	unsigned int noio_flag;
+ 	int cmd_rc, rc;
+ 
+ 	if (!nvdimm_bus)
+@@ -247,8 +249,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	memset(&ars_cap, 0, sizeof(ars_cap));
+ 	ars_cap.address = phys;
+ 	ars_cap.length = len;
++	noio_flag = memalloc_noio_save();
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
+ 			sizeof(ars_cap), &cmd_rc);
++	memalloc_noio_restore(noio_flag);
+ 	if (rc < 0)
+ 		return rc;
+ 	if (cmd_rc < 0)
+@@ -263,8 +267,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	memset(&clear_err, 0, sizeof(clear_err));
+ 	clear_err.address = phys;
+ 	clear_err.length = len;
++	noio_flag = memalloc_noio_save();
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
+ 			sizeof(clear_err), &cmd_rc);
++	memalloc_noio_restore(noio_flag);
+ 	if (rc < 0)
+ 		return rc;
+ 	if (cmd_rc < 0)
+-- 
+2.9.3
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
