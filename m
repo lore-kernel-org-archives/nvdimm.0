@@ -1,11 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.132.23])
- by ml01.01.org (Postfix) with ESMTP id 566EE21A16ECF
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 01:02:45 -0700 (PDT)
-From: "Automatic Email Delivery Software" <postmaster@lists.01.org>
-Subject: Returned mail: see transcript for details
-Date: Mon, 17 Jul 2017 16:05:48 +0800
-MIME-Version: 1.0
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id A02AB21CB0301
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 16:56:40 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 0/6] BTT error clearing rework
+Date: Mon, 17 Jul 2017 17:56:49 -0600
+Message-Id: <20170717235655.26424-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,35 +15,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170717080252.BD6D121D0B65B@ml01.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This Message was undeliverable due to the following reason:
+Changes in v3:
+ - Change the dynamically allocated (during IO) zerobuf to the kernel's
+   ZERO_PAGE for error clearing (patch 5) (Dan).
+ - Move the NOIO fixes a level down into nvdimm_clear_poison since both
+   btt and pmem poison clearing goes through that (Dan).
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+Changes in v2:
+ - Drop the ACPI allocation change patch. Instead use
+   memalloc_noio_{save,restore} to set the GFP_NOIO flag around anything
+   that can be expected to call into ACPI for clearing errors. (Rafael, Dan).
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
+Clearing errors or badblocks during a BTT write requires sending an ACPI
+DSM, which means potentially sleeping. Since a BTT IO happens in atomic
+context (preemption disabled, spinlocks may be held), we cannot perform
+error clearing in the course of an IO. Due to this error clearing for
+BTT IOs has hitherto been disabled.
 
-Your message was not delivered within 7 days:
-Host 77.19.249.216 is not responding.
+This series fixes these problems by moving the error clearing out of
+the atomic sections in the BTT.
 
-The following recipients did not receive this message:
-<linux-nvdimm@lists.01.org>
-
-Please reply to postmaster@lists.01.org
-if you feel this message to be in error.
+Also fix a potential deadlock that can occur while clearing errors
+from either BTT or pmem due to memory allocations in the IO path.
 
 
+Vishal Verma (6):
+  btt: fix a missed NVDIMM_IO_ATOMIC case in the write path
+  btt: refactor map entry operations with macros
+  btt: ensure that flags were also unchanged during a map_read
+  btt: cache sector_size in arena_info
+  libnvdimm, btt: rework error clearing
+  libnvdimm: fix potential deadlock while clearing errors
+
+ drivers/nvdimm/btt.c   | 117 ++++++++++++++++++++++++++++++++++++++++++-------
+ drivers/nvdimm/btt.h   |  11 +++++
+ drivers/nvdimm/bus.c   |   6 +++
+ drivers/nvdimm/claim.c |   9 +---
+ 4 files changed, 118 insertions(+), 25 deletions(-)
+
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
