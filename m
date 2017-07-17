@@ -1,8 +1,7 @@
-From: "JOE" <newsletter-b4y/amjyg0+0teNxsnM6fYKseHFY2PTr@public.gmane.org>
-Subject: Negative SEO Services with a 100% satisfaction Guarantee
-Date: Sun, 16 Jul 2017 15:07:24 -0700
-Message-ID: <2CC80B24.2968B694@www.negativeseos.agency>
-Reply-To: JOE <newsletter-b4y/amjyg0+0teNxsnM6fYKseHFY2PTr@public.gmane.org>
+From: "Automatic Email Delivery Software" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: see transcript for details
+Date: Mon, 17 Jul 2017 16:05:48 +0800
+Message-ID: <20170717080252.BB1EA21D0B657@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,22 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-hi
-Check this out
-http://www.negativeseos.agency
+This Message was undeliverable due to the following reason:
 
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-JOE
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
+Your message was not delivered within 7 days:
+Host 77.19.249.216 is not responding.
 
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-
-
-
-
-
-
-
-
-
-http://www.negativeseos.agency/unsubscribe/
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
