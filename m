@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D25E921D0B64D
- for <linux-nvdimm@lists.01.org>; Wed, 12 Jul 2017 03:24:03 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 61D88AC00B1
- for <linux-nvdimm@lists.01.org>; Wed, 12 Jul 2017 19:25:45 +0900 (JST)
-Date: Wed, 12 Jul 2017 19:25:20 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Some thoughts of ndctl list command output
-Message-Id: <20170712192518.C683.E1E9C6FF@jp.fujitsu.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E49D921CB0301
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 16:56:40 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 1/6] btt: fix a missed NVDIMM_IO_ATOMIC case in the write
+ path
+Date: Mon, 17 Jul 2017 17:56:50 -0600
+Message-Id: <20170717235655.26424-2-vishal.l.verma@intel.com>
+In-Reply-To: <20170717235655.26424-1-vishal.l.verma@intel.com>
+References: <20170717235655.26424-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,68 +18,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+The IO context conversion for rw_bytes missed a case in the BTT write
+path (btt_map_write) which should've been marked as atomic.
 
-I wrote current impression about ndctl.
-If my understanding/thoughts is wrong, please correct me.
+In reality this should not cause a problem, because map writes are to
+small for nsio_rw_bytes to attempt error clearing, but it should be
+fixed for posterity.
 
+Add a might_sleep() in the non-atomic section of nsio_rw_bytes so that
+things like the nfit unit tests, which don't actually sleep, can catch
+bugs like this.
 
-Please imagine the following situation.
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c   | 3 ++-
+ drivers/nvdimm/claim.c | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-  - There are 2 NVDIMMs like the following figure.
-  - An interleaved region(namespace) is created on NVDIMM 1 and 2,
-    and it is /dev/pmem1.
-  - A storage region is created on NVDIMM 1 too, it is /dev/pmem2s.
-  - Another storage region is created on NVDIMM 2 as /dev/pmem3s.
-
-  +-------------------+-------------------+
-  |                   |    /dev/pmem2s    |   NVDIMM 1 (nmem1)
-  |/dev/pmem1     X   +-------------------+
-  |                   |    /dev/pmem3s    |   NVDIMM 2 (nmem2)
-  +-------------------+-------------------+
-  
-  
-  If a place (in the above figure, place "X") is broken and scrubbing can not
-  solve error, user will need to replace broken NVDIMM.
-
-  But, how does user can know which NVDIMM is broken?
-  Currently, badblock data belongs to region, not DIMM module,
-  there is no information which nvdimm has badblock.
-  
-  In addition, even if user can find that badblock is included in NVDIMM 2
-  fortunately, then he/she needs to become aware that /dev/pmem3s is
-  also included in NVDIMM 2, because he/she need to backup the region
-  before replacing NVDIMM 2.
-
-  However, I suppose it may be a bit difficult for user to be aware of it.
-  Because current ndctl does NOT output
-  "Which region is included on the (broken) NVDIMM module."
-  It can output only 
-  "Which NVDIMM is used for the region by "ndctl list -RD". 
-  
-  As a result, he/she has to SEARCH all of the regions which is mapped on
-  "nmem2". It may be a bit troublesome for users, I think.
-
-
-  In summary, I think...
-    - Badblock information on each NVDIMM will be helpful for user to replace
-      wrong NVDIMM.
-    - ndctl list -D need to output the information which regions/namespaces
-      are placed on each NVDIMM.
-
-Any comments are welcome.
-
-Thanks,
-
-
-
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 2af329d..52aa96f 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1155,7 +1155,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		if (ret)
+ 			goto out_map;
+ 
+-		ret = btt_map_write(arena, premap, new_postmap, 0, 0, 0);
++		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
++			NVDIMM_IO_ATOMIC);
+ 		if (ret)
+ 			goto out_map;
+ 
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index f8ad92b..8f29937 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -292,6 +292,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 				&& !(flags & NVDIMM_IO_ATOMIC)) {
+ 			long cleared;
+ 
++			might_sleep();
+ 			cleared = nvdimm_clear_poison(&ndns->dev,
+ 					nsio->res.start + offset, size);
+ 			if (cleared < size)
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
