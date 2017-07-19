@@ -1,11 +1,87 @@
-From: ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: (unknown)
-Date: Tue, 18 Jul 2017 12:50:05 +0800
-Message-ID: <20170718044729.1919821CB0318@ml01.01.org>
+From: "MAILER-DAEMON" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: see transcript for details
+Date: Wed, 19 Jul 2017 15:21:50 +0800
+Message-ID: <20170719071853.E615F21D0DE77@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5422854784957240585=="
+Content-Type: multipart/mixed; boundary="----------=_596F085A.AE63882C"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_596F085A.AE63882C
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  This Message was undeliverable due to the following reason:
+   Your message was not delivered because the destination computer was not reachable
+   within the allowed queue period. The amount of time a message is queued before
+   it is returned depends on local configura- tion parameters. [...] 
+
+Content analysis details:   (5.7 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0000]
+ 1.4 PYZOR_CHECK            Listed in Pyzor (http://pyzor.sf.net/)
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+
+
+------------=_596F085A.AE63882C
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: 
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1dXjHn-0002Qh-IW
+	for gln-linux-nvdimm@m.gmane.org; Wed, 19 Jul 2017 09:20:43 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id E615F21D0DE77;
+	Wed, 19 Jul 2017 00:18:53 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from lists.01.org (unknown [183.14.31.186])
+ by ml01.01.org (Postfix) with ESMTP id B8E8721D0DE68
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed, 19 Jul 2017 00:18:45 -0700 (PDT)
+From: "MAILER-DAEMON" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: Returned mail: see transcript for details
+Date: Wed, 19 Jul 2017 15:21:50 +0800
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.22
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,56 +89,38 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+Message-Id: <20170719071853.E615F21D0DE77-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-This is a multi-part message in MIME format.
+This Message was undeliverable due to the following reason:
 
---===============5422854784957240585==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-ê`É»U©πé2≥~im5wê«_Ùï0„ﬂÑ¸°ïAçj◊"jí˜!©bÃŸ˚À‰’WÓ·µ?7|l¯_±é¿î'›Z6”~ïíî*`iU≤ZK·ΩR~
-#W¿Ô◊˛«˛∆˛j·èΩ?êãl?¥~D‡‘l
-∏I‰§—tjµêß™ÔU#ˆˆS¬p„Z√|Ø—¿øô∆oû€∆
-nvF÷ﬁm*‹‰Ã!%'Ç‡UúÔ†û÷»ﬁ7YuŸ© $?c∏’#8Q/-C,‹¸’± åØÏÿÅKzN…lﬂœøpM~P√øﬂ…M|◊QRmœ∞6Ã7≠Å√§jÛ…æ∫í~cL≈ıÆ»~≥>¨%Oa…[ú√ƒNÔ‘∫˜‹<ÛêF˚{„<Ò˛5O“oOéà⁄,qÎK¶dPm
-D¡‹ú?ázÆ◊YÉ¿w
-lfÃOÈ≠?ÔÀ'eP{˙Ûz÷.ñ≤HpMh1-”0∆A¯SëMÔ.ΩMëá‡∑˚8ß•„√bcü¸Ó2S¯v
-–®Ë§ˆÔÕlÃQ”t≤°?ÜµQ–Ãπy5maà4®„ﬁá~Ωö∆'œ\v[ãÊIìÖã§¿5Ç'”ÍxŒJP°˛f‹„†rèµb^≠˙∆ñ’m
-/ﬂd¶™®ªÁM_∆Jéœn≥àI⁄†Ù÷
-éÉıÊSRæ‡Ω/êê
-ÌUsØ“œ˙lZq6rÓ`F∆Y‘E\°¸*¯v®Ω]Ãpáç~¬…v≥ÒaÀao
-ƒù
-¶-V‡%Ql‚ıÑ€4Rµ7–;¿ä 5E€JÊP¯®çSLƒÁÊCaŸ÷…≥À ﬂ¸Ú∑yœ‹∏óCv‹S3è◊Içb„)∑‡ÉsAI.'ŒQ0Ú
-sΩâ’;
-Ím•§G≈ç ÷¨áîØÛÁ‹}û—F˛eΩƒÈµ˚¨xf/]ùΩ/∑îÅØ¨Le–qbóXÚ2h∫›ü˝ç®…;aà‰M&˜¯O≈‡^VO”oB
-l≥¿÷Áæ÷}©;Õƒ˜H^Œ']¢Ì∏¡Ÿ˜5^/áÑÕŒG
-˝%wD¡`˚8¬·ÒôœÈM{ÇJ·˝…§„∑˙Ø«Á«Ë˝õLàœ◊€X9˘∏ŸËX˙AÇì~ü5≈ÔÓ(ïWFù≠≈◊P`€‡ﬂø)KãK8∆Bö∆´ZkóEóÌ}å
-Éœü{—ß17ªH¨“€Ÿ≥(ŒÌ:S‡4&<e<÷…í7∞üªöºâd"©T`rùV.U-s—“âqL±0
-s≠›d*7g^π¢≈ìﬂÈEá…ŒÁhÛû'¡º7Èó,\/}k˜ú©Áì≥·´ªZ§€R*3˚¿⁄ì˜Ògmo¯ëlÀ•q:l˛ﬂ
-Õç»_‘ü•©≈ÊgxÜ
-¸Ãäx§⁄9s˙´¥«›≠iÔÕ
-◊u;Ng≈DÿÎ¨”˜≠ê•µçO7w":Yôô‘≤È/W9'π-ΩåÁ®öÛcY±—flC^®´˛KËΩÃ
-ﬂÍ√^"Qˆi¿ﬁ9T\!√sC f¯êbû‚\◊’‚æTâ€Êñ_B.ñû“åenÈoÆπèò0A¯‰:™†Uµƒ˘~R†÷.Àß“‹_∞—µ”?†∂Qœ<±À˝Òÿ,¿‡πe0÷/OyÂ«˙TF0É˜W©Àµ˛W&7Ì`ü$˚≠≈eÕ∑˜ƒèX›ãÏ±kª„≤Zﬁ√Èû© ^4A»C Ë⁄•&A’-ˆû.‡TÉ∏
-IÍ’™yõÒ„(·è§
-«˛XŸßŒ"Ùæˆ£i%\˜0õ™F∞e†˝4&
-:º J[à"‘ª
-∑L$î≤ªÑIÓóe®™ïô“6Thˆg¶˝é≈>Ò°·0ıeüsº4$cŒ…±÷ΩŸ¨s¸_1'∆U∏„ˆPÛ?éu&ˆUÃî#˙˜Jç¿yΩ´SrÔC;∂B—÷â.Ü‘'ø∆ªÆ4àÑ5`Ë\ˆíkò¢Øæ&~‚v»*b™4 JI?gœxoõDôïí–˙Ë–b≠:J¸\÷Õ
-{ú'ô"?ﬂﬂì˘òÛÜæÑV§Ï§î√éãKÅÁãzâe)ë\UIáŸ\5W´T≥¨|¸ÑÆí
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 5 days:
+Host 61.57.94.113 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
 
 
---===============5422854784957240585==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============5422854784957240585==--
+
+------------=_596F085A.AE63882C--
