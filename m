@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 360EC20958969
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jul 2017 13:53:37 -0700 (PDT)
-Subject: [ndctl PATCH 3/6] ndctl: update to latest ndctl.h
+ by ml01.01.org (Postfix) with ESMTPS id D997221D1B280
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Jul 2017 11:37:57 -0700 (PDT)
+Subject: [ndctl PATCH 6/6] test: add multi-dax test
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 05 Jul 2017 13:48:50 -0700
-Message-ID: <149928773074.25150.12213123383973485331.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <149928771519.25150.13314997328838983545.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149928771519.25150.13314997328838983545.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 19 Jul 2017 11:33:27 -0700
+Message-ID: <150048920777.12895.10251738236110732171.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150048917662.12895.15953645444185664230.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150048917662.12895.15953645444185664230.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,89 +25,96 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add the definitions for the new root-device (hid: ACPI0012) _DSMs
-defined in the ACPI 6.2 specification.
+Add a simple sanity check for multiple dax instances per
+libnvdimm-region support. This is known to fail with a sysfs duplicate
+filename warning on kernels prior to 4.13-final.
 
-Cc: Jerry Hoemann <jerry.hoemann@hpe.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/ndctl.h |   42 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+ test/Makefile.am  |    1 +
+ test/multi-dax.sh |   61 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 62 insertions(+)
+ create mode 100755 test/multi-dax.sh
 
-diff --git a/ndctl/ndctl.h b/ndctl/ndctl.h
-index 3b1d703e4af1..d70b97da3924 100644
---- a/ndctl/ndctl.h
-+++ b/ndctl/ndctl.h
-@@ -105,7 +105,8 @@ struct nd_cmd_ars_cap {
- 	__u32 status;
- 	__u32 max_ars_out;
- 	__u32 clear_err_unit;
--	__u32 reserved;
-+	__u16 flags;
-+	__u16 reserved;
- } __attribute__((packed));
- 
- struct nd_cmd_ars_start {
-@@ -144,6 +145,43 @@ struct nd_cmd_clear_error {
- 	__u64 cleared;
- } __attribute__((packed));
- 
-+struct nd_cmd_trans_spa {
-+	__u64 spa;
-+	__u32 status;
-+	__u8  flags;
-+	__u8  _reserved[3];
-+	__u64 trans_length;
-+	__u32 num_nvdimms;
-+	struct nd_nvdimm_device {
-+		__u32 nfit_device_handle;
-+		__u32 _reserved;
-+		__u64 dpa;
-+	} __attribute__((packed)) devices[0];
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 9353a34326c1..ac3547e22ccb 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -10,6 +10,7 @@ TESTS =\
+ 	clear.sh \
+ 	dax-errors.sh \
+ 	daxdev-errors.sh \
++	multi-dax.sh \
+ 	btt-check.sh \
+ 	label-compat.sh \
+ 	blk-exhaust.sh
+diff --git a/test/multi-dax.sh b/test/multi-dax.sh
+new file mode 100755
+index 000000000000..751f16f5b07b
+--- /dev/null
++++ b/test/multi-dax.sh
+@@ -0,0 +1,61 @@
++#!/bin/bash -x
 +
-+} __attribute__((packed));
++# Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
++#
++# This program is free software; you can redistribute it and/or modify it
++# under the terms of version 2 of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it will be useful, but
++# WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# General Public License for more details.
 +
-+struct nd_cmd_ars_err_inj {
-+	__u64 err_inj_spa_range_base;
-+	__u64 err_inj_spa_range_length;
-+	__u8  err_inj_options;
-+	__u32 status;
-+} __attribute__((packed));
++DEV=""
++NDCTL="../ndctl/ndctl"
++DAXCTL="../daxctl/daxctl"
++BUS="-b nfit_test.0"
++BUS1="-b nfit_test.1"
++json2var="s/[{}\",]//g; s/:/=/g"
++rc=77
 +
-+struct nd_cmd_ars_err_inj_clr {
-+	__u64 err_inj_clr_spa_range_base;
-+	__u64 err_inj_clr_spa_range_length;
-+	__u32 status;
-+} __attribute__((packed));
++err() {
++	rc=1
++	echo "test/multi-dax: failed at line $1"
++	exit $rc
++}
 +
-+struct nd_cmd_ars_err_inj_stat {
-+	__u32 status;
-+	__u32 inj_err_rec_count;
-+	struct nd_error_stat_query_record {
-+		__u64 err_inj_stat_spa_range_base;
-+		__u64 err_inj_stat_spa_range_length;
-+	} __attribute__((packed)) record[0];
-+} __attribute__((packed));
++check_min_kver()
++{
++	local ver="$1"
++	: "${KVER:=$(uname -r)}"
 +
- enum {
- 	ND_CMD_IMPLEMENTED = 0,
- 
-@@ -169,6 +207,7 @@ enum {
- enum {
- 	ND_ARS_VOLATILE = 1,
- 	ND_ARS_PERSISTENT = 2,
-+	ND_CONFIG_LOCKED = 1,
- };
- 
- static __inline__ const char *nvdimm_bus_cmd_name(unsigned cmd)
-@@ -178,6 +217,7 @@ static __inline__ const char *nvdimm_bus_cmd_name(unsigned cmd)
- 		[ND_CMD_ARS_START] = "ars_start",
- 		[ND_CMD_ARS_STATUS] = "ars_status",
- 		[ND_CMD_CLEAR_ERROR] = "clear_error",
-+		[ND_CMD_CALL] = "cmd_call",
- 	};
- 
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
++	[ -n "$ver" ] || return 1
++	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
++}
++
++check_min_kver "4.13" || { echo "kernel $KVER may lack multi-dax support"; exit $rc; }
++
++set -e
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region $BUS all
++$NDCTL zero-labels $BUS all
++$NDCTL enable-region $BUS all
++
++query=". | sort_by(.available_size) | reverse | .[0].dev"
++region=$($NDCTL list $BUS -t pmem -Ri | jq -r "$query")
++
++json=$($NDCTL create-namespace $BUS -r $region -t pmem -m dax -a 4096 -s 16M)
++chardev1=$(echo $json | jq ". | select(.mode == \"dax\") | .daxregion.devices[0].chardev")
++json=$($NDCTL create-namespace $BUS -r $region -t pmem -m dax -a 4096 -s 16M)
++chardev2=$(echo $json | jq ". | select(.mode == \"dax\") | .daxregion.devices[0].chardev")
++
++# cleanup
++$NDCTL disable-region $BUS all
++$NDCTL disable-region $BUS1 all
++modprobe -r nfit_test
++
++exit 0
 
 _______________________________________________
 Linux-nvdimm mailing list
