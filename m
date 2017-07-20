@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C52CB2095D9E6
- for <linux-nvdimm@lists.01.org>; Fri, 21 Jul 2017 15:38:12 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 8D36D21CE7461
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Jul 2017 07:26:45 -0700 (PDT)
+Date: Thu, 20 Jul 2017 08:28:40 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 4/5] dax: remove DAX code from page_cache_tree_insert()
-Date: Fri, 21 Jul 2017 16:39:54 -0600
-Message-Id: <20170721223956.29485-5-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170721223956.29485-1-ross.zwisler@linux.intel.com>
-References: <20170721223956.29485-1-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v3 3/5] dax: use common 4k zero page for dax mmap reads
+Message-ID: <20170720142840.GB20414@linux.intel.com>
+References: <20170628220152.28161-1-ross.zwisler@linux.intel.com>
+ <20170628220152.28161-4-ross.zwisler@linux.intel.com>
+ <20170719153314.GC15908@quack2.suse.cz>
+ <20170719162645.GA26445@linux.intel.com>
+ <20170720102723.GB17689@quack2.suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170720102723.GB17689@quack2.suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,81 +23,76 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-doc@vger.kernel.org, David Airlie <airlied@linux.ie>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Christoph Hellwig <hch@lst.de>, linux-samsung-soc@vger.kernel.org, Joonyoung Shim <jy0922.shim@samsung.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, Ingo Molnar <mingo@redhat.com>, linux-ext4@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-arm-msm@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Inki Dae <inki.dae@samsung.com>, linux-nvdimm@lists.01.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Theodore Ts'o <tytso@mit.edu>, Jonathan Corbet <corbet@lwn.net>, Seung-Woo Kim <sw0312.kim@samsung.com>, linux-xfs@vger.kernel.org, Rob Clark <robdclark@gmail.com>, Kukjin Kim <kgene@kernel.org>, linux-fsdevel@vger.kernel.org, freedreno@lists.freedesktop.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-xfs@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, linux-doc@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that we no longer insert struct page pointers in DAX radix trees we can
-remove the special casing for DAX in page_cache_tree_insert().  This also
-allows us to make dax_wake_mapping_entry_waiter() local to fs/dax.c,
-removing it from dax.h.
+On Thu, Jul 20, 2017 at 12:27:23PM +0200, Jan Kara wrote:
+> On Wed 19-07-17 10:26:45, Ross Zwisler wrote:
+> > On Wed, Jul 19, 2017 at 05:33:14PM +0200, Jan Kara wrote:
+> > > On Wed 28-06-17 16:01:50, Ross Zwisler wrote:
+> > > > Another major change is that we remove dax_pfn_mkwrite() from our fault
+> > > > flow, and instead rely on the page fault itself to make the PTE dirty and
+> > > > writeable.  The following description from the patch adding the
+> > > > vm_insert_mixed_mkwrite() call explains this a little more:
+> > > > 
+> > > > ***
+> > > >   To be able to use the common 4k zero page in DAX we need to have our PTE
+> > > >   fault path look more like our PMD fault path where a PTE entry can be
+> > > >   marked as dirty and writeable as it is first inserted, rather than
+> > > >   waiting for a follow-up dax_pfn_mkwrite() => finish_mkwrite_fault() call.
+> > > > 
+> > > >   Right now we can rely on having a dax_pfn_mkwrite() call because we can
+> > > >   distinguish between these two cases in do_wp_page():
+> > > > 
+> > > >   	case 1: 4k zero page => writable DAX storage
+> > > >   	case 2: read-only DAX storage => writeable DAX storage
+> > > > 
+> > > >   This distinction is made by via vm_normal_page().  vm_normal_page()
+> > > >   returns false for the common 4k zero page, though, just as it does for
+> > > >   DAX ptes.  Instead of special casing the DAX + 4k zero page case, we will
+> > > >   simplify our DAX PTE page fault sequence so that it matches our DAX PMD
+> > > >   sequence, and get rid of dax_pfn_mkwrite() completely.
+> > > > 
+> > > >   This means that insert_pfn() needs to follow the lead of insert_pfn_pmd()
+> > > >   and allow us to pass in a 'mkwrite' flag.  If 'mkwrite' is set
+> > > >   insert_pfn() will do the work that was previously done by wp_page_reuse()
+> > > >   as part of the dax_pfn_mkwrite() call path.
+> > > > ***
+> > > 
+> > > Hum, thinking about this in context of this patch... So what if we have
+> > > allocated storage, a process faults it read-only, we map it to page tables
+> > > writeprotected. Then the process writes through mmap to the area - the code
+> > > in handle_pte_fault() ends up in do_wp_page() if I'm reading it right.
+> > 
+> > Yep.
+> > 
+> > > Then, since we are missing ->pfn_mkwrite() handlers, the PTE will be marked
+> > > writeable but radix tree entry stays clean - bug. Am I missing something?
+> > 
+> > I don't think we ever end up with a writeable PTE but with a clean radix tree
+> > entry.  When we get the write fault we do a full fault through
+> > dax_iomap_pte_fault() and dax_insert_mapping().
+> >
+> > dax_insert_mapping() sets up the dirty radix tree entry via
+> > dax_insert_mapping_entry() before it does anything with the page tables via
+> > vm_insert_mixed_mkwrite().
+> > 
+> > So, this mkwrite fault path is exactly the path we would have taken if the
+> > initial read to real storage hadn't happened, and we end up in the same end
+> > state - with a dirty DAX radix tree entry and a writeable PTE.
+> 
+> Ah sorry, I have missed that it is not that you would not have
+> ->pfn_mkwrite() handler - you still have it but it is the same as standard
+> fault handler now. So maybe can you rephrase the changelog a bit saying
+> that: "We get rid of dax_pfn_mkwrite() helper and use dax_iomap_fault() to
+> handle write-protection faults instead." Thanks!
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c            |  2 +-
- include/linux/dax.h |  2 --
- mm/filemap.c        | 13 ++-----------
- 3 files changed, 3 insertions(+), 14 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index fb0e4c1..0e27d90 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -127,7 +127,7 @@ static int wake_exceptional_entry_func(wait_queue_entry_t *wait, unsigned int mo
-  * correct waitqueue where tasks might be waiting for that old 'entry' and
-  * wake them.
-  */
--void dax_wake_mapping_entry_waiter(struct address_space *mapping,
-+static void dax_wake_mapping_entry_waiter(struct address_space *mapping,
- 		pgoff_t index, void *entry, bool wake_all)
- {
- 	struct exceptional_entry_key key;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 29cced8..afa99bb 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -122,8 +122,6 @@ int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
--void dax_wake_mapping_entry_waiter(struct address_space *mapping,
--		pgoff_t index, void *entry, bool wake_all);
- 
- #ifdef CONFIG_FS_DAX
- int __dax_zero_page_range(struct block_device *bdev,
-diff --git a/mm/filemap.c b/mm/filemap.c
-index a497024..1bf1265 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -130,17 +130,8 @@ static int page_cache_tree_insert(struct address_space *mapping,
- 			return -EEXIST;
- 
- 		mapping->nrexceptional--;
--		if (!dax_mapping(mapping)) {
--			if (shadowp)
--				*shadowp = p;
--		} else {
--			/* DAX can replace empty locked entry with a hole */
--			WARN_ON_ONCE(p !=
--				dax_radix_locked_entry(0, RADIX_DAX_EMPTY));
--			/* Wakeup waiters for exceptional entry lock */
--			dax_wake_mapping_entry_waiter(mapping, page->index, p,
--						      true);
--		}
-+		if (shadowp)
-+			*shadowp = p;
- 	}
- 	__radix_tree_replace(&mapping->page_tree, node, slot, page,
- 			     workingset_update_node, mapping);
--- 
-2.9.4
-
+Ah, sure, will do.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
