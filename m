@@ -1,15 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3CBE321D0B65F
- for <linux-nvdimm@lists.01.org>; Fri, 14 Jul 2017 15:11:41 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 4/6] btt: cache sector_size in arena_info
-Date: Fri, 14 Jul 2017 16:11:46 -0600
-Message-Id: <20170714221148.11232-5-vishal.l.verma@intel.com>
-In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
-References: <20170714221148.11232-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3E39E21CE749E
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Jul 2017 15:44:42 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: Persistent Memory type vs Reserved Memory type
+Date: Thu, 20 Jul 2017 22:45:35 +0000
+Message-ID: <1500590179.2042.41.camel@hpe.com>
+References: <840966580.1026784.1500509061384.ref@mail.yahoo.com>
+ <840966580.1026784.1500509061384@mail.yahoo.com>
+ <CAPcyv4juhhxZN9b1yVnFjboJUNMXJzLL8k5yf-+GXNE+aj86kw@mail.gmail.com>
+ <2095070705.1732096.1500573379101@mail.yahoo.com>
+In-Reply-To: <2095070705.1732096.1500573379101@mail.yahoo.com>
+Content-Language: en-US
+Content-ID: <E24F134BBD9F4E48BD281F48ED28A436@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,60 +24,35 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "soccer_liu@yahoo.com" <soccer_liu@yahoo.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the error clearing rework, add sector_size in the
-arena_info struct.
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/btt.c | 1 +
- drivers/nvdimm/btt.h | 2 ++
- 2 files changed, 3 insertions(+)
-
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 304dac4..6b84eae 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
- 	if (!arena)
- 		return NULL;
- 	arena->nd_btt = btt->nd_btt;
-+	arena->sector_size = btt->sector_size;
- 
- 	if (!size)
- 		return arena;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 09fabf5..2bc0d10b 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -108,6 +108,7 @@ struct aligned_lock {
-  *			handle incoming writes.
-  * @version_major:	Metadata layout version major.
-  * @version_minor:	Metadata layout version minor.
-+ * @sector_size:	The Linux sector size - 512 or 4096
-  * @nextoff:		Offset in bytes to the start of the next arena.
-  * @infooff:		Offset in bytes to the info block of this arena.
-  * @dataoff:		Offset in bytes to the data area of this arena.
-@@ -135,6 +136,7 @@ struct arena_info {
- 	u32 nfree;
- 	u16 version_major;
- 	u16 version_minor;
-+	u32 sector_size;
- 	/* Byte offsets to the different on-media structures */
- 	u64 nextoff;
- 	u64 infooff;
--- 
-2.9.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1LCAyMDE3LTA3LTIwIGF0IDE3OjU2ICswMDAwLCBTb2NjZXIgTGl1IHdyb3RlOg0KPiBJ
+IGFtIHNvcnJ5IGZvciBub3QgYmVpbmcgbW9yZSBjbGVhci4NCj4gSW4gQUNQSSBzcGVjIDIuNiwg
+dGhlIFRhYmxlIDE1LTMxNyBoYXMgYWxsIHRoZSBVRUZJIE1lbW9yeSBUeXBlcyBhbmQNCj4gbWFw
+cGluZyB0byBBQ1BJIGFkZHJlc3MgcmFuZ2UgdHlwZXMuDQo+IEhlcmUgYXJlIHRoZSBhY3R1YWwg
+dHlwZXMgdGhhdCBJIHJlZmVycmVkIHRvOg0KPiDigJxQZXJzaXN0ZW504oCdLT4gRWZpUGVyc2lz
+dGVudE1lbW9yeSAoMTQp4oCcUmVzZXJ2ZWTigJ3CoCAtPiBSZXNlcnZlZCB0eXBlDQo+IDE1wqAN
+Cj4gQXBwYXJlbnRseSwgb25seSBteSBwcml2YXRlIGtlcm5lbCB3b3JrcyBhcyBleHBlY3RlZCB3
+aGVuIGRlYWxpbmcNCj4gd2l0aCBSZXNlcnZlZCB0eXBlICgxNSkgYnV0IGNhbm5vdCBib290IHdp
+dGggYW55wqBFZmlQZXJzaXN0ZW50TWVtb3J5DQo+IGRldmljZS4gSSBkaWQgc2VlIGEgRWZpUGVy
+c2lzdGVudE1lbW9yeSBkZXZpY2Ugd29ya2luZyB3aXRoIFVidW50dQ0KPiBPUy4gSSBhbSBzdXNw
+ZWN0aW5nIGl0J3MgbXkgZW52aXJvbm1lbnQgaXNzdWVzIChrY29uZmlnIGZsYWdzIG9yDQo+IG90
+aGVycyksIEkgYW0gY3VyaW91cyBhYm91dCBhbnlvbmUgaGFzIGFueSBpZGVhIG9uIGhvdyB0byBk
+ZWJ1ZyB0aGlzDQo+IGtpbmQgb2YgImRvZXMgbm90IGJvb3QgaXNzdWUiIG9yIGFueW9uZSBoYXMg
+c2VlbsKgRWZpUGVyc2lzdGVudE1lbW9yecKgDQo+IGxpa2UgdGhpcz8NCg0KSSdkIHJlY29tbWVu
+ZCB5b3UgZW5hYmxlIHNlcmlhbCBjb25zb2xlIG9uIHlvdXIgc3lzdGVtLCBhbmQgYWRkIHRoZQ0K
+Zm9sbG93aW5nIGJvb3Qgb3B0aW9ucy4gIE5vdGUsIHlvdSB3b3VsZCBuZWVkIHRvIGNoYW5nZSB0
+aGUgcGFyYW1ldGVyDQpvZiBjb25zb2xlPSBvcHRpb24gYWNjb3JkaW5nIHRvIHlvdXIgc2V0dXAu
+ICBUaGlzIHNob3VsZCBoZWxwIHlvdSB0bw0KaWRlbnRpZnkgd2hlcmUgdGhlIHByb2JsZW0gaXMu
+DQoNCmNvbnNvbGU9dHR5UzEsMTE1MjAwIGNvbnNvbGU9dHR5MSwxMTUyMDAgbGlibnZkaW1tLmR5
+bmRiZyBuZml0LmR5bmRiZw0KbmRfcG1lbS5keW5kYmcgbmRfYnR0LmR5bmRiZyBlZmk9ZGVidWcg
+aWdub3JlX2xvZ2xldmVswqANCg0KLVRvc2hpDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
+aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
+bnV4LW52ZGltbQo=
