@@ -1,11 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Fri, 21 Jul 2017 09:29:15 -0400 (EDT)
+Date: Fri, 21 Jul 2017 06:21:39 -0400 (EDT)
 From: Pankaj Gupta <pagupta@redhat.com>
-Message-ID: <46101617.33460557.1500643755247.JavaMail.zimbra@redhat.com>
-In-Reply-To: <20170721121241.GA18014@stefanha-x1.localdomain>
+Message-ID: <813318776.33377694.1500632499830.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20170721095131.ule4owoayuqwh6d3@hz-desktop>
 References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
  <945864462.33340808.1500620194836.JavaMail.zimbra@redhat.com>
- <20170721121241.GA18014@stefanha-x1.localdomain>
+ <20170721095131.ule4owoayuqwh6d3@hz-desktop>
 Subject: Re: KVM "fake DAX" flushing interface - discussion
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -19,11 +19,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Stefan Hajnoczi <stefanha@gmail.com>
+To: Haozhong Zhang <haozhong.zhang@intel.com>
 Cc: Kevin Wolf <kwolf@redhat.com>, Rik van Riel <riel@redhat.com>, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, kvm-devel <kvm@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
 
+> > 
+> > Hello,
+> > 
+> > We shared a proposal for 'KVM fake DAX flushing interface'.
+> > 
+> > https://lists.gnu.org/archive/html/qemu-devel/2017-05/msg02478.html
+> >
+> 
+> In above link,
+>   "Overall goal of project
+>    is to increase the number of virtual machines that can be
+>    run on a physical machine, in order to *increase the density*
+>    of customer virtual machines"
+> 
+> Is the fake persistent memory used as normal RAM in guest? If no, how
+> is it expected to be used in guest?
+
+Yes, guest will have a nvdimm DAX device and not use page cache for most 
+of the operations. Host will manage memory requirement of all the guests.
+  
+> 
+> > We did initial POC in which we used 'virtio-blk' device to perform
+> > a device flush on pmem fsync on ext4 filesystem. They are few hacks
+> > to make things work. We need suggestions on below points before we
+> > start actual implementation.
+> >
 > > A] Problems to solve:
 > > ------------------
 > > 
@@ -34,15 +60,9 @@ List-ID: <linux-nvdimm@lists.01.org>
 > >      - Existing interface.
 > > 
 > >      - The approach to use flush hint address is already nacked upstream.
-> >
+> > 
 > >      - Flush hint not queued interface for flushing. Applications might
 > >        avoid to use it.
-> 
-> This doesn't contradicts the last point about async operation and vcpu
-> control.  KVM async page faults turn the Address Flush Hints write into
-> an async operation so the guest can get other work done while waiting
-> for completion.
-> 
 > > 
 > >      - Flush hint address traps from guest to host and do an entire fsync
 > >        on backing file which itself is costly.
@@ -51,18 +71,6 @@ List-ID: <linux-nvdimm@lists.01.org>
 > >        send data(pages information) equal to cache-line size(limitation)
 > >        and tell host to sync corresponding pages instead of entire disk
 > >        sync.
-> 
-> Are you sure?  Your previous point says only the entire device can be
-> synced.  The NVDIMM Adress Flush Hints interface does not involve
-> address range information.
-
-Just syncing entire block device should be simple but costly. Using flush 
-hint address to write data which contains list/info of dirty pages to 
-flush requires more thought. This calls mmio write callback at Qemu side.
-As per Intel (ACPI spec 6.1, Table 5-135) there is limit to max length 
-of data guest can write and is equal to cache line size.
- 
-> 
 > > 
 > >      - This will be an asynchronous operation and vCPU control is returned
 > >        quickly.
@@ -70,12 +78,85 @@ of data guest can write and is equal to cache line size.
 > > 
 > >  1.2] Using additional para virt device in addition to pmem device(fake dax
 > >  with device flush)
+> > 
+> >      - New interface
+> > 
+> >      - Guest maintains information of DAX dirty pages as exceptional
+> >      entries in
+> >        radix tree.
+> > 
+> >      - If we want to flush specific pages from guest to host, we need to
+> >      send
+> >        list of the dirty pages corresponding to file on which we are doing
+> >        fsync.
+> > 
+> >      - This will require implementation of new interface, a new paravirt
+> >      device
+> >        for sending flush requests.
+> > 
+> >      - Host side will perform fsync/fdatasync on list of dirty pages or
+> >      entire
+> >        block device backed file.
+> > 
+> > 2] Questions:
+> > -----------
+> > 
+> >  2.1] Not sure why WPQ flush is not a queued interface? We can force
+> >  applications
+> >       to call this? device DAX neither calls fsync/msync?
+> > 
+> >  2.2] Depending upon interface we decide, we need optimal solution to sync
+> >       range of pages?
+> > 
+> >      - Send range of pages from guest to host to sync asynchronously
+> >      instead
+> >        of syncing entire block device?
 > 
-> Perhaps this can be exposed via ACPI as part of the NVDIMM standards
-> instead of a separate KVM-only paravirt device.
-
-Same reason as above. If we decide on sending list of dirty pages there is
-limit to send max size of data to host using flush hint address.  
+> e.g. a new virtio device to deliver sync requests to host?
+> 
+> > 
+> >      - Other option is to sync entire disk backing file to make sure all
+> >      the
+> >        writes are persistent. In our case, backing file is a regular file
+> >        on
+> >        non NVDIMM device so host page cache has list of dirty pages which
+> >        can be used either with fsync or similar interface.
+> 
+> As the amount of dirty pages can be variant, the latency of each host
+> fsync is likely to vary in a large range.
+> 
+> > 
+> >  2.3] If we do host fsync on entire disk we will be flushing all the dirty
+> >  data
+> >       to backend file. Just thinking what would be better approach,
+> >       flushing
+> >       pages on corresponding guest file fsync or entire block device?
+> > 
+> >  2.4] If we decide to choose one of the above approaches, we need to
+> >  consider
+> >       all DAX supporting filesystems(ext4/xfs). Would hooking code to
+> >       corresponding
+> >       fsync code of fs seems reasonable? Just thinking for flush hint
+> >       address use-case?
+> >       Or how flush hint addresses would be invoked with fsync or similar
+> >       api?
+> > 
+> >  2.5] Also with filesystem journalling and other mount options like
+> >  barriers,
+> >       ordered etc, how we decide to use page flush hint or regular fsync on
+> >       file?
+> >  
+> >  2.6] If at guest side we have PFN of all the dirty pages in radixtree? and
+> >  we send
+> >       these to to host? At host side would we able to find corresponding
+> >       page and flush
+> >       them all?
+> 
+> That may require the host file system provides API to flush specified
+> blocks/extents and their meta data in the file system. I'm not
+> familiar with this part and don't know whether such API exists.
+> 
+> Haozhong
 > 
 _______________________________________________
 Linux-nvdimm mailing list
