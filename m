@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw0-x230.google.com (mail-yw0-x230.google.com
+ [IPv6:2607:f8b0:4002:c05::230])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 698F42095D2BB
- for <linux-nvdimm@lists.01.org>; Fri, 14 Jul 2017 15:11:42 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 5/6] acpi: change memory allocations to GFP_NOIO
-Date: Fri, 14 Jul 2017 16:11:47 -0600
-Message-Id: <20170714221148.11232-6-vishal.l.verma@intel.com>
-In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
-References: <20170714221148.11232-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D601421D0DE47
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Jul 2017 20:21:38 -0700 (PDT)
+Received: by mail-yw0-x230.google.com with SMTP id a12so19952684ywh.3
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Jul 2017 20:23:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170717235655.26424-7-vishal.l.verma@intel.com>
+References: <20170717235655.26424-1-vishal.l.verma@intel.com>
+ <20170717235655.26424-7-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 20 Jul 2017 20:23:34 -0700
+Message-ID: <CAPcyv4jbMwtZLnNuwpaVF-W21HLc8QD5rYn6b7wBxcnV5eDAow@mail.gmail.com>
+Subject: Re: [PATCH v3 6/6] libnvdimm: fix potential deadlock while clearing
+ errors
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,68 +23,39 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-Specifically, the DSM to clear media errors is called during writes, so
-that we can provide a writes-fix-errors model.
+On Mon, Jul 17, 2017 at 4:56 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
+> Specifically, the DSM to clear media errors is called during writes, so
+> that we can provide a writes-fix-errors model.
+>
+> However it is easy to imagine a scenario like:
+>  -> write through the nvdimm driver
+>    -> acpi allocation
+>      -> writeback, causes more IO through the nvdimm driver
+>        -> deadlock
+>
+> Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
+> flag for the current scope when issuing commands/IOs that are expected
+> to clear errors.
+>
+> Cc: <linux-acpi@vger.kernel.org>
+> Cc: <linux-nvdimm@lists.01.org>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-However it is easy to imagine a scenario like:
- - write through the nvdimm driver
- - acpi allocation
- - writeback, causes more IO through the nvdimm driver
- - deadlock
-
-Making the acpi allocations GPF_NOIO would ensure that it doesn't
-trigger writeback, and avoids the above deadlock.
-
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- include/acpi/platform/aclinuxex.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
-index efdff52..9bd54ec 100644
---- a/include/acpi/platform/aclinuxex.h
-+++ b/include/acpi/platform/aclinuxex.h
-@@ -83,12 +83,12 @@ acpi_status acpi_os_terminate(void);
-  */
- static inline void *acpi_os_allocate(acpi_size size)
- {
--	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
- }
- 
- static inline void *acpi_os_allocate_zeroed(acpi_size size)
- {
--	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
- }
- 
- static inline void acpi_os_free(void *memory)
-@@ -99,7 +99,7 @@ static inline void acpi_os_free(void *memory)
- static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
- {
- 	return kmem_cache_zalloc(cache,
--				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-+				 irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
- }
- 
- static inline acpi_thread_id acpi_os_get_thread_id(void)
--- 
-2.9.3
-
+Looks good to me. Please move this up in the series before we start
+calling nvdimm_clear_poison() in the btt I/O path so there's no
+bisection point where this deadlock comes back.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
