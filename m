@@ -1,74 +1,87 @@
-From: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Persistent Memory type vs Reserved Memory type
-Date: Thu, 20 Jul 2017 18:01:37 +0000 (UTC)
-Message-ID: <133737115.1735319.1500573697773@mail.yahoo.com>
-References: <840966580.1026784.1500509061384.ref@mail.yahoo.com>
- <840966580.1026784.1500509061384@mail.yahoo.com>
- <CAPcyv4juhhxZN9b1yVnFjboJUNMXJzLL8k5yf-+GXNE+aj86kw@mail.gmail.com>
- <2095070705.1732096.1500573379101@mail.yahoo.com>
-Reply-To: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+From: Stefan Hajnoczi <stefanha@gmail.com>
+Subject: Re: KVM "fake DAX" flushing interface - discussion
+Date: Fri, 21 Jul 2017 13:12:41 +0100
+Message-ID: <20170721121241.GA18014@stefanha-x1.localdomain>
+References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
+ <945864462.33340808.1500620194836.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <2095070705.1732096.1500573379101-sAHhhX/85wgbqTNvkayDYw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="YZ5djTAD1cGYuMQK"
+Return-path: <kvm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <945864462.33340808.1500620194836.JavaMail.zimbra@redhat.com>
+Sender: kvm-owner@vger.kernel.org
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: kvm-devel <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Rik van Riel <riel@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Stefan Hajnoczi <stefanha@redhat.com>, ross.zwisler@linux.intel.com, Paolo Bonzini <pbonzini@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, xiaoguangrong.eric@gmail.com, Haozhong Zhang <haozhong.zhang@intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-ClNsaWdodGx5IGNvcnJlY3Rpb246CuKAnFBlcnNpc3RlbnTigJ0tPiBFZmlQZXJzaXN0ZW50TWVt
-b3J5ICgxNCkK4oCcUmVzZXJ2ZWTigJ3CoCAtPiBFZmlSZXNlcnZlZE1lbW9yeVR5cGUoMCnCoCAK
-CiAgICBPbiBUaHVyc2RheSwgSnVseSAyMCwgMjAxNyAxMDo1NiBBTSwgU29jY2VyIExpdSA8c29j
-Y2VyX2xpdUB5YWhvby5jb20+IHdyb3RlOgogCgogSSBhbSBzb3JyeSBmb3Igbm90IGJlaW5nIG1v
-cmUgY2xlYXIuCkluIEFDUEkgc3BlYyAyLjYsIHRoZSBUYWJsZSAxNS0zMTcgaGFzIGFsbCB0aGUg
-VUVGSSBNZW1vcnkgVHlwZXMgYW5kIG1hcHBpbmcgdG8gQUNQSSBhZGRyZXNzIHJhbmdlIHR5cGVz
-LgpIZXJlIGFyZSB0aGUgYWN0dWFsIHR5cGVzIHRoYXQgSSByZWZlcnJlZCB0bzoK4oCcUGVyc2lz
-dGVudOKAnS0+IEVmaVBlcnNpc3RlbnRNZW1vcnkgKDE0KeKAnFJlc2VydmVk4oCdwqAgLT4gUmVz
-ZXJ2ZWQgdHlwZSAxNcKgCkFwcGFyZW50bHksIG9ubHkgbXkgcHJpdmF0ZSBrZXJuZWwgd29ya3Mg
-YXMgZXhwZWN0ZWQgd2hlbiBkZWFsaW5nIHdpdGggUmVzZXJ2ZWQgdHlwZSAoMTUpIGJ1dCBjYW5u
-b3QgYm9vdCB3aXRoIGFuecKgRWZpUGVyc2lzdGVudE1lbW9yeSBkZXZpY2UuIEkgZGlkIHNlZSBh
-IEVmaVBlcnNpc3RlbnRNZW1vcnkgZGV2aWNlIHdvcmtpbmcgd2l0aCBVYnVudHUgT1MuIEkgYW0g
-c3VzcGVjdGluZyBpdCdzIG15IGVudmlyb25tZW50IGlzc3VlcyAoa2NvbmZpZyBmbGFncyBvciBv
-dGhlcnMpLCBJIGFtIGN1cmlvdXMgYWJvdXQgYW55b25lIGhhcyBhbnkgaWRlYSBvbiBob3cgdG8g
-ZGVidWcgdGhpcyBraW5kIG9mICJkb2VzIG5vdCBib290IGlzc3VlIiBvciBhbnlvbmUgaGFzIHNl
-ZW7CoEVmaVBlcnNpc3RlbnRNZW1vcnnCoCBsaWtlIHRoaXM/CgpUaGFua3NDaGVuZy1tZWFuCiAK
-CsKgIMKgIE9uIFRodXJzZGF5LCBKdWx5IDIwLCAyMDE3IDY6MDMgQU0sIERhbiBXaWxsaWFtcyA8
-ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPiB3cm90ZToKIAoKIE9uIFdlZCwgSnVsIDE5LCAyMDE3
-IGF0IDU6MDQgUE0sIFNvY2NlciBMaXUgPHNvY2Nlcl9saXVAeWFob28uY29tPiB3cm90ZToKPiBI
-aToKPsKgIMKgIEkgYW0gdHJ5aW5nIHRvIGRlYnVnIGFuIGlzc3VlIHJlbGF0ZWQgdG/CoCBteSBw
-cml2YXRlIGJ1aWx0IGtlcm5lbCdzICg0LjExIGZyb20gdXBzdHJlYW0gd2l0aCBBQ1BJL05GSVQv
-TlZESU1NIGVuYWJsZWQpIGludGVyYWN0aW9uIHdpdGggYSBwZXJzaXN0ZW50IG1lbW9yeSBkZXZp
-Y2UncyB0eXBlLgo+IFdlIGhhdmUgYSB3YXkgdG8gZW11bGF0ZSBhIHNvZnR3YXJlIGJhc2VkIE5W
-RElNTSBkZXZpY2UgaW50byBhIGd1ZXN0LCB3aGljaCBpcyBydW5uaW5nIG15IHByaXZhdGUgYnVp
-bHQga2VybmVsLiBXaGVuIHRoZSBob3N0IHNldCB0aGlzIGVtdWxhdGVkIE5WRElNTSBkZXZpY2Ug
-YXMgUmVzZXJ2ZWQgdHlwZSwgSSB3YXMgYWJsZSB0byBzZWUgYSBwbWVtMCBibG9jayBkZXZpY2Ug
-ZXhwb3NlZCBhbmQgZXZlcnl0aGluZyBzZWVtcyB0byBmdW5jdGlvbiBjb3JyZWN0bHkuaG93ZXZl
-ciwgd2hlbiBpdCdzIGV4cG9zZWQgYXMgYSBQZXJzaXN0ZW50IE1lbW9yeSB0eXBlLCB0aGUga2Vy
-bmVsIGRvZXMgbm90IGJvb3QgYW5kIGl0IGhhcyBhIGJsYWNrIHNjcmVlbiBhbmQgbm8gdXNlZnVs
-bHkgbG9nZ2luZyBjb3VsZCBoZWxwIHJvb3QgY2F1c2UgdGhpcy4KPsKgIE15IHF1ZXN0aW9ucyBh
-cmU6Cj7CoCAxLiBJcyB0aGlzIGEga25vd24gaXNzdWUgZm9yIDQuMTE/IDIuIElzIHRoZXJlIGFu
-eSBwYXRjaGVzIE5JRlQvTlZESU1NIGJleW9uZCA0LjExIHRoYXQncyBuZWVkZWQgdG8gZ2V0IFBl
-cnNpc3RlbnQgTWVtb3J5IHR5cGUgc3VwcG9ydGVkPyAzLiBJbiB0aGlzIGNhc2UsIGlzIHRoZXJl
-IGFueXdheSB0byBkZWJ1ZyB0aGlzIGZ1cnRoZXI/CgpXaGVuIHlvdSBzYXkgUGVyc2lzdGVudCBN
-ZW1vcnkgVHlwZSwgd2hpY2ggdHlwZSBhcmUgeW91IHJlZmVycmluZy4gVGhlCnNwZWMgY29tcGxp
-YW50IG9uZSBpcyBFODIwLXR5cGUtNyBvciBFRkktIHR5cGUtMTUuIExpbnV4IGFsc28KdW5kZXJz
-dGFuZHMgRTgyMC10eXBlLTEyIHdoaWNoIHdlbnQgdXBzdHJlYW0gYmVmb3JlIHRoZSBvZmZpY2lh
-bCB0eXBlcwp3ZXJlIGRlZmluZWQuCgpFODIwLVR5cGUtMTIgaXMgdGhlIHByb2JsZW1hdGljIG9u
-ZSwgdGhlIG90aGVycyBhcmUgZXF1aXZhbGVudCB0bwpSZXNlcnZlZCAoRTgyMC1UeXBlLTIpLgoK
-QWxsIHRoYXQgc2FpZCB3ZSBoYXZlIGhhZCBmdW5jdGlvbmFsIHN1cHBvcnQgZm9yIGFsbCB0aGVz
-ZSB0eXBlcyBzaW5jZQp0aGUgNC4yIGtlcm5lbCwgbm8ga2VybmVsIGNoYW5nZXMgc2hvdWxkIGJl
-IG5lZWRlZC4KCsKgIApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
-aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0KCgogICAK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
-aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
-MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+
+--YZ5djTAD1cGYuMQK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Jul 21, 2017 at 02:56:34AM -0400, Pankaj Gupta wrote:
+> A] Problems to solve:
+> ------------------
+>=20
+> 1] We are considering two approaches for 'fake DAX flushing interface'.
+>    =20
+>  1.1] fake dax with NVDIMM flush hints & KVM async page fault
+>=20
+>      - Existing interface.
+>=20
+>      - The approach to use flush hint address is already nacked upstream.
+>
+>      - Flush hint not queued interface for flushing. Applications might=
+=20
+>        avoid to use it.
+
+This doesn't contradicts the last point about async operation and vcpu
+control.  KVM async page faults turn the Address Flush Hints write into
+an async operation so the guest can get other work done while waiting
+for completion.
+
+>=20
+>      - Flush hint address traps from guest to host and do an entire fsync=
+=20
+>        on backing file which itself is costly.
+>=20
+>      - Can be used to flush specific pages on host backing disk. We can=
+=20
+>        send data(pages information) equal to cache-line size(limitation)=
+=20
+>        and tell host to sync corresponding pages instead of entire disk s=
+ync.
+
+Are you sure?  Your previous point says only the entire device can be
+synced.  The NVDIMM Adress Flush Hints interface does not involve
+address range information.
+
+>=20
+>      - This will be an asynchronous operation and vCPU control is returne=
+d=20
+>        quickly.
+>=20
+>=20
+>  1.2] Using additional para virt device in addition to pmem device(fake d=
+ax with device flush)
+
+Perhaps this can be exposed via ACPI as part of the NVDIMM standards
+instead of a separate KVM-only paravirt device.
+
+--YZ5djTAD1cGYuMQK
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEcBAEBAgAGBQJZce+5AAoJEJykq7OBq3PIFbAH/jSdCCHJDmBAoM15NhcbFhz3
+VQyBg2oHvp0Rh70raY2tKnvixRRxxT36to+NqOioNrTPEN3kNBmO8Sgks551ov4Q
+dsqKSHThnRmf4G8jdv/Dst7dArF56XrCiAfVLtokYf1fkE3HVDiY8VcoFmi825Q5
+w5HxTHRYSH/4KhEyv1y2FYWKWWnP7GLT2NxDywiGg1amWEThkhgUjwFwQOeQayr5
+IoprsZAP64AcLLxw3qABB9FgMeIhnDIrA6GL9tLEz5YRt9ztRvWkb35FChdV8Jps
+XqPhUzC2l7XSRVmt7JeEwDuMWgrUpSGuJ1XT5WtVQxtMwHC2TqWp+T3yYERdqT8=
+=suLS
+-----END PGP SIGNATURE-----
+
+--YZ5djTAD1cGYuMQK--
