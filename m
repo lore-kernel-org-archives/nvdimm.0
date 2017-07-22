@@ -1,116 +1,145 @@
-From: Stefan Hajnoczi <stefanha@redhat.com>
-Subject: Re: KVM "fake DAX" flushing interface - discussion
-Date: Fri, 21 Jul 2017 16:58:48 +0100
-Message-ID: <20170721155848.GO18014@stefanha-x1.localdomain>
-References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
- <945864462.33340808.1500620194836.JavaMail.zimbra@redhat.com>
- <20170721121241.GA18014@stefanha-x1.localdomain>
- <46101617.33460557.1500643755247.JavaMail.zimbra@redhat.com>
+From: "Effie Pusey" <newsletter-KD6vb7Cx16hD/sVSajbDsQ@public.gmane.org>
+Subject: Followers for Instagram
+Date: Sat, 22 Jul 2017 16:55:02 -0700
+Message-ID: <5944F8F9.6212BF94@myinstabuzz.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qse+WBH4guesipZ+"
-Return-path: <kvm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <46101617.33460557.1500643755247.JavaMail.zimbra@redhat.com>
-Sender: kvm-owner@vger.kernel.org
-To: Pankaj Gupta <pagupta@redhat.com>
-Cc: Stefan Hajnoczi <stefanha@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Rik van Riel <riel@redhat.com>, Dan Williams <dan.j.williams@intel.com>, ross zwisler <ross.zwisler@linux.intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, Haozhong Zhang <haozhong.zhang@intel.com>
+Content-Type: multipart/mixed; boundary="----------=_5973F64D.BDC6E64A"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+This is a multi-part message in MIME format.
 
---qse+WBH4guesipZ+
-Content-Type: text/plain; charset=us-ascii
+------------=_5973F64D.BDC6E64A
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jul 21, 2017 at 09:29:15AM -0400, Pankaj Gupta wrote:
->=20
-> > > A] Problems to solve:
-> > > ------------------
-> > >=20
-> > > 1] We are considering two approaches for 'fake DAX flushing interface=
-'.
-> > >    =20
-> > >  1.1] fake dax with NVDIMM flush hints & KVM async page fault
-> > >=20
-> > >      - Existing interface.
-> > >=20
-> > >      - The approach to use flush hint address is already nacked upstr=
-eam.
-> > >
-> > >      - Flush hint not queued interface for flushing. Applications mig=
-ht
-> > >        avoid to use it.
-> >=20
-> > This doesn't contradicts the last point about async operation and vcpu
-> > control.  KVM async page faults turn the Address Flush Hints write into
-> > an async operation so the guest can get other work done while waiting
-> > for completion.
-> >=20
-> > >=20
-> > >      - Flush hint address traps from guest to host and do an entire f=
-sync
-> > >        on backing file which itself is costly.
-> > >=20
-> > >      - Can be used to flush specific pages on host backing disk. We c=
-an
-> > >        send data(pages information) equal to cache-line size(limitati=
-on)
-> > >        and tell host to sync corresponding pages instead of entire di=
-sk
-> > >        sync.
-> >=20
-> > Are you sure?  Your previous point says only the entire device can be
-> > synced.  The NVDIMM Adress Flush Hints interface does not involve
-> > address range information.
->=20
-> Just syncing entire block device should be simple but costly. Using flush=
-=20
-> hint address to write data which contains list/info of dirty pages to=20
-> flush requires more thought. This calls mmio write callback at Qemu side.
-> As per Intel (ACPI spec 6.1, Table 5-135) there is limit to max length=20
-> of data guest can write and is equal to cache line size.
-> =20
-> >=20
-> > >=20
-> > >      - This will be an asynchronous operation and vCPU control is ret=
-urned
-> > >        quickly.
-> > >=20
-> > >=20
-> > >  1.2] Using additional para virt device in addition to pmem device(fa=
-ke dax
-> > >  with device flush)
-> >=20
-> > Perhaps this can be exposed via ACPI as part of the NVDIMM standards
-> > instead of a separate KVM-only paravirt device.
->=20
-> Same reason as above. If we decide on sending list of dirty pages there is
-> limit to send max size of data to host using flush hint address. =20
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
 
-I understand now: you are proposing to change the semantics of the
-Address Flush Hints interface.  You want the value written to have
-meaning (the address range that needs to be flushed).
+Content preview:  Professional and reliable service with affordable prices http://www.myinstabuzz.com/buy-instagram-followers/
+   Thank you Effie Pusey Unsubscribe option is available on the footer of our
+   website [...] 
 
-Today the spec says:
+Content analysis details:   (8.2 points, 5.0 required)
 
-  The content of the data is not relevant to the functioning of the
-  flush hint mechanism.
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: myinstabuzz.com]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: myinstabuzz.com]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+                [Blocked - see <http://www.spamcop.net/bl.shtml?59.100.3.189>]
+ 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
+                            [59.100.3.189 listed in dnsbl.sorbs.net]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.myinstabuzz.com]
+ 0.6 PRICES_ARE_AFFORDABLE  BODY: Message says that prices aren't too
+                            expensive
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.myinstabuzz.com]
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: myinstabuzz.com]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0000]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
 
-Maybe the NVDIMM folks can comment on this idea.
 
---qse+WBH4guesipZ+
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
+------------=_5973F64D.BDC6E64A
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-iQEcBAEBAgAGBQJZciS4AAoJEJykq7OBq3PIMYYIAJey2Ca+81kxB+uzV2QnDt/4
-Yne3m9SNsxgLjOJfeHU6e/2mwCZkayDllcfpoqqAl6Cf+HyjJUL2Y0SuRlbLZzw+
-IAhmZ6cBCnKUUb1DRdJQrBFXcWjABu4SUn3r7oWhPwrMkhfnq9DzqFkMqX3/AcPk
-Xs18nW11/nFeCS2JmFAE4TLAxV416GlvyY6xx7EKVQk04rWbKbFXiH/S0cykii5N
-i2AQdNzo4xbRNRCvZsTraUYnBVMh8wUQ7GK2ySaioS5ILPPR1f9gfIiREGfvdRiS
-4GyfhJ0BO6Ln3DnSiFWcKAYzfjbf/3qzm9LV4hcI/cnE/3Ch9SdihBodYP9tScU=
-=aED0
------END PGP SIGNATURE-----
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1dZ5KW-0005Cg-Ds
+	for gln-linux-nvdimm@m.gmane.org; Sun, 23 Jul 2017 03:05:08 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 860D721CE7494;
+	Sat, 22 Jul 2017 18:03:10 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from myinstabuzz.com (59-100-3-189.syd.static-ipl.aapt.com.au
+ [59.100.3.189]) by ml01.01.org (Postfix) with SMTP id A149721CE747E
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sat, 22 Jul 2017 18:03:07 -0700 (PDT)
+DomainKey-Signature: a=rsa-sha1; q=dns; c=nofws; s=fuckyou; d=myinstabuzz.com;
+ h=Message-ID:Date:Reply-To:From:User-Agent:MIME-Version:To:Subject:Content-Type:Content-Transfer-Encoding;
+ b=bI2GrltuhEmPu1OFhrdPUOsb/0mxVkpA2JH4Adcz7n7Ur5JAJsnJ6uzaL58e/QZL1U5WKKMGLGbDYnGw7WT3w94Q1qguxW5t8+k1pqhy+32beduG/LcLiux9XmL8MIMlBOPsmrNNYOxz0SaakhJqU0VK22rBH8k3OfE9eaks1GU=;
+Message-ID: <5944F8F9.6212BF94-KD6vb7Cx16hD/sVSajbDsQ@public.gmane.org>
+Date: Sat, 22 Jul 2017 16:55:02 -0700
+From: "Effie Pusey" <newsletter-KD6vb7Cx16hD/sVSajbDsQ@public.gmane.org>
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US;
+ rv:1.8.1.14) Gecko/20080505 Thunderbird/2.0.0.14
+MIME-Version: 1.0
+To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Followers for Instagram
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: Effie Pusey <newsletter-KD6vb7Cx16hD/sVSajbDsQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
---qse+WBH4guesipZ+--
+
+Professional and reliable service with affordable prices
+http://www.myinstabuzz.com/buy-instagram-followers/
+
+Thank you
+Effie Pusey
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option is available on the footer of our website
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_5973F64D.BDC6E64A--
