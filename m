@@ -2,15 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C355E21CE7477
- for <linux-nvdimm@lists.01.org>; Thu, 20 Jul 2017 07:48:58 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.13-rc2
-Date: Thu, 20 Jul 2017 14:50:53 +0000
-Message-ID: <1500562251.17644.2.camel@intel.com>
-Content-Language: en-US
-Content-ID: <A3D041E532F0A54597E20C394B3D46D3@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 450762193B80C
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 10:04:25 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v5 5/5] dax: move all DAX radix tree defs to fs/dax.c
+Date: Mon, 24 Jul 2017 11:06:16 -0600
+Message-Id: <20170724170616.25810-6-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170724170616.25810-1-ross.zwisler@linux.intel.com>
+References: <20170724170616.25810-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,136 +17,136 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, Jonathan Corbet <corbet@lwn.net>, Steven Rostedt <rostedt@goodmis.org>, linux-doc@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIHRhZ3MvbGlibnZkaW1tLWZpeGVzLTQu
-MTMtcmMyCgouLi50byByZWNlaXZlIGEgaGFuZGZ1bCBvZiBzbWFsbCBmaXhlcyBmb3IgNC4xMy1y
-YzIuIDMgb2YgdGhlc2UgZml4ZXMKYXJlIHRhZ2dlZCBmb3IrQUtBLS1zdGFibGUuIFRoZXkgaGF2
-ZSBhbGwgYXBwZWFyZWQgaW4gYXQgbGVhc3Qgb25lIC1uZXh0CnJlbGVhc2Ugd2l0aCBubyByZXBv
-cnRlZCBpc3N1ZXMuIEZ1bGwgY29tbWl0IGxvZyBiZWxvdzoKCi0tLQoKVGhlIGZvbGxvd2luZyBj
-aGFuZ2VzIHNpbmNlIGNvbW1pdCA1NzcxYThjMDg4ODBjZGNhM2JmYjRhM2ZjNmQzMDlkNmJiYTIw
-ODc3OgoKICBMaW51eCB2NC4xMy1yYzEgKDIwMTctMDctMTUgMTU6MjI6MTAgLTA3MDApCgphcmUg
-YXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5v
-cmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gdGFncy9saWJudmRpbW0t
-Zml4ZXMtNC4xMy1yYzIKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byBiYmIzYmUxNzBh
-YzI4OTE1MjZhZDA3YjE4YWY3ZGIyMjY4NzlhOGU3OgoKICBkZXZpY2UtZGF4OiBmaXggc3lzZnMg
-ZHVwbGljYXRlIHdhcm5pbmdzICgyMDE3LTA3LTE4IDE3OjQ5OjE0IC0wNzAwKQoKLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQps
-aWJudmRpbW0gZm9yIDQuMTMtcmMyCgoqIEZpeCBoYW5kbGluZyBvZiBtZWRpYSBlcnJvcnMgdGhh
-dCBzcGFuIGEgc2VjdG9yCgoqIEZpeCBzdXBwb3J0IG9mIG11bHRpcGxlIG5hbWVzcGFjZXMgaW4g
-YSBsaWJudmRpbW0gcmVnaW9uIGJlaW5nIGluCiAgZGV2aWNlLWRheCBtb2RlCgoqIENsZWFuIHVw
-IHRoZSBtYWNoaW5lIGNoZWNrIG5vdGlmaWVyIHByb3Blcmx5IHdoZW4gdGhlIG5maXQgZHJpdmVy
-CiAgZmFpbHMgdG8gcmVnaXN0ZXIKCiogQWRkcmVzcyBhIHN0YXRpYyBhbmFseXNpcyAoc21hdGNo
-KSByZXBvcnQgaW4gZGV2aWNlLWRheAoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEYW4gV2lsbGlhbXMgKDMpOgogICAgICBk
-ZXZpY2UtZGF4OiBmaXggJ3Bhc3NpbmcgemVybyB0byBFUlJfUFRSKCknIHdhcm5pbmcKICAgICAg
-TUFJTlRBSU5FUlM6IGxpc3QgZHJpdmVycy9hY3BpL25maXQvIGZpbGVzIGZvciBsaWJudmRpbW0g
-c3ViLXN5c3RlbQogICAgICBkZXZpY2UtZGF4OiBmaXggc3lzZnMgZHVwbGljYXRlIHdhcm5pbmdz
-CgpQcmFyaXQgQmhhcmdhdmEgKDEpOgogICAgICBhY3BpL25maXQ6IEZpeCBtZW1vcnkgY29ycnVw
-dGlvbi9VbnJlZ2lzdGVyIG1jZSBkZWNvZGVyIG9uIGZhaWx1cmUKClRvc2hpIEthbmkgKDEpOgog
-ICAgICBsaWJudmRpbW06IGZpeCBiYWRibG9jayByYW5nZSBoYW5kbGluZyBvZiBBUlMgcmFuZ2UK
-CiBNQUlOVEFJTkVSUyAgICAgICAgICAgICAgfCAgMiArLS0KIGRyaXZlcnMvYWNwaS9uZml0L2Nv
-cmUuYyB8IDEwICstKy0rLSstKy0rLSstKy0rLS0KIGRyaXZlcnMvZGF4L2RldmljZS1kYXguaCB8
-ICAyICstLQogZHJpdmVycy9kYXgvZGV2aWNlLmMgICAgIHwgMzMgKy0rLSstKy0rLSstKy0rLSst
-Ky0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLS0tLS0tLS0tLS0KIGRyaXZlcnMvZGF4L3BtZW0u
-YyAgICAgICB8IDEyICstKy0rLSstKy0rLSstLS0tLS0KIGRyaXZlcnMvbnZkaW1tL2NvcmUuYyAg
-ICB8ICA3ICstKy0rLSstLS0tCiA2IGZpbGVzIGNoYW5nZWQsIDQ1IGluc2VydGlvbnMoKy0pLCAy
-MSBkZWxldGlvbnMoLSkKCi0tLQoKY29tbWl0IDRlM2YwNzAxZjI1YWIxOTRjNTM2MjU3NmIxMTQ2
-YTFlNmNjNmMyZTcKQXV0aG9yOiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+CkRhdGU6
-ICAgRnJpIEp1bCA3IDE3OjQ0OjI2IDIwMTcgLTA2MDAKCiAgICBsaWJudmRpbW06IGZpeCBiYWRi
-bG9jayByYW5nZSBoYW5kbGluZyBvZiBBUlMgcmFuZ2UKICAgIAogICAgX19hZGRfYmFkYmxvY2tf
-cmFuZ2UoKSBkb2VzIG5vdCBhY2NvdW50IHNlY3RvciBhbGlnbm1lbnQgd2hlbgogICAgaXQgc2V0
-cyAnbnVtX3NlY3RvcnMnLiAgVGhlcmVmb3JlLCBhbiBBUlMgZXJyb3IgcmVjb3JkIHJhbmdlCiAg
-ICBzcGFubmluZyBhY3Jvc3MgdHdvIHNlY3RvcnMgaXMgc2V0IHRvIGEgc2luZ2xlIHNlY3RvciBs
-ZW5ndGgsCiAgICB3aGljaCBsZWF2ZXMgdGhlIDJuZCBzZWN0b3IgdW5wcm90ZWN0ZWQuCiAgICAK
-ICAgIENoYW5nZSBfX2FkZF9iYWRibG9ja19yYW5nZSgpIHRvIHNldCAnbnVtX3NlY3RvcnMnIHBy
-b3Blcmx5LgogICAgCiAgICBDYzogPHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmc+CiAgICBGaXhlczog
-MGNhZWVmNjNlNmQyICgibGlibnZkaW1tOiBBZGQgYSBwb2lzb24gbGlzdCBhbmQgZXhwb3J0IGJh
-ZGJsb2NrcyIpCiAgICBTaWduZWQtb2ZmLWJ5OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5j
-b20+CiAgICBSZXZpZXdlZC1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5j
-b20+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
-LmNvbT4KCmNvbW1pdCA0M2ZlNTFlMTFjMTk0YTY1NzY2MzQ1ODVmODFiYTMzZTEwNDE5NGE1CkF1
-dGhvcjogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkRhdGU6ICAgV2Vk
-IEp1bCAxMiAxMzo0MjozNyAyMDE3IC0wNzAwCgogICAgZGV2aWNlLWRheDogZml4ICdwYXNzaW5n
-IHplcm8gdG8gRVJSX1BUUigpJyB3YXJuaW5nCiAgICAKICAgIERhbiBDYXJwZW50ZXIgcmVwb3J0
-czoKICAgIAogICAgICAgIFRoZSBwYXRjaCA3YjZiZTg0NDRlMGY6ICJkYXg6IHJlZmFjdG9yIGRh
-eC1mcyBpbnRvIGEgZ2VuZXJpYyBwcm92aWRlcgogICAgICAgIG9mICdzdHJ1Y3QgZGF4X2Rldmlj
-ZScgaW5zdGFuY2VzIiBmcm9tIEFwciAxMSwgMjAxNywgbGVhZHMgdG8gdGhlCiAgICAgICAgZm9s
-bG93aW5nIHN0YXRpYyBjaGVja2VyIHdhcm5pbmc6CiAgICAKICAgICAgICAgICAgZHJpdmVycy9k
-YXgvZGV2aWNlLmM6NjQzIGRldm1fY3JlYXRlX2Rldl9kYXgoKQogICAgICAgICAgICB3YXJuOiBw
-YXNzaW5nIHplcm8gdG8gJ0VSUl9QVFInCiAgICAKICAgIEZpeCB0aGUgY2FzZSB3aGVyZSB3ZSBp
-bmFkdmVydGVudGx5IGxlYWsgMCB0byBFUlJfUFRSKCkgYnkgc2V0dGluZyBhdAogICAgZXZlcnkg
-ZXJyb3IgY2FzZSwgYW5kIG1ha2UgaXQgY2xlYXIgdGhhdCAnY291bnQnIGlzIG5ldmVyIDAuCiAg
-ICAKICAgIFJlcG9ydGVkLWJ5OiBEYW4gQ2FycGVudGVyIDxkYW4uY2FycGVudGVyQG9yYWNsZS5j
-b20+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
-LmNvbT4KCmNvbW1pdCA3ZTcwMGQyYzU5ZTU4NTNjOTEyNjY0Mjk3NmI0ZjU3NjhmNjRjOWIzCkF1
-dGhvcjogUHJhcml0IEJoYXJnYXZhIDxwcmFyaXRAcmVkaGF0LmNvbT4KRGF0ZTogICBXZWQgTWF5
-IDMxIDEzOjMyOjAwIDIwMTcgLTA0MDAKCiAgICBhY3BpL25maXQ6IEZpeCBtZW1vcnkgY29ycnVw
-dGlvbi9VbnJlZ2lzdGVyIG1jZSBkZWNvZGVyIG9uIGZhaWx1cmUKICAgIAogICAgbmZpdF9pbml0
-KCkgY2FsbHMgbmZpdF9tY2VfcmVnaXN0ZXIoKSBvbiBtb2R1bGUgbG9hZC4gIFdoZW4gdGhlIG1v
-ZHVsZQogICAgbG9hZCBmYWlscyB0aGUgbmZpdCBtY2UgZGVjb2RlciBpcyBub3QgdW5yZWdpc3Rl
-cmVkLiAgVGhlIG1vZHVsZSdzCiAgICBtZW1vcnkgaXMgZnJlZWQgbGVhdmluZyB0aGUgZGVjb2Rl
-ciBjaGFpbiByZWZlcmVuY2luZyBqdW5rLiAgVGhpcyB3aWxsCiAgICBjYXVzZSBwYW5pY3MgYXMg
-ZnV0dXJlIHJlZ2lzdHJhdGlvbnMgd2lsbCByZWZlcmVuY2UgdGhlIGZyZWUnZCBtZW1vcnkuCiAg
-ICAKICAgIFVucmVnaXN0ZXIgdGhlIG5maXQgbWNlIGRlY29kZXIgb24gbW9kdWxlIGluaXQgZmFp
-bHVyZS4KICAgIAogICAgW3YyXTogcmVnaXN0ZXIgYW5kIHRoZW4gdW5yZWdpc3RlciBtY2UgaGFu
-ZGxlciB0byBhdm9pZCBsb3NpbmcgbWNlIGV2ZW50cwogICAgW3YzXTogYWxzbyBjbGVhbnVwIG5m
-aXQgd29ya3F1ZXVlCiAgICAKICAgIEZpeGVzOiA2ODM5YTZkOTZmNGUgKCJuZml0OiBkbyBhbiBB
-UlMgc2NydWIgb24gaGl0dGluZyBhIGxhdGVudCBtZWRpYSBlcnJvciIpCiAgICBDYzogPHN0YWJs
-ZUB2Z2VyLmtlcm5lbC5vcmc+CiAgICBDYzogIlJhZmFlbCBKLiBXeXNvY2tpIiA8cmp3QHJqd3lz
-b2NraS5uZXQ+CiAgICBDYzogTGVuIEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+CiAgICBDYzogVmlz
-aGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+CiAgICBDYzogIkxlZSwgQ2h1bi1Z
-aSIgPGpvZXlsaS5rZXJuZWxAZ21haWwuY29tPgogICAgQ2M6IExpbmRhIEtuaXBwZXJzIDxsaW5k
-YS5rbmlwcGVyc0BocGUuY29tPgogICAgQ2M6IGxzenVib3dpQHJlZGhhdC5jb20KICAgIEFja2Vk
-LWJ5OiBKZWZmIE1veWVyIDxqbW95ZXJAcmVkaGF0LmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IFBy
-YXJpdCBCaGFyZ2F2YSA8cHJhcml0QHJlZGhhdC5jb20+CiAgICBSZXZpZXdlZC1ieTogVmlzaGFs
-IFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4g
-V2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KCmNvbW1pdCAyM2I5YmFiYjUwZmY1
-YWM4ZWI5MjA4Yjk3OGIyYTYzMGU5OWJmOTBiCkF1dGhvcjogRGFuIFdpbGxpYW1zIDxkYW4uai53
-aWxsaWFtc0BpbnRlbC5jb20+CkRhdGU6ICAgTW9uIEp1bCAxNyAwOTo1ODo1MSAyMDE3IC0wNzAw
-CgogICAgTUFJTlRBSU5FUlM6IGxpc3QgZHJpdmVycy9hY3BpL25maXQvIGZpbGVzIGZvciBsaWJu
-dmRpbW0gc3ViLXN5c3RlbQogICAgCiAgICBQYXRjaGVzIHRoYXQgdXBkYXRlIHRoZSBkcml2ZXJz
-L2FjcGkvbmZpdC8gZGlyZWN0b3J5IG5lZWQgdG8gYmUgY29waWVkCiAgICB0byB0aGUgbnZkaW1t
-IG1haWxpbmcgbGlzdC4gVGhlIGRyaXZlcnMvYWNwaS9uZml0KiBnbG9iIGhhcyBiZWVuIGJyb2tl
-bgogICAgZXZlciBzaW5jZSB0aGUgbmZpdCBkcml2ZXIgc291cmNlIHdhcyByZWZhY3RvcmVkIGlu
-dG8gbXVsdGlwbGUgZmlsZXMKICAgIHVuZGVyIHRoZSBkcml2ZXJzL2FjcGkvbmZpdC8gZGlyZWN0
-b3J5LgogICAgCiAgICBSZXBvcnRlZC1ieTogUHJhcml0IEJoYXJnYXZhIDxwcmFyaXRAcmVkaGF0
-LmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50
-ZWwuY29tPgoKY29tbWl0IGJiYjNiZTE3MGFjMjg5MTUyNmFkMDdiMThhZjdkYjIyNjg3OWE4ZTcK
-QXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KRGF0ZTogICBU
-dWUgSnVsIDE4IDE3OjQ5OjE0IDIwMTcgLTA3MDAKCiAgICBkZXZpY2UtZGF4OiBmaXggc3lzZnMg
-ZHVwbGljYXRlIHdhcm5pbmdzCiAgICAKICAgIEZpeCB3YXJuaW5ncyBvZiB0aGUgZm9ybS4uLgog
-ICAgCiAgICAgICAgIFdBUk5JTkc6IENQVTogMTAgUElEOiA0OTgzIGF0IGZzL3N5c2ZzL2Rpci5j
-OjMxIHN5c2ZzX3dhcm5fZHVwKy0weDYyLzB4ODAKICAgICAgICAgc3lzZnM6IGNhbm5vdCBjcmVh
-dGUgZHVwbGljYXRlIGZpbGVuYW1lICcvY2xhc3MvZGF4L2RheDEyLjAnCiAgICAgICAgIENhbGwg
-VHJhY2U6CiAgICAgICAgICBkdW1wX3N0YWNrKy0weDYzLzB4ODYKICAgICAgICAgIF9fd2Fybist
-MHhjYi8weGYwCiAgICAgICAgICB3YXJuX3Nsb3dwYXRoX2ZtdCstMHg1YS8weDgwCiAgICAgICAg
-ICA/IGtlcm5mc19wYXRoX2Zyb21fbm9kZSstMHg0Zi8weDYwCiAgICAgICAgICBzeXNmc193YXJu
-X2R1cCstMHg2Mi8weDgwCiAgICAgICAgICBzeXNmc19kb19jcmVhdGVfbGlua19zZC5pc3JhLjIr
-LTB4OTcvMHhiMAogICAgICAgICAgc3lzZnNfY3JlYXRlX2xpbmsrLTB4MjUvMHg0MAogICAgICAg
-ICAgZGV2aWNlX2FkZCstMHgyNjYvMHg2MzAKICAgICAgICAgIGRldm1fY3JlYXRlX2RheF9kZXYr
-LTB4MmNmLzB4MzQwIFtkYXhdCiAgICAgICAgICBkYXhfcG1lbV9wcm9iZSstMHgxZjUvMHgyNmUg
-W2RheF9wbWVtXQogICAgICAgICAgbnZkaW1tX2J1c19wcm9iZSstMHg3MS8weDEyMAogICAgCiAg
-ICAuLi5ieSByZXVzaW5nIHRoZSBuYW1lc3BhY2UgaWQgZm9yIHRoZSBkZXZpY2UtZGF4IGluc3Rh
-bmNlIG5hbWUuCiAgICAKICAgIE5vdyB0aGF0IHdlIGhhdmUgZGVjaWRlZCB0aGF0IHRoZXJlIHdp
-bGwgbmV2ZXIgYnkgbW9yZSB0aGFuIG9uZQogICAgZGV2aWNlLWRheCBpbnN0YW5jZSBwZXIgbGli
-bnZkaW1tLW5hbWVzcGFjZSBwYXJlbnQgZGV2aWNlIFsxXSwgd2UgY2FuCiAgICBkaXJlY3RseSBy
-ZXVzZSB0aGUgbmFtZXBhY2UgaWRzLiBUaGVyZSBhcmUgc29tZSBwb3NzaWJsZSBmb2xsb3ctb24K
-ICAgIGNsZWFudXBzLCBidXQgdGhvc2UgYXJlIHNhdmVkIGZvciBhIGxhdGVyIHBhdGNoIHRvIHNp
-bXBsaWZ5IHRoZSAtc3RhYmxlCiAgICBiYWNrcG9ydC4KICAgIAogICAgWzFdOiBodHRwczovL2xp
-c3RzLjAxLm9yZy9waXBlcm1haWwvbGludXgtbnZkaW1tLzIwMTYtRGVjZW1iZXIvMDA4MjY2Lmh0
-bWwKICAgIAogICAgRml4ZXM6IDk4YTI5YzM5ZGM2OCAoImxpYm52ZGltbSwgbmFtZXNwYWNlOiBh
-bGxvdyBjcmVhdGlvbiBvZiBtdWx0aXBsZSBwbWVtLi4uIikKICAgIENjOiBKZWZmIE1veWVyIDxq
-bW95ZXJAcmVkaGF0LmNvbT4KICAgIENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4KICAgIFJl
-cG9ydGVkLWJ5OiBEYXJpdXN6IERva3VwaWwgPGRhcml1c3ouZG9rdXBpbEBpbnRlbC5jb20+CiAg
-ICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4K
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
-aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
-MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Now that we no longer insert struct page pointers in DAX radix trees the
+page cache code no longer needs to know anything about DAX exceptional
+entries.  Move all the DAX exceptional entry definitions from dax.h to
+fs/dax.c.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ fs/dax.c            | 34 ++++++++++++++++++++++++++++++++++
+ include/linux/dax.h | 41 -----------------------------------------
+ 2 files changed, 34 insertions(+), 41 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index a0484a1..75760f7 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -54,6 +54,40 @@ static int __init init_dax_wait_table(void)
+ }
+ fs_initcall(init_dax_wait_table);
+ 
++/*
++ * We use lowest available bit in exceptional entry for locking, one bit for
++ * the entry size (PMD) and two more to tell us if the entry is a zero page or
++ * an empty entry that is just used for locking.  In total four special bits.
++ *
++ * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
++ * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
++ * block allocation.
++ */
++#define RADIX_DAX_SHIFT		(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
++#define RADIX_DAX_ENTRY_LOCK	(1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
++#define RADIX_DAX_PMD		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
++#define RADIX_DAX_ZERO_PAGE	(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
++#define RADIX_DAX_EMPTY		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
++
++static unsigned long dax_radix_sector(void *entry)
++{
++	return (unsigned long)entry >> RADIX_DAX_SHIFT;
++}
++
++static void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
++{
++	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
++			((unsigned long)sector << RADIX_DAX_SHIFT) |
++			RADIX_DAX_ENTRY_LOCK);
++}
++
++static unsigned int dax_radix_order(void *entry)
++{
++	if ((unsigned long)entry & RADIX_DAX_PMD)
++		return PMD_SHIFT - PAGE_SHIFT;
++	return 0;
++}
++
+ static int dax_is_pmd_entry(void *entry)
+ {
+ 	return (unsigned long)entry & RADIX_DAX_PMD;
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index afa99bb..d0e3272 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -88,33 +88,6 @@ void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+ 		size_t size);
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ 
+-/*
+- * We use lowest available bit in exceptional entry for locking, one bit for
+- * the entry size (PMD) and two more to tell us if the entry is a zero page or
+- * an empty entry that is just used for locking.  In total four special bits.
+- *
+- * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
+- * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
+- * block allocation.
+- */
+-#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
+-#define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
+-#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
+-#define RADIX_DAX_ZERO_PAGE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
+-#define RADIX_DAX_EMPTY (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
+-
+-static inline unsigned long dax_radix_sector(void *entry)
+-{
+-	return (unsigned long)entry >> RADIX_DAX_SHIFT;
+-}
+-
+-static inline void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
+-{
+-	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
+-			((unsigned long)sector << RADIX_DAX_SHIFT) |
+-			RADIX_DAX_ENTRY_LOCK);
+-}
+-
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 		const struct iomap_ops *ops);
+ int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
+@@ -136,20 +109,6 @@ static inline int __dax_zero_page_range(struct block_device *bdev,
+ }
+ #endif
+ 
+-#ifdef CONFIG_FS_DAX_PMD
+-static inline unsigned int dax_radix_order(void *entry)
+-{
+-	if ((unsigned long)entry & RADIX_DAX_PMD)
+-		return PMD_SHIFT - PAGE_SHIFT;
+-	return 0;
+-}
+-#else
+-static inline unsigned int dax_radix_order(void *entry)
+-{
+-	return 0;
+-}
+-#endif
+-
+ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+-- 
+2.9.4
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
