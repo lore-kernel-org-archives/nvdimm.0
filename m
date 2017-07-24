@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x236.google.com (mail-yw0-x236.google.com
- [IPv6:2607:f8b0:4002:c05::236])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E944A2095DB9C
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 16:33:55 -0700 (PDT)
-Received: by mail-yw0-x236.google.com with SMTP id x125so58899812ywa.0
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 16:35:56 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 5C5802095DBA7
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 16:14:22 -0700 (PDT)
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: don't control-c during ndctl create-namespace?
+Message-ID: <556dc70b-2759-b483-868e-041f1be772f7@hpe.com>
+Date: Mon, 24 Jul 2017 19:15:04 -0400
 MIME-Version: 1.0
-In-Reply-To: <556dc70b-2759-b483-868e-041f1be772f7@hpe.com>
-References: <556dc70b-2759-b483-868e-041f1be772f7@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 24 Jul 2017 16:35:54 -0700
-Message-ID: <CAPcyv4jHi6UW+EHpotJyX+3CtY=_KqG3+84z8p6zLAWR5Z3BLQ@mail.gmail.com>
-Subject: Re: don't control-c during ndctl create-namespace?
+Content-Type: multipart/mixed; boundary="------------7A8A30371669F207451FD725"
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,74 +18,271 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linda Knippers <linda.knippers@hpe.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jul 24, 2017 at 4:15 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
-> Hi Dan,
->
-> I've got 4 NVDIMMs in an interleave set in a configuration that supports labels.
-> I'm running a 4.12 kernel with the latest ndctl.
->
-> I had three namespaces configured and all seemed well.  When I configured the
-> fourth one, I made a mistake in the name so I hit control-c.  I wasn't sure what
-> state I was in but according to what I could see with ndctl, it had created the
-> namespace but not  enabled it, so I enabled it manually with ndctl and that
-> seemed ok.
->
-> Then I tried to use ndctl create-namespace to change the name, which failed
-> because the namespace was enabled so I disabled it and tried again.  At some
-> point, not really sure where, I got this kernel warning:
->
-> # [ 5224.196085] nd namespace4.3: failed to track label: 4
->
-> (details in the attached file)
->
-> At this point I rebooted the system.  When it came back up, nmem0 was disabled.
-> I dumped the labels (also attached) and I see that nmem0 has some extra labels
-> that correspond to the namespace that I was struggling with.
->
-> I think my troubles started with the control-c. It doesn't look like ndctl traps
-> signals when creating namespaces so perhaps we can get into an inconsistent
-> state.
->
-> It also seems like that kernel warning is a bit more important than a
-> WARN_ONCE would imply.  I think that was the beginning of the end of my
-> configuration.  It might have been better to just panic.
+--------------7A8A30371669F207451FD725
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-In general if the system is even remotely recoverable we don't panic.
-In this case it is recoverable. The WARN_ONCE() is really there as a
-loud, "this is a kernel bug, but we'll do our best to keep going".
+Hi Dan,
 
-> I was trying to figure out if I could fix my configuration without
-> losing the good namespaces but I don't see a way.  The check-labels option
-> isn't very helpful because I think it only looks at the info blocks,
-> which are fine, even though the labels on nmem0 are not.  The destroy-namespace
-> option doesn't help because it only works with a good namespace.
->
-> I'm going to wipe my nvdimms and start over.  I suspect the problem is
-> reproducible but it could depend on the timing of the control-c, unless
-> the root cause was actually trying to rename a namespace.  Maybe I'll try
-> that again but not today.
+I've got 4 NVDIMMs in an interleave set in a configuration that supports labels.
+I'm running a 4.12 kernel with the latest ndctl.
 
-The recovery method when the labels are corrupted is:
+I had three namespaces configured and all seemed well.  When I configured the
+fourth one, I made a mistake in the name so I hit control-c.  I wasn't sure what
+state I was in but according to what I could see with ndctl, it had created the
+namespace but not  enabled it, so I enabled it manually with ndctl and that
+seemed ok.
 
-ndctl disable-region all
-ndctl zero-labels all
-ndctl enable-region all
+Then I tried to use ndctl create-namespace to change the name, which failed
+because the namespace was enabled so I disabled it and tried again.  At some
+point, not really sure where, I got this kernel warning:
 
-...and that should get you back to square one.
+# [ 5224.196085] nd namespace4.3: failed to track label: 4
 
-If you are able to reproduce I'd like to see the state of the DIMM
-label areas. You can dump them in json format with the following:
+(details in the attached file)
 
-ndctl read-labels -j all
+At this point I rebooted the system.  When it came back up, nmem0 was disabled.
+I dumped the labels (also attached) and I see that nmem0 has some extra labels
+that correspond to the namespace that I was struggling with.
+
+I think my troubles started with the control-c. It doesn't look like ndctl traps
+signals when creating namespaces so perhaps we can get into an inconsistent
+state.
+
+It also seems like that kernel warning is a bit more important than a
+WARN_ONCE would imply.  I think that was the beginning of the end of my
+configuration.  It might have been better to just panic.
+
+I was trying to figure out if I could fix my configuration without
+losing the good namespaces but I don't see a way.  The check-labels option
+isn't very helpful because I think it only looks at the info blocks,
+which are fine, even though the labels on nmem0 are not.  The destroy-namespace
+option doesn't help because it only works with a good namespace.
+
+I'm going to wipe my nvdimms and start over.  I suspect the problem is
+reproducible but it could depend on the timing of the control-c, unless
+the root cause was actually trying to rename a namespace.  Maybe I'll try
+that again but not today.
+
+-- ljk
+
+--------------7A8A30371669F207451FD725
+Content-Type: text/plain; charset=UTF-8;
+ name="kernelwarning.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="kernelwarning.txt"
+
+IyBbIDUyMjQuMTk2MDg1XSBuZCBuYW1lc3BhY2U0LjM6IGZhaWxlZCB0byB0cmFjayBsYWJl
+bDogNApbIDUyMjQuMjAxMTkwXSAtLS0tLS0tLS0tLS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0t
+LS0KWyA1MjI0LjIwNTgzM10gV0FSTklORzogQ1BVOiA0MSBQSUQ6IDI3ODQgYXQgZHJpdmVy
+cy9udmRpbW0vbGFiZWwuYzo3MTkKbmRfcG1lbV9uYW1lc3BhY2VfbGFiZWxfdXBkYXRlKzB4
+NmQ2LzB4NmUwIFtsaWJudmRpbW1dClsgNTIyNC4yMTcwMDldIE1vZHVsZXMgbGlua2VkIGlu
+OiB4dF9DSEVDS1NVTSBpcHRfTUFTUVVFUkFERQpuZl9uYXRfbWFzcXVlcmFkZV9pcHY0IHR1
+biBuZl9jb25udHJhY2tfbmV0Ymlvc19ucwpuZl9jb25udHJhY2tfYnJvYWRjYXN0IHh0X0NU
+IGlwNnRfcnBmaWx0ZXIgaXB0X1JFSkVDVCBuZl9yZWplY3RfaXB2NAppcDZ0X1JFSkVDVCBu
+Zl9yZWplY3RfaXB2NiB4dF9jb25udHJhY2sgaXBfc2V0IG5mbmV0bGluayBlYnRhYmxlX2Jy
+b3V0ZQpicmlkZ2UgZWJ0YWJsZV9uYXQgaXA2dGFibGVfc2VjdXJpdHkgaXA2dGFibGVfcmF3
+IGlwNnRhYmxlX21hbmdsZQppcDZ0YWJsZV9uYXQgbmZfY29ubnRyYWNrX2lwdjYgbmZfZGVm
+cmFnX2lwdjYgbmZfbmF0X2lwdjYKaXB0YWJsZV9zZWN1cml0eSBpcHRhYmxlX3JhdyBpcHRh
+YmxlX21hbmdsZSBpcHRhYmxlX25hdApuZl9jb25udHJhY2tfaXB2NCBuZl9kZWZyYWdfaXB2
+NCBuZl9uYXRfaXB2NCBuZl9uYXQgbmZfY29ubnRyYWNrCmxpYmNyYzMyYyBlYnRhYmxlX2Zp
+bHRlciBlYnRhYmxlcyBpcDZ0YWJsZV9maWx0ZXIgaXA2X3RhYmxlcwppcHRhYmxlX2ZpbHRl
+ciBpcF90YWJsZXMgc3VucnBjIHZmYXQgZmF0IGRtX21pcnJvciBkbV9yZWdpb25faGFzaCBk
+bV9sb2cKZG1fbW9kIGRheF9wbWVtIG5kX3BtZW0gbmRfYmxrIGRldmljZV9kYXggbmRfYnR0
+IGludGVsX3JhcGwKeDg2X3BrZ190ZW1wX3RoZXJtYWwgaW50ZWxfcG93ZXJjbGFtcCBjb3Jl
+dGVtcCBrdm1faW50ZWwga3ZtIGlycWJ5cGFzcwpjcmN0MTBkaWZfcGNsbXVsIGNyYzMyX3Bj
+bG11bCBnaGFzaF9jbG11bG5pX2ludGVsClsgNTIyNC4yODc5ODhdICBwY2JjIGFlc25pX2lu
+dGVsIGNyeXB0b19zaW1kIGdsdWVfaGVscGVyIGNyeXB0ZAppcG1pX3NzaWYgc2VzIGlwbWlf
+c2kgZW5jbG9zdXJlIHBjc3BrciBuZml0IGhwd2R0IGhwaWxvIGlvYXRkbWEKaXBtaV9kZXZp
+bnRmIHNocGNocCBkY2Egd21pIGlwbWlfbXNnaGFuZGxlciBsaWJudmRpbW0gYWNwaV9wb3dl
+cl9tZXRlcgpzY2hfZnFfY29kZWwgZXh0NCBtYmNhY2hlIGpiZDIgc2RfbW9kIG1nYWcyMDAg
+ODAyMXEgZ2FycCBpMmNfYWxnb19iaXQKc3RwIGRybV9rbXNfaGVscGVyIGxsYyBtcnAgc3lz
+Y29weWFyZWEgc3lzZmlsbHJlY3Qgc3lzaW1nYmx0IGZiX3N5c19mb3BzCnR0bSB0ZzMgcHRw
+IGRybSB1YXMgY3JjMzJjX2ludGVsIHNtYXJ0cHFpIHBwc19jb3JlIHVzYl9zdG9yYWdlCnNj
+c2lfdHJhbnNwb3J0X3NhcyBpMmNfY29yZQpbIDUyMjQuMzI1ODUzXSBDUFU6IDQxIFBJRDog
+Mjc4NCBDb21tOiBuZGN0bCBOb3QgdGFpbnRlZCA0LjEyLjArICMxClsgNTIyNC4zMzE4ODFd
+IEhhcmR3YXJlIG5hbWU6IEhQRSAKWyA1MjI0LjM0MDQzNV0gdGFzazogZmZmZjkxZDdjNzVh
+NWEwMCB0YXNrLnN0YWNrOiBmZmZmYjI1MDA2YjA4MDAwClsgNTIyNC4zNDYzODBdIFJJUDog
+MDAxMDpuZF9wbWVtX25hbWVzcGFjZV9sYWJlbF91cGRhdGUrMHg2ZDYvMHg2ZTAKW2xpYm52
+ZGltbV0KWyA1MjI0LjM1MzQ1M10gUlNQOiAwMDE4OmZmZmZiMjUwMDZiMGJjYTAgRUZMQUdT
+OiAwMDAxMDI0NgpbIDUyMjQuMzU4Njk1XSBSQVg6IDAwMDAwMDAwMDAwMDAwMjkgUkJYOiBm
+ZmZmOTFkN2M2OTkzN2MwIFJDWDogMDAwMDAwMDAwMDAwMDAwMApbIDUyMjQuMzY1ODU2XSBS
+RFg6IDAwMDAwMDAwMDAwMDAwMDAgUlNJOiBmZmZmOTFlNjNmODRkZjk4IFJESTogZmZmZjkx
+ZTYzZjg0ZGY5OApbIDUyMjQuMzczMDE2XSBSQlA6IGZmZmZiMjUwMDZiMGJkNTggUjA4OiAw
+MDAwMDAwMGZmZmZmZmZlIFIwOTogMDAwMDAwMDAwMDAwMGZiOQpbIDUyMjQuMzgwMTc4XSBS
+MTA6IDAwMDAwMDAwMDAwMDAwMDUgUjExOiAwMDAwMDAwMDAwMDAwZmI4IFIxMjogMDAwMDAw
+MDAwMDAwMDAwNApbIDUyMjQuMzg3MzM4XSBSMTM6IGZmZmY5MWU2M2VjYmZiODAgUjE0OiBm
+ZmZmOTFlNjM2ZGEwNDAwIFIxNTogZmZmZjkxZTYwODJlZGMwMApbIDUyMjQuMzk0NDk5XSBG
+UzogIDAwMDA3ZmRmODNlYWFkODAoMDAwMCkgR1M6ZmZmZjkxZTYzZjg0MDAwMCgwMDAwKSBr
+bmxHUzowMDAwMDAwMDAwMDAwMDAwClsgNTIyNC40MDI2MTddIENTOiAgMDAxMCBEUzogMDAw
+MCBFUzogMDAwMCBDUjA6IDAwMDAwMDAwODAwNTAwMzMKWyA1MjI0LjQwODM4M10gQ1IyOiAw
+MDAwN2YyNzM2YTg3YjAwIENSMzogMDAwMDAwMGZhMjIyODAwMCBDUjQ6IDAwMDAwMDAwMDA3
+NDA2ZTAKWyA1MjI0LjQxNTU0NV0gRFIwOiAwMDAwMDAwMDAwMDAwMDAwIERSMTogMDAwMDAw
+MDAwMDAwMDAwMCBEUjI6IDAwMDAwMDAwMDAwMDAwMDAKWyA1MjI0LjQyMjcwNF0gRFIzOiAw
+MDAwMDAwMDAwMDAwMDAwIERSNjogMDAwMDAwMDBmZmZlMGZmMCBEUjc6IDAwMDAwMDAwMDAw
+MDA0MDAKWyA1MjI0LjQyOTg2Nl0gUEtSVTogNTU1NTU1NTQKWyA1MjI0LjQzMjU4Ml0gQ2Fs
+bCBUcmFjZToKWyA1MjI0LjQzNTA0MF0gID8ga2ZyZWUrMHgxMzMvMHgxODAKWyA1MjI0LjQz
+ODI4M10gIG5kX25hbWVzcGFjZV9sYWJlbF91cGRhdGUrMHhlYy8weDEzMCBbbGlibnZkaW1t
+XQpbIDUyMjQuNDQ0MDUyXSAgdXVpZF9zdG9yZSsweDE3Yy8weDFhMCBbbGlibnZkaW1tXQpb
+IDUyMjQuNDQ4NjAyXSAgPyBfY29weV90b191c2VyKzB4MjYvMHg0MApbIDUyMjQuNDUyMzY5
+XSAgZGV2X2F0dHJfc3RvcmUrMHgxOC8weDMwClsgNTIyNC40NTYwNDddICBzeXNmc19rZl93
+cml0ZSsweDNhLzB4NTAKWyA1MjI0LjQ1OTcyMV0gIGtlcm5mc19mb3Bfd3JpdGUrMHhmZi8w
+eDE4MApbIDUyMjQuNDYzNjYwXSAgX192ZnNfd3JpdGUrMHgzNy8weDE3MApbIDUyMjQuNDY3
+MTY1XSAgPyBzZWxpbnV4X2ZpbGVfcGVybWlzc2lvbisweGU1LzB4MTIwClsgNTIyNC40NzE4
+ODddICA/IHNlY3VyaXR5X2ZpbGVfcGVybWlzc2lvbisweDNiLzB4YzAKWyA1MjI0LjQ3NjYw
+OV0gIHZmc193cml0ZSsweGIyLzB4MWIwClsgNTIyNC40Nzk5MzZdICBTeVNfd3JpdGUrMHg1
+NS8weGMwClsgNTIyNC40ODMxNzddICBlbnRyeV9TWVNDQUxMXzY0X2Zhc3RwYXRoKzB4MWEv
+MHhhNQpbIDUyMjQuNDg3ODExXSBSSVA6IDAwMzM6MHg3ZmRmODMxYzdiNTAKWyA1MjI0LjQ5
+MTM5OV0gUlNQOiAwMDJiOjAwMDA3ZmZmMTQ3YTIzNDggRUZMQUdTOiAwMDAwMDI0NiBPUklH
+X1JBWDogMDAwMDAwMDAwMDAwMDAwMQpbIDUyMjQuNDk4OTk2XSBSQVg6IGZmZmZmZmZmZmZm
+ZmZmZGEgUkJYOiAwMDAwMDAwMDAwMDAwMDAzIFJDWDogMDAwMDdmZGY4MzFjN2I1MApbIDUy
+MjQuNTA2MTU3XSBSRFg6IDAwMDAwMDAwMDAwMDAwMjUgUlNJOiAwMDAwN2ZmZjE0N2EyM2Yw
+IFJESTogMDAwMDAwMDAwMDAwMDAwMwpbIDUyMjQuNTEzMzE4XSBSQlA6IDAwMDA3ZmZmMTQ3
+YTFmZDAgUjA4OiAwMDAwMDAwMDAwMDBlNGYwIFIwOTogMDAwMDAwMDAwMDAwMDAyNApbIDUy
+MjQuNTIwNDc5XSBSMTA6IDAwMDAwMDAwMDAwMDA4NzMgUjExOiAwMDAwMDAwMDAwMDAwMjQ2
+IFIxMjogMDAwMDAwMDAwMDQwNTUwMApbIDUyMjQuNTI3NjQwXSBSMTM6IDAwMDA3ZmZmMTQ3
+YTI4ODAgUjE0OiAwMDAwMDAwMDAwMDAwMDAwIFIxNTogMDAwMDAwMDAwMDAwMDAwMApbIDUy
+MjQuNTM0ODAxXSBDb2RlOiA4NSBkYiA0OSA4OSBjNCA3NSAwNCA0OSA4YiA1ZiAxOCA0OSA4
+ZCA3ZiAwOCBlOCAxMQplNCBmNiBjZCA0NCA4OSBlMSA0OCA4OSBjNiA0OCA4OSBkYSA0OCBj
+NyBjNyAzOCBhZSA1NyBjMCAzMSBjMCBlOCA1ZCBlYgpiNiBjZCA8MGY+IGZmIGViIGEzIDY2
+IDBmIDFmIDQ0IDAwIDAwIDBmIDFmIDQ0IDAwIDAwIDU1IDQ4IDg1IGQyIDQ4IDg5ClsgNTIy
+NC41NTM3NDVdIC0tLVsgZW5kIHRyYWNlIDA2MDg1NTM3NTFiZmQwNzggXS0tLQo=
+--------------7A8A30371669F207451FD725
+Content-Type: text/plain; charset=UTF-8;
+ name="labels.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="labels.txt"
+
+JCBzdWRvIG5kY3RsIHJlYWQtbGFiZWxzIC1qIGFsbApbCiAgewogICAgImRldiI6Im5tZW0x
+IiwKICAgICJpbmRleCI6WwogICAgICB7CiAgICAgICAgInNpZ25hdHVyZSI6Ik5BTUVTUEFD
+RV9JTkRFWCIsCiAgICAgICAgInNlcSI6MiwKICAgICAgICAibnNsb3QiOjEwMTYKICAgICAg
+fSwKICAgICAgewogICAgICAgICJzaWduYXR1cmUiOiJOQU1FU1BBQ0VfSU5ERVgiLAogICAg
+ICAgICJzZXEiOjMsCiAgICAgICAgIm5zbG90IjoxMDE2CiAgICAgIH0KICAgIF0sCiAgICAi
+bGFiZWwiOlsKICAgICAgewogICAgICAgICJ1dWlkIjoiMzU5YzY4ZjctZWZkOS00MTBiLWE3
+MjctMWRlZjI3ZDU3NGI1IiwKICAgICAgICAibmFtZSI6Im51bWJlcjEiLAogICAgICAgICJz
+bG90IjowLAogICAgICAgICJwb3NpdGlvbiI6MSwKICAgICAgICAibmxhYmVsIjo0LAogICAg
+ICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjI2
+ODQzNTQ1NiwKICAgICAgICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9LAogICAgICB7
+CiAgICAgICAgInV1aWQiOiJjNDA0N2MxNS03ZmExLTRmNTktYjYwZi02NzZmMjMzMjY5ODki
+LAogICAgICAgICJuYW1lIjoibnVtYmVyMiIsCiAgICAgICAgInNsb3QiOjEsCiAgICAgICAg
+InBvc2l0aW9uIjoxLAogICAgICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRjb29raWUi
+OjUxMjUyNDM3ODg3MDQ0MjQxMzEsCiAgICAgICAgImRwYSI6MzQ4OTY2MDkyOCwKICAgICAg
+ICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9LAogICAgICB7CiAgICAgICAgInV1aWQi
+OiI1NjI1MmM2Ni1iMWYxLTQzNWMtODIxYS02N2JlY2VmODJmNGMiLAogICAgICAgICJuYW1l
+IjoibnVtYmVyMyIsCiAgICAgICAgInNsb3QiOjIsCiAgICAgICAgInBvc2l0aW9uIjoxLAog
+ICAgICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRjb29raWUiOjUxMjUyNDM3ODg3MDQ0
+MjQxMzEsCiAgICAgICAgImRwYSI6NjcxMDg4NjQwMCwKICAgICAgICAicmF3c2l6ZSI6MzIy
+MTIyNTQ3MgogICAgICB9LAogICAgICB7CiAgICAgICAgInV1aWQiOiI1YjZlMDcyYy01YWJi
+LTQzZmYtYmE4YS0zYmNhNmVlMTkwNjgiLAogICAgICAgICJuYW1lIjoibnVtYmVyMyIsCiAg
+ICAgICAgInNsb3QiOjMsCiAgICAgICAgInBvc2l0aW9uIjoxLAogICAgICAgICJubGFiZWwi
+OjQsCiAgICAgICAgImlzZXRjb29raWUiOjUxMjUyNDM3ODg3MDQ0MjQxMzEsCiAgICAgICAg
+ImRwYSI6OTkzMjExMTg3MiwKICAgICAgICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9
+CiAgICBdCiAgfSwKICB7CiAgICAiZGV2Ijoibm1lbTMiLAogICAgImluZGV4IjpbCiAgICAg
+IHsKICAgICAgICAic2lnbmF0dXJlIjoiTkFNRVNQQUNFX0lOREVYIiwKICAgICAgICAic2Vx
+IjoyLAogICAgICAgICJuc2xvdCI6MTAxNgogICAgICB9LAogICAgICB7CiAgICAgICAgInNp
+Z25hdHVyZSI6Ik5BTUVTUEFDRV9JTkRFWCIsCiAgICAgICAgInNlcSI6MywKICAgICAgICAi
+bnNsb3QiOjEwMTYKICAgICAgfQogICAgXSwKICAgICJsYWJlbCI6WwogICAgICB7CiAgICAg
+ICAgInV1aWQiOiIzNTljNjhmNy1lZmQ5LTQxMGItYTcyNy0xZGVmMjdkNTc0YjUiLAogICAg
+ICAgICJuYW1lIjoibnVtYmVyMSIsCiAgICAgICAgInNsb3QiOjAsCiAgICAgICAgInBvc2l0
+aW9uIjozLAogICAgICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRjb29raWUiOjUxMjUy
+NDM3ODg3MDQ0MjQxMzEsCiAgICAgICAgImRwYSI6MjY4NDM1NDU2LAogICAgICAgICJyYXdz
+aXplIjozMjIxMjI1NDcyCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAidXVpZCI6ImM0MDQ3
+YzE1LTdmYTEtNGY1OS1iNjBmLTY3NmYyMzMyNjk4OSIsCiAgICAgICAgIm5hbWUiOiJudW1i
+ZXIyIiwKICAgICAgICAic2xvdCI6MSwKICAgICAgICAicG9zaXRpb24iOjMsCiAgICAgICAg
+Im5sYWJlbCI6NCwKICAgICAgICAiaXNldGNvb2tpZSI6NTEyNTI0Mzc4ODcwNDQyNDEzMSwK
+ICAgICAgICAiZHBhIjozNDg5NjYwOTI4LAogICAgICAgICJyYXdzaXplIjozMjIxMjI1NDcy
+CiAgICAgIH0sCiAgICAgIHsKICAgICAgICAidXVpZCI6IjU2MjUyYzY2LWIxZjEtNDM1Yy04
+MjFhLTY3YmVjZWY4MmY0YyIsCiAgICAgICAgIm5hbWUiOiJudW1iZXIzIiwKICAgICAgICAi
+c2xvdCI6MiwKICAgICAgICAicG9zaXRpb24iOjMsCiAgICAgICAgIm5sYWJlbCI6NCwKICAg
+ICAgICAiaXNldGNvb2tpZSI6NTEyNTI0Mzc4ODcwNDQyNDEzMSwKICAgICAgICAiZHBhIjo2
+NzEwODg2NDAwLAogICAgICAgICJyYXdzaXplIjozMjIxMjI1NDcyCiAgICAgIH0sCiAgICAg
+IHsKICAgICAgICAidXVpZCI6IjViNmUwNzJjLTVhYmItNDNmZi1iYThhLTNiY2E2ZWUxOTA2
+OCIsCiAgICAgICAgIm5hbWUiOiJudW1iZXIzIiwKICAgICAgICAic2xvdCI6MywKICAgICAg
+ICAicG9zaXRpb24iOjMsCiAgICAgICAgIm5sYWJlbCI6NCwKICAgICAgICAiaXNldGNvb2tp
+ZSI6NTEyNTI0Mzc4ODcwNDQyNDEzMSwKICAgICAgICAiZHBhIjo5OTMyMTExODcyLAogICAg
+ICAgICJyYXdzaXplIjozMjIxMjI1NDcyCiAgICAgIH0KICAgIF0KICB9LAogIHsKICAgICJk
+ZXYiOiJubWVtMCIsCiAgICAiaW5kZXgiOlsKICAgICAgewogICAgICAgICJzaWduYXR1cmUi
+OiJOQU1FU1BBQ0VfSU5ERVgiLAogICAgICAgICJzZXEiOjMsCiAgICAgICAgIm5zbG90Ijox
+MDE2CiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic2lnbmF0dXJlIjoiTkFNRVNQQUNFX0lO
+REVYIiwKICAgICAgICAic2VxIjoxLAogICAgICAgICJuc2xvdCI6MTAxNgogICAgICB9CiAg
+ICBdLAogICAgImxhYmVsIjpbCiAgICAgIHsKICAgICAgICAidXVpZCI6IjM1OWM2OGY3LWVm
+ZDktNDEwYi1hNzI3LTFkZWYyN2Q1NzRiNSIsCiAgICAgICAgIm5hbWUiOiJudW1iZXIxIiwK
+ICAgICAgICAic2xvdCI6MCwKICAgICAgICAicG9zaXRpb24iOjAsCiAgICAgICAgIm5sYWJl
+bCI6NCwKICAgICAgICAiaXNldGNvb2tpZSI6NTEyNTI0Mzc4ODcwNDQyNDEzMSwKICAgICAg
+ICAiZHBhIjoyNjg0MzU0NTYsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAgICAg
+fSwKICAgICAgewogICAgICAgICJ1dWlkIjoiYzQwNDdjMTUtN2ZhMS00ZjU5LWI2MGYtNjc2
+ZjIzMzI2OTg5IiwKICAgICAgICAibmFtZSI6Im51bWJlcjIiLAogICAgICAgICJzbG90Ijox
+LAogICAgICAgICJwb3NpdGlvbiI6MCwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJp
+c2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjM0ODk2NjA5
+MjgsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAgICAgfSwKICAgICAgewogICAg
+ICAgICJ1dWlkIjoiNTYyNTJjNjYtYjFmMS00MzVjLTgyMWEtNjdiZWNlZjgyZjRjIiwKICAg
+ICAgICAibmFtZSI6Im51bWJlcjMiLAogICAgICAgICJzbG90IjoyLAogICAgICAgICJwb3Np
+dGlvbiI6MCwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1MTI1
+MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjY3MTA4ODY0MDAsCiAgICAgICAgInJh
+d3NpemUiOjMyMjEyMjU0NzIKICAgICAgfSwKICAgICAgewogICAgICAgICJ1dWlkIjoiNWI2
+ZTA3MmMtNWFiYi00M2ZmLWJhOGEtM2JjYTZlZTE5MDY4IiwKICAgICAgICAibmFtZSI6Im51
+bWJlcjMiLAogICAgICAgICJzbG90IjozLAogICAgICAgICJwb3NpdGlvbiI6MCwKICAgICAg
+ICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMx
+LAogICAgICAgICJkcGEiOjk5MzIxMTE4NzIsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0
+NzIKICAgICAgfSwKICAgICAgewogICAgICAgICJ1dWlkIjoiMDdhMjgzMzQtMjkzNy00YzA3
+LThjODQtMWE0ZGY5OTU4ZmI1IiwKICAgICAgICAibmFtZSI6Im51bWJlcjMiLAogICAgICAg
+ICJzbG90Ijo0LAogICAgICAgICJwb3NpdGlvbiI6MCwKICAgICAgICAibmxhYmVsIjo0LAog
+ICAgICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEi
+Ojk5MzIxMTE4NzIsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAgICAgfSwKICAg
+ICAgewogICAgICAgICJ1dWlkIjoiNzY5MjM2YWEtMDQzOC00OWMxLTg3NjktNjdmY2JmMDg4
+NDY5IiwKICAgICAgICAibmFtZSI6Im51bWJlcjMiLAogICAgICAgICJzbG90Ijo1LAogICAg
+ICAgICJwb3NpdGlvbiI6MCwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29v
+a2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjk5MzIxMTE4NzIsCiAg
+ICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAgICAgfSwKICAgICAgewogICAgICAgICJ1
+dWlkIjoiMTdiNDc0NjgtOWE5Mi00MThjLWFmMDctMDVlNWE3NjI3ZGU5IiwKICAgICAgICAi
+bmFtZSI6Im51bWJlcjMiLAogICAgICAgICJzbG90Ijo2LAogICAgICAgICJwb3NpdGlvbiI6
+MCwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4
+NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjk5MzIxMTE4NzIsCiAgICAgICAgInJhd3NpemUi
+OjMyMjEyMjU0NzIKICAgICAgfSwKICAgICAgewogICAgICAgICJ1dWlkIjoiNzUyY2M5NWQt
+OGZiOS00ZWE0LWE0M2ItNmNlOWM4MWYxMWYyIiwKICAgICAgICAibmFtZSI6Im51bWJlcjQi
+LAogICAgICAgICJzbG90Ijo3LAogICAgICAgICJwb3NpdGlvbiI6MCwKICAgICAgICAibmxh
+YmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAg
+ICAgICJkcGEiOjk5MzIxMTE4NzIsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAg
+ICAgfQogICAgXQogIH0sCiAgewogICAgImRldiI6Im5tZW0yIiwKICAgICJpbmRleCI6Wwog
+ICAgICB7CiAgICAgICAgInNpZ25hdHVyZSI6Ik5BTUVTUEFDRV9JTkRFWCIsCiAgICAgICAg
+InNlcSI6MiwKICAgICAgICAibnNsb3QiOjEwMTYKICAgICAgfSwKICAgICAgewogICAgICAg
+ICJzaWduYXR1cmUiOiJOQU1FU1BBQ0VfSU5ERVgiLAogICAgICAgICJzZXEiOjMsCiAgICAg
+ICAgIm5zbG90IjoxMDE2CiAgICAgIH0KICAgIF0sCiAgICAibGFiZWwiOlsKICAgICAgewog
+ICAgICAgICJ1dWlkIjoiMzU5YzY4ZjctZWZkOS00MTBiLWE3MjctMWRlZjI3ZDU3NGI1IiwK
+ICAgICAgICAibmFtZSI6Im51bWJlcjEiLAogICAgICAgICJzbG90IjowLAogICAgICAgICJw
+b3NpdGlvbiI6MiwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1
+MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjI2ODQzNTQ1NiwKICAgICAgICAi
+cmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9LAogICAgICB7CiAgICAgICAgInV1aWQiOiJj
+NDA0N2MxNS03ZmExLTRmNTktYjYwZi02NzZmMjMzMjY5ODkiLAogICAgICAgICJuYW1lIjoi
+bnVtYmVyMiIsCiAgICAgICAgInNsb3QiOjEsCiAgICAgICAgInBvc2l0aW9uIjoyLAogICAg
+ICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRjb29raWUiOjUxMjUyNDM3ODg3MDQ0MjQx
+MzEsCiAgICAgICAgImRwYSI6MzQ4OTY2MDkyOCwKICAgICAgICAicmF3c2l6ZSI6MzIyMTIy
+NTQ3MgogICAgICB9LAogICAgICB7CiAgICAgICAgInV1aWQiOiI1NjI1MmM2Ni1iMWYxLTQz
+NWMtODIxYS02N2JlY2VmODJmNGMiLAogICAgICAgICJuYW1lIjoibnVtYmVyMyIsCiAgICAg
+ICAgInNsb3QiOjIsCiAgICAgICAgInBvc2l0aW9uIjoyLAogICAgICAgICJubGFiZWwiOjQs
+CiAgICAgICAgImlzZXRjb29raWUiOjUxMjUyNDM3ODg3MDQ0MjQxMzEsCiAgICAgICAgImRw
+YSI6NjcxMDg4NjQwMCwKICAgICAgICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9LAog
+ICAgICB7CiAgICAgICAgInV1aWQiOiI1YjZlMDcyYy01YWJiLTQzZmYtYmE4YS0zYmNhNmVl
+MTkwNjgiLAogICAgICAgICJuYW1lIjoibnVtYmVyMyIsCiAgICAgICAgInNsb3QiOjMsCiAg
+ICAgICAgInBvc2l0aW9uIjoyLAogICAgICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRj
+b29raWUiOjUxMjUyNDM3ODg3MDQ0MjQxMzEsCiAgICAgICAgImRwYSI6OTkzMjExMTg3MiwK
+ICAgICAgICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9CiAgICBdCiAgfQpdCnJlYWQg
+NCBubWVtcwo=
+--------------7A8A30371669F207451FD725
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--------------7A8A30371669F207451FD725--
