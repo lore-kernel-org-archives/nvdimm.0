@@ -1,87 +1,153 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DBE9821D0FE0B
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 16:35:39 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v4 2/6] btt: refactor map entry operations with macros
-Date: Wed, 26 Jul 2017 17:35:42 -0600
-Message-Id: <20170726233546.29052-3-vishal.l.verma@intel.com>
-In-Reply-To: <20170726233546.29052-1-vishal.l.verma@intel.com>
-References: <20170726233546.29052-1-vishal.l.verma@intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 24 Jul 2017 13:48:59 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 5/5] dax: move all DAX radix tree defs to fs/dax.c
+Message-ID: <20170724114859.GM652@quack2.suse.cz>
+References: <20170721223956.29485-1-ross.zwisler@linux.intel.com>
+ <20170721223956.29485-6-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170721223956.29485-6-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, David Airlie <airlied@linux.ie>, Ingo Molnar <mingo@redhat.com>, Inki Dae <inki.dae@samsung.com>, Jan Kara <jack@suse.cz>, Jonathan Corbet <corbet@lwn.net>, Joonyoung Shim <jy0922.shim@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, Kukjin Kim <kgene@kernel.org>, Kyungmin Park <kyungmin.park@samsung.com>, Matthew Wilcox <mawilcox@microsoft.com>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Rob Clark <robdclark@gmail.com>, Seung-Woo Kim <sw0312.kim@samsung.com>, Steven Rostedt <rostedt@goodmis.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, freedreno@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-doc@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-samsung-soc@vger.kernel.org, linux-xfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add helpers for converting a raw map entry to just the block number, or
-either of the 'e' or 'z' flags in preparation for actually using the
-error flag to mark blocks with media errors.
+On Fri 21-07-17 16:39:55, Ross Zwisler wrote:
+> Now that we no longer insert struct page pointers in DAX radix trees the
+> page cache code no longer needs to know anything about DAX exceptional
+> entries.  Move all the DAX exceptional entry definitions from dax.h to
+> fs/dax.c.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Suggested-by: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/btt.c | 8 ++++----
- drivers/nvdimm/btt.h | 4 ++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
+Looks good. You can add:
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index f6ea82f..8842baa 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
- 	 * This 'mapping' is supposed to be just the LBA mapping, without
- 	 * any flags set, so strip the flag bits.
- 	 */
--	mapping &= MAP_LBA_MASK;
-+	mapping = ent_lba(mapping);
- 
- 	ze = (z_flag << 1) + e_flag;
- 	switch (ze) {
-@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
- 
- 	raw_mapping = le32_to_cpu(in);
- 
--	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
--	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
-+	z_flag = ent_z_flag(raw_mapping);
-+	e_flag = ent_e_flag(raw_mapping);
- 	ze = (z_flag << 1) + e_flag;
--	postmap = raw_mapping & MAP_LBA_MASK;
-+	postmap = ent_lba(raw_mapping);
- 
- 	/* Reuse the {z,e}_flag variables for *trim and *error */
- 	z_flag = 0;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 888e862..09fabf5 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -38,6 +38,10 @@
- #define IB_FLAG_ERROR 0x00000001
- #define IB_FLAG_ERROR_MASK 0x00000001
- 
-+#define ent_lba(ent) (ent & MAP_LBA_MASK)
-+#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
-+#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
-+
- enum btt_init_state {
- 	INIT_UNCHECKED = 0,
- 	INIT_NOTFOUND,
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+
+> ---
+>  fs/dax.c            | 34 ++++++++++++++++++++++++++++++++++
+>  include/linux/dax.h | 41 -----------------------------------------
+>  2 files changed, 34 insertions(+), 41 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 0e27d90..e7acc45 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -54,6 +54,40 @@ static int __init init_dax_wait_table(void)
+>  }
+>  fs_initcall(init_dax_wait_table);
+>  
+> +/*
+> + * We use lowest available bit in exceptional entry for locking, one bit for
+> + * the entry size (PMD) and two more to tell us if the entry is a zero page or
+> + * an empty entry that is just used for locking.  In total four special bits.
+> + *
+> + * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
+> + * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
+> + * block allocation.
+> + */
+> +#define RADIX_DAX_SHIFT		(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
+> +#define RADIX_DAX_ENTRY_LOCK	(1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
+> +#define RADIX_DAX_PMD		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
+> +#define RADIX_DAX_ZERO_PAGE	(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
+> +#define RADIX_DAX_EMPTY		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
+> +
+> +static unsigned long dax_radix_sector(void *entry)
+> +{
+> +	return (unsigned long)entry >> RADIX_DAX_SHIFT;
+> +}
+> +
+> +static void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
+> +{
+> +	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
+> +			((unsigned long)sector << RADIX_DAX_SHIFT) |
+> +			RADIX_DAX_ENTRY_LOCK);
+> +}
+> +
+> +static unsigned int dax_radix_order(void *entry)
+> +{
+> +	if ((unsigned long)entry & RADIX_DAX_PMD)
+> +		return PMD_SHIFT - PAGE_SHIFT;
+> +	return 0;
+> +}
+> +
+>  static int dax_is_pmd_entry(void *entry)
+>  {
+>  	return (unsigned long)entry & RADIX_DAX_PMD;
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index afa99bb..d0e3272 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -88,33 +88,6 @@ void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+>  		size_t size);
+>  void dax_write_cache(struct dax_device *dax_dev, bool wc);
+>  
+> -/*
+> - * We use lowest available bit in exceptional entry for locking, one bit for
+> - * the entry size (PMD) and two more to tell us if the entry is a zero page or
+> - * an empty entry that is just used for locking.  In total four special bits.
+> - *
+> - * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
+> - * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
+> - * block allocation.
+> - */
+> -#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
+> -#define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
+> -#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
+> -#define RADIX_DAX_ZERO_PAGE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
+> -#define RADIX_DAX_EMPTY (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
+> -
+> -static inline unsigned long dax_radix_sector(void *entry)
+> -{
+> -	return (unsigned long)entry >> RADIX_DAX_SHIFT;
+> -}
+> -
+> -static inline void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
+> -{
+> -	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
+> -			((unsigned long)sector << RADIX_DAX_SHIFT) |
+> -			RADIX_DAX_ENTRY_LOCK);
+> -}
+> -
+>  ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+>  		const struct iomap_ops *ops);
+>  int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
+> @@ -136,20 +109,6 @@ static inline int __dax_zero_page_range(struct block_device *bdev,
+>  }
+>  #endif
+>  
+> -#ifdef CONFIG_FS_DAX_PMD
+> -static inline unsigned int dax_radix_order(void *entry)
+> -{
+> -	if ((unsigned long)entry & RADIX_DAX_PMD)
+> -		return PMD_SHIFT - PAGE_SHIFT;
+> -	return 0;
+> -}
+> -#else
+> -static inline unsigned int dax_radix_order(void *entry)
+> -{
+> -	return 0;
+> -}
+> -#endif
+> -
+>  static inline bool dax_mapping(struct address_space *mapping)
+>  {
+>  	return mapping->host && IS_DAX(mapping->host);
+> -- 
+> 2.9.4
+> 
 -- 
-2.9.3
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
