@@ -1,11 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from web1.localdomain (unknown [211.152.52.224])
- by ml01.01.org (Postfix) with ESMTP id BD86221CB02FD
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 16:31:03 -0700 (PDT)
-Subject: UPS parcel #3060769 delivery problem
-Date: Mon, 17 Jul 2017 23:31:46 +0000
-Message-Id: <20170717233146.18905705227@web1.localdomain>
-From: nginx@web1.localdomain
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8FAC820958995
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 04:44:28 -0700 (PDT)
+Date: Mon, 24 Jul 2017 13:46:22 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 3/5] dax: use common 4k zero page for dax mmap reads
+Message-ID: <20170724114622.GK652@quack2.suse.cz>
+References: <20170721223956.29485-1-ross.zwisler@linux.intel.com>
+ <20170721223956.29485-4-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170721223956.29485-4-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,24 +20,149 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-doc@vger.kernel.org, David Airlie <airlied@linux.ie>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Christoph Hellwig <hch@lst.de>, linux-samsung-soc@vger.kernel.org, Joonyoung Shim <jy0922.shim@samsung.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, Ingo Molnar <mingo@redhat.com>, linux-ext4@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-arm-msm@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Inki Dae <inki.dae@samsung.com>, linux-nvdimm@lists.01.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Theodore Ts'o <tytso@mit.edu>, Jonathan Corbet <corbet@lwn.net>, Seung-Woo Kim <sw0312.kim@samsung.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Rob Clark <robdclark@gmail.com>, Kukjin Kim <kgene@kernel.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, freedreno@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dear Customer,
+On Fri 21-07-17 16:39:53, Ross Zwisler wrote:
+> When servicing mmap() reads from file holes the current DAX code allocates
+> a page cache page of all zeroes and places the struct page pointer in the
+> mapping->page_tree radix tree.  This has three major drawbacks:
+> 
+> 1) It consumes memory unnecessarily.  For every 4k page that is read via a
+> DAX mmap() over a hole, we allocate a new page cache page.  This means that
+> if you read 1GiB worth of pages, you end up using 1GiB of zeroed memory.
+> This is easily visible by looking at the overall memory consumption of the
+> system or by looking at /proc/[pid]/smaps:
+> 
+> 	7f62e72b3000-7f63272b3000 rw-s 00000000 103:00 12   /root/dax/data
+> 	Size:            1048576 kB
+> 	Rss:             1048576 kB
+> 	Pss:             1048576 kB
+> 	Shared_Clean:          0 kB
+> 	Shared_Dirty:          0 kB
+> 	Private_Clean:   1048576 kB
+> 	Private_Dirty:         0 kB
+> 	Referenced:      1048576 kB
+> 	Anonymous:             0 kB
+> 	LazyFree:              0 kB
+> 	AnonHugePages:         0 kB
+> 	ShmemPmdMapped:        0 kB
+> 	Shared_Hugetlb:        0 kB
+> 	Private_Hugetlb:       0 kB
+> 	Swap:                  0 kB
+> 	SwapPss:               0 kB
+> 	KernelPageSize:        4 kB
+> 	MMUPageSize:           4 kB
+> 	Locked:                0 kB
+> 
+> 2) It is slower than using a common zero page because each page fault has
+> more work to do.  Instead of just inserting a common zero page we have to
+> allocate a page cache page, zero it, and then insert it.  Here are the
+> average latencies of dax_load_hole() as measured by ftrace on a random test
+> box:
+> 
+> Old method, using zeroed page cache pages:	3.4 us
+> New method, using the common 4k zero page:	0.8 us
+> 
+> This was the average latency over 1 GiB of sequential reads done by this
+> simple fio script:
+> 
+>   [global]
+>   size=1G
+>   filename=/root/dax/data
+>   fallocate=none
+>   [io]
+>   rw=read
+>   ioengine=mmap
+> 
+> 3) The fact that we had to check for both DAX exceptional entries and for
+> page cache pages in the radix tree made the DAX code more complex.
+> 
+> Solve these issues by following the lead of the DAX PMD code and using a
+> common 4k zero page instead.  As with the PMD code we will now insert a DAX
+> exceptional entry into the radix tree instead of a struct page pointer
+> which allows us to remove all the special casing in the DAX code.
+> 
+> Note that we do still pretty aggressively check for regular pages in the
+> DAX radix tree, especially where we take action based on the bits set in
+> the page.  If we ever find a regular page in our radix tree now that most
+> likely means that someone besides DAX is inserting pages (which has
+> happened lots of times in the past), and we want to find that out early and
+> fail loudly.
+> 
+> This solution also removes the extra memory consumption.  Here is that same
+> /proc/[pid]/smaps after 1GiB of reading from a hole with the new code:
+> 
+> 	7f2054a74000-7f2094a74000 rw-s 00000000 103:00 12   /root/dax/data
+> 	Size:            1048576 kB
+> 	Rss:                   0 kB
+> 	Pss:                   0 kB
+> 	Shared_Clean:          0 kB
+> 	Shared_Dirty:          0 kB
+> 	Private_Clean:         0 kB
+> 	Private_Dirty:         0 kB
+> 	Referenced:            0 kB
+> 	Anonymous:             0 kB
+> 	LazyFree:              0 kB
+> 	AnonHugePages:         0 kB
+> 	ShmemPmdMapped:        0 kB
+> 	Shared_Hugetlb:        0 kB
+> 	Private_Hugetlb:       0 kB
+> 	Swap:                  0 kB
+> 	SwapPss:               0 kB
+> 	KernelPageSize:        4 kB
+> 	MMUPageSize:           4 kB
+> 	Locked:                0 kB
+> 
+> Overall system memory consumption is similarly improved.
+> 
+> Another major change is that we remove dax_pfn_mkwrite() from our fault
+> flow, and instead rely on the page fault itself to make the PTE dirty and
+> writeable.  The following description from the patch adding the
+> vm_insert_mixed_mkwrite() call explains this a little more:
+> 
+> ***
+>   To be able to use the common 4k zero page in DAX we need to have our PTE
+>   fault path look more like our PMD fault path where a PTE entry can be
+>   marked as dirty and writeable as it is first inserted, rather than
+>   waiting for a follow-up dax_pfn_mkwrite() => finish_mkwrite_fault() call.
+> 
+>   Right now we can rely on having a dax_pfn_mkwrite() call because we can
+>   distinguish between these two cases in do_wp_page():
+> 
+>           case 1: 4k zero page => writable DAX storage
+>           case 2: read-only DAX storage => writeable DAX storage
+> 
+>   This distinction is made by via vm_normal_page().  vm_normal_page()
+>   returns false for the common 4k zero page, though, just as it does for
+>   DAX ptes.  Instead of special casing the DAX + 4k zero page case, we will
+>   simplify our DAX PTE page fault sequence so that it matches our DAX PMD
+>   sequence, and get rid of the dax_pfn_mkwrite() helper.  We will instead
+>   use dax_iomap_fault() to handle write-protection faults.
+> 
+>   This means that insert_pfn() needs to follow the lead of insert_pfn_pmd()
+>   and allow us to pass in a 'mkwrite' flag.  If 'mkwrite' is set
+>   insert_pfn() will do the work that was previously done by wp_page_reuse()
+>   as part of the dax_pfn_mkwrite() call path.
+> ***
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Your parcel was successfully delivered July 16 to UPS Station, but our courier cound not contact you.
+The patch looks good to me. You can add:
 
-Please check delivery label attached!
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Yours sincerely,
- ,
-UPS Station Agent.
+And I really like that we've got rid of these pagecache hole pages!
 
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
