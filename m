@@ -1,77 +1,100 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1763E21CF25A1
- for <linux-nvdimm@lists.01.org>; Wed, 12 Jul 2017 14:03:10 -0700 (PDT)
-Subject: [PATCH] device-dax: fix 'passing zero to ERR_PTR()' warning
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Jul 2017 13:58:31 -0700
-Message-ID: <149989311159.21424.6403870262398704436.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 24 Jul 2017 13:47:38 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 4/5] dax: remove DAX code from page_cache_tree_insert()
+Message-ID: <20170724114738.GL652@quack2.suse.cz>
+References: <20170721223956.29485-1-ross.zwisler@linux.intel.com>
+ <20170721223956.29485-5-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170721223956.29485-5-ross.zwisler@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, David Airlie <airlied@linux.ie>, Ingo Molnar <mingo@redhat.com>, Inki Dae <inki.dae@samsung.com>, Jan Kara <jack@suse.cz>, Jonathan Corbet <corbet@lwn.net>, Joonyoung Shim <jy0922.shim@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, Kukjin Kim <kgene@kernel.org>, Kyungmin Park <kyungmin.park@samsung.com>, Matthew Wilcox <mawilcox@microsoft.com>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Rob Clark <robdclark@gmail.com>, Seung-Woo Kim <sw0312.kim@samsung.com>, Steven Rostedt <rostedt@goodmis.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, freedreno@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-doc@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-samsung-soc@vger.kernel.org, linux-xfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Carpenter reports:
+On Fri 21-07-17 16:39:54, Ross Zwisler wrote:
+> Now that we no longer insert struct page pointers in DAX radix trees we can
+> remove the special casing for DAX in page_cache_tree_insert().  This also
+> allows us to make dax_wake_mapping_entry_waiter() local to fs/dax.c,
+> removing it from dax.h.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Suggested-by: Jan Kara <jack@suse.cz>
 
-    The patch 7b6be8444e0f: "dax: refactor dax-fs into a generic provider
-    of 'struct dax_device' instances" from Apr 11, 2017, leads to the
-    following static checker warning:
+Looks good. You can add:
 
-        drivers/dax/device.c:643 devm_create_dev_dax()
-        warn: passing zero to 'ERR_PTR'
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Fix the case where we inadvertently leak 0 to ERR_PTR() by setting at
-every error case, and make it clear that 'count' is never 0.
+								Honza
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/device.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 12943d19bfc4..44d72e5e64cc 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -567,7 +567,10 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
- 	struct inode *inode;
- 	struct device *dev;
- 	struct cdev *cdev;
--	int rc = 0, i;
-+	int rc, i;
-+
-+	if (!count)
-+		return ERR_PTR(-EINVAL);
- 
- 	dev_dax = kzalloc(sizeof(*dev_dax) + sizeof(*res) * count, GFP_KERNEL);
- 	if (!dev_dax)
-@@ -598,8 +601,10 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
- 	 * device outside of mmap of the resulting character device.
- 	 */
- 	dax_dev = alloc_dax(dev_dax, NULL, NULL);
--	if (!dax_dev)
-+	if (!dax_dev) {
-+		rc = -ENOMEM;
- 		goto err_dax;
-+	}
- 
- 	/* from here on we're committed to teardown via dax_dev_release() */
- 	dev = &dev_dax->dev;
+> ---
+>  fs/dax.c            |  2 +-
+>  include/linux/dax.h |  2 --
+>  mm/filemap.c        | 13 ++-----------
+>  3 files changed, 3 insertions(+), 14 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index fb0e4c1..0e27d90 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -127,7 +127,7 @@ static int wake_exceptional_entry_func(wait_queue_entry_t *wait, unsigned int mo
+>   * correct waitqueue where tasks might be waiting for that old 'entry' and
+>   * wake them.
+>   */
+> -void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+> +static void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+>  		pgoff_t index, void *entry, bool wake_all)
+>  {
+>  	struct exceptional_entry_key key;
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 29cced8..afa99bb 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -122,8 +122,6 @@ int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
+>  int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+>  int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+>  				      pgoff_t index);
+> -void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+> -		pgoff_t index, void *entry, bool wake_all);
+>  
+>  #ifdef CONFIG_FS_DAX
+>  int __dax_zero_page_range(struct block_device *bdev,
+> diff --git a/mm/filemap.c b/mm/filemap.c
+> index a497024..1bf1265 100644
+> --- a/mm/filemap.c
+> +++ b/mm/filemap.c
+> @@ -130,17 +130,8 @@ static int page_cache_tree_insert(struct address_space *mapping,
+>  			return -EEXIST;
+>  
+>  		mapping->nrexceptional--;
+> -		if (!dax_mapping(mapping)) {
+> -			if (shadowp)
+> -				*shadowp = p;
+> -		} else {
+> -			/* DAX can replace empty locked entry with a hole */
+> -			WARN_ON_ONCE(p !=
+> -				dax_radix_locked_entry(0, RADIX_DAX_EMPTY));
+> -			/* Wakeup waiters for exceptional entry lock */
+> -			dax_wake_mapping_entry_waiter(mapping, page->index, p,
+> -						      true);
+> -		}
+> +		if (shadowp)
+> +			*shadowp = p;
+>  	}
+>  	__radix_tree_replace(&mapping->page_tree, node, slot, page,
+>  			     workingset_update_node, mapping);
+> -- 
+> 2.9.4
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
