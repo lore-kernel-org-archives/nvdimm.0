@@ -1,16 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from host.1face1.com (host.1face1.com [198.89.120.240])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EB8DA21D28FD4
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 17:20:35 -0700 (PDT)
-Received: from smartpharma by host.1face1.com with local (Exim 4.87)
- (envelope-from <smartpharma@host.1face1.com>) id 1dZncU-00010F-Au
- for linux-nvdimm@lists.01.org; Tue, 25 Jul 2017 00:22:38 +0000
-Subject: Parcel 002975888 delivery notification, UPS
-Date: Mon, 24 Jul 2017 20:22:38 -0400
-Message-Id: <E1dZncU-00010F-Au@host.1face1.com>
-From: smartpharma@host.1face1.com
+Received: from ds5.datahost.gr (unknown [93.174.122.210])
+ by ml01.01.org (Postfix) with ESMTP id 7376B2193B81B
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 00:37:40 -0700 (PDT)
+Subject: We could not deliver your parcel, #001980074
+Date: Mon, 24 Jul 2017 10:36:48 +0300
+From: postmaster@ds5.datahost.gr
+Message-ID: <auto-000004585326@ds5.datahost.gr>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,13 +23,13 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 Dear Customer,
 
-This is to confirm that your item has been shipped at July 24.
+We can not deliver your parcel arrived at July 21.
 
-Please check delivery label attached!
+Postal label is enclosed to this e-mail. Please check the attachment!
 
-Yours respectfully,
+With thanks and appreciation,
  ,
-UPS Senior Station Manager.
+UPS Parcels Operation Agent.
 
 _______________________________________________
 Linux-nvdimm mailing list
