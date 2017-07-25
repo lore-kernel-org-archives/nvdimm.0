@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp1040.oracle.com (userp1040.oracle.com [156.151.31.81])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 08B9C21D09190
- for <linux-nvdimm@lists.01.org>; Thu, 27 Jul 2017 08:12:42 -0700 (PDT)
-Date: Thu, 27 Jul 2017 18:14:32 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [bug report] libnvdimm: control (ioctl) messages for nvdimm_bus and
- nvdimm devices
-Message-ID: <20170727151432.kiff55pjm227dycb@mwanda>
-MIME-Version: 1.0
-Content-Disposition: inline
+Received: from foss.arm.com (usa-sjc-mx-foss1.foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id 0BEAE21C91256
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jul 2017 03:54:12 -0700 (PDT)
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: [PATCH 3/6] arm64: Expose DC CVAP to userspace
+Date: Tue, 25 Jul 2017 11:55:40 +0100
+Message-Id: <7e93a60998fab0000cefd2ab25da254b119be080.1500397441.git.robin.murphy@arm.com>
+In-Reply-To: <cover.1500397441.git.robin.murphy@arm.com>
+References: <cover.1500397441.git.robin.murphy@arm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,121 +15,100 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: will.deacon@arm.com, catalin.marinas@arm.com
+Cc: mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello Dan Williams,
+The ARMv8.2-DCPoP feature introduces persistent memory support to the
+architecture, by defining a point of persistence in the memory
+hierarchy, and a corresponding cache maintenance operation, DC CVAP.
+Expose the support via HWCAP and MRS emulation.
 
-The patch 62232e45f4a2: "libnvdimm: control (ioctl) messages for
-nvdimm_bus and nvdimm devices" from Jun 8, 2015, leads to the
-following static checker warning:
+Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+---
+ Documentation/arm64/cpu-feature-registers.txt | 2 ++
+ arch/arm64/include/asm/sysreg.h               | 1 +
+ arch/arm64/include/uapi/asm/hwcap.h           | 1 +
+ arch/arm64/kernel/cpufeature.c                | 2 ++
+ arch/arm64/kernel/cpuinfo.c                   | 1 +
+ 5 files changed, 7 insertions(+)
 
-	drivers/nvdimm/bus.c:1018 __nd_ioctl()
-	warn: integer overflows 'buf_len'
+diff --git a/Documentation/arm64/cpu-feature-registers.txt b/Documentation/arm64/cpu-feature-registers.txt
+index d1c97f9f51cc..dad411d635d8 100644
+--- a/Documentation/arm64/cpu-feature-registers.txt
++++ b/Documentation/arm64/cpu-feature-registers.txt
+@@ -179,6 +179,8 @@ infrastructure:
+      | FCMA                         | [19-16] |    y    |
+      |--------------------------------------------------|
+      | JSCVT                        | [15-12] |    y    |
++     |--------------------------------------------------|
++     | DPB                          | [3-0]   |    y    |
+      x--------------------------------------------------x
+ 
+ Appendix I: Example
+diff --git a/arch/arm64/include/asm/sysreg.h b/arch/arm64/include/asm/sysreg.h
+index 16e44fa9b3b6..1974731baa91 100644
+--- a/arch/arm64/include/asm/sysreg.h
++++ b/arch/arm64/include/asm/sysreg.h
+@@ -329,6 +329,7 @@
+ #define ID_AA64ISAR1_LRCPC_SHIFT	20
+ #define ID_AA64ISAR1_FCMA_SHIFT		16
+ #define ID_AA64ISAR1_JSCVT_SHIFT	12
++#define ID_AA64ISAR1_DPB_SHIFT		0
+ 
+ /* id_aa64pfr0 */
+ #define ID_AA64PFR0_GIC_SHIFT		24
+diff --git a/arch/arm64/include/uapi/asm/hwcap.h b/arch/arm64/include/uapi/asm/hwcap.h
+index 4e187ce2a811..4b9344cba83a 100644
+--- a/arch/arm64/include/uapi/asm/hwcap.h
++++ b/arch/arm64/include/uapi/asm/hwcap.h
+@@ -35,5 +35,6 @@
+ #define HWCAP_JSCVT		(1 << 13)
+ #define HWCAP_FCMA		(1 << 14)
+ #define HWCAP_LRCPC		(1 << 15)
++#define HWCAP_DCPOP		(1 << 16)
+ 
+ #endif /* _UAPI__ASM_HWCAP_H */
+diff --git a/arch/arm64/kernel/cpufeature.c b/arch/arm64/kernel/cpufeature.c
+index 9f9e0064c8c1..a2542ef3ff25 100644
+--- a/arch/arm64/kernel/cpufeature.c
++++ b/arch/arm64/kernel/cpufeature.c
+@@ -120,6 +120,7 @@ static const struct arm64_ftr_bits ftr_id_aa64isar1[] = {
+ 	ARM64_FTR_BITS(FTR_VISIBLE, FTR_STRICT, FTR_EXACT, ID_AA64ISAR1_LRCPC_SHIFT, 4, 0),
+ 	ARM64_FTR_BITS(FTR_VISIBLE, FTR_STRICT, FTR_EXACT, ID_AA64ISAR1_FCMA_SHIFT, 4, 0),
+ 	ARM64_FTR_BITS(FTR_VISIBLE, FTR_STRICT, FTR_EXACT, ID_AA64ISAR1_JSCVT_SHIFT, 4, 0),
++	ARM64_FTR_BITS(FTR_VISIBLE, FTR_STRICT, FTR_EXACT, ID_AA64ISAR1_DPB_SHIFT, 4, 0),
+ 	ARM64_FTR_END,
+ };
+ 
+@@ -916,6 +917,7 @@ static const struct arm64_cpu_capabilities arm64_elf_hwcaps[] = {
+ 	HWCAP_CAP(SYS_ID_AA64PFR0_EL1, ID_AA64PFR0_FP_SHIFT, FTR_SIGNED, 1, CAP_HWCAP, HWCAP_FPHP),
+ 	HWCAP_CAP(SYS_ID_AA64PFR0_EL1, ID_AA64PFR0_ASIMD_SHIFT, FTR_SIGNED, 0, CAP_HWCAP, HWCAP_ASIMD),
+ 	HWCAP_CAP(SYS_ID_AA64PFR0_EL1, ID_AA64PFR0_ASIMD_SHIFT, FTR_SIGNED, 1, CAP_HWCAP, HWCAP_ASIMDHP),
++	HWCAP_CAP(SYS_ID_AA64ISAR1_EL1, ID_AA64ISAR1_DPB_SHIFT, FTR_UNSIGNED, 1, CAP_HWCAP, HWCAP_DCPOP),
+ 	HWCAP_CAP(SYS_ID_AA64ISAR1_EL1, ID_AA64ISAR1_JSCVT_SHIFT, FTR_UNSIGNED, 1, CAP_HWCAP, HWCAP_JSCVT),
+ 	HWCAP_CAP(SYS_ID_AA64ISAR1_EL1, ID_AA64ISAR1_FCMA_SHIFT, FTR_UNSIGNED, 1, CAP_HWCAP, HWCAP_FCMA),
+ 	HWCAP_CAP(SYS_ID_AA64ISAR1_EL1, ID_AA64ISAR1_LRCPC_SHIFT, FTR_UNSIGNED, 1, CAP_HWCAP, HWCAP_LRCPC),
+diff --git a/arch/arm64/kernel/cpuinfo.c b/arch/arm64/kernel/cpuinfo.c
+index f495ee5049fd..311885962830 100644
+--- a/arch/arm64/kernel/cpuinfo.c
++++ b/arch/arm64/kernel/cpuinfo.c
+@@ -68,6 +68,7 @@ static const char *const hwcap_str[] = {
+ 	"jscvt",
+ 	"fcma",
+ 	"lrcpc",
++	"dcpop",
+ 	NULL
+ };
+ 
+-- 
+2.12.2.dirty
 
-drivers/nvdimm/bus.c
-   959          /* process an input envelope */
-   960          for (i = 0; i < desc->in_num; i++) {
-   961                  u32 in_size, copy;
-   962  
-   963                  in_size = nd_cmd_in_size(nvdimm, cmd, desc, i, in_env);
-   964                  if (in_size == UINT_MAX) {
-   965                          dev_err(dev, "%s:%s unknown input size cmd: %s field: %d\n",
-   966                                          __func__, dimm_name, cmd_name, i);
-   967                          return -ENXIO;
-   968                  }
-   969                  if (in_len < sizeof(in_env))
-   970                          copy = min_t(u32, sizeof(in_env) - in_len, in_size);
-   971                  else
-   972                          copy = 0;
-   973                  if (copy && copy_from_user(&in_env[in_len], p + in_len, copy))
-   974                          return -EFAULT;
-   975                  in_len += in_size;
-
-
->From a casual review, this seems like it might be a real bug.  On the
-first iteration we load some data into in_env[].  On the second
-iteration we read a use controlled "in_size" from nd_cmd_in_size().  It
-can go up to UINT_MAX - 1.  A high number means we will fill the whole
-in_env[] buffer.  But we potentially keep looping and adding more to
-in_len so now it can be any value.
-
-It simple enough to change:
-
--			in_len += in_size;
-+			in_len += copy;
-
-But it feels weird that we keep looping even though in_env is totally
-full.  Shouldn't we just return an error if we don't have space for
-desc->in_num.
-
-   976          }
-   977  
-   978          if (cmd == ND_CMD_CALL) {
-   979                  func = pkg.nd_command;
-   980                  dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
-   981                                  __func__, dimm_name, pkg.nd_command,
-   982                                  in_len, out_len, buf_len);
-   983  
-   984                  for (i = 0; i < ARRAY_SIZE(pkg.nd_reserved2); i++)
-   985                          if (pkg.nd_reserved2[i])
-   986                                  return -EINVAL;
-   987          }
-   988  
-   989          /* process an output envelope */
-   990          for (i = 0; i < desc->out_num; i++) {
-   991                  u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
-   992                                  (u32 *) in_env, (u32 *) out_env, 0);
-   993                  u32 copy;
-   994  
-   995                  if (out_size == UINT_MAX) {
-   996                          dev_dbg(dev, "%s:%s unknown output size cmd: %s field: %d\n",
-   997                                          __func__, dimm_name, cmd_name, i);
-   998                          return -EFAULT;
-   999                  }
-  1000                  if (out_len < sizeof(out_env))
-  1001                          copy = min_t(u32, sizeof(out_env) - out_len, out_size);
-  1002                  else
-  1003                          copy = 0;
-  1004                  if (copy && copy_from_user(&out_env[out_len],
-  1005                                          p + in_len + out_len, copy))
-  1006                          return -EFAULT;
-  1007                  out_len += out_size;
-
-Same thing.
-
-  1008          }
-  1009  
-  1010          buf_len = out_len + in_len;
-
-It means this addition could overflow.
-
-  1011          if (buf_len > ND_IOCTL_MAX_BUFLEN) {
-  1012                  dev_dbg(dev, "%s:%s cmd: %s buf_len: %zu > %d\n", __func__,
-  1013                                  dimm_name, cmd_name, buf_len,
-  1014                                  ND_IOCTL_MAX_BUFLEN);
-  1015                  return -EINVAL;
-  1016          }
-  1017  
-  1018          buf = vmalloc(buf_len);
-                              ^^^^^^^
-The checker complains we might allocate less than intended.
-
-  1019          if (!buf)
-  1020                  return -ENOMEM;
-  1021  
-  1022          if (copy_from_user(buf, p, buf_len)) {
-  1023                  rc = -EFAULT;
-  1024                  goto out;
-  1025          }
-
-regards,
-dan carpenter
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
