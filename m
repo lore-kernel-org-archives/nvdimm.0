@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8FC0221CE73FE
- for <linux-nvdimm@lists.01.org>; Fri, 14 Jul 2017 15:11:39 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 2/6] btt: refactor map entry operations with macros
-Date: Fri, 14 Jul 2017 16:11:44 -0600
-Message-Id: <20170714221148.11232-3-vishal.l.verma@intel.com>
-In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
-References: <20170714221148.11232-1-vishal.l.verma@intel.com>
+Received: from foss.arm.com (usa-sjc-mx-foss1.foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id 0C47421C91254
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jul 2017 03:54:09 -0700 (PDT)
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: [PATCH 1/6] arm64: mm: Fix set_memory_valid() declaration
+Date: Tue, 25 Jul 2017 11:55:38 +0100
+Message-Id: <a7b0cd687d7d2ee9315db4fc9a86b8dff2892875.1500397441.git.robin.murphy@arm.com>
+In-Reply-To: <cover.1500397441.git.robin.murphy@arm.com>
+References: <cover.1500397441.git.robin.murphy@arm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,64 +20,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: will.deacon@arm.com, catalin.marinas@arm.com
+Cc: mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add helpers for converting a raw map entry to just the block number, or
-either of the 'e' or 'z' flags in preparation for actually using the
-error flag to mark blocks with media errors.
+Clearly, set_memory_valid() has never been seen in the same room as its
+declaration... Whilst the type mismatch is such that kexec probably
+wasn't broken in practice, fix it to match the definition as it should.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Fixes: 9b0aa14e3155 ("arm64: mm: add set_memory_valid()")
+Signed-off-by: Robin Murphy <robin.murphy@arm.com>
 ---
- drivers/nvdimm/btt.c | 8 ++++----
- drivers/nvdimm/btt.h | 4 ++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ arch/arm64/include/asm/cacheflush.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 52aa96f..3aa6bc0 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
- 	 * This 'mapping' is supposed to be just the LBA mapping, without
- 	 * any flags set, so strip the flag bits.
- 	 */
--	mapping &= MAP_LBA_MASK;
-+	mapping = ent_lba(mapping);
+diff --git a/arch/arm64/include/asm/cacheflush.h b/arch/arm64/include/asm/cacheflush.h
+index d74a284abdc2..4d4f650c290e 100644
+--- a/arch/arm64/include/asm/cacheflush.h
++++ b/arch/arm64/include/asm/cacheflush.h
+@@ -150,6 +150,6 @@ static inline void flush_cache_vunmap(unsigned long start, unsigned long end)
+ {
+ }
  
- 	ze = (z_flag << 1) + e_flag;
- 	switch (ze) {
-@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
+-int set_memory_valid(unsigned long addr, unsigned long size, int enable);
++int set_memory_valid(unsigned long addr, int numpages, int enable);
  
- 	raw_mapping = le32_to_cpu(in);
- 
--	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
--	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
-+	z_flag = ent_z_flag(raw_mapping);
-+	e_flag = ent_e_flag(raw_mapping);
- 	ze = (z_flag << 1) + e_flag;
--	postmap = raw_mapping & MAP_LBA_MASK;
-+	postmap = ent_lba(raw_mapping);
- 
- 	/* Reuse the {z,e}_flag variables for *trim and *error */
- 	z_flag = 0;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 888e862..09fabf5 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -38,6 +38,10 @@
- #define IB_FLAG_ERROR 0x00000001
- #define IB_FLAG_ERROR_MASK 0x00000001
- 
-+#define ent_lba(ent) (ent & MAP_LBA_MASK)
-+#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
-+#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
-+
- enum btt_init_state {
- 	INIT_UNCHECKED = 0,
- 	INIT_NOTFOUND,
+ #endif
 -- 
-2.9.3
+2.12.2.dirty
 
 _______________________________________________
 Linux-nvdimm mailing list
