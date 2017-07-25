@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8AA3A21B06E91
- for <linux-nvdimm@lists.01.org>; Tue, 25 Jul 2017 15:20:46 -0700 (PDT)
-Date: Tue, 25 Jul 2017 16:22:47 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: FIle copy to FAT FS on NVDIMM hits BUG_ON at fs/buffer.c:3305!
-Message-ID: <20170725222247.GA26391@linux.intel.com>
-References: <1501018096.2042.70.camel@hpe.com>
+Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0581D2095D9DC
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jul 2017 14:36:10 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: FIle copy to FAT FS on NVDIMM hits BUG_ON at fs/buffer.c:3305!
+Date: Tue, 25 Jul 2017 21:37:38 +0000
+Message-ID: <1501018096.2042.70.camel@hpe.com>
+Content-Language: en-US
+Content-ID: <1227CA127A71D14DA822F938E92BBA43@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1501018096.2042.70.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,36 +18,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "hirofumi@mail.parknet.co.jp" <hirofumi@mail.parknet.co.jp>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "hirofumi@mail.parknet.co.jp" <hirofumi@mail.parknet.co.jp>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jul 25, 2017 at 09:37:38PM +0000, Kani, Toshimitsu wrote:
-> Hi,
-> =
-
-> Copying files to vfat FS on an NVDIMM device hits
-> BUG_ON(!PageLocked(page)) in try_to_free_buffers().  It happens on
-> 4.13-rc1, and happens on older kernels as well.
-> =
-
-> A simple reproducer is shown below.  It is 100% reproducible on my
-> setup (8GB of regular memory and 16GB of NVDIMM).  It usually hits in
-> the 3rd or 4th file copy and does not repeat with the while-loop.=A0
-> Interestingly, it hits only when an NVDIMM device is set as raw or
-> memory mode.  It does not hit with sector mode.
-
-Interesting, thanks for the report..  I was able to reproduce this in my KVM
-setup with a virtualized NVDIMM using v4.12.  I also tried reproducing it w=
-ith
-BRD, and wasn't able.
-
-I'll take a look.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGksDQoNCkNvcHlpbmcgZmlsZXMgdG8gdmZhdCBGUyBvbiBhbiBOVkRJTU0gZGV2aWNlIGhpdHMN
+CkJVR19PTighUGFnZUxvY2tlZChwYWdlKSkgaW4gdHJ5X3RvX2ZyZWVfYnVmZmVycygpLiAgSXQg
+aGFwcGVucyBvbg0KNC4xMy1yYzEsIGFuZCBoYXBwZW5zIG9uIG9sZGVyIGtlcm5lbHMgYXMgd2Vs
+bC4NCg0KQSBzaW1wbGUgcmVwcm9kdWNlciBpcyBzaG93biBiZWxvdy4gIEl0IGlzIDEwMCUgcmVw
+cm9kdWNpYmxlIG9uIG15DQpzZXR1cCAoOEdCIG9mIHJlZ3VsYXIgbWVtb3J5IGFuZCAxNkdCIG9m
+IE5WRElNTSkuICBJdCB1c3VhbGx5IGhpdHMgaW4NCnRoZSAzcmQgb3IgNHRoIGZpbGUgY29weSBh
+bmQgZG9lcyBub3QgcmVwZWF0IHdpdGggdGhlIHdoaWxlLWxvb3AuwqANCkludGVyZXN0aW5nbHks
+IGl0IGhpdHMgb25seSB3aGVuIGFuIE5WRElNTSBkZXZpY2UgaXMgc2V0IGFzIHJhdyBvcg0KbWVt
+b3J5IG1vZGUuICBJdCBkb2VzIG5vdCBoaXQgd2l0aCBzZWN0b3IgbW9kZS4NCiANCj09DQpERVY9
+cG1lbTANCnNldCAteA0KbWtmcy52ZmF0IC9kZXYvJERFVg0KbW91bnQgL2Rldi8kREVWIC9tbnQv
+JERFVg0KZGQgaWY9L2Rldi96ZXJvIG9mPS9tbnQvJERFVi8xR2ZpbGUgYnM9MU0gY291bnQ9MTAy
+NA0Kd2hpbGUgdHJ1ZTsgZG8NCmNwIC9tbnQvJERFVi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtMQ0K
+Y3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS0yDQpjcCAvbW50LyRERVYvMUdmaWxl
+IC9tbnQvJERFVi9maWxlLTMNCmNwIC9tbnQvJERFVi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtNA0K
+Y3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS01DQpjcCAvbW50LyRERVYvMUdmaWxl
+IC9tbnQvJERFVi9maWxlLTYNCmNwIC9tbnQvJERFVi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtNw0K
+Y3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS04DQpjcCAvbW50LyRERVYvMUdmaWxl
+IC9tbnQvJERFVi9maWxlLTkNCmNwIC9tbnQvJERFVi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtMTAN
+CmRvbmUNCj09DQoNCsKga2VybmVsIEJVRyBhdCBmcy9idWZmZXIuYzozMzA1IQ0KwqBpbnZhbGlk
+IG9wY29kZTogMDAwMCBbIzFdIFNNUA0KICA6DQrCoFdvcmtxdWV1ZTogd3JpdGViYWNrIHdiX3dv
+cmtmbiAoZmx1c2gtMjU5OjApDQrCoHRhc2s6IGZmZmY4ZDAyNTk1YjgwMDAgdGFzay5zdGFjazog
+ZmZmZmEyMjI0MjQwMDAwMA0KwqBSSVA6IDAwMTA6dHJ5X3RvX2ZyZWVfYnVmZmVycysweGQyLzB4
+ZTANCsKgUlNQOiAwMDE4OmZmZmZhMjIyNDI0MDM4MzAgRUZMQUdTOiAwMDAxMDI0Ng0KwqBSQVg6
+IDAwYWZmZmMwMDAwMDEwMjggUkJYOiAwMDAwMDAwMDAwMDAwMDA4IFJDWDogZmZmZjhkMDEyZGNm
+MTljMA0KwqBSRFg6IDAwMDAwMDAwMDAwMDAwMDAgUlNJOiAwMDAwMDAwMDAwMDAwMDA4IFJESTog
+ZmZmZmM0NjhlM2I1MmI4MA0KwqBSQlA6IGZmZmZhMjIyNDI0MDM4NTggUjA4OiAwMDAwMDAwMDAw
+MDAwMDAwIFIwOTogMDAwMDAwMDAwMDAyMDY3Yw0KwqBSMTA6IGZmZmY4ZDAyN2ZmZTYwMDAgUjEx
+OiAwMDAwMDAwMDAwMDAwMDAwIFIxMjogMDAwMDAwMDAwMDAwMDAwMA0KwqBSMTM6IGZmZmY4ZDAy
+MmZjY2RiZTAgUjE0OiBmZmZmYzQ2OGUzYjUyYjgwIFIxNTogZmZmZmEyMjI0MjQwM2FkMA0KwqBG
+UzrCoMKgMDAwMDAwMDAwMDAwMDAwMCgwMDAwKSBHUzpmZmZmOGQwMjdmZDQwMDAwKDAwMDApDQpr
+bmxHUzowMDAwMDAwMDAwMDAwMDAwDQrCoENTOsKgwqAwMDEwIERTOiAwMDAwIEVTOiAwMDAwIENS
+MDogMDAwMDAwMDA4MDA1MDAzMw0KwqBDUjI6IDAwMDA3ZjlkMmJiODBiNzAgQ1IzOiAwMDAwMDAw
+ODRmZTA5MDAwIENSNDogMDAwMDAwMDAwMDc0MDZlMA0KwqBEUjA6IDAwMDAwMDAwMDAwMDAwMDAg
+RFIxOiAwMDAwMDAwMDAwMDAwMDAwIERSMjogMDAwMDAwMDAwMDAwMDAwMA0KwqBEUjM6IDAwMDAw
+MDAwMDAwMDAwMDAgRFI2OiAwMDAwMDAwMGZmZmUwZmYwIERSNzogMDAwMDAwMDAwMDAwMDQwMA0K
+wqBQS1JVOiA1NTU1NTU1NA0KwqBDYWxsIFRyYWNlOg0KwqAgY2xlYW5fYnVmZmVycysweDVkLzB4
+NzANCsKgIF9fbXBhZ2Vfd3JpdGVwYWdlKzB4NTY3LzB4NzYwDQrCoCA/IHBhZ2VfbWtjbGVhbisw
+eDZhLzB4YjANCsKgIHdyaXRlX2NhY2hlX3BhZ2VzKzB4MjA1LzB4NTgwDQrCoCA/IGNsZWFuX2J1
+ZmZlcnMrMHg3MC8weDcwDQrCoCA/IGZhdF9hZGRfY2x1c3RlcisweDgwLzB4ODAgW2ZhdF0NCsKg
+IG1wYWdlX3dyaXRlcGFnZXMrMHg3Yy8weDEwMA0KwqAgPyBmYXRfYWRkX2NsdXN0ZXIrMHg4MC8w
+eDgwIFtmYXRdDQrCoCA/IF9fc2V0X3BhZ2VfZGlydHkrMHg5Yi8weGMwDQrCoCA/IGZwcm9wX2Zy
+YWN0aW9uX3BlcmNwdSsweDJmLzB4ODANCsKgIGZhdF93cml0ZXBhZ2VzKzB4MTUvMHgyMCBbZmF0
+XQ0KwqAgPyBmYXRfd3JpdGVwYWdlcysweDE1LzB4MjAgW2ZhdF0NCsKgIGRvX3dyaXRlcGFnZXMr
+MHgyNS8weDgwDQrCoCBfX3dyaXRlYmFja19zaW5nbGVfaW5vZGUrMHg0NS8weDM1MA0KwqAgd3Jp
+dGViYWNrX3NiX2lub2RlcysweDI1ZS8weDYxMA0KwqAgX193cml0ZWJhY2tfaW5vZGVzX3diKzB4
+OTIvMHhjMA0KwqAgd2Jfd3JpdGViYWNrKzB4MjliLzB4MzQwDQrCoCB3Yl93b3JrZm4rMHgxOTUv
+MHgzZDANCsKgID8gd2Jfd29ya2ZuKzB4MTk1LzB4M2QwDQrCoCBwcm9jZXNzX29uZV93b3JrKzB4
+MTkzLzB4M2QwDQrCoCB3b3JrZXJfdGhyZWFkKzB4NGUvMHgzZDANCsKgIGt0aHJlYWQrMHgxMTQv
+MHgxNTANCsKgID8gcHJvY2Vzc19vbmVfd29yaysweDNkMC8weDNkMA0KwqAgPyBrdGhyZWFkX3Bh
+cmsrMHg2MC8weDYwDQrCoCA/IGt0aHJlYWRfcGFyaysweDYwLzB4NjANCsKgIHJldF9mcm9tX2Zv
+cmsrMHgyNS8weDMwDQogIDoNCsKgUklQOiB0cnlfdG9fZnJlZV9idWZmZXJzKzB4ZDIvMHhlMCBS
+U1A6IGZmZmZhMjIyNDI0MDM4MzANCg0KDQpUaGFua3MsDQotVG9zaGkNCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxp
+c3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
