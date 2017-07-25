@@ -1,18 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Wed, 26 Jul 2017 09:47:21 -0400 (EDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Message-ID: <1063764405.34607875.1501076841865.JavaMail.zimbra@redhat.com>
-In-Reply-To: <1501016375.26846.21.camel@redhat.com>
+MIME-Version: 1.0
+In-Reply-To: <1888117852.34216619.1500992835767.JavaMail.zimbra@redhat.com>
 References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
+ <1500818683.4073.31.camel@redhat.com>
+ <CAPcyv4h5O4D2kp6SJhWiz4V=dOLDa_Q3pk2B=u-x7hKKQqdXsQ@mail.gmail.com>
+ <1500833428.4073.36.camel@redhat.com>
  <CAPcyv4hpbk0jgp+mA=q05zVBV8ZSZvCvV68JJ4gjE3QhK70d1w@mail.gmail.com>
  <20170724102330.GE652@quack2.suse.cz>
  <1157879323.33809400.1500897967669.JavaMail.zimbra@redhat.com>
  <20170724123752.GN652@quack2.suse.cz>
  <1888117852.34216619.1500992835767.JavaMail.zimbra@redhat.com>
- <CAPcyv4in28F3FOVKp9abvrggxPuXdbGynF5=ZvBXCrywoa06JA@mail.gmail.com>
- <1501016375.26846.21.camel@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 25 Jul 2017 07:46:33 -0700
+Message-ID: <CAPcyv4in28F3FOVKp9abvrggxPuXdbGynF5=ZvBXCrywoa06JA@mail.gmail.com>
 Subject: Re: KVM "fake DAX" flushing interface - discussion
-MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,40 +21,147 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Rik van Riel <riel@redhat.com>
-Cc: Kevin Wolf <kwolf@redhat.com>, Jan Kara <jack@suse.cz>, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Stefan Hajnoczi <stefanha@gmail.com>, Ross Zwisler <ross.zwisler@intel.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: Kevin Wolf <kwolf@redhat.com>, Rik van Riel <riel@redhat.com>, Jan Kara <jack@suse.cz>, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Stefan Hajnoczi <stefanha@gmail.com>, Ross Zwisler <ross.zwisler@intel.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Cj4gCj4gT24gVHVlLCAyMDE3LTA3LTI1IGF0IDA3OjQ2IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3Jv
-dGU6Cj4gPiBPbiBUdWUsIEp1bCAyNSwgMjAxNyBhdCA3OjI3IEFNLCBQYW5rYWogR3VwdGEgPHBh
-Z3VwdGFAcmVkaGF0LmNvbT4KPiA+IHdyb3RlOgo+ID4gPiAKPiA+ID4gTG9va3MgbGlrZSBvbmx5
-IHdheSB0byBzZW5kIGZsdXNoKGJsayBkZXYpIGZyb20gZ3Vlc3QgdG8gaG9zdCB3aXRoCj4gPiA+
-IG52ZGltbQo+ID4gPiBpcyB1c2luZyBmbHVzaCBoaW50IGFkZHJlc3Nlcy4gSXMgdGhpcyB0aGUg
-Y29ycmVjdCBpbnRlcmZhY2UgSSBhbQo+ID4gPiBsb29raW5nPwo+ID4gPiAKPiA+ID4gYmxrZGV2
-X2lzc3VlX2ZsdXNoCj4gPiA+IMKgc3VibWl0X2Jpb193YWl0Cj4gPiA+IMKgIHN1Ym1pdF9iaW8K
-PiA+ID4gwqDCoMKgwqBnZW5lcmljX21ha2VfcmVxdWVzdAo+ID4gPiDCoMKgwqDCoMKgwqBwbWVt
-X21ha2VfcmVxdWVzdAo+ID4gPiDCoMKgwqDCoMKgwqAuLi4KPiA+ID4gwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoGlmIChiaW8tPmJpX29wZiAmIFJFUV9GTFVTSCkKPiA+ID4gwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqBudmRpbW1fZmx1c2gobmRfcmVnaW9uKTsKPiA+IAo+ID4gSSB3b3Vs
-ZCBpbmplY3QgYSBwYXJhdmlydHVhbGl6ZWQgdmVyc2lvbiBvZiBwbWVtX21ha2VfcmVxdWVzdCgp
-IHRoYXQKPiA+IHNlbmRzIGFuIGFzeW5jIGZsdXNoIG9wZXJhdGlvbiBvdmVyIHZpcnRpbyB0byB0
-aGUgaG9zdC4gRG9uJ3QgdHJ5IHRvCj4gPiB1c2UgZmx1c2ggaGludCBhZGRyZXNzZXMgZm9yIHRo
-aXMsIHRoZXkgZG9uJ3QgaGF2ZSB0aGUgcHJvcGVyCj4gPiBzZW1hbnRpY3MuIFRoZSBndWVzdCBz
-aG91bGQgYmUgYWxsb3dlZCB0byBpc3N1ZSB0aGUgZmx1c2ggYW5kIHJlY2VpdmUKPiA+IHRoZSBj
-b21wbGV0aW9uIGFzeW5jaHJvbm91c2x5IHJhdGhlciB0aGFuIHRha2luZyBhIHZtIGV4aXN0IGFu
-ZAo+ID4gYmxvY2tpbmcgb24gdGhhdCByZXF1ZXN0Lgo+IAo+IFRoYXQgaXMgbXkgZmVlbGluZywg
-dG9vLiBBIHNsb3dlciBJTyBkZXZpY2UgYmVuZWZpdHMKPiBncmVhdGx5IGZyb20gYW4gYXN5bmNo
-cm9ub3VzIGZsdXNoIG1lY2hhbmlzbS4KClRoYW5rcyBmb3IgYWxsIHRoZSBzdWdnZXN0aW9ucyEK
-Ckp1c3Qgd2FudCB0byBzdW1tYXJpemUgaGVyZShoaWdoIGxldmVsKToKClRoaXMgd2lsbCByZXF1
-aXJlIGltcGxlbWVudGluZyBuZXcgJ3ZpcnRpby1wbWVtJyBkZXZpY2Ugd2hpY2ggcHJlc2VudHMg
-CmEgREFYIGFkZHJlc3MgcmFuZ2UobGlrZSBwbWVtKSB0byBndWVzdCB3aXRoIHJlYWQvd3JpdGUo
-ZGlyZWN0IGFjY2VzcykKJiBkZXZpY2UgZmx1c2ggZnVuY3Rpb25hbGl0eS4gQWxzbywgcWVtdSBz
-aG91bGQgaW1wbGVtZW50IGNvcnJlc3BvbmRpbmcKc3VwcG9ydCBmb3IgZmx1c2ggdXNpbmcgdmly
-dGlvLgoKVGhhbmtzLApQYW5rYWoKPiAKPiAtLQo+IEFsbCByaWdodHMgcmV2ZXJzZWQKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
-aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Tue, Jul 25, 2017 at 7:27 AM, Pankaj Gupta <pagupta@redhat.com> wrote:
+>
+>> Subject: Re: KVM "fake DAX" flushing interface - discussion
+>>
+>> On Mon 24-07-17 08:06:07, Pankaj Gupta wrote:
+>> >
+>> > > On Sun 23-07-17 13:10:34, Dan Williams wrote:
+>> > > > On Sun, Jul 23, 2017 at 11:10 AM, Rik van Riel <riel@redhat.com> wrote:
+>> > > > > On Sun, 2017-07-23 at 09:01 -0700, Dan Williams wrote:
+>> > > > >> [ adding Ross and Jan ]
+>> > > > >>
+>> > > > >> On Sun, Jul 23, 2017 at 7:04 AM, Rik van Riel <riel@redhat.com>
+>> > > > >> wrote:
+>> > > > >> >
+>> > > > >> > The goal is to increase density of guests, by moving page
+>> > > > >> > cache into the host (where it can be easily reclaimed).
+>> > > > >> >
+>> > > > >> > If we assume the guests will be backed by relatively fast
+>> > > > >> > SSDs, a "whole device flush" from filesystem journaling
+>> > > > >> > code (issued where the filesystem issues a barrier or
+>> > > > >> > disk cache flush today) may be just what we need to make
+>> > > > >> > that work.
+>> > > > >>
+>> > > > >> Ok, apologies, I indeed had some pieces of the proposal confused.
+>> > > > >>
+>> > > > >> However, it still seems like the storage interface is not capable of
+>> > > > >> expressing what is needed, because the operation that is needed is a
+>> > > > >> range flush. In the guest you want the DAX page dirty tracking to
+>> > > > >> communicate range flush information to the host, but there's no
+>> > > > >> readily available block i/o semantic that software running on top of
+>> > > > >> the fake pmem device can use to communicate with the host. Instead
+>> > > > >> you
+>> > > > >> want to intercept the dax_flush() operation and turn it into a
+>> > > > >> queued
+>> > > > >> request on the host.
+>> > > > >>
+>> > > > >> In 4.13 we have turned this dax_flush() operation into an explicit
+>> > > > >> driver call. That seems a better interface to modify than trying to
+>> > > > >> map block-storage flush-cache / force-unit-access commands to this
+>> > > > >> host request.
+>> > > > >>
+>> > > > >> The additional piece you would need to consider is whether to track
+>> > > > >> all writes in addition to mmap writes in the guest as DAX-page-cache
+>> > > > >> dirtying events, or arrange for every dax_copy_from_iter()
+>> > > > >> operation()
+>> > > > >> to also queue a sync on the host, but that essentially turns the
+>> > > > >> host
+>> > > > >> page cache into a pseudo write-through mode.
+>> > > > >
+>> > > > > I suspect initially it will be fine to not offer DAX
+>> > > > > semantics to applications using these "fake DAX" devices
+>> > > > > from a virtual machine, because the DAX APIs are designed
+>> > > > > for a much higher performance device than these fake DAX
+>> > > > > setups could ever give.
+>> > > >
+>> > > > Right, we don't need DAX, per se, in the guest.
+>> > > >
+>> > > > >
+>> > > > > Having userspace call fsync/msync like done normally, and
+>> > > > > having those coarser calls be turned into somewhat efficient
+>> > > > > backend flushes would be perfectly acceptable.
+>> > > > >
+>> > > > > The big question is, what should that kind of interface look
+>> > > > > like?
+>> > > >
+>> > > > To me, this looks much like the dirty cache tracking that is done in
+>> > > > the address_space radix for the DAX case, but modified to coordinate
+>> > > > queued / page-based flushing when the guest  wants to persist data.
+>> > > > The similarity to DAX is not storing guest allocated pages in the
+>> > > > radix but entries that track dirty guest physical addresses.
+>> > >
+>> > > Let me check whether I understand the problem correctly. So we want to
+>> > > export a block device (essentially a page cache of this block device) to
+>> > > a
+>> > > guest as PMEM and use DAX in the guest to save guest's page cache. The
+>> >
+>> > that's correct.
+>> >
+>> > > natural way to make the persistence work would be to make ->flush
+>> > > callback
+>> > > of the PMEM device to do an upcall to the host which could then
+>> > > fdatasync()
+>> > > appropriate image file range however the performance would suck in such
+>> > > case since ->flush gets called for at most one page ranges from DAX.
+>> >
+>> > Discussion is : sync a range using paravirt device or flush hit addresses
+>> > vs block device flush.
+>> >
+>> > >
+>> > > So what you could do instead is to completely ignore ->flush calls for
+>> > > the
+>> > > PMEM device and instead catch the bio with REQ_PREFLUSH flag set on the
+>> > > PMEM device (generated by blkdev_issue_flush() or the journalling
+>> > > machinery) and fdatasync() the whole image file at that moment - in fact
+>> > > you must do that for metadata IO to hit persistent storage anyway in your
+>> > > setting. This would very closely follow how exporting block devices with
+>> > > volatile cache works with KVM these days AFAIU and the performance will
+>> > > be
+>> > > the same.
+>> >
+>> > yes 'blkdev_issue_flush' does set 'REQ_OP_WRITE | REQ_PREFLUSH' flags.
+>> > As per suggestions looks like block flushing device is way ahead.
+>> >
+>> > If we do an asynchronous block flush at guest side(put current task in
+>> > wait queue till host side fdatasync completes) can solve the purpose? Or
+>> > do we need another paravirt device for this?
+>>
+>> Well, even currently if you have PMEM device, you still have also a block
+>> device and a request queue associated with it and metadata IO goes through
+>> that path. So in your case you will have the same in the guest as a result
+>> of exposing virtual PMEM device to the guest and you just need to make sure
+>> this virtual block device behaves the same way as traditional virtualized
+>> block devices in KVM in respose to 'REQ_OP_WRITE | REQ_PREFLUSH' requests.
+>
+> Looks like only way to send flush(blk dev) from guest to host with nvdimm
+> is using flush hint addresses. Is this the correct interface I am looking?
+>
+> blkdev_issue_flush
+>  submit_bio_wait
+>   submit_bio
+>     generic_make_request
+>       pmem_make_request
+>       ...
+>            if (bio->bi_opf & REQ_FLUSH)
+>                 nvdimm_flush(nd_region);
+
+I would inject a paravirtualized version of pmem_make_request() that
+sends an async flush operation over virtio to the host. Don't try to
+use flush hint addresses for this, they don't have the proper
+semantics. The guest should be allowed to issue the flush and receive
+the completion asynchronously rather than taking a vm exist and
+blocking on that request.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
