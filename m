@@ -1,11 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from kipton.com (unknown [111.176.79.163])
- by ml01.01.org (Postfix) with ESMTP id 2BA2C2095D8CD
- for <linux-nvdimm@lists.01.org>; Wed, 12 Jul 2017 21:32:12 -0700 (PDT)
-From: =?GB2312?B?zMacQu2y?= <vztgjiangxue@kipton.com>
-Subject: =?GB2312?B?t8C07c+1zbPJ6LzG0+vNxtDQ?=
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E4FE721B06E91
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jul 2017 13:52:18 -0700 (PDT)
+Date: Tue, 25 Jul 2017 16:54:16 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: dm,dax: Make sure dm_dax_flush() is called if device supports it
+Message-ID: <20170725205416.GC20979@redhat.com>
+References: <20170725194337.GA20979@redhat.com>
+ <20170725204608.GA27693@redhat.com>
 MIME-Version: 1.0
-Date: Fri, 13 Jul 2029 12:34:13 +0800
+Content-Disposition: inline
+In-Reply-To: <20170725204608.GA27693@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,11 +24,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170713043216.D363B21B02B8F@ml01.01.org>
-To: linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Mike Snitzer <snitzer@redhat.com>
+Cc: dm-devel@redhat.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Tue, Jul 25, 2017 at 04:46:09PM -0400, Mike Snitzer wrote:
+> On Tue, Jul 25 2017 at  3:43pm -0400,
+> Vivek Goyal <vgoyal@redhat.com> wrote:
+> 
+> > Right now, dm_dax_flush() is not being called and I think it is not being
+> > called becuase DAXDEV_WRITE_CACHE is not set on dm dax device.
+> > 
+> > If underlying dax device supports write cache, set DAXDEV_WRITE_CACHE on
+> > dm dax device. This will get dm_dax_flush() being called.
+> > 
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> 
+> In general this looks mostly OK.. but it seems a bit weird to on the one
+> hand: test if DAXDEV_WRITE_CACHE is set on underlying device.  And on
+> the other: say it is a write cache because it is "flush_capable".  Kind
+> of blurring things a bit.
+> 
+> Why not s/device_dax_flush_capable/device_dax_write_cache_enabled/ ?
 
+Sounds good. I will rename it in next version.
+
+Vivek
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
