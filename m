@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9FC6821CB0310
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 16:56:45 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 6/6] libnvdimm: fix potential deadlock while clearing errors
-Date: Mon, 17 Jul 2017 17:56:55 -0600
-Message-Id: <20170717235655.26424-7-vishal.l.verma@intel.com>
-In-Reply-To: <20170717235655.26424-1-vishal.l.verma@intel.com>
-References: <20170717235655.26424-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6F05121C91278
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jul 2017 15:40:39 -0700 (PDT)
+Subject: [PATCH 1/4] ndctl: switch to kernel versioning scheme
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 25 Jul 2017 15:36:16 -0700
+Message-ID: <150102217596.2258.13826333444582305967.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150102217021.2258.1380624380896006.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150102217021.2258.1380624380896006.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,83 +18,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-Specifically, the DSM to clear media errors is called during writes, so
-that we can provide a writes-fix-errors model.
+Similar to perf, now that ndctl is part of the kernel source tree it
+also shares the version number of the source tree. This is consistent
+with the policy of not maintaining separate version numbers for drivers
+within the kernel tree.
 
-However it is easy to imagine a scenario like:
- -> write through the nvdimm driver
-   -> acpi allocation
-     -> writeback, causes more IO through the nvdimm driver
-       -> deadlock
+The version can be overridden by a local 'version' file, but now the
+default version will no longer be hard coded. Instead, it is derived
+from the kernel's 'kernelversion' Makefile target. The policy appending
+'.git${abbrev_commit}', and optionally '.dirty', for off-label releases
+is still the default when a git tree is available.
 
-Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-flag for the current scope when issuing commands/IOs that are expected
-to clear errors.
-
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/bus.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ tools/ndctl/git-version |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index e9361bf..56c81ac 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/sched/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-@@ -231,6 +232,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	struct nd_cmd_clear_error clear_err;
- 	struct nd_cmd_ars_cap ars_cap;
- 	u32 clear_err_unit, mask;
-+	unsigned int noio_flag;
- 	int cmd_rc, rc;
+diff --git a/tools/ndctl/git-version b/tools/ndctl/git-version
+index 8cc8d2f97bd6..a6461036ec8e 100755
+--- a/tools/ndctl/git-version
++++ b/tools/ndctl/git-version
+@@ -19,7 +19,7 @@ dirty() {
+ 	fi
+ }
  
- 	if (!nvdimm_bus)
-@@ -247,8 +249,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&ars_cap, 0, sizeof(ars_cap));
- 	ars_cap.address = phys;
- 	ars_cap.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
- 			sizeof(ars_cap), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
-@@ -263,8 +267,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&clear_err, 0, sizeof(clear_err));
- 	clear_err.address = phys;
- 	clear_err.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
- 			sizeof(clear_err), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
--- 
-2.9.3
+-DEF_VER=57.1
++DEF_VER=$(MAKEFLAGS= make -sC ../.. kernelversion)
+ 
+ LF='
+ '
+@@ -29,7 +29,7 @@ LF='
+ if test -f version; then
+ 	VN=$(cat version) || VN="$DEF_VER"
+ elif test -d ${GIT_DIR:-.git} -o -f .git &&
+-	VN=$(git describe --match "v[0-9]*" --abbrev=7 HEAD 2>/dev/null) &&
++	VN=$(git describe --match "v[4-9]*" --abbrev=7 HEAD 2>/dev/null) &&
+ 	case "$VN" in
+ 	*$LF*) (exit 1) ;;
+ 	v[0-9]*)
+@@ -37,9 +37,9 @@ elif test -d ${GIT_DIR:-.git} -o -f .git &&
+ 	esac; then
+ 	VN=$(echo "$VN" | sed -e 's/-/./g');
+ else
+-	read COMMIT COMMIT_SUBJECT <<EOF
++	read COMMIT COMMIT_SUBJECT <<- EOF
+ 	$(git log --oneline --abbrev=8 -n1 HEAD 2>/dev/null)
+-EOF
++	EOF
+ 	if [ -z $COMMIT ]; then
+ 		VN="${DEF_VER}+"
+ 	else
 
 _______________________________________________
 Linux-nvdimm mailing list
