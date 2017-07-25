@@ -1,18 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A615821A00AF2
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jul 2017 02:11:26 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 3118BAC00CB
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jul 2017 18:13:01 +0900 (JST)
-Date: Wed, 05 Jul 2017 18:12:52 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [RFC/PATCH] ndctl list should show more hardware information
-Message-Id: <20170705181250.8D09.E1E9C6FF@jp.fujitsu.com>
-MIME-Version: 1.0
+Received: from foss.arm.com (usa-sjc-mx-foss1.foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id E338A21C91255
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jul 2017 03:54:14 -0700 (PDT)
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: [PATCH 5/6] arm64: Implement pmem API support
+Date: Tue, 25 Jul 2017 11:55:42 +0100
+Message-Id: <ba8c28bcffc3bc856163441793bb4ef0fefa0f75.1500397441.git.robin.murphy@arm.com>
+In-Reply-To: <cover.1500397441.git.robin.murphy@arm.com>
+References: <cover.1500397441.git.robin.murphy@arm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,79 +15,169 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: will.deacon@arm.com, catalin.marinas@arm.com
+Cc: mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+Add a clean-to-point-of-persistence cache maintenance helper, and wire
+up the basic architectural support for the pmem driver based on it.
 
-   The current "id" data of dimm (ndctl list -D) shows the information
-   of DIMM module vendor or serial number.  However, I think it is not enough. 
- 
-   If a NVDIMM becomes broken, users need to know its physical place
-   rather than vendor or serial number to replace the NVDIMM.
-
-   There are 2 candidate of such information. 
-     a) NFIT Device Handle (_ADR of the NVDIMM device)
-        This date includes node controller id and socket id.
-     b) NVDIMM Physical ID (Handle for the SMBIOS Memory Device (Type 17)).
-        The dmidecode can show this handle with more information like "Locator"
-        So, user can find the location of NVDIMM.
-
-   At first, I think _ADR is enough information. 
-
-   However, when I talked with our firmware team about this requirement, 
-   they said it may not be good data, because the node contoller ID is not
-   stable on our server due to "partitioning" feature.
-   (Our server can have plural partition on one box, and may have plural
-    node 0.)
-
-   So, I make the ndctl shows not only NFIT Device Handle but also
-   NVDIMM Physical ID. Then, user can find the location with dmidecode.
-
-   This is the first trial patch. So any comments are welcome.
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Robin Murphy <robin.murphy@arm.com>
 ---
-diff --git a/util/json.c b/util/json.c
-index b718d74..749a358 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -68,6 +68,9 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm)
- {
- 	struct json_object *jdimm = json_object_new_object();
- 	const char *id = ndctl_dimm_get_unique_id(dimm);
-+	unsigned int handle = ndctl_dimm_get_handle(dimm);
-+	short phys_id = ndctl_dimm_get_phys_id(dimm);
-+	char buf[11];
- 	struct json_object *jobj;
- 
- 	if (!jdimm)
-@@ -85,6 +88,18 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm)
- 		json_object_object_add(jdimm, "id", jobj);
- 	}
- 
-+	snprintf(buf, 11, "0x%08x", handle);
-+	jobj = json_object_new_string(buf);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jdimm, "handle", jobj);
-+
-+	snprintf(buf, 7, "0x%04x", phys_id );
-+	jobj = json_object_new_string(buf);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jdimm, "phys_id", jobj);
-+
- 	if (!ndctl_dimm_is_enabled(dimm)) {
- 		jobj = json_object_new_string("disabled");
- 		if (!jobj)
+ arch/arm64/Kconfig                  | 11 +++++++++++
+ arch/arm64/include/asm/assembler.h  |  6 ++++++
+ arch/arm64/include/asm/cacheflush.h |  1 +
+ arch/arm64/include/asm/cpucaps.h    |  3 ++-
+ arch/arm64/kernel/cpufeature.c      | 11 +++++++++++
+ arch/arm64/mm/cache.S               | 14 ++++++++++++++
+ arch/arm64/mm/pageattr.c            | 18 ++++++++++++++++++
+ 7 files changed, 63 insertions(+), 1 deletion(-)
 
----
-Yasunori Goto
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index dfd908630631..0b0576a54724 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -960,6 +960,17 @@ config ARM64_UAO
+ 	  regular load/store instructions if the cpu does not implement the
+ 	  feature.
+ 
++config ARM64_PMEM
++	bool "Enable support for persistent memory"
++	select ARCH_HAS_PMEM_API
++	help
++	  Say Y to enable support for the persistent memory API based on the
++	  ARMv8.2 DCPoP feature.
++
++	  The feature is detected at runtime, and the kernel will use DC CVAC
++	  operations if DC CVAP is not supported (following the behaviour of
++	  DC CVAP itself if the system does not define a point of persistence).
++
+ endmenu
+ 
+ config ARM64_MODULE_CMODEL_LARGE
+diff --git a/arch/arm64/include/asm/assembler.h b/arch/arm64/include/asm/assembler.h
+index 1b67c3782d00..5d8903c45031 100644
+--- a/arch/arm64/include/asm/assembler.h
++++ b/arch/arm64/include/asm/assembler.h
+@@ -353,6 +353,12 @@ alternative_if_not ARM64_WORKAROUND_CLEAN_CACHE
+ alternative_else
+ 	dc	civac, \kaddr
+ alternative_endif
++	.elseif	(\op == cvap)
++alternative_if ARM64_HAS_DCPOP
++	sys 3, c7, c12, 1, \kaddr	// dc cvap
++alternative_else
++	dc	cvac, \kaddr
++alternative_endif
+ 	.else
+ 	dc	\op, \kaddr
+ 	.endif
+diff --git a/arch/arm64/include/asm/cacheflush.h b/arch/arm64/include/asm/cacheflush.h
+index b4b43a94dffd..76d1cc85d5b1 100644
+--- a/arch/arm64/include/asm/cacheflush.h
++++ b/arch/arm64/include/asm/cacheflush.h
+@@ -69,6 +69,7 @@ extern void flush_icache_range(unsigned long start, unsigned long end);
+ extern void __flush_dcache_area(void *addr, size_t len);
+ extern void __inval_dcache_area(void *addr, size_t len);
+ extern void __clean_dcache_area_poc(void *addr, size_t len);
++extern void __clean_dcache_area_pop(void *addr, size_t len);
+ extern void __clean_dcache_area_pou(void *addr, size_t len);
+ extern long __flush_cache_user_range(unsigned long start, unsigned long end);
+ extern void sync_icache_aliases(void *kaddr, unsigned long len);
+diff --git a/arch/arm64/include/asm/cpucaps.h b/arch/arm64/include/asm/cpucaps.h
+index 8d2272c6822c..8da621627d7c 100644
+--- a/arch/arm64/include/asm/cpucaps.h
++++ b/arch/arm64/include/asm/cpucaps.h
+@@ -39,7 +39,8 @@
+ #define ARM64_WORKAROUND_QCOM_FALKOR_E1003	18
+ #define ARM64_WORKAROUND_858921			19
+ #define ARM64_WORKAROUND_CAVIUM_30115		20
++#define ARM64_HAS_DCPOP				21
+ 
+-#define ARM64_NCAPS				21
++#define ARM64_NCAPS				22
+ 
+ #endif /* __ASM_CPUCAPS_H */
+diff --git a/arch/arm64/kernel/cpufeature.c b/arch/arm64/kernel/cpufeature.c
+index a2542ef3ff25..cd52d365d1f0 100644
+--- a/arch/arm64/kernel/cpufeature.c
++++ b/arch/arm64/kernel/cpufeature.c
+@@ -889,6 +889,17 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
+ 		.min_field_value = 0,
+ 		.matches = has_no_fpsimd,
+ 	},
++#ifdef CONFIG_ARM64_PMEM
++	{
++		.desc = "Data cache clean to Point of Persistence",
++		.capability = ARM64_HAS_DCPOP,
++		.def_scope = SCOPE_SYSTEM,
++		.matches = has_cpuid_feature,
++		.sys_reg = SYS_ID_AA64ISAR1_EL1,
++		.field_pos = ID_AA64ISAR1_DPB_SHIFT,
++		.min_field_value = 1,
++	},
++#endif
+ 	{},
+ };
+ 
+diff --git a/arch/arm64/mm/cache.S b/arch/arm64/mm/cache.S
+index ed47fbbb4b05..7f1dbe962cf5 100644
+--- a/arch/arm64/mm/cache.S
++++ b/arch/arm64/mm/cache.S
+@@ -172,6 +172,20 @@ ENDPIPROC(__clean_dcache_area_poc)
+ ENDPROC(__dma_clean_area)
+ 
+ /*
++ *	__clean_dcache_area_pop(kaddr, size)
++ *
++ * 	Ensure that any D-cache lines for the interval [kaddr, kaddr+size)
++ * 	are cleaned to the PoP.
++ *
++ *	- kaddr   - kernel address
++ *	- size    - size in question
++ */
++ENTRY(__clean_dcache_area_pop)
++	dcache_by_line_op cvap, sy, x0, x1, x2, x3
++	ret
++ENDPIPROC(__clean_dcache_area_pop)
++
++/*
+  *	__dma_flush_area(start, size)
+  *
+  *	clean & invalidate D / U line
+diff --git a/arch/arm64/mm/pageattr.c b/arch/arm64/mm/pageattr.c
+index a682a0a2a0fa..a461a00ceb3e 100644
+--- a/arch/arm64/mm/pageattr.c
++++ b/arch/arm64/mm/pageattr.c
+@@ -183,3 +183,21 @@ bool kernel_page_present(struct page *page)
+ }
+ #endif /* CONFIG_HIBERNATION */
+ #endif /* CONFIG_DEBUG_PAGEALLOC */
++
++#ifdef CONFIG_ARCH_HAS_PMEM_API
++#include <asm/cacheflush.h>
++
++static inline void arch_wb_cache_pmem(void *addr, size_t size)
++{
++	/* Ensure order against any prior non-cacheable writes */
++	dmb(sy);
++	__clean_dcache_area_pop(addr, size);
++}
++EXPORT_SYMBOL_GPL(arch_wb_cache_pmem);
++
++static inline void arch_invalidate_pmem(void *addr, size_t size)
++{
++	__inval_dcache_area(addr, size);
++}
++EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
++#endif
+-- 
+2.12.2.dirty
 
 _______________________________________________
 Linux-nvdimm mailing list
