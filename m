@@ -1,18 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B3F7C21D091B6
- for <linux-nvdimm@lists.01.org>; Mon, 31 Jul 2017 16:13:59 -0700 (PDT)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v4 0/6] BTT error clearing rework
-Date: Mon, 31 Jul 2017 23:15:27 +0000
-Message-ID: <1501542358.2042.97.camel@hpe.com>
-References: <20170726233546.29052-1-vishal.l.verma@intel.com>
-In-Reply-To: <20170726233546.29052-1-vishal.l.verma@intel.com>
-Content-Language: en-US
-Content-ID: <1C7ABA1EF12BD44D94A3492AEF66AEBD@NAMPRD84.PROD.OUTLOOK.COM>
-MIME-Version: 1.0
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 815A821D0FE0B
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 16:35:39 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 0/6] BTT error clearing rework
+Date: Wed, 26 Jul 2017 17:35:40 -0600
+Message-Id: <20170726233546.29052-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,63 +15,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE3LTA3LTI2IGF0IDE3OjM1IC0wNjAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQog
-Og0KPiANCj4gQ2xlYXJpbmcgZXJyb3JzIG9yIGJhZGJsb2NrcyBkdXJpbmcgYSBCVFQgd3JpdGUg
-cmVxdWlyZXMgc2VuZGluZyBhbg0KPiBBQ1BJIERTTSwgd2hpY2ggbWVhbnMgcG90ZW50aWFsbHkg
-c2xlZXBpbmcuIFNpbmNlIGEgQlRUIElPIGhhcHBlbnMgaW4NCj4gYXRvbWljIGNvbnRleHQgKHBy
-ZWVtcHRpb24gZGlzYWJsZWQsIHNwaW5sb2NrcyBtYXkgYmUgaGVsZCksIHdlDQo+IGNhbm5vdCBw
-ZXJmb3JtIGVycm9yIGNsZWFyaW5nIGluIHRoZSBjb3Vyc2Ugb2YgYW4gSU8uIER1ZSB0byB0aGlz
-DQo+IGVycm9yIGNsZWFyaW5nIGZvciBCVFQgSU9zIGhhcyBoaXRoZXJ0byBiZWVuIGRpc2FibGVk
-Lg0KPiANCj4gVGhpcyBzZXJpZXMgZml4ZXMgdGhlc2UgcHJvYmxlbXMgYnkgbW92aW5nIHRoZSBl
-cnJvciBjbGVhcmluZyBvdXQgb2YNCj4gdGhlIGF0b21pYyBzZWN0aW9ucyBpbiB0aGUgQlRULg0K
-PiANCj4gQWxzbyBmaXggYSBwb3RlbnRpYWwgZGVhZGxvY2sgdGhhdCBjYW4gb2NjdXIgd2hpbGUg
-Y2xlYXJpbmcgZXJyb3JzDQo+IGZyb20gZWl0aGVyIEJUVCBvciBwbWVtIGR1ZSB0byBtZW1vcnkg
-YWxsb2NhdGlvbnMgaW4gdGhlIElPIHBhdGguDQoNCkhpIFZpc2hhbCwNCg0KSSBqdXN0IHRlc3Rl
-ZCB0aGUgc2VyaWVzIChzb3JyeSBmb3IgdGhlIGRlbGF5KS4gIEl0IHdvcmtzIG5pY2VseSB3aGVu
-DQpkb2luZyBJL09zIHRvIGEgYmxvY2sgZGV2aWNlIGRpcmVjdGx5LiAgQnV0IEkgYW0gc2VlaW5n
-IGEgbG90IG9mIHdyaXRlDQplcnJvcnMgd2l0aCBmaWxlc3lzdGVtLg0KDQpIZXJlIGlzIHdoYXQg
-SSBkaWQgZm9yIHRoZSB0ZXN0aW5nLg0KDQoxLiAnbWtmcy5leHQgL2Rldi9wbWVtMHMnIGFuZCAn
-bW91bnQgL2Rldi9wbWVtMHMgL21udC9wbWVtMHMnLg0KMi4gSW5qZWN0IGFuIGVycm9yIHRvIHNv
-bWV3aGVyZSBpbiB0aGUgcG1lbTBzIGRldmljZSwgYnV0IG5vdCBpbiB0aGUNCm1ldGFkYXRhIGFy
-ZWEgYXQgYmVnaW5uaW5nLiANCjMuIFJ1biB0aGUgZm9sbG93aW5nIHNjcmlwdC4NCj09PQ0KREVW
-PXBtZW0wcw0Kc2V0IC14DQpkZCBpZj0vZGV2L3plcm8gb2Y9L21udC8kREVWLzFHZmlsZSBicz0x
-TSBjb3VudD0xMDI0DQp3aGlsZSB0cnVlOyBkbw0KY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRE
-RVYvZmlsZS0xDQpjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxlLTINCmNwIC9tbnQv
-JERFVi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtMw0KY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRE
-RVYvZmlsZS00DQpjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxlLTUNCmNwIC9tbnQv
-JERFVi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtNg0KY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRE
-RVYvZmlsZS03DQpjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxlLTgNCmNwIC9tbnQv
-JERFVi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtOQ0KY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRE
-RVYvZmlsZS0xMA0KZG9uZQ0KPT09DQoNClN0ZXAgMyBjbGVhcnMgYW4gZXJyb3IgYW5kIHJ1bnMg
-ZmluZSB3aXRoIHJhdyBhbmQgbWVtb3J5IG1vZGVzLiAgV2l0aA0Kc2VjdG9yIG1vZGUsIGhvd2V2
-ZXIsIGl0IGVuZHMgdXAgd2l0aCBjb250aW51b3VzIHdyaXRlIGVycm9ycyBsaWtlDQpiZWxvdyBh
-bmQgZG9lcyBub3QgY2xlYXIgdGhlIGVycm9yLiAgRG8geW91IGhhdmUgYW55IHRob3VnaHRzPw0K
-DQrCoEVYVDQtZnMgd2FybmluZyAoZGV2aWNlIHBtZW0wcyk6IGV4dDRfZW5kX2JpbzozMjI6IEkv
-TyBlcnJvciAxMA0Kd3JpdGluZyB0byBpbm9kZSAxNyAob2Zmc2V0IDEwMjM0MTAxNzYgc2l6ZSA4
-Mzg4NjA4IHN0YXJ0aW5nIGJsb2NrDQoxODM0NzUyKQ0KwqBCdWZmZXIgSS9PIGVycm9yIG9uIGRl
-dmljZSBwbWVtMHMsIGxvZ2ljYWwgYmxvY2sgMTgzNDc1MsKgDQrCoEJ1ZmZlciBJL08gZXJyb3Ig
-b24gZGV2aWNlIHBtZW0wcywgbG9naWNhbCBibG9jayAxODM0NzUzwqANCsKgQnVmZmVyIEkvTyBl
-cnJvciBvbiBkZXZpY2UgcG1lbTBzLCBsb2dpY2FsIGJsb2NrIDE4MzQ3NTTCoA0KwqA6DQrCoG5k
-X3BtZW0gYnR0MC4wOiBpbyBlcnJvciBpbiBXUklURSBzZWN0b3IgMTQ2ODAwNjQsIGxlbiA0MDk2
-LA0KwqBFWFQ0LWZzIHdhcm5pbmcgKGRldmljZSBwbWVtMHMpOiBleHQ0X2VuZF9iaW86MzIyOiBJ
-L08gZXJyb3IgMTANCndyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDMxNzk4Nzg0IHNpemUg
-MTA1MjY3MiBzdGFydGluZyBibG9jaw0KMTgzNTAwOCkNCsKgbmRfcG1lbSBidHQwLjA6IGlvIGVy
-cm9yIGluIFdSSVRFIHNlY3RvciAxNDY4MjExMiwgbGVuIDQwOTYsDQrCoEVYVDQtZnMgd2Fybmlu
-ZyAoZGV2aWNlIHBtZW0wcyk6IGV4dDRfZW5kX2JpbzozMjI6IEkvTyBlcnJvciAxMA0Kd3JpdGlu
-ZyB0byBpbm9kZSAxNyAob2Zmc2V0IDEwMzE3OTg3ODQgc2l6ZSAyMTAxMjQ4IHN0YXJ0aW5nIGJs
-b2NrDQoxODM1MjY0KQ0KwqA6DQrCoG5kX3BtZW0gYnR0MC4wOiBpbyBlcnJvciBpbiBXUklURSBz
-ZWN0b3IgMTQ2OTg0OTYsIGxlbiA0MDk2LA0KwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4g
-V1JJVEUgc2VjdG9yIDE0NzAwNTQ0LCBsZW4gNDA5NiwNCsKgbmRfcG1lbSBidHQwLjA6IGlvIGVy
-cm9yIGluIFdSSVRFIHNlY3RvciAxNDcwMjU5MiwgbGVuIDQwOTYsDQrCoG5kX3BtZW0gYnR0MC4w
-OiBpbyBlcnJvciBpbiBXUklURSBzZWN0b3IgMTQ3MDQ2NDAsIGxlbiA0MDk2LA0KwqA6DQoNClRo
-YW5rcywNCi1Ub3NoaQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Changes in v4:
+ - move the deadlock fix to before enabling the BTT error clear paths (Dan)
+ - No need for an error lock per freelist entry, just have one per arena (Dan)
+
+Changes in v3:
+ - Change the dynamically allocated (during IO) zerobuf to the kernel's
+   ZERO_PAGE for error clearing (patch 5) (Dan).
+ - Move the NOIO fixes a level down into nvdimm_clear_poison since both
+   btt and pmem poison clearing goes through that (Dan).
+
+Changes in v2:
+ - Drop the ACPI allocation change patch. Instead use
+   memalloc_noio_{save,restore} to set the GFP_NOIO flag around anything
+   that can be expected to call into ACPI for clearing errors. (Rafael, Dan).
+
+Clearing errors or badblocks during a BTT write requires sending an ACPI
+DSM, which means potentially sleeping. Since a BTT IO happens in atomic
+context (preemption disabled, spinlocks may be held), we cannot perform
+error clearing in the course of an IO. Due to this error clearing for
+BTT IOs has hitherto been disabled.
+
+This series fixes these problems by moving the error clearing out of
+the atomic sections in the BTT.
+
+Also fix a potential deadlock that can occur while clearing errors
+from either BTT or pmem due to memory allocations in the IO path.
+
+
+Vishal Verma (6):
+  btt: fix a missed NVDIMM_IO_ATOMIC case in the write path
+  btt: refactor map entry operations with macros
+  btt: ensure that flags were also unchanged during a map_read
+  btt: cache sector_size in arena_info
+  libnvdimm: fix potential deadlock while clearing errors
+  libnvdimm, btt: rework error clearing
+
+ drivers/nvdimm/btt.c   | 116 +++++++++++++++++++++++++++++++++++++++++--------
+ drivers/nvdimm/btt.h   |  11 +++++
+ drivers/nvdimm/bus.c   |   6 +++
+ drivers/nvdimm/claim.c |   9 +---
+ 4 files changed, 117 insertions(+), 25 deletions(-)
+
+-- 
+2.9.3
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
