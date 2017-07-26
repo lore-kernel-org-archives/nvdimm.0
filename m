@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 162AB21D0FE0B
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 16:35:41 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v4 5/6] libnvdimm: fix potential deadlock while clearing errors
-Date: Wed, 26 Jul 2017 17:35:45 -0600
-Message-Id: <20170726233546.29052-6-vishal.l.verma@intel.com>
-In-Reply-To: <20170726233546.29052-1-vishal.l.verma@intel.com>
-References: <20170726233546.29052-1-vishal.l.verma@intel.com>
+MIME-Version: 1.0
+In-Reply-To: <20170726201136.GA30039@infradead.org>
+References: <1500552639-18523-1-git-send-email-sunqiuyang@huawei.com>
+ <CAA9_cmeyVXgu1-ozb7b346ANq+P3e3ATWYfoVGkAKrn5cmo=Hw@mail.gmail.com>
+ <20170726072634.GA4684@infradead.org>
+ <CAPcyv4igEW-mFDGywh16QLqywuOusu2u6UboppfzzQ_RRvcgVw@mail.gmail.com>
+ <20170726170147.GA31930@infradead.org>
+ <CAPcyv4iNP0qxL5vToffBivkQWyUquD7HrgNmvYXQW9ejhFrAmA@mail.gmail.com>
+ <20170726172011.GA30142@infradead.org>
+ <CAPcyv4hdk8XyYJ5pYvAgUZRoE-SzACNprQm1xaM1KUqBONC8Qw@mail.gmail.com>
+ <20170726201136.GA30039@infradead.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 26 Jul 2017 13:29:21 -0700
+Message-ID: <CAPcyv4gmSa5Zf8VoZMgs5mgLUENxfXX_oJOcFw28Ltr3WJ2tJQ@mail.gmail.com>
+Subject: Re: [PATCH v8 1/1] f2fs: dax: implement direct access
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,84 +21,49 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-f2fs-devel@lists.sourceforge.net, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jaegeuk Kim <jaegeuk@kernel.org>, sunqiuyang <sunqiuyang@huawei.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-Specifically, the DSM to clear media errors is called during writes, so
-that we can provide a writes-fix-errors model.
+On Wed, Jul 26, 2017 at 1:11 PM, Christoph Hellwig <hch@infradead.org> wrote:
+> On Wed, Jul 26, 2017 at 12:16:11PM -0700, Dan Williams wrote:
+>> Silently turn on DAX if HMAT says its ok?
+>
+> Yes, absolutely.  I want my system to do the right thing by default,
+> and if HMAT says bypassing the page cache is a clear advatange it
+> should be the default.
+>
+>> I think we would instead
+>> want a "-o autodax" for that case and then "-o dax" and "-o nodax" for
+>> the force cases.
+>
+> Why?
+>
 
-However it is easy to imagine a scenario like:
- -> write through the nvdimm driver
-   -> acpi allocation
-     -> writeback, causes more IO through the nvdimm driver
-       -> deadlock
+I'm worried about the case where HMAT says pmem >= dram performance,
+but dax semantics like disabling delayed allocation and
+dirty-cacheline tracking end up hurting performance, but I guess we
+can handle that on a case by case basis with targeted kernel
+optimizations.
 
-Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-flag for the current scope when issuing commands/IOs that are expected
-to clear errors.
+>> I think it's easier to administer than the dax mount option. If
+>> someone wants dax on only in a sub-tree they can set the flag on that
+>> parent directory and have a policy in dax filesystems that children
+>> inherit the dax policy from the parent. That seems a better
+>> administrative model than trying to get it all right globally at mount
+>> time.
+>
+> And why exactly? If DAX is faster for file a in directory X it will
+> be just as fast for a file b in directory Y.
 
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/bus.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 937fafa..a18c291 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/sched/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-@@ -234,6 +235,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	struct nd_cmd_clear_error clear_err;
- 	struct nd_cmd_ars_cap ars_cap;
- 	u32 clear_err_unit, mask;
-+	unsigned int noio_flag;
- 	int cmd_rc, rc;
- 
- 	if (!nvdimm_bus)
-@@ -250,8 +252,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&ars_cap, 0, sizeof(ars_cap));
- 	ars_cap.address = phys;
- 	ars_cap.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
- 			sizeof(ars_cap), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
-@@ -266,8 +270,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&clear_err, 0, sizeof(clear_err));
- 	clear_err.address = phys;
- 	clear_err.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
- 			sizeof(clear_err), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
--- 
-2.9.3
-
+So I want the inode setting for the pmem < dram performance case where
+I know that access patterns of the application using file b in
+directory Y can still yield better performance without page cache. For
+example, the working set is larger than dram capacity.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
