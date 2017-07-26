@@ -1,11 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ds5.datahost.gr (unknown [93.174.122.210])
- by ml01.01.org (Postfix) with ESMTP id 7376B2193B81B
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 00:37:40 -0700 (PDT)
-Subject: We could not deliver your parcel, #001980074
-Date: Mon, 24 Jul 2017 10:36:48 +0300
-From: postmaster@ds5.datahost.gr
-Message-ID: <auto-000004585326@ds5.datahost.gr>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9B74A21D0FE0B
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 16:35:40 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 4/6] btt: cache sector_size in arena_info
+Date: Wed, 26 Jul 2017 17:35:44 -0600
+Message-Id: <20170726233546.29052-5-vishal.l.verma@intel.com>
+In-Reply-To: <20170726233546.29052-1-vishal.l.verma@intel.com>
+References: <20170726233546.29052-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,17 +23,52 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dear Customer,
+In preparation for the error clearing rework, add sector_size in the
+arena_info struct.
 
-We can not deliver your parcel arrived at July 21.
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c | 1 +
+ drivers/nvdimm/btt.h | 2 ++
+ 2 files changed, 3 insertions(+)
 
-Postal label is enclosed to this e-mail. Please check the attachment!
-
-With thanks and appreciation,
- ,
-UPS Parcels Operation Agent.
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 374ae62..e9dd651 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
+ 	if (!arena)
+ 		return NULL;
+ 	arena->nd_btt = btt->nd_btt;
++	arena->sector_size = btt->sector_size;
+ 
+ 	if (!size)
+ 		return arena;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 09fabf5..2bc0d10b 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -108,6 +108,7 @@ struct aligned_lock {
+  *			handle incoming writes.
+  * @version_major:	Metadata layout version major.
+  * @version_minor:	Metadata layout version minor.
++ * @sector_size:	The Linux sector size - 512 or 4096
+  * @nextoff:		Offset in bytes to the start of the next arena.
+  * @infooff:		Offset in bytes to the info block of this arena.
+  * @dataoff:		Offset in bytes to the data area of this arena.
+@@ -135,6 +136,7 @@ struct arena_info {
+ 	u32 nfree;
+ 	u16 version_major;
+ 	u16 version_minor;
++	u32 sector_size;
+ 	/* Byte offsets to the different on-media structures */
+ 	u64 nextoff;
+ 	u64 infooff;
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
