@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
- [15.241.140.78])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5C5802095DBA7
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 16:14:22 -0700 (PDT)
-From: Linda Knippers <linda.knippers@hpe.com>
-Subject: don't control-c during ndctl create-namespace?
-Message-ID: <556dc70b-2759-b483-868e-041f1be772f7@hpe.com>
-Date: Mon, 24 Jul 2017 19:15:04 -0400
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------7A8A30371669F207451FD725"
+ by ml01.01.org (Postfix) with ESMTPS id 6F14621D28FFF
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 16:35:41 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 6/6] libnvdimm, btt: rework error clearing
+Date: Wed, 26 Jul 2017 17:35:46 -0600
+Message-Id: <20170726233546.29052-7-vishal.l.verma@intel.com>
+In-Reply-To: <20170726233546.29052-1-vishal.l.verma@intel.com>
+References: <20170726233546.29052-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,271 +17,324 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
---------------7A8A30371669F207451FD725
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Clearing errors or badblocks during a BTT write requires sending an ACPI
+DSM, which means potentially sleeping. Since a BTT IO happens in atomic
+context (preemption disabled, spinlocks may be held), we cannot perform
+error clearing in the course of an IO. Due to this error clearing for
+BTT IOs has hitherto been disabled.
 
-Hi Dan,
+In this patch we move error clearing out of the atomic section, and thus
+re-enable error clearing with BTTs. When we are about to add a block to
+the free list, we check if it was previously marked as an error, and if
+it was, we add it to the freelist, but also set a flag that says error
+clearing will be required. We then drop the lane (ending the atomic
+context), and send a zero buffer so that the error can be cleared. The
+error flag in the free list is protected by the nd 'lane', and is set
+only be a thread while it holds that lane. When the error is cleared,
+the flag is cleared, but while holding a mutex for that freelist index.
 
-I've got 4 NVDIMMs in an interleave set in a configuration that supports labels.
-I'm running a 4.12 kernel with the latest ndctl.
+When writing, we check for two things -
+1/ If the freelist mutex is held or if the error flag is set. If so,
+this is an error block that is being (or about to be) cleared.
+2/ If the block is a known badblock based on nsio->bb
 
-I had three namespaces configured and all seemed well.  When I configured the
-fourth one, I made a mistake in the name so I hit control-c.  I wasn't sure what
-state I was in but according to what I could see with ndctl, it had created the
-namespace but not  enabled it, so I enabled it manually with ndctl and that
-seemed ok.
+The second check is required because the BTT map error flag for a map
+entry only gets set when an error LBA is read. If we write to a new
+location that may not have the map error flag set, but still might be in
+the region's badblock list, we can trigger an EIO on the write, which is
+undesirable and completely avoidable.
 
-Then I tried to use ndctl create-namespace to change the name, which failed
-because the namespace was enabled so I disabled it and tried again.  At some
-point, not really sure where, I got this kernel warning:
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c   | 94 +++++++++++++++++++++++++++++++++++++++++++++-----
+ drivers/nvdimm/btt.h   |  5 +++
+ drivers/nvdimm/claim.c |  8 -----
+ 3 files changed, 90 insertions(+), 17 deletions(-)
 
-# [ 5224.196085] nd namespace4.3: failed to track label: 4
-
-(details in the attached file)
-
-At this point I rebooted the system.  When it came back up, nmem0 was disabled.
-I dumped the labels (also attached) and I see that nmem0 has some extra labels
-that correspond to the namespace that I was struggling with.
-
-I think my troubles started with the control-c. It doesn't look like ndctl traps
-signals when creating namespaces so perhaps we can get into an inconsistent
-state.
-
-It also seems like that kernel warning is a bit more important than a
-WARN_ONCE would imply.  I think that was the beginning of the end of my
-configuration.  It might have been better to just panic.
-
-I was trying to figure out if I could fix my configuration without
-losing the good namespaces but I don't see a way.  The check-labels option
-isn't very helpful because I think it only looks at the info blocks,
-which are fine, even though the labels on nmem0 are not.  The destroy-namespace
-option doesn't help because it only works with a good namespace.
-
-I'm going to wipe my nvdimms and start over.  I suspect the problem is
-reproducible but it could depend on the timing of the control-c, unless
-the root cause was actually trying to rename a namespace.  Maybe I'll try
-that again but not today.
-
--- ljk
-
---------------7A8A30371669F207451FD725
-Content-Type: text/plain; charset=UTF-8;
- name="kernelwarning.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="kernelwarning.txt"
-
-IyBbIDUyMjQuMTk2MDg1XSBuZCBuYW1lc3BhY2U0LjM6IGZhaWxlZCB0byB0cmFjayBsYWJl
-bDogNApbIDUyMjQuMjAxMTkwXSAtLS0tLS0tLS0tLS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0t
-LS0KWyA1MjI0LjIwNTgzM10gV0FSTklORzogQ1BVOiA0MSBQSUQ6IDI3ODQgYXQgZHJpdmVy
-cy9udmRpbW0vbGFiZWwuYzo3MTkKbmRfcG1lbV9uYW1lc3BhY2VfbGFiZWxfdXBkYXRlKzB4
-NmQ2LzB4NmUwIFtsaWJudmRpbW1dClsgNTIyNC4yMTcwMDldIE1vZHVsZXMgbGlua2VkIGlu
-OiB4dF9DSEVDS1NVTSBpcHRfTUFTUVVFUkFERQpuZl9uYXRfbWFzcXVlcmFkZV9pcHY0IHR1
-biBuZl9jb25udHJhY2tfbmV0Ymlvc19ucwpuZl9jb25udHJhY2tfYnJvYWRjYXN0IHh0X0NU
-IGlwNnRfcnBmaWx0ZXIgaXB0X1JFSkVDVCBuZl9yZWplY3RfaXB2NAppcDZ0X1JFSkVDVCBu
-Zl9yZWplY3RfaXB2NiB4dF9jb25udHJhY2sgaXBfc2V0IG5mbmV0bGluayBlYnRhYmxlX2Jy
-b3V0ZQpicmlkZ2UgZWJ0YWJsZV9uYXQgaXA2dGFibGVfc2VjdXJpdHkgaXA2dGFibGVfcmF3
-IGlwNnRhYmxlX21hbmdsZQppcDZ0YWJsZV9uYXQgbmZfY29ubnRyYWNrX2lwdjYgbmZfZGVm
-cmFnX2lwdjYgbmZfbmF0X2lwdjYKaXB0YWJsZV9zZWN1cml0eSBpcHRhYmxlX3JhdyBpcHRh
-YmxlX21hbmdsZSBpcHRhYmxlX25hdApuZl9jb25udHJhY2tfaXB2NCBuZl9kZWZyYWdfaXB2
-NCBuZl9uYXRfaXB2NCBuZl9uYXQgbmZfY29ubnRyYWNrCmxpYmNyYzMyYyBlYnRhYmxlX2Zp
-bHRlciBlYnRhYmxlcyBpcDZ0YWJsZV9maWx0ZXIgaXA2X3RhYmxlcwppcHRhYmxlX2ZpbHRl
-ciBpcF90YWJsZXMgc3VucnBjIHZmYXQgZmF0IGRtX21pcnJvciBkbV9yZWdpb25faGFzaCBk
-bV9sb2cKZG1fbW9kIGRheF9wbWVtIG5kX3BtZW0gbmRfYmxrIGRldmljZV9kYXggbmRfYnR0
-IGludGVsX3JhcGwKeDg2X3BrZ190ZW1wX3RoZXJtYWwgaW50ZWxfcG93ZXJjbGFtcCBjb3Jl
-dGVtcCBrdm1faW50ZWwga3ZtIGlycWJ5cGFzcwpjcmN0MTBkaWZfcGNsbXVsIGNyYzMyX3Bj
-bG11bCBnaGFzaF9jbG11bG5pX2ludGVsClsgNTIyNC4yODc5ODhdICBwY2JjIGFlc25pX2lu
-dGVsIGNyeXB0b19zaW1kIGdsdWVfaGVscGVyIGNyeXB0ZAppcG1pX3NzaWYgc2VzIGlwbWlf
-c2kgZW5jbG9zdXJlIHBjc3BrciBuZml0IGhwd2R0IGhwaWxvIGlvYXRkbWEKaXBtaV9kZXZp
-bnRmIHNocGNocCBkY2Egd21pIGlwbWlfbXNnaGFuZGxlciBsaWJudmRpbW0gYWNwaV9wb3dl
-cl9tZXRlcgpzY2hfZnFfY29kZWwgZXh0NCBtYmNhY2hlIGpiZDIgc2RfbW9kIG1nYWcyMDAg
-ODAyMXEgZ2FycCBpMmNfYWxnb19iaXQKc3RwIGRybV9rbXNfaGVscGVyIGxsYyBtcnAgc3lz
-Y29weWFyZWEgc3lzZmlsbHJlY3Qgc3lzaW1nYmx0IGZiX3N5c19mb3BzCnR0bSB0ZzMgcHRw
-IGRybSB1YXMgY3JjMzJjX2ludGVsIHNtYXJ0cHFpIHBwc19jb3JlIHVzYl9zdG9yYWdlCnNj
-c2lfdHJhbnNwb3J0X3NhcyBpMmNfY29yZQpbIDUyMjQuMzI1ODUzXSBDUFU6IDQxIFBJRDog
-Mjc4NCBDb21tOiBuZGN0bCBOb3QgdGFpbnRlZCA0LjEyLjArICMxClsgNTIyNC4zMzE4ODFd
-IEhhcmR3YXJlIG5hbWU6IEhQRSAKWyA1MjI0LjM0MDQzNV0gdGFzazogZmZmZjkxZDdjNzVh
-NWEwMCB0YXNrLnN0YWNrOiBmZmZmYjI1MDA2YjA4MDAwClsgNTIyNC4zNDYzODBdIFJJUDog
-MDAxMDpuZF9wbWVtX25hbWVzcGFjZV9sYWJlbF91cGRhdGUrMHg2ZDYvMHg2ZTAKW2xpYm52
-ZGltbV0KWyA1MjI0LjM1MzQ1M10gUlNQOiAwMDE4OmZmZmZiMjUwMDZiMGJjYTAgRUZMQUdT
-OiAwMDAxMDI0NgpbIDUyMjQuMzU4Njk1XSBSQVg6IDAwMDAwMDAwMDAwMDAwMjkgUkJYOiBm
-ZmZmOTFkN2M2OTkzN2MwIFJDWDogMDAwMDAwMDAwMDAwMDAwMApbIDUyMjQuMzY1ODU2XSBS
-RFg6IDAwMDAwMDAwMDAwMDAwMDAgUlNJOiBmZmZmOTFlNjNmODRkZjk4IFJESTogZmZmZjkx
-ZTYzZjg0ZGY5OApbIDUyMjQuMzczMDE2XSBSQlA6IGZmZmZiMjUwMDZiMGJkNTggUjA4OiAw
-MDAwMDAwMGZmZmZmZmZlIFIwOTogMDAwMDAwMDAwMDAwMGZiOQpbIDUyMjQuMzgwMTc4XSBS
-MTA6IDAwMDAwMDAwMDAwMDAwMDUgUjExOiAwMDAwMDAwMDAwMDAwZmI4IFIxMjogMDAwMDAw
-MDAwMDAwMDAwNApbIDUyMjQuMzg3MzM4XSBSMTM6IGZmZmY5MWU2M2VjYmZiODAgUjE0OiBm
-ZmZmOTFlNjM2ZGEwNDAwIFIxNTogZmZmZjkxZTYwODJlZGMwMApbIDUyMjQuMzk0NDk5XSBG
-UzogIDAwMDA3ZmRmODNlYWFkODAoMDAwMCkgR1M6ZmZmZjkxZTYzZjg0MDAwMCgwMDAwKSBr
-bmxHUzowMDAwMDAwMDAwMDAwMDAwClsgNTIyNC40MDI2MTddIENTOiAgMDAxMCBEUzogMDAw
-MCBFUzogMDAwMCBDUjA6IDAwMDAwMDAwODAwNTAwMzMKWyA1MjI0LjQwODM4M10gQ1IyOiAw
-MDAwN2YyNzM2YTg3YjAwIENSMzogMDAwMDAwMGZhMjIyODAwMCBDUjQ6IDAwMDAwMDAwMDA3
-NDA2ZTAKWyA1MjI0LjQxNTU0NV0gRFIwOiAwMDAwMDAwMDAwMDAwMDAwIERSMTogMDAwMDAw
-MDAwMDAwMDAwMCBEUjI6IDAwMDAwMDAwMDAwMDAwMDAKWyA1MjI0LjQyMjcwNF0gRFIzOiAw
-MDAwMDAwMDAwMDAwMDAwIERSNjogMDAwMDAwMDBmZmZlMGZmMCBEUjc6IDAwMDAwMDAwMDAw
-MDA0MDAKWyA1MjI0LjQyOTg2Nl0gUEtSVTogNTU1NTU1NTQKWyA1MjI0LjQzMjU4Ml0gQ2Fs
-bCBUcmFjZToKWyA1MjI0LjQzNTA0MF0gID8ga2ZyZWUrMHgxMzMvMHgxODAKWyA1MjI0LjQz
-ODI4M10gIG5kX25hbWVzcGFjZV9sYWJlbF91cGRhdGUrMHhlYy8weDEzMCBbbGlibnZkaW1t
-XQpbIDUyMjQuNDQ0MDUyXSAgdXVpZF9zdG9yZSsweDE3Yy8weDFhMCBbbGlibnZkaW1tXQpb
-IDUyMjQuNDQ4NjAyXSAgPyBfY29weV90b191c2VyKzB4MjYvMHg0MApbIDUyMjQuNDUyMzY5
-XSAgZGV2X2F0dHJfc3RvcmUrMHgxOC8weDMwClsgNTIyNC40NTYwNDddICBzeXNmc19rZl93
-cml0ZSsweDNhLzB4NTAKWyA1MjI0LjQ1OTcyMV0gIGtlcm5mc19mb3Bfd3JpdGUrMHhmZi8w
-eDE4MApbIDUyMjQuNDYzNjYwXSAgX192ZnNfd3JpdGUrMHgzNy8weDE3MApbIDUyMjQuNDY3
-MTY1XSAgPyBzZWxpbnV4X2ZpbGVfcGVybWlzc2lvbisweGU1LzB4MTIwClsgNTIyNC40NzE4
-ODddICA/IHNlY3VyaXR5X2ZpbGVfcGVybWlzc2lvbisweDNiLzB4YzAKWyA1MjI0LjQ3NjYw
-OV0gIHZmc193cml0ZSsweGIyLzB4MWIwClsgNTIyNC40Nzk5MzZdICBTeVNfd3JpdGUrMHg1
-NS8weGMwClsgNTIyNC40ODMxNzddICBlbnRyeV9TWVNDQUxMXzY0X2Zhc3RwYXRoKzB4MWEv
-MHhhNQpbIDUyMjQuNDg3ODExXSBSSVA6IDAwMzM6MHg3ZmRmODMxYzdiNTAKWyA1MjI0LjQ5
-MTM5OV0gUlNQOiAwMDJiOjAwMDA3ZmZmMTQ3YTIzNDggRUZMQUdTOiAwMDAwMDI0NiBPUklH
-X1JBWDogMDAwMDAwMDAwMDAwMDAwMQpbIDUyMjQuNDk4OTk2XSBSQVg6IGZmZmZmZmZmZmZm
-ZmZmZGEgUkJYOiAwMDAwMDAwMDAwMDAwMDAzIFJDWDogMDAwMDdmZGY4MzFjN2I1MApbIDUy
-MjQuNTA2MTU3XSBSRFg6IDAwMDAwMDAwMDAwMDAwMjUgUlNJOiAwMDAwN2ZmZjE0N2EyM2Yw
-IFJESTogMDAwMDAwMDAwMDAwMDAwMwpbIDUyMjQuNTEzMzE4XSBSQlA6IDAwMDA3ZmZmMTQ3
-YTFmZDAgUjA4OiAwMDAwMDAwMDAwMDBlNGYwIFIwOTogMDAwMDAwMDAwMDAwMDAyNApbIDUy
-MjQuNTIwNDc5XSBSMTA6IDAwMDAwMDAwMDAwMDA4NzMgUjExOiAwMDAwMDAwMDAwMDAwMjQ2
-IFIxMjogMDAwMDAwMDAwMDQwNTUwMApbIDUyMjQuNTI3NjQwXSBSMTM6IDAwMDA3ZmZmMTQ3
-YTI4ODAgUjE0OiAwMDAwMDAwMDAwMDAwMDAwIFIxNTogMDAwMDAwMDAwMDAwMDAwMApbIDUy
-MjQuNTM0ODAxXSBDb2RlOiA4NSBkYiA0OSA4OSBjNCA3NSAwNCA0OSA4YiA1ZiAxOCA0OSA4
-ZCA3ZiAwOCBlOCAxMQplNCBmNiBjZCA0NCA4OSBlMSA0OCA4OSBjNiA0OCA4OSBkYSA0OCBj
-NyBjNyAzOCBhZSA1NyBjMCAzMSBjMCBlOCA1ZCBlYgpiNiBjZCA8MGY+IGZmIGViIGEzIDY2
-IDBmIDFmIDQ0IDAwIDAwIDBmIDFmIDQ0IDAwIDAwIDU1IDQ4IDg1IGQyIDQ4IDg5ClsgNTIy
-NC41NTM3NDVdIC0tLVsgZW5kIHRyYWNlIDA2MDg1NTM3NTFiZmQwNzggXS0tLQo=
---------------7A8A30371669F207451FD725
-Content-Type: text/plain; charset=UTF-8;
- name="labels.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="labels.txt"
-
-JCBzdWRvIG5kY3RsIHJlYWQtbGFiZWxzIC1qIGFsbApbCiAgewogICAgImRldiI6Im5tZW0x
-IiwKICAgICJpbmRleCI6WwogICAgICB7CiAgICAgICAgInNpZ25hdHVyZSI6Ik5BTUVTUEFD
-RV9JTkRFWCIsCiAgICAgICAgInNlcSI6MiwKICAgICAgICAibnNsb3QiOjEwMTYKICAgICAg
-fSwKICAgICAgewogICAgICAgICJzaWduYXR1cmUiOiJOQU1FU1BBQ0VfSU5ERVgiLAogICAg
-ICAgICJzZXEiOjMsCiAgICAgICAgIm5zbG90IjoxMDE2CiAgICAgIH0KICAgIF0sCiAgICAi
-bGFiZWwiOlsKICAgICAgewogICAgICAgICJ1dWlkIjoiMzU5YzY4ZjctZWZkOS00MTBiLWE3
-MjctMWRlZjI3ZDU3NGI1IiwKICAgICAgICAibmFtZSI6Im51bWJlcjEiLAogICAgICAgICJz
-bG90IjowLAogICAgICAgICJwb3NpdGlvbiI6MSwKICAgICAgICAibmxhYmVsIjo0LAogICAg
-ICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjI2
-ODQzNTQ1NiwKICAgICAgICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9LAogICAgICB7
-CiAgICAgICAgInV1aWQiOiJjNDA0N2MxNS03ZmExLTRmNTktYjYwZi02NzZmMjMzMjY5ODki
-LAogICAgICAgICJuYW1lIjoibnVtYmVyMiIsCiAgICAgICAgInNsb3QiOjEsCiAgICAgICAg
-InBvc2l0aW9uIjoxLAogICAgICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRjb29raWUi
-OjUxMjUyNDM3ODg3MDQ0MjQxMzEsCiAgICAgICAgImRwYSI6MzQ4OTY2MDkyOCwKICAgICAg
-ICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9LAogICAgICB7CiAgICAgICAgInV1aWQi
-OiI1NjI1MmM2Ni1iMWYxLTQzNWMtODIxYS02N2JlY2VmODJmNGMiLAogICAgICAgICJuYW1l
-IjoibnVtYmVyMyIsCiAgICAgICAgInNsb3QiOjIsCiAgICAgICAgInBvc2l0aW9uIjoxLAog
-ICAgICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRjb29raWUiOjUxMjUyNDM3ODg3MDQ0
-MjQxMzEsCiAgICAgICAgImRwYSI6NjcxMDg4NjQwMCwKICAgICAgICAicmF3c2l6ZSI6MzIy
-MTIyNTQ3MgogICAgICB9LAogICAgICB7CiAgICAgICAgInV1aWQiOiI1YjZlMDcyYy01YWJi
-LTQzZmYtYmE4YS0zYmNhNmVlMTkwNjgiLAogICAgICAgICJuYW1lIjoibnVtYmVyMyIsCiAg
-ICAgICAgInNsb3QiOjMsCiAgICAgICAgInBvc2l0aW9uIjoxLAogICAgICAgICJubGFiZWwi
-OjQsCiAgICAgICAgImlzZXRjb29raWUiOjUxMjUyNDM3ODg3MDQ0MjQxMzEsCiAgICAgICAg
-ImRwYSI6OTkzMjExMTg3MiwKICAgICAgICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9
-CiAgICBdCiAgfSwKICB7CiAgICAiZGV2Ijoibm1lbTMiLAogICAgImluZGV4IjpbCiAgICAg
-IHsKICAgICAgICAic2lnbmF0dXJlIjoiTkFNRVNQQUNFX0lOREVYIiwKICAgICAgICAic2Vx
-IjoyLAogICAgICAgICJuc2xvdCI6MTAxNgogICAgICB9LAogICAgICB7CiAgICAgICAgInNp
-Z25hdHVyZSI6Ik5BTUVTUEFDRV9JTkRFWCIsCiAgICAgICAgInNlcSI6MywKICAgICAgICAi
-bnNsb3QiOjEwMTYKICAgICAgfQogICAgXSwKICAgICJsYWJlbCI6WwogICAgICB7CiAgICAg
-ICAgInV1aWQiOiIzNTljNjhmNy1lZmQ5LTQxMGItYTcyNy0xZGVmMjdkNTc0YjUiLAogICAg
-ICAgICJuYW1lIjoibnVtYmVyMSIsCiAgICAgICAgInNsb3QiOjAsCiAgICAgICAgInBvc2l0
-aW9uIjozLAogICAgICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRjb29raWUiOjUxMjUy
-NDM3ODg3MDQ0MjQxMzEsCiAgICAgICAgImRwYSI6MjY4NDM1NDU2LAogICAgICAgICJyYXdz
-aXplIjozMjIxMjI1NDcyCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAidXVpZCI6ImM0MDQ3
-YzE1LTdmYTEtNGY1OS1iNjBmLTY3NmYyMzMyNjk4OSIsCiAgICAgICAgIm5hbWUiOiJudW1i
-ZXIyIiwKICAgICAgICAic2xvdCI6MSwKICAgICAgICAicG9zaXRpb24iOjMsCiAgICAgICAg
-Im5sYWJlbCI6NCwKICAgICAgICAiaXNldGNvb2tpZSI6NTEyNTI0Mzc4ODcwNDQyNDEzMSwK
-ICAgICAgICAiZHBhIjozNDg5NjYwOTI4LAogICAgICAgICJyYXdzaXplIjozMjIxMjI1NDcy
-CiAgICAgIH0sCiAgICAgIHsKICAgICAgICAidXVpZCI6IjU2MjUyYzY2LWIxZjEtNDM1Yy04
-MjFhLTY3YmVjZWY4MmY0YyIsCiAgICAgICAgIm5hbWUiOiJudW1iZXIzIiwKICAgICAgICAi
-c2xvdCI6MiwKICAgICAgICAicG9zaXRpb24iOjMsCiAgICAgICAgIm5sYWJlbCI6NCwKICAg
-ICAgICAiaXNldGNvb2tpZSI6NTEyNTI0Mzc4ODcwNDQyNDEzMSwKICAgICAgICAiZHBhIjo2
-NzEwODg2NDAwLAogICAgICAgICJyYXdzaXplIjozMjIxMjI1NDcyCiAgICAgIH0sCiAgICAg
-IHsKICAgICAgICAidXVpZCI6IjViNmUwNzJjLTVhYmItNDNmZi1iYThhLTNiY2E2ZWUxOTA2
-OCIsCiAgICAgICAgIm5hbWUiOiJudW1iZXIzIiwKICAgICAgICAic2xvdCI6MywKICAgICAg
-ICAicG9zaXRpb24iOjMsCiAgICAgICAgIm5sYWJlbCI6NCwKICAgICAgICAiaXNldGNvb2tp
-ZSI6NTEyNTI0Mzc4ODcwNDQyNDEzMSwKICAgICAgICAiZHBhIjo5OTMyMTExODcyLAogICAg
-ICAgICJyYXdzaXplIjozMjIxMjI1NDcyCiAgICAgIH0KICAgIF0KICB9LAogIHsKICAgICJk
-ZXYiOiJubWVtMCIsCiAgICAiaW5kZXgiOlsKICAgICAgewogICAgICAgICJzaWduYXR1cmUi
-OiJOQU1FU1BBQ0VfSU5ERVgiLAogICAgICAgICJzZXEiOjMsCiAgICAgICAgIm5zbG90Ijox
-MDE2CiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic2lnbmF0dXJlIjoiTkFNRVNQQUNFX0lO
-REVYIiwKICAgICAgICAic2VxIjoxLAogICAgICAgICJuc2xvdCI6MTAxNgogICAgICB9CiAg
-ICBdLAogICAgImxhYmVsIjpbCiAgICAgIHsKICAgICAgICAidXVpZCI6IjM1OWM2OGY3LWVm
-ZDktNDEwYi1hNzI3LTFkZWYyN2Q1NzRiNSIsCiAgICAgICAgIm5hbWUiOiJudW1iZXIxIiwK
-ICAgICAgICAic2xvdCI6MCwKICAgICAgICAicG9zaXRpb24iOjAsCiAgICAgICAgIm5sYWJl
-bCI6NCwKICAgICAgICAiaXNldGNvb2tpZSI6NTEyNTI0Mzc4ODcwNDQyNDEzMSwKICAgICAg
-ICAiZHBhIjoyNjg0MzU0NTYsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAgICAg
-fSwKICAgICAgewogICAgICAgICJ1dWlkIjoiYzQwNDdjMTUtN2ZhMS00ZjU5LWI2MGYtNjc2
-ZjIzMzI2OTg5IiwKICAgICAgICAibmFtZSI6Im51bWJlcjIiLAogICAgICAgICJzbG90Ijox
-LAogICAgICAgICJwb3NpdGlvbiI6MCwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJp
-c2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjM0ODk2NjA5
-MjgsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAgICAgfSwKICAgICAgewogICAg
-ICAgICJ1dWlkIjoiNTYyNTJjNjYtYjFmMS00MzVjLTgyMWEtNjdiZWNlZjgyZjRjIiwKICAg
-ICAgICAibmFtZSI6Im51bWJlcjMiLAogICAgICAgICJzbG90IjoyLAogICAgICAgICJwb3Np
-dGlvbiI6MCwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1MTI1
-MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjY3MTA4ODY0MDAsCiAgICAgICAgInJh
-d3NpemUiOjMyMjEyMjU0NzIKICAgICAgfSwKICAgICAgewogICAgICAgICJ1dWlkIjoiNWI2
-ZTA3MmMtNWFiYi00M2ZmLWJhOGEtM2JjYTZlZTE5MDY4IiwKICAgICAgICAibmFtZSI6Im51
-bWJlcjMiLAogICAgICAgICJzbG90IjozLAogICAgICAgICJwb3NpdGlvbiI6MCwKICAgICAg
-ICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMx
-LAogICAgICAgICJkcGEiOjk5MzIxMTE4NzIsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0
-NzIKICAgICAgfSwKICAgICAgewogICAgICAgICJ1dWlkIjoiMDdhMjgzMzQtMjkzNy00YzA3
-LThjODQtMWE0ZGY5OTU4ZmI1IiwKICAgICAgICAibmFtZSI6Im51bWJlcjMiLAogICAgICAg
-ICJzbG90Ijo0LAogICAgICAgICJwb3NpdGlvbiI6MCwKICAgICAgICAibmxhYmVsIjo0LAog
-ICAgICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEi
-Ojk5MzIxMTE4NzIsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAgICAgfSwKICAg
-ICAgewogICAgICAgICJ1dWlkIjoiNzY5MjM2YWEtMDQzOC00OWMxLTg3NjktNjdmY2JmMDg4
-NDY5IiwKICAgICAgICAibmFtZSI6Im51bWJlcjMiLAogICAgICAgICJzbG90Ijo1LAogICAg
-ICAgICJwb3NpdGlvbiI6MCwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29v
-a2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjk5MzIxMTE4NzIsCiAg
-ICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAgICAgfSwKICAgICAgewogICAgICAgICJ1
-dWlkIjoiMTdiNDc0NjgtOWE5Mi00MThjLWFmMDctMDVlNWE3NjI3ZGU5IiwKICAgICAgICAi
-bmFtZSI6Im51bWJlcjMiLAogICAgICAgICJzbG90Ijo2LAogICAgICAgICJwb3NpdGlvbiI6
-MCwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4
-NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjk5MzIxMTE4NzIsCiAgICAgICAgInJhd3NpemUi
-OjMyMjEyMjU0NzIKICAgICAgfSwKICAgICAgewogICAgICAgICJ1dWlkIjoiNzUyY2M5NWQt
-OGZiOS00ZWE0LWE0M2ItNmNlOWM4MWYxMWYyIiwKICAgICAgICAibmFtZSI6Im51bWJlcjQi
-LAogICAgICAgICJzbG90Ijo3LAogICAgICAgICJwb3NpdGlvbiI6MCwKICAgICAgICAibmxh
-YmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1MTI1MjQzNzg4NzA0NDI0MTMxLAogICAg
-ICAgICJkcGEiOjk5MzIxMTE4NzIsCiAgICAgICAgInJhd3NpemUiOjMyMjEyMjU0NzIKICAg
-ICAgfQogICAgXQogIH0sCiAgewogICAgImRldiI6Im5tZW0yIiwKICAgICJpbmRleCI6Wwog
-ICAgICB7CiAgICAgICAgInNpZ25hdHVyZSI6Ik5BTUVTUEFDRV9JTkRFWCIsCiAgICAgICAg
-InNlcSI6MiwKICAgICAgICAibnNsb3QiOjEwMTYKICAgICAgfSwKICAgICAgewogICAgICAg
-ICJzaWduYXR1cmUiOiJOQU1FU1BBQ0VfSU5ERVgiLAogICAgICAgICJzZXEiOjMsCiAgICAg
-ICAgIm5zbG90IjoxMDE2CiAgICAgIH0KICAgIF0sCiAgICAibGFiZWwiOlsKICAgICAgewog
-ICAgICAgICJ1dWlkIjoiMzU5YzY4ZjctZWZkOS00MTBiLWE3MjctMWRlZjI3ZDU3NGI1IiwK
-ICAgICAgICAibmFtZSI6Im51bWJlcjEiLAogICAgICAgICJzbG90IjowLAogICAgICAgICJw
-b3NpdGlvbiI6MiwKICAgICAgICAibmxhYmVsIjo0LAogICAgICAgICJpc2V0Y29va2llIjo1
-MTI1MjQzNzg4NzA0NDI0MTMxLAogICAgICAgICJkcGEiOjI2ODQzNTQ1NiwKICAgICAgICAi
-cmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9LAogICAgICB7CiAgICAgICAgInV1aWQiOiJj
-NDA0N2MxNS03ZmExLTRmNTktYjYwZi02NzZmMjMzMjY5ODkiLAogICAgICAgICJuYW1lIjoi
-bnVtYmVyMiIsCiAgICAgICAgInNsb3QiOjEsCiAgICAgICAgInBvc2l0aW9uIjoyLAogICAg
-ICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRjb29raWUiOjUxMjUyNDM3ODg3MDQ0MjQx
-MzEsCiAgICAgICAgImRwYSI6MzQ4OTY2MDkyOCwKICAgICAgICAicmF3c2l6ZSI6MzIyMTIy
-NTQ3MgogICAgICB9LAogICAgICB7CiAgICAgICAgInV1aWQiOiI1NjI1MmM2Ni1iMWYxLTQz
-NWMtODIxYS02N2JlY2VmODJmNGMiLAogICAgICAgICJuYW1lIjoibnVtYmVyMyIsCiAgICAg
-ICAgInNsb3QiOjIsCiAgICAgICAgInBvc2l0aW9uIjoyLAogICAgICAgICJubGFiZWwiOjQs
-CiAgICAgICAgImlzZXRjb29raWUiOjUxMjUyNDM3ODg3MDQ0MjQxMzEsCiAgICAgICAgImRw
-YSI6NjcxMDg4NjQwMCwKICAgICAgICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9LAog
-ICAgICB7CiAgICAgICAgInV1aWQiOiI1YjZlMDcyYy01YWJiLTQzZmYtYmE4YS0zYmNhNmVl
-MTkwNjgiLAogICAgICAgICJuYW1lIjoibnVtYmVyMyIsCiAgICAgICAgInNsb3QiOjMsCiAg
-ICAgICAgInBvc2l0aW9uIjoyLAogICAgICAgICJubGFiZWwiOjQsCiAgICAgICAgImlzZXRj
-b29raWUiOjUxMjUyNDM3ODg3MDQ0MjQxMzEsCiAgICAgICAgImRwYSI6OTkzMjExMTg3MiwK
-ICAgICAgICAicmF3c2l6ZSI6MzIyMTIyNTQ3MgogICAgICB9CiAgICBdCiAgfQpdCnJlYWQg
-NCBubWVtcwo=
---------------7A8A30371669F207451FD725
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index e9dd651..8a959f8 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -381,7 +381,9 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
+ 	arena->freelist[lane].sub = 1 - arena->freelist[lane].sub;
+ 	if (++(arena->freelist[lane].seq) == 4)
+ 		arena->freelist[lane].seq = 1;
+-	arena->freelist[lane].block = le32_to_cpu(ent->old_map);
++	if (ent_e_flag(ent->old_map))
++		arena->freelist[lane].has_err = 1;
++	arena->freelist[lane].block = le32_to_cpu(ent_lba(ent->old_map));
+ 
+ 	return ret;
+ }
+@@ -480,6 +482,40 @@ static int btt_log_init(struct arena_info *arena)
+ 	return ret;
+ }
+ 
++static u64 to_namespace_offset(struct arena_info *arena, u64 lba)
++{
++	return arena->dataoff + ((u64)lba * arena->internal_lbasize);
++}
++
++static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
++{
++	int ret = 0;
++
++	if (arena->freelist[lane].has_err) {
++		void *zero_page = page_address(ZERO_PAGE(0));
++		u32 lba = arena->freelist[lane].block;
++		u64 nsoff = to_namespace_offset(arena, lba);
++		unsigned long len = arena->sector_size;
++
++		mutex_lock(&arena->err_lock);
++
++		while (len) {
++			unsigned long chunk = min(len, PAGE_SIZE);
++
++			ret = arena_write_bytes(arena, nsoff, zero_page,
++				chunk, 0);
++			if (ret)
++				break;
++			len -= chunk;
++			nsoff += chunk;
++			if (len == 0)
++				arena->freelist[lane].has_err = 0;
++		}
++		mutex_unlock(&arena->err_lock);
++	}
++	return ret;
++}
++
+ static int btt_freelist_init(struct arena_info *arena)
+ {
+ 	int old, new, ret;
+@@ -505,6 +541,9 @@ static int btt_freelist_init(struct arena_info *arena)
+ 		arena->freelist[i].seq = nd_inc_seq(le32_to_cpu(log_new.seq));
+ 		arena->freelist[i].block = le32_to_cpu(log_new.old_map);
+ 
++		if (ent_e_flag(log_new.old_map))
++			arena_clear_freelist_error(arena, i);
++
+ 		/* This implies a newly created or untouched flog entry */
+ 		if (log_new.old_map == log_new.new_map)
+ 			continue;
+@@ -525,7 +564,6 @@ static int btt_freelist_init(struct arena_info *arena)
+ 			if (ret)
+ 				return ret;
+ 		}
+-
+ 	}
+ 
+ 	return 0;
+@@ -695,6 +733,7 @@ static int discover_arenas(struct btt *btt)
+ 		arena->external_lba_start = cur_nlba;
+ 		parse_arena_meta(arena, super, cur_off);
+ 
++		mutex_init(&arena->err_lock);
+ 		ret = btt_freelist_init(arena);
+ 		if (ret)
+ 			goto out;
+@@ -905,11 +944,6 @@ static void unlock_map(struct arena_info *arena, u32 premap)
+ 	spin_unlock(&arena->map_locks[idx].lock);
+ }
+ 
+-static u64 to_namespace_offset(struct arena_info *arena, u64 lba)
+-{
+-	return arena->dataoff + ((u64)lba * arena->internal_lbasize);
+-}
+-
+ static int btt_data_read(struct arena_info *arena, struct page *page,
+ 			unsigned int off, u32 lba, u32 len)
+ {
+@@ -1067,8 +1101,14 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		}
+ 
+ 		ret = btt_data_read(arena, page, off, postmap, cur_len);
+-		if (ret)
++		if (ret) {
++			int rc;
++
++			/* Media error - set the e_flag */
++			rc = btt_map_write(arena, premap, postmap, 0, 1,
++				NVDIMM_IO_ATOMIC);
+ 			goto out_rtt;
++		}
+ 
+ 		if (bip) {
+ 			ret = btt_rw_integrity(btt, bip, arena, postmap, READ);
+@@ -1093,6 +1133,15 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 	return ret;
+ }
+ 
++static bool btt_is_badblock(struct btt *btt, struct arena_info *arena,
++		u32 postmap)
++{
++	u64 nsoff = to_namespace_offset(arena, postmap);
++	sector_t phys_sector = nsoff >> 9;
++
++	return is_bad_pmem(btt->phys_bb, phys_sector, arena->internal_lbasize);
++}
++
+ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			sector_t sector, struct page *page, unsigned int off,
+ 			unsigned int len)
+@@ -1105,7 +1154,9 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 
+ 	while (len) {
+ 		u32 cur_len;
++		int e_flag;
+ 
++ retry:
+ 		lane = nd_region_acquire_lane(btt->nd_region);
+ 
+ 		ret = lba_to_arena(btt, sector, &premap, &arena);
+@@ -1118,6 +1169,23 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			goto out_lane;
+ 		}
+ 
++		/* The block had a media error, and is being cleared */
++		if (mutex_is_locked(&arena->err_lock)
++				|| arena->freelist[lane].has_err) {
++			nd_region_release_lane(btt->nd_region, lane);
++			goto retry;
++		}
++
++		/* The block had a media error, and needs to be cleared */
++		if (btt_is_badblock(btt, arena, arena->freelist[lane].block)) {
++			arena->freelist[lane].has_err = 1;
++			nd_region_release_lane(btt->nd_region, lane);
++
++			arena_clear_freelist_error(arena, lane);
++			/* OK to acquire a different lane/free block */
++			goto retry;
++		}
++
+ 		new_postmap = arena->freelist[lane].block;
+ 
+ 		/* Wait if the new block is being read from */
+@@ -1143,7 +1211,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		}
+ 
+ 		lock_map(arena, premap);
+-		ret = btt_map_read(arena, premap, &old_postmap, NULL, NULL,
++		ret = btt_map_read(arena, premap, &old_postmap, NULL, &e_flag,
+ 				NVDIMM_IO_ATOMIC);
+ 		if (ret)
+ 			goto out_map;
+@@ -1151,6 +1219,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			ret = -EIO;
+ 			goto out_map;
+ 		}
++		if (e_flag)
++			set_e_flag(old_postmap);
+ 
+ 		log.lba = cpu_to_le32(premap);
+ 		log.old_map = cpu_to_le32(old_postmap);
+@@ -1169,6 +1239,9 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		unlock_map(arena, premap);
+ 		nd_region_release_lane(btt->nd_region, lane);
+ 
++		if (e_flag)
++			arena_clear_freelist_error(arena, lane);
++
+ 		len -= cur_len;
+ 		off += cur_len;
+ 		sector += btt->sector_size >> SECTOR_SHIFT;
+@@ -1349,6 +1422,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ {
+ 	int ret;
+ 	struct btt *btt;
++	struct nd_namespace_io *nsio;
+ 	struct device *dev = &nd_btt->dev;
+ 
+ 	btt = devm_kzalloc(dev, sizeof(struct btt), GFP_KERNEL);
+@@ -1362,6 +1436,8 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 	INIT_LIST_HEAD(&btt->arena_list);
+ 	mutex_init(&btt->init_lock);
+ 	btt->nd_region = nd_region;
++	nsio = to_nd_namespace_io(&nd_btt->ndns->dev);
++	btt->phys_bb = &nsio->bb;
+ 
+ 	ret = discover_arenas(btt);
+ 	if (ret) {
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 2bc0d10b..578c205 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -15,6 +15,7 @@
+ #ifndef _LINUX_BTT_H
+ #define _LINUX_BTT_H
+ 
++#include <linux/badblocks.h>
+ #include <linux/types.h>
+ 
+ #define BTT_SIG_LEN 16
+@@ -41,6 +42,7 @@
+ #define ent_lba(ent) (ent & MAP_LBA_MASK)
+ #define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
+ #define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
++#define set_e_flag(ent) (ent |= MAP_ERR_MASK)
+ 
+ enum btt_init_state {
+ 	INIT_UNCHECKED = 0,
+@@ -82,6 +84,7 @@ struct free_entry {
+ 	u32 block;
+ 	u8 sub;
+ 	u8 seq;
++	u8 has_err;
+ };
+ 
+ struct aligned_lock {
+@@ -153,6 +156,7 @@ struct arena_info {
+ 	struct dentry *debugfs_dir;
+ 	/* Arena flags */
+ 	u32 flags;
++	struct mutex err_lock;
+ };
+ 
+ /**
+@@ -187,6 +191,7 @@ struct btt {
+ 	struct mutex init_lock;
+ 	int init_state;
+ 	int num_arenas;
++	struct badblocks *phys_bb;
+ };
+ 
+ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super);
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index 3e6404f..b2fc29b 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -280,14 +280,6 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	}
+ 
+ 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+-		/*
+-		 * FIXME: nsio_rw_bytes() may be called from atomic
+-		 * context in the btt case and the ACPI DSM path for
+-		 * clearing the error takes sleeping locks and allocates
+-		 * memory. An explicit error clearing path, and support
+-		 * for tracking badblocks in BTT metadata is needed to
+-		 * work around this collision.
+-		 */
+ 		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
+ 				&& !(flags & NVDIMM_IO_ATOMIC)) {
+ 			long cleared;
+-- 
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---------------7A8A30371669F207451FD725--
