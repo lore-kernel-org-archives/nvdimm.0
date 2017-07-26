@@ -1,9 +1,6 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Message-ID: <1501112787.4073.49.camel@redhat.com>
-Subject: Re: KVM "fake DAX" flushing interface - discussion
-From: Rik van Riel <riel@redhat.com>
-Date: Wed, 26 Jul 2017 19:46:27 -0400
-In-Reply-To: <CAPcyv4hsqrqBxoipUHPAbSctuzbVWCRnT-gN08i9uhXTWY6iPQ@mail.gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <1501104453.26846.45.camel@redhat.com>
 References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
  <CAPcyv4hpbk0jgp+mA=q05zVBV8ZSZvCvV68JJ4gjE3QhK70d1w@mail.gmail.com>
  <20170724102330.GE652@quack2.suse.cz>
@@ -14,8 +11,10 @@ References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
  <1501016375.26846.21.camel@redhat.com>
  <1063764405.34607875.1501076841865.JavaMail.zimbra@redhat.com>
  <1501104453.26846.45.camel@redhat.com>
- <CAPcyv4hsqrqBxoipUHPAbSctuzbVWCRnT-gN08i9uhXTWY6iPQ@mail.gmail.com>
-Mime-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 26 Jul 2017 14:40:36 -0700
+Message-ID: <CAPcyv4hsqrqBxoipUHPAbSctuzbVWCRnT-gN08i9uhXTWY6iPQ@mail.gmail.com>
+Subject: Re: KVM "fake DAX" flushing interface - discussion
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,50 +22,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Rik van Riel <riel@redhat.com>
 Cc: Kevin Wolf <kwolf@redhat.com>, Pankaj Gupta <pagupta@redhat.com>, Jan Kara <jack@suse.cz>, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Stefan Hajnoczi <stefanha@gmail.com>, Ross Zwisler <ross.zwisler@intel.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE3LTA3LTI2IGF0IDE0OjQwIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
-T24gV2VkLCBKdWwgMjYsIDIwMTcgYXQgMjoyNyBQTSwgUmlrIHZhbiBSaWVsIDxyaWVsQHJlZGhh
-dC5jb20+Cj4gd3JvdGU6Cj4gPiBPbiBXZWQsIDIwMTctMDctMjYgYXQgMDk6NDcgLTA0MDAsIFBh
-bmthaiBHdXB0YSB3cm90ZToKPiA+ID4gPiAKPiA+ID4gCj4gPiA+IEp1c3Qgd2FudCB0byBzdW1t
-YXJpemUgaGVyZShoaWdoIGxldmVsKToKPiA+ID4gCj4gPiA+IFRoaXMgd2lsbCByZXF1aXJlIGlt
-cGxlbWVudGluZyBuZXcgJ3ZpcnRpby1wbWVtJyBkZXZpY2Ugd2hpY2gKPiA+ID4gcHJlc2VudHMK
-PiA+ID4gYSBEQVggYWRkcmVzcyByYW5nZShsaWtlIHBtZW0pIHRvIGd1ZXN0IHdpdGggcmVhZC93
-cml0ZShkaXJlY3QKPiA+ID4gYWNjZXNzKQo+ID4gPiAmIGRldmljZSBmbHVzaCBmdW5jdGlvbmFs
-aXR5LiBBbHNvLCBxZW11IHNob3VsZCBpbXBsZW1lbnQKPiA+ID4gY29ycmVzcG9uZGluZwo+ID4g
-PiBzdXBwb3J0IGZvciBmbHVzaCB1c2luZyB2aXJ0aW8uCj4gPiA+IAo+ID4gCj4gPiBBbHRlcm5h
-dGl2ZWx5LCB0aGUgZXhpc3RpbmcgcG1lbSBjb2RlLCB3aXRoCj4gPiBhIGZsdXNoLW9ubHkgYmxv
-Y2sgZGV2aWNlIG9uIHRoZSBzaWRlLCB3aGljaAo+ID4gaXMgc29tZWhvdyBhc3NvY2lhdGVkIHdp
-dGggdGhlIHBtZW0gZGV2aWNlLgo+ID4gCj4gPiBJIHdvbmRlciB3aGljaCBhbHRlcm5hdGl2ZSBs
-ZWFkcyB0byB0aGUgbGVhc3QKPiA+IGNvZGUgZHVwbGljYXRpb24sIGFuZCB0aGUgbGVhc3QgbWFp
-bnRlbmFuY2UKPiA+IGhhc3NsZSBnb2luZyBmb3J3YXJkLgo+IAo+IEknZCBtdWNoIHByZWZlciB0
-byBoYXZlIGFub3RoZXIgZHJpdmVyLiBJLmUuIGEgZHJpdmVyIHRoYXQgcmVmYWN0b3JzCj4gb3V0
-IHNvbWUgY29tbW9uIHBtZW0gZGV0YWlscyBpbnRvIGEgc2hhcmVkIG9iamVjdCBhbmQgY2FuIGF0
-dGFjaCB0bwo+IE5EX0RFVklDRV9OQU1FU1BBQ0Vfe0lPLFBNRU19LiBBIGNvbnRyb2wgZGV2aWNl
-IG9uIHRoZSBzaWRlIHNlZW1zCj4gbGlrZQo+IGEgcmVjaXBlIGZvciBjb25mdXNpb24uCgpBdCB0
-aGF0IHBvaW50LCB3b3VsZCBpdCBtYWtlIHNlbnNlIHRvIGV4cG9zZSB0aGVzZSBzcGVjaWFsCnZp
-cnRpby1wbWVtIGFyZWFzIHRvIHRoZSBndWVzdCBpbiBhIHNsaWdodGx5IGRpZmZlcmVudCB3YXks
-CnNvIHRoZSByZWdpb25zIHRoYXQgbmVlZCB2aXJ0aW8gZmx1c2hpbmcgYXJlIG5vdCBib3VuZCBi
-eQp0aGUgcmVndWxhciBkcml2ZXIsIGFuZCB0aGUgcmVndWxhciBkcml2ZXIgY2FuIGNvbnRpbnVl
-IHRvCndvcmsgZm9yIG1lbW9yeSByZWdpb25zIHRoYXQgYXJlIGJhY2tlZCBieSBhY3R1YWwgcG1l
-bSBpbgp0aGUgaG9zdD8KCj4gV2l0aCBhICRuZXdfZHJpdmVyIGluIGhhbmQgeW91IGNhbiBqdXN0
-IGRvOgo+IAo+IMKgwqDCoG1vZHByb2JlICRuZXdfZHJpdmVyCj4gwqDCoMKgZWNobyAkbmFtZXNw
-YWNlID4gL3N5cy9idXMvbmQvZHJpdmVycy9uZF9wbWVtL3VuYmluZAo+IMKgwqDCoGVjaG8gJG5h
-bWVzcGFjZSA+IC9zeXMvYnVzL25kL2RyaXZlcnMvJG5ld19kcml2ZXIvbmV3X2lkCj4gwqDCoMKg
-ZWNobyAkbmFtZXNwYWNlID4gL3N5cy9idXMvbmQvZHJpdmVycy8kbmV3X2RyaXZlci9iaW5kCj4g
-Cj4gLi4uYW5kIHRoZSBndWVzdCBjYW4gYXJyYW5nZSBmb3IgJG5ld19kcml2ZXIgdG8gYmUgdGhl
-IGRlZmF1bHQsIHNvCj4geW91Cj4gZG9uJ3QgbmVlZCB0byBkbyB0aG9zZSBzdGVwcyBlYWNoIGJv
-b3Qgb2YgdGhlIFZNLCBieSBkb2luZzoKPiAKPiDCoMKgwqDCoGVjaG8gImJsYWNrbGlzdCBuZF9w
-bWVtIiA+IC9ldGMvbW9kcHJvYmUuZC92aXJ0LWRheC1mbHVzaC5jb25mCj4gwqDCoMKgwqBlY2hv
-ICJhbGlhcyBuZDp0NCogJG5ld19kcml2ZXIiID4+IC9ldGMvbW9kcHJvYmUuZC92aXJ0LWRheC0K
-PiBmbHVzaC5jb25mCj4gwqDCoMKgwqBlY2hvICJhbGlhcyBuZDp0NSogJG5ld19kcml2ZXIiID4+
-IC9ldGMvbW9kcHJvYmUuZC92aXJ0LWRheC0KPiBmbHVzaC5jb25mCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
-TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Wed, Jul 26, 2017 at 2:27 PM, Rik van Riel <riel@redhat.com> wrote:
+> On Wed, 2017-07-26 at 09:47 -0400, Pankaj Gupta wrote:
+>> >
+>> Just want to summarize here(high level):
+>>
+>> This will require implementing new 'virtio-pmem' device which
+>> presents
+>> a DAX address range(like pmem) to guest with read/write(direct
+>> access)
+>> & device flush functionality. Also, qemu should implement
+>> corresponding
+>> support for flush using virtio.
+>>
+> Alternatively, the existing pmem code, with
+> a flush-only block device on the side, which
+> is somehow associated with the pmem device.
+>
+> I wonder which alternative leads to the least
+> code duplication, and the least maintenance
+> hassle going forward.
+
+I'd much prefer to have another driver. I.e. a driver that refactors
+out some common pmem details into a shared object and can attach to
+ND_DEVICE_NAMESPACE_{IO,PMEM}. A control device on the side seems like
+a recipe for confusion.
+
+With a $new_driver in hand you can just do:
+
+   modprobe $new_driver
+   echo $namespace > /sys/bus/nd/drivers/nd_pmem/unbind
+   echo $namespace > /sys/bus/nd/drivers/$new_driver/new_id
+   echo $namespace > /sys/bus/nd/drivers/$new_driver/bind
+
+...and the guest can arrange for $new_driver to be the default, so you
+don't need to do those steps each boot of the VM, by doing:
+
+    echo "blacklist nd_pmem" > /etc/modprobe.d/virt-dax-flush.conf
+    echo "alias nd:t4* $new_driver" >> /etc/modprobe.d/virt-dax-flush.conf
+    echo "alias nd:t5* $new_driver" >> /etc/modprobe.d/virt-dax-flush.conf
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
