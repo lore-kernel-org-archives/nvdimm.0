@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A192B2095DBA2
- for <linux-nvdimm@lists.01.org>; Fri, 28 Jul 2017 09:55:16 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 0/3] remove rw_page() from brd, pmem and btt
-Date: Fri, 28 Jul 2017 10:56:01 -0600
-Message-Id: <20170728165604.10455-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8880E21D0FE1E
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 16:35:39 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 1/6] btt: fix a missed NVDIMM_IO_ATOMIC case in the write
+ path
+Date: Wed, 26 Jul 2017 17:35:41 -0600
+Message-Id: <20170726233546.29052-2-vishal.l.verma@intel.com>
+In-Reply-To: <20170726233546.29052-1-vishal.l.verma@intel.com>
+References: <20170726233546.29052-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,63 +23,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Jerome Marchand <jmarchan@redhat.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, Minchan Kim <minchan@kernel.org>, Jan Kara <jack@suse.cz>, "karam . lee" <karam.lee@lge.com>, seungho1.park@lge.com, Nitin Gupta <ngupta@vflare.org>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Williams and Christoph Hellwig have recently expressed doubt about
-whether the rw_page() interface made sense for synchronous memory drivers
-[1][2].  It's unclear whether this interface has any performance benefit
-for these drivers, but as we continue to fix bugs it is clear that it does
-have a maintenance burden.  This series removes the rw_page()
-implementations in brd, pmem and btt to relieve this burden.
+The IO context conversion for rw_bytes missed a case in the BTT write
+path (btt_map_write) which should've been marked as atomic.
 
-The last existing user of the rw_page interface is the zram driver, and
-according to the changelog for the patch that added zram_rw_page() that
-driver does see a clear performance gain:
+In reality this should not cause a problem, because map writes are to
+small for nsio_rw_bytes to attempt error clearing, but it should be
+fixed for posterity.
 
-  I implemented the feature in zram and tested it.  Test bed was the G2, LG
-  electronic mobile device, whtich has msm8974 processor and 2GB memory.
+Add a might_sleep() in the non-atomic section of nsio_rw_bytes so that
+things like the nfit unit tests, which don't actually sleep, can catch
+bugs like this.
 
-  With a memory allocation test program consuming memory, the system
-  generates swap.
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c   | 3 ++-
+ drivers/nvdimm/claim.c | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-  Operating time of swap_write_page() was measured.
-
-  --------------------------------------------------
-  |             |   operating time   | improvement |
-  |             |  (20 runs average) |             |
-  --------------------------------------------------
-  |with patch   |    1061.15 us      |    +2.4%    |
-  --------------------------------------------------
-  |without patch|    1087.35 us      |             |
-  --------------------------------------------------
-
-  Each test(with paged_io,with BIO) result set shows normal distribution
-  and has equal variance.  I mean the two values are valid result to
-  compare.  I can say operation with paged I/O(without BIO) is faster 2.4%
-  with confidence level 95%.
-
-These patches have passed ext4 and XFS xfstest regression testing with
-a memory mode pmem driver (without DAX), with pmem + btt and with brd.
-
-These patches apply cleanly to the current v4.13-rc2 based linux/master.
-
-[1] https://lists.01.org/pipermail/linux-nvdimm/2017-July/011389.html
-[2] https://www.mail-archive.com/linux-block@vger.kernel.org/msg11170.html
-
-Ross Zwisler (3):
-  btt: remove btt_rw_page()
-  pmem: remove pmem_rw_page()
-  brd: remove brd_rw_page()
-
- drivers/block/brd.c   | 10 ----------
- drivers/nvdimm/btt.c  | 15 ---------------
- drivers/nvdimm/pmem.c | 21 ---------------------
- 3 files changed, 46 deletions(-)
-
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 14323fa..f6ea82f 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1156,7 +1156,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		if (ret)
+ 			goto out_map;
+ 
+-		ret = btt_map_write(arena, premap, new_postmap, 0, 0, 0);
++		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
++			NVDIMM_IO_ATOMIC);
+ 		if (ret)
+ 			goto out_map;
+ 
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index 4777046..3e6404f 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -292,6 +292,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 				&& !(flags & NVDIMM_IO_ATOMIC)) {
+ 			long cleared;
+ 
++			might_sleep();
+ 			cleared = nvdimm_clear_poison(&ndns->dev,
+ 					nsio->res.start + offset, size);
+ 			if (cleared < size)
 -- 
-2.9.4
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
