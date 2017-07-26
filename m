@@ -1,21 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw0-x229.google.com (mail-yw0-x229.google.com
+ [IPv6:2607:f8b0:4002:c05::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D51C821D491BA
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 18:51:03 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 7BFFDAC00B8
- for <linux-nvdimm@lists.01.org>; Thu, 27 Jul 2017 10:52:57 +0900 (JST)
-Date: Thu, 27 Jul 2017 10:52:36 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 259CF21D0918B
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 12:32:28 -0700 (PDT)
+Received: by mail-yw0-x229.google.com with SMTP id l82so35860799ywc.2
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 12:34:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170726175104.GA21677@infradead.org>
+References: <d77f5643-7cd2-8f0f-02b7-118d0305e547@hpe.com>
+ <20170710171649.731E.E1E9C6FF@jp.fujitsu.com>
+ <20170724145040.8409.E1E9C6FF@jp.fujitsu.com>
+ <CAPcyv4hH179pa128Lq9jgBUufO=aS8za48FAj6ZmDR4qVvRxfg@mail.gmail.com>
+ <20170726175104.GA21677@infradead.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 26 Jul 2017 12:34:29 -0700
+Message-ID: <CAPcyv4h_8m+fRBUZB=Qz5A=TG4QNSd4yaDMWMrJbk=BtwHeKRg@mail.gmail.com>
 Subject: Re: Daemon of NVDIMM event notification/monitoring(Re:
  Standardization of ACPI NVDIMM DSMs)
-In-Reply-To: <CAPcyv4gwPA=bOC-3hyp6rGYgwqauAEgd7JY2uHdhnrbs4vW3rw@mail.gmail.com>
-References: <CAPcyv4hH179pa128Lq9jgBUufO=aS8za48FAj6ZmDR4qVvRxfg@mail.gmail.com>
- <CAPcyv4gwPA=bOC-3hyp6rGYgwqauAEgd7JY2uHdhnrbs4vW3rw@mail.gmail.com>
-Message-Id: <20170727105231.091A.E1E9C6FF@jp.fujitsu.com>
-MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,40 +30,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> On Mon, Jul 24, 2017 at 9:11 AM, Dan Williams <dan.j.williams@intel.com> wrote:
-> > On Sun, Jul 23, 2017 at 10:50 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
-> [..]
-> >> d) make a new tiny daemon in ndctl tree
-> >>    This may be simpler way.
-> >>    It can use ndctl_dimm_get_health_eventfd() and poll()/select().
-> >>
-> >>    But, ndctl may be included in kernel source,
-> >>    and I don't know whether kernel includes other daemon tools or not.
-> >
-> > The kernel does include a few daemons in the tools/ directory, so I
-> > don't see this being a problem. Now, that said, Linus still has the
-> > prerogative to not pull ndctl into the kernel for 4.14, but at this
-> > point I feel more likely than not that the next version of ndctl will
-> > be v4.14-rc1 instead of v58.
-> 
-> An update here... upstream would like to see ndctl move away from
-> autotools before it is integrated into the kernel tree, so ndctl v58
-> will be the next release from github. The 4.15 kernel is our next
-> potential intercept.
-> 
+On Wed, Jul 26, 2017 at 10:51 AM, Christoph Hellwig <hch@infradead.org> wrote:
+> Btw, why do you want to pull it into the kernel tree?  All the tools
+> in the kernel tree are a massive pain in the ass to use because it
+> requires a full kernel tree on every test box and VM.  Small little
+> repos that don't have giant churn are a lot easier to deal with.  And
+> also to test for compatibility issues.
+>
+> They also are painful for distributions as they now have to come up
+> with a wrapper to pick the right tool for the right kernel version,
+> which have a tendency to fail if you build your own kernels.
 
-Year. Thanks for your notification.
-I already asked my young co-worker to make a tiny daemon in ndctl.
+I'm mainly motivated to get the tests closer to the test
+infrastructure, and raise the profile to get more contributions from
+other vendors and archs.
 
-Thanks,
-----
-Yasunori Goto
+You're right, the requirement to have a full kernel tree to play with
+the source is a pain. I think that's why we now have the "make
+perf-tar-src-pkg" target so you can pass that around to test boxes and
+VMs. As for compatibility there's no requirement to match ndctl to
+kernel version, it's all auto-detected with fall backs for older
+kernels.
 
-
+However, the pain of moving away from autotools may delay this indefinitely.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
