@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from userp1040.oracle.com (userp1040.oracle.com [156.151.31.81])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C554820958995
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 10:04:19 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 0/5] DAX common 4k zero page
-Date: Mon, 24 Jul 2017 11:06:11 -0600
-Message-Id: <20170724170616.25810-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 08B9C21D09190
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Jul 2017 08:12:42 -0700 (PDT)
+Date: Thu, 27 Jul 2017 18:14:32 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [bug report] libnvdimm: control (ioctl) messages for nvdimm_bus and
+ nvdimm devices
+Message-ID: <20170727151432.kiff55pjm227dycb@mwanda>
+MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,72 +18,121 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, Jonathan Corbet <corbet@lwn.net>, Steven Rostedt <rostedt@goodmis.org>, linux-doc@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v4:
- - Added static __vm_insert_mixed() to mm/memory.c that holds the common
-   code for both vm_insert_mixed() and vm_insert_mixed_mkwrite() so we
-   don't have duplicate code and we don't have to pass boolean flags
-   around.  (Dan & Jan)
+Hello Dan Williams,
 
- - Added a comment for the PFN sanity checking done in the mkwrite case of
-   insert_pfn().
+The patch 62232e45f4a2: "libnvdimm: control (ioctl) messages for
+nvdimm_bus and nvdimm devices" from Jun 8, 2015, leads to the
+following static checker warning:
 
- - Added Jan's reviewed-by tags.
+	drivers/nvdimm/bus.c:1018 __nd_ioctl()
+	warn: integer overflows 'buf_len'
 
-This series has passed a full xfstests run on both XFS and ext4.
+drivers/nvdimm/bus.c
+   959          /* process an input envelope */
+   960          for (i = 0; i < desc->in_num; i++) {
+   961                  u32 in_size, copy;
+   962  
+   963                  in_size = nd_cmd_in_size(nvdimm, cmd, desc, i, in_env);
+   964                  if (in_size == UINT_MAX) {
+   965                          dev_err(dev, "%s:%s unknown input size cmd: %s field: %d\n",
+   966                                          __func__, dimm_name, cmd_name, i);
+   967                          return -ENXIO;
+   968                  }
+   969                  if (in_len < sizeof(in_env))
+   970                          copy = min_t(u32, sizeof(in_env) - in_len, in_size);
+   971                  else
+   972                          copy = 0;
+   973                  if (copy && copy_from_user(&in_env[in_len], p + in_len, copy))
+   974                          return -EFAULT;
+   975                  in_len += in_size;
 
----
 
-When servicing mmap() reads from file holes the current DAX code allocates
-a page cache page of all zeroes and places the struct page pointer in the
-mapping->page_tree radix tree.  This has three major drawbacks:
+>From a casual review, this seems like it might be a real bug.  On the
+first iteration we load some data into in_env[].  On the second
+iteration we read a use controlled "in_size" from nd_cmd_in_size().  It
+can go up to UINT_MAX - 1.  A high number means we will fill the whole
+in_env[] buffer.  But we potentially keep looping and adding more to
+in_len so now it can be any value.
 
-1) It consumes memory unnecessarily.  For every 4k page that is read via a
-DAX mmap() over a hole, we allocate a new page cache page.  This means that
-if you read 1GiB worth of pages, you end up using 1GiB of zeroed memory.
+It simple enough to change:
 
-2) It is slower than using a common zero page because each page fault has
-more work to do.  Instead of just inserting a common zero page we have to
-allocate a page cache page, zero it, and then insert it.
+-			in_len += in_size;
++			in_len += copy;
 
-3) The fact that we had to check for both DAX exceptional entries and for
-page cache pages in the radix tree made the DAX code more complex.
+But it feels weird that we keep looping even though in_env is totally
+full.  Shouldn't we just return an error if we don't have space for
+desc->in_num.
 
-This series solves these issues by following the lead of the DAX PMD code
-and using a common 4k zero page instead.  This reduces memory usage and
-decreases latencies for some workloads, and it simplifies the DAX code,
-removing over 100 lines in total.
+   976          }
+   977  
+   978          if (cmd == ND_CMD_CALL) {
+   979                  func = pkg.nd_command;
+   980                  dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
+   981                                  __func__, dimm_name, pkg.nd_command,
+   982                                  in_len, out_len, buf_len);
+   983  
+   984                  for (i = 0; i < ARRAY_SIZE(pkg.nd_reserved2); i++)
+   985                          if (pkg.nd_reserved2[i])
+   986                                  return -EINVAL;
+   987          }
+   988  
+   989          /* process an output envelope */
+   990          for (i = 0; i < desc->out_num; i++) {
+   991                  u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
+   992                                  (u32 *) in_env, (u32 *) out_env, 0);
+   993                  u32 copy;
+   994  
+   995                  if (out_size == UINT_MAX) {
+   996                          dev_dbg(dev, "%s:%s unknown output size cmd: %s field: %d\n",
+   997                                          __func__, dimm_name, cmd_name, i);
+   998                          return -EFAULT;
+   999                  }
+  1000                  if (out_len < sizeof(out_env))
+  1001                          copy = min_t(u32, sizeof(out_env) - out_len, out_size);
+  1002                  else
+  1003                          copy = 0;
+  1004                  if (copy && copy_from_user(&out_env[out_len],
+  1005                                          p + in_len + out_len, copy))
+  1006                          return -EFAULT;
+  1007                  out_len += out_size;
 
-Ross Zwisler (5):
-  mm: add vm_insert_mixed_mkwrite()
-  dax: relocate some dax functions
-  dax: use common 4k zero page for dax mmap reads
-  dax: remove DAX code from page_cache_tree_insert()
-  dax: move all DAX radix tree defs to fs/dax.c
+Same thing.
 
- Documentation/filesystems/dax.txt |   5 +-
- fs/dax.c                          | 345 ++++++++++++++++----------------------
- fs/ext2/file.c                    |  25 +--
- fs/ext4/file.c                    |  32 +---
- fs/xfs/xfs_file.c                 |   2 +-
- include/linux/dax.h               |  45 -----
- include/linux/mm.h                |   2 +
- include/trace/events/fs_dax.h     |   2 -
- mm/filemap.c                      |  13 +-
- mm/memory.c                       |  50 +++++-
- 10 files changed, 196 insertions(+), 325 deletions(-)
+  1008          }
+  1009  
+  1010          buf_len = out_len + in_len;
 
--- 
-2.9.4
+It means this addition could overflow.
 
+  1011          if (buf_len > ND_IOCTL_MAX_BUFLEN) {
+  1012                  dev_dbg(dev, "%s:%s cmd: %s buf_len: %zu > %d\n", __func__,
+  1013                                  dimm_name, cmd_name, buf_len,
+  1014                                  ND_IOCTL_MAX_BUFLEN);
+  1015                  return -EINVAL;
+  1016          }
+  1017  
+  1018          buf = vmalloc(buf_len);
+                              ^^^^^^^
+The checker complains we might allocate less than intended.
+
+  1019          if (!buf)
+  1020                  return -ENOMEM;
+  1021  
+  1022          if (copy_from_user(buf, p, buf_len)) {
+  1023                  rc = -EFAULT;
+  1024                  goto out;
+  1025          }
+
+regards,
+dan carpenter
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
