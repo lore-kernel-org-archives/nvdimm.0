@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 450762193B80C
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jul 2017 10:04:25 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B12C821E25702
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Jul 2017 14:55:56 -0700 (PDT)
+Date: Thu, 27 Jul 2017 15:57:57 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 5/5] dax: move all DAX radix tree defs to fs/dax.c
-Date: Mon, 24 Jul 2017 11:06:16 -0600
-Message-Id: <20170724170616.25810-6-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170724170616.25810-1-ross.zwisler@linux.intel.com>
-References: <20170724170616.25810-1-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 1/7] mm: Remove VM_FAULT_HWPOISON_LARGE_MASK
+Message-ID: <20170727215757.GB22000@linux.intel.com>
+References: <20170727131245.28279-1-jack@suse.cz>
+ <20170727131245.28279-2-jack@suse.cz>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170727131245.28279-2-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,135 +20,20 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, Jonathan Corbet <corbet@lwn.net>, Steven Rostedt <rostedt@goodmis.org>, linux-doc@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that we no longer insert struct page pointers in DAX radix trees the
-page cache code no longer needs to know anything about DAX exceptional
-entries.  Move all the DAX exceptional entry definitions from dax.h to
-fs/dax.c.
+On Thu, Jul 27, 2017 at 03:12:39PM +0200, Jan Kara wrote:
+> It is unused.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c            | 34 ++++++++++++++++++++++++++++++++++
- include/linux/dax.h | 41 -----------------------------------------
- 2 files changed, 34 insertions(+), 41 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index a0484a1..75760f7 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -54,6 +54,40 @@ static int __init init_dax_wait_table(void)
- }
- fs_initcall(init_dax_wait_table);
- 
-+/*
-+ * We use lowest available bit in exceptional entry for locking, one bit for
-+ * the entry size (PMD) and two more to tell us if the entry is a zero page or
-+ * an empty entry that is just used for locking.  In total four special bits.
-+ *
-+ * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
-+ * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
-+ * block allocation.
-+ */
-+#define RADIX_DAX_SHIFT		(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
-+#define RADIX_DAX_ENTRY_LOCK	(1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
-+#define RADIX_DAX_PMD		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
-+#define RADIX_DAX_ZERO_PAGE	(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
-+#define RADIX_DAX_EMPTY		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
-+
-+static unsigned long dax_radix_sector(void *entry)
-+{
-+	return (unsigned long)entry >> RADIX_DAX_SHIFT;
-+}
-+
-+static void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
-+{
-+	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
-+			((unsigned long)sector << RADIX_DAX_SHIFT) |
-+			RADIX_DAX_ENTRY_LOCK);
-+}
-+
-+static unsigned int dax_radix_order(void *entry)
-+{
-+	if ((unsigned long)entry & RADIX_DAX_PMD)
-+		return PMD_SHIFT - PAGE_SHIFT;
-+	return 0;
-+}
-+
- static int dax_is_pmd_entry(void *entry)
- {
- 	return (unsigned long)entry & RADIX_DAX_PMD;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index afa99bb..d0e3272 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -88,33 +88,6 @@ void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t size);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- 
--/*
-- * We use lowest available bit in exceptional entry for locking, one bit for
-- * the entry size (PMD) and two more to tell us if the entry is a zero page or
-- * an empty entry that is just used for locking.  In total four special bits.
-- *
-- * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
-- * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
-- * block allocation.
-- */
--#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
--#define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
--#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
--#define RADIX_DAX_ZERO_PAGE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
--#define RADIX_DAX_EMPTY (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
--
--static inline unsigned long dax_radix_sector(void *entry)
--{
--	return (unsigned long)entry >> RADIX_DAX_SHIFT;
--}
--
--static inline void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
--{
--	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
--			((unsigned long)sector << RADIX_DAX_SHIFT) |
--			RADIX_DAX_ENTRY_LOCK);
--}
--
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		const struct iomap_ops *ops);
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
-@@ -136,20 +109,6 @@ static inline int __dax_zero_page_range(struct block_device *bdev,
- }
- #endif
- 
--#ifdef CONFIG_FS_DAX_PMD
--static inline unsigned int dax_radix_order(void *entry)
--{
--	if ((unsigned long)entry & RADIX_DAX_PMD)
--		return PMD_SHIFT - PAGE_SHIFT;
--	return 0;
--}
--#else
--static inline unsigned int dax_radix_order(void *entry)
--{
--	return 0;
--}
--#endif
--
- static inline bool dax_mapping(struct address_space *mapping)
- {
- 	return mapping->host && IS_DAX(mapping->host);
--- 
-2.9.4
-
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
