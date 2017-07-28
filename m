@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A3DA421D49C81
- for <linux-nvdimm@lists.01.org>; Sat, 29 Jul 2017 03:47:30 -0700 (PDT)
-Date: Sat, 29 Jul 2017 18:49:33 +0800
-From: Haozhong Zhang <haozhong.zhang@intel.com>
+Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 6FC4B21D49C82
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Jul 2017 13:17:37 -0700 (PDT)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: QEMU NVDIMM as type 7 in e820 table
-Message-ID: <20170729104933.zlsn7asawltzlfbx@hz-desktop>
+Date: Fri, 28 Jul 2017 20:19:15 +0000
+Message-ID: <1501272590.2042.91.camel@hpe.com>
 References: <20170728180446.GA31104@linux.intel.com>
  <CAPcyv4i5YWK6RHYEkH6C1oPWwhPLOD-atmkMVXDXc-qdv_0hgw@mail.gmail.com>
  <20170728194543.GA20726@linux.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
 In-Reply-To: <20170728194543.GA20726@linux.intel.com>
+Content-Language: en-US
+Content-ID: <75AF5876A80935459CC26B6A26E3417D@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,111 +22,42 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Xiao Guangrong <guangrong.xiao@gmail.com>, Igor Mammedov <imammedo@redhat.com>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "stefanha@gmail.com" <stefanha@gmail.com>, "mst@redhat.com" <mst@redhat.com>, "qemu-devel@nongnu.org" <qemu-devel@nongnu.org>, "guangrong.xiao@gmail.com" <guangrong.xiao@gmail.com>, "imammedo@redhat.com" <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 07/28/17 13:45 -0600, Ross Zwisler wrote:
-> On Fri, Jul 28, 2017 at 11:11:10AM -0700, Dan Williams wrote:
-> > On Fri, Jul 28, 2017 at 11:04 AM, Ross Zwisler
-> > <ross.zwisler@linux.intel.com> wrote:
-> > > I've been using the virtualized NVDIMM support in QEMU for testing, and I
-> > > noticed that the physical addresses used by the virtual NVDIMMs aren't present
-> > > in the guest's e820 table.
-> > >
-> > > Here is the e820 table on my QEMU instance where I have one 32 GiB virtual
-> > > NVDIMM:
-> > >
-> > > [    0.000000] e820: BIOS-provided physical RAM map:
-> > > [    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
-> > > [    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x0000000000100000-0x00000000bffdefff] usable
-> > > [    0.000000] BIOS-e820: [mem 0x00000000bffdf000-0x00000000bfffffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x00000000feffc000-0x00000000feffffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x0000000100000000-0x000000023fffffff] usable
-> > >
-> > > The physical addresses used by the virtual NVDIMM are 0x240000000-0xA40000000.
-> > > You can see this by looking at ndctl and the values we get from the NFIT:
-> > >
-> > > # ndctl list -R
-> > > {
-> > >   "dev":"region0",
-> > >   "size":34359738368,
-> > >   "available_size":0,
-> > >   "type":"pmem"
-> > > }
-> > >
-> > > # grep . /sys/bus/nd/devices/region0/{resource,size}
-> > > region0/resource:0x240000000
-> > > region0/size:34359738368
-> > >
-> > > Or you can see the same info by using iasl to dump
-> > > /sys/firmware/acpi/tables/NFIT:
-> > >
-> > > [028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
-> > > [02Ah 0042   2]                       Length : 0038
-> > >
-> > > [02Ch 0044   2]                  Range Index : 0002
-> > > [02Eh 0046   2]        Flags (decoded below) : 0003
-> > >                    Add/Online Operation Only : 1
-> > >                       Proximity Domain Valid : 1
-> > > [030h 0048   4]                     Reserved : 00000000
-> > > [034h 0052   4]             Proximity Domain : 00000000
-> > > [038h 0056  16]           Address Range GUID : 66F0D379-B4F3-4074-AC43-0D3318B78CDB
-> > > [048h 0072   8]           Address Range Base : 0000000240000000
-> > > [050h 0080   8]         Address Range Length : 0000000800000000
-> > > [058h 0088   8]         Memory Map Attribute : 0000000000008008
-> > >
-> > > I expected to see a type 7 region for the NVDIMM physical address range in the
-> > > e820 table, so something like:
-> > >
-> > > [    0.000000] e820: BIOS-provided physical RAM map:
-> > > [    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
-> > > [    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x0000000000100000-0x00000000bffdefff] usable
-> > > [    0.000000] BIOS-e820: [mem 0x00000000bffdf000-0x00000000bfffffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x00000000feffc000-0x00000000feffffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
-> > > [    0.000000] BIOS-e820: [mem 0x0000000100000000-0x000000023fffffff] usable
-> > > [    0.000000] BIOS-e820: [mem 0x0000000240000000-0x0000000A40000000] persistent (type 7)
-> > >
-> > 
-> > Do you need that informationin e820? Linux effectively ignores type-7.
-> > As long as the range is treated as reserved it's not clear that you
-> > need the e820 entry. We also infect the persistent type back into the
-> > memory map when the NFIT driver loads. /proc/iomem should show the
-> > right data.
-> 
-> [ Adding Linda & Toshi to see if they have an opinion. ]
-> 
-> I guess maybe we don't need it.  Yep, /proc/iomem looks good:
-> 
->   # cat /proc/iomem
->   00000000-00000fff : Reserved
->   00001000-0009fbff : System RAM
->   ...
->   100000000-23fffffff : System RAM
->   240000000-a3fffffff : Persistent Memory
->     240000000-a3fffffff : namespace0.0
-> 
-> I was just worried that this was an inconsistency between the way that virtual
-> NVDIMMs are presented vs the way that they will be presented on bare metal.  I
-> at least look at the e820 table to get my bearings of how memory is laid out -
-> maybe I just need to look at /proc/iomem instead?
-
-Do any OS or applications rely on the E820 information or the
-consistency between E820 and NFIT to properly work? If any, I can make
-a QEMU patch to build type-7 e820 entries.
-
-Haozhong
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE3LTA3LTI4IGF0IDEzOjQ1IC0wNjAwLCBSb3NzIFp3aXNsZXIgd3JvdGU6DQo+
+IE9uIEZyaSwgSnVsIDI4LCAyMDE3IGF0IDExOjExOjEwQU0gLTA3MDAsIERhbiBXaWxsaWFtcyB3
+cm90ZToNCj4gPiBPbiBGcmksIEp1bCAyOCwgMjAxNyBhdCAxMTowNCBBTSwgUm9zcyBad2lzbGVy
+DQo+ID4gPHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+IHdyb3RlOg0KIDoNCj4gPiBEbyB5
+b3UgbmVlZCB0aGF0IGluZm9ybWF0aW9uaW4gZTgyMD8gTGludXggZWZmZWN0aXZlbHkgaWdub3Jl
+cw0KPiA+IHR5cGUtNy4gQXMgbG9uZyBhcyB0aGUgcmFuZ2UgaXMgdHJlYXRlZCBhcyByZXNlcnZl
+ZCBpdCdzIG5vdCBjbGVhcg0KPiA+IHRoYXQgeW91IG5lZWQgdGhlIGU4MjAgZW50cnkuIFdlIGFs
+c28gaW5mZWN0IHRoZSBwZXJzaXN0ZW50IHR5cGUNCj4gPiBiYWNrIGludG8gdGhlIG1lbW9yeSBt
+YXAgd2hlbiB0aGUgTkZJVCBkcml2ZXIgbG9hZHMuIC9wcm9jL2lvbWVtDQo+ID4gc2hvdWxkIHNo
+b3cgdGhlIHJpZ2h0IGRhdGEuDQo+IA0KPiBbIEFkZGluZyBMaW5kYSAmIFRvc2hpIHRvIHNlZSBp
+ZiB0aGV5IGhhdmUgYW4gb3Bpbmlvbi4gXQ0KPiANCj4gSSBndWVzcyBtYXliZSB3ZSBkb24ndCBu
+ZWVkIGl0LsKgwqBZZXAsIC9wcm9jL2lvbWVtIGxvb2tzIGdvb2Q6DQo+IA0KPiDCoCAjIGNhdCAv
+cHJvYy9pb21lbQ0KPiDCoCAwMDAwMDAwMC0wMDAwMGZmZiA6IFJlc2VydmVkDQo+IMKgIDAwMDAx
+MDAwLTAwMDlmYmZmIDogU3lzdGVtIFJBTQ0KPiDCoCAuLi4NCj4gwqAgMTAwMDAwMDAwLTIzZmZm
+ZmZmZiA6IFN5c3RlbSBSQU0NCj4gwqAgMjQwMDAwMDAwLWEzZmZmZmZmZiA6IFBlcnNpc3RlbnQg
+TWVtb3J5DQo+IMKgwqDCoMKgMjQwMDAwMDAwLWEzZmZmZmZmZiA6IG5hbWVzcGFjZTAuMA0KPiAN
+Cj4gSSB3YXMganVzdCB3b3JyaWVkIHRoYXQgdGhpcyB3YXMgYW4gaW5jb25zaXN0ZW5jeSBiZXR3
+ZWVuIHRoZSB3YXkNCj4gdGhhdCB2aXJ0dWFsIE5WRElNTXMgYXJlIHByZXNlbnRlZCB2cyB0aGUg
+d2F5IHRoYXQgdGhleSB3aWxsIGJlDQo+IHByZXNlbnRlZCBvbiBiYXJlIG1ldGFsLsKgwqBJIGF0
+IGxlYXN0IGxvb2sgYXQgdGhlIGU4MjAgdGFibGUgdG8gZ2V0IG15DQo+IGJlYXJpbmdzIG9mIGhv
+dyBtZW1vcnkgaXMgbGFpZCBvdXQgLSBtYXliZSBJIGp1c3QgbmVlZCB0byBsb29rIGF0DQo+IC9w
+cm9jL2lvbWVtIGluc3RlYWQ/DQoNCkZXIHNob3VsZCBwcmVzZW50IGEgcGVyc2lzdGVudCBtZW1v
+cnkgcmFuZ2UgaW4gZTgyMCBvciBVRUZJIG1lbW9yeQ0KZGVzY3JpcHRvciB0YWJsZS4gIFNvLCBp
+dCdzIGEgZ29vZCBwcmFjdGljZSBmb3IgUUVNVSB0byBkbyBpdCBhcyB3ZWxsLg0KDQpUaGF0IHNh
+aWQsIHRoZSBORklUIGRyaXZlciBpbnNlcnRzIGEgcGVyc2lzdGVudCBtZW1vcnkgcmFuZ2UgdG8g
+dGhlDQprZXJuZWwgSU8gcmVzb3VyY2UgdGFibGUgZnJvbSBORklULCBzbyB3ZSBhcmUgT0sgd2l0
+aG91dCB0aGlzIGluZm8uIA0KWWVzLCAvcHJvYy9pb21lbSBzaG93cyBob3cgdGhlIHJlc291cmNl
+cyBhcmUgbWFuYWdlZCBieSB0aGUga2VybmVsLg0KDQpUaGFua3MsDQotVG9zaGkNCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
