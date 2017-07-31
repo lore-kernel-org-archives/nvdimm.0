@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 01AE621E1DB21
- for <linux-nvdimm@lists.01.org>; Sat, 29 Jul 2017 12:47:54 -0700 (PDT)
-Subject: [PATCH 1/3] fs, xfs: introduce S_IOMAP_IMMUTABLE
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 29 Jul 2017 12:43:35 -0700
-Message-ID: <150135741519.35318.16765137368329971936.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150135740948.35318.10730072114996910905.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150135740948.35318.10730072114996910905.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B1F2421D491AA
+ for <linux-nvdimm@lists.01.org>; Mon, 31 Jul 2017 15:23:23 -0700 (PDT)
+Subject: [PATCH 5/5] libnvdimm: add DMA support for pmem blk-mq
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 31 Jul 2017 15:24:46 -0700
+Message-ID: <150153988620.49768.12914164179718467335.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150153948477.49768.5767882242140065474.stgit@djiang5-desk3.ch.intel.com>
+References: <150153948477.49768.5767882242140065474.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,166 +22,350 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-An inode with this flag set indicates that the file's block map cannot
-be changed, no size change, deletion, hole-punch, range collapse, or
-reflink.
+Adding DMA support for pmem blk reads. This provides signficant CPU
+reduction with large memory reads with good performance. DMAs are triggered
+with test against bio_multiple_segment(), so the small I/Os (4k or less?)
+are still performed by the CPU in order to reduce latency. By default
+the pmem driver will be using blk-mq with DMA.
 
-The implementation of toggling the flag and sealing the state of the
-extent map is saved for a later patch. The functionality provided by
-S_IOMAP_IMMUTABLE, once toggle support is added, will be a superset of
-that provided by S_SWAPFILE, and it is targeted to replace it.
+Numbers below are measured against pmem simulated via DRAM using
+memmap=NN!SS.  DMA engine used is the ioatdma on Intel Skylake Xeon
+platform.  Keep in mind the performance for actual persistent memory
+will differ.
+Fio 2.21 was used.
 
-For now, only xfs and the core vfs are updated to consider the new flag.
+64k: 1 task queuedepth=1
+CPU Read:  7631 MB/s  99.7% CPU    DMA Read: 2415 MB/s  54% CPU
+CPU Write: 3552 MB/s  100% CPU     DMA Write 2173 MB/s  54% CPU
 
-The additional check that is added for this flag, beyond what we are
-already doing for swapfiles, is to truncate or abort writes that try to
-extend the file size.
+64k: 16 tasks queuedepth=16
+CPU Read: 36800 MB/s  1593% CPU    DMA Read:  29100 MB/s  607% CPU
+CPU Write 20900 MB/s  1589% CPU    DMA Write: 23400 MB/s  585% CPU
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Suggested-by: "Darrick J. Wong" <darrick.wong@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+2M: 1 task queuedepth=1
+CPU Read:  6013 MB/s  99.3% CPU    DMA Read:  7986 MB/s  59.3% CPU
+CPU Write: 3579 MB/s  100% CPU     DMA Write: 5211 MB/s  58.3% CPU
+
+2M: 16 tasks queuedepth=16
+CPU Read:  18100 MB/s 1588% CPU    DMA Read:  21300 MB/s 180.9% CPU
+CPU Write: 14100 MB/s 1594% CPU    DMA Write: 20400 MB/s 446.9% CPU
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/attr.c          |   10 ++++++++++
- fs/namei.c         |    3 ++-
- fs/open.c          |    6 ++++++
- fs/read_write.c    |    3 +++
- fs/xfs/xfs_ioctl.c |    6 ++++++
- include/linux/fs.h |    2 ++
- mm/filemap.c       |    9 +++++++++
- 7 files changed, 38 insertions(+), 1 deletion(-)
+ drivers/nvdimm/pmem.c |  225 +++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 208 insertions(+), 17 deletions(-)
 
-diff --git a/fs/attr.c b/fs/attr.c
-index 135304146120..8573e364bd06 100644
---- a/fs/attr.c
-+++ b/fs/attr.c
-@@ -112,6 +112,16 @@ EXPORT_SYMBOL(setattr_prepare);
-  */
- int inode_newsize_ok(const struct inode *inode, loff_t offset)
- {
-+	if (IS_IOMAP_IMMUTABLE(inode)) {
-+		/*
-+		 * Any size change is disallowed. Size increases may
-+		 * dirty metadata that an application is not prepared to
-+		 * sync, and a size decrease may expose free blocks to
-+		 * in-flight DMA.
-+		 */
-+		return -ETXTBSY;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 347835b..02ca9f0 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -32,6 +32,8 @@
+ #include <linux/dax.h>
+ #include <linux/nd.h>
+ #include <linux/blk-mq.h>
++#include <linux/dmaengine.h>
++#include <linux/dma-mapping.h>
+ #include "pmem.h"
+ #include "pfn.h"
+ #include "nd.h"
+@@ -41,12 +43,24 @@ enum {
+ 	PMEM_Q_MQ = 1,
+ };
+ 
+-static int queue_mode = PMEM_Q_BIO;
++static int queue_mode = PMEM_Q_MQ;
+ module_param(queue_mode, int, 0444);
+ MODULE_PARM_DESC(queue_mode, "Pmem Queue Mode");
+ 
++static int queue_depth = 128;
++module_param(queue_depth, int, 0444);
++MODULE_PARM_DESC(queue_depth, "I/O Queue Depth for multi queue mode");
++
++/* typically maps to number of DMA channels/devices per socket */
++static int q_per_node = 8;
++module_param(q_per_node, int, 0444);
++MODULE_PARM_DESC(q_per_node, "Hardware queues per node\n");
++
+ struct pmem_cmd {
+ 	struct request *rq;
++	struct dma_chan *chan;
++	int sg_nents;
++	struct scatterlist sg[];
+ };
+ 
+ static struct device *to_dev(struct pmem_device *pmem)
+@@ -276,6 +290,160 @@ static void pmem_release_disk(void *__pmem)
+ 	put_disk(pmem->disk);
+ }
+ 
++static void nd_pmem_dma_callback(void *data,
++		const struct dmaengine_result *res)
++{
++	struct pmem_cmd *cmd = data;
++	struct request *req = cmd->rq;
++	struct request_queue *q = req->q;
++	struct pmem_device *pmem = q->queuedata;
++	struct nd_region *nd_region = to_region(pmem);
++	struct device *dev = to_dev(pmem);
++	int rc = 0;
++
++	dev_dbg(dev, "%s()\n", __func__);
++
++	if (res) {
++		enum dmaengine_tx_result dma_err = res->result;
++
++		switch (dma_err) {
++		case DMA_TRANS_READ_FAILED:
++		case DMA_TRANS_WRITE_FAILED:
++		case DMA_TRANS_ABORTED:
++			dev_dbg(dev, "bio failed\n");
++			rc = -ENXIO;
++			break;
++		case DMA_TRANS_NOERROR:
++		default:
++			break;
++		}
 +	}
 +
- 	if (inode->i_size < offset) {
- 		unsigned long limit;
- 
-diff --git a/fs/namei.c b/fs/namei.c
-index ddb6a7c2b3d4..588f1135c42c 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -2793,7 +2793,8 @@ static int may_delete(struct inode *dir, struct dentry *victim, bool isdir)
- 		return -EPERM;
- 
- 	if (check_sticky(dir, inode) || IS_APPEND(inode) ||
--	    IS_IMMUTABLE(inode) || IS_SWAPFILE(inode) || HAS_UNMAPPED_ID(inode))
-+	    IS_IMMUTABLE(inode) || IS_SWAPFILE(inode) || HAS_UNMAPPED_ID(inode)
-+	    || IS_IOMAP_IMMUTABLE(inode))
- 		return -EPERM;
- 	if (isdir) {
- 		if (!d_is_dir(victim))
-diff --git a/fs/open.c b/fs/open.c
-index 35bb784763a4..7395860d7164 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -292,6 +292,12 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
- 		return -ETXTBSY;
- 
- 	/*
-+	 * We cannot allow any allocation changes on an iomap immutable file
-+	 */
-+	if (IS_IOMAP_IMMUTABLE(inode))
-+		return -ETXTBSY;
++	if (req->cmd_flags & REQ_FUA)
++		nvdimm_flush(nd_region);
++
++	dev_dbg(dev, "ending request\n");
++	blk_mq_end_request(cmd->rq, rc);
++}
++
++static int pmem_handle_cmd_dma(struct pmem_cmd *cmd, bool is_write)
++{
++	struct request *req = cmd->rq;
++	struct request_queue *q = req->q;
++	struct pmem_device *pmem = q->queuedata;
++	struct device *dev = to_dev(pmem);
++	phys_addr_t pmem_off = blk_rq_pos(req) * 512 + pmem->data_offset;
++	void *pmem_addr = pmem->virt_addr + pmem_off;
++	struct nd_region *nd_region = to_region(pmem);
++	size_t len;
++	struct dma_device *dma = cmd->chan->device;
++	struct dmaengine_unmap_data *unmap;
++	dma_cookie_t cookie;
++	struct dma_async_tx_descriptor *txd;
++	struct page *page;
++	unsigned int off;
++	int rc;
++	enum dma_data_direction dir;
++	dma_addr_t dma_addr;
++
++	if (req->cmd_flags & REQ_FLUSH)
++		nvdimm_flush(nd_region);
++
++	unmap = dmaengine_get_unmap_data(dma->dev, 2, GFP_NOWAIT);
++	if (!unmap) {
++		dev_dbg(dev, "failed to get dma unmap data\n");
++		rc = -ENOMEM;
++		goto err;
++	}
 +
 +	/*
- 	 * Revalidate the write permissions, in case security policy has
- 	 * changed since the files were opened.
- 	 */
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 0cc7033aa413..dc673be7c7cb 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1706,6 +1706,9 @@ int vfs_clone_file_prep_inodes(struct inode *inode_in, loff_t pos_in,
- 	if (IS_SWAPFILE(inode_in) || IS_SWAPFILE(inode_out))
- 		return -ETXTBSY;
- 
-+	if (IS_IOMAP_IMMUTABLE(inode_in) || IS_IOMAP_IMMUTABLE(inode_out))
-+		return -ETXTBSY;
++	 * If reading from pmem, writing to scatterlist,
++	 * and if writing to pmem, reading from scatterlist.
++	 */
++	dir = is_write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	cmd->sg_nents = blk_rq_map_sg(req->q, req, cmd->sg);
++	if (cmd->sg_nents < 1) {
++		rc = -EINVAL;
++		goto err;
++	}
 +
- 	/* Don't reflink dirs, pipes, sockets... */
- 	if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
- 		return -EISDIR;
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index e75c40a47b7d..2e64488bc4de 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1755,6 +1755,12 @@ xfs_ioc_swapext(
- 		goto out_put_tmp_file;
++	if (cmd->sg_nents > 128) {
++		rc = -ENOMEM;
++		dev_warn(dev, "Number of sg greater than allocated\n");
++		goto err;
++	}
++
++	rc = dma_map_sg(dma->dev, cmd->sg, cmd->sg_nents, dir);
++	if (rc < 1) {
++		rc = -ENXIO;
++		goto err;
++	}
++
++	len = blk_rq_payload_bytes(req);
++	page = virt_to_page(pmem_addr);
++	off = (u64)pmem_addr & ~PAGE_MASK;
++	dir = is_write ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
++	dma_addr = dma_map_page(dma->dev, page, off, len, dir);
++	if (dma_mapping_error(dma->dev, unmap->addr[0])) {
++		dev_dbg(dma->dev, "src DMA mapping error\n");
++		goto err_unmap_sg;
++	}
++
++	unmap->len = len;
++
++	if (is_write) {
++		unmap->addr[0] = dma_addr;
++		unmap->addr[1] = (dma_addr_t)cmd->sg;
++		unmap->to_cnt = 1;
++		unmap->from_cnt = 0;
++		dma_unmap_data_sg_from_nents(unmap, 2) = cmd->sg_nents;
++		txd = dma->device_prep_dma_memcpy_from_sg(cmd->chan, dma_addr,
++				cmd->sg, cmd->sg_nents, DMA_PREP_INTERRUPT);
++	} else {
++		unmap->addr[0] = (dma_addr_t)cmd->sg;
++		unmap->addr[1] = dma_addr;
++		unmap->from_cnt = 1;
++		unmap->to_cnt = 0;
++		dma_unmap_data_sg_to_nents(unmap, 2) = cmd->sg_nents;
++		txd = dma->device_prep_dma_memcpy_to_sg(cmd->chan, cmd->sg,
++			cmd->sg_nents, dma_addr, DMA_PREP_INTERRUPT);
++	}
++
++	if (!txd) {
++		dev_dbg(dma->dev, "dma prep failed\n");
++		goto err_unmap_buffer;
++	}
++
++	txd->callback_result = nd_pmem_dma_callback;
++	txd->callback_param = cmd;
++	dma_set_unmap(txd, unmap);
++	cookie = dmaengine_submit(txd);
++	if (dma_submit_error(cookie)) {
++		dev_dbg(dma->dev, "dma submit error\n");
++		goto err_set_unmap;
++	}
++
++	dmaengine_unmap_put(unmap);
++	dma_async_issue_pending(cmd->chan);
++
++	return 0;
++
++err_set_unmap:
++	dmaengine_unmap_put(unmap);
++err_unmap_buffer:
++	dma_unmap_page(dev, dma_addr, len, dir);
++err_unmap_sg:
++	if (dir == DMA_TO_DEVICE)
++		dir = DMA_FROM_DEVICE;
++	else
++		dir = DMA_TO_DEVICE;
++	dma_unmap_sg(dev, cmd->sg, cmd->sg_nents, dir);
++	dmaengine_unmap_put(unmap);
++err:
++	blk_mq_end_request(cmd->rq, -ENXIO);
++	return -ENXIO;
++}
++
+ static int pmem_handle_cmd(struct pmem_cmd *cmd)
+ {
+ 	struct request *req = cmd->rq;
+@@ -309,13 +477,17 @@ static int pmem_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 		const struct blk_mq_queue_data *bd)
+ {
+ 	struct pmem_cmd *cmd = blk_mq_rq_to_pdu(bd->rq);
++	struct request *req;
+ 	int rc;
+ 
+-	cmd->rq = bd->rq;
+-
+-	blk_mq_start_request(bd->rq);
++	req = cmd->rq = bd->rq;
++	cmd->chan = dma_find_channel(DMA_MEMCPY);
++	blk_mq_start_request(req);
+ 
+-	rc = pmem_handle_cmd(cmd);
++	if (cmd->chan && bio_multiple_segments(req->bio))
++		rc = pmem_handle_cmd_dma(cmd, op_is_write(req_op(req)));
++	else
++		rc = pmem_handle_cmd(cmd);
+ 	if (rc < 0)
+ 		rc = BLK_MQ_RQ_QUEUE_ERROR;
+ 	else
+@@ -348,10 +520,10 @@ static int pmem_attach_disk(struct device *dev,
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct pmem_device *pmem;
+ 	struct resource pfn_res;
+-	struct request_queue *q;
+ 	struct gendisk *disk;
+ 	void *addr;
+ 	int rc;
++	struct dma_chan *chan;
+ 
+ 	/* while nsio_rw_bytes is active, parse a pfn info block if present */
+ 	if (is_nd_pfn(dev)) {
+@@ -381,11 +553,20 @@ static int pmem_attach_disk(struct device *dev,
  	}
  
-+	if (IS_IOMAP_IMMUTABLE(file_inode(f.file)) ||
-+	    IS_IOMAP_IMMUTABLE(file_inode(tmp.file))) {
-+		error = -EINVAL;
-+		goto out_put_tmp_file;
+ 	if (queue_mode == PMEM_Q_MQ) {
++		chan = dma_find_channel(DMA_MEMCPY);
++		if (!chan) {
++			queue_mode = PMEM_Q_BIO;
++			dev_warn(dev, "Forced back to PMEM_Q_BIO, no DMA\n");
++		}
 +	}
 +
- 	/*
- 	 * We need to ensure that the fds passed in point to XFS inodes
- 	 * before we cast and access them as XFS structures as we have no
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 6e1fd5d21248..0a254b768855 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1829,6 +1829,7 @@ struct super_operations {
- #else
- #define S_DAX		0	/* Make all the DAX code disappear */
- #endif
-+#define S_IOMAP_IMMUTABLE 16384 /* logical-to-physical extent map is fixed */
++	if (queue_mode == PMEM_Q_MQ) {
+ 		pmem->tag_set.ops = &pmem_mq_ops;
+-		pmem->tag_set.nr_hw_queues = nr_online_nodes;
+-		pmem->tag_set.queue_depth = 64;
++		pmem->tag_set.nr_hw_queues = nr_online_nodes * q_per_node;
++		pmem->tag_set.queue_depth = queue_depth;
+ 		pmem->tag_set.numa_node = dev_to_node(dev);
+-		pmem->tag_set.cmd_size = sizeof(struct pmem_cmd);
++		pmem->tag_set.cmd_size = sizeof(struct pmem_cmd) +
++			sizeof(struct scatterlist) * 128;
+ 		pmem->tag_set.flags = BLK_MQ_F_SHOULD_MERGE;
+ 		pmem->tag_set.driver_data = pmem;
  
- /*
-  * Note that nosuid etc flags are inode-specific: setting some file-system
-@@ -1867,6 +1868,7 @@ struct super_operations {
- #define IS_AUTOMOUNT(inode)	((inode)->i_flags & S_AUTOMOUNT)
- #define IS_NOSEC(inode)		((inode)->i_flags & S_NOSEC)
- #define IS_DAX(inode)		((inode)->i_flags & S_DAX)
-+#define IS_IOMAP_IMMUTABLE(inode) ((inode)->i_flags & S_IOMAP_IMMUTABLE)
+@@ -446,14 +627,17 @@ static int pmem_attach_disk(struct device *dev,
+ 		return PTR_ERR(addr);
+ 	pmem->virt_addr = addr;
  
- #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
- 				 (inode)->i_rdev == WHITEOUT_DEV)
-diff --git a/mm/filemap.c b/mm/filemap.c
-index a49702445ce0..e4a6529da2bd 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -2806,6 +2806,15 @@ inline ssize_t generic_write_checks(struct kiocb *iocb, struct iov_iter *from)
- 	if (unlikely(pos >= inode->i_sb->s_maxbytes))
- 		return -EFBIG;
+-	blk_queue_write_cache(q, true, true);
+-	blk_queue_make_request(q, pmem_make_request);
+-	blk_queue_physical_block_size(q, PAGE_SIZE);
+-	blk_queue_max_hw_sectors(q, UINT_MAX);
+-	blk_queue_bounce_limit(q, BLK_BOUNCE_ANY);
+-	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, q);
+-	queue_flag_set_unlocked(QUEUE_FLAG_DAX, q);
+-	q->queuedata = pmem;
++	blk_queue_write_cache(pmem->q, true, true);
++	blk_queue_physical_block_size(pmem->q, PAGE_SIZE);
++	if (queue_mode == PMEM_Q_MQ) {
++		blk_queue_max_hw_sectors(pmem->q, 0x200000);
++		blk_queue_max_segments(pmem->q, 128);
++	} else
++		blk_queue_max_hw_sectors(pmem->q, UINT_MAX);
++	blk_queue_bounce_limit(pmem->q, BLK_BOUNCE_ANY);
++	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, pmem->q);
++	queue_flag_set_unlocked(QUEUE_FLAG_DAX, pmem->q);
++	pmem->q->queuedata = pmem;
  
-+	/* Are we about to mutate the block map on an immutable file? */
-+	if (IS_IOMAP_IMMUTABLE(inode)
-+			&& (pos + iov_iter_count(from) > i_size_read(inode))) {
-+		if (pos < i_size_read(inode))
-+			iov_iter_truncate(from, i_size_read(inode) - pos);
-+		else
-+			return -ETXTBSY;
-+	}
+ 	disk = alloc_disk_node(0, nid);
+ 	if (!disk)
+@@ -588,15 +772,22 @@ static struct nd_device_driver nd_pmem_driver = {
+ 
+ static int __init pmem_init(void)
+ {
++	if (queue_mode == PMEM_Q_MQ)
++		dmaengine_get();
 +
- 	iov_iter_truncate(from, inode->i_sb->s_maxbytes - pos);
- 	return iov_iter_count(from);
+ 	return nd_driver_register(&nd_pmem_driver);
  }
+ module_init(pmem_init);
+ 
+ static void pmem_exit(void)
+ {
++	if (queue_mode == PMEM_Q_MQ)
++		dmaengine_put();
++
+ 	driver_unregister(&nd_pmem_driver.drv);
+ }
+ module_exit(pmem_exit);
+ 
++MODULE_SOFTDEP("pre: dmaengine");
+ MODULE_AUTHOR("Ross Zwisler <ross.zwisler@linux.intel.com>");
+ MODULE_LICENSE("GPL v2");
 
 _______________________________________________
 Linux-nvdimm mailing list
