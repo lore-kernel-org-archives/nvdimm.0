@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 270BA21CB02F4
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jul 2017 14:27:42 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 2/6] btt: refactor map entry operations with macros
-Date: Mon, 17 Jul 2017 15:27:35 -0600
-Message-Id: <20170717212739.5411-3-vishal.l.verma@intel.com>
-In-Reply-To: <20170717212739.5411-1-vishal.l.verma@intel.com>
-References: <20170717212739.5411-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4F6E921D19940
+ for <linux-nvdimm@lists.01.org>; Mon, 31 Jul 2017 09:00:59 -0700 (PDT)
+Date: Mon, 31 Jul 2017 18:03:00 +0200
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: Re: [Qemu-devel] QEMU NVDIMM as type 7 in e820 table
+Message-ID: <20170731180300.6eceba74@nial.brq.redhat.com>
+In-Reply-To: <20170731154808.GA13791@linux.intel.com>
+References: <20170728180446.GA31104@linux.intel.com>
+ <CAPcyv4i5YWK6RHYEkH6C1oPWwhPLOD-atmkMVXDXc-qdv_0hgw@mail.gmail.com>
+ <20170728194543.GA20726@linux.intel.com>
+ <20170729104933.zlsn7asawltzlfbx@hz-desktop>
+ <20170731154808.GA13791@linux.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,69 +22,117 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Xiao Guangrong <guangrong.xiao@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add helpers for converting a raw map entry to just the block number, or
-either of the 'e' or 'z' flags in preparation for actually using the
-error flag to mark blocks with media errors.
+On Mon, 31 Jul 2017 09:48:08 -0600
+Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/btt.c | 8 ++++----
- drivers/nvdimm/btt.h | 4 ++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 52aa96f..3aa6bc0 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
- 	 * This 'mapping' is supposed to be just the LBA mapping, without
- 	 * any flags set, so strip the flag bits.
- 	 */
--	mapping &= MAP_LBA_MASK;
-+	mapping = ent_lba(mapping);
- 
- 	ze = (z_flag << 1) + e_flag;
- 	switch (ze) {
-@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
- 
- 	raw_mapping = le32_to_cpu(in);
- 
--	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
--	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
-+	z_flag = ent_z_flag(raw_mapping);
-+	e_flag = ent_e_flag(raw_mapping);
- 	ze = (z_flag << 1) + e_flag;
--	postmap = raw_mapping & MAP_LBA_MASK;
-+	postmap = ent_lba(raw_mapping);
- 
- 	/* Reuse the {z,e}_flag variables for *trim and *error */
- 	z_flag = 0;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 888e862..09fabf5 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -38,6 +38,10 @@
- #define IB_FLAG_ERROR 0x00000001
- #define IB_FLAG_ERROR_MASK 0x00000001
- 
-+#define ent_lba(ent) (ent & MAP_LBA_MASK)
-+#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
-+#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
-+
- enum btt_init_state {
- 	INIT_UNCHECKED = 0,
- 	INIT_NOTFOUND,
--- 
-2.9.3
+> On Sat, Jul 29, 2017 at 06:49:33PM +0800, Haozhong Zhang wrote:
+> > On 07/28/17 13:45 -0600, Ross Zwisler wrote:  
+> > > On Fri, Jul 28, 2017 at 11:11:10AM -0700, Dan Williams wrote:  
+> > > > On Fri, Jul 28, 2017 at 11:04 AM, Ross Zwisler
+> > > > <ross.zwisler@linux.intel.com> wrote:  
+> > > > > I've been using the virtualized NVDIMM support in QEMU for testing, and I
+> > > > > noticed that the physical addresses used by the virtual NVDIMMs aren't present
+> > > > > in the guest's e820 table.
+> > > > >
+> > > > > Here is the e820 table on my QEMU instance where I have one 32 GiB virtual
+> > > > > NVDIMM:
+> > > > >
+> > > > > [    0.000000] e820: BIOS-provided physical RAM map:
+> > > > > [    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+> > > > > [    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x0000000000100000-0x00000000bffdefff] usable
+> > > > > [    0.000000] BIOS-e820: [mem 0x00000000bffdf000-0x00000000bfffffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x00000000feffc000-0x00000000feffffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x0000000100000000-0x000000023fffffff] usable
+> > > > >
+> > > > > The physical addresses used by the virtual NVDIMM are 0x240000000-0xA40000000.
+> > > > > You can see this by looking at ndctl and the values we get from the NFIT:
+> > > > >
+> > > > > # ndctl list -R
+> > > > > {
+> > > > >   "dev":"region0",
+> > > > >   "size":34359738368,
+> > > > >   "available_size":0,
+> > > > >   "type":"pmem"
+> > > > > }
+> > > > >
+> > > > > # grep . /sys/bus/nd/devices/region0/{resource,size}
+> > > > > region0/resource:0x240000000
+> > > > > region0/size:34359738368
+> > > > >
+> > > > > Or you can see the same info by using iasl to dump
+> > > > > /sys/firmware/acpi/tables/NFIT:
+> > > > >
+> > > > > [028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
+> > > > > [02Ah 0042   2]                       Length : 0038
+> > > > >
+> > > > > [02Ch 0044   2]                  Range Index : 0002
+> > > > > [02Eh 0046   2]        Flags (decoded below) : 0003
+> > > > >                    Add/Online Operation Only : 1
+> > > > >                       Proximity Domain Valid : 1
+> > > > > [030h 0048   4]                     Reserved : 00000000
+> > > > > [034h 0052   4]             Proximity Domain : 00000000
+> > > > > [038h 0056  16]           Address Range GUID : 66F0D379-B4F3-4074-AC43-0D3318B78CDB
+> > > > > [048h 0072   8]           Address Range Base : 0000000240000000
+> > > > > [050h 0080   8]         Address Range Length : 0000000800000000
+> > > > > [058h 0088   8]         Memory Map Attribute : 0000000000008008
+> > > > >
+> > > > > I expected to see a type 7 region for the NVDIMM physical address range in the
+> > > > > e820 table, so something like:
+> > > > >
+> > > > > [    0.000000] e820: BIOS-provided physical RAM map:
+> > > > > [    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+> > > > > [    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x0000000000100000-0x00000000bffdefff] usable
+> > > > > [    0.000000] BIOS-e820: [mem 0x00000000bffdf000-0x00000000bfffffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x00000000feffc000-0x00000000feffffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
+> > > > > [    0.000000] BIOS-e820: [mem 0x0000000100000000-0x000000023fffffff] usable
+> > > > > [    0.000000] BIOS-e820: [mem 0x0000000240000000-0x0000000A40000000] persistent (type 7)
+> > > > >  
+> > > > 
+> > > > Do you need that informationin e820? Linux effectively ignores type-7.
+> > > > As long as the range is treated as reserved it's not clear that you
+> > > > need the e820 entry. We also infect the persistent type back into the
+> > > > memory map when the NFIT driver loads. /proc/iomem should show the
+> > > > right data.  
+> > > 
+> > > [ Adding Linda & Toshi to see if they have an opinion. ]
+> > > 
+> > > I guess maybe we don't need it.  Yep, /proc/iomem looks good:
+> > > 
+> > >   # cat /proc/iomem
+> > >   00000000-00000fff : Reserved
+> > >   00001000-0009fbff : System RAM
+> > >   ...
+> > >   100000000-23fffffff : System RAM
+> > >   240000000-a3fffffff : Persistent Memory
+> > >     240000000-a3fffffff : namespace0.0
+> > > 
+> > > I was just worried that this was an inconsistency between the way that virtual
+> > > NVDIMMs are presented vs the way that they will be presented on bare metal.  I
+> > > at least look at the e820 table to get my bearings of how memory is laid out -
+> > > maybe I just need to look at /proc/iomem instead?  
+> > 
+> > Do any OS or applications rely on the E820 information or the
+> > consistency between E820 and NFIT to properly work? If any, I can make
+> > a QEMU patch to build type-7 e820 entries.  
+> 
+> I don't know of any off hand, but IMO it would be good to have this
+> consistency.
+Maybe we should wait till there is an actual hardware that does it and OS
+which uses it.
 
 _______________________________________________
 Linux-nvdimm mailing list
