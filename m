@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6ABD921E0C2ED
- for <linux-nvdimm@lists.01.org>; Thu, 27 Jul 2017 06:10:47 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 7/7] ext4: Support for synchronous DAX faults
-Date: Thu, 27 Jul 2017 15:12:45 +0200
-Message-Id: <20170727131245.28279-8-jack@suse.cz>
-In-Reply-To: <20170727131245.28279-1-jack@suse.cz>
-References: <20170727131245.28279-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id E60A321D4919D
+ for <linux-nvdimm@lists.01.org>; Mon, 31 Jul 2017 15:22:32 -0700 (PDT)
+Subject: [PATCH 4/5] libnvdimm: Adding blk-mq support to the pmem driver
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 31 Jul 2017 15:24:40 -0700
+Message-ID: <150153988056.49768.18093169977231724535.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150153948477.49768.5767882242140065474.stgit@djiang5-desk3.ch.intel.com>
+References: <150153948477.49768.5767882242140065474.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,139 +18,246 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-ext4@vger.kernel.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We return IOMAP_F_NEEDDSYNC flag from ext4_iomap_begin() for a
-synchronous write fault when inode has some uncommitted metadata
-changes. In the fault handler ext4_dax_fault() we then detect this case,
-call vfs_fsync_range() to make sure all metadata is committed, and call
-dax_pfn_mkwrite() to mark PTE as writeable. Note that this will also
-dirty corresponding radix tree entry which is what we want - fsync(2)
-will still provide data integrity guarantees for applications not using
-userspace flushing. And applications using userspace flushing can avoid
-calling fsync(2) and thus avoid the performance overhead.
+Adding blk-mq support to the pmem driver in addition to the direct bio
+support. This allows for hardware offloading via DMA engines. By default
+the bio method will be enabled. The blk-mq support can be turned on via
+module parameter queue_mode=1.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/ext4/file.c       | 35 +++++++++++++++++++++++++++++------
- fs/ext4/inode.c      |  4 ++++
- fs/jbd2/journal.c    | 16 ++++++++++++++++
- include/linux/jbd2.h |  1 +
- 4 files changed, 50 insertions(+), 6 deletions(-)
+ drivers/nvdimm/pmem.c |  131 +++++++++++++++++++++++++++++++++++++++++++++----
+ drivers/nvdimm/pmem.h |    3 +
+ 2 files changed, 122 insertions(+), 12 deletions(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index d401403e5095..b221d0b546b0 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -287,16 +287,39 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 		down_read(&EXT4_I(inode)->i_mmap_sem);
- 		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
- 					       EXT4_DATA_TRANS_BLOCKS(sb));
-+		if (IS_ERR(handle)) {
-+			up_read(&EXT4_I(inode)->i_mmap_sem);
-+			sb_end_pagefault(sb);
-+			return VM_FAULT_SIGBUS;
-+		}
- 	} else {
- 		down_read(&EXT4_I(inode)->i_mmap_sem);
- 	}
--	if (!IS_ERR(handle))
--		result = dax_iomap_fault(vmf, pe_size, false, &ext4_iomap_ops);
--	else
--		result = VM_FAULT_SIGBUS;
-+	result = dax_iomap_fault(vmf, pe_size, IS_SYNC(inode), &ext4_iomap_ops);
- 	if (write) {
--		if (!IS_ERR(handle))
--			ext4_journal_stop(handle);
-+		ext4_journal_stop(handle);
-+		/* Write fault but PFN mapped only RO? */
-+		if (result & VM_FAULT_RO) {
-+			int err;
-+			loff_t start = ((loff_t)vmf->pgoff) << PAGE_SHIFT;
-+			size_t len = 0;
-+
-+			if (pe_size == PE_SIZE_PTE)
-+				len = PAGE_SIZE;
-+#ifdef CONFIG_FS_DAX_PMD
-+			else if (pe_size == PE_SIZE_PMD)
-+				len = HPAGE_PMD_SIZE;
-+			else
-+				WARN_ON_ONCE(1);
-+#endif
-+			WARN_ON_ONCE(!IS_SYNC(inode));
-+			err = vfs_fsync_range(vmf->vma->vm_file, start,
-+					      start + len - 1, 1);
-+			if (err)
-+				result = VM_FAULT_SIGBUS;
-+			else
-+				result = dax_pfn_mkwrite(vmf, pe_size);
-+		}
- 		up_read(&EXT4_I(inode)->i_mmap_sem);
- 		sb_end_pagefault(sb);
- 	} else {
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 3c600f02673f..e68231bb227c 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3429,6 +3429,10 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
- 	}
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index c544d46..347835b 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -31,10 +31,24 @@
+ #include <linux/pmem.h>
+ #include <linux/dax.h>
+ #include <linux/nd.h>
++#include <linux/blk-mq.h>
+ #include "pmem.h"
+ #include "pfn.h"
+ #include "nd.h"
  
- 	iomap->flags = 0;
-+	if ((flags & IOMAP_FAULT) && (flags & IOMAP_WRITE) && IS_SYNC(inode) &&
-+	    !jbd2_transaction_committed(EXT4_SB(inode->i_sb)->s_journal,
-+					EXT4_I(inode)->i_datasync_tid))
-+		iomap->flags |= IOMAP_F_NEEDDSYNC;
- 	bdev = inode->i_sb->s_bdev;
- 	iomap->bdev = bdev;
- 	if (blk_queue_dax(bdev->bd_queue))
-diff --git a/fs/jbd2/journal.c b/fs/jbd2/journal.c
-index 7d5ef3bf3f3e..e0f436c42d67 100644
---- a/fs/jbd2/journal.c
-+++ b/fs/jbd2/journal.c
-@@ -738,6 +738,22 @@ int jbd2_log_wait_commit(journal_t *journal, tid_t tid)
- 	return err;
++enum {
++	PMEM_Q_BIO = 0,
++	PMEM_Q_MQ = 1,
++};
++
++static int queue_mode = PMEM_Q_BIO;
++module_param(queue_mode, int, 0444);
++MODULE_PARM_DESC(queue_mode, "Pmem Queue Mode");
++
++struct pmem_cmd {
++	struct request *rq;
++};
++
+ static struct device *to_dev(struct pmem_device *pmem)
+ {
+ 	/*
+@@ -239,9 +253,12 @@ static const struct dax_operations pmem_dax_ops = {
+ 	.direct_access = pmem_dax_direct_access,
+ };
+ 
+-static void pmem_release_queue(void *q)
++static void pmem_release_queue(void *pmem)
+ {
+-	blk_cleanup_queue(q);
++
++	blk_cleanup_queue(((struct pmem_device *)pmem)->q);
++	if (queue_mode == PMEM_Q_MQ)
++		blk_mq_free_tag_set(&((struct pmem_device *)pmem)->tag_set);
  }
  
-+/* Return 1 when transaction with given tid has already committed. */
-+int jbd2_transaction_committed(journal_t *journal, tid_t tid)
+ static void pmem_freeze_queue(void *q)
+@@ -259,6 +276,65 @@ static void pmem_release_disk(void *__pmem)
+ 	put_disk(pmem->disk);
+ }
+ 
++static int pmem_handle_cmd(struct pmem_cmd *cmd)
 +{
-+	int ret = 1;
++	struct request *req = cmd->rq;
++	struct request_queue *q = req->q;
++	struct pmem_device *pmem = q->queuedata;
++	struct nd_region *nd_region = to_region(pmem);
++	struct bio_vec bvec;
++	struct req_iterator iter;
++	int rc = 0;
 +
-+	read_lock(&journal->j_state_lock);
-+	if (journal->j_running_transaction &&
-+	    journal->j_running_transaction->t_tid == tid)
-+		ret = 0;
-+	if (journal->j_committing_transaction &&
-+	    journal->j_committing_transaction->t_tid == tid)
-+		ret = 0;
-+	read_unlock(&journal->j_state_lock);
-+	return ret;
++	if (req->cmd_flags & REQ_FLUSH)
++		nvdimm_flush(nd_region);
++
++	rq_for_each_segment(bvec, req, iter) {
++		rc = pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len,
++				bvec.bv_offset, op_is_write(req_op(req)),
++				iter.iter.bi_sector);
++		if (rc < 0)
++			break;
++	}
++
++	if (req->cmd_flags & REQ_FUA)
++		nvdimm_flush(nd_region);
++
++	blk_mq_end_request(cmd->rq, rc);
++
++	return 0;
 +}
 +
- /*
-  * When this function returns the transaction corresponding to tid
-  * will be completed.  If the transaction has currently running, start
-diff --git a/include/linux/jbd2.h b/include/linux/jbd2.h
-index 606b6bce3a5b..296d1e0ea87b 100644
---- a/include/linux/jbd2.h
-+++ b/include/linux/jbd2.h
-@@ -1367,6 +1367,7 @@ int jbd2_log_start_commit(journal_t *journal, tid_t tid);
- int __jbd2_log_start_commit(journal_t *journal, tid_t tid);
- int jbd2_journal_start_commit(journal_t *journal, tid_t *tid);
- int jbd2_log_wait_commit(journal_t *journal, tid_t tid);
-+int jbd2_transaction_committed(journal_t *journal, tid_t tid);
- int jbd2_complete_transaction(journal_t *journal, tid_t tid);
- int jbd2_log_do_checkpoint(journal_t *journal);
- int jbd2_trans_will_send_data_barrier(journal_t *journal, tid_t tid);
--- 
-2.12.3
++static int pmem_queue_rq(struct blk_mq_hw_ctx *hctx,
++		const struct blk_mq_queue_data *bd)
++{
++	struct pmem_cmd *cmd = blk_mq_rq_to_pdu(bd->rq);
++	int rc;
++
++	cmd->rq = bd->rq;
++
++	blk_mq_start_request(bd->rq);
++
++	rc = pmem_handle_cmd(cmd);
++	if (rc < 0)
++		rc = BLK_MQ_RQ_QUEUE_ERROR;
++	else
++		rc = BLK_MQ_RQ_QUEUE_OK;
++
++	return rc;
++}
++
++static int pmem_init_hctx(struct blk_mq_hw_ctx *hctx, void *data,
++		unsigned int index)
++{
++	return 0;
++}
++
++static const struct blk_mq_ops pmem_mq_ops = {
++	.queue_rq	= pmem_queue_rq,
++	.init_hctx	= pmem_init_hctx,
++};
++
+ static int pmem_attach_disk(struct device *dev,
+ 		struct nd_namespace_common *ndns)
+ {
+@@ -275,6 +351,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	struct request_queue *q;
+ 	struct gendisk *disk;
+ 	void *addr;
++	int rc;
+ 
+ 	/* while nsio_rw_bytes is active, parse a pfn info block if present */
+ 	if (is_nd_pfn(dev)) {
+@@ -303,17 +380,47 @@ static int pmem_attach_disk(struct device *dev,
+ 		return -EBUSY;
+ 	}
+ 
+-	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
+-	if (!q)
+-		return -ENOMEM;
++	if (queue_mode == PMEM_Q_MQ) {
++		pmem->tag_set.ops = &pmem_mq_ops;
++		pmem->tag_set.nr_hw_queues = nr_online_nodes;
++		pmem->tag_set.queue_depth = 64;
++		pmem->tag_set.numa_node = dev_to_node(dev);
++		pmem->tag_set.cmd_size = sizeof(struct pmem_cmd);
++		pmem->tag_set.flags = BLK_MQ_F_SHOULD_MERGE;
++		pmem->tag_set.driver_data = pmem;
++
++		rc = blk_mq_alloc_tag_set(&pmem->tag_set);
++		if (rc < 0)
++			return rc;
++
++		pmem->q = blk_mq_init_queue(&pmem->tag_set);
++		if (IS_ERR(pmem->q)) {
++			blk_mq_free_tag_set(&pmem->tag_set);
++			return -ENOMEM;
++		}
+ 
+-	if (devm_add_action_or_reset(dev, pmem_release_queue, q))
+-		return -ENOMEM;
++		if (devm_add_action_or_reset(dev, pmem_release_queue, pmem)) {
++			blk_mq_free_tag_set(&pmem->tag_set);
++			return -ENOMEM;
++		}
++	} else if (queue_mode == PMEM_Q_BIO) {
++		pmem->q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
++		if (!pmem->q)
++			return -ENOMEM;
++
++		if (devm_add_action_or_reset(dev, pmem_release_queue, pmem))
++			return -ENOMEM;
++
++		blk_queue_make_request(pmem->q, pmem_make_request);
++	} else {
++		dev_warn(dev, "Invalid queue mode: %d\n", queue_mode);
++		return -EINVAL;
++	}
+ 
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (is_nd_pfn(dev)) {
+-		addr = devm_memremap_pages(dev, &pfn_res, &q->q_usage_counter,
+-				altmap);
++		addr = devm_memremap_pages(dev, &pfn_res,
++				&pmem->q->q_usage_counter, altmap);
+ 		pfn_sb = nd_pfn->pfn_sb;
+ 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
+ 		pmem->pfn_pad = resource_size(res) - resource_size(&pfn_res);
+@@ -322,7 +429,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		res->start += pmem->data_offset;
+ 	} else if (pmem_should_map_pages(dev)) {
+ 		addr = devm_memremap_pages(dev, &nsio->res,
+-				&q->q_usage_counter, NULL);
++				&pmem->q->q_usage_counter, NULL);
+ 		pmem->pfn_flags |= PFN_MAP;
+ 	} else
+ 		addr = devm_memremap(dev, pmem->phys_addr,
+@@ -332,7 +439,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	 * At release time the queue must be frozen before
+ 	 * devm_memremap_pages is unwound
+ 	 */
+-	if (devm_add_action_or_reset(dev, pmem_freeze_queue, q))
++	if (devm_add_action_or_reset(dev, pmem_freeze_queue, pmem->q))
+ 		return -ENOMEM;
+ 
+ 	if (IS_ERR(addr))
+@@ -354,7 +461,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	pmem->disk = disk;
+ 
+ 	disk->fops		= &pmem_fops;
+-	disk->queue		= q;
++	disk->queue		= pmem->q;
+ 	disk->flags		= GENHD_FL_EXT_DEVT;
+ 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
+ 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index 7f4dbd7..1836c7b 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -4,6 +4,7 @@
+ #include <linux/types.h>
+ #include <linux/pfn_t.h>
+ #include <linux/fs.h>
++#include <linux/blk-mq.h>
+ 
+ /* this definition is in it's own header for tools/testing/nvdimm to consume */
+ struct pmem_device {
+@@ -20,6 +21,8 @@ struct pmem_device {
+ 	struct badblocks	bb;
+ 	struct dax_device	*dax_dev;
+ 	struct gendisk		*disk;
++	struct blk_mq_tag_set	tag_set;
++	struct request_queue	*q;
+ };
+ 
+ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
 
 _______________________________________________
 Linux-nvdimm mailing list
