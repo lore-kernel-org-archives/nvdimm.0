@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A2E1B21D09186
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jul 2017 13:00:24 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl, create-namespace: fix size alignment validation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 26 Jul 2017 12:56:02 -0700
-Message-ID: <150109896285.13943.15686058156974485950.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7E92E21CF94F7
+ for <linux-nvdimm@lists.01.org>; Mon, 31 Jul 2017 16:33:02 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v4 0/6] BTT error clearing rework
+Date: Mon, 31 Jul 2017 23:35:08 +0000
+Message-ID: <1501544000.4405.5.camel@intel.com>
+References: <20170726233546.29052-1-vishal.l.verma@intel.com>
+ <1501542358.2042.97.camel@hpe.com>
+In-Reply-To: <1501542358.2042.97.camel@hpe.com>
+Content-Language: en-US
+Content-ID: <E83CAB8D1FD0E049B12758FE6C02B307@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,65 +21,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Wysocki,
 List-ID: <linux-nvdimm@lists.01.org>
 
-Linda reports:
-
-    I was creating a namespace on a 4-way interleave set and got an error
-    I didn't expect:
-
-    $ sudo ndctl create-namespace -m sector -s 10G -n number2
-      Error: '--size=' must align to interleave-width: 4 and alignment: 2097152
-      did you intend --size=12G?
-
-    What's happening is that since I specified my size in units of G,
-    the function wants the namespace to be 1G * 4 aligned rather than
-    2M * 4 aligned.
-
-Fix this by using the base "align * interleave_ways" for the alignment
-check, and later calculate a 'friendly' recommended size value that
-takes into account the units specified for --size.
-
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/namespace.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 73a422633a0f..c4d70c39c6c4 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -557,8 +557,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 
- 	/* (re-)validate that the size satisfies the alignment */
- 	ways = ndctl_region_get_interleave_ways(region);
--	size_align = max(units, size_align) * ways;
--	if (p->size % size_align) {
-+	if (p->size % (size_align * ways)) {
- 		char *suffix = "";
- 
- 		if (units == SZ_1K)
-@@ -570,6 +569,12 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		else if (units == SZ_1T)
- 			suffix = "T";
- 
-+		/*
-+		 * Make the recommendation in the units of the '--size'
-+		 * option
-+		 */
-+		size_align = max(units, size_align) * ways;
-+
- 		p->size /= size_align;
- 		p->size++;
- 		p->size *= size_align;
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCAyMDE3LTA3LTMxIGF0IDIzOjE1ICswMDAwLCBLYW5pLCBUb3NoaW1pdHN1IHdyb3Rl
+Og0KPiBPbiBXZWQsIDIwMTctMDctMjYgYXQgMTc6MzUgLTA2MDAsIFZpc2hhbCBWZXJtYSB3cm90
+ZToNCj4gwqA6DQo+ID4gDQo+ID4gQ2xlYXJpbmcgZXJyb3JzIG9yIGJhZGJsb2NrcyBkdXJpbmcg
+YSBCVFQgd3JpdGUgcmVxdWlyZXMgc2VuZGluZyBhbg0KPiA+IEFDUEkgRFNNLCB3aGljaCBtZWFu
+cyBwb3RlbnRpYWxseSBzbGVlcGluZy4gU2luY2UgYSBCVFQgSU8gaGFwcGVucw0KPiA+IGluDQo+
+ID4gYXRvbWljIGNvbnRleHQgKHByZWVtcHRpb24gZGlzYWJsZWQsIHNwaW5sb2NrcyBtYXkgYmUg
+aGVsZCksIHdlDQo+ID4gY2Fubm90IHBlcmZvcm0gZXJyb3IgY2xlYXJpbmcgaW4gdGhlIGNvdXJz
+ZSBvZiBhbiBJTy4gRHVlIHRvIHRoaXMNCj4gPiBlcnJvciBjbGVhcmluZyBmb3IgQlRUIElPcyBo
+YXMgaGl0aGVydG8gYmVlbiBkaXNhYmxlZC4NCj4gPiANCj4gPiBUaGlzIHNlcmllcyBmaXhlcyB0
+aGVzZSBwcm9ibGVtcyBieSBtb3ZpbmcgdGhlIGVycm9yIGNsZWFyaW5nIG91dCBvZg0KPiA+IHRo
+ZSBhdG9taWMgc2VjdGlvbnMgaW4gdGhlIEJUVC4NCj4gPiANCj4gPiBBbHNvIGZpeCBhIHBvdGVu
+dGlhbCBkZWFkbG9jayB0aGF0IGNhbiBvY2N1ciB3aGlsZSBjbGVhcmluZyBlcnJvcnMNCj4gPiBm
+cm9tIGVpdGhlciBCVFQgb3IgcG1lbSBkdWUgdG8gbWVtb3J5IGFsbG9jYXRpb25zIGluIHRoZSBJ
+TyBwYXRoLg0KPiANCj4gSGkgVmlzaGFsLA0KPiANCj4gSSBqdXN0IHRlc3RlZCB0aGUgc2VyaWVz
+IChzb3JyeSBmb3IgdGhlIGRlbGF5KS7CoMKgSXQgd29ya3MgbmljZWx5IHdoZW4NCj4gZG9pbmcg
+SS9PcyB0byBhIGJsb2NrIGRldmljZSBkaXJlY3RseS7CoMKgQnV0IEkgYW0gc2VlaW5nIGEgbG90
+IG9mIHdyaXRlDQo+IGVycm9ycyB3aXRoIGZpbGVzeXN0ZW0uDQo+IA0KPiBIZXJlIGlzIHdoYXQg
+SSBkaWQgZm9yIHRoZSB0ZXN0aW5nLg0KPiANCj4gMS4gJ21rZnMuZXh0IC9kZXYvcG1lbTBzJyBh
+bmQgJ21vdW50IC9kZXYvcG1lbTBzIC9tbnQvcG1lbTBzJy4NCj4gMi4gSW5qZWN0IGFuIGVycm9y
+IHRvIHNvbWV3aGVyZSBpbiB0aGUgcG1lbTBzIGRldmljZSwgYnV0IG5vdCBpbiB0aGUNCj4gbWV0
+YWRhdGEgYXJlYSBhdCBiZWdpbm5pbmcuDQo+IDMuIFJ1biB0aGUgZm9sbG93aW5nIHNjcmlwdC4N
+Cj4gPT09DQo+IERFVj1wbWVtMHMNCj4gc2V0IC14DQo+IGRkIGlmPS9kZXYvemVybyBvZj0vbW50
+LyRERVYvMUdmaWxlIGJzPTFNIGNvdW50PTEwMjQNCj4gd2hpbGUgdHJ1ZTsgZG8NCj4gY3AgL21u
+dC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS0xDQo+IGNwIC9tbnQvJERFVi8xR2ZpbGUgL21u
+dC8kREVWL2ZpbGUtMg0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxlLTMNCj4g
+Y3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS00DQo+IGNwIC9tbnQvJERFVi8xR2Zp
+bGUgL21udC8kREVWL2ZpbGUtNQ0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxl
+LTYNCj4gY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS03DQo+IGNwIC9tbnQvJERF
+Vi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtOA0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERF
+Vi9maWxlLTkNCj4gY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS0xMA0KPiBkb25l
+DQo+ID09PQ0KPiANCj4gU3RlcCAzIGNsZWFycyBhbiBlcnJvciBhbmQgcnVucyBmaW5lIHdpdGgg
+cmF3IGFuZCBtZW1vcnkgbW9kZXMuwqDCoFdpdGgNCj4gc2VjdG9yIG1vZGUsIGhvd2V2ZXIsIGl0
+IGVuZHMgdXAgd2l0aCBjb250aW51b3VzIHdyaXRlIGVycm9ycyBsaWtlDQo+IGJlbG93IGFuZCBk
+b2VzIG5vdCBjbGVhciB0aGUgZXJyb3IuwqDCoERvIHlvdSBoYXZlIGFueSB0aG91Z2h0cz8NCj4g
+DQo+IMKgRVhUNC1mcyB3YXJuaW5nIChkZXZpY2UgcG1lbTBzKTogZXh0NF9lbmRfYmlvOjMyMjog
+SS9PIGVycm9yIDEwDQo+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDIzNDEwMTc2IHNp
+emUgODM4ODYwOCBzdGFydGluZyBibG9jaw0KPiAxODM0NzUyKQ0KPiDCoEJ1ZmZlciBJL08gZXJy
+b3Igb24gZGV2aWNlIHBtZW0wcywgbG9naWNhbCBibG9jayAxODM0NzUyDQo+IMKgQnVmZmVyIEkv
+TyBlcnJvciBvbiBkZXZpY2UgcG1lbTBzLCBsb2dpY2FsIGJsb2NrIDE4MzQ3NTMNCj4gwqBCdWZm
+ZXIgSS9PIGVycm9yIG9uIGRldmljZSBwbWVtMHMsIGxvZ2ljYWwgYmxvY2sgMTgzNDc1NA0KPiDC
+oDoNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NjgwMDY0
+LCBsZW4gNDA5NiwNCj4gwqBFWFQ0LWZzIHdhcm5pbmcgKGRldmljZSBwbWVtMHMpOiBleHQ0X2Vu
+ZF9iaW86MzIyOiBJL08gZXJyb3IgMTANCj4gd3JpdGluZyB0byBpbm9kZSAxNyAob2Zmc2V0IDEw
+MzE3OTg3ODQgc2l6ZSAxMDUyNjcyIHN0YXJ0aW5nIGJsb2NrDQo+IDE4MzUwMDgpDQo+IMKgbmRf
+cG1lbSBidHQwLjA6IGlvIGVycm9yIGluIFdSSVRFIHNlY3RvciAxNDY4MjExMiwgbGVuIDQwOTYs
+DQo+IMKgRVhUNC1mcyB3YXJuaW5nIChkZXZpY2UgcG1lbTBzKTogZXh0NF9lbmRfYmlvOjMyMjog
+SS9PIGVycm9yIDEwDQo+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDMxNzk4Nzg0IHNp
+emUgMjEwMTI0OCBzdGFydGluZyBibG9jaw0KPiAxODM1MjY0KQ0KPiDCoDoNCj4gwqBuZF9wbWVt
+IGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0Njk4NDk2LCBsZW4gNDA5NiwNCj4g
+wqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NzAwNTQ0LCBsZW4g
+NDA5NiwNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NzAy
+NTkyLCBsZW4gNDA5NiwNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2Vj
+dG9yIDE0NzA0NjQwLCBsZW4gNDA5NiwNCj4gwqA6DQoNClRoYW5rcyBmb3IgdGhlIHRlc3QgVG9z
+aGksIEkgd2lsbCB0cnkgYW5kIHJlcHJvZHVjZSBpdC4NCk15IGZpcnN0IGd1ZXNzIGlzIC0gYXJl
+IHRoZSBpbmplY3RlZCBlcnJvcnMgcG90ZW50aWFsbHkgaW4gdGhlIEJUVA0KbWV0YWRhdGEgYXJl
+YSB0b3dhcmRzIHRoZSBlbmQ/DQoNCi0+cndfYnl0ZXMgY2FuIG9ubHkgY2xlYXIgZXJyb3JzIG9u
+IHByb3Blcmx5IGFsaWduZWQgd3JpdGVzLCBhbmQgdGhlIGJ0dA0KbWV0YWRhdGEgd3JpdGVzIHdp
+bGwgYmUgdG9vIHNtYWxsIHRvIGNsZWFyIG1ldGFkYXRhIGVycm9ycy4uDQoNCj4gDQo+IFRoYW5r
+cywNCj4gLVRvc2hpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpo
+dHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
