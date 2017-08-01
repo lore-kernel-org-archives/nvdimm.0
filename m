@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 41DA021CAD9A7
- for <linux-nvdimm@lists.01.org>; Sun,  2 Jul 2017 21:52:01 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 8472CAC0094
- for <linux-nvdimm@lists.01.org>; Mon,  3 Jul 2017 13:53:31 +0900 (JST)
-Date: Mon, 03 Jul 2017 13:53:27 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Re: Standardization of ACPI NVDIMM DSMs
-In-Reply-To: <1b5d08fa-620b-0233-2cc4-8648a631931e@hpe.com>
-References: <20170630101854.B36F.E1E9C6FF@jp.fujitsu.com>
- <1b5d08fa-620b-0233-2cc4-8648a631931e@hpe.com>
-Message-Id: <20170703135324.2F89.E1E9C6FF@jp.fujitsu.com>
+Received: from ipmail05.adl6.internode.on.net (ipmail05.adl6.internode.on.net
+ [150.101.137.143])
+ by ml01.01.org (Postfix) with ESMTP id A62AD21CF94FB
+ for <linux-nvdimm@lists.01.org>; Mon, 31 Jul 2017 17:43:00 -0700 (PDT)
+Date: Tue, 1 Aug 2017 10:42:01 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 3/3] xfs: persist S_IOMAP_IMMUTABLE in di_flags2
+Message-ID: <20170801004201.GM17762@dastard>
+References: <150135740948.35318.10730072114996910905.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150135742595.35318.6882401569584241548.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <150135742595.35318.6882401569584241548.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,72 +23,69 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linda Knippers <linda.knippers@hpe.com>
-Cc: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, darrick.wong@oracle.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Sat, Jul 29, 2017 at 12:43:46PM -0700, Dan Williams wrote:
+> Record the immutable state in the on-disk inode so that on the next boot
+> the protections against reflink and hole punch etc are automatically
+> restored.
 
-> On 6/29/2017 9:18 PM, Yasunori Goto wrote:
-> > Hello, Linda-san,
-> >
-> >> There is more standardization that will likely happen.  The most
-> >> interesting is probably standard health status information.  Today
-> >> the Linux ndctl command can display health status for the NVDIMMs
-> >> and it hides some of the differences by calling the appropriate
-> >> DSM for the platform/NVDIMM combination but we need to do more
-> >> work there.
-> >
-> > Could you tell me what works are necessary?
-> 
-> There is work in two areas.  One is standardization work, mostly
-> likely through the ACPI NVM working group of the UEFI Forum, to define
-> some common functions for health information.  There was a lot of work
-> focused on getting standardization of label formats and access
-> methods into ACPI 6.2 and UEFI 2.7 so not much effort yet on
-> health information but perhaps that will be next.
-> 
-> The other area is work within the ndctl tool itself.  It already
-> knows how to get some health information using the Intel, HPE, and
-> MSFT SMART health DSMs but there is more information related to
-> NVDIMM-N devices that we'd like to expose.
-> 
-> > I also have concern around here, and I'm investgating source code of
-> > ndctl and NVDIMM drivers to check what works are still needed.
-> > So, your opinion will be very helpful for me.
-> 
-> As an example, this is a patch I posted to expose more information.
-> https://lists.01.org/pipermail/linux-nvdimm/2017-June/010682.html
-> Dan had some feedback but I haven't had a chance to post a v2 patch yet.
-> The patch touches a number of files/functions that are involved in getting
-> the health information so you could look at those to see how it works today.
+Keep in mind we can't do this without all the userspace side support
+for the addition to the in-disk format....
 
-Thank you for your explanation. 
+> This deliberately does not add a FS_XFLAG_IOMAP_IMMUTABLE since
+> fallocate(2) is the path to toggle this flag.
 
-> 
-> If there is a particular type of NVDIMM or existing DSM specification
-> that you're interesting in supporting, that would be interesting to know.
+That's a problem. The flag needs to be added so that we can /view/
+the state of the inode through xfs_io. Just because we can't set it
+through the extended inode flag interface doesn't mean the flag
+should not exist.
 
-Currently,  I feel the following things about _DSM and ndctl from user's point of view.
+> diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+> index c4fc79a0704f..1dcb521da456 100644
+> --- a/fs/xfs/xfs_bmap_util.c
+> +++ b/fs/xfs/xfs_bmap_util.c
+> @@ -1021,7 +1021,8 @@ xfs_alloc_file_space(
+>  	struct xfs_inode	*ip,
+>  	xfs_off_t		offset,
+>  	xfs_off_t		len,
+> -	int			alloc_type)
+> +	int			alloc_type,
+> +	uint64_t		di_flags2)
+>  {
+>  	xfs_mount_t		*mp = ip->i_mount;
+>  	xfs_off_t		count;
+> @@ -1119,6 +1120,12 @@ xfs_alloc_file_space(
+>  			break;
+>  		}
+>  		xfs_ilock(ip, XFS_ILOCK_EXCL);
+> +		if (di_flags2) {
+> +			/* fold inode attributes for this allocation */
+> +			ip->i_d.di_flags2 |= di_flags2;
+> +			di_flags2 = 0;
+> +		}
 
-1) Though current _DSM has only the feature to get each threshold values, 
-    I suppose that users may want to change each threshold values according to
-     their own policy. So, maybe _DSM need to have "set threshold" interface.
+Yikes, no! Darrick already mentioned this, but it needs pointing out
+again...
 
-2) I suppose a notification daemon may be necessary to inform the over
-    threshold event  (to syslog, to other servers, or logging management OSS, etc....)
+Especially as it means that we are setting the immutable flag before
+we've allocated all the extents to fill the file space. If we've
+implemented immutable extent maps correctly, then xfs_bmapi_write()
+should be rejecting any attempt to allocate or modify extents if
+that flag is set on the inode, which means this code will now fail
+to allocate/zero anything...
 
-    Please correct me, if ndctl has this feature already...
+IOWs, this flag should be the last thing that is set on the inode
+once it's been fully allocated and zeroed.
 
-> If you're thinking of defining something new, I encourage you to get
-> involved in the standards activities.
+Cheers,
 
-If my idea is useful like the aboves, the standard activity looks quite interesting 
-for me. Please tell me how to join it.
-
-Thanks,
----
-Yasunori Goto
-
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
