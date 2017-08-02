@@ -1,9 +1,10 @@
-From: =?GB2312?B?wOjAz7Dl?= <jmyuisha-oxk24LSP0Xo@public.gmane.org>
-Subject: =?GB2312?B?sskgubrV0M22seq53MDtvLC6z82st+fP1b/Y1sY=?=
-Date: Tue, 1 Aug 2017 15:41:13 +0800
-Message-ID: <20170801073754.EDA2C21CF951E@ml01.01.org>
+From: thomas-YgjiHUgVciI@public.gmane.org
+Subject: Returned mail: Data format error
+Date: Wed, 2 Aug 2017 10:29:41 +0800
+Message-ID: <20170802022733.8273B21D491BE@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8576824444019980737=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,28 +15,25 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format
+This Message was undeliverable due to the following reason:
 
---===============8576824444019980737==
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-89318893188931889318£º15:41:11
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
-     ¸½.¼þ.ÄÚ.ÈÝ.Çë.Äú.²é.ÔÄ£¡
+Your message was not delivered within 3 days:
+Host 180.123.65.243 is not responding.
 
---===============8576824444019980737==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============8576824444019980737==--
+Please reply to postmaster-YgjiHUgVciI@public.gmane.org
+if you feel this message to be in error.
