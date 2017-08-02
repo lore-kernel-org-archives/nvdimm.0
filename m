@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4EC0221E79007
- for <linux-nvdimm@lists.01.org>; Mon, 21 Aug 2017 14:08:27 -0700 (PDT)
-Subject: [PATCH v5 4/7] dmaengine: ioatdma: dma_prep_memcpy_sg support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 21 Aug 2017 14:10:57 -0700
-Message-ID: <150334985760.55214.16963397149409628690.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
-References: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9134721CF9500
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Aug 2017 18:46:58 -0700 (PDT)
+Date: Wed, 2 Aug 2017 09:48:47 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH] dm: enable opt-out of device-mapper dax support
+Message-ID: <201708020917.5ZjuHQzh%fengguang.wu@intel.com>
 MIME-Version: 1.0
+In-Reply-To: <150161113411.34055.9762658795237184307.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,118 +22,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: snitzer@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, kbuild-all@01.org, Bart Van Assche <Bart.VanAssche@wdc.com>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding ioatdma support to copy from a physically contiguous buffer to a
-provided scatterlist and vice versa. This is used to support
-reading/writing persistent memory in the pmem driver.
+Hi Dan,
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+[auto build test ERROR on dm/for-next]
+[also build test ERROR on v4.13-rc3 next-20170801]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/dm-enable-opt-out-of-device-mapper-dax-support/20170802-063827
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git for-next
+config: x86_64-allyesdebian (attached as .config)
+compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
+
+All errors (new ones prefixed by >>):
+
+   drivers/md/dm-table.o: In function `device_dax_write_cache_enabled':
+>> dm-table.c:(.text+0x568): undefined reference to `dax_write_cache_enabled'
+   drivers/md/dm-table.o: In function `dm_table_set_restrictions':
+>> dm-table.c:(.text+0x1e40): undefined reference to `dax_write_cache'
+
 ---
- drivers/dma/ioat/dma.h  |    4 +++
- drivers/dma/ioat/init.c |    2 ++
- drivers/dma/ioat/prep.c |   57 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 63 insertions(+)
-
-diff --git a/drivers/dma/ioat/dma.h b/drivers/dma/ioat/dma.h
-index 56200ee..6c08b06 100644
---- a/drivers/dma/ioat/dma.h
-+++ b/drivers/dma/ioat/dma.h
-@@ -370,6 +370,10 @@ struct dma_async_tx_descriptor *
- ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
- 			   dma_addr_t dma_src, size_t len, unsigned long flags);
- struct dma_async_tx_descriptor *
-+ioat_dma_prep_memcpy_sg_lock(struct dma_chan *c,
-+		struct scatterlist *sg, unsigned int sg_nents,
-+		dma_addr_t dma_addr, bool to_sg, unsigned long flags);
-+struct dma_async_tx_descriptor *
- ioat_prep_interrupt_lock(struct dma_chan *c, unsigned long flags);
- struct dma_async_tx_descriptor *
- ioat_prep_xor(struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
-diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
-index 1b881fb..5c69ff6 100644
---- a/drivers/dma/ioat/init.c
-+++ b/drivers/dma/ioat/init.c
-@@ -1081,6 +1081,8 @@ static int ioat3_dma_probe(struct ioatdma_device *ioat_dma, int dca)
- 
- 	dma = &ioat_dma->dma_dev;
- 	dma->device_prep_dma_memcpy = ioat_dma_prep_memcpy_lock;
-+	dma_cap_set(DMA_MEMCPY_SG, dma->cap_mask);
-+	dma->device_prep_dma_memcpy_sg = ioat_dma_prep_memcpy_sg_lock;
- 	dma->device_issue_pending = ioat_issue_pending;
- 	dma->device_alloc_chan_resources = ioat_alloc_chan_resources;
- 	dma->device_free_chan_resources = ioat_free_chan_resources;
-diff --git a/drivers/dma/ioat/prep.c b/drivers/dma/ioat/prep.c
-index 243421a..d8219af 100644
---- a/drivers/dma/ioat/prep.c
-+++ b/drivers/dma/ioat/prep.c
-@@ -159,6 +159,63 @@ ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
- 	return &desc->txd;
- }
- 
-+struct dma_async_tx_descriptor *
-+ioat_dma_prep_memcpy_sg_lock(struct dma_chan *c,
-+		struct scatterlist *sg, unsigned int sg_nents,
-+		dma_addr_t dma_addr, bool to_sg, unsigned long flags)
-+{
-+	struct ioatdma_chan *ioat_chan = to_ioat_chan(c);
-+	struct ioat_dma_descriptor *hw = NULL;
-+	struct ioat_ring_ent *desc = NULL;
-+	dma_addr_t dma_off = dma_addr;
-+	int num_descs, idx, i;
-+	struct scatterlist *s;
-+	size_t total_len = 0, len;
-+
-+
-+	if (test_bit(IOAT_CHAN_DOWN, &ioat_chan->state))
-+		return NULL;
-+
-+	/*
-+	 * The upper layer will garantee that each entry does not exceed
-+	 * xfercap.
-+	 */
-+	num_descs = sg_nents;
-+
-+	if (likely(num_descs) &&
-+	    ioat_check_space_lock(ioat_chan, num_descs) == 0)
-+		idx = ioat_chan->head;
-+	else
-+		return NULL;
-+
-+	for_each_sg(sg, s, sg_nents, i) {
-+		desc = ioat_get_ring_ent(ioat_chan, idx + i);
-+		hw = desc->hw;
-+		len = sg_dma_len(s);
-+		hw->size = len;
-+		hw->ctl = 0;
-+		if (to_sg) {
-+			hw->src_addr = dma_off;
-+			hw->dst_addr = sg_dma_address(s);
-+		} else {
-+			hw->src_addr = sg_dma_address(s);
-+			hw->dst_addr = dma_off;
-+		}
-+		dma_off += len;
-+		total_len += len;
-+		dump_desc_dbg(ioat_chan, desc);
-+	}
-+
-+	desc->txd.flags = flags;
-+	desc->len = total_len;
-+	hw->ctl_f.int_en = !!(flags & DMA_PREP_INTERRUPT);
-+	hw->ctl_f.fence = !!(flags & DMA_PREP_FENCE);
-+	hw->ctl_f.compl_write = 1;
-+	dump_desc_dbg(ioat_chan, desc);
-+	/* we leave the channel locked to ensure in order submission */
-+
-+	return &desc->txd;
-+}
- 
- static struct dma_async_tx_descriptor *
- __ioat_prep_xor_lock(struct dma_chan *c, enum sum_check_flags *result,
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
