@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF8362095DB87
- for <linux-nvdimm@lists.01.org>; Thu,  3 Aug 2017 19:32:17 -0700 (PDT)
-Subject: [PATCH v2 0/5] fs, xfs: block map immutable files for dax,
- dma-to-storage, and swap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 03 Aug 2017 19:28:04 -0700
-Message-ID: <150181368442.32119.13336247800141074356.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6D35921E1DAC1
+ for <linux-nvdimm@lists.01.org>; Wed,  2 Aug 2017 11:38:53 -0700 (PDT)
+Subject: [PATCH v2 1/5] dmaengine: ioatdma: revert 7618d035 to allow sharing
+ of DMA channels
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 02 Aug 2017 11:41:02 -0700
+Message-ID: <150169926236.59677.16361165879089181195.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150169902310.59677.18062301799811367806.stgit@djiang5-desk3.ch.intel.com>
+References: <150169902310.59677.18062301799811367806.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,94 +23,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1 [1]:
-* Add IS_IOMAP_IMMUTABLE() checks to xfs ioctl paths that perform block
-  map changes (xfs_alloc_file_space and xfs_free_file_space) (Darrick)
+Commit 7618d0359c16 ("dmaengine: ioatdma: Set non RAID channels to be
+private capable") makes all non-RAID ioatdma channels as private to be
+requestable by dma_request_channel(). With PQ CAP support going away for
+ioatdma, this would make all channels private. To support the usage of
+ioatdma for blk-mq implementation of pmem we need as many channels we can
+share in order to be high performing. Thus reverting the patch.
 
-* Rather than complete a partial write, fail all writes that would
-  attempt to extend the file size (Darrick)
-
-* Introduce FALLOC_FL_UNSEAL_BLOCK_MAP as an explicit operation type for
-  clearing S_IOMAP_IMMUTABLE (Dave)
-
-* Rework xfs_seal_file_space() to first complete hole-fill and unshare
-  operations and then check the file for suitability under
-  XFS_ILOCK_EXCL. (Darrick)
-
-* Add an FS_XFLAG_IOMAP_IMMUTABLE flag so the immutable state can be
-  seen by xfs_io. (Dave)
-
-* Move the setting of S_IOMAP_IMMUTABLE to be atomic with respect to the
-  successful transaction that records XFS_DIFLAG2_IOMAP_IMMUTABLE.
-  (Darrick, Dave)
-
-* Switch to a 'goto out_unlock' style in xfs_seal_file_space() to
-  cleanup 'if / else' tree, and use the mapping_mapped() helper. (Dave)
-
-* Rely on XFS_MMAPLOCK_EXCL for reading a stable state of
-  mapping->i_mmap. (Dave)
-
-[1]: http://marc.info/?l=linux-fsdevel&m=150135785712967&w=2
-
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
+ drivers/dma/ioat/init.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-The daxfile proposal a few weeks back [2] sought to piggy back on the
-swapfile implementation to approximate a block map immutable file. This
-is an idea Dave originated last year to solve the dax "flush from
-userspace" problem [3].
+diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
+index 6ad4384..e437112 100644
+--- a/drivers/dma/ioat/init.c
++++ b/drivers/dma/ioat/init.c
+@@ -1163,9 +1163,6 @@ static int ioat3_dma_probe(struct ioatdma_device *ioat_dma, int dca)
+ 		}
+ 	}
+ 
+-	if (!(ioat_dma->cap & (IOAT_CAP_XOR | IOAT_CAP_PQ)))
+-		dma_cap_set(DMA_PRIVATE, dma->cap_mask);
+-
+ 	err = ioat_probe(ioat_dma);
+ 	if (err)
+ 		return err;
 
-The discussion yielded several results. First, Christoph pointed out
-that swapfiles are subtly broken [4].  Second, Darrick [5] and Dave [6]
-proposed how to properly implement a block map immutable file.  Finally,
-Dave identified some improvements to swapfiles that can be built on the
-block-map-immutable mechanism. These patches seek to implement the first
-part of the proposal and save the swapfile work to build on top once the
-base mechanism is complete.
-
-While the initial motivation for this feature is support for
-byte-addressable updates of persistent memory and managing cache
-maintenance from userspace, the applications of the feature are broader.
-In addition to being the start of a better swapfile mechanism it can
-also support a DMA-to-storage use case.  This use case enables
-data-acquisition hardware to DMA directly to a storage device address
-while being safe in the knowledge that storage mappings will not change.
-
-[2]: https://lkml.org/lkml/2017/6/16/790
-[3]: https://lkml.org/lkml/2016/9/11/159
-[4]: https://lkml.org/lkml/2017/6/18/31
-[5]: https://lkml.org/lkml/2017/6/20/49
-[6]: https://www.spinics.net/lists/linux-xfs/msg07871.html
-
----
-
-Dan Williams (5):
-      fs, xfs: introduce S_IOMAP_IMMUTABLE
-      fs, xfs: introduce FALLOC_FL_SEAL_BLOCK_MAP
-      fs, xfs: introduce FALLOC_FL_UNSEAL_BLOCK_MAP
-      xfs: introduce XFS_DIFLAG2_IOMAP_IMMUTABLE
-      xfs: toggle XFS_DIFLAG2_IOMAP_IMMUTABLE in response to fallocate
-
-
- fs/attr.c                   |   10 ++
- fs/open.c                   |   22 +++++
- fs/read_write.c             |    3 +
- fs/xfs/libxfs/xfs_format.h  |    5 +
- fs/xfs/xfs_bmap_util.c      |  181 +++++++++++++++++++++++++++++++++++++++++++
- fs/xfs/xfs_bmap_util.h      |    5 +
- fs/xfs/xfs_file.c           |   16 +++-
- fs/xfs/xfs_inode.c          |    2 
- fs/xfs/xfs_ioctl.c          |    7 ++
- fs/xfs/xfs_iops.c           |    8 +-
- include/linux/falloc.h      |    4 +
- include/linux/fs.h          |    2 
- include/uapi/linux/falloc.h |   20 +++++
- include/uapi/linux/fs.h     |    1 
- mm/filemap.c                |    5 +
- 15 files changed, 282 insertions(+), 9 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
