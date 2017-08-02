@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2DE2F21E95DE0
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:15:29 -0700 (PDT)
-Subject: [ndctl PATCH v2 09/10] ndctl: fix namespace index block size
- calculation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 19:11:46 -0700
-Message-ID: <150405910608.22171.177987736957743487.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0739A21AEB0A1
+ for <linux-nvdimm@lists.01.org>; Wed,  2 Aug 2017 13:42:42 -0700 (PDT)
+Date: Thu, 3 Aug 2017 04:44:06 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v2] dm: allow device-mapper to operate without dax support
+Message-ID: <201708030445.iNkin6wg%fengguang.wu@intel.com>
 MIME-Version: 1.0
+In-Reply-To: <150162766102.27319.10043964535977848237.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,103 +22,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: snitzer@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, kbuild-all@01.org, Bart Van Assche <Bart.VanAssche@wdc.com>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The old calculation assumed that the label space was 128k and the label
-size is 128. With v1.2 labels where the label size is 512 this
-calculation will return zero. We were previously saved by the fact that
-the nsindex_size is always pre-initialized from a previous 128 byte
-assumption and we are lucky that the index sizes turn out the same.
-However the new 'autolabel' code checked the size without it having been
-initialized by a previous call where nslabel_size was 128.
+Hi Dan,
 
-Fix this going forward in case we start encountering different
-geometries of label areas besides 128k.
+[auto build test ERROR on dm/for-next]
+[also build test ERROR on v4.13-rc3 next-20170802]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Since the label size can change from one call to the next, drop the
-caching of nsindex_size.
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/dm-allow-device-mapper-to-operate-without-dax-support/20170802-155255
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git for-next
+config: sh-sdk7786_defconfig (attached as .config)
+compiler: sh4-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
+reproduce:
+        wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=sh 
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+All errors (new ones prefixed by >>):
+
+   drivers/md/dm-table.o: In function `device_dax_write_cache_enabled':
+   dm-table.c:(.text+0xab4): undefined reference to `dax_write_cache_enabled'
+   drivers/md/dm-table.o: In function `dm_table_set_restrictions':
+>> (.text+0x23d0): undefined reference to `dax_write_cache'
+
 ---
- ndctl/lib/dimm.c    |   34 +++++++++++++++++++---------------
- ndctl/lib/private.h |    1 -
- 2 files changed, 19 insertions(+), 16 deletions(-)
-
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 49cf7cb9be6f..46eaf736988a 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -65,12 +65,16 @@ static unsigned int sizeof_namespace_label(struct nvdimm_data *ndd)
- 	return ndctl_dimm_sizeof_namespace_label(to_dimm(ndd));
- }
- 
--static unsigned int sizeof_namespace_index(struct nvdimm_data *ndd)
-+static int nvdimm_num_label_slots(struct nvdimm_data *ndd)
- {
--	u32 index_span;
-+	return ndd->config_size / (sizeof_namespace_label(ndd) + 1);
-+}
- 
--	if (ndd->nsindex_size)
--		return ndd->nsindex_size;
-+static unsigned int sizeof_namespace_index(struct nvdimm_data *ndd)
-+{
-+	u32 nslot, space, size;
-+	struct ndctl_dimm *dimm = to_dimm(ndd);
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
- 
- 	/*
- 	 * The minimum index space is 512 bytes, with that amount of
-@@ -80,16 +84,17 @@ static unsigned int sizeof_namespace_index(struct nvdimm_data *ndd)
- 	 * starts to waste space at larger config_sizes, but it's
- 	 * unlikely we'll ever see anything but 128K.
- 	 */
--	index_span = ndd->config_size / (sizeof_namespace_label(ndd) + 1);
--	index_span /= NSINDEX_ALIGN * 2;
--	ndd->nsindex_size = index_span * NSINDEX_ALIGN;
--
--	return ndd->nsindex_size;
--}
--
--static int nvdimm_num_label_slots(struct nvdimm_data *ndd)
--{
--	return ndd->config_size / (sizeof_namespace_label(ndd) + 1);
-+	nslot = nvdimm_num_label_slots(ndd);
-+	space = ndd->config_size - nslot * sizeof_namespace_label(ndd);
-+	size = ALIGN(sizeof(struct namespace_index) + ALIGN(nslot, 8) / 8,
-+			NSINDEX_ALIGN) * 2;
-+	if (size <= space)
-+		return size / 2;
-+
-+	err(ctx, "%s: label area (%ld) too small to host (%d byte) labels\n",
-+			ndctl_dimm_get_devname(dimm), ndd->config_size,
-+			sizeof_namespace_label(ndd));
-+	return 0;
- }
- 
- static struct namespace_index *to_namespace_index(struct nvdimm_data *ndd,
-@@ -356,7 +361,6 @@ static void init_ndd(struct nvdimm_data *ndd, struct ndctl_cmd *cmd_read)
- 	ndctl_cmd_ref(cmd_read);
- 	ndd->data = cmd_read->iter.total_buf;
- 	ndd->config_size = cmd_read->iter.total_xfer;
--	ndd->nsindex_size = 0;
- 	ndd->ns_current = -1;
- 	ndd->ns_next = -1;
- }
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index cfea5f75fcde..83a8067812f7 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -39,7 +39,6 @@ struct nvdimm_data {
- 	void *data;
- 	unsigned long config_size;
- 	size_t nslabel_size;
--	int nsindex_size;
- 	int ns_current, ns_next;
- };
- 
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
