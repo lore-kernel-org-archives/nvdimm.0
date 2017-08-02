@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9134721CF9500
- for <linux-nvdimm@lists.01.org>; Tue,  1 Aug 2017 18:46:58 -0700 (PDT)
-Date: Wed, 2 Aug 2017 09:48:47 +0800
+ by ml01.01.org (Postfix) with ESMTPS id BFB3D21D2DCF6
+ for <linux-nvdimm@lists.01.org>; Tue,  1 Aug 2017 18:40:44 -0700 (PDT)
+Date: Wed, 2 Aug 2017 09:40:26 +0800
 From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH] dm: enable opt-out of device-mapper dax support
-Message-ID: <201708020917.5ZjuHQzh%fengguang.wu@intel.com>
+Message-ID: <201708020927.f9cVCYCl%fengguang.wu@intel.com>
 MIME-Version: 1.0
 In-Reply-To: <150161113411.34055.9762658795237184307.stgit@dwillia2-desk3.amr.corp.intel.com>
 Content-Disposition: inline
@@ -34,18 +34,18 @@ Hi Dan,
 
 url:    https://github.com/0day-ci/linux/commits/Dan-Williams/dm-enable-opt-out-of-device-mapper-dax-support/20170802-063827
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git for-next
-config: x86_64-allyesdebian (attached as .config)
-compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+config: sparc64-defconfig (attached as .config)
+compiler: sparc64-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
 reproduce:
+        wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
         # save the attached .config to linux build tree
-        make ARCH=x86_64 
+        make.cross ARCH=sparc64 
 
 All errors (new ones prefixed by >>):
 
-   drivers/md/dm-table.o: In function `device_dax_write_cache_enabled':
->> dm-table.c:(.text+0x568): undefined reference to `dax_write_cache_enabled'
-   drivers/md/dm-table.o: In function `dm_table_set_restrictions':
->> dm-table.c:(.text+0x1e40): undefined reference to `dax_write_cache'
+>> ERROR: "dax_write_cache" [drivers/md/dm-mod.ko] undefined!
+>> ERROR: "dax_write_cache_enabled" [drivers/md/dm-mod.ko] undefined!
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
