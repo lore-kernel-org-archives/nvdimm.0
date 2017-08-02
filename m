@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8DF3421E49BAB
- for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:18:38 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v6 4/6] btt: cache sector_size in arena_info
-Date: Tue, 22 Aug 2017 16:19:13 -0600
-Message-Id: <20170822221915.1732-5-vishal.l.verma@intel.com>
-In-Reply-To: <20170822221915.1732-1-vishal.l.verma@intel.com>
-References: <20170822221915.1732-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D3B2A21E1DAE1
+ for <linux-nvdimm@lists.01.org>; Wed,  2 Aug 2017 11:02:18 -0700 (PDT)
+Subject: [PATCH v3 1/2] dax: introduce CONFIG_DAX_DRIVER
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 02 Aug 2017 10:58:04 -0700
+Message-ID: <150169668471.39569.16909537840684693909.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150169667935.39569.15808116323143633486.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150169667935.39569.15808116323143633486.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,57 +18,104 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: snitzer@redhat.com
+Cc: linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, Bart Van Assche <Bart.VanAssche@wdc.com>, dm-devel@redhat.com, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the error clearing rework, add sector_size in the
-arena_info struct.
+In support of allowing device-mapper to compile out idle/dead code when
+there are no dax providers in the system, introduce the DAX_DRIVER
+symbol. This is selected by all leaf drivers that device-mapper might be
+layered on top. This allows device-mapper to 'select DAX', i.e. upgrade
+it from DAX=m to DAX=y, when a provider is present.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mike Snitzer <snitzer@redhat.com>
+Cc: Bart Van Assche <Bart.VanAssche@wdc.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/btt.c | 1 +
- drivers/nvdimm/btt.h | 2 ++
- 2 files changed, 3 insertions(+)
+ arch/powerpc/platforms/Kconfig |    1 +
+ drivers/block/Kconfig          |    1 +
+ drivers/dax/Kconfig            |    4 +++-
+ drivers/nvdimm/Kconfig         |    1 +
+ drivers/s390/block/Kconfig     |    1 +
+ 5 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 374ae62..e9dd651 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
- 	if (!arena)
- 		return NULL;
- 	arena->nd_btt = btt->nd_btt;
-+	arena->sector_size = btt->sector_size;
+diff --git a/arch/powerpc/platforms/Kconfig b/arch/powerpc/platforms/Kconfig
+index 4fd64d3f5c44..4561340c1f92 100644
+--- a/arch/powerpc/platforms/Kconfig
++++ b/arch/powerpc/platforms/Kconfig
+@@ -296,6 +296,7 @@ config AXON_RAM
+ 	tristate "Axon DDR2 memory device driver"
+ 	depends on PPC_IBM_CELL_BLADE && BLOCK
+ 	select DAX
++	select DAX_DRIVER
+ 	default m
+ 	help
+ 	  It registers one block device per Axon's DDR2 memory bank found
+diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
+index 8ddc98279c8f..e1b6f4d2a716 100644
+--- a/drivers/block/Kconfig
++++ b/drivers/block/Kconfig
+@@ -324,6 +324,7 @@ config BLK_DEV_SX8
+ config BLK_DEV_RAM
+ 	tristate "RAM block device support"
+ 	select DAX if BLK_DEV_RAM_DAX
++	select DAX_DRIVER if BLK_DEV_RAM_DAX
+ 	---help---
+ 	  Saying Y here will allow you to use a portion of your RAM memory as
+ 	  a block device, so that you can make file systems on it, read and
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index b79aa8f7a497..9bf940eb9c06 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -1,3 +1,6 @@
++config DAX_DRIVER
++	bool
++
+ menuconfig DAX
+ 	tristate "DAX: direct access to differentiated memory"
+ 	select SRCU
+@@ -16,7 +19,6 @@ config DEV_DAX
+ 	  baseline memory pool.  Mappings of a /dev/daxX.Y device impose
+ 	  restrictions that make the mapping behavior deterministic.
  
- 	if (!size)
- 		return arena;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 09fabf5..2bc0d10b 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -108,6 +108,7 @@ struct aligned_lock {
-  *			handle incoming writes.
-  * @version_major:	Metadata layout version major.
-  * @version_minor:	Metadata layout version minor.
-+ * @sector_size:	The Linux sector size - 512 or 4096
-  * @nextoff:		Offset in bytes to the start of the next arena.
-  * @infooff:		Offset in bytes to the info block of this arena.
-  * @dataoff:		Offset in bytes to the data area of this arena.
-@@ -135,6 +136,7 @@ struct arena_info {
- 	u32 nfree;
- 	u16 version_major;
- 	u16 version_minor;
-+	u32 sector_size;
- 	/* Byte offsets to the different on-media structures */
- 	u64 nextoff;
- 	u64 infooff;
--- 
-2.9.3
+-
+ config DEV_DAX_PMEM
+ 	tristate "PMEM DAX: direct access to persistent memory"
+ 	depends on LIBNVDIMM && NVDIMM_DAX && DEV_DAX
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index 5bdd499b5f4f..afe4018d76cf 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -21,6 +21,7 @@ config BLK_DEV_PMEM
+ 	tristate "PMEM: Persistent memory block device support"
+ 	default LIBNVDIMM
+ 	select DAX
++	select DAX_DRIVER
+ 	select ND_BTT if BTT
+ 	select ND_PFN if NVDIMM_PFN
+ 	help
+diff --git a/drivers/s390/block/Kconfig b/drivers/s390/block/Kconfig
+index 31f014b57bfc..3f563f2f33d6 100644
+--- a/drivers/s390/block/Kconfig
++++ b/drivers/s390/block/Kconfig
+@@ -15,6 +15,7 @@ config BLK_DEV_XPRAM
+ config DCSSBLK
+ 	def_tristate m
+ 	select DAX
++	select DAX_DRIVER
+ 	prompt "DCSSBLK support"
+ 	depends on S390 && BLOCK
+ 	help
 
 _______________________________________________
 Linux-nvdimm mailing list
