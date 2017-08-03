@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 515FF21E1DAD0
- for <linux-nvdimm@lists.01.org>; Thu,  3 Aug 2017 01:54:29 -0700 (PDT)
-Date: Thu, 3 Aug 2017 14:29:41 +0530
-From: Vinod Koul <vinod.koul@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 09DB821AEB0A0
+ for <linux-nvdimm@lists.01.org>; Wed,  2 Aug 2017 22:34:04 -0700 (PDT)
+From: "Jiang, Dave" <dave.jiang@intel.com>
 Subject: Re: [PATCH v2 5/5] libnvdimm: add DMA support for pmem blk-mq
-Message-ID: <20170803085941.GG3053@localhost>
+Date: Thu, 3 Aug 2017 05:36:13 +0000
+Message-ID: <542773BA-C532-4125-BCE9-6E8889EBF272@intel.com>
 References: <150169902310.59677.18062301799811367806.stgit@djiang5-desk3.ch.intel.com>
  <150169928551.59677.14690799553760064519.stgit@djiang5-desk3.ch.intel.com>
  <f21abd33-f64c-909d-ec1a-ab0a1cf021e7@codeaurora.org>
@@ -15,12 +15,11 @@ References: <150169902310.59677.18062301799811367806.stgit@djiang5-desk3.ch.inte
  <220335ff-808c-e71a-7f8e-c62d698dadca@codeaurora.org>
  <5a5c415a-e354-20a7-c762-89dcf47032bb@intel.com>
  <20170803050154.GE3053@localhost>
- <423B07FD-31B3-424B-849E-FAC5C0AD8FAE@intel.com>
+ <423B07FD-31B3-424B-849E-FAC5C0AD8FAE@intel.com>,
  <20170803052817.GF3053@localhost>
- <542773BA-C532-4125-BCE9-6E8889EBF272@intel.com>
+In-Reply-To: <20170803052817.GF3053@localhost>
+Content-Language: en-US
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <542773BA-C532-4125-BCE9-6E8889EBF272@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -32,53 +31,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Jiang, Dave" <dave.jiang@intel.com>
+To: "Koul, Vinod" <vinod.koul@intel.com>
 Cc: Sinan Kaya <okaya@codeaurora.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Aug 03, 2017 at 11:06:13AM +0530, Jiang, Dave wrote:
-> 
-> 
-> > On Aug 2, 2017, at 10:25 PM, Koul, Vinod <vinod.koul@intel.com> wrote:
-> > 
-> >> On Thu, Aug 03, 2017 at 10:41:51AM +0530, Jiang, Dave wrote:
-> >> 
-> >> 
-> >>>> On Aug 2, 2017, at 9:58 PM, Koul, Vinod <vinod.koul@intel.com> wrote:
-> >>>> 
-> >>>> On Wed, Aug 02, 2017 at 02:13:56PM -0700, Dave Jiang wrote:
-> >>>> 
-> >>>> 
-> >>>>> On 08/02/2017 02:10 PM, Sinan Kaya wrote:
-> >>>>> On 8/2/2017 4:52 PM, Dave Jiang wrote:
-> >>>>>>> Do we need a new API / new function, or new capability?
-> >>>>>> Hmmm...you are right. I wonder if we need something like DMA_SG cap....
-> >>>>>> 
-> >>>>>> 
-> >>>>> 
-> >>>>> Unfortunately, DMA_SG means something else. Maybe, we need DMA_MEMCPY_SG
-> >>>>> to be similar with DMA_MEMSET_SG.
-> >>>> 
-> >>>> I'm ok with that if Vinod is.
-> >>> 
-> >>> So what exactly is the ask here, are you trying to do MEMCPY or SG or MEMSET
-> >>> or all :). We should have done bitfields for this though...
-> >> 
-> >> Add DMA_MEMCPY_SG to transaction type. 
-> > 
-> > Not MEMSET right, then why not use DMA_SG, DMA_SG is supposed for
-> > scatterlist to scatterlist copy which is used to check for
-> > device_prep_dma_sg() calls
-> > 
-> Right. But we are doing flat buffer to/from scatterlist, not sg to sg. So
-> we need something separate than what DMA_SG is used for. 
 
-Hmm, its SG-buffer  and its memcpy, so should we call it DMA_SG_BUFFER,
-since it is not memset (or is it) I would not call it memset, or maybe we
-should also change DMA_SG to DMA_SG_SG to make it terribly clear :D
 
--- 
-~Vinod
+> On Aug 2, 2017, at 10:25 PM, Koul, Vinod <vinod.koul@intel.com> wrote:
+> 
+>> On Thu, Aug 03, 2017 at 10:41:51AM +0530, Jiang, Dave wrote:
+>> 
+>> 
+>>>> On Aug 2, 2017, at 9:58 PM, Koul, Vinod <vinod.koul@intel.com> wrote:
+>>>> 
+>>>> On Wed, Aug 02, 2017 at 02:13:56PM -0700, Dave Jiang wrote:
+>>>> 
+>>>> 
+>>>>> On 08/02/2017 02:10 PM, Sinan Kaya wrote:
+>>>>> On 8/2/2017 4:52 PM, Dave Jiang wrote:
+>>>>>>> Do we need a new API / new function, or new capability?
+>>>>>> Hmmm...you are right. I wonder if we need something like DMA_SG cap....
+>>>>>> 
+>>>>>> 
+>>>>> 
+>>>>> Unfortunately, DMA_SG means something else. Maybe, we need DMA_MEMCPY_SG
+>>>>> to be similar with DMA_MEMSET_SG.
+>>>> 
+>>>> I'm ok with that if Vinod is.
+>>> 
+>>> So what exactly is the ask here, are you trying to do MEMCPY or SG or MEMSET
+>>> or all :). We should have done bitfields for this though...
+>> 
+>> Add DMA_MEMCPY_SG to transaction type. 
+> 
+> Not MEMSET right, then why not use DMA_SG, DMA_SG is supposed for
+> scatterlist to scatterlist copy which is used to check for
+> device_prep_dma_sg() calls
+> 
+Right. But we are doing flat buffer to/from scatterlist, not sg to sg. So we need something separate than what DMA_SG is used for. 
+
+
+> -- 
+> ~Vinod
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
