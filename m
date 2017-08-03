@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lgeamrelo11.lge.com (LGEAMRELO11.lge.com [156.147.23.51])
- by ml01.01.org (Postfix) with ESMTP id 54B3B21D49104
- for <linux-nvdimm@lists.01.org>; Thu, 10 Aug 2017 22:15:27 -0700 (PDT)
-From: Minchan Kim <minchan@kernel.org>
-Subject: [PATCH v2 2/7] bdi: introduce BDI_CAP_SYNCHRONOUS_IO
-Date: Fri, 11 Aug 2017 14:17:22 +0900
-Message-Id: <1502428647-28928-3-git-send-email-minchan@kernel.org>
-In-Reply-To: <1502428647-28928-1-git-send-email-minchan@kernel.org>
-References: <1502428647-28928-1-git-send-email-minchan@kernel.org>
+Received: from mail-pf0-x243.google.com (mail-pf0-x243.google.com
+ [IPv6:2607:f8b0:400e:c00::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 274EE21E1DAD9
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Aug 2017 00:46:01 -0700 (PDT)
+Received: by mail-pf0-x243.google.com with SMTP id e3so781540pfc.5
+ for <linux-nvdimm@lists.01.org>; Thu, 03 Aug 2017 00:48:12 -0700 (PDT)
+From: Steven Swanson <swanson@eng.ucsd.edu>
+Subject: [RFC 00/16] NOVA: a new file system for persistent memory
+Date: Thu, 03 Aug 2017 00:48:09 -0700
+Message-ID: <150174646416.104003.14042713459553361884.stgit@hn>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,140 +19,189 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>, jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Minchan Kim <minchan@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, kernel-team <kernel-team@lge.com>, seungho1.park@lge.com, "karam . lee" <karam.lee@lge.com>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Steven Swanson <steven.swanson@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-By discussion[1], we will replace rw_page devices with on-stack-bio.
-For such super-fast devices to be detected, this patch introduces
-BDI_CAP_SYNC which means synchronous IO would be more efficient for
-asnychronous IO and uses the flags to brd, zram, btt and pmem.
+This is an RFC patch series that impements NOVA (NOn-Volatile memory
+Accelerated file system), a new file system built for PMEM.
 
-[1] lkml.kernel.org/r/<20170728165604.10455-1-ross.zwisler@linux.intel.com>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+NOVA's goal is to provide a high-performance, full-featured, production-ready
+file system tailored for byte-addressable non-volatile memories (e.g., NVDIMMs
+and Intel's soon-to-be-released 3DXpoint DIMMs).  It combines design elements
+from many other file systems to provide a combination of high-performance,
+strong consistency guarantees, and comprehensive data protection.  NOVA supports
+DAX-style mmap, and making DAX perform well is a first-order priority in NOVA's
+design.
+
+NOVA was developed at the Non-Volatile Systems Laboratory in the Computer
+Science and Engineering Department at the University of California, San Diego.
+Its primary authors are Andiry Xu <jix024@eng.ucsd.edu>, Lu Zhang
+<luzh@eng.ucsd.edu>, and Steven Swanson <swanson@eng.ucsd.edu>.
+
+NOVA is stable enough to run complex applications, but there is substantial
+work left to do.  This RFC is intended to gather feedback to guide its
+development toward eventual inclusion upstream.
+
+The patches are relative Linux 4.12.
+
+Overview
+========
+
+NOVA is primarily a log-structured file system, but rather than maintain a
+single global log for the entire file system, it maintains separate logs for
+each file (inode).  NOVA breaks the logs into 4KB pages, they need not be
+contiguous in memory.  The logs only contain metadata.
+
+File data pages reside outside the log, and log entries for write operations
+point to data pages they modify.  File modification uses copy-on-write (COW) to
+provide atomic file updates.
+
+For file operations that involve multiple inodes, NOVA use small, fixed-sized
+redo logs to atomically append log entries to the logs of the inodes involved.
+
+This structure keeps logs small and makes garbage collection very fast.  It also
+enables enormous parallelism during recovery from an unclean unmount, since
+threads can scan logs in parallel.
+
+NOVA replicates and checksums all metadata structures and protects file data
+with RAID-4-style parity.  It supports checkpoints to facilitate backups.
+
+Documentation/filesystems/NOVA.txt contains some lower-level implementation and
+usage information.  A more thorough discussion of NOVA's goals and design is
+avaialable in two papers:
+
+NOVA: A Log-structured File system for Hybrid Volatile/Non-volatile Main Memories
+http://cseweb.ucsd.edu/~swanson/papers/FAST2016NOVA.pdf
+Jian Xu and Steven Swanson
+Published in FAST 2016
+
+Hardening the NOVA File System
+http://cseweb.ucsd.edu/~swanson/papers/TechReport2017HardenedNOVA.pdf UCSD-CSE
+Techreport CS2017-1018
+Jian Xu, Lu Zhang, Amirsaman Memaripour, Akshatha
+Gangadharaiah, Amit Borase, Tamires Brito Da Silva, Andy Rudoff, Steven
+Swanson
+
+-steve
+
+
 ---
- drivers/block/brd.c           | 2 ++
- drivers/block/zram/zram_drv.c | 2 +-
- drivers/nvdimm/btt.c          | 3 +++
- drivers/nvdimm/pmem.c         | 2 ++
- include/linux/backing-dev.h   | 8 ++++++++
- 5 files changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 293250582f00..13e03b46e3e7 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -20,6 +20,7 @@
- #include <linux/radix-tree.h>
- #include <linux/fs.h>
- #include <linux/slab.h>
-+#include <linux/backing-dev.h>
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- #include <linux/pfn_t.h>
- #include <linux/dax.h>
-@@ -436,6 +437,7 @@ static struct brd_device *brd_alloc(int i)
- 	disk->flags		= GENHD_FL_EXT_DEVT;
- 	sprintf(disk->disk_name, "ram%d", i);
- 	set_capacity(disk, rd_size * 2);
-+	disk->queue->backing_dev_info->capabilities |= BDI_CAP_SYNCHRONOUS_IO;
- 
- #ifdef CONFIG_BLK_DEV_RAM_DAX
- 	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
-diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
-index bbbc2f230b8e..a60441bd6f0c 100644
---- a/drivers/block/zram/zram_drv.c
-+++ b/drivers/block/zram/zram_drv.c
-@@ -1577,7 +1577,7 @@ static int zram_add(void)
- 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
- 
- 	zram->disk->queue->backing_dev_info->capabilities |=
--					BDI_CAP_STABLE_WRITES;
-+			(BDI_CAP_STABLE_WRITES | BDI_CAP_SYNCHRONOUS_IO);
- 	add_disk(zram->disk);
- 
- 	ret = sysfs_create_group(&disk_to_dev(zram->disk)->kobj,
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index e10d3300b64c..f9437d36fc37 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -23,6 +23,7 @@
- #include <linux/ndctl.h>
- #include <linux/fs.h>
- #include <linux/nd.h>
-+#include <linux/backing-dev.h>
- #include "btt.h"
- #include "nd.h"
- 
-@@ -1273,6 +1274,8 @@ static int btt_blk_init(struct btt *btt)
- 	btt->btt_disk->private_data = btt;
- 	btt->btt_disk->queue = btt->btt_queue;
- 	btt->btt_disk->flags = GENHD_FL_EXT_DEVT;
-+	btt->btt_disk->queue->backing_dev_info->capabilities |=
-+			BDI_CAP_SYNCHRONOUS_IO;
- 
- 	blk_queue_make_request(btt->btt_queue, btt_make_request);
- 	blk_queue_logical_block_size(btt->btt_queue, btt->sector_size);
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index b5f04559a497..37eb836f9657 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -31,6 +31,7 @@
- #include <linux/uio.h>
- #include <linux/dax.h>
- #include <linux/nd.h>
-+#include <linux/backing-dev.h>
- #include "pmem.h"
- #include "pfn.h"
- #include "nd.h"
-@@ -379,6 +380,7 @@ static int pmem_attach_disk(struct device *dev,
- 	disk->fops		= &pmem_fops;
- 	disk->queue		= q;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
-+	disk->queue->backing_dev_info->capabilities |= BDI_CAP_SYNCHRONOUS_IO;
- 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
- 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
- 			/ 512);
-diff --git a/include/linux/backing-dev.h b/include/linux/backing-dev.h
-index 854e1bdd0b2a..cd41617c6594 100644
---- a/include/linux/backing-dev.h
-+++ b/include/linux/backing-dev.h
-@@ -123,6 +123,8 @@ int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
-  * BDI_CAP_STRICTLIMIT:    Keep number of dirty pages below bdi threshold.
-  *
-  * BDI_CAP_CGROUP_WRITEBACK: Supports cgroup-aware writeback.
-+ * BDI_CAP_SYNCHRONOUS_IO: Device is so fast that asynchronous IO would be
-+ *			   inefficient.
-  */
- #define BDI_CAP_NO_ACCT_DIRTY	0x00000001
- #define BDI_CAP_NO_WRITEBACK	0x00000002
-@@ -130,6 +132,7 @@ int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
- #define BDI_CAP_STABLE_WRITES	0x00000008
- #define BDI_CAP_STRICTLIMIT	0x00000010
- #define BDI_CAP_CGROUP_WRITEBACK 0x00000020
-+#define BDI_CAP_SYNCHRONOUS_IO	0x00000040
- 
- #define BDI_CAP_NO_ACCT_AND_WRITEBACK \
- 	(BDI_CAP_NO_WRITEBACK | BDI_CAP_NO_ACCT_DIRTY | BDI_CAP_NO_ACCT_WB)
-@@ -177,6 +180,11 @@ long wait_iff_congested(struct pglist_data *pgdat, int sync, long timeout);
- int pdflush_proc_obsolete(struct ctl_table *table, int write,
- 		void __user *buffer, size_t *lenp, loff_t *ppos);
- 
-+static inline bool bdi_cap_synchronous_io(struct backing_dev_info *bdi)
-+{
-+	return bdi->capabilities & BDI_CAP_SYNCHRONOUS_IO;
-+}
-+
- static inline bool bdi_cap_stable_pages_required(struct backing_dev_info *bdi)
- {
- 	return bdi->capabilities & BDI_CAP_STABLE_WRITES;
--- 
-2.7.4
+Steven Swanson (16):
+      NOVA: Documentation
+      NOVA: Superblock and fs layout
+      NOVA: PMEM allocation system
+      NOVA: Inode operations and structures
+      NOVA: Log data structures and operations
+      NOVA: Lite-weight journaling for complex ops
+      NOVA: File and directory operations
+      NOVA: Garbage collection
+      NOVA: DAX code
+      NOVA: File data protection
+      NOVA: Snapshot support
+      NOVA: Recovery code
+      NOVA: Sysfs and ioctl
+      NOVA: Read-only pmem devices
+      NOVA: Performance measurement
+      NOVA: Build infrastructure
 
+
+ Documentation/filesystems/00-INDEX |    2 
+ Documentation/filesystems/nova.txt |  771 +++++++++++++++++
+ MAINTAINERS                        |    8 
+ README.md                          |  173 ++++
+ arch/x86/include/asm/io.h          |    1 
+ arch/x86/mm/fault.c                |   11 
+ arch/x86/mm/ioremap.c              |   25 -
+ drivers/nvdimm/pmem.c              |   14 
+ fs/Kconfig                         |    2 
+ fs/Makefile                        |    1 
+ fs/nova/Kconfig                    |   15 
+ fs/nova/Makefile                   |    9 
+ fs/nova/balloc.c                   |  827 +++++++++++++++++++
+ fs/nova/balloc.h                   |  118 +++
+ fs/nova/bbuild.c                   | 1602 ++++++++++++++++++++++++++++++++++++
+ fs/nova/checksum.c                 |  912 ++++++++++++++++++++
+ fs/nova/dax.c                      | 1346 ++++++++++++++++++++++++++++++
+ fs/nova/dir.c                      |  760 +++++++++++++++++
+ fs/nova/file.c                     |  943 +++++++++++++++++++++
+ fs/nova/gc.c                       |  739 +++++++++++++++++
+ fs/nova/inode.c                    | 1467 +++++++++++++++++++++++++++++++++
+ fs/nova/inode.h                    |  389 +++++++++
+ fs/nova/ioctl.c                    |  185 ++++
+ fs/nova/journal.c                  |  474 +++++++++++
+ fs/nova/journal.h                  |   61 +
+ fs/nova/log.c                      | 1411 ++++++++++++++++++++++++++++++++
+ fs/nova/log.h                      |  333 +++++++
+ fs/nova/mprotect.c                 |  604 ++++++++++++++
+ fs/nova/mprotect.h                 |  190 ++++
+ fs/nova/namei.c                    |  919 +++++++++++++++++++++
+ fs/nova/nova.h                     | 1137 ++++++++++++++++++++++++++
+ fs/nova/nova_def.h                 |  154 +++
+ fs/nova/parity.c                   |  411 +++++++++
+ fs/nova/perf.c                     |  594 +++++++++++++
+ fs/nova/perf.h                     |   96 ++
+ fs/nova/rebuild.c                  |  847 +++++++++++++++++++
+ fs/nova/snapshot.c                 | 1407 ++++++++++++++++++++++++++++++++
+ fs/nova/snapshot.h                 |   98 ++
+ fs/nova/stats.c                    |  685 +++++++++++++++
+ fs/nova/stats.h                    |  218 +++++
+ fs/nova/super.c                    | 1222 +++++++++++++++++++++++++++
+ fs/nova/super.h                    |  216 +++++
+ fs/nova/symlink.c                  |  153 +++
+ fs/nova/sysfs.c                    |  543 ++++++++++++
+ include/linux/io.h                 |    2 
+ include/linux/mm.h                 |    2 
+ include/linux/mm_types.h           |    3 
+ kernel/memremap.c                  |   24 +
+ mm/memory.c                        |    2 
+ mm/mmap.c                          |    1 
+ mm/mprotect.c                      |   13 
+ 51 files changed, 22129 insertions(+), 11 deletions(-)
+ create mode 100644 Documentation/filesystems/nova.txt
+ create mode 100644 README.md
+ create mode 100644 fs/nova/Kconfig
+ create mode 100644 fs/nova/Makefile
+ create mode 100644 fs/nova/balloc.c
+ create mode 100644 fs/nova/balloc.h
+ create mode 100644 fs/nova/bbuild.c
+ create mode 100644 fs/nova/checksum.c
+ create mode 100644 fs/nova/dax.c
+ create mode 100644 fs/nova/dir.c
+ create mode 100644 fs/nova/file.c
+ create mode 100644 fs/nova/gc.c
+ create mode 100644 fs/nova/inode.c
+ create mode 100644 fs/nova/inode.h
+ create mode 100644 fs/nova/ioctl.c
+ create mode 100644 fs/nova/journal.c
+ create mode 100644 fs/nova/journal.h
+ create mode 100644 fs/nova/log.c
+ create mode 100644 fs/nova/log.h
+ create mode 100644 fs/nova/mprotect.c
+ create mode 100644 fs/nova/mprotect.h
+ create mode 100644 fs/nova/namei.c
+ create mode 100644 fs/nova/nova.h
+ create mode 100644 fs/nova/nova_def.h
+ create mode 100644 fs/nova/parity.c
+ create mode 100644 fs/nova/perf.c
+ create mode 100644 fs/nova/perf.h
+ create mode 100644 fs/nova/rebuild.c
+ create mode 100644 fs/nova/snapshot.c
+ create mode 100644 fs/nova/snapshot.h
+ create mode 100644 fs/nova/stats.c
+ create mode 100644 fs/nova/stats.h
+ create mode 100644 fs/nova/super.c
+ create mode 100644 fs/nova/super.h
+ create mode 100644 fs/nova/symlink.c
+ create mode 100644 fs/nova/sysfs.c
+
+--
+Signature
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
