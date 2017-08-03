@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AF1F821D28FC2
- for <linux-nvdimm@lists.01.org>; Fri,  4 Aug 2017 02:08:33 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id A0378AC0178
- for <linux-nvdimm@lists.01.org>; Fri,  4 Aug 2017 18:10:37 +0900 (JST)
-Date: Fri, 04 Aug 2017 18:10:34 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [RFC/Patch 3/5] nfit_test supports Translate SPA
-In-Reply-To: <20170804180231.27BC.E1E9C6FF@jp.fujitsu.com>
-References: <20170804180231.27BC.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170804181032.27C7.E1E9C6FF@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2811521AEB0CD
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Aug 2017 16:30:04 -0700 (PDT)
+Subject: [PATCH v3 5/8] dmaengine: ioatdma: dma_prep_memcpy_sg support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 03 Aug 2017 16:32:15 -0700
+Message-ID: <150180313553.66052.16468245777418530059.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150180288552.66052.13066621908903037900.stgit@djiang5-desk3.ch.intel.com>
+References: <150180288552.66052.13066621908903037900.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,157 +22,117 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-nfit_test supports Translate SPA
+Adding ioatdma support to copy from a physically contiguous buffer to a
+provided scatterlist and vice versa. This is used to support
+reading/writing persistent memory in the pmem driver.
 
-To test interface of Translate SPA, nfit_test must emulate it.
-This test module searches region which includes spa and 
-returns only 1 dimm handle which is last one currently.
-
-
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/nvdimm/region_devs.c     |  1 +
- tools/testing/nvdimm/test/nfit.c | 80 +++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 80 insertions(+), 1 deletion(-)
+ drivers/dma/ioat/dma.h  |    4 +++
+ drivers/dma/ioat/init.c |    2 ++
+ drivers/dma/ioat/prep.c |   57 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 63 insertions(+)
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 5954cfb..3c8cc7f 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -162,6 +162,7 @@ bool is_nd_pmem(struct device *dev)
- {
- 	return dev ? dev->type == &nd_pmem_device_type : false;
- }
-+EXPORT_SYMBOL_GPL(is_nd_pmem);
+diff --git a/drivers/dma/ioat/dma.h b/drivers/dma/ioat/dma.h
+index 56200ee..6c08b06 100644
+--- a/drivers/dma/ioat/dma.h
++++ b/drivers/dma/ioat/dma.h
+@@ -370,6 +370,10 @@ struct dma_async_tx_descriptor *
+ ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
+ 			   dma_addr_t dma_src, size_t len, unsigned long flags);
+ struct dma_async_tx_descriptor *
++ioat_dma_prep_memcpy_sg_lock(struct dma_chan *c,
++		struct scatterlist *sg, unsigned int sg_nents,
++		dma_addr_t dma_addr, bool to_sg, unsigned long flags);
++struct dma_async_tx_descriptor *
+ ioat_prep_interrupt_lock(struct dma_chan *c, unsigned long flags);
+ struct dma_async_tx_descriptor *
+ ioat_prep_xor(struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
+diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
+index 1b881fb..5c69ff6 100644
+--- a/drivers/dma/ioat/init.c
++++ b/drivers/dma/ioat/init.c
+@@ -1081,6 +1081,8 @@ static int ioat3_dma_probe(struct ioatdma_device *ioat_dma, int dca)
  
- bool is_nd_blk(struct device *dev)
- {
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 4c2fa98..09dcdf5 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -342,6 +342,78 @@ static int nfit_test_cmd_clear_error(struct nd_cmd_clear_error *clear_err,
- 	return 0;
+ 	dma = &ioat_dma->dma_dev;
+ 	dma->device_prep_dma_memcpy = ioat_dma_prep_memcpy_lock;
++	dma_cap_set(DMA_MEMCPY_SG, dma->cap_mask);
++	dma->device_prep_dma_memcpy_sg = ioat_dma_prep_memcpy_sg_lock;
+ 	dma->device_issue_pending = ioat_issue_pending;
+ 	dma->device_alloc_chan_resources = ioat_alloc_chan_resources;
+ 	dma->device_free_chan_resources = ioat_free_chan_resources;
+diff --git a/drivers/dma/ioat/prep.c b/drivers/dma/ioat/prep.c
+index 243421a..d8219af 100644
+--- a/drivers/dma/ioat/prep.c
++++ b/drivers/dma/ioat/prep.c
+@@ -159,6 +159,63 @@ ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
+ 	return &desc->txd;
  }
  
-+struct region_search_spa{
-+	u64 addr;
-+	struct nd_region *region;
-+};
-+
-+static int nfit_test_search_region_spa(struct device *dev, void *data)
++struct dma_async_tx_descriptor *
++ioat_dma_prep_memcpy_sg_lock(struct dma_chan *c,
++		struct scatterlist *sg, unsigned int sg_nents,
++		dma_addr_t dma_addr, bool to_sg, unsigned long flags)
 +{
-+	struct region_search_spa *ctx = data;
-+	struct nd_region *nd_region;
-+	resource_size_t ndr_end;
++	struct ioatdma_chan *ioat_chan = to_ioat_chan(c);
++	struct ioat_dma_descriptor *hw = NULL;
++	struct ioat_ring_ent *desc = NULL;
++	dma_addr_t dma_off = dma_addr;
++	int num_descs, idx, i;
++	struct scatterlist *s;
++	size_t total_len = 0, len;
 +
-+	if (!is_nd_pmem(dev))
-+		return 0;
 +
-+	nd_region = to_nd_region(dev);
-+	ndr_end = nd_region->ndr_start + nd_region->ndr_size;
-+
-+	if (ctx->addr >= nd_region->ndr_start && ctx->addr < ndr_end) {
-+		ctx->region = nd_region;
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nfit_test_search_spa(struct nvdimm_bus *bus, struct nd_cmd_trans_spa *spa)
-+{
-+	int ret;
-+	struct nd_region *nd_region = NULL;
-+	struct nvdimm *nvdimm = NULL;
-+	struct nd_mapping *nd_mapping = NULL;
-+	struct region_search_spa ctx = {
-+		.addr = spa->spa,
-+		.region = NULL,
-+	};
-+	u64 dpa;
-+
-+	ret = device_for_each_child(&bus->dev, &ctx, nfit_test_search_region_spa);
-+
-+	if (!ret)
-+		return -ENODEV;
-+
-+	nd_region = ctx.region;
-+
-+	dpa = ctx.addr - nd_region->ndr_start;
++	if (test_bit(IOAT_CHAN_DOWN, &ioat_chan->state))
++		return NULL;
 +
 +	/*
-+	 * last dimm is selected for test
++	 * The upper layer will garantee that each entry does not exceed
++	 * xfercap.
 +	 */
-+	nd_mapping = &nd_region->mapping[nd_region->ndr_mappings - 1];
-+	nvdimm = nd_mapping->nvdimm;
++	num_descs = sg_nents;
 +
-+	spa->devices[0].nfit_device_handle = handle[nvdimm->id];
-+	spa->num_nvdimms = 1;
-+	spa->devices[0].dpa = dpa;
++	if (likely(num_descs) &&
++	    ioat_check_space_lock(ioat_chan, num_descs) == 0)
++		idx = ioat_chan->head;
++	else
++		return NULL;
 +
-+	return 0;
++	for_each_sg(sg, s, sg_nents, i) {
++		desc = ioat_get_ring_ent(ioat_chan, idx + i);
++		hw = desc->hw;
++		len = sg_dma_len(s);
++		hw->size = len;
++		hw->ctl = 0;
++		if (to_sg) {
++			hw->src_addr = dma_off;
++			hw->dst_addr = sg_dma_address(s);
++		} else {
++			hw->src_addr = sg_dma_address(s);
++			hw->dst_addr = dma_off;
++		}
++		dma_off += len;
++		total_len += len;
++		dump_desc_dbg(ioat_chan, desc);
++	}
++
++	desc->txd.flags = flags;
++	desc->len = total_len;
++	hw->ctl_f.int_en = !!(flags & DMA_PREP_INTERRUPT);
++	hw->ctl_f.fence = !!(flags & DMA_PREP_FENCE);
++	hw->ctl_f.compl_write = 1;
++	dump_desc_dbg(ioat_chan, desc);
++	/* we leave the channel locked to ensure in order submission */
++
++	return &desc->txd;
 +}
-+
-+static int nfit_test_cmd_translate_spa(struct nvdimm_bus *bus, struct nd_cmd_trans_spa *spa,
-+				unsigned int buf_len)
-+{
-+
-+	if (buf_len < spa->trans_length)
-+		return -EINVAL;
-+
-+	if (nfit_test_search_spa(bus, spa) < 0|| !spa->num_nvdimms)
-+		spa->status = 2;
-+
-+	return 0;
-+}
-+
- static int nfit_test_cmd_smart(struct nd_cmd_smart *smart, unsigned int buf_len)
- {
- 	static const struct nd_smart_payload smart_data = {
-@@ -468,6 +540,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		case ND_CMD_CLEAR_ERROR:
- 			rc = nfit_test_cmd_clear_error(buf, buf_len, cmd_rc);
- 			break;
-+		case ND_CMD_TRANS_SPA:
-+			rc = nfit_test_cmd_translate_spa(acpi_desc->nvdimm_bus, buf, buf_len);
-+			break;
- 		default:
- 			return -ENOTTY;
- 		}
-@@ -1430,6 +1505,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_TRANS_SPA, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
- }
  
-@@ -1527,6 +1603,7 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_TRANS_SPA, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
-@@ -1616,7 +1693,8 @@ static int nfit_ctl_test(struct device *dev)
- 			.cmd_mask = 1UL << ND_CMD_ARS_CAP
- 				| 1UL << ND_CMD_ARS_START
- 				| 1UL << ND_CMD_ARS_STATUS
--				| 1UL << ND_CMD_CLEAR_ERROR,
-+				| 1UL << ND_CMD_CLEAR_ERROR
-+			        | 1UL << ND_CMD_TRANS_SPA,
- 			.module = THIS_MODULE,
- 			.provider_name = "ACPI.NFIT",
- 			.ndctl = acpi_nfit_ctl,
-
-
+ static struct dma_async_tx_descriptor *
+ __ioat_prep_xor_lock(struct dma_chan *c, enum sum_check_flags *result,
 
 _______________________________________________
 Linux-nvdimm mailing list
