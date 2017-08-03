@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x244.google.com (mail-pf0-x244.google.com
+ [IPv6:2607:f8b0:400e:c00::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4278C21E95DE0
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:15:34 -0700 (PDT)
-Subject: [ndctl PATCH v2 10/10] ndctl: auto initialize labels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 19:11:51 -0700
-Message-ID: <150405911130.22171.142110467081171949.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5B5BC21E1DAD9
+ for <linux-nvdimm@lists.01.org>; Thu,  3 Aug 2017 00:46:42 -0700 (PDT)
+Received: by mail-pf0-x244.google.com with SMTP id c65so796032pfl.0
+ for <linux-nvdimm@lists.01.org>; Thu, 03 Aug 2017 00:48:53 -0700 (PDT)
+From: Steven Swanson <swanson@eng.ucsd.edu>
+Subject: [RFC 06/16] NOVA: Lite-weight journaling for complex ops
+Date: Thu, 03 Aug 2017 00:48:51 -0700
+Message-ID: <150174653149.104003.8418262240703959227.stgit@hn>
+In-Reply-To: <150174646416.104003.14042713459553361884.stgit@hn>
+References: <150174646416.104003.14042713459553361884.stgit@hn>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,176 +25,584 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Steven Swanson <steven.swanson@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If we are reconfiguring an ND_DEVICE_NAMESPACE_IO namespace take the
-opportunity to potentially initialize labels. DIMM capacity that is not
-aliased will surface as a label-less namespace by default. If every DIMM
-in the interleave set supports labels we can switch a more dynamic
-configuration, i.e. enable pmem sub-division.
+Nova uses a lightweight journaling mechanisms to provide atomicity for
+operations that modify more than one on inode.  The journals providing logging
+for two operations:
 
-The --no-autolabel option is added to disable this behavior if it is not
-wanted.
+1.  Single word updates (JOURNAL_ENTRY)
+2.  Copying inodes (JOURNAL_INODE)
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The journals are undo logs: Nova creates the journal entries for an operation,
+and if the operation does not complete due to a system failure, the recovery
+process rolls back the changes using the journal entries.
+
+To commit, Nova drops the log.
+
+Nova maintains one journal per CPU.  The head and tail pointers for each
+journal live in a reserved page near the beginning of the file system.
+
+During recovery, Nova scans the journals and undoes the operations described by
+each entry.
+
+Signed-off-by: Steven Swanson <swanson@cs.ucsd.edu>
 ---
- ndctl/namespace.c |  100 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 98 insertions(+), 2 deletions(-)
+ fs/nova/journal.c |  474 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/journal.h |   61 +++++++
+ 2 files changed, 535 insertions(+)
+ create mode 100644 fs/nova/journal.c
+ create mode 100644 fs/nova/journal.h
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 6cfd873da248..55645d868b60 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -42,6 +42,7 @@ static struct parameters {
- 	bool do_scan;
- 	bool mode_default;
- 	bool align_default;
-+	bool autolabel;
- 	const char *bus;
- 	const char *map;
- 	const char *type;
-@@ -53,7 +54,9 @@ static struct parameters {
- 	const char *reconfig;
- 	const char *sector_size;
- 	const char *align;
--} param;
-+} param = {
-+	.autolabel = true,
-+};
- 
- void builtin_xaction_namespace_reset(void)
- {
-@@ -76,6 +79,7 @@ struct parsed_parameters {
- 	unsigned long long size;
- 	unsigned long sector_size;
- 	unsigned long align;
-+	bool autolabel;
- };
- 
- #define debug(fmt, ...) \
-@@ -111,7 +115,8 @@ OPT_STRING('t', "type", &param.type, "type", \
- 	"specify the type of namespace to create 'pmem' or 'blk'"), \
- OPT_STRING('a', "align", &param.align, "align", \
- 	"specify the namespace alignment in bytes (default: 2M)"), \
--OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active")
-+OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active"), \
-+OPT_BOOLEAN('L', "autolabel", &param.autolabel, "automatically initialize labels")
- 
- #define CHECK_OPTIONS() \
- OPT_BOOLEAN('R', "repair", &repair, "perform metadata repairs"), \
-@@ -675,6 +680,8 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		}
- 	}
- 
-+	p->autolabel = param.autolabel;
+diff --git a/fs/nova/journal.c b/fs/nova/journal.c
+new file mode 100644
+index 000000000000..b05c7212929f
+--- /dev/null
++++ b/fs/nova/journal.c
+@@ -0,0 +1,474 @@
++/*
++ * NOVA journaling facility.
++ *
++ * This file contains journaling code to guarantee the atomicity of directory
++ * operations that span multiple inodes (unlink, rename, etc).
++ *
++ * Copyright 2015-2016 Regents of the University of California,
++ * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
++ * Copyright 2012-2013 Intel Corporation
++ * Copyright 2009-2011 Marco Stornelli <marco.stornelli@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
++ */
 +
- 	return 0;
- }
- 
-@@ -810,6 +817,87 @@ static int namespace_destroy(struct ndctl_region *region,
- 	return 0;
- }
- 
-+static int enable_labels(struct ndctl_region *region)
++#include <linux/module.h>
++#include <linux/string.h>
++#include <linux/init.h>
++#include <linux/vfs.h>
++#include <linux/uaccess.h>
++#include <linux/mm.h>
++#include <linux/mutex.h>
++#include <linux/sched.h>
++#include "nova.h"
++#include "journal.h"
++
++/**************************** Lite journal ******************************/
++
++static inline void
++nova_print_lite_transaction(struct nova_lite_journal_entry *entry)
 +{
-+	int mappings = ndctl_region_get_mappings(region);
-+	struct ndctl_cmd *cmd_read = NULL;
-+	enum ndctl_namespace_version v;
-+	struct ndctl_dimm *dimm;
-+	int count;
++	nova_dbg("Entry %p: Type %llu, data1 0x%llx, data2 0x%llx\n, checksum %u\n",
++			entry, entry->type,
++			entry->data1, entry->data2, entry->csum);
++}
 +
-+	/* no dimms => no labels */
-+	if (!mappings)
++static inline int nova_update_journal_entry_csum(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
++{
++	u32 crc = 0;
++
++	crc = nova_crc32c(~0, (__u8 *)entry,
++			(sizeof(struct nova_lite_journal_entry)
++			 - sizeof(__le32)));
++
++	entry->csum = cpu_to_le32(crc);
++	nova_flush_buffer(entry, sizeof(struct nova_lite_journal_entry), 0);
++	return 0;
++}
++
++static inline int nova_check_entry_integrity(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
++{
++	u32 crc = 0;
++
++	crc = nova_crc32c(~0, (__u8 *)entry,
++			(sizeof(struct nova_lite_journal_entry)
++			 - sizeof(__le32)));
++
++	if (entry->csum == cpu_to_le32(crc))
 +		return 0;
++	else
++		return 1;
++}
 +
-+	count = 0;
-+	ndctl_dimm_foreach_in_region(region, dimm) {
-+		if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_GET_CONFIG_SIZE))
-+			break;
-+		if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_GET_CONFIG_DATA))
-+			break;
-+		if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SET_CONFIG_DATA))
-+			break;
-+		count++;
-+	}
++// Get the next journal entry.  Journal entries are stored in a circular
++// buffer.  They live a 1-page circular buffer.
++//
++// TODO: Add check to ensure that the journal doesn't grow too large.
++static inline u64 next_lite_journal(u64 curr_p)
++{
++	size_t size = sizeof(struct nova_lite_journal_entry);
 +
-+	/* all the dimms must support labeling */
-+	if (count != mappings)
-+		return 0;
++	if ((curr_p & (PAGE_SIZE - 1)) + size >= PAGE_SIZE)
++		return (curr_p & PAGE_MASK);
 +
-+	ndctl_region_disable_invalidate(region);
-+	count = 0;
-+	ndctl_dimm_foreach_in_region(region, dimm)
-+		if (ndctl_dimm_is_active(dimm)) {
-+			count++;
-+			break;
++	return curr_p + size;
++}
++
++// Walk the journal for one CPU, and verify the checksum on each entry.
++static int nova_check_journal_entries(struct super_block *sb,
++	struct journal_ptr_pair *pair)
++{
++	struct nova_lite_journal_entry *entry;
++	u64 temp;
++	int ret;
++
++	temp = pair->journal_head;
++	while (temp != pair->journal_tail) {
++		entry = (struct nova_lite_journal_entry *)nova_get_block(sb,
++									temp);
++		ret = nova_check_entry_integrity(sb, entry);
++		if (ret) {
++			nova_dbg("Entry %p checksum failure\n", entry);
++			nova_print_lite_transaction(entry);
++			return ret;
 +		}
-+
-+	/* some of the dimms belong to multiple regions?? */
-+	if (count)
-+		goto out;
-+
-+	v = NDCTL_NS_VERSION_1_2;
-+retry:
-+	ndctl_dimm_foreach_in_region(region, dimm) {
-+		int num_labels, avail;
-+
-+		ndctl_cmd_unref(cmd_read);
-+		cmd_read = ndctl_dimm_read_labels(dimm);
-+		if (!cmd_read)
-+			continue;
-+
-+		num_labels = ndctl_dimm_init_labels(dimm, v);
-+		if (num_labels < 0)
-+			continue;
-+
-+		ndctl_dimm_disable(dimm);
-+		ndctl_dimm_enable(dimm);
-+
-+		/*
-+		 * If the kernel appears to not understand v1.2 labels,
-+		 * try v1.1. Note, we increment avail by 1 to account
-+		 * for the one free label that the kernel always
-+		 * maintains for ongoing updates.
-+		 */
-+		avail = ndctl_dimm_get_available_labels(dimm) + 1;
-+		if (num_labels != avail && v == NDCTL_NS_VERSION_1_2) {
-+			v = NDCTL_NS_VERSION_1_1;
-+			goto retry;
-+		}
-+
-+	}
-+	ndctl_cmd_unref(cmd_read);
-+out:
-+	ndctl_region_enable(region);
-+	if (ndctl_region_get_nstype(region) != ND_DEVICE_NAMESPACE_PMEM) {
-+		debug("%s: failed to initialize labels\n",
-+				ndctl_region_get_devname(region));
-+		return -ENXIO;
++		temp = next_lite_journal(temp);
 +	}
 +
 +	return 0;
 +}
 +
- static int namespace_reconfig(struct ndctl_region *region,
- 		struct ndctl_namespace *ndns)
- {
-@@ -824,6 +912,14 @@ static int namespace_reconfig(struct ndctl_region *region,
- 	if (rc)
- 		return rc;
- 
-+	/* check if we can enable labels on this region */
-+	if (ndctl_namespace_get_type(ndns) == ND_DEVICE_NAMESPACE_IO
-+			&& p.autolabel) {
-+		rc = enable_labels(region);
-+		if (rc)
-+			return rc;
++/**************************** Journal Recovery ******************************/
++
++static void nova_undo_journal_inode(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
++{
++	struct nova_inode *pi, *alter_pi;
++	u64 pi_addr, alter_pi_addr;
++
++	if (metadata_csum == 0)
++		return;
++
++	pi_addr = le64_to_cpu(entry->data1);
++	alter_pi_addr = le64_to_cpu(entry->data2);
++
++	pi = (struct nova_inode *)nova_get_block(sb, pi_addr);
++	alter_pi = (struct nova_inode *)nova_get_block(sb, alter_pi_addr);
++
++	memcpy_to_pmem_nocache(pi, alter_pi, sizeof(struct nova_inode));
++}
++
++static void nova_undo_journal_entry(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
++{
++	u64 addr, value;
++
++	addr = le64_to_cpu(entry->data1);
++	value = le64_to_cpu(entry->data2);
++
++	*(u64 *)nova_get_block(sb, addr) = (u64)value;
++	nova_flush_buffer((void *)nova_get_block(sb, addr), CACHELINE_SIZE, 0);
++}
++
++static void nova_undo_lite_journal_entry(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
++{
++	u64 type;
++
++	type = le64_to_cpu(entry->type);
++
++	switch (type) {
++	case JOURNAL_INODE:
++		nova_undo_journal_inode(sb, entry);
++		break;
++	case JOURNAL_ENTRY:
++		nova_undo_journal_entry(sb, entry);
++		break;
++	default:
++		nova_dbg("%s: unknown data type %llu\n", __func__, type);
++		break;
++	}
++}
++
++/* Roll back all journal enries */
++static int nova_recover_lite_journal(struct super_block *sb,
++	struct journal_ptr_pair *pair)
++{
++	struct nova_lite_journal_entry *entry;
++	u64 temp;
++
++	nova_memunlock_journal(sb);
++	temp = pair->journal_head;
++	while (temp != pair->journal_tail) {
++		entry = (struct nova_lite_journal_entry *)nova_get_block(sb,
++									temp);
++		nova_undo_lite_journal_entry(sb, entry);
++		temp = next_lite_journal(temp);
 +	}
 +
- 	ndns = region_get_namespace(region);
- 	if (!ndns || is_namespace_active(ndns)) {
- 		debug("%s: no %s namespace seed\n",
++	pair->journal_tail = pair->journal_head;
++	nova_memlock_journal(sb);
++	nova_flush_buffer(&pair->journal_head, CACHELINE_SIZE, 1);
++
++	return 0;
++}
++
++/**************************** Create/commit ******************************/
++
++static u64 nova_append_replica_inode_journal(struct super_block *sb,
++	u64 curr_p, struct inode *inode)
++{
++	struct nova_lite_journal_entry *entry;
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++
++	entry = (struct nova_lite_journal_entry *)nova_get_block(sb,
++							curr_p);
++	entry->type = cpu_to_le64(JOURNAL_INODE);
++	entry->padding = 0;
++	entry->data1 = cpu_to_le64(sih->pi_addr);
++	entry->data2 = cpu_to_le64(sih->alter_pi_addr);
++	nova_update_journal_entry_csum(sb, entry);
++
++	curr_p = next_lite_journal(curr_p);
++	return curr_p;
++}
++
++/* Create and append an undo entry for a small update to PMEM. */
++static u64 nova_append_entry_journal(struct super_block *sb,
++	u64 curr_p, void *field)
++{
++	struct nova_lite_journal_entry *entry;
++	struct nova_sb_info *sbi = NOVA_SB(sb);
++	u64 *aligned_field;
++	u64 addr;
++
++	entry = (struct nova_lite_journal_entry *)nova_get_block(sb,
++							curr_p);
++	entry->type = cpu_to_le64(JOURNAL_ENTRY);
++	entry->padding = 0;
++	/* Align to 8 bytes */
++	aligned_field = (u64 *)((unsigned long)field & ~7UL);
++	/* Store the offset from the start of Nova instead of the pointer */
++	addr = (u64)nova_get_addr_off(sbi, aligned_field);
++	entry->data1 = cpu_to_le64(addr);
++	entry->data2 = cpu_to_le64(*aligned_field);
++	nova_update_journal_entry_csum(sb, entry);
++
++	curr_p = next_lite_journal(curr_p);
++	return curr_p;
++}
++
++static u64 nova_journal_inode_tail(struct super_block *sb,
++	u64 curr_p, struct nova_inode *pi)
++{
++	curr_p = nova_append_entry_journal(sb, curr_p, &pi->log_tail);
++	if (metadata_csum)
++		curr_p = nova_append_entry_journal(sb, curr_p,
++						&pi->alter_log_tail);
++	return curr_p;
++}
++
++/* Create and append undo log entries for creating a new file or directory. */
++static u64 nova_append_inode_journal(struct super_block *sb,
++	u64 curr_p, struct inode *inode, int new_inode,
++	int invalidate, int is_dir)
++{
++	struct nova_inode *pi = nova_get_inode(sb, inode);
++
++	if (metadata_csum)
++		return nova_append_replica_inode_journal(sb, curr_p, inode);
++
++	if (!pi) {
++		nova_err(sb, "%s: get inode failed\n", __func__);
++		return curr_p;
++	}
++
++	if (is_dir)
++		return nova_journal_inode_tail(sb, curr_p, pi);
++
++	if (new_inode) {
++		curr_p = nova_append_entry_journal(sb, curr_p,
++						&pi->valid);
++	} else {
++		curr_p = nova_journal_inode_tail(sb, curr_p, pi);
++		if (invalidate) {
++			curr_p = nova_append_entry_journal(sb, curr_p,
++						&pi->valid);
++			curr_p = nova_append_entry_journal(sb, curr_p,
++						&pi->delete_epoch_id);
++		}
++	}
++
++	return curr_p;
++}
++
++static u64 nova_append_dentry_journal(struct super_block *sb,
++	u64 curr_p, struct nova_dentry *dentry)
++{
++	curr_p = nova_append_entry_journal(sb, curr_p, &dentry->ino);
++	curr_p = nova_append_entry_journal(sb, curr_p, &dentry->csum);
++	return curr_p;
++}
++
++/* Journaled transactions for inode creation */
++u64 nova_create_inode_transaction(struct super_block *sb,
++	struct inode *inode, struct inode *dir, int cpu,
++	int new_inode, int invalidate)
++{
++	struct journal_ptr_pair *pair;
++	u64 temp;
++
++	pair = nova_get_journal_pointers(sb, cpu);
++	if (pair->journal_head == 0 ||
++			pair->journal_head != pair->journal_tail)
++		BUG();
++
++	temp = pair->journal_head;
++
++	temp = nova_append_inode_journal(sb, temp, inode,
++					new_inode, invalidate, 0);
++
++	temp = nova_append_inode_journal(sb, temp, dir,
++					new_inode, invalidate, 1);
++
++	pair->journal_tail = temp;
++	nova_flush_buffer(&pair->journal_head, CACHELINE_SIZE, 1);
++
++	nova_dbgv("%s: head 0x%llx, tail 0x%llx\n",
++			__func__, pair->journal_head, pair->journal_tail);
++	return temp;
++}
++
++/* Journaled transactions for rename operations */
++u64 nova_create_rename_transaction(struct super_block *sb,
++	struct inode *old_inode, struct inode *old_dir, struct inode *new_inode,
++	struct inode *new_dir, struct nova_dentry *father_entry,
++	int invalidate_new_inode, int cpu)
++{
++	struct journal_ptr_pair *pair;
++	u64 temp;
++
++	pair = nova_get_journal_pointers(sb, cpu);
++	if (pair->journal_head == 0 ||
++			pair->journal_head != pair->journal_tail)
++		BUG();
++
++	temp = pair->journal_head;
++
++	/* Journal tails for old inode */
++	temp = nova_append_inode_journal(sb, temp, old_inode, 0, 0, 0);
++
++	/* Journal tails for old dir */
++	temp = nova_append_inode_journal(sb, temp, old_dir, 0, 0, 1);
++
++	if (new_inode) {
++		/* New inode may be unlinked */
++		temp = nova_append_inode_journal(sb, temp, new_inode, 0,
++					invalidate_new_inode, 0);
++	}
++
++	if (new_dir)
++		temp = nova_append_inode_journal(sb, temp, new_dir, 0, 0, 1);
++
++	if (father_entry)
++		temp = nova_append_dentry_journal(sb, temp, father_entry);
++
++	pair->journal_tail = temp;
++	nova_flush_buffer(&pair->journal_head, CACHELINE_SIZE, 1);
++
++	nova_dbgv("%s: head 0x%llx, tail 0x%llx\n",
++			__func__, pair->journal_head, pair->journal_tail);
++	return temp;
++}
++
++/* For log entry inplace update */
++u64 nova_create_logentry_transaction(struct super_block *sb,
++	void *entry, enum nova_entry_type type, int cpu)
++{
++	struct journal_ptr_pair *pair;
++	size_t size = 0;
++	int i, count;
++	u64 temp;
++
++	pair = nova_get_journal_pointers(sb, cpu);
++	if (pair->journal_head == 0 ||
++			pair->journal_head != pair->journal_tail)
++		BUG();
++
++	size = nova_get_log_entry_size(sb, type);
++
++	temp = pair->journal_head;
++
++	count = size / 8;
++	for (i = 0; i < count; i++) {
++		temp = nova_append_entry_journal(sb, temp,
++						(char *)entry + i * 8);
++	}
++
++	pair->journal_tail = temp;
++	nova_flush_buffer(&pair->journal_head, CACHELINE_SIZE, 1);
++
++	nova_dbgv("%s: head 0x%llx, tail 0x%llx\n",
++			__func__, pair->journal_head, pair->journal_tail);
++	return temp;
++}
++
++/* Commit the transactions by dropping the journal entries */
++void nova_commit_lite_transaction(struct super_block *sb, u64 tail, int cpu)
++{
++	struct journal_ptr_pair *pair;
++
++	pair = nova_get_journal_pointers(sb, cpu);
++	if (pair->journal_tail != tail)
++		BUG();
++
++	pair->journal_head = tail;
++	nova_flush_buffer(&pair->journal_head, CACHELINE_SIZE, 1);
++}
++
++/**************************** Initialization ******************************/
++
++// Initialized DRAM journal state, validate, and recover
++int nova_lite_journal_soft_init(struct super_block *sb)
++{
++	struct nova_sb_info *sbi = NOVA_SB(sb);
++	struct journal_ptr_pair *pair;
++	int i;
++	int ret = 0;
++
++	sbi->journal_locks = kcalloc(sbi->cpus, sizeof(spinlock_t),
++				     GFP_KERNEL);
++	if (!sbi->journal_locks)
++		return -ENOMEM;
++
++	for (i = 0; i < sbi->cpus; i++)
++		spin_lock_init(&sbi->journal_locks[i]);
++
++	for (i = 0; i < sbi->cpus; i++) {
++		pair = nova_get_journal_pointers(sb, i);
++		if (pair->journal_head == pair->journal_tail)
++			continue;
++
++		/* Ensure all entries are genuine */
++		ret = nova_check_journal_entries(sb, pair);
++		if (ret) {
++			nova_err(sb, "Journal %d checksum failure\n", i);
++			ret = -EINVAL;
++			break;
++		}
++
++		ret = nova_recover_lite_journal(sb, pair);
++	}
++
++	return ret;
++}
++
++/* Initialized persistent journal state */
++int nova_lite_journal_hard_init(struct super_block *sb)
++{
++	struct nova_sb_info *sbi = NOVA_SB(sb);
++	struct nova_inode_info_header sih;
++	struct journal_ptr_pair *pair;
++	unsigned long blocknr = 0;
++	int allocated;
++	int i;
++	u64 block;
++
++	sih.ino = NOVA_LITEJOURNAL_INO;
++	sih.i_blk_type = NOVA_BLOCK_TYPE_4K;
++
++	for (i = 0; i < sbi->cpus; i++) {
++		pair = nova_get_journal_pointers(sb, i);
++
++		allocated = nova_new_log_blocks(sb, &sih, &blocknr, 1,
++			ALLOC_INIT_ZERO, ANY_CPU, ALLOC_FROM_HEAD);
++		nova_dbg_verbose("%s: allocate log @ 0x%lx\n", __func__,
++							blocknr);
++		if (allocated != 1 || blocknr == 0)
++			return -ENOSPC;
++
++		block = nova_get_block_off(sb, blocknr, NOVA_BLOCK_TYPE_4K);
++		nova_memunlock_range(sb, pair, CACHELINE_SIZE);
++		pair->journal_head = pair->journal_tail = block;
++		nova_flush_buffer(pair, CACHELINE_SIZE, 0);
++		nova_memlock_range(sb, pair, CACHELINE_SIZE);
++	}
++
++	PERSISTENT_BARRIER();
++	return nova_lite_journal_soft_init(sb);
++}
++
+diff --git a/fs/nova/journal.h b/fs/nova/journal.h
+new file mode 100644
+index 000000000000..621138bb6eac
+--- /dev/null
++++ b/fs/nova/journal.h
+@@ -0,0 +1,61 @@
++#ifndef __JOURNAL_H
++#define __JOURNAL_H
++
++#include <linux/types.h>
++#include <linux/fs.h>
++#include "nova.h"
++#include "super.h"
++
++
++/* ======================= Lite journal ========================= */
++
++#define NOVA_MAX_JOURNAL_LENGTH 128
++
++#define	JOURNAL_INODE	1
++#define	JOURNAL_ENTRY	2
++
++/* Lightweight journal entry */
++struct nova_lite_journal_entry {
++	__le64 type;       // JOURNAL_INODE or JOURNAL_ENTRY
++	__le64 data1;
++	__le64 data2;
++	__le32 padding;
++	__le32 csum;
++} __attribute((__packed__));
++
++/* Head and tail pointers into a circular queue of journal entries.  There's
++ * one of these per CPU.
++ */
++struct journal_ptr_pair {
++	__le64 journal_head;
++	__le64 journal_tail;
++};
++
++static inline
++struct journal_ptr_pair *nova_get_journal_pointers(struct super_block *sb,
++	int cpu)
++{
++	struct nova_sb_info *sbi = NOVA_SB(sb);
++
++	if (cpu >= sbi->cpus)
++		BUG();
++
++	return (struct journal_ptr_pair *)((char *)nova_get_block(sb,
++		NOVA_DEF_BLOCK_SIZE_4K * JOURNAL_START) + cpu * CACHELINE_SIZE);
++}
++
++
++u64 nova_create_inode_transaction(struct super_block *sb,
++	struct inode *inode, struct inode *dir, int cpu,
++	int new_inode, int invalidate);
++u64 nova_create_rename_transaction(struct super_block *sb,
++	struct inode *old_inode, struct inode *old_dir, struct inode *new_inode,
++	struct inode *new_dir, struct nova_dentry *father_entry,
++	int invalidate_new_inode, int cpu);
++u64 nova_create_logentry_transaction(struct super_block *sb,
++	void *entry, enum nova_entry_type type, int cpu);
++void nova_commit_lite_transaction(struct super_block *sb, u64 tail, int cpu);
++int nova_lite_journal_soft_init(struct super_block *sb);
++int nova_lite_journal_hard_init(struct super_block *sb);
++
++#endif
 
 _______________________________________________
 Linux-nvdimm mailing list
