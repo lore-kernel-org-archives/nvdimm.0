@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0779321E1DAE1
- for <linux-nvdimm@lists.01.org>; Wed,  2 Aug 2017 11:02:24 -0700 (PDT)
-Subject: [PATCH v3 2/2] dm: allow device-mapper to operate without dax support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 02 Aug 2017 10:58:10 -0700
-Message-ID: <150169668989.39569.8174620146135008137.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150169667935.39569.15808116323143633486.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150169667935.39569.15808116323143633486.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id AF1F821D28FC2
+ for <linux-nvdimm@lists.01.org>; Fri,  4 Aug 2017 02:08:33 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id A0378AC0178
+ for <linux-nvdimm@lists.01.org>; Fri,  4 Aug 2017 18:10:37 +0900 (JST)
+Date: Fri, 04 Aug 2017 18:10:34 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [RFC/Patch 3/5] nfit_test supports Translate SPA
+In-Reply-To: <20170804180231.27BC.E1E9C6FF@jp.fujitsu.com>
+References: <20170804180231.27BC.E1E9C6FF@jp.fujitsu.com>
+Message-Id: <20170804181032.27C7.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,194 +26,157 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: snitzer@redhat.com
-Cc: kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, Bart Van Assche <Bart.VanAssche@wdc.com>, Alasdair Kergon <agk@redhat.com>
+To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Rather than have device-mapper directly 'select DAX', let the fact that
-BLK_DEV_PMEM selects dax act as a gate for the device-mapper dax
-support. We arrange for all the dax core routines to compile to nops
-when CONFIG_DAX=n. With that in place we can simply handle the
-alloc_dax() error as expected and ifdef out the other device-mapper-dax
-support code.
+nfit_test supports Translate SPA
 
-Now, if dax is provided by a leaf driver that driver may only arrange to
-compile the dax core as a module. Since device-mapper dax support is
-consumed by the always-built-in portion of the device-mapper
-implementation we need to upgrade from DAX=m to DAX=y.
+To test interface of Translate SPA, nfit_test must emulate it.
+This test module searches region which includes spa and 
+returns only 1 dimm handle which is last one currently.
 
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Reported-by: Bart Van Assche <Bart.VanAssche@wdc.com>
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+
 ---
- drivers/md/Kconfig     |    2 +-
- drivers/md/dm-linear.c |    6 ++++++
- drivers/md/dm-stripe.c |    6 ++++++
- drivers/md/dm.c        |   10 ++++++----
- include/linux/dax.h    |   30 ++++++++++++++++++++++++------
- 5 files changed, 43 insertions(+), 11 deletions(-)
+ drivers/nvdimm/region_devs.c     |  1 +
+ tools/testing/nvdimm/test/nfit.c | 80 +++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 80 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index 4a249ee86364..8ebf09e99006 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -195,12 +195,12 @@ config MD_CLUSTER
- source "drivers/md/bcache/Kconfig"
- 
- config BLK_DEV_DM_BUILTIN
-+	select DAX if DAX_DRIVER
- 	bool
- 
- config BLK_DEV_DM
- 	tristate "Device mapper support"
- 	select BLK_DEV_DM_BUILTIN
--	select DAX
- 	---help---
- 	  Device-mapper is a low level volume manager.  It works by allowing
- 	  people to specify mappings for ranges of logical sectors.  Various
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 41971a090e34..8804e278e834 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -154,6 +154,7 @@ static int linear_iterate_devices(struct dm_target *ti,
- 	return fn(ti, lc->dev, lc->start, ti->len, data);
- }
- 
-+#if IS_ENABLED(CONFIG_DAX)
- static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 5954cfb..3c8cc7f 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -162,6 +162,7 @@ bool is_nd_pmem(struct device *dev)
  {
-@@ -197,6 +198,11 @@ static void linear_dax_flush(struct dm_target *ti, pgoff_t pgoff, void *addr,
- 		return;
- 	dax_flush(dax_dev, pgoff, addr, size);
+ 	return dev ? dev->type == &nd_pmem_device_type : false;
  }
-+#else
-+#define linear_dax_direct_access NULL
-+#define linear_dax_copy_from_iter NULL
-+#define linear_dax_flush NULL
-+#endif
++EXPORT_SYMBOL_GPL(is_nd_pmem);
  
- static struct target_type linear_target = {
- 	.name   = "linear",
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index a0375530b07f..eeb6c784dc4f 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -311,6 +311,7 @@ static int stripe_map(struct dm_target *ti, struct bio *bio)
- 	return DM_MAPIO_REMAPPED;
- }
- 
-+#if IS_ENABLED(CONFIG_DAX)
- static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
+ bool is_nd_blk(struct device *dev)
  {
-@@ -369,6 +370,11 @@ static void stripe_dax_flush(struct dm_target *ti, pgoff_t pgoff, void *addr,
- 		return;
- 	dax_flush(dax_dev, pgoff, addr, size);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 4c2fa98..09dcdf5 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -342,6 +342,78 @@ static int nfit_test_cmd_clear_error(struct nd_cmd_clear_error *clear_err,
+ 	return 0;
  }
-+#else
-+#define stripe_dax_direct_access NULL
-+#define stripe_dax_copy_from_iter NULL
-+#define stripe_dax_flush NULL
-+#endif
  
- /*
-  * Stripe status:
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 2edbcc2d7d3f..70fa48f4d3a3 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1713,7 +1713,7 @@ static void cleanup_mapped_device(struct mapped_device *md)
- static struct mapped_device *alloc_dev(int minor)
- {
- 	int r, numa_node_id = dm_get_numa_node();
--	struct dax_device *dax_dev;
-+	struct dax_device *dax_dev = NULL;
- 	struct mapped_device *md;
- 	void *old_md;
- 
-@@ -1779,9 +1779,11 @@ static struct mapped_device *alloc_dev(int minor)
- 	md->disk->private_data = md;
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
- 
--	dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
--	if (!dax_dev)
--		goto bad;
-+	if (IS_ENABLED(CONFIG_DAX)) {
-+		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
-+		if (!dax_dev)
-+			goto bad;
++struct region_search_spa{
++	u64 addr;
++	struct nd_region *region;
++};
++
++static int nfit_test_search_region_spa(struct device *dev, void *data)
++{
++	struct region_search_spa *ctx = data;
++	struct nd_region *nd_region;
++	resource_size_t ndr_end;
++
++	if (!is_nd_pmem(dev))
++		return 0;
++
++	nd_region = to_nd_region(dev);
++	ndr_end = nd_region->ndr_start + nd_region->ndr_size;
++
++	if (ctx->addr >= nd_region->ndr_start && ctx->addr < ndr_end) {
++		ctx->region = nd_region;
++		return 1;
 +	}
- 	md->dax_dev = dax_dev;
- 
- 	add_disk(md->disk);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index eb0bff6f1eab..59575b8e638e 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -27,16 +27,39 @@ extern struct attribute_group dax_attribute_group;
- 
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *dax_get_by_host(const char *host);
-+struct dax_device *alloc_dax(void *private, const char *host,
-+		const struct dax_operations *ops);
- void put_dax(struct dax_device *dax_dev);
-+void kill_dax(struct dax_device *dax_dev);
-+void dax_write_cache(struct dax_device *dax_dev, bool wc);
-+bool dax_write_cache_enabled(struct dax_device *dax_dev);
- #else
- static inline struct dax_device *dax_get_by_host(const char *host)
- {
- 	return NULL;
- }
--
-+static inline struct dax_device *alloc_dax(void *private, const char *host,
-+		const struct dax_operations *ops)
++
++	return 0;
++}
++
++static int nfit_test_search_spa(struct nvdimm_bus *bus, struct nd_cmd_trans_spa *spa)
 +{
++	int ret;
++	struct nd_region *nd_region = NULL;
++	struct nvdimm *nvdimm = NULL;
++	struct nd_mapping *nd_mapping = NULL;
++	struct region_search_spa ctx = {
++		.addr = spa->spa,
++		.region = NULL,
++	};
++	u64 dpa;
++
++	ret = device_for_each_child(&bus->dev, &ctx, nfit_test_search_region_spa);
++
++	if (!ret)
++		return -ENODEV;
++
++	nd_region = ctx.region;
++
++	dpa = ctx.addr - nd_region->ndr_start;
++
 +	/*
-+	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
-+	 * NULL is an error or expected.
++	 * last dimm is selected for test
 +	 */
-+	return NULL;
++	nd_mapping = &nd_region->mapping[nd_region->ndr_mappings - 1];
++	nvdimm = nd_mapping->nvdimm;
++
++	spa->devices[0].nfit_device_handle = handle[nvdimm->id];
++	spa->num_nvdimms = 1;
++	spa->devices[0].dpa = dpa;
++
++	return 0;
 +}
- static inline void put_dax(struct dax_device *dax_dev)
++
++static int nfit_test_cmd_translate_spa(struct nvdimm_bus *bus, struct nd_cmd_trans_spa *spa,
++				unsigned int buf_len)
++{
++
++	if (buf_len < spa->trans_length)
++		return -EINVAL;
++
++	if (nfit_test_search_spa(bus, spa) < 0|| !spa->num_nvdimms)
++		spa->status = 2;
++
++	return 0;
++}
++
+ static int nfit_test_cmd_smart(struct nd_cmd_smart *smart, unsigned int buf_len)
  {
+ 	static const struct nd_smart_payload smart_data = {
+@@ -468,6 +540,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		case ND_CMD_CLEAR_ERROR:
+ 			rc = nfit_test_cmd_clear_error(buf, buf_len, cmd_rc);
+ 			break;
++		case ND_CMD_TRANS_SPA:
++			rc = nfit_test_cmd_translate_spa(acpi_desc->nvdimm_bus, buf, buf_len);
++			break;
+ 		default:
+ 			return -ENOTTY;
+ 		}
+@@ -1430,6 +1505,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
++	set_bit(ND_CMD_TRANS_SPA, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
  }
-+static inline void kill_dax(struct dax_device *dax_dev)
-+{
-+}
-+static inline void dax_write_cache(struct dax_device *dax_dev, bool wc)
-+{
-+}
-+static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
-+{
-+	return false;
-+}
- #endif
  
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
-@@ -75,10 +98,7 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
- 
- int dax_read_lock(void);
- void dax_read_unlock(int id);
--struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops);
- bool dax_alive(struct dax_device *dax_dev);
--void kill_dax(struct dax_device *dax_dev);
- void *dax_get_private(struct dax_device *dax_dev);
- long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
- 		void **kaddr, pfn_t *pfn);
-@@ -86,8 +106,6 @@ size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
- void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t size);
--void dax_write_cache(struct dax_device *dax_dev, bool wc);
--bool dax_write_cache_enabled(struct dax_device *dax_dev);
- 
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		const struct iomap_ops *ops);
+@@ -1527,6 +1603,7 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
++	set_bit(ND_CMD_TRANS_SPA, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
+@@ -1616,7 +1693,8 @@ static int nfit_ctl_test(struct device *dev)
+ 			.cmd_mask = 1UL << ND_CMD_ARS_CAP
+ 				| 1UL << ND_CMD_ARS_START
+ 				| 1UL << ND_CMD_ARS_STATUS
+-				| 1UL << ND_CMD_CLEAR_ERROR,
++				| 1UL << ND_CMD_CLEAR_ERROR
++			        | 1UL << ND_CMD_TRANS_SPA,
+ 			.module = THIS_MODULE,
+ 			.provider_name = "ACPI.NFIT",
+ 			.ndctl = acpi_nfit_ctl,
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
