@@ -1,18 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg0-x243.google.com (mail-pg0-x243.google.com
- [IPv6:2607:f8b0:400e:c05::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6405821E1DAD9
- for <linux-nvdimm@lists.01.org>; Thu,  3 Aug 2017 00:47:37 -0700 (PDT)
-Received: by mail-pg0-x243.google.com with SMTP id 83so792500pgb.4
- for <linux-nvdimm@lists.01.org>; Thu, 03 Aug 2017 00:49:48 -0700 (PDT)
-From: Steven Swanson <swanson@eng.ucsd.edu>
-Subject: [RFC 14/16] NOVA: Read-only pmem devices
-Date: Thu, 03 Aug 2017 00:49:46 -0700
-Message-ID: <150174658689.104003.120621559635888592.stgit@hn>
-In-Reply-To: <150174646416.104003.14042713459553361884.stgit@hn>
-References: <150174646416.104003.14042713459553361884.stgit@hn>
+ by ml01.01.org (Postfix) with ESMTPS id 7E85621D49C72
+ for <linux-nvdimm@lists.01.org>; Fri,  4 Aug 2017 18:06:10 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl, list: export mapping position data
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 04 Aug 2017 18:01:59 -0700
+Message-ID: <150189491949.17448.10332575350032968235.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,226 +20,133 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Steven Swanson <steven.swanson@gmail.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add (and implement) a module command line option to nd_pmem to support read-only pmem devices.
+If the kernel provides position data include it in the region mapping
+listing.
 
-Signed-off-by: Steven Swanson <swanson@cs.ucsd.edu>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/io.h |    1 +
- arch/x86/mm/ioremap.c     |   25 ++++++++++++++++++-------
- drivers/nvdimm/pmem.c     |   14 ++++++++++++--
- include/linux/io.h        |    2 ++
- kernel/memremap.c         |   24 ++++++++++++++++++++++++
- mm/memory.c               |    2 +-
- mm/mmap.c                 |    1 +
- 7 files changed, 59 insertions(+), 10 deletions(-)
+ ndctl/lib/libndctl.c   |   16 ++++++++++++++--
+ ndctl/lib/libndctl.sym |    1 +
+ ndctl/libndctl.h.in    |    1 +
+ util/json.c            |    9 +++++++++
+ 4 files changed, 25 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index 7afb0e2f07f4..7aae48f2e4f1 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -173,6 +173,7 @@ extern void __iomem *ioremap_uc(resource_size_t offset, unsigned long size);
- #define ioremap_uc ioremap_uc
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index dda134549842..c2e0efbd87b0 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -166,6 +166,7 @@ struct ndctl_dimm {
+  * @dimm: backing dimm for the mapping
+  * @offset: dimm relative offset
+  * @length: span of the extent
++ * @position: interleave-order of the extent
+  *
+  * This data can be used to identify the dimm ranges contributing to a
+  * region / interleave-set and identify how regions alias each other.
+@@ -174,6 +175,7 @@ struct ndctl_mapping {
+ 	struct ndctl_region *region;
+ 	struct ndctl_dimm *dimm;
+ 	unsigned long long offset, length;
++	int position;
+ 	struct list_node list;
+ };
  
- extern void __iomem *ioremap_cache(resource_size_t offset, unsigned long size);
-+extern void __iomem *ioremap_cache_ro(resource_size_t phys_addr, unsigned long size);
- extern void __iomem *ioremap_prot(resource_size_t offset, unsigned long size, unsigned long prot_val);
+@@ -2723,6 +2725,7 @@ static void mappings_init(struct ndctl_region *region)
+ 		unsigned long long offset, length;
+ 		struct ndctl_dimm *dimm;
+ 		unsigned int dimm_id;
++		int position, match;
  
- /**
-diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
-index bbc558b88a88..bcd473801817 100644
---- a/arch/x86/mm/ioremap.c
-+++ b/arch/x86/mm/ioremap.c
-@@ -81,7 +81,8 @@ static int __ioremap_check_ram(unsigned long start_pfn, unsigned long nr_pages,
-  * caller shouldn't need to know that small detail.
-  */
- static void __iomem *__ioremap_caller(resource_size_t phys_addr,
--		unsigned long size, enum page_cache_mode pcm, void *caller)
-+		unsigned long size, enum page_cache_mode pcm, void *caller,
-+		int readonly)
- {
- 	unsigned long offset, vaddr;
- 	resource_size_t pfn, last_pfn, last_addr;
-@@ -172,6 +173,9 @@ static void __iomem *__ioremap_caller(resource_size_t phys_addr,
- 		break;
+ 		sprintf(mapping_path, "%s/mapping%d", region->region_path, i);
+ 		if (sysfs_read_attr(ctx, mapping_path, buf) < 0) {
+@@ -2731,8 +2734,11 @@ static void mappings_init(struct ndctl_region *region)
+ 			continue;
+ 		}
+ 
+-		if (sscanf(buf, "nmem%u,%llu,%llu", &dimm_id, &offset,
+-					&length) != 3) {
++		match = sscanf(buf, "nmem%u,%llu,%llu,%d", &dimm_id, &offset,
++				&length, &position);
++		if (match < 4)
++			position = -1;
++		if (match < 3) {
+ 			err(ctx, "bus%d mapping parse failure\n",
+ 					ndctl_bus_get_id(bus));
+ 			continue;
+@@ -2756,6 +2762,7 @@ static void mappings_init(struct ndctl_region *region)
+ 		mapping->offset = offset;
+ 		mapping->length = length;
+ 		mapping->dimm = dimm;
++		mapping->position = position;
+ 		list_add(&region->mappings, &mapping->list);
  	}
- 
-+	if (readonly)
-+		prot = __pgprot((unsigned long)prot.pgprot & ~_PAGE_RW);
-+
- 	/*
- 	 * Ok, go for it..
- 	 */
-@@ -239,7 +243,7 @@ void __iomem *ioremap_nocache(resource_size_t phys_addr, unsigned long size)
- 	enum page_cache_mode pcm = _PAGE_CACHE_MODE_UC_MINUS;
- 
- 	return __ioremap_caller(phys_addr, size, pcm,
--				__builtin_return_address(0));
-+				__builtin_return_address(0), 0);
+ 	free(mapping_path);
+@@ -2790,6 +2797,11 @@ NDCTL_EXPORT unsigned long long ndctl_mapping_get_length(struct ndctl_mapping *m
+ 	return mapping->length;
  }
- EXPORT_SYMBOL(ioremap_nocache);
  
-@@ -272,7 +276,7 @@ void __iomem *ioremap_uc(resource_size_t phys_addr, unsigned long size)
- 	enum page_cache_mode pcm = _PAGE_CACHE_MODE_UC;
- 
- 	return __ioremap_caller(phys_addr, size, pcm,
--				__builtin_return_address(0));
-+				__builtin_return_address(0), 0);
- }
- EXPORT_SYMBOL_GPL(ioremap_uc);
- 
-@@ -289,7 +293,7 @@ EXPORT_SYMBOL_GPL(ioremap_uc);
- void __iomem *ioremap_wc(resource_size_t phys_addr, unsigned long size)
- {
- 	return __ioremap_caller(phys_addr, size, _PAGE_CACHE_MODE_WC,
--					__builtin_return_address(0));
-+					__builtin_return_address(0), 0);
- }
- EXPORT_SYMBOL(ioremap_wc);
- 
-@@ -306,23 +310,30 @@ EXPORT_SYMBOL(ioremap_wc);
- void __iomem *ioremap_wt(resource_size_t phys_addr, unsigned long size)
- {
- 	return __ioremap_caller(phys_addr, size, _PAGE_CACHE_MODE_WT,
--					__builtin_return_address(0));
-+					__builtin_return_address(0), 0);
- }
- EXPORT_SYMBOL(ioremap_wt);
- 
- void __iomem *ioremap_cache(resource_size_t phys_addr, unsigned long size)
- {
- 	return __ioremap_caller(phys_addr, size, _PAGE_CACHE_MODE_WB,
--				__builtin_return_address(0));
-+				__builtin_return_address(0), 0);
- }
- EXPORT_SYMBOL(ioremap_cache);
- 
-+void __iomem *ioremap_cache_ro(resource_size_t phys_addr, unsigned long size)
++NDCTL_EXPORT int ndctl_mapping_get_position(struct ndctl_mapping *mapping)
 +{
-+	return __ioremap_caller(phys_addr, size, _PAGE_CACHE_MODE_WB,
-+				__builtin_return_address(0), 1);
++	return mapping->position;
 +}
-+EXPORT_SYMBOL(ioremap_cache_ro);
 +
- void __iomem *ioremap_prot(resource_size_t phys_addr, unsigned long size,
- 				unsigned long prot_val)
+ NDCTL_EXPORT struct ndctl_region *ndctl_mapping_get_region(
+ 		struct ndctl_mapping *mapping)
  {
- 	return __ioremap_caller(phys_addr, size,
- 				pgprot2cachemode(__pgprot(prot_val)),
--				__builtin_return_address(0));
-+				__builtin_return_address(0), 0);
- }
- EXPORT_SYMBOL(ioremap_prot);
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 0e592435ff70..b8ac65f2917f 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -157,6 +157,7 @@ global:
+ 	ndctl_mapping_get_region;
+ 	ndctl_mapping_get_offset;
+ 	ndctl_mapping_get_length;
++	ndctl_mapping_get_position;
+ 	ndctl_namespace_get_first;
+ 	ndctl_namespace_get_next;
+ 	ndctl_namespace_get_ctx;
+diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
+index 200c5cf8781a..855d883c3380 100644
+--- a/ndctl/libndctl.h.in
++++ b/ndctl/libndctl.h.in
+@@ -460,6 +460,7 @@ struct ndctl_bus *ndctl_mapping_get_bus(struct ndctl_mapping *mapping);
+ struct ndctl_region *ndctl_mapping_get_region(struct ndctl_mapping *mapping);
+ unsigned long long ndctl_mapping_get_offset(struct ndctl_mapping *mapping);
+ unsigned long long ndctl_mapping_get_length(struct ndctl_mapping *mapping);
++int ndctl_mapping_get_position(struct ndctl_mapping *mapping);
  
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index c544d466ea51..a6b29c731c53 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -35,6 +35,11 @@
- #include "pfn.h"
- #include "nd.h"
+ struct ndctl_namespace;
+ struct ndctl_namespace *ndctl_namespace_get_first(struct ndctl_region *region);
+diff --git a/util/json.c b/util/json.c
+index 5f1492711c47..98165b789ff8 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -737,6 +737,7 @@ struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
+ 	struct json_object *jmapping = json_object_new_object();
+ 	struct ndctl_dimm *dimm = ndctl_mapping_get_dimm(mapping);
+ 	struct json_object *jobj;
++	int position;
  
-+int readonly;
-+
-+module_param(readonly, int, S_IRUGO);
-+MODULE_PARM_DESC(readonly, "Mount readonly");
-+
- static struct device *to_dev(struct pmem_device *pmem)
- {
- 	/*
-@@ -324,9 +329,14 @@ static int pmem_attach_disk(struct device *dev,
- 		addr = devm_memremap_pages(dev, &nsio->res,
- 				&q->q_usage_counter, NULL);
- 		pmem->pfn_flags |= PFN_MAP;
--	} else
--		addr = devm_memremap(dev, pmem->phys_addr,
-+	} else {
-+		if (readonly == 0)
-+			addr = devm_memremap(dev, pmem->phys_addr,
- 				pmem->size, ARCH_MEMREMAP_PMEM);
-+		else
-+			addr = devm_memremap_ro(dev, pmem->phys_addr,
-+				pmem->size, ARCH_MEMREMAP_PMEM);
-+	}
+ 	if (!jmapping)
+ 		return NULL;
+@@ -756,6 +757,14 @@ struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
+ 		goto err;
+ 	json_object_object_add(jmapping, "length", jobj);
  
- 	/*
- 	 * At release time the queue must be frozen before
-diff --git a/include/linux/io.h b/include/linux/io.h
-index 2195d9ea4aaa..00641aef9ab3 100644
---- a/include/linux/io.h
-+++ b/include/linux/io.h
-@@ -86,6 +86,8 @@ void devm_ioremap_release(struct device *dev, void *res);
- 
- void *devm_memremap(struct device *dev, resource_size_t offset,
- 		size_t size, unsigned long flags);
-+void *devm_memremap_ro(struct device *dev, resource_size_t offset,
-+		size_t size, unsigned long flags);
- void devm_memunmap(struct device *dev, void *addr);
- 
- void *__devm_memremap_pages(struct device *dev, struct resource *res);
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 23a6483c3666..68371a9a40e5 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -162,6 +162,30 @@ void *devm_memremap(struct device *dev, resource_size_t offset,
- }
- EXPORT_SYMBOL(devm_memremap);
- 
-+void *devm_memremap_ro(struct device *dev, resource_size_t offset,
-+		size_t size, unsigned long flags)
-+{
-+	void **ptr, *addr;
-+
-+	printk("%s\n", __func__);
-+	ptr = devres_alloc_node(devm_memremap_release, sizeof(*ptr), GFP_KERNEL,
-+			dev_to_node(dev));
-+	if (!ptr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	addr = ioremap_cache_ro(offset, size);
-+	if (addr) {
-+		*ptr = addr;
-+		devres_add(dev, ptr);
-+	} else {
-+		devres_free(ptr);
-+		return ERR_PTR(-ENXIO);
++	position = ndctl_mapping_get_position(mapping);
++	if (position >= 0) {
++		jobj = json_object_new_int(position);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jmapping, "position", jobj);
 +	}
 +
-+	return addr;
-+}
-+EXPORT_SYMBOL(devm_memremap_ro);
-+
- void devm_memunmap(struct device *dev, void *addr)
- {
- 	WARN_ON(devres_release(dev, devm_memremap_release,
-diff --git a/mm/memory.c b/mm/memory.c
-index bb11c474857e..625623a90f08 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1793,7 +1793,7 @@ static int remap_pte_range(struct mm_struct *mm, pmd_t *pmd,
- 		return -ENOMEM;
- 	arch_enter_lazy_mmu_mode();
- 	do {
--		BUG_ON(!pte_none(*pte));
-+//		BUG_ON(!pte_none(*pte));
- 		set_pte_at(mm, addr, pte, pte_mkspecial(pfn_pte(pfn, prot)));
- 		pfn++;
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
-diff --git a/mm/mmap.c b/mm/mmap.c
-index a5e3dcd75e79..5423e3340e59 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -126,6 +126,7 @@ void vma_set_page_prot(struct vm_area_struct *vma)
- 	/* remove_protection_ptes reads vma->vm_page_prot without mmap_sem */
- 	WRITE_ONCE(vma->vm_page_prot, vm_page_prot);
- }
-+EXPORT_SYMBOL(vma_set_page_prot);
- 
- /*
-  * Requires inode->i_mapping->i_mmap_rwsem
+ 	return jmapping;
+  err:
+ 	json_object_put(jmapping);
 
 _______________________________________________
 Linux-nvdimm mailing list
