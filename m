@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x241.google.com (mail-pf0-x241.google.com
+ [IPv6:2607:f8b0:400e:c00::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5EE5B21DFC886
- for <linux-nvdimm@lists.01.org>; Wed, 16 Aug 2017 10:34:10 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] dax: explain how read(2)/write(2) addresses are validated
-Date: Wed, 16 Aug 2017 11:36:15 -0600
-Message-Id: <20170816173615.10098-1-ross.zwisler@linux.intel.com>
-In-Reply-To: <CAGXu5jJqoegDg07vR0iRRV1U_qOpZx5eLbywEwD_sm-D7sQmdA@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5FCC0208F7AC1
+ for <linux-nvdimm@lists.01.org>; Sat,  5 Aug 2017 20:25:56 -0700 (PDT)
+Received: by mail-pf0-x241.google.com with SMTP id p13so5690660pfd.4
+ for <linux-nvdimm@lists.01.org>; Sat, 05 Aug 2017 20:28:10 -0700 (PDT)
+Mime-Version: 1.0 (1.0)
+Subject: Re: [RFC 01/16] NOVA: Documentation
+From: Steven Swanson <steven.swanson@gmail.com>
+In-Reply-To: <1501859388.2757.1.camel@wdc.com>
+Date: Sat, 5 Aug 2017 20:28:08 -0700
+Message-Id: <873FD9AB-8E7B-495B-A74C-D2AAA4305432@gmail.com>
+References: <150174646416.104003.14042713459553361884.stgit@hn>
+ <150174649708.104003.4595004262958377346.stgit@hn>
+ <1501859388.2757.1.camel@wdc.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,49 +23,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Jan Kara <jack@suse.cz>, Kees Cook <keescook@chromium.org>, Matthew Wilcox <mawilcox@microsoft.com>, Will Deacon <will.deacon@arm.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Alexander Viro <viro@zeniv.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, linux-fsdevel@vger.kernel.org, Robin Murphy <robin.murphy@arm.com>
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a comment explaining how the user addresses provided to read(2) and
-write(2) are validated in the DAX I/O path.  We call dax_copy_from_iter()
-or copy_to_iter() on these without calling access_ok() first in the DAX
-code, and there was a concern that the user might be able to read/write to
-arbitrary kernel addresses with this path.
+There is nothing impossible COW for mapped files, but it is not a good match for the expected usage model for DAX.  
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
+The idea is that programs can mmap files and the build interesting data structures in them, just like they do in DRAM.  This means lots of small updatEs, and that would be very slow if each of them required a COW.
 
-Adding a comment instead of adding redundant access_ok() calls in the DAX
-code.  If this is the wrong path to take, please let me know.
+The reason we use COW for normal accesses is to provide atomicity.  Programs will probably want doe form of atomicity for their mmaped data structures, but part of the DAX bargain is that programmer are responsible for this rather than the FS.
 
- fs/dax.c | 5 +++++
- 1 file changed, 5 insertions(+)
+-steve
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 8c67517..2d50f32 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1060,6 +1060,11 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		if (map_len > end - pos)
- 			map_len = end - pos;
- 
-+		/*
-+		 * The userspace address for the memory copy has already been
-+		 * validated via access_ok() in either vfs_read() or
-+		 * vfs_write(), depending on which operation we are doing.
-+		 */
- 		if (iov_iter_rw(iter) == WRITE)
- 			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
- 					map_len, iter);
--- 
-2.9.5
+--
+Composed on (and maybe dictated to) my phone.
 
+> On Aug 4, 2017, at 08:09, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
+> 
+>> On Thu, 2017-08-03 at 00:48 -0700, Steven Swanson wrote:
+>> +### DAX Support
+>> +
+>> +Supporting DAX efficiently is a core feature of NOVA and one of the challenges
+>> +in designing NOVA is reconciling DAX support which aims to avoid file system
+>> +intervention when file data changes, and other features that require such
+>> +intervention.
+>> +
+>> +NOVA's philosophy with respect to DAX is that when a program uses DAX mmap to
+>> +to modify a file, the program must take full responsibility for that data and
+>> +NOVA must ensure that the memory will behave as expected.  At other times, the
+>> +file system provides protection.  This approach has several implications:
+>> +
+>> +1. Implementing `msync()` in user space works fine.
+>> +
+>> +2. While a file is mmap'd, it is not protected by NOVA's RAID-style parity
+>> +mechanism, because protecting it would be too expensive.  When the file is
+>> +unmapped and/or during file system recovery, protection is restored.
+>> +
+>> +3. The snapshot mechanism must be careful about the order in which in adds
+>> +pages to the file's snapshot image.
+> 
+> Hello Steven,
+> 
+> Thank you for having shared this very interesting work. After having read the
+> NOVA paper and patch 01/16 I have a question for you. Does the above mean that
+> COW is disabled for writable mmap-ed files? If so, what is the reason behind
+> this? Is there a fundamental issue that does not allow to implement COW for
+> writable mmap-ed files? Or have you perhaps tried to implement this and was the
+> performance not sufficient? Please note that I'm neither a filesystem nor a
+> persistent memory expert.
+> 
+> Thanks,
+> 
+> Bart.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
