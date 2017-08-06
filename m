@@ -1,9 +1,9 @@
-From: =?GB2312?B?t73X3A==?= <ivvleiti-Yy3JH9uxkAwybS5Ee8rs3A@public.gmane.org>
-Subject: =?GB2312?B?t/7O8dOqz/rJ+sP8z9+jrMjDxPq1xL/Nu6fTycL60uLX38/y1tKzzw==?=
-Date: Sun, 6 Aug 2017 19:24:23 +0800
-Message-ID: <20170806112220.32C5D21D49C9E@ml01.01.org>
+From: =?GB2312?B?092zp7Ok?= <xblicuo-6Ce/BuHPOW4cxtxEEvRm/gC/G2K4zDHf@public.gmane.org>
+Subject: =?GB2312?B?w+YgttQgz/otytvAp76zo6zI57rO1vCyvb3ivvY=?=
+Date: Sun, 6 Aug 2017 20:32:46 +0800
+Message-ID: <20170806122750.A02FC21D49C9E@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7465555463461285230=="
+Content-Type: multipart/mixed; boundary="===============6084926104558138831=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,19 +19,15 @@ List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format
 
---===============7465555463461285230==
+--===============6084926104558138831==
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+20:32:45
 
-需*解*决*问*题
+需*解*决*问*题，请*查*阅*附*件
 
-请*查*阅*附*件
-
-19:24:21
-
---===============7465555463461285230==
+--===============6084926104558138831==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -42,4 +38,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============7465555463461285230==--
+--===============6084926104558138831==--
