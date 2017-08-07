@@ -1,25 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 16E0E21AEB0A7
- for <linux-nvdimm@lists.01.org>; Sat,  5 Aug 2017 02:43:45 -0700 (PDT)
-Date: Sat, 5 Aug 2017 11:45:56 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 1/3] fs, xfs: introduce S_IOMAP_IMMUTABLE
-Message-ID: <20170805094556.GA14930@lst.de>
-References: <150135740948.35318.10730072114996910905.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150135741519.35318.16765137368329971936.stgit@dwillia2-desk3.amr.corp.intel.com>
- <1501516968.579311.1058393288.0714478A@webmail.messagingengine.com>
- <CAPcyv4h_YWaAXG5pfkOJ0M74i5yEke1SoC3ESErTh41hngtG-w@mail.gmail.com>
- <1501518747.586018.1058450568.4B6F28FB@webmail.messagingengine.com>
- <1501522933.602272.1058529880.6C4A2D98@webmail.messagingengine.com>
- <20170731182352.GE4477@magnolia>
- <1501553712.1055225.1059044352.109C04CB@webmail.messagingengine.com>
- <20170801024218.GN17762@dastard>
+ by ml01.01.org (Postfix) with ESMTPS id B26AC21AEB0BA
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Aug 2017 09:37:04 -0700 (PDT)
+Subject: [PATCH v4 1/8] dmaengine: ioatdma: revert 7618d035 to allow sharing
+ of DMA channels
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 07 Aug 2017 09:39:20 -0700
+Message-ID: <150212396027.23722.3849314685091594927.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
+References: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20170801024218.GN17762@dastard>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -31,45 +23,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Colin Walters <walters@verbum.org>
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Aug 01, 2017 at 12:42:18PM +1000, Dave Chinner wrote:
-> I've outlined other use cases in previous discussions. To repeat
-> myself, every so often we get someone with, say, a new high
-> speed camera that want to dma the camera frames direct to the
-> storage because they can't push 500,000 frames/s through the CPU
-> to storage. Hence they want to bypass the OS and DMA the data direct
-> to the storage. To do this they need a mechanism to freeze and unfreeze
-> the block map of the file so that nothing modifies the block map
-> while the camera hardware is dumping data direct to the storage.
-> Immutable extent maps provide the functionality they need to
-> implement this safely.
+Commit 7618d0359c16 ("dmaengine: ioatdma: Set non RAID channels to be
+private capable") makes all non-RAID ioatdma channels as private to be
+requestable by dma_request_channel(). With PQ CAP support going away for
+ioatdma, this would make all channels private. To support the usage of
+ioatdma for blk-mq implementation of pmem we need as many channels we can
+share in order to be high performing. Thus reverting the patch.
 
-And we have such a mechanism already: it's called the iolock during
-I/O, and dirct I/O.  I've worked on plenty such schemes and the proper way
-works perfectly fine.  Just because people ask for stupid ways to
-archives that doesn't mean they understand what they are doing.
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ drivers/dma/ioat/init.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-> There's also other similar use cases for RDMA targets on PMEM
-> (regardless of whether DAX is enabled or not), and I've come across
-> a couple of requests for mechanisms to allow fabric based nvme
-> storage to do direct data transfers between storage devices, too.
-> All of these use cases can be safely implemented if there is a
-> mechanism to mark extent maps as immutable for the duration of
-> the operation they need to perform.
+diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
+index ed8ed11..1b881fb 100644
+--- a/drivers/dma/ioat/init.c
++++ b/drivers/dma/ioat/init.c
+@@ -1153,9 +1153,6 @@ static int ioat3_dma_probe(struct ioatdma_device *ioat_dma, int dca)
+ 		}
+ 	}
+ 
+-	if (!(ioat_dma->cap & (IOAT_CAP_XOR | IOAT_CAP_PQ)))
+-		dma_cap_set(DMA_PRIVATE, dma->cap_mask);
+-
+ 	err = ioat_probe(ioat_dma);
+ 	if (err)
+ 		return err;
 
-As someone who spent most of them time on the last 2 years in this
-area: we have a massive problem discoverability and addressing
-(lack of struct page) for p2p devices.  We have absolutely no problem
-with the direct I/O model with them.
-
-> DAX isn't the driver of that functionality, it's the other use cases
-> that need it, and why the proposed "only remove flag if len == 0"
-> API is a non-starter....
-
-The other "use" cases are even more bullshit than the DAX one.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
