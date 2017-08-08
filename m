@@ -1,85 +1,68 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0130B21E49BA8
- for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:18:36 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v6 0/6] BTT error clearing rework
-Date: Tue, 22 Aug 2017 16:19:09 -0600
-Message-Id: <20170822221915.1732-1-vishal.l.verma@intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 8 Aug 2017 08:48:06 -0700
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH v1 5/6] zram: remove zram_rw_page
+Message-ID: <20170808154806.GD31390@bombadil.infradead.org>
+References: <1502175024-28338-1-git-send-email-minchan@kernel.org>
+ <1502175024-28338-6-git-send-email-minchan@kernel.org>
+ <20170808070226.GC7765@jagdpanzerIV.localdomain>
+ <20170808081338.GA30908@bbox>
+ <20170808082350.GD7765@jagdpanzerIV.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170808082350.GD7765@jagdpanzerIV.localdomain>
+Sender: owner-linux-mm@kvack.org
+To: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, "karam . lee" <karam.lee@lge.com>, seungho1.park@lge.com, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, jack@suse.cz, Jens Axboe <axboe@kernel.dk>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org, kernel-team <kernel-team@lge.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-changes in v6:
- - Remove the refactoring patch where we move the namespace offset
-   calculations to all call sites, instead add a helper for the final
-   initial_offset calculation, and call it directly from btt_is_badblock
+On Tue, Aug 08, 2017 at 05:23:50PM +0900, Sergey Senozhatsky wrote:
+> Hello Minchan,
+> 
+> On (08/08/17 17:13), Minchan Kim wrote:
+> > Hi Sergey,
+> > 
+> > On Tue, Aug 08, 2017 at 04:02:26PM +0900, Sergey Senozhatsky wrote:
+> > > On (08/08/17 15:50), Minchan Kim wrote:
+> > > > With on-stack-bio, rw_page interface doesn't provide a clear performance
+> > > > benefit for zram and surely has a maintenance burden, so remove the
+> > > > last user to remove rw_page completely.
+> > > 
+> > > OK, never really liked it, I think we had that conversation before.
+> > > 
+> > > as far as I remember, zram_rw_page() was the reason we had to do some
+> > > tricks with init_lock to make lockdep happy. may be now we can "simplify"
+> > > the things back.
+> > 
+> > I cannot remember. Blame my brain. ;-)
+> 
+> no worries. I didn't remember it clearly as well, hence the "may be" part.
+> 
+> commit 08eee69fcf6baea543a2b4d2a2fcba0e61aa3160
+> Author: Minchan Kim
+> 
+>     zram: remove init_lock in zram_make_request
+>     
+>     Admin could reset zram during I/O operation going on so we have used
+>     zram->init_lock as read-side lock in I/O path to prevent sudden zram
+>     meta freeing.
+>     
+>     However, the init_lock is really troublesome.  We can't do call
+>     zram_meta_alloc under init_lock due to lockdep splat because
+>     zram_rw_page is one of the function under reclaim path and hold it as
+>     read_lock while other places in process context hold it as write_lock.
+>     So, we have used allocation out of the lock to avoid lockdep warn but
+>     it's not good for readability and fainally, I met another lockdep splat
+>     between init_lock and cpu_hotplug from kmem_cache_destroy during working
+>     zsmalloc compaction.  :(
 
-changes in v5:
- - Add patch 6 that refactors initial_offset calculations, and fix a bug
-   that caused error clearing to be missed in some cases (Toshi)
-   (I have a unit test for this that is mostly ready, but it depends
-   in a better error injection capability in nfit_test, so I will send
-   it out once that is ready).
+I don't think this patch is going to change anything with respect to the
+use of init_lock.  You're still going to be called in the reclaim path,
+no longer through rw_page, but through the bio path instead.
 
-Changes in v4:
- - move the deadlock fix to before enabling the BTT error clear paths (Dan)
- - No need for an error lock per freelist entry, just have one per arena (Dan)
-
-Changes in v3:
- - Change the dynamically allocated (during IO) zerobuf to the kernel's
-   ZERO_PAGE for error clearing (patch 5) (Dan).
- - Move the NOIO fixes a level down into nvdimm_clear_poison since both
-   btt and pmem poison clearing goes through that (Dan).
-
-Changes in v2:
- - Drop the ACPI allocation change patch. Instead use
-   memalloc_noio_{save,restore} to set the GFP_NOIO flag around anything
-   that can be expected to call into ACPI for clearing errors. (Rafael, Dan).
-
-Clearing errors or badblocks during a BTT write requires sending an ACPI
-DSM, which means potentially sleeping. Since a BTT IO happens in atomic
-context (preemption disabled, spinlocks may be held), we cannot perform
-error clearing in the course of an IO. Due to this error clearing for
-BTT IOs has hitherto been disabled.
-
-This series fixes these problems by moving the error clearing out of
-the atomic sections in the BTT.
-
-Also fix a potential deadlock that can occur while clearing errors
-from either BTT or pmem due to memory allocations in the IO path.
-
-Vishal Verma (6):
-  btt: fix a missed NVDIMM_IO_ATOMIC case in the write path
-  btt: refactor map entry operations with macros
-  btt: ensure that flags were also unchanged during a map_read
-  btt: cache sector_size in arena_info
-  libnvdimm: fix potential deadlock while clearing errors
-  libnvdimm, btt: rework error clearing
-
- drivers/nvdimm/btt.c   | 131 ++++++++++++++++++++++++++++++++++++++++++-------
- drivers/nvdimm/btt.h   |  11 +++++
- drivers/nvdimm/bus.c   |   6 +++
- drivers/nvdimm/claim.c |   9 +---
- 4 files changed, 130 insertions(+), 27 deletions(-)
-
--- 
-2.9.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
