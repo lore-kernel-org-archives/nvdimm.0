@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 03A0321E1DAC1
- for <linux-nvdimm@lists.01.org>; Wed,  2 Aug 2017 11:39:11 -0700 (PDT)
-Subject: [PATCH v2 4/5] libnvdimm: Adding blk-mq support to the pmem driver
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 02 Aug 2017 11:41:19 -0700
-Message-ID: <150169927933.59677.7382159914302175097.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150169902310.59677.18062301799811367806.stgit@djiang5-desk3.ch.intel.com>
-References: <150169902310.59677.18062301799811367806.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+Received: from lgeamrelo11.lge.com (LGEAMRELO11.lge.com [156.147.23.51])
+ by ml01.01.org (Postfix) with ESMTP id 6091C21DF9687
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Aug 2017 23:48:16 -0700 (PDT)
+From: Minchan Kim <minchan@kernel.org>
+Subject: [PATCH v1 4/6] mm:swap: use on-stack-bio for BDI_CAP_SYNC devices
+Date: Tue,  8 Aug 2017 15:50:22 +0900
+Message-Id: <1502175024-28338-5-git-send-email-minchan@kernel.org>
+In-Reply-To: <1502175024-28338-1-git-send-email-minchan@kernel.org>
+References: <1502175024-28338-1-git-send-email-minchan@kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,260 +15,251 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jens Axboe <axboe@kernel.dk>, jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Minchan Kim <minchan@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, kernel-team <kernel-team@lge.com>, seungho1.park@lge.com, "karam . lee" <karam.lee@lge.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding blk-mq support to the pmem driver in addition to the direct bio
-support. This allows for hardware offloading via DMA engines. By default
-the bio method will be enabled. The blk-mq support can be turned on via
-module parameter queue_mode=1.
+There is no need to use dynamic bio allocation for BDI_CAP_SYNC
+devices. They can live with on-stack-bio without concern about
+waiting bio allocation from mempool under heavy memory pressure.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+It would be much better for swap devices because the bio mempool
+for swap IO have been used with fs. It means super-fast swap
+IO like zram don't need to depends on slow eMMC read/write
+completion.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 ---
- drivers/nvdimm/pmem.c |  137 +++++++++++++++++++++++++++++++++++++++++--------
- drivers/nvdimm/pmem.h |    3 +
- 2 files changed, 119 insertions(+), 21 deletions(-)
+ include/linux/swap.h |   3 +-
+ mm/page_io.c         | 123 +++++++++++++++++++++++++++++++++++----------------
+ mm/swapfile.c        |   3 ++
+ 3 files changed, 89 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index c544d46..98e752f 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -31,10 +31,24 @@
- #include <linux/pmem.h>
- #include <linux/dax.h>
- #include <linux/nd.h>
-+#include <linux/blk-mq.h>
- #include "pmem.h"
- #include "pfn.h"
- #include "nd.h"
- 
-+enum {
-+	PMEM_Q_BIO = 0,
-+	PMEM_Q_MQ = 1,
-+};
-+
-+static int queue_mode = PMEM_Q_BIO;
-+module_param(queue_mode, int, 0444);
-+MODULE_PARM_DESC(queue_mode, "Pmem Queue Mode (0=BIO, 1=BLK-MQ)");
-+
-+struct pmem_cmd {
-+	struct request *rq;
-+};
-+
- static struct device *to_dev(struct pmem_device *pmem)
- {
- 	/*
-@@ -239,9 +253,13 @@ static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_dax_direct_access,
+diff --git a/include/linux/swap.h b/include/linux/swap.h
+index ae3da979a7b7..6ed9b6423f7d 100644
+--- a/include/linux/swap.h
++++ b/include/linux/swap.h
+@@ -152,8 +152,9 @@ enum {
+ 	SWP_AREA_DISCARD = (1 << 8),	/* single-time swap area discards */
+ 	SWP_PAGE_DISCARD = (1 << 9),	/* freed swap page-cluster discards */
+ 	SWP_STABLE_WRITES = (1 << 10),	/* no overwrite PG_writeback pages */
++	SWP_SYNC_IO	= (1<<11),	/* synchronous IO is efficient */
+ 					/* add others here before... */
+-	SWP_SCANNING	= (1 << 11),	/* refcount in scan_swap_map */
++	SWP_SCANNING	= (1 << 12),	/* refcount in scan_swap_map */
  };
  
--static void pmem_release_queue(void *q)
-+static void pmem_release_queue(void *data)
- {
--	blk_cleanup_queue(q);
-+	struct pmem_device *pmem = (struct pmem_device *)data;
-+
-+	blk_cleanup_queue(pmem->q);
-+	if (queue_mode == PMEM_Q_MQ)
-+		blk_mq_free_tag_set(&pmem->tag_set);
+ #define SWAP_CLUSTER_MAX 32UL
+diff --git a/mm/page_io.c b/mm/page_io.c
+index 3502a97f7c48..d794fd810773 100644
+--- a/mm/page_io.c
++++ b/mm/page_io.c
+@@ -44,7 +44,7 @@ static struct bio *get_swap_bio(gfp_t gfp_flags,
+ 	return bio;
  }
  
- static void pmem_freeze_queue(void *q)
-@@ -259,6 +277,54 @@ static void pmem_release_disk(void *__pmem)
- 	put_disk(pmem->disk);
+-void end_swap_bio_write(struct bio *bio)
++void end_swap_bio_write_simple(struct bio *bio)
+ {
+ 	struct page *page = bio->bi_io_vec[0].bv_page;
+ 
+@@ -66,6 +66,11 @@ void end_swap_bio_write(struct bio *bio)
+ 		ClearPageReclaim(page);
+ 	}
+ 	end_page_writeback(page);
++}
++
++void end_swap_bio_write(struct bio *bio)
++{
++	end_swap_bio_write_simple(bio);
+ 	bio_put(bio);
  }
  
-+static int pmem_handle_cmd(struct pmem_cmd *cmd)
-+{
-+	struct request *req = cmd->rq;
-+	struct request_queue *q = req->q;
-+	struct pmem_device *pmem = q->queuedata;
-+	struct nd_region *nd_region = to_region(pmem);
-+	struct bio_vec bvec;
-+	struct req_iterator iter;
-+	int rc = 0;
-+
-+	if (req->cmd_flags & REQ_FLUSH)
-+		nvdimm_flush(nd_region);
-+
-+	rq_for_each_segment(bvec, req, iter) {
-+		rc = pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len,
-+				bvec.bv_offset, op_is_write(req_op(req)),
-+				iter.iter.bi_sector);
-+		if (rc < 0)
-+			break;
-+	}
-+
-+	if (req->cmd_flags & REQ_FUA)
-+		nvdimm_flush(nd_region);
-+
-+	blk_mq_end_request(cmd->rq, rc);
-+
-+	return rc;
-+}
-+
-+static int pmem_queue_rq(struct blk_mq_hw_ctx *hctx,
-+		const struct blk_mq_queue_data *bd)
-+{
-+	struct pmem_cmd *cmd = blk_mq_rq_to_pdu(bd->rq);
-+
-+	cmd->rq = bd->rq;
-+
-+	blk_mq_start_request(bd->rq);
-+
-+	if (pmem_handle_cmd(cmd) < 0)
-+		return BLK_MQ_RQ_QUEUE_ERROR;
-+	else
-+		return BLK_MQ_RQ_QUEUE_OK;
-+}
-+
-+static const struct blk_mq_ops pmem_mq_ops = {
-+	.queue_rq	= pmem_queue_rq,
-+};
-+
- static int pmem_attach_disk(struct device *dev,
- 		struct nd_namespace_common *ndns)
- {
-@@ -272,9 +338,9 @@ static int pmem_attach_disk(struct device *dev,
- 	struct nd_pfn_sb *pfn_sb;
- 	struct pmem_device *pmem;
- 	struct resource pfn_res;
--	struct request_queue *q;
- 	struct gendisk *disk;
- 	void *addr;
-+	int rc;
+@@ -117,10 +122,9 @@ static void swap_slot_free_notify(struct page *page)
+ 	}
+ }
  
- 	/* while nsio_rw_bytes is active, parse a pfn info block if present */
- 	if (is_nd_pfn(dev)) {
-@@ -303,17 +369,47 @@ static int pmem_attach_disk(struct device *dev,
- 		return -EBUSY;
+-static void end_swap_bio_read(struct bio *bio)
++static void end_swap_bio_read_simple(struct bio *bio)
+ {
+ 	struct page *page = bio->bi_io_vec[0].bv_page;
+-	struct task_struct *waiter = bio->bi_private;
+ 
+ 	if (bio->bi_status) {
+ 		SetPageError(page);
+@@ -136,6 +140,13 @@ static void end_swap_bio_read(struct bio *bio)
+ 	swap_slot_free_notify(page);
+ out:
+ 	unlock_page(page);
++}
++
++static void end_swap_bio_read(struct bio *bio)
++{
++	struct task_struct *waiter = bio->bi_private;
++
++	end_swap_bio_read_simple(bio);
+ 	WRITE_ONCE(bio->bi_private, NULL);
+ 	bio_put(bio);
+ 	wake_up_process(waiter);
+@@ -275,7 +286,6 @@ static inline void count_swpout_vm_event(struct page *page)
+ 
+ int __swap_writepage(struct page *page, struct writeback_control *wbc)
+ {
+-	struct bio *bio;
+ 	int ret;
+ 	struct swap_info_struct *sis = page_swap_info(page);
+ 
+@@ -328,25 +338,43 @@ int __swap_writepage(struct page *page, struct writeback_control *wbc)
  	}
  
--	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
--	if (!q)
--		return -ENOMEM;
-+	if (queue_mode == PMEM_Q_MQ) {
-+		pmem->tag_set.ops = &pmem_mq_ops;
-+		pmem->tag_set.nr_hw_queues = nr_online_nodes;
-+		pmem->tag_set.queue_depth = 64;
-+		pmem->tag_set.numa_node = dev_to_node(dev);
-+		pmem->tag_set.cmd_size = sizeof(struct pmem_cmd);
-+		pmem->tag_set.flags = BLK_MQ_F_SHOULD_MERGE;
-+		pmem->tag_set.driver_data = pmem;
+ 	ret = 0;
+-	bio = get_swap_bio(GFP_NOIO, page, end_swap_bio_write);
+-	if (bio == NULL) {
+-		set_page_dirty(page);
++	if (!(sis->flags & SWP_SYNC_IO)) {
++		struct bio *bio;
 +
-+		rc = blk_mq_alloc_tag_set(&pmem->tag_set);
-+		if (rc < 0)
-+			return rc;
-+
-+		pmem->q = blk_mq_init_queue(&pmem->tag_set);
-+		if (IS_ERR(pmem->q)) {
-+			blk_mq_free_tag_set(&pmem->tag_set);
-+			return -ENOMEM;
++		bio = get_swap_bio(GFP_NOIO, page, end_swap_bio_write);
++		if (bio == NULL) {
++			set_page_dirty(page);
++			unlock_page(page);
++			ret = -ENOMEM;
++			goto out;
 +		}
- 
--	if (devm_add_action_or_reset(dev, pmem_release_queue, q))
--		return -ENOMEM;
-+		if (devm_add_action_or_reset(dev, pmem_release_queue, pmem)) {
-+			blk_mq_free_tag_set(&pmem->tag_set);
-+			return -ENOMEM;
-+		}
-+	} else if (queue_mode == PMEM_Q_BIO) {
-+		pmem->q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
-+		if (!pmem->q)
-+			return -ENOMEM;
-+
-+		if (devm_add_action_or_reset(dev, pmem_release_queue, pmem))
-+			return -ENOMEM;
-+
-+		blk_queue_make_request(pmem->q, pmem_make_request);
++		bio->bi_opf = REQ_OP_WRITE | wbc_to_write_flags(wbc);
++		set_page_writeback(page);
+ 		unlock_page(page);
+-		ret = -ENOMEM;
+-		goto out;
++		submit_bio(bio);
 +	} else {
-+		dev_warn(dev, "Invalid queue mode: %d\n", queue_mode);
-+		return -EINVAL;
-+	}
++
++		/* on-stack-bio */
++		struct bio sbio;
++		struct bio_vec bvec;
++
++		bio_init(&sbio, &bvec, 1);
++		sbio.bi_bdev = sis->bdev;
++		sbio.bi_iter.bi_sector = swap_page_sector(page);
++		sbio.bi_end_io = end_swap_bio_write_simple;
++		bio_add_page(&sbio, page, PAGE_SIZE, 0);
++		bio_set_op_attrs(&sbio, REQ_OP_WRITE, wbc_to_write_flags(wbc));
++		set_page_writeback(page);
++		unlock_page(page);
++		submit_bio(&sbio);
+ 	}
+-	bio->bi_opf = REQ_OP_WRITE | wbc_to_write_flags(wbc);
+ 	count_swpout_vm_event(page);
+-	set_page_writeback(page);
+-	unlock_page(page);
+-	submit_bio(bio);
+ out:
+ 	return ret;
+ }
  
- 	pmem->pfn_flags = PFN_DEV;
- 	if (is_nd_pfn(dev)) {
--		addr = devm_memremap_pages(dev, &pfn_res, &q->q_usage_counter,
--				altmap);
-+		addr = devm_memremap_pages(dev, &pfn_res,
-+				&pmem->q->q_usage_counter, altmap);
- 		pfn_sb = nd_pfn->pfn_sb;
- 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
- 		pmem->pfn_pad = resource_size(res) - resource_size(&pfn_res);
-@@ -322,7 +418,7 @@ static int pmem_attach_disk(struct device *dev,
- 		res->start += pmem->data_offset;
- 	} else if (pmem_should_map_pages(dev)) {
- 		addr = devm_memremap_pages(dev, &nsio->res,
--				&q->q_usage_counter, NULL);
-+				&pmem->q->q_usage_counter, NULL);
- 		pmem->pfn_flags |= PFN_MAP;
- 	} else
- 		addr = devm_memremap(dev, pmem->phys_addr,
-@@ -332,21 +428,20 @@ static int pmem_attach_disk(struct device *dev,
- 	 * At release time the queue must be frozen before
- 	 * devm_memremap_pages is unwound
- 	 */
--	if (devm_add_action_or_reset(dev, pmem_freeze_queue, q))
-+	if (devm_add_action_or_reset(dev, pmem_freeze_queue, pmem->q))
- 		return -ENOMEM;
+ int swap_readpage(struct page *page, bool do_poll)
+ {
+-	struct bio *bio;
+ 	int ret = 0;
+ 	struct swap_info_struct *sis = page_swap_info(page);
+ 	blk_qc_t qc;
+@@ -383,33 +411,50 @@ int swap_readpage(struct page *page, bool do_poll)
+ 	}
  
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
- 	pmem->virt_addr = addr;
+ 	ret = 0;
+-	bio = get_swap_bio(GFP_KERNEL, page, end_swap_bio_read);
+-	if (bio == NULL) {
+-		unlock_page(page);
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+-	bdev = bio->bi_bdev;
+-	/*
+-	 * Keep this task valid during swap readpage because the oom killer may
+-	 * attempt to access it in the page fault retry time check.
+-	 */
+-	get_task_struct(current);
+-	bio->bi_private = current;
+-	bio_set_op_attrs(bio, REQ_OP_READ, 0);
+ 	count_vm_event(PSWPIN);
+-	bio_get(bio);
+-	qc = submit_bio(bio);
+-	while (do_poll) {
+-		set_current_state(TASK_UNINTERRUPTIBLE);
+-		if (!READ_ONCE(bio->bi_private))
+-			break;
+-
+-		if (!blk_mq_poll(bdev_get_queue(bdev), qc))
+-			break;
++	if (!(sis->flags & SWP_SYNC_IO)) {
++		struct bio *bio;
++
++		bio = get_swap_bio(GFP_KERNEL, page, end_swap_bio_read);
++		if (bio == NULL) {
++			unlock_page(page);
++			ret = -ENOMEM;
++			goto out;
++		}
++		bdev = bio->bi_bdev;
++		/*
++		 * Keep this task valid during swap readpage because
++		 * the oom killer may attempt to access it
++		 * in the page fault retry time check.
++		 */
++		get_task_struct(current);
++		bio->bi_private = current;
++		bio_set_op_attrs(bio, REQ_OP_READ, 0);
++		bio_get(bio);
++		qc = submit_bio(bio);
++		while (do_poll) {
++			set_current_state(TASK_UNINTERRUPTIBLE);
++			if (!READ_ONCE(bio->bi_private))
++				break;
++
++			if (!blk_mq_poll(bdev_get_queue(bdev), qc))
++				break;
++		}
++		__set_current_state(TASK_RUNNING);
++		bio_put(bio);
++	} else {
++		/* on-stack-bio */
++		struct bio sbio;
++		struct bio_vec bvec;
++
++		bio_init(&sbio, &bvec, 1);
++		sbio.bi_bdev = sis->bdev;
++		sbio.bi_iter.bi_sector = swap_page_sector(page);
++		sbio.bi_end_io = end_swap_bio_read_simple;
++		bio_add_page(&sbio, page, PAGE_SIZE, 0);
++		bio_set_op_attrs(&sbio, REQ_OP_READ, 0);
++		submit_bio(&sbio);
+ 	}
+-	__set_current_state(TASK_RUNNING);
+-	bio_put(bio);
  
--	blk_queue_write_cache(q, true, true);
--	blk_queue_make_request(q, pmem_make_request);
--	blk_queue_physical_block_size(q, PAGE_SIZE);
--	blk_queue_max_hw_sectors(q, UINT_MAX);
--	blk_queue_bounce_limit(q, BLK_BOUNCE_ANY);
--	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, q);
--	queue_flag_set_unlocked(QUEUE_FLAG_DAX, q);
--	q->queuedata = pmem;
-+	blk_queue_write_cache(pmem->q, true, true);
-+	blk_queue_physical_block_size(pmem->q, PAGE_SIZE);
-+	blk_queue_max_hw_sectors(pmem->q, UINT_MAX);
-+	blk_queue_bounce_limit(pmem->q, BLK_BOUNCE_ANY);
-+	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, pmem->q);
-+	queue_flag_set_unlocked(QUEUE_FLAG_DAX, pmem->q);
-+	pmem->q->queuedata = pmem;
+ out:
+ 	return ret;
+diff --git a/mm/swapfile.c b/mm/swapfile.c
+index 42eff9e4e972..e916b325b0b7 100644
+--- a/mm/swapfile.c
++++ b/mm/swapfile.c
+@@ -3113,6 +3113,9 @@ SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
+ 	if (bdi_cap_stable_pages_required(inode_to_bdi(inode)))
+ 		p->flags |= SWP_STABLE_WRITES;
  
- 	disk = alloc_disk_node(0, nid);
- 	if (!disk)
-@@ -354,7 +449,7 @@ static int pmem_attach_disk(struct device *dev,
- 	pmem->disk = disk;
- 
- 	disk->fops		= &pmem_fops;
--	disk->queue		= q;
-+	disk->queue		= pmem->q;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
- 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
- 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index 7f4dbd7..1836c7b 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -4,6 +4,7 @@
- #include <linux/types.h>
- #include <linux/pfn_t.h>
- #include <linux/fs.h>
-+#include <linux/blk-mq.h>
- 
- /* this definition is in it's own header for tools/testing/nvdimm to consume */
- struct pmem_device {
-@@ -20,6 +21,8 @@ struct pmem_device {
- 	struct badblocks	bb;
- 	struct dax_device	*dax_dev;
- 	struct gendisk		*disk;
-+	struct blk_mq_tag_set	tag_set;
-+	struct request_queue	*q;
- };
- 
- long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
++	if (bdi_cap_synchronous_io(inode_to_bdi(inode)))
++		p->flags |= SWP_SYNC_IO;
++
+ 	if (p->bdev && blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+ 		int cpu;
+ 		unsigned long ci, nr_cluster;
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
