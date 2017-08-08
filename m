@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6C40821D490F1
- for <linux-nvdimm@lists.01.org>; Thu, 10 Aug 2017 23:43:37 -0700 (PDT)
-Subject: [PATCH v3 3/6] fs, xfs: introduce FALLOC_FL_UNSEAL_BLOCK_MAP
+ by ml01.01.org (Postfix) with ESMTPS id 77F9621DF9696
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Aug 2017 18:09:54 -0700 (PDT)
+Subject: [PATCH] mm,
+ devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 10 Aug 2017 23:39:33 -0700
-Message-ID: <150243357353.8777.17069711229218266643.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150243355681.8777.14902834768886160223.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150243355681.8777.14902834768886160223.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 07 Aug 2017 18:05:41 -0700
+Message-ID: <150215410565.39310.13767886055248249438.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,190 +21,161 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide an explicit fallocate operation type for clearing the
-S_IOMAP_IMMUTABLE flag. Like the enable case it requires CAP_IMMUTABLE
-and it can only be performed while no process has the file mapped.
+devm_memremap_pages() records mapped ranges in pgmap_radix with an entry
+per section's worth of memory (128MB).  The key for each of those
+entries is a section number.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
+This leads to false positives when devm_memremap_pages() is passed a
+section-unaligned range as lookups in the misalignment fail to return
+NULL. We can close this hole by using the pfn as the key for entries in
+the tree.  The number of entries required to describe a remapped range
+is reduced by leveraging multi-order entries.
+
+In practice this approach usually yields just one entry in the tree if
+the size and starting address are of the same power-of-2 alignment.
+Previously we always needed nr_entries = mapping_size / 128MB.
+
+Link: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006666.html
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/open.c                   |   20 ++++++++++++------
- fs/xfs/xfs_bmap_util.c      |   47 +++++++++++++++++++++++++++++++++++++++++++
- fs/xfs/xfs_bmap_util.h      |    3 +++
- fs/xfs/xfs_file.c           |    4 +++-
- include/linux/falloc.h      |    3 ++-
- include/uapi/linux/falloc.h |    1 +
- 6 files changed, 69 insertions(+), 9 deletions(-)
+Hi Andrew,
 
-diff --git a/fs/open.c b/fs/open.c
-index 76f57f7465c4..3075599f1c55 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -274,13 +274,17 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
- 		return -EINVAL;
+This is an optimization for devm_memremap_pages() that has been idling
+in my local tree for a while. At one point Matthew had proposed an
+official radix tree api to allow filling a range of a radix similar to
+what the foreach_order_pgoff() loop is performing. Perhaps this prompts
+Matthew to dust that proposal off, but this patch otherwise minimizes
+the amount of entries we need in the pgmap_radix.
+
+This patch is against latest -next.
+
+
+ kernel/memremap.c |   52 ++++++++++++++++++++++++++++++++++++++--------------
+ mm/Kconfig        |    1 +
+ 2 files changed, 39 insertions(+), 14 deletions(-)
+
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 9afdc434fb49..066e73c2fcc9 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -194,18 +194,41 @@ struct page_map {
+ 	struct vmem_altmap altmap;
+ };
  
- 	/*
--	 * Seal block map operation should only be used exclusively, and
--	 * with the IMMUTABLE capability.
-+	 * Seal/unseal block map operations should only be used
-+	 * exclusively, and with the IMMUTABLE capability.
- 	 */
--	if (mode & FALLOC_FL_SEAL_BLOCK_MAP) {
-+	if (mode & (FALLOC_FL_SEAL_BLOCK_MAP | FALLOC_FL_UNSEAL_BLOCK_MAP)) {
- 		if (!capable(CAP_LINUX_IMMUTABLE))
- 			return -EPERM;
--		if (mode & ~FALLOC_FL_SEAL_BLOCK_MAP)
-+		if (mode == (FALLOC_FL_SEAL_BLOCK_MAP
-+					| FALLOC_FL_UNSEAL_BLOCK_MAP))
-+			return -EINVAL;
-+		if (mode & ~(FALLOC_FL_SEAL_BLOCK_MAP
-+					| FALLOC_FL_UNSEAL_BLOCK_MAP))
- 			return -EINVAL;
- 	}
+-static void pgmap_radix_release(struct resource *res)
++static unsigned long order_at(struct resource *res, unsigned long pgoff)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
++	unsigned long nr_pages, mask;
  
-@@ -303,10 +307,12 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
- 		return -ETXTBSY;
- 
- 	/*
--	 * We cannot allow any allocation changes on an iomap immutable file,
--	 * but we can allow the fs to validate if this request is redundant.
-+	 * We cannot allow any allocation changes on an iomap immutable
-+	 * file, but we can allow the fs to validate if this request is
-+	 * redundant, or unseal the block map.
- 	 */
--	if (IS_IOMAP_IMMUTABLE(inode) && !(mode & FALLOC_FL_SEAL_BLOCK_MAP))
-+	if (IS_IOMAP_IMMUTABLE(inode) && !(mode & (FALLOC_FL_SEAL_BLOCK_MAP
-+					| FALLOC_FL_UNSEAL_BLOCK_MAP)))
- 		return -ETXTBSY;
- 
- 	/*
-diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
-index 2ac8f4ed5723..888bae801961 100644
---- a/fs/xfs/xfs_bmap_util.c
-+++ b/fs/xfs/xfs_bmap_util.c
-@@ -1462,6 +1462,53 @@ xfs_seal_file_space(
- 	return error;
- }
- 
-+int
-+xfs_unseal_file_space(
-+	struct xfs_inode	*ip,
-+	xfs_off_t		offset,
-+	xfs_off_t		len)
-+{
-+	struct inode		*inode = VFS_I(ip);
-+	struct address_space	*mapping = inode->i_mapping;
-+	int			error;
-+
-+	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL));
-+
-+	if (offset)
-+		return -EINVAL;
-+
-+	xfs_ilock(ip, XFS_ILOCK_EXCL);
-+	/*
-+	 * It does not make sense to unseal less than the full range of
-+	 * the file.
-+	 */
-+	error = -EINVAL;
-+	if (len != i_size_read(inode))
-+		goto out_unlock;
-+
-+	/* Are we already unsealed? */
-+	error = 0;
-+	if (!IS_IOMAP_IMMUTABLE(inode))
-+		goto out_unlock;
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+-	align_end = align_start + align_size - 1;
++	nr_pages = PHYS_PFN(resource_size(res));
++	if (nr_pages == pgoff)
++		return ULONG_MAX;
 +
 +	/*
-+	 * Provide safety against one thread changing the policy of not
-+	 * requiring fsync/msync (for block allocations) behind another
-+	 * thread's back.
++	 * What is the largest aligned power-of-2 range available from
++	 * this resource pgoff to the end of the resource range,
++	 * considering the alignment of the current pgoff?
 +	 */
-+	error = -EBUSY;
-+	if (mapping_mapped(mapping))
-+		goto out_unlock;
++	mask = phys_pgoff | rounddown_pow_of_two(nr_pages - pgoff);
++	if (!mask)
++		return ULONG_MAX;
 +
-+	error = 0;
-+	inode->i_flags &= ~S_IOMAP_IMMUTABLE;
-+
-+out_unlock:
-+	xfs_iunlock(ip, XFS_ILOCK_EXCL);
-+
-+	return error;
++	return find_first_bit(&mask, BITS_PER_LONG);
 +}
 +
- /*
-  * @next_fsb will keep track of the extent currently undergoing shift.
-  * @stop_fsb will keep track of the extent at which we have to stop.
-diff --git a/fs/xfs/xfs_bmap_util.h b/fs/xfs/xfs_bmap_util.h
-index 5115a32a2483..b64653a75942 100644
---- a/fs/xfs/xfs_bmap_util.h
-+++ b/fs/xfs/xfs_bmap_util.h
-@@ -62,6 +62,9 @@ int	xfs_insert_file_space(struct xfs_inode *, xfs_off_t offset,
- 				xfs_off_t len);
- int	xfs_seal_file_space(struct xfs_inode *, xfs_off_t offset,
- 				xfs_off_t len);
-+int	xfs_unseal_file_space(struct xfs_inode *, xfs_off_t offset,
-+				xfs_off_t len);
++#define foreach_order_pgoff(res, order, pgoff) \
++	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
++			pgoff += 1UL << order, order = order_at((res), pgoff))
 +
++static void pgmap_radix_release(struct resource *res)
++{
++	unsigned long pgoff, order;
  
- /* EOF block manipulation functions */
- bool	xfs_can_free_eofblocks(struct xfs_inode *ip, bool force);
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index e21121530a90..833f77700be2 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -740,7 +740,7 @@ xfs_file_write_iter(
- 		(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |		\
- 		 FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_ZERO_RANGE |	\
- 		 FALLOC_FL_INSERT_RANGE | FALLOC_FL_UNSHARE_RANGE |	\
--		 FALLOC_FL_SEAL_BLOCK_MAP)
-+		 FALLOC_FL_SEAL_BLOCK_MAP | FALLOC_FL_UNSEAL_BLOCK_MAP)
+ 	mutex_lock(&pgmap_lock);
+-	for (key = res->start; key <= res->end; key += SECTION_SIZE)
+-		radix_tree_delete(&pgmap_radix, key >> PA_SECTION_SHIFT);
++	foreach_order_pgoff(res, order, pgoff)
++		radix_tree_delete(&pgmap_radix, PHYS_PFN(res->start) + pgoff);
+ 	mutex_unlock(&pgmap_lock);
++
++	synchronize_rcu();
+ }
  
- STATIC long
- xfs_file_fallocate(
-@@ -840,6 +840,8 @@ xfs_file_fallocate(
- 						XFS_BMAPI_PREALLOC);
- 			} else if (mode & FALLOC_FL_SEAL_BLOCK_MAP) {
- 				error = xfs_seal_file_space(ip, offset, len);
-+			} else if (mode & FALLOC_FL_UNSEAL_BLOCK_MAP) {
-+				error = xfs_unseal_file_space(ip, offset, len);
- 			} else
- 				error = xfs_alloc_file_space(ip, offset, len,
- 						XFS_BMAPI_PREALLOC);
-diff --git a/include/linux/falloc.h b/include/linux/falloc.h
-index 48546c6fbec7..b22c1368ed1e 100644
---- a/include/linux/falloc.h
-+++ b/include/linux/falloc.h
-@@ -27,6 +27,7 @@ struct space_resv {
- 					 FALLOC_FL_ZERO_RANGE |		\
- 					 FALLOC_FL_INSERT_RANGE |	\
- 					 FALLOC_FL_UNSHARE_RANGE |	\
--					 FALLOC_FL_SEAL_BLOCK_MAP)
-+					 FALLOC_FL_SEAL_BLOCK_MAP |	\
-+					 FALLOC_FL_UNSEAL_BLOCK_MAP)
+ static unsigned long pfn_first(struct page_map *page_map)
+@@ -268,7 +291,7 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
  
- #endif /* _FALLOC_H_ */
-diff --git a/include/uapi/linux/falloc.h b/include/uapi/linux/falloc.h
-index e3867cfe31d5..5509e6216448 100644
---- a/include/uapi/linux/falloc.h
-+++ b/include/uapi/linux/falloc.h
-@@ -93,4 +93,5 @@
-  * with the punch, zero, collapse, or insert range modes.
-  */
- #define FALLOC_FL_SEAL_BLOCK_MAP	0x080
-+#define FALLOC_FL_UNSEAL_BLOCK_MAP	0x100
- #endif /* _UAPI_FALLOC_H_ */
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+ 
+-	page_map = radix_tree_lookup(&pgmap_radix, phys >> PA_SECTION_SHIFT);
++	page_map = radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
+ 	return page_map ? &page_map->pgmap : NULL;
+ }
+ 
+@@ -293,12 +316,12 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	resource_size_t align_start, align_size, align_end;
++	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+-	unsigned long pfn;
+ 
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
+@@ -337,11 +360,12 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+ 	align_end = align_start + align_size - 1;
+-	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
++
++	foreach_order_pgoff(res, order, pgoff) {
+ 		struct dev_pagemap *dup;
+ 
+ 		rcu_read_lock();
+-		dup = find_dev_pagemap(key);
++		dup = find_dev_pagemap(res->start + PFN_PHYS(pgoff));
+ 		rcu_read_unlock();
+ 		if (dup) {
+ 			dev_err(dev, "%s: %pr collides with mapping for %s\n",
+@@ -349,8 +373,8 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 			error = -EBUSY;
+ 			break;
+ 		}
+-		error = radix_tree_insert(&pgmap_radix, key >> PA_SECTION_SHIFT,
+-				page_map);
++		error = __radix_tree_insert(&pgmap_radix,
++				PHYS_PFN(res->start) + pgoff, order, page_map);
+ 		if (error) {
+ 			dev_err(dev, "%s: failed: %d\n", __func__, error);
+ 			break;
+diff --git a/mm/Kconfig b/mm/Kconfig
+index ab937c8d247f..9ef8c2ea92ad 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -681,6 +681,7 @@ config ZONE_DEVICE
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
+ 	depends on ARCH_HAS_ZONE_DEVICE
++	select RADIX_TREE_MULTIORDER
+ 
+ 	help
+ 	  Device memory hotplug support allows for establishing pmem,
 
 _______________________________________________
 Linux-nvdimm mailing list
