@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lgeamrelo13.lge.com (LGEAMRELO13.lge.com [156.147.23.53])
- by ml01.01.org (Postfix) with ESMTP id ACAE421D49107
- for <linux-nvdimm@lists.01.org>; Thu, 10 Aug 2017 22:15:28 -0700 (PDT)
-From: Minchan Kim <minchan@kernel.org>
-Subject: [PATCH v2 4/7] mm:swap: remove end_swap_bio_write argument
-Date: Fri, 11 Aug 2017 14:17:24 +0900
-Message-Id: <1502428647-28928-5-git-send-email-minchan@kernel.org>
-In-Reply-To: <1502428647-28928-1-git-send-email-minchan@kernel.org>
-References: <1502428647-28928-1-git-send-email-minchan@kernel.org>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 116FB21E0C315
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Aug 2017 17:07:20 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v5 2/7] btt: refactor map entry operations with macros
+Date: Tue,  8 Aug 2017 18:07:41 -0600
+Message-Id: <20170809000746.10585-3-vishal.l.verma@intel.com>
+In-Reply-To: <20170809000746.10585-1-vishal.l.verma@intel.com>
+References: <20170809000746.10585-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,82 +22,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>, jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Minchan Kim <minchan@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, kernel-team <kernel-team@lge.com>, seungho1.park@lge.com, "karam . lee" <karam.lee@lge.com>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Every caller of __swap_writepage uses end_swap_bio_write as
-end_write_func argument so the argument is pointless.
-Remove it.
+Add helpers for converting a raw map entry to just the block number, or
+either of the 'e' or 'z' flags in preparation for actually using the
+error flag to mark blocks with media errors.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- include/linux/swap.h | 3 +--
- mm/page_io.c         | 7 +++----
- mm/zswap.c           | 2 +-
- 3 files changed, 5 insertions(+), 7 deletions(-)
+ drivers/nvdimm/btt.c | 8 ++++----
+ drivers/nvdimm/btt.h | 4 ++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/swap.h b/include/linux/swap.h
-index 76f1632eea5a..ae3da979a7b7 100644
---- a/include/linux/swap.h
-+++ b/include/linux/swap.h
-@@ -336,8 +336,7 @@ extern void kswapd_stop(int nid);
- extern int swap_readpage(struct page *page, bool do_poll);
- extern int swap_writepage(struct page *page, struct writeback_control *wbc);
- extern void end_swap_bio_write(struct bio *bio);
--extern int __swap_writepage(struct page *page, struct writeback_control *wbc,
--	bio_end_io_t end_write_func);
-+extern int __swap_writepage(struct page *page, struct writeback_control *wbc);
- extern int swap_set_page_dirty(struct page *page);
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index f6ea82f..8842baa 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
+ 	 * This 'mapping' is supposed to be just the LBA mapping, without
+ 	 * any flags set, so strip the flag bits.
+ 	 */
+-	mapping &= MAP_LBA_MASK;
++	mapping = ent_lba(mapping);
  
- int add_swap_extent(struct swap_info_struct *sis, unsigned long start_page,
-diff --git a/mm/page_io.c b/mm/page_io.c
-index 20139b90125a..3502a97f7c48 100644
---- a/mm/page_io.c
-+++ b/mm/page_io.c
-@@ -254,7 +254,7 @@ int swap_writepage(struct page *page, struct writeback_control *wbc)
- 		end_page_writeback(page);
- 		goto out;
- 	}
--	ret = __swap_writepage(page, wbc, end_swap_bio_write);
-+	ret = __swap_writepage(page, wbc);
- out:
- 	return ret;
- }
-@@ -273,8 +273,7 @@ static inline void count_swpout_vm_event(struct page *page)
- 	count_vm_events(PSWPOUT, hpage_nr_pages(page));
- }
+ 	ze = (z_flag << 1) + e_flag;
+ 	switch (ze) {
+@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
  
--int __swap_writepage(struct page *page, struct writeback_control *wbc,
--		bio_end_io_t end_write_func)
-+int __swap_writepage(struct page *page, struct writeback_control *wbc)
- {
- 	struct bio *bio;
- 	int ret;
-@@ -329,7 +328,7 @@ int __swap_writepage(struct page *page, struct writeback_control *wbc,
- 	}
+ 	raw_mapping = le32_to_cpu(in);
  
- 	ret = 0;
--	bio = get_swap_bio(GFP_NOIO, page, end_write_func);
-+	bio = get_swap_bio(GFP_NOIO, page, end_swap_bio_write);
- 	if (bio == NULL) {
- 		set_page_dirty(page);
- 		unlock_page(page);
-diff --git a/mm/zswap.c b/mm/zswap.c
-index d39581a076c3..38db258515b5 100644
---- a/mm/zswap.c
-+++ b/mm/zswap.c
-@@ -900,7 +900,7 @@ static int zswap_writeback_entry(struct zpool *pool, unsigned long handle)
- 	SetPageReclaim(page);
+-	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
+-	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
++	z_flag = ent_z_flag(raw_mapping);
++	e_flag = ent_e_flag(raw_mapping);
+ 	ze = (z_flag << 1) + e_flag;
+-	postmap = raw_mapping & MAP_LBA_MASK;
++	postmap = ent_lba(raw_mapping);
  
- 	/* start writeback */
--	__swap_writepage(page, &wbc, end_swap_bio_write);
-+	__swap_writepage(page, &wbc);
- 	put_page(page);
- 	zswap_written_back_pages++;
+ 	/* Reuse the {z,e}_flag variables for *trim and *error */
+ 	z_flag = 0;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 888e862..09fabf5 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -38,6 +38,10 @@
+ #define IB_FLAG_ERROR 0x00000001
+ #define IB_FLAG_ERROR_MASK 0x00000001
  
++#define ent_lba(ent) (ent & MAP_LBA_MASK)
++#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
++#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
++
+ enum btt_init_state {
+ 	INIT_UNCHECKED = 0,
+ 	INIT_NOTFOUND,
 -- 
-2.7.4
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
