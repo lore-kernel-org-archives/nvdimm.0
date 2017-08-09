@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lgeamrelo11.lge.com (LGEAMRELO11.lge.com [156.147.23.51])
- by ml01.01.org (Postfix) with ESMTP id 887F921DFE938
- for <linux-nvdimm@lists.01.org>; Mon,  7 Aug 2017 23:48:16 -0700 (PDT)
-From: Minchan Kim <minchan@kernel.org>
-Subject: [PATCH v1 6/6] fs: remove rw_page
-Date: Tue,  8 Aug 2017 15:50:24 +0900
-Message-Id: <1502175024-28338-7-git-send-email-minchan@kernel.org>
-In-Reply-To: <1502175024-28338-1-git-send-email-minchan@kernel.org>
-References: <1502175024-28338-1-git-send-email-minchan@kernel.org>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 616C221D28FCF
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Aug 2017 17:07:20 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v5 3/7] btt: ensure that flags were also unchanged during a
+ map_read
+Date: Tue,  8 Aug 2017 18:07:42 -0600
+Message-Id: <20170809000746.10585-4-vishal.l.verma@intel.com>
+In-Reply-To: <20170809000746.10585-1-vishal.l.verma@intel.com>
+References: <20170809000746.10585-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,198 +23,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>, jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Minchan Kim <minchan@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, kernel-team <kernel-team@lge.com>, seungho1.park@lge.com, "karam . lee" <karam.lee@lge.com>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently, there is no user of rw_page so remove it.
+In btt_map_read, we read the map twice to make sure that the map entry
+didn't change after we added it to the read tracking table. In
+anticipation of expanding the use of the error bit, also make sure that
+the error and zero flags are constant across the two map reads.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/block_dev.c         | 76 --------------------------------------------------
- fs/mpage.c             | 12 ++------
- include/linux/blkdev.h |  4 ---
- mm/page_io.c           | 17 -----------
- 4 files changed, 2 insertions(+), 107 deletions(-)
+ drivers/nvdimm/btt.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 9941dc8342df..6fb408041e7d 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -649,82 +649,6 @@ int blkdev_fsync(struct file *filp, loff_t start, loff_t end, int datasync)
- }
- EXPORT_SYMBOL(blkdev_fsync);
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 8842baa..374ae62 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1032,6 +1032,7 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		 */
+ 		while (1) {
+ 			u32 new_map;
++			int new_t, new_e;
  
--/**
-- * bdev_read_page() - Start reading a page from a block device
-- * @bdev: The device to read the page from
-- * @sector: The offset on the device to read the page to (need not be aligned)
-- * @page: The page to read
-- *
-- * On entry, the page should be locked.  It will be unlocked when the page
-- * has been read.  If the block driver implements rw_page synchronously,
-- * that will be true on exit from this function, but it need not be.
-- *
-- * Errors returned by this function are usually "soft", eg out of memory, or
-- * queue full; callers should try a different route to read this page rather
-- * than propagate an error back up the stack.
-- *
-- * Return: negative errno if an error occurs, 0 if submission was successful.
-- */
--int bdev_read_page(struct block_device *bdev, sector_t sector,
--			struct page *page)
--{
--	const struct block_device_operations *ops = bdev->bd_disk->fops;
--	int result = -EOPNOTSUPP;
--
--	if (!ops->rw_page || bdev_get_integrity(bdev))
--		return result;
--
--	result = blk_queue_enter(bdev->bd_queue, false);
--	if (result)
--		return result;
--	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page, false);
--	blk_queue_exit(bdev->bd_queue);
--	return result;
--}
--EXPORT_SYMBOL_GPL(bdev_read_page);
--
--/**
-- * bdev_write_page() - Start writing a page to a block device
-- * @bdev: The device to write the page to
-- * @sector: The offset on the device to write the page to (need not be aligned)
-- * @page: The page to write
-- * @wbc: The writeback_control for the write
-- *
-- * On entry, the page should be locked and not currently under writeback.
-- * On exit, if the write started successfully, the page will be unlocked and
-- * under writeback.  If the write failed already (eg the driver failed to
-- * queue the page to the device), the page will still be locked.  If the
-- * caller is a ->writepage implementation, it will need to unlock the page.
-- *
-- * Errors returned by this function are usually "soft", eg out of memory, or
-- * queue full; callers should try a different route to write this page rather
-- * than propagate an error back up the stack.
-- *
-- * Return: negative errno if an error occurs, 0 if submission was successful.
-- */
--int bdev_write_page(struct block_device *bdev, sector_t sector,
--			struct page *page, struct writeback_control *wbc)
--{
--	int result;
--	const struct block_device_operations *ops = bdev->bd_disk->fops;
--
--	if (!ops->rw_page || bdev_get_integrity(bdev))
--		return -EOPNOTSUPP;
--	result = blk_queue_enter(bdev->bd_queue, false);
--	if (result)
--		return result;
--
--	set_page_writeback(page);
--	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page, true);
--	if (result)
--		end_page_writeback(page);
--	else
--		unlock_page(page);
--	blk_queue_exit(bdev->bd_queue);
--	return result;
--}
--EXPORT_SYMBOL_GPL(bdev_write_page);
--
- /*
-  * pseudo-fs
-  */
-diff --git a/fs/mpage.c b/fs/mpage.c
-index eaeaef27d693..707d77fe7289 100644
---- a/fs/mpage.c
-+++ b/fs/mpage.c
-@@ -301,11 +301,8 @@ do_mpage_readpage(struct bio *bio, struct page *page, unsigned nr_pages,
- 				submit_bio(&sbio);
- 				goto out;
- 			}
--
--			if (!bdev_read_page(bdev, blocks[0] << (blkbits - 9),
--								page))
--				goto out;
+ 			if (t_flag) {
+ 				zero_fill_data(page, off, cur_len);
+@@ -1050,15 +1051,18 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			 */
+ 			barrier();
+ 
+-			ret = btt_map_read(arena, premap, &new_map, &t_flag,
+-						&e_flag, NVDIMM_IO_ATOMIC);
++			ret = btt_map_read(arena, premap, &new_map, &new_t,
++						&new_e, NVDIMM_IO_ATOMIC);
+ 			if (ret)
+ 				goto out_rtt;
+ 
+-			if (postmap == new_map)
++			if ((postmap == new_map) && (t_flag == new_t) &&
++					(e_flag == new_e))
+ 				break;
+ 
+ 			postmap = new_map;
++			t_flag = new_t;
++			e_flag = new_e;
  		}
-+
- 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
- 				min_t(int, nr_pages, BIO_MAX_PAGES), gfp);
- 		if (bio == NULL)
-@@ -646,13 +643,8 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
- 				submit_bio(&sbio);
- 				clean_buffers(page, first_unmapped);
- 			}
--
--			if (!bdev_write_page(bdev, blocks[0] << (blkbits - 9),
--								page, wbc)) {
--				clean_buffers(page, first_unmapped);
--				goto out;
--			}
- 		}
-+
- 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
- 				BIO_MAX_PAGES, GFP_NOFS|__GFP_HIGH);
- 		if (bio == NULL)
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 25f6a0cb27d3..21fffa849033 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1936,7 +1936,6 @@ static inline bool integrity_req_gap_front_merge(struct request *req,
- struct block_device_operations {
- 	int (*open) (struct block_device *, fmode_t);
- 	void (*release) (struct gendisk *, fmode_t);
--	int (*rw_page)(struct block_device *, sector_t, struct page *, bool);
- 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	unsigned int (*check_events) (struct gendisk *disk,
-@@ -1954,9 +1953,6 @@ struct block_device_operations {
  
- extern int __blkdev_driver_ioctl(struct block_device *, fmode_t, unsigned int,
- 				 unsigned long);
--extern int bdev_read_page(struct block_device *, sector_t, struct page *);
--extern int bdev_write_page(struct block_device *, sector_t, struct page *,
--						struct writeback_control *);
- #else /* CONFIG_BLOCK */
- 
- struct block_device;
-diff --git a/mm/page_io.c b/mm/page_io.c
-index d794fd810773..1cbbac7b852a 100644
---- a/mm/page_io.c
-+++ b/mm/page_io.c
-@@ -331,12 +331,6 @@ int __swap_writepage(struct page *page, struct writeback_control *wbc)
- 		return ret;
- 	}
- 
--	ret = bdev_write_page(sis->bdev, swap_page_sector(page), page, wbc);
--	if (!ret) {
--		count_swpout_vm_event(page);
--		return 0;
--	}
--
- 	ret = 0;
- 	if (!(sis->flags & SWP_SYNC_IO)) {
- 		struct bio *bio;
-@@ -399,17 +393,6 @@ int swap_readpage(struct page *page, bool do_poll)
- 		return ret;
- 	}
- 
--	ret = bdev_read_page(sis->bdev, swap_page_sector(page), page);
--	if (!ret) {
--		if (trylock_page(page)) {
--			swap_slot_free_notify(page);
--			unlock_page(page);
--		}
--
--		count_vm_event(PSWPIN);
--		return 0;
--	}
--
- 	ret = 0;
- 	count_vm_event(PSWPIN);
- 	if (!(sis->flags & SWP_SYNC_IO)) {
+ 		ret = btt_data_read(arena, page, off, postmap, cur_len);
 -- 
-2.7.4
+2.9.3
 
 _______________________________________________
 Linux-nvdimm mailing list
