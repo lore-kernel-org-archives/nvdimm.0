@@ -1,49 +1,43 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 9 Aug 2017 11:41:50 +0900
-From: Minchan Kim <minchan@kernel.org>
+Date: Tue, 8 Aug 2017 19:31:22 -0700
+From: Matthew Wilcox <willy@infradead.org>
 Subject: Re: [PATCH v1 2/6] fs: use on-stack-bio if backing device has
  BDI_CAP_SYNC capability
-Message-ID: <20170809024150.GA32471@bbox>
+Message-ID: <20170809023122.GF31390@bombadil.infradead.org>
 References: <1502175024-28338-1-git-send-email-minchan@kernel.org>
  <1502175024-28338-3-git-send-email-minchan@kernel.org>
  <20170808124959.GB31390@bombadil.infradead.org>
  <20170808132904.GC31390@bombadil.infradead.org>
  <20170809015113.GB32338@bbox>
- <20170809023122.GF31390@bombadil.infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170809023122.GF31390@bombadil.infradead.org>
+In-Reply-To: <20170809015113.GB32338@bbox>
 Sender: owner-linux-mm@kvack.org
-To: Matthew Wilcox <willy@infradead.org>
+To: Minchan Kim <minchan@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, "karam . lee" <karam.lee@lge.com>, seungho1.park@lge.com, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, jack@suse.cz, Jens Axboe <axboe@kernel.dk>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org, kernel-team <kernel-team@lge.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Aug 08, 2017 at 07:31:22PM -0700, Matthew Wilcox wrote:
-> On Wed, Aug 09, 2017 at 10:51:13AM +0900, Minchan Kim wrote:
-> > On Tue, Aug 08, 2017 at 06:29:04AM -0700, Matthew Wilcox wrote:
-> > > On Tue, Aug 08, 2017 at 05:49:59AM -0700, Matthew Wilcox wrote:
-> > > > +	struct bio sbio;
-> > > > +	struct bio_vec sbvec;
-> > > 
-> > > ... this needs to be sbvec[nr_pages], of course.
-> > > 
-> > > > -		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
-> > > > +		if (bdi_cap_synchronous_io(inode_to_bdi(inode))) {
-> > > > +			bio = &sbio;
-> > > > +			bio_init(bio, &sbvec, nr_pages);
-> > > 
-> > > ... and this needs to be 'sbvec', not '&sbvec'.
+On Wed, Aug 09, 2017 at 10:51:13AM +0900, Minchan Kim wrote:
+> On Tue, Aug 08, 2017 at 06:29:04AM -0700, Matthew Wilcox wrote:
+> > On Tue, Aug 08, 2017 at 05:49:59AM -0700, Matthew Wilcox wrote:
+> > > +	struct bio sbio;
+> > > +	struct bio_vec sbvec;
 > > 
-> > I don't get it why we need sbvec[nr_pages].
-> > On-stack-bio works with per-page.
-> > May I miss something?
+> > ... this needs to be sbvec[nr_pages], of course.
+> > 
+> > > -		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
+> > > +		if (bdi_cap_synchronous_io(inode_to_bdi(inode))) {
+> > > +			bio = &sbio;
+> > > +			bio_init(bio, &sbvec, nr_pages);
+> > 
+> > ... and this needs to be 'sbvec', not '&sbvec'.
 > 
-> The way I redid it, it will work with an arbitrary number of pages.
+> I don't get it why we need sbvec[nr_pages].
+> On-stack-bio works with per-page.
+> May I miss something?
 
-IIUC, it would be good things with dynamic bio alloction with passing
-allocated bio back and forth but on-stack bio cannot work like that.
-It should be done in per-page so it is worth?
+The way I redid it, it will work with an arbitrary number of pages.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
