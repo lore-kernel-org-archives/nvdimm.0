@@ -1,20 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 264B02095B9C7
- for <linux-nvdimm@lists.01.org>; Thu, 17 Aug 2017 21:35:20 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 6CABFAC00C2
- for <linux-nvdimm@lists.01.org>; Fri, 18 Aug 2017 13:37:41 +0900 (JST)
-Date: Fri, 18 Aug 2017 13:37:37 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [ndctl PATCH 4/4] show bad dimm's name by ndctl list command.
-In-Reply-To: <20170818133124.8EAB.E1E9C6FF@jp.fujitsu.com>
-References: <20170818133124.8EAB.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170818133735.8EB9.E1E9C6FF@jp.fujitsu.com>
+Received: from foss.arm.com (foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id DC3B121B06E9B
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Aug 2017 07:10:23 -0700 (PDT)
+Date: Thu, 10 Aug 2017 15:12:38 +0100
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 6/6] arm64: uaccess: Implement *_flushcache variants
+Message-ID: <20170810141238.oin7hfzi2vtyhjh4@armageddon.cambridge.arm.com>
+References: <cover.1500397441.git.robin.murphy@arm.com>
+ <a82a48f72b8099c1ef6a32a63819619637797ef8.1500397441.git.robin.murphy@arm.com>
+ <CAK8P3a1emRA_e_K+M-jRiXZD02nD38Vgn+V7R8NbSq0Wg=56Uw@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a1emRA_e_K+M-jRiXZD02nD38Vgn+V7R8NbSq0Wg=56Uw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,109 +23,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-nvdimm@lists.01.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Thu, Aug 10, 2017 at 12:58:45PM +0200, Arnd Bergmann wrote:
+> On Tue, Jul 25, 2017 at 12:55 PM, Robin Murphy <robin.murphy@arm.com> wrote:
+> > Implement the set of copy functions with guarantees of a clean cache
+> > upon completion necessary to support the pmem driver.
+> >
+> > Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> > ---
+> >  arch/arm64/Kconfig                  |  1 +
+> >  arch/arm64/include/asm/string.h     |  4 ++++
+> >  arch/arm64/include/asm/uaccess.h    | 12 ++++++++++
+> >  arch/arm64/lib/Makefile             |  2 ++
+> >  arch/arm64/lib/uaccess_flushcache.c | 47 +++++++++++++++++++++++++++++++++++++
+> >  5 files changed, 66 insertions(+)
+> >  create mode 100644 arch/arm64/lib/uaccess_flushcache.c
+> 
+> It looks like Catalin applied part of this patch but forgot to add
+> arch/arm64/lib/uaccess_flushcache.c
 
-Show dimm's name which has badblock by ndctl list command.
-This patch uses translate SPA interface to get bad dimm info.
+Added it now, thanks.
 
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-
----
- util/json.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
-
-diff --git a/util/json.c b/util/json.c
-index 98165b7..b9ab420 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -366,6 +366,18 @@ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
- 	return NULL;
- }
- 
-+static struct ndctl_dimm *badblock_to_dimm(struct ndctl_region *region,
-+		unsigned long long spa)
-+{
-+	struct ndctl_bus *bus;
-+
-+	bus = ndctl_region_get_bus(region);
-+	if (!ndctl_bus_has_trans_spa(bus))
-+		return NULL;
-+
-+	return ndctl_dimm_get_by_spa(bus, spa);
-+}
-+
- struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 		unsigned int *bb_count, unsigned long flags)
- {
-@@ -381,6 +393,18 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 
- 	ndctl_region_badblock_foreach(region, bb) {
- 		if (flags & UTIL_JSON_MEDIA_ERRORS) {
-+			struct ndctl_dimm *dimm = NULL;
-+			unsigned long long spa;
-+
-+			/* get start address of region */
-+			spa = ndctl_region_get_resource(region);
-+			if (spa == ULONG_MAX)
-+				goto err_array;
-+
-+			/* get address of bad block */
-+			spa += bb->offset << 9;
-+			dimm = badblock_to_dimm(region, spa);
-+
- 			jbb = json_object_new_object();
- 			if (!jbb)
- 				goto err_array;
-@@ -395,6 +419,12 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 				goto err;
- 			json_object_object_add(jbb, "length", jobj);
- 
-+			if (dimm) {
-+				jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
-+				if (!jobj)
-+					goto err;
-+				json_object_object_add(jbb, "dimm", jobj);
-+			}
- 			json_object_array_add(jbbs, jbb);
- 		}
- 
-@@ -436,6 +466,7 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 
- 	ndctl_region_badblock_foreach(region, bb) {
- 		unsigned long long bb_begin, bb_end, begin, end;
-+		struct ndctl_dimm *dimm = NULL;
- 
- 		bb_begin = region_begin + (bb->offset << 9);
- 		bb_end = bb_begin + (bb->len << 9) - 1;
-@@ -456,6 +487,8 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 		offset = (begin - dev_begin) >> 9;
- 		len = (end - begin + 1) >> 9;
- 
-+		dimm = badblock_to_dimm(region, begin);
-+
- 		if (flags & UTIL_JSON_MEDIA_ERRORS) {
- 			/* add to json */
- 			jbb = json_object_new_object();
-@@ -472,6 +505,13 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 				goto err;
- 			json_object_object_add(jbb, "length", jobj);
- 
-+			if (dimm) {
-+				jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
-+				if (!jobj)
-+					goto err;
-+				json_object_object_add(jbb, "dimm", jobj);
-+			}
-+
- 			json_object_array_add(jbbs, jbb);
- 		}
- 		bbs += len;
-
-
-
+-- 
+Catalin
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
