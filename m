@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw0-x233.google.com (mail-yw0-x233.google.com
+ [IPv6:2607:f8b0:4002:c05::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 912F321DFC888
- for <linux-nvdimm@lists.01.org>; Mon, 14 Aug 2017 13:33:52 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH] bash completion: updates for the improved filtering
-Date: Mon, 14 Aug 2017 14:34:22 -0600
-Message-Id: <20170814203422.28284-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5B18521E2570C
+ for <linux-nvdimm@lists.01.org>; Wed,  9 Aug 2017 19:42:32 -0700 (PDT)
+Received: by mail-yw0-x233.google.com with SMTP id s143so50983529ywg.1
+ for <linux-nvdimm@lists.01.org>; Wed, 09 Aug 2017 19:44:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <150212398819.23722.8426106632424986011.stgit@djiang5-desk3.ch.intel.com>
+References: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
+ <150212398819.23722.8426106632424986011.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 9 Aug 2017 19:44:49 -0700
+Message-ID: <CAPcyv4hs388KZe74qm5goB9vMune8Z6dWmMuufXGBz2792+YYQ@mail.gmail.com>
+Subject: Re: [PATCH v4 6/8] dmaengine: add SG support to dmaengine_unmap
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,102 +22,134 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ndctl added improved filtering means, allowing one to filter listings
-with any combination of bus, dimm, region, or namespace. Make bash
-completion use that to only show the filtered set for any object. For
-example:
+On Mon, Aug 7, 2017 at 9:39 AM, Dave Jiang <dave.jiang@intel.com> wrote:
+> This should provide support to unmap scatterlist with the
+> dmaengine_unmap_data. We will support only 1 scatterlist per
+> direction. The DMA addresses array has been overloaded for the
+> 2 or less entries DMA unmap data structure in order to store the
+> SG pointer(s).
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/dma/dmaengine.c   |   45 ++++++++++++++++++++++++++++++++++++---------
+>  include/linux/dmaengine.h |   22 ++++++++++++++++++++++
+>  2 files changed, 58 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+> index d9a71f0..7d1f7ad 100644
+> --- a/drivers/dma/dmaengine.c
+> +++ b/drivers/dma/dmaengine.c
+> @@ -1130,16 +1130,35 @@ static void dmaengine_unmap(struct kref *kref)
+>  {
+>         struct dmaengine_unmap_data *unmap = container_of(kref, typeof(*unmap), kref);
+>         struct device *dev = unmap->dev;
+> -       int cnt, i;
+> +       int cnt, i, sg_nents;
+> +       struct scatterlist *sg;
+> +
+> +       sg_nents = dma_unmap_data_sg_to_nents(unmap, unmap->map_cnt);
+> +       if (sg_nents) {
+> +               i = 0;
+> +               cnt = 1;
+> +               dma_unmap_data_get_virt(unmap, sg, i);
+> +               dma_unmap_sg(dev, sg, sg_nents, DMA_TO_DEVICE);
+> +       } else {
+> +               cnt = unmap->to_cnt;
+> +               for (i = 0; i < cnt; i++)
+> +                       dma_unmap_page(dev, unmap->addr[i], unmap->len,
+> +                                       DMA_TO_DEVICE);
+> +       }
+> +
+> +       sg_nents = dma_unmap_data_sg_from_nents(unmap, unmap->map_cnt);
+> +       if (sg_nents) {
+> +               dma_unmap_data_get_virt(unmap, sg, i);
+> +               dma_unmap_sg(dev, sg, sg_nents, DMA_FROM_DEVICE);
+> +               cnt++;
+> +               i++;
+> +       } else {
+> +               cnt += unmap->from_cnt;
+> +               for (; i < cnt; i++)
+> +                       dma_unmap_page(dev, unmap->addr[i], unmap->len,
+> +                                       DMA_FROM_DEVICE);
+> +       }
+>
+> -       cnt = unmap->to_cnt;
+> -       for (i = 0; i < cnt; i++)
+> -               dma_unmap_page(dev, unmap->addr[i], unmap->len,
+> -                              DMA_TO_DEVICE);
+> -       cnt += unmap->from_cnt;
+> -       for (; i < cnt; i++)
+> -               dma_unmap_page(dev, unmap->addr[i], unmap->len,
+> -                              DMA_FROM_DEVICE);
+>         cnt += unmap->bidi_cnt;
+>         for (; i < cnt; i++) {
+>                 if (unmap->addr[i] == 0)
+> @@ -1183,6 +1202,10 @@ static int __init dmaengine_init_unmap_pool(void)
+>                 size = sizeof(struct dmaengine_unmap_data) +
+>                        sizeof(dma_addr_t) * p->size;
+>
+> +               /* add 2 more entries for SG nents overload */
+> +               if (i == 0)
+> +                       size += sizeof(dma_addr_t) * 2;
+> +
+>                 p->cache = kmem_cache_create(p->name, size, 0,
+>                                              SLAB_HWCACHE_ALIGN, NULL);
+>                 if (!p->cache)
+> @@ -1209,6 +1232,10 @@ dmaengine_get_unmap_data(struct device *dev, int nr, gfp_t flags)
+>                 return NULL;
+>
+>         memset(unmap, 0, sizeof(*unmap));
+> +       /* clear the overloaded sg nents entries */
+> +       if (nr < 3)
+> +               memset(&unmap->addr[nr], 0,
+> +                               DMA_UNMAP_SG_ENTS * sizeof(dma_addr_t));
+>         kref_init(&unmap->kref);
+>         unmap->dev = dev;
+>         unmap->map_cnt = nr;
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index fc25475..3a7fc68 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -476,6 +476,28 @@ struct dmaengine_unmap_data {
+>         dma_addr_t addr[0];
+>  };
+>
+> +#define DMA_UNMAP_SG_ENTS      2
+> +#define dma_unmap_data_sg_to_nents(x, n) x->addr[n]
+> +#define dma_unmap_data_sg_from_nents(x, n) x->addr[n+1]
+> +
+> +#if !defined(CONFIG_64BIT) && defined(CONFIG_PCI_BUS_ADDR_T_64BIT)
+> +/* 32bit CPU, 64bit DMA */
+> +#define dma_unmap_data_set_virt(u, virt, idx) \
+> +       do {\
+> +               u32 tmp = (u32)virt; \
+> +               u->addr[idx] = tmp; \
+> +       } while (0);
+> +
+> +#define dma_unmap_data_get_virt(u, ptr, idx) \
+> +       do {\
+> +               u32 tmp = u->addr[idx]; \
+> +               ptr = (void *)tmp; \
+> +       } while (0);
+> +#else
+> +#define dma_unmap_data_set_virt(u, virt, idx) u->addr[idx] = (dma_addr_t)virt;
+> +#define dma_unmap_data_get_virt(u, ptr, idx) ptr = (void *)u->addr[idx]
+> +#endif
 
-$ ndctl list --region=region6 --dimm=nmem<tab>
-nmem0   nmem1
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- contrib/ndctl | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
-
-diff --git a/contrib/ndctl b/contrib/ndctl
-index fd560cb..e77d680 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -103,6 +103,9 @@ __ndctlcomp()
- __ndctl_get_buses()
- {
- 	local opts="--buses $*"
-+	[ -n "$dimm_filter" ] && opts="$opts --dimm=$dimm_filter"
-+	[ -n "$reg_filter" ] && opts="$opts --region=$reg_filter"
-+	[ -n "$ns_filter" ] && opts="$opts --namespace=$ns_filter"
- 	echo "$(ndctl list $opts | grep -E "^\s*\"provider\":" | cut -d\" -f4)"
- }
- 
-@@ -110,6 +113,8 @@ __ndctl_get_regions()
- {
- 	local opts="--regions $*"
- 	[ -n "$bus_filter" ] && opts="$opts --bus=$bus_filter"
-+	[ -n "$dimm_filter" ] && opts="$opts --dimm=$dimm_filter"
-+	[ -n "$ns_filter" ] && opts="$opts --namespace=$ns_filter"
- 	[ -n "$type_filter" ] && opts="$opts --type=$type_filter"
- 	[ -n "$idle_filter" ] && opts="$opts --idle"
- 	echo "$(ndctl list $opts | grep -E "^\s*\"dev\":" | cut -d\" -f4)"
-@@ -119,7 +124,9 @@ __ndctl_get_ns()
- {
- 	opts="--namespaces $*"
- 	[ -n "$bus_filter" ] && opts="$opts --bus=$bus_filter"
--	[ -n "$reg_filter" ] && opts="$opts --bus=$reg_filter"
-+	[ -n "$dimm_filter" ] && opts="$opts --dimm=$dimm_filter"
-+	[ -n "$reg_filter" ] && opts="$opts --region=$reg_filter"
-+	[ -n "$mode_filter" ] && opts="$opts --mode=$mode_filter"
- 	[ -n "$type_filter" ] && opts="$opts --type=$type_filter"
- 	[ -n "$idle_filter" ] && opts="$opts --idle"
- 	echo "$(ndctl list $opts | grep -E "^\s*\"dev\":" | cut -d\" -f4)"
-@@ -129,6 +136,8 @@ __ndctl_get_dimms()
- {
- 	opts="--dimms $*"
- 	[ -n "$bus_filter" ] && opts="$opts --bus=$bus_filter"
-+	[ -n "$reg_filter" ] && opts="$opts --region=$reg_filter"
-+	[ -n "$ns_filter" ] && opts="$opts --namespace=$ns_filter"
- 	echo "$(ndctl list $opts | grep -E "^\s*\"dev\":" | cut -d\" -f4)"
- }
- 
-@@ -263,6 +272,8 @@ __ndctl_init_filters()
- {
- 	bus_filter=''
- 	reg_filter=''
-+	ns_filter=''
-+	dimm_filter=''
- 	type_filter=''
- 	idle_filter=''
- 	mode_filter=''
-@@ -280,6 +291,19 @@ __ndctl_init_filters()
- 			local regions=$(__ndctl_get_regions -i)
- 			[[ "$regions" == *"$reg_filter"* ]] || reg_filter=''
- 		fi
-+		if [[ "$__word" =~ --namespace=(.*) ]]; then
-+			ns_filter="${BASH_REMATCH[1]}"
-+			# lets make sure this is in the list of namespaces
-+			local nss=$(__ndctl_get_ns -i)
-+			[[ "$nss" == *"$ns_filter"* ]] || ns_filter=''
-+		fi
-+		if [[ "$__word" =~ --dimm=(.*) ]]; then
-+			dimm_filter="${BASH_REMATCH[1]}"
-+			# lets make sure this is in the list of dimms
-+			local dimms=$(__ndctl_get_dimms)
-+			[[ "$dimms" == *"$dimm_filter"* ]] || dimm_filter=''
-+		fi
-+
- 		if [[ "$__word" =~ --idle ]]; then
- 			idle_filter="1"
- 		fi
--- 
-2.9.3
-
+I'm not keen on this cleverness, let's make scatterlist a first class
+citizen of dmaengine_unmap_data and union it with the address array.
+Ideally we could deprecate support for the dma_map_page() and
+dma_map_single() cases and rewrite all users to submit requests in
+terms of scatterlists. This would be nice step towards fixing the
+dmaengine operation type proliferation problem.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
