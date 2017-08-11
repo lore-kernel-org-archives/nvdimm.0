@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 752A921E2DA42
- for <linux-nvdimm@lists.01.org>; Thu, 17 Aug 2017 09:06:02 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 06/13] dax: Inline dax_insert_mapping() into the callsite
-Date: Thu, 17 Aug 2017 18:08:08 +0200
-Message-Id: <20170817160815.30466-7-jack@suse.cz>
-In-Reply-To: <20170817160815.30466-1-jack@suse.cz>
-References: <20170817160815.30466-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 2C4502095E010
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Aug 2017 10:52:25 -0700 (PDT)
+From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Subject: RE: [PATCH v4 0/8] Adding blk-mq and DMA support to pmem block driver
+Date: Fri, 11 Aug 2017 17:54:41 +0000
+Message-ID: <AT5PR84MB0082569134EDF375011A6185AB890@AT5PR84MB0082.NAMPRD84.PROD.OUTLOOK.COM>
+References: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,97 +20,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Boaz Harrosh <boazh@netapp.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-ext4@vger.kernel.org
+To: Dave Jiang <dave.jiang@intel.com>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+Cc: "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_insert_mapping() has only one callsite and we will need to further
-fine tune what it does for synchronous faults. Just inline it into the
-callsite so that we don't have to pass awkward bools around.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
+> Dave Jiang
+> Sent: Monday, August 7, 2017 11:39 AM
+> To: vinod.koul@intel.com; dan.j.williams@intel.com
+> Cc: dmaengine@vger.kernel.org; linux-nvdimm@lists.01.org
+> Subject: [PATCH v4 0/8] Adding blk-mq and DMA support to pmem block driver
+> 
+...
+> The following series implements adds blk-mq support to the pmem block
+> driver
+> and also adds infrastructure code to ioatdma and dmaengine in order to
+> support copying to and from scatterlist in order to process block
+> requests provided by blk-mq. The usage of DMA engines available on certain
+> platforms allow us to drastically reduce CPU utilization and at the same
+> time
+> maintain performance that is good enough. Experimentations have been done
+> on
+> DRAM backed pmem block device that showed the utilization of DMA engine is
+> beneficial. User can revert back to original behavior by providing
+> queue_mode=0 to the nd_pmem kernel module if desired.
+
+This needs the same error handling as memcpy_mcsafe():
+* if pmem is the source, skip over known bad addresses already 
+in the ARS list (don't purposely force the DMA engine to run
+into errors)
+* add any newly detected bad addresses that the DMA engine
+finds to the ARS list (so they can be avoided in the future)
+* if pmem is the destination, clear those addresses from the ARS
+list (since fresh new data is being written)
+
+If the DMA engine handles uncorrectable memory errors well and the
+CPU does not survive UCEs, it would be preferable to use the DMA
+engine instead of the CPU for all transfers - not just large
+transfers.  
+
 ---
- fs/dax.c | 46 +++++++++++++++++++---------------------------
- 1 file changed, 19 insertions(+), 27 deletions(-)
+Robert Elliott, HPE Persistent Memory
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 7c150eddc01a..766cb840c276 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -852,32 +852,6 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
- 	return rc;
- }
- 
--static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
--			      loff_t pos, void *entry)
--{
--	const sector_t sector = dax_iomap_sector(iomap, pos);
--	struct vm_area_struct *vma = vmf->vma;
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	unsigned long vaddr = vmf->address;
--	void *ret;
--	int rc;
--	pfn_t pfn;
--
--	rc = dax_iomap_pfn(iomap, pos, PAGE_SIZE, &pfn);
--	if (rc < 0)
--		return rc;
--
--	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector, 0);
--	if (IS_ERR(ret))
--		return PTR_ERR(ret);
--
--	trace_dax_insert_mapping(mapping->host, vmf, ret);
--	if (vmf->flags & FAULT_FLAG_WRITE)
--		return vm_insert_mixed_mkwrite(vma, vaddr, pfn);
--	else
--		return vm_insert_mixed(vma, vaddr, pfn);
--}
--
- /*
-  * The user has performed a load from a hole in the file.  Allocating a new
-  * page in the file would cause excessive storage usage for workloads with
-@@ -1108,6 +1082,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	int vmf_ret = 0;
- 	void *entry;
-+	pfn_t pfn;
- 
- 	trace_dax_pte_fault(inode, vmf, vmf_ret);
- 	/*
-@@ -1190,7 +1165,24 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
- 			major = VM_FAULT_MAJOR;
- 		}
--		error = dax_insert_mapping(vmf, &iomap, pos, entry);
-+		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
-+		if (error < 0)
-+			goto error_finish_iomap;
-+
-+		entry = dax_insert_mapping_entry(mapping, vmf, entry,
-+						 dax_iomap_sector(&iomap, pos),
-+						 0);
-+		if (IS_ERR(entry)) {
-+			error = PTR_ERR(entry);
-+			goto error_finish_iomap;
-+		}
-+
-+		trace_dax_insert_mapping(inode, vmf, entry);
-+		if (write)
-+			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
-+		else
-+			error = vm_insert_mixed(vma, vaddr, pfn);
-+
- 		/* -EBUSY is fine, somebody else faulted on the same PTE */
- 		if (error == -EBUSY)
- 			error = 0;
--- 
-2.12.3
 
 _______________________________________________
 Linux-nvdimm mailing list
