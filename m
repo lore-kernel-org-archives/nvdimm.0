@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 39D1921E70D3B
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 14:37:52 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fix for 4.13-final
-Date: Wed, 30 Aug 2017 21:37:54 +0000
-Message-ID: <1504129067.3089.3.camel@intel.com>
-Content-Language: en-US
-Content-ID: <C66C7D52C730514AA82A6EFB7CD875E9@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 80EB72095E018
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Aug 2017 10:58:54 -0700 (PDT)
+Subject: Re: [PATCH v4 8/8] libnvdimm: add DMA support for pmem blk-mq
+References: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
+ <150212399902.23722.5878783372576979990.stgit@djiang5-desk3.ch.intel.com>
+ <20170811110424.GB25839@infradead.org>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <652f2d2c-5868-28af-694a-28821f077f5e@intel.com>
+Date: Fri, 11 Aug 2017 11:01:12 -0700
 MIME-Version: 1.0
+In-Reply-To: <20170811110424.GB25839@infradead.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,109 +25,148 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: "Koul, Vinod" <vinod.koul@intel.com>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-...to receive a single patch removing some structure definitions from a
-uapi header file. These payloads are never processed directly by the
-kernel they are simply passed through an ioctl as opaque blobs to the
-ACPI _DSM (Device Specific Method) interface.
+On 08/11/2017 04:04 AM, Christoph Hellwig wrote:
+> On Mon, Aug 07, 2017 at 09:39:59AM -0700, Dave Jiang wrote:
+>> +static int queue_mode = PMEM_Q_MQ;
+> 
+> So this changes the default for everyone.  How about those systems
+> without dma engine?
 
-Userspace should not be depending on the kernel to define these
-payloads. We will instead provide these definitions via the existing
-libndctl (https://github.com/pmem/ndctl) project that has NVDIMM
-command helpers and other definitions.
+The code requests a DMA engine during initialization to see if it's
+possible and would disable DMA implementation if there are no DMA
+engines found and revert back to the BIO path. With a separate driver,
+it would just use blk-mq w/o DMA.
 
----
+> 
+>>  module_param(queue_mode, int, 0444);
+>> -MODULE_PARM_DESC(queue_mode, "Pmem Queue Mode (0=BIO, 1=BLK-MQ)");
+>> +MODULE_PARM_DESC(queue_mode, "Pmem Queue Mode (0=BIO, 1=BLK-MQ & DMA)");
+>> +
+>> +static int queue_depth = 128;
+>> +module_param(queue_depth, int, 0444);
+>> +MODULE_PARM_DESC(queue_depth, "I/O Queue Depth for multi queue mode");
+> 
+> This changes the default from the previous patch, why not introduce
+> this parameter and default there.  And an explanation of the magic
+> value would still be nice.
 
-The following changes since commit cc4a41fe5541a73019a864883297bd5043aa6d98:
+The value has more relation with ioatdma descriptor numbers per channel.
+Max numbers of descriptors per channel is 64k. A queue depth of 128 with
+possible size of scatterlist of 256 entries gives 32k. It just seemed a
+reasonable number if the DMA channels may be shared with other users as
+well. Of course on other platforms, this number will have to be adjusted
+for the platform DMA engine capability.
 
-  Linux 4.13-rc7 (2017-08-27 17:20:40 -0700)
+> 
+>> +/* typically maps to number of DMA channels/devices per socket */
+>> +static int q_per_node = 8;
+>> +module_param(q_per_node, int, 0444);
+>> +MODULE_PARM_DESC(q_per_node, "Hardware queues per node\n");
+> 
+> How can a fixed constant "typically map" to a hardware dependent
+> resource?
 
-are available in the git repository at:
+My concern is because this could be dependent on whose platform the
+drive is running on. ioatdma provides 8 channel per socket. Some other
+DMA engine may be different and needs to be altered.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+> 
+>> +	if (res) {
+> 
+> unlikely?
 
-for you to fetch changes up to 7a14724f54bf9889fcb1a9f1d4aa4e1d2e969d93:
+ok
 
-  libnvdimm: clean up command definitions (2017-08-28 08:33:20 -0700)
+> 
+>> +		enum dmaengine_tx_result dma_err = res->result;
+>> +
+>> +		switch (dma_err) {
+> 
+> do you really need the local variable for a single check of it?
 
-----------------------------------------------------------------
-Dan Williams (1):
-      libnvdimm: clean up command definitions
+ok
 
- include/uapi/linux/ndctl.h | 37 -------------------------------------
- 1 file changed, 37 deletions(-)
+> 
+>> +		case DMA_TRANS_READ_FAILED:
+>> +		case DMA_TRANS_WRITE_FAILED:
+>> +		case DMA_TRANS_ABORTED:
+>> +			dev_dbg(dev, "bio failed\n");
+>> +			rc = -ENXIO;
+>> +			break;
+>> +		case DMA_TRANS_NOERROR:
+>> +		default:
+>> +			break;
+>> +		}
+>> +	}
+>> +
+>> +	if (req->cmd_flags & REQ_FUA)
+>> +		nvdimm_flush(nd_region);
+>> +
+>> +	blk_mq_end_request(cmd->rq, rc);
+> 
+> blk_mq_end_request takes a blk_status_t.  Note that sparse would
+> have caught that, so please run your code through sparse.
 
-commit 7a14724f54bf9889fcb1a9f1d4aa4e1d2e969d93
-Author: Dan Williams <dan.j.williams@intel.com>
-Date:   Mon Aug 28 08:33:20 2017 -0700
+ok
 
-    libnvdimm: clean up command definitions
-    
-    Remove the command payloads that do not have an associated libnvdimm
-    ioctl. I.e. remove the payloads that would only ever be carried in the
-    ND_CMD_CALL envelope. This prevents userspace from growing unnecessary
-    dependencies on this kernel header when userspace already has everything
-    it needs to craft and send these commands.
-    
-    Cc: Jerry Hoemann <jerry.hoemann@hpe.com>
-    Reported-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> 
+>> +	if (cmd->sg_nents > 128) {
+> 
+> WARN_ON_ONCE as this should not happen.
 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 6d3c54264d8e..3f03567631cb 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -145,43 +145,6 @@ struct nd_cmd_clear_error {
- 	__u64 cleared;
- } __packed;
- 
--struct nd_cmd_trans_spa {
--	__u64 spa;
--	__u32 status;
--	__u8  flags;
--	__u8  _reserved[3];
--	__u64 trans_length;
--	__u32 num_nvdimms;
--	struct nd_nvdimm_device {
--		__u32 nfit_device_handle;
--		__u32 _reserved;
--		__u64 dpa;
--	} __packed devices[0];
--
--} __packed;
--
--struct nd_cmd_ars_err_inj {
--	__u64 err_inj_spa_range_base;
--	__u64 err_inj_spa_range_length;
--	__u8  err_inj_options;
--	__u32 status;
--} __packed;
--
--struct nd_cmd_ars_err_inj_clr {
--	__u64 err_inj_clr_spa_range_base;
--	__u64 err_inj_clr_spa_range_length;
--	__u32 status;
--} __packed;
--
--struct nd_cmd_ars_err_inj_stat {
--	__u32 status;
--	__u32 inj_err_rec_count;
--	struct nd_error_stat_query_record {
--		__u64 err_inj_stat_spa_range_base;
--		__u64 err_inj_stat_spa_range_length;
--	} __packed record[0];
--} __packed;
--
- enum {
- 	ND_CMD_IMPLEMENTED = 0,
- 
+ok
+
+> 
+>> +	if (queue_mode == PMEM_Q_MQ) {
+>>  		pmem->tag_set.ops = &pmem_mq_ops;
+>> -		pmem->tag_set.nr_hw_queues = nr_online_nodes;
+>> -		pmem->tag_set.queue_depth = 64;
+>> +		pmem->tag_set.nr_hw_queues = nr_online_nodes * q_per_node;
+>> +		pmem->tag_set.queue_depth = queue_depth;
+> 
+> please use present nodes - we don't remap on cpu soft online/offline.
+
+ok
+
+> 
+>>  		pmem->tag_set.numa_node = dev_to_node(dev);
+>> -		pmem->tag_set.cmd_size = sizeof(struct pmem_cmd);
+>> +		pmem->tag_set.cmd_size = sizeof(struct pmem_cmd) +
+>> +			sizeof(struct scatterlist) * 128;
+> 
+> s/128/queue_depth/
+Good catch. But it shouldn't be queue depth right? It would be whatever
+we define the max_segments to be?
+
+> 
+>>  		pmem->tag_set.flags = BLK_MQ_F_SHOULD_MERGE;
+>>  		pmem->tag_set.driver_data = pmem;
+>>  
+>> @@ -466,7 +649,11 @@ static int pmem_attach_disk(struct device *dev,
+>>  	blk_queue_write_cache(pmem->q, wbc, fua);
+>>  	blk_queue_physical_block_size(pmem->q, PAGE_SIZE);
+>>  	blk_queue_logical_block_size(pmem->q, pmem_sector_size(ndns));
+>> -	blk_queue_max_hw_sectors(pmem->q, UINT_MAX);
+>> +	if (queue_mode == PMEM_Q_MQ) {
+>> +		blk_queue_max_hw_sectors(pmem->q, 0x200000);
+>> +		blk_queue_max_segments(pmem->q, 128);
+> 
+> Where do these magic numbers come from?
+>
+
+The 2M is limitation of ioatdma. I really should plumb dmaengine
+subsystem to provide the xfer_cap.
+
+I'm assuming the max_segments limits the number of scatterlist entries
+to that? I should make that a tuneable...
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
