@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5E17521E2DA78
- for <linux-nvdimm@lists.01.org>; Mon, 21 Aug 2017 14:08:15 -0700 (PDT)
-Subject: [PATCH v5 2/7] dmaengine: Add DMA_MEMCPY_SG transaction op
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 21 Aug 2017 14:10:46 -0700
-Message-ID: <150334984676.55214.3161510156365989014.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
-References: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+Received: from lgeamrelo12.lge.com (LGEAMRELO12.lge.com [156.147.23.52])
+ by ml01.01.org (Postfix) with ESMTP id 4DA7121D490FB
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Aug 2017 22:15:28 -0700 (PDT)
+From: Minchan Kim <minchan@kernel.org>
+Subject: [PATCH v2 3/7] fs: use on-stack-bio if backing device has
+ BDI_CAP_SYNCHRONOUS capability
+Date: Fri, 11 Aug 2017 14:17:23 +0900
+Message-Id: <1502428647-28928-4-git-send-email-minchan@kernel.org>
+In-Reply-To: <1502428647-28928-1-git-send-email-minchan@kernel.org>
+References: <1502428647-28928-1-git-send-email-minchan@kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,102 +16,131 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jens Axboe <axboe@kernel.dk>, jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Minchan Kim <minchan@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, kernel-team <kernel-team@lge.com>, seungho1.park@lge.com, "karam . lee" <karam.lee@lge.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a dmaengine transaction operation that allows copy to/from a
-scatterlist and a flat buffer.
+There is no need to use dynamic bio allocation for BDI_CAP_SYNCHRONOUS
+devices. They can with on-stack bio without concern about waiting
+bio allocation from mempool under heavy memory pressure.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 ---
- Documentation/dmaengine/provider.txt |    3 +++
- drivers/dma/dmaengine.c              |    2 ++
- include/linux/dmaengine.h            |   19 +++++++++++++++++++
- 3 files changed, 24 insertions(+)
 
-diff --git a/Documentation/dmaengine/provider.txt b/Documentation/dmaengine/provider.txt
-index a75f52f..6241e36 100644
---- a/Documentation/dmaengine/provider.txt
-+++ b/Documentation/dmaengine/provider.txt
-@@ -181,6 +181,9 @@ Currently, the types available are:
-     - Used by the client drivers to register a callback that will be
-       called on a regular basis through the DMA controller interrupt
+Hi Mattew,
+
+I didn't use sbvec[nr_pages] as you suggested[1] because I don't think
+it's pointless in do_mpage_readpage which works per-page base as
+I replied to you.
+If I misunderstood something, please correct me.
+
+[1] http://lkml.kernel.org/r/<20170808132904.GC31390@bombadil.infradead.org>
+
+ fs/mpage.c | 47 ++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 40 insertions(+), 7 deletions(-)
+
+diff --git a/fs/mpage.c b/fs/mpage.c
+index 2e4c41ccb5c9..d3b777fdfd5a 100644
+--- a/fs/mpage.c
++++ b/fs/mpage.c
+@@ -162,6 +162,9 @@ do_mpage_readpage(struct bio *bio, struct page *page, unsigned nr_pages,
+ 	int fully_mapped = 1;
+ 	unsigned nblocks;
+ 	unsigned relative_block;
++	/* on-stack bio for synchronous devices */
++	struct bio sbio;
++	struct bio_vec sbvec;
  
-+  * DMA_MEMCPY_SG
-+    - The device supports scatterlist to/from memory.
+ 	if (page_has_buffers(page))
+ 		goto confused;
+@@ -282,10 +285,22 @@ do_mpage_readpage(struct bio *bio, struct page *page, unsigned nr_pages,
+ 								page))
+ 				goto out;
+ 		}
+-		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
 +
-   * DMA_PRIVATE
-     - The devices only supports slave transfers, and as such isn't
-       available for async transfers.
-diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
-index 428b141..4d2c4e1 100644
---- a/drivers/dma/dmaengine.c
-+++ b/drivers/dma/dmaengine.c
-@@ -937,6 +937,8 @@ int dma_async_device_register(struct dma_device *device)
- 		!device->device_prep_dma_memset);
- 	BUG_ON(dma_has_cap(DMA_INTERRUPT, device->cap_mask) &&
- 		!device->device_prep_dma_interrupt);
-+	BUG_ON(dma_has_cap(DMA_MEMCPY_SG, device->cap_mask) &&
-+		!device->device_prep_dma_memcpy_sg);
- 	BUG_ON(dma_has_cap(DMA_CYCLIC, device->cap_mask) &&
- 		!device->device_prep_dma_cyclic);
- 	BUG_ON(dma_has_cap(DMA_INTERLEAVE, device->cap_mask) &&
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index 64fbd38..0c91411 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -67,6 +67,7 @@ enum dma_transaction_type {
- 	DMA_PQ_VAL,
- 	DMA_MEMSET,
- 	DMA_MEMSET_SG,
-+	DMA_MEMCPY_SG,
- 	DMA_INTERRUPT,
- 	DMA_PRIVATE,
- 	DMA_ASYNC_TX,
-@@ -692,6 +693,7 @@ struct dma_filter {
-  * @device_prep_dma_pq_val: prepares a pqzero_sum operation
-  * @device_prep_dma_memset: prepares a memset operation
-  * @device_prep_dma_memset_sg: prepares a memset operation over a scatter list
-+ * @device_prep_dma_memcpy_sg: prepares memcpy between scatterlist and buffer
-  * @device_prep_dma_interrupt: prepares an end of chain interrupt operation
-  * @device_prep_slave_sg: prepares a slave dma operation
-  * @device_prep_dma_cyclic: prepare a cyclic dma operation suitable for audio.
-@@ -768,6 +770,10 @@ struct dma_device {
- 	struct dma_async_tx_descriptor *(*device_prep_dma_memset_sg)(
- 		struct dma_chan *chan, struct scatterlist *sg,
- 		unsigned int nents, int value, unsigned long flags);
-+	struct dma_async_tx_descriptor *(*device_prep_dma_memcpy_sg)(
-+		struct dma_chan *chan,
-+		struct scatterlist *sg, unsigned int sg_nents,
-+		dma_addr_t buf, bool to_sg, unsigned long flags);
- 	struct dma_async_tx_descriptor *(*device_prep_dma_interrupt)(
- 		struct dma_chan *chan, unsigned long flags);
++		if (bdi_cap_synchronous_io(inode_to_bdi(inode))) {
++			bio = &sbio;
++			/* mpage_end_io calls bio_put unconditionally */
++			bio_get(&sbio);
++
++			bio_init(&sbio, &sbvec, 1);
++			sbio.bi_bdev = bdev;
++			sbio.bi_iter.bi_sector = blocks[0] << (blkbits - 9);
++		} else {
++
++			bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
+ 				min_t(int, nr_pages, BIO_MAX_PAGES), gfp);
+-		if (bio == NULL)
+-			goto confused;
++			if (bio == NULL)
++				goto confused;
++		}
+ 	}
  
-@@ -899,6 +905,19 @@ static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_memcpy(
- 						    len, flags);
+ 	length = first_hole << blkbits;
+@@ -302,6 +317,8 @@ do_mpage_readpage(struct bio *bio, struct page *page, unsigned nr_pages,
+ 	else
+ 		*last_block_in_bio = blocks[blocks_per_page - 1];
+ out:
++	if (bio == &sbio)
++		bio = mpage_bio_submit(REQ_OP_READ, 0, bio);
+ 	return bio;
+ 
+ confused:
+@@ -492,6 +509,9 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
+ 	loff_t i_size = i_size_read(inode);
+ 	int ret = 0;
+ 	int op_flags = wbc_to_write_flags(wbc);
++	/* on-stack-bio */
++	struct bio sbio;
++	struct bio_vec sbvec;
+ 
+ 	if (page_has_buffers(page)) {
+ 		struct buffer_head *head = page_buffers(page);
+@@ -610,10 +630,21 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
+ 				goto out;
+ 			}
+ 		}
+-		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
+-				BIO_MAX_PAGES, GFP_NOFS|__GFP_HIGH);
+-		if (bio == NULL)
+-			goto confused;
++
++		if (bdi_cap_synchronous_io(inode_to_bdi(inode))) {
++			bio = &sbio;
++			/* mpage_end_io calls bio_put unconditionally */
++			bio_get(&sbio);
++
++			bio_init(&sbio, &sbvec, 1);
++			sbio.bi_bdev = bdev;
++			sbio.bi_iter.bi_sector = blocks[0] << (blkbits - 9);
++		} else {
++			bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
++					BIO_MAX_PAGES, GFP_NOFS|__GFP_HIGH);
++			if (bio == NULL)
++				goto confused;
++		}
+ 
+ 		wbc_init_bio(wbc, bio);
+ 		bio->bi_write_hint = inode->i_write_hint;
+@@ -662,6 +693,8 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
+ 	 */
+ 	mapping_set_error(mapping, ret);
+ out:
++	if (bio == &sbio)
++		bio = mpage_bio_submit(REQ_OP_WRITE, op_flags, bio);
+ 	mpd->bio = bio;
+ 	return ret;
  }
- 
-+static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_memcpy_sg(
-+		struct dma_chan *chan, struct scatterlist *sg,
-+		unsigned int sg_nents, dma_addr_t buf, bool to_sg,
-+		unsigned long flags)
-+{
-+	if (!chan || !chan->device ||
-+			!chan->device->device_prep_dma_memcpy_sg)
-+		return NULL;
-+
-+	return chan->device->device_prep_dma_memcpy_sg(chan, sg, sg_nents,
-+						       buf, to_sg, flags);
-+}
-+
- /**
-  * dmaengine_terminate_all() - Terminate all active DMA transfers
-  * @chan: The channel for which to terminate the transfers
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
