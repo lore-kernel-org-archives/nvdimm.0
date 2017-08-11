@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4E29521D2E623
- for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 16:52:52 -0700 (PDT)
-Subject: [PATCH v6 5/5] fs, fcntl: add F_MAP_DIRECT
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Aug 2017 16:49:02 -0700
-Message-ID: <150353214202.5039.15970856232454713994.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150353211413.5039.5228914877418362329.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150353211413.5039.5228914877418362329.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from lgeamrelo11.lge.com (LGEAMRELO11.lge.com [156.147.23.51])
+ by ml01.01.org (Postfix) with ESMTP id 54B3B21D49104
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Aug 2017 22:15:27 -0700 (PDT)
+From: Minchan Kim <minchan@kernel.org>
+Subject: [PATCH v2 2/7] bdi: introduce BDI_CAP_SYNCHRONOUS_IO
+Date: Fri, 11 Aug 2017 14:17:22 +0900
+Message-Id: <1502428647-28928-3-git-send-email-minchan@kernel.org>
+In-Reply-To: <1502428647-28928-1-git-send-email-minchan@kernel.org>
+References: <1502428647-28928-1-git-send-email-minchan@kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,116 +15,139 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jens Axboe <axboe@kernel.dk>, jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Minchan Kim <minchan@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, kernel-team <kernel-team@lge.com>, seungho1.park@lge.com, "karam . lee" <karam.lee@lge.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A common pattern for granting a privilege to an unprivileged process is
-to pass it an established file descriptor over a unix domain socket.
-This enables fine grained access to the MAP_DIRECT mechanism instead of
-requiring the mapping process have CAP_LINUX_IMMUTABLE.
+By discussion[1], we will replace rw_page devices with on-stack-bio.
+For such super-fast devices to be detected, this patch introduces
+BDI_CAP_SYNC which means synchronous IO would be more efficient for
+asnychronous IO and uses the flags to brd, zram, btt and pmem.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+[1] lkml.kernel.org/r/<20170728165604.10455-1-ross.zwisler@linux.intel.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 ---
- fs/fcntl.c                 |   15 +++++++++++++++
- include/linux/fs.h         |    5 +++--
- include/uapi/linux/fcntl.h |    5 +++++
- mm/mmap.c                  |    3 ++-
- 4 files changed, 25 insertions(+), 3 deletions(-)
+ drivers/block/brd.c           | 2 ++
+ drivers/block/zram/zram_drv.c | 2 +-
+ drivers/nvdimm/btt.c          | 3 +++
+ drivers/nvdimm/pmem.c         | 2 ++
+ include/linux/backing-dev.h   | 8 ++++++++
+ 5 files changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/fs/fcntl.c b/fs/fcntl.c
-index 3b01b646e528..f2375c406e6f 100644
---- a/fs/fcntl.c
-+++ b/fs/fcntl.c
-@@ -318,6 +318,18 @@ static long fcntl_rw_hint(struct file *file, unsigned int cmd,
- 	}
- }
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 293250582f00..13e03b46e3e7 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -20,6 +20,7 @@
+ #include <linux/radix-tree.h>
+ #include <linux/fs.h>
+ #include <linux/slab.h>
++#include <linux/backing-dev.h>
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ #include <linux/pfn_t.h>
+ #include <linux/dax.h>
+@@ -436,6 +437,7 @@ static struct brd_device *brd_alloc(int i)
+ 	disk->flags		= GENHD_FL_EXT_DEVT;
+ 	sprintf(disk->disk_name, "ram%d", i);
+ 	set_capacity(disk, rd_size * 2);
++	disk->queue->backing_dev_info->capabilities |= BDI_CAP_SYNCHRONOUS_IO;
  
-+static int fcntl_map_direct(struct file *filp)
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ 	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
+diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
+index bbbc2f230b8e..a60441bd6f0c 100644
+--- a/drivers/block/zram/zram_drv.c
++++ b/drivers/block/zram/zram_drv.c
+@@ -1577,7 +1577,7 @@ static int zram_add(void)
+ 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
+ 
+ 	zram->disk->queue->backing_dev_info->capabilities |=
+-					BDI_CAP_STABLE_WRITES;
++			(BDI_CAP_STABLE_WRITES | BDI_CAP_SYNCHRONOUS_IO);
+ 	add_disk(zram->disk);
+ 
+ 	ret = sysfs_create_group(&disk_to_dev(zram->disk)->kobj,
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index e10d3300b64c..f9437d36fc37 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -23,6 +23,7 @@
+ #include <linux/ndctl.h>
+ #include <linux/fs.h>
+ #include <linux/nd.h>
++#include <linux/backing-dev.h>
+ #include "btt.h"
+ #include "nd.h"
+ 
+@@ -1273,6 +1274,8 @@ static int btt_blk_init(struct btt *btt)
+ 	btt->btt_disk->private_data = btt;
+ 	btt->btt_disk->queue = btt->btt_queue;
+ 	btt->btt_disk->flags = GENHD_FL_EXT_DEVT;
++	btt->btt_disk->queue->backing_dev_info->capabilities |=
++			BDI_CAP_SYNCHRONOUS_IO;
+ 
+ 	blk_queue_make_request(btt->btt_queue, btt_make_request);
+ 	blk_queue_logical_block_size(btt->btt_queue, btt->sector_size);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index b5f04559a497..37eb836f9657 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -31,6 +31,7 @@
+ #include <linux/uio.h>
+ #include <linux/dax.h>
+ #include <linux/nd.h>
++#include <linux/backing-dev.h>
+ #include "pmem.h"
+ #include "pfn.h"
+ #include "nd.h"
+@@ -379,6 +380,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	disk->fops		= &pmem_fops;
+ 	disk->queue		= q;
+ 	disk->flags		= GENHD_FL_EXT_DEVT;
++	disk->queue->backing_dev_info->capabilities |= BDI_CAP_SYNCHRONOUS_IO;
+ 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
+ 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
+ 			/ 512);
+diff --git a/include/linux/backing-dev.h b/include/linux/backing-dev.h
+index 854e1bdd0b2a..cd41617c6594 100644
+--- a/include/linux/backing-dev.h
++++ b/include/linux/backing-dev.h
+@@ -123,6 +123,8 @@ int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
+  * BDI_CAP_STRICTLIMIT:    Keep number of dirty pages below bdi threshold.
+  *
+  * BDI_CAP_CGROUP_WRITEBACK: Supports cgroup-aware writeback.
++ * BDI_CAP_SYNCHRONOUS_IO: Device is so fast that asynchronous IO would be
++ *			   inefficient.
+  */
+ #define BDI_CAP_NO_ACCT_DIRTY	0x00000001
+ #define BDI_CAP_NO_WRITEBACK	0x00000002
+@@ -130,6 +132,7 @@ int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
+ #define BDI_CAP_STABLE_WRITES	0x00000008
+ #define BDI_CAP_STRICTLIMIT	0x00000010
+ #define BDI_CAP_CGROUP_WRITEBACK 0x00000020
++#define BDI_CAP_SYNCHRONOUS_IO	0x00000040
+ 
+ #define BDI_CAP_NO_ACCT_AND_WRITEBACK \
+ 	(BDI_CAP_NO_WRITEBACK | BDI_CAP_NO_ACCT_DIRTY | BDI_CAP_NO_ACCT_WB)
+@@ -177,6 +180,11 @@ long wait_iff_congested(struct pglist_data *pgdat, int sync, long timeout);
+ int pdflush_proc_obsolete(struct ctl_table *table, int write,
+ 		void __user *buffer, size_t *lenp, loff_t *ppos);
+ 
++static inline bool bdi_cap_synchronous_io(struct backing_dev_info *bdi)
 +{
-+	if (!capable(CAP_LINUX_IMMUTABLE))
-+		return -EACCES;
-+
-+	spin_lock(&filp->f_lock);
-+	filp->f_map_direct = 1;
-+	spin_unlock(&filp->f_lock);
-+
-+	return 0;
++	return bdi->capabilities & BDI_CAP_SYNCHRONOUS_IO;
 +}
 +
- static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
- 		struct file *filp)
+ static inline bool bdi_cap_stable_pages_required(struct backing_dev_info *bdi)
  {
-@@ -425,6 +437,9 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
- 	case F_SET_FILE_RW_HINT:
- 		err = fcntl_rw_hint(filp, cmd, arg);
- 		break;
-+	case F_MAP_DIRECT:
-+		err = fcntl_map_direct(filp);
-+		break;
- 	default:
- 		break;
- 	}
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index db42da9f98c4..ec2e1d6bf22c 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -855,11 +855,12 @@ struct file {
- 	const struct file_operations	*f_op;
- 
- 	/*
--	 * Protects f_ep_links, f_flags.
-+	 * Protects f_ep_links, f_flags, f_write_hint, and f_map_direct.
- 	 * Must not be taken from IRQ context.
- 	 */
- 	spinlock_t		f_lock;
--	enum rw_hint		f_write_hint;
-+	enum rw_hint		f_write_hint:3;
-+	unsigned int		f_map_direct:1;
- 	atomic_long_t		f_count;
- 	unsigned int 		f_flags;
- 	fmode_t			f_mode;
-diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
-index ec69d55bcec7..2a57a503174e 100644
---- a/include/uapi/linux/fcntl.h
-+++ b/include/uapi/linux/fcntl.h
-@@ -53,6 +53,11 @@
- #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
- 
- /*
-+ * Enable MAP_DIRECT on the file without CAP_LINUX_IMMUTABLE
-+ */
-+#define F_MAP_DIRECT		(F_LINUX_SPECIFIC_BASE + 15)
-+
-+/*
-  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
-  * used to clear any hints previously set.
-  */
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 32417b2a668c..cf5e0cb7d0e3 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1399,7 +1399,8 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			if (flags & MAP_DIRECT) {
- 				if (!(prot & PROT_WRITE))
- 					return -EACCES;
--				if (!capable(CAP_LINUX_IMMUTABLE))
-+				if (!file->f_map_direct
-+						&& !capable(CAP_LINUX_IMMUTABLE))
- 					return -EACCES;
- 			}
- 
+ 	return bdi->capabilities & BDI_CAP_STABLE_WRITES;
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
