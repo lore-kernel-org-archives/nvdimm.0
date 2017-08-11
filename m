@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EB72E209589C7
- for <linux-nvdimm@lists.01.org>; Wed, 16 Aug 2017 00:48:21 -0700 (PDT)
-Subject: [PATCH v5 3/5] mm: introduce mmap3 for safely defining new mmap flags
+ by ml01.01.org (Postfix) with ESMTPS id B524721D49109
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Aug 2017 23:43:26 -0700 (PDT)
+Subject: [PATCH v3 1/6] fs, xfs: introduce S_IOMAP_IMMUTABLE
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 16 Aug 2017 00:44:22 -0700
-Message-ID: <150286946261.8837.1454297295346610351.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150286944610.8837.9513410258028246174.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150286944610.8837.9513410258028246174.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 10 Aug 2017 23:39:22 -0700
+Message-ID: <150243356280.8777.2936737079805331767.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150243355681.8777.14902834768886160223.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150243355681.8777.14902834768886160223.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,213 +22,181 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, luto@kernel.org, linux-fsdevel@vger.kernel.org
+To: darrick.wong@oracle.com
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The mmap(2) syscall suffers from the ABI anti-pattern of not validating
-unknown flags. However, proposals like MAP_SYNC and MAP_DIRECT need a
-mechanism to define new behavior that is known to fail on older kernels
-without the support. Define a new mmap3 syscall that checks for
-unsupported flags at syscall entry and add a 'mmap_supported_mask' to
-'struct file_operations' so generic code can validate the ->mmap()
-handler knows about the specified flags. This also arranges for the
-flags to be passed to the handler so it can do further local validation
-if the requested behavior can be fulfilled.
+An inode with this flag set indicates that the file's block map cannot
+be changed from the currently allocated set.
+
+The implementation of toggling the flag and sealing the state of the
+extent map is saved for a later patch. The functionality provided by
+S_IOMAP_IMMUTABLE, once toggle support is added, will be a superset of
+that provided by S_SWAPFILE, and it is targeted to replace it.
+
+For now, only xfs and the core vfs are updated to consider the new flag.
+
+The additional checks that are added for this flag, beyond what we are
+already doing for swapfiles, are:
+* fail writes that try to extend the file size
+* fail attempts to directly change the allocation map via fallocate or
+  xfs ioctls. This can be done centrally by blocking
+  xfs_alloc_file_space and xfs_free_file_space when the flag is set.
 
 Cc: Jan Kara <jack@suse.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Andy Lutomirski <luto@kernel.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Suggested-by: Dave Chinner <david@fromorbit.com>
+Suggested-by: "Darrick J. Wong" <darrick.wong@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/entry/syscalls/syscall_32.tbl |    1 +
- arch/x86/entry/syscalls/syscall_64.tbl |    1 +
- include/linux/fs.h                     |    3 ++-
- include/linux/mm.h                     |    2 +-
- include/linux/mman.h                   |   34 ++++++++++++++++++++++++++++++++
- include/linux/syscalls.h               |    3 +++
- mm/mmap.c                              |   32 +++++++++++++++++++++++++++---
- 7 files changed, 71 insertions(+), 5 deletions(-)
+ fs/attr.c                |   10 ++++++++++
+ fs/open.c                |    6 ++++++
+ fs/read_write.c          |    3 +++
+ fs/xfs/libxfs/xfs_bmap.c |    5 +++++
+ fs/xfs/xfs_bmap_util.c   |    3 +++
+ fs/xfs/xfs_ioctl.c       |    6 ++++++
+ include/linux/fs.h       |    2 ++
+ mm/filemap.c             |    5 +++++
+ 8 files changed, 40 insertions(+)
 
-diff --git a/arch/x86/entry/syscalls/syscall_32.tbl b/arch/x86/entry/syscalls/syscall_32.tbl
-index 448ac2161112..0618b5b38b45 100644
---- a/arch/x86/entry/syscalls/syscall_32.tbl
-+++ b/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -391,3 +391,4 @@
- 382	i386	pkey_free		sys_pkey_free
- 383	i386	statx			sys_statx
- 384	i386	arch_prctl		sys_arch_prctl			compat_sys_arch_prctl
-+385	i386	mmap3			sys_mmap_pgoff_strict
-diff --git a/arch/x86/entry/syscalls/syscall_64.tbl b/arch/x86/entry/syscalls/syscall_64.tbl
-index 5aef183e2f85..e204c736d7e9 100644
---- a/arch/x86/entry/syscalls/syscall_64.tbl
-+++ b/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -339,6 +339,7 @@
- 330	common	pkey_alloc		sys_pkey_alloc
- 331	common	pkey_free		sys_pkey_free
- 332	common	statx			sys_statx
-+333	common  mmap3			sys_mmap_pgoff_strict
- 
- #
- # x32-specific system call numbers start at 512 to avoid cache impact
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 405976022752..db42da9f98c4 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1674,6 +1674,7 @@ struct file_operations {
- 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
- 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *, unsigned long);
-+	unsigned long mmap_supported_mask;
- 	int (*open) (struct inode *, struct file *);
- 	int (*flush) (struct file *, fl_owner_t id);
- 	int (*release) (struct inode *, struct file *);
-@@ -1746,7 +1747,7 @@ static inline ssize_t call_write_iter(struct file *file, struct kiocb *kio,
- static inline int call_mmap(struct file *file, struct vm_area_struct *vma,
- 			    unsigned long flags)
+diff --git a/fs/attr.c b/fs/attr.c
+index 135304146120..8573e364bd06 100644
+--- a/fs/attr.c
++++ b/fs/attr.c
+@@ -112,6 +112,16 @@ EXPORT_SYMBOL(setattr_prepare);
+  */
+ int inode_newsize_ok(const struct inode *inode, loff_t offset)
  {
--	return file->f_op->mmap(file, vma, 0);
-+	return file->f_op->mmap(file, vma, flags);
- }
- 
- ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 46b9ac5e8569..49eef48da4b7 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2090,7 +2090,7 @@ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned lo
- 
- extern unsigned long mmap_region(struct file *file, unsigned long addr,
- 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--	struct list_head *uf);
-+	struct list_head *uf, unsigned long flags);
- extern unsigned long do_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot, unsigned long flags,
- 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
-diff --git a/include/linux/mman.h b/include/linux/mman.h
-index c8367041fafd..0e1de42c836f 100644
---- a/include/linux/mman.h
-+++ b/include/linux/mman.h
-@@ -7,6 +7,40 @@
- #include <linux/atomic.h>
- #include <uapi/linux/mman.h>
- 
-+#ifndef MAP_32BIT
-+#define MAP_32BIT 0
-+#endif
-+#ifndef MAP_HUGE_2MB
-+#define MAP_HUGE_2MB 0
-+#endif
-+#ifndef MAP_HUGE_1GB
-+#define MAP_HUGE_1GB 0
-+#endif
-+
-+/*
-+ * The historical set of flags that all mmap implementations implicitly
-+ * support when file_operations.mmap_supported_mask is zero.
-+ */
-+#define LEGACY_MAP_SUPPORTED_MASK (MAP_SHARED \
-+		| MAP_PRIVATE \
-+		| MAP_FIXED \
-+		| MAP_ANONYMOUS \
-+		| MAP_UNINITIALIZED \
-+		| MAP_GROWSDOWN \
-+		| MAP_DENYWRITE \
-+		| MAP_EXECUTABLE \
-+		| MAP_LOCKED \
-+		| MAP_NORESERVE \
-+		| MAP_POPULATE \
-+		| MAP_NONBLOCK \
-+		| MAP_STACK \
-+		| MAP_HUGETLB \
-+		| MAP_32BIT \
-+		| MAP_HUGE_2MB \
-+		| MAP_HUGE_1GB)
-+
-+#define	MAP_SUPPORTED_MASK (LEGACY_MAP_SUPPORTED_MASK)
-+
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern unsigned long sysctl_overcommit_kbytes;
-diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
-index 3cb15ea48aee..c0e0c99cf4ad 100644
---- a/include/linux/syscalls.h
-+++ b/include/linux/syscalls.h
-@@ -858,6 +858,9 @@ asmlinkage long sys_perf_event_open(
- asmlinkage long sys_mmap_pgoff(unsigned long addr, unsigned long len,
- 			unsigned long prot, unsigned long flags,
- 			unsigned long fd, unsigned long pgoff);
-+asmlinkage long sys_mmap_pgoff_strict(unsigned long addr, unsigned long len,
-+			unsigned long prot, unsigned long flags,
-+			unsigned long fd, unsigned long pgoff);
- asmlinkage long sys_old_mmap(struct mmap_arg_struct __user *arg);
- asmlinkage long sys_name_to_handle_at(int dfd, const char __user *name,
- 				      struct file_handle __user *handle,
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 744faae86781..386706831d67 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1464,7 +1464,7 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			vm_flags |= VM_NORESERVE;
- 	}
- 
--	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf);
-+	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags);
- 	if (!IS_ERR_VALUE(addr) &&
- 	    ((vm_flags & VM_LOCKED) ||
- 	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
-@@ -1521,6 +1521,32 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
- 	return retval;
- }
- 
-+SYSCALL_DEFINE6(mmap_pgoff_strict, unsigned long, addr, unsigned long, len,
-+		unsigned long, prot, unsigned long, flags,
-+		unsigned long, fd, unsigned long, pgoff)
-+{
-+	if (flags & ~(MAP_SUPPORTED_MASK))
-+		return -EOPNOTSUPP;
-+
-+	if (!(flags & MAP_ANONYMOUS)) {
-+		unsigned long f_supported;
-+		struct file *file;
-+
-+		audit_mmap_fd(fd, flags);
-+		file = fget(fd);
-+		if (!file)
-+			return -EBADF;
-+		f_supported = file->f_op->mmap_supported_mask;
-+		fput(file);
-+		if (!f_supported)
-+			f_supported = LEGACY_MAP_SUPPORTED_MASK;
-+		if (flags & ~f_supported)
-+			return -EOPNOTSUPP;
++	if (IS_IOMAP_IMMUTABLE(inode)) {
++		/*
++		 * Any size change is disallowed. Size increases may
++		 * dirty metadata that an application is not prepared to
++		 * sync, and a size decrease may expose free blocks to
++		 * in-flight DMA.
++		 */
++		return -ETXTBSY;
 +	}
 +
-+	return sys_mmap_pgoff(addr, len, prot, flags, fd, pgoff);
-+}
+ 	if (inode->i_size < offset) {
+ 		unsigned long limit;
+ 
+diff --git a/fs/open.c b/fs/open.c
+index 35bb784763a4..7395860d7164 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -292,6 +292,12 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
+ 		return -ETXTBSY;
+ 
+ 	/*
++	 * We cannot allow any allocation changes on an iomap immutable file
++	 */
++	if (IS_IOMAP_IMMUTABLE(inode))
++		return -ETXTBSY;
 +
- #ifdef __ARCH_WANT_SYS_OLD_MMAP
- struct mmap_arg_struct {
- 	unsigned long addr;
-@@ -1601,7 +1627,7 @@ static inline int accountable_mapping(struct file *file, vm_flags_t vm_flags)
++	/*
+ 	 * Revalidate the write permissions, in case security policy has
+ 	 * changed since the files were opened.
+ 	 */
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 0cc7033aa413..dc673be7c7cb 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1706,6 +1706,9 @@ int vfs_clone_file_prep_inodes(struct inode *inode_in, loff_t pos_in,
+ 	if (IS_SWAPFILE(inode_in) || IS_SWAPFILE(inode_out))
+ 		return -ETXTBSY;
  
- unsigned long mmap_region(struct file *file, unsigned long addr,
- 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--		struct list_head *uf)
-+		struct list_head *uf, unsigned long flags)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev;
-@@ -1686,7 +1712,7 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
- 		 * new file must not have been exposed to user-space, yet.
- 		 */
- 		vma->vm_file = get_file(file);
--		error = call_mmap(file, vma, 0);
-+		error = call_mmap(file, vma, flags);
- 		if (error)
- 			goto unmap_and_free_vma;
++	if (IS_IOMAP_IMMUTABLE(inode_in) || IS_IOMAP_IMMUTABLE(inode_out))
++		return -ETXTBSY;
++
+ 	/* Don't reflink dirs, pipes, sockets... */
+ 	if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
+ 		return -EISDIR;
+diff --git a/fs/xfs/libxfs/xfs_bmap.c b/fs/xfs/libxfs/xfs_bmap.c
+index a2d64666cdd4..0535a7f34d2a 100644
+--- a/fs/xfs/libxfs/xfs_bmap.c
++++ b/fs/xfs/libxfs/xfs_bmap.c
+@@ -4481,6 +4481,11 @@ xfs_bmapi_write(
+ 	if (XFS_FORCED_SHUTDOWN(mp))
+ 		return -EIO;
  
++	/* fail any attempts to mutate data extents */
++	if (IS_IOMAP_IMMUTABLE(VFS_I(ip))
++			&& !(flags & (XFS_BMAPI_METADATA | XFS_BMAPI_ATTRFORK)))
++		return -ETXTBSY;
++
+ 	ifp = XFS_IFORK_PTR(ip, whichfork);
+ 
+ 	XFS_STATS_INC(mp, xs_blk_mapw);
+diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+index 93e955262d07..8427b0003c79 100644
+--- a/fs/xfs/xfs_bmap_util.c
++++ b/fs/xfs/xfs_bmap_util.c
+@@ -1294,6 +1294,9 @@ xfs_free_file_space(
+ 
+ 	trace_xfs_free_file_space(ip);
+ 
++	if (IS_IOMAP_IMMUTABLE(VFS_I(ip)))
++		return -ETXTBSY;
++
+ 	error = xfs_qm_dqattach(ip, 0);
+ 	if (error)
+ 		return error;
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index e75c40a47b7d..2e64488bc4de 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -1755,6 +1755,12 @@ xfs_ioc_swapext(
+ 		goto out_put_tmp_file;
+ 	}
+ 
++	if (IS_IOMAP_IMMUTABLE(file_inode(f.file)) ||
++	    IS_IOMAP_IMMUTABLE(file_inode(tmp.file))) {
++		error = -EINVAL;
++		goto out_put_tmp_file;
++	}
++
+ 	/*
+ 	 * We need to ensure that the fds passed in point to XFS inodes
+ 	 * before we cast and access them as XFS structures as we have no
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 6e1fd5d21248..0a254b768855 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1829,6 +1829,7 @@ struct super_operations {
+ #else
+ #define S_DAX		0	/* Make all the DAX code disappear */
+ #endif
++#define S_IOMAP_IMMUTABLE 16384 /* logical-to-physical extent map is fixed */
+ 
+ /*
+  * Note that nosuid etc flags are inode-specific: setting some file-system
+@@ -1867,6 +1868,7 @@ struct super_operations {
+ #define IS_AUTOMOUNT(inode)	((inode)->i_flags & S_AUTOMOUNT)
+ #define IS_NOSEC(inode)		((inode)->i_flags & S_NOSEC)
+ #define IS_DAX(inode)		((inode)->i_flags & S_DAX)
++#define IS_IOMAP_IMMUTABLE(inode) ((inode)->i_flags & S_IOMAP_IMMUTABLE)
+ 
+ #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
+ 				 (inode)->i_rdev == WHITEOUT_DEV)
+diff --git a/mm/filemap.c b/mm/filemap.c
+index a49702445ce0..a4105a4c1d69 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -2806,6 +2806,11 @@ inline ssize_t generic_write_checks(struct kiocb *iocb, struct iov_iter *from)
+ 	if (unlikely(pos >= inode->i_sb->s_maxbytes))
+ 		return -EFBIG;
+ 
++	/* Are we about to mutate the block map on an immutable file? */
++	if (IS_IOMAP_IMMUTABLE(inode)
++			&& (pos + iov_iter_count(from) > i_size_read(inode)))
++		return -ETXTBSY;
++
+ 	iov_iter_truncate(from, inode->i_sb->s_maxbytes - pos);
+ 	return iov_iter_count(from);
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
