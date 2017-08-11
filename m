@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F00482095B9ED
- for <linux-nvdimm@lists.01.org>; Thu, 17 Aug 2017 09:06:02 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 09/13] dax: Allow dax_iomap_fault() to return pfn
-Date: Thu, 17 Aug 2017 18:08:11 +0200
-Message-Id: <20170817160815.30466-10-jack@suse.cz>
-In-Reply-To: <20170817160815.30466-1-jack@suse.cz>
-References: <20170817160815.30466-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id A66ED21D490E4
+ for <linux-nvdimm@lists.01.org>; Thu, 10 Aug 2017 23:43:21 -0700 (PDT)
+Subject: [PATCH v3 0/6] fs, xfs: block map immutable files
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 10 Aug 2017 23:39:17 -0700
+Message-ID: <150243355681.8777.14902834768886160223.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,166 +16,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Boaz Harrosh <boazh@netapp.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-ext4@vger.kernel.org
+To: darrick.wong@oracle.com
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Trond Myklebust <trond.myklebust@primarydata.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Anna Schumaker <anna.schumaker@netapp.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-For synchronous page fault dax_iomap_fault() will need to return PFN
-which will then need to inserted into page tables after fsync()
-completes. Add necessary parameter to dax_iomap_fault().
+Changes since v2 [1]:
+* Rather than have an IS_IOMAP_IMMUTABLE() check in
+  xfs_alloc_file_space(), place one centrally in xfs_bmapi_write() to
+  catch all attempts to write the block allocation map. (Dave)
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+* Make sealing an already sealed file, or unsealing an already unsealed
+  file return success (Darrick)
+
+* Set S_IOMAP_IMMUTABLE along with the transaction that sets
+  XFS_DIFLAG2_IOMAP_IMMUTABLE (Darrick)
+
+* Round the range of the allocation and extent conversion performed by
+  FALLOC_FL_SEAL_BLOCK_MAP up to the filesystem block size.
+
+* Add a proof-of-concept patch for the use of immutable files with swap.
+
+[1]: https://lkml.org/lkml/2017/8/3/996
+
 ---
- fs/dax.c            | 13 +++++++------
- fs/ext2/file.c      |  2 +-
- fs/ext4/file.c      |  2 +-
- fs/xfs/xfs_file.c   |  8 ++++----
- include/linux/dax.h |  2 +-
- 5 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 85ea49bbbdbf..bc040e654cc9 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1069,7 +1069,7 @@ static int dax_fault_return(int error)
- }
- 
- static int dax_iomap_pte_fault(struct vm_fault *vmf,
--			       const struct iomap_ops *ops)
-+			       const struct iomap_ops *ops, pfn_t *pfnp)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct address_space *mapping = vma->vm_file->f_mapping;
-@@ -1270,7 +1270,7 @@ static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
- }
- 
- static int dax_iomap_pmd_fault(struct vm_fault *vmf,
--			       const struct iomap_ops *ops)
-+			       const struct iomap_ops *ops, pfn_t *pfnp)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct address_space *mapping = vma->vm_file->f_mapping;
-@@ -1405,7 +1405,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- }
- #else
- static int dax_iomap_pmd_fault(struct vm_fault *vmf,
--			       const struct iomap_ops *ops)
-+			       const struct iomap_ops *ops, pfn_t *pfnp)
- {
- 	return VM_FAULT_FALLBACK;
- }
-@@ -1416,6 +1416,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
-  * @vmf: The description of the fault
-  * @pe_size: Size of the page to fault in
-  * @ops: Iomap ops passed from the file system
-+ * @pfnp: PFN to insert for synchronous faults if fsync is required
-  *
-  * When a page fault occurs, filesystems may call this helper in
-  * their fault handler for DAX files. dax_iomap_fault() assumes the caller
-@@ -1423,13 +1424,13 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
-  * successfully.
-  */
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
--		    const struct iomap_ops *ops)
-+		    const struct iomap_ops *ops, pfn_t *pfnp)
- {
- 	switch (pe_size) {
- 	case PE_SIZE_PTE:
--		return dax_iomap_pte_fault(vmf, ops);
-+		return dax_iomap_pte_fault(vmf, ops, pfnp);
- 	case PE_SIZE_PMD:
--		return dax_iomap_pmd_fault(vmf, ops);
-+		return dax_iomap_pmd_fault(vmf, ops, pfnp);
- 	default:
- 		return VM_FAULT_FALLBACK;
- 	}
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index ff3a3636a5ca..689f17b5f444 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -99,7 +99,7 @@ static int ext2_dax_fault(struct vm_fault *vmf)
- 	}
- 	down_read(&ei->dax_sem);
- 
--	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &ext2_iomap_ops);
-+	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &ext2_iomap_ops, NULL);
- 
- 	up_read(&ei->dax_sem);
- 	if (vmf->flags & FAULT_FLAG_WRITE)
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 9dda70edba74..f84bb29e941e 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -291,7 +291,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 		down_read(&EXT4_I(inode)->i_mmap_sem);
- 	}
- 	if (!IS_ERR(handle))
--		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
-+		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops, NULL);
- 	else
- 		result = VM_FAULT_SIGBUS;
- 	if (write) {
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 62db8ffa83b9..c17ca982272c 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1032,7 +1032,7 @@ xfs_filemap_page_mkwrite(
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
- 	if (IS_DAX(inode)) {
--		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
-+		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops, NULL);
- 	} else {
- 		ret = iomap_page_mkwrite(vmf, &xfs_iomap_ops);
- 		ret = block_page_mkwrite_return(ret);
-@@ -1059,7 +1059,7 @@ xfs_filemap_fault(
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 	if (IS_DAX(inode))
--		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
-+		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops, NULL);
- 	else
- 		ret = filemap_fault(vmf);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-@@ -1094,7 +1094,7 @@ xfs_filemap_huge_fault(
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--	ret = dax_iomap_fault(vmf, pe_size, &xfs_iomap_ops);
-+	ret = dax_iomap_fault(vmf, pe_size, &xfs_iomap_ops, NULL);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
- 	if (vmf->flags & FAULT_FLAG_WRITE)
-@@ -1130,7 +1130,7 @@ xfs_filemap_pfn_mkwrite(
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
- 	else if (IS_DAX(inode))
--		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
-+		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops, NULL);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index d0e32729ad1e..8f493d9879f7 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -91,7 +91,7 @@ void dax_write_cache(struct dax_device *dax_dev, bool wc);
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		const struct iomap_ops *ops);
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
--		    const struct iomap_ops *ops);
-+		    const struct iomap_ops *ops, pfn_t *pfnp);
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
--- 
-2.12.3
+The ability to make the physical block-allocation map of a file
+immutable is a powerful mechanism that allows userspace to have
+predictable dax-fault latencies, flush dax mappings to persistent memory
+without a syscall, and otherwise enable access to storage directly
+without ongoing mediation from the filesystem.
 
+This last aspect of direct storage addressability has been called a
+"horrible abuse" [2], but the reality is quite the reverse. Enabling
+files to be block-map immutable allows applications that would otherwise
+need to rely on dangerous raw device access to instead use a filesystem.
+Security, naming, re-provisioning capacity between usages are all better
+supported with safe semantics in a filesystem compared to a device file.
+
+It is time to "give up the idea that only the filesystem can access the
+storage underlying the filesystem" [3] to enable a better / safer
+alternative to using a raw device for userpace block servers, dax
+hypervisors, and peer-to-peer transfers to name a few use cases.
+
+[2]: https://lkml.org/lkml/2017/8/5/56
+[3]: https://lkml.org/lkml/2017/8/6/299
+
+---
+
+Dan Williams (6):
+      fs, xfs: introduce S_IOMAP_IMMUTABLE
+      fs, xfs: introduce FALLOC_FL_SEAL_BLOCK_MAP
+      fs, xfs: introduce FALLOC_FL_UNSEAL_BLOCK_MAP
+      xfs: introduce XFS_DIFLAG2_IOMAP_IMMUTABLE
+      xfs: toggle XFS_DIFLAG2_IOMAP_IMMUTABLE in response to fallocate
+      mm, xfs: protect swapfile contents with immutable + unwritten extents
+
+
+ fs/attr.c                   |   10 +++
+ fs/nfs/file.c               |    7 ++
+ fs/open.c                   |   24 +++++++
+ fs/read_write.c             |    3 +
+ fs/xfs/libxfs/xfs_bmap.c    |    6 ++
+ fs/xfs/libxfs/xfs_bmap.h    |   12 +++-
+ fs/xfs/libxfs/xfs_format.h  |    5 +-
+ fs/xfs/xfs_aops.c           |   54 ++++++++++++++++
+ fs/xfs/xfs_bmap_util.c      |  142 +++++++++++++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_bmap_util.h      |    5 ++
+ fs/xfs/xfs_file.c           |   16 ++++-
+ fs/xfs/xfs_inode.c          |    2 +
+ fs/xfs/xfs_ioctl.c          |    7 ++
+ fs/xfs/xfs_iops.c           |    8 ++
+ include/linux/falloc.h      |    4 +
+ include/linux/fs.h          |    2 +
+ include/uapi/linux/falloc.h |   18 +++++
+ include/uapi/linux/fs.h     |    1 
+ mm/filemap.c                |    5 ++
+ mm/page_io.c                |    1 
+ mm/swapfile.c               |   20 ++----
+ 21 files changed, 328 insertions(+), 24 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
