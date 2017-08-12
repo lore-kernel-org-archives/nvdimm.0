@@ -1,21 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw0-x22c.google.com (mail-yw0-x22c.google.com
+ [IPv6:2607:f8b0:4002:c05::22c])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D60AC21D18220
- for <linux-nvdimm@lists.01.org>; Mon, 14 Aug 2017 12:44:56 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v5 6/7] libnvdimm, btt: refactor initial_offset
- calculations
-Date: Mon, 14 Aug 2017 19:47:03 +0000
-Message-ID: <1502739913.4405.17.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 632952095DFE9
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Aug 2017 18:37:25 -0700 (PDT)
+Received: by mail-yw0-x22c.google.com with SMTP id l82so31300768ywc.2
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Aug 2017 18:39:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170809000746.10585-7-vishal.l.verma@intel.com>
 References: <20170809000746.10585-1-vishal.l.verma@intel.com>
  <20170809000746.10585-7-vishal.l.verma@intel.com>
- <CAPcyv4is9O=HCrHPJXoOOW2p2LyUE1n3WCi-5X0AKfU-pNWNPg@mail.gmail.com>
-In-Reply-To: <CAPcyv4is9O=HCrHPJXoOOW2p2LyUE1n3WCi-5X0AKfU-pNWNPg@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <3D81023457E6AB4092EF2D6940C6FA00@intel.com>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 11 Aug 2017 18:39:45 -0700
+Message-ID: <CAPcyv4is9O=HCrHPJXoOOW2p2LyUE1n3WCi-5X0AKfU-pNWNPg@mail.gmail.com>
+Subject: Re: [PATCH v5 6/7] libnvdimm,
+ btt: refactor initial_offset calculations
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,108 +23,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J  <rafael.j.wysocki@intel.com>, linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE3LTA4LTExIGF0IDE4OjM5IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFR1ZSwgQXVnIDgsIDIwMTcgYXQgNTowNyBQTSwgVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52
-ZXJtYUBpbnRlbC5jb20NCj4gPiB3cm90ZToNCj4gPiBJbiBwcmVwYXJhdGlvbiBmb3IgQlRUIGVy
-cm9yIGNsZWFyaW5nLCByZWZhY3RvciB0aGUgaW5pdGlhbCBvZmZzZXQNCj4gPiBjYWxjdWxhdGlv
-bnMuIFVudGlsIG5vdywgYWxsIGNhbGxlcnMgb2YgYXJlbmFfe3JlYWQsd3JpdGV9X2J5dGVzDQo+
-ID4gYXNzdW1lZA0KPiA+IGEgcmVsYXRpdmUgb2Zmc2V0IHRvIHRoZSBhcmVuYSwgYW5kIGl0IHdh
-cyBsYXRlciBhZGp1c3RlZCBmb3IgdGhlDQo+ID4gaW5pdGlhbCBvZmZzZXQuIFVudGlsIG5vdywg
-ZXZlcnkgdGltZSB3ZSBjYWxjdWxhdGVkIGEgcmVsYXRpdmUNCj4gPiBvZmZzZXQsDQo+ID4gd2Ug
-cGFzc2VkIGl0IHRvIHRoZXNlIGZ1bmN0aW9ucyB0byBkbyByZWFkcyBvciB3cml0ZXMsIGFuZCBz
-byB3aGVyZQ0KPiA+IHRoZQ0KPiA+IG9mZnNldCBjYWxjdWxhdGlvbnMgaGFwcGVuZWQgZGlkbid0
-IG1hdHRlci4NCj4gPiANCj4gPiBGb3IgZXJyb3IgY2xlYXJpbmcsIHRoZXJlIHdpbGwgYmUgcGxh
-Y2VzIHdoZXJlIHdlIGNhbGN1bGF0ZSBvZmZzZXRzDQo+ID4gdG8NCj4gPiBjaGVjayBmb3IgdGhl
-IHByZXNlbmNlIG9mIG1lZGlhIGVycm9ycywgYW5kIHRoZSBhYm92ZSBzY2hlbWUgYmVjb21lcw0K
-PiA+IGVycm9yIHByb25lLg0KPiA+IA0KPiA+IE1ha2UgdGhlIGluaXRpYWxfb2Zmc2V0IGNhbGN1
-bGF0aW9ucyBleHBsaWNpdCBmb3IgYWxsIGNhbGxlcnMgb2YNCj4gPiBhcmVuYV97cmVhZCx3cml0
-ZX1fYnl0ZXMsIGFuZCBwcm92aWRlIGEgaGVscGVyIHRvIGRvIHRoZW0uIFRoZSBlcnJvcg0KPiA+
-IGNoZWNraW5nL2NsZWFyaW5nIGNvZGUgY2FuIHRoZW4gdXNlIHRoZXNlIHNhbWUgaGVscGVycy4N
-Cj4gPiANCj4gPiBSZXBvcnRlZC1ieTogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0K
-PiA+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29t
-Pg0KPiA+IC0tLQ0KPiA+IMKgZHJpdmVycy9udmRpbW0vYnR0LmMgfCA2OSArKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLQ0KPiA+IC0tLS0tLS0tLS0tDQo+ID4gwqAxIGZp
-bGUgY2hhbmdlZCwgNDIgaW5zZXJ0aW9ucygrKSwgMjcgZGVsZXRpb25zKC0pDQo+ID4gDQo+ID4g
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL2J0dC5jIGIvZHJpdmVycy9udmRpbW0vYnR0LmMN
-Cj4gPiBpbmRleCBlOWRkNjUxLi45YWNmMDZiIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvbnZk
-aW1tL2J0dC5jDQo+ID4gKysrIGIvZHJpdmVycy9udmRpbW0vYnR0LmMNCj4gPiBAQCAtMzEsMTQg
-KzMxLDE3IEBAIGVudW0gbG9nX2VudF9yZXF1ZXN0IHsNCj4gPiDCoMKgwqDCoMKgwqDCoMKgTE9H
-X09MRF9FTlQNCj4gPiDCoH07DQo+ID4gDQo+ID4gK3N0YXRpYyBpbmxpbmUgdTY0IGNhbGNfbnNv
-ZmYoc3RydWN0IG5kX2J0dCAqbmRfYnR0LCB1NjQNCj4gPiByZWxhdGl2ZV9vZmZzZXQpDQo+ID4g
-K3sNCj4gPiArwqDCoMKgwqDCoMKgwqByZXR1cm4gcmVsYXRpdmVfb2Zmc2V0ICsgbmRfYnR0LT5p
-bml0aWFsX29mZnNldDsNCj4gPiArfQ0KPiA+ICsNCj4gPiDCoHN0YXRpYyBpbnQgYXJlbmFfcmVh
-ZF9ieXRlcyhzdHJ1Y3QgYXJlbmFfaW5mbyAqYXJlbmEsDQo+ID4gcmVzb3VyY2Vfc2l6ZV90IG9m
-ZnNldCwNCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHZvaWQgKmJ1Ziwgc2l6
-ZV90IG4sIHVuc2lnbmVkIGxvbmcgZmxhZ3MpDQo+ID4gwqB7DQo+ID4gwqDCoMKgwqDCoMKgwqDC
-oHN0cnVjdCBuZF9idHQgKm5kX2J0dCA9IGFyZW5hLT5uZF9idHQ7DQo+ID4gwqDCoMKgwqDCoMKg
-wqDCoHN0cnVjdCBuZF9uYW1lc3BhY2VfY29tbW9uICpuZG5zID0gbmRfYnR0LT5uZG5zOw0KPiA+
-IA0KPiA+IC3CoMKgwqDCoMKgwqDCoC8qIGFyZW5hIG9mZnNldHMgbWF5IGJlIHNoaWZ0ZWQgZnJv
-bSB0aGUgYmFzZSBvZiB0aGUgZGV2aWNlDQo+ID4gKi8NCj4gPiAtwqDCoMKgwqDCoMKgwqBvZmZz
-ZXQgKz0gYXJlbmEtPm5kX2J0dC0+aW5pdGlhbF9vZmZzZXQ7DQo+ID4gwqDCoMKgwqDCoMKgwqDC
-oHJldHVybiBudmRpbW1fcmVhZF9ieXRlcyhuZG5zLCBvZmZzZXQsIGJ1ZiwgbiwgZmxhZ3MpOw0K
-PiA+IMKgfQ0KPiA+IA0KPiA+IEBAIC00OCwxNCArNTEsMTMgQEAgc3RhdGljIGludCBhcmVuYV93
-cml0ZV9ieXRlcyhzdHJ1Y3QgYXJlbmFfaW5mbw0KPiA+ICphcmVuYSwgcmVzb3VyY2Vfc2l6ZV90
-IG9mZnNldCwNCj4gPiDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IG5kX2J0dCAqbmRfYnR0ID0gYXJl
-bmEtPm5kX2J0dDsNCj4gPiDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IG5kX25hbWVzcGFjZV9jb21t
-b24gKm5kbnMgPSBuZF9idHQtPm5kbnM7DQo+ID4gDQo+ID4gLcKgwqDCoMKgwqDCoMKgLyogYXJl
-bmEgb2Zmc2V0cyBtYXkgYmUgc2hpZnRlZCBmcm9tIHRoZSBiYXNlIG9mIHRoZSBkZXZpY2UNCj4g
-PiAqLw0KPiA+IC3CoMKgwqDCoMKgwqDCoG9mZnNldCArPSBhcmVuYS0+bmRfYnR0LT5pbml0aWFs
-X29mZnNldDsNCj4gPiDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIG52ZGltbV93cml0ZV9ieXRlcyhu
-ZG5zLCBvZmZzZXQsIGJ1ZiwgbiwgZmxhZ3MpOw0KPiA+IMKgfQ0KPiANCj4gU28gbGV0J3MgZ2V0
-IHJpZCBvZiBhcmVuYV97cmVhZCx3cml0ZX1fYnl0ZXMoKS4gVGhlIG9ubHkgcG9pbnQgb2YgdGhl
-DQo+IHdyYXBwZXIgd2FzIHRvIGluY2x1ZGUgYW4gYXJlbmEgc3BlY2lmaWMgb2Zmc2V0LCBidXQg
-bm93IHdlJ3JlIHB1c2hpbmcNCj4gYWxsIG9mZnNldCBjYWxjdWxhdGlvbnMgdG8gdGhlIGNhbGxl
-ciBzbyBhcmVuYV97cmVhZCx3cml0ZX1fYnl0ZXMoKSBpcw0KPiBlcXVpdmFsZW50IHRvIG52ZGlt
-bV97cmVhZCx3cml0ZX1fYnl0ZXMoKS4gDQoNClRoYXQgc291bmRzIGZpbmUsIHRob3VnaCB0aGF0
-IHdpbGwgcmVxdWlyZSBhbGwgY2FsbGVycyB0byBub3cNCmRlcmVmZXJlbmNlIGFyZW5hLT5uZC0+
-YnR0LT5uZG5zIHRvIGRvIHJlYWRzL3dyaXRlcy4uIElzIHRoYXQgb2s/DQoNCj4gSG93ZXZlciwg
-c2luY2UgbWFueSBvZg0KPiB0aGVzZSBjYWxsIHNpdGVzIG5vdyBwZXJmb3JtIGEgY29tbW9uIG9m
-ZnNldCBjYWxjdWxhdGlvbnMgbWF5YmUgd2UgY2FuDQo+IHByb3ZpZGUgYSBuZXcgaGVscGVyIGZv
-ciB0aGF0IHRvIGRpZmZlcmVudGlhdGUgaXQgZnJvbSB0aGUgZXJyb3INCj4gY2xlYXJpbmcgY2Fz
-ZT8gDQoNCk5vdCBzdXJlIEkgZm9sbG93IC0gdGhlIG9mZnNldCBjYWxjdWxhdGlvbnMgZm9yIHRo
-ZSBlcnJvciBjbGVhcmluZyB1c2UNCmFuZCBmb3IgZGF0YSByZWFkcy93cml0ZXMgYXJlIGV4YWN0
-bHkgdGhlIHNhbWUgKGxiYV90b19uc29mZikuIChTZWUNCmZ1cnRoZXIgYmVsb3cpDQoNCj4gQWZ0
-ZXIgcGF0Y2ggNyBpcyBhcHBsaWVkIGl0J3Mgbm8gbG9uZ2VyIGNsZWFyIHdoaWNoDQo+IG9mZnNl
-dCBjYWxjdWxhdGlvbiBpcyB1c2VkIHdoZXJlIGFuZCBmb3Igd2hhdCByZWFzb24sIHRoZXJlJ3Mg
-anVzdCB0b28NCj4gbWFueSBvZmZzZXQgdmFyaWFibGVzIGNhbGN1bGF0aW9ucyBhbmQgb3Zlcmxv
-YWQgb2YgdGhlIHdvcmQgJ29mZnNldCcNCj4gZm9yIGJ1Z3MgdG8gaGlkZS4NCg0KQWdyZWVkIG9u
-IHRoZSBhbWJpZ3VpdHkgb2YgJ29mZnNldCcuIFRoZSBpbXBsaWNpdCBydWxlIEkgZm9sbG93ZWQg
-d2FzDQphbnkga2luZCBvZiAnbnNvZmYnIHdpbGwgbWVhbiB0aGUgZmluYWwgbmFtZXNwYWNlIG9m
-ZnNldCwgYWZ0ZXINCmFjY291bnRpbmcgZm9yIGFyZW5hcywgYW55IGluaXRpYWwgb2Zmc2V0IGV0
-Yy4gQW55IG90aGVyICdvZmZzZXQnIGlzDQpyZWxhdGl2ZSB0byB0aGUgY29udGV4dCBpbiB3aGlj
-aCBpdCBpcyB1c2VkLg0KDQo+IA0KPiBNYXliZSBpdCdzIGp1c3QgbGF0ZSBvbiBhIEZyaWRheSBh
-bmQgbXkgZXllcyBhcmUgZ29pbmcgY3Jvc3MsIGJ1dCBpdA0KPiBzZWVtcyB5b3UgaGF2ZSAyIGNs
-YXNzZXMgb2YgdXNlIGNhc2VzIGJldHdlZW4gY2FsY19uc29mZiBhbmQNCj4gbGJhX3RvX25zb2Zm
-LCBwZXJoYXBzIHNlcGFyYXRlIHJlYWQvd3JpdGUgd3JhcHBlcnMgZm9yIHRob3NlIDIgY2FzZXM/
-DQoNClRoZSBkaWZmZXJlbmNlIGJldHdlZW4gdGhlIHR3byBpcyB0aGF0IGxiYV90b19uc29mZiBp
-cyB1c2VkIHdoZW4gd2VyZQ0KdGFsa2luZyBhYm91dCByZWFkaW5nL3dyaXRpbmcgYSAnZGF0YScg
-YmxvY2ssIGFuZCB3aGVyZSB3ZSBhcmUgdGFsa2luZw0KaW4gdGVybXMgb2YgJ2xiYSdzLCBub3Qg
-cmF3IG9mZnNldHMuIGNhbGNfbnNvZmYgKHdoaWNoIGxiYV90b19uc29mZg0KY2FsbHMgaW50ZXJu
-YWxseSksIGlzIGEgJ2xhc3Qgc3RhZ2UnIGNhbGN1bGF0aW9uLCBlc3NlbnRpYWxseSBqdXN0IHRv
-DQphZGQgdGhlIGluaXRpYWxfb2Zmc2V0LiBEaXJlY3QgY2FsbGVycyBvZiBjYWxjX25zb2ZmIChp
-LmUuIGZ1bmN0aW9ucw0KdGhhdCBhY2Nlc3MgdGhlIGxvZywgbWFwLCBvciBpbmZvIGJsb2Nrcykg
-ZG8gdGhlaXIgb2Zmc2V0IGNhbGN1bGF0aW9ucw0KJ21hbnVhbGx5JyBiYXNlZCBvbiBhcmVuYS0+
-e21hcCxsb2csaW5mb31vZmYsIGJ1dCB0aGVzZSBvZmZzZXRzIGFyZQ0KdW5hd2FyZSBvZiAnaW5p
-dGlhbF9vZmZzZXQnLCBhcyB0aGV5IHN0YXJ0ZWQgb3V0IGJlaW5nIHJlbGF0aXZlIHRvDQondGhp
-cycgYXJlbmEuIFNvIGNhbGNfbnNvZmYgaXMgdGhhdCBsYXN0IHN0YWdlIGFkZGl0aW9uIG9mDQpp
-bml0aWFsX29mZnNldC4NCg0KSSBhZ3JlZSB0aGF0IGlmIGZlZWxzIGEgYml0IGNsdW5reSwgYnV0
-IEknbSBub3Qgc3VyZSBJIHNlZSBhIGNsZWFyIHdheQ0KdG8gaW1wcm92ZSBpdC4uDQoNCj4gQWxz
-bywgSSBmaW5kIHNvbWV0aGluZyB1bnJlYWRhYmxlIGFib3V0IGNhbGNfbnNvZmYsIGFuZCByZWFk
-aW5nIHRoZQ0KPiBwcm90b3R5cGUgInU2NCBjYWxjX25zb2ZmKHN0cnVjdCBuZF9idHQgKm5kX2J0
-dCwgdTY0IHJlbGF0aXZlX29mZnNldCkiDQo+IGRvZXNuJ3QgaGVscCBjbGFyaWZ5LiBXaGF0IGlz
-ICdyZWxhdGl2ZV9vZmZzZXQnIHJlbGF0aXZlIHRvPyBJcyBpdCB0aGUNCj4gYmFzZSBuYW1lc3Bh
-Y2UgLyBkZXZpY2Ugb2Zmc2V0Pw0KDQpZZWFoLCBJIGNyaW5nZWQgYSBiaXQgdG9vIHdoZW4gSSBj
-YWxsZWQgaXQgJ3JlbGF0aXZlX29mZnNldCcuIEJ1dCBJDQpjb3VsZG4ndCBmaW5kIGEgbW9yZSBk
-ZXNjcmlwdGl2ZSBuYW1lLiBJdCBpcyAnYWxtb3N0JyB0aGUgcmF3IG5zb2ZmLA0Kd2l0aCBqdXN0
-IHRoZSBpbml0aWFsX29mZnNldCBjYWxjdWxhdGlvbiBwZW5kaW5nLi4uIE1heWJlDQpidHRfcmVs
-YXRpdmVfb2Zmc2V0PwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
-aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Tue, Aug 8, 2017 at 5:07 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> In preparation for BTT error clearing, refactor the initial offset
+> calculations. Until now, all callers of arena_{read,write}_bytes assumed
+> a relative offset to the arena, and it was later adjusted for the
+> initial offset. Until now, every time we calculated a relative offset,
+> we passed it to these functions to do reads or writes, and so where the
+> offset calculations happened didn't matter.
+>
+> For error clearing, there will be places where we calculate offsets to
+> check for the presence of media errors, and the above scheme becomes
+> error prone.
+>
+> Make the initial_offset calculations explicit for all callers of
+> arena_{read,write}_bytes, and provide a helper to do them. The error
+> checking/clearing code can then use these same helpers.
+>
+> Reported-by: Toshi Kani <toshi.kani@hpe.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/nvdimm/btt.c | 69 ++++++++++++++++++++++++++++++++--------------------
+>  1 file changed, 42 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> index e9dd651..9acf06b 100644
+> --- a/drivers/nvdimm/btt.c
+> +++ b/drivers/nvdimm/btt.c
+> @@ -31,14 +31,17 @@ enum log_ent_request {
+>         LOG_OLD_ENT
+>  };
+>
+> +static inline u64 calc_nsoff(struct nd_btt *nd_btt, u64 relative_offset)
+> +{
+> +       return relative_offset + nd_btt->initial_offset;
+> +}
+> +
+>  static int arena_read_bytes(struct arena_info *arena, resource_size_t offset,
+>                 void *buf, size_t n, unsigned long flags)
+>  {
+>         struct nd_btt *nd_btt = arena->nd_btt;
+>         struct nd_namespace_common *ndns = nd_btt->ndns;
+>
+> -       /* arena offsets may be shifted from the base of the device */
+> -       offset += arena->nd_btt->initial_offset;
+>         return nvdimm_read_bytes(ndns, offset, buf, n, flags);
+>  }
+>
+> @@ -48,14 +51,13 @@ static int arena_write_bytes(struct arena_info *arena, resource_size_t offset,
+>         struct nd_btt *nd_btt = arena->nd_btt;
+>         struct nd_namespace_common *ndns = nd_btt->ndns;
+>
+> -       /* arena offsets may be shifted from the base of the device */
+> -       offset += arena->nd_btt->initial_offset;
+>         return nvdimm_write_bytes(ndns, offset, buf, n, flags);
+>  }
+
+So let's get rid of arena_{read,write}_bytes(). The only point of the
+wrapper was to include an arena specific offset, but now we're pushing
+all offset calculations to the caller so arena_{read,write}_bytes() is
+equivalent to nvdimm_{read,write}_bytes(). However, since many of
+these call sites now perform a common offset calculations maybe we can
+provide a new helper for that to differentiate it from the error
+clearing case? After patch 7 is applied it's no longer clear which
+offset calculation is used where and for what reason, there's just too
+many offset variables calculations and overload of the word 'offset'
+for bugs to hide.
+
+Maybe it's just late on a Friday and my eyes are going cross, but it
+seems you have 2 classes of use cases between calc_nsoff and
+lba_to_nsoff, perhaps separate read/write wrappers for those 2 cases?
+Also, I find something unreadable about calc_nsoff, and reading the
+prototype "u64 calc_nsoff(struct nd_btt *nd_btt, u64 relative_offset)"
+doesn't help clarify. What is 'relative_offset' relative to? Is it the
+base namespace / device offset?
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
