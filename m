@@ -1,26 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x22f.google.com (mail-yw0-x22f.google.com
- [IPv6:2607:f8b0:4002:c05::22f])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 10EAD2095DE48
- for <linux-nvdimm@lists.01.org>; Sat, 12 Aug 2017 12:17:30 -0700 (PDT)
-Received: by mail-yw0-x22f.google.com with SMTP id s143so37937605ywg.1
- for <linux-nvdimm@lists.01.org>; Sat, 12 Aug 2017 12:19:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170812073349.GA12679@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 7C84721D49110
+ for <linux-nvdimm@lists.01.org>; Sat, 12 Aug 2017 00:32:06 -0700 (PDT)
+Date: Sat, 12 Aug 2017 09:34:26 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v2 0/5] fs, xfs: block map immutable files for dax,
+ dma-to-storage, and swap
+Message-ID: <20170812073426.GB12679@lst.de>
 References: <150181368442.32119.13336247800141074356.stgit@dwillia2-desk3.amr.corp.intel.com>
  <CAPcyv4ii41F-Rj9pPGc0FHwrQ=hkSF_f0niQDn5_NjU-wcL+gg@mail.gmail.com>
  <20170805095013.GC14930@lst.de>
  <CAPcyv4jgKmakB0WRUjx=2eD3YJ1x+C8cgnR6tA+g4+m+0etawQ@mail.gmail.com>
  <20170811104429.GA13736@lst.de>
  <CAPcyv4jrZ5a+zmAehZDxfP=+6BNCFAXOFWro2L7ruLkk+cY7OQ@mail.gmail.com>
- <20170812073349.GA12679@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 12 Aug 2017 12:19:50 -0700
-Message-ID: <CAPcyv4iKG=Zoo1VXu23YBc6uWDFV4QSS+eAm9MSOynx2FjTHbw@mail.gmail.com>
-Subject: Re: [PATCH v2 0/5] fs, xfs: block map immutable files for dax,
- dma-to-storage, and swap
+ <CALCETrVvMbaxobdydtsdQWHyP1VhL1fpq1qS4M3=SmR1y4x5kw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CALCETrVvMbaxobdydtsdQWHyP1VhL1fpq1qS4M3=SmR1y4x5kw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,82 +26,24 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Andy Lutomirski <luto@kernel.org>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gU2F0LCBBdWcgMTIsIDIwMTcgYXQgMTI6MzMgQU0sIENocmlzdG9waCBIZWxsd2lnIDxoY2hA
-bHN0LmRlPiB3cm90ZToKPiBPbiBGcmksIEF1ZyAxMSwgMjAxNyBhdCAwMzoyNjowNVBNIC0wNzAw
-LCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4+IFJpZ2h0LCBidXQgdGhleSBsZXQgdXNlcnNwYWNlIG1h
-a2UgaW5mZXJlbmNlcyBhYm91dCB0aGUgc3RhdGUgb2YKPj4gbWV0YWRhdGEgcmVsYXRpdmUgdG8g
-SS9PIHRvIGEgZ2l2ZW4gc3RvcmFnZSBhZGRyZXNzLiBJbiB0aGlzIHJlZ2FyZAo+PiBTX0lPTUFQ
-X0lNTVVUQUJMRSBpcyBubyBkaWZmZXJlbnQgdGhhbiBNQVBfU1lOQywgYnV0ICdpbW11dGFibGUn
-IGdvZXMKPj4gYSBzdGVwIGZ1cnRoZXIgdG8gbGV0IGFuIGFwcGxpY2F0aW9uIGluZmVyIHRoYXQg
-dGhlIHN0b3JhZ2UgYWRkcmVzcyBpcwo+PiBzdGFibGUuIFRoaXMgZW5hYmxlcyBhcHBsaWNhdGlv
-bnMgdGhhdCBNQVBfU1lOQyBkb2VzIG5vdCwgc2VlIGJlbG93Lgo+Cj4gQnV0IHRoZSBhcHBsaWNh
-dGlvbiBtdXN0IG5vdCBrbm93IChhbmQgY2Fubm90IGtub3cpIHRoZSBzdG9yYWdlIGFkZHJlc3Ms
-Cj4gc28gaXQgZG9lc24ndCBtYXR0ZXIuCj4KPj4gPiBXaGF0IGlzIHRoZSBvYnNlcnZhYmxlIGJl
-aGF2aW9yIG9mIGFuIGV4dGVudCBtYXAgY2hhbmdlPyAgSG93IGNhbiB5b3UKPj4gPiBkZXNjcmli
-ZSB5b3VyIGltbXV0YWJsZSBleHRlbnQgbWFwIGJlaGF2aW9yIHNvIHRoYXQgd2hlbiBJIHZpb2xh
-dGUKPj4gPiB0aGVtIGJ5IGUuZy4gbW92aW5nIG9uZSBleHRlbnQgdG8gYSBkaWZmZXJlbnQgcGxh
-Y2Ugb24gZGlzayB5b3UgY2FuCj4+ID4gb2JzZXJ2ZSB0aGF0IGluIHVzZXJzcGFjZT8KPj4KPj4g
-VGhlIHZpb2xhdGlvbiBpcyBibG9ja2VkLCBpdCdzIGltbXV0YWJsZS4gVXNpbmcgdGhpcyBmZWF0
-dXJlIG1lYW5zIHRoZQo+PiBhcHBsaWNhdGlvbiBpcyB0YWtpbmcgYXdheSBzb21lIG9mIHRoZSBr
-ZXJuZWwncyBmcmVlZG9tLiBUaGF0IGlzIGEKPj4gdmFsaWQgLyBzYWZlIHRyYWRlb2ZmIGZvciB0
-aGUgc2V0IG9mIGFwcGxpY2F0aW9ucyB0aGF0IHdvdWxkIG90aGVyd2lzZQo+PiByZXNvcnQgdG8g
-cmF3IGRldmljZSBhY2Nlc3MuCj4KPiBXaGF0IGNhbiB0aGUgYXBwbGljYXRpb24gZG8gd2l0aCBp
-dCBzYWZlbHkgdGhhdCBpdCBjYW4ndCBvdGhlcndpc2UgZG8/Cj4gU2hvcnQgYW5zd2VyOiBub3Ro
-aW5nLgoKVGhlIGFwcGxpY2F0aW9uIGRvZXMgbm90IG5lZWQgdG8ga25vdyB0aGUgc3RvcmFnZSBh
-ZGRyZXNzLCBpdCBuZWVkcyB0bwprbm93IHRoYXQgdGhlIHN0b3JhZ2UgYWRkcmVzcyB0byBmaWxl
-IG9mZnNldCBpcyBmaXhlZC4gV2l0aCB0aGlzCmluZm9ybWF0aW9uIGl0IGNhbiBtYWtlIGFzc3Vt
-cHRpb25zIGFib3V0IHRoZSBwZXJtYW5lbmNlIG9mIHJlc3VsdHMgaXQKZ2V0cyBmcm9tIHRoZSBr
-ZXJuZWwuCgpGb3IgZXhhbXBsZSBnZXRfdXNlcl9wYWdlcygpIHRvZGF5IG1ha2VzIG5vIGd1YXJh
-bnRlZXMgb3V0c2lkZSBvZgoicGFnZSB3aWxsIG5vdCBiZSBmcmVlZCIsIGJ1dCB3aXRoIGltbXV0
-YWJsZSBmaWxlcyBhbmQgZGF4IHlvdSBub3cKaGF2ZSBhIG1lY2hhbmlzbSBmb3IgdXNlcnNwYWNl
-IHRvIGNvb3JkaW5hdGUgZGlyZWN0IGFjY2VzcyB0byBzdG9yYWdlCmFkZHJlc3Nlcy4gVGhvc2Ug
-cmF3IHN0b3JhZ2UgYWRkcmVzc2VzIG5lZWQgbm90IGJlIGV4cG9zZWQgdG8gdGhlCmFwcGxpY2F0
-aW9uLCBhcyB5b3Ugc2F5IGl0IGRvZXNuJ3QgbmVlZCB0byBrbm93IHRoYXQgZGV0YWlsLiBNQVBf
-U1lOQwpkb2VzIG5vdCBmdWxseSBzYXRpc2Z5IHRoaXMgY2FzZSBiZWNhdXNlIGl0IHJlcXVpcmVz
-IGFnZW50cyB0aGF0IGNhbgpnZW5lcmF0ZSBNTVUgZmF1bHRzIHRvIGNvb3JkaW5hdGUgd2l0aCB0
-aGUgZmlsZXN5c3RlbS4KCj4+ID4KPj4gPiBQbGVhc2UgZXhwbGFpbiBob3cgdGhpcyBpbnRlcmZh
-Y2UgYWxsb3dzIGZvciBhbnkgc29ydCBvZiBzYWZlIHVzZXJzcGFjZQo+PiA+IERNQS4KPj4KPj4g
-U28gdGhpcyBpcyB3aGVyZSBJIGNvbnRpbnVlIHRvIHNlZSBTX0lPTUFQX0lNTVVUQUJMRSBiZWlu
-ZyBhYmxlIHRvCj4+IHN1cHBvcnQgYXBwbGljYXRpb25zIHRoYXQgTUFQX1NZTkMgZG9lcyBub3Qu
-IERhdmUgbWVudGlvbmVkIHVzZXJzcGFjZQo+PiBwTkZTNCBzZXJ2ZXJzLCBidXQgdGhlcmUncyBh
-bHNvIFNhbWJhIGFuZCBvdGhlciBwcm90b2NvbHMgdGhhdCB3YW50IHRvCj4+IG5lZ290aWF0ZSBh
-IGRpcmVjdCBwYXRoIHRvIHBtZW0gb3V0c2lkZSB0aGUga2VybmVsLgo+Cj4gVXNlcnNwYWNlIHBO
-RlMgc2VydmVycyBtdXN0IHVzZSBhIHVzZXJzcGFjZSBmaWxlIHN5c3RlbS4gIEV2ZXJ5dGhpbmcK
-PiBlbHNlIGlzIGp1c3QgYnJhaW5kZWQgc3R1cGlkIGR1ZSB0byB0aGUgYW1vdW50IG9mIGNvbW11
-bmljYXRpb24gdGhleQo+IG5lZWQgdG8gZG8uICBBbHNvIG5vdGUgdGhhdCB0aGUgb25seSBwTkZT
-IGxheW91dHMgdGhhdCB3b3VsZCBldmVuIGNhdXNlCj4gZGlyZWN0IGJsb2NrIGFjY2VzcyBhcmUg
-cE5GUyBibG9jay9zY3NpIGFuZCBmb3IgdGhvc2UgdGhlCj4gU19JT01BUF9JTU1VVEFCTEUgc2Vt
-YW50aWNzIGFyZSBub3QgdmVyeSB1c2VmdWwgKGJhY2tncm91bmQ6IEkgd3JvdGUKPiB0aGUgTGlu
-dXggaW1wbGVtZW50YXRpb24gZm9yIHRob3NlLCBhbmQgYXV0aG9yZWQgdGhlIHNjc2kgbGF5b3V0
-IHNwZWMpCj4KClVuZGVyc3Rvb2QuCgpBbGwgSSBrbm93IGlzIHRoYXQgU01CIERpcmVjdCBmb3Ig
-cGVyc2lzdGVudCBtZW1vcnkgc2VlbXMgbGlrZSBhCnBvdGVudGlhbCBjb25zdW1lci4gSSBrbm93
-IHRoZXkncmUgbm90IGdvaW5nIHRvIHVzZSBhIHVzZXJzcGFjZQpmaWxlc3lzdGVtIG9yIHB1dCBh
-biBTTUIgc2VydmVyIGluIHRoZSBrZXJuZWwuCgo+Cj4+IEFwcGxpY2F0aW9ucyB0aGF0IGp1c3Qg
-d2FudCBmbHVzaCBmcm9tIHVzZXJzcGFjZSBjYW4gdXNlIE1BUF9TWU5DLAo+PiB0aG9zZSB0aGF0
-IG5lZWQgdG8gdGVtcG9yYXJpbHkgcGluIHRoZSBibG9jayBmb3IgUkRNQSBjYW4gdXNlIHRoZQo+
-PiBpbi1rZXJuZWwgcE5GUyBzZXJ2ZXIsIGFuZCB0aG9zZSB0aGF0IG5lZWQgdG8gY29vcmRpbmF0
-ZSBib3RoIGZyb20KPj4gdXNlcnNwYWNlIGNhbiB1c2UgU19JT01BUF9JTU1VVEFCTEUuIEl0J3Mg
-YSBjb250aW51dW0sIG5vdCBhCj4+IGNvbXBldGl0aW9uLgo+Cj4gQWdhaW4gLSBob3cgZG9lcyB5
-b3VyIGFwcGxpY2F0aW9uIGV2ZW4ga25vdyB0aGF0IEkgbW92ZWQgeW91ciBibG9jawo+IGFyb3Vu
-ZCB3aXRoIHlvdXIgU19JT01BUF9JTU1VVEFCTEU/ICBXZSBzaG91bGQgbmV2ZXIgYWRkIGludGVy
-ZmFjZXMKPiB0aGF0IG1hbmRhdGUgaW1wbGVtZW50YXRpb25zIC0gd2Ugc2hvdWxkIGJhc2VkIGlu
-dGVyZmFjZXMgYmFzZWQgb24KPiB1c2VyIG9ic2VydmFibGUgYmVoYXZpb3IgLSBhbmQgZGVidWcg
-dG9vbHMgbGlrZSBmaWVtYXAgZG9uJ3QgY291bnQuCgpJJ20gc3RpbGwgbm90IGdyb2traW5nIHRo
-aXMgIkkgbW92ZWQgeW91ciBibG9jayIgZXhhbXBsZS4gV2hhdCBhZ2VudAppcyBtb3ZpbmcgYmxv
-Y2tzIHdoaWxlIHRoZSBmaWxlIGlzIGltbXV0YWJsZT8KCj4gQmVmb3JlIGdvaW5nIGFueSBmdXJ0
-aGVyIHBsZWFzZSB3cml0ZSBhIG1hbiBwYWdlIHRoYXQgZGVzY3JpYmXRlSB5b3VyCj4gaW50ZW5k
-ZWQgc2VtYW50aWNzIGluIGEgd2F5IHRoYXQgYW4gYXBwbGljYXRpb24gcHJvZ3JhbW1lciB1bmRl
-cnN0YW5kcy4KClN1cmUsIEknbGwgdHJ5IHRvIHdyaXRlIHRoaXMgdXAgaW4gdGVybXMgb2YgdGhl
-IHVzZSBjYXNlcyBJIGtub3cgYWJvdXQKdGhhdCBjYW4gaW1tZWRpYXRlbHkgY29uc3VtZSBpdCBh
-bmQgc3dpdGNoIGF3YXkgZnJvbSBkZXZpY2UtZGF4LgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1udmRpbW0K
+On Fri, Aug 11, 2017 at 08:57:18PM -0700, Andy Lutomirski wrote:
+> One thing that makes me quite nervous about S_IOMAP_IMMUTABLE is the
+> degree to which things go badly if one program relies on it while
+> another program clears the flag: you risk corrupting unrelated
+> filesystem metadata.  I think a userspace interface to pin the extent
+> mapping of a file really wants a way to reliably keep it pinned (or to
+> reliably zap the userspace application if it gets unpinned).
+
+The nice thing is that no application can rely on it anyway..
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
