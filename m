@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4860C2095DFE2
- for <linux-nvdimm@lists.01.org>; Sat, 12 Aug 2017 01:44:45 -0700 (PDT)
-Date: Sat, 12 Aug 2017 16:46:33 +0800
+ by ml01.01.org (Postfix) with ESMTPS id 0630E21D4911A
+ for <linux-nvdimm@lists.01.org>; Sat, 12 Aug 2017 01:19:43 -0700 (PDT)
+Date: Sat, 12 Aug 2017 16:21:24 +0800
 From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH v2 5/7] mm:swap: use on-stack-bio for BDI_CAP_SYNCHRONOUS
  device
-Message-ID: <201708121619.CYNstSAy%fengguang.wu@intel.com>
+Message-ID: <201708121626.SEhytW8f%fengguang.wu@intel.com>
 MIME-Version: 1.0
 In-Reply-To: <1502428647-28928-6-git-send-email-minchan@kernel.org>
 Content-Disposition: inline
@@ -29,35 +29,34 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 Hi Minchan,
 
-[auto build test ERROR on mmotm/master]
-[also build test ERROR on next-20170811]
+[auto build test WARNING on mmotm/master]
+[also build test WARNING on next-20170811]
 [cannot apply to linus/master v4.13-rc4]
 [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
 url:    https://github.com/0day-ci/linux/commits/Minchan-Kim/Replace-rw_page-with-on-stack-bio/20170812-152541
 base:   git://git.cmpxchg.org/linux-mmotm.git master
-config: sparc64-allmodconfig (attached as .config)
-compiler: sparc64-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
+config: xtensa-allmodconfig (attached as .config)
+compiler: xtensa-linux-gcc (GCC) 4.9.0
 reproduce:
         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
         # save the attached .config to linux build tree
-        make.cross ARCH=sparc64 
+        make.cross ARCH=xtensa 
 
-All errors (new ones prefixed by >>):
+All warnings (new ones prefixed by >>):
 
    mm/page_io.c: In function '__swap_writepage':
->> mm/page_io.c:345:11: error: passing argument 1 of 'bio_get' from incompatible pointer type [-Werror=incompatible-pointer-types]
+>> mm/page_io.c:345:3: warning: passing argument 1 of 'bio_get' from incompatible pointer type
       bio_get(&bio);
-              ^
+      ^
    In file included from include/linux/writeback.h:205:0,
                     from include/linux/memcontrol.h:31,
                     from include/linux/swap.h:8,
                     from mm/page_io.c:17:
    include/linux/bio.h:252:20: note: expected 'struct bio *' but argument is of type 'struct bio **'
     static inline void bio_get(struct bio *bio)
-                       ^~~~~~~
-   cc1: some warnings being treated as errors
+                       ^
 
 vim +/bio_get +345 mm/page_io.c
 
