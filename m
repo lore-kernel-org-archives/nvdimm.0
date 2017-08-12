@@ -2,23 +2,22 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7C84721D49110
- for <linux-nvdimm@lists.01.org>; Sat, 12 Aug 2017 00:32:06 -0700 (PDT)
-Date: Sat, 12 Aug 2017 09:34:26 +0200
+ by ml01.01.org (Postfix) with ESMTPS id 4AD7B21D49110
+ for <linux-nvdimm@lists.01.org>; Sat, 12 Aug 2017 00:31:30 -0700 (PDT)
+Date: Sat, 12 Aug 2017 09:33:49 +0200
 From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [PATCH v2 0/5] fs, xfs: block map immutable files for dax,
  dma-to-storage, and swap
-Message-ID: <20170812073426.GB12679@lst.de>
+Message-ID: <20170812073349.GA12679@lst.de>
 References: <150181368442.32119.13336247800141074356.stgit@dwillia2-desk3.amr.corp.intel.com>
  <CAPcyv4ii41F-Rj9pPGc0FHwrQ=hkSF_f0niQDn5_NjU-wcL+gg@mail.gmail.com>
  <20170805095013.GC14930@lst.de>
  <CAPcyv4jgKmakB0WRUjx=2eD3YJ1x+C8cgnR6tA+g4+m+0etawQ@mail.gmail.com>
  <20170811104429.GA13736@lst.de>
  <CAPcyv4jrZ5a+zmAehZDxfP=+6BNCFAXOFWro2L7ruLkk+cY7OQ@mail.gmail.com>
- <CALCETrVvMbaxobdydtsdQWHyP1VhL1fpq1qS4M3=SmR1y4x5kw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <CALCETrVvMbaxobdydtsdQWHyP1VhL1fpq1qS4M3=SmR1y4x5kw@mail.gmail.com>
+In-Reply-To: <CAPcyv4jrZ5a+zmAehZDxfP=+6BNCFAXOFWro2L7ruLkk+cY7OQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,24 +25,59 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Lutomirski <luto@kernel.org>
-Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Aug 11, 2017 at 08:57:18PM -0700, Andy Lutomirski wrote:
-> One thing that makes me quite nervous about S_IOMAP_IMMUTABLE is the
-> degree to which things go badly if one program relies on it while
-> another program clears the flag: you risk corrupting unrelated
-> filesystem metadata.  I think a userspace interface to pin the extent
-> mapping of a file really wants a way to reliably keep it pinned (or to
-> reliably zap the userspace application if it gets unpinned).
-
-The nice thing is that no application can rely on it anyway..
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCBBdWcgMTEsIDIwMTcgYXQgMDM6MjY6MDVQTSAtMDcwMCwgRGFuIFdpbGxpYW1zIHdy
+b3RlOgo+IFJpZ2h0LCBidXQgdGhleSBsZXQgdXNlcnNwYWNlIG1ha2UgaW5mZXJlbmNlcyBhYm91
+dCB0aGUgc3RhdGUgb2YKPiBtZXRhZGF0YSByZWxhdGl2ZSB0byBJL08gdG8gYSBnaXZlbiBzdG9y
+YWdlIGFkZHJlc3MuIEluIHRoaXMgcmVnYXJkCj4gU19JT01BUF9JTU1VVEFCTEUgaXMgbm8gZGlm
+ZmVyZW50IHRoYW4gTUFQX1NZTkMsIGJ1dCAnaW1tdXRhYmxlJyBnb2VzCj4gYSBzdGVwIGZ1cnRo
+ZXIgdG8gbGV0IGFuIGFwcGxpY2F0aW9uIGluZmVyIHRoYXQgdGhlIHN0b3JhZ2UgYWRkcmVzcyBp
+cwo+IHN0YWJsZS4gVGhpcyBlbmFibGVzIGFwcGxpY2F0aW9ucyB0aGF0IE1BUF9TWU5DIGRvZXMg
+bm90LCBzZWUgYmVsb3cuCgpCdXQgdGhlIGFwcGxpY2F0aW9uIG11c3Qgbm90IGtub3cgKGFuZCBj
+YW5ub3Qga25vdykgdGhlIHN0b3JhZ2UgYWRkcmVzcywKc28gaXQgZG9lc24ndCBtYXR0ZXIuCgo+
+ID4gV2hhdCBpcyB0aGUgb2JzZXJ2YWJsZSBiZWhhdmlvciBvZiBhbiBleHRlbnQgbWFwIGNoYW5n
+ZT8gIEhvdyBjYW4geW91Cj4gPiBkZXNjcmliZSB5b3VyIGltbXV0YWJsZSBleHRlbnQgbWFwIGJl
+aGF2aW9yIHNvIHRoYXQgd2hlbiBJIHZpb2xhdGUKPiA+IHRoZW0gYnkgZS5nLiBtb3Zpbmcgb25l
+IGV4dGVudCB0byBhIGRpZmZlcmVudCBwbGFjZSBvbiBkaXNrIHlvdSBjYW4KPiA+IG9ic2VydmUg
+dGhhdCBpbiB1c2Vyc3BhY2U/Cj4gCj4gVGhlIHZpb2xhdGlvbiBpcyBibG9ja2VkLCBpdCdzIGlt
+bXV0YWJsZS4gVXNpbmcgdGhpcyBmZWF0dXJlIG1lYW5zIHRoZQo+IGFwcGxpY2F0aW9uIGlzIHRh
+a2luZyBhd2F5IHNvbWUgb2YgdGhlIGtlcm5lbCdzIGZyZWVkb20uIFRoYXQgaXMgYQo+IHZhbGlk
+IC8gc2FmZSB0cmFkZW9mZiBmb3IgdGhlIHNldCBvZiBhcHBsaWNhdGlvbnMgdGhhdCB3b3VsZCBv
+dGhlcndpc2UKPiByZXNvcnQgdG8gcmF3IGRldmljZSBhY2Nlc3MuCgpXaGF0IGNhbiB0aGUgYXBw
+bGljYXRpb24gZG8gd2l0aCBpdCBzYWZlbHkgdGhhdCBpdCBjYW4ndCBvdGhlcndpc2UgZG8/ClNo
+b3J0IGFuc3dlcjogbm90aGluZy4KCj4gPgo+ID4gUGxlYXNlIGV4cGxhaW4gaG93IHRoaXMgaW50
+ZXJmYWNlIGFsbG93cyBmb3IgYW55IHNvcnQgb2Ygc2FmZSB1c2Vyc3BhY2UKPiA+IERNQS4KPiAK
+PiBTbyB0aGlzIGlzIHdoZXJlIEkgY29udGludWUgdG8gc2VlIFNfSU9NQVBfSU1NVVRBQkxFIGJl
+aW5nIGFibGUgdG8KPiBzdXBwb3J0IGFwcGxpY2F0aW9ucyB0aGF0IE1BUF9TWU5DIGRvZXMgbm90
+LiBEYXZlIG1lbnRpb25lZCB1c2Vyc3BhY2UKPiBwTkZTNCBzZXJ2ZXJzLCBidXQgdGhlcmUncyBh
+bHNvIFNhbWJhIGFuZCBvdGhlciBwcm90b2NvbHMgdGhhdCB3YW50IHRvCj4gbmVnb3RpYXRlIGEg
+ZGlyZWN0IHBhdGggdG8gcG1lbSBvdXRzaWRlIHRoZSBrZXJuZWwuCgpVc2Vyc3BhY2UgcE5GUyBz
+ZXJ2ZXJzIG11c3QgdXNlIGEgdXNlcnNwYWNlIGZpbGUgc3lzdGVtLiAgRXZlcnl0aGluZwplbHNl
+IGlzIGp1c3QgYnJhaW5kZWQgc3R1cGlkIGR1ZSB0byB0aGUgYW1vdW50IG9mIGNvbW11bmljYXRp
+b24gdGhleQpuZWVkIHRvIGRvLiAgQWxzbyBub3RlIHRoYXQgdGhlIG9ubHkgcE5GUyBsYXlvdXRz
+IHRoYXQgd291bGQgZXZlbiBjYXVzZQpkaXJlY3QgYmxvY2sgYWNjZXNzIGFyZSBwTkZTIGJsb2Nr
+L3Njc2kgYW5kIGZvciB0aG9zZSB0aGUKU19JT01BUF9JTU1VVEFCTEUgc2VtYW50aWNzIGFyZSBu
+b3QgdmVyeSB1c2VmdWwgKGJhY2tncm91bmQ6IEkgd3JvdGUKdGhlIExpbnV4IGltcGxlbWVudGF0
+aW9uIGZvciB0aG9zZSwgYW5kIGF1dGhvcmVkIHRoZSBzY3NpIGxheW91dCBzcGVjKQoKCj4gQXBw
+bGljYXRpb25zIHRoYXQganVzdCB3YW50IGZsdXNoIGZyb20gdXNlcnNwYWNlIGNhbiB1c2UgTUFQ
+X1NZTkMsCj4gdGhvc2UgdGhhdCBuZWVkIHRvIHRlbXBvcmFyaWx5IHBpbiB0aGUgYmxvY2sgZm9y
+IFJETUEgY2FuIHVzZSB0aGUKPiBpbi1rZXJuZWwgcE5GUyBzZXJ2ZXIsIGFuZCB0aG9zZSB0aGF0
+IG5lZWQgdG8gY29vcmRpbmF0ZSBib3RoIGZyb20KPiB1c2Vyc3BhY2UgY2FuIHVzZSBTX0lPTUFQ
+X0lNTVVUQUJMRS4gSXQncyBhIGNvbnRpbnV1bSwgbm90IGEKPiBjb21wZXRpdGlvbi4KCkFnYWlu
+IC0gaG93IGRvZXMgeW91ciBhcHBsaWNhdGlvbiBldmVuIGtub3cgdGhhdCBJIG1vdmVkIHlvdXIg
+YmxvY2sKYXJvdW5kIHdpdGggeW91ciBTX0lPTUFQX0lNTVVUQUJMRT8gIFdlIHNob3VsZCBuZXZl
+ciBhZGQgaW50ZXJmYWNlcwp0aGF0IG1hbmRhdGUgaW1wbGVtZW50YXRpb25zIC0gd2Ugc2hvdWxk
+IGJhc2VkIGludGVyZmFjZXMgYmFzZWQgb24KdXNlciBvYnNlcnZhYmxlIGJlaGF2aW9yIC0gYW5k
+IGRlYnVnIHRvb2xzIGxpa2UgZmllbWFwIGRvbid0IGNvdW50LgoKQmVmb3JlIGdvaW5nIGFueSBm
+dXJ0aGVyIHBsZWFzZSB3cml0ZSBhIG1hbiBwYWdlIHRoYXQgZGVzY3JpYmXRlSB5b3VyCmludGVu
+ZGVkIHNlbWFudGljcyBpbiBhIHdheSB0aGF0IGFuIGFwcGxpY2F0aW9uIHByb2dyYW1tZXIgdW5k
+ZXJzdGFuZHMuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRw
+czovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
