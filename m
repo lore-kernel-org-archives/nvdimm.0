@@ -1,27 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-vk0-x233.google.com (mail-vk0-x233.google.com
- [IPv6:2607:f8b0:400c:c05::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 94B6B21D2DCEE
- for <linux-nvdimm@lists.01.org>; Mon,  7 Aug 2017 11:11:41 -0700 (PDT)
-Received: by mail-vk0-x233.google.com with SMTP id u133so4705119vke.3
- for <linux-nvdimm@lists.01.org>; Mon, 07 Aug 2017 11:13:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <MWHPR21MB014312EE257DAA87046C3EA6A6B50@MWHPR21MB0143.namprd21.prod.outlook.com>
-References: <20170710183248.2417-1-willy@infradead.org>
- <CAPcyv4ioWUmiHbaGVcpxuK-j0JrcGk-_VcpR6yQtQMUwcRTRcQ@mail.gmail.com>
- <20170710203012.GB22476@bombadil.infradead.org>
- <CAPcyv4h7udHTuf78-_iLid68yMhBqTy9=b7GupJn3ZBLJoAWJA@mail.gmail.com>
- <20170712150401.GA12920@bombadil.infradead.org>
- <CAPcyv4h_=L=F9Gtf9NARH1vV4L0GBtRaUiSjZH-j5OeAdkV5Qg@mail.gmail.com>
- <AD0FC223-2642-42EB-ADF0-A61F5642DEEC@yahoo.com>
- <CAPcyv4jhGSo4RZtiXHKFNwzYwM_YcfoVZx0d4V=iLzdX622rKg@mail.gmail.com>
- <MWHPR21MB014312EE257DAA87046C3EA6A6B50@MWHPR21MB0143.namprd21.prod.outlook.com>
+ by ml01.01.org (Postfix) with ESMTPS id 660C62007D094
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Aug 2017 22:16:36 -0700 (PDT)
+Subject: [PATCH 3/3] libnvdimm, pfn,
+ dax: limit namespace alignments to the supported set
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 7 Aug 2017 11:13:56 -0700
-Message-ID: <CAPcyv4hsSUBHrYSXGiFN16vjHcPBb3Vng2c+H7g24-TnyWsjkg@mail.gmail.com>
-Subject: Re: [PATCH] nvdimm: Remove minimum size requirement
+Date: Fri, 11 Aug 2017 22:12:33 -0700
+Message-ID: <150251475321.11236.8796257867011123157.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150251473716.11236.9462897790331942583.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150251473716.11236.9462897790331942583.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,26 +23,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Cheng-mean Liu (SOCCER)" <soccerl@microsoft.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Matthew Wilcox <willy@infradead.org>, Matthew Wilcox <mawilcox@microsoft.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Aug 7, 2017 at 11:09 AM, Cheng-mean Liu (SOCCER)
-<soccerl@microsoft.com> wrote:
-> Hi Dan:
->
->    I am wondering if failing on those unittests is still an issue for this minimum size requirement change.
+Now that we properly advertise the supported pte, pmd, and pud sizes,
+restrict the supported alignments that can be set on a namespace. This
+assumes that userspace was not previously relying on the ability to set
+odd alignments. At least ndctl only ever supported setting the namespace
+alignment to 4K, 2M, or 1G.
 
-Yes, I just haven't had a chance to circle back and get this fixed up.
+Cc: Oliver O'Halloran <oohall@gmail.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/pfn_devs.c |   23 ++---------------------
+ 1 file changed, 2 insertions(+), 21 deletions(-)
 
-You can reproduce by running:
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 610dd17a17f6..f447a1eb919d 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -131,26 +131,6 @@ static const unsigned long *nd_pfn_supported_alignments(void)
+ 	return supported_alignments;
+ }
+ 
+-static ssize_t __align_store(struct nd_pfn *nd_pfn, const char *buf)
+-{
+-	unsigned long val;
+-	int rc;
+-
+-	rc = kstrtoul(buf, 0, &val);
+-	if (rc)
+-		return rc;
+-
+-	if (!is_power_of_2(val) || val < PAGE_SIZE || val > SZ_1G)
+-		return -EINVAL;
+-
+-	if (nd_pfn->dev.driver)
+-		return -EBUSY;
+-	else
+-		nd_pfn->align = val;
+-
+-	return 0;
+-}
+-
+ static ssize_t align_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+@@ -159,7 +139,8 @@ static ssize_t align_store(struct device *dev,
+ 
+ 	device_lock(dev);
+ 	nvdimm_bus_lock(dev);
+-	rc = __align_store(nd_pfn, buf);
++	rc = nd_size_select_store(dev, buf, &nd_pfn->align,
++			nd_pfn_supported_alignments());
+ 	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
+ 			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
+ 	nvdimm_bus_unlock(dev);
 
-    make TESTS=dpa-alloc check
-
-...in a checkout of the ndctl project: https://github.com/pmem/ndctl
-
-If you attempt that, note the required setup of the nfit_test modules
-documented in README.md in that same repository.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
