@@ -1,15 +1,15 @@
-From: "SAMUEL" <golasage265-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Negative SEO Services with a 100% satisfaction Guarantee
-Date: Sat, 12 Aug 2017 16:45:26 -0700
-Message-ID: <E9B71366.8EDE23BE@gmail.com>
+From: "Pattie Jin  " <sugbsimo50-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Professional lead generating based website traffic
+Date: Mon, 14 Aug 2017 06:37:34 +0300
+Message-ID: <A9BE7A4C.D019B6E7@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_598F9CAC.1268816B"
+Content-Type: multipart/mixed; boundary="----------=_59912B7A.0CB99060"
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
 
-------------=_598F9CAC.1268816B
+------------=_59912B7A.0CB99060
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
@@ -20,7 +20,8 @@ message has been attached to this so you can view it or label
 similar future email.  If you have any questions, see
 @@CONTACT_ADDRESS@@ for details.
 
-Content preview:  hi Check this out http://www.negativeseoss.com SAMUEL http://www.negativeseos.agency/unsubscribe/
+Content preview:  hi Highly Targeted website traffic http://www.basedbusinesstraffic.com
+   Regards Pattie Jin Unsubscribe option is available on the footer of our website
    [...] 
 
 Content analysis details:   (9.7 points, 5.0 required)
@@ -28,22 +29,19 @@ Content analysis details:   (9.7 points, 5.0 required)
  pts rule name              description
 ---- ---------------------- --------------------------------------------------
  1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: negativeseoss.com]
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: negativeseoss.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: negativeseoss.com]
+                            [URIs: basedbusinesstraffic.com]
+ 1.7 URIBL_BLACK            Contains an URL listed in the URIBL blacklist
+                            [URIs: basedbusinesstraffic.com]
 -0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
                             trust
                             [198.145.21.10 listed in list.dnswl.org]
  1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-             [Blocked - see <http://www.spamcop.net/bl.shtml?220.125.146.235>]
+             [Blocked - see <http://www.spamcop.net/bl.shtml?103.194.187.130>]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: basedbusinesstraffic.com]
  2.8 FSL_HELO_FAKE          No description available.
  0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (golasage265[at]gmail.com)
+                            (sugbsimo50[at]gmail.com)
 -0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
  0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
                             domains are different
@@ -55,19 +53,19 @@ Content analysis details:   (9.7 points, 5.0 required)
  0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
  0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
                             [cf: 100]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.negativeseoss.com]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.negativeseoss.com]
  0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
                             EnvelopeFrom freemail headers are different
 
+The original message was not completely plain text, and may be unsafe to
+open with some email clients; in particular, it may contain a virus,
+or confirm that your address can receive spam.  If you wish to view
+it, it may be safer to save it to a file and open it with an editor.
 
 
-------------=_598F9CAC.1268816B
+------------=_59912B7A.0CB99060
 Content-Type: message/rfc822; x-spam-type=original
 Content-Description: original message before SpamAssassin
-Content-Disposition: inline
+Content-Disposition: attachment
 Content-Transfer-Encoding: 8bit
 
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
@@ -75,24 +73,24 @@ Envelope-to: gln-linux-nvdimm@m.gmane.org
 Received: from ml01.01.org ([198.145.21.10])
 	by blaine.gmane.org with esmtp (Exim 4.84_2)
 	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1dggjI-0007qr-DD
-	for gln-linux-nvdimm@m.gmane.org; Sun, 13 Aug 2017 02:26:08 +0200
+	id 1dh7Hy-00039H-7y
+	for gln-linux-nvdimm@m.gmane.org; Mon, 14 Aug 2017 06:47:42 +0200
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 71B7421E2572D;
-	Sat, 12 Aug 2017 17:23:51 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id B60792095E00B;
+	Sun, 13 Aug 2017 21:45:24 -0700 (PDT)
 X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (unknown [220.125.146.235])
- by ml01.01.org (Postfix) with SMTP id 80DFC21DF968B
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sat, 12 Aug 2017 17:23:48 -0700 (PDT)
-Message-ID: <E9B71366.8EDE23BE-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sat, 12 Aug 2017 16:45:26 -0700
-From: "SAMUEL" <golasage265-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; fr;
- rv:1.8.1.21) Gecko/20090302 Thunderbird/2.0.0.21
+Received: from gmail.com (unknown [103.194.187.130])
+ by ml01.01.org (Postfix) with SMTP id 2841A21D0A278
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sun, 13 Aug 2017 21:45:21 -0700 (PDT)
+Message-ID: <A9BE7A4C.D019B6E7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Mon, 14 Aug 2017 06:37:34 +0300
+From: "Pattie Jin  " <sugbsimo50-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-US;
+ rv:1.8.1.18) Gecko/20081105 Thunderbird/2.0.0.18
 MIME-Version: 1.0
 To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Negative SEO Services with a 100% satisfaction Guarantee
+Subject: Professional lead generating based website traffic
 X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 X-Mailman-Version: 2.1.22
 Precedence: list
@@ -104,20 +102,21 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============8328064475655214180=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
+--===============8328064475655214180==
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
 hi
-Check this out
-http://www.negativeseoss.com
+Highly Targeted website traffic
+http://www.basedbusinesstraffic.com
 
-
-SAMUEL
-
-
-
+Regards
+Pattie Jin  
 
 
 
@@ -127,13 +126,25 @@ SAMUEL
 
 
 
-http://www.negativeseos.agency/unsubscribe/
 
+
+
+Unsubscribe option is available on the footer of our website
+
+
+
+--===============8328064475655214180==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
+--===============8328064475655214180==--
 
-------------=_598F9CAC.1268816B--
+
+------------=_59912B7A.0CB99060--
