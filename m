@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg0-x236.google.com (mail-pg0-x236.google.com
+ [IPv6:2607:f8b0:400e:c05::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B34D121DF8073
- for <linux-nvdimm@lists.01.org>; Mon, 28 Aug 2017 08:49:17 -0700 (PDT)
-Subject: [PATCH] libnvdimm: clean up command definitions
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 28 Aug 2017 08:45:32 -0700
-Message-ID: <150393513271.10003.253995897844648312.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8AF2C21D0A272
+ for <linux-nvdimm@lists.01.org>; Sun, 13 Aug 2017 18:36:52 -0700 (PDT)
+Received: by mail-pg0-x236.google.com with SMTP id v189so36893362pgd.2
+ for <linux-nvdimm@lists.01.org>; Sun, 13 Aug 2017 18:39:15 -0700 (PDT)
+Date: Mon, 14 Aug 2017 10:39:30 +0900
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: Re: [PATCH v2 1/7] zram: set BDI_CAP_STABLE_WRITES once
+Message-ID: <20170814013930.GA603@jagdpanzerIV.localdomain>
+References: <1502428647-28928-1-git-send-email-minchan@kernel.org>
+ <1502428647-28928-2-git-send-email-minchan@kernel.org>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1502428647-28928-2-git-send-email-minchan@kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,72 +27,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>, linux-kernel@vger.kernel.org
+To: Minchan Kim <minchan@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Senozhatsky <sergey.senozhatsky@gmail.com>, jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, kernel-team <kernel-team@lge.com>, seungho1.park@lge.com, Ilya Dryomov <idryomov@gmail.com>, "karam . lee" <karam.lee@lge.com>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Remove the command payloads that do not have an associated libnvdimm
-ioctl. I.e. remove the payloads that would only ever be carried in the
-ND_CMD_CALL envelope. This prevents userspace from growing unnecessary
-dependencies on this kernel header when userspace already has everything
-it needs to craft and send these commands.
+On (08/11/17 14:17), Minchan Kim wrote:
+> [1] fixed weird thing(i.e., reset BDI_CAP_STABLE_WRITES flag
+> unconditionally whenever revalidat_disk is called) so zram doesn't
+> need to reset the flag any more whenever revalidating the bdev.
+> Instead, set the flag just once when the zram device is created.
+> 
+> It shouldn't change any behavior.
+> 
+> [1] 19b7ccf8651d, block: get rid of blk_integrity_revalidate()
+> Cc: Senozhatsky <sergey.senozhatsky@gmail.com>
+> Cc: Ilya Dryomov <idryomov@gmail.com>
+> Signed-off-by: Minchan Kim <minchan@kernel.org>
 
-Cc: Jerry Hoemann <jerry.hoemann@hpe.com>
-Reported-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/uapi/linux/ndctl.h |   37 -------------------------------------
- 1 file changed, 37 deletions(-)
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 6d3c54264d8e..3f03567631cb 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -145,43 +145,6 @@ struct nd_cmd_clear_error {
- 	__u64 cleared;
- } __packed;
- 
--struct nd_cmd_trans_spa {
--	__u64 spa;
--	__u32 status;
--	__u8  flags;
--	__u8  _reserved[3];
--	__u64 trans_length;
--	__u32 num_nvdimms;
--	struct nd_nvdimm_device {
--		__u32 nfit_device_handle;
--		__u32 _reserved;
--		__u64 dpa;
--	} __packed devices[0];
--
--} __packed;
--
--struct nd_cmd_ars_err_inj {
--	__u64 err_inj_spa_range_base;
--	__u64 err_inj_spa_range_length;
--	__u8  err_inj_options;
--	__u32 status;
--} __packed;
--
--struct nd_cmd_ars_err_inj_clr {
--	__u64 err_inj_clr_spa_range_base;
--	__u64 err_inj_clr_spa_range_length;
--	__u32 status;
--} __packed;
--
--struct nd_cmd_ars_err_inj_stat {
--	__u32 status;
--	__u32 inj_err_rec_count;
--	struct nd_error_stat_query_record {
--		__u64 err_inj_stat_spa_range_base;
--		__u64 err_inj_stat_spa_range_length;
--	} __packed record[0];
--} __packed;
--
- enum {
- 	ND_CMD_IMPLEMENTED = 0,
- 
-
+	-ss
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
