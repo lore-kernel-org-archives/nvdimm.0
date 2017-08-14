@@ -1,101 +1,66 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg0-x22e.google.com (mail-pg0-x22e.google.com
- [IPv6:2607:f8b0:400e:c05::22e])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8108D21D18257
- for <linux-nvdimm@lists.01.org>; Mon, 14 Aug 2017 08:04:11 -0700 (PDT)
-Received: by mail-pg0-x22e.google.com with SMTP id v77so48784895pgb.3
- for <linux-nvdimm@lists.01.org>; Mon, 14 Aug 2017 08:06:35 -0700 (PDT)
-Date: Tue, 15 Aug 2017 00:06:20 +0900
-From: Minchan Kim <minchan@kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
 Subject: Re: [PATCH v1 2/6] fs: use on-stack-bio if backing device has
  BDI_CAP_SYNC capability
-Message-ID: <20170814150620.GA12657@bgram>
-References: <20170808132904.GC31390@bombadil.infradead.org>
- <20170809015113.GB32338@bbox>
- <20170809023122.GF31390@bombadil.infradead.org>
- <20170809024150.GA32471@bbox>
+References: <1502175024-28338-3-git-send-email-minchan@kernel.org>
+ <20170808124959.GB31390@bombadil.infradead.org>
+ <20170808132904.GC31390@bombadil.infradead.org> <20170809015113.GB32338@bbox>
+ <20170809023122.GF31390@bombadil.infradead.org> <20170809024150.GA32471@bbox>
  <20170810030433.GG31390@bombadil.infradead.org>
  <CAA9_cmekE9_PYmNnVmiOkyH2gq5o8=uvEKnAbMWw5nBX-zE69g@mail.gmail.com>
  <20170811104615.GA14397@lst.de>
  <20c5b30a-b787-1f46-f997-7542a87033f8@kernel.dk>
  <20170814085042.GG26913@bbox>
- <51f7472a-977b-be69-2688-48f2a0fa6fb3@kernel.dk>
+From: Jens Axboe <axboe@kernel.dk>
+Message-ID: <51f7472a-977b-be69-2688-48f2a0fa6fb3@kernel.dk>
+Date: Mon, 14 Aug 2017 08:36:00 -0600
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <51f7472a-977b-be69-2688-48f2a0fa6fb3@kernel.dk>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20170814085042.GG26913@bbox>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jens Axboe <axboe@kernel.dk>
-Cc: kernel-team <kernel-team@lge.com>, Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, linux-mm <linux-mm@kvack.org>, seungho1.park@lge.com, Andrew Morton <akpm@linux-foundation.org>, "karam . lee" <karam.lee@lge.com>
+Sender: owner-linux-mm@kvack.org
+To: Minchan Kim <minchan@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "karam . lee" <karam.lee@lge.com>, seungho1.park@lge.com, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, kernel-team <kernel-team@lge.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Aug 14, 2017 at 08:36:00AM -0600, Jens Axboe wrote:
-> On 08/14/2017 02:50 AM, Minchan Kim wrote:
-> > Hi Jens,
-> > 
-> > On Fri, Aug 11, 2017 at 08:26:59AM -0600, Jens Axboe wrote:
-> >> On 08/11/2017 04:46 AM, Christoph Hellwig wrote:
-> >>> On Wed, Aug 09, 2017 at 08:06:24PM -0700, Dan Williams wrote:
-> >>>> I like it, but do you think we should switch to sbvec[<constant>] to
-> >>>> preclude pathological cases where nr_pages is large?
-> >>>
-> >>> Yes, please.
-> >>>
-> >>> Then I'd like to see that the on-stack bio even matters for
-> >>> mpage_readpage / mpage_writepage.  Compared to all the buffer head
-> >>> overhead the bio allocation should not actually matter in practice.
-> >>
-> >> I'm skeptical for that path, too. I also wonder how far we could go
-> >> with just doing a per-cpu bio recycling facility, to reduce the cost
-> >> of having to allocate a bio. The on-stack bio parts are fine for
-> >> simple use case, where simple means that the patch just special
-> >> cases the allocation, and doesn't have to change much else.
-> >>
-> >> I had a patch for bio recycling and batched freeing a year or two
-> >> ago, I'll see if I can find and resurrect it.
-> > 
-> > So, you want to go with per-cpu bio recycling approach to
-> > remove rw_page?
-> > 
-> > So, do you want me to hold this patchset?
+On 08/14/2017 02:50 AM, Minchan Kim wrote:
+> Hi Jens,
 > 
-> I don't want to hold this series up, but I do think the recycling is
-> a cleaner approach since we don't need to special case anything. I
-> hope I'll get some time to dust it off, retest, and post soon.
+> On Fri, Aug 11, 2017 at 08:26:59AM -0600, Jens Axboe wrote:
+>> On 08/11/2017 04:46 AM, Christoph Hellwig wrote:
+>>> On Wed, Aug 09, 2017 at 08:06:24PM -0700, Dan Williams wrote:
+>>>> I like it, but do you think we should switch to sbvec[<constant>] to
+>>>> preclude pathological cases where nr_pages is large?
+>>>
+>>> Yes, please.
+>>>
+>>> Then I'd like to see that the on-stack bio even matters for
+>>> mpage_readpage / mpage_writepage.  Compared to all the buffer head
+>>> overhead the bio allocation should not actually matter in practice.
+>>
+>> I'm skeptical for that path, too. I also wonder how far we could go
+>> with just doing a per-cpu bio recycling facility, to reduce the cost
+>> of having to allocate a bio. The on-stack bio parts are fine for
+>> simple use case, where simple means that the patch just special
+>> cases the allocation, and doesn't have to change much else.
+>>
+>> I had a patch for bio recycling and batched freeing a year or two
+>> ago, I'll see if I can find and resurrect it.
+> 
+> So, you want to go with per-cpu bio recycling approach to
+> remove rw_page?
+> 
+> So, do you want me to hold this patchset?
 
-I don't know how your bio recycling works. But my worry when I heard
-per-cpu bio recycling firstly is if it's not reserved pool for
-BDI_CAP_SYNCHRONOUS(IOW, if it is shared by several storages),
-BIOs can be consumed by slow device(e.g., eMMC) so that a bio for
-fastest device(e.g., zram in embedded system) in the system can be
-stucked to wait on bio until IO for slow deivce is completed.
+I don't want to hold this series up, but I do think the recycling is
+a cleaner approach since we don't need to special case anything. I
+hope I'll get some time to dust it off, retest, and post soon.
 
-I guess it would be a not rare case for swap device under severe
-memory pressure because lots of page cache are already reclaimed when
-anonymous page start to be reclaimed so that many BIOs can be consumed
-for eMMC to fetch code but swap IO to fetch heap data would be stucked
-although zram-swap is much faster than eMMC.
-As well, time to wait to get BIO among even fastest devices is
-simple waste, I guess.
+-- 
+Jens Axboe
 
-To me, bio suggested by Christoph Hellwig isn't diverge current
-path a lot and simple enough to change.
-
-Anyway, I'm okay with either way if we can remove rw_page without
-any regression because the maintainance of both rw_page and
-make_request is rather burden for zram, too.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
