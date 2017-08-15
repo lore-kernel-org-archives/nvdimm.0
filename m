@@ -1,74 +1,174 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 15 Aug 2017 14:27:01 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v4 2/3] mm: introduce MAP_VALIDATE a mechanism for adding
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9241421E1452F
+ for <linux-nvdimm@lists.01.org>; Mon, 14 Aug 2017 23:16:16 -0700 (PDT)
+Subject: [PATCH v4 2/3] mm: introduce MAP_VALIDATE a mechanism for adding
  new mmap flags
-Message-ID: <20170815122701.GF27505@quack2.suse.cz>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 14 Aug 2017 23:12:16 -0700
+Message-ID: <150277753660.23945.11500026891611444016.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150277752553.23945.13932394738552748440.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <150277752553.23945.13932394738552748440.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150277753660.23945.11500026891611444016.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <150277753660.23945.11500026891611444016.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: darrick.wong@oracle.com, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, luto@kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: darrick.wong@oracle.com
+Cc: Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, luto@kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon 14-08-17 23:12:16, Dan Williams wrote:
-> The mmap syscall suffers from the ABI anti-pattern of not validating
-> unknown flags. However, proposals like MAP_SYNC and MAP_DIRECT need a
-> mechanism to define new behavior that is known to fail on older kernels
-> without the feature. Use the fact that specifying MAP_SHARED and
-> MAP_PRIVATE at the same time is invalid as a cute hack to allow a new
-> set of validated flags to be introduced.
-> 
-> This also introduces the ->fmmap() file operation that is ->mmap() plus
-> flags. Each ->fmmap() implementation must fail requests when a locally
-> unsupported flag is specified.
-...
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index 1104e5df39ef..bbe755d0caee 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -1674,6 +1674,7 @@ struct file_operations {
->  	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
->  	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
->  	int (*mmap) (struct file *, struct vm_area_struct *);
-> +	int (*fmmap) (struct file *, struct vm_area_struct *, unsigned long);
->  	int (*open) (struct inode *, struct file *);
->  	int (*flush) (struct file *, fl_owner_t id);
->  	int (*release) (struct inode *, struct file *);
-> @@ -1748,6 +1749,12 @@ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
->  	return file->f_op->mmap(file, vma);
->  }
->  
-> +static inline int call_fmmap(struct file *file, struct vm_area_struct *vma,
-> +		unsigned long flags)
-> +{
-> +	return file->f_op->fmmap(file, vma, flags);
-> +}
-> +
+The mmap syscall suffers from the ABI anti-pattern of not validating
+unknown flags. However, proposals like MAP_SYNC and MAP_DIRECT need a
+mechanism to define new behavior that is known to fail on older kernels
+without the feature. Use the fact that specifying MAP_SHARED and
+MAP_PRIVATE at the same time is invalid as a cute hack to allow a new
+set of validated flags to be introduced.
 
-Hum, I dislike a new file op for this when the only problem with ->mmap is
-that it misses 'flags' argument. I understand there are lots of ->mmap
-implementations out there and modifying prototype of them all is painful
-but is it so bad? Coccinelle patch for this should be rather easy...
+This also introduces the ->fmmap() file operation that is ->mmap() plus
+flags. Each ->fmmap() implementation must fail requests when a locally
+unsupported flag is specified.
 
-Also for MAP_SYNC I want the flag to be copied in VMA anyway so for that I
-don't need additional flags argument anyway. And I wonder how you want to
-make things work without VMA flag in case of MAP_DIRECT as well - VMAs can
-be split, partially unmapped etc. and so without VMA flag you are going to
-have hard time to detect whether there's any mapping left which blocks
-block mapping changes.
+Cc: Jan Kara <jack@suse.cz>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ include/linux/fs.h                     |    7 +++++++
+ include/linux/mm.h                     |    2 +-
+ include/linux/mman.h                   |    3 +++
+ include/uapi/asm-generic/mman-common.h |    1 +
+ mm/mmap.c                              |   20 +++++++++++++++++---
+ 5 files changed, 29 insertions(+), 4 deletions(-)
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 1104e5df39ef..bbe755d0caee 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1674,6 +1674,7 @@ struct file_operations {
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
++	int (*fmmap) (struct file *, struct vm_area_struct *, unsigned long);
+ 	int (*open) (struct inode *, struct file *);
+ 	int (*flush) (struct file *, fl_owner_t id);
+ 	int (*release) (struct inode *, struct file *);
+@@ -1748,6 +1749,12 @@ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return file->f_op->mmap(file, vma);
+ }
+ 
++static inline int call_fmmap(struct file *file, struct vm_area_struct *vma,
++		unsigned long flags)
++{
++	return file->f_op->fmmap(file, vma, flags);
++}
++
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 46b9ac5e8569..49eef48da4b7 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2090,7 +2090,7 @@ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned lo
+ 
+ extern unsigned long mmap_region(struct file *file, unsigned long addr,
+ 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+-	struct list_head *uf);
++	struct list_head *uf, unsigned long flags);
+ extern unsigned long do_mmap(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot, unsigned long flags,
+ 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index c8367041fafd..73d4ac7e7136 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -7,6 +7,9 @@
+ #include <linux/atomic.h>
+ #include <uapi/linux/mman.h>
+ 
++/* the MAP_VALIDATE set of supported flags */
++#define	MAP_SUPPORTED_MASK (0)
++
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+ extern unsigned long sysctl_overcommit_kbytes;
+diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
+index 8c27db0c5c08..8bf8c7828275 100644
+--- a/include/uapi/asm-generic/mman-common.h
++++ b/include/uapi/asm-generic/mman-common.h
+@@ -24,6 +24,7 @@
+ #else
+ # define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
+ #endif
++#define MAP_VALIDATE (MAP_SHARED|MAP_PRIVATE) /* mechanism to define new shared semantics */
+ 
+ /*
+  * Flags for mlock
+diff --git a/mm/mmap.c b/mm/mmap.c
+index f19efcf75418..d2919a9e25bf 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -1388,6 +1388,12 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
+ 		struct inode *inode = file_inode(file);
+ 
+ 		switch (flags & MAP_TYPE) {
++		case MAP_VALIDATE:
++			if (flags & ~(MAP_SUPPORTED_MASK | MAP_VALIDATE))
++				return -EINVAL;
++			if (!file->f_op->fmmap)
++				return -EOPNOTSUPP;
++			/* fall through */
+ 		case MAP_SHARED:
+ 			if ((prot&PROT_WRITE) && !(file->f_mode&FMODE_WRITE))
+ 				return -EACCES;
+@@ -1464,7 +1470,12 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
+ 			vm_flags |= VM_NORESERVE;
+ 	}
+ 
+-	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf);
++	if ((flags & MAP_VALIDATE) == MAP_VALIDATE)
++		flags &= MAP_SUPPORTED_MASK;
++	else
++		flags = 0;
++
++	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags);
+ 	if (!IS_ERR_VALUE(addr) &&
+ 	    ((vm_flags & VM_LOCKED) ||
+ 	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
+@@ -1601,7 +1612,7 @@ static inline int accountable_mapping(struct file *file, vm_flags_t vm_flags)
+ 
+ unsigned long mmap_region(struct file *file, unsigned long addr,
+ 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+-		struct list_head *uf)
++		struct list_head *uf, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma, *prev;
+@@ -1686,7 +1697,10 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
+ 		 * new file must not have been exposed to user-space, yet.
+ 		 */
+ 		vma->vm_file = get_file(file);
+-		error = call_mmap(file, vma);
++		if (flags)
++			error = call_fmmap(file, vma, flags);
++		else
++			error = call_mmap(file, vma);
+ 		if (error)
+ 			goto unmap_and_free_vma;
+ 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
