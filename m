@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2415C21E79010
- for <linux-nvdimm@lists.01.org>; Mon, 21 Aug 2017 14:08:38 -0700 (PDT)
-Subject: [PATCH v5 6/7] dmaengine: add SG support to dmaengine_unmap
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 21 Aug 2017 14:11:09 -0700
-Message-ID: <150334986946.55214.3540641512473593212.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
-References: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9A4A421E0C2E7
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Aug 2017 00:48:35 -0700 (PDT)
+Subject: [PATCH v5 5/5] fs, fcntl: add F_MAP_DIRECT
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 16 Aug 2017 00:44:33 -0700
+Message-ID: <150286947385.8837.2630371125726376087.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150286944610.8837.9513410258028246174.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150286944610.8837.9513410258028246174.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,96 +22,112 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This provides support to unmap scatterlist with the
-dmaengine_unmap_data. We will support only 1 scatterlist per
-direction.
+A common pattern for granting a privilege to an unprivileged process is
+to pass it an established file descriptor over a unix domain socket.
+This enables fine grained access to the MAP_DIRECT mechanism instead of
+requiring the mapping process have CAP_LINUX_IMMUTABLE.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dma/dmaengine.c   |   27 +++++++++++++++++++++++++++
- include/linux/dmaengine.h |   13 ++++++++++++-
- 2 files changed, 39 insertions(+), 1 deletion(-)
+ fs/fcntl.c                 |   15 +++++++++++++++
+ include/linux/fs.h         |    5 +++--
+ include/uapi/linux/fcntl.h |    5 +++++
+ mm/mmap.c                  |    3 ++-
+ 4 files changed, 25 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
-index 40a035e..09ee03d 100644
---- a/drivers/dma/dmaengine.c
-+++ b/drivers/dma/dmaengine.c
-@@ -1124,12 +1124,39 @@ static struct dmaengine_unmap_pool *__get_unmap_pool(int nr)
+diff --git a/fs/fcntl.c b/fs/fcntl.c
+index 3b01b646e528..f2375c406e6f 100644
+--- a/fs/fcntl.c
++++ b/fs/fcntl.c
+@@ -318,6 +318,18 @@ static long fcntl_rw_hint(struct file *file, unsigned int cmd,
  	}
  }
  
-+static void dmaengine_unmap_sg(struct dmaengine_unmap_data *unmap)
++static int fcntl_map_direct(struct file *filp)
 +{
-+	struct device *dev = unmap->dev;
++	if (!capable(CAP_LINUX_IMMUTABLE))
++		return -EACCES;
 +
-+	if (unmap->to_sg) {
-+		dma_unmap_sg(dev, unmap->unmap_sg.sg,
-+				unmap->sg_nents, DMA_TO_DEVICE);
++	spin_lock(&filp->f_lock);
++	filp->f_map_direct = 1;
++	spin_unlock(&filp->f_lock);
 +
-+		dma_unmap_page(dev, unmap->unmap_sg.buf_phys, unmap->len,
-+					DMA_FROM_DEVICE);
-+	}
-+
-+	if (unmap->from_sg) {
-+		dma_unmap_page(dev, unmap->unmap_sg.buf_phys, unmap->len,
-+				DMA_TO_DEVICE);
-+		dma_unmap_sg(dev, unmap->unmap_sg.sg,
-+				unmap->sg_nents, DMA_FROM_DEVICE);
-+	}
-+
-+	mempool_free(unmap, __get_unmap_pool(unmap->map_cnt)->pool);
++	return 0;
 +}
 +
- static void dmaengine_unmap(struct kref *kref)
+ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
+ 		struct file *filp)
  {
- 	struct dmaengine_unmap_data *unmap = container_of(kref, typeof(*unmap), kref);
- 	struct device *dev = unmap->dev;
- 	int cnt, i;
+@@ -425,6 +437,9 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
+ 	case F_SET_FILE_RW_HINT:
+ 		err = fcntl_rw_hint(filp, cmd, arg);
+ 		break;
++	case F_MAP_DIRECT:
++		err = fcntl_map_direct(filp);
++		break;
+ 	default:
+ 		break;
+ 	}
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index db42da9f98c4..3f7026974dd2 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -855,11 +855,12 @@ struct file {
+ 	const struct file_operations	*f_op;
  
-+	if (unmap->to_sg || unmap->from_sg) {
-+		dmaengine_unmap_sg(unmap);
-+		return;
-+	}
+ 	/*
+-	 * Protects f_ep_links, f_flags.
++	 * Protects f_ep_links, f_flags, f_write_hint, and f_map_direct.
+ 	 * Must not be taken from IRQ context.
+ 	 */
+ 	spinlock_t		f_lock;
+-	enum rw_hint		f_write_hint;
++	enum rw_hint		f_write_hint:3;
++	int			f_map_direct:1;
+ 	atomic_long_t		f_count;
+ 	unsigned int 		f_flags;
+ 	fmode_t			f_mode;
+diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
+index ec69d55bcec7..2a57a503174e 100644
+--- a/include/uapi/linux/fcntl.h
++++ b/include/uapi/linux/fcntl.h
+@@ -53,6 +53,11 @@
+ #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
+ 
+ /*
++ * Enable MAP_DIRECT on the file without CAP_LINUX_IMMUTABLE
++ */
++#define F_MAP_DIRECT		(F_LINUX_SPECIFIC_BASE + 15)
 +
- 	cnt = unmap->to_cnt;
- 	for (i = 0; i < cnt; i++)
- 		dma_unmap_page(dev, unmap->addr[i], unmap->len,
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index 53356c4..fc53854 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -464,15 +464,26 @@ struct dmaengine_result {
- typedef void (*dma_async_tx_callback_result)(void *dma_async_param,
- 				const struct dmaengine_result *result);
++/*
+  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
+  * used to clear any hints previously set.
+  */
+diff --git a/mm/mmap.c b/mm/mmap.c
+index 32417b2a668c..cf5e0cb7d0e3 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -1399,7 +1399,8 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
+ 			if (flags & MAP_DIRECT) {
+ 				if (!(prot & PROT_WRITE))
+ 					return -EACCES;
+-				if (!capable(CAP_LINUX_IMMUTABLE))
++				if (!file->f_map_direct
++						&& !capable(CAP_LINUX_IMMUTABLE))
+ 					return -EACCES;
+ 			}
  
-+struct dmaengine_unmap_sg {
-+	struct scatterlist *sg;
-+	dma_addr_t buf_phys;
-+};
-+
- struct dmaengine_unmap_data {
- 	u8 map_cnt;
- 	u8 to_cnt;
-+	u8 to_sg;
- 	u8 from_cnt;
-+	u8 from_sg;
- 	u8 bidi_cnt;
-+	int sg_nents;
- 	struct device *dev;
- 	struct kref kref;
- 	size_t len;
--	dma_addr_t addr[0];
-+	union {
-+		struct dmaengine_unmap_sg unmap_sg;
-+		dma_addr_t addr[0];
-+	};
- };
- 
- /**
 
 _______________________________________________
 Linux-nvdimm mailing list
