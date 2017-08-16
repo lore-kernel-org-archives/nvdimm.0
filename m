@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk0-x242.google.com (mail-qk0-x242.google.com
+ [IPv6:2607:f8b0:400d:c09::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40E2321E95DE8
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 13:56:09 -0700 (PDT)
-Subject: [PATCH v7 7/9] libnvdimm: remove definition of REQ_FLUSH
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 30 Aug 2017 13:56:12 -0700
-Message-ID: <150412657216.69288.11577587751205759548.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
-References: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A623721E2DA67
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Aug 2017 22:20:43 -0700 (PDT)
+Received: by mail-qk0-x242.google.com with SMTP id d21so1099825qke.3
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Aug 2017 22:23:09 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4g-bk2ppR2HM85=rmCHB1TaZ4FL2oLMNgKsv56HWDE6Gg@mail.gmail.com>
+References: <150251474784.11236.9077158081550562491.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <201708151333.nLya1R9C%fengguang.wu@intel.com>
+ <CAOSf1CGa3BBmDZ5KjsK0fsT8e7uN10oTSqKNyognAe+8hSDKVQ@mail.gmail.com>
+ <CAPcyv4g-bk2ppR2HM85=rmCHB1TaZ4FL2oLMNgKsv56HWDE6Gg@mail.gmail.com>
+From: Oliver <oohall@gmail.com>
+Date: Wed, 16 Aug 2017 15:23:08 +1000
+Message-ID: <CAOSf1CEBYYNTPffkzCbBZvTPXBw=GQjd4hMC4HGeN=48S_Vqcw@mail.gmail.com>
+Subject: Re: [PATCH 2/3] libnvdimm, pfn, dax: show supported dax/pfn region
+ alignments in sysfs
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,44 +29,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, kbuild test robot <lkp@intel.com>, kbuild-all@01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-According to driver comment REQ_FLUSH is replaced with REQ_PREFLUSH after
-v4.8-rc1. Removing definition and putting in new definition.
+On Wed, Aug 16, 2017 at 1:47 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Mon, Aug 14, 2017 at 11:46 PM, Oliver <oohall@gmail.com> wrote:
+>> On Tue, Aug 15, 2017 at 4:02 PM, kbuild test robot <lkp@intel.com> wrote:
+> [..]
+>>>    114  static const unsigned long *nd_pfn_supported_alignments(void)
+>>>    115  {
+>>>    116          /*
+>>>    117           * This needs to be a local variable because the *_SIZE macros
+>>>    118           * aren't always constants.
+>>>    119           */
+>>
+>> I probably should have been clearer, "local" here really means
+>> "non-static". Otherwise the array could have been made a global.
+>>
+>
+> Whoops, my fault. How about this:
+>
+> @@ -127,8 +127,11 @@ static const unsigned long
+> *nd_pfn_supported_alignments(void)
+>  #endif
+>                 0,
+>         };
+> +       static unsigned long data[ARRAY_SIZE(supported_alignments)];
+>
+> -       return supported_alignments;
+> +       memcpy(data, supported_alignments, sizeof(data));
+> +
+> +       return data;
+>  }
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/nvdimm/pmem.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index f7099ada..b1460d1 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -144,11 +144,6 @@ static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 	return rc;
- }
- 
--/* account for REQ_FLUSH rename, replace with REQ_PREFLUSH after v4.8-rc1 */
--#ifndef REQ_FLUSH
--#define REQ_FLUSH REQ_PREFLUSH
--#endif
--
- static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- {
- 	blk_status_t rc = 0;
-@@ -159,7 +154,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- 	struct pmem_device *pmem = q->queuedata;
- 	struct nd_region *nd_region = to_region(pmem);
- 
--	if (bio->bi_opf & REQ_FLUSH)
-+	if (bio->bi_opf & REQ_PREFLUSH)
- 		nvdimm_flush(nd_region);
- 
- 	do_acct = nd_iostat_start(bio, &start);
-
+That should do the trick, but you'll need to fix up the source array
+declaration too.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
