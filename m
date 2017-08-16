@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mail.sfc.wide.ad.jp (shonan.sfc.wide.ad.jp [203.178.142.130])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7A12421E49BC5
- for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:06:58 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/2] dax: use PG_PMD_COLOUR instead of open coding
-Date: Tue, 22 Aug 2017 16:09:26 -0600
-Message-Id: <20170822220926.13799-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170822220926.13799-1-ross.zwisler@linux.intel.com>
-References: <20170822220926.13799-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3FBC721E2DA43
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Aug 2017 21:38:55 -0700 (PDT)
+Subject: Re: get_user_pages_unlocked() fails for mmap()-ed nvdimm-backed file
+References: <CA+Sc9E0KYUB2BexdwhG5wvMLu38TLagqgEyzQDthpv3L+YuTBA@mail.gmail.com>
+ <CAPcyv4hY1Ceg2yHvO2OX=x5kZE6Tmypnctc0oPL6A6a4hWX20A@mail.gmail.com>
+From: Michio Honda <micchie@sfc.wide.ad.jp>
+Message-ID: <a7bb4181-26f0-b6d4-f2fa-6b51defa70bd@sfc.wide.ad.jp>
+Date: Wed, 16 Aug 2017 06:41:12 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4hY1Ceg2yHvO2OX=x5kZE6Tmypnctc0oPL6A6a4hWX20A@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,62 +20,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Alexander Viro <viro@zeniv.linux.org.uk>, "Slusarz, Marcin" <marcin.slusarz@intel.com>, linux-fsdevel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Giuseppe Lettieri <g.lettieri@iet.unipi.it>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use ~PG_PMD_COLOUR in dax_entry_waitqueue() instead of open coding an
-equivalent page offset mask.
+You were right and it perfectly works now (I used "pending" branch of 
+ndctl). Thanks a lot!
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/dax.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+Cheers,
+- Michio
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 865d42c..0e2a1fd 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -42,6 +42,9 @@
- #define DAX_WAIT_TABLE_BITS 12
- #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
- 
-+/* The 'colour' (ie low bits) within a PMD of a page offset.  */
-+#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
-+
- static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
- 
- static int __init init_dax_wait_table(void)
-@@ -98,7 +101,7 @@ static wait_queue_head_t *dax_entry_waitqueue(struct address_space *mapping,
- 	 * the range covered by the PMD map to the same bit lock.
- 	 */
- 	if (dax_is_pmd_entry(entry))
--		index &= ~((1UL << (PMD_SHIFT - PAGE_SHIFT)) - 1);
-+		index &= ~PG_PMD_COLOUR;
- 
- 	key->mapping = mapping;
- 	key->entry_start = index;
-@@ -1262,12 +1265,6 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- }
- 
- #ifdef CONFIG_FS_DAX_PMD
--/*
-- * The 'colour' (ie low bits) within a PMD of a page offset.  This comes up
-- * more often than one might expect in the below functions.
-- */
--#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
--
- static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
- 		loff_t pos, void **entryp)
- {
--- 
-2.9.5
-
+On 08/16/2017 12:05 AM, Dan Williams wrote:
+> On Tue, Aug 15, 2017 at 2:56 PM, Honda Michio <micchie@sfc.wide.ad.jp> wrote:
+>> Dear Linux NVDIMM developers,
+>>
+>> We are implementing a kernel module that get_user_pages()s an address
+>> provided by a user-space application. This address is a mmap()-ed region of
+>> a file backed by pmem (XFS with DAX).
+>> It works or successfully gets a kernel virtual address for emulated PMEM
+>> with memmap grub option but doesn't work with a real NVDIMM (I use HPE's
+>> NVDIMM).
+>>
+>> I wonder if I am doing something fundamentally wrong, or just making a
+>> mistake about kernel configuration or arguments passed to
+>> get_user_pages_unlocked().
+>>
+>> I am giving FOLL_WRITE | FOLL_GET | FOLL_SPLIT | FOLL_POPULATE to
+>> get_user_pages_unlocked(); it fails in vm_normal_page() in
+>> follow_page_pte(), then falls into follow_pfn_pte() with flags & FOLL_GET
+>> to be true, causing -EFAULT returned.
+>>
+>> I use libnvdimm-for-next branch
+>> (bbb3be170ac2891526ad07b18af7db226879a8e7) and my kernel configuration
+>> looks like:
+>>
+>> root@c402:~/deployed/net-next# egrep -i "(dax|nvdimm|pmem)" .config
+>> CONFIG_X86_PMEM_LEGACY_DEVICE=y
+>> CONFIG_X86_PMEM_LEGACY=y
+>> CONFIG_LIBNVDIMM=y
+>> CONFIG_BLK_DEV_PMEM=m
+>> CONFIG_NVDIMM_PFN=y
+>> CONFIG_NVDIMM_DAX=y
+>> CONFIG_DAX=y
+>> CONFIG_DEV_DAX=y
+>> CONFIG_DEV_DAX_PMEM=y
+>> CONFIG_FS_DAX=y
+>> CONFIG_FS_DAX_PMD=y
+>> CONFIG_ARCH_HAS_PMEM_API=y
+> 
+> Kernel configuration looks ok, but by default the kernel does not
+> enable get_user_pages() for dax mappings because it assumes a 'struct
+> page' entry has been allocated for every page of pmem. We don't do
+> that allocation in the kernel by default because the memmap (struct
+> page) array can be quite large and may not fit in available DRAM.
+> Instead we require a configuration step to place the pmem namespace
+> into 'memory' mode (see ndctl create-namespace --help).
+> 
+> I suspect if you do "ndctl list" you'll see that your namespace is in
+> 'raw' mode. Convert that to 'memory' mode with the (destructive)
+> command below.
+> 
+>       ndctl create-namespace --reconfig=namespace0.0 --mode=memory --force
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
