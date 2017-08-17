@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 110ED2095BB80
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 18:45:07 -0700 (PDT)
-Date: Thu, 31 Aug 2017 21:47:43 -0400 (EDT)
-From: Mikulas Patocka <mpatocka@redhat.com>
-Subject: [PATCH] dax: remove the pmem_dax_ops->flush abstraction
-Message-ID: <alpine.LRH.2.02.1708312138390.32309@file01.intranet.prod.int.rdu2.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9DC1121E14554
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Aug 2017 01:04:04 -0700 (PDT)
+Date: Thu, 17 Aug 2017 16:06:03 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v4 2/3] mm: introduce MAP_VALIDATE a mechanism for adding
+ new mmap flags
+Message-ID: <201708171601.hxeGHqMv%fengguang.wu@intel.com>
 MIME-Version: 1.0
+In-Reply-To: <150277753660.23945.11500026891611444016.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,284 +24,208 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: dm-devel@redhat.com, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, darrick.wong@oracle.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, kbuild-all@01.org, luto@kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The patch abebfbe2f731 ("dm: add ->flush() dax operation support") is 
-buggy. A dm device may be composed of multiple underlying devices and all 
-of them need to be flushed. The patch just routes the flush request to the 
-first device and ignores the other devices.
+Hi Dan,
 
-It could be fixed by adding more complex logic to the device mapper. But 
-there is only one implementation of the method pmem_dax_ops->flush - that 
-is pmem_dax_flush() - and it calls arch_wb_cache_pmem(). Consequently, we 
-don't need the pmem_dax_ops->flush abstraction at all, we can call 
-arch_wb_cache_pmem() directly from dax_flush() because dax_dev->ops->flush 
-couldn't ever reach anything different from arch_wb_cache_pmem().
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.13-rc5 next-20170816]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-It should be also pointed out that for some uses of persistent memory it 
-is needed to flush only very small amount of data (such as 1 cacheline), 
-and it would be overkill if we go through that device mapper machinery for 
-a single flushed cache line.
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/fs-xfs-introduce-S_IOMAP_SEALED/20170817-114711
+config: xtensa-allmodconfig (attached as .config)
+compiler: xtensa-linux-gcc (GCC) 4.9.0
+reproduce:
+        wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=xtensa 
 
-This patch removes the abstraction pmem_dax_ops->flush and calls 
-arch_wb_cache_pmem() directly from dax_flush(). It also removes device 
-mapper code that forwards the flushes.
+All errors (new ones prefixed by >>):
 
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+   mm/mmap.c: In function 'do_mmap':
+>> mm/mmap.c:1391:8: error: 'MAP_VALIDATE' undeclared (first use in this function)
+      case MAP_VALIDATE:
+           ^
+   mm/mmap.c:1391:8: note: each undeclared identifier is reported only once for each function it appears in
+
+vim +/MAP_VALIDATE +1391 mm/mmap.c
+
+  1316	
+  1317	/*
+  1318	 * The caller must hold down_write(&current->mm->mmap_sem).
+  1319	 */
+  1320	unsigned long do_mmap(struct file *file, unsigned long addr,
+  1321				unsigned long len, unsigned long prot,
+  1322				unsigned long flags, vm_flags_t vm_flags,
+  1323				unsigned long pgoff, unsigned long *populate,
+  1324				struct list_head *uf)
+  1325	{
+  1326		struct mm_struct *mm = current->mm;
+  1327		int pkey = 0;
+  1328	
+  1329		*populate = 0;
+  1330	
+  1331		if (!len)
+  1332			return -EINVAL;
+  1333	
+  1334		/*
+  1335		 * Does the application expect PROT_READ to imply PROT_EXEC?
+  1336		 *
+  1337		 * (the exception is when the underlying filesystem is noexec
+  1338		 *  mounted, in which case we dont add PROT_EXEC.)
+  1339		 */
+  1340		if ((prot & PROT_READ) && (current->personality & READ_IMPLIES_EXEC))
+  1341			if (!(file && path_noexec(&file->f_path)))
+  1342				prot |= PROT_EXEC;
+  1343	
+  1344		if (!(flags & MAP_FIXED))
+  1345			addr = round_hint_to_min(addr);
+  1346	
+  1347		/* Careful about overflows.. */
+  1348		len = PAGE_ALIGN(len);
+  1349		if (!len)
+  1350			return -ENOMEM;
+  1351	
+  1352		/* offset overflow? */
+  1353		if ((pgoff + (len >> PAGE_SHIFT)) < pgoff)
+  1354			return -EOVERFLOW;
+  1355	
+  1356		/* Too many mappings? */
+  1357		if (mm->map_count > sysctl_max_map_count)
+  1358			return -ENOMEM;
+  1359	
+  1360		/* Obtain the address to map to. we verify (or select) it and ensure
+  1361		 * that it represents a valid section of the address space.
+  1362		 */
+  1363		addr = get_unmapped_area(file, addr, len, pgoff, flags);
+  1364		if (offset_in_page(addr))
+  1365			return addr;
+  1366	
+  1367		if (prot == PROT_EXEC) {
+  1368			pkey = execute_only_pkey(mm);
+  1369			if (pkey < 0)
+  1370				pkey = 0;
+  1371		}
+  1372	
+  1373		/* Do simple checking here so the lower-level routines won't have
+  1374		 * to. we assume access permissions have been handled by the open
+  1375		 * of the memory object, so we don't do any here.
+  1376		 */
+  1377		vm_flags |= calc_vm_prot_bits(prot, pkey) | calc_vm_flag_bits(flags) |
+  1378				mm->def_flags | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
+  1379	
+  1380		if (flags & MAP_LOCKED)
+  1381			if (!can_do_mlock())
+  1382				return -EPERM;
+  1383	
+  1384		if (mlock_future_check(mm, vm_flags, len))
+  1385			return -EAGAIN;
+  1386	
+  1387		if (file) {
+  1388			struct inode *inode = file_inode(file);
+  1389	
+  1390			switch (flags & MAP_TYPE) {
+> 1391			case MAP_VALIDATE:
+  1392				if (flags & ~(MAP_SUPPORTED_MASK | MAP_VALIDATE))
+  1393					return -EINVAL;
+  1394				if (!file->f_op->fmmap)
+  1395					return -EOPNOTSUPP;
+  1396				/* fall through */
+  1397			case MAP_SHARED:
+  1398				if ((prot&PROT_WRITE) && !(file->f_mode&FMODE_WRITE))
+  1399					return -EACCES;
+  1400	
+  1401				/*
+  1402				 * Make sure we don't allow writing to an append-only
+  1403				 * file..
+  1404				 */
+  1405				if (IS_APPEND(inode) && (file->f_mode & FMODE_WRITE))
+  1406					return -EACCES;
+  1407	
+  1408				/*
+  1409				 * Make sure there are no mandatory locks on the file.
+  1410				 */
+  1411				if (locks_verify_locked(file))
+  1412					return -EAGAIN;
+  1413	
+  1414				vm_flags |= VM_SHARED | VM_MAYSHARE;
+  1415				if (!(file->f_mode & FMODE_WRITE))
+  1416					vm_flags &= ~(VM_MAYWRITE | VM_SHARED);
+  1417	
+  1418				/* fall through */
+  1419			case MAP_PRIVATE:
+  1420				if (!(file->f_mode & FMODE_READ))
+  1421					return -EACCES;
+  1422				if (path_noexec(&file->f_path)) {
+  1423					if (vm_flags & VM_EXEC)
+  1424						return -EPERM;
+  1425					vm_flags &= ~VM_MAYEXEC;
+  1426				}
+  1427	
+  1428				if (!file->f_op->mmap)
+  1429					return -ENODEV;
+  1430				if (vm_flags & (VM_GROWSDOWN|VM_GROWSUP))
+  1431					return -EINVAL;
+  1432				break;
+  1433	
+  1434			default:
+  1435				return -EINVAL;
+  1436			}
+  1437		} else {
+  1438			switch (flags & MAP_TYPE) {
+  1439			case MAP_SHARED:
+  1440				if (vm_flags & (VM_GROWSDOWN|VM_GROWSUP))
+  1441					return -EINVAL;
+  1442				/*
+  1443				 * Ignore pgoff.
+  1444				 */
+  1445				pgoff = 0;
+  1446				vm_flags |= VM_SHARED | VM_MAYSHARE;
+  1447				break;
+  1448			case MAP_PRIVATE:
+  1449				/*
+  1450				 * Set pgoff according to addr for anon_vma.
+  1451				 */
+  1452				pgoff = addr >> PAGE_SHIFT;
+  1453				break;
+  1454			default:
+  1455				return -EINVAL;
+  1456			}
+  1457		}
+  1458	
+  1459		/*
+  1460		 * Set 'VM_NORESERVE' if we should not account for the
+  1461		 * memory use of this mapping.
+  1462		 */
+  1463		if (flags & MAP_NORESERVE) {
+  1464			/* We honor MAP_NORESERVE if allowed to overcommit */
+  1465			if (sysctl_overcommit_memory != OVERCOMMIT_NEVER)
+  1466				vm_flags |= VM_NORESERVE;
+  1467	
+  1468			/* hugetlb applies strict overcommit unless MAP_NORESERVE */
+  1469			if (file && is_file_hugepages(file))
+  1470				vm_flags |= VM_NORESERVE;
+  1471		}
+  1472	
+  1473		if ((flags & MAP_VALIDATE) == MAP_VALIDATE)
+  1474			flags &= MAP_SUPPORTED_MASK;
+  1475		else
+  1476			flags = 0;
+  1477	
+  1478		addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags);
+  1479		if (!IS_ERR_VALUE(addr) &&
+  1480		    ((vm_flags & VM_LOCKED) ||
+  1481		     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
+  1482			*populate = len;
+  1483		return addr;
+  1484	}
+  1485	
 
 ---
- drivers/dax/super.c           |   21 ++++++++++++++-------
- drivers/md/dm-linear.c        |   15 ---------------
- drivers/md/dm-stripe.c        |   20 --------------------
- drivers/md/dm.c               |   19 -------------------
- drivers/nvdimm/pmem.c         |    7 -------
- fs/dax.c                      |    4 ++--
- include/linux/dax.h           |    5 +----
- include/linux/device-mapper.h |    3 ---
- 8 files changed, 17 insertions(+), 77 deletions(-)
-
-Index: linux-2.6/drivers/md/dm-linear.c
-===================================================================
---- linux-2.6.orig/drivers/md/dm-linear.c
-+++ linux-2.6/drivers/md/dm-linear.c
-@@ -184,20 +184,6 @@ static size_t linear_dax_copy_from_iter(
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
--static void linear_dax_flush(struct dm_target *ti, pgoff_t pgoff, void *addr,
--		size_t size)
--{
--	struct linear_c *lc = ti->private;
--	struct block_device *bdev = lc->dev->bdev;
--	struct dax_device *dax_dev = lc->dev->dax_dev;
--	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
--
--	dev_sector = linear_map_sector(ti, sector);
--	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(size, PAGE_SIZE), &pgoff))
--		return;
--	dax_flush(dax_dev, pgoff, addr, size);
--}
--
- static struct target_type linear_target = {
- 	.name   = "linear",
- 	.version = {1, 4, 0},
-@@ -212,7 +198,6 @@ static struct target_type linear_target
- 	.iterate_devices = linear_iterate_devices,
- 	.direct_access = linear_dax_direct_access,
- 	.dax_copy_from_iter = linear_dax_copy_from_iter,
--	.dax_flush = linear_dax_flush,
- };
- 
- int __init dm_linear_init(void)
-Index: linux-2.6/drivers/md/dm-stripe.c
-===================================================================
---- linux-2.6.orig/drivers/md/dm-stripe.c
-+++ linux-2.6/drivers/md/dm-stripe.c
-@@ -351,25 +351,6 @@ static size_t stripe_dax_copy_from_iter(
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
--static void stripe_dax_flush(struct dm_target *ti, pgoff_t pgoff, void *addr,
--		size_t size)
--{
--	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
--	struct stripe_c *sc = ti->private;
--	struct dax_device *dax_dev;
--	struct block_device *bdev;
--	uint32_t stripe;
--
--	stripe_map_sector(sc, sector, &stripe, &dev_sector);
--	dev_sector += sc->stripe[stripe].physical_start;
--	dax_dev = sc->stripe[stripe].dev->dax_dev;
--	bdev = sc->stripe[stripe].dev->bdev;
--
--	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(size, PAGE_SIZE), &pgoff))
--		return;
--	dax_flush(dax_dev, pgoff, addr, size);
--}
--
- /*
-  * Stripe status:
-  *
-@@ -491,7 +472,6 @@ static struct target_type stripe_target
- 	.io_hints = stripe_io_hints,
- 	.direct_access = stripe_dax_direct_access,
- 	.dax_copy_from_iter = stripe_dax_copy_from_iter,
--	.dax_flush = stripe_dax_flush,
- };
- 
- int __init dm_stripe_init(void)
-Index: linux-2.6/drivers/nvdimm/pmem.c
-===================================================================
---- linux-2.6.orig/drivers/nvdimm/pmem.c
-+++ linux-2.6/drivers/nvdimm/pmem.c
-@@ -243,16 +243,9 @@ static size_t pmem_copy_from_iter(struct
- 	return copy_from_iter_flushcache(addr, bytes, i);
- }
- 
--static void pmem_dax_flush(struct dax_device *dax_dev, pgoff_t pgoff,
--		void *addr, size_t size)
--{
--	arch_wb_cache_pmem(addr, size);
--}
--
- static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_dax_direct_access,
- 	.copy_from_iter = pmem_copy_from_iter,
--	.flush = pmem_dax_flush,
- };
- 
- static const struct attribute_group *pmem_attribute_groups[] = {
-Index: linux-2.6/include/linux/device-mapper.h
-===================================================================
---- linux-2.6.orig/include/linux/device-mapper.h
-+++ linux-2.6/include/linux/device-mapper.h
-@@ -134,8 +134,6 @@ typedef long (*dm_dax_direct_access_fn)
- 		long nr_pages, void **kaddr, pfn_t *pfn);
- typedef size_t (*dm_dax_copy_from_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i);
--typedef void (*dm_dax_flush_fn)(struct dm_target *ti, pgoff_t pgoff, void *addr,
--		size_t size);
- #define PAGE_SECTORS (PAGE_SIZE / 512)
- 
- void dm_error(const char *message);
-@@ -186,7 +184,6 @@ struct target_type {
- 	dm_io_hints_fn io_hints;
- 	dm_dax_direct_access_fn direct_access;
- 	dm_dax_copy_from_iter_fn dax_copy_from_iter;
--	dm_dax_flush_fn dax_flush;
- 
- 	/* For internal device-mapper use. */
- 	struct list_head list;
-Index: linux-2.6/drivers/md/dm.c
-===================================================================
---- linux-2.6.orig/drivers/md/dm.c
-+++ linux-2.6/drivers/md/dm.c
-@@ -997,24 +997,6 @@ static size_t dm_dax_copy_from_iter(stru
- 	return ret;
- }
- 
--static void dm_dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
--		size_t size)
--{
--	struct mapped_device *md = dax_get_private(dax_dev);
--	sector_t sector = pgoff * PAGE_SECTORS;
--	struct dm_target *ti;
--	int srcu_idx;
--
--	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
--
--	if (!ti)
--		goto out;
--	if (ti->type->dax_flush)
--		ti->type->dax_flush(ti, pgoff, addr, size);
-- out:
--	dm_put_live_table(md, srcu_idx);
--}
--
- /*
-  * A target may call dm_accept_partial_bio only from the map routine.  It is
-  * allowed for all bio types except REQ_PREFLUSH.
-@@ -3002,7 +2984,6 @@ static const struct block_device_operati
- static const struct dax_operations dm_dax_ops = {
- 	.direct_access = dm_dax_direct_access,
- 	.copy_from_iter = dm_dax_copy_from_iter,
--	.flush = dm_dax_flush,
- };
- 
- /*
-Index: linux-2.6/fs/dax.c
-===================================================================
---- linux-2.6.orig/fs/dax.c
-+++ linux-2.6/fs/dax.c
-@@ -783,7 +783,7 @@ static int dax_writeback_one(struct bloc
- 	}
- 
- 	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(pfn));
--	dax_flush(dax_dev, pgoff, kaddr, size);
-+	dax_flush(dax_dev, kaddr, size);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
- 	 * cannot be new dirty data in the pfn after the flush has completed as
-@@ -978,7 +978,7 @@ int __dax_zero_page_range(struct block_d
- 			return rc;
- 		}
- 		memset(kaddr + offset, 0, size);
--		dax_flush(dax_dev, pgoff, kaddr + offset, size);
-+		dax_flush(dax_dev, kaddr + offset, size);
- 		dax_read_unlock(id);
- 	}
- 	return 0;
-Index: linux-2.6/drivers/dax/super.c
-===================================================================
---- linux-2.6.orig/drivers/dax/super.c
-+++ linux-2.6/drivers/dax/super.c
-@@ -189,8 +189,10 @@ static umode_t dax_visible(struct kobjec
- 	if (!dax_dev)
- 		return 0;
- 
--	if (a == &dev_attr_write_cache.attr && !dax_dev->ops->flush)
-+#ifndef CONFIG_ARCH_HAS_PMEM_API
-+	if (a == &dev_attr_write_cache.attr)
- 		return 0;
-+#endif
- 	return a->mode;
- }
- 
-@@ -255,18 +257,23 @@ size_t dax_copy_from_iter(struct dax_dev
- }
- EXPORT_SYMBOL_GPL(dax_copy_from_iter);
- 
--void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
--		size_t size)
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+void arch_wb_cache_pmem(void *addr, size_t size);
-+void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
- {
--	if (!dax_alive(dax_dev))
-+	if (unlikely(!dax_alive(dax_dev)))
- 		return;
- 
--	if (!test_bit(DAXDEV_WRITE_CACHE, &dax_dev->flags))
-+	if (unlikely(!test_bit(DAXDEV_WRITE_CACHE, &dax_dev->flags)))
- 		return;
- 
--	if (dax_dev->ops->flush)
--		dax_dev->ops->flush(dax_dev, pgoff, addr, size);
-+	arch_wb_cache_pmem(addr, size);
-+}
-+#else
-+void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-+{
- }
-+#endif
- EXPORT_SYMBOL_GPL(dax_flush);
- 
- void dax_write_cache(struct dax_device *dax_dev, bool wc)
-Index: linux-2.6/include/linux/dax.h
-===================================================================
---- linux-2.6.orig/include/linux/dax.h
-+++ linux-2.6/include/linux/dax.h
-@@ -19,8 +19,6 @@ struct dax_operations {
- 	/* copy_from_iter: required operation for fs-dax direct-i/o */
- 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
- 			struct iov_iter *);
--	/* flush: optional driver-specific cache management after writes */
--	void (*flush)(struct dax_device *, pgoff_t, void *, size_t);
- };
- 
- extern struct attribute_group dax_attribute_group;
-@@ -84,8 +82,7 @@ long dax_direct_access(struct dax_device
- 		void **kaddr, pfn_t *pfn);
- size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
--void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
--		size_t size);
-+void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
- 
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
