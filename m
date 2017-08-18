@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E48E321E1452F
- for <linux-nvdimm@lists.01.org>; Mon, 14 Aug 2017 23:16:10 -0700 (PDT)
-Subject: [PATCH v4 1/3] fs, xfs: introduce S_IOMAP_SEALED
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 14 Aug 2017 23:12:11 -0700
-Message-ID: <150277753139.23945.12474457435649645890.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150277752553.23945.13932394738552748440.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150277752553.23945.13932394738552748440.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 264B02095B9C7
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Aug 2017 21:35:20 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 6CABFAC00C2
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Aug 2017 13:37:41 +0900 (JST)
+Date: Fri, 18 Aug 2017 13:37:37 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [ndctl PATCH 4/4] show bad dimm's name by ndctl list command.
+In-Reply-To: <20170818133124.8EAB.E1E9C6FF@jp.fujitsu.com>
+References: <20170818133124.8EAB.E1E9C6FF@jp.fujitsu.com>
+Message-Id: <20170818133735.8EB9.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,181 +26,108 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a filesystem sees this flag set it will not allow changes to the
-file-offset to physical-block-offset relationship of any extent in the
-file. The extent of the extents covered by the global S_IOMAP_SEALED is
-filesystem specific. In other words it is similar to the inode-wide
-XFS_DIFLAG2_REFLINK flag where we make the distinction apply globally to
-the inode even though we could theoretically limit that effect to a
-sub-range of the file.
 
-The interface that sets this flag (mmap(..., MAP_DIRECT, ...)) will be
-careful to document that it is implementation specific whether the
-'sealed' restrictions apply to a sub-range or the whole file.
-Applications should be prepared for unrelated ranges in the file to be
-effected.
+Show dimm's name which has badblock by ndctl list command.
+This patch uses translate SPA interface to get bad dimm info.
 
-The term 'sealed' is used instead of 'immutable' to better indicate that
-this is a file property that is temporary and can be undone.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+
 ---
- fs/attr.c                |   10 ++++++++++
- fs/open.c                |    6 ++++++
- fs/read_write.c          |    3 +++
- fs/xfs/libxfs/xfs_bmap.c |    5 +++++
- fs/xfs/xfs_bmap_util.c   |    3 +++
- fs/xfs/xfs_ioctl.c       |    6 ++++++
- include/linux/fs.h       |    2 ++
- mm/filemap.c             |    5 +++++
- 8 files changed, 40 insertions(+)
+ util/json.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff --git a/fs/attr.c b/fs/attr.c
-index 135304146120..d940386e0ca9 100644
---- a/fs/attr.c
-+++ b/fs/attr.c
-@@ -112,6 +112,16 @@ EXPORT_SYMBOL(setattr_prepare);
-  */
- int inode_newsize_ok(const struct inode *inode, loff_t offset)
- {
-+	if (IS_IOMAP_SEALED(inode)) {
-+		/*
-+		 * Any size change is disallowed. Size increases may
-+		 * dirty metadata that an application is not prepared to
-+		 * sync, and a size decrease may expose free blocks to
-+		 * in-flight DMA.
-+		 */
-+		return -ETXTBSY;
-+	}
-+
- 	if (inode->i_size < offset) {
- 		unsigned long limit;
- 
-diff --git a/fs/open.c b/fs/open.c
-index 35bb784763a4..92d89ec2d6b3 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -292,6 +292,12 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
- 		return -ETXTBSY;
- 
- 	/*
-+	 * We cannot allow any allocation changes on an iomap sealed file
-+	 */
-+	if (IS_IOMAP_SEALED(inode))
-+		return -ETXTBSY;
-+
-+	/*
- 	 * Revalidate the write permissions, in case security policy has
- 	 * changed since the files were opened.
- 	 */
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 0cc7033aa413..55700ca85f7e 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1706,6 +1706,9 @@ int vfs_clone_file_prep_inodes(struct inode *inode_in, loff_t pos_in,
- 	if (IS_SWAPFILE(inode_in) || IS_SWAPFILE(inode_out))
- 		return -ETXTBSY;
- 
-+	if (IS_IOMAP_SEALED(inode_in) || IS_IOMAP_SEALED(inode_out))
-+		return -ETXTBSY;
-+
- 	/* Don't reflink dirs, pipes, sockets... */
- 	if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
- 		return -EISDIR;
-diff --git a/fs/xfs/libxfs/xfs_bmap.c b/fs/xfs/libxfs/xfs_bmap.c
-index a2d64666cdd4..84d8ee9f414c 100644
---- a/fs/xfs/libxfs/xfs_bmap.c
-+++ b/fs/xfs/libxfs/xfs_bmap.c
-@@ -4481,6 +4481,11 @@ xfs_bmapi_write(
- 	if (XFS_FORCED_SHUTDOWN(mp))
- 		return -EIO;
- 
-+	/* fail any attempts to mutate data extents */
-+	if (IS_IOMAP_SEALED(VFS_I(ip))
-+			&& !(flags & (XFS_BMAPI_METADATA | XFS_BMAPI_ATTRFORK)))
-+		return -ETXTBSY;
-+
- 	ifp = XFS_IFORK_PTR(ip, whichfork);
- 
- 	XFS_STATS_INC(mp, xs_blk_mapw);
-diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
-index 93e955262d07..ef4c4e8b0f58 100644
---- a/fs/xfs/xfs_bmap_util.c
-+++ b/fs/xfs/xfs_bmap_util.c
-@@ -1294,6 +1294,9 @@ xfs_free_file_space(
- 
- 	trace_xfs_free_file_space(ip);
- 
-+	if (IS_IOMAP_SEALED(VFS_I(ip)))
-+		return -ETXTBSY;
-+
- 	error = xfs_qm_dqattach(ip, 0);
- 	if (error)
- 		return error;
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index e75c40a47b7d..b716d184ae9a 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1755,6 +1755,12 @@ xfs_ioc_swapext(
- 		goto out_put_tmp_file;
- 	}
- 
-+	if (IS_IOMAP_SEALED(file_inode(f.file)) ||
-+	    IS_IOMAP_SEALED(file_inode(tmp.file))) {
-+		error = -EINVAL;
-+		goto out_put_tmp_file;
-+	}
-+
- 	/*
- 	 * We need to ensure that the fds passed in point to XFS inodes
- 	 * before we cast and access them as XFS structures as we have no
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 6e1fd5d21248..1104e5df39ef 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1829,6 +1829,7 @@ struct super_operations {
- #else
- #define S_DAX		0	/* Make all the DAX code disappear */
- #endif
-+#define S_IOMAP_SEALED 16384 /* logical-to-physical extent map is fixed */
- 
- /*
-  * Note that nosuid etc flags are inode-specific: setting some file-system
-@@ -1867,6 +1868,7 @@ struct super_operations {
- #define IS_AUTOMOUNT(inode)	((inode)->i_flags & S_AUTOMOUNT)
- #define IS_NOSEC(inode)		((inode)->i_flags & S_NOSEC)
- #define IS_DAX(inode)		((inode)->i_flags & S_DAX)
-+#define IS_IOMAP_SEALED(inode) ((inode)->i_flags & S_IOMAP_SEALED)
- 
- #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
- 				 (inode)->i_rdev == WHITEOUT_DEV)
-diff --git a/mm/filemap.c b/mm/filemap.c
-index a49702445ce0..4c929961b538 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -2806,6 +2806,11 @@ inline ssize_t generic_write_checks(struct kiocb *iocb, struct iov_iter *from)
- 	if (unlikely(pos >= inode->i_sb->s_maxbytes))
- 		return -EFBIG;
- 
-+	/* Are we about to mutate the block map on a sealed file? */
-+	if (IS_IOMAP_SEALED(inode)
-+			&& (pos + iov_iter_count(from) > i_size_read(inode)))
-+		return -ETXTBSY;
-+
- 	iov_iter_truncate(from, inode->i_sb->s_maxbytes - pos);
- 	return iov_iter_count(from);
+diff --git a/util/json.c b/util/json.c
+index 98165b7..b9ab420 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -366,6 +366,18 @@ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
+ 	return NULL;
  }
+ 
++static struct ndctl_dimm *badblock_to_dimm(struct ndctl_region *region,
++		unsigned long long spa)
++{
++	struct ndctl_bus *bus;
++
++	bus = ndctl_region_get_bus(region);
++	if (!ndctl_bus_has_trans_spa(bus))
++		return NULL;
++
++	return ndctl_dimm_get_by_spa(bus, spa);
++}
++
+ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
+ 		unsigned int *bb_count, unsigned long flags)
+ {
+@@ -381,6 +393,18 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
+ 
+ 	ndctl_region_badblock_foreach(region, bb) {
+ 		if (flags & UTIL_JSON_MEDIA_ERRORS) {
++			struct ndctl_dimm *dimm = NULL;
++			unsigned long long spa;
++
++			/* get start address of region */
++			spa = ndctl_region_get_resource(region);
++			if (spa == ULONG_MAX)
++				goto err_array;
++
++			/* get address of bad block */
++			spa += bb->offset << 9;
++			dimm = badblock_to_dimm(region, spa);
++
+ 			jbb = json_object_new_object();
+ 			if (!jbb)
+ 				goto err_array;
+@@ -395,6 +419,12 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
+ 				goto err;
+ 			json_object_object_add(jbb, "length", jobj);
+ 
++			if (dimm) {
++				jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
++				if (!jobj)
++					goto err;
++				json_object_object_add(jbb, "dimm", jobj);
++			}
+ 			json_object_array_add(jbbs, jbb);
+ 		}
+ 
+@@ -436,6 +466,7 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
+ 
+ 	ndctl_region_badblock_foreach(region, bb) {
+ 		unsigned long long bb_begin, bb_end, begin, end;
++		struct ndctl_dimm *dimm = NULL;
+ 
+ 		bb_begin = region_begin + (bb->offset << 9);
+ 		bb_end = bb_begin + (bb->len << 9) - 1;
+@@ -456,6 +487,8 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
+ 		offset = (begin - dev_begin) >> 9;
+ 		len = (end - begin + 1) >> 9;
+ 
++		dimm = badblock_to_dimm(region, begin);
++
+ 		if (flags & UTIL_JSON_MEDIA_ERRORS) {
+ 			/* add to json */
+ 			jbb = json_object_new_object();
+@@ -472,6 +505,13 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
+ 				goto err;
+ 			json_object_object_add(jbb, "length", jobj);
+ 
++			if (dimm) {
++				jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
++				if (!jobj)
++					goto err;
++				json_object_object_add(jbb, "dimm", jobj);
++			}
++
+ 			json_object_array_add(jbbs, jbb);
+ 		}
+ 		bbs += len;
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
