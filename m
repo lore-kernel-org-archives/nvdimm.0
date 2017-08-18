@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 95A1D2095DC86
- for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 11:29:06 -0700 (PDT)
-Date: Wed, 23 Aug 2017 11:31:39 -0700
-From: Christoph Hellwig <hch@infradead.org>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 90A5321CFA616
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Aug 2017 15:08:04 -0700 (PDT)
+Date: Fri, 18 Aug 2017 16:10:32 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH 06/13] dax: Inline dax_insert_mapping() into the callsite
-Message-ID: <20170823183139.GD13778@infradead.org>
+Message-ID: <20170818221032.GE32627@linux.intel.com>
 References: <20170817160815.30466-1-jack@suse.cz>
  <20170817160815.30466-7-jack@suse.cz>
 MIME-Version: 1.0
@@ -25,12 +25,19 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Jan Kara <jack@suse.cz>
-Cc: linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@infradead.org>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, Boaz Harrosh <boazh@netapp.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Boaz Harrosh <boazh@netapp.com>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Looks fine,
+On Thu, Aug 17, 2017 at 06:08:08PM +0200, Jan Kara wrote:
+> dax_insert_mapping() has only one callsite and we will need to further
+> fine tune what it does for synchronous faults. Just inline it into the
+> callsite so that we don't have to pass awkward bools around.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Looks good.
+
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
