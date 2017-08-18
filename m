@@ -1,11 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from pcp.net (unknown [116.207.7.192])
- by ml01.01.org (Postfix) with ESMTP id 34C3421DFC893
- for <linux-nvdimm@lists.01.org>; Mon, 14 Aug 2017 22:55:35 -0700 (PDT)
-Message-ID: <BE09C798E19F5B12D486E0A0E28708D7@pcp.net>
-From: =?utf-8?B?57GN5rah?= <exznjj@pcp.net>
-Subject: =?utf-8?B?6L2s5Y+R77ya5aaC5L2V5b+r6YCf6KeS6Imy6L2s6LSm77yM5oiQ5Yqf6LWw5ZCR566h55CG?=
-Date: Tue, 15 Aug 2017 13:57:30 +0800
+Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8DD1F21E79038
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Aug 2017 21:46:50 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id A4C5DAC00EE
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Aug 2017 13:49:12 +0900 (JST)
+Date: Fri, 18 Aug 2017 13:49:10 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [PATCH 2/3] Enable to show what feature is supported via ND_CMD_CALL
+ for nfit_test
+In-Reply-To: <20170818134627.8EBC.E1E9C6FF@jp.fujitsu.com>
+References: <20170818134627.8EBC.E1E9C6FF@jp.fujitsu.com>
+Message-Id: <20170818134908.8EC2.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,8 +27,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
+
+
+Though nfit_test need to show what feature is supported via ND_CMD_CALL on
+device/nfit/dsm_mask, currently there is no way to tell it.
+This patch makes to enable it.
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+---
+ drivers/acpi/nfit/core.c | 1 +
+ drivers/acpi/nfit/nfit.h | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 00e49c2..8535f21 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1630,6 +1630,7 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+ 	int i;
+ 
+ 	nd_desc->cmd_mask = acpi_desc->bus_cmd_force_en;
++	nd_desc->bus_dsm_mask = acpi_desc->bus_sub_cmd_force_en;
+ 	adev = to_acpi_dev(acpi_desc);
+ 	if (!adev)
+ 		return;
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 54292db..5ef95d6 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -167,6 +167,7 @@ struct acpi_nfit_desc {
+ 	unsigned int init_complete:1;
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
++	unsigned long bus_sub_cmd_force_en;
+ 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
+ 			void *iobuf, u64 len, int rw);
+ };
+
 
 
 _______________________________________________
