@@ -1,101 +1,12 @@
-From: "Rob Russel  " <ninabuck952-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Professional lead generating based website traffic
-Date: Sat, 19 Aug 2017 04:04:15 +0300
-Message-ID: <6395C74C.01D9FD64@gmail.com>
+From: "ÒüÆ½½¨" <hokvgku5612-kGN2DQnlR60@public.gmane.org>
+Subject: Ó²¼þµçÂ·Éè¼Æ¡¢¹ÊÕÏ¶¨Î»Óë¹¤³Ì°¸Àý·ÖÎö
+Date: Sat, 19 Aug 2017 20:11:11 +0800
+Message-ID: <SAK20170819$1FC4F7F5.$1E63AFCE@cia.hk>
+Reply-To: ÒüÆ½½¨ <hokvgku5612-kGN2DQnlR60@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_59979F20.B518ECDA"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_59979F20.B518ECDA
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  hi Highly Targeted website traffic http://www.basedbusinesstraffic.com
-   Regards Rob Russel Unsubscribe option is available on the footer of our website
-   [...] 
-
-Content analysis details:   (10.1 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: basedbusinesstraffic.com]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: basedbusinesstraffic.com]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: basedbusinesstraffic.com]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?111.68.14.138>]
- 2.8 FSL_HELO_FAKE          No description available.
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (ninabuck952[at]gmail.com)
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
-                            (ninabuck952[at]gmail.com)
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
--0.0 BAYES_20               BODY: Bayes spam probability is 5 to 20%
-                            [score: 0.0603]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_59979F20.B518ECDA
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1ditHh-0007tO-Ta
-	for gln-linux-nvdimm@m.gmane.org; Sat, 19 Aug 2017 04:14:46 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2619221CFA611;
-	Fri, 18 Aug 2017 19:12:19 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [111.68.14.138])
- by ml01.01.org (Postfix) with SMTP id 956032095B9FF
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Fri, 18 Aug 2017 19:12:16 -0700 (PDT)
-Message-ID: <6395C74C.01D9FD64-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sat, 19 Aug 2017 04:04:15 +0300
-From: "Rob Russel  " <ninabuck952-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US;
- rv:1.8.1.17) Gecko/20080914 Thunderbird/2.0.0.17
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: Professional lead generating based website traffic
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -103,37 +14,111 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Reply-To: Rob Russel   <ninabuck952-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
-hi
-Highly Targeted website traffic
-http://www.basedbusinesstraffic.com
-
-Regards
-Rob Russel =A0
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_59979F20.B518ECDA--
+LS0tLSBPcmlnaW5hbCBtYWlsIG1lc3NhZ2UgLS0tLS0Kt6K8/sjLOsTCsLo8aG9rdmdrdTU2MTJA
+Y2lhLmhrPgrK1bz+yMs6PGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+Creiy83KsbzkOjE5OTgt
+MDktMTUgCgpNSU1FLVZlcnNpb246IDEuMAoKt6K8/sjLOiDS/Ma9vaggaG9rdmdrdTU2MTJAY2lh
+LmhrPgq3osvNyrG85DogMTk3MTA0MDIgODgzMwrK1bz+yMs6IGxpbnV4LW52ZGltbUBsaXN0cy4w
+MS5vcmcK1vfM4jogzsq68tPKvP4K07K8/rXnwrfJ6LzGoaK5ytXPtqjOu9PruaSzzLC4wP231s72
+CqG+yrG85LCyxcWhvwogIDjUwjI0LTI1yNWxsb6pICAgIDjUwjI4LTI5yNXJz7qjICAgICAgIDjU
+wjIxLTIyyNXJ7tvaCqG+0afPsLfR08Ohv8j9x6e2/rDZ1KogLyDDv8jLCqG+ss6807bUz/Ohv9Oy
+vP65pLPMyqahorXnwre5pLPMyqaholBDQrmks8zKpqGisuLK1Lmks8zKpqGiz7XNs7mks8zKpqGi
+0dC3orK/w8W+rcDttcgKsajD+9fJ0a+157uwo7owNzU1LTYxMjg4MDM1ICAgMDEwLTUxNjYxODYz
+ICAgMDIxLTMxMjYxNTgwIArU2s/f18nRryBRUaO6Njk4MzQzNiAgIAqxqMP70MXP5KO6Njk4MzQz
+NkBxcS5jb20gICixqMP7x+u72Li0y/fIobGow/ux7aOpCiAKvbLKpr3pydyjugpSYW5keSDN9QpS
+YW5keSBXYW5no6zN9cDPyqajrLjfvLa158K3yei8xteovNKjrNOyvP6+rcDto6zPyLrz1Nq7qs6q
+tci5q8u+tcS6y9DE07K8/tHQt6Kyv8PFyM7WsKOs1Nq158K3yei8xsHs0/LT0MqutuDE6rXEuaTX
+976t0emho7bU1KrG97z+0aHU8byws6O8+7nK1c+31s72oaK159S0oaLKsdbToaK158K3sOXU68n5
+0tbWxqGiv7m4ycjFyei8xqGitefCt7/Jv7/Q1MnovMahorXnwrey4srUoaK439DUxNxQQ0K1xNDF
+usW8sLXn1LTN6tX70NS1xMnovMajrNPQvKu34bi7tcS+rdHpoaPG5LPJuabJ6LzGtcS158K3sOWy
+48r9sPzAqDQwsuOhojI4suOhojI2suOhojIysuOhojE2suOhojEwILLjoaI4suOhojSy46GiMrLj
+tciho8bks8m5psnovMa1xNfuuN/D3LbItcS158K3sOWjrM34wufK/bTvwb3N8qOsudy9xcr9s6y5
+/bDLzfKhowrX1DIwMTDE6r+qyei158K3yei8xsXg0bW/zrPM0tTAtKOsUmFuZHm907Sluf3K/bDZ
+vNKyu82swODQzbXExvPStaGi0dC+v8v5o6yw79b61eLQqbWlzru94r72uf2088G/uaSzzMnovMbW
+0LXEzsrM4qGjCtLUyc+2wMzYtcS+rcD6o6zKuVJhbmR5tcS/zrPMt8ezo8z5vfy5pLPMyrW8+aOs
+zerIq9f2tb3By7/Os8zW0LXEw7+49rC4wP22vMC019TT2rmk1/fW0LXEzsrM4qOsw7+49ry8yvXS
+qrXjtrzV/dbQtefCt8novMa6zbnK1c+198rUtcSw0NDEoaMK0vK0y1JhbmR5tcS/zrPM0tTKtdW9
+0NShosq108PQ1KGixNzV5tX9veK+9rmks8zKtbzKzsrM4qGixNzV5tX9sO/W+rmks8zKpszhyf3J
+6LzGy67Gvbb4uePK3LrDxsChowrWwb3xo6xSYW5kedLRvtmw7Ln9tefCt8novMa5q7+qv868sMTa
+0bW/zrPMsMvKrrbgs6GjrMXg0bXRp9SxyP3Hp7bgyMuhowogCr/Os8y087jZo7oKtdrSu9XCICAg
+ICAgICAgICAgICAgICAgICAgICAgICC88ruvtefCt8novMa1xLe9t6gKMS4gICAgICAgtefCt8no
+vMbW0NK70Km52Lz8zvPH+LXEs87H5QoyLiAgICAgICC3vbeoLS0tyOe6zsXQts+158K3yei8xtbQ
+o7rExNCpsr+31srHsdjQ69bYytOhorKi0c+48b/Y1sa1xKO7xMTQqbK/t9a1xNKqx/O/ydLUt8XL
+ydK70Kmju8TE0Kmyv7fWv8nS1LK7udjXoqGjCjMuICAgICAgINDFusW31s72t6gtLS288rWlyrXT
+w7XEtefCt7fWzva3vbeovenJ3Ao0LiAgICAgICDQxbrFt9bO9reotcTTptPD0+vKtcD9CmwgIDS4
+9sq1wP2jutXrttSzo7z7tcS8uLj2yei8xsCnvrOjrLfWzvbI57rO08PQxbrFt9bO9reov+zL2b3i
+vvahowq12rb+1cIgs6O55tSqxve8/tOm08PW0LXEvLzHyaGi0aHQzbe9t6ihorC4wP231s72CjEu
+ICAgICAgIMjnus677tPDtefX6KOsveK+9rXnwrfJ6LzG1tC1xLi01NPOysziCjIuICAgICAgILXn
+yN21xMG9uPbW2NKqtvjT1r6ts6Oxu7r2wtS1xNf308OjrLywxuS21MnovMa1xNbY0qrWuLW8CjMu
+ICAgICAgIMjnus7V67bUsrvNrLXEtefCt9Kqx/OjrNPQ1eu21NDUtdjRodTxus/KyrXEtefI3Qo0
+LiAgICAgICC158jdtcTK2cP8LS0tvMbL48q1wP231s72CjUuICAgICAgILXnyN3RodTx1tC1xMq1
+08O8xsvjt723qC0tLbzGy+O5q8q9venJ3NPryrXA/bfWzvYKNi4gICAgICAgzNW0ybXnyN2horGh
+xKS158jdoaLCwbXnveK158jdoaLu47XnyN0tLS3RodDNt723qKGi06bTw8/d2uWhoryw1eu21Lmk
+s8zTptPD1tC1xM7KzOK1xL3ivva3vbC4CjcuICAgICAgILXnuNDT67TF1uktLS3KssO0yrG68tPD
+tee40KGiyrLDtMqxuvLTw7TF1umjrLXnuNC6zbTF1um1xNGh0M23vbeo0+uwuMD9t9bO9go4LiAg
+ICAgICC2/ryrudwtLS3RodDNt723qKGi16LS4tKqteOhos7zx/jT67C4wP231s72CjkuICAgICAg
+IE1PU0ZFVLXE06bTwy0tLcjnus7V67bUTU9TRkVUtcRkYXRhc2hlZXTAtNGh0M0KtdrI/dXCICAg
+ICAgICAgICAgICAgICAgICAgICAgICC159S0yei8xgoxLiAgICAgICDP39DUtefUtNOm08PW0LXE
+s6O8+87KzOIKMi4gICAgICAgv6q52LXn1LTJ6LzG0qq149PrsLjA/bfWzvYKbCAg0tS88rWltvjQ
+zs/ztcS3vcq9o6zA7b3iv6q52LXn1LS5pNf31K3A7aOsvLC499fps8myv7fWtcS5psTcCmwgIL+q
+udi159S0tefCt9bQo6zUqsb3vP61xNGh0M3SqrXj0+vKtcD9t9bO9gpsICC/qrnYtefUtLmmusS8
+xsvjoaLQp8LKt9bO9sq1wP0KbCAg0tS9tdG5tefUtLXnwrfOqsD9o6y94s72tefUtLXnwre31s72
+0qrB7ApsICDW2LXjo7q7+dPa0ru49rC4wP2jrLfWzva/qrnYtefUtLOjvPu1xLnK1c+jrLywxuS9
+4r72t723qAozLiAgICAgICC1zbmmusTJ6LzG1tDI57rO0aHU8bXn1LQtLS3SqrXj0+vKtcD9t9bO
+9go0LiAgICAgICDKtcD9o7q94r720KHQzbuvoaK1zdTryfmhorjfyuSz9rXnwfehorjfv8m/v9DU
+oaK4387ItqjQ1LXEyrXTw7e9sLgKNS4gICAgICAgtefUtNClvdDOyszitcS4+dS0xsrO9tPrsLjA
+/b3pydwKNi4gICAgICAgtefUtMSjv+m1xNGh0M3SqrXjoaKzo7z7zsrM4tPrsLjA/bfWzvYKNy4g
+ICAgICAgv6q52LXn1LS1xL/Jv7/Q1L72tqjS8svY0+u31s720qq14wo4LiAgICAgICC0q82zsaPP
+1bncus3Qwsq9saPP1bnctcS21LHIoaK31s72oaLTptPDyrXA/Qq12svE1cIgICAgICAgICAgICAg
+ICAgICAgICAgICAgILXnwre1xLGju6TQ1MnovMYKMS4gICAgICAg1eu21MnPteehos/Ctee5/bPM
+o6zI57rOyrXP1rXnwre1xLGju6QKMi4gICAgICAgtefCt7zgv9i1xMq1z9bT68q1wP231s72CjMu
+ICAgICAgIMjIsuWwzsnovMbSqrXj0+vKtcD9CjQuICAgICAgILXnwre1xLj0wOuxo7ukCmwgILj0
+wOuxo7uktcTI/dbWt723qKGi1KrG97z+0aHU8aGiyrXA/bfWzvYKNS4gICAgICAgyaLIyMnovMYt
+LS3IyMnovMa1xLzGy+OhosnovMbKtcD9CrXazuXVwiAgICAgICAgICAgICAgICAgICAgICAgICAg
+yrHW07XnwrfJ6LzGCjEuICAgICAgIL6nzOWjqENyeXN0YWyjqaGivqfV8aOoT3NjaWxsYXRvcqOp
+tcTRodDN0+u158K3yei8xtKqteMKbCAgvqfM5bXnwre1xLmk1/fUrcDtCmwgIL6nzOVkYXRhc2hl
+ZXTW0Lj3ss7K/bXEye7I68DtveLT69Gh0M3SqrXjCmwgIL6nzOXTptPDsLjA/bfWzvYtLS3KtbzK
+06bTw9bQtcSwuMD9CmwgIL6n1fG1xLmk1/fUrcDtoaLTxbXjoaLIsbXjo6y+p9Xx0+u+p8zl06bT
+w8nPtcSy7tLsoaMKbCAgvqfV8WRhdGFzaGVldNbQo6y497LOyv21xMnuyOvA7b3i0+vTptPD0qq1
+46GisLjA/bfWzvYKMi4gICAgICAgyrHW08f9tq/G97XE0aHQzdPr06bTw9KqteMKMy4gICAgICAg
+yOe6zrnmsdxQQ0LJ6LzG1tCjrL/JxNyz9s/WtcTKsdbTtefCt7XEzsrM4i0tLVBDQrXEvLzK9dKq
+tePT67C4wP231s72CrXawfnVwiAgICAgICAgICAgICAgICAgICAgICAgICAgtefCt8f9tq/E3MGm
+tcS94s72CjEuICAgICAgILbUx/22r8Tcwaa1xMDtveKjrLOjvPu1xNLJzsoKbCAgtefCt7XEx/22
+r8TcwabI57rOoaK3osvNtsvH/bavxNzBpsrHt/HX47m7oaLI57rOzOG438f9tq/E3MGmoaLH/bav
+xNzBprK7ubu74beiyfrKssO0ucrVzwoyLiAgICAgICDTycf9tq/E3MGmsrvX47W81sK1xLXnwre5
+ytXPLS0tsLjA/bfWzvYKMy4gICAgICAgxve8/srWsuHW0NPrx/22r8TcwabP4LnYtcSyzsr9z+q9
+4go0LiAgICAgICDH/bavxNzBprzGy+PKtcD9IApsICDNqLn9NLj219u6z8q1wP2jrMnuv8zA7b3i
+0L7GrLXEx/22r8TcwaajrNXGztW31s72obDH/bavobHV4sDgzsrM4rXEt723qAo1LiAgICAgICDX
+27rPyrXA/S0tLbv509q4w8q1wP2jrL3pydy24Lj2vLzK9dKqteO1xNfbus/TptPDCmwgIMnuv8zM
+5bvhxve8/rXEx/22r8Tcwaa21Nfu1tXQxbrFsqjQzrXE07DP7ApsICDEs9Cp0L7GrLXE06bTw6Os
+1NrJ6LzGvde2zqOs0OjUpM/IzOG3wNK70KnTptPDz93a5QpsICDI57rOuPm+3dC+xqxkYXRhc2hl
+ZXSjrMXQts/QxbrFyse38b/JxNyz9s/W0+uhsMf9tq+hsc/gudi1xM7KzOIKbCAgyOe6zrj5vt3Q
+vsasZGF0YXNoZWV0o6y2qNDUtdi31s720L7GrLXEx/22r8TcwaYKbCAgyOe6zrj5vt3QvsasZGF0
+YXNoZWV0o6yx473dtdjKtc/WttTQvsasx/22r8Tcwaa1xLaowb+8xsvj0+vGwLnACrXaxt/VwiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgUENCyei8xrXEvLzK9dKqteOhorC4wP231s72CjEuICAg
+ICAgILrctuC158K3ucrVz8rH08lQQ0LJ6LzGtO3O89Tss8m1xC0tLSBQQ0LJ6LzGtO3O87XEyrXA
+/QoyLiAgICAgICC87LLpUENCyei8xs28tcS52Lz80qq149PryrXA/S0tLcjnus687LLpUENCzbwK
+My4gICAgICAg07K8/rmks8zKpsjnus7X9rfC1eYKNC4gICAgICAg1+i/ub/Y1sYKbCAg1+i/ubXE
+uqzS5QpsICDI57rOyrXP1tfov7m/2NbGLS0tzeqzydfov7m/2NbGtcS+38zlsr3W6NPryrXA/bfW
+zvYKbCAgudjT2tfov7m/2NbGtcTO88f4CjUuICAgICAgIFBDQrDltcSy47X+veG5ucnovMbSqrXj
+0+uwuMD9t9bO9gpsICBQQ0K1xLLjtf694bm5yei8xrXEz+rPuLK91ugKbCAgNrj2yei8xsq1wP3T
+67TtzvPJ6LzGtcSwuMD9CjYuICAgICAgINDFusW31s720+tQQ0LJ6LzG0qq146GiyrXA/aGisLjA
+/bfWzvYKbCAg0MW6xc3q1fvQ1M7KzOKjrNTasqjQzsnPtcQ01tax7c/W0M7KvbywxuSy+sn6tcS4
++bG+1K3S8qGiveK+9rDst6gKbCAguf2/17XE07DP7C0tLbn9v9e31s72tcS3vbeooaLI57rOwb+7
+r7zGy+O5/b/XtcTTsM/soaK5/b/X06bTw8j9z+68vMfJCmwgINDFusW3tMnktcS4+dS0o6y3tMnk
+ttTQxbrFtcTTsM/so6zExNCpt7TJ5LK7u+Gzyc6qzsrM4gpsICC3tMnktcS2qNDUt9bO9qGitqjB
+v7zGy+OjrM2ouf3KtcD9ye6/zMDtveK3tMnkCmwgIMjnus7RodTx1f3It7XE0MW6xcalxeS3vcq9
+o6zJ7sjrt9bO9rj3xqXF5Le9yr21xNOm08PSqrXjoaKzo7z7zsrM4gpsICC72MH3wre+ti0tLdDF
+usXI57rO0aHU8bvYwffCt762o6zI57rOt9bO9tDFusW72MH3tcTOyszio6ywuMD9veLO9gpsICC1
+2LWvtcTTsM/so6y8sMbkttTJ6LzGoaKy4srUtcS+38zl0qrH8wpsICCw0bSuyMW9tbW91+61zS0t
+Lcq108O3vbeovLDJ6LzGyrXA/QpsICCx7bLj19/P37u5ysfE2rLj19/P36O/LS0tILj319S1xNPF
+yLG147rNyrXA/bfWzvYKbCAgyrnTw8OkoaLC8b/XvLzK9SAtLS0gs6O8+7TtzvO8sMnovMbSqrXj
+CmwgIMnf0M7P39ffz9+1xLOjvPvOyszit9bO9gpsICBQQ0KyvM/f1+6zo7z7tcS8uLj2zvPH+C0t
+LbPkt9bIz8q21eLQqc7zx/ijrLzyu6+158K3yei8xgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtbnZkaW1tCg==
