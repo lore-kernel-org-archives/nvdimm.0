@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E29B22095AE76
- for <linux-nvdimm@lists.01.org>; Fri, 25 Aug 2017 13:57:21 -0700 (PDT)
-Subject: [PATCH v6 6/8] dmaengine: add SG support to dmaengine_unmap
+ by ml01.01.org (Postfix) with ESMTPS id 2415C21E79010
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Aug 2017 14:08:38 -0700 (PDT)
+Subject: [PATCH v5 6/7] dmaengine: add SG support to dmaengine_unmap
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 25 Aug 2017 13:59:58 -0700
-Message-ID: <150369479793.6962.653231190950920402.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
-References: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
+Date: Mon, 21 Aug 2017 14:11:09 -0700
+Message-ID: <150334986946.55214.3540641512473593212.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
+References: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
