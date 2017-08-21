@@ -2,14 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B83852095DC9C
- for <linux-nvdimm@lists.01.org>; Fri, 25 Aug 2017 13:57:27 -0700 (PDT)
-Subject: [PATCH v6 7/8] dmaengine: provide number of available channels
+ by ml01.01.org (Postfix) with ESMTPS id 3871821E2DA78
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Aug 2017 14:08:04 -0700 (PDT)
+Subject: [PATCH v5 0/7] libnvdimm: add DMA support for pmem blk-mq
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 25 Aug 2017 14:00:03 -0700
-Message-ID: <150369480338.6962.4785083630379841867.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
-References: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
+Date: Mon, 21 Aug 2017 14:10:35 -0700
+Message-ID: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,97 +24,64 @@ To: vinod.koul@intel.com, dan.j.williams@intel.com
 Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a dmaengine support function to provide the number of available
-channels that can be shared with support of a filter function.
+v5:
+- Added support to report descriptor transfer capability limit from dmaengine.
+- Fixed up scatterlist support for dma_unmap_data per Dan's comments.
+- Made the driver a separate pmem blk driver per Christoph's suggestion
+  and also fixed up all the issues pointed out by Christoph.
+- Added pmem badblock checking/handling per Robert and also made DMA op to
+  be used by all buffer sizes.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+v4: 
+- Addressed kbuild test bot issues. Passed kbuild test bot, 179 configs.
+
+v3:
+- Added patch to rename DMA_SG to DMA_SG_SG to make it explicit
+- Added DMA_MEMCPY_SG transaction type to dmaengine
+- Misc patch to add verification of DMA_MEMSET_SG that was missing
+- Addressed all nd_pmem driver comments from Ross.
+
+v2:
+- Make dma_prep_memcpy_* into one function per Dan.
+- Addressed various comments from Ross with code formatting and etc.
+- Replaced open code with offset_in_page() macro per Johannes.
+
+The following series implements a blk-mq pmem driver and
+also adds infrastructure code to ioatdma and dmaengine in order to
+support copying to and from scatterlist in order to process block
+requests provided by blk-mq. The usage of DMA engines available on certain
+platforms allow us to drastically reduce CPU utilization and at the same time
+maintain performance that is good enough. Experimentations have been done on
+DRAM backed pmem block device that showed the utilization of DMA engine is
+beneficial. By default nd_pmem.ko will be loaded. This can be overridden
+through module blacklisting in order to load nd_pmem_mq.ko.
+
 ---
- drivers/dma/dmaengine.c   |   45 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dmaengine.h |    7 +++++++
- 2 files changed, 52 insertions(+)
 
-diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
-index 09ee03d..a952e52 100644
---- a/drivers/dma/dmaengine.c
-+++ b/drivers/dma/dmaengine.c
-@@ -674,6 +674,51 @@ struct dma_chan *__dma_request_channel(const dma_cap_mask_t *mask,
- }
- EXPORT_SYMBOL_GPL(__dma_request_channel);
- 
-+static int get_candidate_count(const dma_cap_mask_t *mask,
-+					  struct dma_device *dev,
-+					  dma_filter_fn fn, void *fn_param)
-+{
-+	struct dma_chan *chan;
-+	int count = 0;
-+
-+	if (mask && !__dma_device_satisfies_mask(dev, mask)) {
-+		dev_dbg(dev->dev, "%s: wrong capabilities\n", __func__);
-+		return 0;
-+	}
-+
-+	list_for_each_entry(chan, &dev->channels, device_node) {
-+		if (dma_has_cap(DMA_PRIVATE, dev->cap_mask)) {
-+			dev_dbg(dev->dev, "%s: %s is marked for private\n",
-+				 __func__, dma_chan_name(chan));
-+			continue;
-+		}
-+		if (fn && !fn(chan, fn_param)) {
-+			dev_dbg(dev->dev, "%s: %s filter said false\n",
-+				 __func__, dma_chan_name(chan));
-+			continue;
-+		}
-+		count++;
-+	}
-+
-+	return count;
-+}
-+
-+int dma_get_channel_count(const dma_cap_mask_t *mask,
-+			    dma_filter_fn fn, void *fn_param)
-+{
-+	struct dma_device *device;
-+	int total = 0;
-+
-+	/* Find a channel */
-+	mutex_lock(&dma_list_mutex);
-+	list_for_each_entry(device, &dma_device_list, global_node)
-+		total += get_candidate_count(mask, device, fn, fn_param);
-+	mutex_unlock(&dma_list_mutex);
-+
-+	return total;
-+}
-+EXPORT_SYMBOL_GPL(dma_get_channel_count);
-+
- static const struct dma_slave_map *dma_filter_match(struct dma_device *device,
- 						    const char *name,
- 						    struct device *dev)
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index fc53854..7956063 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -1331,6 +1331,8 @@ enum dma_status dma_wait_for_async_tx(struct dma_async_tx_descriptor *tx);
- void dma_issue_pending_all(void);
- struct dma_chan *__dma_request_channel(const dma_cap_mask_t *mask,
- 					dma_filter_fn fn, void *fn_param);
-+int dma_get_channel_count(const dma_cap_mask_t *mask,
-+					dma_filter_fn fn, void *fn_param);
- struct dma_chan *dma_request_slave_channel(struct device *dev, const char *name);
- 
- struct dma_chan *dma_request_chan(struct device *dev, const char *name);
-@@ -1364,6 +1366,11 @@ static inline struct dma_chan *__dma_request_channel(const dma_cap_mask_t *mask,
- {
- 	return NULL;
- }
-+static int dma_get_channel_count(const dma_cap_mask_t *mask,
-+					dma_filter_fn fn, void *fn_param)
-+{
-+	return 0;
-+}
- static inline struct dma_chan *dma_request_slave_channel(struct device *dev,
- 							 const char *name)
- {
+Dave Jiang (7):
+      dmaengine: ioatdma: revert 7618d035 to allow sharing of DMA channels
+      dmaengine: Add DMA_MEMCPY_SG transaction op
+      dmaengine: add verification of DMA_MEMSET_SG in dmaengine
+      dmaengine: ioatdma: dma_prep_memcpy_sg support
+      dmaengine: add function to provide per descriptor xfercap for dma engine
+      dmaengine: add SG support to dmaengine_unmap
+      libnvdimm: Add blk-mq pmem driver
 
+
+ Documentation/dmaengine/provider.txt |    3 
+ drivers/dma/dmaengine.c              |   31 +
+ drivers/dma/ioat/dma.h               |    4 
+ drivers/dma/ioat/init.c              |    6 
+ drivers/dma/ioat/prep.c              |   57 ++
+ drivers/nvdimm/Kconfig               |   23 +
+ drivers/nvdimm/Makefile              |    3 
+ drivers/nvdimm/pmem.h                |    3 
+ drivers/nvdimm/pmem_mq.c             |  853 ++++++++++++++++++++++++++++++++++
+ include/linux/dmaengine.h            |   42 ++
+ 10 files changed, 1021 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/nvdimm/pmem_mq.c
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
