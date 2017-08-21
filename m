@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 838D721CE748B
- for <linux-nvdimm@lists.01.org>; Mon, 21 Aug 2017 14:06:45 -0700 (PDT)
-Date: Mon, 21 Aug 2017 15:09:16 -0600
+ by ml01.01.org (Postfix) with ESMTPS id 924EA2095B9D6
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Aug 2017 11:56:11 -0700 (PDT)
+Date: Mon, 21 Aug 2017 12:58:30 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH 11/13] dax, iomap: Add support for synchronous faults
-Message-ID: <20170821210916.GF26220@linux.intel.com>
+Message-ID: <20170821185830.GB26220@linux.intel.com>
 References: <20170817160815.30466-1-jack@suse.cz>
  <20170817160815.30466-12-jack@suse.cz>
 MIME-Version: 1.0
@@ -38,7 +38,12 @@ On Thu, Aug 17, 2017 at 06:08:13PM +0200, Jan Kara wrote:
 > tables to map pfns read-write. dax_iomap_fault() also takes care of
 > updating vmf->orig_pte to match the PTE that was inserted so that we can
 > safely recheck that PTE did not change while write-enabling it.
-> 
+
+This changelog needs a little love.  s/VM_FAULT_RO/VM_FAULT_NEEDDSYNC/, the
+new path doesn't do the RO mapping, but instead just does the entire RW
+mapping after the fdatasync is complete, the vmf->orig_pte manipulation went
+away, etc.
+
 > Signed-off-by: Jan Kara <jack@suse.cz>
 > ---
 >  fs/dax.c              | 31 +++++++++++++++++++++++++++++++
@@ -62,6 +67,21 @@ On Thu, Aug 17, 2017 at 06:08:13PM +0200, Jan Kara wrote:
 > +		 */
 > +		if (write && (vma->vm_flags & VM_SYNC) &&
 > +		    (iomap.flags & IOMAP_F_NEEDDSYNC)) {
+
+Just a small nit, but I don't think we really need to check for 'write' here.
+The fact that IOMAP_F_NEEDDSYNC is set tells us that we are doing a write.
+
+	if ((flags & IOMAP_WRITE) &&
+	    !jbd2_transaction_committed(EXT4_SB(inode->i_sb)->s_journal,
+					EXT4_I(inode)->i_datasync_tid))
+		iomap->flags |= IOMAP_F_NEEDDSYNC;
+
+Ditto for the PMD case.
+
+With that one simplification and a cleaned up changelog, you can add:
+
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+
 > +			if (WARN_ON_ONCE(!pfnp)) {
 > +				error = -EIO;
 > +				goto error_finish_iomap;
@@ -70,46 +90,9 @@ On Thu, Aug 17, 2017 at 06:08:13PM +0200, Jan Kara wrote:
 > +			vmf_ret = VM_FAULT_NEEDDSYNC | major;
 > +			goto finish_iomap;
 > +		}
-
-Sorry for the second reply, but I spotted this during my testing.
-
-The radix tree entry is inserted and marked as dirty by the
-dax_insert_mapping_entry() call a few lines above this newly added block.
-
-I think that this patch should prevent the radix tree entry that we insert
-from being marked as dirty, and let the dax_insert_pfn_mkwrite() handler do
-that work.  Right now it is being made dirty twice, which we don't need.
-
-Just inserting the entry as clean here and then marking it as dirty later in
-dax_insert_pfn_mkwrite() keeps the radix tree entry dirty state consistent
-with the PTE dirty state.  It also solves an issue we have right now where the
-newly inserted dirty entry will immediately be flushed as part of the
-vfs_fsync_range() call that the filesystem will do before
-dax_insert_pfn_mkwrite(). 
-
-For example, here's a trace of a PMD write fault on a completely sparse file:
-
-  dax_pmd_fault: dev 259:0 ino 0xc shared WRITE|ALLOW_RETRY|KILLABLE|USER
-  address 0x7feab8e00000 vm_start 0x7feab8e00000 vm_end 0x7feab9000000 pgoff
-  0x0 max_pgoff 0x1ff 
-  
-  dax_pmd_fault_done: dev 259:0 ino 0xc shared WRITE|ALLOW_RETRY|KILLABLE|USER
-  address 0x7feab8e00000 vm_start 0x7feab8e00000 vm_end 0x7feab9000000 pgoff
-  0x0 max_pgoff 0x1ff NEEDDSYNC
-  
-  dax_writeback_range: dev 259:0 ino 0xc pgoff 0x0-0x1ff
-  
-  dax_writeback_one: dev 259:0 ino 0xc pgoff 0x0 pglen 0x200
-  
-  dax_writeback_range_done: dev 259:0 ino 0xc pgoff 0x1-0x1ff
-  
-  dax_insert_pfn_mkwrite: dev 259:0 ino 0xc shared
-  WRITE|ALLOW_RETRY|KILLABLE|USER address 0x7feab8e00000 pgoff 0x0 NOPAGE
-
-The PMD that we are writing back with dax_writeback_one() is the one that we
-just made dirty via the first 1/2 of the sync fault, before we've installed a
-page table entry.  This fix might speed up some of your test measurements as
-well.
+>  		trace_dax_insert_mapping(inode, vmf, entry);
+>  		if (write)
+>  			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
