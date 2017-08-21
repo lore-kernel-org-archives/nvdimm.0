@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8D1B82095B9F9
- for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 11:31:27 -0700 (PDT)
-Date: Wed, 23 Aug 2017 11:34:00 -0700
-From: Christoph Hellwig <hch@infradead.org>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 6E21321CFA5F8
+ for <linux-nvdimm@lists.01.org>; Mon, 21 Aug 2017 11:42:30 -0700 (PDT)
+Date: Mon, 21 Aug 2017 12:45:01 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH 09/13] dax: Allow dax_iomap_fault() to return pfn
-Message-ID: <20170823183400.GG13778@infradead.org>
+Message-ID: <20170821184501.GA26220@linux.intel.com>
 References: <20170817160815.30466-1-jack@suse.cz>
  <20170817160815.30466-10-jack@suse.cz>
 MIME-Version: 1.0
@@ -25,30 +25,20 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Jan Kara <jack@suse.cz>
-Cc: linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@infradead.org>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, Boaz Harrosh <boazh@netapp.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Boaz Harrosh <boazh@netapp.com>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-> @@ -1416,6 +1416,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
->   * @vmf: The description of the fault
->   * @pe_size: Size of the page to fault in
->   * @ops: Iomap ops passed from the file system
-> + * @pfnp: PFN to insert for synchronous faults if fsync is required
->   *
->   * When a page fault occurs, filesystems may call this helper in
->   * their fault handler for DAX files. dax_iomap_fault() assumes the caller
-> @@ -1423,13 +1424,13 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
->   * successfully.
->   */
->  int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
-> -		    const struct iomap_ops *ops)
-> +		    const struct iomap_ops *ops, pfn_t *pfnp)
+On Thu, Aug 17, 2017 at 06:08:11PM +0200, Jan Kara wrote:
+> For synchronous page fault dax_iomap_fault() will need to return PFN
+> which will then need to inserted into page tables after fsync()
+> completes. Add necessary parameter to dax_iomap_fault().
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-Please keep the iomap_ops argument the last one for the exported
-function (and probably all others for consistency).
+Yep, this seems like a nice, straightforward way of doing things.  I like this
+better than the vmf->orig_pte solution from the previous RFC.
 
-Otherwise looks good:
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
