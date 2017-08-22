@@ -2,18 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E986421E49BB2
- for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 03:05:30 -0700 (PDT)
-Date: Tue, 22 Aug 2017 12:08:01 +0200
+ by ml01.01.org (Postfix) with ESMTPS id A998421D2E647
+ for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 02:44:24 -0700 (PDT)
+Date: Tue, 22 Aug 2017 11:46:55 +0200
 From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH 11/13] dax, iomap: Add support for synchronous faults
-Message-ID: <20170822100801.GF4909@quack2.suse.cz>
+Message-ID: <20170822094655.GE4909@quack2.suse.cz>
 References: <20170817160815.30466-1-jack@suse.cz>
  <20170817160815.30466-12-jack@suse.cz>
- <20170821210916.GF26220@linux.intel.com>
+ <20170821185830.GB26220@linux.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20170821210916.GF26220@linux.intel.com>
+In-Reply-To: <20170821185830.GB26220@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,7 +29,7 @@ To: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Christoph Hellwig <hch@infradead.org>, Boaz Harrosh <boazh@netapp.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon 21-08-17 15:09:16, Ross Zwisler wrote:
+On Mon 21-08-17 12:58:30, Ross Zwisler wrote:
 > On Thu, Aug 17, 2017 at 06:08:13PM +0200, Jan Kara wrote:
 > > Add a flag to iomap interface informing the caller that inode needs
 > > fdstasync(2) for returned extent to become persistent and use it in DAX
@@ -40,7 +40,14 @@ On Mon 21-08-17 15:09:16, Ross Zwisler wrote:
 > > tables to map pfns read-write. dax_iomap_fault() also takes care of
 > > updating vmf->orig_pte to match the PTE that was inserted so that we can
 > > safely recheck that PTE did not change while write-enabling it.
-> > 
+> 
+> This changelog needs a little love.  s/VM_FAULT_RO/VM_FAULT_NEEDDSYNC/, the
+> new path doesn't do the RO mapping, but instead just does the entire RW
+> mapping after the fdatasync is complete, the vmf->orig_pte manipulation went
+> away, etc.
+
+Yeah, fixed. Thanks for noticing.
+
 > > Signed-off-by: Jan Kara <jack@suse.cz>
 > > ---
 > >  fs/dax.c              | 31 +++++++++++++++++++++++++++++++
@@ -64,27 +71,24 @@ On Mon 21-08-17 15:09:16, Ross Zwisler wrote:
 > > +		 */
 > > +		if (write && (vma->vm_flags & VM_SYNC) &&
 > > +		    (iomap.flags & IOMAP_F_NEEDDSYNC)) {
-> > +			if (WARN_ON_ONCE(!pfnp)) {
-> > +				error = -EIO;
-> > +				goto error_finish_iomap;
-> > +			}
-> > +			*pfnp = pfn;
-> > +			vmf_ret = VM_FAULT_NEEDDSYNC | major;
-> > +			goto finish_iomap;
-> > +		}
 > 
-> Sorry for the second reply, but I spotted this during my testing.
+> Just a small nit, but I don't think we really need to check for 'write' here.
+> The fact that IOMAP_F_NEEDDSYNC is set tells us that we are doing a write.
 > 
-> The radix tree entry is inserted and marked as dirty by the
-> dax_insert_mapping_entry() call a few lines above this newly added block.
+> 	if ((flags & IOMAP_WRITE) &&
+> 	    !jbd2_transaction_committed(EXT4_SB(inode->i_sb)->s_journal,
+> 					EXT4_I(inode)->i_datasync_tid))
+> 		iomap->flags |= IOMAP_F_NEEDDSYNC;
+> 
+> Ditto for the PMD case.
 
-Yes I know and this is actually deliberate. My original thinking was that
-we *want* following vfs_fsync_range() to flush out any changes that are
-possibly lingering in CPU caches for the block. Now thinking about this
-again, changes through write(2) or pre-zeroing of block are non-temporal
-anyway and changes through mmap(2) will already dirty the radix tree entry
-so it seems you are right that we don't need the dirtying here. I'll change
-this. Thanks for asking.
+OK, done.
+
+> With that one simplification and a cleaned up changelog, you can add:
+> 
+> Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+
+Thanks.
 
 								Honza
 -- 
