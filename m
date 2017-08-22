@@ -2,15 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8904521E49BD2
- for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:22:15 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 7A12421E49BC5
+ for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:06:58 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 2/2] dax: use PG_PMD_COLOUR instead of open coding
-Date: Tue, 22 Aug 2017 16:24:36 -0600
-Message-Id: <20170822222436.18926-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170822222436.18926-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH 2/2] dax: use PG_PMD_COLOUR instead of open coding
+Date: Tue, 22 Aug 2017 16:09:26 -0600
+Message-Id: <20170822220926.13799-2-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170822220926.13799-1-ross.zwisler@linux.intel.com>
 References: <20170822220926.13799-1-ross.zwisler@linux.intel.com>
- <20170822222436.18926-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
