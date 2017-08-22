@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 28C3621E11D7A
- for <linux-nvdimm@lists.01.org>; Tue,  8 Aug 2017 17:07:21 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v5 5/7] libnvdimm: fix potential deadlock while clearing errors
-Date: Tue,  8 Aug 2017 18:07:44 -0600
-Message-Id: <20170809000746.10585-6-vishal.l.verma@intel.com>
-In-Reply-To: <20170809000746.10585-1-vishal.l.verma@intel.com>
-References: <20170809000746.10585-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2421E21E49BC5
+ for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:06:58 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 1/2] dax: fallback on misaligned PMD faults
+Date: Tue, 22 Aug 2017 16:09:25 -0600
+Message-Id: <20170822220926.13799-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,78 +20,134 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Alexander Viro <viro@zeniv.linux.org.uk>, Slusarz,
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-Specifically, the DSM to clear media errors is called during writes, so
-that we can provide a writes-fix-errors model.
+In DAX there are two separate places where the 2MiB range of a PMD is
+defined.
 
-However it is easy to imagine a scenario like:
- -> write through the nvdimm driver
-   -> acpi allocation
-     -> writeback, causes more IO through the nvdimm driver
-       -> deadlock
+The first is in the page tables, where a PMD mapping inserted for a given
+address spans from (vmf->address & PMD_MASK) to
+((vmf->address & PMD_MASK) + PMD_SIZE - 1).  That is, from the 2MiB
+boundary below the address to the 2MiB boundary above the address.
 
-Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-flag for the current scope when issuing commands/IOs that are expected
-to clear errors.
+So, for example, a fault at address 3MiB (0x30 0000) falls within the PMD
+that ranges from 2MiB (0x20 0000) to 4MiB (0x40 0000).
 
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+The second PMD range is in the mapping->page_tree, where a given file
+offset is covered by a radix tree entry that spans from one 2MiB aligned
+file offset to another 2MiB aligned file offset.
+
+So, for example, the file offset for 3MiB (pgoff 768) falls within the PMD
+range for the order 9 radix tree entry that ranges from 2MiB (pgoff 512) to
+4MiB (pgoff 1024).
+
+This system works so long as the addresses and file offsets for a given
+mapping both have the same offsets relative to the start of each PMD.
+
+Consider the case where the starting address for a given file isn't 2MiB
+aligned - say our faulting address is 3 MiB (0x30 0000), but that
+corresponds to the beginning of our file (pgoff 0).  Now all the PMDs in
+the mapping are misaligned so that the 2MiB range defined in the page
+tables never matches up with the 2MiB range defined in the radix tree.
+
+The current code notices this case for DAX faults to storage with the
+following test in dax_pmd_insert_mapping():
+
+	if (pfn_t_to_pfn(pfn) & PG_PMD_COLOUR)
+		goto unlock_fallback;
+
+This test makes sure that the pfn we get from the driver is 2MiB aligned,
+and relies on the assumption that the 2MiB alignment of the pfn we get back
+from the driver matches the 2MiB alignment of the faulting address.
+
+However, faults to holes were not checked and we could hit the problem
+described above.
+
+This was reported in response to the NVML nvml/src/test/pmempool_sync
+TEST5:
+
+	$ cd nvml/src/test/pmempool_sync
+	$ make TEST5
+
+You can grab NVML here:
+
+	https://github.com/pmem/nvml/
+
+The dmesg warning you see when you hit this error is:
+
+WARNING: CPU: 13 PID: 2900 at fs/dax.c:641 dax_insert_mapping_entry+0x2df/0x310
+
+Where we notice in dax_insert_mapping_entry() that the radix tree entry we
+are about to replace doesn't match the locked entry that we had previously
+inserted into the tree.  This happens because the initial insertion was
+done in grab_mapping_entry() using a pgoff calculated from the faulting
+address (vmf->address), and the replacement in
+dax_pmd_load_hole() => dax_insert_mapping_entry() is done using vmf->pgoff.
+
+In our failure case those two page offsets (one calculated from
+vmf->address, one using vmf->pgoff) point to different order 9 radix tree
+entries.
+
+Fix this by validating that the faulting address's PMD offset matches the
+PMD offset from the start of the file.  This check is done at the very
+beginning of the fault and covers faults that would have mapped to storage
+as well as faults to holes.  I left the COLOUR check in
+dax_pmd_insert_mapping() in place in case we ever hit the insanity
+condition where the alignment of the pfn we get from the driver doesn't
+match the alignment of the userspace address.
+
+Because faults to actual storage (which are the only radix tree entries
+that could possibly be dirty) correctly detect this misalignment and would
+fall back to 4k entries, I don't *think* that this situation can result in
+data corruption, but the fix is simple and unlikely to have a negative
+impact so I think it's worth applying to stable.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: "Slusarz, Marcin" <marcin.slusarz@intel.com>
+Cc: <stable@vger.kernel.org>
 ---
- drivers/nvdimm/bus.c | 6 ++++++
- 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 937fafa..a18c291 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/sched/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-@@ -234,6 +235,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	struct nd_cmd_clear_error clear_err;
- 	struct nd_cmd_ars_cap ars_cap;
- 	u32 clear_err_unit, mask;
-+	unsigned int noio_flag;
- 	int cmd_rc, rc;
+This applies cleanly to the current v4.13-rc6 based linux/master.
+
+This fix is simple and I think we really don't want to have zero page PMDs
+where the radix tree entry doesn't match the page table entry, so in my
+opinion this should be be merged for v4.13 (pending reviews, of course).
+
+Patch 2 is just a cleanup and can wait for v4.14 if anyone is worried about
+it.
+
+This series has passed my regression testing using xfstests and the NVML
+test that was used to initially find the problem.
+
+---
+ fs/dax.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 306c2b6..865d42c 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1383,6 +1383,16 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
  
- 	if (!nvdimm_bus)
-@@ -250,8 +252,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&ars_cap, 0, sizeof(ars_cap));
- 	ars_cap.address = phys;
- 	ars_cap.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
- 			sizeof(ars_cap), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
-@@ -266,8 +270,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&clear_err, 0, sizeof(clear_err));
- 	clear_err.address = phys;
- 	clear_err.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
- 			sizeof(clear_err), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
+ 	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
+ 
++	/*
++	 * Make sure that the faulting address's PMD offset (color) matches
++	 * the PMD offset from the start of the file.  This is necessary so
++	 * that a PMD range in the page table overlaps exactly with a PMD
++	 * range in the radix tree.
++	 */
++	if ((vmf->pgoff & PG_PMD_COLOUR) !=
++	    ((vmf->address >> PAGE_SHIFT) & PG_PMD_COLOUR))
++		goto fallback;
++
+ 	/* Fall back to PTEs if we're going to COW */
+ 	if (write && !(vma->vm_flags & VM_SHARED))
+ 		goto fallback;
 -- 
-2.9.3
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
