@@ -2,13 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1E83F21E49BAB
- for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:18:38 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A890A21E49BA8
+ for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:18:37 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v6 3/6] btt: ensure that flags were also unchanged during a
- map_read
-Date: Tue, 22 Aug 2017 16:19:12 -0600
-Message-Id: <20170822221915.1732-4-vishal.l.verma@intel.com>
+Subject: [PATCH v6 2/6] btt: refactor map entry operations with macros
+Date: Tue, 22 Aug 2017 16:19:11 -0600
+Message-Id: <20170822221915.1732-3-vishal.l.verma@intel.com>
 In-Reply-To: <20170822221915.1732-1-vishal.l.verma@intel.com>
 References: <20170822221915.1732-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -26,50 +25,58 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In btt_map_read, we read the map twice to make sure that the map entry
-didn't change after we added it to the read tracking table. In
-anticipation of expanding the use of the error bit, also make sure that
-the error and zero flags are constant across the two map reads.
+Add helpers for converting a raw map entry to just the block number, or
+either of the 'e' or 'z' flags in preparation for actually using the
+error flag to mark blocks with media errors.
 
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/btt.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/nvdimm/btt.c | 8 ++++----
+ drivers/nvdimm/btt.h | 4 ++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 8842baa..374ae62 100644
+index f6ea82f..8842baa 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
-@@ -1032,6 +1032,7 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		 */
- 		while (1) {
- 			u32 new_map;
-+			int new_t, new_e;
+@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
+ 	 * This 'mapping' is supposed to be just the LBA mapping, without
+ 	 * any flags set, so strip the flag bits.
+ 	 */
+-	mapping &= MAP_LBA_MASK;
++	mapping = ent_lba(mapping);
  
- 			if (t_flag) {
- 				zero_fill_data(page, off, cur_len);
-@@ -1050,15 +1051,18 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 			 */
- 			barrier();
+ 	ze = (z_flag << 1) + e_flag;
+ 	switch (ze) {
+@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
  
--			ret = btt_map_read(arena, premap, &new_map, &t_flag,
--						&e_flag, NVDIMM_IO_ATOMIC);
-+			ret = btt_map_read(arena, premap, &new_map, &new_t,
-+						&new_e, NVDIMM_IO_ATOMIC);
- 			if (ret)
- 				goto out_rtt;
+ 	raw_mapping = le32_to_cpu(in);
  
--			if (postmap == new_map)
-+			if ((postmap == new_map) && (t_flag == new_t) &&
-+					(e_flag == new_e))
- 				break;
+-	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
+-	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
++	z_flag = ent_z_flag(raw_mapping);
++	e_flag = ent_e_flag(raw_mapping);
+ 	ze = (z_flag << 1) + e_flag;
+-	postmap = raw_mapping & MAP_LBA_MASK;
++	postmap = ent_lba(raw_mapping);
  
- 			postmap = new_map;
-+			t_flag = new_t;
-+			e_flag = new_e;
- 		}
+ 	/* Reuse the {z,e}_flag variables for *trim and *error */
+ 	z_flag = 0;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 888e862..09fabf5 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -38,6 +38,10 @@
+ #define IB_FLAG_ERROR 0x00000001
+ #define IB_FLAG_ERROR_MASK 0x00000001
  
- 		ret = btt_data_read(arena, page, off, postmap, cur_len);
++#define ent_lba(ent) (ent & MAP_LBA_MASK)
++#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
++#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
++
+ enum btt_init_state {
+ 	INIT_UNCHECKED = 0,
+ 	INIT_NOTFOUND,
 -- 
 2.9.3
 
