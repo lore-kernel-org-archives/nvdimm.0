@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x236.google.com (mail-oi0-x236.google.com
+ [IPv6:2607:f8b0:4003:c06::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 08EBD2095AE53
- for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 11:51:13 -0700 (PDT)
-Date: Fri, 25 Aug 2017 02:52:56 +0800
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH v5 7/7] libnvdimm: Add blk-mq pmem driver
-Message-ID: <201708250259.fqck1Olv%fengguang.wu@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3BCCF2095B9C9
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 12:55:35 -0700 (PDT)
+Received: by mail-oi0-x236.google.com with SMTP id j144so11801286oib.1
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 12:58:09 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <150334987495.55214.5621513659334023484.stgit@djiang5-desk3.ch.intel.com>
-Content-Disposition: inline
+In-Reply-To: <cc37e79b-904e-a8a3-faae-28887ed28b0f@intel.com>
+References: <150333903164.55214.3813479680626005389.stgit@djiang5-desk3.ch.intel.com>
+ <150334987495.55214.5621513659334023484.stgit@djiang5-desk3.ch.intel.com>
+ <CAPcyv4h5wm3C8BhQQpA8vZ3SCrcunLCW-rgrq6QCUHX74YJpgQ@mail.gmail.com>
+ <cc37e79b-904e-a8a3-faae-28887ed28b0f@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 23 Aug 2017 12:58:08 -0700
+Message-ID: <CAPcyv4idv6NL8B8DpjW-L2DTtMLvOFh5+M6rAE3-JSTvAkUPvg@mail.gmail.com>
+Subject: Re: [PATCH v5 7/7] libnvdimm: Add blk-mq pmem driver
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,41 +29,58 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-nvdimm@lists.01.org, vinod.koul@intel.com, hch@infradead.org, kbuild-all@01.org, dmaengine@vger.kernel.org
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Koul, Vinod  <vinod.koul@intel.com>, Christoph Hellwig <hch@infradead.org>, dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dave,
+On Wed, Aug 23, 2017 at 12:56 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+>
+>
+> On 08/23/2017 11:39 AM, Dan Williams wrote:
+>> On Mon, Aug 21, 2017 at 2:11 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+>>> Adding a DMA supported blk-mq driver for pmem.
+>>
+>> "Add support for offloading pmem block-device I/O operations to a DMA engine."
+>>
+>>> This provides signficant CPU
+>>
+>> *significant
+>>
+>>> utilization reduction.
+>>
+>> "at the cost of some increased latency and bandwidth reduction in some cases."
+>>
+>>> By default the pmem driver will be using blk-mq with
+>>
+>> "By default the current cpu-copy based pmem driver will load, but this
+>> driver can be manually selected with a modprobe configuration."
+>>
+>>> DMA through the dmaengine API. DMA can be turned off with use_dma=0 kernel
+>>> parameter.
+>>
+>> Do we need the module option? It seems for debug / testing a user can
+>> simply unload the ioatdma driver, otherwise we should use dma by
+>> default.
+>>
+>>> Additional kernel parameters are provided:
+>>>
+>>> queue_depth: The queue depth for blk-mq. Typically in relation to what the
+>>>              DMA engine can provide per queue/channel. This needs to take
+>>>              into account of num_sg as well for some DMA engines. i.e.
+>>>              num_sg * queue_depth < total descriptors available per queue or
+>>>              channel.
+>>>
+>>> q_per_node: Hardware queues per node. Typically the number of channels the
+>>>             DMA engine can provide per socket.
+>>> num_sg: Number of scatterlist we can handle per I/O request.
+>>
+>> Why do these need to be configurable?
+>
+> The concern is with other arch/platforms that have different DMA
+> engines. The configurations would be platform dependent.
 
-[auto build test ERROR on slave-dma/next]
-[also build test ERROR on next-20170824]
-[cannot apply to linus/master linux-nvdimm/libnvdimm-for-next v4.13-rc6]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Dave-Jiang/libnvdimm-add-DMA-support-for-pmem-blk-mq/20170824-164932
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/vkoul/slave-dma.git next
-config: i386-randconfig-c0-08250030 (attached as .config)
-compiler: gcc-4.9 (Debian 4.9.4-2) 4.9.4
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
-
-All errors (new ones prefixed by >>):
-
-   ERROR: "dma_request_chan" [sound/soc/snd-soc-core.ko] undefined!
-   ERROR: "dma_request_slave_channel" [sound/soc/snd-soc-core.ko] undefined!
-   ERROR: "dma_get_slave_caps" [sound/soc/snd-soc-core.ko] undefined!
-   ERROR: "dma_release_channel" [sound/soc/snd-soc-core.ko] undefined!
->> ERROR: "__dma_request_channel" [sound/core/snd-pcm-dmaengine.ko] undefined!
->> ERROR: "dma_release_channel" [sound/core/snd-pcm-dmaengine.ko] undefined!
->> ERROR: "dma_find_channel" [drivers/nvdimm/nd_pmem_mq.ko] undefined!
->> ERROR: "dmaengine_unmap_put" [drivers/nvdimm/nd_pmem_mq.ko] undefined!
->> ERROR: "dmaengine_get_unmap_data" [drivers/nvdimm/nd_pmem_mq.ko] undefined!
->> ERROR: "dmaengine_get" [drivers/nvdimm/nd_pmem_mq.ko] undefined!
->> ERROR: "dmaengine_put" [drivers/nvdimm/nd_pmem_mq.ko] undefined!
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+...but these are answers we should be able to get from dmaengine and
+the specific DMA drivers in use. An end user has no chance of guessing
+the right values.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
