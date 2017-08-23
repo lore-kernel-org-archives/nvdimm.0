@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AA0B221D4911E
- for <linux-nvdimm@lists.01.org>; Sat, 12 Aug 2017 12:29:13 -0700 (PDT)
-Subject: [ndctl PATCH 2/2] ndctl,
- list: add the remaining set of 'filter_by' helpers
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 12 Aug 2017 12:25:11 -0700
-Message-ID: <150256591112.13073.15791513451022118526.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150256590603.13073.16819489053604962816.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150256590603.13073.16819489053604962816.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3A3B32095B9E0
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 02:55:54 -0700 (PDT)
+Date: Wed, 23 Aug 2017 11:58:25 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 2/2] dax: use PG_PMD_COLOUR instead of open coding
+Message-ID: <20170823095825.GB2100@quack2.suse.cz>
+References: <20170822220926.13799-1-ross.zwisler@linux.intel.com>
+ <20170822222436.18926-1-ross.zwisler@linux.intel.com>
+ <20170822222436.18926-2-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170822222436.18926-2-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,223 +25,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Keith Hazelet <keith.hazelet@intel.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, "Slusarz, Marcin" <marcin.slusarz@intel.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We already support filtering region and bus listings by dimm, lets
-extend that to the other object types. I.e. permit buses to be filtered
-by regions, dimms, and namespaces; allow regions to be filtered by
-dimms, and namespaces etc...
+On Tue 22-08-17 16:24:36, Ross Zwisler wrote:
+> Use ~PG_PMD_COLOUR in dax_entry_waitqueue() instead of open coding an
+> equivalent page offset mask.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-For example, to list all the DIMMs that comprise a given namespace:
-  # ndctl list --dimms --namespace=7.0
-  [
-    {
-      "dev":"nmem1",
-      "id":"cdab-0a-07e0-ffffffff",
-      "handle":0,
-      "phys_id":0
-    },
-    {
-      "dev":"nmem3",
-      "id":"cdab-0a-07e0-fffeffff",
-      "handle":256,
-      "phys_id":2
-    },
-    {
-      "dev":"nmem2",
-      "id":"cdab-0a-07e0-feffffff",
-      "handle":1,
-      "phys_id":1
-    },
-    {
-      "dev":"nmem4",
-      "id":"cdab-0a-07e0-fefeffff",
-      "handle":257,
-      "phys_id":3
-    }
-  ]
+Looks good. You can add:
 
-Reported-by: Keith Hazelet <keith.hazelet@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/list.c  |   14 +++++++--
- util/filter.c |   90 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- util/filter.h |   10 ++++++
- 3 files changed, 111 insertions(+), 3 deletions(-)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/ndctl/list.c b/ndctl/list.c
-index c910c776c61d..1960e9f8d7b5 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -344,7 +344,9 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 		struct ndctl_dimm *dimm;
- 
- 		if (!util_bus_filter(bus, param.bus)
--				|| !util_bus_filter_by_dimm(bus, param.dimm))
-+				|| !util_bus_filter_by_dimm(bus, param.dimm)
-+				|| !util_bus_filter_by_region(bus, param.region)
-+				|| !util_bus_filter_by_namespace(bus, param.namespace))
- 			continue;
- 
- 		if (list.buses) {
-@@ -371,7 +373,11 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 			if (!list.dimms)
- 				break;
- 
--			if (!util_dimm_filter(dimm, param.dimm))
-+			if (!util_dimm_filter(dimm, param.dimm)
-+					|| !util_dimm_filter_by_region(dimm,
-+						param.region)
-+					|| !util_dimm_filter_by_namespace(dimm,
-+						param.namespace))
- 				continue;
- 
- 			if (!list.idle && !ndctl_dimm_is_enabled(dimm))
-@@ -425,7 +431,9 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 
- 			if (!util_region_filter(region, param.region)
- 					|| !util_region_filter_by_dimm(region,
--						param.dimm))
-+						param.dimm)
-+					|| !util_region_filter_by_namespace(region,
-+						param.namespace))
- 				continue;
- 
- 			if (type && ndctl_region_get_type(region) != type)
-diff --git a/util/filter.c b/util/filter.c
-index 400c11a3a80a..acc006cd1d41 100644
---- a/util/filter.c
-+++ b/util/filter.c
-@@ -130,6 +130,37 @@ struct ndctl_bus *util_bus_filter_by_dimm(struct ndctl_bus *bus,
- 	return NULL;
- }
- 
-+struct ndctl_bus *util_bus_filter_by_region(struct ndctl_bus *bus,
-+		const char *ident)
-+{
-+	struct ndctl_region *region;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return bus;
-+
-+	ndctl_region_foreach(bus, region)
-+		if (util_region_filter(region, ident))
-+			return bus;
-+	return NULL;
-+}
-+
-+
-+struct ndctl_bus *util_bus_filter_by_namespace(struct ndctl_bus *bus,
-+		const char *ident)
-+{
-+	struct ndctl_region *region;
-+	struct ndctl_namespace *ndns;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return bus;
-+
-+	ndctl_region_foreach(bus, region)
-+		ndctl_namespace_foreach(region, ndns)
-+			if (util_namespace_filter(ndns, ident))
-+				return bus;
-+	return NULL;
-+}
-+
- struct ndctl_region *util_region_filter_by_dimm(struct ndctl_region *region,
- 		const char *ident)
- {
-@@ -145,6 +176,65 @@ struct ndctl_region *util_region_filter_by_dimm(struct ndctl_region *region,
- 	return NULL;
- }
- 
-+struct ndctl_dimm *util_dimm_filter_by_region(struct ndctl_dimm *dimm,
-+		const char *ident)
-+{
-+	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-+	struct ndctl_region *region;
-+	struct ndctl_dimm *check;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return dimm;
-+
-+	ndctl_region_foreach(bus, region) {
-+		if (!util_region_filter(region, ident))
-+			continue;
-+		ndctl_dimm_foreach_in_region(region, check)
-+			if (check == dimm)
-+				return dimm;
-+	}
-+
-+	return NULL;
-+}
-+
-+struct ndctl_dimm *util_dimm_filter_by_namespace(struct ndctl_dimm *dimm,
-+		const char *ident)
-+{
-+	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-+	struct ndctl_namespace *ndns;
-+	struct ndctl_region *region;
-+	struct ndctl_dimm *check;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return dimm;
-+
-+	ndctl_region_foreach(bus, region) {
-+		ndctl_namespace_foreach(region, ndns) {
-+			if (!util_namespace_filter(ndns, ident))
-+				continue;
-+			ndctl_dimm_foreach_in_region(region, check)
-+				if (check == dimm)
-+					return dimm;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
-+struct ndctl_region *util_region_filter_by_namespace(struct ndctl_region *region,
-+		const char *ident)
-+{
-+	struct ndctl_namespace *ndns;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return region;
-+
-+	ndctl_namespace_foreach(region, ndns)
-+		if (util_namespace_filter(ndns, ident))
-+			return region;
-+	return NULL;
-+}
-+
- struct daxctl_dev *util_daxctl_dev_filter(struct daxctl_dev *dev,
- 		const char *ident)
- {
-diff --git a/util/filter.h b/util/filter.h
-index dcc537caaaf9..aa0098d2c099 100644
---- a/util/filter.h
-+++ b/util/filter.h
-@@ -20,8 +20,18 @@ struct ndctl_namespace *util_namespace_filter(struct ndctl_namespace *ndns,
- struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm *dimm, const char *ident);
- struct ndctl_bus *util_bus_filter_by_dimm(struct ndctl_bus *bus,
- 		const char *ident);
-+struct ndctl_bus *util_bus_filter_by_region(struct ndctl_bus *bus,
-+		const char *ident);
-+struct ndctl_bus *util_bus_filter_by_namespace(struct ndctl_bus *bus,
-+		const char *ident);
- struct ndctl_region *util_region_filter_by_dimm(struct ndctl_region *region,
- 		const char *ident);
-+struct ndctl_dimm *util_dimm_filter_by_region(struct ndctl_dimm *dimm,
-+		const char *ident);
-+struct ndctl_dimm *util_dimm_filter_by_namespace(struct ndctl_dimm *dimm,
-+		const char *ident);
-+struct ndctl_region *util_region_filter_by_namespace(struct ndctl_region *region,
-+		const char *ident);
- struct daxctl_dev *util_daxctl_dev_filter(struct daxctl_dev *dev,
- 		const char *ident);
- #endif
+								Honza
 
+> ---
+>  fs/dax.c | 11 ++++-------
+>  1 file changed, 4 insertions(+), 7 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 865d42c..0e2a1fd 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -42,6 +42,9 @@
+>  #define DAX_WAIT_TABLE_BITS 12
+>  #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
+>  
+> +/* The 'colour' (ie low bits) within a PMD of a page offset.  */
+> +#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
+> +
+>  static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
+>  
+>  static int __init init_dax_wait_table(void)
+> @@ -98,7 +101,7 @@ static wait_queue_head_t *dax_entry_waitqueue(struct address_space *mapping,
+>  	 * the range covered by the PMD map to the same bit lock.
+>  	 */
+>  	if (dax_is_pmd_entry(entry))
+> -		index &= ~((1UL << (PMD_SHIFT - PAGE_SHIFT)) - 1);
+> +		index &= ~PG_PMD_COLOUR;
+>  
+>  	key->mapping = mapping;
+>  	key->entry_start = index;
+> @@ -1262,12 +1265,6 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+>  }
+>  
+>  #ifdef CONFIG_FS_DAX_PMD
+> -/*
+> - * The 'colour' (ie low bits) within a PMD of a page offset.  This comes up
+> - * more often than one might expect in the below functions.
+> - */
+> -#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
+> -
+>  static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
+>  		loff_t pos, void **entryp)
+>  {
+> -- 
+> 2.9.5
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
