@@ -1,44 +1,41 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x229.google.com (mail-oi0-x229.google.com
- [IPv6:2607:f8b0:4003:c06::229])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C9B9F2095DE5A
- for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 15:06:08 -0700 (PDT)
-Received: by mail-oi0-x229.google.com with SMTP id r200so14451395oie.2
- for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 15:08:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170823152542.5150-2-boqun.feng@gmail.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Boqun Feng <boqun.feng@gmail.com>
+Subject: [PATCH 1/2] nfit: Use init_completion() in acpi_nfit_flush_probe()
+Date: Wed, 23 Aug 2017 23:25:37 +0800
+Message-Id: <20170823152542.5150-2-boqun.feng@gmail.com>
+In-Reply-To: <20170823152542.5150-1-boqun.feng@gmail.com>
 References: <20170823152542.5150-1-boqun.feng@gmail.com>
- <20170823152542.5150-2-boqun.feng@gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Aug 2017 15:08:41 -0700
-Message-ID: <CAPcyv4gidDb7BMejTiLaQu1KPB8XWzMcp_QeT4NiknPWvdNHxg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] nfit: Use init_completion() in acpi_nfit_flush_probe()
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Boqun Feng <boqun.feng@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, kernel-team@lge.com, Peter Zijlstra <peterz@infradead.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, Byungchul Park <byungchul.park@lge.com>, Linux MM <linux-mm@kvack.org>, Nicholas Piggin <npiggin@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, walken@google.com, Linux ACPI <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, walken@google.com, Byungchul Park <byungchul.park@lge.com>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, willy@infradead.org, Nicholas Piggin <npiggin@gmail.com>, kernel-team@lge.com, Boqun Feng <boqun.feng@gmail.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Aug 23, 2017 at 8:25 AM, Boqun Feng <boqun.feng@gmail.com> wrote:
-> There is no need to use COMPLETION_INITIALIZER_ONSTACK() in
-> acpi_nfit_flush_probe(), replace it with init_completion().
+There is no need to use COMPLETION_INITIALIZER_ONSTACK() in
+acpi_nfit_flush_probe(), replace it with init_completion().
 
-Now that I see the better version of this patch with the improved
-changelog in the -mm tree...
+Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
+---
+ drivers/acpi/nfit/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 19182d091587..1893e416e7c0 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2884,7 +2884,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+ 	 * need to be interruptible while waiting.
+ 	 */
+ 	INIT_WORK_ONSTACK(&flush.work, flush_probe);
+-	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
++	init_completion(&flush.cmp);
+ 	queue_work(nfit_wq, &flush.work);
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ 
+-- 
+2.14.1
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
