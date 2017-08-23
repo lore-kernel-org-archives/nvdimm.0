@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 921DA21EB5265
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:41:43 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 9D980AC00D4
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 10:42:53 +0900 (JST)
-Date: Thu, 31 Aug 2017 10:42:40 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [PATCH v3 3/3] acpi nfit: nfit_test supports translate SPA
-In-Reply-To: <20170831103238.DA41.E1E9C6FF@jp.fujitsu.com>
-References: <20170831103238.DA41.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170831104237.DA50.E1E9C6FF@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4E29521D2E623
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 16:52:52 -0700 (PDT)
+Subject: [PATCH v6 5/5] fs, fcntl: add F_MAP_DIRECT
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 23 Aug 2017 16:49:02 -0700
+Message-ID: <150353214202.5039.15970856232454713994.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150353211413.5039.5228914877418362329.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150353211413.5039.5228914877418362329.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,164 +22,112 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: akpm@linux-foundation.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
+A common pattern for granting a privilege to an unprivileged process is
+to pass it an established file descriptor over a unix domain socket.
+This enables fine grained access to the MAP_DIRECT mechanism instead of
+requiring the mapping process have CAP_LINUX_IMMUTABLE.
 
-nfit_test supports translate SPA
-
-To test ndctl list which use interface of Translate SPA,
-nfit_test needs to emulates it.
-This test module searches region which includes SPA and 
-returns 1 dimm handle which is last one.
-
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/test/nfit.c | 104 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 103 insertions(+), 1 deletion(-)
+ fs/fcntl.c                 |   15 +++++++++++++++
+ include/linux/fs.h         |    5 +++--
+ include/uapi/linux/fcntl.h |    5 +++++
+ mm/mmap.c                  |    3 ++-
+ 4 files changed, 25 insertions(+), 3 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 4c2fa98..cf15f42 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -342,6 +342,84 @@ static int nfit_test_cmd_clear_error(struct nd_cmd_clear_error *clear_err,
- 	return 0;
+diff --git a/fs/fcntl.c b/fs/fcntl.c
+index 3b01b646e528..f2375c406e6f 100644
+--- a/fs/fcntl.c
++++ b/fs/fcntl.c
+@@ -318,6 +318,18 @@ static long fcntl_rw_hint(struct file *file, unsigned int cmd,
+ 	}
  }
  
-+struct region_search_spa{
-+	u64 addr;
-+	struct nd_region *region;
-+};
-+
-+static int is_region_device(struct device *dev)
-+
++static int fcntl_map_direct(struct file *filp)
 +{
-+	return !strncmp(dev->kobj.name, "region", 6);
-+}
++	if (!capable(CAP_LINUX_IMMUTABLE))
++		return -EACCES;
 +
-+static int nfit_test_search_region_spa(struct device *dev, void *data)
-+{
-+	struct region_search_spa *ctx = data;
-+	struct nd_region *nd_region;
-+	resource_size_t ndr_end;
-+
-+	if (!is_region_device(dev))
-+		return 0;
-+
-+	nd_region = to_nd_region(dev);
-+	ndr_end = nd_region->ndr_start + nd_region->ndr_size;
-+
-+	if (ctx->addr >= nd_region->ndr_start && ctx->addr < ndr_end) {
-+		ctx->region = nd_region;
-+		return 1;
-+	}
++	spin_lock(&filp->f_lock);
++	filp->f_map_direct = 1;
++	spin_unlock(&filp->f_lock);
 +
 +	return 0;
 +}
 +
-+static int nfit_test_search_spa(struct nvdimm_bus *bus, struct nd_cmd_translate_spa *spa)
-+{
-+	int ret;
-+	struct nd_region *nd_region = NULL;
-+	struct nvdimm *nvdimm = NULL;
-+	struct nd_mapping *nd_mapping = NULL;
-+	struct region_search_spa ctx = {
-+		.addr = spa->spa,
-+		.region = NULL,
-+	};
-+	u64 dpa;
-+
-+	ret = device_for_each_child(&bus->dev, &ctx, nfit_test_search_region_spa);
-+
-+	if (!ret)
-+		return -ENODEV;
-+
-+	nd_region = ctx.region;
-+
-+	dpa = ctx.addr - nd_region->ndr_start;
-+
-+	/*
-+	 * last dimm is selected for test
-+	 */
-+	nd_mapping = &nd_region->mapping[nd_region->ndr_mappings - 1];
-+	nvdimm = nd_mapping->nvdimm;
-+
-+	spa->devices[0].nfit_device_handle = handle[nvdimm->id];
-+	spa->num_nvdimms = 1;
-+	spa->devices[0].dpa = dpa;
-+
-+	return 0;
-+}
-+
-+static int nfit_test_cmd_translate_spa(struct nvdimm_bus *bus, struct nd_cmd_translate_spa *spa,
-+				unsigned int buf_len)
-+{
-+
-+	if (buf_len < spa->translate_length)
-+		return -EINVAL;
-+
-+	if (nfit_test_search_spa(bus, spa) < 0|| !spa->num_nvdimms)
-+		spa->status = 2;
-+
-+	return 0;
-+}
-+
- static int nfit_test_cmd_smart(struct nd_cmd_smart *smart, unsigned int buf_len)
+ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
+ 		struct file *filp)
  {
- 	static const struct nd_smart_payload smart_data = {
-@@ -449,6 +527,26 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		}
- 	} else {
- 		struct ars_state *ars_state = &t->ars_state;
-+		struct nd_cmd_pkg *call_pkg = buf;
-+
-+		if (!nd_desc)
-+			return -ENOTTY;
-+
-+		if (cmd == ND_CMD_CALL) {
-+			func = call_pkg->nd_command;
-+
-+			buf_len = call_pkg->nd_size_in + call_pkg->nd_size_out;
-+			buf = (void *) call_pkg->nd_payload;
-+
-+			switch (func) {
-+			case NFIT_CMD_TRANSLATE_SPA:
-+				rc = nfit_test_cmd_translate_spa(acpi_desc->nvdimm_bus,
-+							buf, buf_len);
-+				return rc;
-+			default:
-+				return -ENOTTY;
-+			}
-+		}
+@@ -425,6 +437,9 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
+ 	case F_SET_FILE_RW_HINT:
+ 		err = fcntl_rw_hint(filp, cmd, arg);
+ 		break;
++	case F_MAP_DIRECT:
++		err = fcntl_map_direct(filp);
++		break;
+ 	default:
+ 		break;
+ 	}
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index db42da9f98c4..ec2e1d6bf22c 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -855,11 +855,12 @@ struct file {
+ 	const struct file_operations	*f_op;
  
- 		if (!nd_desc || !test_bit(cmd, &nd_desc->cmd_mask))
- 			return -ENOTTY;
-@@ -1430,7 +1528,9 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_CALL, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NFIT_CMD_TRANSLATE_SPA, &acpi_desc->bus_passthru_cmd_force_en);
- }
+ 	/*
+-	 * Protects f_ep_links, f_flags.
++	 * Protects f_ep_links, f_flags, f_write_hint, and f_map_direct.
+ 	 * Must not be taken from IRQ context.
+ 	 */
+ 	spinlock_t		f_lock;
+-	enum rw_hint		f_write_hint;
++	enum rw_hint		f_write_hint:3;
++	unsigned int		f_map_direct:1;
+ 	atomic_long_t		f_count;
+ 	unsigned int 		f_flags;
+ 	fmode_t			f_mode;
+diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
+index ec69d55bcec7..2a57a503174e 100644
+--- a/include/uapi/linux/fcntl.h
++++ b/include/uapi/linux/fcntl.h
+@@ -53,6 +53,11 @@
+ #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
  
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -1616,10 +1716,12 @@ static int nfit_ctl_test(struct device *dev)
- 			.cmd_mask = 1UL << ND_CMD_ARS_CAP
- 				| 1UL << ND_CMD_ARS_START
- 				| 1UL << ND_CMD_ARS_STATUS
--				| 1UL << ND_CMD_CLEAR_ERROR,
-+				| 1UL << ND_CMD_CLEAR_ERROR
-+				| 1UL << ND_CMD_CALL,
- 			.module = THIS_MODULE,
- 			.provider_name = "ACPI.NFIT",
- 			.ndctl = acpi_nfit_ctl,
-+			.bus_dsm_mask = 1UL << NFIT_CMD_TRANSLATE_SPA,
- 		},
- 		.dev = &adev->dev,
- 	};
-
+ /*
++ * Enable MAP_DIRECT on the file without CAP_LINUX_IMMUTABLE
++ */
++#define F_MAP_DIRECT		(F_LINUX_SPECIFIC_BASE + 15)
++
++/*
+  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
+  * used to clear any hints previously set.
+  */
+diff --git a/mm/mmap.c b/mm/mmap.c
+index 32417b2a668c..cf5e0cb7d0e3 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -1399,7 +1399,8 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
+ 			if (flags & MAP_DIRECT) {
+ 				if (!(prot & PROT_WRITE))
+ 					return -EACCES;
+-				if (!capable(CAP_LINUX_IMMUTABLE))
++				if (!file->f_map_direct
++						&& !capable(CAP_LINUX_IMMUTABLE))
+ 					return -EACCES;
+ 			}
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
