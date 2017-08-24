@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 153242095B9C6
- for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 05:33:42 -0700 (PDT)
-Date: Thu, 24 Aug 2017 14:36:15 +0200
-From: Jan Kara <jack@suse.cz>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DEEF02095B9C9
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 05:32:18 -0700 (PDT)
+Date: Thu, 24 Aug 2017 05:34:52 -0700
+From: Christoph Hellwig <hch@infradead.org>
 Subject: Re: [PATCH 13/13] ext4: Support for synchronous DAX faults
-Message-ID: <20170824123615.GB6187@quack2.suse.cz>
+Message-ID: <20170824123452.GB21282@infradead.org>
 References: <20170817160815.30466-1-jack@suse.cz>
  <20170817160815.30466-14-jack@suse.cz>
  <20170824123126.GA21282@infradead.org>
@@ -25,11 +25,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Boaz Harrosh <boazh@netapp.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>, Boaz Harrosh <boazh@netapp.com>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 24-08-17 05:31:26, Christoph Hellwig wrote:
+On Thu, Aug 24, 2017 at 05:31:26AM -0700, Christoph Hellwig wrote:
 > On Thu, Aug 17, 2017 at 06:08:15PM +0200, Jan Kara wrote:
 > > We return IOMAP_F_NEEDDSYNC flag from ext4_iomap_begin() for a
 > > synchronous write fault when inode has some uncommitted metadata
@@ -44,13 +44,10 @@ On Thu 24-08-17 05:31:26, Christoph Hellwig wrote:
 > Why is this only wiered up for the huge_fault handler and not the
 > regular?
 
-We do handle both. Just ext4 naming is a bit confusing and ext4_dax_fault()
-uses ext4_dax_huge_fault() for handling.
+Ah, turns out ext4 implements ->fault in terms of ->huge_fault.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+We'll really need to sort out this mess of fault handlers before
+doing too much surgery here..
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
