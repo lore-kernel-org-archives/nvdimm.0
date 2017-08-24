@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D83D21DF37CC
- for <linux-nvdimm@lists.01.org>; Mon,  7 Aug 2017 09:37:27 -0700 (PDT)
-Subject: [PATCH v4 5/8] dmaengine: ioatdma: dma_prep_memcpy_sg support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 07 Aug 2017 09:39:42 -0700
-Message-ID: <150212398256.23722.3919657033609467415.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
-References: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 153242095B9C6
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 05:33:42 -0700 (PDT)
+Date: Thu, 24 Aug 2017 14:36:15 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 13/13] ext4: Support for synchronous DAX faults
+Message-ID: <20170824123615.GB6187@quack2.suse.cz>
+References: <20170817160815.30466-1-jack@suse.cz>
+ <20170817160815.30466-14-jack@suse.cz>
+ <20170824123126.GA21282@infradead.org>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170824123126.GA21282@infradead.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,118 +25,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Boaz Harrosh <boazh@netapp.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andy Lutomirski <luto@kernel.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding ioatdma support to copy from a physically contiguous buffer to a
-provided scatterlist and vice versa. This is used to support
-reading/writing persistent memory in the pmem driver.
+On Thu 24-08-17 05:31:26, Christoph Hellwig wrote:
+> On Thu, Aug 17, 2017 at 06:08:15PM +0200, Jan Kara wrote:
+> > We return IOMAP_F_NEEDDSYNC flag from ext4_iomap_begin() for a
+> > synchronous write fault when inode has some uncommitted metadata
+> > changes. In the fault handler ext4_dax_fault() we then detect this case,
+> > call vfs_fsync_range() to make sure all metadata is committed, and call
+> > dax_pfn_mkwrite() to mark PTE as writeable. Note that this will also
+> > dirty corresponding radix tree entry which is what we want - fsync(2)
+> > will still provide data integrity guarantees for applications not using
+> > userspace flushing. And applications using userspace flushing can avoid
+> > calling fsync(2) and thus avoid the performance overhead.
+> 
+> Why is this only wiered up for the huge_fault handler and not the
+> regular?
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/dma/ioat/dma.h  |    4 +++
- drivers/dma/ioat/init.c |    2 ++
- drivers/dma/ioat/prep.c |   57 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 63 insertions(+)
+We do handle both. Just ext4 naming is a bit confusing and ext4_dax_fault()
+uses ext4_dax_huge_fault() for handling.
 
-diff --git a/drivers/dma/ioat/dma.h b/drivers/dma/ioat/dma.h
-index 56200ee..6c08b06 100644
---- a/drivers/dma/ioat/dma.h
-+++ b/drivers/dma/ioat/dma.h
-@@ -370,6 +370,10 @@ struct dma_async_tx_descriptor *
- ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
- 			   dma_addr_t dma_src, size_t len, unsigned long flags);
- struct dma_async_tx_descriptor *
-+ioat_dma_prep_memcpy_sg_lock(struct dma_chan *c,
-+		struct scatterlist *sg, unsigned int sg_nents,
-+		dma_addr_t dma_addr, bool to_sg, unsigned long flags);
-+struct dma_async_tx_descriptor *
- ioat_prep_interrupt_lock(struct dma_chan *c, unsigned long flags);
- struct dma_async_tx_descriptor *
- ioat_prep_xor(struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
-diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
-index 1b881fb..5c69ff6 100644
---- a/drivers/dma/ioat/init.c
-+++ b/drivers/dma/ioat/init.c
-@@ -1081,6 +1081,8 @@ static int ioat3_dma_probe(struct ioatdma_device *ioat_dma, int dca)
- 
- 	dma = &ioat_dma->dma_dev;
- 	dma->device_prep_dma_memcpy = ioat_dma_prep_memcpy_lock;
-+	dma_cap_set(DMA_MEMCPY_SG, dma->cap_mask);
-+	dma->device_prep_dma_memcpy_sg = ioat_dma_prep_memcpy_sg_lock;
- 	dma->device_issue_pending = ioat_issue_pending;
- 	dma->device_alloc_chan_resources = ioat_alloc_chan_resources;
- 	dma->device_free_chan_resources = ioat_free_chan_resources;
-diff --git a/drivers/dma/ioat/prep.c b/drivers/dma/ioat/prep.c
-index 243421a..d8219af 100644
---- a/drivers/dma/ioat/prep.c
-+++ b/drivers/dma/ioat/prep.c
-@@ -159,6 +159,63 @@ ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
- 	return &desc->txd;
- }
- 
-+struct dma_async_tx_descriptor *
-+ioat_dma_prep_memcpy_sg_lock(struct dma_chan *c,
-+		struct scatterlist *sg, unsigned int sg_nents,
-+		dma_addr_t dma_addr, bool to_sg, unsigned long flags)
-+{
-+	struct ioatdma_chan *ioat_chan = to_ioat_chan(c);
-+	struct ioat_dma_descriptor *hw = NULL;
-+	struct ioat_ring_ent *desc = NULL;
-+	dma_addr_t dma_off = dma_addr;
-+	int num_descs, idx, i;
-+	struct scatterlist *s;
-+	size_t total_len = 0, len;
-+
-+
-+	if (test_bit(IOAT_CHAN_DOWN, &ioat_chan->state))
-+		return NULL;
-+
-+	/*
-+	 * The upper layer will garantee that each entry does not exceed
-+	 * xfercap.
-+	 */
-+	num_descs = sg_nents;
-+
-+	if (likely(num_descs) &&
-+	    ioat_check_space_lock(ioat_chan, num_descs) == 0)
-+		idx = ioat_chan->head;
-+	else
-+		return NULL;
-+
-+	for_each_sg(sg, s, sg_nents, i) {
-+		desc = ioat_get_ring_ent(ioat_chan, idx + i);
-+		hw = desc->hw;
-+		len = sg_dma_len(s);
-+		hw->size = len;
-+		hw->ctl = 0;
-+		if (to_sg) {
-+			hw->src_addr = dma_off;
-+			hw->dst_addr = sg_dma_address(s);
-+		} else {
-+			hw->src_addr = sg_dma_address(s);
-+			hw->dst_addr = dma_off;
-+		}
-+		dma_off += len;
-+		total_len += len;
-+		dump_desc_dbg(ioat_chan, desc);
-+	}
-+
-+	desc->txd.flags = flags;
-+	desc->len = total_len;
-+	hw->ctl_f.int_en = !!(flags & DMA_PREP_INTERRUPT);
-+	hw->ctl_f.fence = !!(flags & DMA_PREP_FENCE);
-+	hw->ctl_f.compl_write = 1;
-+	dump_desc_dbg(ioat_chan, desc);
-+	/* we leave the channel locked to ensure in order submission */
-+
-+	return &desc->txd;
-+}
- 
- static struct dma_async_tx_descriptor *
- __ioat_prep_xor_lock(struct dma_chan *c, enum sum_check_flags *result,
-
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
