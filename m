@@ -1,16 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4A9A221E70D54
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 13:55:52 -0700 (PDT)
-Subject: [PATCH v7 4/9] dmaengine: add function to provide per descriptor
- xfercap for dma engine
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 30 Aug 2017 13:55:55 -0700
-Message-ID: <150412655540.69288.8062792128406896734.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
-References: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
+Received: from arm.com (unknown [183.14.133.0])
+ by ml01.01.org (Postfix) with ESMTP id D554221E47D52
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 03:29:35 -0700 (PDT)
+From: suzuki.poulose@arm.com
+Subject: Returned mail: see transcript for details
+Date: Thu, 24 Aug 2017 18:32:20 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,66 +17,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
+Message-Id: <20170824102938.8BE4621D2E64C@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a function that will export the transfer capability per descriptor
-for a DMA device for the dmaengine subsystem.
+The original message was received at Thu, 24 Aug 2017 18:32:20 +0800
+from arm.com [101.142.190.203]
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/dma/ioat/init.c   |    1 +
- include/linux/dmaengine.h |   10 ++++++++++
- 2 files changed, 11 insertions(+)
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm@lists.01.org>
 
-diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
-index 5c69ff6..4f24c36 100644
---- a/drivers/dma/ioat/init.c
-+++ b/drivers/dma/ioat/init.c
-@@ -596,6 +596,7 @@ static int ioat_enumerate_channels(struct ioatdma_device *ioat_dma)
- 	if (xfercap_log == 0)
- 		return 0;
- 	dev_dbg(dev, "%s: xfercap = %d\n", __func__, 1 << xfercap_log);
-+	dma->xfercap = 1 << xfercap_log;
- 
- 	for (i = 0; i < dma->chancnt; i++) {
- 		ioat_chan = devm_kzalloc(dev, sizeof(*ioat_chan), GFP_KERNEL);
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index 0c91411..53356c4 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -743,6 +743,7 @@ struct dma_device {
- 	u32 max_burst;
- 	bool descriptor_reuse;
- 	enum dma_residue_granularity residue_granularity;
-+	u64 xfercap;	/* descriptor transfer capability limit */
- 
- 	int (*device_alloc_chan_resources)(struct dma_chan *chan);
- 	void (*device_free_chan_resources)(struct dma_chan *chan);
-@@ -1326,6 +1327,11 @@ struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
- 
- void dma_release_channel(struct dma_chan *chan);
- int dma_get_slave_caps(struct dma_chan *chan, struct dma_slave_caps *caps);
-+
-+static inline u64 dma_get_desc_xfercap(struct dma_chan *chan)
-+{
-+	return chan->device->xfercap;
-+}
- #else
- static inline struct dma_chan *dma_find_channel(enum dma_transaction_type tx_type)
- {
-@@ -1370,6 +1376,10 @@ static inline int dma_get_slave_caps(struct dma_chan *chan,
- {
- 	return -ENXIO;
- }
-+static inline u64 dma_get_desc_xfercap(struct dma_chan *chan)
-+{
-+	return -ENXIO;
-+}
- #endif
- 
- #define dma_request_slave_channel_reason(dev, name) dma_request_chan(dev, name)
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:suzuki.poulose@arm.com
+<<< 501 suzuki.poulose@arm.com... Refused
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
