@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4A08021D2E634
- for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 08:59:13 -0700 (PDT)
-Date: Thu, 24 Aug 2017 09:01:44 -0700
-From: Christoph Hellwig <hch@infradead.org>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 28A9A21D2E652
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 08:09:14 -0700 (PDT)
+Date: Thu, 24 Aug 2017 09:11:38 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH v3] Fix ext4 fault handling when mounted with -o dax,ro
-Message-ID: <20170824160144.GA14287@infradead.org>
+Message-ID: <20170824151138.GA25588@linux.intel.com>
 References: <CAC9jV4pfQr=z9dHqtnTP8kAXGReeLDZWAAAfW2a7KRsK22UWkA@mail.gmail.com>
  <416a465a9fbe1d27085883dbf652c115cd195697.1503523424.git.dodgen@google.com>
 MIME-Version: 1.0
@@ -49,21 +49,10 @@ On Wed, Aug 23, 2017 at 02:26:52PM -0700, rdodgen@gmail.com wrote:
 > handles).
 > 
 > Signed-off-by: Randy Dodgen <dodgen@google.com>
-> ---
-> 
-> This version is simplified as suggested by Ross; all fault sizes and fallbacks
-> are handled by dax_iomap_fault.
 
-We really need to do the same for ext2 and xfs.  And we really should
-be doing that in common VM code instead of the file system.  See
-my recent xfs synchronous page fault series on the mess the inconsistent
-handling of the FAULT_FLAG_WRITE causes.  I think we just need a new
-FAULT_FLAG_ALLOC or similar for those page faults that needs to
-allocate space instead of piling hacks over hacks, and make sure
-it's only set over the method that will actually do the allocation,
-as the DAX and non-DAX path are not consistent on that.
+Cool, looks good from the DAX point of view.  You can add:
 
-Also any chance you could write an xfstest for this?
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
