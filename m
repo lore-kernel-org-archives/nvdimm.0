@@ -1,96 +1,52 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 24 Aug 2017 21:28:01 +0800
-From: Boqun Feng <boqun.feng@gmail.com>
+Date: Thu, 24 Aug 2017 15:07:42 +0200 (CEST)
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: [PATCH 1/2] nfit: Use init_completion() in
  acpi_nfit_flush_probe()
-Message-ID: <20170824132801.GM11771@tardis>
-References: <20170823152542.5150-1-boqun.feng@gmail.com>
- <20170823152542.5150-2-boqun.feng@gmail.com>
- <alpine.DEB.2.20.1708241507160.1860@nanos>
+In-Reply-To: <20170823152542.5150-2-boqun.feng@gmail.com>
+Message-ID: <alpine.DEB.2.20.1708241507160.1860@nanos>
+References: <20170823152542.5150-1-boqun.feng@gmail.com> <20170823152542.5150-2-boqun.feng@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="yiup30KVCQiHUZFC"
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1708241507160.1860@nanos>
+Content-Type: text/plain; charset=US-ASCII
 Sender: owner-linux-mm@kvack.org
-To: Thomas Gleixner <tglx@linutronix.de>
+To: Boqun Feng <boqun.feng@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, walken@google.com, Byungchul Park <byungchul.park@lge.com>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, willy@infradead.org, Nicholas Piggin <npiggin@gmail.com>, kernel-team@lge.com, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Wed, 23 Aug 2017, Boqun Feng wrote:
 
---yiup30KVCQiHUZFC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> There is no need to use COMPLETION_INITIALIZER_ONSTACK() in
+> acpi_nfit_flush_probe(), replace it with init_completion().
 
-On Thu, Aug 24, 2017 at 03:07:42PM +0200, Thomas Gleixner wrote:
-> On Wed, 23 Aug 2017, Boqun Feng wrote:
->=20
-> > There is no need to use COMPLETION_INITIALIZER_ONSTACK() in
-> > acpi_nfit_flush_probe(), replace it with init_completion().
->=20
-> You completely fail to explain WHY.
->=20
+You completely fail to explain WHY.
 
-I thought COMPLETION_INITIALIZER_ONSTACK() should only use in assigment
-or compound literals, so the usage here is obviously wrong, but seems
-I was wrong?
+Thanks,
 
-Ingo,
+	tglx
 
-Is the usage of COMPLETION_INITIALIZER_ONSTACK() correct? If not,
-I could rephrase my commit log saying this is a fix for wrong usage of
-COMPLETION_INITIALIZER_ONSTACK(), otherwise, I will rewrite the commit
-indicating this patch is a necessary dependency for patch #2. Thanks!
-
-Regards,
-Boqun
-
-> Thanks,
->=20
-> 	tglx
->=20
-> =20
-> > Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
-> > ---
-> >  drivers/acpi/nfit/core.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> > index 19182d091587..1893e416e7c0 100644
-> > --- a/drivers/acpi/nfit/core.c
-> > +++ b/drivers/acpi/nfit/core.c
-> > @@ -2884,7 +2884,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bu=
-s_descriptor *nd_desc)
-> >  	 * need to be interruptible while waiting.
-> >  	 */
-> >  	INIT_WORK_ONSTACK(&flush.work, flush_probe);
-> > -	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
-> > +	init_completion(&flush.cmp);
-> >  	queue_work(nfit_wq, &flush.work);
-> >  	mutex_unlock(&acpi_desc->init_mutex);
-> > =20
-> > --=20
-> > 2.14.1
-> >=20
-> >=20
-
---yiup30KVCQiHUZFC
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEj5IosQTPz8XU1wRHSXnow7UH+rgFAlme1F4ACgkQSXnow7UH
-+riYqgf5AW2ZDU/nzQsIVp6pflQHE+Vmeo+9XJ8X5xi91KucmViBHiISKjAVAOud
-rd0FKnQ47izCMLtq59xMIX264pCXMUubJCZt0z5cx1qkdKqnV6rlHcSuBKNaymtN
-8K8Ltc4sHyb0exHHm0qEZG3Xn9WWkTALD/ycIe9vEQLyJYnMzMyXuQSMhzEitJTv
-nuiRjwK3RRxAeO7u+YM0WErwPxJaSBLmvEvfWhJ/ix+zL9znUamzN1SPPgoDKM2i
-5etOuF0yRsnfRv/VYEL8g89EV71614l+90O6bX4Goe/VoKWeuSLzdeuJAhhPZxLT
-Uag5q2+b3h8uLp+WtkKNgnmeBW/N7A==
-=O+8J
------END PGP SIGNATURE-----
-
---yiup30KVCQiHUZFC--
+ 
+> Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
+> ---
+>  drivers/acpi/nfit/core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 19182d091587..1893e416e7c0 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2884,7 +2884,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+>  	 * need to be interruptible while waiting.
+>  	 */
+>  	INIT_WORK_ONSTACK(&flush.work, flush_probe);
+> -	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
+> +	init_completion(&flush.cmp);
+>  	queue_work(nfit_wq, &flush.work);
+>  	mutex_unlock(&acpi_desc->init_mutex);
+>  
+> -- 
+> 2.14.1
+> 
+> 
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
