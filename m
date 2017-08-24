@@ -1,64 +1,99 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
- [IPv6:2607:f8b0:4003:c06::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A858921D491A3
- for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 06:43:52 -0700 (PDT)
-Received: by mail-oi0-x244.google.com with SMTP id a84so2441554oii.1
- for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 06:46:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170824132801.GM11771@tardis>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 24 Aug 2017 21:28:01 +0800
+From: Boqun Feng <boqun.feng@gmail.com>
+Subject: Re: [PATCH 1/2] nfit: Use init_completion() in
+ acpi_nfit_flush_probe()
+Message-ID: <20170824132801.GM11771@tardis>
 References: <20170823152542.5150-1-boqun.feng@gmail.com>
  <20170823152542.5150-2-boqun.feng@gmail.com>
- <alpine.DEB.2.20.1708241507160.1860@nanos> <20170824132801.GM11771@tardis>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 24 Aug 2017 15:46:26 +0200
-Message-ID: <CAK8P3a1bVCxJCi_84abo4Bk7LFr7ynO1=7bW5dm=jbLvH9sR2Q@mail.gmail.com>
-Subject: Re: [PATCH 1/2] nfit: Use init_completion() in acpi_nfit_flush_probe()
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Boqun Feng <boqun.feng@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, kernel-team@lge.com, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-nvdimm@lists.01.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, willy@infradead.org, Byungchul Park <byungchul.park@lge.com>, Linux-MM <linux-mm@kvack.org>, Nicholas Piggin <npiggin@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Michel Lespinasse <walken@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>
+ <alpine.DEB.2.20.1708241507160.1860@nanos>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="yiup30KVCQiHUZFC"
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.20.1708241507160.1860@nanos>
+Sender: owner-linux-mm@kvack.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, walken@google.com, Byungchul Park <byungchul.park@lge.com>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, willy@infradead.org, Nicholas Piggin <npiggin@gmail.com>, kernel-team@lge.com, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Aug 24, 2017 at 3:28 PM, Boqun Feng <boqun.feng@gmail.com> wrote:
-> On Thu, Aug 24, 2017 at 03:07:42PM +0200, Thomas Gleixner wrote:
->> On Wed, 23 Aug 2017, Boqun Feng wrote:
->>
->> > There is no need to use COMPLETION_INITIALIZER_ONSTACK() in
->> > acpi_nfit_flush_probe(), replace it with init_completion().
->>
->> You completely fail to explain WHY.
->>
->
-> I thought COMPLETION_INITIALIZER_ONSTACK() should only use in assigment
-> or compound literals, so the usage here is obviously wrong, but seems
-> I was wrong?
->
-> Ingo,
->
-> Is the usage of COMPLETION_INITIALIZER_ONSTACK() correct? If not,
-> I could rephrase my commit log saying this is a fix for wrong usage of
-> COMPLETION_INITIALIZER_ONSTACK(), otherwise, I will rewrite the commit
-> indicating this patch is a necessary dependency for patch #2. Thanks!
 
-I think your patch is correct, but your changelog text is useless, as
-Thomas mentioned: you should instead explain that it breaks with the
-other fix in the series, and what the difference between init_completion()
-and COMPLETION_INITIALIZER_ONSTACK() is.
+--yiup30KVCQiHUZFC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-      Arnd
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+On Thu, Aug 24, 2017 at 03:07:42PM +0200, Thomas Gleixner wrote:
+> On Wed, 23 Aug 2017, Boqun Feng wrote:
+>=20
+> > There is no need to use COMPLETION_INITIALIZER_ONSTACK() in
+> > acpi_nfit_flush_probe(), replace it with init_completion().
+>=20
+> You completely fail to explain WHY.
+>=20
+
+I thought COMPLETION_INITIALIZER_ONSTACK() should only use in assigment
+or compound literals, so the usage here is obviously wrong, but seems
+I was wrong?
+
+Ingo,
+
+Is the usage of COMPLETION_INITIALIZER_ONSTACK() correct? If not,
+I could rephrase my commit log saying this is a fix for wrong usage of
+COMPLETION_INITIALIZER_ONSTACK(), otherwise, I will rewrite the commit
+indicating this patch is a necessary dependency for patch #2. Thanks!
+
+Regards,
+Boqun
+
+> Thanks,
+>=20
+> 	tglx
+>=20
+> =20
+> > Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
+> > ---
+> >  drivers/acpi/nfit/core.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> > index 19182d091587..1893e416e7c0 100644
+> > --- a/drivers/acpi/nfit/core.c
+> > +++ b/drivers/acpi/nfit/core.c
+> > @@ -2884,7 +2884,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bu=
+s_descriptor *nd_desc)
+> >  	 * need to be interruptible while waiting.
+> >  	 */
+> >  	INIT_WORK_ONSTACK(&flush.work, flush_probe);
+> > -	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
+> > +	init_completion(&flush.cmp);
+> >  	queue_work(nfit_wq, &flush.work);
+> >  	mutex_unlock(&acpi_desc->init_mutex);
+> > =20
+> > --=20
+> > 2.14.1
+> >=20
+> >=20
+
+--yiup30KVCQiHUZFC
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEj5IosQTPz8XU1wRHSXnow7UH+rgFAlme1F4ACgkQSXnow7UH
++riYqgf5AW2ZDU/nzQsIVp6pflQHE+Vmeo+9XJ8X5xi91KucmViBHiISKjAVAOud
+rd0FKnQ47izCMLtq59xMIX264pCXMUubJCZt0z5cx1qkdKqnV6rlHcSuBKNaymtN
+8K8Ltc4sHyb0exHHm0qEZG3Xn9WWkTALD/ycIe9vEQLyJYnMzMyXuQSMhzEitJTv
+nuiRjwK3RRxAeO7u+YM0WErwPxJaSBLmvEvfWhJ/ix+zL9znUamzN1SPPgoDKM2i
+5etOuF0yRsnfRv/VYEL8g89EV71614l+90O6bX4Goe/VoKWeuSLzdeuJAhhPZxLT
+Uag5q2+b3h8uLp+WtkKNgnmeBW/N7A==
+=O+8J
+-----END PGP SIGNATURE-----
+
+--yiup30KVCQiHUZFC--
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
