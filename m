@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
+ [IPv6:2607:f8b0:4003:c06::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9A4A421E0C2E7
- for <linux-nvdimm@lists.01.org>; Wed, 16 Aug 2017 00:48:35 -0700 (PDT)
-Subject: [PATCH v5 5/5] fs, fcntl: add F_MAP_DIRECT
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 16 Aug 2017 00:44:33 -0700
-Message-ID: <150286947385.8837.2630371125726376087.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150286944610.8837.9513410258028246174.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150286944610.8837.9513410258028246174.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E3A0F2095AE49
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 10:39:34 -0700 (PDT)
+Received: by mail-oi0-x235.google.com with SMTP id k77so1444930oib.2
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 10:42:10 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170824165838.GB3121@infradead.org>
+References: <150353211413.5039.5228914877418362329.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150353211985.5039.4333061601382775843.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170824165838.GB3121@infradead.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 24 Aug 2017 10:42:09 -0700
+Message-ID: <CAPcyv4gd1qgtP7DjfRnXDebhYb1_4jnuM3HTL-ma2snz7FMAOg@mail.gmail.com>
+Subject: Re: [PATCH v6 1/5] vfs: add flags parameter to ->mmap() in 'struct
+ file_operations'
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,113 +28,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, David Airlie <airlied@linux.ie>, Linux API <linux-api@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Daniel Vetter <daniel.vetter@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linux MM <linux-mm@kvack.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A common pattern for granting a privilege to an unprivileged process is
-to pass it an established file descriptor over a unix domain socket.
-This enables fine grained access to the MAP_DIRECT mechanism instead of
-requiring the mapping process have CAP_LINUX_IMMUTABLE.
+On Thu, Aug 24, 2017 at 9:58 AM, Christoph Hellwig <hch@infradead.org> wrote:
+> On Wed, Aug 23, 2017 at 04:48:40PM -0700, Dan Williams wrote:
+>> We are running running short of vma->vm_flags. We can avoid needing a
+>> new VM_* flag in some cases if the original @flags submitted to mmap(2)
+>> is made available to the ->mmap() 'struct file_operations'
+>> implementation. For example, the proposed addition of MAP_DIRECT can be
+>> implemented without taking up a new vm_flags bit. Another motivation to
+>> avoid vm_flags is that they appear in /proc/$pid/smaps, and we have seen
+>> software that tries to dangerously (TOCTOU) read smaps to infer the
+>> behavior of a virtual address range.
+>>
+>> This conversion was performed by the following semantic patch. There
+>> were a few manual edits for oddities like proc_reg_mmap.
+>>
+>> Thanks to Julia for helping me with coccinelle iteration to cover cases
+>> where the mmap routine is defined in a separate file from the 'struct
+>> file_operations' instance that consumes it.
+>
+> How are we going to check that an instance actually supports any
+> of those flags?
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/fcntl.c                 |   15 +++++++++++++++
- include/linux/fs.h         |    5 +++--
- include/uapi/linux/fcntl.h |    5 +++++
- mm/mmap.c                  |    3 ++-
- 4 files changed, 25 insertions(+), 3 deletions(-)
-
-diff --git a/fs/fcntl.c b/fs/fcntl.c
-index 3b01b646e528..f2375c406e6f 100644
---- a/fs/fcntl.c
-+++ b/fs/fcntl.c
-@@ -318,6 +318,18 @@ static long fcntl_rw_hint(struct file *file, unsigned int cmd,
- 	}
- }
- 
-+static int fcntl_map_direct(struct file *filp)
-+{
-+	if (!capable(CAP_LINUX_IMMUTABLE))
-+		return -EACCES;
-+
-+	spin_lock(&filp->f_lock);
-+	filp->f_map_direct = 1;
-+	spin_unlock(&filp->f_lock);
-+
-+	return 0;
-+}
-+
- static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
- 		struct file *filp)
- {
-@@ -425,6 +437,9 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
- 	case F_SET_FILE_RW_HINT:
- 		err = fcntl_rw_hint(filp, cmd, arg);
- 		break;
-+	case F_MAP_DIRECT:
-+		err = fcntl_map_direct(filp);
-+		break;
- 	default:
- 		break;
- 	}
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index db42da9f98c4..3f7026974dd2 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -855,11 +855,12 @@ struct file {
- 	const struct file_operations	*f_op;
- 
- 	/*
--	 * Protects f_ep_links, f_flags.
-+	 * Protects f_ep_links, f_flags, f_write_hint, and f_map_direct.
- 	 * Must not be taken from IRQ context.
- 	 */
- 	spinlock_t		f_lock;
--	enum rw_hint		f_write_hint;
-+	enum rw_hint		f_write_hint:3;
-+	int			f_map_direct:1;
- 	atomic_long_t		f_count;
- 	unsigned int 		f_flags;
- 	fmode_t			f_mode;
-diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
-index ec69d55bcec7..2a57a503174e 100644
---- a/include/uapi/linux/fcntl.h
-+++ b/include/uapi/linux/fcntl.h
-@@ -53,6 +53,11 @@
- #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
- 
- /*
-+ * Enable MAP_DIRECT on the file without CAP_LINUX_IMMUTABLE
-+ */
-+#define F_MAP_DIRECT		(F_LINUX_SPECIFIC_BASE + 15)
-+
-+/*
-  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
-  * used to clear any hints previously set.
-  */
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 32417b2a668c..cf5e0cb7d0e3 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1399,7 +1399,8 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			if (flags & MAP_DIRECT) {
- 				if (!(prot & PROT_WRITE))
- 					return -EACCES;
--				if (!capable(CAP_LINUX_IMMUTABLE))
-+				if (!file->f_map_direct
-+						&& !capable(CAP_LINUX_IMMUTABLE))
- 					return -EACCES;
- 			}
- 
-
+In patch 3 I validate the flags by introducing an
+"mmap_supported_mask" field to 'struct file_operations'. It will be
+zero by default for almost all implementations and zero means "support
+the legacy mmap flags".
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
