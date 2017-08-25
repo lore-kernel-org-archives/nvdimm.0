@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3C94C21E95E19
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:36:56 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v7 4/6] btt: cache sector_size in arena_info
-Date: Wed, 30 Aug 2017 19:36:01 -0600
-Message-Id: <20170831013603.16997-5-vishal.l.verma@intel.com>
-In-Reply-To: <20170831013603.16997-1-vishal.l.verma@intel.com>
-References: <20170831013603.16997-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id AD2CA21E47D53
+ for <linux-nvdimm@lists.01.org>; Fri, 25 Aug 2017 00:07:34 -0700 (PDT)
+Date: Fri, 25 Aug 2017 09:10:08 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 1/3] iomap: return VM_FAULT_* codes from iomap_page_mkwrite
+Message-ID: <20170825071008.GA9191@lst.de>
+References: <20170824152207.30729-1-hch@lst.de>
+ <20170824152207.30729-2-hch@lst.de> <20170824192624.GA20489@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170824192624.GA20489@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,58 +20,25 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the error clearing rework, add sector_size in the
-arena_info struct.
+On Thu, Aug 24, 2017 at 01:26:24PM -0600, Ross Zwisler wrote:
+> On Thu, Aug 24, 2017 at 05:22:05PM +0200, Christoph Hellwig wrote:
+> > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> 
+> This is obviously correct, but the lack of changelog makes it unclear why the
+> change is being made.  Does a later patch in the series depend on
+> iomap_page_mkwrite() returning VM_FAULT_* codes?  Is this just cleanup so you
+> can hide the block_page_mkwrite_return() call inside of iomap_page_mkwrite()?
+> 
+> I think it's the former, so the logic in __xfs_filemap_fault() is simpler?
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/btt.c | 1 +
- drivers/nvdimm/btt.h | 2 ++
- 2 files changed, 3 insertions(+)
-
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 374ae62..e9dd651 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
- 	if (!arena)
- 		return NULL;
- 	arena->nd_btt = btt->nd_btt;
-+	arena->sector_size = btt->sector_size;
- 
- 	if (!size)
- 		return arena;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 09fabf5..2bc0d10b 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -108,6 +108,7 @@ struct aligned_lock {
-  *			handle incoming writes.
-  * @version_major:	Metadata layout version major.
-  * @version_minor:	Metadata layout version minor.
-+ * @sector_size:	The Linux sector size - 512 or 4096
-  * @nextoff:		Offset in bytes to the start of the next arena.
-  * @infooff:		Offset in bytes to the info block of this arena.
-  * @dataoff:		Offset in bytes to the data area of this arena.
-@@ -135,6 +136,7 @@ struct arena_info {
- 	u32 nfree;
- 	u16 version_major;
- 	u16 version_minor;
-+	u32 sector_size;
- 	/* Byte offsets to the different on-media structures */
- 	u64 nextoff;
- 	u64 infooff;
--- 
-2.9.5
-
+Yes.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
