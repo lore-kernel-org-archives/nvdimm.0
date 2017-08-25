@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBF9721E70D50
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 13:55:57 -0700 (PDT)
-Subject: [PATCH v7 5/9] dmaengine: add SG support to dmaengine_unmap
+ by ml01.01.org (Postfix) with ESMTPS id 52BDA21E11D3B
+ for <linux-nvdimm@lists.01.org>; Fri, 25 Aug 2017 13:56:54 -0700 (PDT)
+Subject: [PATCH v6 1/8] dmaengine: ioatdma: revert 7618d035 to allow sharing
+ of DMA channels
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 30 Aug 2017 13:56:01 -0700
-Message-ID: <150412656104.69288.632868014431025281.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
-References: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 25 Aug 2017 13:59:30 -0700
+Message-ID: <150369477016.6962.8636764604054663107.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
+References: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,92 +27,32 @@ To: vinod.koul@intel.com, dan.j.williams@intel.com
 Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This provides support to unmap scatterlist with the
-dmaengine_unmap_data. We will support only 1 scatterlist per
-direction.
+Commit 7618d0359c16 ("dmaengine: ioatdma: Set non RAID channels to be
+private capable") makes all non-RAID ioatdma channels as private to be
+requestable by dma_request_channel(). With PQ CAP support going away for
+ioatdma, this would make all channels private. To support the usage of
+ioatdma for blk-mq implementation of pmem we need as many channels we can
+share in order to be high performing. Thus reverting the patch.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/dma/dmaengine.c   |   27 +++++++++++++++++++++++++++
- include/linux/dmaengine.h |   13 ++++++++++++-
- 2 files changed, 39 insertions(+), 1 deletion(-)
+ drivers/dma/ioat/init.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
-index 428b141..b4fd81a 100644
---- a/drivers/dma/dmaengine.c
-+++ b/drivers/dma/dmaengine.c
-@@ -1120,12 +1120,39 @@ static struct dmaengine_unmap_pool *__get_unmap_pool(int nr)
+diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
+index ed8ed11..1b881fb 100644
+--- a/drivers/dma/ioat/init.c
++++ b/drivers/dma/ioat/init.c
+@@ -1153,9 +1153,6 @@ static int ioat3_dma_probe(struct ioatdma_device *ioat_dma, int dca)
+ 		}
  	}
- }
  
-+static void dmaengine_unmap_sg(struct dmaengine_unmap_data *unmap)
-+{
-+	struct device *dev = unmap->dev;
-+
-+	if (unmap->to_sg) {
-+		dma_unmap_sg(dev, unmap->unmap_sg.sg,
-+				unmap->sg_nents, DMA_TO_DEVICE);
-+
-+		dma_unmap_page(dev, unmap->unmap_sg.buf_phys, unmap->len,
-+					DMA_FROM_DEVICE);
-+	}
-+
-+	if (unmap->from_sg) {
-+		dma_unmap_page(dev, unmap->unmap_sg.buf_phys, unmap->len,
-+				DMA_TO_DEVICE);
-+		dma_unmap_sg(dev, unmap->unmap_sg.sg,
-+				unmap->sg_nents, DMA_FROM_DEVICE);
-+	}
-+
-+	mempool_free(unmap, __get_unmap_pool(unmap->map_cnt)->pool);
-+}
-+
- static void dmaengine_unmap(struct kref *kref)
- {
- 	struct dmaengine_unmap_data *unmap = container_of(kref, typeof(*unmap), kref);
- 	struct device *dev = unmap->dev;
- 	int cnt, i;
- 
-+	if (unmap->to_sg || unmap->from_sg) {
-+		dmaengine_unmap_sg(unmap);
-+		return;
-+	}
-+
- 	cnt = unmap->to_cnt;
- 	for (i = 0; i < cnt; i++)
- 		dma_unmap_page(dev, unmap->addr[i], unmap->len,
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index 53356c4..fc53854 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -464,15 +464,26 @@ struct dmaengine_result {
- typedef void (*dma_async_tx_callback_result)(void *dma_async_param,
- 				const struct dmaengine_result *result);
- 
-+struct dmaengine_unmap_sg {
-+	struct scatterlist *sg;
-+	dma_addr_t buf_phys;
-+};
-+
- struct dmaengine_unmap_data {
- 	u8 map_cnt;
- 	u8 to_cnt;
-+	u8 to_sg;
- 	u8 from_cnt;
-+	u8 from_sg;
- 	u8 bidi_cnt;
-+	int sg_nents;
- 	struct device *dev;
- 	struct kref kref;
- 	size_t len;
--	dma_addr_t addr[0];
-+	union {
-+		struct dmaengine_unmap_sg unmap_sg;
-+		dma_addr_t addr[0];
-+	};
- };
- 
- /**
+-	if (!(ioat_dma->cap & (IOAT_CAP_XOR | IOAT_CAP_PQ)))
+-		dma_cap_set(DMA_PRIVATE, dma->cap_mask);
+-
+ 	err = ioat_probe(ioat_dma);
+ 	if (err)
+ 		return err;
 
 _______________________________________________
 Linux-nvdimm mailing list
