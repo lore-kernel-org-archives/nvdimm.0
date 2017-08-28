@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from aserp1040.oracle.com (aserp1040.oracle.com [141.146.126.69])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2ED9221DF807E
- for <linux-nvdimm@lists.01.org>; Mon, 28 Aug 2017 09:25:55 -0700 (PDT)
-Date: Mon, 28 Aug 2017 09:28:27 -0700
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
+ by ml01.01.org (Postfix) with ESMTPS id CE5A821DF8074
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Aug 2017 01:29:03 -0700 (PDT)
+Date: Mon, 28 Aug 2017 10:31:40 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v2 1/2] fs, xfs: perform dax_device lookup at mount
-Message-ID: <20170828162827.GA4757@magnolia>
+Message-ID: <20170828083140.GB12609@quack2.suse.cz>
 References: <150389211501.25151.6477753201827914462.stgit@dwillia2-desk3.amr.corp.intel.com>
  <150389212075.25151.17146973298430877023.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -25,10 +25,10 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, hch@lst.de
+Cc: jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Aug 27, 2017 at 08:48:40PM -0700, Dan Williams wrote:
+On Sun 27-08-17 20:48:40, Dan Williams wrote:
 > The ->iomap_begin() operation is a hot path, so cache the
 > fs_dax_get_by_host() result at mount time to avoid the incurring the
 > hash lookup overhead on a per-i/o basis.
@@ -37,8 +37,14 @@ On Sun, Aug 27, 2017 at 08:48:40PM -0700, Dan Williams wrote:
 > Reported-by: Christoph Hellwig <hch@lst.de>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Looks good,
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+Looks good to me. For the generic parts:
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+[XFS part looks correct to me as well but I don't feel expert enough to
+give any tags there].
+
+								Honza
 
 > ---
 >  drivers/dax/super.c |   10 ++++++++++
@@ -426,10 +432,9 @@ Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 >  	struct mtd_info		*s_mtd;
 >  	struct hlist_node	s_instances;
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
