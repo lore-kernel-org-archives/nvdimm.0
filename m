@@ -1,15 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5A1BF21E49BC4
- for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:22:15 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/2] dax: fix deadlock due to misaligned PMD faults
-Date: Tue, 22 Aug 2017 16:24:35 -0600
-Message-Id: <20170822222436.18926-1-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170822220926.13799-1-ross.zwisler@linux.intel.com>
-References: <20170822220926.13799-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B735521E11D02
+ for <linux-nvdimm@lists.01.org>; Sun, 27 Aug 2017 17:59:15 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 07AD0AC031C
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Aug 2017 10:01:37 +0900 (JST)
+Date: Mon, 28 Aug 2017 10:01:32 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [ndctl PATCH 1/4] make interface to check device/nfit/dsm_mask
+ flags
+In-Reply-To: <CAPcyv4ha=aqoJmMH89uqVzaCcXhFXkWfCC1GxKk8zY35s0XA_A@mail.gmail.com>
+References: <20170818133348.8EAE.E1E9C6FF@jp.fujitsu.com>
+ <CAPcyv4ha=aqoJmMH89uqVzaCcXhFXkWfCC1GxKk8zY35s0XA_A@mail.gmail.com>
+Message-Id: <20170828100130.9A52.E1E9C6FF@jp.fujitsu.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,142 +24,69 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Alexander Viro <viro@zeniv.linux.org.uk>, Slusarz,
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In DAX there are two separate places where the 2MiB range of a PMD is
-defined.
+> On Thu, Aug 17, 2017 at 9:33 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+> >
+> > To check what feature can be called via ND_CMD_CALL, ndctl need to read
+> > device/nfit/dsm_mask. This patch make an interface to check it in libndctl.c
+> >
+> >
+> > Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+> > ---
+> >  ndctl/lib/libndctl.c | 13 +++++++++++++
+> >  ndctl/libndctl.h.in  |  1 +
+> >  2 files changed, 14 insertions(+)
+> >
+> > diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> > index c2e0efb..93692e5 100644
+> > --- a/ndctl/lib/libndctl.c
+> > +++ b/ndctl/lib/libndctl.c
+> > @@ -102,6 +102,7 @@ struct ndctl_bus {
+> >         size_t buf_len;
+> >         char *wait_probe_path;
+> >         unsigned long dsm_mask;
+> > +       unsigned long bus_dsm_mask;
+> >  };
+> >
+> >  /**
+> > @@ -846,6 +847,12 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
+> >                 bus->revision = strtoul(buf, NULL, 0);
+> >         }
+> >
+> > +       sprintf(path, "%s/device/nfit/dsm_mask", ctl_base);
+> > +       if (sysfs_read_attr(ctx, path, buf) < 0)
+> > +               bus->bus_dsm_mask = 0;
+> > +       else
+> > +               bus->bus_dsm_mask = strtoul(buf, NULL, 16);
+> > +
+> >         sprintf(path, "%s/device/provider", ctl_base);
+> >         if (sysfs_read_attr(ctx, path, buf) < 0)
+> >                 goto err_read;
+> > @@ -1101,6 +1108,12 @@ NDCTL_EXPORT int ndctl_bus_is_cmd_supported(struct ndctl_bus *bus,
+> >         return !!(bus->dsm_mask & (1ULL << cmd));
+> >  }
+> >
+> > +NDCTL_EXPORT int ndctl_bus_is_sub_cmd_supported(struct ndctl_bus *bus,
+> 
+> Looks good, let's call this ndctl_bus_is_passthru_cmd_supported()
+> since ndctl_bus_is_cmd_supported() is telling you about native bus
+> commands that Linux supports generically and "passthru" is for command
+> payloads that Linux is just blindly passing through to the firmware
+> implementation. As far as the libndctl user is concerned they should
+> not be able to easily tell the difference between an ACPI defined
+> NVDIMM bus or Open Firmware / some other platform.
+> 
 
-The first is in the page tables, where a PMD mapping inserted for a given
-address spans from (vmf->address & PMD_MASK) to
-((vmf->address & PMD_MASK) + PMD_SIZE - 1).  That is, from the 2MiB
-boundary below the address to the 2MiB boundary above the address.
+I see. I'll change it.
 
-So, for example, a fault at address 3MiB (0x30 0000) falls within the PMD
-that ranges from 2MiB (0x20 0000) to 4MiB (0x40 0000).
 
-The second PMD range is in the mapping->page_tree, where a given file
-offset is covered by a radix tree entry that spans from one 2MiB aligned
-file offset to another 2MiB aligned file offset.
-
-So, for example, the file offset for 3MiB (pgoff 768) falls within the PMD
-range for the order 9 radix tree entry that ranges from 2MiB (pgoff 512) to
-4MiB (pgoff 1024).
-
-This system works so long as the addresses and file offsets for a given
-mapping both have the same offsets relative to the start of each PMD.
-
-Consider the case where the starting address for a given file isn't 2MiB
-aligned - say our faulting address is 3 MiB (0x30 0000), but that
-corresponds to the beginning of our file (pgoff 0).  Now all the PMDs in
-the mapping are misaligned so that the 2MiB range defined in the page
-tables never matches up with the 2MiB range defined in the radix tree.
-
-The current code notices this case for DAX faults to storage with the
-following test in dax_pmd_insert_mapping():
-
-	if (pfn_t_to_pfn(pfn) & PG_PMD_COLOUR)
-		goto unlock_fallback;
-
-This test makes sure that the pfn we get from the driver is 2MiB aligned,
-and relies on the assumption that the 2MiB alignment of the pfn we get back
-from the driver matches the 2MiB alignment of the faulting address.
-
-However, faults to holes were not checked and we could hit the problem
-described above.
-
-This was reported in response to the NVML nvml/src/test/pmempool_sync
-TEST5:
-
-	$ cd nvml/src/test/pmempool_sync
-	$ make TEST5
-
-You can grab NVML here:
-
-	https://github.com/pmem/nvml/
-
-The dmesg warning you see when you hit this error is:
-
-WARNING: CPU: 13 PID: 2900 at fs/dax.c:641 dax_insert_mapping_entry+0x2df/0x310
-
-Where we notice in dax_insert_mapping_entry() that the radix tree entry we
-are about to replace doesn't match the locked entry that we had previously
-inserted into the tree.  This happens because the initial insertion was
-done in grab_mapping_entry() using a pgoff calculated from the faulting
-address (vmf->address), and the replacement in
-dax_pmd_load_hole() => dax_insert_mapping_entry() is done using vmf->pgoff.
-
-In our failure case those two page offsets (one calculated from
-vmf->address, one using vmf->pgoff) point to different order 9 radix tree
-entries.
-
-This failure case can result in a deadlock because the radix tree unlock
-also happens on the pgoff calculated from vmf->address.  This means that
-the locked radix tree entry that we swapped in to the tree in
-dax_insert_mapping_entry() using vmf->pgoff is never unlocked, so all
-future faults to that 2MiB range will block forever.
-
-Fix this by validating that the faulting address's PMD offset matches the
-PMD offset from the start of the file.  This check is done at the very
-beginning of the fault and covers faults that would have mapped to storage
-as well as faults to holes.  I left the COLOUR check in
-dax_pmd_insert_mapping() in place in case we ever hit the insanity
-condition where the alignment of the pfn we get from the driver doesn't
-match the alignment of the userspace address.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: "Slusarz, Marcin" <marcin.slusarz@intel.com>
-Cc: <stable@vger.kernel.org>
-
----
-
-Sorry for the quick v2, I realized that I didn't talk about the deadlock
-that results from this issue.  Patch title and changelog have been updated,
-the code is the same.
-
-This applies cleanly to the current v4.13-rc6 based linux/master.
-
-In my opinion this should be be merged for v4.13 (pending reviews, of course).
-
-Patch 2 is just a cleanup and can wait for v4.14 if anyone is worried about
-it.
-
-This series has passed my regression testing using xfstests and the NVML
-test that was used to initially find the problem.
-
----
- fs/dax.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 306c2b6..865d42c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1383,6 +1383,16 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- 
- 	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
- 
-+	/*
-+	 * Make sure that the faulting address's PMD offset (color) matches
-+	 * the PMD offset from the start of the file.  This is necessary so
-+	 * that a PMD range in the page table overlaps exactly with a PMD
-+	 * range in the radix tree.
-+	 */
-+	if ((vmf->pgoff & PG_PMD_COLOUR) !=
-+	    ((vmf->address >> PAGE_SHIFT) & PG_PMD_COLOUR))
-+		goto fallback;
-+
- 	/* Fall back to PTEs if we're going to COW */
- 	if (write && !(vma->vm_flags & VM_SHARED))
- 		goto fallback;
--- 
-2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
