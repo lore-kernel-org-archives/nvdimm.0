@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
+Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7703B21E1453F
- for <linux-nvdimm@lists.01.org>; Sun, 27 Aug 2017 18:41:49 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id E5B92AC0108
- for <linux-nvdimm@lists.01.org>; Mon, 28 Aug 2017 10:44:21 +0900 (JST)
-Date: Mon, 28 Aug 2017 10:43:55 +0900
+ by ml01.01.org (Postfix) with ESMTPS id B098221E47D5B
+ for <linux-nvdimm@lists.01.org>; Sun, 27 Aug 2017 18:09:38 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 70AD8AC0097
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Aug 2017 10:12:11 +0900 (JST)
+Date: Mon, 28 Aug 2017 10:12:08 +0900
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
 Subject: Re: [ndctl PATCH 3/4] Make interfaces to use Translate SPA.
-In-Reply-To: <CAPcyv4jTYpVHocSb+XucA3MSMZ6QWJdFOm29iEj4bjyx2HSdPQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4jZqm-9X8201GuRi4fXmr420hhgi-1gMk2=K13c_TDiwQ@mail.gmail.com>
 References: <20170818133524.8EB4.E1E9C6FF@jp.fujitsu.com>
- <CAPcyv4jTYpVHocSb+XucA3MSMZ6QWJdFOm29iEj4bjyx2HSdPQ@mail.gmail.com>
-Message-Id: <20170828104352.9A58.E1E9C6FF@jp.fujitsu.com>
+ <CAPcyv4jZqm-9X8201GuRi4fXmr420hhgi-1gMk2=K13c_TDiwQ@mail.gmail.com>
+Message-Id: <20170828101205.9A55.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -48,121 +49,32 @@ List-ID: <linux-nvdimm@lists.01.org>
 > >  ndctl/ndctl.h                |   5 ++
 > >  6 files changed, 168 insertions(+)
 > >
-> > diff --git a/configure.ac b/configure.ac
-> > index 316f5b7..31d6956 100644
-> > --- a/configure.ac
-> > +++ b/configure.ac
-> > @@ -162,6 +162,25 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-> >  )
-> >  AM_CONDITIONAL([ENABLE_CLEAR_ERROR], [test "x$enable_clear_err" = "xyes"])
-> >
-> > +AC_MSG_CHECKING([for TRANSLATE SPA support])
-> > +AC_LANG(C)
-> > +AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-> > +                       #ifdef HAVE_NDCTL_H
-> > +                       #include <linux/ndctl.h>
-> > +                       #else
-> > +                       #include "ndctl/ndctl.h"
-> > +                       #endif
-> > +                       ]], [[
-> > +                       int x = NFIT_CMD_TRANSLATE_SPA;
-> > +                       ]]
-> > +               )], [AC_MSG_RESULT([yes])
-> > +                    enable_trans_spa=yes
-> > +                    AC_DEFINE([HAVE_NDCTL_TRANS_SPA], [1],
-> > +                               [Define to 1 if ndctl.h has TRANSLATE SPA support.])
-> > +               ], [AC_MSG_RESULT([no])]
-> > +)
-> > +AM_CONDITIONAL([ENABLE_TRANS_SPA], [test "x$enable_trans_spa" = "xyes"])
-> 
-> Since the kernel is not defining a custom ioctl for this I don't think
-> I want to use ndctl.h to carry the definition of
-> NFIT_CMD_TRANSLATE_SPA. Instead I think we should create a
-> libndctl-nfit.h header that gets installed alongside libndctl.h. Then
-> consumers can use ndctl_bus_has_nfit() to check that they are talking
-> to an NFIT-defined NVDIMM bus and use the NFIT-specific commands
-> defined in that header file.
-
-
-Ok.
-
-> 
-> > +
-> >  AC_MSG_CHECKING([for device DAX support])
-> >  AC_LANG(C)
-> >  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-> > diff --git a/ndctl/lib/libndctl-private.h b/ndctl/lib/libndctl-private.h
-> > index 8f10fbc..0512782 100644
-> > --- a/ndctl/lib/libndctl-private.h
-> > +++ b/ndctl/lib/libndctl-private.h
-> > @@ -196,6 +196,7 @@ struct ndctl_cmd {
-> >  #ifdef HAVE_NDCTL_CLEAR_ERROR
-> >                 struct nd_cmd_clear_error clear_err[0];
-> >  #endif
-> > +               struct nd_cmd_trans_spa trans_spa[0];
-> >                 struct ndn_pkg_hpe1 hpe1[0];
-> >                 struct ndn_pkg_msft msft[0];
-> >                 struct nd_cmd_smart smart[0];
-> > @@ -250,6 +251,12 @@ static const int nd_cmd_clear_error = ND_CMD_CLEAR_ERROR;
-> >  static const int nd_cmd_clear_error;
-> >  #endif
-> >
-> > +#ifdef HAVE_NDCTL_TRANS_SPA
-> > +static const int nd_cmd_trans_spa = NFIT_CMD_TRANSLATE_SPA;
-> > +#else
-> > +static const int nd_cmd_trans_spa;
-> > +#endif
-> > +
-> >  static inline struct ndctl_bus *cmd_to_bus(struct ndctl_cmd *cmd)
-> >  {
-> >         if (cmd->dimm)
+> [..]
 > > diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
 > > index b3535f0..4556067 100644
 > > --- a/ndctl/lib/libndctl.c
 > > +++ b/ndctl/lib/libndctl.c
-> > @@ -1959,6 +1959,117 @@ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_regio
-> >         return ndctl_region_get_next_badblock(region);
-> >  }
+> [..]
 > 
-> I believe these functions below will always be NFIT specific so lets
-> move them to a new ndctl/lib/libndctl-nfit.c file.
+> Sorry I overlooked this function in my last mail:
 > 
-> >
-> > +#ifdef HAVE_NDCTL_TRANS_SPA
-> > +NDCTL_EXPORT int ndctl_bus_has_trans_spa(struct ndctl_bus *bus)
-> 
-> Hmm, now that I read this patch perhaps we should just have this local
-> capability check and drop the generic
-> ndctl_bus_is_passthru_cmd_supported() helper since the only reason to
-> check for sub / passthru command is if you know you are talking to an
-> NFIT bus.
-> 
+> > +NDCTL_EXPORT struct ndctl_dimm *ndctl_dimm_get_by_spa(struct ndctl_bus *bus,
+> > +               unsigned long long spa)
 > > +{
-> > +       if (!bus)
-> > +               return 0;
+> > +       int rc;
+> > +       unsigned int handle;
+> > +       unsigned long long dpa;
+> > +
+> > +       if (!bus || !spa)
+> > +               return NULL;
 > 
-> All these functions should also have
+> We can do some sanity checking here to check the resource range and
+> see if the DIMM is in that region. See ndctl_region_get_resource() and
+> ndctl_dimm_foreach_in_region(). That also allows us to support single
+> dimm regions without calling translate spa.
 > 
->     if (!ndctl_bus_has_nfit(bus))
->         return false / NULL / etc...
-> 
-> 
-> Another general comment is to rename trans_spa to translate_spa, the
-> function name is already long, so no need to abbreviate.
 
-Hmm.
-
-I found "struct nd_cmd_trans_spa" is already defined in 
-ndctl/ndctl.h of ndctl tree, and include/uapi/linux/ndctl.h of kernel tree.
-
-Do you think it should be changed too?
-If yes, I'll do.
-
-
-> 
-> Other than those comments this looks good to me.
-
-Thanks for your review!
+Ok. I'll check it.
 
 
 
