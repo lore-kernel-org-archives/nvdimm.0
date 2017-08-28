@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym02.jp.fujitsu.com (mgwym02.jp.fujitsu.com [211.128.242.41])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4210C2095E01F
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:29:59 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 1E93FAC00BF
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 10:31:07 +0900 (JST)
-Date: Thu, 31 Aug 2017 10:30:54 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [ndctl PATCH 5/5] show bad dimm's name by ndctl list command.
-In-Reply-To: <20170831102101.DA2C.E1E9C6FF@jp.fujitsu.com>
-References: <20170831102101.DA2C.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170831103051.DA3E.E1E9C6FF@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id CDF6421DF8096
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Aug 2017 01:24:48 -0700 (PDT)
+Date: Mon, 28 Aug 2017 10:27:24 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 2/2] ext2, ext4: use the super_block dax_device
+Message-ID: <20170828082724.GA12609@quack2.suse.cz>
+References: <150389211501.25151.6477753201827914462.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150389212595.25151.10721705529768874001.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <150389212595.25151.10721705529768874001.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,114 +24,108 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, jack@suse.cz, linux-ext4@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Sun 27-08-17 20:48:46, Dan Williams wrote:
+> The ->iomap_begin() operation is a hot path, and now that mount_bdev()
+> arranges for the dax_device to be populated in the super_block, we can
+> just reference that attribute directly rather than perform a new lookup.
+> 
+> Cc: Jan Kara <jack@suse.com>
+> Cc: "Theodore Ts'o" <tytso@mit.edu>
+> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+> Reported-by: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Show dimm's name which has badblock by ndctl list command.
-This patch uses translate SPA interface to get bad dimm info.
+Looks good. You can add:
 
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
----
- util/json.c | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
-
-diff --git a/util/json.c b/util/json.c
-index 98165b7..dbeb7ef 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -27,6 +27,8 @@
- #include <ndctl.h>
- #endif
- 
-+#include <ndctl/lib/libndctl-nfit.h>
-+
- /* adapted from mdadm::human_size_brief() */
- static int display_size(struct json_object *jobj, struct printbuf *pbuf,
- 		int level, int flags)
-@@ -366,6 +368,15 @@ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
- 	return NULL;
- }
- 
-+static struct ndctl_dimm *badblock_to_dimm(struct ndctl_region *region,
-+		unsigned long long spa)
-+{
-+	struct ndctl_bus *bus;
-+
-+	bus = ndctl_region_get_bus(region);
-+	return ndctl_dimm_get_by_spa(bus, spa);
-+}
-+
- struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 		unsigned int *bb_count, unsigned long flags)
- {
-@@ -381,6 +392,18 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 
- 	ndctl_region_badblock_foreach(region, bb) {
- 		if (flags & UTIL_JSON_MEDIA_ERRORS) {
-+			struct ndctl_dimm *dimm = NULL;
-+			unsigned long long spa;
-+
-+			/* get start address of region */
-+			spa = ndctl_region_get_resource(region);
-+			if (spa == ULONG_MAX)
-+				goto err_array;
-+
-+			/* get address of bad block */
-+			spa += bb->offset << 9;
-+			dimm = badblock_to_dimm(region, spa);
-+
- 			jbb = json_object_new_object();
- 			if (!jbb)
- 				goto err_array;
-@@ -395,6 +418,12 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 				goto err;
- 			json_object_object_add(jbb, "length", jobj);
- 
-+			if (dimm) {
-+				jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
-+				if (!jobj)
-+					goto err;
-+				json_object_object_add(jbb, "dimm", jobj);
-+			}
- 			json_object_array_add(jbbs, jbb);
- 		}
- 
-@@ -436,6 +465,7 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 
- 	ndctl_region_badblock_foreach(region, bb) {
- 		unsigned long long bb_begin, bb_end, begin, end;
-+		struct ndctl_dimm *dimm = NULL;
- 
- 		bb_begin = region_begin + (bb->offset << 9);
- 		bb_end = bb_begin + (bb->len << 9) - 1;
-@@ -456,6 +486,8 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 		offset = (begin - dev_begin) >> 9;
- 		len = (end - begin + 1) >> 9;
- 
-+		dimm = badblock_to_dimm(region, begin);
-+
- 		if (flags & UTIL_JSON_MEDIA_ERRORS) {
- 			/* add to json */
- 			jbb = json_object_new_object();
-@@ -472,6 +504,13 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 				goto err;
- 			json_object_object_add(jbb, "length", jobj);
- 
-+			if (dimm) {
-+				jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
-+				if (!jobj)
-+					goto err;
-+				json_object_object_add(jbb, "dimm", jobj);
-+			}
-+
- 			json_object_array_add(jbbs, jbb);
- 		}
- 		bbs += len;
+								Honza
 
 
-
+> ---
+>  fs/ext2/inode.c |   10 ++--------
+>  fs/ext4/inode.c |   10 ++--------
+>  2 files changed, 4 insertions(+), 16 deletions(-)
+> 
+> diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+> index 30163d007b2f..7102b77a83c6 100644
+> --- a/fs/ext2/inode.c
+> +++ b/fs/ext2/inode.c
+> @@ -800,7 +800,6 @@ int ext2_get_block(struct inode *inode, sector_t iblock,
+>  static int ext2_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+>  		unsigned flags, struct iomap *iomap)
+>  {
+> -	struct block_device *bdev;
+>  	unsigned int blkbits = inode->i_blkbits;
+>  	unsigned long first_block = offset >> blkbits;
+>  	unsigned long max_blocks = (length + (1 << blkbits) - 1) >> blkbits;
+> @@ -814,13 +813,9 @@ static int ext2_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+>  		return ret;
+>  
+>  	iomap->flags = 0;
+> -	bdev = inode->i_sb->s_bdev;
+> -	iomap->bdev = bdev;
+> +	iomap->bdev = inode->i_sb->s_bdev;
+>  	iomap->offset = (u64)first_block << blkbits;
+> -	if (blk_queue_dax(bdev->bd_queue))
+> -		iomap->dax_dev = fs_dax_get_by_host(bdev->bd_disk->disk_name);
+> -	else
+> -		iomap->dax_dev = NULL;
+> +	iomap->dax_dev = inode->i_sb->s_daxdev;
+>  
+>  	if (ret == 0) {
+>  		iomap->type = IOMAP_HOLE;
+> @@ -842,7 +837,6 @@ static int
+>  ext2_iomap_end(struct inode *inode, loff_t offset, loff_t length,
+>  		ssize_t written, unsigned flags, struct iomap *iomap)
+>  {
+> -	fs_put_dax(iomap->dax_dev);
+>  	if (iomap->type == IOMAP_MAPPED &&
+>  	    written < length &&
+>  	    (flags & IOMAP_WRITE))
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index c774bdc22759..311690522366 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -3404,7 +3404,6 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
+>  static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+>  			    unsigned flags, struct iomap *iomap)
+>  {
+> -	struct block_device *bdev;
+>  	unsigned int blkbits = inode->i_blkbits;
+>  	unsigned long first_block = offset >> blkbits;
+>  	unsigned long last_block = (offset + length - 1) >> blkbits;
+> @@ -3473,12 +3472,8 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+>  	}
+>  
+>  	iomap->flags = 0;
+> -	bdev = inode->i_sb->s_bdev;
+> -	iomap->bdev = bdev;
+> -	if (blk_queue_dax(bdev->bd_queue))
+> -		iomap->dax_dev = fs_dax_get_by_host(bdev->bd_disk->disk_name);
+> -	else
+> -		iomap->dax_dev = NULL;
+> +	iomap->bdev = inode->i_sb->s_bdev;
+> +	iomap->dax_dev = inode->i_sb->s_daxdev;
+>  	iomap->offset = first_block << blkbits;
+>  
+>  	if (ret == 0) {
+> @@ -3511,7 +3506,6 @@ static int ext4_iomap_end(struct inode *inode, loff_t offset, loff_t length,
+>  	int blkbits = inode->i_blkbits;
+>  	bool truncate = false;
+>  
+> -	fs_put_dax(iomap->dax_dev);
+>  	if (!(flags & IOMAP_WRITE) || (flags & IOMAP_FAULT))
+>  		return 0;
+>  
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
