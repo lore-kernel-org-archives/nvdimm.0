@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B2B3C21E95DE1
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:15:18 -0700 (PDT)
-Subject: [ndctl PATCH v2 07/10] ndctl: introduce ndctl_dimm_{validate_labels,
+ by ml01.01.org (Postfix) with ESMTPS id 75F1021CE748D
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 13:05:46 -0700 (PDT)
+Subject: [ndctl PATCH 6/7] ndctl: introduce ndctl_dimm_{validate_labels,
  init_labels}
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 19:11:35 -0700
-Message-ID: <150405909589.22171.17489112743896910724.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 29 Aug 2017 13:02:02 -0700
+Message-ID: <150403692285.8240.13036761546531987479.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -36,11 +36,12 @@ present.
 This mostly moves all the local label helpers from the ndctl utility
 into the library.
 
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
  Makefile.am            |    1 
  ndctl/dimm.c           |  455 +++---------------------------------------------
- ndctl/lib/dimm.c       |  448 +++++++++++++++++++++++++++++++++++++++++++++++
+ ndctl/lib/dimm.c       |  451 +++++++++++++++++++++++++++++++++++++++++++++++-
  ndctl/lib/libndctl.c   |    1 
  ndctl/lib/libndctl.sym |    3 
  ndctl/lib/private.h    |   10 +
@@ -48,7 +49,7 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  ndctl/namespace.h      |    1 
  util/fletcher.c        |   35 ----
  util/fletcher.h        |   19 ++
- 10 files changed, 512 insertions(+), 469 deletions(-)
+ 10 files changed, 513 insertions(+), 471 deletions(-)
  delete mode 100644 util/fletcher.c
 
 diff --git a/Makefile.am b/Makefile.am
@@ -623,10 +624,10 @@ index ca7b833db182..7259506fc028 100644
  		fprintf(stderr, "'%s' is not a valid label version\n",
  				param.labelversion);
 diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index d6d99df7106b..0fd8d9e30b93 100644
+index f7696af04ba2..212e9189c5b6 100644
 --- a/ndctl/lib/dimm.c
 +++ b/ndctl/lib/dimm.c
-@@ -10,11 +10,453 @@
+@@ -10,11 +10,454 @@
   * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
   * more details.
   */
@@ -876,7 +877,7 @@ index d6d99df7106b..0fd8d9e30b93 100644
 +	ssize_t offset, size;
 +	int v1 = 0, v2 = 0;
 +
-+	if (ndd->nslabel_size)
++	if (ndd && ndd->nslabel_size)
 +		return ndd->nslabel_size;
 +
 +	for (offset = 0; offset < NSINDEX_ALIGN * 2; offset += NSINDEX_ALIGN) {
@@ -904,7 +905,8 @@ index d6d99df7106b..0fd8d9e30b93 100644
 +		size = 256;
 +	else
 +		size = 128;
-+	ndd->nslabel_size = size;
++	if (ndd)
++		ndd->nslabel_size = size;
 +	return size;
 +}
 +
@@ -1080,7 +1082,7 @@ index d6d99df7106b..0fd8d9e30b93 100644
  NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
  {
          struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-@@ -38,9 +480,11 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
+@@ -38,9 +481,11 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
          rc = ndctl_cmd_submit(cmd_read);
          if (rc || ndctl_cmd_get_firmware_status(cmd_read))
                  goto out_read;
@@ -1094,8 +1096,14 @@ index d6d99df7106b..0fd8d9e30b93 100644
  
   out_read:
          ndctl_cmd_unref(cmd_read);
+@@ -118,5 +563,3 @@ NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
+ 
+ 	return strtoul(buf, NULL, 0);
+ }
+-
+-
 diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 3d37ded69c26..9c65646ac3e9 100644
+index 86abeb6cc577..17fc8ee4ce00 100644
 --- a/ndctl/lib/libndctl.c
 +++ b/ndctl/lib/libndctl.c
 @@ -560,6 +560,7 @@ static void free_dimm(struct ndctl_dimm *dimm)
