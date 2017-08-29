@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4D16F21E95E0D
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:36:55 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v7 2/6] btt: refactor map entry operations with macros
-Date: Wed, 30 Aug 2017 19:35:59 -0600
-Message-Id: <20170831013603.16997-3-vishal.l.verma@intel.com>
-In-Reply-To: <20170831013603.16997-1-vishal.l.verma@intel.com>
-References: <20170831013603.16997-1-vishal.l.verma@intel.com>
+Received: from mail.axions.jp (axions.jp [49.212.88.227])
+ by ml01.01.org (Postfix) with ESMTP id 1E99E21E2BE2F
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 02:48:10 -0700 (PDT)
+Received: from [127.0.0.1] (unknown [222.171.242.151])
+ by mail.axions.jp (Postfix) with ESMTP id B63801FEEBD
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 18:50:46 +0900 (JST)
+Date: Tue, 29 Aug 2017 11:50:47 +0200
+Subject: Job Application
+From: "Cynthia Lathan" <noreply@axions.jp>
+MIME-Version: 1.0
+Message-ID: <2jplam9-9zr982-34@axions.jp>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,7 +17,6 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
@@ -25,61 +24,18 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add helpers for converting a raw map entry to just the block number, or
-either of the 'e' or 'z' flags in preparation for actually using the
-error flag to mark blocks with media errors.
+How's it going?
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/btt.c | 8 ++++----
- drivers/nvdimm/btt.h | 4 ++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
+I visited your website yesterday..
+I'm currently looking for employment either full time or as a intern to get experience in the job fiield.
+Please review my CV and let me know what you think.
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index f6ea82f..8842baa 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
- 	 * This 'mapping' is supposed to be just the LBA mapping, without
- 	 * any flags set, so strip the flag bits.
- 	 */
--	mapping &= MAP_LBA_MASK;
-+	mapping = ent_lba(mapping);
- 
- 	ze = (z_flag << 1) + e_flag;
- 	switch (ze) {
-@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
- 
- 	raw_mapping = le32_to_cpu(in);
- 
--	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
--	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
-+	z_flag = ent_z_flag(raw_mapping);
-+	e_flag = ent_e_flag(raw_mapping);
- 	ze = (z_flag << 1) + e_flag;
--	postmap = raw_mapping & MAP_LBA_MASK;
-+	postmap = ent_lba(raw_mapping);
- 
- 	/* Reuse the {z,e}_flag variables for *trim and *error */
- 	z_flag = 0;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 888e862..09fabf5 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -38,6 +38,10 @@
- #define IB_FLAG_ERROR 0x00000001
- #define IB_FLAG_ERROR_MASK 0x00000001
- 
-+#define ent_lba(ent) (ent & MAP_LBA_MASK)
-+#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
-+#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
-+
- enum btt_init_state {
- 	INIT_UNCHECKED = 0,
- 	INIT_NOTFOUND,
--- 
-2.9.5
 
+
+Cordially yours,
+
+--
+Cynthia Lathan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
