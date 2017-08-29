@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7E51021E70D4C
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:14:52 -0700 (PDT)
-Subject: [ndctl PATCH v2 02/10] ndctl: drop the "libndctl-" prefix on
- library source files
+ by ml01.01.org (Postfix) with ESMTPS id 674BE2095B9C8
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 13:05:45 -0700 (PDT)
+Subject: [ndctl PATCH 2/7] ndctl: drop the "libndctl-" prefix on library
+ source files
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 19:11:09 -0700
-Message-ID: <150405906932.22171.12597097524383400415.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 29 Aug 2017 13:01:40 -0700
+Message-ID: <150403690093.8240.4123334555138751671.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -30,6 +30,7 @@ The "libndctl-" prefix is redundant given the source files already live
 in the ndctl/lib/ directory. There is a similar story for removing the
 "ndctl-" prefix on the vendor-specific / internal-only headers.
 
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
  ndctl/lib/Makefile.am        |   10 +++++-----
