@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 52F0121E70D4C
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:14:47 -0700 (PDT)
-Subject: [ndctl PATCH v2 01/10] ndctl,
- init-labels: fix '--label-version' option
+ by ml01.01.org (Postfix) with ESMTPS id E4B4121E70D39
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 13:05:18 -0700 (PDT)
+Subject: [ndctl PATCH 1/7] ndctl, init-labels: fix '--label-version' option
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 19:11:04 -0700
-Message-ID: <150405906424.22171.17556510677370710765.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 29 Aug 2017 13:01:35 -0700
+Message-ID: <150403689570.8240.8554898211089265114.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -29,6 +28,7 @@ List-ID: <linux-nvdimm@lists.01.org>
 Kill the unnecessary double-dash characters in the definition of the
 long option.
 
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
  ndctl/dimm.c |    2 +-
