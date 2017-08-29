@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6822821E70D4C
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:15:08 -0700 (PDT)
-Subject: [ndctl PATCH v2 05/10] ndctl: refactor read_labels() helper into a
+ by ml01.01.org (Postfix) with ESMTPS id 3F74721CE748D
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 13:05:41 -0700 (PDT)
+Subject: [ndctl PATCH 5/7] ndctl: refactor read_labels() helper into a
  library call
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 19:11:25 -0700
-Message-ID: <150405908547.22171.11115984552688133682.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 29 Aug 2017 13:01:57 -0700
+Message-ID: <150403691762.8240.16085152850679077792.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -110,7 +110,7 @@ index 4a39189297a6..ca7b833db182 100644
  		return -ENXIO;
  
 diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index e4ea81835989..d6d99df7106b 100644
+index 1c613a470099..f7696af04ba2 100644
 --- a/ndctl/lib/dimm.c
 +++ b/ndctl/lib/dimm.c
 @@ -15,38 +15,56 @@
