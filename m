@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9189521CE748D
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 14:30:15 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH 7/7] ndctl: auto initialize labels
-Date: Tue, 29 Aug 2017 21:32:54 +0000
-Message-ID: <1504042255.7034.1.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0D50221C9127B
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 13:05:56 -0700 (PDT)
+Subject: [ndctl PATCH 7/7] ndctl: auto initialize labels
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 29 Aug 2017 13:02:08 -0700
+Message-ID: <150403692821.8240.17921098591962254302.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150403692821.8240.17921098591962254302.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150403692821.8240.17921098591962254302.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <02FDC4791E2B15498E93506EAFD9E43B@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,78 +18,192 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE3LTA4LTI5IGF0IDEzOjAyIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IElmIHdlIGFyZSByZWNvbmZpZ3VyaW5nIGFuIE5EX0RFVklDRV9OQU1FU1BBQ0VfSU8gbmFtZXNw
-YWNlIHRha2UgdGhlDQo+IG9wcG9ydHVuaXR5IHRvIHBvdGVudGlhbGx5IGluaXRpYWxpemUgbGFi
-ZWxzLiBESU1NIGNhcGFjaXR5IHRoYXQgaXMNCj4gbm90DQo+IGFsaWFzZWQgd2lsbCBzdXJmYWNl
-IGFzIGEgbGFiZWwtbGVzcyBuYW1lc3BhY2UgYnkgZGVmYXVsdC4gSWYgZXZlcnkNCj4gRElNTQ0K
-PiBpbiB0aGUgaW50ZXJsZWF2ZSBzZXQgc3VwcG9ydHMgbGFiZWxzIHdlIGNhbiBzd2l0Y2ggYSBt
-b3JlIGR5bmFtaWMNCj4gY29uZmlndXJhdGlvbiwgaS5lLiBlbmFibGUgcG1lbSBzdWItZGl2aXNp
-b24uDQo+IA0KPiBUaGUgLS1uby1hdXRvbGFiZWwgb3B0aW9uIGlzIGFkZGVkIHRvIGRpc2FibGUg
-dGhpcyBiZWhhdmlvciBpZiBpdCBpcw0KPiBub3QNCj4gd2FudGVkLg0KPiANCj4gQ2M6IFZpc2hh
-bCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBEYW4g
-V2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gLS0tDQo+IMKgRG9jdW1lbnRh
-dGlvbi9uZGN0bC9uZGN0bC1jcmVhdGUtbmFtZXNwYWNlLnR4dCB8wqDCoMKgwqA3ICsrDQo+IMKg
-bmRjdGwvbmFtZXNwYWNlLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgOTANCj4gKysrKysrKysrKysrKysrKysrKysrKyst
-DQo+IMKgMiBmaWxlcyBjaGFuZ2VkLCA5NSBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0K
-PiANCj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vbmRjdGwvbmRjdGwtY3JlYXRlLW5hbWVz
-cGFjZS50eHQNCj4gYi9Eb2N1bWVudGF0aW9uL25kY3RsL25kY3RsLWNyZWF0ZS1uYW1lc3BhY2Uu
-dHh0DQo+IGluZGV4IDg1ZDFmOGRiNzkyZi4uMzg0NGZmNzRhOWYxIDEwMDY0NA0KPiAtLS0gYS9E
-b2N1bWVudGF0aW9uL25kY3RsL25kY3RsLWNyZWF0ZS1uYW1lc3BhY2UudHh0DQo+ICsrKyBiL0Rv
-Y3VtZW50YXRpb24vbmRjdGwvbmRjdGwtY3JlYXRlLW5hbWVzcGFjZS50eHQNCj4gQEAgLTEzOCw2
-ICsxMzgsMTMgQEAgT1BUSU9OUw0KPiDCoAlhY3RpdmUuwqDCoFNwZWNpZnlpbmcgLS1mb3JjZSBj
-YXVzZXMgdGhlIG5hbWVzcGFjZSB0byBiZQ0KPiBkaXNhYmxlZA0KPiDCoAliZWZvcmUgcmVjb25m
-aWd1cmluZy4NCj4gwqANCj4gKy1MOjoNCj4gKy0tYXV0b2xhYmVsOjoNCg0KU2hvdWxkbid0IHRo
-aXMgYmUgLS1uby1hdXRvbGFiZWwNCg0KPiArCVdoZW4gbmRjdGwgZW5jb3VudGVycyBhIGxhYmVs
-LWxlc3MgbmFtZXNwYWNlIHdoaWxlDQo+ICsJcGVyZm9ybWluZyBhIHJlY29uZmlndXJlIG9wZXJh
-dGlvbiBpdCB3aWxsIHRyeSB0byBlbmFibGUNCj4gbGFiZWxzDQo+ICsJZm9yIHRoZSByZWdpb24u
-IFRoaXMgYmVoYXZpb3IgY2FuIGJlIHN1cHByZXNzZWQgd2l0aA0KPiArCSItLW5vLWF1dG9sYWJl
-bCIuDQoNCkFuZCB0aGUgdGV4dCBkZXNjcmlwdGlvbiBtYXRjaGVkIHRvIGRlc2NyaWJlIG9ubHkg
-dGhlIC0tbm8tYXV0b2xhYmVsDQpvcHRpb24gaW5zdGVhZCBvZiBkZXNjcmliaW5nIGJvdGggYSBw
-b3NpdGl2ZSBhbmQgbmVnYXRpdmUNCg0KPiArDQo+IMKgLXY6Og0KPiDCoC0tdmVyYm9zZTo6DQo+
-IMKgCUVtaXQgZGVidWcgbWVzc2FnZXMgZm9yIHRoZSBuYW1lc3BhY2UgY3JlYXRpb24gcHJvY2Vz
-cw0KPiANCg0KWy4uLl0NCg0KPiArDQo+ICsJLyogYWxsIHRoZSBkaW1tcyBtdXN0IHN1cHBvcnQg
-bGFiZWxsaW5nICovDQoNCnMvbGFiZWxsaW5nL2xhYmVsaW5nLw0KDQo+ICsJaWYgKGNvdW50ICE9
-IG1hcHBpbmdzKQ0KPiArCQlyZXR1cm47DQo+ICsNCj4gKwluZGN0bF9yZWdpb25fZGlzYWJsZV9p
-bnZhbGlkYXRlKHJlZ2lvbik7DQo+ICsJY291bnQgPSAwOw0KPiArCW5kY3RsX2RpbW1fZm9yZWFj
-aF9pbl9yZWdpb24ocmVnaW9uLCBkaW1tKQ0KPiArCQlpZiAobmRjdGxfZGltbV9pc19hY3RpdmUo
-ZGltbSkpIHsNCj4gKwkJCWNvdW50Kys7DQo+ICsJCQlicmVhazsNCj4gKwkJfQ0KPiArDQo+ICsJ
-Lyogc29tZSBvZiB0aGUgZGltbXMgYmVsb25nIHRvIG11bHRpcGxlIHJlZ2lvbnM/PyAqLw0KPiAr
-CWlmIChjb3VudCkNCj4gKwkJZ290byBvdXQ7DQo+ICsNCj4gKwl2ID0gTkRDVExfTlNfVkVSU0lP
-Tl8xXzI7DQo+ICtyZXRyeToNCj4gKwluZGN0bF9kaW1tX2ZvcmVhY2hfaW5fcmVnaW9uKHJlZ2lv
-biwgZGltbSkgew0KPiArCQlpbnQgbnVtX2xhYmVscywgYXZhaWw7DQo+ICsNCj4gKwkJbmRjdGxf
-Y21kX3VucmVmKGNtZF9yZWFkKTsNCj4gKwkJY21kX3JlYWQgPSBuZGN0bF9kaW1tX3JlYWRfbGFi
-ZWxzKGRpbW0pOw0KPiArCQlpZiAoIWNtZF9yZWFkKQ0KPiArCQkJY29udGludWU7DQo+ICsNCj4g
-KwkJbnVtX2xhYmVscyA9IG5kY3RsX2RpbW1faW5pdF9sYWJlbHMoZGltbSwgdik7DQo+ICsJCWlm
-IChudW1fbGFiZWxzIDwgMCkNCj4gKwkJCWNvbnRpbnVlOw0KPiArDQo+ICsJCW5kY3RsX2RpbW1f
-ZGlzYWJsZShkaW1tKTsNCj4gKwkJbmRjdGxfZGltbV9lbmFibGUoZGltbSk7DQo+ICsNCj4gKwkJ
-LyoNCj4gKwkJwqAqIElmIHRoZSBrZXJuZWwgYXBwZWFycyB0byBub3QgdW5kZXJzdGFuZCB2MS4y
-DQo+IGxhYmVscywNCj4gKwkJwqAqIHRyeSB2MS4xLiBOb3RlLCB3ZSBpbmNyZW1lbnQgYXZhaWwg
-YnkgMSB0byBhY2NvdW50DQo+ICsJCcKgKiBmb3IgdGhlIG9uZSBmcmVlIGxhYmVsIHRoYXQgdGhl
-IGtlcm5lbCBhbHdheXMNCj4gKwkJwqAqIG1haW50YWlucyBmb3Igb25nb2luZyB1cGRhdGVzLg0K
-PiArCQnCoCovDQo+ICsJCWF2YWlsID0gbmRjdGxfZGltbV9nZXRfYXZhaWxhYmxlX2xhYmVscyhk
-aW1tKSArIDE7DQo+ICsJCWlmIChudW1fbGFiZWxzICE9IGF2YWlsICYmIHYgPT0gTkRDVExfTlNf
-VkVSU0lPTl8xXzIpDQo+IHsNCj4gKwkJCXYgPSBORENUTF9OU19WRVJTSU9OXzFfMTsNCj4gKwkJ
-CWdvdG8gcmV0cnk7DQo+ICsJCX0NCj4gKw0KPiArCX0NCj4gKwluZGN0bF9jbWRfdW5yZWYoY21k
-X3JlYWQpOw0KPiArb3V0Og0KPiArCW5kY3RsX3JlZ2lvbl9lbmFibGUocmVnaW9uKTsNCj4gK30N
-Cj4gKw0KPiDCoHN0YXRpYyBpbnQgbmFtZXNwYWNlX3JlY29uZmlnKHN0cnVjdCBuZGN0bF9yZWdp
-b24gKnJlZ2lvbiwNCj4gwqAJCXN0cnVjdCBuZGN0bF9uYW1lc3BhY2UgKm5kbnMpDQo+IMKgew0K
-PiBAQCAtODI0LDYgKzkwNSwxMSBAQCBzdGF0aWMgaW50IG5hbWVzcGFjZV9yZWNvbmZpZyhzdHJ1
-Y3QgbmRjdGxfcmVnaW9uDQo+ICpyZWdpb24sDQo+IMKgCWlmIChyYykNCj4gwqAJCXJldHVybiBy
-YzsNCj4gwqANCj4gKwkvKiBjaGVjayBpZiB3ZSBjYW4gZW5hYmxlIGxhYmVscyBvbiB0aGlzIHJl
-Z2lvbiAqLw0KPiArCWlmIChuZGN0bF9uYW1lc3BhY2VfZ2V0X3R5cGUobmRucykgPT0gTkRfREVW
-SUNFX05BTUVTUEFDRV9JTw0KPiArCQkJJiYgcC5hdXRvbGFiZWwpDQo+ICsJCWVuYWJsZV9sYWJl
-bHMocmVnaW9uKTsNCj4gKw0KPiDCoAluZG5zID0gcmVnaW9uX2dldF9uYW1lc3BhY2UocmVnaW9u
-KTsNCj4gwqAJaWYgKCFuZG5zIHx8IGlzX25hbWVzcGFjZV9hY3RpdmUobmRucykpIHsNCj4gwqAJ
-CWRlYnVnKCIlczogbm8gJXMgbmFtZXNwYWNlIHNlZWRcbiIsDQo+IApfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
-CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9saW51eC1udmRpbW0K
+If we are reconfiguring an ND_DEVICE_NAMESPACE_IO namespace take the
+opportunity to potentially initialize labels. DIMM capacity that is not
+aliased will surface as a label-less namespace by default. If every DIMM
+in the interleave set supports labels we can switch a more dynamic
+configuration, i.e. enable pmem sub-division.
+
+The --no-autolabel option is added to disable this behavior if it is not
+wanted.
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ Documentation/ndctl/ndctl-create-namespace.txt |    7 ++
+ ndctl/namespace.c                              |   90 +++++++++++++++++++++++-
+ 2 files changed, 95 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
+index 85d1f8db792f..3844ff74a9f1 100644
+--- a/Documentation/ndctl/ndctl-create-namespace.txt
++++ b/Documentation/ndctl/ndctl-create-namespace.txt
+@@ -138,6 +138,13 @@ OPTIONS
+ 	active.  Specifying --force causes the namespace to be disabled
+ 	before reconfiguring.
+ 
++-L::
++--autolabel::
++	When ndctl encounters a label-less namespace while
++	performing a reconfigure operation it will try to enable labels
++	for the region. This behavior can be suppressed with
++	"--no-autolabel".
++
+ -v::
+ --verbose::
+ 	Emit debug messages for the namespace creation process
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 6cfd873da248..b6381c5822de 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -42,6 +42,7 @@ static struct parameters {
+ 	bool do_scan;
+ 	bool mode_default;
+ 	bool align_default;
++	bool autolabel;
+ 	const char *bus;
+ 	const char *map;
+ 	const char *type;
+@@ -53,7 +54,9 @@ static struct parameters {
+ 	const char *reconfig;
+ 	const char *sector_size;
+ 	const char *align;
+-} param;
++} param = {
++	.autolabel = true,
++};
+ 
+ void builtin_xaction_namespace_reset(void)
+ {
+@@ -76,6 +79,7 @@ struct parsed_parameters {
+ 	unsigned long long size;
+ 	unsigned long sector_size;
+ 	unsigned long align;
++	bool autolabel;
+ };
+ 
+ #define debug(fmt, ...) \
+@@ -111,7 +115,8 @@ OPT_STRING('t', "type", &param.type, "type", \
+ 	"specify the type of namespace to create 'pmem' or 'blk'"), \
+ OPT_STRING('a', "align", &param.align, "align", \
+ 	"specify the namespace alignment in bytes (default: 2M)"), \
+-OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active")
++OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active"), \
++OPT_BOOLEAN('L', "autolabel", &param.autolabel, "automatically initialize labels")
+ 
+ #define CHECK_OPTIONS() \
+ OPT_BOOLEAN('R', "repair", &repair, "perform metadata repairs"), \
+@@ -675,6 +680,8 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		}
+ 	}
+ 
++	p->autolabel = param.autolabel;
++
+ 	return 0;
+ }
+ 
+@@ -810,6 +817,80 @@ static int namespace_destroy(struct ndctl_region *region,
+ 	return 0;
+ }
+ 
++static void enable_labels(struct ndctl_region *region)
++{
++	int mappings = ndctl_region_get_mappings(region);
++	struct ndctl_cmd *cmd_read = NULL;
++	enum ndctl_namespace_version v;
++	struct ndctl_dimm *dimm;
++	int count;
++
++	/* no dimms => no labels */
++	if (!mappings)
++		return;
++
++	count = 0;
++	ndctl_dimm_foreach_in_region(region, dimm) {
++		if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_GET_CONFIG_SIZE))
++			break;
++		if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_GET_CONFIG_DATA))
++			break;
++		if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SET_CONFIG_DATA))
++			break;
++		count++;
++	}
++
++	/* all the dimms must support labelling */
++	if (count != mappings)
++		return;
++
++	ndctl_region_disable_invalidate(region);
++	count = 0;
++	ndctl_dimm_foreach_in_region(region, dimm)
++		if (ndctl_dimm_is_active(dimm)) {
++			count++;
++			break;
++		}
++
++	/* some of the dimms belong to multiple regions?? */
++	if (count)
++		goto out;
++
++	v = NDCTL_NS_VERSION_1_2;
++retry:
++	ndctl_dimm_foreach_in_region(region, dimm) {
++		int num_labels, avail;
++
++		ndctl_cmd_unref(cmd_read);
++		cmd_read = ndctl_dimm_read_labels(dimm);
++		if (!cmd_read)
++			continue;
++
++		num_labels = ndctl_dimm_init_labels(dimm, v);
++		if (num_labels < 0)
++			continue;
++
++		ndctl_dimm_disable(dimm);
++		ndctl_dimm_enable(dimm);
++
++		/*
++		 * If the kernel appears to not understand v1.2 labels,
++		 * try v1.1. Note, we increment avail by 1 to account
++		 * for the one free label that the kernel always
++		 * maintains for ongoing updates.
++		 */
++		avail = ndctl_dimm_get_available_labels(dimm) + 1;
++		if (num_labels != avail && v == NDCTL_NS_VERSION_1_2) {
++			v = NDCTL_NS_VERSION_1_1;
++			goto retry;
++		}
++
++	}
++	ndctl_cmd_unref(cmd_read);
++out:
++	ndctl_region_enable(region);
++}
++
+ static int namespace_reconfig(struct ndctl_region *region,
+ 		struct ndctl_namespace *ndns)
+ {
+@@ -824,6 +905,11 @@ static int namespace_reconfig(struct ndctl_region *region,
+ 	if (rc)
+ 		return rc;
+ 
++	/* check if we can enable labels on this region */
++	if (ndctl_namespace_get_type(ndns) == ND_DEVICE_NAMESPACE_IO
++			&& p.autolabel)
++		enable_labels(region);
++
+ 	ndns = region_get_namespace(region);
+ 	if (!ndns || is_namespace_active(ndns)) {
+ 		debug("%s: no %s namespace seed\n",
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
