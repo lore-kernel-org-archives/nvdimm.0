@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DCC9021E0C319
- for <linux-nvdimm@lists.01.org>; Tue,  8 Aug 2017 17:07:21 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 990B021D2E649
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 15:42:21 -0700 (PDT)
+Date: Tue, 29 Aug 2017 16:43:04 -0600
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v5 7/7] libnvdimm, btt: rework error clearing
-Date: Tue,  8 Aug 2017 18:07:46 -0600
-Message-Id: <20170809000746.10585-8-vishal.l.verma@intel.com>
-In-Reply-To: <20170809000746.10585-1-vishal.l.verma@intel.com>
-References: <20170809000746.10585-1-vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH 7/7] ndctl: auto initialize labels
+Message-ID: <20170829224304.GA16374@omniknight.lm.intel.com>
+References: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150403692821.8240.17921098591962254302.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <1504042255.7034.1.camel@intel.com>
+ <CAPcyv4jEGG8aRZOqJGJkuh=GfqFpsh1=BGchmjPXzS3b42vO7g@mail.gmail.com>
+ <1504043431.7034.3.camel@intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1504043431.7034.3.camel@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,325 +23,154 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Clearing errors or badblocks during a BTT write requires sending an ACPI
-DSM, which means potentially sleeping. Since a BTT IO happens in atomic
-context (preemption disabled, spinlocks may be held), we cannot perform
-error clearing in the course of an IO. Due to this error clearing for
-BTT IOs has hitherto been disabled.
+On 08/29, Verma, Vishal L wrote:
+> On Tue, 2017-08-29 at 14:48 -0700, Dan Williams wrote:
+> > On Tue, Aug 29, 2017 at 2:32 PM, Verma, Vishal L
+> > <vishal.l.verma@intel.com> wrote:
+> > > On Tue, 2017-08-29 at 13:02 -0700, Dan Williams wrote:
+> > > > If we are reconfiguring an ND_DEVICE_NAMESPACE_IO namespace take
+> > > > the
+> > > > opportunity to potentially initialize labels. DIMM capacity that
+> > > > is
+> > > > not
+> > > > aliased will surface as a label-less namespace by default. If
+> > > > every
+> > > > DIMM
+> > > > in the interleave set supports labels we can switch a more dynamic
+> > > > configuration, i.e. enable pmem sub-division.
+> > > > =
 
-In this patch we move error clearing out of the atomic section, and thus
-re-enable error clearing with BTTs. When we are about to add a block to
-the free list, we check if it was previously marked as an error, and if
-it was, we add it to the freelist, but also set a flag that says error
-clearing will be required. We then drop the lane (ending the atomic
-context), and send a zero buffer so that the error can be cleared. The
-error flag in the free list is protected by the nd 'lane', and is set
-only be a thread while it holds that lane. When the error is cleared,
-the flag is cleared, but while holding a mutex for that freelist index.
+> > > > The --no-autolabel option is added to disable this behavior if it
+> > > > is
+> > > > not
+> > > > wanted.
+> > > > =
 
-When writing, we check for two things -
-1/ If the freelist mutex is held or if the error flag is set. If so,
-this is an error block that is being (or about to be) cleared.
-2/ If the block is a known badblock based on nsio->bb
+> > > > Cc: Vishal Verma <vishal.l.verma@intel.com>
+> > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > > > ---
+> > > > =A0Documentation/ndctl/ndctl-create-namespace.txt |=A0=A0=A0=A07 ++
+> > > > =A0ndctl/namespace.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A0=A090
+> > > > +++++++++++++++++++++++-
+> > > > =A02 files changed, 95 insertions(+), 2 deletions(-)
+> > > > =
 
-The second check is required because the BTT map error flag for a map
-entry only gets set when an error LBA is read. If we write to a new
-location that may not have the map error flag set, but still might be in
-the region's badblock list, we can trigger an EIO on the write, which is
-undesirable and completely avoidable.
+> > > > diff --git a/Documentation/ndctl/ndctl-create-namespace.txt
+> > > > b/Documentation/ndctl/ndctl-create-namespace.txt
+> > > > index 85d1f8db792f..3844ff74a9f1 100644
+> > > > --- a/Documentation/ndctl/ndctl-create-namespace.txt
+> > > > +++ b/Documentation/ndctl/ndctl-create-namespace.txt
+> > > > @@ -138,6 +138,13 @@ OPTIONS
+> > > > =A0=A0=A0=A0=A0=A0active.=A0=A0Specifying --force causes the namesp=
+ace to be
+> > > > disabled
+> > > > =A0=A0=A0=A0=A0=A0before reconfiguring.
+> > > > =
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
+> > > > +-L::
+> > > > +--autolabel::
+> > > =
+
+> > > Shouldn't this be --no-autolabel
+> > > =
+
+> > > > +=A0=A0=A0=A0=A0When ndctl encounters a label-less namespace while
+> > > > +=A0=A0=A0=A0=A0performing a reconfigure operation it will try to e=
+nable
+> > > > labels
+> > > > +=A0=A0=A0=A0=A0for the region. This behavior can be suppressed with
+> > > > +=A0=A0=A0=A0=A0"--no-autolabel".
+> > > =
+
+> > > And the text description matched to describe only the --no-autolabel
+> > > option instead of describing both a positive and negative
+> > =
+
+> > I'm using a side effect of the way ndctl (and git) implement
+> > OPT_BOOLEAN() options. They all automatically get a --no-<option>. So
+> > "--autolabel" is the default.
+> > =
+
+> Ah cool, I didn't know OPT_BOOLEAN does that for you.
+> Does the 'no' option then lack a short option? We'll end up providing a
+> short option for the default case, but nothing for the override..
+> =
+
+> I'm also wondering if there will be any bash completion implications.
+> I'll test whether the --no- option shows up automatically in --list-opts
+
+Patch to special case --no-autolabel for completion:
+
+8<----
+
+>From f18c54d3260c3310d14aaa9aa589de4abc304bf1 Mon Sep 17 00:00:00 2001
+From: Vishal Verma <vishal.l.verma@intel.com>
+Date: Tue, 29 Aug 2017 16:38:36 -0600
+Subject: [PATCH] ndctl, bash-completion: special case --no-autolabel for
+ create-namespace
+
+OPT_BOOLEAN provides a --no-* option automatically for all boolean
+options, but the negative versions aren't listed in --list-opts.
+
+Special case --no-autolabel since that is the only one where the
+negative makes sense.
+
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/btt.c   | 96 ++++++++++++++++++++++++++++++++++++++++++++------
- drivers/nvdimm/btt.h   |  5 +++
- drivers/nvdimm/claim.c |  8 -----
- 3 files changed, 91 insertions(+), 18 deletions(-)
+ contrib/ndctl | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 9acf06b..b211daa 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -393,7 +393,9 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
- 	arena->freelist[lane].sub = 1 - arena->freelist[lane].sub;
- 	if (++(arena->freelist[lane].seq) == 4)
- 		arena->freelist[lane].seq = 1;
--	arena->freelist[lane].block = le32_to_cpu(ent->old_map);
-+	if (ent_e_flag(ent->old_map))
-+		arena->freelist[lane].has_err = 1;
-+	arena->freelist[lane].block = le32_to_cpu(ent_lba(ent->old_map));
- 
- 	return ret;
+diff --git a/contrib/ndctl b/contrib/ndctl
+index 9410572..c7e3e7d 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -261,6 +261,17 @@ __ndctl_comp_non_option_args()
+ 	__ndctlcomp "$opts" "$cur"
  }
-@@ -494,6 +496,41 @@ static int btt_log_init(struct arena_info *arena)
- 	return ret;
- }
- 
-+static u64 lba_to_nsoff(struct arena_info *arena, u64 lba)
-+{
-+	return calc_nsoff(arena->nd_btt,
-+		arena->dataoff + ((u64)lba * arena->internal_lbasize));
-+}
-+
-+static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
-+{
-+	int ret = 0;
-+
-+	if (arena->freelist[lane].has_err) {
-+		void *zero_page = page_address(ZERO_PAGE(0));
-+		u32 lba = arena->freelist[lane].block;
-+		u64 nsoff = lba_to_nsoff(arena, lba);
-+		unsigned long len = arena->sector_size;
-+
-+		mutex_lock(&arena->err_lock);
-+
-+		while (len) {
-+			unsigned long chunk = min(len, PAGE_SIZE);
-+
-+			ret = arena_write_bytes(arena, nsoff, zero_page,
-+				chunk, 0);
-+			if (ret)
-+				break;
-+			len -= chunk;
-+			nsoff += chunk;
-+			if (len == 0)
-+				arena->freelist[lane].has_err = 0;
-+		}
-+		mutex_unlock(&arena->err_lock);
-+	}
-+	return ret;
-+}
-+
- static int btt_freelist_init(struct arena_info *arena)
- {
- 	int old, new, ret;
-@@ -519,6 +556,9 @@ static int btt_freelist_init(struct arena_info *arena)
- 		arena->freelist[i].seq = nd_inc_seq(le32_to_cpu(log_new.seq));
- 		arena->freelist[i].block = le32_to_cpu(log_new.old_map);
- 
-+		if (ent_e_flag(log_new.old_map))
-+			arena_clear_freelist_error(arena, i);
-+
- 		/* This implies a newly created or untouched flog entry */
- 		if (log_new.old_map == log_new.new_map)
- 			continue;
-@@ -539,7 +579,6 @@ static int btt_freelist_init(struct arena_info *arena)
- 			if (ret)
- 				return ret;
- 		}
--
- 	}
- 
- 	return 0;
-@@ -709,6 +748,7 @@ static int discover_arenas(struct btt *btt)
- 		arena->external_lba_start = cur_nlba;
- 		parse_arena_meta(arena, super, cur_off);
- 
-+		mutex_init(&arena->err_lock);
- 		ret = btt_freelist_init(arena);
- 		if (ret)
- 			goto out;
-@@ -919,12 +959,6 @@ static void unlock_map(struct arena_info *arena, u32 premap)
- 	spin_unlock(&arena->map_locks[idx].lock);
- }
- 
--static u64 lba_to_nsoff(struct arena_info *arena, u64 lba)
--{
--	return calc_nsoff(arena->nd_btt,
--		arena->dataoff + ((u64)lba * arena->internal_lbasize));
--}
--
- static int btt_data_read(struct arena_info *arena, struct page *page,
- 			unsigned int off, u32 lba, u32 len)
- {
-@@ -1082,8 +1116,14 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		}
- 
- 		ret = btt_data_read(arena, page, off, postmap, cur_len);
--		if (ret)
-+		if (ret) {
-+			int rc;
-+
-+			/* Media error - set the e_flag */
-+			rc = btt_map_write(arena, premap, postmap, 0, 1,
-+				NVDIMM_IO_ATOMIC);
- 			goto out_rtt;
-+		}
- 
- 		if (bip) {
- 			ret = btt_rw_integrity(btt, bip, arena, postmap, READ);
-@@ -1108,6 +1148,15 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 	return ret;
- }
- 
-+static bool btt_is_badblock(struct btt *btt, struct arena_info *arena,
-+		u32 postmap)
-+{
-+	u64 nsoff = lba_to_nsoff(arena, postmap);
-+	sector_t phys_sector = nsoff >> 9;
-+
-+	return is_bad_pmem(btt->phys_bb, phys_sector, arena->internal_lbasize);
-+}
-+
- static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 			sector_t sector, struct page *page, unsigned int off,
- 			unsigned int len)
-@@ -1120,7 +1169,9 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 
- 	while (len) {
- 		u32 cur_len;
-+		int e_flag;
- 
-+ retry:
- 		lane = nd_region_acquire_lane(btt->nd_region);
- 
- 		ret = lba_to_arena(btt, sector, &premap, &arena);
-@@ -1133,6 +1184,23 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 			goto out_lane;
- 		}
- 
-+		/* The block had a media error, and is being cleared */
-+		if (mutex_is_locked(&arena->err_lock)
-+				|| arena->freelist[lane].has_err) {
-+			nd_region_release_lane(btt->nd_region, lane);
-+			goto retry;
-+		}
-+
-+		/* The block had a media error, and needs to be cleared */
-+		if (btt_is_badblock(btt, arena, arena->freelist[lane].block)) {
-+			arena->freelist[lane].has_err = 1;
-+			nd_region_release_lane(btt->nd_region, lane);
-+
-+			arena_clear_freelist_error(arena, lane);
-+			/* OK to acquire a different lane/free block */
-+			goto retry;
-+		}
-+
- 		new_postmap = arena->freelist[lane].block;
- 
- 		/* Wait if the new block is being read from */
-@@ -1158,7 +1226,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		}
- 
- 		lock_map(arena, premap);
--		ret = btt_map_read(arena, premap, &old_postmap, NULL, NULL,
-+		ret = btt_map_read(arena, premap, &old_postmap, NULL, &e_flag,
- 				NVDIMM_IO_ATOMIC);
- 		if (ret)
- 			goto out_map;
-@@ -1166,6 +1234,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 			ret = -EIO;
- 			goto out_map;
- 		}
-+		if (e_flag)
-+			set_e_flag(old_postmap);
- 
- 		log.lba = cpu_to_le32(premap);
- 		log.old_map = cpu_to_le32(old_postmap);
-@@ -1184,6 +1254,9 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		unlock_map(arena, premap);
- 		nd_region_release_lane(btt->nd_region, lane);
- 
-+		if (e_flag)
-+			arena_clear_freelist_error(arena, lane);
-+
- 		len -= cur_len;
- 		off += cur_len;
- 		sector += btt->sector_size >> SECTOR_SHIFT;
-@@ -1364,6 +1437,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
- {
- 	int ret;
- 	struct btt *btt;
-+	struct nd_namespace_io *nsio;
- 	struct device *dev = &nd_btt->dev;
- 
- 	btt = devm_kzalloc(dev, sizeof(struct btt), GFP_KERNEL);
-@@ -1377,6 +1451,8 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
- 	INIT_LIST_HEAD(&btt->arena_list);
- 	mutex_init(&btt->init_lock);
- 	btt->nd_region = nd_region;
-+	nsio = to_nd_namespace_io(&nd_btt->ndns->dev);
-+	btt->phys_bb = &nsio->bb;
- 
- 	ret = discover_arenas(btt);
- 	if (ret) {
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 2bc0d10b..578c205 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -15,6 +15,7 @@
- #ifndef _LINUX_BTT_H
- #define _LINUX_BTT_H
- 
-+#include <linux/badblocks.h>
- #include <linux/types.h>
- 
- #define BTT_SIG_LEN 16
-@@ -41,6 +42,7 @@
- #define ent_lba(ent) (ent & MAP_LBA_MASK)
- #define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
- #define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
-+#define set_e_flag(ent) (ent |= MAP_ERR_MASK)
- 
- enum btt_init_state {
- 	INIT_UNCHECKED = 0,
-@@ -82,6 +84,7 @@ struct free_entry {
- 	u32 block;
- 	u8 sub;
- 	u8 seq;
-+	u8 has_err;
- };
- 
- struct aligned_lock {
-@@ -153,6 +156,7 @@ struct arena_info {
- 	struct dentry *debugfs_dir;
- 	/* Arena flags */
- 	u32 flags;
-+	struct mutex err_lock;
- };
- 
- /**
-@@ -187,6 +191,7 @@ struct btt {
- 	struct mutex init_lock;
- 	int init_state;
- 	int num_arenas;
-+	struct badblocks *phys_bb;
- };
- 
- bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super);
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 3e6404f..b2fc29b 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -280,14 +280,6 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	}
- 
- 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
--		/*
--		 * FIXME: nsio_rw_bytes() may be called from atomic
--		 * context in the btt case and the ACPI DSM path for
--		 * clearing the error takes sleeping locks and allocates
--		 * memory. An explicit error clearing path, and support
--		 * for tracking badblocks in BTT metadata is needed to
--		 * work around this collision.
--		 */
- 		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
- 				&& !(flags & NVDIMM_IO_ATOMIC)) {
- 			long cleared;
--- 
-2.9.3
+ =
 
++__ndctl_add_special_opts()
++{
++	local subcmd=3D$1
++
++	case $subcmd in
++	create-namespace)
++		opts=3D"$opts --no-autolabel"
++		;;
++	esac
++}
++
+ __ndctl_prev_skip_opts ()
+ {
+ 	local i cmd_ cmds_
+@@ -354,6 +365,7 @@ __ndctl_main()
+ 		# List long option names
+ 		if [[ $cur =3D=3D --* ]];  then
+ 			opts=3D$($cmd $subcmd --list-opts)
++			__ndctl_add_special_opts "$subcmd"
+ 			__ndctlcomp "$opts" "$cur"
+ 			__ndctl_comp_options "$cur"
+ 		else
+-- =
+
+2.9.5
+
+
+
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
