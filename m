@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBEF321E70D4C
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:14:57 -0700 (PDT)
-Subject: [ndctl PATCH v2 03/10] ndctl: move label manipulation routines to
- their own file
+ by ml01.01.org (Postfix) with ESMTPS id 783EC21E70D5D
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 13:05:30 -0700 (PDT)
+Subject: [ndctl PATCH 3/7] ndctl: move label manipulation routines to their
+ own file
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 19:11:14 -0700
-Message-ID: <150405907455.22171.2576390494758627208.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 29 Aug 2017 13:01:46 -0700
+Message-ID: <150403690602.8240.1908493698203467246.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -30,13 +30,14 @@ In anticipation of pushing label functionality into the library move the
 existing ndctl_dimm_zero_labels() into a new ndctl/lib/dimm.c source
 file.
 
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
  ndctl/lib/Makefile.am |    1 
- ndctl/lib/dimm.c      |  104 +++++++++++++++++++++++++++++++++++
+ ndctl/lib/dimm.c      |  106 ++++++++++++++++++++++++++++++++++++
  ndctl/lib/libndctl.c  |  145 -------------------------------------------------
  ndctl/lib/private.h   |   57 +++++++++++++++++++
- 4 files changed, 162 insertions(+), 145 deletions(-)
+ 4 files changed, 164 insertions(+), 145 deletions(-)
  create mode 100644 ndctl/lib/dimm.c
 
 diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
@@ -53,10 +54,10 @@ index 0f01b7d88007..d8df87d13df3 100644
  libndctl_la_LIBADD =\
 diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
 new file mode 100644
-index 000000000000..e4ea81835989
+index 000000000000..1c613a470099
 --- /dev/null
 +++ b/ndctl/lib/dimm.c
-@@ -0,0 +1,104 @@
+@@ -0,0 +1,106 @@
 +/*
 + * Copyright (c) 2014-2017, Intel Corporation.
 + *
@@ -161,6 +162,8 @@ index 000000000000..e4ea81835989
 +
 +	return strtoul(buf, NULL, 0);
 +}
++
++
 diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
 index 4c0f8a7afd57..f93ba9b8de76 100644
 --- a/ndctl/lib/libndctl.c
