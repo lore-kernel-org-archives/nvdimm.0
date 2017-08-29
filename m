@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6FA1121CE748D
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:15:03 -0700 (PDT)
-Subject: [ndctl PATCH v2 04/10] ndctl: consolidate namespace definitions in
+ by ml01.01.org (Postfix) with ESMTPS id D05362095B9C8
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 13:05:35 -0700 (PDT)
+Subject: [ndctl PATCH 4/7] ndctl: consolidate namespace definitions in
  namespace.h
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 19:11:19 -0700
-Message-ID: <150405907981.22171.4918144282935010315.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 29 Aug 2017 13:01:52 -0700
+Message-ID: <150403691228.8240.918388591318101224.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -33,6 +33,9 @@ The following files all have some namespace-label and btt information:
    ndctl/lib/private.h
 
 Consolidate all of this in a shared ndctl/namespace.h header.
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
  ndctl/check.c        |   52 +++++++++++++++-
  ndctl/check.h        |  130 ----------------------------------------
