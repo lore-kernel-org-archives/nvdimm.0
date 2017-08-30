@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6C1F42095B9C1
- for <linux-nvdimm@lists.01.org>; Fri, 25 Aug 2017 13:57:27 -0700 (PDT)
-Subject: [PATCH v6 4/8] dmaengine: ioatdma: dma_prep_memcpy_sg support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 25 Aug 2017 13:59:46 -0700
-Message-ID: <150369478668.6962.13507203779322642480.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
-References: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0AED821E70D40
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 12:50:08 -0700 (PDT)
+Subject: [PATCH v3 0/4] fs, dax: lookup dax_device at mount time
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 30 Aug 2017 12:43:47 -0700
+Message-ID: <150412222686.10177.8031279869867070772.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,118 +20,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
+To: linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Andreas Dilger <adilger.kernel@dilger.ca>, Theodore Ts'o <tytso@mit.edu>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding ioatdma support to copy from a physically contiguous buffer to a
-provided scatterlist and vice versa. This is used to support
-reading/writing persistent memory in the pmem driver.
+Changes since v2 [1]:
+* Split fs_dax_get_by_bdev() to its own patch (Christoph)
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+* Push dax_device reference management into <fs>_{fill,put}_super()
+  rather than the generic vfs. (Christoph)
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-August/012133.html
+
 ---
- drivers/dma/ioat/dma.h  |    4 +++
- drivers/dma/ioat/init.c |    2 ++
- drivers/dma/ioat/prep.c |   57 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 63 insertions(+)
 
-diff --git a/drivers/dma/ioat/dma.h b/drivers/dma/ioat/dma.h
-index 56200ee..6c08b06 100644
---- a/drivers/dma/ioat/dma.h
-+++ b/drivers/dma/ioat/dma.h
-@@ -370,6 +370,10 @@ struct dma_async_tx_descriptor *
- ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
- 			   dma_addr_t dma_src, size_t len, unsigned long flags);
- struct dma_async_tx_descriptor *
-+ioat_dma_prep_memcpy_sg_lock(struct dma_chan *c,
-+		struct scatterlist *sg, unsigned int sg_nents,
-+		dma_addr_t dma_addr, bool to_sg, unsigned long flags);
-+struct dma_async_tx_descriptor *
- ioat_prep_interrupt_lock(struct dma_chan *c, unsigned long flags);
- struct dma_async_tx_descriptor *
- ioat_prep_xor(struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
-diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
-index 1b881fb..5c69ff6 100644
---- a/drivers/dma/ioat/init.c
-+++ b/drivers/dma/ioat/init.c
-@@ -1081,6 +1081,8 @@ static int ioat3_dma_probe(struct ioatdma_device *ioat_dma, int dca)
- 
- 	dma = &ioat_dma->dma_dev;
- 	dma->device_prep_dma_memcpy = ioat_dma_prep_memcpy_lock;
-+	dma_cap_set(DMA_MEMCPY_SG, dma->cap_mask);
-+	dma->device_prep_dma_memcpy_sg = ioat_dma_prep_memcpy_sg_lock;
- 	dma->device_issue_pending = ioat_issue_pending;
- 	dma->device_alloc_chan_resources = ioat_alloc_chan_resources;
- 	dma->device_free_chan_resources = ioat_free_chan_resources;
-diff --git a/drivers/dma/ioat/prep.c b/drivers/dma/ioat/prep.c
-index 243421a..d8219af 100644
---- a/drivers/dma/ioat/prep.c
-+++ b/drivers/dma/ioat/prep.c
-@@ -159,6 +159,63 @@ ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
- 	return &desc->txd;
- }
- 
-+struct dma_async_tx_descriptor *
-+ioat_dma_prep_memcpy_sg_lock(struct dma_chan *c,
-+		struct scatterlist *sg, unsigned int sg_nents,
-+		dma_addr_t dma_addr, bool to_sg, unsigned long flags)
-+{
-+	struct ioatdma_chan *ioat_chan = to_ioat_chan(c);
-+	struct ioat_dma_descriptor *hw = NULL;
-+	struct ioat_ring_ent *desc = NULL;
-+	dma_addr_t dma_off = dma_addr;
-+	int num_descs, idx, i;
-+	struct scatterlist *s;
-+	size_t total_len = 0, len;
-+
-+
-+	if (test_bit(IOAT_CHAN_DOWN, &ioat_chan->state))
-+		return NULL;
-+
-+	/*
-+	 * The upper layer will garantee that each entry does not exceed
-+	 * xfercap.
-+	 */
-+	num_descs = sg_nents;
-+
-+	if (likely(num_descs) &&
-+	    ioat_check_space_lock(ioat_chan, num_descs) == 0)
-+		idx = ioat_chan->head;
-+	else
-+		return NULL;
-+
-+	for_each_sg(sg, s, sg_nents, i) {
-+		desc = ioat_get_ring_ent(ioat_chan, idx + i);
-+		hw = desc->hw;
-+		len = sg_dma_len(s);
-+		hw->size = len;
-+		hw->ctl = 0;
-+		if (to_sg) {
-+			hw->src_addr = dma_off;
-+			hw->dst_addr = sg_dma_address(s);
-+		} else {
-+			hw->src_addr = sg_dma_address(s);
-+			hw->dst_addr = dma_off;
-+		}
-+		dma_off += len;
-+		total_len += len;
-+		dump_desc_dbg(ioat_chan, desc);
-+	}
-+
-+	desc->txd.flags = flags;
-+	desc->len = total_len;
-+	hw->ctl_f.int_en = !!(flags & DMA_PREP_INTERRUPT);
-+	hw->ctl_f.fence = !!(flags & DMA_PREP_FENCE);
-+	hw->ctl_f.compl_write = 1;
-+	dump_desc_dbg(ioat_chan, desc);
-+	/* we leave the channel locked to ensure in order submission */
-+
-+	return &desc->txd;
-+}
- 
- static struct dma_async_tx_descriptor *
- __ioat_prep_xor_lock(struct dma_chan *c, enum sum_check_flags *result,
+Christoph notes:
 
+    I just noticed that we now do a fs_dax_get_by_host in every
+    iomap_begin call for DAX. This function iterates a list, does a
+    string compared and igrab. I really think we need to cache this in
+    the superblock (possible even the fs superblock) similar to what we
+    do for the block device.
+
+This passes the libnvdimm unit tests.
+
+---
+
+Dan Williams (4):
+      dax: introduce a fs_dax_get_by_bdev() helper
+      xfs: perform dax_device lookup at mount
+      ext2: perform dax_device lookup at mount
+      ext4: perform dax_device lookup at mount
+
+
+ drivers/dax/super.c |   10 ++++++++++
+ fs/ext2/ext2.h      |    1 +
+ fs/ext2/inode.c     |   11 +++--------
+ fs/ext2/super.c     |    5 +++++
+ fs/ext4/ext4.h      |    1 +
+ fs/ext4/inode.c     |   11 +++--------
+ fs/ext4/super.c     |    5 +++++
+ fs/xfs/xfs_aops.c   |   13 +++++++++++++
+ fs/xfs/xfs_aops.h   |    1 +
+ fs/xfs/xfs_buf.c    |    4 +++-
+ fs/xfs/xfs_buf.h    |    3 ++-
+ fs/xfs/xfs_iomap.c  |   10 +---------
+ fs/xfs/xfs_super.c  |   25 +++++++++++++++++++++----
+ include/linux/dax.h |    6 ++++++
+ 14 files changed, 75 insertions(+), 31 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
