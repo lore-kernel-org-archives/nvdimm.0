@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.gtisc.gatech.edu (mx1.gtisc.gatech.edu [143.215.130.81])
- (using TLSv1 with cipher AES256-SHA (256/256 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 82E2D21E47D65
- for <linux-nvdimm@lists.01.org>; Wed, 23 Aug 2017 14:05:23 -0700 (PDT)
-From: Meng Xu <meng.xu@gatech.edu>
-Subject: [PATCH] nvdimm: fix potential double-fetch bug
-Date: Wed, 23 Aug 2017 17:07:46 -0400
-Message-Id: <1503522466-35486-1-git-send-email-meng.xu@gatech.edu>
+ by ml01.01.org (Postfix) with ESMTPS id 7E51021E70D4C
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:14:52 -0700 (PDT)
+Subject: [ndctl PATCH v2 02/10] ndctl: drop the "libndctl-" prefix on
+ library source files
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 29 Aug 2017 19:11:09 -0700
+Message-ID: <150405906932.22171.12597097524383400415.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,81 +19,176 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
-Cc: taesoo@gatech.edu, meng.xu@gatech.edu, Meng Xu <mengxu.gatech@gmail.com>, sanidhya@gatech.edu
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Meng Xu <mengxu.gatech@gmail.com>
+The "libndctl-" prefix is redundant given the source files already live
+in the ndctl/lib/ directory. There is a similar story for removing the
+"ndctl-" prefix on the vendor-specific / internal-only headers.
 
-While examining the kernel source code, I found a dangerous operation that
-could turn into a double-fetch situation (a race condition bug) where
-the same userspace memory region are fetched twice into kernel with sanity
-checks after the first fetch while missing checks after the second fetch.
-
-In the case of _IOC_NR(ioctl_cmd) == ND_CMD_CALL:
-
-1. The first fetch happens in line 935 copy_from_user(&pkg, p, sizeof(pkg)
-
-2. subsequently `pkg.nd_reserved2` is asserted to be all zeroes
-(line 984 to 986).
-
-3. The second fetch happens in line 1022 copy_from_user(buf, p, buf_len)
-
-4. Given that `p` can be fully controlled in userspace, an attacker can
-race condition to override the header part of `p`, say,
-`((struct nd_cmd_pkg *)p)->nd_reserved2` to arbitrary value
-(say nine 0xFFFFFFFF for `nd_reserved2`) after the first fetch but before the
-second fetch. The changed value will be copied to `buf`.
-
-5. There is no checks on the second fetches until the use of it in
-line 1034: nd_cmd_clear_to_send(nvdimm_bus, nvdimm, cmd, buf) and
-line 1038: nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, &cmd_rc)
-which means that the assumed relation, `p->nd_reserved2` are all zeroes might
-not hold after the second fetch. And once the control goes to these functions
-we lose the context to assert the assumed relation.
-
-6. Based on my manual analysis, `p->nd_reserved2` is not used in function
-`nd_cmd_clear_to_send` and potential implementations of `nd_desc->ndctl`
-so there is no working exploit against it right now. However, this could
-easily turns to an exploitable one if careless developers start to use
-`p->nd_reserved2` later and assume that they are all zeroes.
-
-Proposed patch:
-
-The patch explicitly overrides `buf->nd_reserved2` after the second fetch with
-the value `pkg.nd_reserved2` from the first fetch. In this way, it is assured
-that the relation, `buf->nd_reserved2` are all zeroes, holds after the second
-fetch.
-
-Signed-off-by: Meng Xu <mengxu.gatech@gmail.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/bus.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ ndctl/lib/Makefile.am        |   10 +++++-----
+ ndctl/lib/ars.c              |    2 +-
+ ndctl/lib/hpe1.c             |    4 ++--
+ ndctl/lib/hpe1.h             |    0 
+ ndctl/lib/libndctl.c         |    2 +-
+ ndctl/lib/msft.c             |    4 ++--
+ ndctl/lib/msft.h             |    0 
+ ndctl/lib/private.h          |    4 ++--
+ ndctl/lib/smart.c            |    2 +-
+ 9 files changed, 14 insertions(+), 14 deletions(-)
+ rename ndctl/lib/{libndctl-ars.c => ars.c} (99%)
+ rename ndctl/lib/{libndctl-hpe1.c => hpe1.c} (99%)
+ rename ndctl/lib/{ndctl-hpe1.h => hpe1.h} (100%)
+ rename ndctl/lib/{libndctl-msft.c => msft.c} (98%)
+ rename ndctl/lib/{ndctl-msft.h => msft.h} (100%)
+ rename ndctl/lib/{libndctl-private.h => private.h} (99%)
+ rename ndctl/lib/{libndctl-smart.c => smart.c} (99%)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 937fafa..20c4d0f 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -1024,6 +1024,12 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		goto out;
- 	}
+diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
+index 7a446be295bb..0f01b7d88007 100644
+--- a/ndctl/lib/Makefile.am
++++ b/ndctl/lib/Makefile.am
+@@ -12,7 +12,7 @@ lib_LTLIBRARIES = libndctl.la
  
-+	if (cmd == ND_CMD_CALL) {
-+		struct nd_cmd_pkg *hdr = (struct nd_cmd_pkg *)buf;
-+		memcpy(hdr->nd_reserved2, pkg.nd_reserved2,
-+				sizeof(pkg.nd_reserved2));
-+	}
-+
- 	nvdimm_bus_lock(&nvdimm_bus->dev);
- 	rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, func, buf);
- 	if (rc)
--- 
-2.7.4
+ libndctl_la_SOURCES =\
+ 	libndctl.h \
+-	libndctl-private.h \
++	private.h \
+ 	../../util/log.c \
+ 	../../util/log.h \
+ 	../../util/sysfs.c \
+@@ -26,13 +26,13 @@ libndctl_la_LIBADD =\
+ 	$(KMOD_LIBS)
+ 
+ if ENABLE_ARS
+-libndctl_la_SOURCES += libndctl-ars.c
++libndctl_la_SOURCES += ars.c
+ endif
+ 
+ if ENABLE_SMART
+-libndctl_la_SOURCES += libndctl-smart.c
+-libndctl_la_SOURCES += libndctl-hpe1.c
+-libndctl_la_SOURCES += libndctl-msft.c
++libndctl_la_SOURCES += smart.c
++libndctl_la_SOURCES += hpe1.c
++libndctl_la_SOURCES += msft.c
+ endif
+ 
+ EXTRA_DIST += libndctl.sym
+diff --git a/ndctl/lib/libndctl-ars.c b/ndctl/lib/ars.c
+similarity index 99%
+rename from ndctl/lib/libndctl-ars.c
+rename to ndctl/lib/ars.c
+index 9b1a0cb6e1d6..735c1457a3ec 100644
+--- a/ndctl/lib/libndctl-ars.c
++++ b/ndctl/lib/ars.c
+@@ -12,7 +12,7 @@
+  */
+ #include <stdlib.h>
+ #include <ndctl/libndctl.h>
+-#include "libndctl-private.h"
++#include "private.h"
+ 
+ NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_ars_cap(struct ndctl_bus *bus,
+ 		unsigned long long address, unsigned long long len)
+diff --git a/ndctl/lib/libndctl-hpe1.c b/ndctl/lib/hpe1.c
+similarity index 99%
+rename from ndctl/lib/libndctl-hpe1.c
+rename to ndctl/lib/hpe1.c
+index ec542527e509..45cb5cc6db73 100644
+--- a/ndctl/lib/libndctl-hpe1.c
++++ b/ndctl/lib/hpe1.c
+@@ -15,9 +15,9 @@
+ #include <limits.h>
+ #include <util/log.h>
+ #include <ndctl/libndctl.h>
+-#include "libndctl-private.h"
++#include "private.h"
+ 
+-#include "ndctl-hpe1.h"
++#include "hpe1.h"
+ 
+ #define CMD_HPE1(_c) ((_c)->hpe1)
+ #define CMD_HPE1_SMART(_c) (CMD_HPE1(_c)->u.smart.data)
+diff --git a/ndctl/lib/ndctl-hpe1.h b/ndctl/lib/hpe1.h
+similarity index 100%
+rename from ndctl/lib/ndctl-hpe1.h
+rename to ndctl/lib/hpe1.h
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index c2e0efbd87b0..4c0f8a7afd57 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -37,7 +37,7 @@
+ #include <util/sysfs.h>
+ #include <ndctl/libndctl.h>
+ #include <daxctl/libdaxctl.h>
+-#include "libndctl-private.h"
++#include "private.h"
+ 
+ static uuid_t null_uuid;
+ 
+diff --git a/ndctl/lib/libndctl-msft.c b/ndctl/lib/msft.c
+similarity index 98%
+rename from ndctl/lib/libndctl-msft.c
+rename to ndctl/lib/msft.c
+index d46f79bb534d..8c226f5602f1 100644
+--- a/ndctl/lib/libndctl-msft.c
++++ b/ndctl/lib/msft.c
+@@ -16,8 +16,8 @@
+ #include <limits.h>
+ #include <util/log.h>
+ #include <ndctl/libndctl.h>
+-#include "libndctl-private.h"
+-#include "ndctl-msft.h"
++#include "private.h"
++#include "msft.h"
+ 
+ #define CMD_MSFT(_c) ((_c)->msft)
+ #define CMD_MSFT_SMART(_c) (CMD_MSFT(_c)->u.smart.data)
+diff --git a/ndctl/lib/ndctl-msft.h b/ndctl/lib/msft.h
+similarity index 100%
+rename from ndctl/lib/ndctl-msft.h
+rename to ndctl/lib/msft.h
+diff --git a/ndctl/lib/libndctl-private.h b/ndctl/lib/private.h
+similarity index 99%
+rename from ndctl/lib/libndctl-private.h
+rename to ndctl/lib/private.h
+index 8f10fbc76aca..8bc730d4b39a 100644
+--- a/ndctl/lib/libndctl-private.h
++++ b/ndctl/lib/private.h
+@@ -31,8 +31,8 @@
+ #include <ndctl/libndctl.h>
+ #include <ccan/endian/endian.h>
+ #include <ccan/short_types/short_types.h>
+-#include "ndctl-hpe1.h"
+-#include "ndctl-msft.h"
++#include "hpe1.h"
++#include "msft.h"
+ 
+ #define SZ_16M 0x01000000
+ 
+diff --git a/ndctl/lib/libndctl-smart.c b/ndctl/lib/smart.c
+similarity index 99%
+rename from ndctl/lib/libndctl-smart.c
+rename to ndctl/lib/smart.c
+index 73a49efe5d58..41bbc6f93b80 100644
+--- a/ndctl/lib/libndctl-smart.c
++++ b/ndctl/lib/smart.c
+@@ -14,7 +14,7 @@
+ #include <limits.h>
+ #include <util/log.h>
+ #include <ndctl/libndctl.h>
+-#include "libndctl-private.h"
++#include "private.h"
+ 
+ /*
+  * Define the wrappers around the ndctl_smart_ops:
 
 _______________________________________________
 Linux-nvdimm mailing list
