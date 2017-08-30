@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 32D0121E49BAB
- for <linux-nvdimm@lists.01.org>; Tue, 22 Aug 2017 15:18:37 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v6 1/6] btt: fix a missed NVDIMM_IO_ATOMIC case in the write
- path
-Date: Tue, 22 Aug 2017 16:19:10 -0600
-Message-Id: <20170822221915.1732-2-vishal.l.verma@intel.com>
-In-Reply-To: <20170822221915.1732-1-vishal.l.verma@intel.com>
-References: <20170822221915.1732-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9B6C721E95E14
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 07:27:21 -0700 (PDT)
+Subject: [PATCH] libnvdimm, label: fix index block size calculation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 30 Aug 2017 07:23:38 -0700
+Message-ID: <150410301855.16610.7130434728218773988.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,60 +16,95 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The IO context conversion for rw_bytes missed a case in the BTT write
-path (btt_map_write) which should've been marked as atomic.
+The old calculation assumed that the label space was 128k and the label
+size is 128. With v1.2 labels where the label size is 256 this
+calculation will return zero. We are saved by the fact that the
+nsindex_size is always pre-initialized from a previous 128 byte
+assumption and we are lucky that the index sizes turn out the same.
 
-In reality this should not cause a problem, because map writes are to
-small for nsio_rw_bytes to attempt error clearing, but it should be
-fixed for posterity.
+Fix this going forward in case we start encountering different
+geometries of label areas besides 128k.
 
-Add a might_sleep() in the non-atomic section of nsio_rw_bytes so that
-things like the nfit unit tests, which don't actually sleep, can catch
-bugs like this.
+Since the label size can change from one call to the next, drop the
+caching of nsindex_size.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/btt.c   | 3 ++-
- drivers/nvdimm/claim.c | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/nvdimm/label.c |   30 ++++++++++++++++--------------
+ drivers/nvdimm/nd.h    |    2 +-
+ 2 files changed, 17 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 14323fa..f6ea82f 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1156,7 +1156,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		if (ret)
- 			goto out_map;
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 87796f840777..9c5f108910e3 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -45,12 +45,14 @@ unsigned sizeof_namespace_label(struct nvdimm_drvdata *ndd)
+ 	return ndd->nslabel_size;
+ }
  
--		ret = btt_map_write(arena, premap, new_postmap, 0, 0, 0);
-+		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
-+			NVDIMM_IO_ATOMIC);
- 		if (ret)
- 			goto out_map;
+-size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
++int nvdimm_num_label_slots(struct nvdimm_drvdata *ndd)
+ {
+-	u32 index_span;
++	return ndd->nsarea.config_size / (sizeof_namespace_label(ndd) + 1);
++}
  
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 4777046..3e6404f 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -292,6 +292,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 				&& !(flags & NVDIMM_IO_ATOMIC)) {
- 			long cleared;
+-	if (ndd->nsindex_size)
+-		return ndd->nsindex_size;
++size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
++{
++	u32 nslot, space, size;
  
-+			might_sleep();
- 			cleared = nvdimm_clear_poison(&ndns->dev,
- 					nsio->res.start + offset, size);
- 			if (cleared < size)
--- 
-2.9.3
+ 	/*
+ 	 * The minimum index space is 512 bytes, with that amount of
+@@ -60,16 +62,16 @@ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
+ 	 * starts to waste space at larger config_sizes, but it's
+ 	 * unlikely we'll ever see anything but 128K.
+ 	 */
+-	index_span = ndd->nsarea.config_size / (sizeof_namespace_label(ndd) + 1);
+-	index_span /= NSINDEX_ALIGN * 2;
+-	ndd->nsindex_size = index_span * NSINDEX_ALIGN;
+-
+-	return ndd->nsindex_size;
+-}
+-
+-int nvdimm_num_label_slots(struct nvdimm_drvdata *ndd)
+-{
+-	return ndd->nsarea.config_size / (sizeof_namespace_label(ndd) + 1);
++	nslot = nvdimm_num_label_slots(ndd);
++	space = ndd->nsarea.config_size - nslot * sizeof_namespace_label(ndd);
++	size = ALIGN(sizeof(struct nd_namespace_index) + DIV_ROUND_UP(nslot, 8),
++			NSINDEX_ALIGN) * 2;
++	if (size <= space)
++		return size / 2;
++
++	dev_err(ndd->dev, "label area (%d) too small to host (%d byte) labels\n",
++			ndd->nsarea.config_size, sizeof_namespace_label(ndd));
++	return 0;
+ }
+ 
+ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 251c7e6d2588..023fc93e21a5 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -42,7 +42,7 @@ struct nd_poison {
+ 
+ struct nvdimm_drvdata {
+ 	struct device *dev;
+-	int nsindex_size, nslabel_size;
++	int nslabel_size;
+ 	struct nd_cmd_get_config_size nsarea;
+ 	void *data;
+ 	int ns_current, ns_next;
 
 _______________________________________________
 Linux-nvdimm mailing list
