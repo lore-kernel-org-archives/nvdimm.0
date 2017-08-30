@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2203521AEB0DB
- for <linux-nvdimm@lists.01.org>; Thu,  3 Aug 2017 19:32:42 -0700 (PDT)
-Subject: [PATCH v2 4/5] xfs: introduce XFS_DIFLAG2_IOMAP_IMMUTABLE
+ by ml01.01.org (Postfix) with ESMTPS id EBEF321E70D4C
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:14:57 -0700 (PDT)
+Subject: [ndctl PATCH v2 03/10] ndctl: move label manipulation routines to
+ their own file
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 03 Aug 2017 19:28:30 -0700
-Message-ID: <150181371001.32119.599597939855384271.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150181368442.32119.13336247800141074356.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150181368442.32119.13336247800141074356.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 29 Aug 2017 19:11:14 -0700
+Message-ID: <150405907455.22171.2576390494758627208.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,122 +23,382 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, luto@kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add an on-disk inode flag to record the state of the S_IOMAP_IMMUTABLE
-in-memory vfs inode flags. This allows the protections against reflink
-and hole punch to be automatically restored on a sub-sequent boot when
-the in-memory inode is established.
+In anticipation of pushing label functionality into the library move the
+existing ndctl_dimm_zero_labels() into a new ndctl/lib/dimm.c source
+file.
 
-The FS_XFLAG_IOMAP_IMMUTABLE is introduced to allow xfs_io to read the
-state of the flag, but toggling the flag requires going through
-fallocate(FALLOC_FL_[UN]SEAL_BLOCK_MAP). Support for toggling this
-on-disk state is saved for a later patch.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Suggested-by: "Darrick J. Wong" <darrick.wong@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/libxfs/xfs_format.h |    5 ++++-
- fs/xfs/xfs_inode.c         |    2 ++
- fs/xfs/xfs_ioctl.c         |    1 +
- fs/xfs/xfs_iops.c          |    8 +++++---
- include/uapi/linux/fs.h    |    1 +
- 5 files changed, 13 insertions(+), 4 deletions(-)
+ ndctl/lib/Makefile.am |    1 
+ ndctl/lib/dimm.c      |  104 +++++++++++++++++++++++++++++++++++
+ ndctl/lib/libndctl.c  |  145 -------------------------------------------------
+ ndctl/lib/private.h   |   57 +++++++++++++++++++
+ 4 files changed, 162 insertions(+), 145 deletions(-)
+ create mode 100644 ndctl/lib/dimm.c
 
-diff --git a/fs/xfs/libxfs/xfs_format.h b/fs/xfs/libxfs/xfs_format.h
-index d4d9bef20c3a..9e720e55776b 100644
---- a/fs/xfs/libxfs/xfs_format.h
-+++ b/fs/xfs/libxfs/xfs_format.h
-@@ -1063,12 +1063,15 @@ static inline void xfs_dinode_put_rdev(struct xfs_dinode *dip, xfs_dev_t rdev)
- #define XFS_DIFLAG2_DAX_BIT	0	/* use DAX for this inode */
- #define XFS_DIFLAG2_REFLINK_BIT	1	/* file's blocks may be shared */
- #define XFS_DIFLAG2_COWEXTSIZE_BIT   2  /* copy on write extent size hint */
-+#define XFS_DIFLAG2_IOMAP_IMMUTABLE_BIT 3 /* set S_IOMAP_IMMUTABLE for this inode */
- #define XFS_DIFLAG2_DAX		(1 << XFS_DIFLAG2_DAX_BIT)
- #define XFS_DIFLAG2_REFLINK     (1 << XFS_DIFLAG2_REFLINK_BIT)
- #define XFS_DIFLAG2_COWEXTSIZE  (1 << XFS_DIFLAG2_COWEXTSIZE_BIT)
-+#define XFS_DIFLAG2_IOMAP_IMMUTABLE (1 << XFS_DIFLAG2_IOMAP_IMMUTABLE_BIT)
+diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
+index 0f01b7d88007..d8df87d13df3 100644
+--- a/ndctl/lib/Makefile.am
++++ b/ndctl/lib/Makefile.am
+@@ -17,6 +17,7 @@ libndctl_la_SOURCES =\
+ 	../../util/log.h \
+ 	../../util/sysfs.c \
+ 	../../util/sysfs.h \
++	dimm.c \
+ 	libndctl.c
  
- #define XFS_DIFLAG2_ANY \
--	(XFS_DIFLAG2_DAX | XFS_DIFLAG2_REFLINK | XFS_DIFLAG2_COWEXTSIZE)
-+	(XFS_DIFLAG2_DAX | XFS_DIFLAG2_REFLINK | XFS_DIFLAG2_COWEXTSIZE | \
-+	 XFS_DIFLAG2_IOMAP_IMMUTABLE)
+ libndctl_la_LIBADD =\
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+new file mode 100644
+index 000000000000..e4ea81835989
+--- /dev/null
++++ b/ndctl/lib/dimm.c
+@@ -0,0 +1,104 @@
++/*
++ * Copyright (c) 2014-2017, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU Lesser General Public License,
++ * version 2.1, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT ANY
++ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
++ * more details.
++ */
++#include <ndctl/libndctl.h>
++#include <util/sysfs.h>
++#include <stdlib.h>
++#include "private.h"
++
++NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
++{
++	struct ndctl_cmd *cmd_size, *cmd_read, *cmd_write;
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
++	int rc;
++
++	rc = ndctl_bus_wait_probe(bus);
++	if (rc < 0)
++		return rc;
++
++	if (ndctl_dimm_is_active(dimm)) {
++		dbg(ctx, "%s: regions active, abort label write\n",
++			ndctl_dimm_get_devname(dimm));
++		return -EBUSY;
++	}
++
++	cmd_size = ndctl_dimm_cmd_new_cfg_size(dimm);
++	if (!cmd_size)
++		return -ENOTTY;
++	rc = ndctl_cmd_submit(cmd_size);
++	if (rc || ndctl_cmd_get_firmware_status(cmd_size))
++		goto out_size;
++
++	cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
++	if (!cmd_read) {
++		rc = -ENOTTY;
++		goto out_size;
++	}
++	rc = ndctl_cmd_submit(cmd_read);
++	if (rc || ndctl_cmd_get_firmware_status(cmd_read))
++		goto out_read;
++
++	cmd_write = ndctl_dimm_cmd_new_cfg_write(cmd_read);
++	if (!cmd_write) {
++		rc = -ENOTTY;
++		goto out_read;
++	}
++	if (ndctl_cmd_cfg_write_zero_data(cmd_write) < 0) {
++		rc = -ENXIO;
++		goto out_write;
++	}
++	rc = ndctl_cmd_submit(cmd_write);
++	if (rc || ndctl_cmd_get_firmware_status(cmd_write))
++		goto out_write;
++
++	/*
++	 * If the dimm is already disabled the kernel is not holding a cached
++	 * copy of the label space.
++	 */
++	if (!ndctl_dimm_is_enabled(dimm))
++		goto out_write;
++
++	rc = ndctl_dimm_disable(dimm);
++	if (rc)
++		goto out_write;
++	rc = ndctl_dimm_enable(dimm);
++
++ out_write:
++	ndctl_cmd_unref(cmd_write);
++ out_read:
++	ndctl_cmd_unref(cmd_read);
++ out_size:
++	ndctl_cmd_unref(cmd_size);
++
++	return rc;
++}
++
++NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
++		struct ndctl_dimm *dimm)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	char *path = dimm->dimm_buf;
++	int len = dimm->buf_len;
++	char buf[20];
++
++	if (snprintf(path, len, "%s/available_slots", dimm->dimm_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				ndctl_dimm_get_devname(dimm));
++		return ULONG_MAX;
++	}
++
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		return ULONG_MAX;
++
++	return strtoul(buf, NULL, 0);
++}
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 4c0f8a7afd57..f93ba9b8de76 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -105,63 +105,6 @@ struct ndctl_bus {
+ };
  
- /*
-  * Inode number format:
-diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
-index ceef77c0416a..4ca22e272ce6 100644
---- a/fs/xfs/xfs_inode.c
-+++ b/fs/xfs/xfs_inode.c
-@@ -674,6 +674,8 @@ _xfs_dic2xflags(
- 			flags |= FS_XFLAG_DAX;
- 		if (di_flags2 & XFS_DIFLAG2_COWEXTSIZE)
- 			flags |= FS_XFLAG_COWEXTSIZE;
-+		if (di_flags2 & XFS_DIFLAG2_IOMAP_IMMUTABLE)
-+			flags |= FS_XFLAG_IOMAP_IMMUTABLE;
- 	}
- 
- 	if (has_attr)
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 2e64488bc4de..df2eef0f9d45 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -978,6 +978,7 @@ xfs_set_diflags(
- 		return;
- 
- 	di_flags2 = (ip->i_d.di_flags2 & XFS_DIFLAG2_REFLINK);
-+	di_flags2 |= (ip->i_d.di_flags2 & XFS_DIFLAG2_IOMAP_IMMUTABLE);
- 	if (xflags & FS_XFLAG_DAX)
- 		di_flags2 |= XFS_DIFLAG2_DAX;
- 	if (xflags & FS_XFLAG_COWEXTSIZE)
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 469c9fa4c178..174ef95453f5 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -1186,9 +1186,10 @@ xfs_diflags_to_iflags(
- 	struct xfs_inode	*ip)
- {
- 	uint16_t		flags = ip->i_d.di_flags;
-+	uint64_t		flags2 = ip->i_d.di_flags2;
- 
- 	inode->i_flags &= ~(S_IMMUTABLE | S_APPEND | S_SYNC |
--			    S_NOATIME | S_DAX);
-+			    S_NOATIME | S_DAX | S_IOMAP_IMMUTABLE);
- 
- 	if (flags & XFS_DIFLAG_IMMUTABLE)
- 		inode->i_flags |= S_IMMUTABLE;
-@@ -1201,9 +1202,10 @@ xfs_diflags_to_iflags(
- 	if (S_ISREG(inode->i_mode) &&
- 	    ip->i_mount->m_sb.sb_blocksize == PAGE_SIZE &&
- 	    !xfs_is_reflink_inode(ip) &&
--	    (ip->i_mount->m_flags & XFS_MOUNT_DAX ||
--	     ip->i_d.di_flags2 & XFS_DIFLAG2_DAX))
-+	    (ip->i_mount->m_flags & XFS_MOUNT_DAX || flags2 & XFS_DIFLAG2_DAX))
- 		inode->i_flags |= S_DAX;
-+	if (flags2 & XFS_DIFLAG2_IOMAP_IMMUTABLE)
-+		inode->i_flags |= S_IOMAP_IMMUTABLE;
+ /**
+- * struct ndctl_dimm - memory device as identified by NFIT
+- * @module: kernel module (libnvdimm)
+- * @handle: NFIT-handle value
+- * @major: /dev/nmemX major character device number
+- * @minor: /dev/nmemX minor character device number
+- * @phys_id: SMBIOS physical id
+- * @vendor_id: hardware component vendor
+- * @device_id: hardware device id
+- * @revision_id: hardware revision id
+- * @node: system node-id
+- * @socket: socket-id in the node
+- * @imc: memory-controller-id in the socket
+- * @channel: channel-id in the memory-controller
+- * @dimm: dimm-id in the channel
+- * @formats: number of support interfaces
+- * @format: array of format interface code numbers
+- */
+-struct ndctl_dimm {
+-	struct kmod_module *module;
+-	struct ndctl_bus *bus;
+-	struct ndctl_smart_ops *smart_ops;
+-	unsigned int handle, major, minor, serial;
+-	unsigned short phys_id;
+-	unsigned short vendor_id;
+-	unsigned short device_id;
+-	unsigned short revision_id;
+-	unsigned short subsystem_vendor_id;
+-	unsigned short subsystem_device_id;
+-	unsigned short subsystem_revision_id;
+-	unsigned short manufacturing_date;
+-	unsigned char manufacturing_location;
+-	unsigned long dsm_family;
+-	unsigned long dsm_mask;
+-	char *unique_id;
+-	char *dimm_path;
+-	char *dimm_buf;
+-	int health_eventfd;
+-	int buf_len;
+-	int id;
+-	union dimm_flags {
+-		unsigned long flags;
+-		struct {
+-			unsigned int f_map:1;
+-			unsigned int f_arm:1;
+-			unsigned int f_save:1;
+-			unsigned int f_flush:1;
+-			unsigned int f_smart:1;
+-			unsigned int f_restore:1;
+-			unsigned int f_notify:1;
+-		};
+-	} flags;
+-	struct list_node list;
+-	int formats;
+-	int format[0];
+-};
+-
+-/**
+  * struct ndctl_mapping - dimm extent relative to a region
+  * @dimm: backing dimm for the mapping
+  * @offset: dimm relative offset
+@@ -2214,74 +2157,6 @@ NDCTL_EXPORT ssize_t ndctl_cmd_cfg_write_zero_data(struct ndctl_cmd *cfg_write)
+ 	return cfg_write->iter.total_xfer;
  }
  
- /*
-diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
-index b7495d05e8de..4765e024ad74 100644
---- a/include/uapi/linux/fs.h
-+++ b/include/uapi/linux/fs.h
-@@ -182,6 +182,7 @@ struct fsxattr {
- #define FS_XFLAG_FILESTREAM	0x00004000	/* use filestream allocator */
- #define FS_XFLAG_DAX		0x00008000	/* use DAX for IO */
- #define FS_XFLAG_COWEXTSIZE	0x00010000	/* CoW extent size allocator hint */
-+#define FS_XFLAG_IOMAP_IMMUTABLE 0x00020000	/* block map immutable */
- #define FS_XFLAG_HASATTR	0x80000000	/* no DIFLAG for this	*/
+-NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
+-{
+-	struct ndctl_cmd *cmd_size, *cmd_read, *cmd_write;
+-	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+-	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
+-	int rc;
+-
+-	rc = ndctl_bus_wait_probe(bus);
+-	if (rc < 0)
+-		return rc;
+-
+-	if (ndctl_dimm_is_active(dimm)) {
+-		dbg(ctx, "%s: regions active, abort label write\n",
+-			ndctl_dimm_get_devname(dimm));
+-		return -EBUSY;
+-	}
+-
+-	cmd_size = ndctl_dimm_cmd_new_cfg_size(dimm);
+-	if (!cmd_size)
+-		return -ENOTTY;
+-	rc = ndctl_cmd_submit(cmd_size);
+-	if (rc || ndctl_cmd_get_firmware_status(cmd_size))
+-		goto out_size;
+-
+-	cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
+-	if (!cmd_read) {
+-		rc = -ENOTTY;
+-		goto out_size;
+-	}
+-	rc = ndctl_cmd_submit(cmd_read);
+-	if (rc || ndctl_cmd_get_firmware_status(cmd_read))
+-		goto out_read;
+-
+-	cmd_write = ndctl_dimm_cmd_new_cfg_write(cmd_read);
+-	if (!cmd_write) {
+-		rc = -ENOTTY;
+-		goto out_read;
+-	}
+-	if (ndctl_cmd_cfg_write_zero_data(cmd_write) < 0) {
+-		rc = -ENXIO;
+-		goto out_write;
+-	}
+-	rc = ndctl_cmd_submit(cmd_write);
+-	if (rc || ndctl_cmd_get_firmware_status(cmd_write))
+-		goto out_write;
+-
+-	/*
+-	 * If the dimm is already disabled the kernel is not holding a cached
+-	 * copy of the label space.
+-	 */
+-	if (!ndctl_dimm_is_enabled(dimm))
+-		goto out_write;
+-
+-	rc = ndctl_dimm_disable(dimm);
+-	if (rc)
+-		goto out_write;
+-	rc = ndctl_dimm_enable(dimm);
+-
+- out_write:
+-	ndctl_cmd_unref(cmd_write);
+- out_read:
+-	ndctl_cmd_unref(cmd_read);
+- out_size:
+-	ndctl_cmd_unref(cmd_size);
+-
+-	return rc;
+-}
+-
+ NDCTL_EXPORT void ndctl_cmd_unref(struct ndctl_cmd *cmd)
+ {
+ 	if (!cmd)
+@@ -2645,26 +2520,6 @@ NDCTL_EXPORT int ndctl_dimm_is_active(struct ndctl_dimm *dimm)
+ 	return 0;
+ }
  
- /* the read-only stuff doesn't really belong here, but any other place is
+-NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
+-		struct ndctl_dimm *dimm)
+-{
+-	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+-	char *path = dimm->dimm_buf;
+-	int len = dimm->buf_len;
+-	char buf[20];
+-
+-	if (snprintf(path, len, "%s/available_slots", dimm->dimm_path) >= len) {
+-		err(ctx, "%s: buffer too small!\n",
+-				ndctl_dimm_get_devname(dimm));
+-		return ULONG_MAX;
+-	}
+-
+-	if (sysfs_read_attr(ctx, path, buf) < 0)
+-		return ULONG_MAX;
+-
+-	return strtoul(buf, NULL, 0);
+-}
+-
+ NDCTL_EXPORT int ndctl_interleave_set_is_active(
+ 		struct ndctl_interleave_set *iset)
+ {
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 8bc730d4b39a..12e3102150fd 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -34,6 +34,63 @@
+ #include "hpe1.h"
+ #include "msft.h"
+ 
++/**
++ * struct ndctl_dimm - memory device as identified by NFIT
++ * @module: kernel module (libnvdimm)
++ * @handle: NFIT-handle value
++ * @major: /dev/nmemX major character device number
++ * @minor: /dev/nmemX minor character device number
++ * @phys_id: SMBIOS physical id
++ * @vendor_id: hardware component vendor
++ * @device_id: hardware device id
++ * @revision_id: hardware revision id
++ * @node: system node-id
++ * @socket: socket-id in the node
++ * @imc: memory-controller-id in the socket
++ * @channel: channel-id in the memory-controller
++ * @dimm: dimm-id in the channel
++ * @formats: number of support interfaces
++ * @format: array of format interface code numbers
++ */
++struct ndctl_dimm {
++	struct kmod_module *module;
++	struct ndctl_bus *bus;
++	struct ndctl_smart_ops *smart_ops;
++	unsigned int handle, major, minor, serial;
++	unsigned short phys_id;
++	unsigned short vendor_id;
++	unsigned short device_id;
++	unsigned short revision_id;
++	unsigned short subsystem_vendor_id;
++	unsigned short subsystem_device_id;
++	unsigned short subsystem_revision_id;
++	unsigned short manufacturing_date;
++	unsigned char manufacturing_location;
++	unsigned long dsm_family;
++	unsigned long dsm_mask;
++	char *unique_id;
++	char *dimm_path;
++	char *dimm_buf;
++	int health_eventfd;
++	int buf_len;
++	int id;
++	union dimm_flags {
++		unsigned long flags;
++		struct {
++			unsigned int f_map:1;
++			unsigned int f_arm:1;
++			unsigned int f_save:1;
++			unsigned int f_flush:1;
++			unsigned int f_smart:1;
++			unsigned int f_restore:1;
++			unsigned int f_notify:1;
++		};
++	} flags;
++	struct list_node list;
++	int formats;
++	int format[0];
++};
++
+ #define SZ_16M 0x01000000
+ 
+ enum {
 
 _______________________________________________
 Linux-nvdimm mailing list
