@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E1A7921AEB0CD
- for <linux-nvdimm@lists.01.org>; Thu,  3 Aug 2017 16:29:36 -0700 (PDT)
-Subject: [PATCH v3 0/8] Adding blk-mq and DMA support to pmem block driver
+ by ml01.01.org (Postfix) with ESMTPS id 4A9A221E70D54
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 13:55:52 -0700 (PDT)
+Subject: [PATCH v7 4/9] dmaengine: add function to provide per descriptor
+ xfercap for dma engine
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 03 Aug 2017 16:31:46 -0700
-Message-ID: <150180288552.66052.13066621908903037900.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 30 Aug 2017 13:55:55 -0700
+Message-ID: <150412655540.69288.8062792128406896734.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
+References: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,64 +24,66 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-v3:
-- Added patch to rename DMA_SG to DMA_SG_SG to make it explicit
-- Added DMA_MEMCPY_SG transaction type to dmaengine
-- Misc patch to add verification of DMA_MEMSET_SG that was missing
-- Addressed all nd_pmem driver comments from Ross.
+Adding a function that will export the transfer capability per descriptor
+for a DMA device for the dmaengine subsystem.
 
-v2:
-- Make dma_prep_memcpy_* into one function per Dan.
-- Addressed various comments from Ross with code formatting and etc.
-- Replaced open code with offset_in_page() macro per Johannes.
-
-The following series implements adds blk-mq support to the pmem block driver
-and also adds infrastructure code to ioatdma and dmaengine in order to
-support copying to and from scatterlist in order to process block
-requests provided by blk-mq. The usage of DMA engines available on certain
-platforms allow us to drastically reduce CPU utilization and at the same time
-maintain performance that is good enough. Experimentations have been done on
-DRAM backed pmem block device that showed the utilization of DMA engine is
-beneficial. User can revert back to original behavior by providing
-queue_mode=0 to the nd_pmem kernel module if desired.
-
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
+ drivers/dma/ioat/init.c   |    1 +
+ include/linux/dmaengine.h |   10 ++++++++++
+ 2 files changed, 11 insertions(+)
 
-Dave Jiang (8):
-      dmaengine: ioatdma: revert 7618d035 to allow sharing of DMA channels
-      dmaengine: change transaction type DMA_SG to DMA_SG_SG
-      dmaengine: Add DMA_MEMCPY_SG transaction op
-      dmaengine: add verification of DMA_MEMSET_SG in dmaengine
-      dmaengine: ioatdma: dma_prep_memcpy_sg support
-      dmaengine: add SG support to dmaengine_unmap
-      libnvdimm: Adding blk-mq support to the pmem driver
-      libnvdimm: add DMA support for pmem blk-mq
+diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
+index 5c69ff6..4f24c36 100644
+--- a/drivers/dma/ioat/init.c
++++ b/drivers/dma/ioat/init.c
+@@ -596,6 +596,7 @@ static int ioat_enumerate_channels(struct ioatdma_device *ioat_dma)
+ 	if (xfercap_log == 0)
+ 		return 0;
+ 	dev_dbg(dev, "%s: xfercap = %d\n", __func__, 1 << xfercap_log);
++	dma->xfercap = 1 << xfercap_log;
+ 
+ 	for (i = 0; i < dma->chancnt; i++) {
+ 		ioat_chan = devm_kzalloc(dev, sizeof(*ioat_chan), GFP_KERNEL);
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index 0c91411..53356c4 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -743,6 +743,7 @@ struct dma_device {
+ 	u32 max_burst;
+ 	bool descriptor_reuse;
+ 	enum dma_residue_granularity residue_granularity;
++	u64 xfercap;	/* descriptor transfer capability limit */
+ 
+ 	int (*device_alloc_chan_resources)(struct dma_chan *chan);
+ 	void (*device_free_chan_resources)(struct dma_chan *chan);
+@@ -1326,6 +1327,11 @@ struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
+ 
+ void dma_release_channel(struct dma_chan *chan);
+ int dma_get_slave_caps(struct dma_chan *chan, struct dma_slave_caps *caps);
++
++static inline u64 dma_get_desc_xfercap(struct dma_chan *chan)
++{
++	return chan->device->xfercap;
++}
+ #else
+ static inline struct dma_chan *dma_find_channel(enum dma_transaction_type tx_type)
+ {
+@@ -1370,6 +1376,10 @@ static inline int dma_get_slave_caps(struct dma_chan *chan,
+ {
+ 	return -ENXIO;
+ }
++static inline u64 dma_get_desc_xfercap(struct dma_chan *chan)
++{
++	return -ENXIO;
++}
+ #endif
+ 
+ #define dma_request_slave_channel_reason(dev, name) dma_request_chan(dev, name)
 
-
- Documentation/dmaengine/provider.txt |    5 -
- drivers/crypto/ccp/ccp-dmaengine.c   |    2 
- drivers/dma/at_hdmac.c               |    8 -
- drivers/dma/dmaengine.c              |   51 ++++-
- drivers/dma/dmatest.c                |   12 +
- drivers/dma/fsldma.c                 |    2 
- drivers/dma/ioat/dma.h               |    4 
- drivers/dma/ioat/init.c              |    5 -
- drivers/dma/ioat/prep.c              |   57 ++++++
- drivers/dma/mv_xor.c                 |    6 -
- drivers/dma/nbpfaxi.c                |    2 
- drivers/dma/ste_dma40.c              |    6 -
- drivers/dma/xgene-dma.c              |    4 
- drivers/dma/xilinx/zynqmp_dma.c      |    2 
- drivers/nvdimm/pmem.c                |  333 ++++++++++++++++++++++++++++++++--
- drivers/nvdimm/pmem.h                |    3 
- include/linux/dmaengine.h            |   12 +
- 17 files changed, 456 insertions(+), 58 deletions(-)
-
---
-Signature
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
