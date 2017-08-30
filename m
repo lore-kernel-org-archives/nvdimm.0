@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9241421E1452F
- for <linux-nvdimm@lists.01.org>; Mon, 14 Aug 2017 23:16:16 -0700 (PDT)
-Subject: [PATCH v4 2/3] mm: introduce MAP_VALIDATE a mechanism for adding
- new mmap flags
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 14 Aug 2017 23:12:16 -0700
-Message-ID: <150277753660.23945.11500026891611444016.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150277752553.23945.13932394738552748440.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150277752553.23945.13932394738552748440.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A4B2D2095BB75
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 13:55:29 -0700 (PDT)
+Subject: [PATCH v7 0/9] libnvdimm: add DMA supported blk-mq pmem driver
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 30 Aug 2017 13:55:32 -0700
+Message-ID: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,151 +20,88 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, luto@kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The mmap syscall suffers from the ABI anti-pattern of not validating
-unknown flags. However, proposals like MAP_SYNC and MAP_DIRECT need a
-mechanism to define new behavior that is known to fail on older kernels
-without the feature. Use the fact that specifying MAP_SHARED and
-MAP_PRIVATE at the same time is invalid as a cute hack to allow a new
-set of validated flags to be introduced.
+- Per Dan's suggestions
+  - Moved all common code from attach_disk to pmem_core as helper functions.
+  - Fixed up Kconfig dependencies
+  - Cleaned up header file inclusions
+  - Removed module parameters
+  - Split pmem_core refactor into own patch
+  - Removed REQ_FLUSH define
 
-This also introduces the ->fmmap() file operation that is ->mmap() plus
-flags. Each ->fmmap() implementation must fail requests when a locally
-unsupported flag is specified.
+v6:
+- Put all common code for pmem drivers in pmem_core per Dan's suggestion.
+- Added support code to get number of available DMA chans
+- Fixed up Kconfig so that when pmem is built into the kernel, pmem_dma won't
+  show up. 
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+v5:
+- Added support to report descriptor transfer capability limit from dmaengine.
+- Fixed up scatterlist support for dma_unmap_data per Dan's comments.
+- Made the driver a separate pmem blk driver per Christoph's suggestion
+  and also fixed up all the issues pointed out by Christoph.
+- Added pmem badblock checking/handling per Robert and also made DMA op to
+  be used by all buffer sizes.
+
+v4: 
+- Addressed kbuild test bot issues. Passed kbuild test bot, 179 configs.
+
+v3:
+- Added patch to rename DMA_SG to DMA_SG_SG to make it explicit
+- Added DMA_MEMCPY_SG transaction type to dmaengine
+- Misc patch to add verification of DMA_MEMSET_SG that was missing
+- Addressed all nd_pmem driver comments from Ross.
+
+v2:
+- Make dma_prep_memcpy_* into one function per Dan.
+- Addressed various comments from Ross with code formatting and etc.
+- Replaced open code with offset_in_page() macro per Johannes.
+
+The following series implements a DMA driven blk-mq pmem driver and
+also adds infrastructure code to ioatdma and dmaengine in order to
+support copying to and from scatterlist in order to process block
+requests provided by blk-mq. The usage of DMA engines available on certain
+platforms allow us to drastically reduce CPU utilization and at the same time
+maintain performance that is good enough. Experimentations have been done on
+DRAM backed pmem block device that showed the utilization of DMA engine is
+beneficial. By default nd_pmem.ko will be loaded. This can be overridden
+through module blacklisting in order to load nd_pmem_dma.ko.
+
 ---
- include/linux/fs.h                     |    7 +++++++
- include/linux/mm.h                     |    2 +-
- include/linux/mman.h                   |    3 +++
- include/uapi/asm-generic/mman-common.h |    1 +
- mm/mmap.c                              |   20 +++++++++++++++++---
- 5 files changed, 29 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 1104e5df39ef..bbe755d0caee 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1674,6 +1674,7 @@ struct file_operations {
- 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
- 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *);
-+	int (*fmmap) (struct file *, struct vm_area_struct *, unsigned long);
- 	int (*open) (struct inode *, struct file *);
- 	int (*flush) (struct file *, fl_owner_t id);
- 	int (*release) (struct inode *, struct file *);
-@@ -1748,6 +1749,12 @@ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
- 	return file->f_op->mmap(file, vma);
- }
- 
-+static inline int call_fmmap(struct file *file, struct vm_area_struct *vma,
-+		unsigned long flags)
-+{
-+	return file->f_op->fmmap(file, vma, flags);
-+}
-+
- ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
- 			      unsigned long nr_segs, unsigned long fast_segs,
- 			      struct iovec *fast_pointer,
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 46b9ac5e8569..49eef48da4b7 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2090,7 +2090,7 @@ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned lo
- 
- extern unsigned long mmap_region(struct file *file, unsigned long addr,
- 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--	struct list_head *uf);
-+	struct list_head *uf, unsigned long flags);
- extern unsigned long do_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot, unsigned long flags,
- 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
-diff --git a/include/linux/mman.h b/include/linux/mman.h
-index c8367041fafd..73d4ac7e7136 100644
---- a/include/linux/mman.h
-+++ b/include/linux/mman.h
-@@ -7,6 +7,9 @@
- #include <linux/atomic.h>
- #include <uapi/linux/mman.h>
- 
-+/* the MAP_VALIDATE set of supported flags */
-+#define	MAP_SUPPORTED_MASK (0)
-+
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern unsigned long sysctl_overcommit_kbytes;
-diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
-index 8c27db0c5c08..8bf8c7828275 100644
---- a/include/uapi/asm-generic/mman-common.h
-+++ b/include/uapi/asm-generic/mman-common.h
-@@ -24,6 +24,7 @@
- #else
- # define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
- #endif
-+#define MAP_VALIDATE (MAP_SHARED|MAP_PRIVATE) /* mechanism to define new shared semantics */
- 
- /*
-  * Flags for mlock
-diff --git a/mm/mmap.c b/mm/mmap.c
-index f19efcf75418..d2919a9e25bf 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1388,6 +1388,12 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 		struct inode *inode = file_inode(file);
- 
- 		switch (flags & MAP_TYPE) {
-+		case MAP_VALIDATE:
-+			if (flags & ~(MAP_SUPPORTED_MASK | MAP_VALIDATE))
-+				return -EINVAL;
-+			if (!file->f_op->fmmap)
-+				return -EOPNOTSUPP;
-+			/* fall through */
- 		case MAP_SHARED:
- 			if ((prot&PROT_WRITE) && !(file->f_mode&FMODE_WRITE))
- 				return -EACCES;
-@@ -1464,7 +1470,12 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			vm_flags |= VM_NORESERVE;
- 	}
- 
--	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf);
-+	if ((flags & MAP_VALIDATE) == MAP_VALIDATE)
-+		flags &= MAP_SUPPORTED_MASK;
-+	else
-+		flags = 0;
-+
-+	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags);
- 	if (!IS_ERR_VALUE(addr) &&
- 	    ((vm_flags & VM_LOCKED) ||
- 	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
-@@ -1601,7 +1612,7 @@ static inline int accountable_mapping(struct file *file, vm_flags_t vm_flags)
- 
- unsigned long mmap_region(struct file *file, unsigned long addr,
- 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--		struct list_head *uf)
-+		struct list_head *uf, unsigned long flags)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev;
-@@ -1686,7 +1697,10 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
- 		 * new file must not have been exposed to user-space, yet.
- 		 */
- 		vma->vm_file = get_file(file);
--		error = call_mmap(file, vma);
-+		if (flags)
-+			error = call_fmmap(file, vma, flags);
-+		else
-+			error = call_mmap(file, vma);
- 		if (error)
- 			goto unmap_and_free_vma;
- 
+Dave Jiang (9):
+      dmaengine: ioatdma: revert 7618d035 to allow sharing of DMA channels
+      dmaengine: Add DMA_MEMCPY_SG transaction op
+      dmaengine: ioatdma: dma_prep_memcpy_sg support
+      dmaengine: add function to provide per descriptor xfercap for dma engine
+      dmaengine: add SG support to dmaengine_unmap
+      dmaengine: provide number of available channels
+      libnvdimm: remove definition of REQ_FLUSH
+      libnvdimm: move common function for pmem to pmem_core
+      libnvdimm: Add DMA based blk-mq pmem driver
 
+
+ Documentation/dmaengine/provider.txt |    3 
+ drivers/dma/dmaengine.c              |   72 +++++
+ drivers/dma/ioat/dma.h               |    4 
+ drivers/dma/ioat/init.c              |    6 
+ drivers/dma/ioat/prep.c              |   57 ++++
+ drivers/nvdimm/Kconfig               |   28 ++
+ drivers/nvdimm/Makefile              |    6 
+ drivers/nvdimm/pmem.c                |  408 +----------------------------
+ drivers/nvdimm/pmem.h                |   55 ++++
+ drivers/nvdimm/pmem_core.c           |  451 ++++++++++++++++++++++++++++++++
+ drivers/nvdimm/pmem_dma.c            |  475 ++++++++++++++++++++++++++++++++++
+ include/linux/dmaengine.h            |   49 +++-
+ 12 files changed, 1213 insertions(+), 401 deletions(-)
+ create mode 100644 drivers/nvdimm/pmem_core.c
+ create mode 100644 drivers/nvdimm/pmem_dma.c
+
+--
+Signature
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
