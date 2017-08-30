@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 34A9B20958BD1
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 14:07:19 -0700 (PDT)
-Subject: [PATCH] libnvdimm, nfit: export an 'ecc_unit_size' sysfs attribute
+ by ml01.01.org (Postfix) with ESMTPS id 7173821E70D4C
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 19:14:42 -0700 (PDT)
+Subject: [ndctl PATCH v2 00/10] ndctl: automatically initialize labels
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 31 Aug 2017 14:03:38 -0700
-Message-ID: <150421341855.29628.5348977066074602199.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 29 Aug 2017 19:10:59 -0700
+Message-ID: <150405905872.22171.7217183939530397385.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,49 +21,104 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Cc: Ryon Jensen <ryon.jensen@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When the nfit driver initializes it runs an ARS (Address Range Scrub)
-operation across every pmem range. Part of that process involves
-determining the ARS capabilities of a given address range. One of the
-capabilities that is reported is the 'Clear Uncorrectable Error Range
-Length Unit Size' (see: ACPI 6.2 section 9.20.7.4 Function Index 1 -
-Query ARS Capabilities). This property is of interest to userspace
-software as it indicates the boundary at which the NVDIMM may need to
-perform read-modify-write cycles to maintain ECC blocks.
+Changes since v1 [1]:
+* Reflect the new region type when it is next enabled (Ryon)
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+* Spelling and whitespace (Vishal)
+
+* Fix support for the v1.2 labels case where we were miscalculating the
+  size of the index block area. This bug has been hiding behind the
+  order of operations in which we do the calculation. The kernel needs the
+  same fixup.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-August/012152.html
+
 ---
- drivers/acpi/nfit/core.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 2c5608b92578..03105648f9b1 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1674,8 +1674,19 @@ static ssize_t range_index_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(range_index);
- 
-+static ssize_t ecc_unit_size_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	struct nfit_spa *nfit_spa = nd_region_provider_data(nd_region);
-+
-+	return sprintf(buf, "%d\n", nfit_spa->clear_err_unit);
-+}
-+static DEVICE_ATTR_RO(ecc_unit_size);
-+
- static struct attribute *acpi_nfit_region_attributes[] = {
- 	&dev_attr_range_index.attr,
-+	&dev_attr_ecc_unit_size.attr,
- 	NULL,
- };
- 
+The QEMU-KVM enabling for a virtual NVDIMM is an example of a
+configuration where label-less namespaces are created by default. I.e.
+the ACPI NFIT produced by SeaBIOS publishes un-aliased pmem regions. The
+first operation an administrator is likely to perform is to reconfigure
+the namespace into "memory" mode to enable full-featured DAX support.
 
+The reconfiguration of the label-less namespace into "memory" mode is an
+opportunity to also enable labels. This series effectively runs the
+following sequence:
+
+    ndctl disable-region all
+    ndctl init-labels
+    ndctl enabled-region all
+
+...in 'create-namespace' whenever a label-less namespace is encountered.
+The implementation is careful to try v1.2 labels and validate that the
+kernel supports that scheme. Otherwise, it falls back to v1.1 labels.
+
+For other utilities built on top of libndctl, the following new helpers
+are provided to enable a similar flow:
+
+    ndctl_dimm_read_labels()
+    ndctl_dimm_validate_labels()
+    ndctl_dimm_init_labels()
+
+...where 'read_labels' enables the other apis, 'validate_labels' checks
+whether the data retrieved from the read corresponds to a valid set of
+namespace label index blocks, and 'init_labels' writes namespace index
+blocks to the dimm. In order to check that the kernel supports a given
+index block version / format the result from
+ndctl_dimm_get_available_labels() can be compared to the result from
+ndctl_dimm_init_labels() to make sure the kernel sees the same number of
+available slots as userspace.
+
+---
+
+Dan Williams (10):
+      ndctl, init-labels: fix '--label-version' option
+      ndctl: drop the "libndctl-" prefix on library source files
+      ndctl: move label manipulation routines to their own file
+      ndctl: consolidate namespace definitions in namespace.h
+      ndctl: refactor read_labels() helper into a library call
+      ndctl: refactor region type setting
+      ndctl: introduce ndctl_dimm_{validate_labels,init_labels}
+      ndctl: refresh region type after init_labels
+      ndctl: fix namespace index block size calculation
+      ndctl: auto initialize labels
+
+
+ Makefile.am                  |    1 
+ ndctl/check.c                |   52 ++++
+ ndctl/check.h                |  130 ---------
+ ndctl/dimm.c                 |  547 ++--------------------------------------
+ ndctl/lib/Makefile.am        |   11 -
+ ndctl/lib/ars.c              |    2 
+ ndctl/lib/dimm.c             |  580 ++++++++++++++++++++++++++++++++++++++++++
+ ndctl/lib/hpe1.c             |    4 
+ ndctl/lib/hpe1.h             |    0 
+ ndctl/lib/libndctl.c         |  209 +++------------
+ ndctl/lib/libndctl.sym       |    4 
+ ndctl/lib/msft.c             |    4 
+ ndctl/lib/msft.h             |    0 
+ ndctl/lib/private.h          |  150 +++++------
+ ndctl/lib/smart.c            |    2 
+ ndctl/libndctl.h.in          |    9 +
+ ndctl/namespace.c            |  111 +++++++-
+ ndctl/namespace.h            |  163 ++++++++++++
+ util/fletcher.c              |   35 ---
+ util/fletcher.h              |   19 +
+ 20 files changed, 1080 insertions(+), 953 deletions(-)
+ delete mode 100644 ndctl/check.h
+ rename ndctl/lib/{libndctl-ars.c => ars.c} (99%)
+ create mode 100644 ndctl/lib/dimm.c
+ rename ndctl/lib/{libndctl-hpe1.c => hpe1.c} (99%)
+ rename ndctl/lib/{ndctl-hpe1.h => hpe1.h} (100%)
+ rename ndctl/lib/{libndctl-msft.c => msft.c} (98%)
+ rename ndctl/lib/{ndctl-msft.h => msft.h} (100%)
+ rename ndctl/lib/{libndctl-private.h => private.h} (69%)
+ rename ndctl/lib/{libndctl-smart.c => smart.c} (99%)
+ create mode 100644 ndctl/namespace.h
+ delete mode 100644 util/fletcher.c
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
