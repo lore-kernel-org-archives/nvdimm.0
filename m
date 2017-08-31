@@ -1,53 +1,88 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Minchan Kim <minchan@kernel.org>
-Subject: [PATCH v1 0/6] Remove rw_page
-Date: Tue,  8 Aug 2017 15:50:18 +0900
-Message-Id: <1502175024-28338-1-git-send-email-minchan@kernel.org>
-Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ross Zwisler <ross.zwisler@linux.intel.com>, "karam . lee" <karam.lee@lge.com>, seungho1.park@lge.com, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, jack@suse.cz, Jens Axboe <axboe@kernel.dk>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org, kernel-team <kernel-team@lge.com>, Minchan Kim <minchan@kernel.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9517120958BF8
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 16:35:09 -0700 (PDT)
+Subject: Re: [PATCH v7 9/9] libnvdimm: Add DMA based blk-mq pmem driver
+References: <150412628764.69288.12074115435918322858.stgit@djiang5-desk3.ch.intel.com>
+ <150412658373.69288.2856155675209269488.stgit@djiang5-desk3.ch.intel.com>
+ <1504216996.2042.182.camel@hpe.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <388c38a5-e933-c939-0559-d8724b975f00@intel.com>
+Date: Thu, 31 Aug 2017 16:37:51 -0700
+MIME-Version: 1.0
+In-Reply-To: <1504216996.2042.182.camel@hpe.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "Williams, Dan J" <dan.j.williams@intel.com>, "Koul, Vinod" <vinod.koul@intel.com>
+Cc: "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Recently, there was a dicussion about removing rw_page due to maintainance
-burden[1] but the problem was zram because zram has a clear win for the
-benchmark at that time. The reason why only zram have a win is due to
-bio allocation wait time from mempool under extreme memory pressure.
 
-Christoph Hellwig suggested we can use on-stack-bio for rw_page devices.
-This patch implements it and replace rw_page operations with on-stack-bio
-and then finally, remove rw_page interface completely.
 
-This patch is based on linux-next-20170804
-
-[1] http://lkml.kernel.org/r/<20170728165604.10455-1-ross.zwisler@linux.intel.com>
-
-Minchan Kim (6):
-  bdi: introduce BDI_CAP_SYNC
-  fs: use on-stack-bio if backing device has BDI_CAP_SYNC capability
-  mm:swap: remove end_swap_bio_write argument
-  mm:swap: use on-stack-bio for BDI_CAP_SYNC devices
-  zram: remove zram_rw_page
-  fs: remove rw_page
-
- drivers/block/brd.c           |   2 +
- drivers/block/zram/zram_drv.c |  54 +---------------
- drivers/nvdimm/btt.c          |   2 +
- drivers/nvdimm/pmem.c         |   2 +
- fs/block_dev.c                |  76 ----------------------
- fs/mpage.c                    |  45 +++++++++++--
- include/linux/backing-dev.h   |   7 ++
- include/linux/blkdev.h        |   4 --
- include/linux/swap.h          |   6 +-
- mm/page_io.c                  | 145 +++++++++++++++++++++++++-----------------
- mm/swapfile.c                 |   3 +
- mm/zswap.c                    |   2 +-
- 12 files changed, 147 insertions(+), 201 deletions(-)
-
--- 
-2.7.4
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+On 08/31/2017 03:13 PM, Kani, Toshimitsu wrote:
+> On Wed, 2017-08-30 at 13:56 -0700, Dave Jiang wrote:
+>  :
+> +static int pmem_attach_disk(struct device *dev,
+>> +struct nd_namespace_common *ndns)
+>> +{
+>> +struct pmem_device *pmem;
+>> +int rc;
+>> +struct dma_chan *chan = NULL;
+>> +int has_dma;
+>> +
+>> +pmem = pmem_core_setup_pmem(dev, ndns);
+>> +if (!pmem)
+>> +return -ENXIO;
+>> +
+>> +chan = dma_find_channel(DMA_MEMCPY_SG);
+>> +if (!chan)
+>> +dev_warn(dev, "Forced back to CPU, no DMA\n");
+> 
+> I just tested this series on a Haswell system.  The above warning
+> messages was shown during boot-up (is this expected?), but it did not
+> appear to switch back to CPU.  Initial IO requests to pmem (mkfs) hit
+> the WARN_ON_ONCE() below.  pmem->sg_allocated is zero since it was not
+> initialized (has_dma was set to 0).
+> 
+> [  897.147527] WARNING: CPU: 23 PID: 707 at
+> drivers/nvdimm/pmem_dma.c:171 pmem_handle_cmd_dma+0x675/0x710
+> 
+> It then displayed seemed-forever-repeated error messages below.
+> 
+>  ioatdma 0000:80:04.7: ioat_timer_event: Channel halted (1)
+>  ioatdma 0000:80:04.7: Errors:
+>  ioatdma 0000:80:04.7: Err(0): DMA Transfer Source Address Error
+>  ioatdma 0000:80:04.7: Reset channel...
+>  ioatdma 0000:80:04.7: Restart channel...
+>  ioatdma 0000:80:04.7: ioat_timer_event: Channel halted (1000)
+>  ioatdma 0000:80:04.7: Errors:
+>  ioatdma 0000:80:04.7: Err(12): Completion Address Error
+>  ioatdma 0000:80:04.7: Reset channel...
+>  ioatdma 0000:80:04.7: Restart channel...
+>  ioatdma 0000:80:04.7: ioat_timer_event: Channel halted (1000)
+>    :
+> 
+> Any thoughts?  Also, how do I choose the mode between CPU and DMA?
+> Thanks!
+> -Toshi
+> 
+Toshi,
+I may have broken the no DMA path when I was doing some reformatting the
+past revision. Let me do some debugging and I'll get back to you. To run
+it without DMA, you just make sure ioatdma is blacklisted or rmmoded.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
