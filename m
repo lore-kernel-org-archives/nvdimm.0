@@ -1,19 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6D15D21E95DFE
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:25:59 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 6403BAC0120
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 10:27:04 +0900 (JST)
-Date: Thu, 31 Aug 2017 10:26:50 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [ndctl PATCH 3/5] allow ND_CMD_CALL for bus
-In-Reply-To: <20170831102101.DA2C.E1E9C6FF@jp.fujitsu.com>
-References: <20170831102101.DA2C.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170831102647.DA36.E1E9C6FF@jp.fujitsu.com>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C738021EB527F
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 06:06:51 -0700 (PDT)
+Date: Thu, 31 Aug 2017 06:09:33 -0700
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [fstests PATCH] generic: add test for executables on read-only
+ DAX mounts
+Message-ID: <20170831130933.GB19544@infradead.org>
+References: <20170829213721.GA27686@linux.intel.com>
+ <20170829223715.26507-1-ross.zwisler@linux.intel.com>
+ <20170830145103.GA10163@infradead.org>
+ <20170831040255.GB17095@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170831040255.GB17095@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,35 +27,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@infradead.org>, fstests@vger.kernel.org, Eryu Guan <eguan@redhat.com>, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Randy Dodgen <rdodgen@gmail.com>, Theodore Ts'o <tytso@mit.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Wed, Aug 30, 2017 at 10:02:55PM -0600, Ross Zwisler wrote:
+> > > +LS=$(which ls --skip-alias --skip-functions) 2>/dev/null
+> > > +if [ $? -ne 0 ]; then
+> > > +	status=$?
+> > > +	echo "Couldn't find 'ls'!?"
+> > > +	exit
+> > > +fi
+> > 
+> > These checks all fail for me..
+> 
+> Huh...really?  I'll send out v2 in a second, but if that fails for you as well
+> can you try and give me a hint as to what's going wrong with the test in your
+> setup?
 
-Currently ndctl supports ND_CMD_CALL only for DIMM,
-but Translate SPA is the feature of bus.
-So ND_CMD_CALL must be allowed bus's ioctl().
-
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
----
- ndctl/lib/libndctl.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 803056d..e3dcb1c 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -2330,6 +2330,7 @@ static int to_ioctl_cmd(int cmd, int dimm)
- #ifdef HAVE_NDCTL_CLEAR_ERROR
- 		case ND_CMD_CLEAR_ERROR:     return ND_IOCTL_CLEAR_ERROR;
- #endif
-+		case ND_CMD_CALL:            return ND_IOCTL_CALL;
- 		default:
- 						       return 0;
- 		};
-
-
-
+The v2 one works fine for me.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
