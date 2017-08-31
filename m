@@ -1,11 +1,90 @@
-From: =?GB2312?B?z8S+rcDt?= <drfaonao-C1E/pQ1UlDMjjnmZNW8ecA@public.gmane.org>
-Subject: =?GB2312?B?v827p7nYz7W53MDt0+u088r9vt0=?=
-Date: Wed, 30 Aug 2017 22:51:58 +0800
-Message-ID: <20170830144925.517A621E47D6A@ml01.01.org>
+From: kris.kowal-pnGoyDXtM7YAvxtiuMwx3w@public.gmane.org
+Subject: DELIVERY REPORTS ABOUT YOUR E-MAIL
+Date: Thu, 31 Aug 2017 10:05:52 +0800
+Message-ID: <20170831020417.BABA721EB5272@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_59A76EFE.099A7282"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_59A76EFE.099A7282
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  The original message was received at Thu, 31 Aug 2017 10:05:52
+   +0800 from cixar.com [165.174.172.71] ----- The following addresses had permanent
+   fatal errors ----- <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org> ----- Transcript of session
+   follows ----- while talking to lists.01.org.: >>> MAIL From:kris.kowal-pnGoyDXtM7YAvxtiuMwx3w@public.gmane.org
+   <<< 501 kris.kowal-pnGoyDXtM7ZUi4FbrNnSJA@public.gmane.org Refused [...] 
+
+Content analysis details:   (5.8 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.5 SUBJ_ALL_CAPS          Subject is all capitals
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0001]
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+
+
+------------=_59A76EFE.099A7282
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1dnErN-0002xW-Ap
+	for gln-linux-nvdimm@m.gmane.org; Thu, 31 Aug 2017 04:05:33 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id BABA721EB5272;
+	Wed, 30 Aug 2017 19:04:17 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from cixar.com (unknown [183.14.30.87])
+ by ml01.01.org (Postfix) with ESMTP id 784C221EB526F
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed, 30 Aug 2017 19:04:14 -0700 (PDT)
+From: kris.kowal-pnGoyDXtM7YAvxtiuMwx3w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: DELIVERY REPORTS ABOUT YOUR E-MAIL
+Date: Thu, 31 Aug 2017 10:05:52 +0800
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.22
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,139 +92,29 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
+Message-Id: <20170831020417.BABA721EB5272-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-MjI6NTE6NTcKCr/Nu6e52M+1udzA7dPrtPPK/b7dCgq/qr/O0MXPogoyMDE3xOowOdTCMDItMDPI
-1SDJz7qjICDQ7Lvjx/i658fFwrczMzO6xb27tPO/xry81LAKMjAxN8TqMTDUwjIwLTIxyNUgsbG+
-qQoyMDE3xOoxMdTCMTEtMTLI1SDJ7tvaCgq30dPDOqOkzuXHp77FsNmwy8qu1KoKCrLO0bW21M/z
-o7q2rcrCs6Shotfcvq3A7aGiytCzodfcvOChos/6ytvX3LzgoaK/zbf+19y84KGiQ0lPtcjX3Lzg
-0tTJz7y2sfAKCrGow/vXydGvtee7sKO6MDc1NS02MTItODguMDM1ICAgMDEwLTUxNi02MS44NjMg
-ICAwMjEtMzEyLTYxLjU4MCAgCtTaz9/XydGvIFFRo7o2OTgzNDM2ICAgCijU2s/fsajD+8fru9i4
-tKOsv86zzMP7s8YruavLvsP7s8Yrss674cjLyKvD+yvBqs+1t73KvSDWwdDFz+QgNjk4MzQzNkBx
-cS5jb22jqQoKv86zzLTzuNk6CrXa0rvGqsirw+bIz8q2v827p7nYz7W53MDtvLDG5NLi0uW6zbzb
-1rUKx7DR1L/Nu6e52M+1udzA7dPrtPPK/b7dtcS52M+1CjEuMb/Nu6e52M+1udzA7bPJzqrG89K1
-tcS6y9DExNzBpgoxLjK/zbunudjPtbncwO3W0LXEyv2+3bfWzvYKMS4ztPPK/b7dt9bO9tOm08O1
-xMz1vP4KMS4zLjHIq8Pm17zIt7XEuqPBv8r9vt0KMS4zLjK+q8+4u6+53MDtwO3E7rXEs6u1vAox
-LjMuM8r9vt231s72us3K/b7dzdq+8ry8yvW1xNPQ0KfTptPDCjEuNLTzyv2+3dOm08O1xNfu0MK9
-+NW5IAq12tK7taXUqr/Nu6e52M+1udzA7bXE1ebV/bqs0uXKx8qyw7QKMS6/zbunudjPtbncwO2y
-u732vfbKx7PUusihosvNwPGhosCtudjPtQoyLr/Nu6e52M+1udzA7bXEtqjS5QozLr/Nu6e52M+1
-udzA7bXEsb7WygoxKbnYz7W1xLG+1srU2tPavNvWtbXEvbu7u9PrttS1yAoyKb/Nu6e21NPaxvPS
-tbXEvNvWtbywt9bA4AozKcbz0rW21NPav827p7XEvNvWtbywt9bA4Ao0Kb/Nu6e52M+1udzA7bXE
-usvQxNTa09q/zbunvNvWtcq2sfDT67S01OwKtdq2/rWl1Kogv827p7nYz7W53MDtxNzOqsbz0rW0
-+MC0yrLDtAoxLr/Nu6e52M+1udzA7bbUzOHJ/cbz0rW6y9DEvrrV+cGmtcTS4tLlCjIuv827p7nY
-z7W53MDtttTWp7PWxvPStbjfudzIy9Sxvq3TqqGivvay37XEvNvWtQozLr/Nu6e52M+1udzA7bbU
-zOHJ/cbz0rXW0LLjudzA7cjL1LG8qNCntcS829a1CjQuv827p7nYz7W53MDtttTM4cn9xvPStbv5
-suOjqM/6ytuhor/Nt/6hosrQs6GjqcjL1LG8qNCntcS829a1CjUuv827p7nYz7W53MDtxL/HsNTa
-ufrE2s3i06bTw7ei1bnXtL/2CjYuv827p7nYz7W53MDt1Nq7+tC11sbU7NDQ0rW1xNOm08PH6b/2
-CrXayP21pdSqIL/Nu6e52M+1udzA7bXExNrI3QoxLsir1LG53MDtwO3E7rXEuPzQwrrNzbPSuwoy
-LtK1zvHB97PMtcTTxbuvCjMu0MXPoruvz7XNs7XEsr/K8NPrzqy7pAo0Lsr9vt21xMrVvK/T686s
-u6QKtdrLxLWl1Kogv827p7nYz7W53MDtt6K709f308O1xLv6wO28sLn9s8wKMS6/zbunudjPtbnc
-wO21xMS/serU2tPav827p8D70ubT68bz0rXA+9LmtcTNs9K7CjIuvrrV+cq5xvPStbHY0OvS1L/N
-u6e829a1zqrPyAozLr/Nu6e829a1tcS0tNTs1NrG89K1xNrN4tfp1q+1xNCtzazW0M3qs8kKNC6/
-zbun0MXPorXEubLP7brNt9bO9r72tqjBy9Ctzay1xNCnufsKNS6/zbunyv2+3bXEytW8r7rNzqy7
-pMrHv827p9DFz6K5ss/tus231s72tcS7+bShCrXazuW1pdSqIL/Nu6e52M+1udzA7cq1yqnQ6NKq
-06a21LXEzPTVvQoxLsu8z+vIz8q2yc+1xNXPsK0KMi631r3Xts61xMP3yLfEv7HqCjMu0rXO8cH3
-s8y1xNPFu6+53MDtCjQuseS477n9s8zW0LXEwPvS5rX31fsKNS6z1tD4tcTXytS0zbbI6woKtdq2
-/saqv827p7nYz7W53MDttcS3vbeoCrXa0ru1pdSqwvrS4rbIus26zdbSs8+2yMrHv827p7nYz7W5
-3MDttcS6y9DECjEuIMzhyf2/zbunwvrS4rbItcTLvMK3us23vbeoCjIuIMzhyf2/zbun1tKzz7bI
-tcTNvr62CrXatv61pdSqINOqz/q1xLncwO0KMS7Tqs/61Nq/zbunudjPtbncwO3W0LXE1/fTwwoy
-LtOqz/qy38LUtcTWxrapCjMuv827p7fWwOC1xLe9t6gKtdrI/bWl1KogyOe6zsD708NDUk202b34
-z/rK2woxLs/6ytvQp8LKtcTM4bjf0sDAtdPaz/rK27n9s8y1xLzb1rW0tNTsCjIuz/rK28Tczqq/
-zbuntLTU7LXEvNvWtcDg0M0KMy69qMGiz/rK28Sj0M3T67ncwO3P+srbwfezzAo0Lr/Nu6fQxc+i
-tcTK1byvus3A+9PDCrXay8S1pdSqILS01OzXv9S9tcS/zbunt/7O8QoxLrf+zvG54bSpv827p7nY
-z7W1xMq81tUKMi63/s7x1Nq087/Nu6fP+srb1tC1xLzb1rUKMy60tNTs08XWyrf+zvG1xM2+vrYK
-NC7A+9PDQ1JNudzA7bf+zvHIq7n9s8wKtdrO5bWl1KogxvPStbyvs8m53MDtCjEusvrGt7rNt/7O
-8crHxvPStcTazeLXytS00K3NrNTL1/e1xL3hufsKMi65qdOmwbS53MDty7zP67XEueGzuQozLsH3
-s8y6zdDFz6LPtc2ztcS8r7PJCrXawfm1pdSqIL/Nu6e52M+1zqy7pAoxLr/Nu6e52M+1zqy7pL2o
-waLU2r/Nu6e829a1tq/MrMbAvNu7+bShyc8KMi6/zbuns9bQ+Lzb1rW1xMbAvNvT67S01OwKMy6/
-zbun1tKzz8rHv827p7nYz7XOrLuktcTW2LXjCjQuv827p7nYz7XOrLuk1tC1xNOqz/qhos/6ytu8
-sLf+zvGy38LUCgq12sj9xqq/zbunudjPtbncwO3A7cTuus23vbeo1NrG89K1tcS54bO5wuTKtQq1
-2tK7taXUqsbz0rXI57rOvfjQ0ENSTdK1zvHB97PM1tjX6QoxLsqyw7TKx9K1zvHB97PM1tjX6aOo
-QlBSo6kKMi7B97PM1tjX6bav0vKhsDNDCjMuQlBStcS5/bPMCjQuQlBStcS52NeiteMKNS5CUFK1
-xLe9t6gKNi5DUk3Stc7xQlBStcS8uLj21K3U8gq12rb+taXUqkNSTc+1zbO5psTc1+m8/i3Tqs/6
-19S2r7uvCjEuILXk0M21xMrQs6Gyv8PF0rXO8cz01b0KMi4gx/22r7/sy9m6zbjf0KfK0LOh06rP
-+gozLiDK0LOhsr/DxbXE1vfSqsrV0uYKtdrI/bWl1KpDUk3Ptc2zuabE3NfpvP4tz/rK29fUtq+7
-rwoxLiC0q82ztcTStc7xzPTVvaOtz/rK28Hs0/IKMi4gx/22r7/sy9m6zbjf0KfP+srbwfezzAoz
-LiDM4bjfz/rK29CnwsoKNC4gQ1JNz/rK29fUtq+7r7XE1vfSqsrV0uYKNS4gz/rK27K/w8W1xNb3
-0qrK1dLmCrXay8S1pdSqQ1JNz7XNs7mmxNzX6bz+Lb/Nt/7X1Lavu68KMS4gv827p7f+zvG1xLXk
-0M3Stc7xzPTVvQoyLiDH/bavv+zL2brN0rvWwrXEv827p7f+zvEKMy4gv827p7f+zvGyv8PFtcTW
-99KqytXS5goKtdrLxMaqv827p7nYz7W53MDttcS088r9vt231s72CrXa0ru1pdSqIL/Nu6e52M+1
-udzA7dbQs6O8+7XEyv2+3bfWzvbP7sS/wODQzQoxLiDEv7Hqv827p7XEzNjV97fWzvYKMi4gxL+x
-6r/Nu6e1xNSksuKjqM/s06ahorfWwOCjqcSj0M0KMy4g1MvTqsi6zOW1xLvu1L62yLao0uUKNC4g
-08O7p8K3vra31s72CjUuIL27subP+srbxKPQzQo2LiDQxc+i1srBv8Sj0M0KNy4gt/7O8bGj1c/E
-o9DNCjguINPDu6ejqMLyvNKhosL0vNKjqbfWsuPEo9DNCjkuIML0vNKjqMLyvNKjqb270tfEo9DN
-CjEwLtDF08O358/VxKPQzQoxMS7JzMa3zca89sSj0M0KMTEuMS7JzMa3zca89r3pydwKMTEuMi65
-2MGquebU8goxMS4zINCtzay5/cLLy+O3qAoxMS40LsnMxrfNxrz2xKPQzdfcveEKMTIuyv2+3bL6
-xrcKMTMuvvay39ans9YgCrXatv61pdSqIMr9vt231s72yse/59eo0rWhor/nzcW207XE0K2199Pr
-us/X9woxLsr9vt231s72zcW209Pr0rXO8c3FttO1xLfWuaS6zbaozrsKMS4xzOGz9tK1zvG31s72
-0OjH87Kix9LE3MqkyM67+bG+tcTK/b7dt9bO9goxLjLM4bmp0rXO8b6t0em6zbLOv7y9qNLpCjEu
-M7Lfu666zda00NC+q8+4u6/Uy9Oqt72wuAoxLjS4+tfZ1MvTqtCnufuhore0wKG6zdfcveEKMi7K
-/b7du6/Uy9OqysfV5tX9tcS24M3FttOhorbg16jStbXE0K3NrNf30rUKMy7KtcD9yr63tsr9vt27
-r9TL06rW0LXEv+fXqNK1oaK/583FttPQrbX3us/X9yAKtdrI/bWl1Kogyv2+3c3avvLP7sS/zerV
-+9Om08OwuMD9CjGjrs/uxL+xs76wus3Stc7xt9bO9tDox/O1xMzhs/YKMqOuyv2+3bfWzvbKprLO
-0+vQ6MfzzNbC2wozo67Wxrao0OjH87fWzva/8rzcus231s72vMa7rgo0o66z6cih0fmxvsr9vt2h
-osrsz6TK/b7doaLK/b7dx+XPtLrNw/611wo1o66wtLzGu66z9bK9tO69qM3avvLEo9DNCjajrtPr
-0rXO8be9zNbC28Sj0M21xLP1sr294cLbo6zM4bP20MK1xMu8wre6zcSj0M3Txbuvt72wuAo3o66w
-tNPFu6+3vbC41tjQwrPpyKHR+bG+sqK9qMSjo6zM4cG2veHC27Ki0enWpMSj0M0KOKOuzeqzybfW
-zvaxqLjmus3C5LXY06bTw72o0ukKOaOu1sa2qL7fzOW1xMLktdjTptPDt72wuLrNxsC5wLe9sLgK
-MTCjrtK1zvG3vcq1yqnC5LXY06bTw7e9sLiyorj619mhosbAucDQp7n7CjExo67C5LXY06bTw7e9
-sLjU2sq1vMrQp7n7xsC5wLrzo6yyu7bP0N7V/c3qycYKMTKjrrK7zazUy9Oqt72wuLXExsC5wKGi
-19y94brNt7TAoQoxM6Ouz+7Ev9Om08O687XE19y94brNt7TLvAq94cr4Cgq9ssqmvenJ3Aq9ssqm
-vPK96aGhCrmszayy/cDPyqajusTQoaEgNDbL6qGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGh
-oaGhoaGhoaGhoaGhoaGhoaEKx+W7qrTz0ae8zND4vczT/dGn1LrM2Ma4vbLKpiChorGxvqm089Gn
-oaLJz7qjvbvNqLTz0aehotXjva2089GnzNjR+7/Nu6e52M+1udzA7b2yyqahotDCu6rJ58bsz8LD
-vczlobbF4NG1obfU09a+wO3Kwrvhs8nUsaGizqLI7dbQufrJzM7xudzA7b3ivva3vbC4zNjGuL/N
-u6e52M+1udzA7b2yyqahotbQufq7+tC1uaTStcbz0rW53MDt0K274czYxri/zbunudjPtbncwO29
-ssqmoaK5+rzKtefX08nMzvHKpsGqus+74czYxri9ssqmoaLH5buqtPPRp01CQbncwO3F4NG1vuPA
-1rK/s6PO8cDtysKhowq9zNP9sbO+sKO6x+W7qrTz0ae+rbzDudzA7dGn1Lq5pMnMudzA7cu2yr8K
-1vfSqrmk1/e+rcD6vLDStbyoCs/WyM6xsb6pu921wsXg0bXRp9S6ytfPr72yyqahorGxvqnNrLL9
-u921wr/GvLzT0M/euavLvtfcssOhorn6vMq159fTyczO8cqmwaq6z7vhsbG3vbncwO3W0NDE1vfI
-zqO71PjIzsPAufrW+MP7Q1JNyO28/rL6xrfXydGvucvOyqO7z+O428nPytC5q8u+19yyw9b6wO2j
-u83ixvPP+srbsr++rcDto7vRx9DHxvuztcm9zve31rmry76+rcDto7vH5buqtPPRp0VNQkHP7sS/
-1ve53KO7ufq80qGwsMvO5aGxoaKhsL7FzuWhsdbYteO+/Lmkz+7Ev9b3yM6jrMv5ss6808/uxL/U
-+Lvxsr+8tr/GvLy9+LK9tv61yL2xoaMKycOzpL/Nu6e52M+1udzA7ShDUk0poaK3/s7x06rP+qGi
-v827p7f+zvGhorXn19PJzM7xoaLG89K10MXPoruvoaLO78H3udzA7bXIwezT8rXExeDRtdPr18nR
-r6GjCr7f09DU+sq1tcTA7cLbuaa116Ost+G4u7XE0NDStdaqyra8sMbz0rW53MDtvq3R6aOsxNy9
-q7i01NPJ7rDCtcTA7cLb08PHs8/UtcTG89K1yrW8+bC4wP2809LUsvvK9qOsvbK/zsnDs6TG9Lei
-oaK7pbavoaMK1ve9sr/Os8zT0KO6CjEuv827p7nYz7W53MDtz7XB0KO6IKG2MzYwoeO/zbunudjP
-tbncwO2ht6Gioba/zbunudjPtbncwO3T67Tzyv2+3aG3oaKhtr/Nu6e52M+1udzA7aG3oaKhtsb7
-s7XQ0NK1v827p7nYz7W53MDtobehoqG2tPO/zbunudjPtbncwO2ht6Gioba/zbunudjPtbncwO3O
-rLuk0+vM4cn9obehoqG2z+7Ev9DNxvPStbXEv827p7nYz7W53MDtobehoqG2v827p7fWwODT67nc
-wO2ht6Gioba7pcGqzfgryrG0+rXEv827p7nYz7W53MDtobehoqG2v827p7nYz7W53MDt0+vTqs/6
-tLTQwqG3oaKhtr/Nu6e31sDg0+u53MDtobehoqG2v827p8zl0em53MDtobe1yKO7CjIuv827p7f+
-zvHPtcHQo7ogobbS1L/Nu6fOqtbQ0MS1xL/Nu6e3/s7xzOXPtaG3oaKhtte/1L21xL/Nu6e3/s7x
-vLzHyaG3oaKhtszhuN+/zbunt/7O8b661fnBpqG3oaKhtrulwarN+CvKsbT6tcS3/s7xwPvI88G0
-udzA7aG3oaKhtrf+zvHTqs/60+vA+8jzvNvWtcG0udzA7aG3oaKhttLGtq+7pcGqzfjKsbT61sbU
-7NK1yOe6zs/yt/7O8dK116rQzaG3oaKhtr/Nu6fNtsvfvLDS7NLp06a21Ly8x8mht6O7CjMuu6XB
-qs34K7Xn19PJzM7xz7XB0KO6oba7pcGqzfgryrG0+rXEtefX08nMzvHT6834wufTqs/6obehoqG2
-tefX08nMzvHT6834wufTqs/6obehoqG2u6XBqs34y7zOrNPrudzA7bS00MKht6GiobbN+MLn06rP
-+sq11b2ht6G2u6XBqs34K9PruaTStTQuMKG3tcijuwrU+Lf+zvG5/bXExvPStaO6CrTz0M25+sbz
-o7rIy8Px0vjQ0KGiyc/G+7yvzcWhotbQ0MW8r83FoaLW0MG4vK/NxaGi1tC5+rq9v9W5pNK1vK/N
-xaGi1tDKr9PNoaLW0Mqvu6+hosrXtry7+rOhoaLW0Ln60cyy3bmry76horn6vNK15834oaLW0Ln6
-ufq6vaGizOzU87XnwaahotbQufq67Mv+vK/NxaGivqm2q7e9oaLEz7e9ur2/1bmry761yArN4tfK
-xvPStaO6zajTw6GisabC7aGitPfEt8DVLbG8s9uhokFCQqGitqvWpaOo1tC5+qOp09DP3rmry76h
-osj9weK158zdoaK/qMzYscvA1aGisK7G1cn6oaJVUFOhokRITKGiu9TI8NbG0qmhosW1u6rWxtKp
-oaKw3bb60qnStaGiw8C5+r+1w/fLuaGit6i5+rCiuqO3qaGitcK5+s73w8XX07mry76holNPRlRU
-RUu1yAq98Mja0NDStaO61tC5+sjLw/HS+NDQx+XL49fc1tDQxKGiyc+6o727zajS+NDQoaLJz7qj
-1dDJzNL40NChoiDW0Ln6vajJ6NL40NChotbQufrFqdK10vjQ0NXjva231tDQoaLW0Ln6uaTJzNL4
-0NDQwr2ut9bQ0KGi0MK7qrGjz9Whornj1t3Iy8Pxssay+rGjz9W5q8u+oaLR9LnisaPP1aGi1tC5
-+sjLytmhotDCu6rIy8rZoaLV472t08Cwssbau/WhotbQucjG2rv1oa0K1sbO78H31MvK5NK1o7pV
-UFOhorXCsO7O78H3oaK088uzt6LO78H3oaK5+tKpzu/B96Gi1ay8scvN19y5q8u+oaJESEyhrQrW
-xtTs0rWjusj90rvW2LmkoaK1ur3yvK/NxaGitqvWpaOo1tC5+qOp09DP3rmry76horCuxtXJ+qOo
-1tC5+qOp09DP3rmry76hosTPs7W8r83FoaK098S3wNUtsbyz26Gi0+7NqL/Ns7Whosj90rvW2Lmk
-oaK+xdH0ucm33aGi1eO9rdX9zKm8r83FoaLQ7bzMvK/NxaGisbG+qczs1PO158GmoaK9rcmt1se/
-2KGtCs2o0MXQ0NK1o7rW0Ln608rV/qGiy8S0qLXn0MWhosm9tqvBqs2ooaLW0Ln60sa2r6GiutOx
-sdLGtq+hornj1t3SxravoaLW0NDLzajRtqGis6Szx7/ttPihrQq3/tew0NDStaO61tC5+s3+y7/C
-/Lf+17ChornF5/nKsdewo6ixsb6po6nT0M/euavLvqGi0cW46rb7t/7KzqGiybzJvLf+ys6horGo
-z7LE8aGiya3Ky7yvzcWhrQrJ3bPexrfQ0NK1o7q649DF1+rKr6Gi1ty087ijoaJHVUNDSaGiQk9T
-U6GioaFEaW9ytc+wwqGiz+PEzrb5oaLW3Mn6yfqhoqGtCr/sy9nP+7fRxrejur6ixca+xtK1oaK9
-8MH5uKO+xqGiw8nFo8jp0rWhosz6xu/Bpsq/oaLFqbHqxtXI8MTJoaKw3bb60qnStSChrQq3v7XY
-svqhor2o1v7Q0NK1o7rW0MG4tdiy+qGisbG+qczsuui12LL6oaLN8s2ovK/NxaGizfK/xrXYsvqh
-otbQzOy8r83Foa0KxuTL/NDQ0rWjurTzwazMqbXCw7rN+KGi1qTIr8rQs6G67Nbcv6+horq9v9W8
-r83FMjXL+aGisbG+qcrQy763qL7WoaLDwL/Lw8C80qGiobbTorLFobfU09a+oaLV472t0MKwsryv
-zcWhotHFu6LW0Ln6oa0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+The original message was received at Thu, 31 Aug 2017 10:05:52 +0800
+from cixar.com [165.174.172.71]
+
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:kris.kowal-pnGoyDXtM7YAvxtiuMwx3w@public.gmane.org
+<<< 501 kris.kowal-pnGoyDXtM7ZUi4FbrNnSJA@public.gmane.org Refused
+
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_59A76EFE.099A7282--
