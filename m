@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B2FE12095E01F
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:28:20 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 6D15D21E95DFE
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:25:59 -0700 (PDT)
 Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 37B06AC0118
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 10:29:24 +0900 (JST)
-Date: Thu, 31 Aug 2017 10:29:11 +0900
+ by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 6403BAC0120
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 10:27:04 +0900 (JST)
+Date: Thu, 31 Aug 2017 10:26:50 +0900
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [ndctl PATCH 4/5] Make interfaces to use Translate SPA.
+Subject: [ndctl PATCH 3/5] allow ND_CMD_CALL for bus
 In-Reply-To: <20170831102101.DA2C.E1E9C6FF@jp.fujitsu.com>
 References: <20170831102101.DA2C.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170831102908.DA3B.E1E9C6FF@jp.fujitsu.com>
+Message-Id: <20170831102647.DA36.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -29,220 +29,28 @@ To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
 
-This patch makes 2 new interfaces :
-  - Call translate SPA featture of ACPI 6.2.
-  - Find DIMM which SPA(System Physical Address) belongs to.
+Currently ndctl supports ND_CMD_CALL only for DIMM,
+but Translate SPA is the feature of bus.
+So ND_CMD_CALL must be allowed bus's ioctl().
 
 
 Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 ---
- ndctl/Makefile.am         |   1 +
- ndctl/lib/Makefile.am     |   4 +-
- ndctl/lib/libndctl-nfit.c | 147 ++++++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl-nfit.h |   5 ++
- 4 files changed, 156 insertions(+), 1 deletion(-)
+ ndctl/lib/libndctl.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index d346c04..20d5f59 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -25,6 +25,7 @@ endif
- 
- ndctl_LDADD =\
- 	lib/libndctl.la \
-+	lib/libndctl-nfit.la \
- 	../daxctl/lib/libdaxctl.la \
- 	../libutil.a \
- 	$(UUID_LIBS) \
-diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
-index 7a446be..cfa54ae 100644
---- a/ndctl/lib/Makefile.am
-+++ b/ndctl/lib/Makefile.am
-@@ -8,7 +8,7 @@ BUILT_SOURCES = ../libndctl.h
- 	$(SED_PROCESS)
- 
- pkginclude_HEADERS = ../libndctl.h
--lib_LTLIBRARIES = libndctl.la
-+lib_LTLIBRARIES = libndctl.la libndctl-nfit.la
- 
- libndctl_la_SOURCES =\
- 	libndctl.h \
-@@ -35,6 +35,8 @@ libndctl_la_SOURCES += libndctl-hpe1.c
- libndctl_la_SOURCES += libndctl-msft.c
- endif
- 
-+libndctl_nfit_la_SOURCES = libndctl-nfit.c
-+
- EXTRA_DIST += libndctl.sym
- 
- libndctl_la_LDFLAGS = $(AM_LDFLAGS) \
-diff --git a/ndctl/lib/libndctl-nfit.c b/ndctl/lib/libndctl-nfit.c
-new file mode 100644
-index 0000000..455815d
---- /dev/null
-+++ b/ndctl/lib/libndctl-nfit.c
-@@ -0,0 +1,147 @@
-+/*
-+ * Copyright (c) 2017, FUJITSU LIMITED. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU Lesser General Public License,
-+ * version 2.1, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT ANY
-+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-+ * more details.
-+ */
-+#include <stdlib.h>
-+#include <ndctl/libndctl.h>
-+#include "libndctl-private.h"
-+#include "libndctl-nfit.h"
-+
-+static int bus_has_translate_spa(struct ndctl_bus *bus)
-+{
-+	if (!ndctl_bus_has_nfit(bus))
-+		return 0;
-+
-+	return ndctl_bus_is_passthru_cmd_supported(bus, NFIT_CMD_TRANSLATE_SPA);
-+}
-+
-+static struct ndctl_cmd *ndctl_bus_cmd_new_translate_spa(struct ndctl_bus *bus)
-+{
-+	struct ndctl_cmd *cmd;
-+	struct nd_cmd_pkg *pkg;
-+	struct nd_cmd_translate_spa *translate_spa;
-+	size_t size, spa_length;
-+
-+	spa_length = sizeof(struct nd_cmd_translate_spa)
-+		+ sizeof(struct nd_nvdimm_device);
-+	size = sizeof(*cmd) + sizeof(*pkg) + spa_length;
-+	cmd = calloc(1, size);
-+	if (!cmd)
-+		return NULL;
-+
-+	cmd->bus = bus;
-+	ndctl_cmd_ref(cmd);
-+	cmd->type = ND_CMD_CALL;
-+	cmd->size = size;
-+	cmd->status = 1;
-+	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
-+	pkg->nd_command = NFIT_CMD_TRANSLATE_SPA;
-+	pkg->nd_size_in = sizeof(unsigned long long);
-+	pkg->nd_size_out = spa_length;
-+	pkg->nd_fw_size = spa_length;
-+	translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
-+	cmd->firmware_status = &translate_spa->status;
-+	translate_spa->translate_length = spa_length;
-+
-+	return cmd;
-+}
-+
-+static int ndctl_bus_cmd_get_translate_spa(struct ndctl_cmd *cmd,
-+					unsigned int *handle, unsigned long long *dpa)
-+{
-+	struct nd_cmd_pkg *pkg;
-+	struct nd_cmd_translate_spa *translate_spa;
-+
-+	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
-+	translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
-+
-+	if (translate_spa->status == ND_TRANSLATE_SPA_STATUS_INVALID_SPA)
-+		return -EINVAL;
-+
-+	/*
-+	 * XXX: Currently NVDIMM mirroring is not supported.
-+	 * Even if ACPI returned plural dimms due to mirroring,
-+	 * this function returns just the first dimm.
-+	 */
-+
-+	*handle = translate_spa->devices[0].nfit_device_handle;
-+	*dpa = translate_spa->devices[0].dpa;
-+
-+	return 0;
-+}
-+
-+static int is_valid_spa(struct ndctl_bus *bus, unsigned long long spa)
-+{
-+	struct ndctl_region *region;
-+	unsigned long long region_start, region_end;
-+
-+	ndctl_region_foreach(bus, region) {
-+		region_start = ndctl_region_get_resource(region);
-+		region_end = region_start + ndctl_region_get_size(region);
-+		if (region_start <= spa && spa < region_end)
-+			return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+NDCTL_EXPORT int ndctl_bus_cmd_translate_spa(struct ndctl_bus *bus,
-+	unsigned long long addr, unsigned int *handle, unsigned long long *dpa)
-+{
-+
-+	struct ndctl_cmd *cmd;
-+	struct nd_cmd_pkg *pkg;
-+	struct nd_cmd_translate_spa *translate_spa;
-+	int rc;
-+
-+	if (!bus || !handle || !dpa)
-+		return -EINVAL;
-+
-+	if (!bus_has_translate_spa(bus))
-+		return -ENOTTY;
-+
-+	if (!is_valid_spa(bus, addr))
-+		return -EINVAL;
-+
-+	cmd = ndctl_bus_cmd_new_translate_spa(bus);
-+	if (!cmd)
-+		return -ENOMEM;
-+
-+	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
-+	translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
-+	translate_spa->spa = addr;
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc) {
-+		ndctl_cmd_unref(cmd);
-+		return rc;
-+	}
-+
-+	rc = ndctl_bus_cmd_get_translate_spa(cmd, handle, dpa);
-+	ndctl_cmd_unref(cmd);
-+
-+	return rc;
-+}
-+
-+NDCTL_EXPORT struct ndctl_dimm *ndctl_dimm_get_by_spa(struct ndctl_bus *bus,
-+		unsigned long long spa)
-+{
-+	int rc;
-+	unsigned int handle;
-+	unsigned long long dpa;
-+
-+	/* ndctl_bus_cmd_translate_spa() has sanity check */
-+	rc = ndctl_bus_cmd_translate_spa(bus, spa, &handle, &dpa);
-+	if (rc)
-+		return NULL;
-+
-+	return ndctl_dimm_get_by_handle(bus, handle);
-+}
-diff --git a/ndctl/lib/libndctl-nfit.h b/ndctl/lib/libndctl-nfit.h
-index 1398662..4a1dac6 100644
---- a/ndctl/lib/libndctl-nfit.h
-+++ b/ndctl/lib/libndctl-nfit.h
-@@ -58,4 +58,9 @@ struct nd_cmd_ars_err_inj_stat {
- 	} __attribute__((packed)) record[0];
- } __attribute__((packed));
- 
-+int ndctl_bus_cmd_translate_spa(struct ndctl_bus *bus,
-+	unsigned long long addr, unsigned int *handle, unsigned long long *dpa);
-+struct ndctl_dimm *ndctl_dimm_get_by_spa(struct ndctl_bus *bus,
-+	unsigned long long spa);
-+
- #endif /* __LIBNDCTL_NFIT_H__ */
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 803056d..e3dcb1c 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -2330,6 +2330,7 @@ static int to_ioctl_cmd(int cmd, int dimm)
+ #ifdef HAVE_NDCTL_CLEAR_ERROR
+ 		case ND_CMD_CLEAR_ERROR:     return ND_IOCTL_CLEAR_ERROR;
+ #endif
++		case ND_CMD_CALL:            return ND_IOCTL_CALL;
+ 		default:
+ 						       return 0;
+ 		};
 
 
 
