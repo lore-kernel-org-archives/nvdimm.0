@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7BF5921DF8074
- for <linux-nvdimm@lists.01.org>; Sun, 27 Aug 2017 20:52:21 -0700 (PDT)
-Subject: [PATCH v2 0/2] fs, dax: lookup dax_device at mount time
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 27 Aug 2017 20:48:35 -0700
-Message-ID: <150389211501.25151.6477753201827914462.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CB21C2095DE6F
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:31:51 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 8678CAC0118
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 10:32:57 +0900 (JST)
+Date: Thu, 31 Aug 2017 10:32:41 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [PATCH v3 0/3] acpi nfit: make emulation of translate SPA on nfit_test
+Message-Id: <20170831103238.DA41.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,45 +24,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, hch@lst.de
+To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1:
-* Move the lookup to mount time. (Christoph)
+
+This patch set is to emulate translate SPA feature by nfit_test.ko.
+
+Certainly the nfit acpi driver supports translate SPA interface 
+via ND_CMD_CALL. But nfit_test does not support it yet.
+
+To test translate SPA with nfit_test, this patch set is needed.
 
 ---
+Change log since v2 [1]:
+ - Make private defintion just for nfit_test.
+    (NFIT_CMD_TRANSLATE_SPA, struct nd_cmd_translate_spa, and others)
+ - Check region by kobj.name instead of using is_nd_pmem().
 
-Christoph notes:
 
-    I just noticed that we now do a fs_dax_get_by_host in every
-    iomap_begin call for DAX. This function iterates a list, does a
-    string compared and igrab. I really think we need to cache this in
-    the superblock (possible even the fs superblock) similar to what we
-    do for the block device.
+Change log since v1 [2]:
+ - Separate patch set of kenel from ndctl patch set.
+ - Change interface via ND_CMD_CALL.
 
-This passes the libnvdimm unit tests.
+[1] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05582.html
+[2] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05287.html
 
+----
+
+Thanks,
 ---
-
-Dan Williams (2):
-      fs, xfs: perform dax_device lookup at mount
-      ext2, ext4: use the super_block dax_device
+Yasunori Goto
 
 
- drivers/dax/super.c |   10 ++++++++++
- fs/ext2/inode.c     |   10 ++--------
- fs/ext4/inode.c     |   10 ++--------
- fs/super.c          |   26 +++++++++++++++++++++++---
- fs/xfs/xfs_aops.c   |   13 +++++++++++++
- fs/xfs/xfs_aops.h   |    1 +
- fs/xfs/xfs_buf.c    |    4 +++-
- fs/xfs/xfs_buf.h    |    3 ++-
- fs/xfs/xfs_iomap.c  |   10 +---------
- fs/xfs/xfs_super.c  |   21 +++++++++++++++++----
- include/linux/dax.h |    6 ++++++
- include/linux/fs.h  |    1 +
- 12 files changed, 81 insertions(+), 34 deletions(-)
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
