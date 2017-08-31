@@ -1,11 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from foss.arm.com (foss.arm.com [217.140.101.70])
- by ml01.01.org (Postfix) with ESMTP id 515E621EB5293
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 04:24:30 -0700 (PDT)
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: [PATCH v2] nd_blk: Remove mmio_flush_range()
-Date: Thu, 31 Aug 2017 12:27:09 +0100
-Message-Id: <c92a50f21a01a0c1c809c3910251f596ddbc3acd.1504178199.git.robin.murphy@arm.com>
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3C94C21E95E19
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:36:56 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 4/6] btt: cache sector_size in arena_info
+Date: Wed, 30 Aug 2017 19:36:01 -0600
+Message-Id: <20170831013603.16997-5-vishal.l.verma@intel.com>
+In-Reply-To: <20170831013603.16997-1-vishal.l.verma@intel.com>
+References: <20170831013603.16997-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,168 +22,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-mmio_flush_range() suffers from a lack of clearly-defined semantics,
-and is somewhat ambiguous to port to other architectures where the
-scope of the writeback implied by "flush" and ordering might matter,
-but MMIO would tend to imply non-cacheable anyway. Per the rationale
-in 67a3e8fe9015 ("nd_blk: change aperture mapping from WC to WB"), the
-only existing use is actually to invalidate clean cache lines for
-ARCH_MEMREMAP_PMEM type mappings *without* writeback. Since the recent
-cleanup of the pmem API, that also now happens to be the exact purpose
-of arch_invalidate_pmem(), which would be a far more well-defined tool
-for the job.
+In preparation for the error clearing rework, add sector_size in the
+arena_info struct.
 
-Rather than risk potentially inconsistent implementations of
-mmio_flush_range() for the sake of one callsite, streamline things by
-removing it entirely and instead move the ARCH_MEMREMAP_PMEM related
-definitions up to the libnvdimm level, so they can be shared by NFIT
-as well. This allows NFIT to be enabled for arm64.
-
-Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- arch/x86/Kconfig                  |  1 -
- arch/x86/include/asm/cacheflush.h |  2 --
- drivers/acpi/nfit/Kconfig         |  2 +-
- drivers/acpi/nfit/core.c          |  2 +-
- drivers/nvdimm/pmem.h             | 14 --------------
- include/linux/libnvdimm.h         | 15 +++++++++++++++
- lib/Kconfig                       |  3 ---
- tools/testing/nvdimm/test/nfit.c  |  4 ++--
- 8 files changed, 19 insertions(+), 24 deletions(-)
+ drivers/nvdimm/btt.c | 1 +
+ drivers/nvdimm/btt.h | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 781521b7cf9e..5f3b756ec0d3 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -53,7 +53,6 @@ config X86
- 	select ARCH_HAS_FORTIFY_SOURCE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_KCOV			if X86_64
--	select ARCH_HAS_MMIO_FLUSH
- 	select ARCH_HAS_PMEM_API		if X86_64
- 	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
- 	select ARCH_HAS_SET_MEMORY
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index 8b4140f6724f..cb9a1af109b4 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -7,6 +7,4 @@
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 374ae62..e9dd651 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
+ 	if (!arena)
+ 		return NULL;
+ 	arena->nd_btt = btt->nd_btt;
++	arena->sector_size = btt->sector_size;
  
- void clflush_cache_range(void *addr, unsigned int size);
- 
--#define mmio_flush_range(addr, size) clflush_cache_range(addr, size)
--
- #endif /* _ASM_X86_CACHEFLUSH_H */
-diff --git a/drivers/acpi/nfit/Kconfig b/drivers/acpi/nfit/Kconfig
-index 6d3351452ea2..929ba4da0b30 100644
---- a/drivers/acpi/nfit/Kconfig
-+++ b/drivers/acpi/nfit/Kconfig
-@@ -2,7 +2,7 @@ config ACPI_NFIT
- 	tristate "ACPI NVDIMM Firmware Interface Table (NFIT)"
- 	depends on PHYS_ADDR_T_64BIT
- 	depends on BLK_DEV
--	depends on ARCH_HAS_MMIO_FLUSH
-+	depends on ARCH_HAS_PMEM_API
- 	select LIBNVDIMM
- 	help
- 	  Infrastructure to probe ACPI 6 compliant platforms for
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 19182d091587..ee7726a16693 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1930,7 +1930,7 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
- 			memcpy_flushcache(mmio->addr.aperture + offset, iobuf + copied, c);
- 		else {
- 			if (nfit_blk->dimm_flags & NFIT_BLK_READ_FLUSH)
--				mmio_flush_range((void __force *)
-+				arch_invalidate_pmem((void __force *)
- 					mmio->addr.aperture + offset, c);
- 
- 			memcpy(iobuf + copied, mmio->addr.aperture + offset, c);
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index 5434321cad67..c5917f040fa7 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -5,20 +5,6 @@
- #include <linux/pfn_t.h>
- #include <linux/fs.h>
- 
--#ifdef CONFIG_ARCH_HAS_PMEM_API
--#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
--void arch_wb_cache_pmem(void *addr, size_t size);
--void arch_invalidate_pmem(void *addr, size_t size);
--#else
--#define ARCH_MEMREMAP_PMEM MEMREMAP_WT
--static inline void arch_wb_cache_pmem(void *addr, size_t size)
--{
--}
--static inline void arch_invalidate_pmem(void *addr, size_t size)
--{
--}
--#endif
--
- /* this definition is in it's own header for tools/testing/nvdimm to consume */
- struct pmem_device {
- 	/* One contiguous memory region per device */
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index f3d3e6af8838..d11bc9881206 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -173,4 +173,19 @@ u64 nd_fletcher64(void *addr, size_t len, bool le);
- void nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
-+
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
-+void arch_wb_cache_pmem(void *addr, size_t size);
-+void arch_invalidate_pmem(void *addr, size_t size);
-+#else
-+#define ARCH_MEMREMAP_PMEM MEMREMAP_WT
-+static inline void arch_wb_cache_pmem(void *addr, size_t size)
-+{
-+}
-+static inline void arch_invalidate_pmem(void *addr, size_t size)
-+{
-+}
-+#endif
-+
- #endif /* __LIBNVDIMM_H__ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 6762529ad9e4..527da69e3be1 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -559,9 +559,6 @@ config ARCH_HAS_PMEM_API
- config ARCH_HAS_UACCESS_FLUSHCACHE
- 	bool
- 
--config ARCH_HAS_MMIO_FLUSH
--	bool
--
- config STACKDEPOT
- 	bool
- 	select STACKTRACE
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 4c2fa98ef39d..d20791c3f499 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1546,8 +1546,8 @@ static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
- 	else {
- 		memcpy(iobuf, mmio->addr.base + dpa, len);
- 
--		/* give us some some coverage of the mmio_flush_range() API */
--		mmio_flush_range(mmio->addr.base + dpa, len);
-+		/* give us some some coverage of the arch_invalidate_pmem() API */
-+		arch_invalidate_pmem(mmio->addr.base + dpa, len);
- 	}
- 	nd_region_release_lane(nd_region, lane);
- 
+ 	if (!size)
+ 		return arena;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 09fabf5..2bc0d10b 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -108,6 +108,7 @@ struct aligned_lock {
+  *			handle incoming writes.
+  * @version_major:	Metadata layout version major.
+  * @version_minor:	Metadata layout version minor.
++ * @sector_size:	The Linux sector size - 512 or 4096
+  * @nextoff:		Offset in bytes to the start of the next arena.
+  * @infooff:		Offset in bytes to the info block of this arena.
+  * @dataoff:		Offset in bytes to the data area of this arena.
+@@ -135,6 +136,7 @@ struct arena_info {
+ 	u32 nfree;
+ 	u16 version_major;
+ 	u16 version_minor;
++	u32 sector_size;
+ 	/* Byte offsets to the different on-media structures */
+ 	u64 nextoff;
+ 	u64 infooff;
 -- 
-2.13.4.dirty
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
