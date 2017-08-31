@@ -1,149 +1,145 @@
-From: "Noella Maudlin" <hennjohn6i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Followers for Instagram
-Date: Mon, 31 Jul 2017 08:30:56 -0700
-Message-ID: <507EF464.24725227@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_597F51A5.1849C934"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_597F51A5.1849C934
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Professional and reliable service with affordable prices http://www.myinstabuzz.com/buy-instagram-followers/
-   Thank you Noella Maudlin Unsubscribe option is available on the footer of
-   our website [...] 
-
-Content analysis details:   (11.0 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
-                            See
-                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
-                             for more information.
-                            [URIs: myinstabuzz.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: myinstabuzz.com]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?203.14.188.89>]
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [203.14.188.89 listed in dnsbl.sorbs.net]
- 0.6 PRICES_ARE_AFFORDABLE  BODY: Message says that prices aren't too
-                            expensive
- 2.8 FSL_HELO_FAKE          No description available.
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (hennjohn6i[at]gmail.com)
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0000]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: myinstabuzz.com]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.myinstabuzz.com]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.myinstabuzz.com]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_597F51A5.1849C934
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1dcCx2-0007re-55
-	for gln-linux-nvdimm@m.gmane.org; Mon, 31 Jul 2017 17:49:48 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 703F721D19933;
-	Mon, 31 Jul 2017 08:47:45 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (meet.hosted.chinatelecomglobal.com [203.14.188.89])
- by ml01.01.org (Postfix) with SMTP id 4D81B21AEB0A3
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Mon, 31 Jul 2017 08:47:42 -0700 (PDT)
-Received: from smtp18.yenddx.com [38.250.248.236] by mailout.endmonthnow.com
- with ASMTP; Mon, 31 Jul 2017 08:36:42 -0700
-Message-ID: <507EF464.24725227-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Mon, 31 Jul 2017 08:30:56 -0700
-From: "Noella Maudlin" <hennjohn6i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr;
- rv:1.8.1.16) Gecko/20080707 Thunderbird/2.0.0.16
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from foss.arm.com (foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id E429421EB5290
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 03:54:33 -0700 (PDT)
+Subject: Re: [v6,2/8] dmaengine: Add DMA_MEMCPY_SG transaction op
+References: <150369477557.6962.17597022285367797559.stgit@djiang5-desk3.ch.intel.com>
+ <65af5215-0386-6ae3-904e-ea1f09760105@arm.com>
+ <7a30f87e-bae7-f499-8fdf-80b849a78a58@intel.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Message-ID: <1cae628f-63ff-fab6-8402-efb6edaf5a53@arm.com>
+Date: Thu, 31 Aug 2017 11:57:13 +0100
 MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: Followers for Instagram
-X-Priority: 1
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <7a30f87e-bae7-f499-8fdf-80b849a78a58@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dave Jiang <dave.jiang@intel.com>, "Koul, Vinod" <vinod.koul@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+List-ID: <linux-nvdimm@lists.01.org>
 
+On 30/08/17 19:25, Dave Jiang wrote:
+> On 08/30/2017 11:18 AM, Robin Murphy wrote:
+>> On 25/08/17 21:59, Dave Jiang wrote:
+>>> Adding a dmaengine transaction operation that allows copy to/from a
+>>> scatterlist and a flat buffer.
+>>
+>> Apologies if I'm late to the party, but doesn't DMA_SG already cover
+>> this use-case? As far as I can see, all this does is save the caller
+>> from setting up a single-entry scatterlist to describe the buffer - even
+>> if such a simplified interface is justified it seems like something that
+>> could be implemented as a wrapper around dmaengine_prep_dma_sg() rather
+>> than the providers having to implement a whole extra callback.
+>>
+> 
+> DMA_SG is queued to be removed in 4.14. There is no in kernel consumer
+> for the code.
 
-Professional and reliable service with affordable prices
-http://www.myinstabuzz.com/buy-instagram-followers/
+Ah, I see, that's what I was missing. So we're effectively just
+replacing that interface with a more pragmatic alternative - that makes
+sense.
 
-Thank you
-Noella Maudlin
+Thanks,
+Robin.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
+>>>
+>>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>>> ---
+>>>  Documentation/dmaengine/provider.txt |    3 +++
+>>>  drivers/dma/dmaengine.c              |    2 ++
+>>>  include/linux/dmaengine.h            |   19 +++++++++++++++++++
+>>>  3 files changed, 24 insertions(+)
+>>>
+>>> diff --git a/Documentation/dmaengine/provider.txt b/Documentation/dmaengine/provider.txt
+>>> index a75f52f..6241e36 100644
+>>> --- a/Documentation/dmaengine/provider.txt
+>>> +++ b/Documentation/dmaengine/provider.txt
+>>> @@ -181,6 +181,9 @@ Currently, the types available are:
+>>>      - Used by the client drivers to register a callback that will be
+>>>        called on a regular basis through the DMA controller interrupt
+>>>  
+>>> +  * DMA_MEMCPY_SG
+>>> +    - The device supports scatterlist to/from memory.
+>>> +
+>>>    * DMA_PRIVATE
+>>>      - The devices only supports slave transfers, and as such isn't
+>>>        available for async transfers.
+>>> diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+>>> index 428b141..4d2c4e1 100644
+>>> --- a/drivers/dma/dmaengine.c
+>>> +++ b/drivers/dma/dmaengine.c
+>>> @@ -937,6 +937,8 @@ int dma_async_device_register(struct dma_device *device)
+>>>  		!device->device_prep_dma_memset);
+>>>  	BUG_ON(dma_has_cap(DMA_INTERRUPT, device->cap_mask) &&
+>>>  		!device->device_prep_dma_interrupt);
+>>> +	BUG_ON(dma_has_cap(DMA_MEMCPY_SG, device->cap_mask) &&
+>>> +		!device->device_prep_dma_memcpy_sg);
+>>>  	BUG_ON(dma_has_cap(DMA_CYCLIC, device->cap_mask) &&
+>>>  		!device->device_prep_dma_cyclic);
+>>>  	BUG_ON(dma_has_cap(DMA_INTERLEAVE, device->cap_mask) &&
+>>> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+>>> index 64fbd38..0c91411 100644
+>>> --- a/include/linux/dmaengine.h
+>>> +++ b/include/linux/dmaengine.h
+>>> @@ -67,6 +67,7 @@ enum dma_transaction_type {
+>>>  	DMA_PQ_VAL,
+>>>  	DMA_MEMSET,
+>>>  	DMA_MEMSET_SG,
+>>> +	DMA_MEMCPY_SG,
+>>>  	DMA_INTERRUPT,
+>>>  	DMA_PRIVATE,
+>>>  	DMA_ASYNC_TX,
+>>> @@ -692,6 +693,7 @@ struct dma_filter {
+>>>   * @device_prep_dma_pq_val: prepares a pqzero_sum operation
+>>>   * @device_prep_dma_memset: prepares a memset operation
+>>>   * @device_prep_dma_memset_sg: prepares a memset operation over a scatter list
+>>> + * @device_prep_dma_memcpy_sg: prepares memcpy between scatterlist and buffer
+>>>   * @device_prep_dma_interrupt: prepares an end of chain interrupt operation
+>>>   * @device_prep_slave_sg: prepares a slave dma operation
+>>>   * @device_prep_dma_cyclic: prepare a cyclic dma operation suitable for audio.
+>>> @@ -768,6 +770,10 @@ struct dma_device {
+>>>  	struct dma_async_tx_descriptor *(*device_prep_dma_memset_sg)(
+>>>  		struct dma_chan *chan, struct scatterlist *sg,
+>>>  		unsigned int nents, int value, unsigned long flags);
+>>> +	struct dma_async_tx_descriptor *(*device_prep_dma_memcpy_sg)(
+>>> +		struct dma_chan *chan,
+>>> +		struct scatterlist *sg, unsigned int sg_nents,
+>>> +		dma_addr_t buf, bool to_sg, unsigned long flags);
+>>>  	struct dma_async_tx_descriptor *(*device_prep_dma_interrupt)(
+>>>  		struct dma_chan *chan, unsigned long flags);
+>>>  
+>>> @@ -899,6 +905,19 @@ static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_memcpy(
+>>>  						    len, flags);
+>>>  }
+>>>  
+>>> +static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_memcpy_sg(
+>>> +		struct dma_chan *chan, struct scatterlist *sg,
+>>> +		unsigned int sg_nents, dma_addr_t buf, bool to_sg,
+>>> +		unsigned long flags)
+>>> +{
+>>> +	if (!chan || !chan->device ||
+>>> +			!chan->device->device_prep_dma_memcpy_sg)
+>>> +		return NULL;
+>>> +
+>>> +	return chan->device->device_prep_dma_memcpy_sg(chan, sg, sg_nents,
+>>> +						       buf, to_sg, flags);
+>>> +}
+>>> +
+>>>  /**
+>>>   * dmaengine_terminate_all() - Terminate all active DMA transfers
+>>>   * @chan: The channel for which to terminate the transfers
+>>>
 
 _______________________________________________
 Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_597F51A5.1849C934--
