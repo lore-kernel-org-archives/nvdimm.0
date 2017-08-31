@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5D95D21E47D4E
- for <linux-nvdimm@lists.01.org>; Thu, 24 Aug 2017 08:19:42 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 1/3] iomap: return VM_FAULT_* codes from iomap_page_mkwrite
-Date: Thu, 24 Aug 2017 17:22:05 +0200
-Message-Id: <20170824152207.30729-2-hch@lst.de>
-In-Reply-To: <20170824152207.30729-1-hch@lst.de>
-References: <20170824152207.30729-1-hch@lst.de>
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 4D16F21E95E0D
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:36:55 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 2/6] btt: refactor map entry operations with macros
+Date: Wed, 30 Aug 2017 19:35:59 -0600
+Message-Id: <20170831013603.16997-3-vishal.l.verma@intel.com>
+In-Reply-To: <20170831013603.16997-1-vishal.l.verma@intel.com>
+References: <20170831013603.16997-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,47 +22,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/iomap.c        | 4 ++--
- fs/xfs/xfs_file.c | 1 -
- 2 files changed, 2 insertions(+), 3 deletions(-)
+Add helpers for converting a raw map entry to just the block number, or
+either of the 'e' or 'z' flags in preparation for actually using the
+error flag to mark blocks with media errors.
 
-diff --git a/fs/iomap.c b/fs/iomap.c
-index 039266128b7f..22ffdfeabeda 100644
---- a/fs/iomap.c
-+++ b/fs/iomap.c
-@@ -477,10 +477,10 @@ int iomap_page_mkwrite(struct vm_fault *vmf, const struct iomap_ops *ops)
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c | 8 ++++----
+ drivers/nvdimm/btt.h | 4 ++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index f6ea82f..8842baa 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
+ 	 * This 'mapping' is supposed to be just the LBA mapping, without
+ 	 * any flags set, so strip the flag bits.
+ 	 */
+-	mapping &= MAP_LBA_MASK;
++	mapping = ent_lba(mapping);
  
- 	set_page_dirty(page);
- 	wait_for_stable_page(page);
--	return 0;
-+	return VM_FAULT_LOCKED;
- out_unlock:
- 	unlock_page(page);
--	return ret;
-+	return block_page_mkwrite_return(ret);
- }
- EXPORT_SYMBOL_GPL(iomap_page_mkwrite);
+ 	ze = (z_flag << 1) + e_flag;
+ 	switch (ze) {
+@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
  
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index afa226b8c290..4213f02325a2 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1035,7 +1035,6 @@ xfs_filemap_page_mkwrite(
- 		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, NULL, &xfs_iomap_ops);
- 	} else {
- 		ret = iomap_page_mkwrite(vmf, &xfs_iomap_ops);
--		ret = block_page_mkwrite_return(ret);
- 	}
+ 	raw_mapping = le32_to_cpu(in);
  
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
+-	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
++	z_flag = ent_z_flag(raw_mapping);
++	e_flag = ent_e_flag(raw_mapping);
+ 	ze = (z_flag << 1) + e_flag;
+-	postmap = raw_mapping & MAP_LBA_MASK;
++	postmap = ent_lba(raw_mapping);
+ 
+ 	/* Reuse the {z,e}_flag variables for *trim and *error */
+ 	z_flag = 0;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 888e862..09fabf5 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -38,6 +38,10 @@
+ #define IB_FLAG_ERROR 0x00000001
+ #define IB_FLAG_ERROR_MASK 0x00000001
+ 
++#define ent_lba(ent) (ent & MAP_LBA_MASK)
++#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
++#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
++
+ enum btt_init_state {
+ 	INIT_UNCHECKED = 0,
+ 	INIT_NOTFOUND,
 -- 
-2.11.0
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
