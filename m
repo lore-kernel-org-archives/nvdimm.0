@@ -1,17 +1,28 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
+ [IPv6:2607:f8b0:4003:c06::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C60FC21E2571D
- for <linux-nvdimm@lists.01.org>; Fri, 11 Aug 2017 22:16:30 -0700 (PDT)
-Subject: [PATCH 2/3] libnvdimm, pfn,
- dax: show supported dax/pfn region alignments in sysfs
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 11 Aug 2017 22:12:27 -0700
-Message-ID: <150251474784.11236.9077158081550562491.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150251473716.11236.9462897790331942583.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150251473716.11236.9462897790331942583.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 69FE520958BE9
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 15:28:15 -0700 (PDT)
+Received: by mail-oi0-x231.google.com with SMTP id t75so8372529oie.3
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 15:30:59 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4hsSUBHrYSXGiFN16vjHcPBb3Vng2c+H7g24-TnyWsjkg@mail.gmail.com>
+References: <20170710183248.2417-1-willy@infradead.org>
+ <CAPcyv4ioWUmiHbaGVcpxuK-j0JrcGk-_VcpR6yQtQMUwcRTRcQ@mail.gmail.com>
+ <20170710203012.GB22476@bombadil.infradead.org>
+ <CAPcyv4h7udHTuf78-_iLid68yMhBqTy9=b7GupJn3ZBLJoAWJA@mail.gmail.com>
+ <20170712150401.GA12920@bombadil.infradead.org>
+ <CAPcyv4h_=L=F9Gtf9NARH1vV4L0GBtRaUiSjZH-j5OeAdkV5Qg@mail.gmail.com>
+ <AD0FC223-2642-42EB-ADF0-A61F5642DEEC@yahoo.com>
+ <CAPcyv4jhGSo4RZtiXHKFNwzYwM_YcfoVZx0d4V=iLzdX622rKg@mail.gmail.com>
+ <MWHPR21MB014312EE257DAA87046C3EA6A6B50@MWHPR21MB0143.namprd21.prod.outlook.com>
+ <CAPcyv4hsSUBHrYSXGiFN16vjHcPBb3Vng2c+H7g24-TnyWsjkg@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 31 Aug 2017 15:30:58 -0700
+Message-ID: <CAPcyv4iA1ObGd9miPSOCc=YRziAxWXhC9NSL_TDo97g2t=dp_Q@mail.gmail.com>
+Subject: Re: [PATCH] nvdimm: Remove minimum size requirement
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,82 +34,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: "Cheng-mean Liu (SOCCER)" <soccerl@microsoft.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Matthew Wilcox <willy@infradead.org>, Matthew Wilcox <mawilcox@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Oliver O'Halloran <oohall@gmail.com>
+On Mon, Aug 7, 2017 at 11:13 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Mon, Aug 7, 2017 at 11:09 AM, Cheng-mean Liu (SOCCER)
+> <soccerl@microsoft.com> wrote:
+>> Hi Dan:
+>>
+>>    I am wondering if failing on those unittests is still an issue for this minimum size requirement change.
+>
+> Yes, I just haven't had a chance to circle back and get this fixed up.
+>
+> You can reproduce by running:
+>
+>     make TESTS=dpa-alloc check
+>
+> ...in a checkout of the ndctl project: https://github.com/pmem/ndctl
+>
+> If you attempt that, note the required setup of the nfit_test modules
+> documented in README.md in that same repository.
 
-The alignment of a DAX and PFN regions dictates the page sizes that can
-be used to map the region. Even if the hardware page sizes are known the
-actual range of supported page sizes that can be used with DAX depends
-on the kernel configuration. As a result it's best that the kernel
-advertises the alignments that should be used with these region types.
-
-This patch adds the 'supported_alignments' region attribute to expose
-this information to userspace.
-
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
-[djbw: integrate with nd_size_select_show() rename and other fixups]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pfn_devs.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
-
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 2ae9a000b090..610dd17a17f6 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -111,6 +111,26 @@ static ssize_t align_show(struct device *dev,
- 	return sprintf(buf, "%ld\n", nd_pfn->align);
- }
- 
-+static const unsigned long *nd_pfn_supported_alignments(void)
-+{
-+	/*
-+	 * This needs to be a local variable because the *_SIZE macros
-+	 * aren't always constants.
-+	 */
-+	static const unsigned long supported_alignments[] = {
-+		PAGE_SIZE,
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		HPAGE_PMD_SIZE,
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+		HPAGE_PUD_SIZE,
-+#endif
-+#endif
-+		0,
-+	};
-+
-+	return supported_alignments;
-+}
-+
- static ssize_t __align_store(struct nd_pfn *nd_pfn, const char *buf)
- {
- 	unsigned long val;
-@@ -260,6 +280,13 @@ static ssize_t size_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(size);
- 
-+static ssize_t supported_alignments_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	return nd_size_select_show(0, nd_pfn_supported_alignments(), buf);
-+}
-+static DEVICE_ATTR_RO(supported_alignments);
-+
- static struct attribute *nd_pfn_attributes[] = {
- 	&dev_attr_mode.attr,
- 	&dev_attr_namespace.attr,
-@@ -267,6 +294,7 @@ static struct attribute *nd_pfn_attributes[] = {
- 	&dev_attr_align.attr,
- 	&dev_attr_resource.attr,
- 	&dev_attr_size.attr,
-+	&dev_attr_supported_alignments.attr,
- 	NULL,
- };
- 
-
+I have not had any time to fix up the unit test for this. Soccer, can
+you take a look?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
