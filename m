@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 52BDA21E11D3B
- for <linux-nvdimm@lists.01.org>; Fri, 25 Aug 2017 13:56:54 -0700 (PDT)
-Subject: [PATCH v6 1/8] dmaengine: ioatdma: revert 7618d035 to allow sharing
- of DMA channels
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 25 Aug 2017 13:59:30 -0700
-Message-ID: <150369477016.6962.8636764604054663107.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
-References: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 34A9B20958BD1
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 14:07:19 -0700 (PDT)
+Subject: [PATCH] libnvdimm, nfit: export an 'ecc_unit_size' sysfs attribute
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 31 Aug 2017 14:03:38 -0700
+Message-ID: <150421341855.29628.5348977066074602199.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,36 +20,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit 7618d0359c16 ("dmaengine: ioatdma: Set non RAID channels to be
-private capable") makes all non-RAID ioatdma channels as private to be
-requestable by dma_request_channel(). With PQ CAP support going away for
-ioatdma, this would make all channels private. To support the usage of
-ioatdma for blk-mq implementation of pmem we need as many channels we can
-share in order to be high performing. Thus reverting the patch.
+When the nfit driver initializes it runs an ARS (Address Range Scrub)
+operation across every pmem range. Part of that process involves
+determining the ARS capabilities of a given address range. One of the
+capabilities that is reported is the 'Clear Uncorrectable Error Range
+Length Unit Size' (see: ACPI 6.2 section 9.20.7.4 Function Index 1 -
+Query ARS Capabilities). This property is of interest to userspace
+software as it indicates the boundary at which the NVDIMM may need to
+perform read-modify-write cycles to maintain ECC blocks.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dma/ioat/init.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/acpi/nfit/core.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/dma/ioat/init.c b/drivers/dma/ioat/init.c
-index ed8ed11..1b881fb 100644
---- a/drivers/dma/ioat/init.c
-+++ b/drivers/dma/ioat/init.c
-@@ -1153,9 +1153,6 @@ static int ioat3_dma_probe(struct ioatdma_device *ioat_dma, int dca)
- 		}
- 	}
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 2c5608b92578..03105648f9b1 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1674,8 +1674,19 @@ static ssize_t range_index_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(range_index);
  
--	if (!(ioat_dma->cap & (IOAT_CAP_XOR | IOAT_CAP_PQ)))
--		dma_cap_set(DMA_PRIVATE, dma->cap_mask);
--
- 	err = ioat_probe(ioat_dma);
- 	if (err)
- 		return err;
++static ssize_t ecc_unit_size_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
++	struct nfit_spa *nfit_spa = nd_region_provider_data(nd_region);
++
++	return sprintf(buf, "%d\n", nfit_spa->clear_err_unit);
++}
++static DEVICE_ATTR_RO(ecc_unit_size);
++
+ static struct attribute *acpi_nfit_region_attributes[] = {
+ 	&dev_attr_range_index.attr,
++	&dev_attr_ecc_unit_size.attr,
+ 	NULL,
+ };
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
