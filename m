@@ -1,21 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1595D21EB5262
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:38:52 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 04825AC0127
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 10:39:58 +0900 (JST)
-Date: Thu, 31 Aug 2017 10:39:34 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [PATCH v3 2/3] acpi nfit: Enable to show what feature is supported
- via ND_CMD_CALL for nfit_test
-In-Reply-To: <20170831103238.DA41.E1E9C6FF@jp.fujitsu.com>
-References: <20170831103238.DA41.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170831103931.DA4A.E1E9C6FF@jp.fujitsu.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 145AA21EB5261
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 18:36:56 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 5/6] libnvdimm: fix potential deadlock while clearing errors
+Date: Wed, 30 Aug 2017 19:36:02 -0600
+Message-Id: <20170831013603.16997-6-vishal.l.verma@intel.com>
+In-Reply-To: <20170831013603.16997-1-vishal.l.verma@intel.com>
+References: <20170831013603.16997-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,50 +17,83 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
+Specifically, the DSM to clear media errors is called during writes, so
+that we can provide a writes-fix-errors model.
 
-Though nfit_test need to show what feature is supported via ND_CMD_CALL on
-device/nfit/dsm_mask, currently there is no way to tell it.
-This patch makes to enable it.
+However it is easy to imagine a scenario like:
+ -> write through the nvdimm driver
+   -> acpi allocation
+     -> writeback, causes more IO through the nvdimm driver
+       -> deadlock
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
+flag for the current scope when issuing commands/IOs that are expected
+to clear errors.
+
+Cc: <linux-acpi@vger.kernel.org>
+Cc: <linux-nvdimm@lists.01.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/acpi/nfit/core.c | 1 +
- drivers/acpi/nfit/nfit.h | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/nvdimm/bus.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 19182d0..e458772 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1641,6 +1641,7 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 	int i;
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 937fafa..a18c291 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -11,6 +11,7 @@
+  * General Public License for more details.
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/sched/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
+@@ -234,6 +235,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	struct nd_cmd_clear_error clear_err;
+ 	struct nd_cmd_ars_cap ars_cap;
+ 	u32 clear_err_unit, mask;
++	unsigned int noio_flag;
+ 	int cmd_rc, rc;
  
- 	nd_desc->cmd_mask = acpi_desc->bus_cmd_force_en;
-+	nd_desc->bus_dsm_mask = acpi_desc->bus_passthru_cmd_force_en;
- 	adev = to_acpi_dev(acpi_desc);
- 	if (!adev)
- 		return;
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 54292db..7093bd5 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -167,6 +167,7 @@ struct acpi_nfit_desc {
- 	unsigned int init_complete:1;
- 	unsigned long dimm_cmd_force_en;
- 	unsigned long bus_cmd_force_en;
-+	unsigned long bus_passthru_cmd_force_en;
- 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
- 			void *iobuf, u64 len, int rw);
- };
-
-
+ 	if (!nvdimm_bus)
+@@ -250,8 +252,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	memset(&ars_cap, 0, sizeof(ars_cap));
+ 	ars_cap.address = phys;
+ 	ars_cap.length = len;
++	noio_flag = memalloc_noio_save();
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
+ 			sizeof(ars_cap), &cmd_rc);
++	memalloc_noio_restore(noio_flag);
+ 	if (rc < 0)
+ 		return rc;
+ 	if (cmd_rc < 0)
+@@ -266,8 +270,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	memset(&clear_err, 0, sizeof(clear_err));
+ 	clear_err.address = phys;
+ 	clear_err.length = len;
++	noio_flag = memalloc_noio_save();
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
+ 			sizeof(clear_err), &cmd_rc);
++	memalloc_noio_restore(noio_flag);
+ 	if (rc < 0)
+ 		return rc;
+ 	if (cmd_rc < 0)
+-- 
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
