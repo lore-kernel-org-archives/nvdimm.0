@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22e.google.com (mail-oi0-x22e.google.com
+ [IPv6:2607:f8b0:4003:c06::22e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 87E0D20958BE8
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 17:37:01 -0700 (PDT)
-Subject: [PATCH] libnvdimm: fix integer overflow static analysis warning
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 31 Aug 2017 17:33:20 -0700
-Message-ID: <150422600081.8459.2869511055414536668.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5696421EB5280
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 21:30:04 -0700 (PDT)
+Received: by mail-oi0-x22e.google.com with SMTP id k77so66751280oib.2
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 21:32:15 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170831102908.DA3B.E1E9C6FF@jp.fujitsu.com>
+References: <20170831102101.DA2C.E1E9C6FF@jp.fujitsu.com>
+ <20170831102908.DA3B.E1E9C6FF@jp.fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 30 Aug 2017 21:32:13 -0700
+Message-ID: <CAPcyv4g+CTp1Hr0RzBrF4xEOjMMqdHyu6NOq=DFwC+JRbt4u+A@mail.gmail.com>
+Subject: Re: [ndctl PATCH 4/5] Make interfaces to use Translate SPA.
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,94 +26,233 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, stable@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan reports:
-    The patch 62232e45f4a2: "libnvdimm: control (ioctl) messages for
-    nvdimm_bus and nvdimm devices" from Jun 8, 2015, leads to the
-    following static checker warning:
+Looks good in general...
 
-            drivers/nvdimm/bus.c:1018 __nd_ioctl()
-            warn: integer overflows 'buf_len'
+Add "ndctl:" to the subject.
 
-    From a casual review, this seems like it might be a real bug.  On
-    the first iteration we load some data into in_env[].  On the second
-    iteration we read a use controlled "in_size" from nd_cmd_in_size().
-    It can go up to UINT_MAX - 1.  A high number means we will fill the
-    whole in_env[] buffer.  But we potentially keep looping and adding
-    more to in_len so now it can be any value.
+On Wed, Aug 30, 2017 at 6:29 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+>
+> This patch makes 2 new interfaces :
+>   - Call translate SPA featture of ACPI 6.2.
+>   - Find DIMM which SPA(System Physical Address) belongs to.
+>
+>
+> Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+> ---
+>  ndctl/Makefile.am         |   1 +
+>  ndctl/lib/Makefile.am     |   4 +-
+>  ndctl/lib/libndctl-nfit.c | 147 ++++++++++++++++++++++++++++++++++++++++++++++
 
-    It simple enough to change, but it feels weird that we keep looping
-    even though in_env is totally full.  Shouldn't we just return an
-    error if we don't have space for desc->in_num.
+Rename this to ndctl/lib/nfit.c, I pushed out a large rename of other
+files to drop the "libdctl-" prefix to the 'pending' branch on github.
 
-We keep looping because the size of the total input is allowed to be
-bigger than the 'envelope' which is a subset of the payload that tells
-us how much data to expect. For safety explicitly check that buf_len
-does not overflow which is what the checker flagged.
+>  ndctl/lib/libndctl-nfit.h |   5 ++
+>  4 files changed, 156 insertions(+), 1 deletion(-)
+>
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index d346c04..20d5f59 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -25,6 +25,7 @@ endif
+>
+>  ndctl_LDADD =\
+>         lib/libndctl.la \
+> +       lib/libndctl-nfit.la \
 
-Cc: <stable@vger.kernel.org>
-Fixes: 62232e45f4a2: "libnvdimm: control (ioctl) messages for nvdimm_bus..."
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/bus.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+Let's just add these symbols to the existing libndctl.so rather than
+add a new one.
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index a18c2914f4b6..66586ce23f1b 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -911,19 +911,20 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		int read_only, unsigned int ioctl_cmd, unsigned long arg)
- {
- 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
--	size_t buf_len = 0, in_len = 0, out_len = 0;
- 	static char out_env[ND_CMD_MAX_ENVELOPE];
- 	static char in_env[ND_CMD_MAX_ENVELOPE];
- 	const struct nd_cmd_desc *desc = NULL;
- 	unsigned int cmd = _IOC_NR(ioctl_cmd);
--	unsigned int func = cmd;
--	void __user *p = (void __user *) arg;
- 	struct device *dev = &nvdimm_bus->dev;
--	struct nd_cmd_pkg pkg;
-+	void __user *p = (void __user *) arg;
- 	const char *cmd_name, *dimm_name;
-+	u32 in_len = 0, out_len = 0;
-+	unsigned int func = cmd;
- 	unsigned long cmd_mask;
--	void *buf;
-+	struct nd_cmd_pkg pkg;
- 	int rc, i, cmd_rc;
-+	u64 buf_len = 0;
-+	void *buf;
- 
- 	if (nvdimm) {
- 		desc = nd_cmd_dimm_desc(cmd);
-@@ -983,7 +984,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 
- 	if (cmd == ND_CMD_CALL) {
- 		func = pkg.nd_command;
--		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
-+		dev_dbg(dev, "%s:%s, idx: %llu, in: %u, out: %u, len %llu\n",
- 				__func__, dimm_name, pkg.nd_command,
- 				in_len, out_len, buf_len);
- 
-@@ -1013,9 +1014,9 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		out_len += out_size;
- 	}
- 
--	buf_len = out_len + in_len;
-+	buf_len = (u64) out_len + (u64) in_len;
- 	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
--		dev_dbg(dev, "%s:%s cmd: %s buf_len: %zu > %d\n", __func__,
-+		dev_dbg(dev, "%s:%s cmd: %s buf_len: %llu > %d\n", __func__,
- 				dimm_name, cmd_name, buf_len,
- 				ND_IOCTL_MAX_BUFLEN);
- 		return -EINVAL;
+>         ../daxctl/lib/libdaxctl.la \
+>         ../libutil.a \
+>         $(UUID_LIBS) \
+> diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
+> index 7a446be..cfa54ae 100644
+> --- a/ndctl/lib/Makefile.am
+> +++ b/ndctl/lib/Makefile.am
+> @@ -8,7 +8,7 @@ BUILT_SOURCES = ../libndctl.h
+>         $(SED_PROCESS)
+>
+>  pkginclude_HEADERS = ../libndctl.h
+> -lib_LTLIBRARIES = libndctl.la
+> +lib_LTLIBRARIES = libndctl.la libndctl-nfit.la
+>
+>  libndctl_la_SOURCES =\
+>         libndctl.h \
+> @@ -35,6 +35,8 @@ libndctl_la_SOURCES += libndctl-hpe1.c
+>  libndctl_la_SOURCES += libndctl-msft.c
+>  endif
+>
+> +libndctl_nfit_la_SOURCES = libndctl-nfit.c
+> +
+>  EXTRA_DIST += libndctl.sym
+>
+>  libndctl_la_LDFLAGS = $(AM_LDFLAGS) \
+> diff --git a/ndctl/lib/libndctl-nfit.c b/ndctl/lib/libndctl-nfit.c
+> new file mode 100644
+> index 0000000..455815d
+> --- /dev/null
+> +++ b/ndctl/lib/libndctl-nfit.c
+> @@ -0,0 +1,147 @@
+> +/*
+> + * Copyright (c) 2017, FUJITSU LIMITED. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU Lesser General Public License,
+> + * version 2.1, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT ANY
+> + * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+> + * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+> + * more details.
+> + */
+> +#include <stdlib.h>
+> +#include <ndctl/libndctl.h>
+> +#include "libndctl-private.h"
+> +#include "libndctl-nfit.h"
+> +
+> +static int bus_has_translate_spa(struct ndctl_bus *bus)
+> +{
+> +       if (!ndctl_bus_has_nfit(bus))
+> +               return 0;
+> +
+> +       return ndctl_bus_is_passthru_cmd_supported(bus, NFIT_CMD_TRANSLATE_SPA);
+> +}
+> +
+> +static struct ndctl_cmd *ndctl_bus_cmd_new_translate_spa(struct ndctl_bus *bus)
+> +{
+> +       struct ndctl_cmd *cmd;
+> +       struct nd_cmd_pkg *pkg;
+> +       struct nd_cmd_translate_spa *translate_spa;
+> +       size_t size, spa_length;
+> +
+> +       spa_length = sizeof(struct nd_cmd_translate_spa)
+> +               + sizeof(struct nd_nvdimm_device);
+> +       size = sizeof(*cmd) + sizeof(*pkg) + spa_length;
+> +       cmd = calloc(1, size);
+> +       if (!cmd)
+> +               return NULL;
+> +
+> +       cmd->bus = bus;
+> +       ndctl_cmd_ref(cmd);
+> +       cmd->type = ND_CMD_CALL;
+> +       cmd->size = size;
+> +       cmd->status = 1;
+> +       pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
+> +       pkg->nd_command = NFIT_CMD_TRANSLATE_SPA;
+> +       pkg->nd_size_in = sizeof(unsigned long long);
+> +       pkg->nd_size_out = spa_length;
+> +       pkg->nd_fw_size = spa_length;
+> +       translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
+> +       cmd->firmware_status = &translate_spa->status;
+> +       translate_spa->translate_length = spa_length;
+> +
+> +       return cmd;
+> +}
+> +
+> +static int ndctl_bus_cmd_get_translate_spa(struct ndctl_cmd *cmd,
+> +                                       unsigned int *handle, unsigned long long *dpa)
+> +{
+> +       struct nd_cmd_pkg *pkg;
+> +       struct nd_cmd_translate_spa *translate_spa;
+> +
+> +       pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
+> +       translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
+> +
+> +       if (translate_spa->status == ND_TRANSLATE_SPA_STATUS_INVALID_SPA)
+> +               return -EINVAL;
+> +
+> +       /*
+> +        * XXX: Currently NVDIMM mirroring is not supported.
+> +        * Even if ACPI returned plural dimms due to mirroring,
+> +        * this function returns just the first dimm.
+> +        */
+> +
+> +       *handle = translate_spa->devices[0].nfit_device_handle;
+> +       *dpa = translate_spa->devices[0].dpa;
+> +
+> +       return 0;
+> +}
+> +
+> +static int is_valid_spa(struct ndctl_bus *bus, unsigned long long spa)
+> +{
+> +       struct ndctl_region *region;
+> +       unsigned long long region_start, region_end;
+> +
+> +       ndctl_region_foreach(bus, region) {
+> +               region_start = ndctl_region_get_resource(region);
+> +               region_end = region_start + ndctl_region_get_size(region);
+> +               if (region_start <= spa && spa < region_end)
+> +                       return 1;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +NDCTL_EXPORT int ndctl_bus_cmd_translate_spa(struct ndctl_bus *bus,
+> +       unsigned long long addr, unsigned int *handle, unsigned long long *dpa)
+> +{
+> +
+> +       struct ndctl_cmd *cmd;
+> +       struct nd_cmd_pkg *pkg;
+> +       struct nd_cmd_translate_spa *translate_spa;
+> +       int rc;
+> +
+> +       if (!bus || !handle || !dpa)
+> +               return -EINVAL;
+> +
+> +       if (!bus_has_translate_spa(bus))
+> +               return -ENOTTY;
+> +
+> +       if (!is_valid_spa(bus, addr))
+> +               return -EINVAL;
+> +
+> +       cmd = ndctl_bus_cmd_new_translate_spa(bus);
+> +       if (!cmd)
+> +               return -ENOMEM;
+> +
+> +       pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
+> +       translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
+> +       translate_spa->spa = addr;
+> +
+> +       rc = ndctl_cmd_submit(cmd);
+> +       if (rc) {
+> +               ndctl_cmd_unref(cmd);
+> +               return rc;
+> +       }
+> +
+> +       rc = ndctl_bus_cmd_get_translate_spa(cmd, handle, dpa);
+> +       ndctl_cmd_unref(cmd);
+> +
+> +       return rc;
+> +}
+> +
+> +NDCTL_EXPORT struct ndctl_dimm *ndctl_dimm_get_by_spa(struct ndctl_bus *bus,
+> +               unsigned long long spa)
+> +{
+> +       int rc;
+> +       unsigned int handle;
+> +       unsigned long long dpa;
+> +
+> +       /* ndctl_bus_cmd_translate_spa() has sanity check */
+> +       rc = ndctl_bus_cmd_translate_spa(bus, spa, &handle, &dpa);
+> +       if (rc)
+> +               return NULL;
+> +
+> +       return ndctl_dimm_get_by_handle(bus, handle);
+> +}
 
+Let's move this out of nfit.c and make it generic in libndctl.c
+
+    ndctl_dimm_get_by_physical_address()
+
+...where the common case of a single DIMM can be handled without
+calling any DSMs. But if it is an interleave-set we can check for
+ndctl_bus_has_nfit() before trying to call the nfit specific
+ndctl_bus_nfit_cmd_translate_spa().
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
