@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
+ [IPv6:2607:f8b0:4003:c06::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D04C021DF9663
- for <linux-nvdimm@lists.01.org>; Mon,  7 Aug 2017 09:37:37 -0700 (PDT)
-Subject: [PATCH v4 7/8] libnvdimm: Adding blk-mq support to the pmem driver
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 07 Aug 2017 09:39:53 -0700
-Message-ID: <150212399361.23722.13317531480320953298.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
-References: <150212381454.23722.1549806704988615279.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9F25D21D2E630
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 15:20:37 -0700 (PDT)
+Received: by mail-oi0-x235.google.com with SMTP id r203so8567456oih.0
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 15:23:21 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170831013603.16997-7-vishal.l.verma@intel.com>
+References: <20170831013603.16997-1-vishal.l.verma@intel.com>
+ <20170831013603.16997-7-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 31 Aug 2017 15:23:19 -0700
+Message-ID: <CAPcyv4gbU_guzNVjKnazxw5A=BTpLrQiysT2tN4EdiwcO3O8Vw@mail.gmail.com>
+Subject: Re: [PATCH v7 6/6] libnvdimm, btt: rework error clearing
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,261 +26,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding blk-mq support to the pmem driver in addition to the direct bio
-support. This allows for hardware offloading via DMA engines. By default
-the bio method will be enabled. The blk-mq support can be turned on via
-module parameter queue_mode=1.
+I think we're almost there, just one more comment that you can handle
+in a followup.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- drivers/nvdimm/pmem.c |  139 ++++++++++++++++++++++++++++++++++++++++++-------
- drivers/nvdimm/pmem.h |    3 +
- 2 files changed, 121 insertions(+), 21 deletions(-)
+On Wed, Aug 30, 2017 at 6:36 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Clearing errors or badblocks during a BTT write requires sending an ACPI
+> DSM, which means potentially sleeping. Since a BTT IO happens in atomic
+> context (preemption disabled, spinlocks may be held), we cannot perform
+> error clearing in the course of an IO. Due to this error clearing for
+> BTT IOs has hitherto been disabled.
+>
+> In this patch we move error clearing out of the atomic section, and thus
+> re-enable error clearing with BTTs. When we are about to add a block to
+> the free list, we check if it was previously marked as an error, and if
+> it was, we add it to the freelist, but also set a flag that says error
+> clearing will be required. We then drop the lane (ending the atomic
+> context), and send a zero buffer so that the error can be cleared. The
+> error flag in the free list is protected by the nd 'lane', and is set
+> only be a thread while it holds that lane. When the error is cleared,
+> the flag is cleared, but while holding a mutex for that freelist index.
+>
+> When writing, we check for two things -
+> 1/ If the freelist mutex is held or if the error flag is set. If so,
+> this is an error block that is being (or about to be) cleared.
+> 2/ If the block is a known badblock based on nsio->bb
+>
+> The second check is required because the BTT map error flag for a map
+> entry only gets set when an error LBA is read. If we write to a new
+> location that may not have the map error flag set, but still might be in
+> the region's badblock list, we can trigger an EIO on the write, which is
+> undesirable and completely avoidable.
+>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+[..]
+> @@ -505,6 +546,16 @@ static int btt_freelist_init(struct arena_info *arena)
+>                 arena->freelist[i].seq = nd_inc_seq(le32_to_cpu(log_new.seq));
+>                 arena->freelist[i].block = le32_to_cpu(log_new.old_map);
+>
+> +               /*
+> +                * FIXME: if error clearing fails during init, we want to make
+> +                * the BTT read-only
+> +                */
+> +               if (ent_e_flag(log_new.old_map)) {
+> +                       ret = arena_clear_freelist_error(arena, i);
+> +                       if (ret)
+> +                               WARN_ONCE(1, "Unable to clear known errors\n");
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index f7099ada..519b949 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -31,10 +31,24 @@
- #include <linux/uio.h>
- #include <linux/dax.h>
- #include <linux/nd.h>
-+#include <linux/blk-mq.h>
- #include "pmem.h"
- #include "pfn.h"
- #include "nd.h"
- 
-+enum {
-+	PMEM_Q_BIO = 0,
-+	PMEM_Q_MQ = 1,
-+};
-+
-+static int queue_mode = PMEM_Q_BIO;
-+module_param(queue_mode, int, 0444);
-+MODULE_PARM_DESC(queue_mode, "Pmem Queue Mode (0=BIO, 1=BLK-MQ)");
-+
-+struct pmem_cmd {
-+	struct request *rq;
-+};
-+
- static struct device *to_dev(struct pmem_device *pmem)
- {
- 	/*
-@@ -260,9 +274,13 @@ static const struct attribute_group *pmem_attribute_groups[] = {
- 	NULL,
- };
- 
--static void pmem_release_queue(void *q)
-+static void pmem_release_queue(void *data)
- {
--	blk_cleanup_queue(q);
-+	struct pmem_device *pmem = (struct pmem_device *)data;
-+
-+	blk_cleanup_queue(pmem->q);
-+	if (queue_mode == PMEM_Q_MQ)
-+		blk_mq_free_tag_set(&pmem->tag_set);
- }
- 
- static void pmem_freeze_queue(void *q)
-@@ -280,6 +298,54 @@ static void pmem_release_disk(void *__pmem)
- 	put_disk(pmem->disk);
- }
- 
-+static int pmem_handle_cmd(struct pmem_cmd *cmd)
-+{
-+	struct request *req = cmd->rq;
-+	struct request_queue *q = req->q;
-+	struct pmem_device *pmem = q->queuedata;
-+	struct nd_region *nd_region = to_region(pmem);
-+	struct bio_vec bvec;
-+	struct req_iterator iter;
-+	int rc = 0;
-+
-+	if (req->cmd_flags & REQ_FLUSH)
-+		nvdimm_flush(nd_region);
-+
-+	rq_for_each_segment(bvec, req, iter) {
-+		rc = pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len,
-+				bvec.bv_offset, op_is_write(req_op(req)),
-+				iter.iter.bi_sector);
-+		if (rc < 0)
-+			break;
-+	}
-+
-+	if (req->cmd_flags & REQ_FUA)
-+		nvdimm_flush(nd_region);
-+
-+	blk_mq_end_request(cmd->rq, rc);
-+
-+	return rc;
-+}
-+
-+static blk_status_t pmem_queue_rq(struct blk_mq_hw_ctx *hctx,
-+		const struct blk_mq_queue_data *bd)
-+{
-+	struct pmem_cmd *cmd = blk_mq_rq_to_pdu(bd->rq);
-+
-+	cmd->rq = bd->rq;
-+
-+	blk_mq_start_request(bd->rq);
-+
-+	if (pmem_handle_cmd(cmd) < 0)
-+		return BLK_STS_IOERR;
-+	else
-+		return BLK_STS_OK;
-+}
-+
-+static const struct blk_mq_ops pmem_mq_ops = {
-+	.queue_rq	= pmem_queue_rq,
-+};
-+
- static int pmem_attach_disk(struct device *dev,
- 		struct nd_namespace_common *ndns)
- {
-@@ -293,10 +359,10 @@ static int pmem_attach_disk(struct device *dev,
- 	struct nd_pfn_sb *pfn_sb;
- 	struct pmem_device *pmem;
- 	struct resource pfn_res;
--	struct request_queue *q;
- 	struct device *gendev;
- 	struct gendisk *disk;
- 	void *addr;
-+	int rc;
- 
- 	/* while nsio_rw_bytes is active, parse a pfn info block if present */
- 	if (is_nd_pfn(dev)) {
-@@ -329,17 +395,49 @@ static int pmem_attach_disk(struct device *dev,
- 		return -EBUSY;
- 	}
- 
--	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
--	if (!q)
--		return -ENOMEM;
-+	if (queue_mode == PMEM_Q_MQ) {
-+		pmem->tag_set.ops = &pmem_mq_ops;
-+		pmem->tag_set.nr_hw_queues = nr_online_nodes;
-+		pmem->tag_set.queue_depth = 64;
-+		pmem->tag_set.numa_node = dev_to_node(dev);
-+		pmem->tag_set.cmd_size = sizeof(struct pmem_cmd);
-+		pmem->tag_set.flags = BLK_MQ_F_SHOULD_MERGE;
-+		pmem->tag_set.driver_data = pmem;
-+
-+		rc = blk_mq_alloc_tag_set(&pmem->tag_set);
-+		if (rc < 0)
-+			return rc;
-+
-+		pmem->q = blk_mq_init_queue(&pmem->tag_set);
-+		if (IS_ERR(pmem->q)) {
-+			blk_mq_free_tag_set(&pmem->tag_set);
-+			return -ENOMEM;
-+		}
- 
--	if (devm_add_action_or_reset(dev, pmem_release_queue, q))
--		return -ENOMEM;
-+		if (devm_add_action_or_reset(dev, pmem_release_queue, pmem)) {
-+			pmem_release_queue(pmem);
-+			return -ENOMEM;
-+		}
-+	} else if (queue_mode == PMEM_Q_BIO) {
-+		pmem->q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
-+		if (!pmem->q)
-+			return -ENOMEM;
-+
-+		if (devm_add_action_or_reset(dev, pmem_release_queue, pmem)) {
-+			pmem_release_queue(pmem);
-+			return -ENOMEM;
-+		}
-+
-+		blk_queue_make_request(pmem->q, pmem_make_request);
-+	} else {
-+		dev_warn(dev, "Invalid queue mode: %d\n", queue_mode);
-+		return -EINVAL;
-+	}
- 
- 	pmem->pfn_flags = PFN_DEV;
- 	if (is_nd_pfn(dev)) {
--		addr = devm_memremap_pages(dev, &pfn_res, &q->q_usage_counter,
--				altmap);
-+		addr = devm_memremap_pages(dev, &pfn_res,
-+				&pmem->q->q_usage_counter, altmap);
- 		pfn_sb = nd_pfn->pfn_sb;
- 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
- 		pmem->pfn_pad = resource_size(res) - resource_size(&pfn_res);
-@@ -348,7 +446,7 @@ static int pmem_attach_disk(struct device *dev,
- 		res->start += pmem->data_offset;
- 	} else if (pmem_should_map_pages(dev)) {
- 		addr = devm_memremap_pages(dev, &nsio->res,
--				&q->q_usage_counter, NULL);
-+				&pmem->q->q_usage_counter, NULL);
- 		pmem->pfn_flags |= PFN_MAP;
- 	} else
- 		addr = devm_memremap(dev, pmem->phys_addr,
-@@ -358,21 +456,20 @@ static int pmem_attach_disk(struct device *dev,
- 	 * At release time the queue must be frozen before
- 	 * devm_memremap_pages is unwound
- 	 */
--	if (devm_add_action_or_reset(dev, pmem_freeze_queue, q))
-+	if (devm_add_action_or_reset(dev, pmem_freeze_queue, pmem->q))
- 		return -ENOMEM;
- 
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
- 	pmem->virt_addr = addr;
- 
--	blk_queue_write_cache(q, wbc, fua);
--	blk_queue_make_request(q, pmem_make_request);
--	blk_queue_physical_block_size(q, PAGE_SIZE);
--	blk_queue_logical_block_size(q, pmem_sector_size(ndns));
--	blk_queue_max_hw_sectors(q, UINT_MAX);
--	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, q);
--	queue_flag_set_unlocked(QUEUE_FLAG_DAX, q);
--	q->queuedata = pmem;
-+	blk_queue_write_cache(pmem->q, wbc, fua);
-+	blk_queue_physical_block_size(pmem->q, PAGE_SIZE);
-+	blk_queue_logical_block_size(pmem->q, pmem_sector_size(ndns));
-+	blk_queue_max_hw_sectors(pmem->q, UINT_MAX);
-+	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, pmem->q);
-+	queue_flag_set_unlocked(QUEUE_FLAG_DAX, pmem->q);
-+	pmem->q->queuedata = pmem;
- 
- 	disk = alloc_disk_node(0, nid);
- 	if (!disk)
-@@ -380,7 +477,7 @@ static int pmem_attach_disk(struct device *dev,
- 	pmem->disk = disk;
- 
- 	disk->fops		= &pmem_fops;
--	disk->queue		= q;
-+	disk->queue		= pmem->q;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
- 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
- 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index 5434321..bbbe982 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -4,6 +4,7 @@
- #include <linux/types.h>
- #include <linux/pfn_t.h>
- #include <linux/fs.h>
-+#include <linux/blk-mq.h>
- 
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- #define ARCH_MEMREMAP_PMEM MEMREMAP_WB
-@@ -35,6 +36,8 @@ struct pmem_device {
- 	struct badblocks	bb;
- 	struct dax_device	*dax_dev;
- 	struct gendisk		*disk;
-+	struct blk_mq_tag_set	tag_set;
-+	struct request_queue	*q;
- };
- 
- long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+WARN implies the backtrace would be interesting for this failure, for
+example if the failure is likely due to a kernel software bug.
+Instead, what we need here is similar to what the buffer_io_error()
+helper does in fs/buffer.c. I.e. switch this to dev_err_ratelimited()
+so we know which device and include the namespace physical offset that
+remains busted.
 
+This can be a follow-on because there are other usages of WARN in
+btt.c that should be audited / converted to dev_WARN at a minimum, and
+potentially dev_err() if the failure is not due to a software problem.
+
+We might also want dev_err_ratelimited in the I/O path failure case,
+because the administrator should know that they are continuing to see
+ongoing error clearing failures.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
