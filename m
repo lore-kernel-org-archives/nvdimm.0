@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x229.google.com (mail-oi0-x229.google.com
+ [IPv6:2607:f8b0:4003:c06::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BDC5521E11D3B
- for <linux-nvdimm@lists.01.org>; Fri, 25 Aug 2017 13:56:59 -0700 (PDT)
-Subject: [PATCH v6 2/8] dmaengine: Add DMA_MEMCPY_SG transaction op
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 25 Aug 2017 13:59:35 -0700
-Message-ID: <150369477557.6962.17597022285367797559.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
-References: <150369446130.6962.4195769527575520889.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E808E21E74926
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 20:31:54 -0700 (PDT)
+Received: by mail-oi0-x229.google.com with SMTP id r203so12218280oih.0
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 20:34:39 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4iECaWuZNg4VOsSydtd9wnsS=JVfQ3ySHSQo0UP+J5gkw@mail.gmail.com>
+References: <alpine.LRH.2.02.1708312138390.32309@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4j9KcgWU+rDY_5zAQ4xg3cx4Z3UkjTieVNMkWLc7C0OLg@mail.gmail.com>
+ <alpine.LRH.2.02.1708312242080.32309@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4iECaWuZNg4VOsSydtd9wnsS=JVfQ3ySHSQo0UP+J5gkw@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 31 Aug 2017 20:34:37 -0700
+Message-ID: <CAPcyv4jEO1g_OeG-T_veMtziXByNzEta5g00v-yTr7=yr6kpcA@mail.gmail.com>
+Subject: Re: [PATCH] dax: remove the pmem_dax_ops->flush abstraction
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,99 +28,82 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, hch@infradead.org, linux-nvdimm@lists.01.org
+To: Mikulas Patocka <mpatocka@redhat.com>
+Cc: dm-devel@redhat.com, Mike Snitzer <snitzer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a dmaengine transaction operation that allows copy to/from a
-scatterlist and a flat buffer.
+On Thu, Aug 31, 2017 at 8:11 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Thu, Aug 31, 2017 at 7:49 PM, Mikulas Patocka <mpatocka@redhat.com> wrote:
+>>
+>>
+>> On Thu, 31 Aug 2017, Dan Williams wrote:
+>>
+>>> On Thu, Aug 31, 2017 at 6:47 PM, Mikulas Patocka <mpatocka@redhat.com> wrote:
+>>> > The patch abebfbe2f731 ("dm: add ->flush() dax operation support") is
+>>> > buggy. A dm device may be composed of multiple underlying devices and all
+>>> > of them need to be flushed. The patch just routes the flush request to the
+>>> > first device and ignores the other devices.
+>>> >
+>>> > It could be fixed by adding more complex logic to the device mapper. But
+>>> > there is only one implementation of the method pmem_dax_ops->flush - that
+>>> > is pmem_dax_flush() - and it calls arch_wb_cache_pmem(). Consequently, we
+>>> > don't need the pmem_dax_ops->flush abstraction at all, we can call
+>>> > arch_wb_cache_pmem() directly from dax_flush() because dax_dev->ops->flush
+>>> > couldn't ever reach anything different from arch_wb_cache_pmem().
+>>>
+>>> Unfortunately, this is not true, see usage of DAXDEV_WRITE_CACHE. This
+>>> is for platforms that arrange for cpu caches to be flushed on
+>>> power-fail, like standalone storage appliances, where it would be a
+>>> waste for the kernel to track and flush dirty cachelines for dax.
+>>> Theoretically this could be done on a per-address range basis (think
+>>> battery backing a subset of the system memory). I think we need to fix
+>>> the routing to flush the same dax_device that ->direct_access() was
+>>> invoked.
+>>
+>> With my patch, dax_flush checks DAXDEV_WRITE_CACHE and doesn't do anything
+>> if it's not set - it just doesn't go through device mapper.
+>
+> True, but there's no guarantee that arch_wb_pmem() will be sufficient
+> going forward and the reason we routed this to the driver in the first
+> place was to allow driver / platform specific flush implementations.
+>
+>>
+>>> > It should be also pointed out that for some uses of persistent memory it
+>>> > is needed to flush only very small amount of data (such as 1 cacheline),
+>>> > and it would be overkill if we go through that device mapper machinery for
+>>> > a single flushed cache line.
+>>>
+>>> I think this is more an argument to not enable DAX on that
+>>> device-mapper topology if operation routing impacts performance. DAX
+>>> is meant to get the kernel out of the way most of the time.
+>>
+>> I don't understand what do you mean? I am writing a device mapper target
+>> that uses persistent memory as a cache. When flushing the metadata,
+>> sometimes it is needed to flush single cache lines. Ideally, I would use
+>> the clwb instruction for this purpose, but that clwb is hidden behind a
+>> complicated pmem_dax_ops->flush abstraction (and that abstraction will get
+>> even more complicated if implemented correctly). How do you think I should
+>> write that target without DAX?
+>
+> I don't think you want DAX for this, I think you want direct control
+> of a persistent-memory address range.  For example the brd driver
+> supports DAX but I wouldn't recommend using it as the basis for a
+> directly managed cache.
+>
+> So I think we need to dive deeper into what an in kernel interface to
+> access a contiguous persistent memory range looks like. DAX was not
+> designed with that use case in mind.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/dmaengine/provider.txt |    3 +++
- drivers/dma/dmaengine.c              |    2 ++
- include/linux/dmaengine.h            |   19 +++++++++++++++++++
- 3 files changed, 24 insertions(+)
+For a cache driver using pmem, a strawman / starting point would be
+trying to do a ->direct_access() call for the full capacity of the
+device and then:
 
-diff --git a/Documentation/dmaengine/provider.txt b/Documentation/dmaengine/provider.txt
-index a75f52f..6241e36 100644
---- a/Documentation/dmaengine/provider.txt
-+++ b/Documentation/dmaengine/provider.txt
-@@ -181,6 +181,9 @@ Currently, the types available are:
-     - Used by the client drivers to register a callback that will be
-       called on a regular basis through the DMA controller interrupt
- 
-+  * DMA_MEMCPY_SG
-+    - The device supports scatterlist to/from memory.
-+
-   * DMA_PRIVATE
-     - The devices only supports slave transfers, and as such isn't
-       available for async transfers.
-diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
-index 428b141..4d2c4e1 100644
---- a/drivers/dma/dmaengine.c
-+++ b/drivers/dma/dmaengine.c
-@@ -937,6 +937,8 @@ int dma_async_device_register(struct dma_device *device)
- 		!device->device_prep_dma_memset);
- 	BUG_ON(dma_has_cap(DMA_INTERRUPT, device->cap_mask) &&
- 		!device->device_prep_dma_interrupt);
-+	BUG_ON(dma_has_cap(DMA_MEMCPY_SG, device->cap_mask) &&
-+		!device->device_prep_dma_memcpy_sg);
- 	BUG_ON(dma_has_cap(DMA_CYCLIC, device->cap_mask) &&
- 		!device->device_prep_dma_cyclic);
- 	BUG_ON(dma_has_cap(DMA_INTERLEAVE, device->cap_mask) &&
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index 64fbd38..0c91411 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -67,6 +67,7 @@ enum dma_transaction_type {
- 	DMA_PQ_VAL,
- 	DMA_MEMSET,
- 	DMA_MEMSET_SG,
-+	DMA_MEMCPY_SG,
- 	DMA_INTERRUPT,
- 	DMA_PRIVATE,
- 	DMA_ASYNC_TX,
-@@ -692,6 +693,7 @@ struct dma_filter {
-  * @device_prep_dma_pq_val: prepares a pqzero_sum operation
-  * @device_prep_dma_memset: prepares a memset operation
-  * @device_prep_dma_memset_sg: prepares a memset operation over a scatter list
-+ * @device_prep_dma_memcpy_sg: prepares memcpy between scatterlist and buffer
-  * @device_prep_dma_interrupt: prepares an end of chain interrupt operation
-  * @device_prep_slave_sg: prepares a slave dma operation
-  * @device_prep_dma_cyclic: prepare a cyclic dma operation suitable for audio.
-@@ -768,6 +770,10 @@ struct dma_device {
- 	struct dma_async_tx_descriptor *(*device_prep_dma_memset_sg)(
- 		struct dma_chan *chan, struct scatterlist *sg,
- 		unsigned int nents, int value, unsigned long flags);
-+	struct dma_async_tx_descriptor *(*device_prep_dma_memcpy_sg)(
-+		struct dma_chan *chan,
-+		struct scatterlist *sg, unsigned int sg_nents,
-+		dma_addr_t buf, bool to_sg, unsigned long flags);
- 	struct dma_async_tx_descriptor *(*device_prep_dma_interrupt)(
- 		struct dma_chan *chan, unsigned long flags);
- 
-@@ -899,6 +905,19 @@ static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_memcpy(
- 						    len, flags);
- }
- 
-+static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_memcpy_sg(
-+		struct dma_chan *chan, struct scatterlist *sg,
-+		unsigned int sg_nents, dma_addr_t buf, bool to_sg,
-+		unsigned long flags)
-+{
-+	if (!chan || !chan->device ||
-+			!chan->device->device_prep_dma_memcpy_sg)
-+		return NULL;
-+
-+	return chan->device->device_prep_dma_memcpy_sg(chan, sg, sg_nents,
-+						       buf, to_sg, flags);
-+}
-+
- /**
-  * dmaengine_terminate_all() - Terminate all active DMA transfers
-  * @chan: The channel for which to terminate the transfers
+1/ validate that it returns the full capacity (this will preclude
+drivers like brd, and make sure the dax range is contiguous)
 
+2/ use the returned pfn to walk the iomem resource tree and validate
+that you are talking to persistent memory and not some special
+dax-device range.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
