@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 856F221E95DE8
- for <linux-nvdimm@lists.01.org>; Wed, 30 Aug 2017 16:14:26 -0700 (PDT)
-Subject: [PATCH 2/2] mm: introduce MAP_VALIDATE,
- a mechanism for for safely defining new mmap flags
+ by ml01.01.org (Postfix) with ESMTPS id 87E0D20958BE8
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 17:37:01 -0700 (PDT)
+Subject: [PATCH] libnvdimm: fix integer overflow static analysis warning
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 30 Aug 2017 16:08:26 -0700
-Message-ID: <150413450616.5923.7069852068237042023.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150413449482.5923.1348069619036923853.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150413449482.5923.1348069619036923853.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 31 Aug 2017 17:33:20 -0700
+Message-ID: <150422600081.8459.2869511055414536668.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,223 +20,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: jack@suse.cz, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, luto@kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, hch@lst.de
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, stable@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The mmap(2) syscall suffers from the ABI anti-pattern of not validating
-unknown flags. However, proposals like MAP_SYNC and MAP_DIRECT need a
-mechanism to define new behavior that is known to fail on older kernels
-without the support. Define a new MAP_VALIDATE flag pattern that is
-guaranteed to fail on all legacy mmap implementations.
+Dan reports:
+    The patch 62232e45f4a2: "libnvdimm: control (ioctl) messages for
+    nvdimm_bus and nvdimm devices" from Jun 8, 2015, leads to the
+    following static checker warning:
 
-With this in place new flags can be defined as:
+            drivers/nvdimm/bus.c:1018 __nd_ioctl()
+            warn: integer overflows 'buf_len'
 
-    #define MAP_new (MAP_VALIDATE | val)
+    From a casual review, this seems like it might be a real bug.  On
+    the first iteration we load some data into in_env[].  On the second
+    iteration we read a use controlled "in_size" from nd_cmd_in_size().
+    It can go up to UINT_MAX - 1.  A high number means we will fill the
+    whole in_env[] buffer.  But we potentially keep looping and adding
+    more to in_len so now it can be any value.
 
-MAP_VALIDATE depends on Christoph's observation that the legacy mmap
-path does:
+    It simple enough to change, but it feels weird that we keep looping
+    even though in_env is totally full.  Shouldn't we just return an
+    error if we don't have space for desc->in_num.
 
-    include/uapi/asm-generic/mman-common.h:
+We keep looping because the size of the total input is allowed to be
+bigger than the 'envelope' which is a subset of the payload that tells
+us how much data to expect. For safety explicitly check that buf_len
+does not overflow which is what the checker flagged.
 
-        #define MAP_SHARED      0x01            /* Share changes */
-        #define MAP_PRIVATE     0x02            /* Changes are private */
-        #define MAP_TYPE        0x0f            /* Mask for type of mapping */
-
-     mm/mmap.c:
-
-        switch (flags & MAP_TYPE) {
-        case MAP_SHARED:
-                ...
-        case MAP_PRIVATE:
-                ...
-        default:
-                return -EINVAL;
-        }
-
-Where any value in the MAP_TYPE mask outside of MAP_{SHARED|PRIVATE} is
-explicitly failed. However, the ability to specify MAP_VALIDATE as a
-flag distinct from MAP_{SHARED|PRIVATE}, but still in the MAP_TYPE mask
-fails on parisc where MAP_TYPE is defined as 0x3. For parisc to support
-new mmap flags it will need a new syscall and libc infrastructure to
-opt-in to a new flag handling scheme. In the meantime, internal to the
-kernel, we can default MAP_VALIDATE and any new flags to be equal to
-MAP_TYPE to force them to be invalid.
-
-Similar to ->fallocate() we also want the ability to validate the
-support for new flags on a per ->mmap() 'struct file_operations'
-instance basis.  Towards that end arrange for flags to be generically
-validated against a mmap_supported_mask exported by 'struct
-file_operations'. By default all existing flags are implicitly
-supported, but new flags require per-instance-opt-in.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Christoph Hellwig <hch@lst.de>
+Cc: <stable@vger.kernel.org>
+Fixes: 62232e45f4a2: "libnvdimm: control (ioctl) messages for nvdimm_bus..."
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/fs.h                     |    1 +
- include/linux/mm.h                     |    2 +
- include/linux/mman.h                   |   50 ++++++++++++++++++++++++++++++++
- include/uapi/asm-generic/mman-common.h |    1 +
- mm/mmap.c                              |   22 ++++++++++++--
- 5 files changed, 72 insertions(+), 4 deletions(-)
+ drivers/nvdimm/bus.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 47249bbe973c..c3653283d9de 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1674,6 +1674,7 @@ struct file_operations {
- 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
- 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *, unsigned long);
-+	unsigned long mmap_supported_mask;
- 	int (*open) (struct inode *, struct file *);
- 	int (*flush) (struct file *, fl_owner_t id);
- 	int (*release) (struct inode *, struct file *);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 46b9ac5e8569..49eef48da4b7 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2090,7 +2090,7 @@ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned lo
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index a18c2914f4b6..66586ce23f1b 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -911,19 +911,20 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		int read_only, unsigned int ioctl_cmd, unsigned long arg)
+ {
+ 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
+-	size_t buf_len = 0, in_len = 0, out_len = 0;
+ 	static char out_env[ND_CMD_MAX_ENVELOPE];
+ 	static char in_env[ND_CMD_MAX_ENVELOPE];
+ 	const struct nd_cmd_desc *desc = NULL;
+ 	unsigned int cmd = _IOC_NR(ioctl_cmd);
+-	unsigned int func = cmd;
+-	void __user *p = (void __user *) arg;
+ 	struct device *dev = &nvdimm_bus->dev;
+-	struct nd_cmd_pkg pkg;
++	void __user *p = (void __user *) arg;
+ 	const char *cmd_name, *dimm_name;
++	u32 in_len = 0, out_len = 0;
++	unsigned int func = cmd;
+ 	unsigned long cmd_mask;
+-	void *buf;
++	struct nd_cmd_pkg pkg;
+ 	int rc, i, cmd_rc;
++	u64 buf_len = 0;
++	void *buf;
  
- extern unsigned long mmap_region(struct file *file, unsigned long addr,
- 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--	struct list_head *uf);
-+	struct list_head *uf, unsigned long flags);
- extern unsigned long do_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot, unsigned long flags,
- 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
-diff --git a/include/linux/mman.h b/include/linux/mman.h
-index c8367041fafd..289051f6ab1e 100644
---- a/include/linux/mman.h
-+++ b/include/linux/mman.h
-@@ -7,6 +7,56 @@
- #include <linux/atomic.h>
- #include <uapi/linux/mman.h>
+ 	if (nvdimm) {
+ 		desc = nd_cmd_dimm_desc(cmd);
+@@ -983,7 +984,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
  
-+/*
-+ * Arrange for legacy / undefined architecture specific flags to be
-+ * ignored by default in LEGACY_MAP_MASK.
-+ */
-+#ifndef MAP_32BIT
-+#define MAP_32BIT 0
-+#endif
-+#ifndef MAP_HUGE_2MB
-+#define MAP_HUGE_2MB 0
-+#endif
-+#ifndef MAP_HUGE_1GB
-+#define MAP_HUGE_1GB 0
-+#endif
-+#ifndef MAP_UNINITIALIZED
-+#define MAP_UNINITIALIZED 0
-+#endif
-+
-+/*
-+ * If the architecture does not define MAP_VALIDATE, default it to a
-+ * known invalid pattern that do_mmap() will reject.
-+ */
-+#ifndef MAP_VALIDATE
-+#define MAP_VALIDATE MAP_TYPE
-+#endif
-+
-+/*
-+ * The historical set of flags that all mmap implementations implicitly
-+ * support when file_operations.mmap_supported_mask is zero. With the
-+ * mmap3 syscall the deprecated MAP_DENYWRITE and MAP_EXECUTABLE bit
-+ * values are explicitly rejected with EOPNOTSUPP rather than being
-+ * silently accepted.
-+ */
-+#define LEGACY_MAP_MASK (MAP_SHARED \
-+		| MAP_PRIVATE \
-+		| MAP_FIXED \
-+		| MAP_ANONYMOUS \
-+		| MAP_UNINITIALIZED \
-+		| MAP_GROWSDOWN \
-+		| MAP_LOCKED \
-+		| MAP_NORESERVE \
-+		| MAP_POPULATE \
-+		| MAP_NONBLOCK \
-+		| MAP_STACK \
-+		| MAP_HUGETLB \
-+		| MAP_32BIT \
-+		| MAP_HUGE_2MB \
-+		| MAP_HUGE_1GB)
-+
-+#define	MAP_SUPPORTED_MASK (LEGACY_MAP_MASK)
-+
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern unsigned long sysctl_overcommit_kbytes;
-diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
-index 8c27db0c5c08..a7697c18a91c 100644
---- a/include/uapi/asm-generic/mman-common.h
-+++ b/include/uapi/asm-generic/mman-common.h
-@@ -16,6 +16,7 @@
+ 	if (cmd == ND_CMD_CALL) {
+ 		func = pkg.nd_command;
+-		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
++		dev_dbg(dev, "%s:%s, idx: %llu, in: %u, out: %u, len %llu\n",
+ 				__func__, dimm_name, pkg.nd_command,
+ 				in_len, out_len, buf_len);
  
- #define MAP_SHARED	0x01		/* Share changes */
- #define MAP_PRIVATE	0x02		/* Changes are private */
-+#define MAP_VALIDATE	0x04		/* Validate flags beyond LEGACY_MAP_MASK */
- #define MAP_TYPE	0x0f		/* Mask for type of mapping */
- #define MAP_FIXED	0x10		/* Interpret addr exactly */
- #define MAP_ANONYMOUS	0x20		/* don't use a file */
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 744faae86781..6936bb39e04a 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1387,7 +1387,23 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 	if (file) {
- 		struct inode *inode = file_inode(file);
- 
-+		if ((flags & MAP_VALIDATE) == MAP_TYPE)
-+			return -EINVAL;
-+
-+		if (flags & MAP_VALIDATE) {
-+			unsigned long f_supported;
-+
-+			f_supported = file->f_op->mmap_supported_mask;
-+			if (!f_supported)
-+				f_supported = LEGACY_MAP_MASK;
-+			if (flags & ~(f_supported | MAP_VALIDATE))
-+				return -EOPNOTSUPP;
-+		}
-+
- 		switch (flags & MAP_TYPE) {
-+		case (MAP_SHARED|MAP_VALIDATE):
-+			/* TODO: new map flags */
-+			return -EINVAL;
- 		case MAP_SHARED:
- 			if ((prot&PROT_WRITE) && !(file->f_mode&FMODE_WRITE))
- 				return -EACCES;
-@@ -1464,7 +1480,7 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			vm_flags |= VM_NORESERVE;
+@@ -1013,9 +1014,9 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		out_len += out_size;
  	}
  
--	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf);
-+	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags);
- 	if (!IS_ERR_VALUE(addr) &&
- 	    ((vm_flags & VM_LOCKED) ||
- 	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
-@@ -1601,7 +1617,7 @@ static inline int accountable_mapping(struct file *file, vm_flags_t vm_flags)
- 
- unsigned long mmap_region(struct file *file, unsigned long addr,
- 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--		struct list_head *uf)
-+		struct list_head *uf, unsigned long flags)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev;
-@@ -1686,7 +1702,7 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
- 		 * new file must not have been exposed to user-space, yet.
- 		 */
- 		vma->vm_file = get_file(file);
--		error = call_mmap(file, vma, 0);
-+		error = call_mmap(file, vma, flags);
- 		if (error)
- 			goto unmap_and_free_vma;
- 
+-	buf_len = out_len + in_len;
++	buf_len = (u64) out_len + (u64) in_len;
+ 	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
+-		dev_dbg(dev, "%s:%s cmd: %s buf_len: %zu > %d\n", __func__,
++		dev_dbg(dev, "%s:%s cmd: %s buf_len: %llu > %d\n", __func__,
+ 				dimm_name, cmd_name, buf_len,
+ 				ND_IOCTL_MAX_BUFLEN);
+ 		return -EINVAL;
 
 _______________________________________________
 Linux-nvdimm mailing list
