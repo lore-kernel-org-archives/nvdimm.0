@@ -1,49 +1,110 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1087521E87969
- for <linux-nvdimm@lists.01.org>; Fri,  8 Sep 2017 17:59:51 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl, test: fix daxdax-errors.sh skip condition
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 08 Sep 2017 17:56:19 -0700
-Message-ID: <150491857945.2236.14367331919652638639.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: mcr-b3vwm0MSY3FBDgjK7y7TUQ@public.gmane.org
+Subject: RETURNED MAIL: SEE TRANSCRIPT FOR DETAILS
+Date: Fri, 1 Sep 2017 10:15:15 +0800
+Message-ID: <20170901021216.D96EE21EB526C@ml01.01.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="----------=_59A8C2B1.74775D20"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_59A8C2B1.74775D20
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  The original message was received at Fri, 1 Sep 2017 10:15:15
+   +0800 from solidum.com [190.194.70.62] ----- The following addresses had
+  permanent fatal errors ----- <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org> Linux-nvdimm mailing
+   list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
+   [...] 
+
+Content analysis details:   (5.8 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.5 SUBJ_ALL_CAPS          Subject is all capitals
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0004]
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+
+
+------------=_59A8C2B1.74775D20
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1dnbU4-0004VR-0m
+	for gln-linux-nvdimm@m.gmane.org; Fri, 01 Sep 2017 04:15:00 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id D96EE21EB526C;
+	Thu, 31 Aug 2017 19:12:16 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from solidum.com (unknown [183.14.30.87])
+ by ml01.01.org (Postfix) with ESMTP id 2EF5A20958BCA
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Thu, 31 Aug 2017 19:12:13 -0700 (PDT)
+From: mcr-b3vwm0MSY3FBDgjK7y7TUQ@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: RETURNED MAIL: SEE TRANSCRIPT FOR DETAILS
+Date: Fri, 1 Sep 2017 10:15:15 +0800
 MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.22
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-List-ID: <linux-nvdimm@lists.01.org>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Message-Id: <20170901021216.D96EE21EB526C-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-Return the skip code '77' if the test dependencies cannot be satisfied.
+The original message was received at Fri, 1 Sep 2017 10:15:15 +0800
+from solidum.com [190.194.70.62]
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/daxdev-errors.sh |    1 -
- 1 file changed, 1 deletion(-)
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
-index 4818a4a1efcf..8115087a085f 100755
---- a/test/daxdev-errors.sh
-+++ b/test/daxdev-errors.sh
-@@ -20,7 +20,6 @@ json2var="s/[{}\",]//g; s/:/=/g"
- rc=77
- 
- err() {
--	rc=1
- 	echo "test/daxdev-errors: failed at line $1"
- 	exit $rc
- }
+
 
 _______________________________________________
 Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_59A8C2B1.74775D20--
