@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF4C121E70D39
- for <linux-nvdimm@lists.01.org>; Tue, 29 Aug 2017 13:05:13 -0700 (PDT)
-Subject: [ndctl PATCH 0/7] ndctl: automatically initialize labels
+ by ml01.01.org (Postfix) with ESMTPS id 64F8C20958BC3
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 17:33:33 -0700 (PDT)
+Subject: [PATCH] ndctl, create-namespace: support sector size settings for pmem
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Aug 2017 13:01:30 -0700
-Message-ID: <150403689024.8240.10207637569759874850.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 31 Aug 2017 17:29:53 -0700
+Message-ID: <150422579319.8329.10494234762055238152.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,85 +23,85 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The QEMU-KVM enabling for a virtual NVDIMM is an example of a
-configuration where label-less namespaces are created by default. I.e.
-the ACPI NFIT produced by SeaBIOS publishes un-aliased pmem regions. The
-first operation an administrator is likely to perform is to reconfigure
-the namespace into "memory" mode to enable full-featured DAX support.
+Starting with v1.2 namespace label support it is permissible for pmem
+namespaces to have a sector size. Per UEFI 2.7 the default should be 4K
+for inter-OS compatibility.
 
-The reconfiguration of the label-less namespace into "memory" mode is an
-opportunity to also enable labels. This series effectively runs the
-following sequence:
-
-    ndctl disable-region all
-    ndctl init-labels
-    ndctl enabled-region all
-
-...in 'create-namespace' whenever a label-less namespace is encountered.
-The implementation is careful to try v1.2 labels and validate that the
-kernel supports that scheme. Otherwise, it falls back to v1.1 labels.
-
-For other utilities built on top of libndctl, the following new helpers
-are provided to enable a similar flow:
-
-    ndctl_dimm_read_labels()
-    ndctl_dimm_validate_labels()
-    ndctl_dimm_init_labels()
-
-...where 'read_labels' enables the other apis, 'validate_labels' checks
-whether the data retrieved from the read corresponds to a valid set of
-namespace label index blocks, and 'init_labels' writes namespace index
-blocks to the dimm. In order to check that the kernel supports a given
-index block version / format the result from
-ndctl_dimm_get_available_labels() can be compared to the result from
-ndctl_dimm_init_labels() to make sure the kernel sees the same number of
-available slots as userspace.
-
+Reported-by: Juston Li <juston.li@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ ndctl/namespace.c |   35 ++++++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 11 deletions(-)
 
-Dan Williams (7):
-      ndctl, init-labels: fix '--label-version' option
-      ndctl: drop the "libndctl-" prefix on library source files
-      ndctl: move label manipulation routines to their own file
-      ndctl: consolidate namespace definitions in namespace.h
-      ndctl: refactor read_labels() helper into a library call
-      ndctl: introduce ndctl_dimm_{validate_labels,init_labels}
-      ndctl: auto initialize labels
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 55645d868b60..115119a84431 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -248,12 +248,6 @@ static int set_defaults(enum namespace_action mode)
+ 			error("invalid sector size: %s\n", param.sector_size);
+ 			rc = -EINVAL;
+ 		}
+-
+-		if (param.type && param.mode && strcmp(param.type, "pmem") == 0
+-				&& strcmp(param.mode, "safe") != 0) {
+-			error("'pmem' namespaces do not support setting 'sector size'\n");
+-			rc = -EINVAL;
+-		}
+ 	} else if (!param.reconfig
+ 			&& ((param.type && strcmp(param.type, "blk") == 0)
+ 				|| (param.mode
+@@ -360,7 +354,7 @@ static int setup_namespace(struct ndctl_region *region,
+ 		try(ndctl_namespace, set_size, ndns, p->size);
+ 	}
+ 
+-	if (ndctl_namespace_get_type(ndns) == ND_DEVICE_NAMESPACE_BLK)
++	if (p->sector_size && p->sector_size < UINT_MAX)
+ 		try(ndctl_namespace, set_sector_size, ndns, p->sector_size);
+ 
+ 	uuid_generate(uuid);
+@@ -394,6 +388,13 @@ static int setup_namespace(struct ndctl_region *region,
+ 	} else if (p->mode == NDCTL_NS_MODE_SAFE) {
+ 		struct ndctl_btt *btt = ndctl_region_get_btt_seed(region);
+ 
++		/*
++		 * Handle the case of btt on a pmem namespace where the
++		 * pmem kernel support is pre-v1.2 namespace labels
++		 * support (does not support sector size settings).
++		 */
++		if (p->sector_size == UINT_MAX)
++			p->sector_size = 4096;
+ 		try(ndctl_btt, set_uuid, btt, uuid);
+ 		try(ndctl_btt, set_sector_size, btt, p->sector_size);
+ 		try(ndctl_btt, set_namespace, btt, ndns);
+@@ -632,11 +633,23 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 
+ 		if (btt)
+ 			p->sector_size = ndctl_btt_get_sector_size(btt);
+-		else if (ndctl_namespace_get_type(ndns)
+-				== ND_DEVICE_NAMESPACE_BLK)
++		else
+ 			p->sector_size = ndctl_namespace_get_sector_size(ndns);
+-		else if (p->mode == NDCTL_NS_MODE_SAFE)
+-				p->sector_size = 4096;
++	} else {
++		struct ndctl_namespace *seed;
++
++		seed = ndctl_region_get_namespace_seed(region);
++		if (ndctl_namespace_get_type(seed) == ND_DEVICE_NAMESPACE_BLK)
++			debug("%s: set_defaults() should preclude this?\n",
++				ndctl_region_get_devname(region));
++		/*
++		 * Pick a default sector size for a pmem namespace based
++		 * on what the kernel supports.
++		 */
++		if (ndctl_namespace_get_num_sector_sizes(seed) == 0)
++			p->sector_size = UINT_MAX;
++		else
++			p->sector_size = 512;
+ 	}
+ 
+ 	if (param.map) {
 
-
- Documentation/ndctl/ndctl-create-namespace.txt |    7 
- Makefile.am                                    |    1 
- ndctl/check.c                                  |   52 ++
- ndctl/check.h                                  |  130 ------
- ndctl/dimm.c                                   |  547 +----------------------
- ndctl/lib/Makefile.am                          |   11 
- ndctl/lib/ars.c                                |    2 
- ndctl/lib/dimm.c                               |  565 ++++++++++++++++++++++++
- ndctl/lib/hpe1.c                               |    4 
- ndctl/lib/hpe1.h                               |    0 
- ndctl/lib/libndctl.c                           |  154 -------
- ndctl/lib/libndctl.sym                         |    4 
- ndctl/lib/msft.c                               |    4 
- ndctl/lib/msft.h                               |    0 
- ndctl/lib/private.h                            |  151 +++---
- ndctl/lib/smart.c                              |    2 
- ndctl/libndctl.h.in                            |    9 
- ndctl/namespace.c                              |  101 ++++
- ndctl/namespace.h                              |  163 +++++++
- util/fletcher.c                                |   35 -
- util/fletcher.h                                |   19 +
- 21 files changed, 1021 insertions(+), 940 deletions(-)
- delete mode 100644 ndctl/check.h
- rename ndctl/lib/{libndctl-ars.c => ars.c} (99%)
- create mode 100644 ndctl/lib/dimm.c
- rename ndctl/lib/{libndctl-hpe1.c => hpe1.c} (99%)
- rename ndctl/lib/{ndctl-hpe1.h => hpe1.h} (100%)
- rename ndctl/lib/{libndctl-msft.c => msft.c} (98%)
- rename ndctl/lib/{ndctl-msft.h => msft.h} (100%)
- rename ndctl/lib/{libndctl-private.h => private.h} (69%)
- rename ndctl/lib/{libndctl-smart.c => smart.c} (99%)
- create mode 100644 ndctl/namespace.h
- delete mode 100644 util/fletcher.c
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
