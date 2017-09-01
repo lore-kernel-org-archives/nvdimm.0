@@ -1,23 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym02.jp.fujitsu.com (mgwym02.jp.fujitsu.com [211.128.242.41])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3F83C20958BC2
- for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 18:39:33 -0700 (PDT)
-Received: from g01jpfmpwkw02.exch.g01.fujitsu.local
- (g01jpfmpwkw02.exch.g01.fujitsu.local [10.0.193.56])
- by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id B1823AC02AD
- for <linux-nvdimm@lists.01.org>; Fri,  1 Sep 2017 10:42:10 +0900 (JST)
-Received: from G01JPEXCHKW16.g01.fujitsu.local
- (G01JPEXCHKW16.g01.fujitsu.local [10.0.194.55])
- by g01jpfmpwkw02.exch.g01.fujitsu.local (Postfix) with ESMTP id 0533A32884B
- for <linux-nvdimm@lists.01.org>; Fri,  1 Sep 2017 10:42:10 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: [RFC patch 0/4]ndctl: nvdimmd: notify/monitor the feathers of over
- threshold event
-Date: Fri, 1 Sep 2017 01:42:09 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222756C8BF@g01jpexmbkw01>
-Content-Language: ja-JP
+ by ml01.01.org (Postfix) with ESMTPS id 53E3020958BED
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Aug 2017 17:33:28 -0700 (PDT)
+Subject: [PATCH] ndctl: make ndctl_namspace_set_sector_size() more verbose
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 31 Aug 2017 17:29:47 -0700
+Message-ID: <150422578789.8329.15965986648705526561.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,78 +16,56 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-2022-jp"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+Since we already walk all the supported sector sizes in the success
+case, move that loop to the start of the routine and use it for logging
+bad input parameters.
 
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ ndctl/lib/libndctl.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-
-This is my first time to experience OSS world. I hope I can contribute to NVDIMM development.
-
-
-
-This is a patch set of nvdimmd, a tiny daemon to monitor the features of over
-
-threshold events. It finds and monitors all of the dimms which support smart
-
-threshold. Although at this time, nvdimm daemon only outputs NVDIMM's status to
-
-systemlog, I would like to get comments/opinions.
-
-
-
-The output includes dimm's name, health state and spares percentage, etc.
-
-Here is a sample of the output.
-
-
-
-            nvdimm warning: dimm over threshold notify [nmem2]
-
-            health_state: non-critical
-
-            spares_percentage: 75
-
-
-
-About compiling the nvdimmd, I am not sure whether ndctl using automake can be
-
-merged with into kernel or not[1], so a simple makefile is included. If it is
-
-necessary to write into automake, please kindly let me know.
-
-
-
-Here is TODO list:
-
- - Currently, if multiply events are notified in the same time, nvdimmd may lose some of them.
-
-   I suppose it depends on select()’s specification, and I tried to use poll() instead of select(),
-
-but it did not work well. So I need more research on select() and poll().
-
-- Change the makefile to automake if necessary.
-
-- Add more information of dimm into the notification.
-
-- Add a config file to configure the parameters and initial settings for nvdimmd.
-
-- Implement a feature(framework) so that nvdimmd can call external applications.
-
-
-
-[1] https://lkml.org/lkml/2017/7/26/245
-
-
-
---
-
-QI Fuli <qi.fuli@jp.fujitsu.com<mailto:qi.fuli@jp.fujitsu.com>>
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index f52ecfe9d142..4361cd8f26c5 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -3549,8 +3549,15 @@ NDCTL_EXPORT int ndctl_namespace_set_sector_size(struct ndctl_namespace *ndns,
+ 	char sector_str[40];
+ 	int i;
+ 
+-	if (ndns->lbasize.num == 0)
+-		return -ENXIO;
++	for (i = 0; i < ndns->lbasize.num; i++)
++		if (ndns->lbasize.supported[i] == sector_size)
++			break;
++
++	if (i > ndns->lbasize.num) {
++		err(ctx, "%s: unsupported sector size %d\n",
++				ndctl_namespace_get_devname(ndns), sector_size);
++		return -EOPNOTSUPP;
++	}
+ 
+ 	if (snprintf(path, len, "%s/sector_size", ndns->ndns_path) >= len) {
+ 		err(ctx, "%s: buffer too small!\n",
+@@ -3563,9 +3570,8 @@ NDCTL_EXPORT int ndctl_namespace_set_sector_size(struct ndctl_namespace *ndns,
+ 	if (rc != 0)
+ 		return rc;
+ 
+-	for (i = 0; i < ndns->lbasize.num; i++)
+-		if (ndns->lbasize.supported[i] == sector_size)
+-			ndns->lbasize.select = i;
++	ndns->lbasize.select = i;
++
+ 	return 0;
+ }
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
