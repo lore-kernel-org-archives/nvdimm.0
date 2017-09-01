@@ -1,87 +1,55 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 116FB21E0C315
- for <linux-nvdimm@lists.01.org>; Tue,  8 Aug 2017 17:07:20 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v5 2/7] btt: refactor map entry operations with macros
-Date: Tue,  8 Aug 2017 18:07:41 -0600
-Message-Id: <20170809000746.10585-3-vishal.l.verma@intel.com>
-In-Reply-To: <20170809000746.10585-1-vishal.l.verma@intel.com>
-References: <20170809000746.10585-1-vishal.l.verma@intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+In-Reply-To: <20170831100201.GC21443@lst.de>
+References: <150413449482.5923.1348069619036923853.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150413450036.5923.13851061508172314879.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170831100201.GC21443@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 31 Aug 2017 17:54:51 -0700
+Message-ID: <CAPcyv4hEoLUjxv7jT8e_7hZYtkf6ZoT6qJiv2HP1simuFitXgg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] vfs: add flags parameter to ->mmap() in 'struct file_operations'
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Linux MM <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, David Airlie <airlied@linux.ie>, Linux API <linux-api@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Julia Lawall <julia.lawall@lip6.fr>, Andy Lutomirski <luto@kernel.org>, Daniel Vetter <daniel.vetter@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add helpers for converting a raw map entry to just the block number, or
-either of the 'e' or 'z' flags in preparation for actually using the
-error flag to mark blocks with media errors.
+On Thu, Aug 31, 2017 at 3:02 AM, Christoph Hellwig <hch@lst.de> wrote:
+>> -static int ecryptfs_mmap(struct file *file, struct vm_area_struct *vma)
+>> +static int ecryptfs_mmap(struct file *file, struct vm_area_struct *vma,
+>> +                      unsigned long map_flags)
+>>  {
+>>       struct file *lower_file = ecryptfs_file_to_lower(file);
+>>       /*
+>> @@ -179,7 +180,7 @@ static int ecryptfs_mmap(struct file *file, struct vm_area_struct *vma)
+>>        */
+>>       if (!lower_file->f_op->mmap)
+>>               return -ENODEV;
+>> -     return generic_file_mmap(file, vma);
+>> +     return generic_file_mmap(file, vma, 0);
+>
+> Shouldn't ecryptfs pass on the flags?  Same for coda_file_mmap and
+> shm_mmap.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/btt.c | 8 ++++----
- drivers/nvdimm/btt.h | 4 ++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
+Yes, I'll get those fixed up.
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index f6ea82f..8842baa 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
- 	 * This 'mapping' is supposed to be just the LBA mapping, without
- 	 * any flags set, so strip the flag bits.
- 	 */
--	mapping &= MAP_LBA_MASK;
-+	mapping = ent_lba(mapping);
- 
- 	ze = (z_flag << 1) + e_flag;
- 	switch (ze) {
-@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
- 
- 	raw_mapping = le32_to_cpu(in);
- 
--	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
--	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
-+	z_flag = ent_z_flag(raw_mapping);
-+	e_flag = ent_e_flag(raw_mapping);
- 	ze = (z_flag << 1) + e_flag;
--	postmap = raw_mapping & MAP_LBA_MASK;
-+	postmap = ent_lba(raw_mapping);
- 
- 	/* Reuse the {z,e}_flag variables for *trim and *error */
- 	z_flag = 0;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 888e862..09fabf5 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -38,6 +38,10 @@
- #define IB_FLAG_ERROR 0x00000001
- #define IB_FLAG_ERROR_MASK 0x00000001
- 
-+#define ent_lba(ent) (ent & MAP_LBA_MASK)
-+#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
-+#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
-+
- enum btt_init_state {
- 	INIT_UNCHECKED = 0,
- 	INIT_NOTFOUND,
--- 
-2.9.3
+>
+>> -static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
+>> +static inline int call_mmap(struct file *file, struct vm_area_struct *vma,
+>> +                         unsigned long flags)
+>>  {
+>> -     return file->f_op->mmap(file, vma);
+>> +     return file->f_op->mmap(file, vma, flags);
+>>  }
+>
+> It would be great to kill this pointless wrapper while we're at it.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Will do.
+
+Thanks for taking a look!
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
