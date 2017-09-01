@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 801A221E1B775
- for <linux-nvdimm@lists.01.org>; Thu, 21 Sep 2017 14:47:50 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 3/3] acpi nfit: nfit_test supports translate SPA
-Date: Thu, 21 Sep 2017 21:50:56 +0000
-Message-ID: <1506030534.23025.25.camel@intel.com>
-References: <20170818134627.8EBC.E1E9C6FF@jp.fujitsu.com>
- <20170818135014.8EC5.E1E9C6FF@jp.fujitsu.com>
-In-Reply-To: <20170818135014.8EC5.E1E9C6FF@jp.fujitsu.com>
-Content-Language: en-US
-Content-ID: <06051CECEC366444B788EB835D08CB5A@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C70D621EB88D4
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Sep 2017 06:16:29 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id E8396AC0148
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Sep 2017 22:19:08 +0900 (JST)
+Date: Fri, 01 Sep 2017 22:18:53 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [ndctl PATCH 3/5] ndctl: allow ND_CMD_CALL for bus
+In-Reply-To: <20170901221335.C27F.E1E9C6FF@jp.fujitsu.com>
+References: <20170901221335.C27F.E1E9C6FF@jp.fujitsu.com>
+Message-Id: <20170901221848.C288.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,113 +21,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "y-goto@jp.fujitsu.com" <y-goto@jp.fujitsu.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE3LTA4LTE4IGF0IDEzOjUwICswOTAwLCBZYXN1bm9yaSBHb3RvIHdyb3RlOg0K
-PiBuZml0X3Rlc3Qgc3VwcG9ydHMgdHJhbnNsYXRlIFNQQQ0KPiANCj4gVG8gdGVzdCBuZGN0bCBs
-aXN0IHdoaWNoIHVzZSBpbnRlcmZhY2Ugb2YgVHJhbnNsYXRlIFNQQSwNCj4gbmZpdF90ZXN0IG5l
-ZWRzIHRvIGVtdWxhdGVzIGl0Lg0KPiBUaGlzIHRlc3QgbW9kdWxlIHNlYXJjaGVzIHJlZ2lvbiB3
-aGljaCBpbmNsdWRlcyBTUEEgYW5kwqANCj4gcmV0dXJucyAxIGRpbW0gaGFuZGxlIHdoaWNoIGlz
-IGxhc3Qgb25lLg0KPiANCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFlhc3Vub3JpIEdvdG8gPHktZ290
-b0BqcC5mdWppdHN1LmNvbT4NCj4gDQo+IC0tLQ0KPiDCoGRyaXZlcnMvbnZkaW1tL3JlZ2lvbl9k
-ZXZzLmPCoMKgwqDCoMKgfMKgwqAxICsNCj4gwqB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25m
-aXQuYyB8IDk4DQo+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0NCj4g
-wqAyIGZpbGVzIGNoYW5nZWQsIDk4IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCg0KQSBm
-ZXcgPjgwIGNoYXJhY3RlciBsaW5lcyBpbiB0aGlzLCBidXQgb3RoZXIgdGhhbiB0aGF0LCBsb29r
-cyBnb29kIHRvDQptZS4gWW91IGNhbiBydW4gcGF0Y2hlcyB0aHJvdWdoIHNjcmlwdHMvY2hlY2tw
-YXRjaC5wbCBpbiB0aGUga2VybmVsIHRyZWUNCnRvIGNhdGNoIHByb2JsZW1zIGxpa2UgdGhpcy4N
-Cg0KUmV2aWV3ZWQtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg0K
-DQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYw0KPiBiL2Ry
-aXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMNCj4gaW5kZXggNTk1NGNmYi4uM2M4Y2M3ZiAxMDA2
-NDQNCj4gLS0tIGEvZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYw0KPiArKysgYi9kcml2ZXJz
-L252ZGltbS9yZWdpb25fZGV2cy5jDQo+IEBAIC0xNjIsNiArMTYyLDcgQEAgYm9vbCBpc19uZF9w
-bWVtKHN0cnVjdCBkZXZpY2UgKmRldikNCj4gwqB7DQo+IMKgCXJldHVybiBkZXYgPyBkZXYtPnR5
-cGUgPT0gJm5kX3BtZW1fZGV2aWNlX3R5cGUgOiBmYWxzZTsNCj4gwqB9DQo+ICtFWFBPUlRfU1lN
-Qk9MX0dQTChpc19uZF9wbWVtKTsNCj4gwqANCj4gwqBib29sIGlzX25kX2JsayhzdHJ1Y3QgZGV2
-aWNlICpkZXYpDQo+IMKgew0KPiBkaWZmIC0tZ2l0IGEvdG9vbHMvdGVzdGluZy9udmRpbW0vdGVz
-dC9uZml0LmMNCj4gYi90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KPiBpbmRleCA0
-YzJmYTk4Li40MjZkMWZhIDEwMDY0NA0KPiAtLS0gYS90b29scy90ZXN0aW5nL252ZGltbS90ZXN0
-L25maXQuYw0KPiArKysgYi90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KPiBAQCAt
-MzQyLDYgKzM0Miw3OCBAQCBzdGF0aWMgaW50IG5maXRfdGVzdF9jbWRfY2xlYXJfZXJyb3Ioc3Ry
-dWN0DQo+IG5kX2NtZF9jbGVhcl9lcnJvciAqY2xlYXJfZXJyLA0KPiDCoAlyZXR1cm4gMDsNCj4g
-wqB9DQo+IMKgDQo+ICtzdHJ1Y3QgcmVnaW9uX3NlYXJjaF9zcGF7DQo+ICsJdTY0IGFkZHI7DQo+
-ICsJc3RydWN0IG5kX3JlZ2lvbiAqcmVnaW9uOw0KPiArfTsNCj4gKw0KPiArc3RhdGljIGludCBu
-Zml0X3Rlc3Rfc2VhcmNoX3JlZ2lvbl9zcGEoc3RydWN0IGRldmljZSAqZGV2LCB2b2lkDQo+ICpk
-YXRhKQ0KPiArew0KPiArCXN0cnVjdCByZWdpb25fc2VhcmNoX3NwYSAqY3R4ID0gZGF0YTsNCj4g
-KwlzdHJ1Y3QgbmRfcmVnaW9uICpuZF9yZWdpb247DQo+ICsJcmVzb3VyY2Vfc2l6ZV90IG5kcl9l
-bmQ7DQo+ICsNCj4gKwlpZiAoIWlzX25kX3BtZW0oZGV2KSkNCj4gKwkJcmV0dXJuIDA7DQo+ICsN
-Cj4gKwluZF9yZWdpb24gPSB0b19uZF9yZWdpb24oZGV2KTsNCj4gKwluZHJfZW5kID0gbmRfcmVn
-aW9uLT5uZHJfc3RhcnQgKyBuZF9yZWdpb24tPm5kcl9zaXplOw0KPiArDQo+ICsJaWYgKGN0eC0+
-YWRkciA+PSBuZF9yZWdpb24tPm5kcl9zdGFydCAmJiBjdHgtPmFkZHIgPCBuZHJfZW5kKQ0KPiB7
-DQo+ICsJCWN0eC0+cmVnaW9uID0gbmRfcmVnaW9uOw0KPiArCQlyZXR1cm4gMTsNCj4gKwl9DQo+
-ICsNCj4gKwlyZXR1cm4gMDsNCj4gK30NCj4gKw0KPiArc3RhdGljIGludCBuZml0X3Rlc3Rfc2Vh
-cmNoX3NwYShzdHJ1Y3QgbnZkaW1tX2J1cyAqYnVzLCBzdHJ1Y3QNCj4gbmRfY21kX3RyYW5zX3Nw
-YSAqc3BhKQ0KDQpPdmVyIDgwIGNoYXIsIHlvdSBjYW4gc3BsaXQgdGhlIGxpbmUgYWZ0ZXIgJ2J1
-cycgaGVyZS4NCg0KPiArew0KPiArCWludCByZXQ7DQo+ICsJc3RydWN0IG5kX3JlZ2lvbiAqbmRf
-cmVnaW9uID0gTlVMTDsNCj4gKwlzdHJ1Y3QgbnZkaW1tICpudmRpbW0gPSBOVUxMOw0KPiArCXN0
-cnVjdCBuZF9tYXBwaW5nICpuZF9tYXBwaW5nID0gTlVMTDsNCj4gKwlzdHJ1Y3QgcmVnaW9uX3Nl
-YXJjaF9zcGEgY3R4ID0gew0KPiArCQkuYWRkciA9IHNwYS0+c3BhLA0KPiArCQkucmVnaW9uID0g
-TlVMTCwNCj4gKwl9Ow0KPiArCXU2NCBkcGE7DQo+ICsNCj4gKwlyZXQgPSBkZXZpY2VfZm9yX2Vh
-Y2hfY2hpbGQoJmJ1cy0+ZGV2LCAmY3R4LA0KPiBuZml0X3Rlc3Rfc2VhcmNoX3JlZ2lvbl9zcGEp
-Ow0KDQo+ODAgY2gNCg0KPiArDQo+ICsJaWYgKCFyZXQpDQo+ICsJCXJldHVybiAtRU5PREVWOw0K
-PiArDQo+ICsJbmRfcmVnaW9uID0gY3R4LnJlZ2lvbjsNCj4gKw0KPiArCWRwYSA9IGN0eC5hZGRy
-IC0gbmRfcmVnaW9uLT5uZHJfc3RhcnQ7DQo+ICsNCj4gKwkvKg0KPiArCcKgKiBsYXN0IGRpbW0g
-aXMgc2VsZWN0ZWQgZm9yIHRlc3QNCj4gKwnCoCovDQo+ICsJbmRfbWFwcGluZyA9ICZuZF9yZWdp
-b24tPm1hcHBpbmdbbmRfcmVnaW9uLT5uZHJfbWFwcGluZ3MgLQ0KPiAxXTsNCj4gKwludmRpbW0g
-PSBuZF9tYXBwaW5nLT5udmRpbW07DQo+ICsNCj4gKwlzcGEtPmRldmljZXNbMF0ubmZpdF9kZXZp
-Y2VfaGFuZGxlID0gaGFuZGxlW252ZGltbS0+aWRdOw0KPiArCXNwYS0+bnVtX252ZGltbXMgPSAx
-Ow0KPiArCXNwYS0+ZGV2aWNlc1swXS5kcGEgPSBkcGE7DQo+ICsNCj4gKwlyZXR1cm4gMDsNCj4g
-K30NCj4gKw0KPiArc3RhdGljIGludCBuZml0X3Rlc3RfY21kX3RyYW5zbGF0ZV9zcGEoc3RydWN0
-IG52ZGltbV9idXMgKmJ1cywgc3RydWN0DQo+IG5kX2NtZF90cmFuc19zcGEgKnNwYSwNCg0KPjgw
-IGNoDQoNCj4gKwkJCQl1bnNpZ25lZCBpbnQgYnVmX2xlbikNCg0KQnkgY29udmVudGlvbiwgdGhl
-IHNlY29uZCBsaW5lIHN0YXJ0cyBhZnRlciBqdXN0IHR3byB0YWIgc3RvcHMgaW4gdGhpcw0KZmls
-ZS4NCg0KPiArew0KPiArDQo+ICsJaWYgKGJ1Zl9sZW4gPCBzcGEtPnRyYW5zX2xlbmd0aCkNCj4g
-KwkJcmV0dXJuIC1FSU5WQUw7DQo+ICsNCj4gKwlpZiAobmZpdF90ZXN0X3NlYXJjaF9zcGEoYnVz
-LCBzcGEpIDwgMHx8ICFzcGEtPm51bV9udmRpbW1zKQ0KPiArCQlzcGEtPnN0YXR1cyA9IDI7DQo+
-ICsNCj4gKwlyZXR1cm4gMDsNCj4gK30NCj4gKw0KPiDCoHN0YXRpYyBpbnQgbmZpdF90ZXN0X2Nt
-ZF9zbWFydChzdHJ1Y3QgbmRfY21kX3NtYXJ0ICpzbWFydCwgdW5zaWduZWQNCj4gaW50IGJ1Zl9s
-ZW4pDQo+IMKgew0KPiDCoAlzdGF0aWMgY29uc3Qgc3RydWN0IG5kX3NtYXJ0X3BheWxvYWQgc21h
-cnRfZGF0YSA9IHsNCj4gQEAgLTQ0OSw2ICs1MjEsMjYgQEAgc3RhdGljIGludCBuZml0X3Rlc3Rf
-Y3RsKHN0cnVjdA0KPiBudmRpbW1fYnVzX2Rlc2NyaXB0b3IgKm5kX2Rlc2MsDQo+IMKgCQl9DQo+
-IMKgCX0gZWxzZSB7DQo+IMKgCQlzdHJ1Y3QgYXJzX3N0YXRlICphcnNfc3RhdGUgPSAmdC0+YXJz
-X3N0YXRlOw0KPiArCQlzdHJ1Y3QgbmRfY21kX3BrZyAqY2FsbF9wa2cgPSBidWY7DQo+ICsNCj4g
-KwkJaWYgKCFuZF9kZXNjKQ0KPiArCQkJcmV0dXJuIC1FTk9UVFk7DQo+ICsNCj4gKwkJaWYgKGNt
-ZCA9PSBORF9DTURfQ0FMTCkgew0KPiArCQkJZnVuYyA9IGNhbGxfcGtnLT5uZF9jb21tYW5kOw0K
-PiArDQo+ICsJCQlidWZfbGVuID0gY2FsbF9wa2ctPm5kX3NpemVfaW4gKyBjYWxsX3BrZy0NCj4g
-Pm5kX3NpemVfb3V0Ow0KPiArCQkJYnVmID0gKHZvaWQgKikgY2FsbF9wa2ctPm5kX3BheWxvYWQ7
-DQo+ICsNCj4gKwkJCXN3aXRjaCAoZnVuYykgew0KPiArCQkJY2FzZSBORklUX0NNRF9UUkFOU0xB
-VEVfU1BBOg0KPiArCQkJCXJjID0NCj4gbmZpdF90ZXN0X2NtZF90cmFuc2xhdGVfc3BhKGFjcGlf
-ZGVzYy0+bnZkaW1tX2J1cywNCg0KPiA4MCBjaA0KDQo+ICsJCQkJCQkJYnVmLA0KPiBidWZfbGVu
-KTsNCg0KYW5kIGEgY291cGxlIGV4dHJhIHRhYiBzdG9wcyBoZXJlLg0KDQo+ICsJCQkJcmV0dXJu
-IHJjOw0KPiArCQkJZGVmYXVsdDoNCj4gKwkJCQlyZXR1cm4gLUVOT1RUWTsNCj4gKwkJCX0NCj4g
-KwkJfQ0KPiDCoA0KPiDCoAkJaWYgKCFuZF9kZXNjIHx8ICF0ZXN0X2JpdChjbWQsICZuZF9kZXNj
-LT5jbWRfbWFzaykpDQo+IMKgCQkJcmV0dXJuIC1FTk9UVFk7DQo+IEBAIC0xNDMwLDcgKzE1MjIs
-OSBAQCBzdGF0aWMgdm9pZCBuZml0X3Rlc3QwX3NldHVwKHN0cnVjdCBuZml0X3Rlc3QNCj4gKnQp
-DQo+IMKgCXNldF9iaXQoTkRfQ01EX0FSU19TVEFSVCwgJmFjcGlfZGVzYy0+YnVzX2NtZF9mb3Jj
-ZV9lbik7DQo+IMKgCXNldF9iaXQoTkRfQ01EX0FSU19TVEFUVVMsICZhY3BpX2Rlc2MtPmJ1c19j
-bWRfZm9yY2VfZW4pOw0KPiDCoAlzZXRfYml0KE5EX0NNRF9DTEVBUl9FUlJPUiwgJmFjcGlfZGVz
-Yy0+YnVzX2NtZF9mb3JjZV9lbik7DQo+ICsJc2V0X2JpdChORF9DTURfQ0FMTCwgJmFjcGlfZGVz
-Yy0+YnVzX2NtZF9mb3JjZV9lbik7DQo+IMKgCXNldF9iaXQoTkRfQ01EX1NNQVJUX1RIUkVTSE9M
-RCwgJmFjcGlfZGVzYy0NCj4gPmRpbW1fY21kX2ZvcmNlX2VuKTsNCj4gKwlzZXRfYml0KE5GSVRf
-Q01EX1RSQU5TTEFURV9TUEEsICZhY3BpX2Rlc2MtDQo+ID5idXNfc3ViX2NtZF9mb3JjZV9lbik7
-DQo+IMKgfQ0KPiDCoA0KPiDCoHN0YXRpYyB2b2lkIG5maXRfdGVzdDFfc2V0dXAoc3RydWN0IG5m
-aXRfdGVzdCAqdCkNCj4gQEAgLTE2MTYsMTAgKzE3MTAsMTIgQEAgc3RhdGljIGludCBuZml0X2N0
-bF90ZXN0KHN0cnVjdCBkZXZpY2UgKmRldikNCj4gwqAJCQkuY21kX21hc2sgPSAxVUwgPDwgTkRf
-Q01EX0FSU19DQVANCj4gwqAJCQkJfCAxVUwgPDwgTkRfQ01EX0FSU19TVEFSVA0KPiDCoAkJCQl8
-IDFVTCA8PCBORF9DTURfQVJTX1NUQVRVUw0KPiAtCQkJCXwgMVVMIDw8IE5EX0NNRF9DTEVBUl9F
-UlJPUiwNCj4gKwkJCQl8IDFVTCA8PCBORF9DTURfQ0xFQVJfRVJST1INCj4gKwkJCQl8IDFVTCA8
-PCBORF9DTURfQ0FMTCwNCj4gwqAJCQkubW9kdWxlID0gVEhJU19NT0RVTEUsDQo+IMKgCQkJLnBy
-b3ZpZGVyX25hbWUgPSAiQUNQSS5ORklUIiwNCj4gwqAJCQkubmRjdGwgPSBhY3BpX25maXRfY3Rs
-LA0KPiArCQkJLmJ1c19kc21fbWFzayA9IDFVTCA8PA0KPiBORklUX0NNRF9UUkFOU0xBVEVfU1BB
-LA0KPiDCoAkJfSwNCj4gwqAJCS5kZXYgPSAmYWRldi0+ZGV2LA0KPiDCoAl9Ow0KPiANCj4gDQo+
-IA0KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPiBM
-aW51eC1udmRpbW0gbWFpbGluZyBsaXN0DQo+IExpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCj4g
-aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0KX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
-aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+[ndctl PATCH 3/5] ndctl: allow ND_CMD_CALL for bus
+
+Currently ndctl supports ND_CMD_CALL only for DIMM,
+but Translate SPA is the feature of bus.
+So ND_CMD_CALL must be allowed bus's ioctl().
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+---
+ ndctl/lib/libndctl.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index ea37ca4..740b6f1 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -2228,6 +2228,7 @@ static int to_ioctl_cmd(int cmd, int dimm)
+ #ifdef HAVE_NDCTL_CLEAR_ERROR
+ 		case ND_CMD_CLEAR_ERROR:     return ND_IOCTL_CLEAR_ERROR;
+ #endif
++		case ND_CMD_CALL:            return ND_IOCTL_CALL;
+ 		default:
+ 						       return 0;
+ 		};
+
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
