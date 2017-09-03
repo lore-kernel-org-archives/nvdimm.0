@@ -1,15 +1,15 @@
-From: "Jerald Jiminez  " <ebeldong6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Professional lead generating based website traffic
-Date: Sun, 03 Sep 2017 06:42:24 +0300
-Message-ID: <89979BE1.7FE0981D@gmail.com>
+From: "Returned mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery reports about your e-mail
+Date: Sun, 3 Sep 2017 11:59:08 +0800
+Message-ID: <20170903035607.57C0121E74909@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_59AB7C28.10B92A77"
+Content-Type: multipart/mixed; boundary="----------=_59AB7E08.0ABEDEE8"
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
 
-------------=_59AB7C28.10B92A77
+------------=_59AB7E08.0ABEDEE8
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
@@ -20,48 +20,37 @@ message has been attached to this so you can view it or label
 similar future email.  If you have any questions, see
 @@CONTACT_ADDRESS@@ for details.
 
-Content preview:  hi Highly Targeted website traffic http://www.basedbusinesstraffic.com
-   Regards Jerald Jiminez Unsubscribe option is available on the footer of our
-   website [...] 
+Content preview:  ï<ZÉ%DÙ*{Ke}!‡q'3>rNÙŒn7})Ñ¬*Žìxvcâ*gšD”úC°¢Õ?œæ©f§Ó²3*KëÈUß»<ï¸)L…Gf<lëÞP
+   †zÓeU[æ&æ›cµ Ý>iTøe´w†_|?nNá×åìÞ^\«ãö wï^°¬ûPáu«Œ½Àâ»ž²}/ö•ÝZ%\k±’¸»Õ0ßBþüô¦4QïN
+   ”‘c¡'FŸÎ>êÒlcP^ùó¾»¥žnôÔêo§°B¡¤pKÝˆ˜ÆlïNý|æñ†ê0úUHí}ßTPŒßbÅ¨¼újUØRÈÒƒx;
+   Âô_|7”«PÁ´ÑYm']’KáQTÌŠ‹Ù°žªÔdå¼¿7;ZÝÁ#(íýHíb¶ý6û¡þ²â³¼ÚhdœQûÞHT1hÄ¢wÐÙÖBÔa˜|žä>G
+   Ùí£¤|ÜìqSÒÄ&íiÂUû{Ä“¶?¬Åq;‰Žé,0ÕŸûH×Qái#¹ª3EšJð˜Gìåi¡:¦xuN)[*õx§Gß”—KN¶
+  ¸ðÊsxŒ£e} :UÝ™b5RäY® Õ_Óä¬“dJæ²Ëökxõ/œâ’qéa5yûªAü~“EV¤3òÈä¡žë½‹U3“Æ¡Pêè7&ƒ–¼78Äå}ú9«øûmëGAýÆÉ
+   ùÎG5#˜-)*¶¬žËíŒ¥Fk\YaF'Fmð-†1VXÄA¿T™Î5NÐ˜å–M«ò¯%`bãÈ¿pû×¬X¨e Ô*ÌL{ä/E‰ZTÚŸy7ãNß
+   ü¡eŒ§øy>›DxBxÚv]rô–àúÂ4oå&ãÙtl¹¥D*ØHœ™iQ'š„ÑÓóRfb¾(õWæfÞ8üðaŒŸ&Ø.•!ô¯«ÔKEÂÍ¶oõ—«³©ÈÞYWê8ÖØb¾MÉ¨®è¨:j©ø£E:´KÒà™·Þ|Çš:P•TãÀ˜
+   mµÊ—­! lÑEÕqU6eì õuâ‹å´ŽË’úÎ¤P0|1±´·ª,ñÚºYßÂÇŽ°…Pª_ìÕZŠ“›ÆÑtÒ‹#Ý>ÑåXµ#þÓ‹ú4°44<aÝZª~z
+   é‹ÕÚ©ed™ì«CÑ\¯-­÷ÒG§ö–e¨|¦ï~Àç×sF{Ý…ôÔýqoÃ O¯÷|£Hx#lÍCp)nq$…ì'/²Í£¿YûâuùI¯ðÙ|ÃÖ×$³"Jì2Ž9•«V'A-“™÷FšôZ”ÚþÕæ²Y´FVÛ–ûvÔËüîÀ³¹Ÿ
+   UbRw Úp2ÐwP7èè»ùõsú#öLeángóU†|§vß9õíeû#ƒ/ŠuÅJ(oÝÌ^E¯pI; ;Ø3“5}ðÒ³x¥íY[§©'<4inLö%2­Ã«·Â|%î8¢ÎÏpÙ2pM§¸ô;î‰…'Iû·ÙÞÀ¨úÊEAru½T¾ÜQLóÓ0bk°šÉ¦¿»Î`“w
+   [...] 
 
-Content analysis details:   (9.7 points, 5.0 required)
+Content analysis details:   (6.2 points, 5.0 required)
 
  pts rule name              description
 ---- ---------------------- --------------------------------------------------
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: basedbusinesstraffic.com]
  0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
                             See
                             http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
                              for more information.
-                            [URIs: basedbusinesstraffic.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: basedbusinesstraffic.com]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?203.14.188.11>]
+                            [URIs: 01.org]
 -0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
                             trust
                             [198.145.21.10 listed in list.dnswl.org]
- 2.8 FSL_HELO_FAKE          No description available.
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.basedbusinesstraffic.com]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.basedbusinesstraffic.com]
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (ebeldong6[at]gmail.com)
 -0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0000]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
+-0.0 BAYES_20               BODY: Bayes spam probability is 5 to 20%
+                            [score: 0.0889]
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
 
 The original message was not completely plain text, and may be unsafe to
 open with some email clients; in particular, it may contain a virus,
@@ -69,7 +58,7 @@ or confirm that your address can receive spam.  If you wish to view
 it, it may be safer to save it to a file and open it with an editor.
 
 
-------------=_59AB7C28.10B92A77
+------------=_59AB7E08.0ABEDEE8
 Content-Type: message/rfc822; x-spam-type=original
 Content-Description: original message before SpamAssassin
 Content-Disposition: attachment
@@ -80,25 +69,26 @@ Envelope-to: gln-linux-nvdimm@m.gmane.org
 Received: from ml01.01.org ([198.145.21.10])
 	by blaine.gmane.org with esmtp (Exim 4.84_2)
 	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1doLvk-00038q-WC
-	for gln-linux-nvdimm@m.gmane.org; Sun, 03 Sep 2017 05:50:41 +0200
+	id 1doM3a-0000jw-Te
+	for gln-linux-nvdimm@m.gmane.org; Sun, 03 Sep 2017 05:58:47 +0200
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7CC5E21E74905;
-	Sat,  2 Sep 2017 20:47:59 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 57C0121E74909;
+	Sat,  2 Sep 2017 20:56:07 -0700 (PDT)
 X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from gmail.com (unknown [203.14.188.11])
- by ml01.01.org (Postfix) with SMTP id 216C220958BE2
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sat,  2 Sep 2017 20:47:56 -0700 (PDT)
-Message-ID: <89979BE1.7FE0981D-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Sun, 03 Sep 2017 06:42:24 +0300
-From: "Jerald Jiminez  " <ebeldong6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; fr-FR;
- rv:1.7.10) Gecko/20050716 Thunderbird/1.0.6
-X-Accept-Language: en-us
+Received: from lists.01.org (unknown [183.14.135.26])
+ by ml01.01.org (Postfix) with ESMTP id 43EE221E62BDA
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sat,  2 Sep 2017 20:56:04 -0700 (PDT)
+From: "Returned mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: Delivery reports about your e-mail
+Date: Sun, 3 Sep 2017 11:59:08 +0800
 MIME-Version: 1.0
-To: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Professional lead generating based website traffic
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.22
 X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 X-Mailman-Version: 2.1.22
 Precedence: list
@@ -110,38 +100,32 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2891378515595662751=="
+Content-Type: multipart/mixed; boundary="===============3241031297257868099=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Message-Id: <20170903035607.57C0121E74909-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
---===============2891378515595662751==
+This is a multi-part message in MIME format.
+
+--===============3241031297257868099==
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-hi
-Highly Targeted website traffic
-http://www.basedbusinesstraffic.com
-
-Regards
-Jerald Jiminez  
-
-
-
-
-
-
-
+ï<ZÉ%DÙ*{Ke}!‡q'3>rNÙŒn7})Ñ¬*Žìxvcâ*gšD”úC°¢Õ?œæ©f§Ó²3*KëÈUß»<ï¸)L…Gf<lëÞP †zÓeU[æ&æ›cµ
+Ý>iTøe´w†_|?nNá×åìÞ^\«ãö wï^°¬ûPáu«Œ½Àâ»ž²}/ö•ÝZ%\k±’¸»Õ0ßBþüô¦4QïN ”‘c¡'FŸÎ>êÒlcP^ùó¾»¥žnôÔêo§°B¡¤pKÝˆ˜ÆlïNý|æñ†ê0úUHí}ßTPŒßbÅ¨¼újUØRÈÒƒx;
+Âô_|7”«PÁ´ÑYm']’KáQTÌŠ‹Ù°žªÔdå¼¿7;ZÝÁ#(íýHíb¶ý6û¡þ²â³¼ÚhdœQûÞHT1hÄ¢wÐÙÖBÔa˜|žä>G
+Ùí£¤|ÜìqSÒÄ&íiÂUû{Ä“¶?¬Åq;‰Žé,0ÕŸûH×Qái#¹ª3EšJð˜Gìåi¡:¦xuN)[*õx§Gß”—KN¶ ¸ðÊsxŒ£e}
+:UÝ™b5RäY® Õ_Óä¬“dJæ²Ëökxõ/œâ’qéa5yûªAü~“EV¤3òÈä¡žë½‹U3“Æ¡Pêè7&ƒ–¼78Äå}ú9«øûmëGAýÆÉ
+ùÎG5#˜-)*¶¬žËíŒ¥Fk\YaF'Fmð-†1VXÄA¿T™Î5NÐ˜å–M«ò¯%`bãÈ¿pû×¬X¨e
+Ô*ÌL{ä/E‰ZTÚŸy7ãNß
+ü¡eŒ§øy>›DxBxÚv]rô–àúÂ4oå&ãÙtl¹¥D*ØHœ™iQ'š„ÑÓóRfb¾(õWæfÞ8üðaŒŸ&Ø.•!ô¯«ÔKEÂÍ¶oõ—«³©ÈÞYWê8ÖØb¾MÉ¨®è¨:j©ø£E:´KÒà™·Þ|Çš:P•TãÀ˜
+mµÊ—­! lÑEÕqU6eì
+õuâ‹å´ŽË’úÎ¤P0|1±´·ª,ñÚºYßÂÇŽ°…Pª_ìÕZŠ“›ÆÑtÒ‹#Ý>ÑåXµ#þÓ‹ú4°44<aÝZª~z é‹ÕÚ©ed™ì«CÑ\¯-­÷ÒG§ö–e¨|¦ï~Àç×sF{Ý…ôÔýqoÃ O¯÷|£Hx#lÍCp)nq$…ì'/²Í£¿YûâuùI¯ðÙ|ÃÖ×$³"Jì2Ž9•«V'A-“™÷FšôZ”ÚþÕæ²Y´FVÛ–ûvÔËüîÀ³¹Ÿ UbRw
+Úp2ÐwP7èè»ùõsú#öLeángóU†|§vß9õíeû#ƒ/ŠuÅJ(oÝÌ^E¯pI; ;Ø3“5}ðÒ³x¥íY[§©'<4inLö%2­Ã«·Â|%î8¢ÎÏpÙ2pM§¸ô;î‰…'Iû·ÙÞÀ¨úÊEAru½T¾ÜQLóÓ0bk°šÉ¦¿»Î`“w
 
 
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-
---===============2891378515595662751==
+--===============3241031297257868099==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -152,7 +136,9 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============2891378515595662751==--
+--===============3241031297257868099==--
 
 
-------------=_59AB7C28.10B92A77--
+
+
+------------=_59AB7E08.0ABEDEE8--
