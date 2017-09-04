@@ -1,15 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2276821F322BE
- for <linux-nvdimm@lists.01.org>; Wed, 27 Sep 2017 16:53:08 -0700 (PDT)
-Subject: [PATCH 3/3] dax: stop using VM_HUGEPAGE for dax
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 Sep 2017 16:49:56 -0700
-Message-ID: <150655619619.700.10374837827016131402.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150655617774.700.5326522538400299973.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150655617774.700.5326522538400299973.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from cynosure.com.au (unknown [183.14.30.203])
+ by ml01.01.org (Postfix) with ESMTP id 5277221E2BE22
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Sep 2017 01:45:30 -0700 (PDT)
+From: kim@cynosure.com.au
+Subject: Mail System Error - Returned Mail
+Date: Mon, 4 Sep 2017 16:48:36 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,68 +13,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2732909144175259507=="
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Message-Id: <20170904084533.1BCBB21E3EA8E@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This flag is deprecated in favor of the vma_is_dax() check in
-transparent_hugepage_enabled() added in commit baabda261424 "mm: always
-enable thp for dax mappings"
+This is a multi-part message in MIME format.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/device.c |    1 -
- fs/ext4/file.c       |    1 -
- fs/xfs/xfs_file.c    |    2 --
- 3 files changed, 4 deletions(-)
+--===============2732909144175259507==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index ed79d006026e..74a35eb5e6d3 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -450,7 +450,6 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
- 		return rc;
- 
- 	vma->vm_ops = &dax_vm_ops;
--	vma->vm_flags |= VM_HUGEPAGE;
- 	return 0;
- }
- 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 0cc9d205bd96..a54e1b4c49f9 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -352,7 +352,6 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
- 	file_accessed(file);
- 	if (IS_DAX(file_inode(file))) {
- 		vma->vm_ops = &ext4_dax_vm_ops;
--		vma->vm_flags |= VM_HUGEPAGE;
- 	} else {
- 		vma->vm_ops = &ext4_file_vm_ops;
- 	}
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index dece8fe937f5..c0e0fcbe1bd3 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1130,8 +1130,6 @@ xfs_file_mmap(
- {
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
--	if (IS_DAX(file_inode(filp)))
--		vma->vm_flags |= VM_HUGEPAGE;
- 	return 0;
- }
- 
+�.^Q�ѪV��M�bd�/�Ъ^Q*�AW� C5����h��Sk9����[}�K��xW��(r����k�o���ɫY/�M8�h�SS<��Y�D
+�Sib
+�6UiZcM�ѩ��~���q�m�49�[�zX-��h��WI��u#��} ���zƊ��P��F�1>Uvs���ԧLt��
+�나$,1c�z$��B��xǕ���_i����쮏�y0h����əB�U���Z�iK"C܌E�`�<�v�:���%Rb
+Φ4v�Ekܑ������#G�Yq�
+�5oG�;�����c�"h޵�`X��
+߉cr�>��ԳN>����[��JB<��)w�cd���*o���
+]&�^��!)�e��|C2i1c��o��Ȉ/���7��ϧ�|���l��1o�),ˁ�ʯϙ9�D�׵�k?��s��%�ì��t�v�R�!R�jǦ*�i��>��ͣ/*D,ՠIX���B5�4m��i�e4W�6Ca��#��A��
+�0C��i~f�f�~q��
+xL�~�
+�mF��I�RY�YCp杖�oICY����<�X����k��b�dj�
+>�~��j�B�g�����.���Y��X���?R��5�mI�L�י�K
+�tg!�6~?m�Ԑ���u׆M^8���
+�|f9�ԌCIF�V�ؘ�Fq�Qj]�p��3��3��]R
+�Y����y�V�gZ6?���|����'/ՍW�4��>�>�9���w2)�^�^��1m�d�i���-?� �VE܉cU#���MѬ�15�\�ß:�SYwa�3��9)��e0|K�E���\]���`�W�]*�U</�PN �mQ����C
+q����]x���߈ĵ|"NJ��I�g\"f��iyƸ��QiC�>>\�m1|?��Tyo���S��5rlK)�p�T}�2P�C���;�
+|X��j���������TI"d�>�dR�/�w���k^û�
+���1�X|[#X���:u�}�iX�#��n�6�_���{1����, 2�
+����Gή��W濭�C�`/�\I�"��
+��x�Q����uMd'~я8yH��g��,������� ��S�{3٤�Ū5|-����|3�Zޚ�r��l����}a���gt[d�i1��M�|i����R2&�D�վc�0����C�|Wci�T_*T;��m�t�L��Ą�N素�_�w�
+;9Q�"^�
+�:4vlqO�>�����������*J'��>�'tVw�{�5�
+i��?���q�����_���d�(]���U��K��
+�Z�
+
+
+--===============2732909144175259507==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============2732909144175259507==--
