@@ -1,23 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x236.google.com (mail-oi0-x236.google.com
- [IPv6:2607:f8b0:4003:c06::236])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com
+ [67.231.145.42])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C0E192095BB68
- for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 16:40:06 -0700 (PDT)
-Received: by mail-oi0-x236.google.com with SMTP id n18so33468400oig.2
- for <linux-nvdimm@lists.01.org>; Tue, 05 Sep 2017 16:42:56 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1131391F-F14B-48F8-9416-037FF0DF2128@fb.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4AD9D21DF8068
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 16:07:51 -0700 (PDT)
+From: Song Liu <songliubraving@fb.com>
+Subject: Re: [RFC patch 0/4]ndctl: nvdimmd: notify/monitor the feathers of
+ over threshold event
+Date: Tue, 5 Sep 2017 23:10:29 +0000
+Message-ID: <1131391F-F14B-48F8-9416-037FF0DF2128@fb.com>
 References: <0DEDF3B159719A448A49EF0E7B11E3222756C8BF@g01jpexmbkw01>
  <CAPcyv4gO+L5RTi2+RL+YzS4uQF3bdSAOuxDD1to3_g8Quj4G7w@mail.gmail.com>
  <CAPcyv4jw9vsoGY1Mto6+yJChvgeT4Fkkz=4dE1kW34LDQR_65A@mail.gmail.com>
- <1131391F-F14B-48F8-9416-037FF0DF2128@fb.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 5 Sep 2017 16:42:55 -0700
-Message-ID: <CAPcyv4jLP9=3Sgd-cgh8+1YA+gfg8K1oZ4mAwmoEcprfrbAEMw@mail.gmail.com>
-Subject: Re: [RFC patch 0/4]ndctl: nvdimmd: notify/monitor the feathers of
- over threshold event
+In-Reply-To: <CAPcyv4jw9vsoGY1Mto6+yJChvgeT4Fkkz=4dE1kW34LDQR_65A@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <E2D4CDD5283CFC4AA0551E9AF27697AD@namprd15.prod.outlook.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,58 +24,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Song Liu <songliubraving@fb.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 5, 2017 at 4:10 PM, Song Liu <songliubraving@fb.com> wrote:
-
-> Hi Dan,
->
-> Thanks for adding me to the thread.
->
-> Hi QI,
->
-> I am not familiar with the NVDIMM code, so my experiences may not apply
-> well
-> to your case.
->
-> We have done multiple designs to capture SCSI sense code in a log. The
-> first
-> thing we learnt is do NOT use kernel debug messages (dmesg). The dmesg can
-> easily get too noisy (for SCSI), which sometimes slows down your data path.
-> Our first version is based on dmesg, which was not successfully.
->
-> We have tried a few other options: ftrace, uevent, and BPF based solution.
-> The benefit of these solutions (over dmesg) is that they send structured
-> data
-> instead of plain text. All these solutions worked for me as prototype. I am
-> currently pushing a BPF based solution to production.
->
-> Another important lesson is to enable filtering and rate limits, and you
-> need
-> it to be flexible.
->
->
-> I hope these are helpful for your use cases. Please feel free to shoot me
-> email for any questions.
->
->
-So, do you think it would be enough if this daemon just captured all the
-raw nvdimm events from the kernel and turned them into json records? I'm
-just wondering what to do with the event data to make it easier to consume
-by upper layer software, turn it into a Thrift endpoint?
-
-In other words I want this to be a general building block that can be
-integrated into production monitoring environments with various monitoring
-infrastructures vs hard coding / prescribing a specific interface.
-
-In any event, thanks for sharing your experience.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgRGFuLCANCg0KVGhhbmtzIGZvciBhZGRpbmcgbWUgdG8gdGhlIHRocmVhZC4gDQoNCkhpIFFJ
+LA0KDQpJIGFtIG5vdCBmYW1pbGlhciB3aXRoIHRoZSBOVkRJTU0gY29kZSwgc28gbXkgZXhwZXJp
+ZW5jZXMgbWF5IG5vdCBhcHBseSB3ZWxsDQp0byB5b3VyIGNhc2UuIA0KDQpXZSBoYXZlIGRvbmUg
+bXVsdGlwbGUgZGVzaWducyB0byBjYXB0dXJlIFNDU0kgc2Vuc2UgY29kZSBpbiBhIGxvZy4gVGhl
+IGZpcnN0DQp0aGluZyB3ZSBsZWFybnQgaXMgZG8gTk9UIHVzZSBrZXJuZWwgZGVidWcgbWVzc2Fn
+ZXMgKGRtZXNnKS4gVGhlIGRtZXNnIGNhbiANCmVhc2lseSBnZXQgdG9vIG5vaXN5IChmb3IgU0NT
+SSksIHdoaWNoIHNvbWV0aW1lcyBzbG93cyBkb3duIHlvdXIgZGF0YSBwYXRoLiANCk91ciBmaXJz
+dCB2ZXJzaW9uIGlzIGJhc2VkIG9uIGRtZXNnLCB3aGljaCB3YXMgbm90IHN1Y2Nlc3NmdWxseS4g
+DQoNCldlIGhhdmUgdHJpZWQgYSBmZXcgb3RoZXIgb3B0aW9uczogZnRyYWNlLCB1ZXZlbnQsIGFu
+ZCBCUEYgYmFzZWQgc29sdXRpb24uIA0KVGhlIGJlbmVmaXQgb2YgdGhlc2Ugc29sdXRpb25zIChv
+dmVyIGRtZXNnKSBpcyB0aGF0IHRoZXkgc2VuZCBzdHJ1Y3R1cmVkIGRhdGENCmluc3RlYWQgb2Yg
+cGxhaW4gdGV4dC4gQWxsIHRoZXNlIHNvbHV0aW9ucyB3b3JrZWQgZm9yIG1lIGFzIHByb3RvdHlw
+ZS4gSSBhbSANCmN1cnJlbnRseSBwdXNoaW5nIGEgQlBGIGJhc2VkIHNvbHV0aW9uIHRvIHByb2R1
+Y3Rpb24uIA0KDQpBbm90aGVyIGltcG9ydGFudCBsZXNzb24gaXMgdG8gZW5hYmxlIGZpbHRlcmlu
+ZyBhbmQgcmF0ZSBsaW1pdHMsIGFuZCB5b3UgbmVlZA0KaXQgdG8gYmUgZmxleGlibGUuIA0KDQoN
+CkkgaG9wZSB0aGVzZSBhcmUgaGVscGZ1bCBmb3IgeW91ciB1c2UgY2FzZXMuIFBsZWFzZSBmZWVs
+IGZyZWUgdG8gc2hvb3QgbWUgDQplbWFpbCBmb3IgYW55IHF1ZXN0aW9ucy4gDQoNClRoYW5rcywN
+ClNvbmcNCg0KDQo+IE9uIFNlcCA1LCAyMDE3LCBhdCAxOjU3IFBNLCBEYW4gV2lsbGlhbXMgPGRh
+bi5qLndpbGxpYW1zQGludGVsLmNvbT4gd3JvdGU6DQo+IA0KPiBbIGFkZGluZyBTb25nIF0NCj4g
+DQo+IFNvbmcsIEknbSBhZGRpbmcgeW91IHRvIHRoaXMgdGhyZWFkIGZvciBhbiBvcGluaW9uIG9u
+IHdoYXQgbWFrZXMgaGFyZHdhcmUgbW9uaXRvcmluZyB0b29saW5nIGVhc2llciB0byBjb25zdW1l
+IGluIGEgcHJvZHVjdGlvbiBlbnZpcm9ubWVudC4gUUkgaXMgd3JpdGluZyBhIGRhZW1vbiB0byBj
+YXRjaCBhbGFybXMgYW5kIG5vdGlmaWNhdGlvbnMgZnJvbSB0aGUga2VybmVsJ3MgbnZkaW1tIHN1
+Yi1zeXN0ZW0uDQo+IA0KPiBRSSwgU29uZyBwcmVzZW50ZWQgb24gZXh0ZW5kaW5nIFNDU0kgdWV2
+ZW50cyBmb3Igc3RvcmFnZSBkZXZpY2UgZXZlbnQgbG9nZ2luZyBhdCB0aGUgbGFzdCBMaW51eCBT
+dG9yYWdlIFN1bW1pdC4NCj4gDQo+IE9uIEZyaSwgU2VwIDEsIDIwMTcgYXQgMjoxMiBQTSwgRGFu
+IFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+IHdyb3RlOg0KPiBPbiBUaHUsIEF1
+ZyAzMSwgMjAxNyBhdCA2OjQyIFBNLCBRaSwgRnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4g
+d3JvdGU6DQo+ID4gSGVsbG8sDQo+ID4NCj4gPg0KPiA+DQo+ID4gVGhpcyBpcyBteSBmaXJzdCB0
+aW1lIHRvIGV4cGVyaWVuY2UgT1NTIHdvcmxkLiBJIGhvcGUgSSBjYW4gY29udHJpYnV0ZSB0byBO
+VkRJTU0gZGV2ZWxvcG1lbnQuDQo+ID4NCj4gDQo+IA0KPiBXZWxjb21lIQ0KPiANCj4gDQo+ID4g
+VGhpcyBpcyBhIHBhdGNoIHNldCBvZiBudmRpbW1kLCBhIHRpbnkgZGFlbW9uIHRvIG1vbml0b3Ig
+dGhlIGZlYXR1cmVzIG9mIG92ZXINCj4gPg0KPiA+IHRocmVzaG9sZCBldmVudHMuIEl0IGZpbmRz
+IGFuZCBtb25pdG9ycyBhbGwgb2YgdGhlIGRpbW1zIHdoaWNoIHN1cHBvcnQgc21hcnQNCj4gPg0K
+PiA+IHRocmVzaG9sZC4gQWx0aG91Z2ggYXQgdGhpcyB0aW1lLCBudmRpbW0gZGFlbW9uIG9ubHkg
+b3V0cHV0cyBOVkRJTU0ncyBzdGF0dXMgdG8NCj4gPg0KPiA+IHN5c3RlbWxvZywgSSB3b3VsZCBs
+aWtlIHRvIGdldCBjb21tZW50cy9vcGluaW9ucy4NCj4gPg0KPiANCj4gDQo+IFN1cmUsIEknbGwg
+dGFrZSBhIGRlZXBlciBsb29rIG5leHQgd2Vlay4NCj4gDQo+IA0KPiA+DQo+ID4gVGhlIG91dHB1
+dCBpbmNsdWRlcyBkaW1tJ3MgbmFtZSwgaGVhbHRoIHN0YXRlIGFuZCBzcGFyZXMgcGVyY2VudGFn
+ZSwgZXRjLg0KPiA+DQo+ID4gSGVyZSBpcyBhIHNhbXBsZSBvZiB0aGUgb3V0cHV0Lg0KPiA+DQo+
+ID4NCj4gPg0KPiA+ICAgICAgICAgICAgIG52ZGltbSB3YXJuaW5nOiBkaW1tIG92ZXIgdGhyZXNo
+b2xkIG5vdGlmeSBbbm1lbTJdDQo+ID4NCj4gPiAgICAgICAgICAgICBoZWFsdGhfc3RhdGU6IG5v
+bi1jcml0aWNhbA0KPiA+DQo+ID4gICAgICAgICAgICAgc3BhcmVzX3BlcmNlbnRhZ2U6IDc1DQo+
+ID4NCj4gPg0KPiA+DQo+ID4gQWJvdXQgY29tcGlsaW5nIHRoZSBudmRpbW1kLCBJIGFtIG5vdCBz
+dXJlIHdoZXRoZXIgbmRjdGwgdXNpbmcgYXV0b21ha2UgY2FuIGJlDQo+ID4NCj4gPiBtZXJnZWQg
+d2l0aCBpbnRvIGtlcm5lbCBvciBub3RbMV0sIHNvIGEgc2ltcGxlIG1ha2VmaWxlIGlzIGluY2x1
+ZGVkLiBJZiBpdCBpcw0KPiA+DQo+ID4gbmVjZXNzYXJ5IHRvIHdyaXRlIGludG8gYXV0b21ha2Us
+IHBsZWFzZSBraW5kbHkgbGV0IG1lIGtub3cuDQo+IA0KPiANCj4gWWVzLCBwbGVhc2UgdXNlIGF1
+dG9tYWtlIGZvciBub3cgdG8gaW50ZWdyYXRlIHdpdGggdGhlIGN1cnJlbnQgYnVpbGQgc3lzdGVt
+Lg0KPiANCj4gDQo+ID4gSGVyZSBpcyBUT0RPIGxpc3Q6DQo+ID4NCj4gPiAgLSBDdXJyZW50bHks
+IGlmIG11bHRpcGx5IGV2ZW50cyBhcmUgbm90aWZpZWQgaW4gdGhlIHNhbWUgdGltZSwgbnZkaW1t
+ZCBtYXkgbG9zZSBzb21lIG9mIHRoZW0uDQo+ID4NCj4gPiAgICBJIHN1cHBvc2UgaXQgZGVwZW5k
+cyBvbiBzZWxlY3QoKeKAmXMgc3BlY2lmaWNhdGlvbiwgYW5kIEkgdHJpZWQgdG8gdXNlIHBvbGwo
+KSBpbnN0ZWFkIG9mIHNlbGVjdCgpLA0KPiA+DQo+ID4gYnV0IGl0IGRpZCBub3Qgd29yayB3ZWxs
+LiBTbyBJIG5lZWQgbW9yZSByZXNlYXJjaCBvbiBzZWxlY3QoKSBhbmQgcG9sbCgpLg0KPiA+DQo+
+ID4gLSBDaGFuZ2UgdGhlIG1ha2VmaWxlIHRvIGF1dG9tYWtlIGlmIG5lY2Vzc2FyeS4NCj4gPg0K
+PiA+IC0gQWRkIG1vcmUgaW5mb3JtYXRpb24gb2YgZGltbSBpbnRvIHRoZSBub3RpZmljYXRpb24u
+DQo+IA0KPiANCj4gSSBuZWVkIHRvIGRvIHNvbWUgbW9yZSByZXNlYXJjaCBteXNlbGYgb24gd2hh
+dCBpcyB0aGUgZWFzaWVzdCBsb2dnaW5nDQo+IGltcGxlbWVudGF0aW9uIGZvciBvdGhlciBhcHBs
+aWNhdGlvbnMgdG8gY29uc3VtZSwgb3IgaWYgdGhpcyBzaG91bGQNCj4ganVzdCBvdXRwdXQgcmF3
+IGpzb24gYW5kIGxldCBhbm90aGVyIGFwcGxpY2F0aW9uIHdvcnJ5IGFib3V0DQo+IG1hcmhzYWxp
+bmcgdGhhdCB0byBhIGxvZ2dpbmcgc2VydmljZS4NCj4gDQo+IA0KPiA+IC0gQWRkIGEgY29uZmln
+IGZpbGUgdG8gY29uZmlndXJlIHRoZSBwYXJhbWV0ZXJzIGFuZCBpbml0aWFsIHNldHRpbmdzIGZv
+ciBudmRpbW1kLg0KPiA+DQo+ID4gLSBJbXBsZW1lbnQgYSBmZWF0dXJlKGZyYW1ld29yaykgc28g
+dGhhdCBudmRpbW1kIGNhbiBjYWxsIGV4dGVybmFsIGFwcGxpY2F0aW9ucy4NCj4gDQo+IA0KPiBT
+b3VuZHMgZ29vZC4NCj4gDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAx
+Lm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
