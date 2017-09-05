@@ -1,13 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.gtisc.gatech.edu (mx2.gtisc.gatech.edu [143.215.130.82])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22b.google.com (mail-oi0-x22b.google.com
+ [IPv6:2607:f8b0:4003:c06::22b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5CB1121E3EA72
- for <linux-nvdimm@lists.01.org>; Mon,  4 Sep 2017 08:32:14 -0700 (PDT)
-From: Meng Xu <mengxu.gatech@gmail.com>
-Subject: [PATCH] nvdimm: move the check on nd_reserved2 to the endpoint
-Date: Mon,  4 Sep 2017 11:34:33 -0400
-Message-Id: <1504539273-44522-1-git-send-email-mengxu.gatech@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id E55822095BB67
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 11:16:50 -0700 (PDT)
+Received: by mail-oi0-x22b.google.com with SMTP id h70so29579708oic.1
+ for <linux-nvdimm@lists.01.org>; Tue, 05 Sep 2017 11:19:40 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170901221719.C285.E1E9C6FF@jp.fujitsu.com>
+References: <20170901221335.C27F.E1E9C6FF@jp.fujitsu.com>
+ <20170901221719.C285.E1E9C6FF@jp.fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 5 Sep 2017 11:19:39 -0700
+Message-ID: <CAPcyv4io_xoOuewStu921_E65N=TGFvvDr6butXP6e224TZu1Q@mail.gmail.com>
+Subject: Re: [ndctl PATCH 2/5] ndctl: make interface to read
+ device/nfit/dsm_mask
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,61 +23,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, jerry.hoemann@hpe.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
-Cc: taesoo@gatech.edu, meng.xu@gatech.edu, Meng Xu <mengxu.gatech@gmail.com>, sanidhya@gatech.edu
+To: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch delays the check of nd_reserved2 to the actual endpoint
-(acpi_nfit_ctl) that uses it, as a prevention of a potential
-double-fetch bug.
+On Fri, Sep 1, 2017 at 6:17 AM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+>
+> To check what feature can be called via ND_CMD_CALL, ndctl need to read
+> device/nfit/dsm_mask.
+> Since direct pointer access is not permitted,
+> ndctl_bus_get_nfit_dsm_mask() is created to access nfit_dsm_mask.
+> It is used later patch.
+>
+> Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+> ---
+>  ndctl/lib/libndctl.c   | 16 ++++++++++++++++
+>  ndctl/lib/libndctl.sym |  1 +
+>  ndctl/libndctl.h.in    |  1 +
+>  3 files changed, 18 insertions(+)
+>
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index f52ecfe..ea37ca4 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -104,6 +104,7 @@ struct ndctl_bus {
+>         size_t buf_len;
+>         char *wait_probe_path;
+>         unsigned long dsm_mask;
+> +       unsigned long nfit_dsm_mask;
+>  };
+>
+>  /**
+> @@ -793,6 +794,12 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
+>                 bus->revision = strtoul(buf, NULL, 0);
+>         }
+>
+> +       sprintf(path, "%s/device/nfit/dsm_mask", ctl_base);
+> +       if (sysfs_read_attr(ctx, path, buf) < 0)
+> +               bus->nfit_dsm_mask = 0;
+> +       else
+> +               bus->nfit_dsm_mask = strtoul(buf, NULL, 0);
+> +
+>         sprintf(path, "%s/device/provider", ctl_base);
+>         if (sysfs_read_attr(ctx, path, buf) < 0)
+>                 goto err_read;
+> @@ -1048,6 +1055,15 @@ NDCTL_EXPORT int ndctl_bus_is_cmd_supported(struct ndctl_bus *bus,
+>         return !!(bus->dsm_mask & (1ULL << cmd));
+>  }
+>
+> +/*
+> + * This function is exported for only nfit.c.
+> + * Please use ndctl_bus_is_nfit_cmd_supported() in nfit.c instead.
+> + */
+> +NDCTL_EXPORT unsigned long ndctl_bus_get_nfit_dsm_mask(struct ndctl_bus *bus)
+> +{
+> +       return bus->nfit_dsm_mask;
+> +}
 
-Detailed discussion can be found at
-https://marc.info/?l=linux-kernel&m=150421938113092&w=2
-
-Signed-off-by: Meng Xu <mengxu.gatech@gmail.com>
----
- drivers/acpi/nfit/core.c | 4 ++++
- drivers/nvdimm/bus.c     | 4 ----
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 19182d0..694b1b1 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -228,6 +228,10 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	if (cmd == ND_CMD_CALL) {
- 		call_pkg = buf;
- 		func = call_pkg->nd_command;
-+
-+		for (i = 0; i < ARRAY_SIZE(call_pkg->nd_reserved2); i++)
-+			if (call_pkg->nd_reserved2[i])
-+				return -EINVAL;
- 	}
- 
- 	if (nvdimm) {
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 937fafa..0fb9adb 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -980,10 +980,6 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
- 				__func__, dimm_name, pkg.nd_command,
- 				in_len, out_len, buf_len);
--
--		for (i = 0; i < ARRAY_SIZE(pkg.nd_reserved2); i++)
--			if (pkg.nd_reserved2[i])
--				return -EINVAL;
- 	}
- 
- 	/* process an output envelope */
--- 
-2.7.4
-
+I don't want to export the mask directly from library since we'll also
+have ndctl_bus_is_nfit_cmd_supported(). Let's just move struct
+ndctl_bus into private.h.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
