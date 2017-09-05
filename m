@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4265A21E97803
- for <linux-nvdimm@lists.01.org>; Wed,  6 Sep 2017 00:34:37 -0700 (PDT)
-Date: Wed, 6 Sep 2017 09:37:25 +0200
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH] libnvdimm, btt: clean up warning and error messages
-Message-ID: <20170906073725.plycj3rukta2k2wp@linux-x5ow.site>
-References: <20170905203539.6187-1-vishal.l.verma@intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20170905203539.6187-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E2AC821E97803
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 13:34:49 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH] libnvdimm, btt: clean up warning and error messages
+Date: Tue,  5 Sep 2017 14:35:39 -0600
+Message-Id: <20170905203539.6187-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,24 +15,182 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Looks good,
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
--- =
+Convert all WARN* style messages to dev_WARN, and for errors in the IO
+paths, use dev_err_ratelimited. Also remove some BUG_ONs in the IO path
+and replace them with the above - no need to crash the machine in case
+of an unaligned IO.
 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/btt.c | 58 ++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 36 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 90333b9..9000ea0 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -31,6 +31,11 @@ enum log_ent_request {
+ 	LOG_OLD_ENT
+ };
+ 
++static struct device *to_dev(struct arena_info *arena)
++{
++	return &arena->nd_btt->dev;
++}
++
+ static u64 adjust_initial_offset(struct nd_btt *nd_btt, u64 offset)
+ {
+ 	return offset + nd_btt->initial_offset;
+@@ -67,8 +72,10 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
+ 	 * We rely on that to make sure rw_bytes does error clearing
+ 	 * correctly, so make sure that is the case.
+ 	 */
+-	WARN_ON_ONCE(!IS_ALIGNED(arena->infooff, 512));
+-	WARN_ON_ONCE(!IS_ALIGNED(arena->info2off, 512));
++	dev_WARN_ONCE(to_dev(arena), !IS_ALIGNED(arena->infooff, 512),
++		"arena->infooff: %#llx is unaligned\n", arena->infooff);
++	dev_WARN_ONCE(to_dev(arena), !IS_ALIGNED(arena->info2off, 512),
++		"arena->info2off: %#llx is unaligned\n", arena->info2off);
+ 
+ 	ret = arena_write_bytes(arena, arena->info2off, super,
+ 			sizeof(struct btt_sb), 0);
+@@ -81,7 +88,6 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
+ 
+ static int btt_info_read(struct arena_info *arena, struct btt_sb *super)
+ {
+-	WARN_ON(!super);
+ 	return arena_read_bytes(arena, arena->infooff, super,
+ 			sizeof(struct btt_sb), 0);
+ }
+@@ -97,7 +103,10 @@ static int __btt_map_write(struct arena_info *arena, u32 lba, __le32 mapping,
+ {
+ 	u64 ns_off = arena->mapoff + (lba * MAP_ENT_SIZE);
+ 
+-	WARN_ON(lba >= arena->external_nlba);
++	if (unlikely(lba >= arena->external_nlba))
++		dev_err_ratelimited(to_dev(arena),
++			"%s: lba %#x out of range (max: %#x)\n",
++			__func__, lba, arena->external_nlba);
+ 	return arena_write_bytes(arena, ns_off, &mapping, MAP_ENT_SIZE, flags);
+ }
+ 
+@@ -136,7 +145,8 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
+ 		 * construed as a valid 'normal' case, but we decide not to,
+ 		 * to avoid confusion
+ 		 */
+-		WARN_ONCE(1, "Invalid use of Z and E flags\n");
++		dev_err_ratelimited(to_dev(arena),
++			"Invalid use of Z and E flags\n");
+ 		return -EIO;
+ 	}
+ 
+@@ -152,7 +162,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
+ 	u32 raw_mapping, postmap, ze, z_flag, e_flag;
+ 	u64 ns_off = arena->mapoff + (lba * MAP_ENT_SIZE);
+ 
+-	WARN_ON(lba >= arena->external_nlba);
++	if (unlikely(lba >= arena->external_nlba))
++		dev_err_ratelimited(to_dev(arena),
++			"%s: lba %#x out of range (max: %#x)\n",
++			__func__, lba, arena->external_nlba);
+ 
+ 	ret = arena_read_bytes(arena, ns_off, &in, MAP_ENT_SIZE, rwb_flags);
+ 	if (ret)
+@@ -200,7 +213,6 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
+ static int btt_log_read_pair(struct arena_info *arena, u32 lane,
+ 			struct log_entry *ent)
+ {
+-	WARN_ON(!ent);
+ 	return arena_read_bytes(arena,
+ 			arena->logoff + (2 * lane * LOG_ENT_SIZE), ent,
+ 			2 * LOG_ENT_SIZE, 0);
+@@ -304,11 +316,6 @@ static int btt_log_get_old(struct log_entry *ent)
+ 	return old;
+ }
+ 
+-static struct device *to_dev(struct arena_info *arena)
+-{
+-	return &arena->nd_btt->dev;
+-}
+-
+ /*
+  * This function copies the desired (old/new) log entry into ent if
+  * it is not NULL. It returns the sub-slot number (0 or 1)
+@@ -414,12 +421,14 @@ static int btt_map_init(struct arena_info *arena)
+ 	 * make sure rw_bytes does error clearing correctly, so make sure that
+ 	 * is the case.
+ 	 */
+-	WARN_ON_ONCE(!IS_ALIGNED(arena->mapoff, 512));
++	dev_WARN_ONCE(to_dev(arena), !IS_ALIGNED(arena->mapoff, 512),
++		"arena->mapoff: %#llx is unaligned\n", arena->mapoff);
+ 
+ 	while (mapsize) {
+ 		size_t size = min(mapsize, chunk_size);
+ 
+-		WARN_ON_ONCE(size < 512);
++		dev_WARN_ONCE(to_dev(arena), size < 512,
++			"chunk size: %#lx is unaligned\n", size);
+ 		ret = arena_write_bytes(arena, arena->mapoff + offset, zerobuf,
+ 				size, 0);
+ 		if (ret)
+@@ -456,12 +465,14 @@ static int btt_log_init(struct arena_info *arena)
+ 	 * make sure rw_bytes does error clearing correctly, so make sure that
+ 	 * is the case.
+ 	 */
+-	WARN_ON_ONCE(!IS_ALIGNED(arena->logoff, 512));
++	dev_WARN_ONCE(to_dev(arena), !IS_ALIGNED(arena->logoff, 512),
++		"arena->logoff: %#llx is unaligned\n", arena->logoff);
+ 
+ 	while (logsize) {
+ 		size_t size = min(logsize, chunk_size);
+ 
+-		WARN_ON_ONCE(size < 512);
++		dev_WARN_ONCE(to_dev(arena), size < 512,
++			"chunk size: %#lx is unaligned\n", size);
+ 		ret = arena_write_bytes(arena, arena->logoff + offset, zerobuf,
+ 				size, 0);
+ 		if (ret)
+@@ -553,7 +564,8 @@ static int btt_freelist_init(struct arena_info *arena)
+ 		if (ent_e_flag(log_new.old_map)) {
+ 			ret = arena_clear_freelist_error(arena, i);
+ 			if (ret)
+-				WARN_ONCE(1, "Unable to clear known errors\n");
++				dev_err_ratelimited(to_dev(arena),
++					"Unable to clear known errors\n");
+ 		}
+ 
+ 		/* This implies a newly created or untouched flog entry */
+@@ -1309,11 +1321,13 @@ static blk_qc_t btt_make_request(struct request_queue *q, struct bio *bio)
+ 	bio_for_each_segment(bvec, bio, iter) {
+ 		unsigned int len = bvec.bv_len;
+ 
+-		BUG_ON(len > PAGE_SIZE);
+-		/* Make sure len is in multiples of sector size. */
+-		/* XXX is this right? */
+-		BUG_ON(len < btt->sector_size);
+-		BUG_ON(len % btt->sector_size);
++		if (len > PAGE_SIZE || len < btt->sector_size ||
++				len % btt->sector_size) {
++			dev_err_ratelimited(&btt->nd_btt->dev,
++				"unaligned bio segment (len: %d)\n", len);
++			bio->bi_status = BLK_STS_IOERR;
++			break;
++		}
+ 
+ 		err = btt_do_bvec(btt, bip, bvec.bv_page, len, bvec.bv_offset,
+ 				  op_is_write(bio_op(bio)), iter.bi_sector);
+-- 
+2.9.5
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
