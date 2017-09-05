@@ -1,20 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
- [IPv6:2607:f8b0:4003:c06::235])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 904F121EB88D1
- for <linux-nvdimm@lists.01.org>; Fri,  1 Sep 2017 14:10:10 -0700 (PDT)
-Received: by mail-oi0-x235.google.com with SMTP id w10so11286480oie.1
- for <linux-nvdimm@lists.01.org>; Fri, 01 Sep 2017 14:12:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3222756C8BF@g01jpexmbkw01>
-References: <0DEDF3B159719A448A49EF0E7B11E3222756C8BF@g01jpexmbkw01>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 1 Sep 2017 14:12:54 -0700
-Message-ID: <CAPcyv4gO+L5RTi2+RL+YzS4uQF3bdSAOuxDD1to3_g8Quj4G7w@mail.gmail.com>
-Subject: Re: [RFC patch 0/4]ndctl: nvdimmd: notify/monitor the feathers of
- over threshold event
+ by ml01.01.org (Postfix) with ESMTPS id 306CD2095BB66
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 15:33:27 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 4/9] ext4: add ext4_should_use_dax()
+Date: Tue,  5 Sep 2017 16:35:36 -0600
+Message-Id: <20170905223541.20594-5-ross.zwisler@linux.intel.com>
+In-Reply-To: <20170905223541.20594-1-ross.zwisler@linux.intel.com>
+References: <20170905223541.20594-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,49 +17,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCBBdWcgMzEsIDIwMTcgYXQgNjo0MiBQTSwgUWksIEZ1bGkgPHFpLmZ1bGlAanAuZnVq
-aXRzdS5jb20+IHdyb3RlOgo+IEhlbGxvLAo+Cj4KPgo+IFRoaXMgaXMgbXkgZmlyc3QgdGltZSB0
-byBleHBlcmllbmNlIE9TUyB3b3JsZC4gSSBob3BlIEkgY2FuIGNvbnRyaWJ1dGUgdG8gTlZESU1N
-IGRldmVsb3BtZW50Lgo+CgoKV2VsY29tZSEKCgo+IFRoaXMgaXMgYSBwYXRjaCBzZXQgb2YgbnZk
-aW1tZCwgYSB0aW55IGRhZW1vbiB0byBtb25pdG9yIHRoZSBmZWF0dXJlcyBvZiBvdmVyCj4KPiB0
-aHJlc2hvbGQgZXZlbnRzLiBJdCBmaW5kcyBhbmQgbW9uaXRvcnMgYWxsIG9mIHRoZSBkaW1tcyB3
-aGljaCBzdXBwb3J0IHNtYXJ0Cj4KPiB0aHJlc2hvbGQuIEFsdGhvdWdoIGF0IHRoaXMgdGltZSwg
-bnZkaW1tIGRhZW1vbiBvbmx5IG91dHB1dHMgTlZESU1NJ3Mgc3RhdHVzIHRvCj4KPiBzeXN0ZW1s
-b2csIEkgd291bGQgbGlrZSB0byBnZXQgY29tbWVudHMvb3BpbmlvbnMuCj4KCgpTdXJlLCBJJ2xs
-IHRha2UgYSBkZWVwZXIgbG9vayBuZXh0IHdlZWsuCgoKPgo+IFRoZSBvdXRwdXQgaW5jbHVkZXMg
-ZGltbSdzIG5hbWUsIGhlYWx0aCBzdGF0ZSBhbmQgc3BhcmVzIHBlcmNlbnRhZ2UsIGV0Yy4KPgo+
-IEhlcmUgaXMgYSBzYW1wbGUgb2YgdGhlIG91dHB1dC4KPgo+Cj4KPiAgICAgICAgICAgICBudmRp
-bW0gd2FybmluZzogZGltbSBvdmVyIHRocmVzaG9sZCBub3RpZnkgW25tZW0yXQo+Cj4gICAgICAg
-ICAgICAgaGVhbHRoX3N0YXRlOiBub24tY3JpdGljYWwKPgo+ICAgICAgICAgICAgIHNwYXJlc19w
-ZXJjZW50YWdlOiA3NQo+Cj4KPgo+IEFib3V0IGNvbXBpbGluZyB0aGUgbnZkaW1tZCwgSSBhbSBu
-b3Qgc3VyZSB3aGV0aGVyIG5kY3RsIHVzaW5nIGF1dG9tYWtlIGNhbiBiZQo+Cj4gbWVyZ2VkIHdp
-dGggaW50byBrZXJuZWwgb3Igbm90WzFdLCBzbyBhIHNpbXBsZSBtYWtlZmlsZSBpcyBpbmNsdWRl
-ZC4gSWYgaXQgaXMKPgo+IG5lY2Vzc2FyeSB0byB3cml0ZSBpbnRvIGF1dG9tYWtlLCBwbGVhc2Ug
-a2luZGx5IGxldCBtZSBrbm93LgoKClllcywgcGxlYXNlIHVzZSBhdXRvbWFrZSBmb3Igbm93IHRv
-IGludGVncmF0ZSB3aXRoIHRoZSBjdXJyZW50IGJ1aWxkIHN5c3RlbS4KCgo+IEhlcmUgaXMgVE9E
-TyBsaXN0Ogo+Cj4gIC0gQ3VycmVudGx5LCBpZiBtdWx0aXBseSBldmVudHMgYXJlIG5vdGlmaWVk
-IGluIHRoZSBzYW1lIHRpbWUsIG52ZGltbWQgbWF5IGxvc2Ugc29tZSBvZiB0aGVtLgo+Cj4gICAg
-SSBzdXBwb3NlIGl0IGRlcGVuZHMgb24gc2VsZWN0KCnigJlzIHNwZWNpZmljYXRpb24sIGFuZCBJ
-IHRyaWVkIHRvIHVzZSBwb2xsKCkgaW5zdGVhZCBvZiBzZWxlY3QoKSwKPgo+IGJ1dCBpdCBkaWQg
-bm90IHdvcmsgd2VsbC4gU28gSSBuZWVkIG1vcmUgcmVzZWFyY2ggb24gc2VsZWN0KCkgYW5kIHBv
-bGwoKS4KPgo+IC0gQ2hhbmdlIHRoZSBtYWtlZmlsZSB0byBhdXRvbWFrZSBpZiBuZWNlc3Nhcnku
-Cj4KPiAtIEFkZCBtb3JlIGluZm9ybWF0aW9uIG9mIGRpbW0gaW50byB0aGUgbm90aWZpY2F0aW9u
-LgoKCkkgbmVlZCB0byBkbyBzb21lIG1vcmUgcmVzZWFyY2ggbXlzZWxmIG9uIHdoYXQgaXMgdGhl
-IGVhc2llc3QgbG9nZ2luZwppbXBsZW1lbnRhdGlvbiBmb3Igb3RoZXIgYXBwbGljYXRpb25zIHRv
-IGNvbnN1bWUsIG9yIGlmIHRoaXMgc2hvdWxkCmp1c3Qgb3V0cHV0IHJhdyBqc29uIGFuZCBsZXQg
-YW5vdGhlciBhcHBsaWNhdGlvbiB3b3JyeSBhYm91dAptYXJoc2FsaW5nIHRoYXQgdG8gYSBsb2dn
-aW5nIHNlcnZpY2UuCgoKPiAtIEFkZCBhIGNvbmZpZyBmaWxlIHRvIGNvbmZpZ3VyZSB0aGUgcGFy
-YW1ldGVycyBhbmQgaW5pdGlhbCBzZXR0aW5ncyBmb3IgbnZkaW1tZC4KPgo+IC0gSW1wbGVtZW50
-IGEgZmVhdHVyZShmcmFtZXdvcmspIHNvIHRoYXQgbnZkaW1tZCBjYW4gY2FsbCBleHRlcm5hbCBh
-cHBsaWNhdGlvbnMuCgoKU291bmRzIGdvb2QuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
-QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LW52ZGltbQo=
+This helper, in the spirit of ext4_should_dioread_nolock() et al., replaces
+the complex conditional in ext4_set_inode_flags() and will soon be called
+in multiple places.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ fs/ext4/ext4_jbd2.h | 15 +++++++++++++++
+ fs/ext4/inode.c     |  4 +---
+ 2 files changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/fs/ext4/ext4_jbd2.h b/fs/ext4/ext4_jbd2.h
+index 48143e3..65e2aa9 100644
+--- a/fs/ext4/ext4_jbd2.h
++++ b/fs/ext4/ext4_jbd2.h
+@@ -462,4 +462,19 @@ static inline int ext4_should_dioread_nolock(struct inode *inode)
+ 	return 1;
+ }
+ 
++static inline bool ext4_should_use_dax(struct inode *inode)
++{
++	if (!test_opt(inode->i_sb, DAX))
++		return false;
++	if (!S_ISREG(inode->i_mode))
++		return false;
++	if (ext4_should_journal_data(inode))
++		return false;
++	if (ext4_has_inline_data(inode))
++		return false;
++	if (ext4_encrypted_inode(inode))
++		return false;
++	return true;
++}
++
+ #endif	/* _EXT4_JBD2_H */
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index c774bdc..864fb94 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -4599,9 +4599,7 @@ void ext4_set_inode_flags(struct inode *inode)
+ 		new_fl |= S_NOATIME;
+ 	if (flags & EXT4_DIRSYNC_FL)
+ 		new_fl |= S_DIRSYNC;
+-	if (test_opt(inode->i_sb, DAX) && S_ISREG(inode->i_mode) &&
+-	    !ext4_should_journal_data(inode) && !ext4_has_inline_data(inode) &&
+-	    !ext4_encrypted_inode(inode))
++	if (ext4_should_use_dax(inode))
+ 		new_fl |= S_DAX;
+ 	inode_set_flags(inode, new_fl,
+ 			S_SYNC|S_APPEND|S_IMMUTABLE|S_NOATIME|S_DIRSYNC|S_DAX);
+-- 
+2.9.5
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
