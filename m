@@ -1,10 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.28.2])
- by ml01.01.org (Postfix) with ESMTP id 675B021E43B47
- for <linux-nvdimm@lists.01.org>; Sat, 23 Sep 2017 10:32:03 -0700 (PDT)
-From: "Post Office" <MAILER-DAEMON@lists.01.org>
-Subject: Returned mail: Data format error
-Date: Sun, 24 Sep 2017 01:35:42 +0800
+Received: from szkexin.com.cn (unknown [223.74.13.224])
+ by ml01.01.org (Postfix) with SMTP id 8260720958BE5
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Sep 2017 15:38:37 -0700 (PDT)
+Message-ID: <417503c8faa0f9ebfe7bcbdc369b0fdc@cimc.com>
+From: "=?utf-8?B?5pyx5Yac5ae/?=" <le@cimc.com>
+Subject: =?utf-8?B?4peP4peP4peP4peP5r6z6ZaA5paw6JGh5LqsLeiou+WGiumAgTM4LemgmOWPlg==?=
+ =?utf-8?B?6Yem6Yem77yaNzQ2NTI5ODU0Le+8u+mQteadv+eyvua6luizh+aWme+8vQ==?=
+ =?utf-8?B?4peP4peP4peP4peP?=
+Date: Thu, 07 Sep 2017 06:36:32 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,10 +20,8 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170923173206.282CF21E87965@ml01.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
-
 
 
 _______________________________________________
