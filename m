@@ -1,28 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22e.google.com (mail-oi0-x22e.google.com
+ [IPv6:2607:f8b0:4003:c06::22e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F2A5421E977F8
- for <linux-nvdimm@lists.01.org>; Wed,  6 Sep 2017 19:45:43 -0700 (PDT)
-Received: from g01jpfmpwkw03.exch.g01.fujitsu.local
- (g01jpfmpwkw03.exch.g01.fujitsu.local [10.0.193.57])
- by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id E203BAC015B
- for <linux-nvdimm@lists.01.org>; Thu,  7 Sep 2017 11:48:28 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [RFC patch 0/4]ndctl: nvdimmd: notify/monitor the feathers of
- over threshold event
-Date: Thu, 7 Sep 2017 02:48:26 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222757E949@g01jpexmbkw01>
+ by ml01.01.org (Postfix) with ESMTPS id AE7DB21E11D39
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 17:04:40 -0700 (PDT)
+Received: by mail-oi0-x22e.google.com with SMTP id n18so33675884oig.2
+ for <linux-nvdimm@lists.01.org>; Tue, 05 Sep 2017 17:07:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5C2C4439-D825-4651-9D1C-FF990DAFC398@fb.com>
 References: <0DEDF3B159719A448A49EF0E7B11E3222756C8BF@g01jpexmbkw01>
  <CAPcyv4gO+L5RTi2+RL+YzS4uQF3bdSAOuxDD1to3_g8Quj4G7w@mail.gmail.com>
  <CAPcyv4jw9vsoGY1Mto6+yJChvgeT4Fkkz=4dE1kW34LDQR_65A@mail.gmail.com>
  <1131391F-F14B-48F8-9416-037FF0DF2128@fb.com>
  <CAPcyv4jLP9=3Sgd-cgh8+1YA+gfg8K1oZ4mAwmoEcprfrbAEMw@mail.gmail.com>
  <5C2C4439-D825-4651-9D1C-FF990DAFC398@fb.com>
- <CAPcyv4j5eg39S4Fic8DytPPNe0btaCJKSvHrS17CwKQWqM3uBg@mail.gmail.com>
-In-Reply-To: <CAPcyv4j5eg39S4Fic8DytPPNe0btaCJKSvHrS17CwKQWqM3uBg@mail.gmail.com>
-Content-Language: ja-JP
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 5 Sep 2017 17:07:28 -0700
+Message-ID: <CAPcyv4j5eg39S4Fic8DytPPNe0btaCJKSvHrS17CwKQWqM3uBg@mail.gmail.com>
+Subject: Re: [RFC patch 0/4]ndctl: nvdimmd: notify/monitor the feathers of
+ over threshold event
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,51 +27,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dan Williams' <dan.j.williams@intel.com>, Song Liu <songliubraving@fb.com>
+To: Song Liu <songliubraving@fb.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkNCg0KVGhhbmsgeW91IHZlcnkgbXVjaCBmb3IgeW91ciBjb21tZW50cy4NCg0KSSBhZ3JlZSB0
-aGF0IGRtZXNnIGdldHMgdG9vIG5vaXN5IGVhc2lseSwgYnV0IEkgdGhpbmsgc29tZSB1c2VycyB3
-aG8gdXNlIGxvZw0KbW9uaXRvci9hbmFseXplciB0b29scyAoaS5lLiBMb2dzdGFzaCwgRmx1ZW50
-ZWQpIHdvdWxkIGxpa2UgdG8gZ2V0IHdhcm5pbmcvZXJyb3INCmluZm9ybWF0aW9uIGZvcm0gc3lz
-bG9nLiBJbiBvcmRlciB0byBtYWtlIGl0IGNvbnN1bWVkIG1vcmUgZWFzaWx5IGJ5IHVwcGVyIGxh
-eWVyDQpzb2Z0d2FyZSwgSSBhbSB0aGlua2luZyBhYm91dCBhZGRpbmcgYSBjb25maWcgZmlsZSgv
-ZXRjL252ZGltbWQvbnZkaW1tZC5jb25mKQ0KdG8gbGV0IHVzZXJzIGRlY2lkZSB0aGUgd2F5IHRo
-YXQgc3VpdHMgdGhlaXIgZGVtYW5kcyBiZXN0LiBVc2VycyBjYW4gY2hvb3NlIGVpdGhlcg0KdG8g
-d3JpdGUgdGhlIG5vdGlmaWNhdGlvbnMgaW50byBzeXNsb2csIG9yIHRvIHNlbmQgc3RydWN0dXJl
-ZCBkYXRhIHdpdGgganNvbiBmb3JtYXQNCmludG8gYSBzcGVjaWFsIGZpbGUodXNlcnMgY2FuIHNl
-dHRpbmcgdGhlIHBhdGggZm9yIGZyZWUsIHN1Y2ggYXMgdmFyL2xvZy9udmRpbW1kLmxvZykNCm9y
-IGJvdGggYnkgY29uZmlndXJlIHBhcmFtZXRlcnMgaW4gdGhlIGNvbmZpZyBmaWxlLg0KDQpVc2Vy
-cyBjYW4gYWxzbyBzZXR1cCBmaWx0ZXJzIGJ5IHNldHRpbmcgZGlmZmVyZW50IHBhcmFtZXRlcnMg
-aW4gdGhlIGNvbmZpZyBmaWxlLA0KZm9yIGV4YW1wbGUgdGhlIG1vbml0b3JlZCBkaW1tcycgbmFt
-ZSwgbm90aWZ5IHRpbWUsIGZyZXF1ZW5jeSBldGMuIElmIHlvdSB0aGluaw0KdGhpcyBpcyB0aGUg
-cmlnaHQgYXBwcm9hY2gsIEkgd2lsbCBsaXN0IHVwIHRoZSBwYXJhbWV0ZXJzIHRoYXQgSSBjYW4g
-dGhpbmsgb2YgYnkNCm5vdy4gVGhlbiB3ZSBjYW4gZGlzY3VzcyBtb3JlIGRldGFpbHMuDQoNCllv
-dXIgY29tbWVudHMvb3BpbmlvbnMgd291bGQgYWxzbyBiZSBoaWdobHkgYXBwcmVjaWF0ZWQuDQoN
-ClAuUy4gU29ycnkgdG8gc2F5IHRoYXQgSSB3aWxsIGJlIG9mZiBmcm9tIG9mZmljZSBuZXh0IHdl
-ZWssIGFuZCBiYWNrIG9uIDE5dGggU2VwLg0KDQpRSQ0KDQpGcm9tOiBEYW4gV2lsbGlhbXMgW21h
-aWx0bzpkYW4uai53aWxsaWFtc0BpbnRlbC5jb21dDQpTZW50OiBXZWRuZXNkYXksIFNlcHRlbWJl
-ciA2LCAyMDE3IDk6MDcgQU0NClRvOiBTb25nIExpdSA8c29uZ2xpdWJyYXZpbmdAZmIuY29tPg0K
-Q2M6IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+OyBsaW51eC1u
-dmRpbW1AbGlzdHMuMDEub3JnDQpTdWJqZWN0OiBSZTogW1JGQyBwYXRjaCAwLzRdbmRjdGw6IG52
-ZGltbWQ6IG5vdGlmeS9tb25pdG9yIHRoZSBmZWF0aGVycyBvZiBvdmVyIHRocmVzaG9sZCBldmVu
-dA0KDQoNCg0KT24gVHVlLCBTZXAgNSwgMjAxNyBhdCA1OjAyIFBNLCBTb25nIExpdSA8c29uZ2xp
-dWJyYXZpbmdAZmIuY29tPG1haWx0bzpzb25nbGl1YnJhdmluZ0BmYi5jb20+PiB3cm90ZToNCkZv
-ciB0aGF0LCBJIHdvdWxkIHNheSBnZW5lcmF0aW5nIEpTT04gZm9ybWF0IGlzIGEgc29saWQgYnVp
-bGRpbmcgYmxvY2suIEluIG15DQpzZXR1cCwgSSBoYXZlIHVzZSBTY3JpYmUgaHR0cHM6Ly9lbi53
-aWtpcGVkaWEub3JnL3dpa2kvU2NyaWJlXyhsb2dfc2VydmVyKSAuDQpBbmQgZnVydGhlciBwcm9j
-ZXNzaW5nIG9mIGRhdGEgaGFwcGVucyBhZnRlciB0aGF0LiBCdXQgSSBkb24ndCB0aGluayBTY3Jp
-YmUgaXMNCmF2YWlsYWJsZSBldmVyeXdoZXJlLg0KDQpCZXNpZGVzIFNDU0kgZXZlbnRzLCBKU09O
-IGZvcm1hdCBpcyBwcmVmZXJhYmxlIGJ5IG1hbnkgdXNlcnMgb2YgbXkgdG9vbHMuDQoNClNvbWUg
-c3lzdGVtIGFkbWlucyBwcmVmZXIgdG8gcHVsbCBkYXRhIG9uIHRoZWlyIHByZWZlcnJlZCBzY2hl
-ZHVsZSAoaW5zdGVhZCBvZg0KaGF2aW5nIGEgZGFlbW9uIHRvIHB1c2ggZGF0YSB0byB0aGVtKS4g
-U28gYmVpbmcgYWJsZSB0byBmaWx0ZXIgZXZlbnRzIGJ5IHRpbWUNCmNvdWxkIGJlIGEgdXNlZnVs
-IGZlYXR1cmUuDQoNCkkgaG9wZSB0aGVzZSBhcmUgaGVscGZ1bC4NCg0KWWVzLCBkZWZpbml0ZWx5
-LiBUaGFua3MgU29uZyENCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Tue, Sep 5, 2017 at 5:02 PM, Song Liu <songliubraving@fb.com> wrote:
+
+> For that, I would say generating JSON format is a solid building block. In
+> my
+> setup, I have use Scribe https://en.wikipedia.org/wiki/Scribe_(log_server)
+> .
+> And further processing of data happens after that. But I don't think
+> Scribe is
+> available everywhere.
+>
+> Besides SCSI events, JSON format is preferable by many users of my tools.
+>
+> Some system admins prefer to pull data on their preferred schedule
+> (instead of
+> having a daemon to push data to them). So being able to filter events by
+> time
+> could be a useful feature.
+>
+> I hope these are helpful.
+>
+
+Yes, definitely. Thanks Song!
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
