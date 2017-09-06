@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A6ACA20958BE5
- for <linux-nvdimm@lists.01.org>; Wed,  6 Sep 2017 17:07:37 -0700 (PDT)
-Subject: [PATCH v7] ndctl: daxctl: Adding io option for daxctl
+ by ml01.01.org (Postfix) with ESMTPS id 1CE2821E9781B
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Sep 2017 16:35:05 -0700 (PDT)
+Subject: [PATCH v6] ndctl: daxctl: Adding io option for daxctl
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 06 Sep 2017 17:10:23 -0700
-Message-ID: <150474296248.44839.735366641382148312.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 06 Sep 2017 16:37:55 -0700
+Message-ID: <150474100916.41337.11350119799719590863.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -32,9 +32,6 @@ i.e. daxctl io --input=/home/myfile --output=/dev/dax1.0
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
-v7:
-- Added missing AC_DEFINE in configure.ac to fix --list-cmds.
-
 v6:
 - Made including libpmem an option with --with-libpmem. By enabling it
 would build daxctl io. Otherwise it's disabled.
@@ -56,12 +53,12 @@ by Dan.
 
  Documentation/daxctl/Makefile.am   |    3 
  Documentation/daxctl/daxctl-io.txt |   72 +++++
- configure.ac                       |   11 +
+ configure.ac                       |   10 +
  daxctl/Makefile.am                 |    9 +
  daxctl/daxctl.c                    |    6 
  daxctl/io.c                        |  576 ++++++++++++++++++++++++++++++++++++
  ndctl.spec.in                      |    3 
- 7 files changed, 678 insertions(+), 2 deletions(-)
+ 7 files changed, 677 insertions(+), 2 deletions(-)
  create mode 100644 Documentation/daxctl/daxctl-io.txt
  create mode 100644 daxctl/io.c
 
@@ -158,10 +155,10 @@ index 0000000..c4ad9ef
 +you are free to change and redistribute it.  There is NO WARRANTY, to
 +the extent permitted by law.
 diff --git a/configure.ac b/configure.ac
-index 316f5b7..5b10381 100644
+index 316f5b7..07d6a35 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -94,6 +94,17 @@ PKG_CHECK_MODULES([UDEV], [libudev])
+@@ -94,6 +94,16 @@ PKG_CHECK_MODULES([UDEV], [libudev])
  PKG_CHECK_MODULES([UUID], [uuid])
  PKG_CHECK_MODULES([JSON], [json-c])
  
@@ -172,7 +169,6 @@ index 316f5b7..5b10381 100644
 +	[with_libpmem=no])
 +if test "x$with_libpmem" = "xyes"; then
 +	PKG_CHECK_MODULES([PMEM], [libpmem])
-+	AC_DEFINE(ENABLE_DAXIO, 1, [Enable daxctl io])
 +fi
 +AM_CONDITIONAL([ENABLE_DAXIO], [test "x$with_libpmem" = "xyes"])
 +
