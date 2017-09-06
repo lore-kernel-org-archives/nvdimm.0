@@ -2,18 +2,17 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 126E02095BB84
- for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 23:27:35 -0700 (PDT)
-Date: Wed, 6 Sep 2017 02:30:17 -0400 (EDT)
+ by ml01.01.org (Postfix) with ESMTPS id 141C220958BD2
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 23:26:25 -0700 (PDT)
+Date: Wed, 6 Sep 2017 02:29:01 -0400 (EDT)
 From: Mikulas Patocka <mpatocka@redhat.com>
 Subject: Re: [PATCH] dax: remove the pmem_dax_ops->flush abstraction
-In-Reply-To: <CAPcyv4jEO1g_OeG-T_veMtziXByNzEta5g00v-yTr7=yr6kpcA@mail.gmail.com>
-Message-ID: <alpine.LRH.2.02.1709060212070.12322@file01.intranet.prod.int.rdu2.redhat.com>
+In-Reply-To: <CAPcyv4iSTmh4j_EfFsbqwrXRd134QMYr+CkV6JuSsw9TX5ihWg@mail.gmail.com>
+Message-ID: <alpine.LRH.2.02.1709060220520.12322@file01.intranet.prod.int.rdu2.redhat.com>
 References: <alpine.LRH.2.02.1708312138390.32309@file01.intranet.prod.int.rdu2.redhat.com>
  <CAPcyv4j9KcgWU+rDY_5zAQ4xg3cx4Z3UkjTieVNMkWLc7C0OLg@mail.gmail.com>
- <alpine.LRH.2.02.1708312242080.32309@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4iECaWuZNg4VOsSydtd9wnsS=JVfQ3ySHSQo0UP+J5gkw@mail.gmail.com>
- <CAPcyv4jEO1g_OeG-T_veMtziXByNzEta5g00v-yTr7=yr6kpcA@mail.gmail.com>
+ <alpine.LRH.2.02.1708312257500.15601@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4iSTmh4j_EfFsbqwrXRd134QMYr+CkV6JuSsw9TX5ihWg@mail.gmail.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -34,94 +33,50 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 On Thu, 31 Aug 2017, Dan Williams wrote:
 
-> On Thu, Aug 31, 2017 at 8:11 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> > On Thu, Aug 31, 2017 at 7:49 PM, Mikulas Patocka <mpatocka@redhat.com> wrote:
-> >>
-> >>
-> >> On Thu, 31 Aug 2017, Dan Williams wrote:
-> >>
-> >>> On Thu, Aug 31, 2017 at 6:47 PM, Mikulas Patocka <mpatocka@redhat.com> wrote:
-> >>> > The patch abebfbe2f731 ("dm: add ->flush() dax operation support") is
-> >>> > buggy. A dm device may be composed of multiple underlying devices and all
-> >>> > of them need to be flushed. The patch just routes the flush request to the
-> >>> > first device and ignores the other devices.
-> >>> >
-> >>> > It could be fixed by adding more complex logic to the device mapper. But
-> >>> > there is only one implementation of the method pmem_dax_ops->flush - that
-> >>> > is pmem_dax_flush() - and it calls arch_wb_cache_pmem(). Consequently, we
-> >>> > don't need the pmem_dax_ops->flush abstraction at all, we can call
-> >>> > arch_wb_cache_pmem() directly from dax_flush() because dax_dev->ops->flush
-> >>> > couldn't ever reach anything different from arch_wb_cache_pmem().
-> >>>
-> >>> Unfortunately, this is not true, see usage of DAXDEV_WRITE_CACHE. This
-> >>> is for platforms that arrange for cpu caches to be flushed on
-> >>> power-fail, like standalone storage appliances, where it would be a
-> >>> waste for the kernel to track and flush dirty cachelines for dax.
-> >>> Theoretically this could be done on a per-address range basis (think
-> >>> battery backing a subset of the system memory). I think we need to fix
-> >>> the routing to flush the same dax_device that ->direct_access() was
-> >>> invoked.
-> >>
-> >> With my patch, dax_flush checks DAXDEV_WRITE_CACHE and doesn't do anything
-> >> if it's not set - it just doesn't go through device mapper.
+> On Thu, Aug 31, 2017 at 8:04 PM, Mikulas Patocka <mpatocka@redhat.com> wrote:
 > >
-> > True, but there's no guarantee that arch_wb_pmem() will be sufficient
-> > going forward and the reason we routed this to the driver in the first
-> > place was to allow driver / platform specific flush implementations.
 > >
+> > On Thu, 31 Aug 2017, Dan Williams wrote:
+> >
+> >> On Thu, Aug 31, 2017 at 6:47 PM, Mikulas Patocka <mpatocka@redhat.com> wrote:
+> >> > The patch abebfbe2f731 ("dm: add ->flush() dax operation support") is
+> >> > buggy. A dm device may be composed of multiple underlying devices and all
+> >> > of them need to be flushed. The patch just routes the flush request to the
+> >> > first device and ignores the other devices.
+> >> >
+> >> > It could be fixed by adding more complex logic to the device mapper. But
+> >> > there is only one implementation of the method pmem_dax_ops->flush - that
+> >> > is pmem_dax_flush() - and it calls arch_wb_cache_pmem(). Consequently, we
+> >> > don't need the pmem_dax_ops->flush abstraction at all, we can call
+> >> > arch_wb_cache_pmem() directly from dax_flush() because dax_dev->ops->flush
+> >> > couldn't ever reach anything different from arch_wb_cache_pmem().
 > >>
-> >>> > It should be also pointed out that for some uses of persistent memory it
-> >>> > is needed to flush only very small amount of data (such as 1 cacheline),
-> >>> > and it would be overkill if we go through that device mapper machinery for
-> >>> > a single flushed cache line.
-> >>>
-> >>> I think this is more an argument to not enable DAX on that
-> >>> device-mapper topology if operation routing impacts performance. DAX
-> >>> is meant to get the kernel out of the way most of the time.
-> >>
-> >> I don't understand what do you mean? I am writing a device mapper target
-> >> that uses persistent memory as a cache. When flushing the metadata,
-> >> sometimes it is needed to flush single cache lines. Ideally, I would use
-> >> the clwb instruction for this purpose, but that clwb is hidden behind a
-> >> complicated pmem_dax_ops->flush abstraction (and that abstraction will get
-> >> even more complicated if implemented correctly). How do you think I should
-> >> write that target without DAX?
+> >> Unfortunately, this is not true, see usage of DAXDEV_WRITE_CACHE. This
+> >> is for platforms that arrange for cpu caches to be flushed on
+> >> power-fail, like standalone storage appliances, where it would be a
 > >
-> > I don't think you want DAX for this, I think you want direct control
-> > of a persistent-memory address range.  For example the brd driver
-> > supports DAX but I wouldn't recommend using it as the basis for a
-> > directly managed cache.
+> > BTW. if the system is capable of flushing caches on power failure, it is
+> > system-wide feature, it is not per-device feature. The CPU caches may
+> > store data for any persistent memory device.
 > >
-> > So I think we need to dive deeper into what an in kernel interface to
-> > access a contiguous persistent memory range looks like. DAX was not
-> > designed with that use case in mind.
+> > You either have enough remaining power to flush the CPU caches or not.
 > 
-> For a cache driver using pmem, a strawman / starting point would be
-> trying to do a ->direct_access() call for the full capacity of the
-> device and then:
-> 
-> 1/ validate that it returns the full capacity (this will preclude
-> drivers like brd, and make sure the dax range is contiguous)
-> 
-> 2/ use the returned pfn to walk the iomem resource tree and validate
-> that you are talking to persistent memory and not some special
-> dax-device range.
+> Whether you need to flush caches or not can be a per-address range
+> attribute and can change over time.
 
-This is exactly what I am doing. (except that if direct_access returns 
-less than the size of the device, I call direct_access again and remap the 
-discontiguos pages to a contiguous linear region)
+There is only one way to flush the cache (the clwb instruction), you don't 
+need a method that abstracts over this instruction. A simple flag or 
+static key that skips clwb() is sufficient.
 
-But the question is - how should I flush cache lines in my persistent 
-memory driver?
+Linux kernel API is changeable, so you don't need to overdesign the API 
+for future. If it ever happens that we have a system with two types of 
+persistent memory that need different instructions to flush them, we can 
+design a proper abstraction. But there is no reason to design the 
+abstraction in advance for a situation that will perhaps never happen.
 
-* there is clwb() function, but it is specific to x86 architecture
-* there is dax_flush(), but it has excessive overhead because it tries to 
-  walk the device mapper tree (I measured it on a system with real 
-  persistent memory and it is 1.9 times slower than clwb when used on 
-  device mapper)
-* in the kernel 4.12, there used to be wb_cache_pmem() - this function 
-  would be perfect for this purpose, but the commit 
-  4e4f00a9b51a1c52ebdd728a1caeb3b9fe48c39d removed it
+That dm_dax_ops->flush abstraction slows down cache flushing almost twice 
+(when used on device mapper) and it is just unacceptable. Unfortunatelly, 
+there is no other architecture-independent function to flush cache.
 
 Mikulas
 _______________________________________________
