@@ -1,20 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x233.google.com (mail-oi0-x233.google.com
- [IPv6:2607:f8b0:4003:c06::233])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F8C821D492DE
- for <linux-nvdimm@lists.01.org>; Thu,  7 Sep 2017 15:22:15 -0700 (PDT)
-Received: by mail-oi0-x233.google.com with SMTP id x190so5866360oix.3
- for <linux-nvdimm@lists.01.org>; Thu, 07 Sep 2017 15:25:07 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id F0F5B21EA35B0
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Sep 2017 21:58:29 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 6275CAC0167
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Sep 2017 14:01:16 +0900 (JST)
+Date: Thu, 07 Sep 2017 14:00:53 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [ndctl PATCH v5 0/5] ndctl: show broken dimm info with translate SPA
+ feature.
+Message-Id: <20170907140049.7F71.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
-In-Reply-To: <20170907140049.7F71.E1E9C6FF@jp.fujitsu.com>
-References: <20170907140049.7F71.E1E9C6FF@jp.fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 7 Sep 2017 15:25:06 -0700
-Message-ID: <CAPcyv4gZdvJNrnjzMOG+=K1FLWG6gnGDrsKksHR0fYGzFtnXgg@mail.gmail.com>
-Subject: Re: [ndctl PATCH v5 0/5] ndctl: show broken dimm info with translate
- SPA feature.
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,20 +25,91 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Sep 6, 2017 at 10:00 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
-> Hi,
->
-> I wrote v5 patch set to show broken NVDIMM for ndctl list command.
-> If possible, please merge it.
+Hi,
 
-Ok, I merged patches 1 - 4 with some minor fixups. I moved
-ndctl_bus_nfit_translate_spa() from libndctl-nfit.h into private.h
-since the interface end applications should be using is the generic
-ndctl_dimm_get_by_physical_address().
+I wrote v5 patch set to show broken NVDIMM for ndctl list command.
+If possible, please merge it.
+
+---
+Change log since v4 [1]:
+  - Renamed to ndctl_bus_get_(region/dimm)_by_physical_address()
+  - Check ndctl_bus_has_nfit() in ndctl_bus_get_dimm_by_physical_address()
+  - No export ndctl_bus_nfit_translate_spa()
+  - Move ndctl_bus to private.h
+  - attribute packed is added again.
+
+
+Change log since v3 [2]:
+  - Return dimm info when dimm is not interleaved.
+    Translate SPA is not necessary for its case.
+  - Since ndctl_region is needed to get # of ways of interleave,
+    ndctl_region_get_by_physical_address() is created,
+    and sanity check (is_valid_spa) use it.
+  - rename libndctl-nfit.c to nfit.c
+  - move libndctl-nfit.h from ndctl/lib to ndctl/ .
+  - not to make libndctl-nfit.la
+  - rename to ndctl_bus_is_nfit_cmd_supported()
+  - add annotations.
+
+Change log since v2 [3]:
+ - Make libndctl-nfit.h and libndctl-nfit.c and define new interfaces
+   which use translate spa on them.
+ - Add sanity checks for new interfaces.
+ - Fix some names
+      o trans_spa -> translate_spa
+      o sub_cmd -> passthru_cmd
+   
+
+Change log since v1 [4]:
+ - Use ND_CMD_CALL to call translate SPA feature.
+ - Separate patch set of ndctl from kernel patch set.
+ - Add a interface to check what feature can call via ND_CMD_CALL by reading
+   /device/nfit/dsm_mask 
+ - Get only one nvdimm handle and DPA via ioctl() for the time being.
+ - Bug fix which i found
+     fix calculation of SPA from bad block at dev_badblocks_to_json().
+
+
+[1] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05927.html
+[2] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05857.html
+[3] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05577.html
+[4] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05287.html
+
+
+----
+This patch set is to show information of broken NVDIMM on ndctl.
+
+When a region has a broken block, user needs to replace
+the NVDIMM which includes the block.
+However there is no information to find which DIMM module have the block.
+Not only ndctl does not have such information, nvdimm driver can not
+find it if the region is interleaved.
+
+
+Fortunately, ACPI 6.2 has new specification of _DSM.
+It is "translate spa" which can get NVDIMM handle
+and DPA(Dimm Physical Address) from SPA(system Physical Addreess).
+It helps for ndctl command to find broken NVDIMM when the region is
+interleaved.
+
+This patch set includes followings.
+ - introduce libndctl-nfit.h
+ - some preparations to call Translate SPA via ND_CMD_CALL.
+ - make a function to get dimm by System physical address, and
+   other helper functions.
+ - ndctl list command show bad DIMM.
+
+
+Thanks,
+---
+Yasunori Goto
+
+
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
