@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 29F2821D492C8
- for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 21:42:37 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 3/3] ext4: test for inline data + DAX corruption
-Date: Mon, 11 Sep 2017 22:45:21 -0600
-Message-Id: <20170912044521.22644-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170912044521.22644-1-ross.zwisler@linux.intel.com>
-References: <20170912044521.22644-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6FC4120958BE5
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Sep 2017 22:05:13 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 1DCF1AC0131
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Sep 2017 14:08:00 +0900 (JST)
+Date: Thu, 07 Sep 2017 14:07:42 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [ndctl PATCH v5 4/5] ndctl: Make new interfaces to get information by
+ Physical Address
+In-Reply-To: <20170907140049.7F71.E1E9C6FF@jp.fujitsu.com>
+References: <20170907140049.7F71.E1E9C6FF@jp.fujitsu.com>
+Message-Id: <20170907140738.7F7D.E1E9C6FF@jp.fujitsu.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,250 +22,336 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: fstests@vger.kernel.org, Eryu Guan <eguan@redhat.com>
-Cc: Andreas Dilger <adilger@dilger.ca>, Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a regression test for the following kernel commit:
 
-  ext4: prevent data corruption with inline data + DAX
+This patch add features to get information by physical address.
+Here is new interfaces :
+  - Confirm NFIT command is supported or not. (nfit.c)
+  - Find region by System Physical Address (libndctl.c)
+  - Find DIMM by System Physical Address. (libndctl.c)
 
-The test passes either if we don't encounter corruption, or if mounting
-with DAX + inline data fails.  The latter is the way that we prevent this
-issue in the kernel.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 ---
- .gitignore                         |  1 +
- src/Makefile                       |  3 +-
- src/t_ext4_dax_inline_corruption.c | 70 +++++++++++++++++++++++++++++++
- tests/ext4/031                     | 84 ++++++++++++++++++++++++++++++++++++++
- tests/ext4/031.out                 |  2 +
- tests/ext4/group                   |  1 +
- 6 files changed, 160 insertions(+), 1 deletion(-)
- create mode 100644 src/t_ext4_dax_inline_corruption.c
- create mode 100755 tests/ext4/031
- create mode 100644 tests/ext4/031.out
+ ndctl/lib/Makefile.am  |   2 +
+ ndctl/lib/libndctl.c   |  74 +++++++++++++++++++++++++
+ ndctl/lib/libndctl.sym |   2 +
+ ndctl/lib/nfit.c       | 145 +++++++++++++++++++++++++++++++++++++++++++++++++
+ ndctl/libndctl-nfit.h  |   4 ++
+ ndctl/libndctl.h.in    |   4 ++
+ 6 files changed, 231 insertions(+)
 
-diff --git a/.gitignore b/.gitignore
-index 4bdc5bf..37670e6 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -155,6 +155,7 @@
- /src/t_mmap_cow_race
- /src/t_mmap_fallocate
- /src/t_ext4_dax_journal_corruption
-+/src/t_ext4_dax_inline_corruption
+diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
+index d8df87d..9a7734d 100644
+--- a/ndctl/lib/Makefile.am
++++ b/ndctl/lib/Makefile.am
+@@ -36,6 +36,8 @@ libndctl_la_SOURCES += hpe1.c
+ libndctl_la_SOURCES += msft.c
+ endif
  
- # dmapi/ binaries
- /dmapi/src/common/cmd/read_invis
-diff --git a/src/Makefile b/src/Makefile
-index e6558e2..bcfae01 100644
---- a/src/Makefile
-+++ b/src/Makefile
-@@ -13,7 +13,8 @@ TARGETS = dirstress fill fill2 getpagesize holes lstat64 \
- 	multi_open_unlink dmiperf unwritten_sync genhashnames t_holes \
- 	t_mmap_writev t_truncate_cmtime dirhash_collide t_rename_overwrite \
- 	holetest t_truncate_self t_mmap_dio af_unix t_mmap_stale_pmd \
--	t_mmap_cow_race t_mmap_fallocate fsync-err t_ext4_dax_journal_corruption
-+	t_mmap_cow_race t_mmap_fallocate fsync-err t_ext4_dax_journal_corruption \
-+	t_ext4_dax_inline_corruption
++libndctl_la_SOURCES += nfit.c
++
+ EXTRA_DIST += libndctl.sym
  
- LINUX_TARGETS = xfsctl bstat t_mtab getdevicesize preallo_rw_pattern_reader \
- 	preallo_rw_pattern_writer ftrunc trunc fs_perms testx looptest \
-diff --git a/src/t_ext4_dax_inline_corruption.c b/src/t_ext4_dax_inline_corruption.c
-new file mode 100644
-index 0000000..4b7d893
---- /dev/null
-+++ b/src/t_ext4_dax_inline_corruption.c
-@@ -0,0 +1,70 @@
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <time.h>
-+#include <unistd.h>
-+
-+#define PAGE(a) ((a)*0x1000)
-+#define STRLEN 256
-+
-+void err_exit(char *op)
+ libndctl_la_LDFLAGS = $(AM_LDFLAGS) \
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 84b71e9..e3e0421 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -38,6 +38,7 @@
+ #include <ndctl/libndctl.h>
+ #include <ndctl/namespace.h>
+ #include <daxctl/libdaxctl.h>
++#include <ndctl/libndctl-nfit.h>
+ #include "private.h"
+ 
+ static uuid_t null_uuid;
+@@ -1532,6 +1533,79 @@ static struct ndctl_dimm *ndctl_dimm_get_by_id(struct ndctl_bus *bus, unsigned i
+ 	return NULL;
+ }
+ 
++/**
++ * ndctl_bus_get_region_by_physical_address - get region by physical address
++ * @bus: ndctl_bus instance
++ * @address: (System) Physical Address
++ *
++ * If @bus and @address is valid, returns a region address, which
++ * physical address belongs to.
++ */
++NDCTL_EXPORT struct ndctl_region *ndctl_bus_get_region_by_physical_address(struct ndctl_bus *bus,
++		unsigned long long address)
 +{
-+	fprintf(stderr, "%s: %s\n", op, strerror(errno));
-+	exit(1);
-+}
++	unsigned long long region_start, region_end;
++	struct ndctl_region *region;
 +
-+int main(int argc, char *argv[])
-+{
-+	int fd, err, len = PAGE(1);
-+	char *dax_data, *data;
-+	char string[STRLEN];
-+
-+	if (argc < 2) {
-+		printf("Usage: %s <file>\n", basename(argv[0]));
-+		exit(0);
++	ndctl_region_foreach(bus, region) {
++		region_start = ndctl_region_get_resource(region);
++		region_end = region_start + ndctl_region_get_size(region);
++		if (region_start <= address && address < region_end)
++			return region;
 +	}
 +
-+	srand(time(NULL));
-+	snprintf(string, STRLEN, "random number %d\n", rand());
++	return NULL;
++}
 +
-+	fd = open(argv[1], O_RDWR);
-+	if (fd < 0)
-+		err_exit("fd");
++/**
++ * ndctl_bus_get_dimm_by_physical_address - get ndctl_dimm pointer by physical address
++ * @bus: ndctl_bus instance
++ * @address: (System) Physical Address
++ *
++ * Returns address of ndctl_dimm on success.
++ */
++NDCTL_EXPORT struct ndctl_dimm *ndctl_bus_get_dimm_by_physical_address(struct ndctl_bus *bus,
++	        unsigned long long address)
++{
++        unsigned int handle;
++	unsigned long long dpa;
++	struct ndctl_region *region;
 +
-+	data = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-+	if (!data)
-+		err_exit("mmap data");
++	if (!bus)
++		return NULL;
 +
-+	/* this fallocate turns off inline data and turns on DAX */
-+	fallocate(fd, 0, 0, PAGE(2));
++	region = ndctl_bus_get_region_by_physical_address(bus, address);
++	if (!region)
++		return NULL;
 +
-+	dax_data = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
-+	if (!dax_data)
-+		err_exit("mmap dax_data");
++	if (ndctl_region_get_interleave_ways(region) == 1) {
++		/*
++		 * No need to ask firmware. The first dimm is iff.
++		 */
++		struct ndctl_mapping *mapping = ndctl_mapping_get_first(region);
++		if (!mapping)
++			return NULL;
++		return ndctl_mapping_get_dimm(mapping);
++	}
 +
 +	/*
-+	 * Write the data using the non-DAX mapping, and try and read it back
-+	 * using the DAX mapping.
++	 * Since the region is interleaved, we need to ask firmware about it.
++	 * If it supports Translate SPA, the dimm is returned.
 +	 */
-+	strcpy(data, string);
-+	if (strcmp(dax_data, string) != 0)
-+		printf("Data miscompare\n");
++	if (ndctl_bus_has_nfit(bus)) {
++		int rc;
 +
-+	err = munmap(dax_data, len);
-+	if (err < 0)
-+		err_exit("munmap dax_data");
++		rc = ndctl_bus_nfit_translate_spa(bus, address, &handle, &dpa);
++		if (rc)
++			return NULL;
 +
-+	err = munmap(data, len);
-+	if (err < 0)
-+		err_exit("munmap data");
++		return ndctl_dimm_get_by_handle(bus, handle);
++	}
++	/* No way to get dimm info */
++	return NULL;
++}
 +
-+	err = close(fd);
-+	if (err < 0)
-+		err_exit("close");
++
+ static int region_set_type(struct ndctl_region *region, char *path)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 4c1773d..5a73a42 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -36,6 +36,8 @@ global:
+ 	ndctl_bus_get_provider;
+ 	ndctl_bus_get_ctx;
+ 	ndctl_bus_wait_probe;
++	ndctl_bus_get_region_by_physical_address;
++	ndctl_bus_get_dimm_by_physical_address;
+ 	ndctl_dimm_get_first;
+ 	ndctl_dimm_get_next;
+ 	ndctl_dimm_get_handle;
+diff --git a/ndctl/lib/nfit.c b/ndctl/lib/nfit.c
+new file mode 100644
+index 0000000..f3806a4
+--- /dev/null
++++ b/ndctl/lib/nfit.c
+@@ -0,0 +1,145 @@
++/*
++ * Copyright (c) 2017, FUJITSU LIMITED. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU Lesser General Public License,
++ * version 2.1, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT ANY
++ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
++ * more details.
++ */
++#include <stdlib.h>
++#include <ndctl/libndctl.h>
++#include "private.h"
++#include <ndctl/libndctl-nfit.h>
++
++/**
++ * ndctl_bus_is_nfit_cmd_supported - ask nfit command is supported on @bus.
++ * @bus: ndctl_bus instance
++ * @cmd: nfit command number (defined as NFIT_CMD_XXX in libndctl-nfit.h)
++ *
++ * Return 1: command is supported. Return 0: command is not supported.
++ *
++ */
++NDCTL_EXPORT int ndctl_bus_is_nfit_cmd_supported(struct ndctl_bus *bus,
++                int cmd)
++{
++        return !!(bus->nfit_dsm_mask & (1ULL << cmd));
++}
++
++static int bus_has_translate_spa(struct ndctl_bus *bus)
++{
++	if (!ndctl_bus_has_nfit(bus))
++		return 0;
++
++	return ndctl_bus_is_nfit_cmd_supported(bus, NFIT_CMD_TRANSLATE_SPA);
++}
++
++static struct ndctl_cmd *ndctl_bus_cmd_new_translate_spa(struct ndctl_bus *bus)
++{
++	struct ndctl_cmd *cmd;
++	struct nd_cmd_pkg *pkg;
++	struct nd_cmd_translate_spa *translate_spa;
++	size_t size, spa_length;
++
++	spa_length = sizeof(struct nd_cmd_translate_spa)
++		+ sizeof(struct nd_nvdimm_device);
++	size = sizeof(*cmd) + sizeof(*pkg) + spa_length;
++	cmd = calloc(1, size);
++	if (!cmd)
++		return NULL;
++
++	cmd->bus = bus;
++	ndctl_cmd_ref(cmd);
++	cmd->type = ND_CMD_CALL;
++	cmd->size = size;
++	cmd->status = 1;
++	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
++	pkg->nd_command = NFIT_CMD_TRANSLATE_SPA;
++	pkg->nd_size_in = sizeof(unsigned long long);
++	pkg->nd_size_out = spa_length;
++	pkg->nd_fw_size = spa_length;
++	translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
++	cmd->firmware_status = &translate_spa->status;
++	translate_spa->translate_length = spa_length;
++
++	return cmd;
++}
++
++static int ndctl_bus_cmd_get_translate_spa(struct ndctl_cmd *cmd,
++					unsigned int *handle, unsigned long long *dpa)
++{
++	struct nd_cmd_pkg *pkg;
++	struct nd_cmd_translate_spa *translate_spa;
++
++	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
++	translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
++
++	if (translate_spa->status == ND_TRANSLATE_SPA_STATUS_INVALID_SPA)
++		return -EINVAL;
++
++	/*
++	 * XXX: Currently NVDIMM mirroring is not supported.
++	 * Even if ACPI returned plural dimms due to mirroring,
++	 * this function returns just the first dimm.
++	 */
++
++	*handle = translate_spa->devices[0].nfit_device_handle;
++	*dpa = translate_spa->devices[0].dpa;
++
 +	return 0;
 +}
-diff --git a/tests/ext4/031 b/tests/ext4/031
-new file mode 100755
-index 0000000..95a5c65
---- /dev/null
-+++ b/tests/ext4/031
-@@ -0,0 +1,84 @@
-+#! /bin/bash
-+# FS QA Test ext4/031
-+#
-+# This is a regression test for kernel patch:
-+#   ext4: prevent data corruption with inline data + DAX
-+# created by Ross Zwisler <ross.zwisler@linux.intel.com>
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Intel Corporation.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
 +
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
++static int is_valid_spa(struct ndctl_bus *bus, unsigned long long spa)
 +{
-+	cd /
-+	rm -f $tmp.*
++	return !!ndctl_bus_get_region_by_physical_address(bus, spa);
 +}
 +
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
++/**
++ * ndctl_bus_nfit_translate_spa - call translate spa.
++ * @bus: bus which belongs to.
++ * @address: address (System Physical Address)
++ * @handle: pointer to return dimm handle
++ * @dpa: pointer to return Dimm Physical address
++ *
++ * If success, returns zero, store dimm's @handle, and @dpa.
++ */
++int ndctl_bus_nfit_translate_spa(struct ndctl_bus *bus,
++	unsigned long long address, unsigned int *handle, unsigned long long *dpa)
++{
 +
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
++	struct ndctl_cmd *cmd;
++	struct nd_cmd_pkg *pkg;
++	struct nd_cmd_translate_spa *translate_spa;
++	int rc;
 +
-+# Modify as appropriate.
-+_supported_os Linux
-+_supported_fs ext4
-+_require_scratch_dax
-+_require_test_program "t_ext4_dax_inline_corruption"
++	if (!bus || !handle || !dpa)
++		return -EINVAL;
 +
-+# real QA test starts here
-+_scratch_mkfs_ext4 -O inline_data > $seqres.full 2>&1
++	if (!bus_has_translate_spa(bus))
++		return -ENOTTY;
 +
-+TESTFILE=$SCRATCH_MNT/testfile
++	if (!is_valid_spa(bus, address))
++		return -EINVAL;
 +
-+# DAX needs to be off so we can create an inode with inline data
-+SAVE_MOUNT_OPTIONS="$MOUNT_OPTIONS"
-+MOUNT_OPTIONS=""
-+_scratch_mount  >> $seqres.full 2>&1
++	cmd = ndctl_bus_cmd_new_translate_spa(bus);
++	if (!cmd)
++		return -ENOMEM;
 +
-+echo "Need to make some inline data..." > $TESTFILE
++	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
++	translate_spa = (struct nd_cmd_translate_spa *)&pkg->nd_payload[0];
++	translate_spa->spa = address;
 +
-+export MOUNT_OPTIONS="$SAVE_MOUNT_OPTIONS"
++	rc = ndctl_cmd_submit(cmd);
++	if (rc) {
++		ndctl_cmd_unref(cmd);
++		return rc;
++	}
 +
-+_scratch_unmount >> $seqres.full 2>&1
-+_scratch_mount "-o dax" >> $seqres.full 2>&1
++	rc = ndctl_bus_cmd_get_translate_spa(cmd, handle, dpa);
++	ndctl_cmd_unref(cmd);
 +
-+if [[ $? != 0 ]]; then
-+	# _require_scratch_dax already verified that we could mount with DAX.
-+	# Failure here is expected because we have inline data.
-+	echo "Silence is golden"
-+	status=0
-+	exit
-+fi
++	return rc;
++}
+diff --git a/ndctl/libndctl-nfit.h b/ndctl/libndctl-nfit.h
+index 8eeeb10..78ac43e 100644
+--- a/ndctl/libndctl-nfit.h
++++ b/ndctl/libndctl-nfit.h
+@@ -73,4 +73,8 @@ struct nd_cmd_ars_err_inj_stat {
+ 	} __attribute__((packed)) record[0];
+ } __attribute__((packed));
+ 
++int ndctl_bus_is_nfit_cmd_supported(struct ndctl_bus *bus, int cmd);
++int ndctl_bus_nfit_translate_spa(struct ndctl_bus *bus,
++	unsigned long long addr, unsigned int *handle, unsigned long long *dpa);
 +
-+src/t_ext4_dax_inline_corruption $TESTFILE
-+
-+# success, all done
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/ext4/031.out b/tests/ext4/031.out
-new file mode 100644
-index 0000000..b3d0bb0
---- /dev/null
-+++ b/tests/ext4/031.out
-@@ -0,0 +1,2 @@
-+QA output created by 031
-+Silence is golden
-diff --git a/tests/ext4/group b/tests/ext4/group
-index ef768df..396f963 100644
---- a/tests/ext4/group
-+++ b/tests/ext4/group
-@@ -33,6 +33,7 @@
- 028 auto quick fsmap
- 029 auto quick fsmap
- 030 auto quick
-+031 auto quick
- 271 auto rw quick
- 301 aio auto ioctl rw stress defrag
- 302 aio auto ioctl rw stress defrag
--- 
-2.9.5
+ #endif /* __LIBNDCTL_NFIT_H__ */
+diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
+index 2bbda04..42e53c6 100644
+--- a/ndctl/libndctl.h.in
++++ b/ndctl/libndctl.h.in
+@@ -161,6 +161,8 @@ struct ndctl_smart_ops *ndctl_dimm_get_smart_ops(struct ndctl_dimm *dimm);
+ struct ndctl_ctx *ndctl_dimm_get_ctx(struct ndctl_dimm *dimm);
+ struct ndctl_dimm *ndctl_dimm_get_by_handle(struct ndctl_bus *bus,
+ 		unsigned int handle);
++struct ndctl_dimm *ndctl_bus_get_dimm_by_physical_address(struct ndctl_bus *bus,
++		unsigned long long address);
+ int ndctl_dimm_is_active(struct ndctl_dimm *dimm);
+ int ndctl_dimm_is_enabled(struct ndctl_dimm *dimm);
+ int ndctl_dimm_disable(struct ndctl_dimm *dimm);
+@@ -421,6 +423,8 @@ struct ndctl_ctx *ndctl_region_get_ctx(struct ndctl_region *region);
+ struct ndctl_dimm *ndctl_region_get_first_dimm(struct ndctl_region *region);
+ struct ndctl_dimm *ndctl_region_get_next_dimm(struct ndctl_region *region,
+ 		struct ndctl_dimm *dimm);
++struct ndctl_region *ndctl_bus_get_region_by_physical_address(struct ndctl_bus *bus,
++		unsigned long long address);
+ #define ndctl_dimm_foreach_in_region(region, dimm) \
+         for (dimm = ndctl_region_get_first_dimm(region); \
+              dimm != NULL; \
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
