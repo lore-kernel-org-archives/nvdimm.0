@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 141C220958BD2
- for <linux-nvdimm@lists.01.org>; Tue,  5 Sep 2017 23:26:25 -0700 (PDT)
-Date: Wed, 6 Sep 2017 02:29:01 -0400 (EDT)
-From: Mikulas Patocka <mpatocka@redhat.com>
-Subject: Re: [PATCH] dax: remove the pmem_dax_ops->flush abstraction
-In-Reply-To: <CAPcyv4iSTmh4j_EfFsbqwrXRd134QMYr+CkV6JuSsw9TX5ihWg@mail.gmail.com>
-Message-ID: <alpine.LRH.2.02.1709060220520.12322@file01.intranet.prod.int.rdu2.redhat.com>
-References: <alpine.LRH.2.02.1708312138390.32309@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4j9KcgWU+rDY_5zAQ4xg3cx4Z3UkjTieVNMkWLc7C0OLg@mail.gmail.com>
- <alpine.LRH.2.02.1708312257500.15601@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4iSTmh4j_EfFsbqwrXRd134QMYr+CkV6JuSsw9TX5ihWg@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9F82120945C0B
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Sep 2017 08:25:15 -0700 (PDT)
+Date: Fri, 8 Sep 2017 09:28:05 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 1/2] xfs: always use DAX if mount option is used
+Message-ID: <20170908152805.GA16646@linux.intel.com>
+References: <20170907210832.17969-1-ross.zwisler@linux.intel.com>
+ <20170907210832.17969-2-ross.zwisler@linux.intel.com>
+ <20170908072027.GA27725@infradead.org>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170908072027.GA27725@infradead.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,60 +25,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: dm-devel@redhat.com, Mike Snitzer <snitzer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On Thu, 31 Aug 2017, Dan Williams wrote:
-
-> On Thu, Aug 31, 2017 at 8:04 PM, Mikulas Patocka <mpatocka@redhat.com> wrote:
-> >
-> >
-> > On Thu, 31 Aug 2017, Dan Williams wrote:
-> >
-> >> On Thu, Aug 31, 2017 at 6:47 PM, Mikulas Patocka <mpatocka@redhat.com> wrote:
-> >> > The patch abebfbe2f731 ("dm: add ->flush() dax operation support") is
-> >> > buggy. A dm device may be composed of multiple underlying devices and all
-> >> > of them need to be flushed. The patch just routes the flush request to the
-> >> > first device and ignores the other devices.
-> >> >
-> >> > It could be fixed by adding more complex logic to the device mapper. But
-> >> > there is only one implementation of the method pmem_dax_ops->flush - that
-> >> > is pmem_dax_flush() - and it calls arch_wb_cache_pmem(). Consequently, we
-> >> > don't need the pmem_dax_ops->flush abstraction at all, we can call
-> >> > arch_wb_cache_pmem() directly from dax_flush() because dax_dev->ops->flush
-> >> > couldn't ever reach anything different from arch_wb_cache_pmem().
-> >>
-> >> Unfortunately, this is not true, see usage of DAXDEV_WRITE_CACHE. This
-> >> is for platforms that arrange for cpu caches to be flushed on
-> >> power-fail, like standalone storage appliances, where it would be a
-> >
-> > BTW. if the system is capable of flushing caches on power failure, it is
-> > system-wide feature, it is not per-device feature. The CPU caches may
-> > store data for any persistent memory device.
-> >
-> > You either have enough remaining power to flush the CPU caches or not.
+On Fri, Sep 08, 2017 at 12:20:28AM -0700, Christoph Hellwig wrote:
+> On Thu, Sep 07, 2017 at 03:08:31PM -0600, Ross Zwisler wrote:
+> > Before support for the per-inode DAX flag was disabled the XFS the code had
+> > an issue where the user couldn't reliably tell whether or not DAX was being
+> > used to service page faults and I/O when the DAX mount option was used.  In
+> > this case each inode within the mounted filesystem started with S_DAX set
+> > due to the mount option, but it could be cleared if someone touched the
+> > individual inode flag.
 > 
-> Whether you need to flush caches or not can be a per-address range
-> attribute and can change over time.
+> Looks good, but can you please add a testcase to xfstests for this?
 
-There is only one way to flush the cache (the clwb instruction), you don't 
-need a method that abstracts over this instruction. A simple flag or 
-static key that skips clwb() is sufficient.
+Hmm...aside from looking at tracepoints, I'm not sure how to detect whether or
+not S_DAX is actually being used for an inode.  I don't see any other xfstests
+that try and look at the trace buffer, but I guess that could work.
 
-Linux kernel API is changeable, so you don't need to overdesign the API 
-for future. If it ever happens that we have a system with two types of 
-persistent memory that need different instructions to flush them, we can 
-design a proper abstraction. But there is no reason to design the 
-abstraction in advance for a situation that will perhaps never happen.
+Do you know of a better way to detect this test failure/success?
 
-That dm_dax_ops->flush abstraction slows down cache flushing almost twice 
-(when used on device mapper) and it is just unacceptable. Unfortunatelly, 
-there is no other architecture-independent function to flush cache.
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
 
-Mikulas
+Thanks for the review!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
