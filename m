@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c06::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7A6C321E1B75A
- for <linux-nvdimm@lists.01.org>; Sun, 24 Sep 2017 23:10:36 -0700 (PDT)
-Subject: [PATCH] acpi, nfit: add support for the _LSI, _LSR,
- and _LSW label methods
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 24 Sep 2017 23:07:22 -0700
-Message-ID: <150631964261.32144.17661935796100412603.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8F6CB21E8797A
+ for <linux-nvdimm@lists.01.org>; Sat,  9 Sep 2017 11:53:51 -0700 (PDT)
+Received: by mail-oi0-x22a.google.com with SMTP id x190so29303027oix.3
+ for <linux-nvdimm@lists.01.org>; Sat, 09 Sep 2017 11:56:45 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170802185537.GA16551@redhat.com>
+References: <150169667935.39569.15808116323143633486.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170802185537.GA16551@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 9 Sep 2017 11:56:43 -0700
+Message-ID: <CAPcyv4iTkv_5yR2aLz+wwE=XkwmwOtWUB3_4O3jcVjkf27XYwQ@mail.gmail.com>
+Subject: Re: [PATCH v3 0/2] dax, dm: stop requiring dax for device-mapper
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,337 +26,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: Mike Snitzer <snitzer@redhat.com>
+Cc: kbuild test robot <lkp@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Michael Ellerman <mpe@ellerman.id.au>, Heiko Carstens <heiko.carstens@de.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, dm-devel@redhat.com, Paul Mackerras <paulus@samba.org>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Mikulas Patocka <mpatocka@redhat.com>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.2 adds support for named methods to access the label storage area
-of an NVDIMM. We prefer these new methods if available and otherwise
-fallback to the NVDIMM_FAMILY_INTEL _DSMs. The kernel ioctls,
-ND_IOCTL_{GET,SET}_CONFIG_{SIZE,DATA}, remain generic and the driver
-translates the 'package' payloads into the NVDIMM_FAMILY_INTEL 'buffer'
-format to maintain compatibility with existing userspace and keep the
-output buffer parsing code in the driver common.
+On Wed, Aug 2, 2017 at 11:55 AM, Mike Snitzer <snitzer@redhat.com> wrote:
+> On Wed, Aug 02 2017 at  1:57pm -0400,
+> Dan Williams <dan.j.williams@intel.com> wrote:
+>
+>> Changes since v2 [1]:
+>> * rebase on -next to integrate with commit 273752c9ff03 "dm, dax: Make
+>>   sure dm_dax_flush() is called if device supports it" (kbuild robot)
+>> * fix CONFIG_DAX dependencies to upgrade CONFIG_DAX=m to CONFIG_DAX=y
+>>   (kbuild robot)
+>>
+>> [1]: https://www.spinics.net/lists/kernel/msg2570522.html
+>>
+>> ---
+>>
+>> Bart points out that the DAX core is unconditionally enabled if
+>> device-mapper is enabled. Add some config machinery and some
+>> stub-static-inline routines to allow dax infrastructure to be deleted
+>> from device-mapper at compile time.
+>>
+>> Since this depends on commit 273752c9ff03 that's already in -next, this
+>> should go through the device-mapper tree.
+>
+> Commit 273752c9ff03eb83856601b2a3458218bb949e46 is upstream as of
+> v4.13-rc3 -- so no real need to have this go via linux-dm.git
+>
+> That said, I don't mind picking it up once we are satisfied with the
+> implementation.  I'll start reviewing shortly.
 
-The output payloads are mostly compatible save for the 'label area
-locked' status that moves from the 'config_size' (_LSI) command to the
-'config_read' (_LSR) command status.
+Hi Mike,
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c |  213 +++++++++++++++++++++++++++++++++++++++++++++-
- drivers/acpi/nfit/nfit.h |    3 +
- drivers/nvdimm/dimm.c    |    2 
- 3 files changed, 214 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 3369bb8fd9ba..ebe0857ac346 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -183,13 +183,33 @@ static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
- 	return 0;
- }
- 
--static int xlat_nvdimm_status(void *buf, unsigned int cmd, u32 status)
-+#define ACPI_LABELS_LOCKED 3
-+
-+static int xlat_nvdimm_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
-+		u32 status)
- {
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+
- 	switch (cmd) {
- 	case ND_CMD_GET_CONFIG_SIZE:
-+		/*
-+		 * In the _LSI, _LSR, _LSW case the locked status is
-+		 * communicated via the read/write commands
-+		 */
-+		if (nfit_mem->has_lsi)
-+			break;
-+
- 		if (status >> 16 & ND_CONFIG_LOCKED)
- 			return -EACCES;
- 		break;
-+	case ND_CMD_GET_CONFIG_DATA:
-+		if (nfit_mem->has_lsr && status == ACPI_LABELS_LOCKED)
-+			return -EACCES;
-+		break;
-+	case ND_CMD_SET_CONFIG_DATA:
-+		if (nfit_mem->has_lsw && status == ACPI_LABELS_LOCKED)
-+			return -EACCES;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -205,13 +225,156 @@ static int xlat_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
- {
- 	if (!nvdimm)
- 		return xlat_bus_status(buf, cmd, status);
--	return xlat_nvdimm_status(buf, cmd, status);
-+	return xlat_nvdimm_status(nvdimm, buf, cmd, status);
-+}
-+
-+/* convert _LS{I,R} packages to the buffer object acpi_nfit_ctl expects */
-+static union acpi_object *pkg_to_buf(union acpi_object *pkg)
-+{
-+	int i;
-+	void *dst;
-+	size_t size = 0;
-+	union acpi_object *buf = NULL;
-+
-+	if (pkg->type != ACPI_TYPE_PACKAGE) {
-+		WARN_ONCE(1, "BIOS bug, unexpected element type: %d\n",
-+				pkg->type);
-+		goto err;
-+	}
-+
-+	for (i = 0; i < pkg->package.count; i++) {
-+		union acpi_object *obj = &pkg->package.elements[i];
-+
-+		if (obj->type == ACPI_TYPE_INTEGER)
-+			size += 4;
-+		else if (obj->type == ACPI_TYPE_BUFFER)
-+			size += obj->buffer.length;
-+		else {
-+			WARN_ONCE(1, "BIOS bug, unexpected element type: %d\n",
-+					obj->type);
-+			goto err;
-+		}
-+	}
-+
-+	buf = ACPI_ALLOCATE(sizeof(*buf) + size);
-+	if (!buf)
-+		goto err;
-+
-+	dst = buf + 1;
-+	buf->type = ACPI_TYPE_BUFFER;
-+	buf->buffer.length = size;
-+	buf->buffer.pointer = dst;
-+	for (i = 0; i < pkg->package.count; i++) {
-+		union acpi_object *obj = &pkg->package.elements[i];
-+
-+		if (obj->type == ACPI_TYPE_INTEGER) {
-+			memcpy(dst, &obj->integer.value, 4);
-+			dst += 4;
-+		} else if (obj->type == ACPI_TYPE_BUFFER) {
-+			memcpy(dst, obj->buffer.pointer, obj->buffer.length);
-+			dst += obj->buffer.length;
-+		}
-+	}
-+err:
-+	ACPI_FREE(pkg);
-+	return buf;
-+}
-+
-+static union acpi_object *int_to_buf(union acpi_object *integer)
-+{
-+	union acpi_object *buf = ACPI_ALLOCATE(sizeof(*buf) + 4);
-+	void *dst = NULL;
-+
-+	if (!buf)
-+		goto err;
-+
-+	if (integer->type != ACPI_TYPE_INTEGER) {
-+		WARN_ONCE(1, "BIOS bug, unexpected element type: %d\n",
-+				integer->type);
-+		goto err;
-+	}
-+
-+	dst = buf + 1;
-+	buf->type = ACPI_TYPE_BUFFER;
-+	buf->buffer.length = 4;
-+	buf->buffer.pointer = dst;
-+	memcpy(dst, &integer->integer.value, 4);
-+err:
-+	ACPI_FREE(integer);
-+	return buf;
-+}
-+
-+static union acpi_object *acpi_label_write(acpi_handle handle, u32 offset,
-+		u32 len, void *data)
-+{
-+	acpi_status rc;
-+	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_object_list input = {
-+		.count = 3,
-+		.pointer = (union acpi_object []) {
-+			[0] = {
-+				.integer.type = ACPI_TYPE_INTEGER,
-+				.integer.value = offset,
-+			},
-+			[1] = {
-+				.integer.type = ACPI_TYPE_INTEGER,
-+				.integer.value = len,
-+			},
-+			[2] = {
-+				.buffer.type = ACPI_TYPE_BUFFER,
-+				.buffer.pointer = data,
-+				.buffer.length = len,
-+			},
-+		},
-+	};
-+
-+	rc = acpi_evaluate_object(handle, "_LSW", &input, &buf);
-+	if (ACPI_FAILURE(rc))
-+		return NULL;
-+	return int_to_buf(buf.pointer);
-+}
-+
-+static union acpi_object *acpi_label_read(acpi_handle handle, u32 offset,
-+		u32 len)
-+{
-+	acpi_status rc;
-+	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_object_list input = {
-+		.count = 2,
-+		.pointer = (union acpi_object []) {
-+			[0] = {
-+				.integer.type = ACPI_TYPE_INTEGER,
-+				.integer.value = offset,
-+			},
-+			[1] = {
-+				.integer.type = ACPI_TYPE_INTEGER,
-+				.integer.value = len,
-+			},
-+		},
-+	};
-+
-+	rc = acpi_evaluate_object(handle, "_LSR", &input, &buf);
-+	if (ACPI_FAILURE(rc))
-+		return NULL;
-+	return pkg_to_buf(buf.pointer);
-+}
-+
-+static union acpi_object *acpi_label_info(acpi_handle handle)
-+{
-+	acpi_status rc;
-+	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
-+
-+	rc = acpi_evaluate_object(handle, "_LSI", NULL, &buf);
-+	if (ACPI_FAILURE(rc))
-+		return NULL;
-+	return pkg_to_buf(buf.pointer);
- }
- 
- int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
- {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 	union acpi_object in_obj, in_buf, *out_obj;
- 	const struct nd_cmd_desc *desc = NULL;
- 	struct device *dev = acpi_desc->dev;
-@@ -235,7 +398,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	}
- 
- 	if (nvdimm) {
--		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 		struct acpi_device *adev = nfit_mem->adev;
- 
- 		if (!adev)
-@@ -294,7 +456,21 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 			in_buf.buffer.pointer,
- 			min_t(u32, 256, in_buf.buffer.length), true);
- 
--	out_obj = acpi_evaluate_dsm(handle, guid, 1, func, &in_obj);
-+	/* call the BIOS, prefer the named methods over _DSM if available */
-+	if (cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
-+		out_obj = acpi_label_info(handle);
-+	else if (cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
-+		struct nd_cmd_get_config_data_hdr *p = buf;
-+
-+		out_obj = acpi_label_read(handle, p->in_offset, p->in_length);
-+	} else if (cmd == ND_CMD_SET_CONFIG_DATA && nfit_mem->has_lsw) {
-+		struct nd_cmd_set_config_hdr *p = buf;
-+
-+		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
-+				p->in_buf);
-+	} else
-+		out_obj = acpi_evaluate_dsm(handle, guid, 1, func, &in_obj);
-+
- 	if (!out_obj) {
- 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
- 				cmd_name);
-@@ -1431,6 +1607,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- {
- 	struct acpi_device *adev, *adev_dimm;
- 	struct device *dev = acpi_desc->dev;
-+	union acpi_object *obj;
- 	unsigned long dsm_mask;
- 	const guid_t *guid;
- 	int i;
-@@ -1496,6 +1673,27 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 		if (acpi_check_dsm(adev_dimm->handle, guid, 1, 1ULL << i))
- 			set_bit(i, &nfit_mem->dsm_mask);
- 
-+	obj = acpi_label_info(adev_dimm->handle);
-+	if (obj) {
-+		ACPI_FREE(obj);
-+		nfit_mem->has_lsi = 1;
-+		dev_dbg(dev, "%s: has _LSI\n", dev_name(&adev_dimm->dev));
-+	}
-+
-+	obj = acpi_label_read(adev_dimm->handle, 0, 0);
-+	if (obj) {
-+		ACPI_FREE(obj);
-+		nfit_mem->has_lsr = 1;
-+		dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
-+	}
-+
-+	obj = acpi_label_write(adev_dimm->handle, 0, 0, NULL);
-+	if (obj) {
-+		ACPI_FREE(obj);
-+		nfit_mem->has_lsw = 1;
-+		dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
-+	}
-+
- 	return 0;
- }
- 
-@@ -1574,6 +1772,13 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
- 			cmd_mask |= nfit_mem->dsm_mask;
- 
-+		if (nfit_mem->has_lsi)
-+			set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
-+		if (nfit_mem->has_lsr)
-+			set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
-+		if (nfit_mem->has_lsw)
-+			set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
-+
- 		flush = nfit_mem->nfit_flush ? nfit_mem->nfit_flush->flush
- 			: NULL;
- 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index f2c6380bdbb2..3976d649f27c 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -140,6 +140,9 @@ struct nfit_mem {
- 	struct resource *flush_wpq;
- 	unsigned long dsm_mask;
- 	int family;
-+	u32 has_lsi:1;
-+	u32 has_lsr:1;
-+	u32 has_lsw:1;
- };
- 
- struct acpi_nfit_desc {
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index e0f0e3ce1a32..862bcbd96366 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -55,6 +55,8 @@ static int nvdimm_probe(struct device *dev)
- 		goto err;
- 
- 	rc = nvdimm_init_config_data(ndd);
-+	if (rc == -EACCES)
-+		nvdimm_set_locked(dev);
- 	if (rc)
- 		goto err;
- 
-
+Friendly reminder about this cleanup...
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
