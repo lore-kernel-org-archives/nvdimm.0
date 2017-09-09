@@ -1,102 +1,13 @@
-From: "Derick Denicola  " <wandaver2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Professional lead generating based website traffic
-Date: Thu, 07 Sep 2017 22:11:22 +0300
-Message-ID: <70D6DD17.FD098E7D@gmail.com>
+From: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Unexpected writes seen on a Read-only, DAX enabled EXT4 fs
+Date: Sat, 9 Sep 2017 17:10:26 +0000 (UTC)
+Message-ID: <2036030243.251059.1504977026265@mail.yahoo.com>
+References: <2036030243.251059.1504977026265.ref@mail.yahoo.com>
+Reply-To: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_59B1AA6C.60E3F37B"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_59B1AA6C.60E3F37B
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  hi Highly Targeted website traffic http://www.basedbusinesstraffic.com
-   Regards Derick Denicola Unsubscribe option is available on the footer of
-  our website [...] 
-
-Content analysis details:   (12.2 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: basedbusinesstraffic.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: basedbusinesstraffic.com]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.7 URIBL_BLACK            Contains an URL listed in the URIBL blacklist
-                            [URIs: basedbusinesstraffic.com]
- 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
-                            [URIs: www.basedbusinesstraffic.com]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?203.14.188.11>]
- 2.8 FSL_HELO_FAKE          No description available.
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (wandaver2[at]gmail.com)
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0000]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
-                            [203.14.188.11 listed in dnsbl.sorbs.net]
- 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
-                            [URIs: www.basedbusinesstraffic.com]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
-
-
-
-------------=_59B1AA6C.60E3F37B
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1dq3IV-00006A-1k
-	for gln-linux-nvdimm@m.gmane.org; Thu, 07 Sep 2017 22:21:11 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5A35821E977FA;
-	Thu,  7 Sep 2017 13:18:26 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from gmail.com (unknown [203.14.188.11])
- by ml01.01.org (Postfix) with SMTP id DB94E21CEB0FA
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Thu,  7 Sep 2017 13:18:23 -0700 (PDT)
-Message-ID: <70D6DD17.FD098E7D-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Thu, 07 Sep 2017 22:11:22 +0300
-From: "Derick Denicola  " <wandaver2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; de;
- rv:1.8.1.21) Gecko/20090302 Thunderbird/2.0.0.21
-MIME-Version: 1.0
-To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-Subject: Professional lead generating based website traffic
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -104,36 +15,59 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-hi
-Highly Targeted website traffic
-http://www.basedbusinesstraffic.com
-
-Regards
-Derick Denicola =A0
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_59B1AA6C.60E3F37B--
+SGk6CsKgIEkgd2FzIHN1cnByaXNlZCB0byBzZWUgYSBmZXcgd3JpdGUgb3BlcmF0aW9ucyBjYWxs
+ZWQgaW50byBleHQ0X2RheF9odWdlX2ZhdWx0IHdpdGggRkFVTFRfRkxBR19XUklURSBzZXQgb24g
+dm1mLT5mbGFncwpBcmUgdGhvc2Ugd3JpdGVzIGV4cGVjdGVkIGF0IGFsbD8Kc3RhdGljIGludCBl
+eHQ0X2RheF9odWdlX2ZhdWx0KHN0cnVjdCB2bV9mYXVsdCAqdm1mLAogZW51bSBwYWdlX2VudHJ5
+X3NpemUgcGVfc2l6ZSkKewouLi4KIGJvb2wgd3JpdGUgPSB2bWYtPmZsYWdzICYgRkFVTFRfRkxB
+R19XUklURTsKQmFzZWQgb24gdGhlIGZvbGxvd2luZyBNb3VudCBkb2N1bWVudGF0aW9uIGJlbG93
+LCBJIGRpZCBtb3VudCB0aGlzIGV4dCBmcyB3aXRoIHJvIGFuZCBub2xvYWRBcmUgdGhlcmUgYW55
+IG90aGVyIG9wdGlvbnMgdGhhdCBJIGNvdWxkIHVzZSB0byB0b3RhbGx5IGVsaW1pbmF0ZSB0aG9z
+ZSB1bmV4cGVjdGVkIHdyaXRlcz8KICAgCiAgIC0gLXIsIC0tcmVhZC1vbmx5CiAgICAgIC0gTW91
+bnQgdGhlIGZpbGVzeXN0ZW0gcmVhZC1vbmx5LiBBIHN5bm9ueW0gaXMgLW8gcm8uTm90ZSB0aGF0
+LCBkZXBlbmRpbmcgb24gdGhlIGZpbGVzeXN0ZW0gdHlwZSwgc3RhdGUgYW5kIGtlcm5lbCBiZWhh
+dmlvciwgdGhlIHN5c3RlbSBtYXkgc3RpbGwgd3JpdGUgdG8gdGhlIGRldmljZS4gRm9yIGV4YW1w
+bGUsIEV4dDMgb3IgZXh0NCB3aWxsIHJlcGxheSBpdHNqb3VybmFsIGlmIHRoZSBmaWxlc3lzdGVt
+IGlzIGRpcnR5LiBUbyBwcmV2ZW50IHRoaXMga2luZCBvZiB3cml0ZSBhY2Nlc3MsIHlvdSBtYXkg
+d2FudCB0byBtb3VudCBleHQzIG9yIGV4dDQgZmlsZXN5c3RlbSB3aXRoICJybyxub2xvYWQiIG1v
+dW50IG9wdGlvbnMgb3Igc2V0dGhlIGJsb2NrIGRldmljZSB0byByZWFkLW9ubHkgbW9kZSwgc2Vl
+IGNvbW1hbmQgYmxvY2tkZXYoOCkuCiAgICAgIC0gICAgCgpSZWxhdGVkIERNRVNHIG91dHB1dC4u
+LgoKW8KgwqDCoCAwLjg5MTY1M10gRVhUNC1mcyAocG1lbTApOiBEQVggZW5hYmxlZC4gV2Fybmlu
+ZzogRVhQRVJJTUVOVEFMLCB1c2UgYXQgeW91ciBvd24gcmlzawpbwqDCoMKgIDAuODkyNzM2XSBF
+WFQ0LWZzIChwbWVtMCk6IG1vdW50ZWQgZmlsZXN5c3RlbSB3aXRob3V0IGpvdXJuYWwuIE9wdHM6
+IG5vbG9hZCxkYXgKW8KgwqDCoCAwLjg5ODI5M10gRVhUNC1mcyAoc2RhKTogbW91bnRlZCBmaWxl
+c3lzdGVtIHdpdGhvdXQgam91cm5hbC4gT3B0czogKG51bGwpClvCoMKgwqAgMC45MDI1NzRdIHJh
+bmRvbTogZmFzdCBpbml0IGRvbmUKW8KgwqDCoCAwLjkyNjE1N10gSVBWUzogZnRwOiBsb2FkZWQg
+c3VwcG9ydCBvbiBwb3J0WzBdID0gMjEKLy8gTXkgcHJpdmF0ZSBkZWJ1ZyBtZXNzYWdlcwpbwqDC
+oMKgIDAuOTk3MjI0XSBFWFQ0LWZzIChwbWVtMCk6IHdyaXRlIGlzIDEgaGFuZGxlID0gMHhmZmZm
+ZmZmZmZmZmZmZmUyIDwtLXJlYWQtb25seSBkZXZpY2XCoApbwqDCoMKgIDAuOTk4MDUyXSBFWFQ0
+LWZzIChwbWVtMCk6IHdyaXRlIGlzIDEgaGFuZGxlID0gMHhmZmZmZmZmZmZmZmZmZmUyClvCoMKg
+wqAgMC45OTg3ODddIEVYVDQtZnMgKHBtZW0wKTogd3JpdGUgaXMgMSBoYW5kbGUgPSAweGZmZmZm
+ZmZmZmZmZmZmZTIKW8KgwqDCoCAwLjk5OTcyMF0gRVhUNC1mcyAocG1lbTApOiB3cml0ZSBpcyAw
+IGhhbmRsZSA9IDB4MApbwqDCoMKgIDEuMDA0NjI2XSBFWFQ0LWZzIChwbWVtMCk6IHdyaXRlIGlz
+IDAgaGFuZGxlID0gMHgwClvCoMKgwqAgMS4wMDUzNTldIEVYVDQtZnMgKHBtZW0wKTogd3JpdGUg
+aXMgMCBoYW5kbGUgPSAweDAKW8KgwqDCoCAxLjAwNjEyOF0gRVhUNC1mcyAocG1lbTApOiB3cml0
+ZSBpcyAwIGhhbmRsZSA9IDB4MApbwqDCoMKgIDEuMDA2ODI0XSBFWFQ0LWZzIChwbWVtMCk6IHdy
+aXRlIGlzIDAgaGFuZGxlID0gMHgwClvCoMKgwqAgMS4wMDc0OTldIEVYVDQtZnMgKHBtZW0wKTog
+d3JpdGUgaXMgMCBoYW5kbGUgPSAweDAKW8KgwqDCoCAxLjAwODE0OV0gRVhUNC1mcyAocG1lbTAp
+OiB3cml0ZSBpcyAwIGhhbmRsZSA9IDB4MApbwqDCoMKgIDcuMzIwNjI2XSByYW5kb206IGNybmcg
+aW5pdCBkb25lClvCoMKgIDE4Ljc4MDQ0N10gRVhUNC1mczogNTMgY2FsbGJhY2tzIHN1cHByZXNz
+ZWQKW8KgwqAgMTguNzgxOTAwXSBFWFQ0LWZzIChwbWVtMCk6IHdyaXRlIGlzIDAgaGFuZGxlID0g
+MHgwClvCoMKgIDE4Ljc4MzM5Ml0gRVhUNC1mcyAocG1lbTApOiB3cml0ZSBpcyAwIGhhbmRsZSA9
+IDB4MApbwqDCoCAxOC43OTA2NjFdIEVYVDQtZnMgKHBtZW0wKTogd3JpdGUgaXMgMCBoYW5kbGUg
+PSAweDAKW8KgwqAgMTguNzkyMDQyXSBFWFQ0LWZzIChwbWVtMCk6IHdyaXRlIGlzIDAgaGFuZGxl
+ID0gMHgwClvCoMKgIDE4Ljc5MzMyMV0gRVhUNC1mcyAocG1lbTApOiB3cml0ZSBpcyAwIGhhbmRs
+ZSA9IDB4MApbwqDCoCAxOC43OTUwMDVdIEVYVDQtZnMgKHBtZW0wKTogd3JpdGUgaXMgMCBoYW5k
+bGUgPSAweDAKW8KgwqAgMTguNzk1MjA0XSBFWFQ0LWZzIChwbWVtMCk6IHdyaXRlIGlzIDEgaGFu
+ZGxlID0gMHhmZmZmZmZmZmZmZmZmZmUyClvCoMKgIDE4Ljc5NTIwOV0gRVhUNC1mcyAocG1lbTAp
+OiB3cml0ZSBpcyAxIGhhbmRsZSA9IDB4ZmZmZmZmZmZmZmZmZmZlMgpbwqDCoCAxOC43OTUyMTNd
+IEVYVDQtZnMgKHBtZW0wKTogd3JpdGUgaXMgMSBoYW5kbGUgPSAweGZmZmZmZmZmZmZmZmZmZTIK
+W8KgwqAgMTguNzk1MjU3XSBFWFQ0LWZzIChwbWVtMCk6IHdyaXRlIGlzIDAgaGFuZGxlID0gMHgw
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
+ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
+LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
