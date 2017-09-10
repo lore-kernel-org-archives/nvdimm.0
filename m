@@ -1,176 +1,11 @@
-From: "Amy" <usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: Gift-Customized Logo/USB Flash Drive Factory/Amy
-Date: 10 Sep 2017 16:14:23 +0800
-Message-ID: <20170910081205.746A620958BE6@ml01.01.org>
+From: =?utf-8?B?6IyD6IS+?= <ogij-h3S4daT7rrtxxXtqJ93Y6g@public.gmane.org>
+Subject: =?utf-8?B?6YCG5ZCR5oCd57u05pa55byP6Kej5Yaz5bWM5YWl5byP6K6+6K6h5biI5piT54qv55qE6ZSZ6K+v54K5?=
+Date: Sun, 10 Sep 2017 16:57:36 +0800
+Message-ID: <7F186A324AC0CBD41CB3F689C101BB9C@zjnavaehv.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_59B950AD.48B7B56C"
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_59B950AD.48B7B56C
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  Spam detection software, running on the system "blaine.gmane.org",
-   has identified this incoming email as possible spam. The original message
-   has been attached to this so you can view it or label similar future email.
-   If you have any questions, see @@CONTACT_ADDRESS@@ for details. [...] 
-
-Content analysis details:   (7.0 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.7 URIBL_BLACK            Contains an URL listed in the URIBL blacklist
-                            [URIs: usbflashdrive-factory.com]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: usbflashdrive-factory.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: usbflashdrive-factory.com]
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (usbflashdrive-factory[at]hotmail.com)
--0.0 NO_RELAYS              Informational: message was not relayed via SMTP
- 0.9 FORGED_HOTMAIL_RCVD2   hotmail.com 'From' address, but no 'Received:'
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0000]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
-
-The original message was not completely plain text, and may be unsafe to
-open with some email clients; in particular, it may contain a virus,
-or confirm that your address can receive spam.  If you wish to view
-it, it may be safer to save it to a file and open it with an editor.
-
-
-------------=_59B950AD.48B7B56C
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: attachment
-Content-Transfer-Encoding: 8bit
-
-Received: from localhost by blaine.gmane.org
-	with SpamAssassin (version 3.4.0);
-	Sun, 10 Sep 2017 10:15:13 +0200
-From: "Amy" <usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Subject: Gift-Customized Logo/USB Flash Drive Factory/Amy
-Date: 10 Sep 2017 16:14:23 +0800
-Message-Id: <20170910081205.746A620958BE6-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on blaine.gmane.org
-X-Spam-Flag: YES
-X-Spam-Level: *******
-X-Spam-Status: Yes, score=7.8 required=5.0 tests=BAYES_00,FORGED_HOTMAIL_RCVD2,
-	FREEMAIL_FROM,RAZOR2_CF_RANGE_51_100,RAZOR2_CF_RANGE_E8_51_100,RAZOR2_CHECK,
-	RCVD_IN_BL_SPAMCOP_NET,RCVD_IN_DNSWL_NONE,RP_MATCHES_RCVD,TVD_SPACE_RATIO,
-	T_FREEMAIL_FORGED_FROMDOMAIN,T_HEADER_FROM_DIFFERENT_DOMAINS,URIBL_BLACK,
-	URIBL_DBL_SPAM,URIBL_JP_SURBL autolearn=no autolearn_force=no version=3.4.0
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_59B4F491.B02E92A8"
-
-This is a multi-part message in MIME format.
-
-------------=_59B4F491.B02E92A8
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  <P>Nice day, dear linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org,<BR><BR>Hope this
-   email find you well.<BR><BR>This is Amy, a lovely girl from Torovo Industry
-   Group Limited in China, manufacturer of Usb Flash Drive for 5 years.<BR>After
-   saw your website, I thought you might be interested in our gift Usb Memory
-   and Custom logo is our specialty.</P> <P><STRONG>Contact me for free artworks.</STRONG></P>
-   <P>Shenzhen TOROVO Technology CO., Ltd<BR>Website:<A href="http://www.usbflashdrive-factory.com/">www.usbflashdrive-factory.com</A><BR>Add:
-   Bantian Street, Longgang District,Shenzhen, Guangdong, China<BR>Mail:<A href="mailto:usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org">usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org</A><BR>skype:usbflashdrive-factory</P><IMG
-   style="DISPLAY: none" src="http://www.wushidao888.com/track.php?id=104206&amp;c=5&amp;m=5&amp;e=linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org&amp;t=1"
-   width=0 height=0> Linux-nvdimm mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
-   [...] 
-
-Content analysis details:   (7.8 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
- 1.7 URIBL_BLACK            Contains an URL listed in the URIBL blacklist
-                            [URIs: usbflashdrive-factory.com]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: usbflashdrive-factory.com]
- 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
-                            [URIs: usbflashdrive-factory.com]
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
- 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
-               [Blocked - see <http://www.spamcop.net/bl.shtml?180.117.96.85>]
- 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
-                            (usbflashdrive-factory[at]hotmail.com)
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
-                            domains are different
- 0.9 FORGED_HOTMAIL_RCVD2   hotmail.com 'From' address, but no 'Received:'
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0000]
- 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
-                            above 50%
-                            [cf: 100]
- 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
- 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
-                            [cf: 100]
- 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
-                            EnvelopeFrom freemail headers are different
- 0.0 TVD_SPACE_RATIO        No description available.
-
-
-
-------------=_59B4F491.B02E92A8
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1dqxOG-00034S-LZ
-	for gln-linux-nvdimm@m.gmane.org; Sun, 10 Sep 2017 10:14:52 +0200
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 746A620958BE6;
-	Sun, 10 Sep 2017 01:12:05 -0700 (PDT)
-X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Received: from rjgp.com (unknown [180.117.96.85])
- by ml01.01.org (Postfix) with ESMTP id 5CF5520958BCE
- for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Sun, 10 Sep 2017 01:12:03 -0700 (PDT)
-Received: from B88 ([127.0.0.1]) by localhost via TCP with ESMTPA;
- Sun, 10 Sep 2017 16:14:23 +0800
-MIME-Version: 1.0
-From: "Amy" <usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Date: 10 Sep 2017 16:14:23 +0800
-Subject: Gift-Customized Logo/USB Flash Drive Factory/Amy
-X-Content-Filtered-By: Mailman/MimeDel 2.1.22
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -178,22 +13,133 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20170910081205.746A620958BE6-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
-<P>Nice day, dear linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org,<BR><BR>Hope this email find you well.<BR><BR>This is Amy, a lovely girl from Torovo Industry Group Limited in China, manufacturer of Usb Flash Drive for 5 years.<BR>After saw your website, I thought you might be interested in our gift Usb Memory and Custom logo is our specialty.</P>
-<P><STRONG>Contact me for free artworks.</STRONG></P>
-<P>Shenzhen TOROVO Technology CO., Ltd<BR>Website:<A href="http://www.usbflashdrive-factory.com/">www.usbflashdrive-factory.com</A><BR>Add: Bantian Street, Longgang District,Shenzhen, Guangdong, China<BR>Mail:<A href="mailto:usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org">usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org</A><BR>skype:usbflashdrive-factory</P><IMG style="DISPLAY: none" src="http://www.wushidao888.com/track.php?id=104206&amp;c=5&amp;m=5&amp;e=linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org&amp;t=1" width=0 height=0>
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-
-------------=_59B4F491.B02E92A8--
-
-
-------------=_59B950AD.48B7B56C--
+LS0tLSDljp/pgq7ku7bkv6Hmga8gLS0tLS0NCuWPkeS7tuS6ujoi6IyD6IS+IiA8b2dpakB6am5h
+dmFlaHYuY29tPg0K5pS25Lu25Lq6OiJsaW51eC1udmRpbW0iIDxsaW51eC1udmRpbW1AbGlzdHMu
+MDEub3JnPjsNCuWPkemAgeaXtumXtDoyMDE3LTktMTAgMTY6NTc6NDgNCuW1jOWFpeW8j+ezu+e7
+n+i9r+ehrOS7tuWPr+mdoOaAp+iuvuiuoQ0K6K++56iL5pe26Ze05a6J5o6SIOWPiiDogZTns7vm
+lrnlvI8g6K+35p+l6ZiF6ZmE5Lu2IOaKpeWQjeS/oeaBrw0K6K++56iL6IOM5pmv77yaIA0K5bWM
+5YWl5byP57O757uf5Y+v6Z2g5oCn6K6+6K6h77yM5q+U5ou855qE5LiN5piv6LCB55qE6K6+6K6h
+5pu06auY5piO77yM6ICM5piv6LCB55qE6K6+6K6h5pu05bCR54qv6ZSZ6K+v77yM6ICM5LiU5Zug
+5Li66L2v44CB56Gs5Lu255qE5LiT5Lia6IOM5pmv5beu5byC77yM5Lik5Liq5LiT5Lia6K6+6K6h
+5biI5LmL6Ze055qE5LiN5LqG6Kej77yM5Lmf5Lya5a+86Ie05o6l5Y+j6YOo5YiG5a655piT5Ye6
+546w5LiA5Lqb5Y+v6Z2g5oCn6Zeu6aKY44CCDQrmnKzor77nqIvph4fnlKjpgIblkJHmgJ3nu7Tm
+lrnlvI/vvIzku47ltYzlhaXlvI/ns7vnu5/orr7orqHnmoTotJ/pnaLpl67popjop5LluqblhaXm
+iYvvvIzmgLvnu5PliZbmnpDkuobltYzlhaXlvI/orr7orqHluIjmmJPniq/nmoTplJnor6/ngrnl
+kozmjqXlj6Ppg6jliIbnmoTpl67popjngrnvvIzku6XmnJ/lnKjorr7orqHkuK3og73mj5DliY3l
+iqDku6XpooTpmLLjgILmvI/mtJ7loLXkvY/kuobvvIzot5HlhpLmu7TmvI/oh6rnhLbkuI3lho3l
+j5HnlJ/jgIINCiANCuWfueiureWGheWuue+8miANCuesrOS4gOmDqOWIhu+8muW1jOWFpeW8j+ez
+u+e7n+WPiuehrOS7tuWPr+mdoOaAp+iuvuiuoQ0KIA0K56ys5LiA56ug77ya5Y+v6Z2g5oCn6K6+
+6K6h5Z+656GADQoxLjHjgIHlj6/pnaDmgKflrprkuYkNCjEuMuOAgeeOr+Wig+W6lOWKm+WIhuae
+kA0KMS4z44CB5Lq65py65Lqk5LqS5YiG5p6QDQoxLjTjgIHlhbPogZTorr7lpIfkupLliqjliIbm
+npANCjEuNeOAgei/h+a4oei/h+eoi+W6lOWKmw0KMS4244CB6LSf6L295rOi5Yqo5YiG5p6QDQox
+LjfjgIHljZXkuIDmlYXpmpzliIbmnpANCjEuOOOAgeWPr+mdoOaAp+mihOiuoeWIhuaekA0KMS45
+44CB5Yik5o2u5qCH5YeGDQoxLjEwIOeUteWtkOOAgeacuueUteS4gOS9k+WMluiuvuWkh+eahOWP
+r+mdoOaAp+aooeWei++8mw0KMS4xMSDns7vnu5/lpLHmlYjnjofnmoTlvbHlk43opoHntKDvvJsN
+CuesrOS6jOeroO+8muWPr+mdoOaAp+iuvuiuoeinhOiMgw0KMi4xIOmZjemineiuvuiuoeinhOiM
+gw0KICAgIOmZjemineetiee6p+OAgemZjemineazqOaEj+S6i+mhueOAgemZjemineWboOWtkOmZ
+jemineWPguaVsOeahOehruWumuaWueazlQ0KMi4yIOeUtei3r+eDreiuvuiuoeinhOiMgw0K5by6
+5Yi26aOO5Ya344CB5Lyg5a+85pWj54Ot55qE54Ot6K6+6K6h6K6h566X5Y+K54Ot6K6+6K6h5bel
+6Im66KeE6IyDDQoyLjMg55S16Lev5a6J5YWo5oCn6K6+6K6h6KeE6IyD77ybDQrnlLXot6/lronl
+hajlrrnplJnmgKfmnLrliLbjgIFTRkPliIbmnpDjgIFTRkPkuIvovpPlh7rkv53or4Hlj6/pnaDn
+moTliKTmja7lkozop6PlhrPmlrnms5XigKYNCjIuNCBFTUPorr7orqHop4TojIMNCueUteWOi+Wu
+uemZkOaOp+WItuOAgeW4uOeUqOWZqOS7tueahOmrmOmikeetieaViOeJueaAp+OAgeS/oeWPt+WI
+huaekOOAgeW4g+e6v+OAgemYu+aKl+WMuemFjeOAgeWxj+iUveOAgQ0K5ruk5rOi44CB5o6l5Zyw
+4oCmDQoyLjUgUENC6K6+6K6h6KeE6IyDDQrmnb/ljaHnuqfnmoTluIPnur/jgIHluIPlsYDlt6Xo
+iboNCuesrOS4ieeroO+8muWZqOS7tuWkseaViOinhOW+i+S4juWIhuaekOaWueazlQ0KMy4xIOaM
+gee7reaAp+W6lOWKm+S4jua1qua2jOW6lOWKm+eahOWMuuWIqw0KMy4yIOeUteWOi+W6lOWKm+S4
+jueUtea1geW6lOWKm+eahOaVhemanOeOsOixoeWMuuWIqw0KMy4zIE1TROS4juacuuaisOW6lOWK
+m+aNn+S8pOeahOeJueW+geOAgeaIkOWboOOAgeino+WGs+aOquaWvQ0KMy40IOWfuuS6juerr+WP
+o+eJueaAp+mYu+aKl+absue6v+eahOWkseaViOa1i+ivleWIhuaekOaWueazlQ0KMy41IOW4uOeU
+qOWZqOS7tuWkseaViOacuueQhuOAgeWkseaViOeJueW+geOAgeW6lOWvueaOquaWvQ0KIA0K56ys
+5LqM6YOo5YiG77ya5bWM5YWl5byP57O757uf5Zmo5Lu26YCJ5Z6L5LiO5bel56iL6K6h566XDQog
+DQrnrKzkuIDnq6DvvJrlt6XnqIvorqHnrpfln7rnoYANCjEuMSDlrrnlt67liIbmnpDmlrnms5UN
+CjEuMuaLieawj+WPmOaNoueahOeJqeeQhuWQq+S5ieS4jueUtei3r+iuvuiuoeW6lOeUqA0KMS4z
+IOW+ruenr+WIhuS4jueUtei3r+iuvuiuoeeahOW6lOeUqA0KMS40IOamgueOh+iuuuaVsOeQhue7
+n+iuoeaPkOWNh+eUteWtkOS6p+WTgei0qOmHj+eahOW6lOeUqOaWueazlQ0KMS41IOWfuuehgOS7
+o+aVsOeahOeUtei3r+iuvuiuoeW3peeoi+iuoeeul+W6lOeUqO+8iOS7o+aVsOOAgeS4ieinkuWH
+veaVsOOAgeino+aekOWHoOS9le+8iQ0KMS42IGRhdGFzaGVldOWPguaVsOino+ivu+WPiuWvueeU
+tei3r+aAp+iDveeahOW9seWTjQ0KIA0K56ys5LqM56ug77ya5bel56iL6K6h566X5LiO5Zmo5Lu2
+6YCJ5Z6LDQoyLjEg55S15rqQ5qih5Z2X6K6+6K6h5LiO6YCJ5Z6L6K6h566XDQrnlLXmhJ/nlLXl
+rrnpgInlnovorqHnrpcNCjIuMiDnlLXmupDovpPlhaXnq6/lj6Plmajku7bpgInlnovorqHnrpcN
+CuS/nemZqeS4neOAgU5UQ+eUtemYu+OAgVRWUy/ljovmlY/nlLXpmLvjgIHlgqjog73nlLXlrrnj
+gIHmjqXmj5Lku7bjgIHkuozmnoHnrqHnmoTpgInlnovorqHnrpcNCjIuMyDkv6Hlj7fovpPlhaUv
+6L6T5Ye656uv5Y+j55qE5Yy56YWN5Zmo5Lu26K6h566X6YCJ5Z6LDQrkuIrmi4kv5LiL5ouJ55S1
+6Zi744CB6ZmQ5rWBL+WIhuWOi+eUtemYu+OAgemYu+aKl+WMuemFjeeUtemYu+OAgeejgeePoOOA
+gemAgOiApueUteWuueeahOmAieWei+iuoeeulw0KMi40IOaUvuWkp+eUtei3r+iuvuiuoeiuoeeu
+lw0K6L+Q5pS+5Y+C5pWw5ZKM6YCJ5Z6L44CB57K+5bqm5YiG6YWN6K6h566X44CB6Zi75oqX5Yy5
+6YWN6K6h566XDQoyLjUg5a6J5YWo6Ziy5oqk6K6+6K6hDQrnlLXlrrnnmoTlm7rmnInnibnmgKfk
+uI7lr4TnlJ/lj4LmlbANCumAgOiApueUteWuueOAgeWCqOiDveeUteWuueOAgeWuieinhOeUteWu
+ueOAgemalOebtOeUteWuueOAgea7pOazoueUteWuueeahOmAieWei+iuoeeulw0K5L+h5Y+356uv
+5Y+j5Y6L5pWP55S16Zi744CBVFZT44CB5rCU5L2T5pS+55S1566h6YCJ5Z6L6K6h566XDQoyLjYg
+54Ot6K6+6K6hDQrmlbTmnLrmlaPng63orqHnrpcNCuaVo+eDreeJh+OAgemjjuaJh+OAgeWNiuWv
+vOS9k+iHtOWGt+eJh+aVo+eDremAieWei+iuoeeulw0KMi43IOWFieeUteWZqOS7tumAieWei+iu
+oeeulw0K5YWJ6ICm44CB5Y+R5YWJ5LqM5p6B566h44CB5pWw56CB566h6YCJ5Z6L6K6h566XDQoy
+Ljgg6amx5Yqo55S16Lev6K6+6K6hDQrkuozmnoHnrqHlkozkuInmnoHnrqHnibnmgKcNCuS4ieae
+geeuoeOAgeS6jOaegeeuoemAieWei+iuoeeulw0K5byA5YWz5Zmo5Lu2DQoyLjkg5ruk5rOi5Zmo
+5Lu26YCJ5Z6L6K6h566XDQrmu6Tms6Llmajku7bnibnmgKcNCua7pOazoueUtei3r+iuvuiuoeiu
+oeeulw0K5ruk5rOi5Zmo44CB5ruk5rOi55S15a6544CB56OB54+g56OB546v44CB55S15oSf6YCJ
+5Z6L6K6h566XDQoyLjEwIFBDQuW4g+e6v+W4g+WxgOiuvuiuoQ0KU0norr7orqHkvLDnrpcNCjIu
+MTEg5pWw5a2XSUPlmajku7bpgInlnovorqHnrpcNCuaVsOWtl0lD54m55oCn77yI57uT5rip44CB
+5ZON5bqU5pe26Ze044CB5bim6L296IO95Yqb44CB5rip5ryC44CB6ZiI5YC844CB5pe25bqP6KaB
+5rGC77yJDQpNQ1XjgIHlrZjlgqjnsbvlmajku7bjgIHpgLvovpHlmajku7bnmoTpgInlnovorqHn
+rpcNCiANCuesrOS4iemDqOWIhu+8muW1jOWFpeW8j+i9r+S7tuWPr+mdoOaAp+iuvuiuoQ0KIA0K
+MS4gICDltYzlhaXlvI/ova/ku7blj6/pnaDmgKfln7rnoYANCuWumuS5iei9r+S7tuWPr+mdoOaA
+p+WumuS5iQ0K6L2v5Lu25Y+v6Z2g5oCn55qE5bqm6YeP5LiO6K+E5LywDQrova/ku7bkuI7nlLXl
+rZDnmoTlpLHmlYjnjofnibnmgKfljLrliKsNCuW9seWTjeW1jOWFpeW8j+i9r+S7tuWPr+mdoOaA
+p+eahOWboOe0oA0K5bWM5YWl5byP6L2v5Lu25b2S5qGj5Y+K6YWN572u566h55CG6L+H56iL5o6n
+5Yi25rOo5oSP5LqL6aG5DQrltYzlhaXlvI/ova/ku7blj6/pnaDmgKfns7vnu5/liIbmnpDmlrnm
+s5XkuI7ova/ku7ZERk1FQeeahOi/kOeUqA0KMi4gICDnvJbor5Hlmajpl67popjltYzlhaXlvI/o
+va/ku7blj6/pnaDmgKfnmoTlvbHlk40NCjMuICAg5Luj56CB57yW56iL6KeE6IyD5a+55bWM5YWl
+5byP6L2v5Lu25Y+v6Z2g5oCn55qE5b2x5ZONDQror63lj6XpgJrnlKjorr7orqHop4TojIMNCuWG
+l+S9meiuvuiuoQ0K552h55yg6K6+572u5oqX5bmy5omwDQrova/ku7bjgIHnu5PmnoTjgIHnlLXo
+t6/nm7jnu5PlkIjnmoTnlLXno4Hlhbzlrrnop6PlhrPmlrnms5UNCui9r+S7tuaetuaehOeahOiu
+vuiuoeaWueazlQ0K5a6J5YWo5oCn5YaF5qC4DQrorr7orqHmm7TmlLnop4TliJkNCumYsui3kemj
+nueahOi9r+S7tumZt+mYsQ0K5ZyI5aSN5p2C5bqm5LiO6L2v5Lu25rWL6K+VDQo0LiAgIOS4jueh
+rOS7tuaOpeWPo+mXrumimOWvueW1jOWFpeW8j+i9r+S7tuWPr+mdoOaAp+eahOS9nOeUqOWSjOW9
+seWTjQ0K5pe26Ze05Y+X5o6nDQrnqbrpl7Tlj5fmjqcNCklP5ZCe5ZCQ6IO95YqbDQrmiafooYzm
+l7bpl7QNCuS4suW5tuiBlOaOpeazleWvvOiHtOeahOS/oeWPt+azouWKqA0K5pWw5o2u5Lyg6L6T
+6YCf546H6ZmQ5Yi2DQrkuIrnlLXml7bluo/lvJXotbfnmoTnoazku7bmlYXpmpzlj4rova/ku7bl
+iJ3lp4vljJblr7nnrZYNCuatu+acuueahOacuueQhuWPiuWvueetlg0K5pi+56S65aSE55CG5o6q
+5pa9DQpTRkPkuIvvvIzovpPlh7rkv53or4HlronlhagNCjUuICAg5Y+Y6YeP5LiO5a2Y5YKo6Zeu
+6aKY5oiQ5Zug5LiO6Ziy5oqkDQrpmLLmraLov4fnqIvkuK3lrZjlgqjooqvliLcNCuWdl+WtmOWC
+qOeJueaApw0K5aSH5Lu95oqA5benDQrlr4TlrZjlmajpmLLliLflpITnkIYNCuW8uuaVsOaNruex
+u+Weiw0K5a2Y5YKo5oiQ5Yqf5o+Q56S6DQo2LiAgIOS6uuacuuaOpeWPo+mXrumimOS4jumYsuaK
+pA0K5a+55Lq65bel6K+v5pON5L2c55qE6Ziy5oqk5o6q5pa9DQrlj4LmlbDorr7nva7mjqfliLbn
+rZbnlaUNCueVjOmdouaVsOaNruiuvue9ruWSjOW4g+WxgOaWueazlQ0K55WM6Z2i6K6+6K6h6KeE
+6IyDDQo3LiAgIOaKpeitpg0K5oql6K2m5YiG57G76K6+572uDQrmiqXorabnvJbnqIvlpITnkIYN
+CuaKpeitpumikeeOh+OAgeWjsOmfs+OAgeWNoOepuuavlOimgeaxgg0KOC4gICDova/ku7bmtYvo
+r5UNCuWNleWFg+a1i+ivleaWueazleS4juezu+e7n+a1i+ivleeahOWMuuWIqw0K5rWL6K+V5bel
+5YW35LiO5Lq65bel5rWL6K+VDQrmtYvor5XogYzotKPkuI7mtYvor5XliIblt6UNCuWfuuS6jlNG
+Q+eahOaOpeWPo+a1i+ivlQ0K5YWo6KaG55uW5rWL6K+V77yI6Lev5b6E6KaG55uW5LiO5pWw5o2u
+6KaG55uW77yJDQrkuIDoh7TmgKfmtYvor5XvvIzpgJrov4fova/ku7bmtYvor5Xlj5HnjrDnoazk
+u7bpmpDmgqMNCuS6uuacuuaOpeWPo+a1i+ivlQ0KMTAuICAgICAgIOW1jOWFpeW8j+i9r+S7tuWK
+n+iDveWuieWFqOiuvuiuoQ0K6L2v5Lu25a6J5YWo5Yqf6IO955qE6KaB5rGCDQrova/ku7bnu5Pm
+noTnmoTopoHmsYLkuI7mjqrmlr0NCuivpue7huiuvuiuoeWSjOW8gOWPkeimgeaxgg0K5Luj56CB
+5a6e546w6KaB5rGC5LiO5o6q5pa9DQrova/ku7bmqKHlnZfmtYvor5XopoHmsYINCui9r+S7tumb
+huaIkOa1i+ivleeahOimgeaxgg0K5Yqf6IO95a6J5YWo6K+E5Lyw5pa55rOVDQrmgLvnu5PvvJrl
+tYzlhaXlvI/ova/ku7blj6/pnaDmgKforr7orqHop4TojIMNCiANCuWfueiureiusuW4iO+8mg0K
+S2VubnkNCueUteWtkOW3peeoi+ehleWjq++8jOeglOeptumihuWfn++8mueUteWtkOS6p+WTgeez
+u+e7n+WPr+mdoOaAp+iuvuiuoeS4jua1i+ivleaKgOacr+OAgg0K5pu+5Lu76Iiq5aSp5LqM6Zmi
+5oC75L2T6K6+6K6h5omA5Li75Lu76K6+6K6h5biI44CB6auY57qn6aG555uu57uP55CG77yM5py6
+55S15Yi26YCg5LyB5Lia56CU5Y+R5oC755uR44CB5LqL5Lia6YOo5oC755uR77yM5YyX5Lqs5biC
+57qn5LyY56eA6Z2S5bm05bel56iL5biI77yM56eR5Y2P5aeU5ZGY44CCDQrmnInnlLXlrZDkuqfl
+k4HjgIHlhpvlt6XjgIHpgJrkv6HnrYnkuJPkuJrmlrnlkJHnmoTorr7orqHjgIHmtYvor4Tlkozm
+ioDmnK/nrqHnkIbnu4/ljobvvIzlr7nkuqflk4Hns7vnu5/orr7orqHjgIHlj6/pnaDmgKforr7o
+rqHjgIHmioDmnK/nrqHnkIbmnInovoPmt7HlhaXnoJTnqbbvvIzmm77lnKjlrabmnK/kvJrorq7l
+j4rlpJrlrrbmioDmnK/liIrnianlj5HooajkuJPkuJrmlofnq6DjgIINCuabvuS4uuavlOS6mui/
+quOAgeS4reeUtTMw5omA44CBMjnmiYDjgIHljJfkuqzljY7ls7DmtYvmjqfjgIHljJfkuqzoiKrl
+pKnplb/ls7DjgIHmma7mnpDpgJrnlKjku6rlmajjgIHoiKrlpKnkuozpmaIyM+aJgOOAgeiIquWk
+qeS6lOmZouOAgeagqua0sui9pui+hueglOeptuaJgOOAgeWMl+Wkp+mdkum4n+eOr+Wuh+OAgeaD
+oOW3nuW+t+i1m+OAgemZleilv+WNjue7j+W+rueUteWtkOOAgeilv+WuieW3peS4mumbhuWbouWF
+rOWPuOOAgeadvuS4i+eUteW3peOAgeiIquebm+eUteWtkOetieS8geS4muaPkOS+m+S4k+S4muaK
+gOacr+WSjOaKgOacr+euoeeQhui+heWvvOOAgeWfueiureWSjOWSqOivouOAgg0K6L6D5pOF6ZW/
+5LqO5bCG6auY5rex55qE55CG6K6655+l6K+G6L2s5YyW5Li656ym5ZCI5LyB5Lia5oqA5pyv5ZKM
+57uP6JCl54m55oCn55qE5Y+v5pON5L2c5a6e6Le15pa55rOV44CCCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
