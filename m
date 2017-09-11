@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io0-x234.google.com (mail-io0-x234.google.com
+ [IPv6:2607:f8b0:4001:c06::234])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 33BA220945C0D
- for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 12:58:13 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [fstests PATCH v2] xfs: add regression test for DAX mount option usage
-Date: Mon, 11 Sep 2017 14:01:03 -0600
-Message-Id: <20170911200103.28226-1-ross.zwisler@linux.intel.com>
-In-Reply-To: <CAPcyv4gGpAW7kUCgqSoNCPkFZVYzTVQi3C4x6AFm2KHvFrZSfw@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0932D2095BB87
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 08:35:04 -0700 (PDT)
+Received: by mail-io0-x234.google.com with SMTP id v36so15771860ioi.1
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 08:37:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170911151610.GA5014@linux.intel.com>
+References: <20170908152805.GA16646@linux.intel.com>
+ <20170908212153.14880-1-ross.zwisler@linux.intel.com>
+ <20170911151610.GA5014@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 11 Sep 2017 08:37:58 -0700
+Message-ID: <CAPcyv4gGpAW7kUCgqSoNCPkFZVYzTVQi3C4x6AFm2KHvFrZSfw@mail.gmail.com>
+Subject: Re: [PATCH] xfs: add regression test for DAX mount option usage
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,141 +23,49 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: fstests@vger.kernel.org, Eryu Guan <eguan@redhat.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J.  Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, fstests@vger.kernel.org, linux-xfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This adds a regression test for the following kernel patch:
+On Mon, Sep 11, 2017 at 8:16 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Fri, Sep 08, 2017 at 03:21:53PM -0600, Ross Zwisler wrote:
+>> This adds a regression test for the following kernel patch:
+>>
+>>   xfs: always use DAX if mount option is used
+>>
+>> This test will also pass with kernel v4.14-rc1 and beyond because the XFS
+>> DAX I/O mount option has been disabled (but not removed), so the
+>> "chattr -x" to turn off DAX doesn't actually do anything.
+>>
+>> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Suggested-by: Christoph Hellwig <hch@infradead.org>
+>
+> <>
+>
+>> +# disable tracing, clear the existing trace buffer and turn on dax tracepoints
+>> +echo 0 > /sys/kernel/debug/tracing/tracing_on
+>> +echo > /sys/kernel/debug/tracing/trace
+>> +echo 1 > /sys/kernel/debug/tracing/events/fs_dax/enable
+>
+> I think I can do a better job of:
+>
+> a) detecting whether debugfs is present, and if not just bail the test as not
+> run
+>
+> b) recording the current state of the debugfs (tracing_on, fs_dax/enable),
+> doing what I need to do, then restoring the previous state.
+>
+> Before I work on a v2, though, I'd love to get feedback on whether or not
+> using tracepoints is okay in fstests.
 
-  xfs: always use DAX if mount option is used
-
-This test will also pass with kernel v4.14-rc1 and beyond because the XFS
-DAX I/O mount option has been disabled (but not removed), so the
-"chattr -x" to turn off DAX doesn't actually do anything.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
----
-
-Changes since v1:
- - Use perf instead of tracepoints to detect whether DAX is used. (Dan)
-
----
- tests/xfs/431     | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/xfs/431.out |  2 ++
- tests/xfs/group   |  1 +
- 3 files changed, 80 insertions(+)
- create mode 100755 tests/xfs/431
- create mode 100644 tests/xfs/431.out
-
-diff --git a/tests/xfs/431 b/tests/xfs/431
-new file mode 100755
-index 0000000..2865a6d
---- /dev/null
-+++ b/tests/xfs/431
-@@ -0,0 +1,77 @@
-+#! /bin/bash
-+# FS QA Test xfs/431
-+#
-+# This is a regression test for kernel patch:
-+# 	xfs: always use DAX if mount option is used
-+# created by Ross Zwisler <ross.zwisler@linux.intel.com>
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Intel Corporation.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# Modify as appropriate.
-+_supported_os Linux
-+_supported_fs xfs
-+_require_scratch_dax
-+
-+# real QA test starts here
-+export PERF_PROG="`set_prog_path perf`"
-+[ "$PERF_PROG" = "" ] && _notrun "perf not found"
-+
-+_scratch_mkfs > $seqres.full 2>&1
-+_scratch_mount "-o dax" >> $seqres.full 2>&1
-+
-+pgsize=`$here/src/feature -s`
-+
-+PERF_OUTPUT=$tmp.perf
-+
-+$PERF_PROG record -o $PERF_OUTPUT -e 'fs_dax:dax_load_hole' \
-+	$XFS_IO_PROG -t -c "truncate $pgsize" \
-+	-c "chattr -x" \
-+	-c "mmap -r 0 $pgsize" -c "mread 0 $pgsize" -c "munmap" \
-+	-f $SCRATCH_MNT/testfile  > /dev/null 2>&1
-+
-+$PERF_PROG script -i $PERF_OUTPUT | grep -q 'fs_dax:dax_load_hole'
-+if [[ $? == 0 ]]; then
-+	echo "DAX was used"
-+else
-+	echo "DAX was NOT used"
-+fi
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/xfs/431.out b/tests/xfs/431.out
-new file mode 100644
-index 0000000..194ae1e
---- /dev/null
-+++ b/tests/xfs/431.out
-@@ -0,0 +1,2 @@
-+QA output created by 431
-+DAX was used
-diff --git a/tests/xfs/group b/tests/xfs/group
-index 0a449b9..4e7019c 100644
---- a/tests/xfs/group
-+++ b/tests/xfs/group
-@@ -427,3 +427,4 @@
- 428 dangerous_fuzzers dangerous_scrub dangerous_online_repair
- 429 dangerous_fuzzers dangerous_scrub dangerous_repair
- 430 dangerous_fuzzers dangerous_scrub dangerous_online_repair
-+431 auto quick
--- 
-2.9.5
-
+I think it is more straightforward to use "perf record -e fs_dax
+$test". Then you know the events are filtered to your test pid and you
+don't need to worry about managing the trace interface.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
