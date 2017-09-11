@@ -1,15 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CC55521A143F5
- for <linux-nvdimm@lists.01.org>; Fri,  8 Sep 2017 14:19:09 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] xfs: add regression test for DAX mount option usage
-Date: Fri,  8 Sep 2017 15:21:53 -0600
-Message-Id: <20170908212153.14880-1-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170908152805.GA16646@linux.intel.com>
-References: <20170908152805.GA16646@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5715C21E8796F
+ for <linux-nvdimm@lists.01.org>; Sun, 10 Sep 2017 18:02:51 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id C89F5AC009B
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 10:05:37 +0900 (JST)
+Date: Mon, 11 Sep 2017 10:05:26 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [ndctl PATCH v5 5/5] ndctl: show bad dimm's name by ndctl list
+ command.
+In-Reply-To: <CAPcyv4i4aUB84qMp3AMEnLT+2gF-55-uc-uZZvsO0b6oEHByPw@mail.gmail.com>
+References: <CAPcyv4iAXX2s-dVSoH5gOjOSSCN0PASgx85GugB7yXY6KwOgBg@mail.gmail.com>
+ <CAPcyv4i4aUB84qMp3AMEnLT+2gF-55-uc-uZZvsO0b6oEHByPw@mail.gmail.com>
+Message-Id: <20170911100522.17DD.E1E9C6FF@jp.fujitsu.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,140 +24,142 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: fstests@vger.kernel.org, Eryu Guan <eguan@redhat.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J.  Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This adds a regression test for the following kernel patch:
 
-  xfs: always use DAX if mount option is used
+> On Wed, Sep 6, 2017 at 11:25 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> > On Wed, Sep 6, 2017 at 11:21 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+> >>> On Wed, Sep 6, 2017 at 10:08 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+> >>> >
+> >>> > Show dimm's name which has badblock by ndctl list command.
+> >>> > This patch uses translate SPA interface to get bad dimm info.
+> >>> >
+> >>> > Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+> >>> > ---
+> >>> >  util/json.c | 37 +++++++++++++++++++++++++++++++++++++
+> >>> >  1 file changed, 37 insertions(+)
+> >>> >
+> >>> > diff --git a/util/json.c b/util/json.c
+> >>> > index 98165b7..639f0ff 100644
+> >>> > --- a/util/json.c
+> >>> > +++ b/util/json.c
+> >>> > @@ -366,6 +366,15 @@ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
+> >>> >         return NULL;
+> >>> >  }
+> >>> >
+> >>> > +static struct ndctl_dimm *badblock_to_dimm(struct ndctl_region *region,
+> >>> > +               unsigned long long spa)
+> >>> > +{
+> >>> > +       struct ndctl_bus *bus;
+> >>> > +
+> >>> > +       bus = ndctl_region_get_bus(region);
+> >>> > +       return ndctl_bus_get_dimm_by_physical_address(bus, spa);
+> >>> > +}
+> >>> > +
+> >>> >  struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
+> >>> >                 unsigned int *bb_count, unsigned long flags)
+> >>> >  {
+> >>> > @@ -381,6 +390,18 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
+> >>> >
+> >>> >         ndctl_region_badblock_foreach(region, bb) {
+> >>> >                 if (flags & UTIL_JSON_MEDIA_ERRORS) {
+> >>> > +                       struct ndctl_dimm *dimm = NULL;
+> >>> > +                       unsigned long long spa;
+> >>> > +
+> >>> > +                       /* get start address of region */
+> >>> > +                       spa = ndctl_region_get_resource(region);
+> >>> > +                       if (spa == ULONG_MAX)
+> >>> > +                               goto err_array;
+> >>> > +
+> >>> > +                       /* get address of bad block */
+> >>> > +                       spa += bb->offset << 9;
+> >>> > +                       dimm = badblock_to_dimm(region, spa);
+> >>>
+> >>> Ok the libndctl pieces are looking good, but I have question about
+> >>> this. We only return the first DIMM that has the error... what if the
+> >>> length of the record causes us to span more than one dimm?
+> >>>
+> >>> > +
+> >>> >                         jbb = json_object_new_object();
+> >>> >                         if (!jbb)
+> >>> >                                 goto err_array;
+> >>> > @@ -395,6 +416,12 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
+> >>> >                                 goto err;
+> >>> >                         json_object_object_add(jbb, "length", jobj);
+> >>> >
+> >>> > +                       if (dimm) {
+> >>> > +                               jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
+> >>>
+> >>> We probably need to make this an array of DIMMs and call badblock() to
+> >>> DIMM for every 512 byte block in the range.
+> >>
+> >> Hmmmmm, Ok.
+> >>
+> >>
+> >>>
+> >>> > +                               if (!jobj)
+> >>> > +                                       goto err;
+> >>> > +                               json_object_object_add(jbb, "dimm", jobj);
+> >>> > +                       }
+> >>> >                         json_object_array_add(jbbs, jbb);
+> >>> >                 }
+> >>> >
+> >>> > @@ -436,6 +463,7 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
+> >>> >
+> >>> >         ndctl_region_badblock_foreach(region, bb) {
+> >>> >                 unsigned long long bb_begin, bb_end, begin, end;
+> >>> > +               struct ndctl_dimm *dimm = NULL;
+> >>> >
+> >>> >                 bb_begin = region_begin + (bb->offset << 9);
+> >>> >                 bb_end = bb_begin + (bb->len << 9) - 1;
+> >>> > @@ -456,6 +484,8 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
+> >>> >                 offset = (begin - dev_begin) >> 9;
+> >>> >                 len = (end - begin + 1) >> 9;
+> >>> >
+> >>> > +               dimm = badblock_to_dimm(region, begin);
+> >>> > +
+> >>> >                 if (flags & UTIL_JSON_MEDIA_ERRORS) {
+> >>> >                         /* add to json */
+> >>> >                         jbb = json_object_new_object();
+> >>> > @@ -472,6 +502,13 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
+> >>> >                                 goto err;
+> >>> >                         json_object_object_add(jbb, "length", jobj);
+> >>> >
+> >>> > +                       if (dimm) {
+> >>> > +                               jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
+> >>>
+> >>> Since this will eventually be the same code as above lets turn it into
+> >>> a common badblocks_to_jdimms() helper that returns a json array.
+> >>>
+> >>
+> >> Ok. I'll make next version.
+> >>
+> >> BTW, should I send this No.5 patch for v6?
+> >> Otherwise, should I re-send all of this patch set again?
+> >
+> > Just this one is fine, the others I'll get applied and pushed out tomorrow.
+> 
+> Since this is the last feature I'm waiting for to cut the v58 release,
+> I'll go ahead and send incremental patches to fix this up.
+> 
 
-This test will also pass with kernel v4.14-rc1 and beyond because the XFS
-DAX I/O mount option has been disabled (but not removed), so the
-"chattr -x" to turn off DAX doesn't actually do anything.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
----
- tests/xfs/431     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/xfs/431.out |  3 +++
- tests/xfs/group   |  1 +
- 3 files changed, 85 insertions(+)
- create mode 100755 tests/xfs/431
- create mode 100644 tests/xfs/431.out
+Wow, thanks!
 
-diff --git a/tests/xfs/431 b/tests/xfs/431
-new file mode 100755
-index 0000000..4ff3a02
---- /dev/null
-+++ b/tests/xfs/431
-@@ -0,0 +1,81 @@
-+#! /bin/bash
-+# FS QA Test xfs/431
-+#
-+# This is a regression test for kernel patch:
-+# 	xfs: always use DAX if mount option is used
-+# created by Ross Zwisler <ross.zwisler@linux.intel.com>
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Intel Corporation.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# Modify as appropriate.
-+_supported_os Linux
-+_supported_fs xfs
-+_require_scratch_dax
-+
-+# real QA test starts here
-+# format and mount
-+_scratch_mkfs > $seqres.full 2>&1
-+_scratch_mount "-o dax" >> $seqres.full 2>&1
-+
-+pgsize=`$here/src/feature -s`
-+
-+# disable tracing, clear the existing trace buffer and turn on dax tracepoints
-+echo 0 > /sys/kernel/debug/tracing/tracing_on
-+echo > /sys/kernel/debug/tracing/trace
-+echo 1 > /sys/kernel/debug/tracing/events/fs_dax/enable
-+
-+# enable tracing for our one mmap I/O, then see if dax was used
-+echo 1 > /sys/kernel/debug/tracing/tracing_on
-+xfs_io  -t -c "truncate $pgsize" \
-+	-c "chattr -x" \
-+	-c "mmap -r 0 $pgsize" -c "mread 0 $pgsize" -c "munmap" \
-+	-f $SCRATCH_MNT/testfile >> $seqres.full
-+echo 0 > /sys/kernel/debug/tracing/tracing_on
-+
-+grep -q 'xfs_io.*dax_load_hole' /sys/kernel/debug/tracing/trace
-+if [[ $? == 0 ]]; then
-+	echo "DAX was used"
-+else
-+	echo "DAX was NOT used"
-+fi
-+
-+# success, all done
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/xfs/431.out b/tests/xfs/431.out
-new file mode 100644
-index 0000000..265dc46
---- /dev/null
-+++ b/tests/xfs/431.out
-@@ -0,0 +1,3 @@
-+QA output created by 431
-+DAX was used
-+Silence is golden
-diff --git a/tests/xfs/group b/tests/xfs/group
-index 0a449b9..4e7019c 100644
---- a/tests/xfs/group
-+++ b/tests/xfs/group
-@@ -427,3 +427,4 @@
- 428 dangerous_fuzzers dangerous_scrub dangerous_online_repair
- 429 dangerous_fuzzers dangerous_scrub dangerous_repair
- 430 dangerous_fuzzers dangerous_scrub dangerous_online_repair
-+431 auto quick
--- 
-2.9.5
+Since I was off from office at Friday,
+This is great help for me.
+
+Anyway, I'll review your patches.
+
+
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
