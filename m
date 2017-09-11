@@ -1,11 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.135.26])
- by ml01.01.org (Postfix) with ESMTP id 43EE221E62BDA
- for <linux-nvdimm@lists.01.org>; Sat,  2 Sep 2017 20:56:04 -0700 (PDT)
-From: "Returned mail" <noreply@lists.01.org>
-Subject: Delivery reports about your e-mail
-Date: Sun, 3 Sep 2017 11:59:08 +0800
+Received: from mail-it0-x241.google.com (mail-it0-x241.google.com
+ [IPv6:2607:f8b0:4001:c0b::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2076521E87988
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 10:18:43 -0700 (PDT)
+Received: by mail-it0-x241.google.com with SMTP id e134so1621758ite.3
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 10:21:39 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20170911094714.GD8503@quack2.suse.cz>
+References: <150489930202.29460.5141541423730649272.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150489931339.29460.8760855724603300792.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170911094714.GD8503@quack2.suse.cz>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 11 Sep 2017 10:21:36 -0700
+Message-ID: <CAA9_cmfeMSUSh1FkdC=RW9jo1-e5sj5V+n6g99NOirukkWw=MA@mail.gmail.com>
+Subject: Re: [RFC PATCH v8 2/2] mm: introduce MAP_SHARED_VALIDATE, a mechanism
+ to safely define new mmap flags
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,42 +24,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============3241031297257868099=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170903035607.5A51921E7490B@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a multi-part message in MIME format.
+On Mon, Sep 11, 2017 at 2:47 AM, Jan Kara <jack@suse.cz> wrote:
+> On Fri 08-09-17 12:35:13, Dan Williams wrote:
+>> The mmap(2) syscall suffers from the ABI anti-pattern of not validating
+>> unknown flags. However, proposals like MAP_SYNC and MAP_DIRECT need a
+>> mechanism to define new behavior that is known to fail on older kernels
+>> without the support. Define a new MAP_SHARED_VALIDATE flag pattern that
+>> is guaranteed to fail on all legacy mmap implementations.
+>>
+>> With this in place new flags can be defined as:
+>>
+>>     #define MAP_new (MAP_SHARED_VALIDATE | val)
+>
+> Is this changelog stale? Given MAP_SHARED_VALIDATE will be new mapping
+> type, I'd expect we define new flags just as any other mapping flags...
+> I see no reason why MAP_SHARED_VALIDATE should be or'ed to that.
 
---===============3241031297257868099==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+True, it will just by a new MAP_TYPE plus new flags. I will fix this up comment.
 
-�<�Z�%D�*{Ke}!�q'3>rNٌn7})Ѭ*��xvc�*g�D��C���?��f�Ӳ3*K��U߻<��)L�Gf�<�l��P �z�eU[�&�c�
-��>iT�e�w�_|?nN�����^\��� w�^���P�u����⻞�}/���Z%\k������0�B����4Q�N���c�'F��>��lcP^�󾻥�n���o��B���pK݈��l�N��|���0�UH�}�TP��bŨ��jU�R�҃x;
-��_|7��P���Ym']��K�QT̊�ٰ���d弿7;Z��#(��H�b��6�����⳼�hd�Q��HT1hĢw���B�a�|��>G
-��|��qS��&�i�U�{ē�?��q;���,0՟�H�Q�i#���3E�J�G��i�:�xuN)[*�x�Gߔ�KN�����sx��e}
-:Uݙb5R�Y� �_�䬓dJ揲��kx�/��q�a5y��A�~�EV�3��䡞뽋U3�ơP��7&�����78��}�9���m�GA���
-��G5#�-)*����팥Fk\YaF'Fm�-�1VX�A�T��5NИ�M���%`b�ȿp�׬X�e
-�*�L{�/E��ZTڟy7�N�
-���e���y>�DxBx�v]r�����4o�&��tl��D*�H��iQ'�����Rf�b�(�W�f�8��a��&�.�!����KEͶo�������YW�8��b�Mɨ��:j���E�:�K�����|ǚ:P�T���
-m�ʗ�!�l�E�qU6e�
-�u�崎˒�ΤP0|1����,�ں�Y��ǎ��P�_��Z�����tҋ#�>��X�#�Ӌ�4�44<a�Z�~z�鋍�کed��C�\�-���G���e�|��~���sF{݅���qo� O��|�Hx#l�Cp)nq$��'/�ͣ�Y��u�I���|���$�"J�2�9��V'A-���F��Z�����Y�FVۖ�v���������UbRw
-�p2�wP7����s�#��Le��ng�U�|�v�9��e�#�/�u�J(o��^E�pI;�;�3�5}�ҳx��Y[��'<4inL�%2�ë��|%�8���p�2pM���;'I��������EAru�T��QL��0bk��ɦ����`�w
+[..]
+>> diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
+>> index 3b26cc62dadb..c32276c4196a 100644
+>> --- a/arch/alpha/include/uapi/asm/mman.h
+>> +++ b/arch/alpha/include/uapi/asm/mman.h
+>> @@ -14,6 +14,7 @@
+>>  #define MAP_TYPE     0x0f            /* Mask for type of mapping (OSF/1 is _wrong_) */
+>>  #define MAP_FIXED    0x100           /* Interpret addr exactly */
+>>  #define MAP_ANONYMOUS        0x10            /* don't use a file */
+>> +#define MAP_SHARED_VALIDATE (MAP_SHARED|MAP_PRIVATE) /* validate extension flags */
+>
+> And I'd explicitely define MAP_SHARED_VALIDATE as the first unused value
+> among mapping types (which is in fact enum embedded inside mapping flags).
+> I.e. 0x03 on alpha, x86, and probably all other archs - it has nothing to
+> do with MAP_SHARED|MAP_PRIVATE - it is just another type of the mapping
+> which happens to have most of the MAP_SHARED semantics...
 
-
---===============3241031297257868099==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
+Ok, I'll make it 0x3 everywhere.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============3241031297257868099==--
