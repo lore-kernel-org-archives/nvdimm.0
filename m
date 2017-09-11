@@ -1,16 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 51DA020945B6F
- for <linux-nvdimm@lists.01.org>; Thu, 21 Sep 2017 14:04:39 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.14-rc2
-Date: Thu, 21 Sep 2017 21:07:45 +0000
-Message-ID: <1506028051.30769.1.camel@intel.com>
-Content-Language: en-US
-Content-ID: <9CA13E54D2EDE14F8EC140AD5FF7BE1D@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7012421E87985
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 01:44:43 -0700 (PDT)
+Date: Mon, 11 Sep 2017 10:47:33 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 0/9] add ext4 per-inode DAX flag
+Message-ID: <20170911084733.GB7120@quack2.suse.cz>
+References: <f856f8fd-3697-adb1-198b-a9ae2fce405f@redhat.com>
+ <20170906170754.GB17663@linux.intel.com>
+ <CAPcyv4hfhDT9NFRXL+MT5epiqWHJ0RLraV4P3CZ4EJM6L-s0Nw@mail.gmail.com>
+ <20170907211303.GA23212@linux.intel.com>
+ <5F58D3F5-D93B-4648-AE01-8A46956FBB4B@dilger.ca>
+ <20170907215148.GA12669@linux.intel.com>
+ <20170907221201.GZ17782@dastard>
+ <20170907221900.GB12669@linux.intel.com>
+ <20170907232543.GB17782@dastard>
+ <20170908153913.jjhzogjs5zpeea5v@thunk.org>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170908153913.jjhzogjs5zpeea5v@thunk.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,69 +28,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Theodore Ts'o <tytso@mit.edu>
+Cc: Andreas Dilger <adilger@dilger.ca>, Eric Sandeen <sandeen@redhat.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, xfs <linux-xfs@vger.kernel.org>, Lukas Czerner <lczerner@redhat.com>, linux-ext4 <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4udG8g
-cmVjZWl2ZSBhIGNyYXNoK0FLQS1maXggYW5kIGNvcnJlc3BvbmRpbmcgcmVncmVzc2lvbiB0ZXN0
-IGVuYWJsaW5nCmZvciB0aGUgY3Jhc2ggc2NlbmFyaW8uIFRoZSB1bml0IHRlc3QgZm9yIHRoaXMg
-Y3Jhc2ggaXMgYXZhaWxhYmxlIGluCm5kY3RsLXY1OC4yLiBUaGlzIGJyYW5jaCBoYXMgcmVjZWl2
-ZWQgYSBidWlsZCBzdWNjZXNzIG5vdGlmaWNhdGlvbiBmcm9tCnRoZSAwZGF5LWtidWlsZCByb2Jv
-dCBvdmVyIDE0OCBjb25maWdzLiBUaGUgZml4IGlzIHRhZ2dlZCBmb3IgLXN0YWJsZSAvCmJhY2tw
-b3J0IHRvIDQuMTMuCgotLS0KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgMmJk
-NmJmMDNmNGMxYzU5MzgxZDYyYzYxZDAzZjZjYzNmZTcxZjY2ZToKCiAgTGludXggNC4xNC1yYzEg
-KDIwMTctMDktMTYgMTU6NDc6NTEgLTA3MDApCgphcmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVw
-b3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwv
-Z2l0L252ZGltbS9udmRpbW0gbGlibnZkaW1tLWZpeGVzCgpmb3IgeW91IHRvIGZldGNoIGNoYW5n
-ZXMgdXAgdG8gMzNhNTYwODY3MTI1NjFiOGI5Y2RjODgxZTAzMTdmNGMzNjg2MWY3MjoKCiAgbGli
-bnZkaW1tLCBuYW1lc3BhY2U6IGZpeCBidHQgY2xhaW0gY2xhc3MgY3Jhc2ggKDIwMTctMDktMTgg
-MTc6Mjk6MDEgLTA3MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkRhbiBXaWxsaWFtcyAoMik6CiAgICAgIHRvb2xzL3Rl
-c3RpbmcvbnZkaW1tOiBkaXNhYmxlIGxhYmVscyBmb3IgbmZpdF90ZXN0LjEKICAgICAgbGlibnZk
-aW1tLCBuYW1lc3BhY2U6IGZpeCBidHQgY2xhaW0gY2xhc3MgY3Jhc2gKCiBkcml2ZXJzL252ZGlt
-bS9uYW1lc3BhY2VfZGV2cy5jICB8IDkgKy0rLSstKy0rLSstKy0rLSstCiB0b29scy90ZXN0aW5n
-L252ZGltbS90ZXN0L25maXQuYyB8IDMgLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDkgaW5zZXJ0aW9u
-cygrLSksIDMgZGVsZXRpb25zKC0pCgpjb21taXQgNWU3NWZlMzkyNzU1OTUwNTY4MmIwMDUzYjU3
-NDVlM2Y0MmQ2NmU4YwpBdXRob3I6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwu
-Y29tPgpEYXRlOiAgIE1vbiBTZXAgMTggMTc6MTk6MTAgMjAxNyAtMDcwMAoKICAgIHRvb2xzL3Rl
-c3RpbmcvbnZkaW1tOiBkaXNhYmxlIGxhYmVscyBmb3IgbmZpdF90ZXN0LjEKICAgIAogICAgSW1w
-cm92ZSBjb3ZlcmFnZSBvZiBOVkRJTU0tTiB0ZXN0IHNjZW5hcmlvcyBieSBwcm92aWRpbmcgYSB0
-ZXN0IGJ1cwogICAgaW5jYXBhYmxlIG9mIGxhYmVsIG9wZXJhdGlvbnMuCiAgICAKICAgIFNpZ25l
-ZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0
-IDMzYTU2MDg2NzEyNTYxYjhiOWNkYzg4MWUwMzE3ZjRjMzY4NjFmNzIKQXV0aG9yOiBEYW4gV2ls
-bGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KRGF0ZTogICBNb24gU2VwIDE4IDE0OjQ4
-OjU4IDIwMTcgLTA3MDAKCiAgICBsaWJudmRpbW0sIG5hbWVzcGFjZTogZml4IGJ0dCBjbGFpbSBj
-bGFzcyBjcmFzaAogICAgCiAgICBNYXVyaWNlIHJlcG9ydHM6CiAgICAKICAgICAgICBCVUc6IHVu
-YWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdCAwMDAwMDAw
-MDAwMDAwMDI4CiAgICAgICAgSVA6IGhvbGRlcl9jbGFzc19zdG9yZSstMHgyNTMvMHgyYjAgW2xp
-Ym52ZGltbV0KICAgIAogICAgLi4ud2hpbGUgdHJ5aW5nIHRvIHJlY29uZmlndXJlIGFuIE5WRElN
-TS1OIG5hbWVzcGFjZSBpbnRvICdzZWN0b3InIC8KICAgICdidHQnIG1vZGUuIFRoZSBjcmFzaCBw
-b2ludHMgdG8gdGhpcyBsaW5lOgogICAgCiAgICAgICAgKGdkYikgbGkgKihob2xkZXJfY2xhc3Nf
-c3RvcmUrLTB4MjUzKQogICAgICAgIDB4Nzc3MyBpcyBpbiBob2xkZXJfY2xhc3Nfc3RvcmUgKGRy
-aXZlcnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLmM6MTQyMCkuCiAgICAgICAgMTQxNSAgICAgICAg
-ICAgIGZvciAoaSA9IDA7IGkgPCBuZF9yZWdpb24tPm5kcl9tYXBwaW5nczsgaSstKy0pIHsKICAg
-ICAgICAxNDE2ICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgbmRfbWFwcGluZyAqbmRfbWFwcGlu
-ZyA9ICZuZF9yZWdpb24tPm1hcHBpbmdbaV07CiAgICAgICAgMTQxNyAgICAgICAgICAgICAgICAg
-ICAgc3RydWN0IG52ZGltbV9kcnZkYXRhICpuZGQgPSB0b19uZGQobmRfbWFwcGluZyk7CiAgICAg
-ICAgMTQxOCAgICAgICAgICAgICAgICAgICAgc3RydWN0IG5kX25hbWVzcGFjZV9pbmRleCAqbnNp
-bmRleDsKICAgICAgICAxNDE5CiAgICAgICAgMTQyMCAgICAgICAgICAgICAgICAgICAgbnNpbmRl
-eCA9IHRvX25hbWVzcGFjZV9pbmRleChuZGQsIG5kZC0+bnNfY3VycmVudCk7CiAgICAKICAgIC4u
-LndoZXJlIHdlIGFyZSBmYWlsaW5nIGJlY2F1c2UgbmRkIGlzIE5VTEwgZHVlIHRvIE5WRElNTS1O
-IGRpbW1zIG5vdAogICAgc3VwcG9ydGluZyBsYWJlbHMuCiAgICAKICAgIExvbmcgc3Rvcnkgc2hv
-cnQsIGRlZmF1bHQgdG8gdGhlIEJUVHYxIGZvcm1hdCBpbiB0aGUgbGFiZWwtbGVzcyAvCiAgICBO
-VkRJTU0tTiBjYXNlLgogICAgCiAgICBGaXhlczogMTRlNDk0NTQyNjM2ICgibGlibnZkaW1tLCBi
-dHQ6IEJUVCB1cGRhdGVzIGZvciBVRUZJIDIuNyBmb3JtYXQiKQogICAgQ2M6IDxzdGFibGVAdmdl
-ci5rZXJuZWwub3JnPgogICAgQ2M6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwu
-Y29tPgogICAgUmVwb3J0ZWQtYnk6IE1hdXJpY2UgQS4gU2FsZGl2YXIgPG1hdXJpY2UuYS5zYWxk
-aXZhckBocGUuY29tPgogICAgVGVzdGVkLWJ5OiBNYXVyaWNlIEEuIFNhbGRpdmFyIDxtYXVyaWNl
-LmEuc2FsZGl2YXJAaHBlLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFu
-Lmoud2lsbGlhbXNAaW50ZWwuY29tPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+On Fri 08-09-17 11:39:13, Ted Tso wrote:
+> On Fri, Sep 08, 2017 at 09:25:43AM +1000, Dave Chinner wrote:
+> > > Okay, so other ideas (which you have also probably already though of) include:
+> > > 
+> > > 1) Just return -EBUSY if anyone tries to change the DAX flag of an inode with
+> > > open mappings or any open file handles.
+> > 
+> > You have to have an open fd to change the flag. :)
+> 
+> What if we only allow the S_DAX flag to be *set*, when i_size and
+> i_blocks is zero?  We could also require that only one file descriptor
+> be open against the inode, and that it be opened O_RDONLY.
+
+We could do something like that but IMHO it will be a pain to use (e.g.
+think how difficult it would be to switch your existing database to use DAX
+for data files). We can make transition reliable whenever
+inode->i_mapping->i_mmap RB tree is empty (effectively: whenever the file
+is not mmaped). And that should be relaxed enough for most usecases... But
+I agree that it will be somewhat tricky to prevent creation of new mappings
+while we are switching S_DAX flag so it needs more though.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
