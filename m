@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mgwym02.jp.fujitsu.com (mgwym02.jp.fujitsu.com [211.128.242.41])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1760621F30415
- for <linux-nvdimm@lists.01.org>; Thu, 28 Sep 2017 18:24:33 -0700 (PDT)
-Subject: [PATCH v2 4/4] dax: stop using VM_HUGEPAGE for dax
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 28 Sep 2017 18:21:23 -0700
-Message-ID: <150664808322.36094.377701515526275078.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150664806143.36094.11882924009668860273.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150664806143.36094.11882924009668860273.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C48F321E87964
+ for <linux-nvdimm@lists.01.org>; Sun, 10 Sep 2017 22:10:41 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id A00D1AC0206
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 14:13:27 +0900 (JST)
+Date: Mon, 11 Sep 2017 14:13:10 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [ndctl PATCH 1/2] ndctl: reduce indentation in
+ util_region_badblocks_to_json / dev_badblocks_to_json
+In-Reply-To: <CAPcyv4hAJgVW-zDSOt=vK8zXrOo3VT4-aeDMzLPsxUbV46Sifg@mail.gmail.com>
+References: <20170911102055.17E0.E1E9C6FF@jp.fujitsu.com>
+ <CAPcyv4hAJgVW-zDSOt=vK8zXrOo3VT4-aeDMzLPsxUbV46Sifg@mail.gmail.com>
+Message-Id: <20170911141306.17F0.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,62 +28,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This flag is deprecated in favor of the vma_is_dax() check in
-transparent_hugepage_enabled() added in commit baabda261424 "mm: always
-enable thp for dax mappings"
+> On Sun, Sep 10, 2017 at 6:20 PM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+> >> Use a 'continue' to out-dent the badblock parsing code block.
+> >>
+> >> Cc: Dave Jiang <dave.jiang@intel.com>
+> >> Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+> >> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> >> ---
+> >>  util/json.c |  108 +++++++++++++++++++++++++++++++----------------------------
+> >>  1 file changed, 57 insertions(+), 51 deletions(-)
+> >>
+> >> diff --git a/util/json.c b/util/json.c
+> >> index 639f0ff043ca..1d1727c1c062 100644
+> >> --- a/util/json.c
+> >> +++ b/util/json.c
+> >> @@ -389,43 +389,46 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
+> >>       }
+> >>
+> >>       ndctl_region_badblock_foreach(region, bb) {
+> >> -             if (flags & UTIL_JSON_MEDIA_ERRORS) {
+> >> -                     struct ndctl_dimm *dimm = NULL;
+> >> -                     unsigned long long spa;
+> >> +             struct ndctl_dimm *dimm;
+> >> +             unsigned long long addr;
+> >> +             const char *devname;
+> >>
+> >> -                     /* get start address of region */
+> >> -                     spa = ndctl_region_get_resource(region);
+> >> -                     if (spa == ULONG_MAX)
+> >> -                             goto err_array;
+> >> +             bbs += bb->len;
+> >>
+> >> -                     /* get address of bad block */
+> >> -                     spa += bb->offset << 9;
+> >> -                     dimm = badblock_to_dimm(region, spa);
+> >> +             if (!(flags & UTIL_JSON_MEDIA_ERRORS))
+> >> +                     continue;
+> >
+> >
+> >
+> > I suppose that there seems to be no need to output when UTIL_JSON_MEDIA_ERRORS
+> > is off at this function. So, it may be able to be checked at first
+> > rather than using continue.
+> >
+> 
+> We still need to calculate the total number of badblocks.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/device.c |    1 -
- fs/ext4/file.c       |    1 -
- fs/xfs/xfs_file.c    |    2 --
- 3 files changed, 4 deletions(-)
+Ok, I see.
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index ed79d006026e..74a35eb5e6d3 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -450,7 +450,6 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
- 		return rc;
- 
- 	vma->vm_ops = &dax_vm_ops;
--	vma->vm_flags |= VM_HUGEPAGE;
- 	return 0;
- }
- 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 0cc9d205bd96..a54e1b4c49f9 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -352,7 +352,6 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
- 	file_accessed(file);
- 	if (IS_DAX(file_inode(file))) {
- 		vma->vm_ops = &ext4_dax_vm_ops;
--		vma->vm_flags |= VM_HUGEPAGE;
- 	} else {
- 		vma->vm_ops = &ext4_file_vm_ops;
- 	}
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index dece8fe937f5..c0e0fcbe1bd3 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1130,8 +1130,6 @@ xfs_file_mmap(
- {
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
--	if (IS_DAX(file_inode(filp)))
--		vma->vm_flags |= VM_HUGEPAGE;
- 	return 0;
- }
- 
+Thanks a lot.
+
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
