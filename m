@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io0-x236.google.com (mail-io0-x236.google.com
+ [IPv6:2607:f8b0:4001:c06::236])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A1EBE20958BDA
- for <linux-nvdimm@lists.01.org>; Fri,  8 Sep 2017 01:27:52 -0700 (PDT)
-Date: Fri, 8 Sep 2017 16:29:58 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [linux-nvdimm:libnvdimm-for-next 22/22]
- include/linux/device.h:1441:2: note: in expansion of macro 'WARN_ONCE'
-Message-ID: <201709081651.FfQfH2V0%fengguang.wu@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4CA9B20958BD6
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 08:53:07 -0700 (PDT)
+Received: by mail-io0-x236.google.com with SMTP id y123so29072127iod.0
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 08:56:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
+In-Reply-To: <20170911144111.GA15556@redhat.com>
+References: <150169667935.39569.15808116323143633486.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150169668989.39569.8174620146135008137.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170911144111.GA15556@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 11 Sep 2017 08:56:01 -0700
+Message-ID: <CAPcyv4gBLPsogW_SUkBuAnZggP1WZqkNZZrxFZef7pmGFFFNkA@mail.gmail.com>
+Subject: Re: [PATCH v3 2/2] dm: allow device-mapper to operate without dax
+ support
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,134 +28,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: kbuild-all@01.org, linux-nvdimm@lists.01.org
+To: Mike Snitzer <snitzer@redhat.com>
+Cc: kbuild test robot <lkp@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dm-devel@redhat.com, Bart Van Assche <Bart.VanAssche@wdc.com>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-head:   86652d2eb347080a991968c9d68708dc010ac56c
-commit: 86652d2eb347080a991968c9d68708dc010ac56c [22/22] libnvdimm, btt: clean up warning and error messages
-config: i386-randconfig-b0-09081531 (attached as .config)
-compiler: gcc-5 (Debian 5.4.1-2) 5.4.1 20160904
-reproduce:
-        git checkout 86652d2eb347080a991968c9d68708dc010ac56c
-        # save the attached .config to linux build tree
-        make ARCH=i386 
+On Mon, Sep 11, 2017 at 7:41 AM, Mike Snitzer <snitzer@redhat.com> wrote:
+> On Wed, Aug 02 2017 at  1:58pm -0400,
+> Dan Williams <dan.j.williams@intel.com> wrote:
+>
+>> Rather than have device-mapper directly 'select DAX', let the fact that
+>> BLK_DEV_PMEM selects dax act as a gate for the device-mapper dax
+>> support. We arrange for all the dax core routines to compile to nops
+>> when CONFIG_DAX=n. With that in place we can simply handle the
+>> alloc_dax() error as expected and ifdef out the other device-mapper-dax
+>> support code.
+>>
+>> Now, if dax is provided by a leaf driver that driver may only arrange to
+>> compile the dax core as a module. Since device-mapper dax support is
+>> consumed by the always-built-in portion of the device-mapper
+>> implementation we need to upgrade from DAX=m to DAX=y.
+>
+> I applied the patches and then got nervous once I dug in.. this last
+> paragraph makes little sense to me.  "the always-built-in portion of the
+> device-mapper implementation" is why: DM core can happily be compiled as
+> a module (dm-mod.ko).
+>
+> And I'm not sure why you're referencing DAX related
+> drivers/md/dm-builtin.c, why are you attachd DM's DAX support to that?
+> I'm not seeing where that is actually happening.
+>
+> I don't see why DM's support for DAX would need to force DAX to be
+> builtin rather than just a module.
+>
+> Sorry I didn't get around to looking at this until now, but it seems you
+> went wrong along the way?  Or maybe I'm just missing something?
+>
 
-All warnings (new ones prefixed by >>):
-
-   In file included from arch/x86/include/asm/bug.h:81:0,
-                    from include/linux/bug.h:4,
-                    from include/linux/thread_info.h:11,
-                    from arch/x86/include/asm/preempt.h:6,
-                    from include/linux/preempt.h:80,
-                    from include/linux/spinlock.h:50,
-                    from include/linux/wait.h:8,
-                    from include/linux/wait_bit.h:7,
-                    from include/linux/fs.h:5,
-                    from include/linux/highmem.h:4,
-                    from drivers/nvdimm/btt.c:14:
-   drivers/nvdimm/btt.c: In function 'btt_map_init':
->> include/linux/device.h:1441:23: warning: format '%lx' expects argument of type 'long unsigned int', but argument 4 has type 'size_t {aka unsigned int}' [-Wformat=]
-     WARN_ONCE(condition, "%s %s: " format, \
-                          ^
-   include/asm-generic/bug.h:93:43: note: in definition of macro '__WARN_printf'
-    #define __WARN_printf(arg...) do { printk(arg); __WARN(); } while (0)
-                                              ^
-   include/asm-generic/bug.h:149:3: note: in expansion of macro 'WARN'
-      WARN(1, format);    \
-      ^
->> include/linux/device.h:1441:2: note: in expansion of macro 'WARN_ONCE'
-     WARN_ONCE(condition, "%s %s: " format, \
-     ^
->> drivers/nvdimm/btt.c:430:3: note: in expansion of macro 'dev_WARN_ONCE'
-      dev_WARN_ONCE(to_dev(arena), size < 512,
-      ^
-   drivers/nvdimm/btt.c: In function 'btt_log_init':
->> include/linux/device.h:1441:23: warning: format '%lx' expects argument of type 'long unsigned int', but argument 4 has type 'size_t {aka unsigned int}' [-Wformat=]
-     WARN_ONCE(condition, "%s %s: " format, \
-                          ^
-   include/asm-generic/bug.h:93:43: note: in definition of macro '__WARN_printf'
-    #define __WARN_printf(arg...) do { printk(arg); __WARN(); } while (0)
-                                              ^
-   include/asm-generic/bug.h:149:3: note: in expansion of macro 'WARN'
-      WARN(1, format);    \
-      ^
->> include/linux/device.h:1441:2: note: in expansion of macro 'WARN_ONCE'
-     WARN_ONCE(condition, "%s %s: " format, \
-     ^
-   drivers/nvdimm/btt.c:474:3: note: in expansion of macro 'dev_WARN_ONCE'
-      dev_WARN_ONCE(to_dev(arena), size < 512,
-      ^
---
-   In file included from arch/x86/include/asm/bug.h:81:0,
-                    from include/linux/bug.h:4,
-                    from include/linux/thread_info.h:11,
-                    from arch/x86/include/asm/preempt.h:6,
-                    from include/linux/preempt.h:80,
-                    from include/linux/spinlock.h:50,
-                    from include/linux/wait.h:8,
-                    from include/linux/wait_bit.h:7,
-                    from include/linux/fs.h:5,
-                    from include/linux/highmem.h:4,
-                    from drivers//nvdimm/btt.c:14:
-   drivers//nvdimm/btt.c: In function 'btt_map_init':
->> include/linux/device.h:1441:23: warning: format '%lx' expects argument of type 'long unsigned int', but argument 4 has type 'size_t {aka unsigned int}' [-Wformat=]
-     WARN_ONCE(condition, "%s %s: " format, \
-                          ^
-   include/asm-generic/bug.h:93:43: note: in definition of macro '__WARN_printf'
-    #define __WARN_printf(arg...) do { printk(arg); __WARN(); } while (0)
-                                              ^
-   include/asm-generic/bug.h:149:3: note: in expansion of macro 'WARN'
-      WARN(1, format);    \
-      ^
->> include/linux/device.h:1441:2: note: in expansion of macro 'WARN_ONCE'
-     WARN_ONCE(condition, "%s %s: " format, \
-     ^
-   drivers//nvdimm/btt.c:430:3: note: in expansion of macro 'dev_WARN_ONCE'
-      dev_WARN_ONCE(to_dev(arena), size < 512,
-      ^
-   drivers//nvdimm/btt.c: In function 'btt_log_init':
->> include/linux/device.h:1441:23: warning: format '%lx' expects argument of type 'long unsigned int', but argument 4 has type 'size_t {aka unsigned int}' [-Wformat=]
-     WARN_ONCE(condition, "%s %s: " format, \
-                          ^
-   include/asm-generic/bug.h:93:43: note: in definition of macro '__WARN_printf'
-    #define __WARN_printf(arg...) do { printk(arg); __WARN(); } while (0)
-                                              ^
-   include/asm-generic/bug.h:149:3: note: in expansion of macro 'WARN'
-      WARN(1, format);    \
-      ^
->> include/linux/device.h:1441:2: note: in expansion of macro 'WARN_ONCE'
-     WARN_ONCE(condition, "%s %s: " format, \
-     ^
-   drivers//nvdimm/btt.c:474:3: note: in expansion of macro 'dev_WARN_ONCE'
-      dev_WARN_ONCE(to_dev(arena), size < 512,
-      ^
-
-vim +/WARN_ONCE +1441 include/linux/device.h
-
-aebdc3b4 David Brownell   2007-07-12  1432  
-e6139662 Arjan van de Ven 2008-09-20  1433  /*
-3eae1367 Bjorn Helgaas    2013-10-24  1434   * dev_WARN*() acts like dev_printk(), but with the key difference of
-3eae1367 Bjorn Helgaas    2013-10-24  1435   * using WARN/WARN_ONCE to include file/line information and a backtrace.
-e6139662 Arjan van de Ven 2008-09-20  1436   */
-e6139662 Arjan van de Ven 2008-09-20  1437  #define dev_WARN(dev, format, arg...) \
-3eae1367 Bjorn Helgaas    2013-10-24  1438  	WARN(1, "%s %s: " format, dev_driver_string(dev), dev_name(dev), ## arg);
-e6139662 Arjan van de Ven 2008-09-20  1439  
-bcdd323b Felipe Balbi     2011-03-16  1440  #define dev_WARN_ONCE(dev, condition, format, arg...) \
-3eae1367 Bjorn Helgaas    2013-10-24 @1441  	WARN_ONCE(condition, "%s %s: " format, \
-3eae1367 Bjorn Helgaas    2013-10-24  1442  			dev_driver_string(dev), dev_name(dev), ## arg)
-bcdd323b Felipe Balbi     2011-03-16  1443  
-
-:::::: The code at line 1441 was first introduced by commit
-:::::: 3eae13671716492f3bcde270115407185e9c69fd device: Make dev_WARN/dev_WARN_ONCE print device as well as driver name
-
-:::::: TO: Bjorn Helgaas <bhelgaas@google.com>
-:::::: CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+No, my fault, I didn't track BLK_DEV_DM_BUILTIN correctly and we can
+safely make DAX a module when CONFIG_BLK_DEV_DM=m. I'll fix that up,
+thanks for the catch.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
