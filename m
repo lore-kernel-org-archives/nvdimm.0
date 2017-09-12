@@ -1,22 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x243.google.com (mail-yw0-x243.google.com
- [IPv6:2607:f8b0:4002:c05::243])
+Received: from mail-yw0-x242.google.com (mail-yw0-x242.google.com
+ [IPv6:2607:f8b0:4002:c05::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D83DB21E3EA67
- for <linux-nvdimm@lists.01.org>; Tue, 19 Sep 2017 19:32:44 -0700 (PDT)
-Received: by mail-yw0-x243.google.com with SMTP id v72so738031ywa.1
- for <linux-nvdimm@lists.01.org>; Tue, 19 Sep 2017 19:35:50 -0700 (PDT)
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+ by ml01.01.org (Postfix) with ESMTPS id 2E09520945BE6
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Sep 2017 15:46:59 -0700 (PDT)
+Received: by mail-yw0-x242.google.com with SMTP id r85so4289870ywg.3
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Sep 2017 15:49:56 -0700 (PDT)
 Subject: Re: [PATCH] nvdimm: fix potential double-fetch bug
-From: Meng Xu <mengxu.gatech@gmail.com>
-In-Reply-To: <898aae29-1ce5-9cc5-2e10-532eb72d50e8@gmail.com>
-Date: Tue, 19 Sep 2017 22:35:46 -0400
-Message-Id: <6AB0FC4D-8D8D-4A9C-BD8D-2AF33B9F5A48@gmail.com>
 References: <1503522466-35486-1-git-send-email-meng.xu@gatech.edu>
  <CAPcyv4jWuFjiY6-Ct4VRRjLwDMNQXBabQ0WkH+ZvpJmZbE3H1w@mail.gmail.com>
  <20170912220322.GA19642@anatevka.americas.hpqcorp.net>
- <898aae29-1ce5-9cc5-2e10-532eb72d50e8@gmail.com>
+From: Meng Xu <mengxu.gatech@gmail.com>
+Message-ID: <898aae29-1ce5-9cc5-2e10-532eb72d50e8@gmail.com>
+Date: Tue, 12 Sep 2017 18:49:54 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170912220322.GA19642@anatevka.americas.hpqcorp.net>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,124 +24,135 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Jerry.Hoemann@hpe.com, Dan Williams <dan.j.williams@intel.com>
-Cc: Taesoo Kim <taesoo@gatech.edu>, Meng Xu <meng.xu@gatech.edu>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sanidhya@gatech.edu, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: taesoo@gatech.edu, Meng Xu <meng.xu@gatech.edu>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sanidhya@gatech.edu, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgSmVycnkgYW5kIERhbiwKClNvcnJ5IGZvciB0aGUgbGF0ZSByZXBseS4gSSBsb29rZWQgYXQg
-dGhpcyBpc3N1ZSBhZ2FpbiBhbmQgZm91bmQgCnRoYXQgc2ltcGxlIHBhdGNoZXMgbGlrZSBtZW1j
-bXAoYnVmLCBpbl9lbnYsIGluX2xlbikgJiYgCm1lbWNtcChidWYgKyBpbl9sZW4sIG91dF9lbnYs
-IG91dF9sZW4pIHdpbGwgb25seSB3b3JrCmluIHRoZSBjYXNlIG9mIChjbWQgPT0gTkRfQ01EX0NB
-TEwpIGFuZCBkb2VzIG5vdCBhcHBseQp0byBvdGhlciBjbWQuIAoKSW4gZmFjdCwgSSBmYWlsIHRv
-IGZpbmQgYSBwYXRjaCB0aGF0IGlzIHNtYWxsIGVub3VnaCAoaS5lLiwgd2l0aGluCjIwIGxpbmVz
-IG9mIG1vZGlmaWNhdGlvbnMpIHRvIGZpeCB0aGlzIHByb2JsZW0uIFRoaXMgaXMgbGFyZ2VseQpi
-ZWNhdXNlIHRoZXJlIGFyZSB0b28gbWFueSBmYWN0b3JzIHRoYXQgY2FuIGFmZmVjdCB0aGUgaW5f
-c2l6ZQphbmQgb3V0X3NpemUgKGkuZS4sIHRoZSBpZi1lbHNlIGJyYW5jaGVzIGluIG5kX2NtZF9p
-bl9zaXplKCkgCmFuZCBuZF9jbWRfb3V0X3NpemUoKSkuIAoKT25lIG9wdGlvbiBtYXliZSBpcyB0
-byBzcGxpdCB0aGUgbG9vcHMgZm9yIHByb2Nlc3NpbmcgaW5wdXQKYW5kIG91dHB1dCBlbnZlbG9w
-ZXMgZWFybHksIGxpa2UgdGhpczoKCmlmIChudmRpbW0gJiYgY21kID09IE5EX0NNRF9TRVRfQ09O
-RklHX0RBVEEpIHsKCS8qIHByb2Nlc3MgYW4gaW5wdXQgZW52ZWxvcGUgKi8KCWZvciAoaSA9IDA7
-IGkgPCBkZXNjLT5pbl9udW07IGkrKykge30KCeKApuKApgoJLyogcHJvY2VzcyBhbiBvdXRwdXQg
-ZW52ZWxvcGUgKi8KCWZvciAoaSA9IDA7IGkgPCBkZXNjLT5vdXRfbnVtOyBpKyspIHt9Cn0gZWxz
-ZSBpZiAobnZkaW1tICYmIGNtZCA9PSBORF9DTURfVkVORE9SIHsKCS8qIHByb2Nlc3MgYW4gaW5w
-dXQgZW52ZWxvcGUgKi8KCWZvciAoaSA9IDA7IGkgPCBkZXNjLT5pbl9udW07IGkrKykge30KCeKA
-puKApgoJLyogcHJvY2VzcyBhbiBvdXRwdXQgZW52ZWxvcGUgKi8KCWZvciAoaSA9IDA7IGkgPCBk
-ZXNjLT5vdXRfbnVtOyBpKyspIHt9Cn0gZWxzZSBpZiAoY21kID09IE5EX0NNRF9DQUxMKSB7Cgkv
-KiBwcm9jZXNzIGFuIGlucHV0IGVudmVsb3BlICovCglmb3IgKGkgPSAwOyBpIDwgZGVzYy0+aW5f
-bnVtOyBpKyspIHt9CgnigKbigKYKCS8qIHByb2Nlc3MgYW4gb3V0cHV0IGVudmVsb3BlICovCglm
-b3IgKGkgPSAwOyBpIDwgZGVzYy0+b3V0X251bTsgaSsrKSB7fQp9CgpCdXQgSSBndWVzcyB0aGlz
-IHdpbGwgcmVxdWlyZSBzb21lIG1ham9yIHJlZmFjdG9yaW5nIG9mIHRoZQpjb2RlLCB3aGljaCBJ
-IGFtIG5vdCBzdXJlIGlzIGEgZ29vZCBpZGVhIG9yIGlzIGluIG15IGNhcGFiaWxpdHkuClBsZWFz
-ZSBsZXQgbWUga25vdyB5b3VyIHRob3VnaHRzIG9uIHRoaXMgbWF0dGVyLiBUaGFua3MuCgpCZXN0
-IFJlZ2FyZHMsCk1lbmcKCj4gT24gU2VwIDEyLCAyMDE3LCBhdCA2OjQ5IFBNLCBNZW5nIFh1IDxt
-ZW5neHUuZ2F0ZWNoQGdtYWlsLmNvbT4gd3JvdGU6Cj4gCj4gSGkgSmVycnksCj4gCj4gVGhhbmsg
-eW91IGZvciB0aGUgcXVlc3Rpb24uIFllcywgdGhlc2UgZG91YmxlIGNvcGllcwo+IGRvIHNlZW0g
-dG8gcHJlc2VudCBhbiBpc3N1ZS4KPiAKPiBfX25kX2lvY3RsKCkgYW5kIGFjcGlfbmZpdF9jdGwo
-KSBib3RoIHVzZSB0aGUgc2FtZSB3YXkKPiB0byBkZXJpdmUgYG91dF9zaXplYCwgYnV0IGJhc2Vk
-IG9uIGRpZmZlcmVudCBkYXRhIGZldGNoZXMuCj4gCj4gQSBzaW1wbGUgcGF0Y2ggd291bGQgYmUK
-PiBtZW1jbXAoYnVmLCBpbl9lbnYsIGluX2xlbikKPiBtZW1jbXAoYnVmICsgaW5fbGVuLCBvdXRf
-ZW52LCBvdXRfbGVuKQo+IAo+IEkgYW0gbm90IHN1cmUgSSBjYXB0dXJlZCBhbGwgdGhlIHN1YnRs
-ZSBpc3N1ZXMgd2l0aCBzdWNoIGEKPiBwYXRjaCBzbyBwbGVhc2UgYWxsb3cgbWUgc29tZSB0aW1l
-IHRvIGNyZWF0ZSBhbmQgdGVzdCBpdC4KPiAKPiBCZXN0IHJlZ2FyZHMsCj4gTWVuZwo+IAo+IE9u
-IDA5LzEyLzIwMTcgMDY6MDMgUE0sIEplcnJ5IEhvZW1hbm4gd3JvdGU6Cj4+IE9uIFRodSwgQXVn
-IDMxLCAyMDE3IGF0IDAzOjQyOjUyUE0gLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToKPj4+IFsg
-YWRkaW5nIEplcnJ5IF0KPj4+IAo+Pj4gT24gV2VkLCBBdWcgMjMsIDIwMTcgYXQgMjowNyBQTSwg
-TWVuZyBYdSA8bWVuZy54dUBnYXRlY2guZWR1PiB3cm90ZToKPj4+PiBGcm9tOiBNZW5nIFh1IDxt
-ZW5neHUuZ2F0ZWNoQGdtYWlsLmNvbT4KPj4+PiAKPj4+PiBXaGlsZSBleGFtaW5pbmcgdGhlIGtl
-cm5lbCBzb3VyY2UgY29kZSwgSSBmb3VuZCBhIGRhbmdlcm91cyBvcGVyYXRpb24gdGhhdAo+Pj4+
-IGNvdWxkIHR1cm4gaW50byBhIGRvdWJsZS1mZXRjaCBzaXR1YXRpb24gKGEgcmFjZSBjb25kaXRp
-b24gYnVnKSB3aGVyZQo+Pj4+IHRoZSBzYW1lIHVzZXJzcGFjZSBtZW1vcnkgcmVnaW9uIGFyZSBm
-ZXRjaGVkIHR3aWNlIGludG8ga2VybmVsIHdpdGggc2FuaXR5Cj4+Pj4gY2hlY2tzIGFmdGVyIHRo
-ZSBmaXJzdCBmZXRjaCB3aGlsZSBtaXNzaW5nIGNoZWNrcyBhZnRlciB0aGUgc2Vjb25kIGZldGNo
-Lgo+Pj4+IAo+Pj4+IEluIHRoZSBjYXNlIG9mIF9JT0NfTlIoaW9jdGxfY21kKSA9PSBORF9DTURf
-Q0FMTDoKPj4+PiAKPj4+PiAxLiBUaGUgZmlyc3QgZmV0Y2ggaGFwcGVucyBpbiBsaW5lIDkzNSBj
-b3B5X2Zyb21fdXNlcigmcGtnLCBwLCBzaXplb2YocGtnKQo+Pj4+IAo+Pj4+IDIuIHN1YnNlcXVl
-bnRseSBgcGtnLm5kX3Jlc2VydmVkMmAgaXMgYXNzZXJ0ZWQgdG8gYmUgYWxsIHplcm9lcwo+Pj4+
-IChsaW5lIDk4NCB0byA5ODYpLgo+Pj4+IAo+Pj4+IDMuIFRoZSBzZWNvbmQgZmV0Y2ggaGFwcGVu
-cyBpbiBsaW5lIDEwMjIgY29weV9mcm9tX3VzZXIoYnVmLCBwLCBidWZfbGVuKQo+Pj4+IAo+Pj4+
-IDQuIEdpdmVuIHRoYXQgYHBgIGNhbiBiZSBmdWxseSBjb250cm9sbGVkIGluIHVzZXJzcGFjZSwg
-YW4gYXR0YWNrZXIgY2FuCj4+Pj4gcmFjZSBjb25kaXRpb24gdG8gb3ZlcnJpZGUgdGhlIGhlYWRl
-ciBwYXJ0IG9mIGBwYCwgc2F5LAo+Pj4+IGAoKHN0cnVjdCBuZF9jbWRfcGtnICopcCktPm5kX3Jl
-c2VydmVkMmAgdG8gYXJiaXRyYXJ5IHZhbHVlCj4+Pj4gKHNheSBuaW5lIDB4RkZGRkZGRkYgZm9y
-IGBuZF9yZXNlcnZlZDJgKSBhZnRlciB0aGUgZmlyc3QgZmV0Y2ggYnV0IGJlZm9yZSB0aGUKPj4+
-PiBzZWNvbmQgZmV0Y2guIFRoZSBjaGFuZ2VkIHZhbHVlIHdpbGwgYmUgY29waWVkIHRvIGBidWZg
-Lgo+Pj4+IAo+Pj4+IDUuIFRoZXJlIGlzIG5vIGNoZWNrcyBvbiB0aGUgc2Vjb25kIGZldGNoZXMg
-dW50aWwgdGhlIHVzZSBvZiBpdCBpbgo+Pj4+IGxpbmUgMTAzNDogbmRfY21kX2NsZWFyX3RvX3Nl
-bmQobnZkaW1tX2J1cywgbnZkaW1tLCBjbWQsIGJ1ZikgYW5kCj4+Pj4gbGluZSAxMDM4OiBuZF9k
-ZXNjLT5uZGN0bChuZF9kZXNjLCBudmRpbW0sIGNtZCwgYnVmLCBidWZfbGVuLCAmY21kX3JjKQo+
-Pj4+IHdoaWNoIG1lYW5zIHRoYXQgdGhlIGFzc3VtZWQgcmVsYXRpb24sIGBwLT5uZF9yZXNlcnZl
-ZDJgIGFyZSBhbGwgemVyb2VzIG1pZ2h0Cj4+Pj4gbm90IGhvbGQgYWZ0ZXIgdGhlIHNlY29uZCBm
-ZXRjaC4gQW5kIG9uY2UgdGhlIGNvbnRyb2wgZ29lcyB0byB0aGVzZSBmdW5jdGlvbnMKPj4+PiB3
-ZSBsb3NlIHRoZSBjb250ZXh0IHRvIGFzc2VydCB0aGUgYXNzdW1lZCByZWxhdGlvbi4KPj4+PiAK
-Pj4+PiA2LiBCYXNlZCBvbiBteSBtYW51YWwgYW5hbHlzaXMsIGBwLT5uZF9yZXNlcnZlZDJgIGlz
-IG5vdCB1c2VkIGluIGZ1bmN0aW9uCj4+Pj4gYG5kX2NtZF9jbGVhcl90b19zZW5kYCBhbmQgcG90
-ZW50aWFsIGltcGxlbWVudGF0aW9ucyBvZiBgbmRfZGVzYy0+bmRjdGxgCj4+Pj4gc28gdGhlcmUg
-aXMgbm8gd29ya2luZyBleHBsb2l0IGFnYWluc3QgaXQgcmlnaHQgbm93LiBIb3dldmVyLCB0aGlz
-IGNvdWxkCj4+Pj4gZWFzaWx5IHR1cm5zIHRvIGFuIGV4cGxvaXRhYmxlIG9uZSBpZiBjYXJlbGVz
-cyBkZXZlbG9wZXJzIHN0YXJ0IHRvIHVzZQo+Pj4+IGBwLT5uZF9yZXNlcnZlZDJgIGxhdGVyIGFu
-ZCBhc3N1bWUgdGhhdCB0aGV5IGFyZSBhbGwgemVyb2VzLgo+Pj4+IAo+Pj4+IFByb3Bvc2VkIHBh
-dGNoOgo+Pj4+IAo+Pj4+IFRoZSBwYXRjaCBleHBsaWNpdGx5IG92ZXJyaWRlcyBgYnVmLT5uZF9y
-ZXNlcnZlZDJgIGFmdGVyIHRoZSBzZWNvbmQgZmV0Y2ggd2l0aAo+Pj4+IHRoZSB2YWx1ZSBgcGtn
-Lm5kX3Jlc2VydmVkMmAgZnJvbSB0aGUgZmlyc3QgZmV0Y2guIEluIHRoaXMgd2F5LCBpdCBpcyBh
-c3N1cmVkCj4+Pj4gdGhhdCB0aGUgcmVsYXRpb24sIGBidWYtPm5kX3Jlc2VydmVkMmAgYXJlIGFs
-bCB6ZXJvZXMsIGhvbGRzIGFmdGVyIHRoZSBzZWNvbmQKPj4+PiBmZXRjaC4KPj4+PiAKPj4+PiBT
-aWduZWQtb2ZmLWJ5OiBNZW5nIFh1IDxtZW5neHUuZ2F0ZWNoQGdtYWlsLmNvbT4KPj4+PiAtLS0K
-Pj4+PiAgZHJpdmVycy9udmRpbW0vYnVzLmMgfCA2ICsrKysrKwo+Pj4+ICAxIGZpbGUgY2hhbmdl
-ZCwgNiBpbnNlcnRpb25zKCspCj4+Pj4gCj4+Pj4gCj4+Pj4gCj4+Pj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbnZkaW1tL2J1cy5jIGIvZHJpdmVycy9udmRpbW0vYnVzLmMKPj4+PiBpbmRleCA5Mzdm
-YWZhLi4yMGM0ZDBmIDEwMDY0NAo+Pj4+IC0tLSBhL2RyaXZlcnMvbnZkaW1tL2J1cy5jCj4+Pj4g
-KysrIGIvZHJpdmVycy9udmRpbW0vYnVzLmMKPj4+PiBAQCAtMTAyNCw2ICsxMDI0LDEyIEBAIHN0
-YXRpYyBpbnQgX19uZF9pb2N0bChzdHJ1Y3QgbnZkaW1tX2J1cyAqbnZkaW1tX2J1cywgc3RydWN0
-IG52ZGltbSAqbnZkaW1tLAo+Pj4+ICAgICAgICAgICAgICAgICBnb3RvIG91dDsKPj4+PiAgICAg
-ICAgIH0KPj4+PiAKPj4+PiArICAgICAgIGlmIChjbWQgPT0gTkRfQ01EX0NBTEwpIHsKPj4+PiAr
-ICAgICAgICAgICAgICAgc3RydWN0IG5kX2NtZF9wa2cgKmhkciA9IChzdHJ1Y3QgbmRfY21kX3Br
-ZyAqKWJ1ZjsKPj4+PiArICAgICAgICAgICAgICAgbWVtY3B5KGhkci0+bmRfcmVzZXJ2ZWQyLCBw
-a2cubmRfcmVzZXJ2ZWQyLAo+Pj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2l6
-ZW9mKHBrZy5uZF9yZXNlcnZlZDIpKTsKPj4+PiArICAgICAgIH0KPj4+PiArCj4+PiBJIHRoaW5r
-IHdlJ3JlIG9rIGJlY2F1c2UgdGhlIGVuZCBwb2ludCBsaWtlIGFjcGlfbmZpdF9jdGwoKSBpcwo+
-Pj4gcmVzcG9uc2libGUgZm9yIHJlLXZhbGlkYXRpbmcgdGhlIGJ1ZmZlci4gU28gd2hhdCBJIHdv
-dWxkIHJhdGhlciBsaWtlCj4+PiB0byBzZWUgaXMgZGVsZXRpbmcgdGhpcyBsb29wOgo+Pj4gCj4+
-PiAgICAgICAgICAgICAgICAgZm9yIChpID0gMDsgaSA8IEFSUkFZX1NJWkUocGtnLm5kX3Jlc2Vy
-dmVkMik7IGkrKykKPj4+ICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChwa2cubmRfcmVzZXJ2
-ZWQyW2ldKQo+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gLUVJTlZB
-TDsKPj4+IAo+Pj4gLi4uZnJvbSBfX25kX2lvY3RsKCkgYW5kIG1vdmUgaXQgaW50byBhY3BpX25m
-aXRfY3RsKCkgZGlyZWN0bHkgd2hlcmUgaXQgYmVsb25ncy4KPj4gU29ycnkgZm9yIHRoZSBkZWxh
-eSwgSSd2ZSBiZWVuIGF3YXkuCj4+IAo+PiBJJ20gb2theSB3aXRoIG1vdmluZyB0aGUgdGVzdCB0
-byB0aGUgYmVnaW5uaW5nIG9mIGFjcGlfbmZpdF9jdGwuICBJZi9XaGVuIHRoZSByZXNlcnZlZAo+
-PiBmaWVsZHMgYXJlIGRlZmluZWQvdXNlZCwgd2UgbWF5IG5lZWQgdG8gdHdlYWsgdGhhdC4gIEJ1
-dCB3ZSBjYW4gY3Jvc3MgdGhhdAo+PiBicmlkZ2Ugd2hlbiBpdCBjb21lcy4KPj4gCj4+IEhvd2V2
-ZXIsIEkgZG8gaGF2ZSBhIHF1ZXN0aW9uLgo+PiAKPj4gVGhlcmUgYXJlIHR3byBmb3IgbG9vcHMg
-aW4gX19uZF9pb2N0bCB0aGF0IHByb2Nlc3MgZGVzYy0+aW5fbnVtIGFuZCBkZXNjLT5vdXRfbnVt
-Cj4+IHJlc3BlY3RpdmVseS4gIFRoZXNlIGxvb3BzIGFsc28gY29weV9mcm9tX3VzZXIgYmVmb3Jl
-Cj4+IAo+PiAgICAgICAgIGJ1ZiA9IHZtYWxsb2MoYnVmX2xlbik7Cj4+ICAgICAgICAgaWYgKCFi
-dWYpCj4+ICAgICAgICAgICAgICAgICByZXR1cm4gLUVOT01FTTsKPj4gCj4+ICAgICAgICAgaWYg
-KGNvcHlfZnJvbV91c2VyKGJ1ZiwgcCwgYnVmX2xlbikpIHsKPj4gICAgICAgICAgICAgICAgIHJj
-ID0gLUVGQVVMVDsKPj4gICAgICAgICAgICAgICAgIGdvdG8gb3V0Owo+PiAgICAgICAgIH0KPj4g
-Cj4+IAo+PiBEbyB0aGVzZSBkb3VibGUgY29weSBpbnN0YW5jZXMgcHJlc2VudCBhbnkgcHJvYmxl
-bXM/Cj4+IAo+PiAKPiAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Hi Jerry,
+
+Thank you for the question. Yes, these double copies
+do seem to present an issue.
+
+__nd_ioctl() and acpi_nfit_ctl() both use the same way
+to derive `out_size`, but based on different data fetches.
+
+A simple patch would be
+memcmp(buf, in_env, in_len)
+memcmp(buf + in_len, out_env, out_len)
+
+I am not sure I captured all the subtle issues with such a
+patch so please allow me some time to create and test it.
+
+Best regards,
+Meng
+
+On 09/12/2017 06:03 PM, Jerry Hoemann wrote:
+> On Thu, Aug 31, 2017 at 03:42:52PM -0700, Dan Williams wrote:
+>> [ adding Jerry ]
+>>
+>> On Wed, Aug 23, 2017 at 2:07 PM, Meng Xu <meng.xu@gatech.edu> wrote:
+>>> From: Meng Xu <mengxu.gatech@gmail.com>
+>>>
+>>> While examining the kernel source code, I found a dangerous operation that
+>>> could turn into a double-fetch situation (a race condition bug) where
+>>> the same userspace memory region are fetched twice into kernel with sanity
+>>> checks after the first fetch while missing checks after the second fetch.
+>>>
+>>> In the case of _IOC_NR(ioctl_cmd) == ND_CMD_CALL:
+>>>
+>>> 1. The first fetch happens in line 935 copy_from_user(&pkg, p, sizeof(pkg)
+>>>
+>>> 2. subsequently `pkg.nd_reserved2` is asserted to be all zeroes
+>>> (line 984 to 986).
+>>>
+>>> 3. The second fetch happens in line 1022 copy_from_user(buf, p, buf_len)
+>>>
+>>> 4. Given that `p` can be fully controlled in userspace, an attacker can
+>>> race condition to override the header part of `p`, say,
+>>> `((struct nd_cmd_pkg *)p)->nd_reserved2` to arbitrary value
+>>> (say nine 0xFFFFFFFF for `nd_reserved2`) after the first fetch but before the
+>>> second fetch. The changed value will be copied to `buf`.
+>>>
+>>> 5. There is no checks on the second fetches until the use of it in
+>>> line 1034: nd_cmd_clear_to_send(nvdimm_bus, nvdimm, cmd, buf) and
+>>> line 1038: nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, &cmd_rc)
+>>> which means that the assumed relation, `p->nd_reserved2` are all zeroes might
+>>> not hold after the second fetch. And once the control goes to these functions
+>>> we lose the context to assert the assumed relation.
+>>>
+>>> 6. Based on my manual analysis, `p->nd_reserved2` is not used in function
+>>> `nd_cmd_clear_to_send` and potential implementations of `nd_desc->ndctl`
+>>> so there is no working exploit against it right now. However, this could
+>>> easily turns to an exploitable one if careless developers start to use
+>>> `p->nd_reserved2` later and assume that they are all zeroes.
+>>>
+>>> Proposed patch:
+>>>
+>>> The patch explicitly overrides `buf->nd_reserved2` after the second fetch with
+>>> the value `pkg.nd_reserved2` from the first fetch. In this way, it is assured
+>>> that the relation, `buf->nd_reserved2` are all zeroes, holds after the second
+>>> fetch.
+>>>
+>>> Signed-off-by: Meng Xu <mengxu.gatech@gmail.com>
+>>> ---
+>>>   drivers/nvdimm/bus.c | 6 ++++++
+>>>   1 file changed, 6 insertions(+)
+>>>
+>>>
+>>>
+>>> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+>>> index 937fafa..20c4d0f 100644
+>>> --- a/drivers/nvdimm/bus.c
+>>> +++ b/drivers/nvdimm/bus.c
+>>> @@ -1024,6 +1024,12 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+>>>                  goto out;
+>>>          }
+>>>
+>>> +       if (cmd == ND_CMD_CALL) {
+>>> +               struct nd_cmd_pkg *hdr = (struct nd_cmd_pkg *)buf;
+>>> +               memcpy(hdr->nd_reserved2, pkg.nd_reserved2,
+>>> +                               sizeof(pkg.nd_reserved2));
+>>> +       }
+>>> +
+>> I think we're ok because the end point like acpi_nfit_ctl() is
+>> responsible for re-validating the buffer. So what I would rather like
+>> to see is deleting this loop:
+>>
+>>                  for (i = 0; i < ARRAY_SIZE(pkg.nd_reserved2); i++)
+>>                          if (pkg.nd_reserved2[i])
+>>                                  return -EINVAL;
+>>
+>> ...from __nd_ioctl() and move it into acpi_nfit_ctl() directly where it belongs.
+> Sorry for the delay, I've been away.
+>
+> I'm okay with moving the test to the beginning of acpi_nfit_ctl.  If/When the reserved
+> fields are defined/used, we may need to tweak that.  But we can cross that
+> bridge when it comes.
+>
+> However, I do have a question.
+>
+> There are two for loops in __nd_ioctl that process desc->in_num and desc->out_num
+> respectively.  These loops also copy_from_user before
+>
+>          buf = vmalloc(buf_len);
+>          if (!buf)
+>                  return -ENOMEM;
+>
+>          if (copy_from_user(buf, p, buf_len)) {
+>                  rc = -EFAULT;
+>                  goto out;
+>          }
+>
+>
+> Do these double copy instances present any problems?
+>
+>
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
