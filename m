@@ -1,10 +1,108 @@
-From: =?GB2312?B?0OyWT83m?= <spqugui-6THh9HDqzAiLZvtRG1ECog@public.gmane.org>
-Subject: =?GB2312?B?sKLD17DNLcbGveK1sc/CxvPStb6t06q1xMTRzOI=?=
-Date: Tue, 12 Sep 2017 05:06:23 +0800
-Message-ID: <20170911210345.759EC21CEB0FA@ml01.01.org>
+From: "www.BlacHat-Agency.com" <ronaldfaust205-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: re: Blackhat SEO for ml01.01.org
+Date: Tue, 12 Sep 2017 05:05:38 +0300
+Message-ID: <F9203EB8.1394C576@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2101679486573839088=="
+Content-Type: multipart/mixed; boundary="----------=_59B74137.E7C5A31B"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_59B74137.E7C5A31B
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Improve ranks on thousands of pages of your site with quality
+   Blackhat Plans http://www.blackhat-agency.com/ thank you and regards Mark
+   Johnson www.BlacHat-Agency.com http://www.blackhat-agency.com/unsubscribe/
+   [...] 
+
+Content analysis details:   (13.4 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: blackhat-agency.com]
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: blackhat-agency.com]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 1.3 RCVD_IN_BL_SPAMCOP_NET RBL: Received via a relay in bl.spamcop.net
+               [Blocked - see <http://www.spamcop.net/bl.shtml?222.97.39.100>]
+ 2.8 FSL_HELO_FAKE          No description available.
+ 0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail provider
+                            (ronaldfaust205[at]gmail.com)
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.2 FREEMAIL_REPLYTO_END_DIGIT Reply-To freemail username ends in digit
+                            (ronaldfaust205[at]gmail.com)
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+ 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
+                            [score: 0.5000]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 0.8 RCVD_IN_SORBS_WEB      RBL: SORBS: sender is an abusable web server
+                            [222.97.39.100 listed in dnsbl.sorbs.net]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: www.blackhat-agency.com]
+ 1.6 URIBL_SBL              Contains an URL's NS IP listed in the SBL blocklist
+                            [URIs: www.blackhat-agency.com]
+ 0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
+                            EnvelopeFrom freemail headers are different
+
+
+
+------------=_59B74137.E7C5A31B
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1draap-0003bl-JA
+	for gln-linux-nvdimm@m.gmane.org; Tue, 12 Sep 2017 04:06:27 +0200
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 36A1E21CEB11A;
+	Mon, 11 Sep 2017 19:03:38 -0700 (PDT)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from gmail.com (unknown [222.97.39.100])
+ by ml01.01.org (Postfix) with SMTP id 644BE21A143F5
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Mon, 11 Sep 2017 19:03:35 -0700 (PDT)
+Message-ID: <F9203EB8.1394C576-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Tue, 12 Sep 2017 05:05:38 +0300
+From: "www.BlacHat-Agency.com" <ronaldfaust205-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US;
+ rv:1.8.1.17) Gecko/20080925 Thunderbird/2.0.0.17
+MIME-Version: 1.0
+To: <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: re: Blackhat SEO for ml01.01.org
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -12,272 +110,39 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: "www.BlacHat-Agency.com" <ronaldfaust205-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format
-
---===============2101679486573839088==
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-致：linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-
-详细 课程时间 及报名信息 请查阅附件
 
 
-阿米巴经营能够系统破解当下企业经营的难题！
-所谓阿米巴经营模式就是将整个公司分割成许多个被称为阿米巴的小型组织，每个小型组织都作为一个独立的利润中心，按照小企业、小商店的方式进行独立经营。
-以各个"阿米巴"为核心，自行制订经营计划，独立核算，持续自主成长，让每一位员工成为主角，全员参与经营。实施阿米巴经营模式结合中国本土文化能很好地将市场竞争压力传导给全员，解决员工的动力问题!
+Improve ranks on thousands of pages of your site with quality Blackhat
+Plans
+http://www.blackhat-agency.com/
 
-课程背景：
-稻盛和夫是日本的"经营之神"
-白手起家创建二家世界500强企业，拯救了日航空；
-稻盛和夫采用阿米巴，带领企业二次突破石油危机，日元升值危机，日本泡沫经济，世界金融危机，日本危机，在严寒中发展壮大，屹立不倒；
-50多年企业从未亏损，净利润远大于10%。
-稻盛和夫在无任何航空经验的情况下接手企业，导入阿米巴一年内让巨亏的"日航空"实现扭亏为盈实现1884亿日元巨额盈利。
-海尔是中国的标志性企业，也是最早向日企学习的中国企业之一。
-1998年，张瑞敏正式提出企业的"内部模拟市场化"，在海尔内部全面推行"市场链"流程再造，并提出了"人人是人才，赛马不相马"的全新用人理念。事业部SBU这个概念从此受到了中国企业界的密切关注。
-海尔完成从传统的OEC管理向事业部SBU量化分权经营的转变之后，极大地释放了企业管理层智慧，收获了丰富的经营成果。1998～2005年，海尔仅用了7年时间就松地实现了从100亿到1000亿的跨越。
-目前，海尔正在全面推行一个类似于京瓷"阿米巴经营"的模式，并为此去了一个通俗易懂的名字--"自主经营体"。
+thank you and regards
+Mark Johnson
+www.BlacHat-Agency.com
 
-课程简介：
-起源于京瓷的阿米巴经营模式是指将公司分成许多的每个业务单元（可以是一个部门、一条生产线、一个班组甚至到每个员工），每个单元就是一个阿米巴，都是一个独立的利润中心，就像一个中小企业那样活动，经营计划、实绩管理、劳务管理等所有经营上的事情都由他们自行运作，能让公司对市场的变化做出迅捷反应。
-阿米巴经营模式已经被众多行业和企业证明是行之有效的。其特征既非常适合国内企业经营的需求，又由于其文化的特殊性，导入中国并不能原样照搬，需要找到适合中国国情的模式。
-安东老师结合八年松下电器实战经验，一年日本经营研修成果，并且结合七年来在国内给几十家企业成功导入的咨询项目经验，凝聚成本课程！
-本课程的内容成功经过了管理咨询项目的实战检验，并结合大量企业案例，是国内少有的阿米巴实战导入的课程！
 
-课程目的：
-理解阿米巴经营的精髓
-掌握企业阿米巴组织构建的方法
-掌握阿米巴成本会计方法
-正确运用阿米巴模式提高企业绩效
-通过运用各种工具提高各个阿米巴单元的盈利水平
 
-课程大纲：
-第一篇 哲学培养接班人
-第一章 认识阿米巴
-第一节 到底何为阿米巴经营
-解析稻盛先生如何用阿米巴经营模式拯救频临破产的日航？
-阿米巴运用的三大法宝
-员工为何从被动经营到主动经营
-阿米巴经营魔力在哪？
-国内企业推行阿米巴状况
-海尔经营模式---人单合一自主经营体
-蒙牛经营模式---承包期权责任经营
-阿米巴经营模式在中国企业运用所需条件
-第二节 阿米巴经营中需要的关注点
-企业经营最终目的是否考量员工获益
-阿米巴经营中客户的位置
-在处理问题中的三大基本原则
-实现阿米巴经营的基本条件
-1.企业内部的信任关系
-2.数据的严谨性
-3.及时将数据反馈给现场的体制
-4.阿米巴的分合需符合工作特性(主要为流程)
-财务数据如何切割合理
-解析:阿米巴运营中常见问题解答
-第三节 阿米巴经营目的
-何为经营
-符合阿米巴经营的基本要素
-阿米巴经营模式导入带给企业的益处
-阿米巴模式和目前企业中模式的差异
-练习:经营目标和管理目标及其关系
-第二章 经营哲学
-第一节 经营为何需要哲学
-企业家个人修为如何转化成公司的整体行为
-企业经营的术和道是什么？如何以术御道？
-经营需要哲学的三个原因
-建立符合企业实际状况的经营哲学
-将经营哲学如何转化为生产力
-如何正确思考作为人,何为正确为一切事物判断的基准
-精彩故事:亮剑
-第二节 企业家价值观如何落地
-企业家价值观怎样提炼
-价值观和企业文化关系
-企业文化在企业中的开展和落地
-企业文化在流程制度中的规范
-企业文化带给企业的益处
-经营十二条
-游戏:提炼企业核心文化互动活动
-第三节 成功方程式
-人生·工作结果 = 思维方式x热情x能力
-思路决定出路，思路决定命运
-六项精进
-付出不亚于任何人的努力
-简单的招式反复练就是绝招
-第四节 应该成为什么样的人
-人类历史的变迁
-共生和利他观念
-成为一位优秀的领导人必备
-故事:希特勒/丘吉尔如何领导国家的前因后果
 
-第二篇 创造高收益
-第三章 经营目标与费用预算
-引子：路边摊位的经营
-第一节 了解不同企业的财务核算
-成本中心收入的界定、统计规则的确定
-各成本、费用的详细科目与定义
-阿米巴费用分摊的原则和注意事项
-第二节 阿米巴经营目标的制定
-财务历史数据在目标制订中的应用
-运用SWOT分析历史数据，找出改善数据的方法
-企业战略在目标制订中的应用
-制定适合不同形态阿米巴的经营目标
-第三节 阿米巴的成本费用控制
-阿米巴核心数据确立
-费用降低的改善源泉
-如何持续将费用控制有效
-提升业绩来降低企业成本
-第四节 单位时间核算制度
-为何需要单位时间核算制度
-单位时间核算如何在经营上运用
-单位时间核算的特点
-单位时间效益核算表的意义
-a)掌握经营情况  b)凝聚全员的力量  c)提高生产效率  d)统一运作管理
-劳务费用不计入单位时间核算制的秘密
-第五节 经营会计报表
-经营会计与管理会计的区别和联系
-经营会计报表科目说明
-如何运用经营会计报表来监控经营过程
-让每位员工自己算账,用数据说话,变成可视化经营
-案例讨论：经营会计报表如何制定
 
-第四章 内部交易引发阿米巴之间竞争
-第一节 阿米巴之间的核算与内部市场化
-阿米巴管理会计及其作用
-阿米巴单元经营会计核算的准则
-定价是经营之本：阿米巴单元之间的定价
-最终售价倒推来决定各道工序的价格
-公司高层在内部市场定价中的作用
-阿米巴领导者在内部市场化中的作用
-阿米巴组织间费用核算需遵循的原则
-单位时间核算制的出货、采购和库存管理
-第二节 市场机制引入制造现场
-人人都是经营者：把市场机制引入公司内部
-销售巴与生产巴之间的利润划分
-价格的决定因素
-利润来源
-培养全员市场意识
-如何实现阿米巴之间内部交易
-阿米巴组织需遵循市场规律同时兼顾企业自身发展
-案例:财务数据记录的市场机制的作用
-第三节 企业的经营之本
-阿米巴如何确保自身利润点
-领导者肩负着决定各自阿米巴存亡的使命
-如何同外部交易
-学会跳出阿米巴框框思考
-第四节 内部定价的方法
-内部定价的四种方法
-内部产品交易定价方法
-内部有偿服务定价方法
-定价时需考量其负面因素
-案例：销售型、制造型、服务型三种不同企业的单位时间效益核算方法
 
-第五章 阿米巴的具体实施
-第一节 阿米巴组织如何建立和运行
-阿米巴组织细分遵循原则
-企业老板在阿米巴组织划分中的重要作用
-根据企业规模和组织架构确立阿米巴级数
-阿米巴推行委员会成立
-阿米巴推行委员会成立从承担责任到充分授权管理和监察机制
-阿米巴运行模式和现行信息系统调整,建立透明化的经营环境
-阿米巴单位时间核算表单的收集管理改善
-阿米巴经营PDCA循环与持续改进
-全员参与的改善方法
-会议制度在推行中的必不可少作用
-案例:企业阿米巴组织划分的困难
-第二节 阿米巴单元如何制定目标与计划
-目标可行评估
-寻找关键要素
-战略如何转化为行动?-如何分解?
-从目标到行动措施的整体运作方法
-阿米巴计划的构成要素
-阿米巴会议的要点
-制定年度计划/月度计划和执行计划
-反馈和评估系统
-第三节 阿米巴组织变革和重新定位
-阿米巴的分合原则
-公共资源部门如何导入阿米巴
-总部与阿米巴之间的分工与配合
-阿米巴组织推行中的关注点和注意事项
 
-第三篇 构建高绩效组织
-第六章 阿米巴组织划分
-第一节 阿米巴组织的划分
-传统企业组织模式的优缺点
-组织模式和企业经营的关系
-成立阿米巴的三个前提条件
-阿米巴组织模式的特点
-1．经营者全盘掌握
-2．提拔培养人才
-3．划分组织，拓展事业
-阿米巴组织细分的四个条件
-1. 能够进行独立核算的单位
-2．能够独立开展业务的单位
-3．能够执行公司目标的单元
-4．组织划分后的管理成本不能够太高
-划分阿米巴的五个纬度
-建立能够灵活应对市场的组织：各个业务单元之间的关系
-阿米巴经营模式下的职能部门
-从业务价值流的角度划分组织阿米巴
-将组织的变化当成一种常态:阿米巴组织的再造
-案例与讨论:阿米巴组织如何合理划分
-第二节 阿米巴组织绩效
-阿米巴的财务核算的形态方式
-利润巴与成本巴的本质与优劣
-财务数据在激励中的关键作用
-阿米巴组织绩效的实施办法
-激励办法制定过程中的注意事项
-第三节 阿米巴激励办法
-阿米巴经营的五大目的
-阿米巴的薪酬激励机制
-阿米巴团队奖金激励机制
-阿米巴的人才培养机制
-中国阿米巴激励推行的基本原则
-案例:海尔激励办法
 
-专家介绍
-安东(高端讲师/咨询师)--专注于阿米巴经营
-阿米巴经营模式构建与运营管理推动专家
-阿米巴经营与中国企业经营相结合的实践先行者
-阿米巴经营主要用于生产/品质/销售/技术推动者
-中国式阿米巴经营落地实践管理大师
-教育经历
-安东老师，1972年出生于安徽铜陵市，42岁，常住深圳，北京大学民营经济研究院本科毕业，电子科学与技术，高级工商管理。
-工作经历
-1995-2000 康舒电子集团  TPE（产品测试工程师），品管部课长
-2000-2002 世界五百强飞利浦集团  品质部副理
-2002-2009 世界五百强光宝集团  品管部资深课长，制造部副理
-2009-2014 可立克股份集团  制造中心总监
-安东老师长期从事技术、品质管理、生产管理等工作19年，工作过的企业涉及台资、荷兰企业、民营企业，十年世界五百强品质/生产管理经验，是国内有较大影响力的阿米巴经营模式和运营管理实践专家，长期以来都在研究稻盛和夫所创造的阿米巴经营管理系统。
-安东老师，是光宝集团SBU（阿米巴前身）主要推进者，是可立克集团公司阿米巴倡导者/主导执行负责人，负责公司的阿米巴各项推行：
-1．员工观念的培育--从经营者角度考虑追求全体员工物质和精神两方面幸福；从员工角度要追求作为人，何为正确的哲学观念，让每位员工都成为经营者。
-2．成本管理--让员工知晓财务数据背后的经营问题, 找出数据差异的根源予以解决和控制；经营者需有销售最大化，费用最小化的思维始终坚持运营。
-3．组织架构的水平和垂直整合--独立核算的组织(阿米巴)；需要全员参与经营；透明化的管理；培养优秀领导人。
-4．单位时间核算制度衡量绩效，让各阿米巴内部展开竞争--制造现场的市场机制；培养市场意识；提高企业内部竞争力。
-5．阿米巴运行中的检讨机制--建立阿米巴会议，分析单位时间核算实绩，指导阿米巴领导人的正确逻辑；年度计划制定，让员工知道方向，切身体会到经营的乐趣等。
-阿米巴介绍
-所谓阿米巴经营模式就是将整个公司分割成许多个被称为阿米巴的小型组织，每个小型组织都作为一个独立的利润中心，按照小企业、小商店的方式进行独立经营。
-以各个"阿米巴"为核心，自行制订经营计划，独立核算，持续自主成长，让每一位员工成为主角，全员参与经营。实施阿米巴经营模式结合中国本土文化能很好地将市场竞争压力传导给全员，解决员工的动力问题!
-授课特点
-确保阿米巴经营模式落地，通俗易懂，能迅速运用到工作中；案例全部来源于工作和实践经验，让学员更好地理解掌握；将研讨、发表、游戏有效结合，注重学员参与；讲课生动，充满煽动性和感染力。
-培训课题
-《阿米巴经营模式构建实战》《阿米巴经营哲学》《阿米巴会计与单位时间核算制》《阿米巴经营模式之--生产阿米巴》《阿米巴经营模式之-品质阿米巴》《阿米巴经营模式之-销售阿米巴》《阿米巴经营模式之-技术阿米巴》
-服务客户
-荷兰飞利浦集团、台湾光宝集团（台湾三宝）、康舒电子科技集团、可立克股份集团、雷崴电子有限公司、深圳三诺电子集团有限公司、东莞金万电业有限公司、东莞优利德电子有限公司、深圳市国威源科技有限公司、深圳泰丰科技集团有限公司、广东科旺电源设备有限公司，广东文宏集团、香港骏业集团、浙江卓力电器、东莞太阳诱电集团、东莞华南印刷（香港）有限公司、东莞华智彩印包装有限公司、湖北兴化股份有限公司、湖南商康医药电子、广州颐和软件有限公司、宁波福得机械有限公司、东莞锦瑟集团、宝鸡耀昇集团有限公司等。
 
---===============2101679486573839088==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+
+http://www.blackhat-agency.com/unsubscribe/
+
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============2101679486573839088==--
+
+------------=_59B74137.E7C5A31B--
