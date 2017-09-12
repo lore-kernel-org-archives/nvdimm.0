@@ -1,15 +1,15 @@
 From: "Amy" <usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Subject: Gift-Customized Logo/USB Flash Drive Factory/Amy
-Date: 12 Sep 2017 23:39:15 +0800
-Message-ID: <20170912153651.4B9F121CEB11A@ml01.01.org>
+Date: 12 Sep 2017 23:39:16 +0800
+Message-ID: <20170912153659.6AABB21D492C7@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_59B7FFC7.391ED4DA"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: multipart/mixed; boundary="----------=_59B7FFE6.D6E3DDD5"
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
 
-------------=_59B7FFC7.391ED4DA
+------------=_59B7FFE6.D6E3DDD5
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
@@ -20,14 +20,14 @@ message has been attached to this so you can view it or label
 similar future email.  If you have any questions, see
 @@CONTACT_ADDRESS@@ for details.
 
-Content preview:  <P>Nice day, dear linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org,<BR><BR>Hope this
+Content preview:  <P>Nice day, dear linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org,<BR><BR>Hope this
    email find you well.<BR><BR>This is Amy, a lovely girl from Torovo Industry
    Group Limited in China, manufacturer of Usb Flash Drive for 5 years.<BR>After
    saw your website, I thought you might be interested in our gift Usb Memory
    and Custom logo is our specialty.</P> <P><STRONG>Contact me for free artworks.</STRONG></P>
    <P>Shenzhen TOROVO Technology CO., Ltd<BR>Website:<A href="http://www.usbflashdrive-factory.com/">www.usbflashdrive-factory.com</A><BR>Add:
    Bantian Street, Longgang District,Shenzhen, Guangdong, China<BR>Mail:<A href="mailto:usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org">usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org</A><BR>skype:usbflashdrive-factory</P><IMG
-   style="DISPLAY: none" src="http://www.wushidao888.com/track.php?id=104206&amp;c=5&amp;m=5&amp;e=linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org&amp;t=1"
+   style="DISPLAY: none" src="http://www.wushidao888.com/track.php?id=104206&amp;c=5&amp;m=5&amp;e=linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org&amp;t=1"
    width=0 height=0> Linux-nvdimm mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
    [...] 
 
@@ -35,11 +35,13 @@ Content analysis details:   (6.1 points, 5.0 required)
 
  pts rule name              description
 ---- ---------------------- --------------------------------------------------
+ 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
+                            [URIs: usbflashdrive-factory.com]
  0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
                             See
                             http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
                              for more information.
-                            [URIs: 01.org]
+                            [URIs: usbflashdrive-factory.com]
  1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
                             [URIs: usbflashdrive-factory.com]
 -0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
@@ -61,15 +63,13 @@ Content analysis details:   (6.1 points, 5.0 required)
  0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
  0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
                             [cf: 100]
- 1.2 URIBL_JP_SURBL         Contains an URL listed in the JP SURBL blocklist
-                            [URIs: usbflashdrive-factory.com]
  0.0 T_FREEMAIL_FORGED_FROMDOMAIN 2nd level domains in From and
                             EnvelopeFrom freemail headers are different
  0.0 TVD_SPACE_RATIO        No description available.
 
 
 
-------------=_59B7FFC7.391ED4DA
+------------=_59B7FFE6.D6E3DDD5
 Content-Type: message/rfc822; x-spam-type=original
 Content-Description: original message before SpamAssassin
 Content-Disposition: inline
@@ -80,22 +80,22 @@ Envelope-to: gln-linux-nvdimm@m.gmane.org
 Received: from ml01.01.org ([198.145.21.10])
 	by blaine.gmane.org with esmtp (Exim 4.84_2)
 	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1drnHp-00066r-6s
-	for gln-linux-nvdimm@m.gmane.org; Tue, 12 Sep 2017 17:39:41 +0200
+	id 1drnHx-0006TM-AL
+	for gln-linux-nvdimm@m.gmane.org; Tue, 12 Sep 2017 17:39:49 +0200
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4B9F121CEB11A;
-	Tue, 12 Sep 2017 08:36:51 -0700 (PDT)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from pjd.com (unknown [180.117.96.85])
- by ml01.01.org (Postfix) with ESMTP id AA77220945BF7
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Tue, 12 Sep 2017 08:36:49 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 6AABB21D492C7;
+	Tue, 12 Sep 2017 08:36:59 -0700 (PDT)
+X-Original-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Delivered-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Received: from cru.com (unknown [180.117.96.85])
+ by ml01.01.org (Postfix) with ESMTP id 3792D20945BF7
+ for <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>; Tue, 12 Sep 2017 08:36:56 -0700 (PDT)
 Received: from B88 ([127.0.0.1]) by localhost via TCP with ESMTPA;
- Tue, 12 Sep 2017 23:39:15 +0800
+ Tue, 12 Sep 2017 23:39:16 +0800
 MIME-Version: 1.0
 From: "Amy" <usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Date: 12 Sep 2017 23:39:15 +0800
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Date: 12 Sep 2017 23:39:16 +0800
 Subject: Gift-Customized Logo/USB Flash Drive Factory/Amy
 X-Content-Filtered-By: Mailman/MimeDel 2.1.22
 X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
@@ -113,15 +113,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20170912153651.4B9F121CEB11A-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Message-Id: <20170912153659.6AABB21D492C7-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-<P>Nice day, dear linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org,<BR><BR>Hope this email find you well.<BR><BR>This is Amy, a lovely girl from Torovo Industry Group Limited in China, manufacturer of Usb Flash Drive for 5 years.<BR>After saw your website, I thought you might be interested in our gift Usb Memory and Custom logo is our specialty.</P>
+<P>Nice day, dear linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org,<BR><BR>Hope this email find you well.<BR><BR>This is Amy, a lovely girl from Torovo Industry Group Limited in China, manufacturer of Usb Flash Drive for 5 years.<BR>After saw your website, I thought you might be interested in our gift Usb Memory and Custom logo is our specialty.</P>
 <P><STRONG>Contact me for free artworks.</STRONG></P>
-<P>Shenzhen TOROVO Technology CO., Ltd<BR>Website:<A href="http://www.usbflashdrive-factory.com/">www.usbflashdrive-factory.com</A><BR>Add: Bantian Street, Longgang District,Shenzhen, Guangdong, China<BR>Mail:<A href="mailto:usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org">usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org</A><BR>skype:usbflashdrive-factory</P><IMG style="DISPLAY: none" src="http://www.wushidao888.com/track.php?id=104206&amp;c=5&amp;m=5&amp;e=linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org&amp;t=1" width=0 height=0>
+<P>Shenzhen TOROVO Technology CO., Ltd<BR>Website:<A href="http://www.usbflashdrive-factory.com/">www.usbflashdrive-factory.com</A><BR>Add: Bantian Street, Longgang District,Shenzhen, Guangdong, China<BR>Mail:<A href="mailto:usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org">usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org</A><BR>skype:usbflashdrive-factory</P><IMG style="DISPLAY: none" src="http://www.wushidao888.com/track.php?id=104206&amp;c=5&amp;m=5&amp;e=linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org&amp;t=1" width=0 height=0>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
 
-------------=_59B7FFC7.391ED4DA--
+------------=_59B7FFE6.D6E3DDD5--
