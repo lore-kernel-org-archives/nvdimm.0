@@ -1,13 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.17.13])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7886921A143F5
- for <linux-nvdimm@lists.01.org>; Fri,  8 Sep 2017 14:05:56 -0700 (PDT)
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] libnvdimm, btt: use %z format string modifier for size_t
-Date: Fri,  8 Sep 2017 23:08:08 +0200
-Message-Id: <20170908210830.525785-1-arnd@arndb.de>
+Received: from lists.01.org (unknown [183.14.31.23])
+ by ml01.01.org (Postfix) with ESMTP id EC8C520945BFC
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Sep 2017 22:48:24 -0700 (PDT)
+From: "Mail Administrator" <noreply@lists.01.org>
+Subject: Delivery reports about your e-mail
+Date: Wed, 13 Sep 2017 13:51:46 +0800
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,52 +13,35 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Dmitry Monakhov <dmonakhov@openvz.org>
+Message-Id: <20170913054828.25AFE21D492E5@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We get a warning about an two incorrect format strings:
+This Message was undeliverable due to the following reason:
 
-drivers/nvdimm/btt.c: In function 'btt_map_init':
-include/linux/device.h:1472:23: error: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type 'size_t {aka unsigned int}' [-Werror=format=]
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-This changes the %lx to %zx as it should be.
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
-Fixes: 86652d2eb347 ("libnvdimm, btt: clean up warning and error messages")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/nvdimm/btt.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Your message was not delivered within 7 days:
+Host 82.58.48.195 is not responding.
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 5bc686e9195a..d5612bd1cc81 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -428,7 +428,7 @@ static int btt_map_init(struct arena_info *arena)
- 		size_t size = min(mapsize, chunk_size);
- 
- 		dev_WARN_ONCE(to_dev(arena), size < 512,
--			"chunk size: %#lx is unaligned\n", size);
-+			"chunk size: %#zx is unaligned\n", size);
- 		ret = arena_write_bytes(arena, arena->mapoff + offset, zerobuf,
- 				size, 0);
- 		if (ret)
-@@ -472,7 +472,7 @@ static int btt_log_init(struct arena_info *arena)
- 		size_t size = min(logsize, chunk_size);
- 
- 		dev_WARN_ONCE(to_dev(arena), size < 512,
--			"chunk size: %#lx is unaligned\n", size);
-+			"chunk size: %#zx is unaligned\n", size);
- 		ret = arena_write_bytes(arena, arena->logoff + offset, zerobuf,
- 				size, 0);
- 		if (ret)
--- 
-2.9.0
+The following recipients did not receive this message:
+<linux-nvdimm@lists.01.org>
+
+Please reply to postmaster@lists.01.org
+if you feel this message to be in error.
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
