@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9592421F322BE
- for <linux-nvdimm@lists.01.org>; Wed, 27 Sep 2017 16:52:55 -0700 (PDT)
-Subject: [PATCH 1/3] dax: disable filesystem dax on devices that do not map
- pages
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 Sep 2017 16:49:43 -0700
-Message-ID: <150655618343.700.16350109614227108839.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150655617774.700.5326522538400299973.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150655617774.700.5326522538400299973.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7D9FD21E8796F
+ for <Linux-nvdimm@lists.01.org>; Wed, 13 Sep 2017 12:47:35 -0700 (PDT)
+Date: Wed, 13 Sep 2017 13:50:26 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: DAX enabled. Warning: EXPERIMENTAL, use at your own risk
+Message-ID: <20170913195026.GA26069@linux.intel.com>
+References: <83993302.1433078.1505327170801.ref@mail.yahoo.com>
+ <83993302.1433078.1505327170801@mail.yahoo.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <83993302.1433078.1505327170801@mail.yahoo.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,58 +20,45 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Soccer Liu <soccer_liu@yahoo.com>
+Cc: "Linux-nvdimm@lists.01.org" <Linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If a dax buffer from a device that does not map pages is passed to
-read(2) or write(2) as a target for direct-I/O it triggers SIGBUS. If
-gdb attempts to examine the contents of a dax buffer from a device that
-does not map pages it triggers SIGBUS. If fork(2) is called on a process
-with a dax mapping from a device that does not map pages it triggers
-SIGBUS. 'struct page' is required otherwise several kernel code paths
-break in surprising ways. Disable filesystem-dax on devices that do not
-map pages.
+On Wed, Sep 13, 2017 at 06:26:10PM +0000, Soccer Liu wrote:
+>  =
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/super.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+> Hi:
+> During my debugging, I kept seeing this message from the DAX enabled mount
+> operation.
+> =
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 30d8a5aedd23..d9ac57b3e49a 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -15,6 +15,7 @@
- #include <linux/mount.h>
- #include <linux/magic.h>
- #include <linux/genhd.h>
-+#include <linux/pfn_t.h>
- #include <linux/cdev.h>
- #include <linux/hash.h>
- #include <linux/slab.h>
-@@ -123,6 +124,12 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 		return len < 0 ? len : -EIO;
- 	}
- 
-+	if (!pfn_t_has_page(pfn)) {
-+		pr_err("VFS (%s): error: dax support not enabled\n",
-+				sb->s_id);
-+		return -EOPNOTSUPP;
-+	}
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(__bdev_dax_supported);
+> [=A0=A0=A0 0.757990] EXT4-fs (pmem0): DAX enabled. Warning: EXPERIMENTAL,=
+ use at your own risk
+> =
 
+> I am wondering how far this DAX feature is still away from becoming a
+> "non-experimental" feature.=A0(Another way of asking my questions: are th=
+ere
+> any major issues that's blocking it?)
+
+We talked about this a bit as a group during my LSF/MM talk this year:
+
+https://lwn.net/Articles/717953/
+
+Essentially the consensus was that we need to make the XFS and ext4 mount
+options consistent and get reflink + DAX in a better state.  We also probab=
+ly
+figure out the per-DAX inode issues that have recently been under discussio=
+n:
+
+https://lkml.org/lkml/2017/9/6/529
+
+There will always be work to do, but I think those are the things that are
+standing between us and removing the EXPERIMENTAL warning.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
