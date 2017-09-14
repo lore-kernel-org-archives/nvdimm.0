@@ -1,7 +1,7 @@
-From: "Mail Administrator" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Delivery reports about your e-mail
-Date: Wed, 13 Sep 2017 13:51:46 +0800
-Message-ID: <20170913054828.2353A21D492E3@ml01.01.org>
+From: "MAILER-DAEMON" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Error
+Date: Thu, 14 Sep 2017 17:51:10 +0800
+Message-ID: <20170914094750.240E521E2BE33@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,22 +18,13 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
+The original message was received at Thu, 14 Sep 2017 17:51:10 +0800
+from lists.01.org [115.243.99.229]
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
-
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
-
-Your message was not delivered within 7 days:
-Host 82.58.48.195 is not responding.
-
-The following recipients did not receive this message:
+----- The following addresses had permanent fatal errors -----
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:"MAILER-DAEMON" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+<<< 501 "MAILER-DAEMON" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
