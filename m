@@ -1,18 +1,11 @@
-From: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Unexpected writes seen on a Read-only, DAX enabled EXT4 fs
-Date: Fri, 15 Sep 2017 00:45:42 +0000 (UTC)
-Message-ID: <562539845.2477035.1505436342929@mail.yahoo.com>
-References: <2036030243.251059.1504977026265.ref@mail.yahoo.com>
- <2036030243.251059.1504977026265@mail.yahoo.com>
- <20170911182112.GA20005@linux.intel.com>
- <9F35007B-F0D9-4FB9-A52D-604E410AB389@dilger.ca>
- <20170912090349.6ow4bv56px2uoqw3@ruderich.org>
-Reply-To: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+From: "Returned mail" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: Data format error
+Date: Fri, 15 Sep 2017 23:13:43 +0800
+Message-ID: <20170915151023.3B13A21EA35B1@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170912090349.6ow4bv56px2uoqw3-Ezk2jvNqUrNg9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,37 +15,16 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Simon Ruderich <simon-Ezk2jvNqUrNg9hUCZPvPmw@public.gmane.org>, Andreas Dilger <adilger-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>
-Cc: "linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-VGhhbmtzIGZvciB0aGUgcmVwbGllcy4KQWZ0ZXIgc29tZSBkaWdnaW5ncywgSSBmb3VuZCB0aGUg
-d3JpdGVzIHRoYXQgSSB3YXMgc2VlaW5nIHdhcyBmb3Igbm90IHRoZSByZWFsIHdyaXRlcywgaW5z
-dGVhZCB0aGV5IGFyZSB0aG9zZSBDT1cgd3JpdGVzIG1lbnRpb25lZCBpbiB0aGUgZm9sbG93aW5n
-IGNvbW1pdC4KImV4dDQ6IGZpeCBmYXVsdCBoYW5kbGluZyB3aGVuIG1vdW50ZWQgd2l0aCAtbyBk
-YXgscm8gImh0dHBzOi8vZ2l0aHViLmNvbS90b3J2YWxkcy9saW51eC9jb21taXQvZmQ5NmI4ZGE2
-OGQzMmE5NDAzNzI2ZGIwOWIyMjlmNGI1YWM4NDljNyNkaWZmLWY5NTllNTBjYmQxNzgwOWU3NzNl
-ZjdiODlhMzhkM2NhCkkgd2FzIGhpdHRpbmcgdGhpcyBleGFjdGx5IGlzc3VlIG9uIERBWCBlbmFi
-bGVkIHJlYWRvbmx5IGVtdWxhdGVkIFBNRU0gZGV2aWNlcy4gKGEgcmVncmVzc2lvbiBmcm9twqBo
-dHRwczovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9zdGFibGUvbGlu
-dXgtc3RhYmxlLmdpdC9jb21taXQvP2g9bGludXgtNC4xMS55JmlkPTVhMzY1MWI0YTkyY2JjNTIz
-MGQ2N2QyY2U4N2ZiM2Y3MzczYzc2NjUgKQpXaXRoIGFib3ZlwqAgZml4LCBpdCdzIGFsbCBnb29k
-IG5vdy4KVGhhbmtzQ2hlbmctbWVhbgogCgogICAgT24gVHVlc2RheSwgU2VwdGVtYmVyIDEyLCAy
-MDE3IDI6MDMgQU0sIFNpbW9uIFJ1ZGVyaWNoIDxzaW1vbkBydWRlcmljaC5vcmc+IHdyb3RlOgog
-CgogT24gTW9uLCBTZXAgMTEsIDIwMTcgYXQgMDI6MzE6NDFQTSAtMDYwMCwgQW5kcmVhcyBEaWxn
-ZXIgd3JvdGU6Cj4gT24gU2VwIDExLCAyMDE3LCBhdCAxMjoyMSBQTSwgUm9zcyBad2lzbGVyIHdy
-b3RlOgo+Pgo+PiBPbiBTYXQsIFNlcCAwOSwgMjAxNyBhdCAwNToxMDoyNlBNICswMDAwLCBTb2Nj
-ZXIgTGl1IHdyb3RlOgo+Pj4gW3NuaXBdCj4+Pgo+Pj4gQmFzZWQgb24gdGhlIGZvbGxvd2luZyBN
-b3VudCBkb2N1bWVudGF0aW9uIGJlbG93LCBJIGRpZCBtb3VudCB0aGlzIGV4dCBmcwo+Pj4gd2l0
-aCBybyBhbmQgbm9sb2FkQXJlIHRoZXJlIGFueSBvdGhlciBvcHRpb25zIHRoYXQgSSBjb3VsZCB1
-c2UgdG8gdG90YWxseQo+Pj4gZWxpbWluYXRlIHRob3NlIHVuZXhwZWN0ZWQgd3JpdGVzPwo+Cj4g
-W3NuaXBdCj4KPiBBbHNvLCBleHQ0IGpvdXJuYWwgcmVjb3Zlcnkgd2lsbCBiZSBkb25lIG9uIHRo
-ZSBmaWxlc3lzdGVtIHJlZ2FyZGxlc3Mgb2YKPiB3aGV0aGVyIGl0IGlzIG1vdW50ZWQgcmVhZC1v
-bmx5IG9yIG5vdC4KCkkgdGhvdWdodCB0aGUgbm9sb2FkIG9wdGlvbiBzaG91bGQgcHJldmVudCBq
-b3VybmFsIHJlY292ZXJ5IGFuZAp0aHVzIGJlIHRydWx5IHJlYWQtb25seS4gQXQgbGVhc3QgaXQg
-d29ya2VkIG9uIGEgcmVhZC1vbmx5IGRldmljZQpmb3IgbWUuCgpSZWdhcmRzClNpbW9uCi0tIAor
-IHByaXZhY3kgaXMgbmVjZXNzYXJ5CisgdXNpbmcgZ251cGcgaHR0cDovL2dudXBnLm9yZworIHB1
-YmxpYyBrZXkgaWQ6IDB4OTJGRUZEQjdFNDRDMzJGOQoKICAgCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGlu
-dXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LW52ZGltbQo=
+The original message was received at Fri, 15 Sep 2017 23:13:43 +0800
+from lists.01.org [37.80.185.106]
+
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:"Returned mail" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+<<< 501 "Returned mail" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
