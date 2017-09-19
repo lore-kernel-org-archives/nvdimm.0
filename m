@@ -1,22 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-io0-x241.google.com (mail-io0-x241.google.com
- [IPv6:2607:f8b0:4001:c06::241])
+Received: from mail-oi0-x234.google.com (mail-oi0-x234.google.com
+ [IPv6:2607:f8b0:4003:c06::234])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BDEF820945B64
- for <linux-nvdimm@lists.01.org>; Sat, 16 Sep 2017 20:41:13 -0700 (PDT)
-Received: by mail-io0-x241.google.com with SMTP id d16so6439708ioj.2
- for <linux-nvdimm@lists.01.org>; Sat, 16 Sep 2017 20:44:15 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 1EB5520945B78
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Sep 2017 16:42:34 -0700 (PDT)
+Received: by mail-oi0-x234.google.com with SMTP id t21so310897oih.6
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Sep 2017 16:45:39 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170815122701.GF27505@quack2.suse.cz>
-References: <150277752553.23945.13932394738552748440.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150277753660.23945.11500026891611444016.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20170815122701.GF27505@quack2.suse.cz>
+In-Reply-To: <11e8c954-7d54-ae4f-f4fe-459da79c2990@oracle.com>
+References: <11e8c954-7d54-ae4f-f4fe-459da79c2990@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 16 Sep 2017 20:44:14 -0700
-Message-ID: <CAA9_cmc0vejxCsc1NWp5b4C0CSsO5xetF3t6LCoCuEYB6yPiwQ@mail.gmail.com>
-Subject: Re: [PATCH v4 2/3] mm: introduce MAP_VALIDATE a mechanism for adding
- new mmap flags
+Date: Tue, 19 Sep 2017 16:45:38 -0700
+Message-ID: <CAPcyv4ieKRPP43-FQQS5OfXigSZYoa5mEqiRN9ujj=fe37+e4g@mail.gmail.com>
+Subject: Re: DAX error inject/page poison
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,54 +25,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org, linux-mm <linux-mm@kvack.org>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Aug 15, 2017 at 5:27 AM, Jan Kara <jack@suse.cz> wrote:
-> On Mon 14-08-17 23:12:16, Dan Williams wrote:
->> The mmap syscall suffers from the ABI anti-pattern of not validating
->> unknown flags. However, proposals like MAP_SYNC and MAP_DIRECT need a
->> mechanism to define new behavior that is known to fail on older kernels
->> without the feature. Use the fact that specifying MAP_SHARED and
->> MAP_PRIVATE at the same time is invalid as a cute hack to allow a new
->> set of validated flags to be introduced.
->>
->> This also introduces the ->fmmap() file operation that is ->mmap() plus
->> flags. Each ->fmmap() implementation must fail requests when a locally
->> unsupported flag is specified.
-> ...
->> diff --git a/include/linux/fs.h b/include/linux/fs.h
->> index 1104e5df39ef..bbe755d0caee 100644
->> --- a/include/linux/fs.h
->> +++ b/include/linux/fs.h
->> @@ -1674,6 +1674,7 @@ struct file_operations {
->>       long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
->>       long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
->>       int (*mmap) (struct file *, struct vm_area_struct *);
->> +     int (*fmmap) (struct file *, struct vm_area_struct *, unsigned long);
->>       int (*open) (struct inode *, struct file *);
->>       int (*flush) (struct file *, fl_owner_t id);
->>       int (*release) (struct inode *, struct file *);
->> @@ -1748,6 +1749,12 @@ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
->>       return file->f_op->mmap(file, vma);
->>  }
->>
->> +static inline int call_fmmap(struct file *file, struct vm_area_struct *vma,
->> +             unsigned long flags)
->> +{
->> +     return file->f_op->fmmap(file, vma, flags);
->> +}
->> +
+On Tue, Sep 19, 2017 at 4:15 PM, Mike Kravetz <mike.kravetz@oracle.com> wrote:
 >
-> Hum, I dislike a new file op for this when the only problem with ->mmap is
-> that it misses 'flags' argument. I understand there are lots of ->mmap
-> implementations out there and modifying prototype of them all is painful
-> but is it so bad? Coccinelle patch for this should be rather easy...
+> We were trying to simulate pmem errors in an environment where a DAX
+> filesystem is used (ext4 although I suspect it does not matter).  The
+> sequence attempted on a DAX filesystem is:
+> - Populate a file in the DAX filesystem
+> - mmap the file
+> - madvise(MADV_HWPOISON)
+>
+> The madvise operation fails with EFAULT.  This appears to come from
+> get_user_pages() as there are no struct pages for such mappings?
+>
+> The idea is to make sure an application can recover from such errors
+> by hole punching and repopulating with another page.
+>
+> A couple questions:
+> It seems like madvise(MADV_HWPOISON) is not going to work (ever?) in
+> such situations.  If so, should we perhaps add a IS_DAX like check and
+> return something like EINVAL?  Or, at least document expected behavior?
 
-So it wasn't all that easy, and Linus declined to take it. I think we
-should add a new ->mmap_validate() file operation and save the
-tree-wide cleanup until later.
+The MADV_HWPOISON machinery assumes normal memory pages, not DAX and
+certainly not the special ZONE_DEVICE pages we allocate for the
+purpose of DMA. Returning EINVAL seems like the right thing to do
+since there is no facility in the kernel to soft offline a DAX page.
+In other words MADV_HWPOISON is for emulating errors in volatile
+memory that might be transient until the next reboot, DAX errors cause
+permanent data loss in filesytem files, so the error injection and
+handling models need to be different.
+
+> If madvise(MADV_HWPOISON) will not work, how can one inject errors to
+> test error handling code?
+
+Similar to "hdparm --make-bad-sector" we need a platform specific
+facility to inject a hard memory error at a given physical persistent
+memory address. In the case of an ACPI 6.2 based platform that
+mechanism is: "Section 9.20.7.9 Function Index 7 - ARS Error Inject".
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
