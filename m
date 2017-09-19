@@ -1,54 +1,133 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri, 1 Sep 2017 00:34:02 -0700
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 2/2] mm: introduce MAP_VALIDATE, a mechanism for for
- safely defining new mmap flags
-Message-ID: <20170901073402.GA19080@infradead.org>
-References: <150413449482.5923.1348069619036923853.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150413450616.5923.7069852068237042023.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20170831100359.GD21443@lst.de>
- <CAPcyv4jvTB4Aiei1-fGybyJNopXQy9zADpnFcuRNdZCS4Mf1QQ@mail.gmail.com>
- <CA+55aFwsfUj1f41w8hqt9LN3-ajmJ=2AB1Nb6ZzwHgE1OKxGOw@mail.gmail.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 048F721CEB108
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Sep 2017 13:00:03 -0700 (PDT)
+Subject: [ndctl PATCH 2/2] ndctl,
+ test: regression test NVDIMM-N sector mode configuration
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 19 Sep 2017 12:56:43 -0700
+Message-ID: <150585100336.18300.18006925931215154678.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150585099801.18300.4357728197672633739.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150585099801.18300.4357728197672633739.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+55aFwsfUj1f41w8hqt9LN3-ajmJ=2AB1Nb6ZzwHgE1OKxGOw@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Linux MM <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Aug 31, 2017 at 06:27:31PM -0700, Linus Torvalds wrote:
-> Why? That's no different from the case statement for the mmu case,
-> just written differently.
+Regression test for the kernel fix for this crash report:
 
-Yes.
+    Testing ndctl-58 on our NVDIMM-Ns with the latest kernel (4.13.2)
+    causes a panic when configuring a pmem device from raw to sector mode.
 
-> You *want* existing kernels to fail, since they don't test the bits
-> you want to test.
-> 
-> So you just want to rewrite these all as
-> 
->     switch (flags & MAP_TYPE) {
->     case MAP_SHARED_VALIDATE:
->         .. validate the other bits...
->         /* fallhtough */
->     case MAP_SHARED:
->         .. do the shared case ..
->     case MAP_PRIVATE:
->         .. do the private case ..
->     default:
->         return -EINVAL;
->     }
+    ndctl create-namespace -f -e namespace0.0 -m sector
 
-Btw, at least my original idea was to make MAP_VALIDATE a flag
-instead of another mapping type, that is take it out of MAP_TYPE.
+    I was not able to reproduce this issue using ndctl-57. Below is the
+    stack trace from configuring a pmem device from raw to sector mode.
 
-That being said this version is ok with me too - the chances of
-needing a new type of private mappings probably isn't too big.
+    BUG: unable to handle kernel NULL pointer dereference at
+    0000000000000028
+    IP: holder_class_store+0x253/0x2b0 [libnvdimm]
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+This requires an NFIT test implementation that disables label support
+for the DIMMs on the 'nfit_test.1' bus.
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Reported-by: Maurice A. Saldivar <maurice.a.saldivar@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ test/Makefile.am    |    3 ++-
+ test/sector-mode.sh |   53 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+), 1 deletion(-)
+ create mode 100755 test/sector-mode.sh
+
+diff --git a/test/Makefile.am b/test/Makefile.am
+index ac3547e22ccb..9223628b2608 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -13,7 +13,8 @@ TESTS =\
+ 	multi-dax.sh \
+ 	btt-check.sh \
+ 	label-compat.sh \
+-	blk-exhaust.sh
++	blk-exhaust.sh \
++	sector-mode.sh
+ 
+ check_PROGRAMS =\
+ 	libndctl \
+diff --git a/test/sector-mode.sh b/test/sector-mode.sh
+new file mode 100755
+index 000000000000..75bd3c1f82bb
+--- /dev/null
++++ b/test/sector-mode.sh
+@@ -0,0 +1,53 @@
++#!/bin/bash -x
++
++# Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
++#
++# This program is free software; you can redistribute it and/or modify it
++# under the terms of version 2 of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it will be useful, but
++# WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# General Public License for more details.
++
++NDCTL="../ndctl/ndctl"
++BUS="-b nfit_test.0"
++BUS1="-b nfit_test.1"
++TEST=$0
++rc=77
++
++err() {
++	echo "$TEST: failed at line $1"
++	exit $rc
++}
++
++set -e
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region $BUS all
++$NDCTL zero-labels $BUS all
++$NDCTL enable-region $BUS all
++
++$NDCTL disable-region $BUS1 all
++if $NDCTL zero-labels $BUS1 all; then
++	echo "DIMMs on $BUS1 support labels, skip..."
++	$NDCTL enable-region $BUS1 all
++	false
++fi
++$NDCTL enable-region $BUS1 all
++
++rc=1
++query=". | sort_by(.size) | reverse | .[0].dev"
++NAMESPACE=$($NDCTL list $BUS1 -N | jq -r "$query")
++REGION=$($NDCTL list -R --namespace=$NAMESPACE | jq -r ".dev")
++echo 0 > /sys/bus/nd/devices/$REGION/read_only
++$NDCTL create-namespace -e $NAMESPACE -m sector -f -l 4K
++
++$NDCTL disable-region $BUS all
++$NDCTL disable-region $BUS1 all
++modprobe -r nfit_test
++
++exit 0
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
