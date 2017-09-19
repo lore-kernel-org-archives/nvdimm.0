@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5856021959CAD
- for <linux-nvdimm@lists.01.org>; Fri,  8 Sep 2017 09:34:08 -0700 (PDT)
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH -next] nvdimm: btt.c: fix format string warnings
-Message-ID: <ad3743d6-92bb-7e72-aab9-295e7ad35084@infradead.org>
-Date: Fri, 8 Sep 2017 09:36:57 -0700
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E3DA021CEB108
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Sep 2017 12:59:57 -0700 (PDT)
+Subject: [ndctl PATCH 1/2] ndctl: fix sector size manipulation for NVDIMM-N
+ namespaces
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 19 Sep 2017 12:56:38 -0700
+Message-ID: <150585099801.18300.4357728197672633739.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,41 +17,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: LKML <linux-kernel@vger.kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-RnJvbTogUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJhZGVhZC5vcmc+CgpGaXggZm9ybWF0IHdh
-cm5pbmdzIChzZWVuIG9uIGkzODYpIGluIG52ZGltbS9idHQuYzoKCi4uL2RyaXZlcnMvbnZkaW1t
-L2J0dC5jOiBJbiBmdW5jdGlvbiDigJhidHRfbWFwX2luaXTigJk6Ci4uL2RyaXZlcnMvbnZkaW1t
-L2J0dC5jOjQzMDozOiB3YXJuaW5nOiBmb3JtYXQg4oCYJWx44oCZIGV4cGVjdHMgYXJndW1lbnQg
-b2YgdHlwZSDigJhsb25nIHVuc2lnbmVkIGludOKAmSwgYnV0IGFyZ3VtZW50IDQgaGFzIHR5cGUg
-4oCYc2l6ZV904oCZIFstV2Zvcm1hdD1dCiAgIGRldl9XQVJOX09OQ0UodG9fZGV2KGFyZW5hKSwg
-c2l6ZSA8IDUxMiwKICAgXgouLi9kcml2ZXJzL252ZGltbS9idHQuYzogSW4gZnVuY3Rpb24g4oCY
-YnR0X2xvZ19pbml04oCZOgouLi9kcml2ZXJzL252ZGltbS9idHQuYzo0NzQ6Mzogd2FybmluZzog
-Zm9ybWF0IOKAmCVseOKAmSBleHBlY3RzIGFyZ3VtZW50IG9mIHR5cGUg4oCYbG9uZyB1bnNpZ25l
-ZCBpbnTigJksIGJ1dCBhcmd1bWVudCA0IGhhcyB0eXBlIOKAmHNpemVfdOKAmSBbLVdmb3JtYXQ9
-XQogICBkZXZfV0FSTl9PTkNFKHRvX2RldihhcmVuYSksIHNpemUgPCA1MTIsCiAgIF4KClNpZ25l
-ZC1vZmYtYnk6IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQub3JnPgpDYzoJVmlzaGFs
-IFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+CkNjOglsaW51eC1udmRpbW1AbGlzdHMu
-MDEub3JnCi0tLQogZHJpdmVycy9udmRpbW0vYnR0LmMgfCAgICA0ICsrLS0KIDEgZmlsZSBjaGFu
-Z2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgotLS0gbGludXgtbmV4dC0yMDE3
-MDkwOC5vcmlnL2RyaXZlcnMvbnZkaW1tL2J0dC5jCisrKyBsaW51eC1uZXh0LTIwMTcwOTA4L2Ry
-aXZlcnMvbnZkaW1tL2J0dC5jCkBAIC00MjgsNyArNDI4LDcgQEAgc3RhdGljIGludCBidHRfbWFw
-X2luaXQoc3RydWN0IGFyZW5hX2luZgogCQlzaXplX3Qgc2l6ZSA9IG1pbihtYXBzaXplLCBjaHVu
-a19zaXplKTsKIAogCQlkZXZfV0FSTl9PTkNFKHRvX2RldihhcmVuYSksIHNpemUgPCA1MTIsCi0J
-CQkiY2h1bmsgc2l6ZTogJSNseCBpcyB1bmFsaWduZWRcbiIsIHNpemUpOworCQkJImNodW5rIHNp
-emU6ICUjenggaXMgdW5hbGlnbmVkXG4iLCBzaXplKTsKIAkJcmV0ID0gYXJlbmFfd3JpdGVfYnl0
-ZXMoYXJlbmEsIGFyZW5hLT5tYXBvZmYgKyBvZmZzZXQsIHplcm9idWYsCiAJCQkJc2l6ZSwgMCk7
-CiAJCWlmIChyZXQpCkBAIC00NzIsNyArNDcyLDcgQEAgc3RhdGljIGludCBidHRfbG9nX2luaXQo
-c3RydWN0IGFyZW5hX2luZgogCQlzaXplX3Qgc2l6ZSA9IG1pbihsb2dzaXplLCBjaHVua19zaXpl
-KTsKIAogCQlkZXZfV0FSTl9PTkNFKHRvX2RldihhcmVuYSksIHNpemUgPCA1MTIsCi0JCQkiY2h1
-bmsgc2l6ZTogJSNseCBpcyB1bmFsaWduZWRcbiIsIHNpemUpOworCQkJImNodW5rIHNpemU6ICUj
-enggaXMgdW5hbGlnbmVkXG4iLCBzaXplKTsKIAkJcmV0ID0gYXJlbmFfd3JpdGVfYnl0ZXMoYXJl
-bmEsIGFyZW5hLT5sb2dvZmYgKyBvZmZzZXQsIHplcm9idWYsCiAJCQkJc2l6ZSwgMCk7CiAJCWlm
-IChyZXQpCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
-Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+The autolabel operation that enables sector_size settings for namespaces
+will fail on label-less NVDIMMs. In that case we need to abort attempts
+to set the sector_size. Typically when specifying a sector_size we are
+also specifying 'sector' mode so the failure to set a sector_size at the
+raw namespace level can be ignored.
+
+Reported-by: Maurice A. Saldivar <maurice.a.saldivar@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ ndctl/namespace.c |   26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index bbd404f4abcf..905ebadc6b8d 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -354,8 +354,30 @@ static int setup_namespace(struct ndctl_region *region,
+ 		try(ndctl_namespace, set_size, ndns, p->size);
+ 	}
+ 
+-	if (p->sector_size && p->sector_size < UINT_MAX)
+-		try(ndctl_namespace, set_sector_size, ndns, p->sector_size);
++	if (p->sector_size && p->sector_size < UINT_MAX) {
++		int i, num = ndctl_namespace_get_num_sector_sizes(ndns);
++
++		/*
++		 * With autolabel support we need to recheck if the
++		 * namespace gained sector_size support late in
++		 * namespace_reconfig().
++		 */
++		for (i = 0; i < num; i++)
++			if (ndctl_namespace_get_supported_sector_size(ndns, i)
++					== p->sector_size)
++				break;
++		if (i < num)
++			try(ndctl_namespace, set_sector_size, ndns,
++					p->sector_size);
++		else if (p->mode == NDCTL_NS_MODE_SAFE)
++			/* pass, the btt sector_size will override */;
++		else if (p->sector_size != 512) {
++			error("%s: sector_size: %ld not supported\n",
++					ndctl_namespace_get_devname(ndns),
++					p->sector_size);
++			return -EINVAL;
++		}
++	}
+ 
+ 	uuid_generate(uuid);
+ 
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
