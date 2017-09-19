@@ -1,10 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.133.101])
- by ml01.01.org (Postfix) with ESMTP id 717B121E977E2
- for <linux-nvdimm@lists.01.org>; Wed,  6 Sep 2017 20:53:37 -0700 (PDT)
-From: "Post Office" <postmaster@lists.01.org>
-Subject: Mail System Error - Returned Mail
-Date: Thu, 7 Sep 2017 11:56:48 +0800
+Received: from lists.01.org (unknown [183.14.134.187])
+ by ml01.01.org (Postfix) with ESMTP id 3828821D046B8
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Sep 2017 21:38:24 -0700 (PDT)
+From: "Mail Administrator" <MAILER-DAEMON@lists.01.org>
+Subject: Returned mail: Data format error
+Date: Tue, 19 Sep 2017 12:41:54 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,9 +17,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170907035339.8D1D421EA35C5@ml01.01.org>
+Message-Id: <20170919043826.3AA5621D492C5@ml01.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
+
+The original message was received at Tue, 19 Sep 2017 12:41:54 +0800
+from lists.01.org [20.26.3.4]
+
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm@lists.01.org>
 
 
 
