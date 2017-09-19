@@ -1,7 +1,7 @@
-From: "Mail Administrator" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Mon, 18 Sep 2017 17:16:36 +0800
-Message-ID: <20170918091307.9A97B21D046BF@ml01.01.org>
+From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: Data format error
+Date: Tue, 19 Sep 2017 12:41:54 +0800
+Message-ID: <20170919043826.3875021D1E2D8@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,13 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Mon, 18 Sep 2017 17:16:36 +0800
-from lists.01.org [103.101.246.98]
+The original message was received at Tue, 19 Sep 2017 12:41:54 +0800
+from lists.01.org [20.26.3.4]
 
 ----- The following addresses had permanent fatal errors -----
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:"Mail Administrator" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-<<< 501 "Mail Administrator" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
