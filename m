@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AAE1C21E2BE37
- for <linux-nvdimm@lists.01.org>; Tue, 19 Sep 2017 15:03:19 -0700 (PDT)
-From: "Saldivar, Maurice A." <maurice.a.saldivar@hpe.com>
-Subject: Re: [PATCH 2/2] libnvdimm, namespace: fix btt claim class crash
-Date: Tue, 19 Sep 2017 22:06:21 +0000
-Message-ID: <1505858348.3864.8.camel@hpe.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id F3E0820958BF5
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Sep 2017 12:54:53 -0700 (PDT)
+Subject: [PATCH 2/2] libnvdimm, namespace: fix btt claim class crash
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 19 Sep 2017 12:51:34 -0700
+Message-ID: <150585069444.18066.1329567407748978657.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150585068899.18066.14107564726083870194.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <150585068899.18066.14107564726083870194.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150585069444.18066.1329567407748978657.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150585069444.18066.1329567407748978657.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <68F72D9660D1F94088366C698FD6E9E4@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,65 +18,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SSBhcHBsaWVkIHRoaXMgYW5kIHRoZSBrZXJuZWwgcGF0Y2ggYW5kIHdhcyBzdWNjZXNzZnVsbHkg
-YWJsZSB0bw0KY29uZmlndXJlIGFuIE5WRElNTS1OIGludG8gc2VjdG9yIG1vZGUuIEkgZG8gaGF2
-ZSBhIHF1ZXN0aW9uIGFib3V0DQpzcGVjaWZpYyBiZWhhdmlvciBJIG9ic2VydmVkLiBCZWZvcmUg
-SSB3YXMgYWJsZSB0byBjb25maWd1cmUgYW4gTlZESU1NDQppbnRvIGFueSBtb2RlIGZyb20gYW55
-IG1vZGUuIFdpdGggdGhlc2UgcGF0Y2hzIGlmIEkgZ28gdG8gc2VjdG9yIG1vZGUNCmFuZCB0cnkg
-Z29pbmcgdG8gbWVtb3J5IG9yIGRheCBtb2RlIGl0IGZhaWxzIHdpdGg6wqANCg0KIyBuZGN0bCBj
-cmVhdGUtbmFtZXNwYWNlIC1mIC1lIG5hbWVzcGFjZTAuMCAtbSBtZW1vcnkNCsKgIEVycm9yOiBu
-YW1lc3BhY2UwLjA6IHNlY3Rvcl9zaXplOiA0MDk2IG5vdCBzdXBwb3J0ZWQNCmZhaWxlZCB0byBy
-ZWNvbmZpZ3VyZSBuYW1lc3BhY2U6IEludmFsaWQgYXJndW1lbnQNCsKgDQpidXQgaWYgSSBnbyBz
-ZWN0b3ItPnJhdy0+PG1vZGU+IEkgY2FuIGdldCBpbnRvIG90aGVyIG1vZGVzIGZpbmUuIFdhcw0K
-dGhpcyB0aGUgaW50ZW5kZWQgYmVoYXZpb3I/wqANCg0KU2luY2VyZWx5LMKgDQpNYXVyaWNlIMKg
-DQoNCk9uIFR1ZSwgMjAxNy0wOS0xOSBhdCAxMjo1MSAtMDcwMCwgRGFuIFdpbGxpYW1zIHdyb3Rl
-Og0KPiBNYXVyaWNlIHJlcG9ydHM6DQo+IA0KPiDCoMKgwqDCoEJVRzogdW5hYmxlIHRvIGhhbmRs
-ZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0DQo+IDAwMDAwMDAwMDAwMDAwMjgN
-Cj4gwqDCoMKgwqBJUDogaG9sZGVyX2NsYXNzX3N0b3JlKzB4MjUzLzB4MmIwIFtsaWJudmRpbW1d
-DQo+IA0KPiAuLi53aGlsZSB0cnlpbmcgdG8gcmVjb25maWd1cmUgYW4gTlZESU1NLU4gbmFtZXNw
-YWNlIGludG8gJ3NlY3RvcicgLw0KPiAnYnR0JyBtb2RlLiBUaGUgY3Jhc2ggcG9pbnRzIHRvIHRo
-aXMgbGluZToNCj4gDQo+IMKgwqDCoMKgKGdkYikgbGkgKihob2xkZXJfY2xhc3Nfc3RvcmUrMHgy
-NTMpDQo+IMKgwqDCoMKgMHg3NzczIGlzIGluIGhvbGRlcl9jbGFzc19zdG9yZQ0KPiAoZHJpdmVy
-cy9udmRpbW0vbmFtZXNwYWNlX2RldnMuYzoxNDIwKS4NCj4gwqDCoMKgwqAxNDE1wqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgZm9yIChpID0gMDsgaSA8IG5kX3JlZ2lvbi0+bmRyX21hcHBpbmdzOyBp
-KyspIHsNCj4gwqDCoMKgwqAxNDE2wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoHN0cnVjdCBuZF9tYXBwaW5nICpuZF9tYXBwaW5nID0NCj4gJm5kX3JlZ2lvbi0+bWFwcGlu
-Z1tpXTsNCj4gwqDCoMKgwqAxNDE3wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoHN0cnVjdCBudmRpbW1fZHJ2ZGF0YSAqbmRkID0NCj4gdG9fbmRkKG5kX21hcHBpbmcpOw0K
-PiDCoMKgwqDCoDE0MTjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc3Ry
-dWN0IG5kX25hbWVzcGFjZV9pbmRleCAqbnNpbmRleDsNCj4gwqDCoMKgwqAxNDE5DQo+IMKgwqDC
-oMKgMTQyMMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBuc2luZGV4ID0g
-dG9fbmFtZXNwYWNlX2luZGV4KG5kZCwgbmRkLQ0KPiA+bnNfY3VycmVudCk7DQo+IA0KPiAuLi53
-aGVyZSB3ZSBhcmUgZmFpbGluZyBiZWNhdXNlIG5kZCBpcyBOVUxMIGR1ZSB0byBOVkRJTU0tTiBk
-aW1tcyBub3QNCj4gc3VwcG9ydGluZyBsYWJlbHMuDQo+IA0KPiBMb25nIHN0b3J5IHNob3J0LCBk
-ZWZhdWx0IHRvIHRoZSBCVFR2MSBmb3JtYXQgaW4gdGhlIGxhYmVsLWxlc3MgLw0KPiBOVkRJTU0t
-TiBjYXNlLg0KPiANCj4gRml4ZXM6IDE0ZTQ5NDU0MjYzNiAoImxpYm52ZGltbSwgYnR0OiBCVFQg
-dXBkYXRlcyBmb3IgVUVGSSAyLjcNCj4gZm9ybWF0IikNCj4gQ2M6IDxzdGFibGVAdmdlci5rZXJu
-ZWwub3JnPg0KPiBDYzogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+
-IFJlcG9ydGVkLWJ5OiBNYXVyaWNlIEEuIFNhbGRpdmFyIDxtYXVyaWNlLmEuc2FsZGl2YXJAaHBl
-LmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRl
-bC5jb20+DQo+IC0tLQ0KPiDCoGRyaXZlcnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLmMgfMKgwqDC
-oMKgOSArKysrKysrKysNCj4gwqAxIGZpbGUgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspDQo+IA0K
-PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vbmFtZXNwYWNlX2RldnMuYw0KPiBiL2RyaXZl
-cnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLmMNCj4gaW5kZXggMTQyN2EzODZhMDMzLi4zZTRkMWU3
-OTk4ZGEgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLmMNCj4g
-KysrIGIvZHJpdmVycy9udmRpbW0vbmFtZXNwYWNlX2RldnMuYw0KPiBAQCAtMTQxNyw2ICsxNDE3
-LDE1IEBAIHN0YXRpYyBpbnQgYnR0X2NsYWltX2NsYXNzKHN0cnVjdCBkZXZpY2UgKmRldikNCj4g
-wqAJCXN0cnVjdCBudmRpbW1fZHJ2ZGF0YSAqbmRkID0gdG9fbmRkKG5kX21hcHBpbmcpOw0KPiDC
-oAkJc3RydWN0IG5kX25hbWVzcGFjZV9pbmRleCAqbnNpbmRleDsNCj4gwqANCj4gKwkJLyoNCj4g
-KwkJwqAqIElmIGFueSBvZiB0aGUgRElNTXMgZG8gbm90IHN1cHBvcnQgbGFiZWxzIHRoZQ0KPiBv
-bmx5DQo+ICsJCcKgKiBwb3NzaWJsZSBCVFQgZm9ybWF0IGlzIHYxLg0KPiArCQnCoCovDQo+ICsJ
-CWlmICghbmRkKSB7DQo+ICsJCQlsb29wX2JpdG1hc2sgPSAwOw0KPiArCQkJYnJlYWs7DQo+ICsJ
-CX0NCj4gKw0KPiDCoAkJbnNpbmRleCA9IHRvX25hbWVzcGFjZV9pbmRleChuZGQsIG5kZC0+bnNf
-Y3VycmVudCk7DQo+IMKgCQlpZiAobnNpbmRleCA9PSBOVUxMKQ0KPiDCoAkJCWxvb3BfYml0bWFz
-ayB8PSAxOw0KPiAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0
-dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Maurice reports:
+
+    BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
+    IP: holder_class_store+0x253/0x2b0 [libnvdimm]
+
+...while trying to reconfigure an NVDIMM-N namespace into 'sector' /
+'btt' mode. The crash points to this line:
+
+    (gdb) li *(holder_class_store+0x253)
+    0x7773 is in holder_class_store (drivers/nvdimm/namespace_devs.c:1420).
+    1415            for (i = 0; i < nd_region->ndr_mappings; i++) {
+    1416                    struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+    1417                    struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+    1418                    struct nd_namespace_index *nsindex;
+    1419
+    1420                    nsindex = to_namespace_index(ndd, ndd->ns_current);
+
+...where we are failing because ndd is NULL due to NVDIMM-N dimms not
+supporting labels.
+
+Long story short, default to the BTTv1 format in the label-less /
+NVDIMM-N case.
+
+Fixes: 14e494542636 ("libnvdimm, btt: BTT updates for UEFI 2.7 format")
+Cc: <stable@vger.kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Reported-by: Maurice A. Saldivar <maurice.a.saldivar@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/namespace_devs.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 1427a386a033..3e4d1e7998da 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1417,6 +1417,15 @@ static int btt_claim_class(struct device *dev)
+ 		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+ 		struct nd_namespace_index *nsindex;
+ 
++		/*
++		 * If any of the DIMMs do not support labels the only
++		 * possible BTT format is v1.
++		 */
++		if (!ndd) {
++			loop_bitmask = 0;
++			break;
++		}
++
+ 		nsindex = to_namespace_index(ndd, ndd->ns_current);
+ 		if (nsindex == NULL)
+ 			loop_bitmask |= 1;
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
