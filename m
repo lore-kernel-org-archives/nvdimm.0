@@ -1,10 +1,12 @@
-From: "Automatic Email Delivery Software" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Mail System Error - Returned Mail
-Date: Wed, 20 Sep 2017 12:27:31 +0800
-Message-ID: <20170920042400.6B5E621E94602@ml01.01.org>
+From: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Hit segmentaion fault during make M=tools/testing/nvdimm
+Date: Wed, 20 Sep 2017 06:13:41 +0000 (UTC)
+Message-ID: <1406960069.5654121.1505888021481@mail.yahoo.com>
+References: <1406960069.5654121.1505888021481.ref@mail.yahoo.com>
+Reply-To: Soccer Liu <soccer_liu-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,25 +17,41 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: "Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
-
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
-
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
-
-Your message was not delivered within 8 days:
-Host 206.149.144.90 is not responding.
-
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+IApIaTrCoCBBcyBwYXJ0IG9mIHByb2Nlc3NpbmcgaW4gc2V0dGluZyB1cCB0aGUgZW52aXJvbm1l
+bnQgZm9yIHJ1bm5pbmcgdW5pdGVzdHMsIEkgd2FzIGFibGUgdG8gd29yayB0aHJvdWdoIHRoZSBp
+bnN0cmN1dGlvbnMgaW4gaHR0cHM6Ly9naXRodWIuY29tL3BtZW0vbmRjdGwvdHJlZS8wYTYyOGZk
+ZjRmZTU4YTI4M2IxNmMxYmJhYTQ5YmIyOGIxODQyYmY5CmFsbCB0aGUgd2F5IHVudGlsIEkgaGl0
+IHRoZSBmb2xsb3dpbmdidWlsZCBlcnJvciAoU2VnbWVudGF0aW9uIGZhdWx0KSB3aGVuIGJ1aWRp
+bmcgbGlibnZkaW1tLm8uQW55b25lIGhpdCB0aGlzIGJlZm9yZT9yb290QHVidW50dTovaG9tZS9z
+b2NjZXJsL252ZGltbSPCoCBtYWtlIE09dG9vbHMvdGVzdGluZy9udmRpbW0KwqAgQVLCoMKgwqDC
+oMKgIHRvb2xzL3Rlc3RpbmcvbnZkaW1tL2J1aWx0LWluLm8KwqAgQ0MgW01dwqAgdG9vbHMvdGVz
+dGluZy9udmRpbW0vLi4vLi4vLi4vZHJpdmVycy9udmRpbW0vY29yZS5vCsKgIENDIFtNXcKgIHRv
+b2xzL3Rlc3RpbmcvbnZkaW1tLy4uLy4uLy4uL2RyaXZlcnMvbnZkaW1tL2J1cy5vCsKgIENDIFtN
+XcKgIHRvb2xzL3Rlc3RpbmcvbnZkaW1tLy4uLy4uLy4uL2RyaXZlcnMvbnZkaW1tL2RpbW1fZGV2
+cy5vCsKgIENDIFtNXcKgIHRvb2xzL3Rlc3RpbmcvbnZkaW1tLy4uLy4uLy4uL2RyaXZlcnMvbnZk
+aW1tL2RpbW0ubwrCoCBDQyBbTV3CoCB0b29scy90ZXN0aW5nL252ZGltbS8uLi8uLi8uLi9kcml2
+ZXJzL252ZGltbS9yZWdpb25fZGV2cy5vCsKgIENDIFtNXcKgIHRvb2xzL3Rlc3RpbmcvbnZkaW1t
+Ly4uLy4uLy4uL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbi5vCsKgIENDIFtNXcKgIHRvb2xzL3Rlc3Rp
+bmcvbnZkaW1tLy4uLy4uLy4uL2RyaXZlcnMvbnZkaW1tL25hbWVzcGFjZV9kZXZzLm8KwqAgQ0Mg
+W01dwqAgdG9vbHMvdGVzdGluZy9udmRpbW0vLi4vLi4vLi4vZHJpdmVycy9udmRpbW0vbGFiZWwu
+bwrCoCBDQyBbTV3CoCB0b29scy90ZXN0aW5nL252ZGltbS8uLi8uLi8uLi9kcml2ZXJzL252ZGlt
+bS9jbGFpbS5vCsKgIENDIFtNXcKgIHRvb2xzL3Rlc3RpbmcvbnZkaW1tLy4uLy4uLy4uL2RyaXZl
+cnMvbnZkaW1tL2J0dF9kZXZzLm8KwqAgQ0MgW01dwqAgdG9vbHMvdGVzdGluZy9udmRpbW0vLi4v
+Li4vLi4vZHJpdmVycy9udmRpbW0vcGZuX2RldnMubwrCoCBDQyBbTV3CoCB0b29scy90ZXN0aW5n
+L252ZGltbS8uLi8uLi8uLi9kcml2ZXJzL252ZGltbS9kYXhfZGV2cy5vCsKgIENDIFtNXcKgIHRv
+b2xzL3Rlc3RpbmcvbnZkaW1tL2NvbmZpZ19jaGVjay5vCsKgIExEIFtNXcKgIHRvb2xzL3Rlc3Rp
+bmcvbnZkaW1tL2xpYm52ZGltbS5vClNlZ21lbnRhdGlvbiBmYXVsdApzY3JpcHRzL01ha2VmaWxl
+LmJ1aWxkOjU0ODogcmVjaXBlIGZvciB0YXJnZXQgJ3Rvb2xzL3Rlc3RpbmcvbnZkaW1tL2xpYm52
+ZGltbS5vJyBmYWlsZWQKbWFrZVsxXTogKioqIFt0b29scy90ZXN0aW5nL252ZGltbS9saWJudmRp
+bW0ub10gRXJyb3IgMTM5Ck1ha2VmaWxlOjE1MTE6IHJlY2lwZSBmb3IgdGFyZ2V0ICdfbW9kdWxl
+X3Rvb2xzL3Rlc3RpbmcvbnZkaW1tJyBmYWlsZWQKbWFrZTogKioqIFtfbW9kdWxlX3Rvb2xzL3Rl
+c3RpbmcvbnZkaW1tXSBFcnJvciAyTXkgZGV2Ym94IGhhcyA0LjEzIExpbnV4IGluIGl0LgpJIGFt
+IG5vdCBzdXJlIHdoZXRoZXIgaXQgaGFzIGFueXRoaW5nIHRvIGRvIHdpdGggZmFjdCB0aGF0IEkg
+ZGlkbnQgZG8gYW55dGhpbmcgd2l0aCBuZGN0bC9uZGN0bC5zcGVjLmluIChiZWNhdXNlIEkgYW0g
+bm90IHN1cmUgaG93IHRvIGFwcGx5IHRob3NlIGRlcGVuZGVuZGllcyB0byBteSB0ZXN0Ym94KcKg
+VGhhbmtzCkNoZW5nLW1lYW4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
