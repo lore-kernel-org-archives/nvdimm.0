@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4911520945B71
- for <linux-nvdimm@lists.01.org>; Fri, 22 Sep 2017 09:28:17 -0700 (PDT)
-Subject: [PATCH v5 0/2] dax, dm: stop requiring dax for device-mapper
+ by ml01.01.org (Postfix) with ESMTPS id 84BD720945B70
+ for <linux-nvdimm@lists.01.org>; Thu, 21 Sep 2017 21:30:04 -0700 (PDT)
+Subject: [PATCH v4 0/2] dax, dm: stop requiring dax for device-mapper
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Sep 2017 09:25:00 -0700
-Message-ID: <150609750020.25862.11458070207401120153.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 21 Sep 2017 21:26:47 -0700
+Message-ID: <150605440733.23744.13594748177867932146.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,15 +21,15 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: snitzer@redhat.com
-Cc: kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, Bart Van Assche <Bart.VanAssche@wdc.com>, dm-devel@redhat.com, Paul Mackerras <paulus@samba.org>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Alasdair Kergon <agk@redhat.com>
+Cc: linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, Bart Van Assche <Bart.VanAssche@wdc.com>, dm-devel@redhat.com, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-Changes since v4:
-* redo a botched send of v3
+Changes since v3 [1]:
 * rebase on 4.14-rc1
 * rewrite the changelog of patch2 to drop broken references to the
   "built-in portion of device-mapper" (Mike)
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-August/011545.html
 
 ---
 
