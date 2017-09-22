@@ -1,16 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D6ED221A143F5
- for <linux-nvdimm@lists.01.org>; Fri,  8 Sep 2017 15:29:31 -0700 (PDT)
-Subject: [ndctl PATCH 2/2] ndctl: support multiple dimms when translating
- badblock ranges
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 08 Sep 2017 15:26:00 -0700
-Message-ID: <150490956040.8621.9918102309170733621.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150490955511.8621.11056333479696382004.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150490955511.8621.11056333479696382004.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from 2x_dark.png (unknown [183.14.28.203])
+ by ml01.01.org (Postfix) with ESMTP id DADA321E43B64
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Sep 2017 04:29:37 -0700 (PDT)
+From: finalmark@2x_dark.png
+Subject: Returned mail: Data format error
+Date: Fri, 22 Sep 2017 19:33:14 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,166 +13,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0103057707858644699=="
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Message-Id: <20170922112941.32F5321E43B77@ml01.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: y-goto@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-A badblock range reported in a region may span multiple DIMMs in an
-interleave set, so check every 512 bytes in the error range for a unique
-dimm.
+This is a multi-part message in MIME format.
 
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- util/json.c |   84 +++++++++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 58 insertions(+), 26 deletions(-)
+--===============0103057707858644699==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-diff --git a/util/json.c b/util/json.c
-index 1d1727c1c062..9b7773e1c076 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -366,13 +366,58 @@ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
- 	return NULL;
- }
- 
--static struct ndctl_dimm *badblock_to_dimm(struct ndctl_region *region,
--		unsigned long long spa)
-+static struct json_object *badblocks_to_jdimms(struct ndctl_region *region,
-+		unsigned long long addr, unsigned long len)
- {
--	struct ndctl_bus *bus;
-+	struct ndctl_bus *bus = ndctl_region_get_bus(region);
-+	int count = ndctl_region_get_interleave_ways(region);
-+	unsigned long long end = addr + len;
-+	struct json_object *jdimms, *jobj;
-+	struct ndctl_dimm **dimms, *dimm;
-+	int found, i;
-+
-+	jdimms = json_object_new_array();
-+	if (!jdimms)
-+		return NULL;
-+
-+	dimms = calloc(count, sizeof(struct ndctl_dimm *));
-+	if (!dimms)
-+		goto err_dimms;
-+
-+	for (found = 0; found < count && addr < end; addr += 512) {
-+		dimm = ndctl_bus_get_dimm_by_physical_address(bus, addr);
-+		if (!dimm)
-+			continue;
-+
-+		for (i = 0; i < count; i++)
-+			if (dimms[i] == dimm)
-+				break;
-+		if (i >= count)
-+			dimms[found++] = dimm;
-+	}
-+
-+	if (!found)
-+		goto err_found;
-+
-+	for (i = 0; i < found; i++) {
-+		const char *devname = ndctl_dimm_get_devname(dimms[i]);
-+
-+		jobj = json_object_new_string(devname);
-+		if (!jobj)
-+			break;
-+		json_object_array_add(jdimms, jobj);
-+	}
-+
-+	if (!i)
-+		goto err_found;
-+	free(dimms);
-+	return jdimms;
- 
--	bus = ndctl_region_get_bus(region);
--	return ndctl_bus_get_dimm_by_physical_address(bus, spa);
-+err_found:
-+	free(dimms);
-+err_dimms:
-+	json_object_put(jdimms);
-+	return NULL;
- }
- 
- struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
-@@ -389,9 +434,8 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 	}
- 
- 	ndctl_region_badblock_foreach(region, bb) {
--		struct ndctl_dimm *dimm;
-+		struct json_object *jdimms;
- 		unsigned long long addr;
--		const char *devname;
- 
- 		bbs += bb->len;
- 
-@@ -405,7 +449,6 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 
- 		/* get address of bad block */
- 		addr += bb->offset << 9;
--		dimm = badblock_to_dimm(region, addr);
- 
- 		jbb = json_object_new_object();
- 		if (!jbb)
-@@ -421,13 +464,9 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 			goto err;
- 		json_object_object_add(jbb, "length", jobj);
- 
--		if (dimm) {
--			devname = ndctl_dimm_get_devname(dimm);
--			jobj = json_object_new_string(devname);
--			if (!jobj)
--				goto err;
--			json_object_object_add(jbb, "dimm", jobj);
--		}
-+		jdimms = badblocks_to_jdimms(region, addr, bb->len << 9);
-+		if (jdimms)
-+			json_object_object_add(jbb, "dimms", jdimms);
- 		json_object_array_add(jbbs, jbb);
- 	}
- 
-@@ -466,8 +505,7 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 
- 	ndctl_region_badblock_foreach(region, bb) {
- 		unsigned long long bb_begin, bb_end, begin, end;
--		struct ndctl_dimm *dimm;
--		const char *devname;
-+		struct json_object *jdimms;
- 
- 		bb_begin = region_begin + (bb->offset << 9);
- 		bb_end = bb_begin + (bb->len << 9) - 1;
-@@ -488,8 +526,6 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 		offset = (begin - dev_begin) >> 9;
- 		len = (end - begin + 1) >> 9;
- 
--		dimm = badblock_to_dimm(region, begin);
--
- 		bbs += len;
- 
- 		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
-@@ -509,13 +545,9 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 			goto err;
- 		json_object_object_add(jbb, "length", jobj);
- 
--		if (dimm) {
--			devname = ndctl_dimm_get_devname(dimm);
--			jobj = json_object_new_string(devname);
--			if (!jobj)
--				goto err;
--			json_object_object_add(jbb, "dimm", jobj);
--		}
-+		jdimms = badblocks_to_jdimms(region, begin, len << 9);
-+		if (jdimms)
-+			json_object_object_add(jbb, "dimms", jdimms);
- 
- 		json_object_array_add(jbbs, jbb);
- 	}
+�$�)!������a�l��C���4��q�� zԻs��f�`�i�eH��w[P�s/g_�k7�N��B�"OA���ޞ���.�DL�L-�͸��{�
+-��Z8�eP�,��Z����ݙv5N���LZ%�͍��_k�Ms��Ǯ̨3���y���|<y��,�X�I�?� u�Y)8��Ү�sԾ��%��eS���>����yɯ!�ן��{a?G
+�d����^�����WH�*sK����v޴g�d��$!|���{�/.�0؜�
+]���W�58iho�XԉX��L5&P
+�W����T�#u��G�����9�����E9{kd�����;��K�P|�I�2߃�7�v����$�c�ar���s_B<V�
+�����w���{R���f�^v�1�6�
+��m�Hwhh��N�S s�NA('1�r�)�~6��������oK �ԍ��
+c0�!�d�tS�$şm�H��C%|�:�����,MU��a�qR���5pQ�,0}�����$a�����'�9��^Q�%§
+̅����͉�EC ��0)D|UYcF���zg-
+��r�_�l]q9
+��!�2�U���]5�HW�0t�axu8Dx܆��л'gS~Lئc�ĉc��}�`��u��ڱ�ܴ��[�q���e�����%1ns�
+w1�i%�Fģ�v�Pc�-��;[�T�T��8���F��eRV��i��Ay7Uш��o�U9�iX-E�d�ݒ7X������v���Z��_sk����,�]UwV�H�����#9�&7���\��?����PE���1y���M.�fMZ�δ�Ӭ,*�{O���
+��d���3��,l����uZ��p~�O't�
+ G]9M���i��n�K�k�}�!:��*6�Ծ�E�|8_�,��ߑ�3����>]A S[05��!�[
+����>���Ǟ扰b��s|�nc;X�I#O���~�03m�q��M�?Sr�t\��:D�ł�$L��Kc�3dcGRL��{*8KÛx���4��BPƇ��N*�-'���{�������:��-��Q��g�����$`F�F�v��$������A�|Q���
+ų�G�2Ig�R?��S�F���GN�
+�)e��$����,��e�Y����"X0�0������7�┌8^�l��N�c��7�U��J��E��h�mZh����M��{�i��NF�>\����U��� �v��K�BLë��)��h�l[ �%����U��T�X'�<*�#�U���f*鼂9�0��`�,��I&��VL"�rQ~����
+˛�J���-��f_��%�
+c���헮�����[5�%PA5��[lQ^6�M�ʘ��dcR��5.�:�<�Ï�ׇ�pE����>^�r�K�6��Dy�Z��NT,��X�EV2�I��P`]�K:;�����љjgs��{0��T�.1Ň�^�I��J��YG��r�4�n��`�"�w���B��Jˉ�mjf�w��
+V�ɣ�����r�&<y�O���t������P�D:��n��w{2;t�ҙ�l
+h�^������6HF��}&Zޛ�X�����u2�5Xi�,Ng����o�U͹�B<�CL��５
+X���Δ~���n�KX~�|p�
+���F{�N��yN.]��3��)��cg30IgMp�f"��.D���"��
+��^��>�ޖtq�����fh(��u���}S�Лʛ穡"Th�����u�������o҄��m���WE|�鯺J^��P-H�<Ep��l�$�f��i�y
+�Fp_A&Ԃ�,�
+?tiV��F�Jd�a\q��!�P�3j.�ƴBX^j�v��Z~��Z��&f*V礒�f�a
+D�4
+��{鳝��i&��1!����,e,�֛��1��>*�䚶�{GJr�
+�B�6Eh��~'46M�\<�XO��9�)���d�ר�n��ʰ�m<��de��'�
+�D.�;
+���O3w5
+Nn8RϾt�n���{I�L\�}Jyz
+F�O3��76M��~qWHnm�l-�-��B��a-�T
+�-3N��kc��;KI������fH���)��7�͏Q�;����
+b�[lJD�酊j.�9��\#0�>�|�E��R�2v��*>��q9�l�E���Ԯ��5S[�p�ߑ�w���I.G�wp,V�VvJkH�,c<���}y�7
+PN��Rd��3�
+~y2,��J�Y�8�oC�P��q���O���|G<vX�N
+�S
+�!�;�q�u�7����-׾���IR~n��<��߭��W2��C��Y�iF6[��H�Oj�;a���L�$���[����5p�ݭg�u��{Y�ͼ��i�HY��`�z�pIgZM�Y�ו�zfxe3K�x�F%)mΜ��[o�0I��
+Lr�q5�-�9Z���o�ݼ���u��N]�$�G�姣]Y��sO�?�8tAA/��yok�i,�ߑ^>/.(��,#?uM�jF�𶎅��PU ���I���?
+ÆCst�(�P;y�Oa`
+
+
+--===============0103057707858644699==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============0103057707858644699==--
