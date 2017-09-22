@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
+Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 990BF21E43B57
- for <linux-nvdimm@lists.01.org>; Fri, 22 Sep 2017 00:45:46 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id D9E12AC0146
- for <linux-nvdimm@lists.01.org>;
- Fri, 22 Sep 2017 16:48:49 +0900 (JST)
-Date: Fri, 22 Sep 2017 16:48:38 +0900
+ by ml01.01.org (Postfix) with ESMTPS id 1EC5521E43B61
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Sep 2017 00:43:41 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id F2DE8AC011D
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Sep 2017 16:46:43 +0900 (JST)
+Date: Fri, 22 Sep 2017 16:46:26 +0900
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [PATCH v4 3/3] acpi nfit: nfit_test supports translate SPA
+Subject: [PATCH v4 1/3] nfit_test Make private definitions to command emulation
 In-Reply-To: <20170922164440.4A35.E1E9C6FF@jp.fujitsu.com>
 References: <20170922164440.4A35.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170922164834.4A3E.E1E9C6FF@jp.fujitsu.com>
+Message-Id: <20170922164622.4A38.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -29,157 +29,123 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: NVDIMM-ML <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To test ndctl list which use interface of Translate SPA,
-nfit_test needs to emulates it.
-This test module searches region which includes SPA and
-returns 1 dimm handle which is last one.
+
+Move private definitions to command emulation.
+These definitions were originally defined at include/uapi/linux/ndctl.h,
+but they are used at only nfit_test emulation now.
 
 Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 ---
- tools/testing/nvdimm/test/nfit.c | 104 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 103 insertions(+), 1 deletion(-)
+ include/uapi/linux/ndctl.h            | 37 ---------------------------
+ tools/testing/nvdimm/test/nfit_test.h | 47 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 37 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index d20791c..29c0dfe 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -342,6 +342,84 @@ static int nfit_test_cmd_clear_error(struct nd_cmd_clear_error *clear_err,
- 	return 0;
- }
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 6d3c542..3f03567 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -145,43 +145,6 @@ struct nd_cmd_clear_error {
+ 	__u64 cleared;
+ } __packed;
  
-+struct region_search_spa {
-+	u64 addr;
-+	struct nd_region *region;
+-struct nd_cmd_trans_spa {
+-	__u64 spa;
+-	__u32 status;
+-	__u8  flags;
+-	__u8  _reserved[3];
+-	__u64 trans_length;
+-	__u32 num_nvdimms;
+-	struct nd_nvdimm_device {
+-		__u32 nfit_device_handle;
+-		__u32 _reserved;
+-		__u64 dpa;
+-	} __packed devices[0];
+-
+-} __packed;
+-
+-struct nd_cmd_ars_err_inj {
+-	__u64 err_inj_spa_range_base;
+-	__u64 err_inj_spa_range_length;
+-	__u8  err_inj_options;
+-	__u32 status;
+-} __packed;
+-
+-struct nd_cmd_ars_err_inj_clr {
+-	__u64 err_inj_clr_spa_range_base;
+-	__u64 err_inj_clr_spa_range_length;
+-	__u32 status;
+-} __packed;
+-
+-struct nd_cmd_ars_err_inj_stat {
+-	__u32 status;
+-	__u32 inj_err_rec_count;
+-	struct nd_error_stat_query_record {
+-		__u64 err_inj_stat_spa_range_base;
+-		__u64 err_inj_stat_spa_range_length;
+-	} __packed record[0];
+-} __packed;
+-
+ enum {
+ 	ND_CMD_IMPLEMENTED = 0,
+ 
+diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
+index d3d63dd..52c83be9 100644
+--- a/tools/testing/nvdimm/test/nfit_test.h
++++ b/tools/testing/nvdimm/test/nfit_test.h
+@@ -32,6 +32,53 @@ struct nfit_test_resource {
+ 	void *buf;
+ };
+ 
++#define ND_TRANSLATE_SPA_STATUS_INVALID_SPA  2
++
++/* nfit commands */
++enum nfit_cmd_num {
++	NFIT_CMD_TRANSLATE_SPA = 5,
++	NFIT_CMD_ARS_INJECT_SET = 7,
++	NFIT_CMD_ARS_INJECT_CLEAR = 8,
++	NFIT_CMD_ARS_INJECT_GET = 9,
 +};
 +
-+static int is_region_device(struct device *dev)
-+{
-+	return !strncmp(dev->kobj.name, "region", 6);
-+}
++struct nd_cmd_translate_spa {
++	__u64 spa;
++	__u32 status;
++	__u8  flags;
++	__u8  _reserved[3];
++	__u64 translate_length;
++	__u32 num_nvdimms;
++	struct nd_nvdimm_device {
++		__u32 nfit_device_handle;
++		__u32 _reserved;
++		__u64 dpa;
++	} __packed devices[0];
 +
-+static int nfit_test_search_region_spa(struct device *dev, void *data)
-+{
-+	struct region_search_spa *ctx = data;
-+	struct nd_region *nd_region;
-+	resource_size_t ndr_end;
++} __packed;
 +
-+	if (!is_region_device(dev))
-+		return 0;
++struct nd_cmd_ars_err_inj {
++	__u64 err_inj_spa_range_base;
++	__u64 err_inj_spa_range_length;
++	__u8  err_inj_options;
++	__u32 status;
++} __packed;
 +
-+	nd_region = to_nd_region(dev);
-+	ndr_end = nd_region->ndr_start + nd_region->ndr_size;
++struct nd_cmd_ars_err_inj_clr {
++	__u64 err_inj_clr_spa_range_base;
++	__u64 err_inj_clr_spa_range_length;
++	__u32 status;
++} __packed;
 +
-+	if (ctx->addr >= nd_region->ndr_start && ctx->addr < ndr_end) {
-+		ctx->region = nd_region;
-+		return 1;
-+	}
++struct nd_cmd_ars_err_inj_stat {
++	__u32 status;
++	__u32 inj_err_rec_count;
++	struct nd_error_stat_query_record {
++		__u64 err_inj_stat_spa_range_base;
++		__u64 err_inj_stat_spa_range_length;
++	} __packed record[0];
++} __packed;
 +
-+	return 0;
-+}
-+
-+static int nfit_test_search_spa(struct nvdimm_bus *bus,
-+		struct nd_cmd_translate_spa *spa)
-+{
-+	int ret;
-+	struct nd_region *nd_region = NULL;
-+	struct nvdimm *nvdimm = NULL;
-+	struct nd_mapping *nd_mapping = NULL;
-+	struct region_search_spa ctx = {
-+		.addr = spa->spa,
-+		.region = NULL,
-+	};
-+	u64 dpa;
-+
-+	ret = device_for_each_child(&bus->dev, &ctx,
-+				nfit_test_search_region_spa);
-+
-+	if (!ret)
-+		return -ENODEV;
-+
-+	nd_region = ctx.region;
-+
-+	dpa = ctx.addr - nd_region->ndr_start;
-+
-+	/*
-+	 * last dimm is selected for test
-+	 */
-+	nd_mapping = &nd_region->mapping[nd_region->ndr_mappings - 1];
-+	nvdimm = nd_mapping->nvdimm;
-+
-+	spa->devices[0].nfit_device_handle = handle[nvdimm->id];
-+	spa->num_nvdimms = 1;
-+	spa->devices[0].dpa = dpa;
-+
-+	return 0;
-+}
-+
-+static int nfit_test_cmd_translate_spa(struct nvdimm_bus *bus,
-+		struct nd_cmd_translate_spa *spa, unsigned int buf_len)
-+{
-+	if (buf_len < spa->translate_length)
-+		return -EINVAL;
-+
-+	if (nfit_test_search_spa(bus, spa) < 0 || !spa->num_nvdimms)
-+		spa->status = 2;
-+
-+	return 0;
-+}
-+
- static int nfit_test_cmd_smart(struct nd_cmd_smart *smart, unsigned int buf_len)
- {
- 	static const struct nd_smart_payload smart_data = {
-@@ -449,6 +527,26 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		}
- 	} else {
- 		struct ars_state *ars_state = &t->ars_state;
-+		struct nd_cmd_pkg *call_pkg = buf;
-+
-+		if (!nd_desc)
-+			return -ENOTTY;
-+
-+		if (cmd == ND_CMD_CALL) {
-+			func = call_pkg->nd_command;
-+
-+			buf_len = call_pkg->nd_size_in + call_pkg->nd_size_out;
-+			buf = (void *) call_pkg->nd_payload;
-+
-+			switch (func) {
-+			case NFIT_CMD_TRANSLATE_SPA:
-+				rc = nfit_test_cmd_translate_spa(
-+					acpi_desc->nvdimm_bus, buf, buf_len);
-+				return rc;
-+			default:
-+				return -ENOTTY;
-+			}
-+		}
+ union acpi_object;
+ typedef void *acpi_handle;
  
- 		if (!nd_desc || !test_bit(cmd, &nd_desc->cmd_mask))
- 			return -ENOTTY;
-@@ -1430,7 +1528,9 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_CALL, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NFIT_CMD_TRANSLATE_SPA, &acpi_desc->bus_nfit_cmd_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -1616,10 +1716,12 @@ static int nfit_ctl_test(struct device *dev)
- 			.cmd_mask = 1UL << ND_CMD_ARS_CAP
- 				| 1UL << ND_CMD_ARS_START
- 				| 1UL << ND_CMD_ARS_STATUS
--				| 1UL << ND_CMD_CLEAR_ERROR,
-+				| 1UL << ND_CMD_CLEAR_ERROR
-+				| 1UL << ND_CMD_CALL,
- 			.module = THIS_MODULE,
- 			.provider_name = "ACPI.NFIT",
- 			.ndctl = acpi_nfit_ctl,
-+			.bus_dsm_mask = 1UL << NFIT_CMD_TRANSLATE_SPA,
- 		},
- 		.dev = &adev->dev,
- 	};
-
 
 
 _______________________________________________
