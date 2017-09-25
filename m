@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0537E2095E513
- for <linux-nvdimm@lists.01.org>; Mon, 25 Sep 2017 16:11:20 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 7/7] xfs: re-enable XFS per-inode DAX
-Date: Mon, 25 Sep 2017 17:14:04 -0600
-Message-Id: <20170925231404.32723-8-ross.zwisler@linux.intel.com>
-In-Reply-To: <20170925231404.32723-1-ross.zwisler@linux.intel.com>
+Received: from ipmail01.adl2.internode.on.net (ipmail01.adl2.internode.on.net
+ [150.101.137.133])
+ by ml01.01.org (Postfix) with ESMTP id E8E7620945BD5
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Sep 2017 17:05:47 -0700 (PDT)
+Date: Tue, 26 Sep 2017 09:29:45 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 4/7] xfs: protect S_DAX transitions in XFS write path
+Message-ID: <20170925232945.GL10955@dastard>
 References: <20170925231404.32723-1-ross.zwisler@linux.intel.com>
+ <20170925231404.32723-5-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170925231404.32723-5-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,76 +19,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jeff Layton <jlayton@poochiereds.net>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-xfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Re-enable the XFS per-inode DAX flag, preventing S_DAX from changing when
-any mappings are present.
+On Mon, Sep 25, 2017 at 05:14:01PM -0600, Ross Zwisler wrote:
+> In the current XFS write I/O path we check IS_DAX() in
+> xfs_file_write_iter() to decide whether to do DAX I/O, direct I/O or
+> buffered I/O.  This check is done without holding the XFS_IOLOCK, though,
+> which means that if we allow S_DAX to be manipulated via the inode flag we
+> can run into this race:
+> 
+> CPU 0                           CPU 1
+> -----                           -----
+> xfs_file_write_iter()
+>   IS_DAX() << returns false
+> 			    xfs_ioctl_setattr()
+> 			      xfs_ioctl_setattr_dax_invalidate()
+> 			       xfs_ilock(XFS_MMAPLOCK|XFS_IOLOCK)
+> 			      sets S_DAX
+> 			      releases XFS_MMAPLOCK and XFS_IOLOCK
+>   xfs_file_buffered_aio_write()
+>   does buffered I/O to DAX inode, death
+> 
+> Fix this by ensuring that we only check S_DAX when we hold the XFS_IOLOCK
+> in the write path.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- fs/xfs/xfs_ioctl.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+NACK. This breaks concurrent direct IO write semantics. We must not
+take XFS_IOLOCK_EXCL on direct IO writes unless it is absolutely
+necessary - there are lots of applications out there that rely on
+these semantics for performance.
 
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 386b437..7a24dd5 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1012,12 +1012,10 @@ xfs_diflags_to_linux(
- 		inode->i_flags |= S_NOATIME;
- 	else
- 		inode->i_flags &= ~S_NOATIME;
--#if 0	/* disabled until the flag switching races are sorted out */
- 	if ((xflags & FS_XFLAG_DAX) || (ip->i_mount->m_flags & XFS_MOUNT_DAX))
- 		inode->i_flags |= S_DAX;
- 	else
- 		inode->i_flags &= ~S_DAX;
--#endif
- }
- 
- static bool
-@@ -1049,6 +1047,8 @@ xfs_ioctl_setattr_xflags(
- {
- 	struct xfs_mount	*mp = ip->i_mount;
- 	uint64_t		di_flags2;
-+	struct address_space	*mapping = VFS_I(ip)->i_mapping;
-+	bool			dax_changing;
- 
- 	/* Can't change realtime flag if any extents are allocated. */
- 	if ((ip->i_d.di_nextents || ip->i_delayed_blks) &&
-@@ -1084,10 +1084,23 @@ xfs_ioctl_setattr_xflags(
- 	if (di_flags2 && ip->i_d.di_version < 3)
- 		return -EINVAL;
- 
-+	dax_changing = xfs_is_dax_state_changing(fa->fsx_xflags, ip);
-+	if (dax_changing) {
-+		i_mmap_lock_read(mapping);
-+		if (mapping_mapped(mapping)) {
-+			i_mmap_unlock_read(mapping);
-+			return -EBUSY;
-+		}
-+	}
-+
- 	ip->i_d.di_flags = xfs_flags2diflags(ip, fa->fsx_xflags);
- 	ip->i_d.di_flags2 = di_flags2;
- 
- 	xfs_diflags_to_linux(ip);
-+
-+	if (dax_changing)
-+		i_mmap_unlock_read(mapping);
-+
- 	xfs_trans_ichgtime(tp, ip, XFS_ICHGTIME_CHG);
- 	xfs_trans_log_inode(tp, ip, XFS_ILOG_CORE);
- 	XFS_STATS_INC(mp, xs_ig_attrchg);
+CHeers,
+
+Dave.
 -- 
-2.9.5
-
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
