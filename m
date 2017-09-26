@@ -1,29 +1,44 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.135.26])
- by ml01.01.org (Postfix) with ESMTP id 051692095BB72
- for <linux-nvdimm@lists.01.org>; Fri,  1 Sep 2017 16:46:17 -0700 (PDT)
-From: "Mail Administrator" <MAILER-DAEMON@lists.01.org>
-Subject: Returned mail: see transcript for details
-Date: Sat, 2 Sep 2017 07:49:19 +0800
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170901234621.3D38121E2BE38@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+In-Reply-To: <20170926143357.GA18758@lst.de>
+References: <20170925231404.32723-1-ross.zwisler@linux.intel.com>
+ <20170925231404.32723-4-ross.zwisler@linux.intel.com> <20170926063234.GA6870@lst.de>
+ <CAPcyv4hKb1PshbjLxyWz2fdj=dK2fi2qgJLFaT9pVnmaOoWV6g@mail.gmail.com> <20170926143357.GA18758@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 26 Sep 2017 11:11:55 -0700
+Message-ID: <CAPcyv4g=oPXgNJs0E15y_wAKMOMC32Jfjw4HxWGSH+OLss-efg@mail.gmail.com>
+Subject: Re: [PATCH 3/7] xfs: protect S_DAX transitions in XFS read path
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, "J. Bruce Fields" <bfields@fieldses.org>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-xfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Tue, Sep 26, 2017 at 7:33 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Tue, Sep 26, 2017 at 06:59:37AM -0700, Dan Williams wrote:
+>> > I think you probably want an IOCB_DAX flag to check IS_DAX once and
+>> > then stick to it, similar to what we do for direct I/O.
+>>
+>> I wonder if this works better with a reference count mechanism
+>> per-file so that we don't need a hold a lock over the whole
+>> transition. Similar to request_queue reference counting, when DAX is
+>> being turned off we block new references and drain the in-flight ones.
+>
+> Maybe.  But that assumes we want to be stuck in a perpetual binary
+> DAX on/off state on a given file.  Which makes not only for an awkward
+> interface (inode or mount flag), but also might be fundamentally the
+> wrong thing to do for some media where you'd happily read directly
+> from it but rather buffer writes in DRAM.
 
+I think we'll always need an explicit override available, but yes we
+need to think about what the override looks like in the context of a
+kernel that is able to automatically pick the right I/O policy
+relative to the media type. A potential mixed policy for reads vs
+writes makes sense. Where would this finer grained I/O policy
+selection go other than more inode flags?
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
