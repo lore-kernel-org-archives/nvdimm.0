@@ -1,140 +1,85 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 26 Sep 2017 12:48:30 -0700
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id CBC4421EC8CE7
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Sep 2017 11:46:56 -0700 (PDT)
+Date: Tue, 26 Sep 2017 12:50:08 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH 1/7] xfs: always use DAX if mount option is used
-Message-ID: <20170926194830.GI5020@magnolia>
+Message-ID: <20170926185008.GA31146@linux.intel.com>
 References: <20170925231404.32723-1-ross.zwisler@linux.intel.com>
  <20170925231404.32723-2-ross.zwisler@linux.intel.com>
  <20170925233812.GM10955@dastard>
- <20170926093548.GB13627@quack2.suse.cz>
- <20170926110957.GR10955@dastard>
- <20170926143743.GB18758@lst.de>
- <20170926173057.GB20159@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170926173057.GB20159@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Dan Williams <dan.j.williams@intel.com>, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
+In-Reply-To: <20170925233812.GM10955@dastard>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 26, 2017 at 11:30:57AM -0600, Ross Zwisler wrote:
-> On Tue, Sep 26, 2017 at 04:37:43PM +0200, Christoph Hellwig wrote:
-> > On Tue, Sep 26, 2017 at 09:09:57PM +1000, Dave Chinner wrote:
-> > > Well, quite frankly, I never wanted the mount option for XFS. It was
-> > > supposed to be for initial testing only, then we'd /always/ use the
-> > > the inode flags. For a filesystem to default to using DAX, we
-> > > set the DAX flag on the root inode at mkfs time, and then everything
-> > > inode flag based just works.
+On Tue, Sep 26, 2017 at 09:38:12AM +1000, Dave Chinner wrote:
+> On Mon, Sep 25, 2017 at 05:13:58PM -0600, Ross Zwisler wrote:
+> > Before support for the per-inode DAX flag was disabled the XFS the code had
+> > an issue where the user couldn't reliably tell whether or not DAX was being
+> > used to service page faults and I/O when the DAX mount option was used.  In
+> > this case each inode within the mounted filesystem started with S_DAX set
+> > due to the mount option, but it could be cleared if someone touched the
+> > individual inode flag.
 > > 
-> > And I deeply fundamentally disagree.  The mount option is a nice
-> > enough big hammer to try a mode without encoding nitty gritty details
-> > into the application ABI.
+> > For example (v4.13 and before):
 > > 
-> > The per-inode persistent flag is the biggest nightmare ever, as we see
-> > in all these discussions about it.
+> >   # mount | grep dax
+> >   /dev/pmem0 on /mnt type xfs
+> >   (rw,relatime,seclabel,attr2,dax,inode64,sunit=4096,swidth=4096,noquota)
 > > 
-> > What does it even mean?  Right now it forces direct addressing as long
-> > as the underlying media supports that.  But what about media that
-> > you directly access but you really don't want to because it's really slow?
-> > Or media that is so god damn fast that you never want to buffer?  Or
-> > media where you want to buffer for writes (or at least some of them)
-> > but not for reads?
+> >   # touch /mnt/a /mnt/b   # both files currently use DAX
 > > 
-> > It encodes a very specific mechanism for an early direct access
-> > implementation into the ABI.  What we really need is for applications
-> > to declare an intent, not specify a particular mechanism.
+> >   # xfs_io -c "lsattr" /mnt/*  # neither has the DAX inode option set
+> >   ----------e----- /mnt/a
+> >   ----------e----- /mnt/b
+> > 
+> >   # xfs_io -c "chattr -x" /mnt/a  # this clears S_DAX for /mnt/a
+> > 
+> >   # xfs_io -c "lsattr" /mnt/*
+> >   ----------e----- /mnt/a
+> >   ----------e----- /mnt/b
 > 
-> I agree that Christoph's idea about having the system intelligently adjust to
-> use DAX based on performance information it gathers about the underlying
-> persistent memory (probably via the HMAT on x86_64 systems) is interesting,
-> but I think we're still a ways away from that.
-> 
-> FWIW, as my patches suggest and Jan observed I think that we should allow
-> users to turn on DAX by treating the inode flag and the mount flag as an 'or'
-> operation.  i.e. you get DAX if either the mount option is specified or if the
-> inode flag is set, and you can continue to manipulate the per-inode flag as
-> you want regardless of the mount option.  I think this provides maximum
-> flexibility of the mechanism to select DAX without enforcing policy.
-> 
-> In the end, though, I think what's really important is that we figure out what
-> the various options mean, have the same story for both XFS and ext4, and
-> document it as hch suggested in response to my patch 7 in this series.
+> That's really a bug in the lsattr code, yes? If we've cleared the
+> S_DAX flag for the inode, then why is it being reported in lsattr?
+> Or if we failed to clear the S_DAX flag in the 'chattr -x' call,
+> then isn't that the bug that needs fixing?
 
-Agreed.  We have a fundamental conflict between letting the sysadmin or
-user decide how they want an inode to behave vs. letting the kernel make
-all the decisions based on whatever information it gathers.
+No, I think lsattr/chattr are working correctly.  In both the examples above
+the DAX inode flag (which is represeted by an 'x') is never set.  S_DAX is the
+in-memory inode flag (not the on-media inode flag) which is not manipulated
+directly by lsattr/chattr, but instead reflects whether the inode is actually
+using DAX or not.
 
-I'm pulled this patch out of -fixes and for-next because I feel strongly
-discouraged about taking any more patches that change the user-control
-parts of the DAX implementation until we reach a consensus on what to
-do.
+Manipulating and displaying the on-media inode flag works as expected with
+lsattr/chattr:
 
-Given that DAX and pmem support in filesystems is still experimental,
-I'm open to changing the interface as needed.  Where do we think we'll
-be in a few years once ACPI or whatever reaches the point of being able
-to tell the kernel about the general performance characteristics of the
-pmem?  What choices about the interface do we need to make now so that
-we can get there while minimizing the number of insufficient interfaces
-to deprecate?
+  # xfs_io -c "lsattr" ./a 
+  ---------------- ./a 
+  
+  # xfs_io -c "chattr +x" ./a 
+  
+  # xfs_io -c "lsattr" ./a 
+  --------------x- ./a 
 
-My personal guess is that most programs will not care enough to want to
-make a syscall so we might as well give them the most performant option
-available.
-
-Roughly speaking, here are the use cases I can think of:
-
- * Regular buffered read/write: we can let the kernel decide if it wants
-   to push the IO through the page cache, directly access the pmem, or
-   some future combination of the two.
-
- * O_DIRECT read/write: Straight to pmem.
-
- * Regular mmap: This seems fairly agnostic to how we actually make the
-   memory mapping work, right?
-
- * MAP_DIRECT/MAP_SYNC mmap: If userspace actually goes to the trouble
-   of making sure the whole range is allocated and pre-written and uses
-   these flags then they get direct access.
-
-I've wondered off and on if an acceptable solution is to define a number
-of things surrounding an inode for which XFS /could/ optimize, and let
-the user tell us which one thing matters most to them: total manual
-control over everything like we do now, sequential io, random io,
-fastest mmap access possible, most direct access to storage, etc.
-If you set a hint other than full manual control then XFS reserves the
-right to change inode flags at any time to satisfy the hint.
-
-For the most part I'm in favor of Christoph's suggestion to let the
-kernel decide on its own, and I don't see the point in encoding details
-of the storage medium access strategy on the disk, particularly since
-filesystems are supposed to be fairly independent of storage.  But
-frankly, so many people have asked me over the years if there's some way
-to influence the decision-making that I won't quite let go of file hints
-as a way to influence the decisions XFS makes around storage media.
-
-> Does it make sense at this point to just start a "dax" man page that can
-> contain info about the mount options, inode flags, kernel config options, how
-> to get PMDs, etc?  Or does this documentation need to be sprinkled around more
-> in existing man pages?
-
-Personally it'd be a lot easier to tell internal groups to go look at a
-single documentation page that discusses everything you'd want to know
-about enabling dax -- how to control it, how to make large page table
-entries work, etc.  Some of those things will get into fs internals,
-however, which probably belong in the ext4/xfs manpages.  I suggest
-laying out the general details in a single dax manpage and pointing
-people at each fs's documentation for specific details.
-
---D
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+- Ross
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
