@@ -1,10 +1,9 @@
-From: =?utf-8?B?56iL5paX?= <oxbxol-IkJGpqP/DMPQT0dZR+AlfA@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+R77ya5LyB5Lia5b+F5aSH55qE5Yqz5Yqo5rOV5bqU5a+55L2T57O7?=
-Date: Mon, 25 Sep 2017 13:46:02 +0800
-Message-ID: <EC1AAD630982699961D9E524AA6B8A07@wdjfiv.com>
+From: =?GB2312?B?v9eblNPx?= <tfrlun-33K/CNbNjSSU08n0N2z6gQC/G2K4zDHf@public.gmane.org>
+Subject: =?GB2312?B?UmWjuryo0KfNxr34vLDQvbPqyei8xg==?=
+Date: Tue, 26 Sep 2017 11:45:04 +0800
+Message-ID: <20170926034158.1A5B02095E531@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============2110309281618719692=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,311 +14,377 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-5Y+RIOS7tiDkuro6Iueoi+aWlyIgPG94YnhvbEB3ZGpmaXYuY29tPg0K5pS2IOS7tiDkuro6Imxp
-bnV4LW52ZGltbSIgPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+Ow0K5Y+R6YCB5pe26Ze0OjIw
-MTctOS0yNSAxMzo0NjoxMw0K6K++56iL5L+h5oGv77yaDQoNCuaWsOOAiuWKs+WKqOWQiOWQjOaz
-leOAi+OAgeOAiuekvuS8muS/nemZqeazleOAi+OAgeOAiuW3peS8pOS/nemZqeadoeS+i+OAi+Wu
-nuaTjeW6lOWvueetluS4juacieaViOiwg+Wyl+iwg+iWquOAgeijgeWRmOino+mbh+WPiui/nee6
-qumXrumimOWRmOW3peWkhOeQhuaKgCANCuazqOaYju+8muivpeivvueoizLlpKnkuLrkuIDkuKrl
-jZXlhYPvvIxB5Y2V5YWD5LiOQuWNleWFg+WGheWuueaYr+WujOWFqOeLrOeri+eahOS4jeWIhuWF
-iOWQjumhuuW6j++8jOWuouaIt+WPr+agueaNruiHquW3semcgOaxgumAieaLqeWPguWKoEHljZXl
-hYPmiJbogIVC5Y2V5YWD77yM5oiWQULljZXlhYPlnYflj4LliqDvvIzlj6/ku6Xlj4LliqDlroxB
-5Y2V5YWD5YaN5Y+C5YqgQuWNleWFg+aIluiAheWFiOWPguWKoELljZXlhYPlho3lj4LliqBB5Y2V
-5YWD5Z2H5Y+v77yBDQror6bnu4Yg6K++56iL5pe26Ze05a6J5o6SIOWPiiDogZTns7vmlrnlvI8g
-6K+35p+l6ZiFIOmZhOS7tuWGheWuuQ0K6K++IOeoiyDnibkg6Imy77yaDQrnqIDnvLrmgKfvvJrm
-raTor77nqIvlsIblirPliqjms5XkvZPns7vlkozolqrphaznu6nmlYjnrqHnkIbkvZPns7vntKfl
-r4bnm7jnu5PlkIjvvIzlm73lhoXmnoHlsJHlh7rnjrDmraTnsbvor77nqIvjgIINCumSiOWvueaA
-p++8muivvueoi+WGheWuueeyvumAieS6hui/h+WOuzXlubTmnaXkuLvorrLogIHluIjkurLoh6rl
-pITnkIbov4fnmoTkuJTlnKjkuI3lsJHnlKjkurrljZXkvY3lhoXpg6jkuZ/mm77lj5HnlJ/ov4fn
-moTku6PooajmgKfmoYjkvovvvIzov5nkupvmoYjkvovlrozlhajnrKblkIjkuK3lm73njrDpmLbm
-rrXnmoTlpKfnjq/looPjgIHlpKfmsJTlgJnjgIHlpKfotovlir/vvIzmnoHlhbflj4LogIPmgKfl
-kozlkK/lj5HmgKfjgIINCuWunuaImOaAp++8muWunuaImOaymeebmOa8lOe7g++8jOWtpuWRmOa3
-seWFpeaAneiAg+S4juWFheWIhuS6kuWKqO+8jOiAgeW4iOavq+S4jeS/neeVmeWAvuWbiuebuOaO
-iO+8m+WtpuWRmOaKiumUmeivr+eVmeWcqOivvuWggu+8jOaKiuato+ehrueahOingueCueOAgeaW
-ueazleOAgeW3peWFt+OAgeaKgOiDveW4puWbnuWOu+OAgg0K6K++IOeoiyDmlLYg55uK77yaDQox
-44CB5YWo6Z2i5LqG6Kej5Yqz5Yqo55So5bel6L+H56iL55qE5rOV5b6L6aOO6Zmp77ybDQoy44CB
-55CG6Kej5LiO5Yqz5Yqo55So5bel5pyJ5YWz55qE5pS/562W5rOV5b6L5rOV6KeE77ybDQoz44CB
-5Z+55YW76aKE5rWL44CB5YiG5p6Q5Yqz5Yqo55So5bel5rOV5b6L6aOO6Zmp55qE5oCd57u077yb
-DQo044CB5o6M5o+h6aKE6Ziy5ZKM5bqU5a+56aOO6Zmp55qE5a6e5oiY5oqA6IO95Y+K5pa55rOV
-5bel5YW34oCm4oCmDQror74g56iLIOWkpyDnurLvvJoNCkHljZXlhYPlhoXlrrnvvIjlhbEy5aSp
-77yMMjDkuKrku6XkuIrnu4/lhbjmoYjkvovvvIkNCuS4k+mimOS4gO+8muaLm+iBmOWFpeiBjA0K
-MS7lpoLkvZXpooTpmLLlirPliqjogIXnmoTigJzlupTogZjmrLror4jigJ3vvIzlpoLkvZXor4Hm
-mI7lirPliqjogIXnmoTigJzmrLror4jigJ3vvJ8NCjIu5oub5pS25bqU5bGK5q+V5Lia55Sf77yM
-5bqU5rOo5oSP5ZOq5Lqb57uG6IqC6Zeu6aKY77yfDQozLuaLm+eUqOi+vuWIsOazleWumumAgOS8
-keW5tOm+hOeahOS6uuWRmO+8jOW6lOazqOaEj+WTquS6m+e7huiKgumXrumimO+8nw0KNC7mi5vn
-lKjlvoXlspfjgIHlhoXpgIDjgIHlgZzolqrnlZnogYznmoTkurrlkZjvvIzlupTms6jmhI/lk6rk
-upvnu4boioLpl67popjvvJ8NCjUu5YWl6IGM5L2T5qOA6ZyA5rOo5oSP5ZOq5Lqb57uG6IqC6Zeu
-6aKY77yfDQo2LuWFpeiBjOWJjeWQjueUqOS6uuWNleS9jeW6lOWRiuefpeWKs+WKqOiAheWTquS6
-m+aDheWGte+8jOWmguS9leS/neeVmeivgeaNru+8nw0KNy7jgIrlhaXogYznmbvorrDooajjgIvl
-poLkvZXorr7orqHvvIzmiY3og73otbfliLDpooTpmLLms5Xlvovpo47pmannmoTkvZznlKjvvJ8N
-Cjgu5Yqz5Yqo6ICF5peg5rOV5o+Q5Lqk44CK56a76IGM6K+B5piO44CL77yM6K+l5oCO5LmI5Yqe
-77yfDQo5LuS8geS4muWmguS9leS5puWGmeOAiuW9leeUqOmAmuefpeS5puOAi++8jOWFtuazleW+
-i+mjjumZqeacieWTquS6m++8nw0K5LiT6aKY5LqM77ya5Yqz5Yqo5ZCI5ZCM6K6i56uLDQoxLueU
-qOS6uuWNleS9jeiHquihjOaLn+WumueahOWKs+WKqOWQiOWQjOaWh+acrOaYr+WQpuacieaViO+8
-jOaYr+WQpumcgOimgei/m+ihjOWkh+ahiO+8nw0KMi7lirPliqjogIXlgJ/mlYXmi5blu7bmiJbm
-i5Lnu53nrb7orqLlirPliqjlkIjlkIzvvIznlKjkurrljZXkvY3lpoLkvZXlupTlr7nvvJ8NCjMu
-5pyq562+6K6i5Yqz5Yqo5ZCI5ZCM77yM6ZyA5pSv5LuY5aSa6ZW/5pyf6ZmQ55qE5Y+M5YCN5bel
-6LWE77yf5piv5ZCm5Y+X5Yiw5Luy6KOB5pe25pWI55qE6ZmQ5Yi277yfDQo0LuWKs+WKqOWQiOWQ
-jOacn+a7oe+8jOe7p+e7reeVmeeUqOWKs+WKqOiAhe+8jOS9huacque7reetvuWQiOWQjO+8jOaY
-r+WQpuS5n+mcgOaUr+S7mOWPjOWAjeW3pei1hO+8nw0KNS7ku4DkuYjml7blgJnkuLrmnIDkvbPm
-l7bpl7TvvIznrb7nvbLlirPliqjlkIjlkIzjgIHnlKjlt6XljY/orq7vvJ8NCjYu5rOV5b6L56aB
-5q2iMuasoee6puWumuivleeUqOacn++8jOWKs+WKqOWQiOWQjOacn+mZkOWSjOivleeUqOacn+mZ
-kOivpeWmguS9lee6puWumu+8nw0KNy7nlKjkurrljZXkvY3mlLbotK3lhbbku5bnu4Tnu4fml7bv
-vIzlpoLkvZXkuI7ooqvmjqXmlLbnmoTlkZjlt6Xnrb7orqLjgIHlj5jmm7TlirPliqjlkIjlkIzv
-vJ8NCjgu5bqU5ZCm5LiO5bGe5LqO6IGM5Lia57uP55CG5Lq655qE5rOV5Lq65Luj6KGo562+6K6i
-5Yqz5Yqo5ZCI5ZCM77yfDQrkuJPpopjkuInvvJror5XnlKjmnJ8NCjEu5Y+v5ZCm5YWI6K+V55So
-5ZCO562+5ZCI5ZCM77yM5Y+v5ZCm5Y2V54us562+6K6i6K+V55So5pyf5Y2P6K6u77yfIA0KMi7l
-kZjlt6XkuLvliqjnlLPor7flu7bplb/or5XnlKjmnJ/vvIzor6XmgI7moLfmk43kvZzvvIzmiY3o
-p4Tpgb/otZTlgb/po47pmanvvJ8NCjMu6K+V55So5pyf5ruh5ZCO6L6e6YCA5ZGY5bel77yM5pyA
-5bCR6LWUMuS4quaciOW3pei1hO+8jOivpeWmguS9leWMluino++8nw0KNC7or5XnlKjmnJ/mnIDl
-kI7kuIDlpKnovp7pgIDlkZjlt6XvvIzotZTlgb/mpoLnjofkuLo3MCXvvIzlpoLkvZXljJbop6Pv
-vJ8NCjUu6K+V55So5pyf5ruh5YmN5Yeg5aSp6L6e6YCA5ZGY5bel77yM6LWU5YG/5qaC546H5Li6
-NTAl77yM5aaC5L2V5YyW6Kej77yfDQo2LuS4jeespuWQiOW9leeUqOadoeS7tueahOiMg+WbtOWM
-heaLrOWTquS6m++8jOWmguS9leWPluivgeivgeaYju+8nw0KNy7jgIror5XnlKjmnJ/ovp7pgIDp
-gJrnn6XkuabjgIvlpoLkvZXkuablhpnvvIzku6Xpgb/lhY3ov53ms5Xop6PpmaTnmoTotZTlgb/p
-h5HvvJ8NCjgu5Ye6546w4oCc57uP5rWO5oCn6KOB5ZGY4oCd5oOF5Ya177yM5LyY5YWI6KOB5o6J
-6K+V55So5pyf55qE5paw5ZGY5bel77yM5ZCI5rOV5ZCX77yfDQo5LuivleeUqOacn+WRmOW3pee7
-j+W4uOivt+WBh+S8keWBh++8jOWvvOiHtOmavuS7peWvueWFtuinguWvn+iAg+aguO+8jOWmguS9
-leWkhOeQhu+8nw0K5LiT6aKY5Zub77ya5peg5Zu65a6a5pyf6ZmQ5Yqz5Yqo5ZCI5ZCMDQoxLuaX
-oOWbuuWumuacn+mZkOWKs+WKqOWQiOWQjOWIsOW6leaYr+S4jeaYr+mTgemlreeil++8jOS8muS4
-jeS8muWinuWKoOS8geS4muaIkOacrO+8nw0KMi7ml6Dlm7rlrprmnJ/pmZDlirPliqjlkIjlkIzo
-p6PpmaTnmoTmnaHku7bjgIHnkIbnlLHmnInlk6rkupvvvJ8NCjMu55So5Lq65Y2V5L2N5ouS57ud
-562+6K6i5peg5Zu65a6a5pyf6ZmQ5Yqz5Yqo5ZCI5ZCM77yM5pyJ5L2V6aOO6Zmp77yfDQo0Luet
-vuiuouS6huWbuuWumuacn+mZkOWKs+WKqOWQiOWQjOeahOWRmOW3pe+8jOacn+mXtOW3peS9nOe0
-r+iuoea7oTEw5bm077yM6IO95ZCm6KaB5rGC5bCG5Zu65a6a5pyf6ZmQ5ZCI5ZCM5Y+Y5pu05Li6
-5peg5Zu65a6a5pyf6ZmQ5ZCI5ZCM77yfDQo1Lui/nue7reiuoueri+S6jOasoeWbuuWumuacn+mZ
-kOWKs+WKqOWQiOWQjOWIsOacn++8jOeUqOS6uuWNleS9jeiDveWQpue7iOatouWQiOWQjO+8m+WR
-mOW3peaPkOWHuuetvuiuouaXoOWbuuWumuacn+mZkOWQiOWQjO+8jOeUqOS6uuWNleS9jeiDveWQ
-puaLkue7ne+8nw0KNi7lkIjlkIzmnJ/mu6HlirPliqjogIXnlLHkuo7ljLvnlpfmnJ/jgIHkuInm
-nJ/nrYnljp/lm6Dnu63lu7blirPliqjlkIjlkIzlr7zoh7TlirPliqjogIXov57nu63lt6XkvZzm
-u6HljYHlubTvvIzlirPliqjogIXmj5Dlh7rorqLnq4vml6Dlm7rlrprmnJ/pmZDlirPliqjlkIjl
-kIznmoTvvIznlKjkurrljZXkvY3og73lkKbmi5Lnu53vvJ8NCuS4k+mimOS6lO+8muWfueiureOA
-geS/neWvhuS4juernuS4mumZkOWItg0KMS7ln7norq3mnI3liqHmnJ/kuI7lirPliqjlkIjlkIzm
-nJ/pmZDmnInkvZXkuI3lkIzvvIzlirPliqjlkIjlkIzmnJ/pmZDkuI7mnI3liqHmnJ/pmZDlj5Hn
-lJ/lhrLnqoHml7blpoLkvZXpgILnlKjvvJ8NCjIu5Z+56K6t5pyN5Yqh5pyf5pyq5Yiw5pyf77yM
-6ICM5Yqz5Yqo5ZCI5ZCM5Yiw5pyf77yM55So5Lq65Y2V5L2N57uI5q2i5Yqz5Yqo5ZCI5ZCM55qE
-77yM5piv5ZCm5bGe5LqO5o+Q5YmN6Kej6Zmk5Yqz5Yqo5ZCI5ZCM77yM5aaC5L2V6KeE6YG/77yf
-DQozLuWKs+WKqOiAheS4pemHjei/h+mUmeiiq+ino+mbh++8jOeUqOS6uuWNleS9jeiDveWQpuS+
-neaNruacjeWKoeacn+e6puWumuimgeaxguWKs+WKqOiAheaUr+S7mOi/nee6pumHke+8nw0KNC7l
-nKjku4DkuYjmg4XlhrXkuIvvvIzlj6/nrb7nvbLnq57kuJrpmZDliLbljY/orq7vvJ8NCjUu5Zyo
-5LuA5LmI5pe25YCZ77yM5LyB5Lia5pu05pyJ5Li75Yqo5p2D562+572y56ue5Lia6ZmQ5Yi25Y2P
-6K6u77yfDQo2LuaXoOe6puWumue7j+a1juihpeWBv+eahOaUr+S7mO+8jOernuS4mumZkOWItuaY
-r+WQpuacieaViO+8nw0KNy7nq57kuJrpmZDliLbnmoTnu4/mtY7ooaXlgb/nmoTmoIflh4blpoLk
-vZXnlYzlrprvvJ8NCjgu6KaB5rGC5ZGY5bel5L+d5a+G77yM5LyB5Lia6ZyA6KaB5pSv5LuY5L+d
-5a+G5bel6LWE5ZCX77yfDQo5LuWfueiureWNj+iuruOAgeS/neWvhuWNj+iuruOAgeernuS4mumZ
-kOWItuWNj+iurueahOaguOW/g+adoeasvu+8gQ0K5LiT6aKY5YWt77ya5Yqz5Yqo5YWz57O76Kej
-6Zmk57uI5q2iDQoxLuWPjOaWueWNj+WVhuino+mZpOWKs+WKqOWQiOWQjOW5tue6puWumuaUr+S7
-mOmAguW9k+eahOe7j+a1juihpeWBv++8jOS6i+WQjuWKs+WKqOiAhei/veiuqOe7j+a1juihpeWB
-v+eahOW3ruminemDqOWIhu+8jOS7suijgeacuuaehOacieWPr+iDveaUr+aMgeWKs+WKqOiAheea
-hOivieaxgu+8jOS8geS4muWmguS9lemBv+WFjeahiOS7tui0peivie+8nw0KMi7og73lkKbkuI7i
-gJzkuInmnJ/lpoflpbPjgIHnibnmrorkv53miqTmnJ/pl7TnmoTlkZjlt6XigJ3ljY/llYbop6Pp
-maTvvIzlpoLkvZXop4Tpgb/po47pmanvvJ8NCjMu5ZGY5bel5pyq5o+Q5YmNMzDml6XpgJrnn6Xk
-vIHkuJrljbPoh6rooYznprvogYzvvIzkvIHkuJrog73lkKbmiaPlh4/lhbblt6XotYTvvJ8NCjQu
-5ZGY5bel5o+Q5Lqk6L6e6IGM5L+h5ZCO55qEMzDlpKnlhoXvvIzkvIHkuJrmibnlh4blhbbnprvo
-gYzvvIzlj6/og73mnInpo47pmanvvIzlpoLkvZXljJbop6PvvJ8NCjUu5ZGY5bel5o+Q5Lqk6L6e
-6IGM5L+h5ZCO55qEMzDlpKnlkI7vvIzkvIHkuJrmibnlh4blhbbnprvogYzvvIzkuZ/lj6/og73m
-nInpo47pmanvvIzlpoLkvZXljJbop6PvvJ8NCjYu5a+55LqO5oKj55eF5ZGY5bel77yM6IO95ZCm
-6Kej6Zmk77yM5aaC5L2V5pON5L2c5omN6IO96ZmN5L2O5rOV5b6L6aOO6Zmp77yfDQo3LuWunuih
-jOacq+S9jea3mOaxsOWItu+8jOS7peacq+S9jeaOkuWQjeS4uueUseino+mbh+WRmOW3pe+8jOW+
-gOW+gOiiq+iupOWumumdnuazleino+mbh++8jOS8geS4muivpeWmguS9leWBmu+8jOaJjemBv+WF
-jeahiOS7tui0peivie+8nw0KOC7ku6XigJznu4Tnu4fmnrbmnoTosIPmlbTvvIzml6DlkIjpgILl
-spfkvY3lronmjpLigJ3kuLrnlLHop6Ppm4flkZjlt6XvvIzmhJ/op4npnZ7luLjnrKblkIjluLjn
-kIbvvIzkvYblvoDlvoDooqvorqTlrprpnZ7ms5Xop6Ppm4fvvIzkvIHkuJror6XlpoLkvZXlgZrm
-iY3pgb/lhY3po47pmanvvJ8NCjku5Lul4oCc57uP5rWO5oCn6KOB5ZGY4oCd5ZCN5LmJ6Kej6ZuH
-5ZGY5bel77yM5oSf6KeJ6Z2e5bi456ym5ZCI5bi455CG77yM5L2G5b6A5b6A6KKr6K6k5a6a6Z2e
-5rOV6Kej6ZuH77yM5LyB5Lia6K+l5aaC5L2V5pON5L2c77yfDQoxMC7jgIrop6PpmaTlirPliqjl
-kIjlkIzpgJrnn6XkuabjgIvlpoLmnpzooajov7DkuI3lvZPvvIzlvoDlvoDmiJDkuLrlirPliqjo
-gIXmiZPotaLlrpjlj7jnmoTmnInlipvor4Hmja7vvIzkvIHkuJror6XlpoLkvZXkuablhpnvvIzm
-iY3pgb/lhY3moYjku7botKXor4nogIzmib/mi4Xms5XlvovotKPku7vvvJ8NCjExLuino+mZpOWK
-s+WKqOWQiOWQjOWJjeacqumAmuefpeWPiuW+geaxguW3peS8mueahOaEj+inge+8jOaYr+WQpuae
-hOaIkOmdnuazleino+mZpO+8nw0KMTIu5Yqz5Yqo5ZCI5ZCM5Yiw5pyf5ZCO77yM57uP5bi45Ye6
-546w6K+l57uI5q2i55qE5b+Y6K6w5Yqe55CG57uI5q2i5omL57ut77yM6K+l57ut562+55qE5b+Y
-6K6w5Yqe55CG57ut562+5omL57ut77yM5YW25byV5Y+R55qE6aOO6Zmp6Z2e5bi45aSn77yb6YKj
-5LmI5LyB5Lia6K+l5aaC5L2V6KeE6YG/6aOO6Zmp77yfDQrkuJPpopjkuIPvvJrnpL7kvJrkv53p
-manms5UNCjEu55So5Lq65Y2V5L2N5ouW5qyg56S+5L+d6LS577yM5pyJ5LuA5LmI5rOV5b6L6LSj
-5Lu777yfDQoyLueUqOS6uuWNleS9jeS4jei2s+minee8tOe6s+ekvuS8muS/nemZqeWmguS9leWk
-hOeQhu+8nw0KMy7lkZjlt6XkuI3mhL/mhI/kubDnpL7kv53vvIzlubbkuI7ljZXkvY3nrb7mnInl
-jY/orq7nmoTmg4XlhrXkuIvvvIzor6XljY/orq7mmK/lkKbmnInmlYjvvJ8NCjQu6K+V55So5pyf
-6Ze077yM5piv5ZCm5b+F6aG757y057qz56S+5Lya5L+d6Zmp77yfDQo1LuWmguaenOaXoOWPguS/
-ne+8jOWKs+WKqOiAheWboOesrOS4ieaWuei0o+S7u+S6p+eUn+eahOWMu+eWl+i0ueeUqO+8jOiD
-veWQpuimgeaxguWNleS9jeaKpemUgO+8nw0KNi7kvIHkuJrljY/liqnovp7ogYzlkZjlt6Xpqpfl
-j5blpLHkuJrkv53pmanph5HvvIzmnInku4DkuYjms5Xlvovpo47pmanvvJ8NCjcu5aWz6IGM5bel
-5pyq5ama5YWI5a2V44CB5pyq5ama55Sf6IKy5LqJ6K6u5aaC5L2V5aSE55CG77yfDQo4LuaAgOWt
-leWls+iBjOW3peaPkOWHuumVv+acn+S8keWBh+S/neiDju+8jOebtOiHs+S/ruWujOS6p+WBh++8
-jOivpeWmguS9leWNj+iwg+atpOmXrumimO+8nw0K5LiT6aKY5YWr77ya5Yqz5Yqo5LqJ6K6u5aSE
-55CGDQoxLueUqOS6uuWNleS9jei0peivieeahOWOn+WboOS4u+imgeacieWTquS6m++8nw0KMi7k
-u7Loo4HmiJbms5XpmaLlnKjlpITnkIbmoYjku7bml7bvvIzlpoLkvZXpgILnlKjms5Xlvovms5Xo
-p4TvvJ8NCjMu5aaC5L2V5Yik5a6a5pS/562W5rOV5b6L5rOV6KeE55qE5pWI5Yqb562J57qn77yf
-IA0KNC7lhazlvIDlrqHnkIbnmoTlvIDluq3lvaLlvI/vvIzmnInkvZXpo47pmanvvIzlpoLkvZXp
-gb/lhY3po47pmanvvJ8NCjUu55Sz6K+35Luy6KOB55qE5pe25pWI5aaC5L2V6K6h566X77yb5aaC
-5L2V55CG6Kej4oCc5Yqz5Yqo5LqJ6K6u5Y+R55Sf5LmL5pel4oCd77yfDQo2LuWmguS9leS5puWG
-meetlOi+qeS5pu+8jOacieWTquS6m+azqOaEj+S6i+mhue+8nw0KNy7lvIDluq3mnJ/pl7TvvIzo
-tKjor4HkuI7ovqnorrrpnIDopoHms6jmhI/lk6rkupvlhbPplK7pl67popjvvJ8NCjgu5Li+6K+B
-6LSj5Lu75aaC5L2V5YiG6YWN77yM5peg5rOV5Li+6K+B55qE5ZCO5p6c5pyJ5ZOq5Lqb77yfDQpC
-5Y2V5YWD5YaF5a6577yI5YWxMuWkqe+8jDIw5Liq5Lul5LiK57uP5YW45qGI5L6L77yJDQrkuJPp
-opjkuIDvvJrov53nuqrov53op4Tpl67popjlkZjlt6XlpITnkIYNCjEu5Yqz5Yqo6ICF5b6A5b6A
-5ouS57ud562+5pS25aSE5YiG44CB6Kej6ZuH6YCa55+l5Lmm77yM5aaC5L2V5bqU5a+577yfDQoy
-LumXrumimOWRmOW3peW+gOW+gOaLkue7neaPkOS6pOOAiuajgOiuqOS5puOAi+aIluWQpuiupOi/
-nee6qui/neinhOS6i+Wunu+8jOS8geS4muivpeWmguS9leaUtumbhuivgeaNru+8nw0KMy7lr7nk
-uo7ov53nuqrlkZjlt6XvvIzlupTor6XlnKjku4DkuYjml7bpl7TlhoXlpITnkIbvvJ8NCjQu5oCO
-5qC355CG6Kej4oCc5Lil6YeN6L+d5Y+N55So5Lq65Y2V5L2N55qE6KeE56ug5Yi25bqm4oCdPw0K
-NS7lpoLkvZXlnKjjgIrmg6nnvZrmnaHkvovjgIvkuK3mj4/ov7DigJzkuIDoiKzov53nuqrigJ3j
-gIHigJzovoPph43ov53nuqrigJ3lj4rigJzkuKXph43ov53nuqrigJ3vvJ8gDQo2LuaAjuagt+eQ
-huino+S4juaTjeS9nOKAnOS4pemHjeWkseiBjO+8jOiQpeengeiInuW8iu+8jOe7meeUqOS6uuWN
-leS9jemAoOaIkOmHjeWkp+aNn+Wus+KAne+8nw0KNy7lpoLkvZXnlYzlrprigJzph43lpKfmjZ/l
-rrPigJ3vvIzigJzph43lpKfmjZ/lrrPigJ3mmK/lkKblv4XpobvkvZPnjrDkuLrpgKDmiJDnm7Tm
-jqXnmoTnu4/mtY7mjZ/lpLHvvJ8NCjgu5aaC5L2V6L+956m24oCc5Lil6YeN5aSx6IGM44CB5Lil
-6YeN6L+d57qq6L+d6KeE4oCd6ICF55qE5rOV5b6L6LSj5Lu777yfDQo5LuiDveWQpuebtOaOpein
-hOWumuKAnOemgeatouWFvOiBjO+8jOWQpuWImeinhuS4uuS4pemHjei/nee6qui/neinhOKAne+8
-nw0KMTAu55u057q/6YOo6Zeo57uP55CG5pOF6Ieq5Y+j5aS06L6e6YCA5ZGY5bel77yM5Luy6KOB
-5py65p6E5b6A5b6A6K6k5a6a5LyB5Lia6Z2e5rOV6Kej6ZuH77yM5LyB5Lia6K+l5aaC5L2V5YGa
-77yM5omN6YG/5YWN5qGI5Lu26LSl6K+J77yfDQoxMS7lirPliqjogIXkuI3ovp7ogIzliKvjgIHm
-l6DmlYXml7flt6XvvIzljbTkuLvlvKDooqvkvIHkuJrlj6PlpLTop6Ppm4fvvIzlvoDlvoDlvpfl
-iLDku7Loo4HmnLrmnoTnmoTmlK/mjIHvvIzkvIHkuJror6XlpoLkvZXlgZrvvIzmiY3pgb/lhY3m
-oYjku7botKXor4nvvJ8NCjEyLuKAnOW9lemfs+W9leixoeKAneivgeaNru+8jOS7suijgeS4juaz
-lemZouaYr+WQpumHh+S/oe+8m+S8geS4muWGhemDqE9B57O757uf5LiK55qE6LWE5paZ6IO95ZCm
-5L2c5Li66K+B5o2u5L2/55So77yb55S15a2Q6YKu5Lu244CB5omL5py655+t5L+h6IO95ZCm5L2c
-5Li66K+B5o2u5L2/55So77yfDQrkuJPpopjkuozvvJrnu6nmlYjnrqHnkIbkuI7lspfkvY3osIPm
-lbQNCjEu5LyB5Lia5Y2V5pa56LCD5pW05bKX5L2N77yM5ZGY5bel5b6A5b6A5Y+v6KKr6L+r6Kej
-6Zmk5ZCI5ZCM5bm257Si6LWU57uP5rWO6KGl5YG/77yM5aaC5L2V6KeE6YG/77yfDQoyLuiwg+Wy
-l+aXtuayoeacieS5pumdouehruiupO+8jOWRmOW3peWIsOaWsOWyl+S9jeW3peS9nDLkuKrmnIjl
-kI7og73lkKbopoHmsYLmgaLlpI3liLDljp/lspfkvY3vvJ8NCjMu5Y+v5ZCm5a+54oCc5LiJ5pyf
-5YaF4oCd5aWz6IGM5bel6L+b6KGM6LCD5bKX44CB6LCD6Jaq77yfDQo0LuWRmOW3peiupOWQjOe7
-qeaViOe7k+aenO+8jOS4uuS7gOS5iOWcqOKAnOS4jeiDnOS7u+W3peS9nOKAneW8leWPkeeahOS6
-ieiuruS4rei/mOaYr+i0peivie+8nw0KNS7kuLrku4DkuYjkvIHkuJrmoLnmja7nu6nmlYjnu5Pm
-npzmlK/ku5jlkZjlt6Xnu6nmlYjlpZbph5HvvIzmnIDnu4jooqvorqTlrprpnZ7ms5XlhYvmiaPl
-t6XotYTvvJ8NCjYu5rOV5b6L5LiK5aaC5L2V6K+B5piO5Yqz5Yqo6ICF4oCc5LiN6IO96IOc5Lu7
-5bel5L2c4oCd77yfDQo3LuWvuee7qeaViOiAg+aguOS4jeWQiOagvOeahOWRmOW3pe+8jOWmguS9
-leWQiOazlei+numAgO+8nw0KOC7nu6nmlYjmraPmgIHliIbluIPlvoDlvoDlvLrliLbliJLliIY1
-JeeahOWRmOW3peS4uuS4jeWQiOagvOiAhe+8jOaYr+WQpuWQiOazle+8nw0K5LiT6aKY5LiJ77ya
-5Yqz5Yqo5oql6YWs44CB6Jaq6YWs56aP5YipDQoxLuW3pei1hOaAu+mineWMheaLrOWTquS6m+W3
-pei1hOaYjue7hu+8nw0KMi7mlrDov5vlkZjlt6XolqrotYTnrqHnkIbpl67popjlj4rlpITnkIbm
-ioDlt6fvvJsNCjMu6LCD5pW05bel5L2c5bKX5L2N5ZCO77yM5aaC5L2V5Y2V5pa56LCD6Jaq44CB
-6ZmN6Jaq77yfDQo0LuWmguS9lemAmui/h+iWqumFrOiwg+aVtOWkhOeQhuWRmOW3peWkseiBjOOA
-gei/nee6quetiemXrumimO+8nw0KNS7lgLznj63nrpfkuI3nrpfliqDnj63vvIzlpoLkvZXpmLLo
-jIPpo47pmanvvJ8NCjYu5Yqg54+t5Yqg54K55bel6LWE5pSv5LuY5bi46KeB6K+v5Yy677yfDQo3
-LueUqOS6uuWNleS9jeWmguS9leiuvuiuoeW3pei1hOaehOaIkOS7pemZjeS9juWKoOePrei0ueaI
-kOacrO+8nw0KOC7mnKrnu4/nlKjkurrljZXkvY3lronmjpLvvIzlirPliqjogIXoh6rooYzliqDn
-j63nmoTvvIzmmK/lkKbpnIDmlK/ku5jliqDnj63lt6XotYTvvJ8NCjku5Yqz5Yqo6ICF5Li75byg
-5YWl6IGM5Lul5p2l55qE5Yqg54+t6LS577yM5aaC5L2V5bqU5a+577yfDQoxMC7lirPliqjogIXl
-nKjlt6XkvZzml6Vc5rOV5a6a6IqC5YGH5pel5Yqg54+t77yM6IO95ZCm5a6J5o6S6KGl5LyR6ICM
-5LiN5LqI5pSv5LuY5Yqg54+t6LS577yfDQoxMS7nl4XlgYfjgIHlubTkvJHlgYfjgIHlqZrlgYfj
-gIHkuqflgYfjgIHkuKflgYfnrYnnmoTkuqvlj5fmnaHku7blj4rlt6XotYTlvoXpgYfmoIflh4bv
-vJ8NCjEyLuemu+iBjOWRmOW3peW+gOW+gOWbnuWktOi/veiuqOW5tOe7iOWllu+8jOacieWPr+iD
-veW+l+WIsOaUr+aMge+8jOWmguS9leinhOmBv+ivpemjjumZqe+8nw0K5LiT6aKY5Zub77ya57uP
-5rWO6KGl5YG/DQoxLueUqOS6uuWNleS9jemcgOWQkeWKs+WKqOiAheaUr+S7mOe7j+a1juihpeWB
-v+eahOaDheW9ouacieWTquS6m++8nw0KMi7ku4DkuYjmg4XlhrXkuIvnlKjkurrljZXkvY3pnIDm
-lK/ku5jkuKTlgI3nmoTnu4/mtY7ooaXlgb/vvJ8NCjMu5Yqz5Yqo6ICF5Y+v5ZCm5ZCM5pe25ZCR
-55So5Lq65Y2V5L2N5Li75byg57uP5rWO6KGl5YG/5ZKM6LWU5YG/6YeR77yfDQo0Lue7j+a1juih
-peWBv+iuoeeul+eahOWfuuaVsOWPiuagh+WHhuWmguS9leehruWumu+8nw0KNS7nu4/mtY7ooaXl
-gb/lubTpmZDmnIDpq5jkuI3otoXov4fljYHkuozlubTnmoTpgILnlKjojIPlm7TvvJ8NCjYu5aaC
-5L2V6K6h566X44CK5Yqz5Yqo5ZCI5ZCM5rOV44CL55Sf5pWI5YmN5ZCO55qE57uP5rWO6KGl5YG/
-5bm06ZmQ77yfDQo3LuWmguS9leeQhuino+KAnOWFreS4quaciOS7peS4iuS4jea7oeS4gOW5tOea
-hO+8jOaMieS4gOW5tOiuoeeul++8m+S4jea7oeWFreS4quaciOeahO+8jOWQkeWKs+WKqOiAheaU
-r+S7mOWNiuS4quaciOW3pei1hOeahOe7j+a1juihpeWBv+KAne+8nw0KOC7lirPliqjlkIjlkIzm
-s5Xnjq/looPkuIvigJw1MCXpop3lpJbnu4/mtY7ooaXlgb/ph5HigJ3mmK/lkKbnu6fnu63pgILn
-lKjvvJ8NCuS4k+mimOS6lO+8muinhOeroOWItuW6puOAgeWRmOW3peaJi+WGjA0KMS7kvIHkuJrk
-urrlipvotYTmupDjgIHlirPliqjnlKjlt6XnrqHnkIbliLbluqbluLjop4HnmoTor6/ljLrmnInl
-k6rkupvvvJ8NCjIu5Lq65Yqb6LWE5rqQ44CB5Yqz5Yqo55So5bel566h55CG5Yi25bqm5bqU6K+l
-5YyF5ous5ZOq5Lqb5b+F5aSH5YaF5a6577yfDQozLuWItuWumuinhOeroOWItuW6pueahOeoi+W6
-j+imgeaxgue7meeUqOS6uuWNleS9jeW4puadpeWTquS6m+mjjumZqe+8jOWmguS9leW6lOWvue+8
-nw0KNC7pnZ7lm73mnInnlKjkurrljZXkvY3lpoLkvZXnu4Tlu7rigJzogYzlt6Xku6PooajlpKfk
-vJrigJ3vvJ8NCjUu5peg57q45YyW44CB572R57uc5YyW5Yqe5YWs5LiL55qE5YWs56S677yM5a2Y
-5Zyo5ZOq5Lqb6aOO6Zmp77yfDQo2LuWmguS9leWFrOekuuaIluWRiuefpe+8jOabtOespuWQiOS7
-suijgeaIluivieiuvOeahOS4vuivgeimgeaxgu+8nw0KNy7op4Tnq6DliLbluqbog73lkKbop4Tl
-rprlr7nlkZjlt6Xov5vooYznu4/mtY7lpITnvZrvvJ8gDQo4LuinhOeroOWItuW6pui/neWPjeaz
-leW+i+azleinhO+8jOWKs+WKqOiAheWPr+S7peiiq+i/q+ino+mZpOW5tue0ouWPlue7j+a1juih
-peWBv++8jOWmguS9lemYsuiMg++8nw0KOS7op4Tnq6DliLbluqbkuI7lkZjlt6XmiYvlhozliLDl
-upXmnInku4DkuYjljLrliKvvvJ8NCjEw77yO6KeE56ug5Yi25bqm5LiO5ZGY5bel5omL5YaM5bqU
-6K+l5aSa6ZW/5pe26Ze05L+u5pS55LiA5qyh77yfDQrkuJPpopjlha3vvJrlt6XkvKTkv53pmanm
-naHkvosNCjEu5bGe5LqO5bel5Lyk6IyD5Zu055qE5oOF5b2i5pyJ5ZOq5Lqb77yfDQoyLuS4jeW+
-l+iupOWumuS4uuW3peS8pOeahOaDheW9ouacieWTquS6m++8nw0KMy7mgI7moLfnkIbop6PigJzk
-uIrkuIvnj63pgJTkuK3igJ3vvIzmgI7moLfmjqfliLbmnJ/pl7TnmoTpo47pmanvvJ8NCjQu5Y+R
-55Sf5bel5Lyk5LqL5pWF77yM55So5Lq65Y2V5L2N6ZyA5om/5ouF5ZOq5Lqb6LS555So77yfDQo1
-LuW3peS8pOWRmOW3peWAn+aVheaLkue7neWkjeW3pe+8jOWAn+aVheS4jeaWreS8keWBh++8jOWm
-guS9leWkhOeQhu+8nw0KNi7lr7nkuo7nrKzkuInmlrnpgKDmiJDnmoTlt6XkvKTkuovmlYXvvIzl
-irPliqjogIXog73lkKbopoHmsYLnlKjkurrljZXkvY3mlK/ku5jlt6XkvKTlvoXpgYflj4jlkIzm
-l7bopoHmsYLnrKzkuInmlrnmlK/ku5jkurrouqvkvKTlrrPotZTlgb/vvJ8gDQo3LueUqOS6uuWN
-leS9jeiDveWQpuS7peWVhuS4muS/nemZqeeQhui1lOasvuabv+S7o+iBjOW3peW3peS8pOi1lOWB
-v+W+hemBh++8nw0KOC7lj5HnlJ/lt6XkvKTkuovmlYXvvIzlj4zmlrnnp4HkuIvlkozop6PvvIzo
-oaXlgb/ljY/orq7or6XlpoLkvZXnrb7orqLmiY3mnInmlYjvvJ8NCuS4k+mimOS4g++8muWKs+WK
-oea0vumBow0KMS7mlrDms5XkuIvlirPliqHmtL7pgaPpnaLkuLTnmoTkuLvopoHpo47pmanmnInl
-k6rkupvvvJ8NCjIu5Yqz5Yqh5rS+6YGj5ZCI5L2c5Y2P6K6u5b+F6aG75rOo5oSP55qE6aOO6Zmp
-57uG6IqC5pyJ5ZOq5Lqb77yfDQozLua0vumBo+W3peKAnOesrOS4ieetvuKAneaXtu+8jOiDveWQ
-puimgeaxguetvuiuouaXoOWbuuWumuacn+mZkOWKs+WKqOWQiOWQjO+8nw0KNC7lk6rkupvlspfk
-vY3lj6/ku6Xkvb/nlKjmtL7pgaPlt6XvvIzovoXliqnmgKfjgIHkuLTml7bmgKfjgIHmm7/ku6Pm
-gKflpoLkvZXnkIbop6PkuI7mk43kvZzvvJ8NCjUu5paw6KeE5a6a5a+55LqO5ZCM5bel5ZCM6YWs
-5o+Q5Ye65ZOq5Lqb5paw6KaB5rGC77yM5aaC5L2V6KeE6YG/5ZCM5bel5ZCM6YWs6aOO6Zmp77yf
-DQo2LumHh+eUqOWKs+WKoea0vumBo+eUqOW3peaWueW8j++8jOiDveWQpuW8guWcsOWPguS/ne+8
-nw0KNy7nlKjlt6XljZXkvY3lpoLkvZXooYzkvb/lr7nmtL7pgaPlkZjlt6XnmoTpgIDov5jmiJbp
-gIDmjaLmnYPvvJ8NCjgu5oCO5qC36KeE5a6a5rS+6YGj5ZGY5bel55qE6L6e6IGM56iL5bqP5ZKM
-56a76IGM6LSj5Lu777yfDQo5LumDqOWIhuWKs+WKoeWFrOWPuOW+iOWPr+iDvemdouS4tOWFs+mX
-reWBnOS4mu+8jOWOn+adpeeahOa0vumBo+W3peeahOWKs+WKqOWFs+ezu+WmguS9leWkhOeQhu+8
-nw0KMTAu5Lia5Yqh5aSW5YyF5LiO5Yqz5Yqh5rS+6YGj55qE5pys6LSo5Yy65Yir5pyJ5ZOq5Lqb
-77yfDQoxMS7nlKjlt6XljZXkvY3lpoLkvZXlupTlr7nmtL7pgaPlkIjkvZzkuonorq7lkozlirPl
-iqjkuonorq7vvJ8NCuOAkOaOiF/or75f5LiTX+Wutl/ku4tf57uN44CR6LWEX+a3sV/lirNf5Yqo
-X+azlV/kuJNf5a6244CA6ZKf5rC45qOjIA0K44CA44CAIOWbveWGheiRl+WQjeWKs+WKqOazleS4
-juWRmOW3peWFs+ezu+euoeeQhuWunuaImOS4k+WutuOAgeWKs+WKqOS7suijgeWRmOOAgeS8geS4
-muWKs+WKqOS6ieiurumihOmYsuW6lOWvueS4k+WutuOAgemrmOe6p+S6uuWKm+i1hOa6kOeuoeeQ
-huW4iOOAgemrmOe6p+WKs+WKqOWFs+ezu+WNj+iwg+W4iO+8jOWbveWGheesrOS4gOaJueWAoeWv
-vOOAgeS8oOaSreOAgeWunuaWveKAnOWbveWutuWKs+WKqOazleS4juS8geS4muiWqumFrOe7qeaV
-iOacieacuuaVtOWQiOKAneeahOWFiOihjOiAhe+8m+WbveWGheWOn+WIm+Wei+OAgeWunuaImOWe
-i+OAgemhvumXruWei+eahOWfueiureW4iOOAgg0K44CA44CAIOeOsOS7u+KAnOWKs+W+i+mAmijk
-uK3lm70p6aG+6Zeu5Lit5b+D4oCd77yM5LiK5rW35oiQ6YCa5b6L5biI5LqL5Yqh5omA5oqV6LWE
-5ZCI5LyZ5Lq677yb5YW85Lu75rex5Zyz5aSW5ZWG5oqV6LWE5LyB5Lia5Y2P5Lya44CB5bm/5bee
-5biC5Yqz5Yqo5L+d6Zqc5a2m5Lya44CB5bm/5bee5biC5Lq65Yqb6LWE5rqQ5biC5Zy65pyN5Yqh
-5Lit5b+D44CB5bm/5Lic55yB5Lq65Yqb6LWE5rqQ566h55CG5Y2P5Lya44CB6aaZ5riv5bel5Lia
-5oC75Lya44CB5Lit5bGx5aSn5a2m44CB5rWZ5rGf5aSn5a2m44CB5Y2O5Y2X55CG5bel5aSn5a2m
-562JMTAw5aSa5a625Z+56K6t5YWs5Y+444CB6KGM5Lia5Y2P5Lya44CB5pyJ5YWz5py65p6E55qE
-562+57qm6K6y5biI44CB54m56IGY5LiT5a626aG+6Zeu44CCDQrjgIDjgIAg6ZKf6ICB5biI57K+
-6YCa5Yqz5Yqo5pS/562W5rOV5b6L5rOV6KeE5ZKM5Yqz5Yqo5Luy6KOB44CB6K+J6K6856iL5bqP
-77yM5pOF6ZW/5Yqz5Yqo55So5bel6aOO6Zmp55qE5pyJ5pWI6aKE6Ziy5LiO5Yqz5Yqo5LqJ6K6u
-5qGI5Lu255qE57K+5YeG5bqU5a+577yM5ZaE5LqO5oqK5Yqz5Yqo5rOV5b6L5rOV6KeE5LiO5LyB
-5Lia5Lq65Yqb6LWE5rqQ566h55CG5pyJ5py65pW05ZCI77yM6YCa5pmT5LyB5Lia5Yqz5Yqo5LqJ
-6K6u6Ziy6IyD5py65Yi255qE5p6E5bu65ZKM5Yqz5Yqo55So5bel566h55CG5L2T57O755qE5L+u
-5q2j5a6M5ZaE44CC6ZKf6ICB5biI57uP5bi45Zyo5a6i5oi35Yqe5YWs546w5Zy644CB5Z+56K6t
-546w5Zy65Li65a6i5oi344CB5a2m5ZGY5Y2z5pe26LW36I2J44CB5a6h5p+l44CB5L+u5pS555u4
-5YWz5Yi25bqm44CB5ZCI5ZCM44CB5paH5Lmm77yM5oiW5YiG5p6Q5YW35L2T5qGI5Lu255qE5bqU
-5a+55oCd6Lev77yb6ZKf6ICB5biI54us5Yiw55qE546w5Zy655qE5LiT5Lia5Yqf5bqV77yM5q+P
-5qyh6YO96LWi5b6X5bm/5aSn5a6i5oi344CB5a2m5ZGY5Y+R6Ieq5YaF5b+D55qE5aW96K+E5LiO
-MTAwJeeahOS/oeacje+8gQ0K44CA44CAIOenkeePreWHuui6q+eahOmSn+iAgeW4iO+8jOabvuS7
-u+S4k+iBjOWKs+WKqOS7suijgeWRmO+8jOabvuiOt+KAnOW5v+W3nuW4guS8mOengOWKs+WKqOS7
-suijgeWRmOKAneensOWPt++8jOacn+mXtOWuoeijgeWKs+WKqOS6ieiuruahiOS7tjQwMOWkmuWu
-l++8m+WkmuW5tOadpee0r+iuoeS7o+eQhuWKs+WKqOS6ieiurjUwMOWkmuWul++8jOWPguS4juaI
-luS4u+aMgeiWqumFrOe7qeaViOWSqOivoumhueebrjIw5aSa5Liq77yM5a6h5p+l5a6M5ZaENDAw
-5aSa5a625LyB5Lia55qE5Lq65Yqb6LWE5rqQ566h55CG6KeE56ug5Yi25bqm44CC5Liq5Lq66ZW/
-5pyf5ouF5Lu7MzDlpJrlrrbvvIjntK/orqEyMDDlpJrlrrbvvInkvIHkuJrnmoTkurrlipvotYTm
-upDnrqHnkIbms5Xlvovpob7pl67vvJvku6Xpkp/ogIHluIjpoobooZTnmoTkuJPlrrbpmJ/kvI3v
-vIzplb/mnJ/kuLrkvIHkuovkuJrljZXkvY3mj5DkvpvlirPliqjms5XluLjlubTpob7pl67lj4rl
-kITnp43lirPotYTkuJPpobnlkqjor6LmnI3liqHvvIzlrqLmiLfmu6HmhI/luqbpq5jovr45NSXj
-gIINCuOAgOOAgCAyMDA05bm05byA5aeL6ZKf6ICB5biI5Zyo5YWo5Zu95ZCE5Zyw5beh6K6y5Yqz
-5Yqo5rOV44CB5Yqz5Yqo5YWz57O76K++56iL77yM5Y+X55uK5LyB5LiaMzAwMDDlpJrlrrbvvIzn
-m7TmjqXlj5fnm4rlrablkZg4MDAwMOWkmuS6uu+8jOWfueiureWcsOeCuea2ieWPijMw5aSa5Liq
-55yB5Lya5Z+O5biC5Y+K5rK/5rW35Zyw5Yy65aSn5Z+O5biC44CC6ZKf6ICB5biIMjAxMOW5tOaO
-iOivvjEwMuWkqe+8jDIwMTHlubTmjojor74xMjPlpKnvvIwyMDEy5bm05o6I6K++MTMw5aSp77yM
-MjAxM+W5tOaOiOivvjEzM+Wkqe+8jDIwMTTlubTmjojor77vvIjlkKvlt7LpooTnuqbmnKrorrLm
-jojvvIkxMzXlpKnvvIzkuIrov7Dor77nqIvlnYfkuLrmlLbotLnor77nqIvvvIHov4fljrs15bm0
-77yM5Zyo5Yqz5Yqo5rOV6K++56iL5o6I6K++5aSp5pWw44CB5byA6K++546H5pa56Z2i77yM6ZKf
-6ICB5biI5Li65Y2O5Y2X5Zyw5Yy656ys5LiA5L2N77yB5pWw5o2u6K+05piO5LiA5YiH77yM5a6e
-5Yqb5bCx5Zyo55y85YmN77yBDQrpkp/ogIHluIjlsIbmnq/nh6XnmoTlirPliqjmlL/nrZbms5Xo
-p4TmurblhaXlrp7pmYXnrqHnkIbmoYjkvovlvZPkuK3vvIzlsIbkurrlipvotYTmupDnrqHnkIbk
-uI7lirPliqjms5XmnInmnLrlnLDmlbTlkIjlnKjkuIDotbfvvJvor77nqIvlhoXlrrk4MCXkuLrn
-nJ/lrp7moYjkvovjgIEyMCXkuLrlv4XlpIfnmoTph43ngrnms5XmnaHvvJvlrablkZjlj4LkuI7o
-rqjorrrjgIHkupLliqjvvIzor77nqIvnlJ/liqjmnInotqPvvIzmt7HlhaXmtYXlh7rvvIzlrp7m
-iJjlnovotoXlvLrvvIzorqnlrablkZjljbPml7blrabku6Xoh7TnlKjvvIHor77nqIvmu6HmhI/l
-uqbpq5jovr45NSXvvIzkvJflpJrlrablkZjlnYfooajnpLrvvJrigJznrKzkuIDmrKHlkKzliLDl
-poLmraTlrp7miJjjgIHlrp7nlKjjgIHlrp7mlYjnmoTlirPliqjms5Xor77nqIvvvIHpkp/ogIHl
-uIjpnZ7luLjliqHlrp7jgIHkuI3or7TmlZnjgIHmsqHmnInllYbkuJrlkbPpgZPvvIznu4jkuo7l
-kKzliLDkuoborqnmiJHkuI3lho3lkI7mgpTnmoTnsr7lvanor77nqIvvvIHigJ0NCuOAgOOAgCDp
-kp/ogIHluIjlhYjlkI7lnKjjgIrlub/lt57ml6XmiqXjgIvjgIHjgIrljZfmlrnpg73luILmiqXj
-gIvjgIHjgIrkuK3lm73npL7kvJrnp5HlrabmiqXjgIvjgIHjgIrkurrlipvotYTmupDjgIvjgIHj
-gIrpppnmuK/lt6XkuJrmgLvkvJrmnIjliIrjgIvnrYnmiqXliIrjgIHmnYLlv5fjgIHlqpLkvZPl
-j5HooajkuJPkuJrmlofnq6DmiJbph4forr/nqL81MOWkmuevh+OAgg0K6K+m57uGIOivvueoi+aX
-tumXtOWuieaOkiDlj4og6IGU57O75pa55byPIOivt+afpemYhSDpmYTku7blhoXlrrkNCg0KDQoN
-CjIwMTctOS0yNSAgIDEzOjQ2OjEzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+--===============2110309281618719692==
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 8bit
+
+-------- 转发邮件信息 --------
+发件人: 孔洈玉 <tfrlun-33K/CNbNjSSU08n0N2z6gQC/G2K4zDHf@public.gmane.org>
+发送时间: 2017-09-26 11:45:03
+收件人: 'linux-nvdimm'; linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+主题: 381917企业绩效考核与薪酬体系设计实战特训班
+
+时间地点：9月15-17日上海、9月22-24日广州、10月13-15日北京、10月20-22日深圳
+学员对象：企、事业单位董事长、总经理、人力资源总监、人力资源经理、绩效、薪酬等。
+费　　用：六千元 每人
+温馨提示：本课程是2+1课程，可分开学习
+第1-2天《绩效考核暨KPI+BSC 实战训练营》
+第3天为《岗位分析与薪酬设计管理培训》
+------------------------------------------------------------------------------------------
+课程背景： 
+　　现代企业管理，更注重“以人为本”的人性化管理模式，企业管理的重点也日趋体现在对人的管理
+策略上。作为现代企业的人力资源管理者，应以战略高度构建高效实用的人力资源管理系统，建立科学
+考核激励制度和先进的企业薪酬体系，以最大限度地激发人才潜能，来创建优秀团队，并推动组织变革
+与创新，最终实现组织的持续发展。我们针对中国企业在推行西方管理模式中的种种弊端和疑惑，以及
+中国企业目前正处于改革与创新时期，特举办“企业绩效考核与薪酬管理实战特训班”。由著名人力资
+源专家蔡巍讲授，旨在帮助企业家、人力资源经理开阔思路，激发灵感，培养带领企业持续健康发展的
+卓越人力资源管理人才，欢迎参加！
+------------------------------------------------------------------------------------------
+课程目标：
+　　了解薪酬改革背景，更新观念，理清改革思路，明确改革目标，
+　　解岗位测评的相关知识，科学进行岗位测评；
+　　认识绩效管理的重要性、并正确理解绩效管理，
+　　学习考核的方法，全面了解绩效管理的运作程序和设计方法，
+　　重点学习KPI、并介绍平衡计分卡，
+　　了解绩效管理推进中的问题、并避免运作中的误区。
+------------------------------------------------------------------------------------------
+培训内容： 
+绩效考核暨KPI+BSC 实战训练营大纲（2天）：
+推行KPI与绩效管理体系需要解决的三大问题
+1、企业建立绩效体系所面临的方法问题；
+   以感觉为基础判断还是以事实为基础判断？
+   短期考核还是长期考核？
+   短期利益还是长期利益？
+   关键业绩还是非关键业绩？
+   绩效管理如何与战略接口？
+   KPI成绩与奖金挂钩的问题？
+2、经理人与员工的认识对推行绩效管理的影响；
+   传统文化对绩效管理的影响
+   为什么不愿意实现大大超额目标
+   为什么推行绩效管理这么困难？
+3、管理基础对推行KPI的影响
+
+第一部分 绩效制度设计
+一、绩效制度设计的总体思路
+1、目的是起点
+2、其次考核结果应该如何运用，激励效果如何
+3、然后选择考核的方式与方法
+4、没有公平制度推行不下去
+二、绩效制度设计——考核所采用的方法
+1、行为还是业绩
+2、模糊感觉判断法；
+3、关键事件法
+4、360°评估；
+5、强制分布法；
+   要不要排名？
+   绩效排名设几档才合理；
+   绩效排名每个档次设计什么比例才合理；
+   谁和谁排名几个三种常见的方式的优缺点设计；
+   部门人数很少怎么排名？
+   主管是否要和员工一起排名？
+   按照编制排名还是按照实际人数排名？
+   经理给员工轮流坐庄怎么办？
+   排名是要激励大多数，还是激励一小部分人？
+   排名的程序
+6、kpi与okr；
+7、几种方法之间的关系
+三、绩效管理的周期
+1、短期考核与长期考核
+2、短期与长期如何结合
+3、长期考核成绩就是短期考核的平均吗？
+四、绩效制度每个章节需要什么内容
+1、绩效管理的总则
+2、绩效计划
+3、绩效辅导
+4、考核评价
+5、绩效改进
+
+第二部分如何建立公司以业绩为核心的指标体系与绩效合同
+一、KPI操作中的几个基本问题
+1、什么是目标与指标
+2、KPI指标的基本属性与操作注意要点
+   为什么评价起来感觉很难操作——刻度问题；　　 
+   他们为什么不接受这些考核指标——可控性问题　　 
+   为什么考核这些指标后适得其反——行为问题
+   选择kpi的维度
+   有效性
+   操作成本
+   区分度
+二、平衡计分卡——公司整体指标的设计
+1、什么是平衡计分卡；
+2、企业操作平衡计分卡的误区；
+3、战略与平衡计分卡有什么关系？——战略与战略地图；
+4、如何编制战略地图
+5、战略地图编制需要注意的10个问题  
+6、平衡计算分卡落实的三种方式；
+三．如何分解KPI
+KPI如果不分解落实下去，就会失去了基础，但是分解KPI的过程中会遇到很多问题，
+比如：一个kpi指标和好多部门都有关系，到底考核谁好呢？　　
+如何解决这些问题呢？如何将KPI分解落实下去呢？
+1、指标分解所需要解决的问题
+   团队业绩与个体业绩之间的矛盾
+2、分解指标的2种基本思想
+   按照驱动因素分解指标；
+   按照责任人分解指标；
+3、按照驱动因素分解KPI指标，上级指标与下级指标之间的关系
+4、按照驱动因素分解的四种方法
+   按照指标的结构分解法；
+   OAM分解法；
+   贡献路径图法；
+   流程关键控制点法；
+   四种方法的优缺点；
+   企业如何结合自己的实际情况选择分解的方法；
+5、分解KPI指标的注意问题：
+   权利对指标分解的影响、
+   组织结构的影响、
+   职责划分对指标分解的影响
+   硬件条件与软件条件对指标分解的影响
+四．指标词典的编制
+指标找到了就万事大吉了？还存在什么问题呢？为什么需要定义KPI，怎样定义KPI?
+1、为什么需要定义KPI
+2、财务指标定义时，需要注意的问题；
+   收入类指标需要注意的问题
+   成本指标考核需要注意的问题
+   费用类指标需要注意的问题
+3、非财务指标，定义时需要注意的问题；
+4、谁来提供数据——自己提供，别人提供，利益相关者提供？
+五、任务指标如何定义
+职能部门的指标，有些无法量化，该如何定义？
+1、职能部门工作的特点；
+2、什么是任务指标；
+3、难度不同的任务考核
+4、工作量不均衡如何处理？
+5、谁来制定任务？
+6、临时任务多如何处理？
+7、任务指标的定义模式；
+8、不同领导对员工考核，把我制度不一样要如何处理？
+六．目标值的确定
+找到了衡量指标就可以了嘛？如何确定目标呢？超过了目标应该计多少分？没有达到目标应该得多少分？
+1、设定目标的痛苦；
+2、没有历史数据怎么办？
+   先定目标在修改，还是先不考核，先积累数据再考核？
+3、原点法定目标？还是突破发定目标？
+4、原点法需要注意的问题：一刀切？回归分析？
+5、突破法定目标需要注意的问题：预测的不准确，是否要修改目标？
+6、能不能不定目标，让员工你追我赶——赛马法
+7、资源配置对目标设定的影响；
+8、淡季旺季，对目标设定的影响；
+9、制定目标的程序
+10、目标冲突的处理
+七、KPI的计分方式
+1、计分规则有哪些类别
+   比率法；
+   层差法；
+   说明法；
+2、计分规则设计要素
+   要不要封顶？
+   难度不同怎么区分？
+   要不要倒扣分
+   不同计分规则设计的要素；
+八．权重的设计
+1、什么是指标的组合方式；
+2、组合方式的种类；
+3、设置权重的步骤与注意问题；
+
+第三部分 推行绩效管理的问题与对策
+推行绩效管理所遇到的问题与对策；
+推行KPI不只是人力资源部门或者企管部门的事情，KPI在推行过程中有哪些问题与难点呢？
+一、在公司推行绩效需要解决的问题
+1、推行者需要能够逻辑自恰——自圆其说
+2、经理人的观念问题
+3、经理人的技巧问题
+   目标指标设定的技巧
+   绩效沟通的技巧
+   绩效辅导的技巧
+二、推行需要注意的问题
+1、最高领导的支持
+2、同事们的支持
+3、快乐考核与痛苦考核
+4、推行的时机选择
+   内部压力与外部压力
+三、推行绩效管理的策略
+1、分层次推行与全员推行
+2、局部试点与全员推行
+3、与激励挂钩的比例问题
+
+岗位分析与薪酬设计课程大纲（1天）：
+引子
+什么是薪酬；
+人力资源价值链；
+职位、人、市场、绩效对薪酬的影响；
+薪酬设计的框架
+薪酬设计中的矛盾：
+岗位与技能的矛盾
+能力与业绩的矛盾
+内部公平与外部公平的矛盾
+团队与个体的矛盾
+
+一、岗位分析部分：
+1、什么是岗位分析
+   什么是岗位分析；
+   岗位分析需要分析什么内容；
+   职责
+   任职资格
+   编制
+2、职责编制的方法
+   职责编制的方法；
+   分工需要考虑的问题；
+   纵向分工
+   横向分工——专业化还是工作扩大化
+   如何编制岗位职责；
+3、任职资格与晋升通道的设计
+   职位族划分与晋升通道的设计；
+   岗位任职资格编制的方法；
+4、如何确定编制的工具方法
+   业务数据分析法；
+   劳动效率定编法；
+   比例法；
+   预算控制法；
+
+二、薪酬设计需要解决的矛盾——内部公平性
+1、为什么要职位评估；
+2、职位评估所使用的方法；
+3、常见的职位评估的工具介绍；
+4、如何设计或者选择职位评估模型；
+5、职位评估的程序与注意问题；
+6、职位评估案
+
+三、薪酬设计需要解决的矛盾——外部公平性
+1、什么是外部公平性；
+2、如何进行薪酬调查；
+   如何自己做调查；
+   如何选择薪酬调查公司；
+3、如何处理薪酬调查的数据；
+4、如何确定薪酬水平；
+5、中位值级差的计算；
+
+四、薪酬结构的划分；
+1、什么是薪酬结构；
+2、薪酬的幅度与重叠度的计算；
+3、宽带还是窄带；
+4、固定与变动比例的划分需要考虑的问题
+   薪酬水平
+   行业特点
+   管理层次
+   历史传统；
+   职位序列；
+
+五、薪酬与能力的关系
+1、薪酬为什么需要和能力挂钩；
+2、什么情况下需要与能力挂钩；
+3、技能薪酬帮助企业解决的三个问题；
+4、如何评估员工能力；
+5、加薪是以能力为核心，还是以业绩为核心； 
+
+六、绩效工资发放需要考虑的问题
+1、按照分数发还是按照绩效排名；
+2、绩效排名需要考虑的问题
+   排名的比例；
+   谁和谁排名？
+   按照编制排名还是按照实际人数排名；
+   轮流坐庄怎么办？
+   排名的程序
+3、如何将目标与奖金挂钩的方式
+   联合基数确定法；
+   赛马法
+
+七、奖金设计如何使公司、部门、个人三挂钩；
+1、几种公司、部门、个人奖金挂钩模式的思考；
+2、几种模式优缺点的对比；
+3、集团公司下属分子公司的效益是否要与集团公司挂钩？
+
+八、奖金设计与外部因素的影响
+1、老总的奖金究竟该不该发？
+2、采购经理的奖金究竟该不该发？
+3、如果过滤外部因素的影响
+
+九、企业内各部门奖金设计的要点
+1、销售部门提成制，还是奖金制？
+2、项目类型工作奖金的设计；
+3、生产部门奖金的设计；
+
+十、发奖金的周期
+1、奖金周期与考核周期；
+2、年终奖还是年中奖；
+3、时机选择要考虑的要点；
+4、奖金的滞后性；
+
+十一、薪酬管理
+1、薪酬分析；
+   企业宏观的薪酬分析——投入产出；
+   微观的薪酬分析——内部竞争比率与外部竞争比率；
+2、如何给员工设计加薪
+   按照业绩考核成绩加薪；
+   分数与排名对加薪的影响；
+   按照能力加薪；
+   按照能力与业绩综合考虑加薪；
+   按照能力与业绩与员工在宽带中的位置加薪；
+3、薪酬预算与控制
+------------------------------------------------------------------------------------------
+培训讲师：蔡巍
+    国内知名的人力资源管理实务专家，工商管理硕士，权威人力资源管理实战专家，特别在绩效与薪
+酬体系设计方面有很深的造诣，形成了自己特有的实战方法，从2000年开始从事咨询行业，积累的丰富
+的实战经验，蔡老师上课所讲述的案例，大多为自己亲自实践的企业，蔡老师于2005年进入培训行业，
+开始将自己的实践经验传授给众多企业，先后为汽车、家电、航空、电力、互联网、金融等众多行业提
+供咨询与培训服务。
+    在咨询培训之于，蔡老师拙作颇丰。2001年，在中华英才网绩效管理bbs里面，首发了
+《兔子与猎狗——人力资源管理的目标是什么》，于2002年，出版了第一本著作《奔跑的蜈蚣：如何以
+考核促进成长》、于2003年《吹口哨的黄牛：以薪酬留住人才》、2004年《KPI，“关键绩效”指引成
+功》、2005年《BSC，“平衡计分”保证发展》，2006年出版了《人力资源部》，2007年出版了《如何
+发奖金》受到企业的高度重视，和给予极高的评介。
+    蔡老师授课风格严禁务实，逻辑性强，上课从不讲述与主题无关的废话，注重实际操作。
+    培训采用案例研讨、情景模拟、视频教学等多种方式将复杂的原理深入浅出的传达给学员。
+曾经辅导与参加过蔡老师培训的企业有：
+百度、金信、伊利集团、浦东机场、青岛机场、深圳机场、深圳航空公司、中国国际航空公司、首都机
+场、中国中铁、大连港股份、神华集团天津煤码头、南方电网集团、广东电网、山西电网、云南电网、
+贵州电网、国华徐电、国华宁电、万家乐、老板电器、海信科龙、海信集团、创维、一汽集团总部、一
+汽马自达、一汽轿车、一汽吉林汽车、一汽大众、奥迪销售事业部、一汽汽车研究院、奔腾汽车销售公
+司、解放汽车、东风本田、奇瑞控股、奇瑞汽车、金龙客车、青岛黄岛城投公司、京基地产、兰江地产
+、武汉高创集团、和讯科技、新农化工、彩虹集团、好利来连锁、新感觉连锁、鹏开中国、青岛海悦地
+产、广州秀珀化工、振杰国际、仙琚制药、华宁服饰、久泰化工、大富豪家具、广西水电工程局。
+------------------------------------------------------------------------------------------
+▓▓▓▓▓▓▓▓▓ 培 训 回 执 表 （此表复制有效）▓▓▓▓▓▓▓▓
+
+我单位共___ 人报名参加 2017年___ 在 ___ 举办的《企业绩效考核与薪酬体系设计》高级研修班；
+
+单位名称：____________________________________
+
+培训联系人：_________ 联系电话：____________
+
+移动电话：_________ 电子邮箱：_________
+
+参加人数：_________ 人 费用总计：_________ 元
+
+参 会 人：_________ 所任职务：_________ 移动电话：_________ 
+
+参 会 人：_________ 所任职务：_________ 移动电话：_________ 
+
+参 会 人：_________ 所任职务：_________ 移动电话：_________ 
+
+══════════════════════════════════════════════
+
+报名咨询电话：0755-61288035   010-51661863   021-31261580 
+
+在线咨询 QQ：6983436   报名信箱：6983436-9uewiaClKEY@public.gmane.org   (报名请回复以上报名表）
+ 
+参会方式：请您把培训回执表填写好回传，课前一星期您将会收到传真函，包括培训注意事项及详细安排
+
+══════════════════════════════════════════════
+11:45:03
+
+--===============2110309281618719692==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============2110309281618719692==--
