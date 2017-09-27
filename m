@@ -1,10 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from hrz.tu-chemnitz.de (unknown [183.14.31.23])
- by ml01.01.org (Postfix) with ESMTP id C019F2095BB74
- for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 21:29:33 -0700 (PDT)
-From: siwu@hrz.tu-chemnitz.de
-Subject: Returned mail: see transcript for details
-Date: Tue, 12 Sep 2017 12:32:42 +0800
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2276821F322BE
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Sep 2017 16:53:08 -0700 (PDT)
+Subject: [PATCH 3/3] dax: stop using VM_HUGEPAGE for dax
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 27 Sep 2017 16:49:56 -0700
+Message-ID: <150655619619.700.10374837827016131402.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150655617774.700.5326522538400299973.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150655617774.700.5326522538400299973.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,22 +22,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20170912043156.077E021D1E2D8@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The original message was received at Tue, 12 Sep 2017 12:32:42 +0800
-from hrz.tu-chemnitz.de [219.156.72.194]
+This flag is deprecated in favor of the vma_is_dax() check in
+transparent_hugepage_enabled() added in commit baabda261424 "mm: always
+enable thp for dax mappings"
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm@lists.01.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/device.c |    1 -
+ fs/ext4/file.c       |    1 -
+ fs/xfs/xfs_file.c    |    2 --
+ 3 files changed, 4 deletions(-)
 
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:siwu@hrz.tu-chemnitz.de
-<<< 501 siwu@hrz.tu-chemnitz.de... Refused
-
-
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index ed79d006026e..74a35eb5e6d3 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -450,7 +450,6 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ 		return rc;
+ 
+ 	vma->vm_ops = &dax_vm_ops;
+-	vma->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
+ }
+ 
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 0cc9d205bd96..a54e1b4c49f9 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -352,7 +352,6 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	file_accessed(file);
+ 	if (IS_DAX(file_inode(file))) {
+ 		vma->vm_ops = &ext4_dax_vm_ops;
+-		vma->vm_flags |= VM_HUGEPAGE;
+ 	} else {
+ 		vma->vm_ops = &ext4_file_vm_ops;
+ 	}
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index dece8fe937f5..c0e0fcbe1bd3 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1130,8 +1130,6 @@ xfs_file_mmap(
+ {
+ 	file_accessed(filp);
+ 	vma->vm_ops = &xfs_file_vm_ops;
+-	if (IS_DAX(file_inode(filp)))
+-		vma->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
+ }
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
