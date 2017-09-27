@@ -1,116 +1,90 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 594B521CEB0F8
- for <linux-nvdimm@lists.01.org>; Mon, 11 Sep 2017 11:18:18 -0700 (PDT)
-Date: Mon, 11 Sep 2017 12:21:12 -0600
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 27 Sep 2017 10:15:10 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: Unexpected writes seen on a Read-only, DAX enabled EXT4 fs
-Message-ID: <20170911182112.GA20005@linux.intel.com>
-References: <2036030243.251059.1504977026265.ref@mail.yahoo.com>
- <2036030243.251059.1504977026265@mail.yahoo.com>
+Subject: Re: [PATCH 1/7] xfs: always use DAX if mount option is used
+Message-ID: <20170927161510.GB24314@linux.intel.com>
+References: <20170925231404.32723-1-ross.zwisler@linux.intel.com>
+ <20170925231404.32723-2-ross.zwisler@linux.intel.com>
+ <20170925233812.GM10955@dastard>
+ <20170926093548.GB13627@quack2.suse.cz>
+ <20170926110957.GR10955@dastard>
+ <20170926143743.GB18758@lst.de>
+ <20170926173057.GB20159@linux.intel.com>
+ <20170927064001.GA27601@infradead.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2036030243.251059.1504977026265@mail.yahoo.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Soccer Liu <soccer_liu@yahoo.com>, linux-ext4@vger.kernel.org
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+In-Reply-To: <20170927064001.GA27601@infradead.org>
+Sender: owner-linux-mm@kvack.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, "J. Bruce Fields" <bfields@fieldses.org>, Dan Williams <dan.j.williams@intel.com>, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sat, Sep 09, 2017 at 05:10:26PM +0000, Soccer Liu wrote:
-> Hi:
-> =A0 I was surprised to see a few write operations called into
-> ext4_dax_huge_fault with FAULT_FLAG_WRITE set on vmf->flags
-> Are those writes expected at all?
-> static int ext4_dax_huge_fault(struct vm_fault *vmf,
->  enum page_entry_size pe_size)
-> {
-> ...
->  bool write =3D vmf->flags & FAULT_FLAG_WRITE;
-> Based on the following Mount documentation below, I did mount this ext fs
-> with ro and noloadAre there any other options that I could use to totally
-> eliminate those unexpected writes?
->    =
+On Tue, Sep 26, 2017 at 11:40:01PM -0700, Christoph Hellwig wrote:
+> On Tue, Sep 26, 2017 at 11:30:57AM -0600, Ross Zwisler wrote:
+> > I agree that Christoph's idea about having the system intelligently adjust to
+> > use DAX based on performance information it gathers about the underlying
+> > persistent memory (probably via the HMAT on x86_64 systems) is interesting,
+> > but I think we're still a ways away from that.
+> 
+> So what are the missing blockers for a getting started?
 
->    - -r, --read-only
->       - Mount the filesystem read-only. A synonym is -o ro.Note that,
->       depending on the filesystem type, state and kernel behavior, the
->       system may still write to the device. For example, Ext3 or ext4 will
->       replay itsjournal if the filesystem is dirty. To prevent this kind =
-of
->       write access, you may want to mount ext3 or ext4 filesystem with
->       "ro,noload" mount options or setthe block device to read-only mode,
->       see command blockdev(8).  -    =
+Well, I don't know if platforms that support HMAT + PMEM are widely available,
+but we have all the details in the ACPI spec, so we could begin to code it up
+and things will "just work" when platforms arrive.
 
-> =
+> > FWIW, as my patches suggest and Jan observed I think that we should allow
+> > users to turn on DAX by treating the inode flag and the mount flag as an 'or'
+> > operation.  i.e. you get DAX if either the mount option is specified or if the
+> > inode flag is set, and you can continue to manipulate the per-inode flag as
+> > you want regardless of the mount option.  I think this provides maximum
+> > flexibility of the mechanism to select DAX without enforcing policy.
+> 
+> IFF we stick to the dax flag that's the only workable way.  The only
+> major issue I still see with that is that this allows unprivilegued
+> users to enable DAX on a any file they own / have write access to.
+> So there isn't really any way to effectively disable the DAX path
+> by the sysadmin.
 
-> Related DMESG output...
-> =
+Hum, I wonder if maybe we need/want three different mount modes?  What about:
 
-> [=A0=A0=A0 0.891653] EXT4-fs (pmem0): DAX enabled. Warning: EXPERIMENTAL,=
- use at your own risk
-> [=A0=A0=A0 0.892736] EXT4-fs (pmem0): mounted filesystem without journal.=
- Opts: noload,dax
-> [=A0=A0=A0 0.898293] EXT4-fs (sda): mounted filesystem without journal. O=
-pts: (null)
-> [=A0=A0=A0 0.902574] random: fast init done
-> [=A0=A0=A0 0.926157] IPVS: ftp: loaded support on port[0] =3D 21
-> // My private debug messages
-> [=A0=A0=A0 0.997224] EXT4-fs (pmem0): write is 1 handle =3D 0xfffffffffff=
-fffe2 <--read-only device=A0
-> [=A0=A0=A0 0.998052] EXT4-fs (pmem0): write is 1 handle =3D 0xfffffffffff=
-fffe2
-> [=A0=A0=A0 0.998787] EXT4-fs (pmem0): write is 1 handle =3D 0xfffffffffff=
-fffe2
-> [=A0=A0=A0 0.999720] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0=A0 1.004626] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0=A0 1.005359] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0=A0 1.006128] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0=A0 1.006824] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0=A0 1.007499] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0=A0 1.008149] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0=A0 7.320626] random: crng init done
-> [=A0=A0 18.780447] EXT4-fs: 53 callbacks suppressed
-> [=A0=A0 18.781900] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0 18.783392] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0 18.790661] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0 18.792042] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0 18.793321] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0 18.795005] EXT4-fs (pmem0): write is 0 handle =3D 0x0
-> [=A0=A0 18.795204] EXT4-fs (pmem0): write is 1 handle =3D 0xfffffffffffff=
-fe2
-> [=A0=A0 18.795209] EXT4-fs (pmem0): write is 1 handle =3D 0xfffffffffffff=
-fe2
-> [=A0=A0 18.795213] EXT4-fs (pmem0): write is 1 handle =3D 0xfffffffffffff=
-fe2
-> [=A0=A0 18.795257] EXT4-fs (pmem0): write is 0 handle =3D 0x0
+autodax (the default): the filesystem is free to use DAX or not, as it sees
+fit and thinks is optimal.  For the time being we can make this mean "don't
+use DAX", and phase in DAX usage as we add support for the HMAT, etc.
 
-Adding the ext4 list.
+Users can manually turn on DAX for a given inode by setting the DAX inode
+flag, but there is no way for the user to *prevent* DAX for an inode - the
+kernel can always choose to turn it on.
 
-I'm pretty sure that this is ext4/mm behavior that is independent of DAX.  =
-DAX
-doesn't really have any impact on whether or not write page faults happen o=
-n a
-RO ext4 filesystem, though this fix from Randy Dodgen:
+MAP_DIRECT and MAP_SYNC work.
 
-https://www.spinics.net/lists/linux-ext4/msg58075.html
+nodax: Don't use DAX.  The kernel won't choose to use DAX, and any DAX inode
+flags will be ignored.  This gives the sysadmin the override that I think
+you're looking for.  The user can still manipulate the inode flags as they see
+fit.
 
-shows that FAULT_FLAG_WRITE can be set on DAX read-only ext4 mounts when
-executing binaries, though in this case the write is going to a COW page.
+MAP_DIRECT and MAP_SYNC both fail.
 
-- Ross
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+dax: Use DAX for all inodes in the filesystem.  Again the inode flags are
+essentially ignored, but the user can manipulate the inode flags as they see
+fit.  This is basically unchanged from how it works today, modulo the bug
+where DAX can get turned off if you unset the inode flag where it wasn't even
+set (patch 1 in my series).
+
+MAP_DIRECT and MAP_SYNC work.
+
+> > Does it make sense at this point to just start a "dax" man page that can
+> > contain info about the mount options, inode flags, kernel config options, how
+> > to get PMDs, etc?  Or does this documentation need to be sprinkled around more
+> > in existing man pages?
+> 
+> A dax manpage would be good.
+
+Okay, I'll start with a manpage, and once we agree on whats in there we can
+start working on code again. :)
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
