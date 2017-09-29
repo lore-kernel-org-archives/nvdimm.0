@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 17A2321E43B58
- for <linux-nvdimm@lists.01.org>; Fri, 22 Sep 2017 09:28:28 -0700 (PDT)
-Subject: [PATCH v5 2/2] dm: allow device-mapper to operate without dax support
+ by ml01.01.org (Postfix) with ESMTPS id 4C5092095E519
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Sep 2017 18:24:28 -0700 (PDT)
+Subject: [PATCH v2 3/4] dax: stop using VM_MIXEDMAP for dax
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Sep 2017 09:25:11 -0700
-Message-ID: <150609751116.25862.15738804417151935191.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150609750020.25862.11458070207401120153.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150609750020.25862.11458070207401120153.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 28 Sep 2017 18:21:18 -0700
+Message-ID: <150664807800.36094.3685385297224300424.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150664806143.36094.11882924009668860273.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150664806143.36094.11882924009668860273.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,181 +22,254 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: snitzer@redhat.com
-Cc: kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, Bart Van Assche <Bart.VanAssche@wdc.com>, Alasdair Kergon <agk@redhat.com>
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change device-mapper's 'select DAX' dependency to be dependent on the
-presence of at least one DAX_DRIVER. This allows device-mapper to be
-built without bringing the DAX core along which is especially wasteful
-when there are no DAX drivers, like BLK_DEV_PMEM, configured.
+VM_MIXEDMAP is used by dax to direct mm paths like vm_normal_page() that
+the memory page it is dealing with is not typical memory from the linear
+map. The get_user_pages_fast() path, since it does not resolve the vma,
+is already using {pte,pmd}_devmap() as a stand-in for VM_MIXEDMAP, so we
+use that as a VM_MIXEDMAP replacement in some locations. In the cases
+where there is no pte to consult we fallback to using vma_is_dax() to
+detect the VM_MIXEDMAP special case.
 
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Reported-by: Bart Van Assche <Bart.VanAssche@wdc.com>
-Reported-by: kbuild test robot <lkp@intel.com>
+Now that we always have pages for DAX we can stop setting VM_MIXEDMAP.
+This also means we no longer need to worry about safely manipulating
+vm_flags in a future where we support dynamically changing the dax mode
+of a file.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/md/Kconfig     |    2 +-
- drivers/md/dm-linear.c |    6 ++++++
- drivers/md/dm-stripe.c |    6 ++++++
- drivers/md/dm.c        |   10 ++++++----
- include/linux/dax.h    |   30 ++++++++++++++++++++++++------
- 5 files changed, 43 insertions(+), 11 deletions(-)
+ drivers/dax/device.c |    2 +-
+ fs/ext2/file.c       |    1 -
+ fs/ext4/file.c       |    2 +-
+ fs/xfs/xfs_file.c    |    2 +-
+ mm/huge_memory.c     |    8 ++++----
+ mm/ksm.c             |    3 +++
+ mm/madvise.c         |    2 +-
+ mm/memory.c          |   20 ++++++++++++++++++--
+ mm/migrate.c         |    3 ++-
+ mm/mlock.c           |    3 ++-
+ mm/mmap.c            |    3 ++-
+ 11 files changed, 35 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index 4a249ee86364..baeea31dc858 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -200,7 +200,7 @@ config BLK_DEV_DM_BUILTIN
- config BLK_DEV_DM
- 	tristate "Device mapper support"
- 	select BLK_DEV_DM_BUILTIN
--	select DAX
-+	select DAX if DAX_DRIVER
- 	---help---
- 	  Device-mapper is a low level volume manager.  It works by allowing
- 	  people to specify mappings for ranges of logical sectors.  Various
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index d5f8eff7c11d..df4b6f0489aa 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -154,6 +154,7 @@ static int linear_iterate_devices(struct dm_target *ti,
- 	return fn(ti, lc->dev, lc->start, ti->len, data);
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index e9f3b3e4bbf4..ed79d006026e 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -450,7 +450,7 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ 		return rc;
+ 
+ 	vma->vm_ops = &dax_vm_ops;
+-	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++	vma->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
  }
  
-+#if IS_ENABLED(CONFIG_DAX)
- static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
- {
-@@ -184,6 +185,11 @@ static size_t linear_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index ff3a3636a5ca..70657e8550ed 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -125,7 +125,6 @@ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ 	file_accessed(file);
+ 	vma->vm_ops = &ext2_dax_vm_ops;
+-	vma->vm_flags |= VM_MIXEDMAP;
+ 	return 0;
  }
- 
-+#else
-+#define linear_dax_direct_access NULL
-+#define linear_dax_copy_from_iter NULL
-+#endif
-+
- static struct target_type linear_target = {
- 	.name   = "linear",
- 	.version = {1, 4, 0},
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index b5e892149c54..8cb98ee2c9db 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -311,6 +311,7 @@ static int stripe_map(struct dm_target *ti, struct bio *bio)
- 	return DM_MAPIO_REMAPPED;
- }
- 
-+#if IS_ENABLED(CONFIG_DAX)
- static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
- {
-@@ -351,6 +352,11 @@ static size_t stripe_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
-+#else
-+#define stripe_dax_direct_access NULL
-+#define stripe_dax_copy_from_iter NULL
-+#endif
-+
- /*
-  * Stripe status:
-  *
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 6e54145969c5..e364c584a676 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1685,7 +1685,7 @@ static void cleanup_mapped_device(struct mapped_device *md)
- static struct mapped_device *alloc_dev(int minor)
- {
- 	int r, numa_node_id = dm_get_numa_node();
--	struct dax_device *dax_dev;
-+	struct dax_device *dax_dev = NULL;
- 	struct mapped_device *md;
- 	void *old_md;
- 
-@@ -1751,9 +1751,11 @@ static struct mapped_device *alloc_dev(int minor)
- 	md->disk->private_data = md;
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
- 
--	dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
--	if (!dax_dev)
--		goto bad;
-+	if (IS_ENABLED(CONFIG_DAX)) {
-+		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
-+		if (!dax_dev)
-+			goto bad;
-+	}
- 	md->dax_dev = dax_dev;
- 
- 	add_disk(md->disk);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 122197124b9d..898403da0458 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -25,16 +25,39 @@ extern struct attribute_group dax_attribute_group;
- 
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *dax_get_by_host(const char *host);
-+struct dax_device *alloc_dax(void *private, const char *host,
-+		const struct dax_operations *ops);
- void put_dax(struct dax_device *dax_dev);
-+void kill_dax(struct dax_device *dax_dev);
-+void dax_write_cache(struct dax_device *dax_dev, bool wc);
-+bool dax_write_cache_enabled(struct dax_device *dax_dev);
  #else
- static inline struct dax_device *dax_get_by_host(const char *host)
- {
- 	return NULL;
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index b1da660ac3bc..0cc9d205bd96 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -352,7 +352,7 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	file_accessed(file);
+ 	if (IS_DAX(file_inode(file))) {
+ 		vma->vm_ops = &ext4_dax_vm_ops;
+-		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++		vma->vm_flags |= VM_HUGEPAGE;
+ 	} else {
+ 		vma->vm_ops = &ext4_file_vm_ops;
+ 	}
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index ebdd0bd2b261..dece8fe937f5 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1131,7 +1131,7 @@ xfs_file_mmap(
+ 	file_accessed(filp);
+ 	vma->vm_ops = &xfs_file_vm_ops;
+ 	if (IS_DAX(file_inode(filp)))
+-		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++		vma->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
  }
--
-+static inline struct dax_device *alloc_dax(void *private, const char *host,
-+		const struct dax_operations *ops)
-+{
-+	/*
-+	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
-+	 * NULL is an error or expected.
-+	 */
-+	return NULL;
-+}
- static inline void put_dax(struct dax_device *dax_dev)
- {
+ 
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 269b5df58543..c69d30e27fd9 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -765,11 +765,11 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	 * but we need to be consistent with PTEs and architectures that
+ 	 * can't support a 'special' bit.
+ 	 */
+-	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
++	BUG_ON(!((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))
++				|| pfn_t_devmap(pfn)));
+ 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+-	BUG_ON(!pfn_t_devmap(pfn));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+@@ -824,11 +824,11 @@ int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 	 * but we need to be consistent with PTEs and architectures that
+ 	 * can't support a 'special' bit.
+ 	 */
+-	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
++	BUG_ON(!((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))
++				|| pfn_t_devmap(pfn)));
+ 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+-	BUG_ON(!pfn_t_devmap(pfn));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+diff --git a/mm/ksm.c b/mm/ksm.c
+index 15dd7415f7b3..787dfe4f3d44 100644
+--- a/mm/ksm.c
++++ b/mm/ksm.c
+@@ -2358,6 +2358,9 @@ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 				 VM_HUGETLB | VM_MIXEDMAP))
+ 			return 0;		/* just ignore the advice */
+ 
++		if (vma_is_dax(vma))
++			return 0;
++
+ #ifdef VM_SAO
+ 		if (*vm_flags & VM_SAO)
+ 			return 0;
+diff --git a/mm/madvise.c b/mm/madvise.c
+index 21261ff0466f..40344d43e565 100644
+--- a/mm/madvise.c
++++ b/mm/madvise.c
+@@ -95,7 +95,7 @@ static long madvise_behavior(struct vm_area_struct *vma,
+ 		new_flags |= VM_DONTDUMP;
+ 		break;
+ 	case MADV_DODUMP:
+-		if (new_flags & VM_SPECIAL) {
++		if (vma_is_dax(vma) || (new_flags & VM_SPECIAL)) {
+ 			error = -EINVAL;
+ 			goto out;
+ 		}
+diff --git a/mm/memory.c b/mm/memory.c
+index ec4e15494901..771acaf54fe6 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -830,6 +830,8 @@ struct page *_vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+ 			return vma->vm_ops->find_special_page(vma, addr);
+ 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+ 			return NULL;
++		if (pte_devmap(pte))
++			return NULL;
+ 		if (is_zero_pfn(pfn))
+ 			return NULL;
+ 
+@@ -917,6 +919,8 @@ struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 		}
+ 	}
+ 
++	if (pmd_devmap(pmd))
++		return NULL;
+ 	if (is_zero_pfn(pfn))
+ 		return NULL;
+ 	if (unlikely(pfn > highest_memmap_pfn))
+@@ -1227,7 +1231,7 @@ int copy_page_range(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 	 * efficient than faulting.
+ 	 */
+ 	if (!(vma->vm_flags & (VM_HUGETLB | VM_PFNMAP | VM_MIXEDMAP)) &&
+-			!vma->anon_vma)
++			!vma->anon_vma && !vma_is_dax(vma))
+ 		return 0;
+ 
+ 	if (is_vm_hugetlb_page(vma))
+@@ -1896,12 +1900,24 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
  }
-+static inline void kill_dax(struct dax_device *dax_dev)
+ EXPORT_SYMBOL(vm_insert_pfn_prot);
+ 
++static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
 +{
-+}
-+static inline void dax_write_cache(struct dax_device *dax_dev, bool wc)
-+{
-+}
-+static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
-+{
++	/* these checks mirror the abort conditions in vm_normal_page */
++	if (vma->vm_flags & VM_MIXEDMAP)
++		return true;
++	if (pfn_t_devmap(pfn))
++		return true;
++	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
++		return true;
 +	return false;
 +}
- #endif
++
+ static int __vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			pfn_t pfn, bool mkwrite)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
  
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
-@@ -79,18 +102,13 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
+-	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
++	BUG_ON(!vm_mixed_ok(vma, pfn));
  
- int dax_read_lock(void);
- void dax_read_unlock(int id);
--struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops);
- bool dax_alive(struct dax_device *dax_dev);
--void kill_dax(struct dax_device *dax_dev);
- void *dax_get_private(struct dax_device *dax_dev);
- long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
- 		void **kaddr, pfn_t *pfn);
- size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
--void dax_write_cache(struct dax_device *dax_dev, bool wc);
--bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return -EFAULT;
+diff --git a/mm/migrate.c b/mm/migrate.c
+index 6954c1435833..179a84a311f6 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -2927,7 +2927,8 @@ int migrate_vma(const struct migrate_vma_ops *ops,
+ 	/* Sanity check the arguments */
+ 	start &= PAGE_MASK;
+ 	end &= PAGE_MASK;
+-	if (!vma || is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL))
++	if (!vma || is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)
++			|| vma_is_dax(dma))
+ 		return -EINVAL;
+ 	if (start < vma->vm_start || start >= vma->vm_end)
+ 		return -EINVAL;
+diff --git a/mm/mlock.c b/mm/mlock.c
+index dfc6f1912176..4d009350893f 100644
+--- a/mm/mlock.c
++++ b/mm/mlock.c
+@@ -520,7 +520,8 @@ static int mlock_fixup(struct vm_area_struct *vma, struct vm_area_struct **prev,
+ 	vm_flags_t old_flags = vma->vm_flags;
  
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		const struct iomap_ops *ops);
+ 	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
+-	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm))
++	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm) ||
++	    vma_is_dax(vma))
+ 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
+ 		goto out;
+ 
+diff --git a/mm/mmap.c b/mm/mmap.c
+index 680506faceae..2f3971a051c6 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -1723,7 +1723,8 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
+ 	vm_stat_account(mm, vm_flags, len >> PAGE_SHIFT);
+ 	if (vm_flags & VM_LOCKED) {
+ 		if (!((vm_flags & VM_SPECIAL) || is_vm_hugetlb_page(vma) ||
+-					vma == get_gate_vma(current->mm)))
++					vma == get_gate_vma(current->mm) ||
++					vma_is_dax(vma)))
+ 			mm->locked_vm += (len >> PAGE_SHIFT);
+ 		else
+ 			vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
 
 _______________________________________________
 Linux-nvdimm mailing list
