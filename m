@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1EC5521E43B61
- for <linux-nvdimm@lists.01.org>; Fri, 22 Sep 2017 00:43:41 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id F2DE8AC011D
- for <linux-nvdimm@lists.01.org>; Fri, 22 Sep 2017 16:46:43 +0900 (JST)
-Date: Fri, 22 Sep 2017 16:46:26 +0900
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [PATCH v4 1/3] nfit_test Make private definitions to command emulation
-In-Reply-To: <20170922164440.4A35.E1E9C6FF@jp.fujitsu.com>
-References: <20170922164440.4A35.E1E9C6FF@jp.fujitsu.com>
-Message-Id: <20170922164622.4A38.E1E9C6FF@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1BDA320945BD6
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Sep 2017 17:50:57 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl,
+ list: fix crash when listing idle device-dax instances
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 28 Sep 2017 17:47:48 -0700
+Message-ID: <150664606831.15244.13043658016858646915.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,127 +21,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: NVDIMM-ML <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+The following crash results from running 'ndctl list -i' on an inactive
+namespace that is claimed for device-dax operation.
 
-Move private definitions to command emulation.
-These definitions were originally defined at include/uapi/linux/ndctl.h,
-but they are used at only nfit_test emulation now.
+    Program received signal SIGSEGV, Segmentation fault.
+    daxctl_dev_get_devname (dev=0x0) at libdaxctl.c:566
+    566             return devpath_to_devname(dev->dev_path);
+    (gdb) bt
+    #0  daxctl_dev_get_devname (dev=0x0) at libdaxctl.c:566
+    #1  0x0000555555563b39 in util_namespace_to_json
+        at ../util/json.c:751
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+By definition the 'chardev' attribute for a device-dax instance can not
+be found if the device-dax instance is disabled, because enabling the
+namespace creates the child character device(s).
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/uapi/linux/ndctl.h            | 37 ---------------------------
- tools/testing/nvdimm/test/nfit_test.h | 47 +++++++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 37 deletions(-)
+ util/json.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 6d3c542..3f03567 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -145,43 +145,6 @@ struct nd_cmd_clear_error {
- 	__u64 cleared;
- } __packed;
+diff --git a/util/json.c b/util/json.c
+index dac8692a89af..d1ee351546b9 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -747,12 +747,18 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		} else if (dax_region) {
+ 			struct daxctl_dev *dev;
  
--struct nd_cmd_trans_spa {
--	__u64 spa;
--	__u32 status;
--	__u8  flags;
--	__u8  _reserved[3];
--	__u64 trans_length;
--	__u32 num_nvdimms;
--	struct nd_nvdimm_device {
--		__u32 nfit_device_handle;
--		__u32 _reserved;
--		__u64 dpa;
--	} __packed devices[0];
--
--} __packed;
--
--struct nd_cmd_ars_err_inj {
--	__u64 err_inj_spa_range_base;
--	__u64 err_inj_spa_range_length;
--	__u8  err_inj_options;
--	__u32 status;
--} __packed;
--
--struct nd_cmd_ars_err_inj_clr {
--	__u64 err_inj_clr_spa_range_base;
--	__u64 err_inj_clr_spa_range_length;
--	__u32 status;
--} __packed;
--
--struct nd_cmd_ars_err_inj_stat {
--	__u32 status;
--	__u32 inj_err_rec_count;
--	struct nd_error_stat_query_record {
--		__u64 err_inj_stat_spa_range_base;
--		__u64 err_inj_stat_spa_range_length;
--	} __packed record[0];
--} __packed;
--
- enum {
- 	ND_CMD_IMPLEMENTED = 0,
- 
-diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
-index d3d63dd..52c83be9 100644
---- a/tools/testing/nvdimm/test/nfit_test.h
-+++ b/tools/testing/nvdimm/test/nfit_test.h
-@@ -32,6 +32,53 @@ struct nfit_test_resource {
- 	void *buf;
- };
- 
-+#define ND_TRANSLATE_SPA_STATUS_INVALID_SPA  2
-+
-+/* nfit commands */
-+enum nfit_cmd_num {
-+	NFIT_CMD_TRANSLATE_SPA = 5,
-+	NFIT_CMD_ARS_INJECT_SET = 7,
-+	NFIT_CMD_ARS_INJECT_CLEAR = 8,
-+	NFIT_CMD_ARS_INJECT_GET = 9,
-+};
-+
-+struct nd_cmd_translate_spa {
-+	__u64 spa;
-+	__u32 status;
-+	__u8  flags;
-+	__u8  _reserved[3];
-+	__u64 translate_length;
-+	__u32 num_nvdimms;
-+	struct nd_nvdimm_device {
-+		__u32 nfit_device_handle;
-+		__u32 _reserved;
-+		__u64 dpa;
-+	} __packed devices[0];
-+
-+} __packed;
-+
-+struct nd_cmd_ars_err_inj {
-+	__u64 err_inj_spa_range_base;
-+	__u64 err_inj_spa_range_length;
-+	__u8  err_inj_options;
-+	__u32 status;
-+} __packed;
-+
-+struct nd_cmd_ars_err_inj_clr {
-+	__u64 err_inj_clr_spa_range_base;
-+	__u64 err_inj_clr_spa_range_length;
-+	__u32 status;
-+} __packed;
-+
-+struct nd_cmd_ars_err_inj_stat {
-+	__u32 status;
-+	__u32 inj_err_rec_count;
-+	struct nd_error_stat_query_record {
-+		__u64 err_inj_stat_spa_range_base;
-+		__u64 err_inj_stat_spa_range_length;
-+	} __packed record[0];
-+} __packed;
-+
- union acpi_object;
- typedef void *acpi_handle;
- 
-
++			/*
++			 * We can only find/list these device-dax
++			 * details when the instance is enabled.
++			 */
+ 			dev = daxctl_dev_get_first(dax_region);
+-			name = daxctl_dev_get_devname(dev);
+-			jobj = json_object_new_string(name);
+-			if (!jobj)
+-				goto err;
+-			json_object_object_add(jndns, "chardev", jobj);
++			if (dev) {
++				name = daxctl_dev_get_devname(dev);
++				jobj = json_object_new_string(name);
++				if (!jobj)
++					goto err;
++				json_object_object_add(jndns, "chardev", jobj);
++			}
+ 		}
+ 	} else if (ndctl_namespace_get_type(ndns) != ND_DEVICE_NAMESPACE_IO) {
+ 		ndctl_namespace_get_uuid(ndns, uuid);
 
 _______________________________________________
 Linux-nvdimm mailing list
