@@ -1,15 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6ED9E21EA15A2
- for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:47 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 10/17] dax: Allow dax_iomap_fault() to return pfn
-Date: Tue, 24 Oct 2017 17:24:07 +0200
-Message-Id: <20171024152415.22864-11-jack@suse.cz>
-In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
-References: <20171024152415.22864-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 6669E21F303EB
+ for <linux-nvdimm@lists.01.org>; Sun,  1 Oct 2017 01:13:46 -0700 (PDT)
+Date: Sun, 1 Oct 2017 10:17:02 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 1/7] xfs: always use DAX if mount option is used
+Message-ID: <20171001081702.GC11895@lst.de>
+References: <20170925231404.32723-1-ross.zwisler@linux.intel.com>
+ <20170925231404.32723-2-ross.zwisler@linux.intel.com>
+ <20170925233812.GM10955@dastard> <20170926093548.GB13627@quack2.suse.cz>
+ <20170926110957.GR10955@dastard> <20170926143743.GB18758@lst.de>
+ <20170926173057.GB20159@linux.intel.com>
+ <20170927064001.GA27601@infradead.org>
+ <20170927161510.GB24314@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170927161510.GB24314@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,150 +25,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@infradead.org>, Christoph Hellwig <hch@lst.de>, Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, "J. Bruce Fields" <bfields@fieldses.org>, Dan Williams <dan.j.williams@intel.com>, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-For synchronous page fault dax_iomap_fault() will need to return PFN
-which will then need to be inserted into page tables after fsync()
-completes. Add necessary parameter to dax_iomap_fault().
+On Wed, Sep 27, 2017 at 10:15:10AM -0600, Ross Zwisler wrote:
+> Well, I don't know if platforms that support HMAT + PMEM are widely available,
+> but we have all the details in the ACPI spec, so we could begin to code it up
+> and things will "just work" when platforms arrive.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c            | 13 +++++++------
- fs/ext2/file.c      |  2 +-
- fs/ext4/file.c      |  2 +-
- fs/xfs/xfs_file.c   |  4 ++--
- include/linux/dax.h |  2 +-
- 5 files changed, 12 insertions(+), 11 deletions(-)
+Then again currently all actually shipping NVDIMMs are battery backed
+dram and DAX mode should work just fine for them.  Things will get
+interesting once companies start shipping actually persistent technologies
+that will be significantly slower than DRAM.  And we sould make sure
+we have the infrastruture for that in place.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5214ed9ba508..5ddf15161390 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1079,7 +1079,7 @@ static int dax_fault_return(int error)
- 	return VM_FAULT_SIGBUS;
- }
- 
--static int dax_iomap_pte_fault(struct vm_fault *vmf,
-+static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 			       const struct iomap_ops *ops)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -1280,7 +1280,7 @@ static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
- 	return VM_FAULT_FALLBACK;
- }
- 
--static int dax_iomap_pmd_fault(struct vm_fault *vmf,
-+static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 			       const struct iomap_ops *ops)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -1425,7 +1425,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
- 	return result;
- }
- #else
--static int dax_iomap_pmd_fault(struct vm_fault *vmf,
-+static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 			       const struct iomap_ops *ops)
- {
- 	return VM_FAULT_FALLBACK;
-@@ -1436,6 +1436,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
-  * dax_iomap_fault - handle a page fault on a DAX file
-  * @vmf: The description of the fault
-  * @pe_size: Size of the page to fault in
-+ * @pfnp: PFN to insert for synchronous faults if fsync is required
-  * @ops: Iomap ops passed from the file system
-  *
-  * When a page fault occurs, filesystems may call this helper in
-@@ -1444,13 +1445,13 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
-  * successfully.
-  */
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
--		    const struct iomap_ops *ops)
-+		    pfn_t *pfnp, const struct iomap_ops *ops)
- {
- 	switch (pe_size) {
- 	case PE_SIZE_PTE:
--		return dax_iomap_pte_fault(vmf, ops);
-+		return dax_iomap_pte_fault(vmf, pfnp, ops);
- 	case PE_SIZE_PMD:
--		return dax_iomap_pmd_fault(vmf, ops);
-+		return dax_iomap_pmd_fault(vmf, pfnp, ops);
- 	default:
- 		return VM_FAULT_FALLBACK;
- 	}
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index ff3a3636a5ca..d2bb7c96307d 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -99,7 +99,7 @@ static int ext2_dax_fault(struct vm_fault *vmf)
- 	}
- 	down_read(&ei->dax_sem);
- 
--	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &ext2_iomap_ops);
-+	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, NULL, &ext2_iomap_ops);
- 
- 	up_read(&ei->dax_sem);
- 	if (vmf->flags & FAULT_FLAG_WRITE)
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index b1da660ac3bc..3cec0b95672f 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -306,7 +306,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 		down_read(&EXT4_I(inode)->i_mmap_sem);
- 	}
- 	if (!IS_ERR(handle))
--		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
-+		result = dax_iomap_fault(vmf, pe_size, NULL, &ext4_iomap_ops);
- 	else
- 		result = VM_FAULT_SIGBUS;
- 	if (write) {
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 309e26c9dddb..7c6b8def6eed 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1040,7 +1040,7 @@ __xfs_filemap_fault(
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 	if (IS_DAX(inode)) {
--		ret = dax_iomap_fault(vmf, pe_size, &xfs_iomap_ops);
-+		ret = dax_iomap_fault(vmf, pe_size, NULL, &xfs_iomap_ops);
- 	} else {
- 		if (write_fault)
- 			ret = iomap_page_mkwrite(vmf, &xfs_iomap_ops);
-@@ -1111,7 +1111,7 @@ xfs_filemap_pfn_mkwrite(
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
- 	else if (IS_DAX(inode))
--		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
-+		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, NULL, &xfs_iomap_ops);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 122197124b9d..e7fa4b8f45bc 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -95,7 +95,7 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev);
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		const struct iomap_ops *ops);
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
--		    const struct iomap_ops *ops);
-+		    pfn_t *pfnp, const struct iomap_ops *ops);
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
--- 
-2.12.3
+> Hum, I wonder if maybe we need/want three different mount modes?  What about:
+> 
+> autodax (the default): the filesystem is free to use DAX or not, as it sees
+> fit and thinks is optimal.  For the time being we can make this mean "don't
+> use DAX", and phase in DAX usage as we add support for the HMAT, etc.
 
+What does "use DAX" really mean anyway?
+
+I think we are conflating a few things:
+
+ a) use a block device or use a dax_device for accessing the device
+ b) use the pagecache for caching data in DRAM or not.
+
+Now we actually have a really nice way to control a) already, it's
+called O_DIRECT.  Currently O_DIRECT only works with read/write I/O,
+but with a byte addressable scheme we now can implement it for mmap
+as well, which is what the DAX mmap path does.
+
+b) right now is implied by a), but it's really an implementation
+detail.
+
+So the modes would be more like two options to:
+
+ a) disallow any byte-level access.  The right way to do that would
+    be to mount the /dev/dax* device instead of the block device
+    to allow byte access, and disallow any DAXish operation if you
+    mount the block device in the long run.
+ b) have a mode to always force an O_DIRECT-like mode for devices
+    that are fast enough.  We should always do that with the right
+    HMAT entries if mounting the /dev/dax devices, and maybe have
+    a mount option to force it.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
