@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B9F1621DF9690
- for <linux-nvdimm@lists.01.org>; Sat,  7 Oct 2017 21:07:04 -0700 (PDT)
-Subject: [PATCH v8 2/2] IB/core: use MAP_DIRECT to fix / enable RDMA to DAX
- mappings
+ by ml01.01.org (Postfix) with ESMTPS id 0FEBD21FC7476
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Oct 2017 15:39:18 -0700 (PDT)
+Subject: [PATCH v7 11/12] IB/core: use MAP_DIRECT to fix / enable RDMA to
+ DAX mappings
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 07 Oct 2017 21:04:04 -0700
-Message-ID: <150743537023.13602.3520782942682280917.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150732937720.22363.1037155753760964267.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150732937720.22363.1037155753760964267.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 06 Oct 2017 15:36:17 -0700
+Message-ID: <150732937720.22363.1037155753760964267.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +24,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Dave Chinner <david@fromorbit.com>, iommu@lists.linux-foundation.org, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
 Currently the ibverbs core in the kernel is completely unaware of the
@@ -45,12 +45,9 @@ filesystem is invalidating the block map of the file and needs RDMA
 operations to stop. Given that the kernel can not be in a position where
 it needs to wait indefinitely for userspace to stop a device we need a
 mechanism where the kernel can force-revoke access. Towards that end, use
-the dma_get_iommu_domain() to both check if the device has domain
-mappings that can be invalidated and retrieve the iommu_domain for use
-with iommu_unmap.
-
-Once we have that assurance that we can block in-flight I/O when the
-file's block map changes then we can safely allow RDMA to DAX.
+the new dma_has_iommu() helper to determine if ib_dma_unmap_sg() is
+sufficient for revoking access. Once we have that assurance and a
+->lease_direct() lease we can safely allow RDMA to DAX.
 
 Cc: Sean Hefty <sean.hefty@intel.com>
 Cc: Doug Ledford <dledford@redhat.com>
@@ -59,27 +56,18 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Ashok Raj <ashok.raj@intel.com>
 Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Jeff Layton <jlayton@poochiereds.net>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes since v7:
-* Switch from dma_has_iommu() to dma_get_iommu_domain().
-* Switch from dma_unmap_sg() at lease break time, to iommu_unmap() so
-  that the IOVA remains allocated while the device might still be
-  sending transactions.
-
- drivers/infiniband/core/umem.c |   90 +++++++++++++++++++++++++++++++++++-----
+ drivers/infiniband/core/umem.c |   90 ++++++++++++++++++++++++++++++++++------
  include/rdma/ib_umem.h         |    8 ++++
- 2 files changed, 86 insertions(+), 12 deletions(-)
+ 2 files changed, 85 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 21e60b1e2ff4..5e4598982359 100644
+index 21e60b1e2ff4..dc3ae1bee669 100644
 --- a/drivers/infiniband/core/umem.c
 +++ b/drivers/infiniband/core/umem.c
 @@ -36,6 +36,7 @@
@@ -90,7 +78,7 @@ index 21e60b1e2ff4..5e4598982359 100644
  #include <linux/export.h>
  #include <linux/hugetlb.h>
  #include <linux/slab.h>
-@@ -46,10 +47,16 @@
+@@ -46,11 +47,12 @@
  
  static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
  {
@@ -99,37 +87,36 @@ index 21e60b1e2ff4..5e4598982359 100644
  	struct page *page;
  	int i;
  
-+	list_for_each_entry_safe(ld, _ld, &umem->leases, list) {
-+		list_del_init(&ld->list);
-+		map_direct_lease_destroy(ld);
-+	}
-+
- 	if (umem->nmap > 0)
+-	if (umem->nmap > 0)
++	if (umem->nmap > 0 && test_and_clear_bit(IB_UMEM_MAPPED, &umem->state))
  		ib_dma_unmap_sg(dev, umem->sg_head.sgl,
  				umem->npages,
-@@ -64,10 +71,20 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+ 				DMA_BIDIRECTIONAL);
+@@ -64,8 +66,22 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
  	}
  
  	sg_free_table(&umem->sg_head);
 -	return;
  
- }
- 
++	list_for_each_entry_safe(ld, _ld, &umem->leases, list) {
++		list_del_init(&ld->list);
++		map_direct_lease_destroy(ld);
++	}
++}
++
 +static void ib_umem_lease_break(void *__umem)
 +{
 +	struct ib_umem *umem = umem;
-+	struct ib_device *idev = umem->context->device;
-+	struct device *dev = idev->dma_device;
-+	struct scatterlist *sgl = umem->sg_head.sgl;
++	struct ib_device *dev = umem->context->device;
 +
-+	iommu_unmap(umem->iommu, sg_dma_address(sgl) & PAGE_MASK,
-+			iommu_sg_num_pages(dev, sgl, umem->npages));
-+}
-+
++	if (umem->nmap > 0 && test_and_clear_bit(IB_UMEM_MAPPED, &umem->state))
++		ib_dma_unmap_sg(dev, umem->sg_head.sgl,
++				umem->npages,
++				DMA_BIDIRECTIONAL);
+ }
+ 
  /**
-  * ib_umem_get - Pin and DMA map userspace memory.
-  *
-@@ -96,7 +113,10 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+@@ -96,7 +112,10 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
  	struct scatterlist *sg, *sg_list_start;
  	int need_release = 0;
  	unsigned int gup_flags = FOLL_WRITE;
@@ -140,11 +127,12 @@ index 21e60b1e2ff4..5e4598982359 100644
  	if (dmasync)
  		dma_attrs |= DMA_ATTR_WRITE_BARRIER;
  
-@@ -120,6 +140,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+@@ -120,6 +139,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
  	umem->address    = addr;
  	umem->page_shift = PAGE_SHIFT;
  	umem->pid	 = get_task_pid(current, PIDTYPE_PID);
 +	INIT_LIST_HEAD(&umem->leases);
++	set_bit(IB_UMEM_MAPPED, &umem->state);
  	/*
  	 * We ask for writable memory if any of the following
  	 * access flags are set.  "Local write" and "remote write"
@@ -178,7 +166,7 @@ index 21e60b1e2ff4..5e4598982359 100644
  
  	npages = ib_umem_num_pages(umem);
  
-@@ -199,15 +222,52 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+@@ -199,15 +222,50 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
  		if (ret < 0)
  			goto out;
  
@@ -212,15 +200,13 @@ index 21e60b1e2ff4..5e4598982359 100644
 +
 +			vm_ops = vma->vm_ops;
 +			if (!vm_ops->lease_direct) {
-+				dev_info(dma_dev, "DAX-RDMA requires a MAP_DIRECT mapping\n");
++				dev_info(dma_dev, "DAX-RDMA needs lease_direct\n");
 +				ret = -EOPNOTSUPP;
 +				goto out;
 +			}
 +
-+			if (!umem->iommu)
-+				umem->iommu = dma_get_iommu_domain(dma_dev);
-+			if (!umem->iommu) {
-+				dev_info(dma_dev, "DAX-RDMA requires an iommu protected device\n");
++			if (!dma_has_iommu(dma_dev)) {
++				dev_info(dma_dev, "DAX-RDMA needs iommu\n");
 +				ret = -EOPNOTSUPP;
 +				goto out;
 +			}
@@ -234,7 +220,7 @@ index 21e60b1e2ff4..5e4598982359 100644
  		}
  
  		/* preparing for next loop */
-@@ -242,6 +302,12 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+@@ -242,6 +300,12 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
  	free_page((unsigned long) page_list);
  
  	return ret < 0 ? ERR_PTR(ret) : umem;
@@ -248,17 +234,17 @@ index 21e60b1e2ff4..5e4598982359 100644
  EXPORT_SYMBOL(ib_umem_get);
  
 diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index 23159dd5be18..5048be012f96 100644
+index 23159dd5be18..796ffe5b8dc3 100644
 --- a/include/rdma/ib_umem.h
 +++ b/include/rdma/ib_umem.h
-@@ -34,6 +34,7 @@
- #define IB_UMEM_H
+@@ -40,6 +40,7 @@
+ struct ib_ucontext;
+ struct ib_umem_odp;
  
- #include <linux/list.h>
-+#include <linux/iommu.h>
- #include <linux/scatterlist.h>
- #include <linux/workqueue.h>
- 
++#define IB_UMEM_MAPPED 0
+ struct ib_umem {
+ 	struct ib_ucontext     *context;
+ 	size_t			length;
 @@ -55,6 +56,13 @@ struct ib_umem {
  	struct sg_table sg_head;
  	int             nmap;
@@ -269,7 +255,7 @@ index 23159dd5be18..5048be012f96 100644
 +	 * instance.
 +	 */
 +	struct list_head	leases;
-+	struct iommu_domain	*iommu;
++	unsigned long		state;
  };
  
  /* Returns the offset of the umem start relative to the first page. */
