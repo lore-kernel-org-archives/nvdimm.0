@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2CBB721EA15C5
- for <linux-nvdimm@lists.01.org>; Thu,  5 Oct 2017 18:52:54 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 8/8] ndctl/test: add a new unit test for BTT error
- clearing
-Date: Thu,  5 Oct 2017 19:54:05 -0600
-Message-Id: <20171006015405.29908-9-vishal.l.verma@intel.com>
-In-Reply-To: <20171006015405.29908-1-vishal.l.verma@intel.com>
-References: <20171006015405.29908-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 45CF92095B066
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Oct 2017 11:00:28 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v4 0/3] acpi nfit: make emulation of translate SPA on
+ nfit_test
+Date: Fri, 6 Oct 2017 18:03:50 +0000
+Message-ID: <1507313029.2787.0.camel@intel.com>
+References: <20170922164440.4A35.E1E9C6FF@jp.fujitsu.com>
+ <CAPcyv4iJ2c7850yCH8YJg6CZ5XmoKxpAwF7L0Fk75xrbRWLBvg@mail.gmail.com>
+In-Reply-To: <CAPcyv4iJ2c7850yCH8YJg6CZ5XmoKxpAwF7L0Fk75xrbRWLBvg@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <CCF92E157EAE954F8813BA8363032D03@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,203 +22,67 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "y-goto@jp.fujitsu.com" <y-goto@jp.fujitsu.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The new error injection command allows us to inject errors that persist
-through changing the mode of a BTT namespace to 'raw' and back. This
-allows us to test error clearing with a BTT by adding a selective error
-block to the raw namespace, enabling the BTT, and then clearing it via a
-write.
+On Thu, 2017-10-05 at 21:57 -0700, Dan Williams wrote:
+> On Fri, Sep 22, 2017 at 12:44 AM, Yasunori Goto <y-goto@jp.fujitsu.co
+> m> wrote:
+> > 
+> > Hello
+> > 
+> > I made a v4 patch set to emulate translate SPA by nfit_test.ko
+> > module.
+> > If possible, please merge it.
+> > 
+> > ----
+> > This patch set is to emulate translate SPA feature by nfit_test.ko.
+> > 
+> > Certainly the nfit acpi driver supports translate SPA interface
+> > via ND_CMD_CALL. But nfit_test does not support it yet.
+> > 
+> > To test translate SPA with nfit_test, this patch set is needed.
+> > 
+> > ---
+> > Change log since v3 [1]:
+> >   - Rebase current libnvdimm-for-next branch.
+> >   - Fix over 80 character lines and too much tabs which is pointed
+> >     by Verma-san. (Thanks!)
+> >   - Since ndctl became to use the name "nfit_cmd" instead of
+> > "passthru",
+> >     "passthru" is renamed to "nfit_cmd".
+> > 
+> > Change log since v2 [2]:
+> >  - Make private defintion just for nfit_test.
+> >     (NFIT_CMD_TRANSLATE_SPA, struct nd_cmd_translate_spa, and
+> > others)
+> >  - Check region by kobj.name instead of using is_nd_pmem().
+> > 
+> > 
+> > Change log since v1 [3]:
+> >  - Separate patch set of kenel from ndctl patch set.
+> >  - Change interface via ND_CMD_CALL.
+> > 
+> > [1] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05863
+> > .html
+> > [2] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05582
+> > .html
+> > [3] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg05287
+> > .html
+> > 
+> 
+> Vishal, since you built on top of these can I add your Tested-by or
+> Reviewed-by?
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/Makefile.am   |   3 +-
- test/btt-errors.sh | 152 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 154 insertions(+), 1 deletion(-)
- create mode 100755 test/btt-errors.sh
+Yes, I meant to send a reveiwed-by, but might've forgotten.
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 8cec451..881fcea 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -14,7 +14,8 @@ TESTS =\
- 	btt-check.sh \
- 	label-compat.sh \
- 	blk-exhaust.sh \
--	inject-error.sh
-+	inject-error.sh \
-+	btt-errors.sh
- 
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/btt-errors.sh b/test/btt-errors.sh
-new file mode 100755
-index 0000000..9d96ac9
---- /dev/null
-+++ b/test/btt-errors.sh
-@@ -0,0 +1,152 @@
-+#!/bin/bash -x
-+
-+# Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
-+#
-+# This program is free software; you can redistribute it and/or modify it
-+# under the terms of version 2 of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it will be useful, but
-+# WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# General Public License for more details.
-+
-+NDCTL="../ndctl/ndctl"
-+BUS="nfit_test.0"
-+MNT=test_btt_mnt
-+FILE=image
-+json2var="s/[{}\",]//g; s/:/=/g"
-+blockdev=""
-+rc=77
-+
-+err() {
-+	rc=1
-+	echo "test/btt-errors: failed at line $1"
-+
-+	#TODO remove
-+	exit
-+
-+	rm -f $FILE
-+	rm -f $MNT/$FILE
-+	if [ -n "$blockdev" ]; then
-+		umount "/dev/$blockdev"
-+	else
-+		rc=77
-+	fi
-+	rmdir $MNT
-+	exit $rc
-+}
-+
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+force_raw()
-+{
-+	raw="$1"
-+	if grep -q "$MNT" /proc/mounts; then umount $MNT; fi
-+	ndctl disable-namespace "$dev"
-+	echo "$raw" > "/sys/bus/nd/devices/$dev/force_raw"
-+	ndctl enable-namespace "$dev"
-+	echo "Set $dev to raw mode: $raw"
-+	if [[ "$raw" == "1" ]]; then
-+		raw_bdev=${blockdev%s}
-+		test -b "/dev/$raw_bdev"
-+	else
-+		raw_bdev=""
-+	fi
-+}
-+
-+check_min_kver "4.14" || { echo "kernel $KVER may lack BTT error handling"; exit $rc; }
-+
-+set -e
-+mkdir -p $MNT
-+trap 'err $LINENO' ERR
-+
-+# setup (reset nfit_test dimms)
-+modprobe nfit_test
-+$NDCTL disable-region -b "$BUS" all
-+$NDCTL zero-labels -b "$BUS" all
-+$NDCTL enable-region -b "$BUS" all
-+
-+rc=1
-+
-+# create a btt namespace and clear errors (if any)
-+dev="x"
-+json=$($NDCTL create-namespace -b "$BUS" -t pmem -m sector)
-+eval "$(echo "$json" | sed -e "$json2var")"
-+[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
-+
-+force_raw 1
-+if read -r sector len < "/sys/block/$raw_bdev/badblocks"; then
-+	dd of=/dev/$raw_bdev if=/dev/zero oflag=direct bs=512 seek="$sector" count="$len"
-+fi
-+force_raw 0
-+
-+mkfs.ext4 "/dev/$blockdev" -b 4096
-+mount -o nodelalloc "/dev/$blockdev" $MNT
-+
-+# prepare an image file with random data
-+dd if=/dev/urandom of=$FILE bs=4096 count=1
-+test -s $FILE
-+
-+# copy it to the file system
-+cp $FILE $MNT/$FILE
-+
-+# Get the start sector for the file
-+start_sect=$(filefrag -v -b512 $MNT/$FILE | grep -E "^[ ]+[0-9]+.*" | head -1 | awk '{ print $4 }' | cut -d. -f1)
-+start_4k=$((start_sect/8))
-+test -n "$start_sect"
-+echo "start sector of the file is: $start_sect (512B) or $start_4k (4096B)"
-+
-+# figure out the btt offset
-+
-+force_raw 1
-+
-+# calculate start of the map
-+map=$(hexdump -s 96 -n 4 "/dev/$raw_bdev" | head -1 | cut -d' ' -f2-)
-+map=$(tr -d ' ' <<< "0x${map#* }${map%% *}")
-+printf "btt map starts at: %x\n" "$map"
-+
-+# calculate map entry byte offset for the file's block
-+map_idx=$((map + (4 * start_4k)))
-+printf "btt map entry location for sector %x: %x\n" "$start_4k" "$map_idx"
-+
-+# read the map entry
-+map_ent=$(hexdump -s $map_idx -n 4 "/dev/$raw_bdev" | head -1 | cut -d' ' -f2-)
-+map_ent=$(tr -d ' ' <<< "0x${map_ent#* }${map_ent%% *}")
-+map_ent=$((map_ent & 0x3fffffff))
-+printf "btt map entry: 0x%x\n" "$map_ent"
-+
-+# calculate the data offset
-+dataoff=$(((map_ent * 4096) + 4096))
-+printf "dataoff: 0x%x\n" "$dataoff"
-+
-+bb_inj=$((dataoff/512))
-+
-+# inject badblocks for one page at the start of the file
-+$NDCTL inject-error --sector="$bb_inj" --count=8 $dev
-+
-+force_raw 0
-+mount -o nodelalloc "/dev/$blockdev" $MNT
-+
-+# make sure reading the first block of the file fails as expected
-+: The following 'dd' is expected to hit an I/O Error
-+dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
-+
-+# write via btt to clear the error
-+dd if=/dev/zero of=$MNT/$FILE oflag=direct bs=4096 count=1
-+
-+# read again and that should succeed
-+dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1
-+
-+# done, exit
-+$NDCTL disable-region -b "$BUS" all
-+$NDCTL zero-labels -b "$BUS" all
-+$NDCTL enable-region -b "$BUS" all
-+exit 0
--- 
-2.9.5
-
+Thanks,
+-Vishal
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
