@@ -1,21 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x235.google.com (mail-oi0-x235.google.com
+ [IPv6:2607:f8b0:4003:c06::235])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1E0C121F3C1B9
- for <linux-nvdimm@lists.01.org>; Mon,  9 Oct 2017 13:19:57 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 1/4] libnvdimm: move poison list functions to a new
- 'badrange' file
-Date: Mon, 9 Oct 2017 20:23:23 +0000
-Message-ID: <1507580479.23025.77.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 046F621EA15B0
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Oct 2017 11:48:50 -0700 (PDT)
+Received: by mail-oi0-x235.google.com with SMTP id c77so29052251oig.0
+ for <linux-nvdimm@lists.01.org>; Fri, 06 Oct 2017 11:52:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20171006015340.29722-2-vishal.l.verma@intel.com>
 References: <20171006015340.29722-1-vishal.l.verma@intel.com>
  <20171006015340.29722-2-vishal.l.verma@intel.com>
- <CAPcyv4i=sNRwWHbDh0fgSEixn1G0R5UwgCa8HBfNuWyDyC7s8w@mail.gmail.com>
-In-Reply-To: <CAPcyv4i=sNRwWHbDh0fgSEixn1G0R5UwgCa8HBfNuWyDyC7s8w@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <D69F6265B79E934BAA9D5402213A612C@intel.com>
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 6 Oct 2017 11:52:13 -0700
+Message-ID: <CAPcyv4i=sNRwWHbDh0fgSEixn1G0R5UwgCa8HBfNuWyDyC7s8w@mail.gmail.com>
+Subject: Re: [PATCH 1/4] libnvdimm: move poison list functions to a new
+ 'badrange' file
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,112 +23,129 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCAyMDE3LTEwLTA2IGF0IDExOjUyIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFRodSwgT2N0IDUsIDIwMTcgYXQgNjo1MyBQTSwgVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52
-ZXJtYUBpbnRlbC5jb20NCj4gPiB3cm90ZToNCj4gPiBGcm9tOiBEYXZlIEppYW5nIDxkYXZlLmpp
-YW5nQGludGVsLmNvbT4NCj4gPiANCj4gPiBGcm9tOiBEYXZlIEppYW5nIDxkYXZlLmppYW5nQGlu
-dGVsLmNvbT4NCj4gPiANCj4gPiBuZml0X3Rlc3QgbmVlZHMgdG8gdXNlIHRoZSBwb2lzb24gbGlz
-dCBtYW5pcHVsYXRpb24gY29kZSBhcyB3ZWxsLg0KPiA+IE1ha2UNCj4gPiBpdCBtb3JlIGdlbmVy
-aWMgYW5kIGluIHRoZSBwcm9jZXNzIHJlbmFtZSBwb2lzb24gdG8gYmFkcmFuZ2UsIGFuZA0KPiA+
-IG1vdmUNCj4gPiBhbGwgdGhlIHJlbGF0ZWQgaGVscGVycyB0byBhIG5ldyBmaWxlLg0KPiA+IA0K
-PiA+IFNpZ25lZC1vZmYtYnk6IERhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPg0KPiA+
-IFt2aXNoYWw6IGFkZCBhIG1pc3NlZCBpbmNsdWRlIGluIGJ1cy5jIGZvciB0aGUgbmV3IGJhZHJh
-bmdlDQo+ID4gZnVuY3Rpb25zXQ0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBWZXJtYSA8dmlz
-aGFsLmwudmVybWFAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+IMKgZHJpdmVycy9hY3BpL25maXQv
-Y29yZS5jwqDCoHzCoMKgwqAyICstDQo+ID4gwqBkcml2ZXJzL2FjcGkvbmZpdC9tY2UuY8KgwqDC
-oHzCoMKgwqAyICstDQo+ID4gwqBkcml2ZXJzL252ZGltbS9NYWtlZmlsZcKgwqDCoHzCoMKgwqAx
-ICsNCj4gPiDCoGRyaXZlcnMvbnZkaW1tL2JhZHJhbmdlLmMgfCAyOTQNCj4gPiArKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gwqBkcml2ZXJzL252ZGlt
-bS9idXMuY8KgwqDCoMKgwqDCoHzCoMKgMjQgKystLQ0KPiA+IMKgZHJpdmVycy9udmRpbW0vY29y
-ZS5jwqDCoMKgwqDCoHwgMjYwICstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+
-IC0tLS0tLS0NCj4gPiDCoGRyaXZlcnMvbnZkaW1tL25kLWNvcmUuaMKgwqB8wqDCoMKgMyArLQ0K
-PiA+IMKgZHJpdmVycy9udmRpbW0vbmQuaMKgwqDCoMKgwqDCoMKgfMKgwqDCoDYgLQ0KPiA+IMKg
-aW5jbHVkZS9saW51eC9saWJudmRpbW0uaCB8wqDCoDIxICsrKy0NCj4gPiDCoDkgZmlsZXMgY2hh
-bmdlZCwgMzMxIGluc2VydGlvbnMoKyksIDI4MiBkZWxldGlvbnMoLSkNCj4gPiDCoGNyZWF0ZSBt
-b2RlIDEwMDY0NCBkcml2ZXJzL252ZGltbS9iYWRyYW5nZS5jDQo+ID4gDQo+ID4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyBiL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYw0K
-PiA+IGluZGV4IGEzZWNkNWUuLjRiMTU3ZjggMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3Bp
-L25maXQvY29yZS5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL25maXQvY29yZS5jDQo+ID4gQEAg
-LTIyNDAsNyArMjI0MCw3IEBAIHN0YXRpYyBpbnQgYXJzX3N0YXR1c19wcm9jZXNzX3JlY29yZHMo
-c3RydWN0DQo+ID4gYWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYywNCj4gPiDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoGlmIChhcnNfc3RhdHVzLT5vdXRfbGVuZ3RoDQo+ID4gwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oDwgNDQgKyBzaXplb2Yoc3RydWN0IG5kX2Fyc19yZWNvcmQpDQo+ID4gKiAoaSArIDEpKQ0KPiA+
-IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGJyZWFrOw0K
-PiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYyA9IG52ZGltbV9idXNfYWRkX3Bv
-aXNvbihudmRpbW1fYnVzLA0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYyA9
-IG52ZGltbV9idXNfYWRkX2JhZHJhbmdlKG52ZGltbV9idXMsDQo+ID4gwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGFyc19zdGF0
-dXMtPnJlY29yZHNbaV0uZXJyX2FkZHJlc3MsDQo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGFyc19zdGF0dXMtPnJlY29y
-ZHNbaV0ubGVuZ3RoKTsNCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGlmIChy
-YykNCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL25maXQvbWNlLmMgYi9kcml2ZXJzL2Fj
-cGkvbmZpdC9tY2UuYw0KPiA+IGluZGV4IGZlZWI5NWQuLmI5MjkyMTQgMTAwNjQ0DQo+ID4gLS0t
-IGEvZHJpdmVycy9hY3BpL25maXQvbWNlLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvbmZpdC9t
-Y2UuYw0KPiA+IEBAIC02Nyw3ICs2Nyw3IEBAIHN0YXRpYyBpbnQgbmZpdF9oYW5kbGVfbWNlKHN0
-cnVjdCBub3RpZmllcl9ibG9jaw0KPiA+ICpuYiwgdW5zaWduZWQgbG9uZyB2YWwsDQo+ID4gwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY29udGludWU7DQo+
-ID4gDQo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAvKiBJZiB0aGlzIGZhaWxz
-IGR1ZSB0byBhbiAtRU5PTUVNLCB0aGVyZSBpcyBsaXR0bGUNCj4gPiB3ZSBjYW4gZG8gKi8NCj4g
-PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbnZkaW1tX2J1c19hZGRfcG9pc29uKGFj
-cGlfZGVzYy0+bnZkaW1tX2J1cywNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-bnZkaW1tX2J1c19hZGRfYmFkcmFuZ2UoYWNwaV9kZXNjLT5udmRpbW1fYnVzLA0KPiA+IMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqBBTElHTihtY2UtPmFkZHIsIEwxX0NBQ0hFX0JZVEVTKSwNCj4gPiDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgTDFfQ0FDSEVf
-QllURVMpOw0KPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbnZkaW1tX3JlZ2lv
-bl9ub3RpZnkobmZpdF9zcGEtPm5kX3JlZ2lvbiwNCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9u
-dmRpbW0vTWFrZWZpbGUgYi9kcml2ZXJzL252ZGltbS9NYWtlZmlsZQ0KPiA+IGluZGV4IDkwOTU1
-NGMuLmNhNmQzMjUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9udmRpbW0vTWFrZWZpbGUNCj4g
-PiArKysgYi9kcml2ZXJzL252ZGltbS9NYWtlZmlsZQ0KPiA+IEBAIC0yMCw2ICsyMCw3IEBAIGxp
-Ym52ZGltbS15ICs9IHJlZ2lvbl9kZXZzLm8NCj4gPiDCoGxpYm52ZGltbS15ICs9IHJlZ2lvbi5v
-DQo+ID4gwqBsaWJudmRpbW0teSArPSBuYW1lc3BhY2VfZGV2cy5vDQo+ID4gwqBsaWJudmRpbW0t
-eSArPSBsYWJlbC5vDQo+ID4gK2xpYm52ZGltbS15ICs9IGJhZHJhbmdlLm8NCj4gPiDCoGxpYm52
-ZGltbS0kKENPTkZJR19ORF9DTEFJTSkgKz0gY2xhaW0ubw0KPiA+IMKgbGlibnZkaW1tLSQoQ09O
-RklHX0JUVCkgKz0gYnR0X2RldnMubw0KPiA+IMKgbGlibnZkaW1tLSQoQ09ORklHX05WRElNTV9Q
-Rk4pICs9IHBmbl9kZXZzLm8NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vYmFkcmFu
-Z2UuYyBiL2RyaXZlcnMvbnZkaW1tL2JhZHJhbmdlLmMNCj4gPiBuZXcgZmlsZSBtb2RlIDEwMDY0
-NA0KPiA+IGluZGV4IDAwMDAwMDAuLjZhZDc4MmYNCj4gPiAtLS0gL2Rldi9udWxsDQo+ID4gKysr
-IGIvZHJpdmVycy9udmRpbW0vYmFkcmFuZ2UuYw0KPiA+IEBAIC0wLDAgKzEsMjk0IEBADQo+ID4g
-Ky8qDQo+ID4gKyAqIENvcHlyaWdodChjKSAyMDE3IEludGVsIENvcnBvcmF0aW9uLiBBbGwgcmln
-aHRzIHJlc2VydmVkLg0KPiA+ICsgKg0KPiA+ICsgKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0
-d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yDQo+ID4gbW9kaWZ5DQo+ID4gKyAq
-IGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB2ZXJzaW9uIDIgb2YgdGhlIEdOVSBHZW5lcmFsIFB1Ymxp
-Yw0KPiA+IExpY2Vuc2UgYXMNCj4gPiArICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJl
-IEZvdW5kYXRpb24uDQo+ID4gKyAqDQo+ID4gKyAqIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRl
-ZCBpbiB0aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLA0KPiA+IGJ1dA0KPiA+ICsgKiBX
-SVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9m
-DQo+ID4gKyAqIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVS
-UE9TRS7CoMKgU2VlIHRoZQ0KPiA+IEdOVQ0KPiA+ICsgKiBHZW5lcmFsIFB1YmxpYyBMaWNlbnNl
-IGZvciBtb3JlIGRldGFpbHMuDQo+ID4gKyAqLw0KPiA+ICsjaW5jbHVkZSA8bGludXgvbGlibnZk
-aW1tLmg+DQo+ID4gKyNpbmNsdWRlIDxsaW51eC9iYWRibG9ja3MuaD4NCj4gPiArI2luY2x1ZGUg
-PGxpbnV4L2V4cG9ydC5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+DQo+ID4gKyNp
-bmNsdWRlIDxsaW51eC9ibGtkZXYuaD4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L2RldmljZS5oPg0K
-PiA+ICsjaW5jbHVkZSA8bGludXgvY3R5cGUuaD4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L25kY3Rs
-Lmg+DQo+ID4gKyNpbmNsdWRlIDxsaW51eC9tdXRleC5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgv
-c2xhYi5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgvaW8uaD4NCj4gPiArI2luY2x1ZGUgIm5kLWNv
-cmUuaCINCj4gPiArI2luY2x1ZGUgIm5kLmgiDQo+ID4gKw0KPiA+ICt2b2lkIGJhZHJhbmdlX2lu
-aXQoc3RydWN0IGJhZHJhbmdlICpiYWRyYW5nZSkNCj4gPiArew0KPiA+ICvCoMKgwqDCoMKgwqDC
-oElOSVRfTElTVF9IRUFEKCZiYWRyYW5nZS0+bGlzdCk7DQo+ID4gK8KgwqDCoMKgwqDCoMKgc3Bp
-bl9sb2NrX2luaXQoJmJhZHJhbmdlLT5sb2NrKTsNCj4gPiArfQ0KPiA+ICtFWFBPUlRfU1lNQk9M
-X0dQTChiYWRyYW5nZV9pbml0KTsNCj4gPiArDQo+ID4gK3N0YXRpYyB2b2lkIGFwcGVuZF9iYWRy
-YW5nZV9lbnRyeShzdHJ1Y3QgYmFkcmFuZ2UgKmJhZHJhbmdlLA0KPiA+ICvCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3QgYmFkcmFuZ2VfZW50cnkgKmJlLCB1NjQgYWRkciwgdTY0
-IGxlbmd0aCkNCj4gPiArew0KPiA+ICvCoMKgwqDCoMKgwqDCoGxvY2tkZXBfYXNzZXJ0X2hlbGQo
-JmJhZHJhbmdlLT5sb2NrKTsNCj4gPiArwqDCoMKgwqDCoMKgwqBiZS0+c3RhcnQgPSBhZGRyOw0K
-PiA+ICvCoMKgwqDCoMKgwqDCoGJlLT5sZW5ndGggPSBsZW5ndGg7DQo+ID4gK8KgwqDCoMKgwqDC
-oMKgbGlzdF9hZGRfdGFpbCgmYmUtPmxpc3QsICZiYWRyYW5nZS0+bGlzdCk7DQo+ID4gK30NCj4g
-DQo+IFNtYWxsIG5pdCwgY2FuIHdlIHJlbmFtZSB0aGUgaW5zdGFuY2UgdmFyaWFibGUgZnJvbSAn
-YmUnIHRvICdicmUnPw0KPiAnYmUnIHRyaWdnZXJzIGFsbCBteSAnYmlnIGVuZGlhbicgbmV1cm9u
-cyB0byBmaXJlLiBPdGhlciB0aGFuIHRoYXQsDQo+IGxvb2tzIGdvb2QuDQoNClllcCBkb25lLgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
-bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
-MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Thu, Oct 5, 2017 at 6:53 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> From: Dave Jiang <dave.jiang@intel.com>
+>
+> From: Dave Jiang <dave.jiang@intel.com>
+>
+> nfit_test needs to use the poison list manipulation code as well. Make
+> it more generic and in the process rename poison to badrange, and move
+> all the related helpers to a new file.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> [vishal: add a missed include in bus.c for the new badrange functions]
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c  |   2 +-
+>  drivers/acpi/nfit/mce.c   |   2 +-
+>  drivers/nvdimm/Makefile   |   1 +
+>  drivers/nvdimm/badrange.c | 294 ++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/nvdimm/bus.c      |  24 ++--
+>  drivers/nvdimm/core.c     | 260 +---------------------------------------
+>  drivers/nvdimm/nd-core.h  |   3 +-
+>  drivers/nvdimm/nd.h       |   6 -
+>  include/linux/libnvdimm.h |  21 +++-
+>  9 files changed, 331 insertions(+), 282 deletions(-)
+>  create mode 100644 drivers/nvdimm/badrange.c
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index a3ecd5e..4b157f8 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2240,7 +2240,7 @@ static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc,
+>                 if (ars_status->out_length
+>                                 < 44 + sizeof(struct nd_ars_record) * (i + 1))
+>                         break;
+> -               rc = nvdimm_bus_add_poison(nvdimm_bus,
+> +               rc = nvdimm_bus_add_badrange(nvdimm_bus,
+>                                 ars_status->records[i].err_address,
+>                                 ars_status->records[i].length);
+>                 if (rc)
+> diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
+> index feeb95d..b929214 100644
+> --- a/drivers/acpi/nfit/mce.c
+> +++ b/drivers/acpi/nfit/mce.c
+> @@ -67,7 +67,7 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+>                         continue;
+>
+>                 /* If this fails due to an -ENOMEM, there is little we can do */
+> -               nvdimm_bus_add_poison(acpi_desc->nvdimm_bus,
+> +               nvdimm_bus_add_badrange(acpi_desc->nvdimm_bus,
+>                                 ALIGN(mce->addr, L1_CACHE_BYTES),
+>                                 L1_CACHE_BYTES);
+>                 nvdimm_region_notify(nfit_spa->nd_region,
+> diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+> index 909554c..ca6d325 100644
+> --- a/drivers/nvdimm/Makefile
+> +++ b/drivers/nvdimm/Makefile
+> @@ -20,6 +20,7 @@ libnvdimm-y += region_devs.o
+>  libnvdimm-y += region.o
+>  libnvdimm-y += namespace_devs.o
+>  libnvdimm-y += label.o
+> +libnvdimm-y += badrange.o
+>  libnvdimm-$(CONFIG_ND_CLAIM) += claim.o
+>  libnvdimm-$(CONFIG_BTT) += btt_devs.o
+>  libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
+> diff --git a/drivers/nvdimm/badrange.c b/drivers/nvdimm/badrange.c
+> new file mode 100644
+> index 0000000..6ad782f
+> --- /dev/null
+> +++ b/drivers/nvdimm/badrange.c
+> @@ -0,0 +1,294 @@
+> +/*
+> + * Copyright(c) 2017 Intel Corporation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of version 2 of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +#include <linux/libnvdimm.h>
+> +#include <linux/badblocks.h>
+> +#include <linux/export.h>
+> +#include <linux/module.h>
+> +#include <linux/blkdev.h>
+> +#include <linux/device.h>
+> +#include <linux/ctype.h>
+> +#include <linux/ndctl.h>
+> +#include <linux/mutex.h>
+> +#include <linux/slab.h>
+> +#include <linux/io.h>
+> +#include "nd-core.h"
+> +#include "nd.h"
+> +
+> +void badrange_init(struct badrange *badrange)
+> +{
+> +       INIT_LIST_HEAD(&badrange->list);
+> +       spin_lock_init(&badrange->lock);
+> +}
+> +EXPORT_SYMBOL_GPL(badrange_init);
+> +
+> +static void append_badrange_entry(struct badrange *badrange,
+> +               struct badrange_entry *be, u64 addr, u64 length)
+> +{
+> +       lockdep_assert_held(&badrange->lock);
+> +       be->start = addr;
+> +       be->length = length;
+> +       list_add_tail(&be->list, &badrange->list);
+> +}
+
+Small nit, can we rename the instance variable from 'be' to 'bre'?
+'be' triggers all my 'big endian' neurons to fire. Other than that,
+looks good.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
