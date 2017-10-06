@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 81D922034C089
- for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:24:56 -0700 (PDT)
-Subject: [PATCH 09/15] tools/testing/nvdimm: add 'bio_delay' mechanism
+ by ml01.01.org (Postfix) with ESMTPS id B8E6E21FC7497
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Oct 2017 15:39:22 -0700 (PDT)
+Subject: [PATCH v7 12/12] tools/testing/nvdimm: enable rdma unit tests
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 31 Oct 2017 16:22:24 -0700
-Message-ID: <150949214412.24061.1436576623974467007.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 06 Oct 2017 15:36:22 -0700
+Message-ID: <150732938240.22363.4660628491483540886.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,181 +23,104 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+Cc: linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of testing truncate colliding with dma add a mechanism that
-delays the completion of block I/O requests by a programmable number of
-seconds. This allows a truncate operation to be issued while page
-references are held for direct-I/O.
+Provide a mock dma_has_iommu() for the ibverbs core. Enable
+ib_umem_get() to satisfy its DAX safety checks for a controlled test.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/Kbuild           |    1 +
- tools/testing/nvdimm/test/iomap.c     |   62 +++++++++++++++++++++++++++++++++
- tools/testing/nvdimm/test/nfit.c      |   34 ++++++++++++++++++
- tools/testing/nvdimm/test/nfit_test.h |    1 +
- 4 files changed, 98 insertions(+)
+ tools/testing/nvdimm/Kbuild         |   31 +++++++++++++++++++++++++++++++
+ tools/testing/nvdimm/config_check.c |    2 ++
+ tools/testing/nvdimm/test/iomap.c   |    6 ++++++
+ 3 files changed, 39 insertions(+)
 
 diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index d870520da68b..5946cf3afe74 100644
+index d870520da68b..e4ee7f482ac0 100644
 --- a/tools/testing/nvdimm/Kbuild
 +++ b/tools/testing/nvdimm/Kbuild
-@@ -15,6 +15,7 @@ ldflags-y += --wrap=insert_resource
+@@ -15,11 +15,13 @@ ldflags-y += --wrap=insert_resource
  ldflags-y += --wrap=remove_resource
  ldflags-y += --wrap=acpi_evaluate_object
  ldflags-y += --wrap=acpi_evaluate_dsm
-+ldflags-y += --wrap=bio_endio
++ldflags-y += --wrap=dma_has_iommu
  
  DRIVERS := ../../../drivers
  NVDIMM_SRC := $(DRIVERS)/nvdimm
+ ACPI_SRC := $(DRIVERS)/acpi/nfit
+ DAX_SRC := $(DRIVERS)/dax
++IBCORE := $(DRIVERS)/infiniband/core
+ ccflags-y := -I$(src)/$(NVDIMM_SRC)/
+ 
+ obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
+@@ -33,6 +35,7 @@ obj-$(CONFIG_DAX) += dax.o
+ endif
+ obj-$(CONFIG_DEV_DAX) += device_dax.o
+ obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
++obj-$(CONFIG_INFINIBAND) += ib_core.o
+ 
+ nfit-y := $(ACPI_SRC)/core.o
+ nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
+@@ -75,4 +78,32 @@ libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
+ libnvdimm-y += config_check.o
+ 
++ib_core-y := $(IBCORE)/packer.o
++ib_core-y += $(IBCORE)/ud_header.o
++ib_core-y += $(IBCORE)/verbs.o
++ib_core-y += $(IBCORE)/cq.o
++ib_core-y += $(IBCORE)/rw.o
++ib_core-y += $(IBCORE)/sysfs.o
++ib_core-y += $(IBCORE)/device.o
++ib_core-y += $(IBCORE)/fmr_pool.o
++ib_core-y += $(IBCORE)/cache.o
++ib_core-y += $(IBCORE)/netlink.o
++ib_core-y += $(IBCORE)/roce_gid_mgmt.o
++ib_core-y += $(IBCORE)/mr_pool.o
++ib_core-y += $(IBCORE)/addr.o
++ib_core-y += $(IBCORE)/sa_query.o
++ib_core-y += $(IBCORE)/multicast.o
++ib_core-y += $(IBCORE)/mad.o
++ib_core-y += $(IBCORE)/smi.o
++ib_core-y += $(IBCORE)/agent.o
++ib_core-y += $(IBCORE)/mad_rmpp.o
++ib_core-y += $(IBCORE)/security.o
++ib_core-y += $(IBCORE)/nldev.o
++
++ib_core-$(CONFIG_INFINIBAND_USER_MEM) += $(IBCORE)/umem.o
++ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += $(IBCORE)/umem_odp.o
++ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += $(IBCORE)/umem_rbtree.o
++ib_core-$(CONFIG_CGROUP_RDMA) += $(IBCORE)/cgroup.o
++ib_core-y += config_check.o
++
+ obj-m += test/
+diff --git a/tools/testing/nvdimm/config_check.c b/tools/testing/nvdimm/config_check.c
+index 7dc5a0af9b54..33e7c805bfd6 100644
+--- a/tools/testing/nvdimm/config_check.c
++++ b/tools/testing/nvdimm/config_check.c
+@@ -14,4 +14,6 @@ void check(void)
+ 	BUILD_BUG_ON(!IS_MODULE(CONFIG_ACPI_NFIT));
+ 	BUILD_BUG_ON(!IS_MODULE(CONFIG_DEV_DAX));
+ 	BUILD_BUG_ON(!IS_MODULE(CONFIG_DEV_DAX_PMEM));
++	BUILD_BUG_ON(!IS_ENABLED(CONFIG_INFINIBAND_USER_MEM));
++	BUILD_BUG_ON(!IS_MODULE(CONFIG_INFINIBAND));
+ }
 diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index e1f75a1914a1..1f5d7182ca9c 100644
+index e1f75a1914a1..1c240328ee5b 100644
 --- a/tools/testing/nvdimm/test/iomap.c
 +++ b/tools/testing/nvdimm/test/iomap.c
-@@ -10,6 +10,7 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-  */
-+#include <linux/workqueue.h>
- #include <linux/memremap.h>
- #include <linux/rculist.h>
- #include <linux/export.h>
-@@ -18,6 +19,7 @@
- #include <linux/types.h>
- #include <linux/pfn_t.h>
- #include <linux/acpi.h>
-+#include <linux/bio.h>
- #include <linux/io.h>
- #include <linux/mm.h>
- #include "nfit_test.h"
-@@ -388,4 +390,64 @@ union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const guid_t *g
+@@ -388,4 +388,10 @@ union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const guid_t *g
  }
  EXPORT_SYMBOL(__wrap_acpi_evaluate_dsm);
  
-+static DEFINE_SPINLOCK(bio_lock);
-+static struct bio *biolist;
-+int bio_do_queue;
-+
-+static void run_bio(struct work_struct *work)
++bool __wrap_dma_has_iommu(struct device *dev)
 +{
-+	struct delayed_work *dw = container_of(work, typeof(*dw), work);
-+	struct bio *bio, *next;
-+
-+	pr_info("%s\n", __func__);
-+	spin_lock(&bio_lock);
-+	bio_do_queue = 0;
-+	bio = biolist;
-+	biolist = NULL;
-+	spin_unlock(&bio_lock);
-+
-+	while (bio) {
-+		next = bio->bi_next;
-+		bio->bi_next = NULL;
-+		bio_endio(bio);
-+		bio = next;
-+	}
-+	kfree(dw);
++	return true;
 +}
-+
-+void nfit_test_inject_bio_delay(int sec)
-+{
-+	struct delayed_work *dw = kzalloc(sizeof(*dw), GFP_KERNEL);
-+
-+	spin_lock(&bio_lock);
-+	if (!bio_do_queue) {
-+		pr_info("%s: %d seconds\n", __func__, sec);
-+		INIT_DELAYED_WORK(dw, run_bio);
-+		bio_do_queue = 1;
-+		schedule_delayed_work(dw, sec * HZ);
-+		dw = NULL;
-+	}
-+	spin_unlock(&bio_lock);
-+}
-+EXPORT_SYMBOL_GPL(nfit_test_inject_bio_delay);
-+
-+void __wrap_bio_endio(struct bio *bio)
-+{
-+	int did_q = 0;
-+
-+	spin_lock(&bio_lock);
-+	if (bio_do_queue) {
-+		bio->bi_next = biolist;
-+		biolist = bio;
-+		did_q = 1;
-+	}
-+	spin_unlock(&bio_lock);
-+
-+	if (did_q)
-+		return;
-+
-+	bio_endio(bio);
-+}
-+EXPORT_SYMBOL_GPL(__wrap_bio_endio);
++EXPORT_SYMBOL(__wrap_dma_has_iommu);
 +
  MODULE_LICENSE("GPL v2");
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index bef419d4266d..2c871c8b4a56 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -656,6 +656,39 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
- 	NULL,
- };
- 
-+static ssize_t bio_delay_show(struct device_driver *drv, char *buf)
-+{
-+	return sprintf(buf, "0\n");
-+}
-+
-+static ssize_t bio_delay_store(struct device_driver *drv, const char *buf,
-+		size_t count)
-+{
-+	unsigned long delay;
-+	int rc = kstrtoul(buf, 0, &delay);
-+
-+	if (rc < 0)
-+		return rc;
-+
-+	nfit_test_inject_bio_delay(delay);
-+	return count;
-+}
-+DRIVER_ATTR_RW(bio_delay);
-+
-+static struct attribute *nfit_test_driver_attributes[] = {
-+	&driver_attr_bio_delay.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group nfit_test_driver_attribute_group = {
-+	.attrs = nfit_test_driver_attributes,
-+};
-+
-+static const struct attribute_group *nfit_test_driver_attribute_groups[] = {
-+	&nfit_test_driver_attribute_group,
-+	NULL,
-+};
-+
- static int nfit_test0_alloc(struct nfit_test *t)
- {
- 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
-@@ -1905,6 +1938,7 @@ static struct platform_driver nfit_test_driver = {
- 	.remove = nfit_test_remove,
- 	.driver = {
- 		.name = KBUILD_MODNAME,
-+		.groups = nfit_test_driver_attribute_groups,
- 	},
- 	.id_table = nfit_test_id,
- };
-diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
-index d3d63dd5ed38..0d818d2adaf7 100644
---- a/tools/testing/nvdimm/test/nfit_test.h
-+++ b/tools/testing/nvdimm/test/nfit_test.h
-@@ -46,4 +46,5 @@ void nfit_test_setup(nfit_test_lookup_fn lookup,
- 		nfit_test_evaluate_dsm_fn evaluate);
- void nfit_test_teardown(void);
- struct nfit_test_resource *get_nfit_res(resource_size_t resource);
-+void nfit_test_inject_bio_delay(int sec);
- #endif
 
 _______________________________________________
 Linux-nvdimm mailing list
