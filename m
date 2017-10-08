@@ -1,88 +1,66 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EED1D20347175
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:05 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH] mmap.2: Add description of MAP_SHARED_VALIDATE and MAP_SYNC
-Date: Thu, 19 Oct 2017 14:58:17 +0200
-Message-Id: <20171019125817.11580-19-jack@suse.cz>
-In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
-References: <20171019125817.11580-1-jack@suse.cz>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+In-Reply-To: <201710081447.sQSonloO%fengguang.wu@intel.com>
+References: <150743537023.13602.3520782942682280917.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <201710081447.sQSonloO%fengguang.wu@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 8 Oct 2017 08:49:33 -0700
+Message-ID: <CAPcyv4iJTkDDNHsAyZCyh5E2X_68RsYkOKP3bXtEzgUrvLh2ew@mail.gmail.com>
+Subject: Re: [PATCH v8 2/2] IB/core: use MAP_DIRECT to fix / enable RDMA to
+ DAX mappings
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Sean Hefty <sean.hefty@intel.com>, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Linux API <linux-api@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Dave Chinner <david@fromorbit.com>, Jeff Moyer <jmoyer@redhat.com>, iommu@lists.linux-foundation.org, Christoph Hellwig <hch@lst.de>, "J. Bruce Fields" <bfields@fieldses.org>, Linux MM <linux-mm@kvack.org>, Doug Ledford <dledford@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jeff Layton <jlayton@poochiereds.net>, David Woodhouse <dwmw2@infradead.org>, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- man2/mmap.2 | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+On Sat, Oct 7, 2017 at 11:45 PM, kbuild test robot <lkp@intel.com> wrote:
+> Hi Dan,
+>
+> [auto build test ERROR on rdma/master]
+> [also build test ERROR on v4.14-rc3 next-20170929]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-diff --git a/man2/mmap.2 b/man2/mmap.2
-index 47c3148653be..598ff0c64f7f 100644
---- a/man2/mmap.2
-+++ b/man2/mmap.2
-@@ -125,6 +125,21 @@ are carried through to the underlying file.
- to the underlying file requires the use of
- .BR msync (2).)
- .TP
-+.B MAP_SHARED_VALIDATE
-+The same as
-+.B MAP_SHARED
-+except that
-+.B MAP_SHARED
-+mappings ignore unknown flags in
-+.IR flags .
-+In contrast when creating mapping of
-+.B MAP_SHARED_VALIDATE
-+mapping type, the kernel verifies all passed flags are known and fails the
-+mapping with
-+.BR EOPNOTSUPP
-+otherwise. This mapping type is also required to be able to use some mapping
-+flags.
-+.TP
- .B MAP_PRIVATE
- Create a private copy-on-write mapping.
- Updates to the mapping are not visible to other processes
-@@ -352,6 +367,21 @@ option.
- Because of the security implications,
- that option is normally enabled only on embedded devices
- (i.e., devices where one has complete control of the contents of user memory).
-+.TP
-+.BR MAP_SYNC " (since Linux 4.15)"
-+This flags is available only with
-+.B MAP_SHARED_VALIDATE
-+mapping type. Mappings of
-+.B MAP_SHARED
-+type will silently ignore this flag.
-+This flag is supported only for files supporting DAX (direct mapping of persistent
-+memory). For other files, creating mapping with this flag results in
-+.B EOPNOTSUPP
-+error. Shared file mappings with this flag provide the guarantee that while
-+some memory is writeably mapped in the address space of the process, it will
-+be visible in the same file at the same offset even after the system crashes or
-+is rebooted. This allows users of such mappings to make data modifications
-+persistent in a more efficient way using appropriate CPU instructions.
- .PP
- Of the above flags, only
- .B MAP_FIXED
--- 
-2.12.3
+This was a fixed up resend of patch [v7 11/12]. It's not clear how to
+teach the kbuild robot to be aware of patch-replies to individual
+patches in the series. I.e. reworked patches without resending the
+complete series?
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+> url:    https://github.com/0day-ci/linux/commits/Dan-Williams/iommu-up-level-sg_num_pages-from-amd-iommu/20171008-133505
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git master
+> config: i386-randconfig-n0-201741 (attached as .config)
+> compiler: gcc-4.8 (Debian 4.8.4-1) 4.8.4
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=i386
+>
+> All errors (new ones prefixed by >>):
+>
+>>> drivers/infiniband/core/umem.c:39:29: fatal error: linux/mapdirect.h: No such file or directory
+>     #include <linux/mapdirect.h>
+
+mapdirect.h indeed does not exist when missing the earlier patches in
+the series. It would be slick if the 0day-robot read the the
+"in-reply-to" header and auto replaced a patch in a series, but that
+would be a feature approaching magic.
+
+>    compilation terminated.
+>
+> vim +39 drivers/infiniband/core/umem.c
+>
+>   > 39  #include <linux/mapdirect.h>
+>     40  #include <linux/export.h>
+>     41  #include <linux/hugetlb.h>
+>     42  #include <linux/slab.h>
+>     43  #include <rdma/ib_umem_odp.h>
+>     44
+>
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
