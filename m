@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 69A4920352606
- for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:45 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 03/17] dax: Simplify arguments of dax_insert_mapping()
-Date: Tue, 24 Oct 2017 17:24:00 +0200
-Message-Id: <20171024152415.22864-4-jack@suse.cz>
-In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
-References: <20171024152415.22864-1-jack@suse.cz>
+Received: from ipmail07.adl2.internode.on.net (ipmail07.adl2.internode.on.net
+ [150.101.137.131])
+ by ml01.01.org (Postfix) with ESMTP id 53D6B2095B093
+ for <linux-nvdimm@lists.01.org>; Sun,  8 Oct 2017 20:05:11 -0700 (PDT)
+Date: Mon, 9 Oct 2017 14:08:24 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v7 03/12] fs: introduce i_mapdcount
+Message-ID: <20171009030824.GG3666@dastard>
+References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150732933283.22363.570426117546397495.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <150732933283.22363.570426117546397495.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,112 +19,96 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@poochiereds.net>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_insert_mapping() has lots of arguments and a lot of them is actuall
-duplicated by passing vm_fault structure as well. Change the function to
-take the same arguments as dax_pmd_insert_mapping().
+On Fri, Oct 06, 2017 at 03:35:32PM -0700, Dan Williams wrote:
+> When ->iomap_begin() sees this count being non-zero and determines that
+> the block map of the file needs to be modified to satisfy the I/O
+> request it will instead return an error. This is needed for MAP_DIRECT
+> where, due to locking constraints, we can't rely on xfs_break_layouts()
+> to protect against allocating write-faults either from the process that
+> setup the MAP_DIRECT mapping nor other processes that have the file
+> mapped.  xfs_break_layouts() requires XFS_IOLOCK which is problematic to
+> mix with the XFS_MMAPLOCK in the fault path.
+> 
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Jeff Layton <jlayton@poochiereds.net>
+> Cc: "J. Bruce Fields" <bfields@fieldses.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  fs/xfs/xfs_iomap.c |    9 +++++++++
+>  include/linux/fs.h |   31 +++++++++++++++++++++++++++++++
+>  2 files changed, 40 insertions(+)
+> 
+> diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+> index a1909bc064e9..6816f8ebbdcf 100644
+> --- a/fs/xfs/xfs_iomap.c
+> +++ b/fs/xfs/xfs_iomap.c
+> @@ -1053,6 +1053,15 @@ xfs_file_iomap_begin(
+>  			goto out_unlock;
+>  		}
+>  		/*
+> +		 * If a file has MAP_DIRECT mappings disable block map
+> +		 * updates. This should only effect mmap write faults as
+> +		 * other paths are protected by an FL_LAYOUT lease.
+> +		 */
+> +		if (i_mapdcount_read(inode)) {
+> +			error = -ETXTBSY;
+> +			goto out_unlock;
+> +		}
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+That looks really fragile. For one, it's going to miss modifications
+to reflinked files altogether. Ignoring that, however, I don't want to
+have to care one bit about the internals of the MAP_DIRECT
+implementation in the filesystem code. Hide it behind something with
+an obvious name that returns the appropriate error and the
+filesystem code becomes self documenting:
 
-diff --git a/fs/dax.c b/fs/dax.c
-index f001d8c72a06..0bc42ac294ca 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -820,23 +820,30 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- }
- EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
- 
--static int dax_insert_mapping(struct address_space *mapping,
--		struct block_device *bdev, struct dax_device *dax_dev,
--		sector_t sector, size_t size, void *entry,
--		struct vm_area_struct *vma, struct vm_fault *vmf)
-+static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
-+{
-+	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
-+}
-+
-+static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
-+			      loff_t pos, void *entry)
- {
-+	const sector_t sector = dax_iomap_sector(iomap, pos);
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct address_space *mapping = vma->vm_file->f_mapping;
- 	unsigned long vaddr = vmf->address;
- 	void *ret, *kaddr;
- 	pgoff_t pgoff;
- 	int id, rc;
- 	pfn_t pfn;
- 
--	rc = bdev_dax_pgoff(bdev, sector, size, &pgoff);
-+	rc = bdev_dax_pgoff(iomap->bdev, sector, PAGE_SIZE, &pgoff);
- 	if (rc)
- 		return rc;
- 
- 	id = dax_read_lock();
--	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
-+	rc = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(PAGE_SIZE),
-+			       &kaddr, &pfn);
- 	if (rc < 0) {
- 		dax_read_unlock(id);
- 		return rc;
-@@ -936,11 +943,6 @@ int __dax_zero_page_range(struct block_device *bdev,
- }
- EXPORT_SYMBOL_GPL(__dax_zero_page_range);
- 
--static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
--{
--	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
--}
--
- static loff_t
- dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct iomap *iomap)
-@@ -1087,7 +1089,6 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	struct inode *inode = mapping->host;
- 	unsigned long vaddr = vmf->address;
- 	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
--	sector_t sector;
- 	struct iomap iomap = { 0 };
- 	unsigned flags = IOMAP_FAULT;
- 	int error, major = 0;
-@@ -1140,9 +1141,9 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		goto error_finish_iomap;
- 	}
- 
--	sector = dax_iomap_sector(&iomap, pos);
--
- 	if (vmf->cow_page) {
-+		sector_t sector = dax_iomap_sector(&iomap, pos);
-+
- 		switch (iomap.type) {
- 		case IOMAP_HOLE:
- 		case IOMAP_UNWRITTEN:
-@@ -1175,8 +1176,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 			count_memcg_event_mm(vmf->vma->vm_mm, PGMAJFAULT);
- 			major = VM_FAULT_MAJOR;
- 		}
--		error = dax_insert_mapping(mapping, iomap.bdev, iomap.dax_dev,
--				sector, PAGE_SIZE, entry, vmf->vma, vmf);
-+		error = dax_insert_mapping(vmf, &iomap, pos, entry);
- 		/* -EBUSY is fine, somebody else faulted on the same PTE */
- 		if (error == -EBUSY)
- 			error = 0;
+	if ((flags & IOMAP_WRITE) && imap_needs_alloc(inode, &imap, nimaps)) {
+		.....
+		error = iomap_can_allocate(inode);
+		if (error)
+			goto out_unlock;
+
+Then you can put all the MAP_DIRECT stuff and the comments
+explaining what is does inside the generic function that determines
+if we are allowed to allocate on that inode or not.
+
+> +		/*
+>  		 * We cap the maximum length we map here to MAX_WRITEBACK_PAGES
+>  		 * pages to keep the chunks of work done where somewhat symmetric
+>  		 * with the work writeback does. This is a completely arbitrary
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index c2b9bf3dc4e9..f83871b188ff 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -642,6 +642,9 @@ struct inode {
+>  	atomic_t		i_count;
+>  	atomic_t		i_dio_count;
+>  	atomic_t		i_writecount;
+> +#ifdef CONFIG_FS_DAX
+> +	atomic_t		i_mapdcount;	/* count of MAP_DIRECT vmas */
+> +#endif
+
+Is there any way to avoid growing the struct inode for this?
+
+Cheers,
+
+Dave.
 -- 
-2.12.3
-
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
