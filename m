@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 382A82095B06F
- for <linux-nvdimm@lists.01.org>; Sat,  7 Oct 2017 08:17:42 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl, test: rdma vs dax
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 07 Oct 2017 08:14:42 -0700
-Message-ID: <150738928223.25087.18137727671163532987.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 6218521F3C1B9
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Oct 2017 13:40:39 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v2 2/4] nfit_test: add error injection DSMs
+Date: Mon,  9 Oct 2017 14:41:57 -0600
+Message-Id: <20171009204159.26489-3-vishal.l.verma@intel.com>
+In-Reply-To: <20171009204159.26489-1-vishal.l.verma@intel.com>
+References: <20171009204159.26489-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,6 +17,7 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
@@ -23,359 +25,387 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the rxe (Soft-ROCE) driver to unit test the DAX paths in ibverbs
-memory registration (ib_umem_get).
+From: Dave Jiang <dave.jiang@intel.com>
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Add nfit_test emulation for the new ACPI 6.2 error injectino DSMs.
+This will allow unit tests to selectively inject the errors they wish to
+test for.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+[vishal: Add badrange.o to nfit_test's Kbuild]
+[vishal: Move injection functions to ND_CMD_CALL]
+[vishal: Add support for the notification option]
+[vishal: move an nfit_test private definition into a local header]
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- configure.ac     |   11 +++
- test/Makefile.am |   13 +++
- test/rdma.c      |  224 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- test/rdma.sh     |   54 +++++++++++++
- 4 files changed, 302 insertions(+)
- create mode 100644 test/rdma.c
- create mode 100755 test/rdma.sh
+ tools/testing/nvdimm/Kbuild           |   1 +
+ tools/testing/nvdimm/test/nfit.c      | 187 +++++++++++++++++++++++++++++-----
+ tools/testing/nvdimm/test/nfit_test.h |   5 +
+ 3 files changed, 169 insertions(+), 24 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 5b103813ee6f..087df2f7b3a6 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -94,6 +94,17 @@ PKG_CHECK_MODULES([UDEV], [libudev])
- PKG_CHECK_MODULES([UUID], [uuid])
- PKG_CHECK_MODULES([JSON], [json-c])
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index d870520..3272ab5 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -69,6 +69,7 @@ libnvdimm-y += $(NVDIMM_SRC)/region_devs.o
+ libnvdimm-y += $(NVDIMM_SRC)/region.o
+ libnvdimm-y += $(NVDIMM_SRC)/namespace_devs.o
+ libnvdimm-y += $(NVDIMM_SRC)/label.o
++libnvdimm-y += $(NVDIMM_SRC)/badrange.o
+ libnvdimm-$(CONFIG_ND_CLAIM) += $(NVDIMM_SRC)/claim.o
+ libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 435d298..43f948e 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -168,8 +168,12 @@ struct nfit_test {
+ 		spinlock_t lock;
+ 	} ars_state;
+ 	struct device *dimm_dev[NUM_DCR];
++	struct badrange badrange;
++	struct work_struct work;
+ };
  
-+AC_ARG_WITH([libibverbs],
-+	AS_HELP_STRING([--with-libibverbs],
-+		       [Enable RDMA functionality. @<:@default=no@:>@]),
-+	[], [with_libibverbs=no])
-+if test "x$with_libibverbs" = "xyes"; then
-+	AC_CHECK_LIB(ibverbs, ibv_get_device_list, [],
-+		AC_MSG_ERROR([libibverbs not found.]))
-+	AC_DEFINE(ENABLE_RDMA, 1, [Enable RDMA])
-+fi
-+AM_CONDITIONAL([ENABLE_RDMA], [test "x$with_libibverbs" = "xyes"])
++static struct workqueue_struct *nfit_wq;
 +
- AC_ARG_WITH([libpmem],
- 	AS_HELP_STRING([--with-libpmem],
- 		       [Install with libpmem support. @<:@default=no@:>@]),
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 9223628b2608..0be0d0ab8828 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -42,6 +42,11 @@ check_PROGRAMS +=\
- 	dax-pmd \
- 	device-dax \
- 	mmap
-+
-+if ENABLE_RDMA
-+TESTS += rdma.sh
-+check_PROGRAMS += rdma
-+endif
- endif
+ static struct nfit_test *to_nfit_test(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -234,48 +238,68 @@ static int nfit_test_cmd_set_config_data(struct nd_cmd_set_config_hdr *nd_cmd,
+ 	return rc;
+ }
  
- LIBNDCTL_LIB =\
-@@ -110,3 +115,11 @@ multi_pmem_LDADD = \
- 		$(UUID_LIBS) \
- 		$(KMOD_LIBS) \
- 		../libutil.a
+-#define NFIT_TEST_ARS_RECORDS 4
+ #define NFIT_TEST_CLEAR_ERR_UNIT 256
+ 
+ static int nfit_test_cmd_ars_cap(struct nd_cmd_ars_cap *nd_cmd,
+ 		unsigned int buf_len)
+ {
++	int ars_recs;
 +
-+rdma_SOURCES =\
-+	      rdma.c \
-+	      $(testcore)
+ 	if (buf_len < sizeof(*nd_cmd))
+ 		return -EINVAL;
+ 
++	/* for testing, only store up to n records fit withint 4k */
++	ars_recs = SZ_4K / sizeof(struct nd_ars_record);
 +
-+rdma_LDADD = \
-+	     $(LIBNDCTL_LIB)
-+	     -libverbs
-diff --git a/test/rdma.c b/test/rdma.c
-new file mode 100644
-index 000000000000..043483272162
---- /dev/null
-+++ b/test/rdma.c
-@@ -0,0 +1,224 @@
-+/*
-+ * Copyright (c) 2014-2017, Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU Lesser General Public License,
-+ * version 2.1, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT ANY
-+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-+ * more details.
-+ */
-+#include <stdio.h>
-+#include <stddef.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <fcntl.h>
-+#include <ctype.h>
-+#include <errno.h>
-+#include <unistd.h>
-+#include <limits.h>
-+#include <syslog.h>
-+#include <sys/mman.h>
-+#include <linux/mman.h>
+ 	nd_cmd->max_ars_out = sizeof(struct nd_cmd_ars_status)
+-		+ NFIT_TEST_ARS_RECORDS * sizeof(struct nd_ars_record);
++		+ ars_recs * sizeof(struct nd_ars_record);
+ 	nd_cmd->status = (ND_ARS_PERSISTENT | ND_ARS_VOLATILE) << 16;
+ 	nd_cmd->clear_err_unit = NFIT_TEST_CLEAR_ERR_UNIT;
+ 
+ 	return 0;
+ }
+ 
+-/*
+- * Initialize the ars_state to return an ars_result 1 second in the future with
+- * a 4K error range in the middle of the requested address range.
+- */
+-static void post_ars_status(struct ars_state *ars_state, u64 addr, u64 len)
++static void post_ars_status(struct ars_state *ars_state,
++		struct badrange *badrange, u64 addr, u64 len)
+ {
+ 	struct nd_cmd_ars_status *ars_status;
+ 	struct nd_ars_record *ars_record;
++	struct badrange_entry *be;
++	u64 end = addr + len - 1;
++	int i = 0;
+ 
+ 	ars_state->deadline = jiffies + 1*HZ;
+ 	ars_status = ars_state->ars_status;
+ 	ars_status->status = 0;
+-	ars_status->out_length = sizeof(struct nd_cmd_ars_status)
+-		+ sizeof(struct nd_ars_record);
+ 	ars_status->address = addr;
+ 	ars_status->length = len;
+ 	ars_status->type = ND_ARS_PERSISTENT;
+-	ars_status->num_records = 1;
+-	ars_record = &ars_status->records[0];
+-	ars_record->handle = 0;
+-	ars_record->err_address = addr + len / 2;
+-	ars_record->length = SZ_4K;
 +
-+#include <util/size.h>
-+#include <ndctl/libndctl.h>
-+#include <infiniband/verbs.h>
-+#include <ccan/array_size/array_size.h>
++	spin_lock(&badrange->lock);
++	list_for_each_entry(be, &badrange->list, list) {
++		u64 be_end = be->start + be->length - 1;
++		u64 rstart, rend;
 +
-+static struct ibv_qp *create_qp(struct ibv_pd *pd, struct ibv_cq *cq)
-+{
-+	struct ibv_qp *qp;
-+	struct ibv_qp_init_attr qp_attr = {
-+		.send_cq = cq,
-+		.recv_cq = cq,
-+		.cap = {
-+			.max_send_wr = 1,
-+			.max_recv_wr = 1,
-+			.max_send_sge = 1,
-+			.max_recv_sge = 1,
-+		},
-+		.qp_type = IBV_QPT_RC,
-+	};
++		/* skip entries outside the range */
++		if (be_end < addr || be->start > end)
++			continue;
 +
-+	qp = ibv_create_qp(pd, &qp_attr);
-+	if (!qp)
-+		return NULL;
-+	if (qp_attr.cap.max_send_wr < 1 || qp_attr.cap.max_recv_wr < 1
-+			|| qp_attr.cap.max_send_sge < 1
-+			|| qp_attr.cap.max_recv_sge < 1) {
-+		fprintf(stderr, "%s: insufficient queue pair capabilities\n",
-+				__func__);
-+		ibv_destroy_qp(qp);
-+		return NULL;
++		rstart = (be->start < addr) ? addr : be->start;
++		rend = (be_end < end) ? be_end : end;
++		ars_record = &ars_status->records[i];
++		ars_record->handle = 0;
++		ars_record->err_address = rstart;
++		ars_record->length = rend - rstart + 1;
++		i++;
 +	}
-+	return qp;
++	spin_unlock(&badrange->lock);
++	ars_status->num_records = i;
++	ars_status->out_length = sizeof(struct nd_cmd_ars_status)
++		+ i * sizeof(struct nd_ars_record);
+ }
+ 
+-static int nfit_test_cmd_ars_start(struct ars_state *ars_state,
++static int nfit_test_cmd_ars_start(struct nfit_test *t,
++		struct ars_state *ars_state,
+ 		struct nd_cmd_ars_start *ars_start, unsigned int buf_len,
+ 		int *cmd_rc)
+ {
+@@ -289,7 +313,7 @@ static int nfit_test_cmd_ars_start(struct ars_state *ars_state,
+ 	} else {
+ 		ars_start->status = 0;
+ 		ars_start->scrub_time = 1;
+-		post_ars_status(ars_state, ars_start->address,
++		post_ars_status(ars_state, &t->badrange, ars_start->address,
+ 				ars_start->length);
+ 		*cmd_rc = 0;
+ 	}
+@@ -456,6 +480,93 @@ static int nfit_test_cmd_smart_threshold(struct nd_cmd_smart_threshold *smart_t,
+ 	return 0;
+ }
+ 
++static void uc_error_notify(struct work_struct *work)
++{
++	struct nfit_test *t = container_of(work, typeof(*t), work);
++
++	__acpi_nfit_notify(&t->pdev.dev, t, NFIT_NOTIFY_UC_MEMORY_ERROR);
 +}
 +
-+static int post_recv(struct ibv_qp *qp, struct ibv_mr *mr, void *addr,
-+		size_t len)
++static int nfit_test_cmd_ars_error_inject(struct nfit_test *t,
++		struct nd_cmd_ars_err_inj *err_inj, unsigned int buf_len)
 +{
-+	struct ibv_recv_wr wr = {
-+		.sg_list = &(struct ibv_sge) {
-+			.addr = (uint64_t) addr,
-+			.length = len,
-+			.lkey = mr->lkey
-+		},
-+		.num_sge = 1,
-+		.next = NULL,
-+	};
-+	struct ibv_recv_wr *bad_wr;
++	int rc;
 +
-+	return ibv_post_recv(qp, &wr, &bad_wr);
-+}
-+
-+static int do_rdma(struct ndctl_ctx *ctx, int fd, unsigned long map_flags)
-+{
-+	int nr_devs, rc = -ENXIO;
-+	void *addr;
-+	struct ibv_pd *pd;
-+	struct ibv_mr *mr;
-+	struct ibv_cq *cq;
-+	struct ibv_qp *qp;
-+	struct ibv_context *ictx;
-+	size_t map_len = 4*HPAGE_SIZE;
-+	struct ibv_device **idevs, *idev;
-+
-+	addr = mmap(NULL, map_len, PROT_READ|PROT_WRITE, map_flags, fd, 0);
-+	if (addr == MAP_FAILED) {
-+		fprintf(stderr, "failed to map test file\n");
-+		return -ENXIO;
++	if (buf_len < sizeof(*err_inj)) {
++		rc = -EINVAL;
++		goto err;
 +	}
 +
-+	idevs = ibv_get_device_list(&nr_devs);
-+	if (!idevs || !nr_devs) {
-+		fprintf(stderr, "ibverbs device not found\n");
-+		goto err_dev;
++	if (err_inj->err_inj_spa_range_length <= 0) {
++		rc = -EINVAL;
++		goto err;
 +	}
 +
-+	idev = idevs[0];
-+	ictx = ibv_open_device(idev);
-+	if (ictx)
-+		fprintf(stderr, "%s: opened dev: %s\n", __func__,
-+				ibv_get_device_name(idev));
-+	else {
-+		fprintf(stderr, "%s: failed to open dev: %s\n", __func__,
-+				ibv_get_device_name(idev));
-+		goto err_open;
-+	}
++	rc =  badrange_add(&t->badrange, err_inj->err_inj_spa_range_base,
++			err_inj->err_inj_spa_range_length);
++	if (rc < 0)
++		goto err;
 +
-+	pd = ibv_alloc_pd(ictx);
-+	if (!pd) {
-+		fprintf(stderr, "%s: failed alloc_pd dev: %s\n", __func__,
-+				ibv_get_device_name(idev));
-+		goto err_pd;
-+	}
++	if (err_inj->err_inj_options & (1 << ND_ARS_ERR_INJ_OPT_NOTIFY))
++		queue_work(nfit_wq, &t->work);
 +
-+	mr = ibv_reg_mr(pd, addr, map_len, IBV_ACCESS_LOCAL_WRITE
-+			| IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_READ);
-+	if (!mr) {
-+		fprintf(stderr, "%s: failed reg_mr dev: %s\n", __func__,
-+				ibv_get_device_name(idev));
-+		goto err_mr;
-+	}
++	err_inj->status = 0;
++	return 0;
 +
-+	cq = ibv_create_cq(ictx, 1, NULL, NULL, 0);
-+	if (!cq) {
-+		fprintf(stderr, "%s: failed create_cq dev: %s\n", __func__,
-+				ibv_get_device_name(idev));
-+		goto err_cq;
-+	}
-+
-+	qp = create_qp(pd, cq);
-+	if (!cq) {
-+		fprintf(stderr, "%s: failed create_qp dev: %s\n", __func__,
-+				ibv_get_device_name(idev));
-+		goto err_qp;
-+	}
-+
-+	rc = post_recv(qp, mr, addr, map_len);
-+	if (rc) {
-+		fprintf(stderr, "%s: failed post_recv (%d) dev: %s\n", __func__,
-+				rc, ibv_get_device_name(idev));
-+		goto err_post_recv;
-+	}
-+
-+	fprintf(stderr, "%s: successful post_recv dev: %s\n", __func__,
-+				ibv_get_device_name(idev));
-+	rc = 0;
-+err_post_recv:
-+	ibv_destroy_qp(qp);
-+err_qp:
-+	ibv_destroy_cq(cq);
-+err_cq:
-+	ibv_dereg_mr(mr);
-+err_mr:
-+	ibv_dealloc_pd(pd);
-+err_pd:
-+	ibv_close_device(ictx);
-+err_open:
-+	ibv_free_device_list(idevs);
-+err_dev:
-+	munmap(addr, map_len);
++err:
++	err_inj->status = NFIT_ARS_INJECT_INVALID;
 +	return rc;
 +}
 +
-+static int test_rdma(int fd, int loglevel)
++static int nfit_test_cmd_ars_inject_clear(struct nfit_test *t,
++		struct nd_cmd_ars_err_inj_clr *err_clr, unsigned int buf_len)
 +{
-+	int err, i;
-+	struct ndctl_ctx *ctx;
-+	unsigned long test_flags[] = {
-+		MAP_SHARED,
-+		MAP_SHARED_VALIDATE | MAP_DIRECT,
-+	};
++	int rc;
 +
-+	err = ndctl_new(&ctx);
-+	if (err < 0)
-+		return err;
-+
-+	ndctl_set_log_priority(ctx, loglevel);
-+
-+	for (i = 0; i < (int) ARRAY_SIZE(test_flags); i++) {
-+		unsigned long map_flags = test_flags[i];
-+
-+		err = do_rdma(ctx, fd, map_flags);
-+		switch (map_flags) {
-+		case MAP_SHARED:
-+			if (err == 0) {
-+				fprintf(stderr, "expected failure map_flags: %#lx\n",
-+						map_flags);
-+				return EXIT_FAILURE;
-+			}
-+			break;
-+		case (MAP_SHARED_VALIDATE | MAP_DIRECT):
-+			if (err != 0) {
-+				fprintf(stderr, "expected success map_flags: %#lx\n",
-+						map_flags);
-+				return EXIT_FAILURE;
-+			}
-+			break;
-+		default:
-+			fprintf(stderr, "unhandled test case\n");
-+			return EXIT_FAILURE;
-+		}
++	if (buf_len < sizeof(*err_clr)) {
++		rc = -EINVAL;
++		goto err;
 +	}
 +
-+	ndctl_unref(ctx);
-+	return err;
-+}
++	if (err_clr->err_inj_clr_spa_range_length <= 0) {
++		rc = -EINVAL;
++		goto err;
++	}
 +
-+int __attribute__((weak)) main(int argc, char *argv[])
-+{
-+	int rc, fd;
++	badrange_forget(&t->badrange, err_clr->err_inj_clr_spa_range_base,
++			err_clr->err_inj_clr_spa_range_length);
 +
-+	if (argc < 1)
-+		return -EINVAL;
++	err_clr->status = 0;
++	return 0;
 +
-+	fd = open(argv[1], O_RDWR);
-+	rc = test_rdma(fd, LOG_DEBUG);
-+	if (fd >= 0)
-+		close(fd);
++err:
++	err_clr->status = NFIT_ARS_INJECT_INVALID;
 +	return rc;
 +}
-diff --git a/test/rdma.sh b/test/rdma.sh
-new file mode 100755
-index 000000000000..3b486d7b1680
---- /dev/null
-+++ b/test/rdma.sh
-@@ -0,0 +1,54 @@
-+#!/bin/bash
 +
-+# Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
-+#
-+# This program is free software; you can redistribute it and/or modify it
-+# under the terms of version 2 of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it will be useful, but
-+# WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# General Public License for more details.
++static int nfit_test_cmd_ars_inject_status(struct nfit_test *t,
++		struct nd_cmd_ars_err_inj_stat *err_stat,
++		unsigned int buf_len)
++{
++	struct badrange_entry *be;
++	int max = SZ_4K / sizeof(struct nd_error_stat_query_record);
++	int i = 0;
 +
-+MNT=test_dax_mnt
-+FILE=image
-+NDCTL="../ndctl/ndctl"
-+json2var="s/[{}\",]//g; s/:/=/g"
-+blockdev=""
++	err_stat->status = 0;
++	spin_lock(&t->badrange.lock);
++	list_for_each_entry(be, &t->badrange.list, list) {
++		err_stat->record[i].err_inj_stat_spa_range_base = be->start;
++		err_stat->record[i].err_inj_stat_spa_range_length = be->length;
++		i++;
++		if (i > max)
++			break;
++	}
++	spin_unlock(&t->badrange.lock);
++	err_stat->inj_err_rec_count = i;
 +
-+err() {
-+	echo "test-rdma: failed at line $1"
-+	if [ -n "$blockdev" ]; then
-+		umount /dev/$blockdev
-+	else
-+		rc=77
-+	fi
-+	rmdir $MNT
-+	exit $rc
++	return 0;
 +}
 +
-+set -e
-+mkdir -p $MNT
-+trap 'err $LINENO' ERR
+ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
+ 		unsigned int buf_len, int *cmd_rc)
+@@ -543,6 +654,18 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 				rc = nfit_test_cmd_translate_spa(acpi_desc->nvdimm_bus,
+ 							buf, buf_len);
+ 				return rc;
++			case NFIT_CMD_ARS_INJECT_SET:
++				rc = nfit_test_cmd_ars_error_inject(t, buf,
++					buf_len);
++				return rc;
++			case NFIT_CMD_ARS_INJECT_CLEAR:
++				rc = nfit_test_cmd_ars_inject_clear(t, buf,
++					buf_len);
++				return rc;
++			case NFIT_CMD_ARS_INJECT_GET:
++				rc = nfit_test_cmd_ars_inject_status(t, buf,
++					buf_len);
++				return rc;
+ 			default:
+ 				return -ENOTTY;
+ 			}
+@@ -556,8 +679,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 			rc = nfit_test_cmd_ars_cap(buf, buf_len);
+ 			break;
+ 		case ND_CMD_ARS_START:
+-			rc = nfit_test_cmd_ars_start(ars_state, buf, buf_len,
+-					cmd_rc);
++			rc = nfit_test_cmd_ars_start(t, ars_state, buf,
++					buf_len, cmd_rc);
+ 			break;
+ 		case ND_CMD_ARS_STATUS:
+ 			rc = nfit_test_cmd_ars_status(ars_state, buf, buf_len,
+@@ -664,10 +787,9 @@ static struct nfit_test_resource *nfit_test_lookup(resource_size_t addr)
+ 
+ static int ars_state_init(struct device *dev, struct ars_state *ars_state)
+ {
++	/* for testing, only store up to n records fit withint 4k */
+ 	ars_state->ars_status = devm_kzalloc(dev,
+-			sizeof(struct nd_cmd_ars_status)
+-			+ sizeof(struct nd_ars_record) * NFIT_TEST_ARS_RECORDS,
+-			GFP_KERNEL);
++			sizeof(struct nd_cmd_ars_status) + SZ_4K, GFP_KERNEL);
+ 	if (!ars_state->ars_status)
+ 		return -ENOMEM;
+ 	spin_lock_init(&ars_state->lock);
+@@ -1517,7 +1639,8 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 				+ i * sizeof(u64);
+ 	}
+ 
+-	post_ars_status(&t->ars_state, t->spa_set_dma[0], SPA0_SIZE);
++	post_ars_status(&t->ars_state, &t->badrange, t->spa_set_dma[0],
++			SPA0_SIZE);
+ 
+ 	acpi_desc = &t->acpi_desc;
+ 	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_cmd_force_en);
+@@ -1531,6 +1654,9 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	set_bit(ND_CMD_CALL, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(NFIT_CMD_TRANSLATE_SPA, &acpi_desc->bus_passthru_cmd_force_en);
++	set_bit(NFIT_CMD_ARS_INJECT_SET, &acpi_desc->bus_passthru_cmd_force_en);
++	set_bit(NFIT_CMD_ARS_INJECT_CLEAR, &acpi_desc->bus_passthru_cmd_force_en);
++	set_bit(NFIT_CMD_ARS_INJECT_GET, &acpi_desc->bus_passthru_cmd_force_en);
+ }
+ 
+ static void nfit_test1_setup(struct nfit_test *t)
+@@ -1620,7 +1746,8 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	dcr->code = NFIT_FIC_BYTE;
+ 	dcr->windows = 0;
+ 
+-	post_ars_status(&t->ars_state, t->spa_set_dma[0], SPA2_SIZE);
++	post_ars_status(&t->ars_state, &t->badrange, t->spa_set_dma[0],
++			SPA2_SIZE);
+ 
+ 	acpi_desc = &t->acpi_desc;
+ 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
+@@ -1721,7 +1848,10 @@ static int nfit_ctl_test(struct device *dev)
+ 			.module = THIS_MODULE,
+ 			.provider_name = "ACPI.NFIT",
+ 			.ndctl = acpi_nfit_ctl,
+-			.bus_dsm_mask = 1UL << NFIT_CMD_TRANSLATE_SPA,
++			.bus_dsm_mask = 1UL << NFIT_CMD_TRANSLATE_SPA
++				| 1UL << NFIT_CMD_ARS_INJECT_SET
++				| 1UL << NFIT_CMD_ARS_INJECT_CLEAR
++				| 1UL << NFIT_CMD_ARS_INJECT_GET,
+ 		},
+ 		.dev = &adev->dev,
+ 	};
+@@ -2020,6 +2150,10 @@ static __init int nfit_test_init(void)
+ 
+ 	nfit_test_setup(nfit_test_lookup, nfit_test_evaluate_dsm);
+ 
++	nfit_wq = create_singlethread_workqueue("nfit");
++	if (!nfit_wq)
++		return -ENOMEM;
 +
-+rxe_cfg stop
-+rxe_cfg start
-+if ! rxe_cfg status | grep -n rxe0; then
-+	rxe_cfg add eth0
-+fi
+ 	nfit_test_dimm = class_create(THIS_MODULE, "nfit_test_dimm");
+ 	if (IS_ERR(nfit_test_dimm)) {
+ 		rc = PTR_ERR(nfit_test_dimm);
+@@ -2036,6 +2170,7 @@ static __init int nfit_test_init(void)
+ 			goto err_register;
+ 		}
+ 		INIT_LIST_HEAD(&nfit_test->resources);
++		badrange_init(&nfit_test->badrange);
+ 		switch (i) {
+ 		case 0:
+ 			nfit_test->num_pm = NUM_PM;
+@@ -2071,6 +2206,7 @@ static __init int nfit_test_init(void)
+ 			goto err_register;
+ 
+ 		instances[i] = nfit_test;
++		INIT_WORK(&nfit_test->work, uc_error_notify);
+ 	}
+ 
+ 	rc = platform_driver_register(&nfit_test_driver);
+@@ -2079,6 +2215,7 @@ static __init int nfit_test_init(void)
+ 	return 0;
+ 
+  err_register:
++	destroy_workqueue(nfit_wq);
+ 	for (i = 0; i < NUM_NFITS; i++)
+ 		if (instances[i])
+ 			platform_device_unregister(&instances[i]->pdev);
+@@ -2094,6 +2231,8 @@ static __exit void nfit_test_exit(void)
+ {
+ 	int i;
+ 
++	flush_workqueue(nfit_wq);
++	destroy_workqueue(nfit_wq);
+ 	for (i = 0; i < NUM_NFITS; i++)
+ 		platform_device_unregister(&instances[i]->pdev);
+ 	platform_driver_unregister(&nfit_test_driver);
+diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
+index 735a452..f13201d 100644
+--- a/tools/testing/nvdimm/test/nfit_test.h
++++ b/tools/testing/nvdimm/test/nfit_test.h
+@@ -33,6 +33,11 @@ struct nfit_test_resource {
+ };
+ 
+ #define ND_TRANSLATE_SPA_STATUS_INVALID_SPA  2
++#define NFIT_ARS_INJECT_INVALID 2
 +
-+dev=$(./dax-dev)
-+json=$($NDCTL list -N -n $dev)
-+eval $(echo $json | sed -e "$json2var")
-+rc=1
-+
-+# TODO test with sparse file, and a file that needs to do unwritten
-+# extent conversion
-+mkfs.xfs -f /dev/$blockdev
-+mount /dev/$blockdev $MNT -o dax
-+dd if=/dev/zero of=$MNT/$FILE bs=1G count=1
-+./rdma $MNT/$FILE
-+umount $MNT
-+
-+exit 0
++enum err_inj_options {
++	ND_ARS_ERR_INJ_OPT_NOTIFY = 0,
++};
+ 
+ /* bus passthru commands */
+ enum nfit_test_passthru_cmd {
+-- 
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
