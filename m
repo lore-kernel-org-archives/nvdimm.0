@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 117A421F3C1BA
- for <linux-nvdimm@lists.01.org>; Mon,  9 Oct 2017 14:02:07 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E40A721F3C1B9
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Oct 2017 13:40:38 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 1/4] libnvdimm: move poison list functions to a new
+Subject: [PATCH v2 1/4] libnvdimm: move poison list functions to a new
  'badrange' file
-Date: Mon,  9 Oct 2017 15:03:26 -0600
-Message-Id: <20171009210329.836-2-vishal.l.verma@intel.com>
-In-Reply-To: <20171009210329.836-1-vishal.l.verma@intel.com>
-References: <20171009210329.836-1-vishal.l.verma@intel.com>
+Date: Mon,  9 Oct 2017 14:41:56 -0600
+Message-Id: <20171009204159.26489-2-vishal.l.verma@intel.com>
+In-Reply-To: <20171009204159.26489-1-vishal.l.verma@intel.com>
+References: <20171009204159.26489-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,22 +33,20 @@ it more generic and in the process rename poison to badrange, and move
 all the related helpers to a new file.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-[vishal: Add badrange.o to nfit_test's Kbuild]
 [vishal: add a missed include in bus.c for the new badrange functions]
 [vishal: rename all instances of 'be' to 'bre']
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/acpi/nfit/core.c    |   2 +-
- drivers/acpi/nfit/mce.c     |   2 +-
- drivers/nvdimm/Makefile     |   1 +
- drivers/nvdimm/badrange.c   | 294 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/bus.c        |  24 ++--
- drivers/nvdimm/core.c       | 260 +--------------------------------------
- drivers/nvdimm/nd-core.h    |   3 +-
- drivers/nvdimm/nd.h         |   6 -
- include/linux/libnvdimm.h   |  21 +++-
- tools/testing/nvdimm/Kbuild |   1 +
- 10 files changed, 332 insertions(+), 282 deletions(-)
+ drivers/acpi/nfit/core.c  |   2 +-
+ drivers/acpi/nfit/mce.c   |   2 +-
+ drivers/nvdimm/Makefile   |   1 +
+ drivers/nvdimm/badrange.c | 294 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/bus.c      |  24 ++--
+ drivers/nvdimm/core.c     | 260 +---------------------------------------
+ drivers/nvdimm/nd-core.h  |   3 +-
+ drivers/nvdimm/nd.h       |   6 -
+ include/linux/libnvdimm.h |  21 +++-
+ 9 files changed, 331 insertions(+), 282 deletions(-)
  create mode 100644 drivers/nvdimm/badrange.c
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
@@ -803,18 +801,6 @@ index 3eaad2f..f8109dd 100644
  struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
  		struct nvdimm_bus_descriptor *nfit_desc);
  void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index d870520..3272ab5 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -69,6 +69,7 @@ libnvdimm-y += $(NVDIMM_SRC)/region_devs.o
- libnvdimm-y += $(NVDIMM_SRC)/region.o
- libnvdimm-y += $(NVDIMM_SRC)/namespace_devs.o
- libnvdimm-y += $(NVDIMM_SRC)/label.o
-+libnvdimm-y += $(NVDIMM_SRC)/badrange.o
- libnvdimm-$(CONFIG_ND_CLAIM) += $(NVDIMM_SRC)/claim.o
- libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
 -- 
 2.9.5
 
