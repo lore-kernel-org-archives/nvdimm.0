@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E524F21F3C187
- for <linux-nvdimm@lists.01.org>; Mon,  9 Oct 2017 14:02:06 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A0CA921F3C1B9
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Oct 2017 13:40:38 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 0/4] add error injection commands to nfit_test
-Date: Mon,  9 Oct 2017 15:03:25 -0600
-Message-Id: <20171009210329.836-1-vishal.l.verma@intel.com>
+Subject: [PATCH v2 0/4] add error injection commands to nfit_test
+Date: Mon,  9 Oct 2017 14:41:55 -0600
+Message-Id: <20171009204159.26489-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,10 +22,6 @@ Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
-
-v3:
-  patch 1,2:
-    - move the nfit_test kbuild update for badrange to patch 1 (Dan)
 
 v2:
   patch 1:
