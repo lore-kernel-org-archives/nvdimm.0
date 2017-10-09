@@ -1,293 +1,88 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 00C2E202E59C5
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 22:26:14 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [fstests PATCH] generic: add test for DAX MAP_SYNC support
-Date: Thu, 19 Oct 2017 23:29:43 -0600
-Message-Id: <20171020052943.15104-1-ross.zwisler@linux.intel.com>
-In-Reply-To: <20171020052404.13762-1-ross.zwisler@linux.intel.com>
-References: <20171020052404.13762-1-ross.zwisler@linux.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, Josef Bacik <jbacik@fb.com>, Eryu Guan <eguan@redhat.com>, fstests@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-raid@vger.kernel.org, dm-devel@redhat.com, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Shaohua Li <shli@kernel.org>, Alasdair Kergon <agk@redhat.com>
+In-Reply-To: <20171009034506.GI3666@dastard>
+References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150732936625.22363.7638037715540836828.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171009034506.GI3666@dastard>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 9 Oct 2017 10:10:42 -0700
+Message-ID: <CAPcyv4jGgrrwrvd7ExyG6BNKemWg7yvtAG7wyUm64SwtNn70cw@mail.gmail.com>
+Subject: Re: [PATCH v7 09/12] xfs: wire up ->lease_direct()
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Linux API <linux-api@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "J. Bruce Fields" <bfields@fieldses.org>, Linux MM <linux-mm@kvack.org>, Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jeff Layton <jlayton@poochiereds.net>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a test that exercises DAX's new MAP_SYNC flag.
+On Sun, Oct 8, 2017 at 8:45 PM, Dave Chinner <david@fromorbit.com> wrote:
+> On Fri, Oct 06, 2017 at 03:36:06PM -0700, Dan Williams wrote:
+>> A 'lease_direct' lease requires that the vma have a valid MAP_DIRECT
+>> mapping established. For xfs we establish a new lease and then check if
+>> the MAP_DIRECT mapping has been broken. We want to be sure that the
+>> process will receive notification that the MAP_DIRECT mapping is being
+>> torn down so it knows why other code paths are throwing failures.
+>>
+>> For example in the RDMA/ibverbs case we want ibv_reg_mr() to fail if the
+>> MAP_DIRECT mapping is invalid or in the process of being invalidated.
+>>
+>> Cc: Jan Kara <jack@suse.cz>
+>> Cc: Jeff Moyer <jmoyer@redhat.com>
+>> Cc: Christoph Hellwig <hch@lst.de>
+>> Cc: Dave Chinner <david@fromorbit.com>
+>> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Cc: Jeff Layton <jlayton@poochiereds.net>
+>> Cc: "J. Bruce Fields" <bfields@fieldses.org>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  fs/xfs/xfs_file.c |   28 ++++++++++++++++++++++++++++
+>>  1 file changed, 28 insertions(+)
+>>
+>> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+>> index e35518600e28..823b65f17429 100644
+>> --- a/fs/xfs/xfs_file.c
+>> +++ b/fs/xfs/xfs_file.c
+>> @@ -1166,6 +1166,33 @@ xfs_filemap_direct_close(
+>>       put_map_direct_vma(vma->vm_private_data);
+>>  }
+>>
+>> +static struct lease_direct *
+>> +xfs_filemap_direct_lease(
+>> +     struct vm_area_struct   *vma,
+>> +     void                    (*break_fn)(void *),
+>> +     void                    *owner)
+>> +{
+>> +     struct lease_direct     *ld;
+>> +
+>> +     ld = map_direct_lease(vma, break_fn, owner);
+>> +
+>> +     if (IS_ERR(ld))
+>> +             return ld;
+>> +
+>> +     /*
+>> +      * We now have an established lease while the base MAP_DIRECT
+>> +      * lease was not broken. So, we know that the "lease holder" will
+>> +      * receive a SIGIO notification when the lease is broken and
+>> +      * take any necessary cleanup actions.
+>> +      */
+>> +     if (!is_map_direct_broken(vma->vm_private_data))
+>> +             return ld;
+>> +
+>> +     map_direct_lease_destroy(ld);
+>> +
+>> +     return ERR_PTR(-ENXIO);
+>
+> What's any of this got to do with XFS? Shouldn't it be in generic
+> code, and called generic_filemap_direct_lease()?
 
-This test creates a file and writes to it via an mmap(), but never syncs
-via fsync/msync.  This process is tracked via dm-log-writes, then replayed.
+True, I can move this to generic code. The filesystem is in charge of
+where it wants to store the 'struct map_direct_state' context, but for
+generic_filemap_direct_lease() it can just assume that it is stored in
+->vm_private_data. I'll add comments to this effect on the new
+routine.
 
-If MAP_SYNC is working the dm-log-writes replay will show the test file
-with the same size that we wrote via the mmap() because each allocating
-page fault included an implicit metadata sync.  If MAP_SYNC isn't working
-(which you can test by fiddling with the parameters to mmap()) the file
-will be smaller or missing entirely.
-
-Note that dm-log-writes doesn't track the data that we write via the
-mmap(), so we can't do any data integrity checking.  We can only verify
-that the metadata writes for the page faults happened.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
-
-For this test to run successfully you'll need both Jan's MAP_SYNC series:
-
-https://www.spinics.net/lists/linux-xfs/msg11852.html
-
-and my series adding DAX support to dm-log-writes:
-
-https://lists.01.org/pipermail/linux-nvdimm/2017-October/012972.html
-
----
- .gitignore            |  1 +
- common/dmlogwrites    |  1 -
- src/Makefile          |  3 +-
- src/t_map_sync.c      | 74 +++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/466     | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/466.out |  3 ++
- tests/generic/group   |  1 +
- 7 files changed, 158 insertions(+), 2 deletions(-)
- create mode 100644 src/t_map_sync.c
- create mode 100755 tests/generic/466
- create mode 100644 tests/generic/466.out
-
-diff --git a/.gitignore b/.gitignore
-index 2014c08..9fc0695 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -119,6 +119,7 @@
- /src/t_getcwd
- /src/t_holes
- /src/t_immutable
-+/src/t_map_sync
- /src/t_mmap_cow_race
- /src/t_mmap_dio
- /src/t_mmap_fallocate
-diff --git a/common/dmlogwrites b/common/dmlogwrites
-index 247c744..5b57df9 100644
---- a/common/dmlogwrites
-+++ b/common/dmlogwrites
-@@ -23,7 +23,6 @@ _require_log_writes()
- 	[ -z "$LOGWRITES_DEV" -o ! -b "$LOGWRITES_DEV" ] && \
- 		_notrun "This test requires a valid \$LOGWRITES_DEV"
- 
--	_exclude_scratch_mount_option dax
- 	_require_dm_target log-writes
- 	_require_test_program "log-writes/replay-log"
- }
-diff --git a/src/Makefile b/src/Makefile
-index 3eb25b1..af7e7e9 100644
---- a/src/Makefile
-+++ b/src/Makefile
-@@ -13,7 +13,8 @@ TARGETS = dirstress fill fill2 getpagesize holes lstat64 \
- 	multi_open_unlink dmiperf unwritten_sync genhashnames t_holes \
- 	t_mmap_writev t_truncate_cmtime dirhash_collide t_rename_overwrite \
- 	holetest t_truncate_self t_mmap_dio af_unix t_mmap_stale_pmd \
--	t_mmap_cow_race t_mmap_fallocate fsync-err t_mmap_write_ro
-+	t_mmap_cow_race t_mmap_fallocate fsync-err t_mmap_write_ro \
-+	t_map_sync
- 
- LINUX_TARGETS = xfsctl bstat t_mtab getdevicesize preallo_rw_pattern_reader \
- 	preallo_rw_pattern_writer ftrunc trunc fs_perms testx looptest \
-diff --git a/src/t_map_sync.c b/src/t_map_sync.c
-new file mode 100644
-index 0000000..8190f3c
---- /dev/null
-+++ b/src/t_map_sync.c
-@@ -0,0 +1,74 @@
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <unistd.h>
-+
-+#define MiB(a) ((a)*1024*1024)
-+
-+/*
-+ * These two defines were added to the kernel via commits entitled
-+ * "mm: Define MAP_SYNC and VM_SYNC flags" and
-+ * "mm: introduce MAP_SHARED_VALIDATE, a mechanism to safely define new mmap
-+ * flags", respectively.
-+ */
-+#define MAP_SYNC 0x80000
-+#define MAP_SHARED_VALIDATE 0x3
-+
-+void err_exit(char *op)
-+{
-+	fprintf(stderr, "%s: %s\n", op, strerror(errno));
-+	exit(1);
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int page_size = getpagesize();
-+	int len = MiB(1);
-+	int i, fd, err;
-+	char *data;
-+
-+	if (argc < 2) {
-+		printf("Usage: %s <file>\n", basename(argv[0]));
-+		exit(0);
-+	}
-+
-+	fd = open(argv[1], O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
-+	if (fd < 0)
-+		err_exit("fd");
-+
-+	ftruncate(fd, 0);
-+	ftruncate(fd, len);
-+
-+	data = mmap(NULL, len, PROT_READ|PROT_WRITE,
-+			MAP_SHARED_VALIDATE|MAP_SYNC, fd, 0);
-+	if (data == MAP_FAILED)
-+		err_exit("mmap");
-+
-+	/*
-+	 * We intentionally don't sync 'fd' manually.  If MAP_SYNC is working
-+	 * these allocating page faults will cause the filesystem to sync its
-+	 * metadata so that when we replay the dm-log-writes log the test file
-+	 * will be 1 MiB in size.
-+	 *
-+	 * dm-log-writes doesn't track the data that we write via the mmap(),
-+	 * so we can't check that, we can only verify that the metadata writes
-+	 * happened.
-+	 */
-+	for (i = 0; i < len; i+=page_size)
-+		data[i] = 0xff;
-+
-+	err = munmap(data, len);
-+	if (err < 0)
-+		err_exit("munmap");
-+
-+	err = close(fd);
-+	if (err < 0)
-+		err_exit("close");
-+
-+	return 0;
-+}
-diff --git a/tests/generic/466 b/tests/generic/466
-new file mode 100755
-index 0000000..f39e6dc
---- /dev/null
-+++ b/tests/generic/466
-@@ -0,0 +1,77 @@
-+#! /bin/bash
-+# FS QA Test No. 466
-+#
-+# Use md_log_writes to verify that MAP_SYNC actually syncs metadata during
-+# page faults.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Intel Corporation.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	_log_writes_cleanup
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+. ./common/dmlogwrites
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs generic
-+_supported_os Linux
-+_require_log_writes
-+_require_scratch_dax
-+_require_test_program "t_map_sync"
-+
-+_log_writes_init
-+_log_writes_mkfs >> $seqres.full 2>&1
-+_log_writes_mount -o dax
-+
-+src/t_map_sync $SCRATCH_MNT/test
-+
-+# Unmount the scratch dir and tear down the log writes target
-+_log_writes_mark last
-+_log_writes_unmount
-+_log_writes_remove
-+_check_scratch_fs
-+
-+# check pre umount
-+_log_writes_replay_log last
-+_scratch_mount
-+
-+# We should see $SCRATCH_MNT/test as 1MiB in size
-+du -sh $SCRATCH_MNT/test | _filter_scratch | _filter_spaces
-+
-+_scratch_unmount
-+_check_scratch_fs
-+
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/generic/466.out b/tests/generic/466.out
-new file mode 100644
-index 0000000..4c54d7a
---- /dev/null
-+++ b/tests/generic/466.out
-@@ -0,0 +1,3 @@
-+QA output created by 466
-+1.0M SCRATCH_MNT/test
-+Silence is golden
-diff --git a/tests/generic/group b/tests/generic/group
-index fbe0a7f..65328c6 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -468,3 +468,4 @@
- 463 auto quick clone dangerous
- 464 auto rw
- 465 auto rw quick aio
-+466 auto quick dax
--- 
-2.9.5
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
