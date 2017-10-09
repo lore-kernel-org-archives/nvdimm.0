@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E40A721F3C1B9
- for <linux-nvdimm@lists.01.org>; Mon,  9 Oct 2017 13:40:38 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 1/4] libnvdimm: move poison list functions to a new
+ by ml01.01.org (Postfix) with ESMTPS id 1E0C121F3C1B9
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Oct 2017 13:19:57 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 1/4] libnvdimm: move poison list functions to a new
  'badrange' file
-Date: Mon,  9 Oct 2017 14:41:56 -0600
-Message-Id: <20171009204159.26489-2-vishal.l.verma@intel.com>
-In-Reply-To: <20171009204159.26489-1-vishal.l.verma@intel.com>
-References: <20171009204159.26489-1-vishal.l.verma@intel.com>
+Date: Mon, 9 Oct 2017 20:23:23 +0000
+Message-ID: <1507580479.23025.77.camel@intel.com>
+References: <20171006015340.29722-1-vishal.l.verma@intel.com>
+ <20171006015340.29722-2-vishal.l.verma@intel.com>
+ <CAPcyv4i=sNRwWHbDh0fgSEixn1G0R5UwgCa8HBfNuWyDyC7s8w@mail.gmail.com>
+In-Reply-To: <CAPcyv4i=sNRwWHbDh0fgSEixn1G0R5UwgCa8HBfNuWyDyC7s8w@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <D69F6265B79E934BAA9D5402213A612C@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,793 +23,112 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dave Jiang <dave.jiang@intel.com>
-
-nfit_test needs to use the poison list manipulation code as well. Make
-it more generic and in the process rename poison to badrange, and move
-all the related helpers to a new file.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-[vishal: add a missed include in bus.c for the new badrange functions]
-[vishal: rename all instances of 'be' to 'bre']
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/acpi/nfit/core.c  |   2 +-
- drivers/acpi/nfit/mce.c   |   2 +-
- drivers/nvdimm/Makefile   |   1 +
- drivers/nvdimm/badrange.c | 294 ++++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/bus.c      |  24 ++--
- drivers/nvdimm/core.c     | 260 +---------------------------------------
- drivers/nvdimm/nd-core.h  |   3 +-
- drivers/nvdimm/nd.h       |   6 -
- include/linux/libnvdimm.h |  21 +++-
- 9 files changed, 331 insertions(+), 282 deletions(-)
- create mode 100644 drivers/nvdimm/badrange.c
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index a3ecd5e..4b157f8 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2240,7 +2240,7 @@ static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc,
- 		if (ars_status->out_length
- 				< 44 + sizeof(struct nd_ars_record) * (i + 1))
- 			break;
--		rc = nvdimm_bus_add_poison(nvdimm_bus,
-+		rc = nvdimm_bus_add_badrange(nvdimm_bus,
- 				ars_status->records[i].err_address,
- 				ars_status->records[i].length);
- 		if (rc)
-diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
-index feeb95d..b929214 100644
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -67,7 +67,7 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
- 			continue;
- 
- 		/* If this fails due to an -ENOMEM, there is little we can do */
--		nvdimm_bus_add_poison(acpi_desc->nvdimm_bus,
-+		nvdimm_bus_add_badrange(acpi_desc->nvdimm_bus,
- 				ALIGN(mce->addr, L1_CACHE_BYTES),
- 				L1_CACHE_BYTES);
- 		nvdimm_region_notify(nfit_spa->nd_region,
-diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
-index 909554c..ca6d325 100644
---- a/drivers/nvdimm/Makefile
-+++ b/drivers/nvdimm/Makefile
-@@ -20,6 +20,7 @@ libnvdimm-y += region_devs.o
- libnvdimm-y += region.o
- libnvdimm-y += namespace_devs.o
- libnvdimm-y += label.o
-+libnvdimm-y += badrange.o
- libnvdimm-$(CONFIG_ND_CLAIM) += claim.o
- libnvdimm-$(CONFIG_BTT) += btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
-diff --git a/drivers/nvdimm/badrange.c b/drivers/nvdimm/badrange.c
-new file mode 100644
-index 0000000..0b67dcf
---- /dev/null
-+++ b/drivers/nvdimm/badrange.c
-@@ -0,0 +1,294 @@
-+/*
-+ * Copyright(c) 2017 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/libnvdimm.h>
-+#include <linux/badblocks.h>
-+#include <linux/export.h>
-+#include <linux/module.h>
-+#include <linux/blkdev.h>
-+#include <linux/device.h>
-+#include <linux/ctype.h>
-+#include <linux/ndctl.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include "nd-core.h"
-+#include "nd.h"
-+
-+void badrange_init(struct badrange *badrange)
-+{
-+	INIT_LIST_HEAD(&badrange->list);
-+	spin_lock_init(&badrange->lock);
-+}
-+EXPORT_SYMBOL_GPL(badrange_init);
-+
-+static void append_badrange_entry(struct badrange *badrange,
-+		struct badrange_entry *bre, u64 addr, u64 length)
-+{
-+	lockdep_assert_held(&badrange->lock);
-+	bre->start = addr;
-+	bre->length = length;
-+	list_add_tail(&bre->list, &badrange->list);
-+}
-+
-+static int alloc_and_append_badrange_entry(struct badrange *badrange,
-+		u64 addr, u64 length, gfp_t flags)
-+{
-+	struct badrange_entry *bre;
-+
-+	bre = kzalloc(sizeof(*bre), flags);
-+	if (!bre)
-+		return -ENOMEM;
-+
-+	append_badrange_entry(badrange, bre, addr, length);
-+	return 0;
-+}
-+
-+static int add_badrange(struct badrange *badrange, u64 addr, u64 length)
-+{
-+	struct badrange_entry *bre, *bre_new;
-+
-+	spin_unlock(&badrange->lock);
-+	bre_new = kzalloc(sizeof(*bre_new), GFP_KERNEL);
-+	spin_lock(&badrange->lock);
-+
-+	if (list_empty(&badrange->list)) {
-+		if (!bre_new)
-+			return -ENOMEM;
-+		append_badrange_entry(badrange, bre_new, addr, length);
-+		return 0;
-+	}
-+
-+	/*
-+	 * There is a chance this is a duplicate, check for those first.
-+	 * This will be the common case as ARS_STATUS returns all known
-+	 * errors in the SPA space, and we can't query it per region
-+	 */
-+	list_for_each_entry(bre, &badrange->list, list)
-+		if (bre->start == addr) {
-+			/* If length has changed, update this list entry */
-+			if (bre->length != length)
-+				bre->length = length;
-+			kfree(bre_new);
-+			return 0;
-+		}
-+
-+	/*
-+	 * If not a duplicate or a simple length update, add the entry as is,
-+	 * as any overlapping ranges will get resolved when the list is consumed
-+	 * and converted to badblocks
-+	 */
-+	if (!bre_new)
-+		return -ENOMEM;
-+	append_badrange_entry(badrange, bre_new, addr, length);
-+
-+	return 0;
-+}
-+
-+int badrange_add(struct badrange *badrange, u64 addr, u64 length)
-+{
-+	int rc;
-+
-+	spin_lock(&badrange->lock);
-+	rc = add_badrange(badrange, addr, length);
-+	spin_unlock(&badrange->lock);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(badrange_add);
-+
-+void badrange_forget(struct badrange *badrange, phys_addr_t start,
-+		unsigned int len)
-+{
-+	struct list_head *badrange_list = &badrange->list;
-+	u64 clr_end = start + len - 1;
-+	struct badrange_entry *bre, *next;
-+
-+	spin_lock(&badrange->lock);
-+	WARN_ON_ONCE(list_empty(badrange_list));
-+
-+	/*
-+	 * [start, clr_end] is the badrange interval being cleared.
-+	 * [bre->start, bre_end] is the badrange_list entry we're comparing
-+	 * the above interval against. The badrange list entry may need
-+	 * to be modified (update either start or length), deleted, or
-+	 * split into two based on the overlap characteristics
-+	 */
-+
-+	list_for_each_entry_safe(bre, next, badrange_list, list) {
-+		u64 bre_end = bre->start + bre->length - 1;
-+
-+		/* Skip intervals with no intersection */
-+		if (bre_end < start)
-+			continue;
-+		if (bre->start >  clr_end)
-+			continue;
-+		/* Delete completely overlapped badrange entries */
-+		if ((bre->start >= start) && (bre_end <= clr_end)) {
-+			list_del(&bre->list);
-+			kfree(bre);
-+			continue;
-+		}
-+		/* Adjust start point of partially cleared entries */
-+		if ((start <= bre->start) && (clr_end > bre->start)) {
-+			bre->length -= clr_end - bre->start + 1;
-+			bre->start = clr_end + 1;
-+			continue;
-+		}
-+		/* Adjust bre->length for partial clearing at the tail end */
-+		if ((bre->start < start) && (bre_end <= clr_end)) {
-+			/* bre->start remains the same */
-+			bre->length = start - bre->start;
-+			continue;
-+		}
-+		/*
-+		 * If clearing in the middle of an entry, we split it into
-+		 * two by modifying the current entry to represent one half of
-+		 * the split, and adding a new entry for the second half.
-+		 */
-+		if ((bre->start < start) && (bre_end > clr_end)) {
-+			u64 new_start = clr_end + 1;
-+			u64 new_len = bre_end - new_start + 1;
-+
-+			/* Add new entry covering the right half */
-+			alloc_and_append_badrange_entry(badrange, new_start,
-+					new_len, GFP_NOWAIT);
-+			/* Adjust this entry to cover the left half */
-+			bre->length = start - bre->start;
-+			continue;
-+		}
-+	}
-+	spin_unlock(&badrange->lock);
-+}
-+EXPORT_SYMBOL_GPL(badrange_forget);
-+
-+static void set_badblock(struct badblocks *bb, sector_t s, int num)
-+{
-+	dev_dbg(bb->dev, "Found a bad range (0x%llx, 0x%llx)\n",
-+			(u64) s * 512, (u64) num * 512);
-+	/* this isn't an error as the hardware will still throw an exception */
-+	if (badblocks_set(bb, s, num, 1))
-+		dev_info_once(bb->dev, "%s: failed for sector %llx\n",
-+				__func__, (u64) s);
-+}
-+
-+/**
-+ * __add_badblock_range() - Convert a physical address range to bad sectors
-+ * @bb:		badblocks instance to populate
-+ * @ns_offset:	namespace offset where the error range begins (in bytes)
-+ * @len:	number of bytes of badrange to be added
-+ *
-+ * This assumes that the range provided with (ns_offset, len) is within
-+ * the bounds of physical addresses for this namespace, i.e. lies in the
-+ * interval [ns_start, ns_start + ns_size)
-+ */
-+static void __add_badblock_range(struct badblocks *bb, u64 ns_offset, u64 len)
-+{
-+	const unsigned int sector_size = 512;
-+	sector_t start_sector, end_sector;
-+	u64 num_sectors;
-+	u32 rem;
-+
-+	start_sector = div_u64(ns_offset, sector_size);
-+	end_sector = div_u64_rem(ns_offset + len, sector_size, &rem);
-+	if (rem)
-+		end_sector++;
-+	num_sectors = end_sector - start_sector;
-+
-+	if (unlikely(num_sectors > (u64)INT_MAX)) {
-+		u64 remaining = num_sectors;
-+		sector_t s = start_sector;
-+
-+		while (remaining) {
-+			int done = min_t(u64, remaining, INT_MAX);
-+
-+			set_badblock(bb, s, done);
-+			remaining -= done;
-+			s += done;
-+		}
-+	} else
-+		set_badblock(bb, start_sector, num_sectors);
-+}
-+
-+static void badblocks_populate(struct badrange *badrange,
-+		struct badblocks *bb, const struct resource *res)
-+{
-+	struct badrange_entry *bre;
-+
-+	if (list_empty(&badrange->list))
-+		return;
-+
-+	list_for_each_entry(bre, &badrange->list, list) {
-+		u64 bre_end = bre->start + bre->length - 1;
-+
-+		/* Discard intervals with no intersection */
-+		if (bre_end < res->start)
-+			continue;
-+		if (bre->start >  res->end)
-+			continue;
-+		/* Deal with any overlap after start of the namespace */
-+		if (bre->start >= res->start) {
-+			u64 start = bre->start;
-+			u64 len;
-+
-+			if (bre_end <= res->end)
-+				len = bre->length;
-+			else
-+				len = res->start + resource_size(res)
-+					- bre->start;
-+			__add_badblock_range(bb, start - res->start, len);
-+			continue;
-+		}
-+		/*
-+		 * Deal with overlap for badrange starting before
-+		 * the namespace.
-+		 */
-+		if (bre->start < res->start) {
-+			u64 len;
-+
-+			if (bre_end < res->end)
-+				len = bre->start + bre->length - res->start;
-+			else
-+				len = resource_size(res);
-+			__add_badblock_range(bb, 0, len);
-+		}
-+	}
-+}
-+
-+/**
-+ * nvdimm_badblocks_populate() - Convert a list of badranges to badblocks
-+ * @region: parent region of the range to interrogate
-+ * @bb: badblocks instance to populate
-+ * @res: resource range to consider
-+ *
-+ * The badrange list generated during bus initialization may contain
-+ * multiple, possibly overlapping physical address ranges.  Compare each
-+ * of these ranges to the resource range currently being initialized,
-+ * and add badblocks entries for all matching sub-ranges
-+ */
-+void nvdimm_badblocks_populate(struct nd_region *nd_region,
-+		struct badblocks *bb, const struct resource *res)
-+{
-+	struct nvdimm_bus *nvdimm_bus;
-+
-+	if (!is_memory(&nd_region->dev)) {
-+		dev_WARN_ONCE(&nd_region->dev, 1,
-+				"%s only valid for pmem regions\n", __func__);
-+		return;
-+	}
-+	nvdimm_bus = walk_to_nvdimm_bus(&nd_region->dev);
-+
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	badblocks_populate(&nvdimm_bus->badrange, bb, res);
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+}
-+EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index baf2839..0a5e6cd 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/libnvdimm.h>
- #include <linux/sched/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/uaccess.h>
-@@ -221,7 +222,7 @@ static void nvdimm_account_cleared_poison(struct nvdimm_bus *nvdimm_bus,
- 		phys_addr_t phys, u64 cleared)
- {
- 	if (cleared > 0)
--		nvdimm_forget_poison(nvdimm_bus, phys, cleared);
-+		badrange_forget(&nvdimm_bus->badrange, phys, cleared);
- 
- 	if (cleared > 0 && cleared / 512)
- 		nvdimm_clear_badblocks_regions(nvdimm_bus, phys, cleared);
-@@ -344,11 +345,10 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 		return NULL;
- 	INIT_LIST_HEAD(&nvdimm_bus->list);
- 	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
--	INIT_LIST_HEAD(&nvdimm_bus->poison_list);
- 	init_waitqueue_head(&nvdimm_bus->probe_wait);
- 	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
- 	mutex_init(&nvdimm_bus->reconfig_mutex);
--	spin_lock_init(&nvdimm_bus->poison_lock);
-+	badrange_init(&nvdimm_bus->badrange);
- 	if (nvdimm_bus->id < 0) {
- 		kfree(nvdimm_bus);
- 		return NULL;
-@@ -395,15 +395,15 @@ static int child_unregister(struct device *dev, void *data)
- 	return 0;
- }
- 
--static void free_poison_list(struct list_head *poison_list)
-+static void free_badrange_list(struct list_head *badrange_list)
- {
--	struct nd_poison *pl, *next;
-+	struct badrange_entry *bre, *next;
- 
--	list_for_each_entry_safe(pl, next, poison_list, list) {
--		list_del(&pl->list);
--		kfree(pl);
-+	list_for_each_entry_safe(bre, next, badrange_list, list) {
-+		list_del(&bre->list);
-+		kfree(bre);
- 	}
--	list_del_init(poison_list);
-+	list_del_init(badrange_list);
- }
- 
- static int nd_bus_remove(struct device *dev)
-@@ -417,9 +417,9 @@ static int nd_bus_remove(struct device *dev)
- 	nd_synchronize();
- 	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
- 
--	spin_lock(&nvdimm_bus->poison_lock);
--	free_poison_list(&nvdimm_bus->poison_list);
--	spin_unlock(&nvdimm_bus->poison_lock);
-+	spin_lock(&nvdimm_bus->badrange.lock);
-+	free_badrange_list(&nvdimm_bus->badrange.list);
-+	spin_unlock(&nvdimm_bus->badrange.lock);
- 
- 	nvdimm_bus_destroy_ndctl(nvdimm_bus);
- 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index bb71f0c..1dc5276 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -398,265 +398,11 @@ struct attribute_group nvdimm_bus_attribute_group = {
- };
- EXPORT_SYMBOL_GPL(nvdimm_bus_attribute_group);
- 
--static void set_badblock(struct badblocks *bb, sector_t s, int num)
-+int nvdimm_bus_add_badrange(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- {
--	dev_dbg(bb->dev, "Found a poison range (0x%llx, 0x%llx)\n",
--			(u64) s * 512, (u64) num * 512);
--	/* this isn't an error as the hardware will still throw an exception */
--	if (badblocks_set(bb, s, num, 1))
--		dev_info_once(bb->dev, "%s: failed for sector %llx\n",
--				__func__, (u64) s);
-+	return badrange_add(&nvdimm_bus->badrange, addr, length);
- }
--
--/**
-- * __add_badblock_range() - Convert a physical address range to bad sectors
-- * @bb:		badblocks instance to populate
-- * @ns_offset:	namespace offset where the error range begins (in bytes)
-- * @len:	number of bytes of poison to be added
-- *
-- * This assumes that the range provided with (ns_offset, len) is within
-- * the bounds of physical addresses for this namespace, i.e. lies in the
-- * interval [ns_start, ns_start + ns_size)
-- */
--static void __add_badblock_range(struct badblocks *bb, u64 ns_offset, u64 len)
--{
--	const unsigned int sector_size = 512;
--	sector_t start_sector, end_sector;
--	u64 num_sectors;
--	u32 rem;
--
--	start_sector = div_u64(ns_offset, sector_size);
--	end_sector = div_u64_rem(ns_offset + len, sector_size, &rem);
--	if (rem)
--		end_sector++;
--	num_sectors = end_sector - start_sector;
--
--	if (unlikely(num_sectors > (u64)INT_MAX)) {
--		u64 remaining = num_sectors;
--		sector_t s = start_sector;
--
--		while (remaining) {
--			int done = min_t(u64, remaining, INT_MAX);
--
--			set_badblock(bb, s, done);
--			remaining -= done;
--			s += done;
--		}
--	} else
--		set_badblock(bb, start_sector, num_sectors);
--}
--
--static void badblocks_populate(struct list_head *poison_list,
--		struct badblocks *bb, const struct resource *res)
--{
--	struct nd_poison *pl;
--
--	if (list_empty(poison_list))
--		return;
--
--	list_for_each_entry(pl, poison_list, list) {
--		u64 pl_end = pl->start + pl->length - 1;
--
--		/* Discard intervals with no intersection */
--		if (pl_end < res->start)
--			continue;
--		if (pl->start >  res->end)
--			continue;
--		/* Deal with any overlap after start of the namespace */
--		if (pl->start >= res->start) {
--			u64 start = pl->start;
--			u64 len;
--
--			if (pl_end <= res->end)
--				len = pl->length;
--			else
--				len = res->start + resource_size(res)
--					- pl->start;
--			__add_badblock_range(bb, start - res->start, len);
--			continue;
--		}
--		/* Deal with overlap for poison starting before the namespace */
--		if (pl->start < res->start) {
--			u64 len;
--
--			if (pl_end < res->end)
--				len = pl->start + pl->length - res->start;
--			else
--				len = resource_size(res);
--			__add_badblock_range(bb, 0, len);
--		}
--	}
--}
--
--/**
-- * nvdimm_badblocks_populate() - Convert a list of poison ranges to badblocks
-- * @region: parent region of the range to interrogate
-- * @bb: badblocks instance to populate
-- * @res: resource range to consider
-- *
-- * The poison list generated during bus initialization may contain
-- * multiple, possibly overlapping physical address ranges.  Compare each
-- * of these ranges to the resource range currently being initialized,
-- * and add badblocks entries for all matching sub-ranges
-- */
--void nvdimm_badblocks_populate(struct nd_region *nd_region,
--		struct badblocks *bb, const struct resource *res)
--{
--	struct nvdimm_bus *nvdimm_bus;
--	struct list_head *poison_list;
--
--	if (!is_memory(&nd_region->dev)) {
--		dev_WARN_ONCE(&nd_region->dev, 1,
--				"%s only valid for pmem regions\n", __func__);
--		return;
--	}
--	nvdimm_bus = walk_to_nvdimm_bus(&nd_region->dev);
--	poison_list = &nvdimm_bus->poison_list;
--
--	nvdimm_bus_lock(&nvdimm_bus->dev);
--	badblocks_populate(poison_list, bb, res);
--	nvdimm_bus_unlock(&nvdimm_bus->dev);
--}
--EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
--
--static void append_poison_entry(struct nvdimm_bus *nvdimm_bus,
--		struct nd_poison *pl, u64 addr, u64 length)
--{
--	lockdep_assert_held(&nvdimm_bus->poison_lock);
--	pl->start = addr;
--	pl->length = length;
--	list_add_tail(&pl->list, &nvdimm_bus->poison_list);
--}
--
--static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length,
--			gfp_t flags)
--{
--	struct nd_poison *pl;
--
--	pl = kzalloc(sizeof(*pl), flags);
--	if (!pl)
--		return -ENOMEM;
--
--	append_poison_entry(nvdimm_bus, pl, addr, length);
--	return 0;
--}
--
--static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
--{
--	struct nd_poison *pl, *pl_new;
--
--	spin_unlock(&nvdimm_bus->poison_lock);
--	pl_new = kzalloc(sizeof(*pl_new), GFP_KERNEL);
--	spin_lock(&nvdimm_bus->poison_lock);
--
--	if (list_empty(&nvdimm_bus->poison_list)) {
--		if (!pl_new)
--			return -ENOMEM;
--		append_poison_entry(nvdimm_bus, pl_new, addr, length);
--		return 0;
--	}
--
--	/*
--	 * There is a chance this is a duplicate, check for those first.
--	 * This will be the common case as ARS_STATUS returns all known
--	 * errors in the SPA space, and we can't query it per region
--	 */
--	list_for_each_entry(pl, &nvdimm_bus->poison_list, list)
--		if (pl->start == addr) {
--			/* If length has changed, update this list entry */
--			if (pl->length != length)
--				pl->length = length;
--			kfree(pl_new);
--			return 0;
--		}
--
--	/*
--	 * If not a duplicate or a simple length update, add the entry as is,
--	 * as any overlapping ranges will get resolved when the list is consumed
--	 * and converted to badblocks
--	 */
--	if (!pl_new)
--		return -ENOMEM;
--	append_poison_entry(nvdimm_bus, pl_new, addr, length);
--
--	return 0;
--}
--
--int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
--{
--	int rc;
--
--	spin_lock(&nvdimm_bus->poison_lock);
--	rc = bus_add_poison(nvdimm_bus, addr, length);
--	spin_unlock(&nvdimm_bus->poison_lock);
--
--	return rc;
--}
--EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
--
--void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus, phys_addr_t start,
--		unsigned int len)
--{
--	struct list_head *poison_list = &nvdimm_bus->poison_list;
--	u64 clr_end = start + len - 1;
--	struct nd_poison *pl, *next;
--
--	spin_lock(&nvdimm_bus->poison_lock);
--	WARN_ON_ONCE(list_empty(poison_list));
--
--	/*
--	 * [start, clr_end] is the poison interval being cleared.
--	 * [pl->start, pl_end] is the poison_list entry we're comparing
--	 * the above interval against. The poison list entry may need
--	 * to be modified (update either start or length), deleted, or
--	 * split into two based on the overlap characteristics
--	 */
--
--	list_for_each_entry_safe(pl, next, poison_list, list) {
--		u64 pl_end = pl->start + pl->length - 1;
--
--		/* Skip intervals with no intersection */
--		if (pl_end < start)
--			continue;
--		if (pl->start >  clr_end)
--			continue;
--		/* Delete completely overlapped poison entries */
--		if ((pl->start >= start) && (pl_end <= clr_end)) {
--			list_del(&pl->list);
--			kfree(pl);
--			continue;
--		}
--		/* Adjust start point of partially cleared entries */
--		if ((start <= pl->start) && (clr_end > pl->start)) {
--			pl->length -= clr_end - pl->start + 1;
--			pl->start = clr_end + 1;
--			continue;
--		}
--		/* Adjust pl->length for partial clearing at the tail end */
--		if ((pl->start < start) && (pl_end <= clr_end)) {
--			/* pl->start remains the same */
--			pl->length = start - pl->start;
--			continue;
--		}
--		/*
--		 * If clearing in the middle of an entry, we split it into
--		 * two by modifying the current entry to represent one half of
--		 * the split, and adding a new entry for the second half.
--		 */
--		if ((pl->start < start) && (pl_end > clr_end)) {
--			u64 new_start = clr_end + 1;
--			u64 new_len = pl_end - new_start + 1;
--
--			/* Add new entry covering the right half */
--			add_poison(nvdimm_bus, new_start, new_len, GFP_NOWAIT);
--			/* Adjust this entry to cover the left half */
--			pl->length = start - pl->start;
--			continue;
--		}
--	}
--	spin_unlock(&nvdimm_bus->poison_lock);
--}
--EXPORT_SYMBOL_GPL(nvdimm_forget_poison);
-+EXPORT_SYMBOL_GPL(nvdimm_bus_add_badrange);
- 
- #ifdef CONFIG_BLK_DEV_INTEGRITY
- int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 86bc19a..79274ea 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -29,10 +29,9 @@ struct nvdimm_bus {
- 	struct list_head list;
- 	struct device dev;
- 	int id, probe_active;
--	struct list_head poison_list;
- 	struct list_head mapping_list;
- 	struct mutex reconfig_mutex;
--	spinlock_t poison_lock;
-+	struct badrange badrange;
- };
- 
- struct nvdimm {
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 023fc93..377c800 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -34,12 +34,6 @@ enum {
- 	NVDIMM_IO_ATOMIC = 1,
- };
- 
--struct nd_poison {
--	u64 start;
--	u64 length;
--	struct list_head list;
--};
--
- struct nvdimm_drvdata {
- 	struct device *dev;
- 	int nslabel_size;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 3eaad2f..f8109dd 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -18,6 +18,18 @@
- #include <linux/sizes.h>
- #include <linux/types.h>
- #include <linux/uuid.h>
-+#include <linux/spinlock.h>
-+
-+struct badrange_entry {
-+	u64 start;
-+	u64 length;
-+	struct list_head list;
-+};
-+
-+struct badrange {
-+	struct list_head list;
-+	spinlock_t lock;
-+};
- 
- enum {
- 	/* when a dimm supports both PMEM and BLK access a label is required */
-@@ -129,9 +141,12 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
- 
- }
- 
--int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
--void nvdimm_forget_poison(struct nvdimm_bus *nvdimm_bus,
--		phys_addr_t start, unsigned int len);
-+void badrange_init(struct badrange *badrange);
-+int badrange_add(struct badrange *badrange, u64 addr, u64 length);
-+void badrange_forget(struct badrange *badrange, phys_addr_t start,
-+		unsigned int len);
-+int nvdimm_bus_add_badrange(struct nvdimm_bus *nvdimm_bus, u64 addr,
-+		u64 length);
- struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 		struct nvdimm_bus_descriptor *nfit_desc);
- void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
--- 
-2.9.5
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE3LTEwLTA2IGF0IDExOjUyIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFRodSwgT2N0IDUsIDIwMTcgYXQgNjo1MyBQTSwgVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52
+ZXJtYUBpbnRlbC5jb20NCj4gPiB3cm90ZToNCj4gPiBGcm9tOiBEYXZlIEppYW5nIDxkYXZlLmpp
+YW5nQGludGVsLmNvbT4NCj4gPiANCj4gPiBGcm9tOiBEYXZlIEppYW5nIDxkYXZlLmppYW5nQGlu
+dGVsLmNvbT4NCj4gPiANCj4gPiBuZml0X3Rlc3QgbmVlZHMgdG8gdXNlIHRoZSBwb2lzb24gbGlz
+dCBtYW5pcHVsYXRpb24gY29kZSBhcyB3ZWxsLg0KPiA+IE1ha2UNCj4gPiBpdCBtb3JlIGdlbmVy
+aWMgYW5kIGluIHRoZSBwcm9jZXNzIHJlbmFtZSBwb2lzb24gdG8gYmFkcmFuZ2UsIGFuZA0KPiA+
+IG1vdmUNCj4gPiBhbGwgdGhlIHJlbGF0ZWQgaGVscGVycyB0byBhIG5ldyBmaWxlLg0KPiA+IA0K
+PiA+IFNpZ25lZC1vZmYtYnk6IERhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPg0KPiA+
+IFt2aXNoYWw6IGFkZCBhIG1pc3NlZCBpbmNsdWRlIGluIGJ1cy5jIGZvciB0aGUgbmV3IGJhZHJh
+bmdlDQo+ID4gZnVuY3Rpb25zXQ0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBWZXJtYSA8dmlz
+aGFsLmwudmVybWFAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+IMKgZHJpdmVycy9hY3BpL25maXQv
+Y29yZS5jwqDCoHzCoMKgwqAyICstDQo+ID4gwqBkcml2ZXJzL2FjcGkvbmZpdC9tY2UuY8KgwqDC
+oHzCoMKgwqAyICstDQo+ID4gwqBkcml2ZXJzL252ZGltbS9NYWtlZmlsZcKgwqDCoHzCoMKgwqAx
+ICsNCj4gPiDCoGRyaXZlcnMvbnZkaW1tL2JhZHJhbmdlLmMgfCAyOTQNCj4gPiArKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gwqBkcml2ZXJzL252ZGlt
+bS9idXMuY8KgwqDCoMKgwqDCoHzCoMKgMjQgKystLQ0KPiA+IMKgZHJpdmVycy9udmRpbW0vY29y
+ZS5jwqDCoMKgwqDCoHwgMjYwICstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+
+IC0tLS0tLS0NCj4gPiDCoGRyaXZlcnMvbnZkaW1tL25kLWNvcmUuaMKgwqB8wqDCoMKgMyArLQ0K
+PiA+IMKgZHJpdmVycy9udmRpbW0vbmQuaMKgwqDCoMKgwqDCoMKgfMKgwqDCoDYgLQ0KPiA+IMKg
+aW5jbHVkZS9saW51eC9saWJudmRpbW0uaCB8wqDCoDIxICsrKy0NCj4gPiDCoDkgZmlsZXMgY2hh
+bmdlZCwgMzMxIGluc2VydGlvbnMoKyksIDI4MiBkZWxldGlvbnMoLSkNCj4gPiDCoGNyZWF0ZSBt
+b2RlIDEwMDY0NCBkcml2ZXJzL252ZGltbS9iYWRyYW5nZS5jDQo+ID4gDQo+ID4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyBiL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYw0K
+PiA+IGluZGV4IGEzZWNkNWUuLjRiMTU3ZjggMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3Bp
+L25maXQvY29yZS5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL25maXQvY29yZS5jDQo+ID4gQEAg
+LTIyNDAsNyArMjI0MCw3IEBAIHN0YXRpYyBpbnQgYXJzX3N0YXR1c19wcm9jZXNzX3JlY29yZHMo
+c3RydWN0DQo+ID4gYWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYywNCj4gPiDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoGlmIChhcnNfc3RhdHVzLT5vdXRfbGVuZ3RoDQo+ID4gwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oDwgNDQgKyBzaXplb2Yoc3RydWN0IG5kX2Fyc19yZWNvcmQpDQo+ID4gKiAoaSArIDEpKQ0KPiA+
+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGJyZWFrOw0K
+PiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYyA9IG52ZGltbV9idXNfYWRkX3Bv
+aXNvbihudmRpbW1fYnVzLA0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYyA9
+IG52ZGltbV9idXNfYWRkX2JhZHJhbmdlKG52ZGltbV9idXMsDQo+ID4gwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGFyc19zdGF0
+dXMtPnJlY29yZHNbaV0uZXJyX2FkZHJlc3MsDQo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGFyc19zdGF0dXMtPnJlY29y
+ZHNbaV0ubGVuZ3RoKTsNCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGlmIChy
+YykNCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL25maXQvbWNlLmMgYi9kcml2ZXJzL2Fj
+cGkvbmZpdC9tY2UuYw0KPiA+IGluZGV4IGZlZWI5NWQuLmI5MjkyMTQgMTAwNjQ0DQo+ID4gLS0t
+IGEvZHJpdmVycy9hY3BpL25maXQvbWNlLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvbmZpdC9t
+Y2UuYw0KPiA+IEBAIC02Nyw3ICs2Nyw3IEBAIHN0YXRpYyBpbnQgbmZpdF9oYW5kbGVfbWNlKHN0
+cnVjdCBub3RpZmllcl9ibG9jaw0KPiA+ICpuYiwgdW5zaWduZWQgbG9uZyB2YWwsDQo+ID4gwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY29udGludWU7DQo+
+ID4gDQo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAvKiBJZiB0aGlzIGZhaWxz
+IGR1ZSB0byBhbiAtRU5PTUVNLCB0aGVyZSBpcyBsaXR0bGUNCj4gPiB3ZSBjYW4gZG8gKi8NCj4g
+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbnZkaW1tX2J1c19hZGRfcG9pc29uKGFj
+cGlfZGVzYy0+bnZkaW1tX2J1cywNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+bnZkaW1tX2J1c19hZGRfYmFkcmFuZ2UoYWNwaV9kZXNjLT5udmRpbW1fYnVzLA0KPiA+IMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqBBTElHTihtY2UtPmFkZHIsIEwxX0NBQ0hFX0JZVEVTKSwNCj4gPiDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgTDFfQ0FDSEVf
+QllURVMpOw0KPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbnZkaW1tX3JlZ2lv
+bl9ub3RpZnkobmZpdF9zcGEtPm5kX3JlZ2lvbiwNCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9u
+dmRpbW0vTWFrZWZpbGUgYi9kcml2ZXJzL252ZGltbS9NYWtlZmlsZQ0KPiA+IGluZGV4IDkwOTU1
+NGMuLmNhNmQzMjUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9udmRpbW0vTWFrZWZpbGUNCj4g
+PiArKysgYi9kcml2ZXJzL252ZGltbS9NYWtlZmlsZQ0KPiA+IEBAIC0yMCw2ICsyMCw3IEBAIGxp
+Ym52ZGltbS15ICs9IHJlZ2lvbl9kZXZzLm8NCj4gPiDCoGxpYm52ZGltbS15ICs9IHJlZ2lvbi5v
+DQo+ID4gwqBsaWJudmRpbW0teSArPSBuYW1lc3BhY2VfZGV2cy5vDQo+ID4gwqBsaWJudmRpbW0t
+eSArPSBsYWJlbC5vDQo+ID4gK2xpYm52ZGltbS15ICs9IGJhZHJhbmdlLm8NCj4gPiDCoGxpYm52
+ZGltbS0kKENPTkZJR19ORF9DTEFJTSkgKz0gY2xhaW0ubw0KPiA+IMKgbGlibnZkaW1tLSQoQ09O
+RklHX0JUVCkgKz0gYnR0X2RldnMubw0KPiA+IMKgbGlibnZkaW1tLSQoQ09ORklHX05WRElNTV9Q
+Rk4pICs9IHBmbl9kZXZzLm8NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vYmFkcmFu
+Z2UuYyBiL2RyaXZlcnMvbnZkaW1tL2JhZHJhbmdlLmMNCj4gPiBuZXcgZmlsZSBtb2RlIDEwMDY0
+NA0KPiA+IGluZGV4IDAwMDAwMDAuLjZhZDc4MmYNCj4gPiAtLS0gL2Rldi9udWxsDQo+ID4gKysr
+IGIvZHJpdmVycy9udmRpbW0vYmFkcmFuZ2UuYw0KPiA+IEBAIC0wLDAgKzEsMjk0IEBADQo+ID4g
+Ky8qDQo+ID4gKyAqIENvcHlyaWdodChjKSAyMDE3IEludGVsIENvcnBvcmF0aW9uLiBBbGwgcmln
+aHRzIHJlc2VydmVkLg0KPiA+ICsgKg0KPiA+ICsgKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0
+d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yDQo+ID4gbW9kaWZ5DQo+ID4gKyAq
+IGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB2ZXJzaW9uIDIgb2YgdGhlIEdOVSBHZW5lcmFsIFB1Ymxp
+Yw0KPiA+IExpY2Vuc2UgYXMNCj4gPiArICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJl
+IEZvdW5kYXRpb24uDQo+ID4gKyAqDQo+ID4gKyAqIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRl
+ZCBpbiB0aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLA0KPiA+IGJ1dA0KPiA+ICsgKiBX
+SVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9m
+DQo+ID4gKyAqIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVS
+UE9TRS7CoMKgU2VlIHRoZQ0KPiA+IEdOVQ0KPiA+ICsgKiBHZW5lcmFsIFB1YmxpYyBMaWNlbnNl
+IGZvciBtb3JlIGRldGFpbHMuDQo+ID4gKyAqLw0KPiA+ICsjaW5jbHVkZSA8bGludXgvbGlibnZk
+aW1tLmg+DQo+ID4gKyNpbmNsdWRlIDxsaW51eC9iYWRibG9ja3MuaD4NCj4gPiArI2luY2x1ZGUg
+PGxpbnV4L2V4cG9ydC5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+DQo+ID4gKyNp
+bmNsdWRlIDxsaW51eC9ibGtkZXYuaD4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L2RldmljZS5oPg0K
+PiA+ICsjaW5jbHVkZSA8bGludXgvY3R5cGUuaD4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L25kY3Rs
+Lmg+DQo+ID4gKyNpbmNsdWRlIDxsaW51eC9tdXRleC5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgv
+c2xhYi5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgvaW8uaD4NCj4gPiArI2luY2x1ZGUgIm5kLWNv
+cmUuaCINCj4gPiArI2luY2x1ZGUgIm5kLmgiDQo+ID4gKw0KPiA+ICt2b2lkIGJhZHJhbmdlX2lu
+aXQoc3RydWN0IGJhZHJhbmdlICpiYWRyYW5nZSkNCj4gPiArew0KPiA+ICvCoMKgwqDCoMKgwqDC
+oElOSVRfTElTVF9IRUFEKCZiYWRyYW5nZS0+bGlzdCk7DQo+ID4gK8KgwqDCoMKgwqDCoMKgc3Bp
+bl9sb2NrX2luaXQoJmJhZHJhbmdlLT5sb2NrKTsNCj4gPiArfQ0KPiA+ICtFWFBPUlRfU1lNQk9M
+X0dQTChiYWRyYW5nZV9pbml0KTsNCj4gPiArDQo+ID4gK3N0YXRpYyB2b2lkIGFwcGVuZF9iYWRy
+YW5nZV9lbnRyeShzdHJ1Y3QgYmFkcmFuZ2UgKmJhZHJhbmdlLA0KPiA+ICvCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3QgYmFkcmFuZ2VfZW50cnkgKmJlLCB1NjQgYWRkciwgdTY0
+IGxlbmd0aCkNCj4gPiArew0KPiA+ICvCoMKgwqDCoMKgwqDCoGxvY2tkZXBfYXNzZXJ0X2hlbGQo
+JmJhZHJhbmdlLT5sb2NrKTsNCj4gPiArwqDCoMKgwqDCoMKgwqBiZS0+c3RhcnQgPSBhZGRyOw0K
+PiA+ICvCoMKgwqDCoMKgwqDCoGJlLT5sZW5ndGggPSBsZW5ndGg7DQo+ID4gK8KgwqDCoMKgwqDC
+oMKgbGlzdF9hZGRfdGFpbCgmYmUtPmxpc3QsICZiYWRyYW5nZS0+bGlzdCk7DQo+ID4gK30NCj4g
+DQo+IFNtYWxsIG5pdCwgY2FuIHdlIHJlbmFtZSB0aGUgaW5zdGFuY2UgdmFyaWFibGUgZnJvbSAn
+YmUnIHRvICdicmUnPw0KPiAnYmUnIHRyaWdnZXJzIGFsbCBteSAnYmlnIGVuZGlhbicgbmV1cm9u
+cyB0byBmaXJlLiBPdGhlciB0aGFuIHRoYXQsDQo+IGxvb2tzIGdvb2QuDQoNClllcCBkb25lLgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
+bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
+MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
