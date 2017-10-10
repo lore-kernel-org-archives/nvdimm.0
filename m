@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E31B2034715B
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 22:20:32 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/2] dm log writes: add support for DAX
-Date: Thu, 19 Oct 2017 23:24:04 -0600
-Message-Id: <20171020052404.13762-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20171020052404.13762-1-ross.zwisler@linux.intel.com>
-References: <20171020052404.13762-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 731AE21E78212
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:52:34 -0700 (PDT)
+Subject: [PATCH v8 07/14] iommu, dma-mapping: introduce dma_get_iommu_domain()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 10 Oct 2017 07:49:37 -0700
+Message-ID: <150764697773.16882.5489456954873798235.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,175 +18,147 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, Josef Bacik <jbacik@fb.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-raid@vger.kernel.org, dm-devel@redhat.com, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Shaohua Li <shli@kernel.org>, Alasdair Kergon <agk@redhat.com>
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org, Marek Szyprowski <m.szyprowski@samsung.com>, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>, Robin Murphy <robin.murphy@arm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that we have the ability log filesystem writes using a flat buffer, add
-support for DAX.  Unfortunately we can't easily track data that has been
-written via mmap() now that the dax_flush() abstraction was removed by this
-commit:
+Add a dma-mapping api helper to retrieve the generic iommu_domain for a
+device.  The motivation for this interface is making RDMA transfers to
+DAX mappings safe. If the DAX file's block map changes we need to be to
+reliably stop accesses to blocks that have been freed or re-assigned to
+a new file. With the iommu_domain and a callback from the DAX filesystem
+the kernel can safely revoke access to a DMA device. The process that
+performed the RDMA memory registration is also notified of this
+revocation event, but the kernel can not otherwise be in the position of
+waiting for userspace to quiesce the device.
 
-commit c3ca015fab6d ("dax: remove the pmem_dax_ops->flush abstraction")
+Since PMEM+DAX is currently only enabled for x86, we only update the x86
+iommu drivers.
 
-Otherwise we could just treat each flush as a big write, and store the data
-that is being synced to media.  It may be worthwhile to add the dax_flush()
-entry point back, just as a notifier so we can do this logging.
-
-The motivation for this support is the need for an xfstest that can test
-the new MAP_SYNC DAX flag.  By logging the filesystem activity with
-dm-log-writes we can show that the MAP_SYNC page faults are writing out
-their metadata as they happen, instead of requiring an explicit
-msync/fsync.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/base/dma-mapping.c  |   10 ++++++++++
+ drivers/iommu/amd_iommu.c   |   10 ++++++++++
+ drivers/iommu/intel-iommu.c |   15 +++++++++++++++
+ include/linux/dma-mapping.h |    3 +++
+ 4 files changed, 38 insertions(+)
 
-Here's a link to Jan's latest MAP_SYNC set, which can be used for the
-fstest:
-
-https://www.spinics.net/lists/linux-xfs/msg11852.html
-
-MAP_SYNC is not needed for basic DAX+dm-log-writes functionality.
-
----
- drivers/md/dm-log-writes.c | 90 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 89 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
-index c65f9d1..6a8d352 100644
---- a/drivers/md/dm-log-writes.c
-+++ b/drivers/md/dm-log-writes.c
-@@ -10,9 +10,11 @@
- #include <linux/init.h>
- #include <linux/blkdev.h>
- #include <linux/bio.h>
-+#include <linux/dax.h>
- #include <linux/slab.h>
- #include <linux/kthread.h>
- #include <linux/freezer.h>
-+#include <linux/uio.h>
+diff --git a/drivers/base/dma-mapping.c b/drivers/base/dma-mapping.c
+index e584eddef0a7..fdb9764f95a4 100644
+--- a/drivers/base/dma-mapping.c
++++ b/drivers/base/dma-mapping.c
+@@ -369,3 +369,13 @@ void dma_deconfigure(struct device *dev)
+ 	of_dma_deconfigure(dev);
+ 	acpi_dma_deconfigure(dev);
+ }
++
++struct iommu_domain *dma_get_iommu_domain(struct device *dev)
++{
++	const struct dma_map_ops *ops = get_dma_ops(dev);
++
++	if (ops && ops->get_iommu)
++		return ops->get_iommu(dev);
++	return NULL;
++}
++EXPORT_SYMBOL(dma_get_iommu_domain);
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index 51f8215877f5..c8e1a45af182 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -2271,6 +2271,15 @@ static struct protection_domain *get_domain(struct device *dev)
+ 	return domain;
+ }
  
- #define DM_MSG_PREFIX "log-writes"
++static struct iommu_domain *amd_dma_get_iommu(struct device *dev)
++{
++	struct protection_domain *domain = get_domain(dev);
++
++	if (IS_ERR(domain))
++		return NULL;
++	return &domain->domain;
++}
++
+ static void update_device_table(struct protection_domain *domain)
+ {
+ 	struct iommu_dev_data *dev_data;
+@@ -2689,6 +2698,7 @@ static const struct dma_map_ops amd_iommu_dma_ops = {
+ 	.unmap_sg	= unmap_sg,
+ 	.dma_supported	= amd_iommu_dma_supported,
+ 	.mapping_error	= amd_iommu_mapping_error,
++	.get_iommu	= amd_dma_get_iommu,
+ };
  
-@@ -609,6 +611,50 @@ static int log_mark(struct log_writes_c *lc, char *data)
+ static int init_reserved_iova_ranges(void)
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index 6784a05dd6b2..f3f4939cebad 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -3578,6 +3578,20 @@ static int iommu_no_mapping(struct device *dev)
  	return 0;
  }
  
-+static int log_dax(struct log_writes_c *lc, sector_t sector, size_t bytes,
-+		struct iov_iter *i)
++static struct iommu_domain *intel_dma_get_iommu(struct device *dev)
 +{
-+	struct pending_block *block;
++	struct dmar_domain *domain;
 +
-+	if (!bytes)
-+		return 0;
++	if (iommu_no_mapping(dev))
++		return NULL;
 +
-+	block = kzalloc(sizeof(struct pending_block), GFP_KERNEL);
-+	if (!block) {
-+		DMERR("Error allocating dax pending block");
-+		return -ENOMEM;
-+	}
++	domain = get_valid_domain_for_dev(dev);
++	if (!domain)
++		return NULL;
 +
-+	block->data = kzalloc(bytes, GFP_KERNEL);
-+	if (!block->data) {
-+		DMERR("Error allocating dax data space");
-+		kfree(block);
-+		return -ENOMEM;
-+	}
-+
-+	/* write data provided via the iterator */
-+	if (!copy_from_iter(block->data, bytes, i)) {
-+		DMERR("Error copying dax data");
-+		kfree(block->data);
-+		kfree(block);
-+		return -EIO;
-+	}
-+
-+	/* rewind the iterator so that the block driver can use it */
-+	iov_iter_revert(i, bytes);
-+
-+	block->datalen = bytes;
-+	block->sector = bio_to_dev_sectors(lc, sector);
-+	block->nr_sectors = ALIGN(bytes, lc->sectorsize) >> lc->sectorshift;
-+
-+	atomic_inc(&lc->pending_blocks);
-+	spin_lock_irq(&lc->blocks_lock);
-+	list_add_tail(&block->list, &lc->unflushed_blocks);
-+	spin_unlock_irq(&lc->blocks_lock);
-+	wake_up_process(lc->log_kthread);
-+	return 0;
++	return &domain->domain;
 +}
 +
- static void log_writes_dtr(struct dm_target *ti)
+ static dma_addr_t __intel_map_single(struct device *dev, phys_addr_t paddr,
+ 				     size_t size, int dir, u64 dma_mask)
  {
- 	struct log_writes_c *lc = ti->private;
-@@ -874,9 +920,49 @@ static void log_writes_io_hints(struct dm_target *ti, struct queue_limits *limit
- 	limits->io_min = limits->physical_block_size;
+@@ -3872,6 +3886,7 @@ const struct dma_map_ops intel_dma_ops = {
+ 	.map_page = intel_map_page,
+ 	.unmap_page = intel_unmap_page,
+ 	.mapping_error = intel_mapping_error,
++	.get_iommu = intel_dma_get_iommu,
+ #ifdef CONFIG_X86
+ 	.dma_supported = x86_dma_supported,
+ #endif
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 29ce9815da87..aa62df1d0d72 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -128,6 +128,7 @@ struct dma_map_ops {
+ 				   enum dma_data_direction dir);
+ 	int (*mapping_error)(struct device *dev, dma_addr_t dma_addr);
+ 	int (*dma_supported)(struct device *dev, u64 mask);
++	struct iommu_domain *(*get_iommu)(struct device *dev);
+ #ifdef ARCH_HAS_DMA_GET_REQUIRED_MASK
+ 	u64 (*get_required_mask)(struct device *dev);
+ #endif
+@@ -221,6 +222,8 @@ static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
  }
+ #endif
  
-+static long log_writes_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
-+		long nr_pages, void **kaddr, pfn_t *pfn)
-+{
-+	struct log_writes_c *lc = ti->private;
-+	struct block_device *bdev = lc->dev->bdev;
-+	struct dax_device *dax_dev = lc->dev->dax_dev;
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+	int ret;
++extern struct iommu_domain *dma_get_iommu_domain(struct device *dev);
 +
-+	ret = bdev_dax_pgoff(bdev, sector, nr_pages * PAGE_SIZE, &pgoff);
-+	if (ret)
-+		return ret;
-+	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
-+}
-+
-+static size_t log_writes_dax_copy_from_iter(struct dm_target *ti,
-+		pgoff_t pgoff, void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct log_writes_c *lc = ti->private;
-+	struct block_device *bdev = lc->dev->bdev;
-+	struct dax_device *dax_dev = lc->dev->dax_dev;
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+	int err;
-+
-+	if (bdev_dax_pgoff(bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+
-+	/* Don't bother doing anything if logging has been disabled */
-+	if (!lc->logging_enabled)
-+		goto dax_copy;
-+
-+	err = log_dax(lc, sector, bytes, i);
-+	if (err) {
-+		DMWARN("Error %d logging DAX write", err);
-+		return 0;
-+	}
-+dax_copy:
-+	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+
- static struct target_type log_writes_target = {
- 	.name   = "log-writes",
--	.version = {1, 0, 0},
-+	.version = {1, 0, 1},
- 	.module = THIS_MODULE,
- 	.ctr    = log_writes_ctr,
- 	.dtr    = log_writes_dtr,
-@@ -887,6 +973,8 @@ static struct target_type log_writes_target = {
- 	.message = log_writes_message,
- 	.iterate_devices = log_writes_iterate_devices,
- 	.io_hints = log_writes_io_hints,
-+	.direct_access = log_writes_dax_direct_access,
-+	.dax_copy_from_iter = log_writes_dax_copy_from_iter,
- };
- 
- static int __init dm_log_writes_init(void)
--- 
-2.9.5
+ static inline dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
+ 					      size_t size,
+ 					      enum dma_data_direction dir,
 
 _______________________________________________
 Linux-nvdimm mailing list
