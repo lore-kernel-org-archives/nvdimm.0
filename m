@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1253C2034717E
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:05 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 16/17] ext4: Support for synchronous DAX faults
-Date: Thu, 19 Oct 2017 14:58:15 +0200
-Message-Id: <20171019125817.11580-17-jack@suse.cz>
-In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
-References: <20171019125817.11580-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 90B0621F3C1AE
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:52:45 -0700 (PDT)
+Subject: [PATCH v8 09/14] xfs: wire up ->lease_direct()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 10 Oct 2017 07:49:48 -0700
+Message-ID: <150764698865.16882.6963827339963112876.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,175 +18,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@poochiereds.net>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We return IOMAP_F_DIRTY flag from ext4_iomap_begin() when asked to
-prepare blocks for writing and the inode has some uncommitted metadata
-changes. In the fault handler ext4_dax_fault() we then detect this case
-(through VM_FAULT_NEEDDSYNC return value) and call helper
-dax_finish_sync_fault() to flush metadata changes and insert page table
-entry. Note that this will also dirty corresponding radix tree entry
-which is what we want - fsync(2) will still provide data integrity
-guarantees for applications not using userspace flushing. And
-applications using userspace flushing can avoid calling fsync(2) and
-thus avoid the performance overhead.
+A 'lease_direct' lease requires that the vma have a valid MAP_DIRECT
+mapping established. For xfs we use the generic_map_direct_lease()
+handler for ->lease_direct(). It establishes a new lease and then checks
+if the MAP_DIRECT mapping has been broken. We want to be sure that the
+process will receive notification that the MAP_DIRECT mapping is being
+torn down so it knows why other code paths are throwing failures.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+For example in the RDMA/ibverbs case we want ibv_reg_mr() to fail if the
+MAP_DIRECT mapping is invalid or in the process of being invalidated.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/ext4/file.c       | 17 ++++++++++++++++-
- fs/ext4/inode.c      | 15 +++++++++++++++
- fs/jbd2/journal.c    | 17 +++++++++++++++++
- include/linux/jbd2.h |  1 +
- 4 files changed, 49 insertions(+), 1 deletion(-)
+ fs/xfs/xfs_file.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 208adfc3e673..20ad883cb330 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -26,6 +26,7 @@
- #include <linux/quotaops.h>
- #include <linux/pagevec.h>
- #include <linux/uio.h>
-+#include <linux/mman.h>
- #include "ext4.h"
- #include "ext4_jbd2.h"
- #include "xattr.h"
-@@ -295,6 +296,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 4bee027c9366..bc512a9a8df5 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1157,6 +1157,7 @@ static const struct vm_operations_struct xfs_file_vm_direct_ops = {
+ 
+ 	.open		= generic_map_direct_open,
+ 	.close		= generic_map_direct_close,
++	.lease_direct	= generic_map_direct_lease,
+ };
+ 
+ static const struct vm_operations_struct xfs_file_vm_ops = {
+@@ -1209,8 +1210,8 @@ xfs_file_mmap_direct(
+ 	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+ 
+ 	/*
+-	 * generic_map_direct_{open,close} expect ->vm_private_data is
+-	 * set to the result of map_direct_register
++	 * generic_map_direct_{open,close,lease} expect
++	 * ->vm_private_data is set to the result of map_direct_register
  	 */
- 	bool write = (vmf->flags & FAULT_FLAG_WRITE) &&
- 		(vmf->vma->vm_flags & VM_SHARED);
-+	pfn_t pfn;
- 
- 	if (write) {
- 		sb_start_pagefault(sb);
-@@ -310,9 +312,12 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 	} else {
- 		down_read(&EXT4_I(inode)->i_mmap_sem);
- 	}
--	result = dax_iomap_fault(vmf, pe_size, NULL, &ext4_iomap_ops);
-+	result = dax_iomap_fault(vmf, pe_size, &pfn, &ext4_iomap_ops);
- 	if (write) {
- 		ext4_journal_stop(handle);
-+		/* Handling synchronous page fault? */
-+		if (result & VM_FAULT_NEEDDSYNC)
-+			result = dax_finish_sync_fault(vmf, pe_size, pfn);
- 		up_read(&EXT4_I(inode)->i_mmap_sem);
- 		sb_end_pagefault(sb);
- 	} else {
-@@ -350,6 +355,13 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
- 	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
- 		return -EIO;
- 
-+	/*
-+	 * We don't support synchronous mappings for non-DAX files. At least
-+	 * until someone comes with a sensible use case.
-+	 */
-+	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-+		return -EOPNOTSUPP;
-+
- 	file_accessed(file);
- 	if (IS_DAX(file_inode(file))) {
- 		vma->vm_ops = &ext4_dax_vm_ops;
-@@ -710,6 +722,8 @@ loff_t ext4_llseek(struct file *file, loff_t offset, int whence)
- 	return -EINVAL;
- }
- 
-+#define EXT4_SUPPORTED_MAP_FLAGS (LEGACY_MAP_MASK | MAP_SYNC)
-+
- const struct file_operations ext4_file_operations = {
- 	.llseek		= ext4_llseek,
- 	.read_iter	= ext4_file_read_iter,
-@@ -719,6 +733,7 @@ const struct file_operations ext4_file_operations = {
- 	.compat_ioctl	= ext4_compat_ioctl,
- #endif
- 	.mmap		= ext4_file_mmap,
-+	.mmap_supported_flags	= EXT4_SUPPORTED_MAP_FLAGS,
- 	.open		= ext4_file_open,
- 	.release	= ext4_release_file,
- 	.fsync		= ext4_sync_file,
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 31db875bc7a1..13a198924a0f 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3394,6 +3394,19 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
- }
- 
- #ifdef CONFIG_FS_DAX
-+static bool ext4_inode_datasync_dirty(struct inode *inode)
-+{
-+	journal_t *journal = EXT4_SB(inode->i_sb)->s_journal;
-+
-+	if (journal)
-+		return !jbd2_transaction_committed(journal,
-+					EXT4_I(inode)->i_datasync_tid);
-+	/* Any metadata buffers to write? */
-+	if (!list_empty(&inode->i_mapping->private_list))
-+		return true;
-+	return inode->i_state & I_DIRTY_DATASYNC;
-+}
-+
- static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
- 			    unsigned flags, struct iomap *iomap)
- {
-@@ -3466,6 +3479,8 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
- 	}
- 
- 	iomap->flags = 0;
-+	if ((flags & IOMAP_WRITE) && ext4_inode_datasync_dirty(inode))
-+		iomap->flags |= IOMAP_F_DIRTY;
- 	iomap->bdev = inode->i_sb->s_bdev;
- 	iomap->dax_dev = sbi->s_daxdev;
- 	iomap->offset = first_block << blkbits;
-diff --git a/fs/jbd2/journal.c b/fs/jbd2/journal.c
-index 7d5ef3bf3f3e..fa8cde498b4b 100644
---- a/fs/jbd2/journal.c
-+++ b/fs/jbd2/journal.c
-@@ -738,6 +738,23 @@ int jbd2_log_wait_commit(journal_t *journal, tid_t tid)
- 	return err;
- }
- 
-+/* Return 1 when transaction with given tid has already committed. */
-+int jbd2_transaction_committed(journal_t *journal, tid_t tid)
-+{
-+	int ret = 1;
-+
-+	read_lock(&journal->j_state_lock);
-+	if (journal->j_running_transaction &&
-+	    journal->j_running_transaction->t_tid == tid)
-+		ret = 0;
-+	if (journal->j_committing_transaction &&
-+	    journal->j_committing_transaction->t_tid == tid)
-+		ret = 0;
-+	read_unlock(&journal->j_state_lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL(jbd2_transaction_committed);
-+
- /*
-  * When this function returns the transaction corresponding to tid
-  * will be completed.  If the transaction has currently running, start
-diff --git a/include/linux/jbd2.h b/include/linux/jbd2.h
-index 606b6bce3a5b..296d1e0ea87b 100644
---- a/include/linux/jbd2.h
-+++ b/include/linux/jbd2.h
-@@ -1367,6 +1367,7 @@ int jbd2_log_start_commit(journal_t *journal, tid_t tid);
- int __jbd2_log_start_commit(journal_t *journal, tid_t tid);
- int jbd2_journal_start_commit(journal_t *journal, tid_t *tid);
- int jbd2_log_wait_commit(journal_t *journal, tid_t tid);
-+int jbd2_transaction_committed(journal_t *journal, tid_t tid);
- int jbd2_complete_transaction(journal_t *journal, tid_t tid);
- int jbd2_log_do_checkpoint(journal_t *journal);
- int jbd2_trans_will_send_data_barrier(journal_t *journal, tid_t tid);
--- 
-2.12.3
+ 	vma->vm_private_data = mds;
+ 	return 0;
 
 _______________________________________________
 Linux-nvdimm mailing list
