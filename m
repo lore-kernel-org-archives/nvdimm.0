@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2D20721F3C1AE
- for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:52:29 -0700 (PDT)
-Subject: [PATCH v8 06/14] xfs: wire up MAP_DIRECT
+ by ml01.01.org (Postfix) with ESMTPS id 178C421F3C1AE
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:53:14 -0700 (PDT)
+Subject: [PATCH v8 14/14] tools/testing/nvdimm: enable rdma unit tests
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 10 Oct 2017 07:49:30 -0700
-Message-ID: <150764697001.16882.13486539828150761233.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 10 Oct 2017 07:50:17 -0700
+Message-ID: <150764701713.16882.9840394340145664403.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -23,276 +23,119 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@poochiereds.net>, Christoph Hellwig <hch@lst.de>
+Cc: linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-MAP_DIRECT is an mmap(2) flag with the following semantics:
+Provide a mock dma_get_iommu_domain() for the ibverbs core. Enable
+ib_umem_get() to satisfy its DAX safety checks for a controlled test.
 
-  MAP_DIRECT
-  When specified with MAP_SHARED_VALIDATE, sets up a file lease with the
-  same lifetime as the mapping. Unlike a typical F_RDLCK lease this lease
-  is broken when a "lease breaker" attempts to write(2), change the block
-  map (fallocate), or change the size of the file. Otherwise the mechanism
-  of a lease break is identical to the typical lease break case where the
-  lease needs to be removed (munmap) within the number of seconds
-  specified by /proc/sys/fs/lease-break-time. If the lease holder fails to
-  remove the lease in time the kernel will invalidate the mapping and
-  force all future accesses to the mapping to trigger SIGBUS.
-
-  In addition to lease break timeouts causing faults in the mapping to
-  result in SIGBUS, other states of the file will trigger SIGBUS at fault
-  time:
-
-      * The fault would trigger the filesystem to allocate blocks
-      * The fault would trigger the filesystem to perform extent conversion
-
-  In other words, MAP_DIRECT expects and enforces a fully allocated file
-  where faults can be satisfied without modifying block map metadata.
-
-  An unprivileged process may establish a MAP_DIRECT mapping on a file
-  whose UID (owner) matches the filesystem UID of the  process. A process
-  with the CAP_LEASE capability may establish a MAP_DIRECT mapping on
-  arbitrary files
-
-  ERRORS
-  EACCES Beyond the typical mmap(2) conditions that trigger EACCES
-  MAP_DIRECT also requires the permission to set a file lease.
-
-  EOPNOTSUPP The filesystem explicitly does not support the flag
-
-  EPERM The file does not permit MAP_DIRECT mappings. Potential reasons
-  are that DAX access is not available or the file has reflink extents.
-
-  SIGBUS Attempted to write a MAP_DIRECT mapping at a file offset that
-         might require block-map updates, or the lease timed out and the
-         kernel invalidated the mapping.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/Kconfig                  |    2 -
- fs/xfs/xfs_file.c               |  103 ++++++++++++++++++++++++++++++++++++++-
- include/linux/mman.h            |    3 +
- include/uapi/asm-generic/mman.h |    1 
- 4 files changed, 106 insertions(+), 3 deletions(-)
+ tools/testing/nvdimm/Kbuild         |   31 +++++++++++++++++++++++++++++++
+ tools/testing/nvdimm/config_check.c |    2 ++
+ tools/testing/nvdimm/test/iomap.c   |   14 ++++++++++++++
+ 3 files changed, 47 insertions(+)
 
-diff --git a/fs/xfs/Kconfig b/fs/xfs/Kconfig
-index f62fc6629abb..f8765653a438 100644
---- a/fs/xfs/Kconfig
-+++ b/fs/xfs/Kconfig
-@@ -112,4 +112,4 @@ config XFS_ASSERT_FATAL
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index d870520da68b..f4a007090950 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -15,11 +15,13 @@ ldflags-y += --wrap=insert_resource
+ ldflags-y += --wrap=remove_resource
+ ldflags-y += --wrap=acpi_evaluate_object
+ ldflags-y += --wrap=acpi_evaluate_dsm
++ldflags-y += --wrap=dma_get_iommu_domain
  
- config XFS_LAYOUT
- 	def_bool y
--	depends on EXPORTFS_BLOCK_OPS
-+	depends on EXPORTFS_BLOCK_OPS || FS_DAX
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index ebdd0bd2b261..4bee027c9366 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -40,12 +40,22 @@
- #include "xfs_iomap.h"
- #include "xfs_reflink.h"
+ DRIVERS := ../../../drivers
+ NVDIMM_SRC := $(DRIVERS)/nvdimm
+ ACPI_SRC := $(DRIVERS)/acpi/nfit
+ DAX_SRC := $(DRIVERS)/dax
++IBCORE := $(DRIVERS)/infiniband/core
+ ccflags-y := -I$(src)/$(NVDIMM_SRC)/
  
-+#include <linux/mman.h>
- #include <linux/dcache.h>
- #include <linux/falloc.h>
- #include <linux/pagevec.h>
-+#include <linux/mapdirect.h>
- #include <linux/backing-dev.h>
+ obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
+@@ -33,6 +35,7 @@ obj-$(CONFIG_DAX) += dax.o
+ endif
+ obj-$(CONFIG_DEV_DAX) += device_dax.o
+ obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
++obj-$(CONFIG_INFINIBAND) += ib_core.o
  
- static const struct vm_operations_struct xfs_file_vm_ops;
-+static const struct vm_operations_struct xfs_file_vm_direct_ops;
+ nfit-y := $(ACPI_SRC)/core.o
+ nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
+@@ -75,4 +78,32 @@ libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
+ libnvdimm-y += config_check.o
+ 
++ib_core-y := $(IBCORE)/packer.o
++ib_core-y += $(IBCORE)/ud_header.o
++ib_core-y += $(IBCORE)/verbs.o
++ib_core-y += $(IBCORE)/cq.o
++ib_core-y += $(IBCORE)/rw.o
++ib_core-y += $(IBCORE)/sysfs.o
++ib_core-y += $(IBCORE)/device.o
++ib_core-y += $(IBCORE)/fmr_pool.o
++ib_core-y += $(IBCORE)/cache.o
++ib_core-y += $(IBCORE)/netlink.o
++ib_core-y += $(IBCORE)/roce_gid_mgmt.o
++ib_core-y += $(IBCORE)/mr_pool.o
++ib_core-y += $(IBCORE)/addr.o
++ib_core-y += $(IBCORE)/sa_query.o
++ib_core-y += $(IBCORE)/multicast.o
++ib_core-y += $(IBCORE)/mad.o
++ib_core-y += $(IBCORE)/smi.o
++ib_core-y += $(IBCORE)/agent.o
++ib_core-y += $(IBCORE)/mad_rmpp.o
++ib_core-y += $(IBCORE)/security.o
++ib_core-y += $(IBCORE)/nldev.o
 +
-+static bool
-+xfs_vma_is_direct(
-+	struct vm_area_struct	*vma)
-+{
-+	return vma->vm_ops == &xfs_file_vm_direct_ops;
-+}
- 
- /*
-  * Clear the specified ranges to zero through either the pagecache or DAX.
-@@ -1009,6 +1019,22 @@ xfs_file_llseek(
++ib_core-$(CONFIG_INFINIBAND_USER_MEM) += $(IBCORE)/umem.o
++ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += $(IBCORE)/umem_odp.o
++ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += $(IBCORE)/umem_rbtree.o
++ib_core-$(CONFIG_CGROUP_RDMA) += $(IBCORE)/cgroup.o
++ib_core-y += config_check.o
++
+ obj-m += test/
+diff --git a/tools/testing/nvdimm/config_check.c b/tools/testing/nvdimm/config_check.c
+index 7dc5a0af9b54..33e7c805bfd6 100644
+--- a/tools/testing/nvdimm/config_check.c
++++ b/tools/testing/nvdimm/config_check.c
+@@ -14,4 +14,6 @@ void check(void)
+ 	BUILD_BUG_ON(!IS_MODULE(CONFIG_ACPI_NFIT));
+ 	BUILD_BUG_ON(!IS_MODULE(CONFIG_DEV_DAX));
+ 	BUILD_BUG_ON(!IS_MODULE(CONFIG_DEV_DAX_PMEM));
++	BUILD_BUG_ON(!IS_ENABLED(CONFIG_INFINIBAND_USER_MEM));
++	BUILD_BUG_ON(!IS_MODULE(CONFIG_INFINIBAND));
  }
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index e1f75a1914a1..1e439b2b01e7 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -17,6 +17,7 @@
+ #include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/pfn_t.h>
++#include <linux/iommu.h>
+ #include <linux/acpi.h>
+ #include <linux/io.h>
+ #include <linux/mm.h>
+@@ -388,4 +389,17 @@ union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const guid_t *g
+ }
+ EXPORT_SYMBOL(__wrap_acpi_evaluate_dsm);
  
- /*
-+ * MAP_DIRECT faults can only be serviced while the FL_LAYOUT lease is
-+ * valid. See map_direct_invalidate.
-+ */
-+static int
-+xfs_can_fault_direct(
-+	struct vm_area_struct	*vma)
-+{
-+	if (!xfs_vma_is_direct(vma))
-+		return 0;
-+
-+	if (!test_map_direct_valid(vma->vm_private_data))
-+		return VM_FAULT_SIGBUS;
-+	return 0;
-+}
-+
 +/*
-  * Locking for serialisation of IO during page faults. This results in a lock
-  * ordering of:
-  *
-@@ -1024,7 +1050,8 @@ __xfs_filemap_fault(
- 	enum page_entry_size	pe_size,
- 	bool			write_fault)
- {
--	struct inode		*inode = file_inode(vmf->vma->vm_file);
-+	struct vm_area_struct	*vma = vmf->vma;
-+	struct inode		*inode = file_inode(vma->vm_file);
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	int			ret;
- 
-@@ -1032,10 +1059,14 @@ __xfs_filemap_fault(
- 
- 	if (write_fault) {
- 		sb_start_pagefault(inode->i_sb);
--		file_update_time(vmf->vma->vm_file);
-+		file_update_time(vma->vm_file);
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-+	ret = xfs_can_fault_direct(vma);
-+	if (ret)
-+		goto out_unlock;
-+
- 	if (IS_DAX(inode)) {
- 		ret = dax_iomap_fault(vmf, pe_size, &xfs_iomap_ops);
- 	} else {
-@@ -1044,6 +1075,8 @@ __xfs_filemap_fault(
- 		else
- 			ret = filemap_fault(vmf);
- 	}
-+
-+out_unlock:
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
- 	if (write_fault)
-@@ -1115,6 +1148,17 @@ xfs_filemap_pfn_mkwrite(
- 
- }
- 
-+static const struct vm_operations_struct xfs_file_vm_direct_ops = {
-+	.fault		= xfs_filemap_fault,
-+	.huge_fault	= xfs_filemap_huge_fault,
-+	.map_pages	= filemap_map_pages,
-+	.page_mkwrite	= xfs_filemap_page_mkwrite,
-+	.pfn_mkwrite	= xfs_filemap_pfn_mkwrite,
-+
-+	.open		= generic_map_direct_open,
-+	.close		= generic_map_direct_close,
-+};
-+
- static const struct vm_operations_struct xfs_file_vm_ops = {
- 	.fault		= xfs_filemap_fault,
- 	.huge_fault	= xfs_filemap_huge_fault,
-@@ -1135,6 +1179,60 @@ xfs_file_mmap(
- 	return 0;
- }
- 
-+static int
-+xfs_file_mmap_direct(
-+	struct file		*filp,
-+	struct vm_area_struct	*vma,
-+	int			fd)
++ * This assumes that any iommu api routine we would call with this
++ * domain checks for NULL ops and either returns an error or does
++ * nothing.
++ */
++struct iommu_domain *__wrap_dma_get_iommu_domain(struct device *dev)
 +{
-+	struct inode		*inode = file_inode(filp);
-+	struct xfs_inode	*ip = XFS_I(inode);
-+	struct map_direct_state	*mds;
++	static struct iommu_domain domain;
 +
-+	/*
-+	 * Not permitted to set up MAP_DIRECT mapping over reflinked or
-+	 * non-DAX extents since reflink may cause block moves /
-+	 * copy-on-write, and non-DAX is by definition always indirect
-+	 * through the page cache.
-+	 */
-+	if (xfs_is_reflink_inode(ip))
-+		return -EPERM;
-+	if (!IS_DAX(inode))
-+		return -EPERM;
-+
-+	mds = map_direct_register(fd, vma);
-+	if (IS_ERR(mds))
-+		return PTR_ERR(mds);
-+
-+	file_accessed(filp);
-+	vma->vm_ops = &xfs_file_vm_direct_ops;
-+	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+
-+	/*
-+	 * generic_map_direct_{open,close} expect ->vm_private_data is
-+	 * set to the result of map_direct_register
-+	 */
-+	vma->vm_private_data = mds;
-+	return 0;
++	return &domain;
 +}
++EXPORT_SYMBOL(__wrap_dma_get_iommu_domain);
 +
-+#define XFS_MAP_SUPPORTED (LEGACY_MAP_MASK | MAP_DIRECT)
-+
-+static int
-+xfs_file_mmap_validate(
-+	struct file		*filp,
-+	struct vm_area_struct	*vma,
-+	unsigned long		map_flags,
-+	int			fd)
-+{
-+	if (map_flags & ~(XFS_MAP_SUPPORTED))
-+		return -EOPNOTSUPP;
-+
-+	if ((map_flags & MAP_DIRECT) == 0)
-+		return xfs_file_mmap(filp, vma);
-+	return xfs_file_mmap_direct(filp, vma, fd);
-+}
-+
- const struct file_operations xfs_file_operations = {
- 	.llseek		= xfs_file_llseek,
- 	.read_iter	= xfs_file_read_iter,
-@@ -1146,6 +1244,7 @@ const struct file_operations xfs_file_operations = {
- 	.compat_ioctl	= xfs_file_compat_ioctl,
- #endif
- 	.mmap		= xfs_file_mmap,
-+	.mmap_validate	= xfs_file_mmap_validate,
- 	.open		= xfs_file_open,
- 	.release	= xfs_file_release,
- 	.fsync		= xfs_file_fsync,
-diff --git a/include/linux/mman.h b/include/linux/mman.h
-index 94b63b4d71ff..fab393a9dda9 100644
---- a/include/linux/mman.h
-+++ b/include/linux/mman.h
-@@ -20,6 +20,9 @@
- #ifndef MAP_HUGE_1GB
- #define MAP_HUGE_1GB 0
- #endif
-+#ifndef MAP_DIRECT
-+#define MAP_DIRECT 0
-+#endif
- #ifndef MAP_UNINITIALIZED
- #define MAP_UNINITIALIZED 0
- #endif
-diff --git a/include/uapi/asm-generic/mman.h b/include/uapi/asm-generic/mman.h
-index 7162cd4cca73..c916f22008e0 100644
---- a/include/uapi/asm-generic/mman.h
-+++ b/include/uapi/asm-generic/mman.h
-@@ -12,6 +12,7 @@
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
-+#define MAP_DIRECT	0x80000		/* leased block map (layout) for DAX */
- 
- /* Bits [26:31] are reserved, see mman-common.h for MAP_HUGETLB usage */
- 
+ MODULE_LICENSE("GPL v2");
 
 _______________________________________________
 Linux-nvdimm mailing list
