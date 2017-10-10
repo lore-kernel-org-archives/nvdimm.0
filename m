@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 71AE921F3C1AE
- for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:52:40 -0700 (PDT)
-Subject: [PATCH v8 08/14] fs, mapdirect: introduce ->lease_direct()
+ by ml01.01.org (Postfix) with ESMTPS id B319D21F3C1AE
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:51:52 -0700 (PDT)
+Subject: [PATCH v8 00/14] MAP_DIRECT for DAX RDMA and userspace flush
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 10 Oct 2017 07:49:43 -0700
-Message-ID: <150764698294.16882.9303626348507763643.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 10 Oct 2017 07:48:55 -0700
+Message-ID: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,269 +21,126 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@poochiereds.net>, Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm@kvack.org, Sean Hefty <sean.hefty@intel.com>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Doug Ledford <dledford@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Jeff Layton <jlayton@poochiereds.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-xfs@vger.kernel.org, iommu@lists.linux-foundation.org, linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, Robin Murphy <robin.murphy@arm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a vma operation that registers a lease that is broken by
-break_layout(). This is motivated by a need to stop in-progress RDMA
-when the block-map of a DAX-file changes. I.e. since DAX gives
-direct-access to filesystem blocks we can not allow those blocks to move
-or change state while they are under active RDMA. So, if the filesystem
-determines it needs to move blocks it can revoke device access before
-proceeding.
+Changes since v7 [1]:
+* Fix IOVA reuse race by leaving the dma scatterlist mapped until
+  unregistration time. Use iommu_unmap() in ib_umem_lease_break() to
+  force-invalidate the ibverbs memory registration. (David Woodhouse)
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+* Introduce iomap_can_allocate() as a way to check if any layouts are
+  present in the mmap write-fault path to prevent block map changes, and
+  start the leak break process when an allocating write-fault occurs.
+  This also removes the i_mapdcount bloat of 'struct inode' from v7.
+  (Dave Chinner)
+
+* Provide generic_map_direct_{open,close,lease} to cleanup the
+  filesystem wiring to implement MAP_DIRECT support (Dave Chinner)
+
+* Abandon (defer to a potential new fcntl()) support for using
+  MAP_DIRECT on non-DAX files. With this change we can validate the
+  inode is MAP_DIRECT capable just once at mmap time rather than every
+  fault.  (Dave Chinner)
+
+* Arrange for lease_direct leases to also wait the
+  /proc/sys/fs/lease-break-time period before calling break_fn. For
+  example, allow the lease-holder time to quiesce RDMA operations before
+  the iommu starts throwing io-faults.
+
+* Switch intel-iommu to use iommu_num_sg_pages().
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-October/012707.html
+
 ---
- fs/mapdirect.c            |  144 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/mapdirect.h |   14 ++++
- include/linux/mm.h        |    8 +++
- 3 files changed, 166 insertions(+)
 
-diff --git a/fs/mapdirect.c b/fs/mapdirect.c
-index 9f4dd7395dcd..c6954033fc1a 100644
---- a/fs/mapdirect.c
-+++ b/fs/mapdirect.c
-@@ -16,6 +16,7 @@
- #include <linux/mutex.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/file.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
- 
-@@ -32,12 +33,25 @@ struct map_direct_state {
- 	struct vm_area_struct *mds_vma;
- };
- 
-+struct lease_direct_state {
-+	void *lds_owner;
-+	struct file *lds_file;
-+	unsigned long lds_state;
-+	void (*lds_break_fn)(void *lds_owner);
-+	struct delayed_work lds_work;
-+};
-+
- bool test_map_direct_valid(struct map_direct_state *mds)
- {
- 	return test_bit(MAPDIRECT_VALID, &mds->mds_state);
- }
- EXPORT_SYMBOL_GPL(test_map_direct_valid);
- 
-+static bool test_map_direct_broken(struct map_direct_state *mds)
-+{
-+	return test_bit(MAPDIRECT_BREAK, &mds->mds_state);
-+}
-+
- static void put_map_direct(struct map_direct_state *mds)
- {
- 	if (!atomic_dec_and_test(&mds->mds_ref))
-@@ -168,6 +182,136 @@ static const struct lock_manager_operations map_direct_lm_ops = {
- 	.lm_setup = map_direct_lm_setup,
- };
- 
-+static void lease_direct_invalidate(struct work_struct *work)
-+{
-+	struct lease_direct_state *lds;
-+	void *owner;
-+
-+	lds = container_of(work, typeof(*lds), lds_work.work);
-+	owner = lds;
-+	lds->lds_break_fn(lds->lds_owner);
-+	vfs_setlease(lds->lds_file, F_UNLCK, NULL, &owner);
-+}
-+
-+static bool lease_direct_lm_break(struct file_lock *fl)
-+{
-+	struct lease_direct_state *lds = fl->fl_owner;
-+
-+	if (!test_and_set_bit(MAPDIRECT_BREAK, &lds->lds_state))
-+		schedule_delayed_work(&lds->lds_work, lease_break_time * HZ);
-+
-+	/* Tell the core lease code to wait for delayed work completion */
-+	fl->fl_break_time = 0;
-+
-+	return false;
-+}
-+
-+static int lease_direct_lm_change(struct file_lock *fl, int arg,
-+		struct list_head *dispose)
-+{
-+	WARN_ON(!(arg & F_UNLCK));
-+	return lease_modify(fl, arg, dispose);
-+}
-+
-+static const struct lock_manager_operations lease_direct_lm_ops = {
-+	.lm_break = lease_direct_lm_break,
-+	.lm_change = lease_direct_lm_change,
-+};
-+
-+static struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
-+		void (*lds_break_fn)(void *), void *lds_owner)
-+{
-+	struct file *file = vma->vm_file;
-+	struct lease_direct_state *lds;
-+	struct lease_direct *ld;
-+	struct file_lock *fl;
-+	int rc = -ENOMEM;
-+	void *owner;
-+
-+	ld = kzalloc(sizeof(*ld) + sizeof(*lds), GFP_KERNEL);
-+	if (!ld)
-+		return ERR_PTR(-ENOMEM);
-+	INIT_LIST_HEAD(&ld->list);
-+	lds = (struct lease_direct_state *)(ld + 1);
-+	owner = lds;
-+	ld->lds = lds;
-+	lds->lds_break_fn = lds_break_fn;
-+	lds->lds_owner = lds_owner;
-+	INIT_DELAYED_WORK(&lds->lds_work, lease_direct_invalidate);
-+	lds->lds_file = get_file(file);
-+
-+	fl = locks_alloc_lock();
-+	if (!fl)
-+		goto err_lock_alloc;
-+
-+	locks_init_lock(fl);
-+	fl->fl_lmops = &lease_direct_lm_ops;
-+	fl->fl_flags = FL_LAYOUT;
-+	fl->fl_type = F_RDLCK;
-+	fl->fl_end = OFFSET_MAX;
-+	fl->fl_owner = lds;
-+	fl->fl_pid = current->tgid;
-+	fl->fl_file = file;
-+
-+	rc = vfs_setlease(file, fl->fl_type, &fl, &owner);
-+	if (rc)
-+		goto err_setlease;
-+	if (fl) {
-+		WARN_ON(1);
-+		owner = lds;
-+		vfs_setlease(file, F_UNLCK, NULL, &owner);
-+		owner = NULL;
-+		rc = -ENXIO;
-+		goto err_setlease;
-+	}
-+
-+	return ld;
-+err_setlease:
-+	locks_free_lock(fl);
-+err_lock_alloc:
-+	kfree(lds);
-+	return ERR_PTR(rc);
-+}
-+
-+struct lease_direct *generic_map_direct_lease(struct vm_area_struct *vma,
-+		void (*break_fn)(void *), void *owner)
-+{
-+	struct lease_direct *ld;
-+
-+	ld = map_direct_lease(vma, break_fn, owner);
-+
-+	if (IS_ERR(ld))
-+		return ld;
-+
-+	/*
-+	 * We now have an established lease while the base MAP_DIRECT
-+	 * lease was not broken. So, we know that the "lease holder" will
-+	 * receive a SIGIO notification when the lease is broken and
-+	 * take any necessary cleanup actions.
-+	 */
-+	if (!test_map_direct_broken(vma->vm_private_data))
-+		return ld;
-+
-+	map_direct_lease_destroy(ld);
-+
-+	return ERR_PTR(-ENXIO);
-+}
-+EXPORT_SYMBOL_GPL(generic_map_direct_lease);
-+
-+void map_direct_lease_destroy(struct lease_direct *ld)
-+{
-+	struct lease_direct_state *lds = ld->lds;
-+	struct file *file = lds->lds_file;
-+	void *owner = lds;
-+
-+	vfs_setlease(file, F_UNLCK, NULL, &owner);
-+	flush_delayed_work(&lds->lds_work);
-+	fput(file);
-+	WARN_ON(!list_empty(&ld->list));
-+	kfree(ld);
-+}
-+EXPORT_SYMBOL_GPL(map_direct_lease_destroy);
-+
- struct map_direct_state *map_direct_register(int fd, struct vm_area_struct *vma)
- {
- 	struct map_direct_state *mds = kzalloc(sizeof(*mds), GFP_KERNEL);
-diff --git a/include/linux/mapdirect.h b/include/linux/mapdirect.h
-index 5491aa550e55..e0df6ac5795a 100644
---- a/include/linux/mapdirect.h
-+++ b/include/linux/mapdirect.h
-@@ -13,17 +13,27 @@
- #ifndef __MAPDIRECT_H__
- #define __MAPDIRECT_H__
- #include <linux/err.h>
-+#include <linux/list.h>
- 
- struct inode;
- struct work_struct;
- struct vm_area_struct;
- struct map_direct_state;
-+struct list_direct_state;
-+
-+struct lease_direct {
-+	struct list_head list;
-+	struct lease_direct_state *lds;
-+};
- 
- #if IS_ENABLED(CONFIG_FS_DAX)
- struct map_direct_state *map_direct_register(int fd, struct vm_area_struct *vma);
- bool test_map_direct_valid(struct map_direct_state *mds);
- void generic_map_direct_open(struct vm_area_struct *vma);
- void generic_map_direct_close(struct vm_area_struct *vma);
-+struct lease_direct *generic_map_direct_lease(struct vm_area_struct *vma,
-+		void (*ld_break_fn)(void *), void *ld_owner);
-+void map_direct_lease_destroy(struct lease_direct *ld);
- #else
- static inline struct map_direct_state *map_direct_register(int fd,
- 		struct vm_area_struct *vma)
-@@ -36,5 +46,9 @@ static inline bool test_map_direct_valid(struct map_direct_state *mds)
- }
- #define generic_map_direct_open NULL
- #define generic_map_direct_close NULL
-+#define generic_map_direct_lease NULL
-+static inline void map_direct_lease_destroy(struct lease_direct *ld)
-+{
-+}
- #endif
- #endif /* __MAPDIRECT_H__ */
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 0afa19feb755..00d54e120257 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -420,6 +420,14 @@ struct vm_operations_struct {
- 	 */
- 	struct page *(*find_special_page)(struct vm_area_struct *vma,
- 					  unsigned long addr);
-+	/*
-+	 * Called by rdma or similar memory registration agent to
-+	 * subscribe for "break" events that require any ongoing
-+	 * accesses, that will not be stopped by a unmap_mapping_range,
-+	 * to quiesce.
-+	 */
-+	struct lease_direct *(*lease_direct)(struct vm_area_struct *vma,
-+			void (*break_fn)(void *), void *owner);
- };
- 
- struct mmu_gather;
+MAP_DIRECT is a mechanism that allows an application to establish a
+mapping where the kernel will not change the block-map, or otherwise
+dirty the block-map metadata of a file without notification. It supports
+a "flush from userspace" model where persistent memory applications can
+bypass the overhead of ongoing coordination of writes with the
+filesystem, and it provides safety to RDMA operations involving DAX
+mappings.
 
+The kernel always has the ability to revoke access and convert the file
+back to normal operation after performing a "lease break". Similar to
+fcntl leases, there is no way for userspace to to cancel the lease break
+process once it has started, it can only delay it via the
+/proc/sys/fs/lease-break-time setting.
+
+MAP_DIRECT enables XFS to supplant the device-dax interface for
+mmap-write access to persistent memory with no ongoing coordination with
+the filesystem via fsync/msync syscalls.
+
+---
+
+Dan Williams (14):
+      mm: introduce MAP_SHARED_VALIDATE, a mechanism to safely define new mmap flags
+      fs, mm: pass fd to ->mmap_validate()
+      fs: MAP_DIRECT core
+      xfs: prepare xfs_break_layouts() for reuse with MAP_DIRECT
+      fs, xfs, iomap: introduce iomap_can_allocate()
+      xfs: wire up MAP_DIRECT
+      iommu, dma-mapping: introduce dma_get_iommu_domain()
+      fs, mapdirect: introduce ->lease_direct()
+      xfs: wire up ->lease_direct()
+      device-dax: wire up ->lease_direct()
+      iommu: up-level sg_num_pages() from amd-iommu
+      iommu/vt-d: use iommu_num_sg_pages
+      IB/core: use MAP_DIRECT to fix / enable RDMA to DAX mappings
+      tools/testing/nvdimm: enable rdma unit tests
+
+
+ arch/alpha/include/uapi/asm/mman.h           |    1 
+ arch/mips/include/uapi/asm/mman.h            |    1 
+ arch/mips/kernel/vdso.c                      |    2 
+ arch/parisc/include/uapi/asm/mman.h          |    1 
+ arch/tile/mm/elf.c                           |    3 
+ arch/x86/mm/mpx.c                            |    3 
+ arch/xtensa/include/uapi/asm/mman.h          |    1 
+ drivers/base/dma-mapping.c                   |   10 +
+ drivers/dax/Kconfig                          |    1 
+ drivers/dax/device.c                         |    4 
+ drivers/infiniband/core/umem.c               |   90 +++++-
+ drivers/iommu/amd_iommu.c                    |   40 +--
+ drivers/iommu/intel-iommu.c                  |   30 +-
+ drivers/iommu/iommu.c                        |   27 ++
+ fs/Kconfig                                   |    5 
+ fs/Makefile                                  |    1 
+ fs/aio.c                                     |    2 
+ fs/mapdirect.c                               |  382 ++++++++++++++++++++++++++
+ fs/xfs/Kconfig                               |    4 
+ fs/xfs/Makefile                              |    1 
+ fs/xfs/xfs_file.c                            |  103 +++++++
+ fs/xfs/xfs_iomap.c                           |    3 
+ fs/xfs/xfs_layout.c                          |   45 +++
+ fs/xfs/xfs_layout.h                          |   13 +
+ fs/xfs/xfs_pnfs.c                            |   30 --
+ fs/xfs/xfs_pnfs.h                            |   10 -
+ include/linux/dma-mapping.h                  |    3 
+ include/linux/fs.h                           |    2 
+ include/linux/iomap.h                        |   10 +
+ include/linux/iommu.h                        |    2 
+ include/linux/mapdirect.h                    |   57 ++++
+ include/linux/mm.h                           |   17 +
+ include/linux/mman.h                         |   42 +++
+ include/rdma/ib_umem.h                       |    8 +
+ include/uapi/asm-generic/mman-common.h       |    1 
+ include/uapi/asm-generic/mman.h              |    1 
+ ipc/shm.c                                    |    3 
+ mm/internal.h                                |    2 
+ mm/mmap.c                                    |   28 +-
+ mm/nommu.c                                   |    5 
+ mm/util.c                                    |    7 
+ tools/include/uapi/asm-generic/mman-common.h |    1 
+ tools/testing/nvdimm/Kbuild                  |   31 ++
+ tools/testing/nvdimm/config_check.c          |    2 
+ tools/testing/nvdimm/test/iomap.c            |   14 +
+ 45 files changed, 938 insertions(+), 111 deletions(-)
+ create mode 100644 fs/mapdirect.c
+ create mode 100644 fs/xfs/xfs_layout.c
+ create mode 100644 fs/xfs/xfs_layout.h
+ create mode 100644 include/linux/mapdirect.h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
