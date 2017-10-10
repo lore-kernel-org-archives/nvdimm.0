@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3A0172034A7C1
- for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 10:42:02 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 1/6] libndctl: add APIs to get scrub count and to
- wait for a scrub
-Date: Mon, 30 Oct 2017 11:43:30 -0600
-Message-Id: <20171030174335.6806-2-vishal.l.verma@intel.com>
-In-Reply-To: <20171030174335.6806-1-vishal.l.verma@intel.com>
-References: <20171030174335.6806-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 89E9921F3C1AE
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:52:03 -0700 (PDT)
+Subject: [PATCH v8 02/14] fs, mm: pass fd to ->mmap_validate()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 10 Oct 2017 07:49:07 -0700
+Message-ID: <150764694688.16882.12567401507097983361.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,208 +18,278 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel uses sysfs to notify userspace of the number of completed
-Address Range Scrubs, as well as any ongoing scrubs. Add libndctl
-helpers to get the scrub count, and to wait for an in-progress scrub to
-complete.
+The MAP_DIRECT mechanism for mmap intends to use a file lease to prevent
+block map changes while the file is mapped. It requires the fd to setup
+an fasync_struct for signalling lease break events to the lease holder.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/lib/libndctl.c   | 100 +++++++++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |   2 +
- ndctl/lib/private.h    |   1 +
- ndctl/libndctl.h.in    |   2 +
- 4 files changed, 105 insertions(+)
+ arch/mips/kernel/vdso.c |    2 +-
+ arch/tile/mm/elf.c      |    2 +-
+ arch/x86/mm/mpx.c       |    3 ++-
+ fs/aio.c                |    2 +-
+ include/linux/fs.h      |    2 +-
+ include/linux/mm.h      |    9 +++++----
+ ipc/shm.c               |    3 ++-
+ mm/internal.h           |    2 +-
+ mm/mmap.c               |   13 +++++++------
+ mm/nommu.c              |    5 +++--
+ mm/util.c               |    7 ++++---
+ 11 files changed, 28 insertions(+), 22 deletions(-)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 60143d9..c878383 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -10,7 +10,9 @@
-  * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-  * more details.
-  */
-+#include <poll.h>
- #include <stdio.h>
-+#include <signal.h>
- #include <stdlib.h>
- #include <stddef.h>
- #include <stdarg.h>
-@@ -555,6 +557,7 @@ static void free_bus(struct ndctl_bus *bus, struct list_head *head)
- 	free(bus->bus_path);
- 	free(bus->bus_buf);
- 	free(bus->wait_probe_path);
-+	free(bus->scrub_path);
- 	free(bus);
+diff --git a/arch/mips/kernel/vdso.c b/arch/mips/kernel/vdso.c
+index cf10654477a9..ab26c7ac0316 100644
+--- a/arch/mips/kernel/vdso.c
++++ b/arch/mips/kernel/vdso.c
+@@ -110,7 +110,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+ 	base = mmap_region(NULL, STACK_TOP, PAGE_SIZE,
+ 			   VM_READ|VM_WRITE|VM_EXEC|
+ 			   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+-			   0, NULL, 0);
++			   0, NULL, 0, -1);
+ 	if (IS_ERR_VALUE(base)) {
+ 		ret = base;
+ 		goto out;
+diff --git a/arch/tile/mm/elf.c b/arch/tile/mm/elf.c
+index 5ffcbe76aef9..61a9588e141a 100644
+--- a/arch/tile/mm/elf.c
++++ b/arch/tile/mm/elf.c
+@@ -144,7 +144,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm,
+ 		addr = mmap_region(NULL, addr, INTRPT_SIZE,
+ 				   VM_READ|VM_EXEC|
+ 				   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC, 0,
+-				   NULL, 0);
++				   NULL, 0, -1);
+ 		if (addr > (unsigned long) -PAGE_SIZE)
+ 			retval = (int) addr;
+ 	}
+diff --git a/arch/x86/mm/mpx.c b/arch/x86/mm/mpx.c
+index 9ceaa955d2ba..a8baa94a496b 100644
+--- a/arch/x86/mm/mpx.c
++++ b/arch/x86/mm/mpx.c
+@@ -52,7 +52,8 @@ static unsigned long mpx_mmap(unsigned long len)
+ 
+ 	down_write(&mm->mmap_sem);
+ 	addr = do_mmap(NULL, 0, len, PROT_READ | PROT_WRITE,
+-		       MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate, NULL);
++			MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate,
++			NULL, -1);
+ 	up_write(&mm->mmap_sem);
+ 	if (populate)
+ 		mm_populate(addr, populate);
+diff --git a/fs/aio.c b/fs/aio.c
+index 5a2487217072..d10ca6db2ee6 100644
+--- a/fs/aio.c
++++ b/fs/aio.c
+@@ -519,7 +519,7 @@ static int aio_setup_ring(struct kioctx *ctx, unsigned int nr_events)
+ 
+ 	ctx->mmap_base = do_mmap_pgoff(ctx->aio_ring_file, 0, ctx->mmap_size,
+ 				       PROT_READ | PROT_WRITE,
+-				       MAP_SHARED, 0, &unused, NULL);
++				       MAP_SHARED, 0, &unused, NULL, -1);
+ 	up_write(&mm->mmap_sem);
+ 	if (IS_ERR((void *)ctx->mmap_base)) {
+ 		ctx->mmap_size = 0;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 51538958f7f5..c2b9bf3dc4e9 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1702,7 +1702,7 @@ struct file_operations {
+ 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	int (*mmap_validate) (struct file *, struct vm_area_struct *,
+-			unsigned long);
++			unsigned long, int);
+ 	int (*open) (struct inode *, struct file *);
+ 	int (*flush) (struct file *, fl_owner_t id);
+ 	int (*release) (struct inode *, struct file *);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 5c4c98e4adc9..0afa19feb755 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2133,11 +2133,11 @@ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned lo
+ 
+ extern unsigned long mmap_region(struct file *file, unsigned long addr,
+ 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+-	struct list_head *uf, unsigned long map_flags);
++	struct list_head *uf, unsigned long map_flags, int fd);
+ extern unsigned long do_mmap(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot, unsigned long flags,
+ 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
+-	struct list_head *uf);
++	struct list_head *uf, int fd);
+ extern int do_munmap(struct mm_struct *, unsigned long, size_t,
+ 		     struct list_head *uf);
+ 
+@@ -2145,9 +2145,10 @@ static inline unsigned long
+ do_mmap_pgoff(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot, unsigned long flags,
+ 	unsigned long pgoff, unsigned long *populate,
+-	struct list_head *uf)
++	struct list_head *uf, int fd)
+ {
+-	return do_mmap(file, addr, len, prot, flags, 0, pgoff, populate, uf);
++	return do_mmap(file, addr, len, prot, flags, 0, pgoff, populate,
++			uf, fd);
  }
  
-@@ -785,6 +788,11 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
- 	if (!bus->wait_probe_path)
- 		goto err_read;
+ #ifdef CONFIG_MMU
+diff --git a/ipc/shm.c b/ipc/shm.c
+index 1e2b1692ba2c..585e05eef40a 100644
+--- a/ipc/shm.c
++++ b/ipc/shm.c
+@@ -1399,7 +1399,8 @@ long do_shmat(int shmid, char __user *shmaddr, int shmflg,
+ 			goto invalid;
+ 	}
  
-+	sprintf(path, "%s/device/nfit/scrub", ctl_base);
-+	bus->scrub_path = strdup(path);
-+	if (!bus->scrub_path)
-+		goto err_read;
-+
- 	bus->bus_path = parent_dev_path("char", bus->major, bus->minor);
- 	if (!bus->bus_path)
- 		goto err_dev_path;
-@@ -810,6 +818,7 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
-  err_dev_path:
-  err_read:
- 	free(bus->wait_probe_path);
-+	free(bus->scrub_path);
- 	free(bus->provider);
- 	free(bus->bus_buf);
- 	free(bus);
-@@ -1082,6 +1091,97 @@ NDCTL_EXPORT int ndctl_bus_wait_probe(struct ndctl_bus *bus)
- 	return rc < 0 ? -ENXIO : 0;
+-	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate, NULL);
++	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate,
++			NULL, -1);
+ 	*raddr = addr;
+ 	err = 0;
+ 	if (IS_ERR_VALUE(addr))
+diff --git a/mm/internal.h b/mm/internal.h
+index 1df011f62480..70ed7b06dd85 100644
+--- a/mm/internal.h
++++ b/mm/internal.h
+@@ -466,7 +466,7 @@ extern u32 hwpoison_filter_enable;
+ 
+ extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
+         unsigned long, unsigned long,
+-        unsigned long, unsigned long);
++        unsigned long, unsigned long, int);
+ 
+ extern void set_pageblock_order(void);
+ unsigned long reclaim_clean_pages_from_list(struct zone *zone,
+diff --git a/mm/mmap.c b/mm/mmap.c
+index a1bcaa9eff42..c2cb6334a7a9 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -1322,7 +1322,7 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
+ 			unsigned long len, unsigned long prot,
+ 			unsigned long flags, vm_flags_t vm_flags,
+ 			unsigned long pgoff, unsigned long *populate,
+-			struct list_head *uf)
++			struct list_head *uf, int fd)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	int pkey = 0;
+@@ -1477,7 +1477,7 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
+ 			vm_flags |= VM_NORESERVE;
+ 	}
+ 
+-	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags);
++	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags, fd);
+ 	if (!IS_ERR_VALUE(addr) &&
+ 	    ((vm_flags & VM_LOCKED) ||
+ 	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
+@@ -1527,7 +1527,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
+ 
+ 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
+ 
+-	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
++	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, fd);
+ out_fput:
+ 	if (file)
+ 		fput(file);
+@@ -1614,7 +1614,7 @@ static inline int accountable_mapping(struct file *file, vm_flags_t vm_flags)
+ 
+ unsigned long mmap_region(struct file *file, unsigned long addr,
+ 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+-		struct list_head *uf, unsigned long map_flags)
++		struct list_head *uf, unsigned long map_flags, int fd)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma, *prev;
+@@ -1700,7 +1700,8 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
+ 		 */
+ 		vma->vm_file = get_file(file);
+ 		if ((map_flags & MAP_TYPE) == MAP_SHARED_VALIDATE)
+-			error = file->f_op->mmap_validate(file, vma, map_flags);
++			error = file->f_op->mmap_validate(file, vma,
++					map_flags, fd);
+ 		else
+ 			error = call_mmap(file, vma);
+ 		if (error)
+@@ -2842,7 +2843,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsigned long, start, unsigned long, size,
+ 
+ 	file = get_file(vma->vm_file);
+ 	ret = do_mmap_pgoff(vma->vm_file, start, size,
+-			prot, flags, pgoff, &populate, NULL);
++			prot, flags, pgoff, &populate, NULL, -1);
+ 	fput(file);
+ out:
+ 	up_write(&mm->mmap_sem);
+diff --git a/mm/nommu.c b/mm/nommu.c
+index 17c00d93de2e..952d205d3b66 100644
+--- a/mm/nommu.c
++++ b/mm/nommu.c
+@@ -1206,7 +1206,8 @@ unsigned long do_mmap(struct file *file,
+ 			vm_flags_t vm_flags,
+ 			unsigned long pgoff,
+ 			unsigned long *populate,
+-			struct list_head *uf)
++			struct list_head *uf,
++			int fd)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct vm_region *region;
+@@ -1439,7 +1440,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
+ 
+ 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
+ 
+-	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
++	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, fd);
+ 
+ 	if (file)
+ 		fput(file);
+diff --git a/mm/util.c b/mm/util.c
+index 34e57fae959d..dcf48d929185 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -319,7 +319,7 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ 
+ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot,
+-	unsigned long flag, unsigned long pgoff)
++	unsigned long flag, unsigned long pgoff, int fd)
+ {
+ 	unsigned long ret;
+ 	struct mm_struct *mm = current->mm;
+@@ -331,7 +331,7 @@ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
+ 		if (down_write_killable(&mm->mmap_sem))
+ 			return -EINTR;
+ 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
+-				    &populate, &uf);
++				    &populate, &uf, fd);
+ 		up_write(&mm->mmap_sem);
+ 		userfaultfd_unmap_complete(mm, &uf);
+ 		if (populate)
+@@ -349,7 +349,8 @@ unsigned long vm_mmap(struct file *file, unsigned long addr,
+ 	if (unlikely(offset_in_page(offset)))
+ 		return -EINVAL;
+ 
+-	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
++	return vm_mmap_pgoff(file, addr, len, prot, flag,
++			offset >> PAGE_SHIFT, -1);
  }
+ EXPORT_SYMBOL(vm_mmap);
  
-+NDCTL_EXPORT unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus)
-+{
-+	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-+	char buf[SYSFS_ATTR_SIZE];
-+	unsigned int scrub_count;
-+	char in_progress = '\0';
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, bus->scrub_path, buf);
-+	if (rc < 0)
-+		return UINT_MAX;
-+
-+	rc = sscanf(buf, "%u%c", &scrub_count, &in_progress);
-+	if (rc < 0)
-+		return UINT_MAX;
-+	if (rc == 0) {
-+		/* unable to read scrub count */
-+		return UINT_MAX;
-+	}
-+	if (rc >= 1)
-+		return scrub_count;
-+
-+	return UINT_MAX;
-+}
-+
-+/**
-+ * ndctl_bus_wait_for_scrub - wait for a scrub to complete
-+ * @bus: bus for which to check whether a scrub is in progress
-+ *
-+ * Upon return this bus has completed any in-progress scrubs. This is
-+ * different from ndctl_cmd_ars_in_progress in that the latter checks
-+ * the output of an ars_status command to see if the in-progress flag
-+ * is set, i.e. provides the firmware's view of whether a scrub is in
-+ * progress. ndctl_bus_wait_for_scrub instead checks the kernel's view
-+ * of whether a scrub is in progress by looking at the 'scrub' file in
-+ * sysfs.
-+ */
-+NDCTL_EXPORT int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus)
-+{
-+	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-+	unsigned int tmo = 120, scrub_count;
-+	char buf[SYSFS_ATTR_SIZE];
-+	char in_progress = '\0';
-+	struct pollfd fds;
-+	int fd = 0, rc;
-+
-+	fd = open(bus->scrub_path, O_RDONLY|O_CLOEXEC);
-+	fds.fd = fd;
-+	fds.events =  POLLPRI | POLLIN;
-+	do {
-+		rc = sysfs_read_attr(ctx, bus->scrub_path, buf);
-+		if (rc < 0)
-+			break;
-+
-+		rc = sscanf(buf, "%u%c", &scrub_count, &in_progress);
-+		if (rc < 0)
-+			break;
-+		else if (rc <= 1) {
-+			/* scrub complete, break successfully */
-+			rc = 0;
-+			break;
-+		} else if (rc == 2 && in_progress == '+') {
-+			/* scrub in progress, wait */
-+			rc = poll(&fds, 1, tmo);
-+			if (rc < 0) {
-+				dbg(ctx, "poll error: %d\n", errno);
-+				break;
-+			} else if (rc == 0) {
-+				dbg(ctx, "poll timeout after: %d seconds", tmo);
-+				rc = -ENXIO;
-+				break;
-+			}
-+			if (fds.revents & (POLLERR | POLLHUP | POLLNVAL)) {
-+				dbg(ctx, "poll error, revents: %d\n",
-+					fds.revents);
-+				rc = -ENXIO;
-+				break;
-+			}
-+		} else {
-+			/* unknown condition */
-+			rc = -ENXIO;
-+			break;
-+		}
-+	} while (in_progress);
-+
-+	dbg(ctx, "bus%d: scrub complete\n", ndctl_bus_get_id(bus));
-+	if (fd)
-+		close (fd);
-+	return rc < 0 ? -ENXIO : 0;
-+}
-+
- static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
- 		const char *devname);
- static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 58db669..4c22c0f 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -286,6 +286,8 @@ global:
- 	ndctl_bus_get_region_by_physical_address;
- 	ndctl_bus_get_dimm_by_physical_address;
- 	ndctl_bus_is_nfit_cmd_supported;
-+	ndctl_bus_wait_for_scrub_completion;
-+	ndctl_bus_get_scrub_count;
- 	ndctl_dimm_read_labels;
- 	ndctl_dimm_validate_labels;
- 	ndctl_dimm_init_labels;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 2de314c..6b909aa 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -152,6 +152,7 @@ struct ndctl_bus {
- 	char *bus_buf;
- 	size_t buf_len;
- 	char *wait_probe_path;
-+	char *scrub_path;
- 	unsigned long dsm_mask;
- 	unsigned long nfit_dsm_mask;
- };
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index 42e53c6..a4fbe33 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -113,6 +113,8 @@ unsigned int ndctl_bus_get_revision(struct ndctl_bus *bus);
- unsigned int ndctl_bus_get_id(struct ndctl_bus *bus);
- const char *ndctl_bus_get_provider(struct ndctl_bus *bus);
- int ndctl_bus_wait_probe(struct ndctl_bus *bus);
-+int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus);
-+unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus);
- 
- struct ndctl_dimm;
- struct ndctl_dimm *ndctl_dimm_get_first(struct ndctl_bus *bus);
--- 
-2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
