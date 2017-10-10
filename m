@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F416020347160
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:02 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 07/17] dax: Inline dax_insert_mapping() into the callsite
-Date: Thu, 19 Oct 2017 14:58:06 +0200
-Message-Id: <20171019125817.11580-8-jack@suse.cz>
-In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
-References: <20171019125817.11580-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id CEE2C21E87968
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:53:02 -0700 (PDT)
+Subject: [PATCH v8 12/14] iommu/vt-d: use iommu_num_sg_pages
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 10 Oct 2017 07:50:05 -0700
+Message-ID: <150764700544.16882.8780240398561523090.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,99 +18,81 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Ashok Raj <ashok.raj@intel.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_insert_mapping() has only one callsite and we will need to further
-fine tune what it does for synchronous faults. Just inline it into the
-callsite so that we don't have to pass awkward bools around.
+Use the common helper for accounting the size of the IOVA range for a
+scatterlist so that iommu and dma apis agree on the size of a
+scatterlist. This is in support for using iommu_unmap() in advance of
+dma_unmap_sg() to invalidate an io-mapping in advance of the IOVA range
+being deallocated. MAP_DIRECT needs this functionality for force
+revoking RDMA access to a DAX mapping when userspace fails to respond to
+within a lease break timeout period.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 46 +++++++++++++++++++---------------------------
- 1 file changed, 19 insertions(+), 27 deletions(-)
+ drivers/iommu/intel-iommu.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5ea71381dba0..5b20c6456926 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -858,32 +858,6 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
- 	return rc;
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index f3f4939cebad..94a5fbe62fb8 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -3785,14 +3785,9 @@ static void intel_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 			   unsigned long attrs)
+ {
+ 	dma_addr_t startaddr = sg_dma_address(sglist) & PAGE_MASK;
+-	unsigned long nrpages = 0;
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sglist, sg, nelems, i) {
+-		nrpages += aligned_nrpages(sg_dma_address(sg), sg_dma_len(sg));
+-	}
++	unsigned long nrpages;
+ 
++	nrpages = iommu_sg_num_pages(dev, sglist, nelems);
+ 	intel_unmap(dev, startaddr, nrpages << VTD_PAGE_SHIFT);
  }
  
--static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
--			      loff_t pos, void *entry)
--{
--	const sector_t sector = dax_iomap_sector(iomap, pos);
--	struct vm_area_struct *vma = vmf->vma;
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	unsigned long vaddr = vmf->address;
--	void *ret;
--	int rc;
--	pfn_t pfn;
--
--	rc = dax_iomap_pfn(iomap, pos, PAGE_SIZE, &pfn);
--	if (rc < 0)
--		return rc;
--
--	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector, 0);
--	if (IS_ERR(ret))
--		return PTR_ERR(ret);
--
--	trace_dax_insert_mapping(mapping->host, vmf, ret);
--	if (vmf->flags & FAULT_FLAG_WRITE)
--		return vm_insert_mixed_mkwrite(vma, vaddr, pfn);
--	else
--		return vm_insert_mixed(vma, vaddr, pfn);
--}
--
- /*
-  * The user has performed a load from a hole in the file.  Allocating a new
-  * page in the file would cause excessive storage usage for workloads with
-@@ -1119,6 +1093,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	int vmf_ret = 0;
- 	void *entry;
-+	pfn_t pfn;
+@@ -3813,14 +3808,12 @@ static int intel_nontranslate_map_sg(struct device *hddev,
+ static int intel_map_sg(struct device *dev, struct scatterlist *sglist, int nelems,
+ 			enum dma_data_direction dir, unsigned long attrs)
+ {
+-	int i;
+ 	struct dmar_domain *domain;
+ 	size_t size = 0;
+ 	int prot = 0;
+ 	unsigned long iova_pfn;
+ 	int ret;
+-	struct scatterlist *sg;
+-	unsigned long start_vpfn;
++	unsigned long start_vpfn, npages;
+ 	struct intel_iommu *iommu;
  
- 	trace_dax_pte_fault(inode, vmf, vmf_ret);
- 	/*
-@@ -1201,7 +1176,24 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
- 			major = VM_FAULT_MAJOR;
- 		}
--		error = dax_insert_mapping(vmf, &iomap, pos, entry);
-+		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
-+		if (error < 0)
-+			goto error_finish_iomap;
-+
-+		entry = dax_insert_mapping_entry(mapping, vmf, entry,
-+						 dax_iomap_sector(&iomap, pos),
-+						 0);
-+		if (IS_ERR(entry)) {
-+			error = PTR_ERR(entry);
-+			goto error_finish_iomap;
-+		}
-+
-+		trace_dax_insert_mapping(inode, vmf, entry);
-+		if (write)
-+			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
-+		else
-+			error = vm_insert_mixed(vma, vaddr, pfn);
-+
- 		/* -EBUSY is fine, somebody else faulted on the same PTE */
- 		if (error == -EBUSY)
- 			error = 0;
--- 
-2.12.3
+ 	BUG_ON(dir == DMA_NONE);
+@@ -3833,11 +3826,9 @@ static int intel_map_sg(struct device *dev, struct scatterlist *sglist, int nele
+ 
+ 	iommu = domain_get_iommu(domain);
+ 
+-	for_each_sg(sglist, sg, nelems, i)
+-		size += aligned_nrpages(sg->offset, sg->length);
++	npages = iommu_sg_num_pages(dev, sglist, nelems);
+ 
+-	iova_pfn = intel_alloc_iova(dev, domain, dma_to_mm_pfn(size),
+-				*dev->dma_mask);
++	iova_pfn = intel_alloc_iova(dev, domain, npages, *dev->dma_mask);
+ 	if (!iova_pfn) {
+ 		sglist->dma_length = 0;
+ 		return 0;
 
 _______________________________________________
 Linux-nvdimm mailing list
