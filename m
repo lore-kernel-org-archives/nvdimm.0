@@ -1,135 +1,161 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8D6E820352615
- for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:45 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 0/17 v5] dax, ext4, xfs: Synchronous page faults
-Date: Tue, 24 Oct 2017 17:23:57 +0200
-Message-Id: <20171024152415.22864-1-jack@suse.cz>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v8 10/14] device-dax: wire up ->lease_direct()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 10 Oct 2017 07:49:54 -0700
+Message-ID: <150764699451.16882.18368970483709189847.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, iommu@lists.linux-foundation.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+The only event that will break a lease_direct lease in the device-dax
+case is the device shutdown path where the physical pages might get
+assigned to another device.
 
-here is the fifth version of my patches to implement synchronous page faults
-for DAX mappings to make flushing of DAX mappings possible from userspace so
-that they can be flushed on finer than page granularity and also avoid the
-overhead of a syscall.
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/Kconfig       |    1 +
+ drivers/dax/device.c      |    4 ++++
+ fs/Kconfig                |    4 ++++
+ fs/Makefile               |    3 ++-
+ fs/mapdirect.c            |    3 ++-
+ include/linux/mapdirect.h |    5 ++++-
+ 6 files changed, 17 insertions(+), 3 deletions(-)
 
-We use a new mmap flag MAP_SYNC to indicate that page faults for the mapping
-should be synchronous.  The guarantee provided by this flag is: While a block
-is writeably mapped into page tables of this mapping, it is guaranteed to be
-visible in the file at that offset also after a crash.
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index b79aa8f7a497..be03d4dbe646 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -8,6 +8,7 @@ if DAX
+ config DEV_DAX
+ 	tristate "Device DAX: direct access mapping device"
+ 	depends on TRANSPARENT_HUGEPAGE
++	depends on FILE_LOCKING
+ 	help
+ 	  Support raw access to differentiated (persistence, bandwidth,
+ 	  latency...) memory via an mmap(2) capable character
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index e9f3b3e4bbf4..fa75004185c4 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -10,6 +10,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  * General Public License for more details.
+  */
++#include <linux/mapdirect.h>
+ #include <linux/pagemap.h>
+ #include <linux/module.h>
+ #include <linux/device.h>
+@@ -430,6 +431,7 @@ static int dev_dax_fault(struct vm_fault *vmf)
+ static const struct vm_operations_struct dax_vm_ops = {
+ 	.fault = dev_dax_fault,
+ 	.huge_fault = dev_dax_huge_fault,
++	.lease_direct = map_direct_lease,
+ };
+ 
+ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+@@ -540,8 +542,10 @@ static void kill_dev_dax(struct dev_dax *dev_dax)
+ {
+ 	struct dax_device *dax_dev = dev_dax->dax_dev;
+ 	struct inode *inode = dax_inode(dax_dev);
++	const bool wait = true;
+ 
+ 	kill_dax(dax_dev);
++	break_layout(inode, wait);
+ 	unmap_mapping_range(inode->i_mapping, 0, 0, 1);
+ }
+ 
+diff --git a/fs/Kconfig b/fs/Kconfig
+index a7b31a96a753..3668cfb046d5 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -59,6 +59,10 @@ config FS_DAX_PMD
+ 	depends on ZONE_DEVICE
+ 	depends on TRANSPARENT_HUGEPAGE
+ 
++config DAX_MAP_DIRECT
++	bool
++	default FS_DAX || DEV_DAX
++
+ endif # BLOCK
+ 
+ # Posix ACL utility routines
+diff --git a/fs/Makefile b/fs/Makefile
+index c0e791d235d8..21b8fb104656 100644
+--- a/fs/Makefile
++++ b/fs/Makefile
+@@ -29,7 +29,8 @@ obj-$(CONFIG_TIMERFD)		+= timerfd.o
+ obj-$(CONFIG_EVENTFD)		+= eventfd.o
+ obj-$(CONFIG_USERFAULTFD)	+= userfaultfd.o
+ obj-$(CONFIG_AIO)               += aio.o
+-obj-$(CONFIG_FS_DAX)		+= dax.o mapdirect.o
++obj-$(CONFIG_FS_DAX)		+= dax.o
++obj-$(CONFIG_DAX_MAP_DIRECT)	+= mapdirect.o
+ obj-$(CONFIG_FS_ENCRYPTION)	+= crypto/
+ obj-$(CONFIG_FILE_LOCKING)      += locks.o
+ obj-$(CONFIG_COMPAT)		+= compat.o compat_ioctl.o
+diff --git a/fs/mapdirect.c b/fs/mapdirect.c
+index c6954033fc1a..dd4a16f9ffc6 100644
+--- a/fs/mapdirect.c
++++ b/fs/mapdirect.c
+@@ -218,7 +218,7 @@ static const struct lock_manager_operations lease_direct_lm_ops = {
+ 	.lm_change = lease_direct_lm_change,
+ };
+ 
+-static struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
++struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
+ 		void (*lds_break_fn)(void *), void *lds_owner)
+ {
+ 	struct file *file = vma->vm_file;
+@@ -272,6 +272,7 @@ static struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
+ 	kfree(lds);
+ 	return ERR_PTR(rc);
+ }
++EXPORT_SYMBOL_GPL(map_direct_lease);
+ 
+ struct lease_direct *generic_map_direct_lease(struct vm_area_struct *vma,
+ 		void (*break_fn)(void *), void *owner)
+diff --git a/include/linux/mapdirect.h b/include/linux/mapdirect.h
+index e0df6ac5795a..6695fdcf8009 100644
+--- a/include/linux/mapdirect.h
++++ b/include/linux/mapdirect.h
+@@ -26,13 +26,15 @@ struct lease_direct {
+ 	struct lease_direct_state *lds;
+ };
+ 
+-#if IS_ENABLED(CONFIG_FS_DAX)
++#if IS_ENABLED(CONFIG_DAX_MAP_DIRECT)
+ struct map_direct_state *map_direct_register(int fd, struct vm_area_struct *vma);
+ bool test_map_direct_valid(struct map_direct_state *mds);
+ void generic_map_direct_open(struct vm_area_struct *vma);
+ void generic_map_direct_close(struct vm_area_struct *vma);
+ struct lease_direct *generic_map_direct_lease(struct vm_area_struct *vma,
+ 		void (*ld_break_fn)(void *), void *ld_owner);
++struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
++		void (*lds_break_fn)(void *), void *lds_owner);
+ void map_direct_lease_destroy(struct lease_direct *ld);
+ #else
+ static inline struct map_direct_state *map_direct_register(int fd,
+@@ -47,6 +49,7 @@ static inline bool test_map_direct_valid(struct map_direct_state *mds)
+ #define generic_map_direct_open NULL
+ #define generic_map_direct_close NULL
+ #define generic_map_direct_lease NULL
++#define map_direct_lease NULL
+ static inline void map_direct_lease_destroy(struct lease_direct *ld)
+ {
+ }
 
-How I implement this is that ->iomap_begin() indicates by a flag that inode
-block mapping metadata is unstable and may need flushing (use the same test as
-whether fdatasync() has metadata to write). If yes, DAX fault handler refrains
-from inserting / write-enabling the page table entry and returns special flag
-VM_FAULT_NEEDDSYNC together with a PFN to map to the filesystem fault handler.
-The handler then calls fdatasync() (vfs_fsync_range()) for the affected range
-and after that calls DAX code to update the page table entry appropriately.
-
-I did some basic performance testing on the patches over ramdisk - timed
-latency of page faults when faulting 512 pages. I did several tests: with file
-preallocated / with file empty, with background file copying going on / without
-it, with / without MAP_SYNC (so that we get comparison).  The results are
-(numbers are in microseconds):
-
-File preallocated, no background load no MAP_SYNC:
-min=9 avg=10 max=46
-8 - 15 us: 508
-16 - 31 us: 3
-32 - 63 us: 1
-
-File preallocated, no background load, MAP_SYNC:
-min=9 avg=10 max=47
-8 - 15 us: 508
-16 - 31 us: 2
-32 - 63 us: 2
-
-File empty, no background load, no MAP_SYNC:
-min=21 avg=22 max=70
-16 - 31 us: 506
-32 - 63 us: 5
-64 - 127 us: 1
-
-File empty, no background load, MAP_SYNC:
-min=40 avg=124 max=242
-32 - 63 us: 1
-64 - 127 us: 333
-128 - 255 us: 178
-
-File empty, background load, no MAP_SYNC:
-min=21 avg=23 max=67
-16 - 31 us: 507
-32 - 63 us: 4
-64 - 127 us: 1
-
-File empty, background load, MAP_SYNC:
-min=94 avg=112 max=181
-64 - 127 us: 489
-128 - 255 us: 23
-
-So here we can see the difference between MAP_SYNC vs non MAP_SYNC is about
-100-200 us when we need to wait for transaction commit in this setup. 
-
-Anyway, here are the patches and since Ross already posted his patches to test
-the functionality, I think we are ready to get this merged. I've talked with
-Dan and he said he could take the patches through his tree, I'd just like to
-get a final ack from Christoph on the patch modifying mmap(2).  Comments are
-welcome.
-
-Changes since v4:
-* fixed couple of minor things in the manpage
-* make legacy mmap flags always supported, remove them from mask declared
-  to be supported by ext4 and xfs
-
-Changes since v3:
-* updated some changelogs
-* folded fs support for VM_SYNC flag into patches implementing the
-  functionality
-* removed ->mmap_validate, use ->mmap_supported_flags instead
-* added some Reviewed-by tags
-* added manpage patch
-
-Changes since v2:
-* avoid unnecessary flushing of faulted page (Ross) - I've realized it makes no
-  sense to remeasure my benchmark results (after actually doing that and seeing
-  no difference, sigh) since I use ramdisk and not real PMEM HW and so flushes
-  are ignored.
-* handle nojournal mode of ext4
-* other smaller cleanups & fixes (Ross)
-* factor larger part of finishing of synchronous fault into a helper (Christoph)
-* reorder pfnp argument of dax_iomap_fault() (Christoph)
-* add XFS support from Christoph
-* use proper MAP_SYNC support in mmap(2)
-* rebased on top of 4.14-rc4
-
-Changes since v1:
-* switched to using mmap flag MAP_SYNC
-* cleaned up fault handlers to avoid passing pfn in vmf->orig_pte
-* switched to not touching page tables before we are ready to insert final
-  entry as it was unnecessary and not really simplifying anything
-* renamed fault flag to VM_FAULT_NEEDDSYNC
-* other smaller fixes found by reviewers
-
-								Honza
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
