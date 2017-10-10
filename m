@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 26D672034C087
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 19:41:53 -0700 (PDT)
-Subject: [PATCH v3 02/13] dax: require 'struct page' for filesystem dax
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Oct 2017 19:39:07 -0700
-Message-ID: <150846714747.24336.14704246566580871364.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4470621F3C184
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 00:10:45 -0700 (PDT)
+Date: Tue, 10 Oct 2017 09:14:06 +0200
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [ndctl PATCH] ndctl, test: rdma vs dax
+Message-ID: <20171010071406.tnzvgsmjt55e626b@linux-x5ow.site>
+References: <150738928223.25087.18137727671163532987.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171009080745.zxckckm4xdtx4i7j@linux-x5ow.site>
+ <CAPcyv4hPA=hvQS8KJcihEEx-yVeJwPMPUBVe1oRw=tXeO-Kerw@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hPA=hvQS8KJcihEEx-yVeJwPMPUBVe1oRw=tXeO-Kerw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,106 +21,66 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-fsdevel@vger.kernel.org, hch@lst.de, Gerald Schaefer <gerald.schaefer@de.ibm.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If a dax buffer from a device that does not map pages is passed to
-read(2) or write(2) as a target for direct-I/O it triggers SIGBUS. If
-gdb attempts to examine the contents of a dax buffer from a device that
-does not map pages it triggers SIGBUS. If fork(2) is called on a process
-with a dax mapping from a device that does not map pages it triggers
-SIGBUS. 'struct page' is required otherwise several kernel code paths
-break in surprising ways. Disable filesystem-dax on devices that do not
-map pages.
+On Mon, Oct 09, 2017 at 08:45:41AM -0700, Dan Williams wrote:
+> On Mon, Oct 9, 2017 at 1:07 AM, Johannes Thumshirn <jthumshirn@suse.de> w=
+rote:
+> > On Sat, Oct 07, 2017 at 08:14:42AM -0700, Dan Williams wrote:
+> > [...]
+> >
+> >> +rxe_cfg stop
+> >> +rxe_cfg start
+> >> +if ! rxe_cfg status | grep -n rxe0; then
+> >> +     rxe_cfg add eth0
+> >> +fi
+> >
+> > Can we maybe skip the dependency on rxe_cfg? All that is needed is modp=
+robe
+> > and echo.
+> =
 
-In addition to needing pfn_to_page() to be valid we also require devmap
-pages. We need this to detect dax pages in the get_user_pages_fast()
-path and so that we can stop managing the VM_MIXEDMAP flag. This impacts
-the dax drivers that do not use dev_memremap_pages(): brd, dcssblk, and
-axonram.
+> Sure, I'll take a look.
 
-Note that when the initial dax support was being merged a few years back
-there was concern that struct page was unsuitable for use with next
-generation persistent memory devices. The theoretical concern was that
-struct page access, being such a hotly used data structure in the
-kernel, would lead to media wear out. While that was a reasonable
-conservative starting position it has not held true in practice. We have
-long since committed to using devm_memremap_pages() to support higher
-order kernel functionality that needs get_user_pages() and
-pfn_to_page().
+For my NVMe over Soft-RoCE test setup with Rapido [1] I used the following:
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/powerpc/sysdev/axonram.c |    1 +
- drivers/dax/super.c           |    7 +++++++
- drivers/s390/block/dcssblk.c  |    1 +
- 3 files changed, 9 insertions(+)
+modprobe rdma-rxe
+echo eth0 > /sys/module/rdma_rxe/parameters/add
 
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index c60e84e4558d..9da64d95e6f1 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -172,6 +172,7 @@ static size_t axon_ram_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 
- static const struct dax_operations axon_ram_dax_ops = {
- 	.direct_access = axon_ram_dax_direct_access,
-+
- 	.copy_from_iter = axon_ram_copy_from_iter,
- };
- 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index b0cc8117eebe..26c324a5aef4 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -15,6 +15,7 @@
- #include <linux/mount.h>
- #include <linux/magic.h>
- #include <linux/genhd.h>
-+#include <linux/pfn_t.h>
- #include <linux/cdev.h>
- #include <linux/hash.h>
- #include <linux/slab.h>
-@@ -123,6 +124,12 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 		return len < 0 ? len : -EIO;
- 	}
- 
-+	if (!pfn_t_devmap(pfn)) {
-+		pr_debug("VFS (%s): error: dax support not enabled\n",
-+				sb->s_id);
-+		return -EOPNOTSUPP;
-+	}
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(__bdev_dax_supported);
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 7abb240847c0..e7e5db07e339 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -52,6 +52,7 @@ static size_t dcssblk_dax_copy_from_iter(struct dax_device *dax_dev,
- 
- static const struct dax_operations dcssblk_dax_ops = {
- 	.direct_access = dcssblk_dax_direct_access,
-+
- 	.copy_from_iter = dcssblk_dax_copy_from_iter,
- };
- 
+> =
 
+> > Also hard coding eth0 might be problematic in this case. This works
+> > on your test-setup but surely isn't portable.
+> =
+
+> Yes,  which is part of the reason I have this listed under the
+> "destructive" tests. Any advice on how to make it portable would be
+> appreciated.
+
+Maybe:
+ETH=3D${ETH:-eth0}
+echo $ETH > /sys/module/rdma_rxe/parameters/add
+
+Byte,
+	Johannes
+
+[1] https://github.com/rapido-linux/rapido/blob/master/nvme_rdma_autorun.sh=
+#L74
+
+-- =
+
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
