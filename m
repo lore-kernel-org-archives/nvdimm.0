@@ -1,10 +1,9 @@
-From: "MAILER-DAEMON" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: test
-Date: Wed, 11 Oct 2017 11:22:50 +0800
-Message-ID: <20171011031914.2FC0A21EA15DE@ml01.01.org>
+From: =?GB2312?B?1cWcY7zR?= <xzgucha-lCXMdzoVcKYAvxtiuMwx3w@public.gmane.org>
+Subject: =?GB2312?B?16q3oqO6vLi6zrPftOfT67mrsu4=?=
+Date: Wed, 11 Oct 2017 17:14:39 +0800
+Message-ID: <20171011091400.AF37321EA15CE@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============8285749166087622531=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,25 +14,28 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
+This is a multi-part message in MIME format
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+--===============8285749166087622531==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
+致：linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 
-Your message was not delivered within 7 days:
-Host 134.177.22.64 is not responding.
+详细 课程时间 及报名信息 请查阅附件
 
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+--===============8285749166087622531==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============8285749166087622531==--
