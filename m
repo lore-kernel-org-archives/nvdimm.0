@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x232.google.com (mail-oi0-x232.google.com
- [IPv6:2607:f8b0:4003:c06::232])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE25421A0482A
- for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 10:57:57 -0700 (PDT)
-Received: by mail-oi0-x232.google.com with SMTP id g125so4424567oib.12
- for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 11:01:27 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 8DCC621F7D50A
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 10:54:11 -0700 (PDT)
+Subject: [PATCH] libnvdimm: add smart payload fields added in DSM 1.6
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 11 Oct 2017 10:57:40 -0700
+Message-ID: <150774466038.55191.18214496952092405741.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <150774466038.55191.18214496952092405741.stgit@djiang5-desk3.ch.intel.com>
-References: <150774466038.55191.18214496952092405741.stgit@djiang5-desk3.ch.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 11 Oct 2017 11:01:26 -0700
-Message-ID: <CAPcyv4jFXmmFriwc5+o0qjx7OoASijHAm3TRPBbF_yVdD2BOGw@mail.gmail.com>
-Subject: Re: [PATCH] libnvdimm: add smart payload fields added in DSM 1.6
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,19 +20,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: "Balcer, Piotr" <piotr.balcer@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: piotr.balcer@intel.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Oct 11, 2017 at 10:57 AM, Dave Jiang <dave.jiang@intel.com> wrote:
-> NVDIMM DSM interface v1.6 added additional smart health fields. Updating the
-> smart payload data structure accordingly.
+NVDIMM DSM interface v1.6 added additional smart health fields. Updating the
+smart payload data structure accordingly.
 
-I'll also add a note when I merge this that the only reason we are
-maintaining this structure in the kernel is in case we want to
-translate 3rd party SMART payload formats into the ND_IOCTL_SMART
-format. Outside of that we could just delete this since ndctl is
-already doing that translation.
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ include/uapi/linux/ndctl.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 3f03567..5ca8628 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -25,6 +25,7 @@ struct nd_cmd_smart {
+ #define ND_SMART_USED_VALID	(1 << 2)
+ #define ND_SMART_TEMP_VALID 	(1 << 3)
+ #define ND_SMART_CTEMP_VALID 	(1 << 4)
++#define ND_SMART_SHUTDOWN_COUNT_VALID (1 << 5)
+ #define ND_SMART_ALARM_VALID	(1 << 9)
+ #define ND_SMART_SHUTDOWN_VALID	(1 << 10)
+ #define ND_SMART_VENDOR_VALID	(1 << 11)
+@@ -44,7 +45,10 @@ struct nd_smart_payload {
+ 	__u8 alarm_flags;
+ 	__u16 temperature;
+ 	__u16 ctrl_temperature;
+-	__u8 reserved1[15];
++	__u32 shutdown_count;
++	__u8 ait_status;
++	__u16 pmic_temperature;
++	__u8 reserved1[8];
+ 	__u8 shutdown_state;
+ 	__u32 vendor_size;
+ 	__u8 vendor_data[92];
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
