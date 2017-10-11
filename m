@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io0-x243.google.com (mail-io0-x243.google.com
+ [IPv6:2607:f8b0:4001:c06::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 114952034AB1A
- for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:25:02 -0700 (PDT)
-Subject: [PATCH 10/15] IB/core: disable memory registration of fileystem-dax
- vmas
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 31 Oct 2017 16:22:29 -0700
-Message-ID: <150949214929.24061.10464887309708944817.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A7A8E21F3C181
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 08:57:57 -0700 (PDT)
+Received: by mail-io0-x243.google.com with SMTP id h70so1446331ioi.4
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 09:01:27 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20171011115410.GF30803@8bytes.org>
+References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150764701194.16882.9682569707416653741.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171011115410.GF30803@8bytes.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 11 Oct 2017 09:01:25 -0700
+Message-ID: <CAA9_cmdN4N8nDdyhgn61A2_vwuTP3LJTgDCEHMQLoaFZg=DtHw@mail.gmail.com>
+Subject: Re: [PATCH v8 13/14] IB/core: use MAP_DIRECT to fix / enable RDMA to
+ DAX mappings
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,119 +28,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, hch@lst.de, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-fsdevel@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, akpm@linux-foundation.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Linux API <linux-api@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, iommu@lists.linux-foundation.org, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-xfs@vger.kernel.org, linux-mm <linux-mm@kvack.org>, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Sean Hefty <sean.hefty@intel.com>, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until there is a solution to the dma-to-dax vs truncate problem it is
-not safe to allow RDMA to create long standing memory registrations
-against filesytem-dax vmas. Device-dax vmas do not have this problem and
-are explicitly allowed.
+On Wed, Oct 11, 2017 at 4:54 AM, Joerg Roedel <joro@8bytes.org> wrote:
+> On Tue, Oct 10, 2017 at 07:50:12AM -0700, Dan Williams wrote:
+>> +static void ib_umem_lease_break(void *__umem)
+>> +{
+>> +     struct ib_umem *umem = umem;
+>> +     struct ib_device *idev = umem->context->device;
+>> +     struct device *dev = idev->dma_device;
+>> +     struct scatterlist *sgl = umem->sg_head.sgl;
+>> +
+>> +     iommu_unmap(umem->iommu, sg_dma_address(sgl) & PAGE_MASK,
+>> +                     iommu_sg_num_pages(dev, sgl, umem->npages));
+>> +}
+>
+> This looks like an invitation to break your code by random iommu-driver
+> changes. There is no guarantee that an iommu-backed dma-api
+> implemenation will map exactly iommu_sg_num_pages() pages for a given
+> sg-list. In other words, you are mixing the use of the IOMMU-API and the
+> DMA-API in an incompatible way that only works because you know the
+> internals of the iommu-drivers.
+>
+> I've seen in another patch that your changes strictly require an IOMMU,
+> so you what you should do instead is to switch from the DMA-API to the
+> IOMMU-API and do the address-space management yourself.
+>
 
-This is temporary until a "memory registration with layout-lease"
-mechanism can be implemented, and is limited to non-ODP (On Demand
-Paging) capable RDMA devices.
-
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: <linux-rdma@vger.kernel.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/infiniband/core/umem.c |   49 +++++++++++++++++++++++++++++++---------
- 1 file changed, 38 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 21e60b1e2ff4..c30d286c1f24 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -147,19 +147,21 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	umem->hugetlb   = 1;
- 
- 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
--	if (!page_list) {
--		put_pid(umem->pid);
--		kfree(umem);
--		return ERR_PTR(-ENOMEM);
--	}
-+	if (!page_list)
-+		goto err_pagelist;
- 
- 	/*
--	 * if we can't alloc the vma_list, it's not so bad;
--	 * just assume the memory is not hugetlb memory
-+	 * If DAX is enabled we need the vma to protect against
-+	 * registering filesystem-dax memory. Otherwise we can tolerate
-+	 * a failure to allocate the vma_list and just assume that all
-+	 * vmas are not hugetlb-vmas.
- 	 */
- 	vma_list = (struct vm_area_struct **) __get_free_page(GFP_KERNEL);
--	if (!vma_list)
-+	if (!vma_list) {
-+		if (IS_ENABLED(CONFIG_FS_DAX))
-+			goto err_vmalist;
- 		umem->hugetlb = 0;
-+	}
- 
- 	npages = ib_umem_num_pages(umem);
- 
-@@ -199,15 +201,34 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 		if (ret < 0)
- 			goto out;
- 
--		umem->npages += ret;
- 		cur_base += ret * PAGE_SIZE;
- 		npages   -= ret;
- 
- 		for_each_sg(sg_list_start, sg, ret, i) {
--			if (vma_list && !is_vm_hugetlb_page(vma_list[i]))
--				umem->hugetlb = 0;
-+			struct vm_area_struct *vma;
-+			struct inode *inode;
- 
- 			sg_set_page(sg, page_list[i], PAGE_SIZE, 0);
-+			umem->npages++;
-+
-+			if (!vma_list)
-+				continue;
-+			vma = vma_list[i];
-+
-+			if (!is_vm_hugetlb_page(vma))
-+				umem->hugetlb = 0;
-+
-+			if (!vma_is_dax(vma))
-+				continue;
-+
-+			/* device-dax is safe for rdma... */
-+			inode = file_inode(vma->vm_file);
-+			if (inode->i_mode == S_IFCHR)
-+				continue;
-+
-+			/* ...filesystem-dax is not. */
-+			ret = -EOPNOTSUPP;
-+			goto out;
- 		}
- 
- 		/* preparing for next loop */
-@@ -242,6 +263,12 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	free_page((unsigned long) page_list);
- 
- 	return ret < 0 ? ERR_PTR(ret) : umem;
-+err_vmalist:
-+	free_page((unsigned long) page_list);
-+err_pagelist:
-+	put_pid(umem->pid);
-+	kfree(umem);
-+	return ERR_PTR(-ENOMEM);
- }
- EXPORT_SYMBOL(ib_umem_get);
- 
-
+Ok, I'll switch over completely to the iommu api for this. It will
+also address Robin's concern.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
