@@ -1,13 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from youngberry.canonical.com (youngberry.canonical.com
- [91.189.89.112]) (using TLSv1 with cipher AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2210F20945BB8
- for <linux-nvdimm@lists.01.org>; Thu,  5 Oct 2017 02:52:37 -0700 (PDT)
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] libnvdimm, namespace: make a couple of functions static
-Date: Thu,  5 Oct 2017 10:55:57 +0100
-Message-Id: <20171005095557.29063-1-colin.king@canonical.com>
+Received: from lists.01.org (unknown [183.14.29.233])
+ by ml01.01.org (Postfix) with ESMTP id 641C221EA15D5
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 20:19:10 -0700 (PDT)
+From: "MAILER-DAEMON" <postmaster@lists.01.org>
+Subject: test
+Date: Wed, 11 Oct 2017 11:22:50 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,48 +17,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-Id: <20171011031914.322F821EC8CEF@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+This Message was undeliverable due to the following reason:
 
-The functions create_namespace_pmem and create_namespace_blk are local
-to the source and do not need to be in global scope, so make them static.
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-Cleans up sparse warnings:
-symbol 'create_namespace_pmem' was not declared. Should it be static?
-symbol 'create_namespace_blk' was not declared. Should it be static?
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/nvdimm/namespace_devs.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Your message was not delivered within 7 days:
+Host 134.177.22.64 is not responding.
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 3e4d1e7998da..2029e70a24f4 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1875,7 +1875,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
-  * @nspm: target namespace to create
-  * @nd_label: target pmem namespace label to evaluate
-  */
--struct device *create_namespace_pmem(struct nd_region *nd_region,
-+static struct device *create_namespace_pmem(struct nd_region *nd_region,
- 		struct nd_namespace_index *nsindex,
- 		struct nd_namespace_label *nd_label)
- {
-@@ -2186,7 +2186,7 @@ static int add_namespace_resource(struct nd_region *nd_region,
- 	return i;
- }
- 
--struct device *create_namespace_blk(struct nd_region *nd_region,
-+static struct device *create_namespace_blk(struct nd_region *nd_region,
- 		struct nd_namespace_label *nd_label, int count)
- {
- 
--- 
-2.14.1
+The following recipients did not receive this message:
+<linux-nvdimm@lists.01.org>
+
+Please reply to postmaster@lists.01.org
+if you feel this message to be in error.
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
