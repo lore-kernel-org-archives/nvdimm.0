@@ -1,47 +1,71 @@
 From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [RFC] KVM "fake DAX" device flushing
-Date: Thu, 12 Oct 2017 06:39:48 -0400 (EDT)
-Message-ID: <1776453018.19707347.1507804788144.JavaMail.zimbra@redhat.com>
-References: <20171011185146.20295-1-pagupta@redhat.com> <20171012085031.GA1959@stefanha-x1.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <20171012085031.GA1959@stefanha-x1.localdomain>
-Sender: kvm-owner@vger.kernel.org
-To: Stefan Hajnoczi <stefanha@redhat.com>
-Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-mm@kvack.org, jack@suse.cz, dan j williams <dan.j.williams@intel.com>, riel@redhat.com, haozhong zhang <haozhong.zhang@intel.com>, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, ross zwisler <ross.zwisler@intel.com>, david@redhat.com, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>
+Subject: [RFC 0/2] KVM "fake DAX" device flushing
+Date: Thu, 12 Oct 2017 21:20:24 +0530
+Message-ID: <20171012155027.3277-1-pagupta@redhat.com>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-mm@kvack.org
+Cc: jack@suse.cz, stefanha@redhat.com, dan.j.williams@intel.com, riel@redhat.com, haozhong.zhang@intel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, ross.zwisler@intel.com, david@redhat.com, xiaoguangrong.eric@gmail.com, pagupta@redhat.com
 List-Id: linux-nvdimm@lists.01.org
 
+We are sharing the prototype version of 'fake DAX' flushing
+interface for the initial feedback. This is still work in progress
+and not yet ready for merging.
 
-> On Thu, Oct 12, 2017 at 12:21:46AM +0530, Pankaj Gupta wrote:
-> > We are sharing the prototype version of 'fake DAX' flushing
-> > interface for the initial feedback. This is still work in progress
-> > and not yet ready for merging.
-> > 
-> > Protoype right now just implements basic functionality without advanced
-> > features with two major parts:
-> > 
-> > - Qemu virtio-pmem device
-> >   It exposes a persistent memory range to KVM guest which at host side is
-> >   file
-> >   backed memory and works as persistent memory device. In addition to this
-> >   it
-> >   provides a virtio flushing interface for KVM guest to do a Qemu side sync
-> >   for
-> >   guest DAX persistent memory range.
-> 
-> Please post a draft VIRTIO device specification.
+Prototype right now just implements basic functionality without advanced
+features with two major parts:
 
-Sure! will prepare and share.
+- Qemu virtio-pmem device
+  It exposes a persistent memory range to KVM guest which at host side is file
+  backed memory and works as persistent memory device. In addition to this it
+  provides a virtio flushing interface for KVM guest to do a Qemu side sync for
+  guest DAX persistent memory range.  
 
-Thanks,
-Pankaj
- 
-> 
-> The VIRTIO Technical Committee resources and mailing lists are here:
-> 
-> https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=virtio#feedback
-> 
-> Stefan
-> 
+- Guest virtio-pmem driver
+  Reads persistent memory range from paravirt device and reserves system memory map.
+  It also allocates a block device corresponding to the pmem range which is accessed
+  by DAX capable file systems. (file system support is still pending).  
+  
+We shared the project idea for 'fake DAX' flushing interface here [1].
+Based on suggestions here [2], we implemented guest 'virtio-pmem'
+driver and Qemu paravirt device.
+
+[1] https://www.spinics.net/lists/kvm/msg149761.html
+[2] https://www.spinics.net/lists/kvm/msg153095.html
+
+Work yet to be done:
+
+- Separate out the common code used by ACPI pmem interface and
+  reuse it.
+
+- In pmem device memmap allocation and working. There is some parallel work
+  going on upstream related to 'memory_hotplug restructuring' [3] and also hitting
+  a memory section alignment issue [4].
+  
+  [3] https://lwn.net/Articles/712099/
+  [4] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg02978.html
+  
+- Provide DAX capable file-system(ext4 & XFS) support.
+- Qemu device flush functionality trigger with guest fsync on file.
+- Qemu live migration work when host page cache is used.
+- Multiple virtio-pmem disks support.
+- Prepare virtio spec after we get feedback on current approach.
+
+ drivers/nvdimm/pfn.h             |   14 -
+ drivers/nvdimm/pfn_devs.c        |   20 --
+ drivers/nvdimm/pmem.c            |   40 ----
+ drivers/nvdimm/pmem.h            |    5 
+ drivers/virtio/Kconfig           |   10 +
+ drivers/virtio/Makefile          |    1 
+ drivers/virtio/virtio_pmem.c     |  322 +++++++++++++++++++++++++++++++++++++++
+ include/linux/memremap.h         |   23 ++
+ include/linux/pfn.h              |   15 +
+ include/linux/pmem_common.h      |   52 ++++++
+ include/uapi/linux/virtio_pmem.h |   55 ++++++
+ 11 files changed, 479 insertions(+), 78 deletions(-)
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
