@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from imap.thunk.org (imap.thunk.org
+ [IPv6:2600:3c02::f03c:91ff:fe96:be03])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 984ED21E87989
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:04 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 14/17] dax: Implement dax_finish_sync_fault()
-Date: Thu, 19 Oct 2017 14:58:13 +0200
-Message-Id: <20171019125817.11580-15-jack@suse.cz>
-In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
-References: <20171019125817.11580-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 0801321F38854
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Oct 2017 09:15:30 -0700 (PDT)
+Date: Thu, 12 Oct 2017 12:18:53 -0400
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [PATCH v2 5/5] ext4: remove duplicate extended attributes defs
+Message-ID: <20171012161853.4y4p3u5lsla2wqzx@thunk.org>
+References: <20170912050526.7627-1-ross.zwisler@linux.intel.com>
+ <20170912050526.7627-6-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170912050526.7627-6-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,148 +21,44 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Andreas Dilger <adilger@dilger.ca>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Li Xi <lixi@ddn.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, Dave Chinner <dchinner@redhat.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Implement a function that filesystems can call to finish handling of
-synchronous page faults. It takes care of syncing appropriare file range
-and insertion of page table entry.
+On Mon, Sep 11, 2017 at 11:05:26PM -0600, Ross Zwisler wrote:
+> The following commit:
+> 
+> commit 9b7365fc1c82 ("ext4: add FS_IOC_FSSETXATTR/FS_IOC_FSGETXATTR
+> interface support")
+> 
+> added several defines related to extended attributes to ext4.h.  They were
+> added within an #ifndef FS_IOC_FSGETXATTR block with the comment:
+> 
+> /* Until the uapi changes get merged for project quota... */
+> 
+> Those uapi changes were merged by this commit:
+> 
+> commit 334e580a6f97 ("fs: XFS_IOC_FS[SG]SETXATTR to FS_IOC_FS[SG]ETXATTR
+> promotion")
+> 
+> so all the definitions needed by ext4 are available in
+> include/uapi/linux/fs.h.  Remove the duplicates from ext4.h.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Reviewed-by: Jan Kara <jack@suse.cz>
+> Cc: Li Xi <lixi@ddn.com>
+> Cc: Theodore Ts'o <tytso@mit.edu>
+> Cc: Andreas Dilger <adilger@dilger.ca>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Dave Chinner <dchinner@redhat.com>
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c                      | 83 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h           |  2 ++
- include/trace/events/fs_dax.h |  2 ++
- 3 files changed, 87 insertions(+)
+Thanks, applied.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index bb9ff907738c..78233c716757 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1492,3 +1492,86 @@ int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
- 	}
- }
- EXPORT_SYMBOL_GPL(dax_iomap_fault);
-+
-+/**
-+ * dax_insert_pfn_mkwrite - insert PTE or PMD entry into page tables
-+ * @vmf: The description of the fault
-+ * @pe_size: Size of entry to be inserted
-+ * @pfn: PFN to insert
-+ *
-+ * This function inserts writeable PTE or PMD entry into page tables for mmaped
-+ * DAX file.  It takes care of marking corresponding radix tree entry as dirty
-+ * as well.
-+ */
-+static int dax_insert_pfn_mkwrite(struct vm_fault *vmf,
-+				  enum page_entry_size pe_size,
-+				  pfn_t pfn)
-+{
-+	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
-+	void *entry, **slot;
-+	pgoff_t index = vmf->pgoff;
-+	int vmf_ret, error;
-+
-+	spin_lock_irq(&mapping->tree_lock);
-+	entry = get_unlocked_mapping_entry(mapping, index, &slot);
-+	/* Did we race with someone splitting entry or so? */
-+	if (!entry ||
-+	    (pe_size == PE_SIZE_PTE && !dax_is_pte_entry(entry)) ||
-+	    (pe_size == PE_SIZE_PMD && !dax_is_pmd_entry(entry))) {
-+		put_unlocked_mapping_entry(mapping, index, entry);
-+		spin_unlock_irq(&mapping->tree_lock);
-+		trace_dax_insert_pfn_mkwrite_no_entry(mapping->host, vmf,
-+						      VM_FAULT_NOPAGE);
-+		return VM_FAULT_NOPAGE;
-+	}
-+	radix_tree_tag_set(&mapping->page_tree, index, PAGECACHE_TAG_DIRTY);
-+	entry = lock_slot(mapping, slot);
-+	spin_unlock_irq(&mapping->tree_lock);
-+	switch (pe_size) {
-+	case PE_SIZE_PTE:
-+		error = vm_insert_mixed_mkwrite(vmf->vma, vmf->address, pfn);
-+		vmf_ret = dax_fault_return(error);
-+		break;
-+#ifdef CONFIG_FS_DAX_PMD
-+	case PE_SIZE_PMD:
-+		vmf_ret = vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd,
-+			pfn, true);
-+		break;
-+#endif
-+	default:
-+		vmf_ret = VM_FAULT_FALLBACK;
-+	}
-+	put_locked_mapping_entry(mapping, index);
-+	trace_dax_insert_pfn_mkwrite(mapping->host, vmf, vmf_ret);
-+	return vmf_ret;
-+}
-+
-+/**
-+ * dax_finish_sync_fault - finish synchronous page fault
-+ * @vmf: The description of the fault
-+ * @pe_size: Size of entry to be inserted
-+ * @pfn: PFN to insert
-+ *
-+ * This function ensures that the file range touched by the page fault is
-+ * stored persistently on the media and handles inserting of appropriate page
-+ * table entry.
-+ */
-+int dax_finish_sync_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
-+			  pfn_t pfn)
-+{
-+	int err;
-+	loff_t start = ((loff_t)vmf->pgoff) << PAGE_SHIFT;
-+	size_t len = 0;
-+
-+	if (pe_size == PE_SIZE_PTE)
-+		len = PAGE_SIZE;
-+	else if (pe_size == PE_SIZE_PMD)
-+		len = PMD_SIZE;
-+	else
-+		WARN_ON_ONCE(1);
-+	err = vfs_fsync_range(vmf->vma->vm_file, start, start + len - 1, 1);
-+	if (err)
-+		return VM_FAULT_SIGBUS;
-+	return dax_insert_pfn_mkwrite(vmf, pe_size, pfn);
-+}
-+EXPORT_SYMBOL_GPL(dax_finish_sync_fault);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index e7fa4b8f45bc..d403f78b706c 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -96,6 +96,8 @@ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		const struct iomap_ops *ops);
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
- 		    pfn_t *pfnp, const struct iomap_ops *ops);
-+int dax_finish_sync_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
-+			  pfn_t pfn);
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
-diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
-index 88a9d19b8ff8..7725459fafef 100644
---- a/include/trace/events/fs_dax.h
-+++ b/include/trace/events/fs_dax.h
-@@ -190,6 +190,8 @@ DEFINE_EVENT(dax_pte_fault_class, name, \
- DEFINE_PTE_FAULT_EVENT(dax_pte_fault);
- DEFINE_PTE_FAULT_EVENT(dax_pte_fault_done);
- DEFINE_PTE_FAULT_EVENT(dax_load_hole);
-+DEFINE_PTE_FAULT_EVENT(dax_insert_pfn_mkwrite_no_entry);
-+DEFINE_PTE_FAULT_EVENT(dax_insert_pfn_mkwrite);
- 
- TRACE_EVENT(dax_insert_mapping,
- 	TP_PROTO(struct inode *inode, struct vm_fault *vmf, void *radix_entry),
--- 
-2.12.3
-
+					- Ted
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
