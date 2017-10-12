@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from imap.thunk.org (imap.thunk.org
+ [IPv6:2600:3c02::f03c:91ff:fe96:be03])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 39D9B21EA15A3
- for <linux-nvdimm@lists.01.org>; Tue, 10 Oct 2017 07:53:08 -0700 (PDT)
-Subject: [PATCH v8 13/14] IB/core: use MAP_DIRECT to fix / enable RDMA to
- DAX mappings
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 10 Oct 2017 07:50:12 -0700
-Message-ID: <150764701194.16882.9682569707416653741.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5B62F21F38832
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Oct 2017 08:49:05 -0700 (PDT)
+Date: Thu, 12 Oct 2017 11:52:27 -0400
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [PATCH v2 1/5] ext4: prevent data corruption with inline data +
+ DAX
+Message-ID: <20171012155227.o3dql7teq6gkghfo@thunk.org>
+References: <20170912050526.7627-1-ross.zwisler@linux.intel.com>
+ <20170912050526.7627-2-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20170912050526.7627-2-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,251 +26,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Dave Chinner <david@fromorbit.com>, iommu@lists.linux-foundation.org, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently the ibverbs core in the kernel is completely unaware of the
-dangers of filesystem-DAX mappings. Specifically, the filesystem is free
-to move file blocks at will. In the case of DAX, it means that RDMA to a
-given file offset can dynamically switch to another file offset, another
-file, or free space with no notification to RDMA device to cease
-operations. Historically, this lack of communication between the ibverbs
-core and filesystem was not a problem because RDMA always targeted
-dynamically allocated page cache, so at least the RDMA device would have
-valid memory to target even if the file was being modified. With DAX we
-need to add coordination since RDMA is bypassing page-cache and going
-direct to on-media pages of the file. RDMA to DAX can cause damage if
-filesystem blocks move / change state.
+On Mon, Sep 11, 2017 at 11:05:22PM -0600, Ross Zwisler wrote:
+> If an inode has inline data it is currently prevented from using DAX by a
+> check in ext4_set_inode_flags().  When the inode grows inline data via
+> ext4_create_inline_data() or removes its inline data via
+> ext4_destroy_inline_data_nolock(), the value of S_DAX can change.
+> 
+> Currently these changes are unsafe because we don't hold off page faults
+> and I/O, write back dirty radix tree entries and invalidate all mappings.
+> There are also issues with mm-level races when changing the value of S_DAX,
+> as well as issues with the VM_MIXEDMAP flag:
+> 
+> https://www.spinics.net/lists/linux-xfs/msg09859.html
+> 
+> The unsafe transition of S_DAX can reliably cause data corruption, as shown
+> by the following fstest:
+> 
+> https://patchwork.kernel.org/patch/9948381/
+> 
+> Fix this issue by preventing the DAX mount option from being used on
+> filesystems that were created to support inline data.  Inline data is an
+> option given to mkfs.ext4.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> CC: stable@vger.kernel.org
 
-Use the new ->lease_direct() operation to get a notification when the
-filesystem is invalidating the block map of the file and needs RDMA
-operations to stop. Given that the kernel can not be in a position where
-it needs to wait indefinitely for userspace to stop a device we need a
-mechanism where the kernel can force-revoke access. Towards that end, use
-the dma_get_iommu_domain() to both check if the device has domain
-mappings that can be invalidated and retrieve the iommu_domain for use
-with iommu_unmap.
+Thanks, applied.
 
-Once we have that assurance that we can block in-flight I/O when the
-file's block map changes then we can safely allow RDMA to DAX.
-
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/infiniband/core/umem.c |   90 +++++++++++++++++++++++++++++++++++-----
- include/rdma/ib_umem.h         |    8 ++++
- 2 files changed, 86 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 21e60b1e2ff4..5e4598982359 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -36,6 +36,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/sched/signal.h>
- #include <linux/sched/mm.h>
-+#include <linux/mapdirect.h>
- #include <linux/export.h>
- #include <linux/hugetlb.h>
- #include <linux/slab.h>
-@@ -46,10 +47,16 @@
- 
- static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
- {
-+	struct lease_direct *ld, *_ld;
- 	struct scatterlist *sg;
- 	struct page *page;
- 	int i;
- 
-+	list_for_each_entry_safe(ld, _ld, &umem->leases, list) {
-+		list_del_init(&ld->list);
-+		map_direct_lease_destroy(ld);
-+	}
-+
- 	if (umem->nmap > 0)
- 		ib_dma_unmap_sg(dev, umem->sg_head.sgl,
- 				umem->npages,
-@@ -64,10 +71,20 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
- 	}
- 
- 	sg_free_table(&umem->sg_head);
--	return;
- 
- }
- 
-+static void ib_umem_lease_break(void *__umem)
-+{
-+	struct ib_umem *umem = umem;
-+	struct ib_device *idev = umem->context->device;
-+	struct device *dev = idev->dma_device;
-+	struct scatterlist *sgl = umem->sg_head.sgl;
-+
-+	iommu_unmap(umem->iommu, sg_dma_address(sgl) & PAGE_MASK,
-+			iommu_sg_num_pages(dev, sgl, umem->npages));
-+}
-+
- /**
-  * ib_umem_get - Pin and DMA map userspace memory.
-  *
-@@ -96,7 +113,10 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	struct scatterlist *sg, *sg_list_start;
- 	int need_release = 0;
- 	unsigned int gup_flags = FOLL_WRITE;
-+	struct vm_area_struct *vma_prev = NULL;
-+	struct device *dma_dev;
- 
-+	dma_dev = context->device->dma_device;
- 	if (dmasync)
- 		dma_attrs |= DMA_ATTR_WRITE_BARRIER;
- 
-@@ -120,6 +140,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	umem->address    = addr;
- 	umem->page_shift = PAGE_SHIFT;
- 	umem->pid	 = get_task_pid(current, PIDTYPE_PID);
-+	INIT_LIST_HEAD(&umem->leases);
- 	/*
- 	 * We ask for writable memory if any of the following
- 	 * access flags are set.  "Local write" and "remote write"
-@@ -147,19 +168,21 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	umem->hugetlb   = 1;
- 
- 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
--	if (!page_list) {
--		put_pid(umem->pid);
--		kfree(umem);
--		return ERR_PTR(-ENOMEM);
--	}
-+	if (!page_list)
-+		goto err_pagelist;
- 
- 	/*
--	 * if we can't alloc the vma_list, it's not so bad;
--	 * just assume the memory is not hugetlb memory
-+	 * If DAX is enabled we need the vma to setup a ->lease_direct()
-+	 * lease to protect against file modifications, otherwise we can
-+	 * tolerate a failure to allocate the vma_list and just assume
-+	 * that all vmas are not hugetlb-vmas.
- 	 */
- 	vma_list = (struct vm_area_struct **) __get_free_page(GFP_KERNEL);
--	if (!vma_list)
-+	if (!vma_list) {
-+		if (IS_ENABLED(CONFIG_DAX_MAP_DIRECT))
-+			goto err_vmalist;
- 		umem->hugetlb = 0;
-+	}
- 
- 	npages = ib_umem_num_pages(umem);
- 
-@@ -199,15 +222,52 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 		if (ret < 0)
- 			goto out;
- 
--		umem->npages += ret;
- 		cur_base += ret * PAGE_SIZE;
- 		npages   -= ret;
- 
- 		for_each_sg(sg_list_start, sg, ret, i) {
--			if (vma_list && !is_vm_hugetlb_page(vma_list[i]))
--				umem->hugetlb = 0;
-+			const struct vm_operations_struct *vm_ops;
-+			struct vm_area_struct *vma;
-+			struct lease_direct *ld;
- 
- 			sg_set_page(sg, page_list[i], PAGE_SIZE, 0);
-+			umem->npages++;
-+
-+			if (!vma_list)
-+				continue;
-+			vma = vma_list[i];
-+
-+			if (vma == vma_prev)
-+				continue;
-+			vma_prev = vma;
-+
-+			if (!is_vm_hugetlb_page(vma))
-+				umem->hugetlb = 0;
-+
-+			if (!vma_is_dax(vma))
-+				continue;
-+
-+			vm_ops = vma->vm_ops;
-+			if (!vm_ops->lease_direct) {
-+				dev_info(dma_dev, "DAX-RDMA requires a MAP_DIRECT mapping\n");
-+				ret = -EOPNOTSUPP;
-+				goto out;
-+			}
-+
-+			if (!umem->iommu)
-+				umem->iommu = dma_get_iommu_domain(dma_dev);
-+			if (!umem->iommu) {
-+				dev_info(dma_dev, "DAX-RDMA requires an iommu protected device\n");
-+				ret = -EOPNOTSUPP;
-+				goto out;
-+			}
-+			ld = vm_ops->lease_direct(vma, ib_umem_lease_break,
-+					umem);
-+			if (IS_ERR(ld)) {
-+				ret = PTR_ERR(ld);
-+				goto out;
-+			}
-+			list_add(&ld->list, &umem->leases);
- 		}
- 
- 		/* preparing for next loop */
-@@ -242,6 +302,12 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	free_page((unsigned long) page_list);
- 
- 	return ret < 0 ? ERR_PTR(ret) : umem;
-+err_vmalist:
-+	free_page((unsigned long) page_list);
-+err_pagelist:
-+	put_pid(umem->pid);
-+	kfree(umem);
-+	return ERR_PTR(-ENOMEM);
- }
- EXPORT_SYMBOL(ib_umem_get);
- 
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index 23159dd5be18..5048be012f96 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -34,6 +34,7 @@
- #define IB_UMEM_H
- 
- #include <linux/list.h>
-+#include <linux/iommu.h>
- #include <linux/scatterlist.h>
- #include <linux/workqueue.h>
- 
-@@ -55,6 +56,13 @@ struct ib_umem {
- 	struct sg_table sg_head;
- 	int             nmap;
- 	int             npages;
-+	/*
-+	 * Note: no lock protects this list since we assume memory
-+	 * registration never races unregistration for a given ib_umem
-+	 * instance.
-+	 */
-+	struct list_head	leases;
-+	struct iommu_domain	*iommu;
- };
- 
- /* Returns the offset of the umem start relative to the first page. */
-
+					- Ted
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
