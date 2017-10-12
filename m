@@ -1,7 +1,7 @@
 From: Pankaj Gupta <pagupta@redhat.com>
 Subject: Re: [RFC 2/2] KVM: add virtio-pmem driver
-Date: Thu, 12 Oct 2017 18:39:08 -0400 (EDT)
-Message-ID: <161871630.19945909.1507847948038.JavaMail.zimbra@redhat.com>
+Date: Thu, 12 Oct 2017 18:52:45 -0400 (EDT)
+Message-ID: <1111804283.19946669.1507848765955.JavaMail.zimbra@redhat.com>
 References: <20171012155027.3277-1-pagupta@redhat.com> <20171012155027.3277-3-pagupta@redhat.com> <CAPcyv4i7k6aYK_y4zZtL6p8sW-E_Ft58d2HuxO=dYciqQxaoLg@mail.gmail.com> <1567317495.19940236.1507843517318.JavaMail.zimbra@redhat.com> <CAPcyv4gkri7t+3Unf0sc9AHMnz-v9G_qV_bJppLjUUNAn7drrQ@mail.gmail.com> <1363955128.19944709.1507846719987.JavaMail.zimbra@redhat.com> <1507847249.21121.207.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -9,10 +9,12 @@ Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1507847249.21121.207.camel@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rik van Riel <riel@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, KVM list <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>, Linux MM <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, Stefan Hajnoczi <stefanha@redhat.com>, Haozhong Zhang <haozhong.zhang@intel.com>, Nitesh Narayan Lal <nilal@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, Ross Zwisler <ross.zwisler@intel.com>, David Hildenbrand <david@redhat.com>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>
+To: Dan Williams <dan.j.williams@intel.com>, Rik van Riel <riel@redhat.com>
+Cc: linux-kernel@vger.kernel.org, KVM list <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>, Linux MM <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, Stefan Hajnoczi <stefanha@redhat.com>, Haozhong Zhang <haozhong.zhang@intel.com>, Nitesh Narayan Lal <nilal@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, Ross Zwisler <ross.zwisler@intel.com>, David Hildenbrand <david@redhat.com>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>
 List-Id: linux-nvdimm@lists.01.org
 
+
+> > > wrote:
 > > > > 
 > > > > > >   This patch adds virtio-pmem driver for KVM guest.
 > > > > > >   Guest reads the persistent memory range information
@@ -59,10 +61,6 @@ List-Id: linux-nvdimm@lists.01.org
 > The documentation text could make it clear to people that the
 > image shows up as a disk image on the host, but as a pmem
 > memory range in the guest.
-
-yes, this looks better. 
-thank you.
-
 > 
 > > > > > I think we need to call this something other than persistent
 > > > > > memory to
@@ -84,6 +82,12 @@ thank you.
 > > so.
 > 
 > Still hoping for better ideas than "Virtio Block Backed Pmem" :)
-
-:-)
 > 
+
+Dan,
+
+I have a query regarding below patch [*]. My assumption is its halted
+because of memory hotplug restructuring work? Anything I am missing 
+here?
+
+[*] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg02978.html
