@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A41D821F3B3F2
- for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 10:42:02 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 4/6] ndctl/test: add a new unit test for inject-error
-Date: Mon, 30 Oct 2017 11:43:33 -0600
-Message-Id: <20171030174335.6806-5-vishal.l.verma@intel.com>
-In-Reply-To: <20171030174335.6806-1-vishal.l.verma@intel.com>
-References: <20171030174335.6806-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3F0F421F3C185
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 17:50:30 -0700 (PDT)
+Subject: [PATCH v9 5/6] fs, xfs, iomap: introduce break_layout_nowait()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 11 Oct 2017 17:47:35 -0700
+Message-ID: <150776925510.9144.2117153288971353589.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,167 +18,92 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new unit test to test all the features of the inject-error
-command.
+In preparation for using FL_LAYOUT leases to allow coordination between
+the kernel and processes doing userspace flushes / RDMA with DAX
+mappings, add this helper that can be used to start the lease break
+process in contexts where we can not sleep waiting for the lease break
+timeout.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+This is targeted to be used in an ->iomap_begin() implementation where
+we may have various filesystem locks held and can not synchronously wait
+for any FL_LAYOUT leases to be released. In particular an iomap mmap
+fault handler running under mmap_sem can not unlock that semaphore and
+wait for these leases to be unlocked. Instead, this signals the lease
+holder(s) that a break is requested and immediately returns with an
+error.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Dave Chinner <david@fromorbit.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/Makefile.am     |   3 +-
- test/inject-error.sh | 120 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 122 insertions(+), 1 deletion(-)
- create mode 100755 test/inject-error.sh
+ fs/xfs/xfs_iomap.c  |    3 +++
+ fs/xfs/xfs_layout.c |    5 ++++-
+ include/linux/fs.h  |    9 +++++++++
+ 3 files changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index ac3547e..8cec451 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -13,7 +13,8 @@ TESTS =\
- 	multi-dax.sh \
- 	btt-check.sh \
- 	label-compat.sh \
--	blk-exhaust.sh
-+	blk-exhaust.sh \
-+	inject-error.sh
+diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+index f179bdf1644d..840e4080afb5 100644
+--- a/fs/xfs/xfs_iomap.c
++++ b/fs/xfs/xfs_iomap.c
+@@ -1055,6 +1055,9 @@ xfs_file_iomap_begin(
+ 			error = -EAGAIN;
+ 			goto out_unlock;
+ 		}
++		error = break_layout_nowait(inode);
++		if (error)
++			goto out_unlock;
+ 		/*
+ 		 * We cap the maximum length we map here to MAX_WRITEBACK_PAGES
+ 		 * pages to keep the chunks of work done where somewhat symmetric
+diff --git a/fs/xfs/xfs_layout.c b/fs/xfs/xfs_layout.c
+index 71d95e1a910a..7a633b6e9397 100644
+--- a/fs/xfs/xfs_layout.c
++++ b/fs/xfs/xfs_layout.c
+@@ -19,7 +19,10 @@
+  * about exposing unallocated blocks but just want to provide basic
+  * synchronization between a local writer and pNFS clients.  mmap writes would
+  * also benefit from this sort of synchronization, but due to the tricky locking
+- * rules in the page fault path we don't bother.
++ * rules in the page fault path all we can do is start the lease break
++ * timeout. See usage of break_layout_nowait in xfs_file_iomap_begin to
++ * prevent write-faults from allocating blocks or performing extent
++ * conversion.
+  */
+ int
+ xfs_break_layouts(
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 17e0e899e184..2b030a2fccc7 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2364,6 +2364,15 @@ static inline int break_layout(struct inode *inode, bool wait)
  
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/inject-error.sh b/test/inject-error.sh
-new file mode 100755
-index 0000000..976be5e
---- /dev/null
-+++ b/test/inject-error.sh
-@@ -0,0 +1,120 @@
-+#!/bin/bash -Ex
-+
-+# Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
-+#
-+# This program is free software; you can redistribute it and/or modify it
-+# under the terms of version 2 of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it will be useful, but
-+# WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# General Public License for more details.
-+
-+[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] && ndctl="../ndctl/ndctl"
-+[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
-+[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
-+bus="nfit_test.0"
-+json2var="s/[{}\",]//g; s/:/=/g"
-+dev=""
-+size=""
-+blockdev=""
-+rc=77
-+err_block=42
-+err_count=8
-+
-+trap 'err $LINENO' ERR
-+
-+# sample json:
-+#{
-+#  "dev":"namespace7.0",
-+#  "mode":"memory",
-+#  "size":"60.00 MiB (62.92 MB)",
-+#  "uuid":"f1baa71a-d165-4da4-bb6a-083a2b0e6469",
-+#  "blockdev":"pmem7",
-+#}
-+
-+# $1: Line number
-+# $2: exit code
-+err()
+ #endif /* CONFIG_FILE_LOCKING */
+ 
++/*
++ * For use in paths where we can not wait for the layout to be recalled,
++ * for example when we are holding mmap_sem.
++ */
++static inline int break_layout_nowait(struct inode *inode)
 +{
-+	[ -n "$2" ] && rc="$2"
-+	echo "test/inject-error.sh: failed at line $1"
-+	exit "$rc"
++	return break_layout(inode, false);
 +}
 +
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+check_min_kver "4.15" || { echo "kernel $KVER may not support error injection"; exit "$rc"; }
-+
-+create()
-+{
-+	json=$($ndctl create-namespace -b "$bus" -t pmem --align=4k)
-+	eval "$(echo "$json" | sed -e "$json2var")"
-+	[ -n "$dev" ] || err "$LINENO" 2
-+	[ -n "$size" ] || err "$LINENO" 2
-+	[ -n "$blockdev" ] || err "$LINENO" 2
-+	[ $size -gt 0 ] || err "$LINENO" 2
-+}
-+
-+reset()
-+{
-+	$ndctl disable-region -b "$bus" all
-+	$ndctl zero-labels -b "$bus" all
-+	$ndctl enable-region -b "$bus" all
-+}
-+
-+check_status()
-+{
-+	local sector="$1"
-+	local count="$2"
-+
-+	json="$($ndctl inject-error --status $dev)"
-+	[[ "$sector" == "$(jq ".badblocks[0].block" <<< "$json")" ]]
-+	[[ "$count" == "$(jq ".badblocks[0].count" <<< "$json")" ]]
-+}
-+
-+do_tests()
-+{
-+	# inject without notification
-+	$ndctl inject-error --block=$err_block --count=$err_count --no-notify $dev
-+	check_status "$err_block" "$err_count"
-+	if read -r sector len < /sys/block/$blockdev/badblocks; then
-+		# fail if reading badblocks returns data
-+		echo "fail: $LINENO" && exit 1
-+	fi
-+
-+	# clear via err-inj-clear
-+	$ndctl inject-error --block=$err_block --count=$err_count --uninject $dev
-+	check_status
-+
-+	# inject normally
-+	$ndctl inject-error --block=$err_block --count=$err_count $dev
-+	check_status "$err_block" "$err_count"
-+	if read -r sector len < /sys/block/$blockdev/badblocks; then
-+		test "$sector" -eq "$err_block"
-+		test "$len" -eq "$err_count"
-+	fi
-+
-+	# clear via write
-+	dd if=/dev/zero of=/dev/$blockdev bs=512 count=$err_count seek=$err_block oflag=direct
-+	if read -r sector len < /sys/block/$blockdev/badblocks; then
-+		# fail if reading badblocks returns data
-+		echo "fail: $LINENO" && exit 1
-+	fi
-+	check_status
-+}
-+
-+modprobe nfit_test
-+rc=1
-+reset && create
-+do_tests
-+reset
-+exit 0
--- 
-2.9.5
+ /* fs/open.c */
+ struct audit_names;
+ struct filename {
 
 _______________________________________________
 Linux-nvdimm mailing list
