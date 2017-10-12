@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 139092034AB1A
- for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:25:13 -0700 (PDT)
-Subject: [PATCH 12/15] mm,
- dax: enable filesystems to trigger page-idle callbacks
+ by ml01.01.org (Postfix) with ESMTPS id AF2B721F7D51C
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 17:50:18 -0700 (PDT)
+Subject: [PATCH v9 3/6] fs: MAP_DIRECT core
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 31 Oct 2017 16:22:40 -0700
-Message-ID: <150949216078.24061.1875240167277688258.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 11 Oct 2017 17:47:24 -0700
+Message-ID: <150776924410.9144.12623133212791630684.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,233 +18,358 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@poochiereds.net>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VG93YXJkcyBzb2x2aW5nIERBWC1ETUEgdnMgdHJ1bmNhdGUgYXJyYW5nZSBmb3IgZmlsZXN5c3Rl
-bXMgdG8gc2V0IHVwIGEKcGFnZS1pZGxlIGNhbGxiYWNrIHdoZW4gdGhleSBtb3VudCBhIGRheF9k
-ZXZpY2UuCgpObyBmdW5jdGlvbmFsIGNoYW5nZXMgYXJlIGV4cGVjdGVkIGFzIHRoaXMgb25seSBy
-ZWdpc3RlcnMgYSBub3AgaGFuZGxlcgpmb3IgdGhlIC0+cGFnZV9mcmVlKCkgZXZlbnQgZm9yIGRl
-dmljZS1tYXBwZWQgcGFnZXMuCgpDYzogIkrDqXLDtG1lIEdsaXNzZSIgPGpnbGlzc2VAcmVkaGF0
-LmNvbT4KQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQHN1c2UuY29tPgpTaWduZWQtb2ZmLWJ5OiBE
-YW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KLS0tCiBkcml2ZXJzL2RheC9z
-dXBlci5jICAgICAgfCAgIDgwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KystLS0tLS0KIGRyaXZlcnMvbnZkaW1tL3BtZW0uYyAgICB8ICAgMTMgKysrKysrKwogZnMvZXh0
-Mi9zdXBlci5jICAgICAgICAgIHwgICAgNiArKy0KIGZzL2V4dDQvc3VwZXIuYyAgICAgICAgICB8
-ICAgIDYgKystCiBmcy94ZnMveGZzX3N1cGVyLmMgICAgICAgfCAgIDIwICsrKysrKy0tLS0tLQog
-aW5jbHVkZS9saW51eC9kYXguaCAgICAgIHwgICAxNyArKysrKy0tLS0tCiBpbmNsdWRlL2xpbnV4
-L21lbXJlbWFwLmggfCAgICA2ICsrKwoga2VybmVsL21lbXJlbWFwLmMgICAgICAgIHwgICAgMSAr
-CiA4IGZpbGVzIGNoYW5nZWQsIDExMyBpbnNlcnRpb25zKCspLCAzNiBkZWxldGlvbnMoLSkKCmRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2RheC9zdXBlci5jIGIvZHJpdmVycy9kYXgvc3VwZXIuYwppbmRl
-eCAzY2NiMDY0ZDIwMGQuLjE5M2UwY2Q4ZDkwYyAxMDA2NDQKLS0tIGEvZHJpdmVycy9kYXgvc3Vw
-ZXIuYworKysgYi9kcml2ZXJzL2RheC9zdXBlci5jCkBAIC0yOSw2ICsyOSw3IEBAIHN0YXRpYyBz
-dHJ1Y3QgdmZzbW91bnQgKmRheF9tbnQ7CiBzdGF0aWMgREVGSU5FX0lEQShkYXhfbWlub3JfaWRh
-KTsKIHN0YXRpYyBzdHJ1Y3Qga21lbV9jYWNoZSAqZGF4X2NhY2hlIF9fcmVhZF9tb3N0bHk7CiBz
-dGF0aWMgc3RydWN0IHN1cGVyX2Jsb2NrICpkYXhfc3VwZXJibG9jayBfX3JlYWRfbW9zdGx5Owor
-REVGSU5FX01VVEVYKGRldm1hcF9sb2NrKTsKIAogI2RlZmluZSBEQVhfSEFTSF9TSVpFIChQQUdF
-X1NJWkUgLyBzaXplb2Yoc3RydWN0IGhsaXN0X2hlYWQpKQogc3RhdGljIHN0cnVjdCBobGlzdF9o
-ZWFkIGRheF9ob3N0X2xpc3RbREFYX0hBU0hfU0laRV07CkBAIC02MiwxNiArNjMsNiBAQCBpbnQg
-YmRldl9kYXhfcGdvZmYoc3RydWN0IGJsb2NrX2RldmljZSAqYmRldiwgc2VjdG9yX3Qgc2VjdG9y
-LCBzaXplX3Qgc2l6ZSwKIH0KIEVYUE9SVF9TWU1CT0woYmRldl9kYXhfcGdvZmYpOwogCi0jaWYg
-SVNfRU5BQkxFRChDT05GSUdfRlNfREFYKQotc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9nZXRf
-YnlfYmRldihzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2KQotewotCWlmICghYmxrX3F1ZXVlX2Rh
-eChiZGV2LT5iZF9xdWV1ZSkpCi0JCXJldHVybiBOVUxMOwotCXJldHVybiBmc19kYXhfZ2V0X2J5
-X2hvc3QoYmRldi0+YmRfZGlzay0+ZGlza19uYW1lKTsKLX0KLUVYUE9SVF9TWU1CT0xfR1BMKGZz
-X2RheF9nZXRfYnlfYmRldik7Ci0jZW5kaWYKLQogLyoqCiAgKiBfX2JkZXZfZGF4X3N1cHBvcnRl
-ZCgpIC0gQ2hlY2sgaWYgdGhlIGRldmljZSBzdXBwb3J0cyBkYXggZm9yIGZpbGVzeXN0ZW0KICAq
-IEBzYjogVGhlIHN1cGVyYmxvY2sgb2YgdGhlIGRldmljZQpAQCAtMTY5LDkgKzE2MCw2NSBAQCBz
-dHJ1Y3QgZGF4X2RldmljZSB7CiAJY29uc3QgY2hhciAqaG9zdDsKIAl2b2lkICpwcml2YXRlOwog
-CXVuc2lnbmVkIGxvbmcgZmxhZ3M7CisJc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcDsKIAljb25z
-dCBzdHJ1Y3QgZGF4X29wZXJhdGlvbnMgKm9wczsKIH07CiAKKyNpZiBJU19FTkFCTEVEKENPTkZJ
-R19GU19EQVgpCitzdGF0aWMgdm9pZCBnZW5lcmljX2RheF9wYWdlZnJlZShzdHJ1Y3QgcGFnZSAq
-cGFnZSwgdm9pZCAqZGF0YSkKK3sKK30KKworc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9jbGFp
-bV9iZGV2KHN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYsIHZvaWQgKm93bmVyKQoreworCXN0cnVj
-dCBkYXhfZGV2aWNlICpkYXhfZGV2OworCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXA7CisKKwlp
-ZiAoIWJsa19xdWV1ZV9kYXgoYmRldi0+YmRfcXVldWUpKQorCQlyZXR1cm4gTlVMTDsKKwlkYXhf
-ZGV2ID0gZnNfZGF4X2dldF9ieV9ob3N0KGJkZXYtPmJkX2Rpc2stPmRpc2tfbmFtZSk7CisJaWYg
-KCFkYXhfZGV2LT5wZ21hcCkKKwkJcmV0dXJuIGRheF9kZXY7CisJcGdtYXAgPSBkYXhfZGV2LT5w
-Z21hcDsKKworCW11dGV4X2xvY2soJmRldm1hcF9sb2NrKTsKKwlpZiAoKHBnbWFwLT5kYXRhICYm
-IHBnbWFwLT5kYXRhICE9IG93bmVyKSB8fCBwZ21hcC0+cGFnZV9mcmVlCisJCQl8fCBwZ21hcC0+
-cGFnZV9mYXVsdAorCQkJfHwgcGdtYXAtPnR5cGUgIT0gTUVNT1JZX0RFVklDRV9IT1NUKSB7CisJ
-CXB1dF9kYXgoZGF4X2Rldik7CisJCW11dGV4X3VubG9jaygmZGV2bWFwX2xvY2spOworCQlyZXR1
-cm4gTlVMTDsKKwl9CisKKwlwZ21hcC0+dHlwZSA9IE1FTU9SWV9ERVZJQ0VfRlNfREFYOworCXBn
-bWFwLT5wYWdlX2ZyZWUgPSBnZW5lcmljX2RheF9wYWdlZnJlZTsKKwlwZ21hcC0+ZGF0YSA9IG93
-bmVyOworCW11dGV4X3VubG9jaygmZGV2bWFwX2xvY2spOworCisJcmV0dXJuIGRheF9kZXY7Cit9
-CitFWFBPUlRfU1lNQk9MX0dQTChmc19kYXhfY2xhaW1fYmRldik7CisKK3ZvaWQgZnNfZGF4X3Jl
-bGVhc2Uoc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYsIHZvaWQgKm93bmVyKQoreworCXN0cnVj
-dCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBkYXhfZGV2ID8gZGF4X2Rldi0+cGdtYXAgOiBOVUxMOwor
-CisJcHV0X2RheChkYXhfZGV2KTsKKwlpZiAoIXBnbWFwKQorCQlyZXR1cm47CisJaWYgKCFwZ21h
-cC0+ZGF0YSkKKwkJcmV0dXJuOworCisJbXV0ZXhfbG9jaygmZGV2bWFwX2xvY2spOworCVdBUk5f
-T04ocGdtYXAtPmRhdGEgIT0gb3duZXIpOworCXBnbWFwLT50eXBlID0gTUVNT1JZX0RFVklDRV9I
-T1NUOworCXBnbWFwLT5wYWdlX2ZyZWUgPSBOVUxMOworCXBnbWFwLT5kYXRhID0gTlVMTDsKKwlt
-dXRleF91bmxvY2soJmRldm1hcF9sb2NrKTsKK30KK0VYUE9SVF9TWU1CT0xfR1BMKGZzX2RheF9y
-ZWxlYXNlKTsKKyNlbmRpZgorCiBzdGF0aWMgc3NpemVfdCB3cml0ZV9jYWNoZV9zaG93KHN0cnVj
-dCBkZXZpY2UgKmRldiwKIAkJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1
-ZikKIHsKQEAgLTUwMiwxMCArNTQ5LDIzIEBAIHN0cnVjdCBkYXhfZGV2aWNlICphbGxvY19kYXgo
-dm9pZCAqcHJpdmF0ZSwgY29uc3QgY2hhciAqX19ob3N0LAogfQogRVhQT1JUX1NZTUJPTF9HUEwo
-YWxsb2NfZGF4KTsKIAorc3RydWN0IGRheF9kZXZpY2UgKmFsbG9jX2RheF9kZXZtYXAodm9pZCAq
-cHJpdmF0ZSwgY29uc3QgY2hhciAqaG9zdCwKKwkJY29uc3Qgc3RydWN0IGRheF9vcGVyYXRpb25z
-ICpvcHMsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCit7CisJc3RydWN0IGRheF9kZXZpY2Ug
-KmRheF9kZXYgPSBhbGxvY19kYXgocHJpdmF0ZSwgaG9zdCwgb3BzKTsKKworCWlmIChkYXhfZGV2
-KQorCQlkYXhfZGV2LT5wZ21hcCA9IHBnbWFwOworCXJldHVybiBkYXhfZGV2OworfQorRVhQT1JU
-X1NZTUJPTF9HUEwoYWxsb2NfZGF4X2Rldm1hcCk7CisKIHZvaWQgcHV0X2RheChzdHJ1Y3QgZGF4
-X2RldmljZSAqZGF4X2RldikKIHsKIAlpZiAoIWRheF9kZXYpCiAJCXJldHVybjsKKwlwdXRfZGV2
-X3BhZ2VtYXAoZGF4X2Rldi0+cGdtYXApOworCWRheF9kZXYtPnBnbWFwID0gTlVMTDsKIAlpcHV0
-KCZkYXhfZGV2LT5pbm9kZSk7CiB9CiBFWFBPUlRfU1lNQk9MX0dQTChwdXRfZGF4KTsKZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uYwppbmRl
-eCAzOWRmZDdhZmZhMzEuLjlmMzZhMjE5M2ViNiAxMDA2NDQKLS0tIGEvZHJpdmVycy9udmRpbW0v
-cG1lbS5jCisrKyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uYwpAQCAtMzAwLDYgKzMwMCw3IEBAIHN0
-YXRpYyBpbnQgcG1lbV9hdHRhY2hfZGlzayhzdHJ1Y3QgZGV2aWNlICpkZXYsCiAJc3RydWN0IHZt
-ZW1fYWx0bWFwIF9fYWx0bWFwLCAqYWx0bWFwID0gTlVMTDsKIAlpbnQgbmlkID0gZGV2X3RvX25v
-ZGUoZGV2KSwgZnVhLCB3YmM7CiAJc3RydWN0IHJlc291cmNlICpyZXMgPSAmbnNpby0+cmVzOwor
-CXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBOVUxMOwogCXN0cnVjdCBuZF9wZm4gKm5kX3Bm
-biA9IE5VTEw7CiAJc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXY7CiAJc3RydWN0IG5kX3Bmbl9z
-YiAqcGZuX3NiOwpAQCAtMzU4LDE0ICszNTksMjQgQEAgc3RhdGljIGludCBwbWVtX2F0dGFjaF9k
-aXNrKHN0cnVjdCBkZXZpY2UgKmRldiwKIAkJcG1lbS0+cGZuX2ZsYWdzIHw9IFBGTl9NQVA7CiAJ
-CXJlcyA9ICZwZm5fcmVzOyAvKiBmb3IgYmFkYmxvY2tzIHBvcHVsYXRlICovCiAJCXJlcy0+c3Rh
-cnQgKz0gcG1lbS0+ZGF0YV9vZmZzZXQ7CisJCXBnbWFwID0gZ2V0X2Rldl9wYWdlbWFwKFBIWVNf
-UEZOKHZpcnRfdG9fcGh5cyhhZGRyKSksIE5VTEwpOworCQlpZiAoIXBnbWFwKQorCQkJcmV0dXJu
-IC1FTk9NRU07CiAJfSBlbHNlIGlmIChwbWVtX3Nob3VsZF9tYXBfcGFnZXMoZGV2KSkgewogCQlh
-ZGRyID0gZGV2bV9tZW1yZW1hcF9wYWdlcyhkZXYsICZuc2lvLT5yZXMsCiAJCQkJJnEtPnFfdXNh
-Z2VfY291bnRlciwgTlVMTCk7CiAJCXBtZW0tPnBmbl9mbGFncyB8PSBQRk5fTUFQOworCQlwZ21h
-cCA9IGdldF9kZXZfcGFnZW1hcChQSFlTX1BGTih2aXJ0X3RvX3BoeXMoYWRkcikpLCBOVUxMKTsK
-KwkJaWYgKCFwZ21hcCkKKwkJCXJldHVybiAtRU5PTUVNOwogCX0gZWxzZQogCQlhZGRyID0gZGV2
-bV9tZW1yZW1hcChkZXYsIHBtZW0tPnBoeXNfYWRkciwKIAkJCQlwbWVtLT5zaXplLCBBUkNIX01F
-TVJFTUFQX1BNRU0pOwogCisKKwkvKiB3ZSBzdGlsbCBob2xkIGEgcmVmZXJlbmNlIHVudGlsIHRo
-ZSBkcml2ZXIgaXMgdW5sb2FkZWQgKi8KKwlwdXRfZGV2X3BhZ2VtYXAocGdtYXApOworCiAJLyoK
-IAkgKiBBdCByZWxlYXNlIHRpbWUgdGhlIHF1ZXVlIG11c3QgYmUgZnJvemVuIGJlZm9yZQogCSAq
-IGRldm1fbWVtcmVtYXBfcGFnZXMgaXMgdW53b3VuZApAQCAtNDAyLDcgKzQxMyw3IEBAIHN0YXRp
-YyBpbnQgcG1lbV9hdHRhY2hfZGlzayhzdHJ1Y3QgZGV2aWNlICpkZXYsCiAJbnZkaW1tX2JhZGJs
-b2Nrc19wb3B1bGF0ZShuZF9yZWdpb24sICZwbWVtLT5iYiwgcmVzKTsKIAlkaXNrLT5iYiA9ICZw
-bWVtLT5iYjsKIAotCWRheF9kZXYgPSBhbGxvY19kYXgocG1lbSwgZGlzay0+ZGlza19uYW1lLCAm
-cG1lbV9kYXhfb3BzKTsKKwlkYXhfZGV2ID0gYWxsb2NfZGF4X2Rldm1hcChwbWVtLCBkaXNrLT5k
-aXNrX25hbWUsICZwbWVtX2RheF9vcHMsIHBnbWFwKTsKIAlpZiAoIWRheF9kZXYpIHsKIAkJcHV0
-X2Rpc2soZGlzayk7CiAJCXJldHVybiAtRU5PTUVNOwpkaWZmIC0tZ2l0IGEvZnMvZXh0Mi9zdXBl
-ci5jIGIvZnMvZXh0Mi9zdXBlci5jCmluZGV4IDE0NTg3MDZiZDJlYy4uODg0Nzg0YWNkOWZkIDEw
-MDY0NAotLS0gYS9mcy9leHQyL3N1cGVyLmMKKysrIGIvZnMvZXh0Mi9zdXBlci5jCkBAIC0xNzEs
-NyArMTcxLDcgQEAgc3RhdGljIHZvaWQgZXh0Ml9wdXRfc3VwZXIgKHN0cnVjdCBzdXBlcl9ibG9j
-ayAqIHNiKQogCWJyZWxzZSAoc2JpLT5zX3NiaCk7CiAJc2ItPnNfZnNfaW5mbyA9IE5VTEw7CiAJ
-a2ZyZWUoc2JpLT5zX2Jsb2NrZ3JvdXBfbG9jayk7Ci0JZnNfcHV0X2RheChzYmktPnNfZGF4ZGV2
-KTsKKwlmc19kYXhfcmVsZWFzZShzYmktPnNfZGF4ZGV2LCBzYik7CiAJa2ZyZWUoc2JpKTsKIH0K
-IApAQCAtODE0LDcgKzgxNCw3IEBAIHN0YXRpYyB1bnNpZ25lZCBsb25nIGRlc2NyaXB0b3JfbG9j
-KHN0cnVjdCBzdXBlcl9ibG9jayAqc2IsCiAKIHN0YXRpYyBpbnQgZXh0Ml9maWxsX3N1cGVyKHN0
-cnVjdCBzdXBlcl9ibG9jayAqc2IsIHZvaWQgKmRhdGEsIGludCBzaWxlbnQpCiB7Ci0Jc3RydWN0
-IGRheF9kZXZpY2UgKmRheF9kZXYgPSBmc19kYXhfZ2V0X2J5X2JkZXYoc2ItPnNfYmRldik7CisJ
-c3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYgPSBmc19kYXhfY2xhaW1fYmRldihzYi0+c19iZGV2
-LCBzYik7CiAJc3RydWN0IGJ1ZmZlcl9oZWFkICogYmg7CiAJc3RydWN0IGV4dDJfc2JfaW5mbyAq
-IHNiaTsKIAlzdHJ1Y3QgZXh0Ml9zdXBlcl9ibG9jayAqIGVzOwpAQCAtMTIwMiw3ICsxMjAyLDcg
-QEAgc3RhdGljIGludCBleHQyX2ZpbGxfc3VwZXIoc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwgdm9p
-ZCAqZGF0YSwgaW50IHNpbGVudCkKIAlrZnJlZShzYmktPnNfYmxvY2tncm91cF9sb2NrKTsKIAlr
-ZnJlZShzYmkpOwogZmFpbGVkOgotCWZzX3B1dF9kYXgoZGF4X2Rldik7CisJZnNfZGF4X3JlbGVh
-c2UoZGF4X2Rldiwgc2IpOwogCXJldHVybiByZXQ7CiB9CiAKZGlmZiAtLWdpdCBhL2ZzL2V4dDQv
-c3VwZXIuYyBiL2ZzL2V4dDQvc3VwZXIuYwppbmRleCBiMTA0MDk2ZmNlOWUuLmYyNzM1NWY0MTYx
-NiAxMDA2NDQKLS0tIGEvZnMvZXh0NC9zdXBlci5jCisrKyBiL2ZzL2V4dDQvc3VwZXIuYwpAQCAt
-OTUwLDcgKzk1MCw3IEBAIHN0YXRpYyB2b2lkIGV4dDRfcHV0X3N1cGVyKHN0cnVjdCBzdXBlcl9i
-bG9jayAqc2IpCiAJaWYgKHNiaS0+c19jaGtzdW1fZHJpdmVyKQogCQljcnlwdG9fZnJlZV9zaGFz
-aChzYmktPnNfY2hrc3VtX2RyaXZlcik7CiAJa2ZyZWUoc2JpLT5zX2Jsb2NrZ3JvdXBfbG9jayk7
-Ci0JZnNfcHV0X2RheChzYmktPnNfZGF4ZGV2KTsKKwlmc19kYXhfcmVsZWFzZShzYmktPnNfZGF4
-ZGV2LCBzYik7CiAJa2ZyZWUoc2JpKTsKIH0KIApAQCAtMzM5Nyw3ICszMzk3LDcgQEAgc3RhdGlj
-IHZvaWQgZXh0NF9zZXRfcmVzdl9jbHVzdGVycyhzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiKQogCiBz
-dGF0aWMgaW50IGV4dDRfZmlsbF9zdXBlcihzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiLCB2b2lkICpk
-YXRhLCBpbnQgc2lsZW50KQogewotCXN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2ID0gZnNfZGF4
-X2dldF9ieV9iZGV2KHNiLT5zX2JkZXYpOworCXN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2ID0g
-ZnNfZGF4X2NsYWltX2JkZXYoc2ItPnNfYmRldiwgc2IpOwogCWNoYXIgKm9yaWdfZGF0YSA9IGtz
-dHJkdXAoZGF0YSwgR0ZQX0tFUk5FTCk7CiAJc3RydWN0IGJ1ZmZlcl9oZWFkICpiaDsKIAlzdHJ1
-Y3QgZXh0NF9zdXBlcl9ibG9jayAqZXMgPSBOVUxMOwpAQCAtNDQwMCw3ICs0NDAwLDcgQEAgc3Rh
-dGljIGludCBleHQ0X2ZpbGxfc3VwZXIoc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwgdm9pZCAqZGF0
-YSwgaW50IHNpbGVudCkKIG91dF9mcmVlX2Jhc2U6CiAJa2ZyZWUoc2JpKTsKIAlrZnJlZShvcmln
-X2RhdGEpOwotCWZzX3B1dF9kYXgoZGF4X2Rldik7CisJZnNfZGF4X3JlbGVhc2UoZGF4X2Rldiwg
-c2IpOwogCXJldHVybiBlcnIgPyBlcnIgOiByZXQ7CiB9CiAKZGlmZiAtLWdpdCBhL2ZzL3hmcy94
-ZnNfc3VwZXIuYyBiL2ZzL3hmcy94ZnNfc3VwZXIuYwppbmRleCA1ODRjZjJkNTczYmEuLmZkYzQ3
-ODVhNWM4NSAxMDA2NDQKLS0tIGEvZnMveGZzL3hmc19zdXBlci5jCisrKyBiL2ZzL3hmcy94ZnNf
-c3VwZXIuYwpAQCAtNzIyLDcgKzcyMiw3IEBAIHhmc19jbG9zZV9kZXZpY2VzKAogCiAJCXhmc19m
-cmVlX2J1ZnRhcmcobXAsIG1wLT5tX2xvZ2Rldl90YXJncCk7CiAJCXhmc19ibGtkZXZfcHV0KGxv
-Z2Rldik7Ci0JCWZzX3B1dF9kYXgoZGF4X2xvZ2Rldik7CisJCWZzX2RheF9yZWxlYXNlKGRheF9s
-b2dkZXYsIG1wKTsKIAl9CiAJaWYgKG1wLT5tX3J0ZGV2X3RhcmdwKSB7CiAJCXN0cnVjdCBibG9j
-a19kZXZpY2UgKnJ0ZGV2ID0gbXAtPm1fcnRkZXZfdGFyZ3AtPmJ0X2JkZXY7CkBAIC03MzAsMTAg
-KzczMCwxMCBAQCB4ZnNfY2xvc2VfZGV2aWNlcygKIAogCQl4ZnNfZnJlZV9idWZ0YXJnKG1wLCBt
-cC0+bV9ydGRldl90YXJncCk7CiAJCXhmc19ibGtkZXZfcHV0KHJ0ZGV2KTsKLQkJZnNfcHV0X2Rh
-eChkYXhfcnRkZXYpOworCQlmc19kYXhfcmVsZWFzZShkYXhfcnRkZXYsIG1wKTsKIAl9CiAJeGZz
-X2ZyZWVfYnVmdGFyZyhtcCwgbXAtPm1fZGRldl90YXJncCk7Ci0JZnNfcHV0X2RheChkYXhfZGRl
-dik7CisJZnNfZGF4X3JlbGVhc2UoZGF4X2RkZXYsIG1wKTsKIH0KIAogLyoKQEAgLTc1MSw5ICs3
-NTEsOSBAQCB4ZnNfb3Blbl9kZXZpY2VzKAogCXN0cnVjdCB4ZnNfbW91bnQJKm1wKQogewogCXN0
-cnVjdCBibG9ja19kZXZpY2UJKmRkZXYgPSBtcC0+bV9zdXBlci0+c19iZGV2OwotCXN0cnVjdCBk
-YXhfZGV2aWNlCSpkYXhfZGRldiA9IGZzX2RheF9nZXRfYnlfYmRldihkZGV2KTsKLQlzdHJ1Y3Qg
-ZGF4X2RldmljZQkqZGF4X2xvZ2RldiA9IE5VTEwsICpkYXhfcnRkZXYgPSBOVUxMOworCXN0cnVj
-dCBkYXhfZGV2aWNlCSpkYXhfZGRldiA9IGZzX2RheF9jbGFpbV9iZGV2KGRkZXYsIG1wKTsKIAlz
-dHJ1Y3QgYmxvY2tfZGV2aWNlCSpsb2dkZXYgPSBOVUxMLCAqcnRkZXYgPSBOVUxMOworCXN0cnVj
-dCBkYXhfZGV2aWNlCSpkYXhfbG9nZGV2ID0gTlVMTCwgKmRheF9ydGRldiA9IE5VTEw7CiAJaW50
-CQkJZXJyb3I7CiAKIAkvKgpAQCAtNzYzLDcgKzc2Myw3IEBAIHhmc19vcGVuX2RldmljZXMoCiAJ
-CWVycm9yID0geGZzX2Jsa2Rldl9nZXQobXAsIG1wLT5tX2xvZ25hbWUsICZsb2dkZXYpOwogCQlp
-ZiAoZXJyb3IpCiAJCQlnb3RvIG91dDsKLQkJZGF4X2xvZ2RldiA9IGZzX2RheF9nZXRfYnlfYmRl
-dihsb2dkZXYpOworCQlkYXhfbG9nZGV2ID0gZnNfZGF4X2NsYWltX2JkZXYobG9nZGV2LCBtcCk7
-CiAJfQogCiAJaWYgKG1wLT5tX3J0bmFtZSkgewpAQCAtNzc3LDcgKzc3Nyw3IEBAIHhmc19vcGVu
-X2RldmljZXMoCiAJCQllcnJvciA9IC1FSU5WQUw7CiAJCQlnb3RvIG91dF9jbG9zZV9ydGRldjsK
-IAkJfQotCQlkYXhfcnRkZXYgPSBmc19kYXhfZ2V0X2J5X2JkZXYocnRkZXYpOworCQlkYXhfcnRk
-ZXYgPSBmc19kYXhfY2xhaW1fYmRldihydGRldiwgbXApOwogCX0KIAogCS8qCkBAIC04MTEsMTQg
-KzgxMSwxNCBAQCB4ZnNfb3Blbl9kZXZpY2VzKAogCXhmc19mcmVlX2J1ZnRhcmcobXAsIG1wLT5t
-X2RkZXZfdGFyZ3ApOwogIG91dF9jbG9zZV9ydGRldjoKIAl4ZnNfYmxrZGV2X3B1dChydGRldik7
-Ci0JZnNfcHV0X2RheChkYXhfcnRkZXYpOworCWZzX2RheF9yZWxlYXNlKGRheF9ydGRldiwgbXAp
-OwogIG91dF9jbG9zZV9sb2dkZXY6CiAJaWYgKGxvZ2RldiAmJiBsb2dkZXYgIT0gZGRldikgewog
-CQl4ZnNfYmxrZGV2X3B1dChsb2dkZXYpOwotCQlmc19wdXRfZGF4KGRheF9sb2dkZXYpOworCQlm
-c19kYXhfcmVsZWFzZShkYXhfbG9nZGV2LCBtcCk7CiAJfQogIG91dDoKLQlmc19wdXRfZGF4KGRh
-eF9kZGV2KTsKKwlmc19kYXhfcmVsZWFzZShkYXhfZGRldiwgbXApOwogCXJldHVybiBlcnJvcjsK
-IH0KIApkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9kYXguaCBiL2luY2x1ZGUvbGludXgvZGF4
-LmgKaW5kZXggMTIyMTk3MTI0YjlkLi5lYTIxZWJmZDE4ODkgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUv
-bGludXgvZGF4LmgKKysrIGIvaW5jbHVkZS9saW51eC9kYXguaApAQCAtNTAsMTIgKzUwLDggQEAg
-c3RhdGljIGlubGluZSBzdHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2dldF9ieV9ob3N0KGNvbnN0
-IGNoYXIgKmhvc3QpCiAJcmV0dXJuIGRheF9nZXRfYnlfaG9zdChob3N0KTsKIH0KIAotc3RhdGlj
-IGlubGluZSB2b2lkIGZzX3B1dF9kYXgoc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYpCi17Ci0J
-cHV0X2RheChkYXhfZGV2KTsKLX0KLQotc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9nZXRfYnlf
-YmRldihzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2KTsKK3N0cnVjdCBkYXhfZGV2aWNlICpmc19k
-YXhfY2xhaW1fYmRldihzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2LCB2b2lkICpvd25lcik7Cit2
-b2lkIGZzX2RheF9yZWxlYXNlKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCB2b2lkICpvd25l
-cik7CiAjZWxzZQogc3RhdGljIGlubGluZSBpbnQgYmRldl9kYXhfc3VwcG9ydGVkKHN0cnVjdCBz
-dXBlcl9ibG9jayAqc2IsIGludCBibG9ja3NpemUpCiB7CkBAIC02NywxMyArNjMsMTQgQEAgc3Rh
-dGljIGlubGluZSBzdHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2dldF9ieV9ob3N0KGNvbnN0IGNo
-YXIgKmhvc3QpCiAJcmV0dXJuIE5VTEw7CiB9CiAKLXN0YXRpYyBpbmxpbmUgdm9pZCBmc19wdXRf
-ZGF4KHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2KQorc3RhdGljIGlubGluZSBzdHJ1Y3QgZGF4
-X2RldmljZSAqZnNfZGF4X2NsYWltX2JkZXYoc3RydWN0IGJsb2NrX2RldmljZSAqYmRldiwKKwkJ
-dm9pZCAqb3duZXIpCiB7CisJcmV0dXJuIE5VTEw7CiB9CiAKLXN0YXRpYyBpbmxpbmUgc3RydWN0
-IGRheF9kZXZpY2UgKmZzX2RheF9nZXRfYnlfYmRldihzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2
-KQorc3RhdGljIGlubGluZSB2b2lkIGZzX2RheF9yZWxlYXNlKHN0cnVjdCBkYXhfZGV2aWNlICpk
-YXhfZGV2LCB2b2lkICpvd25lcikKIHsKLQlyZXR1cm4gTlVMTDsKIH0KICNlbmRpZgogCkBAIC04
-MSw2ICs3OCw4IEBAIGludCBkYXhfcmVhZF9sb2NrKHZvaWQpOwogdm9pZCBkYXhfcmVhZF91bmxv
-Y2soaW50IGlkKTsKIHN0cnVjdCBkYXhfZGV2aWNlICphbGxvY19kYXgodm9pZCAqcHJpdmF0ZSwg
-Y29uc3QgY2hhciAqaG9zdCwKIAkJY29uc3Qgc3RydWN0IGRheF9vcGVyYXRpb25zICpvcHMpOwor
-c3RydWN0IGRheF9kZXZpY2UgKmFsbG9jX2RheF9kZXZtYXAodm9pZCAqcHJpdmF0ZSwgY29uc3Qg
-Y2hhciAqaG9zdCwKKwkJY29uc3Qgc3RydWN0IGRheF9vcGVyYXRpb25zICpvcHMsIHN0cnVjdCBk
-ZXZfcGFnZW1hcCAqcGdtYXApOwogYm9vbCBkYXhfYWxpdmUoc3RydWN0IGRheF9kZXZpY2UgKmRh
-eF9kZXYpOwogdm9pZCBraWxsX2RheChzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2Rldik7CiB2b2lk
-ICpkYXhfZ2V0X3ByaXZhdGUoc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYpOwpkaWZmIC0tZ2l0
-IGEvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oIGIvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCmlu
-ZGV4IDc5ZjhiYTdjMzg5NC4uMzlkMmRlM2Y3NDRiIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4
-L21lbXJlbWFwLmgKKysrIGIvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCkBAIC02NCwxMSArNjQs
-MTcgQEAgc3RhdGljIGlubGluZSBzdHJ1Y3Qgdm1lbV9hbHRtYXAgKnRvX3ZtZW1fYWx0bWFwKHVu
-c2lnbmVkIGxvbmcgbWVtbWFwX3N0YXJ0KQogICogZHJpdmVyIGNhbiBob3RwbHVnIHRoZSBkZXZp
-Y2UgbWVtb3J5IHVzaW5nIFpPTkVfREVWSUNFIGFuZCB3aXRoIHRoYXQgbWVtb3J5CiAgKiB0eXBl
-LiBBbnkgcGFnZSBvZiBhIHByb2Nlc3MgY2FuIGJlIG1pZ3JhdGVkIHRvIHN1Y2ggbWVtb3J5LiBI
-b3dldmVyIG5vIG9uZQogICogc2hvdWxkIGJlIGFsbG93IHRvIHBpbiBzdWNoIG1lbW9yeSBzbyB0
-aGF0IGl0IGNhbiBhbHdheXMgYmUgZXZpY3RlZC4KKyAqCisgKiBNRU1PUllfREVWSUNFX0ZTX0RB
-WDoKKyAqIE1FTU9SWV9ERVZJQ0VfSE9TVCBtZW1vcnkgdGhhdCBpcyBiZWluZyBtYW5hZ2VkIGJ5
-IGEgZmlsZXN5c3RlbS4gVGhlCisgKiBmaWxlc3lzdGVtIG5lZWRzIHBhZ2UgaWRsZSBjYWxsYmFj
-a3MgdG8gY29vcmRpbmF0ZSBkaXJlY3QtSS9PICsgRE1BCisgKiAoZ2V0X3VzZXJfcGFnZXMpIHZz
-IHRydW5jYXRlLgogICovCiBlbnVtIG1lbW9yeV90eXBlIHsKIAlNRU1PUllfREVWSUNFX0hPU1Qg
-PSAwLAogCU1FTU9SWV9ERVZJQ0VfUFJJVkFURSwKIAlNRU1PUllfREVWSUNFX1BVQkxJQywKKwlN
-RU1PUllfREVWSUNFX0ZTX0RBWCwKIH07CiAKIC8qCmRpZmYgLS1naXQgYS9rZXJuZWwvbWVtcmVt
-YXAuYyBiL2tlcm5lbC9tZW1yZW1hcC5jCmluZGV4IDQwM2FiOWNkYjk0OS4uYmY2MWNmYTg5Yzdk
-IDEwMDY0NAotLS0gYS9rZXJuZWwvbWVtcmVtYXAuYworKysgYi9rZXJuZWwvbWVtcmVtYXAuYwpA
-QCAtMzIzLDYgKzMyMyw3IEBAIHN0cnVjdCBkZXZfcGFnZW1hcCAqZmluZF9kZXZfcGFnZW1hcChy
-ZXNvdXJjZV9zaXplX3QgcGh5cykKIAlwYWdlX21hcCA9IHJhZGl4X3RyZWVfbG9va3VwKCZwZ21h
-cF9yYWRpeCwgUEhZU19QRk4ocGh5cykpOwogCXJldHVybiBwYWdlX21hcCA/ICZwYWdlX21hcC0+
-cGdtYXAgOiBOVUxMOwogfQorRVhQT1JUX1NZTUJPTF9HUEwoZmluZF9kZXZfcGFnZW1hcCk7CiAK
-IC8qKgogICogZGV2bV9tZW1yZW1hcF9wYWdlcyAtIHJlbWFwIGFuZCBwcm92aWRlIG1lbW1hcCBi
-YWNraW5nIGZvciB0aGUgZ2l2ZW4gcmVzb3VyY2UKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
-aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW52ZGltbQo=
+Introduce a set of helper apis for filesystems to establish FL_LAYOUT
+leases to protect against writes and block map updates while a
+MAP_DIRECT mapping is established. While the lease protects against the
+syscall write path and fallocate it does not protect against allocating
+write-faults, so this relies on i_mapdcount to disable block map updates
+from write faults.
+
+Like the pnfs case MAP_DIRECT does its own timeout of the lease since we
+need to have a process context for running map_direct_invalidate().
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ fs/Kconfig                |    1 
+ fs/Makefile               |    2 
+ fs/mapdirect.c            |  237 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mapdirect.h |   40 ++++++++
+ 4 files changed, 279 insertions(+), 1 deletion(-)
+ create mode 100644 fs/mapdirect.c
+ create mode 100644 include/linux/mapdirect.h
+
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 7aee6d699fd6..a7b31a96a753 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -37,6 +37,7 @@ source "fs/f2fs/Kconfig"
+ config FS_DAX
+ 	bool "Direct Access (DAX) support"
+ 	depends on MMU
++	depends on FILE_LOCKING
+ 	depends on !(ARM || MIPS || SPARC)
+ 	select FS_IOMAP
+ 	select DAX
+diff --git a/fs/Makefile b/fs/Makefile
+index 7bbaca9c67b1..c0e791d235d8 100644
+--- a/fs/Makefile
++++ b/fs/Makefile
+@@ -29,7 +29,7 @@ obj-$(CONFIG_TIMERFD)		+= timerfd.o
+ obj-$(CONFIG_EVENTFD)		+= eventfd.o
+ obj-$(CONFIG_USERFAULTFD)	+= userfaultfd.o
+ obj-$(CONFIG_AIO)               += aio.o
+-obj-$(CONFIG_FS_DAX)		+= dax.o
++obj-$(CONFIG_FS_DAX)		+= dax.o mapdirect.o
+ obj-$(CONFIG_FS_ENCRYPTION)	+= crypto/
+ obj-$(CONFIG_FILE_LOCKING)      += locks.o
+ obj-$(CONFIG_COMPAT)		+= compat.o compat_ioctl.o
+diff --git a/fs/mapdirect.c b/fs/mapdirect.c
+new file mode 100644
+index 000000000000..9f4dd7395dcd
+--- /dev/null
++++ b/fs/mapdirect.c
+@@ -0,0 +1,237 @@
++/*
++ * Copyright(c) 2017 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#include <linux/mapdirect.h>
++#include <linux/workqueue.h>
++#include <linux/signal.h>
++#include <linux/mutex.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/fs.h>
++#include <linux/mm.h>
++
++#define MAPDIRECT_BREAK 0
++#define MAPDIRECT_VALID 1
++
++struct map_direct_state {
++	atomic_t mds_ref;
++	atomic_t mds_vmaref;
++	unsigned long mds_state;
++	struct inode *mds_inode;
++	struct delayed_work mds_work;
++	struct fasync_struct *mds_fa;
++	struct vm_area_struct *mds_vma;
++};
++
++bool test_map_direct_valid(struct map_direct_state *mds)
++{
++	return test_bit(MAPDIRECT_VALID, &mds->mds_state);
++}
++EXPORT_SYMBOL_GPL(test_map_direct_valid);
++
++static void put_map_direct(struct map_direct_state *mds)
++{
++	if (!atomic_dec_and_test(&mds->mds_ref))
++		return;
++	kfree(mds);
++}
++
++static void put_map_direct_vma(struct map_direct_state *mds)
++{
++	struct vm_area_struct *vma = mds->mds_vma;
++	struct file *file = vma->vm_file;
++	struct inode *inode = file_inode(file);
++	void *owner = mds;
++
++	if (!atomic_dec_and_test(&mds->mds_vmaref))
++		return;
++
++	/*
++	 * Flush in-flight+forced lm_break events that may be
++	 * referencing this dying vma.
++	 */
++	mds->mds_vma = NULL;
++	set_bit(MAPDIRECT_BREAK, &mds->mds_state);
++	vfs_setlease(vma->vm_file, F_UNLCK, NULL, &owner);
++	flush_delayed_work(&mds->mds_work);
++	iput(inode);
++
++	put_map_direct(mds);
++}
++
++void generic_map_direct_close(struct vm_area_struct *vma)
++{
++	put_map_direct_vma(vma->vm_private_data);
++}
++EXPORT_SYMBOL_GPL(generic_map_direct_close);
++
++static void get_map_direct_vma(struct map_direct_state *mds)
++{
++	atomic_inc(&mds->mds_vmaref);
++}
++
++void generic_map_direct_open(struct vm_area_struct *vma)
++{
++	get_map_direct_vma(vma->vm_private_data);
++}
++EXPORT_SYMBOL_GPL(generic_map_direct_open);
++
++static void map_direct_invalidate(struct work_struct *work)
++{
++	struct map_direct_state *mds;
++	struct vm_area_struct *vma;
++	struct inode *inode;
++	void *owner;
++
++	mds = container_of(work, typeof(*mds), mds_work.work);
++
++	clear_bit(MAPDIRECT_VALID, &mds->mds_state);
++
++	vma = ACCESS_ONCE(mds->mds_vma);
++	inode = mds->mds_inode;
++	if (vma) {
++		unsigned long len = vma->vm_end - vma->vm_start;
++		loff_t start = (loff_t) vma->vm_pgoff * PAGE_SIZE;
++
++		unmap_mapping_range(inode->i_mapping, start, len, 1);
++	}
++	owner = mds;
++	vfs_setlease(vma->vm_file, F_UNLCK, NULL, &owner);
++
++	put_map_direct(mds);
++}
++
++static bool map_direct_lm_break(struct file_lock *fl)
++{
++	struct map_direct_state *mds = fl->fl_owner;
++
++	/*
++	 * Given that we need to take sleeping locks to invalidate the
++	 * mapping we schedule that work with the original timeout set
++	 * by the file-locks core. Then we tell the core to hold off on
++	 * continuing with the lease break until the delayed work
++	 * completes the invalidation and the lease unlock.
++	 *
++	 * Note that this assumes that i_mapdcount is protecting against
++	 * block-map modifying write-faults since we are unable to use
++	 * leases in that path due to locking constraints.
++	 */
++	if (!test_and_set_bit(MAPDIRECT_BREAK, &mds->mds_state)) {
++		schedule_delayed_work(&mds->mds_work, lease_break_time * HZ);
++		kill_fasync(&fl->fl_fasync, SIGIO, POLL_MSG);
++	}
++
++	/* Tell the core lease code to wait for delayed work completion */
++	fl->fl_break_time = 0;
++
++	return false;
++}
++
++static int map_direct_lm_change(struct file_lock *fl, int arg,
++		struct list_head *dispose)
++{
++	WARN_ON(!(arg & F_UNLCK));
++
++	return lease_modify(fl, arg, dispose);
++}
++
++static void map_direct_lm_setup(struct file_lock *fl, void **priv)
++{
++	struct file *file = fl->fl_file;
++	struct map_direct_state *mds = *priv;
++	struct fasync_struct *fa = mds->mds_fa;
++
++	/*
++	 * Comment copied from lease_setup():
++	 * fasync_insert_entry() returns the old entry if any. If there was no
++	 * old entry, then it used "priv" and inserted it into the fasync list.
++	 * Clear the pointer to indicate that it shouldn't be freed.
++	 */
++	if (!fasync_insert_entry(fa->fa_fd, file, &fl->fl_fasync, fa))
++		*priv = NULL;
++
++	__f_setown(file, task_pid(current), PIDTYPE_PID, 0);
++}
++
++static const struct lock_manager_operations map_direct_lm_ops = {
++	.lm_break = map_direct_lm_break,
++	.lm_change = map_direct_lm_change,
++	.lm_setup = map_direct_lm_setup,
++};
++
++struct map_direct_state *map_direct_register(int fd, struct vm_area_struct *vma)
++{
++	struct map_direct_state *mds = kzalloc(sizeof(*mds), GFP_KERNEL);
++	struct file *file = vma->vm_file;
++	struct inode *inode = file_inode(file);
++	struct fasync_struct *fa;
++	struct file_lock *fl;
++	void *owner = mds;
++	int rc = -ENOMEM;
++
++	if (!mds)
++		return ERR_PTR(-ENOMEM);
++
++	mds->mds_vma = vma;
++	atomic_set(&mds->mds_ref, 1);
++	atomic_set(&mds->mds_vmaref, 1);
++	set_bit(MAPDIRECT_VALID, &mds->mds_state);
++	mds->mds_inode = inode;
++	ihold(inode);
++	INIT_DELAYED_WORK(&mds->mds_work, map_direct_invalidate);
++
++	fa = fasync_alloc();
++	if (!fa)
++		goto err_fasync_alloc;
++	mds->mds_fa = fa;
++	fa->fa_fd = fd;
++
++	fl = locks_alloc_lock();
++	if (!fl)
++		goto err_lock_alloc;
++
++	locks_init_lock(fl);
++	fl->fl_lmops = &map_direct_lm_ops;
++	fl->fl_flags = FL_LAYOUT;
++	fl->fl_type = F_RDLCK;
++	fl->fl_end = OFFSET_MAX;
++	fl->fl_owner = mds;
++	atomic_inc(&mds->mds_ref);
++	fl->fl_pid = current->tgid;
++	fl->fl_file = file;
++
++	rc = vfs_setlease(file, fl->fl_type, &fl, &owner);
++	if (rc)
++		goto err_setlease;
++	if (fl) {
++		WARN_ON(1);
++		owner = mds;
++		vfs_setlease(file, F_UNLCK, NULL, &owner);
++		owner = NULL;
++		rc = -ENXIO;
++		goto err_setlease;
++	}
++
++	return mds;
++
++err_setlease:
++	locks_free_lock(fl);
++err_lock_alloc:
++	/* if owner is NULL then the lease machinery is reponsible @fa */
++	if (owner)
++		fasync_free(fa);
++err_fasync_alloc:
++	iput(inode);
++	kfree(mds);
++	return ERR_PTR(rc);
++}
++EXPORT_SYMBOL_GPL(map_direct_register);
+diff --git a/include/linux/mapdirect.h b/include/linux/mapdirect.h
+new file mode 100644
+index 000000000000..5491aa550e55
+--- /dev/null
++++ b/include/linux/mapdirect.h
+@@ -0,0 +1,40 @@
++/*
++ * Copyright(c) 2017 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __MAPDIRECT_H__
++#define __MAPDIRECT_H__
++#include <linux/err.h>
++
++struct inode;
++struct work_struct;
++struct vm_area_struct;
++struct map_direct_state;
++
++#if IS_ENABLED(CONFIG_FS_DAX)
++struct map_direct_state *map_direct_register(int fd, struct vm_area_struct *vma);
++bool test_map_direct_valid(struct map_direct_state *mds);
++void generic_map_direct_open(struct vm_area_struct *vma);
++void generic_map_direct_close(struct vm_area_struct *vma);
++#else
++static inline struct map_direct_state *map_direct_register(int fd,
++		struct vm_area_struct *vma)
++{
++	return ERR_PTR(-EOPNOTSUPP);
++}
++static inline bool test_map_direct_valid(struct map_direct_state *mds)
++{
++	return false;
++}
++#define generic_map_direct_open NULL
++#define generic_map_direct_close NULL
++#endif
++#endif /* __MAPDIRECT_H__ */
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
