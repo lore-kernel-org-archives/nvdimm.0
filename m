@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0523A2034CF7E
- for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:25:07 -0700 (PDT)
-Subject: [PATCH 11/15] [media] v4l2: disable filesystem-dax mapping support
+ by ml01.01.org (Postfix) with ESMTPS id BDF7B21F7D51C
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 17:50:35 -0700 (PDT)
+Subject: [PATCH v9 6/6] xfs: wire up MAP_DIRECT
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 31 Oct 2017 16:22:35 -0700
-Message-ID: <150949215507.24061.16244906635037694605.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 11 Oct 2017 17:47:40 -0700
+Message-ID: <150776926029.9144.10163099373354512491.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,95 +23,280 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, Mauro Carvalho Chehab <mchehab@kernel.org>, hch@lst.de, linux-media@vger.kernel.org
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@poochiereds.net>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-V4L2 memory registrations are incompatible with filesystem-dax that
-needs the ability to revoke dma access to a mapping at will, or
-otherwise allow the kernel to wait for completion of DMA. The
-filesystem-dax implementation breaks the traditional solution of
-truncate of active file backed mappings since there is no page-cache
-page we can orphan to sustain ongoing DMA.
+MAP_DIRECT is an mmap(2) flag with the following semantics:
 
-If v4l2 wants to support long lived DMA mappings it needs to arrange to
-hold a file lease or use some other mechanism so that the kernel can
-coordinate revoking DMA access when the filesystem needs to truncate
-mappings.
+  MAP_DIRECT
+  When specified with MAP_SHARED_VALIDATE, sets up a file lease with the
+  same lifetime as the mapping. Unlike a typical F_RDLCK lease this lease
+  is broken when a "lease breaker" attempts to write(2), change the block
+  map (fallocate), or change the size of the file. Otherwise the mechanism
+  of a lease break is identical to the typical lease break case where the
+  lease needs to be removed (munmap) within the number of seconds
+  specified by /proc/sys/fs/lease-break-time. If the lease holder fails to
+  remove the lease in time the kernel will invalidate the mapping and
+  force all future accesses to the mapping to trigger SIGBUS.
 
-Reported-by: Jan Kara <jack@suse.cz>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Cc: <stable@vger.kernel.org>
+  In addition to lease break timeouts causing faults in the mapping to
+  result in SIGBUS, other states of the file will trigger SIGBUS at fault
+  time:
+
+      * The fault would trigger the filesystem to allocate blocks
+      * The fault would trigger the filesystem to perform extent conversion
+
+  In other words, MAP_DIRECT expects and enforces a fully allocated file
+  where faults can be satisfied without modifying block map metadata.
+
+  An unprivileged process may establish a MAP_DIRECT mapping on a file
+  whose UID (owner) matches the filesystem UID of the  process. A process
+  with the CAP_LEASE capability may establish a MAP_DIRECT mapping on
+  arbitrary files
+
+  ERRORS
+  EACCES Beyond the typical mmap(2) conditions that trigger EACCES
+  MAP_DIRECT also requires the permission to set a file lease.
+
+  EOPNOTSUPP The filesystem explicitly does not support the flag
+
+  EPERM The file does not permit MAP_DIRECT mappings. Potential reasons
+  are that DAX access is not available or the file has reflink extents.
+
+  SIGBUS Attempted to write a MAP_DIRECT mapping at a file offset that
+         might require block-map updates, or the lease timed out and the
+         kernel invalidated the mapping.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/media/v4l2-core/videobuf-dma-sg.c |   39 ++++++++++++++++++++++++++++-
- 1 file changed, 37 insertions(+), 2 deletions(-)
+ fs/xfs/Kconfig                  |    2 -
+ fs/xfs/xfs_file.c               |  107 ++++++++++++++++++++++++++++++++++++++-
+ include/linux/mman.h            |    3 +
+ include/uapi/asm-generic/mman.h |    1 
+ 4 files changed, 110 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index 0b5c43f7e020..37a4ae61b2c0 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -155,8 +155,9 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 			int direction, unsigned long data, unsigned long size)
+diff --git a/fs/xfs/Kconfig b/fs/xfs/Kconfig
+index f62fc6629abb..f8765653a438 100644
+--- a/fs/xfs/Kconfig
++++ b/fs/xfs/Kconfig
+@@ -112,4 +112,4 @@ config XFS_ASSERT_FATAL
+ 
+ config XFS_LAYOUT
+ 	def_bool y
+-	depends on EXPORTFS_BLOCK_OPS
++	depends on EXPORTFS_BLOCK_OPS || FS_DAX
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 3cc7292b2e9f..71dbe0307746 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -41,12 +41,22 @@
+ #include "xfs_reflink.h"
+ #include "xfs_layout.h"
+ 
++#include <linux/mman.h>
+ #include <linux/dcache.h>
+ #include <linux/falloc.h>
+ #include <linux/pagevec.h>
++#include <linux/mapdirect.h>
+ #include <linux/backing-dev.h>
+ 
+ static const struct vm_operations_struct xfs_file_vm_ops;
++static const struct vm_operations_struct xfs_file_vm_direct_ops;
++
++static bool
++xfs_vma_is_direct(
++	struct vm_area_struct	*vma)
++{
++	return vma->vm_ops == &xfs_file_vm_direct_ops;
++}
+ 
+ /*
+  * Clear the specified ranges to zero through either the pagecache or DAX.
+@@ -1013,6 +1023,25 @@ xfs_file_llseek(
+ }
+ 
+ /*
++ * MAP_DIRECT faults can only be serviced while the FL_LAYOUT lease is
++ * valid. See map_direct_invalidate.
++ */
++static bool
++xfs_vma_has_direct_lease(
++	struct vm_area_struct	*vma)
++{
++	/* Non MAP_DIRECT vmas do not require layout leases */
++	if (!xfs_vma_is_direct(vma))
++		return true;
++
++	if (!test_map_direct_valid(vma->vm_private_data))
++		return false;
++
++	/* We have a valid lease */
++	return true;
++}
++
++/*
+  * Locking for serialisation of IO during page faults. This results in a lock
+  * ordering of:
+  *
+@@ -1028,7 +1057,8 @@ __xfs_filemap_fault(
+ 	enum page_entry_size	pe_size,
+ 	bool			write_fault)
  {
- 	unsigned long first, last;
--	int err, rw = 0;
-+	int err, rw = 0, i, nr_pages;
- 	unsigned int flags = FOLL_FORCE;
-+	struct vm_area_struct **vmas = NULL;
+-	struct inode		*inode = file_inode(vmf->vma->vm_file);
++	struct vm_area_struct	*vma = vmf->vma;
++	struct inode		*inode = file_inode(vma->vm_file);
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	int			ret;
  
- 	dma->direction = direction;
- 	switch (dma->direction) {
-@@ -179,6 +180,16 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	if (NULL == dma->pages)
- 		return -ENOMEM;
+@@ -1036,10 +1066,15 @@ __xfs_filemap_fault(
  
-+	if (IS_ENABLED(CONFIG_FS_DAX)) {
-+		vmas = kmalloc(dma->nr_pages * sizeof(struct vm_area_struct *),
-+				GFP_KERNEL);
-+		if (NULL == vmas) {
-+			kfree(dma->pages);
-+			dma->pages = NULL;
-+			return -ENOMEM;
-+		}
+ 	if (write_fault) {
+ 		sb_start_pagefault(inode->i_sb);
+-		file_update_time(vmf->vma->vm_file);
++		file_update_time(vma->vm_file);
+ 	}
+ 
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
++	if (!xfs_vma_has_direct_lease(vma)) {
++		ret = VM_FAULT_SIGBUS;
++		goto out_unlock;
 +	}
 +
- 	if (rw == READ)
- 		flags |= FOLL_WRITE;
+ 	if (IS_DAX(inode)) {
+ 		ret = dax_iomap_fault(vmf, pe_size, &xfs_iomap_ops);
+ 	} else {
+@@ -1048,6 +1083,8 @@ __xfs_filemap_fault(
+ 		else
+ 			ret = filemap_fault(vmf);
+ 	}
++
++out_unlock:
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
  
-@@ -186,7 +197,31 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 		data, size, dma->nr_pages);
+ 	if (write_fault)
+@@ -1119,6 +1156,17 @@ xfs_filemap_pfn_mkwrite(
  
- 	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
--			     flags, dma->pages, NULL);
-+			     flags, dma->pages, vmas);
-+	nr_pages = err;
-+
-+	for (i = 0; vmas && i < nr_pages; i++) {
-+		struct vm_area_struct *vma = vmas[i];
-+		struct inode *inode;
-+
-+		if (!vma_is_dax(vma))
-+			continue;
-+
-+		/* device-dax is safe for long-lived v4l2 mappings... */
-+		inode = file_inode(vma->vm_file);
-+		if (inode->i_mode == S_IFCHR)
-+			continue;
-+
-+		/* ...filesystem-dax is not. */
-+		err = -EOPNOTSUPP;
-+		break;
-+
-+		/*
-+		 * FIXME: add a 'with lease' mechanism for v4l2 to
-+		 * obtain time bounded access to filesytem-dax mappings
-+		 */
-+	}
-+	kfree(vmas);
+ }
  
- 	if (err != dma->nr_pages) {
- 		dma->nr_pages = (err >= 0) ? err : 0;
++static const struct vm_operations_struct xfs_file_vm_direct_ops = {
++	.fault		= xfs_filemap_fault,
++	.huge_fault	= xfs_filemap_huge_fault,
++	.map_pages	= filemap_map_pages,
++	.page_mkwrite	= xfs_filemap_page_mkwrite,
++	.pfn_mkwrite	= xfs_filemap_pfn_mkwrite,
++
++	.open		= generic_map_direct_open,
++	.close		= generic_map_direct_close,
++};
++
+ static const struct vm_operations_struct xfs_file_vm_ops = {
+ 	.fault		= xfs_filemap_fault,
+ 	.huge_fault	= xfs_filemap_huge_fault,
+@@ -1139,6 +1187,60 @@ xfs_file_mmap(
+ 	return 0;
+ }
+ 
++static int
++xfs_file_mmap_direct(
++	struct file		*filp,
++	struct vm_area_struct	*vma,
++	int			fd)
++{
++	struct inode		*inode = file_inode(filp);
++	struct xfs_inode	*ip = XFS_I(inode);
++	struct map_direct_state	*mds;
++
++	/*
++	 * Not permitted to set up MAP_DIRECT mapping over reflinked or
++	 * non-DAX extents since reflink may cause block moves /
++	 * copy-on-write, and non-DAX is by definition always indirect
++	 * through the page cache.
++	 */
++	if (xfs_is_reflink_inode(ip))
++		return -EPERM;
++	if (!IS_DAX(inode))
++		return -EPERM;
++
++	mds = map_direct_register(fd, vma);
++	if (IS_ERR(mds))
++		return PTR_ERR(mds);
++
++	file_accessed(filp);
++	vma->vm_ops = &xfs_file_vm_direct_ops;
++	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++
++	/*
++	 * generic_map_direct_{open,close} expect ->vm_private_data is
++	 * set to the result of map_direct_register
++	 */
++	vma->vm_private_data = mds;
++	return 0;
++}
++
++#define XFS_MAP_SUPPORTED (LEGACY_MAP_MASK | MAP_DIRECT)
++
++static int
++xfs_file_mmap_validate(
++	struct file		*filp,
++	struct vm_area_struct	*vma,
++	unsigned long		map_flags,
++	int			fd)
++{
++	if (map_flags & ~(XFS_MAP_SUPPORTED))
++		return -EOPNOTSUPP;
++
++	if ((map_flags & MAP_DIRECT) == 0)
++		return xfs_file_mmap(filp, vma);
++	return xfs_file_mmap_direct(filp, vma, fd);
++}
++
+ const struct file_operations xfs_file_operations = {
+ 	.llseek		= xfs_file_llseek,
+ 	.read_iter	= xfs_file_read_iter,
+@@ -1150,6 +1252,7 @@ const struct file_operations xfs_file_operations = {
+ 	.compat_ioctl	= xfs_file_compat_ioctl,
+ #endif
+ 	.mmap		= xfs_file_mmap,
++	.mmap_validate	= xfs_file_mmap_validate,
+ 	.open		= xfs_file_open,
+ 	.release	= xfs_file_release,
+ 	.fsync		= xfs_file_fsync,
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index 94b63b4d71ff..fab393a9dda9 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -20,6 +20,9 @@
+ #ifndef MAP_HUGE_1GB
+ #define MAP_HUGE_1GB 0
+ #endif
++#ifndef MAP_DIRECT
++#define MAP_DIRECT 0
++#endif
+ #ifndef MAP_UNINITIALIZED
+ #define MAP_UNINITIALIZED 0
+ #endif
+diff --git a/include/uapi/asm-generic/mman.h b/include/uapi/asm-generic/mman.h
+index 7162cd4cca73..c916f22008e0 100644
+--- a/include/uapi/asm-generic/mman.h
++++ b/include/uapi/asm-generic/mman.h
+@@ -12,6 +12,7 @@
+ #define MAP_NONBLOCK	0x10000		/* do not block on IO */
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
++#define MAP_DIRECT	0x80000		/* leased block map (layout) for DAX */
+ 
+ /* Bits [26:31] are reserved, see mman-common.h for MAP_HUGETLB usage */
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
