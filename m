@@ -1,33 +1,25 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [RFC 2/2] KVM: add virtio-pmem driver
-Date: Thu, 12 Oct 2017 19:07:27 -0400 (EDT)
-Message-ID: <1755911209.19947416.1507849647657.JavaMail.zimbra@redhat.com>
-References: <20171012155027.3277-1-pagupta@redhat.com> <CAPcyv4i7k6aYK_y4zZtL6p8sW-E_Ft58d2HuxO=dYciqQxaoLg@mail.gmail.com> <1567317495.19940236.1507843517318.JavaMail.zimbra@redhat.com> <CAPcyv4gkri7t+3Unf0sc9AHMnz-v9G_qV_bJppLjUUNAn7drrQ@mail.gmail.com> <1363955128.19944709.1507846719987.JavaMail.zimbra@redhat.com> <1507847249.21121.207.camel@redhat.com> <1111804283.19946669.1507848765955.JavaMail.zimbra@redhat.com> <CAPcyv4jukEoKpH0OvZSNour+m5eQzuhiPAefAhYPqH2=f_ungA@mail.gmail.com>
+From: =?utf-8?B?57+f5pm0?= <etrplde-0UNpXjLMiqM@public.gmane.org>
+Subject: =?utf-8?B?562U5aSN77ya5LyB5Lia5oqA5pyv5Lq65ZGY5aaC5L2V6IOc5Lu7566h55CG5bel5L2c?=
+Date: Fri, 13 Oct 2017 00:07:38 +0000 (UTC)
+Message-ID: <AA45B9A386C34F2446BD455F384EA832@pwwg.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4jukEoKpH0OvZSNour+m5eQzuhiPAefAhYPqH2=f_ungA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Rik van Riel <riel@redhat.com>, linux-kernel@vger.kernel.org, KVM list <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>, Linux MM <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, Stefan Hajnoczi <stefanha@redhat.com>, Haozhong Zhang <haozhong.zhang@intel.com>, Nitesh Narayan Lal <nilal@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, Ross Zwisler <ross.zwisler@intel.com>, David Hildenbrand <david@redhat.com>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Date: Sat, 13 Oct 2029 08:05:25 +0800
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-
-> > Dan,
-> >
-> > I have a query regarding below patch [*]. My assumption is its halted
-> > because of memory hotplug restructuring work? Anything I am missing
-> > here?
-> >
-> > [*] https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg02978.html
-> 
-> It's fallen to the back of my queue since the original driving need of
-> platform firmware changing offsets from boot-to-boot is no longer an
-> issue. However, it does mean that you need to arrange for 128MB
-> aligned devm_memremap_pages() ranges for the foreseeable future.
-
-o.k I will provide 128MB aligned pages to devm_memremap_pages() function.
-
-Thanks,
-Pankaj
+bGludXgtbnZkaW1tDQrmgqjlpb3vvIHor77popjlhoXlrrnlnKjpmYTku7bvvIzor7fmn6XmlLYK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
+aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
+MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
