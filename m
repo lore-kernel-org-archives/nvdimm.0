@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from esa4.dell-outbound.iphmx.com (esa4.dell-outbound.iphmx.com
- [68.232.149.214])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 998FD2034CF96
- for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 13:37:41 -0700 (PDT)
-From: Lijun Pan <Lijun.Pan@dell.com>
-Subject: [PATCH] acpi/nfit: export read_only attribute of dimms
-Date: Mon, 30 Oct 2017 15:41:27 -0500
-Message-Id: <20171030204127.4779-1-Lijun.Pan@dell.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4539F202E59CA
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Oct 2017 12:24:44 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: FAIL: dax-errors.sh failures on 4.14.0-rc4+
+Date: Fri, 13 Oct 2017 19:28:15 +0000
+Message-ID: <1507922771.23025.99.camel@intel.com>
+References: <MWHPR21MB01433B4F14C4D5EA3A1215E2A6750@MWHPR21MB0143.namprd21.prod.outlook.com>
+In-Reply-To: <MWHPR21MB01433B4F14C4D5EA3A1215E2A6750@MWHPR21MB0143.namprd21.prod.outlook.com>
+Content-Language: en-US
+Content-ID: <004911801F939E4A8ACAD9D21F4734F9@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,61 +20,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Lijun Pan <Lijun.Pan@dell.com>
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "soccerl@microsoft.com" <soccerl@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Though flags attribute provides enough information about
-the dimm, it is nice to export the read_only attribute if
-bit3 of NVDIMM state flag is set.
-If error is injected by BIOS, bit3 and bit1 are both set.
-If DIMM is set to read-only by BIOS, bit3 is set.
-Hence bit3 is good enough to tell whether the dimm is in
-read-only mode or not.
-
-Signed-off-by: Lijun Pan <Lijun.Pan@dell.com>
----
- drivers/acpi/nfit/core.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index ebe0857ac346..f96e65aa29dd 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1480,6 +1480,16 @@ static ssize_t flags_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(flags);
- 
-+static ssize_t read_only_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	u16 flags = to_nfit_memdev(dev)->flags;
-+
-+	return sprintf(buf, "%d\n",
-+		flags & ACPI_NFIT_MEM_NOT_ARMED ? 1 : 0);
-+}
-+static DEVICE_ATTR_RO(read_only);
-+
- static ssize_t id_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -1512,6 +1522,7 @@ static struct attribute *acpi_nfit_dimm_attributes[] = {
- 	&dev_attr_format1.attr,
- 	&dev_attr_serial.attr,
- 	&dev_attr_flags.attr,
-+	&dev_attr_read_only.attr,
- 	&dev_attr_id.attr,
- 	&dev_attr_family.attr,
- 	&dev_attr_dsm_mask.attr,
--- 
-2.13.6
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCAyMDE3LTEwLTEwIGF0IDAzOjA0ICswMDAwLCBDaGVuZy1tZWFuIExpdSAoU09DQ0VS
+KSB3cm90ZToNCj4gSGk6DQo+IA0KPiBJIGFtIGhpdHRpbmcgdGhlIGZvbGxvd2luZyBuZGN0bCB0
+ZXN0IGZhaWx1cmUsIGFsbCBjb2RlIGZyb20NCj4gbmRjdGwvTGludXggdXBzdHJlYW0ga2VybmVs
+Lg0KPiANCj4gSXMgdGhpcyBhIGtub3cgaXNzdWU/DQo+IA0KPiBGQUlMOiBkYXgtZXJyb3JzLnNo
+DQo+IFNLSVA6IGRheGRldi1lcnJvcnMuc2gNCj4gDQo+IEZBSUw6IGRheC1lcnJvcnMuc2gNCj4g
+PT09PT09PT09PT09PT09PT09PQ0KPiANCj4gKyBERVY9DQo+ICsgTkRDVEw9Li4vbmRjdGwvbmRj
+dGwNCj4gKyBCVVM9Jy1iIG5maXRfdGVzdC4wJw0KPiArIEJVUzE9Jy1iIG5maXRfdGVzdC4xJw0K
+PiArIE1OVD10ZXN0X2RheF9tbnQNCj4gKyBGSUxFPWltYWdlDQo+ICsganNvbjJ2YXI9J3MvW3t9
+IixdLy9nOyBzLzovPS9nJw0KPiArIHJjPTc3DQo+ICsgY2hlY2tfbWluX2t2ZXIgNC43DQo+ICsg
+bG9jYWwgdmVyPTQuNw0KPiArKyB1bmFtZSAtcg0KPiArIDogNC4xNC4wLXJjNCsNCj4gKyAnWycg
+LW4gNC43ICddJw0KPiArKyBlY2hvIC1lICc0LjdcbjQuMTQuMC1yYzQrJw0KPiArKyBzb3J0IC1W
+DQo+ICsrIGhlYWQgLTENCj4gKyBbWyA0LjcgPT0gXDRcLlw3IF1dDQo+ICsgc2V0IC1lDQo+ICsg
+bWtkaXIgLXAgdGVzdF9kYXhfbW50DQo+ICsgdHJhcCAnZXJyICRMSU5FTk8nIEVSUg0KPiArIG1v
+ZHByb2JlIG5maXRfdGVzdA0KPiArIC4uL25kY3RsL25kY3RsIGRpc2FibGUtcmVnaW9uIC1iIG5m
+aXRfdGVzdC4wIGFsbA0KPiBkaXNhYmxlZCA2IHJlZ2lvbnMNCj4gKyAuLi9uZGN0bC9uZGN0bCB6
+ZXJvLWxhYmVscyAtYiBuZml0X3Rlc3QuMCBhbGwNCj4gemVyb2VkIDQgbm1lbXMNCj4gKyAuLi9u
+ZGN0bC9uZGN0bCBlbmFibGUtcmVnaW9uIC1iIG5maXRfdGVzdC4wIGFsbA0KPiBlbmFibGVkIDYg
+cmVnaW9ucw0KPiArIHJjPTENCj4gKyBkZXY9eA0KPiArKyAuLi9uZGN0bC9uZGN0bCBjcmVhdGUt
+bmFtZXNwYWNlIC1iIG5maXRfdGVzdC4wIC10IHBtZW0gLW0gcmF3DQo+ICsganNvbj0new0KPiDC
+oCAiZGV2IjoibmFtZXNwYWNlNS4wIiwNCj4gwqAgIm1vZGUiOiJyYXciLA0KPiDCoCAic2l6ZSI6
+NjcxMDg4NjQsDQo+IMKgICJ1dWlkIjoiOGNlNjEwYzUtZjdjYS00ZGY4LTg0ZjQtZDI3YWRjYjE5
+Y2ViIiwNCj4gwqAgImJsb2NrZGV2IjoicG1lbTUiLA0KPiDCoCAiYmFkYmxvY2tfY291bnQiOjgN
+Cj4gfScNCj4gKysgZWNobyAneycgJyJkZXYiOiJuYW1lc3BhY2U1LjAiLCcgJyJtb2RlIjoicmF3
+IiwnICcic2l6ZSI6NjcxMDg4NjQsJw0KPiAnInV1aWQiOiI4Y2U2MTBjNS1mN2NhLTRkZjgtODRm
+NC1kMjdhZGNiMTljZWIiLCcgJyJibG9ja2RldiI6InBtZW01IiwnDQo+ICciYmFkYmxvY2tfY291
+bnQiOjgnICd9Jw0KPiArKyBzZWQgLWUgJ3MvW3t9IixdLy9nOyBzLzovPS9nJw0KPiArIGV2YWwg
+ZGV2PW5hbWVzcGFjZTUuMCBtb2RlPXJhdyBzaXplPTY3MTA4ODY0IHV1aWQ9OGNlNjEwYzUtZjdj
+YS0NCj4gNGRmOC04NGY0LWQyN2FkY2IxOWNlYiBibG9ja2Rldj1wbWVtNSBiYWRibG9ja19jb3Vu
+dD04DQo+ICsrIGRldj1uYW1lc3BhY2U1LjANCj4gKysgbW9kZT1yYXcNCj4gKysgc2l6ZT02NzEw
+ODg2NA0KPiArKyB1dWlkPThjZTYxMGM1LWY3Y2EtNGRmOC04NGY0LWQyN2FkY2IxOWNlYg0KPiAr
+KyBibG9ja2Rldj1wbWVtNQ0KPiArKyBiYWRibG9ja19jb3VudD04DQo+ICsgJ1snIG5hbWVzcGFj
+ZTUuMCA9IHggJ10nDQo+ICsgJ1snIHJhdyAnIT0nIHJhdyAnXScNCj4gKyByZWFkIHNlY3RvciBs
+ZW4NCj4gKyAnWycgMTMxMDcyIC1uZSAxMzEwNzIgJ10nDQo+ICsgZGQgaWY9L2Rldi9wbWVtNSBv
+Zj0vZGV2L251bGwgaWZsYWc9ZGlyZWN0IGJzPTUxMiBza2lwPTY1NTM2IGNvdW50PTgNCj4gZGQ6
+IGVycm9yIHJlYWRpbmcgJy9kZXYvcG1lbTUnOiBJbnB1dC9vdXRwdXQgZXJyb3INCj4gMCswIHJl
+Y29yZHMgaW4NCj4gMCswIHJlY29yZHMgb3V0DQo+IDAgYnl0ZXMgY29waWVkLCAwLjAwMDM0NzUg
+cywgMC4wIGtCL3MNCj4gKyBkZCBvZj0vZGV2L3BtZW01IGlmPS9kZXYvemVybyBvZmxhZz1kaXJl
+Y3QgYnM9NTEyIHNlZWs9NjU1MzYgY291bnQ9OA0KPiA4KzAgcmVjb3JkcyBpbg0KPiA4KzAgcmVj
+b3JkcyBvdXQNCj4gNDA5NiBieXRlcyAoNC4xIGtCLCA0LjAgS2lCKSBjb3BpZWQsIDAuMDAwMzYw
+OCBzLCAxMS40IE1CL3MNCj4gKyByZWFkIHNlY3RvciBsZW4NCj4gKyBta2ZzLmV4dDQgL2Rldi9w
+bWVtNSAtYiA0MDk2DQo+IG1rZTJmcyAxLjQzLjQgKDMxLUphbi0yMDE3KQ0KPiBDcmVhdGluZyBm
+aWxlc3lzdGVtIHdpdGggMTYzODQgNGsgYmxvY2tzIGFuZCAxNjM4NCBpbm9kZXMNCj4gDQo+IEFs
+bG9jYXRpbmcgZ3JvdXAgdGFibGVzOiAwLzFeSF5IXkjCoMKgwqBeSF5IXkhkb25lDQo+IFdyaXRp
+bmcgaW5vZGUgdGFibGVzOiAwLzFeSF5IXkjCoMKgwqBeSF5IXkhkb25lDQo+IENyZWF0aW5nIGpv
+dXJuYWwgKDEwMjQgYmxvY2tzKTogZG9uZQ0KPiBXcml0aW5nIHN1cGVyYmxvY2tzIGFuZCBmaWxl
+c3lzdGVtIGFjY291bnRpbmcgaW5mb3JtYXRpb246DQo+IDAvMV5IXkheSMKgwqDCoF5IXkheSGRv
+bmUNCj4gDQo+ICsgbW91bnQgL2Rldi9wbWVtNSB0ZXN0X2RheF9tbnQgLW8gZGF4DQo+IG1vdW50
+OiB3cm9uZyBmcyB0eXBlLCBiYWQgb3B0aW9uLCBiYWQgc3VwZXJibG9jayBvbiAvZGV2L3BtZW01
+LA0KPiDCoMKgwqDCoMKgwqDCoG1pc3NpbmcgY29kZXBhZ2Ugb3IgaGVscGVyIHByb2dyYW0sIG9y
+IG90aGVyIGVycm9yDQo+IA0KPiDCoMKgwqDCoMKgwqDCoEluIHNvbWUgY2FzZXMgdXNlZnVsIGlu
+Zm8gaXMgZm91bmQgaW4gc3lzbG9nIC0gdHJ5DQo+IMKgwqDCoMKgwqDCoMKgZG1lc2cgfCB0YWls
+IG9yIHNvLg0KDQpJJ20gdW5hYmxlIHRvIHJlcHJvZHVjZSB0aGlzIHdpdGggdGhlIDQuMTQtcmM0
+IHRhZyBhbmQgbGF0ZXN0IG5kY3RsDQoocGVuZGluZyBicmFuY2ggLSB2NTguMi0xMC1nYjk1YWE1
+NCkuIEFyZSB5b3UgYWJsZSB0byByZXByb2R1Y2UgdGhpcz8NCkFyZSB5b3UgYWJsZSB0byBjcmVh
+dGUgYSByYXcgIHBtZW0gbmFtZXNwYWNlIG1hbnVhbGx5LCBhbmQgbW91bnQgaXQgd2l0aA0KZGF4
+Pw0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
+aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
