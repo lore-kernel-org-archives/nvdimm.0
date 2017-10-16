@@ -1,23 +1,27 @@
 Return-Path: <owner-linux-mm@kvack.org>
+Subject: Re: [PATCH v9 0/6] MAP_DIRECT for DAX userspace flush
+References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171012142319.GA11254@lst.de>
+ <CAPcyv4gTON__Ohop0B5R2gsKXC71bycTBozqGmF3WmwG9C6LVA@mail.gmail.com>
+ <20171013065716.GB26461@lst.de>
+ <CAPcyv4gaLBBefOU+8f7_ypYnCTjSMk+9nq8NfCqBHAE+NbUusw@mail.gmail.com>
+ <20171013163822.GA17411@obsidianresearch.com>
+ <CAPcyv4jDHp8z2VgVfyRK1WwMzixYVQnh54LZoPD57HB3yqSPPQ@mail.gmail.com>
+ <20171013173145.GA18702@obsidianresearch.com> <20171016072644.GB28270@lst.de>
+From: Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <27694a5e-ec3a-0a68-b053-c138e0c91446@grimberg.me>
+Date: Mon, 16 Oct 2017 15:07:28 +0300
 MIME-Version: 1.0
 In-Reply-To: <20171016072644.GB28270@lst.de>
-References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171012142319.GA11254@lst.de> <CAPcyv4gTON__Ohop0B5R2gsKXC71bycTBozqGmF3WmwG9C6LVA@mail.gmail.com>
- <20171013065716.GB26461@lst.de> <CAPcyv4gaLBBefOU+8f7_ypYnCTjSMk+9nq8NfCqBHAE+NbUusw@mail.gmail.com>
- <20171013163822.GA17411@obsidianresearch.com> <CAPcyv4jDHp8z2VgVfyRK1WwMzixYVQnh54LZoPD57HB3yqSPPQ@mail.gmail.com>
- <20171013173145.GA18702@obsidianresearch.com> <20171016072644.GB28270@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Oct 2017 10:43:52 -0700
-Message-ID: <CAPcyv4itbYQqVrHBZ=+BRLH39WwDZ_RGg6sSaodVZ93LRYigNA@mail.gmail.com>
-Subject: Re: [PATCH v9 0/6] MAP_DIRECT for DAX userspace flush
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, "Darrick J. Wong" <darrick.wong@oracle.com>, Linux API <linux-api@vger.kernel.org>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, Linux MM <linux-mm@kvack.org>, Jeff Moyer <jmoyer@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jeff Layton <jlayton@poochiereds.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Jeff Layton <jlayton@poochiereds.net>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Oct 16, 2017 at 12:26 AM, Christoph Hellwig <hch@lst.de> wrote:
-> On Fri, Oct 13, 2017 at 11:31:45AM -0600, Jason Gunthorpe wrote:
+
 >> I don't think that really represents how lots of apps actually use
 >> RDMA.
 >>
@@ -32,7 +36,7 @@ On Mon, Oct 16, 2017 at 12:26 AM, Christoph Hellwig <hch@lst.de> wrote:
 >> get DAX backed mmap's. It then passes memory in those mmaps to the
 >> MPI library to do transfers. The MPI creates the MR on demand.
 >>
->
+> 
 > I suspect one of the more interesting use cases might be a file server,
 > for which that's not the case.  But otherwise I agree with the above,
 > and also thing that notifying the MR handle is the only way to go for
@@ -41,13 +45,11 @@ On Mon, Oct 16, 2017 at 12:26 AM, Christoph Hellwig <hch@lst.de> wrote:
 > can unregister the MR in kernel space and have a rock solid fencing
 > mechanism.  And that is the most important bit here.
 
-While I agree with the need for a per-MR notification mechanism, one
-thing we lose by walking away from MAP_DIRECT is a way for a
-hypervisor to coordinate pass through of a DAX mapping to an RDMA
-device in a guest. That will remain a case where we will still need to
-use device-dax. I'm fine if that's the answer, but just want to be
-clear about all the places we need to protect a DAX mapping against
-RDMA from a non-ODP device.
+I agree we must deregister the MR in kernel space. As said, I think
+its perfectly reasonable to let user-space see error completions and
+provide query mechanism for MR granularity (unfortunately this will
+probably need drivers assistance as they know how their device reports
+in MR granularity access violations).
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
