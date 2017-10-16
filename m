@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B8E6E21FC7497
- for <linux-nvdimm@lists.01.org>; Fri,  6 Oct 2017 15:39:22 -0700 (PDT)
-Subject: [PATCH v7 12/12] tools/testing/nvdimm: enable rdma unit tests
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 06 Oct 2017 15:36:22 -0700
-Message-ID: <150732938240.22363.4660628491483540886.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 314FF202E614D
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Oct 2017 00:53:22 -0700 (PDT)
+Date: Mon, 16 Oct 2017 09:56:55 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v9 1/6] mm: introduce MAP_SHARED_VALIDATE, a mechanism to
+ safely define new mmap flags
+Message-ID: <20171016075655.GE32738@quack2.suse.cz>
+References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150776923320.9144.6119113178052262946.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171012135127.GG29293@quack2.suse.cz>
+ <CA+55aFyy-nz99c6erFh=aeyCOzsk0td5wHaVLpwBNA-sWNDZkA@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CA+55aFyy-nz99c6erFh=aeyCOzsk0td5wHaVLpwBNA-sWNDZkA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,106 +27,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-xfs <linux-xfs@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, Andy Lutomirski <luto@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a mock dma_has_iommu() for the ibverbs core. Enable
-ib_umem_get() to satisfy its DAX safety checks for a controlled test.
+On Thu 12-10-17 09:32:17, Linus Torvalds wrote:
+> On Thu, Oct 12, 2017 at 6:51 AM, Jan Kara <jack@suse.cz> wrote:
+> >
+> > When thinking a bit more about this I've realized one problem: Currently
+> > user can call mmap() with MAP_SHARED type and MAP_SYNC or MAP_DIRECT flags
+> > and he will get the new semantics (if the kernel happens to support it).  I
+> > think that is undesirable [..]
+> 
+> Why?
+> 
+> If you have a performance preference for MAP_DIRECT or something like
+> that, but you don't want to *enforce* it, you'd use just plain
+> MAP_SHARED with it.
+> 
+> Ie there may well be "I want this to work, possibly with downsides" issues.
+> 
+> So it seems to be a reasonable model, and disallowing it seems to
+> limit people and not really help anything.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/nvdimm/Kbuild         |   31 +++++++++++++++++++++++++++++++
- tools/testing/nvdimm/config_check.c |    2 ++
- tools/testing/nvdimm/test/iomap.c   |    6 ++++++
- 3 files changed, 39 insertions(+)
+I have two concerns:
 
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index d870520da68b..e4ee7f482ac0 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -15,11 +15,13 @@ ldflags-y += --wrap=insert_resource
- ldflags-y += --wrap=remove_resource
- ldflags-y += --wrap=acpi_evaluate_object
- ldflags-y += --wrap=acpi_evaluate_dsm
-+ldflags-y += --wrap=dma_has_iommu
- 
- DRIVERS := ../../../drivers
- NVDIMM_SRC := $(DRIVERS)/nvdimm
- ACPI_SRC := $(DRIVERS)/acpi/nfit
- DAX_SRC := $(DRIVERS)/dax
-+IBCORE := $(DRIVERS)/infiniband/core
- ccflags-y := -I$(src)/$(NVDIMM_SRC)/
- 
- obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
-@@ -33,6 +35,7 @@ obj-$(CONFIG_DAX) += dax.o
- endif
- obj-$(CONFIG_DEV_DAX) += device_dax.o
- obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
-+obj-$(CONFIG_INFINIBAND) += ib_core.o
- 
- nfit-y := $(ACPI_SRC)/core.o
- nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
-@@ -75,4 +78,32 @@ libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
- libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
- libnvdimm-y += config_check.o
- 
-+ib_core-y := $(IBCORE)/packer.o
-+ib_core-y += $(IBCORE)/ud_header.o
-+ib_core-y += $(IBCORE)/verbs.o
-+ib_core-y += $(IBCORE)/cq.o
-+ib_core-y += $(IBCORE)/rw.o
-+ib_core-y += $(IBCORE)/sysfs.o
-+ib_core-y += $(IBCORE)/device.o
-+ib_core-y += $(IBCORE)/fmr_pool.o
-+ib_core-y += $(IBCORE)/cache.o
-+ib_core-y += $(IBCORE)/netlink.o
-+ib_core-y += $(IBCORE)/roce_gid_mgmt.o
-+ib_core-y += $(IBCORE)/mr_pool.o
-+ib_core-y += $(IBCORE)/addr.o
-+ib_core-y += $(IBCORE)/sa_query.o
-+ib_core-y += $(IBCORE)/multicast.o
-+ib_core-y += $(IBCORE)/mad.o
-+ib_core-y += $(IBCORE)/smi.o
-+ib_core-y += $(IBCORE)/agent.o
-+ib_core-y += $(IBCORE)/mad_rmpp.o
-+ib_core-y += $(IBCORE)/security.o
-+ib_core-y += $(IBCORE)/nldev.o
-+
-+ib_core-$(CONFIG_INFINIBAND_USER_MEM) += $(IBCORE)/umem.o
-+ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += $(IBCORE)/umem_odp.o
-+ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += $(IBCORE)/umem_rbtree.o
-+ib_core-$(CONFIG_CGROUP_RDMA) += $(IBCORE)/cgroup.o
-+ib_core-y += config_check.o
-+
- obj-m += test/
-diff --git a/tools/testing/nvdimm/config_check.c b/tools/testing/nvdimm/config_check.c
-index 7dc5a0af9b54..33e7c805bfd6 100644
---- a/tools/testing/nvdimm/config_check.c
-+++ b/tools/testing/nvdimm/config_check.c
-@@ -14,4 +14,6 @@ void check(void)
- 	BUILD_BUG_ON(!IS_MODULE(CONFIG_ACPI_NFIT));
- 	BUILD_BUG_ON(!IS_MODULE(CONFIG_DEV_DAX));
- 	BUILD_BUG_ON(!IS_MODULE(CONFIG_DEV_DAX_PMEM));
-+	BUILD_BUG_ON(!IS_ENABLED(CONFIG_INFINIBAND_USER_MEM));
-+	BUILD_BUG_ON(!IS_MODULE(CONFIG_INFINIBAND));
- }
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index e1f75a1914a1..1c240328ee5b 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -388,4 +388,10 @@ union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const guid_t *g
- }
- EXPORT_SYMBOL(__wrap_acpi_evaluate_dsm);
- 
-+bool __wrap_dma_has_iommu(struct device *dev)
-+{
-+	return true;
-+}
-+EXPORT_SYMBOL(__wrap_dma_has_iommu);
-+
- MODULE_LICENSE("GPL v2");
+1) IMHO it supports sloppy programming from userspace - if application asks
+e.g. for MAP_DIRECT and doesn't know whether it gets it or not, it would
+have to be very careful not to assume anything about that in its code. And
+frankly I think the most likely scenario is that a programmer will just use
+MAP_SHARED | MAP_DIRECT, *assume* he will get the MAP_DIRECT semantics if
+the call does not fail and then complain when his application breaks.
 
+2) In theory there could be an application that inadvertedly sets some high
+flag bits and now it would get confused by getting different mmap(2)
+semantics. But I agree this is mostly theoretical.
+
+Overall I think the benefit of being able to say "do MAP_DIRECT if you can"
+does not outweight the risk of bugs in userspace applications. Especially
+since userspace can easily implement the same semantics by retrying the
+mmap(2) call without MAP_SHARED_VALIDATE | MAP_DIRECT.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
