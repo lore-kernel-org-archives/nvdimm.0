@@ -1,10 +1,10 @@
-From: "Amy" <usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: Gift-Customized Logo/USB Flash Drive Factory/Amy
-Date: 17 Oct 2017 17:36:25 +0800
-Message-ID: <20171017093255.78EDB202E61AB@ml01.01.org>
+From: =?utf-8?B?5YaA6JKZ?= <zvghc-HnsSgmBbNW5BDgjK7y7TUQ@public.gmane.org>
+Subject: =?utf-8?B?IOWbnuWkje+8muaCqOWlve+8gQ==?=
+Date: Wed, 18 Oct 2017 03:46:17 +0800
+Message-ID: <467A69033C72F1C124AFC1B0B43BB8A5@exnqlwt.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,12 +15,12 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-<DIV style="BORDER-TOP: #cccccc 5px solid; BORDER-RIGHT: #cccccc 5px solid; WIDTH: 500px; BACKGROUND: #ebebeb; BORDER-BOTTOM: #cccccc 5px solid; MARGIN: 0px auto; BORDER-LEFT: #cccccc 5px solid">Hi linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, 
-<P>It is nice to find your product in the market.</P>
-<P>We are a Manufacturing &amp; trading combo company with <STRONG>thousands of USB items</STRONG>(<A href="http://www.usbflashdrive-factory.com/?id=wushidao">www.usbflashdrive-factory.com</A>), that can turn your product into a <STRONG>business gift</STRONG>, and it is a great idea as gifts for advertisement.<BR></P>
-<P>Please contact us.</P>
-<P>Thanks &amp; regards.</P>Amy<BR>
-<DIV style="FONT-SIZE: 9px"><STRONG>Shenzhen TOROVO Technology CO., Ltd</STRONG><BR>Add: Bantian Street, Longgang District,Shenzhen, Guangdong, China<BR>Mail:<A href="mailto:usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org">usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org</A><BR><BR>Website:<A href="http://www.usbflashdrive-factory.com/?id=wushidao">www.usbflashdrive-factory.com</A><BR></DIV></DIV>
+6auY57qn56eY5Lmm44CB5Yqp55CG5ZKM6KGM5pS/5Lq65ZGY5oqA6IO95o+Q6auY6K6t57uD6JCl
+DQrooYzmlL/nrqHnkIblrp7mk43orq3nu4MNCuS7peS4iuivvueoi+WMl+S4iuW5v+WNs+WwhuW8
+gOePre+8jOivpuaDheivt+mYheivu+mZhOS7tgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGlt
+bUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
+eC1udmRpbW0K
