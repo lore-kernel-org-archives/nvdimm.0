@@ -1,10 +1,9 @@
-From: =?utf-8?B?5YaA6JKZ?= <zvghc-HnsSgmBbNW5BDgjK7y7TUQ@public.gmane.org>
-Subject: =?utf-8?B?IOWbnuWkje+8muaCqOWlve+8gQ==?=
-Date: Wed, 18 Oct 2017 03:46:17 +0800
-Message-ID: <467A69033C72F1C124AFC1B0B43BB8A5@exnqlwt.com>
+From: =?GB2312?B?yreIkL+1?= <vxsiangro-Jcp4t44me6IAvxtiuMwx3w@public.gmane.org>
+Subject: =?GB2312?B?o6hBRKOpyOe6zrPJzqrB7LW8tcS1w8Gm1vrK1g==?=
+Date: Wed, 18 Oct 2017 06:58:18 +0800
+Message-ID: <20171017225449.BCAF6202E617E@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============6832792751211831192=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,12 +14,30 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-6auY57qn56eY5Lmm44CB5Yqp55CG5ZKM6KGM5pS/5Lq65ZGY5oqA6IO95o+Q6auY6K6t57uD6JCl
-DQrooYzmlL/nrqHnkIblrp7mk43orq3nu4MNCuS7peS4iuivvueoi+WMl+S4iuW5v+WNs+WwhuW8
-gOePre+8jOivpuaDheivt+mYheivu+mZhOS7tgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGlt
-bUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
-eC1udmRpbW0K
+This is a multi-part message in MIME format
+
+--===============6832792751211831192==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+linux-nvdimm 
+
+亲！ 
+
+了解 详情 请关注 附件内容
+
+--===============6832792751211831192==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============6832792751211831192==--
