@@ -1,24 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Subject: Re: KVM "fake DAX" flushing interface - discussion
-References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
- <CAPcyv4hpbk0jgp+mA=q05zVBV8ZSZvCvV68JJ4gjE3QhK70d1w@mail.gmail.com>
- <20170724102330.GE652@quack2.suse.cz>
- <1157879323.33809400.1500897967669.JavaMail.zimbra@redhat.com>
- <20170724123752.GN652@quack2.suse.cz>
- <1888117852.34216619.1500992835767.JavaMail.zimbra@redhat.com>
- <CAPcyv4in28F3FOVKp9abvrggxPuXdbGynF5=ZvBXCrywoa06JA@mail.gmail.com>
- <1501016375.26846.21.camel@redhat.com>
- <1063764405.34607875.1501076841865.JavaMail.zimbra@redhat.com>
- <1501104453.26846.45.camel@redhat.com>
- <CAPcyv4hsqrqBxoipUHPAbSctuzbVWCRnT-gN08i9uhXTWY6iPQ@mail.gmail.com>
- <1501112787.4073.49.camel@redhat.com>
- <CAPcyv4gbC6Hx_4YsCfOd2t=fn=wPGp5h__1QH=-p40TPFNbFzA@mail.gmail.com>
-From: Xiao Guangrong <xiaoguangrong.eric@gmail.com>
-Message-ID: <0a26793f-86f7-29e7-f61b-dc4c1ef08c8e@gmail.com>
-Date: Tue, 31 Oct 2017 15:13:44 +0800
+Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
+ [IPv6:2607:f8b0:4003:c06::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id CBBF4202E60E0
+ for <linux-nvdimm@lists.01.org>; Wed, 18 Oct 2017 09:09:20 -0700 (PDT)
+Received: by mail-oi0-x243.google.com with SMTP id a132so9838273oih.11
+ for <linux-nvdimm@lists.01.org>; Wed, 18 Oct 2017 09:12:58 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4gbC6Hx_4YsCfOd2t=fn=wPGp5h__1QH=-p40TPFNbFzA@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <20171018154006.15431-2-ross.zwisler@linux.intel.com>
+References: <20171018154006.15431-1-ross.zwisler@linux.intel.com>
+ <20171018154006.15431-2-ross.zwisler@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 18 Oct 2017 09:12:56 -0700
+Message-ID: <CAPcyv4hn0xV8yy_p=Qpa3X5L9F2aMTaRECm=Ogyd3hVzqCmeaQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] MAINTAINERS: Add entry for device DAX
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,35 +22,50 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Rik van Riel <riel@redhat.com>
-Cc: Kevin Wolf <kwolf@redhat.com>, Pankaj Gupta <pagupta@redhat.com>, Jan Kara <jack@suse.cz>, kvm-devel <kvm@vger.kernel.org>, Stefan Hajnoczi <stefanha@gmail.com>, Ross Zwisler <ross.zwisler@intel.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Wed, Oct 18, 2017 at 8:40 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> And update the entry for filesystem DAX to differentiate them.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  MAINTAINERS | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index a74227a..b2b2e75 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -4162,7 +4162,7 @@ L:        linux-i2c@vger.kernel.org
+>  S:     Maintained
+>  F:     drivers/i2c/busses/i2c-diolan-u2c.c
+>
+> -DIRECT ACCESS (DAX)
+> +FILESYSTEM DIRECT ACCESS (DAX)
+>  M:     Matthew Wilcox <mawilcox@microsoft.com>
+>  M:     Ross Zwisler <ross.zwisler@linux.intel.com>
+>  L:     linux-fsdevel@vger.kernel.org
+> @@ -4171,6 +4171,12 @@ F:       fs/dax.c
+>  F:     include/linux/dax.h
+>  F:     include/trace/events/fs_dax.h
+>
+> +DEVICE DIRECT ACCESS (DAX)
+> +M:     Dan Williams <dan.j.williams@intel.com>
+> +L:     linux-nvdimm@lists.01.org
+> +S:     Supported
+> +F:     drivers/dax/
+> +
 
+I guess I had a good run hiding from get_maintainers.pl...
 
-On 07/27/2017 08:54 AM, Dan Williams wrote:
-
->> At that point, would it make sense to expose these special
->> virtio-pmem areas to the guest in a slightly different way,
->> so the regions that need virtio flushing are not bound by
->> the regular driver, and the regular driver can continue to
->> work for memory regions that are backed by actual pmem in
->> the host?
-> 
-> Hmm, yes that could be feasible especially if it uses the ACPI NFIT
-> mechanism. It would basically involve defining a new SPA (System
-> Phyiscal Address) range GUID type, and then teaching libnvdimm to
-> treat that as a new pmem device type.
-
-I would prefer a new flush mechanism to a new memory type introduced
-to NFIT, e.g, in that mechanism we can define request queues and
-completion queues and any other features to make virtualization
-friendly. That would be much simpler.
-
+Applied for 4.15.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
