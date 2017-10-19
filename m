@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3462721F3B3E5
- for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 11:13:36 -0700 (PDT)
-Subject: [PATCH] libnvdimm: remove used code in nd_pmem_forget_poison_check()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 30 Oct 2017 11:17:26 -0700
-Message-ID: <150938744600.18848.5814902918600734916.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 7242B2034716E
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:04 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 08/17] dax: Inline dax_pmd_insert_mapping() into the callsite
+Date: Thu, 19 Oct 2017 14:58:07 +0200
+Message-Id: <20171019125817.11580-9-jack@suse.cz>
+In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
+References: <20171019125817.11580-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,50 +17,113 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dan.carpenter@oracle.com, linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Carpenter reported:
-The patch 006358b35c73: "libnvdimm: add support for clear poison list
-and badblocks for device dax" from Apr 7, 2017, leads to the
-following static checker warning:
+dax_pmd_insert_mapping() has only one callsite and we will need to
+further fine tune what it does for synchronous faults. Just inline it
+into the callsite so that we don't have to pass awkward bools around.
 
-	drivers/nvdimm/bus.c:852 nd_pmem_forget_poison_check()
-	warn: we tested 'nd_dax' before and it was 'false'
-
-
-Remove unused code.
-
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/bus.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/dax.c                      | 47 +++++++++++++++++--------------------------
+ include/trace/events/fs_dax.h |  1 -
+ 2 files changed, 19 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index baf2839..c042174 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -849,13 +849,11 @@ static int nd_pmem_forget_poison_check(struct device *dev, void *data)
- 	start = clear_err->address;
- 	end = clear_err->address + clear_err->cleared - 1;
+diff --git a/fs/dax.c b/fs/dax.c
+index 5b20c6456926..675fab8ec41f 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1235,33 +1235,11 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+ }
  
--	if (nd_btt || nd_pfn || nd_dax) {
-+	if (nd_btt || nd_pfn) {
- 		if (nd_btt)
- 			ndns = nd_btt->ndns;
- 		else if (nd_pfn)
- 			ndns = nd_pfn->ndns;
--		else if (nd_dax)
--			ndns = nd_dax->nd_pfn.ndns;
+ #ifdef CONFIG_FS_DAX_PMD
+-static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
+-		loff_t pos, void *entry)
+-{
+-	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+-	const sector_t sector = dax_iomap_sector(iomap, pos);
+-	struct inode *inode = mapping->host;
+-	void *ret = NULL;
+-	pfn_t pfn = {};
+-	int rc;
+-
+-	rc = dax_iomap_pfn(iomap, pos, PMD_SIZE, &pfn);
+-	if (rc < 0)
+-		goto fallback;
+-
+-	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector,
+-			RADIX_DAX_PMD);
+-	if (IS_ERR(ret))
+-		goto fallback;
+-
+-	trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, ret);
+-	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd,
+-			pfn, vmf->flags & FAULT_FLAG_WRITE);
+-
+-fallback:
+-	trace_dax_pmd_insert_mapping_fallback(inode, vmf, PMD_SIZE, pfn, ret);
+-	return VM_FAULT_FALLBACK;
+-}
++/*
++ * The 'colour' (ie low bits) within a PMD of a page offset.  This comes up
++ * more often than one might expect in the below functions.
++ */
++#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
  
- 		if (!ndns)
- 			return 0;
+ static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
+ 		void *entry)
+@@ -1317,6 +1295,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
+ 	void *entry;
+ 	loff_t pos;
+ 	int error;
++	pfn_t pfn;
+ 
+ 	/*
+ 	 * Check whether offset isn't beyond end of file now. Caller is
+@@ -1394,7 +1373,19 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
+ 
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+-		result = dax_pmd_insert_mapping(vmf, &iomap, pos, entry);
++		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
++		if (error < 0)
++			goto finish_iomap;
++
++		entry = dax_insert_mapping_entry(mapping, vmf, entry,
++						dax_iomap_sector(&iomap, pos),
++						RADIX_DAX_PMD);
++		if (IS_ERR(entry))
++			goto finish_iomap;
++
++		trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
++		result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
++					    write);
+ 		break;
+ 	case IOMAP_UNWRITTEN:
+ 	case IOMAP_HOLE:
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index fbc4a06f7310..88a9d19b8ff8 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -148,7 +148,6 @@ DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
+ 	TP_ARGS(inode, vmf, length, pfn, radix_entry))
+ 
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
+-DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
+ 
+ DECLARE_EVENT_CLASS(dax_pte_fault_class,
+ 	TP_PROTO(struct inode *inode, struct vm_fault *vmf, int result),
+-- 
+2.12.3
 
 _______________________________________________
 Linux-nvdimm mailing list
