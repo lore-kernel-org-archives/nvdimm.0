@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3F0F421F3C185
- for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 17:50:30 -0700 (PDT)
-Subject: [PATCH v9 5/6] fs, xfs, iomap: introduce break_layout_nowait()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 11 Oct 2017 17:47:35 -0700
-Message-ID: <150776925510.9144.2117153288971353589.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id F416020347160
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:02 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 07/17] dax: Inline dax_insert_mapping() into the callsite
+Date: Thu, 19 Oct 2017 14:58:06 +0200
+Message-Id: <20171019125817.11580-8-jack@suse.cz>
+In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
+References: <20171019125817.11580-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,92 +17,99 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: linux-fsdevel@vger.kernel.org
+Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for using FL_LAYOUT leases to allow coordination between
-the kernel and processes doing userspace flushes / RDMA with DAX
-mappings, add this helper that can be used to start the lease break
-process in contexts where we can not sleep waiting for the lease break
-timeout.
+dax_insert_mapping() has only one callsite and we will need to further
+fine tune what it does for synchronous faults. Just inline it into the
+callsite so that we don't have to pass awkward bools around.
 
-This is targeted to be used in an ->iomap_begin() implementation where
-we may have various filesystem locks held and can not synchronously wait
-for any FL_LAYOUT leases to be released. In particular an iomap mmap
-fault handler running under mmap_sem can not unlock that semaphore and
-wait for these leases to be unlocked. Instead, this signals the lease
-holder(s) that a break is requested and immediately returns with an
-error.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/xfs/xfs_iomap.c  |    3 +++
- fs/xfs/xfs_layout.c |    5 ++++-
- include/linux/fs.h  |    9 +++++++++
- 3 files changed, 16 insertions(+), 1 deletion(-)
+ fs/dax.c | 46 +++++++++++++++++++---------------------------
+ 1 file changed, 19 insertions(+), 27 deletions(-)
 
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index f179bdf1644d..840e4080afb5 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -1055,6 +1055,9 @@ xfs_file_iomap_begin(
- 			error = -EAGAIN;
- 			goto out_unlock;
+diff --git a/fs/dax.c b/fs/dax.c
+index 5ea71381dba0..5b20c6456926 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -858,32 +858,6 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ 	return rc;
+ }
+ 
+-static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
+-			      loff_t pos, void *entry)
+-{
+-	const sector_t sector = dax_iomap_sector(iomap, pos);
+-	struct vm_area_struct *vma = vmf->vma;
+-	struct address_space *mapping = vma->vm_file->f_mapping;
+-	unsigned long vaddr = vmf->address;
+-	void *ret;
+-	int rc;
+-	pfn_t pfn;
+-
+-	rc = dax_iomap_pfn(iomap, pos, PAGE_SIZE, &pfn);
+-	if (rc < 0)
+-		return rc;
+-
+-	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector, 0);
+-	if (IS_ERR(ret))
+-		return PTR_ERR(ret);
+-
+-	trace_dax_insert_mapping(mapping->host, vmf, ret);
+-	if (vmf->flags & FAULT_FLAG_WRITE)
+-		return vm_insert_mixed_mkwrite(vma, vaddr, pfn);
+-	else
+-		return vm_insert_mixed(vma, vaddr, pfn);
+-}
+-
+ /*
+  * The user has performed a load from a hole in the file.  Allocating a new
+  * page in the file would cause excessive storage usage for workloads with
+@@ -1119,6 +1093,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	int vmf_ret = 0;
+ 	void *entry;
++	pfn_t pfn;
+ 
+ 	trace_dax_pte_fault(inode, vmf, vmf_ret);
+ 	/*
+@@ -1201,7 +1176,24 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+ 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
+ 			major = VM_FAULT_MAJOR;
  		}
-+		error = break_layout_nowait(inode);
-+		if (error)
-+			goto out_unlock;
- 		/*
- 		 * We cap the maximum length we map here to MAX_WRITEBACK_PAGES
- 		 * pages to keep the chunks of work done where somewhat symmetric
-diff --git a/fs/xfs/xfs_layout.c b/fs/xfs/xfs_layout.c
-index 71d95e1a910a..7a633b6e9397 100644
---- a/fs/xfs/xfs_layout.c
-+++ b/fs/xfs/xfs_layout.c
-@@ -19,7 +19,10 @@
-  * about exposing unallocated blocks but just want to provide basic
-  * synchronization between a local writer and pNFS clients.  mmap writes would
-  * also benefit from this sort of synchronization, but due to the tricky locking
-- * rules in the page fault path we don't bother.
-+ * rules in the page fault path all we can do is start the lease break
-+ * timeout. See usage of break_layout_nowait in xfs_file_iomap_begin to
-+ * prevent write-faults from allocating blocks or performing extent
-+ * conversion.
-  */
- int
- xfs_break_layouts(
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 17e0e899e184..2b030a2fccc7 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2364,6 +2364,15 @@ static inline int break_layout(struct inode *inode, bool wait)
- 
- #endif /* CONFIG_FILE_LOCKING */
- 
-+/*
-+ * For use in paths where we can not wait for the layout to be recalled,
-+ * for example when we are holding mmap_sem.
-+ */
-+static inline int break_layout_nowait(struct inode *inode)
-+{
-+	return break_layout(inode, false);
-+}
+-		error = dax_insert_mapping(vmf, &iomap, pos, entry);
++		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
++		if (error < 0)
++			goto error_finish_iomap;
 +
- /* fs/open.c */
- struct audit_names;
- struct filename {
++		entry = dax_insert_mapping_entry(mapping, vmf, entry,
++						 dax_iomap_sector(&iomap, pos),
++						 0);
++		if (IS_ERR(entry)) {
++			error = PTR_ERR(entry);
++			goto error_finish_iomap;
++		}
++
++		trace_dax_insert_mapping(inode, vmf, entry);
++		if (write)
++			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
++		else
++			error = vm_insert_mixed(vma, vaddr, pfn);
++
+ 		/* -EBUSY is fine, somebody else faulted on the same PTE */
+ 		if (error == -EBUSY)
+ 			error = 0;
+-- 
+2.12.3
 
 _______________________________________________
 Linux-nvdimm mailing list
