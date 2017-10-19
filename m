@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 395FD21EA15C8
- for <linux-nvdimm@lists.01.org>; Thu,  5 Oct 2017 18:52:53 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 4/8] ccan/list: add a list_add_after helper
-Date: Thu,  5 Oct 2017 19:54:01 -0600
-Message-Id: <20171006015405.29908-5-vishal.l.verma@intel.com>
-In-Reply-To: <20171006015405.29908-1-vishal.l.verma@intel.com>
-References: <20171006015405.29908-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EFF8620347176
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:05 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 12/17] mm: Define MAP_SYNC and VM_SYNC flags
+Date: Thu, 19 Oct 2017 14:58:11 +0200
+Message-Id: <20171019125817.11580-13-jack@suse.cz>
+In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
+References: <20171019125817.11580-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,63 +22,96 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org
+Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the error-inject command, add anew helper to
-ccan/list for adding a list element in the middle of a list.
+Define new MAP_SYNC flag and corresponding VMA VM_SYNC flag. As the
+MAP_SYNC flag is not part of LEGACY_MAP_MASK, currently it will be
+refused by all MAP_SHARED_VALIDATE map attempts and silently ignored for
+everything else.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- ccan/list/list.h | 32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ fs/proc/task_mmu.c              | 1 +
+ include/linux/mm.h              | 1 +
+ include/linux/mman.h            | 8 ++++++--
+ include/uapi/asm-generic/mman.h | 1 +
+ 4 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/ccan/list/list.h b/ccan/list/list.h
-index 4d1d34e..e6ecfa3 100644
---- a/ccan/list/list.h
-+++ b/ccan/list/list.h
-@@ -193,6 +193,38 @@ static inline void list_add_tail_(struct list_head *h,
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index 5589b4bd4b85..ea78b37deeaa 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -664,6 +664,7 @@ static void show_smap_vma_flags(struct seq_file *m, struct vm_area_struct *vma)
+ 		[ilog2(VM_ACCOUNT)]	= "ac",
+ 		[ilog2(VM_NORESERVE)]	= "nr",
+ 		[ilog2(VM_HUGETLB)]	= "ht",
++		[ilog2(VM_SYNC)]	= "sf",
+ 		[ilog2(VM_ARCH_1)]	= "ar",
+ 		[ilog2(VM_WIPEONFORK)]	= "wf",
+ 		[ilog2(VM_DONTDUMP)]	= "dd",
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ca72b67153d5..5411cb7442de 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -189,6 +189,7 @@ extern unsigned int kobjsize(const void *objp);
+ #define VM_ACCOUNT	0x00100000	/* Is a VM accounted object */
+ #define VM_NORESERVE	0x00200000	/* should the VM suppress accounting */
+ #define VM_HUGETLB	0x00400000	/* Huge TLB Page VM */
++#define VM_SYNC		0x00800000	/* Synchronous page faults */
+ #define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
+ #define VM_WIPEONFORK	0x02000000	/* Wipe VMA contents in child. */
+ #define VM_DONTDUMP	0x04000000	/* Do not include in the core dump */
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index 94b63b4d71ff..8f7cc87828e6 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -9,7 +9,7 @@
+ 
+ /*
+  * Arrange for legacy / undefined architecture specific flags to be
+- * ignored by default in LEGACY_MAP_MASK.
++ * ignored by mmap handling code.
+  */
+ #ifndef MAP_32BIT
+ #define MAP_32BIT 0
+@@ -23,6 +23,9 @@
+ #ifndef MAP_UNINITIALIZED
+ #define MAP_UNINITIALIZED 0
+ #endif
++#ifndef MAP_SYNC
++#define MAP_SYNC 0
++#endif
+ 
+ /*
+  * The historical set of flags that all mmap implementations implicitly
+@@ -125,7 +128,8 @@ calc_vm_flag_bits(unsigned long flags)
+ {
+ 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
+ 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
+-	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
++	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    ) |
++	       _calc_vm_trans(flags, MAP_SYNC,	     VM_SYNC      );
  }
  
- /**
-+ * list_add_after - add an entry after the given node in the linked list.
-+ * @h: the list_head to add the node to
-+ * @l: the list_node after which to add to
-+ * @n: the list_node to add to the list.
-+ *
-+ * The list_node does not need to be initialized; it will be overwritten.
-+ * Example:
-+ *	struct child *child = malloc(sizeof(*child));
-+ *
-+ *	child->name = "geoffrey";
-+ *	list_add_after(&parent->children, &child1->list, &child->list);
-+ *	parent->num_children++;
-+ */
-+#define list_add_after(h, l, n) list_add_after_(h, l, n, LIST_LOC)
-+static inline void list_add_after_(struct list_head *h,
-+				   struct list_node *l,
-+				   struct list_node *n,
-+				   const char *abortstr)
-+{
-+	if (l->next == &h->n) {
-+		/* l is the last element, this becomes a list_add_tail */
-+		list_add_tail(h, n);
-+		return;
-+	}
-+	n->next = l->next;
-+	n->prev = l;
-+	l->next->prev = n;
-+	l->next = n;
-+	(void)list_debug(h, abortstr);
-+}
-+
-+/**
-  * list_empty - is a list empty?
-  * @h: the list_head
-  *
+ unsigned long vm_commit_limit(void);
+diff --git a/include/uapi/asm-generic/mman.h b/include/uapi/asm-generic/mman.h
+index 7162cd4cca73..00e55627d2df 100644
+--- a/include/uapi/asm-generic/mman.h
++++ b/include/uapi/asm-generic/mman.h
+@@ -12,6 +12,7 @@
+ #define MAP_NONBLOCK	0x10000		/* do not block on IO */
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
++#define MAP_SYNC	0x80000		/* perform synchronous page faults for the mapping */
+ 
+ /* Bits [26:31] are reserved, see mman-common.h for MAP_HUGETLB usage */
+ 
 -- 
-2.9.5
+2.12.3
 
 _______________________________________________
 Linux-nvdimm mailing list
