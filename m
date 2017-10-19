@@ -2,13 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0175120347163
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:02 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id BC57F21EA15C4
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:04 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 11/17] dax: Allow tuning whether dax_insert_mapping_entry()
- dirties entry
-Date: Thu, 19 Oct 2017 14:58:10 +0200
-Message-Id: <20171019125817.11580-12-jack@suse.cz>
+Subject: [PATCH 13/17] dax, iomap: Add support for synchronous faults
+Date: Thu, 19 Oct 2017 14:58:12 +0200
+Message-Id: <20171019125817.11580-14-jack@suse.cz>
 In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
 References: <20171019125817.11580-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -27,84 +26,152 @@ To: linux-fsdevel@vger.kernel.org
 Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we dirty radix tree entry whenever dax_insert_mapping_entry()
-gets called for a write fault. With synchronous page faults we would
-like to insert clean radix tree entry and dirty it only once we call
-fdatasync() and update page tables to save some unnecessary cache
-flushing. Add 'dirty' argument to dax_insert_mapping_entry() for that.
+Add a flag to iomap interface informing the caller that inode needs
+fdstasync(2) for returned extent to become persistent and use it in DAX
+fault code so that we don't map such extents into page tables
+immediately. Instead we propagate the information that fdatasync(2) is
+necessary from dax_iomap_fault() with a new VM_FAULT_NEEDDSYNC flag.
+Filesystem fault handler is then responsible for calling fdatasync(2)
+and inserting pfn into page tables.
 
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/dax.c              | 39 +++++++++++++++++++++++++++++++++++++--
+ include/linux/iomap.h |  1 +
+ include/linux/mm.h    |  6 +++++-
+ 3 files changed, 43 insertions(+), 3 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 5ddf15161390..efc210ff6665 100644
+index efc210ff6665..bb9ff907738c 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -526,13 +526,13 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- static void *dax_insert_mapping_entry(struct address_space *mapping,
- 				      struct vm_fault *vmf,
- 				      void *entry, sector_t sector,
--				      unsigned long flags)
-+				      unsigned long flags, bool dirty)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
- 	void *new_entry;
- 	pgoff_t index = vmf->pgoff;
- 
--	if (vmf->flags & FAULT_FLAG_WRITE)
-+	if (dirty)
- 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 
- 	if (dax_is_zero_entry(entry) && !(flags & RADIX_DAX_ZERO_PAGE)) {
-@@ -569,7 +569,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 		entry = new_entry;
+@@ -1091,6 +1091,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	unsigned flags = IOMAP_FAULT;
+ 	int error, major = 0;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
++	bool sync;
+ 	int vmf_ret = 0;
+ 	void *entry;
+ 	pfn_t pfn;
+@@ -1169,6 +1170,8 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		goto finish_iomap;
  	}
  
--	if (vmf->flags & FAULT_FLAG_WRITE)
-+	if (dirty)
- 		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
- 
- 	spin_unlock_irq(&mapping->tree_lock);
-@@ -881,7 +881,7 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
- 	}
- 
- 	entry2 = dax_insert_mapping_entry(mapping, vmf, entry, 0,
--			RADIX_DAX_ZERO_PAGE);
-+			RADIX_DAX_ZERO_PAGE, false);
- 	if (IS_ERR(entry2)) {
- 		ret = VM_FAULT_SIGBUS;
- 		goto out;
-@@ -1182,7 +1182,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
++	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
++
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+ 		if (iomap.flags & IOMAP_F_NEW) {
+@@ -1182,12 +1185,27 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
  
  		entry = dax_insert_mapping_entry(mapping, vmf, entry,
  						 dax_iomap_sector(&iomap, pos),
--						 0);
-+						 0, write);
+-						 0, write);
++						 0, write && !sync);
  		if (IS_ERR(entry)) {
  			error = PTR_ERR(entry);
  			goto error_finish_iomap;
-@@ -1258,7 +1258,7 @@ static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
- 		goto fallback;
+ 		}
  
- 	ret = dax_insert_mapping_entry(mapping, vmf, entry, 0,
--			RADIX_DAX_PMD | RADIX_DAX_ZERO_PAGE);
-+			RADIX_DAX_PMD | RADIX_DAX_ZERO_PAGE, false);
- 	if (IS_ERR(ret))
- 		goto fallback;
++		/*
++		 * If we are doing synchronous page fault and inode needs fsync,
++		 * we can insert PTE into page tables only after that happens.
++		 * Skip insertion for now and return the pfn so that caller can
++		 * insert it after fsync is done.
++		 */
++		if (sync) {
++			if (WARN_ON_ONCE(!pfnp)) {
++				error = -EIO;
++				goto error_finish_iomap;
++			}
++			*pfnp = pfn;
++			vmf_ret = VM_FAULT_NEEDDSYNC | major;
++			goto finish_iomap;
++		}
+ 		trace_dax_insert_mapping(inode, vmf, entry);
+ 		if (write)
+ 			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
+@@ -1287,6 +1305,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
++	bool sync;
+ 	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
+ 	struct inode *inode = mapping->host;
+ 	int result = VM_FAULT_FALLBACK;
+@@ -1371,6 +1390,8 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
+ 		goto finish_iomap;
  
-@@ -1379,7 +1379,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
++	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
++
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+ 		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
+@@ -1379,10 +1400,24 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
  
  		entry = dax_insert_mapping_entry(mapping, vmf, entry,
  						dax_iomap_sector(&iomap, pos),
--						RADIX_DAX_PMD);
-+						RADIX_DAX_PMD, write);
+-						RADIX_DAX_PMD, write);
++						RADIX_DAX_PMD, write && !sync);
  		if (IS_ERR(entry))
  			goto finish_iomap;
  
++		/*
++		 * If we are doing synchronous page fault and inode needs fsync,
++		 * we can insert PMD into page tables only after that happens.
++		 * Skip insertion for now and return the pfn so that caller can
++		 * insert it after fsync is done.
++		 */
++		if (sync) {
++			if (WARN_ON_ONCE(!pfnp))
++				goto finish_iomap;
++			*pfnp = pfn;
++			result = VM_FAULT_NEEDDSYNC;
++			goto finish_iomap;
++		}
++
+ 		trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
+ 		result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
+ 					    write);
+diff --git a/include/linux/iomap.h b/include/linux/iomap.h
+index f64dc6ce5161..4bc0a6fe3b15 100644
+--- a/include/linux/iomap.h
++++ b/include/linux/iomap.h
+@@ -22,6 +22,7 @@ struct vm_fault;
+  * Flags for all iomap mappings:
+  */
+ #define IOMAP_F_NEW	0x01	/* blocks have been newly allocated */
++#define IOMAP_F_DIRTY	0x02	/* block mapping is not yet on persistent storage */
+ 
+ /*
+  * Flags that only need to be reported for IOMAP_REPORT requests:
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 5411cb7442de..f57e55782d7d 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1182,6 +1182,9 @@ static inline void clear_page_pfmemalloc(struct page *page)
+ #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
+ #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
+ #define VM_FAULT_DONE_COW   0x1000	/* ->fault has fully handled COW */
++#define VM_FAULT_NEEDDSYNC  0x2000	/* ->fault did not modify page tables
++					 * and needs fsync() to complete (for
++					 * synchronous page faults in DAX) */
+ 
+ #define VM_FAULT_ERROR	(VM_FAULT_OOM | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | \
+ 			 VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE | \
+@@ -1199,7 +1202,8 @@ static inline void clear_page_pfmemalloc(struct page *page)
+ 	{ VM_FAULT_LOCKED,		"LOCKED" }, \
+ 	{ VM_FAULT_RETRY,		"RETRY" }, \
+ 	{ VM_FAULT_FALLBACK,		"FALLBACK" }, \
+-	{ VM_FAULT_DONE_COW,		"DONE_COW" }
++	{ VM_FAULT_DONE_COW,		"DONE_COW" }, \
++	{ VM_FAULT_NEEDDSYNC,		"NEEDDSYNC" }
+ 
+ /* Encode hstate index for a hwpoisoned large page */
+ #define VM_FAULT_SET_HINDEX(x) ((x) << 12)
 -- 
 2.12.3
 
