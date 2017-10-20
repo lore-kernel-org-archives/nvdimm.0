@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x242.google.com (mail-oi0-x242.google.com
+ [IPv6:2607:f8b0:4003:c06::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 946C421F7D4EF
- for <linux-nvdimm@lists.01.org>; Thu, 12 Oct 2017 17:08:48 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 5/6] ndctl/test: update existing unit tests to use
- inject-error
-Date: Thu, 12 Oct 2017 18:10:03 -0600
-Message-Id: <20171013001004.14963-6-vishal.l.verma@intel.com>
-In-Reply-To: <20171013001004.14963-1-vishal.l.verma@intel.com>
-References: <20171013001004.14963-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5B49220347146
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 17:05:40 -0700 (PDT)
+Received: by mail-oi0-x242.google.com with SMTP id v9so17659086oif.13
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 17:09:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20171018182155.6054-1-ross.zwisler@linux.intel.com>
+References: <CAPcyv4gNYekwo1DQ9fOCzdtixvAUn5YnZY0wKfxQaeRppwdUPQ@mail.gmail.com>
+ <20171018182155.6054-1-ross.zwisler@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 19 Oct 2017 17:09:18 -0700
+Message-ID: <CAPcyv4hzQ1Zscy2qkxuc2AG8yEueT2mQhV1q8uCu0Gpjhekk8w@mail.gmail.com>
+Subject: Re: [PATCH v2] dev/dax: fix uninitialized variable build warning
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,108 +22,44 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until now, various unit tests related to error handling used to expect
-'canned' errors to be present in the middle of every nfit_test
-namespace. With the ACPI error injection patches for nfit_test, this is
-no longer the case. Update the existing unit tests it inject any errors
-they need for testing themselves using inject-error, rather than
-expecting canned errors.
+On Wed, Oct 18, 2017 at 11:21 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Fix this build warning:
+>
+> warning: 'phys' may be used uninitialized in this function
+> [-Wuninitialized]
+>
+> As reported here:
+>
+> https://lkml.org/lkml/2017/10/16/152
+> http://kisskb.ellerman.id.au/kisskb/buildresult/13181373/log/
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  drivers/dax/device.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index e9f3b3e..6833ada 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -222,7 +222,8 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+>                 unsigned long size)
+>  {
+>         struct resource *res;
+> -       phys_addr_t phys;
+> +       /* gcc-4.6.3-nolibc for i386 complains that this is uninitialized */
+> +       phys_addr_t uninitialized_var(phys);
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/clear.sh         |  5 ++++-
- test/dax-errors.sh    |  5 ++++-
- test/daxdev-errors.sh | 17 ++++++++++++++---
- 3 files changed, 22 insertions(+), 5 deletions(-)
-
-diff --git a/test/clear.sh b/test/clear.sh
-index a60c3d9..c22ff3b 100755
---- a/test/clear.sh
-+++ b/test/clear.sh
-@@ -54,7 +54,10 @@ eval $(echo $json | sed -e "$json2var")
- [ $dev = "x" ] && echo "fail: $LINENO" && exit 1
- [ $mode != "raw" ] && echo "fail: $LINENO" && exit 1
- 
--# check for expected errors in the middle of the namespace
-+# inject errors in the middle of the namespace, verify that reading fails
-+err_sector="$(((size/512) / 2))"
-+err_count=8
-+$NDCTL inject-error --block="$err_sector" --count=$err_count $dev
- read sector len < /sys/block/$blockdev/badblocks
- [ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && exit 1
- if dd if=/dev/$blockdev of=/dev/null iflag=direct bs=512 skip=$sector count=$len; then
-diff --git a/test/dax-errors.sh b/test/dax-errors.sh
-index 5af3859..02bbca8 100755
---- a/test/dax-errors.sh
-+++ b/test/dax-errors.sh
-@@ -64,7 +64,10 @@ eval $(echo $json | sed -e "$json2var")
- [ $dev = "x" ] && echo "fail: $LINENO" && exit 1
- [ $mode != "raw" ] && echo "fail: $LINENO" && exit 1
- 
--# check for expected errors in the middle of the namespace
-+# inject errors in the middle of the namespace, verify that reading fails
-+err_sector="$(((size/512) / 2))"
-+err_count=8
-+$NDCTL inject-error --block="$err_sector" --count=$err_count $dev
- read sector len < /sys/block/$blockdev/badblocks
- [ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && exit 1
- if dd if=/dev/$blockdev of=/dev/null iflag=direct bs=512 skip=$sector count=$len; then
-diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
-index 8115087..e9d9d57 100755
---- a/test/daxdev-errors.sh
-+++ b/test/daxdev-errors.sh
-@@ -37,6 +37,7 @@ check_min_kver "4.12" || { echo "kernel $KVER lacks dax dev error handling"; exi
- 
- set -e
- trap 'err $LINENO' ERR
-+rc=1
- 
- # setup (reset nfit_test dimms)
- modprobe nfit_test
-@@ -68,18 +69,28 @@ chardev=$(echo $json | jq ". | select(.mode == \"dax\") | .daxregion.devices[0].
- #  }
- #}
- 
-+json1=$($NDCTL list $BUS --mode=dax --namespaces)
-+eval $(echo $json1 | sed -e "$json2var")
-+nsdev=$dev
-+
- json1=$($NDCTL list $BUS)
- eval $(echo $json1 | sed -e "$json2var")
-+busdev=$dev
-+
-+# inject errors in the middle of the namespace
-+err_sector="$(((size/512) / 2))"
-+err_count=8
-+$NDCTL inject-error --block="$err_sector" --count=$err_count $nsdev
- 
--read sector len < /sys/bus/platform/devices/nfit_test.0/$dev/$region/badblocks
-+read sector len < /sys/bus/nd/devices/$region/badblocks
- echo "sector: $sector len: $len"
- 
- # run the daxdev-errors test
- test -x ./daxdev-errors
--./daxdev-errors $dev $region
-+./daxdev-errors $busdev $region
- 
- # check badblocks, should be empty
--if read sector len < /sys/bus/platform/devices/nfit_test.0/$dev/$region/badblocks; then
-+if read sector len < /sys/bus/platform/devices/nfit_test.0/$busdev/$region/badblocks; then
- 	echo "badblocks empty, expected"
- fi
- [ -n "$sector" ] && echo "fail: $LINENO" && exit 1
--- 
-2.9.5
-
+Thanks Ross, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
