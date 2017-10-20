@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2F4B52034AB1A
- for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:24:13 -0700 (PDT)
-Subject: [PATCH 01/15] dax: quiet bdev_dax_supported()
+ by ml01.01.org (Postfix) with ESMTPS id 1A992202E60FB
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 19:41:48 -0700 (PDT)
+Subject: [PATCH v3 01/13] dax: quiet bdev_dax_supported()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 31 Oct 2017 16:21:40 -0700
-Message-ID: <150949210033.24061.4289855641340001687.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 19 Oct 2017 19:39:02 -0700
+Message-ID: <150846714231.24336.100401563090934098.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,8 +22,8 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+To: akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
 Before we add another failure reason, quiet the existing log messages.
