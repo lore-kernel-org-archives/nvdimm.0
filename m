@@ -1,11 +1,23 @@
-From: =?utf-8?B?5p2t55ip?= <oqv-UXrTDzHQSTnk1uMJSBkQmQ@public.gmane.org>
-Subject: =?utf-8?B?IOi9rOWPke+8muWmguS9leino+WGs+mUgCrllK7jgJDluLjop4Hpl67popjjgJE=?=
-Date: Fri, 20 Oct 2017 14:08:29 +0800
-Message-ID: <8D0FDC5EFD4BEB01F7C368BAF5E7290A@ibwygirv.net>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [Qemu-devel] [RFC 2/2] KVM: add virtio-pmem driver
+Date: Fri, 20 Oct 2017 01:00:49 -0700
+Message-ID: <20171020080049.GA25471@infradead.org>
+References: <20171012155027.3277-1-pagupta@redhat.com>
+ <20171012155027.3277-3-pagupta@redhat.com>
+ <20171017071633.GA9207@infradead.org>
+ <1441791227.21027037.1508226056893.JavaMail.zimbra@redhat.com>
+ <20171017080236.GA27649@infradead.org>
+ <670833322.21037148.1508229041158.JavaMail.zimbra@redhat.com>
+ <20171018130339.GB29767@stefanha-x1.localdomain>
+ <CAPcyv4h6aFkyHhh4R4DTznbSCLf9CuBoszk0Q1gB5EKNcp_SeQ@mail.gmail.com>
+ <20171019080149.GB10089@infradead.org>
+ <CAPcyv4j=Cdp68C15HddKaErpve2UGRfSTiL6bHiS=3gQybz9pg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4j=Cdp68C15HddKaErpve2UGRfSTiL6bHiS=3gQybz9pg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,22 +27,27 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, xiaoguangrong eric <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stefan Hajnoczi <stefanha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, ross zwisler <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-5aaC5L2V6Kej5Yaz44CQ5bi46KeB6Zeu6aKY44CRDQpsICDkuJrnu6nljovlipvlpKfvvIzkvYbo
-poHmj5DljYfkuJrnu6nlj4jop4nlvpfml6Dku47kuIvmiYvvvIzmgI7kuYjlip7vvJ8NCmwgIOaK
-peS7t+WQjuWuouaIt+WwseayoeacieWbnuW6lOS6hu+8jOaAjuS5iOWKnu+8nw0KbCAg5a6i5oi3
-5ou/552A5oiR5Lus55qE5oql5Lu35LiO5Yir5Lq65q+U77yM6K+05oiR5Lus55qE5Lu35qC86LS1
-77yM5oCO5LmI5Yqe77yfDQpsICDkuI7lrqLmiLfogZTnu5zkuIDmrrXml7bpl7TkuobvvIzkvYbl
-rqLmiLfkuIDnm7TkuI3kuIvljZXvvIzmgI7kuYjlip7vvJ8NCmwgIOaPkOS+m+agt+WTgee7meWu
-ouaIt+a1i+ivleWQju+8jOWuouaIt+WwseS4jeeQhuaIkeS7rOS6hu+8jOaAjuS5iOWKnu+8nw0K
-bCAg5byA5Y+R6ZmM55Sf5a6i5oi35pe277yM5pyJ5rKh5pyJ5aW955qE5pa55rOV5YeP5bCR55S1
-6K+d5oiW6YKu5Lu255qE5ouS57ud546H77yfDQpsICDmlLbliLDlrqLmiLfnmoTor6Lnm5jlkI7v
-vIzorqTnnJ/liIbmnpDov4flrqLmiLfnmoTpnIDmsYLlubblm57lpI3kuobvvIzkvYblrqLmiLfl
-j43ppojnmoTlvojlsJHvvIzmgI7kuYjlip7vvJ8NCmwgIOWmguS9leaKiuiAgeWuouaIt+eahOa7
-oeaEj+W6pui9rOWMluS4uumUgOmHj++8nw0KDQoNCg0K6K+m57uGIOWGheWuuSDlj4LpmIUg6ZmE
-5Lu2IOWkp+e6sg0KDQrmna3nmKkNCjIwMTctMTAtMjAvMTQ6MDg6MzQKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlz
-dApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
-bGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Thu, Oct 19, 2017 at 11:21:26AM -0700, Dan Williams wrote:
+> The difference is that nvdimm_flush() is not mandatory, and that the
+> platform will automatically perform the same flush at power-fail.
+> Applications should be able to assume that if they are using MAP_SYNC
+> that no other coordination with the kernel or the hypervisor is
+> necessary.
+> 
+> Advertising this as a generic Persistent Memory range to the guest
+> means that the guest could theoretically use it with device-dax where
+> there is no driver or filesystem sync interface. The hypervisor will
+> be waiting for flush notifications and the guest will just issue cache
+> flushes and sfence instructions. So, as far as I can see we need to
+> differentiate this virtio-model from standard "Persistent Memory" to
+> the guest and remove the possibility of guests/applications making the
+> wrong assumption.
+
+So add a flag that it is not.  We already have the nd_volatile type,
+that is special.  For now only in Linux, but I think adding this type
+to the spec eventually would be very useful for efficiently exposing
+directly mappable device to VM guests.
