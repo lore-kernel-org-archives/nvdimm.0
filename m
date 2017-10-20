@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D4AAF21FC748C
- for <linux-nvdimm@lists.01.org>; Fri,  6 Oct 2017 15:38:28 -0700 (PDT)
-Subject: [PATCH v7 02/12] fs, mm: pass fd to ->mmap_validate()
+ by ml01.01.org (Postfix) with ESMTPS id C52F5202E60FB
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 19:42:54 -0700 (PDT)
+Subject: [PATCH v3 13/13] xfs: wire up FL_ALLOCATED support
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 06 Oct 2017 15:35:27 -0700
-Message-ID: <150732932763.22363.2605808989118835376.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 19 Oct 2017 19:40:08 -0700
+Message-ID: <150846720846.24336.10565514769202466327.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,13 +22,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: akpm@linux-foundation.org
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@poochiereds.net>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The MAP_DIRECT mechanism for mmap intends to use a file lease to prevent
-block map changes while the file is mapped. It requires the fd to setup
-an fasync_struct for signalling lease break events to the lease holder.
+Before xfs can be sure that it is safe to truncate it needs to hold
+XFS_MMAP_LOCK_EXCL and flush any FL_ALLOCATED leases.  Introduce
+xfs_break_allocated() modeled after xfs_break_layouts() for use in the
+file space deletion path.
+
+We also use a new address_space_operation for the fs/dax core to
+coordinate reaping these leases in the case where there is no active
+truncate process to reap them.
 
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jeff Moyer <jmoyer@redhat.com>
@@ -36,260 +41,209 @@ Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jeff Layton <jlayton@poochiereds.net>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/mips/kernel/vdso.c |    2 +-
- arch/tile/mm/elf.c      |    2 +-
- arch/x86/mm/mpx.c       |    3 ++-
- fs/aio.c                |    2 +-
- include/linux/fs.h      |    2 +-
- include/linux/mm.h      |    9 +++++----
- ipc/shm.c               |    3 ++-
- mm/internal.h           |    2 +-
- mm/mmap.c               |   13 +++++++------
- mm/nommu.c              |    5 +++--
- mm/util.c               |    7 ++++---
- 11 files changed, 28 insertions(+), 22 deletions(-)
+ fs/xfs/xfs_aops.c  |   24 ++++++++++++++++++++
+ fs/xfs/xfs_file.c  |   64 ++++++++++++++++++++++++++++++++++++++++++++++++----
+ fs/xfs/xfs_inode.h |    1 +
+ fs/xfs/xfs_ioctl.c |    7 ++----
+ 4 files changed, 86 insertions(+), 10 deletions(-)
 
-diff --git a/arch/mips/kernel/vdso.c b/arch/mips/kernel/vdso.c
-index cf10654477a9..ab26c7ac0316 100644
---- a/arch/mips/kernel/vdso.c
-+++ b/arch/mips/kernel/vdso.c
-@@ -110,7 +110,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
- 	base = mmap_region(NULL, STACK_TOP, PAGE_SIZE,
- 			   VM_READ|VM_WRITE|VM_EXEC|
- 			   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
--			   0, NULL, 0);
-+			   0, NULL, 0, -1);
- 	if (IS_ERR_VALUE(base)) {
- 		ret = base;
- 		goto out;
-diff --git a/arch/tile/mm/elf.c b/arch/tile/mm/elf.c
-index 5ffcbe76aef9..61a9588e141a 100644
---- a/arch/tile/mm/elf.c
-+++ b/arch/tile/mm/elf.c
-@@ -144,7 +144,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm,
- 		addr = mmap_region(NULL, addr, INTRPT_SIZE,
- 				   VM_READ|VM_EXEC|
- 				   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC, 0,
--				   NULL, 0);
-+				   NULL, 0, -1);
- 		if (addr > (unsigned long) -PAGE_SIZE)
- 			retval = (int) addr;
- 	}
-diff --git a/arch/x86/mm/mpx.c b/arch/x86/mm/mpx.c
-index 9ceaa955d2ba..a8baa94a496b 100644
---- a/arch/x86/mm/mpx.c
-+++ b/arch/x86/mm/mpx.c
-@@ -52,7 +52,8 @@ static unsigned long mpx_mmap(unsigned long len)
- 
- 	down_write(&mm->mmap_sem);
- 	addr = do_mmap(NULL, 0, len, PROT_READ | PROT_WRITE,
--		       MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate, NULL);
-+			MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate,
-+			NULL, -1);
- 	up_write(&mm->mmap_sem);
- 	if (populate)
- 		mm_populate(addr, populate);
-diff --git a/fs/aio.c b/fs/aio.c
-index 5a2487217072..d10ca6db2ee6 100644
---- a/fs/aio.c
-+++ b/fs/aio.c
-@@ -519,7 +519,7 @@ static int aio_setup_ring(struct kioctx *ctx, unsigned int nr_events)
- 
- 	ctx->mmap_base = do_mmap_pgoff(ctx->aio_ring_file, 0, ctx->mmap_size,
- 				       PROT_READ | PROT_WRITE,
--				       MAP_SHARED, 0, &unused, NULL);
-+				       MAP_SHARED, 0, &unused, NULL, -1);
- 	up_write(&mm->mmap_sem);
- 	if (IS_ERR((void *)ctx->mmap_base)) {
- 		ctx->mmap_size = 0;
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 51538958f7f5..c2b9bf3dc4e9 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1702,7 +1702,7 @@ struct file_operations {
- 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *);
- 	int (*mmap_validate) (struct file *, struct vm_area_struct *,
--			unsigned long);
-+			unsigned long, int);
- 	int (*open) (struct inode *, struct file *);
- 	int (*flush) (struct file *, fl_owner_t id);
- 	int (*release) (struct inode *, struct file *);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 5c4c98e4adc9..0afa19feb755 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2133,11 +2133,11 @@ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned lo
- 
- extern unsigned long mmap_region(struct file *file, unsigned long addr,
- 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--	struct list_head *uf, unsigned long map_flags);
-+	struct list_head *uf, unsigned long map_flags, int fd);
- extern unsigned long do_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot, unsigned long flags,
- 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
--	struct list_head *uf);
-+	struct list_head *uf, int fd);
- extern int do_munmap(struct mm_struct *, unsigned long, size_t,
- 		     struct list_head *uf);
- 
-@@ -2145,9 +2145,10 @@ static inline unsigned long
- do_mmap_pgoff(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot, unsigned long flags,
- 	unsigned long pgoff, unsigned long *populate,
--	struct list_head *uf)
-+	struct list_head *uf, int fd)
- {
--	return do_mmap(file, addr, len, prot, flags, 0, pgoff, populate, uf);
-+	return do_mmap(file, addr, len, prot, flags, 0, pgoff, populate,
-+			uf, fd);
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index f18e5932aec4..00da08d0d6db 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1455,6 +1455,29 @@ xfs_vm_set_page_dirty(
+ 	return newly_dirty;
  }
  
- #ifdef CONFIG_MMU
-diff --git a/ipc/shm.c b/ipc/shm.c
-index 1e2b1692ba2c..585e05eef40a 100644
---- a/ipc/shm.c
-+++ b/ipc/shm.c
-@@ -1399,7 +1399,8 @@ long do_shmat(int shmid, char __user *shmaddr, int shmflg,
- 			goto invalid;
- 	}
++/*
++ * Reap any in-flight FL_ALLOCATE leases when the pages represented by
++ * that lease are no longer under dma. We hold XFS_MMAPLOCK_EXCL to
++ * synchronize with the file space deletion path that may be doing the
++ * same operation.
++ */
++static void
++xfs_vm_dax_flush_dma(
++	struct inode		*inode)
++{
++	uint			iolock = XFS_MMAPLOCK_EXCL;
++
++	/*
++	 * try to catch cases where the inode dax mode was changed
++	 * without first synchronizing leases
++	 */
++	WARN_ON_ONCE(!IS_DAX(inode));
++
++	xfs_ilock(XFS_I(inode), iolock);
++	xfs_break_allocated(inode, &iolock);
++	xfs_iunlock(XFS_I(inode), iolock);
++}
++
+ const struct address_space_operations xfs_address_space_operations = {
+ 	.readpage		= xfs_vm_readpage,
+ 	.readpages		= xfs_vm_readpages,
+@@ -1468,4 +1491,5 @@ const struct address_space_operations xfs_address_space_operations = {
+ 	.migratepage		= buffer_migrate_page,
+ 	.is_partially_uptodate  = block_is_partially_uptodate,
+ 	.error_remove_page	= generic_error_remove_page,
++	.dax_flush_dma		= xfs_vm_dax_flush_dma,
+ };
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index c6780743f8ec..5bc72f1da301 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -40,6 +40,7 @@
+ #include "xfs_iomap.h"
+ #include "xfs_reflink.h"
  
--	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate, NULL);
-+	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate,
-+			NULL, -1);
- 	*raddr = addr;
- 	err = 0;
- 	if (IS_ERR_VALUE(addr))
-diff --git a/mm/internal.h b/mm/internal.h
-index 1df011f62480..70ed7b06dd85 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -466,7 +466,7 @@ extern u32 hwpoison_filter_enable;
++#include <linux/dax.h>
+ #include <linux/dcache.h>
+ #include <linux/falloc.h>
+ #include <linux/pagevec.h>
+@@ -746,6 +747,39 @@ xfs_file_write_iter(
+ 	return ret;
+ }
  
- extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
-         unsigned long, unsigned long,
--        unsigned long, unsigned long);
-+        unsigned long, unsigned long, int);
++/*
++ * DAX breaks the traditional truncate model that assumes in-flight DMA
++ * to a file-backed page can continue until the final put of the page
++ * regardless of that page's relationship to the file. In the case of
++ * DAX the page has 1:1 relationship with filesytem blocks. We need to
++ * hold off truncate while any DMA might be in-flight. This assumes that
++ * all DMA usage is transient, any non-transient usages of
++ * get_user_pages must be disallowed for DAX files.
++ *
++ * This also unlocks FL_LAYOUT leases.
++ */
++int
++xfs_break_allocated(
++	struct inode		*inode,
++	uint			*iolock)
++{
++	struct xfs_inode	*ip = XFS_I(inode);
++	int			error;
++
++	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL
++				| XFS_MMAPLOCK_SHARED|XFS_MMAPLOCK_EXCL));
++
++	while ((error = break_allocated(inode, false) == -EWOULDBLOCK)) {
++		xfs_iunlock(ip, *iolock);
++		error = break_allocated(inode, true);
++		*iolock &= ~XFS_MMAPLOCK_SHARED|XFS_IOLOCK_SHARED;
++		*iolock |= XFS_MMAPLOCK_EXCL|XFS_IOLOCK_EXCL;
++		xfs_ilock(ip, *iolock);
++	}
++
++	return error;
++}
++
+ #define	XFS_FALLOC_FL_SUPPORTED						\
+ 		(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |		\
+ 		 FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_ZERO_RANGE |	\
+@@ -762,7 +796,7 @@ xfs_file_fallocate(
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	long			error;
+ 	enum xfs_prealloc_flags	flags = 0;
+-	uint			iolock = XFS_IOLOCK_EXCL;
++	uint			iolock = XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL;
+ 	loff_t			new_size = 0;
+ 	bool			do_file_insert = 0;
  
- extern void set_pageblock_order(void);
- unsigned long reclaim_clean_pages_from_list(struct zone *zone,
-diff --git a/mm/mmap.c b/mm/mmap.c
-index a1bcaa9eff42..c2cb6334a7a9 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1322,7 +1322,7 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			unsigned long len, unsigned long prot,
- 			unsigned long flags, vm_flags_t vm_flags,
- 			unsigned long pgoff, unsigned long *populate,
--			struct list_head *uf)
-+			struct list_head *uf, int fd)
- {
- 	struct mm_struct *mm = current->mm;
- 	int pkey = 0;
-@@ -1477,7 +1477,7 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			vm_flags |= VM_NORESERVE;
- 	}
+@@ -772,13 +806,10 @@ xfs_file_fallocate(
+ 		return -EOPNOTSUPP;
  
--	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags);
-+	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags, fd);
- 	if (!IS_ERR_VALUE(addr) &&
- 	    ((vm_flags & VM_LOCKED) ||
- 	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
-@@ -1527,7 +1527,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
+ 	xfs_ilock(ip, iolock);
+-	error = xfs_break_layouts(inode, &iolock);
++	error = xfs_break_allocated(inode, &iolock);
+ 	if (error)
+ 		goto out_unlock;
  
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
--	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
-+	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, fd);
- out_fput:
- 	if (file)
- 		fput(file);
-@@ -1614,7 +1614,7 @@ static inline int accountable_mapping(struct file *file, vm_flags_t vm_flags)
- 
- unsigned long mmap_region(struct file *file, unsigned long addr,
- 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--		struct list_head *uf, unsigned long map_flags)
-+		struct list_head *uf, unsigned long map_flags, int fd)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev;
-@@ -1700,7 +1700,8 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
- 		 */
- 		vma->vm_file = get_file(file);
- 		if ((map_flags & MAP_TYPE) == MAP_SHARED_VALIDATE)
--			error = file->f_op->mmap_validate(file, vma, map_flags);
-+			error = file->f_op->mmap_validate(file, vma,
-+					map_flags, fd);
- 		else
- 			error = call_mmap(file, vma);
+-	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+-	iolock |= XFS_MMAPLOCK_EXCL;
+-
+ 	if (mode & FALLOC_FL_PUNCH_HOLE) {
+ 		error = xfs_free_file_space(ip, offset, len);
  		if (error)
-@@ -2842,7 +2843,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsigned long, start, unsigned long, size,
- 
- 	file = get_file(vma->vm_file);
- 	ret = do_mmap_pgoff(vma->vm_file, start, size,
--			prot, flags, pgoff, &populate, NULL);
-+			prot, flags, pgoff, &populate, NULL, -1);
- 	fput(file);
- out:
- 	up_write(&mm->mmap_sem);
-diff --git a/mm/nommu.c b/mm/nommu.c
-index 17c00d93de2e..952d205d3b66 100644
---- a/mm/nommu.c
-+++ b/mm/nommu.c
-@@ -1206,7 +1206,8 @@ unsigned long do_mmap(struct file *file,
- 			vm_flags_t vm_flags,
- 			unsigned long pgoff,
- 			unsigned long *populate,
--			struct list_head *uf)
-+			struct list_head *uf,
-+			int fd)
- {
- 	struct vm_area_struct *vma;
- 	struct vm_region *region;
-@@ -1439,7 +1440,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
- 
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
--	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
-+	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, fd);
- 
- 	if (file)
- 		fput(file);
-diff --git a/mm/util.c b/mm/util.c
-index 34e57fae959d..dcf48d929185 100644
---- a/mm/util.c
-+++ b/mm/util.c
-@@ -319,7 +319,7 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
- 
- unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
--	unsigned long flag, unsigned long pgoff)
-+	unsigned long flag, unsigned long pgoff, int fd)
- {
- 	unsigned long ret;
- 	struct mm_struct *mm = current->mm;
-@@ -331,7 +331,7 @@ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
- 		if (down_write_killable(&mm->mmap_sem))
- 			return -EINTR;
- 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
--				    &populate, &uf);
-+				    &populate, &uf, fd);
- 		up_write(&mm->mmap_sem);
- 		userfaultfd_unmap_complete(mm, &uf);
- 		if (populate)
-@@ -349,7 +349,8 @@ unsigned long vm_mmap(struct file *file, unsigned long addr,
- 	if (unlikely(offset_in_page(offset)))
- 		return -EINVAL;
- 
--	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
-+	return vm_mmap_pgoff(file, addr, len, prot, flag,
-+			offset >> PAGE_SHIFT, -1);
+@@ -1136,6 +1167,28 @@ xfs_file_mmap(
+ 	return 0;
  }
- EXPORT_SYMBOL(vm_mmap);
  
++/*
++ * Any manipulation of FL_ALLOCATED leases need to be coordinated with
++ * XFS_MMAPLOCK_EXCL to synchronize get_user_pages() + DMA vs truncate.
++ */
++static int
++xfs_file_setlease(
++	struct file		*filp,
++	long			arg,
++	struct file_lock	**flp,
++	void			**priv)
++{
++	struct inode		*inode = file_inode(filp);
++	struct xfs_inode 	*ip = XFS_I(inode);
++	uint			iolock = XFS_MMAPLOCK_EXCL;
++	int			error;
++
++	xfs_ilock(ip, iolock);
++	error = generic_setlease(filp, arg, flp, priv);
++	xfs_iunlock(ip, iolock);
++	return error;
++}
++
+ const struct file_operations xfs_file_operations = {
+ 	.llseek		= xfs_file_llseek,
+ 	.read_iter	= xfs_file_read_iter,
+@@ -1154,6 +1207,7 @@ const struct file_operations xfs_file_operations = {
+ 	.fallocate	= xfs_file_fallocate,
+ 	.clone_file_range = xfs_file_clone_range,
+ 	.dedupe_file_range = xfs_file_dedupe_range,
++	.setlease	= xfs_file_setlease,
+ };
+ 
+ const struct file_operations xfs_dir_file_operations = {
+diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
+index 0ee453de239a..e0d421884fe4 100644
+--- a/fs/xfs/xfs_inode.h
++++ b/fs/xfs/xfs_inode.h
+@@ -445,6 +445,7 @@ int	xfs_zero_eof(struct xfs_inode *ip, xfs_off_t offset,
+ 		     xfs_fsize_t isize, bool *did_zeroing);
+ int	xfs_zero_range(struct xfs_inode *ip, xfs_off_t pos, xfs_off_t count,
+ 		bool *did_zero);
++int	xfs_break_allocated(struct inode *inode, uint *iolock);
+ 
+ /* from xfs_iops.c */
+ extern void xfs_setup_inode(struct xfs_inode *ip);
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index aa75389be8cf..5be60c74bede 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -612,7 +612,7 @@ xfs_ioc_space(
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	struct iattr		iattr;
+ 	enum xfs_prealloc_flags	flags = 0;
+-	uint			iolock = XFS_IOLOCK_EXCL;
++	uint			iolock = XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL;
+ 	int			error;
+ 
+ 	/*
+@@ -642,13 +642,10 @@ xfs_ioc_space(
+ 		return error;
+ 
+ 	xfs_ilock(ip, iolock);
+-	error = xfs_break_layouts(inode, &iolock);
++	error = xfs_break_allocated(inode, &iolock);
+ 	if (error)
+ 		goto out_unlock;
+ 
+-	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+-	iolock |= XFS_MMAPLOCK_EXCL;
+-
+ 	switch (bf->l_whence) {
+ 	case 0: /*SEEK_SET*/
+ 		break;
 
 _______________________________________________
 Linux-nvdimm mailing list
