@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3F4FD21FC748B
- for <linux-nvdimm@lists.01.org>; Fri,  6 Oct 2017 15:38:15 -0700 (PDT)
-Subject: [PATCH v7 00/12] MAP_DIRECT for DAX RDMA and userspace flush
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 06 Oct 2017 15:35:13 -0700
-Message-ID: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id BA7E4202E60FB
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Oct 2017 05:35:40 -0700 (PDT)
+Message-ID: <1508503151.5572.27.camel@kernel.org>
+Subject: Re: [PATCH v3 11/13] fs: use smp_load_acquire in break_{layout,lease}
+From: Jeffrey Layton <jlayton@kernel.org>
+Date: Fri, 20 Oct 2017 08:39:11 -0400
+In-Reply-To: <150846719726.24336.3564801642993121646.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150846719726.24336.3564801642993121646.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,111 +23,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm@kvack.org, Sean Hefty <sean.hefty@intel.com>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Doug Ledford <dledford@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Jeff Layton <jlayton@poochiereds.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-xfs@vger.kernel.org, linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, Robin Murphy <robin.murphy@arm.com>
+To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v6 [1]:
-* Abandon the concept of immutable files and rework the implementation
-  to reuse same FL_LAYOUT file lease mechanism that coordinates pnfsd
-  layouts vs local filesystem changes. This establishes an interface where
-  the kernel is always in control of the block-map and is free to
-  invalidate MAP_DIRECT mappings when a lease breaker arrives. (Christoph)
+On Thu, 2017-10-19 at 19:39 -0700, Dan Williams wrote:
+> Commit 128a37852234 "fs: fix data races on inode->i_flctx" converted
+> checks of inode->i_flctx to use smp_load_acquire(), but it did not
+> convert break_layout(). smp_load_acquire() includes a READ_ONCE(). There
+> should be no functional difference since __break_lease repeats the
+> sequence, but this is a clean up to unify all ->i_flctx lookups on a
+> common pattern.
+> 
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Jeff Layton <jlayton@poochiereds.net>
+> Cc: "J. Bruce Fields" <bfields@fieldses.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  include/linux/fs.h |   10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 13dab191a23e..eace2c5396a7 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2281,8 +2281,9 @@ static inline int break_lease(struct inode *inode, unsigned int mode)
+>  	 * could end up racing with tasks trying to set a new lease on this
+>  	 * file.
+>  	 */
+> -	smp_mb();
+> -	if (inode->i_flctx && !list_empty_careful(&inode->i_flctx->flc_lease))
+> +	struct file_lock_context *ctx = smp_load_acquire(&inode->i_flctx);
+> +
+> +	if (ctx && !list_empty_careful(&ctx->flc_lease))
+>  		return __break_lease(inode, mode, FL_LEASE);
+>  	return 0;
+>  }
+> @@ -2325,8 +2326,9 @@ static inline int break_deleg_wait(struct inode **delegated_inode)
+>  
+>  static inline int break_layout(struct inode *inode, bool wait)
+>  {
+> -	smp_mb();
+> -	if (inode->i_flctx && !list_empty_careful(&inode->i_flctx->flc_lease))
+> +	struct file_lock_context *ctx = smp_load_acquire(&inode->i_flctx);
+> +
+> +	if (ctx && !list_empty_careful(&ctx->flc_lease))
+>  		return __break_lease(inode,
+>  				wait ? O_WRONLY : O_WRONLY | O_NONBLOCK,
+>  				FL_LAYOUT);
+> 
 
-* Introduce a new ->mmap_validate() file operation since we need both
-  the original @flags and @fd passed to mmap(2) to setup a MAP_DIRECT
-  mapping.
+Nice catch. This can go in independently of the rest of the patches in
+the series, I think. I'll assume Andrew is picking this up since he's in
+the "To:", but let me know if you need me to get it.
 
-* Introduce a ->lease_direct() vm operation to allow the RDMA core to
-  safely register memory against DAX and tear down the mapping when the
-  lease is broken. This can be reused by any sub-system that follows a
-  memory registration semantic.
-
-[1]: https://lkml.org/lkml/2017/8/23/754
-
----
-
-MAP_DIRECT is a mechanism that allows an application to establish a
-mapping where the kernel will not change the block-map, or otherwise
-dirty the block-map metadata of a file without notification. It supports
-a "flush from userspace" model where persistent memory applications can
-bypass the overhead of ongoing coordination of writes with the
-filesystem, and it provides safety to RDMA operations involving DAX
-mappings.
-
-The kernel always has the ability to revoke access and convert the file
-back to normal operation after performing a "lease break". Similar to
-fcntl leases, there is no way for userspace to to cancel the lease break
-process once it has started, it can only delay it via the
-/proc/sys/fs/lease-break-time setting.
-
-MAP_DIRECT enables XFS to supplant the device-dax interface for
-mmap-write access to persistent memory with no ongoing coordination with
-the filesystem via fsync/msync syscalls.
-
----
-
-Dan Williams (12):
-      mm: introduce MAP_SHARED_VALIDATE, a mechanism to safely define new mmap flags
-      fs, mm: pass fd to ->mmap_validate()
-      fs: introduce i_mapdcount
-      fs: MAP_DIRECT core
-      xfs: prepare xfs_break_layouts() for reuse with MAP_DIRECT
-      xfs: wire up MAP_DIRECT
-      dma-mapping: introduce dma_has_iommu()
-      fs, mapdirect: introduce ->lease_direct()
-      xfs: wire up ->lease_direct()
-      device-dax: wire up ->lease_direct()
-      IB/core: use MAP_DIRECT to fix / enable RDMA to DAX mappings
-      tools/testing/nvdimm: enable rdma unit tests
-
-
- arch/alpha/include/uapi/asm/mman.h           |    1 
- arch/mips/include/uapi/asm/mman.h            |    1 
- arch/mips/kernel/vdso.c                      |    2 
- arch/parisc/include/uapi/asm/mman.h          |    1 
- arch/tile/mm/elf.c                           |    3 
- arch/x86/mm/mpx.c                            |    3 
- arch/xtensa/include/uapi/asm/mman.h          |    1 
- drivers/base/dma-mapping.c                   |   10 +
- drivers/dax/device.c                         |    4 
- drivers/infiniband/core/umem.c               |   90 ++++++-
- drivers/iommu/amd_iommu.c                    |    6 
- drivers/iommu/intel-iommu.c                  |    6 
- fs/Kconfig                                   |    4 
- fs/Makefile                                  |    1 
- fs/aio.c                                     |    2 
- fs/mapdirect.c                               |  349 ++++++++++++++++++++++++++
- fs/xfs/Kconfig                               |    4 
- fs/xfs/Makefile                              |    1 
- fs/xfs/xfs_file.c                            |  130 ++++++++++
- fs/xfs/xfs_iomap.c                           |    9 +
- fs/xfs/xfs_layout.c                          |   42 +++
- fs/xfs/xfs_layout.h                          |   13 +
- fs/xfs/xfs_pnfs.c                            |   30 --
- fs/xfs/xfs_pnfs.h                            |   10 -
- include/linux/dma-mapping.h                  |    3 
- include/linux/fs.h                           |   33 ++
- include/linux/mapdirect.h                    |   68 +++++
- include/linux/mm.h                           |   15 +
- include/linux/mman.h                         |   42 +++
- include/rdma/ib_umem.h                       |    8 +
- include/uapi/asm-generic/mman-common.h       |    1 
- include/uapi/asm-generic/mman.h              |    1 
- ipc/shm.c                                    |    3 
- mm/internal.h                                |    2 
- mm/mmap.c                                    |   28 ++
- mm/nommu.c                                   |    5 
- mm/util.c                                    |    7 -
- tools/include/uapi/asm-generic/mman-common.h |    1 
- tools/testing/nvdimm/Kbuild                  |   31 ++
- tools/testing/nvdimm/config_check.c          |    2 
- tools/testing/nvdimm/test/iomap.c            |    6 
- 41 files changed, 906 insertions(+), 73 deletions(-)
- create mode 100644 fs/mapdirect.c
- create mode 100644 fs/xfs/xfs_layout.c
- create mode 100644 fs/xfs/xfs_layout.h
- create mode 100644 include/linux/mapdirect.h
+Reviewed-by: Jeff Layton <jlayton@kernel.org>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
