@@ -1,7 +1,7 @@
-From: =?utf-8?B?5p+P57O7?= <vqfrv-hinCvd3KDgE@public.gmane.org>
-Subject: =?utf-8?B?IOi9rOWPke+8muiHtOS8geS4mueahOS4gOWwgeS/oQ==?=
-Date: Fri, 20 Oct 2017 04:45:41 +0800
-Message-ID: <5F5F0E9BB294ED8071A58D26B73CE02E@ecjp.org>
+From: =?utf-8?B?5p2t55ip?= <oqv-UXrTDzHQSTnk1uMJSBkQmQ@public.gmane.org>
+Subject: =?utf-8?B?IOi9rOWPke+8muWmguS9leino+WGs+mUgCrllK7jgJDluLjop4Hpl67popjjgJE=?=
+Date: Fri, 20 Oct 2017 14:08:29 +0800
+Message-ID: <8D0FDC5EFD4BEB01F7C368BAF5E7290A@ibwygirv.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -18,10 +18,19 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-DQrku6XkuIvor77nqIvkuIrmtbfvvIzmt7HlnLPvvIzljbPlsIbkuLvlip7vvIzluK3kvY3pooTl
-rprkuK3vvIENCg0K5YWo6IO95Z6L6L2m6Ze05Li75Lu75a6e5oiY5oqA6IO9DQoNCuS8geS4muWu
-ieWFqOOAgeeOr+Wig++8iEVIU++8ieezu+e7n+WMluWunuaImOiuree7gw0KDQror6bmg4Ug6K+3
-IOmYheivuyDpmYQg5Lu2IOWGhSDlrrkNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
-ZGltbQo=
+5aaC5L2V6Kej5Yaz44CQ5bi46KeB6Zeu6aKY44CRDQpsICDkuJrnu6nljovlipvlpKfvvIzkvYbo
+poHmj5DljYfkuJrnu6nlj4jop4nlvpfml6Dku47kuIvmiYvvvIzmgI7kuYjlip7vvJ8NCmwgIOaK
+peS7t+WQjuWuouaIt+WwseayoeacieWbnuW6lOS6hu+8jOaAjuS5iOWKnu+8nw0KbCAg5a6i5oi3
+5ou/552A5oiR5Lus55qE5oql5Lu35LiO5Yir5Lq65q+U77yM6K+05oiR5Lus55qE5Lu35qC86LS1
+77yM5oCO5LmI5Yqe77yfDQpsICDkuI7lrqLmiLfogZTnu5zkuIDmrrXml7bpl7TkuobvvIzkvYbl
+rqLmiLfkuIDnm7TkuI3kuIvljZXvvIzmgI7kuYjlip7vvJ8NCmwgIOaPkOS+m+agt+WTgee7meWu
+ouaIt+a1i+ivleWQju+8jOWuouaIt+WwseS4jeeQhuaIkeS7rOS6hu+8jOaAjuS5iOWKnu+8nw0K
+bCAg5byA5Y+R6ZmM55Sf5a6i5oi35pe277yM5pyJ5rKh5pyJ5aW955qE5pa55rOV5YeP5bCR55S1
+6K+d5oiW6YKu5Lu255qE5ouS57ud546H77yfDQpsICDmlLbliLDlrqLmiLfnmoTor6Lnm5jlkI7v
+vIzorqTnnJ/liIbmnpDov4flrqLmiLfnmoTpnIDmsYLlubblm57lpI3kuobvvIzkvYblrqLmiLfl
+j43ppojnmoTlvojlsJHvvIzmgI7kuYjlip7vvJ8NCmwgIOWmguS9leaKiuiAgeWuouaIt+eahOa7
+oeaEj+W6pui9rOWMluS4uumUgOmHj++8nw0KDQoNCg0K6K+m57uGIOWGheWuuSDlj4LpmIUg6ZmE
+5Lu2IOWkp+e6sg0KDQrmna3nmKkNCjIwMTctMTAtMjAvMTQ6MDg6MzQKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlz
+dApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
+bGlzdGluZm8vbGludXgtbnZkaW1tCg==
