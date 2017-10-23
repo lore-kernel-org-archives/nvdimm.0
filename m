@@ -1,13 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x22d.google.com (mail-oi0-x22d.google.com
+ [IPv6:2607:f8b0:4003:c06::22d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CCD3221EA15D1
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:04 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 0/17 v4] dax, ext4, xfs: Synchronous page faults
-Date: Thu, 19 Oct 2017 14:57:59 +0200
-Message-Id: <20171019125817.11580-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 910D8202E6163
+ for <linux-nvdimm@lists.01.org>; Mon, 23 Oct 2017 04:17:04 -0700 (PDT)
+Received: by mail-oi0-x22d.google.com with SMTP id j126so29988402oib.8
+ for <linux-nvdimm@lists.01.org>; Mon, 23 Oct 2017 04:20:47 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20171023124427.10d15ee3@mschwideX1>
+References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150846714747.24336.14704246566580871364.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171020075735.GA14378@lst.de>
+ <CAPcyv4hA1nrhDf=DA6_j7s7ezGOBhvEVZ8cu81DNui_p3bhhaA@mail.gmail.com>
+ <20171020162933.GA26320@lst.de> <20171023071835.67ee5210@mschwideX1>
+ <CAPcyv4hqiV6oHMgFik3MBTw5SJ6hcq4RzngPn2Xtp9kAv1E+Ow@mail.gmail.com>
+ <20171023124427.10d15ee3@mschwideX1>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 23 Oct 2017 04:20:46 -0700
+Message-ID: <CAPcyv4jTO7peOJ1zUocZiuqejoZmhtUYZbYcM==U+R-frB+sgA@mail.gmail.com>
+Subject: Re: [PATCH v3 02/13] dax: require 'struct page' for filesystem dax
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,114 +27,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
-
-here is the fourth version of my patches to implement synchronous page faults
-for DAX mappings to make flushing of DAX mappings possible from userspace so
-that they can be flushed on finer than page granularity and also avoid the
-overhead of a syscall.
-
-We use a new mmap flag MAP_SYNC to indicate that page faults for the mapping
-should be synchronous.  The guarantee provided by this flag is: While a block
-is writeably mapped into page tables of this mapping, it is guaranteed to be
-visible in the file at that offset also after a crash.
-
-How I implement this is that ->iomap_begin() indicates by a flag that inode
-block mapping metadata is unstable and may need flushing (use the same test as
-whether fdatasync() has metadata to write). If yes, DAX fault handler refrains
-from inserting / write-enabling the page table entry and returns special flag
-VM_FAULT_NEEDDSYNC together with a PFN to map to the filesystem fault handler.
-The handler then calls fdatasync() (vfs_fsync_range()) for the affected range
-and after that calls DAX code to update the page table entry appropriately.
-
-I did some basic performance testing on the patches over ramdisk - timed
-latency of page faults when faulting 512 pages. I did several tests: with file
-preallocated / with file empty, with background file copying going on / without
-it, with / without MAP_SYNC (so that we get comparison).  The results are
-(numbers are in microseconds):
-
-File preallocated, no background load no MAP_SYNC:
-min=9 avg=10 max=46
-8 - 15 us: 508
-16 - 31 us: 3
-32 - 63 us: 1
-
-File preallocated, no background load, MAP_SYNC:
-min=9 avg=10 max=47
-8 - 15 us: 508
-16 - 31 us: 2
-32 - 63 us: 2
-
-File empty, no background load, no MAP_SYNC:
-min=21 avg=22 max=70
-16 - 31 us: 506
-32 - 63 us: 5
-64 - 127 us: 1
-
-File empty, no background load, MAP_SYNC:
-min=40 avg=124 max=242
-32 - 63 us: 1
-64 - 127 us: 333
-128 - 255 us: 178
-
-File empty, background load, no MAP_SYNC:
-min=21 avg=23 max=67
-16 - 31 us: 507
-32 - 63 us: 4
-64 - 127 us: 1
-
-File empty, background load, MAP_SYNC:
-min=94 avg=112 max=181
-64 - 127 us: 489
-128 - 255 us: 23
-
-So here we can see the difference between MAP_SYNC vs non MAP_SYNC is about
-100-200 us when we need to wait for transaction commit in this setup. 
-
-Anyway, here are the patches and AFAICT the series is pretty much complete.
-The only missing piece are tests which Ross is working on. Comments are
-welcome.
-
-Changes since v3:
-* updated some changelogs
-* folded fs support for VM_SYNC flag into patches implementing the
-  functionality
-* removed ->mmap_validate, use ->mmap_supported_flags instead
-* added some Reviewed-by tags
-* added manpage patch
-
-Changes since v2:
-* avoid unnecessary flushing of faulted page (Ross) - I've realized it makes no
-  sense to remeasure my benchmark results (after actually doing that and seeing
-  no difference, sigh) since I use ramdisk and not real PMEM HW and so flushes
-  are ignored.
-* handle nojournal mode of ext4
-* other smaller cleanups & fixes (Ross)
-* factor larger part of finishing of synchronous fault into a helper (Christoph)
-* reorder pfnp argument of dax_iomap_fault() (Christoph)
-* add XFS support from Christoph
-* use proper MAP_SYNC support in mmap(2)
-* rebased on top of 4.14-rc4
-
-Changes since v1:
-* switched to using mmap flag MAP_SYNC
-* cleaned up fault handlers to avoid passing pfn in vmf->orig_pte
-* switched to not touching page tables before we are ready to insert final
-  entry as it was unnecessary and not really simplifying anything
-* renamed fault flag to VM_FAULT_NEEDDSYNC
-* other smaller fixes found by reviewers
-
-								Honza
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCBPY3QgMjMsIDIwMTcgYXQgMzo0NCBBTSwgTWFydGluIFNjaHdpZGVmc2t5CjxzY2h3
+aWRlZnNreUBkZS5pYm0uY29tPiB3cm90ZToKPiBPbiBNb24sIDIzIE9jdCAyMDE3IDAxOjU1OjIw
+IC0wNzAwCj4gRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+IHdyb3RlOgo+
+Cj4+IE9uIFN1biwgT2N0IDIyLCAyMDE3IGF0IDEwOjE4IFBNLCBNYXJ0aW4gU2Nod2lkZWZza3kK
+Pj4gPHNjaHdpZGVmc2t5QGRlLmlibS5jb20+IHdyb3RlOgo+PiA+IE9uIEZyaSwgMjAgT2N0IDIw
+MTcgMTg6Mjk6MzMgKzAyMDAKPj4gPiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4gd3Jv
+dGU6Cj4+ID4KPj4gPj4gT24gRnJpLCBPY3QgMjAsIDIwMTcgYXQgMDg6MjM6MDJBTSAtMDcwMCwg
+RGFuIFdpbGxpYW1zIHdyb3RlOgo+PiA+PiA+IFllcywgaG93ZXZlciBpdCBzZWVtcyB0aGVzZSBk
+cml2ZXJzIC8gcGxhdGZvcm1zIGhhdmUgYmVlbiBsaXZpbmcgd2l0aAo+PiA+PiA+IHRoZSBsYWNr
+IG9mIHN0cnVjdCBwYWdlIGZvciBhIGxvbmcgdGltZS4gU28gdGhleSBlaXRoZXIgZG9uJ3QgdXNl
+IERBWCwKPj4gPj4gPiBvciB0aGV5IGhhdmUgYSBjb25zdHJhaW5lZCB1c2UgY2FzZSB0aGF0IG5l
+dmVyIHRyaWdnZXJzCj4+ID4+ID4gZ2V0X3VzZXJfcGFnZXMoKS4gSWYgaXQgaXMgdGhlIGxhdHRl
+ciB0aGVuIHRoZXkgY291bGQgaW50cm9kdWNlIGEgbmV3Cj4+ID4+ID4gY29uZmlndXJhdGlvbiBv
+cHRpb24gdGhhdCBieXBhc3NlcyB0aGUgcGZuX3RfZGV2bWFwKCkgY2hlY2sgaW4KPj4gPj4gPiBi
+ZGV2X2RheF9zdXBwb3J0ZWQoKSBhbmQgZml4IHVwIHRoZSBnZXRfdXNlcl9wYWdlcygpIHBhdGhz
+IHRvIGZhaWwuCj4+ID4+ID4gU28sIEknZCBsaWtlIHRvIHVuZGVyc3RhbmQgaG93IHRoZXNlIGRy
+aXZlcnMgaGF2ZSBiZWVuIHVzaW5nIERBWAo+PiA+PiA+IHN1cHBvcnQgd2l0aG91dCBzdHJ1Y3Qg
+cGFnZSB0byBzZWUgaWYgd2UgbmVlZCBhIHdvcmthcm91bmQgb3Igd2UgY2FuCj4+ID4+ID4gZ28g
+YWhlYWQgZGVsZXRlIHRoaXMgc3VwcG9ydC4gSWYgdGhlIHVzYWdlIGlzIGxpbWl0ZWQgdG8KPj4g
+Pj4gPiBleGVjdXRlLWluLXBsYWNlIHBlcmhhcHMgd2UgY2FuIGRvIGEgY29uc3RyYWluZWQgLT5k
+aXJlY3RfYWNjZXNzKCkgZm9yCj4+ID4+ID4ganVzdCB0aGF0IGNhc2UuCj4+ID4+Cj4+ID4+IEZv
+ciBheG9ucmFtIEkgZG91YnQgYW55b25lIGlzIHVzaW5nIGl0IGFueSBtb3JlIC0gaXQgd2FzIGEg
+dmVyeSBmb3IKPj4gPj4gdGhlIElCTSBDZWxsIGJsYWRlcywgd2hpY2ggd2VyZSBwcm9kdWNl0ZUg
+aW4gYSByYXRoZXIgbGltaXRlZCBudW1iZXIuCj4+ID4+IEFuZCBDZWxsIGJhc2ljYWxseSBzZWVt
+cyB0byBiZSBkZWFkIGFzIGZhciBhcyBJIGNhbiB0ZWxsLgo+PiA+Pgo+PiA+PiBGb3IgUy8zOTAg
+TWFydGluIG1pZ2h0IGJlIGFibGUgdG8gaGVscCBvdXQgd2hhdCB0aGUgc3RhdHVzIG9mIHhwcmFt
+Cj4+ID4+IGluIGdlbmVyYWwgYW5kIERBWCBzdXBwb3J0IGluIHBhcnRpY3VsYXIgaXMuCj4+ID4K
+Pj4gPiBUaGUgZ29lcyBiYWNrIHRvIHRoZSB0aW1lIHdoZXJlIERBWCB3YXMgY2FsbGVkIFhJUC4g
+VGhlIGluaXRpYWwgZGVzaWduCj4+ID4gcG9pbnQgaGFzIGJlZW4gKm5vdCogdG8gaGF2ZSBzdHJ1
+Y3QgcGFnZXMgZm9yIGEgbGFyZ2UgcmVhZC1vbmx5IG1lbW9yeQo+PiA+IGFyZWEuIFRoZXJlIGlz
+IGEgYmxvY2sgZGV2aWNlIGRyaXZlciBmb3Igei9WTSB0aGF0IG1hcHMgYSBEQ1NTIHNlZ21lbnQK
+Pj4gPiBzb21ld2hlcmUgaW4gbWVtb3JlIChubyBzdHJ1Y3QgcGFnZSEpIHdpdGggZS5nLiB0aGUg
+Y29tcGxldGUgL3Vzcgo+PiA+IGZpbGVzeXN0ZW0uIFRoZSB4cHJhbSBkcml2ZXIgaXMgYSBkaWZm
+ZXJlbnQgYmVhc3QgYW5kIGhhcyBub3RoaW5nIHRvCj4+ID4gZG8gd2l0aCBYSVAvREFYLgo+PiA+
+Cj4+ID4gTm93LCBpZiBhbnkgdGhlcmUgYXJlIHZlcnkgZmV3IHVzZXJzIG9mIHRoZSBkY3NzYmxr
+IGRyaXZlciBvdXQgdGhlcmUuCj4+ID4gVGhlIGlkZWEgdG8gc2F2ZSBhIGZldyBtZWdhYnl0ZSBm
+b3IgL3VzciBuZXZlciByZWFsbHkgdG9vayBvZi4KPj4gPgo+PiA+IFdlIGhhdmUgdG8gbG9vayBh
+dCBvdXIgZ2V0X3VzZXJfcGFnZXMoKSBpbXBsZW1lbnRhdGlvbiB0byBzZWUgaG93IGhhcmQKPj4g
+PiBpdCB3b3VsZCBiZSB0byBtYWtlIGl0IGZhaWwgaWYgdGhlIHRhcmdldCBhZGRyZXNzIGlzIGZv
+ciBhbiBhcmVhIHdpdGhvdXQKPj4gPiBzdHJ1Y3QgcGFnZXMuCj4+Cj4+IEZvciByZWFkLW9ubHkg
+bWVtb3J5IEkgdGhpbmsgd2UgY2FuIGVuYWJsZSBhIHN1YnNldCBvZiBEQVgsIGFuZAo+PiBleHBs
+aWNpdGx5IHR1cm4gb2ZmIHRoZSBwYXRocyB0aGF0IHJlcXVpcmUgZ2V0X3VzZXJfcGFnZXMoKS4g
+SG93ZXZlciwKPj4gSSB3b25kZXIgaWYgYW55b25lIGhhcyB0ZXN0ZWQgREFYIHdpdGggZGNzc2Js
+ayBiZWNhdXNlIGZvcmsoKSByZXF1aXJlcwo+PiBnZXRfdXNlcl9wYWdlcygpPwo+Cj4gSSBkaWQg
+bm90IHRlc3QgaXQgcmVjZW50bHksIHNvbWVvbmUgZWxzZSBtaWdodCBoYXZlLiBHZXJhbGQ/Cj4K
+PiBMb29raW5nIGF0IHRoZSBjb2RlIEkgc2VlIHRoaXMgaW4gdGhlIHMzOTAgdmVyc2lvbiBvZiBn
+dXBfcHRlX3JhbmdlOgo+Cj4gICAgICAgICBtYXNrID0gKHdyaXRlID8gX1BBR0VfUFJPVEVDVCA6
+IDApIHwgX1BBR0VfSU5WQUxJRCB8IF9QQUdFX1NQRUNJQUw7Cj4gICAgICAgICAuLi4KPiAgICAg
+ICAgICAgICAgICAgaWYgKChwdGVfdmFsKHB0ZSkgJiBtYXNrKSAhPSAwKQo+ICAgICAgICAgICAg
+ICAgICAgICAgICAgIHJldHVybiAwOwo+ICAgICAgICAgLi4uCj4KPiBUaGUgWElQIGNvZGUgdXNl
+ZCB0aGUgcHRlX21rc3BlY2lhbCBtZWNoYW5pY3MgdG8gbWFrZSBpdCB3b3JrLiBBcyBmYXIgYXMK
+PiBJIGNhbiBzZWUgdGhlIHBmbl90X2Rldm1hcCByZXR1cm5zIHRydWUgZm9yIHRoZSBEQVggbWFw
+cGlucywgeWVzPwoKWWVzLCBidXQgdGhhdCdzIG9ubHkgZm9yIGdldF91c2VyX3BhZ2VzX2Zhc3Qo
+KSBzdXBwb3J0LgoKPiBUaGVuIEkgd291bGQgc2F5IHRoYXQgZGNzc2JsayBhbmQgREFYIGN1cnJl
+bnRseSBkbyBub3Qgd29yayB0b2dldGhlci4KCkkgdGhpbmsgYXQgYSBtaW5pbXVtIHdlIG5lZWQg
+YSBuZXcgcGZuX3QgZmxhZyBmb3IgdGhlICdzcGVjaWFsJyBiaXQgdG8KYXQgbGVhc3QgaW5kaWNh
+dGUgdGhhdCBEQVggbWFwcGluZ3Mgb2YgZGNzc2JsayBhbmQgYXhvbnJhbSBkbyBub3QKc3VwcG9y
+dCBub3JtYWwgZ2V0X3VzZXJfcGFnZXMoKS4gVGhlbiBJIGRvbid0IG5lZWQgdG8gZXhwbGljaXRs
+eQpkaXNhYmxlIERBWCBpbiB0aGUgIXBmbl90X2Rldm1hcCgpIGNhc2UuIEkgdGhpbmsgSSBhbHNv
+IHdhbnQgdG8gc3BsaXQKdGhlICJwZm5fdG9fdmlydCgpIiBhbmQgdGhlICJzZWN0b3IgdG8gcGZu
+IiBvcGVyYXRpb25zIGludG8gZGlzdGluY3QKZGF4X29wZXJhdGlvbnMgcmF0aGVyIHRoYW4gZG9p
+bmcgYm90aCBpbiBvbmUgLT5kaXJlY3RfYWNjZXNzKCkuIFRoaXMKc3VwcG9ydHMgc3RvcmluZyBw
+Zm5zIGluIHRoZSBmcy9kYXggcmFkaXggcmF0aGVyIHRoYW4gc2VjdG9ycy4KCkluIG90aGVyIHdv
+cmRzLCB0aGUgcGZuX3RfZGV2bWFwKCkgcmVxdWlyZW1lbnQgd2FzIG9ubHkgYWJvdXQgbWFraW5n
+CmdldF91c2VyX3BhZ2VzKCkgc2FmZWx5IGZhaWwsIGFuZCBwdGVfc3BlY2lhbCgpIGZpbGxzIHRo
+YXQKcmVxdWlyZW1lbnQuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
+ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
