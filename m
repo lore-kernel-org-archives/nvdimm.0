@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9450921F7D51C
- for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 17:50:24 -0700 (PDT)
-Subject: [PATCH v9 4/6] xfs: prepare xfs_break_layouts() for reuse with
- MAP_DIRECT
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 11 Oct 2017 17:47:29 -0700
-Message-ID: <150776924929.9144.16449134013197374286.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 8C3822035261C
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:47 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 16/17] ext4: Support for synchronous DAX faults
+Date: Tue, 24 Oct 2017 17:24:13 +0200
+Message-Id: <20171024152415.22864-17-jack@suse.cz>
+In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
+References: <20171024152415.22864-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,222 +17,166 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Move xfs_break_layouts() to its own compilation unit so that it can be
-used for both pnfs layouts and MAP_DIRECT mappings.
+We return IOMAP_F_DIRTY flag from ext4_iomap_begin() when asked to
+prepare blocks for writing and the inode has some uncommitted metadata
+changes. In the fault handler ext4_dax_fault() we then detect this case
+(through VM_FAULT_NEEDDSYNC return value) and call helper
+dax_finish_sync_fault() to flush metadata changes and insert page table
+entry. Note that this will also dirty corresponding radix tree entry
+which is what we want - fsync(2) will still provide data integrity
+guarantees for applications not using userspace flushing. And
+applications using userspace flushing can avoid calling fsync(2) and
+thus avoid the performance overhead.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/xfs/Kconfig      |    4 ++++
- fs/xfs/Makefile     |    1 +
- fs/xfs/xfs_file.c   |    1 +
- fs/xfs/xfs_ioctl.c  |    1 +
- fs/xfs/xfs_iops.c   |    1 +
- fs/xfs/xfs_layout.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- fs/xfs/xfs_layout.h |   13 +++++++++++++
- fs/xfs/xfs_pnfs.c   |   31 +------------------------------
- fs/xfs/xfs_pnfs.h   |    8 --------
- 9 files changed, 64 insertions(+), 38 deletions(-)
- create mode 100644 fs/xfs/xfs_layout.c
- create mode 100644 fs/xfs/xfs_layout.h
+ fs/ext4/file.c       | 15 ++++++++++++++-
+ fs/ext4/inode.c      | 15 +++++++++++++++
+ fs/jbd2/journal.c    | 17 +++++++++++++++++
+ include/linux/jbd2.h |  1 +
+ 4 files changed, 47 insertions(+), 1 deletion(-)
 
-diff --git a/fs/xfs/Kconfig b/fs/xfs/Kconfig
-index 1b98cfa342ab..f62fc6629abb 100644
---- a/fs/xfs/Kconfig
-+++ b/fs/xfs/Kconfig
-@@ -109,3 +109,7 @@ config XFS_ASSERT_FATAL
- 	  result in warnings.
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 208adfc3e673..08a1d1a33a90 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -26,6 +26,7 @@
+ #include <linux/quotaops.h>
+ #include <linux/pagevec.h>
+ #include <linux/uio.h>
++#include <linux/mman.h>
+ #include "ext4.h"
+ #include "ext4_jbd2.h"
+ #include "xattr.h"
+@@ -295,6 +296,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+ 	 */
+ 	bool write = (vmf->flags & FAULT_FLAG_WRITE) &&
+ 		(vmf->vma->vm_flags & VM_SHARED);
++	pfn_t pfn;
  
- 	  This behavior can be modified at runtime via sysfs.
+ 	if (write) {
+ 		sb_start_pagefault(sb);
+@@ -310,9 +312,12 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+ 	} else {
+ 		down_read(&EXT4_I(inode)->i_mmap_sem);
+ 	}
+-	result = dax_iomap_fault(vmf, pe_size, NULL, &ext4_iomap_ops);
++	result = dax_iomap_fault(vmf, pe_size, &pfn, &ext4_iomap_ops);
+ 	if (write) {
+ 		ext4_journal_stop(handle);
++		/* Handling synchronous page fault? */
++		if (result & VM_FAULT_NEEDDSYNC)
++			result = dax_finish_sync_fault(vmf, pe_size, pfn);
+ 		up_read(&EXT4_I(inode)->i_mmap_sem);
+ 		sb_end_pagefault(sb);
+ 	} else {
+@@ -350,6 +355,13 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
+ 		return -EIO;
+ 
++	/*
++	 * We don't support synchronous mappings for non-DAX files. At least
++	 * until someone comes with a sensible use case.
++	 */
++	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
++		return -EOPNOTSUPP;
 +
-+config XFS_LAYOUT
-+	def_bool y
-+	depends on EXPORTFS_BLOCK_OPS
-diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
-index a6e955bfead8..d44135107490 100644
---- a/fs/xfs/Makefile
-+++ b/fs/xfs/Makefile
-@@ -135,3 +135,4 @@ xfs-$(CONFIG_XFS_POSIX_ACL)	+= xfs_acl.o
- xfs-$(CONFIG_SYSCTL)		+= xfs_sysctl.o
- xfs-$(CONFIG_COMPAT)		+= xfs_ioctl32.o
- xfs-$(CONFIG_EXPORTFS_BLOCK_OPS)	+= xfs_pnfs.o
-+xfs-$(CONFIG_XFS_LAYOUT)	+= xfs_layout.o
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 309e26c9dddb..3cc7292b2e9f 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -39,6 +39,7 @@
- #include "xfs_pnfs.h"
- #include "xfs_iomap.h"
- #include "xfs_reflink.h"
-+#include "xfs_layout.h"
+ 	file_accessed(file);
+ 	if (IS_DAX(file_inode(file))) {
+ 		vma->vm_ops = &ext4_dax_vm_ops;
+@@ -719,6 +731,7 @@ const struct file_operations ext4_file_operations = {
+ 	.compat_ioctl	= ext4_compat_ioctl,
+ #endif
+ 	.mmap		= ext4_file_mmap,
++	.mmap_supported_flags = MAP_SYNC,
+ 	.open		= ext4_file_open,
+ 	.release	= ext4_release_file,
+ 	.fsync		= ext4_sync_file,
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 31db875bc7a1..13a198924a0f 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3394,6 +3394,19 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
+ }
  
- #include <linux/dcache.h>
- #include <linux/falloc.h>
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index aa75389be8cf..8bfd6db4f06d 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -44,6 +44,7 @@
- #include "xfs_btree.h"
- #include <linux/fsmap.h>
- #include "xfs_fsmap.h"
-+#include "xfs_layout.h"
- 
- #include <linux/capability.h>
- #include <linux/cred.h>
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 17081c77ef86..4bc2e5ef1a3a 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -39,6 +39,7 @@
- #include "xfs_trans_space.h"
- #include "xfs_pnfs.h"
- #include "xfs_iomap.h"
-+#include "xfs_layout.h"
- 
- #include <linux/capability.h>
- #include <linux/xattr.h>
-diff --git a/fs/xfs/xfs_layout.c b/fs/xfs/xfs_layout.c
-new file mode 100644
-index 000000000000..71d95e1a910a
---- /dev/null
-+++ b/fs/xfs/xfs_layout.c
-@@ -0,0 +1,42 @@
-+/*
-+ * Copyright (c) 2014 Christoph Hellwig.
-+ */
-+#include "xfs.h"
-+#include "xfs_format.h"
-+#include "xfs_log_format.h"
-+#include "xfs_trans_resv.h"
-+#include "xfs_sb.h"
-+#include "xfs_mount.h"
-+#include "xfs_inode.h"
-+
-+#include <linux/fs.h>
-+
-+/*
-+ * Ensure that we do not have any outstanding pNFS layouts that can be used by
-+ * clients to directly read from or write to this inode.  This must be called
-+ * before every operation that can remove blocks from the extent map.
-+ * Additionally we call it during the write operation, where aren't concerned
-+ * about exposing unallocated blocks but just want to provide basic
-+ * synchronization between a local writer and pNFS clients.  mmap writes would
-+ * also benefit from this sort of synchronization, but due to the tricky locking
-+ * rules in the page fault path we don't bother.
-+ */
-+int
-+xfs_break_layouts(
-+	struct inode		*inode,
-+	uint			*iolock)
+ #ifdef CONFIG_FS_DAX
++static bool ext4_inode_datasync_dirty(struct inode *inode)
 +{
-+	struct xfs_inode	*ip = XFS_I(inode);
-+	int			error;
++	journal_t *journal = EXT4_SB(inode->i_sb)->s_journal;
 +
-+	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
-+
-+	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
-+		xfs_iunlock(ip, *iolock);
-+		error = break_layout(inode, true);
-+		*iolock = XFS_IOLOCK_EXCL;
-+		xfs_ilock(ip, *iolock);
-+	}
-+
-+	return error;
++	if (journal)
++		return !jbd2_transaction_committed(journal,
++					EXT4_I(inode)->i_datasync_tid);
++	/* Any metadata buffers to write? */
++	if (!list_empty(&inode->i_mapping->private_list))
++		return true;
++	return inode->i_state & I_DIRTY_DATASYNC;
 +}
-diff --git a/fs/xfs/xfs_layout.h b/fs/xfs/xfs_layout.h
-new file mode 100644
-index 000000000000..f848ee78cc93
---- /dev/null
-+++ b/fs/xfs/xfs_layout.h
-@@ -0,0 +1,13 @@
-+#ifndef _XFS_LAYOUT_H
-+#define _XFS_LAYOUT_H 1
 +
-+#ifdef CONFIG_XFS_LAYOUT
-+int xfs_break_layouts(struct inode *inode, uint *iolock);
-+#else
-+static inline int
-+xfs_break_layouts(struct inode *inode, uint *iolock)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_XFS_LAYOUT */
-+#endif /* _XFS_LAYOUT_H */
-diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
-index 4246876df7b7..ee9de16d7672 100644
---- a/fs/xfs/xfs_pnfs.c
-+++ b/fs/xfs/xfs_pnfs.c
-@@ -18,36 +18,7 @@
- #include "xfs_shared.h"
- #include "xfs_bit.h"
- #include "xfs_pnfs.h"
--
--/*
-- * Ensure that we do not have any outstanding pNFS layouts that can be used by
-- * clients to directly read from or write to this inode.  This must be called
-- * before every operation that can remove blocks from the extent map.
-- * Additionally we call it during the write operation, where aren't concerned
-- * about exposing unallocated blocks but just want to provide basic
-- * synchronization between a local writer and pNFS clients.  mmap writes would
-- * also benefit from this sort of synchronization, but due to the tricky locking
-- * rules in the page fault path we don't bother.
-- */
--int
--xfs_break_layouts(
--	struct inode		*inode,
--	uint			*iolock)
--{
--	struct xfs_inode	*ip = XFS_I(inode);
--	int			error;
--
--	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
--
--	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
--		xfs_iunlock(ip, *iolock);
--		error = break_layout(inode, true);
--		*iolock = XFS_IOLOCK_EXCL;
--		xfs_ilock(ip, *iolock);
--	}
--
--	return error;
--}
-+#include "xfs_layout.h"
+ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+ 			    unsigned flags, struct iomap *iomap)
+ {
+@@ -3466,6 +3479,8 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+ 	}
  
+ 	iomap->flags = 0;
++	if ((flags & IOMAP_WRITE) && ext4_inode_datasync_dirty(inode))
++		iomap->flags |= IOMAP_F_DIRTY;
+ 	iomap->bdev = inode->i_sb->s_bdev;
+ 	iomap->dax_dev = sbi->s_daxdev;
+ 	iomap->offset = first_block << blkbits;
+diff --git a/fs/jbd2/journal.c b/fs/jbd2/journal.c
+index 7d5ef3bf3f3e..fa8cde498b4b 100644
+--- a/fs/jbd2/journal.c
++++ b/fs/jbd2/journal.c
+@@ -738,6 +738,23 @@ int jbd2_log_wait_commit(journal_t *journal, tid_t tid)
+ 	return err;
+ }
+ 
++/* Return 1 when transaction with given tid has already committed. */
++int jbd2_transaction_committed(journal_t *journal, tid_t tid)
++{
++	int ret = 1;
++
++	read_lock(&journal->j_state_lock);
++	if (journal->j_running_transaction &&
++	    journal->j_running_transaction->t_tid == tid)
++		ret = 0;
++	if (journal->j_committing_transaction &&
++	    journal->j_committing_transaction->t_tid == tid)
++		ret = 0;
++	read_unlock(&journal->j_state_lock);
++	return ret;
++}
++EXPORT_SYMBOL(jbd2_transaction_committed);
++
  /*
-  * Get a unique ID including its location so that the client can identify
-diff --git a/fs/xfs/xfs_pnfs.h b/fs/xfs/xfs_pnfs.h
-index b587cb99b2b7..5a2710dd5478 100644
---- a/fs/xfs/xfs_pnfs.h
-+++ b/fs/xfs/xfs_pnfs.h
-@@ -7,13 +7,5 @@ int xfs_fs_map_blocks(struct inode *inode, loff_t offset, u64 length,
- 		struct iomap *iomap, bool write, u32 *device_generation);
- int xfs_fs_commit_blocks(struct inode *inode, struct iomap *maps, int nr_maps,
- 		struct iattr *iattr);
--
--int xfs_break_layouts(struct inode *inode, uint *iolock);
--#else
--static inline int
--xfs_break_layouts(struct inode *inode, uint *iolock)
--{
--	return 0;
--}
- #endif /* CONFIG_EXPORTFS_BLOCK_OPS */
- #endif /* _XFS_PNFS_H */
+  * When this function returns the transaction corresponding to tid
+  * will be completed.  If the transaction has currently running, start
+diff --git a/include/linux/jbd2.h b/include/linux/jbd2.h
+index 606b6bce3a5b..296d1e0ea87b 100644
+--- a/include/linux/jbd2.h
++++ b/include/linux/jbd2.h
+@@ -1367,6 +1367,7 @@ int jbd2_log_start_commit(journal_t *journal, tid_t tid);
+ int __jbd2_log_start_commit(journal_t *journal, tid_t tid);
+ int jbd2_journal_start_commit(journal_t *journal, tid_t *tid);
+ int jbd2_log_wait_commit(journal_t *journal, tid_t tid);
++int jbd2_transaction_committed(journal_t *journal, tid_t tid);
+ int jbd2_complete_transaction(journal_t *journal, tid_t tid);
+ int jbd2_log_do_checkpoint(journal_t *journal);
+ int jbd2_trans_will_send_data_barrier(journal_t *journal, tid_t tid);
+-- 
+2.12.3
 
 _______________________________________________
 Linux-nvdimm mailing list
