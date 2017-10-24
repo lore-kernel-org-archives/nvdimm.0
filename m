@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ECCAC21FC7476
- for <linux-nvdimm@lists.01.org>; Fri,  6 Oct 2017 15:39:06 -0700 (PDT)
-Subject: [PATCH v7 09/12] xfs: wire up ->lease_direct()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 06 Oct 2017 15:36:06 -0700
-Message-ID: <150732936625.22363.7638037715540836828.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CDB1B21CEB14A
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 12:26:41 -0700 (PDT)
+Date: Tue, 24 Oct 2017 13:30:22 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 2/2] dm log writes: add support for DAX
+Message-ID: <20171024193022.GA4251@linux.intel.com>
+References: <20171020052404.13762-1-ross.zwisler@linux.intel.com>
+ <20171020052404.13762-2-ross.zwisler@linux.intel.com>
+ <20171024192222.GB22902@redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20171024192222.GB22902@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,79 +25,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@poochiereds.net>, Christoph Hellwig <hch@lst.de>
+To: Mike Snitzer <snitzer@redhat.com>
+Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Josef Bacik <jbacik@fb.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, dm-devel@redhat.com, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Shaohua Li <shli@kernel.org>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A 'lease_direct' lease requires that the vma have a valid MAP_DIRECT
-mapping established. For xfs we establish a new lease and then check if
-the MAP_DIRECT mapping has been broken. We want to be sure that the
-process will receive notification that the MAP_DIRECT mapping is being
-torn down so it knows why other code paths are throwing failures.
+On Tue, Oct 24, 2017 at 03:22:23PM -0400, Mike Snitzer wrote:
+> On Fri, Oct 20 2017 at  1:24am -0400,
+> Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
+> 
+> > Now that we have the ability log filesystem writes using a flat buffer, add
+> > support for DAX.  Unfortunately we can't easily track data that has been
+> > written via mmap() now that the dax_flush() abstraction was removed by this
+> > commit:
+> > 
+> > commit c3ca015fab6d ("dax: remove the pmem_dax_ops->flush abstraction")
+> > 
+> > Otherwise we could just treat each flush as a big write, and store the data
+> > that is being synced to media.  It may be worthwhile to add the dax_flush()
+> > entry point back, just as a notifier so we can do this logging.
+> > 
+> > The motivation for this support is the need for an xfstest that can test
+> > the new MAP_SYNC DAX flag.  By logging the filesystem activity with
+> > dm-log-writes we can show that the MAP_SYNC page faults are writing out
+> > their metadata as they happen, instead of requiring an explicit
+> > msync/fsync.
+> > 
+> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> 
+> I've picked this up, please see:
+> https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git/commit/?h=for-4.15/dm&id=ae613bbb0144e84cb3c0ebfa9f4fd4d1507c2f0e
+> 
+> I tweaked the header and tweaked a couple whitespace nits.  Also
+> switched version bump from 1.0.1 to 1.1.0.
+> 
+> Thanks,
+> Mike
 
-For example in the RDMA/ibverbs case we want ibv_reg_mr() to fail if the
-MAP_DIRECT mapping is invalid or in the process of being invalidated.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/xfs/xfs_file.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
-
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index e35518600e28..823b65f17429 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1166,6 +1166,33 @@ xfs_filemap_direct_close(
- 	put_map_direct_vma(vma->vm_private_data);
- }
- 
-+static struct lease_direct *
-+xfs_filemap_direct_lease(
-+	struct vm_area_struct	*vma,
-+	void			(*break_fn)(void *),
-+	void			*owner)
-+{
-+	struct lease_direct	*ld;
-+
-+	ld = map_direct_lease(vma, break_fn, owner);
-+
-+	if (IS_ERR(ld))
-+		return ld;
-+
-+	/*
-+	 * We now have an established lease while the base MAP_DIRECT
-+	 * lease was not broken. So, we know that the "lease holder" will
-+	 * receive a SIGIO notification when the lease is broken and
-+	 * take any necessary cleanup actions.
-+	 */
-+	if (!is_map_direct_broken(vma->vm_private_data))
-+		return ld;
-+
-+	map_direct_lease_destroy(ld);
-+
-+	return ERR_PTR(-ENXIO);
-+}
-+
- static const struct vm_operations_struct xfs_file_vm_direct_ops = {
- 	.fault		= xfs_filemap_fault,
- 	.huge_fault	= xfs_filemap_huge_fault,
-@@ -1175,6 +1202,7 @@ static const struct vm_operations_struct xfs_file_vm_direct_ops = {
- 
- 	.open		= xfs_filemap_direct_open,
- 	.close		= xfs_filemap_direct_close,
-+	.lease_direct	= xfs_filemap_direct_lease,
- };
- 
- static const struct vm_operations_struct xfs_file_vm_ops = {
-
+Sure, your tweaks look fine.  Thanks!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
