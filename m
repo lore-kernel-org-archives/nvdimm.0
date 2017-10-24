@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBEF621F7D51C
- for <linux-nvdimm@lists.01.org>; Wed, 11 Oct 2017 17:50:02 -0700 (PDT)
-Subject: [PATCH v9 0/6] MAP_DIRECT for DAX userspace flush
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 11 Oct 2017 17:47:07 -0700
-Message-ID: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 69A4920352606
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:45 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 03/17] dax: Simplify arguments of dax_insert_mapping()
+Date: Tue, 24 Oct 2017 17:24:00 +0200
+Message-Id: <20171024152415.22864-4-jack@suse.cz>
+In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
+References: <20171024152415.22864-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,119 +17,112 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v8 [1]:
-* Move MAP_SHARED_VALIDATE definition next to MAP_SHARED in all arch
-  headers (Jan)
+dax_insert_mapping() has lots of arguments and a lot of them is actuall
+duplicated by passing vm_fault structure as well. Change the function to
+take the same arguments as dax_pmd_insert_mapping().
 
-* Include xfs_layout.h directly in all the files that call
-  xfs_break_layouts() (Dave)
-
-* Clarify / add more comments to the MAP_DIRECT checks at fault time
-  (Dave)
-
-* Rename iomap_can_allocate() to break_layouts_nowait() to make it plain
-  the reason we are bailing out of iomap_begin.
-
-* Defer the lease_direct mechanism and RDMA core changes to a later
-  patch series.
-
-* EXT4 support is in the works and will be rebased on Jan's MAP_SYNC
-  patches.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-October/012772.html
-
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
+ fs/dax.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-MAP_DIRECT is a mechanism that allows an application to establish a
-mapping where the kernel will not change the block-map, or otherwise
-dirty the block-map metadata of a file without notification. It supports
-a "flush from userspace" model where persistent memory applications can
-bypass the overhead of ongoing coordination of writes with the
-filesystem, and it provides safety to RDMA operations involving DAX
-mappings.
+diff --git a/fs/dax.c b/fs/dax.c
+index f001d8c72a06..0bc42ac294ca 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -820,23 +820,30 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ }
+ EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
+ 
+-static int dax_insert_mapping(struct address_space *mapping,
+-		struct block_device *bdev, struct dax_device *dax_dev,
+-		sector_t sector, size_t size, void *entry,
+-		struct vm_area_struct *vma, struct vm_fault *vmf)
++static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
++{
++	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
++}
++
++static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
++			      loff_t pos, void *entry)
+ {
++	const sector_t sector = dax_iomap_sector(iomap, pos);
++	struct vm_area_struct *vma = vmf->vma;
++	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	unsigned long vaddr = vmf->address;
+ 	void *ret, *kaddr;
+ 	pgoff_t pgoff;
+ 	int id, rc;
+ 	pfn_t pfn;
+ 
+-	rc = bdev_dax_pgoff(bdev, sector, size, &pgoff);
++	rc = bdev_dax_pgoff(iomap->bdev, sector, PAGE_SIZE, &pgoff);
+ 	if (rc)
+ 		return rc;
+ 
+ 	id = dax_read_lock();
+-	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
++	rc = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(PAGE_SIZE),
++			       &kaddr, &pfn);
+ 	if (rc < 0) {
+ 		dax_read_unlock(id);
+ 		return rc;
+@@ -936,11 +943,6 @@ int __dax_zero_page_range(struct block_device *bdev,
+ }
+ EXPORT_SYMBOL_GPL(__dax_zero_page_range);
+ 
+-static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
+-{
+-	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
+-}
+-
+ static loff_t
+ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 		struct iomap *iomap)
+@@ -1087,7 +1089,6 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+ 	struct inode *inode = mapping->host;
+ 	unsigned long vaddr = vmf->address;
+ 	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
+-	sector_t sector;
+ 	struct iomap iomap = { 0 };
+ 	unsigned flags = IOMAP_FAULT;
+ 	int error, major = 0;
+@@ -1140,9 +1141,9 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+ 		goto error_finish_iomap;
+ 	}
+ 
+-	sector = dax_iomap_sector(&iomap, pos);
+-
+ 	if (vmf->cow_page) {
++		sector_t sector = dax_iomap_sector(&iomap, pos);
++
+ 		switch (iomap.type) {
+ 		case IOMAP_HOLE:
+ 		case IOMAP_UNWRITTEN:
+@@ -1175,8 +1176,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+ 			count_memcg_event_mm(vmf->vma->vm_mm, PGMAJFAULT);
+ 			major = VM_FAULT_MAJOR;
+ 		}
+-		error = dax_insert_mapping(mapping, iomap.bdev, iomap.dax_dev,
+-				sector, PAGE_SIZE, entry, vmf->vma, vmf);
++		error = dax_insert_mapping(vmf, &iomap, pos, entry);
+ 		/* -EBUSY is fine, somebody else faulted on the same PTE */
+ 		if (error == -EBUSY)
+ 			error = 0;
+-- 
+2.12.3
 
-The kernel always has the ability to revoke access and convert the file
-back to normal operation after performing a "lease break". Similar to
-fcntl leases, there is no way for userspace to to cancel the lease break
-process once it has started, it can only delay it via the
-/proc/sys/fs/lease-break-time setting.
-
-MAP_DIRECT enables XFS to supplant the device-dax interface for
-mmap-write access to persistent memory with no ongoing coordination with
-the filesystem via fsync/msync syscalls.
-
-The MAP_DIRECT mechanism is complimentary to MAP_SYNC. Here are some
-scenarios where you would choose one over the other:
-
-* 3rd party DMA / RDMA to DAX with hardware that does not support
-  on-demand paging (shared virtual memory) => MAP_DIRECT
-
-* Support for reflinked inodes, fallocate-punch-hole, truncate, or any
-  other operation that mutates the block map of an actively
-  mapped file => MAP_SYNC
-
-* Userpsace flush => MAP_SYNC or MAP_DIRECT
-
-* Assurances that the file's block map metadata is stable, i.e. minimize
-  worst case fault latency by locking out updates => MAP_DIRECT
-
----
-
-Dan Williams (6):
-      mm: introduce MAP_SHARED_VALIDATE, a mechanism to safely define new mmap flags
-      fs, mm: pass fd to ->mmap_validate()
-      fs: MAP_DIRECT core
-      xfs: prepare xfs_break_layouts() for reuse with MAP_DIRECT
-      fs, xfs, iomap: introduce break_layout_nowait()
-      xfs: wire up MAP_DIRECT
-
-
- arch/alpha/include/uapi/asm/mman.h           |    1 
- arch/mips/include/uapi/asm/mman.h            |    1 
- arch/mips/kernel/vdso.c                      |    2 
- arch/parisc/include/uapi/asm/mman.h          |    1 
- arch/tile/mm/elf.c                           |    3 
- arch/x86/mm/mpx.c                            |    3 
- arch/xtensa/include/uapi/asm/mman.h          |    1 
- fs/Kconfig                                   |    1 
- fs/Makefile                                  |    2 
- fs/aio.c                                     |    2 
- fs/mapdirect.c                               |  237 ++++++++++++++++++++++++++
- fs/xfs/Kconfig                               |    4 
- fs/xfs/Makefile                              |    1 
- fs/xfs/xfs_file.c                            |  108 ++++++++++++
- fs/xfs/xfs_ioctl.c                           |    1 
- fs/xfs/xfs_iomap.c                           |    3 
- fs/xfs/xfs_iops.c                            |    1 
- fs/xfs/xfs_layout.c                          |   45 +++++
- fs/xfs/xfs_layout.h                          |   13 +
- fs/xfs/xfs_pnfs.c                            |   31 ---
- fs/xfs/xfs_pnfs.h                            |    8 -
- include/linux/fs.h                           |   11 +
- include/linux/mapdirect.h                    |   40 ++++
- include/linux/mm.h                           |    9 +
- include/linux/mman.h                         |   42 +++++
- include/uapi/asm-generic/mman-common.h       |    1 
- include/uapi/asm-generic/mman.h              |    1 
- ipc/shm.c                                    |    3 
- mm/internal.h                                |    2 
- mm/mmap.c                                    |   28 ++-
- mm/nommu.c                                   |    5 -
- mm/util.c                                    |    7 -
- tools/include/uapi/asm-generic/mman-common.h |    1 
- 33 files changed, 557 insertions(+), 62 deletions(-)
- create mode 100644 fs/mapdirect.c
- create mode 100644 fs/xfs/xfs_layout.c
- create mode 100644 fs/xfs/xfs_layout.h
- create mode 100644 include/linux/mapdirect.h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
