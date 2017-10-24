@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 12A592034C087
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 19:41:43 -0700 (PDT)
-Subject: [PATCH v3 00/13] dax: fix dma vs truncate and remove 'page-less'
- support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Oct 2017 19:38:56 -0700
-Message-ID: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 880D52034A7B7
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:48 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 13/17] dax, iomap: Add support for synchronous faults
+Date: Tue, 24 Oct 2017 17:24:10 +0200
+Message-Id: <20171024152415.22864-14-jack@suse.cz>
+In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
+References: <20171024152415.22864-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,122 +17,164 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Sean Hefty <sean.hefty@intel.com>, hch@lst.de, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dave Chinner <david@fromorbit.com>, linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@poochiereds.net>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2 [1]:
-* Add 'dax: handle truncate of dma-busy pages' which builds on the
-  removal of page-less dax to fix a latent bug handling dma vs truncate.
-* Disable get_user_pages_fast() for dax
-* Disable RDMA memory registrations against filesystem-DAX mappings for
-  non-ODP (On Demand Paging / Shared Virtual Memory) hardware.
-* Fix a compile error when building with HMM enabled
+Add a flag to iomap interface informing the caller that inode needs
+fdstasync(2) for returned extent to become persistent and use it in DAX
+fault code so that we don't map such extents into page tables
+immediately. Instead we propagate the information that fdatasync(2) is
+necessary from dax_iomap_fault() with a new VM_FAULT_NEEDDSYNC flag.
+Filesystem fault handler is then responsible for calling fdatasync(2)
+and inserting pfn into page tables.
 
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
-tl;dr: A brute force approach to ensure that truncate waits for any
-in-flight DMA before freeing filesystem-DAX blocks to the filesystem's
-block allocator.
+ fs/dax.c              | 39 +++++++++++++++++++++++++++++++++++++--
+ include/linux/iomap.h |  1 +
+ include/linux/mm.h    |  6 +++++-
+ 3 files changed, 43 insertions(+), 3 deletions(-)
 
-While reviewing the MAP_DIRECT proposal Christoph noted:
-
-    get_user_pages on DAX doesn't give the same guarantees as on
-    pagecache or anonymous memory, and that is the problem we need to
-    fix. In fact I'm pretty sure if we try hard enough (and we might
-    have to try very hard) we can see the same problem with plain direct
-    I/O and without any RDMA involved, e.g. do a larger direct I/O write
-    to memory that is mmap()ed from a DAX file, then truncate the DAX
-    file and reallocate the blocks, and we might corrupt that new file.
-    We'll probably need a special setup where there is little other
-    chance but to reallocate those used blocks.
-    
-    So what we need to do first is to fix get_user_pages vs unmapping
-    DAX mmap()ed blocks, be that from a hole punch, truncate, COW
-    operation, etc.
-
-I was able to trigger the failure with "[PATCH v3 08/13]
-tools/testing/nvdimm: add 'bio_delay' mechanism" to keep block i/o pages
-busy so a punch-hole operation can truncate the blocks before the DMA
-finishes.
-
-The solution presented is not pretty. It creates a stream of leases, one
-for each get_user_pages() invocation, and polls page reference counts
-until DMA stops. We're missing a reliable way to not only trap the
-DMA-idle event, but also block new references being taken on pages while
-truncate is allowed to progress. "[PATCH v3 12/13] dax: handle truncate of
-dma-busy pages" presents other options considered, and notes that this
-solution can only be viewed as a stop-gap.
-
-Given the need to poll page-reference counts this approach builds on the
-removal of 'page-less DAX' support. From the last submission Andrew
-asked for clarification on the move to now require pages for DAX.
-Quoting "[PATCH v3 02/13] dax: require 'struct page' for filesystem
-dax":
-
-    Note that when the initial dax support was being merged a few years
-    back there was concern that struct page was unsuitable for use with
-    next generation persistent memory devices. The theoretical concern
-    was that struct page access, being such a hotly used data structure
-    in the kernel, would lead to media wear out. While that was a
-    reasonable conservative starting position it has not held true in
-    practice. We have long since committed to using
-    devm_memremap_pages() to support higher order kernel functionality
-    that needs get_user_pages() and pfn_to_page().
+diff --git a/fs/dax.c b/fs/dax.c
+index efc210ff6665..bb9ff907738c 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1091,6 +1091,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	unsigned flags = IOMAP_FAULT;
+ 	int error, major = 0;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
++	bool sync;
+ 	int vmf_ret = 0;
+ 	void *entry;
+ 	pfn_t pfn;
+@@ -1169,6 +1170,8 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		goto finish_iomap;
+ 	}
  
++	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
++
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+ 		if (iomap.flags & IOMAP_F_NEW) {
+@@ -1182,12 +1185,27 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
+ 						 dax_iomap_sector(&iomap, pos),
+-						 0, write);
++						 0, write && !sync);
+ 		if (IS_ERR(entry)) {
+ 			error = PTR_ERR(entry);
+ 			goto error_finish_iomap;
+ 		}
+ 
++		/*
++		 * If we are doing synchronous page fault and inode needs fsync,
++		 * we can insert PTE into page tables only after that happens.
++		 * Skip insertion for now and return the pfn so that caller can
++		 * insert it after fsync is done.
++		 */
++		if (sync) {
++			if (WARN_ON_ONCE(!pfnp)) {
++				error = -EIO;
++				goto error_finish_iomap;
++			}
++			*pfnp = pfn;
++			vmf_ret = VM_FAULT_NEEDDSYNC | major;
++			goto finish_iomap;
++		}
+ 		trace_dax_insert_mapping(inode, vmf, entry);
+ 		if (write)
+ 			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
+@@ -1287,6 +1305,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
++	bool sync;
+ 	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
+ 	struct inode *inode = mapping->host;
+ 	int result = VM_FAULT_FALLBACK;
+@@ -1371,6 +1390,8 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
+ 		goto finish_iomap;
+ 
++	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
++
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+ 		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
+@@ -1379,10 +1400,24 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
+ 						dax_iomap_sector(&iomap, pos),
+-						RADIX_DAX_PMD, write);
++						RADIX_DAX_PMD, write && !sync);
+ 		if (IS_ERR(entry))
+ 			goto finish_iomap;
+ 
++		/*
++		 * If we are doing synchronous page fault and inode needs fsync,
++		 * we can insert PMD into page tables only after that happens.
++		 * Skip insertion for now and return the pfn so that caller can
++		 * insert it after fsync is done.
++		 */
++		if (sync) {
++			if (WARN_ON_ONCE(!pfnp))
++				goto finish_iomap;
++			*pfnp = pfn;
++			result = VM_FAULT_NEEDDSYNC;
++			goto finish_iomap;
++		}
++
+ 		trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
+ 		result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
+ 					    write);
+diff --git a/include/linux/iomap.h b/include/linux/iomap.h
+index f64dc6ce5161..4bc0a6fe3b15 100644
+--- a/include/linux/iomap.h
++++ b/include/linux/iomap.h
+@@ -22,6 +22,7 @@ struct vm_fault;
+  * Flags for all iomap mappings:
+  */
+ #define IOMAP_F_NEW	0x01	/* blocks have been newly allocated */
++#define IOMAP_F_DIRTY	0x02	/* block mapping is not yet on persistent storage */
+ 
+ /*
+  * Flags that only need to be reported for IOMAP_REPORT requests:
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 5411cb7442de..f57e55782d7d 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1182,6 +1182,9 @@ static inline void clear_page_pfmemalloc(struct page *page)
+ #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
+ #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
+ #define VM_FAULT_DONE_COW   0x1000	/* ->fault has fully handled COW */
++#define VM_FAULT_NEEDDSYNC  0x2000	/* ->fault did not modify page tables
++					 * and needs fsync() to complete (for
++					 * synchronous page faults in DAX) */
+ 
+ #define VM_FAULT_ERROR	(VM_FAULT_OOM | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | \
+ 			 VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE | \
+@@ -1199,7 +1202,8 @@ static inline void clear_page_pfmemalloc(struct page *page)
+ 	{ VM_FAULT_LOCKED,		"LOCKED" }, \
+ 	{ VM_FAULT_RETRY,		"RETRY" }, \
+ 	{ VM_FAULT_FALLBACK,		"FALLBACK" }, \
+-	{ VM_FAULT_DONE_COW,		"DONE_COW" }
++	{ VM_FAULT_DONE_COW,		"DONE_COW" }, \
++	{ VM_FAULT_NEEDDSYNC,		"NEEDDSYNC" }
+ 
+ /* Encode hstate index for a hwpoisoned large page */
+ #define VM_FAULT_SET_HINDEX(x) ((x) << 12)
+-- 
+2.12.3
 
----
-
-Dan Williams (13):
-      dax: quiet bdev_dax_supported()
-      dax: require 'struct page' for filesystem dax
-      dax: stop using VM_MIXEDMAP for dax
-      dax: stop using VM_HUGEPAGE for dax
-      dax: stop requiring a live device for dax_flush()
-      dax: store pfns in the radix
-      dax: warn if dma collides with truncate
-      tools/testing/nvdimm: add 'bio_delay' mechanism
-      IB/core: disable memory registration of fileystem-dax vmas
-      mm: disable get_user_pages_fast() for dax
-      fs: use smp_load_acquire in break_{layout,lease}
-      dax: handle truncate of dma-busy pages
-      xfs: wire up FL_ALLOCATED support
-
-
- arch/powerpc/sysdev/axonram.c         |    1 
- drivers/dax/device.c                  |    1 
- drivers/dax/super.c                   |   18 +-
- drivers/infiniband/core/umem.c        |   49 ++++-
- drivers/s390/block/dcssblk.c          |    1 
- fs/Kconfig                            |    1 
- fs/dax.c                              |  296 ++++++++++++++++++++++++++++-----
- fs/ext2/file.c                        |    1 
- fs/ext4/file.c                        |    1 
- fs/locks.c                            |   17 ++
- fs/xfs/xfs_aops.c                     |   24 +++
- fs/xfs/xfs_file.c                     |   66 +++++++
- fs/xfs/xfs_inode.h                    |    1 
- fs/xfs/xfs_ioctl.c                    |    7 -
- include/linux/dax.h                   |   23 +++
- include/linux/fs.h                    |   32 +++-
- include/linux/vma.h                   |   33 ++++
- mm/gup.c                              |   75 ++++----
- mm/huge_memory.c                      |    8 -
- mm/ksm.c                              |    3 
- mm/madvise.c                          |    2 
- mm/memory.c                           |   20 ++
- mm/migrate.c                          |    3 
- mm/mlock.c                            |    5 -
- mm/mmap.c                             |    8 -
- tools/testing/nvdimm/Kbuild           |    1 
- tools/testing/nvdimm/test/iomap.c     |   62 +++++++
- tools/testing/nvdimm/test/nfit.c      |   34 ++++
- tools/testing/nvdimm/test/nfit_test.h |    1 
- 29 files changed, 651 insertions(+), 143 deletions(-)
- create mode 100644 include/linux/vma.h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
