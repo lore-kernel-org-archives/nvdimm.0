@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp1040.oracle.com (userp1040.oracle.com [156.151.31.81])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E2BD72034CF6D
- for <linux-nvdimm@lists.01.org>; Thu, 26 Oct 2017 04:16:35 -0700 (PDT)
-Date: Thu, 26 Oct 2017 14:20:12 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [bug report] libnvdimm: add support for clear poison list and
- badblocks for device dax
-Message-ID: <20171026112012.7k32soimjpv5nk5f@mwanda>
-MIME-Version: 1.0
-Content-Disposition: inline
+ by ml01.01.org (Postfix) with ESMTPS id 225D720945BCB
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:48 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 15/17] ext4: Simplify error handling in ext4_dax_huge_fault()
+Date: Tue, 24 Oct 2017 17:24:12 +0200
+Message-Id: <20171024152415.22864-16-jack@suse.cz>
+In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
+References: <20171024152415.22864-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,77 +17,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dave.jiang@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello Dave Jiang,
+If transaction starting fails, just bail out of the function immediately
+instead of checking for that condition throughout the function.
 
-The patch 006358b35c73: "libnvdimm: add support for clear poison list
-and badblocks for device dax" from Apr 7, 2017, leads to the
-following static checker warning:
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ fs/ext4/file.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-	drivers/nvdimm/bus.c:852 nd_pmem_forget_poison_check()
-	warn: we tested 'nd_dax' before and it was 'false'
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 3cec0b95672f..208adfc3e673 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -302,16 +302,17 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+ 		down_read(&EXT4_I(inode)->i_mmap_sem);
+ 		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
+ 					       EXT4_DATA_TRANS_BLOCKS(sb));
++		if (IS_ERR(handle)) {
++			up_read(&EXT4_I(inode)->i_mmap_sem);
++			sb_end_pagefault(sb);
++			return VM_FAULT_SIGBUS;
++		}
+ 	} else {
+ 		down_read(&EXT4_I(inode)->i_mmap_sem);
+ 	}
+-	if (!IS_ERR(handle))
+-		result = dax_iomap_fault(vmf, pe_size, NULL, &ext4_iomap_ops);
+-	else
+-		result = VM_FAULT_SIGBUS;
++	result = dax_iomap_fault(vmf, pe_size, NULL, &ext4_iomap_ops);
+ 	if (write) {
+-		if (!IS_ERR(handle))
+-			ext4_journal_stop(handle);
++		ext4_journal_stop(handle);
+ 		up_read(&EXT4_I(inode)->i_mmap_sem);
+ 		sb_end_pagefault(sb);
+ 	} else {
+-- 
+2.12.3
 
-drivers/nvdimm/bus.c
-   835  static int nd_pmem_forget_poison_check(struct device *dev, void *data)
-   836  {
-   837          struct nd_cmd_clear_error *clear_err =
-   838                  (struct nd_cmd_clear_error *)data;
-   839          struct nd_btt *nd_btt = is_nd_btt(dev) ? to_nd_btt(dev) : NULL;
-   840          struct nd_pfn *nd_pfn = is_nd_pfn(dev) ? to_nd_pfn(dev) : NULL;
-   841          struct nd_dax *nd_dax = is_nd_dax(dev) ? to_nd_dax(dev) : NULL;
-                               ^^^^^^
-nd_dax is set here.
-
-   842          struct nd_namespace_common *ndns = NULL;
-   843          struct nd_namespace_io *nsio;
-   844          resource_size_t offset = 0, end_trunc = 0, start, end, pstart, pend;
-   845  
-   846          if (nd_dax || !dev->driver)
-                    ^^^^^^
-We return if it's non-NULL
-
-   847                  return 0;
-   848  
-   849          start = clear_err->address;
-   850          end = clear_err->address + clear_err->cleared - 1;
-   851  
-   852          if (nd_btt || nd_pfn || nd_dax) {
-   853                  if (nd_btt)
-   854                          ndns = nd_btt->ndns;
-   855                  else if (nd_pfn)
-   856                          ndns = nd_pfn->ndns;
-   857                  else if (nd_dax)
-                                 ^^^^^^
-but the rest of the function assumes it can be true.  Perhaps we plan
-to enable it in the future?  It's not clear to me.
-
-   858                          ndns = nd_dax->nd_pfn.ndns;
-   859  
-   860                  if (!ndns)
-   861                          return 0;
-   862          } else
-   863                  ndns = to_ndns(dev);
-   864  
-   865          nsio = to_nd_namespace_io(&ndns->dev);
-   866          pstart = nsio->res.start + offset;
-   867          pend = nsio->res.end - end_trunc;
-   868  
-   869          if ((pstart >= start) && (pend <= end))
-   870                  return -EBUSY;
-   871  
-   872          return 0;
-   873  
-   874  }
-
-regards,
-dan carpenter
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
