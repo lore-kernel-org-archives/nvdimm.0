@@ -1,11 +1,105 @@
-From: =?GB2312?B?wfWK/NP+?= <hmxajiang-8/r+AFfeLUGHLWWfgqoybFaTQe2KTcn/@public.gmane.org>
-Subject: =?GB2312?B?yOe6zrHcw+Kyu7HY0qq1xLLJubqzybG+o78=?=
-Date: Mon, 30 Oct 2017 17:35:53 +0000 (UTC)
-Message-ID: <20171030173158.8CDBD2095B07B@ml01.01.org>
+From: "CANCER SOLUTIONS" <info-1OXGbxwpMftJXoZwfTIJPHht4ZX4Sine@public.gmane.org>
+Subject: Cancer Solution Discovered. Please Share
+Date: Wed, 25 Oct 2017 18:59:17 +0200
+Message-ID: <5076a673c43e7c95b832d0ca8c558bdd@marineessentialed.co>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5513247641651507089=="
+Content-Type: multipart/mixed; boundary="----------=_59F76BF5.19324C92"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_59F76BF5.19324C92
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  Your email client cannot read this email. To view it online,
+   please go here: http://marineessentialed.co/display.php?M=4326333&C=c5e59e70d1be0ef9d7bd8326ed938724&S=53&L=33&N=55
+   To stop receiving these emails:http://marineessentialed.co/unsubscribe.php?M=4326333&C=c5e59e70d1be0ef9d7bd8326ed938724&L=33&N=53
+   Linux-nvdimm mailing list Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org https://lists.01.org/mailman/listinfo/linux-nvdimm
+   [...] 
+
+Content analysis details:   (6.1 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 1.7 URIBL_DBL_SPAM         Contains an URL listed in the DBL blocklist
+                            [URIs: marineessentialed.co]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 0.1 URIBL_SBL_A            Contains URL's A record listed in the SBL blocklist
+                            [URIs: marineessentialed.co]
+ 3.4 DATE_IN_PAST_96_XX     Date: is 96 hours or more before Received: date
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+ 0.0 T_HEADER_FROM_DIFFERENT_DOMAINS From and EnvelopeFrom 2nd level mail
+                            domains are different
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0000]
+ 1.9 RAZOR2_CF_RANGE_E8_51_100 Razor2 gives engine 8 confidence level
+                            above 50%
+                            [cf: 100]
+ 0.9 RAZOR2_CHECK           Listed in Razor2 (http://razor.sf.net/)
+ 0.5 RAZOR2_CF_RANGE_51_100 Razor2 gives confidence level above 50%
+                            [cf: 100]
+ 0.0 T_DKIM_INVALID         DKIM-Signature header exists but is not valid
+
+
+
+------------=_59F76BF5.19324C92
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Date: Wed, 31 Oct 2029 01:33:51 +0800
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1e9EZQ-0001Jv-8K
+	for gln-linux-nvdimm@m.gmane.org; Mon, 30 Oct 2017 19:13:57 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id EFFB620352615;
+	Mon, 30 Oct 2017 11:10:11 -0700 (PDT)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received-SPF: Permerror (SPF Permanent Error: Void lookup limit of 2 exceeded)
+ identity=mailfrom; client-ip=5.189.135.10; helo=marineessentialed.co;
+ envelope-from=bounce-1OXGbxwpMftJXoZwfTIJPHht4ZX4Sine@public.gmane.org; receiver=linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from marineessentialed.co (marineessentialed.co [5.189.135.10])
+ by ml01.01.org (Postfix) with ESMTP id 5E9622034A866
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Mon, 30 Oct 2017 11:10:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=mail;
+ d=marineessentialed.co;
+ h=To:Subject:Message-ID:Date:From:Reply-To:MIME-Version:List-Unsubscribe:Content-Type:Content-Transfer-Encoding;
+ i=postmaster-kjVUW1iedDIq91lhyt4XQEhd+a7onfB/@public.gmane.org;
+ bh=oSTsdMAkTuO9ILzzI9TdeTqnzvo=;
+ b=dHNEmLLo/4CyzRtxLkGZkfmTpgPwU45w0sPnOGuY8EhDyhxNW2SSmhQMY0EkvnZlPn/Jyt3Artez
+ 06B/WskKb+e5CBi+4mtqdjkrsk/tt+7yJA1mcmyoa4ETZDqWNRzPM/IwrTchS8cFZGgSTs+nHz++
+ th02/WfjuNGlgiwTMn4=
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: Cancer Solution Discovered. Please Share
+Message-ID: <5076a673c43e7c95b832d0ca8c558bdd-kjVUW1iedDIq91lhyt4XQEhd+a7onfB/@public.gmane.org>
+Date: Wed, 25 Oct 2017 18:59:17 +0200
+From: "CANCER SOLUTIONS" <info-1OXGbxwpMftJXoZwfTIJPHht4ZX4Sine@public.gmane.org>
+MIME-Version: 1.0
+X-Mailer-LID: 33
+X-Mailer-RecptId: 4326333
+X-Mailer-SID: 53
+X-Mailer-Sent-By: 1
+X-Content-Filtered-By: Mailman/MimeDel 2.1.22
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,291 +107,23 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Reply-To: Cancersolutions.usa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Id: linux-nvdimm@lists.01.org
 
---===============5513247641651507089==
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 8bit
-
-581725降低采购成本及供应商谈判技巧
-linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-时间地点： 
-11月03-04日广州、11月10-11日上海  
-12月01-02日深圳、12月22-23日广州
-
-学员对象：高层管理者、采购部门、品管部门、设计部门、财务部门及其他相关部门人员.。
-费　　用：3800元。
-
-课程背景： 
-自中国进入新常态以来，各类企业的生存环境都发生了一定的改变。在产能过剩，竞争的压力越来越大的现状下，如何降低采购的各项成本？如何分析供应商的报价？如何恰当的提出我方的采购要求，而不至于供应商报价虚高？当我方为弱势时，如何提高我们的说服力? 原材料库存应该如何管理?如何运用招标技术来降低采购成本？这些都是业内采购同行们关注的焦点议题。
-
-课程收益：
-?如何设定采购管理的绩效目标？  
-?如何制订采购成本预算？
-?如何避免不必要的采购成本？
-?如何分析供应商的报价？
-?如何制定谈判计划？
-?如何运用采购谈判的降龙十九掌？
-?如何管好库存以降低采购成本？
-?如何通过招标进行有效的“砍价”？
-
-培训内容： 
-第一讲：如何设定采购管理的绩效目标？
-?采购管理的KPI指标有哪些？
-?采购管理有几大类别？
-?各种采购管理的目标差异
-?采购成本的学习曲线
-?采购实物与采购服务的顺序区别
-?为什么采购成本越来越敏感？
-?采购成本管理的方法有哪些？
-?套期保值
-?买入套期保值
-?卖出套期保值
-?如何做好采购供应商的管理？
-?完整的采购管理体系
-
-第二讲：如何编制采购成本预算？
-?公司财务预算的五大内容
-?费用预算的四套方法
-?如何控制运作性采购的固定预算
-?零基预算与增量预算
-?什么是概率预算
-?影响采购预算准确性的六大因素
-?公司如何设定采购预算的考核目标
-?什么是多品复合预算？
-?如何获取行情价格信息？
-?网络搜索的四大途径
-?如何提高百度等搜索的效率？
-?什么是垂直搜索
-?采购职场论坛
-?B to B 网站一览表
-?综合性B to B网站
-?有效利用价格预测的专业网站
-
-第三讲：如何避免不必要的采购成本？
-?采购的权力有多大？
-?如何让各部门配合
-?如何避免不必要的采购成本？
-?经济型酒店如何降房价
-
-第四讲：如何分析供应商的报价？
-第一节：供应商们是如何定价？
-?产品价格是怎样定出来的？
-?什么是行情定价法?
-?什么是价值定价法？
-?价值定价法如何定价
-?成本定价法如何定价
-?什么是边际成本定价法
-?什么是变动成本与固定成本
-?什么是边际贡献
-?什么是目标收益定价法
-?目标收益定价法实例
-?目标收益定价法的采购启发
-?企业类型不同对成本定价法的影响
-?生产厂家的四种供应链类型
-?四种供应链类型的定价
-?代工企业的成本定价法
-?代工企业成本定价法的采购要点
-?什么是“按生产时间分摊”?
-?商贸型企业的定价特点
-?商贸型企业的定价
-?不同分类的商品，其追求的目标利润各不相同
-?商贸型商品的五大分类
-?商贸产品分类的采购启发
-第二节：如何分析供应商的报价？
-?供应商的两种报价形式
-?消耗性产品成本明细表
-?消耗性产品的报价分析案例
-?资产性产品成本明细表
-?资产型采购的三种形式
-?为什么我们租而不买？
-?可租赁的领域
-?为什么要外包？
-?服务性供应商如何报价
-第五讲：影响采购谈判效果的因素有哪些？
-?各种谈判的比较
-?立场性谈判与利益性谈判的比较
-?何为双赢?
-?采购谈判的KPI指标有哪些？
-?采购谈判的基本流程
-?哪些因素对我的谈判能力影响较大？
-?性格的四种类型
-?激情型
-?控制型
-?分析型
-?和谐型
-?性格的组合特征
-?性格与职业
-?性格的匹配性
-?性格与谈判
-?您最容易和最不容易相处的谈判对手
-?四种谈判对手的特点有哪些？
-?如何克服自身的弱点？
-第六讲：如何制定谈判的计划？
-?即兴性谈判与计划性谈判
-?制定谈判计划的七大步骤
-?第一步：双方意向的明确
-?第二步：双方差异的分析
-?第三步：各项分歧的重要性评分
-?第四步：设定各项分歧的谈判目标
-?第五步：各谈判目标的策略定性
-?第六步：谈判方式的确定
-?第七步：小组成员的分工
-
-采购谈判实战演练
-
-第七讲：如何实施有效的谈判？
-?开场开得如何？
-?开场的目的是什么？
-?开场的原则是什么？
-?整个谈判的掌控如何？
-?哪种砍价方式更好
-?哪种谈判形式容易出问题
-?如何做好电话谈判
-?为什么我方会弱势？
-?我方为弱势怎么谈
-?什么是分阶段蚕食
-?分阶段蚕食的策略步骤
-?如何提升说服力
-?第三方的参考依据
-?如何提高谈判时的沟通实效？
-?我们听到的，与我们理解的不一定相同
-?注意沟通时的禁忌
-?我们会问问题吗？
-?问的目的是什么?
-?如何问问题吗？
-?反驳对方的几种方式？
-?沟通的禁忌
-?对方忽悠我怎么谈？
-?如何挽回失误（失口）？
-?出现僵局怎么谈？
-?谈判结束时怎么办
-?如何与不同的对象谈判？
-?采购谈判的‘降龙十九掌’
-?第一：试探计
-?第二：声东击西计
-?第三：强人所难计
-?第四：换位思考计
-?第五：巧立名目计
-?第六：先轻后重计
-?第七：档箭牌计
-?第八：顺手牵羊计
-?第九：激将计
-?第十：限定选择计
-?第十一：人情计
-?第十二：小圈密谈计
-?第十三：奉送选择权计
-?第十四：以静制动计
-?第十五：车轮计
-?第十六：挤牙膏计
-?第十七：欲擒故纵计
-?第十八：告将计
-?第十九：红脸与白脸
-
-第八讲：如何管好库存以降低采购成本？
-第一节：库存管理的挑战是什么？
-?适量库存对采购的帮助
-?库存过高的缺点有哪些
-?财务管理的三张表
-?占用大量资金的后果
-?哪家公司会倒闭？
-?造成现金流问题的主要原因
-?企业老总对库存管理的要求有哪些？
-?衡量库存是否积压的指标有哪些
-?库存周转率的几种算法
-?按照仓库的数量计算
-?如何计算某单品在单库的周转率
-?如何计算公司总库存的周转率
-?造成公司总库存缓慢的因素有哪些
-第二节：如何做好JIT供应管理？
-?什么是JIT供应管理
-?JIT供应的三种类型
-?JIT供应对双方的利与弊
-?如何有效实施JIT供应方式
-
-第九讲：如何通过招投标进行有效的“砍价”？
-?企业采购与政府采购的区别
-?政府采购的管理对象
-?政府采购的五种形式
-?什么叫“邀标”？
-?什么情况下应该采用招投标？
-?哪些采购可以搞招投标？
-?不同采购的招标特点
-?如何实施邀请招投标？
-?如何准备招标文件
-?<< 投标人须知 >>
-?评标方法有哪些？
-?某公司的评标案例
-?第二步：计算平均报价值
-?第三步：计算商务标得分
-?第四步：计算综合评分值
-?如何评定技术标？
-?招投标方式的分类
-?暗标与明标的比较
-?招标的几种形式
-?什么是串通投标罪？特征有哪些？
-?如何破解参标者的‘不轨’？
-?如何保持投标商的积极性？
-?招标实践中的几个问题
-?投标保证金与履约保证金
+Your email client cannot read this email.
+To view it online, please go here:
+http://marineessentialed.co/display.php?M=4326333&C=c5e59e70d1be0ef9d7bd8326ed938724&S=53&L=33&N=55
 
 
-培训讲师：张仲豪 Johnson Zhang
-毕业于美国密西根州立大学，硕士学位，是改革开放后早期的海归高级职业经理人。曾先后任职于美国亨氏、英国联合饼干、美国美赞臣等500强跨国公司，担任公司运作总监及其他高级管理职务。二十多年的实战经历，专长于采购与供应链管理，是国内采购物流领域中少有的集丰富海外工作经验、国内资深管理阅历及国际权威认证于一身的实战派管理与咨询专家。
-张老师工作简历 Career：
-广州市长丰企业有限公司－总经理
-Guangzhou Changfeng Ltd., --- General Manager
-广州亿翼物流配送有限公司－副总经理
-Guangzhou Yiyi Distribution Ltd – Deputy General Manager
-美国美赞臣广州有限公司－总监
-Mead Johnson (Guangzhou) Ltd., --- Director
-英国联合饼干中国有限公司－经理
-British United Biscuit Ltd., - Manager
-亨氏（中国）有限公司－主任
-H.J.Heinz ( China) Ltd --- Supervisor
-张老师所从事过的行业：食品行业、保健品行业、现代物流与配送行业、工业品加工业
-张仲豪老师的授课风格：富有很强的激情, 风趣、幽默, 现场感染力强。采用循序渐进、深入浅出的教学方式、丰富生动的实战案例，帮助学员拓宽视野，提高思维能力，掌握相关的方法和工具。课件设计力求深度，实用、案例多为工具性案例,有很强的实操性。课程内容跨度大,尽量吸取各个行业的精粹，具有高度的浓缩性.
-培训过的部分企业：强生（中国）医疗器材；伊利集团；汤臣倍健；飞利浦金科威；马士基集装箱；日丰企业；天辰工程；武汉东本；开元集团；中冶重工；牛尾电机；顿力集团；正德集团；仙乐制药；新百丽鞋业；风华高科；晶科能源；瑞斯康达科技；大连真心食品；美的集团；平安集团；泸天化；佐敦涂料；东风本田发动机；长春一汽；新中源陶瓷集团；东莞创宝达电器；黑龙江三得利酒业；上海和黄药业；江苏大众医药集团；索尼爱立信；宇通集团；统一集团；九安医疗电子；华润水泥；顺丰速运；华宏眼镜；建滔化工；亨斯迈化工；舍弗勒集团；南方李锦记保健品；中国移动广东分公司；科力远新能源；SIMON电器；百事可乐；优普电子；华阳电子；真功夫；华孚集团；立白集团；大全集团；株洲电力机车；山东汇丰机械集团；唐钢集团承德钢厂；西子奥的斯电梯；广发银行;广东新兴县先锋不锈钢制品；贺利氏古莎齿科；上海福临门食品；捷高科技…
-
-▓▓▓▓▓▓▓▓▓ 培 训 回 执 表 （此表复制有效）▓▓▓▓▓▓▓▓
-
-(在线报名请下载附件报名回执表填写后发送 至信箱 qiyexuexi666-9uewiaClKEY@public.gmane.org)
-
-我单位共＿＿＿ 人报名参加 2017年___________ 在 ______ 举办的 降低采购成本及供应商谈判技巧　高级研修班；
-
-单位名称：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
-
-培训联系人：＿＿＿＿＿＿＿＿＿ 联系电话：＿＿＿＿＿＿＿＿＿ 联系传真：＿＿＿＿＿＿＿＿ 
-
-移动电话：＿＿＿＿＿＿＿＿＿＿＿＿ 电子邮箱：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿ 
-
-参加人数：＿＿＿＿ 人 费用总计：＿＿＿＿＿＿ 元
-
-参 会 人：＿＿＿＿＿＿＿＿ 所任职务：＿＿＿＿＿＿＿＿＿＿ 移动电话：＿＿＿＿＿＿＿＿＿ 
-
-参 会 人：＿＿＿＿＿＿＿＿ 所任职务：＿＿＿＿＿＿＿＿＿＿ 移动电话：＿＿＿＿＿＿＿＿＿ 
-
-参 会 人：＿＿＿＿＿＿＿＿ 所任职务：＿＿＿＿＿＿＿＿＿＿ 移动电话：＿＿＿＿＿＿＿＿＿ 
-══════════════════════════════════════════ 
-
-深圳：0755-6.12.88.03.5   上海：021-31.26.15.80
-联 系 人：赵先生  18890700600(微信同号）
-
-参会方式：请您把培训回执表填写好回传，课前一星期您将会收到传真函，包括培训注意事项及详细安排
-
---===============5513247641651507089==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
+To stop receiving these
+emails:http://marineessentialed.co/unsubscribe.php?M=4326333&C=c5e59e70d1be0ef9d7bd8326ed938724&L=33&N=53
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============5513247641651507089==--
+
+------------=_59F76BF5.19324C92--
