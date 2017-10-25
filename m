@@ -1,20 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw0-x242.google.com (mail-yw0-x242.google.com
- [IPv6:2607:f8b0:4002:c05::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3D6F221CEB128
- for <linux-nvdimm@lists.01.org>; Wed, 25 Oct 2017 21:55:55 -0700 (PDT)
-Received: by mail-yw0-x242.google.com with SMTP id k11so1936852ywh.1
- for <linux-nvdimm@lists.01.org>; Wed, 25 Oct 2017 21:59:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20171025204704.3382-1-ross.zwisler@linux.intel.com>
+Received: from ipmail07.adl2.internode.on.net (ipmail07.adl2.internode.on.net
+ [150.101.137.131])
+ by ml01.01.org (Postfix) with ESMTP id 7A4B121CEB152
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Oct 2017 14:52:57 -0700 (PDT)
+Date: Thu, 26 Oct 2017 08:56:38 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [fstests PATCH v3] generic: add test for DAX MAP_SYNC support
+Message-ID: <20171025215638.GA30335@dastard>
 References: <CAOQ4uxh25JmAv3DjCp11fAfpHVP=d2sp+=Gk4SxYfBtmOgaUPw@mail.gmail.com>
  <20171025204704.3382-1-ross.zwisler@linux.intel.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 26 Oct 2017 07:59:39 +0300
-Message-ID: <CAOQ4uxjAnMed7-BTZWe6JUC4Fa-nApKvx9-_PzewmfcZ48cP7g@mail.gmail.com>
-Subject: Re: [fstests PATCH v3] generic: add test for DAX MAP_SYNC support
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20171025204704.3382-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,84 +24,129 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-xfs <linux-xfs@vger.kernel.org>, Jan Kara <jack@suse.cz>, Eryu Guan <eguan@redhat.com>, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org, Josef Bacik <jbacik@fb.com>, Dave Chinner <david@fromorbit.com>, linux-kernel <linux-kernel@vger.kernel.org>, fstests <fstests@vger.kernel.org>, linux-raid@vger.kernel.org, dm-devel@redhat.com, Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ext4 <linux-ext4@vger.kernel.org>, Shaohua Li <shli@kernel.org>, Alasdair Kergon <agk@redhat.com>
+Cc: linux-xfs <linux-xfs@vger.kernel.org>, Jan Kara <jack@suse.cz>, Eryu Guan <eguan@redhat.com>, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org, Josef Bacik <jbacik@fb.com>, Amir Goldstein <amir73il@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, fstests <fstests@vger.kernel.org>, linux-raid@vger.kernel.org, dm-devel@redhat.com, Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ext4 <linux-ext4@vger.kernel.org>, Shaohua Li <shli@kernel.org>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Oct 25, 2017 at 11:47 PM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
+On Wed, Oct 25, 2017 at 02:47:04PM -0600, Ross Zwisler wrote:
 > Add a test that exercises DAX's new MAP_SYNC flag.
->
+> 
 > This test creates a file and writes to it via an mmap(), but never syncs
 > via fsync/msync.  This process is tracked via dm-log-writes, then replayed.
->
+> 
 > If MAP_SYNC is working the dm-log-writes replay will show the test file
 > with 1MiB of on-media block allocations.  This is because each allocating
 > page fault included an implicit metadata sync.  If MAP_SYNC isn't working
 > (which you can test by fiddling with the parameters to mmap()) the file
 > will be smaller or missing entirely.
->
+> 
 > Note that dm-log-writes doesn't track the data that we write via the
 > mmap(), so we can't do any data integrity checking.  We can only verify
 > that the metadata writes for the page faults happened.
->
+> 
 > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
->
-> ---
->
-> Changes since v2:
->  - Fixed _require_log_writes() so that DAX will be disallowed if the
->    version of the dm-log-writes target is older than v1.1.0.  (Amir)
+.....
+> --- /dev/null
+> +++ b/src/t_map_sync.c
+> @@ -0,0 +1,92 @@
+> +#include <errno.h>
+> +#include <fcntl.h>
+> +#include <stdio.h>
+> +#include <stdlib.h>
+> +#include <string.h>
+> +#include <sys/mman.h>
+> +#include <sys/stat.h>
+> +#include <sys/types.h>
+> +#include <unistd.h>
+> +
+> +#define MiB(a) ((a)*1024*1024)
+> +
+> +/*
+> + * These two defines were added to the kernel via commits entitled
+> + * "mm: Define MAP_SYNC and VM_SYNC flags" and
+> + * "mm: introduce MAP_SHARED_VALIDATE, a mechanism to safely define new mmap
+> + * flags", respectively.
+> + */
+> +#ifndef MAP_SYNC
+> +#define MAP_SYNC 0x80000
+> +#endif
+> +
+> +#ifndef MAP_SHARED_VALIDATE
+> +#define MAP_SHARED_VALIDATE 0x3
+> +#endif
 
-It seems like your kernel patch bumped the version to 1.0.1...
+Autoconf rules for detecting supported functionality, please...
 
->
-> ---
->  .gitignore            |  1 +
->  common/dmlogwrites    |  4 ++-
->  common/rc             |  6 ++--
->  src/Makefile          |  3 +-
->  src/t_map_sync.c      | 92 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/generic/466     | 76 ++++++++++++++++++++++++++++++++++++++++++
->  tests/generic/466.out |  3 ++
->  tests/generic/group   |  1 +
->  8 files changed, 182 insertions(+), 4 deletions(-)
->  create mode 100644 src/t_map_sync.c
->  create mode 100755 tests/generic/466
->  create mode 100644 tests/generic/466.out
->
-> diff --git a/.gitignore b/.gitignore
-> index 2014c08..9fc0695 100644
-> --- a/.gitignore
-> +++ b/.gitignore
-> @@ -119,6 +119,7 @@
->  /src/t_getcwd
->  /src/t_holes
->  /src/t_immutable
-> +/src/t_map_sync
->  /src/t_mmap_cow_race
->  /src/t_mmap_dio
->  /src/t_mmap_fallocate
-> diff --git a/common/dmlogwrites b/common/dmlogwrites
-> index 247c744..71d008d 100644
-> --- a/common/dmlogwrites
-> +++ b/common/dmlogwrites
-> @@ -23,8 +23,10 @@ _require_log_writes()
->         [ -z "$LOGWRITES_DEV" -o ! -b "$LOGWRITES_DEV" ] && \
->                 _notrun "This test requires a valid \$LOGWRITES_DEV"
->
-> -       _exclude_scratch_mount_option dax
->         _require_dm_target log-writes
-> +       if [[ ${DMTARGET_VER[0]} == 1 && ${DMTARGET_VER[1]} < 1 ]]; then
-> +               _exclude_scratch_mount_option dax
-> +       fi
+> +
+> +void err_exit(char *op)
+> +{
+> +	fprintf(stderr, "%s: %s\n", op, strerror(errno));
+> +	exit(1);
+> +}
+> +
+> +void mark_log(char *logwrites_name, char *mark_name)
+> +{
+> +	char command[256];
+> +
+> +	snprintf(command, 256, "dmsetup message %s 0 mark %s",
+> +			logwrites_name, mark_name);
+> +
+> +	if (system(command))
+> +		err_exit("mark_log");
+> +}
+> +
+> +int main(int argc, char *argv[])
+> +{
+> +	int page_size = getpagesize();
+> +	int len = MiB(1);
+> +	int i, fd, err;
+> +	char *data;
+> +
+> +	if (argc < 4) {
+> +		printf("Usage: %s <file> <logwrites_name> <mark_name>\n",
+> +				basename(argv[0]));
+> +		exit(0);
+> +	}
+> +
+> +	fd = open(argv[1], O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+> +	if (fd < 0)
+> +		err_exit("fd");
+> +
+> +	ftruncate(fd, len);
+> +
+> +	data = mmap(NULL, len, PROT_READ|PROT_WRITE,
+> +			MAP_SHARED_VALIDATE|MAP_SYNC, fd, 0);
+> +	if (data == MAP_FAILED)
+> +		err_exit("mmap");
 
-IMO, this would be better as:
+As I say to all these sorts of one-off test prgrams: please add the
+new MAP_SYNC flag to xfs_io rather than writing a one-off
+test program to set it and write some data.
 
-        local z=0
-        _scratch_has_mount_option dax && z=1
-        _require_dm_target log-writes 1 0 $z
+And if we're going to be adding special custom tests just because
+we need to insert dm-log marks, add that functionality to xfs_io,
+too.
 
-Or something like that
+That way we can create complex custom dm logwrite tests without
+needing one-off test programs for them all...
+
+> +#! /bin/bash
+> +# FS QA Test No. 466
+> +#
+> +# Use md_log_writes to verify that MAP_SYNC actually syncs metadata during
+
+dm_log_writes?
+
+> +# We should see $SCRATCH_MNT/test as having 1MiB in block allocations
+> +du -sh $SCRATCH_MNT/test | _filter_scratch | _filter_spaces
+
+Perhaps stat -c %b $SCRATCH_MNT/test ?
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
