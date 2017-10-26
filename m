@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw0-x242.google.com (mail-yw0-x242.google.com
+ [IPv6:2607:f8b0:4002:c05::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 38C2D202E6113
- for <linux-nvdimm@lists.01.org>; Mon, 16 Oct 2017 12:30:08 -0700 (PDT)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [ndctl patch] btt_check_arenas: fix use of uninitialized variable
-Date: Mon, 16 Oct 2017 15:33:41 -0400
-Message-ID: <x49376ikhuy.fsf@segfault.boston.devel.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3D6F221CEB128
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Oct 2017 21:55:55 -0700 (PDT)
+Received: by mail-yw0-x242.google.com with SMTP id k11so1936852ywh.1
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Oct 2017 21:59:41 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20171025204704.3382-1-ross.zwisler@linux.intel.com>
+References: <CAOQ4uxh25JmAv3DjCp11fAfpHVP=d2sp+=Gk4SxYfBtmOgaUPw@mail.gmail.com>
+ <20171025204704.3382-1-ross.zwisler@linux.intel.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 26 Oct 2017 07:59:39 +0300
+Message-ID: <CAOQ4uxjAnMed7-BTZWe6JUC4Fa-nApKvx9-_PzewmfcZ48cP7g@mail.gmail.com>
+Subject: Re: [fstests PATCH v3] generic: add test for DAX MAP_SYNC support
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,33 +26,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-xfs <linux-xfs@vger.kernel.org>, Jan Kara <jack@suse.cz>, Eryu Guan <eguan@redhat.com>, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org, Josef Bacik <jbacik@fb.com>, Dave Chinner <david@fromorbit.com>, linux-kernel <linux-kernel@vger.kernel.org>, fstests <fstests@vger.kernel.org>, linux-raid@vger.kernel.org, dm-devel@redhat.com, Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ext4 <linux-ext4@vger.kernel.org>, Shaohua Li <shli@kernel.org>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Coverity complains that rc, passed to btt_xlat_status, may be
-used uninitialized.  In that case, we may also dereference a
-NULL pointer.  Fix it by only calling btt_xlat_status with a
-valid arena.
+On Wed, Oct 25, 2017 at 11:47 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Add a test that exercises DAX's new MAP_SYNC flag.
+>
+> This test creates a file and writes to it via an mmap(), but never syncs
+> via fsync/msync.  This process is tracked via dm-log-writes, then replayed.
+>
+> If MAP_SYNC is working the dm-log-writes replay will show the test file
+> with 1MiB of on-media block allocations.  This is because each allocating
+> page fault included an implicit metadata sync.  If MAP_SYNC isn't working
+> (which you can test by fiddling with the parameters to mmap()) the file
+> will be smaller or missing entirely.
+>
+> Note that dm-log-writes doesn't track the data that we write via the
+> mmap(), so we can't do any data integrity checking.  We can only verify
+> that the metadata writes for the page faults happened.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+>
+> ---
+>
+> Changes since v2:
+>  - Fixed _require_log_writes() so that DAX will be disallowed if the
+>    version of the dm-log-writes target is older than v1.1.0.  (Amir)
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+It seems like your kernel patch bumped the version to 1.0.1...
 
-diff --git a/ndctl/check.c b/ndctl/check.c
-index 915bb9d..93f95c6 100644
---- a/ndctl/check.c
-+++ b/ndctl/check.c
-@@ -582,9 +582,10 @@ static int btt_check_arenas(struct btt_chk *bttc)
- 			break;
- 	}
- 
--	btt_xlat_status(a, rc);
--	if (rc)
-+	if (a && rc != BTT_OK) {
-+		btt_xlat_status(a, rc);
- 		return -ENXIO;
-+	}
- 	return 0;
- }
- 
+>
+> ---
+>  .gitignore            |  1 +
+>  common/dmlogwrites    |  4 ++-
+>  common/rc             |  6 ++--
+>  src/Makefile          |  3 +-
+>  src/t_map_sync.c      | 92 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/generic/466     | 76 ++++++++++++++++++++++++++++++++++++++++++
+>  tests/generic/466.out |  3 ++
+>  tests/generic/group   |  1 +
+>  8 files changed, 182 insertions(+), 4 deletions(-)
+>  create mode 100644 src/t_map_sync.c
+>  create mode 100755 tests/generic/466
+>  create mode 100644 tests/generic/466.out
+>
+> diff --git a/.gitignore b/.gitignore
+> index 2014c08..9fc0695 100644
+> --- a/.gitignore
+> +++ b/.gitignore
+> @@ -119,6 +119,7 @@
+>  /src/t_getcwd
+>  /src/t_holes
+>  /src/t_immutable
+> +/src/t_map_sync
+>  /src/t_mmap_cow_race
+>  /src/t_mmap_dio
+>  /src/t_mmap_fallocate
+> diff --git a/common/dmlogwrites b/common/dmlogwrites
+> index 247c744..71d008d 100644
+> --- a/common/dmlogwrites
+> +++ b/common/dmlogwrites
+> @@ -23,8 +23,10 @@ _require_log_writes()
+>         [ -z "$LOGWRITES_DEV" -o ! -b "$LOGWRITES_DEV" ] && \
+>                 _notrun "This test requires a valid \$LOGWRITES_DEV"
+>
+> -       _exclude_scratch_mount_option dax
+>         _require_dm_target log-writes
+> +       if [[ ${DMTARGET_VER[0]} == 1 && ${DMTARGET_VER[1]} < 1 ]]; then
+> +               _exclude_scratch_mount_option dax
+> +       fi
+
+IMO, this would be better as:
+
+        local z=0
+        _scratch_has_mount_option dax && z=1
+        _require_dm_target log-writes 1 0 $z
+
+Or something like that
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
