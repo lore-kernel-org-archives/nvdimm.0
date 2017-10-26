@@ -1,155 +1,65 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/17] dax: Factor out getting of pfn out of iomap
-Date: Tue, 24 Oct 2017 17:24:01 +0200
-Message-Id: <20171024152415.22864-5-jack@suse.cz>
-In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
-References: <20171024152415.22864-1-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@infradead.org>, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-api@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from smtp-o-1.desy.de (smtp-o-1.desy.de
+ [IPv6:2001:638:700:1038::1:9a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E36E3203525FD
+ for <linux-nvdimm@lists.01.org>; Thu, 26 Oct 2017 06:24:24 -0700 (PDT)
+Received: from smtp-map-1.desy.de (smtp-map-1.desy.de [131.169.56.66])
+ by smtp-o-1.desy.de (DESY-O-1) with ESMTP id B893C280739
+ for <linux-nvdimm@lists.01.org>; Thu, 26 Oct 2017 15:28:07 +0200 (CEST)
+Date: Thu, 26 Oct 2017 15:28:02 +0200 (CEST)
+From: "Petrosyan, Ludwig" <ludwig.petrosyan@desy.de>
+Message-ID: <2068822709.17434955.1509024482956.JavaMail.zimbra@desy.de>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD00A19B9@AcuExch.aculab.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+ <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
+ <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
+ <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
+ <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com>
+ <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de>
+ <063D6719AE5E284EB5DD2968C1650D6DD00A19B9@AcuExch.aculab.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: David Laight <David.Laight@ACULAB.COM>
+Cc: Serguei Sagalovitch <Serguei.Sagalovitch@amd.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Felix Kuehling <Felix.Kuehling@amd.com>, John Bridgman <John.Bridgman@amd.com>, linux-kernel <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Christian Koenig <Christian.Koenig@amd.com>, Ben Sander <ben.sander@amd.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, Linux-media <Linux-media@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Factor out code to get pfn out of iomap that is shared between PTE and
-PMD fault path.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 83 +++++++++++++++++++++++++++++++++-------------------------------
- 1 file changed, 43 insertions(+), 40 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 0bc42ac294ca..116eef8d6c69 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -825,30 +825,53 @@ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
- 	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
- }
- 
--static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
--			      loff_t pos, void *entry)
-+static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
-+			 pfn_t *pfnp)
- {
- 	const sector_t sector = dax_iomap_sector(iomap, pos);
--	struct vm_area_struct *vma = vmf->vma;
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	unsigned long vaddr = vmf->address;
--	void *ret, *kaddr;
- 	pgoff_t pgoff;
-+	void *kaddr;
- 	int id, rc;
--	pfn_t pfn;
-+	long length;
- 
--	rc = bdev_dax_pgoff(iomap->bdev, sector, PAGE_SIZE, &pgoff);
-+	rc = bdev_dax_pgoff(iomap->bdev, sector, size, &pgoff);
- 	if (rc)
- 		return rc;
--
- 	id = dax_read_lock();
--	rc = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(PAGE_SIZE),
--			       &kaddr, &pfn);
--	if (rc < 0) {
--		dax_read_unlock(id);
--		return rc;
-+	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
-+				   &kaddr, pfnp);
-+	if (length < 0) {
-+		rc = length;
-+		goto out;
- 	}
-+	rc = -EINVAL;
-+	if (PFN_PHYS(length) < size)
-+		goto out;
-+	if (pfn_t_to_pfn(*pfnp) & (PHYS_PFN(size)-1))
-+		goto out;
-+	/* For larger pages we need devmap */
-+	if (length > 1 && !pfn_t_devmap(*pfnp))
-+		goto out;
-+	rc = 0;
-+out:
- 	dax_read_unlock(id);
-+	return rc;
-+}
-+
-+static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
-+			      loff_t pos, void *entry)
-+{
-+	const sector_t sector = dax_iomap_sector(iomap, pos);
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct address_space *mapping = vma->vm_file->f_mapping;
-+	unsigned long vaddr = vmf->address;
-+	void *ret;
-+	int rc;
-+	pfn_t pfn;
-+
-+	rc = dax_iomap_pfn(iomap, pos, PAGE_SIZE, &pfn);
-+	if (rc < 0)
-+		return rc;
- 
- 	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector, 0);
- 	if (IS_ERR(ret))
-@@ -1223,46 +1246,26 @@ static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
- {
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	const sector_t sector = dax_iomap_sector(iomap, pos);
--	struct dax_device *dax_dev = iomap->dax_dev;
--	struct block_device *bdev = iomap->bdev;
- 	struct inode *inode = mapping->host;
--	const size_t size = PMD_SIZE;
--	void *ret = NULL, *kaddr;
--	long length = 0;
--	pgoff_t pgoff;
-+	void *ret = NULL;
- 	pfn_t pfn = {};
--	int id;
-+	int rc;
- 
--	if (bdev_dax_pgoff(bdev, sector, size, &pgoff) != 0)
-+	rc = dax_iomap_pfn(iomap, pos, PMD_SIZE, &pfn);
-+	if (rc < 0)
- 		goto fallback;
- 
--	id = dax_read_lock();
--	length = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
--	if (length < 0)
--		goto unlock_fallback;
--	length = PFN_PHYS(length);
--
--	if (length < size)
--		goto unlock_fallback;
--	if (pfn_t_to_pfn(pfn) & PG_PMD_COLOUR)
--		goto unlock_fallback;
--	if (!pfn_t_devmap(pfn))
--		goto unlock_fallback;
--	dax_read_unlock(id);
--
- 	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector,
- 			RADIX_DAX_PMD);
- 	if (IS_ERR(ret))
- 		goto fallback;
- 
--	trace_dax_pmd_insert_mapping(inode, vmf, length, pfn, ret);
-+	trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, ret);
- 	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd,
- 			pfn, vmf->flags & FAULT_FLAG_WRITE);
- 
--unlock_fallback:
--	dax_read_unlock(id);
- fallback:
--	trace_dax_pmd_insert_mapping_fallback(inode, vmf, length, pfn, ret);
-+	trace_dax_pmd_insert_mapping_fallback(inode, vmf, PMD_SIZE, pfn, ret);
- 	return VM_FAULT_FALLBACK;
- }
- 
--- 
-2.12.3
+----- Original Message -----
+> From: "David Laight" <David.Laight@ACULAB.COM>
+> To: "Petrosyan, Ludwig" <ludwig.petrosyan@desy.de>, "Logan Gunthorpe" <logang@deltatee.com>
+> Cc: "Alexander Deucher" <Alexander.Deucher@amd.com>, "linux-kernel" <linux-kernel@vger.kernel.org>, "linux-rdma"
+> <linux-rdma@vger.kernel.org>, "linux-nvdimm" <linux-nvdimm@lists.01.org>, "Linux-media" <Linux-media@vger.kernel.org>,
+> "dri-devel" <dri-devel@lists.freedesktop.org>, "linux-pci" <linux-pci@vger.kernel.org>, "John Bridgman"
+> <John.Bridgman@amd.com>, "Felix Kuehling" <Felix.Kuehling@amd.com>, "Serguei Sagalovitch"
+> <Serguei.Sagalovitch@amd.com>, "Paul Blinzer" <Paul.Blinzer@amd.com>, "Christian Koenig" <Christian.Koenig@amd.com>,
+> "Suravee Suthikulpanit" <Suravee.Suthikulpanit@amd.com>, "Ben Sander" <ben.sander@amd.com>
+> Sent: Tuesday, 24 October, 2017 16:58:24
+> Subject: RE: Enabling peer to peer device transactions for PCIe devices
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> Please don't top post, write shorter lines, and add the odd blank line.
+> Big blocks of text are hard to read quickly.
+> 
+
+OK this time I am very short. 
+peer2peer works
+
+Ludwig
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
