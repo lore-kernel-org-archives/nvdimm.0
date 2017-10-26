@@ -1,285 +1,62 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v9 2/6] fs, mm: pass fd to ->mmap_validate()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 11 Oct 2017 17:47:18 -0700
-Message-ID: <150776923838.9144.15727770472447035032.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150776922692.9144.16963640112710410217.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E751F203525E5
+ for <linux-nvdimm@lists.01.org>; Thu, 26 Oct 2017 11:18:21 -0700 (PDT)
+Date: Thu, 26 Oct 2017 12:22:05 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH] mmap.2: Add description of MAP_SHARED_VALIDATE and
+ MAP_SYNC
+Message-ID: <20171026182205.GA8048@linux.intel.com>
+References: <20171024152415.22864-1-jack@suse.cz>
+ <20171024152415.22864-19-jack@suse.cz>
+ <20171024211007.GA1611@linux.intel.com>
+ <20171026132402.GB31161@quack2.suse.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <20171026132402.GB31161@quack2.suse.cz>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-api@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The MAP_DIRECT mechanism for mmap intends to use a file lease to prevent
-block map changes while the file is mapped. It requires the fd to setup
-an fasync_struct for signalling lease break events to the lease holder.
+On Thu, Oct 26, 2017 at 03:24:02PM +0200, Jan Kara wrote:
+> On Tue 24-10-17 15:10:07, Ross Zwisler wrote:
+> > On Tue, Oct 24, 2017 at 05:24:15PM +0200, Jan Kara wrote:
+> > > Signed-off-by: Jan Kara <jack@suse.cz>
+> > 
+> > This looks unchanged since the previous version?
+> 
+> Ah, thanks for checking. I forgot to commit modifications. Attached is
+> really updated patch.
+> 
+> 								Honza
+> -- 
+> Jan Kara <jack@suse.com>
+> SUSE Labs, CR
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/mips/kernel/vdso.c |    2 +-
- arch/tile/mm/elf.c      |    2 +-
- arch/x86/mm/mpx.c       |    3 ++-
- fs/aio.c                |    2 +-
- include/linux/fs.h      |    2 +-
- include/linux/mm.h      |    9 +++++----
- ipc/shm.c               |    3 ++-
- mm/internal.h           |    2 +-
- mm/mmap.c               |   13 +++++++------
- mm/nommu.c              |    5 +++--
- mm/util.c               |    7 ++++---
- 11 files changed, 28 insertions(+), 22 deletions(-)
+> From 59eeec2998ed9b3840aab951f213148cb1d053a5 Mon Sep 17 00:00:00 2001
+> From: Jan Kara <jack@suse.cz>
+> Date: Thu, 19 Oct 2017 14:44:55 +0200
+> Subject: [PATCH] mmap.2: Add description of MAP_SHARED_VALIDATE and MAP_SYNC
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-diff --git a/arch/mips/kernel/vdso.c b/arch/mips/kernel/vdso.c
-index cf10654477a9..ab26c7ac0316 100644
---- a/arch/mips/kernel/vdso.c
-+++ b/arch/mips/kernel/vdso.c
-@@ -110,7 +110,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
- 	base = mmap_region(NULL, STACK_TOP, PAGE_SIZE,
- 			   VM_READ|VM_WRITE|VM_EXEC|
- 			   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
--			   0, NULL, 0);
-+			   0, NULL, 0, -1);
- 	if (IS_ERR_VALUE(base)) {
- 		ret = base;
- 		goto out;
-diff --git a/arch/tile/mm/elf.c b/arch/tile/mm/elf.c
-index 5ffcbe76aef9..61a9588e141a 100644
---- a/arch/tile/mm/elf.c
-+++ b/arch/tile/mm/elf.c
-@@ -144,7 +144,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm,
- 		addr = mmap_region(NULL, addr, INTRPT_SIZE,
- 				   VM_READ|VM_EXEC|
- 				   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC, 0,
--				   NULL, 0);
-+				   NULL, 0, -1);
- 		if (addr > (unsigned long) -PAGE_SIZE)
- 			retval = (int) addr;
- 	}
-diff --git a/arch/x86/mm/mpx.c b/arch/x86/mm/mpx.c
-index 9ceaa955d2ba..a8baa94a496b 100644
---- a/arch/x86/mm/mpx.c
-+++ b/arch/x86/mm/mpx.c
-@@ -52,7 +52,8 @@ static unsigned long mpx_mmap(unsigned long len)
- 
- 	down_write(&mm->mmap_sem);
- 	addr = do_mmap(NULL, 0, len, PROT_READ | PROT_WRITE,
--		       MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate, NULL);
-+			MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate,
-+			NULL, -1);
- 	up_write(&mm->mmap_sem);
- 	if (populate)
- 		mm_populate(addr, populate);
-diff --git a/fs/aio.c b/fs/aio.c
-index 5a2487217072..d10ca6db2ee6 100644
---- a/fs/aio.c
-+++ b/fs/aio.c
-@@ -519,7 +519,7 @@ static int aio_setup_ring(struct kioctx *ctx, unsigned int nr_events)
- 
- 	ctx->mmap_base = do_mmap_pgoff(ctx->aio_ring_file, 0, ctx->mmap_size,
- 				       PROT_READ | PROT_WRITE,
--				       MAP_SHARED, 0, &unused, NULL);
-+				       MAP_SHARED, 0, &unused, NULL, -1);
- 	up_write(&mm->mmap_sem);
- 	if (IS_ERR((void *)ctx->mmap_base)) {
- 		ctx->mmap_size = 0;
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 5aee97d64cae..17e0e899e184 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1702,7 +1702,7 @@ struct file_operations {
- 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *);
- 	int (*mmap_validate) (struct file *, struct vm_area_struct *,
--			unsigned long);
-+			unsigned long, int);
- 	int (*open) (struct inode *, struct file *);
- 	int (*flush) (struct file *, fl_owner_t id);
- 	int (*release) (struct inode *, struct file *);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 38f6ed954dde..ec45087348c9 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2133,11 +2133,11 @@ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned lo
- 
- extern unsigned long mmap_region(struct file *file, unsigned long addr,
- 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--	struct list_head *uf, unsigned long map_flags);
-+	struct list_head *uf, unsigned long map_flags, int fd);
- extern unsigned long do_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot, unsigned long flags,
- 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
--	struct list_head *uf);
-+	struct list_head *uf, int fd);
- extern int do_munmap(struct mm_struct *, unsigned long, size_t,
- 		     struct list_head *uf);
- 
-@@ -2145,9 +2145,10 @@ static inline unsigned long
- do_mmap_pgoff(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot, unsigned long flags,
- 	unsigned long pgoff, unsigned long *populate,
--	struct list_head *uf)
-+	struct list_head *uf, int fd)
- {
--	return do_mmap(file, addr, len, prot, flags, 0, pgoff, populate, uf);
-+	return do_mmap(file, addr, len, prot, flags, 0, pgoff, populate,
-+			uf, fd);
- }
- 
- #ifdef CONFIG_MMU
-diff --git a/ipc/shm.c b/ipc/shm.c
-index badac463e2c8..c98f85f6756d 100644
---- a/ipc/shm.c
-+++ b/ipc/shm.c
-@@ -1399,7 +1399,8 @@ long do_shmat(int shmid, char __user *shmaddr, int shmflg,
- 			goto invalid;
- 	}
- 
--	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate, NULL);
-+	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate,
-+			NULL, -1);
- 	*raddr = addr;
- 	err = 0;
- 	if (IS_ERR_VALUE(addr))
-diff --git a/mm/internal.h b/mm/internal.h
-index 1df011f62480..70ed7b06dd85 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -466,7 +466,7 @@ extern u32 hwpoison_filter_enable;
- 
- extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
-         unsigned long, unsigned long,
--        unsigned long, unsigned long);
-+        unsigned long, unsigned long, int);
- 
- extern void set_pageblock_order(void);
- unsigned long reclaim_clean_pages_from_list(struct zone *zone,
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 2649c00581a0..a6794670c9cb 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1322,7 +1322,7 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			unsigned long len, unsigned long prot,
- 			unsigned long flags, vm_flags_t vm_flags,
- 			unsigned long pgoff, unsigned long *populate,
--			struct list_head *uf)
-+			struct list_head *uf, int fd)
- {
- 	struct mm_struct *mm = current->mm;
- 	int pkey = 0;
-@@ -1477,7 +1477,7 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
- 			vm_flags |= VM_NORESERVE;
- 	}
- 
--	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags);
-+	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf, flags, fd);
- 	if (!IS_ERR_VALUE(addr) &&
- 	    ((vm_flags & VM_LOCKED) ||
- 	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
-@@ -1527,7 +1527,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
- 
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
--	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
-+	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, fd);
- out_fput:
- 	if (file)
- 		fput(file);
-@@ -1614,7 +1614,7 @@ static inline int accountable_mapping(struct file *file, vm_flags_t vm_flags)
- 
- unsigned long mmap_region(struct file *file, unsigned long addr,
- 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--		struct list_head *uf, unsigned long map_flags)
-+		struct list_head *uf, unsigned long map_flags, int fd)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev;
-@@ -1700,7 +1700,8 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
- 		 */
- 		vma->vm_file = get_file(file);
- 		if ((map_flags & MAP_TYPE) == MAP_SHARED_VALIDATE)
--			error = file->f_op->mmap_validate(file, vma, map_flags);
-+			error = file->f_op->mmap_validate(file, vma,
-+					map_flags, fd);
- 		else
- 			error = call_mmap(file, vma);
- 		if (error)
-@@ -2842,7 +2843,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsigned long, start, unsigned long, size,
- 
- 	file = get_file(vma->vm_file);
- 	ret = do_mmap_pgoff(vma->vm_file, start, size,
--			prot, flags, pgoff, &populate, NULL);
-+			prot, flags, pgoff, &populate, NULL, -1);
- 	fput(file);
- out:
- 	up_write(&mm->mmap_sem);
-diff --git a/mm/nommu.c b/mm/nommu.c
-index 17c00d93de2e..952d205d3b66 100644
---- a/mm/nommu.c
-+++ b/mm/nommu.c
-@@ -1206,7 +1206,8 @@ unsigned long do_mmap(struct file *file,
- 			vm_flags_t vm_flags,
- 			unsigned long pgoff,
- 			unsigned long *populate,
--			struct list_head *uf)
-+			struct list_head *uf,
-+			int fd)
- {
- 	struct vm_area_struct *vma;
- 	struct vm_region *region;
-@@ -1439,7 +1440,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned long, addr, unsigned long, len,
- 
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
--	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
-+	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, fd);
- 
- 	if (file)
- 		fput(file);
-diff --git a/mm/util.c b/mm/util.c
-index 34e57fae959d..dcf48d929185 100644
---- a/mm/util.c
-+++ b/mm/util.c
-@@ -319,7 +319,7 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
- 
- unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
--	unsigned long flag, unsigned long pgoff)
-+	unsigned long flag, unsigned long pgoff, int fd)
- {
- 	unsigned long ret;
- 	struct mm_struct *mm = current->mm;
-@@ -331,7 +331,7 @@ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
- 		if (down_write_killable(&mm->mmap_sem))
- 			return -EINTR;
- 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
--				    &populate, &uf);
-+				    &populate, &uf, fd);
- 		up_write(&mm->mmap_sem);
- 		userfaultfd_unmap_complete(mm, &uf);
- 		if (populate)
-@@ -349,7 +349,8 @@ unsigned long vm_mmap(struct file *file, unsigned long addr,
- 	if (unlikely(offset_in_page(offset)))
- 		return -EINVAL;
- 
--	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
-+	return vm_mmap_pgoff(file, addr, len, prot, flag,
-+			offset >> PAGE_SHIFT, -1);
- }
- EXPORT_SYMBOL(vm_mmap);
- 
+Looks good, you can add: 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
