@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E49FB2095B07B
- for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 10:42:02 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 5/6] ndctl/test: update existing unit tests to use
- inject-error
-Date: Mon, 30 Oct 2017 11:43:34 -0600
-Message-Id: <20171030174335.6806-6-vishal.l.verma@intel.com>
-In-Reply-To: <20171030174335.6806-1-vishal.l.verma@intel.com>
-References: <20171030174335.6806-1-vishal.l.verma@intel.com>
+Received: from me-ss2-ieksw9.mailengine1.com (me-ss2-ieksw9.mailengine1.com
+ [72.19.210.94]) by ml01.01.org (Postfix) with ESMTP id AE5292034A87C
+ for <linux-nvdimm@lists.01.org>; Thu, 26 Oct 2017 20:05:18 -0700 (PDT)
+Received: by me-ss2-ieksw9.mailengine1.com (PowerMTA(TM) v3.5r15sb7) id
+ huahl20jql4r for <linux-nvdimm@lists.01.org>;
+ Thu, 26 Oct 2017 20:08:59 -0700 (envelope-from
+ <bouncer@me-ss2-ieksw9.mailengine1.com>)
+MIME-Version: 1.0
+Date: Thu, 26 Oct 2017 20:02:17 -0700
+From: "Nicholas Meyler" <nickm@wdsearch.com>
+Subject: Wingate Dunross: Leaders of Executive Search
+Message-ID: <300.0.15.14B.1D34ED0EF1239D0.10E523@me-ss2-ieksw9.mailengine1.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,109 +18,94 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Reply-To: "Nicholas J. Meyler" <nickm@wdsearch.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until now, various unit tests related to error handling used to expect
-'canned' errors to be present in the middle of every nfit_test
-namespace. With the ACPI error injection patches for nfit_test, this is
-no longer the case. Update the existing unit tests it inject any errors
-they need for testing themselves using inject-error, rather than
-expecting canned errors.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/clear.sh         |  5 ++++-
- test/dax-errors.sh    |  5 ++++-
- test/daxdev-errors.sh | 17 ++++++++++++++---
- 3 files changed, 22 insertions(+), 5 deletions(-)
-
-diff --git a/test/clear.sh b/test/clear.sh
-index a60c3d9..c22ff3b 100755
---- a/test/clear.sh
-+++ b/test/clear.sh
-@@ -54,7 +54,10 @@ eval $(echo $json | sed -e "$json2var")
- [ $dev = "x" ] && echo "fail: $LINENO" && exit 1
- [ $mode != "raw" ] && echo "fail: $LINENO" && exit 1
- 
--# check for expected errors in the middle of the namespace
-+# inject errors in the middle of the namespace, verify that reading fails
-+err_sector="$(((size/512) / 2))"
-+err_count=8
-+$NDCTL inject-error --block="$err_sector" --count=$err_count $dev
- read sector len < /sys/block/$blockdev/badblocks
- [ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && exit 1
- if dd if=/dev/$blockdev of=/dev/null iflag=direct bs=512 skip=$sector count=$len; then
-diff --git a/test/dax-errors.sh b/test/dax-errors.sh
-index 5af3859..02bbca8 100755
---- a/test/dax-errors.sh
-+++ b/test/dax-errors.sh
-@@ -64,7 +64,10 @@ eval $(echo $json | sed -e "$json2var")
- [ $dev = "x" ] && echo "fail: $LINENO" && exit 1
- [ $mode != "raw" ] && echo "fail: $LINENO" && exit 1
- 
--# check for expected errors in the middle of the namespace
-+# inject errors in the middle of the namespace, verify that reading fails
-+err_sector="$(((size/512) / 2))"
-+err_count=8
-+$NDCTL inject-error --block="$err_sector" --count=$err_count $dev
- read sector len < /sys/block/$blockdev/badblocks
- [ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && exit 1
- if dd if=/dev/$blockdev of=/dev/null iflag=direct bs=512 skip=$sector count=$len; then
-diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
-index 8115087..e9d9d57 100755
---- a/test/daxdev-errors.sh
-+++ b/test/daxdev-errors.sh
-@@ -37,6 +37,7 @@ check_min_kver "4.12" || { echo "kernel $KVER lacks dax dev error handling"; exi
- 
- set -e
- trap 'err $LINENO' ERR
-+rc=1
- 
- # setup (reset nfit_test dimms)
- modprobe nfit_test
-@@ -68,18 +69,28 @@ chardev=$(echo $json | jq ". | select(.mode == \"dax\") | .daxregion.devices[0].
- #  }
- #}
- 
-+json1=$($NDCTL list $BUS --mode=dax --namespaces)
-+eval $(echo $json1 | sed -e "$json2var")
-+nsdev=$dev
-+
- json1=$($NDCTL list $BUS)
- eval $(echo $json1 | sed -e "$json2var")
-+busdev=$dev
-+
-+# inject errors in the middle of the namespace
-+err_sector="$(((size/512) / 2))"
-+err_count=8
-+$NDCTL inject-error --block="$err_sector" --count=$err_count $nsdev
- 
--read sector len < /sys/bus/platform/devices/nfit_test.0/$dev/$region/badblocks
-+read sector len < /sys/bus/nd/devices/$region/badblocks
- echo "sector: $sector len: $len"
- 
- # run the daxdev-errors test
- test -x ./daxdev-errors
--./daxdev-errors $dev $region
-+./daxdev-errors $busdev $region
- 
- # check badblocks, should be empty
--if read sector len < /sys/bus/platform/devices/nfit_test.0/$dev/$region/badblocks; then
-+if read sector len < /sys/bus/platform/devices/nfit_test.0/$busdev/$region/badblocks; then
- 	echo "badblocks empty, expected"
- fi
- [ -n "$sector" ] && echo "fail: $LINENO" && exit 1
--- 
-2.9.5
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+RGVhciBFbnRyZXByZW5ldXJzL1ZDcywgSGlyaW5nIFByaW5jaXBhbHMsIEZlbGxvdyBTY2llbnRp
+c3RzL0VuZ2luZWVycyBhbmQgSFIgUGVvcGxlOgoKQXJlIHlvdSwgb3IgeW91ciBDb21wYW55LCBj
+dXJyZW50bHkgdHJ5aW5nIHRvIGZpbGwgYSBwYXJ0aWN1bGFybHkgY2hhbGxlbmdpbmcgeWV0IHZp
+dGFsIHBvc2l0aW9uPwoKTm90aGluZyBpcyBtb3JlIHZhbHVhYmxlIHRvIGEgQ29ycG9yYXRpb24g
+dGhhbiAnSHVtYW4gQ2FwaXRhbCcsIGFuZCBhIHRvcCBSZWNydWl0ZXIgY2FuIHNhdmUgeW91IGFu
+ZCB5b3VyIGNvbXBhbnkgYm90aCB0aW1lIGFuZCBtb25leSBieSBmaWxsaW5nIGEga2V5IHBvc2l0
+aW9uIHF1aWNrbHksIHdpdGhvdXQgdGhlIGV4cGVuZGl0dXJlIG9mIGNvdW50bGVzcyBtYW4taG91
+cnMgd2FzdGVkIG9uIGEgZnV0aWxlIGVmZm9ydC4gRW5saXN0aW5nIGEgd2lzZSBjb25zdWx0YXRp
+dmUvY29sbGFib3JhdGl2ZSBSZWNydWl0ZXIgd2l0aCBhbiBFbmdpbmVlcmluZyBkZWdyZWUgdG8g
+eW91ciBzaWRlIGNhbiBiZSBhIGh1Z2UgYWR2YW50YWdlLCBhY2hpZXZpbmcgcmFwaWQgY29ubmVj
+dGlvbnMgd2l0aCBhIHN1cGVyaW9yIGVjaGVsb24gb2YgY2FuZGlkYXRlczsgc28gaXMgaGF2aW5n
+IGEgUmVjcnVpdGVyIHdob3NlIHJlc2VhcmNoIHNraWxscyB3ZXJlIGZvcm1lZCBhbmQgaG9uZWQg
+YXQgb25lIG9mIHRoZSB0b3AtcmFua2VkIGFjYWRlbWljIGRlcGFydG1lbnRzIGluIHRoZSBXb3Js
+ZC4KCkkgb2ZmZXIgYm90aCBxdWFsaXRpZXMsIGFuZCBldmVuIHByb3ZpZGUgJ25vLXJpc2snIGd1
+YXJhbnRlZXMgb2Ygc2F0aXNmYWN0aW9uIG9uIEFMTCByZXRhaW5lZCBzZWFyY2hlcy4gV2hldGhl
+ciB5b3VyIHNlYXJjaCBuZWVkcyBhcmUgZm9yIGp1bmlvciBwb3NpdGlvbnMgb3IgdG9wLWxldmVs
+IHNlbmlvciBzY2llbnRpc3RzIHdpdGggaHVuZHJlZHMgb2YgcGF0ZW50cywgSSBjYW4gZGVtb25z
+dHJhdGUgYSB0cmFjay1yZWNvcmQgb2YgcHJpb3Igc3VjY2Vzcy4gUGxlYXNlIGNvbnRhY3QgbWUg
+aWYgeW91IGhhdmUgYSBoaXJpbmcgbmVlZCB0aGF0IHJlcXVpcmVzIHNwZWNpYWwgaW5zaWdodCwg
+ZGVkaWNhdGlvbiBhbmQgaW50ZWxsaWdlbmNlIHRvIHJlc29sdmUuCgpCZXN0IFJlZ2FyZHMgYW5k
+IFRoYW5rIFlvdSwKCk5pY2hvbGFzIE1leWxlcgpHTS9QcmVzaWRlbnQsIFRlY2hub2xvZ3kKV2lu
+Z2F0ZSBEdW5yb3NzIEFzc29jaWF0ZXMsIEluYy4KcGggKDgxOCk1OTctMzIwMCBleHQuIDIxMQpu
+aWNrbUB3ZHNlYXJjaC5jb20KCgoKUGFydGlhbCBMaXN0IG9mIFN1Y2Nlc3NmdWxseS1Db21wbGV0
+ZWQgRW5naW5lZXJpbmcgU2VhcmNoZXM6CjNEIFByaW50aW5nIE1lY2hhbmljYWwgRW5naW5lZXIg
+YXQgSXJPcyBMTEMKQW5hbHl0aWNhbCBDaGVtaXN0IGF0IE5hbm9IMk8KQm9hcmQgb2YgU2NpZW50
+aWZpYyBBZHZpc29ycyBNZW1iZXIgYXQgUVNJIE5hbm90ZWNoCkJ1c2luZXNzIERldmVsb3BtZW50
+IE1hbmFnZXIgYXQgS29jaC1LbmlnaHQKQ0VPIGF0IFJTRVQgVGVjaG5vbG9naWVzCkNFTy9DT08g
+YXQgRXV0cmljaXR5CkNFTy9WUCBTYWxlcyBhbmQgTWFya2V0aW5nIGF0IE9wdGEKQ2hpZWYgQ2hl
+bWljYWwgRW5naW5lZXIgYXQgQ29vbFBsYW5ldCBCaW9mdWVscwpDaGllZiBQcm9kdWN0IE9mZmlj
+ZXIgYXQgTmV4YTNECkNUTyBhdCBVbmlkeW0KRGlyZWN0b3Igb2YgTm9udm9sYXRpbGUgTWVtb3J5
+IEJ1c2luZXNzIERldmVsb3BtZW50IGF0IE5hbm9zeXMKRGlyZWN0b3Igb2YgUXVhbnR1bSBDb21w
+dXRhdGlvbmFsIENoZW1pc3RyeSBhdCBOYW5vc3RlbGxhcgpEaXJlY3RvciBvZiBUZWNobmljYWwg
+TWFya2V0aW5nIGF0IEFuYWxvZ2l4CkRpcmVjdG9yIG9mIFRlY2huaWNhbCBTYWxlcyBhdCBCaXRi
+b3lzCkRpcmVjdG9yIG9mIFdlc3Rlcm4gUmVnaW9uIFNhbGVzIGF0IFMzCkRpcmVjdG9yIG9mIFdX
+IFNhbGVzIGF0IE5hbm9JbmsKRFJBTSBNYXJrZXRpbmcgTWFuYWdlciBhdCBNaXRzdWJpc2hpCkVs
+ZWN0cmljYWwgRXF1aXBtZW50IEVuZ2luZWVyIGF0IERpYW1vbmQgRm91bmRyeQpFeGVjdXRpdmUg
+VlAgYXQgQ2hyb21hIEVuZXJneQpGaWVsZCBBcHBsaWNhdGlvbnMgRW5naW5lZXIgKE9wdGljYWwg
+RXRoZXJuZXQpIGF0IFRFIENvbm5lY3Rpdml0eQpGaWVsZCBBcHBsaWNhdGlvbnMgRW5naW5lZXIg
+YXQgQVRJCkZpZWxkIEFwcGxpY2F0aW9ucyBFbmdpbmVlciBhdCBDeXJpeApGaWVsZCBBcHBsaWNh
+dGlvbnMgRW5naW5lZXIgYXQgR2VuZXNpcyBNaWNyb2NoaXAKRmllbGQgQXBwbGljYXRpb25zIEVu
+Z2luZWVyIGF0IE1lZGlhUQpGaWVsZCBBcHBsaWNhdGlvbnMgRW5naW5lZXIgYXQgTmFub0gyTwpG
+aWVsZCBBcHBsaWNhdGlvbnMgRW5naW5lZXIgYXQgV2VpdGVrCk1hY2hpbmUtVmlzaW9uIFNjaWVu
+dGlzdCBhdCBURSBDb25uZWN0aXZpdHkKTWF0ZXJpYWxzIFNjaWVudGlzdC9SaGVvbG9naXN0IGF0
+IElyT3MgTExDCk1pY3JvZmx1aWRpY3MgU2NpZW50aXN0IGF0IEJpby1SYWQgTGFib3JhdG9yaWVz
+ClByaW5jaXBsZSBTeXN0ZW1zIEFyY2hpdGVjdApRTEVEcyBEZXZpY2UgUGh5c2ljaXN0IGF0IE5h
+bm9QaG90b25pY2EKU2VuaW9yIENNT1MgUHJvY2VzcyBJbnRlZ3JhdGlvbiBFbmdpbmVlciBhdCBO
+YW50ZXJvClNlbmlvciBTY2llbnRpc3QgSGlnaC1UZW1wIE1hdGVyaWFscyBhdCBNb3JnYW4gQU0m
+VApUZWNobmljYWwgTWFya2V0aW5nIE1hbmFnZXIgYXQgQVRJClRlY2huaWNhbCBNYXJrZXRpbmcg
+TWFuYWdlciBhdCBBdXJhdmlzaW9uClRlY2huaWNhbCBNYXJrZXRpbmcgTWFuYWdlciBhdCBDLUN1
+YmUgTWljcm9zeXN0ZW1zClZQIEJ1c2luZXNzIERldmVsb3BtZW50IGF0IE1pY3JvT3B0aWNhbCBD
+b3JwClZQIEJ1c2luZXNzIERldmVsb3BtZW50IGF0IFViaXF1aXRvdXMgRW5lcmd5ClZQIG9mIENo
+ZW1pY2FsIEVuZ2luZWVyaW5nIGF0IE5hbnRlcm8KVlAgSW50ZWxsZWN0dWFsIFByb3BlcnR5IGFu
+ZCBMaWNlbnNpbmcgYXQgTmFudGVybwpWUCBvZiBHb3Zlcm5tZW50IEJ1c2luZXNzIERldmVsb3Bt
+ZW50IGF0IE5hbnRlcm8vTG9ja2hlZWQKVlAgb2YgV1cgUFIvTWFyY29tbSBhdCAzRGZ4ClZQIG9m
+IFdXIFNhbGVzIGFuZCBNYXJrZXRpbmcgYXQgM0RmeApWUCBQcm9kdWN0cyBhdCBVbmlkeW0KVlAg
+U2FsZXMgYW5kIE1hcmtldGluZyBhdCBNZW1zaWMKVlAgU2FsZXMgYW5kIE1hcmtldGluZyBhdCBN
+aWxsZW5uaWFsLm5ldAoKU2VsZWN0ZWQgQWNjb21wbGlzaG1lbnRzOgoxMCByZXRhaW5lZCBzb2Z0
+d2FyZSBwbGFjZW1lbnRzIGF0IFJhc25hICgzcmQgZmFzdGVzdC1ncm93aW5nIHN0YXJ0dXAgaW4g
+dGhlIE5hdGlvbiwgbGF0ZXIgc29sZCB0byBQVEMgZm9yICQ1MDAgbWlsbGlvbikuIE15IGZpcnN0
+IHJldGFpbmVkIHNlYXJjaCAoMTk4OSkgaWRlbnRpZmllZCBhIGNhbmRpZGF0ZSBmcm9tIGEgZ3Jh
+ZHVhdGUgcHJvZ3JhbSBhdCBSUEkgd2l0aCBzdHVkaWVzIGluIERpZmZlcmVudGlhbCBHZW9tZXRy
+eSBpbiB1bmRlciB0d28gd2Vla3MsIHdobyBhY2NlcHRlZCB0aGUgam9iIGFuZCBzcGVudCAxMiB5
+ZWFycyB3aXRoIHRoZSBjb21wYW55IHJpc2luZyB0byBWUCBzdGF0dXMuIE5vIG90aGVyIHNlYXJj
+aCBmaXJtcyBpbiB0aGUgV29ybGQgaGFkIGJlZW4gYWJsZSB0byBwcm9kdWNlIGFueSBjYW5kaWRh
+dGVzIGF0IGFsbCBmb3Igc2V2ZXJhbCBtb250aHMgcHJpb3IgdG8gbXkgd29yay4KIAoyMSBwbGFj
+ZW1lbnRzIGF0IE5hbnRlcm8gKGZlYXR1cmVkIG9uIHRoZSBjb3ZlciBvZiBTY2llbnRpZmljIEFt
+ZXJpY2FuIGFzIHJldm9sdXRpb25hcnkgbmFub3RlY2hub2xvZ3ksIGhhbGYgb2YgY29tcGFueSBh
+Y3F1aXJlZCBieSBMb2NraGVlZCBNYXJ0aW4pLiBJIGFtIGEgcHJvdWQgc2hhcmVob2xkZXIsIGFz
+IHdlbGwuICBZZXMsIHdlIGRvIGFjY2VwdCBzdG9jayBvcHRpb25zIGFzIGZlZXMsIGlmIGRlc2ly
+ZWQuLi4gCgo0IHBsYWNlbWVudHMgYXQgTmFub0gyTyAoc29sZCB0byBMRyBDaGVtIGZvciAkMjAw
+IG1pbGxpb24pIAoKMTAgcmV0YWluZWQgcGxhY2VtZW50cyBhdCBNaWNyb0Rpc3BsYXksIEluYy4g
+KG1pbmlhdHVyZSBoaWdoLXJlcyBMQ0QgY2hpcHMpCiAKMTIgcGxhY2VtZW50cyBhdCBURSBDb25u
+ZWN0aXZpdHkgKHdvcmxk4oCZcyBsZWFkaW5nIGNvbm5lY3Rpdml0eSBjb21wYW55KQogClBsYWNl
+ZCBwcm9saWZpYyBJbnZlbnRvciB3aXRoIDM5MSBncmFudGVkIHBhdGVudHMgYW5kIDM1NiBwYXRl
+bnQgYXBwbGljYXRpb25zIHN0aWxsIGluIHByb2Nlc3MgKGV4dHJhY3RlZCBmcm9tIE1pY3Jvbikg
+d2l0aCBhICQxbWlsbGlvbiBzaWduLW9uIGJvbnVzLiBIZSBsZWQgY29tcGFueSB0byAkYmlsbGlv
+bisgcmV2ZW51ZXMgYnkgc29sdmluZyBrZXkgcHJvZHVjdGlvbiBpc3N1ZXMuIAoKUGxhY2VkIHBy
+b2xpZmljIEludmVudG9yIHdpdGggMTcwIHBhdGVudHMgaW4gY29uZHVjdGl2ZSBpbmsgY2hlbWlz
+dHJ5LCBldGMuIChleHRyYWN0ZWQgZnJvbSBYZXJveCkKCgoKaHR0cDovL2FwcC5zdHJlYW1zZW5k
+LmNvbS9wcml2YXRlL3U0S3QvbktSL3JQT3pwam8vdW5zdWJzY3JpYmUvMjk4NDg3NjEKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
+aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
+L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
