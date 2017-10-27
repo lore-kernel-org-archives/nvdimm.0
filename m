@@ -1,11 +1,13 @@
-From: =?UTF-8?Q?Al_Rayan_Investment?= <ir-V/qP4IzRIMZSET8nD6tBDK3Vwzep3Xpr@public.gmane.org>
-Subject: =?UTF-8?Q??=
-Date: Tue, 24 Oct 2017 23:46:25 +0200
-Message-ID: <a6281ebf58f69c7cd4c772a55790fb79@www.sitecga.org>
+From: "HYDAC TECHNOLOGY LTD." <trade-OHQ/vEqk9j2lQ9BUahrlcQ@public.gmane.org>
+Subject: Re:Aw: Bank transfer
+Date: Thu, 26 Oct 2017 21:15:43 -0700
+Message-ID: <20171027041154.461292034A87F@ml01.01.org>
+Reply-To: "HYDAC TECHNOLOGY LTD." <abhavsar-miXAc1iA2tC41k5uCYKmRQ@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,8 +20,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-please enjoy the new order. Faster delivery is in mid-November. 
+ Dear Sir,
+ Please find attach the TT form for your kind attention.
+ 
+ We have give instruction to our bank this morning.Please confirm your account
+ details as its different from what we have on our payment system.
+  
+ Kind Regards
+Karen McCallum
 
-Give me a good price, the deposit must be arranged in the 25th TH 
-
-Thank you!
+HYDAC TECHNOLOGY LTD.
+Sales Office Manager
+ 
+ De Havilland Way, Windrush Park
+Witney, Oxfordshire, OX29 0YG
+Tel: +44 1993 877366
+Fax:+44 1993 866365
+Ddi: +44 1993 890939
+Mob:
+Web:Click here for the website
