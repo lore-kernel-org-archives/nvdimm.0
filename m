@@ -1,126 +1,58 @@
 Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
-In-Reply-To: <20171026105850.GA31161@quack2.suse.cz>
+Date: Mon, 30 Oct 2017 08:52:33 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v3 00/13] dax: fix dma vs truncate and remove 'page-less'
+ support
+Message-ID: <20171029215233.GF3666@dastard>
 References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171020074750.GA13568@lst.de> <20171020093148.GA20304@lst.de> <20171026105850.GA31161@quack2.suse.cz>
-From: Dan Williams <dan.j.williams@gmail.com>
-Date: Sun, 29 Oct 2017 16:46:44 -0700
-Message-ID: <CAA9_cmeiT2CU8Nue-HMCv+AyuDmSzXoCVxD1bebt2+cBDRTWog@mail.gmail.com>
-Subject: Re: [PATCH v3 00/13] dax: fix dma vs truncate and remove 'page-less' support
-Content-Type: text/plain; charset="UTF-8"
+ <20171020074750.GA13568@lst.de>
+ <20171020093148.GA20304@lst.de>
+ <20171026105850.GA31161@quack2.suse.cz>
+ <1509061831.25213.2.camel@intel.com>
+ <20171027064854.GE3666@dastard>
+ <CAA9_cmdx7T2jnfw6TvL0_3ytfs-h-X06uF3_7Ex-YP12YKpwng@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAA9_cmdx7T2jnfw6TvL0_3ytfs-h-X06uF3_7Ex-YP12YKpwng@mail.gmail.com>
 Sender: owner-linux-mm@kvack.org
-To: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>, Michal Hocko <mhocko@suse.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, Sean Hefty <sean.hefty@intel.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dave Chinner <david@fromorbit.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "mhocko@suse.com" <mhocko@suse.com>, "jack@suse.cz" <jack@suse.cz>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "bfields@fieldses.org" <bfields@fieldses.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "paulus@samba.org" <paulus@samba.org>, "Hefty, Sean" <sean.hefty@intel.com>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "mpe@ellerman.id.au" <mpe@ellerman.id.au>, "dledford@redhat.com" <dledford@redhat.com>, "hch@lst.de" <hch@lst.de>, "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "gerald.schaefer@de.ibm.com" <gerald.schaefer@de.ibm.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "darrick.wong@oracle.com" <darrick.wong@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Oct 26, 2017 at 3:58 AM, Jan Kara <jack@suse.cz> wrote:
-> On Fri 20-10-17 11:31:48, Christoph Hellwig wrote:
->> On Fri, Oct 20, 2017 at 09:47:50AM +0200, Christoph Hellwig wrote:
->> > I'd like to brainstorm how we can do something better.
->> >
->> > How about:
->> >
->> > If we hit a page with an elevated refcount in truncate / hole puch
->> > etc for a DAX file system we do not free the blocks in the file system,
->> > but add it to the extent busy list.  We mark the page as delayed
->> > free (e.g. page flag?) so that when it finally hits refcount zero we
->> > call back into the file system to remove it from the busy list.
->>
->> Brainstorming some more:
->>
->> Given that on a DAX file there shouldn't be any long-term page
->> references after we unmap it from the page table and don't allow
->> get_user_pages calls why not wait for the references for all
->> DAX pages to go away first?  E.g. if we find a DAX page in
->> truncate_inode_pages_range that has an elevated refcount we set
->> a new flag to prevent new references from showing up, and then
->> simply wait for it to go away.  Instead of a busy way we can
->> do this through a few hashed waitqueued in dev_pagemap.  And in
->> fact put_zone_device_page already gets called when putting the
->> last page so we can handle the wakeup from there.
->>
->> In fact if we can't find a page flag for the stop new callers
->> things we could probably come up with a way to do that through
->> dev_pagemap somehow, but I'm not sure how efficient that would
->> be.
->
-> We were talking about this yesterday with Dan so some more brainstorming
-> from us. We can implement the solution with extent busy list in ext4
-> relatively easily - we already have such list currently similarly to XFS.
-> There would be some modifications needed but nothing too complex. The
-> biggest downside of this solution I see is that it requires per-filesystem
-> solution for busy extents - ext4 and XFS are reasonably fine, however btrfs
-> may have problems and ext2 definitely will need some modifications.
-> Invisible used blocks may be surprising to users at times although given
-> page refs should be relatively short term, that should not be a big issue.
-> But are we guaranteed page refs are short term? E.g. if someone creates
-> v4l2 videobuf in MAP_SHARED mapping of a file on DAX filesystem, page refs
-> can be rather long-term similarly as in RDMA case. Also freeing of blocks
-> on page reference drop is another async entry point into the filesystem
-> which could unpleasantly surprise us but I guess workqueues would solve
-> that reasonably fine.
->
-> WRT waiting for page refs to be dropped before proceeding with truncate (or
-> punch hole for that matter - that case is even nastier since we don't have
-> i_size to guard us). What I like about this solution is that it is very
-> visible there's something unusual going on with the file being truncated /
-> punched and so problems are easier to diagnose / fix from the admin side.
-> So far we have guarded hole punching from concurrent faults (and
-> get_user_pages() does fault once you do unmap_mapping_range()) with
-> I_MMAP_LOCK (or its equivalent in ext4). We cannot easily wait for page
-> refs to be dropped under I_MMAP_LOCK as that could deadlock - the most
-> obvious case Dan came up with is when GUP obtains ref to page A, then hole
-> punch comes grabbing I_MMAP_LOCK and waiting for page ref on A to be
-> dropped, and then GUP blocks on trying to fault in another page.
->
-> I think we cannot easily prevent new page references to be grabbed as you
-> write above since nobody expects stuff like get_page() to fail. But I
-> think that unmapping relevant pages and then preventing them to be faulted
-> in again is workable and stops GUP as well. The problem with that is though
-> what to do with page faults to such pages - you cannot just fail them for
-> hole punch, and you cannot easily allocate new blocks either. So we are
-> back at a situation where we need to detach blocks from the inode and then
-> wait for page refs to be dropped - so some form of busy extents. Am I
-> missing something?
+On Fri, Oct 27, 2017 at 01:42:16PM +0200, Dan Williams wrote:
+> [replying from my phone, please forgive formatting]
+> 
+> On Friday, October 27, 2017, Dave Chinner <david@fromorbit.com> wrote:
+> 
+> 
+> > > Here are the two primary patches in
+> > > the series, do you think the extent-busy approach would be cleaner?
+> >
+> > The XFS_DAXDMA....
+> >
+> > $DEITY that patch is so ugly I can't even bring myself to type it.
+> 
+> 
+> Right, and so is the problem it's trying to solve. So where do you want to
+> go from here?
+> 
+> I could go back to the FL_ALLOCATED approach, but use page idle callbacks
+> instead of polling for the lease end notification. Or do we want to try
+> busy extents? My concern with busy extents is that it requires more per-fs
+> code.
 
-Coming back to this since Dave has made clear that new locking to
-coordinate get_user_pages() is a no-go.
+I don't care if it takes more per-fs code to solve the problem -
+dumping butt-ugly, nasty locking crap into filesystems that
+filesystem developers are completely unable to test is about the
+worst possible solution you can come up with.
 
-We can unmap to force new get_user_pages() attempts to block on the
-per-fs mmap lock, but if punch-hole finds any elevated pages it needs
-to drop the mmap lock and wait. We need this lock dropped to get
-around the problem that the driver will not start to drop page
-references until it has elevated the page references on all the pages
-in the I/O. If we need to drop the mmap lock that makes it impossible
-to coordinate this unlock/retry loop within truncate_inode_pages_range
-which would otherwise be the natural place to land this code.
+Cheers,
 
-Would it be palatable to unmap and drain dma in any path that needs to
-detach blocks from an inode? Something like the following that builds
-on dax_wait_dma() tried to achieve, but does not introduce a new lock
-for the fs to manage:
-
-retry:
-    per_fs_mmap_lock(inode);
-    unmap_mapping_range(mapping, start, end); /* new page references
-cannot be established */
-    if ((dax_page = dax_dma_busy_page(mapping, start, end)) != NULL) {
-        per_fs_mmap_unlock(inode); /* new page references can happen,
-so we need to start over */
-        wait_for_page_idle(dax_page);
-        goto retry;
-    }
-    truncate_inode_pages_range(mapping, start, end);
-    per_fs_mmap_unlock(inode);
-
-Given how far away taking the mmap lock occurs from where we know we
-are actually performing a punch-hole operation this may lead to
-unnecessary unmapping and dma flushing.
-
-As far as I can see the extent busy mechanism does not simplify the
-solution. If we have code to wait for the pages to go idle might as
-well have the truncate/punch-hole wait on that event in the first
-instance.
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
