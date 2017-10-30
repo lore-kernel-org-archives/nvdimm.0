@@ -1,11 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.132.61])
- by ml01.01.org (Postfix) with ESMTP id 863A6202E5CDF
- for <linux-nvdimm@lists.01.org>; Mon, 16 Oct 2017 20:25:14 -0700 (PDT)
-From: "MAILER-DAEMON" <MAILER-DAEMON@lists.01.org>
-Subject: Returned mail: Data format error
-Date: Tue, 17 Oct 2017 11:28:49 +0800
-MIME-Version: 1.0
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9CB072034A7D9
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 13:32:25 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] test: correctly adjust rc for skip/fail
+Date: Mon, 30 Oct 2017 14:33:59 -0600
+Message-Id: <20171030203359.13177-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,38 +15,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============8776749630554163854=="
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20171017032517.3FBE7202E61AD@ml01.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a multi-part message in MIME format.
+The exit code for daxdev-errors and multi-dax wasn't being set correctly
+to distinguish a skipped test from a failure. Fix it by setting rc to 77
+prior to probing for nfit_test, and to 1 after it.
 
---===============8776749630554163854==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ test/daxdev-errors.sh | 3 ++-
+ test/multi-dax.sh     | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-1?^c�d�)���~��u�ql��¶s�����w�Iw����Fr�V��Xc׽�8a����
-�X�AY��5�$��|�T���&/0��N��Ovv��(N��U'�Li�S$?䊆ۉK���_��{t���J�Z���a&U���I峚&Q�k�h5��#�GI��V�ne�D����\���O
-�����zg(L<*�}�ٴ�{ba���H�Ҙ8QH`�ߧA:�%��϶��y\�g�$�R��-b(#����63or��ſ����4��)j�3d�ʏ�݆�4
-���]d�w�I�^�ů���Q�����H�����Ѫ
-��IO�L�P�sh�����wӶ?r���;���jY�Sus;>���-���wq�n����~�V:\��g}���`�_�����1U�D��BP<�8��F>.����"��������ʅ�q
-�CC|�ƨN���D�l������D�w���,�˙���I]J����%v����05q��D�����&K�>�f��eߺ§�v<�<&�]^D�o#�h���$���
-}��.(�����)0�Ӭ�B#m��2�U�n)�w�P%�'
-
-
---===============8776749630554163854==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
+index e9d9d57..d15bd82 100755
+--- a/test/daxdev-errors.sh
++++ b/test/daxdev-errors.sh
+@@ -37,7 +37,6 @@ check_min_kver "4.12" || { echo "kernel $KVER lacks dax dev error handling"; exi
+ 
+ set -e
+ trap 'err $LINENO' ERR
+-rc=1
+ 
+ # setup (reset nfit_test dimms)
+ modprobe nfit_test
+@@ -45,6 +44,8 @@ $NDCTL disable-region $BUS all
+ $NDCTL zero-labels $BUS all
+ $NDCTL enable-region $BUS all
+ 
++rc=1
++
+ query=". | sort_by(.available_size) | reverse | .[0].dev"
+ region=$($NDCTL list $BUS -t pmem -Ri | jq -r "$query")
+ 
+diff --git a/test/multi-dax.sh b/test/multi-dax.sh
+index 751f16f..d70ce69 100755
+--- a/test/multi-dax.sh
++++ b/test/multi-dax.sh
+@@ -20,7 +20,6 @@ json2var="s/[{}\",]//g; s/:/=/g"
+ rc=77
+ 
+ err() {
+-	rc=1
+ 	echo "test/multi-dax: failed at line $1"
+ 	exit $rc
+ }
+@@ -45,6 +44,8 @@ $NDCTL disable-region $BUS all
+ $NDCTL zero-labels $BUS all
+ $NDCTL enable-region $BUS all
+ 
++rc=1
++
+ query=". | sort_by(.available_size) | reverse | .[0].dev"
+ region=$($NDCTL list $BUS -t pmem -Ri | jq -r "$query")
+ 
+-- 
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============8776749630554163854==--
