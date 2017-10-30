@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6A5C62035261E
- for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:47 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 11/17] dax: Allow tuning whether dax_insert_mapping_entry()
- dirties entry
-Date: Tue, 24 Oct 2017 17:24:08 +0200
-Message-Id: <20171024152415.22864-12-jack@suse.cz>
-In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
-References: <20171024152415.22864-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 7654C21F3B3E7
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 13:49:37 -0700 (PDT)
+Subject: [PATCH v2 1/2] acpi, nfit: hide unknown commands from nmemX/commands
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 30 Oct 2017 13:47:03 -0700
+Message-ID: <150939642330.4577.10714458271356489094.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,95 +18,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we dirty radix tree entry whenever dax_insert_mapping_entry()
-gets called for a write fault. With synchronous page faults we would
-like to insert clean radix tree entry and dirty it only once we call
-fdatasync() and update page tables to save some unnecessary cache
-flushing. Add 'dirty' argument to dax_insert_mapping_entry() for that.
+For vendor specific commands that do not have a common kernel
+translation, hide them from nmemX/commands. For example, the following
+results from new enabling to probe for support of the new
+NVDIMM_FAMILY_INTEL DSMs specified in v1.6 of the command specification
+[1]:
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
+    # cat /sys/bus/nd/devices/nmem0/commands
+    smart smart_thresh flags get_size get_data set_data effect_size
+    effect_log vendor cmd_call unknown unknown unknown unknown unknown
+    unknown unknown unknown
+
+[1]: https://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/acpi/nfit/core.c |   10 ++++++++--
+ drivers/acpi/nfit/nfit.h |    6 ++++++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5ddf15161390..efc210ff6665 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -526,13 +526,13 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- static void *dax_insert_mapping_entry(struct address_space *mapping,
- 				      struct vm_fault *vmf,
- 				      void *entry, sector_t sector,
--				      unsigned long flags)
-+				      unsigned long flags, bool dirty)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
- 	void *new_entry;
- 	pgoff_t index = vmf->pgoff;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index ebe0857ac346..444832b372ec 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1769,8 +1769,14 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		 * userspace interface.
+ 		 */
+ 		cmd_mask = 1UL << ND_CMD_CALL;
+-		if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
+-			cmd_mask |= nfit_mem->dsm_mask;
++		if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
++			/*
++			 * These commands have a 1:1 correspondence
++			 * between DSM payload and libnvdimm ioctl
++			 * payload format.
++			 */
++			cmd_mask |= nfit_mem->dsm_mask & NVDIMM_STANDARD_CMDMASK;
++		}
  
--	if (vmf->flags & FAULT_FLAG_WRITE)
-+	if (dirty)
- 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 		if (nfit_mem->has_lsi)
+ 			set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 3976d649f27c..b987196bf132 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -38,6 +38,12 @@
+ 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+ 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
  
- 	if (dax_is_zero_entry(entry) && !(flags & RADIX_DAX_ZERO_PAGE)) {
-@@ -569,7 +569,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 		entry = new_entry;
- 	}
- 
--	if (vmf->flags & FAULT_FLAG_WRITE)
-+	if (dirty)
- 		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
- 
- 	spin_unlock_irq(&mapping->tree_lock);
-@@ -881,7 +881,7 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
- 	}
- 
- 	entry2 = dax_insert_mapping_entry(mapping, vmf, entry, 0,
--			RADIX_DAX_ZERO_PAGE);
-+			RADIX_DAX_ZERO_PAGE, false);
- 	if (IS_ERR(entry2)) {
- 		ret = VM_FAULT_SIGBUS;
- 		goto out;
-@@ -1182,7 +1182,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						 dax_iomap_sector(&iomap, pos),
--						 0);
-+						 0, write);
- 		if (IS_ERR(entry)) {
- 			error = PTR_ERR(entry);
- 			goto error_finish_iomap;
-@@ -1258,7 +1258,7 @@ static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
- 		goto fallback;
- 
- 	ret = dax_insert_mapping_entry(mapping, vmf, entry, 0,
--			RADIX_DAX_PMD | RADIX_DAX_ZERO_PAGE);
-+			RADIX_DAX_PMD | RADIX_DAX_ZERO_PAGE, false);
- 	if (IS_ERR(ret))
- 		goto fallback;
- 
-@@ -1379,7 +1379,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						dax_iomap_sector(&iomap, pos),
--						RADIX_DAX_PMD);
-+						RADIX_DAX_PMD, write);
- 		if (IS_ERR(entry))
- 			goto finish_iomap;
- 
--- 
-2.12.3
++#define NVDIMM_STANDARD_CMDMASK \
++(1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
++ | 1 << ND_CMD_GET_CONFIG_SIZE | 1 << ND_CMD_GET_CONFIG_DATA \
++ | 1 << ND_CMD_SET_CONFIG_DATA | 1 << ND_CMD_VENDOR_EFFECT_LOG_SIZE \
++ | 1 << ND_CMD_VENDOR_EFFECT_LOG | 1 << ND_CMD_VENDOR)
++
+ enum nfit_uuids {
+ 	/* for simplicity alias the uuid index with the family id */
+ 	NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
 
 _______________________________________________
 Linux-nvdimm mailing list
