@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 880D52034A7B7
- for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:48 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 13/17] dax, iomap: Add support for synchronous faults
-Date: Tue, 24 Oct 2017 17:24:10 +0200
-Message-Id: <20171024152415.22864-14-jack@suse.cz>
-In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
-References: <20171024152415.22864-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 3020A2095B07B
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 10:42:03 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 6/6] ndctl/test: add a new unit test for BTT error
+ clearing
+Date: Mon, 30 Oct 2017 11:43:35 -0600
+Message-Id: <20171030174335.6806-7-vishal.l.verma@intel.com>
+In-Reply-To: <20171030174335.6806-1-vishal.l.verma@intel.com>
+References: <20171030174335.6806-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,158 +23,194 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a flag to iomap interface informing the caller that inode needs
-fdstasync(2) for returned extent to become persistent and use it in DAX
-fault code so that we don't map such extents into page tables
-immediately. Instead we propagate the information that fdatasync(2) is
-necessary from dax_iomap_fault() with a new VM_FAULT_NEEDDSYNC flag.
-Filesystem fault handler is then responsible for calling fdatasync(2)
-and inserting pfn into page tables.
+The new error injection command allows us to inject errors that persist
+through changing the mode of a BTT namespace to 'raw' and back. This
+allows us to test error clearing with a BTT by adding a selective error
+block to the raw namespace, enabling the BTT, and then clearing it via a
+write.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/dax.c              | 39 +++++++++++++++++++++++++++++++++++++--
- include/linux/iomap.h |  1 +
- include/linux/mm.h    |  6 +++++-
- 3 files changed, 43 insertions(+), 3 deletions(-)
+ test/Makefile.am   |   3 +-
+ test/btt-errors.sh | 149 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 151 insertions(+), 1 deletion(-)
+ create mode 100755 test/btt-errors.sh
 
-diff --git a/fs/dax.c b/fs/dax.c
-index efc210ff6665..bb9ff907738c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1091,6 +1091,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	unsigned flags = IOMAP_FAULT;
- 	int error, major = 0;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-+	bool sync;
- 	int vmf_ret = 0;
- 	void *entry;
- 	pfn_t pfn;
-@@ -1169,6 +1170,8 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 		goto finish_iomap;
- 	}
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 8cec451..881fcea 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -14,7 +14,8 @@ TESTS =\
+ 	btt-check.sh \
+ 	label-compat.sh \
+ 	blk-exhaust.sh \
+-	inject-error.sh
++	inject-error.sh \
++	btt-errors.sh
  
-+	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
+ check_PROGRAMS =\
+ 	libndctl \
+diff --git a/test/btt-errors.sh b/test/btt-errors.sh
+new file mode 100755
+index 0000000..aec0b9d
+--- /dev/null
++++ b/test/btt-errors.sh
+@@ -0,0 +1,149 @@
++#!/bin/bash -x
 +
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
- 		if (iomap.flags & IOMAP_F_NEW) {
-@@ -1182,12 +1185,27 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						 dax_iomap_sector(&iomap, pos),
--						 0, write);
-+						 0, write && !sync);
- 		if (IS_ERR(entry)) {
- 			error = PTR_ERR(entry);
- 			goto error_finish_iomap;
- 		}
- 
-+		/*
-+		 * If we are doing synchronous page fault and inode needs fsync,
-+		 * we can insert PTE into page tables only after that happens.
-+		 * Skip insertion for now and return the pfn so that caller can
-+		 * insert it after fsync is done.
-+		 */
-+		if (sync) {
-+			if (WARN_ON_ONCE(!pfnp)) {
-+				error = -EIO;
-+				goto error_finish_iomap;
-+			}
-+			*pfnp = pfn;
-+			vmf_ret = VM_FAULT_NEEDDSYNC | major;
-+			goto finish_iomap;
-+		}
- 		trace_dax_insert_mapping(inode, vmf, entry);
- 		if (write)
- 			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
-@@ -1287,6 +1305,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-+	bool sync;
- 	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
- 	struct inode *inode = mapping->host;
- 	int result = VM_FAULT_FALLBACK;
-@@ -1371,6 +1390,8 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
- 		goto finish_iomap;
- 
-+	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
++# Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
++#
++# This program is free software; you can redistribute it and/or modify it
++# under the terms of version 2 of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it will be useful, but
++# WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# General Public License for more details.
 +
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
- 		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
-@@ -1379,10 +1400,24 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						dax_iomap_sector(&iomap, pos),
--						RADIX_DAX_PMD, write);
-+						RADIX_DAX_PMD, write && !sync);
- 		if (IS_ERR(entry))
- 			goto finish_iomap;
- 
-+		/*
-+		 * If we are doing synchronous page fault and inode needs fsync,
-+		 * we can insert PMD into page tables only after that happens.
-+		 * Skip insertion for now and return the pfn so that caller can
-+		 * insert it after fsync is done.
-+		 */
-+		if (sync) {
-+			if (WARN_ON_ONCE(!pfnp))
-+				goto finish_iomap;
-+			*pfnp = pfn;
-+			result = VM_FAULT_NEEDDSYNC;
-+			goto finish_iomap;
-+		}
++NDCTL="../ndctl/ndctl"
++BUS="nfit_test.0"
++MNT=test_btt_mnt
++FILE=image
++json2var="s/[{}\",]//g; s/:/=/g"
++blockdev=""
++rc=77
 +
- 		trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
- 		result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
- 					    write);
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index f64dc6ce5161..4bc0a6fe3b15 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -22,6 +22,7 @@ struct vm_fault;
-  * Flags for all iomap mappings:
-  */
- #define IOMAP_F_NEW	0x01	/* blocks have been newly allocated */
-+#define IOMAP_F_DIRTY	0x02	/* block mapping is not yet on persistent storage */
- 
- /*
-  * Flags that only need to be reported for IOMAP_REPORT requests:
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 5411cb7442de..f57e55782d7d 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1182,6 +1182,9 @@ static inline void clear_page_pfmemalloc(struct page *page)
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
- #define VM_FAULT_DONE_COW   0x1000	/* ->fault has fully handled COW */
-+#define VM_FAULT_NEEDDSYNC  0x2000	/* ->fault did not modify page tables
-+					 * and needs fsync() to complete (for
-+					 * synchronous page faults in DAX) */
- 
- #define VM_FAULT_ERROR	(VM_FAULT_OOM | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | \
- 			 VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE | \
-@@ -1199,7 +1202,8 @@ static inline void clear_page_pfmemalloc(struct page *page)
- 	{ VM_FAULT_LOCKED,		"LOCKED" }, \
- 	{ VM_FAULT_RETRY,		"RETRY" }, \
- 	{ VM_FAULT_FALLBACK,		"FALLBACK" }, \
--	{ VM_FAULT_DONE_COW,		"DONE_COW" }
-+	{ VM_FAULT_DONE_COW,		"DONE_COW" }, \
-+	{ VM_FAULT_NEEDDSYNC,		"NEEDDSYNC" }
- 
- /* Encode hstate index for a hwpoisoned large page */
- #define VM_FAULT_SET_HINDEX(x) ((x) << 12)
++err() {
++	rc=1
++	echo "test/btt-errors: failed at line $1"
++
++	rm -f $FILE
++	rm -f $MNT/$FILE
++	if [ -n "$blockdev" ]; then
++		umount "/dev/$blockdev"
++	else
++		rc=77
++	fi
++	rmdir $MNT
++	exit $rc
++}
++
++check_min_kver()
++{
++	local ver="$1"
++	: "${KVER:=$(uname -r)}"
++
++	[ -n "$ver" ] || return 1
++	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
++}
++
++force_raw()
++{
++	raw="$1"
++	if grep -q "$MNT" /proc/mounts; then umount $MNT; fi
++	ndctl disable-namespace "$dev"
++	echo "$raw" > "/sys/bus/nd/devices/$dev/force_raw"
++	ndctl enable-namespace "$dev"
++	echo "Set $dev to raw mode: $raw"
++	if [[ "$raw" == "1" ]]; then
++		raw_bdev=${blockdev%s}
++		test -b "/dev/$raw_bdev"
++	else
++		raw_bdev=""
++	fi
++}
++
++check_min_kver "4.14" || { echo "kernel $KVER may lack BTT error handling"; exit $rc; }
++
++set -e
++mkdir -p $MNT
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region -b "$BUS" all
++$NDCTL zero-labels -b "$BUS" all
++$NDCTL enable-region -b "$BUS" all
++
++rc=1
++
++# create a btt namespace and clear errors (if any)
++dev="x"
++json=$($NDCTL create-namespace -b "$BUS" -t pmem -m sector)
++eval "$(echo "$json" | sed -e "$json2var")"
++[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
++
++force_raw 1
++if read -r sector len < "/sys/block/$raw_bdev/badblocks"; then
++	dd of=/dev/$raw_bdev if=/dev/zero oflag=direct bs=512 seek="$sector" count="$len"
++fi
++force_raw 0
++
++mkfs.ext4 "/dev/$blockdev" -b 4096
++mount -o nodelalloc "/dev/$blockdev" $MNT
++
++# prepare an image file with random data
++dd if=/dev/urandom of=$FILE bs=4096 count=1
++test -s $FILE
++
++# copy it to the file system
++cp $FILE $MNT/$FILE
++
++# Get the start sector for the file
++start_sect=$(filefrag -v -b512 $MNT/$FILE | grep -E "^[ ]+[0-9]+.*" | head -1 | awk '{ print $4 }' | cut -d. -f1)
++start_4k=$((start_sect/8))
++test -n "$start_sect"
++echo "start sector of the file is: $start_sect (512B) or $start_4k (4096B)"
++
++# figure out the btt offset
++
++force_raw 1
++
++# calculate start of the map
++map=$(hexdump -s 96 -n 4 "/dev/$raw_bdev" | head -1 | cut -d' ' -f2-)
++map=$(tr -d ' ' <<< "0x${map#* }${map%% *}")
++printf "btt map starts at: %x\n" "$map"
++
++# calculate map entry byte offset for the file's block
++map_idx=$((map + (4 * start_4k)))
++printf "btt map entry location for sector %x: %x\n" "$start_4k" "$map_idx"
++
++# read the map entry
++map_ent=$(hexdump -s $map_idx -n 4 "/dev/$raw_bdev" | head -1 | cut -d' ' -f2-)
++map_ent=$(tr -d ' ' <<< "0x${map_ent#* }${map_ent%% *}")
++map_ent=$((map_ent & 0x3fffffff))
++printf "btt map entry: 0x%x\n" "$map_ent"
++
++# calculate the data offset
++dataoff=$(((map_ent * 4096) + 4096))
++printf "dataoff: 0x%x\n" "$dataoff"
++
++bb_inj=$((dataoff/512))
++
++# inject badblocks for one page at the start of the file
++$NDCTL inject-error --block="$bb_inj" --count=8 $dev
++
++force_raw 0
++mount -o nodelalloc "/dev/$blockdev" $MNT
++
++# make sure reading the first block of the file fails as expected
++: The following 'dd' is expected to hit an I/O Error
++dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
++
++# write via btt to clear the error
++dd if=/dev/zero of=$MNT/$FILE oflag=direct bs=4096 count=1
++
++# read again and that should succeed
++dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1
++
++# done, exit
++$NDCTL disable-region -b "$BUS" all
++$NDCTL zero-labels -b "$BUS" all
++$NDCTL enable-region -b "$BUS" all
++exit 0
 -- 
-2.12.3
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
