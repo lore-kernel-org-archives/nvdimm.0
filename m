@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9D3812034AB1A
- for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:25:29 -0700 (PDT)
-Subject: [PATCH 15/15] wait_bit: introduce {wait_on,wake_up}_devmap_idle
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 31 Oct 2017 16:22:56 -0700
-Message-ID: <150949217671.24061.13258957060358089669.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 1C10A21F3B3F2
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Oct 2017 10:42:02 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 0/6] add an inject-error command to ndctl
+Date: Mon, 30 Oct 2017 11:43:29 -0600
+Message-Id: <20171030174335.6806-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,195 +15,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add hashed waitqueue infrastructure to wait for ZONE_DEVICE pages to
-drop their reference counts and be considered idle for DMA. This
-facility will be used for filesystem callbacks / wakeups when DMA to a
-DAX mapped range of a file ends.
+v3:
+ patch 2:
+   - Don't export ndctl_namespace_get_injection_bounds (Dan).
 
-For now, this implementation does not have functional behavior change
-outside of waking waitqueues that do not have any waiters present.
+v2:
+ patch 1:
+   - use poll() instead of a sleep loop when waiting for a scrub. (Dan)
+ patch 2 (new):
+   - move the acpi nfit specific routines into generic wrappers exported
+     by the library. (Dan)
+ patch 3:
+   - rename 'clear' to 'uninject' use 'block' instead of 'sector' (Dan)
+   - cleanup the manpage to remove ACPI/NFIT references.
+ patch 4:
+   - Add the actual inject-error unit test instead of just test
+     boilerplate
 
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/super.c      |    1 +
- include/linux/wait_bit.h |   10 +++++++
- kernel/sched/wait_bit.c  |   64 ++++++++++++++++++++++++++++++++++++++++------
- 3 files changed, 67 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 4ac359e14777..a5a4b95ffdaf 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -167,6 +167,7 @@ struct dax_device {
- #if IS_ENABLED(CONFIG_FS_DAX)
- static void generic_dax_pagefree(struct page *page, void *data)
- {
-+	wake_up_devmap_idle(&page->_refcount);
- }
- 
- struct dax_device *fs_dax_claim_bdev(struct block_device *bdev, void *owner)
-diff --git a/include/linux/wait_bit.h b/include/linux/wait_bit.h
-index 12b26660d7e9..6186ecdb9df7 100644
---- a/include/linux/wait_bit.h
-+++ b/include/linux/wait_bit.h
-@@ -30,10 +30,12 @@ int __wait_on_bit(struct wait_queue_head *wq_head, struct wait_bit_queue_entry *
- int __wait_on_bit_lock(struct wait_queue_head *wq_head, struct wait_bit_queue_entry *wbq_entry, wait_bit_action_f *action, unsigned int mode);
- void wake_up_bit(void *word, int bit);
- void wake_up_atomic_t(atomic_t *p);
-+void wake_up_devmap_idle(atomic_t *p);
- int out_of_line_wait_on_bit(void *word, int, wait_bit_action_f *action, unsigned int mode);
- int out_of_line_wait_on_bit_timeout(void *word, int, wait_bit_action_f *action, unsigned int mode, unsigned long timeout);
- int out_of_line_wait_on_bit_lock(void *word, int, wait_bit_action_f *action, unsigned int mode);
- int out_of_line_wait_on_atomic_t(atomic_t *p, int (*)(atomic_t *), unsigned int mode);
-+int out_of_line_wait_on_devmap_idle(atomic_t *p, int (*)(atomic_t *), unsigned int mode);
- struct wait_queue_head *bit_waitqueue(void *word, int bit);
- extern void __init wait_bit_init(void);
- 
-@@ -258,4 +260,12 @@ int wait_on_atomic_t(atomic_t *val, int (*action)(atomic_t *), unsigned mode)
- 	return out_of_line_wait_on_atomic_t(val, action, mode);
- }
- 
-+static inline
-+int wait_on_devmap_idle(atomic_t *val, int (*action)(atomic_t *), unsigned mode)
-+{
-+	might_sleep();
-+	if (atomic_read(val) == 1)
-+		return 0;
-+	return out_of_line_wait_on_devmap_idle(val, action, mode);
-+}
- #endif /* _LINUX_WAIT_BIT_H */
-diff --git a/kernel/sched/wait_bit.c b/kernel/sched/wait_bit.c
-index f8159698aa4d..6ea93149614a 100644
---- a/kernel/sched/wait_bit.c
-+++ b/kernel/sched/wait_bit.c
-@@ -162,11 +162,17 @@ static inline wait_queue_head_t *atomic_t_waitqueue(atomic_t *p)
- 	return bit_waitqueue(p, 0);
- }
- 
--static int wake_atomic_t_function(struct wait_queue_entry *wq_entry, unsigned mode, int sync,
--				  void *arg)
-+static inline struct wait_bit_queue_entry *to_wait_bit_q(
-+		struct wait_queue_entry *wq_entry)
-+{
-+	return container_of(wq_entry, struct wait_bit_queue_entry, wq_entry);
-+}
-+
-+static int wake_atomic_t_function(struct wait_queue_entry *wq_entry,
-+		unsigned mode, int sync, void *arg)
- {
- 	struct wait_bit_key *key = arg;
--	struct wait_bit_queue_entry *wait_bit = container_of(wq_entry, struct wait_bit_queue_entry, wq_entry);
-+	struct wait_bit_queue_entry *wait_bit = to_wait_bit_q(wq_entry);
- 	atomic_t *val = key->flags;
- 
- 	if (wait_bit->key.flags != key->flags ||
-@@ -176,14 +182,29 @@ static int wake_atomic_t_function(struct wait_queue_entry *wq_entry, unsigned mo
- 	return autoremove_wake_function(wq_entry, mode, sync, key);
- }
- 
-+static int wake_devmap_idle_function(struct wait_queue_entry *wq_entry,
-+		unsigned mode, int sync, void *arg)
-+{
-+	struct wait_bit_key *key = arg;
-+	struct wait_bit_queue_entry *wait_bit = to_wait_bit_q(wq_entry);
-+	atomic_t *val = key->flags;
-+
-+	if (wait_bit->key.flags != key->flags ||
-+	    wait_bit->key.bit_nr != key->bit_nr ||
-+	    atomic_read(val) != 1)
-+		return 0;
-+	return autoremove_wake_function(wq_entry, mode, sync, key);
-+}
-+
- /*
-  * To allow interruptible waiting and asynchronous (i.e. nonblocking) waiting,
-  * the actions of __wait_on_atomic_t() are permitted return codes.  Nonzero
-  * return codes halt waiting and return.
-  */
- static __sched
--int __wait_on_atomic_t(struct wait_queue_head *wq_head, struct wait_bit_queue_entry *wbq_entry,
--		       int (*action)(atomic_t *), unsigned mode)
-+int __wait_on_atomic_t(struct wait_queue_head *wq_head,
-+		struct wait_bit_queue_entry *wbq_entry,
-+		int (*action)(atomic_t *), unsigned mode, int target)
- {
- 	atomic_t *val;
- 	int ret = 0;
-@@ -191,10 +212,10 @@ int __wait_on_atomic_t(struct wait_queue_head *wq_head, struct wait_bit_queue_en
- 	do {
- 		prepare_to_wait(wq_head, &wbq_entry->wq_entry, mode);
- 		val = wbq_entry->key.flags;
--		if (atomic_read(val) == 0)
-+		if (atomic_read(val) == target)
- 			break;
- 		ret = (*action)(val);
--	} while (!ret && atomic_read(val) != 0);
-+	} while (!ret && atomic_read(val) != target);
- 	finish_wait(wq_head, &wbq_entry->wq_entry);
- 	return ret;
- }
-@@ -210,16 +231,37 @@ int __wait_on_atomic_t(struct wait_queue_head *wq_head, struct wait_bit_queue_en
- 		},							\
- 	}
- 
-+#define DEFINE_WAIT_DEVMAP_IDLE(name, p)					\
-+	struct wait_bit_queue_entry name = {				\
-+		.key = __WAIT_ATOMIC_T_KEY_INITIALIZER(p),		\
-+		.wq_entry = {						\
-+			.private	= current,			\
-+			.func		= wake_devmap_idle_function,	\
-+			.entry		=				\
-+				LIST_HEAD_INIT((name).wq_entry.entry),	\
-+		},							\
-+	}
-+
- __sched int out_of_line_wait_on_atomic_t(atomic_t *p, int (*action)(atomic_t *),
- 					 unsigned mode)
- {
- 	struct wait_queue_head *wq_head = atomic_t_waitqueue(p);
- 	DEFINE_WAIT_ATOMIC_T(wq_entry, p);
- 
--	return __wait_on_atomic_t(wq_head, &wq_entry, action, mode);
-+	return __wait_on_atomic_t(wq_head, &wq_entry, action, mode, 0);
- }
- EXPORT_SYMBOL(out_of_line_wait_on_atomic_t);
- 
-+__sched int out_of_line_wait_on_devmap_idle(atomic_t *p, int (*action)(atomic_t *),
-+					 unsigned mode)
-+{
-+	struct wait_queue_head *wq_head = atomic_t_waitqueue(p);
-+	DEFINE_WAIT_DEVMAP_IDLE(wq_entry, p);
-+
-+	return __wait_on_atomic_t(wq_head, &wq_entry, action, mode, 1);
-+}
-+EXPORT_SYMBOL(out_of_line_wait_on_devmap_idle);
-+
- /**
-  * wake_up_atomic_t - Wake up a waiter on a atomic_t
-  * @p: The atomic_t being waited on, a kernel virtual address
-@@ -235,6 +277,12 @@ void wake_up_atomic_t(atomic_t *p)
- }
- EXPORT_SYMBOL(wake_up_atomic_t);
- 
-+void wake_up_devmap_idle(atomic_t *p)
-+{
-+	__wake_up_bit(atomic_t_waitqueue(p), p, WAIT_ATOMIC_T_BIT_NR);
-+}
-+EXPORT_SYMBOL(wake_up_devmap_idle);
-+
- __sched int bit_wait(struct wait_bit_key *word, int mode)
- {
- 	schedule();
+These patches add a new command to ndctl for error injection. They are
+implemented such that the interface provided to a user is consistent
+with the kernel - i.e. all media errors are expected/displayed in terms
+of 512 byte sectors. The underlying ACPI DSMs need and provide byte
+relative offsets/lengths, but these are converted to 512B sectors for
+consistency.
+
+These also update unit tests to use the new error injection commands,
+and add two new unit tests - first, to test the error injection commands
+themselves, and second, to test BTT error clearing.
+
+
+Vishal Verma (6):
+  libndctl: add APIs to get scrub count and to wait for a scrub
+  libndctl: add error injection related interfaces
+  ndctl: add an inject-error command
+  ndctl/test: add a new unit test for inject-error
+  ndctl/test: update existing unit tests to use inject-error
+  ndctl/test: add a new unit test for BTT error clearing
+
+ Documentation/ndctl/Makefile.am            |   1 +
+ Documentation/ndctl/ndctl-inject-error.txt | 108 ++++++++
+ Documentation/ndctl/ndctl.txt              |   1 +
+ builtin.h                                  |   1 +
+ contrib/ndctl                              |   5 +-
+ ndctl/Makefile.am                          |   3 +-
+ ndctl/inject-error.c                       | 373 +++++++++++++++++++++++++++
+ ndctl/lib/Makefile.am                      |   1 +
+ ndctl/lib/inject.c                         | 391 +++++++++++++++++++++++++++++
+ ndctl/lib/libndctl.c                       | 147 +++++++----
+ ndctl/lib/libndctl.sym                     |  10 +
+ ndctl/lib/nfit.c                           |  89 +++++++
+ ndctl/lib/private.h                        |  54 ++++
+ ndctl/libndctl-nfit.h                      |  10 +
+ ndctl/libndctl.h.in                        |  22 ++
+ ndctl/ndctl.c                              |   1 +
+ test/Makefile.am                           |   4 +-
+ test/btt-errors.sh                         | 149 +++++++++++
+ test/clear.sh                              |   5 +-
+ test/dax-errors.sh                         |   5 +-
+ test/daxdev-errors.sh                      |  17 +-
+ test/inject-error.sh                       | 120 +++++++++
+ util/json.c                                |  26 ++
+ util/json.h                                |   3 +
+ util/list.h                                |  50 ++++
+ util/size.h                                |   1 +
+ 26 files changed, 1547 insertions(+), 50 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-inject-error.txt
+ create mode 100644 ndctl/inject-error.c
+ create mode 100644 ndctl/lib/inject.c
+ create mode 100755 test/btt-errors.sh
+ create mode 100755 test/inject-error.sh
+ create mode 100644 util/list.h
+
+-- 
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
