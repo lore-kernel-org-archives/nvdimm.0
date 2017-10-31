@@ -1,161 +1,142 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v8 10/14] device-dax: wire up ->lease_direct()
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 114952034AB1A
+ for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:25:02 -0700 (PDT)
+Subject: [PATCH 10/15] IB/core: disable memory registration of fileystem-dax
+ vmas
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 10 Oct 2017 07:49:54 -0700
-Message-ID: <150764699451.16882.18368970483709189847.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 31 Oct 2017 16:22:29 -0700
+Message-ID: <150949214929.24061.10464887309708944817.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, iommu@lists.linux-foundation.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, hch@lst.de, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-fsdevel@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The only event that will break a lease_direct lease in the device-dax
-case is the device shutdown path where the physical pages might get
-assigned to another device.
+Until there is a solution to the dma-to-dax vs truncate problem it is
+not safe to allow RDMA to create long standing memory registrations
+against filesytem-dax vmas. Device-dax vmas do not have this problem and
+are explicitly allowed.
 
-Cc: Jan Kara <jack@suse.cz>
+This is temporary until a "memory registration with layout-lease"
+mechanism can be implemented, and is limited to non-ODP (On Demand
+Paging) capable RDMA devices.
+
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: <linux-rdma@vger.kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/Kconfig       |    1 +
- drivers/dax/device.c      |    4 ++++
- fs/Kconfig                |    4 ++++
- fs/Makefile               |    3 ++-
- fs/mapdirect.c            |    3 ++-
- include/linux/mapdirect.h |    5 ++++-
- 6 files changed, 17 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/umem.c |   49 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 38 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-index b79aa8f7a497..be03d4dbe646 100644
---- a/drivers/dax/Kconfig
-+++ b/drivers/dax/Kconfig
-@@ -8,6 +8,7 @@ if DAX
- config DEV_DAX
- 	tristate "Device DAX: direct access mapping device"
- 	depends on TRANSPARENT_HUGEPAGE
-+	depends on FILE_LOCKING
- 	help
- 	  Support raw access to differentiated (persistence, bandwidth,
- 	  latency...) memory via an mmap(2) capable character
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index e9f3b3e4bbf4..fa75004185c4 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -10,6 +10,7 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-  */
-+#include <linux/mapdirect.h>
- #include <linux/pagemap.h>
- #include <linux/module.h>
- #include <linux/device.h>
-@@ -430,6 +431,7 @@ static int dev_dax_fault(struct vm_fault *vmf)
- static const struct vm_operations_struct dax_vm_ops = {
- 	.fault = dev_dax_fault,
- 	.huge_fault = dev_dax_huge_fault,
-+	.lease_direct = map_direct_lease,
- };
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 21e60b1e2ff4..c30d286c1f24 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -147,19 +147,21 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	umem->hugetlb   = 1;
  
- static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
-@@ -540,8 +542,10 @@ static void kill_dev_dax(struct dev_dax *dev_dax)
- {
- 	struct dax_device *dax_dev = dev_dax->dax_dev;
- 	struct inode *inode = dax_inode(dax_dev);
-+	const bool wait = true;
+ 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
+-	if (!page_list) {
+-		put_pid(umem->pid);
+-		kfree(umem);
+-		return ERR_PTR(-ENOMEM);
+-	}
++	if (!page_list)
++		goto err_pagelist;
  
- 	kill_dax(dax_dev);
-+	break_layout(inode, wait);
- 	unmap_mapping_range(inode->i_mapping, 0, 0, 1);
- }
+ 	/*
+-	 * if we can't alloc the vma_list, it's not so bad;
+-	 * just assume the memory is not hugetlb memory
++	 * If DAX is enabled we need the vma to protect against
++	 * registering filesystem-dax memory. Otherwise we can tolerate
++	 * a failure to allocate the vma_list and just assume that all
++	 * vmas are not hugetlb-vmas.
+ 	 */
+ 	vma_list = (struct vm_area_struct **) __get_free_page(GFP_KERNEL);
+-	if (!vma_list)
++	if (!vma_list) {
++		if (IS_ENABLED(CONFIG_FS_DAX))
++			goto err_vmalist;
+ 		umem->hugetlb = 0;
++	}
  
-diff --git a/fs/Kconfig b/fs/Kconfig
-index a7b31a96a753..3668cfb046d5 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -59,6 +59,10 @@ config FS_DAX_PMD
- 	depends on ZONE_DEVICE
- 	depends on TRANSPARENT_HUGEPAGE
+ 	npages = ib_umem_num_pages(umem);
  
-+config DAX_MAP_DIRECT
-+	bool
-+	default FS_DAX || DEV_DAX
+@@ -199,15 +201,34 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 		if (ret < 0)
+ 			goto out;
+ 
+-		umem->npages += ret;
+ 		cur_base += ret * PAGE_SIZE;
+ 		npages   -= ret;
+ 
+ 		for_each_sg(sg_list_start, sg, ret, i) {
+-			if (vma_list && !is_vm_hugetlb_page(vma_list[i]))
+-				umem->hugetlb = 0;
++			struct vm_area_struct *vma;
++			struct inode *inode;
+ 
+ 			sg_set_page(sg, page_list[i], PAGE_SIZE, 0);
++			umem->npages++;
 +
- endif # BLOCK
++			if (!vma_list)
++				continue;
++			vma = vma_list[i];
++
++			if (!is_vm_hugetlb_page(vma))
++				umem->hugetlb = 0;
++
++			if (!vma_is_dax(vma))
++				continue;
++
++			/* device-dax is safe for rdma... */
++			inode = file_inode(vma->vm_file);
++			if (inode->i_mode == S_IFCHR)
++				continue;
++
++			/* ...filesystem-dax is not. */
++			ret = -EOPNOTSUPP;
++			goto out;
+ 		}
  
- # Posix ACL utility routines
-diff --git a/fs/Makefile b/fs/Makefile
-index c0e791d235d8..21b8fb104656 100644
---- a/fs/Makefile
-+++ b/fs/Makefile
-@@ -29,7 +29,8 @@ obj-$(CONFIG_TIMERFD)		+= timerfd.o
- obj-$(CONFIG_EVENTFD)		+= eventfd.o
- obj-$(CONFIG_USERFAULTFD)	+= userfaultfd.o
- obj-$(CONFIG_AIO)               += aio.o
--obj-$(CONFIG_FS_DAX)		+= dax.o mapdirect.o
-+obj-$(CONFIG_FS_DAX)		+= dax.o
-+obj-$(CONFIG_DAX_MAP_DIRECT)	+= mapdirect.o
- obj-$(CONFIG_FS_ENCRYPTION)	+= crypto/
- obj-$(CONFIG_FILE_LOCKING)      += locks.o
- obj-$(CONFIG_COMPAT)		+= compat.o compat_ioctl.o
-diff --git a/fs/mapdirect.c b/fs/mapdirect.c
-index c6954033fc1a..dd4a16f9ffc6 100644
---- a/fs/mapdirect.c
-+++ b/fs/mapdirect.c
-@@ -218,7 +218,7 @@ static const struct lock_manager_operations lease_direct_lm_ops = {
- 	.lm_change = lease_direct_lm_change,
- };
+ 		/* preparing for next loop */
+@@ -242,6 +263,12 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	free_page((unsigned long) page_list);
  
--static struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
-+struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
- 		void (*lds_break_fn)(void *), void *lds_owner)
- {
- 	struct file *file = vma->vm_file;
-@@ -272,6 +272,7 @@ static struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
- 	kfree(lds);
- 	return ERR_PTR(rc);
+ 	return ret < 0 ? ERR_PTR(ret) : umem;
++err_vmalist:
++	free_page((unsigned long) page_list);
++err_pagelist:
++	put_pid(umem->pid);
++	kfree(umem);
++	return ERR_PTR(-ENOMEM);
  }
-+EXPORT_SYMBOL_GPL(map_direct_lease);
+ EXPORT_SYMBOL(ib_umem_get);
  
- struct lease_direct *generic_map_direct_lease(struct vm_area_struct *vma,
- 		void (*break_fn)(void *), void *owner)
-diff --git a/include/linux/mapdirect.h b/include/linux/mapdirect.h
-index e0df6ac5795a..6695fdcf8009 100644
---- a/include/linux/mapdirect.h
-+++ b/include/linux/mapdirect.h
-@@ -26,13 +26,15 @@ struct lease_direct {
- 	struct lease_direct_state *lds;
- };
- 
--#if IS_ENABLED(CONFIG_FS_DAX)
-+#if IS_ENABLED(CONFIG_DAX_MAP_DIRECT)
- struct map_direct_state *map_direct_register(int fd, struct vm_area_struct *vma);
- bool test_map_direct_valid(struct map_direct_state *mds);
- void generic_map_direct_open(struct vm_area_struct *vma);
- void generic_map_direct_close(struct vm_area_struct *vma);
- struct lease_direct *generic_map_direct_lease(struct vm_area_struct *vma,
- 		void (*ld_break_fn)(void *), void *ld_owner);
-+struct lease_direct *map_direct_lease(struct vm_area_struct *vma,
-+		void (*lds_break_fn)(void *), void *lds_owner);
- void map_direct_lease_destroy(struct lease_direct *ld);
- #else
- static inline struct map_direct_state *map_direct_register(int fd,
-@@ -47,6 +49,7 @@ static inline bool test_map_direct_valid(struct map_direct_state *mds)
- #define generic_map_direct_open NULL
- #define generic_map_direct_close NULL
- #define generic_map_direct_lease NULL
-+#define map_direct_lease NULL
- static inline void map_direct_lease_destroy(struct lease_direct *ld)
- {
- }
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
