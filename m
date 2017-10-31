@@ -1,15 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
+ [IPv6:2607:f8b0:4003:c06::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BC57F21EA15C4
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 06:05:04 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 13/17] dax, iomap: Add support for synchronous faults
-Date: Thu, 19 Oct 2017 14:58:12 +0200
-Message-Id: <20171019125817.11580-14-jack@suse.cz>
-In-Reply-To: <20171019125817.11580-1-jack@suse.cz>
-References: <20171019125817.11580-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id C0DFE2034AB1A
+ for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:15:41 -0700 (PDT)
+Received: by mail-oi0-x243.google.com with SMTP id v9so951719oif.13
+ for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:19:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20171031220552.GB22678@anatevka.americas.hpqcorp.net>
+References: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150939642870.4577.1202379190708311186.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171031212725.GA22678@anatevka.americas.hpqcorp.net>
+ <CAPcyv4j7pvto7AvbzcmpgiYXHHm69LnGyWduRKP8qou947qqXA@mail.gmail.com>
+ <20171031220552.GB22678@anatevka.americas.hpqcorp.net>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 31 Oct 2017 16:19:32 -0700
+Message-ID: <CAPcyv4g+pRApbhK5no=mJQnA8UaRP52JWQ8moz-2tHBzTRiF8Q@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] acpi, nfit: add support for NVDIMM_FAMILY_INTEL
+ v1.6 DSMs
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,164 +26,56 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a flag to iomap interface informing the caller that inode needs
-fdstasync(2) for returned extent to become persistent and use it in DAX
-fault code so that we don't map such extents into page tables
-immediately. Instead we propagate the information that fdatasync(2) is
-necessary from dax_iomap_fault() with a new VM_FAULT_NEEDDSYNC flag.
-Filesystem fault handler is then responsible for calling fdatasync(2)
-and inserting pfn into page tables.
+On Tue, Oct 31, 2017 at 3:05 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> On Tue, Oct 31, 2017 at 02:42:01PM -0700, Dan Williams wrote:
+[..]
+>> Yes, this can happen. However, for the kernel implementation it can
+>> decide to move to rev-id2 at its leisure since ACPI mandates that
+>> rev-id1 implementations stick around, and if the function number was
+>> reserved in rev-id1 the kernel will already not support it.
+>
+> Unfortunately, we can't do that.  The kernel will still need to support
+> firmware that only knows about Rev ID 1.
+>
+> Example, HPE currently supports customers w/ NVDIMMS with DSM that only
+> responds to rev id 1.
+>
+> Say in the future we ship a new generation of NVDIMMs
+> that extends the DSM health function.  We could make that
+> additional info available only for rev id 2.  If the table
+> above were extended to call health function with rev id 2
+> so that we get the additional info for the new nvdimm, that
+> call will stop working on what will then be legacy systems
+> that only know rev id 1.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c              | 39 +++++++++++++++++++++++++++++++++++++--
- include/linux/iomap.h |  1 +
- include/linux/mm.h    |  6 +++++-
- 3 files changed, 43 insertions(+), 3 deletions(-)
+Right, I'm explicitly not supporting that degree of compatibility
+freedom. If a platform wants to change the payload of an existing
+function it had better expand the payload with new information that
+can optionally be ignored by older kernels rather than spin the revid.
+The kernel can't break legacy and neither should the platform, either
+the kernel can call revid1 forever, the function is only available in
+revid2 or later, or that function number is burned and we need to live
+with the breakage that the platform shipped.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index efc210ff6665..bb9ff907738c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1091,6 +1091,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	unsigned flags = IOMAP_FAULT;
- 	int error, major = 0;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-+	bool sync;
- 	int vmf_ret = 0;
- 	void *entry;
- 	pfn_t pfn;
-@@ -1169,6 +1170,8 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 		goto finish_iomap;
- 	}
- 
-+	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
-+
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
- 		if (iomap.flags & IOMAP_F_NEW) {
-@@ -1182,12 +1185,27 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						 dax_iomap_sector(&iomap, pos),
--						 0, write);
-+						 0, write && !sync);
- 		if (IS_ERR(entry)) {
- 			error = PTR_ERR(entry);
- 			goto error_finish_iomap;
- 		}
- 
-+		/*
-+		 * If we are doing synchronous page fault and inode needs fsync,
-+		 * we can insert PTE into page tables only after that happens.
-+		 * Skip insertion for now and return the pfn so that caller can
-+		 * insert it after fsync is done.
-+		 */
-+		if (sync) {
-+			if (WARN_ON_ONCE(!pfnp)) {
-+				error = -EIO;
-+				goto error_finish_iomap;
-+			}
-+			*pfnp = pfn;
-+			vmf_ret = VM_FAULT_NEEDDSYNC | major;
-+			goto finish_iomap;
-+		}
- 		trace_dax_insert_mapping(inode, vmf, entry);
- 		if (write)
- 			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
-@@ -1287,6 +1305,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-+	bool sync;
- 	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
- 	struct inode *inode = mapping->host;
- 	int result = VM_FAULT_FALLBACK;
-@@ -1371,6 +1390,8 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
- 		goto finish_iomap;
- 
-+	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
-+
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
- 		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
-@@ -1379,10 +1400,24 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						dax_iomap_sector(&iomap, pos),
--						RADIX_DAX_PMD, write);
-+						RADIX_DAX_PMD, write && !sync);
- 		if (IS_ERR(entry))
- 			goto finish_iomap;
- 
-+		/*
-+		 * If we are doing synchronous page fault and inode needs fsync,
-+		 * we can insert PMD into page tables only after that happens.
-+		 * Skip insertion for now and return the pfn so that caller can
-+		 * insert it after fsync is done.
-+		 */
-+		if (sync) {
-+			if (WARN_ON_ONCE(!pfnp))
-+				goto finish_iomap;
-+			*pfnp = pfn;
-+			result = VM_FAULT_NEEDDSYNC;
-+			goto finish_iomap;
-+		}
-+
- 		trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
- 		result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
- 					    write);
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index f64dc6ce5161..4bc0a6fe3b15 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -22,6 +22,7 @@ struct vm_fault;
-  * Flags for all iomap mappings:
-  */
- #define IOMAP_F_NEW	0x01	/* blocks have been newly allocated */
-+#define IOMAP_F_DIRTY	0x02	/* block mapping is not yet on persistent storage */
- 
- /*
-  * Flags that only need to be reported for IOMAP_REPORT requests:
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 5411cb7442de..f57e55782d7d 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1182,6 +1182,9 @@ static inline void clear_page_pfmemalloc(struct page *page)
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
- #define VM_FAULT_DONE_COW   0x1000	/* ->fault has fully handled COW */
-+#define VM_FAULT_NEEDDSYNC  0x2000	/* ->fault did not modify page tables
-+					 * and needs fsync() to complete (for
-+					 * synchronous page faults in DAX) */
- 
- #define VM_FAULT_ERROR	(VM_FAULT_OOM | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | \
- 			 VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE | \
-@@ -1199,7 +1202,8 @@ static inline void clear_page_pfmemalloc(struct page *page)
- 	{ VM_FAULT_LOCKED,		"LOCKED" }, \
- 	{ VM_FAULT_RETRY,		"RETRY" }, \
- 	{ VM_FAULT_FALLBACK,		"FALLBACK" }, \
--	{ VM_FAULT_DONE_COW,		"DONE_COW" }
-+	{ VM_FAULT_DONE_COW,		"DONE_COW" }, \
-+	{ VM_FAULT_NEEDDSYNC,		"NEEDDSYNC" }
- 
- /* Encode hstate index for a hwpoisoned large page */
- #define VM_FAULT_SET_HINDEX(x) ((x) << 12)
--- 
-2.12.3
-
+We are already in this position with the "smart threshold" payload
+that has been broken in recent revisions of the Intel spec. In this
+specific case we have ndctl binaries in the wild that are broken, but
+are somewhat saved by the fact that the interface for *setting* alarms
+and thresholds is brand new in v1.6. So my plan is to document that
+smart threshold is broken and require new ndctl binaries with v1.6
+support to implement the new format via the ND_CMD_CALL interface. The
+fact that this compatibility management is on a case by case basis and
+somewhat painful is a feature. Platform implementations must hide DSM
+update thrash from the kernel and shipping binaries as much as
+possible.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
