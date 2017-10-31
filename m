@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 84741202E60FB
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 19:42:26 -0700 (PDT)
-Subject: [PATCH v3 08/13] tools/testing/nvdimm: add 'bio_delay' mechanism
+ by ml01.01.org (Postfix) with ESMTPS id 3D0392034C089
+ for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 16:25:24 -0700 (PDT)
+Subject: [PATCH 14/15] dax: associate mappings with inodes,
+ and warn if dma collides with truncate
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Oct 2017 19:39:40 -0700
-Message-ID: <150846718067.24336.1549179403895388995.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 31 Oct 2017 16:22:51 -0700
+Message-ID: <150949217152.24061.9869502311102659784.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,182 +23,176 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of testing truncate colliding with dma add a mechanism that
-delays the completion of block I/O requests by a programmable number of
-seconds. This allows a truncate operation to be issued while page
-references are held for direct-I/O.
+Catch cases where truncate encounters pages that are still under active
+dma. This warning is a canary for potential data corruption as truncated
+blocks could be allocated to a new file while the device is still
+perform i/o.
 
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/Kbuild           |    1 +
- tools/testing/nvdimm/test/iomap.c     |   62 +++++++++++++++++++++++++++++++++
- tools/testing/nvdimm/test/nfit.c      |   34 ++++++++++++++++++
- tools/testing/nvdimm/test/nfit_test.h |    1 +
- 4 files changed, 98 insertions(+)
+ fs/dax.c                 |   56 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mm_types.h |   20 ++++++++++++----
+ kernel/memremap.c        |   10 ++++----
+ 3 files changed, 76 insertions(+), 10 deletions(-)
 
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index d870520da68b..5946cf3afe74 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -15,6 +15,7 @@ ldflags-y += --wrap=insert_resource
- ldflags-y += --wrap=remove_resource
- ldflags-y += --wrap=acpi_evaluate_object
- ldflags-y += --wrap=acpi_evaluate_dsm
-+ldflags-y += --wrap=bio_endio
- 
- DRIVERS := ../../../drivers
- NVDIMM_SRC := $(DRIVERS)/nvdimm
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index e1f75a1914a1..1f5d7182ca9c 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -10,6 +10,7 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-  */
-+#include <linux/workqueue.h>
- #include <linux/memremap.h>
- #include <linux/rculist.h>
- #include <linux/export.h>
-@@ -18,6 +19,7 @@
- #include <linux/types.h>
- #include <linux/pfn_t.h>
- #include <linux/acpi.h>
-+#include <linux/bio.h>
- #include <linux/io.h>
- #include <linux/mm.h>
- #include "nfit_test.h"
-@@ -388,4 +390,64 @@ union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const guid_t *g
+diff --git a/fs/dax.c b/fs/dax.c
+index ac6497dcfebd..fd5d385988d1 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -297,6 +297,55 @@ static void put_unlocked_mapping_entry(struct address_space *mapping,
+ 	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
  }
- EXPORT_SYMBOL(__wrap_acpi_evaluate_dsm);
  
-+static DEFINE_SPINLOCK(bio_lock);
-+static struct bio *biolist;
-+int bio_do_queue;
-+
-+static void run_bio(struct work_struct *work)
++static unsigned long dax_entry_size(void *entry)
 +{
-+	struct delayed_work *dw = container_of(work, typeof(*dw), work);
-+	struct bio *bio, *next;
-+
-+	pr_info("%s\n", __func__);
-+	spin_lock(&bio_lock);
-+	bio_do_queue = 0;
-+	bio = biolist;
-+	biolist = NULL;
-+	spin_unlock(&bio_lock);
-+
-+	while (bio) {
-+		next = bio->bi_next;
-+		bio->bi_next = NULL;
-+		bio_endio(bio);
-+		bio = next;
-+	}
-+	kfree(dw);
++	if (dax_is_zero_entry(entry))
++		return 0;
++	else if (dax_is_empty_entry(entry))
++		return 0;
++	else if (dax_is_pmd_entry(entry))
++		return HPAGE_SIZE;
++	else
++		return PAGE_SIZE;
 +}
 +
-+void nfit_test_inject_bio_delay(int sec)
++#define for_each_entry_pfn(entry, pfn, end_pfn) \
++	for (pfn = dax_radix_pfn(entry), \
++			end_pfn = pfn + dax_entry_size(entry) / PAGE_SIZE; \
++			pfn < end_pfn; \
++			pfn++)
++
++static void dax_associate_entry(void *entry, struct inode *inode)
 +{
-+	struct delayed_work *dw = kzalloc(sizeof(*dw), GFP_KERNEL);
++	unsigned long pfn, end_pfn;
 +
-+	spin_lock(&bio_lock);
-+	if (!bio_do_queue) {
-+		pr_info("%s: %d seconds\n", __func__, sec);
-+		INIT_DELAYED_WORK(dw, run_bio);
-+		bio_do_queue = 1;
-+		schedule_delayed_work(dw, sec * HZ);
-+		dw = NULL;
-+	}
-+	spin_unlock(&bio_lock);
-+}
-+EXPORT_SYMBOL_GPL(nfit_test_inject_bio_delay);
-+
-+void __wrap_bio_endio(struct bio *bio)
-+{
-+	int did_q = 0;
-+
-+	spin_lock(&bio_lock);
-+	if (bio_do_queue) {
-+		bio->bi_next = biolist;
-+		biolist = bio;
-+		did_q = 1;
-+	}
-+	spin_unlock(&bio_lock);
-+
-+	if (did_q)
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
 +		return;
 +
-+	bio_endio(bio);
-+}
-+EXPORT_SYMBOL_GPL(__wrap_bio_endio);
++	for_each_entry_pfn(entry, pfn, end_pfn) {
++		struct page *page = pfn_to_page(pfn);
 +
- MODULE_LICENSE("GPL v2");
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index bef419d4266d..2c871c8b4a56 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -656,6 +656,39 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
- 	NULL,
- };
++		WARN_ON_ONCE(page->inode);
++		page->inode = inode;
++	}
++}
++
++static void dax_disassociate_entry(void *entry, struct inode *inode, bool trunc)
++{
++	unsigned long pfn, end_pfn;
++
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
++		return;
++
++	for_each_entry_pfn(entry, pfn, end_pfn) {
++		struct page *page = pfn_to_page(pfn);
++
++		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
++		WARN_ON_ONCE(page->inode && page->inode != inode);
++		page->inode = NULL;
++	}
++}
++
+ /*
+  * Find radix tree entry at given index. If it points to an exceptional entry,
+  * return it with the radix tree entry locked. If the radix tree doesn't
+@@ -403,6 +452,7 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
+ 		}
  
-+static ssize_t bio_delay_show(struct device_driver *drv, char *buf)
-+{
-+	return sprintf(buf, "0\n");
-+}
-+
-+static ssize_t bio_delay_store(struct device_driver *drv, const char *buf,
-+		size_t count)
-+{
-+	unsigned long delay;
-+	int rc = kstrtoul(buf, 0, &delay);
-+
-+	if (rc < 0)
-+		return rc;
-+
-+	nfit_test_inject_bio_delay(delay);
-+	return count;
-+}
-+DRIVER_ATTR_RW(bio_delay);
-+
-+static struct attribute *nfit_test_driver_attributes[] = {
-+	&driver_attr_bio_delay.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group nfit_test_driver_attribute_group = {
-+	.attrs = nfit_test_driver_attributes,
-+};
-+
-+static const struct attribute_group *nfit_test_driver_attribute_groups[] = {
-+	&nfit_test_driver_attribute_group,
-+	NULL,
-+};
-+
- static int nfit_test0_alloc(struct nfit_test *t)
+ 		if (pmd_downgrade) {
++			dax_disassociate_entry(entry, mapping->host, false);
+ 			radix_tree_delete(&mapping->page_tree, index);
+ 			mapping->nrexceptional--;
+ 			dax_wake_mapping_entry_waiter(mapping, index, entry,
+@@ -452,6 +502,7 @@ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
+ 	    (radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_DIRTY) ||
+ 	     radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE)))
+ 		goto out;
++	dax_disassociate_entry(entry, mapping->host, trunc);
+ 	radix_tree_delete(page_tree, index);
+ 	mapping->nrexceptional--;
+ 	ret = 1;
+@@ -529,6 +580,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
  {
- 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
-@@ -1905,6 +1938,7 @@ static struct platform_driver nfit_test_driver = {
- 	.remove = nfit_test_remove,
- 	.driver = {
- 		.name = KBUILD_MODNAME,
-+		.groups = nfit_test_driver_attribute_groups,
- 	},
- 	.id_table = nfit_test_id,
- };
-diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
-index d3d63dd5ed38..0d818d2adaf7 100644
---- a/tools/testing/nvdimm/test/nfit_test.h
-+++ b/tools/testing/nvdimm/test/nfit_test.h
-@@ -46,4 +46,5 @@ void nfit_test_setup(nfit_test_lookup_fn lookup,
- 		nfit_test_evaluate_dsm_fn evaluate);
- void nfit_test_teardown(void);
- struct nfit_test_resource *get_nfit_res(resource_size_t resource);
-+void nfit_test_inject_bio_delay(int sec);
- #endif
+ 	struct radix_tree_root *page_tree = &mapping->page_tree;
+ 	unsigned long pfn = pfn_t_to_pfn(pfn_t);
++	struct inode *inode = mapping->host;
+ 	pgoff_t index = vmf->pgoff;
+ 	void *new_entry;
+ 
+@@ -548,6 +600,10 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	new_entry = dax_radix_locked_entry(pfn, flags);
++	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
++		dax_disassociate_entry(entry, inode, false);
++		dax_associate_entry(new_entry, inode);
++	}
+ 
+ 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+ 		/*
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 46f4ecf5479a..dd976851e8d8 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -118,11 +118,21 @@ struct page {
+ 					 * Can be used as a generic list
+ 					 * by the page owner.
+ 					 */
+-		struct dev_pagemap *pgmap; /* ZONE_DEVICE pages are never on an
+-					    * lru or handled by a slab
+-					    * allocator, this points to the
+-					    * hosting device page map.
+-					    */
++		struct {
++			/*
++			 * ZONE_DEVICE pages are never on an lru or handled by
++			 * a slab allocator, this points to the hosting device
++			 * page map.
++			 */
++			struct dev_pagemap *pgmap;
++			/*
++			 * inode association for MEMORY_DEVICE_FS_DAX page-idle
++			 * callbacks. Note that we don't use ->mapping since
++			 * that has hard coded page-cache assumptions in
++			 * several paths.
++			 */
++			struct inode *inode;
++		};
+ 		struct {		/* slub per cpu partial pages */
+ 			struct page *next;	/* Next partial slab */
+ #ifdef CONFIG_64BIT
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 8a4ebfe9db4e..f9a2929fc310 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -441,13 +441,13 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct page *page = pfn_to_page(pfn);
+ 
+ 		/*
+-		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
+-		 * pointer.  It is a bug if a ZONE_DEVICE page is ever
+-		 * freed or placed on a driver-private list.  Seed the
+-		 * storage with LIST_POISON* values.
++		 * ZONE_DEVICE pages union ->lru with a ->pgmap back pointer
++		 * and ->inode (for the MEMORY_DEVICE_FS_DAX case) association.
++		 * It is a bug if a ZONE_DEVICE page is ever freed or placed on
++		 * a driver-private list.
+ 		 */
+-		list_del(&page->lru);
+ 		page->pgmap = pgmap;
++		page->inode = NULL;
+ 		percpu_ref_get(ref);
+ 		if (!(++i % 1024))
+ 			cond_resched();
 
 _______________________________________________
 Linux-nvdimm mailing list
