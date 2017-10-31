@@ -1,204 +1,128 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 81EDD21EA15C5
- for <linux-nvdimm@lists.01.org>; Thu,  5 Oct 2017 18:52:52 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 3/8] libndctl: add APIs to get scrub count and to wait
- for a scrub
-Date: Thu,  5 Oct 2017 19:54:00 -0600
-Message-Id: <20171006015405.29908-4-vishal.l.verma@intel.com>
-In-Reply-To: <20171006015405.29908-1-vishal.l.verma@intel.com>
-References: <20171006015405.29908-1-vishal.l.verma@intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH 00/15] dax: prep work for fixing dax-dma vs truncate
+ collisions
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 31 Oct 2017 16:21:33 -0700
+Message-ID: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Sender: owner-linux-mm@kvack.org
 To: linux-nvdimm@lists.01.org
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Sean Hefty <sean.hefty@intel.com>, hch@lst.de, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Jeff Moyer <jmoyer@redhat.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ingo Molnar <mingo@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-media@vger.kernel.org, linux-fsdevel@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Jens Axboe <axboe@kernel.dk>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, akpm@linux-foundation.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel uses sysfs to notify userspace of the number of completed
-Address Range Scrubs, as well as any ongoing scrubs. Add libndctl
-helpers to get the scrub count, and to wait for an in-progress scrub to
-complete.
+This is hopefully the uncontroversial lead-in set of changes that lay
+the groundwork for solving the dax-dma vs truncate problem. The overview
+of the changes is:
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+1/ Disable DAX when we do not have struct page entries backing dax
+   mappings, or otherwise allow limited DAX support for axonram and
+   dcssblk. Is anyone actually using the DAX capability of axonram
+   dcssblk?
+
+2/ Disable code paths that establish potentially long lived DMA
+   access to a filesystem-dax memory mapping, i.e. RDMA and V4L2. In the
+   4.16 timeframe the plan is to introduce a "register memory for DMA
+   with a lease" mechanism for userspace to establish mappings but also
+   be responsible for tearing down the mapping when the kernel needs to
+   invalidate the mapping due to truncate or hole-punch.
+
+3/ Add a wakeup mechanism for awaiting for DAX pages to be released
+   from DMA access.
+
+This overall effort started when Christoph noted during the review of
+the MAP_DIRECT proposal:
+
+    get_user_pages on DAX doesn't give the same guarantees as on
+    pagecache or anonymous memory, and that is the problem we need to
+    fix. In fact I'm pretty sure if we try hard enough (and we might
+    have to try very hard) we can see the same problem with plain direct
+    I/O and without any RDMA involved, e.g. do a larger direct I/O write
+    to memory that is mmap()ed from a DAX file, then truncate the DAX
+    file and reallocate the blocks, and we might corrupt that new file.
+    We'll probably need a special setup where there is little other
+    chance but to reallocate those used blocks.
+
+    So what we need to do first is to fix get_user_pages vs unmapping
+    DAX mmap()ed blocks, be that from a hole punch, truncate, COW
+    operation, etc.
+
+Included in the changes is a nfit_test mechanism to trivially trigger
+this collision by delaying the put_page() that the block layer performs
+after performing direct-I/O to a filesystem-DAX page.
+
+Given the ongoing coordination of this set across multiple sub-systems
+and the dax core my proposal is to manage this as a branch in the nvdimm
+tree with acks from mm, rdma, v4l2, ext4, and xfs.
+
 ---
- ndctl/lib/libndctl.c   | 85 ++++++++++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  2 ++
- ndctl/lib/private.h    |  1 +
- ndctl/libndctl.h.in    |  2 ++
- 4 files changed, 90 insertions(+)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 60143d9..3943978 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -555,6 +555,7 @@ static void free_bus(struct ndctl_bus *bus, struct list_head *head)
- 	free(bus->bus_path);
- 	free(bus->bus_buf);
- 	free(bus->wait_probe_path);
-+	free(bus->scrub_path);
- 	free(bus);
- }
- 
-@@ -785,6 +786,11 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
- 	if (!bus->wait_probe_path)
- 		goto err_read;
- 
-+	sprintf(path, "%s/device/nfit/scrub", ctl_base);
-+	bus->scrub_path = strdup(path);
-+	if (!bus->scrub_path)
-+		goto err_read;
-+
- 	bus->bus_path = parent_dev_path("char", bus->major, bus->minor);
- 	if (!bus->bus_path)
- 		goto err_dev_path;
-@@ -810,6 +816,7 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
-  err_dev_path:
-  err_read:
- 	free(bus->wait_probe_path);
-+	free(bus->scrub_path);
- 	free(bus->provider);
- 	free(bus->bus_buf);
- 	free(bus);
-@@ -1082,6 +1089,84 @@ NDCTL_EXPORT int ndctl_bus_wait_probe(struct ndctl_bus *bus)
- 	return rc < 0 ? -ENXIO : 0;
- }
- 
-+NDCTL_EXPORT unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus)
-+{
-+	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-+	char buf[SYSFS_ATTR_SIZE];
-+	unsigned int scrub_count;
-+	char in_progress = '\0';
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, bus->scrub_path, buf);
-+	if (rc < 0)
-+		return UINT_MAX;
-+
-+	rc = sscanf(buf, "%u%c", &scrub_count, &in_progress);
-+	if (rc < 0)
-+		return UINT_MAX;
-+	if (rc == 0) {
-+		/* unable to read scrub count */
-+		return UINT_MAX;
-+	}
-+	if (rc >= 1)
-+		return scrub_count;
-+
-+	return UINT_MAX;
-+}
-+
-+/**
-+ * ndctl_bus_wait_for_scrub - wait for a scrub to complete
-+ * @bus: bus for which to check whether a scrub is in progress
-+ *
-+ * Upon return this bus has completed any in-progress scrubs. This is
-+ * different from ndctl_cmd_ars_in_progress in that the latter checks
-+ * the output of an ars_status command to see if the in-progress flag
-+ * is set, i.e. provides the firmware's view of whether a scrub is in
-+ * progress. ndctl_bus_wait_for_scrub instead checks the kernel's view
-+ * of whether a scrub is in progress by looking at the 'scrub' file in
-+ * sysfs.
-+ */
-+NDCTL_EXPORT int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus)
-+{
-+	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-+	unsigned int tmo = 120, scrub_count;
-+	char buf[SYSFS_ATTR_SIZE];
-+	char in_progress = '\0';
-+	int rc, elapsed = 0;
-+
-+	do {
-+		rc = sysfs_read_attr(ctx, bus->scrub_path, buf);
-+		if (rc < 0)
-+			break;
-+
-+		rc = sscanf(buf, "%u%c", &scrub_count, &in_progress);
-+		if (rc < 0)
-+			break;
-+		else if (rc <= 1) {
-+			/* scrub complete, break successfully */
-+			rc = 0;
-+			break;
-+		} else if (rc == 2 && in_progress == '+') {
-+			/* scrub in progress, continue to wait */
-+			;
-+		} else {
-+			/* unknown condition */
-+			rc = -ENXIO;
-+			break;
-+		}
-+
-+		elapsed++;
-+		sleep(1);
-+	} while (tmo-- != 0);
-+
-+	if (elapsed)
-+		dbg(ctx, "waited %d second%s for bus%d scrub to complete\n",
-+			elapsed, elapsed == 1 ? "" : "s",
-+			ndctl_bus_get_id(bus));
-+
-+	return rc < 0 ? -ENXIO : 0;
-+}
-+
- static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
- 		const char *devname);
- static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 58db669..4c22c0f 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -286,6 +286,8 @@ global:
- 	ndctl_bus_get_region_by_physical_address;
- 	ndctl_bus_get_dimm_by_physical_address;
- 	ndctl_bus_is_nfit_cmd_supported;
-+	ndctl_bus_wait_for_scrub_completion;
-+	ndctl_bus_get_scrub_count;
- 	ndctl_dimm_read_labels;
- 	ndctl_dimm_validate_labels;
- 	ndctl_dimm_init_labels;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 2de314c..6b909aa 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -152,6 +152,7 @@ struct ndctl_bus {
- 	char *bus_buf;
- 	size_t buf_len;
- 	char *wait_probe_path;
-+	char *scrub_path;
- 	unsigned long dsm_mask;
- 	unsigned long nfit_dsm_mask;
- };
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index 42e53c6..a4fbe33 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -113,6 +113,8 @@ unsigned int ndctl_bus_get_revision(struct ndctl_bus *bus);
- unsigned int ndctl_bus_get_id(struct ndctl_bus *bus);
- const char *ndctl_bus_get_provider(struct ndctl_bus *bus);
- int ndctl_bus_wait_probe(struct ndctl_bus *bus);
-+int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus);
-+unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus);
- 
- struct ndctl_dimm;
- struct ndctl_dimm *ndctl_dimm_get_first(struct ndctl_bus *bus);
--- 
-2.9.5
+Dan Williams (15):
+      dax: quiet bdev_dax_supported()
+      mm, dax: introduce pfn_t_special()
+      dax: require 'struct page' by default for filesystem dax
+      brd: remove dax support
+      dax: stop using VM_MIXEDMAP for dax
+      dax: stop using VM_HUGEPAGE for dax
+      dax: stop requiring a live device for dax_flush()
+      dax: store pfns in the radix
+      tools/testing/nvdimm: add 'bio_delay' mechanism
+      IB/core: disable memory registration of fileystem-dax vmas
+      [media] v4l2: disable filesystem-dax mapping support
+      mm, dax: enable filesystems to trigger page-idle callbacks
+      mm, devmap: introduce CONFIG_DEVMAP_MANAGED_PAGES
+      dax: associate mappings with inodes, and warn if dma collides with truncate
+      wait_bit: introduce {wait_on,wake_up}_devmap_idle
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+ arch/powerpc/platforms/Kconfig            |    1 
+ arch/powerpc/sysdev/axonram.c             |    3 -
+ drivers/block/Kconfig                     |   12 ---
+ drivers/block/brd.c                       |   65 --------------
+ drivers/dax/device.c                      |    1 
+ drivers/dax/super.c                       |  113 +++++++++++++++++++++----
+ drivers/infiniband/core/umem.c            |   49 ++++++++---
+ drivers/media/v4l2-core/videobuf-dma-sg.c |   39 ++++++++-
+ drivers/nvdimm/pmem.c                     |   13 +++
+ drivers/s390/block/Kconfig                |    1 
+ drivers/s390/block/dcssblk.c              |    4 +
+ fs/Kconfig                                |    8 ++
+ fs/dax.c                                  |  131 +++++++++++++++++++----------
+ fs/ext2/file.c                            |    1 
+ fs/ext2/super.c                           |    6 +
+ fs/ext4/file.c                            |    1 
+ fs/ext4/super.c                           |    6 +
+ fs/xfs/xfs_file.c                         |    2 
+ fs/xfs/xfs_super.c                        |   20 ++--
+ include/linux/dax.h                       |   17 ++--
+ include/linux/memremap.h                  |   24 +++++
+ include/linux/mm.h                        |   47 ++++++----
+ include/linux/mm_types.h                  |   20 +++-
+ include/linux/pfn_t.h                     |   13 +++
+ include/linux/vma.h                       |   33 +++++++
+ include/linux/wait_bit.h                  |   10 ++
+ kernel/memremap.c                         |   36 ++++++--
+ kernel/sched/wait_bit.c                   |   64 ++++++++++++--
+ mm/Kconfig                                |    5 +
+ mm/hmm.c                                  |   13 ---
+ mm/huge_memory.c                          |    8 +-
+ mm/ksm.c                                  |    3 +
+ mm/madvise.c                              |    2 
+ mm/memory.c                               |   22 ++++-
+ mm/migrate.c                              |    3 -
+ mm/mlock.c                                |    5 +
+ mm/mmap.c                                 |    8 +-
+ mm/swap.c                                 |    3 -
+ tools/testing/nvdimm/Kbuild               |    1 
+ tools/testing/nvdimm/test/iomap.c         |   62 ++++++++++++++
+ tools/testing/nvdimm/test/nfit.c          |   34 ++++++++
+ tools/testing/nvdimm/test/nfit_test.h     |    1 
+ 42 files changed, 650 insertions(+), 260 deletions(-)
+ create mode 100644 include/linux/vma.h
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
