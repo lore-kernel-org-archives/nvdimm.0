@@ -1,134 +1,65 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH 02/15] mm, dax: introduce pfn_t_special()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 31 Oct 2017 16:21:45 -0700
-Message-ID: <150949210553.24061.5992572975056748512.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0B9D52035D0F5
+ for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 12:18:48 -0700 (PDT)
+Date: Tue, 31 Oct 2017 13:20:26 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [ndctl patch] btt_check_arenas: fix use of uninitialized variable
+Message-ID: <20171031192026.GA5253@omniknight.lm.intel.com>
+References: <x49376ikhuy.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <x49376ikhuy.fsf@segfault.boston.devel.redhat.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of removing the VM_MIXEDMAP indication from DAX VMAs,
-introduce pfn_t_special() for drivers to indicate that _PAGE_SPECIAL
-should be used for DAX ptes. This also helps identify drivers like
-dccssblk that only want to use DAX in a read-only fashion without
-get_user_pages() support.
+On 10/16, Jeff Moyer wrote:
+> Coverity complains that rc, passed to btt_xlat_status, may be
+> used uninitialized.  In that case, we may also dereference a
+> NULL pointer.  Fix it by only calling btt_xlat_status with a
+> valid arena.
+> 
+> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-Ideally we could delete axonram and dcssblk DAX support, but if we need
-to keep it better make it explicit that axonram and dcssblk only support
-a sub-set of DAX due to missing _PAGE_DEVMAP support.
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/powerpc/sysdev/axonram.c |    2 +-
- drivers/s390/block/dcssblk.c  |    3 ++-
- include/linux/pfn_t.h         |   13 +++++++++++++
- mm/memory.c                   |   16 +++++++++++++++-
- 4 files changed, 31 insertions(+), 3 deletions(-)
-
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index c60e84e4558d..aaf540efb92c 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -151,7 +151,7 @@ __axon_ram_direct_access(struct axon_ram_bank *bank, pgoff_t pgoff, long nr_page
- 	resource_size_t offset = pgoff * PAGE_SIZE;
- 
- 	*kaddr = (void *) bank->io_addr + offset;
--	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
-+	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV|PFN_SPECIAL);
- 	return (bank->size - offset) / PAGE_SIZE;
- }
- 
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 7abb240847c0..87756e28c29b 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -915,7 +915,8 @@ __dcssblk_direct_access(struct dcssblk_dev_info *dev_info, pgoff_t pgoff,
- 
- 	dev_sz = dev_info->end - dev_info->start + 1;
- 	*kaddr = (void *) dev_info->start + offset;
--	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
-+	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
-+			PFN_DEV|PFN_SPECIAL);
- 
- 	return (dev_sz - offset) / PAGE_SIZE;
- }
-diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
-index a49b3259cad7..2a16386725b2 100644
---- a/include/linux/pfn_t.h
-+++ b/include/linux/pfn_t.h
-@@ -14,8 +14,10 @@
- #define PFN_SG_LAST (1ULL << (BITS_PER_LONG_LONG - 2))
- #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
- #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
-+#define PFN_SPECIAL (1ULL << (BITS_PER_LONG_LONG - 5))
- 
- #define PFN_FLAGS_TRACE \
-+	{ PFN_SPECIAL,	"SPECIAL" }, \
- 	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
- 	{ PFN_SG_LAST,	"SG_LAST" }, \
- 	{ PFN_DEV,	"DEV" }, \
-@@ -119,4 +121,15 @@ pud_t pud_mkdevmap(pud_t pud);
- #endif
- #endif /* __HAVE_ARCH_PTE_DEVMAP */
- 
-+#ifdef __HAVE_ARCH_PTE_SPECIAL
-+static inline bool pfn_t_special(pfn_t pfn)
-+{
-+	return (pfn.val & PFN_SPECIAL) == PFN_SPECIAL;
-+}
-+#else
-+static inline bool pfn_t_special(pfn_t pfn)
-+{
-+	return false;
-+}
-+#endif /* __HAVE_ARCH_PTE_SPECIAL */
- #endif /* _LINUX_PFN_T_H_ */
-diff --git a/mm/memory.c b/mm/memory.c
-index a728bed16c20..e764dc5d8a87 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1896,12 +1896,26 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
- }
- EXPORT_SYMBOL(vm_insert_pfn_prot);
- 
-+static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
-+{
-+	/* these checks mirror the abort conditions in vm_normal_page */
-+	if (vma->vm_flags & VM_MIXEDMAP)
-+		return true;
-+	if (pfn_t_devmap(pfn))
-+		return true;
-+	if (pfn_t_special(pfn))
-+		return true;
-+	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
-+		return true;
-+	return false;
-+}
-+
- static int __vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn, bool mkwrite)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
- 
--	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
-+	BUG_ON(!vm_mixed_ok(vma, pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Good catch!
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+> 
+> diff --git a/ndctl/check.c b/ndctl/check.c
+> index 915bb9d..93f95c6 100644
+> --- a/ndctl/check.c
+> +++ b/ndctl/check.c
+> @@ -582,9 +582,10 @@ static int btt_check_arenas(struct btt_chk *bttc)
+>  			break;
+>  	}
+>  
+> -	btt_xlat_status(a, rc);
+> -	if (rc)
+> +	if (a && rc != BTT_OK) {
+> +		btt_xlat_status(a, rc);
+>  		return -ENXIO;
+> +	}
+>  	return 0;
+>  }
+>  
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
