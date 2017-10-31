@@ -1,75 +1,134 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0F7D620352606
- for <linux-nvdimm@lists.01.org>; Tue, 24 Oct 2017 08:21:47 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 06/17] dax: Create local variable for vmf->flags &
- FAULT_FLAG_WRITE test
-Date: Tue, 24 Oct 2017 17:24:03 +0200
-Message-Id: <20171024152415.22864-7-jack@suse.cz>
-In-Reply-To: <20171024152415.22864-1-jack@suse.cz>
-References: <20171024152415.22864-1-jack@suse.cz>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH 02/15] mm, dax: introduce pfn_t_special()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 31 Oct 2017 16:21:45 -0700
+Message-ID: <150949210553.24061.5992572975056748512.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are already two users and more are coming.
+In support of removing the VM_MIXEDMAP indication from DAX VMAs,
+introduce pfn_t_special() for drivers to indicate that _PAGE_SPECIAL
+should be used for DAX ptes. This also helps identify drivers like
+dccssblk that only want to use DAX in a read-only fashion without
+get_user_pages() support.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Ideally we could delete axonram and dcssblk DAX support, but if we need
+to keep it better make it explicit that axonram and dcssblk only support
+a sub-set of DAX due to missing _PAGE_DEVMAP support.
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/powerpc/sysdev/axonram.c |    2 +-
+ drivers/s390/block/dcssblk.c  |    3 ++-
+ include/linux/pfn_t.h         |   13 +++++++++++++
+ mm/memory.c                   |   16 +++++++++++++++-
+ 4 files changed, 31 insertions(+), 3 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index c09465884bbe..5ea71381dba0 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1116,6 +1116,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	struct iomap iomap = { 0 };
- 	unsigned flags = IOMAP_FAULT;
- 	int error, major = 0;
-+	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	int vmf_ret = 0;
- 	void *entry;
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index c60e84e4558d..aaf540efb92c 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -151,7 +151,7 @@ __axon_ram_direct_access(struct axon_ram_bank *bank, pgoff_t pgoff, long nr_page
+ 	resource_size_t offset = pgoff * PAGE_SIZE;
  
-@@ -1130,7 +1131,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		goto out;
- 	}
+ 	*kaddr = (void *) bank->io_addr + offset;
+-	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
++	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV|PFN_SPECIAL);
+ 	return (bank->size - offset) / PAGE_SIZE;
+ }
  
--	if ((vmf->flags & FAULT_FLAG_WRITE) && !vmf->cow_page)
-+	if (write && !vmf->cow_page)
- 		flags |= IOMAP_WRITE;
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 7abb240847c0..87756e28c29b 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -915,7 +915,8 @@ __dcssblk_direct_access(struct dcssblk_dev_info *dev_info, pgoff_t pgoff,
  
- 	entry = grab_mapping_entry(mapping, vmf->pgoff, 0);
-@@ -1207,7 +1208,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		break;
- 	case IOMAP_UNWRITTEN:
- 	case IOMAP_HOLE:
--		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
-+		if (!write) {
- 			vmf_ret = dax_load_hole(mapping, entry, vmf);
- 			goto finish_iomap;
- 		}
--- 
-2.12.3
+ 	dev_sz = dev_info->end - dev_info->start + 1;
+ 	*kaddr = (void *) dev_info->start + offset;
+-	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
++	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
++			PFN_DEV|PFN_SPECIAL);
+ 
+ 	return (dev_sz - offset) / PAGE_SIZE;
+ }
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index a49b3259cad7..2a16386725b2 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -14,8 +14,10 @@
+ #define PFN_SG_LAST (1ULL << (BITS_PER_LONG_LONG - 2))
+ #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
+ #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
++#define PFN_SPECIAL (1ULL << (BITS_PER_LONG_LONG - 5))
+ 
+ #define PFN_FLAGS_TRACE \
++	{ PFN_SPECIAL,	"SPECIAL" }, \
+ 	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
+ 	{ PFN_SG_LAST,	"SG_LAST" }, \
+ 	{ PFN_DEV,	"DEV" }, \
+@@ -119,4 +121,15 @@ pud_t pud_mkdevmap(pud_t pud);
+ #endif
+ #endif /* __HAVE_ARCH_PTE_DEVMAP */
+ 
++#ifdef __HAVE_ARCH_PTE_SPECIAL
++static inline bool pfn_t_special(pfn_t pfn)
++{
++	return (pfn.val & PFN_SPECIAL) == PFN_SPECIAL;
++}
++#else
++static inline bool pfn_t_special(pfn_t pfn)
++{
++	return false;
++}
++#endif /* __HAVE_ARCH_PTE_SPECIAL */
+ #endif /* _LINUX_PFN_T_H_ */
+diff --git a/mm/memory.c b/mm/memory.c
+index a728bed16c20..e764dc5d8a87 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1896,12 +1896,26 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
+ }
+ EXPORT_SYMBOL(vm_insert_pfn_prot);
+ 
++static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
++{
++	/* these checks mirror the abort conditions in vm_normal_page */
++	if (vma->vm_flags & VM_MIXEDMAP)
++		return true;
++	if (pfn_t_devmap(pfn))
++		return true;
++	if (pfn_t_special(pfn))
++		return true;
++	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
++		return true;
++	return false;
++}
++
+ static int __vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			pfn_t pfn, bool mkwrite)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
+ 
+-	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
++	BUG_ON(!vm_mixed_ok(vma, pfn));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return -EFAULT;
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
