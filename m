@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1A992202E60FB
- for <linux-nvdimm@lists.01.org>; Thu, 19 Oct 2017 19:41:48 -0700 (PDT)
-Subject: [PATCH v3 01/13] dax: quiet bdev_dax_supported()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Oct 2017 19:39:02 -0700
-Message-ID: <150846714231.24336.100401563090934098.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 904FD20347175
+ for <linux-nvdimm@lists.01.org>; Tue, 31 Oct 2017 12:22:35 -0700 (PDT)
+Date: Tue, 31 Oct 2017 13:24:13 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [ndctl patch] dax_io: fix unknown parameter handling
+Message-ID: <20171031192412.GB5253@omniknight.lm.intel.com>
+References: <x49po9hes8f.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <x49po9hes8f.fsf@segfault.boston.devel.redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,59 +23,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Before we add another failure reason, quiet the existing log messages.
-Leave it to the caller to decide if bdev_dax_supported() failures are
-errors worth emitting to the log.
+On 10/20, Jeff Moyer wrote:
+> The for loop will not loop more than once due to the return statement.
+> What's more, the following code, which prints out the usage, also won't
+> run.  Let's change this to look more like other commands.  Print out
+> invalid options and then print out the usage.  usage_with_options will
+> exit, so no need for a return there.
+> 
+> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/super.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Looks good,
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 557b93703532..b0cc8117eebe 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -92,21 +92,21 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 	long len;
- 
- 	if (blocksize != PAGE_SIZE) {
--		pr_err("VFS (%s): error: unsupported blocksize for dax\n",
-+		pr_debug("VFS (%s): error: unsupported blocksize for dax\n",
- 				sb->s_id);
- 		return -EINVAL;
- 	}
- 
- 	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
- 	if (err) {
--		pr_err("VFS (%s): error: unaligned partition for dax\n",
-+		pr_debug("VFS (%s): error: unaligned partition for dax\n",
- 				sb->s_id);
- 		return err;
- 	}
- 
- 	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
- 	if (!dax_dev) {
--		pr_err("VFS (%s): error: device does not support dax\n",
-+		pr_debug("VFS (%s): error: device does not support dax\n",
- 				sb->s_id);
- 		return -EOPNOTSUPP;
- 	}
-@@ -118,7 +118,7 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 	put_dax(dax_dev);
- 
- 	if (len < 1) {
--		pr_err("VFS (%s): error: dax access failed (%ld)",
-+		pr_debug("VFS (%s): error: dax access failed (%ld)\n",
- 				sb->s_id, len);
- 		return len < 0 ? len : -EIO;
- 	}
-
+> 
+> diff --git a/daxctl/io.c b/daxctl/io.c
+> index 27e7463..2f8cb4a 100644
+> --- a/daxctl/io.c
+> +++ b/daxctl/io.c
+> @@ -526,15 +526,11 @@ int cmd_io(int argc, const char **argv, void *daxctl_ctx)
+>  	struct ndctl_ctx *ndctl_ctx;
+>  
+>  	argc = parse_options(argc, argv, options, u, 0);
+> -	for (i = 0; i < argc; i++) {
+> +	for (i = 0; i < argc; i++)
+>  		fail("Unknown parameter \"%s\"\n", argv[i]);
+> -		return -EINVAL;
+> -	}
+>  
+> -	if (argc) {
+> +	if (argc)
+>  		usage_with_options(u, options);
+> -		return 0;
+> -	}
+>  
+>  	if (!io.dev[0].parm_path && !io.dev[1].parm_path) {
+>  		usage_with_options(u, options);
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
