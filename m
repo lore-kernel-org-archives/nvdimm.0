@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 88B45220D4BEA
- for <linux-nvdimm@lists.01.org>; Mon, 13 Nov 2017 23:43:15 -0800 (PST)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 78920AC011F
- for <linux-nvdimm@lists.01.org>; Tue, 14 Nov 2017 16:47:13 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [RFC PATCH v2 4/7] ndctl: nvdimmd: add body file of nvdimm daemon
-Date: Tue, 14 Nov 2017 16:47:01 +0900
-Message-Id: <20171114074704.3446-5-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20171114074704.3446-1-qi.fuli@jp.fujitsu.com>
-References: <20171114074704.3446-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4DB2621C913AC
+ for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 07/18] dax: Inline dax_insert_mapping() into the callsite
+Date: Wed,  1 Nov 2017 16:36:36 +0100
+Message-Id: <20171101153648.30166-8-jack@suse.cz>
+In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
+References: <20171101153648.30166-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,193 +22,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds the body file of nvdimm daemon and compiles nvdimmd
-with automake.
+dax_insert_mapping() has only one callsite and we will need to further
+fine tune what it does for synchronous faults. Just inline it into the
+callsite so that we don't have to pass awkward bools around.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- Makefile.am         |   2 +-
- configure.ac        |   1 +
- nvdimmd/Makefile.am |  19 +++++++++
- nvdimmd/nvdimmd.c   | 112 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 133 insertions(+), 1 deletion(-)
- create mode 100644 nvdimmd/Makefile.am
- create mode 100644 nvdimmd/nvdimmd.c
+ fs/dax.c | 46 +++++++++++++++++++---------------------------
+ 1 file changed, 19 insertions(+), 27 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index b538b1f..ff91439 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,7 +1,7 @@
- include Makefile.am.in
+diff --git a/fs/dax.c b/fs/dax.c
+index 5ea71381dba0..5b20c6456926 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -858,32 +858,6 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ 	return rc;
+ }
  
- ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
--SUBDIRS = . daxctl/lib ndctl/lib ndctl daxctl
-+SUBDIRS = . daxctl/lib ndctl/lib ndctl daxctl nvdimmd
- if ENABLE_DOCS
- SUBDIRS += Documentation/ndctl Documentation/daxctl
- endif
-diff --git a/configure.ac b/configure.ac
-index 5b10381..3ce71e3 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -274,6 +274,7 @@ AC_CONFIG_FILES([
-         daxctl/lib/Makefile
-         ndctl/lib/Makefile
-         ndctl/Makefile
-+	nvdimmd/Makefile
-         daxctl/Makefile
-         test/Makefile
-         Documentation/ndctl/Makefile
-diff --git a/nvdimmd/Makefile.am b/nvdimmd/Makefile.am
-new file mode 100644
-index 0000000..9883edd
---- /dev/null
-+++ b/nvdimmd/Makefile.am
-@@ -0,0 +1,19 @@
-+include $(top_srcdir)/Makefile.am.in
+-static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
+-			      loff_t pos, void *entry)
+-{
+-	const sector_t sector = dax_iomap_sector(iomap, pos);
+-	struct vm_area_struct *vma = vmf->vma;
+-	struct address_space *mapping = vma->vm_file->f_mapping;
+-	unsigned long vaddr = vmf->address;
+-	void *ret;
+-	int rc;
+-	pfn_t pfn;
+-
+-	rc = dax_iomap_pfn(iomap, pos, PAGE_SIZE, &pfn);
+-	if (rc < 0)
+-		return rc;
+-
+-	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector, 0);
+-	if (IS_ERR(ret))
+-		return PTR_ERR(ret);
+-
+-	trace_dax_insert_mapping(mapping->host, vmf, ret);
+-	if (vmf->flags & FAULT_FLAG_WRITE)
+-		return vm_insert_mixed_mkwrite(vma, vaddr, pfn);
+-	else
+-		return vm_insert_mixed(vma, vaddr, pfn);
+-}
+-
+ /*
+  * The user has performed a load from a hole in the file.  Allocating a new
+  * page in the file would cause excessive storage usage for workloads with
+@@ -1119,6 +1093,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	int vmf_ret = 0;
+ 	void *entry;
++	pfn_t pfn;
+ 
+ 	trace_dax_pte_fault(inode, vmf, vmf_ret);
+ 	/*
+@@ -1201,7 +1176,24 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
+ 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
+ 			major = VM_FAULT_MAJOR;
+ 		}
+-		error = dax_insert_mapping(vmf, &iomap, pos, entry);
++		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
++		if (error < 0)
++			goto error_finish_iomap;
 +
-+bin_PROGRAMS = nvdimmd
++		entry = dax_insert_mapping_entry(mapping, vmf, entry,
++						 dax_iomap_sector(&iomap, pos),
++						 0);
++		if (IS_ERR(entry)) {
++			error = PTR_ERR(entry);
++			goto error_finish_iomap;
++		}
 +
-+nvdimmd_SOURCES =\
-+		nvdimmd.c \
-+		libnvdimmd.c \
-+		util.c \
-+		../util/log.c \
-+		../util/json.c \
-+		../ndctl/util/json-smart.c
-+
-+nvdimmd_LDADD = ../ndctl/lib/libndctl.la \
-+		../daxctl/lib/libdaxctl.la \
-+		../libutil.a \
-+		$(KMOD_LIBS) \
-+		$(JSON_LIBS) \
-+		$(UUID_LIBS) \
-+		$(UDEV_LIBS)
-diff --git a/nvdimmd/nvdimmd.c b/nvdimmd/nvdimmd.c
-new file mode 100644
-index 0000000..f451751
---- /dev/null
-+++ b/nvdimmd/nvdimmd.c
-@@ -0,0 +1,112 @@
-+/*
-+ * Copyright (c) 2017, FUJITSU LIMITED. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU Lesser General Public License,
-+ * version 2.1, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT ANY
-+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
-+ * more details.
-+ */
-+
-+/*
-+ * Nvdimm daemon is used to monitor the features of over threshold events.
-+ * It automatically searches and monitors all of the dimms which support smart
-+ * threshold. When an over threshold event fires, it will write a notification
-+ * into the system log.
-+ */
-+
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <signal.h>
-+#include <sys/stat.h>
-+#include <syslog.h>
-+#include <errno.h>
-+#include <ndctl/lib/private.h>
-+#include "libnvdimmd.h"
-+
-+static int wait_threshold_notify(struct ndctl_ctx *ctx)
-+{
-+	int rc, maxfd, cnt_dimm;
-+	struct threshold_dimm *t_dimm;
-+
-+	t_dimm = calloc(NUM_MAX_DIMM, sizeof(struct threshold_dimm));
-+	if (!t_dimm) {
-+		err(ctx, "t_dimm memory not allocated");
-+		goto out;
-+	}
-+
-+	fd_set fds;
-+	FD_ZERO(&fds);
-+
-+	cnt_dimm = get_threshold_dimm(ctx, t_dimm, &fds, &maxfd);
-+	if (cnt_dimm == 0) {
-+		err(ctx, "no dimm supports over threshold notification\n");
-+		goto out;
-+	}
-+
-+	rc = select(maxfd + 1, NULL, NULL, &fds, NULL);
-+	if (rc < 1) {
-+		if (rc == 0)
-+			err(ctx, "select unexpected timeout\n");
++		trace_dax_insert_mapping(inode, vmf, entry);
++		if (write)
++			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
 +		else
-+			err(ctx, "select %s\n", strerror(errno));
-+		goto out;
-+	}
++			error = vm_insert_mixed(vma, vaddr, pfn);
 +
-+	log_notify(ctx, t_dimm, cnt_dimm, fds, rc);
-+
-+	free(t_dimm);
-+	return 0;
-+
-+out:
-+	return 1;
-+}
-+
-+static void nvdimmd_log_init(struct ndctl_ctx *ctx, int priority,
-+				const char *owner, const char *log_env)
-+{
-+	log_init(&ctx->ctx, owner, log_env);
-+	ndctl_set_log_priority(ctx, priority);
-+	if (strcmp(nvdimmd_cf->logfile, "syslog") == 0)
-+		ndctl_set_log_fn(ctx, log_syslog);
-+	else
-+		ndctl_set_log_fn(ctx, log_file);
-+}
-+
-+int main(void)
-+{
-+	if (daemon(0, 0) != 0) {
-+		syslog(LOG_ERR, "nvdimmd error: daemon start failed\n");
-+		exit(EXIT_FAILURE);
-+	}
-+	struct ndctl_ctx *ctx;
-+	int rc, ret = 0;
-+	const char *conf_path = "/etc/nvdimmd/nvdimmd.conf";
-+
-+	syslog(LOG_INFO, "nvdimmd: started\n");
-+
-+	if (get_nvdimmd_conf(conf_path) != 0) {
-+		syslog(LOG_ERR, "nvdimmd.conf error \n");
-+		goto out;
-+	}
-+
-+	while (ret == 0) {
-+		rc = ndctl_new(&ctx);
-+		if (rc)
-+			goto out;
-+
-+		nvdimmd_log_init(ctx, LOG_NOTICE, "nvdimmd", "NVDIMMD_LOG");
-+		ret = wait_threshold_notify(ctx);
-+		ndctl_unref(ctx);
-+	}
-+
-+	syslog(LOG_INFO, "nvdimmd: ended\n");
-+	return 0;
-+
-+out:
-+	return 1;
-+}
+ 		/* -EBUSY is fine, somebody else faulted on the same PTE */
+ 		if (error == -EBUSY)
+ 			error = 0;
 -- 
-2.9.5
-
+2.12.3
 
 _______________________________________________
 Linux-nvdimm mailing list
