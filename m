@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DE3422034C5F2
- for <linux-nvdimm@lists.01.org>; Tue, 21 Nov 2017 11:11:56 -0800 (PST)
-Subject: [PATCH v3 4/5] mm: replace pmd_write with pmd_access_permitted in
- fault + gup paths
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 21 Nov 2017 11:07:57 -0800
-Message-ID: <151129127785.37405.1335237912021523475.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151129125625.37405.15953656230804875212.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151129125625.37405.15953656230804875212.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id F2E3F20082EEA
+ for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:07 -0700 (PDT)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 02/18] mm: Remove VM_FAULT_HWPOISON_LARGE_MASK
+Date: Wed,  1 Nov 2017 16:36:31 +0100
+Message-Id: <20171101153648.30166-3-jack@suse.cz>
+In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
+References: <20171101153648.30166-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,76 +17,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-nvdimm@lists.01.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dave Hansen <dave.hansen@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhlICdhY2Nlc3NfcGVybWl0dGVkJyBoZWxwZXIgaXMgdXNlZCBpbiB0aGUgZ3VwLWZhc3QgcGF0
-aCBhbmQgZ29lcwpiZXlvbmQgdGhlIHNpbXBsZSBfUEFHRV9SVyBjaGVjayB0byBhbHNvOgoKKiB2
-YWxpZGF0ZSB0aGF0IHRoZSBtYXBwaW5nIGlzIHdyaXRhYmxlIGZyb20gYSBwcm90ZWN0aW9uIGtl
-eXMKICBzdGFuZHBvaW50CgoqIHZhbGlkYXRlIHRoYXQgdGhlIHB0ZSBoYXMgX1BBR0VfVVNFUiBz
-ZXQgc2luY2UgYWxsIGZhdWx0IHBhdGhzIHdoZXJlCiAgcG1kX3dyaXRlIGlzIG11c3QgYmUgcmVm
-ZXJlbmNpbmcgdXNlci1tZW1vcnkuCgpDYzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGludGVs
-LmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVs
-LmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1v
-ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIGFyY2gv
-c3BhcmMvbW0vZ3VwLmMgfCAgICAyICstCiBmcy9kYXguYyAgICAgICAgICAgIHwgICAgMyArKy0K
-IG1tL2htbS5jICAgICAgICAgICAgfCAgICA0ICsrLS0KIG1tL2h1Z2VfbWVtb3J5LmMgICAgfCAg
-ICA0ICsrLS0KIG1tL21lbW9yeS5jICAgICAgICAgfCAgICAyICstCiA1IGZpbGVzIGNoYW5nZWQs
-IDggaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJj
-L21tL2d1cC5jIGIvYXJjaC9zcGFyYy9tbS9ndXAuYwppbmRleCA1YWUyZDBhMDFhNzAuLjMzYzBm
-OGJiMGYzMyAxMDA2NDQKLS0tIGEvYXJjaC9zcGFyYy9tbS9ndXAuYworKysgYi9hcmNoL3NwYXJj
-L21tL2d1cC5jCkBAIC03NSw3ICs3NSw3IEBAIHN0YXRpYyBpbnQgZ3VwX2h1Z2VfcG1kKHBtZF90
-ICpwbWRwLCBwbWRfdCBwbWQsIHVuc2lnbmVkIGxvbmcgYWRkciwKIAlpZiAoIShwbWRfdmFsKHBt
-ZCkgJiBfUEFHRV9WQUxJRCkpCiAJCXJldHVybiAwOwogCi0JaWYgKHdyaXRlICYmICFwbWRfd3Jp
-dGUocG1kKSkKKwlpZiAoIXBtZF9hY2Nlc3NfcGVybWl0dGVkKHBtZCwgd3JpdGUpKQogCQlyZXR1
-cm4gMDsKIAogCXJlZnMgPSAwOwpkaWZmIC0tZ2l0IGEvZnMvZGF4LmMgYi9mcy9kYXguYwppbmRl
-eCA5NTk4MTU5MTk3N2EuLjc4YjcyYzQ4Mzc0ZSAxMDA2NDQKLS0tIGEvZnMvZGF4LmMKKysrIGIv
-ZnMvZGF4LmMKQEAgLTYyNyw3ICs2MjcsOCBAQCBzdGF0aWMgdm9pZCBkYXhfbWFwcGluZ19lbnRy
-eV9ta2NsZWFuKHN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLAogCiAJCQlpZiAocGZuICE9
-IHBtZF9wZm4oKnBtZHApKQogCQkJCWdvdG8gdW5sb2NrX3BtZDsKLQkJCWlmICghcG1kX2RpcnR5
-KCpwbWRwKSAmJiAhcG1kX3dyaXRlKCpwbWRwKSkKKwkJCWlmICghcG1kX2RpcnR5KCpwbWRwKQor
-CQkJCQkmJiAhcG1kX2FjY2Vzc19wZXJtaXR0ZWQoKnBtZHAsIFdSSVRFKSkKIAkJCQlnb3RvIHVu
-bG9ja19wbWQ7CiAKIAkJCWZsdXNoX2NhY2hlX3BhZ2Uodm1hLCBhZGRyZXNzLCBwZm4pOwpkaWZm
-IC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCBlYTE5NzQyYTVkNjAuLjkzNzE4YTM5
-MTYxMSAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAgLTM5MSwxMSArMzkx
-LDExIEBAIHN0YXRpYyBpbnQgaG1tX3ZtYV93YWxrX3BtZChwbWRfdCAqcG1kcCwKIAkJaWYgKHBt
-ZF9wcm90bm9uZShwbWQpKQogCQkJcmV0dXJuIGhtbV92bWFfd2Fsa19jbGVhcihzdGFydCwgZW5k
-LCB3YWxrKTsKIAotCQlpZiAod3JpdGVfZmF1bHQgJiYgIXBtZF93cml0ZShwbWQpKQorCQlpZiAo
-IXBtZF9hY2Nlc3NfcGVybWl0dGVkKHBtZCwgd3JpdGVfZmF1bHQpKQogCQkJcmV0dXJuIGhtbV92
-bWFfd2Fsa19jbGVhcihzdGFydCwgZW5kLCB3YWxrKTsKIAogCQlwZm4gPSBwbWRfcGZuKHBtZCkg
-KyBwdGVfaW5kZXgoYWRkcik7Ci0JCWZsYWcgfD0gcG1kX3dyaXRlKHBtZCkgPyBITU1fUEZOX1dS
-SVRFIDogMDsKKwkJZmxhZyB8PSBwbWRfYWNjZXNzX3Blcm1pdHRlZChwbWQsIFdSSVRFKSA/IEhN
-TV9QRk5fV1JJVEUgOiAwOwogCQlmb3IgKDsgYWRkciA8IGVuZDsgYWRkciArPSBQQUdFX1NJWkUs
-IGkrKywgcGZuKyspCiAJCQlwZm5zW2ldID0gaG1tX3Bmbl90X2Zyb21fcGZuKHBmbikgfCBmbGFn
-OwogCQlyZXR1cm4gMDsKZGlmZiAtLWdpdCBhL21tL2h1Z2VfbWVtb3J5LmMgYi9tbS9odWdlX21l
-bW9yeS5jCmluZGV4IDk1ODNmMDM1Y2NiMC4uY2VlYjljNGM1Mjc2IDEwMDY0NAotLS0gYS9tbS9o
-dWdlX21lbW9yeS5jCisrKyBiL21tL2h1Z2VfbWVtb3J5LmMKQEAgLTg3NSw3ICs4NzUsNyBAQCBz
-dHJ1Y3QgcGFnZSAqZm9sbG93X2Rldm1hcF9wbWQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEs
-IHVuc2lnbmVkIGxvbmcgYWRkciwKIAkgKi8KIAlXQVJOX09OQ0UoZmxhZ3MgJiBGT0xMX0NPVywg
-Im1tOiBJbiBmb2xsb3dfZGV2bWFwX3BtZCB3aXRoIEZPTExfQ09XIHNldCIpOwogCi0JaWYgKGZs
-YWdzICYgRk9MTF9XUklURSAmJiAhcG1kX3dyaXRlKCpwbWQpKQorCWlmICghcG1kX2FjY2Vzc19w
-ZXJtaXR0ZWQoKnBtZCwgZmxhZ3MgJiBGT0xMX1dSSVRFKSkKIAkJcmV0dXJuIE5VTEw7CiAKIAlp
-ZiAocG1kX3ByZXNlbnQoKnBtZCkgJiYgcG1kX2Rldm1hcCgqcG1kKSkKQEAgLTEzOTYsNyArMTM5
-Niw3IEBAIGludCBkb19odWdlX3BtZF93cF9wYWdlKHN0cnVjdCB2bV9mYXVsdCAqdm1mLCBwbWRf
-dCBvcmlnX3BtZCkKICAqLwogc3RhdGljIGlubGluZSBib29sIGNhbl9mb2xsb3dfd3JpdGVfcG1k
-KHBtZF90IHBtZCwgdW5zaWduZWQgaW50IGZsYWdzKQogewotCXJldHVybiBwbWRfd3JpdGUocG1k
-KSB8fAorCXJldHVybiBwbWRfYWNjZXNzX3Blcm1pdHRlZChwbWQsIFdSSVRFKSB8fAogCSAgICAg
-ICAoKGZsYWdzICYgRk9MTF9GT1JDRSkgJiYgKGZsYWdzICYgRk9MTF9DT1cpICYmIHBtZF9kaXJ0
-eShwbWQpKTsKIH0KIApkaWZmIC0tZ2l0IGEvbW0vbWVtb3J5LmMgYi9tbS9tZW1vcnkuYwppbmRl
-eCAyNGZiZDYwZWIyYjAuLjA3ZWVmOTcxZGJlYiAxMDA2NDQKLS0tIGEvbW0vbWVtb3J5LmMKKysr
-IGIvbW0vbWVtb3J5LmMKQEAgLTQwNDYsNyArNDA0Niw3IEBAIHN0YXRpYyBpbnQgX19oYW5kbGVf
-bW1fZmF1bHQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsIHVuc2lnbmVkIGxvbmcgYWRkcmVz
-cywKIAkJCWlmIChwbWRfcHJvdG5vbmUob3JpZ19wbWQpICYmIHZtYV9pc19hY2Nlc3NpYmxlKHZt
-YSkpCiAJCQkJcmV0dXJuIGRvX2h1Z2VfcG1kX251bWFfcGFnZSgmdm1mLCBvcmlnX3BtZCk7CiAK
-LQkJCWlmIChkaXJ0eSAmJiAhcG1kX3dyaXRlKG9yaWdfcG1kKSkgeworCQkJaWYgKGRpcnR5ICYm
-ICFwbWRfYWNjZXNzX3Blcm1pdHRlZChvcmlnX3BtZCwgV1JJVEUpKSB7CiAJCQkJcmV0ID0gd3Bf
-aHVnZV9wbWQoJnZtZiwgb3JpZ19wbWQpOwogCQkJCWlmICghKHJldCAmIFZNX0ZBVUxUX0ZBTExC
-QUNLKSkKIAkJCQkJcmV0dXJuIHJldDsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
-ZGltbQo=
+It is unused.
+
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ include/linux/mm.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 065d99deb847..ca72b67153d5 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1182,8 +1182,6 @@ static inline void clear_page_pfmemalloc(struct page *page)
+ #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
+ #define VM_FAULT_DONE_COW   0x1000	/* ->fault has fully handled COW */
+ 
+-#define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
+-
+ #define VM_FAULT_ERROR	(VM_FAULT_OOM | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | \
+ 			 VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE | \
+ 			 VM_FAULT_FALLBACK)
+-- 
+2.12.3
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
