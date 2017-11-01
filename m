@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DD41E21FCA29F
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:07 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id AF1032034AB0C
+ for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/18] dax: Factor out getting of pfn out of iomap
-Date: Wed,  1 Nov 2017 16:36:33 +0100
-Message-Id: <20171101153648.30166-5-jack@suse.cz>
+Subject: [PATCH 12/18] mm: Define MAP_SYNC and VM_SYNC flags
+Date: Wed,  1 Nov 2017 16:36:41 +0100
+Message-Id: <20171101153648.30166-13-jack@suse.cz>
 In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
 References: <20171101153648.30166-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -26,140 +26,89 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Factor out code to get pfn out of iomap that is shared between PTE and
-PMD fault path.
+Define new MAP_SYNC flag and corresponding VMA VM_SYNC flag. As the
+MAP_SYNC flag is not part of LEGACY_MAP_MASK, currently it will be
+refused by all MAP_SHARED_VALIDATE map attempts and silently ignored for
+everything else.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/dax.c | 83 +++++++++++++++++++++++++++++++++-------------------------------
- 1 file changed, 43 insertions(+), 40 deletions(-)
+ fs/proc/task_mmu.c              | 1 +
+ include/linux/mm.h              | 1 +
+ include/linux/mman.h            | 8 ++++++--
+ include/uapi/asm-generic/mman.h | 1 +
+ 4 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 0bc42ac294ca..116eef8d6c69 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -825,30 +825,53 @@ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
- 	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index 5589b4bd4b85..ea78b37deeaa 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -664,6 +664,7 @@ static void show_smap_vma_flags(struct seq_file *m, struct vm_area_struct *vma)
+ 		[ilog2(VM_ACCOUNT)]	= "ac",
+ 		[ilog2(VM_NORESERVE)]	= "nr",
+ 		[ilog2(VM_HUGETLB)]	= "ht",
++		[ilog2(VM_SYNC)]	= "sf",
+ 		[ilog2(VM_ARCH_1)]	= "ar",
+ 		[ilog2(VM_WIPEONFORK)]	= "wf",
+ 		[ilog2(VM_DONTDUMP)]	= "dd",
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ca72b67153d5..5411cb7442de 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -189,6 +189,7 @@ extern unsigned int kobjsize(const void *objp);
+ #define VM_ACCOUNT	0x00100000	/* Is a VM accounted object */
+ #define VM_NORESERVE	0x00200000	/* should the VM suppress accounting */
+ #define VM_HUGETLB	0x00400000	/* Huge TLB Page VM */
++#define VM_SYNC		0x00800000	/* Synchronous page faults */
+ #define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
+ #define VM_WIPEONFORK	0x02000000	/* Wipe VMA contents in child. */
+ #define VM_DONTDUMP	0x04000000	/* Do not include in the core dump */
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index 94b63b4d71ff..8f7cc87828e6 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -9,7 +9,7 @@
+ 
+ /*
+  * Arrange for legacy / undefined architecture specific flags to be
+- * ignored by default in LEGACY_MAP_MASK.
++ * ignored by mmap handling code.
+  */
+ #ifndef MAP_32BIT
+ #define MAP_32BIT 0
+@@ -23,6 +23,9 @@
+ #ifndef MAP_UNINITIALIZED
+ #define MAP_UNINITIALIZED 0
+ #endif
++#ifndef MAP_SYNC
++#define MAP_SYNC 0
++#endif
+ 
+ /*
+  * The historical set of flags that all mmap implementations implicitly
+@@ -125,7 +128,8 @@ calc_vm_flag_bits(unsigned long flags)
+ {
+ 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
+ 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
+-	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
++	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    ) |
++	       _calc_vm_trans(flags, MAP_SYNC,	     VM_SYNC      );
  }
  
--static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
--			      loff_t pos, void *entry)
-+static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
-+			 pfn_t *pfnp)
- {
- 	const sector_t sector = dax_iomap_sector(iomap, pos);
--	struct vm_area_struct *vma = vmf->vma;
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	unsigned long vaddr = vmf->address;
--	void *ret, *kaddr;
- 	pgoff_t pgoff;
-+	void *kaddr;
- 	int id, rc;
--	pfn_t pfn;
-+	long length;
+ unsigned long vm_commit_limit(void);
+diff --git a/include/uapi/asm-generic/mman.h b/include/uapi/asm-generic/mman.h
+index 7162cd4cca73..00e55627d2df 100644
+--- a/include/uapi/asm-generic/mman.h
++++ b/include/uapi/asm-generic/mman.h
+@@ -12,6 +12,7 @@
+ #define MAP_NONBLOCK	0x10000		/* do not block on IO */
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
++#define MAP_SYNC	0x80000		/* perform synchronous page faults for the mapping */
  
--	rc = bdev_dax_pgoff(iomap->bdev, sector, PAGE_SIZE, &pgoff);
-+	rc = bdev_dax_pgoff(iomap->bdev, sector, size, &pgoff);
- 	if (rc)
- 		return rc;
--
- 	id = dax_read_lock();
--	rc = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(PAGE_SIZE),
--			       &kaddr, &pfn);
--	if (rc < 0) {
--		dax_read_unlock(id);
--		return rc;
-+	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
-+				   &kaddr, pfnp);
-+	if (length < 0) {
-+		rc = length;
-+		goto out;
- 	}
-+	rc = -EINVAL;
-+	if (PFN_PHYS(length) < size)
-+		goto out;
-+	if (pfn_t_to_pfn(*pfnp) & (PHYS_PFN(size)-1))
-+		goto out;
-+	/* For larger pages we need devmap */
-+	if (length > 1 && !pfn_t_devmap(*pfnp))
-+		goto out;
-+	rc = 0;
-+out:
- 	dax_read_unlock(id);
-+	return rc;
-+}
-+
-+static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
-+			      loff_t pos, void *entry)
-+{
-+	const sector_t sector = dax_iomap_sector(iomap, pos);
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct address_space *mapping = vma->vm_file->f_mapping;
-+	unsigned long vaddr = vmf->address;
-+	void *ret;
-+	int rc;
-+	pfn_t pfn;
-+
-+	rc = dax_iomap_pfn(iomap, pos, PAGE_SIZE, &pfn);
-+	if (rc < 0)
-+		return rc;
- 
- 	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector, 0);
- 	if (IS_ERR(ret))
-@@ -1223,46 +1246,26 @@ static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
- {
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	const sector_t sector = dax_iomap_sector(iomap, pos);
--	struct dax_device *dax_dev = iomap->dax_dev;
--	struct block_device *bdev = iomap->bdev;
- 	struct inode *inode = mapping->host;
--	const size_t size = PMD_SIZE;
--	void *ret = NULL, *kaddr;
--	long length = 0;
--	pgoff_t pgoff;
-+	void *ret = NULL;
- 	pfn_t pfn = {};
--	int id;
-+	int rc;
- 
--	if (bdev_dax_pgoff(bdev, sector, size, &pgoff) != 0)
-+	rc = dax_iomap_pfn(iomap, pos, PMD_SIZE, &pfn);
-+	if (rc < 0)
- 		goto fallback;
- 
--	id = dax_read_lock();
--	length = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
--	if (length < 0)
--		goto unlock_fallback;
--	length = PFN_PHYS(length);
--
--	if (length < size)
--		goto unlock_fallback;
--	if (pfn_t_to_pfn(pfn) & PG_PMD_COLOUR)
--		goto unlock_fallback;
--	if (!pfn_t_devmap(pfn))
--		goto unlock_fallback;
--	dax_read_unlock(id);
--
- 	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector,
- 			RADIX_DAX_PMD);
- 	if (IS_ERR(ret))
- 		goto fallback;
- 
--	trace_dax_pmd_insert_mapping(inode, vmf, length, pfn, ret);
-+	trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, ret);
- 	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd,
- 			pfn, vmf->flags & FAULT_FLAG_WRITE);
- 
--unlock_fallback:
--	dax_read_unlock(id);
- fallback:
--	trace_dax_pmd_insert_mapping_fallback(inode, vmf, length, pfn, ret);
-+	trace_dax_pmd_insert_mapping_fallback(inode, vmf, PMD_SIZE, pfn, ret);
- 	return VM_FAULT_FALLBACK;
- }
+ /* Bits [26:31] are reserved, see mman-common.h for MAP_HUGETLB usage */
  
 -- 
 2.12.3
