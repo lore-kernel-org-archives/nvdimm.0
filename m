@@ -1,6 +1,5 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-MIME-Version: 1.0
-In-Reply-To: <86754966-281f-c3ed-938c-f009440de563@gmail.com>
+Subject: Re: KVM "fake DAX" flushing interface - discussion
 References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
  <1157879323.33809400.1500897967669.JavaMail.zimbra@redhat.com>
  <20170724123752.GN652@quack2.suse.cz>
@@ -18,11 +17,12 @@ References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
  <CAPcyv4jR_LdbsX-rAsHC7++C6d-WYC084uWXzr+08PSYwoXFMw@mail.gmail.com>
  <ca6aaa77-cca0-441e-be49-73133d8581cf@gmail.com>
  <CAPcyv4gKzvd39WbnKjbs3Bn9+o1tt=vz90CYMFu0DF5PsfHUig@mail.gmail.com>
- <86754966-281f-c3ed-938c-f009440de563@gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 2 Nov 2017 09:30:16 -0700
-Message-ID: <CAPcyv4iH==cqVAdd8i1y-8A6SuXU75OH1EZzgNMvtA21wfxPpQ@mail.gmail.com>
-Subject: Re: KVM "fake DAX" flushing interface - discussion
+From: Xiao Guangrong <xiaoguangrong.eric@gmail.com>
+Message-ID: <86754966-281f-c3ed-938c-f009440de563@gmail.com>
+Date: Thu, 2 Nov 2017 16:50:54 +0800
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4gKzvd39WbnKjbs3Bn9+o1tt=vz90CYMFu0DF5PsfHUig@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,40 +30,100 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Xiao Guangrong <xiaoguangrong.eric@gmail.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: Kevin Wolf <kwolf@redhat.com>, Pankaj Gupta <pagupta@redhat.com>, Rik van Riel <riel@redhat.com>, Jan Kara <jack@suse.cz>, kvm-devel <kvm@vger.kernel.org>, Stefan Hajnoczi <stefanha@gmail.com>, Ross Zwisler <ross.zwisler@intel.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Nov 2, 2017 at 1:50 AM, Xiao Guangrong
-<xiaoguangrong.eric@gmail.com> wrote:
-[..]
->> Yes, the GUID will specifically identify this range as "Virtio Shared
->> Memory" (or whatever name survives after a bikeshed debate). The
->> libnvdimm core then needs to grow a new region type that mostly
->> behaves the same as a "pmem" region, but drivers/nvdimm/pmem.c grows a
->> new flush interface to perform the host communication. Device-dax
->> would be disallowed from attaching to this region type, or we could
->> grow a new device-dax type that does not allow the raw device to be
->> mapped, but allows a filesystem mounted on top to manage the flush
->> interface.
->
->
-> I am afraid it is not a good idea that a single SPA is used for multiple
-> purposes. For the region used as "pmem" is directly mapped to the VM so
-> that guest can freely access it without host's assistance, however, for
-> the region used as "host communication" is not mapped to VM, so that
-> it causes VM-exit and host gets the chance to do specific operations,
-> e.g, flush cache. So we'd better distinctly define these two regions to
-> avoid the unnecessary complexity in hypervisor.
 
-Good point, I was assuming that the mmio flush interface would be
-discovered separately from the NFIT-defined memory range. Perhaps via
-PCI in the guest? This piece of the proposal  needs a bit more
-thought...
+
+On 11/01/2017 11:20 PM, Dan Williams wrote:
+>> On 11/01/2017 12:25 PM, Dan Williams wrote:
+> [..]
+>>> It's not persistent memory if it requires a hypercall to make it
+>>> persistent. Unless memory writes can be made durable purely with cpu
+>>> instructions it's dangerous for it to be treated as a PMEM range.
+>>> Consider a guest that tried to map it with device-dax which has no
+>>> facility to route requests to a special flushing interface.
+>>>
+>>
+>> Can we separate the concept of flush interface from persistent memory?
+>> Say there are two APIs, one is used to indicate the memory type (i.e,
+>> /proc/iomem) and another one indicates the flush interface.
+>>
+>> So for existing nvdimm hardwares:
+>> 1: Persist-memory + CLFLUSH
+>> 2: Persiste-memory + flush-hint-table (I know Intel does not use it)
+>>
+>> and for the virtual nvdimm which backended on normal storage:
+>> Persist-memory + virtual flush interface
+> 
+> I see the flush interface as fundamental to identifying the media
+> properties. It's not byte-addressable persistent memory if the
+> application needs to call a sideband interface to manage writes. This
+> is why we have pushed for something like the MAP_SYNC interface to
+> make filesystem-dax actually behave in a way that applications can
+> safely treat it as persistent memory, and this is also the guarantee
+> that device-dax provides. Changing the flush interface makes it
+> distinct and unusable for applications that want to manage data
+> persistence in userspace.
+> 
+
+I was thinking that from the device's perspective, both of them are
+not persistent until a flush operation is issued (clflush or virtual
+flush-interface). But you are right, from the user/software's
+perspective, their fundamentals are different.
+
+So for the virtual nvdimm which is backended on normal storage, we
+should refuse MAP_SYNC and the only way to guarantee persistence
+is fsync/fdatasync.
+
+Actually, we can treat a SPA region which associates with specific
+flush interface as special GUID as your proposal, please see more
+in below comment...
+
+>>>>
+>>>>> In what way is this "more complicated"? It was trivial to add support
+>>>>> for the "volatile" NFIT range, this will not be any more complicated
+>>>>> than that.
+>>>>>
+>>>>
+>>>> Introducing memory type is easy indeed, however, a new flush interface
+>>>> definition is inevitable, i.e, we need a standard way to discover the
+>>>> MMIOs to communicate with host.
+>>>
+>>>
+>>> Right, the proposed way to do that for x86 platforms is a new SPA
+>>> Range GUID type. in the NFIT.
+>>>
+>>
+>> So this SPA is used for both persistent memory region and flush interface?
+>> Maybe i missed it in previous mails, could you please detail how to do
+>> it?
+> 
+> Yes, the GUID will specifically identify this range as "Virtio Shared
+> Memory" (or whatever name survives after a bikeshed debate). The
+> libnvdimm core then needs to grow a new region type that mostly
+> behaves the same as a "pmem" region, but drivers/nvdimm/pmem.c grows a
+> new flush interface to perform the host communication. Device-dax
+> would be disallowed from attaching to this region type, or we could
+> grow a new device-dax type that does not allow the raw device to be
+> mapped, but allows a filesystem mounted on top to manage the flush
+> interface.
+
+I am afraid it is not a good idea that a single SPA is used for multiple
+purposes. For the region used as "pmem" is directly mapped to the VM so
+that guest can freely access it without host's assistance, however, for
+the region used as "host communication" is not mapped to VM, so that
+it causes VM-exit and host gets the chance to do specific operations,
+e.g, flush cache. So we'd better distinctly define these two regions to
+avoid the unnecessary complexity in hypervisor.
+
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
