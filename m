@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C80C321C913A5
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:10 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 18/18] xfs: support for synchronous DAX faults
-Date: Wed,  1 Nov 2017 16:36:47 +0100
-Message-Id: <20171101153648.30166-19-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 302D92034A7D2
+ for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 17:31:00 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] test/btt-errors: add a case to test with errors in btt
+ metadata
+Date: Wed,  1 Nov 2017 18:32:39 -0600
+Message-Id: <20171102003239.32012-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,106 +21,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Christoph Hellwig <hch@lst.de>
+If the BTT metadata is unreadable due to a badblock, we should fail
+gracefully. Add a case to make sure that an error injected into the map
+causes an IO error when trying to read it.
 
-Return IOMAP_F_DIRTY from xfs_file_iomap_begin() when asked to prepare
-blocks for writing and the inode is pinned, and has dirty fields other
-than the timestamps.  In __xfs_filemap_fault() we then detect this case
-and call dax_finish_sync_fault() to make sure all metadata is committed,
-and to insert the page table entry.
-
-Note that this will also dirty corresponding radix tree entry which is
-what we want - fsync(2) will still provide data integrity guarantees for
-applications not using userspace flushing. And applications using
-userspace flushing can avoid calling fsync(2) and thus avoid the
-performance overhead.
-
-[JK: Added VM_SYNC flag handling]
-
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/xfs/xfs_file.c  | 15 ++++++++++++++-
- fs/xfs/xfs_iomap.c |  5 +++++
- 2 files changed, 19 insertions(+), 1 deletion(-)
+ test/btt-errors.sh | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 4496b45678de..4827e82d5d2c 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -44,6 +44,7 @@
- #include <linux/falloc.h>
- #include <linux/pagevec.h>
- #include <linux/backing-dev.h>
-+#include <linux/mman.h>
+diff --git a/test/btt-errors.sh b/test/btt-errors.sh
+index aec0b9d..d3a4694 100755
+--- a/test/btt-errors.sh
++++ b/test/btt-errors.sh
+@@ -142,6 +142,30 @@ dd if=/dev/zero of=$MNT/$FILE oflag=direct bs=4096 count=1
+ # read again and that should succeed
+ dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1
  
- static const struct vm_operations_struct xfs_file_vm_ops;
- 
-@@ -1040,7 +1041,11 @@ __xfs_filemap_fault(
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 	if (IS_DAX(inode)) {
--		ret = dax_iomap_fault(vmf, pe_size, NULL, &xfs_iomap_ops);
-+		pfn_t pfn;
 +
-+		ret = dax_iomap_fault(vmf, pe_size, &pfn, &xfs_iomap_ops);
-+		if (ret & VM_FAULT_NEEDDSYNC)
-+			ret = dax_finish_sync_fault(vmf, pe_size, pfn);
- 	} else {
- 		if (write_fault)
- 			ret = iomap_page_mkwrite(vmf, &xfs_iomap_ops);
-@@ -1110,6 +1115,13 @@ xfs_file_mmap(
- 	struct file	*filp,
- 	struct vm_area_struct *vma)
- {
-+	/*
-+	 * We don't support synchronous mappings for non-DAX files. At least
-+	 * until someone comes with a sensible use case.
-+	 */
-+	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
-+		return -EOPNOTSUPP;
++## ensure we get an EIO for errors in namespace metadata
 +
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
- 	if (IS_DAX(file_inode(filp)))
-@@ -1128,6 +1140,7 @@ const struct file_operations xfs_file_operations = {
- 	.compat_ioctl	= xfs_file_compat_ioctl,
- #endif
- 	.mmap		= xfs_file_mmap,
-+	.mmap_supported_flags = MAP_SYNC,
- 	.open		= xfs_file_open,
- 	.release	= xfs_file_release,
- 	.fsync		= xfs_file_fsync,
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index f179bdf1644d..b43be199fbdf 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -33,6 +33,7 @@
- #include "xfs_error.h"
- #include "xfs_trans.h"
- #include "xfs_trans_space.h"
-+#include "xfs_inode_item.h"
- #include "xfs_iomap.h"
- #include "xfs_trace.h"
- #include "xfs_icache.h"
-@@ -1086,6 +1087,10 @@ xfs_file_iomap_begin(
- 		trace_xfs_iomap_found(ip, offset, length, 0, &imap);
- 	}
- 
-+	if ((flags & IOMAP_WRITE) && xfs_ipincount(ip) &&
-+	    (ip->i_itemp->ili_fsync_fields & ~XFS_ILOG_TIMESTAMP))
-+		iomap->flags |= IOMAP_F_DIRTY;
++# reset everything to get a clean log
++$NDCTL disable-region -b "$BUS" all
++$NDCTL zero-labels -b "$BUS" all
++$NDCTL enable-region -b "$BUS" all
++dev="x"
++json=$($NDCTL create-namespace -b "$BUS" -t pmem -m sector)
++eval "$(echo "$json" | sed -e "$json2var")"
++[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
 +
- 	xfs_bmbt_to_iomap(ip, iomap, &imap);
- 
- 	if (shared)
++# insert error at an arbitrary offset in the map (sector 0)
++force_raw 1
++map=$(hexdump -s 96 -n 4 "/dev/$raw_bdev" | head -1 | cut -d' ' -f2-)
++map=$(tr -d ' ' <<< "0x${map#* }${map%% *}")
++bb_inj=$((map/512))
++$NDCTL inject-error --block="$bb_inj" --count=1 $dev
++force_raw 0
++
++# make sure reading the first block of the namespace fails
++: The following 'dd' is expected to hit an I/O Error
++dd if=/dev/$blockdev of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
++
+ # done, exit
+ $NDCTL disable-region -b "$BUS" all
+ $NDCTL zero-labels -b "$BUS" all
 -- 
-2.12.3
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
