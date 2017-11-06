@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C5E1F2203D614
- for <linux-nvdimm@lists.01.org>; Mon, 13 Nov 2017 08:44:16 -0800 (PST)
-Subject: [ndctl PATCH] libdaxctl: use the same uuid definition as libdaxctl
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 13 Nov 2017 08:40:08 -0800
-Message-ID: <151059120823.1173.7255627659909695931.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E8FEC202E5E52
+ for <linux-nvdimm@lists.01.org>; Mon,  6 Nov 2017 15:14:32 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 3/3] ndctl, inject-error: remove unreachable code
+Date: Mon,  6 Nov 2017 16:16:10 -0700
+Message-Id: <20171106231610.8271-3-vishal.l.verma@intel.com>
+In-Reply-To: <20171106231610.8271-1-vishal.l.verma@intel.com>
+References: <20171106231610.8271-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,42 +17,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Lukasz Plewa <lukasz.plewa@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-libdaxtl inadvertently included the uuid-devel version of the uuid.h
-header rather than the libuuid header. Fix this up to avoid type
-conflicts for applications that include both libdaxctl.h and libndctl.h.
+The iteration helper ndctl_namespace_bb_foreach ensures bb cannot be
+NULL in the loop, so an explicit check for it is not necessary. Remove
+it.
 
-Reported-by: Lukasz Plewa <lukasz.plewa@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- daxctl/libdaxctl.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ ndctl/inject-error.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 77f6a25d2e30..21bc376ce629 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -15,7 +15,12 @@
+diff --git a/ndctl/inject-error.c b/ndctl/inject-error.c
+index 4c45902..a05f813 100644
+--- a/ndctl/inject-error.c
++++ b/ndctl/inject-error.c
+@@ -250,9 +250,6 @@ static int injection_status(struct ndctl_namespace *ndns)
+ 	}
  
- #include <stdarg.h>
- #include <unistd.h>
--#include <uuid.h>
-+
-+#ifdef HAVE_LIBUUID
-+#include <uuid/uuid.h>
-+#else
-+typedef unsigned char uuid_t[16];
-+#endif
- 
- #ifdef __cplusplus
- extern "C" {
+ 	ndctl_namespace_bb_foreach(ndns, bb) {
+-		if (!bb)
+-			break;
+-
+ 		block = ndctl_bb_get_block(bb);
+ 		count = ndctl_bb_get_count(bb);
+ 		jbb = util_badblock_rec_to_json(block, count, ictx.flags);
+-- 
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
