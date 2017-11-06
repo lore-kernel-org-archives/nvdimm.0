@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C2AC021FCA28E
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:07 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 05/18] dax: Create local variable for VMA in
- dax_iomap_pte_fault()
-Date: Wed,  1 Nov 2017 16:36:34 +0100
-Message-Id: <20171101153648.30166-6-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id D8F42202E5E59
+ for <linux-nvdimm@lists.01.org>; Mon,  6 Nov 2017 15:14:32 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 2/3] libndctl: add missing error handling in
+ _wait_for_scrub_completion
+Date: Mon,  6 Nov 2017 16:16:09 -0700
+Message-Id: <20171106231610.8271-2-vishal.l.verma@intel.com>
+In-Reply-To: <20171106231610.8271-1-vishal.l.verma@intel.com>
+References: <20171106231610.8271-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,44 +23,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are already two users and more are coming.
+Static analysis complains that we could be passing a negative value to
+close(). The root of the problem is that we neglect to error-check the
+return from open(). Add that to correctly fix the problem. Also fix a
+whitespace error in close().
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/dax.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ ndctl/lib/libndctl.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 116eef8d6c69..c09465884bbe 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1108,7 +1108,8 @@ static int dax_fault_return(int error)
- static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 			       const struct iomap_ops *ops)
- {
--	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct inode *inode = mapping->host;
- 	unsigned long vaddr = vmf->address;
- 	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
-@@ -1196,7 +1197,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	case IOMAP_MAPPED:
- 		if (iomap.flags & IOMAP_F_NEW) {
- 			count_vm_event(PGMAJFAULT);
--			count_memcg_event_mm(vmf->vma->vm_mm, PGMAJFAULT);
-+			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
- 			major = VM_FAULT_MAJOR;
- 		}
- 		error = dax_insert_mapping(vmf, &iomap, pos, entry);
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index e78a32c..6737705 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -1114,6 +1114,12 @@ NDCTL_EXPORT int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus)
+ 	int fd = 0, rc;
+ 
+ 	fd = open(bus->scrub_path, O_RDONLY|O_CLOEXEC);
++	if (fd < 0) {
++		err(ctx, "failed to open %s: %s\n", bus->scrub_path,
++			strerror(errno));
++		return -errno;
++	}
++
+ 	fds.fd = fd;
+ 	fds.events =  POLLPRI | POLLIN;
+ 	do {
+@@ -1154,7 +1160,7 @@ NDCTL_EXPORT int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus)
+ 
+ 	dbg(ctx, "bus%d: scrub complete\n", ndctl_bus_get_id(bus));
+ 	if (fd)
+-		close (fd);
++		close(fd);
+ 	return rc < 0 ? -ENXIO : 0;
+ }
+ 
 -- 
-2.12.3
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
