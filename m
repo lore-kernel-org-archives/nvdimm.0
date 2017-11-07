@@ -1,20 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x232.google.com (mail-oi0-x232.google.com
- [IPv6:2607:f8b0:4003:c06::232])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4BAFD21B00DDF
- for <linux-nvdimm@lists.01.org>; Wed,  8 Nov 2017 08:53:02 -0800 (PST)
-Received: by mail-oi0-x232.google.com with SMTP id a132so2392142oih.11
- for <linux-nvdimm@lists.01.org>; Wed, 08 Nov 2017 08:57:03 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20171107224821.12196-1-vishal.l.verma@intel.com>
-References: <20171107224821.12196-1-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 8 Nov 2017 08:57:01 -0800
-Message-ID: <CAPcyv4gRGXq-Vr8LrQ4MN9=AixoGp_6z-SpN4-_mW2hyfkmEKg@mail.gmail.com>
-Subject: Re: [PATCH] nfit_test: stricter bounds checking for error injection
+ by ml01.01.org (Postfix) with ESMTPS id 5A4252034D834
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Nov 2017 14:46:39 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH] nfit_test: stricter bounds checking for error injection
  commands
+Date: Tue,  7 Nov 2017 15:48:21 -0700
+Message-Id: <20171107224821.12196-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,25 +16,49 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "Dokupil, Dariusz" <dariusz.dokupil@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Nov 7, 2017 at 2:48 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
-> Ensure that the in/out sizes passed in the nd_cmd_package are sane for
-> the fixed output size commands (i.e. inject error and clear injected
-> error).
->
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Ensure that the in/out sizes passed in the nd_cmd_package are sane for
+the fixed output size commands (i.e. inject error and clear injected
+error).
 
-Looks good, I'll also add a:
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ tools/testing/nvdimm/test/nfit.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Reported-by: Dariusz Dokupil <dariusz.dokupil@intel.com>
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 323a4bc..3a2655b 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -488,7 +488,7 @@ static int nfit_test_cmd_ars_error_inject(struct nfit_test *t,
+ {
+ 	int rc;
+ 
+-	if (buf_len < sizeof(*err_inj)) {
++	if (buf_len != sizeof(*err_inj)) {
+ 		rc = -EINVAL;
+ 		goto err;
+ 	}
+@@ -519,7 +519,7 @@ static int nfit_test_cmd_ars_inject_clear(struct nfit_test *t,
+ {
+ 	int rc;
+ 
+-	if (buf_len < sizeof(*err_clr)) {
++	if (buf_len != sizeof(*err_clr)) {
+ 		rc = -EINVAL;
+ 		goto err;
+ 	}
+-- 
+2.9.5
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
