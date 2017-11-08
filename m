@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CB0F521FCA296
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:07 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 11/18] dax: Allow tuning whether dax_insert_mapping_entry()
- dirties entry
-Date: Wed,  1 Nov 2017 16:36:40 +0100
-Message-Id: <20171101153648.30166-12-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 8368821C913DB
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Nov 2017 16:23:05 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Limitation in the badblocks routines
+Date: Wed, 8 Nov 2017 00:27:03 +0000
+Message-ID: <1510100688.6296.17.camel@intel.com>
+Content-Language: en-US
+Content-ID: <1ADDD7C5B5AC94418E14E6E779B130A1@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,97 +18,32 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: "neilb@suse.com" <neilb@suse.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently we dirty radix tree entry whenever dax_insert_mapping_entry()
-gets called for a write fault. With synchronous page faults we would
-like to insert clean radix tree entry and dirty it only once we call
-fdatasync() and update page tables to save some unnecessary cache
-flushing. Add 'dirty' argument to dax_insert_mapping_entry() for that.
-
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 5ddf15161390..efc210ff6665 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -526,13 +526,13 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- static void *dax_insert_mapping_entry(struct address_space *mapping,
- 				      struct vm_fault *vmf,
- 				      void *entry, sector_t sector,
--				      unsigned long flags)
-+				      unsigned long flags, bool dirty)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
- 	void *new_entry;
- 	pgoff_t index = vmf->pgoff;
- 
--	if (vmf->flags & FAULT_FLAG_WRITE)
-+	if (dirty)
- 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 
- 	if (dax_is_zero_entry(entry) && !(flags & RADIX_DAX_ZERO_PAGE)) {
-@@ -569,7 +569,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 		entry = new_entry;
- 	}
- 
--	if (vmf->flags & FAULT_FLAG_WRITE)
-+	if (dirty)
- 		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
- 
- 	spin_unlock_irq(&mapping->tree_lock);
-@@ -881,7 +881,7 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
- 	}
- 
- 	entry2 = dax_insert_mapping_entry(mapping, vmf, entry, 0,
--			RADIX_DAX_ZERO_PAGE);
-+			RADIX_DAX_ZERO_PAGE, false);
- 	if (IS_ERR(entry2)) {
- 		ret = VM_FAULT_SIGBUS;
- 		goto out;
-@@ -1182,7 +1182,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						 dax_iomap_sector(&iomap, pos),
--						 0);
-+						 0, write);
- 		if (IS_ERR(entry)) {
- 			error = PTR_ERR(entry);
- 			goto error_finish_iomap;
-@@ -1258,7 +1258,7 @@ static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
- 		goto fallback;
- 
- 	ret = dax_insert_mapping_entry(mapping, vmf, entry, 0,
--			RADIX_DAX_PMD | RADIX_DAX_ZERO_PAGE);
-+			RADIX_DAX_PMD | RADIX_DAX_ZERO_PAGE, false);
- 	if (IS_ERR(ret))
- 		goto fallback;
- 
-@@ -1379,7 +1379,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						dax_iomap_sector(&iomap, pos),
--						RADIX_DAX_PMD);
-+						RADIX_DAX_PMD, write);
- 		if (IS_ERR(entry))
- 			goto finish_iomap;
- 
--- 
-2.12.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SSB0aGluayBJJ3ZlIGZvdW5kIGEgbGltaXRhdGlvbiBpbiB0aGUgYmFkYmxvY2tzIGltcGxlbWVu
+dGF0aW9uDQooYmxvY2svYmFkYmxvY2tzLmMpLCB3aGljaCB3ZSBub3cgYWxzbyB1c2UgZm9yIG52
+ZGltbSBiYWRibG9ja3MuwqANCg0KQ29uc2lkZXIgdGhlIGZvbGxvd2luZyBvcGVyYXRpb25zOg0K
+DQpiYWRibG9ja3Nfc2V0KGJiLCAzMiwgMSk7DQpiYWRibG9ja3Nfc2V0KGJiLCAzNCwgMSk7DQpi
+YWRibG9ja3Nfc2V0KGJiLCAzNiwgMSk7DQoNCmJhZGJsb2Nrc19zaG93IHdpbGwgbm93IGNvcnJl
+Y3RseSByZXBvcnQ6DQozMiAxDQozNCAxDQozNiAxDQoNCk5vdyBpZiBJIGRvOg0KYmFkYmxvY2tz
+X3NldChiYiwgMzIsIDEyKTsNCg0KSWRlYWxseSwgdGhpcyBzaG91bGQgY29sbGFwc2UgYWxsIHJh
+bmdlcyBpbnRvIGEgc2luZ2xlICgzMiwgMTIpLi4gQnV0DQpsb29rcyBsaWtlIGJhZGJsb2Nrc19z
+ZXQgb25seSBtZXJnZXMgb25lIHNldCBvZiBhZGphY2VudCBtZXJnZWFibGUNCnJhbmdlcywgYW5k
+IHRoZW4gcmV0dXJucywgcmVzdWx0aW5nIGluOg0KDQozMiAzDQozNiAxDQoNCk5vdyBpZiBJIGFk
+ZCB0aGUgc2FtZSAoMzIsIDEyKSByYW5nZSBhZ2FpbiwgSSBnZXQ6DQoNCjMyIDUNCg0KYXMgb25l
+IG1vcmUgc2V0IGlzIG1lcmdlZC4gQW5kIGZpbmFsbHkgYWZ0ZXIgYWRkaW5nICgzMiwgMTIpIG9u
+ZSBmaW5hbA0KdGltZSwgSSBnZXQgdGhlIGV4cGVjdGVkDQoNCjMyIDEyLg0KDQpOZWlsIC0gZG8g
+eW91IHRoaW5rIGl0IHdpbGwgYmUgcmVsYXRpdmVseSBzdHJhaWdodGZvcndhcmQgdG8gZXh0ZW5k
+DQpiYWRibG9ja3Nfc2V0IHRvIGJlIGF3YXJlIG9mIG11bHRpLW92ZXJsYXAgcmFuZ2VzIGxpa2Ug
+YWJvdmU/IEkgaGF2ZW4ndA0KcmVhbGx5IGxvb2tlZCBhdCB0aGUgaW50ZXJuYWxzIG9mIGl0IChJ
+J2xsIHRha2UgYSBsb29rIHRvbW9ycm93KSwgYnV0IEkNCndhbnRlZCB0byBnZXQgdGhpcyBvdXQg
+aW4gdGhlIG1lYW50aW1lLg0KDQpUaGFua3MsDQoJLVZpc2hhbApfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
+bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1udmRpbW0K
