@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ECFD2220D4BF6
- for <linux-nvdimm@lists.01.org>; Thu, 23 Nov 2017 00:25:29 -0800 (PST)
-Date: Thu, 23 Nov 2017 00:29:46 -0800
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [dm-devel] [PATCH 2/2] dm-writecache
-Message-ID: <20171123082946.GB17859@infradead.org>
-References: <alpine.LRH.2.02.1711222135371.2330@file01.intranet.prod.int.rdu2.redhat.com>
+Received: from mail-oi0-x232.google.com (mail-oi0-x232.google.com
+ [IPv6:2607:f8b0:4003:c06::232])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 4BAFD21B00DDF
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Nov 2017 08:53:02 -0800 (PST)
+Received: by mail-oi0-x232.google.com with SMTP id a132so2392142oih.11
+ for <linux-nvdimm@lists.01.org>; Wed, 08 Nov 2017 08:57:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.02.1711222135371.2330@file01.intranet.prod.int.rdu2.redhat.com>
+In-Reply-To: <20171107224821.12196-1-vishal.l.verma@intel.com>
+References: <20171107224821.12196-1-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 8 Nov 2017 08:57:01 -0800
+Message-ID: <CAPcyv4gRGXq-Vr8LrQ4MN9=AixoGp_6z-SpN4-_mW2hyfkmEKg@mail.gmail.com>
+Subject: Re: [PATCH] nfit_test: stricter bounds checking for error injection
+ commands
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,25 +26,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mikulas Patocka <mpatocka@redhat.com>
-Cc: dm-devel@redhat.com, Mike Snitzer <msnitzer@redhat.com>, linux-nvdimm@lists.01.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "Dokupil, Dariusz" <dariusz.dokupil@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> +/*
-> + * The clflushopt instruction is very slow on Broadwell, so we use non-temporal
-> + * stores instead.
-> + */
-> +#ifdef CONFIG_X86_64
-> +#define NT_STORE(dest, src)	asm ("movnti %1, %0" : "=m"(dest) : "r"(src))
-> +#define FLUSH_RANGE(dax, ptr, size)  do { } while (0)
-> +#define COMMIT_FLUSHED()	wmb()
-> +#else
-> +#define NT_STORE(dest, src)	ACCESS_ONCE(dest) = (src)
-> +#define FLUSH_RANGE		dax_flush
-> +#define COMMIT_FLUSHED()	do { } while (0)
-> +#endif
+On Tue, Nov 7, 2017 at 2:48 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Ensure that the in/out sizes passed in the nd_cmd_package are sane for
+> the fixed output size commands (i.e. inject error and clear injected
+> error).
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Please go through the proper pmem APIs.
+Looks good, I'll also add a:
+
+Reported-by: Dariusz Dokupil <dariusz.dokupil@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
