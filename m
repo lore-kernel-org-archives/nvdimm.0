@@ -1,9 +1,9 @@
-From: hbezs84ujf-wOqDGcX0Ahw@public.gmane.org
-Subject: =?GB2312?B?tPq/qreixrE=?=
-Date: Mon, 6 Nov 2017 12:02:04 +0800
-Message-ID: <20171106035819.388DD203555E4@ml01.01.org>
+From: =?utf-8?B?6LSh5Y+g?= <zqunj-xPLh5evtt9rQT0dZR+AlfA@public.gmane.org>
+Subject: =?utf-8?B?5Zue5aSN77ya?=
+Date: Fri, 10 Nov 2017 06:26:00 +0800
+Message-ID: <2EA779ADEB2F91E987F7167D95ADA4E4@hginmu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -15,11 +15,11 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-xOO6w6O6ztK5q8u+16jStbT6v6q498Dg0NDStcuwxrGjrLXjyv3Txbvdo7sKyOfT0NDo0qq7ttOt
-wLS159PrztLBqs+1oaPVxc/IyfoxMzUzODI1NTk1NKOozqLQxc2susWjqQpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1udmRpbW0K
+5aaC5L2VIOabtOacieaViCDnmoQg5qGjIOahiCDnrqEg55CGLA0K6K+mIOaDheivtyDlhbMg5rOo
+IOmZhCDku7Yg5Y6LIOe8qSDljIUg5paH5Lu2DQoNCg0KDQrkv6HoqIDkuI3nvo7vvIznvo7oqIDk
+uI3kv6HjgIIgCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRw
+czovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
