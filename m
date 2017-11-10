@@ -2,15 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A71AB20356876
- for <linux-nvdimm@lists.01.org>; Sat, 11 Nov 2017 12:15:50 -0800 (PST)
-Subject: [PATCH v2 1/4] mm: fix device-dax pud write-faults triggered by
- get_user_pages()
+ by ml01.01.org (Postfix) with ESMTPS id 832372034D83F
+ for <linux-nvdimm@lists.01.org>; Fri, 10 Nov 2017 12:43:21 -0800 (PST)
+Subject: [ndctl PATCH] ndctl, test: improve dax gup test coverage
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 11 Nov 2017 12:11:39 -0800
-Message-ID: <151043109938.2842.14834662818213616199.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 10 Nov 2017 12:39:09 -0800
+Message-ID: <151034634989.27121.6767031057018403016.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,140 +20,95 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Dave Hansen <dave.hansen@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently only get_user_pages_fast() can safely handle the writable gup
-case due to its use of pud_access_permitted() to check whether the pud
-entry is writable. In the gup slow path pud_write() is used instead of
-pud_access_permitted() and to date it has been unimplemented, just calls
-BUG_ON().
+Add tests for read-only to read-write conversions of dax mappings and
+for the gup slow path where the initial fault is a write fault. The
+gup-slow-path write fault path has been broken for the pud case since it
+was introduced upstream.
 
-    kernel BUG at ./include/linux/hugetlb.h:244!
-    [..]
-    RIP: 0010:follow_devmap_pud+0x482/0x490
-    [..]
-    Call Trace:
-     follow_page_mask+0x28c/0x6e0
-     __get_user_pages+0xe4/0x6c0
-     get_user_pages_unlocked+0x130/0x1b0
-     get_user_pages_fast+0x89/0xb0
-     iov_iter_get_pages_alloc+0x114/0x4a0
-     nfs_direct_read_schedule_iovec+0xd2/0x350
-     ? nfs_start_io_direct+0x63/0x70
-     nfs_file_direct_read+0x1e0/0x250
-     nfs_file_read+0x90/0xc0
-
-For now this just implements a simple check for the _PAGE_RW bit similar
-to pmd_write. However, this implies that the gup-slow-path check is
-missing the extra checks that the gup-fast-path performs with
-pud_access_permitted. Later patches will align all checks to use the
-'access_permitted' helper if the architecture provides it. Note that the
-generic 'access_permitted' helper fallback is the simple _PAGE_RW check
-on architectures that do not define the 'access_permitted' helper(s).
-
-Fixes: a00cc7d9dd93 ("mm, x86: add support for PUD-sized transparent hugepages")
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: <stable@vger.kernel.org>
-Cc: <x86@kernel.org>
+Cc: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm64/include/asm/pgtable.h    |    1 +
- arch/sparc/include/asm/pgtable_64.h |    1 +
- arch/x86/include/asm/pgtable.h      |    6 ++++++
- include/asm-generic/pgtable.h       |    9 +++++++++
- include/linux/hugetlb.h             |    8 --------
- 5 files changed, 17 insertions(+), 8 deletions(-)
+ test/dax-pmd.c |   39 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
-index b46e54c2399b..9a943792a823 100644
---- a/arch/arm64/include/asm/pgtable.h
-+++ b/arch/arm64/include/asm/pgtable.h
-@@ -340,6 +340,7 @@ static inline int pmd_protnone(pmd_t pmd)
- #define pfn_pmd(pfn,prot)	(__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot)))
- #define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
+diff --git a/test/dax-pmd.c b/test/dax-pmd.c
+index 6276913a0fda..1a296aff32ea 100644
+--- a/test/dax-pmd.c
++++ b/test/dax-pmd.c
+@@ -27,8 +27,10 @@
+ #include <linux/fiemap.h>
  
-+#define __HAVE_ARCH_PUD_WRITE
- #define pud_write(pud)		pte_write(pud_pte(pud))
- #define pud_pfn(pud)		(((pud_val(pud) & PUD_MASK) & PHYS_MASK) >> PAGE_SHIFT)
+ #define NUM_EXTENTS 5
+-#define fail() fprintf(stderr, "%s: failed at: %d\n", __func__, __LINE__)
+-#define faili(i) fprintf(stderr, "%s: failed at: %d: %d\n", __func__, __LINE__, i)
++#define fail() fprintf(stderr, "%s: failed at: %d (%s)\n", \
++	__func__, __LINE__, strerror(errno))
++#define faili(i) fprintf(stderr, "%s: failed at: %d: %d (%s)\n", \
++	__func__, __LINE__, i, strerror(errno))
+ #define TEST_FILE "test_dax_data"
  
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index fd9d9bac7cfa..bcf54a9cf6c5 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -693,6 +693,7 @@ static inline unsigned long pmd_write(pmd_t pmd)
- 	return pte_write(pte);
- }
+ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t offset)
+@@ -39,7 +41,7 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
+ 	if (posix_memalign(&buf, 4096, 4096) != 0)
+ 		return -ENOMEM;
  
-+#define __HAVE_ARCH_PUD_WRITE
- #define pud_write(pud)	pte_write(__pte(pud_val(pud)))
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
-index f735c3016325..5c396724fd0d 100644
---- a/arch/x86/include/asm/pgtable.h
-+++ b/arch/x86/include/asm/pgtable.h
-@@ -1093,6 +1093,12 @@ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
- 	clear_bit(_PAGE_BIT_RW, (unsigned long *)pmdp);
- }
- 
-+#define __HAVE_ARCH_PUD_WRITE
-+static inline int pud_write(pud_t pud)
-+{
-+	return pud_flags(pud) & _PAGE_RW;
-+}
+-	for (i = 0; i < 3; i++) {
++	for (i = 0; i < 5; i++) {
+ 		void *addr = mmap(dax_addr, 2*align,
+ 				PROT_READ|PROT_WRITE, MAP_SHARED, dax_fd,
+ 				offset);
+@@ -62,11 +64,20 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
+ 		fprintf(stderr, "%s: test: %d\n", __func__, i);
+ 		rc = 0;
+ 		switch (i) {
+-		case 0: /* test O_DIRECT of unfaulted address */
++		case 0: /* test O_DIRECT read of unfaulted address */
+ 			if (write(fd2, addr, 4096) != 4096) {
+ 				faili(i);
+ 				rc = -ENXIO;
+ 			}
 +
- /*
-  * clone_pgd_range(pgd_t *dst, pgd_t *src, int count);
-  *
-diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
-index 757dc6ffc7ba..bd738624bd16 100644
---- a/include/asm-generic/pgtable.h
-+++ b/include/asm-generic/pgtable.h
-@@ -812,6 +812,15 @@ static inline int pmd_write(pmd_t pmd)
- 	return 0;
- }
- #endif /* __HAVE_ARCH_PMD_WRITE */
++			/*
++			 * test O_DIRECT write of pre-faulted read-only
++			 * address
++			 */
++			if (pread(fd2, addr, 4096, 0) != 4096) {
++				faili(i);
++				rc = -ENXIO;
++			}
+ 			break;
+ 		case 1: /* test O_DIRECT of pre-faulted address */
+ 			sprintf(addr, "odirect data");
+@@ -100,6 +111,26 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
+ 			} else
+ 				faili(i);
+ 			break;
++		case 3: /* convert ro mapping to rw */
++			rc = *(volatile int *) addr;
++			*(volatile int *) addr = rc;
++			rc = 0;
++			break;
++		case 4: /* test O_DIRECT write of unfaulted address */
++			sprintf(buf, "O_DIRECT write of unfaulted address\n");
++			if (pwrite(fd2, buf, 4096, 0) < 4096) {
++				faili(i);
++				rc = -ENXIO;
++				break;
++			}
 +
-+#ifndef __HAVE_ARCH_PUD_WRITE
-+static inline int pud_write(pud_t pud)
-+{
-+	BUG();
-+	return 0;
-+}
-+#endif /* __HAVE_ARCH_PUD_WRITE */
-+
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #if !defined(CONFIG_TRANSPARENT_HUGEPAGE) || \
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
-index fbf5b31d47ee..82a25880714a 100644
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -239,14 +239,6 @@ static inline int pgd_write(pgd_t pgd)
- }
- #endif
- 
--#ifndef pud_write
--static inline int pud_write(pud_t pud)
--{
--	BUG();
--	return 0;
--}
--#endif
--
- #define HUGETLB_ANON_FILE "anon_hugepage"
- 
- enum {
++			if (pread(fd2, addr, 4096, 0) < 4096) {
++				faili(i);
++				rc = -ENXIO;
++				break;
++			}
++			rc = 0;
++			break;
+ 		default:
+ 			faili(i);
+ 			rc = -ENXIO;
 
 _______________________________________________
 Linux-nvdimm mailing list
