@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4DB2621C913AC
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 07/18] dax: Inline dax_insert_mapping() into the callsite
-Date: Wed,  1 Nov 2017 16:36:36 +0100
-Message-Id: <20171101153648.30166-8-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id CBF9A21B00DC0
+ for <linux-nvdimm@lists.01.org>; Thu,  9 Nov 2017 23:27:04 -0800 (PST)
+Subject: [RFC PATCH] mm: fix device-dax pud write-faults triggered by
+ get_user_pages()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 09 Nov 2017 23:22:52 -0800
+Message-ID: <151029856297.1840.13140526760496306393.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,99 +17,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Dave Hansen <dave.hansen@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_insert_mapping() has only one callsite and we will need to further
-fine tune what it does for synchronous faults. Just inline it into the
-callsite so that we don't have to pass awkward bools around.
+Currently only get_user_pages_fast() can safely handle the writable gup
+case due to its use of pud_access_permitted() to check whether the pud
+entry is writable. In the gup slow path pud_write() is used instead of
+pud_access_permitted() and to date it has been unimplemented, just calls
+BUG_ON().
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+    kernel BUG at ./include/linux/hugetlb.h:244!
+    [..]
+    RIP: 0010:follow_devmap_pud+0x482/0x490
+    [..]
+    Call Trace:
+     follow_page_mask+0x28c/0x6e0
+     __get_user_pages+0xe4/0x6c0
+     get_user_pages_unlocked+0x130/0x1b0
+     get_user_pages_fast+0x89/0xb0
+     iov_iter_get_pages_alloc+0x114/0x4a0
+     nfs_direct_read_schedule_iovec+0xd2/0x350
+     ? nfs_start_io_direct+0x63/0x70
+     nfs_file_direct_read+0x1e0/0x250
+     nfs_file_read+0x90/0xc0
+
+Use pud_access_permitted() to implement pud_write(), a later cleanup can
+remove {pte,pmd,pud}_write and replace them with
+{pte,pmd,pud}_access_permitted() drectly so that we only have one set of
+helpers these kinds of checks. For now, implementing pud_write()
+simplifies -stable backports.
+
+Cc: <stable@vger.kernel.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Fixes: a00cc7d9dd93 ("mm, x86: add support for PUD-sized transparent hugepages")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 46 +++++++++++++++++++---------------------------
- 1 file changed, 19 insertions(+), 27 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5ea71381dba0..5b20c6456926 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -858,32 +858,6 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
- 	return rc;
+Sending this as RFC for opinion on whether this should just be a
+pud_flags() & _PAGE_RW check, like pmd_write, or pud_access_permitted()
+that also takes protection keys into account.
+
+ include/linux/hugetlb.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
+index fbf5b31d47ee..6a142b240ef7 100644
+--- a/include/linux/hugetlb.h
++++ b/include/linux/hugetlb.h
+@@ -242,8 +242,7 @@ static inline int pgd_write(pgd_t pgd)
+ #ifndef pud_write
+ static inline int pud_write(pud_t pud)
+ {
+-	BUG();
+-	return 0;
++	return pud_access_permitted(pud, WRITE);
  }
+ #endif
  
--static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
--			      loff_t pos, void *entry)
--{
--	const sector_t sector = dax_iomap_sector(iomap, pos);
--	struct vm_area_struct *vma = vmf->vma;
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	unsigned long vaddr = vmf->address;
--	void *ret;
--	int rc;
--	pfn_t pfn;
--
--	rc = dax_iomap_pfn(iomap, pos, PAGE_SIZE, &pfn);
--	if (rc < 0)
--		return rc;
--
--	ret = dax_insert_mapping_entry(mapping, vmf, entry, sector, 0);
--	if (IS_ERR(ret))
--		return PTR_ERR(ret);
--
--	trace_dax_insert_mapping(mapping->host, vmf, ret);
--	if (vmf->flags & FAULT_FLAG_WRITE)
--		return vm_insert_mixed_mkwrite(vma, vaddr, pfn);
--	else
--		return vm_insert_mixed(vma, vaddr, pfn);
--}
--
- /*
-  * The user has performed a load from a hole in the file.  Allocating a new
-  * page in the file would cause excessive storage usage for workloads with
-@@ -1119,6 +1093,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	int vmf_ret = 0;
- 	void *entry;
-+	pfn_t pfn;
- 
- 	trace_dax_pte_fault(inode, vmf, vmf_ret);
- 	/*
-@@ -1201,7 +1176,24 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
- 			major = VM_FAULT_MAJOR;
- 		}
--		error = dax_insert_mapping(vmf, &iomap, pos, entry);
-+		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
-+		if (error < 0)
-+			goto error_finish_iomap;
-+
-+		entry = dax_insert_mapping_entry(mapping, vmf, entry,
-+						 dax_iomap_sector(&iomap, pos),
-+						 0);
-+		if (IS_ERR(entry)) {
-+			error = PTR_ERR(entry);
-+			goto error_finish_iomap;
-+		}
-+
-+		trace_dax_insert_mapping(inode, vmf, entry);
-+		if (write)
-+			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
-+		else
-+			error = vm_insert_mixed(vma, vaddr, pfn);
-+
- 		/* -EBUSY is fine, somebody else faulted on the same PTE */
- 		if (error == -EBUSY)
- 			error = 0;
--- 
-2.12.3
 
 _______________________________________________
 Linux-nvdimm mailing list
