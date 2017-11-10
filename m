@@ -1,71 +1,59 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 38EC120356876
- for <linux-nvdimm@lists.01.org>; Sat, 11 Nov 2017 12:16:06 -0800 (PST)
-Subject: [PATCH v2 4/4] mm: replace pte_write with pte_access_permitted in
- fault + gup paths
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 11 Nov 2017 12:11:56 -0800
-Message-ID: <151043111604.2842.8051684481794973100.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Fri, 10 Nov 2017 10:04:53 +0100
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 12/15] mm, dax: enable filesystems to trigger page-idle
+	callbacks
+Message-ID: <20171110090453.GC4895@lst.de>
+References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com> <150949216078.24061.1875240167277688258.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Dave Hansen <dave.hansen@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <150949216078.24061.1875240167277688258.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, Michal Hocko <mhocko@suse.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhlICdhY2Nlc3NfcGVybWl0dGVkJyBoZWxwZXIgaXMgdXNlZCBpbiB0aGUgZ3VwLWZhc3QgcGF0
-aCBhbmQgZ29lcwpiZXlvbmQgdGhlIHNpbXBsZSBfUEFHRV9SVyBjaGVjayB0byBhbHNvOgoKKiB2
-YWxpZGF0ZSB0aGF0IHRoZSBtYXBwaW5nIGlzIHdyaXRhYmxlIGZyb20gYSBwcm90ZWN0aW9uIGtl
-eXMKICBzdGFuZHBvaW50CgoqIHZhbGlkYXRlIHRoYXQgdGhlIHB0ZSBoYXMgX1BBR0VfVVNFUiBz
-ZXQgc2luY2UgYWxsIGZhdWx0IHBhdGhzIHdoZXJlCiAgcHRlX3dyaXRlIGlzIG11c3QgYmUgcmVm
-ZXJlbmNpbmcgdXNlci1tZW1vcnkuCgpDYzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGludGVs
-LmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVs
-LmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1v
-ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIG1tL2d1
-cC5jICAgIHwgICAgMiArLQogbW0vaG1tLmMgICAgfCAgICA0ICsrLS0KIG1tL21lbW9yeS5jIHwg
-ICAgNCArKy0tCiAzIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMo
-LSkKCmRpZmYgLS1naXQgYS9tbS9ndXAuYyBiL21tL2d1cC5jCmluZGV4IGIyYjRkNDI2Mzc2OC4u
-YmI2NTQyYzQ3YjA4IDEwMDY0NAotLS0gYS9tbS9ndXAuYworKysgYi9tbS9ndXAuYwpAQCAtNjYs
-NyArNjYsNyBAQCBzdGF0aWMgaW50IGZvbGxvd19wZm5fcHRlKHN0cnVjdCB2bV9hcmVhX3N0cnVj
-dCAqdm1hLCB1bnNpZ25lZCBsb25nIGFkZHJlc3MsCiAgKi8KIHN0YXRpYyBpbmxpbmUgYm9vbCBj
-YW5fZm9sbG93X3dyaXRlX3B0ZShwdGVfdCBwdGUsIHVuc2lnbmVkIGludCBmbGFncykKIHsKLQly
-ZXR1cm4gcHRlX3dyaXRlKHB0ZSkgfHwKKwlyZXR1cm4gcHRlX2FjY2Vzc19wZXJtaXR0ZWQocHRl
-LCBXUklURSkgfHwKIAkJKChmbGFncyAmIEZPTExfRk9SQ0UpICYmIChmbGFncyAmIEZPTExfQ09X
-KSAmJiBwdGVfZGlydHkocHRlKSk7CiB9CiAKZGlmZiAtLWdpdCBhL21tL2htbS5jIGIvbW0vaG1t
-LmMKaW5kZXggY2JkZDQ3YmY2YTQ4Li4zZDJlNDlmZDg1MWEgMTAwNjQ0Ci0tLSBhL21tL2htbS5j
-CisrKyBiL21tL2htbS5jCkBAIC00NTYsMTEgKzQ1NiwxMSBAQCBzdGF0aWMgaW50IGhtbV92bWFf
-d2Fsa19wbWQocG1kX3QgKnBtZHAsCiAJCQljb250aW51ZTsKIAkJfQogCi0JCWlmICh3cml0ZV9m
-YXVsdCAmJiAhcHRlX3dyaXRlKHB0ZSkpCisJCWlmICghcHRlX2FjY2Vzc19wZXJtaXR0ZWQocHRl
-LCB3cml0ZV9mYXVsdCkpCiAJCQlnb3RvIGZhdWx0OwogCiAJCXBmbnNbaV0gPSBobW1fcGZuX3Rf
-ZnJvbV9wZm4ocHRlX3BmbihwdGUpKSB8IGZsYWc7Ci0JCXBmbnNbaV0gfD0gcHRlX3dyaXRlKHB0
-ZSkgPyBITU1fUEZOX1dSSVRFIDogMDsKKwkJcGZuc1tpXSB8PSBwdGVfYWNjZXNzX3Blcm1pdHRl
-ZChwdGUsIFdSSVRFKSA/IEhNTV9QRk5fV1JJVEUgOiAwOwogCQljb250aW51ZTsKIAogZmF1bHQ6
-CmRpZmYgLS1naXQgYS9tbS9tZW1vcnkuYyBiL21tL21lbW9yeS5jCmluZGV4IDE1N2ZkNDMyMGJi
-My4uYThjYmMyYzNlM2M5IDEwMDY0NAotLS0gYS9tbS9tZW1vcnkuYworKysgYi9tbS9tZW1vcnku
-YwpAQCAtMzkyMiw3ICszOTIyLDcgQEAgc3RhdGljIGludCBoYW5kbGVfcHRlX2ZhdWx0KHN0cnVj
-dCB2bV9mYXVsdCAqdm1mKQogCWlmICh1bmxpa2VseSghcHRlX3NhbWUoKnZtZi0+cHRlLCBlbnRy
-eSkpKQogCQlnb3RvIHVubG9jazsKIAlpZiAodm1mLT5mbGFncyAmIEZBVUxUX0ZMQUdfV1JJVEUp
-IHsKLQkJaWYgKCFwdGVfd3JpdGUoZW50cnkpKQorCQlpZiAoIXB0ZV9hY2Nlc3NfcGVybWl0dGVk
-KGVudHJ5LCBXUklURSkpCiAJCQlyZXR1cm4gZG9fd3BfcGFnZSh2bWYpOwogCQllbnRyeSA9IHB0
-ZV9ta2RpcnR5KGVudHJ5KTsKIAl9CkBAIC00MzA4LDcgKzQzMDgsNyBAQCBpbnQgZm9sbG93X3Bo
-eXMoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsCiAJCWdvdG8gb3V0OwogCXB0ZSA9ICpwdGVw
-OwogCi0JaWYgKChmbGFncyAmIEZPTExfV1JJVEUpICYmICFwdGVfd3JpdGUocHRlKSkKKwlpZiAo
-IXB0ZV9hY2Nlc3NfcGVybWl0dGVkKHB0ZSwgZmxhZ3MgJiBGT0xMX1dSSVRFKSkKIAkJZ290byB1
-bmxvY2s7CiAKIAkqcHJvdCA9IHBncHJvdF92YWwocHRlX3BncHJvdChwdGUpKTsKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+> +DEFINE_MUTEX(devmap_lock);
+
+static?
+
+> +#if IS_ENABLED(CONFIG_FS_DAX)
+> +static void generic_dax_pagefree(struct page *page, void *data)
+> +{
+> +}
+> +
+> +struct dax_device *fs_dax_claim_bdev(struct block_device *bdev, void *owner)
+> +{
+> +	struct dax_device *dax_dev;
+> +	struct dev_pagemap *pgmap;
+> +
+> +	if (!blk_queue_dax(bdev->bd_queue))
+> +		return NULL;
+> +	dax_dev = fs_dax_get_by_host(bdev->bd_disk->disk_name);
+> +	if (!dax_dev->pgmap)
+> +		return dax_dev;
+> +	pgmap = dax_dev->pgmap;
+
+> +	mutex_lock(&devmap_lock);
+> +	if ((pgmap->data && pgmap->data != owner) || pgmap->page_free
+> +			|| pgmap->page_fault
+> +			|| pgmap->type != MEMORY_DEVICE_HOST) {
+> +		put_dax(dax_dev);
+> +		mutex_unlock(&devmap_lock);
+> +		return NULL;
+> +	}
+> +
+> +	pgmap->type = MEMORY_DEVICE_FS_DAX;
+> +	pgmap->page_free = generic_dax_pagefree;
+> +	pgmap->data = owner;
+> +	mutex_unlock(&devmap_lock);
+
+All this deep magic will need some explanation.  So far I don't understand
+it at all, but maybe the later patches will help..
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
