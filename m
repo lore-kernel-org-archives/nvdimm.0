@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 79F5821B00DC1
- for <linux-nvdimm@lists.01.org>; Tue, 21 Nov 2017 11:11:36 -0800 (PST)
-Subject: [PATCH v3 0/5] fix device-dax pud crash and fixup {pte, pmd,
- pud}_write
+ by ml01.01.org (Postfix) with ESMTPS id 6BEA121B00DE3
+ for <linux-nvdimm@lists.01.org>; Fri, 10 Nov 2017 16:48:53 -0800 (PST)
+Subject: [PATCH 3/4] mm: replace pmd_write with pmd_access_permitted in
+ fault + gup paths
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 21 Nov 2017 11:07:36 -0800
-Message-ID: <151129125625.37405.15953656230804875212.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 10 Nov 2017 16:44:41 -0800
+Message-ID: <151036108174.32713.13680564771630724088.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,72 +19,76 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: akpm@linux-foundation.org
-Cc: Dave Hansen <dave.hansen@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Chris Metcalf <cmetcalf@mellanox.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, x86@kernel.org, Heiko Carstens <heiko.carstens@de.ibm.com>, Russell King <linux@armlinux.org.uk>, Ralf Baechle <ralf@linux-mips.org>, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, stable@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2 [1]:
-* Switch from the "#define __HAVE_ARCH_PUD_WRITE" to "#define
-  pud_write". This incidentally fixes a powerpc compile error.
-  (Stephen)
-
-* Add a cleanup patch to align pmd_write to the pud_write definition
-  scheme.
-
----
-
-Andrew,
-
-Here is another attempt at the pud_write() fix [2], and some follow-on
-patches to use the '_access_permitted' helpers in fault and
-get_user_pages() paths where we are checking if the thread has access to
-write. I explicitly omit conversions for places where the kernel is
-checking the _PAGE_RW flag for kernel purposes, not for userspace
-access.
-
-Beyond fixing the crash, this series also fixes get_user_pages() and
-fault paths to honor protection keys in the same manner as
-get_user_pages_fast(). Only the crash fix is tagged for -stable as the
-protection key check is done just for consistency reasons since
-userspace can change protection keys at will.
-
-These have received a build success notification from the 0day robot.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-November/013254.html
-[2]: https://lists.01.org/pipermail/linux-nvdimm/2017-November/013237.html
-
----
-
-Dan Williams (5):
-      mm: fix device-dax pud write-faults triggered by get_user_pages()
-      mm: switch to 'define pmd_write' instead of __HAVE_ARCH_PMD_WRITE
-      mm: replace pud_write with pud_access_permitted in fault + gup paths
-      mm: replace pmd_write with pmd_access_permitted in fault + gup paths
-      mm: replace pte_write with pte_access_permitted in fault + gup paths
-
-
- arch/arm/include/asm/pgtable-3level.h        |    1 -
- arch/arm64/include/asm/pgtable.h             |    1 -
- arch/mips/include/asm/pgtable.h              |    2 +-
- arch/powerpc/include/asm/book3s/64/pgtable.h |    1 -
- arch/s390/include/asm/pgtable.h              |    8 +++++++-
- arch/sparc/include/asm/pgtable_64.h          |    2 +-
- arch/sparc/mm/gup.c                          |    4 ++--
- arch/tile/include/asm/pgtable.h              |    1 -
- arch/x86/include/asm/pgtable.h               |    8 +++++++-
- fs/dax.c                                     |    3 ++-
- include/asm-generic/pgtable.h                |   12 ++++++++++--
- include/linux/hugetlb.h                      |    8 --------
- mm/gup.c                                     |    2 +-
- mm/hmm.c                                     |    8 ++++----
- mm/huge_memory.c                             |    6 +++---
- mm/memory.c                                  |    8 ++++----
- 16 files changed, 42 insertions(+), 33 deletions(-)
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlICdhY2Nlc3NfcGVybWl0dGVkJyBoZWxwZXIgaXMgdXNlZCBpbiB0aGUgZ3VwLWZhc3QgcGF0
+aCBhbmQgZ29lcwpiZXlvbmQgdGhlIHNpbXBsZSBfUEFHRV9SVyBjaGVjayB0byBhbHNvOgoKKiB2
+YWxpZGF0ZSB0aGF0IHRoZSBtYXBwaW5nIGlzIHdyaXRhYmxlIGZyb20gYSBwcm90ZWN0aW9uIGtl
+eXMKICBzdGFuZHBvaW50CgoqIHZhbGlkYXRlIHRoYXQgdGhlIHB0ZSBoYXMgX1BBR0VfVVNFUiBz
+ZXQgc2luY2UgYWxsIGZhdWx0IHBhdGhzIHdoZXJlCiAgcG1kX3dyaXRlIGlzIG11c3QgYmUgcmVm
+ZXJlbmNpbmcgdXNlci1tZW1vcnkuCgpDYzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGludGVs
+LmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVs
+LmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1v
+ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIGFyY2gv
+c3BhcmMvbW0vZ3VwLmMgfCAgICAyICstCiBmcy9kYXguYyAgICAgICAgICAgIHwgICAgMyArKy0K
+IG1tL2htbS5jICAgICAgICAgICAgfCAgICA0ICsrLS0KIG1tL2h1Z2VfbWVtb3J5LmMgICAgfCAg
+ICA0ICsrLS0KIG1tL21lbW9yeS5jICAgICAgICAgfCAgICAyICstCiA1IGZpbGVzIGNoYW5nZWQs
+IDggaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJj
+L21tL2d1cC5jIGIvYXJjaC9zcGFyYy9tbS9ndXAuYwppbmRleCA1YWUyZDBhMDFhNzAuLjMzYzBm
+OGJiMGYzMyAxMDA2NDQKLS0tIGEvYXJjaC9zcGFyYy9tbS9ndXAuYworKysgYi9hcmNoL3NwYXJj
+L21tL2d1cC5jCkBAIC03NSw3ICs3NSw3IEBAIHN0YXRpYyBpbnQgZ3VwX2h1Z2VfcG1kKHBtZF90
+ICpwbWRwLCBwbWRfdCBwbWQsIHVuc2lnbmVkIGxvbmcgYWRkciwKIAlpZiAoIShwbWRfdmFsKHBt
+ZCkgJiBfUEFHRV9WQUxJRCkpCiAJCXJldHVybiAwOwogCi0JaWYgKHdyaXRlICYmICFwbWRfd3Jp
+dGUocG1kKSkKKwlpZiAoIXBtZF9hY2Nlc3NfcGVybWl0dGVkKHBtZCwgd3JpdGUpKQogCQlyZXR1
+cm4gMDsKIAogCXJlZnMgPSAwOwpkaWZmIC0tZ2l0IGEvZnMvZGF4LmMgYi9mcy9kYXguYwppbmRl
+eCBmMDAxZDhjNzJhMDYuLjNjYzQwZWViYmI5ZSAxMDA2NDQKLS0tIGEvZnMvZGF4LmMKKysrIGIv
+ZnMvZGF4LmMKQEAgLTYyMCw3ICs2MjAsOCBAQCBzdGF0aWMgdm9pZCBkYXhfbWFwcGluZ19lbnRy
+eV9ta2NsZWFuKHN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLAogCiAJCQlpZiAocGZuICE9
+IHBtZF9wZm4oKnBtZHApKQogCQkJCWdvdG8gdW5sb2NrX3BtZDsKLQkJCWlmICghcG1kX2RpcnR5
+KCpwbWRwKSAmJiAhcG1kX3dyaXRlKCpwbWRwKSkKKwkJCWlmICghcG1kX2RpcnR5KCpwbWRwKQor
+CQkJCQkmJiAhcG1kX2FjY2Vzc19wZXJtaXR0ZWQoKnBtZHAsIFdSSVRFKSkKIAkJCQlnb3RvIHVu
+bG9ja19wbWQ7CiAKIAkJCWZsdXNoX2NhY2hlX3BhZ2Uodm1hLCBhZGRyZXNzLCBwZm4pOwpkaWZm
+IC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCBhODhhODQ3YmNjYmEuLmNiZGQ0N2Jm
+NmE0OCAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAgLTM5MSwxMSArMzkx
+LDExIEBAIHN0YXRpYyBpbnQgaG1tX3ZtYV93YWxrX3BtZChwbWRfdCAqcG1kcCwKIAkJaWYgKHBt
+ZF9wcm90bm9uZShwbWQpKQogCQkJcmV0dXJuIGhtbV92bWFfd2Fsa19jbGVhcihzdGFydCwgZW5k
+LCB3YWxrKTsKIAotCQlpZiAod3JpdGVfZmF1bHQgJiYgIXBtZF93cml0ZShwbWQpKQorCQlpZiAo
+IXBtZF9hY2Nlc3NfcGVybWl0dGVkKHBtZCwgd3JpdGVfZmF1bHQpKQogCQkJcmV0dXJuIGhtbV92
+bWFfd2Fsa19jbGVhcihzdGFydCwgZW5kLCB3YWxrKTsKIAogCQlwZm4gPSBwbWRfcGZuKHBtZCkg
+KyBwdGVfaW5kZXgoYWRkcik7Ci0JCWZsYWcgfD0gcG1kX3dyaXRlKHBtZCkgPyBITU1fUEZOX1dS
+SVRFIDogMDsKKwkJZmxhZyB8PSBwbWRfYWNjZXNzX3Blcm1pdHRlZChwbWQsIFdSSVRFKSA/IEhN
+TV9QRk5fV1JJVEUgOiAwOwogCQlmb3IgKDsgYWRkciA8IGVuZDsgYWRkciArPSBQQUdFX1NJWkUs
+IGkrKywgcGZuKyspCiAJCQlwZm5zW2ldID0gaG1tX3Bmbl90X2Zyb21fcGZuKHBmbikgfCBmbGFn
+OwogCQlyZXR1cm4gMDsKZGlmZiAtLWdpdCBhL21tL2h1Z2VfbWVtb3J5LmMgYi9tbS9odWdlX21l
+bW9yeS5jCmluZGV4IDFlNGUxMTI3NTg1Ni4uNDExYmEzYmE0NWY4IDEwMDY0NAotLS0gYS9tbS9o
+dWdlX21lbW9yeS5jCisrKyBiL21tL2h1Z2VfbWVtb3J5LmMKQEAgLTg3NSw3ICs4NzUsNyBAQCBz
+dHJ1Y3QgcGFnZSAqZm9sbG93X2Rldm1hcF9wbWQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEs
+IHVuc2lnbmVkIGxvbmcgYWRkciwKIAkgKi8KIAlXQVJOX09OQ0UoZmxhZ3MgJiBGT0xMX0NPVywg
+Im1tOiBJbiBmb2xsb3dfZGV2bWFwX3BtZCB3aXRoIEZPTExfQ09XIHNldCIpOwogCi0JaWYgKGZs
+YWdzICYgRk9MTF9XUklURSAmJiAhcG1kX3dyaXRlKCpwbWQpKQorCWlmICghcG1kX2FjY2Vzc19w
+ZXJtaXR0ZWQoKnBtZCwgZmxhZ3MgJiBGT0xMX1dSSVRFKSkKIAkJcmV0dXJuIE5VTEw7CiAKIAlp
+ZiAocG1kX3ByZXNlbnQoKnBtZCkgJiYgcG1kX2Rldm1hcCgqcG1kKSkKQEAgLTEzNzksNyArMTM3
+OSw3IEBAIGludCBkb19odWdlX3BtZF93cF9wYWdlKHN0cnVjdCB2bV9mYXVsdCAqdm1mLCBwbWRf
+dCBvcmlnX3BtZCkKICAqLwogc3RhdGljIGlubGluZSBib29sIGNhbl9mb2xsb3dfd3JpdGVfcG1k
+KHBtZF90IHBtZCwgdW5zaWduZWQgaW50IGZsYWdzKQogewotCXJldHVybiBwbWRfd3JpdGUocG1k
+KSB8fAorCXJldHVybiBwbWRfYWNjZXNzX3Blcm1pdHRlZChwbWQsIFdSSVRFKSB8fAogCSAgICAg
+ICAoKGZsYWdzICYgRk9MTF9GT1JDRSkgJiYgKGZsYWdzICYgRk9MTF9DT1cpICYmIHBtZF9kaXJ0
+eShwbWQpKTsKIH0KIApkaWZmIC0tZ2l0IGEvbW0vbWVtb3J5LmMgYi9tbS9tZW1vcnkuYwppbmRl
+eCA2NGY4NmJlYWRjY2EuLjE1N2ZkNDMyMGJiMyAxMDA2NDQKLS0tIGEvbW0vbWVtb3J5LmMKKysr
+IGIvbW0vbWVtb3J5LmMKQEAgLTQwMjAsNyArNDAyMCw3IEBAIHN0YXRpYyBpbnQgX19oYW5kbGVf
+bW1fZmF1bHQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsIHVuc2lnbmVkIGxvbmcgYWRkcmVz
+cywKIAkJCWlmIChwbWRfcHJvdG5vbmUob3JpZ19wbWQpICYmIHZtYV9pc19hY2Nlc3NpYmxlKHZt
+YSkpCiAJCQkJcmV0dXJuIGRvX2h1Z2VfcG1kX251bWFfcGFnZSgmdm1mLCBvcmlnX3BtZCk7CiAK
+LQkJCWlmIChkaXJ0eSAmJiAhcG1kX3dyaXRlKG9yaWdfcG1kKSkgeworCQkJaWYgKGRpcnR5ICYm
+ICFwbWRfYWNjZXNzX3Blcm1pdHRlZChvcmlnX3BtZCwgV1JJVEUpKSB7CiAJCQkJcmV0ID0gd3Bf
+aHVnZV9wbWQoJnZtZiwgb3JpZ19wbWQpOwogCQkJCWlmICghKHJldCAmIFZNX0ZBVUxUX0ZBTExC
+QUNLKSkKIAkJCQkJcmV0dXJuIHJldDsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
+ZGltbQo=
