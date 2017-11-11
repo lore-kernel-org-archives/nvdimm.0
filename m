@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 14F8921B00DE3
- for <linux-nvdimm@lists.01.org>; Fri, 10 Nov 2017 16:48:48 -0800 (PST)
-Subject: [PATCH 2/4] mm: replace pud_write with pud_access_permitted in
- fault + gup paths
+ by ml01.01.org (Postfix) with ESMTPS id 52B4820359A87
+ for <linux-nvdimm@lists.01.org>; Sat, 11 Nov 2017 16:03:55 -0800 (PST)
+Subject: [ndctl PATCH] ndctl, {create,
+ destroy}-namespace: clarify --force option
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 10 Nov 2017 16:44:36 -0800
-Message-ID: <151036107621.32713.2965839916788844402.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 11 Nov 2017 15:59:44 -0800
+Message-ID: <151044478495.16188.2552320697320244821.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,68 +21,61 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Dave Hansen <dave.hansen@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, "David S. Miller" <davem@davemloft.net>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: Jeff Balk <jeff.balk@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The 'access_permitted' helper is used in the gup-fast path and goes
-beyond the simple _PAGE_RW check to also:
+When 'destroy-namespace' or 'create-namespace --reconfig' operations
+encounter a namespace that is mounted, the operation will always fail.
+The '--force' option only forces continuation when the namespace is
+active and not mounted. If the namespace is mounted then even --force
+will fail.
 
-* validate that the mapping is writable from a protection keys
-  standpoint
-
-* validate that the pte has _PAGE_USER set since all fault paths where
-  pud_write is must be referencing user-memory.
-
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Jeff Balk <jeff.balk@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/sparc/mm/gup.c |    2 +-
- mm/huge_memory.c    |    2 +-
- mm/memory.c         |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ Documentation/ndctl/ndctl-create-namespace.txt  |   11 +++++++----
+ Documentation/ndctl/ndctl-destroy-namespace.txt |    5 ++++-
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index 5335ba3c850e..5ae2d0a01a70 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -114,7 +114,7 @@ static int gup_huge_pud(pud_t *pudp, pud_t pud, unsigned long addr,
- 	if (!(pud_val(pud) & _PAGE_VALID))
- 		return 0;
+diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
+index 85d1f8db792f..4f1f9849207f 100644
+--- a/Documentation/ndctl/ndctl-create-namespace.txt
++++ b/Documentation/ndctl/ndctl-create-namespace.txt
+@@ -133,10 +133,13 @@ OPTIONS
  
--	if (write && !pud_write(pud))
-+	if (!pud_access_permitted(pud, write))
- 		return 0;
+ -f::
+ --force::
+-	Unless this option is specified a 'reconfigure
+-	namespace' operation will fail if the namespace is presently
+-	active.  Specifying --force causes the namespace to be disabled
+-	before reconfiguring.
++	Unless this option is specified the 'reconfigure namespace'
++	operation will fail if the namespace is presently active.
++	Specifying --force causes the namespace to be disabled before
++	the operation is attempted. However, if the namespace is
++	mounted then the 'disable namespace' and 'reconfigure
++	namespace' operations will be aborted.  The namespace must be
++	unmounted before being reconfigured.
  
- 	refs = 0;
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 1981ed697dab..1e4e11275856 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1022,7 +1022,7 @@ struct page *follow_devmap_pud(struct vm_area_struct *vma, unsigned long addr,
+ -v::
+ --verbose::
+diff --git a/Documentation/ndctl/ndctl-destroy-namespace.txt b/Documentation/ndctl/ndctl-destroy-namespace.txt
+index 8130b2156452..7078c0b21929 100644
+--- a/Documentation/ndctl/ndctl-destroy-namespace.txt
++++ b/Documentation/ndctl/ndctl-destroy-namespace.txt
+@@ -20,7 +20,10 @@ include::xable-namespace-options.txt[]
+ 	Unless this option is specified the 'destroy namespace'
+ 	operation will fail if the namespace is presently active.
+ 	Specifying --force causes the namespace to be disabled before
+-	the operation is attempted.
++	the operation is attempted. However, if the namespace is
++	mounted then the 'disable namespace' and 'destroy
++	namespace' operations will be aborted.  The namespace must be
++	unmounted before being destroyed.
  
- 	assert_spin_locked(pud_lockptr(mm, pud));
- 
--	if (flags & FOLL_WRITE && !pud_write(*pud))
-+	if (!pud_access_permitted(*pud, flags & FOLL_WRITE))
- 		return NULL;
- 
- 	if (pud_present(*pud) && pud_devmap(*pud))
-diff --git a/mm/memory.c b/mm/memory.c
-index a728bed16c20..64f86beadcca 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3987,7 +3987,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 
- 			/* NUMA case for anonymous PUDs would go here */
- 
--			if (dirty && !pud_write(orig_pud)) {
-+			if (dirty && !pud_access_permitted(orig_pud, WRITE)) {
- 				ret = wp_huge_pud(&vmf, orig_pud);
- 				if (!(ret & VM_FAULT_FALLBACK))
- 					return ret;
+ COPYRIGHT
+ ---------
 
 _______________________________________________
 Linux-nvdimm mailing list
