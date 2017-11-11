@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6E29421FCA291
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 13/18] dax, iomap: Add support for synchronous faults
-Date: Wed,  1 Nov 2017 16:36:42 +0100
-Message-Id: <20171101153648.30166-14-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 38EC120356876
+ for <linux-nvdimm@lists.01.org>; Sat, 11 Nov 2017 12:16:06 -0800 (PST)
+Subject: [PATCH v2 4/4] mm: replace pte_write with pte_access_permitted in
+ fault + gup paths
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 11 Nov 2017 12:11:56 -0800
+Message-ID: <151043111604.2842.8051684481794973100.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,169 +19,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: Dave Hansen <dave.hansen@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a flag to iomap interface informing the caller that inode needs
-fdstasync(2) for returned extent to become persistent and use it in DAX
-fault code so that we don't map such extents into page tables
-immediately. Instead we propagate the information that fdatasync(2) is
-necessary from dax_iomap_fault() with a new VM_FAULT_NEEDDSYNC flag.
-Filesystem fault handler is then responsible for calling fdatasync(2)
-and inserting pfn into page tables.
-
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/dax.c              | 39 +++++++++++++++++++++++++++++++++++++--
- include/linux/iomap.h |  5 +++++
- include/linux/mm.h    |  6 +++++-
- 3 files changed, 47 insertions(+), 3 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index efc210ff6665..bb9ff907738c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1091,6 +1091,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	unsigned flags = IOMAP_FAULT;
- 	int error, major = 0;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-+	bool sync;
- 	int vmf_ret = 0;
- 	void *entry;
- 	pfn_t pfn;
-@@ -1169,6 +1170,8 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 		goto finish_iomap;
- 	}
- 
-+	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
-+
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
- 		if (iomap.flags & IOMAP_F_NEW) {
-@@ -1182,12 +1185,27 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						 dax_iomap_sector(&iomap, pos),
--						 0, write);
-+						 0, write && !sync);
- 		if (IS_ERR(entry)) {
- 			error = PTR_ERR(entry);
- 			goto error_finish_iomap;
- 		}
- 
-+		/*
-+		 * If we are doing synchronous page fault and inode needs fsync,
-+		 * we can insert PTE into page tables only after that happens.
-+		 * Skip insertion for now and return the pfn so that caller can
-+		 * insert it after fsync is done.
-+		 */
-+		if (sync) {
-+			if (WARN_ON_ONCE(!pfnp)) {
-+				error = -EIO;
-+				goto error_finish_iomap;
-+			}
-+			*pfnp = pfn;
-+			vmf_ret = VM_FAULT_NEEDDSYNC | major;
-+			goto finish_iomap;
-+		}
- 		trace_dax_insert_mapping(inode, vmf, entry);
- 		if (write)
- 			error = vm_insert_mixed_mkwrite(vma, vaddr, pfn);
-@@ -1287,6 +1305,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-+	bool sync;
- 	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
- 	struct inode *inode = mapping->host;
- 	int result = VM_FAULT_FALLBACK;
-@@ -1371,6 +1390,8 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
- 		goto finish_iomap;
- 
-+	sync = (vma->vm_flags & VM_SYNC) && (iomap.flags & IOMAP_F_DIRTY);
-+
- 	switch (iomap.type) {
- 	case IOMAP_MAPPED:
- 		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
-@@ -1379,10 +1400,24 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 		entry = dax_insert_mapping_entry(mapping, vmf, entry,
- 						dax_iomap_sector(&iomap, pos),
--						RADIX_DAX_PMD, write);
-+						RADIX_DAX_PMD, write && !sync);
- 		if (IS_ERR(entry))
- 			goto finish_iomap;
- 
-+		/*
-+		 * If we are doing synchronous page fault and inode needs fsync,
-+		 * we can insert PMD into page tables only after that happens.
-+		 * Skip insertion for now and return the pfn so that caller can
-+		 * insert it after fsync is done.
-+		 */
-+		if (sync) {
-+			if (WARN_ON_ONCE(!pfnp))
-+				goto finish_iomap;
-+			*pfnp = pfn;
-+			result = VM_FAULT_NEEDDSYNC;
-+			goto finish_iomap;
-+		}
-+
- 		trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
- 		result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
- 					    write);
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index f64dc6ce5161..73e3b7085dbe 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -22,6 +22,11 @@ struct vm_fault;
-  * Flags for all iomap mappings:
-  */
- #define IOMAP_F_NEW	0x01	/* blocks have been newly allocated */
-+/*
-+ * IOMAP_F_DIRTY indicates the inode has uncommitted metadata needed to access
-+ * written data and requires fdatasync to commit them to persistent storage.
-+ */
-+#define IOMAP_F_DIRTY	0x02
- 
- /*
-  * Flags that only need to be reported for IOMAP_REPORT requests:
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 5411cb7442de..f57e55782d7d 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1182,6 +1182,9 @@ static inline void clear_page_pfmemalloc(struct page *page)
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
- #define VM_FAULT_DONE_COW   0x1000	/* ->fault has fully handled COW */
-+#define VM_FAULT_NEEDDSYNC  0x2000	/* ->fault did not modify page tables
-+					 * and needs fsync() to complete (for
-+					 * synchronous page faults in DAX) */
- 
- #define VM_FAULT_ERROR	(VM_FAULT_OOM | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | \
- 			 VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE | \
-@@ -1199,7 +1202,8 @@ static inline void clear_page_pfmemalloc(struct page *page)
- 	{ VM_FAULT_LOCKED,		"LOCKED" }, \
- 	{ VM_FAULT_RETRY,		"RETRY" }, \
- 	{ VM_FAULT_FALLBACK,		"FALLBACK" }, \
--	{ VM_FAULT_DONE_COW,		"DONE_COW" }
-+	{ VM_FAULT_DONE_COW,		"DONE_COW" }, \
-+	{ VM_FAULT_NEEDDSYNC,		"NEEDDSYNC" }
- 
- /* Encode hstate index for a hwpoisoned large page */
- #define VM_FAULT_SET_HINDEX(x) ((x) << 12)
--- 
-2.12.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlICdhY2Nlc3NfcGVybWl0dGVkJyBoZWxwZXIgaXMgdXNlZCBpbiB0aGUgZ3VwLWZhc3QgcGF0
+aCBhbmQgZ29lcwpiZXlvbmQgdGhlIHNpbXBsZSBfUEFHRV9SVyBjaGVjayB0byBhbHNvOgoKKiB2
+YWxpZGF0ZSB0aGF0IHRoZSBtYXBwaW5nIGlzIHdyaXRhYmxlIGZyb20gYSBwcm90ZWN0aW9uIGtl
+eXMKICBzdGFuZHBvaW50CgoqIHZhbGlkYXRlIHRoYXQgdGhlIHB0ZSBoYXMgX1BBR0VfVVNFUiBz
+ZXQgc2luY2UgYWxsIGZhdWx0IHBhdGhzIHdoZXJlCiAgcHRlX3dyaXRlIGlzIG11c3QgYmUgcmVm
+ZXJlbmNpbmcgdXNlci1tZW1vcnkuCgpDYzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGludGVs
+LmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVs
+LmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1v
+ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIG1tL2d1
+cC5jICAgIHwgICAgMiArLQogbW0vaG1tLmMgICAgfCAgICA0ICsrLS0KIG1tL21lbW9yeS5jIHwg
+ICAgNCArKy0tCiAzIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMo
+LSkKCmRpZmYgLS1naXQgYS9tbS9ndXAuYyBiL21tL2d1cC5jCmluZGV4IGIyYjRkNDI2Mzc2OC4u
+YmI2NTQyYzQ3YjA4IDEwMDY0NAotLS0gYS9tbS9ndXAuYworKysgYi9tbS9ndXAuYwpAQCAtNjYs
+NyArNjYsNyBAQCBzdGF0aWMgaW50IGZvbGxvd19wZm5fcHRlKHN0cnVjdCB2bV9hcmVhX3N0cnVj
+dCAqdm1hLCB1bnNpZ25lZCBsb25nIGFkZHJlc3MsCiAgKi8KIHN0YXRpYyBpbmxpbmUgYm9vbCBj
+YW5fZm9sbG93X3dyaXRlX3B0ZShwdGVfdCBwdGUsIHVuc2lnbmVkIGludCBmbGFncykKIHsKLQly
+ZXR1cm4gcHRlX3dyaXRlKHB0ZSkgfHwKKwlyZXR1cm4gcHRlX2FjY2Vzc19wZXJtaXR0ZWQocHRl
+LCBXUklURSkgfHwKIAkJKChmbGFncyAmIEZPTExfRk9SQ0UpICYmIChmbGFncyAmIEZPTExfQ09X
+KSAmJiBwdGVfZGlydHkocHRlKSk7CiB9CiAKZGlmZiAtLWdpdCBhL21tL2htbS5jIGIvbW0vaG1t
+LmMKaW5kZXggY2JkZDQ3YmY2YTQ4Li4zZDJlNDlmZDg1MWEgMTAwNjQ0Ci0tLSBhL21tL2htbS5j
+CisrKyBiL21tL2htbS5jCkBAIC00NTYsMTEgKzQ1NiwxMSBAQCBzdGF0aWMgaW50IGhtbV92bWFf
+d2Fsa19wbWQocG1kX3QgKnBtZHAsCiAJCQljb250aW51ZTsKIAkJfQogCi0JCWlmICh3cml0ZV9m
+YXVsdCAmJiAhcHRlX3dyaXRlKHB0ZSkpCisJCWlmICghcHRlX2FjY2Vzc19wZXJtaXR0ZWQocHRl
+LCB3cml0ZV9mYXVsdCkpCiAJCQlnb3RvIGZhdWx0OwogCiAJCXBmbnNbaV0gPSBobW1fcGZuX3Rf
+ZnJvbV9wZm4ocHRlX3BmbihwdGUpKSB8IGZsYWc7Ci0JCXBmbnNbaV0gfD0gcHRlX3dyaXRlKHB0
+ZSkgPyBITU1fUEZOX1dSSVRFIDogMDsKKwkJcGZuc1tpXSB8PSBwdGVfYWNjZXNzX3Blcm1pdHRl
+ZChwdGUsIFdSSVRFKSA/IEhNTV9QRk5fV1JJVEUgOiAwOwogCQljb250aW51ZTsKIAogZmF1bHQ6
+CmRpZmYgLS1naXQgYS9tbS9tZW1vcnkuYyBiL21tL21lbW9yeS5jCmluZGV4IDE1N2ZkNDMyMGJi
+My4uYThjYmMyYzNlM2M5IDEwMDY0NAotLS0gYS9tbS9tZW1vcnkuYworKysgYi9tbS9tZW1vcnku
+YwpAQCAtMzkyMiw3ICszOTIyLDcgQEAgc3RhdGljIGludCBoYW5kbGVfcHRlX2ZhdWx0KHN0cnVj
+dCB2bV9mYXVsdCAqdm1mKQogCWlmICh1bmxpa2VseSghcHRlX3NhbWUoKnZtZi0+cHRlLCBlbnRy
+eSkpKQogCQlnb3RvIHVubG9jazsKIAlpZiAodm1mLT5mbGFncyAmIEZBVUxUX0ZMQUdfV1JJVEUp
+IHsKLQkJaWYgKCFwdGVfd3JpdGUoZW50cnkpKQorCQlpZiAoIXB0ZV9hY2Nlc3NfcGVybWl0dGVk
+KGVudHJ5LCBXUklURSkpCiAJCQlyZXR1cm4gZG9fd3BfcGFnZSh2bWYpOwogCQllbnRyeSA9IHB0
+ZV9ta2RpcnR5KGVudHJ5KTsKIAl9CkBAIC00MzA4LDcgKzQzMDgsNyBAQCBpbnQgZm9sbG93X3Bo
+eXMoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsCiAJCWdvdG8gb3V0OwogCXB0ZSA9ICpwdGVw
+OwogCi0JaWYgKChmbGFncyAmIEZPTExfV1JJVEUpICYmICFwdGVfd3JpdGUocHRlKSkKKwlpZiAo
+IXB0ZV9hY2Nlc3NfcGVybWl0dGVkKHB0ZSwgZmxhZ3MgJiBGT0xMX1dSSVRFKSkKIAkJZ290byB1
+bmxvY2s7CiAKIAkqcHJvdCA9IHBncHJvdF92YWwocHRlX3BncHJvdChwdGUpKTsKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
