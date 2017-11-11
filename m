@@ -2,13 +2,16 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 302D92034A7D2
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 17:31:00 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] test/btt-errors: add a case to test with errors in btt
- metadata
-Date: Wed,  1 Nov 2017 18:32:39 -0600
-Message-Id: <20171102003239.32012-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 131EE20356876
+ for <linux-nvdimm@lists.01.org>; Sat, 11 Nov 2017 12:16:01 -0800 (PST)
+Subject: [PATCH v2 3/4] mm: replace pmd_write with pmd_access_permitted in
+ fault + gup paths
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 11 Nov 2017 12:11:50 -0800
+Message-ID: <151043111049.2842.15241454964150083466.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,63 +19,76 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Dave Hansen <dave.hansen@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If the BTT metadata is unreadable due to a badblock, we should fail
-gracefully. Add a case to make sure that an error injected into the map
-causes an IO error when trying to read it.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/btt-errors.sh | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
-
-diff --git a/test/btt-errors.sh b/test/btt-errors.sh
-index aec0b9d..d3a4694 100755
---- a/test/btt-errors.sh
-+++ b/test/btt-errors.sh
-@@ -142,6 +142,30 @@ dd if=/dev/zero of=$MNT/$FILE oflag=direct bs=4096 count=1
- # read again and that should succeed
- dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1
- 
-+
-+## ensure we get an EIO for errors in namespace metadata
-+
-+# reset everything to get a clean log
-+$NDCTL disable-region -b "$BUS" all
-+$NDCTL zero-labels -b "$BUS" all
-+$NDCTL enable-region -b "$BUS" all
-+dev="x"
-+json=$($NDCTL create-namespace -b "$BUS" -t pmem -m sector)
-+eval "$(echo "$json" | sed -e "$json2var")"
-+[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
-+
-+# insert error at an arbitrary offset in the map (sector 0)
-+force_raw 1
-+map=$(hexdump -s 96 -n 4 "/dev/$raw_bdev" | head -1 | cut -d' ' -f2-)
-+map=$(tr -d ' ' <<< "0x${map#* }${map%% *}")
-+bb_inj=$((map/512))
-+$NDCTL inject-error --block="$bb_inj" --count=1 $dev
-+force_raw 0
-+
-+# make sure reading the first block of the namespace fails
-+: The following 'dd' is expected to hit an I/O Error
-+dd if=/dev/$blockdev of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
-+
- # done, exit
- $NDCTL disable-region -b "$BUS" all
- $NDCTL zero-labels -b "$BUS" all
--- 
-2.9.5
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlICdhY2Nlc3NfcGVybWl0dGVkJyBoZWxwZXIgaXMgdXNlZCBpbiB0aGUgZ3VwLWZhc3QgcGF0
+aCBhbmQgZ29lcwpiZXlvbmQgdGhlIHNpbXBsZSBfUEFHRV9SVyBjaGVjayB0byBhbHNvOgoKKiB2
+YWxpZGF0ZSB0aGF0IHRoZSBtYXBwaW5nIGlzIHdyaXRhYmxlIGZyb20gYSBwcm90ZWN0aW9uIGtl
+eXMKICBzdGFuZHBvaW50CgoqIHZhbGlkYXRlIHRoYXQgdGhlIHB0ZSBoYXMgX1BBR0VfVVNFUiBz
+ZXQgc2luY2UgYWxsIGZhdWx0IHBhdGhzIHdoZXJlCiAgcG1kX3dyaXRlIGlzIG11c3QgYmUgcmVm
+ZXJlbmNpbmcgdXNlci1tZW1vcnkuCgpDYzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGludGVs
+LmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVs
+LmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1v
+ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIGFyY2gv
+c3BhcmMvbW0vZ3VwLmMgfCAgICAyICstCiBmcy9kYXguYyAgICAgICAgICAgIHwgICAgMyArKy0K
+IG1tL2htbS5jICAgICAgICAgICAgfCAgICA0ICsrLS0KIG1tL2h1Z2VfbWVtb3J5LmMgICAgfCAg
+ICA0ICsrLS0KIG1tL21lbW9yeS5jICAgICAgICAgfCAgICAyICstCiA1IGZpbGVzIGNoYW5nZWQs
+IDggaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJj
+L21tL2d1cC5jIGIvYXJjaC9zcGFyYy9tbS9ndXAuYwppbmRleCA1YWUyZDBhMDFhNzAuLjMzYzBm
+OGJiMGYzMyAxMDA2NDQKLS0tIGEvYXJjaC9zcGFyYy9tbS9ndXAuYworKysgYi9hcmNoL3NwYXJj
+L21tL2d1cC5jCkBAIC03NSw3ICs3NSw3IEBAIHN0YXRpYyBpbnQgZ3VwX2h1Z2VfcG1kKHBtZF90
+ICpwbWRwLCBwbWRfdCBwbWQsIHVuc2lnbmVkIGxvbmcgYWRkciwKIAlpZiAoIShwbWRfdmFsKHBt
+ZCkgJiBfUEFHRV9WQUxJRCkpCiAJCXJldHVybiAwOwogCi0JaWYgKHdyaXRlICYmICFwbWRfd3Jp
+dGUocG1kKSkKKwlpZiAoIXBtZF9hY2Nlc3NfcGVybWl0dGVkKHBtZCwgd3JpdGUpKQogCQlyZXR1
+cm4gMDsKIAogCXJlZnMgPSAwOwpkaWZmIC0tZ2l0IGEvZnMvZGF4LmMgYi9mcy9kYXguYwppbmRl
+eCBmMDAxZDhjNzJhMDYuLjNjYzQwZWViYmI5ZSAxMDA2NDQKLS0tIGEvZnMvZGF4LmMKKysrIGIv
+ZnMvZGF4LmMKQEAgLTYyMCw3ICs2MjAsOCBAQCBzdGF0aWMgdm9pZCBkYXhfbWFwcGluZ19lbnRy
+eV9ta2NsZWFuKHN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLAogCiAJCQlpZiAocGZuICE9
+IHBtZF9wZm4oKnBtZHApKQogCQkJCWdvdG8gdW5sb2NrX3BtZDsKLQkJCWlmICghcG1kX2RpcnR5
+KCpwbWRwKSAmJiAhcG1kX3dyaXRlKCpwbWRwKSkKKwkJCWlmICghcG1kX2RpcnR5KCpwbWRwKQor
+CQkJCQkmJiAhcG1kX2FjY2Vzc19wZXJtaXR0ZWQoKnBtZHAsIFdSSVRFKSkKIAkJCQlnb3RvIHVu
+bG9ja19wbWQ7CiAKIAkJCWZsdXNoX2NhY2hlX3BhZ2Uodm1hLCBhZGRyZXNzLCBwZm4pOwpkaWZm
+IC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCBhODhhODQ3YmNjYmEuLmNiZGQ0N2Jm
+NmE0OCAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAgLTM5MSwxMSArMzkx
+LDExIEBAIHN0YXRpYyBpbnQgaG1tX3ZtYV93YWxrX3BtZChwbWRfdCAqcG1kcCwKIAkJaWYgKHBt
+ZF9wcm90bm9uZShwbWQpKQogCQkJcmV0dXJuIGhtbV92bWFfd2Fsa19jbGVhcihzdGFydCwgZW5k
+LCB3YWxrKTsKIAotCQlpZiAod3JpdGVfZmF1bHQgJiYgIXBtZF93cml0ZShwbWQpKQorCQlpZiAo
+IXBtZF9hY2Nlc3NfcGVybWl0dGVkKHBtZCwgd3JpdGVfZmF1bHQpKQogCQkJcmV0dXJuIGhtbV92
+bWFfd2Fsa19jbGVhcihzdGFydCwgZW5kLCB3YWxrKTsKIAogCQlwZm4gPSBwbWRfcGZuKHBtZCkg
+KyBwdGVfaW5kZXgoYWRkcik7Ci0JCWZsYWcgfD0gcG1kX3dyaXRlKHBtZCkgPyBITU1fUEZOX1dS
+SVRFIDogMDsKKwkJZmxhZyB8PSBwbWRfYWNjZXNzX3Blcm1pdHRlZChwbWQsIFdSSVRFKSA/IEhN
+TV9QRk5fV1JJVEUgOiAwOwogCQlmb3IgKDsgYWRkciA8IGVuZDsgYWRkciArPSBQQUdFX1NJWkUs
+IGkrKywgcGZuKyspCiAJCQlwZm5zW2ldID0gaG1tX3Bmbl90X2Zyb21fcGZuKHBmbikgfCBmbGFn
+OwogCQlyZXR1cm4gMDsKZGlmZiAtLWdpdCBhL21tL2h1Z2VfbWVtb3J5LmMgYi9tbS9odWdlX21l
+bW9yeS5jCmluZGV4IDFlNGUxMTI3NTg1Ni4uNDExYmEzYmE0NWY4IDEwMDY0NAotLS0gYS9tbS9o
+dWdlX21lbW9yeS5jCisrKyBiL21tL2h1Z2VfbWVtb3J5LmMKQEAgLTg3NSw3ICs4NzUsNyBAQCBz
+dHJ1Y3QgcGFnZSAqZm9sbG93X2Rldm1hcF9wbWQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEs
+IHVuc2lnbmVkIGxvbmcgYWRkciwKIAkgKi8KIAlXQVJOX09OQ0UoZmxhZ3MgJiBGT0xMX0NPVywg
+Im1tOiBJbiBmb2xsb3dfZGV2bWFwX3BtZCB3aXRoIEZPTExfQ09XIHNldCIpOwogCi0JaWYgKGZs
+YWdzICYgRk9MTF9XUklURSAmJiAhcG1kX3dyaXRlKCpwbWQpKQorCWlmICghcG1kX2FjY2Vzc19w
+ZXJtaXR0ZWQoKnBtZCwgZmxhZ3MgJiBGT0xMX1dSSVRFKSkKIAkJcmV0dXJuIE5VTEw7CiAKIAlp
+ZiAocG1kX3ByZXNlbnQoKnBtZCkgJiYgcG1kX2Rldm1hcCgqcG1kKSkKQEAgLTEzNzksNyArMTM3
+OSw3IEBAIGludCBkb19odWdlX3BtZF93cF9wYWdlKHN0cnVjdCB2bV9mYXVsdCAqdm1mLCBwbWRf
+dCBvcmlnX3BtZCkKICAqLwogc3RhdGljIGlubGluZSBib29sIGNhbl9mb2xsb3dfd3JpdGVfcG1k
+KHBtZF90IHBtZCwgdW5zaWduZWQgaW50IGZsYWdzKQogewotCXJldHVybiBwbWRfd3JpdGUocG1k
+KSB8fAorCXJldHVybiBwbWRfYWNjZXNzX3Blcm1pdHRlZChwbWQsIFdSSVRFKSB8fAogCSAgICAg
+ICAoKGZsYWdzICYgRk9MTF9GT1JDRSkgJiYgKGZsYWdzICYgRk9MTF9DT1cpICYmIHBtZF9kaXJ0
+eShwbWQpKTsKIH0KIApkaWZmIC0tZ2l0IGEvbW0vbWVtb3J5LmMgYi9tbS9tZW1vcnkuYwppbmRl
+eCA2NGY4NmJlYWRjY2EuLjE1N2ZkNDMyMGJiMyAxMDA2NDQKLS0tIGEvbW0vbWVtb3J5LmMKKysr
+IGIvbW0vbWVtb3J5LmMKQEAgLTQwMjAsNyArNDAyMCw3IEBAIHN0YXRpYyBpbnQgX19oYW5kbGVf
+bW1fZmF1bHQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsIHVuc2lnbmVkIGxvbmcgYWRkcmVz
+cywKIAkJCWlmIChwbWRfcHJvdG5vbmUob3JpZ19wbWQpICYmIHZtYV9pc19hY2Nlc3NpYmxlKHZt
+YSkpCiAJCQkJcmV0dXJuIGRvX2h1Z2VfcG1kX251bWFfcGFnZSgmdm1mLCBvcmlnX3BtZCk7CiAK
+LQkJCWlmIChkaXJ0eSAmJiAhcG1kX3dyaXRlKG9yaWdfcG1kKSkgeworCQkJaWYgKGRpcnR5ICYm
+ICFwbWRfYWNjZXNzX3Blcm1pdHRlZChvcmlnX3BtZCwgV1JJVEUpKSB7CiAJCQkJcmV0ID0gd3Bf
+aHVnZV9wbWQoJnZtZiwgb3JpZ19wbWQpOwogCQkJCWlmICghKHJldCAmIFZNX0ZBVUxUX0ZBTExC
+QUNLKSkKIAkJCQkJcmV0dXJuIHJldDsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
+ZGltbQo=
