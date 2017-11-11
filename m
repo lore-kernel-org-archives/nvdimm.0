@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AEA0C220D4C03
- for <linux-nvdimm@lists.01.org>; Fri, 17 Nov 2017 12:24:24 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [fstests PATCH v4 1/4] common/rc: add _scratch_has_mount_option()
-Date: Fri, 17 Nov 2017 13:28:25 -0700
-Message-Id: <20171117202828.25472-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20171117202828.25472-1-ross.zwisler@linux.intel.com>
-References: <20171117202828.25472-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E374B21B00DF1
+ for <linux-nvdimm@lists.01.org>; Fri, 10 Nov 2017 16:48:58 -0800 (PST)
+Subject: [PATCH 4/4] mm: replace pte_write with pte_access_permitted in
+ fault + gup paths
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 10 Nov 2017 16:44:47 -0800
+Message-ID: <151036108744.32713.17165900700881849202.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,49 +19,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: fstests <fstests@vger.kernel.org>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Amir Goldstein <amir73il@gmail.com>, Dave Chinner <david@fromorbit.com>, linux-xfs <linux-xfs@vger.kernel.org>
+To: akpm@linux-foundation.org
+Cc: Dave Hansen <dave.hansen@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow tests to inquire about whether a mount option is set, rather than
-just disallowing it via _exclude_scratch_mount_option().
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Amir Goldstein <amir73il@gmail.com>
----
- common/rc | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/common/rc b/common/rc
-index 0cda9da..701b1ff 100644
---- a/common/rc
-+++ b/common/rc
-@@ -3105,6 +3105,16 @@ _exclude_scratch_mount_option()
- 	done
- }
- 
-+_scratch_has_mount_option()
-+{
-+	local mnt_opts=$(_normalize_mount_options)
-+
-+	if echo $mnt_opts | grep -qw "$1"; then
-+		return 0
-+	fi
-+	return 1
-+}
-+
- _require_atime()
- {
- 	_exclude_scratch_mount_option "noatime"
--- 
-2.9.5
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlICdhY2Nlc3NfcGVybWl0dGVkJyBoZWxwZXIgaXMgdXNlZCBpbiB0aGUgZ3VwLWZhc3QgcGF0
+aCBhbmQgZ29lcwpiZXlvbmQgdGhlIHNpbXBsZSBfUEFHRV9SVyBjaGVjayB0byBhbHNvOgoKKiB2
+YWxpZGF0ZSB0aGF0IHRoZSBtYXBwaW5nIGlzIHdyaXRhYmxlIGZyb20gYSBwcm90ZWN0aW9uIGtl
+eXMKICBzdGFuZHBvaW50CgoqIHZhbGlkYXRlIHRoYXQgdGhlIHB0ZSBoYXMgX1BBR0VfVVNFUiBz
+ZXQgc2luY2UgYWxsIGZhdWx0IHBhdGhzIHdoZXJlCiAgcHRlX3dyaXRlIGlzIG11c3QgYmUgcmVm
+ZXJlbmNpbmcgdXNlci1tZW1vcnkuCgpDYzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGludGVs
+LmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVs
+LmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1v
+ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIG1tL2d1
+cC5jICAgIHwgICAgMiArLQogbW0vaG1tLmMgICAgfCAgICA0ICsrLS0KIG1tL21lbW9yeS5jIHwg
+ICAgNCArKy0tCiAzIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMo
+LSkKCmRpZmYgLS1naXQgYS9tbS9ndXAuYyBiL21tL2d1cC5jCmluZGV4IGIyYjRkNDI2Mzc2OC4u
+YmI2NTQyYzQ3YjA4IDEwMDY0NAotLS0gYS9tbS9ndXAuYworKysgYi9tbS9ndXAuYwpAQCAtNjYs
+NyArNjYsNyBAQCBzdGF0aWMgaW50IGZvbGxvd19wZm5fcHRlKHN0cnVjdCB2bV9hcmVhX3N0cnVj
+dCAqdm1hLCB1bnNpZ25lZCBsb25nIGFkZHJlc3MsCiAgKi8KIHN0YXRpYyBpbmxpbmUgYm9vbCBj
+YW5fZm9sbG93X3dyaXRlX3B0ZShwdGVfdCBwdGUsIHVuc2lnbmVkIGludCBmbGFncykKIHsKLQly
+ZXR1cm4gcHRlX3dyaXRlKHB0ZSkgfHwKKwlyZXR1cm4gcHRlX2FjY2Vzc19wZXJtaXR0ZWQocHRl
+LCBXUklURSkgfHwKIAkJKChmbGFncyAmIEZPTExfRk9SQ0UpICYmIChmbGFncyAmIEZPTExfQ09X
+KSAmJiBwdGVfZGlydHkocHRlKSk7CiB9CiAKZGlmZiAtLWdpdCBhL21tL2htbS5jIGIvbW0vaG1t
+LmMKaW5kZXggY2JkZDQ3YmY2YTQ4Li4zZDJlNDlmZDg1MWEgMTAwNjQ0Ci0tLSBhL21tL2htbS5j
+CisrKyBiL21tL2htbS5jCkBAIC00NTYsMTEgKzQ1NiwxMSBAQCBzdGF0aWMgaW50IGhtbV92bWFf
+d2Fsa19wbWQocG1kX3QgKnBtZHAsCiAJCQljb250aW51ZTsKIAkJfQogCi0JCWlmICh3cml0ZV9m
+YXVsdCAmJiAhcHRlX3dyaXRlKHB0ZSkpCisJCWlmICghcHRlX2FjY2Vzc19wZXJtaXR0ZWQocHRl
+LCB3cml0ZV9mYXVsdCkpCiAJCQlnb3RvIGZhdWx0OwogCiAJCXBmbnNbaV0gPSBobW1fcGZuX3Rf
+ZnJvbV9wZm4ocHRlX3BmbihwdGUpKSB8IGZsYWc7Ci0JCXBmbnNbaV0gfD0gcHRlX3dyaXRlKHB0
+ZSkgPyBITU1fUEZOX1dSSVRFIDogMDsKKwkJcGZuc1tpXSB8PSBwdGVfYWNjZXNzX3Blcm1pdHRl
+ZChwdGUsIFdSSVRFKSA/IEhNTV9QRk5fV1JJVEUgOiAwOwogCQljb250aW51ZTsKIAogZmF1bHQ6
+CmRpZmYgLS1naXQgYS9tbS9tZW1vcnkuYyBiL21tL21lbW9yeS5jCmluZGV4IDE1N2ZkNDMyMGJi
+My4uYThjYmMyYzNlM2M5IDEwMDY0NAotLS0gYS9tbS9tZW1vcnkuYworKysgYi9tbS9tZW1vcnku
+YwpAQCAtMzkyMiw3ICszOTIyLDcgQEAgc3RhdGljIGludCBoYW5kbGVfcHRlX2ZhdWx0KHN0cnVj
+dCB2bV9mYXVsdCAqdm1mKQogCWlmICh1bmxpa2VseSghcHRlX3NhbWUoKnZtZi0+cHRlLCBlbnRy
+eSkpKQogCQlnb3RvIHVubG9jazsKIAlpZiAodm1mLT5mbGFncyAmIEZBVUxUX0ZMQUdfV1JJVEUp
+IHsKLQkJaWYgKCFwdGVfd3JpdGUoZW50cnkpKQorCQlpZiAoIXB0ZV9hY2Nlc3NfcGVybWl0dGVk
+KGVudHJ5LCBXUklURSkpCiAJCQlyZXR1cm4gZG9fd3BfcGFnZSh2bWYpOwogCQllbnRyeSA9IHB0
+ZV9ta2RpcnR5KGVudHJ5KTsKIAl9CkBAIC00MzA4LDcgKzQzMDgsNyBAQCBpbnQgZm9sbG93X3Bo
+eXMoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsCiAJCWdvdG8gb3V0OwogCXB0ZSA9ICpwdGVw
+OwogCi0JaWYgKChmbGFncyAmIEZPTExfV1JJVEUpICYmICFwdGVfd3JpdGUocHRlKSkKKwlpZiAo
+IXB0ZV9hY2Nlc3NfcGVybWl0dGVkKHB0ZSwgZmxhZ3MgJiBGT0xMX1dSSVRFKSkKIAkJZ290byB1
+bmxvY2s7CiAKIAkqcHJvdCA9IHBncHJvdF92YWwocHRlX3BncHJvdChwdGUpKTsKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
+aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
