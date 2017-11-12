@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 51C6621C913AD
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 06/18] dax: Create local variable for vmf->flags &
- FAULT_FLAG_WRITE test
-Date: Wed,  1 Nov 2017 16:36:35 +0100
-Message-Id: <20171101153648.30166-7-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id C52C1220757E9
+ for <linux-nvdimm@lists.01.org>; Sun, 12 Nov 2017 15:29:10 -0800 (PST)
+Subject: [PATCH 1/2] acpi, nfit: validate commands against the device type
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 12 Nov 2017 15:25:01 -0800
+Message-ID: <151052910143.33363.12653920068445460294.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,56 +16,90 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are already two users and more are coming.
+Fix occasions in acpi_nfit_ctl where we check the command type without
+validating whether we are parsing dimm vs bus level commands. Where the
+command numbers alias between dimms and bus we can make the wrong
+assumption just checking the raw command number. For example, with a
+simple nfit_test mock up of the clear-error command we trigger the
+following:
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+    BUG: unable to handle kernel NULL pointer dereference at 0000000000000094
+    IP: acpi_nfit_ctl+0x29b/0x930 [nfit]
+    [..]
+    Call Trace:
+     nfit_test_probe+0xb85/0xc09 [nfit_test]
+     platform_drv_probe+0x3b/0xa0
+     ? platform_drv_probe+0x3b/0xa0
+     driver_probe_device+0x29c/0x450
+     ? test_alloc+0x180/0x180 [nfit_test]
+     __driver_attach+0xe3/0xf0
+     ? driver_probe_device+0x450/0x450
+     bus_for_each_dev+0x73/0xc0
+     driver_attach+0x1e/0x20
+     bus_add_driver+0x173/0x270
+     driver_register+0x60/0xe0
+     __platform_driver_register+0x36/0x40
+     nfit_test_init+0x2a1/0x1000 [nfit_test]
+
+Fixes: 4b27db7e26cd ("acpi, nfit: add support for the _LSI, _LSR, and...")
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/acpi/nfit/core.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index c09465884bbe..5ea71381dba0 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1116,6 +1116,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	struct iomap iomap = { 0 };
- 	unsigned flags = IOMAP_FAULT;
- 	int error, major = 0;
-+	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	int vmf_ret = 0;
- 	void *entry;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 8043bfde7c63..ff2580e7611d 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -483,13 +483,14 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
  
-@@ -1130,7 +1131,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		goto out;
- 	}
+ 	/* call the BIOS, prefer the named methods over _DSM if available */
+-	if (cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
++	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
+ 		out_obj = acpi_label_info(handle);
+-	else if (cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
++	else if (nvdimm && cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
+ 		struct nd_cmd_get_config_data_hdr *p = buf;
  
--	if ((vmf->flags & FAULT_FLAG_WRITE) && !vmf->cow_page)
-+	if (write && !vmf->cow_page)
- 		flags |= IOMAP_WRITE;
+ 		out_obj = acpi_label_read(handle, p->in_offset, p->in_length);
+-	} else if (cmd == ND_CMD_SET_CONFIG_DATA && nfit_mem->has_lsw) {
++	} else if (nvdimm && cmd == ND_CMD_SET_CONFIG_DATA
++			&& nfit_mem->has_lsw) {
+ 		struct nd_cmd_set_config_hdr *p = buf;
  
- 	entry = grab_mapping_entry(mapping, vmf->pgoff, 0);
-@@ -1207,7 +1208,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		break;
- 	case IOMAP_UNWRITTEN:
- 	case IOMAP_HOLE:
--		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
-+		if (!write) {
- 			vmf_ret = dax_load_hole(mapping, entry, vmf);
- 			goto finish_iomap;
- 		}
--- 
-2.12.3
+ 		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
+@@ -497,7 +498,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	} else {
+ 		u8 revid;
+ 
+-		if (nfit_mem)
++		if (nvdimm)
+ 			revid = nfit_dsm_revid(nfit_mem->family, func);
+ 		else
+ 			revid = 1;
+@@ -565,8 +566,10 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	 * Set fw_status for all the commands with a known format to be
+ 	 * later interpreted by xlat_status().
+ 	 */
+-	if (i >= 1 && ((cmd >= ND_CMD_ARS_CAP && cmd <= ND_CMD_CLEAR_ERROR)
+-			|| (cmd >= ND_CMD_SMART && cmd <= ND_CMD_VENDOR)))
++	if (i >= 1 && ((!nvdimm && cmd >= ND_CMD_ARS_CAP
++					&& cmd <= ND_CMD_CLEAR_ERROR)
++				|| (nvdimm && cmd >= ND_CMD_SMART
++					&& cmd <= ND_CMD_VENDOR)))
+ 		fw_status = *(u32 *) out_obj->buffer.pointer;
+ 
+ 	if (offset + in_buf.buffer.length < buf_len) {
 
 _______________________________________________
 Linux-nvdimm mailing list
