@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D38E920349DA7
- for <linux-nvdimm@lists.01.org>; Mon, 13 Nov 2017 15:54:11 -0800 (PST)
-Subject: [PATCH v3 2/2] ndctl: make mmap start at the offset
+ by ml01.01.org (Postfix) with ESMTPS id 1403C2203D618
+ for <linux-nvdimm@lists.01.org>; Mon, 13 Nov 2017 10:15:39 -0800 (PST)
+Subject: [PATCH v2 2/2] ndctl: make mmap start at the offset
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 13 Nov 2017 16:58:17 -0700
-Message-ID: <151061749775.21517.11511124096761628152.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151061749216.21517.4323136981641383849.stgit@djiang5-desk3.ch.intel.com>
-References: <151061749216.21517.4323136981641383849.stgit@djiang5-desk3.ch.intel.com>
+Date: Mon, 13 Nov 2017 11:19:45 -0700
+Message-ID: <151059718498.29832.17666103439783017018.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151059717963.29832.3262165776997767425.stgit@djiang5-desk3.ch.intel.com>
+References: <151059717963.29832.3262165776997767425.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -35,14 +35,14 @@ Signed-off-by: Dave Jiang <dave.jiang@intel.com>
  1 file changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/daxctl/io.c b/daxctl/io.c
-index 6e07b52..551e831 100644
+index e739d0e..ce02f28 100644
 --- a/daxctl/io.c
 +++ b/daxctl/io.c
 @@ -46,6 +46,7 @@ struct io_dev {
  	const char *parm_path;
  	char *real_path;
  	uint64_t offset;
-+	uint64_t offset_diff;
++	int offset_diff;
  	enum io_direction direction;
  	bool is_dax;
  	bool is_char;
@@ -50,8 +50,8 @@ index 6e07b52..551e831 100644
  static int setup_device(struct io_dev *io_dev, size_t size)
  {
  	int flags, rc;
--	uint64_t align;
-+	uint64_t align, offset;
+-	unsigned long align;
++	unsigned long align, offset;
  
  	if (is_stdinout(io_dev))
  		return 0;
