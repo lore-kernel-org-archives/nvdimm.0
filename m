@@ -2,14 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C3CF220349DA3
- for <linux-nvdimm@lists.01.org>; Fri, 17 Nov 2017 12:24:26 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [fstests PATCH v4 4/4] generic: add test for DAX MAP_SYNC support
-Date: Fri, 17 Nov 2017 13:28:28 -0700
-Message-Id: <20171117202828.25472-5-ross.zwisler@linux.intel.com>
-In-Reply-To: <20171117202828.25472-1-ross.zwisler@linux.intel.com>
-References: <20171117202828.25472-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3D066220D4BFD
+ for <linux-nvdimm@lists.01.org>; Tue, 14 Nov 2017 12:00:36 -0800 (PST)
+Subject: [PATCH v2 0/4] introduce get_user_pages_longterm()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 14 Nov 2017 11:56:29 -0800
+Message-ID: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,147 +16,77 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: fstests <fstests@vger.kernel.org>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Amir Goldstein <amir73il@gmail.com>, Dave Chinner <david@fromorbit.com>, linux-xfs <linux-xfs@vger.kernel.org>
+To: akpm@linux-foundation.org
+Cc: Sean Hefty <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, Joonyoung Shim <jy0922.shim@samsung.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Seung-Woo Kim <sw0312.kim@samsung.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Inki Dae <inki.dae@samsung.com>, linux-mm@kvack.org, Mel Gorman <mgorman@suse.de>, Kyungmin Park <kyungmin.park@samsung.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Vlastimil Babka <vbabka@suse.cz>, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This test creates a file and writes to it via an mmap(), but never syncs
-via fsync/msync.  This process is tracked via dm-log-writes, then replayed.
+Changes since v1 [1]:
+* Cleanup local 'vmas' argument (Christoph)
+* Replace inline IS_ENABLED(CONFIG_FS_DAX) in C code with ifdef
+  versions of get_user_pages_longterm() for the FS_DAX on/off cases
+  (Christoph)
+* Add a new patch for the get_vaddr_frames() case, this impacts users
+  like V4L2, and the Exynos driver.
+* Collect Christoph's reviewed-by for the rdma change
 
-If MAP_SYNC is working the dm-log-writes replay will show the test file
-with 1 MiB of on-media block allocations.  This is because each allocating
-page fault included an implicit metadata sync.  If MAP_SYNC isn't working
-(which you can test by removing the "-S" flag to xfs_io mmap) the file
-will be smaller or missing entirely.
+[1]: https://lwn.net/Articles/738323/
 
-Note that dm-log-writes doesn't track the data that we write via the
-mmap(), so we can't do any data integrity checking.  We can only verify
-that the metadata writes for the page faults happened.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- tests/generic/468     | 83 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/468.out |  3 ++
- tests/generic/group   |  1 +
- 3 files changed, 87 insertions(+)
- create mode 100755 tests/generic/468
- create mode 100644 tests/generic/468.out
 
-diff --git a/tests/generic/468 b/tests/generic/468
-new file mode 100755
-index 0000000..fcbbf34
---- /dev/null
-+++ b/tests/generic/468
-@@ -0,0 +1,83 @@
-+#! /bin/bash
-+# FS QA Test No. 468
-+#
-+# Use dm-log-writes to verify that MAP_SYNC actually syncs metadata during
-+# page faults.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Intel Corporation.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	_log_writes_cleanup
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+. ./common/dmlogwrites
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs generic
-+_supported_os Linux
-+_require_log_writes
-+_require_scratch_dax
-+_require_xfs_io_command "log_writes"
-+
-+_log_writes_init
-+_log_writes_mkfs >> $seqres.full 2>&1
-+_log_writes_mount -o dax
-+
-+LEN=$((1024 * 1024)) # 1 MiB
-+
-+xfs_io -t -c "truncate $LEN" -c "mmap -S 0 $LEN" -c "mwrite 0 $LEN" \
-+	-c "log_writes -d $LOGWRITES_NAME -m preunmap" \
-+	-f $SCRATCH_MNT/test > /dev/null 2>&1
-+
-+# Unmount the scratch dir and tear down the log writes target
-+_log_writes_unmount
-+_log_writes_remove
-+_check_scratch_fs
-+
-+# destroy previous filesystem so we can be sure our rebuild works
-+_scratch_mkfs >> $seqres.full 2>&1
-+
-+# check pre-unmap state
-+_log_writes_replay_log preunmap
-+_scratch_mount
-+
-+# We should see $SCRATCH_MNT/test as having 1 MiB in block allocations
-+stat -c "%s" $SCRATCH_MNT/test
-+
-+_scratch_unmount
-+_check_scratch_fs
-+
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/generic/468.out b/tests/generic/468.out
-new file mode 100644
-index 0000000..5f897af
---- /dev/null
-+++ b/tests/generic/468.out
-@@ -0,0 +1,3 @@
-+QA output created by 468
-+1048576
-+Silence is golden
-diff --git a/tests/generic/group b/tests/generic/group
-index 9183950..c061842 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -470,3 +470,4 @@
- 465 auto rw quick aio
- 466 auto quick rw
- 467 auto quick exportfs
-+468 auto quick dax
--- 
-2.9.5
+Andrew,
 
+Here is a new get_user_pages api for cases where a driver intends to
+keep an elevated page count indefinitely. This is distinct from usages
+like iov_iter_get_pages where the elevated page counts are transient.
+The iov_iter_get_pages cases immediately turn around and submit the
+pages to a device driver which will put_page when the i/o operation
+completes (under kernel control).
+
+In the longterm case userspace is responsible for dropping the page
+reference at some undefined point in the future. This is untenable for
+filesystem-dax case where the filesystem is in control of the lifetime
+of the block / page and needs reasonable limits on how long it can wait
+for pages in a mapping to become idle.
+
+Fixing filesystems to actually wait for dax pages to be idle before
+blocks from a truncate/hole-punch operation are repurposed is saved for
+a later patch series.
+
+Also, allowing longterm registration of dax mappings is a future patch
+series that introduces a "map with lease" semantic where the kernel can
+revoke a lease and force userspace to drop its page references.
+
+I have also tagged these for -stable to purposely break cases that might
+assume that longterm memory registrations for filesystem-dax mappings
+were supported by the kernel. The behavior regression this policy change
+implies is one of the reasons we maintain the "dax enabled. Warning:
+EXPERIMENTAL, use at your own risk" notification when mounting a
+filesystem in dax mode.
+
+It is worth noting the device-dax interface does not suffer the same
+constraints since it does not support file space management operations
+like hole-punch.
+
+---
+
+Dan Williams (4):
+      mm: introduce get_user_pages_longterm
+      mm: fail get_vaddr_frames() for filesystem-dax mappings
+      [media] v4l2: disable filesystem-dax mapping support
+      IB/core: disable memory registration of fileystem-dax vmas
+
+
+ drivers/infiniband/core/umem.c            |    2 -
+ drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +-
+ include/linux/fs.h                        |   14 ++++++
+ include/linux/mm.h                        |   13 ++++++
+ mm/frame_vector.c                         |    4 ++
+ mm/gup.c                                  |   64 +++++++++++++++++++++++++++++
+ 6 files changed, 99 insertions(+), 3 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
