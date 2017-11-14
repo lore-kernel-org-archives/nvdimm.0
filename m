@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5A4252034D834
- for <linux-nvdimm@lists.01.org>; Tue,  7 Nov 2017 14:46:39 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH] nfit_test: stricter bounds checking for error injection
- commands
-Date: Tue,  7 Nov 2017 15:48:21 -0700
-Message-Id: <20171107224821.12196-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BCEA22035A7DA
+ for <linux-nvdimm@lists.01.org>; Mon, 13 Nov 2017 23:43:13 -0800 (PST)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 87540AC0113
+ for <linux-nvdimm@lists.01.org>; Tue, 14 Nov 2017 16:47:13 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [RFC PATCH v2 5/7] ndctl: nvdimmd: add nvdimmd config file
+Date: Tue, 14 Nov 2017 16:47:02 +0900
+Message-Id: <20171114074704.3446-6-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20171114074704.3446-1-qi.fuli@jp.fujitsu.com>
+References: <20171114074704.3446-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,40 +29,83 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Ensure that the in/out sizes passed in the nd_cmd_package are sane for
-the fixed output size commands (i.e. inject error and clear injected
-error).
+This patch adds nvdimmd.conf.
+Autotools to install the config file for nvdimmd service.
+The nvdimmd.conf includs the following parameters.
+   - LOGFILE: Users can choose either to write the notifications into syslog
+     (LOGFILE=syslog), or to send into a special file under /var/log/nvdimmd/
+     (such as LOGFILE=nvdimmd.log) by configuring LOGFILE parameter in the
+     config file.
+   - LOGFORMAT: Users can choose the format of notification to be structured
+     json(LOGFORMAT=json) or text(LOGFORMAT=text) by configuring LOGFORMAT
+     parameter in the config file.
+   - MONITORDIMM: The dimms to monitor are filtered via dimm's name by setting
+     MONITORDIMM parameter in the config file. When setting up multiple dimms,
+     the names of dimms should be separated by ",".(MONITORDIMM=nmem0,nmem1,nmem2)
+   - MONITORBUS: The dimms to monitor are filtered via its parent bus by setting
+     MONITORBUS parameter as well. When setting up multiple dimms, the names of
+     buses should be separated by "," (MONITORBUS=ndbus0,ndbus1)
+The nvdimmd.conf would be read when nvdimmd service starts. Users need to restart
+nvdimmd service after changing the value of paramaters in nvdimmd.conf.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- tools/testing/nvdimm/test/nfit.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ nvdimmd/Makefile.am  |  9 +++++++++
+ nvdimmd/nvdimmd.conf | 25 +++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+)
+ create mode 100644 nvdimmd/nvdimmd.conf
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 323a4bc..3a2655b 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -488,7 +488,7 @@ static int nfit_test_cmd_ars_error_inject(struct nfit_test *t,
- {
- 	int rc;
- 
--	if (buf_len < sizeof(*err_inj)) {
-+	if (buf_len != sizeof(*err_inj)) {
- 		rc = -EINVAL;
- 		goto err;
- 	}
-@@ -519,7 +519,7 @@ static int nfit_test_cmd_ars_inject_clear(struct nfit_test *t,
- {
- 	int rc;
- 
--	if (buf_len < sizeof(*err_clr)) {
-+	if (buf_len != sizeof(*err_clr)) {
- 		rc = -EINVAL;
- 		goto err;
- 	}
+diff --git a/nvdimmd/Makefile.am b/nvdimmd/Makefile.am
+index 9883edd..6716547 100644
+--- a/nvdimmd/Makefile.am
++++ b/nvdimmd/Makefile.am
+@@ -17,3 +17,12 @@ nvdimmd_LDADD = ../ndctl/lib/libndctl.la \
+ 		$(JSON_LIBS) \
+ 		$(UUID_LIBS) \
+ 		$(UDEV_LIBS)
++
++conffiles = nvdimmd.conf
++
++confdir = /etc/nvdimmd/
++
++conf_DATA = $(conffiles)
++
++EXTRA_DIST =\
++	$(conffiles)
+diff --git a/nvdimmd/nvdimmd.conf b/nvdimmd/nvdimmd.conf
+new file mode 100644
+index 0000000..4e6a12a
+--- /dev/null
++++ b/nvdimmd/nvdimmd.conf
+@@ -0,0 +1,25 @@
++# This is the main Nvdimm daemon configuration file. It contains the
++# configuration directives that give nvdimmd its instructions.
++# You can change settings by editing this file.
++# The changed item will work after restart nvdimmd service.
++# In this file, lines starting with a hash (#) are comments.
++# The following charecters are not allowed the value: : # ? / \ % " '
++
++# LOGFILE: Users can choose either to write the notifications into syslog
++# (LOGFILE=syslog), or to send into a special file under /var/log/nvdimmd/
++# (such as LOGFILE=nvdimmd.log) by setting LOGFILE.
++LOGFILE=nvdimmd.log
++
++# LOGFORMAT: Users can choose the format of notification to be json
++# (LOGFORMAT=json) or text(LOGFORMAT=text) by setting LOGFORMAT.
++LOGFORMAT = json
++
++# MONITORDIMM: The dimms to monitor are filtered via dimm's name by setting
++# MONITORDIMM. When setting up mutiple dimms, the names of dimms should be
++# separated by ",".(MONITORDIMM=nmem0,nmem1,nmem2)
++MONITORDIMM=all
++
++# MONITORBUS: The dimms to monitor are filtered via its parent bus by
++# setting as well. When setting up mutiple dimms, the names of buses
++# should be seprated by "," (MONITORBUS=ndbus0,ndbus1)
++MONITORBUS=all
 -- 
 2.9.5
+
 
 _______________________________________________
 Linux-nvdimm mailing list
