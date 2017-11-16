@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6BEA121B00DE3
- for <linux-nvdimm@lists.01.org>; Fri, 10 Nov 2017 16:48:53 -0800 (PST)
-Subject: [PATCH 3/4] mm: replace pmd_write with pmd_access_permitted in
- fault + gup paths
+ by ml01.01.org (Postfix) with ESMTPS id A67772034BBC0
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Nov 2017 18:21:49 -0800 (PST)
+Subject: [ndctl PATCH 4/4] ndctl,
+ create-namespace: document autolabel operation
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 10 Nov 2017 16:44:41 -0800
-Message-ID: <151036108174.32713.13680564771630724088.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 15 Nov 2017 18:17:44 -0800
+Message-ID: <151079866442.25456.15054015233088377884.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151079864874.25456.11655607153151633382.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151079864874.25456.11655607153151633382.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,76 +19,162 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Dave Hansen <dave.hansen@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: Kelly Couch <kelly.j.couch@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhlICdhY2Nlc3NfcGVybWl0dGVkJyBoZWxwZXIgaXMgdXNlZCBpbiB0aGUgZ3VwLWZhc3QgcGF0
-aCBhbmQgZ29lcwpiZXlvbmQgdGhlIHNpbXBsZSBfUEFHRV9SVyBjaGVjayB0byBhbHNvOgoKKiB2
-YWxpZGF0ZSB0aGF0IHRoZSBtYXBwaW5nIGlzIHdyaXRhYmxlIGZyb20gYSBwcm90ZWN0aW9uIGtl
-eXMKICBzdGFuZHBvaW50CgoqIHZhbGlkYXRlIHRoYXQgdGhlIHB0ZSBoYXMgX1BBR0VfVVNFUiBz
-ZXQgc2luY2UgYWxsIGZhdWx0IHBhdGhzIHdoZXJlCiAgcG1kX3dyaXRlIGlzIG11c3QgYmUgcmVm
-ZXJlbmNpbmcgdXNlci1tZW1vcnkuCgpDYzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGludGVs
-LmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVs
-LmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1v
-ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIGFyY2gv
-c3BhcmMvbW0vZ3VwLmMgfCAgICAyICstCiBmcy9kYXguYyAgICAgICAgICAgIHwgICAgMyArKy0K
-IG1tL2htbS5jICAgICAgICAgICAgfCAgICA0ICsrLS0KIG1tL2h1Z2VfbWVtb3J5LmMgICAgfCAg
-ICA0ICsrLS0KIG1tL21lbW9yeS5jICAgICAgICAgfCAgICAyICstCiA1IGZpbGVzIGNoYW5nZWQs
-IDggaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJj
-L21tL2d1cC5jIGIvYXJjaC9zcGFyYy9tbS9ndXAuYwppbmRleCA1YWUyZDBhMDFhNzAuLjMzYzBm
-OGJiMGYzMyAxMDA2NDQKLS0tIGEvYXJjaC9zcGFyYy9tbS9ndXAuYworKysgYi9hcmNoL3NwYXJj
-L21tL2d1cC5jCkBAIC03NSw3ICs3NSw3IEBAIHN0YXRpYyBpbnQgZ3VwX2h1Z2VfcG1kKHBtZF90
-ICpwbWRwLCBwbWRfdCBwbWQsIHVuc2lnbmVkIGxvbmcgYWRkciwKIAlpZiAoIShwbWRfdmFsKHBt
-ZCkgJiBfUEFHRV9WQUxJRCkpCiAJCXJldHVybiAwOwogCi0JaWYgKHdyaXRlICYmICFwbWRfd3Jp
-dGUocG1kKSkKKwlpZiAoIXBtZF9hY2Nlc3NfcGVybWl0dGVkKHBtZCwgd3JpdGUpKQogCQlyZXR1
-cm4gMDsKIAogCXJlZnMgPSAwOwpkaWZmIC0tZ2l0IGEvZnMvZGF4LmMgYi9mcy9kYXguYwppbmRl
-eCBmMDAxZDhjNzJhMDYuLjNjYzQwZWViYmI5ZSAxMDA2NDQKLS0tIGEvZnMvZGF4LmMKKysrIGIv
-ZnMvZGF4LmMKQEAgLTYyMCw3ICs2MjAsOCBAQCBzdGF0aWMgdm9pZCBkYXhfbWFwcGluZ19lbnRy
-eV9ta2NsZWFuKHN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLAogCiAJCQlpZiAocGZuICE9
-IHBtZF9wZm4oKnBtZHApKQogCQkJCWdvdG8gdW5sb2NrX3BtZDsKLQkJCWlmICghcG1kX2RpcnR5
-KCpwbWRwKSAmJiAhcG1kX3dyaXRlKCpwbWRwKSkKKwkJCWlmICghcG1kX2RpcnR5KCpwbWRwKQor
-CQkJCQkmJiAhcG1kX2FjY2Vzc19wZXJtaXR0ZWQoKnBtZHAsIFdSSVRFKSkKIAkJCQlnb3RvIHVu
-bG9ja19wbWQ7CiAKIAkJCWZsdXNoX2NhY2hlX3BhZ2Uodm1hLCBhZGRyZXNzLCBwZm4pOwpkaWZm
-IC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCBhODhhODQ3YmNjYmEuLmNiZGQ0N2Jm
-NmE0OCAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAgLTM5MSwxMSArMzkx
-LDExIEBAIHN0YXRpYyBpbnQgaG1tX3ZtYV93YWxrX3BtZChwbWRfdCAqcG1kcCwKIAkJaWYgKHBt
-ZF9wcm90bm9uZShwbWQpKQogCQkJcmV0dXJuIGhtbV92bWFfd2Fsa19jbGVhcihzdGFydCwgZW5k
-LCB3YWxrKTsKIAotCQlpZiAod3JpdGVfZmF1bHQgJiYgIXBtZF93cml0ZShwbWQpKQorCQlpZiAo
-IXBtZF9hY2Nlc3NfcGVybWl0dGVkKHBtZCwgd3JpdGVfZmF1bHQpKQogCQkJcmV0dXJuIGhtbV92
-bWFfd2Fsa19jbGVhcihzdGFydCwgZW5kLCB3YWxrKTsKIAogCQlwZm4gPSBwbWRfcGZuKHBtZCkg
-KyBwdGVfaW5kZXgoYWRkcik7Ci0JCWZsYWcgfD0gcG1kX3dyaXRlKHBtZCkgPyBITU1fUEZOX1dS
-SVRFIDogMDsKKwkJZmxhZyB8PSBwbWRfYWNjZXNzX3Blcm1pdHRlZChwbWQsIFdSSVRFKSA/IEhN
-TV9QRk5fV1JJVEUgOiAwOwogCQlmb3IgKDsgYWRkciA8IGVuZDsgYWRkciArPSBQQUdFX1NJWkUs
-IGkrKywgcGZuKyspCiAJCQlwZm5zW2ldID0gaG1tX3Bmbl90X2Zyb21fcGZuKHBmbikgfCBmbGFn
-OwogCQlyZXR1cm4gMDsKZGlmZiAtLWdpdCBhL21tL2h1Z2VfbWVtb3J5LmMgYi9tbS9odWdlX21l
-bW9yeS5jCmluZGV4IDFlNGUxMTI3NTg1Ni4uNDExYmEzYmE0NWY4IDEwMDY0NAotLS0gYS9tbS9o
-dWdlX21lbW9yeS5jCisrKyBiL21tL2h1Z2VfbWVtb3J5LmMKQEAgLTg3NSw3ICs4NzUsNyBAQCBz
-dHJ1Y3QgcGFnZSAqZm9sbG93X2Rldm1hcF9wbWQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEs
-IHVuc2lnbmVkIGxvbmcgYWRkciwKIAkgKi8KIAlXQVJOX09OQ0UoZmxhZ3MgJiBGT0xMX0NPVywg
-Im1tOiBJbiBmb2xsb3dfZGV2bWFwX3BtZCB3aXRoIEZPTExfQ09XIHNldCIpOwogCi0JaWYgKGZs
-YWdzICYgRk9MTF9XUklURSAmJiAhcG1kX3dyaXRlKCpwbWQpKQorCWlmICghcG1kX2FjY2Vzc19w
-ZXJtaXR0ZWQoKnBtZCwgZmxhZ3MgJiBGT0xMX1dSSVRFKSkKIAkJcmV0dXJuIE5VTEw7CiAKIAlp
-ZiAocG1kX3ByZXNlbnQoKnBtZCkgJiYgcG1kX2Rldm1hcCgqcG1kKSkKQEAgLTEzNzksNyArMTM3
-OSw3IEBAIGludCBkb19odWdlX3BtZF93cF9wYWdlKHN0cnVjdCB2bV9mYXVsdCAqdm1mLCBwbWRf
-dCBvcmlnX3BtZCkKICAqLwogc3RhdGljIGlubGluZSBib29sIGNhbl9mb2xsb3dfd3JpdGVfcG1k
-KHBtZF90IHBtZCwgdW5zaWduZWQgaW50IGZsYWdzKQogewotCXJldHVybiBwbWRfd3JpdGUocG1k
-KSB8fAorCXJldHVybiBwbWRfYWNjZXNzX3Blcm1pdHRlZChwbWQsIFdSSVRFKSB8fAogCSAgICAg
-ICAoKGZsYWdzICYgRk9MTF9GT1JDRSkgJiYgKGZsYWdzICYgRk9MTF9DT1cpICYmIHBtZF9kaXJ0
-eShwbWQpKTsKIH0KIApkaWZmIC0tZ2l0IGEvbW0vbWVtb3J5LmMgYi9tbS9tZW1vcnkuYwppbmRl
-eCA2NGY4NmJlYWRjY2EuLjE1N2ZkNDMyMGJiMyAxMDA2NDQKLS0tIGEvbW0vbWVtb3J5LmMKKysr
-IGIvbW0vbWVtb3J5LmMKQEAgLTQwMjAsNyArNDAyMCw3IEBAIHN0YXRpYyBpbnQgX19oYW5kbGVf
-bW1fZmF1bHQoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsIHVuc2lnbmVkIGxvbmcgYWRkcmVz
-cywKIAkJCWlmIChwbWRfcHJvdG5vbmUob3JpZ19wbWQpICYmIHZtYV9pc19hY2Nlc3NpYmxlKHZt
-YSkpCiAJCQkJcmV0dXJuIGRvX2h1Z2VfcG1kX251bWFfcGFnZSgmdm1mLCBvcmlnX3BtZCk7CiAK
-LQkJCWlmIChkaXJ0eSAmJiAhcG1kX3dyaXRlKG9yaWdfcG1kKSkgeworCQkJaWYgKGRpcnR5ICYm
-ICFwbWRfYWNjZXNzX3Blcm1pdHRlZChvcmlnX3BtZCwgV1JJVEUpKSB7CiAJCQkJcmV0ID0gd3Bf
-aHVnZV9wbWQoJnZtZiwgb3JpZ19wbWQpOwogCQkJCWlmICghKHJldCAmIFZNX0ZBVUxUX0ZBTExC
-QUNLKSkKIAkJCQkJcmV0dXJuIHJldDsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
-ZGltbQo=
+Write up how the autolabel mechanism operates, when it is used, and what
+to do when it fails.
+
+Reported-by: Kelly Couch <kelly.j.couch@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ Documentation/ndctl/ndctl-check-labels.txt     |    3 +-
+ Documentation/ndctl/ndctl-check-namespace.txt  |    3 +-
+ Documentation/ndctl/ndctl-create-namespace.txt |   47 +++++++++++++++++++++++-
+ Documentation/ndctl/ndctl-init-labels.txt      |    4 +-
+ Documentation/ndctl/ndctl-read-labels.txt      |    3 +-
+ Documentation/ndctl/ndctl-write-labels.txt     |    3 +-
+ Documentation/ndctl/ndctl-zero-labels.txt      |    3 +-
+ 7 files changed, 52 insertions(+), 14 deletions(-)
+
+diff --git a/Documentation/ndctl/ndctl-check-labels.txt b/Documentation/ndctl/ndctl-check-labels.txt
+index 210eb23caf66..a7c8a5f2dcbd 100644
+--- a/Documentation/ndctl/ndctl-check-labels.txt
++++ b/Documentation/ndctl/ndctl-check-labels.txt
+@@ -28,5 +28,4 @@ the extent permitted by law.
+ 
+ SEE ALSO
+ --------
+-http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf[NVDIMM Namespace
+-Specification]
++http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol]
+diff --git a/Documentation/ndctl/ndctl-check-namespace.txt b/Documentation/ndctl/ndctl-check-namespace.txt
+index 07fe15ac5485..49353b1b217f 100644
+--- a/Documentation/ndctl/ndctl-check-namespace.txt
++++ b/Documentation/ndctl/ndctl-check-namespace.txt
+@@ -67,5 +67,4 @@ SEE ALSO
+ --------
+ linkndctl:ndctl-disable-namespace[1],
+ linkndctl:ndctl-enable-namespace[1],
+-http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf[NVDIMM Namespace
+-Specification]
++http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol]
+diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
+index 0910edd753ab..c8b1c99c5229 100644
+--- a/Documentation/ndctl/ndctl-create-namespace.txt
++++ b/Documentation/ndctl/ndctl-create-namespace.txt
+@@ -159,6 +159,48 @@ OPTIONS
+ 	namespace' operations will be aborted.  The namespace must be
+ 	unmounted before being reconfigured.
+ 
++-L::
++--autolabel::
++--no-autolabel::
++	Legacy NVDIMM devices do not support namespace labels. In that
++	case the kernel creates region-sized namespaces that can not
++	be deleted.  Their mode can be changed, but they can not be
++	resized smaller than their parent region. This is termed a
++	"label-less namespace". In contrast, NVDIMMs and hypervisors
++	that support the ACPI 6.2 label area definition (ACPI 6.2
++	Section 6.5.10 NVDIMM Label Methods) support "labelled
++	namespace" operation.
++
++	There are two cases where the kernel will default to
++	label-less operation:
++
++	* NVDIMM does not support labels
++
++	* The NVDIMM supports labels, but the Label Index Block (see
++	  UEFI 2.7) is not present and there is no capacity aliasing
++	  between 'blk' and 'pmem' regions.
++
++	In the latter case the configuration can be upgraded to
++	labelled operation by writing an index block on all DIMMs in a
++	region and re-enabling that region. The 'autolabel' capability
++	of 'ndctl create-namespace --reconfig' tries to do this by
++	default if it can determine that all DIMM capacity is
++	referenced by the namespace being reconfigured. It will
++	otherwise fail to autolabel and remain in label-less mode if
++	it finds a DIMM contributes capacity to more than one region.
++	This check prevents inadvertent data loss of that other region
++	is in active use. The --autolabel option is implied by
++	default, the --no-autolabel option can be used to disable this
++	behavior. When automatic labeling fails and labelled operation
++	is still desired the safety policy can be bypassed by the
++	following commands, note that all data on all regions is
++	forfeited by running these commands:
++
++	[verse]
++	ndctl disable-region all
++	ndctl init-labels all
++	ndctl enable-region all
++
+ -v::
+ --verbose::
+ 	Emit debug messages for the namespace creation process
+@@ -177,7 +219,8 @@ the extent permitted by law.
+ SEE ALSO
+ --------
+ linkndctl:ndctl-zero-labels[1],
++linkndctl:ndctl-init-labels[1],
+ linkndctl:ndctl-disable-namespace[1],
+ linkndctl:ndctl-enable-namespace[1],
+-http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf[NVDIMM Namespace
+-Specification]
++http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol
++]
+diff --git a/Documentation/ndctl/ndctl-init-labels.txt b/Documentation/ndctl/ndctl-init-labels.txt
+index a5c0c127e279..d30ccc5fed0d 100644
+--- a/Documentation/ndctl/ndctl-init-labels.txt
++++ b/Documentation/ndctl/ndctl-init-labels.txt
+@@ -85,5 +85,5 @@ the extent permitted by law.
+ 
+ SEE ALSO
+ --------
+-http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf[NVDIMM Namespace
+-Specification]
++linkndctl:ndctl-create-namespace[1],
++http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol]
+diff --git a/Documentation/ndctl/ndctl-read-labels.txt b/Documentation/ndctl/ndctl-read-labels.txt
+index a1640d6ff566..a15e0f1061d6 100644
+--- a/Documentation/ndctl/ndctl-read-labels.txt
++++ b/Documentation/ndctl/ndctl-read-labels.txt
+@@ -34,5 +34,4 @@ the extent permitted by law.
+ 
+ SEE ALSO
+ --------
+-http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf[NVDIMM Namespace
+-Specification]
++http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol]
+diff --git a/Documentation/ndctl/ndctl-write-labels.txt b/Documentation/ndctl/ndctl-write-labels.txt
+index bace46fba160..5e54cece95ca 100644
+--- a/Documentation/ndctl/ndctl-write-labels.txt
++++ b/Documentation/ndctl/ndctl-write-labels.txt
+@@ -25,5 +25,4 @@ include::labels-options.txt[]
+ 
+ SEE ALSO
+ --------
+-http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf[NVDIMM Namespace
+-Specification]
++http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol]
+diff --git a/Documentation/ndctl/ndctl-zero-labels.txt b/Documentation/ndctl/ndctl-zero-labels.txt
+index 56dacf1c1714..4d56696b1933 100644
+--- a/Documentation/ndctl/ndctl-zero-labels.txt
++++ b/Documentation/ndctl/ndctl-zero-labels.txt
+@@ -27,5 +27,4 @@ the extent permitted by law.
+ 
+ SEE ALSO
+ --------
+-http://pmem.io/documents/NVDIMM_Namespace_Spec.pdf[NVDIMM Namespace
+-Specification]
++http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol]
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
