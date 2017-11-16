@@ -1,18 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-f196.google.com (mail-ot0-f196.google.com
+ [74.125.82.196])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 11A05220F3C25
- for <linux-nvdimm@lists.01.org>; Thu, 23 Nov 2017 22:32:19 -0800 (PST)
-From: Michael Ellerman <mpe@ellerman.id.au>
+ by ml01.01.org (Postfix) with ESMTPS id 39B8F220D4BEC
+ for <linux-nvdimm@lists.01.org>; Thu, 16 Nov 2017 06:25:18 -0800 (PST)
+Received: by mail-ot0-f196.google.com with SMTP id s4so13420916ote.4
+ for <linux-nvdimm@lists.01.org>; Thu, 16 Nov 2017 06:29:27 -0800 (PST)
+Date: Thu, 16 Nov 2017 08:29:26 -0600
+From: Rob Herring <robh@kernel.org>
 Subject: Re: [PATCH 2/3] libnvdimm: Add a device-tree interface
-In-Reply-To: <20171116142840.er7st25ll3o6jr7s@rob-hp-laptop>
+Message-ID: <20171116142926.cdvx2st72tnu7gi7@rob-hp-laptop>
 References: <20171115175131.23631-1-oohall@gmail.com>
  <20171115175131.23631-2-oohall@gmail.com>
- <20171116142840.er7st25ll3o6jr7s@rob-hp-laptop>
-Date: Fri, 24 Nov 2017 17:36:33 +1100
-Message-ID: <87ine018um.fsf@concordia.ellerman.id.au>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20171115175131.23631-2-oohall@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,48 +27,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Rob Herring <robh@kernel.org>, Oliver O'Halloran <oohall@gmail.com>
+To: Oliver O'Halloran <oohall@gmail.com>
 Cc: devicetree@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Rob Herring <robh@kernel.org> writes:
-> On Thu, Nov 16, 2017 at 04:51:30AM +1100, Oliver O'Halloran wrote:
-...
->> diff --git a/drivers/nvdimm/of_nvdimm.c b/drivers/nvdimm/of_nvdimm.c
->> new file mode 100644
->> index 000000000000..765cbbae8bcb
->> --- /dev/null
->> +++ b/drivers/nvdimm/of_nvdimm.c
->> @@ -0,0 +1,202 @@
->> +/*
->> + * Copyright 2017, IBM Corporation
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, you can access it online at
->> + * http://www.gnu.org/licenses/gpl-2.0.html.
->
-> This can be SPDX tag.
+On Thu, Nov 16, 2017 at 04:51:30AM +1100, Oliver O'Halloran wrote:
+> A fairly bare-bones set of device-tree bindings so libnvdimm can be used
+> on powerpc and other device-tree based platforms.
+> 
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+> ---
+>  .../devicetree/bindings/nvdimm/nvdimm-bus.txt      |  69 +++++++
 
-Specifically:
+Also, please split bindings to a separate patch.
 
-// SPDX-License-Identifier: GPL-2.0+
-/*
- * Copyright 2017, IBM Corporation
- */
-
-...
-
-cheers
+>  MAINTAINERS                                        |   8 +
+>  drivers/nvdimm/Kconfig                             |  10 +
+>  drivers/nvdimm/Makefile                            |   1 +
+>  drivers/nvdimm/of_nvdimm.c                         | 202 +++++++++++++++++++++
+>  5 files changed, 290 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/nvdimm/nvdimm-bus.txt
+>  create mode 100644 drivers/nvdimm/of_nvdimm.c
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
