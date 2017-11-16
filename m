@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ozlabs.org (ozlabs.org [103.22.144.67])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1FE56202E5E45
- for <linux-nvdimm@lists.01.org>; Thu,  2 Nov 2017 19:28:55 -0700 (PDT)
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: Re: [PATCH 02/15] mm, dax: introduce pfn_t_special()
-In-Reply-To: <150949210553.24061.5992572975056748512.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150949210553.24061.5992572975056748512.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Fri, 03 Nov 2017 13:32:44 +1100
-Message-ID: <87ines6qib.fsf@concordia.ellerman.id.au>
+ by ml01.01.org (Postfix) with ESMTPS id 50D7D220D4BF9
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Nov 2017 18:21:39 -0800 (PST)
+Subject: [ndctl PATCH 2/4] ndctl,
+ create-namespace: catch attempts to set device-dax for blk namespaces
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 15 Nov 2017 18:17:34 -0800
+Message-ID: <151079865407.25456.13016376113663731019.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151079864874.25456.11655607153151633382.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151079864874.25456.11655607153151633382.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,29 +23,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Williams <dan.j.williams@intel.com> writes:
+Similar to the filesytem-dax case blk type namespaces do not support
+device-dax operation.
 
-> In support of removing the VM_MIXEDMAP indication from DAX VMAs,
-> introduce pfn_t_special() for drivers to indicate that _PAGE_SPECIAL
-> should be used for DAX ptes. This also helps identify drivers like
-> dccssblk that only want to use DAX in a read-only fashion without
-> get_user_pages() support.
->
-> Ideally we could delete axonram and dcssblk DAX support, but if we need
-> to keep it better make it explicit that axonram and dcssblk only support
-> a sub-set of DAX due to missing _PAGE_DEVMAP support.
+Fixes: 3139dfda1158 ("ndctl: create namespace")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ ndctl/namespace.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-I sent a patch to remove axonram (sorry meant to Cc you):
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 0020be354670..970515570ce9 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -208,8 +208,9 @@ static int set_defaults(enum device_action mode)
+ 
+ 	/* check for incompatible mode and type combinations */
+ 	if (param.type && param.mode && strcmp(param.type, "blk") == 0
+-			&& strcmp(param.mode, "memory") == 0) {
+-		error("only 'pmem' namespaces can be placed into 'memory' mode\n");
++			&& (strcmp(param.mode, "memory") == 0
++				|| strcmp(param.mode, "dax") == 0)) {
++		error("only 'pmem' namespaces support dax operation\n");
+ 		rc = -ENXIO;
+ 	}
+ 
 
-  http://patchwork.ozlabs.org/patch/833588/
-
-Will see if there's any feedback.
-
-cheers
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
