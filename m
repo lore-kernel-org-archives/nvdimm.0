@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x243.google.com (mail-qt0-x243.google.com
+ [IPv6:2607:f8b0:400d:c0d::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E374B21B00DF1
- for <linux-nvdimm@lists.01.org>; Fri, 10 Nov 2017 16:48:58 -0800 (PST)
-Subject: [PATCH 4/4] mm: replace pte_write with pte_access_permitted in
- fault + gup paths
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 10 Nov 2017 16:44:47 -0800
-Message-ID: <151036108744.32713.17165900700881849202.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151036106541.32713.16875776773735515483.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C3E51220D4C18
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Nov 2017 17:24:54 -0800 (PST)
+Received: by mail-qt0-x243.google.com with SMTP id 31so38956593qtz.9
+ for <linux-nvdimm@lists.01.org>; Wed, 15 Nov 2017 17:29:04 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <CAA9_cmcn=VyR3xZWOtxpko6+AhnjC1xqrYXsyz4Z5A+i2DfSbQ@mail.gmail.com>
+References: <20171115175131.23631-1-oohall@gmail.com>
+ <CAA9_cmcn=VyR3xZWOtxpko6+AhnjC1xqrYXsyz4Z5A+i2DfSbQ@mail.gmail.com>
+From: Oliver <oohall@gmail.com>
+Date: Thu, 16 Nov 2017 12:29:02 +1100
+Message-ID: <CAOSf1CGuqiAfd3wFT4gwoCwPGBRBTzyM4nX8PAVBD-wXwRQ0QQ@mail.gmail.com>
+Subject: Re: [PATCH 1/3] libnvdimm: Add of_node to region and bus descriptors
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,53 +22,31 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Dave Hansen <dave.hansen@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@gmail.com>
+Cc: linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhlICdhY2Nlc3NfcGVybWl0dGVkJyBoZWxwZXIgaXMgdXNlZCBpbiB0aGUgZ3VwLWZhc3QgcGF0
-aCBhbmQgZ29lcwpiZXlvbmQgdGhlIHNpbXBsZSBfUEFHRV9SVyBjaGVjayB0byBhbHNvOgoKKiB2
-YWxpZGF0ZSB0aGF0IHRoZSBtYXBwaW5nIGlzIHdyaXRhYmxlIGZyb20gYSBwcm90ZWN0aW9uIGtl
-eXMKICBzdGFuZHBvaW50CgoqIHZhbGlkYXRlIHRoYXQgdGhlIHB0ZSBoYXMgX1BBR0VfVVNFUiBz
-ZXQgc2luY2UgYWxsIGZhdWx0IHBhdGhzIHdoZXJlCiAgcHRlX3dyaXRlIGlzIG11c3QgYmUgcmVm
-ZXJlbmNpbmcgdXNlci1tZW1vcnkuCgpDYzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGludGVs
-LmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4LmludGVs
-LmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1v
-ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIG1tL2d1
-cC5jICAgIHwgICAgMiArLQogbW0vaG1tLmMgICAgfCAgICA0ICsrLS0KIG1tL21lbW9yeS5jIHwg
-ICAgNCArKy0tCiAzIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMo
-LSkKCmRpZmYgLS1naXQgYS9tbS9ndXAuYyBiL21tL2d1cC5jCmluZGV4IGIyYjRkNDI2Mzc2OC4u
-YmI2NTQyYzQ3YjA4IDEwMDY0NAotLS0gYS9tbS9ndXAuYworKysgYi9tbS9ndXAuYwpAQCAtNjYs
-NyArNjYsNyBAQCBzdGF0aWMgaW50IGZvbGxvd19wZm5fcHRlKHN0cnVjdCB2bV9hcmVhX3N0cnVj
-dCAqdm1hLCB1bnNpZ25lZCBsb25nIGFkZHJlc3MsCiAgKi8KIHN0YXRpYyBpbmxpbmUgYm9vbCBj
-YW5fZm9sbG93X3dyaXRlX3B0ZShwdGVfdCBwdGUsIHVuc2lnbmVkIGludCBmbGFncykKIHsKLQly
-ZXR1cm4gcHRlX3dyaXRlKHB0ZSkgfHwKKwlyZXR1cm4gcHRlX2FjY2Vzc19wZXJtaXR0ZWQocHRl
-LCBXUklURSkgfHwKIAkJKChmbGFncyAmIEZPTExfRk9SQ0UpICYmIChmbGFncyAmIEZPTExfQ09X
-KSAmJiBwdGVfZGlydHkocHRlKSk7CiB9CiAKZGlmZiAtLWdpdCBhL21tL2htbS5jIGIvbW0vaG1t
-LmMKaW5kZXggY2JkZDQ3YmY2YTQ4Li4zZDJlNDlmZDg1MWEgMTAwNjQ0Ci0tLSBhL21tL2htbS5j
-CisrKyBiL21tL2htbS5jCkBAIC00NTYsMTEgKzQ1NiwxMSBAQCBzdGF0aWMgaW50IGhtbV92bWFf
-d2Fsa19wbWQocG1kX3QgKnBtZHAsCiAJCQljb250aW51ZTsKIAkJfQogCi0JCWlmICh3cml0ZV9m
-YXVsdCAmJiAhcHRlX3dyaXRlKHB0ZSkpCisJCWlmICghcHRlX2FjY2Vzc19wZXJtaXR0ZWQocHRl
-LCB3cml0ZV9mYXVsdCkpCiAJCQlnb3RvIGZhdWx0OwogCiAJCXBmbnNbaV0gPSBobW1fcGZuX3Rf
-ZnJvbV9wZm4ocHRlX3BmbihwdGUpKSB8IGZsYWc7Ci0JCXBmbnNbaV0gfD0gcHRlX3dyaXRlKHB0
-ZSkgPyBITU1fUEZOX1dSSVRFIDogMDsKKwkJcGZuc1tpXSB8PSBwdGVfYWNjZXNzX3Blcm1pdHRl
-ZChwdGUsIFdSSVRFKSA/IEhNTV9QRk5fV1JJVEUgOiAwOwogCQljb250aW51ZTsKIAogZmF1bHQ6
-CmRpZmYgLS1naXQgYS9tbS9tZW1vcnkuYyBiL21tL21lbW9yeS5jCmluZGV4IDE1N2ZkNDMyMGJi
-My4uYThjYmMyYzNlM2M5IDEwMDY0NAotLS0gYS9tbS9tZW1vcnkuYworKysgYi9tbS9tZW1vcnku
-YwpAQCAtMzkyMiw3ICszOTIyLDcgQEAgc3RhdGljIGludCBoYW5kbGVfcHRlX2ZhdWx0KHN0cnVj
-dCB2bV9mYXVsdCAqdm1mKQogCWlmICh1bmxpa2VseSghcHRlX3NhbWUoKnZtZi0+cHRlLCBlbnRy
-eSkpKQogCQlnb3RvIHVubG9jazsKIAlpZiAodm1mLT5mbGFncyAmIEZBVUxUX0ZMQUdfV1JJVEUp
-IHsKLQkJaWYgKCFwdGVfd3JpdGUoZW50cnkpKQorCQlpZiAoIXB0ZV9hY2Nlc3NfcGVybWl0dGVk
-KGVudHJ5LCBXUklURSkpCiAJCQlyZXR1cm4gZG9fd3BfcGFnZSh2bWYpOwogCQllbnRyeSA9IHB0
-ZV9ta2RpcnR5KGVudHJ5KTsKIAl9CkBAIC00MzA4LDcgKzQzMDgsNyBAQCBpbnQgZm9sbG93X3Bo
-eXMoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsCiAJCWdvdG8gb3V0OwogCXB0ZSA9ICpwdGVw
-OwogCi0JaWYgKChmbGFncyAmIEZPTExfV1JJVEUpICYmICFwdGVfd3JpdGUocHRlKSkKKwlpZiAo
-IXB0ZV9hY2Nlc3NfcGVybWl0dGVkKHB0ZSwgZmxhZ3MgJiBGT0xMX1dSSVRFKSkKIAkJZ290byB1
-bmxvY2s7CiAKIAkqcHJvdCA9IHBncHJvdF92YWwocHRlX3BncHJvdChwdGUpKTsKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Thu, Nov 16, 2017 at 5:05 AM, Dan Williams <dan.j.williams@gmail.com> wrote:
+> On Wed, Nov 15, 2017 at 9:51 AM, Oliver O'Halloran <oohall@gmail.com> wrote:
+>> We want to be able to cross reference the region and bus devices
+>> with the device tree node that they were spawned from. libNVDIMM
+>> handles creating the actual devices for these internally, so we
+>> need to pass in a pointer to the relevant node in the descriptor.
+>>
+>> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+>
+> Looks ok to me,
+>
+> Acked-by: Dan Williams <dan.j.williams@intel.com>
+>
+> ...this is late if you were expecting a 4.15 merge.
+
+I'm not that optimistic, but I wouldn't complain.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
