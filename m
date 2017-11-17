@@ -2,14 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E8FEC202E5E52
- for <linux-nvdimm@lists.01.org>; Mon,  6 Nov 2017 15:14:32 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 3/3] ndctl, inject-error: remove unreachable code
-Date: Mon,  6 Nov 2017 16:16:10 -0700
-Message-Id: <20171106231610.8271-3-vishal.l.verma@intel.com>
-In-Reply-To: <20171106231610.8271-1-vishal.l.verma@intel.com>
-References: <20171106231610.8271-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8CBF0220D4BF6
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Nov 2017 12:24:24 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [fstests PATCH v4 0/4] add test for DAX MAP_SYNC support
+Date: Fri, 17 Nov 2017 13:28:24 -0700
+Message-Id: <20171117202828.25472-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,33 +20,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: fstests <fstests@vger.kernel.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Amir Goldstein <amir73il@gmail.com>, Dave Chinner <david@fromorbit.com>, linux-xfs <linux-xfs@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The iteration helper ndctl_namespace_bb_foreach ensures bb cannot be
-NULL in the loop, so an explicit check for it is not necessary. Remove
-it.
+The purpose of this series is to exercise the new MAP_SYNC mmap()
+functionality [1].  It adds a test which uses dm-log-writes to try and
+replay filesystem metadata operations for a file that is being written via
+mmap().
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/inject-error.c | 3 ---
- 1 file changed, 3 deletions(-)
+If MAP_SYNC is active the dm-log-writes replay will recreate the file's
+block allocations and you'll end up with a test file which is a known
+size.
 
-diff --git a/ndctl/inject-error.c b/ndctl/inject-error.c
-index 4c45902..a05f813 100644
---- a/ndctl/inject-error.c
-+++ b/ndctl/inject-error.c
-@@ -250,9 +250,6 @@ static int injection_status(struct ndctl_namespace *ndns)
- 	}
- 
- 	ndctl_namespace_bb_foreach(ndns, bb) {
--		if (!bb)
--			break;
--
- 		block = ndctl_bb_get_block(bb);
- 		count = ndctl_bb_get_count(bb);
- 		jbb = util_badblock_rec_to_json(block, count, ictx.flags);
+If MAP_SYNC is not active the metadata writes will most likely be lost and
+the replay will either fail to create the test file at all or it will may
+be smaller.  In all of my testing the file simply doesn't exist on the
+replay if MAP_SYNC is ommited.
+
+This test relies on a kernel with both the MAP_SYNC mmap() functionality
+and the DAX enabling in dm-log-writes.  These will both appear in kernel
+v4.15-rc1.  For ease of testing I've posted a kernel that is v4.14 plus
+just those two patch series [2].
+
+This test also relies on xfsprogs having support for MAP_SYNC and for
+dm-log-writes.  I've posed a tree adding that support [3].  This xfsprogs
+series is still under review so if the xfs_io interfaces change this
+test will of course need to be updated as well.
+
+Lastly, I've also posted a working version of this series [4].
+
+Changes since v3:
+ - Enhanced xfs_io with MAP_SYNC and dm-log-writes functionality instead of
+   creating a one-off test program.  (Dave Chinner)
+
+ - Improved dm target version checking. (Amir)
+
+ - Fixed dm-log-writes replay issue, some general cleanup, broke changes
+   out into a series.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-November/013164.html
+[2]: https://git.kernel.org/pub/scm/linux/kernel/git/zwisler/linux.git/log/?h=map_sync_dm_log_writes
+[3]: https://git.kernel.org/pub/scm/linux/kernel/git/zwisler/xfsprogs-dev.git/log/?h=map_sync
+[4]: https://git.kernel.org/pub/scm/linux/kernel/git/zwisler/xfstests-dev.git/log/?h=map_sync_test_v4
+
+Ross Zwisler (4):
+  common/rc: add _scratch_has_mount_option()
+  dm-log-writes: only replay log to marks that exist
+  dm-log-writes: allow DAX to be used when possible
+  generic: add test for DAX MAP_SYNC support
+
+ common/dmlogwrites           |  9 +++--
+ common/rc                    | 33 ++++++++++++++++--
+ doc/requirement-checking.txt |  5 +--
+ tests/generic/468            | 83 ++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/468.out        |  3 ++
+ tests/generic/group          |  1 +
+ 6 files changed, 128 insertions(+), 6 deletions(-)
+ create mode 100755 tests/generic/468
+ create mode 100644 tests/generic/468.out
+
 -- 
 2.9.5
 
