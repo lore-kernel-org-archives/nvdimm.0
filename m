@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C52C1220757E9
- for <linux-nvdimm@lists.01.org>; Sun, 12 Nov 2017 15:29:10 -0800 (PST)
-Subject: [PATCH 1/2] acpi, nfit: validate commands against the device type
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 12 Nov 2017 15:25:01 -0800
-Message-ID: <151052910143.33363.12653920068445460294.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 13F3220349DAC
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Nov 2017 22:12:54 -0800 (PST)
+Date: Sat, 18 Nov 2017 14:17:03 +0800
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [fstests PATCH v4 3/4] dm-log-writes: allow DAX to be used when
+ possible
+Message-ID: <20171118061703.GD2749@eguan.usersys.redhat.com>
+References: <20171117202828.25472-1-ross.zwisler@linux.intel.com>
+ <20171117202828.25472-4-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20171117202828.25472-4-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,87 +25,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Amir Goldstein <amir73il@gmail.com>, Dave Chinner <david@fromorbit.com>, fstests <fstests@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Fix occasions in acpi_nfit_ctl where we check the command type without
-validating whether we are parsing dimm vs bus level commands. Where the
-command numbers alias between dimms and bus we can make the wrong
-assumption just checking the raw command number. For example, with a
-simple nfit_test mock up of the clear-error command we trigger the
-following:
+On Fri, Nov 17, 2017 at 01:28:27PM -0700, Ross Zwisler wrote:
+> Enhance _require_dm_target so that a user can request a minimum version of a
+> given dm target.
+> 
+> DAX support was added to v1.1.0 of the dm-log-writes kernel module, so
+> allow the DAX mount option starting with that version.
 
-    BUG: unable to handle kernel NULL pointer dereference at 0000000000000094
-    IP: acpi_nfit_ctl+0x29b/0x930 [nfit]
-    [..]
-    Call Trace:
-     nfit_test_probe+0xb85/0xc09 [nfit_test]
-     platform_drv_probe+0x3b/0xa0
-     ? platform_drv_probe+0x3b/0xa0
-     driver_probe_device+0x29c/0x450
-     ? test_alloc+0x180/0x180 [nfit_test]
-     __driver_attach+0xe3/0xf0
-     ? driver_probe_device+0x450/0x450
-     bus_for_each_dev+0x73/0xc0
-     driver_attach+0x1e/0x20
-     bus_add_driver+0x173/0x270
-     driver_register+0x60/0xe0
-     __platform_driver_register+0x36/0x40
-     nfit_test_init+0x2a1/0x1000 [nfit_test]
+Is is possible not relying on the version numbers but actually trying
+what you want to do and _notrun if that fails? Currently fstests does no
+version number checking at all, and it'd be great if we keep that
+tradition.
 
-Fixes: 4b27db7e26cd ("acpi, nfit: add support for the _LSI, _LSR, and...")
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 8043bfde7c63..ff2580e7611d 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -483,13 +483,14 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 			min_t(u32, 256, in_buf.buffer.length), true);
- 
- 	/* call the BIOS, prefer the named methods over _DSM if available */
--	if (cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
-+	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
- 		out_obj = acpi_label_info(handle);
--	else if (cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
-+	else if (nvdimm && cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
- 		struct nd_cmd_get_config_data_hdr *p = buf;
- 
- 		out_obj = acpi_label_read(handle, p->in_offset, p->in_length);
--	} else if (cmd == ND_CMD_SET_CONFIG_DATA && nfit_mem->has_lsw) {
-+	} else if (nvdimm && cmd == ND_CMD_SET_CONFIG_DATA
-+			&& nfit_mem->has_lsw) {
- 		struct nd_cmd_set_config_hdr *p = buf;
- 
- 		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
-@@ -497,7 +498,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	} else {
- 		u8 revid;
- 
--		if (nfit_mem)
-+		if (nvdimm)
- 			revid = nfit_dsm_revid(nfit_mem->family, func);
- 		else
- 			revid = 1;
-@@ -565,8 +566,10 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	 * Set fw_status for all the commands with a known format to be
- 	 * later interpreted by xlat_status().
- 	 */
--	if (i >= 1 && ((cmd >= ND_CMD_ARS_CAP && cmd <= ND_CMD_CLEAR_ERROR)
--			|| (cmd >= ND_CMD_SMART && cmd <= ND_CMD_VENDOR)))
-+	if (i >= 1 && ((!nvdimm && cmd >= ND_CMD_ARS_CAP
-+					&& cmd <= ND_CMD_CLEAR_ERROR)
-+				|| (nvdimm && cmd >= ND_CMD_SMART
-+					&& cmd <= ND_CMD_VENDOR)))
- 		fw_status = *(u32 *) out_obj->buffer.pointer;
- 
- 	if (offset + in_buf.buffer.length < buf_len) {
-
+Thanks,
+Eryu
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
