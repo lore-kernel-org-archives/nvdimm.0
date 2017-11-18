@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B41E8221660EF
- for <linux-nvdimm@lists.01.org>; Wed, 29 Nov 2017 11:03:45 -0800 (PST)
-Subject: [PATCH v6 0/2] dax, dm: stop requiring dax for device-mapper
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 29 Nov 2017 10:59:55 -0800
-Message-ID: <151198199487.7051.7083189934624068090.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9654221B00DC1
+ for <linux-nvdimm@lists.01.org>; Fri, 17 Nov 2017 19:46:51 -0800 (PST)
+Date: Sat, 18 Nov 2017 11:51:00 +0800
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [fstests PATCH v4 2/4] dm-log-writes: only replay log to marks
+ that exist
+Message-ID: <20171118035100.GC2749@eguan.usersys.redhat.com>
+References: <20171117202828.25472-1-ross.zwisler@linux.intel.com>
+ <20171117202828.25472-3-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20171117202828.25472-3-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,45 +25,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: snitzer@redhat.com
-Cc: kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Heiko Carstens <heiko.carstens@de.ibm.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, dm-devel@redhat.com, Paul Mackerras <paulus@samba.org>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Alasdair Kergon <agk@redhat.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Amir Goldstein <amir73il@gmail.com>, Dave Chinner <david@fromorbit.com>, fstests <fstests@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v5 [1]:
-* Make DAX_DRIVER select DAX to simplify the Kconfig dependencies
-  (Michael)
-* Rebase on 4.15-rc1 and add new IS_ENABLED(CONFIG_DAX_DRIVER) checks in
-  drivers/md/dm-log-writes.c.
+On Fri, Nov 17, 2017 at 01:28:26PM -0700, Ross Zwisler wrote:
+> The 'replay-log' executable will replay the dm-log-writes log until the
+> given mark, or until the end of the log if the mark isn't found.
+> 
+> This means that if the mark you're looking for was never inserted in the
+> log or if you give garbage to _log_writes_replay_log() the entire log will
+> be replayed.  This can cause unexpected test results.
+> 
+> Fix this by making sure that the mark we're given actually exists in the
+> log before we allow the replay.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  common/dmlogwrites | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/common/dmlogwrites b/common/dmlogwrites
+> index 247c744..80ed4fc 100644
+> --- a/common/dmlogwrites
+> +++ b/common/dmlogwrites
+> @@ -72,6 +72,10 @@ _log_writes_replay_log()
+>  {
+>  	_mark=$1
+>  
+> +	$here/src/log-writes/replay-log --log $LOGWRITES_DEV --find \
+> +		--end-mark $_mark >> $seqres.full 2>&1
+> +	[ $? -ne 0 ] && _fail "mark does not exist"
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-September/012569.html
+Print out $_mark too?
 
----
+Thanks,
+Eryu
 
-Hi Mike,
-
-Bart points out that the DAX core is unconditionally enabled if
-device-mapper is enabled. Add some config machinery and some
-stub/static-inline routines to allow dax infrastructure to be deleted
-from device-mapper at compile time.
-
----
-
-Dan Williams (2):
-      dax: introduce CONFIG_DAX_DRIVER
-      dm: allow device-mapper to operate without dax support
-
-
- arch/powerpc/platforms/Kconfig |    2 -
- drivers/dax/Kconfig            |    5 ++
- drivers/md/Kconfig             |    1 
- drivers/md/dm-linear.c         |    6 +++
- drivers/md/dm-log-writes.c     |   95 +++++++++++++++++++++-------------------
- drivers/md/dm-stripe.c         |    6 +++
- drivers/md/dm.c                |   10 +++-
- drivers/nvdimm/Kconfig         |    2 -
- drivers/s390/block/Kconfig     |    2 -
- include/linux/dax.h            |   30 ++++++++++---
- 10 files changed, 99 insertions(+), 60 deletions(-)
+> +
+>  	$here/src/log-writes/replay-log --log $LOGWRITES_DEV --replay $SCRATCH_DEV \
+>  		--end-mark $_mark >> $seqres.full 2>&1
+>  	[ $? -ne 0 ] && _fail "replay failed"
+> -- 
+> 2.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe fstests" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
