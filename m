@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A28E420356876
- for <linux-nvdimm@lists.01.org>; Sat, 11 Nov 2017 12:15:45 -0800 (PST)
-Subject: [PATCH v2 0/4] fix device-dax pud crash and fixup {pte, pmd,
- pud}_write
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 11 Nov 2017 12:11:34 -0800
-Message-ID: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 68A402034C5FB
+ for <linux-nvdimm@lists.01.org>; Mon, 20 Nov 2017 13:15:30 -0800 (PST)
+Received: by mail-oi0-x244.google.com with SMTP id h81so7114628oib.8
+ for <linux-nvdimm@lists.01.org>; Mon, 20 Nov 2017 13:19:44 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20171114074704.3446-3-qi.fuli@jp.fujitsu.com>
+References: <20171114074704.3446-1-qi.fuli@jp.fujitsu.com>
+ <20171114074704.3446-3-qi.fuli@jp.fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 20 Nov 2017 13:19:43 -0800
+Message-ID: <CAPcyv4j0jhb28ihCwWyC-pjSFSsaW02Lf_Gt_7XH3MPWMMn+qg@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 2/7] ndctl: nvdimmd: add nvdimmd necessary util
+ functions
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,57 +27,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Dave Hansen <dave.hansen@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, stable@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-nvdimm@lists.01.org
+To: QI Fuli <qi.fuli@jp.fujitsu.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1 [1]:
-* fix arm64 compilation, add __HAVE_ARCH_PUD_WRITE
-* fix sparc64 compilation, add __HAVE_ARCH_PUD_WRITE
-* fix s390 compilation, add a pud_write() helper
+On Mon, Nov 13, 2017 at 11:46 PM, QI Fuli <qi.fuli@jp.fujitsu.com> wrote:
+> This patch is used to provide helper functions needed for nvdimm daemon.
+> These util functions can be used by other features as well in the future.
+>
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  nvdimmd/util.c | 80 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  nvdimmd/util.h | 33 ++++++++++++++++++++++++
+>  2 files changed, 113 insertions(+)
+>  create mode 100644 nvdimmd/util.c
+>  create mode 100644 nvdimmd/util.h
+>
+> diff --git a/nvdimmd/util.c b/nvdimmd/util.c
+> new file mode 100644
+> index 0000000..ef6819e
+> --- /dev/null
+> +++ b/nvdimmd/util.c
+> @@ -0,0 +1,80 @@
+> +/*
+> + * Copyright (c) 2017, FUJITSU LIMITED. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU Lesser General Public License,
+> + * version 2.1, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT ANY
+> + * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+> + * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+> + * more details.
+> + */
+> +
+> +#include <stdlib.h>
+> +#include <string.h>
+> +#include <time.h>
+> +#include "util.h"
+> +
+> +void logrotate(char *file)
+> +{
+> +       time_t c_time;
+> +       char buf[4096], tstamp[32];
+> +
+> +       c_time = time(NULL);
+> +       strftime(tstamp, sizeof(tstamp), ".%Y%m%d%H%M%S", localtime(&c_time));
+> +       strcpy(buf, file);
+> +       strcat(buf, tstamp);
+> +       rename(file, buf);
+> +}
 
----
-
-Andrew,
-
-Here is a third version to the pud_write() fix [2], and some follow-on
-patches to use the '_access_permitted' helpers in fault and
-get_user_pages() paths where we are checking if the thread has access to
-write. I explicitly omit conversions for places where the kernel is
-checking the _PAGE_RW flag for kernel purposes, not for userspace
-access.
-
-Beyond fixing the crash, this series also fixes get_user_pages() and
-fault paths to honor protection keys in the same manner as
-get_user_pages_fast(). Only the crash fix is tagged for -stable as the
-protection key check is done just for consistency reasons since
-userspace can change protection keys at will.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-November/013249.html
-[2]: https://lists.01.org/pipermail/linux-nvdimm/2017-November/013237.html
-
----
-
-Dan Williams (4):
-      mm: fix device-dax pud write-faults triggered by get_user_pages()
-      mm: replace pud_write with pud_access_permitted in fault + gup paths
-      mm: replace pmd_write with pmd_access_permitted in fault + gup paths
-      mm: replace pte_write with pte_access_permitted in fault + gup paths
-
-
- arch/arm64/include/asm/pgtable.h    |    1 +
- arch/s390/include/asm/pgtable.h     |    6 ++++++
- arch/sparc/include/asm/pgtable_64.h |    1 +
- arch/sparc/mm/gup.c                 |    4 ++--
- arch/x86/include/asm/pgtable.h      |    6 ++++++
- fs/dax.c                            |    3 ++-
- include/asm-generic/pgtable.h       |    9 +++++++++
- include/linux/hugetlb.h             |    8 --------
- mm/gup.c                            |    2 +-
- mm/hmm.c                            |    8 ++++----
- mm/huge_memory.c                    |    6 +++---
- mm/memory.c                         |    8 ++++----
- 12 files changed, 39 insertions(+), 23 deletions(-)
+Why does the monitor need to rotate logs? This should be the
+responsibility of whatever is consuming  the nvdimmd events.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
