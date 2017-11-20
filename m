@@ -1,7 +1,7 @@
 From: whbn764rurjt-H7JFDJ09qGI@public.gmane.org
 Subject: =?GB2312?B?xrEtvt3X9i3Vyw==?=
 Date: Mon, 20 Nov 2017 22:53:23 +0800
-Message-ID: <20171120144917.AD4792035A7DF@ml01.01.org>
+Message-ID: <20171120144917.C4FD020958BE5@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="gb2312"
 Content-Transfer-Encoding: base64
@@ -15,7 +15,7 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 CrT6v6q3oqGixrGjrNHpuvO4ti+/7goK1tzPyMn6IDEzNzIzNDQ5MTA5ICDOotDFusWjumE0NDkx
