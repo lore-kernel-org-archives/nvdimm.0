@@ -1,24 +1,38 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri, 10 Nov 2017 10:06:58 +0100
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 13/15] mm, devmap: introduce CONFIG_DEVMAP_MANAGED_PAGES
-Message-ID: <20171110090658.GD4895@lst.de>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com> <150949216597.24061.3943310722702629588.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 0/2] device-dax: fix unaligned munmap handling
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 21 Nov 2017 14:42:55 -0800
+Message-ID: <151130417573.4029.6745923267963684469.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <150949216597.24061.3943310722702629588.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Michal Hocko <mhocko@suse.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Oct 31, 2017 at 04:22:46PM -0700, Dan Williams wrote:
-> Combine the now three use cases of page-idle callbacks for ZONE_DEVICE
-> memory into a common selectable symbol.
+Hi Andrew,
 
-Very sparse changelog.  I understand the Kconfig bit, but it also seems to
-introduce new static key functionality that isn't explained at all.
+Here is another device-dax fix that requires touching some mm code. When
+device-dax is operating in huge-page mode we want it to behave like
+hugetlbfs and fail attempts to split vmas into unaligned ranges. It
+would be messy to teach the munmap path about device-dax alignment
+constraints in the same (hstate) way that hugetlbfs communicates this
+constraint. Instead, these patches introduce a new ->split() vm
+operation.
+
+---
+
+Dan Williams (2):
+      mm, hugetlbfs: introduce ->split() to vm_operations_struct
+      device-dax: implement ->split() to catch invalid munmap attempts
+
+
+ drivers/dax/device.c |   12 ++++++++++++
+ include/linux/mm.h   |    1 +
+ mm/hugetlb.c         |    8 ++++++++
+ mm/mmap.c            |    8 +++++---
+ 4 files changed, 26 insertions(+), 3 deletions(-)
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
