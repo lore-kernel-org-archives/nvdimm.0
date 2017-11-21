@@ -1,40 +1,83 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.132.109])
- by ml01.01.org (Postfix) with ESMTP id 1BF3420349D86
- for <linux-nvdimm@lists.01.org>; Sun, 12 Nov 2017 19:09:09 -0800 (PST)
-From: "Bounced mail" <MAILER-DAEMON@lists.01.org>
-Subject: 
-Date: Mon, 13 Nov 2017 11:13:14 +0800
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH 2/2] device-dax: implement ->split() to catch invalid munmap
+ attempts
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 21 Nov 2017 14:43:06 -0800
+Message-ID: <151130418681.4029.7118245855057952010.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151130417573.4029.6745923267963684469.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151130417573.4029.6745923267963684469.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20171113030913.BB20720349D8C@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The original message was received at Mon, 13 Nov 2017 11:13:14 +0800
-from lists.01.org [217.132.172.246]
+Similar to how device-dax enforces that the 'address', 'offset', and
+'len' parameters to mmap() be aligned to the device's fundamental
+alignment, the same constraints apply to munmap(). Implement ->split()
+to fail munmap calls that violate the alignment constraint. Otherwise,
+we later fail VM_BUG_ON checks in the unmap_page_range() path with crash
+signatures of the form:
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm@lists.01.org>
+    vma ffff8800b60c8a88 start 00007f88c0000000 end 00007f88c0e00000
+    next           (null) prev           (null) mm ffff8800b61150c0
+    prot 8000000000000027 anon_vma           (null) vm_ops ffffffffa0091240
+    pgoff 0 file ffff8800b638ef80 private_data           (null)
+    flags: 0x380000fb(read|write|shared|mayread|maywrite|mayexec|mayshare|softdirty|mixedmap|hugepage)
+    ------------[ cut here ]------------
+    kernel BUG at mm/huge_memory.c:2014!
+    [..]
+    RIP: 0010:__split_huge_pud+0x12a/0x180
+    [..]
+    Call Trace:
+     unmap_page_range+0x245/0xa40
+     ? __vma_adjust+0x301/0x990
+     unmap_vmas+0x4c/0xa0
+     unmap_region+0xae/0x120
+     ? __vma_rb_erase+0x11a/0x230
+     do_munmap+0x276/0x410
+     vm_munmap+0x6a/0xa0
+     SyS_munmap+0x1d/0x30
 
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:"Bounced mail" <MAILER-DAEMON@lists.01.org>
-<<< 501 "Bounced mail" <MAILER-DAEMON@lists.01.org>... Refused
+Cc: <stable@vger.kernel.org>
+Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/device.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 6833ada237ab..7b0bf825c4e7 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -428,9 +428,21 @@ static int dev_dax_fault(struct vm_fault *vmf)
+ 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
+ }
+ 
++static int dev_dax_split(struct vm_area_struct *vma, unsigned long addr)
++{
++	struct file *filp = vma->vm_file;
++	struct dev_dax *dev_dax = filp->private_data;
++	struct dax_region *dax_region = dev_dax->region;
++
++	if (!IS_ALIGNED(addr, dax_region->align))
++		return -EINVAL;
++	return 0;
++}
++
+ static const struct vm_operations_struct dax_vm_ops = {
+ 	.fault = dev_dax_fault,
+ 	.huge_fault = dev_dax_huge_fault,
++	.split = dev_dax_split,
+ };
+ 
+ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
 
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
