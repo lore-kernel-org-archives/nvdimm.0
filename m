@@ -1,7 +1,7 @@
 From: Rik van Riel <riel@redhat.com>
 Subject: Re: KVM "fake DAX" flushing interface - discussion
-Date: Tue, 21 Nov 2017 13:19:49 -0500
-Message-ID: <1511288389.1080.14.camel@redhat.com>
+Date: Tue, 21 Nov 2017 13:35:58 -0500
+Message-ID: <1511289358.1080.15.camel@redhat.com>
 References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
          <1888117852.34216619.1500992835767.JavaMail.zimbra@redhat.com>
          <CAPcyv4in28F3FOVKp9abvrggxPuXdbGynF5=ZvBXCrywoa06JA@mail.gmail.com>
@@ -20,61 +20,86 @@ References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
          <86754966-281f-c3ed-938c-f009440de563@gmail.com>
          <CAPcyv4iH==cqVAdd8i1y-8A6SuXU75OH1EZzgNMvtA21wfxPpQ@mail.gmail.com>
          <ec5ff7c2-864e-5020-0aaa-6663e78e3756@gmail.com>
+         <1511288389.1080.14.camel@redhat.com>
+         <CAPcyv4jJGg4AceWYY74EoiM+8f8NEotOVCvJu8aMXGjkvRPpMg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-YkxgZx0ZzE65iqL9l6Ah"
+        protocol="application/pgp-signature"; boundary="=-risAOjzV9xFysia27LQL"
 Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <ec5ff7c2-864e-5020-0aaa-6663e78e3756@gmail.com>
+In-Reply-To: <CAPcyv4jJGg4AceWYY74EoiM+8f8NEotOVCvJu8aMXGjkvRPpMg@mail.gmail.com>
 Sender: kvm-owner@vger.kernel.org
-To: Xiao Guangrong <xiaoguangrong.eric@gmail.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: Pankaj Gupta <pagupta@redhat.com>, Jan Kara <jack@suse.cz>, Stefan Hajnoczi <stefanha@redhat.com>, Stefan Hajnoczi <stefanha@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, ross zwisler <ross.zwisler@linux.intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Haozhong Zhang <haozhong.zhang@intel.com>, Ross Zwisler <ross.zwisler@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Xiao Guangrong <xiaoguangrong.eric@gmail.com>, Pankaj Gupta <pagupta@redhat.com>, Jan Kara <jack@suse.cz>, Stefan Hajnoczi <stefanha@redhat.com>, Stefan Hajnoczi <stefanha@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, ross zwisler <ross.zwisler@linux.intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Haozhong Zhang <haozhong.zhang@intel.com>, Ross Zwisler <ross.zwisler@intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
 
---=-YkxgZx0ZzE65iqL9l6Ah
+--=-risAOjzV9xFysia27LQL
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2017-11-03 at 14:21 +0800, Xiao Guangrong wrote:
-> On 11/03/2017 12:30 AM, Dan Williams wrote:
+On Tue, 2017-11-21 at 10:26 -0800, Dan Williams wrote:
+> On Tue, Nov 21, 2017 at 10:19 AM, Rik van Riel <riel@redhat.com>
+> wrote:
+> > On Fri, 2017-11-03 at 14:21 +0800, Xiao Guangrong wrote:
+> > > On 11/03/2017 12:30 AM, Dan Williams wrote:
+> > > >=20
+> > > > Good point, I was assuming that the mmio flush interface would
+> > > > be
+> > > > discovered separately from the NFIT-defined memory range.
+> > > > Perhaps
+> > > > via
+> > > > PCI in the guest? This piece of the proposal=C2=A0=C2=A0needs a bit=
+ more
+> > > > thought...
+> > > >=20
+> > >=20
+> > > Consider the case that the vNVDIMM device on normal storage and
+> > > vNVDIMM device on real nvdimm hardware can both exist in VM, the
+> > > flush interface should be able to associate with the SPA region
+> > > respectively. That's why I'd like to integrate the flush
+> > > interface
+> > > into NFIT/ACPI by using a separate table. Is it possible to be a
+> > > part of ACPI specification? :)
 > >=20
-> > Good point, I was assuming that the mmio flush interface would be
-> > discovered separately from the NFIT-defined memory range. Perhaps
-> > via
-> > PCI in the guest? This piece of the proposal=C2=A0=C2=A0needs a bit mor=
-e
-> > thought...
+> > It would also be perfectly fine to have the
+> > virtio PCI device indicate which vNVDIMM
+> > range it flushes.
+> >=20
+> > Since the guest OS needs to support that kind
+> > of device anyway, does it really matter which
+> > direction the device association points?
+> >=20
+> > We can go with the "best" interface for what
+> > could be a relatively slow flush (fsync on a
+> > file on ssd/disk on the host), which requires
+> > that the flushing task wait on completion
+> > asynchronously.
+> >=20
+> > If that kind of interface cannot be advertised
+> > through NFIT/ACPI, wouldn't it be perfectly fine
+> > to have only the virtio PCI device indicate which
+> > vNVDIMM range it flushes?
 > >=20
 >=20
-> Consider the case that the vNVDIMM device on normal storage and
-> vNVDIMM device on real nvdimm hardware can both exist in VM, the
-> flush interface should be able to associate with the SPA region
-> respectively. That's why I'd like to integrate the flush interface
-> into NFIT/ACPI by using a separate table. Is it possible to be a
-> part of ACPI specification? :)
+> Yes, we could do this with a custom PCI device, however the NFIT is
+> frustratingly close to being able to define something like this. At
+> the very least we can start with a "SPA Range GUID" that is Linux
+> specific to indicate "call this virtio flush interface on FUA / flush
+> cache requests" as a stop gap until a standardized flush interface
+> can
+> be defined.
 
-It would also be perfectly fine to have the
-virtio PCI device indicate which vNVDIMM
-range it flushes.
+Ahh, is that a "look for a device with this GUID"
+NFIT hint?
 
-Since the guest OS needs to support that kind
-of device anyway, does it really matter which
-direction the device association points?
-
-We can go with the "best" interface for what
-could be a relatively slow flush (fsync on a
-file on ssd/disk on the host), which requires
-that the flushing task wait on completion
-asynchronously.
-
-If that kind of interface cannot be advertised
-through NFIT/ACPI, wouldn't it be perfectly fine
-to have only the virtio PCI device indicate which
-vNVDIMM range it flushes?
+That would be enough to tip off OSes that do not
+support that device that they found a vNVDIMM
+device that they cannot safely flush, which could
+help them report such errors to userspace...
 
 --=20
 All rights reversed
---=-YkxgZx0ZzE65iqL9l6Ah
+--=-risAOjzV9xFysia27LQL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -82,13 +107,13 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAABCAAGBQJaFG5FAAoJEM553pKExN6DkB8H/2QuJPfLcfkc3wfyk1Y5B2We
-fipWPXwANS0sPCUl4JLIHG78qfV372SrmtnzTwbPpJsBts4IdkR7jcc0oXFIPrdz
-M7BxVEWuO1MSRnPNLtcDak8FoNwx5Ih987pZfrRaNT40N3XVwHsmdbEOnLiWw/gs
-bxPHlzhQ3x/vdbA6rwmxon/aIwa9/4D6wlmR1HQW8WE7Kwc5rrJxjTXb9/4znWVo
-yZsABziwJwK+9XhGXh2UmLp+7xf/PBR/X7uKvamPBL0sGS3pW8AS9sQxCi5CQ0IE
-DGEH7R1KTMDCJaY5+mVQf9Te351+4b1UMpIzkIueLjm5U+Kef7Omw5HjT0J/R2k=
-=Z+Y6
+iQEcBAABCAAGBQJaFHIOAAoJEM553pKExN6DEv8H/3ac63iIIfWrbtU+6VR296yO
+//S2mCDMUPYnbcb/60TaADGV9cLOxK7OddJk7AZWxNF80QrDGetGguyxQutflAZP
+iVGTXxBYZdWj3vGfTXgDkYNqZD5epUVC37fAIFjV2DcwV/xpsEdtVzjS7gGPCmrv
+KkxVeujgrrGcUVEZv4XMGuSyTZCK+kg3NvdqHaPKGOgsq1qKsHbguY91pETtSvTK
+eao6y0X/t9RQ08lU2JoUhUeeGGn4p4/z43Y7Su7MDuDU0tCiD91WY5uKP94q1f7K
+yhtBwlsSAGs7QZa+tk5Twkh68fi0iFk7nPeYCtt9lJKD6esZLSCYgoPie4dyi5Y=
+=JEbE
 -----END PGP SIGNATURE-----
 
---=-YkxgZx0ZzE65iqL9l6Ah--
+--=-risAOjzV9xFysia27LQL--
