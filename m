@@ -1,119 +1,100 @@
-From: Rik van Riel <riel@redhat.com>
-Subject: Re: KVM "fake DAX" flushing interface - discussion
-Date: Tue, 21 Nov 2017 13:35:58 -0500
-Message-ID: <1511289358.1080.15.camel@redhat.com>
-References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
-         <1888117852.34216619.1500992835767.JavaMail.zimbra@redhat.com>
-         <CAPcyv4in28F3FOVKp9abvrggxPuXdbGynF5=ZvBXCrywoa06JA@mail.gmail.com>
-         <1501016375.26846.21.camel@redhat.com>
-         <1063764405.34607875.1501076841865.JavaMail.zimbra@redhat.com>
-         <1501104453.26846.45.camel@redhat.com>
-         <CAPcyv4hsqrqBxoipUHPAbSctuzbVWCRnT-gN08i9uhXTWY6iPQ@mail.gmail.com>
-         <1501112787.4073.49.camel@redhat.com>
-         <CAPcyv4gbC6Hx_4YsCfOd2t=fn=wPGp5h__1QH=-p40TPFNbFzA@mail.gmail.com>
-         <0a26793f-86f7-29e7-f61b-dc4c1ef08c8e@gmail.com>
-         <CAPcyv4iw2cCpDmr+4kxsFvdy+iGZiz=ok-kLhsDKpqDy+szf-Q@mail.gmail.com>
-         <378b10f3-b32f-84f5-2bbc-50c2ec5bcdd4@gmail.com>
-         <CAPcyv4jR_LdbsX-rAsHC7++C6d-WYC084uWXzr+08PSYwoXFMw@mail.gmail.com>
-         <ca6aaa77-cca0-441e-be49-73133d8581cf@gmail.com>
-         <CAPcyv4gKzvd39WbnKjbs3Bn9+o1tt=vz90CYMFu0DF5PsfHUig@mail.gmail.com>
-         <86754966-281f-c3ed-938c-f009440de563@gmail.com>
-         <CAPcyv4iH==cqVAdd8i1y-8A6SuXU75OH1EZzgNMvtA21wfxPpQ@mail.gmail.com>
-         <ec5ff7c2-864e-5020-0aaa-6663e78e3756@gmail.com>
-         <1511288389.1080.14.camel@redhat.com>
-         <CAPcyv4jJGg4AceWYY74EoiM+8f8NEotOVCvJu8aMXGjkvRPpMg@mail.gmail.com>
+From: "Nicholas Meyler" <nickm-PMdw8XHZ8+ZWk0Htik3J/w@public.gmane.org>
+Subject: Great Search for Flexible Circuits Applications Engineers
+Date: Tue, 21 Nov 2017 15:05:57 -0800
+Message-ID: <300.0.15.C38.1D3631E3298EF80.10937E@me-ss2-ieksw9.mailengine1.com>
+Reply-To: "Nicholas J. Meyler" <nickm-PMdw8XHZ8+ZWk0Htik3J/w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-risAOjzV9xFysia27LQL"
-Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4jJGg4AceWYY74EoiM+8f8NEotOVCvJu8aMXGjkvRPpMg@mail.gmail.com>
-Sender: kvm-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Xiao Guangrong <xiaoguangrong.eric@gmail.com>, Pankaj Gupta <pagupta@redhat.com>, Jan Kara <jack@suse.cz>, Stefan Hajnoczi <stefanha@redhat.com>, Stefan Hajnoczi <stefanha@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, ross zwisler <ross.zwisler@linux.intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Haozhong Zhang <haozhong.zhang@intel.com>, Ross Zwisler <ross.zwisler@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-
---=-risAOjzV9xFysia27LQL
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2017-11-21 at 10:26 -0800, Dan Williams wrote:
-> On Tue, Nov 21, 2017 at 10:19 AM, Rik van Riel <riel@redhat.com>
-> wrote:
-> > On Fri, 2017-11-03 at 14:21 +0800, Xiao Guangrong wrote:
-> > > On 11/03/2017 12:30 AM, Dan Williams wrote:
-> > > >=20
-> > > > Good point, I was assuming that the mmio flush interface would
-> > > > be
-> > > > discovered separately from the NFIT-defined memory range.
-> > > > Perhaps
-> > > > via
-> > > > PCI in the guest? This piece of the proposal=C2=A0=C2=A0needs a bit=
- more
-> > > > thought...
-> > > >=20
-> > >=20
-> > > Consider the case that the vNVDIMM device on normal storage and
-> > > vNVDIMM device on real nvdimm hardware can both exist in VM, the
-> > > flush interface should be able to associate with the SPA region
-> > > respectively. That's why I'd like to integrate the flush
-> > > interface
-> > > into NFIT/ACPI by using a separate table. Is it possible to be a
-> > > part of ACPI specification? :)
-> >=20
-> > It would also be perfectly fine to have the
-> > virtio PCI device indicate which vNVDIMM
-> > range it flushes.
-> >=20
-> > Since the guest OS needs to support that kind
-> > of device anyway, does it really matter which
-> > direction the device association points?
-> >=20
-> > We can go with the "best" interface for what
-> > could be a relatively slow flush (fsync on a
-> > file on ssd/disk on the host), which requires
-> > that the flushing task wait on completion
-> > asynchronously.
-> >=20
-> > If that kind of interface cannot be advertised
-> > through NFIT/ACPI, wouldn't it be perfectly fine
-> > to have only the virtio PCI device indicate which
-> > vNVDIMM range it flushes?
-> >=20
->=20
-> Yes, we could do this with a custom PCI device, however the NFIT is
-> frustratingly close to being able to define something like this. At
-> the very least we can start with a "SPA Range GUID" that is Linux
-> specific to indicate "call this virtio flush interface on FUA / flush
-> cache requests" as a stop gap until a standardized flush interface
-> can
-> be defined.
-
-Ahh, is that a "look for a device with this GUID"
-NFIT hint?
-
-That would be enough to tip off OSes that do not
-support that device that they found a vNVDIMM
-device that they cannot safely flush, which could
-help them report such errors to userspace...
-
---=20
-All rights reversed
---=-risAOjzV9xFysia27LQL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAABCAAGBQJaFHIOAAoJEM553pKExN6DEv8H/3ac63iIIfWrbtU+6VR296yO
-//S2mCDMUPYnbcb/60TaADGV9cLOxK7OddJk7AZWxNF80QrDGetGguyxQutflAZP
-iVGTXxBYZdWj3vGfTXgDkYNqZD5epUVC37fAIFjV2DcwV/xpsEdtVzjS7gGPCmrv
-KkxVeujgrrGcUVEZv4XMGuSyTZCK+kg3NvdqHaPKGOgsq1qKsHbguY91pETtSvTK
-eao6y0X/t9RQ08lU2JoUhUeeGGn4p4/z43Y7Su7MDuDU0tCiD91WY5uKP94q1f7K
-yhtBwlsSAGs7QZa+tk5Twkh68fi0iFk7nPeYCtt9lJKD6esZLSCYgoPie4dyi5Y=
-=JEbE
------END PGP SIGNATURE-----
-
---=-risAOjzV9xFysia27LQL--
+QXR0ZW50aW9uIEVuZ2luZWVycywgQ2hlbWlzdHMsIFBsYXRlcnMsIGV0Yy4sCgoKTXkgbmV3IGNs
+aWVudCBpcyB0aGUgRG93L0R1UG9udCBjb21wYW55LCBhcyB5b3UgbWF5IGhhdmUgYmVlbiBtYWRl
+IGF3YXJlIG92ZXIgdGhlIGxhc3Qgc2V2ZXJhbCBtb250aHMgZHVlIHRvIG15IGNvbmR1Y3Rpbmcg
+YSBudW1iZXIgb2YgcmV0YWluZWQgc2VhcmNoZXMgZm9yIHRoZW0uICBUaGV5IGhhdmUgYXNrZWQg
+bWUgdG8gaGVscCBvdXQgb24gYW5vdGhlciBvbmUgaW4gdGhlIFNpbGljb24gVmFsbGV5IGFyZWEu
+ICBQbGVhc2UgZG8gTk9UIGFwcGx5IGRpcmVjdGx5IHRvIHRoZSBjb21wYW55IGZvciB0aGlzIHNl
+YXJjaCwgYXMgdGhhdCBjYW4gcG90ZW50aWFsbHkgc2xvdyBkb3duIHRoZSBwcm9jZXNzIHNpZ25p
+ZmljYW50bHkuICBBbHNvLCBpZiB5b3UgaGF2ZSBwcmV2aW91c2x5IGFwcGxpZWQgdG8gRHVQb250
+IG9yIERvdywgcGxlYXNlIGxldCBtZSBrbm93IHdoZW4gYW5kIHdoZXJlLCBmb3Igd2hhdCBwb3Np
+dGlvbiwgZXRjLgoKUGxlYXNlIGhhdmUgYSBXb25kZXJmdWwgVGhhbmtzZ2l2aW5nIQoKCkZsZXhp
+YmxlIENpcmN1aXQgQXBwbGljYXRpb25zIEVuZ2luZWVyClN1bm55dmFsZSwgQ0EKSm9iIERlc2Ny
+aXB0aW9uCkZsZXhpYmxlIGNpcmN1aXQgYXBwbGljYXRpb25zIGVuZ2luZWVyIHdpdGggZXhwZXJp
+ZW5jZSBpbiBhIGN1c3RvbWVyLWZhY2luZyByb2xlIGxvY2F0ZWQgaW4gU2lsaWNvbiBWYWxsZXkh
+CgpGbGV4aWJsZSBjaXJjdWl0cywgYW5kIHRoZSBpbnRlZ3JhdGlvbiBvZiByaWdpZCBjb21wb25l
+bnRzIG9udG8gZmxleGlibGUgY2lyY3VpdHMsIHJlcHJlc2VudCBhbiBpbXBvcnRhbnQgdGVjaG5v
+bG9neSBpbiB0aGUgZWxlY3Ryb25pY3MgaW5kdXN0cnkgdG9kYXkuIER1UG9udCBpcyBhIHNpZ25p
+ZmljYW50IHBsYXllciBpbiB0aGlzIHJhcGlkbHkgZ3Jvd2luZyBtYXJrZXQsIHdoaWNoIGlzIGZ1
+ZWxlZCBieSBrZXkgdGVjaG5pY2FsIGFkdmFuY2VtZW50cyBpbiBwb2x5aW1pZGUgY29wcGVyIGNs
+YWQgbGFtaW5hdGUgYW5kIG90aGVyIGRpZWxlY3RyaWMgc3Vic3RyYXRlIG1hdGVyaWFscy4KClRo
+ZSBjYW5kaWRhdGUgaXMgZXhwZWN0ZWQgdG8gYnJpbmcgc3Ryb25nIHNraWxscyBhbmQgY2FwYWJp
+bGl0aWVzIGluIGZsZXhpYmxlIGNpcmN1aXQgZGVzaWduIGFuZCBjaXJjdWl0IGZhYnJpY2F0aW9u
+IHRvIGVuYWJsZSBEdVBvbnQgdG8gc2VydmUgY3VzdG9tZXIgbmVlZHMgYW5kIGV4cGFuZCB0aGVp
+ciBtYXJrZXQgcHJlc2VuY2UuIFRoZSBjYW5kaWRhdGUgd2lsbCBpZGVudGlmeSwgYXNzZXNzIGFu
+ZCBkZXZlbG9wIG5ldyBlbmdpbmVlcmluZyBjb25jZXB0cyBhbmQvb3IgdGVjaG5vbG9naWVzIHRv
+IHByb3ZpZGUgc29sdXRpb25zIHRvIGlkZW50aWZpZWQgcHJvYmxlbXMuCgpIYXMgZXhwZXJpZW5j
+ZSBpbiBmbGV4aWJsZSBlbGVjdHJvbmljcyBhcHBsaWNhdGlvbnMgZW5naW5lZXJpbmcsIGNvbnN0
+cnVjdGlvbiBvZiBsYW1pbmF0ZWQgY2lyY3VpdCBzdHJ1Y3R1cmVzLCBkZXNpZ24gb2YgY2lyY3Vp
+dHJ5IGFuZCB0ZWNobmljYWwgbWFya2V0aW5nIGFuZCB3b3JrcyB0b3dhcmQgaGVscGluZyBvdXIg
+T0VNIGFuZCBNaWxpdGFyeSBjdXN0b21lcnMgdW5kZXJzdGFuZCB0aGUgdXNlIG9mIGFwcGxpY2F0
+aW9uIG9mIG91ciBtYXRlcmlhbHMuCgpXb3JrcyBjbG9zZWx5IHdpdGggdGhlIHNhbGVzIGFuZCBt
+YXJrZXRpbmcgb3JnYW5pemF0aW9uIHRvIGlkZW50aWZ5IHRoZSBrZXkgbWFya2V0cyBhbmQgbmVl
+ZHMgaW4gdGhlIHRhcmdldGVkIHNlZ21lbnRzLgoKV29ya3MgYWNyb3NzIHRoZSBvcmdhbml6YXRp
+b24gdG8gZGV2ZWxvcCBhbmQgaW1wbGVtZW50IHRhY3RpY3MgdG8gY2FwdHVyZSB2YWx1ZSBvZiBk
+aWZmZXJlbnRpYXRlZCBtYXRlcmlhbCBzb2x1dGlvbnMuCgpTdXBwb3J0cyBwcm9kdWN0IGRldmVs
+b3BtZW50IGJ5IGdlbmVyYXRpbmcgbmV3IHByb2R1Y3QgaWRlYXMgYmFzZWQgb24gY3VzdG9tZXIg
+ZmVlZGJhY2sgYW5kIHdvcmtzIHdpdGggZ2xvYmFsIFImRCB0ZWFtcyB0byBjdWx0aXZhdGUgYW5k
+IHByaW9yaXRpemUgbmV3IHByb2R1Y3RzIHRocm91Z2ggdGhlIHBpcGVsaW5lLgoKV29ya3Mgd2l0
+aCBhIGNyb3NzIGZ1bmN0aW9uYWwgdGVhbSBhY3Jvc3MgdGhlIG9yZ2FuaXphdGlvbiB0byBoZWxw
+IHJlZHVjZSB0aW1lIHRvIG1hcmtldC4KCkdlbmVyYXRlIGFuZCBwcmVzZW50IHRlY2huaWNhbCBj
+b250ZW50IHRvIGN1c3RvbWVycyB0aGF0IGRlbW9uc3RyYXRlIER1UG9udCBhZHZhbmNlZCBtYXRl
+cmlhbHMgc29sdmluZyBjdXN0b21lciBwcm9ibGVtcyB0aHJvdWdoIHBhcGVycywgcHJlc2VudGF0
+aW9ucywgYXBwbGljYXRpb24gbm90ZXMgYW5kIHByb3RvdHlwZXMuCgpKb2IgUXVhbGlmaWNhdGlv
+bnMKUXVhbGlmaWNhdGlvbnMgLyBFeHBlcmllbmNlCkJTIG9yIE1TIERlZ3JlZSBpbiBFbmdpbmVl
+cmluZyAoRWxlY3RyaWNhbC9NZWNoYW5pY2FsKSBvciBhIFBoeXNpY2FsIFNjaWVuY2UgKE1hdGVy
+aWFsLyBQaHlzaWNzKSA1LTEwIFllYXJzIFJlbGV2YW50IEluZHVzdHJ5IEV4cGVyaWVuY2UgaW4g
+dGhlIGZsZXhpYmxlIGNpcmN1aXQgaW5kdXN0cnkgd2hldGhlciB0aGUgZGVzaWduIG9yIGZhYnJp
+Y2F0aW9uLgpNdWx0aWRpc2NpcGxpbmFyeSBiYWNrZ3JvdW5kIChzY2llbmNlLCBlbmdpbmVlcmlu
+ZywgbWFya2V0aW5nLCBidXNpbmVzcywgb3Igc2FsZXMpIGlzIHByZWZlcnJlZC4KRGVtb25zdHJh
+dGVkIHN1Y2Nlc3NmdWwgY3VzdG9tZXIgZmFjaW5nIGV4cGVyaWVuY2UsIHByZWZlcmFibHkgdG8g
+T0VN4oCZcyBpbiBNaWxpdGFyeSwgTmV0d29ya2luZywgQXV0b21vdGl2ZSBtYXJrZXRzLgpEZW1v
+bnN0cmF0ZWQgdW5kZXJzdGFuZGluZyBvZiBoaWdoIHJlbGlhYmlsaXR5IGZsZXggb3IgcmlnaWQg
+Y2lyY3VpdCBmYWJyaWNhdGlvbiB0ZWNobm9sb2dpZXMsIHByb2Nlc3NlcywgYXBwbGljYXRpb25z
+LCBhbmQgbWFya2V0cy4KRXhwZXJpZW5jZSBwcm90b3R5cGluZywgZGVzaWduaW5nLCB0ZXN0aW5n
+LCBhbmQgZXZhbHVhdGluZyByaWdpZCAmIGh5YnJpZCBmbGV4aWJsZSBjaXJjdWl0IGJvYXJkIHRl
+Y2hub2xvZ2llcy4KRXhwZXJpZW5jZSBpbiBIaWdoIHNwZWVkIGRpZ2l0YWwsIFJGLCBtaWNyb3dh
+dmUvbWlsbGltZXRlciB3YXZlIGNpcmN1aXQsIGFuZCBhbnRlbm5hIGFwcGxpY2F0aW9ucyBwcmVm
+ZXJyZWQuCkNhcGFibGUgb2YgaW50ZXJmYWNpbmcgd2l0aCBlbGVjdHJpY2FsIHBhY2thZ2luZyBl
+bmdpbmVlcnMgYW5kIGRlc2lnbmVycy4KVHJhY2sgcmVjb3JkIG9mIHN1Y2Nlc3Mgc29sdmluZyBl
+bWVyZ2luZyBlbGVjdHJvbmljcyBuZWVkcywgZXNwZWNpYWxseSB0aG9zZSB0aGF0IGFkZHJlc3Mg
+c2l6ZSwgd2VpZ2h0LCBhbmQgcG93ZXIgKFNXYVApICYgaGlnaCBzcGVlZCAvIGhpZ2ggZnJlcXVl
+bmN5IGFwcGxpY2F0aW9ucy4KRmFtaWxpYXJpdHkgb2YgdGhlIGtleSByZXF1aXJlbWVudHMgZm9y
+IE1JTCBhbmQvb3IgSVBDIHNwZWNpZmljYXRpb25zIGFuZCB0aGUgbWF0ZXJpYWwgcHJvcGVydGll
+cyB0aGF0IGltcGFjdCBQQ0IgYWNjZXB0YW5jZSB0ZXN0cy4KRWl0aGVyIGhhcyBvciBjYW4gb2J0
+YWluIChwb3N0IGhpcmUpIGEgU2VjcmV0IFNlY3VyaXR5IGNsZWFyYW5jZQpFeHBlcmllbmNlIHdv
+cmtpbmcgZm9yIGEgZ292ZXJubWVudCBPRU0gZWl0aGVyIGRpcmVjdGx5IG9yIGluZGlyZWN0bHkg
+KGNvbnRyYWN0b3IsIGNvbnN1bHRhbnQsIGV0Yy4pIGFzIGFuIGVsZWN0cm9uaWNzIGRlc2lnbmVy
+IG9yIGVsZWN0cm9uaWNzIGZhYnJpY2F0aW9uIHByb2Nlc3MgZW5naW5lZXIuCldpbGxpbmduZXNz
+IHRvIGF0dGVuZCB0cmFkZSBzaG93cyBhbmQgZGVzaWduIGNvdW5jaWxzOyBvbiBvY2Nhc2lvbiwg
+cHJlc2VudCB0aGUgbWVyaXRzIG9mIGVsZWN0cm9uaWNzIG1hdGVyaWFscywgZGVzaWduLCBhbmQv
+b3IgZmFicmljYXRpb24gbWV0aG9kcyBhdCBrZXkgZXZlbnRzLgpJZiB5b3UgYXJlIGludGVyZXN0
+ZWQgaW4gYXBwbHlpbmcgZm9yIG9uZSBvZiB0aGVzZSBwb3NpdGlvbnMsIHBsZWFzZSByZXNwb25k
+IHdpdGggYSByZXN1bWUuIFJlZmVycmFscyBhbmQgcmVjb21tZW5kYXRpb25zIGFyZSBhbHNvIHdl
+bGNvbWVkLgoKQmVzdCBSZWdhcmRzLAoKTmljaG9sYXMgTWV5bGVyClByZXNpZGVudC9HTSwgVGVj
+aG5vbG9neQpXaW5nYXRlIER1bnJvc3MsIEluYy4KcGggKDgxOCk1OTctMzIwMCBleHQuIDIxMQo8
+bmlja21Ad2RzZWFyY2guY29tPgoKCgpodHRwOi8vYXBwLnN0cmVhbXNlbmQuY29tL3ByaXZhdGUv
+dTRLdC9uS1IvclBPenBqby91bnN1YnNjcmliZS8yOTk5MDEzMwpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
+bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1udmRpbW0K
