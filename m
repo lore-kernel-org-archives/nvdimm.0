@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AC7232034A88E
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 16/18] ext4: Support for synchronous DAX faults
-Date: Wed,  1 Nov 2017 16:36:45 +0100
-Message-Id: <20171101153648.30166-17-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id C0CBC21B00DD4
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Nov 2017 14:47:00 -0800 (PST)
+Subject: [PATCH 1/2] mm, hugetlbfs: introduce ->split() to vm_operations_struct
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 21 Nov 2017 14:43:01 -0800
+Message-ID: <151130418135.4029.6783191281930729710.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151130417573.4029.6745923267963684469.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151130417573.4029.6745923267963684469.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,166 +18,85 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We return IOMAP_F_DIRTY flag from ext4_iomap_begin() when asked to
-prepare blocks for writing and the inode has some uncommitted metadata
-changes. In the fault handler ext4_dax_fault() we then detect this case
-(through VM_FAULT_NEEDDSYNC return value) and call helper
-dax_finish_sync_fault() to flush metadata changes and insert page table
-entry. Note that this will also dirty corresponding radix tree entry
-which is what we want - fsync(2) will still provide data integrity
-guarantees for applications not using userspace flushing. And
-applications using userspace flushing can avoid calling fsync(2) and
-thus avoid the performance overhead.
+The device-dax interface has similar constraints as hugetlbfs in that it
+requires the munmap path to unmap in huge page aligned units.  Rather
+than add more custom vma handling code in __split_vma() introduce a new
+vm operation to perform this vma specific check.
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
+Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/ext4/file.c       | 15 ++++++++++++++-
- fs/ext4/inode.c      | 15 +++++++++++++++
- fs/jbd2/journal.c    | 17 +++++++++++++++++
- include/linux/jbd2.h |  1 +
- 4 files changed, 47 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    1 +
+ mm/hugetlb.c       |    8 ++++++++
+ mm/mmap.c          |    8 +++++---
+ 3 files changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 208adfc3e673..08a1d1a33a90 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -26,6 +26,7 @@
- #include <linux/quotaops.h>
- #include <linux/pagevec.h>
- #include <linux/uio.h>
-+#include <linux/mman.h>
- #include "ext4.h"
- #include "ext4_jbd2.h"
- #include "xattr.h"
-@@ -295,6 +296,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 	 */
- 	bool write = (vmf->flags & FAULT_FLAG_WRITE) &&
- 		(vmf->vma->vm_flags & VM_SHARED);
-+	pfn_t pfn;
- 
- 	if (write) {
- 		sb_start_pagefault(sb);
-@@ -310,9 +312,12 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 	} else {
- 		down_read(&EXT4_I(inode)->i_mmap_sem);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ee073146aaa7..b3b6a7e313e9 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -377,6 +377,7 @@ enum page_entry_size {
+ struct vm_operations_struct {
+ 	void (*open)(struct vm_area_struct * area);
+ 	void (*close)(struct vm_area_struct * area);
++	int (*split)(struct vm_area_struct * area, unsigned long addr);
+ 	int (*mremap)(struct vm_area_struct * area);
+ 	int (*fault)(struct vm_fault *vmf);
+ 	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index 681b300185c0..698e8fb34031 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -3125,6 +3125,13 @@ static void hugetlb_vm_op_close(struct vm_area_struct *vma)
  	}
--	result = dax_iomap_fault(vmf, pe_size, NULL, &ext4_iomap_ops);
-+	result = dax_iomap_fault(vmf, pe_size, &pfn, &ext4_iomap_ops);
- 	if (write) {
- 		ext4_journal_stop(handle);
-+		/* Handling synchronous page fault? */
-+		if (result & VM_FAULT_NEEDDSYNC)
-+			result = dax_finish_sync_fault(vmf, pe_size, pfn);
- 		up_read(&EXT4_I(inode)->i_mmap_sem);
- 		sb_end_pagefault(sb);
- 	} else {
-@@ -350,6 +355,13 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
- 	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
- 		return -EIO;
- 
-+	/*
-+	 * We don't support synchronous mappings for non-DAX files. At least
-+	 * until someone comes with a sensible use case.
-+	 */
-+	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-+		return -EOPNOTSUPP;
-+
- 	file_accessed(file);
- 	if (IS_DAX(file_inode(file))) {
- 		vma->vm_ops = &ext4_dax_vm_ops;
-@@ -719,6 +731,7 @@ const struct file_operations ext4_file_operations = {
- 	.compat_ioctl	= ext4_compat_ioctl,
- #endif
- 	.mmap		= ext4_file_mmap,
-+	.mmap_supported_flags = MAP_SYNC,
- 	.open		= ext4_file_open,
- 	.release	= ext4_release_file,
- 	.fsync		= ext4_sync_file,
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 31db875bc7a1..13a198924a0f 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3394,6 +3394,19 @@ static int ext4_releasepage(struct page *page, gfp_t wait)
  }
  
- #ifdef CONFIG_FS_DAX
-+static bool ext4_inode_datasync_dirty(struct inode *inode)
++static int hugetlb_vm_op_split(struct vm_area_struct *vma, unsigned long addr)
 +{
-+	journal_t *journal = EXT4_SB(inode->i_sb)->s_journal;
-+
-+	if (journal)
-+		return !jbd2_transaction_committed(journal,
-+					EXT4_I(inode)->i_datasync_tid);
-+	/* Any metadata buffers to write? */
-+	if (!list_empty(&inode->i_mapping->private_list))
-+		return true;
-+	return inode->i_state & I_DIRTY_DATASYNC;
++	if (addr & ~(huge_page_mask(hstate_vma(vma))))
++		return -EINVAL;
++	return 0;
 +}
-+
- static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
- 			    unsigned flags, struct iomap *iomap)
- {
-@@ -3466,6 +3479,8 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
- 	}
- 
- 	iomap->flags = 0;
-+	if ((flags & IOMAP_WRITE) && ext4_inode_datasync_dirty(inode))
-+		iomap->flags |= IOMAP_F_DIRTY;
- 	iomap->bdev = inode->i_sb->s_bdev;
- 	iomap->dax_dev = sbi->s_daxdev;
- 	iomap->offset = first_block << blkbits;
-diff --git a/fs/jbd2/journal.c b/fs/jbd2/journal.c
-index 7d5ef3bf3f3e..fa8cde498b4b 100644
---- a/fs/jbd2/journal.c
-+++ b/fs/jbd2/journal.c
-@@ -738,6 +738,23 @@ int jbd2_log_wait_commit(journal_t *journal, tid_t tid)
- 	return err;
- }
- 
-+/* Return 1 when transaction with given tid has already committed. */
-+int jbd2_transaction_committed(journal_t *journal, tid_t tid)
-+{
-+	int ret = 1;
-+
-+	read_lock(&journal->j_state_lock);
-+	if (journal->j_running_transaction &&
-+	    journal->j_running_transaction->t_tid == tid)
-+		ret = 0;
-+	if (journal->j_committing_transaction &&
-+	    journal->j_committing_transaction->t_tid == tid)
-+		ret = 0;
-+	read_unlock(&journal->j_state_lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL(jbd2_transaction_committed);
 +
  /*
-  * When this function returns the transaction corresponding to tid
-  * will be completed.  If the transaction has currently running, start
-diff --git a/include/linux/jbd2.h b/include/linux/jbd2.h
-index 606b6bce3a5b..296d1e0ea87b 100644
---- a/include/linux/jbd2.h
-+++ b/include/linux/jbd2.h
-@@ -1367,6 +1367,7 @@ int jbd2_log_start_commit(journal_t *journal, tid_t tid);
- int __jbd2_log_start_commit(journal_t *journal, tid_t tid);
- int jbd2_journal_start_commit(journal_t *journal, tid_t *tid);
- int jbd2_log_wait_commit(journal_t *journal, tid_t tid);
-+int jbd2_transaction_committed(journal_t *journal, tid_t tid);
- int jbd2_complete_transaction(journal_t *journal, tid_t tid);
- int jbd2_log_do_checkpoint(journal_t *journal);
- int jbd2_trans_will_send_data_barrier(journal_t *journal, tid_t tid);
--- 
-2.12.3
+  * We cannot handle pagefaults against hugetlb pages at all.  They cause
+  * handle_mm_fault() to try to instantiate regular-sized pages in the
+@@ -3141,6 +3148,7 @@ const struct vm_operations_struct hugetlb_vm_ops = {
+ 	.fault = hugetlb_vm_op_fault,
+ 	.open = hugetlb_vm_op_open,
+ 	.close = hugetlb_vm_op_close,
++	.split = hugetlb_vm_op_split,
+ };
+ 
+ static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
+diff --git a/mm/mmap.c b/mm/mmap.c
+index 924839fac0e6..a4d546821214 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -2555,9 +2555,11 @@ int __split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	struct vm_area_struct *new;
+ 	int err;
+ 
+-	if (is_vm_hugetlb_page(vma) && (addr &
+-					~(huge_page_mask(hstate_vma(vma)))))
+-		return -EINVAL;
++	if (vma->vm_ops && vma->vm_ops->split) {
++		err = vma->vm_ops->split(vma, addr);
++		if (err)
++			return err;
++	}
+ 
+ 	new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 	if (!new)
 
 _______________________________________________
 Linux-nvdimm mailing list
