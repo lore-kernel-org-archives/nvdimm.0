@@ -1,24 +1,94 @@
-From: whbn764rurjt-H7JFDJ09qGI@public.gmane.org
-Subject: =?GB2312?B?xrEtvt3X9i3Vyw==?=
-Date: Mon, 20 Nov 2017 22:53:23 +0800
-Message-ID: <20171120144917.C4FD020958BE5@ml01.01.org>
+From: Rik van Riel <riel@redhat.com>
+Subject: Re: KVM "fake DAX" flushing interface - discussion
+Date: Tue, 21 Nov 2017 13:19:49 -0500
+Message-ID: <1511288389.1080.14.camel@redhat.com>
+References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
+         <1888117852.34216619.1500992835767.JavaMail.zimbra@redhat.com>
+         <CAPcyv4in28F3FOVKp9abvrggxPuXdbGynF5=ZvBXCrywoa06JA@mail.gmail.com>
+         <1501016375.26846.21.camel@redhat.com>
+         <1063764405.34607875.1501076841865.JavaMail.zimbra@redhat.com>
+         <1501104453.26846.45.camel@redhat.com>
+         <CAPcyv4hsqrqBxoipUHPAbSctuzbVWCRnT-gN08i9uhXTWY6iPQ@mail.gmail.com>
+         <1501112787.4073.49.camel@redhat.com>
+         <CAPcyv4gbC6Hx_4YsCfOd2t=fn=wPGp5h__1QH=-p40TPFNbFzA@mail.gmail.com>
+         <0a26793f-86f7-29e7-f61b-dc4c1ef08c8e@gmail.com>
+         <CAPcyv4iw2cCpDmr+4kxsFvdy+iGZiz=ok-kLhsDKpqDy+szf-Q@mail.gmail.com>
+         <378b10f3-b32f-84f5-2bbc-50c2ec5bcdd4@gmail.com>
+         <CAPcyv4jR_LdbsX-rAsHC7++C6d-WYC084uWXzr+08PSYwoXFMw@mail.gmail.com>
+         <ca6aaa77-cca0-441e-be49-73133d8581cf@gmail.com>
+         <CAPcyv4gKzvd39WbnKjbs3Bn9+o1tt=vz90CYMFu0DF5PsfHUig@mail.gmail.com>
+         <86754966-281f-c3ed-938c-f009440de563@gmail.com>
+         <CAPcyv4iH==cqVAdd8i1y-8A6SuXU75OH1EZzgNMvtA21wfxPpQ@mail.gmail.com>
+         <ec5ff7c2-864e-5020-0aaa-6663e78e3756@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-YkxgZx0ZzE65iqL9l6Ah"
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <ec5ff7c2-864e-5020-0aaa-6663e78e3756@gmail.com>
+Sender: kvm-owner@vger.kernel.org
+To: Xiao Guangrong <xiaoguangrong.eric@gmail.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Pankaj Gupta <pagupta@redhat.com>, Jan Kara <jack@suse.cz>, Stefan Hajnoczi <stefanha@redhat.com>, Stefan Hajnoczi <stefanha@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, ross zwisler <ross.zwisler@linux.intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Haozhong Zhang <haozhong.zhang@intel.com>, Ross Zwisler <ross.zwisler@intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-CrT6v6q3oqGixrGjrNHpuvO4ti+/7goK1tzPyMn6IDEzNzIzNDQ5MTA5ICDOotDFusWjumE0NDkx
-MDkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+
+--=-YkxgZx0ZzE65iqL9l6Ah
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, 2017-11-03 at 14:21 +0800, Xiao Guangrong wrote:
+> On 11/03/2017 12:30 AM, Dan Williams wrote:
+> >=20
+> > Good point, I was assuming that the mmio flush interface would be
+> > discovered separately from the NFIT-defined memory range. Perhaps
+> > via
+> > PCI in the guest? This piece of the proposal=C2=A0=C2=A0needs a bit mor=
+e
+> > thought...
+> >=20
+>=20
+> Consider the case that the vNVDIMM device on normal storage and
+> vNVDIMM device on real nvdimm hardware can both exist in VM, the
+> flush interface should be able to associate with the SPA region
+> respectively. That's why I'd like to integrate the flush interface
+> into NFIT/ACPI by using a separate table. Is it possible to be a
+> part of ACPI specification? :)
+
+It would also be perfectly fine to have the
+virtio PCI device indicate which vNVDIMM
+range it flushes.
+
+Since the guest OS needs to support that kind
+of device anyway, does it really matter which
+direction the device association points?
+
+We can go with the "best" interface for what
+could be a relatively slow flush (fsync on a
+file on ssd/disk on the host), which requires
+that the flushing task wait on completion
+asynchronously.
+
+If that kind of interface cannot be advertised
+through NFIT/ACPI, wouldn't it be perfectly fine
+to have only the virtio PCI device indicate which
+vNVDIMM range it flushes?
+
+--=20
+All rights reversed
+--=-YkxgZx0ZzE65iqL9l6Ah
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAABCAAGBQJaFG5FAAoJEM553pKExN6DkB8H/2QuJPfLcfkc3wfyk1Y5B2We
+fipWPXwANS0sPCUl4JLIHG78qfV372SrmtnzTwbPpJsBts4IdkR7jcc0oXFIPrdz
+M7BxVEWuO1MSRnPNLtcDak8FoNwx5Ih987pZfrRaNT40N3XVwHsmdbEOnLiWw/gs
+bxPHlzhQ3x/vdbA6rwmxon/aIwa9/4D6wlmR1HQW8WE7Kwc5rrJxjTXb9/4znWVo
+yZsABziwJwK+9XhGXh2UmLp+7xf/PBR/X7uKvamPBL0sGS3pW8AS9sQxCi5CQ0IE
+DGEH7R1KTMDCJaY5+mVQf9Te351+4b1UMpIzkIueLjm5U+Kef7Omw5HjT0J/R2k=
+=Z+Y6
+-----END PGP SIGNATURE-----
+
+--=-YkxgZx0ZzE65iqL9l6Ah--
