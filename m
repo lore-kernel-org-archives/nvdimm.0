@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 48E6521C913AB
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 03/18] dax: Simplify arguments of dax_insert_mapping()
-Date: Wed,  1 Nov 2017 16:36:32 +0100
-Message-Id: <20171101153648.30166-4-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id DD0752034C5F2
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Nov 2017 11:11:51 -0800 (PST)
+Subject: [PATCH v3 3/5] mm: replace pud_write with pud_access_permitted in
+ fault + gup paths
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 21 Nov 2017 11:07:52 -0800
+Message-ID: <151129127237.37405.16073414520854722485.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151129125625.37405.15953656230804875212.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151129125625.37405.15953656230804875212.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,111 +19,92 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, Heiko Carstens <heiko.carstens@de.ibm.com>, Dave Hansen <dave.hansen@intel.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-dax_insert_mapping() has lots of arguments and a lot of them is actuall
-duplicated by passing vm_fault structure as well. Change the function to
-take the same arguments as dax_pmd_insert_mapping().
+The 'access_permitted' helper is used in the gup-fast path and goes
+beyond the simple _PAGE_RW check to also:
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
+* validate that the mapping is writable from a protection keys
+  standpoint
+
+* validate that the pte has _PAGE_USER set since all fault paths where
+  pud_write is must be referencing user-memory.
+
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ arch/s390/include/asm/pgtable.h |    6 ++++++
+ arch/sparc/mm/gup.c             |    2 +-
+ mm/huge_memory.c                |    2 +-
+ mm/memory.c                     |    2 +-
+ 4 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index f001d8c72a06..0bc42ac294ca 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -820,23 +820,30 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+diff --git a/arch/s390/include/asm/pgtable.h b/arch/s390/include/asm/pgtable.h
+index 0a6b0286c32e..57d7bc92e0b8 100644
+--- a/arch/s390/include/asm/pgtable.h
++++ b/arch/s390/include/asm/pgtable.h
+@@ -1264,6 +1264,12 @@ static inline pud_t pud_mkwrite(pud_t pud)
+ 	return pud;
  }
- EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
  
--static int dax_insert_mapping(struct address_space *mapping,
--		struct block_device *bdev, struct dax_device *dax_dev,
--		sector_t sector, size_t size, void *entry,
--		struct vm_area_struct *vma, struct vm_fault *vmf)
-+static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
++#define pud_write pud_write
++static inline int pud_write(pud_t pud)
 +{
-+	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
++	return (pud_val(pud) & _REGION3_ENTRY_WRITE) != 0;
 +}
 +
-+static int dax_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
-+			      loff_t pos, void *entry)
+ static inline pud_t pud_mkclean(pud_t pud)
  {
-+	const sector_t sector = dax_iomap_sector(iomap, pos);
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct address_space *mapping = vma->vm_file->f_mapping;
- 	unsigned long vaddr = vmf->address;
- 	void *ret, *kaddr;
- 	pgoff_t pgoff;
- 	int id, rc;
- 	pfn_t pfn;
+ 	if (pud_large(pud)) {
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index 5335ba3c850e..5ae2d0a01a70 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -114,7 +114,7 @@ static int gup_huge_pud(pud_t *pudp, pud_t pud, unsigned long addr,
+ 	if (!(pud_val(pud) & _PAGE_VALID))
+ 		return 0;
  
--	rc = bdev_dax_pgoff(bdev, sector, size, &pgoff);
-+	rc = bdev_dax_pgoff(iomap->bdev, sector, PAGE_SIZE, &pgoff);
- 	if (rc)
- 		return rc;
+-	if (write && !pud_write(pud))
++	if (!pud_access_permitted(pud, write))
+ 		return 0;
  
- 	id = dax_read_lock();
--	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
-+	rc = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(PAGE_SIZE),
-+			       &kaddr, &pfn);
- 	if (rc < 0) {
- 		dax_read_unlock(id);
- 		return rc;
-@@ -936,11 +943,6 @@ int __dax_zero_page_range(struct block_device *bdev,
- }
- EXPORT_SYMBOL_GPL(__dax_zero_page_range);
+ 	refs = 0;
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 86fe697e8bfb..9583f035ccb0 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -1022,7 +1022,7 @@ struct page *follow_devmap_pud(struct vm_area_struct *vma, unsigned long addr,
  
--static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
--{
--	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
--}
--
- static loff_t
- dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct iomap *iomap)
-@@ -1087,7 +1089,6 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 	struct inode *inode = mapping->host;
- 	unsigned long vaddr = vmf->address;
- 	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
--	sector_t sector;
- 	struct iomap iomap = { 0 };
- 	unsigned flags = IOMAP_FAULT;
- 	int error, major = 0;
-@@ -1140,9 +1141,9 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 		goto error_finish_iomap;
- 	}
+ 	assert_spin_locked(pud_lockptr(mm, pud));
  
--	sector = dax_iomap_sector(&iomap, pos);
--
- 	if (vmf->cow_page) {
-+		sector_t sector = dax_iomap_sector(&iomap, pos);
-+
- 		switch (iomap.type) {
- 		case IOMAP_HOLE:
- 		case IOMAP_UNWRITTEN:
-@@ -1175,8 +1176,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf,
- 			count_memcg_event_mm(vmf->vma->vm_mm, PGMAJFAULT);
- 			major = VM_FAULT_MAJOR;
- 		}
--		error = dax_insert_mapping(mapping, iomap.bdev, iomap.dax_dev,
--				sector, PAGE_SIZE, entry, vmf->vma, vmf);
-+		error = dax_insert_mapping(vmf, &iomap, pos, entry);
- 		/* -EBUSY is fine, somebody else faulted on the same PTE */
- 		if (error == -EBUSY)
- 			error = 0;
--- 
-2.12.3
+-	if (flags & FOLL_WRITE && !pud_write(*pud))
++	if (!pud_access_permitted(*pud, flags & FOLL_WRITE))
+ 		return NULL;
+ 
+ 	if (pud_present(*pud) && pud_devmap(*pud))
+diff --git a/mm/memory.c b/mm/memory.c
+index 85e7a87da79f..24fbd60eb2b0 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -4013,7 +4013,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
+ 
+ 			/* NUMA case for anonymous PUDs would go here */
+ 
+-			if (dirty && !pud_write(orig_pud)) {
++			if (dirty && !pud_access_permitted(orig_pud, WRITE)) {
+ 				ret = wp_huge_pud(&vmf, orig_pud);
+ 				if (!(ret & VM_FAULT_FALLBACK))
+ 					return ret;
 
 _______________________________________________
 Linux-nvdimm mailing list
