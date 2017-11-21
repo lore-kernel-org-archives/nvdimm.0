@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
+ [IPv6:2607:f8b0:4003:c06::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9D88C21FCA265
- for <linux-nvdimm@lists.01.org>; Thu,  2 Nov 2017 10:44:49 -0700 (PDT)
-Subject: [PATCH v3] acpi, nfit: add support for NVDIMM_FAMILY_INTEL v1.6 DSMs
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 02 Nov 2017 10:42:17 -0700
-Message-ID: <150964429635.4239.2306961037682428626.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B53722035BB2E
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Nov 2017 15:22:11 -0800 (PST)
+Received: by mail-oi0-x231.google.com with SMTP id l138so9747241oib.7
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Nov 2017 15:26:27 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20171121150501.d4d811a66444cb5c9cb85bf2@linux-foundation.org>
+References: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151068939435.7446.13560129395419350737.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171121150501.d4d811a66444cb5c9cb85bf2@linux-foundation.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 21 Nov 2017 15:26:26 -0800
+Message-ID: <CAPcyv4jRqkwdVZrRnMcvAq1OJ0+DpHFQ6yhXhgN-ts1HMF1Nfw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] mm: introduce get_user_pages_longterm
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,161 +27,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Per v1.6 of the NVDIMM_FAMILY_INTEL command set [1] some of the new
-commands require rev-id 2. In addition to enabling ND_CMD_CALL for these
-new function numbers, add a lookup table for revision-ids by family
-and function number.
+On Tue, Nov 21, 2017 at 3:05 PM, Andrew Morton
+<akpm@linux-foundation.org> wrote:
+>
+> On Tue, 14 Nov 2017 11:56:34 -0800 Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> > Until there is a solution to the dma-to-dax vs truncate problem it is
+> > not safe to allow long standing memory registrations against
+> > filesytem-dax vmas. Device-dax vmas do not have this problem and are
+> > explicitly allowed.
+> >
+> > This is temporary until a "memory registration with layout-lease"
+> > mechanism can be implemented for the affected sub-systems (RDMA and
+> > V4L2).
+>
+> Sounds like that will be unpleasant.  Do we really need it to be that
+> complex?  Can we get away with simply failing the get_user_pages()
+> request?  Or are there significant usecases for RDMA and V4L to play
+> with DAX memory?
 
-[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
+V4L plus DAX is indeed dubious, but RDMA to persistent memory is
+something the RDMA community is interested in supporting [1].
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Change since v2:
-* fix the off-by one error sizing revid_table (Jerry)
-
- drivers/acpi/nfit/core.c |   45 ++++++++++++++++++++++++++++++++++++++++-----
- drivers/acpi/nfit/nfit.h |   26 +++++++++++++++++++++++++-
- 2 files changed, 65 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 444832b372ec..aa75d67ceee9 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -370,6 +370,32 @@ static union acpi_object *acpi_label_info(acpi_handle handle)
- 	return pkg_to_buf(buf.pointer);
- }
- 
-+static u8 nfit_dsm_revid(unsigned family, unsigned func)
-+{
-+	static const u8 revid_table[NVDIMM_FAMILY_MAX+1][32] = {
-+		[NVDIMM_FAMILY_INTEL] = {
-+			[NVDIMM_INTEL_GET_MODES] = 2,
-+			[NVDIMM_INTEL_GET_FWINFO] = 2,
-+			[NVDIMM_INTEL_START_FWUPDATE] = 2,
-+			[NVDIMM_INTEL_SEND_FWUPDATE] = 2,
-+			[NVDIMM_INTEL_FINISH_FWUPDATE] = 2,
-+			[NVDIMM_INTEL_QUERY_FWUPDATE] = 2,
-+			[NVDIMM_INTEL_SET_THRESHOLD] = 2,
-+			[NVDIMM_INTEL_INJECT_ERROR] = 2,
-+		},
-+	};
-+	u8 id;
-+
-+	if (family > NVDIMM_FAMILY_MAX)
-+		return 0;
-+	if (func > 31)
-+		return 0;
-+	id = revid_table[family][func];
-+	if (id == 0)
-+		return 1; /* default */
-+	return id;
-+}
-+
- int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
- {
-@@ -468,8 +494,15 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 
- 		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
- 				p->in_buf);
--	} else
--		out_obj = acpi_evaluate_dsm(handle, guid, 1, func, &in_obj);
-+	} else {
-+		u8 revid;
-+
-+		if (nfit_mem)
-+			revid = nfit_dsm_revid(nfit_mem->family, func);
-+		else
-+			revid = 1;
-+		out_obj = acpi_evaluate_dsm(handle, guid, revid, func, &in_obj);
-+	}
- 
- 	if (!out_obj) {
- 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
-@@ -1640,7 +1673,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	 * different command sets.  Note, that checking for function0 (bit0)
- 	 * tells us if any commands are reachable through this GUID.
- 	 */
--	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
-+	for (i = 0; i <= NVDIMM_FAMILY_MAX; i++)
- 		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
- 			if (family < 0 || i == default_dsm_family)
- 				family = i;
-@@ -1650,7 +1683,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	if (override_dsm_mask && !disable_vendor_specific)
- 		dsm_mask = override_dsm_mask;
- 	else if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
--		dsm_mask = 0x3fe;
-+		dsm_mask = NVDIMM_INTEL_CMDMASK;
- 		if (disable_vendor_specific)
- 			dsm_mask &= ~(1 << ND_CMD_VENDOR);
- 	} else if (nfit_mem->family == NVDIMM_FAMILY_HPE1) {
-@@ -1670,7 +1703,9 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 
- 	guid = to_nfit_uuid(nfit_mem->family);
- 	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
--		if (acpi_check_dsm(adev_dimm->handle, guid, 1, 1ULL << i))
-+		if (acpi_check_dsm(adev_dimm->handle, guid,
-+					nfit_dsm_revid(nfit_mem->family, i),
-+					1ULL << i))
- 			set_bit(i, &nfit_mem->dsm_mask);
- 
- 	obj = acpi_label_info(adev_dimm->handle);
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index b987196bf132..341be9511d0e 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -24,7 +24,7 @@
- /* ACPI 6.1 */
- #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
- 
--/* http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf */
-+/* http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf */
- #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
- 
- /* https://github.com/HewlettPackard/hpe-nvm/blob/master/Documentation/ */
-@@ -38,12 +38,36 @@
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
- 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
- 
-+#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
-+
- #define NVDIMM_STANDARD_CMDMASK \
- (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
-  | 1 << ND_CMD_GET_CONFIG_SIZE | 1 << ND_CMD_GET_CONFIG_DATA \
-  | 1 << ND_CMD_SET_CONFIG_DATA | 1 << ND_CMD_VENDOR_EFFECT_LOG_SIZE \
-  | 1 << ND_CMD_VENDOR_EFFECT_LOG | 1 << ND_CMD_VENDOR)
- 
-+/*
-+ * Command numbers that the kernel needs to know about to handle
-+ * non-default DSM revision ids
-+ */
-+enum nvdimm_family_cmds {
-+	NVDIMM_INTEL_GET_MODES = 11,
-+	NVDIMM_INTEL_GET_FWINFO = 12,
-+	NVDIMM_INTEL_START_FWUPDATE = 13,
-+	NVDIMM_INTEL_SEND_FWUPDATE = 14,
-+	NVDIMM_INTEL_FINISH_FWUPDATE = 15,
-+	NVDIMM_INTEL_QUERY_FWUPDATE = 16,
-+	NVDIMM_INTEL_SET_THRESHOLD = 17,
-+	NVDIMM_INTEL_INJECT_ERROR = 18,
-+};
-+
-+#define NVDIMM_INTEL_CMDMASK \
-+(NVDIMM_STANDARD_CMDMASK | 1 << NVDIMM_INTEL_GET_MODES \
-+ | 1 << NVDIMM_INTEL_GET_FWINFO | 1 << NVDIMM_INTEL_START_FWUPDATE \
-+ | 1 << NVDIMM_INTEL_SEND_FWUPDATE | 1 << NVDIMM_INTEL_FINISH_FWUPDATE \
-+ | 1 << NVDIMM_INTEL_QUERY_FWUPDATE | 1 << NVDIMM_INTEL_SET_THRESHOLD \
-+ | 1 << NVDIMM_INTEL_INJECT_ERROR)
-+
- enum nfit_uuids {
- 	/* for simplicity alias the uuid index with the family id */
- 	NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
-
+[1]: http://www.snia.org/sites/default/files/SDC15_presentations/persistant_mem/ChetDouglas_RDMA_with_PM.pdf
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
