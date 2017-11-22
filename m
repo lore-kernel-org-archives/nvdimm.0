@@ -1,12 +1,90 @@
-From: "Nicholas Meyler" <nickm-PMdw8XHZ8+ZWk0Htik3J/w@public.gmane.org>
-Subject: Great Search for Flexible Circuits Applications Engineers
-Date: Tue, 21 Nov 2017 15:05:57 -0800
-Message-ID: <300.0.15.C38.1D3631E3298EF80.10937E@me-ss2-ieksw9.mailengine1.com>
-Reply-To: "Nicholas J. Meyler" <nickm-PMdw8XHZ8+ZWk0Htik3J/w@public.gmane.org>
+From: "Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: cuhg
+Date: Wed, 22 Nov 2017 18:14:53 +0800
+Message-ID: <20171122101043.27F11220C1605@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_5A154E29.F416DAF6"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_5A154E29.F416DAF6
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  This Message was undeliverable due to the following reason:
+   Your message was not delivered because the destination computer was not reachable
+   within the allowed queue period. The amount of time a message is queued before
+   it is returned depends on local configura- tion parameters. [...] 
+
+Content analysis details:   (5.7 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+ 0.0 URIBL_BLOCKED          ADMINISTRATOR NOTICE: The query to URIBL was blocked.
+                            See
+                            http://wiki.apache.org/spamassassin/DnsBlocklists#dnsbl-block
+                             for more information.
+                            [URIs: 01.org]
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+-1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
+                            [score: 0.0000]
+ 1.4 PYZOR_CHECK            Listed in Pyzor (http://pyzor.sf.net/)
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+
+
+------------=_5A154E29.F416DAF6
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1eHS3Q-0002Og-Sn
+	for gln-linux-nvdimm@m.gmane.org; Wed, 22 Nov 2017 11:14:53 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 27F11220C1605;
+	Wed, 22 Nov 2017 02:10:43 -0800 (PST)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received-SPF: None (no SPF record) identity=mailfrom; client-ip=183.14.135.107;
+ helo=lists.01.org; envelope-from=postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org;
+ receiver=linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from lists.01.org (unknown [183.14.135.107])
+ by ml01.01.org (Postfix) with ESMTP id AEA53220C1602
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Wed, 22 Nov 2017 02:10:37 -0800 (PST)
+From: "Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: cuhg
+Date: Wed, 22 Nov 2017 18:14:53 +0800
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.22
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,87 +92,38 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+Message-Id: <20171122101043.27F11220C1605-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-QXR0ZW50aW9uIEVuZ2luZWVycywgQ2hlbWlzdHMsIFBsYXRlcnMsIGV0Yy4sCgoKTXkgbmV3IGNs
-aWVudCBpcyB0aGUgRG93L0R1UG9udCBjb21wYW55LCBhcyB5b3UgbWF5IGhhdmUgYmVlbiBtYWRl
-IGF3YXJlIG92ZXIgdGhlIGxhc3Qgc2V2ZXJhbCBtb250aHMgZHVlIHRvIG15IGNvbmR1Y3Rpbmcg
-YSBudW1iZXIgb2YgcmV0YWluZWQgc2VhcmNoZXMgZm9yIHRoZW0uICBUaGV5IGhhdmUgYXNrZWQg
-bWUgdG8gaGVscCBvdXQgb24gYW5vdGhlciBvbmUgaW4gdGhlIFNpbGljb24gVmFsbGV5IGFyZWEu
-ICBQbGVhc2UgZG8gTk9UIGFwcGx5IGRpcmVjdGx5IHRvIHRoZSBjb21wYW55IGZvciB0aGlzIHNl
-YXJjaCwgYXMgdGhhdCBjYW4gcG90ZW50aWFsbHkgc2xvdyBkb3duIHRoZSBwcm9jZXNzIHNpZ25p
-ZmljYW50bHkuICBBbHNvLCBpZiB5b3UgaGF2ZSBwcmV2aW91c2x5IGFwcGxpZWQgdG8gRHVQb250
-IG9yIERvdywgcGxlYXNlIGxldCBtZSBrbm93IHdoZW4gYW5kIHdoZXJlLCBmb3Igd2hhdCBwb3Np
-dGlvbiwgZXRjLgoKUGxlYXNlIGhhdmUgYSBXb25kZXJmdWwgVGhhbmtzZ2l2aW5nIQoKCkZsZXhp
-YmxlIENpcmN1aXQgQXBwbGljYXRpb25zIEVuZ2luZWVyClN1bm55dmFsZSwgQ0EKSm9iIERlc2Ny
-aXB0aW9uCkZsZXhpYmxlIGNpcmN1aXQgYXBwbGljYXRpb25zIGVuZ2luZWVyIHdpdGggZXhwZXJp
-ZW5jZSBpbiBhIGN1c3RvbWVyLWZhY2luZyByb2xlIGxvY2F0ZWQgaW4gU2lsaWNvbiBWYWxsZXkh
-CgpGbGV4aWJsZSBjaXJjdWl0cywgYW5kIHRoZSBpbnRlZ3JhdGlvbiBvZiByaWdpZCBjb21wb25l
-bnRzIG9udG8gZmxleGlibGUgY2lyY3VpdHMsIHJlcHJlc2VudCBhbiBpbXBvcnRhbnQgdGVjaG5v
-bG9neSBpbiB0aGUgZWxlY3Ryb25pY3MgaW5kdXN0cnkgdG9kYXkuIER1UG9udCBpcyBhIHNpZ25p
-ZmljYW50IHBsYXllciBpbiB0aGlzIHJhcGlkbHkgZ3Jvd2luZyBtYXJrZXQsIHdoaWNoIGlzIGZ1
-ZWxlZCBieSBrZXkgdGVjaG5pY2FsIGFkdmFuY2VtZW50cyBpbiBwb2x5aW1pZGUgY29wcGVyIGNs
-YWQgbGFtaW5hdGUgYW5kIG90aGVyIGRpZWxlY3RyaWMgc3Vic3RyYXRlIG1hdGVyaWFscy4KClRo
-ZSBjYW5kaWRhdGUgaXMgZXhwZWN0ZWQgdG8gYnJpbmcgc3Ryb25nIHNraWxscyBhbmQgY2FwYWJp
-bGl0aWVzIGluIGZsZXhpYmxlIGNpcmN1aXQgZGVzaWduIGFuZCBjaXJjdWl0IGZhYnJpY2F0aW9u
-IHRvIGVuYWJsZSBEdVBvbnQgdG8gc2VydmUgY3VzdG9tZXIgbmVlZHMgYW5kIGV4cGFuZCB0aGVp
-ciBtYXJrZXQgcHJlc2VuY2UuIFRoZSBjYW5kaWRhdGUgd2lsbCBpZGVudGlmeSwgYXNzZXNzIGFu
-ZCBkZXZlbG9wIG5ldyBlbmdpbmVlcmluZyBjb25jZXB0cyBhbmQvb3IgdGVjaG5vbG9naWVzIHRv
-IHByb3ZpZGUgc29sdXRpb25zIHRvIGlkZW50aWZpZWQgcHJvYmxlbXMuCgpIYXMgZXhwZXJpZW5j
-ZSBpbiBmbGV4aWJsZSBlbGVjdHJvbmljcyBhcHBsaWNhdGlvbnMgZW5naW5lZXJpbmcsIGNvbnN0
-cnVjdGlvbiBvZiBsYW1pbmF0ZWQgY2lyY3VpdCBzdHJ1Y3R1cmVzLCBkZXNpZ24gb2YgY2lyY3Vp
-dHJ5IGFuZCB0ZWNobmljYWwgbWFya2V0aW5nIGFuZCB3b3JrcyB0b3dhcmQgaGVscGluZyBvdXIg
-T0VNIGFuZCBNaWxpdGFyeSBjdXN0b21lcnMgdW5kZXJzdGFuZCB0aGUgdXNlIG9mIGFwcGxpY2F0
-aW9uIG9mIG91ciBtYXRlcmlhbHMuCgpXb3JrcyBjbG9zZWx5IHdpdGggdGhlIHNhbGVzIGFuZCBt
-YXJrZXRpbmcgb3JnYW5pemF0aW9uIHRvIGlkZW50aWZ5IHRoZSBrZXkgbWFya2V0cyBhbmQgbmVl
-ZHMgaW4gdGhlIHRhcmdldGVkIHNlZ21lbnRzLgoKV29ya3MgYWNyb3NzIHRoZSBvcmdhbml6YXRp
-b24gdG8gZGV2ZWxvcCBhbmQgaW1wbGVtZW50IHRhY3RpY3MgdG8gY2FwdHVyZSB2YWx1ZSBvZiBk
-aWZmZXJlbnRpYXRlZCBtYXRlcmlhbCBzb2x1dGlvbnMuCgpTdXBwb3J0cyBwcm9kdWN0IGRldmVs
-b3BtZW50IGJ5IGdlbmVyYXRpbmcgbmV3IHByb2R1Y3QgaWRlYXMgYmFzZWQgb24gY3VzdG9tZXIg
-ZmVlZGJhY2sgYW5kIHdvcmtzIHdpdGggZ2xvYmFsIFImRCB0ZWFtcyB0byBjdWx0aXZhdGUgYW5k
-IHByaW9yaXRpemUgbmV3IHByb2R1Y3RzIHRocm91Z2ggdGhlIHBpcGVsaW5lLgoKV29ya3Mgd2l0
-aCBhIGNyb3NzIGZ1bmN0aW9uYWwgdGVhbSBhY3Jvc3MgdGhlIG9yZ2FuaXphdGlvbiB0byBoZWxw
-IHJlZHVjZSB0aW1lIHRvIG1hcmtldC4KCkdlbmVyYXRlIGFuZCBwcmVzZW50IHRlY2huaWNhbCBj
-b250ZW50IHRvIGN1c3RvbWVycyB0aGF0IGRlbW9uc3RyYXRlIER1UG9udCBhZHZhbmNlZCBtYXRl
-cmlhbHMgc29sdmluZyBjdXN0b21lciBwcm9ibGVtcyB0aHJvdWdoIHBhcGVycywgcHJlc2VudGF0
-aW9ucywgYXBwbGljYXRpb24gbm90ZXMgYW5kIHByb3RvdHlwZXMuCgpKb2IgUXVhbGlmaWNhdGlv
-bnMKUXVhbGlmaWNhdGlvbnMgLyBFeHBlcmllbmNlCkJTIG9yIE1TIERlZ3JlZSBpbiBFbmdpbmVl
-cmluZyAoRWxlY3RyaWNhbC9NZWNoYW5pY2FsKSBvciBhIFBoeXNpY2FsIFNjaWVuY2UgKE1hdGVy
-aWFsLyBQaHlzaWNzKSA1LTEwIFllYXJzIFJlbGV2YW50IEluZHVzdHJ5IEV4cGVyaWVuY2UgaW4g
-dGhlIGZsZXhpYmxlIGNpcmN1aXQgaW5kdXN0cnkgd2hldGhlciB0aGUgZGVzaWduIG9yIGZhYnJp
-Y2F0aW9uLgpNdWx0aWRpc2NpcGxpbmFyeSBiYWNrZ3JvdW5kIChzY2llbmNlLCBlbmdpbmVlcmlu
-ZywgbWFya2V0aW5nLCBidXNpbmVzcywgb3Igc2FsZXMpIGlzIHByZWZlcnJlZC4KRGVtb25zdHJh
-dGVkIHN1Y2Nlc3NmdWwgY3VzdG9tZXIgZmFjaW5nIGV4cGVyaWVuY2UsIHByZWZlcmFibHkgdG8g
-T0VN4oCZcyBpbiBNaWxpdGFyeSwgTmV0d29ya2luZywgQXV0b21vdGl2ZSBtYXJrZXRzLgpEZW1v
-bnN0cmF0ZWQgdW5kZXJzdGFuZGluZyBvZiBoaWdoIHJlbGlhYmlsaXR5IGZsZXggb3IgcmlnaWQg
-Y2lyY3VpdCBmYWJyaWNhdGlvbiB0ZWNobm9sb2dpZXMsIHByb2Nlc3NlcywgYXBwbGljYXRpb25z
-LCBhbmQgbWFya2V0cy4KRXhwZXJpZW5jZSBwcm90b3R5cGluZywgZGVzaWduaW5nLCB0ZXN0aW5n
-LCBhbmQgZXZhbHVhdGluZyByaWdpZCAmIGh5YnJpZCBmbGV4aWJsZSBjaXJjdWl0IGJvYXJkIHRl
-Y2hub2xvZ2llcy4KRXhwZXJpZW5jZSBpbiBIaWdoIHNwZWVkIGRpZ2l0YWwsIFJGLCBtaWNyb3dh
-dmUvbWlsbGltZXRlciB3YXZlIGNpcmN1aXQsIGFuZCBhbnRlbm5hIGFwcGxpY2F0aW9ucyBwcmVm
-ZXJyZWQuCkNhcGFibGUgb2YgaW50ZXJmYWNpbmcgd2l0aCBlbGVjdHJpY2FsIHBhY2thZ2luZyBl
-bmdpbmVlcnMgYW5kIGRlc2lnbmVycy4KVHJhY2sgcmVjb3JkIG9mIHN1Y2Nlc3Mgc29sdmluZyBl
-bWVyZ2luZyBlbGVjdHJvbmljcyBuZWVkcywgZXNwZWNpYWxseSB0aG9zZSB0aGF0IGFkZHJlc3Mg
-c2l6ZSwgd2VpZ2h0LCBhbmQgcG93ZXIgKFNXYVApICYgaGlnaCBzcGVlZCAvIGhpZ2ggZnJlcXVl
-bmN5IGFwcGxpY2F0aW9ucy4KRmFtaWxpYXJpdHkgb2YgdGhlIGtleSByZXF1aXJlbWVudHMgZm9y
-IE1JTCBhbmQvb3IgSVBDIHNwZWNpZmljYXRpb25zIGFuZCB0aGUgbWF0ZXJpYWwgcHJvcGVydGll
-cyB0aGF0IGltcGFjdCBQQ0IgYWNjZXB0YW5jZSB0ZXN0cy4KRWl0aGVyIGhhcyBvciBjYW4gb2J0
-YWluIChwb3N0IGhpcmUpIGEgU2VjcmV0IFNlY3VyaXR5IGNsZWFyYW5jZQpFeHBlcmllbmNlIHdv
-cmtpbmcgZm9yIGEgZ292ZXJubWVudCBPRU0gZWl0aGVyIGRpcmVjdGx5IG9yIGluZGlyZWN0bHkg
-KGNvbnRyYWN0b3IsIGNvbnN1bHRhbnQsIGV0Yy4pIGFzIGFuIGVsZWN0cm9uaWNzIGRlc2lnbmVy
-IG9yIGVsZWN0cm9uaWNzIGZhYnJpY2F0aW9uIHByb2Nlc3MgZW5naW5lZXIuCldpbGxpbmduZXNz
-IHRvIGF0dGVuZCB0cmFkZSBzaG93cyBhbmQgZGVzaWduIGNvdW5jaWxzOyBvbiBvY2Nhc2lvbiwg
-cHJlc2VudCB0aGUgbWVyaXRzIG9mIGVsZWN0cm9uaWNzIG1hdGVyaWFscywgZGVzaWduLCBhbmQv
-b3IgZmFicmljYXRpb24gbWV0aG9kcyBhdCBrZXkgZXZlbnRzLgpJZiB5b3UgYXJlIGludGVyZXN0
-ZWQgaW4gYXBwbHlpbmcgZm9yIG9uZSBvZiB0aGVzZSBwb3NpdGlvbnMsIHBsZWFzZSByZXNwb25k
-IHdpdGggYSByZXN1bWUuIFJlZmVycmFscyBhbmQgcmVjb21tZW5kYXRpb25zIGFyZSBhbHNvIHdl
-bGNvbWVkLgoKQmVzdCBSZWdhcmRzLAoKTmljaG9sYXMgTWV5bGVyClByZXNpZGVudC9HTSwgVGVj
-aG5vbG9neQpXaW5nYXRlIER1bnJvc3MsIEluYy4KcGggKDgxOCk1OTctMzIwMCBleHQuIDIxMQo8
-bmlja21Ad2RzZWFyY2guY29tPgoKCgpodHRwOi8vYXBwLnN0cmVhbXNlbmQuY29tL3ByaXZhdGUv
-dTRLdC9uS1IvclBPenBqby91bnN1YnNjcmliZS8yOTk5MDEzMwpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1udmRpbW0K
+This Message was undeliverable due to the following reason:
+
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
+
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 1 days:
+Host 49.78.127.184 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
+
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+
+------------=_5A154E29.F416DAF6--
