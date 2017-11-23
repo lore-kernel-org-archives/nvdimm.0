@@ -1,13 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1FF3A2034EE00
- for <linux-nvdimm@lists.01.org>; Thu,  9 Nov 2017 06:41:58 -0800 (PST)
-From: lukasz.plewa@intel.com
-Subject: [PATCH] daxctl: remove libpmem dependency
-Date: Thu,  9 Nov 2017 15:40:53 +0100
-Message-Id: <1510238453-7713-1-git-send-email-lukasz.plewa@intel.com>
+Received: from lists.01.org (unknown [183.14.135.107])
+ by ml01.01.org (Postfix) with ESMTP id E3A5F220C1C3A
+ for <linux-nvdimm@lists.01.org>; Thu, 23 Nov 2017 08:56:12 -0800 (PST)
+From: "Automatic Email Delivery Software" <MAILER-DAEMON@lists.01.org>
+Subject: MAIL SYSTEM ERROR - RETURNED MAIL
+Date: Fri, 24 Nov 2017 01:00:30 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,91 +13,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============1858488591158947090=="
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Message-Id: <20171123165616.6417C220C1C4A@ml01.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: =?UTF-8?q?=C5=81ukasz=20Plewa?= <lukasz.plewa@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-RnJvbTogxYF1a2FzeiBQbGV3YSA8bHVrYXN6LnBsZXdhQGludGVsLmNvbT4KClRoZSBuZXh0IHZl
-cnNpb24gb2YgbGlicG1lbSB3aWxsIGRlcGVuZCBvbiBsaWJuZGN0bCAtIGFzIGRheGN0bApkZXBl
-bmRzIG9uIGxpYnBtZW0sIGl0IHdpbGwgbWFrZSBidWlsZGluZyBwYWNrYWdlcyBpbmNvbnZlbmll
-bnQuClRoaXMgcGF0Y2ggcmVwbGFjZXMgbGlicG1lbSBjYWxscyB3aXRoIGludHJpbnNpYyBmdW5j
-dGlvbnMgd2hhdAphbGxvd3MgdG8gcmVtb3ZlIGEgbGlicG1lbSBkZXBlbmRlbmN5LgoKU2lnbmVk
-LW9mZi1ieTogxYF1a2FzeiBQbGV3YSA8bHVrYXN6LnBsZXdhQGludGVsLmNvbT4KLS0tCiBjb25m
-aWd1cmUuYWMgICAgICAgfCAxNSArKysrKy0tLS0tLS0tLS0KIGRheGN0bC9NYWtlZmlsZS5hbSB8
-ICA0IC0tLS0KIGRheGN0bC9pby5jICAgICAgICB8IDIzICsrKysrKysrKysrKysrKysrKystLS0t
-CiBuZGN0bC5zcGVjLmluICAgICAgfCAgNyAtLS0tLS0tCiA0IGZpbGVzIGNoYW5nZWQsIDI0IGlu
-c2VydGlvbnMoKyksIDI1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2NvbmZpZ3VyZS5hYyBi
-L2NvbmZpZ3VyZS5hYwppbmRleCA1YjEwMzgxLi4zM2EzZTZlIDEwMDY0NAotLS0gYS9jb25maWd1
-cmUuYWMKKysrIGIvY29uZmlndXJlLmFjCkBAIC0zMiw2ICszMiw3IEBAIEFDX1BSRUZJWF9ERUZB
-VUxUKFsvdXNyXSkKIAogQUNfUFJPR19TRUQKIEFDX1BST0dfTUtESVJfUAorQUNfQ0FOT05JQ0FM
-X0hPU1QKIAogQUNfQVJHX0VOQUJMRShbZG9jc10sCiAgICAgICAgIEFTX0hFTFBfU1RSSU5HKFst
-LWRpc2FibGUtZG9jc10sCkBAIC05NCwxNiArOTUsMTAgQEAgUEtHX0NIRUNLX01PRFVMRVMoW1VE
-RVZdLCBbbGlidWRldl0pCiBQS0dfQ0hFQ0tfTU9EVUxFUyhbVVVJRF0sIFt1dWlkXSkKIFBLR19D
-SEVDS19NT0RVTEVTKFtKU09OXSwgW2pzb24tY10pCiAKLUFDX0FSR19XSVRIKFtsaWJwbWVtXSwK
-LQlBU19IRUxQX1NUUklORyhbLS13aXRoLWxpYnBtZW1dLAotCQkgICAgICAgW0luc3RhbGwgd2l0
-aCBsaWJwbWVtIHN1cHBvcnQuIEA8OkBkZWZhdWx0PW5vQDo+QF0pLAotCVtdLAotCVt3aXRoX2xp
-YnBtZW09bm9dKQotaWYgdGVzdCAieCR3aXRoX2xpYnBtZW0iID0gInh5ZXMiOyB0aGVuCi0JUEtH
-X0NIRUNLX01PRFVMRVMoW1BNRU1dLCBbbGlicG1lbV0pCi0JQUNfREVGSU5FKEVOQUJMRV9EQVhJ
-TywgMSwgW0VuYWJsZSBkYXhjdGwgaW9dKQotZmkKLUFNX0NPTkRJVElPTkFMKFtFTkFCTEVfREFY
-SU9dLCBbdGVzdCAieCR3aXRoX2xpYnBtZW0iID0gInh5ZXMiXSkKK0FTX0lGKFt0ZXN0ICJ4JGhv
-c3RfY3B1IiA9PSAieHg4Nl82NCJdLAorCVtBQ19ERUZJTkUoW0VOQUJMRV9EQVhJT10sIFsxXSwg
-ZW5hYmxlIGRheGN0bCBpbyBjb21tYW5kKV0pCitBTV9DT05ESVRJT05BTChbRU5BQkxFX0RBWElP
-XSwgW3Rlc3QgIngkaG9zdF9jcHUiID09ICJ4eDg2XzY0Il0pCisKIAogQUNfQVJHX1dJVEgoW2Jh
-c2gtY29tcGxldGlvbi1kaXJdLAogCUFTX0hFTFBfU1RSSU5HKFstLXdpdGgtYmFzaC1jb21wbGV0
-aW9uLWRpcls9UEFUSF1dLApkaWZmIC0tZ2l0IGEvZGF4Y3RsL01ha2VmaWxlLmFtIGIvZGF4Y3Rs
-L01ha2VmaWxlLmFtCmluZGV4IDgxZDQwNWUuLjhlM2ZkN2UgMTAwNjQ0Ci0tLSBhL2RheGN0bC9N
-YWtlZmlsZS5hbQorKysgYi9kYXhjdGwvTWFrZWZpbGUuYW0KQEAgLTE3LDcgKzE3LDMgQEAgZGF4
-Y3RsX0xEQUREID1cCiAJLi4vbGlidXRpbC5hIFwKIAkkKFVVSURfTElCUykgXAogCSQoSlNPTl9M
-SUJTKQotCi1pZiBFTkFCTEVfREFYSU8KLWRheGN0bF9MREFERCArPSAkKFBNRU1fTElCUykKLWVu
-ZGlmCmRpZmYgLS1naXQgYS9kYXhjdGwvaW8uYyBiL2RheGN0bC9pby5jCmluZGV4IDI3ZTc0NjMu
-LmEwZjk2MTMgMTAwNjQ0Ci0tLSBhL2RheGN0bC9pby5jCisrKyBiL2RheGN0bC9pby5jCkBAIC0y
-MCw5ICsyMCw5IEBACiAjaW5jbHVkZSA8c3lzL21tYW4uaD4KICNpbmNsdWRlIDxmY250bC5oPgog
-I2luY2x1ZGUgPHVuaXN0ZC5oPgorI2luY2x1ZGUgPGVtbWludHJpbi5oPgogI2luY2x1ZGUgPGxp
-bWl0cy5oPgogI2luY2x1ZGUgPGxpYmdlbi5oPgotI2luY2x1ZGUgPGxpYnBtZW0uaD4KICNpbmNs
-dWRlIDx1dGlsL2pzb24uaD4KICNpbmNsdWRlIDx1dGlsL2ZpbHRlci5oPgogI2luY2x1ZGUgPHV0
-aWwvc2l6ZS5oPgpAQCAtMzU3LDYgKzM1NywyMCBAQCBzdGF0aWMgaW50IGNsZWFyX2JhZGJsb2Nr
-cyhzdHJ1Y3QgaW9fZGV2ICpkZXYsIHVpbnQ2NF90IGxlbikKIAlyZXR1cm4gMDsKIH0KIAorI2Rl
-ZmluZSBGTFVTSF9BTElHTiA2NAorCitzdGF0aWMgdm9pZCBjbGZsdXNoKGNvbnN0IHZvaWQgKmFk
-ZHIsIHNpemVfdCBsZW4pCit7CisJLyoKKwkgKiBMb29wIHRocm91Z2ggY2FjaGUtbGluZS1zaXpl
-ICh0eXBpY2FsbHkgNjRCKSBhbGlnbmVkIGNodW5rcworCSAqIGNvdmVyaW5nIHRoZSBnaXZlbiBy
-YW5nZS4KKwkgKi8KKwlmb3IgKHVpbnRwdHJfdCB1cHRyID0gKHVpbnRwdHJfdClhZGRyICYgfihG
-TFVTSF9BTElHTiAtIDEpOworCSAgICAgdXB0ciA8ICh1aW50cHRyX3QpYWRkciArIGxlbjsgdXB0
-ciArPSBGTFVTSF9BTElHTikKKwkJX21tX2NsZmx1c2goKGNoYXIgKil1cHRyKTsKKwlfbW1fc2Zl
-bmNlKCk7Cit9CisKIHN0YXRpYyBpbnQ2NF90IF9fZG9faW8oc3RydWN0IGlvX2RldiAqZHN0X2Rl
-diwgc3RydWN0IGlvX2RldiAqc3JjX2RldiwKIAkJdWludDY0X3QgbGVuLCBib29sIHplcm8pCiB7
-CkBAIC0zNjYsMTIgKzM4MCwxMyBAQCBzdGF0aWMgaW50NjRfdCBfX2RvX2lvKHN0cnVjdCBpb19k
-ZXYgKmRzdF9kZXYsIHN0cnVjdCBpb19kZXYgKnNyY19kZXYsCiAJaWYgKHplcm8gJiYgZHN0X2Rl
-di0+aXNfZGF4KSB7CiAJCWRzdCA9ICh1aW50OF90ICopZHN0X2Rldi0+bW1hcCArIGRzdF9kZXYt
-Pm9mZnNldDsKIAkJbWVtc2V0KGRzdCwgMCwgbGVuKTsKLQkJcG1lbV9wZXJzaXN0KGRzdCwgbGVu
-KTsKKwkJY2xmbHVzaChkc3QsIGxlbik7CiAJCXJjID0gbGVuOwogCX0gZWxzZSBpZiAoZHN0X2Rl
-di0+aXNfZGF4ICYmIHNyY19kZXYtPmlzX2RheCkgewogCQlzcmMgPSAodWludDhfdCAqKXNyY19k
-ZXYtPm1tYXAgKyBzcmNfZGV2LT5vZmZzZXQ7CiAJCWRzdCA9ICh1aW50OF90ICopZHN0X2Rldi0+
-bW1hcCArIGRzdF9kZXYtPm9mZnNldDsKLQkJcG1lbV9tZW1jcHlfcGVyc2lzdChkc3QsIHNyYywg
-bGVuKTsKKwkJbWVtY3B5KGRzdCwgc3JjLCBsZW4pOworCQljbGZsdXNoKGRzdCwgbGVuKTsKIAkJ
-cmMgPSBsZW47CiAJfSBlbHNlIGlmIChzcmNfZGV2LT5pc19kYXgpIHsKIAkJc3JjID0gKHVpbnQ4
-X3QgKilzcmNfZGV2LT5tbWFwICsgc3JjX2Rldi0+b2Zmc2V0OwpAQCAtNDIyLDcgKzQzNyw3IEBA
-IHN0YXRpYyBpbnQ2NF90IF9fZG9faW8oc3RydWN0IGlvX2RldiAqZHN0X2Rldiwgc3RydWN0IGlv
-X2RldiAqc3JjX2RldiwKIAkJCQlicmVhazsKIAkJCWNvdW50ICs9IHJjOwogCQl9IHdoaWxlIChj
-b3VudCAhPSAoc3NpemVfdClsZW4pOwotCQlwbWVtX3BlcnNpc3QoZHN0LCBjb3VudCk7CisJCWNs
-Zmx1c2goZHN0LCBjb3VudCk7CiAJCXJjID0gY291bnQ7CiAJCWlmIChyYyAhPSAoc3NpemVfdCls
-ZW4pCiAJCQlwcmludGYoIlJlcXVlc3RlZCBzaXplICVsdSBsYXJnZXIgdGhhbiBkZXN0aW5hdGlv
-bi5cbiIsIGxlbik7CmRpZmYgLS1naXQgYS9uZGN0bC5zcGVjLmluIGIvbmRjdGwuc3BlYy5pbgpp
-bmRleCA0YWExMzNkLi5iNDgxNzYyIDEwMDY0NAotLS0gYS9uZGN0bC5zcGVjLmluCisrKyBiL25k
-Y3RsLnNwZWMuaW4KQEAgLTIwLDkgKzIwLDYgQEAgQnVpbGRSZXF1aXJlczoJcGtnY29uZmlnKGxp
-YnVkZXYpCiBCdWlsZFJlcXVpcmVzOglwa2djb25maWcodXVpZCkKIEJ1aWxkUmVxdWlyZXM6CXBr
-Z2NvbmZpZyhqc29uLWMpCiBCdWlsZFJlcXVpcmVzOglwa2djb25maWcoYmFzaC1jb21wbGV0aW9u
-KQotJWlmYXJjaCB4ODZfNjQKLUJ1aWxkUmVxdWlyZXM6CXBrZ2NvbmZpZyhsaWJwbWVtKQotJWVu
-ZGlmCiAKICVkZXNjcmlwdGlvbgogVXRpbGl0eSBsaWJyYXJ5IGZvciBtYW5hZ2luZyB0aGUgImxp
-Ym52ZGltbSIgc3Vic3lzdGVtLiAgVGhlICJsaWJudmRpbW0iCkBAIC05MywxMSArOTAsNyBAQCBj
-b250cm9sIEFQSSBmb3IgdGhlc2UgZGV2aWNlcy4KICVidWlsZAogZWNobyAiVkVSU0lPTiIgPiB2
-ZXJzaW9uCiAuL2F1dG9nZW4uc2gKLSVpZmFyY2ggeDg2XzY0Ci0lY29uZmlndXJlIC0tZGlzYWJs
-ZS1zdGF0aWMgLS1lbmFibGUtbG9jYWwgLS1kaXNhYmxlLXNpbGVudC1ydWxlcyAtLXdpdGgtbGli
-cG1lbQotJWVsc2UKICVjb25maWd1cmUgLS1kaXNhYmxlLXN0YXRpYyAtLWVuYWJsZS1sb2NhbCAt
-LWRpc2FibGUtc2lsZW50LXJ1bGVzCi0lZW5kaWYKIG1ha2UgJXs/X3NtcF9tZmxhZ3N9CiAKICVp
-bnN0YWxsCi0tIAoyLjcuNAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+This is a multi-part message in MIME format.
+
+--===============1858488591158947090==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+JD�$~,���coo��8��lL#��G�)~#/*�En����zp�����k^�[,8��\��\�I�����mϞ�P�'l�i�Wؤ����8�Ż0��`~c���G#���v���
+ƫ� ђz^6��I��f��\���x���Wm#tA�J�2Gl�U3��ݤY�������Ido2*(>ª���%��5i��k4�g����iD!N�*
+���؂uPL.
+�
+_�.�
+�C�zEͨ{��ח��OY3Ӓ��hi���:%}
+������]�B�L��5N3�/K�"�z�-�\꟫#UK[�Ax򭌽�<�9?u�ղ��t?br5r��Uv�j;`J�5�׫p�
+���M�fœg|��ק$�S(�T�CT���Z)�o4�1��F��&>PI�Ŋ�م��G$O"��5�XEƶLՁ���K�x�Z�s�;��{�V���xrb�g�Ƨ�}�Vޡ���\7��AP΂�y�?)A{�}��]2~3�O�'K������`Cd��I�s�ʵ�S�Q�8%��JF���m�$��B���ӭ�G�zse��I��!����,�Q�9$�.�0x�J4�M2|�H�����7�v0-��P0ՌE�6�
+O�{I<gB:<.������S��1&�ԓ'��]ms � �-��f���Jv�q�Y�qrl���K����)m«�M0�y(
+���x�j��^y�Z��;���i�~����d")nq��w�
+Jn���Z��0,��X�jTx�2ON
+�i�*��9�h����/޻p���U��)�z����(��n�ä-KQ��S$?�E[h���K��� J��}C�ܻ�E�g|f�^�3\��x���'��4�rd���Ol����x�
+��K÷q��2}D�_�Q�1��P���ϛ��s��s��
+c]pVE
+���̈́�&f�sI�-S�n
+�`��E��G��g\I>R�[�8�>��k;�&�,��CV��UW��Ϥ�����"�[�Y�^`w�m��W/�C�m�%p�Mt8,·���^�!2R֎?���Ec���9f(9W�XQ��x ����"�?`��U�
+��7{;�o��QZ20��3H-`�Kb*:�B�p�.n,��?Ɩ�&���Q"9�?uS��ܜ��|�K_�1[]�M���G�
+�|O�(k�n��G�l���� �'W{6wk�"�5}�"s均~�{?K`�5��������M���Ӹ;��"�I�-��˶�`���΢�Y<Rl��S�4�(�]��͹�I��%n����H
+9��;�1�.�}7�4�0�]hd��{j۶<'�}�,�ɐEPn��WL(f�{/m
+v�sIx�ïd�PA��d�z%)��;�΁b9��I6��!'y�>E2M��?�J�\�]?���
+�m��3�x8p\�Ո>�u�S}�<�O�,Z�V��F/
+��T��s
+�
+��`駶ʪ���Ī��F'��-�?�gܜ
+�6�8��WrX�.6�����W.��1 d�CڮF�>�2�%&��
+��a�4�!)�ߏ8,/���]�Aك�����N�D�M�մ
+;�]��k��m��`�T�� ^'7�K��r�tH�|�&-K��
+.������x�������'Fx�:��
+�x�v~O4k�
+���M��kjc���|�1fO'9�Z\FX#��I���F��<�:F�%��
+o>�_ nx����6WM�8��*�݇�t�W��i���i��n�ꮄ۱��d���zH>�A8�s�(�񭰏��t<�,>MH}BȲ!N�'���D�h�xx���";'f�1'��~���S�1��:�}6Vr��~���|U!\�������cڲ�e&Px_6���f����9��{�h/�qKFv����<�I���i���7�½[1q��LTM�J�ۘĩ(�M�
+
+
+--===============1858488591158947090==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============1858488591158947090==--
