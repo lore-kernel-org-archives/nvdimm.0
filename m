@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D590220356876
- for <linux-nvdimm@lists.01.org>; Sat, 11 Nov 2017 12:15:55 -0800 (PST)
-Subject: [PATCH v2 2/4] mm: replace pud_write with pud_access_permitted in
- fault + gup paths
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 11 Nov 2017 12:11:44 -0800
-Message-ID: <151043110453.2842.2166049702068628177.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151043109403.2842.11607911965674122836.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6EE0E20359EA7
+ for <linux-nvdimm@lists.01.org>; Mon, 27 Nov 2017 11:00:20 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] rpmbuild: ensure the rpmbuild working directories
+ are present
+Date: Mon, 27 Nov 2017 19:04:40 +0000
+Message-ID: <1511809477.16069.1.camel@intel.com>
+References: <20171122220019.16041-1-vishal.l.verma@intel.com>
+ <CAPcyv4hzDj5gZxafo8a+fowsB1Rh_1w2p_deYiDDx=zdYwpfcw@mail.gmail.com>
+ <1511388916.3866.26.camel@intel.com>
+ <CAPcyv4jSc_wyEDUnqjof_1VNmWHn4ZWg3wwMqCv4OV-Ri+MUhQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4jSc_wyEDUnqjof_1VNmWHn4ZWg3wwMqCv4OV-Ri+MUhQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <A8943C970370FF45A616A2316B0F28BF@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,89 +28,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, Dave Hansen <dave.hansen@intel.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The 'access_permitted' helper is used in the gup-fast path and goes
-beyond the simple _PAGE_RW check to also:
 
-* validate that the mapping is writable from a protection keys
-  standpoint
+On Wed, 2017-11-22 at 15:49 -0800, Dan Williams wrote:
+> On Wed, Nov 22, 2017 at 2:15 PM, Verma, Vishal L
+> <vishal.l.verma@intel.com> wrote:
+> > 
+> > On Wed, 2017-11-22 at 14:13 -0800, Dan Williams wrote:
+> > > On Wed, Nov 22, 2017 at 2:00 PM, Vishal Verma <vishal.l.verma@int
+> > > el.c
+> > > om> wrote:
+> > > > The rpmbuild and make-git-snapshot assume that the various
+> > > > ~/rpmbuild/*
+> > > > directories are present. In case they weren't, git-archive
+> > > > would
+> > > > fail
+> > > > with something like:
+> > > > 
+> > > >   /root/rpmbuild/SOURCES/ndctl-58.2.38.g8ad8f4c.tar.gz: No such
+> > > > file or directory
+> > > > 
+> > > > Add a 'mkdir -p' to make sure these directories are present.
+> > > > 
+> > > > Cc: Dan Williams <dan.j.williams@intel.com>
+> > > > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> > > > ---
+> > > >  rpmbuild.sh | 1 +
+> > > >  1 file changed, 1 insertion(+)
+> > > > 
+> > > > diff --git a/rpmbuild.sh b/rpmbuild.sh
+> > > > index 4535b46..1dd1709 100755
+> > > > --- a/rpmbuild.sh
+> > > > +++ b/rpmbuild.sh
+> > > > @@ -1,5 +1,6 @@
+> > > >  #!/bin/bash
+> > > >  pushd $(dirname $0) >/dev/null
+> > > > +mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+> > > 
+> > > Hmm, I'd rather run rpmdev-setuptree than create this directories
+> > > manually, and going further I'd rather just keep the assumption
+> > > that
+> > > rpmdev-setuptree has already been run before this script is run.
+> > 
+> > We could do a test -d ~/rpmbuild/SOURCES or so, and if not found,
+> > then
+> > run rpmdev-setuptree?
+> > We know we are about to write to that path, so if it doesn't exist,
+> > why
+> > not create it?
+> 
+> Because we expect to build into an initialized rpmbuild tree, and if
+> it's not initialized failing seems appropriate. That said, I'm ok
+> with
+> your "test and call rpmdev-setuptree" proposal.
+> > 
 
-* validate that the pte has _PAGE_USER set since all fault paths where
-  pud_write is must be referencing user-memory.
-
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/s390/include/asm/pgtable.h |    6 ++++++
- arch/sparc/mm/gup.c             |    2 +-
- mm/huge_memory.c                |    2 +-
- mm/memory.c                     |    2 +-
- 4 files changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/arch/s390/include/asm/pgtable.h b/arch/s390/include/asm/pgtable.h
-index d7fe9838084d..1f36a01e22f6 100644
---- a/arch/s390/include/asm/pgtable.h
-+++ b/arch/s390/include/asm/pgtable.h
-@@ -1264,6 +1264,12 @@ static inline pud_t pud_mkwrite(pud_t pud)
- 	return pud;
- }
- 
-+#define __HAVE_ARCH_PUD_WRITE
-+static inline int pud_write(pud_t pud)
-+{
-+	return (pud_val(pud) & _REGION3_ENTRY_WRITE) != 0;
-+}
-+
- static inline pud_t pud_mkclean(pud_t pud)
- {
- 	if (pud_large(pud)) {
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index 5335ba3c850e..5ae2d0a01a70 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -114,7 +114,7 @@ static int gup_huge_pud(pud_t *pudp, pud_t pud, unsigned long addr,
- 	if (!(pud_val(pud) & _PAGE_VALID))
- 		return 0;
- 
--	if (write && !pud_write(pud))
-+	if (!pud_access_permitted(pud, write))
- 		return 0;
- 
- 	refs = 0;
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 1981ed697dab..1e4e11275856 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1022,7 +1022,7 @@ struct page *follow_devmap_pud(struct vm_area_struct *vma, unsigned long addr,
- 
- 	assert_spin_locked(pud_lockptr(mm, pud));
- 
--	if (flags & FOLL_WRITE && !pud_write(*pud))
-+	if (!pud_access_permitted(*pud, flags & FOLL_WRITE))
- 		return NULL;
- 
- 	if (pud_present(*pud) && pud_devmap(*pud))
-diff --git a/mm/memory.c b/mm/memory.c
-index a728bed16c20..64f86beadcca 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3987,7 +3987,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
- 
- 			/* NUMA case for anonymous PUDs would go here */
- 
--			if (dirty && !pud_write(orig_pud)) {
-+			if (dirty && !pud_access_permitted(orig_pud, WRITE)) {
- 				ret = wp_huge_pud(&vmf, orig_pud);
- 				if (!(ret & VM_FAULT_FALLBACK))
- 					return ret;
-
+Actually rpmdev-setuptree will overwrite any rpmmacros file, so maybe
+it is best not to call it and risk changing users environments. I'll
+send a patch to check for it though, and if not found, print an error
+message and exit out.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
