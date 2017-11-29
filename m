@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9BEC520082EEA
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH] mmap.2: Add description of MAP_SHARED_VALIDATE and MAP_SYNC
-Date: Wed,  1 Nov 2017 16:36:48 +0100
-Message-Id: <20171101153648.30166-20-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id A92D5221660EF
+ for <linux-nvdimm@lists.01.org>; Wed, 29 Nov 2017 11:03:51 -0800 (PST)
+Subject: [PATCH v6 1/2] dax: introduce CONFIG_DAX_DRIVER
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 29 Nov 2017 11:00:00 -0800
+Message-ID: <151198200084.7051.8668235721724414674.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151198199487.7051.7083189934624068090.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151198199487.7051.7083189934624068090.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,83 +18,95 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: snitzer@redhat.com
+Cc: linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Heiko Carstens <heiko.carstens@de.ibm.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, dm-devel@redhat.com, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- man2/mmap.2 | 35 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 34 insertions(+), 1 deletion(-)
+In support of allowing device-mapper to compile out idle/dead code when
+there are no dax providers in the system, introduce the DAX_DRIVER
+symbol. This is selected by all leaf drivers that device-mapper might be
+layered on top. This allows device-mapper to conditionally 'select DAX'
+only when a provider is present.
 
-diff --git a/man2/mmap.2 b/man2/mmap.2
-index 47c3148653be..b38ee6809327 100644
---- a/man2/mmap.2
-+++ b/man2/mmap.2
-@@ -125,6 +125,21 @@ are carried through to the underlying file.
- to the underlying file requires the use of
- .BR msync (2).)
- .TP
-+.BR MAP_SHARED_VALIDATE " (since Linux 4.15)"
-+The same as
-+.B MAP_SHARED
-+except that
-+.B MAP_SHARED
-+mappings ignore unknown flags in
-+.IR flags .
-+In contrast when creating mapping of
-+.B MAP_SHARED_VALIDATE
-+mapping type, the kernel verifies all passed flags are known and fails the
-+mapping with
-+.BR EOPNOTSUPP
-+otherwise. This mapping type is also required to be able to use some mapping
-+flags.
-+.TP
- .B MAP_PRIVATE
- Create a private copy-on-write mapping.
- Updates to the mapping are not visible to other processes
-@@ -134,7 +149,10 @@ It is unspecified whether changes made to the file after the
- .BR mmap ()
- call are visible in the mapped region.
- .PP
--Both of these flags are described in POSIX.1-2001 and POSIX.1-2008.
-+.B MAP_SHARED
-+and
-+.B MAP_PRIVATE
-+are described in POSIX.1-2001 and POSIX.1-2008.
- .PP
- In addition, zero or more of the following values can be ORed in
- .IR flags :
-@@ -352,6 +370,21 @@ option.
- Because of the security implications,
- that option is normally enabled only on embedded devices
- (i.e., devices where one has complete control of the contents of user memory).
-+.TP
-+.BR MAP_SYNC " (since Linux 4.15)"
-+This flags is available only with
-+.B MAP_SHARED_VALIDATE
-+mapping type. Mappings of
-+.B MAP_SHARED
-+type will silently ignore this flag.
-+This flag is supported only for files supporting DAX (direct mapping of persistent
-+memory). For other files, creating mapping with this flag results in
-+.B EOPNOTSUPP
-+error. Shared file mappings with this flag provide the guarantee that while
-+some memory is writeably mapped in the address space of the process, it will
-+be visible in the same file at the same offset even after the system crashes or
-+is rebooted. This allows users of such mappings to make data modifications
-+persistent in a more efficient way using appropriate CPU instructions.
- .PP
- Of the above flags, only
- .B MAP_FIXED
--- 
-2.12.3
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mike Snitzer <snitzer@redhat.com>
+Cc: Bart Van Assche <Bart.VanAssche@wdc.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/powerpc/platforms/Kconfig |    2 +-
+ drivers/dax/Kconfig            |    5 ++++-
+ drivers/nvdimm/Kconfig         |    2 +-
+ drivers/s390/block/Kconfig     |    2 +-
+ 4 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/arch/powerpc/platforms/Kconfig b/arch/powerpc/platforms/Kconfig
+index 5a96a2763e4a..1c14b943d9ff 100644
+--- a/arch/powerpc/platforms/Kconfig
++++ b/arch/powerpc/platforms/Kconfig
+@@ -296,7 +296,7 @@ config CPM2
+ config AXON_RAM
+ 	tristate "Axon DDR2 memory device driver"
+ 	depends on PPC_IBM_CELL_BLADE && BLOCK
+-	select DAX
++	select DAX_DRIVER
+ 	default m
+ 	help
+ 	  It registers one block device per Axon's DDR2 memory bank found
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index b79aa8f7a497..e0700bf4893a 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -1,3 +1,7 @@
++config DAX_DRIVER
++	select DAX
++	bool
++
+ menuconfig DAX
+ 	tristate "DAX: direct access to differentiated memory"
+ 	select SRCU
+@@ -16,7 +20,6 @@ config DEV_DAX
+ 	  baseline memory pool.  Mappings of a /dev/daxX.Y device impose
+ 	  restrictions that make the mapping behavior deterministic.
+ 
+-
+ config DEV_DAX_PMEM
+ 	tristate "PMEM DAX: direct access to persistent memory"
+ 	depends on LIBNVDIMM && NVDIMM_DAX && DEV_DAX
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index a65f2e1d9f53..40cbdb16e23e 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -20,7 +20,7 @@ if LIBNVDIMM
+ config BLK_DEV_PMEM
+ 	tristate "PMEM: Persistent memory block device support"
+ 	default LIBNVDIMM
+-	select DAX
++	select DAX_DRIVER
+ 	select ND_BTT if BTT
+ 	select ND_PFN if NVDIMM_PFN
+ 	help
+diff --git a/drivers/s390/block/Kconfig b/drivers/s390/block/Kconfig
+index 31f014b57bfc..5c4d6f8ff0e5 100644
+--- a/drivers/s390/block/Kconfig
++++ b/drivers/s390/block/Kconfig
+@@ -14,7 +14,7 @@ config BLK_DEV_XPRAM
+ 
+ config DCSSBLK
+ 	def_tristate m
+-	select DAX
++	select DAX_DRIVER
+ 	prompt "DCSSBLK support"
+ 	depends on S390 && BLOCK
+ 	help
 
 _______________________________________________
 Linux-nvdimm mailing list
