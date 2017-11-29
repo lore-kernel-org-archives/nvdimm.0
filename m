@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 832372034D83F
- for <linux-nvdimm@lists.01.org>; Fri, 10 Nov 2017 12:43:21 -0800 (PST)
-Subject: [ndctl PATCH] ndctl, test: improve dax gup test coverage
+ by ml01.01.org (Postfix) with ESMTPS id 6F45C20359E99
+ for <linux-nvdimm@lists.01.org>; Wed, 29 Nov 2017 10:09:36 -0800 (PST)
+Subject: [PATCH v3 3/4] [media] v4l2: disable filesystem-dax mapping support
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 10 Nov 2017 12:39:09 -0800
-Message-ID: <151034634989.27121.6767031057018403016.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 29 Nov 2017 10:05:46 -0800
+Message-ID: <151197874598.26211.6120423884702550000.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,95 +22,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Mauro Carvalho Chehab <mchehab@kernel.org>, hch@lst.de, linux-media@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add tests for read-only to read-write conversions of dax mappings and
-for the gup slow path where the initial fault is a write fault. The
-gup-slow-path write fault path has been broken for the pud case since it
-was introduced upstream.
+V4L2 memory registrations are incompatible with filesystem-dax that
+needs the ability to revoke dma access to a mapping at will, or
+otherwise allow the kernel to wait for completion of DMA. The
+filesystem-dax implementation breaks the traditional solution of
+truncate of active file backed mappings since there is no page-cache
+page we can orphan to sustain ongoing DMA.
 
-Cc: Dave Jiang <dave.jiang@intel.com>
+If v4l2 wants to support long lived DMA mappings it needs to arrange to
+hold a file lease or use some other mechanism so that the kernel can
+coordinate revoking DMA access when the filesystem needs to truncate
+mappings.
+
+Reported-by: Jan Kara <jack@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Cc: <stable@vger.kernel.org>
+Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/dax-pmd.c |   39 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 35 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/test/dax-pmd.c b/test/dax-pmd.c
-index 6276913a0fda..1a296aff32ea 100644
---- a/test/dax-pmd.c
-+++ b/test/dax-pmd.c
-@@ -27,8 +27,10 @@
- #include <linux/fiemap.h>
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index 0b5c43f7e020..f412429cf5ba 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -185,12 +185,13 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
+ 		data, size, dma->nr_pages);
  
- #define NUM_EXTENTS 5
--#define fail() fprintf(stderr, "%s: failed at: %d\n", __func__, __LINE__)
--#define faili(i) fprintf(stderr, "%s: failed at: %d: %d\n", __func__, __LINE__, i)
-+#define fail() fprintf(stderr, "%s: failed at: %d (%s)\n", \
-+	__func__, __LINE__, strerror(errno))
-+#define faili(i) fprintf(stderr, "%s: failed at: %d: %d (%s)\n", \
-+	__func__, __LINE__, i, strerror(errno))
- #define TEST_FILE "test_dax_data"
+-	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
++	err = get_user_pages_longterm(data & PAGE_MASK, dma->nr_pages,
+ 			     flags, dma->pages, NULL);
  
- int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t offset)
-@@ -39,7 +41,7 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
- 	if (posix_memalign(&buf, 4096, 4096) != 0)
- 		return -ENOMEM;
- 
--	for (i = 0; i < 3; i++) {
-+	for (i = 0; i < 5; i++) {
- 		void *addr = mmap(dax_addr, 2*align,
- 				PROT_READ|PROT_WRITE, MAP_SHARED, dax_fd,
- 				offset);
-@@ -62,11 +64,20 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
- 		fprintf(stderr, "%s: test: %d\n", __func__, i);
- 		rc = 0;
- 		switch (i) {
--		case 0: /* test O_DIRECT of unfaulted address */
-+		case 0: /* test O_DIRECT read of unfaulted address */
- 			if (write(fd2, addr, 4096) != 4096) {
- 				faili(i);
- 				rc = -ENXIO;
- 			}
-+
-+			/*
-+			 * test O_DIRECT write of pre-faulted read-only
-+			 * address
-+			 */
-+			if (pread(fd2, addr, 4096, 0) != 4096) {
-+				faili(i);
-+				rc = -ENXIO;
-+			}
- 			break;
- 		case 1: /* test O_DIRECT of pre-faulted address */
- 			sprintf(addr, "odirect data");
-@@ -100,6 +111,26 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
- 			} else
- 				faili(i);
- 			break;
-+		case 3: /* convert ro mapping to rw */
-+			rc = *(volatile int *) addr;
-+			*(volatile int *) addr = rc;
-+			rc = 0;
-+			break;
-+		case 4: /* test O_DIRECT write of unfaulted address */
-+			sprintf(buf, "O_DIRECT write of unfaulted address\n");
-+			if (pwrite(fd2, buf, 4096, 0) < 4096) {
-+				faili(i);
-+				rc = -ENXIO;
-+				break;
-+			}
-+
-+			if (pread(fd2, addr, 4096, 0) < 4096) {
-+				faili(i);
-+				rc = -ENXIO;
-+				break;
-+			}
-+			rc = 0;
-+			break;
- 		default:
- 			faili(i);
- 			rc = -ENXIO;
+ 	if (err != dma->nr_pages) {
+ 		dma->nr_pages = (err >= 0) ? err : 0;
+-		dprintk(1, "get_user_pages: err=%d [%d]\n", err, dma->nr_pages);
++		dprintk(1, "get_user_pages_longterm: err=%d [%d]\n", err,
++			dma->nr_pages);
+ 		return err < 0 ? err : -EINVAL;
+ 	}
+ 	return 0;
 
 _______________________________________________
 Linux-nvdimm mailing list
