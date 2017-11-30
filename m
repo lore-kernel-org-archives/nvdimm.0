@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E66A2034A876
- for <linux-nvdimm@lists.01.org>; Wed,  1 Nov 2017 08:33:09 -0700 (PDT)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 17/18] xfs: Implement xfs_filemap_pfn_mkwrite() using
- __xfs_filemap_fault()
-Date: Wed,  1 Nov 2017 16:36:46 +0100
-Message-Id: <20171101153648.30166-18-jack@suse.cz>
-In-Reply-To: <20171101153648.30166-1-jack@suse.cz>
-References: <20171101153648.30166-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 7DECC2034C5C3
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Nov 2017 12:36:17 -0800 (PST)
+From: Tony Luck <tony.luck@intel.com>
+Subject: [RFC PATCH 3/4] edac: Add new memory type for non-volatile DIMMs
+Date: Thu, 30 Nov 2017 12:40:41 -0800
+Message-Id: <862104c26398781e4937c3fca3994cbe75d820ff.1512070562.git.tony.luck@intel.com>
+In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
+References: <cover.1512070562.git.tony.luck@intel.com>
+In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
+References: <cover.1512070562.git.tony.luck@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,81 +24,76 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-api@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-edac@vger.kernel.org
+Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-xfs_filemap_pfn_mkwrite() duplicates a lot of __xfs_filemap_fault().
-It will also need to handle flushing for synchronous page faults. So
-just make that function use __xfs_filemap_fault().
+There are now non-volatile versions of DIMMs. Add a new entry to
+"enum mem_type" and update places that use it with new strings.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 ---
- fs/xfs/xfs_file.c  | 29 ++++-------------------------
- fs/xfs/xfs_trace.h |  2 --
- 2 files changed, 4 insertions(+), 27 deletions(-)
+ drivers/edac/edac_mc.c       | 1 +
+ drivers/edac/edac_mc_sysfs.c | 3 ++-
+ include/linux/edac.h         | 3 +++
+ 3 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 7c6b8def6eed..4496b45678de 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1085,37 +1085,16 @@ xfs_filemap_page_mkwrite(
- }
+diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
+index 480072139b7a..8178e74decbf 100644
+--- a/drivers/edac/edac_mc.c
++++ b/drivers/edac/edac_mc.c
+@@ -215,6 +215,7 @@ const char * const edac_mem_types[] = {
+ 	[MEM_LRDDR3]	= "Load-Reduced DDR3 RAM",
+ 	[MEM_DDR4]	= "Unbuffered DDR4 RAM",
+ 	[MEM_RDDR4]	= "Registered DDR4 RAM",
++	[MEM_NVDIMM]	= "Non-volatile RAM",
+ };
+ EXPORT_SYMBOL_GPL(edac_mem_types);
  
- /*
-- * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-- * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-- * to ensure we serialise the fault barrier in place.
-+ * pfn_mkwrite was originally intended to ensure we capture time stamp updates
-+ * on write faults. In reality, it needs to serialise against truncate and
-+ * prepare memory for writing so handle is as standard write fault.
+diff --git a/drivers/edac/edac_mc_sysfs.c b/drivers/edac/edac_mc_sysfs.c
+index e4fcfa84fbd3..53cbb3518efc 100644
+--- a/drivers/edac/edac_mc_sysfs.c
++++ b/drivers/edac/edac_mc_sysfs.c
+@@ -110,7 +110,8 @@ static const char * const mem_types[] = {
+ 	[MEM_DDR3] = "Unbuffered-DDR3",
+ 	[MEM_RDDR3] = "Registered-DDR3",
+ 	[MEM_DDR4] = "Unbuffered-DDR4",
+-	[MEM_RDDR4] = "Registered-DDR4"
++	[MEM_RDDR4] = "Registered-DDR4",
++	[MEM_NVDIMM] = "Non-volatile RAM",
+ };
+ 
+ static const char * const dev_types[] = {
+diff --git a/include/linux/edac.h b/include/linux/edac.h
+index cd75c173fd00..bffb97828ed6 100644
+--- a/include/linux/edac.h
++++ b/include/linux/edac.h
+@@ -186,6 +186,7 @@ static inline char *mc_event_error_type(const unsigned int err_type)
+  * @MEM_RDDR4:		Registered DDR4 RAM
+  *			This is a variant of the DDR4 memories.
+  * @MEM_LRDDR4:		Load-Reduced DDR4 memory.
++ * @MEM_NVDIMM:		Non-volatile RAM
   */
- static int
- xfs_filemap_pfn_mkwrite(
- 	struct vm_fault		*vmf)
- {
+ enum mem_type {
+ 	MEM_EMPTY = 0,
+@@ -209,6 +210,7 @@ enum mem_type {
+ 	MEM_DDR4,
+ 	MEM_RDDR4,
+ 	MEM_LRDDR4,
++	MEM_NVDIMM,
+ };
  
--	struct inode		*inode = file_inode(vmf->vma->vm_file);
--	struct xfs_inode	*ip = XFS_I(inode);
--	int			ret = VM_FAULT_NOPAGE;
--	loff_t			size;
--
--	trace_xfs_filemap_pfn_mkwrite(ip);
--
--	sb_start_pagefault(inode->i_sb);
--	file_update_time(vmf->vma->vm_file);
--
--	/* check if the faulting page hasn't raced with truncate */
--	xfs_ilock(ip, XFS_MMAPLOCK_SHARED);
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (vmf->pgoff >= size)
--		ret = VM_FAULT_SIGBUS;
--	else if (IS_DAX(inode))
--		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, NULL, &xfs_iomap_ops);
--	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
--	sb_end_pagefault(inode->i_sb);
--	return ret;
--
-+	return __xfs_filemap_fault(vmf, PE_SIZE_PTE, true);
- }
+ #define MEM_FLAG_EMPTY		BIT(MEM_EMPTY)
+@@ -231,6 +233,7 @@ enum mem_type {
+ #define MEM_FLAG_DDR4           BIT(MEM_DDR4)
+ #define MEM_FLAG_RDDR4          BIT(MEM_RDDR4)
+ #define MEM_FLAG_LRDDR4         BIT(MEM_LRDDR4)
++#define MEM_FLAG_NVDIMM         BIT(MEM_NVDIMM)
  
- static const struct vm_operations_struct xfs_file_vm_ops = {
-diff --git a/fs/xfs/xfs_trace.h b/fs/xfs/xfs_trace.h
-index bb5514688d47..6333ad09e0f3 100644
---- a/fs/xfs/xfs_trace.h
-+++ b/fs/xfs/xfs_trace.h
-@@ -688,8 +688,6 @@ DEFINE_INODE_EVENT(xfs_inode_set_cowblocks_tag);
- DEFINE_INODE_EVENT(xfs_inode_clear_cowblocks_tag);
- DEFINE_INODE_EVENT(xfs_inode_free_cowblocks_invalid);
- 
--DEFINE_INODE_EVENT(xfs_filemap_pfn_mkwrite);
--
- TRACE_EVENT(xfs_filemap_fault,
- 	TP_PROTO(struct xfs_inode *ip, enum page_entry_size pe_size,
- 		 bool write_fault),
+ /**
+  * enum edac-type - Error Detection and Correction capabilities and mode
 -- 
-2.12.3
+2.14.1
 
 _______________________________________________
 Linux-nvdimm mailing list
