@@ -1,47 +1,37 @@
 Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
-In-Reply-To: <20171130095323.ovrq2nenb6ztiapy@dhcp22.suse.cz>
+Date: Thu, 30 Nov 2017 10:53:23 +0100
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH v3 1/4] mm: introduce get_user_pages_longterm
+Message-ID: <20171130095323.ovrq2nenb6ztiapy@dhcp22.suse.cz>
 References: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
  <151197873499.26211.11687422577653326365.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171130095323.ovrq2nenb6ztiapy@dhcp22.suse.cz>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 Nov 2017 08:39:51 -0800
-Message-ID: <CAPcyv4giMvMfP=yZr=EDRAdTWyCwWydb4JVhT6YSWP8W0PHgGQ@mail.gmail.com>
-Subject: Re: [PATCH v3 1/4] mm: introduce get_user_pages_longterm
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <151197873499.26211.11687422577653326365.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux MM <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, hch@lst.de, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Nov 30, 2017 at 1:53 AM, Michal Hocko <mhocko@kernel.org> wrote:
-> On Wed 29-11-17 10:05:35, Dan Williams wrote:
->> Until there is a solution to the dma-to-dax vs truncate problem it is
->> not safe to allow long standing memory registrations against
->> filesytem-dax vmas. Device-dax vmas do not have this problem and are
->> explicitly allowed.
->>
->> This is temporary until a "memory registration with layout-lease"
->> mechanism can be implemented for the affected sub-systems (RDMA and
->> V4L2).
->
-> One thing is not clear to me. Who is allowed to pin pages for ever?
-> Is it possible to pin LRU pages that way as well? If yes then there
-> absolutely has to be a limit for that. Sorry I could have studied the
-> code much more but from a quick glance it seems to me that this is not
-> limited to dax (or non-LRU in general) pages.
+On Wed 29-11-17 10:05:35, Dan Williams wrote:
+> Until there is a solution to the dma-to-dax vs truncate problem it is
+> not safe to allow long standing memory registrations against
+> filesytem-dax vmas. Device-dax vmas do not have this problem and are
+> explicitly allowed.
+> 
+> This is temporary until a "memory registration with layout-lease"
+> mechanism can be implemented for the affected sub-systems (RDMA and
+> V4L2).
 
-I would turn this question around. "who can not tolerate a page being
-pinned forever?". In the case of filesytem-dax a page is
-one-in-the-same object as a filesystem-block, and a filesystem expects
-that its operations will not be blocked indefinitely. LRU pages can
-continue to be pinned indefinitely because operations can continue
-around the pinned page, i.e. every agent, save for the dma agent,
-drops their reference to the page and its tolerable that the final
-put_page() never arrives. As far as I can tell it's only filesystems
-and dax that have this collision of wanting to revoke dma access to a
-page combined with not being able to wait indefinitely for dma to
-quiesce.
+One thing is not clear to me. Who is allowed to pin pages for ever?
+Is it possible to pin LRU pages that way as well? If yes then there
+absolutely has to be a limit for that. Sorry I could have studied the
+code much more but from a quick glance it seems to me that this is not
+limited to dax (or non-LRU in general) pages.
+-- 
+Michal Hocko
+SUSE Labs
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
