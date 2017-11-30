@@ -1,18 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x243.google.com (mail-pf0-x243.google.com
- [IPv6:2607:f8b0:400e:c00::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C54FF20356887
- for <linux-nvdimm@lists.01.org>; Wed, 15 Nov 2017 09:47:53 -0800 (PST)
-Received: by mail-pf0-x243.google.com with SMTP id x7so17548336pfa.1
- for <linux-nvdimm@lists.01.org>; Wed, 15 Nov 2017 09:52:02 -0800 (PST)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH 3/3] powerpc/powernv: Create platform devs for nvdimm buses
-Date: Thu, 16 Nov 2017 04:51:31 +1100
-Message-Id: <20171115175131.23631-3-oohall@gmail.com>
-In-Reply-To: <20171115175131.23631-1-oohall@gmail.com>
-References: <20171115175131.23631-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 13E412034A79E
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Nov 2017 12:36:16 -0800 (PST)
+From: Tony Luck <tony.luck@intel.com>
+Subject: [RFC PATCH 0/4] Teach EDAC driver about NVDIMMs
+Date: Thu, 30 Nov 2017 12:40:38 -0800
+Message-Id: <cover.1512070562.git.tony.luck@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,34 +20,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linuxppc-dev@lists.ozlabs.org
-Cc: linux-nvdimm@lists.01.org
+To: linux-edac@vger.kernel.org
+Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Scan the devicetree for an nvdimm-bus compatible and create
-a platform device for them.
+A Skylake server may have some DIMM slots filled with NVDIMMs
+instead of normal DDR4 DIMMs. These are enumerated differently
+by the memory controller.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
----
- arch/powerpc/platforms/powernv/opal.c | 3 +++
- 1 file changed, 3 insertions(+)
+Sadly there isn't an easy way to just peek at some memory controller
+register to find the size of these DIMMs, so we have to rely on the
+NFIT and SMBIOS tables to get that information.
 
-diff --git a/arch/powerpc/platforms/powernv/opal.c b/arch/powerpc/platforms/powernv/opal.c
-index 65c79ecf5a4d..32df0d44f086 100644
---- a/arch/powerpc/platforms/powernv/opal.c
-+++ b/arch/powerpc/platforms/powernv/opal.c
-@@ -831,6 +831,9 @@ static int __init opal_init(void)
- 	/* Create i2c platform devices */
- 	opal_pdev_init("ibm,opal-i2c");
- 
-+	/* Handle non-volatile memory devices */
-+	opal_pdev_init("nvdimm-bus");
-+
- 	/* Setup a heatbeat thread if requested by OPAL */
- 	opal_init_heartbeat();
- 
+This series only tackles the topology function of the EDAC
+driver.  A later series of patches will fix the address translation
+parts so that errors in NVDIMMs will be reported correctly.
+
+It's marked "RFC" because it depends on the new ACPCIA version 20171110
+which has only just made it to Rafael's tree.
+
+Some of you may only care about some of the parts that touch code you
+maintain, but I copied you on all four because you might like to see
+the bigger picture.
+
+Tony Luck (4):
+  acpi, nfit: Add function to look up nvdimm device and provide SMBIOS
+    handle
+  firmware: dmi: Add function to look up a handle and return DIMM size
+  edac: Add new memory type for non-volatile DIMMs
+  EDAC, skx_edac: Detect non-volatile DIMMs
+
+ drivers/acpi/nfit/core.c     | 27 +++++++++++++++++++++
+ drivers/edac/Kconfig         |  2 ++
+ drivers/edac/edac_mc.c       |  1 +
+ drivers/edac/edac_mc_sysfs.c |  3 ++-
+ drivers/edac/skx_edac.c      | 56 ++++++++++++++++++++++++++++++++++++++++----
+ drivers/firmware/dmi_scan.c  | 29 +++++++++++++++++++++++
+ include/acpi/nfit.h          | 19 +++++++++++++++
+ include/linux/dmi.h          |  2 ++
+ include/linux/edac.h         |  3 +++
+ 9 files changed, 136 insertions(+), 6 deletions(-)
+ create mode 100644 include/acpi/nfit.h
+
+
+base-commit: 3fc70f8be59950ee2deecefdddb68be19b8cddd1
 -- 
-2.9.5
+2.14.1
 
 _______________________________________________
 Linux-nvdimm mailing list
