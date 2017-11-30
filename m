@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8FA2521B00DC0
- for <linux-nvdimm@lists.01.org>; Fri, 10 Nov 2017 01:04:17 -0800 (PST)
-Date: Fri, 10 Nov 2017 10:08:18 +0100
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 14/15] dax: associate mappings with inodes, and warn if
- dma collides with truncate
-Message-ID: <20171110090818.GE4895@lst.de>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150949217152.24061.9869502311102659784.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <150949217152.24061.9869502311102659784.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 35DD72034C5C3
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Nov 2017 12:36:17 -0800 (PST)
+From: Tony Luck <tony.luck@intel.com>
+Subject: [RFC PATCH 1/4] acpi,
+ nfit: Add function to look up nvdimm device and provide SMBIOS handle
+Date: Thu, 30 Nov 2017 12:40:39 -0800
+Message-Id: <9aa0f36505fd1ca53444360d8eee239a5e890b6f.1512070562.git.tony.luck@intel.com>
+In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
+References: <cover.1512070562.git.tony.luck@intel.com>
+In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
+References: <cover.1512070562.git.tony.luck@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,30 +20,101 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, hch@lst.de, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org
+To: linux-edac@vger.kernel.org
+Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> +		struct {
-> +			/*
-> +			 * ZONE_DEVICE pages are never on an lru or handled by
-> +			 * a slab allocator, this points to the hosting device
-> +			 * page map.
-> +			 */
-> +			struct dev_pagemap *pgmap;
-> +			/*
-> +			 * inode association for MEMORY_DEVICE_FS_DAX page-idle
-> +			 * callbacks. Note that we don't use ->mapping since
-> +			 * that has hard coded page-cache assumptions in
-> +			 * several paths.
-> +			 */
+EDAC driver needs to look up attributes of NVDIMMs provided in SMBIOS.
 
-What assumptions?  I'd much rather fix those up than having two fields
-that have the same functionality.
+Provide a function that looks up an acpi_nfit_memory_map from a device
+handle (node/socket/mc/channel/dimm) and returns the SMBIOS handle.
+Also pass back the "flags" so we can see if the NVDIMM is OK.
+
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+ drivers/acpi/nfit/core.c | 27 +++++++++++++++++++++++++++
+ include/acpi/nfit.h      | 19 +++++++++++++++++++
+ 2 files changed, 46 insertions(+)
+ create mode 100644 include/acpi/nfit.h
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 9c2c49b6a240..31c0dc30f88f 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -23,6 +23,7 @@
+ #include <linux/io.h>
+ #include <linux/nd.h>
+ #include <asm/cacheflush.h>
++#include <acpi/nfit.h>
+ #include "nfit.h"
+ 
+ /*
+@@ -478,6 +479,32 @@ static bool add_memdev(struct acpi_nfit_desc *acpi_desc,
+ 	return true;
+ }
+ 
++int nfit_get_smbios_id(u32 device_handle, u16 *flags)
++{
++	struct acpi_nfit_memory_map *memdev;
++	struct acpi_nfit_desc *acpi_desc;
++	struct nfit_mem *nfit_mem;
++
++	mutex_lock(&acpi_desc_lock);
++	list_for_each_entry(acpi_desc, &acpi_descs, list) {
++		mutex_lock(&acpi_desc->init_mutex);
++		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++			memdev = __to_nfit_memdev(nfit_mem);
++			if (memdev->device_handle == device_handle) {
++				mutex_unlock(&acpi_desc->init_mutex);
++				mutex_unlock(&acpi_desc_lock);
++				*flags = memdev->flags;
++				return memdev->physical_id;
++			}
++		}
++		mutex_unlock(&acpi_desc->init_mutex);
++	}
++	mutex_unlock(&acpi_desc_lock);
++
++	return -ENODEV;
++}
++EXPORT_SYMBOL_GPL(nfit_get_smbios_id);
++
+ /*
+  * An implementation may provide a truncated control region if no block windows
+  * are defined.
+diff --git a/include/acpi/nfit.h b/include/acpi/nfit.h
+new file mode 100644
+index 000000000000..1eee1e32e72e
+--- /dev/null
++++ b/include/acpi/nfit.h
+@@ -0,0 +1,19 @@
++/*
++ * Copyright(c) 2017 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++
++#ifndef __ACPI_NFIT_H
++#define __ACPI_NFIT_H
++
++int nfit_get_smbios_id(u32 device_handle, u16 *flags);
++
++#endif /* __ACPI_NFIT_H */
+-- 
+2.14.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
