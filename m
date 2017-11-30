@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0963220D4BE6
- for <linux-nvdimm@lists.01.org>; Tue, 14 Nov 2017 12:00:41 -0800 (PST)
-Subject: [PATCH v2 1/4] mm: introduce get_user_pages_longterm
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 14 Nov 2017 11:56:34 -0800
-Message-ID: <151068939435.7446.13560129395419350737.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id A6DF8203564B0
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Nov 2017 12:36:17 -0800 (PST)
+From: Tony Luck <tony.luck@intel.com>
+Subject: [RFC PATCH 4/4] EDAC, skx_edac: Detect non-volatile DIMMs
+Date: Thu, 30 Nov 2017 12:40:42 -0800
+Message-Id: <da4c989314e82ec29195804ba5349ac3136f74c0.1512070562.git.tony.luck@intel.com>
+In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
+References: <cover.1512070562.git.tony.luck@intel.com>
+In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
+References: <cover.1512070562.git.tony.luck@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,157 +19,161 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: linux-edac@vger.kernel.org
+Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Until there is a solution to the dma-to-dax vs truncate problem it is
-not safe to allow long standing memory registrations against
-filesytem-dax vmas. Device-dax vmas do not have this problem and are
-explicitly allowed.
+This just covers the topology function of the EDAC driver.
+We locate which DIMM slots are populated with NVDIMMs and
+query the NFIT and SMBIOS tables to get the size.
 
-This is temporary until a "memory registration with layout-lease"
-mechanism can be implemented for the affected sub-systems (RDMA and
-V4L2).
-
-Cc: <stable@vger.kernel.org>
-Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 ---
- include/linux/fs.h |   14 +++++++++++
- include/linux/mm.h |   13 +++++++++++
- mm/gup.c           |   64 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 91 insertions(+)
+ drivers/edac/Kconfig    |  2 ++
+ drivers/edac/skx_edac.c | 56 ++++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 53 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 57added3201d..0bacccc9461e 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -3175,6 +3175,20 @@ static inline bool vma_is_dax(struct vm_area_struct *vma)
- 	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
+diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
+index 96afb2aeed18..5c0c4a358f67 100644
+--- a/drivers/edac/Kconfig
++++ b/drivers/edac/Kconfig
+@@ -232,6 +232,8 @@ config EDAC_SBRIDGE
+ config EDAC_SKX
+ 	tristate "Intel Skylake server Integrated MC"
+ 	depends on PCI && X86_64 && X86_MCE_INTEL && PCI_MMCONFIG
++	select DMI
++	select ACPI_NFIT
+ 	help
+ 	  Support for error detection and correction the Intel
+ 	  Skylake server Integrated Memory Controllers.
+diff --git a/drivers/edac/skx_edac.c b/drivers/edac/skx_edac.c
+index 16dea97568a1..814a5245029c 100644
+--- a/drivers/edac/skx_edac.c
++++ b/drivers/edac/skx_edac.c
+@@ -14,6 +14,8 @@
+ 
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/dmi.h>
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
+@@ -24,6 +26,7 @@
+ #include <linux/bitmap.h>
+ #include <linux/math64.h>
+ #include <linux/mod_devicetable.h>
++#include <acpi/nfit.h>
+ #include <asm/cpu_device_id.h>
+ #include <asm/intel-family.h>
+ #include <asm/processor.h>
+@@ -298,6 +301,7 @@ static int get_dimm_attr(u32 reg, int lobit, int hibit, int add, int minval,
  }
  
-+static inline bool vma_is_fsdax(struct vm_area_struct *vma)
+ #define IS_DIMM_PRESENT(mtr)		GET_BITFIELD((mtr), 15, 15)
++#define IS_NVDIMM_PRESENT(mcddrtcfg, i)	GET_BITFIELD((mcddrtcfg), (i), (i))
+ 
+ #define numrank(reg) get_dimm_attr((reg), 12, 13, 0, 1, 2, "ranks")
+ #define numrow(reg) get_dimm_attr((reg), 2, 4, 12, 1, 6, "rows")
+@@ -346,8 +350,6 @@ static int get_dimm_info(u32 mtr, u32 amap, struct dimm_info *dimm,
+ 	int  banks = 16, ranks, rows, cols, npages;
+ 	u64 size;
+ 
+-	if (!IS_DIMM_PRESENT(mtr))
+-		return 0;
+ 	ranks = numrank(mtr);
+ 	rows = numrow(mtr);
+ 	cols = numcol(mtr);
+@@ -379,6 +381,46 @@ static int get_dimm_info(u32 mtr, u32 amap, struct dimm_info *dimm,
+ 	return 1;
+ }
+ 
++static int get_nvdimm_info(struct dimm_info *dimm, struct skx_imc *imc,
++			   int chan, int dimmno)
 +{
-+	struct inode *inode;
++	int smbios_handle;
++	u32 dev_handle;
++	u16 flags;
++	u64 size;
 +
-+	if (!vma->vm_file)
-+		return false;
-+	if (!vma_is_dax(vma))
-+		return false;
-+	inode = file_inode(vma->vm_file);
-+	if (inode->i_mode == S_IFCHR)
-+		return false; /* device-dax */
-+	return true;
++	dev_handle = ACPI_NFIT_BUILD_DEVICE_HANDLE(dimmno, chan, imc->lmc,
++						   imc->src_id, 0);
++
++	smbios_handle = nfit_get_smbios_id(dev_handle, &flags);
++	if (smbios_handle < 0) {
++		skx_printk(KERN_ERR, "Can't find handle for NVDIMM ADR=%x\n", dev_handle);
++		return 0;
++	}
++	if (flags & ACPI_NFIT_MEM_MAP_FAILED) {
++		skx_printk(KERN_ERR, "NVDIMM ADR=%x is not mapped\n", dev_handle);
++		return 0;
++	}
++	size = dmi_memdev_size(smbios_handle);
++	if (size == ~0ul) {
++		skx_printk(KERN_ERR, "Can't find size for NVDIMM ADR=%x/SMBIOS=%x\n",
++			   dev_handle, smbios_handle);
++		return 0;
++	}
++	edac_dbg(0, "mc#%d: channel %d, dimm %d, %lld Mb (%lld pages)\n",
++		 imc->mc, chan, dimmno, size >> 20, size >> PAGE_SHIFT);
++
++	dimm->nr_pages = size >> PAGE_SHIFT;
++	dimm->grain = 32;
++	dimm->dtype = DEV_UNKNOWN;
++	dimm->mtype = MEM_NVDIMM;
++	dimm->edac_mode = EDAC_SECDED; /* likely better than this */
++	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
++		 imc->src_id, imc->lmc, chan, dimmno);
++
++	return 1;
 +}
 +
- static inline int iocb_flags(struct file *file)
+ #define SKX_GET_MTMTR(dev, reg) \
+ 	pci_read_config_dword((dev), 0x87c, &reg)
+ 
+@@ -395,20 +437,24 @@ static int skx_get_dimm_config(struct mem_ctl_info *mci)
  {
- 	int res = 0;
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 8d9f52a84f77..34ff8830f717 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1369,6 +1369,19 @@ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
- 		    unsigned int gup_flags, struct page **pages, int *locked);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 		    struct page **pages, unsigned int gup_flags);
-+#ifdef CONFIG_FS_DAX
-+long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
-+			    unsigned int gup_flags, struct page **pages,
-+			    struct vm_area_struct **vmas);
-+#else
-+static inline long get_user_pages_longterm(unsigned long start,
-+		unsigned long nr_pages, unsigned int gup_flags,
-+		struct page **pages, struct vm_area_struct **vmas)
-+{
-+	return get_user_pages(start, nr_pages, gup_flags, pages, vmas);
-+}
-+#endif /* CONFIG_FS_DAX */
-+
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 			struct page **pages);
+ 	struct skx_pvt *pvt = mci->pvt_info;
+ 	struct skx_imc *imc = pvt->imc;
++	u32 mtr, amap, mcddrtcfg;
+ 	struct dimm_info *dimm;
+ 	int i, j;
+-	u32 mtr, amap;
+ 	int ndimms;
  
-diff --git a/mm/gup.c b/mm/gup.c
-index b2b4d4263768..ad9d13987f14 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1095,6 +1095,70 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
- }
- EXPORT_SYMBOL(get_user_pages);
+ 	for (i = 0; i < NUM_CHANNELS; i++) {
+ 		ndimms = 0;
+ 		pci_read_config_dword(imc->chan[i].cdev, 0x8C, &amap);
++		pci_read_config_dword(imc->chan[i].cdev, 0x400, &mcddrtcfg);
+ 		for (j = 0; j < NUM_DIMMS; j++) {
+ 			dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
+ 					     mci->n_layers, i, j, 0);
+ 			pci_read_config_dword(imc->chan[i].cdev,
+ 					0x80 + 4*j, &mtr);
+-			ndimms += get_dimm_info(mtr, amap, dimm, imc, i, j);
++			if (IS_DIMM_PRESENT(mtr))
++				ndimms += get_dimm_info(mtr, amap, dimm, imc, i, j);
++			else if (IS_NVDIMM_PRESENT(mcddrtcfg, j))
++				ndimms += get_nvdimm_info(dimm, imc, i, j);
+ 		}
+ 		if (ndimms && !skx_check_ecc(imc->chan[0].cdev)) {
+ 			skx_printk(KERN_ERR, "ECC is disabled on imc %d\n", imc->mc);
+@@ -466,7 +512,7 @@ static int skx_register_mci(struct skx_imc *imc)
  
-+#ifdef CONFIG_FS_DAX
-+/*
-+ * This is the same as get_user_pages() in that it assumes we are
-+ * operating on the current task's mm, but it goes further to validate
-+ * that the vmas associated with the address range are suitable for
-+ * longterm elevated page reference counts. For example, filesystem-dax
-+ * mappings are subject to the lifetime enforced by the filesystem and
-+ * we need guarantees that longterm users like RDMA and V4L2 only
-+ * establish mappings that have a kernel enforced revocation mechanism.
-+ *
-+ * "longterm" == userspace controlled elevated page count lifetime.
-+ * Contrast this to iov_iter_get_pages() usages which are transient.
-+ */
-+long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
-+		unsigned int gup_flags, struct page **pages,
-+		struct vm_area_struct **vmas_arg)
-+{
-+	struct vm_area_struct **vmas = vmas_arg;
-+	struct vm_area_struct *vma_prev = NULL;
-+	long rc, i;
-+
-+	if (!pages)
-+		return -EINVAL;
-+
-+	if (!vmas) {
-+		vmas = kzalloc(sizeof(struct vm_area_struct *) * nr_pages,
-+				GFP_KERNEL);
-+		if (!vmas)
-+			return -ENOMEM;
-+	}
-+
-+	rc = get_user_pages(start, nr_pages, gup_flags, pages, vmas);
-+
-+	for (i = 0; i < rc; i++) {
-+		struct vm_area_struct *vma = vmas[i];
-+
-+		if (vma == vma_prev)
-+			continue;
-+
-+		vma_prev = vma;
-+
-+		if (vma_is_fsdax(vma))
-+			break;
-+	}
-+
-+	/*
-+	 * Either get_user_pages() failed, or the vma validation
-+	 * succeeded, in either case we don't need to put_page() before
-+	 * returning.
-+	 */
-+	if (i >= rc)
-+		goto out;
-+
-+	for (i = 0; i < rc; i++)
-+		put_page(pages[i]);
-+	rc = -EOPNOTSUPP;
-+out:
-+	if (vmas != vmas_arg)
-+		kfree(vmas);
-+	return rc;
-+}
-+EXPORT_SYMBOL(get_user_pages_longterm);
-+#endif /* CONFIG_FS_DAX */
-+
- /**
-  * populate_vma_page_range() -  populate a range of pages in the vma.
-  * @vma:   target vma
+ 	mci->ctl_name = kasprintf(GFP_KERNEL, "Skylake Socket#%d IMC#%d",
+ 				  imc->node_id, imc->lmc);
+-	mci->mtype_cap = MEM_FLAG_DDR4;
++	mci->mtype_cap = MEM_FLAG_DDR4 | MEM_FLAG_NVDIMM;
+ 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
+ 	mci->edac_cap = EDAC_FLAG_NONE;
+ 	mci->mod_name = "skx_edac.c";
+-- 
+2.14.1
 
 _______________________________________________
 Linux-nvdimm mailing list
