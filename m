@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 48F16221EA0B2
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 07:04:18 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 12/14] memremap: remove find_dev_pagemap
-Date: Thu,  7 Dec 2017 07:08:38 -0800
-Message-Id: <20171207150840.28409-13-hch@lst.de>
-In-Reply-To: <20171207150840.28409-1-hch@lst.de>
-References: <20171207150840.28409-1-hch@lst.de>
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C7FBA21A10961
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Dec 2017 15:28:59 -0800 (PST)
+Subject: [ndctl PATCH 08/17] ndctl,
+ test: reset all nfit_test data for each test/libndctl run
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 01 Dec 2017 15:25:12 -0800
+Message-ID: <151217071253.28402.991007933773283137.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,77 +19,190 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We already have the proper pfn value in both callers, so just open code
-the function there.
+In preparation for tests that write smart threshold and injected-smart
+values arrange for nfit_test to be completely reloaded for each test
+run. I.e. it is no longer sufficient to just clear label data and reset
+regions.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- kernel/memremap.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ test.h                 |    3 ++-
+ test/blk_namespaces.c  |    2 +-
+ test/core.c            |   25 ++++++++++++++++++++++++-
+ test/dpa-alloc.c       |    2 +-
+ test/dsm-fail.c        |    2 +-
+ test/libndctl.c        |    2 +-
+ test/multi-pmem.c      |    2 +-
+ test/parent-uuid.c     |    2 +-
+ test/pmem_namespaces.c |    2 +-
+ 9 files changed, 33 insertions(+), 9 deletions(-)
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 4301fb657150..ba5068b9ce07 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -316,14 +316,6 @@ static void devm_memremap_pages_release(void *data)
- 		      "%s: failed to free all reserved pages\n", __func__);
+diff --git a/test.h b/test.h
+index 1ff350a9c1ba..5f2d6293c104 100644
+--- a/test.h
++++ b/test.h
+@@ -29,7 +29,8 @@ void builtin_xaction_namespace_reset(void);
+ struct kmod_ctx;
+ struct kmod_module;
+ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+-	int log_level, struct ndctl_test *test);
++		struct ndctl_ctx *nd_ctx, int log_level,
++		struct ndctl_test *test);
+ 
+ struct ndctl_ctx;
+ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+diff --git a/test/blk_namespaces.c b/test/blk_namespaces.c
+index 7b33bfd0528b..b587ab93fbb8 100644
+--- a/test/blk_namespaces.c
++++ b/test/blk_namespaces.c
+@@ -239,7 +239,7 @@ int test_blk_namespaces(int log_level, struct ndctl_test *test,
+ 
+ 	if (!bus) {
+ 		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+-		rc = nfit_test_init(&kmod_ctx, &mod, log_level, test);
++		rc = nfit_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+ 		ndctl_invalidate(ctx);
+ 		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+ 		if (rc < 0 || !bus) {
+diff --git a/test/core.c b/test/core.c
+index e0806ed24058..ca983e4913f7 100644
+--- a/test/core.c
++++ b/test/core.c
+@@ -20,6 +20,7 @@
+ 
+ #include <util/log.h>
+ #include <util/sysfs.h>
++#include <ndctl/libndctl.h>
+ #include <ccan/array_size/array_size.h>
+ 
+ #define KVER_STRLEN 20
+@@ -116,11 +117,13 @@ int ndctl_test_get_skipped(struct ndctl_test *test)
  }
  
--/* assumes rcu_read_lock() held at entry */
--static struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
--{
--	WARN_ON_ONCE(!rcu_read_lock_held());
--
--	return radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
--}
--
- /**
-  * devm_memremap_pages - remap and provide memmap backing for the given resource
-  * @dev: hosting device for @res
-@@ -496,7 +488,7 @@ struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
- 	 * the memmap.
- 	 */
- 	rcu_read_lock();
--	pgmap = find_dev_pagemap(__pfn_to_phys(page_to_pfn(page)));
-+	pgmap = radix_tree_lookup(&pgmap_radix, page_to_pfn(page));
- 	rcu_read_unlock();
- 
- 	if (!pgmap || !pgmap->altmap_valid)
-@@ -515,12 +507,12 @@ struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
- struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- 		struct dev_pagemap *pgmap)
+ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+-		int log_level, struct ndctl_test *test)
++		struct ndctl_ctx *nd_ctx, int log_level,
++		struct ndctl_test *test)
  {
--	resource_size_t phys = PFN_PHYS(pfn);
--
- 	/*
- 	 * In the cached case we're already holding a live reference.
- 	 */
- 	if (pgmap) {
-+		resource_size_t phys = PFN_PHYS(pfn);
-+
- 		if (phys >= pgmap->res.start && phys <= pgmap->res.end)
- 			return pgmap;
- 		put_dev_pagemap(pgmap);
-@@ -528,7 +520,7 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 	int rc;
+ 	unsigned int i;
+ 	const char *name;
++	struct ndctl_bus *bus;
+ 	struct log_ctx log_ctx;
+ 	const char *list[] = {
+ 		"nfit",
+@@ -219,6 +222,26 @@ retry:
+ 		return rc;
+ 	}
  
- 	/* fall back to slow path lookup */
- 	rcu_read_lock();
--	pgmap = find_dev_pagemap(phys);
-+	pgmap = radix_tree_lookup(&pgmap_radix, pfn);
- 	if (pgmap && !percpu_ref_tryget_live(pgmap->ref))
- 		pgmap = NULL;
- 	rcu_read_unlock();
--- 
-2.14.2
++	if (nd_ctx) {
++		/* caller wants a full nfit_test reset */
++		ndctl_bus_foreach(nd_ctx, bus) {
++			struct ndctl_region *region;
++
++			if (strncmp(ndctl_bus_get_provider(bus),
++						"nfit_test", 9) != 0)
++				continue;
++			ndctl_region_foreach(bus, region)
++				ndctl_region_disable_invalidate(region);
++		}
++
++		rc = kmod_module_remove_module(*mod, 0);
++		if (rc < 0 && rc != -ENOENT) {
++			kmod_unref(*ctx);
++			return rc;
++		}
++		ndctl_invalidate(nd_ctx);
++	}
++
+ 	rc = kmod_module_probe_insert_module(*mod, KMOD_PROBE_APPLY_BLACKLIST,
+ 			NULL, NULL, NULL, NULL);
+ 	if (rc)
+diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
+index 9ab10f90293a..7793650699da 100644
+--- a/test/dpa-alloc.c
++++ b/test/dpa-alloc.c
+@@ -287,7 +287,7 @@ int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+ 		return 77;
+ 
+ 	ndctl_set_log_priority(ctx, loglevel);
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
++	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+ 	if (err < 0) {
+ 		ndctl_test_skip(test);
+ 		fprintf(stderr, "nfit_test unavailable skipping tests\n");
+diff --git a/test/dsm-fail.c b/test/dsm-fail.c
+index b363decc29c8..90d3e074f12b 100644
+--- a/test/dsm-fail.c
++++ b/test/dsm-fail.c
+@@ -167,7 +167,7 @@ int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+ 	int result = EXIT_FAILURE, err;
+ 
+ 	ndctl_set_log_priority(ctx, loglevel);
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
++	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+ 	if (err < 0) {
+ 		result = 77;
+ 		ndctl_test_skip(test);
+diff --git a/test/libndctl.c b/test/libndctl.c
+index b534b640cb8d..b10142ebdee4 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -2567,7 +2567,7 @@ int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+ 	daxctl_set_log_priority(daxctl_ctx, loglevel);
+ 	ndctl_set_private_data(ctx, test);
+ 
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
++	err = nfit_test_init(&kmod_ctx, &mod, ctx, loglevel, test);
+ 	if (err < 0) {
+ 		ndctl_test_skip(test);
+ 		fprintf(stderr, "nfit_test unavailable skipping tests\n");
+diff --git a/test/multi-pmem.c b/test/multi-pmem.c
+index b3054f44b5dd..668662cded25 100644
+--- a/test/multi-pmem.c
++++ b/test/multi-pmem.c
+@@ -260,7 +260,7 @@ int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx
+ 
+ 	ndctl_set_log_priority(ctx, loglevel);
+ 
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
++	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+ 	if (err < 0) {
+ 		result = 77;
+ 		ndctl_test_skip(test);
+diff --git a/test/parent-uuid.c b/test/parent-uuid.c
+index 87ea4d75b5a5..3a63f7244e21 100644
+--- a/test/parent-uuid.c
++++ b/test/parent-uuid.c
+@@ -229,7 +229,7 @@ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ct
+ 		return 77;
+ 
+ 	ndctl_set_log_priority(ctx, loglevel);
+-	err = nfit_test_init(&kmod_ctx, &mod, loglevel, test);
++	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+ 	if (err < 0) {
+ 		ndctl_test_skip(test);
+ 		fprintf(stderr, "nfit_test unavailable skipping tests\n");
+diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
+index 69e87abc592f..eac56ce25d58 100644
+--- a/test/pmem_namespaces.c
++++ b/test/pmem_namespaces.c
+@@ -203,7 +203,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+ 
+ 	if (!bus) {
+ 		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+-		rc = nfit_test_init(&kmod_ctx, &mod, log_level, test);
++		rc = nfit_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+ 		ndctl_invalidate(ctx);
+ 		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+ 		if (rc < 0 || !bus) {
 
 _______________________________________________
 Linux-nvdimm mailing list
