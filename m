@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D940E221660EE
- for <linux-nvdimm@lists.01.org>; Wed, 29 Nov 2017 09:06:39 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2] rpmbuild: check for rpmbuild working directories
-Date: Wed, 29 Nov 2017 10:11:00 -0700
-Message-Id: <20171129171100.6654-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 29014220D4C1E
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Nov 2017 17:58:51 -0800 (PST)
+Subject: [PATCH] acpi, nfit: fix health event notification
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 30 Nov 2017 17:55:03 -0800
+Message-ID: <151209330313.2584.7295902868393348172.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,42 +16,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Daniel Osawa <daniel.k.osawa@intel.com>, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The rpmbuild and make-git-snapshot assume that the various ~/rpmbuild/*
-directories are present. In case they weren't, git-archive would fail
-with something like:
+Integration testing with a BIOS that generates injected health event
+notifications fails to communicate those events to userspace. The nfit
+driver neglects to link the ACPI DIMM device with the necessary driver
+data so acpi_nvdimm_notify() fails this lookup:
 
-  /root/rpmbuild/SOURCES/ndctl-58.2.38.g8ad8f4c.tar.gz: No such file or directory
+        nfit_mem = dev_get_drvdata(dev);
+        if (nfit_mem && nfit_mem->flags_attr)
+                sysfs_notify_dirent(nfit_mem->flags_attr);
 
-Add a check to make sure they are present, and exit out with a relevant
-message.
+Add the necessary linkage when installing the notification handler and
+clean it up when the nfit driver instance is torn down.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc: <stable@vger.kernel.org>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Fixes: ba9c8dd3c222 ("acpi, nfit: add dimm device notification support")
+Reported-by: Daniel Osawa <daniel.k.osawa@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- rpmbuild.sh | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/nfit/core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/rpmbuild.sh b/rpmbuild.sh
-index 4535b46..fe4154b 100755
---- a/rpmbuild.sh
-+++ b/rpmbuild.sh
-@@ -1,5 +1,6 @@
- #!/bin/bash
- pushd $(dirname $0) >/dev/null
-+[ ! -d ~/rpmbuild/SOURCES ] && echo "rpmdev tree not found" && exit 1
- ./make-git-snapshot.sh
- popd > /dev/null
- rpmbuild -ba $(dirname $0)/rhel/ndctl.spec
--- 
-2.14.3
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index ff2580e7611d..947ea8a92761 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1670,6 +1670,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 				dev_name(&adev_dimm->dev));
+ 		return -ENXIO;
+ 	}
++	/*
++	 * Record nfit_mem for the notification path to track back to
++	 * the nfit sysfs attributes for this dimm device object.
++	 */
++	dev_set_drvdata(&adev_dimm->dev, nfit_mem);
+ 
+ 	/*
+ 	 * Until standardization materializes we need to consider 4
+@@ -1755,6 +1760,7 @@ static void shutdown_dimm_notify(void *data)
+ 		if (adev_dimm)
+ 			acpi_remove_notify_handler(adev_dimm->handle,
+ 					ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
++		dev_set_drvdata(&adev_dimm->dev, NULL);
+ 	}
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
