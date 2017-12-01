@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4BE8A222F4E28
- for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 16:59:45 -0800 (PST)
-Subject: [PATCH v4 04/18] dax: require 'struct page' by default for
- filesystem dax
+ by ml01.01.org (Postfix) with ESMTPS id 47D7C21A1099A
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Dec 2017 15:29:16 -0800 (PST)
+Subject: [ndctl PATCH 11/17] ndctl: refactor 'smart_ops' into generic
+ 'dimm_ops'
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 23 Dec 2017 16:56:22 -0800
-Message-ID: <151407698249.38751.17338746909239708376.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 01 Dec 2017 15:25:28 -0800
+Message-ID: <151217072833.28402.3168795736947236643.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,125 +23,209 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-xfs@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-fsdevel@vger.kernel.org, hch@lst.de, Gerald Schaefer <gerald.schaefer@de.ibm.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-If a dax buffer from a device that does not map pages is passed to
-read(2) or write(2) as a target for direct-I/O it triggers SIGBUS. If
-gdb attempts to examine the contents of a dax buffer from a device that
-does not map pages it triggers SIGBUS. If fork(2) is called on a process
-with a dax mapping from a device that does not map pages it triggers
-SIGBUS. 'struct page' is required otherwise several kernel code paths
-break in surprising ways. Disable filesystem-dax on devices that do not
-map pages.
+There are cases beyond SMART commands where we need to generically ask
+the per-family provider for more information, or take some NVDIMM-family
+specific action. Rename smart_ops to dimm_ops.
 
-In addition to needing pfn_to_page() to be valid we also require devmap
-pages.  We need this to detect dax pages in the get_user_pages_fast()
-path and so that we can stop managing the VM_MIXEDMAP flag. For DAX
-drivers that have not supported get_user_pages() to date we allow them
-to opt-in to supporting DAX with the CONFIG_FS_DAX_LIMITED configuration
-option which requires ->direct_access() to return pfn_t_special() pfns.
-This leaves DAX support in brd disabled and scheduled for removal.
+This also cleans up ndctl_dimm_get_smart_ops() to be open coded
+("dimm->ops"). The NDCTL_EXPORT on the previous symbol name was
+invalidated by the fact that ndctl/lib/libndctl.sym never listed the
+symbol.
 
-Note that when the initial dax support was being merged a few years back
-there was concern that struct page was unsuitable for use with next
-generation persistent memory devices. The theoretical concern was that
-struct page access, being such a hotly used data structure in the
-kernel, would lead to media wear out. While that was a reasonable
-conservative starting position it has not held true in practice. We have
-long since committed to using devm_memremap_pages() to support higher
-order kernel functionality that needs get_user_pages() and
-pfn_to_page().
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/powerpc/platforms/Kconfig |    1 +
- drivers/dax/super.c            |   10 ++++++++++
- drivers/s390/block/Kconfig     |    1 +
- fs/Kconfig                     |    7 +++++++
- 4 files changed, 19 insertions(+)
+ ndctl/lib/hpe1.c     |    2 +-
+ ndctl/lib/intel.c    |    2 +-
+ ndctl/lib/libndctl.c |   11 +++--------
+ ndctl/lib/msft.c     |    2 +-
+ ndctl/lib/private.h  |   10 +++++-----
+ ndctl/lib/smart.c    |   16 +++++++++-------
+ ndctl/libndctl.h     |    1 -
+ 7 files changed, 20 insertions(+), 24 deletions(-)
 
-diff --git a/arch/powerpc/platforms/Kconfig b/arch/powerpc/platforms/Kconfig
-index 5a96a2763e4a..2ce89b42a9f4 100644
---- a/arch/powerpc/platforms/Kconfig
-+++ b/arch/powerpc/platforms/Kconfig
-@@ -297,6 +297,7 @@ config AXON_RAM
- 	tristate "Axon DDR2 memory device driver"
- 	depends on PPC_IBM_CELL_BLADE && BLOCK
- 	select DAX
-+	select FS_DAX_LIMITED
- 	default m
- 	help
- 	  It registers one block device per Axon's DDR2 memory bank found
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 3ec804672601..473af694ad1c 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -15,6 +15,7 @@
- #include <linux/mount.h>
- #include <linux/magic.h>
- #include <linux/genhd.h>
-+#include <linux/pfn_t.h>
- #include <linux/cdev.h>
- #include <linux/hash.h>
- #include <linux/slab.h>
-@@ -123,6 +124,15 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 		return len < 0 ? len : -EIO;
- 	}
- 
-+	if ((IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn))
-+			|| pfn_t_devmap(pfn))
-+		/* pass */;
-+	else {
-+		pr_debug("VFS (%s): error: dax support not enabled\n",
-+				sb->s_id);
-+		return -EOPNOTSUPP;
-+	}
-+
- 	return 0;
+diff --git a/ndctl/lib/hpe1.c b/ndctl/lib/hpe1.c
+index 81f60ab27a07..dbc1ff06737e 100644
+--- a/ndctl/lib/hpe1.c
++++ b/ndctl/lib/hpe1.c
+@@ -296,7 +296,7 @@ static unsigned int hpe1_cmd_smart_threshold_get_spares(struct ndctl_cmd *cmd)
+ 	return CMD_HPE1_SMART_THRESH(cmd)->spare_block_threshold;
  }
- EXPORT_SYMBOL_GPL(__bdev_dax_supported);
-diff --git a/drivers/s390/block/Kconfig b/drivers/s390/block/Kconfig
-index 31f014b57bfc..594ae5fc8e9d 100644
---- a/drivers/s390/block/Kconfig
-+++ b/drivers/s390/block/Kconfig
-@@ -15,6 +15,7 @@ config BLK_DEV_XPRAM
- config DCSSBLK
- 	def_tristate m
- 	select DAX
-+	select FS_DAX_LIMITED
- 	prompt "DCSSBLK support"
- 	depends on S390 && BLOCK
- 	help
-diff --git a/fs/Kconfig b/fs/Kconfig
-index 7aee6d699fd6..b40128bf6d1a 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -58,6 +58,13 @@ config FS_DAX_PMD
- 	depends on ZONE_DEVICE
- 	depends on TRANSPARENT_HUGEPAGE
  
-+# Selected by DAX drivers that do not expect filesystem DAX to support
-+# get_user_pages() of DAX mappings. I.e. "limited" indicates no support
-+# for fork() of processes with MAP_SHARED mappings or support for
-+# direct-I/O to a DAX mapping.
-+config FS_DAX_LIMITED
-+	bool
+-struct ndctl_smart_ops * const hpe1_smart_ops = &(struct ndctl_smart_ops) {
++struct ndctl_dimm_ops * const hpe1_dimm_ops = &(struct ndctl_dimm_ops) {
+ 	.new_smart = hpe1_dimm_cmd_new_smart,
+ 	.smart_get_flags = hpe1_cmd_smart_get_flags,
+ 	.smart_get_health = hpe1_cmd_smart_get_health,
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index e9da565dd57d..af13c60d4f52 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -283,7 +283,7 @@ intel_smart_set_threshold_field(spares)
+ intel_smart_set_threshold_field(media_temperature)
+ intel_smart_set_threshold_field(ctrl_temperature)
+ 
+-struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
++struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
+ 	.new_smart = intel_dimm_cmd_new_smart,
+ 	.smart_get_flags = intel_cmd_smart_get_flags,
+ 	.smart_get_health = intel_cmd_smart_get_health,
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 47ba2807495e..d6d8a7f0c0b3 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -1301,11 +1301,11 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+ 		dimm->cmd_family = strtoul(buf, NULL, 0);
+ 	if (dimm->cmd_family == NVDIMM_FAMILY_INTEL)
+-		dimm->smart_ops = intel_smart_ops;
++		dimm->ops = intel_dimm_ops;
+ 	if (dimm->cmd_family == NVDIMM_FAMILY_HPE1)
+-		dimm->smart_ops = hpe1_smart_ops;
++		dimm->ops = hpe1_dimm_ops;
+ 	if (dimm->cmd_family == NVDIMM_FAMILY_MSFT)
+-		dimm->smart_ops = msft_smart_ops;
++		dimm->ops = msft_dimm_ops;
+ 
+ 	sprintf(path, "%s/nfit/dsm_mask", dimm_base);
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+@@ -1563,11 +1563,6 @@ NDCTL_EXPORT struct ndctl_bus *ndctl_dimm_get_bus(struct ndctl_dimm *dimm)
+ 	return dimm->bus;
+ }
+ 
+-NDCTL_EXPORT struct ndctl_smart_ops *ndctl_dimm_get_smart_ops(struct ndctl_dimm *dimm)
+-{
+-	return dimm->smart_ops;
+-}
+-
+ NDCTL_EXPORT struct ndctl_ctx *ndctl_dimm_get_ctx(struct ndctl_dimm *dimm)
+ {
+ 	return dimm->bus->ctx;
+diff --git a/ndctl/lib/msft.c b/ndctl/lib/msft.c
+index d61c065e752d..e15bc076a6c2 100644
+--- a/ndctl/lib/msft.c
++++ b/ndctl/lib/msft.c
+@@ -136,7 +136,7 @@ static unsigned int msft_cmd_smart_get_life_used(struct ndctl_cmd *cmd)
+ 	return 100 - CMD_MSFT_SMART(cmd)->nvm_lifetime;
+ }
+ 
+-struct ndctl_smart_ops * const msft_smart_ops = &(struct ndctl_smart_ops) {
++struct ndctl_dimm_ops * const msft_dimm_ops = &(struct ndctl_dimm_ops) {
+ 	.new_smart = msft_dimm_cmd_new_smart,
+ 	.smart_get_flags = msft_cmd_smart_get_flags,
+ 	.smart_get_health = msft_cmd_smart_get_health,
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 5e9f24f2b3c5..490de96f6ce6 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -61,7 +61,7 @@ struct nvdimm_data {
+ struct ndctl_dimm {
+ 	struct kmod_module *module;
+ 	struct ndctl_bus *bus;
+-	struct ndctl_smart_ops *smart_ops;
++	struct ndctl_dimm_ops *ops;
+ 	struct nvdimm_data ndd;
+ 	unsigned int handle, major, minor, serial;
+ 	unsigned short phys_id;
+@@ -277,7 +277,7 @@ struct ndctl_bb {
+ 	struct list_node list;
+ };
+ 
+-struct ndctl_smart_ops {
++struct ndctl_dimm_ops {
+ 	struct ndctl_cmd *(*new_smart)(struct ndctl_dimm *);
+ 	unsigned int (*smart_get_flags)(struct ndctl_cmd *);
+ 	unsigned int (*smart_get_health)(struct ndctl_cmd *);
+@@ -303,9 +303,9 @@ struct ndctl_smart_ops {
+ 	int (*smart_threshold_set_spares)(struct ndctl_cmd *, unsigned int);
+ };
+ 
+-struct ndctl_smart_ops * const intel_smart_ops;
+-struct ndctl_smart_ops * const hpe1_smart_ops;
+-struct ndctl_smart_ops * const msft_smart_ops;
++struct ndctl_dimm_ops * const intel_dimm_ops;
++struct ndctl_dimm_ops * const hpe1_dimm_ops;
++struct ndctl_dimm_ops * const msft_dimm_ops;
+ 
+ static inline struct ndctl_bus *cmd_to_bus(struct ndctl_cmd *cmd)
+ {
+diff --git a/ndctl/lib/smart.c b/ndctl/lib/smart.c
+index 58a6f4bb28ad..846030e70e92 100644
+--- a/ndctl/lib/smart.c
++++ b/ndctl/lib/smart.c
+@@ -17,13 +17,14 @@
+ #include "private.h"
+ 
+ /*
+- * Define the wrappers around the ndctl_smart_ops:
++ * Define the wrappers around the ndctl_dimm_ops:
+  */
+ 
+ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart(
+ 		struct ndctl_dimm *dimm)
+ {
+-	struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(dimm);
++	struct ndctl_dimm_ops *ops = dimm->ops;
 +
- endif # BLOCK
+ 	if (ops && ops->new_smart)
+ 		return ops->new_smart(dimm);
+ 	else
+@@ -33,7 +34,8 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart(
+ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(
+ 		struct ndctl_dimm *dimm)
+ {
+-	struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(dimm);
++	struct ndctl_dimm_ops *ops = dimm->ops;
++
+ 	if (ops && ops->new_smart_threshold)
+ 		return ops->new_smart_threshold(dimm);
+ 	else
+@@ -47,11 +49,11 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(
+ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_set_threshold(
+ 		struct ndctl_cmd *cmd)
+ {
+-	struct ndctl_smart_ops *ops;
++	struct ndctl_dimm_ops *ops;
  
- # Posix ACL utility routines
+ 	if (!cmd || !cmd->dimm)
+ 		return NULL;
+-	ops = ndctl_dimm_get_smart_ops(cmd->dimm);
++	ops = cmd->dimm->ops;
+ 
+ 	if (ops && ops->new_smart_set_threshold)
+ 		return ops->new_smart_set_threshold(cmd);
+@@ -63,7 +65,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_set_threshold(
+ NDCTL_EXPORT rettype ndctl_cmd_##op(struct ndctl_cmd *cmd) \
+ { \
+ 	if (cmd->dimm) { \
+-		struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(cmd->dimm); \
++		struct ndctl_dimm_ops *ops = cmd->dimm->ops; \
+ 		if (ops && ops->op) \
+ 			return ops->op(cmd); \
+ 	} \
+@@ -103,7 +105,7 @@ smart_cmd_op(smart_threshold_get_supported_alarms, unsigned int, 0);
+ NDCTL_EXPORT int ndctl_cmd_##op(struct ndctl_cmd *cmd, unsigned int val) \
+ { \
+ 	if (cmd->dimm) { \
+-		struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(cmd->dimm); \
++		struct ndctl_dimm_ops *ops = cmd->dimm->ops; \
+ 		if (ops && ops->op) \
+ 			return ops->op(cmd, val); \
+ 	} \
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 69333443ee78..0dfd373e7897 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -162,7 +162,6 @@ unsigned int ndctl_dimm_handle_get_channel(struct ndctl_dimm *dimm);
+ unsigned int ndctl_dimm_handle_get_dimm(struct ndctl_dimm *dimm);
+ const char *ndctl_dimm_get_devname(struct ndctl_dimm *dimm);
+ struct ndctl_bus *ndctl_dimm_get_bus(struct ndctl_dimm *dimm);
+-struct ndctl_smart_ops *ndctl_dimm_get_smart_ops(struct ndctl_dimm *dimm);
+ struct ndctl_ctx *ndctl_dimm_get_ctx(struct ndctl_dimm *dimm);
+ struct ndctl_dimm *ndctl_dimm_get_by_handle(struct ndctl_bus *bus,
+ 		unsigned int handle);
 
 _______________________________________________
 Linux-nvdimm mailing list
