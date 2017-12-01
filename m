@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 32D7E2217CE54
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 07:04:16 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 02/14] mm: optimize dev_pagemap reference counting around
- get_dev_pagemap
-Date: Thu,  7 Dec 2017 07:08:28 -0800
-Message-Id: <20171207150840.28409-3-hch@lst.de>
-In-Reply-To: <20171207150840.28409-1-hch@lst.de>
-References: <20171207150840.28409-1-hch@lst.de>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7B09821A10961
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Dec 2017 15:29:21 -0800 (PST)
+Subject: [ndctl PATCH 12/17] ndctl,
+ debug: improve do_cmd output for ND_CMD_CALL
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 01 Dec 2017 15:25:33 -0800
+Message-ID: <151217073370.28402.14730045606301358395.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,101 +19,139 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change the calling convention so that get_dev_pagemap always consumes the
-previous reference instead of doing this using an explicit earlier call to
-put_dev_pagemap in the callers.
+Call back to a per-dimm-family operation that can provide a text
+description for the function number passed in ND_CMD_CALL invocations.
 
-The callers will still need to put the final reference after finishing the
-loop over the pages.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- kernel/memremap.c | 17 +++++++++--------
- mm/gup.c          |  7 +++++--
- 2 files changed, 14 insertions(+), 10 deletions(-)
+ ndctl/lib/intel.c    |   17 +++++++++++++++++
+ ndctl/lib/libndctl.c |   37 +++++++++++++++++++++++++------------
+ ndctl/lib/private.h  |    2 ++
+ 3 files changed, 44 insertions(+), 12 deletions(-)
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index f0b54eca85b0..502fa107a585 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -506,22 +506,23 @@ struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
-  * @pfn: page frame number to lookup page_map
-  * @pgmap: optional known pgmap that already has a reference
-  *
-- * @pgmap allows the overhead of a lookup to be bypassed when @pfn lands in the
-- * same mapping.
-+ * If @pgmap is non-NULL and covers @pfn it will be returned as-is.  If @pgmap
-+ * is non-NULL but does not cover @pfn the reference to it while be released.
-  */
- struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- 		struct dev_pagemap *pgmap)
- {
--	const struct resource *res = pgmap ? pgmap->res : NULL;
- 	resource_size_t phys = PFN_PHYS(pfn);
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index af13c60d4f52..3e4260f9dbd1 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -283,7 +283,24 @@ intel_smart_set_threshold_field(spares)
+ intel_smart_set_threshold_field(media_temperature)
+ intel_smart_set_threshold_field(ctrl_temperature)
  
- 	/*
--	 * In the cached case we're already holding a live reference so
--	 * we can simply do a blind increment
-+	 * In the cached case we're already holding a live reference.
- 	 */
--	if (res && phys >= res->start && phys <= res->end) {
--		percpu_ref_get(pgmap->ref);
--		return pgmap;
-+	if (pgmap) {
-+		const struct resource *res = pgmap ? pgmap->res : NULL;
++static const char *intel_cmd_desc(int fn)
++{
++	static const char *descs[] = {
++		[ND_INTEL_SMART] = "smart",
++		[ND_INTEL_SMART_THRESHOLD] = "smart_thresh",
++		[ND_INTEL_SMART_SET_THRESHOLD] = "smart_set_thresh",
++	};
++	const char *desc = descs[fn];
 +
-+		if (res && phys >= res->start && phys <= res->end)
-+			return pgmap;
-+		put_dev_pagemap(pgmap);
++	if (fn >= (int) ARRAY_SIZE(descs))
++		return "unknown";
++	if (!desc)
++		return "unknown";
++	return desc;
++}
++
+ struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
++	.cmd_desc = intel_cmd_desc,
+ 	.new_smart = intel_dimm_cmd_new_smart,
+ 	.smart_get_flags = intel_cmd_smart_get_flags,
+ 	.smart_get_health = intel_cmd_smart_get_health,
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index d6d8a7f0c0b3..8471dd8c4f89 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -2372,26 +2372,39 @@ static int to_ioctl_cmd(int cmd, int dimm)
+ 	}
+ }
+ 
++static const char *ndctl_dimm_get_cmd_subname(struct ndctl_cmd *cmd)
++{
++	struct ndctl_dimm *dimm = cmd->dimm;
++	struct ndctl_dimm_ops *ops = dimm ? dimm->ops : NULL;
++
++	if (!dimm || cmd->type != ND_CMD_CALL || !ops || !ops->cmd_desc)
++		return NULL;
++	return ops->cmd_desc(cmd->pkg->nd_command);
++}
++
+ static int do_cmd(int fd, int ioctl_cmd, struct ndctl_cmd *cmd)
+ {
+ 	int rc;
+ 	u32 offset;
+-	const char *name;
++	const char *name, *sub_name = NULL;
++	struct ndctl_dimm *dimm = cmd->dimm;
+ 	struct ndctl_bus *bus = cmd_to_bus(cmd);
+ 	struct ndctl_cmd_iter *iter = &cmd->iter;
+ 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
+ 
+-	if (cmd->dimm)
+-		name = ndctl_dimm_get_cmd_name(cmd->dimm, cmd->type);
+-	else
++	if (dimm) {
++		name = ndctl_dimm_get_cmd_name(dimm, cmd->type);
++		sub_name = ndctl_dimm_get_cmd_subname(cmd);
++	} else
+ 		name = ndctl_bus_get_cmd_name(cmd->bus, cmd->type);
+ 
++
+ 	if (iter->total_xfer == 0) {
+ 		rc = ioctl(fd, ioctl_cmd, cmd->cmd_buf);
+-		dbg(ctx, "bus: %d dimm: %#x cmd: %s status: %d fw: %d (%s)\n",
+-				bus->id, cmd->dimm
+-				? ndctl_dimm_get_handle(cmd->dimm) : 0,
+-				name, rc, *(cmd->firmware_status), rc < 0 ?
++		dbg(ctx, "bus: %d dimm: %#x cmd: %s%s%s status: %d fw: %d (%s)\n",
++				bus->id, dimm ? ndctl_dimm_get_handle(dimm) : 0,
++				name, sub_name ? ":" : "", sub_name ? sub_name : "",
++				rc, *(cmd->firmware_status), rc < 0 ?
+ 				strerror(errno) : "success");
+ 		if (rc < 0)
+ 			return -errno;
+@@ -2421,10 +2434,10 @@ static int do_cmd(int fd, int ioctl_cmd, struct ndctl_cmd *cmd)
+ 		}
  	}
  
- 	/* fall back to slow path lookup */
-diff --git a/mm/gup.c b/mm/gup.c
-index d3fb60e5bfac..9d142eb9e2e9 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1410,7 +1410,6 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+-	dbg(ctx, "bus: %d dimm: %#x cmd: %s total: %d max_xfer: %d status: %d fw: %d (%s)\n",
+-			bus->id,
+-			cmd->dimm ? ndctl_dimm_get_handle(cmd->dimm) : 0,
+-			name, iter->total_xfer, iter->max_xfer, rc,
++	dbg(ctx, "bus: %d dimm: %#x cmd: %s%s%s total: %d max_xfer: %d status: %d fw: %d (%s)\n",
++			bus->id, dimm ? ndctl_dimm_get_handle(dimm) : 0,
++			name, sub_name ? ":" : "", sub_name ? sub_name : "",
++			iter->total_xfer, iter->max_xfer, rc,
+ 			*(cmd->firmware_status),
+ 			rc < 0 ? strerror(errno) : "success");
  
- 		VM_BUG_ON_PAGE(compound_head(page) != head, page);
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 490de96f6ce6..67260970bfb2 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -260,6 +260,7 @@ struct ndctl_cmd {
+ 		struct nd_cmd_ars_start ars_start[0];
+ 		struct nd_cmd_ars_status ars_status[0];
+ 		struct nd_cmd_clear_error clear_err[0];
++		struct nd_cmd_pkg pkg[0];
+ 		struct ndn_pkg_hpe1 hpe1[0];
+ 		struct ndn_pkg_msft msft[0];
+ 		struct nd_pkg_intel intel[0];
+@@ -278,6 +279,7 @@ struct ndctl_bb {
+ };
  
--		put_dev_pagemap(pgmap);
- 		SetPageReferenced(page);
- 		pages[*nr] = page;
- 		(*nr)++;
-@@ -1420,6 +1419,8 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
- 	ret = 1;
- 
- pte_unmap:
-+	if (pgmap)
-+		put_dev_pagemap(pgmap);
- 	pte_unmap(ptem);
- 	return ret;
- }
-@@ -1459,10 +1460,12 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
- 		SetPageReferenced(page);
- 		pages[*nr] = page;
- 		get_page(page);
--		put_dev_pagemap(pgmap);
- 		(*nr)++;
- 		pfn++;
- 	} while (addr += PAGE_SIZE, addr != end);
-+
-+	if (pgmap)
-+		put_dev_pagemap(pgmap);
- 	return 1;
- }
- 
--- 
-2.14.2
+ struct ndctl_dimm_ops {
++	const char *(*cmd_desc)(int);
+ 	struct ndctl_cmd *(*new_smart)(struct ndctl_dimm *);
+ 	unsigned int (*smart_get_flags)(struct ndctl_cmd *);
+ 	unsigned int (*smart_get_health)(struct ndctl_cmd *);
 
 _______________________________________________
 Linux-nvdimm mailing list
