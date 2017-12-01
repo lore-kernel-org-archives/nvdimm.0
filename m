@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1084122225C0C
- for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 16:59:50 -0800 (PST)
-Subject: [PATCH v4 05/18] dax: stop using VM_MIXEDMAP for dax
+ by ml01.01.org (Postfix) with ESMTPS id 0B54821A10961
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Dec 2017 15:29:10 -0800 (PST)
+Subject: [ndctl PATCH 10/17] ndctl: support set smart alarm/threshold
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 23 Dec 2017 16:56:27 -0800
-Message-ID: <151407698763.38751.8605535379424429182.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 01 Dec 2017 15:25:23 -0800
+Message-ID: <151217072298.28402.6161097504506303620.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,309 +22,430 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-VM_MIXEDMAP is used by dax to direct mm paths like vm_normal_page() that
-the memory page it is dealing with is not typical memory from the linear
-map. The get_user_pages_fast() path, since it does not resolve the vma,
-is already using {pte,pmd}_devmap() as a stand-in for VM_MIXEDMAP, so we
-use that as a VM_MIXEDMAP replacement in some locations. In the cases
-where there is no pte to consult we fallback to using vma_is_dax() to
-detect the VM_MIXEDMAP special case.
+libndctl and test support for the ND_INTEL_SMART_SET_THRESHOLD command.
 
-Now that we have explicit driver pfn_t-flag opt-in/opt-out for
-get_user_pages() support for DAX we can stop setting VM_MIXEDMAP.  This
-also means we no longer need to worry about safely manipulating vm_flags
-in a future where we support dynamically changing the dax mode of a
-file.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/device.c |    2 +-
- fs/ext2/file.c       |    1 -
- fs/ext4/file.c       |    2 +-
- fs/xfs/xfs_file.c    |    2 +-
- include/linux/mm.h   |    1 +
- include/linux/vma.h  |   23 +++++++++++++++++++++++
- mm/huge_memory.c     |    6 ++----
- mm/ksm.c             |    3 +++
- mm/madvise.c         |    2 +-
- mm/memory.c          |    8 ++++++--
- mm/migrate.c         |    3 ++-
- mm/mlock.c           |    5 +++--
- mm/mmap.c            |    8 ++++----
- 13 files changed, 48 insertions(+), 18 deletions(-)
- create mode 100644 include/linux/vma.h
+ ndctl/lib/intel.c      |   83 +++++++++++++++++++++++++++++++++++++++++++++++-
+ ndctl/lib/intel.h      |   10 ++++++
+ ndctl/lib/libndctl.sym |    9 +++++
+ ndctl/lib/private.h    |    8 +++++
+ ndctl/lib/smart.c      |   39 +++++++++++++++++++++++
+ ndctl/libndctl.h       |   14 ++++++++
+ test/libndctl.c        |   59 +++++++++++++++++++++++++++++-----
+ 7 files changed, 213 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 7b0bf825c4e7..c514ad48ff73 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -463,7 +463,7 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
- 		return rc;
- 
- 	vma->vm_ops = &dax_vm_ops;
--	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+	vma->vm_flags |= VM_HUGEPAGE;
- 	return 0;
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index 478f379324f5..e9da565dd57d 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -143,6 +143,7 @@ static unsigned int intel_cmd_smart_get_health(struct ndctl_cmd *cmd)
  }
  
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 2da67699dc33..62c12c75b788 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -126,7 +126,6 @@ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
- 
- 	file_accessed(file);
- 	vma->vm_ops = &ext2_dax_vm_ops;
--	vma->vm_flags |= VM_MIXEDMAP;
- 	return 0;
- }
- #else
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index a0ae27b1bc66..983cee466a89 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -367,7 +367,7 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
- 	file_accessed(file);
- 	if (IS_DAX(file_inode(file))) {
- 		vma->vm_ops = &ext4_dax_vm_ops;
--		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+		vma->vm_flags |= VM_HUGEPAGE;
- 	} else {
- 		vma->vm_ops = &ext4_file_vm_ops;
- 	}
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 8601275cc5e6..1d6d4a3ecd42 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1130,7 +1130,7 @@ xfs_file_mmap(
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
- 	if (IS_DAX(file_inode(filp)))
--		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+		vma->vm_flags |= VM_HUGEPAGE;
- 	return 0;
+ intel_smart_get_field(cmd, media_temperature)
++intel_smart_get_field(cmd, ctrl_temperature)
+ intel_smart_get_field(cmd, spares)
+ intel_smart_get_field(cmd, alarm_flags)
+ intel_smart_get_field(cmd, life_used)
+@@ -198,6 +199,7 @@ static unsigned int intel_cmd_smart_threshold_get_alarm_control(
  }
  
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 09637c353de0..dc124b278173 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2405,6 +2405,7 @@ int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn);
- int vm_insert_mixed_mkwrite(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn);
-+bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn);
- int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len);
+ intel_smart_threshold_get_field(cmd, media_temperature)
++intel_smart_threshold_get_field(cmd, ctrl_temperature)
+ intel_smart_threshold_get_field(cmd, spares)
  
+ static struct ndctl_cmd *intel_dimm_cmd_new_smart_threshold(
+@@ -216,11 +218,77 @@ static struct ndctl_cmd *intel_dimm_cmd_new_smart_threshold(
+ 	return cmd;
+ }
  
-diff --git a/include/linux/vma.h b/include/linux/vma.h
-new file mode 100644
-index 000000000000..e71487e8c5f0
---- /dev/null
-+++ b/include/linux/vma.h
-@@ -0,0 +1,23 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2017 Intel Corporation. All rights reserved. */
-+#ifndef __VMA_H__
-+#define __VMA_H__
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/mm_types.h>
-+#include <linux/hugetlb_inline.h>
-+
-+/*
-+ * There are several vma types that have special handling in the
-+ * get_user_pages() path and other core mm paths that must not assume
-+ * normal pages. vma_is_special() consolidates some common checks for
-+ * VM_SPECIAL, hugetlb and dax vmas, but note that there are 'special'
-+ * vmas and circumstances beyond these types. In other words this helper
-+ * is not exhaustive for example this does not replace VM_PFNMAP checks.
-+ */
-+static inline bool vma_is_special(struct vm_area_struct *vma)
++static struct ndctl_cmd *intel_dimm_cmd_new_smart_set_threshold(
++		struct ndctl_cmd *cmd_thresh)
 +{
-+	return vma && (is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)
-+			|| vma_is_dax(vma));
-+}
-+#endif /* __VMA_H__ */
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 2f2f5e774902..d1b891f27675 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -765,11 +765,10 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
-+	BUG_ON(!((vma->vm_flags & VM_PFNMAP) || vm_mixed_ok(vma, pfn)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--	BUG_ON(!pfn_t_devmap(pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
-@@ -824,11 +823,10 @@ int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
-+	BUG_ON(!((vma->vm_flags & VM_PFNMAP) || vm_mixed_ok(vma, pfn)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--	BUG_ON(!pfn_t_devmap(pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
-diff --git a/mm/ksm.c b/mm/ksm.c
-index be8f4576f842..0bd1fda485fd 100644
---- a/mm/ksm.c
-+++ b/mm/ksm.c
-@@ -2372,6 +2372,9 @@ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 				 VM_HUGETLB | VM_MIXEDMAP))
- 			return 0;		/* just ignore the advice */
- 
-+		if (vma_is_dax(vma))
-+			return 0;
++	struct ndctl_cmd *cmd;
++	struct nd_intel_smart_threshold *thresh;
++	struct nd_intel_smart_set_threshold *set_thresh;
 +
- #ifdef VM_SAO
- 		if (*vm_flags & VM_SAO)
- 			return 0;
-diff --git a/mm/madvise.c b/mm/madvise.c
-index 751e97aa2210..eff3ec1e2574 100644
---- a/mm/madvise.c
-+++ b/mm/madvise.c
-@@ -96,7 +96,7 @@ static long madvise_behavior(struct vm_area_struct *vma,
- 		new_flags |= VM_DONTDUMP;
- 		break;
- 	case MADV_DODUMP:
--		if (new_flags & VM_SPECIAL) {
-+		if (vma_is_dax(vma) || (new_flags & VM_SPECIAL)) {
- 			error = -EINVAL;
- 			goto out;
- 		}
-diff --git a/mm/memory.c b/mm/memory.c
-index 48a13473b401..1efb005e8fab 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -831,6 +831,8 @@ struct page *_vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
- 			return vma->vm_ops->find_special_page(vma, addr);
- 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
- 			return NULL;
-+		if (pte_devmap(pte))
-+			return NULL;
- 		if (is_zero_pfn(pfn))
- 			return NULL;
- 
-@@ -918,6 +920,8 @@ struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
- 		}
- 	}
- 
-+	if (pmd_devmap(pmd))
++	BUILD_ASSERT(sizeof(struct nd_intel_smart_set_threshold) == 11);
++
++	if (intel_smart_threshold_valid(cmd_thresh) < 0)
 +		return NULL;
- 	if (is_zero_pfn(pfn))
++
++	cmd = alloc_intel_cmd(cmd_thresh->dimm, ND_INTEL_SMART_SET_THRESHOLD,
++			offsetof(typeof(*set_thresh), status), 4);
++	if (!cmd)
++		return NULL;
++
++	cmd->source = cmd_thresh;
++	ndctl_cmd_ref(cmd_thresh);
++	set_thresh = &cmd->intel->set_thresh;
++	thresh = &cmd_thresh->intel->thresh;
++	set_thresh->alarm_control = thresh->alarm_control;
++	set_thresh->spares = thresh->spares;
++	set_thresh->media_temperature = thresh->media_temperature;
++	set_thresh->ctrl_temperature = thresh->ctrl_temperature;
++	cmd->firmware_status = &set_thresh->status;
++
++	return cmd;
++}
++
++static int intel_smart_set_threshold_valid(struct ndctl_cmd *cmd)
++{
++	struct nd_pkg_intel *pkg = cmd->intel;
++
++	if (cmd->type != ND_CMD_CALL || cmd->status != 1
++			|| pkg->gen.nd_family != NVDIMM_FAMILY_INTEL
++			|| pkg->gen.nd_command != ND_INTEL_SMART_SET_THRESHOLD)
++		return -EINVAL;
++	return 0;
++}
++
++#define intel_smart_set_threshold_field(field) \
++static int intel_cmd_smart_threshold_set_##field( \
++			struct ndctl_cmd *cmd, unsigned int val) \
++{ \
++	if (intel_smart_set_threshold_valid(cmd) < 0) \
++		return -EINVAL; \
++	cmd->intel->set_thresh.field = val; \
++	return 0; \
++}
++
++static unsigned int intel_cmd_smart_threshold_get_supported_alarms(
++		struct ndctl_cmd *cmd)
++{
++	if (intel_smart_set_threshold_valid(cmd) < 0)
++		return 0;
++	return ND_SMART_SPARE_TRIP | ND_SMART_MTEMP_TRIP
++		| ND_SMART_CTEMP_TRIP;
++}
++
++intel_smart_set_threshold_field(alarm_control)
++intel_smart_set_threshold_field(spares)
++intel_smart_set_threshold_field(media_temperature)
++intel_smart_set_threshold_field(ctrl_temperature)
++
+ struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
+ 	.new_smart = intel_dimm_cmd_new_smart,
+ 	.smart_get_flags = intel_cmd_smart_get_flags,
+ 	.smart_get_health = intel_cmd_smart_get_health,
+ 	.smart_get_media_temperature = intel_cmd_smart_get_media_temperature,
++	.smart_get_ctrl_temperature = intel_cmd_smart_get_ctrl_temperature,
+ 	.smart_get_spares = intel_cmd_smart_get_spares,
+ 	.smart_get_alarm_flags = intel_cmd_smart_get_alarm_flags,
+ 	.smart_get_life_used = intel_cmd_smart_get_life_used,
+@@ -229,8 +297,21 @@ struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
+ 	.smart_get_vendor_size = intel_cmd_smart_get_vendor_size,
+ 	.smart_get_vendor_data = intel_cmd_smart_get_vendor_data,
+ 	.new_smart_threshold = intel_dimm_cmd_new_smart_threshold,
+-	.smart_threshold_get_alarm_control = intel_cmd_smart_threshold_get_alarm_control,
++	.smart_threshold_get_alarm_control
++		= intel_cmd_smart_threshold_get_alarm_control,
+ 	.smart_threshold_get_media_temperature
+ 		= intel_cmd_smart_threshold_get_media_temperature,
++	.smart_threshold_get_ctrl_temperature
++		= intel_cmd_smart_threshold_get_ctrl_temperature,
+ 	.smart_threshold_get_spares = intel_cmd_smart_threshold_get_spares,
++	.new_smart_set_threshold = intel_dimm_cmd_new_smart_set_threshold,
++	.smart_threshold_get_supported_alarms
++		= intel_cmd_smart_threshold_get_supported_alarms,
++	.smart_threshold_set_alarm_control
++		= intel_cmd_smart_threshold_set_alarm_control,
++	.smart_threshold_set_media_temperature
++		= intel_cmd_smart_threshold_set_media_temperature,
++	.smart_threshold_set_ctrl_temperature
++		= intel_cmd_smart_threshold_set_ctrl_temperature,
++	.smart_threshold_set_spares = intel_cmd_smart_threshold_set_spares,
+ };
+diff --git a/ndctl/lib/intel.h b/ndctl/lib/intel.h
+index 8cecc02f9ae6..9e6398501531 100644
+--- a/ndctl/lib/intel.h
++++ b/ndctl/lib/intel.h
+@@ -5,6 +5,7 @@
+ #define __INTEL_H__
+ #define ND_INTEL_SMART 1
+ #define ND_INTEL_SMART_THRESHOLD 2
++#define ND_INTEL_SMART_SET_THRESHOLD 17
+ 
+ #define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
+ #define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
+@@ -62,11 +63,20 @@ struct nd_intel_smart_threshold {
+ 	};
+ } __attribute__((packed));
+ 
++struct nd_intel_smart_set_threshold {
++	__u16 alarm_control;
++	__u8 spares;
++	__u16 media_temperature;
++	__u16 ctrl_temperature;
++	__u32 status;
++} __attribute__((packed));
++
+ struct nd_pkg_intel {
+ 	struct nd_cmd_pkg gen;
+ 	union {
+ 		struct nd_intel_smart smart;
+ 		struct nd_intel_smart_threshold	thresh;
++		struct nd_intel_smart_set_threshold set_thresh;
+ 	};
+ };
+ #endif /* __INTEL_H__ */
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index b3fab6232df6..6d9a04282c7d 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -312,4 +312,13 @@ global:
+ 	ndctl_bb_get_count;
+ 	ndctl_cmd_smart_get_media_temperature;
+ 	ndctl_cmd_smart_threshold_get_media_temperature;
++	ndctl_cmd_smart_get_ctrl_temperature;
++	ndctl_cmd_smart_threshold_get_ctrl_temperature;
++	ndctl_dimm_cmd_new_smart_set_threshold;
++	ndctl_cmd_smart_threshold_get_supported_alarms;
++	ndctl_cmd_smart_threshold_set_alarm_control;
++	ndctl_cmd_smart_threshold_set_temperature;
++	ndctl_cmd_smart_threshold_set_media_temperature;
++	ndctl_cmd_smart_threshold_set_ctrl_temperature;
++	ndctl_cmd_smart_threshold_set_spares;
+ } LIBNDCTL_13;
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 1b365ae96bfc..5e9f24f2b3c5 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -282,6 +282,7 @@ struct ndctl_smart_ops {
+ 	unsigned int (*smart_get_flags)(struct ndctl_cmd *);
+ 	unsigned int (*smart_get_health)(struct ndctl_cmd *);
+ 	unsigned int (*smart_get_media_temperature)(struct ndctl_cmd *);
++	unsigned int (*smart_get_ctrl_temperature)(struct ndctl_cmd *);
+ 	unsigned int (*smart_get_spares)(struct ndctl_cmd *);
+ 	unsigned int (*smart_get_alarm_flags)(struct ndctl_cmd *);
+ 	unsigned int (*smart_get_life_used)(struct ndctl_cmd *);
+@@ -292,7 +293,14 @@ struct ndctl_smart_ops {
+ 	struct ndctl_cmd *(*new_smart_threshold)(struct ndctl_dimm *);
+ 	unsigned int (*smart_threshold_get_alarm_control)(struct ndctl_cmd *);
+ 	unsigned int (*smart_threshold_get_media_temperature)(struct ndctl_cmd *);
++	unsigned int (*smart_threshold_get_ctrl_temperature)(struct ndctl_cmd *);
+ 	unsigned int (*smart_threshold_get_spares)(struct ndctl_cmd *);
++	struct ndctl_cmd *(*new_smart_set_threshold)(struct ndctl_cmd *);
++	unsigned int (*smart_threshold_get_supported_alarms)(struct ndctl_cmd *);
++	int (*smart_threshold_set_alarm_control)(struct ndctl_cmd *, unsigned int);
++	int (*smart_threshold_set_media_temperature)(struct ndctl_cmd *, unsigned int);
++	int (*smart_threshold_set_ctrl_temperature)(struct ndctl_cmd *, unsigned int);
++	int (*smart_threshold_set_spares)(struct ndctl_cmd *, unsigned int);
+ };
+ 
+ struct ndctl_smart_ops * const intel_smart_ops;
+diff --git a/ndctl/lib/smart.c b/ndctl/lib/smart.c
+index 90c45a1a002e..58a6f4bb28ad 100644
+--- a/ndctl/lib/smart.c
++++ b/ndctl/lib/smart.c
+@@ -40,6 +40,25 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(
  		return NULL;
- 	if (unlikely(pfn > highest_memmap_pfn))
-@@ -1228,7 +1232,7 @@ int copy_page_range(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 	 * efficient than faulting.
- 	 */
- 	if (!(vma->vm_flags & (VM_HUGETLB | VM_PFNMAP | VM_MIXEDMAP)) &&
--			!vma->anon_vma)
-+			!vma->anon_vma && !vma_is_dax(vma))
- 		return 0;
- 
- 	if (is_vm_hugetlb_page(vma))
-@@ -1897,7 +1901,7 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
  }
- EXPORT_SYMBOL(vm_insert_pfn_prot);
  
--static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
-+bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
++/*
++ * smart_set_threshold is a read-modify-write command it depends on a
++ * successfully completed smart_threshold command for its defaults.
++ */
++NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_set_threshold(
++		struct ndctl_cmd *cmd)
++{
++	struct ndctl_smart_ops *ops;
++
++	if (!cmd || !cmd->dimm)
++		return NULL;
++	ops = ndctl_dimm_get_smart_ops(cmd->dimm);
++
++	if (ops && ops->new_smart_set_threshold)
++		return ops->new_smart_set_threshold(cmd);
++	else
++		return NULL;
++}
++
+ #define smart_cmd_op(op, rettype, defretvalue) \
+ NDCTL_EXPORT rettype ndctl_cmd_##op(struct ndctl_cmd *cmd) \
+ { \
+@@ -54,6 +73,7 @@ NDCTL_EXPORT rettype ndctl_cmd_##op(struct ndctl_cmd *cmd) \
+ smart_cmd_op(smart_get_flags, unsigned int, 0)
+ smart_cmd_op(smart_get_health, unsigned int, 0)
+ smart_cmd_op(smart_get_media_temperature, unsigned int, 0)
++smart_cmd_op(smart_get_ctrl_temperature, unsigned int, 0)
+ smart_cmd_op(smart_get_spares, unsigned int, 0)
+ smart_cmd_op(smart_get_alarm_flags, unsigned int, 0)
+ smart_cmd_op(smart_get_life_used, unsigned int, 0)
+@@ -63,6 +83,7 @@ smart_cmd_op(smart_get_vendor_size, unsigned int, 0)
+ smart_cmd_op(smart_get_vendor_data, unsigned char *, NULL)
+ smart_cmd_op(smart_threshold_get_alarm_control, unsigned int, 0)
+ smart_cmd_op(smart_threshold_get_media_temperature, unsigned int, 0)
++smart_cmd_op(smart_threshold_get_ctrl_temperature, unsigned int, 0)
+ smart_cmd_op(smart_threshold_get_spares, unsigned int, 0)
+ 
+ NDCTL_EXPORT unsigned int ndctl_cmd_smart_get_temperature(struct ndctl_cmd *cmd)
+@@ -75,3 +96,21 @@ NDCTL_EXPORT unsigned int ndctl_cmd_smart_threshold_get_temperature(
  {
- 	/* these checks mirror the abort conditions in vm_normal_page */
- 	if (vma->vm_flags & VM_MIXEDMAP)
-diff --git a/mm/migrate.c b/mm/migrate.c
-index 4d0be47a322a..624d43a455be 100644
---- a/mm/migrate.c
-+++ b/mm/migrate.c
-@@ -46,6 +46,7 @@
- #include <linux/page_owner.h>
- #include <linux/sched/mm.h>
- #include <linux/ptrace.h>
-+#include <linux/vma.h>
+ 	return ndctl_cmd_smart_threshold_get_media_temperature(cmd);
+ }
++
++smart_cmd_op(smart_threshold_get_supported_alarms, unsigned int, 0);
++
++#define smart_cmd_set_op(op) \
++NDCTL_EXPORT int ndctl_cmd_##op(struct ndctl_cmd *cmd, unsigned int val) \
++{ \
++	if (cmd->dimm) { \
++		struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(cmd->dimm); \
++		if (ops && ops->op) \
++			return ops->op(cmd, val); \
++	} \
++	return -ENXIO; \
++}
++
++smart_cmd_set_op(smart_threshold_set_alarm_control)
++smart_cmd_set_op(smart_threshold_set_media_temperature)
++smart_cmd_set_op(smart_threshold_set_ctrl_temperature)
++smart_cmd_set_op(smart_threshold_set_spares)
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index a2b3148dbb27..69333443ee78 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -230,6 +230,7 @@ unsigned int ndctl_cmd_smart_get_flags(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_get_health(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_get_temperature(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_get_media_temperature(struct ndctl_cmd *cmd);
++unsigned int ndctl_cmd_smart_get_ctrl_temperature(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_get_spares(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_get_alarm_flags(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_get_life_used(struct ndctl_cmd *cmd);
+@@ -241,7 +242,20 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(struct ndctl_dimm *dimm);
+ unsigned int ndctl_cmd_smart_threshold_get_alarm_control(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_threshold_get_temperature(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_threshold_get_media_temperature(struct ndctl_cmd *cmd);
++unsigned int ndctl_cmd_smart_threshold_get_ctrl_temperature(struct ndctl_cmd *cmd);
+ unsigned int ndctl_cmd_smart_threshold_get_spares(struct ndctl_cmd *cmd);
++struct ndctl_cmd *ndctl_dimm_cmd_new_smart_set_threshold(struct ndctl_cmd *cmd);
++unsigned int ndctl_cmd_smart_threshold_get_supported_alarms(struct ndctl_cmd *cmd);
++int ndctl_cmd_smart_threshold_set_alarm_control(struct ndctl_cmd *cmd,
++		unsigned int val);
++int ndctl_cmd_smart_threshold_set_temperature(struct ndctl_cmd *cmd,
++		unsigned int val);
++int ndctl_cmd_smart_threshold_set_media_temperature(struct ndctl_cmd *cmd,
++		unsigned int val);
++int ndctl_cmd_smart_threshold_set_ctrl_temperature(struct ndctl_cmd *cmd,
++		unsigned int val);
++int ndctl_cmd_smart_threshold_set_spares(struct ndctl_cmd *cmd,
++		unsigned int val);
  
- #include <asm/tlbflush.h>
+ struct ndctl_cmd *ndctl_dimm_cmd_new_vendor_specific(struct ndctl_dimm *dimm,
+ 		unsigned int opcode, size_t input_size, size_t output_size);
+diff --git a/test/libndctl.c b/test/libndctl.c
+index b10142ebdee4..27de24baca88 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -2182,7 +2182,7 @@ static int check_smart(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ 	__check_smart(dimm, cmd, shutdown_state);
+ 	__check_smart(dimm, cmd, vendor_size);
  
-@@ -2938,7 +2939,7 @@ int migrate_vma(const struct migrate_vma_ops *ops,
- 	/* Sanity check the arguments */
- 	start &= PAGE_MASK;
- 	end &= PAGE_MASK;
--	if (!vma || is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL))
-+	if (!vma || vma_is_special(vma))
- 		return -EINVAL;
- 	if (start < vma->vm_start || start >= vma->vm_end)
- 		return -EINVAL;
-diff --git a/mm/mlock.c b/mm/mlock.c
-index 30472d438794..a10580f77c84 100644
---- a/mm/mlock.c
-+++ b/mm/mlock.c
-@@ -23,6 +23,7 @@
- #include <linux/hugetlb.h>
- #include <linux/memcontrol.h>
- #include <linux/mm_inline.h>
-+#include <linux/vma.h>
+-	ndctl_cmd_unref(cmd);
++	check->cmd = cmd;
+ 	return 0;
+ }
  
- #include "internal.h"
+@@ -2203,7 +2203,7 @@ static int check_smart(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+  * smart_threshold parameters.
+  */
+ struct smart_threshold {
+-	unsigned int alarm_control, temperature, spares;
++	unsigned int alarm_control, media_temperature, ctrl_temperature, spares;
+ };
  
-@@ -520,8 +521,8 @@ static int mlock_fixup(struct vm_area_struct *vma, struct vm_area_struct **prev,
- 	int lock = !!(newflags & VM_LOCKED);
- 	vm_flags_t old_flags = vma->vm_flags;
- 
--	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
--	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm))
-+	if (newflags == vma->vm_flags || vma_is_special(vma)
-+			|| vma == get_gate_vma(current->mm))
- 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
- 		goto out;
- 
-diff --git a/mm/mmap.c b/mm/mmap.c
-index a4d546821214..b063e363cf27 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -45,6 +45,7 @@
- #include <linux/moduleparam.h>
- #include <linux/pkeys.h>
- #include <linux/oom.h>
-+#include <linux/vma.h>
- 
- #include <linux/uaccess.h>
- #include <asm/cacheflush.h>
-@@ -1737,11 +1738,10 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
- 
- 	vm_stat_account(mm, vm_flags, len >> PAGE_SHIFT);
- 	if (vm_flags & VM_LOCKED) {
--		if (!((vm_flags & VM_SPECIAL) || is_vm_hugetlb_page(vma) ||
--					vma == get_gate_vma(current->mm)))
--			mm->locked_vm += (len >> PAGE_SHIFT);
--		else
-+		if (vma_is_special(vma) || vma == get_gate_vma(current->mm))
- 			vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
-+		else
-+			mm->locked_vm += (len >> PAGE_SHIFT);
+ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+@@ -2211,10 +2211,13 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ {
+ 	static const struct smart_threshold smart_t_data = {
+ 		.alarm_control = ND_SMART_SPARE_TRIP | ND_SMART_TEMP_TRIP,
+-		.temperature = 40 * 16,
++		.media_temperature = 40 * 16,
++		.ctrl_temperature = 30 * 16,
+ 		.spares = 5,
+ 	};
+ 	struct ndctl_cmd *cmd = ndctl_dimm_cmd_new_smart_threshold(dimm);
++	struct ndctl_cmd *cmd_smart = check_cmds[ND_CMD_SMART].cmd;
++	struct ndctl_cmd *cmd_set;
+ 	struct timeval tm;
+ 	char buf[4096];
+ 	fd_set fds;
+@@ -2249,7 +2252,7 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ 		if (pid == 0) {
+ 			FD_ZERO(&fds);
+ 			FD_SET(fd, &fds);
+-			tm.tv_sec = 1;
++			tm.tv_sec = 5;
+ 			tm.tv_usec = 0;
+ 			rc = select(fd + 1, NULL, NULL, &fds, &tm);
+ 			if (rc != 1 || !FD_ISSET(fd, &fds))
+@@ -2267,6 +2270,50 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ 		return rc;
  	}
  
- 	if (file)
++	__check_smart_threshold(dimm, cmd, alarm_control);
++	__check_smart_threshold(dimm, cmd, media_temperature);
++	__check_smart_threshold(dimm, cmd, ctrl_temperature);
++	__check_smart_threshold(dimm, cmd, spares);
++
++	/*
++	 * The same kernel change that adds nfit_test support for this
++	 * command is the same change that moves notifications to
++	 * require set_threshold. If we fail to get a command, but the
++	 * notification fires then we are on an old kernel, otherwise
++	 * whether old kernel or new kernel the notification should
++	 * fire.
++	 */
++	cmd_set = ndctl_dimm_cmd_new_smart_set_threshold(cmd);
++	if (cmd_set) {
++		/*
++		 * Set all thresholds to match current values and set
++		 * all alarms.
++		 */
++		rc = ndctl_cmd_smart_threshold_set_alarm_control(cmd_set,
++				ndctl_cmd_smart_threshold_get_supported_alarms(cmd_set));
++		rc |= ndctl_cmd_smart_threshold_set_media_temperature(cmd_set,
++				ndctl_cmd_smart_get_media_temperature(cmd_smart));
++		rc |= ndctl_cmd_smart_threshold_set_ctrl_temperature(cmd_set,
++				ndctl_cmd_smart_get_ctrl_temperature(cmd_smart));
++		rc |= ndctl_cmd_smart_threshold_set_spares(cmd_set,
++				ndctl_cmd_smart_get_spares(cmd_smart));
++		if (rc) {
++			fprintf(stderr, "%s: failed set threshold parameters\n",
++					__func__);
++			ndctl_cmd_unref(cmd_set);
++			return -ENXIO;
++		}
++
++		rc = ndctl_cmd_submit(cmd_set);
++		if (rc) {
++			fprintf(stderr, "%s: dimm: %#x failed to submit cmd_set: %d\n",
++					__func__, ndctl_dimm_get_handle(dimm), rc);
++			ndctl_cmd_unref(cmd_set);
++			return rc;
++		}
++		ndctl_cmd_unref(cmd_set);
++	}
++
+ 	if (ndctl_test_attempt(check->test, KERNEL_VERSION(4, 9, 0))) {
+ 		wait(&rc);
+ 		if (WEXITSTATUS(rc) == EXIT_FAILURE) {
+@@ -2276,10 +2323,6 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ 		}
+ 	}
+ 
+-	__check_smart_threshold(dimm, cmd, alarm_control);
+-	__check_smart_threshold(dimm, cmd, temperature);
+-	__check_smart_threshold(dimm, cmd, spares);
+-
+ 	ndctl_cmd_unref(cmd);
+ 	return 0;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
