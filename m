@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1CF7A2035624F
- for <linux-nvdimm@lists.01.org>; Mon,  4 Dec 2017 16:17:03 -0800 (PST)
-Date: Mon, 4 Dec 2017 16:21:33 -0800
-From: "Luck, Tony" <tony.luck@intel.com>
+Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
+ by ml01.01.org (Postfix) with ESMTP id 5B00D20356241
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Dec 2017 14:32:49 -0800 (PST)
+Date: Mon, 4 Dec 2017 23:37:11 +0100
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [RFC PATCH 3/4] edac: Add new memory type for non-volatile DIMMs
-Message-ID: <20171205002133.2ojkurykvv6zpc4m@agluck-desk>
+Message-ID: <20171204223711.4l7gbd7op7yvsrza@pd.tnic>
 References: <cover.1512070562.git.tony.luck@intel.com>
  <862104c26398781e4937c3fca3994cbe75d820ff.1512070562.git.tony.luck@intel.com>
- <20171204223711.4l7gbd7op7yvsrza@pd.tnic>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20171204223711.4l7gbd7op7yvsrza@pd.tnic>
+In-Reply-To: <862104c26398781e4937c3fca3994cbe75d820ff.1512070562.git.tony.luck@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,47 +22,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Borislav Petkov <bp@alien8.de>
+To: Tony Luck <tony.luck@intel.com>
 Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, Mauro Carvalho Chehab <mchehab@kernel.org>, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-edac@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Dec 04, 2017 at 11:37:11PM +0100, Borislav Petkov wrote:
-> On Thu, Nov 30, 2017 at 12:40:41PM -0800, Tony Luck wrote:
-> WTF, there are *two* string arrays with memory types?! How did that
-> happen?
+On Thu, Nov 30, 2017 at 12:40:41PM -0800, Tony Luck wrote:
+> There are now non-volatile versions of DIMMs. Add a new entry to
+> "enum mem_type" and update places that use it with new strings.
 > 
-> Can you please remove that above in a prepatch and switch to
-> edac_mem_types? Or should we switch to this mem_types array instead and
-> kill edac_mem_types since former is visible in sysfs?
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
+> ---
+>  drivers/edac/edac_mc.c       | 1 +
+>  drivers/edac/edac_mc_sysfs.c | 3 ++-
+>  include/linux/edac.h         | 3 +++
+>  3 files changed, 6 insertions(+), 1 deletion(-)
 > 
-> :-( Grrr.
+> diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
+> index 480072139b7a..8178e74decbf 100644
+> --- a/drivers/edac/edac_mc.c
+> +++ b/drivers/edac/edac_mc.c
+> @@ -215,6 +215,7 @@ const char * const edac_mem_types[] = {
+>  	[MEM_LRDDR3]	= "Load-Reduced DDR3 RAM",
+>  	[MEM_DDR4]	= "Unbuffered DDR4 RAM",
+>  	[MEM_RDDR4]	= "Registered DDR4 RAM",
+> +	[MEM_NVDIMM]	= "Non-volatile RAM",
+>  };
+>  EXPORT_SYMBOL_GPL(edac_mem_types);
+>  
+> diff --git a/drivers/edac/edac_mc_sysfs.c b/drivers/edac/edac_mc_sysfs.c
+> index e4fcfa84fbd3..53cbb3518efc 100644
+> --- a/drivers/edac/edac_mc_sysfs.c
+> +++ b/drivers/edac/edac_mc_sysfs.c
+> @@ -110,7 +110,8 @@ static const char * const mem_types[] = {
+>  	[MEM_DDR3] = "Unbuffered-DDR3",
+>  	[MEM_RDDR3] = "Registered-DDR3",
+>  	[MEM_DDR4] = "Unbuffered-DDR4",
+> -	[MEM_RDDR4] = "Registered-DDR4"
+> +	[MEM_RDDR4] = "Registered-DDR4",
+> +	[MEM_NVDIMM] = "Non-volatile RAM",
+>  };
 
-Oops. I didn't stare hard enough as I walked the "grep" output
-to just blindly add a new case everywhere for the new type.
+WTF, there are *two* string arrays with memory types?! How did that
+happen?
 
-Need to resolve the differences:
-1) MEM_LRDDR3 only appears in one of the tables
-2) edac_mem_types[] is exported from edac_mc.c and used
-   by two drivers
-3) mem_types[] is static in edac_mc_sysfs.c, but values
-   are visible to user via sysfs
-4) Strings are different between the two :-(
+Can you please remove that above in a prepatch and switch to
+edac_mem_types? Or should we switch to this mem_types array instead and
+kill edac_mem_types since former is visible in sysfs?
 
-Since the drivers that use edac_mem_types[] only do so in edac_dbg()
-output, I think it's safe to declare those strings as the non-canon
-ones.
+:-( Grrr.
 
-So the plan: copy the strings from mem_types[] to edac_mem_types[]
-and then make edac_mc_sysfs.c pick up the exported list from edac_mc.c
-instead of having its own static version.
+-- 
+Regards/Gruss,
+    Boris.
 
-Both files have the same build scope:
-
-edac_core-y     := edac_mc.o edac_device.o edac_mc_sysfs.o
-
-so there shouldn't be any weird dependency problems.
-
--Tony
+Good mailing practices for 400: avoid top-posting and trim the reply.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
