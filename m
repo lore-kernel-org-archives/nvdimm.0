@@ -2,14 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8B1D12216D8FC
- for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 06:05:37 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id D4C582035624E
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Dec 2017 16:30:17 -0800 (PST)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 05/17] mm: pass the vmem_altmap to vmemmap_populate
-Date: Fri, 15 Dec 2017 15:09:35 +0100
-Message-Id: <20171215140947.26075-6-hch@lst.de>
-In-Reply-To: <20171215140947.26075-1-hch@lst.de>
-References: <20171215140947.26075-1-hch@lst.de>
+Subject: [PATCH 1/2] mm: move get_dev_pagemap out of line
+Date: Mon,  4 Dec 2017 16:34:42 -0800
+Message-Id: <20171205003443.22111-2-hch@lst.de>
+In-Reply-To: <20171205003443.22111-1-hch@lst.de>
+References: <20171205003443.22111-1-hch@lst.de>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,323 +18,91 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
+To: dan.j.williams@intel.com
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We can just pass this on instead of having to do a radix tree lookup
-without proper locking a few levels into the callchain.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/arm64/mm/mmu.c            |  6 ++++--
- arch/ia64/mm/discontig.c       |  3 ++-
- arch/powerpc/mm/init_64.c      |  7 ++-----
- arch/s390/mm/vmem.c            |  3 ++-
- arch/sparc/mm/init_64.c        |  2 +-
- arch/x86/mm/init_64.c          |  4 ++--
- include/linux/memory_hotplug.h |  3 ++-
- include/linux/mm.h             |  6 ++++--
- mm/memory_hotplug.c            |  7 ++++---
- mm/sparse-vmemmap.c            |  7 ++++---
- mm/sparse.c                    | 20 ++++++++++++--------
- 11 files changed, 39 insertions(+), 29 deletions(-)
-
-diff --git a/arch/arm64/mm/mmu.c b/arch/arm64/mm/mmu.c
-index 267d2b79d52d..ec8952ff13be 100644
---- a/arch/arm64/mm/mmu.c
-+++ b/arch/arm64/mm/mmu.c
-@@ -654,12 +654,14 @@ int kern_addr_valid(unsigned long addr)
- }
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- #if !ARM64_SWAPPER_USES_SECTION_MAPS
--int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
-+int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
-+		struct vmem_altmap *altmap)
- {
- 	return vmemmap_populate_basepages(start, end, node);
- }
- #else	/* !ARM64_SWAPPER_USES_SECTION_MAPS */
--int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
-+int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
-+		struct vmem_altmap *altmap)
- {
- 	unsigned long addr = start;
- 	unsigned long next;
-diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
-index 9b2d994cddf6..1555aecaaf85 100644
---- a/arch/ia64/mm/discontig.c
-+++ b/arch/ia64/mm/discontig.c
-@@ -754,7 +754,8 @@ void arch_refresh_nodedata(int update_node, pg_data_t *update_pgdat)
- #endif
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
-+int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
-+		struct vmem_altmap *altmap)
- {
- 	return vmemmap_populate_basepages(start, end, node);
- }
-diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-index a07722531b32..779b74a96b8f 100644
---- a/arch/powerpc/mm/init_64.c
-+++ b/arch/powerpc/mm/init_64.c
-@@ -183,7 +183,8 @@ static __meminit void vmemmap_list_populate(unsigned long phys,
- 	vmemmap_list = vmem_back;
- }
- 
--int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
-+int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
-+		struct vmem_altmap *altmap)
- {
- 	unsigned long page_size = 1 << mmu_psize_defs[mmu_vmemmap_psize].shift;
- 
-@@ -193,16 +194,12 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
- 	pr_debug("vmemmap_populate %lx..%lx, node %d\n", start, end, node);
- 
- 	for (; start < end; start += page_size) {
--		struct vmem_altmap *altmap;
- 		void *p;
- 		int rc;
- 
- 		if (vmemmap_populated(start, page_size))
- 			continue;
- 
--		/* altmap lookups only work at section boundaries */
--		altmap = to_vmem_altmap(SECTION_ALIGN_DOWN(start));
--
- 		p =  __vmemmap_alloc_block_buf(page_size, node, altmap);
- 		if (!p)
- 			return -ENOMEM;
-diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
-index 3316d463fc29..c44ef0e7c466 100644
---- a/arch/s390/mm/vmem.c
-+++ b/arch/s390/mm/vmem.c
-@@ -211,7 +211,8 @@ static void vmem_remove_range(unsigned long start, unsigned long size)
- /*
-  * Add a backed mem_map array to the virtual mem_map array.
-  */
--int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
-+int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
-+		struct vmem_altmap *altmap)
- {
- 	unsigned long pgt_prot, sgt_prot;
- 	unsigned long address = start;
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 55ba62957e64..42d27a1a042a 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2628,7 +2628,7 @@ EXPORT_SYMBOL(_PAGE_CACHE);
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
--			       int node)
-+			       int node, struct vmem_altmap *altmap)
- {
- 	unsigned long pte_base;
- 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index e26ade50ae18..0c898098feaf 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1411,9 +1411,9 @@ static int __meminit vmemmap_populate_hugepages(unsigned long start,
- 	return 0;
- }
- 
--int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
-+int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
-+		struct vmem_altmap *altmap)
- {
--	struct vmem_altmap *altmap = to_vmem_altmap(start);
- 	int err;
- 
- 	if (boot_cpu_has(X86_FEATURE_PSE))
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index db276afbefcc..cbdd6d52e877 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -327,7 +327,8 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern void remove_memory(int nid, u64 start, u64 size);
--extern int sparse_add_one_section(struct pglist_data *pgdat, unsigned long start_pfn);
-+extern int sparse_add_one_section(struct pglist_data *pgdat,
-+		unsigned long start_pfn, struct vmem_altmap *altmap);
- extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
- 		unsigned long map_offset);
- extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index ea818ff739cd..2f3a7ebecbe2 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2538,7 +2538,8 @@ void sparse_mem_maps_populate_node(struct page **map_map,
- 				   unsigned long map_count,
- 				   int nodeid);
- 
--struct page *sparse_mem_map_populate(unsigned long pnum, int nid);
-+struct page *sparse_mem_map_populate(unsigned long pnum, int nid,
-+		struct vmem_altmap *altmap);
- pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
- p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
-@@ -2556,7 +2557,8 @@ static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
- void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
- int vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 			       int node);
--int vmemmap_populate(unsigned long start, unsigned long end, int node);
-+int vmemmap_populate(unsigned long start, unsigned long end, int node,
-+		struct vmem_altmap *altmap);
- void vmemmap_populate_print_last(void);
- #ifdef CONFIG_MEMORY_HOTPLUG
- void vmemmap_free(unsigned long start, unsigned long end);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index fc0485dcece1..b36f1822c432 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -250,7 +250,7 @@ void __init register_page_bootmem_info_node(struct pglist_data *pgdat)
- #endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
- 
- static int __meminit __add_section(int nid, unsigned long phys_start_pfn,
--		bool want_memblock)
-+		struct vmem_altmap *altmap, bool want_memblock)
- {
- 	int ret;
- 	int i;
-@@ -258,7 +258,7 @@ static int __meminit __add_section(int nid, unsigned long phys_start_pfn,
- 	if (pfn_valid(phys_start_pfn))
- 		return -EEXIST;
- 
--	ret = sparse_add_one_section(NODE_DATA(nid), phys_start_pfn);
-+	ret = sparse_add_one_section(NODE_DATA(nid), phys_start_pfn, altmap);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -317,7 +317,8 @@ int __ref __add_pages(int nid, unsigned long phys_start_pfn,
- 	}
- 
- 	for (i = start_sec; i <= end_sec; i++) {
--		err = __add_section(nid, section_nr_to_pfn(i), want_memblock);
-+		err = __add_section(nid, section_nr_to_pfn(i), altmap,
-+				want_memblock);
- 
- 		/*
- 		 * EEXIST is finally dealt with by ioresource collision
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index 17acf01791fa..376dcf05a39c 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -278,7 +278,8 @@ int __meminit vmemmap_populate_basepages(unsigned long start,
- 	return 0;
- }
- 
--struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
-+struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid,
-+		struct vmem_altmap *altmap)
- {
- 	unsigned long start;
- 	unsigned long end;
-@@ -288,7 +289,7 @@ struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
- 	start = (unsigned long)map;
- 	end = (unsigned long)(map + PAGES_PER_SECTION);
- 
--	if (vmemmap_populate(start, end, nid))
-+	if (vmemmap_populate(start, end, nid, altmap))
- 		return NULL;
- 
- 	return map;
-@@ -318,7 +319,7 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
- 		if (!present_section_nr(pnum))
- 			continue;
- 
--		map_map[pnum] = sparse_mem_map_populate(pnum, nodeid);
-+		map_map[pnum] = sparse_mem_map_populate(pnum, nodeid, NULL);
- 		if (map_map[pnum])
- 			continue;
- 		ms = __nr_to_section(pnum);
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 7a5dacaa06e3..5f4a0dac7836 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -417,7 +417,8 @@ static void __init sparse_early_usemaps_alloc_node(void *data,
- }
- 
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
--struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid)
-+struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid,
-+		struct vmem_altmap *altmap)
- {
- 	struct page *map;
- 	unsigned long size;
-@@ -472,7 +473,7 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
- 
- 		if (!present_section_nr(pnum))
- 			continue;
--		map_map[pnum] = sparse_mem_map_populate(pnum, nodeid);
-+		map_map[pnum] = sparse_mem_map_populate(pnum, nodeid, NULL);
- 		if (map_map[pnum])
- 			continue;
- 		ms = __nr_to_section(pnum);
-@@ -500,7 +501,7 @@ static struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
- 	struct mem_section *ms = __nr_to_section(pnum);
- 	int nid = sparse_early_nid(ms);
- 
--	map = sparse_mem_map_populate(pnum, nid);
-+	map = sparse_mem_map_populate(pnum, nid, NULL);
- 	if (map)
- 		return map;
- 
-@@ -678,10 +679,11 @@ void offline_mem_sections(unsigned long start_pfn, unsigned long end_pfn)
- #endif
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid)
-+static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
-+		struct vmem_altmap *altmap)
- {
- 	/* This will make the necessary allocations eventually. */
--	return sparse_mem_map_populate(pnum, nid);
-+	return sparse_mem_map_populate(pnum, nid, altmap);
- }
- static void __kfree_section_memmap(struct page *memmap)
- {
-@@ -721,7 +723,8 @@ static struct page *__kmalloc_section_memmap(void)
- 	return ret;
- }
- 
--static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid)
-+static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
-+		struct vmem_altmap *altmap)
- {
- 	return __kmalloc_section_memmap();
- }
-@@ -773,7 +776,8 @@ static void free_map_bootmem(struct page *memmap)
-  * set.  If this is <=0, then that means that the passed-in
-  * map was not consumed and must be freed.
-  */
--int __meminit sparse_add_one_section(struct pglist_data *pgdat, unsigned long start_pfn)
-+int __meminit sparse_add_one_section(struct pglist_data *pgdat,
-+		unsigned long start_pfn, struct vmem_altmap *altmap)
- {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
- 	struct mem_section *ms;
-@@ -789,7 +793,7 @@ int __meminit sparse_add_one_section(struct pglist_data *pgdat, unsigned long st
- 	ret = sparse_index_init(section_nr, pgdat->node_id);
- 	if (ret < 0 && ret != -EEXIST)
- 		return ret;
--	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id);
-+	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, altmap);
- 	if (!memmap)
- 		return -ENOMEM;
- 	usemap = __kmalloc_section_usemap();
--- 
-2.14.2
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhpcyBpcyBhIHByZXR0eSBiaWcgZnVuY3Rpb24sIHdoaWNoIHNob3VsZCBiZSBvdXQgb2YgbGlu
+ZSBpbiBnZW5lcmFsLAphbmQgYSBuby1vcCBzdHViIGlmIENPTkZJR19aT05FX0RFVklD0JUgaXMg
+bm90IHNldC4KClNpZ25lZC1vZmYtYnk6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0LmRlPgot
+LS0KIGluY2x1ZGUvbGludXgvbWVtcmVtYXAuaCB8IDQyICsrKysrLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLQoga2VybmVsL21lbXJlbWFwLmMgICAgICAgIHwgMzYgKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tCiAyIGZpbGVzIGNoYW5nZWQsIDM5IGluc2Vy
+dGlvbnMoKyksIDM5IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWVt
+cmVtYXAuaCBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaAppbmRleCAxMGQyM2MzNjcwNDguLmYy
+NGUwYzcxZDZhNiAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCisrKyBiL2lu
+Y2x1ZGUvbGludXgvbWVtcmVtYXAuaApAQCAtMTM2LDggKzEzNiw4IEBAIHN0cnVjdCBkZXZfcGFn
+ZW1hcCB7CiAjaWZkZWYgQ09ORklHX1pPTkVfREVWSUNFCiB2b2lkICpkZXZtX21lbXJlbWFwX3Bh
+Z2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IHJlc291cmNlICpyZXMsCiAJCXN0cnVjdCBw
+ZXJjcHVfcmVmICpyZWYsIHN0cnVjdCB2bWVtX2FsdG1hcCAqYWx0bWFwKTsKLXN0cnVjdCBkZXZf
+cGFnZW1hcCAqZmluZF9kZXZfcGFnZW1hcChyZXNvdXJjZV9zaXplX3QgcGh5cyk7Ci0KK3N0cnVj
+dCBkZXZfcGFnZW1hcCAqZ2V0X2Rldl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcgcGZuLAorCQlzdHJ1
+Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKTsKIHN0YXRpYyBpbmxpbmUgYm9vbCBpc196b25lX2Rldmlj
+ZV9wYWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKTsKICNlbHNlCiBzdGF0aWMgaW5saW5lIHZv
+aWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2LApAQCAtMTUzLDExICsx
+NTMsMTIgQEAgc3RhdGljIGlubGluZSB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBk
+ZXZpY2UgKmRldiwKIAlyZXR1cm4gRVJSX1BUUigtRU5YSU8pOwogfQogCi1zdGF0aWMgaW5saW5l
+IHN0cnVjdCBkZXZfcGFnZW1hcCAqZmluZF9kZXZfcGFnZW1hcChyZXNvdXJjZV9zaXplX3QgcGh5
+cykKK3N0YXRpYyBpbmxpbmUgc3RydWN0IGRldl9wYWdlbWFwICpnZXRfZGV2X3BhZ2VtYXAodW5z
+aWduZWQgbG9uZyBwZm4sCisJCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCiB7CiAJcmV0dXJu
+IE5VTEw7CiB9Ci0jZW5kaWYKKyNlbmRpZiAvKiBDT05GSUdfWk9ORV9ERVZJQ0UgKi8KIAogI2lm
+IGRlZmluZWQoQ09ORklHX0RFVklDRV9QUklWQVRFKSB8fCBkZWZpbmVkKENPTkZJR19ERVZJQ0Vf
+UFVCTElDKQogc3RhdGljIGlubGluZSBib29sIGlzX2RldmljZV9wcml2YXRlX3BhZ2UoY29uc3Qg
+c3RydWN0IHBhZ2UgKnBhZ2UpCkBAIC0xNzMsMzkgKzE3NCw2IEBAIHN0YXRpYyBpbmxpbmUgYm9v
+bCBpc19kZXZpY2VfcHVibGljX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2UgKnBhZ2UpCiB9CiAjZW5k
+aWYgLyogQ09ORklHX0RFVklDRV9QUklWQVRFIHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCiAK
+LS8qKgotICogZ2V0X2Rldl9wYWdlbWFwKCkgLSB0YWtlIGEgbmV3IGxpdmUgcmVmZXJlbmNlIG9u
+IHRoZSBkZXZfcGFnZW1hcCBmb3IgQHBmbgotICogQHBmbjogcGFnZSBmcmFtZSBudW1iZXIgdG8g
+bG9va3VwIHBhZ2VfbWFwCi0gKiBAcGdtYXA6IG9wdGlvbmFsIGtub3duIHBnbWFwIHRoYXQgYWxy
+ZWFkeSBoYXMgYSByZWZlcmVuY2UKLSAqCi0gKiBAcGdtYXAgYWxsb3dzIHRoZSBvdmVyaGVhZCBv
+ZiBhIGxvb2t1cCB0byBiZSBieXBhc3NlZCB3aGVuIEBwZm4gbGFuZHMgaW4gdGhlCi0gKiBzYW1l
+IG1hcHBpbmcuCi0gKi8KLXN0YXRpYyBpbmxpbmUgc3RydWN0IGRldl9wYWdlbWFwICpnZXRfZGV2
+X3BhZ2VtYXAodW5zaWduZWQgbG9uZyBwZm4sCi0JCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAp
+Ci17Ci0JY29uc3Qgc3RydWN0IHJlc291cmNlICpyZXMgPSBwZ21hcCA/IHBnbWFwLT5yZXMgOiBO
+VUxMOwotCXJlc291cmNlX3NpemVfdCBwaHlzID0gUEZOX1BIWVMocGZuKTsKLQotCS8qCi0JICog
+SW4gdGhlIGNhY2hlZCBjYXNlIHdlJ3JlIGFscmVhZHkgaG9sZGluZyBhIGxpdmUgcmVmZXJlbmNl
+IHNvCi0JICogd2UgY2FuIHNpbXBseSBkbyBhIGJsaW5kIGluY3JlbWVudAotCSAqLwotCWlmIChy
+ZXMgJiYgcGh5cyA+PSByZXMtPnN0YXJ0ICYmIHBoeXMgPD0gcmVzLT5lbmQpIHsKLQkJcGVyY3B1
+X3JlZl9nZXQocGdtYXAtPnJlZik7Ci0JCXJldHVybiBwZ21hcDsKLQl9Ci0KLQkvKiBmYWxsIGJh
+Y2sgdG8gc2xvdyBwYXRoIGxvb2t1cCAqLwotCXJjdV9yZWFkX2xvY2soKTsKLQlwZ21hcCA9IGZp
+bmRfZGV2X3BhZ2VtYXAocGh5cyk7Ci0JaWYgKHBnbWFwICYmICFwZXJjcHVfcmVmX3RyeWdldF9s
+aXZlKHBnbWFwLT5yZWYpKQotCQlwZ21hcCA9IE5VTEw7Ci0JcmN1X3JlYWRfdW5sb2NrKCk7Ci0K
+LQlyZXR1cm4gcGdtYXA7Ci19Ci0KIHN0YXRpYyBpbmxpbmUgdm9pZCBwdXRfZGV2X3BhZ2VtYXAo
+c3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIHsKIAlpZiAocGdtYXApCmRpZmYgLS1naXQgYS9r
+ZXJuZWwvbWVtcmVtYXAuYyBiL2tlcm5lbC9tZW1yZW1hcC5jCmluZGV4IDQwM2FiOWNkYjk0OS4u
+ZjBiNTRlY2E4NWIwIDEwMDY0NAotLS0gYS9rZXJuZWwvbWVtcmVtYXAuYworKysgYi9rZXJuZWwv
+bWVtcmVtYXAuYwpAQCAtMzE0LDcgKzMxNCw3IEBAIHN0YXRpYyB2b2lkIGRldm1fbWVtcmVtYXBf
+cGFnZXNfcmVsZWFzZShzdHJ1Y3QgZGV2aWNlICpkZXYsIHZvaWQgKmRhdGEpCiB9CiAKIC8qIGFz
+c3VtZXMgcmN1X3JlYWRfbG9jaygpIGhlbGQgYXQgZW50cnkgKi8KLXN0cnVjdCBkZXZfcGFnZW1h
+cCAqZmluZF9kZXZfcGFnZW1hcChyZXNvdXJjZV9zaXplX3QgcGh5cykKK3N0YXRpYyBzdHJ1Y3Qg
+ZGV2X3BhZ2VtYXAgKmZpbmRfZGV2X3BhZ2VtYXAocmVzb3VyY2Vfc2l6ZV90IHBoeXMpCiB7CiAJ
+c3RydWN0IHBhZ2VfbWFwICpwYWdlX21hcDsKIApAQCAtNTAwLDggKzUwMCw0MCBAQCBzdHJ1Y3Qg
+dm1lbV9hbHRtYXAgKnRvX3ZtZW1fYWx0bWFwKHVuc2lnbmVkIGxvbmcgbWVtbWFwX3N0YXJ0KQog
+CiAJcmV0dXJuIHBnbWFwID8gcGdtYXAtPmFsdG1hcCA6IE5VTEw7CiB9Ci0jZW5kaWYgLyogQ09O
+RklHX1pPTkVfREVWSUNFICovCiAKKy8qKgorICogZ2V0X2Rldl9wYWdlbWFwKCkgLSB0YWtlIGEg
+bmV3IGxpdmUgcmVmZXJlbmNlIG9uIHRoZSBkZXZfcGFnZW1hcCBmb3IgQHBmbgorICogQHBmbjog
+cGFnZSBmcmFtZSBudW1iZXIgdG8gbG9va3VwIHBhZ2VfbWFwCisgKiBAcGdtYXA6IG9wdGlvbmFs
+IGtub3duIHBnbWFwIHRoYXQgYWxyZWFkeSBoYXMgYSByZWZlcmVuY2UKKyAqCisgKiBAcGdtYXAg
+YWxsb3dzIHRoZSBvdmVyaGVhZCBvZiBhIGxvb2t1cCB0byBiZSBieXBhc3NlZCB3aGVuIEBwZm4g
+bGFuZHMgaW4gdGhlCisgKiBzYW1lIG1hcHBpbmcuCisgKi8KK3N0cnVjdCBkZXZfcGFnZW1hcCAq
+Z2V0X2Rldl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcgcGZuLAorCQlzdHJ1Y3QgZGV2X3BhZ2VtYXAg
+KnBnbWFwKQoreworCWNvbnN0IHN0cnVjdCByZXNvdXJjZSAqcmVzID0gcGdtYXAgPyBwZ21hcC0+
+cmVzIDogTlVMTDsKKwlyZXNvdXJjZV9zaXplX3QgcGh5cyA9IFBGTl9QSFlTKHBmbik7CisKKwkv
+KgorCSAqIEluIHRoZSBjYWNoZWQgY2FzZSB3ZSdyZSBhbHJlYWR5IGhvbGRpbmcgYSBsaXZlIHJl
+ZmVyZW5jZSBzbworCSAqIHdlIGNhbiBzaW1wbHkgZG8gYSBibGluZCBpbmNyZW1lbnQKKwkgKi8K
+KwlpZiAocmVzICYmIHBoeXMgPj0gcmVzLT5zdGFydCAmJiBwaHlzIDw9IHJlcy0+ZW5kKSB7CisJ
+CXBlcmNwdV9yZWZfZ2V0KHBnbWFwLT5yZWYpOworCQlyZXR1cm4gcGdtYXA7CisJfQorCisJLyog
+ZmFsbCBiYWNrIHRvIHNsb3cgcGF0aCBsb29rdXAgKi8KKwlyY3VfcmVhZF9sb2NrKCk7CisJcGdt
+YXAgPSBmaW5kX2Rldl9wYWdlbWFwKHBoeXMpOworCWlmIChwZ21hcCAmJiAhcGVyY3B1X3JlZl90
+cnlnZXRfbGl2ZShwZ21hcC0+cmVmKSkKKwkJcGdtYXAgPSBOVUxMOworCXJjdV9yZWFkX3VubG9j
+aygpOworCisJcmV0dXJuIHBnbWFwOworfQorI2VuZGlmIC8qIENPTkZJR19aT05FX0RFVklDRSAq
+LwogCiAjaWYgSVNfRU5BQkxFRChDT05GSUdfREVWSUNFX1BSSVZBVEUpIHx8ICBJU19FTkFCTEVE
+KENPTkZJR19ERVZJQ0VfUFVCTElDKQogdm9pZCBwdXRfem9uZV9kZXZpY2VfcHJpdmF0ZV9vcl9w
+dWJsaWNfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkKLS0gCjIuMTQuMgoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlz
+dApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
+bGlzdGluZm8vbGludXgtbnZkaW1tCg==
