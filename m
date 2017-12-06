@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 89A0922225C0C
- for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 17:00:32 -0800 (PST)
-Subject: [PATCH v4 13/18] ext4: use DEFINE_FSDAX_AOPS
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 23 Dec 2017 16:57:10 -0800
-Message-ID: <151407703002.38751.15305085717541373826.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BBF5E2217CE25
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Dec 2017 12:53:41 -0800 (PST)
+Date: Wed, 6 Dec 2017 13:58:12 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [xfsprogs PATCH v2 1/3] xfs_io: fix compiler warnings in
+ getfsmap code
+Message-ID: <20171206205812.GA32648@linux.intel.com>
+References: <20171205235651.17102-1-ross.zwisler@linux.intel.com>
+ <20171205235651.17102-2-ross.zwisler@linux.intel.com>
+ <20171206002743.GC5858@dastard>
+ <20171206201014.GA27401@linux.intel.com>
+ <20171206204749.GM19219@magnolia>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20171206204749.GM19219@magnolia>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,54 +24,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, hch@lst.de
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, fstests <fstests@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Otherwise, direct-I/O
-triggers incorrect page cache assumptions and warnings.
-
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: linux-ext4@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/ext4/inode.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 7df2c5644e59..065d11f43cb3 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3928,6 +3928,8 @@ static const struct address_space_operations ext4_da_aops = {
- 	.error_remove_page	= generic_error_remove_page,
- };
- 
-+static DEFINE_FSDAX_AOPS(ext4_dax_aops, ext4_writepages);
-+
- void ext4_set_aops(struct inode *inode)
- {
- 	switch (ext4_inode_journal_mode(inode)) {
-@@ -3940,7 +3942,9 @@ void ext4_set_aops(struct inode *inode)
- 	default:
- 		BUG();
- 	}
--	if (test_opt(inode->i_sb, DELALLOC))
-+	if (IS_DAX(inode))
-+		inode->i_mapping->a_ops = &ext4_dax_aops;
-+	else if (test_opt(inode->i_sb, DELALLOC))
- 		inode->i_mapping->a_ops = &ext4_da_aops;
- 	else
- 		inode->i_mapping->a_ops = &ext4_aops;
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gV2VkLCBEZWMgMDYsIDIwMTcgYXQgMTI6NDc6NDlQTSAtMDgwMCwgRGFycmljayBKLiBXb25n
+IHdyb3RlOgo+IE9uIFdlZCwgRGVjIDA2LCAyMDE3IGF0IDAxOjEwOjE0UE0gLTA3MDAsIFJvc3Mg
+Wndpc2xlciB3cm90ZToKPiA+IE9uIFdlZCwgRGVjIDA2LCAyMDE3IGF0IDExOjI3OjQzQU0gKzEx
+MDAsIERhdmUgQ2hpbm5lciB3cm90ZToKPiA+ID4gT24gVHVlLCBEZWMgMDUsIDIwMTcgYXQgMDQ6
+NTY6NDlQTSAtMDcwMCwgUm9zcyBad2lzbGVyIHdyb3RlOgo+ID4gPiA+IEkgcmVjZW50bHkgdXBn
+cmFkZWQgbXkgY29tcGlsZXIgZnJvbQo+ID4gPiA+IAlnY2MgKEdDQykgNi40LjEgMjAxNzA3Mjcg
+KFJlZCBIYXQgNi40LjEtMSkKPiA+ID4gPiB0bwo+ID4gPiA+IAlnY2MgKEdDQykgNy4yLjEgMjAx
+NzA5MTUgKFJlZCBIYXQgNy4yLjEtMikKPiA+ID4gPiBhbmQgc3RhcnRlZCBnZXR0aW5nIGEgYnVu
+Y2ggb2YgY29tcGlsZXIgd2FybmluZ3MgaW4gaW8vZnNtYXAuYzoKPiA+ID4gPiAKPiA+ID4gPiAg
+IGZzbWFwLmM6IEluIGZ1bmN0aW9uIOKAmGZzbWFwX2bigJk6Cj4gPiA+ID4gICBmc21hcC5jOjIy
+ODo0MDogd2FybmluZzog4oCYJWxsZOKAmSBkaXJlY3RpdmUgb3V0cHV0IG1heSBiZSB0cnVuY2F0
+ZWQgd3JpdGluZwo+ID4gPiA+ICAgYmV0d2VlbiAxIGFuZCAxNyBieXRlcyBpbnRvIGEgcmVnaW9u
+IG9mIHNpemUgYmV0d2VlbiAxMiBhbmQgMjgKPiA+ID4gPiAgIFstV2Zvcm1hdC10cnVuY2F0aW9u
+PV0KPiA+ID4gPiAgICAgIHNucHJpbnRmKGJidWYsIHNpemVvZihiYnVmKSwgIlslbGxkLi4lbGxk
+XToiLAo+ID4gPiA+ICAgXn5+fgo+ID4gPiA+ICAgZnNtYXAuYzoyMjg6MzI6IG5vdGU6IGRpcmVj
+dGl2ZSBhcmd1bWVudCBpbiB0aGUgcmFuZ2UgWzAsIDM2MDI4Nzk3MDE4OTYzOTY3XQo+ID4gPiA+
+ICAgICAgc25wcmludGYoYmJ1Ziwgc2l6ZW9mKGJidWYpLCAiWyVsbGQuLiVsbGRdOiIsCj4gPiA+
+ID4gICBefn5+fn5+fn5+fn5+fn4KPiA+ID4gPiAgIGZzbWFwLmM6MjI4OjM6IG5vdGU6IOKAmHNu
+cHJpbnRm4oCZIG91dHB1dCBiZXR3ZWVuIDggYW5kIDQwIGJ5dGVzIGludG8gYQo+ID4gPiA+ICAg
+ZGVzdGluYXRpb24gb2Ygc2l6ZSAzMgo+ID4gPiA+ICAgICAgc25wcmludGYoYmJ1Ziwgc2l6ZW9m
+KGJidWYpLCAiWyVsbGQuLiVsbGRdOiIsCj4gPiA+ID4gICAgICBefn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KPiA+ID4gPiAgIChsb25nIGxvbmcpQlRPQkJUKHAt
+PmZtcl9waHlzaWNhbCksCj4gPiA+ID4gICB+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+Cj4gPiA+ID4gICAobG9uZyBsb25nKUJUT0JCVChwLT5mbXJfcGh5c2ljYWwgKyBwLT5mbXJf
+bGVuZ3RoIC0gMSkpOwo+ID4gPiA+ICAgfn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Cj4gPiA+ID4gCj4gPiA+ID4gVGhlIGlzc3VlIGlzIHRoYXQg
+J2JidWYnIGlzIG9ubHkgZGVmaW5lZCB0byBiZSAzMiBjaGFyYWN0ZXJzIHdpZGUsIGJ1dCBlYWNo
+Cj4gPiA+ID4gc2lnbmVkIGxvbmcgbG9uZyBjYW4gcG90ZW50aWFsbHkgcHJpbnQgYXMgbWFueSBh
+cyAxOSBjaGFyYWN0ZXJzCj4gPiA+ID4gKDkyMjMzNzIwMzY4NTQ3NzU4MDcgaXMgdGhlIG1heCB2
+YWx1ZSkuICBUaGUgZm9ybWF0IHdlJ3JlIHVzaW5nIGZvciBiYnVmIGlzCj4gPiA+ID4gIlslbGxk
+Li4lbGxkXToiIHdoaWNoIGhhcyAyIHNpZ25lZCBsb25nIGxvbmdzIHBsdXMgNiBvdGhlciBjaGFy
+YWN0ZXJzCj4gPiA+ID4gIlsuLl06XDAiLCB3aGljaCBtZWFucyBpdCdzIHBvc3NpYmxlIHdlJ2xs
+IHByaW50IHVwIHRvIDQ0IGNoYXJhY3RlcnMsCj4gPiA+ID4gb3ZlcmZsb3dpbmcgb3VyIDMyIGNo
+YXIgYnVmZmVyLgo+ID4gPiA+IAo+ID4gPiA+IEZpeCB0aGlzIGJ5IGJ1bXBpbmcgYWxsIHRoZSBi
+dWZmZXIgc2l6ZXMgaW4gZHVtcF9tYXBfdmVyYm9zZSgpIHRvIDY0Cj4gPiA+ID4gY2hhcmFjdGVy
+cy4KPiA+ID4gPiAKPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Muendp
+c2xlckBsaW51eC5pbnRlbC5jb20+Cj4gPiA+ID4gQ2M6IERhcnJpY2sgSi4gV29uZyA8ZGFycmlj
+ay53b25nQG9yYWNsZS5jb20+Cj4gPiA+ID4gRml4ZXM6IDNmY2FiNTQ5YTIzNCAoInhmc19pbzog
+c3VwcG9ydCB0aGUgbmV3IGdldGZzbWFwIGlvY3RsIikKPiA+ID4gCj4gPiA+IEZZSSwgSSBwb3N0
+ZWQgYSBmaXggZm9yIHRoaXMgd2Vla3MgYWdvLiBJIHRoaW5rIEVyaWMgaGFzIGFscmVhZHkKPiA+
+ID4gcGlja2VkIGl0IHVwLCBidXQgaXQgaGFzbid0IGJlZW4gcHVzaGVkIG91dCBpbnRvIHRoZSBm
+b3ItbmV4dCBicmFuY2gKPiA+ID4geWV0Lgo+ID4gCj4gPiBJJ20gc2VlaW5nIHNpbWlsYXIgbmV3
+IGNvbXBpbGVyIHdhcm5pbmdzIHdoZW4gY29tcGlsaW5nIHhmc3Rlc3RzOgo+ID4gCj4gPiB3cml0
+ZV9sb2cuYzogSW4gZnVuY3Rpb24g4oCYd2xvZ19vcGVu4oCZOgo+ID4gd3JpdGVfbG9nLmM6MTI0
+OjM3OiB3YXJuaW5nOiDigJglc+KAmSBkaXJlY3RpdmUgd3JpdGluZyB1cCB0byAxMDIzIGJ5dGVz
+IGludG8gYSByZWdpb24gb2Ygc2l6ZSAyMjQgWy1XZm9ybWF0LW92ZXJmbG93PV0KPiA+ICAgICAi
+Q291bGQgbm90IG9wZW4gd3JpdGVfbG9nIC0gb3BlbiglcywgJSNvLCAlI28pIGZhaWxlZDogICVz
+XG4iLAo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF5+Cj4gPiB3cml0
+ZV9sb2cuYzoxMjQ6NDogbm90ZTogZGlyZWN0aXZlIGFyZ3VtZW50IGluIHRoZSByYW5nZSBbMTA4
+OSwgMjA0N10KPiA+ICAgICAiQ291bGQgbm90IG9wZW4gd3JpdGVfbG9nIC0gb3BlbiglcywgJSNv
+LCAlI28pIGZhaWxlZDogICVzXG4iLAo+ID4gICAgIF5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KPiA+IAo+ID4gZXRjLgo+ID4gCj4g
+PiBJIGRvbid0IHNlZSBhbnkgcGF0Y2hlcyBwb3N0ZWQgdGhhdCBmaXggdGhlc2UsIGFzIG9mIHll
+dC4gIEFzIGZhciBhcyB5b3Uga25vdywKPiA+IGFtIEkgY29ycmVjdCBpbiB0aGlua2luZyB0aGF0
+IHRoZXNlIHN0aWxsIG5lZWQgdG8gYmUgZml4ZWQ/Cj4gCj4gSXQgc3VyZSBsb29rcyB0aGF0IHdh
+eS4KCkNvb2wsIHRoYW5rcy4gIEknbGwgdGFrZSBhIGNyYWNrIGF0IHRoZW0uCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
+IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
