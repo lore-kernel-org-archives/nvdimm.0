@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D732F221EA0A6
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 07:04:17 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 08/14] mm: merge vmem_altmap_alloc into
- dev_pagemap_alloc_block_buf
-Date: Thu,  7 Dec 2017 07:08:34 -0800
-Message-Id: <20171207150840.28409-9-hch@lst.de>
-In-Reply-To: <20171207150840.28409-1-hch@lst.de>
-References: <20171207150840.28409-1-hch@lst.de>
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E881420352AB6
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Dec 2017 14:49:06 -0800 (PST)
+Subject: [PATCH 2/2] ndctl: lss latch unit test
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 06 Dec 2017 15:53:38 -0700
+Message-ID: <151260081841.5641.3484968163450235231.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151260081283.5641.2560511933614024819.stgit@djiang5-desk3.ch.intel.com>
+References: <151260081283.5641.2560511933614024819.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,144 +18,218 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There is no clear separation between the two, so merge them.  Also move
-the device page map argument first for the more natural calling
-convention.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- arch/powerpc/mm/init_64.c |  2 +-
- arch/x86/mm/init_64.c     |  2 +-
- include/linux/mm.h        |  4 ++--
- mm/sparse-vmemmap.c       | 51 ++++++++++++++++++-----------------------------
- 4 files changed, 23 insertions(+), 36 deletions(-)
+ 0 files changed
 
-diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-index 3a39a644e96c..ec706857bdd6 100644
---- a/arch/powerpc/mm/init_64.c
-+++ b/arch/powerpc/mm/init_64.c
-@@ -203,7 +203,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
- 		/* altmap lookups only work at section boundaries */
- 		altmap = to_vmem_altmap(SECTION_ALIGN_DOWN(start));
- 		if (altmap)
--			p = dev_pagemap_alloc_block_buf(page_size, altmap);
-+			p = dev_pagemap_alloc_block_buf(altmap, page_size);
- 		else
- 			p = vmemmap_alloc_block_buf(page_size, node);
- 		if (!p)
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 9e1b489aa826..131749080874 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1372,7 +1372,7 @@ static int __meminit vmemmap_populate_hugepages(unsigned long start,
- 			void *p;
+diff --git a/test/Makefile.am b/test/Makefile.am
+index d5ef648..7f70e63 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -17,7 +17,8 @@ TESTS =\
+ 	sector-mode.sh \
+ 	inject-error.sh \
+ 	btt-errors.sh \
+-	firmware-update.sh
++	firmware-update.sh \
++	lss-status-set
  
- 			if (altmap)
--				p = dev_pagemap_alloc_block_buf(PMD_SIZE, altmap);
-+				p = dev_pagemap_alloc_block_buf(altmap, PMD_SIZE);
- 			else
- 				p = vmemmap_alloc_block_buf(PMD_SIZE, node);
- 			if (p) {
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 856869e2c119..cd3d1c00f6a3 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2547,8 +2547,8 @@ pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node);
- void *vmemmap_alloc_block(unsigned long size, int node);
- struct vmem_altmap;
- void *vmemmap_alloc_block_buf(unsigned long size, int node);
--void *dev_pagemap_alloc_block_buf(unsigned long size,
--		struct vmem_altmap *altmap);
-+void *dev_pagemap_alloc_block_buf(struct vmem_altmap *pgmap,
-+		unsigned long size);
- void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
- int vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 			       int node);
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index 268b6c7dfdf4..fef41a6a9f64 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -107,33 +107,16 @@ static unsigned long __meminit vmem_altmap_nr_free(struct vmem_altmap *altmap)
- }
+ check_PROGRAMS =\
+ 	libndctl \
+@@ -28,7 +29,8 @@ check_PROGRAMS =\
+ 	dax-errors \
+ 	smart-notify \
+ 	smart-listen \
+-	daxdev-errors
++	daxdev-errors \
++	lss-status-set
  
- /**
-- * vmem_altmap_alloc - allocate pages from the vmem_altmap reservation
-- * @altmap - reserved page pool for the allocation
-- * @nr_pfns - size (in pages) of the allocation
-+ * dev_pagemap_alloc_block_buf - allocate pages from the device page map
-+ * @pgmap:	device page map
-+ * @size:	size (in bytes) of the allocation
-  *
-- * Allocations are aligned to the size of the request
-+ * Allocations are aligned to the size of the request.
-  */
--static unsigned long __meminit vmem_altmap_alloc(struct vmem_altmap *altmap,
--		unsigned long nr_pfns)
-+void * __meminit dev_pagemap_alloc_block_buf(struct vmem_altmap *pgmap,
-+		unsigned long size)
- {
--	unsigned long pfn = vmem_altmap_next_pfn(altmap);
--	unsigned long nr_align;
--
--	nr_align = 1UL << find_first_bit(&nr_pfns, BITS_PER_LONG);
--	nr_align = ALIGN(pfn, nr_align) - pfn;
--
--	if (nr_pfns + nr_align > vmem_altmap_nr_free(altmap))
--		return ULONG_MAX;
--	altmap->alloc += nr_pfns;
--	altmap->align += nr_align;
--	return pfn + nr_align;
--}
--
--void * __meminit dev_pagemap_alloc_block_buf(unsigned long size,
--		struct vmem_altmap *altmap)
--{
--	unsigned long pfn, nr_pfns;
--	void *ptr;
-+	unsigned long pfn, nr_pfns, nr_align;
+ if ENABLE_DESTRUCTIVE
+ TESTS +=\
+@@ -67,6 +69,12 @@ dsm_fail_SOURCES =\
  
- 	if (size & ~PAGE_MASK) {
- 		pr_warn_once("%s: allocations must be multiple of PAGE_SIZE (%ld)\n",
-@@ -141,16 +124,20 @@ void * __meminit dev_pagemap_alloc_block_buf(unsigned long size,
- 		return NULL;
- 	}
+ dsm_fail_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
  
-+	pfn = vmem_altmap_next_pfn(pgmap);
- 	nr_pfns = size >> PAGE_SHIFT;
--	pfn = vmem_altmap_alloc(altmap, nr_pfns);
--	if (pfn < ULONG_MAX)
--		ptr = __va(__pfn_to_phys(pfn));
--	else
--		ptr = NULL;
--	pr_debug("%s: pfn: %#lx alloc: %ld align: %ld nr: %#lx\n",
--			__func__, pfn, altmap->alloc, altmap->align, nr_pfns);
-+	nr_align = 1UL << find_first_bit(&nr_pfns, BITS_PER_LONG);
-+	nr_align = ALIGN(pfn, nr_align) - pfn;
-+	if (nr_pfns + nr_align > vmem_altmap_nr_free(pgmap))
-+		return NULL;
- 
--	return ptr;
-+	pgmap->alloc += nr_pfns;
-+	pgmap->align += nr_align;
-+	pfn += nr_align;
++lss_status_set_SOURCES =\
++	lss-status-set.c \
++	$(testcore)
 +
-+	pr_debug("%s: pfn: %#lx alloc: %ld align: %ld nr: %#lx\n",
-+			__func__, pfn, pgmap->alloc, pgmap->align, nr_pfns);
-+	return __va(__pfn_to_phys(pfn));
- }
++lss_status_set_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
++
+ blk_ns_SOURCES = blk_namespaces.c $(testcore)
+ blk_ns_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
  
- void __meminit vmemmap_verify(pte_t *pte, int node,
--- 
-2.14.2
+diff --git a/test/lss-status-set.c b/test/lss-status-set.c
+new file mode 100644
+index 0000000..5056a8f
+--- /dev/null
++++ b/test/lss-status-set.c
+@@ -0,0 +1,157 @@
++/*
++ * Copyright (c) 2017, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU Lesser General Public License,
++ * version 2.1, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT ANY
++ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
++ * more details.
++ */
++#include <stdio.h>
++#include <stddef.h>
++#include <stdlib.h>
++#include <string.h>
++#include <ctype.h>
++#include <errno.h>
++#include <syslog.h>
++#include <libkmod.h>
++#include <util/log.h>
++#include <util/sysfs.h>
++#include <linux/version.h>
++
++#include <ccan/array_size/array_size.h>
++#include <ndctl/libndctl.h>
++#ifdef HAVE_NDCTL_H
++#include <linux/ndctl.h>
++#else
++#include <ndctl.h>
++#endif
++#include <test.h>
++
++static int test_dimm(struct ndctl_dimm *dimm)
++{
++	struct ndctl_cmd *cmd;
++	int rc = 0;
++
++	cmd = ndctl_dimm_cmd_new_lss_enable(dimm);
++	if (!cmd)
++		return -ENOMEM;
++
++	rc = ndctl_cmd_lss_set_enable(cmd, 1);
++	if (rc < 0)
++		goto out;
++
++	rc = ndctl_cmd_submit(cmd);
++	if (rc < 0)
++		goto out;
++
++	rc = ndctl_cmd_get_firmware_status(cmd);
++	if (rc != 0) {
++		fprintf(stderr, "dimm %s LSS enable set failed\n",
++				ndctl_dimm_get_devname(dimm));
++		goto out;
++	}
++
++	printf("DIMM %s LSS enable set\n", ndctl_dimm_get_devname(dimm));
++
++out:
++	ndctl_cmd_unref(cmd);
++	return rc;
++}
++
++static void reset_bus(struct ndctl_bus *bus)
++{
++	struct ndctl_region *region;
++	struct ndctl_dimm *dimm;
++
++	/* disable all regions so that set_config_data commands are permitted */
++	ndctl_region_foreach(bus, region)
++		ndctl_region_disable_invalidate(region);
++
++	ndctl_dimm_foreach(bus, dimm)
++		ndctl_dimm_zero_labels(dimm);
++}
++
++static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
++{
++	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
++	struct ndctl_dimm *dimm;
++	struct ndctl_region *region;
++	struct log_ctx log_ctx;
++	int rc = 0;
++
++	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 15, 0)))
++		return 77;
++
++	if (!bus)
++		return -ENXIO;
++
++	log_init(&log_ctx, "test/lss-status-set", "NDCTL_TEST");
++
++	ndctl_bus_wait_probe(bus);
++
++	ndctl_region_foreach(bus, region)
++		ndctl_region_disable_invalidate(region);
++
++	ndctl_dimm_foreach(bus, dimm) {
++		fprintf(stderr, "Testing dimm: %s\n",
++				ndctl_dimm_get_devname(dimm));
++		rc = test_dimm(dimm);
++		if (rc < 0) {
++			fprintf(stderr, "dimm %s failed\n",
++				ndctl_dimm_get_devname(dimm));
++			goto out;
++		}
++	}
++
++out:
++	reset_bus(bus);
++	return rc;
++}
++
++static int test_lss_status_set(int loglevel, struct ndctl_test *test,
++		struct ndctl_ctx *ctx)
++{
++	struct kmod_module *mod;
++	struct kmod_ctx *kmod_ctx;
++	int result = EXIT_FAILURE, err;
++
++	ndctl_set_log_priority(ctx, loglevel);
++	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
++	if (err < 0) {
++		result = 77;
++		ndctl_test_skip(test);
++		fprintf(stderr, "%s unavailable skipping tests\n",
++				"nfit_test");
++		return result;
++	}
++
++	result = do_test(ctx, test);
++	kmod_module_remove_module(mod, 0);
++
++	kmod_unref(kmod_ctx);
++	return result;
++}
++
++int main(int argc, char *argv[])
++{
++	struct ndctl_test *test = ndctl_test_new(0);
++	struct ndctl_ctx *ctx;
++	int rc;
++
++	if (!test) {
++		fprintf(stderr, "failed to initialize test\n");
++		return EXIT_FAILURE;
++	}
++
++	rc = ndctl_new(&ctx);
++	if (rc)
++		return ndctl_test_result(test, rc);
++	rc = test_lss_status_set(LOG_DEBUG, test, ctx);
++	ndctl_unref(ctx);
++
++	return ndctl_test_result(test, rc);
++}
 
 _______________________________________________
 Linux-nvdimm mailing list
