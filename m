@@ -1,26 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C4E9721B02839
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 01:51:25 -0800 (PST)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id B6066AC0105
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 18:55:53 +0900 (JST)
-Subject: Re: [RFC PATCH v2 2/7] ndctl: nvdimmd: add nvdimmd necessary util
- functions
+ by ml01.01.org (Postfix) with ESMTPS id 24D6A2217CE2B
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Dec 2017 08:48:33 -0800 (PST)
+Received: by mail-ot0-x242.google.com with SMTP id i1so3901852oth.9
+ for <linux-nvdimm@lists.01.org>; Wed, 06 Dec 2017 08:53:06 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <445e8b8d-3584-b0c5-3a0c-cab269e42684@jp.fujitsu.com>
 References: <20171114074704.3446-1-qi.fuli@jp.fujitsu.com>
  <20171114074704.3446-3-qi.fuli@jp.fujitsu.com>
  <CAPcyv4j0jhb28ihCwWyC-pjSFSsaW02Lf_Gt_7XH3MPWMMn+qg@mail.gmail.com>
  <445e8b8d-3584-b0c5-3a0c-cab269e42684@jp.fujitsu.com>
- <CAPcyv4hW5vTDj3w1xJ9w6DzQcYM0tMyExMthMTbZWGhPhG=3mw@mail.gmail.com>
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Message-ID: <ca3a1730-5ca8-3979-3086-6e47edea53e0@jp.fujitsu.com>
-Date: Thu, 7 Dec 2017 18:55:43 +0900
-MIME-Version: 1.0
-In-Reply-To: <CAPcyv4hW5vTDj3w1xJ9w6DzQcYM0tMyExMthMTbZWGhPhG=3mw@mail.gmail.com>
-Content-Language: en-US
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 6 Dec 2017 08:53:04 -0800
+Message-ID: <CAPcyv4hW5vTDj3w1xJ9w6DzQcYM0tMyExMthMTbZWGhPhG=3mw@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 2/7] ndctl: nvdimmd: add nvdimmd necessary util
+ functions
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,76 +25,101 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Cj4+Pj4gKyAgICAgICByZW5hbWUoZmlsZSwgYnVmKTsKPj4+PiArfQo+Pj4gV2h5IGRvZXMgdGhl
-IG1vbml0b3IgbmVlZCB0byByb3RhdGUgbG9ncz8gVGhpcyBzaG91bGQgYmUgdGhlCj4+PiByZXNw
-b25zaWJpbGl0eSBvZiB3aGF0ZXZlciBpcyBjb25zdW1pbmcgIHRoZSBudmRpbW1kIGV2ZW50cy4K
-Pj4gV2hlbiBJIHdyb3RlIGl0LCBJIHRob3VnaHQgdGhhdCB1c2VycyBjYW4gcm90YXRlIG52ZGlt
-bWQgbG9ncyB3aXRob3V0IHVzaW5nCj4+IG90aGVyIHRvb2xzLgo+PiBJZiB5b3UgdGhpbmsgaXQg
-aXMgbm90IG5lY2Vzc2FyeSwgSSB3aWxsIHJlbW92ZSBpdCBpbiBuZXh0IHZlcnNpb24uCj4+Cj4g
-SW4gZ2VuZXJhbCB3ZSBzaG91bGQgbGV0IG90aGVyIHN5c3RlbSBjb21wb25lbnRzIGhhbmRsZSB0
-aGUgbWVjaGFuaWNzCj4gdGhleSBhcmUgcmVzcG9uc2libGUgdG8gaGFuZGxlLiBJbiB0aGlzIGNh
-c2UgYXMgbG9uZyBhcyBudmRpbW1kCj4gcmVwb3J0cyB0aGUgbG9nIG1lc3NhZ2UgdG8gdGhlIHN5
-c3RlbWQtam91cm5hbCBvciB0aGUgcGxhdGZvcm0ncwo+IHN5c2xvZyBmYWNpbGl0eSB0aGVuIGl0
-IGhhcyBkb25lIGl0cyBqb2IgYW5kIHRoZSBsb2cgbWFjaGluZXJ5IGlzCj4gcmVzcG9uc2libGUg
-Zm9yIHJvdGF0aW9uLgo+Cj4gSSd2ZSBhbHNvIGJlZW4gZ2l2aW5nIG1vcmUgdGhvdWdodCBhYm91
-dCB0aGUgY29tbWFuZCBsaW5lIGludGVyZmFjZQo+IGZvciB0aGUgbW9uaXRvci4gSSB0aGluayBp
-dCBzaG91bGQgcmV1c2UgdGhlICJuZGN0bCBsaXN0Igo+IGluZnJhc3RydWN0dXJlIGZvciBzZWxl
-Y3RpbmcgYW5kIGZpbHRlcmluZyBkZXZpY2VzIHNvIHRoZSB1c2VyIGNhbgo+IGxhdW5jaCBtb25p
-dG9ycyBsaWtlIHRoaXM6Cj4KPiAgICAgICAgICBuZGN0bCBtb25pdG9yIC0tZGltbXMgLS1uYW1l
-c3BhY2U9bmFtZXNwYWNlMC4wIC0tYWN0aW9uPXBhZ2VfYWRtaW4uc2gKPiAgICAgICAgICBuZGN0
-bCBtb25pdG9yIC1CRFJOIC0tYWN0aW9uPWxvZwo+Cj4gV2hlcmUgdGhvc2UgY29tbWFuZHMgd291
-bGQgIHJ1biB0aGUgJ3BhZ2UgYWRtaW4nIHNjcmlwdCBpZiBhbnkgRElNTQo+IGV2ZW50IGhhcHBl
-bnMgb24gYW55IERJTU0gYXNzb2NpYXRlZCB3aXRoIG5hbWVzcGFjZTAuMCwgYW5kIGxvZwo+IGV2
-ZXJ5dGhpbmcgZWxzZSIgdGhhdCBoYXBwZW5zIG9uIGFueSBvdGhlciBkZXZpY2UuIFdlIGxpa2Vs
-eSBhbHNvIG5lZWQKPiAiLS1ldmVudD0iIHRvIGNvbnRyb2wgdGhlIGV2ZW50cyB0byBmaWx0ZXIs
-IGFuZCBhIC0tbGlzdC1ldmVudHMgb3B0aW9uCj4gdG8gZW51bWVyYXRlIGFsbCB0aGUgcG9zc2li
-bGUgZXZlbnRzLgo+Cj4KTXkgb3JpZ2luYWwgcGxhbiB3YXMgdXNlciBsYXVuY2hlcyB0aGUgbnZk
-aW1tIG1vbml0b3Igc2VydmljZXMgd2l0aCAKc3lzdGVtY3RsIGNvbW1hbmQKbGlrZTogJHN5c3Rl
-bWN0bCBzdGFydCBudmRpbW1kLCB0aGVuIG52ZGltbWQgcmVhZHMgYSBjb25maWcgZmlsZQp0byBz
-ZWxlY3QgYW5kIGZpbHRlciBkZXZpY2VzIG9yIGFueSBvdGhlciBzZXR0aW5ncy4KCkluIG15IGZp
-cnN0IGltcHJlc3Npb24sIHlvdXIgaWRlYSwgd2hpY2ggaXMgYnkgY29tbWFuZCBsaW5lIG9wdGlv
-bnMsCnNlZW1zIHRvIGJlIGF0dHJhY3RpdmUuIEJ1dCBJJ20gbm90IHN1cmUgeWV0LgoKU28sIEkg
-aGF2ZSBzb21lIHF1ZXN0aW9ucy4KClExKSBXaGljaCBpcyBiZXR0ZXIgaW50ZXJmYWNlIGNvbmZp
-ZyBmaWxlIG9yIGNvbW1hbmQgb3B0aW9uPwoKIMKgwqDCoCBGb3IgZXhhbXBsZSwgcGxlYXNlIGNv
-bnNpZGVyIGEgdXNlLWNhc2Ugd2hpY2ggdXNlciBleGVjdXRlCiDCoMKgwqAgcGx1cmFsIG52ZGlt
-bSBkYWVtb25zIHRvIG1vbml0b3IgcGx1cmFsIGFyZWFzLgoKIMKgwqAgLSBjb25maWcgZmlsZQog
-wqDCoMKgwqAgVG8gbWFrZSBwbHVyYWwgZGFlbW9ucywgdXNlciBuZWVkIHRvIHByZXBhcmUgZGlm
-ZmVyZW50IG5hbWUgb2YKIMKgwqDCoMKgIGNvbmZpZyBmaWxlcy4KIMKgwqDCoMKgIEJ1dCwgdXNl
-ciBjYW4gbWFuYWdlIGVhY2ggZGFlbW9uIHdpdGggdGhlIG5hbWUgb2YgZmlsZXMuCgogwqDCoCAt
-IG5kY3RsCiDCoMKgwqDCoCBJdCBpcyBlYXN5IHRvIG1ha2UgZW52aXJvbm1lbnQgcGx1cmFsIG52
-ZGltbSBkYWVtb25zLgogwqDCoMKgwqAgSG93ZXZlciwgSSBjb3VsZCBub3QgZmluZCB0aGUgd2F5
-IGZvciB1c2VycyB0byBtYW5hZ2UgdGhlbS4KIMKgwqDCoMKgIEhvdyB0byBzcGVjaWZ5IGVhY2gg
-ZGFlbW9uIHRvIHN0b3AvcmVzdGFydCB0aGVtPwoKUTIpIFdoYXQgZmlsdGVyIG9wdGlvbiBpcyBu
-ZWNlc3Nhcnk/CiDCoMKgIGEpIGZpbHRlciBieSBkaW1tCiDCoMKgIGIpIGZpbHRlciBieSBidXMK
-IMKgwqAgYykgZmlsdGVyIGJ5IHJlZ2lvbgogwqDCoCBkKSBmaWx0ZXIgYnkgbmFtZXNwYWNlCiDC
-oMKgIGUpIGZpbHRlciBieSBkZXZpY2UgbmFtZQogwqDCoCBmKSBmaWx0ZXIgYnkgZXZlbnQKIMKg
-wqAgZykgYWxsIChkZWZhdWx0KQoKIMKgIGEpIGlzIGFscmVhZHkgaW1wbGVtZW50ZWQgYmVjYXVz
-ZSBpdCBpcyBlYXN5LgogwqDCoMKgwqAgKEhvd2V2ZXIsIHRvIGJlIGhvbmVzdCwgSSBkb24ndCBo
-YXZlIGFueSBjb25jcmV0ZSB1c2UtY2FzZS4KIMKgwqDCoMKgwqAgRG8geW91IGhhdmUgYW55IGlk
-ZWE/KQogwqAgYikgaXMgc2FtZSB3aXRoIGEpLiBJIGRvbid0IGtub3cgYW55IHVzZS1jYXNlIGFi
-b3V0IGJ1cy1maWx0ZXIuCiDCoMKgwqDCoCAoYW55IHVzZS1jYXNlPykKIMKgIGMpLCBkKSBvciBl
-KSB3aWxsIGJlIHByb2JhYmx5IG5lY2Vzc2FyeS4KIMKgwqDCoCBQcm9iYWJseSwgSSB0aGluayBp
-dCBpcyB1c2VmdWwgdG8gbm90aWZ5IGVhY2ggYXBwbGljYXRpb25zCiDCoMKgwqAgd2hpY2ggdXNl
-cyBlYWNoIHJlZ2lvbnMvbmFtZXNwYWNlLgogwqDCoMKgIEhvd2V2ZXIsIEkgZmVlbCBJIG5lZWQg
-bW9yZSB0aW1lIHRvIGludmVzdGlnYXRlIGhvdyB0byBpbXBsZW1lbnQgaXQgCnlldC4KIMKgIGYp
-IEkgZG9uJ3QgaGF2ZSBpZGVhIHdoYXQga2luZCBvZiBldmVudCBzaG91bGQgYmUgZmlsdGVyZWQu
-CiDCoMKgwqDCoMKgwqDCoCBDdXJyZW50bHksIEkgY2FuIHRoaW5rIHRoZSBmb2xsb3dpbmdzCiDC
-oMKgwqAgwqDCoMKgIC0gc3BhcmUgdGhyZXNob2xkIGV2ZW50CiDCoMKgwqAgwqDCoMKgIC0gdGVt
-cGVyYXR1cmUgdGhyZXNob2xkIGV2ZW50CiDCoMKgwqAgV291bGQgeW91IG1pbmQgZWxhYm9yYXRp
-bmcgYSBiaXQgbW9yZT8KIMKgIGcpIGlzIGVzc2VudGlhbCBvZiBjYXVzZS4KCkJUVywgQ3VycmVu
-dGx5LCBJIHdvdWxkIGxpa2UgdG8gbWVyZ2UgYSksIGIpLCBlKSwgZikgYXQgdGhpcyB0aW1lIGFz
-IGEgCmZpcnN0IHZlcnNpb24Kb2YgTlZESU1NIGRhZW1vbi4gYW5kIG1ha2UgYykgYW5kIGQpIGF0
-IG5leHQgdmVyc2lvbi4KQWJvdXQgYWN0aW9ucywgSSB0aGluayBtb3JlIHJlc2VhcmNoIGFuZCBk
-aXNjdXNzaW9uIGlzIG5lZWRlZCwKc28gSSB3aWxsIG9ubHkgaW1wbGVtZW50IG91dHB1dCB0byBs
-b2cgaW4gZmlyc3QgdmVyc2lvbi4KCkhvdyBkbyB5b3UgdGhpbms/ClRoYW5rcwoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxp
-bmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21h
-aWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Tue, Dec 5, 2017 at 11:14 PM, Qi, Fuli <qi.fuli@jp.fujitsu.com> wrote:
+> On 2017/11/21 6:19, Dan Williams wrote:
+>>
+>> On Mon, Nov 13, 2017 at 11:46 PM, QI Fuli <qi.fuli@jp.fujitsu.com> wrote:
+>>>
+>>> This patch is used to provide helper functions needed for nvdimm daemon.
+>>> These util functions can be used by other features as well in the future.
+>>>
+>>> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+>>> ---
+>>>   nvdimmd/util.c | 80
+>>> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>>   nvdimmd/util.h | 33 ++++++++++++++++++++++++
+>>>   2 files changed, 113 insertions(+)
+>>>   create mode 100644 nvdimmd/util.c
+>>>   create mode 100644 nvdimmd/util.h
+>>>
+>>> diff --git a/nvdimmd/util.c b/nvdimmd/util.c
+>>> new file mode 100644
+>>> index 0000000..ef6819e
+>>> --- /dev/null
+>>> +++ b/nvdimmd/util.c
+>>> @@ -0,0 +1,80 @@
+>>> +/*
+>>> + * Copyright (c) 2017, FUJITSU LIMITED. All rights reserved.
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> it
+>>> + * under the terms and conditions of the GNU Lesser General Public
+>>> License,
+>>> + * version 2.1, as published by the Free Software Foundation.
+>>> + *
+>>> + * This program is distributed in the hope it will be useful, but
+>>> WITHOUT ANY
+>>> + * WARRANTY; without even the implied warranty of MERCHANTABILITY or
+>>> FITNESS
+>>> + * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+>>> for
+>>> + * more details.
+>>> + */
+>>> +
+>>> +#include <stdlib.h>
+>>> +#include <string.h>
+>>> +#include <time.h>
+>>> +#include "util.h"
+>>> +
+>>> +void logrotate(char *file)
+>>> +{
+>>> +       time_t c_time;
+>>> +       char buf[4096], tstamp[32];
+>>> +
+>>> +       c_time = time(NULL);
+>>> +       strftime(tstamp, sizeof(tstamp), ".%Y%m%d%H%M%S",
+>>> localtime(&c_time));
+>>> +       strcpy(buf, file);
+>>> +       strcat(buf, tstamp);
+>>> +       rename(file, buf);
+>>> +}
+>>
+>> Why does the monitor need to rotate logs? This should be the
+>> responsibility of whatever is consuming  the nvdimmd events.
+>
+> When I wrote it, I thought that users can rotate nvdimmd logs without using
+> other tools.
+> If you think it is not necessary, I will remove it in next version.
+>
+
+In general we should let other system components handle the mechanics
+they are responsible to handle. In this case as long as nvdimmd
+reports the log message to the systemd-journal or the platform's
+syslog facility then it has done its job and the log machinery is
+responsible for rotation.
+
+I've also been giving more thought about the command line interface
+for the monitor. I think it should reuse the "ndctl list"
+infrastructure for selecting and filtering devices so the user can
+launch monitors like this:
+
+        ndctl monitor --dimms --namespace=namespace0.0 --action=page_admin.sh
+        ndctl monitor -BDRN --action=log
+
+Where those commands would  run the 'page admin' script if any DIMM
+event happens on any DIMM associated with namespace0.0, and log
+everything else" that happens on any other device. We likely also need
+"--event=" to control the events to filter, and a --list-events option
+to enumerate all the possible events.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
