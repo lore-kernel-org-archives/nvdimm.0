@@ -1,13 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22d.google.com (mail-oi0-x22d.google.com
+ [IPv6:2607:f8b0:4003:c06::22d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B3FB1221A2B9A
- for <linux-nvdimm@lists.01.org>; Thu, 14 Dec 2017 16:21:39 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 1/2] libnvdimm, btt: add a couple of missing kernel-doc lines
-Date: Thu, 14 Dec 2017 17:26:13 -0700
-Message-Id: <20171215002614.25335-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 42EBA2034A76F
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Dec 2017 14:48:10 -0800 (PST)
+Received: by mail-oi0-x22d.google.com with SMTP id w125so3697484oie.7
+ for <linux-nvdimm@lists.01.org>; Wed, 06 Dec 2017 14:52:42 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20171206224441.GA14274@lst.de>
+References: <20171205003443.22111-1-hch@lst.de>
+ <20171205003443.22111-3-hch@lst.de>
+ <CAPcyv4i3RP12-3T8R4tazfVvC+UG-FaUjorcbHnC1OPsc-5+YQ@mail.gmail.com>
+ <20171206224441.GA14274@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 6 Dec 2017 14:52:36 -0800
+Message-ID: <CAPcyv4gzDKBqdSLma436nyTQNAqUxom0bJ2kbj5RH5hQZm8+7Q@mail.gmail.com>
+Subject: Re: [PATCH 2/2] mm: fix dev_pagemap reference counting around
+ get_dev_pagemap
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,45 +25,25 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Recent updates to btt.h neglected to add corresponding kernel-doc lines
-for new structure members. Add them.
+On Wed, Dec 6, 2017 at 2:44 PM, Christoph Hellwig <hch@lst.de> wrote:
+> On Tue, Dec 05, 2017 at 06:43:36PM -0800, Dan Williams wrote:
+>> I don't think we need this change, but perhaps the reasoning should be
+>> added to the code as a comment... details below.
+>
+> Hmm, looks like we are ok at least.  But even if it's not a correctness
+> issue there is no good point in decrementing and incrementing the
+> reference count every time.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/btt.h | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 578c2057524d..884fbbbdd18a 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -125,6 +125,7 @@ struct aligned_lock {
-  * @list:		List head for list of arenas
-  * @debugfs_dir:	Debugfs dentry
-  * @flags:		Arena flags - may signify error states.
-+ * @err_lock:		Mutex for synchronizing error clearing.
-  *
-  * arena_info is a per-arena handle. Once an arena is narrowed down for an
-  * IO, this struct is passed around for the duration of the IO.
-@@ -176,6 +177,7 @@ struct arena_info {
-  * @init_lock:		Mutex used for the BTT initialization
-  * @init_state:		Flag describing the initialization state for the BTT
-  * @num_arenas:		Number of arenas in the BTT instance
-+ * @phys_bb:		Pointer to the namespace's badblocks structure
-  */
- struct btt {
- 	struct gendisk *btt_disk;
--- 
-2.14.3
-
+True, we can take it once and drop it at the end when all the related
+page references have been taken.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
