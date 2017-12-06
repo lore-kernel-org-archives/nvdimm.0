@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 718A82217CE42
- for <linux-nvdimm@lists.01.org>; Wed,  6 Dec 2017 12:05:43 -0800 (PST)
-Date: Wed, 6 Dec 2017 13:10:14 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [xfsprogs PATCH v2 1/3] xfs_io: fix compiler warnings in
- getfsmap code
-Message-ID: <20171206201014.GA27401@linux.intel.com>
+Received: from sandeen.net (sandeen.net [63.231.237.45])
+ by ml01.01.org (Postfix) with ESMTP id 201562217CE30
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Dec 2017 05:55:27 -0800 (PST)
+Subject: Re: [xfsprogs PATCH v2 1/3] xfs_io: fix compiler warnings in getfsmap
+ code
 References: <20171205235651.17102-1-ross.zwisler@linux.intel.com>
  <20171205235651.17102-2-ross.zwisler@linux.intel.com>
  <20171206002743.GC5858@dastard>
+From: Eric Sandeen <sandeen@sandeen.net>
+Message-ID: <863e00bb-107a-7469-b573-0545ede8e2bd@sandeen.net>
+Date: Wed, 6 Dec 2017 07:59:58 -0600
 MIME-Version: 1.0
-Content-Disposition: inline
 In-Reply-To: <20171206002743.GC5858@dastard>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,62 +20,27 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Darrick J . Wong" <darrick.wong@oracle.com>, fstests <fstests@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
+To: Dave Chinner <david@fromorbit.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, fstests <fstests@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCBEZWMgMDYsIDIwMTcgYXQgMTE6Mjc6NDNBTSArMTEwMCwgRGF2ZSBDaGlubmVyIHdy
-b3RlOgo+IE9uIFR1ZSwgRGVjIDA1LCAyMDE3IGF0IDA0OjU2OjQ5UE0gLTA3MDAsIFJvc3MgWndp
-c2xlciB3cm90ZToKPiA+IEkgcmVjZW50bHkgdXBncmFkZWQgbXkgY29tcGlsZXIgZnJvbQo+ID4g
-CWdjYyAoR0NDKSA2LjQuMSAyMDE3MDcyNyAoUmVkIEhhdCA2LjQuMS0xKQo+ID4gdG8KPiA+IAln
-Y2MgKEdDQykgNy4yLjEgMjAxNzA5MTUgKFJlZCBIYXQgNy4yLjEtMikKPiA+IGFuZCBzdGFydGVk
-IGdldHRpbmcgYSBidW5jaCBvZiBjb21waWxlciB3YXJuaW5ncyBpbiBpby9mc21hcC5jOgo+ID4g
-Cj4gPiAgIGZzbWFwLmM6IEluIGZ1bmN0aW9uIOKAmGZzbWFwX2bigJk6Cj4gPiAgIGZzbWFwLmM6
-MjI4OjQwOiB3YXJuaW5nOiDigJglbGxk4oCZIGRpcmVjdGl2ZSBvdXRwdXQgbWF5IGJlIHRydW5j
-YXRlZCB3cml0aW5nCj4gPiAgIGJldHdlZW4gMSBhbmQgMTcgYnl0ZXMgaW50byBhIHJlZ2lvbiBv
-ZiBzaXplIGJldHdlZW4gMTIgYW5kIDI4Cj4gPiAgIFstV2Zvcm1hdC10cnVuY2F0aW9uPV0KPiA+
-ICAgICAgc25wcmludGYoYmJ1Ziwgc2l6ZW9mKGJidWYpLCAiWyVsbGQuLiVsbGRdOiIsCj4gPiAg
-IF5+fn4KPiA+ICAgZnNtYXAuYzoyMjg6MzI6IG5vdGU6IGRpcmVjdGl2ZSBhcmd1bWVudCBpbiB0
-aGUgcmFuZ2UgWzAsIDM2MDI4Nzk3MDE4OTYzOTY3XQo+ID4gICAgICBzbnByaW50ZihiYnVmLCBz
-aXplb2YoYmJ1ZiksICJbJWxsZC4uJWxsZF06IiwKPiA+ICAgXn5+fn5+fn5+fn5+fn5+Cj4gPiAg
-IGZzbWFwLmM6MjI4OjM6IG5vdGU6IOKAmHNucHJpbnRm4oCZIG91dHB1dCBiZXR3ZWVuIDggYW5k
-IDQwIGJ5dGVzIGludG8gYQo+ID4gICBkZXN0aW5hdGlvbiBvZiBzaXplIDMyCj4gPiAgICAgIHNu
-cHJpbnRmKGJidWYsIHNpemVvZihiYnVmKSwgIlslbGxkLi4lbGxkXToiLAo+ID4gICAgICBefn5+
-fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KPiA+ICAgKGxvbmcgbG9u
-ZylCVE9CQlQocC0+Zm1yX3BoeXNpY2FsKSwKPiA+ICAgfn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
-fn5+fn5+fn5+fgo+ID4gICAobG9uZyBsb25nKUJUT0JCVChwLT5mbXJfcGh5c2ljYWwgKyBwLT5m
-bXJfbGVuZ3RoIC0gMSkpOwo+ID4gICB+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
-fn5+fn5+fn5+fn5+fn5+fn5+fn4KPiA+IAo+ID4gVGhlIGlzc3VlIGlzIHRoYXQgJ2JidWYnIGlz
-IG9ubHkgZGVmaW5lZCB0byBiZSAzMiBjaGFyYWN0ZXJzIHdpZGUsIGJ1dCBlYWNoCj4gPiBzaWdu
-ZWQgbG9uZyBsb25nIGNhbiBwb3RlbnRpYWxseSBwcmludCBhcyBtYW55IGFzIDE5IGNoYXJhY3Rl
-cnMKPiA+ICg5MjIzMzcyMDM2ODU0Nzc1ODA3IGlzIHRoZSBtYXggdmFsdWUpLiAgVGhlIGZvcm1h
-dCB3ZSdyZSB1c2luZyBmb3IgYmJ1ZiBpcwo+ID4gIlslbGxkLi4lbGxkXToiIHdoaWNoIGhhcyAy
-IHNpZ25lZCBsb25nIGxvbmdzIHBsdXMgNiBvdGhlciBjaGFyYWN0ZXJzCj4gPiAiWy4uXTpcMCIs
-IHdoaWNoIG1lYW5zIGl0J3MgcG9zc2libGUgd2UnbGwgcHJpbnQgdXAgdG8gNDQgY2hhcmFjdGVy
-cywKPiA+IG92ZXJmbG93aW5nIG91ciAzMiBjaGFyIGJ1ZmZlci4KPiA+IAo+ID4gRml4IHRoaXMg
-YnkgYnVtcGluZyBhbGwgdGhlIGJ1ZmZlciBzaXplcyBpbiBkdW1wX21hcF92ZXJib3NlKCkgdG8g
-NjQKPiA+IGNoYXJhY3RlcnMuCj4gPiAKPiA+IFNpZ25lZC1vZmYtYnk6IFJvc3MgWndpc2xlciA8
-cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4KPiA+IENjOiBEYXJyaWNrIEouIFdvbmcgPGRh
-cnJpY2sud29uZ0BvcmFjbGUuY29tPgo+ID4gRml4ZXM6IDNmY2FiNTQ5YTIzNCAoInhmc19pbzog
-c3VwcG9ydCB0aGUgbmV3IGdldGZzbWFwIGlvY3RsIikKPiAKPiBGWUksIEkgcG9zdGVkIGEgZml4
-IGZvciB0aGlzIHdlZWtzIGFnby4gSSB0aGluayBFcmljIGhhcyBhbHJlYWR5Cj4gcGlja2VkIGl0
-IHVwLCBidXQgaXQgaGFzbid0IGJlZW4gcHVzaGVkIG91dCBpbnRvIHRoZSBmb3ItbmV4dCBicmFu
-Y2gKPiB5ZXQuCgpJJ20gc2VlaW5nIHNpbWlsYXIgbmV3IGNvbXBpbGVyIHdhcm5pbmdzIHdoZW4g
-Y29tcGlsaW5nIHhmc3Rlc3RzOgoKd3JpdGVfbG9nLmM6IEluIGZ1bmN0aW9uIOKAmHdsb2dfb3Bl
-buKAmToKd3JpdGVfbG9nLmM6MTI0OjM3OiB3YXJuaW5nOiDigJglc+KAmSBkaXJlY3RpdmUgd3Jp
-dGluZyB1cCB0byAxMDIzIGJ5dGVzIGludG8gYSByZWdpb24gb2Ygc2l6ZSAyMjQgWy1XZm9ybWF0
-LW92ZXJmbG93PV0KICAgICJDb3VsZCBub3Qgb3BlbiB3cml0ZV9sb2cgLSBvcGVuKCVzLCAlI28s
-ICUjbykgZmFpbGVkOiAgJXNcbiIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBefgp3cml0ZV9sb2cuYzoxMjQ6NDogbm90ZTogZGlyZWN0aXZlIGFyZ3VtZW50IGluIHRoZSBy
-YW5nZSBbMTA4OSwgMjA0N10KICAgICJDb3VsZCBub3Qgb3BlbiB3cml0ZV9sb2cgLSBvcGVuKCVz
-LCAlI28sICUjbykgZmFpbGVkOiAgJXNcbiIsCiAgICBefn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
-fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+CgpldGMuCgpJIGRvbid0IHNlZSBh
-bnkgcGF0Y2hlcyBwb3N0ZWQgdGhhdCBmaXggdGhlc2UsIGFzIG9mIHlldC4gIEFzIGZhciBhcyB5
-b3Uga25vdywKYW0gSSBjb3JyZWN0IGluIHRoaW5raW5nIHRoYXQgdGhlc2Ugc3RpbGwgbmVlZCB0
-byBiZSBmaXhlZD8KCi0gUm9zcwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
-MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On 12/5/17 6:27 PM, Dave Chinner wrote:
+
+> FYI, I posted a fix for this weeks ago. I think Eric has already
+> picked it up, but it hasn't been pushed out into the for-next branch
+> yet.
+
+Yes, sorry for the delay.  Will be pushed out soon.
+ 
+> Cheers,
+> 
+> Dave.
+> 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
