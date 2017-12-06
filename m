@@ -1,12 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
- [150.101.137.129])
- by ml01.01.org (Postfix) with ESMTP id 06CC3220FB323
- for <linux-nvdimm@lists.01.org>; Tue,  5 Dec 2017 22:00:39 -0800 (PST)
-Date: Wed, 6 Dec 2017 16:43:54 +1100
-From: Dave Chinner <david@fromorbit.com>
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 6C00C220FB319
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Dec 2017 20:36:58 -0800 (PST)
+Date: Tue, 5 Dec 2017 21:41:29 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [xfsprogs PATCH v2 3/3] xfs_io: add a new 'log_writes' command
-Message-ID: <20171206054354.GE5858@dastard>
+Message-ID: <20171206044129.GB31657@linux.intel.com>
 References: <20171205235651.17102-1-ross.zwisler@linux.intel.com>
  <20171205235651.17102-4-ross.zwisler@linux.intel.com>
  <20171206002946.GD5858@dastard>
@@ -26,7 +27,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-xfs <linux-xfs@vger.kernel.org>, Jan Kara <jack@suse.cz>, fstests <fstests@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, fstests <fstests@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Tue, Dec 05, 2017 at 09:38:13PM -0700, Ross Zwisler wrote:
@@ -53,16 +54,8 @@ On Tue, Dec 05, 2017 at 09:38:13PM -0700, Ross Zwisler wrote:
 > on making the rest of the error cases in xfs_io return 1 as well, or should I
 > throw that at the front of the series?
 
-I sent a patch earlier today to do exactly that.
-
-https://marc.info/?l=fstests&m=151252000511167&w=2
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Ah, nevermind, I found your patch that sets exitcode throughout xfs_io.  I'll
+fix up for the next version, thanks for the review.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
