@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 41422221EA0C9
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 10:47:50 -0800 (PST)
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 57238221EA0A6
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 07:04:19 -0800 (PST)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 04/14] mm: better abstract out dev_pagemap alloc
+Date: Thu,  7 Dec 2017 07:08:30 -0800
+Message-Id: <20171207150840.28409-5-hch@lst.de>
+In-Reply-To: <20171207150840.28409-1-hch@lst.de>
 References: <20171207150840.28409-1-hch@lst.de>
- <20171207150840.28409-5-hch@lst.de>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <ff7c20e6-3afe-582b-1e91-562a802a4824@deltatee.com>
-Date: Thu, 7 Dec 2017 11:52:21 -0700
-MIME-Version: 1.0
-In-Reply-To: <20171207150840.28409-5-hch@lst.de>
-Content-Language: en-US
-Subject: Re: [PATCH 04/14] mm: better abstract out dev_pagemap alloc
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,23 +17,131 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Add a new helper that both looks up the pagemap and initializes the
+alloc counter.
 
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/memremap.h |  7 +++++++
+ kernel/memremap.c        | 18 ++++++++++++++++++
+ mm/memory_hotplug.c      | 23 +++++------------------
+ 3 files changed, 30 insertions(+), 18 deletions(-)
 
-On 07/12/17 08:08 AM, Christoph Hellwig wrote:
-> Add a new helper that both looks up the pagemap and initializes the
-> alloc counter.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 8f4d96f0e265..054397a9414f 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -138,6 +138,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 		struct dev_pagemap *pgmap);
+ static inline bool is_zone_device_page(const struct page *page);
++int dev_pagemap_add_pages(unsigned long phys_start_pfn, unsigned nr_pages);
+ bool dev_pagemap_free_pages(struct page *page, unsigned nr_pages);
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+@@ -159,6 +160,12 @@ static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 	return NULL;
+ }
+ 
++static inline int dev_pagemap_add_pages(unsigned long phys_start_pfn,
++		unsigned nr_pages)
++{
++	return 0;
++}
++
+ static inline bool dev_pagemap_free_pages(struct page *page, unsigned nr_pages)
+ {
+ 	return false;
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 1b7c5bc93162..c86bcd63e2cd 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -470,6 +470,24 @@ unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
+ 	return altmap->reserve + altmap->free;
+ }
+ 
++int dev_pagemap_add_pages(unsigned long phys_start_pfn, unsigned nr_pages)
++{
++	struct vmem_altmap *pgmap;
++
++	pgmap = to_vmem_altmap((unsigned long) pfn_to_page(phys_start_pfn));
++	if (!pgmap)
++		return 0;
++
++	if (pgmap->base_pfn != phys_start_pfn ||
++	    vmem_altmap_offset(pgmap) > nr_pages) {
++		pr_warn_once("memory add fail, invalid map\n");
++		return -EINVAL;
++	}
++
++	pgmap->alloc = 0;
++	return 0;
++}
++
+ bool dev_pagemap_free_pages(struct page *page, unsigned nr_pages)
+ {
+ 	struct vmem_altmap *pgmap = to_vmem_altmap((uintptr_t)page);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index c52aa05b106c..3e7c728f97e3 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -297,25 +297,14 @@ int __ref __add_pages(int nid, unsigned long phys_start_pfn,
+ 	unsigned long i;
+ 	int err = 0;
+ 	int start_sec, end_sec;
+-	struct vmem_altmap *altmap;
+ 
+ 	/* during initialize mem_map, align hot-added range to section */
+ 	start_sec = pfn_to_section_nr(phys_start_pfn);
+ 	end_sec = pfn_to_section_nr(phys_start_pfn + nr_pages - 1);
+ 
+-	altmap = to_vmem_altmap((unsigned long) pfn_to_page(phys_start_pfn));
+-	if (altmap) {
+-		/*
+-		 * Validate altmap is within bounds of the total request
+-		 */
+-		if (altmap->base_pfn != phys_start_pfn
+-				|| vmem_altmap_offset(altmap) > nr_pages) {
+-			pr_warn_once("memory add fail, invalid altmap\n");
+-			err = -EINVAL;
+-			goto out;
+-		}
+-		altmap->alloc = 0;
+-	}
++	err = dev_pagemap_add_pages(phys_start_pfn, nr_pages);
++	if (err)
++		return err;
+ 
+ 	for (i = start_sec; i <= end_sec; i++) {
+ 		err = __add_section(nid, section_nr_to_pfn(i), want_memblock);
+@@ -326,13 +315,11 @@ int __ref __add_pages(int nid, unsigned long phys_start_pfn,
+ 		 * Warning will be printed if there is collision.
+ 		 */
+ 		if (err && (err != -EEXIST))
+-			break;
+-		err = 0;
++			return err;
+ 		cond_resched();
+ 	}
+ 	vmemmap_populate_print_last();
+-out:
+-	return err;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__add_pages);
+ 
+-- 
+2.14.2
 
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
