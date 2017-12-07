@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EDD3E221EA0B9
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 10:52:57 -0800 (PST)
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 721E32217CE54
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 07:04:15 -0800 (PST)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 06/14] mm: better abstract out dev_pagemap start_pfn
+Date: Thu,  7 Dec 2017 07:08:32 -0800
+Message-Id: <20171207150840.28409-7-hch@lst.de>
+In-Reply-To: <20171207150840.28409-1-hch@lst.de>
 References: <20171207150840.28409-1-hch@lst.de>
- <20171207150840.28409-7-hch@lst.de>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <702c44d1-eb40-42b2-f25c-2aca40c9f85f@deltatee.com>
-Date: Thu, 7 Dec 2017 11:57:30 -0700
-MIME-Version: 1.0
-In-Reply-To: <20171207150840.28409-7-hch@lst.de>
-Content-Language: en-US
-Subject: Re: [PATCH 06/14] mm: better abstract out dev_pagemap start_pfn
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,23 +17,91 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/memremap.h | 6 ++++++
+ kernel/memremap.c        | 9 +++++++++
+ mm/page_alloc.c          | 4 +---
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
-Someone usually would yell at me if I sent a patch with no commit message ;)
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index d221f4c0ccac..fe60b4895f56 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -139,6 +139,7 @@ static inline bool is_zone_device_page(const struct page *page);
+ int dev_pagemap_add_pages(unsigned long phys_start_pfn, unsigned nr_pages);
+ bool dev_pagemap_free_pages(struct page *page, unsigned nr_pages);
+ unsigned long dev_pagemap_offset(struct page *page);
++unsigned long dev_pagemap_start_pfn(unsigned long start_pfn);
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+ 		struct resource *res, struct percpu_ref *ref,
+@@ -174,6 +175,11 @@ static inline unsigned long dev_pagemap_offset(struct page *page)
+ {
+ 	return 0;
+ }
++
++static inline unsigned long dev_pagemap_start_pfn(unsigned long start_pfn)
++{
++	return 0;
++}
+ #endif /* CONFIG_ZONE_DEVICE */
+ 
+ #if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 91a5fc1146b5..01025c5f3037 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -493,6 +493,15 @@ int dev_pagemap_add_pages(unsigned long phys_start_pfn, unsigned nr_pages)
+ 	return 0;
+ }
+ 
++unsigned long dev_pagemap_start_pfn(unsigned long start_pfn)
++{
++	struct vmem_altmap *pgmap = to_vmem_altmap(__pfn_to_phys(start_pfn));
++
++	if (pgmap && start_pfn == pgmap->base_pfn)
++		return pgmap->reserve;
++	return 0;
++}
++
+ bool dev_pagemap_free_pages(struct page *page, unsigned nr_pages)
+ {
+ 	struct vmem_altmap *pgmap = to_vmem_altmap((uintptr_t)page);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 73f5d4556b3d..cf6a702222c3 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5305,7 +5305,6 @@ void __ref build_all_zonelists(pg_data_t *pgdat)
+ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 		unsigned long start_pfn, enum memmap_context context)
+ {
+-	struct vmem_altmap *altmap = to_vmem_altmap(__pfn_to_phys(start_pfn));
+ 	unsigned long end_pfn = start_pfn + size;
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+ 	unsigned long pfn;
+@@ -5321,8 +5320,7 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 	 * Honor reservation requested by the driver for this ZONE_DEVICE
+ 	 * memory
+ 	 */
+-	if (altmap && start_pfn == altmap->base_pfn)
+-		start_pfn += altmap->reserve;
++	start_pfn += dev_pagemap_start_pfn(start_pfn);
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+ 		/*
+-- 
+2.14.2
 
-But the changes look good and it's pretty clear even without the message.
-
-On 07/12/17 08:08 AM, Christoph Hellwig wrote:
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
