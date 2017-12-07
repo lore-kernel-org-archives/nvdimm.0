@@ -2,15 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
  bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE6422216D8FF
- for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 06:05:42 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id E2ACB2217CE54
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 07:04:14 -0800 (PST)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 06/17] mm: pass the vmem_altmap to arch_remove_memory and
- __remove_pages
-Date: Fri, 15 Dec 2017 15:09:36 +0100
-Message-Id: <20171215140947.26075-7-hch@lst.de>
-In-Reply-To: <20171215140947.26075-1-hch@lst.de>
-References: <20171215140947.26075-1-hch@lst.de>
+Subject: [PATCH 09/14] memremap: drop private struct page_map
+Date: Thu,  7 Dec 2017 07:08:35 -0800
+Message-Id: <20171207150840.28409-10-hch@lst.de>
+In-Reply-To: <20171207150840.28409-1-hch@lst.de>
+References: <20171207150840.28409-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,242 +23,236 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
+Cc: linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We can just pass this on instead of having to do a radix tree lookup
-without proper locking 2 levels into the callchain.
+From: Logan Gunthorpe <logang@deltatee.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>wip
+'struct page_map' is a private structure of 'struct dev_pagemap' but the
+latter replicates all the same fields as the former so there isn't much
+value in it. Thus drop it in favour of a completely public struct.
+
+This is a clean up in preperation for a more generally useful
+'devm_memeremap_pages' interface.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/ia64/mm/init.c            | 4 ++--
- arch/powerpc/mm/mem.c          | 6 ++----
- arch/s390/mm/init.c            | 2 +-
- arch/sh/mm/init.c              | 4 ++--
- arch/x86/mm/init_32.c          | 4 ++--
- arch/x86/mm/init_64.c          | 6 ++----
- include/linux/memory_hotplug.h | 5 +++--
- kernel/memremap.c              | 2 +-
- mm/hmm.c                       | 4 ++--
- mm/memory_hotplug.c            | 8 ++------
- 10 files changed, 19 insertions(+), 26 deletions(-)
+ include/linux/memremap.h |  5 ++--
+ kernel/memremap.c        | 67 +++++++++++++++++++-----------------------------
+ mm/hmm.c                 |  2 +-
+ 3 files changed, 30 insertions(+), 44 deletions(-)
 
-diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
-index 2e2e4f532204..6a8ce9e1536e 100644
---- a/arch/ia64/mm/init.c
-+++ b/arch/ia64/mm/init.c
-@@ -663,7 +663,7 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
-@@ -671,7 +671,7 @@ int arch_remove_memory(u64 start, u64 size)
- 	int ret;
- 
- 	zone = page_zone(pfn_to_page(start_pfn));
--	ret = __remove_pages(zone, start_pfn, nr_pages);
-+	ret = __remove_pages(zone, start_pfn, nr_pages, altmap);
- 	if (ret)
- 		pr_warn("%s: Problem encountered in __remove_pages() as"
- 			" ret=%d\n", __func__,  ret);
-diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
-index e670cfc2766e..22aa528b78a2 100644
---- a/arch/powerpc/mm/mem.c
-+++ b/arch/powerpc/mm/mem.c
-@@ -149,11 +149,10 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index fe60b4895f56..316effd61f16 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -122,8 +122,9 @@ typedef void (*dev_page_free_t)(struct page *page, void *data);
+ struct dev_pagemap {
+ 	dev_page_fault_t page_fault;
+ 	dev_page_free_t page_free;
 -	struct vmem_altmap *altmap;
- 	struct page *page;
- 	int ret;
- 
-@@ -162,11 +161,10 @@ int arch_remove_memory(u64 start, u64 size)
- 	 * when querying the zone.
- 	 */
- 	page = pfn_to_page(start_pfn);
--	altmap = to_vmem_altmap((unsigned long) page);
- 	if (altmap)
- 		page += vmem_altmap_offset(altmap);
- 
--	ret = __remove_pages(page_zone(page), start_pfn, nr_pages);
-+	ret = __remove_pages(page_zone(page), start_pfn, nr_pages, altmap);
- 	if (ret)
- 		return ret;
- 
-diff --git a/arch/s390/mm/init.c b/arch/s390/mm/init.c
-index e12c5af50cd7..3fa3e5323612 100644
---- a/arch/s390/mm/init.c
-+++ b/arch/s390/mm/init.c
-@@ -240,7 +240,7 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	/*
- 	 * There is no hardware or firmware interface which could trigger a
-diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
-index 552afbf55bad..ce0bbaa7e404 100644
---- a/arch/sh/mm/init.c
-+++ b/arch/sh/mm/init.c
-@@ -510,7 +510,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
- #endif
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
-@@ -518,7 +518,7 @@ int arch_remove_memory(u64 start, u64 size)
- 	int ret;
- 
- 	zone = page_zone(pfn_to_page(start_pfn));
--	ret = __remove_pages(zone, start_pfn, nr_pages);
-+	ret = __remove_pages(zone, start_pfn, nr_pages, altmap);
- 	if (unlikely(ret))
- 		pr_warn("%s: Failed, __remove_pages() == %d\n", __func__,
- 			ret);
-diff --git a/arch/x86/mm/init_32.c b/arch/x86/mm/init_32.c
-index cdf19ec6460c..c3bf36fc78d5 100644
---- a/arch/x86/mm/init_32.c
-+++ b/arch/x86/mm/init_32.c
-@@ -833,14 +833,14 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	struct zone *zone;
- 
- 	zone = page_zone(pfn_to_page(start_pfn));
--	return __remove_pages(zone, start_pfn, nr_pages);
-+	return __remove_pages(zone, start_pfn, nr_pages, altmap);
- }
- #endif
- #endif
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 0c898098feaf..c5bba00fe71f 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1132,21 +1132,19 @@ kernel_physical_mapping_remove(unsigned long start, unsigned long end)
- 	remove_pagetable(start, end, true);
- }
- 
--int __ref arch_remove_memory(u64 start, u64 size)
-+int __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	struct page *page = pfn_to_page(start_pfn);
--	struct vmem_altmap *altmap;
- 	struct zone *zone;
- 	int ret;
- 
- 	/* With altmap the first mapped page is offset from @start */
--	altmap = to_vmem_altmap((unsigned long) page);
- 	if (altmap)
- 		page += vmem_altmap_offset(altmap);
- 	zone = page_zone(page);
--	ret = __remove_pages(zone, start_pfn, nr_pages);
-+	ret = __remove_pages(zone, start_pfn, nr_pages, altmap);
- 	WARN_ON_ONCE(ret);
- 	kernel_physical_mapping_remove(start, start + size);
- 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index cbdd6d52e877..e71927d0d46b 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -126,9 +126,10 @@ static inline bool movable_node_is_enabled(void)
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
- extern bool is_pageblock_removable_nolock(struct page *page);
--extern int arch_remove_memory(u64 start, u64 size);
-+extern int arch_remove_memory(u64 start, u64 size,
-+		struct vmem_altmap *altmap);
- extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
--	unsigned long nr_pages);
-+	unsigned long nr_pages, struct vmem_altmap *altmap);
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- /* reasonably generic interface to expand the physical pages */
+-	const struct resource *res;
++	struct vmem_altmap altmap;
++	bool altmap_valid;
++	struct resource res;
+ 	struct percpu_ref *ref;
+ 	struct device *dev;
+ 	void *data;
 diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 16456117a1b1..b707ac60d13c 100644
+index 01025c5f3037..31bcfeea4a73 100644
 --- a/kernel/memremap.c
 +++ b/kernel/memremap.c
-@@ -304,7 +304,7 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
- 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+@@ -188,13 +188,6 @@ static RADIX_TREE(pgmap_radix, GFP_KERNEL);
+ #define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
+ #define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
  
- 	mem_hotplug_begin();
--	arch_remove_memory(align_start, align_size);
-+	arch_remove_memory(align_start, align_size, pgmap->altmap);
- 	mem_hotplug_done();
+-struct page_map {
+-	struct resource res;
+-	struct percpu_ref *ref;
+-	struct dev_pagemap pgmap;
+-	struct vmem_altmap altmap;
+-};
+-
+ static unsigned long order_at(struct resource *res, unsigned long pgoff)
+ {
+ 	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
+@@ -271,22 +264,21 @@ static void pgmap_radix_release(struct resource *res)
+ 	synchronize_rcu();
+ }
+ 
+-static unsigned long pfn_first(struct page_map *page_map)
++static unsigned long pfn_first(struct dev_pagemap *pgmap)
+ {
+-	struct dev_pagemap *pgmap = &page_map->pgmap;
+-	const struct resource *res = &page_map->res;
+-	struct vmem_altmap *altmap = pgmap->altmap;
++	const struct resource *res = &pgmap->res;
++	struct vmem_altmap *altmap = &pgmap->altmap;
+ 	unsigned long pfn;
+ 
+ 	pfn = res->start >> PAGE_SHIFT;
+-	if (altmap)
++	if (pgmap->altmap_valid)
+ 		pfn += __dev_pagemap_offset(altmap);
+ 	return pfn;
+ }
+ 
+-static unsigned long pfn_end(struct page_map *page_map)
++static unsigned long pfn_end(struct dev_pagemap *pgmap)
+ {
+-	const struct resource *res = &page_map->res;
++	const struct resource *res = &pgmap->res;
+ 
+ 	return (res->start + resource_size(res)) >> PAGE_SHIFT;
+ }
+@@ -296,13 +288,12 @@ static unsigned long pfn_end(struct page_map *page_map)
+ 
+ static void devm_memremap_pages_release(struct device *dev, void *data)
+ {
+-	struct page_map *page_map = data;
+-	struct resource *res = &page_map->res;
++	struct dev_pagemap *pgmap = data;
++	struct resource *res = &pgmap->res;
+ 	resource_size_t align_start, align_size;
+-	struct dev_pagemap *pgmap = &page_map->pgmap;
+ 	unsigned long pfn;
+ 
+-	for_each_device_pfn(pfn, page_map)
++	for_each_device_pfn(pfn, pgmap)
+ 		put_page(pfn_to_page(pfn));
+ 
+ 	if (percpu_ref_tryget_live(pgmap->ref)) {
+@@ -320,19 +311,16 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
  
  	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+ 	pgmap_radix_release(res);
+-	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+-			"%s: failed to free all reserved pages\n", __func__);
++	dev_WARN_ONCE(dev, pgmap->altmap.alloc,
++		      "%s: failed to free all reserved pages\n", __func__);
+ }
+ 
+ /* assumes rcu_read_lock() held at entry */
+ static struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ {
+-	struct page_map *page_map;
+-
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+ 
+-	page_map = radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
+-	return page_map ? &page_map->pgmap : NULL;
++	return radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
+ }
+ 
+ /**
+@@ -360,7 +348,6 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+-	struct page_map *page_map;
+ 	int error, nid, is_ram, i = 0;
+ 
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+@@ -381,21 +368,19 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (!ref)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	page_map = devres_alloc_node(devm_memremap_pages_release,
+-			sizeof(*page_map), GFP_KERNEL, dev_to_node(dev));
+-	if (!page_map)
++	pgmap = devres_alloc_node(devm_memremap_pages_release,
++			sizeof(*pgmap), GFP_KERNEL, dev_to_node(dev));
++	if (!pgmap)
+ 		return ERR_PTR(-ENOMEM);
+-	pgmap = &page_map->pgmap;
+ 
+-	memcpy(&page_map->res, res, sizeof(*res));
++	memcpy(&pgmap->res, res, sizeof(*res));
+ 
+ 	pgmap->dev = dev;
+ 	if (altmap) {
+-		memcpy(&page_map->altmap, altmap, sizeof(*altmap));
+-		pgmap->altmap = &page_map->altmap;
++		memcpy(&pgmap->altmap, altmap, sizeof(*altmap));
++		pgmap->altmap_valid = true;
+ 	}
+ 	pgmap->ref = ref;
+-	pgmap->res = &page_map->res;
+ 	pgmap->type = MEMORY_DEVICE_HOST;
+ 	pgmap->page_fault = NULL;
+ 	pgmap->page_free = NULL;
+@@ -418,7 +403,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 			break;
+ 		}
+ 		error = __radix_tree_insert(&pgmap_radix,
+-				PHYS_PFN(res->start) + pgoff, order, page_map);
++				PHYS_PFN(res->start) + pgoff, order, pgmap);
+ 		if (error) {
+ 			dev_err(dev, "%s: failed: %d\n", __func__, error);
+ 			break;
+@@ -447,7 +432,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (error)
+ 		goto err_add_memory;
+ 
+-	for_each_device_pfn(pfn, page_map) {
++	for_each_device_pfn(pfn, pgmap) {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+ 		/*
+@@ -462,7 +447,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		if (!(++i % 1024))
+ 			cond_resched();
+ 	}
+-	devres_add(dev, page_map);
++	devres_add(dev, pgmap);
+ 	return __va(res->start);
+ 
+  err_add_memory:
+@@ -470,7 +455,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+  err_pfn_remap:
+  err_radix:
+ 	pgmap_radix_release(res);
+-	devres_free(page_map);
++	devres_free(pgmap);
+ 	return ERR_PTR(error);
+ }
+ EXPORT_SYMBOL(devm_memremap_pages);
+@@ -535,7 +520,9 @@ struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
+ 	pgmap = find_dev_pagemap(__pfn_to_phys(page_to_pfn(page)));
+ 	rcu_read_unlock();
+ 
+-	return pgmap ? pgmap->altmap : NULL;
++	if (!pgmap || !pgmap->altmap_valid)
++		return NULL;
++	return &pgmap->altmap;
+ }
+ 
+ /**
+@@ -555,9 +542,7 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 	 * In the cached case we're already holding a live reference.
+ 	 */
+ 	if (pgmap) {
+-		const struct resource *res = pgmap ? pgmap->res : NULL;
+-
+-		if (res && phys >= res->start && phys <= res->end)
++		if (phys >= pgmap->res.start && phys <= pgmap->res.end)
+ 			return pgmap;
+ 		put_dev_pagemap(pgmap);
+ 	}
 diff --git a/mm/hmm.c b/mm/hmm.c
-index cff2aa6910af..b08105e2cd3b 100644
+index 3a5c172af560..6d45c499c761 100644
 --- a/mm/hmm.c
 +++ b/mm/hmm.c
-@@ -838,10 +838,10 @@ static void hmm_devmem_release(struct device *dev, void *data)
- 
- 	mem_hotplug_begin();
- 	if (resource->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY)
--		__remove_pages(zone, start_pfn, npages);
-+		__remove_pages(zone, start_pfn, npages, NULL);
+@@ -882,7 +882,7 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
  	else
- 		arch_remove_memory(start_pfn << PAGE_SHIFT,
--				   npages << PAGE_SHIFT);
-+				   npages << PAGE_SHIFT, NULL);
- 	mem_hotplug_done();
+ 		devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
  
- 	hmm_devmem_radix_release(resource);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index b36f1822c432..eae6bf47caf7 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -569,7 +569,7 @@ static int __remove_section(struct zone *zone, struct mem_section *ms,
-  * calling offline_pages().
-  */
- int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
--		 unsigned long nr_pages)
-+		 unsigned long nr_pages, struct vmem_altmap *altmap)
- {
- 	unsigned long i;
- 	unsigned long map_offset = 0;
-@@ -577,10 +577,6 @@ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
- 
- 	/* In the ZONE_DEVICE case device driver owns the memory region */
- 	if (is_dev_zone(zone)) {
--		struct page *page = pfn_to_page(phys_start_pfn);
--		struct vmem_altmap *altmap;
--
--		altmap = to_vmem_altmap((unsigned long) page);
- 		if (altmap)
- 			map_offset = vmem_altmap_offset(altmap);
- 	} else {
-@@ -1890,7 +1886,7 @@ void __ref remove_memory(int nid, u64 start, u64 size)
- 	memblock_free(start, size);
- 	memblock_remove(start, size);
- 
--	arch_remove_memory(start, size);
-+	arch_remove_memory(start, size, NULL);
- 
- 	try_offline_node(nid);
- 
+-	devmem->pagemap.res = devmem->resource;
++	devmem->pagemap.res = *devmem->resource;
+ 	devmem->pagemap.page_fault = hmm_devmem_fault;
+ 	devmem->pagemap.page_free = hmm_devmem_free;
+ 	devmem->pagemap.dev = devmem->device;
 -- 
 2.14.2
 
