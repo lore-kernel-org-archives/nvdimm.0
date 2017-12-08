@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9161622280C45
- for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:49:30 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: revamp vmem_altmap / dev_pagemap handling V3
-Date: Fri, 29 Dec 2017 08:53:49 +0100
-Message-Id: <20171229075406.1936-1-hch@lst.de>
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 192922217CE53
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Dec 2017 12:55:40 -0800 (PST)
+Subject: [PATCH v2 2/4] acpi: nfit: add persistent memory control flag for
+ nd_region
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 08 Dec 2017 14:00:14 -0700
+Message-ID: <151276681464.31888.12688962751509293317.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151276655874.31888.13113966406333561201.stgit@djiang5-desk3.ch.intel.com>
+References: <151276655874.31888.13113966406333561201.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,42 +19,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
+To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi all,
+Propogate the ADR attribute flag from the NFIT platform capabilities
+sub-table to nd_region.
 
-this series started with two patches from Logan that now are in the
-middle of the series to kill the memremap-internal pgmap structure
-and to redo the dev_memreamp_pages interface to be better suitable
-for future PCI P2P uses.  I reviewed them and noticed that there
-isn't really any good reason to keep struct vmem_altmap either,
-and that a lot of these alternative device page map access should
-be better abstracted out instead of being sprinkled all over the
-mm code.  But when we got the RCU warnings in V1 I went for yet
-another approach, and now struct vmem_altmap is kept for now,
-but passed explicitly through the memory hotplug code instead of
-having to do unprotected lookups through the radix tree.  The
-end result is that only the get_user_pages path ever looks up
-struct dev_pagemap, and struct vmem_altmap is now always embedded
-into struct dev_pagemap, and explicitly passed where needed.
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ drivers/acpi/nfit/core.c  |    3 +++
+ include/linux/libnvdimm.h |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
-Please review carefully, this has only been tested with my legacy
-e820 NVDIMM system.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index c08b3da61b93..435222944950 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2668,6 +2668,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
+ 		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
+ 
++	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
++		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc->flags);
++
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping_desc *mapping;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f2fc0da4da04..ff855ed965fb 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -52,6 +52,12 @@ enum {
+ 	 * system power loss.
+ 	 */
+ 	ND_REGION_PERSIST_CACHE = 1,
++	/*
++	 * Platform provides mechanisms to automatically flush outstanding
++	 * write data from memory controler to pmem on system power loss.
++	 * (ADR)
++	 */
++	ND_REGION_PERSIST_MEMCTRL = 2,
+ 
+ 	/* mark newly adjusted resources as requiring a label update */
+ 	DPA_RESOURCE_ADJUSTED = 1 << 0,
 
-Chances since V2:
- - properly pass altmap from dev_devm_memremap_pages through add_pages
-   (Dan Williams)
- - small changelog updates
- - a comment type fix
- - dropped the patch to just rely on the radix_tree_insert return value
- - initialize pgmap->type
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
