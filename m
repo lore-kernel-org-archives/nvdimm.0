@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 721E32217CE54
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 07:04:15 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 06/14] mm: better abstract out dev_pagemap start_pfn
-Date: Thu,  7 Dec 2017 07:08:32 -0800
-Message-Id: <20171207150840.28409-7-hch@lst.de>
-In-Reply-To: <20171207150840.28409-1-hch@lst.de>
-References: <20171207150840.28409-1-hch@lst.de>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 248AA21B0284B
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 19:19:36 -0800 (PST)
+Subject: [PATCH] libnvdimm,
+ dax: fix 1GB-aligned namespaces vs physical misalignment
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 07 Dec 2017 19:15:55 -0800
+Message-ID: <151270295560.20101.17643775623938598123.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,90 +17,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Jane Chu <jane.chu@oracle.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/memremap.h | 6 ++++++
- kernel/memremap.c        | 9 +++++++++
- mm/page_alloc.c          | 4 +---
- 3 files changed, 16 insertions(+), 3 deletions(-)
+The following namespace configuration attempt:
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index d221f4c0ccac..fe60b4895f56 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -139,6 +139,7 @@ static inline bool is_zone_device_page(const struct page *page);
- int dev_pagemap_add_pages(unsigned long phys_start_pfn, unsigned nr_pages);
- bool dev_pagemap_free_pages(struct page *page, unsigned nr_pages);
- unsigned long dev_pagemap_offset(struct page *page);
-+unsigned long dev_pagemap_start_pfn(unsigned long start_pfn);
- #else
- static inline void *devm_memremap_pages(struct device *dev,
- 		struct resource *res, struct percpu_ref *ref,
-@@ -174,6 +175,11 @@ static inline unsigned long dev_pagemap_offset(struct page *page)
- {
- 	return 0;
+    # ndctl create-namespace -e namespace0.0 -m devdax -a 1G -f
+    libndctl: ndctl_dax_enable: dax0.1: failed to enable
+      Error: namespace0.0: failed to enable
+
+    failed to reconfigure namespace: No such device or address
+
+...fails when the backing memory range is not physically aligned to 1G:
+
+    # cat /proc/iomem | grep Persistent
+    210000000-30fffffff : Persistent Memory (legacy)
+
+In the above example the 4G persistent memory range starts and ends on a
+256MB boundary.
+
+We handle this case correctly when needing to handle cases that violate
+section alignment (128MB) collisions against "System RAM", and we simply
+need to extend that padding/truncation for the 1GB alignment use case.
+
+Cc: <stable@vger.kernel.org>
+Fixes: 315c562536c4 ("libnvdimm, pfn: add 'align' attribute...")
+Reported-and-tested-by: Jane Chu <jane.chu@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/pfn_devs.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 65cc171c721d..5ba9ab7af736 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -582,6 +582,12 @@ static struct vmem_altmap *__nvdimm_setup_pfn(struct nd_pfn *nd_pfn,
+ 	return altmap;
  }
-+
-+static inline unsigned long dev_pagemap_start_pfn(unsigned long start_pfn)
-+{
-+	return 0;
-+}
- #endif /* CONFIG_ZONE_DEVICE */
  
- #if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 91a5fc1146b5..01025c5f3037 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -493,6 +493,15 @@ int dev_pagemap_add_pages(unsigned long phys_start_pfn, unsigned nr_pages)
- 	return 0;
- }
- 
-+unsigned long dev_pagemap_start_pfn(unsigned long start_pfn)
++static u64 phys_pmem_align_down(struct nd_pfn *nd_pfn, u64 phys)
 +{
-+	struct vmem_altmap *pgmap = to_vmem_altmap(__pfn_to_phys(start_pfn));
-+
-+	if (pgmap && start_pfn == pgmap->base_pfn)
-+		return pgmap->reserve;
-+	return 0;
++	return min_t(u64, PHYS_SECTION_ALIGN_DOWN(phys),
++			ALIGN_DOWN(phys, nd_pfn->align));
 +}
 +
- bool dev_pagemap_free_pages(struct page *page, unsigned nr_pages)
+ static int nd_pfn_init(struct nd_pfn *nd_pfn)
  {
- 	struct vmem_altmap *pgmap = to_vmem_altmap((uintptr_t)page);
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 73f5d4556b3d..cf6a702222c3 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5305,7 +5305,6 @@ void __ref build_all_zonelists(pg_data_t *pgdat)
- void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 		unsigned long start_pfn, enum memmap_context context)
- {
--	struct vmem_altmap *altmap = to_vmem_altmap(__pfn_to_phys(start_pfn));
- 	unsigned long end_pfn = start_pfn + size;
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long pfn;
-@@ -5321,8 +5320,7 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 	 * Honor reservation requested by the driver for this ZONE_DEVICE
- 	 * memory
- 	 */
--	if (altmap && start_pfn == altmap->base_pfn)
--		start_pfn += altmap->reserve;
-+	start_pfn += dev_pagemap_start_pfn(start_pfn);
+ 	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
+@@ -637,13 +643,16 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	start = nsio->res.start;
+ 	size = PHYS_SECTION_ALIGN_UP(start + size) - start;
+ 	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED) {
++				IORES_DESC_NONE) == REGION_MIXED
++			|| !IS_ALIGNED(start + resource_size(&nsio->res),
++				nd_pfn->align)) {
+ 		size = resource_size(&nsio->res);
+-		end_trunc = start + size - PHYS_SECTION_ALIGN_DOWN(start + size);
++		end_trunc = start + size - phys_pmem_align_down(nd_pfn,
++				start + size);
+ 	}
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		/*
--- 
-2.14.2
+ 	if (start_pad + end_trunc)
+-		dev_info(&nd_pfn->dev, "%s section collision, truncate %d bytes\n",
++		dev_info(&nd_pfn->dev, "%s alignment collision, truncate %d bytes\n",
+ 				dev_name(&ndns->dev), start_pad + end_trunc);
+ 
+ 	/*
 
 _______________________________________________
 Linux-nvdimm mailing list
