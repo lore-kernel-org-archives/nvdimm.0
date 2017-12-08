@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com
+ [15.241.140.73])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0A34E22198F67
- for <linux-nvdimm@lists.01.org>; Thu, 21 Dec 2017 08:26:15 -0800 (PST)
-From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 2/2] ext4: Fix ENOSPC handling in DAX page fault handler
-Date: Thu, 21 Dec 2017 17:30:55 +0100
-Message-Id: <20171221163055.3943-3-jack@suse.cz>
-In-Reply-To: <20171221163055.3943-1-jack@suse.cz>
-References: <20171221163055.3943-1-jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 7709A2217CE4C
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Dec 2017 15:46:51 -0800 (PST)
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH] acpi, nfit: fix health event notification
+Date: Fri, 8 Dec 2017 23:51:18 +0000
+Message-ID: <1512776323.11639.25.camel@hpe.com>
+References: <151209330313.2584.7295902868393348172.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151209330313.2584.7295902868393348172.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <65ED5F90749CFA48A714A781D66130ED@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,66 +21,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-ext4@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Ted Tso <tytso@mit.edu>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "daniel.k.osawa@intel.com" <daniel.k.osawa@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When allocation of underlying block for a page fault fails, we fail the
-fault with SIGBUS. However we may well hit ENOSPC just due to lots of
-free blocks being held by the running / committing transaction. So
-propagate the error from ext4_iomap_begin() and implement do standard
-allocation retry loop in ext4_dax_huge_fault().
+On Thu, 2017-11-30 at 17:55 -0800, Dan Williams wrote:
+> Integration testing with a BIOS that generates injected health event
+> notifications fails to communicate those events to userspace. The nfit
+> driver neglects to link the ACPI DIMM device with the necessary driver
+> data so acpi_nvdimm_notify() fails this lookup:
+> 
+>         nfit_mem = dev_get_drvdata(dev);
+>         if (nfit_mem && nfit_mem->flags_attr)
+>                 sysfs_notify_dirent(nfit_mem->flags_attr);
+> 
+> Add the necessary linkage when installing the notification handler and
+> clean it up when the nfit driver instance is torn down.
+> 
+> Cc: <stable@vger.kernel.org>
+> Cc: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Fixes: ba9c8dd3c222 ("acpi, nfit: add dimm device notification support")
+> Reported-by: Daniel Osawa <daniel.k.osawa@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- fs/ext4/file.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+The fix looks good.  Sorry it appears that I only tested ACPI
+notification, not sysfs event, for the original change.
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 1c7cd882d998..fb6f023622fe 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -280,7 +280,8 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
- static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
--	int result;
-+	int result, error = 0;
-+	int retries = 0;
- 	handle_t *handle = NULL;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	struct super_block *sb = inode->i_sb;
-@@ -304,6 +305,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 		sb_start_pagefault(sb);
- 		file_update_time(vmf->vma->vm_file);
- 		down_read(&EXT4_I(inode)->i_mmap_sem);
-+retry:
- 		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
- 					       EXT4_DATA_TRANS_BLOCKS(sb));
- 		if (IS_ERR(handle)) {
-@@ -314,9 +316,13 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
- 	} else {
- 		down_read(&EXT4_I(inode)->i_mmap_sem);
- 	}
--	result = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &ext4_iomap_ops);
-+	result = dax_iomap_fault(vmf, pe_size, &pfn, &error, &ext4_iomap_ops);
- 	if (write) {
- 		ext4_journal_stop(handle);
-+
-+		if ((result & VM_FAULT_ERROR) && error == -ENOSPC &&
-+		    ext4_should_retry_alloc(sb, &retries))
-+			goto retry;
- 		/* Handling synchronous page fault? */
- 		if (result & VM_FAULT_NEEDDSYNC)
- 			result = dax_finish_sync_fault(vmf, pe_size, pfn);
--- 
-2.12.3
+Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
 
+Thanks!
+-Toshi
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
