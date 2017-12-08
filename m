@@ -1,9 +1,9 @@
-From: =?GB2312?B?va+BstK2?= <gaxiegei-0T9SdBPSc976V6G2DxALlg@public.gmane.org>
-Subject: =?GB2312?B?16q3oqO6vLzK9bK/w8XI57rOs8m5ptffz/K53MDt?=
-Date: Fri, 15 Dec 2017 03:59:19 +0800
-Message-ID: <20171214195440.64C25221A2B75@ml01.01.org>
+From: =?GB2312?B?y86KzuGw?= <yzpaen-/d9cOABucbZBDgjK7y7TUQ@public.gmane.org>
+Subject: =?GB2312?B?16q3oqO60dAgt6IgvKgg0KcgudwgwO0=?=
+Date: Fri, 8 Dec 2017 18:52:48 +0800
+Message-ID: <20171215105011.224782216D8F0@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8653642061472505959=="
+Content-Type: multipart/mixed; boundary="===============5295422312129214506=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,19 +19,16 @@ List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format
 
---===============8653642061472505959==
+--===============5295422312129214506==
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-   
-  ¸½ ¼þ Ïê ÔÄ
+  
+  ¸½¼þÏêÔÄ
          
- Ë³×££¡
-            ÉÌì÷£¡
+       18:52:46
 
-  2017-12-15
-
---===============8653642061472505959==
+--===============5295422312129214506==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -42,4 +39,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============8653642061472505959==--
+--===============5295422312129214506==--
