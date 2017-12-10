@@ -1,12 +1,102 @@
-From: =?utf-8?B?6K6h5YWD5q+F?= <qdekunt-I/e0uI4ctb0@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+R77ya5bu656uL5Liq5Lq655qE6aKG5a+86aOO5qC85LiO6a2F5Yqb?=
-Date: Sat, 9 Dec 2017 20:02:45 +0000 (UTC)
-Message-ID: <3469706121D857AFB3D376658F1AA2CC@symv.com>
+From: "Bounced mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery reports about your e-mail
+Date: Sun, 10 Dec 2017 18:41:56 +0800
+Message-ID: <20171210103727.2F3D42217CE44@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="----------=_5A2D0F80.B3AD0B1E"
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+------------=_5A2D0F80.B3AD0B1E
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "blaine.gmane.org",
+has identified this incoming email as possible spam.  The original
+message has been attached to this so you can view it or label
+similar future email.  If you have any questions, see
+@@CONTACT_ADDRESS@@ for details.
+
+Content preview:  W‘ ΩÓCvãado‹ .ío∏\EVL´%ÊÙ¡!¶ ÑwÊbeıô˚Ω∞ï≤lÔ≈»≈ùcâÏZ1ä˘ùñ∏≈éı'å4ÿ
+   Hg‹´⁄}◊IZÓ?œüuˆ◊ÉÿÒ6 “ºcæêˆdu4“‡ÜUóVt} |ì©^∫çÃ—´ﬂMEn¿¯nìJ4# KÚÆk”“Ct¨Úä…∞ac∆¶©\®Æœ¨^7ÃX˘0aÂ_íÍ¥hZ‰¿æY^Qq4Â◊èû˝éÍnw∞©CIö¡úËvﬁ‰Ô<∫Æí $BZÚL∫œ4o%çõ]!öŒìâT"y∂yëoâYZ3uﬁô(ˆ·ˆl≤øˆ
+   Mñ3⁄Éû Ÿlôû[g¯æªÿgµöLkZ∫Eí2∂U≤}®N{m¯ÆˆÕü€,ÉNíÃ∑mÜ˜”uh∫F≤ ßﬁıí‘(∑Ñ‹©øµ∆aíq1ãïIEçS¯¸Ôn{Ω◊3ﬂHÂ%å◊ÿÊ·–*2˙’•Qèq6
+   X‰ééÜJ-àä¢Ú¥{≠≥¶ës´x™æ˚G»û'±ë„ï^Õ¶[π<L!~RY¶</ÙrÑo»zâøîÁÜ€‡ÁCÛõZÚG˙/œ‘Ÿnºr"o∫5Å
+   `v±bÂ\5ù˛JfÌÁqfá∏Ieæ%z$∫-£¶¶IG^±°»˙À"_ÚHx JO© LÇ¬á›ÂÆæ‰ËåVÎ˝a#å˘*˝Ö 0ìáÍFL
+   äˆ£¨§-ŒKÆïÍvÌ]/´å›yTΩhßÑ ¯Ilb%oU›Ã√g)äÉ„d•¯µcß,orZÓ:I®*¶√iFV˘˛(Ú{ªob˚6t…Æ<dºŸM¿∆Y∞‘Ñ"ÊAJs%Î\‡¸ﬂ-ea≠—«*ÍÉ∞e!˝ªê∑˛.ró63<&bŸÙùrëî≈åüã~Üû:<n˙xÑ´y8°;8∑l2ï\èóa∂òm¸ã¥b
+   Í£h7˙qìÊôgÑ2ßhM¬-2£%\âƒkÕty J*˘7k≈›Ëå˝ïµdEÜÔ ﬁm?å∞ç *g}§˘iíª#ﬁ´dÛÙnId}OàÜ∏ØÅéç·ñRº%z»Ÿ¨
+   „T[¨´õ€O<#qK…CW’›Ω¶bi'ù3#qñGOlâ¶S§¸3›µzŒ `“∫yi≤éMÅ*`0Ñezí^h∂ñö-nÌ¶≥¿âØª;¸5ªä# ‹äøò∆ﬂπ‡78q≤æÜ3ãu®ÀãwûG7gËÂ±}√∑',
+   øD÷çã¸˘§Ú—÷®Tw—äÜn¥EüﬁqDù¨˚wåL√›ã‰À¯§œ)Îç9V√Ñ(CùDÜÆ4Ñ?y√Èª&¬B®Ü˝ﬁjv…'‡ÛÔ>Ü:ô§÷Æ6<”R˘Õ,Jø1ço≤ùAâí±;õ˛}ÌÓ1(ô˝ûÀ¶Ny∏¯áﬁ»FëÖF6vÇ∞îòL98ù¿õ
+   ÒúìnB…Y∑læ—•)πƒogJLVí¯V-”≥ê˜–«4Í÷_€ñG‡û)ã˙;IdhÚRzR_uAG≤û ÿÅd\ÑLP”ùEü3£äΩ7V8∫À>°úpPÆ™I"
+   ôÎìÀ?)lh¢sXôgúøXπl—‰ß*ú¨K¯E¨¿E∑ ‘w«ÔahsÛî`é∑¿ìÍ/–nla‰ﬁâûﬂø˚qøﬂóâ˛eïÍDõ≤Ñ®$"ºƒOﬁvN)ùã4>eÛ± ‡ﬁÉÒ∑ôBSø rlO√™yãËPàDu⁄ÉﬁU4}|0πé~w°Cﬁ(…IÈ®å°Ö{Nì0≥;DTkNW
+   ’/rÏifΩ|»N;˚ûŒ4t~∫´ÎA Ω‰naD]„—¥ÀRÍ~jªõB™Àî⁄ìri¡[®€è≤∏Yt«óá)^J»~ÃNS¡ge≈ îô¬‚abyè~•
+   ?t∫ánd›p±Êgƒ ’0à\ŒNó±¸äUÑûÈØn#‹zKı<)Æ∞*xà(à¡Ÿ¯ ìq_*«%§2WƒáäÅÉ©Mu¡Á¸∞Üô“√u_k˚¢h›U´.”z^!&¿ŸYwf√!)Ó“¿Û–ãXÙùªªıñ
+   ÷Ÿá„ÛÂk§ßmœÍÊSï’TæÜwù]p£{;ﬂ˙©˜W4ô9ﬂÅú√ê˝dáQ3Ãrqwôﬂ®I; ØËÆ»ÌÉøa€ÖY t˙QÉm!»IYRüéõ]Á‚eŒˆ\Mç¸ﬁ<ÿòKÅOÎè˛ü&¥ﬁK˙Ò¥„ª…ˆ˙Ö
+   IO T‘Ÿ›Uù4ÀŒ®ôÓPH:êTlã—(ÍSæ’Ó∞ÎNﬂÉe ‚∞SJêS˜é≤ ›6DWô”™≠ ª˝⁄(<é_∫¶Ã–óë–™u √KÒ)©•‡y<ÊŒπÜ"ˆà˘bVÑílV8¿ÍQù.âﬂS È∑˙qJå˘ZÁ_Œı0KK9d«iÛ÷Ø’*©PLîWÌ#Ã¯>ÀŒÂÿŒÓ«®í∏Ô0›µØ»ﬁﬁê√ÅC>©¯å¶ŸÍ`øèïÔÚÒ_ÎÇ^àz∆‰ü∂®»ÖñT≥?´¢Kc€"—TãSÚëí·s;¡`q˘çàÃüfP&‰¡œf‰ñ∆6ü„
+   (œt¥r< v(xb:¯Gß~˝q∑p≠1sHc§lô_˚¢ìP≈À£WV?kúcIG√± ã;38∏¢∞ﬂñ& «Ìc˛'óÓL≈k(ó5~⁄zú∆bxNÌÿ|!dÉIä¡çè⁄Êwh<Õk8'≠·¡sª>*\Uwl®≤ÙÌÎ∆r%í
+   $XãÏ]ºË´ñ¨¿–‚≠nF&√xigAkvóπ{ŒÆîîBÀÒ∆[∏‚¥‘Ì.Il«Ã«^ıG≥4πK˙t2$ ú0SŒ¬¶*?¡eWÿXx»Ù`{…Ëç©1ùíT∂‘k˝3Õ∞’°˛üL‘î∆“àﬁÃYåŸ
+   s [...] 
+
+Content analysis details:   (7.0 points, 5.0 required)
+
+ pts rule name              description
+---- ---------------------- --------------------------------------------------
+-0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
+-0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
+                            trust
+                            [198.145.21.10 listed in list.dnswl.org]
+ 0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
+                            [score: 0.4884]
+ 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
+ 2.6 MSOE_MID_WRONG_CASE    No description available.
+ 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
+
+The original message was not completely plain text, and may be unsafe to
+open with some email clients; in particular, it may contain a virus,
+or confirm that your address can receive spam.  If you wish to view
+it, it may be safer to save it to a file and open it with an editor.
+
+
+------------=_5A2D0F80.B3AD0B1E
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: attachment
+Content-Transfer-Encoding: 8bit
+
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Date: Mon, 10 Dec 2029 04:00:31 +0800
+Envelope-to: gln-linux-nvdimm@m.gmane.org
+Received: from ml01.01.org ([198.145.21.10])
+	by blaine.gmane.org with esmtp (Exim 4.84_2)
+	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
+	id 1eNz3X-0006dG-Dl
+	for gln-linux-nvdimm@m.gmane.org; Sun, 10 Dec 2017 11:41:59 +0100
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 2F3D42217CE44;
+	Sun, 10 Dec 2017 02:37:27 -0800 (PST)
+X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received-SPF: None (no SPF record) identity=mailfrom; client-ip=183.14.134.7;
+ helo=lists.01.org; envelope-from=postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org;
+ receiver=linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Received: from lists.01.org (unknown [183.14.134.7])
+ by ml01.01.org (Postfix) with ESMTP id 6602D2217CE31
+ for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Sun, 10 Dec 2017 02:37:21 -0800 (PST)
+From: "Bounced mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Subject: Delivery reports about your e-mail
+Date: Sun, 10 Dec 2017 18:41:56 +0800
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+X-Content-Filtered-By: Mailman/MimeDel 2.1.22
+X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+X-Mailman-Version: 2.1.22
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,103 +104,71 @@ List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============3335513892825383217=="
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+Message-Id: <20171210103727.2F3D42217CE44-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 
-LS0tLSDljp/pgq7ku7bkv6Hmga8gLS0tLS0NCuWPkeS7tuS6ujrorqHlhYPmr4U8cWRla3VudEBz
-eW12LmNvbT4NCuaUtuS7tuS6ujoibGludXgtbnZkaW1tIiA8bGludXgtbnZkaW1tQGxpc3RzLjAx
-Lm9yZz47DQrlj5HpgIHml7bpl7Q6NDowMDozNg0K546w5Luj566h55CG6ICF5rKf6YCa5b2x5ZON
-5Yqb5LiO6aKG5a+85Yqb5o+Q5Y2HDQoNCuaKpSDlkI0g6K+mIOe7hiDkv6Eg5oGvIOivtyDpmIUg
-6K+7IOmZhCDku7YNCg0K6K++56iL55uu5qCH77yaDQrCsiDop6Plm6LpmJ/nmoTmnKzotKjkuI7o
-v5DkvZznsr7npZ4NCsKyIOaPkOWNh+euoeeQhuiAheeahOayn+mAmuiDveWKmw0KwrIg5a2m5Lmg
-5aaC5L2V5omu5ryU5aW95Zui6Zif6aKG5a+855qE6KeS6Imy77yM5LqG6Kej6aKG5a+855qE5YaF
-5ra177yM5piO55m9566h55CG5LiO6aKG5a+855qE5beu5byCDQrCsiDljY/liqnlu7rnq4vkuKrk
-urrnmoTpooblr7zpo47moLzkuI7prYXlipvvvIzmjozmj6Hmg4Xmma/pooblr7znmoTov5DnlKjm
-ioDlt6cNCsKyIOS6huino+iHquaIkeWPiuS7luS6uueahOaAp+agvO+8jOaPkOWNh+mihuWvvOiJ
-uuacrw0KwrIg5LqG6Kej566h55CG5Zui6Zif5Yay56qB77yM6YCa6L+H5pyJ5pWI55qE566h55CG
-5p2l5o+Q5Y2H5Zui6Zif57up5pWIDQror77nqIvlpKfnurLvvJoNCjEuICAg5o+t5byA5Zui6Zif
-55qE6Z2i57qxIA0KMSkgICAgICAgIOWboumYn+eahOamguW/teWSjOaehOaIkOimgee0oA0KMikg
-ICAgICAgIOWboumYn+S4jue+pOS9k+eahOWMuuWIqyANCjMpICAgICAgICDlm6LpmJ/nmoTnsbvl
-nosgDQoyLiAgIOWboumYn+eahOWPkeWxlemYtuautSANCjEpICAgICAgICDlm6LpmJ/nmoTmiJDn
-q4vmnJ8gDQoyKSAgICAgICAg5Zui6Zif55qE5Yqo6I2h5pyfIA0KMykgICAgICAgIOWboumYn+ea
-hOeos+WumuacnyANCjQpICAgICAgICDlm6LpmJ/nmoTpq5jkuqfmnJ8gDQo1KSAgICAgICAg5Zui
-6Zif55qE6LCD5pW05pyfIA0KMy4gICDlm6LpmJ/pooblr7znmoTmlrnlvI/orqTnn6UNCjEpICAg
-ICAgICDpooblr7zkuI7nrqHnkIbnmoTlt67liKsNCjIpICAgICAgICDpooblr7zogIXnmoTmnYPl
-ipvkuI7mnYPlqIENCjMpICAgICAgICDlm6LpmJ/pooblr7zogIXnmoTop5LoibLkuI7ogYzotKMN
-CjQuICAg5oOF5pmv6aKG5a+8DQoxKSAgICAgICAg5L2V6LCT5oOF5pmv6aKG5a+8DQoyKSAgICAg
-ICAg5oOF5pmv6aKG5a+855qE5Lik5Liq57qs5bqmDQrCsiAgICDmjIfku6QNCsKyICAgIOaUr+aM
-gQ0KMykgICAgICAgIOaDheaZr+mihuWvvOeahOWbm+enjemjjuagvA0KwrIgICAg5oyH5LukDQrC
-siAgICDmlZnnu4MNCsKyICAgIOaUr+aMgQ0KwrIgICAg5o6I5p2DDQo0KSAgICAgICAg5YiG5p6Q
-6Kej5YmW6Ieq5oiR55qE6aKG5a+86aOO5qC85LiO5Z6L5oCBDQrCsiAgICDpooblr7zpo47moLzk
-uI7lnovmgIHmtYvor5UNCsKyICAgIOWQhOexu+mihuWvvOmjjuagvOS4juWei+aAgeivtOaYjg0K
-NSkgICAgICAgIOmSiOWvueS4jeWQjOexu+Wei+mDqOWxnuS4juaDheaZr+WunuaWveS4jeWQjOea
-hOmihuWvvOmjjuagvA0KwrIgICAg57up5pWI55+p6Zi15YiG5p6QDQrCsiAgICDpkojlr7nkuI3l
-kIznsbvlnovpg6jlsZ7lsZXnjrDkuI3lkIznmoTmg4Xmma/po47moLwNCjUuICAg5Lq66ZmF55u4
-5aSE55qE5oOF5pmv6aKG5a+86Im65pyvDQoxKSAgICAgICAg5oCn5qC85LiO5Lq66ZmF55u45aSE
-55qE5YWz57O7DQoyKSAgICAgICAg5LqG6Kej6Ieq5bex55qE5oCn5qC8DQrCsiAgICDmgKfmoLzm
-tYvor5UNCsKyICAgIOino+ivu+aAp+agvA0KMykgICAgICAgIOWmguS9leiwg+aVtOaAp+agvOea
-hOe8uumZt++8jOWxleeOsOmtheWKmw0KNCkgICAgICAgIOWmguS9leS4juS4jeWQjOaAp+agvOex
-u+Wei+eahOS6uuebuOWkhA0KNi4gICDmnInmlYjnmoTmsp/pgJoNCjEpICAgICAgICDkvZXosJPm
-nInmlYjnmoTmsp/pgJoNCjIpICAgICAgICDmsp/pgJrkuK3nmoTlgL7lkKzkuI7or7TnmoTmioDl
-t6cNCsKyICAgIOWQjOeQhuW/g+eahOWAvuWQrOimgeeCuQ0KwrIgICAg5ZCI5L2c5oCn55qE6K+0
-5pyN5oqA5benDQozKSAgICAgICAg5aaC5L2V566h55CG57uE57uH5Yay56qBDQrCsiAgICDorqTn
-n6XlhrLnqoENCsKyICAgIOWGsueqgea8lOWPmOS4juWkhOeQhuaKgOW3pw0KwrIgICAg5Yay56qB
-55qE5aSE55CG55qE5LqU5aSn6YCC55So562W55Wl5YiG5p6QDQo0KSAgICAgICAg5oCn5qC85LiO
-5rKf6YCaDQrCsiAgICDkuobop6Poh6rlt7HnmoTmgKfmoLwNCsKyICAgIOino+ivu+aAp+agvA0K
-wrIgICAg5aaC5L2V5LiO5LiN5ZCM5oCn5qC857G75Z6L55qE5Lq655u45aSEDQrCsiAgICDlpoLk
-vZXosIPmlbTkuI7lhYvmnI3mgKfmoLznmoTnvLrpmbcNCjcuICAg5Zui6Zif5Yay56qB566h55CG
-DQoxKSAgICAg5q2j56Gu6K6k6K+G5Yay56qBDQrCsiAgICDkvZXosJPlhrLnqoHvvJ8NCsKyICAg
-IOS8oOe7n+inguW/teS4jueOsOS7o+inguW/teWvueWGsueqgeiupOivhuavlOi+gw0KMikgICAg
-IOmdouS4tOWGsueqgeeahOW4uOingeWPjeW6lOaooeW8jw0KwrIgICAg56ue5LqJDQrCsiAgICDl
-m57pgb8NCsKyICAgIOmhuuS7jg0KwrIgICAg5aal5Y2PDQrCsiAgICDlkIjkvZwNCjMpICAgICDk
-uobop6Poh6rmiJHnmoTlhrLnqoHlj43lupTmqKHlvI/vvIjmtYvor5XvvIkNCsKyICAgIOmAmui/
-h+a1i+ivleS6huino+iHquaIkeWcqOmdouS4tOWGsueqgeaYr+eahOWPjeW6lOaooeW8jw0KNCkg
-ICAgIOmdouWvueWGsueqgeaXtueahOmUmeivr+W/g+aAgeS4juihjOS4uu+8iOW+geacjS/lm57p
-gb8v5Lqk5piTL+mBruebli/mvJTmiI/vvIkNCjUpICAgICDlhrLnqoHnmoTluLjop4HnsbvlnosN
-CsKyICAgIOW7uuiuvuaAp+WGsueqgQ0KwrIgICAg56C05Z2P5oCn5Yay56qBDQrCsiAgICDmg4Xn
-u6rmgKflhrLnqoENCsKyICAgIOWunui0qOaAp+WGsueqgQ0KNikgICAgIOWGsueqgeino+WGs+ea
-hOS4ieenjeetlueVpQ0KwrIgICAg5L6155WlDQrCsiAgICDpgIDnvKkNCsKyICAgIOenr+aegQ0K
-NykgICAgIOWmguS9lemAmui/h+W8leWPkeW7uuiuvuaAp+WGsueqgeadpeaPkOWNh+WboumYn+e7
-qeaViA0KwrIgICAg5Yay56qB5LiO57up5pWI55qE5YWz57O7DQrCsiAgICDkvZXml7blvJXlj5Hl
-u7rorr7mgKflhrLnqoENCsKyICAgIOWmguS9leW8leWPkeW7uuiuvuaAp+WGsueqgQ0KOCkgICAg
-IOino+WGs+WGsueqgeaXtueahOato+ehruaWueazleS4juatpemqpA0KwrIgICAg5a+55LqL5LiN
-5a+55Lq6IA0KwrIgICAg5LuO5a+55pa555qE56uL5Zy65Ye65Y+R6ICD6JmR6Zeu6aKYDQrCsiAg
-ICDmnYPooaHlj4zmlrnnmoTliKnnm4rvvIzmib7lh7rlhbHlkIznmoTnm67moIcNCsKyICAgIOWV
-huiwiOaXtuWPjOaWueazqOaEj+e7tOaMgeWFheWIhuiHqueUseeahOeOr+Wigw0KwrIgICAg6YeN
-5paw6ICD6JmR5LyY5YWI6aG65bqPDQrCsiAgICDlgZrlh7rljY/orq4NCsKyICAgIOi/vei4quWN
-j+iurg0K6K6y5biI5LuL57uN77ya6YK56ICB5biIDQrpq5jnuqfkvIHkuJrnrqHnkIbln7norq3l
-uIgNCuKAoiAgICAgICDmm77mi4Xku7vnm7TplIDlhazlj7jmgLvpg6jorrLluIggDQrigKIgICAg
-ICAg6ZW/5pyf5ouF5Lu75qyn576O5LyB5Lia5YWo5Zu95Z+56K6t6YOo6LSf6LSj5Lq6IA0K4oCi
-ICAgICAgIEVXU+ivvueoi+WbveWGheWfueiureesrOS4gOS6uiANCuKAoiAgICAgICDlvLrmgJ3k
-vIHnrqEg6auY57qn6K6y5biIIA0K6K6y5biI5qaC6L+w77yaDQrotoXov4c55bm05LyB5Lia5Z+5
-6K6t57uP5Y6G77yM6ZW/5pyf5pyN5Yqh5LqO5qyn576O6Zu25ZSu5LyB5Lia5ZKM5aSn5Z6L5Yi2
-6YCg5Lia44CC5LuW5oiQ5Yqf5Zyw5oqK6ZSA5ZSu5ZKM566h55CG5Lit55qE5oOF57uq566h55CG
-44CB5oCn5qC86Imy5b2p44CB5rKf6YCa5oqA5ben562J6J6N5ZCI5Zyo5Z+56K6t6K++56iL55qE
-54K554K55ru05ru077yM5L2/5b6X6K++56iL5pu05Yqg55Sf5Yqo5bm25byV6LW35a2m5ZGY55qE
-5YWx6bij44CC5a2m5ZGY5Zyo5pS26I636K++56iL55+l6K+G55qE5ZCM5pe25b6A5b6A5o6M5o+h
-5Yiw5pu05aSa6auY6ZmE5Yqg5YC855qE5oqA6IO944CC57Sv6K6h5a2m5ZGY6LaF6L+HMTDkuIfk
-urrmrKHvvIzlubTlubPlnYfln7norq3lnLrmrKHotoXov4cxNTDlnLrvvIzmmK/lrqLmiLflhazo
-rqTnmoTigJ3mnIDlj5fmrKLov47nmoTorrLluIjkuYvkuIDigJ3jgIINCuWtpuWRmOW/g+WjsO+8
-mg0K4oCc6ICB5biI6K6y5b6X6Z2e5bi45aW977yM55Sf5Yqo77yM5YW35L2T77yM6K++56iL5YaF
-5a656LS06L+R5bel5L2c44CC4oCdDQotLS0t576O5LmQ5a6277yI5Lit5Zu977yJSFIg57uP55CG
-IEFuZ2VsaW5hIA0K4oCc6YK56ICB5biI5Li65oiR5Lus5LiN5ZCM5Zyw5Yy655qE5ZGY5bel5a6a
-5Yi255qE6K++56iL5b6I5pyJ6ZKI5a+55oCn77yM5oiR5Y+C5Yqg5LqG5q2m5rGJ5YiG5YWs5Y+4
-55qE5Z+56K6t77yM5b6I6ZyH5pK844CC4oCdDQotLS0t5YWJ5piO5Lmz5LiaIOS6uuWKm+i1hOa6
-kOe7j+eQhiDkvq/mtbfmlY8gDQog4oCc5LiA55u06KeJ5b6X6Leo6YOo6Zeo5rKf6YCa5b6I6YeN
-6KaB77yM6Ieq5bex5LiA55u05Lmf5b6I6YeN6KeG6L+Z5LiA54K577yM5Lq66ZmF5YWz57O76L+Y
-566X5LiN6ZSZ44CC5L2G5rKh5oOz5Yiw5ZCs5LqG6ICB5biI55qE6K++5omN5oSP6K+G5Yiw5Y6f
-5p2l6YOo6Zeo5rKf6YCa6L+Y5pyJ6L+Z5LmI5aSa6Zeo6YGT44CC6Ieq5bex5LmL5YmN55qE5b6I
-5aSa5YGa5rOV6L+Y5piv5pyJ5b6F5o+Q6auY55qE44CC5Y+X55uK5Yyq5rWF77yB4oCdDQotLS0t
-IOaRmOiHquWFieaYjuS5s+S4mu+8iOWMl+S6rOWMuu+8ieWtpuWRmOWPjemmiA0K4oCcVGhlIHRy
-YWluaW5nIGlzIGJvdGggd29uZGVyZnVsIGFuZCBhbWF6aW5n77yB4oCdDQotLS0tIFdhbC1NYXJ0
-IENoaW5hIENFTyBTZWFuIENsYXJrIOayg+WwlOeOm+S4reWbveWMuuaAu+ijgeafr+S/iui0pA0K
-4oCc6YK56ICB5biI55qE5o6I6K++5rex5YWl5rWF5Ye677yM57uZ5oiR5Y+4566h55CG6ICF55WZ
-5LiL5LqG5rex5Yi755qE5Y2w6LGh77yB4oCdDQotLS0tIOiIquaYn+W3peS4miDkurrlipvotYTm
-upDliJjnu4/nkIYgDQrmjojor77lvaLlvI/vvJoNCuiusuino+WPiuWunuS+i+WIhuaekOOAgeiu
-suino+WPiuahiOS+i+WIhuaekOOAgeWIhue7hOe7g+S5oOOAgeWunuS+i+WSjOe7g+S5oOOAgeiu
-suino+WPiuWunuS+i+OAgeiusuino+WPiuW6lOeUqOOAggpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
-LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
-by9saW51eC1udmRpbW0K
+This is a multi-part message in MIME format.
+
+--===============3335513892825383217==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+W‘
+ΩÓCvãado‹†.ío∏\EVL´%ÊÙ¡!¶ ÑwÊbeıô˚Ω∞ï≤lÔ≈»≈ùcâÏZ1ä˘ùñ∏≈éı'å4ÿ†Hg‹´⁄}◊IZÓ?œüuˆ◊ÉÿÒ6
+“ºcæêˆdu4“‡ÜUóVt} |ì©^∫çÃ—´ﬂMEn¿¯nìJ4#
+KÚÆk”“Ct¨Úä…∞ac∆¶©\®Æœ¨^7ÃX˘0aÂ_íÍ¥hZ‰¿æY^Qq4Â◊èû˝éÍnw∞©CIö¡úËvﬁ‰Ô<∫Æí $BZÚL∫œ4o%çõ]!öŒìâT"y∂yëoâYZ3uﬁô(ˆ·ˆl≤øˆ Mñ3⁄Éû Ÿlôû[g¯æªÿgµöLkZ∫Eí2∂U≤}®N{m¯ÆˆÕü€,ÉNíÃ∑mÜ˜”uh∫F≤
+ßﬁıí‘(∑Ñ‹©øµ∆aíq1ãïIEçS¯¸Ôn{Ω◊3ﬂHÂ%å◊ÿÊ·–*2˙’•Qèq6
+X‰ééÜJ-àä¢Ú¥{≠≥¶ës´x™æ˚G»û'±ë„ï^Õ¶[π<L!~RY¶</ÙrÑo»zâøîÁÜ€‡ÁCÛõZÚG˙/œ‘Ÿnºr"o∫5Å
+`v±bÂ\5ù˛JfÌÁqfá∏Ieæ%z$∫-£¶¶IG^±°»˙À"_ÚHx JO© LÇ¬á›ÂÆæ‰ËåVÎ˝a#å˘*˝Ö
+0ìáÍFL
+äˆ£¨§-ŒKÆïÍvÌ]/´å›yTΩhßÑ†¯Ilb%oU›Ã√g)äÉ„d•¯µcß,orZÓ:I®*¶√iFV˘˛(Ú{ªob˚6t…Æ<dºŸM¿∆Y∞‘Ñ"ÊAJs%Î\‡¸ﬂ-ea≠—«*ÍÉ∞e!˝ªê∑˛.ró63<&bŸÙùrëî≈åüã~Üû:<n˙xÑ´y8°;8∑l2ï\èóa∂òm¸ã¥b
+Í£h7˙qìÊôgÑ2ßhM¬-2£%\âƒkÕty J*˘7k≈›Ëå˝ïµdEÜÔ
+ﬁm?å∞ç *g}§˘iíª#ﬁ´dÛÙnId}OàÜ∏ØÅéç·ñRº%z»Ÿ¨
+„T[¨´õ€O<#qK…CW’›Ω¶bi'ù3#qñGOlâ¶S§¸3›µzŒ `“∫yi≤éMÅ*`0Ñezí^h∂ñö-nÌ¶≥¿âØª;¸5ªä# ‹äøò∆ﬂπ‡78q≤æÜ3ãu®ÀãwûG7gËÂ±}√∑', øD÷çã¸˘§Ú—÷®Tw—äÜn¥EüﬁqDù¨˚wåL√›ã‰À¯§œ)Îç9V√Ñ(CùDÜÆ4Ñ?y√Èª&¬B®Ü˝ﬁjv…'‡ÛÔ>Ü:ô§÷Æ6<”R˘Õ,Jø1ço≤ùAâí±;õ˛}ÌÓ1(ô˝ûÀ¶Ny∏¯áﬁ»FëÖF6vÇ∞îòL98ù¿õ†ÒúìnB…Y∑læ—•)πƒogJLVí¯V-”≥ê˜–«4Í÷_€ñG‡û)ã˙;IdhÚRzR_uAG≤û ÿÅd\ÑLP”ùEü3£äΩ7V8∫À>°úpPÆ™I"
+ôÎìÀ?)lh¢sXôgúøXπl—‰ß*ú¨K¯E¨¿E∑
+‘w«ÔahsÛî`é∑¿ìÍ/–nla‰ﬁâûﬂø˚qøﬂóâ˛eïÍDõ≤Ñ®$"ºƒOﬁvN)ùã4>eÛ± ‡ﬁÉÒ∑ôBSø rlO√™yãËPàDu⁄ÉﬁU4}|0πé~w°Cﬁ(…IÈ®å°Ö{Nì0≥;DTkNW
+’/rÏifΩ|»N;˚ûŒ4t~∫´ÎA Ω‰naD]„—¥ÀRÍ~jªõB™Àî⁄ìri¡[®€è≤∏Yt«óá)^J»~ÃNS¡ge≈
+îô¬‚abyè~•
+?t∫ánd›p±Êgƒ
+’0à\ŒNó±¸äUÑûÈØn#‹zKı<)Æ∞*xà(à¡Ÿ¯ ìq_*«%§2WƒáäÅÉ©Mu¡Á¸∞Üô“√u_k˚¢h›U´.”z^!&¿ŸYwf√!)Ó“¿Û–ãXÙùªªıñ
+÷Ÿá„ÛÂk§ßmœÍÊSï’TæÜwù]p£{;ﬂ˙©˜W4ô9ﬂÅú√ê˝dáQ3Ãrqwôﬂ®I; ØËÆ»ÌÉøa€ÖY t˙QÉm!»IYRüéõ]Á‚eŒˆ\Mç¸ﬁ<ÿòKÅOÎè˛ü&¥ﬁK˙Ò¥„ª…ˆ˙Ö†IO T‘Ÿ›Uù4ÀŒ®ôÓPH:êTlã—(ÍSæ’Ó∞ÎNﬂÉe
+‚∞SJêS˜é≤
+›6DWô”™≠ ª˝⁄(<é_∫¶Ã–óë–™u √KÒ)©•‡y<ÊŒπÜ"ˆà˘bVÑílV8¿ÍQù.âﬂS È∑˙qJå˘ZÁ_Œı0KK9d«iÛ÷Ø’*©PLîWÌ#Ã¯>ÀŒÂÿŒÓ«®í∏Ô0›µØ»ﬁﬁê√ÅC>©¯å¶ŸÍ`øèïÔÚÒ_ÎÇ^àz∆‰ü∂®»ÖñT≥?´¢Kc€"—TãSÚëí·s;¡`q˘çàÃüfP&‰¡œf‰ñ∆6ü„ (œt¥r<†v(xb:¯Gß~˝q∑p≠1sHc§lô_˚¢ìP≈À£WV?kúcIG√±
+ã;38∏¢∞ﬂñ&
+«Ìc˛'óÓL≈k(ó5~⁄zú∆bxNÌÿ|!dÉIä¡çè⁄Êwh<Õk8'≠·¡sª>*\Uwl®≤ÙÌÎ∆r%í
+$XãÏ]ºË´ñ¨¿–‚≠nF&√xigAkvóπ{ŒÆîîBÀÒ∆[∏‚¥‘Ì.Il«Ã«^ıG≥4πK˙t2$
+ú0SŒ¬¶*?¡eWÿXx»Ù`{…Ëç©1ùíT∂‘k˝3Õ∞’°˛üL‘î∆“àﬁÃYåŸ
+s†Ã{s!±#$ÖÅ<ï®pH©√<Ø/'ªJ MW(1GQÉkR√:Bå…N≈y#±Åt]o.cdÙrK˘"
+ñ4ÛRqúæ“Ñﬁ_(ç∞∂}¬ÆfO∆-/sm8Õ©ãˆØ˘4]!}MÑÿ/§"w´,!≠]»&
+s
+Ø'·¨[9∏ﬁDX˙¢éµeéDPhy•˚ﬁÖaòö±oÏ)vdÌQíö…dŸy3\$ÏÑ]ì€ç∫)nØ[I
+·ÿØ<X&†6À`ˆZÙoÁŸÃ%Í.bph◊‰*Ö
+0‚–ºwÉ∫€÷É˚å{ã√Ï„∫˙ífÑKu‘¿ÒÈ]náÙhXH£®ôƒõ&ká*HVÇ~⁄a!π)z˙∑u?¨Æœı¥fÊãñºÜ˙πÌ∂˝—π´z¸CêÏê„î∏ñÅE≠kªï,_æ£2<Zªt[∂8*ªºYí}õ¬kfF¸z`ÚÿŸùf?ÅÆYr§√¿!K*Òø ⁄œ∞©6‡∏≈¿”9Ô‘Ó´X%kc6˘¢*·9˘˜”BÂÃ
+Ì’ıQˆÛ˝U†‹íÌt^Ì^
+ÌÒöè⁄∂
+IuùÌ;§bâ›‚Ò'y±*zu%Æ>m¬5‚SÔW ñãF]‘y⁄Ï÷2H[ÅÃ∞V~GP’Øcß$ßò
+œÙ£¶3J¶:L˛q⁄0a7N ∞Jx9µ◊å‡2”Àõ1oÒ˜ó∞,ë¸Ôùû,Y⁄cßonæ"áWõZÿÈ3d…µ⁄
+~¡ñƒ’&IYÒ*qΩ*⁄ÎSß3ÂtÊŒ ºÉ¢Fu
+É4]TFî)P`¡5Æ˝√Vw›ÍMVFÔM%KJ”UÉııW≠E‚OÓ⁄ï«gwav‡HîúÑ√gO~Æ…˛|"≠À»_^2Ù„∞T7ıÀï7Ñ>∏∏üpv#ÛVÈå √TÅ˜õ`—˝üø#_∞⁄Ñ¬ÿ< ê¯es|>„Î”%˝ºP∏≠ö
+
+
+--===============3335513892825383217==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============3335513892825383217==--
+
+
+
+
+------------=_5A2D0F80.B3AD0B1E--
