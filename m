@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3DB232034B42F
- for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:50:10 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 10/17] mm: merge vmem_altmap_alloc into altmap_alloc_block_buf
-Date: Fri, 29 Dec 2017 08:53:59 +0100
-Message-Id: <20171229075406.1936-11-hch@lst.de>
-In-Reply-To: <20171229075406.1936-1-hch@lst.de>
-References: <20171229075406.1936-1-hch@lst.de>
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 22A4E220EE136
+ for <linux-nvdimm@lists.01.org>; Wed, 13 Dec 2017 01:09:21 -0800 (PST)
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 2/2] ext4: Fix ENOSPC handling in DAX page fault handler
+Date: Wed, 13 Dec 2017 10:13:52 +0100
+Message-Id: <20171213091352.23448-3-jack@suse.cz>
+In-Reply-To: <20171213091352.23448-1-jack@suse.cz>
+References: <20171213091352.23448-1-jack@suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,92 +22,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
+To: linux-ext4@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, Ted Tso <tytso@mit.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There is no clear separation between the two, so merge them.
+When allocation of underlying block for a page fault fails, we fail the
+fault with SIGBUS. However we may well hit ENOSPC just due to lots of
+free blocks being held by the running / committing transaction. So
+propagate the error from ext4_iomap_begin() and implement do standard
+allocation retry loop in ext4_dax_huge_fault().
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- mm/sparse-vmemmap.c | 45 ++++++++++++++++-----------------------------
- 1 file changed, 16 insertions(+), 29 deletions(-)
+ fs/ext4/file.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index d012c9e2811b..bd0276d5f66b 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -107,33 +107,16 @@ static unsigned long __meminit vmem_altmap_nr_free(struct vmem_altmap *altmap)
- }
- 
- /**
-- * vmem_altmap_alloc - allocate pages from the vmem_altmap reservation
-- * @altmap - reserved page pool for the allocation
-- * @nr_pfns - size (in pages) of the allocation
-+ * altmap_alloc_block_buf - allocate pages from the device page map
-+ * @altmap:	device page map
-+ * @size:	size (in bytes) of the allocation
-  *
-- * Allocations are aligned to the size of the request
-+ * Allocations are aligned to the size of the request.
-  */
--static unsigned long __meminit vmem_altmap_alloc(struct vmem_altmap *altmap,
--		unsigned long nr_pfns)
--{
--	unsigned long pfn = vmem_altmap_next_pfn(altmap);
--	unsigned long nr_align;
--
--	nr_align = 1UL << find_first_bit(&nr_pfns, BITS_PER_LONG);
--	nr_align = ALIGN(pfn, nr_align) - pfn;
--
--	if (nr_pfns + nr_align > vmem_altmap_nr_free(altmap))
--		return ULONG_MAX;
--	altmap->alloc += nr_pfns;
--	altmap->align += nr_align;
--	return pfn + nr_align;
--}
--
- void * __meminit altmap_alloc_block_buf(unsigned long size,
- 		struct vmem_altmap *altmap)
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 1c7cd882d998..fb6f023622fe 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -280,7 +280,8 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
  {
--	unsigned long pfn, nr_pfns;
--	void *ptr;
-+	unsigned long pfn, nr_pfns, nr_align;
- 
- 	if (size & ~PAGE_MASK) {
- 		pr_warn_once("%s: allocations must be multiple of PAGE_SIZE (%ld)\n",
-@@ -141,16 +124,20 @@ void * __meminit altmap_alloc_block_buf(unsigned long size,
- 		return NULL;
+-	int result;
++	int result, error = 0;
++	int retries = 0;
+ 	handle_t *handle = NULL;
+ 	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+@@ -304,6 +305,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+ 		sb_start_pagefault(sb);
+ 		file_update_time(vmf->vma->vm_file);
+ 		down_read(&EXT4_I(inode)->i_mmap_sem);
++retry:
+ 		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
+ 					       EXT4_DATA_TRANS_BLOCKS(sb));
+ 		if (IS_ERR(handle)) {
+@@ -314,9 +316,13 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
+ 	} else {
+ 		down_read(&EXT4_I(inode)->i_mmap_sem);
  	}
- 
-+	pfn = vmem_altmap_next_pfn(altmap);
- 	nr_pfns = size >> PAGE_SHIFT;
--	pfn = vmem_altmap_alloc(altmap, nr_pfns);
--	if (pfn < ULONG_MAX)
--		ptr = __va(__pfn_to_phys(pfn));
--	else
--		ptr = NULL;
-+	nr_align = 1UL << find_first_bit(&nr_pfns, BITS_PER_LONG);
-+	nr_align = ALIGN(pfn, nr_align) - pfn;
-+	if (nr_pfns + nr_align > vmem_altmap_nr_free(altmap))
-+		return NULL;
+-	result = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &ext4_iomap_ops);
++	result = dax_iomap_fault(vmf, pe_size, &pfn, &error, &ext4_iomap_ops);
+ 	if (write) {
+ 		ext4_journal_stop(handle);
 +
-+	altmap->alloc += nr_pfns;
-+	altmap->align += nr_align;
-+	pfn += nr_align;
-+
- 	pr_debug("%s: pfn: %#lx alloc: %ld align: %ld nr: %#lx\n",
- 			__func__, pfn, altmap->alloc, altmap->align, nr_pfns);
--
--	return ptr;
-+	return __va(__pfn_to_phys(pfn));
- }
- 
- void __meminit vmemmap_verify(pte_t *pte, int node,
++		if ((result & VM_FAULT_ERROR) && error == -ENOSPC &&
++		    ext4_should_retry_alloc(sb, &retries))
++			goto retry;
+ 		/* Handling synchronous page fault? */
+ 		if (result & VM_FAULT_NEEDDSYNC)
+ 			result = dax_finish_sync_fault(vmf, pe_size, pfn);
 -- 
-2.14.2
+2.12.3
 
 _______________________________________________
 Linux-nvdimm mailing list
