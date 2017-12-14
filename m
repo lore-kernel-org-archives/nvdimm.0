@@ -1,10 +1,9 @@
-From: rejnghi46wjhjnf-HvMya4BdRWc@public.gmane.org
-Subject: =?GB2312?B?xrEtvt3X9i3Vyw==?=
-Date: Fri, 15 Dec 2017 01:11:42 +0800
-Message-ID: <20171214170729.2E06A22137DB9@ml01.01.org>
+From: =?GB2312?B?va+BstK2?= <gaxiegei-0T9SdBPSc976V6G2DxALlg@public.gmane.org>
+Subject: =?GB2312?B?16q3oqO6vLzK9bK/w8XI57rOs8m5ptffz/K53MDt?=
+Date: Fri, 15 Dec 2017 03:59:19 +0800
+Message-ID: <20171214195440.64C25221A2B75@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============8653642061472505959=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,10 +14,32 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-CrT6v6q3oqGixrGjrNHpuvO4ti+/7goK1tzPyMn6IDEzNzIzNDQ5MTA5ICDOotDFusWjumE0NDkx
-MDkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+This is a multi-part message in MIME format
+
+--===============8653642061472505959==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+   
+  ¸½ ¼þ Ïê ÔÄ
+         
+ Ë³×££¡
+            ÉÌì÷£¡
+
+  2017-12-15
+
+--===============8653642061472505959==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============8653642061472505959==--
