@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0DEEE20352AB8
- for <linux-nvdimm@lists.01.org>; Wed,  6 Dec 2017 14:43:34 -0800 (PST)
-Subject: [PATCH v2 4/4] ndctl, test: firmware update unit test
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 06 Dec 2017 15:48:01 -0700
-Message-ID: <151260048051.3630.14958915274940774469.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151260039600.3630.12960859289293301854.stgit@djiang5-desk3.ch.intel.com>
-References: <151260039600.3630.12960859289293301854.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id B3FB1221A2B9A
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Dec 2017 16:21:39 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 1/2] libnvdimm, btt: add a couple of missing kernel-doc lines
+Date: Thu, 14 Dec 2017 17:26:13 -0700
+Message-Id: <20171215002614.25335-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,118 +15,44 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a unit test that will use nfit_test kernel module to test the
-firmware update sequence.
+Recent updates to btt.h neglected to add corresponding kernel-doc lines
+for new structure members. Add them.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- test/Makefile.am        |    3 +-
- test/firmware-update.sh |   74 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 76 insertions(+), 1 deletion(-)
- create mode 100755 test/firmware-update.sh
+ drivers/nvdimm/btt.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index d4c2bd6..d5ef648 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -16,7 +16,8 @@ TESTS =\
- 	blk-exhaust.sh \
- 	sector-mode.sh \
- 	inject-error.sh \
--	btt-errors.sh
-+	btt-errors.sh \
-+	firmware-update.sh
- 
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/firmware-update.sh b/test/firmware-update.sh
-new file mode 100755
-index 0000000..ff777b9
---- /dev/null
-+++ b/test/firmware-update.sh
-@@ -0,0 +1,74 @@
-+#!/bin/bash -Ex
-+
-+# Copyright(c) 2017 Intel Corporation. All rights reserved.
-+#
-+# This program is free software; you can redistribute it and/or modify it
-+# under the terms of version 2 of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it will be useful, but
-+# WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# General Public License for more details.
-+
-+[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] && ndctl="../ndctl/ndctl"
-+[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
-+[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
-+bus="nfit_test.0"
-+json2var="s/[{}\",]//g; s/:/=/g"
-+rc=77
-+dev=""
-+image="update-fw.img"
-+
-+trap 'err $LINENO' ERR
-+
-+# $1: Line number
-+# $2: exit code
-+err()
-+{
-+	[ -n "$2" ] && rc="$2"
-+	echo "test/firmware-update.sh: failed at line $1"
-+	exit "$rc"
-+}
-+
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+reset()
-+{
-+	$ndctl disable-region -b "$bus" all
-+	$ndctl zero-labels -b "$bus" all
-+	$ndctl enable-region -b "$bus" all
-+	if [ -f $image ]; then
-+		rm -f $image
-+	fi
-+}
-+
-+detect()
-+{
-+	dev=$($ndctl list -b "$bus" -D | jq .[0].dev | tr -d '"')
-+	[ -n "$dev" ] || err "$LINENO" 2
-+}
-+
-+do_tests()
-+{
-+	fallocate -l 196608 $image
-+	$ndctl update-firmware -d $dev -f $image
-+}
-+
-+check_min_kver "4.16" || { echo "kernel $KVER may lack firmware update test handling"; exit
-+$rc; }
-+modprobe nfit_test
-+rc=1
-+reset
-+detect
-+do_tests
-+reset
-+exit 0
-+
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 578c2057524d..884fbbbdd18a 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -125,6 +125,7 @@ struct aligned_lock {
+  * @list:		List head for list of arenas
+  * @debugfs_dir:	Debugfs dentry
+  * @flags:		Arena flags - may signify error states.
++ * @err_lock:		Mutex for synchronizing error clearing.
+  *
+  * arena_info is a per-arena handle. Once an arena is narrowed down for an
+  * IO, this struct is passed around for the duration of the IO.
+@@ -176,6 +177,7 @@ struct arena_info {
+  * @init_lock:		Mutex used for the BTT initialization
+  * @init_state:		Flag describing the initialization state for the BTT
+  * @num_arenas:		Number of arenas in the BTT instance
++ * @phys_bb:		Pointer to the namespace's badblocks structure
+  */
+ struct btt {
+ 	struct gendisk *btt_disk;
+-- 
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
