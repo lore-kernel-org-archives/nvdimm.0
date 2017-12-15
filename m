@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AF13C21A10961
- for <linux-nvdimm@lists.01.org>; Fri,  1 Dec 2017 15:28:54 -0800 (PST)
-Subject: [ndctl PATCH 07/17] ndctl, smart: cleanup smart_cmd_op() macro
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 01 Dec 2017 15:25:07 -0800
-Message-ID: <151217070734.28402.7251875689073860382.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9E21022119BCA
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 15:19:23 -0800 (PST)
+Subject: [PATCH v3 1/4] ndctl: add support to alloc_intel_cmd for variable
+ payload
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 15 Dec 2017 16:24:05 -0700
+Message-ID: <151338024529.4485.13215296258978105688.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151338007905.4485.4189717376304274611.stgit@djiang5-desk3.ch.intel.com>
+References: <151338007905.4485.4189717376304274611.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,66 +23,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Remove the redundant information passed to the smart_cmd_op macro.
+Certain payloads have variable size. The existing alloc_intel_cmd()
+does not take into account of that. Adding additional size for allocation.
+We do waste a little bit of the space because of the smart payload.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/lib/smart.c |   32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ ndctl/lib/intel.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/ndctl/lib/smart.c b/ndctl/lib/smart.c
-index 3eeb70e0d2b1..90c45a1a002e 100644
---- a/ndctl/lib/smart.c
-+++ b/ndctl/lib/smart.c
-@@ -40,8 +40,8 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index 3e4260f..b85a682 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -33,7 +33,7 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
  		return NULL;
- }
+ 	}
  
--#define smart_cmd_op(name, op, rettype, defretvalue) \
--NDCTL_EXPORT rettype name(struct ndctl_cmd *cmd) \
-+#define smart_cmd_op(op, rettype, defretvalue) \
-+NDCTL_EXPORT rettype ndctl_cmd_##op(struct ndctl_cmd *cmd) \
- { \
- 	if (cmd->dimm) { \
- 		struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(cmd->dimm); \
-@@ -51,21 +51,19 @@ NDCTL_EXPORT rettype name(struct ndctl_cmd *cmd) \
- 	return defretvalue; \
- }
- 
--smart_cmd_op(ndctl_cmd_smart_get_flags, smart_get_flags, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_health, smart_get_health, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_media_temperature, smart_get_media_temperature,
--		unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_spares, smart_get_spares, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_alarm_flags, smart_get_alarm_flags, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_life_used, smart_get_life_used, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_shutdown_state, smart_get_shutdown_state, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_shutdown_count, smart_get_shutdown_count, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_vendor_size, smart_get_vendor_size, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_vendor_data, smart_get_vendor_data, unsigned char *, NULL)
--smart_cmd_op(ndctl_cmd_smart_threshold_get_alarm_control, smart_threshold_get_alarm_control, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_threshold_get_media_temperature,
--		smart_threshold_get_media_temperature, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_threshold_get_spares, smart_threshold_get_spares, unsigned int, 0)
-+smart_cmd_op(smart_get_flags, unsigned int, 0)
-+smart_cmd_op(smart_get_health, unsigned int, 0)
-+smart_cmd_op(smart_get_media_temperature, unsigned int, 0)
-+smart_cmd_op(smart_get_spares, unsigned int, 0)
-+smart_cmd_op(smart_get_alarm_flags, unsigned int, 0)
-+smart_cmd_op(smart_get_life_used, unsigned int, 0)
-+smart_cmd_op(smart_get_shutdown_state, unsigned int, 0)
-+smart_cmd_op(smart_get_shutdown_count, unsigned int, 0)
-+smart_cmd_op(smart_get_vendor_size, unsigned int, 0)
-+smart_cmd_op(smart_get_vendor_data, unsigned char *, NULL)
-+smart_cmd_op(smart_threshold_get_alarm_control, unsigned int, 0)
-+smart_cmd_op(smart_threshold_get_media_temperature, unsigned int, 0)
-+smart_cmd_op(smart_threshold_get_spares, unsigned int, 0)
- 
- NDCTL_EXPORT unsigned int ndctl_cmd_smart_get_temperature(struct ndctl_cmd *cmd)
- {
+-	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel);
++	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel) + in_size + out_size;
+ 	cmd = calloc(1, size);
+ 	if (!cmd)
+ 		return NULL;
 
 _______________________________________________
 Linux-nvdimm mailing list
