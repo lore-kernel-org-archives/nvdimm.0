@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
- [IPv6:2607:f8b0:4003:c0f::242])
+Received: from mail-ot0-x22d.google.com (mail-ot0-x22d.google.com
+ [IPv6:2607:f8b0:4003:c0f::22d])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 387FB22137D80
- for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 10:07:59 -0800 (PST)
-Received: by mail-ot0-x242.google.com with SMTP id p31so1883273ota.4
- for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 10:12:42 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 1BF5422137D80
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 10:00:19 -0800 (PST)
+Received: by mail-ot0-x22d.google.com with SMTP id d5so8497655oti.3
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 10:05:02 -0800 (PST)
 MIME-Version: 1.0
 In-Reply-To: <151260047300.3630.15691857990092270462.stgit@djiang5-desk3.ch.intel.com>
 References: <151260039600.3630.12960859289293301854.stgit@djiang5-desk3.ch.intel.com>
  <151260047300.3630.15691857990092270462.stgit@djiang5-desk3.ch.intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 15 Dec 2017 10:12:40 -0800
-Message-ID: <CAPcyv4jQy=bkvOMFaUa7uUVWm8YeqTXjJHBNHTEn-PrhoTs=BQ@mail.gmail.com>
+Date: Fri, 15 Dec 2017 10:05:00 -0800
+Message-ID: <CAPcyv4g8nHCcOhkWeVkXkyOrarwrEQrGq_pb93kfJx3gTpAPWQ@mail.gmail.com>
 Subject: Re: [PATCH v2 3/4] ndctl: add firmware update command option for ndctl
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -37,40 +37,75 @@ On Wed, Dec 6, 2017 at 2:47 PM, Dave Jiang <dave.jiang@intel.com> wrote:
 > ndctl update-firmware -d nmem0 -f new_firmware.bin
 >
 > Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
 [..]
-> diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-> index 3ac4d3b..6d26a6c 100644
-> --- a/ndctl/lib/intel.c
-> +++ b/ndctl/lib/intel.c
+> diff --git a/ndctl/update.c b/ndctl/update.c
+> new file mode 100644
+> index 0000000..2ac6d21
+> --- /dev/null
+> +++ b/ndctl/update.c
+[..]
+> +#define ND_CMD_STATUS_SUCCESS  0
+> +#define ND_CMD_STATUS_NOTSUPP  1
+> +#define        ND_CMD_STATUS_NOTEXIST  2
+> +#define ND_CMD_STATUS_INVALPARM        3
+> +#define ND_CMD_STATUS_HWERR    4
+> +#define ND_CMD_STATUS_RETRY    5
+> +#define ND_CMD_STATUS_UNKNOWN  6
+> +#define ND_CMD_STATUS_EXTEND   7
+> +#define ND_CMD_STATUS_NORES    8
+> +#define ND_CMD_STATUS_NOTREADY 9
+> +
+> +#define ND_CMD_STATUS_START_BUSY       0x10000
+> +#define ND_CMD_STATUS_SEND_CTXINVAL    0x10000
+> +#define ND_CMD_STATUS_FIN_CTXINVAL     0x10000
+> +#define ND_CMD_STATUS_FIN_DONE         0x20000
+> +#define ND_CMD_STATUS_FIN_BAD          0x30000
+> +#define ND_CMD_STATUS_FIN_ABORTED      0x40000
+> +#define ND_CMD_STATUS_FQ_CTXINVAL      0x10000
+> +#define ND_CMD_STATUS_FQ_BUSY          0x20000
+> +#define ND_CMD_STATUS_FQ_BAD           0x30000
+> +#define ND_CMD_STATUS_FQ_ORDER         0x40000
 
-These changes should be folded into the previous patch.
+I think we need to have the DIMM implementation translate these statuses...
 
-> @@ -323,7 +323,7 @@ static int intel_fw_get_info_valid(struct ndctl_cmd *cmd)
->  {
->         struct nd_pkg_intel *pkg = cmd->intel;
->
-> -       if (cmd->type != ND_CMD_CALL || cmd->status != 1
-> +       if (cmd->type != ND_CMD_CALL || cmd->status != 0
->                         || pkg->gen.nd_family != NVDIMM_FAMILY_INTEL
->                         || pkg->gen.nd_command != ND_INTEL_FW_GET_INFO)
->                 return -EINVAL;
-> @@ -382,7 +382,7 @@ static int intel_fw_start_valid(struct ndctl_cmd *cmd)
->  {
->         struct nd_pkg_intel *pkg = cmd->intel;
->
-> -       if (cmd->type != ND_CMD_CALL || cmd->status != 1
-> +       if (cmd->type != ND_CMD_CALL || cmd->status != 0
->                         || pkg->gen.nd_family != NVDIMM_FAMILY_INTEL
->                         || pkg->gen.nd_command != ND_INTEL_FW_START_UPDATE)
->                 return -EINVAL;
-> @@ -414,7 +414,7 @@ static struct ndctl_cmd *intel_dimm_cmd_new_fw_send(struct ndctl_dimm *dimm,
->         return cmd;
->  }
->
-> -static int intel_fw_send_valid(struct ndctl_cmd *cmd)
-> +static int intel_fw_send_set_valid(struct ndctl_cmd *cmd)
+> +static int query_fw_finish_status(struct update_context *uctx)
+> +{
+> +       struct ndctl_cmd *cmd;
+> +       int rc;
+> +       uint32_t status;
+> +       struct fw_info *fw = &uctx->dimm_fw;
+> +       bool done = false;
+> +       struct timeval before, after;
+> +       struct timespec now;
+> +       uint64_t ver;
+> +
+> +       cmd = ndctl_dimm_cmd_new_fw_finish_query(uctx->dimm);
+> +       if (!cmd)
+> +               return -ENXIO;
+> +
+> +       rc = ndctl_cmd_fw_fquery_set_context(cmd, fw->context);
+> +       if (rc < 0)
+> +               goto out;
+> +
+> +       rc = gettimeofday(&before, NULL);
+> +       if (rc < 0)
+> +               goto out;
+> +
+> +       now.tv_nsec = fw->query_interval / 1000;
+> +       now.tv_sec = 0;
+> +
+> +       do {
+> +               rc = ndctl_cmd_submit(cmd);
+> +               if (rc < 0)
+> +                       break;
+> +
+> +               status = ndctl_cmd_get_firmware_status(cmd);
 
-Why the name change? The way you initially had it is what I would expect.
+I think we need a ndctl_cmd_xlat_firmware_status() to translate the
+DIMM specific error code into a common error number otherwise this is
+immediately not portable to another DIMM's firmware update commands.
+For example: https://msdn.microsoft.com/en-us/library/windows/hardware/mt604709(v=vs.85).aspx
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
