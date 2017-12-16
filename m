@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0B54821A10961
- for <linux-nvdimm@lists.01.org>; Fri,  1 Dec 2017 15:29:10 -0800 (PST)
-Subject: [ndctl PATCH 10/17] ndctl: support set smart alarm/threshold
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 01 Dec 2017 15:25:23 -0800
-Message-ID: <151217072298.28402.6161097504506303620.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E5B2A20352AA6
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 17:58:19 -0800 (PST)
+Received: by mail-oi0-x244.google.com with SMTP id l6so7383418oih.11
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 18:03:02 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20171215140947.26075-6-hch@lst.de>
+References: <20171215140947.26075-1-hch@lst.de>
+ <20171215140947.26075-6-hch@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Dec 2017 18:03:01 -0800
+Message-ID: <CAPcyv4hTnBjCL_aTJmV-HZGzPC+rEw-1eAnrf5sMFnfo7=TAXg@mail.gmail.com>
+Subject: Re: [PATCH 05/17] mm: pass the vmem_altmap to vmemmap_populate
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,431 +26,332 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michal Hocko <mhocko@kernel.org>, Linux MM <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-libndctl and test support for the ND_INTEL_SMART_SET_THRESHOLD command.
+[ cc Michal ]
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/lib/intel.c      |   83 +++++++++++++++++++++++++++++++++++++++++++++++-
- ndctl/lib/intel.h      |   10 ++++++
- ndctl/lib/libndctl.sym |    9 +++++
- ndctl/lib/private.h    |    8 +++++
- ndctl/lib/smart.c      |   39 +++++++++++++++++++++++
- ndctl/libndctl.h       |   14 ++++++++
- test/libndctl.c        |   59 +++++++++++++++++++++++++++++-----
- 7 files changed, 213 insertions(+), 9 deletions(-)
+On Fri, Dec 15, 2017 at 6:09 AM, Christoph Hellwig <hch@lst.de> wrote:
+> We can just pass this on instead of having to do a radix tree lookup
+> without proper locking a few levels into the callchain.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index 478f379324f5..e9da565dd57d 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -143,6 +143,7 @@ static unsigned int intel_cmd_smart_get_health(struct ndctl_cmd *cmd)
- }
- 
- intel_smart_get_field(cmd, media_temperature)
-+intel_smart_get_field(cmd, ctrl_temperature)
- intel_smart_get_field(cmd, spares)
- intel_smart_get_field(cmd, alarm_flags)
- intel_smart_get_field(cmd, life_used)
-@@ -198,6 +199,7 @@ static unsigned int intel_cmd_smart_threshold_get_alarm_control(
- }
- 
- intel_smart_threshold_get_field(cmd, media_temperature)
-+intel_smart_threshold_get_field(cmd, ctrl_temperature)
- intel_smart_threshold_get_field(cmd, spares)
- 
- static struct ndctl_cmd *intel_dimm_cmd_new_smart_threshold(
-@@ -216,11 +218,77 @@ static struct ndctl_cmd *intel_dimm_cmd_new_smart_threshold(
- 	return cmd;
- }
- 
-+static struct ndctl_cmd *intel_dimm_cmd_new_smart_set_threshold(
-+		struct ndctl_cmd *cmd_thresh)
-+{
-+	struct ndctl_cmd *cmd;
-+	struct nd_intel_smart_threshold *thresh;
-+	struct nd_intel_smart_set_threshold *set_thresh;
-+
-+	BUILD_ASSERT(sizeof(struct nd_intel_smart_set_threshold) == 11);
-+
-+	if (intel_smart_threshold_valid(cmd_thresh) < 0)
-+		return NULL;
-+
-+	cmd = alloc_intel_cmd(cmd_thresh->dimm, ND_INTEL_SMART_SET_THRESHOLD,
-+			offsetof(typeof(*set_thresh), status), 4);
-+	if (!cmd)
-+		return NULL;
-+
-+	cmd->source = cmd_thresh;
-+	ndctl_cmd_ref(cmd_thresh);
-+	set_thresh = &cmd->intel->set_thresh;
-+	thresh = &cmd_thresh->intel->thresh;
-+	set_thresh->alarm_control = thresh->alarm_control;
-+	set_thresh->spares = thresh->spares;
-+	set_thresh->media_temperature = thresh->media_temperature;
-+	set_thresh->ctrl_temperature = thresh->ctrl_temperature;
-+	cmd->firmware_status = &set_thresh->status;
-+
-+	return cmd;
-+}
-+
-+static int intel_smart_set_threshold_valid(struct ndctl_cmd *cmd)
-+{
-+	struct nd_pkg_intel *pkg = cmd->intel;
-+
-+	if (cmd->type != ND_CMD_CALL || cmd->status != 1
-+			|| pkg->gen.nd_family != NVDIMM_FAMILY_INTEL
-+			|| pkg->gen.nd_command != ND_INTEL_SMART_SET_THRESHOLD)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+#define intel_smart_set_threshold_field(field) \
-+static int intel_cmd_smart_threshold_set_##field( \
-+			struct ndctl_cmd *cmd, unsigned int val) \
-+{ \
-+	if (intel_smart_set_threshold_valid(cmd) < 0) \
-+		return -EINVAL; \
-+	cmd->intel->set_thresh.field = val; \
-+	return 0; \
-+}
-+
-+static unsigned int intel_cmd_smart_threshold_get_supported_alarms(
-+		struct ndctl_cmd *cmd)
-+{
-+	if (intel_smart_set_threshold_valid(cmd) < 0)
-+		return 0;
-+	return ND_SMART_SPARE_TRIP | ND_SMART_MTEMP_TRIP
-+		| ND_SMART_CTEMP_TRIP;
-+}
-+
-+intel_smart_set_threshold_field(alarm_control)
-+intel_smart_set_threshold_field(spares)
-+intel_smart_set_threshold_field(media_temperature)
-+intel_smart_set_threshold_field(ctrl_temperature)
-+
- struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
- 	.new_smart = intel_dimm_cmd_new_smart,
- 	.smart_get_flags = intel_cmd_smart_get_flags,
- 	.smart_get_health = intel_cmd_smart_get_health,
- 	.smart_get_media_temperature = intel_cmd_smart_get_media_temperature,
-+	.smart_get_ctrl_temperature = intel_cmd_smart_get_ctrl_temperature,
- 	.smart_get_spares = intel_cmd_smart_get_spares,
- 	.smart_get_alarm_flags = intel_cmd_smart_get_alarm_flags,
- 	.smart_get_life_used = intel_cmd_smart_get_life_used,
-@@ -229,8 +297,21 @@ struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
- 	.smart_get_vendor_size = intel_cmd_smart_get_vendor_size,
- 	.smart_get_vendor_data = intel_cmd_smart_get_vendor_data,
- 	.new_smart_threshold = intel_dimm_cmd_new_smart_threshold,
--	.smart_threshold_get_alarm_control = intel_cmd_smart_threshold_get_alarm_control,
-+	.smart_threshold_get_alarm_control
-+		= intel_cmd_smart_threshold_get_alarm_control,
- 	.smart_threshold_get_media_temperature
- 		= intel_cmd_smart_threshold_get_media_temperature,
-+	.smart_threshold_get_ctrl_temperature
-+		= intel_cmd_smart_threshold_get_ctrl_temperature,
- 	.smart_threshold_get_spares = intel_cmd_smart_threshold_get_spares,
-+	.new_smart_set_threshold = intel_dimm_cmd_new_smart_set_threshold,
-+	.smart_threshold_get_supported_alarms
-+		= intel_cmd_smart_threshold_get_supported_alarms,
-+	.smart_threshold_set_alarm_control
-+		= intel_cmd_smart_threshold_set_alarm_control,
-+	.smart_threshold_set_media_temperature
-+		= intel_cmd_smart_threshold_set_media_temperature,
-+	.smart_threshold_set_ctrl_temperature
-+		= intel_cmd_smart_threshold_set_ctrl_temperature,
-+	.smart_threshold_set_spares = intel_cmd_smart_threshold_set_spares,
- };
-diff --git a/ndctl/lib/intel.h b/ndctl/lib/intel.h
-index 8cecc02f9ae6..9e6398501531 100644
---- a/ndctl/lib/intel.h
-+++ b/ndctl/lib/intel.h
-@@ -5,6 +5,7 @@
- #define __INTEL_H__
- #define ND_INTEL_SMART 1
- #define ND_INTEL_SMART_THRESHOLD 2
-+#define ND_INTEL_SMART_SET_THRESHOLD 17
- 
- #define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
- #define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
-@@ -62,11 +63,20 @@ struct nd_intel_smart_threshold {
- 	};
- } __attribute__((packed));
- 
-+struct nd_intel_smart_set_threshold {
-+	__u16 alarm_control;
-+	__u8 spares;
-+	__u16 media_temperature;
-+	__u16 ctrl_temperature;
-+	__u32 status;
-+} __attribute__((packed));
-+
- struct nd_pkg_intel {
- 	struct nd_cmd_pkg gen;
- 	union {
- 		struct nd_intel_smart smart;
- 		struct nd_intel_smart_threshold	thresh;
-+		struct nd_intel_smart_set_threshold set_thresh;
- 	};
- };
- #endif /* __INTEL_H__ */
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index b3fab6232df6..6d9a04282c7d 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -312,4 +312,13 @@ global:
- 	ndctl_bb_get_count;
- 	ndctl_cmd_smart_get_media_temperature;
- 	ndctl_cmd_smart_threshold_get_media_temperature;
-+	ndctl_cmd_smart_get_ctrl_temperature;
-+	ndctl_cmd_smart_threshold_get_ctrl_temperature;
-+	ndctl_dimm_cmd_new_smart_set_threshold;
-+	ndctl_cmd_smart_threshold_get_supported_alarms;
-+	ndctl_cmd_smart_threshold_set_alarm_control;
-+	ndctl_cmd_smart_threshold_set_temperature;
-+	ndctl_cmd_smart_threshold_set_media_temperature;
-+	ndctl_cmd_smart_threshold_set_ctrl_temperature;
-+	ndctl_cmd_smart_threshold_set_spares;
- } LIBNDCTL_13;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 1b365ae96bfc..5e9f24f2b3c5 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -282,6 +282,7 @@ struct ndctl_smart_ops {
- 	unsigned int (*smart_get_flags)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_health)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_media_temperature)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_ctrl_temperature)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_spares)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_alarm_flags)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_life_used)(struct ndctl_cmd *);
-@@ -292,7 +293,14 @@ struct ndctl_smart_ops {
- 	struct ndctl_cmd *(*new_smart_threshold)(struct ndctl_dimm *);
- 	unsigned int (*smart_threshold_get_alarm_control)(struct ndctl_cmd *);
- 	unsigned int (*smart_threshold_get_media_temperature)(struct ndctl_cmd *);
-+	unsigned int (*smart_threshold_get_ctrl_temperature)(struct ndctl_cmd *);
- 	unsigned int (*smart_threshold_get_spares)(struct ndctl_cmd *);
-+	struct ndctl_cmd *(*new_smart_set_threshold)(struct ndctl_cmd *);
-+	unsigned int (*smart_threshold_get_supported_alarms)(struct ndctl_cmd *);
-+	int (*smart_threshold_set_alarm_control)(struct ndctl_cmd *, unsigned int);
-+	int (*smart_threshold_set_media_temperature)(struct ndctl_cmd *, unsigned int);
-+	int (*smart_threshold_set_ctrl_temperature)(struct ndctl_cmd *, unsigned int);
-+	int (*smart_threshold_set_spares)(struct ndctl_cmd *, unsigned int);
- };
- 
- struct ndctl_smart_ops * const intel_smart_ops;
-diff --git a/ndctl/lib/smart.c b/ndctl/lib/smart.c
-index 90c45a1a002e..58a6f4bb28ad 100644
---- a/ndctl/lib/smart.c
-+++ b/ndctl/lib/smart.c
-@@ -40,6 +40,25 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(
- 		return NULL;
- }
- 
-+/*
-+ * smart_set_threshold is a read-modify-write command it depends on a
-+ * successfully completed smart_threshold command for its defaults.
-+ */
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_smart_set_threshold(
-+		struct ndctl_cmd *cmd)
-+{
-+	struct ndctl_smart_ops *ops;
-+
-+	if (!cmd || !cmd->dimm)
-+		return NULL;
-+	ops = ndctl_dimm_get_smart_ops(cmd->dimm);
-+
-+	if (ops && ops->new_smart_set_threshold)
-+		return ops->new_smart_set_threshold(cmd);
-+	else
-+		return NULL;
-+}
-+
- #define smart_cmd_op(op, rettype, defretvalue) \
- NDCTL_EXPORT rettype ndctl_cmd_##op(struct ndctl_cmd *cmd) \
- { \
-@@ -54,6 +73,7 @@ NDCTL_EXPORT rettype ndctl_cmd_##op(struct ndctl_cmd *cmd) \
- smart_cmd_op(smart_get_flags, unsigned int, 0)
- smart_cmd_op(smart_get_health, unsigned int, 0)
- smart_cmd_op(smart_get_media_temperature, unsigned int, 0)
-+smart_cmd_op(smart_get_ctrl_temperature, unsigned int, 0)
- smart_cmd_op(smart_get_spares, unsigned int, 0)
- smart_cmd_op(smart_get_alarm_flags, unsigned int, 0)
- smart_cmd_op(smart_get_life_used, unsigned int, 0)
-@@ -63,6 +83,7 @@ smart_cmd_op(smart_get_vendor_size, unsigned int, 0)
- smart_cmd_op(smart_get_vendor_data, unsigned char *, NULL)
- smart_cmd_op(smart_threshold_get_alarm_control, unsigned int, 0)
- smart_cmd_op(smart_threshold_get_media_temperature, unsigned int, 0)
-+smart_cmd_op(smart_threshold_get_ctrl_temperature, unsigned int, 0)
- smart_cmd_op(smart_threshold_get_spares, unsigned int, 0)
- 
- NDCTL_EXPORT unsigned int ndctl_cmd_smart_get_temperature(struct ndctl_cmd *cmd)
-@@ -75,3 +96,21 @@ NDCTL_EXPORT unsigned int ndctl_cmd_smart_threshold_get_temperature(
- {
- 	return ndctl_cmd_smart_threshold_get_media_temperature(cmd);
- }
-+
-+smart_cmd_op(smart_threshold_get_supported_alarms, unsigned int, 0);
-+
-+#define smart_cmd_set_op(op) \
-+NDCTL_EXPORT int ndctl_cmd_##op(struct ndctl_cmd *cmd, unsigned int val) \
-+{ \
-+	if (cmd->dimm) { \
-+		struct ndctl_smart_ops *ops = ndctl_dimm_get_smart_ops(cmd->dimm); \
-+		if (ops && ops->op) \
-+			return ops->op(cmd, val); \
-+	} \
-+	return -ENXIO; \
-+}
-+
-+smart_cmd_set_op(smart_threshold_set_alarm_control)
-+smart_cmd_set_op(smart_threshold_set_media_temperature)
-+smart_cmd_set_op(smart_threshold_set_ctrl_temperature)
-+smart_cmd_set_op(smart_threshold_set_spares)
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index a2b3148dbb27..69333443ee78 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -230,6 +230,7 @@ unsigned int ndctl_cmd_smart_get_flags(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_health(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_temperature(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_media_temperature(struct ndctl_cmd *cmd);
-+unsigned int ndctl_cmd_smart_get_ctrl_temperature(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_spares(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_alarm_flags(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_life_used(struct ndctl_cmd *cmd);
-@@ -241,7 +242,20 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(struct ndctl_dimm *dimm);
- unsigned int ndctl_cmd_smart_threshold_get_alarm_control(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_threshold_get_temperature(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_threshold_get_media_temperature(struct ndctl_cmd *cmd);
-+unsigned int ndctl_cmd_smart_threshold_get_ctrl_temperature(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_threshold_get_spares(struct ndctl_cmd *cmd);
-+struct ndctl_cmd *ndctl_dimm_cmd_new_smart_set_threshold(struct ndctl_cmd *cmd);
-+unsigned int ndctl_cmd_smart_threshold_get_supported_alarms(struct ndctl_cmd *cmd);
-+int ndctl_cmd_smart_threshold_set_alarm_control(struct ndctl_cmd *cmd,
-+		unsigned int val);
-+int ndctl_cmd_smart_threshold_set_temperature(struct ndctl_cmd *cmd,
-+		unsigned int val);
-+int ndctl_cmd_smart_threshold_set_media_temperature(struct ndctl_cmd *cmd,
-+		unsigned int val);
-+int ndctl_cmd_smart_threshold_set_ctrl_temperature(struct ndctl_cmd *cmd,
-+		unsigned int val);
-+int ndctl_cmd_smart_threshold_set_spares(struct ndctl_cmd *cmd,
-+		unsigned int val);
- 
- struct ndctl_cmd *ndctl_dimm_cmd_new_vendor_specific(struct ndctl_dimm *dimm,
- 		unsigned int opcode, size_t input_size, size_t output_size);
-diff --git a/test/libndctl.c b/test/libndctl.c
-index b10142ebdee4..27de24baca88 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -2182,7 +2182,7 @@ static int check_smart(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 	__check_smart(dimm, cmd, shutdown_state);
- 	__check_smart(dimm, cmd, vendor_size);
- 
--	ndctl_cmd_unref(cmd);
-+	check->cmd = cmd;
- 	return 0;
- }
- 
-@@ -2203,7 +2203,7 @@ static int check_smart(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
-  * smart_threshold parameters.
-  */
- struct smart_threshold {
--	unsigned int alarm_control, temperature, spares;
-+	unsigned int alarm_control, media_temperature, ctrl_temperature, spares;
- };
- 
- static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
-@@ -2211,10 +2211,13 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- {
- 	static const struct smart_threshold smart_t_data = {
- 		.alarm_control = ND_SMART_SPARE_TRIP | ND_SMART_TEMP_TRIP,
--		.temperature = 40 * 16,
-+		.media_temperature = 40 * 16,
-+		.ctrl_temperature = 30 * 16,
- 		.spares = 5,
- 	};
- 	struct ndctl_cmd *cmd = ndctl_dimm_cmd_new_smart_threshold(dimm);
-+	struct ndctl_cmd *cmd_smart = check_cmds[ND_CMD_SMART].cmd;
-+	struct ndctl_cmd *cmd_set;
- 	struct timeval tm;
- 	char buf[4096];
- 	fd_set fds;
-@@ -2249,7 +2252,7 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 		if (pid == 0) {
- 			FD_ZERO(&fds);
- 			FD_SET(fd, &fds);
--			tm.tv_sec = 1;
-+			tm.tv_sec = 5;
- 			tm.tv_usec = 0;
- 			rc = select(fd + 1, NULL, NULL, &fds, &tm);
- 			if (rc != 1 || !FD_ISSET(fd, &fds))
-@@ -2267,6 +2270,50 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 		return rc;
- 	}
- 
-+	__check_smart_threshold(dimm, cmd, alarm_control);
-+	__check_smart_threshold(dimm, cmd, media_temperature);
-+	__check_smart_threshold(dimm, cmd, ctrl_temperature);
-+	__check_smart_threshold(dimm, cmd, spares);
-+
-+	/*
-+	 * The same kernel change that adds nfit_test support for this
-+	 * command is the same change that moves notifications to
-+	 * require set_threshold. If we fail to get a command, but the
-+	 * notification fires then we are on an old kernel, otherwise
-+	 * whether old kernel or new kernel the notification should
-+	 * fire.
-+	 */
-+	cmd_set = ndctl_dimm_cmd_new_smart_set_threshold(cmd);
-+	if (cmd_set) {
-+		/*
-+		 * Set all thresholds to match current values and set
-+		 * all alarms.
-+		 */
-+		rc = ndctl_cmd_smart_threshold_set_alarm_control(cmd_set,
-+				ndctl_cmd_smart_threshold_get_supported_alarms(cmd_set));
-+		rc |= ndctl_cmd_smart_threshold_set_media_temperature(cmd_set,
-+				ndctl_cmd_smart_get_media_temperature(cmd_smart));
-+		rc |= ndctl_cmd_smart_threshold_set_ctrl_temperature(cmd_set,
-+				ndctl_cmd_smart_get_ctrl_temperature(cmd_smart));
-+		rc |= ndctl_cmd_smart_threshold_set_spares(cmd_set,
-+				ndctl_cmd_smart_get_spares(cmd_smart));
-+		if (rc) {
-+			fprintf(stderr, "%s: failed set threshold parameters\n",
-+					__func__);
-+			ndctl_cmd_unref(cmd_set);
-+			return -ENXIO;
-+		}
-+
-+		rc = ndctl_cmd_submit(cmd_set);
-+		if (rc) {
-+			fprintf(stderr, "%s: dimm: %#x failed to submit cmd_set: %d\n",
-+					__func__, ndctl_dimm_get_handle(dimm), rc);
-+			ndctl_cmd_unref(cmd_set);
-+			return rc;
-+		}
-+		ndctl_cmd_unref(cmd_set);
-+	}
-+
- 	if (ndctl_test_attempt(check->test, KERNEL_VERSION(4, 9, 0))) {
- 		wait(&rc);
- 		if (WEXITSTATUS(rc) == EXIT_FAILURE) {
-@@ -2276,10 +2323,6 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 		}
- 	}
- 
--	__check_smart_threshold(dimm, cmd, alarm_control);
--	__check_smart_threshold(dimm, cmd, temperature);
--	__check_smart_threshold(dimm, cmd, spares);
--
- 	ndctl_cmd_unref(cmd);
- 	return 0;
- }
+I know Michal has concerns about the complexity of the memory hotplug
+implementation, but I think this just means I need to go write up
+better kerneldoc for the vmem_altmap definition so that memory hotplug
+developers know what's happening.
 
+Other than that:
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+
+Including the patch for Michal just in case he doesn't have it in his archives.
+
+> ---
+>  arch/arm64/mm/mmu.c            |  6 ++++--
+>  arch/ia64/mm/discontig.c       |  3 ++-
+>  arch/powerpc/mm/init_64.c      |  7 ++-----
+>  arch/s390/mm/vmem.c            |  3 ++-
+>  arch/sparc/mm/init_64.c        |  2 +-
+>  arch/x86/mm/init_64.c          |  4 ++--
+>  include/linux/memory_hotplug.h |  3 ++-
+>  include/linux/mm.h             |  6 ++++--
+>  mm/memory_hotplug.c            |  7 ++++---
+>  mm/sparse-vmemmap.c            |  7 ++++---
+>  mm/sparse.c                    | 20 ++++++++++++--------
+>  11 files changed, 39 insertions(+), 29 deletions(-)
+>
+> diff --git a/arch/arm64/mm/mmu.c b/arch/arm64/mm/mmu.c
+> index 267d2b79d52d..ec8952ff13be 100644
+> --- a/arch/arm64/mm/mmu.c
+> +++ b/arch/arm64/mm/mmu.c
+> @@ -654,12 +654,14 @@ int kern_addr_valid(unsigned long addr)
+>  }
+>  #ifdef CONFIG_SPARSEMEM_VMEMMAP
+>  #if !ARM64_SWAPPER_USES_SECTION_MAPS
+> -int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+> +int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+> +               struct vmem_altmap *altmap)
+>  {
+>         return vmemmap_populate_basepages(start, end, node);
+>  }
+>  #else  /* !ARM64_SWAPPER_USES_SECTION_MAPS */
+> -int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+> +int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+> +               struct vmem_altmap *altmap)
+>  {
+>         unsigned long addr = start;
+>         unsigned long next;
+> diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
+> index 9b2d994cddf6..1555aecaaf85 100644
+> --- a/arch/ia64/mm/discontig.c
+> +++ b/arch/ia64/mm/discontig.c
+> @@ -754,7 +754,8 @@ void arch_refresh_nodedata(int update_node, pg_data_t *update_pgdat)
+>  #endif
+>
+>  #ifdef CONFIG_SPARSEMEM_VMEMMAP
+> -int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+> +int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+> +               struct vmem_altmap *altmap)
+>  {
+>         return vmemmap_populate_basepages(start, end, node);
+>  }
+> diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+> index a07722531b32..779b74a96b8f 100644
+> --- a/arch/powerpc/mm/init_64.c
+> +++ b/arch/powerpc/mm/init_64.c
+> @@ -183,7 +183,8 @@ static __meminit void vmemmap_list_populate(unsigned long phys,
+>         vmemmap_list = vmem_back;
+>  }
+>
+> -int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+> +int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+> +               struct vmem_altmap *altmap)
+>  {
+>         unsigned long page_size = 1 << mmu_psize_defs[mmu_vmemmap_psize].shift;
+>
+> @@ -193,16 +194,12 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+>         pr_debug("vmemmap_populate %lx..%lx, node %d\n", start, end, node);
+>
+>         for (; start < end; start += page_size) {
+> -               struct vmem_altmap *altmap;
+>                 void *p;
+>                 int rc;
+>
+>                 if (vmemmap_populated(start, page_size))
+>                         continue;
+>
+> -               /* altmap lookups only work at section boundaries */
+> -               altmap = to_vmem_altmap(SECTION_ALIGN_DOWN(start));
+> -
+>                 p =  __vmemmap_alloc_block_buf(page_size, node, altmap);
+>                 if (!p)
+>                         return -ENOMEM;
+> diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+> index 3316d463fc29..c44ef0e7c466 100644
+> --- a/arch/s390/mm/vmem.c
+> +++ b/arch/s390/mm/vmem.c
+> @@ -211,7 +211,8 @@ static void vmem_remove_range(unsigned long start, unsigned long size)
+>  /*
+>   * Add a backed mem_map array to the virtual mem_map array.
+>   */
+> -int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+> +int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+> +               struct vmem_altmap *altmap)
+>  {
+>         unsigned long pgt_prot, sgt_prot;
+>         unsigned long address = start;
+> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+> index 55ba62957e64..42d27a1a042a 100644
+> --- a/arch/sparc/mm/init_64.c
+> +++ b/arch/sparc/mm/init_64.c
+> @@ -2628,7 +2628,7 @@ EXPORT_SYMBOL(_PAGE_CACHE);
+>
+>  #ifdef CONFIG_SPARSEMEM_VMEMMAP
+>  int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+> -                              int node)
+> +                              int node, struct vmem_altmap *altmap)
+>  {
+>         unsigned long pte_base;
+>
+> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+> index e26ade50ae18..0c898098feaf 100644
+> --- a/arch/x86/mm/init_64.c
+> +++ b/arch/x86/mm/init_64.c
+> @@ -1411,9 +1411,9 @@ static int __meminit vmemmap_populate_hugepages(unsigned long start,
+>         return 0;
+>  }
+>
+> -int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+> +int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+> +               struct vmem_altmap *altmap)
+>  {
+> -       struct vmem_altmap *altmap = to_vmem_altmap(start);
+>         int err;
+>
+>         if (boot_cpu_has(X86_FEATURE_PSE))
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index db276afbefcc..cbdd6d52e877 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -327,7 +327,8 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+>  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+>  extern bool is_memblock_offlined(struct memory_block *mem);
+>  extern void remove_memory(int nid, u64 start, u64 size);
+> -extern int sparse_add_one_section(struct pglist_data *pgdat, unsigned long start_pfn);
+> +extern int sparse_add_one_section(struct pglist_data *pgdat,
+> +               unsigned long start_pfn, struct vmem_altmap *altmap);
+>  extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
+>                 unsigned long map_offset);
+>  extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index ea818ff739cd..2f3a7ebecbe2 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -2538,7 +2538,8 @@ void sparse_mem_maps_populate_node(struct page **map_map,
+>                                    unsigned long map_count,
+>                                    int nodeid);
+>
+> -struct page *sparse_mem_map_populate(unsigned long pnum, int nid);
+> +struct page *sparse_mem_map_populate(unsigned long pnum, int nid,
+> +               struct vmem_altmap *altmap);
+>  pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+>  p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+>  pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+> @@ -2556,7 +2557,8 @@ static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
+>  void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
+>  int vmemmap_populate_basepages(unsigned long start, unsigned long end,
+>                                int node);
+> -int vmemmap_populate(unsigned long start, unsigned long end, int node);
+> +int vmemmap_populate(unsigned long start, unsigned long end, int node,
+> +               struct vmem_altmap *altmap);
+>  void vmemmap_populate_print_last(void);
+>  #ifdef CONFIG_MEMORY_HOTPLUG
+>  void vmemmap_free(unsigned long start, unsigned long end);
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index fc0485dcece1..b36f1822c432 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -250,7 +250,7 @@ void __init register_page_bootmem_info_node(struct pglist_data *pgdat)
+>  #endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
+>
+>  static int __meminit __add_section(int nid, unsigned long phys_start_pfn,
+> -               bool want_memblock)
+> +               struct vmem_altmap *altmap, bool want_memblock)
+>  {
+>         int ret;
+>         int i;
+> @@ -258,7 +258,7 @@ static int __meminit __add_section(int nid, unsigned long phys_start_pfn,
+>         if (pfn_valid(phys_start_pfn))
+>                 return -EEXIST;
+>
+> -       ret = sparse_add_one_section(NODE_DATA(nid), phys_start_pfn);
+> +       ret = sparse_add_one_section(NODE_DATA(nid), phys_start_pfn, altmap);
+>         if (ret < 0)
+>                 return ret;
+>
+> @@ -317,7 +317,8 @@ int __ref __add_pages(int nid, unsigned long phys_start_pfn,
+>         }
+>
+>         for (i = start_sec; i <= end_sec; i++) {
+> -               err = __add_section(nid, section_nr_to_pfn(i), want_memblock);
+> +               err = __add_section(nid, section_nr_to_pfn(i), altmap,
+> +                               want_memblock);
+>
+>                 /*
+>                  * EEXIST is finally dealt with by ioresource collision
+> diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+> index 17acf01791fa..376dcf05a39c 100644
+> --- a/mm/sparse-vmemmap.c
+> +++ b/mm/sparse-vmemmap.c
+> @@ -278,7 +278,8 @@ int __meminit vmemmap_populate_basepages(unsigned long start,
+>         return 0;
+>  }
+>
+> -struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
+> +struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid,
+> +               struct vmem_altmap *altmap)
+>  {
+>         unsigned long start;
+>         unsigned long end;
+> @@ -288,7 +289,7 @@ struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
+>         start = (unsigned long)map;
+>         end = (unsigned long)(map + PAGES_PER_SECTION);
+>
+> -       if (vmemmap_populate(start, end, nid))
+> +       if (vmemmap_populate(start, end, nid, altmap))
+>                 return NULL;
+>
+>         return map;
+> @@ -318,7 +319,7 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
+>                 if (!present_section_nr(pnum))
+>                         continue;
+>
+> -               map_map[pnum] = sparse_mem_map_populate(pnum, nodeid);
+> +               map_map[pnum] = sparse_mem_map_populate(pnum, nodeid, NULL);
+>                 if (map_map[pnum])
+>                         continue;
+>                 ms = __nr_to_section(pnum);
+> diff --git a/mm/sparse.c b/mm/sparse.c
+> index 7a5dacaa06e3..5f4a0dac7836 100644
+> --- a/mm/sparse.c
+> +++ b/mm/sparse.c
+> @@ -417,7 +417,8 @@ static void __init sparse_early_usemaps_alloc_node(void *data,
+>  }
+>
+>  #ifndef CONFIG_SPARSEMEM_VMEMMAP
+> -struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid)
+> +struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid,
+> +               struct vmem_altmap *altmap)
+>  {
+>         struct page *map;
+>         unsigned long size;
+> @@ -472,7 +473,7 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
+>
+>                 if (!present_section_nr(pnum))
+>                         continue;
+> -               map_map[pnum] = sparse_mem_map_populate(pnum, nodeid);
+> +               map_map[pnum] = sparse_mem_map_populate(pnum, nodeid, NULL);
+>                 if (map_map[pnum])
+>                         continue;
+>                 ms = __nr_to_section(pnum);
+> @@ -500,7 +501,7 @@ static struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
+>         struct mem_section *ms = __nr_to_section(pnum);
+>         int nid = sparse_early_nid(ms);
+>
+> -       map = sparse_mem_map_populate(pnum, nid);
+> +       map = sparse_mem_map_populate(pnum, nid, NULL);
+>         if (map)
+>                 return map;
+>
+> @@ -678,10 +679,11 @@ void offline_mem_sections(unsigned long start_pfn, unsigned long end_pfn)
+>  #endif
+>
+>  #ifdef CONFIG_SPARSEMEM_VMEMMAP
+> -static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid)
+> +static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
+> +               struct vmem_altmap *altmap)
+>  {
+>         /* This will make the necessary allocations eventually. */
+> -       return sparse_mem_map_populate(pnum, nid);
+> +       return sparse_mem_map_populate(pnum, nid, altmap);
+>  }
+>  static void __kfree_section_memmap(struct page *memmap)
+>  {
+> @@ -721,7 +723,8 @@ static struct page *__kmalloc_section_memmap(void)
+>         return ret;
+>  }
+>
+> -static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid)
+> +static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
+> +               struct vmem_altmap *altmap)
+>  {
+>         return __kmalloc_section_memmap();
+>  }
+> @@ -773,7 +776,8 @@ static void free_map_bootmem(struct page *memmap)
+>   * set.  If this is <=0, then that means that the passed-in
+>   * map was not consumed and must be freed.
+>   */
+> -int __meminit sparse_add_one_section(struct pglist_data *pgdat, unsigned long start_pfn)
+> +int __meminit sparse_add_one_section(struct pglist_data *pgdat,
+> +               unsigned long start_pfn, struct vmem_altmap *altmap)
+>  {
+>         unsigned long section_nr = pfn_to_section_nr(start_pfn);
+>         struct mem_section *ms;
+> @@ -789,7 +793,7 @@ int __meminit sparse_add_one_section(struct pglist_data *pgdat, unsigned long st
+>         ret = sparse_index_init(section_nr, pgdat->node_id);
+>         if (ret < 0 && ret != -EEXIST)
+>                 return ret;
+> -       memmap = kmalloc_section_memmap(section_nr, pgdat->node_id);
+> +       memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, altmap);
+>         if (!memmap)
+>                 return -ENOMEM;
+>         usemap = __kmalloc_section_usemap();
+> --
+> 2.14.2
+>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
