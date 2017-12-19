@@ -1,200 +1,105 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 67E6E221EA0B2
- for <linux-nvdimm@lists.01.org>; Thu,  7 Dec 2017 19:34:36 -0800 (PST)
-Subject: [PATCH 1/2] mm,
- hugetlbfs: introduce ->pagesize() to vm_operations_struct
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 07 Dec 2017 19:30:55 -0800
-Message-ID: <151270385525.21215.16828596212056611775.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151270384965.21215.2022156459463260344.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151270384965.21215.2022156459463260344.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jane Chu <jane.chu@oracle.com>, linux-nvdimm@lists.01.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>
+In-Reply-To: <20171215140947.26075-1-hch@lst.de>
+References: <20171215140947.26075-1-hch@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 19 Dec 2017 12:36:53 -0800
+Message-ID: <CAPcyv4hLncPScEYoU2JA3B0C-jEve03it_-JbDJb1cpeP5pyMA@mail.gmail.com>
+Subject: Re: revamp vmem_altmap / dev_pagemap handling V2
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Logan Gunthorpe <logang@deltatee.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, X86 ML <x86@kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When device-dax is operating in huge-page mode we want it to behave like
-hugetlbfs and report the MMU page mapping size that is being enforced by
-the vma. Similar to commit 31383c6865a5 "mm, hugetlbfs: introduce
-->split() to vm_operations_struct" it would be messy to teach
-vma_mmu_pagesize() about device-dax page mapping sizes in the same
-(hstate) way that hugetlbfs communicates this attribute.  Instead, these
-patches introduce a new ->pagesize() vm operation.
+On Fri, Dec 15, 2017 at 6:09 AM, Christoph Hellwig <hch@lst.de> wrote:
+>
+> Hi all,
+>
+> this series started with two patches from Logan that now are in the
+> middle of the series to kill the memremap-internal pgmap structure
+> and to redo the dev_memreamp_pages interface to be better suitable
+> for future PCI P2P uses.  I reviewed them and noticed that there
+> isn't really any good reason to keep struct vmem_altmap either,
+> and that a lot of these alternative device page map access should
+> be better abstracted out instead of being sprinkled all over the
+> mm code.  But when we got the RCU warnings in V1 I went for yet
+> another approach, and now struct vmem_altmap is kept for now,
+> but passed explicitly through the memory hotplug code instead of
+> having to do unprotected lookups through the radix tree.  The
+> end result is that only the get_user_pages path ever looks up
+> struct dev_pagemap, and struct vmem_altmap is now always embedded
+> into struct dev_pagemap, and explicitly passed where needed.
+>
+> Please review carefully, this has only been tested with my legacy
+> e820 NVDIMM system.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/powerpc/mm/hugetlbpage.c |    5 +----
- include/linux/hugetlb.h       |   30 ++++++++++++++++++++++++------
- include/linux/mm.h            |    1 +
- mm/hugetlb.c                  |   38 ++++++++------------------------------
- 4 files changed, 34 insertions(+), 40 deletions(-)
+I hit the following regression in the error path with these patches
+applied. I'm working on a bisect and updating the unit tests to
+capture this scenario. 4.15-rc2 works as expected.
 
-diff --git a/arch/powerpc/mm/hugetlbpage.c b/arch/powerpc/mm/hugetlbpage.c
-index a9b9083c5e49..c6a2e577e842 100644
---- a/arch/powerpc/mm/hugetlbpage.c
-+++ b/arch/powerpc/mm/hugetlbpage.c
-@@ -568,10 +568,7 @@ unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
- 	if (!radix_enabled())
- 		return 1UL << mmu_psize_to_shift(psize);
- #endif
--	if (!is_vm_hugetlb_page(vma))
--		return PAGE_SIZE;
--
--	return huge_page_size(hstate_vma(vma));
-+	return vma_kernel_pagesize(vma);
- }
- 
- static inline bool is_power_of_4(unsigned long x)
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
-index 82a25880714a..716ccf14ff7b 100644
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -254,6 +254,30 @@ enum {
- 	HUGETLB_ANONHUGE_INODE  = 2,
- };
- 
-+/*
-+ * Return the size of the pages allocated when backing a VMA. In the majority
-+ * cases this will be same size as used by the page table entries.
-+ */
-+static inline unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_ops && vma->vm_ops->pagesize)
-+		return vma->vm_ops->pagesize(vma);
-+	return PAGE_SIZE;
-+}
-+
-+/*
-+ * Return the page size being used by the MMU to back a VMA. In the majority
-+ * of cases, the page size used by the kernel matches the MMU size. On
-+ * architectures where it differs, an architecture-specific version of this
-+ * function is required.
-+ */
-+#ifndef vma_mmu_pagesize
-+static inline unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
-+{
-+	return vma_kernel_pagesize(vma);
-+}
-+#endif
-+
- #ifdef CONFIG_HUGETLBFS
- struct hugetlbfs_sb_info {
- 	long	max_inodes;   /* inodes allowed */
-@@ -395,10 +419,6 @@ static inline unsigned long huge_page_size(struct hstate *h)
- 	return (unsigned long)PAGE_SIZE << h->order;
- }
- 
--extern unsigned long vma_kernel_pagesize(struct vm_area_struct *vma);
--
--extern unsigned long vma_mmu_pagesize(struct vm_area_struct *vma);
--
- static inline unsigned long huge_page_mask(struct hstate *h)
- {
- 	return h->mask;
-@@ -533,8 +553,6 @@ struct hstate {};
- #define page_hstate(page) NULL
- #define huge_page_size(h) PAGE_SIZE
- #define huge_page_mask(h) PAGE_MASK
--#define vma_kernel_pagesize(v) PAGE_SIZE
--#define vma_mmu_pagesize(v) PAGE_SIZE
- #define huge_page_order(h) 0
- #define huge_page_shift(h) PAGE_SHIFT
- static inline bool hstate_is_gigantic(struct hstate *h)
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index ea818ff739cd..37b9aef91ec7 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -383,6 +383,7 @@ struct vm_operations_struct {
- 	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
- 	void (*map_pages)(struct vm_fault *vmf,
- 			pgoff_t start_pgoff, pgoff_t end_pgoff);
-+	unsigned long (*pagesize)(struct vm_area_struct * area);
- 
- 	/* notification that a previously read-only page is about to become
- 	 * writable, if an error is returned it will cause a SIGBUS */
-diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-index 9a334f5fb730..f45ded1f978a 100644
---- a/mm/hugetlb.c
-+++ b/mm/hugetlb.c
-@@ -632,36 +632,6 @@ pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
- EXPORT_SYMBOL_GPL(linear_hugepage_index);
- 
- /*
-- * Return the size of the pages allocated when backing a VMA. In the majority
-- * cases this will be same size as used by the page table entries.
-- */
--unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
--{
--	struct hstate *hstate;
--
--	if (!is_vm_hugetlb_page(vma))
--		return PAGE_SIZE;
--
--	hstate = hstate_vma(vma);
--
--	return 1UL << huge_page_shift(hstate);
--}
--EXPORT_SYMBOL_GPL(vma_kernel_pagesize);
--
--/*
-- * Return the page size being used by the MMU to back a VMA. In the majority
-- * of cases, the page size used by the kernel matches the MMU size. On
-- * architectures where it differs, an architecture-specific version of this
-- * function is required.
-- */
--#ifndef vma_mmu_pagesize
--unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
--{
--	return vma_kernel_pagesize(vma);
--}
--#endif
--
--/*
-  * Flags for MAP_PRIVATE reservations.  These are stored in the bottom
-  * bits of the reservation map pointer, which are always clear due to
-  * alignment.
-@@ -3132,6 +3102,13 @@ static int hugetlb_vm_op_split(struct vm_area_struct *vma, unsigned long addr)
- 	return 0;
- }
- 
-+static unsigned long hugetlb_vm_op_pagesize(struct vm_area_struct *vma)
-+{
-+	struct hstate *hstate = hstate_vma(vma);
-+
-+	return 1UL << huge_page_shift(hstate);
-+}
-+
- /*
-  * We cannot handle pagefaults against hugetlb pages at all.  They cause
-  * handle_mm_fault() to try to instantiate regular-sized pages in the
-@@ -3149,6 +3126,7 @@ const struct vm_operations_struct hugetlb_vm_ops = {
- 	.open = hugetlb_vm_op_open,
- 	.close = hugetlb_vm_op_close,
- 	.split = hugetlb_vm_op_split,
-+	.pagesize = hugetlb_vm_op_pagesize,
- };
- 
- static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
+[   47.102064] ------------[ cut here ]------------
+[   47.103099] dax_pmem dax1.0: devm_memremap_pages_release: failed to
+free all reserved pages
+[   47.104773] WARNING: CPU: 6 PID: 1226 at kernel/memremap.c:306
+devm_memremap_pages_release+0x399/0x3e0
+[   47.106578] Modules linked in: ip6t_rpfilter ip6t_REJECT
+nf_reject_ipv6 xt_conntrack ebtable_nat ebtable_broute bridge stp llc
+ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip
+6table_mangle ip6table_raw ip6table_security iptable_nat
+nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack
+iptable_mangle iptable_raw iptable_security ebtable_filter ebtables
+ip6table_filter ip6_tables crct10dif_pclmul crc32_pclmul crc32c_intel
+ghash_clmulni_intel dax_pmem(O) nd_pmem(O) device_dax(O) nd_btt(O)
+nd_e820(O) nfit(O) serio_raw libnvdimm(O) nfit_test_i
+omap(O)
+[   47.114722] CPU: 6 PID: 1226 Comm: ndctl Tainted: G           O
+4.15.0-rc2+ #981
+[   47.116082] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+BIOS rel-1.9.3-0-ge2fc41e-prebuilt.qemu-project.org 04/01/2014
+[   47.117993] task: 00000000f9fb534d task.stack: 00000000575f2a25
+[   47.119004] RIP: 0010:devm_memremap_pages_release+0x399/0x3e0
+[   47.119993] RSP: 0018:ffffc90002f2fd30 EFLAGS: 00010282
+[   47.120909] RAX: 0000000000000000 RBX: ffff88043715fa80 RCX: 0000000000000000
+[   47.122095] RDX: ffff8801f88d6900 RSI: ffff8801f88ce478 RDI: ffff8801f88ce478
+[   47.123284] RBP: ffffc90002f2fd50 R08: 0000000000000000 R09: 0000000000000000
+[   47.124466] R10: 0000000000000001 R11: 0000000000000000 R12: ffff8801f1fd2d10
+[   47.125648] R13: 0000000440000000 R14: ffff8801f4dc8018 R15: ffffffff81ed6dfe
+[   47.126831] FS:  00007fd93f2ba840(0000) GS:ffff8801f88c0000(0000)
+knlGS:0000000000000000
+[   47.128233] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   47.129216] CR2: 000055fa3e090fc0 CR3: 00000001f3dce000 CR4: 00000000000406e0
+[   47.130404] Call Trace:
+[   47.130913]  release_nodes+0x160/0x2a0
+[   47.131617]  driver_probe_device+0xf9/0x490
+[   47.132378]  bind_store+0x109/0x160
+[   47.133035]  kernfs_fop_write+0x110/0x1b0
+[   47.133775]  __vfs_write+0x33/0x170
+[   47.134438]  ? rcu_read_lock_sched_held+0x3f/0x70
+[   47.135275]  ? rcu_sync_lockdep_assert+0x2a/0x50
+[   47.136091]  ? __sb_start_write+0xd0/0x1b0
+[   47.136840]  ? vfs_write+0x18b/0x1b0
+[   47.137519]  vfs_write+0xc5/0x1b0
+[   47.138151]  SyS_write+0x55/0xc0
+[   47.138776]  entry_SYSCALL_64_fastpath+0x1f/0x96
+[   47.139600] RIP: 0033:0x7fd93e3a8f84
+[   47.140270] RSP: 002b:00007ffca9dc0f68 EFLAGS: 00000246 ORIG_RAX:
+0000000000000001
+[   47.141593] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fd93e3a8f84
+[   47.142778] RDX: 0000000000000007 RSI: 0000000001d2de90 RDI: 0000000000000004
+[   47.143962] RBP: 00007ffca9dc0fa0 R08: 0000000001d283d0 R09: 00000000fffffff8
+[   47.145147] R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000407d50
+[   47.146330] R13: 00007ffca9dc15a0 R14: 0000000000000000 R15: 0000000000000000
+[   47.147520] Code: f9 57 16 01 01 48 85 db 74 55 4c 89 f7 e8 00 21
+44 00 48 c7 c1 80 62 c2 81 48 89 da 48 89 c6 48 c7 c7 08 6a ee 81 e8
+c7 9f ea ff <0f> ff e9 ce fe ff ff 48 c7 c2 08 cf ec 81 be ed 02 00 00
+48 c7
+[   47.150607] ---[ end trace f384c72daa2ac9c5 ]---
+[   47.151458] dax_pmem dax1.0: dax_pmem_percpu_exit
+[   47.152478] dax_pmem: probe of dax1.0 failed with error -12
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
