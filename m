@@ -1,114 +1,130 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 491F32219BCBF
- for <linux-nvdimm@lists.01.org>; Thu, 21 Dec 2017 19:05:15 -0800 (PST)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id
- vBM39FRs039689
- for <linux-nvdimm@lists.01.org>; Thu, 21 Dec 2017 22:10:04 -0500
-Received: from e06smtp10.uk.ibm.com (e06smtp10.uk.ibm.com [195.75.94.106])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2f0nqahmjw-1
- (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Thu, 21 Dec 2017 22:10:03 -0500
-Received: from localhost
- by e06smtp10.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <khandual@linux.vnet.ibm.com>;
- Fri, 22 Dec 2017 03:10:01 -0000
+Return-Path: <owner-linux-mm@kvack.org>
 Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
 References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Date: Fri, 22 Dec 2017 08:39:41 +0530
+ <20171214130032.GK16951@dhcp22.suse.cz>
+ <20171218203547.GA2366@linux.intel.com>
+ <20171220181937.GB12236@bombadil.infradead.org>
+ <2da89d31-27a3-34ab-2dbb-92403c8215ec@intel.com>
+ <20171220211649.GA32200@bombadil.infradead.org>
+ <20171220212408.GA8308@linux.intel.com>
+ <CAPcyv4gTknp=0yQnVrrB5Ui+mJE_x-wdkV86UD4hsYnx3CAjfA@mail.gmail.com>
+ <20171220224105.GA27258@linux.intel.com>
+From: Brice Goglin <brice.goglin@gmail.com>
+Message-ID: <39cbe02a-d309-443d-54c9-678a0799342d@gmail.com>
+Date: Thu, 21 Dec 2017 21:31:42 +0100
 MIME-Version: 1.0
-In-Reply-To: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
-Message-Id: <2d6420f7-0a95-adfe-7390-a2aea4385ab2@linux.vnet.ibm.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org
-Cc: "Box, David E" <david.e.box@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, Robert, Lukasz, "Erik  <erik.schmauss@intel.com>, Len Brown" <lenb@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, devel@acpica.org, Kogut,, "Marcin  <marcin.koss@intel.com>, Brice Goglin <brice.goglin@gmail.com>, Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Koziej,, "Joonas  <joonas.lahtinen@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen" <tim.c.chen@linux.intel.com>
+In-Reply-To: <20171220224105.GA27258@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Dave Hansen <dave.hansen@intel.com>, Michal Hocko <mhocko@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail.com>, Jerome Glisse <jglisse@redhat.com>, John Hubbard <jhubbard@nvidia.com>, Len Brown <lenb@kernel.org>, Tim Chen <tim.c.chen@linux.intel.com>, devel@acpica.org, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 12/14/2017 07:40 AM, Ross Zwisler wrote:
-> ==== Quick Summary ====
-> 
-> Platforms exist today which have multiple types of memory attached to a
-> single CPU.  These disparate memory ranges have some characteristics in
-> common, such as CPU cache coherence, but they can have wide ranges of
-> performance both in terms of latency and bandwidth.
+Le 20/12/2017 à 23:41, Ross Zwisler a écrit :
+> On Wed, Dec 20, 2017 at 02:29:56PM -0800, Dan Williams wrote:
+>> On Wed, Dec 20, 2017 at 1:24 PM, Ross Zwisler
+>> <ross.zwisler@linux.intel.com> wrote:
+>>> On Wed, Dec 20, 2017 at 01:16:49PM -0800, Matthew Wilcox wrote:
+>>>> On Wed, Dec 20, 2017 at 12:22:21PM -0800, Dave Hansen wrote:
+>>>>> On 12/20/2017 10:19 AM, Matthew Wilcox wrote:
+>>>>>> I don't know what the right interface is, but my laptop has a set of
+>>>>>> /sys/devices/system/memory/memoryN/ directories.  Perhaps this is the
+>>>>>> right place to expose write_bw (etc).
+>>>>> Those directories are already too redundant and wasteful.  I think we'd
+>>>>> really rather not add to them.  In addition, it's technically possible
+>>>>> to have a memory section span NUMA nodes and have different performance
+>>>>> properties, which make it impossible to represent there.
+>>>>>
+>>>>> In any case, ACPI PXM's (Proximity Domains) are guaranteed to have
+>>>>> uniform performance properties in the HMAT, and we just so happen to
+>>>>> always create one NUMA node per PXM.  So, NUMA nodes really are a good fit.
+>>>> I think you're missing my larger point which is that I don't think this
+>>>> should be exposed to userspace as an ACPI feature.  Because if you do,
+>>>> then it'll also be exposed to userspace as an openfirmware feature.
+>>>> And sooner or later a devicetree feature.  And then writing a portable
+>>>> program becomes an exercise in suffering.
+>>>>
+>>>> So, what's the right place in sysfs that isn't tied to ACPI?  A new
+>>>> directory or set of directories under /sys/devices/system/memory/ ?
+>>> Oh, the current location isn't at all tied to acpi except that it happens to
+>>> be named 'hmat'.  When it was all named 'hmem' it was just:
+>>>
+>>> /sys/devices/system/hmem
+>>>
+>>> Which has no ACPI-isms at all.  I'm happy to move it under
+>>> /sys/devices/system/memory/hmat if that's helpful, but I think we still have
+>>> the issue that the data represented therein is still pulled right from the
+>>> HMAT, and I don't know how to abstract it into something more platform
+>>> agnostic until I know what data is provided by those other platforms.
+>>>
+>>> For example, the HMAT provides latency information and bandwidth information
+>>> for both reads and writes.  Will the devicetree/openfirmware/etc version have
+>>> this same info, or will it be just different enough that it won't translate
+>>> into whatever I choose to stick in sysfs?
+>> For the initial implementation do we need to have a representation of
+>> all the performance data? Given that
+>> /sys/devices/system/node/nodeX/distance is the only generic
+>> performance attribute published by the kernel today it is already the
+>> case that applications that need to target specific memories need to
+>> go parse information that is not provided by the kernel by default.
+>> The question is can those specialized applications stay special and go
+>> parse the platform specific data sources, like raw HMAT, directly, or
+>> do we expect general purpose applications to make use of this data? I
+>> think a firmware-id to numa-node translation facility
+>> (/sys/devices/system/node/nodeX/fwid) is a simple start that we can
+>> build on with more information as specific use cases arise.
+> We don't represent all the performance data, we only represent the data for
+> local initiator/target pairs.  I do think that this is useful to have in sysfs
+> because it provides a way to easily answer the most commonly asked questions
+> (or at least what I'm guessing will be the most commmonly asked queststions),
+> i.e. "given a CPU, what are the speeds of the various types of memory attached
+> to it", and "given a chunk of memory, how fast is it and to which CPU is it
+> local"?  By providing this base level of information I'm hoping to prevent
+> most applications from having to parse the HMAT directly.
+>
+> The question of whether or not to include this local performance information
+> was one of the main questions of the initial RFC patch series, and I did get
+> feedback (albiet off-list) that the local performance information was
+> valuable to at least some users.  I did intentionally structure my (now very
+> short) set so that the performance information was added as a separate patch,
+> so we can get to the place you're talking about where we only provide firmware
+> id <=> proximity domain mappings by just leaving off the last patch in the
+> series.
+>
 
-Right.
+Hello
 
-> 
-> For example, consider a system that contains persistent memory, standard
-> DDR memory and High Bandwidth Memory (HBM), all attached to the same CPU.
-> There could potentially be an order of magnitude or more difference in
-> performance between the slowest and fastest memory attached to that CPU.
+I can confirm that HPC runtimes are going to use these patches (at least
+all runtimes that use hwloc for topology discovery, but that's the vast
+majority of HPC anyway).
 
-Right.
+We really didn't like KNL exposing a hacky SLIT table [1]. We had to
+explicitly detect that specific crazy table to find out which NUMA nodes
+were local to which cores, and to find out which NUMA nodes were
+HBM/MCDRAM or DDR. And then we had to hide the SLIT values to the
+application because the reported latencies didn't match reality. Quite
+annoying.
 
-> 
-> With the current Linux code NUMA nodes are CPU-centric, so all the memory
-> attached to a given CPU will be lumped into the same NUMA node.  This makes
-> it very difficult for userspace applications to understand the performance
-> of different memory ranges on a given CPU.
+With Ross' patches, we can easily get what we need:
+* which NUMA nodes are local to which CPUs? /sys/devices/system/node/
+can only report a single local node per CPU (doesn't work for KNL and
+upcoming architectures with HBM+DDR+...)
+* which NUMA nodes are slow/fast (for both bandwidth and latency)
+And we can still look at SLIT under /sys/devices/system/node if really
+needed.
 
-Right but that might require fundamental changes to the NUMA representation.
-Plugging those memory as separate NUMA nodes, identify them through sysfs
-and try allocating from it through mbind() seems like a short term solution.
+And of course having this in sysfs is much better than parsing ACPI
+tables that are only accessible to root :)
 
-Though if we decide to go in this direction, sysfs interface or something
-similar is required to enumerate memory properties.
+Regards
+Brice
 
-> 
-> We solve this issue by providing userspace with performance information on
-> individual memory ranges.  This performance information is exposed via
-> sysfs:
-> 
->   # grep . mem_tgt2/* mem_tgt2/local_init/* 2>/dev/null
->   mem_tgt2/firmware_id:1
->   mem_tgt2/is_cached:0
->   mem_tgt2/local_init/read_bw_MBps:40960
->   mem_tgt2/local_init/read_lat_nsec:50
->   mem_tgt2/local_init/write_bw_MBps:40960
->   mem_tgt2/local_init/write_lat_nsec:50
+[1] local DDR = 10, remote DDR = 20, local HBM = 31, remote HBM = 41
 
-I might have missed discussions from earlier versions, why we have this
-kind of a "source --> target" model ? We will enlist properties for all
-possible "source --> target" on the system ? Right now it shows only
-bandwidth and latency properties, can it accommodate other properties
-as well in future ?
-
-> 
-> This allows applications to easily find the memory that they want to use.
-> We expect that the existing NUMA APIs will be enhanced to use this new
-> information so that applications can continue to use them to select their
-> desired memory.
-
-I had presented a proposal for NUMA redesign in the Plumbers Conference this
-year where various memory devices with different kind of memory attributes
-can be represented in the kernel and be used explicitly from the user space.
-Here is the link to the proposal if you feel interested. The proposal is
-very intrusive and also I dont have a RFC for it yet for discussion here.
-
-https://linuxplumbersconf.org/2017/ocw//system/presentations/4656/original/Hierarchical_NUMA_Design_Plumbers_2017.pdf
-
-Problem is, designing the sysfs interface for memory attribute detection
-from user space without first thinking about redesigning the NUMA for
-heterogeneous memory may not be a good idea. Will look into this further.
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
