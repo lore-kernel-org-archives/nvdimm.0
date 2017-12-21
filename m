@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8243D2034B9EA
- for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:50:28 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 15/17] memremap: drop private struct page_map
-Date: Fri, 29 Dec 2017 08:54:04 +0100
-Message-Id: <20171229075406.1936-16-hch@lst.de>
-In-Reply-To: <20171229075406.1936-1-hch@lst.de>
-References: <20171229075406.1936-1-hch@lst.de>
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 519F122198F6E
+ for <linux-nvdimm@lists.01.org>; Thu, 21 Dec 2017 09:10:41 -0800 (PST)
+Date: Thu, 21 Dec 2017 09:14:02 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [xfsprogs PATCH v3 3/3] xfs_io: add a new 'log_writes' command
+Message-ID: <20171221171402.GU12613@magnolia>
+References: <20171205235651.17102-4-ross.zwisler@linux.intel.com>
+ <20171206181323.16989-1-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20171206181323.16989-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,244 +20,337 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, fstests <fstests@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Logan Gunthorpe <logang@deltatee.com>
+On Wed, Dec 06, 2017 at 11:13:23AM -0700, Ross Zwisler wrote:
+> Add a new 'log_writes' command to xfs_io so that we can add dm-log-writes
+> log marks.  It's helpful to allow users of xfs_io to adds these marks from
+> within xfs_io instead of waiting until after xfs_io exits because then they
+> are able to replay the dm-log-writes log up to immediately after another
+> xfs_io operation such as mwrite.  This isolates the log replay from other
+> operations that happen as part of xfs_io exiting (file handles being
+> closed, mmaps being torn down, etc.).  This also allows users to insert
+> multiple marks between different xfs_io commands.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Suggested-by: Dave Chinner <david@fromorbit.com>
+> ---
+> 
+> Changes from v2:
+>  - Use 'exitcode' to have the xfs_io shell command error out with status
+>    1 if we hit any of our many error condtions during execution. (Dave)
+> 
+> ---
+>  configure.ac            |   1 +
+>  debian/control          |   2 +-
+>  include/builddefs.in    |   2 +
+>  io/Makefile             |   6 +++
+>  io/init.c               |   1 +
+>  io/io.h                 |   6 +++
+>  io/log_writes.c         | 106 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  m4/Makefile             |   1 +
+>  m4/package_devmapper.m4 |  11 +++++
+>  man/man8/xfs_io.8       |  23 ++++++++++-
+>  10 files changed, 157 insertions(+), 2 deletions(-)
+>  create mode 100644 io/log_writes.c
+>  create mode 100644 m4/package_devmapper.m4
+> 
+> diff --git a/configure.ac b/configure.ac
+> index f3325aa0..f83d5817 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -164,6 +164,7 @@ AC_NEED_INTERNAL_FSXATTR
+>  AC_HAVE_GETFSMAP
+>  AC_HAVE_STATFS_FLAGS
+>  AC_HAVE_MAP_SYNC
+> +AC_HAVE_DEVMAPPER
+>  
+>  if test "$enable_blkid" = yes; then
+>  AC_HAVE_BLKID_TOPO
+> diff --git a/debian/control b/debian/control
+> index ad816622..5c26e3d7 100644
+> --- a/debian/control
+> +++ b/debian/control
+> @@ -3,7 +3,7 @@ Section: admin
+>  Priority: optional
+>  Maintainer: XFS Development Team <linux-xfs@vger.kernel.org>
+>  Uploaders: Nathan Scott <nathans@debian.org>, Anibal Monsalve Salazar <anibal@debian.org>
+> -Build-Depends: uuid-dev, dh-autoreconf, debhelper (>= 5), gettext, libtool, libreadline-gplv2-dev | libreadline5-dev, libblkid-dev (>= 2.17), linux-libc-dev
+> +Build-Depends: uuid-dev, dh-autoreconf, debhelper (>= 5), gettext, libtool, libreadline-gplv2-dev | libreadline5-dev, libblkid-dev (>= 2.17), linux-libc-dev, libdevmapper-dev
+>  Standards-Version: 3.9.1
+>  Homepage: http://xfs.org/
+>  
+> diff --git a/include/builddefs.in b/include/builddefs.in
+> index 126f7e95..66bdbfa2 100644
+> --- a/include/builddefs.in
+> +++ b/include/builddefs.in
+> @@ -35,6 +35,7 @@ LIBTERMCAP = @libtermcap@
+>  LIBEDITLINE = @libeditline@
+>  LIBREADLINE = @libreadline@
+>  LIBBLKID = @libblkid@
+> +LIBDEVMAPPER = @libdevmapper@
+>  LIBXFS = $(TOPDIR)/libxfs/libxfs.la
+>  LIBXCMD = $(TOPDIR)/libxcmd/libxcmd.la
+>  LIBXLOG = $(TOPDIR)/libxlog/libxlog.la
+> @@ -116,6 +117,7 @@ NEED_INTERNAL_FSXATTR = @need_internal_fsxattr@
+>  HAVE_GETFSMAP = @have_getfsmap@
+>  HAVE_STATFS_FLAGS = @have_statfs_flags@
+>  HAVE_MAP_SYNC = @have_map_sync@
+> +HAVE_DEVMAPPER = @have_devmapper@
+>  
+>  GCCFLAGS = -funsigned-char -fno-strict-aliasing -Wall
+>  #	   -Wbitwise -Wno-transparent-union -Wno-old-initializer -Wno-decl
+> diff --git a/io/Makefile b/io/Makefile
+> index 2987ee11..b7585a1b 100644
+> --- a/io/Makefile
+> +++ b/io/Makefile
+> @@ -107,6 +107,12 @@ ifeq ($(HAVE_MAP_SYNC),yes)
+>  LCFLAGS += -DHAVE_MAP_SYNC
+>  endif
+>  
+> +ifeq ($(HAVE_DEVMAPPER),yes)
+> +CFILES += log_writes.c
+> +LLDLIBS += $(LIBDEVMAPPER)
+> +LCFLAGS += -DHAVE_DEVMAPPER
+> +endif
+> +
+>  # On linux we get fsmap from the system or define it ourselves
+>  # so include this based on platform type.  If this reverts to only
+>  # the autoconf check w/o local definition, change to testing HAVE_GETFSMAP
+> diff --git a/io/init.c b/io/init.c
+> index 20d5f80d..34d87b5f 100644
+> --- a/io/init.c
+> +++ b/io/init.c
+> @@ -72,6 +72,7 @@ init_commands(void)
+>  	help_init();
+>  	imap_init();
+>  	inject_init();
+> +	log_writes_init();
+>  	madvise_init();
+>  	mincore_init();
+>  	mmap_init();
+> diff --git a/io/io.h b/io/io.h
+> index 8b2753b3..9349cc75 100644
+> --- a/io/io.h
+> +++ b/io/io.h
+> @@ -186,3 +186,9 @@ extern void		fsmap_init(void);
+>  #else
+>  # define fsmap_init()	do { } while (0)
+>  #endif
+> +
+> +#ifdef HAVE_DEVMAPPER
+> +extern void		log_writes_init(void);
+> +#else
+> +#define log_writes_init()	do { } while (0)
+> +#endif
+> diff --git a/io/log_writes.c b/io/log_writes.c
+> new file mode 100644
+> index 00000000..c7b7392e
+> --- /dev/null
+> +++ b/io/log_writes.c
+> @@ -0,0 +1,106 @@
+> +/*
+> + * Copyright (c) 2017 Intel Corporation.
+> + * All Rights Reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> + */
+> +
+> +#include "platform_defs.h"
+> +#include <libdevmapper.h>
+> +#include "command.h"
+> +#include "init.h"
+> +
+> +static cmdinfo_t log_writes_cmd;
+> +
+> +static int
+> +mark_log(const char *device, const char *mark)
+> +{
+> +	struct dm_task *dmt;
+> +	const int size = 80;
+> +	char message[size];
+> +	int len, ret = 0;
 
-'struct page_map' is a private structure of 'struct dev_pagemap' but the
-latter replicates all the same fields as the former so there isn't much
-value in it. Thus drop it in favour of a completely public struct.
+Indentation?
 
-This is a clean up in preperation for a more generally useful
-'devm_memeremap_pages' interface.
+> +
+> +	len = snprintf(message, size, "mark %s", mark);
+> +	if (len >= size) {
+> +		printf("mark '%s' is too long\n", mark);
+> +		return ret;
+> +	}
+> +
+> +	if (!(dmt = dm_task_create(DM_DEVICE_TARGET_MSG)))
+> +		return ret;
+> +
+> +	if (!dm_task_set_name(dmt, device))
+> +		goto out;
+> +
+> +	if (!dm_task_set_sector(dmt, 0))
+> +		goto out;
+> +
+> +	if (!dm_task_set_message(dmt, message))
+> +		goto out;
+> +
+> +	if (dm_task_run(dmt))
+> +		ret = 1;
+> +out:
+> +	dm_task_destroy(dmt);
+> +	return ret;
+> +}
+> +
+> +static int
+> +log_writes_f(
+> +	int			argc,
+> +	char			**argv)
+> +{
+> +	const char *device = NULL;
+> +	const char *mark = NULL;
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/memremap.h |  5 ++--
- kernel/memremap.c        | 68 ++++++++++++++++++------------------------------
- mm/hmm.c                 |  2 +-
- 3 files changed, 30 insertions(+), 45 deletions(-)
+	const char		*device = NULL;
+	const char		*mark = NULL;
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 3fddcfe57bb0..1cb5f39d25c1 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -113,8 +113,9 @@ typedef void (*dev_page_free_t)(struct page *page, void *data);
- struct dev_pagemap {
- 	dev_page_fault_t page_fault;
- 	dev_page_free_t page_free;
--	struct vmem_altmap *altmap;
--	const struct resource *res;
-+	struct vmem_altmap altmap;
-+	bool altmap_valid;
-+	struct resource res;
- 	struct percpu_ref *ref;
- 	struct device *dev;
- 	void *data;
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 12e78528fea4..9207c44cce20 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -188,13 +188,6 @@ static RADIX_TREE(pgmap_radix, GFP_KERNEL);
- #define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
- #define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
- 
--struct page_map {
--	struct resource res;
--	struct percpu_ref *ref;
--	struct dev_pagemap pgmap;
--	struct vmem_altmap altmap;
--};
--
- static unsigned long order_at(struct resource *res, unsigned long pgoff)
- {
- 	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
-@@ -260,22 +253,21 @@ static void pgmap_radix_release(struct resource *res)
- 	synchronize_rcu();
- }
- 
--static unsigned long pfn_first(struct page_map *page_map)
-+static unsigned long pfn_first(struct dev_pagemap *pgmap)
- {
--	struct dev_pagemap *pgmap = &page_map->pgmap;
--	const struct resource *res = &page_map->res;
--	struct vmem_altmap *altmap = pgmap->altmap;
-+	const struct resource *res = &pgmap->res;
-+	struct vmem_altmap *altmap = &pgmap->altmap;
- 	unsigned long pfn;
- 
- 	pfn = res->start >> PAGE_SHIFT;
--	if (altmap)
-+	if (pgmap->altmap_valid)
- 		pfn += vmem_altmap_offset(altmap);
- 	return pfn;
- }
- 
--static unsigned long pfn_end(struct page_map *page_map)
-+static unsigned long pfn_end(struct dev_pagemap *pgmap)
- {
--	const struct resource *res = &page_map->res;
-+	const struct resource *res = &pgmap->res;
- 
- 	return (res->start + resource_size(res)) >> PAGE_SHIFT;
- }
-@@ -285,13 +277,12 @@ static unsigned long pfn_end(struct page_map *page_map)
- 
- static void devm_memremap_pages_release(struct device *dev, void *data)
- {
--	struct page_map *page_map = data;
--	struct resource *res = &page_map->res;
-+	struct dev_pagemap *pgmap = data;
-+	struct resource *res = &pgmap->res;
- 	resource_size_t align_start, align_size;
--	struct dev_pagemap *pgmap = &page_map->pgmap;
- 	unsigned long pfn;
- 
--	for_each_device_pfn(pfn, page_map)
-+	for_each_device_pfn(pfn, pgmap)
- 		put_page(pfn_to_page(pfn));
- 
- 	if (percpu_ref_tryget_live(pgmap->ref)) {
-@@ -304,24 +295,22 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
- 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
- 
- 	mem_hotplug_begin();
--	arch_remove_memory(align_start, align_size, pgmap->altmap);
-+	arch_remove_memory(align_start, align_size, pgmap->altmap_valid ?
-+			&pgmap->altmap : NULL);
- 	mem_hotplug_done();
- 
- 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
- 	pgmap_radix_release(res);
--	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
--			"%s: failed to free all reserved pages\n", __func__);
-+	dev_WARN_ONCE(dev, pgmap->altmap.alloc,
-+		      "%s: failed to free all reserved pages\n", __func__);
- }
- 
- /* assumes rcu_read_lock() held at entry */
- static struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
- {
--	struct page_map *page_map;
--
- 	WARN_ON_ONCE(!rcu_read_lock_held());
- 
--	page_map = radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
--	return page_map ? &page_map->pgmap : NULL;
-+	return radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
- }
- 
- /**
-@@ -349,7 +338,6 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	unsigned long pfn, pgoff, order;
- 	pgprot_t pgprot = PAGE_KERNEL;
- 	struct dev_pagemap *pgmap;
--	struct page_map *page_map;
- 	int error, nid, is_ram, i = 0;
- 
- 	align_start = res->start & ~(SECTION_SIZE - 1);
-@@ -370,22 +358,20 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	if (!ref)
- 		return ERR_PTR(-EINVAL);
- 
--	page_map = devres_alloc_node(devm_memremap_pages_release,
--			sizeof(*page_map), GFP_KERNEL, dev_to_node(dev));
--	if (!page_map)
-+	pgmap = devres_alloc_node(devm_memremap_pages_release,
-+			sizeof(*pgmap), GFP_KERNEL, dev_to_node(dev));
-+	if (!pgmap)
- 		return ERR_PTR(-ENOMEM);
--	pgmap = &page_map->pgmap;
- 
--	memcpy(&page_map->res, res, sizeof(*res));
-+	memcpy(&pgmap->res, res, sizeof(*res));
- 
- 	pgmap->dev = dev;
- 	if (altmap) {
--		memcpy(&page_map->altmap, altmap, sizeof(*altmap));
--		pgmap->altmap = &page_map->altmap;
--		altmap = pgmap->altmap;
-+		memcpy(&pgmap->altmap, altmap, sizeof(*altmap));
-+		pgmap->altmap_valid = true;
-+		altmap = &pgmap->altmap;
- 	}
- 	pgmap->ref = ref;
--	pgmap->res = &page_map->res;
- 	pgmap->type = MEMORY_DEVICE_HOST;
- 	pgmap->page_fault = NULL;
- 	pgmap->page_free = NULL;
-@@ -397,7 +383,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 
- 	foreach_order_pgoff(res, order, pgoff) {
- 		error = __radix_tree_insert(&pgmap_radix,
--				PHYS_PFN(res->start) + pgoff, order, page_map);
-+				PHYS_PFN(res->start) + pgoff, order, pgmap);
- 		if (error) {
- 			dev_err(dev, "%s: failed: %d\n", __func__, error);
- 			break;
-@@ -426,7 +412,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	if (error)
- 		goto err_add_memory;
- 
--	for_each_device_pfn(pfn, page_map) {
-+	for_each_device_pfn(pfn, pgmap) {
- 		struct page *page = pfn_to_page(pfn);
- 
- 		/*
-@@ -441,7 +427,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 		if (!(++i % 1024))
- 			cond_resched();
- 	}
--	devres_add(dev, page_map);
-+	devres_add(dev, pgmap);
- 	return __va(res->start);
- 
-  err_add_memory:
-@@ -449,7 +435,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
-  err_pfn_remap:
-  err_radix:
- 	pgmap_radix_release(res);
--	devres_free(page_map);
-+	devres_free(pgmap);
- 	return ERR_PTR(error);
- }
- EXPORT_SYMBOL(devm_memremap_pages);
-@@ -482,9 +468,7 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- 	 * In the cached case we're already holding a live reference.
- 	 */
- 	if (pgmap) {
--		const struct resource *res = pgmap ? pgmap->res : NULL;
--
--		if (res && phys >= res->start && phys <= res->end)
-+		if (phys >= pgmap->res.start && phys <= pgmap->res.end)
- 			return pgmap;
- 		put_dev_pagemap(pgmap);
- 	}
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 2f2e13c61040..320fdc87f064 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -882,7 +882,7 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
- 	else
- 		devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
- 
--	devmem->pagemap.res = devmem->resource;
-+	devmem->pagemap.res = *devmem->resource;
- 	devmem->pagemap.page_fault = hmm_devmem_fault;
- 	devmem->pagemap.page_free = hmm_devmem_free;
- 	devmem->pagemap.dev = devmem->device;
--- 
-2.14.2
+Yeah, variable declaration indentation in the functions was the only
+thing I found to complain about...
 
+Otherwise looks ok,
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+
+--D
+
+> +	int c;
+> +
+> +	exitcode = 1;
+> +	while ((c = getopt(argc, argv, "d:m:")) != EOF) {
+> +		switch (c) {
+> +		case 'd':
+> +			device = optarg;
+> +			break;
+> +		case 'm':
+> +			mark = optarg;
+> +			break;
+> +		default:
+> +			return command_usage(&log_writes_cmd);
+> +		}
+> +	}
+> +
+> +	if (device == NULL || mark == NULL)
+> +		return command_usage(&log_writes_cmd);
+> +
+> +	if (mark_log(device, mark))
+> +		exitcode = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +void
+> +log_writes_init(void)
+> +{
+> +	log_writes_cmd.name = "log_writes";
+> +	log_writes_cmd.altname = "lw";
+> +	log_writes_cmd.cfunc = log_writes_f;
+> +	log_writes_cmd.flags = CMD_NOMAP_OK | CMD_NOFILE_OK | CMD_FOREIGN_OK
+> +				| CMD_FLAG_ONESHOT;
+> +	log_writes_cmd.argmin = 0;
+> +	log_writes_cmd.argmax = -1;
+> +	log_writes_cmd.args = _("-d device -m mark");
+> +	log_writes_cmd.oneline =
+> +		_("create mark <mark> in the dm-log-writes log specified by <device>");
+> +
+> +	add_command(&log_writes_cmd);
+> +}
+> diff --git a/m4/Makefile b/m4/Makefile
+> index 4706121b..77f2edda 100644
+> --- a/m4/Makefile
+> +++ b/m4/Makefile
+> @@ -15,6 +15,7 @@ CONFIGURE = \
+>  LSRCFILES = \
+>  	manual_format.m4 \
+>  	package_blkid.m4 \
+> +	package_devmapper.m4 \
+>  	package_globals.m4 \
+>  	package_libcdev.m4 \
+>  	package_pthread.m4 \
+> diff --git a/m4/package_devmapper.m4 b/m4/package_devmapper.m4
+> new file mode 100644
+> index 00000000..821f283c
+> --- /dev/null
+> +++ b/m4/package_devmapper.m4
+> @@ -0,0 +1,11 @@
+> +#
+> +# See if libdevmapper is available on the system.
+> +#
+> +AC_DEFUN([AC_HAVE_DEVMAPPER],
+> +[ AC_SEARCH_LIBS([dm_task_create], [devmapper],
+> +        libdevmapper="-ldevmapper"
+> +        have_devmapper=yes,
+> +        have_devmapper=no,)
+> +    AC_SUBST(have_devmapper)
+> +    AC_SUBST(libdevmapper)
+> +])
+> diff --git a/man/man8/xfs_io.8 b/man/man8/xfs_io.8
+> index 1693f7f1..4fce6d39 100644
+> --- a/man/man8/xfs_io.8
+> +++ b/man/man8/xfs_io.8
+> @@ -1123,7 +1123,27 @@ version of policy structure (numeric)
+>  .BR get_encpolicy
+>  On filesystems that support encryption, display the encryption policy of the
+>  current file.
+> +.RE
+> +.PD
+> +.TP
+> +.BI "log_writes \-d " device " \-m "  mark
+> +Create a mark named
+> +.I mark
+> +in the dm-log-writes log specified by
+> +.I device.
+> +This is intended to be equivalent to the shell command:
+>  
+> +.B dmsetup message
+> +.I device
+> +.B 0 mark
+> +.I mark
+> +.PD
+> +.RE
+> +.TP
+> +.B lw
+> +See the
+> +.B log_writes
+> +command.
+>  .SH SEE ALSO
+>  .BR mkfs.xfs (8),
+>  .BR xfsctl (3),
+> @@ -1141,4 +1161,5 @@ current file.
+>  .BR open (2),
+>  .BR pread (2),
+>  .BR pwrite (2),
+> -.BR readdir (3).
+> +.BR readdir (3),
+> +.BR dmsetup (8).
+> -- 
+> 2.14.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
