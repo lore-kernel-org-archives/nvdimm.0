@@ -1,74 +1,52 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9BEB322198F58
- for <linux-nvdimm@lists.01.org>; Thu, 21 Dec 2017 05:13:19 -0800 (PST)
-Date: Thu, 21 Dec 2017 14:18:05 +0100
-From: Michal Hocko <mhocko@kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Michael Ellerman <mpe@ellerman.id.au>
 Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
-Message-ID: <20171221131805.GE4831@dhcp22.suse.cz>
-References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
- <20171214130032.GK16951@dhcp22.suse.cz>
- <20171218203547.GA2366@linux.intel.com>
- <20171220164107.GA29103@linux.intel.com>
+In-Reply-To: <20171220181937.GB12236@bombadil.infradead.org>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com> <20171214130032.GK16951@dhcp22.suse.cz> <20171218203547.GA2366@linux.intel.com> <20171220181937.GB12236@bombadil.infradead.org>
+Date: Thu, 21 Dec 2017 23:50:40 +1100
+Message-ID: <87mv2cfdnj.fsf@concordia.ellerman.id.au>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20171220164107.GA29103@linux.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "Box, David E" <david.e.box@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, Robert, Lukasz, "Erik  <erik.schmauss@intel.com>, Len Brown" <lenb@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, devel@acpica.org, Kogut,, "Marcin  <marcin.koss@intel.com>, linux-api@vger.kernel.org, Brice Goglin" <brice.goglin@gmail.com>, "Nachimuthu, Murugasamy  <murugasamy.nachimuthu@intel.com>, Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Koziej,, "Joonas  <joonas.lahtinen@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen" <tim.c.chen@linux.intel.com>
+Content-Type: text/plain
+Sender: owner-linux-mm@kvack.org
+To: Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>, "Box, David E" <david.e.box@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, Robert, Lukasz, Erik, Jaroslaw, Marcin, Murugasamy, Artur, Joonas
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 20-12-17 09:41:07, Ross Zwisler wrote:
+Matthew Wilcox <willy@infradead.org> writes:
+
 > On Mon, Dec 18, 2017 at 01:35:47PM -0700, Ross Zwisler wrote:
-> > On Thu, Dec 14, 2017 at 02:00:32PM +0100, Michal Hocko wrote:
-> <>
-> > > What is the testing procedure? How can I setup qemu to simlate such HW?
-> > 
-> > Well, the QEMU table simulation is gross, so I'd rather not get everyone
-> > testing with that.  Injecting custom HMAT and SRAT tables via initrd/initramfs
-> > is a much better way:
-> > 
-> > https://www.kernel.org/doc/Documentation/acpi/initrd_table_override.txt
-> > 
-> > Dan recently posted a patch that lets this happen for the HMAT:
-> > 
-> > https://lists.01.org/pipermail/linux-nvdimm/2017-December/013545.html
-> > 
-> > I'm working right now on getting an easier way to generate HMAT tables - I'll
-> > let you know when I have something working.
-> 
-> I've posted details on how to set up test configurations using injected HMAT
-> and SRAT tables here:
-> 
-> https://github.com/rzwisler/hmat_examples
-> 
-> So far I've got two different sample configs, and we can add more as they are
-> useful.  Having the sample configs in github is also nice because if someone
-> finds a config that causes a kernel issue it can be reported then added to
-> this list of example configs for future testing.
-> 
-> Please let me know if you have trouble getting this working.
+>> What I'm hoping to do with this series is to just provide a sysfs
+>> representation of the HMAT so that applications can know which NUMA nodes to
+>> select with existing utilities like numactl.  This series does not currently
+>> alter any kernel behavior, it only provides a sysfs interface.
+>> 
+>> Say for example you had a system with some high bandwidth memory (HBM), and
+>> you wanted to use it for a specific application.  You could use the sysfs
+>> representation of the HMAT to figure out which memory target held your HBM.
+>> You could do this by looking at the local bandwidth values for the various
+>> memory targets, so:
+>> 
+>> 	# grep . /sys/devices/system/hmat/mem_tgt*/local_init/write_bw_MBps
+>> 	/sys/devices/system/hmat/mem_tgt2/local_init/write_bw_MBps:81920
+>> 	/sys/devices/system/hmat/mem_tgt3/local_init/write_bw_MBps:40960
+>> 	/sys/devices/system/hmat/mem_tgt4/local_init/write_bw_MBps:40960
+>> 	/sys/devices/system/hmat/mem_tgt5/local_init/write_bw_MBps:40960
+>> 
+>> and look for the one that corresponds to your HBM speed. (These numbers are
+>> made up, but you get the idea.)
+>
+> Presumably ACPI-based platforms will not be the only ones who have the
+> ability to expose different bandwidth memories in the future.  I think
+> we need a platform-agnostic way ... right, PowerPC people?
 
-Thanks a lot Ross, I will try this but things are getting pretty busy
-here before the holiday so I won't be able to get to it and your other
-email before new year. Sorry about that.
+Yes!
 
--- 
-Michal Hocko
-SUSE Labs
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+I don't have any detail at hand but will try and rustle something up.
+
+cheers
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
