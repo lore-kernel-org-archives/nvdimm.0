@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7930522280C5B
- for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:49:57 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 08/17] mm: pass the vmem_altmap to memmap_init_zone
-Date: Fri, 29 Dec 2017 08:53:57 +0100
-Message-Id: <20171229075406.1936-9-hch@lst.de>
-In-Reply-To: <20171229075406.1936-1-hch@lst.de>
-References: <20171229075406.1936-1-hch@lst.de>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8839E222F4E13
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 12:24:43 -0800 (PST)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.15-rc5
+Date: Sat, 23 Dec 2017 20:29:32 +0000
+Message-ID: <1514060957.17984.4.camel@intel.com>
+Content-Language: en-US
+Content-ID: <8BFBA7B1181F394D8549A59DE538859C@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,172 +18,180 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Pass the vmem_altmap two levels down instead of needing a lookup.
+Hi Linus, please pull from:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+
+...to receive:
+
+* NVDIMM namespaces, configured to enforce 1GB alignment, fail to
+initialize on platforms that mis-align the start or end of the physical
+address range.
+
+* The Linux implementation of the BTT (Block Translation Table) is
+incompatible with the UEFI 2.7 definition of the BTT format. The BTT
+layers a software atomic sector semantic on top of an NVDIMM namespace.
+Linux needs to be compatible with the UEFI definition to enable boot
+support or any pre-OS access of data on a BTT enabled namespace.
+
+* A fix for ACPI SMART notification events, this allows a userspace
+monitor to register for health events rather than poll. This has been
+broken since it was initially merged as the unit test inadvertently
+worked around the problem. The urgency for fixing this during the -rc
+series is driven by how expensive it is to poll for this data (System
+Management Mode entry).
+
+These fixes are all tagged for -stable and have received a build
+success notification from the kbuild robot. Full changelogs below:
+
 ---
- arch/ia64/mm/init.c            | 9 +++++----
- include/linux/memory_hotplug.h | 2 +-
- include/linux/mm.h             | 4 ++--
- kernel/memremap.c              | 2 +-
- mm/hmm.c                       | 2 +-
- mm/memory_hotplug.c            | 9 +++++----
- mm/page_alloc.c                | 6 +++---
- 7 files changed, 18 insertions(+), 16 deletions(-)
 
-diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
-index 6a8ce9e1536e..18278b448530 100644
---- a/arch/ia64/mm/init.c
-+++ b/arch/ia64/mm/init.c
-@@ -501,7 +501,7 @@ virtual_memmap_init(u64 start, u64 end, void *arg)
- 	if (map_start < map_end)
- 		memmap_init_zone((unsigned long)(map_end - map_start),
- 				 args->nid, args->zone, page_to_pfn(map_start),
--				 MEMMAP_EARLY);
-+				 MEMMAP_EARLY, NULL);
- 	return 0;
- }
- 
-@@ -509,9 +509,10 @@ void __meminit
- memmap_init (unsigned long size, int nid, unsigned long zone,
- 	     unsigned long start_pfn)
- {
--	if (!vmem_map)
--		memmap_init_zone(size, nid, zone, start_pfn, MEMMAP_EARLY);
--	else {
-+	if (!vmem_map) {
-+		memmap_init_zone(size, nid, zone, start_pfn, MEMMAP_EARLY,
-+				NULL);
-+	} else {
- 		struct page *start;
- 		struct memmap_init_callback_data args;
- 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 20dd98ad44a0..aba5f86eb038 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -324,7 +324,7 @@ extern int add_memory_resource(int nid, struct resource *resource, bool online);
- extern int arch_add_memory(int nid, u64 start, u64 size,
- 		struct vmem_altmap *altmap, bool want_memblock);
- extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
--		unsigned long nr_pages);
-+		unsigned long nr_pages, struct vmem_altmap *altmap);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern void remove_memory(int nid, u64 start, u64 size);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 9d4cd4c1dc6d..fd01135324b6 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2069,8 +2069,8 @@ static inline void zero_resv_unavail(void) {}
- #endif
- 
- extern void set_dma_reserve(unsigned long new_dma_reserve);
--extern void memmap_init_zone(unsigned long, int, unsigned long,
--				unsigned long, enum memmap_context);
-+extern void memmap_init_zone(unsigned long, int, unsigned long, unsigned long,
-+		enum memmap_context, struct vmem_altmap *);
- extern void setup_per_zone_wmarks(void);
- extern int __meminit init_per_zone_wmark_min(void);
- extern void mem_init(void);
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 380fca1c4a02..64b12c806cc5 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -432,7 +432,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
- 	if (!error)
- 		move_pfn_range_to_zone(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 					align_start >> PAGE_SHIFT,
--					align_size >> PAGE_SHIFT);
-+					align_size >> PAGE_SHIFT, altmap);
- 	mem_hotplug_done();
- 	if (error)
- 		goto err_add_memory;
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 5d17ba89062f..2f2e13c61040 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -942,7 +942,7 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
- 	}
- 	move_pfn_range_to_zone(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 				align_start >> PAGE_SHIFT,
--				align_size >> PAGE_SHIFT);
-+				align_size >> PAGE_SHIFT, NULL);
- 	mem_hotplug_done();
- 
- 	for (pfn = devmem->pfn_first; pfn < devmem->pfn_last; pfn++) {
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index a8dde9734120..12df8a5fadcc 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -798,8 +798,8 @@ static void __meminit resize_pgdat_range(struct pglist_data *pgdat, unsigned lon
- 	pgdat->node_spanned_pages = max(start_pfn + nr_pages, old_end_pfn) - pgdat->node_start_pfn;
- }
- 
--void __ref move_pfn_range_to_zone(struct zone *zone,
--		unsigned long start_pfn, unsigned long nr_pages)
-+void __ref move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
-+		unsigned long nr_pages, struct vmem_altmap *altmap)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	int nid = pgdat->node_id;
-@@ -824,7 +824,8 @@ void __ref move_pfn_range_to_zone(struct zone *zone,
- 	 * expects the zone spans the pfn range. All the pages in the range
- 	 * are reserved so nobody should be touching them so we should be safe
- 	 */
--	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn, MEMMAP_HOTPLUG);
-+	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn,
-+			MEMMAP_HOTPLUG, altmap);
- 
- 	set_zone_contiguous(zone);
- }
-@@ -896,7 +897,7 @@ static struct zone * __meminit move_pfn_range(int online_type, int nid,
- 	struct zone *zone;
- 
- 	zone = zone_for_pfn_range(online_type, nid, start_pfn, nr_pages);
--	move_pfn_range_to_zone(zone, start_pfn, nr_pages);
-+	move_pfn_range_to_zone(zone, start_pfn, nr_pages, NULL);
- 	return zone;
- }
- 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 7e5e775e97f4..1748dd4a4b1b 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5314,9 +5314,9 @@ void __ref build_all_zonelists(pg_data_t *pgdat)
-  * done. Non-atomic initialization, single-pass.
-  */
- void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
--		unsigned long start_pfn, enum memmap_context context)
-+		unsigned long start_pfn, enum memmap_context context,
-+		struct vmem_altmap *altmap)
- {
--	struct vmem_altmap *altmap = to_vmem_altmap(__pfn_to_phys(start_pfn));
- 	unsigned long end_pfn = start_pfn + size;
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long pfn;
-@@ -5417,7 +5417,7 @@ static void __meminit zone_init_free_lists(struct zone *zone)
- 
- #ifndef __HAVE_ARCH_MEMMAP_INIT
- #define memmap_init(size, nid, zone, start_pfn) \
--	memmap_init_zone((size), (nid), (zone), (start_pfn), MEMMAP_EARLY)
-+	memmap_init_zone((size), (nid), (zone), (start_pfn), MEMMAP_EARLY, NULL)
- #endif
- 
- static int zone_batchsize(struct zone *zone)
--- 
-2.14.2
+The following changes since commit ae64f9bd1d3621b5e60d7363bc20afb46aede215:
 
+  Linux 4.15-rc2 (2017-12-03 11:01:47 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+
+for you to fetch changes up to 24e3a7fb60a9187e5df90e5fa655ffc94b9c4f77:
+
+  libnvdimm, btt: Fix an incompatibility in the log layout (2017-12-21 14:59:27 -0800)
+
+----------------------------------------------------------------
+Dan Williams (3):
+      acpi, nfit: fix health event notification
+      libnvdimm, pfn: fix start_pad handling for aligned namespaces
+      libnvdimm, dax: fix 1GB-aligned namespaces vs physical misalignment
+
+Vishal Verma (2):
+      libnvdimm, btt: add a couple of missing kernel-doc lines
+      libnvdimm, btt: Fix an incompatibility in the log layout
+
+ drivers/acpi/nfit/core.c  |   9 ++-
+ drivers/nvdimm/btt.c      | 201 ++++++++++++++++++++++++++++++++++++++--------
+ drivers/nvdimm/btt.h      |  47 ++++++++++-
+ drivers/nvdimm/pfn_devs.c |  20 +++--
+ 4 files changed, 236 insertions(+), 41 deletions(-)
+
+
+commit adf6895754e2503d994a765535fd1813f8834674
+Author: Dan Williams <dan.j.williams@intel.com>
+Date:   Thu Nov 30 19:42:52 2017 -0800
+
+    acpi, nfit: fix health event notification
+    
+    Integration testing with a BIOS that generates injected health event
+    notifications fails to communicate those events to userspace. The nfit
+    driver neglects to link the ACPI DIMM device with the necessary driver
+    data so acpi_nvdimm_notify() fails this lookup:
+    
+            nfit_mem = dev_get_drvdata(dev);
+            if (nfit_mem && nfit_mem->flags_attr)
+                    sysfs_notify_dirent(nfit_mem->flags_attr);
+    
+    Add the necessary linkage when installing the notification handler and
+    clean it up when the nfit driver instance is torn down.
+    
+    Cc: <stable@vger.kernel.org>
+    Cc: Toshi Kani <toshi.kani@hpe.com>
+    Cc: Vishal Verma <vishal.l.verma@intel.com>
+    Fixes: ba9c8dd3c222 ("acpi, nfit: add dimm device notification support")
+    Reported-by: Daniel Osawa <daniel.k.osawa@intel.com>
+    Tested-by: Daniel Osawa <daniel.k.osawa@intel.com>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+commit 19deaa217bc04e83b59b5e8c8229eb0e53ad9efc
+Author: Dan Williams <dan.j.williams@intel.com>
+Date:   Tue Dec 19 15:07:10 2017 -0800
+
+    libnvdimm, pfn: fix start_pad handling for aligned namespaces
+    
+    The alignment checks at pfn driver startup fail to properly account for
+    the 'start_pad' in the case where the namespace is misaligned relative
+    to its internal alignment. This is typically triggered in 1G aligned
+    namespace, but could theoretically trigger with small namespace
+    alignments. When this triggers the kernel reports messages of the form:
+    
+        dax2.1: bad offset: 0x3c000000 dax disabled align: 0x40000000
+    
+    Cc: <stable@vger.kernel.org>
+    Fixes: 1ee6667cd8d1 ("libnvdimm, pfn, dax: fix initialization vs autodetect...")
+    Reported-by: Jane Chu <jane.chu@oracle.com>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+commit 41fce90f26333c4fa82e8e43b9ace86c4e8a0120
+Author: Dan Williams <dan.j.williams@intel.com>
+Date:   Mon Dec 4 14:07:43 2017 -0800
+
+    libnvdimm, dax: fix 1GB-aligned namespaces vs physical misalignment
+    
+    The following namespace configuration attempt:
+    
+        # ndctl create-namespace -e namespace0.0 -m devdax -a 1G -f
+        libndctl: ndctl_dax_enable: dax0.1: failed to enable
+          Error: namespace0.0: failed to enable
+    
+        failed to reconfigure namespace: No such device or address
+    
+    ...fails when the backing memory range is not physically aligned to 1G:
+    
+        # cat /proc/iomem | grep Persistent
+        210000000-30fffffff : Persistent Memory (legacy)
+    
+    In the above example the 4G persistent memory range starts and ends on a
+    256MB boundary.
+    
+    We handle this case correctly when needing to handle cases that violate
+    section alignment (128MB) collisions against "System RAM", and we simply
+    need to extend that padding/truncation for the 1GB alignment use case.
+    
+    Cc: <stable@vger.kernel.org>
+    Fixes: 315c562536c4 ("libnvdimm, pfn: add 'align' attribute...")
+    Reported-and-tested-by: Jane Chu <jane.chu@oracle.com>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+commit 13b7954c0b8dd2d6382b4ddb5053f09e389d5c6e
+Author: Vishal Verma <vishal.l.verma@intel.com>
+Date:   Thu Dec 14 17:26:13 2017 -0700
+
+    libnvdimm, btt: add a couple of missing kernel-doc lines
+    
+    Recent updates to btt.h neglected to add corresponding kernel-doc lines
+    for new structure members. Add them.
+    
+    Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+commit 24e3a7fb60a9187e5df90e5fa655ffc94b9c4f77
+Author: Vishal Verma <vishal.l.verma@intel.com>
+Date:   Mon Dec 18 09:28:39 2017 -0700
+
+    libnvdimm, btt: Fix an incompatibility in the log layout
+    
+    Due to a spec misinterpretation, the Linux implementation of the BTT log
+    area had different padding scheme from other implementations, such as
+    UEFI and NVML.
+    
+    This fixes the padding scheme, and defaults to it for new BTT layouts.
+    We attempt to detect the padding scheme in use when probing for an
+    existing BTT. If we detect the older/incompatible scheme, we continue
+    using it.
+    
+    Reported-by: Juston Li <juston.li@intel.com>
+    Cc: Dan Williams <dan.j.williams@intel.com>
+    Cc: <stable@vger.kernel.org>
+    Fixes: 5212e11fde4d ("nd_btt: atomic sector updates")
+    Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
