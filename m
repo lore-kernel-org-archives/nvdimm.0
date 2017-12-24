@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EC7EE2216D8E8
- for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 06:06:05 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 11/17] mm: move get_dev_pagemap out of line
-Date: Fri, 15 Dec 2017 15:09:41 +0100
-Message-Id: <20171215140947.26075-12-hch@lst.de>
-In-Reply-To: <20171215140947.26075-1-hch@lst.de>
-References: <20171215140947.26075-1-hch@lst.de>
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1084122225C0C
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 16:59:50 -0800 (PST)
+Subject: [PATCH v4 05/18] dax: stop using VM_MIXEDMAP for dax
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 23 Dec 2017 16:56:27 -0800
+Message-ID: <151407698763.38751.8605535379424429182.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,89 +18,315 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhpcyBpcyBhIHByZXR0eSBiaWcgZnVuY3Rpb24sIHdoaWNoIHNob3VsZCBiZSBvdXQgb2YgbGlu
-ZSBpbiBnZW5lcmFsLAphbmQgYSBuby1vcCBzdHViIGlmIENPTkZJR19aT05FX0RFVklD0JUgaXMg
-bm90IHNldC4KClNpZ25lZC1vZmYtYnk6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0LmRlPgpS
-ZXZpZXdlZC1ieTogTG9nYW4gR3VudGhvcnBlIDxsb2dhbmdAZGVsdGF0ZWUuY29tPgotLS0KIGlu
-Y2x1ZGUvbGludXgvbWVtcmVtYXAuaCB8IDM5ICsrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQoga2VybmVsL21lbXJlbWFwLmMgICAgICAgIHwgMzYgKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKy0tCiAyIGZpbGVzIGNoYW5nZWQsIDM4IGluc2VydGlvbnMoKyks
-IDM3IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaCBi
-L2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaAppbmRleCBkNWE2NzM2ZDk3MzcuLjI2ZThhYWJhMjdk
-NSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCisrKyBiL2luY2x1ZGUvbGlu
-dXgvbWVtcmVtYXAuaApAQCAtMTMzLDcgKzEzMyw4IEBAIHN0cnVjdCBkZXZfcGFnZW1hcCB7CiAj
-aWZkZWYgQ09ORklHX1pPTkVfREVWSUNFCiB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVj
-dCBkZXZpY2UgKmRldiwgc3RydWN0IHJlc291cmNlICpyZXMsCiAJCXN0cnVjdCBwZXJjcHVfcmVm
-ICpyZWYsIHN0cnVjdCB2bWVtX2FsdG1hcCAqYWx0bWFwKTsKLXN0cnVjdCBkZXZfcGFnZW1hcCAq
-ZmluZF9kZXZfcGFnZW1hcChyZXNvdXJjZV9zaXplX3QgcGh5cyk7CitzdHJ1Y3QgZGV2X3BhZ2Vt
-YXAgKmdldF9kZXZfcGFnZW1hcCh1bnNpZ25lZCBsb25nIHBmbiwKKwkJc3RydWN0IGRldl9wYWdl
-bWFwICpwZ21hcCk7CiAKIHVuc2lnbmVkIGxvbmcgdm1lbV9hbHRtYXBfb2Zmc2V0KHN0cnVjdCB2
-bWVtX2FsdG1hcCAqYWx0bWFwKTsKIHZvaWQgdm1lbV9hbHRtYXBfZnJlZShzdHJ1Y3Qgdm1lbV9h
-bHRtYXAgKmFsdG1hcCwgdW5zaWduZWQgbG9uZyBucl9wZm5zKTsKQEAgLTE1Myw3ICsxNTQsOCBA
-QCBzdGF0aWMgaW5saW5lIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAq
-ZGV2LAogCXJldHVybiBFUlJfUFRSKC1FTlhJTyk7CiB9CiAKLXN0YXRpYyBpbmxpbmUgc3RydWN0
-IGRldl9wYWdlbWFwICpmaW5kX2Rldl9wYWdlbWFwKHJlc291cmNlX3NpemVfdCBwaHlzKQorc3Rh
-dGljIGlubGluZSBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKmdldF9kZXZfcGFnZW1hcCh1bnNpZ25lZCBs
-b25nIHBmbiwKKwkJc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIHsKIAlyZXR1cm4gTlVMTDsK
-IH0KQEAgLTE4MywzOSArMTg1LDYgQEAgc3RhdGljIGlubGluZSBib29sIGlzX2RldmljZV9wdWJs
-aWNfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSkKIH0KICNlbmRpZiAvKiBDT05GSUdfREVW
-SUNFX1BSSVZBVEUgfHwgQ09ORklHX0RFVklDRV9QVUJMSUMgKi8KIAotLyoqCi0gKiBnZXRfZGV2
-X3BhZ2VtYXAoKSAtIHRha2UgYSBuZXcgbGl2ZSByZWZlcmVuY2Ugb24gdGhlIGRldl9wYWdlbWFw
-IGZvciBAcGZuCi0gKiBAcGZuOiBwYWdlIGZyYW1lIG51bWJlciB0byBsb29rdXAgcGFnZV9tYXAK
-LSAqIEBwZ21hcDogb3B0aW9uYWwga25vd24gcGdtYXAgdGhhdCBhbHJlYWR5IGhhcyBhIHJlZmVy
-ZW5jZQotICoKLSAqIEBwZ21hcCBhbGxvd3MgdGhlIG92ZXJoZWFkIG9mIGEgbG9va3VwIHRvIGJl
-IGJ5cGFzc2VkIHdoZW4gQHBmbiBsYW5kcyBpbiB0aGUKLSAqIHNhbWUgbWFwcGluZy4KLSAqLwot
-c3RhdGljIGlubGluZSBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKmdldF9kZXZfcGFnZW1hcCh1bnNpZ25l
-ZCBsb25nIHBmbiwKLQkJc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKLXsKLQljb25zdCBzdHJ1
-Y3QgcmVzb3VyY2UgKnJlcyA9IHBnbWFwID8gcGdtYXAtPnJlcyA6IE5VTEw7Ci0JcmVzb3VyY2Vf
-c2l6ZV90IHBoeXMgPSBQRk5fUEhZUyhwZm4pOwotCi0JLyoKLQkgKiBJbiB0aGUgY2FjaGVkIGNh
-c2Ugd2UncmUgYWxyZWFkeSBob2xkaW5nIGEgbGl2ZSByZWZlcmVuY2Ugc28KLQkgKiB3ZSBjYW4g
-c2ltcGx5IGRvIGEgYmxpbmQgaW5jcmVtZW50Ci0JICovCi0JaWYgKHJlcyAmJiBwaHlzID49IHJl
-cy0+c3RhcnQgJiYgcGh5cyA8PSByZXMtPmVuZCkgewotCQlwZXJjcHVfcmVmX2dldChwZ21hcC0+
-cmVmKTsKLQkJcmV0dXJuIHBnbWFwOwotCX0KLQotCS8qIGZhbGwgYmFjayB0byBzbG93IHBhdGgg
-bG9va3VwICovCi0JcmN1X3JlYWRfbG9jaygpOwotCXBnbWFwID0gZmluZF9kZXZfcGFnZW1hcChw
-aHlzKTsKLQlpZiAocGdtYXAgJiYgIXBlcmNwdV9yZWZfdHJ5Z2V0X2xpdmUocGdtYXAtPnJlZikp
-Ci0JCXBnbWFwID0gTlVMTDsKLQlyY3VfcmVhZF91bmxvY2soKTsKLQotCXJldHVybiBwZ21hcDsK
-LX0KLQogc3RhdGljIGlubGluZSB2b2lkIHB1dF9kZXZfcGFnZW1hcChzdHJ1Y3QgZGV2X3BhZ2Vt
-YXAgKnBnbWFwKQogewogCWlmIChwZ21hcCkKZGlmZiAtLWdpdCBhL2tlcm5lbC9tZW1yZW1hcC5j
-IGIva2VybmVsL21lbXJlbWFwLmMKaW5kZXggOGU4NTgwM2I2YjBlLi40M2Q5NGRiOTdmZjQgMTAw
-NjQ0Ci0tLSBhL2tlcm5lbC9tZW1yZW1hcC5jCisrKyBiL2tlcm5lbC9tZW1yZW1hcC5jCkBAIC0z
-MTQsNyArMzE0LDcgQEAgc3RhdGljIHZvaWQgZGV2bV9tZW1yZW1hcF9wYWdlc19yZWxlYXNlKHN0
-cnVjdCBkZXZpY2UgKmRldiwgdm9pZCAqZGF0YSkKIH0KIAogLyogYXNzdW1lcyByY3VfcmVhZF9s
-b2NrKCkgaGVsZCBhdCBlbnRyeSAqLwotc3RydWN0IGRldl9wYWdlbWFwICpmaW5kX2Rldl9wYWdl
-bWFwKHJlc291cmNlX3NpemVfdCBwaHlzKQorc3RhdGljIHN0cnVjdCBkZXZfcGFnZW1hcCAqZmlu
-ZF9kZXZfcGFnZW1hcChyZXNvdXJjZV9zaXplX3QgcGh5cykKIHsKIAlzdHJ1Y3QgcGFnZV9tYXAg
-KnBhZ2VfbWFwOwogCkBAIC01MDAsOCArNTAwLDQwIEBAIHN0cnVjdCB2bWVtX2FsdG1hcCAqdG9f
-dm1lbV9hbHRtYXAodW5zaWduZWQgbG9uZyBtZW1tYXBfc3RhcnQpCiAKIAlyZXR1cm4gcGdtYXAg
-PyBwZ21hcC0+YWx0bWFwIDogTlVMTDsKIH0KLSNlbmRpZiAvKiBDT05GSUdfWk9ORV9ERVZJQ0Ug
-Ki8KIAorLyoqCisgKiBnZXRfZGV2X3BhZ2VtYXAoKSAtIHRha2UgYSBuZXcgbGl2ZSByZWZlcmVu
-Y2Ugb24gdGhlIGRldl9wYWdlbWFwIGZvciBAcGZuCisgKiBAcGZuOiBwYWdlIGZyYW1lIG51bWJl
-ciB0byBsb29rdXAgcGFnZV9tYXAKKyAqIEBwZ21hcDogb3B0aW9uYWwga25vd24gcGdtYXAgdGhh
-dCBhbHJlYWR5IGhhcyBhIHJlZmVyZW5jZQorICoKKyAqIEBwZ21hcCBhbGxvd3MgdGhlIG92ZXJo
-ZWFkIG9mIGEgbG9va3VwIHRvIGJlIGJ5cGFzc2VkIHdoZW4gQHBmbiBsYW5kcyBpbiB0aGUKKyAq
-IHNhbWUgbWFwcGluZy4KKyAqLworc3RydWN0IGRldl9wYWdlbWFwICpnZXRfZGV2X3BhZ2VtYXAo
-dW5zaWduZWQgbG9uZyBwZm4sCisJCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCit7CisJY29u
-c3Qgc3RydWN0IHJlc291cmNlICpyZXMgPSBwZ21hcCA/IHBnbWFwLT5yZXMgOiBOVUxMOworCXJl
-c291cmNlX3NpemVfdCBwaHlzID0gUEZOX1BIWVMocGZuKTsKKworCS8qCisJICogSW4gdGhlIGNh
-Y2hlZCBjYXNlIHdlJ3JlIGFscmVhZHkgaG9sZGluZyBhIGxpdmUgcmVmZXJlbmNlIHNvCisJICog
-d2UgY2FuIHNpbXBseSBkbyBhIGJsaW5kIGluY3JlbWVudAorCSAqLworCWlmIChyZXMgJiYgcGh5
-cyA+PSByZXMtPnN0YXJ0ICYmIHBoeXMgPD0gcmVzLT5lbmQpIHsKKwkJcGVyY3B1X3JlZl9nZXQo
-cGdtYXAtPnJlZik7CisJCXJldHVybiBwZ21hcDsKKwl9CisKKwkvKiBmYWxsIGJhY2sgdG8gc2xv
-dyBwYXRoIGxvb2t1cCAqLworCXJjdV9yZWFkX2xvY2soKTsKKwlwZ21hcCA9IGZpbmRfZGV2X3Bh
-Z2VtYXAocGh5cyk7CisJaWYgKHBnbWFwICYmICFwZXJjcHVfcmVmX3RyeWdldF9saXZlKHBnbWFw
-LT5yZWYpKQorCQlwZ21hcCA9IE5VTEw7CisJcmN1X3JlYWRfdW5sb2NrKCk7CisKKwlyZXR1cm4g
-cGdtYXA7Cit9CisjZW5kaWYgLyogQ09ORklHX1pPTkVfREVWSUNFICovCiAKICNpZiBJU19FTkFC
-TEVEKENPTkZJR19ERVZJQ0VfUFJJVkFURSkgfHwgIElTX0VOQUJMRUQoQ09ORklHX0RFVklDRV9Q
-VUJMSUMpCiB2b2lkIHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19wYWdlKHN0cnVj
-dCBwYWdlICpwYWdlKQotLSAKMi4xNC4yCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBs
-aXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1u
-dmRpbW0K
+VM_MIXEDMAP is used by dax to direct mm paths like vm_normal_page() that
+the memory page it is dealing with is not typical memory from the linear
+map. The get_user_pages_fast() path, since it does not resolve the vma,
+is already using {pte,pmd}_devmap() as a stand-in for VM_MIXEDMAP, so we
+use that as a VM_MIXEDMAP replacement in some locations. In the cases
+where there is no pte to consult we fallback to using vma_is_dax() to
+detect the VM_MIXEDMAP special case.
+
+Now that we have explicit driver pfn_t-flag opt-in/opt-out for
+get_user_pages() support for DAX we can stop setting VM_MIXEDMAP.  This
+also means we no longer need to worry about safely manipulating vm_flags
+in a future where we support dynamically changing the dax mode of a
+file.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/device.c |    2 +-
+ fs/ext2/file.c       |    1 -
+ fs/ext4/file.c       |    2 +-
+ fs/xfs/xfs_file.c    |    2 +-
+ include/linux/mm.h   |    1 +
+ include/linux/vma.h  |   23 +++++++++++++++++++++++
+ mm/huge_memory.c     |    6 ++----
+ mm/ksm.c             |    3 +++
+ mm/madvise.c         |    2 +-
+ mm/memory.c          |    8 ++++++--
+ mm/migrate.c         |    3 ++-
+ mm/mlock.c           |    5 +++--
+ mm/mmap.c            |    8 ++++----
+ 13 files changed, 48 insertions(+), 18 deletions(-)
+ create mode 100644 include/linux/vma.h
+
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 7b0bf825c4e7..c514ad48ff73 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -463,7 +463,7 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ 		return rc;
+ 
+ 	vma->vm_ops = &dax_vm_ops;
+-	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++	vma->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
+ }
+ 
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index 2da67699dc33..62c12c75b788 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -126,7 +126,6 @@ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ 	file_accessed(file);
+ 	vma->vm_ops = &ext2_dax_vm_ops;
+-	vma->vm_flags |= VM_MIXEDMAP;
+ 	return 0;
+ }
+ #else
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index a0ae27b1bc66..983cee466a89 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -367,7 +367,7 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	file_accessed(file);
+ 	if (IS_DAX(file_inode(file))) {
+ 		vma->vm_ops = &ext4_dax_vm_ops;
+-		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++		vma->vm_flags |= VM_HUGEPAGE;
+ 	} else {
+ 		vma->vm_ops = &ext4_file_vm_ops;
+ 	}
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 8601275cc5e6..1d6d4a3ecd42 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1130,7 +1130,7 @@ xfs_file_mmap(
+ 	file_accessed(filp);
+ 	vma->vm_ops = &xfs_file_vm_ops;
+ 	if (IS_DAX(file_inode(filp)))
+-		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++		vma->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 09637c353de0..dc124b278173 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2405,6 +2405,7 @@ int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			pfn_t pfn);
+ int vm_insert_mixed_mkwrite(struct vm_area_struct *vma, unsigned long addr,
+ 			pfn_t pfn);
++bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn);
+ int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len);
+ 
+ 
+diff --git a/include/linux/vma.h b/include/linux/vma.h
+new file mode 100644
+index 000000000000..e71487e8c5f0
+--- /dev/null
++++ b/include/linux/vma.h
+@@ -0,0 +1,23 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2017 Intel Corporation. All rights reserved. */
++#ifndef __VMA_H__
++#define __VMA_H__
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include <linux/mm_types.h>
++#include <linux/hugetlb_inline.h>
++
++/*
++ * There are several vma types that have special handling in the
++ * get_user_pages() path and other core mm paths that must not assume
++ * normal pages. vma_is_special() consolidates some common checks for
++ * VM_SPECIAL, hugetlb and dax vmas, but note that there are 'special'
++ * vmas and circumstances beyond these types. In other words this helper
++ * is not exhaustive for example this does not replace VM_PFNMAP checks.
++ */
++static inline bool vma_is_special(struct vm_area_struct *vma)
++{
++	return vma && (is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)
++			|| vma_is_dax(vma));
++}
++#endif /* __VMA_H__ */
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 2f2f5e774902..d1b891f27675 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -765,11 +765,10 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	 * but we need to be consistent with PTEs and architectures that
+ 	 * can't support a 'special' bit.
+ 	 */
+-	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
++	BUG_ON(!((vma->vm_flags & VM_PFNMAP) || vm_mixed_ok(vma, pfn)));
+ 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+-	BUG_ON(!pfn_t_devmap(pfn));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+@@ -824,11 +823,10 @@ int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 	 * but we need to be consistent with PTEs and architectures that
+ 	 * can't support a 'special' bit.
+ 	 */
+-	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
++	BUG_ON(!((vma->vm_flags & VM_PFNMAP) || vm_mixed_ok(vma, pfn)));
+ 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+-	BUG_ON(!pfn_t_devmap(pfn));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+diff --git a/mm/ksm.c b/mm/ksm.c
+index be8f4576f842..0bd1fda485fd 100644
+--- a/mm/ksm.c
++++ b/mm/ksm.c
+@@ -2372,6 +2372,9 @@ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 				 VM_HUGETLB | VM_MIXEDMAP))
+ 			return 0;		/* just ignore the advice */
+ 
++		if (vma_is_dax(vma))
++			return 0;
++
+ #ifdef VM_SAO
+ 		if (*vm_flags & VM_SAO)
+ 			return 0;
+diff --git a/mm/madvise.c b/mm/madvise.c
+index 751e97aa2210..eff3ec1e2574 100644
+--- a/mm/madvise.c
++++ b/mm/madvise.c
+@@ -96,7 +96,7 @@ static long madvise_behavior(struct vm_area_struct *vma,
+ 		new_flags |= VM_DONTDUMP;
+ 		break;
+ 	case MADV_DODUMP:
+-		if (new_flags & VM_SPECIAL) {
++		if (vma_is_dax(vma) || (new_flags & VM_SPECIAL)) {
+ 			error = -EINVAL;
+ 			goto out;
+ 		}
+diff --git a/mm/memory.c b/mm/memory.c
+index 48a13473b401..1efb005e8fab 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -831,6 +831,8 @@ struct page *_vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+ 			return vma->vm_ops->find_special_page(vma, addr);
+ 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+ 			return NULL;
++		if (pte_devmap(pte))
++			return NULL;
+ 		if (is_zero_pfn(pfn))
+ 			return NULL;
+ 
+@@ -918,6 +920,8 @@ struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 		}
+ 	}
+ 
++	if (pmd_devmap(pmd))
++		return NULL;
+ 	if (is_zero_pfn(pfn))
+ 		return NULL;
+ 	if (unlikely(pfn > highest_memmap_pfn))
+@@ -1228,7 +1232,7 @@ int copy_page_range(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 	 * efficient than faulting.
+ 	 */
+ 	if (!(vma->vm_flags & (VM_HUGETLB | VM_PFNMAP | VM_MIXEDMAP)) &&
+-			!vma->anon_vma)
++			!vma->anon_vma && !vma_is_dax(vma))
+ 		return 0;
+ 
+ 	if (is_vm_hugetlb_page(vma))
+@@ -1897,7 +1901,7 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
+ }
+ EXPORT_SYMBOL(vm_insert_pfn_prot);
+ 
+-static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
++bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
+ {
+ 	/* these checks mirror the abort conditions in vm_normal_page */
+ 	if (vma->vm_flags & VM_MIXEDMAP)
+diff --git a/mm/migrate.c b/mm/migrate.c
+index 4d0be47a322a..624d43a455be 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -46,6 +46,7 @@
+ #include <linux/page_owner.h>
+ #include <linux/sched/mm.h>
+ #include <linux/ptrace.h>
++#include <linux/vma.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -2938,7 +2939,7 @@ int migrate_vma(const struct migrate_vma_ops *ops,
+ 	/* Sanity check the arguments */
+ 	start &= PAGE_MASK;
+ 	end &= PAGE_MASK;
+-	if (!vma || is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL))
++	if (!vma || vma_is_special(vma))
+ 		return -EINVAL;
+ 	if (start < vma->vm_start || start >= vma->vm_end)
+ 		return -EINVAL;
+diff --git a/mm/mlock.c b/mm/mlock.c
+index 30472d438794..a10580f77c84 100644
+--- a/mm/mlock.c
++++ b/mm/mlock.c
+@@ -23,6 +23,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/memcontrol.h>
+ #include <linux/mm_inline.h>
++#include <linux/vma.h>
+ 
+ #include "internal.h"
+ 
+@@ -520,8 +521,8 @@ static int mlock_fixup(struct vm_area_struct *vma, struct vm_area_struct **prev,
+ 	int lock = !!(newflags & VM_LOCKED);
+ 	vm_flags_t old_flags = vma->vm_flags;
+ 
+-	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
+-	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm))
++	if (newflags == vma->vm_flags || vma_is_special(vma)
++			|| vma == get_gate_vma(current->mm))
+ 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
+ 		goto out;
+ 
+diff --git a/mm/mmap.c b/mm/mmap.c
+index a4d546821214..b063e363cf27 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -45,6 +45,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/pkeys.h>
+ #include <linux/oom.h>
++#include <linux/vma.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/cacheflush.h>
+@@ -1737,11 +1738,10 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
+ 
+ 	vm_stat_account(mm, vm_flags, len >> PAGE_SHIFT);
+ 	if (vm_flags & VM_LOCKED) {
+-		if (!((vm_flags & VM_SPECIAL) || is_vm_hugetlb_page(vma) ||
+-					vma == get_gate_vma(current->mm)))
+-			mm->locked_vm += (len >> PAGE_SHIFT);
+-		else
++		if (vma_is_special(vma) || vma == get_gate_vma(current->mm))
+ 			vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
++		else
++			mm->locked_vm += (len >> PAGE_SHIFT);
+ 	}
+ 
+ 	if (file)
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
