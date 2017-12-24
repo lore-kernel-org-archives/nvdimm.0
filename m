@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8D8F72034B9EA
- for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:49:29 -0800 (PST)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 03/17] mm: don't export __add_pages
-Date: Fri, 29 Dec 2017 08:53:52 +0100
-Message-Id: <20171229075406.1936-4-hch@lst.de>
-In-Reply-To: <20171229075406.1936-1-hch@lst.de>
-References: <20171229075406.1936-1-hch@lst.de>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B576122137DAA
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 16:59:29 -0800 (PST)
+Subject: [PATCH v4 01/18] mm, dax: introduce pfn_t_special()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 23 Dec 2017 16:56:06 -0800
+Message-ID: <151407696622.38751.4716967585354728059.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,39 +18,127 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
+To: akpm@linux-foundation.org
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-xfs@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This function isn't used by any modules, and is only to be called
-from core MM code.  This includes the calls for the add_pages wrapper
-that might be inlined.
+In support of removing the VM_MIXEDMAP indication from DAX VMAs,
+introduce pfn_t_special() for drivers to indicate that _PAGE_SPECIAL
+should be used for DAX ptes. This also helps identify drivers like
+dccssblk that only want to use DAX in a read-only fashion without
+get_user_pages() support.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Ideally we could delete axonram and dcssblk DAX support, but if we need
+to keep it better make it explicit that axonram and dcssblk only support
+a sub-set of DAX due to missing _PAGE_DEVMAP support.
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/memory_hotplug.c | 1 -
- 1 file changed, 1 deletion(-)
+ arch/powerpc/sysdev/axonram.c |    2 +-
+ drivers/s390/block/dcssblk.c  |    3 ++-
+ include/linux/pfn_t.h         |   13 +++++++++++++
+ mm/memory.c                   |   16 +++++++++++++++-
+ 4 files changed, 31 insertions(+), 3 deletions(-)
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index c52aa05b106c..5c6f96e6b334 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -334,7 +334,6 @@ int __ref __add_pages(int nid, unsigned long phys_start_pfn,
- out:
- 	return err;
- }
--EXPORT_SYMBOL_GPL(__add_pages);
+diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
+index 1b307c80b401..cdbb0e59b3d3 100644
+--- a/arch/powerpc/sysdev/axonram.c
++++ b/arch/powerpc/sysdev/axonram.c
+@@ -151,7 +151,7 @@ __axon_ram_direct_access(struct axon_ram_bank *bank, pgoff_t pgoff, long nr_page
+ 	resource_size_t offset = pgoff * PAGE_SIZE;
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /* find the smallest valid pfn in the range [start_pfn, end_pfn) */
--- 
-2.14.2
+ 	*kaddr = (void *) bank->io_addr + offset;
+-	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
++	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV|PFN_SPECIAL);
+ 	return (bank->size - offset) / PAGE_SIZE;
+ }
+ 
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 6aaefb780436..9cae08b36b80 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -916,7 +916,8 @@ __dcssblk_direct_access(struct dcssblk_dev_info *dev_info, pgoff_t pgoff,
+ 
+ 	dev_sz = dev_info->end - dev_info->start + 1;
+ 	*kaddr = (void *) dev_info->start + offset;
+-	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
++	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
++			PFN_DEV|PFN_SPECIAL);
+ 
+ 	return (dev_sz - offset) / PAGE_SIZE;
+ }
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index 43b1d7648e82..a03c2642a87c 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -15,8 +15,10 @@
+ #define PFN_SG_LAST (1ULL << (BITS_PER_LONG_LONG - 2))
+ #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
+ #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
++#define PFN_SPECIAL (1ULL << (BITS_PER_LONG_LONG - 5))
+ 
+ #define PFN_FLAGS_TRACE \
++	{ PFN_SPECIAL,	"SPECIAL" }, \
+ 	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
+ 	{ PFN_SG_LAST,	"SG_LAST" }, \
+ 	{ PFN_DEV,	"DEV" }, \
+@@ -120,4 +122,15 @@ pud_t pud_mkdevmap(pud_t pud);
+ #endif
+ #endif /* __HAVE_ARCH_PTE_DEVMAP */
+ 
++#ifdef __HAVE_ARCH_PTE_SPECIAL
++static inline bool pfn_t_special(pfn_t pfn)
++{
++	return (pfn.val & PFN_SPECIAL) == PFN_SPECIAL;
++}
++#else
++static inline bool pfn_t_special(pfn_t pfn)
++{
++	return false;
++}
++#endif /* __HAVE_ARCH_PTE_SPECIAL */
+ #endif /* _LINUX_PFN_T_H_ */
+diff --git a/mm/memory.c b/mm/memory.c
+index 5eb3d2524bdc..48a13473b401 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1897,12 +1897,26 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
+ }
+ EXPORT_SYMBOL(vm_insert_pfn_prot);
+ 
++static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
++{
++	/* these checks mirror the abort conditions in vm_normal_page */
++	if (vma->vm_flags & VM_MIXEDMAP)
++		return true;
++	if (pfn_t_devmap(pfn))
++		return true;
++	if (pfn_t_special(pfn))
++		return true;
++	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
++		return true;
++	return false;
++}
++
+ static int __vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			pfn_t pfn, bool mkwrite)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
+ 
+-	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
++	BUG_ON(!vm_mixed_ok(vma, pfn));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return -EFAULT;
 
 _______________________________________________
 Linux-nvdimm mailing list
