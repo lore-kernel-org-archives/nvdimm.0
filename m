@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4446522225C09
- for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 17:00:38 -0800 (PST)
-Subject: [PATCH v4 14/18] ext2: use DEFINE_FSDAX_AOPS
+ by ml01.01.org (Postfix) with ESMTPS id 72D0C222447DF
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 17:00:59 -0800 (PST)
+Subject: [PATCH v4 18/18] xfs,
+ dax: wire up dax_flush_dma support via a new xfs_sync_dma helper
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 23 Dec 2017 16:57:15 -0800
-Message-ID: <151407703518.38751.15720592028869946071.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 23 Dec 2017 16:57:37 -0800
+Message-ID: <151407705701.38751.6157642918168721562.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -23,118 +24,259 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: akpm@linux-foundation.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Otherwise, direct-I/O
-triggers incorrect page cache assumptions and warnings.
+xfs_break_layouts() scans for active pNFS layouts, drops locks and
+rescans for those layouts to be broken. xfs_sync_dma performs
+xfs_break_layouts and also scans for active dax-dma pages, drops locks
+and rescans for those pages to go idle.
 
-Cc: Jan Kara <jack@suse.com>
+dax_flush_dma handles synchronizing against new page-busy events
+(get_user_pages). iIt invalidates all mappings to trigger the
+get_user_pages slow path which will eventually block on the
+XFS_MMAPLOCK. If it finds a dma-busy page it waits for a page-idle
+callback that will fire when the page reference count reaches 1 (recall
+ZONE_DEVICE pages are idle at count 1). While it is waiting, it drops
+locks so we do not deadlock the process that might be trying to elevate
+the page count of more pages before arranging for any of them to go idle
+as is typically the case of iov_iter_get_pages.
+
+dax_flush_dma relies on the fs-provided wait_atomic_t_action_f
+(xfs_wait_dax_page) to handle evaluating the page reference count and
+dropping locks when waiting.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/ext2/ext2.h  |    1 +
- fs/ext2/inode.c |   23 +++++++++++++++--------
- fs/ext2/namei.c |   18 ++----------------
- 3 files changed, 18 insertions(+), 24 deletions(-)
+ fs/xfs/Makefile    |    3 ++
+ fs/xfs/xfs_dma.c   |   81 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_dma.h   |   24 +++++++++++++++
+ fs/xfs/xfs_file.c  |    6 ++--
+ fs/xfs/xfs_ioctl.c |    7 ++--
+ fs/xfs/xfs_iops.c  |    7 +++-
+ 6 files changed, 118 insertions(+), 10 deletions(-)
+ create mode 100644 fs/xfs/xfs_dma.c
+ create mode 100644 fs/xfs/xfs_dma.h
 
-diff --git a/fs/ext2/ext2.h b/fs/ext2/ext2.h
-index 032295e1d386..cc40802ddfa8 100644
---- a/fs/ext2/ext2.h
-+++ b/fs/ext2/ext2.h
-@@ -814,6 +814,7 @@ extern const struct inode_operations ext2_file_inode_operations;
- extern const struct file_operations ext2_file_operations;
+diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
+index 7ceb41a9786a..f2cdc5a3eb6c 100644
+--- a/fs/xfs/Makefile
++++ b/fs/xfs/Makefile
+@@ -129,6 +129,9 @@ xfs-$(CONFIG_XFS_QUOTA)		+= xfs_dquot.o \
+ 				   xfs_qm.o \
+ 				   xfs_quotaops.o
  
- /* inode.c */
-+extern void ext2_set_file_ops(struct inode *inode);
- extern const struct address_space_operations ext2_aops;
- extern const struct address_space_operations ext2_nobh_aops;
- extern const struct iomap_ops ext2_iomap_ops;
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 9b2ac55ac34f..d1f4546e0028 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -990,6 +990,8 @@ const struct address_space_operations ext2_nobh_aops = {
- 	.error_remove_page	= generic_error_remove_page,
- };
- 
-+static DEFINE_FSDAX_AOPS(ext2_dax_aops, ext2_writepages);
++# dax dma
++xfs-$(CONFIG_FS_DAX)		+= xfs_dma.o
 +
- /*
-  * Probably it should be a library function... search for first non-zero word
-  * or memcmp with zero_page, whatever is better for particular architecture.
-@@ -1388,6 +1390,18 @@ void ext2_set_inode_flags(struct inode *inode)
- 		inode->i_flags |= S_DAX;
- }
+ # xfs_rtbitmap is shared with libxfs
+ xfs-$(CONFIG_XFS_RT)		+= xfs_rtalloc.o
  
-+void ext2_set_file_ops(struct inode *inode)
+diff --git a/fs/xfs/xfs_dma.c b/fs/xfs/xfs_dma.c
+new file mode 100644
+index 000000000000..3df1a51a76c4
+--- /dev/null
++++ b/fs/xfs/xfs_dma.c
+@@ -0,0 +1,81 @@
++/*
++ * SPDX-License-Identifier: GPL-2.0
++ * Copyright(c) 2017 Intel Corporation. All rights reserved.
++ */
++#include <linux/dax.h>
++#include "xfs.h"
++#include "xfs_fs.h"
++#include "xfs_format.h"
++#include "xfs_log_format.h"
++#include "xfs_shared.h"
++#include "xfs_trans_resv.h"
++#include "xfs_bit.h"
++#include "xfs_sb.h"
++#include "xfs_mount.h"
++#include "xfs_defer.h"
++#include "xfs_inode.h"
++#include "xfs_pnfs.h"
++
++/*
++ * xfs_wait_dax_page - helper for dax_flush_dma to drop locks and sleep
++ * wait for a page idle event. Returns 1 if the locks did not need to be
++ * dropped and the page is idle, returns -EINTR if the sleep was
++ * interrupted and returns 1 when it slept. dax_flush_dma()
++ * retries/rescans all mappings when the lock is dropped.
++ */
++static int xfs_wait_dax_page(
++	atomic_t		*count,
++	unsigned int		mode)
 +{
-+	inode->i_op = &ext2_file_inode_operations;
-+	inode->i_fop = &ext2_file_operations;
-+	if (IS_DAX(inode))
-+		inode->i_mapping->a_ops = &ext2_dax_aops;
-+	else if (test_opt(inode->i_sb, NOBH))
-+		inode->i_mapping->a_ops = &ext2_nobh_aops;
-+	else
-+		inode->i_mapping->a_ops = &ext2_aops;
++	uint			iolock = XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL;
++	struct page 		*page = refcount_to_page(count);
++	struct address_space	*mapping = page->mapping;
++	struct inode		*inode = mapping->host;
++	struct xfs_inode	*ip = XFS_I(inode);
++
++	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL));
++
++	if (page_ref_count(page) == 1)
++		return 0;
++
++	xfs_iunlock(ip, iolock);
++	schedule();
++	xfs_ilock(ip, iolock);
++
++	if (signal_pending_state(mode, current))
++		return -EINTR;
++	return 1;
 +}
 +
- struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
- {
- 	struct ext2_inode_info *ei;
-@@ -1480,14 +1494,7 @@ struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
- 		ei->i_data[n] = raw_inode->i_block[n];
++/*
++ * Synchronize [R]DMA before changing the file's block map. For pNFS,
++ * recall all layouts. For DAX, wait for transient DMA to complete. All
++ * other DMA is handled by pinning page cache pages.
++ *
++ * iolock must held XFS_IOLOCK_SHARED or XFS_IOLOCK_EXCL on entry and
++ * will be XFS_IOLOCK_EXCL and XFS_MMAPLOCK_EXCL on exit.
++ */
++int xfs_sync_dma(
++	struct inode		*inode,
++	uint			*iolock)
++{
++	struct xfs_inode	*ip = XFS_I(inode);
++	int			error;
++
++	while (true) {
++		error = xfs_break_layouts(inode, iolock);
++		if (error)
++			break;
++
++		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
++		*iolock |= XFS_MMAPLOCK_EXCL;
++
++		error = dax_flush_dma(inode->i_mapping, xfs_wait_dax_page);
++		if (error <= 0)
++			break;
++		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
++		*iolock &= ~XFS_MMAPLOCK_EXCL;
++	}
++
++	return error;
++}
+diff --git a/fs/xfs/xfs_dma.h b/fs/xfs/xfs_dma.h
+new file mode 100644
+index 000000000000..29635639b073
+--- /dev/null
++++ b/fs/xfs/xfs_dma.h
+@@ -0,0 +1,24 @@
++/*
++ * SPDX-License-Identifier: GPL-2.0
++ * Copyright(c) 2017 Intel Corporation. All rights reserved.
++ */
++#ifndef __XFS_DMA__
++#define __XFS_DMA__
++#ifdef CONFIG_FS_DAX
++int xfs_sync_dma(struct inode *inode, uint *iolock);
++#else
++#include "xfs_pnfs.h"
++
++static inline int xfs_sync_dma(struct inode *inode, uint *iolock)
++{
++	int error = xfs_break_layouts(inode, iolock);
++
++	if (error)
++		return error;
++
++	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_EXCL);
++	*iolock |= XFS_MMAPLOCK_EXCL;
++	return 0;
++}
++#endif /* CONFIG_FS_DAX */
++#endif /* __XFS_DMA__ */
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 6df0c133a61e..84fc178da656 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -37,6 +37,7 @@
+ #include "xfs_log.h"
+ #include "xfs_icache.h"
+ #include "xfs_pnfs.h"
++#include "xfs_dma.h"
+ #include "xfs_iomap.h"
+ #include "xfs_reflink.h"
  
- 	if (S_ISREG(inode->i_mode)) {
--		inode->i_op = &ext2_file_inode_operations;
--		if (test_opt(inode->i_sb, NOBH)) {
--			inode->i_mapping->a_ops = &ext2_nobh_aops;
--			inode->i_fop = &ext2_file_operations;
--		} else {
--			inode->i_mapping->a_ops = &ext2_aops;
--			inode->i_fop = &ext2_file_operations;
--		}
-+		ext2_set_file_ops(inode);
- 	} else if (S_ISDIR(inode->i_mode)) {
- 		inode->i_op = &ext2_dir_inode_operations;
- 		inode->i_fop = &ext2_dir_operations;
-diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
-index e078075dc66f..55f7caadb093 100644
---- a/fs/ext2/namei.c
-+++ b/fs/ext2/namei.c
-@@ -107,14 +107,7 @@ static int ext2_create (struct inode * dir, struct dentry * dentry, umode_t mode
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
+@@ -778,12 +779,11 @@ xfs_file_fallocate(
+ 		return -EOPNOTSUPP;
  
--	inode->i_op = &ext2_file_inode_operations;
--	if (test_opt(inode->i_sb, NOBH)) {
--		inode->i_mapping->a_ops = &ext2_nobh_aops;
--		inode->i_fop = &ext2_file_operations;
--	} else {
--		inode->i_mapping->a_ops = &ext2_aops;
--		inode->i_fop = &ext2_file_operations;
--	}
-+	ext2_set_file_ops(inode);
- 	mark_inode_dirty(inode);
- 	return ext2_add_nondir(dentry, inode);
- }
-@@ -125,14 +118,7 @@ static int ext2_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
+ 	xfs_ilock(ip, iolock);
+-	error = xfs_break_layouts(inode, &iolock);
++	error = xfs_sync_dma(inode, &iolock);
+ 	if (error)
+ 		goto out_unlock;
  
--	inode->i_op = &ext2_file_inode_operations;
--	if (test_opt(inode->i_sb, NOBH)) {
--		inode->i_mapping->a_ops = &ext2_nobh_aops;
--		inode->i_fop = &ext2_file_operations;
--	} else {
--		inode->i_mapping->a_ops = &ext2_aops;
--		inode->i_fop = &ext2_file_operations;
--	}
-+	ext2_set_file_ops(inode);
- 	mark_inode_dirty(inode);
- 	d_tmpfile(dentry, inode);
- 	unlock_new_inode(inode);
+-	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+-	iolock |= XFS_MMAPLOCK_EXCL;
++	ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+ 
+ 	if (mode & FALLOC_FL_PUNCH_HOLE) {
+ 		error = xfs_free_file_space(ip, offset, len);
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index 20dc65fef6a4..4340bef658b0 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -39,7 +39,7 @@
+ #include "xfs_icache.h"
+ #include "xfs_symlink.h"
+ #include "xfs_trans.h"
+-#include "xfs_pnfs.h"
++#include "xfs_dma.h"
+ #include "xfs_acl.h"
+ #include "xfs_btree.h"
+ #include <linux/fsmap.h>
+@@ -643,12 +643,11 @@ xfs_ioc_space(
+ 		return error;
+ 
+ 	xfs_ilock(ip, iolock);
+-	error = xfs_break_layouts(inode, &iolock);
++	error = xfs_sync_dma(inode, &iolock);
+ 	if (error)
+ 		goto out_unlock;
+ 
+-	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+-	iolock |= XFS_MMAPLOCK_EXCL;
++	ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+ 
+ 	switch (bf->l_whence) {
+ 	case 0: /*SEEK_SET*/
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index 67bd97edc73b..c1055337b233 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -37,7 +37,7 @@
+ #include "xfs_da_btree.h"
+ #include "xfs_dir2.h"
+ #include "xfs_trans_space.h"
+-#include "xfs_pnfs.h"
++#include "xfs_dma.h"
+ #include "xfs_iomap.h"
+ 
+ #include <linux/capability.h>
+@@ -1030,11 +1030,12 @@ xfs_vn_setattr(
+ 		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
+ 		uint			iolock = XFS_IOLOCK_EXCL;
+ 
+-		error = xfs_break_layouts(d_inode(dentry), &iolock);
++		error = xfs_sync_dma(d_inode(dentry), &iolock);
+ 		if (error)
+ 			return error;
+ 
+-		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
++		ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
++
+ 		error = xfs_vn_setattr_size(dentry, iattr);
+ 		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+ 	} else {
 
 _______________________________________________
 Linux-nvdimm mailing list
