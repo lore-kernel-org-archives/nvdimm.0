@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B632722119BCA
- for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 15:19:39 -0800 (PST)
-Subject: [PATCH v3 4/4] ndctl, test: firmware update unit test
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 15 Dec 2017 16:24:21 -0700
-Message-ID: <151338026169.4485.17535956960021474462.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151338007905.4485.4189717376304274611.stgit@djiang5-desk3.ch.intel.com>
-References: <151338007905.4485.4189717376304274611.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 74BB022225C0B
+ for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 16:59:55 -0800 (PST)
+Subject: [PATCH v4 06/18] dax: stop using VM_HUGEPAGE for dax
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 23 Dec 2017 16:56:32 -0800
+Message-ID: <151407699278.38751.10207303770017135146.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,140 +22,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a unit test that will use nfit_test kernel module to test the
-firmware update sequence.
+This flag is deprecated in favor of the vma_is_dax() check in
+transparent_hugepage_enabled() added in commit baabda261424 "mm: always
+enable thp for dax mappings"
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/update.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/dax/device.c |    1 -
+ fs/ext4/file.c       |    1 -
+ fs/xfs/xfs_file.c    |    2 --
+ 3 files changed, 4 deletions(-)
 
-diff --git a/ndctl/update.c b/ndctl/update.c
-index 8d33b6a..a9400d6 100644
---- a/ndctl/update.c
-+++ b/ndctl/update.c
-@@ -73,8 +73,6 @@ struct fw_info {
- 	uint32_t update_size;
- 	uint32_t query_interval;
- 	uint32_t max_query;
--	uint32_t update_cap;
--	uint32_t fis_version;
- 	uint64_t run_version;
- 	uint32_t context;
- };
-@@ -158,14 +156,6 @@ static int submit_get_firmware_info(struct update_context *uctx)
- 	if (fw->max_query == UINT_MAX)
- 		return -ENXIO;
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index c514ad48ff73..4b663bd35f53 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -463,7 +463,6 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ 		return rc;
  
--	fw->update_cap = ndctl_cmd_fw_info_get_update_cap(cmd);
--	if (fw->update_cap == UINT_MAX)
--		return -ENXIO;
--
--	fw->fis_version = ndctl_cmd_fw_info_get_fis_version(cmd);
--	if (fw->fis_version == UINT_MAX)
--		return -ENXIO;
--
- 	fw->run_version = ndctl_cmd_fw_info_get_run_version(cmd);
- 	if (fw->run_version == ULLONG_MAX)
- 		return -ENXIO;
-diff --git a/test/Makefile.am b/test/Makefile.am
-index d4c2bd6..d5ef648 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -16,7 +16,8 @@ TESTS =\
- 	blk-exhaust.sh \
- 	sector-mode.sh \
- 	inject-error.sh \
--	btt-errors.sh
-+	btt-errors.sh \
-+	firmware-update.sh
+ 	vma->vm_ops = &dax_vm_ops;
+-	vma->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
+ }
  
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/firmware-update.sh b/test/firmware-update.sh
-new file mode 100755
-index 0000000..ff777b9
---- /dev/null
-+++ b/test/firmware-update.sh
-@@ -0,0 +1,74 @@
-+#!/bin/bash -Ex
-+
-+# Copyright(c) 2017 Intel Corporation. All rights reserved.
-+#
-+# This program is free software; you can redistribute it and/or modify it
-+# under the terms of version 2 of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it will be useful, but
-+# WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# General Public License for more details.
-+
-+[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] && ndctl="../ndctl/ndctl"
-+[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
-+[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
-+bus="nfit_test.0"
-+json2var="s/[{}\",]//g; s/:/=/g"
-+rc=77
-+dev=""
-+image="update-fw.img"
-+
-+trap 'err $LINENO' ERR
-+
-+# $1: Line number
-+# $2: exit code
-+err()
-+{
-+	[ -n "$2" ] && rc="$2"
-+	echo "test/firmware-update.sh: failed at line $1"
-+	exit "$rc"
-+}
-+
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+reset()
-+{
-+	$ndctl disable-region -b "$bus" all
-+	$ndctl zero-labels -b "$bus" all
-+	$ndctl enable-region -b "$bus" all
-+	if [ -f $image ]; then
-+		rm -f $image
-+	fi
-+}
-+
-+detect()
-+{
-+	dev=$($ndctl list -b "$bus" -D | jq .[0].dev | tr -d '"')
-+	[ -n "$dev" ] || err "$LINENO" 2
-+}
-+
-+do_tests()
-+{
-+	fallocate -l 196608 $image
-+	$ndctl update-firmware -d $dev -f $image
-+}
-+
-+check_min_kver "4.16" || { echo "kernel $KVER may lack firmware update test handling"; exit
-+$rc; }
-+modprobe nfit_test
-+rc=1
-+reset
-+detect
-+do_tests
-+reset
-+exit 0
-+
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 983cee466a89..5eba87000b7f 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -367,7 +367,6 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	file_accessed(file);
+ 	if (IS_DAX(file_inode(file))) {
+ 		vma->vm_ops = &ext4_dax_vm_ops;
+-		vma->vm_flags |= VM_HUGEPAGE;
+ 	} else {
+ 		vma->vm_ops = &ext4_file_vm_ops;
+ 	}
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 1d6d4a3ecd42..6df0c133a61e 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1129,8 +1129,6 @@ xfs_file_mmap(
+ 
+ 	file_accessed(filp);
+ 	vma->vm_ops = &xfs_file_vm_ops;
+-	if (IS_DAX(file_inode(filp)))
+-		vma->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
+ }
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
