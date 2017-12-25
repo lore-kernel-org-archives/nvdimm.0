@@ -1,13 +1,10 @@
-From: "Business Group (hduooirl)" <zgwithlqul-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: =?windows-1251?B?UmU6IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5v?=
- =?windows-1251?B?cmcgIEJ1c2luZXNzIG9mZmVyIC8gwejn7eXx?=
- =?windows-1251?B?IO/w5eTr7ubl7ejl?=
-Date: Sun, 24 Dec 2017 00:14:06 +0400
-Message-ID: <0FF5E9CCD2062BE834317883F70C6282@gmail.com>
-Reply-To: "Business Group \(hduooirl\)" <xgwejp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: msottek-v7wCr8P/arpBDgjK7y7TUQ@public.gmane.org
+Subject: Delivery reports about your e-mail
+Date: Mon, 25 Dec 2017 11:27:38 +0800
+Message-ID: <20171225032250.C392E21CB87B3@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="cp1251"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -21,28 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-V2Ugb2ZmZXIgZS1tYWlsIGRhdGFiYXNlcyBhdCBhZmZvcmRhYmxlIHByaWNlcy4gW2R1a2Vtc10K
-CkZvciBtYXJrZXRpbmcsIGFkdmVydGlzaW5nLCBuZXdzbGV0dGVycy4gW2lhZ3NrY2VzXQoKVGhp
-cyBpcyB0aGUgbW9zdCBlZmZlY3RpdmUgd2F5IHRvIGF0dHJhY3QgY3VzdG9tZXJzIGZvciB5b3Vy
-IGJ1c2luZXNzLiBbeGxsb3dwaXNdCgpDb3VudHJ5OiBOdW1iZXIgb2YgZS1tYWlsIGFkZHJlc3Nl
-cy4gW3pwaG1vc2luXQoKUlUgOiA3LDUgbWlsbGlvbltkbmpjcW9uXQoKQVUgOiAzLDIgbWlsbGlv
-bltpdmtnYWZdCgpDQSA6IDMsMCBtaWxsaW9uW2Jpemx6XQoKREUgOiA3LDcgbWlsbGlvblt1enZs
-b3ddCgpGUiA6IDIsNiBtaWxsaW9uW3d4emJveWZ3XQoKTlogOiAwLDcgbWlsbGlvbltieWNqbG9h
-ZV0KClVLIDogNiwwIG1pbGxpb25bbWxwbHV0XQoKVVMgOiAxLDYgbWlsbGlvbltjZXphemNpXQoK
-Q09NIDQwLDkgbWlsbGlvblthaGx3aGNnd10KCkluIGFkZGl0aW9uLCB3ZSBjYW4gcHJvdmlkZSBh
-IGJhc2UgZm9yIGFueSBjb3VudHJ5IGluIHRoZSB3b3JsZC4gW2N5anRiXQoKRGV0YWlscyBieSBl
-LW1haWw6IGl2YW4xMDAwNTBAcmFtYmxlci5ydSBvciBieSBJQ1E6IDY2Njc4NDQzMCBbdW5qdmZ3
-Y3ddCgoyNC4xMi4yMDE3IDA6MTQ6MDYKCs/w5eTr4OPg5ewgZS1tYWlsIOHg5/sg7+4g5O7x8vPv
-7fvsIPbl7eDsLiBbZ3NweWxieGtdCgrE6/8g7ODw6uXy6O3j7uL79Swg8OXq6+Ds7fv1LCDw4PHx
-++vu6i4gW3VkZ2F0aV0KCt3y7iDx4Oz76SD99PTl6vLo4u376SDx7+7x7uEg7/Do4uvl9+Xt6P8g
-6uvo5e3y7uIg5Ov/IMLg+OXj7iDh6Oft5fHgLiBbdnN5bGxzeV0KCtHy8ODt4CA6IMru6y3i7iDl
-Lezg6esg4OTw5fHu4i4gW2Z4eGZzZnddCgpSVSA6IDcsNSDs6+0uW3RvdWh3XQoKQVUgOiAzLDIg
-7OvtLltwZndpZ10KCkNBIDogMywwIOzr7S5bYnNyaW9ueWhdCgpERSA6IDcsNyDs6+0uW25leml5
-dnZ6XQoKRlIgOiAyLDYg7OvtLlt6eHhzcF0KCk5aIDogMCw3IOzr7S5bZXlqYmtdCgpVSyA6IDYs
-MCDs6+0uW2thYWVxZ2xnXQoKVVMgOiAxLDYg7OvtLltlcXNpYXZdCgpDT00gNDAsOSDs6+0uW2No
-ZmRkZF0KCsrw7uzlIPLu4+4g7Psg7O7m5ewg7/Dl5O7x8uDi6PL8IOHg5/Mg7+4g6/7h7ukg8fLw
-4O3lIMzI0MAuIFtlemNpdmpdCgrE5fLg6+gg7+4g5S1tYWlsOiBpdmFuMTAwMDUwQHJhbWJsZXIu
-cnUg6OvoIO/uIElDUTogNjY2Nzg0NDMwIFt6YXFsd2VmXQoKMjQuMTIuMjAxNyAwOjE0OjA2Cl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
-bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+This Message was undeliverable due to the following reason:
+
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
+
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 6 days:
+Host 133.10.57.151 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-v7wCr8P/arpBDgjK7y7TUQ@public.gmane.org
+if you feel this message to be in error.
