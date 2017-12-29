@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E21022119BCA
- for <linux-nvdimm@lists.01.org>; Fri, 15 Dec 2017 15:19:23 -0800 (PST)
-Subject: [PATCH v3 1/4] ndctl: add support to alloc_intel_cmd for variable
- payload
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 15 Dec 2017 16:24:05 -0700
-Message-ID: <151338024529.4485.13215296258978105688.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151338007905.4485.4189717376304274611.stgit@djiang5-desk3.ch.intel.com>
-References: <151338007905.4485.4189717376304274611.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8B6C62034B42F
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:49:29 -0800 (PST)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 02/17] mm: don't export arch_add_memory
+Date: Fri, 29 Dec 2017 08:53:51 +0100
+Message-Id: <20171229075406.1936-3-hch@lst.de>
+In-Reply-To: <20171229075406.1936-1-hch@lst.de>
+References: <20171229075406.1936-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,36 +17,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Certain payloads have variable size. The existing alloc_intel_cmd()
-does not take into account of that. Adding additional size for allocation.
-We do waste a little bit of the space because of the smart payload.
+Only x86_64 and sh export this symbol, and it is not used by any
+modular code.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/lib/intel.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sh/mm/init.c     | 1 -
+ arch/x86/mm/init_64.c | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index 3e4260f..b85a682 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -33,7 +33,7 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
- 		return NULL;
- 	}
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index bf726af5f1a5..afc54d593a26 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -498,7 +498,6 @@ int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
  
--	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel);
-+	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel) + in_size + out_size;
- 	cmd = calloc(1, size);
- 	if (!cmd)
- 		return NULL;
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
+ #ifdef CONFIG_NUMA
+ int memory_add_physaddr_to_nid(u64 addr)
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 4a837289f2ad..8acdc35c2dfa 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -796,7 +796,6 @@ int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
+ 
+ 	return add_pages(nid, start_pfn, nr_pages, want_memblock);
+ }
+-EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
+ #define PAGE_INUSE 0xFD
+ 
+-- 
+2.14.2
 
 _______________________________________________
 Linux-nvdimm mailing list
