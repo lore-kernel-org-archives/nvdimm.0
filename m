@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EFA572034B9F3
- for <linux-nvdimm@lists.01.org>; Wed, 13 Dec 2017 18:05:49 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
-Date: Wed, 13 Dec 2017 19:10:16 -0700
-Message-Id: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
-MIME-Version: 1.0
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1F96C22280C5E
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:50:16 -0800 (PST)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 12/17] mm: optimize dev_pagemap reference counting around
+ get_dev_pagemap
+Date: Fri, 29 Dec 2017 08:54:01 +0100
+Message-Id: <20171229075406.1936-13-hch@lst.de>
+In-Reply-To: <20171229075406.1936-1-hch@lst.de>
+References: <20171229075406.1936-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,152 +18,103 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: "Box, David E" <david.e.box@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, Robert, Lukasz, "Erik  <erik.schmauss@intel.com>, Len Brown" <lenb@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, devel@acpica.org, Kogut,, "Marcin  <marcin.koss@intel.com>, Brice Goglin <brice.goglin@gmail.com>, Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Koziej,, "Joonas  <joonas.lahtinen@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen" <tim.c.chen@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is the third revision of my patches adding a sysfs representation
-of the ACPI Heterogeneous Memory Attribute Table (HMAT).  These patches
-are based on v4.15-rc3 and a working tree can be found here:
+Change the calling convention so that get_dev_pagemap always consumes the
+previous reference instead of doing this using an explicit earlier call to
+put_dev_pagemap in the callers.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/zwisler/linux.git/log/?h=hmat_v3
+The callers will still need to put the final reference after finishing the
+loop over the pages.
 
-My goal is to get these patches merged for v4.16.
-
-Changes from previous version (https://lkml.org/lkml/2017/7/6/749):
-
- - Changed "HMEM" to "HMAT" and "hmem" to "hmat" throughout to make sure
-   that this effort doesn't get confused with Jerome's HMM work and to
-   make it clear that this enabling is tightly tied to the ACPI HMAT
-   table.  (John Hubbard)
-
- - Moved the link in the initiator (i.e. mem_init0/mem_tgt2) from
-   pointing to the "mem_tgt2/local_init" attribute group to instead
-   point at the mem_tgt2 target itself.  (Brice Goglin)
-
- - Simplified the contents of both the initiators and the targets so
-   that we just symlink to the NUMA node and don't duplicate
-   information.  For initiators this means that we no longer enumerate
-   CPUs, and for targets this means that we don't provide physical
-   address start and length information.  All of this is already
-   available in the NUMA node directory itself (i.e.
-   /sys/devices/system/node/node0), and it already accounts for the fact
-   that both multiple CPUs and multiple memory regions can be owned by a
-   given NUMA node.  Also removed some extra attributes (is_enabled,
-   is_isolated) which I don't think are useful at this point in time.
-
-I have tested this against many different configs that I implemented
-using qemu.
-
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ kernel/memremap.c | 17 +++++++++--------
+ mm/gup.c          |  7 +++++--
+ 2 files changed, 14 insertions(+), 10 deletions(-)
 
-==== Quick Summary ====
-
-Platforms exist today which have multiple types of memory attached to a
-single CPU.  These disparate memory ranges have some characteristics in
-common, such as CPU cache coherence, but they can have wide ranges of
-performance both in terms of latency and bandwidth.
-
-For example, consider a system that contains persistent memory, standard
-DDR memory and High Bandwidth Memory (HBM), all attached to the same CPU.
-There could potentially be an order of magnitude or more difference in
-performance between the slowest and fastest memory attached to that CPU.
-
-With the current Linux code NUMA nodes are CPU-centric, so all the memory
-attached to a given CPU will be lumped into the same NUMA node.  This makes
-it very difficult for userspace applications to understand the performance
-of different memory ranges on a given CPU.
-
-We solve this issue by providing userspace with performance information on
-individual memory ranges.  This performance information is exposed via
-sysfs:
-
-  # grep . mem_tgt2/* mem_tgt2/local_init/* 2>/dev/null
-  mem_tgt2/firmware_id:1
-  mem_tgt2/is_cached:0
-  mem_tgt2/local_init/read_bw_MBps:40960
-  mem_tgt2/local_init/read_lat_nsec:50
-  mem_tgt2/local_init/write_bw_MBps:40960
-  mem_tgt2/local_init/write_lat_nsec:50
-
-This allows applications to easily find the memory that they want to use.
-We expect that the existing NUMA APIs will be enhanced to use this new
-information so that applications can continue to use them to select their
-desired memory.
-
-==== Lots of Details ====
-
-This patch set provides a sysfs representation of parts of the
-Heterogeneous Memory Attribute Table (HMAT), newly defined in ACPI 6.2.
-One major conceptual change in ACPI 6.2 related to this work is that
-proximity domains no longer need to contain a processor.  We can now
-have memory-only proximity domains, which means that we can now have
-memory-only Linux NUMA nodes.
-
-Here is an example configuration where we have a single processor, one
-range of regular memory and one range of HBM:
-
-  +---------------+   +----------------+
-  | Processor     |   | Memory         |
-  | prox domain 0 +---+ prox domain 1  |
-  | NUMA node 1   |   | NUMA node 2    |
-  +-------+-------+   +----------------+
-          |
-  +-------+----------+
-  | HBM              |
-  | prox domain 2    |
-  | NUMA node 0      |
-  +------------------+
-
-This gives us one initiator (the processor) and two targets (the two memory
-ranges).  Each of these three has its own ACPI proximity domain and
-associated Linux NUMA node.  Note also that while there is a 1:1 mapping
-from each proximity domain to each NUMA node, the numbers don't necessarily
-match up.  Additionally we can have extra NUMA nodes that don't map back to
-ACPI proximity domains.
-
-The above configuration could also have the processor and one of the two
-memory ranges sharing a proximity domain and NUMA node, but for the
-purposes of the HMAT the two memory ranges will need to be separated.
-
-The overall goal of this series and of the HMAT is to allow users to
-identify memory using its performance characteristics.  This is
-complicated by the amount of HMAT data that could be present in very
-large systems, so in this series we only surface performance information
-for local (initiator,target) pairings.  The changelog for patch 5
-discusses this in detail.
-
-Ross Zwisler (3):
-  acpi: HMAT support in acpi_parse_entries_array()
-  hmat: add heterogeneous memory sysfs support
-  hmat: add performance attributes
-
- MAINTAINERS                         |   6 +
- drivers/acpi/Kconfig                |   1 +
- drivers/acpi/Makefile               |   1 +
- drivers/acpi/hmat/Kconfig           |   7 +
- drivers/acpi/hmat/Makefile          |   2 +
- drivers/acpi/hmat/core.c            | 797 ++++++++++++++++++++++++++++++++++++
- drivers/acpi/hmat/hmat.h            |  64 +++
- drivers/acpi/hmat/initiator.c       |  43 ++
- drivers/acpi/hmat/perf_attributes.c |  56 +++
- drivers/acpi/hmat/target.c          |  55 +++
- drivers/acpi/tables.c               |  52 ++-
- 11 files changed, 1073 insertions(+), 11 deletions(-)
- create mode 100644 drivers/acpi/hmat/Kconfig
- create mode 100644 drivers/acpi/hmat/Makefile
- create mode 100644 drivers/acpi/hmat/core.c
- create mode 100644 drivers/acpi/hmat/hmat.h
- create mode 100644 drivers/acpi/hmat/initiator.c
- create mode 100644 drivers/acpi/hmat/perf_attributes.c
- create mode 100644 drivers/acpi/hmat/target.c
-
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 3df6cd4ffb40..891c77487a6a 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -507,22 +507,23 @@ struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
+  * @pfn: page frame number to lookup page_map
+  * @pgmap: optional known pgmap that already has a reference
+  *
+- * @pgmap allows the overhead of a lookup to be bypassed when @pfn lands in the
+- * same mapping.
++ * If @pgmap is non-NULL and covers @pfn it will be returned as-is.  If @pgmap
++ * is non-NULL but does not cover @pfn the reference to it will be released.
+  */
+ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 		struct dev_pagemap *pgmap)
+ {
+-	const struct resource *res = pgmap ? pgmap->res : NULL;
+ 	resource_size_t phys = PFN_PHYS(pfn);
+ 
+ 	/*
+-	 * In the cached case we're already holding a live reference so
+-	 * we can simply do a blind increment
++	 * In the cached case we're already holding a live reference.
+ 	 */
+-	if (res && phys >= res->start && phys <= res->end) {
+-		percpu_ref_get(pgmap->ref);
+-		return pgmap;
++	if (pgmap) {
++		const struct resource *res = pgmap ? pgmap->res : NULL;
++
++		if (res && phys >= res->start && phys <= res->end)
++			return pgmap;
++		put_dev_pagemap(pgmap);
+ 	}
+ 
+ 	/* fall back to slow path lookup */
+diff --git a/mm/gup.c b/mm/gup.c
+index e0d82b6706d7..3affe7544b0c 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -1410,7 +1410,6 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+ 
+ 		VM_BUG_ON_PAGE(compound_head(page) != head, page);
+ 
+-		put_dev_pagemap(pgmap);
+ 		SetPageReferenced(page);
+ 		pages[*nr] = page;
+ 		(*nr)++;
+@@ -1420,6 +1419,8 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+ 	ret = 1;
+ 
+ pte_unmap:
++	if (pgmap)
++		put_dev_pagemap(pgmap);
+ 	pte_unmap(ptem);
+ 	return ret;
+ }
+@@ -1459,10 +1460,12 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+ 		SetPageReferenced(page);
+ 		pages[*nr] = page;
+ 		get_page(page);
+-		put_dev_pagemap(pgmap);
+ 		(*nr)++;
+ 		pfn++;
+ 	} while (addr += PAGE_SIZE, addr != end);
++
++	if (pgmap)
++		put_dev_pagemap(pgmap);
+ 	return 1;
+ }
+ 
 -- 
-2.14.3
+2.14.2
 
 _______________________________________________
 Linux-nvdimm mailing list
