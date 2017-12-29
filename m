@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0454021A10961
- for <linux-nvdimm@lists.01.org>; Fri,  1 Dec 2017 15:28:33 -0800 (PST)
-Subject: [ndctl PATCH 03/17] ndctl,
- smart: rename 'temperature' helpers to 'media_temperature'
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 01 Dec 2017 15:24:45 -0800
-Message-ID: <151217068584.28402.9909444496961087237.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151217066885.28402.7962437173336388439.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3F5C42034B9EA
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:50:14 -0800 (PST)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 11/17] mm: move get_dev_pagemap out of line
+Date: Fri, 29 Dec 2017 08:54:00 +0100
+Message-Id: <20171229075406.1936-12-hch@lst.de>
+In-Reply-To: <20171229075406.1936-1-hch@lst.de>
+References: <20171229075406.1936-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,259 +18,90 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for adding controller temperature support rename the
-current ambiguous 'temperature' to 'media_temperature'.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/lib/hpe1.c       |   10 ++++++----
- ndctl/lib/libndctl.sym |    2 ++
- ndctl/lib/msft.c       |    4 ++--
- ndctl/lib/private.h    |    4 ++--
- ndctl/lib/smart.c      |   34 ++++++++++++++++++++++++++++++----
- ndctl/libndctl.h.in    |   17 +++++++++++++++++
- 6 files changed, 59 insertions(+), 12 deletions(-)
-
-diff --git a/ndctl/lib/hpe1.c b/ndctl/lib/hpe1.c
-index addebe952ce6..81f60ab27a07 100644
---- a/ndctl/lib/hpe1.c
-+++ b/ndctl/lib/hpe1.c
-@@ -134,7 +134,7 @@ static unsigned int hpe1_cmd_smart_get_health(struct ndctl_cmd *cmd)
- 	return health;
- }
- 
--static unsigned int hpe1_cmd_smart_get_temperature(struct ndctl_cmd *cmd)
-+static unsigned int hpe1_cmd_smart_get_media_temperature(struct ndctl_cmd *cmd)
- {
- 	if (hpe1_smart_valid(cmd) < 0)
- 		return UINT_MAX;
-@@ -279,7 +279,8 @@ static unsigned int hpe1_cmd_smart_threshold_get_alarm_control(struct ndctl_cmd
- 	return flags;
- }
- 
--static unsigned int hpe1_cmd_smart_threshold_get_temperature(struct ndctl_cmd *cmd)
-+static unsigned int hpe1_cmd_smart_threshold_get_media_temperature(
-+		struct ndctl_cmd *cmd)
- {
- 	if (hpe1_smart_threshold_valid(cmd) < 0)
- 		return UINT_MAX;
-@@ -299,7 +300,7 @@ struct ndctl_smart_ops * const hpe1_smart_ops = &(struct ndctl_smart_ops) {
- 	.new_smart = hpe1_dimm_cmd_new_smart,
- 	.smart_get_flags = hpe1_cmd_smart_get_flags,
- 	.smart_get_health = hpe1_cmd_smart_get_health,
--	.smart_get_temperature = hpe1_cmd_smart_get_temperature,
-+	.smart_get_media_temperature = hpe1_cmd_smart_get_media_temperature,
- 	.smart_get_spares = hpe1_cmd_smart_get_spares,
- 	.smart_get_alarm_flags = hpe1_cmd_smart_get_alarm_flags,
- 	.smart_get_life_used = hpe1_cmd_smart_get_life_used,
-@@ -308,6 +309,7 @@ struct ndctl_smart_ops * const hpe1_smart_ops = &(struct ndctl_smart_ops) {
- 	.smart_get_vendor_data = hpe1_cmd_smart_get_vendor_data,
- 	.new_smart_threshold = hpe1_dimm_cmd_new_smart_threshold,
- 	.smart_threshold_get_alarm_control = hpe1_cmd_smart_threshold_get_alarm_control,
--	.smart_threshold_get_temperature = hpe1_cmd_smart_threshold_get_temperature,
-+	.smart_threshold_get_media_temperature =
-+		hpe1_cmd_smart_threshold_get_media_temperature,
- 	.smart_threshold_get_spares = hpe1_cmd_smart_threshold_get_spares,
- };
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 30480074d2ef..b3fab6232df6 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -310,4 +310,6 @@ global:
- 	ndctl_namespace_injection_get_next_bb;
- 	ndctl_bb_get_block;
- 	ndctl_bb_get_count;
-+	ndctl_cmd_smart_get_media_temperature;
-+	ndctl_cmd_smart_threshold_get_media_temperature;
- } LIBNDCTL_13;
-diff --git a/ndctl/lib/msft.c b/ndctl/lib/msft.c
-index 1c4c8913714f..d61c065e752d 100644
---- a/ndctl/lib/msft.c
-+++ b/ndctl/lib/msft.c
-@@ -120,7 +120,7 @@ static unsigned int msft_cmd_smart_get_health(struct ndctl_cmd *cmd)
- 	return health;
- }
- 
--static unsigned int msft_cmd_smart_get_temperature(struct ndctl_cmd *cmd)
-+static unsigned int msft_cmd_smart_get_media_temperature(struct ndctl_cmd *cmd)
- {
- 	if (msft_smart_valid(cmd) < 0)
- 		return UINT_MAX;
-@@ -140,6 +140,6 @@ struct ndctl_smart_ops * const msft_smart_ops = &(struct ndctl_smart_ops) {
- 	.new_smart = msft_dimm_cmd_new_smart,
- 	.smart_get_flags = msft_cmd_smart_get_flags,
- 	.smart_get_health = msft_cmd_smart_get_health,
--	.smart_get_temperature = msft_cmd_smart_get_temperature,
-+	.smart_get_media_temperature = msft_cmd_smart_get_media_temperature,
- 	.smart_get_life_used = msft_cmd_smart_get_life_used,
- };
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 685d65d89a06..c2ce519ebad2 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -288,7 +288,7 @@ struct ndctl_smart_ops {
- 	struct ndctl_cmd *(*new_smart)(struct ndctl_dimm *);
- 	unsigned int (*smart_get_flags)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_health)(struct ndctl_cmd *);
--	unsigned int (*smart_get_temperature)(struct ndctl_cmd *);
-+	unsigned int (*smart_get_media_temperature)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_spares)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_alarm_flags)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_life_used)(struct ndctl_cmd *);
-@@ -298,7 +298,7 @@ struct ndctl_smart_ops {
- 	unsigned char *(*smart_get_vendor_data)(struct ndctl_cmd *);
- 	struct ndctl_cmd *(*new_smart_threshold)(struct ndctl_dimm *);
- 	unsigned int (*smart_threshold_get_alarm_control)(struct ndctl_cmd *);
--	unsigned int (*smart_threshold_get_temperature)(struct ndctl_cmd *);
-+	unsigned int (*smart_threshold_get_media_temperature)(struct ndctl_cmd *);
- 	unsigned int (*smart_threshold_get_spares)(struct ndctl_cmd *);
- };
- 
-diff --git a/ndctl/lib/smart.c b/ndctl/lib/smart.c
-index 1821af2289d3..d30288a1486a 100644
---- a/ndctl/lib/smart.c
-+++ b/ndctl/lib/smart.c
-@@ -53,7 +53,8 @@ NDCTL_EXPORT rettype name(struct ndctl_cmd *cmd) \
- 
- smart_cmd_op(ndctl_cmd_smart_get_flags, smart_get_flags, unsigned int, 0)
- smart_cmd_op(ndctl_cmd_smart_get_health, smart_get_health, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_get_temperature, smart_get_temperature, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_get_media_temperature, smart_get_media_temperature,
-+		unsigned int, 0)
- smart_cmd_op(ndctl_cmd_smart_get_spares, smart_get_spares, unsigned int, 0)
- smart_cmd_op(ndctl_cmd_smart_get_alarm_flags, smart_get_alarm_flags, unsigned int, 0)
- smart_cmd_op(ndctl_cmd_smart_get_life_used, smart_get_life_used, unsigned int, 0)
-@@ -62,9 +63,21 @@ smart_cmd_op(ndctl_cmd_smart_get_shutdown_count, smart_get_shutdown_count, unsig
- smart_cmd_op(ndctl_cmd_smart_get_vendor_size, smart_get_vendor_size, unsigned int, 0)
- smart_cmd_op(ndctl_cmd_smart_get_vendor_data, smart_get_vendor_data, unsigned char *, NULL)
- smart_cmd_op(ndctl_cmd_smart_threshold_get_alarm_control, smart_threshold_get_alarm_control, unsigned int, 0)
--smart_cmd_op(ndctl_cmd_smart_threshold_get_temperature, smart_threshold_get_temperature, unsigned int, 0)
-+smart_cmd_op(ndctl_cmd_smart_threshold_get_media_temperature,
-+		smart_threshold_get_media_temperature, unsigned int, 0)
- smart_cmd_op(ndctl_cmd_smart_threshold_get_spares, smart_threshold_get_spares, unsigned int, 0)
- 
-+NDCTL_EXPORT unsigned int ndctl_cmd_smart_get_temperature(struct ndctl_cmd *cmd)
-+{
-+	return ndctl_cmd_smart_get_media_temperature(cmd);
-+}
-+
-+NDCTL_EXPORT unsigned int ndctl_cmd_smart_threshold_get_temperature(
-+		struct ndctl_cmd *cmd)
-+{
-+	return ndctl_cmd_smart_threshold_get_media_temperature(cmd);
-+}
-+
- /*
-  * The following intel_dimm_*() and intel_smart_*() functions implement
-  * the ndctl_smart_ops for the Intel DSM family (NVDIMM_FAMILY_INTEL):
-@@ -126,6 +139,12 @@ intel_smart_get_field(cmd, shutdown_state)
- intel_smart_get_field(cmd, shutdown_count)
- intel_smart_get_field(cmd, vendor_size)
- 
-+static unsigned int intel_cmd_smart_get_media_temperature(
-+		struct ndctl_cmd *cmd)
-+{
-+	return intel_cmd_smart_get_temperature(cmd);
-+}
-+
- static unsigned char *intel_cmd_smart_get_vendor_data(struct ndctl_cmd *cmd)
- {
- 	struct nd_smart_payload *smart_data;
-@@ -159,6 +178,12 @@ intel_smart_threshold_get_field(cmd, alarm_control)
- intel_smart_threshold_get_field(cmd, temperature)
- intel_smart_threshold_get_field(cmd, spares)
- 
-+static unsigned int intel_cmd_smart_threshold_get_media_temperature(
-+		struct ndctl_cmd *cmd)
-+{
-+	return intel_cmd_smart_threshold_get_temperature(cmd);
-+}
-+
- static struct ndctl_cmd *intel_dimm_cmd_new_smart_threshold(
- 		struct ndctl_dimm *dimm)
- {
-@@ -193,7 +218,7 @@ struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
- 	.new_smart = intel_dimm_cmd_new_smart,
- 	.smart_get_flags = intel_cmd_smart_get_flags,
- 	.smart_get_health = intel_cmd_smart_get_health,
--	.smart_get_temperature = intel_cmd_smart_get_temperature,
-+	.smart_get_media_temperature = intel_cmd_smart_get_media_temperature,
- 	.smart_get_spares = intel_cmd_smart_get_spares,
- 	.smart_get_alarm_flags = intel_cmd_smart_get_alarm_flags,
- 	.smart_get_life_used = intel_cmd_smart_get_life_used,
-@@ -203,6 +228,7 @@ struct ndctl_smart_ops * const intel_smart_ops = &(struct ndctl_smart_ops) {
- 	.smart_get_vendor_data = intel_cmd_smart_get_vendor_data,
- 	.new_smart_threshold = intel_dimm_cmd_new_smart_threshold,
- 	.smart_threshold_get_alarm_control = intel_cmd_smart_threshold_get_alarm_control,
--	.smart_threshold_get_temperature = intel_cmd_smart_threshold_get_temperature,
-+	.smart_threshold_get_media_temperature
-+		= intel_cmd_smart_threshold_get_media_temperature,
- 	.smart_threshold_get_spares = intel_cmd_smart_threshold_get_spares,
- };
-diff --git a/ndctl/libndctl.h.in b/ndctl/libndctl.h.in
-index fb77d243a893..298adff476c7 100644
---- a/ndctl/libndctl.h.in
-+++ b/ndctl/libndctl.h.in
-@@ -275,12 +275,18 @@ static inline unsigned long long ndctl_cmd_clear_error_get_cleared(
- }
- #endif
- 
-+/*
-+ * Note: ndctl_cmd_smart_get_temperature is an alias for
-+ * ndctl_cmd_smart_get_temperature
-+ */
-+
- #define HAS_SMART HAVE_NDCTL_SMART
- #if HAS_SMART == 1
- struct ndctl_cmd *ndctl_dimm_cmd_new_smart(struct ndctl_dimm *dimm);
- unsigned int ndctl_cmd_smart_get_flags(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_health(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_temperature(struct ndctl_cmd *cmd);
-+unsigned int ndctl_cmd_smart_get_media_temperature(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_spares(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_alarm_flags(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_get_life_used(struct ndctl_cmd *cmd);
-@@ -291,6 +297,7 @@ unsigned char *ndctl_cmd_smart_get_vendor_data(struct ndctl_cmd *cmd);
- struct ndctl_cmd *ndctl_dimm_cmd_new_smart_threshold(struct ndctl_dimm *dimm);
- unsigned int ndctl_cmd_smart_threshold_get_alarm_control(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_threshold_get_temperature(struct ndctl_cmd *cmd);
-+unsigned int ndctl_cmd_smart_threshold_get_media_temperature(struct ndctl_cmd *cmd);
- unsigned int ndctl_cmd_smart_threshold_get_spares(struct ndctl_cmd *cmd);
- #else
- static inline struct ndctl_cmd *ndctl_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
-@@ -309,6 +316,11 @@ static inline unsigned int ndctl_cmd_smart_get_temperature(struct ndctl_cmd *cmd
- {
- 	return 0;
- }
-+static inline unsigned int ndctl_cmd_smart_get_media_temperature(
-+		struct ndctl_cmd *cmd)
-+{
-+	return 0;
-+}
- static inline unsigned int ndctl_cmd_smart_get_spares(struct ndctl_cmd *cmd)
- {
- 	return 0;
-@@ -352,6 +364,11 @@ static inline unsigned int ndctl_cmd_smart_threshold_get_temperature(
- {
- 	return 0;
- }
-+static inline unsigned int ndctl_cmd_smart_threshold_get_media_temperature(
-+		struct ndctl_cmd *cmd)
-+{
-+	return 0;
-+}
- static inline unsigned int ndctl_cmd_smart_threshold_get_spares(
- 		struct ndctl_cmd *cmd)
- {
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhpcyBpcyBhIHByZXR0eSBiaWcgZnVuY3Rpb24sIHdoaWNoIHNob3VsZCBiZSBvdXQgb2YgbGlu
+ZSBpbiBnZW5lcmFsLAphbmQgYSBuby1vcCBzdHViIGlmIENPTkZJR19aT05FX0RFVklD0JUgaXMg
+bm90IHNldC4KClNpZ25lZC1vZmYtYnk6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0LmRlPgpS
+ZXZpZXdlZC1ieTogTG9nYW4gR3VudGhvcnBlIDxsb2dhbmdAZGVsdGF0ZWUuY29tPgpSZXZpZXdl
+ZC1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ci0tLQogaW5jbHVk
+ZS9saW51eC9tZW1yZW1hcC5oIHwgMzkgKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCiBrZXJuZWwvbWVtcmVtYXAuYyAgICAgICAgfCAzNiArKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrLS0KIDIgZmlsZXMgY2hhbmdlZCwgMzggaW5zZXJ0aW9ucygrKSwgMzcg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oIGIvaW5j
+bHVkZS9saW51eC9tZW1yZW1hcC5oCmluZGV4IGQ1YTY3MzZkOTczNy4uMjZlOGFhYmEyN2Q1IDEw
+MDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L21lbXJlbWFwLmgKKysrIGIvaW5jbHVkZS9saW51eC9t
+ZW1yZW1hcC5oCkBAIC0xMzMsNyArMTMzLDggQEAgc3RydWN0IGRldl9wYWdlbWFwIHsKICNpZmRl
+ZiBDT05GSUdfWk9ORV9ERVZJQ0UKIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRl
+dmljZSAqZGV2LCBzdHJ1Y3QgcmVzb3VyY2UgKnJlcywKIAkJc3RydWN0IHBlcmNwdV9yZWYgKnJl
+Ziwgc3RydWN0IHZtZW1fYWx0bWFwICphbHRtYXApOwotc3RydWN0IGRldl9wYWdlbWFwICpmaW5k
+X2Rldl9wYWdlbWFwKHJlc291cmNlX3NpemVfdCBwaHlzKTsKK3N0cnVjdCBkZXZfcGFnZW1hcCAq
+Z2V0X2Rldl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcgcGZuLAorCQlzdHJ1Y3QgZGV2X3BhZ2VtYXAg
+KnBnbWFwKTsKIAogdW5zaWduZWQgbG9uZyB2bWVtX2FsdG1hcF9vZmZzZXQoc3RydWN0IHZtZW1f
+YWx0bWFwICphbHRtYXApOwogdm9pZCB2bWVtX2FsdG1hcF9mcmVlKHN0cnVjdCB2bWVtX2FsdG1h
+cCAqYWx0bWFwLCB1bnNpZ25lZCBsb25nIG5yX3BmbnMpOwpAQCAtMTUzLDcgKzE1NCw4IEBAIHN0
+YXRpYyBpbmxpbmUgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYs
+CiAJcmV0dXJuIEVSUl9QVFIoLUVOWElPKTsKIH0KIAotc3RhdGljIGlubGluZSBzdHJ1Y3QgZGV2
+X3BhZ2VtYXAgKmZpbmRfZGV2X3BhZ2VtYXAocmVzb3VyY2Vfc2l6ZV90IHBoeXMpCitzdGF0aWMg
+aW5saW5lIHN0cnVjdCBkZXZfcGFnZW1hcCAqZ2V0X2Rldl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcg
+cGZuLAorCQlzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogewogCXJldHVybiBOVUxMOwogfQpA
+QCAtMTgzLDM5ICsxODUsNiBAQCBzdGF0aWMgaW5saW5lIGJvb2wgaXNfZGV2aWNlX3B1YmxpY19w
+YWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKQogfQogI2VuZGlmIC8qIENPTkZJR19ERVZJQ0Vf
+UFJJVkFURSB8fCBDT05GSUdfREVWSUNFX1BVQkxJQyAqLwogCi0vKioKLSAqIGdldF9kZXZfcGFn
+ZW1hcCgpIC0gdGFrZSBhIG5ldyBsaXZlIHJlZmVyZW5jZSBvbiB0aGUgZGV2X3BhZ2VtYXAgZm9y
+IEBwZm4KLSAqIEBwZm46IHBhZ2UgZnJhbWUgbnVtYmVyIHRvIGxvb2t1cCBwYWdlX21hcAotICog
+QHBnbWFwOiBvcHRpb25hbCBrbm93biBwZ21hcCB0aGF0IGFscmVhZHkgaGFzIGEgcmVmZXJlbmNl
+Ci0gKgotICogQHBnbWFwIGFsbG93cyB0aGUgb3ZlcmhlYWQgb2YgYSBsb29rdXAgdG8gYmUgYnlw
+YXNzZWQgd2hlbiBAcGZuIGxhbmRzIGluIHRoZQotICogc2FtZSBtYXBwaW5nLgotICovCi1zdGF0
+aWMgaW5saW5lIHN0cnVjdCBkZXZfcGFnZW1hcCAqZ2V0X2Rldl9wYWdlbWFwKHVuc2lnbmVkIGxv
+bmcgcGZuLAotCQlzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQotewotCWNvbnN0IHN0cnVjdCBy
+ZXNvdXJjZSAqcmVzID0gcGdtYXAgPyBwZ21hcC0+cmVzIDogTlVMTDsKLQlyZXNvdXJjZV9zaXpl
+X3QgcGh5cyA9IFBGTl9QSFlTKHBmbik7Ci0KLQkvKgotCSAqIEluIHRoZSBjYWNoZWQgY2FzZSB3
+ZSdyZSBhbHJlYWR5IGhvbGRpbmcgYSBsaXZlIHJlZmVyZW5jZSBzbwotCSAqIHdlIGNhbiBzaW1w
+bHkgZG8gYSBibGluZCBpbmNyZW1lbnQKLQkgKi8KLQlpZiAocmVzICYmIHBoeXMgPj0gcmVzLT5z
+dGFydCAmJiBwaHlzIDw9IHJlcy0+ZW5kKSB7Ci0JCXBlcmNwdV9yZWZfZ2V0KHBnbWFwLT5yZWYp
+OwotCQlyZXR1cm4gcGdtYXA7Ci0JfQotCi0JLyogZmFsbCBiYWNrIHRvIHNsb3cgcGF0aCBsb29r
+dXAgKi8KLQlyY3VfcmVhZF9sb2NrKCk7Ci0JcGdtYXAgPSBmaW5kX2Rldl9wYWdlbWFwKHBoeXMp
+OwotCWlmIChwZ21hcCAmJiAhcGVyY3B1X3JlZl90cnlnZXRfbGl2ZShwZ21hcC0+cmVmKSkKLQkJ
+cGdtYXAgPSBOVUxMOwotCXJjdV9yZWFkX3VubG9jaygpOwotCi0JcmV0dXJuIHBnbWFwOwotfQot
+CiBzdGF0aWMgaW5saW5lIHZvaWQgcHV0X2Rldl9wYWdlbWFwKHN0cnVjdCBkZXZfcGFnZW1hcCAq
+cGdtYXApCiB7CiAJaWYgKHBnbWFwKQpkaWZmIC0tZ2l0IGEva2VybmVsL21lbXJlbWFwLmMgYi9r
+ZXJuZWwvbWVtcmVtYXAuYwppbmRleCA2NGIxMmM4MDZjYzUuLjNkZjZjZDRmZmI0MCAxMDA2NDQK
+LS0tIGEva2VybmVsL21lbXJlbWFwLmMKKysrIGIva2VybmVsL21lbXJlbWFwLmMKQEAgLTMxNCw3
+ICszMTQsNyBAQCBzdGF0aWMgdm9pZCBkZXZtX21lbXJlbWFwX3BhZ2VzX3JlbGVhc2Uoc3RydWN0
+IGRldmljZSAqZGV2LCB2b2lkICpkYXRhKQogfQogCiAvKiBhc3N1bWVzIHJjdV9yZWFkX2xvY2so
+KSBoZWxkIGF0IGVudHJ5ICovCi1zdHJ1Y3QgZGV2X3BhZ2VtYXAgKmZpbmRfZGV2X3BhZ2VtYXAo
+cmVzb3VyY2Vfc2l6ZV90IHBoeXMpCitzdGF0aWMgc3RydWN0IGRldl9wYWdlbWFwICpmaW5kX2Rl
+dl9wYWdlbWFwKHJlc291cmNlX3NpemVfdCBwaHlzKQogewogCXN0cnVjdCBwYWdlX21hcCAqcGFn
+ZV9tYXA7CiAKQEAgLTUwMSw4ICs1MDEsNDAgQEAgc3RydWN0IHZtZW1fYWx0bWFwICp0b192bWVt
+X2FsdG1hcCh1bnNpZ25lZCBsb25nIG1lbW1hcF9zdGFydCkKIAogCXJldHVybiBwZ21hcCA/IHBn
+bWFwLT5hbHRtYXAgOiBOVUxMOwogfQotI2VuZGlmIC8qIENPTkZJR19aT05FX0RFVklDRSAqLwog
+CisvKioKKyAqIGdldF9kZXZfcGFnZW1hcCgpIC0gdGFrZSBhIG5ldyBsaXZlIHJlZmVyZW5jZSBv
+biB0aGUgZGV2X3BhZ2VtYXAgZm9yIEBwZm4KKyAqIEBwZm46IHBhZ2UgZnJhbWUgbnVtYmVyIHRv
+IGxvb2t1cCBwYWdlX21hcAorICogQHBnbWFwOiBvcHRpb25hbCBrbm93biBwZ21hcCB0aGF0IGFs
+cmVhZHkgaGFzIGEgcmVmZXJlbmNlCisgKgorICogQHBnbWFwIGFsbG93cyB0aGUgb3ZlcmhlYWQg
+b2YgYSBsb29rdXAgdG8gYmUgYnlwYXNzZWQgd2hlbiBAcGZuIGxhbmRzIGluIHRoZQorICogc2Ft
+ZSBtYXBwaW5nLgorICovCitzdHJ1Y3QgZGV2X3BhZ2VtYXAgKmdldF9kZXZfcGFnZW1hcCh1bnNp
+Z25lZCBsb25nIHBmbiwKKwkJc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKK3sKKwljb25zdCBz
+dHJ1Y3QgcmVzb3VyY2UgKnJlcyA9IHBnbWFwID8gcGdtYXAtPnJlcyA6IE5VTEw7CisJcmVzb3Vy
+Y2Vfc2l6ZV90IHBoeXMgPSBQRk5fUEhZUyhwZm4pOworCisJLyoKKwkgKiBJbiB0aGUgY2FjaGVk
+IGNhc2Ugd2UncmUgYWxyZWFkeSBob2xkaW5nIGEgbGl2ZSByZWZlcmVuY2Ugc28KKwkgKiB3ZSBj
+YW4gc2ltcGx5IGRvIGEgYmxpbmQgaW5jcmVtZW50CisJICovCisJaWYgKHJlcyAmJiBwaHlzID49
+IHJlcy0+c3RhcnQgJiYgcGh5cyA8PSByZXMtPmVuZCkgeworCQlwZXJjcHVfcmVmX2dldChwZ21h
+cC0+cmVmKTsKKwkJcmV0dXJuIHBnbWFwOworCX0KKworCS8qIGZhbGwgYmFjayB0byBzbG93IHBh
+dGggbG9va3VwICovCisJcmN1X3JlYWRfbG9jaygpOworCXBnbWFwID0gZmluZF9kZXZfcGFnZW1h
+cChwaHlzKTsKKwlpZiAocGdtYXAgJiYgIXBlcmNwdV9yZWZfdHJ5Z2V0X2xpdmUocGdtYXAtPnJl
+ZikpCisJCXBnbWFwID0gTlVMTDsKKwlyY3VfcmVhZF91bmxvY2soKTsKKworCXJldHVybiBwZ21h
+cDsKK30KKyNlbmRpZiAvKiBDT05GSUdfWk9ORV9ERVZJQ0UgKi8KIAogI2lmIElTX0VOQUJMRUQo
+Q09ORklHX0RFVklDRV9QUklWQVRFKSB8fCAgSVNfRU5BQkxFRChDT05GSUdfREVWSUNFX1BVQkxJ
+QykKIHZvaWQgcHV0X3pvbmVfZGV2aWNlX3ByaXZhdGVfb3JfcHVibGljX3BhZ2Uoc3RydWN0IHBh
+Z2UgKnBhZ2UpCi0tIAoyLjE0LjIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
+LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
+bQo=
