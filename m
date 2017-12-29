@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D2A1C20352A90
- for <linux-nvdimm@lists.01.org>; Tue,  5 Dec 2017 15:52:36 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [xfsprogs PATCH v2 3/3] xfs_io: add a new 'log_writes' command
-Date: Tue,  5 Dec 2017 16:56:51 -0700
-Message-Id: <20171205235651.17102-4-ross.zwisler@linux.intel.com>
-In-Reply-To: <20171205235651.17102-1-ross.zwisler@linux.intel.com>
-References: <20171205235651.17102-1-ross.zwisler@linux.intel.com>
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7B6EE2034B9EA
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:49:45 -0800 (PST)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 06/17] mm: pass the vmem_altmap to arch_remove_memory and
+ __remove_pages
+Date: Fri, 29 Dec 2017 08:53:55 +0100
+Message-Id: <20171229075406.1936-7-hch@lst.de>
+In-Reply-To: <20171229075406.1936-1-hch@lst.de>
+References: <20171229075406.1936-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,301 +23,246 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-xfs <linux-xfs@vger.kernel.org>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, fstests <fstests@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new 'log_writes' command to xfs_io so that we can add dm-log-writes
-log marks.  It's helpful to allow users of xfs_io to adds these marks from
-within xfs_io instead of waiting until after xfs_io exits because then they
-are able to replay the dm-log-writes log up to immediately after another
-xfs_io operation such as mwrite.  This isolates the log replay from other
-operations that happen as part of xfs_io exiting (file handles being
-closed, mmaps being torn down, etc.).  This also allows users to insert
-multiple marks between different xfs_io commands.
+We can just pass this on instead of having to do a radix tree lookup
+without proper locking 2 levels into the callchain.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- configure.ac            |   1 +
- debian/control          |   2 +-
- include/builddefs.in    |   2 +
- io/Makefile             |   6 +++
- io/init.c               |   1 +
- io/io.h                 |   6 +++
- io/log_writes.c         | 101 ++++++++++++++++++++++++++++++++++++++++++++++++
- m4/Makefile             |   1 +
- m4/package_devmapper.m4 |  11 ++++++
- man/man8/xfs_io.8       |  23 ++++++++++-
- 10 files changed, 152 insertions(+), 2 deletions(-)
- create mode 100644 io/log_writes.c
- create mode 100644 m4/package_devmapper.m4
+ arch/ia64/mm/init.c            | 4 ++--
+ arch/powerpc/mm/mem.c          | 6 ++----
+ arch/s390/mm/init.c            | 2 +-
+ arch/sh/mm/init.c              | 4 ++--
+ arch/x86/mm/init_32.c          | 4 ++--
+ arch/x86/mm/init_64.c          | 6 ++----
+ include/linux/memory_hotplug.h | 5 +++--
+ kernel/memremap.c              | 2 +-
+ mm/hmm.c                       | 4 ++--
+ mm/memory_hotplug.c            | 8 ++------
+ 10 files changed, 19 insertions(+), 26 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index f3325aa0..f83d5817 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -164,6 +164,7 @@ AC_NEED_INTERNAL_FSXATTR
- AC_HAVE_GETFSMAP
- AC_HAVE_STATFS_FLAGS
- AC_HAVE_MAP_SYNC
-+AC_HAVE_DEVMAPPER
+diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
+index 2e2e4f532204..6a8ce9e1536e 100644
+--- a/arch/ia64/mm/init.c
++++ b/arch/ia64/mm/init.c
+@@ -663,7 +663,7 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
+ }
  
- if test "$enable_blkid" = yes; then
- AC_HAVE_BLKID_TOPO
-diff --git a/debian/control b/debian/control
-index ad816622..5c26e3d7 100644
---- a/debian/control
-+++ b/debian/control
-@@ -3,7 +3,7 @@ Section: admin
- Priority: optional
- Maintainer: XFS Development Team <linux-xfs@vger.kernel.org>
- Uploaders: Nathan Scott <nathans@debian.org>, Anibal Monsalve Salazar <anibal@debian.org>
--Build-Depends: uuid-dev, dh-autoreconf, debhelper (>= 5), gettext, libtool, libreadline-gplv2-dev | libreadline5-dev, libblkid-dev (>= 2.17), linux-libc-dev
-+Build-Depends: uuid-dev, dh-autoreconf, debhelper (>= 5), gettext, libtool, libreadline-gplv2-dev | libreadline5-dev, libblkid-dev (>= 2.17), linux-libc-dev, libdevmapper-dev
- Standards-Version: 3.9.1
- Homepage: http://xfs.org/
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+@@ -671,7 +671,7 @@ int arch_remove_memory(u64 start, u64 size)
+ 	int ret;
  
-diff --git a/include/builddefs.in b/include/builddefs.in
-index 126f7e95..66bdbfa2 100644
---- a/include/builddefs.in
-+++ b/include/builddefs.in
-@@ -35,6 +35,7 @@ LIBTERMCAP = @libtermcap@
- LIBEDITLINE = @libeditline@
- LIBREADLINE = @libreadline@
- LIBBLKID = @libblkid@
-+LIBDEVMAPPER = @libdevmapper@
- LIBXFS = $(TOPDIR)/libxfs/libxfs.la
- LIBXCMD = $(TOPDIR)/libxcmd/libxcmd.la
- LIBXLOG = $(TOPDIR)/libxlog/libxlog.la
-@@ -116,6 +117,7 @@ NEED_INTERNAL_FSXATTR = @need_internal_fsxattr@
- HAVE_GETFSMAP = @have_getfsmap@
- HAVE_STATFS_FLAGS = @have_statfs_flags@
- HAVE_MAP_SYNC = @have_map_sync@
-+HAVE_DEVMAPPER = @have_devmapper@
+ 	zone = page_zone(pfn_to_page(start_pfn));
+-	ret = __remove_pages(zone, start_pfn, nr_pages);
++	ret = __remove_pages(zone, start_pfn, nr_pages, altmap);
+ 	if (ret)
+ 		pr_warn("%s: Problem encountered in __remove_pages() as"
+ 			" ret=%d\n", __func__,  ret);
+diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
+index e670cfc2766e..22aa528b78a2 100644
+--- a/arch/powerpc/mm/mem.c
++++ b/arch/powerpc/mm/mem.c
+@@ -149,11 +149,10 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
+ }
  
- GCCFLAGS = -funsigned-char -fno-strict-aliasing -Wall
- #	   -Wbitwise -Wno-transparent-union -Wno-old-initializer -Wno-decl
-diff --git a/io/Makefile b/io/Makefile
-index 2987ee11..b7585a1b 100644
---- a/io/Makefile
-+++ b/io/Makefile
-@@ -107,6 +107,12 @@ ifeq ($(HAVE_MAP_SYNC),yes)
- LCFLAGS += -DHAVE_MAP_SYNC
- endif
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+-	struct vmem_altmap *altmap;
+ 	struct page *page;
+ 	int ret;
  
-+ifeq ($(HAVE_DEVMAPPER),yes)
-+CFILES += log_writes.c
-+LLDLIBS += $(LIBDEVMAPPER)
-+LCFLAGS += -DHAVE_DEVMAPPER
-+endif
-+
- # On linux we get fsmap from the system or define it ourselves
- # so include this based on platform type.  If this reverts to only
- # the autoconf check w/o local definition, change to testing HAVE_GETFSMAP
-diff --git a/io/init.c b/io/init.c
-index 20d5f80d..34d87b5f 100644
---- a/io/init.c
-+++ b/io/init.c
-@@ -72,6 +72,7 @@ init_commands(void)
- 	help_init();
- 	imap_init();
- 	inject_init();
-+	log_writes_init();
- 	madvise_init();
- 	mincore_init();
- 	mmap_init();
-diff --git a/io/io.h b/io/io.h
-index 8b2753b3..9349cc75 100644
---- a/io/io.h
-+++ b/io/io.h
-@@ -186,3 +186,9 @@ extern void		fsmap_init(void);
- #else
- # define fsmap_init()	do { } while (0)
+@@ -162,11 +161,10 @@ int arch_remove_memory(u64 start, u64 size)
+ 	 * when querying the zone.
+ 	 */
+ 	page = pfn_to_page(start_pfn);
+-	altmap = to_vmem_altmap((unsigned long) page);
+ 	if (altmap)
+ 		page += vmem_altmap_offset(altmap);
+ 
+-	ret = __remove_pages(page_zone(page), start_pfn, nr_pages);
++	ret = __remove_pages(page_zone(page), start_pfn, nr_pages, altmap);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/arch/s390/mm/init.c b/arch/s390/mm/init.c
+index e12c5af50cd7..3fa3e5323612 100644
+--- a/arch/s390/mm/init.c
++++ b/arch/s390/mm/init.c
+@@ -240,7 +240,7 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	/*
+ 	 * There is no hardware or firmware interface which could trigger a
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index 552afbf55bad..ce0bbaa7e404 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -510,7 +510,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
  #endif
-+
-+#ifdef HAVE_DEVMAPPER
-+extern void		log_writes_init(void);
-+#else
-+#define log_writes_init()	do { } while (0)
-+#endif
-diff --git a/io/log_writes.c b/io/log_writes.c
-new file mode 100644
-index 00000000..37c0024f
---- /dev/null
-+++ b/io/log_writes.c
-@@ -0,0 +1,101 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ * All Rights Reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it would be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write the Free Software Foundation,
-+ * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+ */
-+
-+#include "platform_defs.h"
-+#include <libdevmapper.h>
-+#include "command.h"
-+#include "init.h"
-+
-+static cmdinfo_t log_writes_cmd;
-+
-+static void
-+mark_log(const char *device, const char *mark)
-+{
-+	struct dm_task *dmt;
-+	const int size = 80;
-+	char message[size];
-+	int len;
-+
-+	len = snprintf(message, size, "mark %s", mark);
-+	if (len >= size) {
-+		printf("mark '%s' is too long\n", mark);
-+		return;
-+	}
-+
-+	if (!(dmt = dm_task_create(DM_DEVICE_TARGET_MSG)))
-+		return;
-+
-+	if (!dm_task_set_name(dmt, device))
-+		goto out;
-+
-+	if (!dm_task_set_sector(dmt, 0))
-+		goto out;
-+
-+	if (!dm_task_set_message(dmt, message))
-+		goto out;
-+
-+	dm_task_run(dmt);
-+out:
-+	dm_task_destroy(dmt);
-+}
-+
-+static int
-+log_writes_f(
-+	int			argc,
-+	char			**argv)
-+{
-+	const char *device = NULL;
-+	const char *mark = NULL;
-+	int c;
-+
-+	while ((c = getopt(argc, argv, "d:m:")) != EOF) {
-+		switch (c) {
-+		case 'd':
-+			device = optarg;
-+			break;
-+		case 'm':
-+			mark = optarg;
-+			break;
-+		default:
-+			return command_usage(&log_writes_cmd);
-+		}
-+	}
-+
-+	if (device == NULL || mark == NULL)
-+		return command_usage(&log_writes_cmd);
-+
-+	mark_log(device, mark);
-+	return 0;
-+}
-+
-+void
-+log_writes_init(void)
-+{
-+	log_writes_cmd.name = "log_writes";
-+	log_writes_cmd.altname = "lw";
-+	log_writes_cmd.cfunc = log_writes_f;
-+	log_writes_cmd.flags = CMD_NOMAP_OK | CMD_NOFILE_OK | CMD_FOREIGN_OK
-+				| CMD_FLAG_ONESHOT;
-+	log_writes_cmd.argmin = 0;
-+	log_writes_cmd.argmax = -1;
-+	log_writes_cmd.args = _("-d device -m mark");
-+	log_writes_cmd.oneline =
-+		_("create mark <mark> in the dm-log-writes log specified by <device>");
-+
-+	add_command(&log_writes_cmd);
-+}
-diff --git a/m4/Makefile b/m4/Makefile
-index 4706121b..77f2edda 100644
---- a/m4/Makefile
-+++ b/m4/Makefile
-@@ -15,6 +15,7 @@ CONFIGURE = \
- LSRCFILES = \
- 	manual_format.m4 \
- 	package_blkid.m4 \
-+	package_devmapper.m4 \
- 	package_globals.m4 \
- 	package_libcdev.m4 \
- 	package_pthread.m4 \
-diff --git a/m4/package_devmapper.m4 b/m4/package_devmapper.m4
-new file mode 100644
-index 00000000..821f283c
---- /dev/null
-+++ b/m4/package_devmapper.m4
-@@ -0,0 +1,11 @@
-+#
-+# See if libdevmapper is available on the system.
-+#
-+AC_DEFUN([AC_HAVE_DEVMAPPER],
-+[ AC_SEARCH_LIBS([dm_task_create], [devmapper],
-+        libdevmapper="-ldevmapper"
-+        have_devmapper=yes,
-+        have_devmapper=no,)
-+    AC_SUBST(have_devmapper)
-+    AC_SUBST(libdevmapper)
-+])
-diff --git a/man/man8/xfs_io.8 b/man/man8/xfs_io.8
-index 1693f7f1..4fce6d39 100644
---- a/man/man8/xfs_io.8
-+++ b/man/man8/xfs_io.8
-@@ -1123,7 +1123,27 @@ version of policy structure (numeric)
- .BR get_encpolicy
- On filesystems that support encryption, display the encryption policy of the
- current file.
-+.RE
-+.PD
-+.TP
-+.BI "log_writes \-d " device " \-m "  mark
-+Create a mark named
-+.I mark
-+in the dm-log-writes log specified by
-+.I device.
-+This is intended to be equivalent to the shell command:
  
-+.B dmsetup message
-+.I device
-+.B 0 mark
-+.I mark
-+.PD
-+.RE
-+.TP
-+.B lw
-+See the
-+.B log_writes
-+command.
- .SH SEE ALSO
- .BR mkfs.xfs (8),
- .BR xfsctl (3),
-@@ -1141,4 +1161,5 @@ current file.
- .BR open (2),
- .BR pread (2),
- .BR pwrite (2),
--.BR readdir (3).
-+.BR readdir (3),
-+.BR dmsetup (8).
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+@@ -518,7 +518,7 @@ int arch_remove_memory(u64 start, u64 size)
+ 	int ret;
+ 
+ 	zone = page_zone(pfn_to_page(start_pfn));
+-	ret = __remove_pages(zone, start_pfn, nr_pages);
++	ret = __remove_pages(zone, start_pfn, nr_pages, altmap);
+ 	if (unlikely(ret))
+ 		pr_warn("%s: Failed, __remove_pages() == %d\n", __func__,
+ 			ret);
+diff --git a/arch/x86/mm/init_32.c b/arch/x86/mm/init_32.c
+index 8a3091511a71..79cb066f40c0 100644
+--- a/arch/x86/mm/init_32.c
++++ b/arch/x86/mm/init_32.c
+@@ -839,14 +839,14 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	struct zone *zone;
+ 
+ 	zone = page_zone(pfn_to_page(start_pfn));
+-	return __remove_pages(zone, start_pfn, nr_pages);
++	return __remove_pages(zone, start_pfn, nr_pages, altmap);
+ }
+ #endif
+ #endif
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 594902ef56ef..3c046618cc7e 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1132,21 +1132,19 @@ kernel_physical_mapping_remove(unsigned long start, unsigned long end)
+ 	remove_pagetable(start, end, true);
+ }
+ 
+-int __ref arch_remove_memory(u64 start, u64 size)
++int __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	struct page *page = pfn_to_page(start_pfn);
+-	struct vmem_altmap *altmap;
+ 	struct zone *zone;
+ 	int ret;
+ 
+ 	/* With altmap the first mapped page is offset from @start */
+-	altmap = to_vmem_altmap((unsigned long) page);
+ 	if (altmap)
+ 		page += vmem_altmap_offset(altmap);
+ 	zone = page_zone(page);
+-	ret = __remove_pages(zone, start_pfn, nr_pages);
++	ret = __remove_pages(zone, start_pfn, nr_pages, altmap);
+ 	WARN_ON_ONCE(ret);
+ 	kernel_physical_mapping_remove(start, start + size);
+ 
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index cbdd6d52e877..e71927d0d46b 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -126,9 +126,10 @@ static inline bool movable_node_is_enabled(void)
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ extern bool is_pageblock_removable_nolock(struct page *page);
+-extern int arch_remove_memory(u64 start, u64 size);
++extern int arch_remove_memory(u64 start, u64 size,
++		struct vmem_altmap *altmap);
+ extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
+-	unsigned long nr_pages);
++	unsigned long nr_pages, struct vmem_altmap *altmap);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ /* reasonably generic interface to expand the physical pages */
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 8488cdeead16..380fca1c4a02 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -304,7 +304,7 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
+ 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+ 
+ 	mem_hotplug_begin();
+-	arch_remove_memory(align_start, align_size);
++	arch_remove_memory(align_start, align_size, pgmap->altmap);
+ 	mem_hotplug_done();
+ 
+ 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 231aaacd1997..5d17ba89062f 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -838,10 +838,10 @@ static void hmm_devmem_release(struct device *dev, void *data)
+ 
+ 	mem_hotplug_begin();
+ 	if (resource->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY)
+-		__remove_pages(zone, start_pfn, npages);
++		__remove_pages(zone, start_pfn, npages, NULL);
+ 	else
+ 		arch_remove_memory(start_pfn << PAGE_SHIFT,
+-				   npages << PAGE_SHIFT);
++				   npages << PAGE_SHIFT, NULL);
+ 	mem_hotplug_done();
+ 
+ 	hmm_devmem_radix_release(resource);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index b36f1822c432..eae6bf47caf7 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -569,7 +569,7 @@ static int __remove_section(struct zone *zone, struct mem_section *ms,
+  * calling offline_pages().
+  */
+ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
+-		 unsigned long nr_pages)
++		 unsigned long nr_pages, struct vmem_altmap *altmap)
+ {
+ 	unsigned long i;
+ 	unsigned long map_offset = 0;
+@@ -577,10 +577,6 @@ int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
+ 
+ 	/* In the ZONE_DEVICE case device driver owns the memory region */
+ 	if (is_dev_zone(zone)) {
+-		struct page *page = pfn_to_page(phys_start_pfn);
+-		struct vmem_altmap *altmap;
+-
+-		altmap = to_vmem_altmap((unsigned long) page);
+ 		if (altmap)
+ 			map_offset = vmem_altmap_offset(altmap);
+ 	} else {
+@@ -1890,7 +1886,7 @@ void __ref remove_memory(int nid, u64 start, u64 size)
+ 	memblock_free(start, size);
+ 	memblock_remove(start, size);
+ 
+-	arch_remove_memory(start, size);
++	arch_remove_memory(start, size, NULL);
+ 
+ 	try_offline_node(nid);
+ 
 -- 
-2.14.3
+2.14.2
 
 _______________________________________________
 Linux-nvdimm mailing list
