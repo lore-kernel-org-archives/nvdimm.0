@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 72D0C222447DF
- for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 17:00:59 -0800 (PST)
-Subject: [PATCH v4 18/18] xfs,
- dax: wire up dax_flush_dma support via a new xfs_sync_dma helper
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 23 Dec 2017 16:57:37 -0800
-Message-ID: <151407705701.38751.6157642918168721562.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 96C0A2034B42F
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:49:34 -0800 (PST)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 04/17] mm: pass the vmem_altmap to arch_add_memory and
+ __add_pages
+Date: Fri, 29 Dec 2017 08:53:53 +0100
+Message-Id: <20171229075406.1936-5-hch@lst.de>
+In-Reply-To: <20171229075406.1936-1-hch@lst.de>
+References: <20171229075406.1936-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,264 +18,302 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-xfs_break_layouts() scans for active pNFS layouts, drops locks and
-rescans for those layouts to be broken. xfs_sync_dma performs
-xfs_break_layouts and also scans for active dax-dma pages, drops locks
-and rescans for those pages to go idle.
+We can just pass this on instead of having to do a radix tree lookup
+without proper locking 2 levels into the callchain.
 
-dax_flush_dma handles synchronizing against new page-busy events
-(get_user_pages). iIt invalidates all mappings to trigger the
-get_user_pages slow path which will eventually block on the
-XFS_MMAPLOCK. If it finds a dma-busy page it waits for a page-idle
-callback that will fire when the page reference count reaches 1 (recall
-ZONE_DEVICE pages are idle at count 1). While it is waiting, it drops
-locks so we do not deadlock the process that might be trying to elevate
-the page count of more pages before arranging for any of them to go idle
-as is typically the case of iov_iter_get_pages.
-
-dax_flush_dma relies on the fs-provided wait_atomic_t_action_f
-(xfs_wait_dax_page) to handle evaluating the page reference count and
-dropping locks when waiting.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/xfs/Makefile    |    3 ++
- fs/xfs/xfs_dma.c   |   81 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- fs/xfs/xfs_dma.h   |   24 +++++++++++++++
- fs/xfs/xfs_file.c  |    6 ++--
- fs/xfs/xfs_ioctl.c |    7 ++--
- fs/xfs/xfs_iops.c  |    7 +++-
- 6 files changed, 118 insertions(+), 10 deletions(-)
- create mode 100644 fs/xfs/xfs_dma.c
- create mode 100644 fs/xfs/xfs_dma.h
+ arch/ia64/mm/init.c            |  5 +++--
+ arch/powerpc/mm/mem.c          |  5 +++--
+ arch/s390/mm/init.c            |  5 +++--
+ arch/sh/mm/init.c              |  5 +++--
+ arch/x86/mm/init_32.c          |  5 +++--
+ arch/x86/mm/init_64.c          | 11 ++++++-----
+ include/linux/memory_hotplug.h | 17 ++++++++++-------
+ kernel/memremap.c              |  3 ++-
+ mm/hmm.c                       |  5 +++--
+ mm/memory_hotplug.c            |  7 +++----
+ 10 files changed, 39 insertions(+), 29 deletions(-)
 
-diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
-index 7ceb41a9786a..f2cdc5a3eb6c 100644
---- a/fs/xfs/Makefile
-+++ b/fs/xfs/Makefile
-@@ -129,6 +129,9 @@ xfs-$(CONFIG_XFS_QUOTA)		+= xfs_dquot.o \
- 				   xfs_qm.o \
- 				   xfs_quotaops.o
+diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
+index 7af4e05bb61e..2e2e4f532204 100644
+--- a/arch/ia64/mm/init.c
++++ b/arch/ia64/mm/init.c
+@@ -647,13 +647,14 @@ mem_init (void)
+ }
  
-+# dax dma
-+xfs-$(CONFIG_FS_DAX)		+= xfs_dma.o
-+
- # xfs_rtbitmap is shared with libxfs
- xfs-$(CONFIG_XFS_RT)		+= xfs_rtalloc.o
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
++int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
++		bool want_memblock)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
  
-diff --git a/fs/xfs/xfs_dma.c b/fs/xfs/xfs_dma.c
-new file mode 100644
-index 000000000000..3df1a51a76c4
---- /dev/null
-+++ b/fs/xfs/xfs_dma.c
-@@ -0,0 +1,81 @@
-+/*
-+ * SPDX-License-Identifier: GPL-2.0
-+ * Copyright(c) 2017 Intel Corporation. All rights reserved.
-+ */
-+#include <linux/dax.h>
-+#include "xfs.h"
-+#include "xfs_fs.h"
-+#include "xfs_format.h"
-+#include "xfs_log_format.h"
-+#include "xfs_shared.h"
-+#include "xfs_trans_resv.h"
-+#include "xfs_bit.h"
-+#include "xfs_sb.h"
-+#include "xfs_mount.h"
-+#include "xfs_defer.h"
-+#include "xfs_inode.h"
-+#include "xfs_pnfs.h"
-+
-+/*
-+ * xfs_wait_dax_page - helper for dax_flush_dma to drop locks and sleep
-+ * wait for a page idle event. Returns 1 if the locks did not need to be
-+ * dropped and the page is idle, returns -EINTR if the sleep was
-+ * interrupted and returns 1 when it slept. dax_flush_dma()
-+ * retries/rescans all mappings when the lock is dropped.
-+ */
-+static int xfs_wait_dax_page(
-+	atomic_t		*count,
-+	unsigned int		mode)
-+{
-+	uint			iolock = XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL;
-+	struct page 		*page = refcount_to_page(count);
-+	struct address_space	*mapping = page->mapping;
-+	struct inode		*inode = mapping->host;
-+	struct xfs_inode	*ip = XFS_I(inode);
-+
-+	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL));
-+
-+	if (page_ref_count(page) == 1)
-+		return 0;
-+
-+	xfs_iunlock(ip, iolock);
-+	schedule();
-+	xfs_ilock(ip, iolock);
-+
-+	if (signal_pending_state(mode, current))
-+		return -EINTR;
-+	return 1;
-+}
-+
-+/*
-+ * Synchronize [R]DMA before changing the file's block map. For pNFS,
-+ * recall all layouts. For DAX, wait for transient DMA to complete. All
-+ * other DMA is handled by pinning page cache pages.
-+ *
-+ * iolock must held XFS_IOLOCK_SHARED or XFS_IOLOCK_EXCL on entry and
-+ * will be XFS_IOLOCK_EXCL and XFS_MMAPLOCK_EXCL on exit.
-+ */
-+int xfs_sync_dma(
-+	struct inode		*inode,
-+	uint			*iolock)
-+{
-+	struct xfs_inode	*ip = XFS_I(inode);
-+	int			error;
-+
-+	while (true) {
-+		error = xfs_break_layouts(inode, iolock);
-+		if (error)
-+			break;
-+
-+		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
-+		*iolock |= XFS_MMAPLOCK_EXCL;
-+
-+		error = dax_flush_dma(inode->i_mapping, xfs_wait_dax_page);
-+		if (error <= 0)
-+			break;
-+		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
-+		*iolock &= ~XFS_MMAPLOCK_EXCL;
-+	}
-+
-+	return error;
-+}
-diff --git a/fs/xfs/xfs_dma.h b/fs/xfs/xfs_dma.h
-new file mode 100644
-index 000000000000..29635639b073
---- /dev/null
-+++ b/fs/xfs/xfs_dma.h
-@@ -0,0 +1,24 @@
-+/*
-+ * SPDX-License-Identifier: GPL-2.0
-+ * Copyright(c) 2017 Intel Corporation. All rights reserved.
-+ */
-+#ifndef __XFS_DMA__
-+#define __XFS_DMA__
-+#ifdef CONFIG_FS_DAX
-+int xfs_sync_dma(struct inode *inode, uint *iolock);
-+#else
-+#include "xfs_pnfs.h"
-+
-+static inline int xfs_sync_dma(struct inode *inode, uint *iolock)
-+{
-+	int error = xfs_break_layouts(inode, iolock);
-+
-+	if (error)
-+		return error;
-+
-+	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_EXCL);
-+	*iolock |= XFS_MMAPLOCK_EXCL;
-+	return 0;
-+}
-+#endif /* CONFIG_FS_DAX */
-+#endif /* __XFS_DMA__ */
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 6df0c133a61e..84fc178da656 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -37,6 +37,7 @@
- #include "xfs_log.h"
- #include "xfs_icache.h"
- #include "xfs_pnfs.h"
-+#include "xfs_dma.h"
- #include "xfs_iomap.h"
- #include "xfs_reflink.h"
+-	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
++	ret = __add_pages(nid, start_pfn, nr_pages, altmap, want_memblock);
+ 	if (ret)
+ 		printk("%s: Problem encountered in __add_pages() as ret=%d\n",
+ 		       __func__,  ret);
+diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
+index 4362b86ef84c..e670cfc2766e 100644
+--- a/arch/powerpc/mm/mem.c
++++ b/arch/powerpc/mm/mem.c
+@@ -127,7 +127,8 @@ int __weak remove_section_mapping(unsigned long start, unsigned long end)
+ 	return -ENODEV;
+ }
  
-@@ -778,12 +779,11 @@ xfs_file_fallocate(
- 		return -EOPNOTSUPP;
+-int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
++int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
++		bool want_memblock)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+@@ -144,7 +145,7 @@ int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
+ 		return -EFAULT;
+ 	}
  
- 	xfs_ilock(ip, iolock);
--	error = xfs_break_layouts(inode, &iolock);
-+	error = xfs_sync_dma(inode, &iolock);
- 	if (error)
- 		goto out_unlock;
+-	return __add_pages(nid, start_pfn, nr_pages, want_memblock);
++	return __add_pages(nid, start_pfn, nr_pages, altmap, want_memblock);
+ }
  
--	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
--	iolock |= XFS_MMAPLOCK_EXCL;
-+	ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+diff --git a/arch/s390/mm/init.c b/arch/s390/mm/init.c
+index 671535e64aba..e12c5af50cd7 100644
+--- a/arch/s390/mm/init.c
++++ b/arch/s390/mm/init.c
+@@ -222,7 +222,8 @@ device_initcall(s390_cma_mem_init);
  
- 	if (mode & FALLOC_FL_PUNCH_HOLE) {
- 		error = xfs_free_file_space(ip, offset, len);
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 20dc65fef6a4..4340bef658b0 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -39,7 +39,7 @@
- #include "xfs_icache.h"
- #include "xfs_symlink.h"
- #include "xfs_trans.h"
--#include "xfs_pnfs.h"
-+#include "xfs_dma.h"
- #include "xfs_acl.h"
- #include "xfs_btree.h"
- #include <linux/fsmap.h>
-@@ -643,12 +643,11 @@ xfs_ioc_space(
- 		return error;
+ #endif /* CONFIG_CMA */
  
- 	xfs_ilock(ip, iolock);
--	error = xfs_break_layouts(inode, &iolock);
-+	error = xfs_sync_dma(inode, &iolock);
- 	if (error)
- 		goto out_unlock;
+-int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
++int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
++		bool want_memblock)
+ {
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long size_pages = PFN_DOWN(size);
+@@ -232,7 +233,7 @@ int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
+ 	if (rc)
+ 		return rc;
  
--	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
--	iolock |= XFS_MMAPLOCK_EXCL;
-+	ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+-	rc = __add_pages(nid, start_pfn, size_pages, want_memblock);
++	rc = __add_pages(nid, start_pfn, size_pages, altmap, want_memblock);
+ 	if (rc)
+ 		vmem_remove_mapping(start, size);
+ 	return rc;
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index afc54d593a26..552afbf55bad 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -485,14 +485,15 @@ void free_initrd_mem(unsigned long start, unsigned long end)
+ #endif
  
- 	switch (bf->l_whence) {
- 	case 0: /*SEEK_SET*/
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 67bd97edc73b..c1055337b233 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -37,7 +37,7 @@
- #include "xfs_da_btree.h"
- #include "xfs_dir2.h"
- #include "xfs_trans_space.h"
--#include "xfs_pnfs.h"
-+#include "xfs_dma.h"
- #include "xfs_iomap.h"
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
++int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
++		bool want_memblock)
+ {
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
  
- #include <linux/capability.h>
-@@ -1030,11 +1030,12 @@ xfs_vn_setattr(
- 		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
- 		uint			iolock = XFS_IOLOCK_EXCL;
+ 	/* We only have ZONE_NORMAL, so this is easy.. */
+-	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
++	ret = __add_pages(nid, start_pfn, nr_pages, altmap, want_memblock);
+ 	if (unlikely(ret))
+ 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
  
--		error = xfs_break_layouts(d_inode(dentry), &iolock);
-+		error = xfs_sync_dma(d_inode(dentry), &iolock);
- 		if (error)
- 			return error;
+diff --git a/arch/x86/mm/init_32.c b/arch/x86/mm/init_32.c
+index 135c9a7898c7..8a3091511a71 100644
+--- a/arch/x86/mm/init_32.c
++++ b/arch/x86/mm/init_32.c
+@@ -829,12 +829,13 @@ void __init mem_init(void)
+ }
  
--		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
-+		ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
-+
- 		error = xfs_vn_setattr_size(dentry, iattr);
- 		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
- 	} else {
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
++int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
++		bool want_memblock)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 
+-	return __add_pages(nid, start_pfn, nr_pages, want_memblock);
++	return __add_pages(nid, start_pfn, nr_pages, altmap, want_memblock);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 8acdc35c2dfa..e80bb4189254 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -772,12 +772,12 @@ static void update_end_of_memory_vars(u64 start, u64 size)
+ 	}
+ }
+ 
+-int add_pages(int nid, unsigned long start_pfn,
+-	      unsigned long nr_pages, bool want_memblock)
++int add_pages(int nid, unsigned long start_pfn, unsigned long nr_pages,
++		struct vmem_altmap *altmap, bool want_memblock)
+ {
+ 	int ret;
+ 
+-	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
++	ret = __add_pages(nid, start_pfn, nr_pages, altmap, want_memblock);
+ 	WARN_ON_ONCE(ret);
+ 
+ 	/* update max_pfn, max_low_pfn and high_memory */
+@@ -787,14 +787,15 @@ int add_pages(int nid, unsigned long start_pfn,
+ 	return ret;
+ }
+ 
+-int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
++int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
++		bool want_memblock)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 
+ 	init_memory_mapping(start, start + size);
+ 
+-	return add_pages(nid, start_pfn, nr_pages, want_memblock);
++	return add_pages(nid, start_pfn, nr_pages, altmap, want_memblock);
+ }
+ 
+ #define PAGE_INUSE 0xFD
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 58e110aee7ab..db276afbefcc 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -13,6 +13,7 @@ struct pglist_data;
+ struct mem_section;
+ struct memory_block;
+ struct resource;
++struct vmem_altmap;
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+@@ -131,18 +132,19 @@ extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ /* reasonably generic interface to expand the physical pages */
+-extern int __add_pages(int nid, unsigned long start_pfn,
+-	unsigned long nr_pages, bool want_memblock);
++extern int __add_pages(int nid, unsigned long start_pfn, unsigned long nr_pages,
++		struct vmem_altmap *altmap, bool want_memblock);
+ 
+ #ifndef CONFIG_ARCH_HAS_ADD_PAGES
+ static inline int add_pages(int nid, unsigned long start_pfn,
+-			    unsigned long nr_pages, bool want_memblock)
++		unsigned long nr_pages, struct vmem_altmap *altmap,
++		bool want_memblock)
+ {
+-	return __add_pages(nid, start_pfn, nr_pages, want_memblock);
++	return __add_pages(nid, start_pfn, nr_pages, altmap, want_memblock);
+ }
+ #else /* ARCH_HAS_ADD_PAGES */
+-int add_pages(int nid, unsigned long start_pfn,
+-	      unsigned long nr_pages, bool want_memblock);
++int add_pages(int nid, unsigned long start_pfn, unsigned long nr_pages,
++		struct vmem_altmap *altmap, bool want_memblock);
+ #endif /* ARCH_HAS_ADD_PAGES */
+ 
+ #ifdef CONFIG_NUMA
+@@ -318,7 +320,8 @@ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+ 		void *arg, int (*func)(struct memory_block *, void *));
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int add_memory_resource(int nid, struct resource *resource, bool online);
+-extern int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock);
++extern int arch_add_memory(int nid, u64 start, u64 size,
++		struct vmem_altmap *altmap, bool want_memblock);
+ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+ 		unsigned long nr_pages);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 403ab9cdb949..8488cdeead16 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -382,6 +382,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 	if (altmap) {
+ 		memcpy(&page_map->altmap, altmap, sizeof(*altmap));
+ 		pgmap->altmap = &page_map->altmap;
++		altmap = pgmap->altmap;
+ 	}
+ 	pgmap->ref = ref;
+ 	pgmap->res = &page_map->res;
+@@ -427,7 +428,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		goto err_pfn_remap;
+ 
+ 	mem_hotplug_begin();
+-	error = arch_add_memory(nid, align_start, align_size, false);
++	error = arch_add_memory(nid, align_start, align_size, altmap, false);
+ 	if (!error)
+ 		move_pfn_range_to_zone(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
+ 					align_start >> PAGE_SHIFT,
+diff --git a/mm/hmm.c b/mm/hmm.c
+index ea19742a5d60..231aaacd1997 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -931,10 +931,11 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
+ 	 * want the linear mapping and thus use arch_add_memory().
+ 	 */
+ 	if (devmem->pagemap.type == MEMORY_DEVICE_PUBLIC)
+-		ret = arch_add_memory(nid, align_start, align_size, false);
++		ret = arch_add_memory(nid, align_start, align_size, NULL,
++				false);
+ 	else
+ 		ret = add_pages(nid, align_start >> PAGE_SHIFT,
+-				align_size >> PAGE_SHIFT, false);
++				align_size >> PAGE_SHIFT, NULL, false);
+ 	if (ret) {
+ 		mem_hotplug_done();
+ 		goto error_add_memory;
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 5c6f96e6b334..fc0485dcece1 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -292,18 +292,17 @@ static int __meminit __add_section(int nid, unsigned long phys_start_pfn,
+  * add the new pages.
+  */
+ int __ref __add_pages(int nid, unsigned long phys_start_pfn,
+-			unsigned long nr_pages, bool want_memblock)
++		unsigned long nr_pages, struct vmem_altmap *altmap,
++		bool want_memblock)
+ {
+ 	unsigned long i;
+ 	int err = 0;
+ 	int start_sec, end_sec;
+-	struct vmem_altmap *altmap;
+ 
+ 	/* during initialize mem_map, align hot-added range to section */
+ 	start_sec = pfn_to_section_nr(phys_start_pfn);
+ 	end_sec = pfn_to_section_nr(phys_start_pfn + nr_pages - 1);
+ 
+-	altmap = to_vmem_altmap((unsigned long) pfn_to_page(phys_start_pfn));
+ 	if (altmap) {
+ 		/*
+ 		 * Validate altmap is within bounds of the total request
+@@ -1148,7 +1147,7 @@ int __ref add_memory_resource(int nid, struct resource *res, bool online)
+ 	}
+ 
+ 	/* call arch's memory hotadd */
+-	ret = arch_add_memory(nid, start, size, true);
++	ret = arch_add_memory(nid, start, size, NULL, true);
+ 
+ 	if (ret < 0)
+ 		goto error;
+-- 
+2.14.2
 
 _______________________________________________
 Linux-nvdimm mailing list
