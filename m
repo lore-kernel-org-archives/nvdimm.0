@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com
- [15.241.140.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7709A2217CE4C
- for <linux-nvdimm@lists.01.org>; Fri,  8 Dec 2017 15:46:51 -0800 (PST)
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH] acpi, nfit: fix health event notification
-Date: Fri, 8 Dec 2017 23:51:18 +0000
-Message-ID: <1512776323.11639.25.camel@hpe.com>
-References: <151209330313.2584.7295902868393348172.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151209330313.2584.7295902868393348172.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <65ED5F90749CFA48A714A781D66130ED@NAMPRD84.PROD.OUTLOOK.COM>
-MIME-Version: 1.0
+Received: from bombadil.infradead.org (bombadil.infradead.org [65.50.211.133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8F74822280C44
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Dec 2017 23:49:29 -0800 (PST)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 01/17] memremap: provide stubs for vmem_altmap_offset and
+ vmem_altmap_free
+Date: Fri, 29 Dec 2017 08:53:50 +0100
+Message-Id: <20171229075406.1936-2-hch@lst.de>
+In-Reply-To: <20171229075406.1936-1-hch@lst.de>
+References: <20171229075406.1936-1-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,41 +18,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "daniel.k.osawa@intel.com" <daniel.k.osawa@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linuxppc-dev@lists.ozlabs.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2017-11-30 at 17:55 -0800, Dan Williams wrote:
-> Integration testing with a BIOS that generates injected health event
-> notifications fails to communicate those events to userspace. The nfit
-> driver neglects to link the ACPI DIMM device with the necessary driver
-> data so acpi_nvdimm_notify() fails this lookup:
-> 
->         nfit_mem = dev_get_drvdata(dev);
->         if (nfit_mem && nfit_mem->flags_attr)
->                 sysfs_notify_dirent(nfit_mem->flags_attr);
-> 
-> Add the necessary linkage when installing the notification handler and
-> clean it up when the nfit driver instance is torn down.
-> 
-> Cc: <stable@vger.kernel.org>
-> Cc: Toshi Kani <toshi.kani@hpe.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Fixes: ba9c8dd3c222 ("acpi, nfit: add dimm device notification support")
-> Reported-by: Daniel Osawa <daniel.k.osawa@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Currently all calls to those functions are eliminated by the compiler when
+CONFIG_ZONE_DEVICE is not set, but this soon won't be the case.
 
-The fix looks good.  Sorry it appears that I only tested ACPI
-notification, not sysfs event, for the original change.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+---
+ include/linux/memremap.h | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 10d23c367048..d5a6736d9737 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -26,9 +26,6 @@ struct vmem_altmap {
+ 	unsigned long alloc;
+ };
+ 
+-unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
+-void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
+-
+ #ifdef CONFIG_ZONE_DEVICE
+ struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start);
+ #else
+@@ -138,6 +135,9 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap);
+ struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
+ 
++unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
++void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
++
+ static inline bool is_zone_device_page(const struct page *page);
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+@@ -157,7 +157,17 @@ static inline struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
+ {
+ 	return NULL;
+ }
+-#endif
++
++static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
++{
++	return 0;
++}
++
++static inline void vmem_altmap_free(struct vmem_altmap *altmap,
++		unsigned long nr_pfns)
++{
++}
++#endif /* CONFIG_ZONE_DEVICE */
+ 
+ #if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
+ static inline bool is_device_private_page(const struct page *page)
+-- 
+2.14.2
 
-Thanks!
--Toshi
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
