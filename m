@@ -1,16 +1,28 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mail3-relais-sop.national.inria.fr
+ (mail3-relais-sop.national.inria.fr [192.134.164.104])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B576122137DAA
- for <linux-nvdimm@lists.01.org>; Sat, 23 Dec 2017 16:59:29 -0800 (PST)
-Subject: [PATCH v4 01/18] mm, dax: introduce pfn_t_special()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 23 Dec 2017 16:56:06 -0800
-Message-ID: <151407696622.38751.4716967585354728059.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 044C02205BE88
+ for <linux-nvdimm@lists.01.org>; Sat, 30 Dec 2017 01:14:35 -0800 (PST)
+Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+References: <20171218203547.GA2366@linux.intel.com>
+ <20171220181937.GB12236@bombadil.infradead.org>
+ <2da89d31-27a3-34ab-2dbb-92403c8215ec@intel.com>
+ <20171220211649.GA32200@bombadil.infradead.org>
+ <20171220212408.GA8308@linux.intel.com>
+ <CAPcyv4gTknp=0yQnVrrB5Ui+mJE_x-wdkV86UD4hsYnx3CAjfA@mail.gmail.com>
+ <20171220224105.GA27258@linux.intel.com>
+ <39cbe02a-d309-443d-54c9-678a0799342d@gmail.com>
+ <CAPcyv4j9shdJFrvADa=qW4L-jPJJ4S_TJc_c=aRoW3EmSCCChQ@mail.gmail.com>
+ <71317994-af66-a1b2-4c7a-86a03253cf62@gmail.com>
+ <20171230065845.GD27959@bombadil.infradead.org>
+From: Brice Goglin <brice.goglin@gmail.com>
+Message-ID: <74a585de-c825-b568-ee14-c8799b9d6238@gmail.com>
+Date: Sat, 30 Dec 2017 10:19:29 +0100
 MIME-Version: 1.0
+In-Reply-To: <20171230065845.GD27959@bombadil.infradead.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,129 +30,38 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-xfs@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>, "Box, David E" <david.e.box@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Anaczkowski,, "Robert  <robert.moore@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Schmauss, Erik  <erik.schmauss@intel.com>, Len Brown <lenb@kernel.org>, John Hubbard" <jhubbard@nvidia.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Jerome Glisse <jglisse@redhat.com>, devel@acpica.org, Kogut,, "Marcin  <marcin.koss@intel.com>, Linux API <linux-api@vger.kernel.org>, Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Koziej,, "Joonas  <joonas.lahtinen@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen" <tim.c.chen@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of removing the VM_MIXEDMAP indication from DAX VMAs,
-introduce pfn_t_special() for drivers to indicate that _PAGE_SPECIAL
-should be used for DAX ptes. This also helps identify drivers like
-dccssblk that only want to use DAX in a read-only fashion without
-get_user_pages() support.
-
-Ideally we could delete axonram and dcssblk DAX support, but if we need
-to keep it better make it explicit that axonram and dcssblk only support
-a sub-set of DAX due to missing _PAGE_DEVMAP support.
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/powerpc/sysdev/axonram.c |    2 +-
- drivers/s390/block/dcssblk.c  |    3 ++-
- include/linux/pfn_t.h         |   13 +++++++++++++
- mm/memory.c                   |   16 +++++++++++++++-
- 4 files changed, 31 insertions(+), 3 deletions(-)
-
-diff --git a/arch/powerpc/sysdev/axonram.c b/arch/powerpc/sysdev/axonram.c
-index 1b307c80b401..cdbb0e59b3d3 100644
---- a/arch/powerpc/sysdev/axonram.c
-+++ b/arch/powerpc/sysdev/axonram.c
-@@ -151,7 +151,7 @@ __axon_ram_direct_access(struct axon_ram_bank *bank, pgoff_t pgoff, long nr_page
- 	resource_size_t offset = pgoff * PAGE_SIZE;
- 
- 	*kaddr = (void *) bank->io_addr + offset;
--	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
-+	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV|PFN_SPECIAL);
- 	return (bank->size - offset) / PAGE_SIZE;
- }
- 
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 6aaefb780436..9cae08b36b80 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -916,7 +916,8 @@ __dcssblk_direct_access(struct dcssblk_dev_info *dev_info, pgoff_t pgoff,
- 
- 	dev_sz = dev_info->end - dev_info->start + 1;
- 	*kaddr = (void *) dev_info->start + offset;
--	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset), PFN_DEV);
-+	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
-+			PFN_DEV|PFN_SPECIAL);
- 
- 	return (dev_sz - offset) / PAGE_SIZE;
- }
-diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
-index 43b1d7648e82..a03c2642a87c 100644
---- a/include/linux/pfn_t.h
-+++ b/include/linux/pfn_t.h
-@@ -15,8 +15,10 @@
- #define PFN_SG_LAST (1ULL << (BITS_PER_LONG_LONG - 2))
- #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
- #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
-+#define PFN_SPECIAL (1ULL << (BITS_PER_LONG_LONG - 5))
- 
- #define PFN_FLAGS_TRACE \
-+	{ PFN_SPECIAL,	"SPECIAL" }, \
- 	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
- 	{ PFN_SG_LAST,	"SG_LAST" }, \
- 	{ PFN_DEV,	"DEV" }, \
-@@ -120,4 +122,15 @@ pud_t pud_mkdevmap(pud_t pud);
- #endif
- #endif /* __HAVE_ARCH_PTE_DEVMAP */
- 
-+#ifdef __HAVE_ARCH_PTE_SPECIAL
-+static inline bool pfn_t_special(pfn_t pfn)
-+{
-+	return (pfn.val & PFN_SPECIAL) == PFN_SPECIAL;
-+}
-+#else
-+static inline bool pfn_t_special(pfn_t pfn)
-+{
-+	return false;
-+}
-+#endif /* __HAVE_ARCH_PTE_SPECIAL */
- #endif /* _LINUX_PFN_T_H_ */
-diff --git a/mm/memory.c b/mm/memory.c
-index 5eb3d2524bdc..48a13473b401 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1897,12 +1897,26 @@ int vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
- }
- EXPORT_SYMBOL(vm_insert_pfn_prot);
- 
-+static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
-+{
-+	/* these checks mirror the abort conditions in vm_normal_page */
-+	if (vma->vm_flags & VM_MIXEDMAP)
-+		return true;
-+	if (pfn_t_devmap(pfn))
-+		return true;
-+	if (pfn_t_special(pfn))
-+		return true;
-+	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
-+		return true;
-+	return false;
-+}
-+
- static int __vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn, bool mkwrite)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
- 
--	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
-+	BUG_ON(!vm_mixed_ok(vma, pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CgpMZSAzMC8xMi8yMDE3IMOgIDA3OjU4LCBNYXR0aGV3IFdpbGNveCBhIMOpY3JpdMKgOgo+IE9u
+IFdlZCwgRGVjIDI3LCAyMDE3IGF0IDEwOjEwOjM0QU0gKzAxMDAsIEJyaWNlIEdvZ2xpbiB3cm90
+ZToKPj4+IFBlcmhhcHMgd2UgY2FuIGVubGlzdCAvcHJvYy9pb21lbSBvciBhIHNpbWlsYXIgZW51
+bWVyYXRpb24gaW50ZXJmYWNlCj4+PiB0byB0ZWxsIHVzZXJzcGFjZSB0aGUgTlVNQSBub2RlIGFu
+ZCB3aGV0aGVyIHRoZSBrZXJuZWwgdGhpbmtzIGl0IGhhcwo+Pj4gYmV0dGVyIG9yIHdvcnNlIHBl
+cmZvcm1hbmNlIGNoYXJhY3RlcmlzdGljcyByZWxhdGl2ZSB0byBiYXNlCj4+PiBzeXN0ZW0tUkFN
+LCBpLmUuIG5ldyBJT1JFU19ERVNDXyogdmFsdWVzLiBJJ20gd29ycmllZCB0aGF0IGlmIHdlIHN0
+YXJ0Cj4+PiBwdWJsaXNoaW5nIGFic29sdXRlIG51bWJlcnMgaW4gc3lzZnMgdXNlcnNwYWNlIHdp
+bGwgZGVmYXVsdCB0byBsb29raW5nCj4+PiBmb3Igc3BlY2lmaWMgbWFnaWMgbnVtYmVycyBpbiBz
+eXNmcyB2cyBhc2tpbmcgdGhlIGtlcm5lbCBmb3IgbWVtb3J5Cj4+PiB0aGF0IGhhcyBwZXJmb3Jt
+YW5jZSBjaGFyYWN0ZXJpc3RpY3MgcmVsYXRpdmUgdG8gYmFzZSAiU3lzdGVtIFJBTSIuIEluCj4+
+PiBvdGhlciB3b3JkcyB0aGUgYWJzb2x1dGUgcGVyZm9ybWFuY2UgaW5mb3JtYXRpb24gdGhhdCB0
+aGUgSE1BVAo+Pj4gcHVibGlzaGVzIGlzIHVzZWZ1bCB0byB0aGUga2VybmVsLCBidXQgaXQncyBu
+b3QgY2xlYXIgdGhhdCB1c2Vyc3BhY2UKPj4+IG5lZWRzIHRoYXQgdnMgYSByZWxhdGl2ZSBpbmRp
+Y2F0b3IgZm9yIG1ha2luZyBOVU1BIG5vZGUgcHJlZmVyZW5jZQo+Pj4gZGVjaXNpb25zLgo+PiBT
+b21lIEhQQyB1c2VycyB3aWxsIGJlbmNobWFyayB0aGUgbWFjaGluZSB0byBkaXNjb3ZlcnkgYWN0
+dWFsCj4+IHBlcmZvcm1hbmNlIG51bWJlcnMgYW55d2F5Lgo+PiBIb3dldmVyLCBtb3N0IHVzZXJz
+IHdvbid0IGRvIHRoaXMuIFRoZXkgd2lsbCB3YW50IHRvIGtub3cgcmVsYXRpdmUKPj4gcGVyZm9y
+bWFuY2Ugb2YgZGlmZmVyZW50IG5vZGVzLiBJZiB5b3Ugbm9ybWFsaXplIEhNQVQgdmFsdWVzIGJ5
+IGRpdmlkaW5nCj4+IHRoZW0gd2l0aCBzeXN0ZW0tUkFNIHZhbHVlcywgdGhhdCdzIGxpa2VseSBP
+Sy4gSWYgeW91IGp1c3Qgc2F5ICJ0aGF0Cj4+IG5vZGUgaXMgZmFzdGVyIHRoYW4gc3lzdGVtIFJB
+TSIsIGl0J3Mgbm90IHByZWNpc2UgZW5vdWdoLgo+IFNvICJ0aGlzIG1lbW9yeSBoYXMgODAwJSBi
+YW5kd2lkdGggb2Ygbm9ybWFsIiBhbmQgInRoaXMgbWVtb3J5IGhhcyA3MCUKPiBiYW5kd2lkdGgg
+b2Ygbm9ybWFsIj8KCkkgZ3Vlc3MgdGhhdCB3b3VsZCB3b3JrLgpCcmljZQoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
+bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
+YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
