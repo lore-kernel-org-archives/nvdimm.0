@@ -1,168 +1,205 @@
-From: "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: MAIL SYSTEM ERROR - RETURNED MAIL
-Date: Fri, 24 Nov 2017 01:00:30 +0800
-Message-ID: <20171123165616.61787220C1C49@ml01.01.org>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_5A16FEBA.10E68905"
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
-
-This is a multi-part message in MIME format.
-
-------------=_5A16FEBA.10E68905
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Spam detection software, running on the system "blaine.gmane.org",
-has identified this incoming email as possible spam.  The original
-message has been attached to this so you can view it or label
-similar future email.  If you have any questions, see
-@@CONTACT_ADDRESS@@ for details.
-
-Content preview:  JDÅ$~,ºõ­cooóÂ8‚ÃlL#¸ÇGÊ)~#/*İEn‚µ¹çzpô½¤Éûk^˜[,8—Ü\ ã\İI¸¥¼ÊmÏÃPà'l§ißWØ¤œÖîØ8‘Å»0óñ`~cî¨ÀüG#¨è„ÛvÄæç
-   Æ«Ù Ñ’z^6÷áI÷ÚfÊí\…ù‰x…ÂŞWm#tA›JĞ2Gl¿U3ÏÂİ¤Y®ÍÓõßîóIdo2*(>Âª’ÑÓ%Êó5i•§k4…gú­ÏèiD!Nº*
-   ¤¡æØ‚uPL. Å _×.Ë ÔCœzEÍ¨{›©×—‚ßOY3Ó’êâhi‡Ê:%} Š±Âõ–]öB•L¶õ5N3ş/K"ïzÍ-ğ¶\êŸ«#UK[öAxò­Œ½Ä<Õ9?uÊÕ²«ät?br5r³‰Uvâj;`J­5Ø×«pŠ
-   ›¨MÍfÅ“g|Û×§$ S(ñTãCT®òÁZ)Ğo4„1¸FŸà&>PI¾ÅŠ´Ù…¯‰G$O"³Ğ5ÂXEÆ¶LÕ¹ÙâµKƒx…ZÔs¤;ÉÁ{•Væ¤èßxrbægŒÆ§½}³VŞ¡¾–ë\7±‡APÎ‚àyé?)A{ñ}¡ú]2~3˜OŠ'K¢¶¨ÑÖÌ`Cdû˜IÀsñÊµÕS«Q¡8%—êJFüØëmë$®ÑB
-   ÛûÓ­ïGäÂ‰zseàãI÷‹!‹¹¥ñ,·Q£9$ß.Î0xÖJ4ôM2|ËHŸ®¶¼Ü7ïv0-›âˆP0ÕŒEå6– O—{I<gB:<.º·¤»òíS¡Ñ1&Ô“'¥À]ms
-   ş -Úâºf¯şJv—qºYÄqrlƒŠÄKê¾ù««)mÂ«ÒM0‚y( üíxÎj·º^yÀZœ†; •i¸~îÒÎÖd")nq§áwÜ
-   Jn·êÁZ¹0,¡½XÜjTxŞ2ON —iÒ*„Æ9Êh½Ÿ¨’/Ş»p²×ÑUı)Ûzõ©‚ï(÷nÚÃ¤-KQóÎS$?ÍE[hãä®×K˜Œ‹
-   J«¹}CóÜ»ÇEªg|fÍ^±3\Éïx’ºÃ'í¤å4ërd”úÀOlª¸ãÏxç åòKÃ·q§Ú2}DÂ_ŞQó1İõPÔİûÏ›÷•s©…süÔ
-   c]pVE à³ø¸Í„Ë&fŞsIã-Sãšn ü`µßE›G ×g\I>RŸ[Ò8î>’©k;ü&,ÅşCVîÎUWğÅÏ¤´×Òñì¡"¯[áYç^`wìmº÷W/ÃCÊm‘%p•Mt8,Î‡Œù¡^ë!2RÖ?ãş‹EcúŸË9f(9W™XQğæx
-   ‚ÅÀ¨"â?`öU± ¹‹7{;óoßQZ20äÅ3H-`ÔKb*:ŸB·pá.n,å¤?Æ–ô&¿÷¯Q"9Û?uSşÉÜœ™û|K_1[]¿Mø‡íGÉ
-   û|Oİ(k„n±ÏG‚l‚›¹¤ ô'W{6wk‹"ê²5}Š"så‡~Ò{?K`¼5ô“›„ëÏÏMœ¡—Ó¸;­¡"¢Iè·-œË¶ç`ÄûÁÎ¢ÜY<RlŸ–Së4Ã(]ÕÕÍ¹I‘í%n‡
-   —H 9¶–;—1‚.Ï}7Î4ï0Í]hd¯ˆ{jÛ¶<'Ş}Ú,‚ÉEPnæWL(fÆ{/m v§sIxÅÃ¯dæPA÷âd°z%)­;ò˜Îb9°…I6¯ô!'y°>E2M“–?™JÄ\ø]?µŞû
-   m™Å3“x8p\¸Õˆ>øuŞS}á<áOˆ,ZÆV®ÉF/ ‘é…TøŠs ı ‘¹`é§¶Êª’²ÆÄªäøF'³ì-›?ºgÜœ 6¥8ëƒæWrX§.6§¥ïñW.¬Â1
-   döCÚ®F’>²2¨%&ğŞ ¨‡a£4Ú!)òß8,/Á“º]ğAÙƒû§½ãã¬NùDôMÕ´ ;â] ßk’›m™ì`˜T†à ^'7ùK“Ìr·tHó|‚&-Kº„
-   .¤“›ùš»x¤º©Ø÷õ‹'Fx¡:œš ÷x¥v~O4kˆ °½šMÜkjcÌÒ÷|Å1fO'9šZ\FX#¯‘IÚòâFÌÁ<œ:FÃ%«‹
-   o>û_ nxôú¹Ë6WM¡8×À*¯İ‡›tÛW‹Ôi¦ÑÍi¸¤n¹ê®„ï˜¿Û±š™d¿zH>A8 sÃ(šñ­°Ät<Î,>MH}BÈ²!Nø'÷¦D›h“xxø‹Ã";'f®1'¡ìŸ~¯¢‘SÉ1©â:×}6Vr‹¨~î‚ÊÓ|U!\ö÷§ªÂäcÚ²e&Px_6¼Úşf½½®ó9ªÖ{Çh/ÎqKFv™ññ<‚I²±¯i§½î7şÂ½[1qãíLTM¯JšÛ˜Ä©(âM
-   [...] 
-
-Content analysis details:   (5.8 points, 5.0 required)
-
- pts rule name              description
----- ---------------------- --------------------------------------------------
--0.0 RCVD_IN_DNSWL_NONE     RBL: Sender listed at http://www.dnswl.org/, no
-                            trust
-                            [198.145.21.10 listed in list.dnswl.org]
--0.6 RP_MATCHES_RCVD        Envelope sender domain matches handover relay domain
- 1.5 SUBJ_ALL_CAPS          Subject is all capitals
--1.9 BAYES_00               BODY: Bayes spam probability is 0 to 1%
-                            [score: 0.0001]
- 2.2 AXB_XMAILER_MIMEOLE_OL_024C2 No description available.
- 2.6 MSOE_MID_WRONG_CASE    No description available.
- 1.9 FORGED_MUA_OUTLOOK     Forged mail pretending to be from MS Outlook
-
-The original message was not completely plain text, and may be unsafe to
-open with some email clients; in particular, it may contain a virus,
-or confirm that your address can receive spam.  If you wish to view
-it, it may be safer to save it to a file and open it with an editor.
-
-
-------------=_5A16FEBA.10E68905
-Content-Type: message/rfc822; x-spam-type=original
-Content-Description: original message before SpamAssassin
-Content-Disposition: attachment
-Content-Transfer-Encoding: 8bit
-
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Envelope-to: gln-linux-nvdimm@m.gmane.org
-Received: from ml01.01.org ([198.145.21.10])
-	by blaine.gmane.org with esmtp (Exim 4.84_2)
-	(envelope-from <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>)
-	id 1eHurT-0005SD-19
-	for gln-linux-nvdimm@m.gmane.org; Thu, 23 Nov 2017 18:00:27 +0100
-Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 61787220C1C49;
-	Thu, 23 Nov 2017 08:56:16 -0800 (PST)
-X-Original-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Delivered-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received-SPF: None (no SPF record) identity=mailfrom; client-ip=183.14.135.107;
- helo=lists.01.org; envelope-from=mailer-daemon-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org;
- receiver=linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Received: from lists.01.org (unknown [183.14.135.107])
- by ml01.01.org (Postfix) with ESMTP id E3A5F220C1C3A
- for <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>; Thu, 23 Nov 2017 08:56:12 -0800 (PST)
-From: "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Subject: MAIL SYSTEM ERROR - RETURNED MAIL
-Date: Fri, 24 Nov 2017 01:00:30 +0800
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-wr0-x234.google.com (mail-wr0-x234.google.com
+ [IPv6:2a00:1450:400c:c0c::234])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DD84C221DB2A2
+ for <linux-nvdimm@lists.01.org>; Sun, 31 Dec 2017 00:19:03 -0800 (PST)
+Received: by mail-wr0-x234.google.com with SMTP id o101so16071820wrb.6
+ for <linux-nvdimm@lists.01.org>; Sun, 31 Dec 2017 00:24:03 -0800 (PST)
 MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-Content-Filtered-By: Mailman/MimeDel 2.1.22
-X-BeenThere: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-X-Mailman-Version: 2.1.22
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
+In-Reply-To: <CAA9_cmes_Strpx6jNYDOnxZ0DUENFpWOpL-65jvpv3ztQwB74Q@mail.gmail.com>
+References: <CAN=ZobSmQ97gRKFaho7DPvXVD18W4145JfTQ5Ncf80Tw17fkGA@mail.gmail.com>
+ <20171020162227.GA8576@linux.intel.com>
+ <CAN=ZobRsTqFtLiibVDU=yoNPSSgd7S=DaM=p2JTWcBm9x2PjsA@mail.gmail.com>
+ <CAPcyv4ifUJUJFKksk0atmfeMiOJoQRPzYU9Z633i0Cj8pjpD6A@mail.gmail.com>
+ <CAN=ZobTYOgWxPbLcH275EK4PkoniMk+1g1HehxoXLp1bqUN9Bg@mail.gmail.com>
+ <CAA9_cmff4YFQnP+1csz2Z_=dKcQeW5jYFC2QLcN9V4j1FV+zyA@mail.gmail.com>
+ <CAN=ZobSKm8isvTEALkd_-X7Hyjbv6tH-Yy0UGtOTkn2_fKoqhA@mail.gmail.com>
+ <CAA9_cmes_Strpx6jNYDOnxZ0DUENFpWOpL-65jvpv3ztQwB74Q@mail.gmail.com>
+From: Yigal Korman <yigal@plexistor.com>
+Date: Sun, 31 Dec 2017 10:23:41 +0200
+Message-ID: <CACTTzNa06a4ZM6tkYesqf-19WfcSuJovD-AWKC8-obVp_cTOPQ@mail.gmail.com>
+Subject: Re: Detecting NUMA per pmem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1858488591158947090=="
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Message-Id: <20171123165616.61787220C1C49-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
-
-This is a multi-part message in MIME format.
-
---===============1858488591158947090==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-JDÅ$~,ºõ­cooóÂ8‚ÃlL#¸ÇGÊ)~#/*İEn‚µ¹çzpô½¤Éûk^˜[,8—Ü\ ã\İI¸¥¼ÊmÏÃPà'l§ißWØ¤œÖîØ8‘Å»0óñ`~cî¨ÀüG#¨è„ÛvÄæç
-Æ«Ù Ñ’z^6÷áI÷ÚfÊí\…ù‰x…ÂŞWm#tA›JĞ2Gl¿U3ÏÂİ¤Y®ÍÓõßîóIdo2*(>Âª’ÑÓ%Êó5i•§k4…gú­ÏèiD!Nº*
-¤¡æØ‚uPL.
-Å
-_×.Ë
-ÔCœzEÍ¨{›©×—‚ßOY3Ó’êâhi‡Ê:%}
-Š±Âõ–]öB•L¶õ5N3ş/K"ïzÍ-ğ¶\êŸ«#UK[öAxò­Œ½Ä<Õ9?uÊÕ²«ät?br5r³‰Uvâj;`J­5Ø×«pŠ
-›¨MÍfÅ“g|Û×§$ S(ñTãCT®òÁZ)Ğo4„1¸FŸà&>PI¾ÅŠ´Ù…¯‰G$O"³Ğ5ÂXEÆ¶LÕ¹ÙâµKƒx…ZÔs¤;ÉÁ{•Væ¤èßxrbægŒÆ§½}³VŞ¡¾–ë\7±‡APÎ‚àyé?)A{ñ}¡ú]2~3˜OŠ'K¢¶¨ÑÖÌ`Cdû˜IÀsñÊµÕS«Q¡8%—êJFüØëmë$®ÑB ÛûÓ­ïGäÂ‰zseàãI÷‹!‹¹¥ñ,·Q£9$ß.Î0xÖJ4ôM2|ËHŸ®¶¼Ü7ïv0-›âˆP0ÕŒEå6–
-O—{I<gB:<.º·¤»òíS¡Ñ1&Ô“'¥À]ms ş -Úâºf¯şJv—qºYÄqrlƒŠÄKê¾ù««)mÂ«ÒM0‚y(
-üíxÎj·º^yÀZœ†; •i¸~îÒÎÖd")nq§áwÜ
-Jn·êÁZ¹0,¡½XÜjTxŞ2ON
-—iÒ*„Æ9Êh½Ÿ¨’/Ş»p²×ÑUı)Ûzõ©‚ï(÷nÚÃ¤-KQóÎS$?ÍE[hãä®×K˜Œ‹ J«¹}CóÜ»ÇEªg|fÍ^±3\Éïx’ºÃ'í¤å4ërd”úÀOlª¸ãÏxç
-åòKÃ·q§Ú2}DÂ_ŞQó1İõPÔİûÏ›÷•s©…süÔ
-c]pVE
-à³ø¸Í„Ë&fŞsIã-Sãšn
-ü`µßE›G ×g\I>RŸ[Ò8î>’©k;ü&,ÅşCVîÎUWğÅÏ¤´×Òñì¡"¯[áYç^`wìmº÷W/ÃCÊm‘%p•Mt8,Î‡Œù¡^ë!2RÖ?ãş‹EcúŸË9f(9W™XQğæx ‚ÅÀ¨"â?`öU±
-¹‹7{;óoßQZ20äÅ3H-`ÔKb*:ŸB·pá.n,å¤?Æ–ô&¿÷¯Q"9Û?uSşÉÜœ™û|K_1[]¿Mø‡íGÉ
-û|Oİ(k„n±ÏG‚l‚›¹¤ ô'W{6wk‹"ê²5}Š"så‡~Ò{?K`¼5ô“›„ëÏÏMœ¡—Ó¸;­¡"¢Iè·-œË¶ç`ÄûÁÎ¢ÜY<RlŸ–Së4Ã(]ÕÕÍ¹I‘í%n‡ —H
-9¶–;—1‚.Ï}7Î4ï0Í]hd¯ˆ{jÛ¶<'Ş}Ú,‚ÉEPnæWL(fÆ{/m
-v§sIxÅÃ¯dæPA÷âd°z%)­;ò˜Îb9°…I6¯ô!'y°>E2M“–?™JÄ\ø]?µŞû
-m™Å3“x8p\¸Õˆ>øuŞS}á<áOˆ,ZÆV®ÉF/
-‘é…TøŠs
-ı
-‘¹`é§¶Êª’²ÆÄªäøF'³ì-›?ºgÜœ
-6¥8ëƒæWrX§.6§¥ïñW.¬Â1 döCÚ®F’>²2¨%&ğŞ
-¨‡a£4Ú!)òß8,/Á“º]ğAÙƒû§½ãã¬NùDôMÕ´
-;â] ßk’›m™ì`˜T†à ^'7ùK“Ìr·tHó|‚&-Kº„
-.¤“›ùš»x¤º©Ø÷õ‹'Fx¡:œš
-÷x¥v~O4kˆ
-°½šMÜkjcÌÒ÷|Å1fO'9šZ\FX#¯‘IÚòâFÌÁ<œ:FÃ%«‹
-o>û_ nxôú¹Ë6WM¡8×À*¯İ‡›tÛW‹Ôi¦ÑÍi¸¤n¹ê®„ï˜¿Û±š™d¿zH>A8 sÃ(šñ­°Ät<Î,>MH}BÈ²!Nø'÷¦D›h“xxø‹Ã";'f®1'¡ìŸ~¯¢‘SÉ1©â:×}6Vr‹¨~î‚ÊÓ|U!\ö÷§ªÂäcÚ²e&Px_6¼Úşf½½®ó9ªÖ{Çh/ÎqKFv™ññ<‚I²±¯i§½î7şÂ½[1qãíLTM¯JšÛ˜Ä©(âM
-
-
---===============1858488591158947090==
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Oren Berman <oren@lightbitslabs.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+List-ID: <linux-nvdimm@lists.01.org>
 
+You can try to force a legacy pmem device with memmap=XX!YY kernel
+parameter.
+
+On Thu, Dec 28, 2017 at 8:16 PM, Dan Williams <dan.j.williams@intel.com>
+wrote:
+
+> Type-7 only tells the kernel to reserve the memory range. NFIT carves that
+> reservation into pmem devices. Type-12 skips the reservation and creates a
+> pmem device directly. There is no workaround if the platform only has a
+> BIOS that produces a type-12 range.
+>
+>
+> On Thursday, December 28, 2017, Oren Berman <oren@lightbitslabs.com>
+> wrote:
+>
+> > Thanks Dan.
+> > I understand the shortcomings of using legacy mode but currently my
+> problem
+> > is that TYPE 12 is detected and I can use dax even in legacy mode but for
+> > some reason type 7 is not. Is there a way to force it be treated as
+> legacy
+> > as well.
+> > The reason I am asking is that I am not sure I can change my bios and I
+> > know at least that type 12 NVDIMM is working for me.
+> >
+> > BR
+> > Oren
+> >
+> >
+> >
+> > On 28 December 2017 at 11:14, Dan Williams <dan.j.williams@intel.com>
+> > wrote:
+> >
+> > > [sent from my phone, forgive formatting]
+> > >
+> > > Your BIOS would need to put SPA range entries in the ACPI NFIT. The
+> > > problem with legacy pmem ranges in the e820 table is that it omits
+> > critical
+> > > details like battery status and whether the platform supports flushing
+> > > memory controller buffers at power loss (ADR).
+> > >
+> > > The NFIT can also reliably communicate NUMA information  for NVDIMMs
+> that
+> > > e820 does not.
+> > >
+> > > On Wednesday, December 27, 2017, Oren Berman <oren@lightbitslabs.com>
+> > > wrote:
+> > >
+> > >> Hi
+> > >>
+> > >> I have a question regrading NVDIMM detection.
+> > >>
+> > >> When we are working with NVDIMM of type 12 it is detected by the linux
+> > in
+> > >> legacy mode and we can
+> > >> accesses it as pmem or dax device. we have an e820 bios.
+> > >>
+> > >> When we are using a type 7 NVDIMM it is reported by the linux as
+> > >> persistence type 7 memory but there is no pmem or dax device created.
+> > >> Linux Kernel identifies this memory in the e820 table but it does not
+> > >> trigger nvdimm probe for it.
+> > >> Do you know what could be the cause? Is their a workaround for that?
+> > >> Can it still be treated as legacy mode so we can access it through
+> > >> pmem/dax
+> > >> device?
+> > >>
+> > >> BR
+> > >> Oren Berman
+> > >>
+> > >> On 22 October 2017 at 16:52, Dan Williams <dan.j.williams@intel.com>
+> > >> wrote:
+> > >>
+> > >> > On Sun, Oct 22, 2017 at 4:33 AM, Oren Berman <
+> oren@lightbitslabs.com>
+> > >> > wrote:
+> > >> > > Hi Ross
+> > >> > >
+> > >> > > Thanks for the speedy reply. I am also adding the public list to
+> > this
+> > >> > > thread as you suggested.
+> > >> > >
+> > >> > > We have tried to dump the SPA table and this is what we get:
+> > >> > >
+> > >> > > /*
+> > >> > >  * Intel ACPI Component Architecture
+> > >> > >  * AML/ASL+ Disassembler version 20160108-64
+> > >> > >  * Copyright (c) 2000 - 2016 Intel Corporation
+> > >> > >  *
+> > >> > >  * Disassembly of NFIT, Sun Oct 22 10:46:19 2017
+> > >> > >  *
+> > >> > >  * ACPI Data Table [NFIT]
+> > >> > >  *
+> > >> > >  * Format: [HexOffset DecimalOffset ByteLength]  FieldName :
+> > >> FieldValue
+> > >> > >  */
+> > >> > >
+> > >> > > [000h 0000   4]                    Signature : "NFIT"    [NVDIMM
+> > >> Firmware
+> > >> > > Interface Table]
+> > >> > > [004h 0004   4]                 Table Length : 00000028
+> > >> > > [008h 0008   1]                     Revision : 01
+> > >> > > [009h 0009   1]                     Checksum : B2
+> > >> > > [00Ah 0010   6]                       Oem ID : "SUPERM"
+> > >> > > [010h 0016   8]                 Oem Table ID : "SMCI--MB"
+> > >> > > [018h 0024   4]                 Oem Revision : 00000001
+> > >> > > [01Ch 0028   4]              Asl Compiler ID : " "
+> > >> > > [020h 0032   4]        Asl Compiler Revision : 00000001
+> > >> > >
+> > >> > > [024h 0036   4]                     Reserved : 00000000
+> > >> > >
+> > >> > > Raw Table Data: Length 40 (0x28)
+> > >> > >
+> > >> > >   0000: 4E 46 49 54 28 00 00 00 01 B2 53 55 50 45 52 4D  //
+> > >> > NFIT(.....SUPERM
+> > >> > >   0010: 53 4D 43 49 2D 2D 4D 42 01 00 00 00 01 00 00 00  //
+> > >> > SMCI--MB........
+> > >> > >   0020: 01 00 00 00 00 00 00 00
+> > >> > >
+> > >> > > As you can see the memory region info is missing.
+> > >> > >
+> > >> > > This specific check was done on a supermicro server.
+> > >> > > We also performed a bios update but the results were the same.
+> > >> > >
+> > >> > > As said before ,the pmem devices are detected correctly and we
+> > >> verified
+> > >> > > that they correspond to different numa nodes using the PCM
+> > >> > utility.However,
+> > >> > >  linux still reports both pmem devices to be on the same numa -
+> Numa
+> > >> 0.
+> > >> > >
+> > >> > > If this information is missing, why pmem devices and address
+> ranges
+> > >> are
+> > >> > > still detected correctly?
+> > >> >
+> > >> > I suspect your BIOS might be using E820-type-12 to describe the pmem
+> > >> > ranges which is not compliant with the ACPI specification and would
+> > >> > need a BIOS change.
+> > >> >
+> > >> > > Is there another table that we need to check?
+> > >> >
+> > >> > You can dump /proc/iomem.  If it shows "Persistent Memory (legacy)"
+> > >> > then the BIOS is using the E820-type-12 description scheme which
+> does
+> > >> > not include NUMA information.
+> > >> >
+> > >> _______________________________________________
+> > >> Linux-nvdimm mailing list
+> > >> Linux-nvdimm@lists.01.org
+> > >> https://lists.01.org/mailman/listinfo/linux-nvdimm
+> > >>
+> > >
+> > _______________________________________________
+> > Linux-nvdimm mailing list
+> > Linux-nvdimm@lists.01.org
+> > https://lists.01.org/mailman/listinfo/linux-nvdimm
+> >
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+>
 _______________________________________________
 Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============1858488591158947090==--
-
-
-
-
-------------=_5A16FEBA.10E68905--
