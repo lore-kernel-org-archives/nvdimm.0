@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
- [150.101.137.129])
- by ml01.01.org (Postfix) with ESMTP id A795422280C2F
- for <linux-nvdimm@lists.01.org>; Tue,  2 Jan 2018 14:55:51 -0800 (PST)
-Date: Wed, 3 Jan 2018 10:00:27 +1100
-From: Dave Chinner <david@fromorbit.com>
+Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 566ED222EDCDB
+ for <linux-nvdimm@lists.01.org>; Tue,  2 Jan 2018 13:03:00 -0800 (PST)
+Date: Tue, 2 Jan 2018 13:07:52 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
 Subject: Re: [PATCH v4 18/18] xfs, dax: wire up dax_flush_dma support via a
  new xfs_sync_dma helper
-Message-ID: <20180102230027.GV5858@dastard>
+Message-ID: <20180102210752.GG4857@magnolia>
 References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
  <151407705701.38751.6157642918168721562.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -25,7 +26,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, hch@lst.de, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, hch@lst.de, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Sat, Dec 23, 2017 at 04:57:37PM -0800, Dan Williams wrote:
@@ -47,62 +48,122 @@ On Sat, Dec 23, 2017 at 04:57:37PM -0800, Dan Williams wrote:
 > dax_flush_dma relies on the fs-provided wait_atomic_t_action_f
 > (xfs_wait_dax_page) to handle evaluating the page reference count and
 > dropping locks when waiting.
+> 
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  fs/xfs/Makefile    |    3 ++
+>  fs/xfs/xfs_dma.c   |   81 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  fs/xfs/xfs_dma.h   |   24 +++++++++++++++
+>  fs/xfs/xfs_file.c  |    6 ++--
+>  fs/xfs/xfs_ioctl.c |    7 ++--
+>  fs/xfs/xfs_iops.c  |    7 +++-
+>  6 files changed, 118 insertions(+), 10 deletions(-)
+>  create mode 100644 fs/xfs/xfs_dma.c
+>  create mode 100644 fs/xfs/xfs_dma.h
+> 
+> diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
+> index 7ceb41a9786a..f2cdc5a3eb6c 100644
+> --- a/fs/xfs/Makefile
+> +++ b/fs/xfs/Makefile
+> @@ -129,6 +129,9 @@ xfs-$(CONFIG_XFS_QUOTA)		+= xfs_dquot.o \
+>  				   xfs_qm.o \
+>  				   xfs_quotaops.o
+>  
+> +# dax dma
+> +xfs-$(CONFIG_FS_DAX)		+= xfs_dma.o
+> +
+>  # xfs_rtbitmap is shared with libxfs
+>  xfs-$(CONFIG_XFS_RT)		+= xfs_rtalloc.o
+>  
+> diff --git a/fs/xfs/xfs_dma.c b/fs/xfs/xfs_dma.c
+> new file mode 100644
+> index 000000000000..3df1a51a76c4
+> --- /dev/null
+> +++ b/fs/xfs/xfs_dma.c
+> @@ -0,0 +1,81 @@
+> +/*
+> + * SPDX-License-Identifier: GPL-2.0
+> + * Copyright(c) 2017 Intel Corporation. All rights reserved.
+> + */
+> +#include <linux/dax.h>
+> +#include "xfs.h"
+> +#include "xfs_fs.h"
+> +#include "xfs_format.h"
+> +#include "xfs_log_format.h"
+> +#include "xfs_shared.h"
+> +#include "xfs_trans_resv.h"
+> +#include "xfs_bit.h"
+> +#include "xfs_sb.h"
+> +#include "xfs_mount.h"
+> +#include "xfs_defer.h"
+> +#include "xfs_inode.h"
+> +#include "xfs_pnfs.h"
+> +
+> +/*
+> + * xfs_wait_dax_page - helper for dax_flush_dma to drop locks and sleep
+> + * wait for a page idle event. Returns 1 if the locks did not need to be
+> + * dropped and the page is idle, returns -EINTR if the sleep was
+> + * interrupted and returns 1 when it slept. dax_flush_dma()
+> + * retries/rescans all mappings when the lock is dropped.
 
-I don't see a problem with supporting this functionality, but I
-see lots of problems with the code being presented. First of all,
-I think the "sync dma" abstraction here is all wrong.
+What does the return 0 case signify?  I'm guessing "returns 1 if the
+locks did not need to be dropped and the page is idle"?
 
-In the case of the filesystem, we don't care about whether DMA has
-completed or not, and we *shouldn't have to care* about deep, dark
-secrets of other subsystems.
+> + */
+> +static int xfs_wait_dax_page(
+> +	atomic_t		*count,
+> +	unsigned int		mode)
+> +{
 
-If I read the current code, I see this in all the "truncate" paths:
+static int
+xfs_wait_dax_page(
+	atomci_t		*count,
+	unsigned int		mode)
+{
 
-	start op
-	break layout leases
-	change layout
+IOWs, the function name gets its own line.  The same applies to every
+other function definition.
 
-and in the IO path:
+> +	uint			iolock = XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL;
+> +	struct page 		*page = refcount_to_page(count);
 
-	start IO
-	break layout leases
-	map IO
-	issue IO
+Space after 'page' ^^^ but before tab...
 
-What this change does is make the truncate paths read:
-
-	start op
-	sync DMA
-	change layout
-
-but the IO path is unchanged. (This is not explained in comments or
-commit messages).
-
-And I look at that "sync DMA" step and wonder why the hell we need
-to "sync DMA" because DMA has nothing to do with high level
-filesystem code. It doesn't tell me anything obvious about why we
-need to do this, nor does it tell me what we're actually
-synchronising against.
-
-What we care about in the filesystem code is whether there are
-existing external references to file layout. If there's an external
-reference, then it has to be broken before we can proceed and modify
-the file layout. We don't care what owns that reference, just that
-it has to broken before we continue.
-
-AFAIC, these DMA references are just another external layout
-reference that needs to be broken.  IOWs, this "sync DMA" complexity
-needs to go inside xfs_break_layouts() as it is part of breaking the
-external reference to the file layout - it does not replace the
-layout breaking abstraction and so the implementation needs to
-reflect that.
-
+> +	struct address_space	*mapping = page->mapping;
+> +	struct inode		*inode = mapping->host;
+> +	struct xfs_inode	*ip = XFS_I(inode);
+> +
+> +	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL));
+> +
+> +	if (page_ref_count(page) == 1)
+> +		return 0;
+> +
+> +	xfs_iunlock(ip, iolock);
+> +	schedule();
+> +	xfs_ilock(ip, iolock);
+> +
+> +	if (signal_pending_state(mode, current))
+> +		return -EINTR;
+> +	return 1;
+> +}
+> +
+> +/*
 > + * Synchronize [R]DMA before changing the file's block map. For pNFS,
 > + * recall all layouts. For DAX, wait for transient DMA to complete. All
 > + * other DMA is handled by pinning page cache pages.
 > + *
 > + * iolock must held XFS_IOLOCK_SHARED or XFS_IOLOCK_EXCL on entry and
 > + * will be XFS_IOLOCK_EXCL and XFS_MMAPLOCK_EXCL on exit.
+
+Is it guaranteed that we never emerge from xfs_break_layouts with
+IOLOCK_SHARED?  I /think/ the answer is yes, but this seems like a
+subtlety that would be easy to screw up.
+
 > + */
 > +int xfs_sync_dma(
 > +	struct inode		*inode,
@@ -125,43 +186,137 @@ reflect that.
 > +		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
 > +		*iolock &= ~XFS_MMAPLOCK_EXCL;
 > +	}
+> +
+> +	return error;
+> +}
+> diff --git a/fs/xfs/xfs_dma.h b/fs/xfs/xfs_dma.h
+> new file mode 100644
+> index 000000000000..29635639b073
+> --- /dev/null
+> +++ b/fs/xfs/xfs_dma.h
+> @@ -0,0 +1,24 @@
+> +/*
+> + * SPDX-License-Identifier: GPL-2.0
+> + * Copyright(c) 2017 Intel Corporation. All rights reserved.
+> + */
+> +#ifndef __XFS_DMA__
+> +#define __XFS_DMA__
+> +#ifdef CONFIG_FS_DAX
+> +int xfs_sync_dma(struct inode *inode, uint *iolock);
+> +#else
+> +#include "xfs_pnfs.h"
+> +
+> +static inline int xfs_sync_dma(struct inode *inode, uint *iolock)
 
-At this level the loop seems sub-optimal. If we don't drop the
-IOLOCK, then we have no reason to call xfs_break_layouts() a second
-time.  Hence in isolation this loop doesn' make sense. Yes, I
-realise that dax_flush_dma() can result in all locks on the inode
-being dropped, but that's hidden in another function whose calling
-scope is not at all obvious from this code.
+I think we need to do this prior to reflinking into a file too, right?
+Or at least we would if dax+reflink were a supported config.  I think
+the reason we've never tripped over this is that neither pnfs nor dax
+will have anything to do with reflinked files.
 
-Also, xfs_wait_dax_page() assumes we have IOLOCK_EXCL held when it
-is called. Nothing enforces the requirement that xfs_sync_dma() is
-passed XFS_IOLOCK_EXCL, and so such assumptions cannot be made.
-Even if it was, I really dislike the idea of a function that
-/assumes/ lock state - that's a landmine that will bite us in the
-rear end at some unexpected point in the future. If you need to
-cycle held locks on an inode, you need to pass the held lock state
-to the function.
+(brain creaking, trying to get back up to speed....)
 
-Another gripe I have is that calling xfs_sync_dma() implies the mmap
-lock is held exclusively on return. Hiding this locking inside
-xfs_sync_dma removes the code documentation that large tracts of
-code are protected against page faults by the XFS_MMAPLOCK_EXCL lock
-call.  Instead of knowing at a glance that the truncate path
-(xfs_vn_setattr) is protected against page faults, I have to
-remember that xfs_sync_dma() now does this.
+--D
 
-This goes back to my initial comments of "what the hell does "sync
-dma" mean in a filesystem context?" - it certainly doesn't make me
-think about inode locking. I don't like hidden/implicitly locking
-like this, because it breaks both the least-surprise and the
-self-documenting code principles....
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+> +{
+> +	int error = xfs_break_layouts(inode, iolock);
+> +
+> +	if (error)
+> +		return error;
+> +
+> +	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_EXCL);
+> +	*iolock |= XFS_MMAPLOCK_EXCL;
+> +	return 0;
+> +}
+> +#endif /* CONFIG_FS_DAX */
+> +#endif /* __XFS_DMA__ */
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index 6df0c133a61e..84fc178da656 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -37,6 +37,7 @@
+>  #include "xfs_log.h"
+>  #include "xfs_icache.h"
+>  #include "xfs_pnfs.h"
+> +#include "xfs_dma.h"
+>  #include "xfs_iomap.h"
+>  #include "xfs_reflink.h"
+>  
+> @@ -778,12 +779,11 @@ xfs_file_fallocate(
+>  		return -EOPNOTSUPP;
+>  
+>  	xfs_ilock(ip, iolock);
+> -	error = xfs_break_layouts(inode, &iolock);
+> +	error = xfs_sync_dma(inode, &iolock);
+>  	if (error)
+>  		goto out_unlock;
+>  
+> -	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+> -	iolock |= XFS_MMAPLOCK_EXCL;
+> +	ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+>  
+>  	if (mode & FALLOC_FL_PUNCH_HOLE) {
+>  		error = xfs_free_file_space(ip, offset, len);
+> diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+> index 20dc65fef6a4..4340bef658b0 100644
+> --- a/fs/xfs/xfs_ioctl.c
+> +++ b/fs/xfs/xfs_ioctl.c
+> @@ -39,7 +39,7 @@
+>  #include "xfs_icache.h"
+>  #include "xfs_symlink.h"
+>  #include "xfs_trans.h"
+> -#include "xfs_pnfs.h"
+> +#include "xfs_dma.h"
+>  #include "xfs_acl.h"
+>  #include "xfs_btree.h"
+>  #include <linux/fsmap.h>
+> @@ -643,12 +643,11 @@ xfs_ioc_space(
+>  		return error;
+>  
+>  	xfs_ilock(ip, iolock);
+> -	error = xfs_break_layouts(inode, &iolock);
+> +	error = xfs_sync_dma(inode, &iolock);
+>  	if (error)
+>  		goto out_unlock;
+>  
+> -	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+> -	iolock |= XFS_MMAPLOCK_EXCL;
+> +	ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+>  
+>  	switch (bf->l_whence) {
+>  	case 0: /*SEEK_SET*/
+> diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+> index 67bd97edc73b..c1055337b233 100644
+> --- a/fs/xfs/xfs_iops.c
+> +++ b/fs/xfs/xfs_iops.c
+> @@ -37,7 +37,7 @@
+>  #include "xfs_da_btree.h"
+>  #include "xfs_dir2.h"
+>  #include "xfs_trans_space.h"
+> -#include "xfs_pnfs.h"
+> +#include "xfs_dma.h"
+>  #include "xfs_iomap.h"
+>  
+>  #include <linux/capability.h>
+> @@ -1030,11 +1030,12 @@ xfs_vn_setattr(
+>  		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
+>  		uint			iolock = XFS_IOLOCK_EXCL;
+>  
+> -		error = xfs_break_layouts(d_inode(dentry), &iolock);
+> +		error = xfs_sync_dma(d_inode(dentry), &iolock);
+>  		if (error)
+>  			return error;
+>  
+> -		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+> +		ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+> +
+>  		error = xfs_vn_setattr_size(dentry, iattr);
+>  		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+>  	} else {
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
