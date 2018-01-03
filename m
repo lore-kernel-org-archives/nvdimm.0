@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A3DC4222DDBFA
- for <linux-nvdimm@lists.01.org>; Mon, 15 Jan 2018 10:11:39 -0800 (PST)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [patch] btt: fix uninitialized err_lock
-References: <x49d13i9uui.fsf@segfault.boston.devel.redhat.com>
- <1513201117.3301.127.camel@intel.com>
-Date: Mon, 15 Jan 2018 13:16:53 -0500
-In-Reply-To: <1513201117.3301.127.camel@intel.com> (Vishal L. Verma's message
- of "Wed, 13 Dec 2017 21:38:39 +0000")
-Message-ID: <x49zi5f56ne.fsf@segfault.boston.devel.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id F3627222A54D9
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Jan 2018 06:16:28 -0800 (PST)
+Date: Wed, 3 Jan 2018 15:21:30 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 03/18] ext2: auto disable dax instead of failing mount
+Message-ID: <20180103142130.GH4911@quack2.suse.cz>
+References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151407697703.38751.2935252018151032360.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <151407697703.38751.2935252018151032360.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,69 +24,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, hch@lst.de, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan,
+On Sat 23-12-17 16:56:17, Dan Williams wrote:
+> Bring the ext2 filesystem in line with xfs that only warns and continues
+> when the "-o dax" option is specified to mount and the backing device
+> does not support dax. This is in preparation for removing dax support
+> from devices that do not enable get_user_pages() operations on dax
+> mappings. In other words 'gup' support is required and configurations
+> that were using so called 'page-less' dax will be converted back to
+> using the page cache.
+> 
+> Removing the broken 'page-less' dax support is a pre-requisite for
+> removing the "EXPERIMENTAL" warning when mounting a filesystem in dax
+> mode.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Any chance you can pull this one in?  (I know you've been busy.)
+You can add:
 
--Jeff
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-"Verma, Vishal L" <vishal.l.verma@intel.com> writes:
+								Honza
 
-> On Wed, 2017-12-13 at 16:33 -0500, Jeff Moyer wrote:
->> Hi,
->> 
->> When a sector mode namespace is initially created, the arena's
->> err_lock
->> is not initialized.  If, on the other hand, the namespace already
->> exists, the mutex is initialized.  To fix the issue, I moved the
->> mutex
->> initialization into the arena_alloc, which is called by both
->> discover_arenas and create_arenas.
->> 
->> This was discovered on an older kernel where mutex_trylock checks the
->> count to determine whether the lock is held.  Because the data
->> structure
->> is kzalloc-d, that count was 0 (held), and I/O to the device would
->> hang
->> forever waiting for the lock to be released (see btt_write_pg, for
->> example).  Current kernels have a different mutex implementation that
->> checks for a non-null owner, and so this doesn't show up as a
->> problem.
->> If that lock were ever contended, it might cause issues, but you'd
->> have
->> to be really unlucky, I think.
->> 
->> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
->
-> Ah, good find - the fix looks good to me.
-> Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
->
->> 
->> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
->> index e949e33..5860f99 100644
->> --- a/drivers/nvdimm/btt.c
->> +++ b/drivers/nvdimm/btt.c
->> @@ -630,6 +630,7 @@ static struct arena_info *alloc_arena(struct btt
->> *btt, size_t size,
->>  		return NULL;
->>  	arena->nd_btt = btt->nd_btt;
->>  	arena->sector_size = btt->sector_size;
->> +	mutex_init(&arena->err_lock);
->>  
->>  	if (!size)
->>  		return arena;
->> @@ -758,7 +759,6 @@ static int discover_arenas(struct btt *btt)
->>  		arena->external_lba_start = cur_nlba;
->>  		parse_arena_meta(arena, super, cur_off);
->>  
->> -		mutex_init(&arena->err_lock);
->>  		ret = btt_freelist_init(arena);
->>  		if (ret)
->>  			goto out;
+> ---
+>  fs/ext2/super.c |    7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+> index 7646818ab266..38f9222606ee 100644
+> --- a/fs/ext2/super.c
+> +++ b/fs/ext2/super.c
+> @@ -959,8 +959,11 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+>  
+>  	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
+>  		err = bdev_dax_supported(sb, blocksize);
+> -		if (err)
+> -			goto failed_mount;
+> +		if (err) {
+> +			ext2_msg(sb, KERN_ERR,
+> +				"DAX unsupported by block device. Turning off DAX.");
+> +			sbi->s_mount_opt &= ~EXT2_MOUNT_DAX;
+> +		}
+>  	}
+>  
+>  	/* If the blocksize doesn't match, re-read the thing.. */
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
