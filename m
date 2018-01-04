@@ -1,11 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.28.186])
- by ml01.01.org (Postfix) with ESMTP id 154D02234435B
- for <linux-nvdimm@lists.01.org>; Sun, 21 Jan 2018 19:20:35 -0800 (PST)
-From: "MAILER-DAEMON" <MAILER-DAEMON@lists.01.org>
-Subject: Delivery reports about your e-mail
-Date: Mon, 22 Jan 2018 11:25:59 +0800
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7338E222D1554
+ for <linux-nvdimm@lists.01.org>; Thu,  4 Jan 2018 00:24:21 -0800 (PST)
+Date: Thu, 4 Jan 2018 09:29:24 +0100
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v4 13/18] ext4: use DEFINE_FSDAX_AOPS
+Message-ID: <20180104082924.GI2548@lst.de>
+References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151407703002.38751.15305085717541373826.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <151407703002.38751.15305085717541373826.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,23 +24,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20180122032039.B06572238B580@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, hch@lst.de, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, akpm@linux-foundation.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The original message was received at Mon, 22 Jan 2018 11:25:59 +0800
-from lists.01.org [129.96.232.239]
-
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm@lists.01.org>
-
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:"MAILER-DAEMON" <MAILER-DAEMON@lists.01.org>
-<<< 501 "MAILER-DAEMON" <MAILER-DAEMON@lists.01.org>... Refused
-
-
-
+Same comment as for XFS applies here as well.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
