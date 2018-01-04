@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4C448222A54DF
- for <linux-nvdimm@lists.01.org>; Thu,  4 Jan 2018 11:00:02 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu,  4 Jan 2018 12:01:35 -0700
-Message-Id: <20180104190137.7654-11-logang@deltatee.com>
-In-Reply-To: <20180104190137.7654-1-logang@deltatee.com>
-References: <20180104190137.7654-1-logang@deltatee.com>
-Subject: [PATCH 10/12] nvme-pci: Add support for P2P memory in requests
+ by ml01.01.org (Postfix) with ESMTPS id 9843E222A54FB
+ for <linux-nvdimm@lists.01.org>; Thu,  4 Jan 2018 00:08:02 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 2/2] ext4: test for inline data + DAX corruption
+Date: Thu,  4 Jan 2018 01:11:21 -0700
+Message-Id: <20180104081121.313-2-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180104081121.313-1-ross.zwisler@linux.intel.com>
+References: <20180104081121.313-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,104 +22,254 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: fstests@vger.kernel.org, Eryu Guan <eguan@redhat.com>
+Cc: linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-For P2P requests we must use the pci_p2pmem_[un]map_sg() functions
-instead of the dma_map_sg functions.
+Add a regression test for the following kernel commit:
 
-With that, we can then indicate PCI_P2P support in the request queue.
-For this, we create an NVME_F_PCI_P2P flag which tells the core to
-set QUEUE_FLAG_PCI_P2P in the request queue.
+  ext4: prevent data corruption with inline data + DAX
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+The test passes either if we don't encounter corruption, or if mounting
+with DAX + inline data fails.  The latter is the way that we prevent this
+issue in the kernel.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+
 ---
- drivers/nvme/host/core.c |  4 ++++
- drivers/nvme/host/nvme.h |  1 +
- drivers/nvme/host/pci.c  | 18 ++++++++++++++----
- 3 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index 1e46e60b8f10..8a7caaa5ee49 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -2861,7 +2861,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
- 	ns->queue = blk_mq_init_queue(ctrl->tagset);
- 	if (IS_ERR(ns->queue))
- 		goto out_free_ns;
+Changes since v1:
+
+ - Changed ordering of .gitignore entries. (Eryu)
+
+ - Added '_require_scratch_ext4_feature "inline_data"' test. (Eryu)
+---
+ .gitignore                         |  1 +
+ src/Makefile                       |  2 +-
+ src/t_ext4_dax_inline_corruption.c | 70 +++++++++++++++++++++++++++++++
+ tests/ext4/031                     | 86 ++++++++++++++++++++++++++++++++++++++
+ tests/ext4/031.out                 |  2 +
+ tests/ext4/group                   |  1 +
+ 6 files changed, 161 insertions(+), 1 deletion(-)
+ create mode 100644 src/t_ext4_dax_inline_corruption.c
+ create mode 100755 tests/ext4/031
+ create mode 100644 tests/ext4/031.out
+
+diff --git a/.gitignore b/.gitignore
+index 840e4fe4..09dd01cb 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -116,6 +116,7 @@
+ /src/t_dir_type
+ /src/t_encrypted_d_revalidate
+ /src/t_ext4_dax_journal_corruption
++/src/t_ext4_dax_inline_corruption
+ /src/t_futimens
+ /src/t_getcwd
+ /src/t_holes
+diff --git a/src/Makefile b/src/Makefile
+index 86c5440c..b96b8cf2 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -14,7 +14,7 @@ TARGETS = dirstress fill fill2 getpagesize holes lstat64 \
+ 	t_mmap_writev t_truncate_cmtime dirhash_collide t_rename_overwrite \
+ 	holetest t_truncate_self t_mmap_dio af_unix t_mmap_stale_pmd \
+ 	t_mmap_cow_race t_mmap_fallocate fsync-err t_mmap_write_ro \
+-	t_ext4_dax_journal_corruption
++	t_ext4_dax_journal_corruption t_ext4_dax_inline_corruption
+ 
+ LINUX_TARGETS = xfsctl bstat t_mtab getdevicesize preallo_rw_pattern_reader \
+ 	preallo_rw_pattern_writer ftrunc trunc fs_perms testx looptest \
+diff --git a/src/t_ext4_dax_inline_corruption.c b/src/t_ext4_dax_inline_corruption.c
+new file mode 100644
+index 00000000..4b7d8938
+--- /dev/null
++++ b/src/t_ext4_dax_inline_corruption.c
+@@ -0,0 +1,70 @@
++#include <errno.h>
++#include <fcntl.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <time.h>
++#include <unistd.h>
 +
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, ns->queue);
-+	if (ctrl->ops->flags & NVME_F_PCI_P2P)
-+		queue_flag_set_unlocked(QUEUE_FLAG_PCI_P2P, ns->queue);
++#define PAGE(a) ((a)*0x1000)
++#define STRLEN 256
 +
- 	ns->queue->queuedata = ns;
- 	ns->ctrl = ctrl;
- 
-diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-index ea1aa5283e8e..ae1453238250 100644
---- a/drivers/nvme/host/nvme.h
-+++ b/drivers/nvme/host/nvme.h
-@@ -286,6 +286,7 @@ struct nvme_ctrl_ops {
- 	unsigned int flags;
- #define NVME_F_FABRICS			(1 << 0)
- #define NVME_F_METADATA_SUPPORTED	(1 << 1)
-+#define NVME_F_PCI_P2P			(1 << 2)
- 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
- 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
- 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 71893babb982..29ef3fd24938 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -792,6 +792,7 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
- 	enum dma_data_direction dma_dir = rq_data_dir(req) ?
- 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	blk_status_t ret = BLK_STS_IOERR;
-+	int nents;
- 
- 	sg_init_table(iod->sg, blk_rq_nr_phys_segments(req));
- 	iod->nents = blk_rq_map_sg(q, req, iod->sg);
-@@ -799,8 +800,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
- 		goto out;
- 
- 	ret = BLK_STS_RESOURCE;
--	if (!dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
--				DMA_ATTR_NO_WARN))
++void err_exit(char *op)
++{
++	fprintf(stderr, "%s: %s\n", op, strerror(errno));
++	exit(1);
++}
 +
-+	if (REQ_IS_PCI_P2P(req))
-+		nents = pci_p2pmem_map_sg(iod->sg, iod->nents);
-+	else
-+		nents = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
-+					 dma_dir, DMA_ATTR_NO_WARN);
-+	if (!nents)
- 		goto out;
- 
- 	if (nvme_pci_use_sgls(dev, req))
-@@ -844,7 +850,11 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 
- 	if (iod->nents) {
--		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+		if (REQ_IS_PCI_P2P(req))
-+			pci_p2pmem_unmap_sg(iod->sg, iod->nents);
-+		else
-+			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++int main(int argc, char *argv[])
++{
++	int fd, err, len = PAGE(1);
++	char *dax_data, *data;
++	char string[STRLEN];
 +
- 		if (blk_integrity_rq(req)) {
- 			if (req_op(req) == REQ_OP_READ)
- 				nvme_dif_remap(req, nvme_dif_complete);
-@@ -2417,7 +2427,7 @@ static int nvme_pci_reg_read64(struct nvme_ctrl *ctrl, u32 off, u64 *val)
- static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
- 	.name			= "pcie",
- 	.module			= THIS_MODULE,
--	.flags			= NVME_F_METADATA_SUPPORTED,
-+	.flags			= NVME_F_METADATA_SUPPORTED | NVME_F_PCI_P2P,
- 	.reg_read32		= nvme_pci_reg_read32,
- 	.reg_write32		= nvme_pci_reg_write32,
- 	.reg_read64		= nvme_pci_reg_read64,
++	if (argc < 2) {
++		printf("Usage: %s <file>\n", basename(argv[0]));
++		exit(0);
++	}
++
++	srand(time(NULL));
++	snprintf(string, STRLEN, "random number %d\n", rand());
++
++	fd = open(argv[1], O_RDWR);
++	if (fd < 0)
++		err_exit("fd");
++
++	data = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
++	if (!data)
++		err_exit("mmap data");
++
++	/* this fallocate turns off inline data and turns on DAX */
++	fallocate(fd, 0, 0, PAGE(2));
++
++	dax_data = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
++	if (!dax_data)
++		err_exit("mmap dax_data");
++
++	/*
++	 * Write the data using the non-DAX mapping, and try and read it back
++	 * using the DAX mapping.
++	 */
++	strcpy(data, string);
++	if (strcmp(dax_data, string) != 0)
++		printf("Data miscompare\n");
++
++	err = munmap(dax_data, len);
++	if (err < 0)
++		err_exit("munmap dax_data");
++
++	err = munmap(data, len);
++	if (err < 0)
++		err_exit("munmap data");
++
++	err = close(fd);
++	if (err < 0)
++		err_exit("close");
++	return 0;
++}
+diff --git a/tests/ext4/031 b/tests/ext4/031
+new file mode 100755
+index 00000000..58177b44
+--- /dev/null
++++ b/tests/ext4/031
+@@ -0,0 +1,86 @@
++#! /bin/bash
++# FS QA Test ext4/031
++#
++# This is a regression test for kernel patch:
++#   ext4: prevent data corruption with inline data + DAX
++# created by Ross Zwisler <ross.zwisler@linux.intel.com>
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2017-2018 Intel Corporation.  All Rights Reserved.
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# DAX needs to be off so we can create an inode with inline data
++SAVE_MOUNT_OPTIONS="$MOUNT_OPTIONS"
++MOUNT_OPTIONS=""
++
++# Modify as appropriate.
++_supported_os Linux
++_supported_fs ext4
++_require_scratch_dax
++_require_test_program "t_ext4_dax_inline_corruption"
++_require_scratch_ext4_feature "inline_data"
++
++# real QA test starts here
++_scratch_mkfs_ext4 -O inline_data > $seqres.full 2>&1
++
++TESTFILE=$SCRATCH_MNT/testfile
++
++_scratch_mount  >> $seqres.full 2>&1
++
++echo "Need to make some inline data..." > $TESTFILE
++
++export MOUNT_OPTIONS="$SAVE_MOUNT_OPTIONS"
++
++_scratch_unmount >> $seqres.full 2>&1
++_scratch_mount "-o dax" >> $seqres.full 2>&1
++
++if [[ $? != 0 ]]; then
++	# _require_scratch_dax already verified that we could mount with DAX.
++	# Failure here is expected because we have inline data.
++	echo "Silence is golden"
++	status=0
++	exit
++fi
++
++$here/src/t_ext4_dax_inline_corruption $TESTFILE
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/ext4/031.out b/tests/ext4/031.out
+new file mode 100644
+index 00000000..b3d0bb03
+--- /dev/null
++++ b/tests/ext4/031.out
+@@ -0,0 +1,2 @@
++QA output created by 031
++Silence is golden
+diff --git a/tests/ext4/group b/tests/ext4/group
+index ef768dff..396f963d 100644
+--- a/tests/ext4/group
++++ b/tests/ext4/group
+@@ -33,6 +33,7 @@
+ 028 auto quick fsmap
+ 029 auto quick fsmap
+ 030 auto quick
++031 auto quick
+ 271 auto rw quick
+ 301 aio auto ioctl rw stress defrag
+ 302 aio auto ioctl rw stress defrag
 -- 
-2.11.0
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
