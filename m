@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A1FCE2222C22F
- for <linux-nvdimm@lists.01.org>; Mon, 29 Jan 2018 16:34:54 -0800 (PST)
-Subject: [PATCH v4 1/4] ndctl: add support to alloc_intel_cmd for variable
- payload
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 29 Jan 2018 17:40:27 -0700
-Message-ID: <151727282788.3109.1185832650203750091.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151727265453.3109.2878225498038263092.stgit@djiang5-desk3.ch.intel.com>
-References: <151727265453.3109.2878225498038263092.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 367D821F833AE
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Jan 2018 09:13:11 -0800 (PST)
+Date: Fri, 5 Jan 2018 10:18:15 -0700
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH 04/12] pci-p2p: Clear ACS P2P flags for all client devices
+Message-ID: <20180105101815.0fcbc142@t450s.home>
+In-Reply-To: <77ec7893-6ff5-ebdf-163d-fc4e02077cc2@deltatee.com>
+References: <20180104190137.7654-1-logang@deltatee.com>
+ <20180104190137.7654-5-logang@deltatee.com>
+ <20180104215721.GF189897@bhelgaas-glaptop.roam.corp.google.com>
+ <20180104153551.3118f71b@t450s.home>
+ <20fdb5bb-0236-c093-ed53-e12664022f53@deltatee.com>
+ <20180104203300.79487c98@w520.home>
+ <77ec7893-6ff5-ebdf-163d-fc4e02077cc2@deltatee.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,33 +28,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?UTF-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Certain payloads have variable size. The existing alloc_intel_cmd()
-does not take into account of that. Adding additional size for allocation.
-We do waste a little bit of the space because of the smart payload.
+On Fri, 5 Jan 2018 10:10:51 -0700
+Logan Gunthorpe <logang@deltatee.com> wrote:
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- ndctl/lib/intel.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> On 04/01/18 08:33 PM, Alex Williamson wrote:
+> > That's exactly what IOMMU groups represent, the smallest set of devices
+> > which have DMA isolation from other devices.  By poking this hole, the
+> > IOMMU group is invalid.  We cannot turn off ACS only for a specific
+> > device, in order to enable p2p it needs to be disabled at every
+> > downstream port between the devices where we want to enable p2p.
+> > Depending on the topology, that could mean we're also enabling p2p for
+> > unrelated devices.  Those unrelated devices might be in active use and
+> > the p2p IOVAs now have a different destination which is no longer IOMMU
+> > translated.  
+> 
+> Oh, so IOMMU groups are created based on the existing hierarchy at boot 
+> time and not based on the user's needs for isolation?
 
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index 3e4260f..b85a682 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -33,7 +33,7 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
- 		return NULL;
- 	}
- 
--	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel);
-+	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel) + in_size + out_size;
- 	cmd = calloc(1, size);
- 	if (!cmd)
- 		return NULL;
+Yes, IOMMU groups expose the isolation of the system as devices are
+discovered.  Nothing currently accounts for intentionally decreasing
+the isolation between devices.  Thanks,
 
+Alex
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
