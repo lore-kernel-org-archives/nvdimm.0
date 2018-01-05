@@ -1,94 +1,86 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B680B222275AA
- for <linux-nvdimm@lists.01.org>; Mon,  8 Jan 2018 06:53:54 -0800 (PST)
-Date: Mon, 8 Jan 2018 15:59:01 +0100
-From: Christoph Hellwig <hch@lst.de>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Thu, 4 Jan 2018 21:50:31 -0700
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
  rdma_rw_ctx_[init|destroy]()
-Message-ID: <20180108145901.GA10743@lst.de>
+Message-ID: <20180105045031.GX11348@ziepe.ca>
 References: <20180104190137.7654-1-logang@deltatee.com>
- <20180104190137.7654-7-logang@deltatee.com> <20180104192225.GS11348@ziepe.ca>
+ <20180104190137.7654-7-logang@deltatee.com>
+ <20180104192225.GS11348@ziepe.ca>
  <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com>
  <20180104221337.GV11348@ziepe.ca>
  <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com>
- <20180105045031.GX11348@ziepe.ca>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180105045031.GX11348@ziepe.ca>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+In-Reply-To: <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jan 04, 2018 at 09:50:31PM -0700, Jason Gunthorpe wrote:
-> Well that argument applies equally to the RDMA RW API wrappers around
-> the DMA API. I think it is fine if sgl are defined to only have P2P or
-> not, and that debugging support seemed reasonable to me..
+On Thu, Jan 04, 2018 at 04:44:00PM -0700, Logan Gunthorpe wrote:
+> On 04/01/18 03:13 PM, Jason Gunthorpe wrote:
+> >On Thu, Jan 04, 2018 at 12:52:24PM -0700, Logan Gunthorpe wrote:
+> >>We tried things like this in an earlier iteration[1] which assumed the SG
+> >>was homogenous (all P2P or all regular memory). This required serious
+> >>ugliness to try and ensure SGs were in fact homogenous[2].
+> >
+> >I'm confused, these patches already assume the sg is homogenous,
+> >right? Sure looks that way. So [2] is just debugging??
 > 
-> > It's also very difficult to add similar functionality to dma_map_page seeing
-> > dma_unmap_page won't have any way to know what it's dealing with. It just
-> > seems confusing to support P2P in the SG version and not the page version.
+> Yes, but it's a bit different to expect that someone calling
+> pci_p2pmem_map_sg() will know what they're doing and provide a homogenous
+> SG. It is relatively clear by convention that the entire SG must be
+> homogenous given they're calling a pci_p2pmem function. Where as, allowing
+> P2P SGs into the core DMA code means all we can do is hope that future
+> developers don't screw it up and allow P2P pages to mix in with regular
+> pages.
+
+Well that argument applies equally to the RDMA RW API wrappers around
+the DMA API. I think it is fine if sgl are defined to only have P2P or
+not, and that debugging support seemed reasonable to me..
+
+> It's also very difficult to add similar functionality to dma_map_page seeing
+> dma_unmap_page won't have any way to know what it's dealing with. It just
+> seems confusing to support P2P in the SG version and not the page version.
+
+Well, this proposal is to support P2P in only some RDMA APIs and not
+others, so it seems about as confusing to me..
+
+> >Then we don't need to patch RDMA because RDMA is not special when it
+> >comes to P2P. P2P should work with everything.
 > 
-> Well, this proposal is to support P2P in only some RDMA APIs and not
-> others, so it seems about as confusing to me..
+> Yes, I agree this would be very nice.
 
-As usual we implement what actually has a consumer.  On top of that the
-R/W API is the only core RDMA API that actually does DMA mapping for the
-ULP at the moment.  For SENDs and everything else dma maps are done by
-the ULP (I'd like to eventually change that, though - e.g. sends through
-that are inline to the workqueue don't need a dma map to start with).
+Well, it is more than very nice. We have to keep RDMA working after
+all, and if you make it even more special things become harder for us.
 
-> Well, it is more than very nice. We have to keep RDMA working after
-> all, and if you make it even more special things become harder for us.
-> 
-> It is already the case that DMA in RDMA is very strange. We have
-> drivers that provide their own DMA ops, for instance.
+It is already the case that DMA in RDMA is very strange. We have
+drivers that provide their own DMA ops, for instance.
 
-That's because the initial design was to let the ULPs do the DMA
-mappings, which fundamentally is wrong.  I've fixed it for the R/W
-API when adding it, but no one has started work on SENDs and atomics.
+And on that topic, does this scheme work with HFI?
 
-> And on that topic, does this scheme work with HFI?
+On first glance, it looks like no. The PCI device the HFI device is
+attached to may be able to do P2P, so it should be able to trigger the
+support.
 
-No, and I guess we need an opt-out.  HFI generally seems to be
-extremely weird.
+However, substituting the p2p_dma_map for the real device op dma_map
+will cause a kernel crash when working with HFI. HFI uses a custom DMA
+ops that returns CPU addreses in the dma_addr_t which the driver
+handles in various special ways. One cannot just replace them with PCI
+bus addresses.
 
-> This is why P2P must fit in to the common DMA framework somehow, we
-> rely on these abstractions to work properly and fully in RDMA.
+So, this kinda looks to me like it causes bad breakage for some RDMA
+drivers??
 
-Moving P2P up to common RDMA code isn't going to fix this.  For that
-we need to stop preting that something that isn't DMA can abuse the
-dma mapping framework, and until then opt them out of behavior that
-assumes actual DMA like P2P.
+This is why P2P must fit in to the common DMA framework somehow, we
+rely on these abstractions to work properly and fully in RDMA.
 
-> I think you should consider pushing this directly into the dma_ops
-> implementations. Add a p2p_supported flag to struct dma_map_ops, and
-> only if it is true can a caller pass a homogeneous SGL to ops->map_sg.
-> Only map_sg would be supported for P2P. Upgraded implementations can
-> call the helper function.
+I think you should consider pushing this directly into the dma_ops
+implementations. Add a p2p_supported flag to struct dma_map_ops, and
+only if it is true can a caller pass a homogeneous SGL to ops->map_sg.
+Only map_sg would be supported for P2P. Upgraded implementations can
+call the helper function.
 
-If at all it should be in the dma_map* wrappers, but for that we'd need
-a good identifier.  And it still would not solve the whole fake dma
-ops issue.
-
-So for now I'd much prefer to let the drivers handle it, and once usage
-grows and we know usage patterns better (and I make progress refactoring
-both the dma-mapping subsystem itself and the RDMA dma map code to not
-be a complete mess) we can move it to the core.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Jason
