@@ -1,27 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-vk0-x22e.google.com (mail-vk0-x22e.google.com
- [IPv6:2607:f8b0:400c:c05::22e])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6A7EC2035D33E
- for <linux-nvdimm@lists.01.org>; Tue,  9 Jan 2018 14:20:42 -0800 (PST)
-Received: by mail-vk0-x22e.google.com with SMTP id o73so10401259vkd.2
- for <linux-nvdimm@lists.01.org>; Tue, 09 Jan 2018 14:25:53 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 8B96E22280C3E
+ for <linux-nvdimm@lists.01.org>; Mon,  8 Jan 2018 05:44:56 -0800 (PST)
+Date: Mon, 8 Jan 2018 14:50:02 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 17/18] mm, fs, dax: dax_flush_dma, handle dma vs
+ block-map-change collisions
+Message-ID: <20180108135002.mk427dfa3wfphsgt@quack2.suse.cz>
+References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151407705124.38751.12934858054023659736.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180104111233.GD29010@quack2.suse.cz>
+ <CAA9_cmcL7E7F+sEp1wn6H4TQBQeNttm_MSJjKT9jNfOri8iK9g@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CACTTzNa06a4ZM6tkYesqf-19WfcSuJovD-AWKC8-obVp_cTOPQ@mail.gmail.com>
-References: <CAN=ZobSmQ97gRKFaho7DPvXVD18W4145JfTQ5Ncf80Tw17fkGA@mail.gmail.com>
- <20171020162227.GA8576@linux.intel.com>
- <CAN=ZobRsTqFtLiibVDU=yoNPSSgd7S=DaM=p2JTWcBm9x2PjsA@mail.gmail.com>
- <CAPcyv4ifUJUJFKksk0atmfeMiOJoQRPzYU9Z633i0Cj8pjpD6A@mail.gmail.com>
- <CAN=ZobTYOgWxPbLcH275EK4PkoniMk+1g1HehxoXLp1bqUN9Bg@mail.gmail.com>
- <CAA9_cmff4YFQnP+1csz2Z_=dKcQeW5jYFC2QLcN9V4j1FV+zyA@mail.gmail.com>
- <CAN=ZobSKm8isvTEALkd_-X7Hyjbv6tH-Yy0UGtOTkn2_fKoqhA@mail.gmail.com>
- <CAA9_cmes_Strpx6jNYDOnxZ0DUENFpWOpL-65jvpv3ztQwB74Q@mail.gmail.com>
- <CACTTzNa06a4ZM6tkYesqf-19WfcSuJovD-AWKC8-obVp_cTOPQ@mail.gmail.com>
-From: Oren Berman <oren@lightbitslabs.com>
-Date: Wed, 10 Jan 2018 00:25:51 +0200
-Message-ID: <CAN=ZobTrcu9LALChbB2HT1Fw_aAnDLGotU0Uo8uhewf5c3E+UA@mail.gmail.com>
-Subject: Re: Detecting NUMA per pmem
+Content-Disposition: inline
+In-Reply-To: <CAA9_cmcL7E7F+sEp1wn6H4TQBQeNttm_MSJjKT9jNfOri8iK9g@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,202 +27,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Yigal Korman <yigal@plexistor.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi
+On Sun 07-01-18 13:58:42, Dan Williams wrote:
+> On Thu, Jan 4, 2018 at 3:12 AM, Jan Kara <jack@suse.cz> wrote:
+> > On Sat 23-12-17 16:57:31, Dan Williams wrote:
+> >
+> >> +     /*
+> >> +      * Flush dax_dma_lock() sections to ensure all possible page
+> >> +      * references have been taken, or will block on the fs
+> >> +      * 'mmap_lock'.
+> >> +      */
+> >> +     synchronize_rcu();
+> >
+> > Frankly, I don't like synchronize_rcu() in a relatively hot path like this.
+> > Cannot we just abuse get_dev_pagemap() to fail if truncation is in progress
+> > for the pfn? We could indicate that by some bit in struct page or something
+> > like that.
+> 
+> We would need a lockless way to take a reference conditionally if the
+> page is not subject to truncation.
+> 
+> I recall the raid5 code did something similar where it split a
+> reference count into 2 fields. I.e. take page->_refcount and use the
+> upper bits as a truncation count. Something like:
+> 
+> do {
+>     old = atomic_read(&page->_refcount);
+>     if (old & trunc_mask) /* upper bits of _refcount */
+>         return false;
+>     new = cnt + 1;
+> } while (atomic_cmpxchg(&page->_refcount, old, new) != old);
+> return true; /* we incremented the _refcount while the truncation
+> count was zero */
+> 
+> ...the only concern is teaching the put_page() path to consider that
+> 'trunc_mask' when determining that the page is idle.
+> 
+> Other ideas?
 
-I would like to know if you encountered such a problem.
+What I rather thought about was an update to GUP paths (like
+follow_page_pte()):
 
-We are accessing the nvram as memory from withing the kernel.
-By mapping dax device and reading its mapping we can know the physical
-address of the nvram.
-As a result we can access this address range in the kernel by calling
-phys_to_virt.
-This  is working in most case but we saw some issue that after reboot, when
-trying to read the info saved
-on the nvram before the power off, one kernel thread was able to read
-from this range but another kernel thread got page fault.
+	if (flags & FOLL_GET) {
+		get_page(page);
+		if (pte_devmap(pte)) {
+			/*
+			 * Pairs with the barrier in the truncate path.
+			 * Could be possibly _after_atomic version of the
+			 * barrier.
+			 */
+			smp_mb();
+			if (PageTruncateInProgress(page)) {
+				put_page(page);
+				..bail...
+			}
+		}
+	}
 
-This is not recreated very easily and we need run many reboot sequences to
-get this failure again.
-Are you aware of any mapping issues of nvram to kernel space?
+and in the truncate path:
 
-Thanks for any suggestions you might have.
-BR
-Oren
+	down_write(inode->i_mmap_sem);
+	walk all pages in the mapping and mark them PageTruncateInProgress().
+	unmap_mapping_range(...);
+	/*
+	 * Pairs with the barrier in GUP path. In fact not necessary since
+	 * unmap_mapping_range() provides us with the barrier already.
+	 */
+	smp_mb();
+	/*
+	 * By now we are either guaranteed to see grabbed page reference or
+	 * GUP is guaranteed to see PageTruncateInProgress().
+	 */
+	while ((page = dax_find_referenced_page(mapping))) {
+		...
+	}
 
-On 31 December 2017 at 10:23, Yigal Korman <yigal@plexistor.com> wrote:
+The barriers need some verification, I've opted for the conservative option
+but I guess you get the idea.
 
-> You can try to force a legacy pmem device with memmap=XX!YY kernel
-> parameter.
->
-> On Thu, Dec 28, 2017 at 8:16 PM, Dan Williams <dan.j.williams@intel.com>
-> wrote:
->
->> Type-7 only tells the kernel to reserve the memory range. NFIT carves that
->> reservation into pmem devices. Type-12 skips the reservation and creates a
->> pmem device directly. There is no workaround if the platform only has a
->> BIOS that produces a type-12 range.
->>
->>
->> On Thursday, December 28, 2017, Oren Berman <oren@lightbitslabs.com>
->> wrote:
->>
->> > Thanks Dan.
->> > I understand the shortcomings of using legacy mode but currently my
->> problem
->> > is that TYPE 12 is detected and I can use dax even in legacy mode but
->> for
->> > some reason type 7 is not. Is there a way to force it be treated as
->> legacy
->> > as well.
->> > The reason I am asking is that I am not sure I can change my bios and I
->> > know at least that type 12 NVDIMM is working for me.
->> >
->> > BR
->> > Oren
->> >
->> >
->> >
->> > On 28 December 2017 at 11:14, Dan Williams <dan.j.williams@intel.com>
->> > wrote:
->> >
->> > > [sent from my phone, forgive formatting]
->> > >
->> > > Your BIOS would need to put SPA range entries in the ACPI NFIT. The
->> > > problem with legacy pmem ranges in the e820 table is that it omits
->> > critical
->> > > details like battery status and whether the platform supports flushing
->> > > memory controller buffers at power loss (ADR).
->> > >
->> > > The NFIT can also reliably communicate NUMA information  for NVDIMMs
->> that
->> > > e820 does not.
->> > >
->> > > On Wednesday, December 27, 2017, Oren Berman <oren@lightbitslabs.com>
->> > > wrote:
->> > >
->> > >> Hi
->> > >>
->> > >> I have a question regrading NVDIMM detection.
->> > >>
->> > >> When we are working with NVDIMM of type 12 it is detected by the
->> linux
->> > in
->> > >> legacy mode and we can
->> > >> accesses it as pmem or dax device. we have an e820 bios.
->> > >>
->> > >> When we are using a type 7 NVDIMM it is reported by the linux as
->> > >> persistence type 7 memory but there is no pmem or dax device created.
->> > >> Linux Kernel identifies this memory in the e820 table but it does not
->> > >> trigger nvdimm probe for it.
->> > >> Do you know what could be the cause? Is their a workaround for that?
->> > >> Can it still be treated as legacy mode so we can access it through
->> > >> pmem/dax
->> > >> device?
->> > >>
->> > >> BR
->> > >> Oren Berman
->> > >>
->> > >> On 22 October 2017 at 16:52, Dan Williams <dan.j.williams@intel.com>
->> > >> wrote:
->> > >>
->> > >> > On Sun, Oct 22, 2017 at 4:33 AM, Oren Berman <
->> oren@lightbitslabs.com>
->> > >> > wrote:
->> > >> > > Hi Ross
->> > >> > >
->> > >> > > Thanks for the speedy reply. I am also adding the public list to
->> > this
->> > >> > > thread as you suggested.
->> > >> > >
->> > >> > > We have tried to dump the SPA table and this is what we get:
->> > >> > >
->> > >> > > /*
->> > >> > >  * Intel ACPI Component Architecture
->> > >> > >  * AML/ASL+ Disassembler version 20160108-64
->> > >> > >  * Copyright (c) 2000 - 2016 Intel Corporation
->> > >> > >  *
->> > >> > >  * Disassembly of NFIT, Sun Oct 22 10:46:19 2017
->> > >> > >  *
->> > >> > >  * ACPI Data Table [NFIT]
->> > >> > >  *
->> > >> > >  * Format: [HexOffset DecimalOffset ByteLength]  FieldName :
->> > >> FieldValue
->> > >> > >  */
->> > >> > >
->> > >> > > [000h 0000   4]                    Signature : "NFIT"    [NVDIMM
->> > >> Firmware
->> > >> > > Interface Table]
->> > >> > > [004h 0004   4]                 Table Length : 00000028
->> > >> > > [008h 0008   1]                     Revision : 01
->> > >> > > [009h 0009   1]                     Checksum : B2
->> > >> > > [00Ah 0010   6]                       Oem ID : "SUPERM"
->> > >> > > [010h 0016   8]                 Oem Table ID : "SMCI--MB"
->> > >> > > [018h 0024   4]                 Oem Revision : 00000001
->> > >> > > [01Ch 0028   4]              Asl Compiler ID : " "
->> > >> > > [020h 0032   4]        Asl Compiler Revision : 00000001
->> > >> > >
->> > >> > > [024h 0036   4]                     Reserved : 00000000
->> > >> > >
->> > >> > > Raw Table Data: Length 40 (0x28)
->> > >> > >
->> > >> > >   0000: 4E 46 49 54 28 00 00 00 01 B2 53 55 50 45 52 4D  //
->> > >> > NFIT(.....SUPERM
->> > >> > >   0010: 53 4D 43 49 2D 2D 4D 42 01 00 00 00 01 00 00 00  //
->> > >> > SMCI--MB........
->> > >> > >   0020: 01 00 00 00 00 00 00 00
->> > >> > >
->> > >> > > As you can see the memory region info is missing.
->> > >> > >
->> > >> > > This specific check was done on a supermicro server.
->> > >> > > We also performed a bios update but the results were the same.
->> > >> > >
->> > >> > > As said before ,the pmem devices are detected correctly and we
->> > >> verified
->> > >> > > that they correspond to different numa nodes using the PCM
->> > >> > utility.However,
->> > >> > >  linux still reports both pmem devices to be on the same numa -
->> Numa
->> > >> 0.
->> > >> > >
->> > >> > > If this information is missing, why pmem devices and address
->> ranges
->> > >> are
->> > >> > > still detected correctly?
->> > >> >
->> > >> > I suspect your BIOS might be using E820-type-12 to describe the
->> pmem
->> > >> > ranges which is not compliant with the ACPI specification and would
->> > >> > need a BIOS change.
->> > >> >
->> > >> > > Is there another table that we need to check?
->> > >> >
->> > >> > You can dump /proc/iomem.  If it shows "Persistent Memory (legacy)"
->> > >> > then the BIOS is using the E820-type-12 description scheme which
->> does
->> > >> > not include NUMA information.
->> > >> >
->> > >> _______________________________________________
->> > >> Linux-nvdimm mailing list
->> > >> Linux-nvdimm@lists.01.org
->> > >> https://lists.01.org/mailman/listinfo/linux-nvdimm
->> > >>
->> > >
->> > _______________________________________________
->> > Linux-nvdimm mailing list
->> > Linux-nvdimm@lists.01.org
->> > https://lists.01.org/mailman/listinfo/linux-nvdimm
->> >
->> _______________________________________________
->> Linux-nvdimm mailing list
->> Linux-nvdimm@lists.01.org
->> https://lists.01.org/mailman/listinfo/linux-nvdimm
->>
->
->
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
