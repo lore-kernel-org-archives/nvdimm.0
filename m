@@ -1,18 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Sat, 13 Jan 2018 01:23:05 -0500 (EST)
-From: Pankaj Gupta <pagupta@redhat.com>
-Message-ID: <326660076.6160176.1515824585284.JavaMail.zimbra@redhat.com>
-In-Reply-To: <CAPcyv4j6nk1cJFuG4DDA9JoNJe2d3rSskdFSUPu4aWzWX+JQeQ@mail.gmail.com>
-References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
- <ec5ff7c2-864e-5020-0aaa-6663e78e3756@gmail.com>
- <1511288389.1080.14.camel@redhat.com>
- <d1df875c-5b64-67d9-2b3c-4ec14c03b85b@gmail.com>
- <CAPcyv4ip6m6e9Bh7weJNB3m3kpDpRkhHDZf0JYyr5UbkD41oLg@mail.gmail.com>
- <654f8935-258e-22ef-fae4-3e14e91e8fae@redhat.com>
- <336152896.34452750.1511527207457.JavaMail.zimbra@redhat.com>
- <CAPcyv4j6nk1cJFuG4DDA9JoNJe2d3rSskdFSUPu4aWzWX+JQeQ@mail.gmail.com>
-Subject: Re: KVM "fake DAX" flushing interface - discussion
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id BC3202236BA8B
+ for <linux-nvdimm@lists.01.org>; Mon,  8 Jan 2018 08:03:32 -0800 (PST)
+Date: Mon, 8 Jan 2018 11:08:38 -0500
+From: Mike Snitzer <snitzer@redhat.com>
+Subject: Re: [PATCH v6 2/2] dm: allow device-mapper to operate without dax
+ support
+Message-ID: <20180108160838.GC10224@redhat.com>
+References: <151198199487.7051.7083189934624068090.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151198200599.7051.6920383092194777505.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <151198200599.7051.6920383092194777505.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,43 +26,24 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Kevin Wolf <kwolf@redhat.com>, Rik van Riel <riel@redhat.com>, Jan Kara <jack@suse.cz>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Stefan Hajnoczi <stefanha@gmail.com>, Ross Zwisler <ross.zwisler@intel.com>, Qemu Developers <qemu-devel@nongnu.org>, Christoph Hellwig <hch@infradead.org>, Stefan Hajnoczi <stefanha@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
+Cc: Bart Van Assche <Bart.VanAssche@wdc.com>, dm-devel@redhat.com, kbuild test robot <lkp@intel.com>, Alasdair Kergon <agk@redhat.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Wed, Nov 29 2017 at  2:00pm -0500,
+Dan Williams <dan.j.williams@intel.com> wrote:
 
-Hello Dan,
-
-> Not a flag, but a new "Address Range Type GUID". See section "5.2.25.2
-> System Physical Address (SPA) Range Structure" in the ACPI 6.2A
-> specification. Since it is a GUID we could define a Linux specific
-> type for this case, but spec changes would allow non-Linux hypervisors
-> to advertise a standard interface to guests.
+> Change device-mapper's DAX dependency to require the presence of at
+> least one DAX_DRIVER. This allows device-mapper to be built without
+> bringing the DAX core along which is especially wasteful when there are
+> no DAX drivers, like BLK_DEV_PMEM, configured.
 > 
+> Cc: Alasdair Kergon <agk@redhat.com>
+> Cc: Mike Snitzer <snitzer@redhat.com>
+> Reported-by: Bart Van Assche <Bart.VanAssche@wdc.com>
+> Reported-by: kbuild test robot <lkp@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-I have added new SPA with a GUUID for this memory type and I could add 
-this new memory type in System memory map. I need help with the namespace
-handling for this new type As mentioned in [1] discussion:
-
-- Create a new namespace for this new memory type
-- Teach libnvdimm how to handle this new namespace 
-
-I have some queries on this:
-
-1] How namespace handling of this new memory type would be?
-  
-2] There are existing namespace types: 
-  ND_DEVICE_NAMESPACE_IO, ND_DEVICE_NAMESPACE_PMEM, ND_DEVICE_NAMESPACE_BLK
-
-  How libnvdimm will handle this new name-space type in conjuction with existing
-  memory type, region & namespaces?  
-
-3] For sending guest to host flush commands we still have to think about some 
-   async way?
-    
-[1] https://lists.gnu.org/archive/html/qemu-devel/2017-07/msg08404.html 
-
-Thanks,
-Pankaj
+Reviewed-by: Mike Snitzer <snitzer@redhat.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
