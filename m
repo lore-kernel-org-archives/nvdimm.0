@@ -1,9 +1,9 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Mon, 8 Jan 2018 12:01:16 -0700
+Date: Mon, 8 Jan 2018 11:29:45 -0700
 From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
  rdma_rw_ctx_[init|destroy]()
-Message-ID: <20180108190116.GI11348@ziepe.ca>
+Message-ID: <20180108182945.GG11348@ziepe.ca>
 References: <20180104190137.7654-1-logang@deltatee.com>
  <20180104190137.7654-7-logang@deltatee.com>
  <20180104192225.GS11348@ziepe.ca>
@@ -13,73 +13,38 @@ References: <20180104190137.7654-1-logang@deltatee.com>
  <20180105045031.GX11348@ziepe.ca>
  <20180108145901.GA10743@lst.de>
  <20180108180917.GF11348@ziepe.ca>
- <20180108183434.GA15549@lst.de>
+ <3daea7fe-f64a-36a9-ca80-0cb4d9acf171@deltatee.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180108183434.GA15549@lst.de>
+In-Reply-To: <3daea7fe-f64a-36a9-ca80-0cb4d9acf171@deltatee.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jan 08, 2018 at 07:34:34PM +0100, Christoph Hellwig wrote:
-> > > > And on that topic, does this scheme work with HFI?
-> > > 
-> > > No, and I guess we need an opt-out.  HFI generally seems to be
-> > > extremely weird.
-> > 
-> > This series needs some kind of fix so HFI, QIB, rxe, etc don't get
-> > broken, and it shouldn't be 'fixed' at the RDMA level.
+On Mon, Jan 08, 2018 at 11:17:38AM -0700, Logan Gunthorpe wrote:
+ 
+> >>If at all it should be in the dma_map* wrappers, but for that we'd need
+> >>a good identifier.  And it still would not solve the whole fake dma
+> >>ops issue.
+> >
+> >Very long term the IOMMUs under the ops will need to care about this,
+> >so the wrapper is not an optimal place to put it - but I wouldn't
+> >object if it gets it out of RDMA :)
 > 
-> I don't think rxe is a problem as it won't show up a pci device.
+> Well, creating the extra op doesn't really change anything to the RDMA patch
+> in this series.
 
-Right today's restrictions save us..
+Not fundamentally, but it lets us solve the bugs the patch introduces
+with hfi/etc
 
-> HFI and QIB do show as PCI devices, and could be used for P2P transfers
-> from the PCI point of view.  It's just that they have a layer of
-> software indirection between their hardware and what is exposed at
-> the RDMA layer.
-> 
-> So I very much disagree about where to place that workaround - the
-> RDMA code is exactly the right place.
+> The point is, for the time being, we need to track whether we are
+> doing a P2P or normal mapping using a side channel as we don't have
+> a good way of tracking it in the SGL at this time.
 
-But why? RDMA is using core code to do this. It uses dma_ops in struct
-device and it uses normal dma_map SG. How is it RDMA's problem that
-some PCI drivers provide strange DMA ops?
-
-Admittedly they are RDMA drivers, but it is a core mechanism they
-(ab)use these days..
-
-> > It could, if we had a DMA op for p2p then the drivers that provide
-> > their own ops can implement it appropriately or not at all.
-> > 
-> > Eg the correct implementation for rxe to support p2p memory is
-> > probably somewhat straightfoward.
-> 
-> But P2P is _not_ a factor of the dma_ops implementation at all,
-> it is something that happens behind the dma_map implementation.
-
-Only as long as the !ACS and switch limitations are present.
-
-Those limitations are fine to get things started, but there is going
-to a be a push improve the system to remove them.
-
-> > Very long term the IOMMUs under the ops will need to care about this,
-> > so the wrapper is not an optimal place to put it - but I wouldn't
-> > object if it gets it out of RDMA :)
-> 
-> Unless you have an IOMMU on your PCIe switch and not before/inside
-> the root complex that is not correct.
-
-I understand the proposed patches restrict things to require a switch
-and not transit the IOMMU.
-
-But *very long term* P2P will need to work with paths that transit the
-system IOMMU and root complex.
-
-This already exists as out-of-tree funtionality that has been deployed
-in production for years and years that does P2P through the root
-complex with the IOMMU turned off.
+Well, that is disappointing for now, but I'm OK with the flag in the
+RW interface - as long as we all sort of agree it is not desirable and
+the SG should self-identify in an ideal someday future world..
 
 Jason
