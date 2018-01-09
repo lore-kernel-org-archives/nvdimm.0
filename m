@@ -1,19 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 80ADA21E25685
- for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 14:47:06 -0800 (PST)
-Date: Tue, 30 Jan 2018 15:52:41 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH v2 3/4] libnvdimm: expose platform persistence attribute
- for nd_region
-Message-ID: <20180130225241.GD23836@linux.intel.com>
-References: <151276655874.31888.13113966406333561201.stgit@djiang5-desk3.ch.intel.com>
- <151276682022.31888.4940531735214813355.stgit@djiang5-desk3.ch.intel.com>
+Received: from lists.01.org (unknown [183.14.132.91])
+ by ml01.01.org (Postfix) with ESMTP id 735022035D300
+ for <linux-nvdimm@lists.01.org>; Mon,  8 Jan 2018 19:09:36 -0800 (PST)
+From: "Mail Delivery Subsystem" <postmaster@lists.01.org>
+Subject: TEST
+Date: Tue, 9 Jan 2018 11:14:45 +0800
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <151276682022.31888.4940531735214813355.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,19 +17,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-nvdimm@lists.01.org
+Message-Id: <20180109030939.7E23E2035D33F@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Dec 08, 2017 at 02:00:20PM -0700, Dave Jiang wrote:
-> Providing a sysfs attribute for nd_region that shows the persistence
-> capabilities for the platform.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+The original message was received at Tue, 9 Jan 2018 11:14:45 +0800
+from lists.01.org [192.233.82.17]
 
-Sure, looks fine.
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm@lists.01.org>
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
