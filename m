@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
- [IPv6:2607:f8b0:4003:c06::22a])
+Received: from mail-ua0-x234.google.com (mail-ua0-x234.google.com
+ [IPv6:2607:f8b0:400c:c08::234])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D1E58222CF1D3
- for <linux-nvdimm@lists.01.org>; Wed, 10 Jan 2018 08:33:29 -0800 (PST)
-Received: by mail-oi0-x22a.google.com with SMTP id u83so4776314oie.7
- for <linux-nvdimm@lists.01.org>; Wed, 10 Jan 2018 08:38:42 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 3F5D4222CF1AE
+ for <linux-nvdimm@lists.01.org>; Wed, 10 Jan 2018 07:18:05 -0800 (PST)
+Received: by mail-ua0-x234.google.com with SMTP id u2so3507505uad.13
+ for <linux-nvdimm@lists.01.org>; Wed, 10 Jan 2018 07:23:17 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAN=ZobQyy3taNhB_sXjeeUdWx0xP1aL3icr5_+ANFmBH+4Ge5A@mail.gmail.com>
+In-Reply-To: <CAA9_cmcr+7DhH3mSPRvCtyVK6F31GGmvkq8nEi1sNzchmK70qw@mail.gmail.com>
 References: <CAN=ZobSmQ97gRKFaho7DPvXVD18W4145JfTQ5Ncf80Tw17fkGA@mail.gmail.com>
  <20171020162227.GA8576@linux.intel.com>
  <CAN=ZobRsTqFtLiibVDU=yoNPSSgd7S=DaM=p2JTWcBm9x2PjsA@mail.gmail.com>
@@ -23,10 +23,9 @@ References: <CAN=ZobSmQ97gRKFaho7DPvXVD18W4145JfTQ5Ncf80Tw17fkGA@mail.gmail.com>
  <CAN=ZobRRj2ccifvwvkTPs_MwcbEK8ncYA_ydX8+Ar8gQpYu_oA@mail.gmail.com>
  <CAN=ZobT3V_cfLGKaLyfrhUthtW6xqE5EJ1=1u3o4RvdM4fOd5w@mail.gmail.com>
  <CAA9_cmcr+7DhH3mSPRvCtyVK6F31GGmvkq8nEi1sNzchmK70qw@mail.gmail.com>
- <CAN=ZobQyy3taNhB_sXjeeUdWx0xP1aL3icr5_+ANFmBH+4Ge5A@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 10 Jan 2018 08:38:40 -0800
-Message-ID: <CAPcyv4hOqiq8LjHv7Qtt5J1SxJouiwvJVvAS9WgzWbcnoWEeQw@mail.gmail.com>
+From: Oren Berman <oren@lightbitslabs.com>
+Date: Wed, 10 Jan 2018 17:23:15 +0200
+Message-ID: <CAN=ZobQyy3taNhB_sXjeeUdWx0xP1aL3icr5_+ANFmBH+4Ge5A@mail.gmail.com>
 Subject: Re: Detecting NUMA per pmem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -39,30 +38,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Oren Berman <oren@lightbitslabs.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jan 10, 2018 at 7:23 AM, Oren Berman <oren@lightbitslabs.com> wrote:
-> Now to all of the forum
->
-> Hi Dan
->
-> Thanks we are going to try this.
->
-> Can you explain why this can cause this issue - is the NVDIMM memory space
-> also being randomized?
-> Is it done during runtime?
->
+Now to all of the forum
 
-Yes, kaslr randomizes the direct map. We have seen problems with it in
-the past relative to setting up pmem mappings. We fixed one such bug
-with this commit:
+Hi Dan
 
-fc5f9d5f151c x86/mm: Fix boot crash caused by incorrect loop count
-calculation in sync_global_pgds()
+Thanks we are going to try this.
 
-...but it appears we may have another bug in this area.
+Can you explain why this can cause this issue - is the NVDIMM memory space
+also being randomized?
+Is it done during runtime?
+
+BR
+Oren
+
+On 10 January 2018 at 16:51, Dan Williams <dan.j.williams@intel.com> wrote:
+
+> On Wed, Jan 10, 2018 at 5:13 AM, Oren Berman <oren@lightbitslabs.com>
+> wrote:
+> > Hi
+> >
+> > A few more updates:
+> >
+> > a) This issue does not happen a lot I need to do a lot of power cycles
+> for
+> > this to happen.
+> > b) We use 2 numa nodes but for some reason it happens only on the second
+> > numa.
+> > c) We added a debug feature that when page fault occurs we will trigger a
+> > thread from command line in the kernel(through configfs) that will read
+> > from
+> > any physical address that we give it. When we give it the faulty address
+> -
+> > the thread succeeds reading from it with no page fault.
+> > We verified that it accessed the same virtual address that caused the
+> page
+> > fault.
+>
+> Does the problem go away if you specify:
+>
+>     nokaslr
+>
+> ...on the kernel command line?
+>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
