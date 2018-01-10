@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ua0-x229.google.com (mail-ua0-x229.google.com
- [IPv6:2607:f8b0:400c:c08::229])
+Received: from mail-ua0-x243.google.com (mail-ua0-x243.google.com
+ [IPv6:2607:f8b0:400c:c08::243])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AE201222CF1B9
- for <linux-nvdimm@lists.01.org>; Wed, 10 Jan 2018 05:08:07 -0800 (PST)
-Received: by mail-ua0-x229.google.com with SMTP id q22so11478112uaa.9
- for <linux-nvdimm@lists.01.org>; Wed, 10 Jan 2018 05:13:19 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 4FFB5222275A2
+ for <linux-nvdimm@lists.01.org>; Tue,  9 Jan 2018 23:16:27 -0800 (PST)
+Received: by mail-ua0-x243.google.com with SMTP id x10so10910185ual.8
+ for <linux-nvdimm@lists.01.org>; Tue, 09 Jan 2018 23:21:38 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAN=ZobRRj2ccifvwvkTPs_MwcbEK8ncYA_ydX8+Ar8gQpYu_oA@mail.gmail.com>
+In-Reply-To: <CAPcyv4iyoWkG1MLtJ8cKN=yoav7Wstck5sJdeJhjxGeLPCRn6w@mail.gmail.com>
 References: <CAN=ZobSmQ97gRKFaho7DPvXVD18W4145JfTQ5Ncf80Tw17fkGA@mail.gmail.com>
  <20171020162227.GA8576@linux.intel.com>
  <CAN=ZobRsTqFtLiibVDU=yoNPSSgd7S=DaM=p2JTWcBm9x2PjsA@mail.gmail.com>
@@ -20,10 +20,9 @@ References: <CAN=ZobSmQ97gRKFaho7DPvXVD18W4145JfTQ5Ncf80Tw17fkGA@mail.gmail.com>
  <CACTTzNa06a4ZM6tkYesqf-19WfcSuJovD-AWKC8-obVp_cTOPQ@mail.gmail.com>
  <CAN=ZobTrcu9LALChbB2HT1Fw_aAnDLGotU0Uo8uhewf5c3E+UA@mail.gmail.com>
  <CAPcyv4iyoWkG1MLtJ8cKN=yoav7Wstck5sJdeJhjxGeLPCRn6w@mail.gmail.com>
- <CAN=ZobRRj2ccifvwvkTPs_MwcbEK8ncYA_ydX8+Ar8gQpYu_oA@mail.gmail.com>
 From: Oren Berman <oren@lightbitslabs.com>
-Date: Wed, 10 Jan 2018 15:13:17 +0200
-Message-ID: <CAN=ZobT3V_cfLGKaLyfrhUthtW6xqE5EJ1=1u3o4RvdM4fOd5w@mail.gmail.com>
+Date: Wed, 10 Jan 2018 09:21:37 +0200
+Message-ID: <CAN=ZobRRj2ccifvwvkTPs_MwcbEK8ncYA_ydX8+Ar8gQpYu_oA@mail.gmail.com>
 Subject: Re: Detecting NUMA per pmem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -40,84 +39,59 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi
+Hi Dan
 
-A few more updates:
+Which driver are you referring to?
+If it is the dax driver than it is always loaded - we see /dev/dax0.
+If you refer to the user space application which called the mmap on the dax
+device then this application is not running anymore.
+We used this application to get the virtual address mapping(doing mmap on
+dax) and then by going over the proc pagemap we got the physical address.
+After that the application terminates and we pass this physical address to
+our kernel thread .
+Then from the kernel thread we access this range by using phys_to_virt (we
+know the physical so we convert it virtual).
+As far as I know once in kernel space all address range  should be mapped
+to the kernel page tables in 64 bit architecture ofcourse,
+thus accessible using phys_to_virt.
+Is this a wrong assumption when dealing with NVRAM?
+If I know the physical address of the nvram isn't it accessible from the
+kernel  using the simple conversion of phys_to_virt?
 
-a) This issue does not happen a lot I need to do a lot of power cycles for
-this to happen.
-b) We use 2 numa nodes but for some reason it happens only on the second
-numa.
-c) We added a debug feature that when page fault occurs we will trigger a
-thread from command line in the kernel(through configfs) that will read
-from
-any physical address that we give it. When we give it the faulty address -
-the thread succeeds reading from it with no page fault.
-We verified that it accessed the same virtual address that caused the page
-fault.
-
-BR
+Thanks
 Oren
 
 
-On 10 January 2018 at 09:21, Oren Berman <oren@lightbitslabs.com> wrote:
 
-> Hi Dan
->
-> Which driver are you referring to?
-> If it is the dax driver than it is always loaded - we see /dev/dax0.
-> If you refer to the user space application which called the mmap on the
-> dax device then this application is not running anymore.
-> We used this application to get the virtual address mapping(doing mmap on
-> dax) and then by going over the proc pagemap we got the physical address.
-> After that the application terminates and we pass this physical address to
-> our kernel thread .
-> Then from the kernel thread we access this range by using phys_to_virt (we
-> know the physical so we convert it virtual).
-> As far as I know once in kernel space all address range  should be mapped
-> to the kernel page tables in 64 bit architecture ofcourse,
-> thus accessible using phys_to_virt.
-> Is this a wrong assumption when dealing with NVRAM?
-> If I know the physical address of the nvram isn't it accessible from the
-> kernel  using the simple conversion of phys_to_virt?
->
-> Thanks
-> Oren
->
->
->
->
-> On 10 January 2018 at 01:05, Dan Williams <dan.j.williams@intel.com>
+
+On 10 January 2018 at 01:05, Dan Williams <dan.j.williams@intel.com> wrote:
+
+> On Tue, Jan 9, 2018 at 2:25 PM, Oren Berman <oren@lightbitslabs.com>
 > wrote:
+> > Hi
+> >
+> > I would like to know if you encountered such a problem.
+> >
+> > We are accessing the nvram as memory from withing the kernel.
+> > By mapping dax device and reading its mapping we can know the physical
+> > address of the nvram.
+> > As a result we can access this address range in the kernel by calling
+> > phys_to_virt.
+> > This  is working in most case but we saw some issue that after reboot,
+> when
+> > trying to read the info saved
+> > on the nvram before the power off, one kernel thread was able to read
+> > from this range but another kernel thread got page fault.
+> >
+> > This is not recreated very easily and we need run many reboot sequences
+> to
+> > get this failure again.
+> > Are you aware of any mapping issues of nvram to kernel space?
 >
->> On Tue, Jan 9, 2018 at 2:25 PM, Oren Berman <oren@lightbitslabs.com>
->> wrote:
->> > Hi
->> >
->> > I would like to know if you encountered such a problem.
->> >
->> > We are accessing the nvram as memory from withing the kernel.
->> > By mapping dax device and reading its mapping we can know the physical
->> > address of the nvram.
->> > As a result we can access this address range in the kernel by calling
->> > phys_to_virt.
->> > This  is working in most case but we saw some issue that after reboot,
->> when
->> > trying to read the info saved
->> > on the nvram before the power off, one kernel thread was able to read
->> > from this range but another kernel thread got page fault.
->> >
->> > This is not recreated very easily and we need run many reboot sequences
->> to
->> > get this failure again.
->> > Are you aware of any mapping issues of nvram to kernel space?
->>
->> When are you using phys_to_virt()? That will only return a valid
->> virtual address as long as the driver is loaded. It sounds like you
->> may be losing a race with the driver setting up or tearing down the
->> mappings.
->>
->
+> When are you using phys_to_virt()? That will only return a valid
+> virtual address as long as the driver is loaded. It sounds like you
+> may be losing a race with the driver setting up or tearing down the
+> mappings.
 >
 _______________________________________________
 Linux-nvdimm mailing list
