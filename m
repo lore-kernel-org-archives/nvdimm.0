@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail03.adl2.internode.on.net (ipmail03.adl2.internode.on.net
- [150.101.137.141])
- by ml01.01.org (Postfix) with ESMTP id 658E92205B92C
- for <linux-nvdimm@lists.01.org>; Fri, 12 Jan 2018 13:14:04 -0800 (PST)
-Date: Sat, 13 Jan 2018 08:19:15 +1100
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: DAX 2MB mappings for XFS
-Message-ID: <20180112211915.GF27323@dastard>
-References: <1515788779.16384.29.camel@hpe.com>
+Received: from g4t3425.houston.hpe.com (g4t3425.houston.hpe.com
+ [15.241.140.78])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0396721D2BEFE
+ for <linux-nvdimm@lists.01.org>; Fri, 12 Jan 2018 11:35:13 -0800 (PST)
+From: "Kani, Toshi" <toshi.kani@hpe.com>
+Subject: DAX 2MB mappings for XFS
+Date: Fri, 12 Jan 2018 19:40:25 +0000
+Message-ID: <1515788779.16384.29.camel@hpe.com>
+Content-Language: en-US
+Content-ID: <AB462F6B29279C478ADF183213DC931C@NAMPRD84.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1515788779.16384.29.camel@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,138 +23,104 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshi" <toshi.kani@hpe.com>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "david@fromorbit.com" <david@fromorbit.com>
+Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jan 12, 2018 at 07:40:25PM +0000, Kani, Toshi wrote:
-> Hello,
-> 
-> I noticed that DAX 2MB mmap no longer works on XFS.  I used the
-> following steps on a 4.15-rc7 kernel.  Am I missing something, or is
-> there a problem in XFS?
-> 
-> # mkfs.xfs -f -d su=2m,sw=1 /dev/pmem0
-> # mount -o dax /dev/pmem0 /mnt/pmem0
-> # xfs_io -c "extsize 2m" /mnt/pmem0
-> 
-> fio with libpmem engine (which uses mmap) is slow since it gets
-> serialized by 4KB page faults.
-> 
-> # numactl --cpunodebind=0 --membind=0 fio --filename=/mnt/pmem0/testfile 
-> --rw=read --ioengine=libpmem --iodepth=1 --numjobs=16 --runtime=60 --
-> group_reporting --name=perf_test --thread=1 --size=6g --bs=128k --
-> direct=1
->   :
-> Run status group 0 (all jobs):
->    READ: bw=4357MiB/s (4569MB/s), 4357MiB/s-4357MiB/s (4569MB/s-
-> 4569MB/s), io=96.0GiB (103GB), run=22560-22560msec
-> 
-> Resulted file blocks in "testfile" are not aligned by 2MB.
-> 
-> # filefrag -v /mnt/pmem0/testfile
-> Filesystem type is: 58465342
-> File size of testfile is 6442450944 (1572864 blocks of 4096 bytes)
->  ext:     logical_offset:        physical_offset: length:   expected:
-> flags:
->    0:        0..  261111:        520..    261631: 261112:
->    1:   261112..  261348:         12..       248:    237:     261632:
->    2:   261349..  522705:     261644..    523000: 261357:        249:
->    3:   522706..  784062:     523276..    784632: 261357:     523001:
->    4:   784063.. 1045419:     784908..   1046264: 261357:     784633:
->    5:  1045420.. 1304216:    1049100..   1307896: 258797:    1046265:
->    6:  1304217.. 1565573:    1308172..   1569528: 261357:    1307897:
->    7:  1565574.. 1572863:    1570304..   1577593:   7290:    1569529: 
-> last,eof
-> testfile: 8 extents found
-> 
-> A file created by fallocate also shows that physical offset starts from
-> 520, which is not aligned by 2MB. 
-> 
-> # fallocate --length 1G /mnt/pmem0/data
-> # filefrag -v /mnt/pmem0/data
-> Filesystem type is: 58465342
-> File size of /mnt/pmem0/data is 1073741824 (262144 blocks of 4096 bytes)
->  ext:     logical_offset:        physical_offset: length:   expected:
-> flags:
->    0:        0..  260607:        520..    261127:
-> 260608:             unwritten
->    1:   260608..  262143:     262144..    263679:   1536:     261128:
-> last,unwritten,eof
-> /mnt/pmem0/data: 2 extents found
+Hello,
 
-/me really dislikes filefrag output.
+I noticed that DAX 2MB mmap no longer works on XFS.  I used the
+following steps on a 4.15-rc7 kernel.  Am I missing something, or is
+there a problem in XFS?
 
-$ sudo xfs_bmap -vvp /mnt/scratch/data
-/mnt/scratch/data:
- EXT: FILE-OFFSET         BLOCK-RANGE      AG AG-OFFSET          TOTAL FLAGS
-   0: [0..2088959]:       4160..2093119     0 (4160..2093119)  2088960 011111
-   1: [2088960..2097151]: 2101248..2109439  1 (4096..12287)       8192 010000
- FLAG Values:
-    0100000 Shared extent
-    0010000 Unwritten preallocated extent
-    0001000 Doesn't begin on stripe unit
-    0000100 Doesn't end   on stripe unit
-    0000010 Doesn't begin on stripe width
-    0000001 Doesn't end   on stripe width
+# mkfs.xfs -f -d su=2m,sw=1 /dev/pmem0
+# mount -o dax /dev/pmem0 /mnt/pmem0
+# xfs_io -c "extsize 2m" /mnt/pmem0
 
-Yeah, though so. The bmap output clearly tells me that the
-allocation being asked for doesn't fit into a single AG, so it's
-trimmed to fit.
+fio with libpmem engine (which uses mmap) is slow since it gets
+serialized by 4KB page faults.
 
-To confirm this is the issue, let's do two smaller alllocations:
+# numactl --cpunodebind=0 --membind=0 fio --filename=/mnt/pmem0/testfile 
+--rw=read --ioengine=libpmem --iodepth=1 --numjobs=16 --runtime=60 --
+group_reporting --name=perf_test --thread=1 --size=6g --bs=128k --
+direct=1
+  :
+Run status group 0 (all jobs):
+   READ: bw=4357MiB/s (4569MB/s), 4357MiB/s-4357MiB/s (4569MB/s-
+4569MB/s), io=96.0GiB (103GB), run=22560-22560msec
 
-$ sudo rm /mnt/scratch/data
-dave@test4:~$ sudo xfs_io -f -c "falloc 0 512m" -c "falloc 512m 512m" -c stat -c "bmap -vvp" /mnt/scratch/data
-fd.path = "/mnt/scratch/data"
-fd.flags = non-sync,non-direct,read-write
-stat.ino = 4099
-stat.type = regular file
-stat.size = 1073741824
-stat.blocks = 2097152
-fsxattr.xflags = 0x802 [-p--------e------]
-fsxattr.projid = 0
-fsxattr.extsize = 2097152
-fsxattr.cowextsize = 0
-fsxattr.nextents = 2
-fsxattr.naextents = 0
-dioattr.mem = 0x200
-dioattr.miniosz = 512
-dioattr.maxiosz = 2147483136
-/mnt/scratch/data:
- EXT: FILE-OFFSET         BLOCK-RANGE      AG AG-OFFSET          TOTAL FLAGS
-   0: [0..1048575]:       8192..1056767     0 (8192..1056767)  1048576 010000
-   1: [1048576..2097151]: 2101248..3149823  1 (4096..1052671)  1048576 010000
- FLAG Values:
-    0100000 Shared extent
-    0010000 Unwritten preallocated extent
-    0001000 Doesn't begin on stripe unit
-    0000100 Doesn't end   on stripe unit
-    0000010 Doesn't begin on stripe width
-    0000001 Doesn't end   on stripe width
+Resulted file blocks in "testfile" are not aligned by 2MB.
 
-Yup, all blocks are 2MB aligned.
+# filefrag -v /mnt/pmem0/testfile
+Filesystem type is: 58465342
+File size of testfile is 6442450944 (1572864 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected:
+flags:
+   0:        0..  261111:        520..    261631: 261112:
+   1:   261112..  261348:         12..       248:    237:     261632:
+   2:   261349..  522705:     261644..    523000: 261357:        249:
+   3:   522706..  784062:     523276..    784632: 261357:     523001:
+   4:   784063.. 1045419:     784908..   1046264: 261357:     784633:
+   5:  1045420.. 1304216:    1049100..   1307896: 258797:    1046265:
+   6:  1304217.. 1565573:    1308172..   1569528: 261357:    1307897:
+   7:  1565574.. 1572863:    1570304..   1577593:   7290:    1569529: 
+last,eof
+testfile: 8 extents found
 
-IOWs, what you are seeing is trying to do a very large allocation on
-a very small (8GB) XFS filesystem.  It's rare someone asks to
-allocate >25% of the filesystem space in one allocation, so it's not
-surprising it triggers ENOSPC-like algorithms because it doesn't fit
-into a single AG....
+A file created by fallocate also shows that physical offset starts from
+520, which is not aligned by 2MB. 
 
-We can probably look to optimise this, but I'm not sure if we can
-easily differentiate this case (i.e. allocation request larger than
-continguous free space) from the same situation near ENOSPC when we
-really do have to trim to fit...
+# fallocate --length 1G /mnt/pmem0/data
+# filefrag -v /mnt/pmem0/data
+Filesystem type is: 58465342
+File size of /mnt/pmem0/data is 1073741824 (262144 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected:
+flags:
+   0:        0..  260607:        520..    261127:
+260608:             unwritten
+   1:   260608..  262143:     262144..    263679:   1536:     261128:
+last,unwritten,eof
+/mnt/pmem0/data: 2 extents found
 
-Remember: stripe unit allocation alignment is a hint in XFS that we
-can and do ignore when necessary - it's not a binding rule.
+ext4 does not have the issue in the same steps.
 
-Cheers,
+# mkfs.ext4 -b 4096 -E stride=512 -F /dev/pmem1
+# mount -o dax /dev/pmem1 /mnt/pmem1
+# numactl --cpunodebind=0 --membind=0 fio --filename=/mnt/pmem1/testfile 
+--rw=read --ioengine=libpmem --iodepth=1 --numjobs=16 --runtime=60 --
+group_reporting --name=perf_test --thread=1 --size=6g --bs=128k --
+direct=1      
+  :
+Run status group 0 (all jobs):
+   READ: bw=44.4GiB/s (47.7GB/s), 44.4GiB/s-44.4GiB/s (47.7GB/s-
+47.7GB/s), io=96.0GiB (103GB), run=2160-2160msec
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+All blocks are aligned by 2MB.
+
+# filefrag -v /ment/pmem1/testfile
+Filesystem type is: ef53
+File size of testfile is 6442450944 (1572864 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected:
+flags:
+   0:        0..   32767:      34816..     67583:  32768:
+   1:    32768..   63487:      67584..     98303:  30720:
+   2:    63488..   96255:     100352..    133119:  32768:      98304:
+   3:    96256..  126975:     133120..    163839:  30720:
+    :
+
+# fallocate --length 1G /mnt/pmem1/data
+# filefrag -v /mnt/pmem1/data
+Filesystem type is: ef53
+File size of /mnt/pmem1/data is 1073741824 (262144 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected:
+flags:
+   0:        0..   30719:      34816..     65535:  30720:   unwritten
+   1:    30720..   61439:      65536..     96255:  30720:   unwritten
+   2:    61440..   63487:      96256..     98303:   2048:   unwritten
+   :
+
+Thanks,
+-Toshi
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
