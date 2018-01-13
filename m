@@ -1,21 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
- [IPv6:2607:f8b0:4003:c0f::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A5C752034C5C8
- for <linux-nvdimm@lists.01.org>; Tue,  2 Jan 2018 12:10:26 -0800 (PST)
-Received: by mail-ot0-x242.google.com with SMTP id w4so14147892otg.3
- for <linux-nvdimm@lists.01.org>; Tue, 02 Jan 2018 12:15:29 -0800 (PST)
+Received: from lists.01.org (unknown [183.14.30.61])
+ by ml01.01.org (Postfix) with ESMTP id 22A4E21D2BEF2
+ for <linux-nvdimm@lists.01.org>; Fri, 12 Jan 2018 20:01:49 -0800 (PST)
+From: "Mail Administrator" <postmaster@lists.01.org>
+Subject: Delivery reports about your e-mail
+Date: Sat, 13 Jan 2018 12:07:08 +0800
 MIME-Version: 1.0
-In-Reply-To: <20171227001705.GA4802@linux.intel.com>
-References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151407699792.38751.2859846645388380112.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171227001705.GA4802@linux.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 2 Jan 2018 12:15:27 -0800
-Message-ID: <CAPcyv4h2Wn6P8_T4F4NS1Xat2G17X8vm14ou5BV1JAr95jxtpA@mail.gmail.com>
-Subject: Re: [PATCH v4 07/18] dax: store pfns in the radix
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,53 +13,69 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3571107433589269231=="
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-xfs <linux-xfs@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+Message-Id: <20180113040154.30BC222227580@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Dec 26, 2017 at 4:17 PM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> On Sat, Dec 23, 2017 at 04:56:38PM -0800, Dan Williams wrote:
->> In preparation for examining the busy state of dax pages in the truncate
->> path, switch from sectors to pfns in the radix.
->>
->> Cc: Jan Kara <jack@suse.cz>
->> Cc: Jeff Moyer <jmoyer@redhat.com>
->> Cc: Christoph Hellwig <hch@lst.de>
->> Cc: Matthew Wilcox <mawilcox@microsoft.com>
->> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  drivers/dax/super.c |   15 ++++++++--
->>  fs/dax.c            |   75 ++++++++++++++++++---------------------------------
->>  2 files changed, 39 insertions(+), 51 deletions(-)
-> <>
->> @@ -688,7 +685,7 @@ static int dax_writeback_one(struct block_device *bdev,
->>        * compare sectors as we must not bail out due to difference in lockbit
->>        * or entry type.
->>        */
->
-> Can you please also fix the comment above this test so it talks about pfns
-> instead of sectors?
->
->> -     if (dax_radix_sector(entry2) != dax_radix_sector(entry))
->> +     if (dax_radix_pfn(entry2) != dax_radix_pfn(entry))
->>               goto put_unlocked;
->>       if (WARN_ON_ONCE(dax_is_empty_entry(entry) ||
->>                               dax_is_zero_entry(entry))) {
->> @@ -718,29 +715,11 @@ static int dax_writeback_one(struct block_device *bdev,
->>        * 'entry'.  This allows us to flush for PMD_SIZE and not have to
->>        * worry about partial PMD writebacks.
->>        */
->
-> Ditto for this comment ^^^
->
+This is a multi-part message in MIME format.
 
-Sure, will do.
+--===============3571107433589269231==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+��Hs�H��BWT������I���n�K���"�cB��޻��h_�3e!�dH����~_Nu:0��WsR_I>�8�v���ɮ3�n`V�R���\r��o
+��M��k,6�I���39�,��ovi��s����1�*�u
+�������1�>!^L�r��3$�oX۹0�w�����d��E#Y`��,�>s�s��'
+C]Ԇ�qQ��c�%\"G�?����4��
+{�͐�՛|?o
+��
+Z�ҸH�7;���?�s���3*u����u�{�mJ��".-���w04�J����%*^��Q(}�r�Q�J#eW�I�����?89EEٰ�����M��-���z��ᨒ��ȧ�l������~�>]�#�.�A�yx0/"�a*>\�!�lO�5���)者
+f|^�ڠCj7�ܼt,2�L�R6����5%�˥Ϩ!��c��EW_�1�!b������?����m���{�%}y��x���(�����9��������|`MB6n����ˌ���S����R,�8A;��c|�#:�����K��V���
+��-%>%�Я�x]o�2��T*�o
+u��C�`���zȖ�,6�����Pb�:R�۞�u�h���r�������Z�ק����W
+z�T?/���}���
+�:�o�ţI�L�d�/
+xxw���jr�9���Vl�1;��kV菚�P�6U�ޗ��ɳ�xF���>����Ĩ�wnڣ�� Q�YlA�s1�;�r��J�f���>�
+XWt*tn�<�qh�
+;�v���2K����dao������w\��,yz
+���~�:��H�E�,�d XTu�?��^h���9� ����ei
+�.�r.�q�
+*4���J�)C������ 8[Ԟ^�����.9�#&VeʕZD���h�~��矸���]�ey5�i�
+����H_��B���'��
+���o�o5m;����Fo��|�h�۞;������I���6�7CEj�7����|��}'W<̕]�~Ttd��":�ؑs3߶��N�p��?"b��x�����p�
+N.C��`��}֧x�^�Kqwx<
+B�d}A��S�4��k�Yc����ae_ji���������w
+R�V��fJ���~��.�GD�Ai��aG>N��I�n��C���Z��zIٓ��:�5ēO��4�M��
+����k��E��Ū�U]�Q��l��}h/�Ɵ�]�⨓4_���v�VK
+�뽷���y��~��pA��Y2�2�nHo�5���q�4g��
+Wŏo��g�����lH�9$����:�o�C, �6�
+��fP9v�U8 /[,q�V�k!�����z�F��w�N�GSêu>�1����~��"�Eئ��c�2�
+�^�f.�0�K�����Q��a`q_t�Xz���%c4�����H��%��vx�.:��:Ŧ����9;
+�С�Q�Y�D�R~
+��R�\�"P(G�A�O_l�R
+ᓔ䐼 ֲ_���
+{fl�9���8�$u���ώ�K�������7-G�k,ո�z6�����!�5ˌ�4h~�k�Z����瑡(m5���
+�f^�h����pR���N_KA��#�n���"Zq�$I�����^�olh�y�a�
+�{�>�y��"̡O���hM
+n��0�|c���T�cs����C��:WJ}j
+��s> ��& �7����D��o��a2�_%�p��'-��J�.g�%��P������wQ���_���$B$ڻX�2`2����2b��U�7�|0���c�#�a�ɩZ
+�l�I!����3�۽�g�
+��](,���$�K.rԯ����W����v�q�0<S��͉�xح�܇��ːD�Q#Ʃ���`��'(���d��qx��w���e�>���{�.��$1�~<��3o�Ry1b�!��&�,"�B�J�x�q�
+
+
+--===============3571107433589269231==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============3571107433589269231==--
