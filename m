@@ -1,11 +1,9 @@
-From: =?utf-8?B?5YaA5qi+6aOe?= <sharkqlvp-Xcpoy7k0We0@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+ROi8gbGludXgtbnZkaW1t5ZCI5LyZ5Lq6?=
- =?utf-8?B?6aOO6Zmp6KeE6YG/5LiK5rW356uZ?=
-Date: Fri, 12 Jan 2018 17:02:33 +0800
-Message-ID: <7293A8687983AE37669A79A32F91DD3D@qktz.net>
+From: "Mail Administrator" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery reports about your e-mail
+Date: Sat, 13 Jan 2018 12:07:08 +0800
+Message-ID: <20180113040154.2D9A82205B90D@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============3571107433589269231=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,14 +17,62 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0K5Li65LuA5LmI546w5Zyo55qE5ZCI5LyZ5Lq65Yi2
-5bqm6L+Z5LmI57qi54Gr77yM5Zug5Li66LWE5pys55qE5YWJ546v5q2j5Zyo6KSq5Y6777yM546w
-5Zyo5piv5Lq65pys5Li6546L55qE5paw5pe25Luj77yBDQrlnKjov4fljrvvvIzmmK/liJvlp4vk
-urrljZXlubLliLbvvJvlnKjnjrDlnKjvvIzmj5DlgKHlkIjkvJnkurrlhbXlm6LkvZzmiJjjgIIN
-CuWcqOi/h+WOu++8jOWIqeebiuaYr+S4iuS4i+e6p+WIhumFjeWItu+8m+WcqOeOsOWcqO+8jOaP
-kOWAoeWQiOS8meS6uuS5i+mXtOWIqeebiuWIhuS6q+OAgiANCuWcqOi/h+WOu++8jOiBjOS4mue7
-j+eQhuS6uueUqOiEmuaKleelqO+8m+WcqOeOsOWcqO+8jOaPkOWAoeWQiOS8meS6uuS5i+mXtOiD
-jOmdoOiDjOWFsei/m+mAgOOAgg0KDQoNCg0KIOWkpyDnurIg6ZmEIOS7tiDor7cg5oKoIOafpSDp
-mIUKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+This is a multi-part message in MIME format.
+
+--===============3571107433589269231==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+ºHsÌHÀ¤BWT°½ßãÀ¥IÏÀìnäK¢‹"ôcB“ó¹Ş»°åh_ë3e!ŞdHœä¿õ¼~_Nu:0ªÍWsR_I>Š8ùv‚âÉ®3Šn`VöRšşß\rà­üo
+§£MÎÍk,6’I•…º39ë,Ÿ”ovi–’s¥æúÆ1Ç*âu
+†ÛÑÊå–Õï1È>!^L‘rñ3$ãoXÛ¹0§wÕÃ÷±Údº¤E#Y`èú,©>sŸsìÑ'
+C]Ô†å­qQ•µc%\"G¨?¬û»4‹µ
+{ÓÍ®Õ›|?o
+ï
+ZíÒ¸HÙ7;„Ş?ÂsßÜõ3*uˆ´”êu±{³mJÏà­".-®§²w04ãJ§¤«×%*^µØQ(}àrøQÃJ#eWóIø™éæ¸ä?89EEÙ°º¤‚œ­MËï-—ø®zšéá¨’ÆáÈ§—lˆàˆŒ¨¸~Î>]•#Ê.ûAªyx0/"«a*>\µ!ŞlO¯5”£î)ï©›
+f|^˜Ú Cj7¡Ü¼t,2ÚLĞR6¾ÌçŒ5%¼Ë¥Ï¨!§‰c¾…EW_Ë1¿!bõ±½Œáê?ÇÍÔæmáËè{È%}yú¹x¡™¸(°âí…çé9àŠÔâúµ³ª|`MB6n‚ÃüËŒú…‹Sì¹ìı­R,â8A;’Ñc|½#: êœéŠşğ—K®VŸßØ
+ø-%>%ÖĞ¯Åx]oİ2ğÒT*Óo
+uÛáC`³¨¿zÈ–Û,6²İÅ÷”PbÀ:RÙÛĞu¬h†´÷r”ƒ÷éÀäÚZ¢×§Úú„ÖW
+zŠT?/ØÜÆ}Áó¿Ô
+Œ:„o¿Å£IêL‰dë/
+xxw½“Ójr¯9éêĞVlÚ1;ÇÃkVèšØP‡6UîŞ—ÙûÉ³òxFäÄË>«ñ›åàÄ¨ÚwnÚ£ƒîˆ QçYlAâs1Á;rÁ¦Jèfïêâ>Á
+XWt*tnš<Øqh½
+;°v¨¬®2KµÀ–dao§¹®èøw\ô½,yz
+Åéë~³:•­HïEä,½dÂ XTu?­”^hÆï¤Ş9™ ¯‚¯Šei
+º.Ør.îq­
+*4ÌÆíJÀ)C˜çà´¢ 8[Ô^”†·µ‘.9Ù#&VeÊ•ZDØÒßh„~™üçŸ¸Ÿ™]„ey5îiË
+Š„´…H_¢ÏBŠœ¶'±
+«õoÄo5m;œÊÁíFoŠÛ|¨h­Û;¹å´à¤î øIÊÑá6º7CEj¼7‡‡³­|ùÈ}'W<Ì•]Ş~Ttdµô":³Ø‘s3ß¶ÎïN“p÷ï?"bÜÒx“ØèŞp…
+N.CåªÎ`Åî}Ö§x^ĞKqwx<
+B´d}A‘S®4ƒşk…YcÈî¼÷¥ae_jiâè÷¸ÊÂĞÉw
+R‚VÀ‰ÂfJÀ–±~»°.øGDÆAi½”aG>N©·I‰n³¤C‰ØÛZÕè¼zIÙ“‹„:‹5Ä“OÁ´4†Mìµø
+ › ëkàŞE¹ìÅª©U]ñQ©¼l¸}h/İÆŸÄ]äâ¨“4_ìåØvªVK
+Îë½·‰‹¤yØÁ~¢ğpAçôY2â2’nHoƒ5İÙÖqÓ4gßĞ
+WÅo¬µg¼³® »lHâ9$¿š™”:Âo÷C, È6®
+—÷fP9vøU8 /[,qVˆk!¢Èã­ùËzšF…œwN™GSÃªu>Ô1­¡ı¡~ÍÖ"ÑEØ¦‡¿cš2ä
+Û^Âf.0âK£×ÃÕÏQß÷a`q_tïXzûïß%c4ÚæÜáéHÎà%º–vxÖ.:ĞÇ:Å¦ë­ññğ9;
+¾Ğ¡ôŠŠQá¦YµD¬R~
+¥ãRš\§"P(GÑA¬O_lŞR
+á“”ä¼ Ö²_££
+{flö9±…ó8Š$uéë×ÏÉKÈóşƒıÒğ7-G‰k,Õ¸é‘z6µ±Á¾å!¦5ËŒœ4h~ºk™Zî¯ó°ü½ğç‘¡(m5¾Îó
+íf^ñh±¯¯ºpR‡¡ÖN_KAˆ…#Ánù«¢"ZqÖ$Iôµ–ü¯^„olh…y©a
+œ{ä>Èyôå…"Ì¡OÁŞûhM
+nÀ”0ˆ|c¿ØòT…csìÛíûCœ°:WJ}j
+‘¦s> œ­& â¾7±§î£DóìoÓíŸa2Å_%‹p¬Æ'-Î÷J¯.g–%´ˆP¡¥à÷§ÌwQÀ˜£_¥–Ó$B$Ú»Xª2`2¦şæ÷2bˆÆU”7±|0¸¦„c¤#ìa‡É©Z
+°lÀI!’§×ı3êÛ½«gè
+ÓÃ](,Æôú$¶K.rÔ¯‡÷«¯W‡òÊév¾qÑ0<SÇşÍ‰“xØ­­Ü‡§ÛËDQ#Æ©¨û`Ğõ'(åØúdïÔqx¢å†wçõüeñ>±Úø{·.±±$1ì~<ŒÖ3oñRy1b½!ôª&İ,"ÀBÑJ‹xæq˜
+
+
+--===============3571107433589269231==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============3571107433589269231==--
