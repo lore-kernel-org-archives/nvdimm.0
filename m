@@ -1,10 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.30.61])
- by ml01.01.org (Postfix) with ESMTP id 22A4E21D2BEF2
- for <linux-nvdimm@lists.01.org>; Fri, 12 Jan 2018 20:01:49 -0800 (PST)
-From: "Mail Administrator" <postmaster@lists.01.org>
-Subject: Delivery reports about your e-mail
-Date: Sat, 13 Jan 2018 12:07:08 +0800
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id A3DC4222DDBFA
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Jan 2018 10:11:39 -0800 (PST)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [patch] btt: fix uninitialized err_lock
+References: <x49d13i9uui.fsf@segfault.boston.devel.redhat.com>
+ <1513201117.3301.127.camel@intel.com>
+Date: Mon, 15 Jan 2018 13:16:53 -0500
+In-Reply-To: <1513201117.3301.127.camel@intel.com> (Vishal L. Verma's message
+ of "Wed, 13 Dec 2017 21:38:39 +0000")
+Message-ID: <x49zi5f56ne.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -13,69 +20,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============3571107433589269231=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20180113040154.30BC222227580@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a multi-part message in MIME format.
+Dan,
 
---===============3571107433589269231==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Any chance you can pull this one in?  (I know you've been busy.)
 
-��Hs�H��BWT������I���n�K���"�cB��޻��h_�3e!�dH����~_Nu:0��WsR_I>�8�v���ɮ3�n`V�R���\r��o
-��M��k,6�I���39�,��ovi��s����1�*�u
-�������1�>!^L�r��3$�oX۹0�w�����d��E#Y`��,�>s�s��'
-C]Ԇ�qQ��c�%\"G�?����4��
-{�͐�՛|?o
-��
-Z�ҸH�7;���?�s���3*u����u�{�mJ��".-���w04�J����%*^��Q(}�r�Q�J#eW�I�����?89EEٰ�����M��-���z��ᨒ��ȧ�l������~�>]�#�.�A�yx0/"�a*>\�!�lO�5���)者
-f|^�ڠCj7�ܼt,2�L�R6����5%�˥Ϩ!��c��EW_�1�!b������?����m���{�%}y��x���(�����9��������|`MB6n����ˌ���S����R,�8A;��c|�#:�����K��V���
-��-%>%�Я�x]o�2��T*�o
-u��C�`���zȖ�,6�����Pb�:R�۞�u�h���r�������Z�ק����W
-z�T?/���}���
-�:�o�ţI�L�d�/
-xxw���jr�9���Vl�1;��kV菚�P�6U�ޗ��ɳ�xF���>����Ĩ�wnڣ�� Q�YlA�s1�;�r��J�f���>�
-XWt*tn�<�qh�
-;�v���2K����dao������w\��,yz
-���~�:��H�E�,�d XTu�?��^h���9� ����ei
-�.�r.�q�
-*4���J�)C������ 8[Ԟ^�����.9�#&VeʕZD���h�~��矸���]�ey5�i�
-����H_��B���'��
-���o�o5m;����Fo��|�h�۞;������I���6�7CEj�7����|��}'W<̕]�~Ttd��":�ؑs3߶��N�p��?"b��x�����p�
-N.C��`��}֧x�^�Kqwx<
-B�d}A��S�4��k�Yc����ae_ji���������w
-R�V��fJ���~��.�GD�Ai��aG>N��I�n��C���Z��zIٓ��:�5ēO��4�M��
-����k��E��Ū�U]�Q��l��}h/�Ɵ�]�⨓4_���v�VK
-�뽷���y��~��pA��Y2�2�nHo�5���q�4g��
-Wŏo��g�����lH�9$����:�o�C, �6�
-��fP9v�U8 /[,q�V�k!�����z�F��w�N�GSêu>�1����~��"�Eئ��c�2�
-�^�f.�0�K�����Q��a`q_t�Xz���%c4�����H��%��vx�.:��:Ŧ����9;
-�С�Q�Y�D�R~
-��R�\�"P(G�A�O_l�R
-ᓔ䐼 ֲ_���
-{fl�9���8�$u���ώ�K�������7-G�k,ո�z6�����!�5ˌ�4h~�k�Z����瑡(m5���
-�f^�h����pR���N_KA��#�n���"Zq�$I�����^�olh�y�a�
-�{�>�y��"̡O���hM
-n��0�|c���T�cs����C��:WJ}j
-��s> ��& �7����D��o��a2�_%�p��'-��J�.g�%��P������wQ���_���$B$ڻX�2`2����2b��U�7�|0���c�#�a�ɩZ
-�l�I!����3�۽�g�
-��](,���$�K.rԯ����W����v�q�0<S��͉�xح�܇��ːD�Q#Ʃ���`��'(���d��qx��w���e�>���{�.��$1�~<��3o�Ry1b�!��&�,"�B�J�x�q�
+-Jeff
 
+"Verma, Vishal L" <vishal.l.verma@intel.com> writes:
 
---===============3571107433589269231==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
+> On Wed, 2017-12-13 at 16:33 -0500, Jeff Moyer wrote:
+>> Hi,
+>> 
+>> When a sector mode namespace is initially created, the arena's
+>> err_lock
+>> is not initialized.  If, on the other hand, the namespace already
+>> exists, the mutex is initialized.  To fix the issue, I moved the
+>> mutex
+>> initialization into the arena_alloc, which is called by both
+>> discover_arenas and create_arenas.
+>> 
+>> This was discovered on an older kernel where mutex_trylock checks the
+>> count to determine whether the lock is held.  Because the data
+>> structure
+>> is kzalloc-d, that count was 0 (held), and I/O to the device would
+>> hang
+>> forever waiting for the lock to be released (see btt_write_pg, for
+>> example).  Current kernels have a different mutex implementation that
+>> checks for a non-null owner, and so this doesn't show up as a
+>> problem.
+>> If that lock were ever contended, it might cause issues, but you'd
+>> have
+>> to be really unlucky, I think.
+>> 
+>> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+>
+> Ah, good find - the fix looks good to me.
+> Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+>
+>> 
+>> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+>> index e949e33..5860f99 100644
+>> --- a/drivers/nvdimm/btt.c
+>> +++ b/drivers/nvdimm/btt.c
+>> @@ -630,6 +630,7 @@ static struct arena_info *alloc_arena(struct btt
+>> *btt, size_t size,
+>>  		return NULL;
+>>  	arena->nd_btt = btt->nd_btt;
+>>  	arena->sector_size = btt->sector_size;
+>> +	mutex_init(&arena->err_lock);
+>>  
+>>  	if (!size)
+>>  		return arena;
+>> @@ -758,7 +759,6 @@ static int discover_arenas(struct btt *btt)
+>>  		arena->external_lba_start = cur_nlba;
+>>  		parse_arena_meta(arena, super, cur_off);
+>>  
+>> -		mutex_init(&arena->err_lock);
+>>  		ret = btt_freelist_init(arena);
+>>  		if (ret)
+>>  			goto out;
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============3571107433589269231==--
