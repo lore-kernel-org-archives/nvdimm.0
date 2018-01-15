@@ -1,120 +1,31 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B958A21E256AB
- for <linux-nvdimm@lists.01.org>; Thu, 25 Jan 2018 15:21:12 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [ndctl PATCH 1/2] ndctl: update .gitignore
-Date: Thu, 25 Jan 2018 16:26:37 -0700
-Message-Id: <20180125232638.6585-1-ross.zwisler@linux.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 15 Jan 2018 09:51:44 +0100
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: revamp vmem_altmap / dev_pagemap handling V3
+Message-ID: <20180115085144.GA32532@lst.de>
+References: <20171229075406.1936-1-hch@lst.de> <20180108112646.GA7204@lst.de> <CAPcyv4hHipDHP5LZCgym5szqiUSCxG9wQUbRO_qe8T+USaZi9Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hHipDHP5LZCgym5szqiUSCxG9wQUbRO_qe8T+USaZi9Q@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, X86 ML <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Michal Hocko <mhocko@kernel.org>, Linux MM <linux-mm@kvack.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-I noticed that my 'git status' output was quite noisy.  Here's what I get
-with a full build using the suggested
-./configure CFLAGS='-g -O0' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64
-command and with some cscope files built:
+On Mon, Jan 08, 2018 at 11:44:02AM -0800, Dan Williams wrote:
+> On Mon, Jan 8, 2018 at 3:26 AM, Christoph Hellwig <hch@lst.de> wrote:
+> > Any chance to get this fully reviewed and picked up before the
+> > end of the merge window?
+> 
+> I'm fine carrying these through the nvdimm tree, but I'd need an ack
+> from the mm folks for all the code touches related to arch_add_memory.
 
-  $ git status
-  On branch pending
-  Your branch is up-to-date with 'github/pending'.
+Looks like we got some semi ACKs, so I'd really like to see this go
+in now as we have both nvdimm and p2p patches depending on it.
 
-  Untracked files:
-    (use "git add <file>..." to include in what will be committed)
-
-  	Documentation/daxctl/asciidoc.conf
-  	Documentation/daxctl/daxctl-io.1
-  	Documentation/daxctl/daxctl-list.1
-  	Documentation/daxctl/daxctl.1
-  	Documentation/ndctl/asciidoc.conf
-  	Documentation/ndctl/ndctl-check-labels.1
-  	Documentation/ndctl/ndctl-check-namespace.1
-  	Documentation/ndctl/ndctl-create-namespace.1
-  	Documentation/ndctl/ndctl-destroy-namespace.1
-  	Documentation/ndctl/ndctl-disable-dimm.1
-  	Documentation/ndctl/ndctl-disable-namespace.1
-  	Documentation/ndctl/ndctl-disable-region.1
-  	Documentation/ndctl/ndctl-enable-dimm.1
-  	Documentation/ndctl/ndctl-enable-namespace.1
-  	Documentation/ndctl/ndctl-enable-region.1
-  	Documentation/ndctl/ndctl-init-labels.1
-  	Documentation/ndctl/ndctl-inject-error.1
-  	Documentation/ndctl/ndctl-list.1
-  	Documentation/ndctl/ndctl-read-labels.1
-  	Documentation/ndctl/ndctl-write-labels.1
-  	Documentation/ndctl/ndctl-zero-labels.1
-  	Documentation/ndctl/ndctl.1
-  	ccan/list/.dirstamp
-  	ccan/str/.dirstamp
-  	cscope.files
-  	cscope.out
-  	daxctl/daxctl
-  	daxctl/lib/libdaxctl.la
-  	daxctl/lib/libdaxctl.lo
-  	daxctl/lib/libdaxctl.pc
-  	libccan.a
-  	libutil.a
-  	ndctl/lib/libndctl.pc
-  	ndctl/ndctl
-  	ndctl/util/.dirstamp
-  	rhel/
-  	sles/ndctl.spec
-  	util/.dirstamp
-  	util/log.lo
-  	util/sysfs.lo
-  	version.m4
-
-  nothing added to commit but untracked files present (use "git add" to track)
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- .gitignore | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
-
-diff --git a/.gitignore b/.gitignore
-index 4899534..64e58fa 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -12,3 +12,22 @@ Makefile.in
- /configure
- /libtool
- /stamp-h1
-+*.1
-+Documentation/daxctl/asciidoc.conf
-+Documentation/ndctl/asciidoc.conf
-+.dirstamp
-+daxctl/daxctl
-+daxctl/lib/libdaxctl.la
-+daxctl/lib/libdaxctl.lo
-+daxctl/lib/libdaxctl.pc
-+*.a
-+ndctl/lib/libndctl.pc
-+ndctl/ndctl
-+rhel/
-+sles/ndctl.spec
-+util/log.lo
-+util/sysfs.lo
-+version.m4
-+*.swp
-+cscope.files
-+cscope.out
--- 
-2.14.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
