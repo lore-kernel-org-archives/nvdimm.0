@@ -1,6 +1,5 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-MIME-Version: 1.0
-In-Reply-To: <72839100-7fdf-693c-e9c2-348a5add8a56@redhat.com>
+Subject: Re: KVM "fake DAX" flushing interface - discussion
 References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
  <86754966-281f-c3ed-938c-f009440de563@gmail.com>
  <CAPcyv4iH==cqVAdd8i1y-8A6SuXU75OH1EZzgNMvtA21wfxPpQ@mail.gmail.com>
@@ -12,11 +11,12 @@ References: <1455443283.33337333.1500618150787.JavaMail.zimbra@redhat.com>
  <336152896.34452750.1511527207457.JavaMail.zimbra@redhat.com>
  <f1ca60cc-5506-a161-b473-f0de363b7e95@redhat.com>
  <CAPcyv4j9b6ARvKcJkE25eNHatWACscMJTN_kCLSM6D+bfu_msA@mail.gmail.com>
- <72839100-7fdf-693c-e9c2-348a5add8a56@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 18 Jan 2018 10:45:51 -0800
-Message-ID: <CAPcyv4iHvXJAiUiaBFPFc98+3BepR1+YeVOqH3imq4Zq2d+iAw@mail.gmail.com>
-Subject: Re: KVM "fake DAX" flushing interface - discussion
+From: David Hildenbrand <david@redhat.com>
+Message-ID: <72839100-7fdf-693c-e9c2-348a5add8a56@redhat.com>
+Date: Thu, 18 Jan 2018 18:48:38 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4j9b6ARvKcJkE25eNHatWACscMJTN_kCLSM6D+bfu_msA@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,46 +28,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: David Hildenbrand <david@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: Kevin Wolf <kwolf@redhat.com>, Pankaj Gupta <pagupta@redhat.com>, Rik van Riel <riel@redhat.com>, Jan Kara <jack@suse.cz>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>, kvm-devel <kvm@vger.kernel.org>, Stefan Hajnoczi <stefanha@gmail.com>, Ross Zwisler <ross.zwisler@intel.com>, Qemu Developers <qemu-devel@nongnu.org>, Christoph Hellwig <hch@infradead.org>, Stefan Hajnoczi <stefanha@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jan 18, 2018 at 9:48 AM, David Hildenbrand <david@redhat.com> wrote:
->>> I'd like to emphasize again, that I would prefer a virtio-pmem only
->>> solution.
->>>
->>> There are architectures out there (e.g. s390x) that don't support
->>> NVDIMMs - there is no HW interface to expose any such stuff.
->>>
->>> However, with virtio-pmem, we could make it work also on architectures
->>> not having ACPI and friends.
+>> I'd like to emphasize again, that I would prefer a virtio-pmem only
+>> solution.
 >>
->> ACPI and virtio-only can share the same pmem driver. There are two
->> parts to this, region discovery and setting up the pmem driver. For
->> discovery you can either have an NFIT-bus defined range, or a new
->> virtio-pmem-bus define it. As far as the pmem driver itself it's
->> agnostic to how the range is discovered.
+>> There are architectures out there (e.g. s390x) that don't support
+>> NVDIMMs - there is no HW interface to expose any such stuff.
 >>
->
-> And in addition to discovery + setup, we need the flush via virtio.
->
->> In other words, pmem consumes 'regions' from libnvdimm and the a bus
->> provider like nfit, e820, or a new virtio-mechansim produce 'regions'.
->>
->
-> That sounds good to me. I would like to see how the ACPI discovery
-> variant connects to a virtio ring.
->
-> The natural way for me would be:
->
-> A virtio-X device supplies a memory region ("discovery") and also the
-> interface for flushes for this device. So one virtio-X corresponds to
-> one pmem device. No ACPI to be involved (also not on architectures that
-> have ACPI)
+>> However, with virtio-pmem, we could make it work also on architectures
+>> not having ACPI and friends.
+> 
+> ACPI and virtio-only can share the same pmem driver. There are two
+> parts to this, region discovery and setting up the pmem driver. For
+> discovery you can either have an NFIT-bus defined range, or a new
+> virtio-pmem-bus define it. As far as the pmem driver itself it's
+> agnostic to how the range is discovered.
+> 
 
-Hmm, yes, it seems if ACPI is just going to be used as a trigger for
-"go find the virtio-X interface for this range" we could have started
-from a virtio device in the first place.
+And in addition to discovery + setup, we need the flush via virtio.
+
+> In other words, pmem consumes 'regions' from libnvdimm and the a bus
+> provider like nfit, e820, or a new virtio-mechansim produce 'regions'.
+> 
+
+That sounds good to me. I would like to see how the ACPI discovery
+variant connects to a virtio ring.
+
+The natural way for me would be:
+
+A virtio-X device supplies a memory region ("discovery") and also the
+interface for flushes for this device. So one virtio-X corresponds to
+one pmem device. No ACPI to be involved (also not on architectures that
+have ACPI)
+
+-- 
+
+Thanks,
+
+David / dhildenb
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
