@@ -1,9 +1,10 @@
-From: "Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Delivery reports about your e-mail
-Date: Thu, 18 Jan 2018 12:36:23 +0800
-Message-ID: <20180118043111.C55EF221F93B8@ml01.01.org>
+From: "Amy" <usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: USBs gift customization
+Date: 21 Jan 2018 12:19:44 +0800
+Message-ID: <20180121041458.3757A2236BAAA@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4235908075757292515=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,30 +15,30 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============4235908075757292515==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-òÊ‘]Mi¿√–OûPôŸòÑ&eNæ4ä”8Ÿàü>Æ»É èÙÇsëêÜ´§Èå∆‚‹äÑO9ÔëË¢
-é¥E˛©¢äè¶\êbJÖ•àÓ´PA¨´%˛n#xF¢pü4h5◊∞v7∏Sü§k3]ØÃ4ﬂ°öF‰Sïê–Oì†
-å√/„q«ΩSπŸSMø%º∫ÚyO 4⁄‡êpeN‘Æ
-
-
---===============4235908075757292515==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============4235908075757292515==--
+PERJViBzdHlsZT0iQk9SREVSLVRPUDogI2NjY2NjYyA1cHggc29saWQ7IEJPUkRFUi1SSUdIVDog
+I2NjY2NjYyA1cHggc29saWQ7IFdJRFRIOiA3MDBweDsgQkFDS0dST1VORDogI2ViZWJlYjsgQk9S
+REVSLUJPVFRPTTogI2NjY2NjYyA1cHggc29saWQ7IE1BUkdJTjogMHB4IGF1dG87IEJPUkRFUi1M
+RUZUOiAjY2NjY2NjIDVweCBzb2xpZCI+DQo8UD5IaSBsaW51eC1udmRpbW1AbWwwMS4wMS5vcmcs
+PC9QPg0KPFA+TmljZSBkYXkuIDwvUD4NCjxQPldlIGFyZSBwcm9tb3RpbmcgPFNUUk9ORz51c2Ig
+Z2lmdDwvU1RST05HPiBjdXN0b21pemF0aW9uIHNlcnZpY2UuPC9QPg0KPFA+V2UgYXJlIGEgTWFu
+dWZhY3R1cmluZyAmYW1wOyB0cmFkaW5nIGNvbWJvIGNvbXBhbnkgd2l0aCA8U1RST05HPnRob3Vz
+YW5kcyBvZiBVU0IgaXRlbXM8L1NUUk9ORz4oPEEgaHJlZj0iaHR0cDovL3d3dy51c2JmbGFzaGRy
+aXZlLWZhY3RvcnkuY29tLz9xdWRhbz13dXNoaWRhbyI+d3d3LnVzYmZsYXNoZHJpdmUtZmFjdG9y
+eS5jb208L0E+KSwgdGhhdCBjYW4gdHVybiB5b3VyIHByb2R1Y3QgaW50byBhIDxTVFJPTkc+YnVz
+aW5lc3MgZ2lmdDwvU1RST05HPiwgYW5kIGl0IGlzIGEgZ3JlYXQgaWRlYSBhcyBnaWZ0cyBmb3Ig
+YWR2ZXJ0aXNlbWVudC48QlI+PC9QPg0KPFA+PElNRyBzcmM9Imh0dHA6Ly93d3cudXNiZmxhc2hk
+cml2ZS1mYWN0b3J5LmNvbS9pdGVtMi5naWYiPjwvUD4NCjxQPnNreXBl77yaPFNUUk9ORz51c2Jm
+bGFzaGRyaXZlLWZhY3Rvcnk8L1NUUk9ORz48L1A+DQo8UD5QbGVhc2UgY29udGFjdCB1cy48L1A+
+DQo8UD5UaGFua3MgJmFtcDsgcmVnYXJkcy48L1A+QW15PEJSPg0KPERJViBzdHlsZT0iRk9OVC1T
+SVpFOiA5cHgiPjxTVFJPTkc+U2hlbnpoZW4gWW91c2FuIFRlY2hub2xvZ3kgQ08uLCBMdGQ8L1NU
+Uk9ORz48QlI+QWRkOiBCYW50aWFuIFN0cmVldCwgTG9uZ2dhbmcgRGlzdHJpY3QsU2hlbnpoZW4s
+IEd1YW5nZG9uZywgQ2hpbmE8QlI+TWFpbDo8QSBocmVmPSJtYWlsdG86dXNiZmxhc2hkcml2ZS1m
+YWN0b3J5QGhvdG1haWwuY29tIj51c2JmbGFzaGRyaXZlLWZhY3RvcnlAaG90bWFpbC5jb208L0E+
+PEJSPjxCUj5XZWJzaXRlOjxBIGhyZWY9Imh0dHA6Ly93d3cudXNiZmxhc2hkcml2ZS1mYWN0b3J5
+LmNvbS8/cXVkYW89d3VzaGlkYW8iPnd3dy51c2JmbGFzaGRyaXZlLWZhY3RvcnkuY29tPC9BPjxC
+Uj48L0RJVj48L0RJVj4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
+Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
