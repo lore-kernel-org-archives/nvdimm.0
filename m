@@ -1,10 +1,10 @@
-From: "Amy" <usbflashdrive-factory-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: USBs gift customization
-Date: 21 Jan 2018 12:19:43 +0800
-Message-ID: <20180121041501.5F27D2238B583@ml01.01.org>
+From: "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery reports about your e-mail
+Date: Mon, 22 Jan 2018 11:25:59 +0800
+Message-ID: <20180122032039.AB9922205B918@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,27 +18,13 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-PERJViBzdHlsZT0iQk9SREVSLVRPUDogI2NjY2NjYyA1cHggc29saWQ7IEJPUkRFUi1SSUdIVDog
-I2NjY2NjYyA1cHggc29saWQ7IFdJRFRIOiA3MDBweDsgQkFDS0dST1VORDogI2ViZWJlYjsgQk9S
-REVSLUJPVFRPTTogI2NjY2NjYyA1cHggc29saWQ7IE1BUkdJTjogMHB4IGF1dG87IEJPUkRFUi1M
-RUZUOiAjY2NjY2NjIDVweCBzb2xpZCI+DQo8UD5IaSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-LDwvUD4NCjxQPk5pY2UgZGF5LiA8L1A+DQo8UD5XZSBhcmUgcHJvbW90aW5nIDxTVFJPTkc+dXNi
-IGdpZnQ8L1NUUk9ORz4gY3VzdG9taXphdGlvbiBzZXJ2aWNlLjwvUD4NCjxQPldlIGFyZSBhIE1h
-bnVmYWN0dXJpbmcgJmFtcDsgdHJhZGluZyBjb21ibyBjb21wYW55IHdpdGggPFNUUk9ORz50aG91
-c2FuZHMgb2YgVVNCIGl0ZW1zPC9TVFJPTkc+KDxBIGhyZWY9Imh0dHA6Ly93d3cudXNiZmxhc2hk
-cml2ZS1mYWN0b3J5LmNvbS8/cXVkYW89d3VzaGlkYW8iPnd3dy51c2JmbGFzaGRyaXZlLWZhY3Rv
-cnkuY29tPC9BPiksIHRoYXQgY2FuIHR1cm4geW91ciBwcm9kdWN0IGludG8gYSA8U1RST05HPmJ1
-c2luZXNzIGdpZnQ8L1NUUk9ORz4sIGFuZCBpdCBpcyBhIGdyZWF0IGlkZWEgYXMgZ2lmdHMgZm9y
-IGFkdmVydGlzZW1lbnQuPEJSPjwvUD4NCjxQPjxJTUcgc3JjPSJodHRwOi8vd3d3LnVzYmZsYXNo
-ZHJpdmUtZmFjdG9yeS5jb20vaXRlbTIuZ2lmIj48L1A+DQo8UD5za3lwZe+8mjxTVFJPTkc+dXNi
-Zmxhc2hkcml2ZS1mYWN0b3J5PC9TVFJPTkc+PC9QPg0KPFA+UGxlYXNlIGNvbnRhY3QgdXMuPC9Q
-Pg0KPFA+VGhhbmtzICZhbXA7IHJlZ2FyZHMuPC9QPkFteTxCUj4NCjxESVYgc3R5bGU9IkZPTlQt
-U0laRTogOXB4Ij48U1RST05HPlNoZW56aGVuIFlvdXNhbiBUZWNobm9sb2d5IENPLiwgTHRkPC9T
-VFJPTkc+PEJSPkFkZDogQmFudGlhbiBTdHJlZXQsIExvbmdnYW5nIERpc3RyaWN0LFNoZW56aGVu
-LCBHdWFuZ2RvbmcsIENoaW5hPEJSPk1haWw6PEEgaHJlZj0ibWFpbHRvOnVzYmZsYXNoZHJpdmUt
-ZmFjdG9yeUBob3RtYWlsLmNvbSI+dXNiZmxhc2hkcml2ZS1mYWN0b3J5QGhvdG1haWwuY29tPC9B
-PjxCUj48QlI+V2Vic2l0ZTo8QSBocmVmPSJodHRwOi8vd3d3LnVzYmZsYXNoZHJpdmUtZmFjdG9y
-eS5jb20vP3F1ZGFvPXd1c2hpZGFvIj53d3cudXNiZmxhc2hkcml2ZS1mYWN0b3J5LmNvbTwvQT48
-QlI+PC9ESVY+PC9ESVY+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+The original message was received at Mon, 22 Jan 2018 11:25:59 +0800
+from lists.01.org [129.96.232.239]
+
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:"MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+<<< 501 "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
