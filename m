@@ -1,10 +1,10 @@
-From: "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Delivery reports about your e-mail
-Date: Mon, 22 Jan 2018 11:25:59 +0800
-Message-ID: <20180122032039.AB9922205B918@ml01.01.org>
+From: wqsdgj3qhfh-HvMya4BdRWc@public.gmane.org
+Subject: =?GB2312?B?xrEtvt3X9i3Vyw==?=
+Date: Wed, 24 Jan 2018 22:58:19 +0800
+Message-ID: <20180124145253.B41A321E48F50@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,13 +18,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Mon, 22 Jan 2018 11:25:59 +0800
-from lists.01.org [129.96.232.239]
-
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:"MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-<<< 501 "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
+tPq/qreioaLGsaOs0em687i2L7/uCgrW3M/IyfogMTM3MjM0NDkxMDkgIM6i0MW6xaO6YTQ0OTEw
+OQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
+dmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0
+cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
