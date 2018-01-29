@@ -1,39 +1,53 @@
-From: msottek-v7wCr8P/arpBDgjK7y7TUQ@public.gmane.org
-Subject: Delivery reports about your e-mail
-Date: Mon, 25 Dec 2017 11:27:38 +0800
-Message-ID: <20171225032250.C392E21CB87B3@ml01.01.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 29 Jan 2018 18:33:25 -0500
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [LSF/MM TOPIC] Filesystem-DAX, page-pinning, and RDMA
+Message-ID: <20180129233324.GC4526@redhat.com>
+References: <CAPcyv4gQNM9RbTbRWKnG6Vby_CW9CJ9EZTARsVNi=9cas7ZR2A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPcyv4gQNM9RbTbRWKnG6Vby_CW9CJ9EZTARsVNi=9cas7ZR2A@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: lsf-pc@lists.linux-foundation.org, Christoph Hellwig <hch@infradead.org>, Michal Hocko <mhocko@kernel.org>, Linux MM <linux-mm@kvack.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-nvdimm@lists.01.org, jgg@mellanox.com
+List-ID: <linux-nvdimm@lists.01.org>
 
-This Message was undeliverable due to the following reason:
+On Wed, Jan 24, 2018 at 07:56:02PM -0800, Dan Williams wrote:
+> The get_user_pages_longterm() api was recently added as a stop-gap
+> measure to prevent applications from growing dependencies on the
+> ability to to pin DAX-mapped filesystem blocks for RDMA indefinitely
+> with no ongoing coordination with the filesystem. This 'longterm'
+> pinning is also problematic for the non-DAX VMA case where the core-mm
+> needs a time bounded way to revoke a pin and manipulate the physical
+> pages. While existing RDMA applications have already grown the
+> assumption that they can pin page-cache pages indefinitely, the fact
+> that we are breaking this assumption for filesystem-dax presents an
+> opportunity to deprecate the 'indefinite pin' mechanisms and move to a
+> general interface that supports pin revocation.
+> 
+> While RDMA may grow an explicit Infiniband-verb for this 'memory
+> registration with lease' semantic, it seems that this problem is
+> bigger than just RDMA. At LSF/MM it would be useful to have a
+> discussion between fs, mm, dax, and RDMA folks about addressing this
+> problem at the core level.
+> 
+> Particular people that would be useful to have in attendance are
+> Michal Hocko, Christoph Hellwig, and Jason Gunthorpe (cc'd).
+> 
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+Between i would also like to participate, in my view the burden should
+be on GUP users, so if hardware is not ODP capable then you should at
+least be able to kill the mapping/GUP and force the hardware to redo a
+GUP if it get any more transaction on affect umem. Can non ODP hardware
+do that ? Or is it out of the question ?
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
+Cheers,
+J�r�me
 
-Your message was not delivered within 6 days:
-Host 133.10.57.151 is not responding.
-
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-Please reply to postmaster-v7wCr8P/arpBDgjK7y7TUQ@public.gmane.org
-if you feel this message to be in error.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
