@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x241.google.com (mail-ot0-x241.google.com
+ [IPv6:2607:f8b0:4003:c0f::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F885222EDCF5
- for <linux-nvdimm@lists.01.org>; Thu,  4 Jan 2018 00:08:01 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 1/2] ext4: test for DAX + journaling corruption
-Date: Thu,  4 Jan 2018 01:11:20 -0700
-Message-Id: <20180104081121.313-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 147D821E2569D
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Jan 2018 14:03:42 -0800 (PST)
+Received: by mail-ot0-x241.google.com with SMTP id x4so8053815otg.7
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Jan 2018 14:09:16 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20180129214800.13750-1-ross.zwisler@linux.intel.com>
+References: <CAPcyv4j32EVw94JMsou0GgX=t-OWrNwQ=_qvpmUaVs2hy6D6aQ@mail.gmail.com>
+ <20180129214800.13750-1-ross.zwisler@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 29 Jan 2018 14:09:15 -0800
+Message-ID: <CAPcyv4icA+OdZ9xdBbF56ceJDspYEtSbzPOoWykqdXyAuOiz-Q@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 2/2] ndctl: add sector_size to 'ndctl list' output
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,293 +22,84 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: fstests@vger.kernel.org, Eryu Guan <eguan@redhat.com>
-Cc: linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a regression test for the following kernel commit:
+On Mon, Jan 29, 2018 at 1:48 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> It used to be that the only PMEM namespaces with a variable sector size
+> were ones with a BTT, but that has changed.  sector_size still doesn't make
+> sense for device DAX since we don't have a block I/O path.
+>
+> If we don't have a specified sector size, as happens with namespaces of
+> devtype nd_namespace_io and older v1.1 namespace labels, we will display
+> the default sector size of 512.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  util/json.c | 29 ++++++++++++++++++++++++-----
+>  1 file changed, 24 insertions(+), 5 deletions(-)
+>
+> diff --git a/util/json.c b/util/json.c
+> index 95beaa2..17d8f13 100644
+> --- a/util/json.c
+> +++ b/util/json.c
+> @@ -718,11 +718,6 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+>                         goto err;
+>                 json_object_object_add(jndns, "uuid", jobj);
+>
+> -               jobj = json_object_new_int(ndctl_btt_get_sector_size(btt));
+> -               if (!jobj)
+> -                       goto err;
+> -               json_object_object_add(jndns, "sector_size", jobj);
+> -
+>                 bdev = ndctl_btt_get_block_device(btt);
+>         } else if (pfn) {
+>                 ndctl_pfn_get_uuid(pfn, uuid);
+> @@ -774,6 +769,30 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+>         } else
+>                 bdev = ndctl_namespace_get_block_device(ndns);
+>
+> +       jobj = NULL;
+> +       if (btt) {
+> +               jobj = json_object_new_int(ndctl_btt_get_sector_size(btt));
+> +               if (!jobj)
+> +                       goto err;
+> +       } else if (!dax) {
+> +               unsigned int sector_size = ndctl_namespace_get_sector_size(ndns);
+> +
+> +               /*
+> +                * The kernel will default to a 512 byte sector size on PMEM
+> +                * namespaces that don't explicitly have a sector size. This
+> +                * happens because they use pre-v1.2 labels or because they
+> +                * don't have a label space (devtype=nd_namespace_io).
+> +                */
+> +               if (!sector_size)
+> +                       sector_size = 512;
+> +
+> +               jobj = json_object_new_int(sector_size);
+> +               if (!jobj)
+> +                       goto err;
+> +       }
+> +       if (jobj)
+> +               json_object_object_add(jndns, "sector_size", jobj);
+> +
+>         if (bdev && bdev[0]) {
+>                 jobj = json_object_new_string(bdev);
+>                 if (!jobj)
+> --
+> 2.14.3
+>
 
-  ext4: prevent data corruption with journaling + DAX
+Looks good to me, you can add:
 
-The test passes if either we successfully compare the data between the mmap
-with journaling turned on and the one with journaling turned off, or if we
-fail the chattr command to turn on or off journaling.  The latter is how we
-prevent this issue in the kernel.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-
----
-
-Changes since v1:
-
- - Reordered .gitignore entry. (Eryu)
-
- - Added comments about how "chattr +j" turns off DAX and about why we need
-   the 'nodelalloc' mount option. (Eryu)
-
- - Added a _require_command for chattr. (Eryu)
-
- - Added $here for src/t_ext4_dax_journal_corruption command. (Eryu)
-
-The previous version of this series is here:
-
-https://lists.01.org/pipermail/linux-nvdimm/2017-September/012463.html
-
-The related kernel patches were merged in v4.15-rc1.
----
- .gitignore                          |   1 +
- src/Makefile                        |   3 +-
- src/t_ext4_dax_journal_corruption.c | 102 ++++++++++++++++++++++++++++++++++++
- tests/ext4/030                      |  74 ++++++++++++++++++++++++++
- tests/ext4/030.out                  |   2 +
- tests/ext4/group                    |   1 +
- 6 files changed, 182 insertions(+), 1 deletion(-)
- create mode 100644 src/t_ext4_dax_journal_corruption.c
- create mode 100755 tests/ext4/030
- create mode 100644 tests/ext4/030.out
-
-diff --git a/.gitignore b/.gitignore
-index f27c30af..840e4fe4 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -115,6 +115,7 @@
- /src/t_dir_offset2
- /src/t_dir_type
- /src/t_encrypted_d_revalidate
-+/src/t_ext4_dax_journal_corruption
- /src/t_futimens
- /src/t_getcwd
- /src/t_holes
-diff --git a/src/Makefile b/src/Makefile
-index b1012172..86c5440c 100644
---- a/src/Makefile
-+++ b/src/Makefile
-@@ -13,7 +13,8 @@ TARGETS = dirstress fill fill2 getpagesize holes lstat64 \
- 	multi_open_unlink dmiperf unwritten_sync genhashnames t_holes \
- 	t_mmap_writev t_truncate_cmtime dirhash_collide t_rename_overwrite \
- 	holetest t_truncate_self t_mmap_dio af_unix t_mmap_stale_pmd \
--	t_mmap_cow_race t_mmap_fallocate fsync-err t_mmap_write_ro
-+	t_mmap_cow_race t_mmap_fallocate fsync-err t_mmap_write_ro \
-+	t_ext4_dax_journal_corruption
- 
- LINUX_TARGETS = xfsctl bstat t_mtab getdevicesize preallo_rw_pattern_reader \
- 	preallo_rw_pattern_writer ftrunc trunc fs_perms testx looptest \
-diff --git a/src/t_ext4_dax_journal_corruption.c b/src/t_ext4_dax_journal_corruption.c
-new file mode 100644
-index 00000000..18a2acdc
---- /dev/null
-+++ b/src/t_ext4_dax_journal_corruption.c
-@@ -0,0 +1,102 @@
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <time.h>
-+#include <unistd.h>
-+
-+#define PAGE(a) ((a)*0x1000)
-+#define STRLEN 256
-+
-+void err_exit(char *op)
-+{
-+	fprintf(stderr, "%s: %s\n", op, strerror(errno));
-+	exit(1);
-+}
-+
-+void chattr_cmd(char *chattr, char *cmd, char *file)
-+{
-+	int ret;
-+	char command[STRLEN];
-+
-+	ret = snprintf(command, STRLEN, "%s %s %s 2>/dev/null", chattr, cmd, file);
-+	if (ret < 0)
-+		err_exit("snprintf");
-+
-+	ret = system(command);
-+	if (ret) /* Success - the kernel fix is to have this chattr fail */
-+		exit(77);
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int fd, err, len = PAGE(1);
-+	char *data, *dax_data, *chattr, *file;
-+	char string[STRLEN];
-+
-+	if (argc < 3) {
-+		printf("Usage: %s <chattr program> <file>\n", basename(argv[0]));
-+		exit(0);
-+	}
-+
-+	chattr = argv[1];
-+	file = argv[2];
-+
-+	srand(time(NULL));
-+	snprintf(string, STRLEN, "random number %d\n", rand());
-+
-+	fd = open(file, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
-+	if (fd < 0)
-+		err_exit("fd");
-+
-+	/* begin with journaling off and DAX on */
-+	chattr_cmd(chattr, "-j", file);
-+
-+	ftruncate(fd, 0);
-+	fallocate(fd, 0, 0, len);
-+
-+	dax_data = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
-+	if (!dax_data)
-+		err_exit("mmap dax_data");
-+
-+	/*
-+	 * This turns on journaling.  It also has the side-effect that it
-+	 * turns off DAX for the given inode since journaling and DAX aren't
-+	 * allowed to be on at the same time.  This happens in
-+	 * ext4_change_inode_journal_flag() in kernel v4.14 and before.
-+	 *
-+	 * Note that this turns off the runtime DAX flag (S_DAX) in the
-+	 * in-memory inode, and has nothing to do with per-inode on-media DAX
-+	 * inode flags.
-+	 */
-+	chattr_cmd(chattr, "+j", file);
-+
-+	data = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-+	if (!data)
-+		err_exit("mmap data");
-+
-+	/*
-+	 * Write the data using the non-DAX mapping, and try and read it back
-+	 * using the DAX mapping.
-+	 */
-+	strcpy(data, string);
-+	if (strcmp(dax_data, string) != 0)
-+		printf("Data miscompare\n");
-+
-+	err = munmap(data, len);
-+	if (err < 0)
-+		err_exit("munmap data");
-+
-+	err = munmap(dax_data, len);
-+	if (err < 0)
-+		err_exit("munmap dax_data");
-+
-+	err = close(fd);
-+	if (err < 0)
-+		err_exit("close");
-+	return 0;
-+}
-diff --git a/tests/ext4/030 b/tests/ext4/030
-new file mode 100755
-index 00000000..85da7557
---- /dev/null
-+++ b/tests/ext4/030
-@@ -0,0 +1,74 @@
-+#! /bin/bash
-+# FS QA Test ext4/030
-+#
-+# This is a regression test for kernel patch:
-+#   ext4: prevent data corruption with journaling + DAX
-+# created by Ross Zwisler <ross.zwisler@linux.intel.com>
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017-2018 Intel Corporation.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# Modify as appropriate.
-+_supported_os Linux
-+_supported_fs ext4
-+_require_scratch_dax
-+_require_test_program "t_ext4_dax_journal_corruption"
-+_require_command "$CHATTR_PROG" chattr
-+
-+# real QA test starts here
-+_scratch_mkfs > $seqres.full 2>&1
-+
-+# In order to get our failure condition consistently we need to turn off
-+# delayed allocation.  With delayed allocation on this simple test will pass,
-+# but we would almost certainly see data corruption down the road as the
-+# contents of the journal would conflict with the DAX data.
-+_scratch_mount "-o dax,nodelalloc" >> $seqres.full 2>&1
-+
-+$here/src/t_ext4_dax_journal_corruption $CHATTR_PROG $SCRATCH_MNT/testfile
-+
-+if [[ $? != 0 && $? != 77 ]]; then
-+	echo "Test failed, status $?"
-+	exit 1
-+fi
-+
-+# success, all done
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/ext4/030.out b/tests/ext4/030.out
-new file mode 100644
-index 00000000..06a1c8fe
---- /dev/null
-+++ b/tests/ext4/030.out
-@@ -0,0 +1,2 @@
-+QA output created by 030
-+Silence is golden
-diff --git a/tests/ext4/group b/tests/ext4/group
-index 257bb646..ef768dff 100644
---- a/tests/ext4/group
-+++ b/tests/ext4/group
-@@ -32,6 +32,7 @@
- 027 auto quick fsmap
- 028 auto quick fsmap
- 029 auto quick fsmap
-+030 auto quick
- 271 auto rw quick
- 301 aio auto ioctl rw stress defrag
- 302 aio auto ioctl rw stress defrag
--- 
-2.14.3
-
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
