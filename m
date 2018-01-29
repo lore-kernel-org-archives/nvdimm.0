@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8D5A82222C23A
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jan 2018 11:39:57 -0800 (PST)
-Subject: [PATCH v5 0/4] add support for platform persistence capabilities
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 31 Jan 2018 12:45:32 -0700
-Message-ID: <151742786907.53525.180738048776121385.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id ECF672215BD88
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Jan 2018 13:20:01 -0800 (PST)
+Date: Mon, 29 Jan 2018 14:25:35 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [ndctl PATCH] ndctl: fix the default BTT sector size for reconfig
+Message-ID: <20180129212535.GA5343@linux.intel.com>
+References: <20180129202236.9744-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180129202236.9744-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,51 +23,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ACPI 6.2a provides an NFIT sub-table that informs if the platform has
-auto CPU flush and memory flush on unexpected power loss events. This series
-propogates those attributes to nd_region and add sysfs attribute to show
-those capabilities.
+On Mon, Jan 29, 2018 at 01:22:36PM -0700, Vishal Verma wrote:
+> reconfig attempted to reuse the 'previous' value for sector-size when
+> reconfiguring to a BTT mode or blk type namespace, but this may not
+> always be valid (for example when coming from a memory mode namespace).
+> Instead, when reconfiguring to BTT or blk, always default to 4096
+> unless a sector size is explicitly provided.
+> 
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Tested-by: Dave Jiang <dave.jiang@intel.com>
+> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-v5:
-Fix value of mask in nfit_test.
+Yep, this both allows the btt namespace creation to continue and, if the user
+does actually specify a bogus sector size, i.e.: 
 
-v4:
-Fixed typos and added Reviewed-by tags from Ross.
+# ./ndctl/ndctl create-namespace -f -e namespace0.0 --mode=sector -l0
+failed to reconfigure namespace: Invalid argument
 
-v3:
-Addressed Ross's comments
-- fixed mask calculation for platform cap
-- fixed nfit_test nfit_buf size calcuation
-- fixed offset for test data structure
+It prevents us from leaving our namespace in a zombie state where it is still
+there but doesn't show up in 'ndctl list'.
 
-v2:
-Per Dan's comments
-- Added ADR cap flags propogation
-- Added sysfs attribute
-
----
-
-Dave Jiang (4):
-      acpi: nfit: Add support for detect platform CPU cache flush on power loss
-      acpi: nfit: add persistent memory control flag for nd_region
-      libnvdimm: expose platform persistence attribute for nd_region
-      nfit-test: Add platform cap support from ACPI 6.2a to test
-
-
- drivers/acpi/nfit/core.c         |   23 +++++++++++++++++++++++
- drivers/acpi/nfit/nfit.h         |    1 +
- drivers/nvdimm/pmem.c            |    4 +++-
- drivers/nvdimm/region_devs.c     |   13 +++++++++++++
- include/linux/libnvdimm.h        |   11 +++++++++++
- tools/testing/nvdimm/test/nfit.c |   14 ++++++++++++--
- 6 files changed, 63 insertions(+), 3 deletions(-)
-
---
-Signature
+Tested-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
