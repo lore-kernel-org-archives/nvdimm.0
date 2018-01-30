@@ -1,9 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3D62A21E48F44
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Jan 2018 16:34:49 -0800 (PST)
+Subject: [PATCH v4 0/4] ndctl: add DIMM firmware update support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 29 Jan 2018 17:40:22 -0700
+Message-ID: <151727265453.3109.2878225498038263092.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-From: Andiry Xu <andiry@gmail.com>
-Date: Wed, 31 Jan 2018 16:45:36 -0800
-Message-ID: <CAOvWMLZVkQ1D=Jn-_O9owewr7U699bN=dmwuBoDnQVLEkkXJ8A@mail.gmail.com>
-Subject: [LSF/MM TOPIC] Native NVMM file systems
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -11,47 +16,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: lsf-pc@lists.linux-foundation.org
-Cc: jix024@cs.ucsd.edu, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, david@fromorbit.com, willy@infradead.org, Linux MM <linux-mm@kvack.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, swanson@cs.ucsd.edu
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-UE1FTS9EQVggc2hvdWxkIGFsbG93IGZvciBzaWduaWZpY2FudCBpbXByb3ZlbWVudHMgaW4gZmls
-ZSBzeXN0ZW0KcGVyZm9ybWFuY2UgYW5kIGVuYWJsZSBuZXcgcHJvZ3JhbW1pbmcgbW9kZWxzIHRo
-YXQgYWxsb3cgZGlyZWN0LAplZmZpY2llbnQgYWNjZXNzIHRvIFBNRU0gZnJvbSB1c2Vyc3BhY2Uu
-ICBBY2hpZXZpbmcgdGhlc2UgZ2FpbnMgaW4KZXhpc3RpbmcgZmlsZSBzeXN0ZW1zIGJ1aWx0IGZv
-ciBibG9jayBkZXZpY2VzIChlLmcuLCBYRlMgYW5kIEVYVDTigKYpCnByZXNlbnRzIGEgcmFuZ2Ug
-b2YgY2hhbGxlbmdlcyAoZS5nLiwKaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTYvOS8xMS8xNTkp
-IGFuZCBoYXMgYmVlbiB0aGUgc3ViamVjdCBvZiBhIGxvdApvZiByZWNlbnQgd29yayBvbiBleHQ0
-IGFuZCB4ZnMuCgpBbiBhbHRlcm5hdGl2ZSBpcyB0byBidWlsZCBhIE5WTU0tYXdhcmUgZmlsZSBz
-eXN0ZW0gZnJvbSBzY3JhdGNoIHRoYXQKdGFrZXMgZnVsbCBhZHZhbnRhZ2Ugb2YgdGhlIHBlcmZv
-cm1hbmNlIHRoYXQgUE1FTSBvZmZlcnMgYW5kIGF2b2lkcwp0aGUgY29tcGxleGl0eSB0aGF0IGJs
-b2NrLWJhc2VkIGZpbGUgc3lzdGVtcyBpbmNsdWRlIHRvIG1heGltaXplCnBlcmZvcm1hbmNlIG9u
-IHNsb3cgc3RvcmFnZSAoZS5nLiwgcmVsYXhpbmcgYXRvbWljaXR5IGNvbnN0cmFpbnRzIG9uCm1h
-bnkgb3BlcmF0aW9ucykuICBPZiBjb3Vyc2UsIGl0IGFsc28gYnJpbmdzIHdpdGggaXQgdGhlIGNv
-bXBsZXhpdHkgb2YKYW5vdGhlciBmaWxlIHN5c3RlbS4KCldlIHJlY2VudGx5IHNlbnQgb3V0IGEg
-cGF0Y2ggc2V0IGZvciBvbmUtc3VjaCDigJxjbGVhbiBzbGF0ZeKAnSBOVk1NLWF3YXJlCmZpbGUg
-c3lzdGVtIGNhbGxlZCBOT1ZBLiAgTk9WQSBpcyBsb2ctc3RydWN0dXJlZCBEQVggZmlsZSBzeXN0
-ZW0gd2l0aApzZXZlcmFsIG5pY2UgZmVhdHVyZXM6CgoqIEhpZ2ggcGVyZm9ybWFuY2UsIGVzcGVj
-aWFsbHkgaW4gbWV0YWRhdGEgb3BlcmF0aW9ucyBkdWUgdG8gZWZmaWNpZW50CmZpbmUtZ3JhaW5l
-ZCBsb2dnaW5nCiogSGlnaCBzY2FsYWJpbGl0eSB3aXRoIHBlci1DUFUgbWVtb3J5IHBvb2wgYW5k
-IHBlci1pbm9kZSBsb2dnaW5nCiogU3Ryb25nIG1ldGFkYXRhIGFuZCBkYXRhIGF0b21pY2l0eSBn
-dWFyYW50ZWVzIGZvciBhbGwgb3BlcmF0aW9ucwoqIEZ1bGwgZmlsZXN5c3RlbSBzbmFwc2hvdCBz
-dXBwb3J0IHdpdGggREFYLW1tYXAKKiBNZXRhZGF0YSByZXBsaWNhdGlvbi9jaGVja3N1bXMgYW5k
-IFJBSUQtNCBzdHlsZSBkYXRhIHByb3RlY3Rpb24KCkF0IHRoZSBzdW1taXQsIHdlIHdvdWxkIGxp
-a2UgdG8gZGlzY3VzcyB0aGUgdHJhZGUtb2ZmcyBiZXR3ZWVuCmFkYXB0aW5nIE5WTU0gZmVhdHVy
-ZXMgdG8gZXhpc3RpbmcgZmlsZSBzeXN0ZW1zIHZzLiBjcmVhdGluZy9hZG9wdGluZwphIHB1cnBv
-c2UtYnVpbHQgZmlsZSBzeXN0ZW0gZm9yIE5WTU0uICBOT1ZBIHNlcnZlcyBhcyB1c2VmdWwgc3Rh
-cnRpbmcKcG9pbnQgZm9yIHRoYXQgZGlzY3Vzc2lvbiBieSBkZW1vbnN0cmF0aW5nIHdoYXTigJlz
-IHBvc3NpYmxlLiAgSXQgbWF5CmFsc28gc3VnZ2VzdCBzb21lIGZlYXR1cmVzIHRoYXQgY291bGQg
-YmUgYWRhcHRlZCB0byBvdGhlciBmaWxlIHN5c3RlbXMKdG8gaW1wcm92ZSBOVk1NIHBlcmZvcm1h
-bmNlLgoKV2Ugd2VsY29tZSBwZW9wbGUgdGhhdCBhcmUgaW50ZXJlc3RlZCBpbiBmaWxlIHN5c3Rl
-bXMgYW5kIE5WTS9EQVguClBhcnRpY3VsYXIgcGVvcGxlIHRoYXQgd291bGQgYmUgdXNlZnVsIHRv
-IGhhdmUgaW4gYXR0ZW5kYW5jZSBhcmUgRGFuCldpbGxpYW1zLCBEYXZlIENoaW5uZXIsIGFuZCBN
-YXR0aGV3IFdpbGNveC4KClRoYW5rcywKQW5kaXJ5Cl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
-aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW52ZGltbQo=
+The following series implements support for DIMM firmware update in ndctl.
+
+v4: Addressed Vishal's comments
+- replaced copyright header
+- changed gettimeofday to clock_gettime
+- changed return error for verify_fw_size()
+
+v3: Addressed Dan's comments
+- Removed Intel specific bits from update get info. 
+- Added inherited context for related commands
+- Moved all input params into new_cmd function.
+- Added translated status return
+
+---
+
+Dave Jiang (4):
+      ndctl: add support to alloc_intel_cmd for variable payload
+      ndctl: add firmware download support functions in libndctl
+      ndctl: add firmware update command option for ndctl
+      ndctl, test: firmware update unit test
+
+
+ Documentation/ndctl/Makefile.am               |    1 
+ Documentation/ndctl/ndctl-update-firmware.txt |   18 +
+ builtin.h                                     |    1 
+ ndctl/Makefile.am                             |    3 
+ ndctl/lib/Makefile.am                         |    1 
+ ndctl/lib/firmware.c                          |  119 ++++++
+ ndctl/lib/intel.c                             |  264 ++++++++++++
+ ndctl/lib/intel.h                             |   77 ++++
+ ndctl/lib/libndctl.sym                        |   15 +
+ ndctl/lib/private.h                           |   16 +
+ ndctl/libndctl.h                              |   36 ++
+ ndctl/ndctl.c                                 |    1 
+ ndctl/update.c                                |  534 +++++++++++++++++++++++++
+ test/Makefile.am                              |    3 
+ test/firmware-update.sh                       |   74 +++
+ 15 files changed, 1160 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-update-firmware.txt
+ create mode 100644 ndctl/lib/firmware.c
+ create mode 100644 ndctl/update.c
+ create mode 100755 test/firmware-update.sh
+
+--
+Signature
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
