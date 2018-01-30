@@ -1,11 +1,12 @@
-From: linux-net-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Returned mail: see transcript for details
-Date: Mon, 29 Jan 2018 11:30:25 +0800
-Message-ID: <20180129032456.D44F822344356@ml01.01.org>
+From: Vivian Gray <vivian.ebizz-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>
+Subject: Kaggle and Interactions user's List
+Date: Tue, 30 Jan 2018 15:13:43 +0000
+Message-ID: <PN1PR01MB0845B4FF75C671ABBB2E015493E40@PN1PR01MB0845.INDPRD01.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,11 +16,45 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Mon, 29 Jan 2018 11:30:25 +0800
-from vger.kernel.org [206.221.14.161]
+Hi,
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Hope you're doing great. We are a global database provider and preferred partners for Enterprise, Media and Small size companies.
+
+I am writing to you in regards to our recent lists released, and check if you would be interested in acquiring our recently verified Machine Learning Software User's list and Other Related Software User's database.
+
+We do have Users of:
+
+
+  *   Kaggle
+  *   Interactions
+  *   Tractica
+  *   arya.ai and many more.
+
+
+We can also provide other Technologies users such as MS Dynamics users, SAP users, Citrix users, Avaya users, VMware users, JD Edward users, IBM users, Sage users and many more
+
+List Source:
+"              Direct Research & Subscriptions from websites
+"              Government records and listings
+"              Annual reports and public filings
+"              Yellow pages
+"              Opt-in email campaigns
+"              Online Surveys and feedback forms
+"              Tradeshows and conferences
+
+Other multi-channel programs we are mainly specialized in Technology Industry Database currently holding 3200+ application users type.
+
+This list comes with full contact details like: First and Last names, Organization, Job title and responsibility, Company mailing address, Opt-In Email address, telephone number, email address, fax number, zip code, Province, State, Country, Employee Size, Industry, SIC Code, Zip code etc. across USA, UK and more over the globe. Which help you reach out to your potential clients / market expansion.
+
+Every contact from this database has completed verification as on 30th of December 2017 to give you 95%+ accuracy.
+
+If you are interested, please mention your target geography and which software users list require to you. Then we will furnish you with counts, pricing, samples and more information.
+
+Regards,
+Vivian Gray
+Sr. Demand Generation Executive
+
+If you don't wish to receive any further emails plz reply with Opt Out.
