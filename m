@@ -1,11 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.132.91])
- by ml01.01.org (Postfix) with ESMTP id 16A80222275B6
- for <linux-nvdimm@lists.01.org>; Sun,  7 Jan 2018 19:12:10 -0800 (PST)
-From: "Automatic Email Delivery Software" <postmaster@lists.01.org>
-Subject: Returned mail: Data format error
-Date: Mon, 8 Jan 2018 11:17:18 +0800
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8B48A223648AD
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 14:46:54 -0800 (PST)
+Date: Tue, 30 Jan 2018 15:52:28 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v2 2/4] acpi: nfit: add persistent memory control flag
+ for nd_region
+Message-ID: <20180130225228.GC23836@linux.intel.com>
+References: <151276655874.31888.13113966406333561201.stgit@djiang5-desk3.ch.intel.com>
+ <151276681464.31888.12688962751509293317.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <151276681464.31888.12688962751509293317.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,32 +25,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20180108031215.09DEF22280C3E@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This Message was undeliverable due to the following reason:
+On Fri, Dec 08, 2017 at 02:00:14PM -0700, Dave Jiang wrote:
+> Propogate the ADR attribute flag from the NFIT platform capabilities
+> sub-table to nd_region.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+Sure, looks fine.
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
-
-Your message was not delivered within 4 days:
-Host 118.47.130.152 is not responding.
-
-The following recipients did not receive this message:
-<linux-nvdimm@lists.01.org>
-
-Please reply to postmaster@lists.01.org
-if you feel this message to be in error.
-
-
-
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
