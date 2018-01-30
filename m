@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 14EEF222EDCEC
- for <linux-nvdimm@lists.01.org>; Mon,  8 Jan 2018 08:02:48 -0800 (PST)
-Date: Mon, 8 Jan 2018 11:07:51 -0500
-From: Mike Snitzer <snitzer@redhat.com>
-Subject: Re: [PATCH v6 1/2] dax: introduce CONFIG_DAX_DRIVER
-Message-ID: <20180108160750.GB10224@redhat.com>
-References: <151198199487.7051.7083189934624068090.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151198200084.7051.8668235721724414674.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A1FCE2222C22F
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Jan 2018 16:34:54 -0800 (PST)
+Subject: [PATCH v4 1/4] ndctl: add support to alloc_intel_cmd for variable
+ payload
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 29 Jan 2018 17:40:27 -0700
+Message-ID: <151727282788.3109.1185832650203750091.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151727265453.3109.2878225498038263092.stgit@djiang5-desk3.ch.intel.com>
+References: <151727265453.3109.2878225498038263092.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <151198200084.7051.8668235721724414674.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,30 +23,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Heiko Carstens <heiko.carstens@de.ibm.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, dm-devel@redhat.com, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Gerald Schaefer <gerald.schaefer@de.ibm.com>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Nov 29 2017 at  2:00pm -0500,
-Dan Williams <dan.j.williams@intel.com> wrote:
+Certain payloads have variable size. The existing alloc_intel_cmd()
+does not take into account of that. Adding additional size for allocation.
+We do waste a little bit of the space because of the smart payload.
 
-> In support of allowing device-mapper to compile out idle/dead code when
-> there are no dax providers in the system, introduce the DAX_DRIVER
-> symbol. This is selected by all leaf drivers that device-mapper might be
-> layered on top. This allows device-mapper to conditionally 'select DAX'
-> only when a provider is present.
-> 
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-> Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-> Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Mike Snitzer <snitzer@redhat.com>
-> Cc: Bart Van Assche <Bart.VanAssche@wdc.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ ndctl/lib/intel.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Mike Snitzer <snitzer@redhat.com>
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index 3e4260f..b85a682 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -33,7 +33,7 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
+ 		return NULL;
+ 	}
+ 
+-	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel);
++	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel) + in_size + out_size;
+ 	cmd = calloc(1, size);
+ 	if (!cmd)
+ 		return NULL;
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
