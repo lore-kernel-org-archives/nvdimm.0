@@ -1,12 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from xi.org (unknown [122.191.125.237])
- by ml01.01.org (Postfix) with ESMTP id AC6EF222CF1A6
- for <linux-nvdimm@lists.01.org>; Wed, 10 Jan 2018 15:29:00 -0800 (PST)
-Message-ID: <BDE195E32FF55AD360B1823D7945033E@xi.org>
-From: =?utf-8?B?5om25Lqs5reP?= <zkl@xi.org>
-Subject: =?utf-8?B?6L2s5Y+ROi8gbGludXgtbnZkaW1t5ZCI5LyZ5Lq6?=
- =?utf-8?B?6aOO6Zmp6KeE6YG/5LiK5rW356uZ?=
-Date: Thu, 11 Jan 2018 07:34:10 +0800
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 782C622364885
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 16:15:53 -0800 (PST)
+Subject: [PATCH v4 2/4] acpi: nfit: add persistent memory control flag for
+ nd_region
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 30 Jan 2018 17:21:28 -0700
+Message-ID: <151735808836.47256.7674588775806880500.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
+References: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -15,21 +19,57 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0K5Li65LuA5LmI546w5Zyo55qE5ZCI5LyZ5Lq65Yi2
-5bqm6L+Z5LmI57qi54Gr77yM5Zug5Li66LWE5pys55qE5YWJ546v5q2j5Zyo6KSq5Y6777yM546w
-5Zyo5piv5Lq65pys5Li6546L55qE5paw5pe25Luj77yBDQrlnKjov4fljrvvvIzmmK/liJvlp4vk
-urrljZXlubLliLbvvJvlnKjnjrDlnKjvvIzmj5DlgKHlkIjkvJnkurrlhbXlm6LkvZzmiJjjgIIN
-CuWcqOi/h+WOu++8jOWIqeebiuaYr+S4iuS4i+e6p+WIhumFjeWItu+8m+WcqOeOsOWcqO+8jOaP
-kOWAoeWQiOS8meS6uuS5i+mXtOWIqeebiuWIhuS6q+OAgiANCuWcqOi/h+WOu++8jOiBjOS4mue7
-j+eQhuS6uueUqOiEmuaKleelqO+8m+WcqOeOsOWcqO+8jOaPkOWAoeWQiOS8meS6uuS5i+mXtOiD
-jOmdoOiDjOWFsei/m+mAgOOAgg0KDQoNCg0KIOWkpyDnurIg6ZmEIOS7tiDor7cg5oKoIOafpSDp
-mIUKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Propagate the ADR attribute flag from the NFIT platform capabilities
+sub-table to nd_region.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ drivers/acpi/nfit/core.c  |    3 +++
+ include/linux/libnvdimm.h |    6 ++++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index bcf52bb93b65..b1616120ca57 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2668,6 +2668,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
+ 		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
+ 
++	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
++		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc->flags);
++
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping_desc *mapping;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f2fc0da4da04..ff855ed965fb 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -52,6 +52,12 @@ enum {
+ 	 * system power loss.
+ 	 */
+ 	ND_REGION_PERSIST_CACHE = 1,
++	/*
++	 * Platform provides mechanisms to automatically flush outstanding
++	 * write data from memory controler to pmem on system power loss.
++	 * (ADR)
++	 */
++	ND_REGION_PERSIST_MEMCTRL = 2,
+ 
+ 	/* mark newly adjusted resources as requiring a label update */
+ 	DPA_RESOURCE_ADJUSTED = 1 << 0,
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
