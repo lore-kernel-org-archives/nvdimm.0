@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 782C622364885
- for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 16:15:53 -0800 (PST)
-Subject: [PATCH v4 2/4] acpi: nfit: add persistent memory control flag for
+ by ml01.01.org (Postfix) with ESMTPS id 791362215BD8E
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 15:55:44 -0800 (PST)
+Subject: [PATCH v3 2/4] acpi: nfit: add persistent memory control flag for
  nd_region
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 30 Jan 2018 17:21:28 -0700
-Message-ID: <151735808836.47256.7674588775806880500.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
-References: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 30 Jan 2018 17:01:18 -0700
+Message-ID: <151735687890.34477.10539808986417857457.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151735668391.34477.11820724492631561208.stgit@djiang5-desk3.ch.intel.com>
+References: <151735668391.34477.11820724492631561208.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -31,7 +31,6 @@ Propagate the ADR attribute flag from the NFIT platform capabilities
 sub-table to nd_region.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
  drivers/acpi/nfit/core.c  |    3 +++
  include/linux/libnvdimm.h |    6 ++++++
