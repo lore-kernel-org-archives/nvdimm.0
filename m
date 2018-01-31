@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3D62A21E48F44
- for <linux-nvdimm@lists.01.org>; Mon, 29 Jan 2018 16:34:49 -0800 (PST)
-Subject: [PATCH v4 0/4] ndctl: add DIMM firmware update support
+ by ml01.01.org (Postfix) with ESMTPS id D645922393658
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jan 2018 14:00:14 -0800 (PST)
+Subject: [PATCH v5 1/4] ndctl: add support to alloc_intel_cmd for variable
+ payload
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 29 Jan 2018 17:40:22 -0700
-Message-ID: <151727265453.3109.2878225498038263092.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 31 Jan 2018 15:05:50 -0700
+Message-ID: <151743635095.50357.16110982806915878176.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151743627634.50357.2692734095508615676.stgit@djiang5-desk3.ch.intel.com>
+References: <151743627634.50357.2692734095508615676.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,51 +27,29 @@ To: vishal.l.verma@intel.com, dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements support for DIMM firmware update in ndctl.
+Certain payloads have variable size. The existing alloc_intel_cmd()
+does not take into account of that. Adding additional size for allocation.
+We do waste a little bit of the space because of the smart payload.
 
-v4: Addressed Vishal's comments
-- replaced copyright header
-- changed gettimeofday to clock_gettime
-- changed return error for verify_fw_size()
-
-v3: Addressed Dan's comments
-- Removed Intel specific bits from update get info. 
-- Added inherited context for related commands
-- Moved all input params into new_cmd function.
-- Added translated status return
-
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
+ ndctl/lib/intel.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Dave Jiang (4):
-      ndctl: add support to alloc_intel_cmd for variable payload
-      ndctl: add firmware download support functions in libndctl
-      ndctl: add firmware update command option for ndctl
-      ndctl, test: firmware update unit test
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index 3e4260f..b85a682 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -33,7 +33,7 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
+ 		return NULL;
+ 	}
+ 
+-	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel);
++	size = sizeof(*cmd) + sizeof(struct nd_pkg_intel) + in_size + out_size;
+ 	cmd = calloc(1, size);
+ 	if (!cmd)
+ 		return NULL;
 
-
- Documentation/ndctl/Makefile.am               |    1 
- Documentation/ndctl/ndctl-update-firmware.txt |   18 +
- builtin.h                                     |    1 
- ndctl/Makefile.am                             |    3 
- ndctl/lib/Makefile.am                         |    1 
- ndctl/lib/firmware.c                          |  119 ++++++
- ndctl/lib/intel.c                             |  264 ++++++++++++
- ndctl/lib/intel.h                             |   77 ++++
- ndctl/lib/libndctl.sym                        |   15 +
- ndctl/lib/private.h                           |   16 +
- ndctl/libndctl.h                              |   36 ++
- ndctl/ndctl.c                                 |    1 
- ndctl/update.c                                |  534 +++++++++++++++++++++++++
- test/Makefile.am                              |    3 
- test/firmware-update.sh                       |   74 +++
- 15 files changed, 1160 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/ndctl/ndctl-update-firmware.txt
- create mode 100644 ndctl/lib/firmware.c
- create mode 100644 ndctl/update.c
- create mode 100755 test/firmware-update.sh
-
---
-Signature
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
