@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E023D222D1551
- for <linux-nvdimm@lists.01.org>; Thu,  4 Jan 2018 00:15:21 -0800 (PST)
-Date: Thu, 4 Jan 2018 09:20:24 +0100
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v4 09/18] mm, dax: enable filesystems to trigger
- dev_pagemap ->page_free callbacks
-Message-ID: <20180104082024.GE2548@lst.de>
-References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151407700867.38751.6057494992833550623.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7F0E322364885
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 16:15:42 -0800 (PST)
+Subject: [PATCH v4 0/4] add support for platform persistence capabilities
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 30 Jan 2018 17:21:16 -0700
+Message-ID: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <151407700867.38751.6057494992833550623.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,13 +20,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-nvdimm@lists.01.org, hch@lst.de, linux-xfs@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org
+To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Looks fine,
+ACPI 6.2a provides an NFIT sub-table that informs if the platform has
+auto CPU flush and memory flush on unexpected power loss events. This series
+propogates those attributes to nd_region and add sysfs attribute to show
+those capabilities.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+v4:
+Fixed typos and added Reviewed-by tags from Ross.
+
+v3:
+Addressed Ross's comments
+- fixed mask calculation for platform cap
+- fixed nfit_test nfit_buf size calcuation
+- fixed offset for test data structure
+
+v2:
+Per Dan's comments
+- Added ADR cap flags propogation
+- Added sysfs attribute
+
+---
+
+Dave Jiang (4):
+      acpi: nfit: Add support for detect platform CPU cache flush on power loss
+      acpi: nfit: add persistent memory control flag for nd_region
+      libnvdimm: expose platform persistence attribute for nd_region
+      nfit-test: Add platform cap support from ACPI 6.2a to test
+
+
+ drivers/acpi/nfit/core.c         |   23 +++++++++++++++++++++++
+ drivers/acpi/nfit/nfit.h         |    1 +
+ drivers/nvdimm/pmem.c            |    4 +++-
+ drivers/nvdimm/region_devs.c     |   13 +++++++++++++
+ include/linux/libnvdimm.h        |   11 +++++++++++
+ tools/testing/nvdimm/test/nfit.c |   14 ++++++++++++--
+ 6 files changed, 63 insertions(+), 3 deletions(-)
+
+--
+Signature
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
