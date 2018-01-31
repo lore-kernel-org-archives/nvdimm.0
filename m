@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7F0E322364885
- for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 16:15:42 -0800 (PST)
-Subject: [PATCH v4 0/4] add support for platform persistence capabilities
+ by ml01.01.org (Postfix) with ESMTPS id A7C272236488D
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 15:55:33 -0800 (PST)
+Subject: [PATCH v3 0/4] add support for platform persistence capabilities
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 30 Jan 2018 17:21:16 -0700
-Message-ID: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 30 Jan 2018 17:01:07 -0700
+Message-ID: <151735668391.34477.11820724492631561208.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -28,9 +28,6 @@ ACPI 6.2a provides an NFIT sub-table that informs if the platform has
 auto CPU flush and memory flush on unexpected power loss events. This series
 propogates those attributes to nd_region and add sysfs attribute to show
 those capabilities.
-
-v4:
-Fixed typos and added Reviewed-by tags from Ross.
 
 v3:
 Addressed Ross's comments
@@ -61,7 +58,6 @@ Dave Jiang (4):
  6 files changed, 63 insertions(+), 3 deletions(-)
 
 --
-Signature
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
