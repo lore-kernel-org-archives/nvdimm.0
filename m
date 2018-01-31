@@ -1,10 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.135.102])
- by ml01.01.org (Postfix) with ESMTP id 7AC0721CB2E48
- for <linux-nvdimm@lists.01.org>; Mon,  1 Jan 2018 18:52:57 -0800 (PST)
-From: "Mail Delivery Subsystem" <noreply@lists.01.org>
-Subject: Returned mail: Data format error
-Date: Tue, 2 Jan 2018 10:57:55 +0800
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0EBF722364885
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 16:15:59 -0800 (PST)
+Subject: [PATCH v4 3/4] libnvdimm: expose platform persistence attribute for
+ nd_region
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 30 Jan 2018 17:21:33 -0700
+Message-ID: <151735809380.47256.16089920429804758437.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
+References: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,11 +23,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20180102025300.A821F21CB87A7@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Providing a sysfs attribute for nd_region that shows the persistence
+capabilities for the platform.
 
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ drivers/nvdimm/region_devs.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index abaf38c61220..e6d01911e092 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -528,6 +528,18 @@ static ssize_t resource_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(resource);
+ 
++static ssize_t persistence_domain_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
++	unsigned long flags = nd_region->flags;
++
++	return sprintf(buf, "%s%s\n",
++			flags & BIT(ND_REGION_PERSIST_CACHE) ? "cpu_cache " : "",
++			flags & BIT(ND_REGION_PERSIST_MEMCTRL) ? "memory_controller " : "");
++}
++static DEVICE_ATTR_RO(persistence_domain);
++
+ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_size.attr,
+ 	&dev_attr_nstype.attr,
+@@ -543,6 +555,7 @@ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_init_namespaces.attr,
+ 	&dev_attr_badblocks.attr,
+ 	&dev_attr_resource.attr,
++	&dev_attr_persistence_domain.attr,
+ 	NULL,
+ };
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
