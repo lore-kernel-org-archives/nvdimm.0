@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 701FF2215BD89
- for <linux-nvdimm@lists.01.org>; Mon, 29 Jan 2018 12:17:10 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl: fix the default BTT sector size for reconfig
-Date: Mon, 29 Jan 2018 13:22:36 -0700
-Message-Id: <20180129202236.9744-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CE3772222C23A
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jan 2018 11:40:08 -0800 (PST)
+Subject: [PATCH v5 2/4] acpi: nfit: add persistent memory control flag for
+ nd_region
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 31 Jan 2018 12:45:43 -0700
+Message-ID: <151742794391.53525.4928012768671546212.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151742786907.53525.180738048776121385.stgit@djiang5-desk3.ch.intel.com>
+References: <151742786907.53525.180738048776121385.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,52 +19,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-reconfig attempted to reuse the 'previous' value for sector-size when
-reconfiguring to a BTT mode or blk type namespace, but this may not
-always be valid (for example when coming from a memory mode namespace).
-Instead, when reconfiguring to BTT or blk, always default to 4096
-unless a sector size is explicitly provided.
+Propagate the ADR attribute flag from the NFIT platform capabilities
+sub-table to nd_region.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Tested-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- ndctl/namespace.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/acpi/nfit/core.c  |    3 +++
+ include/linux/libnvdimm.h |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index c793ba3..ceb9e7a 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -244,12 +244,10 @@ static int set_defaults(enum device_action mode)
- 			error("invalid sector size: %s\n", param.sector_size);
- 			rc = -EINVAL;
- 		}
--	} else if (!param.reconfig
--			&& ((param.type && strcmp(param.type, "blk") == 0)
--				|| (param.mode
--					&& strcmp(param.mode, "safe") == 0))) {
--			/* default sector size for blk-type or safe-mode */
--			param.sector_size = "4096";
-+	} else if (((param.type && strcmp(param.type, "blk") == 0)
-+			|| (param.mode && strcmp(param.mode, "safe") == 0))) {
-+		/* default sector size for blk-type or safe-mode */
-+		param.sector_size = "4096";
- 	}
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index bcf52bb93b65..b1616120ca57 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2668,6 +2668,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
+ 		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
  
- 	return rc;
--- 
-2.14.3
++	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
++		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc->flags);
++
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping_desc *mapping;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f2fc0da4da04..ff855ed965fb 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -52,6 +52,12 @@ enum {
+ 	 * system power loss.
+ 	 */
+ 	ND_REGION_PERSIST_CACHE = 1,
++	/*
++	 * Platform provides mechanisms to automatically flush outstanding
++	 * write data from memory controler to pmem on system power loss.
++	 * (ADR)
++	 */
++	ND_REGION_PERSIST_MEMCTRL = 2,
+ 
+ 	/* mark newly adjusted resources as requiring a label update */
+ 	DPA_RESOURCE_ADJUSTED = 1 << 0,
 
 _______________________________________________
 Linux-nvdimm mailing list
