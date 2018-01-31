@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0EBF722364885
- for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 16:15:59 -0800 (PST)
-Subject: [PATCH v4 3/4] libnvdimm: expose platform persistence attribute for
+ by ml01.01.org (Postfix) with ESMTPS id 9BA932215BD8C
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jan 2018 15:55:49 -0800 (PST)
+Subject: [PATCH v3 3/4] libnvdimm: expose platform persistence attribute for
  nd_region
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 30 Jan 2018 17:21:33 -0700
-Message-ID: <151735809380.47256.16089920429804758437.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
-References: <151735800899.47256.2204307128644539213.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 30 Jan 2018 17:01:24 -0700
+Message-ID: <151735688433.34477.6251015810967028744.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151735668391.34477.11820724492631561208.stgit@djiang5-desk3.ch.intel.com>
+References: <151735668391.34477.11820724492631561208.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -31,7 +31,6 @@ Providing a sysfs attribute for nd_region that shows the persistence
 capabilities for the platform.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
  drivers/nvdimm/region_devs.c |   13 +++++++++++++
  1 file changed, 13 insertions(+)
