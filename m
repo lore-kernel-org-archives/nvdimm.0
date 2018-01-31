@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 30C0021F833AF
- for <linux-nvdimm@lists.01.org>; Thu,  4 Jan 2018 10:59:55 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu,  4 Jan 2018 12:01:30 -0700
-Message-Id: <20180104190137.7654-6-logang@deltatee.com>
-In-Reply-To: <20180104190137.7654-1-logang@deltatee.com>
-References: <20180104190137.7654-1-logang@deltatee.com>
-Subject: [PATCH 05/12] block: Introduce PCI P2P flags for request and request
- queue
+ by ml01.01.org (Postfix) with ESMTPS id 168B12239364C
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jan 2018 13:26:30 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 1/2] libnvdimm/nfit_test: add firmware download emulation
+Date: Wed, 31 Jan 2018 21:32:04 +0000
+Message-ID: <1517434323.8128.8.camel@intel.com>
+References: <151698930627.35603.14847307775995809534.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151698930627.35603.14847307775995809534.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <3A8895488FF0CC4C8F3785F10016233B@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,110 +20,539 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: "Jiang, Dave" <dave.jiang@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
-supports targeting P2P memory.
 
-REQ_PCI_P2P is introduced to indicate a particular bio request is
-directed to/from PCI P2P memory. A request with this flag is not
-accepted unless the corresponding queues have the QUEUE_FLAG_PCI_P2P
-flag set.
+On Fri, 2018-01-26 at 10:55 -0700, Dave Jiang wrote:
+> Adding support in nfit_test for DSM v1.6 firmware update sequence.
+> The test
+> will simulate the flashing of firmware to the DIMM. A bogus version
+> string
+> will be returned as the test has no idea how to parse the firmware
+> binary.
+> Any bogus binary can be used to "update" as the actual binary is not
+> copied
+> into the kernel.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  tools/testing/nvdimm/test/nfit.c      |  293
+> ++++++++++++++++++++++++++++++++-
+>  tools/testing/nvdimm/test/nfit_test.h |   66 +++++++
+>  2 files changed, 345 insertions(+), 14 deletions(-)
+> 
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- block/blk-core.c          |  3 +++
- include/linux/blk_types.h | 18 +++++++++++++++++-
- include/linux/blkdev.h    |  2 ++
- 3 files changed, 22 insertions(+), 1 deletion(-)
+For both of these,
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-diff --git a/block/blk-core.c b/block/blk-core.c
-index b8881750a3ac..f347c25731ff 100644
---- a/block/blk-core.c
-+++ b/block/blk-core.c
-@@ -2141,6 +2141,9 @@ generic_make_request_checks(struct bio *bio)
- 	if ((bio->bi_opf & REQ_NOWAIT) && !queue_is_rq_based(q))
- 		goto not_supported;
- 
-+	if ((bio->bi_opf & REQ_PCI_P2P) && !blk_queue_pci_p2p(q))
-+		goto not_supported;
-+
- 	if (should_fail_request(&bio->bi_disk->part0, bio->bi_iter.bi_size))
- 		goto end_io;
- 
-diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
-index 9e7d8bd776d2..8e1b4d643478 100644
---- a/include/linux/blk_types.h
-+++ b/include/linux/blk_types.h
-@@ -228,6 +228,10 @@ enum req_flag_bits {
- 	__REQ_BACKGROUND,	/* background IO */
- 	__REQ_NOWAIT,           /* Don't wait if request will block */
- 
-+#ifdef CONFIG_PCI_P2P
-+	__REQ_PCI_P2P,		/* request is to/from P2P memory */
-+#endif
-+
- 	/* command specific flags for REQ_OP_WRITE_ZEROES: */
- 	__REQ_NOUNMAP,		/* do not free blocks when zeroing */
- 
-@@ -252,6 +256,18 @@ enum req_flag_bits {
- #define REQ_BACKGROUND		(1ULL << __REQ_BACKGROUND)
- #define REQ_NOWAIT		(1ULL << __REQ_NOWAIT)
- 
-+#ifdef CONFIG_PCI_P2P
-+/*
-+ * Currently SGLs do not support mixed P2P and regular memory so
-+ * requests with P2P memory must not be merged.
-+ */
-+#define REQ_PCI_P2P		(1ULL << __REQ_PCI_P2P)
-+#define REQ_IS_PCI_P2P(req)	((req)->cmd_flags & REQ_PCI_P2P)
-+#else
-+#define REQ_PCI_P2P		0
-+#define REQ_IS_PCI_P2P(req)	0
-+#endif /* CONFIG_PCI_P2P */
-+
- #define REQ_NOUNMAP		(1ULL << __REQ_NOUNMAP)
- 
- #define REQ_DRV			(1ULL << __REQ_DRV)
-@@ -260,7 +276,7 @@ enum req_flag_bits {
- 	(REQ_FAILFAST_DEV | REQ_FAILFAST_TRANSPORT | REQ_FAILFAST_DRIVER)
- 
- #define REQ_NOMERGE_FLAGS \
--	(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA)
-+	(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA | REQ_PCI_P2P)
- 
- #define bio_op(bio) \
- 	((bio)->bi_opf & REQ_OP_MASK)
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 0ce8a372d506..877b71dd1122 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -651,6 +651,7 @@ struct request_queue {
- #define QUEUE_FLAG_SCSI_PASSTHROUGH 27	/* queue supports SCSI commands */
- #define QUEUE_FLAG_QUIESCED    28	/* queue has been quiesced */
- #define QUEUE_FLAG_PREEMPT_ONLY	29	/* only process REQ_PREEMPT requests */
-+#define QUEUE_FLAG_PCI_P2P     30	/* device supports pci p2p requests */
- 
- #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
- 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
-@@ -746,6 +747,7 @@ static inline void queue_flag_clear(unsigned int flag, struct request_queue *q)
- #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
- #define blk_queue_scsi_passthrough(q)	\
- 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
-+#define blk_queue_pci_p2p(q)	test_bit(QUEUE_FLAG_PCI_P2P, &(q)->queue_flags)
- 
- #define blk_noretry_request(rq) \
- 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
--- 
-2.11.0
-
+> diff --git a/tools/testing/nvdimm/test/nfit.c
+> b/tools/testing/nvdimm/test/nfit.c
+> index 2b57254342aa..3d999f193471 100644
+> --- a/tools/testing/nvdimm/test/nfit.c
+> +++ b/tools/testing/nvdimm/test/nfit.c
+> @@ -137,6 +137,14 @@ static u32 handle[] = {
+>  
+>  static unsigned long dimm_fail_cmd_flags[NUM_DCR];
+>  
+> +struct nfit_test_fw {
+> +	enum intel_fw_update_state state;
+> +	u32 context;
+> +	u64 version;
+> +	u32 size_received;
+> +	u64 end_time;
+> +};
+> +
+>  struct nfit_test {
+>  	struct acpi_nfit_desc acpi_desc;
+>  	struct platform_device pdev;
+> @@ -172,6 +180,7 @@ struct nfit_test {
+>  	struct nd_intel_smart_threshold *smart_threshold;
+>  	struct badrange badrange;
+>  	struct work_struct work;
+> +	struct nfit_test_fw *fw;
+>  };
+>  
+>  static struct workqueue_struct *nfit_wq;
+> @@ -183,6 +192,226 @@ static struct nfit_test *to_nfit_test(struct
+> device *dev)
+>  	return container_of(pdev, struct nfit_test, pdev);
+>  }
+>  
+> +static int nd_intel_test_get_fw_info(struct nfit_test *t,
+> +		struct nd_intel_fw_info *nd_cmd, unsigned int
+> buf_len,
+> +		int idx)
+> +{
+> +	struct device *dev = &t->pdev.dev;
+> +	struct nfit_test_fw *fw = &t->fw[idx];
+> +
+> +	dev_dbg(dev, "%s(nfit_test: %p nd_cmd: %p, buf_len: %u, idx:
+> %d\n",
+> +			__func__, t, nd_cmd, buf_len, idx);
+> +
+> +	if (buf_len < sizeof(*nd_cmd))
+> +		return -EINVAL;
+> +
+> +	nd_cmd->status = 0;
+> +	nd_cmd->storage_size = INTEL_FW_STORAGE_SIZE;
+> +	nd_cmd->max_send_len = INTEL_FW_MAX_SEND_LEN;
+> +	nd_cmd->query_interval = INTEL_FW_QUERY_INTERVAL;
+> +	nd_cmd->max_query_time = INTEL_FW_QUERY_MAX_TIME;
+> +	nd_cmd->update_cap = 0;
+> +	nd_cmd->fis_version = INTEL_FW_FIS_VERSION;
+> +	nd_cmd->run_version = 0;
+> +	nd_cmd->updated_version = fw->version;
+> +
+> +	return 0;
+> +}
+> +
+> +static int nd_intel_test_start_update(struct nfit_test *t,
+> +		struct nd_intel_fw_start *nd_cmd, unsigned int
+> buf_len,
+> +		int idx)
+> +{
+> +	struct device *dev = &t->pdev.dev;
+> +	struct nfit_test_fw *fw = &t->fw[idx];
+> +
+> +	dev_dbg(dev, "%s(nfit_test: %p nd_cmd: %p buf_len: %u idx:
+> %d)\n",
+> +			__func__, t, nd_cmd, buf_len, idx);
+> +
+> +	if (buf_len < sizeof(*nd_cmd))
+> +		return -EINVAL;
+> +
+> +	if (fw->state != FW_STATE_NEW) {
+> +		/* extended status, FW update in progress */
+> +		nd_cmd->status = 0x10007;
+> +		return 0;
+> +	}
+> +
+> +	fw->state = FW_STATE_IN_PROGRESS;
+> +	fw->context++;
+> +	fw->size_received = 0;
+> +	nd_cmd->status = 0;
+> +	nd_cmd->context = fw->context;
+> +
+> +	dev_dbg(dev, "%s: context issued: %#x\n", __func__, nd_cmd-
+> >context);
+> +
+> +	return 0;
+> +}
+> +
+> +static int nd_intel_test_send_data(struct nfit_test *t,
+> +		struct nd_intel_fw_send_data *nd_cmd, unsigned int
+> buf_len,
+> +		int idx)
+> +{
+> +	struct device *dev = &t->pdev.dev;
+> +	struct nfit_test_fw *fw = &t->fw[idx];
+> +	u32 *status = (u32 *)&nd_cmd->data[nd_cmd->length];
+> +
+> +	dev_dbg(dev, "%s(nfit_test: %p nd_cmd: %p buf_len: %u idx:
+> %d)\n",
+> +			__func__, t, nd_cmd, buf_len, idx);
+> +
+> +	if (buf_len < sizeof(*nd_cmd))
+> +		return -EINVAL;
+> +
+> +
+> +	dev_dbg(dev, "%s: cmd->status: %#x\n", __func__, *status);
+> +	dev_dbg(dev, "%s: cmd->data[0]: %#x\n", __func__, nd_cmd-
+> >data[0]);
+> +	dev_dbg(dev, "%s: cmd->data[%u]: %#x\n", __func__, nd_cmd-
+> >length-1,
+> +			nd_cmd->data[nd_cmd->length-1]);
+> +
+> +	if (fw->state != FW_STATE_IN_PROGRESS) {
+> +		dev_dbg(dev, "%s: not in IN_PROGRESS state\n",
+> __func__);
+> +		*status = 0x5;
+> +		return 0;
+> +	}
+> +
+> +	if (nd_cmd->context != fw->context) {
+> +		dev_dbg(dev, "%s: incorrect context: in: %#x
+> correct: %#x\n",
+> +				__func__, nd_cmd->context, fw-
+> >context);
+> +		*status = 0x10007;
+> +		return 0;
+> +	}
+> +
+> +	/*
+> +	 * check offset + len > size of fw storage
+> +	 * check length is > max send length
+> +	 */
+> +	if (nd_cmd->offset + nd_cmd->length > INTEL_FW_STORAGE_SIZE
+> ||
+> +			nd_cmd->length > INTEL_FW_MAX_SEND_LEN) {
+> +		*status = 0x3;
+> +		dev_dbg(dev, "%s: buffer boundary violation\n",
+> __func__);
+> +		return 0;
+> +	}
+> +
+> +	fw->size_received += nd_cmd->length;
+> +	dev_dbg(dev, "%s: copying %u bytes, %u bytes so far\n",
+> +			__func__, nd_cmd->length, fw-
+> >size_received);
+> +	*status = 0;
+> +	return 0;
+> +}
+> +
+> +static int nd_intel_test_finish_fw(struct nfit_test *t,
+> +		struct nd_intel_fw_finish_update *nd_cmd,
+> +		unsigned int buf_len, int idx)
+> +{
+> +	struct device *dev = &t->pdev.dev;
+> +	struct nfit_test_fw *fw = &t->fw[idx];
+> +
+> +	dev_dbg(dev, "%s(nfit_test: %p nd_cmd: %p buf_len: %u idx:
+> %d)\n",
+> +			__func__, t, nd_cmd, buf_len, idx);
+> +
+> +	if (fw->state == FW_STATE_UPDATED) {
+> +		/* update already done, need cold boot */
+> +		nd_cmd->status = 0x20007;
+> +		return 0;
+> +	}
+> +
+> +	dev_dbg(dev, "%s: context: %#x  ctrl_flags: %#x\n",
+> +			__func__, nd_cmd->context, nd_cmd-
+> >ctrl_flags);
+> +
+> +	switch (nd_cmd->ctrl_flags) {
+> +	case 0: /* finish */
+> +		if (nd_cmd->context != fw->context) {
+> +			dev_dbg(dev, "%s: incorrect context: in: %#x
+> correct: %#x\n",
+> +					__func__, nd_cmd->context,
+> +					fw->context);
+> +			nd_cmd->status = 0x10007;
+> +			return 0;
+> +		}
+> +		nd_cmd->status = 0;
+> +		fw->state = FW_STATE_VERIFY;
+> +		/* set 1 second of time for firmware "update" */
+> +		fw->end_time = jiffies + HZ;
+> +		break;
+> +
+> +	case 1: /* abort */
+> +		fw->size_received = 0;
+> +		/* successfully aborted status */
+> +		nd_cmd->status = 0x40007;
+> +		fw->state = FW_STATE_NEW;
+> +		dev_dbg(dev, "%s: abort successful\n", __func__);
+> +		break;
+> +
+> +	default: /* bad control flag */
+> +		dev_warn(dev, "%s: unknown control flag: %#x\n",
+> +				__func__, nd_cmd->ctrl_flags);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int nd_intel_test_finish_query(struct nfit_test *t,
+> +		struct nd_intel_fw_finish_query *nd_cmd,
+> +		unsigned int buf_len, int idx)
+> +{
+> +	struct device *dev = &t->pdev.dev;
+> +	struct nfit_test_fw *fw = &t->fw[idx];
+> +
+> +	dev_dbg(dev, "%s(nfit_test: %p nd_cmd: %p buf_len: %u idx:
+> %d)\n",
+> +			__func__, t, nd_cmd, buf_len, idx);
+> +
+> +	if (buf_len < sizeof(*nd_cmd))
+> +		return -EINVAL;
+> +
+> +	if (nd_cmd->context != fw->context) {
+> +		dev_dbg(dev, "%s: incorrect context: in: %#x
+> correct: %#x\n",
+> +				__func__, nd_cmd->context, fw-
+> >context);
+> +		nd_cmd->status = 0x10007;
+> +		return 0;
+> +	}
+> +
+> +	dev_dbg(dev, "%s context: %#x\n", __func__, nd_cmd-
+> >context);
+> +
+> +	switch (fw->state) {
+> +	case FW_STATE_NEW:
+> +		nd_cmd->updated_fw_rev = 0;
+> +		nd_cmd->status = 0;
+> +		dev_dbg(dev, "%s: new state\n", __func__);
+> +		break;
+> +
+> +	case FW_STATE_IN_PROGRESS:
+> +		/* sequencing error */
+> +		nd_cmd->status = 0x40007;
+> +		nd_cmd->updated_fw_rev = 0;
+> +		dev_dbg(dev, "%s: sequence error\n", __func__);
+> +		break;
+> +
+> +	case FW_STATE_VERIFY:
+> +		if (time_is_after_jiffies64(fw->end_time)) {
+> +			nd_cmd->updated_fw_rev = 0;
+> +			nd_cmd->status = 0x20007;
+> +			dev_dbg(dev, "%s: still verifying\n",
+> __func__);
+> +			break;
+> +		}
+> +
+> +		dev_dbg(dev, "%s: transition out verify\n",
+> __func__);
+> +		fw->state = FW_STATE_UPDATED;
+> +		/* we are going to fall through if it's "done" */
+> +	case FW_STATE_UPDATED:
+> +		nd_cmd->status = 0;
+> +		/* bogus test version */
+> +		fw->version = nd_cmd->updated_fw_rev =
+> +			INTEL_FW_FAKE_VERSION;
+> +		dev_dbg(dev, "%s: updated\n", __func__);
+> +		break;
+> +
+> +	default: /* we should never get here */
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int nfit_test_cmd_get_config_size(struct
+> nd_cmd_get_config_size *nd_cmd,
+>  		unsigned int buf_len)
+>  {
+> @@ -592,6 +821,23 @@ static int
+> nfit_test_cmd_ars_inject_status(struct nfit_test *t,
+>  	return 0;
+>  }
+>  
+> +static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
+> +{
+> +	int i;
+> +
+> +	/* lookup per-dimm data */
+> +	for (i = 0; i < ARRAY_SIZE(handle); i++)
+> +		if (__to_nfit_memdev(nfit_mem)->device_handle ==
+> handle[i])
+> +			break;
+> +	if (i >= ARRAY_SIZE(handle))
+> +		return -ENXIO;
+> +
+> +	if ((1 << func) & dimm_fail_cmd_flags[i])
+> +		return -EIO;
+> +
+> +	return i;
+> +}
+> +
+>  static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+>  		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
+>  		unsigned int buf_len, int *cmd_rc)
+> @@ -620,22 +866,39 @@ static int nfit_test_ctl(struct
+> nvdimm_bus_descriptor *nd_desc,
+>  			func = call_pkg->nd_command;
+>  			if (call_pkg->nd_family != nfit_mem->family)
+>  				return -ENOTTY;
+> +
+> +			i = get_dimm(nfit_mem, func);
+> +			if (i < 0)
+> +				return i;
+> +
+> +			switch (func) {
+> +			case ND_INTEL_FW_GET_INFO:
+> +				return nd_intel_test_get_fw_info(t,
+> buf,
+> +						buf_len, i - t-
+> >dcr_idx);
+> +			case ND_INTEL_FW_START_UPDATE:
+> +				return nd_intel_test_start_update(t,
+> buf,
+> +						buf_len, i - t-
+> >dcr_idx);
+> +			case ND_INTEL_FW_SEND_DATA:
+> +				return nd_intel_test_send_data(t,
+> buf,
+> +						buf_len, i - t-
+> >dcr_idx);
+> +			case ND_INTEL_FW_FINISH_UPDATE:
+> +				return nd_intel_test_finish_fw(t,
+> buf,
+> +						buf_len, i - t-
+> >dcr_idx);
+> +			case ND_INTEL_FW_FINISH_QUERY:
+> +				return nd_intel_test_finish_query(t,
+> buf,
+> +						buf_len, i - t-
+> >dcr_idx);
+> +			default:
+> +				return -ENOTTY;
+> +			}
+>  		}
+>  
+>  		if (!test_bit(cmd, &cmd_mask)
+>  				|| !test_bit(func, &nfit_mem-
+> >dsm_mask))
+>  			return -ENOTTY;
+>  
+> -		/* lookup per-dimm data */
+> -		for (i = 0; i < ARRAY_SIZE(handle); i++)
+> -			if (__to_nfit_memdev(nfit_mem)-
+> >device_handle ==
+> -					handle[i])
+> -				break;
+> -		if (i >= ARRAY_SIZE(handle))
+> -			return -ENXIO;
+> -
+> -		if ((1 << func) & dimm_fail_cmd_flags[i])
+> -			return -EIO;
+> +		i = get_dimm(nfit_mem, func);
+> +		if (i < 0)
+> +			return i;
+>  
+>  		switch (func) {
+>  		case ND_CMD_GET_CONFIG_SIZE:
+> @@ -1728,6 +1991,11 @@ static void nfit_test0_setup(struct nfit_test
+> *t)
+>  	set_bit(NFIT_CMD_ARS_INJECT_SET, &acpi_desc-
+> >bus_nfit_cmd_force_en);
+>  	set_bit(NFIT_CMD_ARS_INJECT_CLEAR, &acpi_desc-
+> >bus_nfit_cmd_force_en);
+>  	set_bit(NFIT_CMD_ARS_INJECT_GET, &acpi_desc-
+> >bus_nfit_cmd_force_en);
+> +	set_bit(ND_INTEL_FW_GET_INFO, &acpi_desc-
+> >dimm_cmd_force_en);
+> +	set_bit(ND_INTEL_FW_START_UPDATE, &acpi_desc-
+> >dimm_cmd_force_en);
+> +	set_bit(ND_INTEL_FW_SEND_DATA, &acpi_desc-
+> >dimm_cmd_force_en);
+> +	set_bit(ND_INTEL_FW_FINISH_UPDATE, &acpi_desc-
+> >dimm_cmd_force_en);
+> +	set_bit(ND_INTEL_FW_FINISH_QUERY, &acpi_desc-
+> >dimm_cmd_force_en);
+>  }
+>  
+>  static void nfit_test1_setup(struct nfit_test *t)
+> @@ -2134,10 +2402,13 @@ static int nfit_test_probe(struct
+> platform_device *pdev)
+>  		nfit_test->smart_threshold = devm_kcalloc(dev, num,
+>  				sizeof(struct
+> nd_intel_smart_threshold),
+>  				GFP_KERNEL);
+> +		nfit_test->fw = devm_kcalloc(dev, num,
+> +				sizeof(struct nfit_test_fw),
+> GFP_KERNEL);
+>  		if (nfit_test->dimm && nfit_test->dimm_dma &&
+> nfit_test->label
+>  				&& nfit_test->label_dma &&
+> nfit_test->dcr
+>  				&& nfit_test->dcr_dma && nfit_test-
+> >flush
+> -				&& nfit_test->flush_dma)
+> +				&& nfit_test->flush_dma
+> +				&& nfit_test->fw)
+>  			/* pass */;
+>  		else
+>  			return -ENOMEM;
+> diff --git a/tools/testing/nvdimm/test/nfit_test.h
+> b/tools/testing/nvdimm/test/nfit_test.h
+> index ba230f6f7676..be8fa8ec0615 100644
+> --- a/tools/testing/nvdimm/test/nfit_test.h
+> +++ b/tools/testing/nvdimm/test/nfit_test.h
+> @@ -84,9 +84,14 @@ struct nd_cmd_ars_err_inj_stat {
+>  	} __packed record[0];
+>  } __packed;
+>  
+> -#define ND_INTEL_SMART 1
+> -#define ND_INTEL_SMART_THRESHOLD 2
+> -#define ND_INTEL_SMART_SET_THRESHOLD 17
+> +#define ND_INTEL_SMART			 1
+> +#define ND_INTEL_SMART_THRESHOLD	 2
+> +#define ND_INTEL_FW_GET_INFO		12
+> +#define ND_INTEL_FW_START_UPDATE	13
+> +#define ND_INTEL_FW_SEND_DATA		14
+> +#define ND_INTEL_FW_FINISH_UPDATE	15
+> +#define ND_INTEL_FW_FINISH_QUERY	16
+> +#define ND_INTEL_SMART_SET_THRESHOLD	17
+>  
+>  #define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
+>  #define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
+> @@ -152,6 +157,61 @@ struct nd_intel_smart_set_threshold {
+>  	__u32 status;
+>  } __packed;
+>  
+> +#define INTEL_FW_STORAGE_SIZE		0x100000
+> +#define INTEL_FW_MAX_SEND_LEN		0xFFEC
+> +#define INTEL_FW_QUERY_INTERVAL		250000
+> +#define INTEL_FW_QUERY_MAX_TIME		3000000
+> +#define INTEL_FW_FIS_VERSION		0x0105
+> +#define INTEL_FW_FAKE_VERSION		0xffffffffabcd
+> +
+> +enum intel_fw_update_state {
+> +	FW_STATE_NEW = 0,
+> +	FW_STATE_IN_PROGRESS,
+> +	FW_STATE_VERIFY,
+> +	FW_STATE_UPDATED,
+> +};
+> +
+> +struct nd_intel_fw_info {
+> +	__u32 status;
+> +	__u32 storage_size;
+> +	__u32 max_send_len;
+> +	__u32 query_interval;
+> +	__u32 max_query_time;
+> +	__u8 update_cap;
+> +	__u8 reserved[3];
+> +	__u32 fis_version;
+> +	__u64 run_version;
+> +	__u64 updated_version;
+> +} __packed;
+> +
+> +struct nd_intel_fw_start {
+> +	__u32 status;
+> +	__u32 context;
+> +} __packed;
+> +
+> +/* this one has the output first because the variable input data
+> size */
+> +struct nd_intel_fw_send_data {
+> +	__u32 context;
+> +	__u32 offset;
+> +	__u32 length;
+> +	__u8 data[0];
+> +/* this field is not declared due ot variable data from input */
+> +/*	__u32 status; */
+> +} __packed;
+> +
+> +struct nd_intel_fw_finish_update {
+> +	__u8 ctrl_flags;
+> +	__u8 reserved[3];
+> +	__u32 context;
+> +	__u32 status;
+> +} __packed;
+> +
+> +struct nd_intel_fw_finish_query {
+> +	__u32 context;
+> +	__u32 status;
+> +	__u64 updated_fw_rev;
+> +} __packed;
+> +
+>  union acpi_object;
+>  typedef void *acpi_handle;
+>  
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
