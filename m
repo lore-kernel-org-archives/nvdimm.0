@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1609D21E0BA1A
- for <linux-nvdimm@lists.01.org>; Thu,  1 Feb 2018 12:27:28 -0800 (PST)
-Subject: [PATCH 2 2/2] xfs: fix rt_dev usage for DAX
+ by ml01.01.org (Postfix) with ESMTPS id 89ACE223CCEEC
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Feb 2018 12:27:05 -0800 (PST)
+Subject: [PATCH 2] xfs: fix rt_dev usage for DAX
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 01 Feb 2018 13:33:05 -0700
-Message-ID: <151751718516.69886.135497175511444689.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151751717968.69886.6978962571680635420.stgit@djiang5-desk3.ch.intel.com>
-References: <151751717968.69886.6978962571680635420.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 01 Feb 2018 13:32:41 -0700
+Message-ID: <151751716161.69821.14826493123161323243.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
