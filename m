@@ -1,30 +1,35 @@
-From: cowboy-38B2e8CsGz0@public.gmane.org
-Subject: Returned mail: see transcript for details
-Date: Wed, 31 Jan 2018 11:37:21 +0800
-Message-ID: <20180131033148.89AB022364887@ml01.01.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 1 Feb 2018 16:27:20 -0700
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [LSF/MM TOPIC] Filesystem-DAX, page-pinning, and RDMA
+Message-ID: <20180201232720.GX23352@mellanox.com>
+References: <CAPcyv4gQNM9RbTbRWKnG6Vby_CW9CJ9EZTARsVNi=9cas7ZR2A@mail.gmail.com>
+ <20180129233324.GC4526@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180129233324.GC4526@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, lsf-pc@lists.linux-foundation.org, Christoph Hellwig <hch@infradead.org>, Michal Hocko <mhocko@kernel.org>, Linux MM <linux-mm@kvack.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-nvdimm@lists.01.org
+List-ID: <linux-nvdimm@lists.01.org>
 
-The original message was received at Wed, 31 Jan 2018 11:37:21 +0800
-from rj3.net [204.6.51.242]
+On Mon, Jan 29, 2018 at 06:33:25PM -0500, Jerome Glisse wrote:
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+> Between i would also like to participate, in my view the burden should
+> be on GUP users, so if hardware is not ODP capable then you should at
+> least be able to kill the mapping/GUP and force the hardware to redo a
+> GUP if it get any more transaction on affect umem. Can non ODP hardware
+> do that ? Or is it out of the question ?
 
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:cowboy-38B2e8CsGz0@public.gmane.org
-<<< 501 cowboy-suXsXdowvGKtXF2fZOsJYA@public.gmane.org Refused
+For RDMA we can have the HW forcibly tear down the MR, but it is
+incredibly disruptive and nobody running applications would be happy
+with this outcome.
+
+Jason
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
