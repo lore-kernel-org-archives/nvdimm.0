@@ -1,71 +1,62 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4gFePPt7ABOfJitVTEFPh_o838ky0fGjqAHMwnwwkV88Q@mail.gmail.com>
+In-Reply-To: <CAOvWMLZVkQ1D=Jn-_O9owewr7U699bN=dmwuBoDnQVLEkkXJ8A@mail.gmail.com>
 References: <CAOvWMLZVkQ1D=Jn-_O9owewr7U699bN=dmwuBoDnQVLEkkXJ8A@mail.gmail.com>
- <CAPcyv4gFePPt7ABOfJitVTEFPh_o838ky0fGjqAHMwnwwkV88Q@mail.gmail.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 31 Jan 2018 17:13:37 -0800
-Message-ID: <CAPcyv4hk6VR3yqhtocZwpyp4VRb59WO3ECfLEJx4pmpYSU_P5Q@mail.gmail.com>
+Date: Wed, 31 Jan 2018 17:03:19 -0800
+Message-ID: <CAPcyv4gFePPt7ABOfJitVTEFPh_o838ky0fGjqAHMwnwwkV88Q@mail.gmail.com>
 Subject: Re: [LSF/MM TOPIC] Native NVMM file systems
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Sender: owner-linux-mm@kvack.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Andiry Xu <andiry@gmail.com>
-Cc: lsf-pc@lists.linux-foundation.org, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, david <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, swanson@cs.ucsd.edu, jix024@cs.ucsd.edu, Jan Kara <jack@suse.cz>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: jix024@cs.ucsd.edu, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, david <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Linux MM <linux-mm@kvack.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, swanson@cs.ucsd.edu, lsf-pc@lists.linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-[ adding Jan and Ross ]
-
-On Wed, Jan 31, 2018 at 5:03 PM, Dan Williams <dan.j.williams@intel.com> wr=
-ote:
-> On Wed, Jan 31, 2018 at 4:45 PM, Andiry Xu <andiry@gmail.com> wrote:
->> PMEM/DAX should allow for significant improvements in file system
->> performance and enable new programming models that allow direct,
->> efficient access to PMEM from userspace.  Achieving these gains in
->> existing file systems built for block devices (e.g., XFS and EXT4=E2=80=
-=A6)
->> presents a range of challenges (e.g.,
->> https://lkml.org/lkml/2016/9/11/159) and has been the subject of a lot
->> of recent work on ext4 and xfs.
->>
->> An alternative is to build a NVMM-aware file system from scratch that
->> takes full advantage of the performance that PMEM offers and avoids
->> the complexity that block-based file systems include to maximize
->> performance on slow storage (e.g., relaxing atomicity constraints on
->> many operations).  Of course, it also brings with it the complexity of
->> another file system.
->>
->> We recently sent out a patch set for one-such =E2=80=9Cclean slate=E2=80=
-=9D NVMM-aware
->> file system called NOVA.  NOVA is log-structured DAX file system with
->> several nice features:
->>
->> * High performance, especially in metadata operations due to efficient
->> fine-grained logging
->> * High scalability with per-CPU memory pool and per-inode logging
->> * Strong metadata and data atomicity guarantees for all operations
->> * Full filesystem snapshot support with DAX-mmap
->> * Metadata replication/checksums and RAID-4 style data protection
->>
->> At the summit, we would like to discuss the trade-offs between
->> adapting NVMM features to existing file systems vs. creating/adopting
->> a purpose-built file system for NVMM.  NOVA serves as useful starting
->> point for that discussion by demonstrating what=E2=80=99s possible.  It =
-may
->> also suggest some features that could be adapted to other file systems
->> to improve NVMM performance.
->>
->> We welcome people that are interested in file systems and NVM/DAX.
->> Particular people that would be useful to have in attendance are Dan
->> Williams, Dave Chinner, and Matthew Wilcox.
->
-> The rest of the fs-dax crew would also be useful to have:
->
-> Jan Kara
-> Ross Zwisler
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+T24gV2VkLCBKYW4gMzEsIDIwMTggYXQgNDo0NSBQTSwgQW5kaXJ5IFh1IDxhbmRpcnlAZ21haWwu
+Y29tPiB3cm90ZToKPiBQTUVNL0RBWCBzaG91bGQgYWxsb3cgZm9yIHNpZ25pZmljYW50IGltcHJv
+dmVtZW50cyBpbiBmaWxlIHN5c3RlbQo+IHBlcmZvcm1hbmNlIGFuZCBlbmFibGUgbmV3IHByb2dy
+YW1taW5nIG1vZGVscyB0aGF0IGFsbG93IGRpcmVjdCwKPiBlZmZpY2llbnQgYWNjZXNzIHRvIFBN
+RU0gZnJvbSB1c2Vyc3BhY2UuICBBY2hpZXZpbmcgdGhlc2UgZ2FpbnMgaW4KPiBleGlzdGluZyBm
+aWxlIHN5c3RlbXMgYnVpbHQgZm9yIGJsb2NrIGRldmljZXMgKGUuZy4sIFhGUyBhbmQgRVhUNOKA
+pikKPiBwcmVzZW50cyBhIHJhbmdlIG9mIGNoYWxsZW5nZXMgKGUuZy4sCj4gaHR0cHM6Ly9sa21s
+Lm9yZy9sa21sLzIwMTYvOS8xMS8xNTkpIGFuZCBoYXMgYmVlbiB0aGUgc3ViamVjdCBvZiBhIGxv
+dAo+IG9mIHJlY2VudCB3b3JrIG9uIGV4dDQgYW5kIHhmcy4KPgo+IEFuIGFsdGVybmF0aXZlIGlz
+IHRvIGJ1aWxkIGEgTlZNTS1hd2FyZSBmaWxlIHN5c3RlbSBmcm9tIHNjcmF0Y2ggdGhhdAo+IHRh
+a2VzIGZ1bGwgYWR2YW50YWdlIG9mIHRoZSBwZXJmb3JtYW5jZSB0aGF0IFBNRU0gb2ZmZXJzIGFu
+ZCBhdm9pZHMKPiB0aGUgY29tcGxleGl0eSB0aGF0IGJsb2NrLWJhc2VkIGZpbGUgc3lzdGVtcyBp
+bmNsdWRlIHRvIG1heGltaXplCj4gcGVyZm9ybWFuY2Ugb24gc2xvdyBzdG9yYWdlIChlLmcuLCBy
+ZWxheGluZyBhdG9taWNpdHkgY29uc3RyYWludHMgb24KPiBtYW55IG9wZXJhdGlvbnMpLiAgT2Yg
+Y291cnNlLCBpdCBhbHNvIGJyaW5ncyB3aXRoIGl0IHRoZSBjb21wbGV4aXR5IG9mCj4gYW5vdGhl
+ciBmaWxlIHN5c3RlbS4KPgo+IFdlIHJlY2VudGx5IHNlbnQgb3V0IGEgcGF0Y2ggc2V0IGZvciBv
+bmUtc3VjaCDigJxjbGVhbiBzbGF0ZeKAnSBOVk1NLWF3YXJlCj4gZmlsZSBzeXN0ZW0gY2FsbGVk
+IE5PVkEuICBOT1ZBIGlzIGxvZy1zdHJ1Y3R1cmVkIERBWCBmaWxlIHN5c3RlbSB3aXRoCj4gc2V2
+ZXJhbCBuaWNlIGZlYXR1cmVzOgo+Cj4gKiBIaWdoIHBlcmZvcm1hbmNlLCBlc3BlY2lhbGx5IGlu
+IG1ldGFkYXRhIG9wZXJhdGlvbnMgZHVlIHRvIGVmZmljaWVudAo+IGZpbmUtZ3JhaW5lZCBsb2dn
+aW5nCj4gKiBIaWdoIHNjYWxhYmlsaXR5IHdpdGggcGVyLUNQVSBtZW1vcnkgcG9vbCBhbmQgcGVy
+LWlub2RlIGxvZ2dpbmcKPiAqIFN0cm9uZyBtZXRhZGF0YSBhbmQgZGF0YSBhdG9taWNpdHkgZ3Vh
+cmFudGVlcyBmb3IgYWxsIG9wZXJhdGlvbnMKPiAqIEZ1bGwgZmlsZXN5c3RlbSBzbmFwc2hvdCBz
+dXBwb3J0IHdpdGggREFYLW1tYXAKPiAqIE1ldGFkYXRhIHJlcGxpY2F0aW9uL2NoZWNrc3VtcyBh
+bmQgUkFJRC00IHN0eWxlIGRhdGEgcHJvdGVjdGlvbgo+Cj4gQXQgdGhlIHN1bW1pdCwgd2Ugd291
+bGQgbGlrZSB0byBkaXNjdXNzIHRoZSB0cmFkZS1vZmZzIGJldHdlZW4KPiBhZGFwdGluZyBOVk1N
+IGZlYXR1cmVzIHRvIGV4aXN0aW5nIGZpbGUgc3lzdGVtcyB2cy4gY3JlYXRpbmcvYWRvcHRpbmcK
+PiBhIHB1cnBvc2UtYnVpbHQgZmlsZSBzeXN0ZW0gZm9yIE5WTU0uICBOT1ZBIHNlcnZlcyBhcyB1
+c2VmdWwgc3RhcnRpbmcKPiBwb2ludCBmb3IgdGhhdCBkaXNjdXNzaW9uIGJ5IGRlbW9uc3RyYXRp
+bmcgd2hhdOKAmXMgcG9zc2libGUuICBJdCBtYXkKPiBhbHNvIHN1Z2dlc3Qgc29tZSBmZWF0dXJl
+cyB0aGF0IGNvdWxkIGJlIGFkYXB0ZWQgdG8gb3RoZXIgZmlsZSBzeXN0ZW1zCj4gdG8gaW1wcm92
+ZSBOVk1NIHBlcmZvcm1hbmNlLgo+Cj4gV2Ugd2VsY29tZSBwZW9wbGUgdGhhdCBhcmUgaW50ZXJl
+c3RlZCBpbiBmaWxlIHN5c3RlbXMgYW5kIE5WTS9EQVguCj4gUGFydGljdWxhciBwZW9wbGUgdGhh
+dCB3b3VsZCBiZSB1c2VmdWwgdG8gaGF2ZSBpbiBhdHRlbmRhbmNlIGFyZSBEYW4KPiBXaWxsaWFt
+cywgRGF2ZSBDaGlubmVyLCBhbmQgTWF0dGhldyBXaWxjb3guCgpUaGUgcmVzdCBvZiB0aGUgZnMt
+ZGF4IGNyZXcgd291bGQgYWxzbyBiZSB1c2VmdWwgdG8gaGF2ZToKCkphbiBLYXJhClJvc3MgWndp
+c2xlcgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
+aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
