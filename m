@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C945821E0BA1B
- for <linux-nvdimm@lists.01.org>; Thu,  1 Feb 2018 16:32:24 -0800 (PST)
-Subject: [PATCH] tools/testing/nvdimm: force nfit_test to depend on
- instrumented modules
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Feb 2018 16:28:56 -0800
-Message-ID: <151753133661.5914.4544112484376138963.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1DC28223CCEEC
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Feb 2018 14:42:21 -0800 (PST)
+Date: Thu, 1 Feb 2018 14:46:51 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH 2 1/2] dax: change bdev_dax_supported() to take a
+ block_device as input
+Message-ID: <20180201224651.GV4849@magnolia>
+References: <151751717968.69886.6978962571680635420.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <151751717968.69886.6978962571680635420.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,184 +24,222 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The libnvdimm unit tests will fail when they are run against the
-production / in-tree version of libnvdimm.ko or nfit.ko due to
-symbols not being mocked per nfit_test's expectation. For example,
-nfit_test expects acpi_evaluate_dsm() to be replaced by
-__wrap_acpi_evaluate_dsm() to test how acpi_nfit_ctl() responds to
-different stimuli.
+On Thu, Feb 01, 2018 at 01:32:59PM -0700, Dave Jiang wrote:
+> This is in preparation to support DAX for realtime device on XFS.
+> bdev_dax_supported() will be taking a block_device as input instead of
+> a superblock. The only place a super_block is used in this function is
+> providing the id for debug outputs. Also __bdev_dax_supported()
+> will be removed since it just directly calls bdev_dax_supported()
+> and is not reference by any other code.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/dax/super.c |   33 ++++++++++++++++-----------------
+>  fs/ext2/super.c     |    2 +-
+>  fs/ext4/super.c     |    2 +-
+>  fs/xfs/xfs_ioctl.c  |    2 +-
+>  fs/xfs/xfs_super.c  |    2 +-
+>  include/linux/dax.h |    8 ++------
+>  6 files changed, 22 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index 473af694ad1c..3bdf6787b6df 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -70,11 +70,10 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
+>  	return fs_dax_get_by_host(bdev->bd_disk->disk_name);
+>  }
+>  EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+> -#endif
+>  
+>  /**
+> - * __bdev_dax_supported() - Check if the device supports dax for filesystem
+> - * @sb: The superblock of the device
+> + * bdev_dax_supported() - Check if the device supports dax for filesystem
+> + * @sb: The block_device of the device
+>   * @blocksize: The block size of the device
+>   *
+>   * This is a library function for filesystems to check if the block device
+> @@ -82,9 +81,8 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+>   *
+>   * Return: negative errno if unsupported, 0 if supported.
+>   */
+> -int __bdev_dax_supported(struct super_block *sb, int blocksize)
+> +int bdev_dax_supported(struct block_device *bdev, int blocksize)
 
-Create a test-only symbol name that nfit_test links against to cause
-module load failures when the wrong module is present.
+Looking ahead to filesystems that can span multiple dax devices, perhaps
+it would be better to be able topass in the bdev that we want to check?
 
-For example, with this change, attempts to use the wrong module will
-report:
+int bdev_dax_supported(sb, bdev, blocksize)
+{
+	/* same tests we do today... */
+}
 
-    nfit_test: Unknown symbol libnvdimm_test (err 0)
+int sb_dax_supported(sb, blocksize)
+{
+	return bdev_dax_supported(sb, sb->s_bdev, blocksize);
+}
 
-Reported-by: Dave Jiang <dave.jiang@intel.com>
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/nvdimm/Kbuild            |    4 ++++
- tools/testing/nvdimm/acpi_nfit_test.c  |    8 ++++++++
- tools/testing/nvdimm/device_dax_test.c |    8 ++++++++
- tools/testing/nvdimm/libnvdimm_test.c  |    8 ++++++++
- tools/testing/nvdimm/pmem_test.c       |    8 ++++++++
- tools/testing/nvdimm/test/nfit.c       |    6 ++++++
- tools/testing/nvdimm/watermark.h       |   21 +++++++++++++++++++++
- 7 files changed, 63 insertions(+)
- create mode 100644 tools/testing/nvdimm/acpi_nfit_test.c
- create mode 100644 tools/testing/nvdimm/device_dax_test.c
- create mode 100644 tools/testing/nvdimm/libnvdimm_test.c
- create mode 100644 tools/testing/nvdimm/pmem_test.c
- create mode 100644 tools/testing/nvdimm/watermark.h
+That way a single bdev filesystem (ext4) can retain the same api it uses
+today, and two-bdev filesystems (xfs) can specify which bdev to check.
 
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index db33b28c5ef3..0392153a0009 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -37,10 +37,12 @@ obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
- 
- nfit-y := $(ACPI_SRC)/core.o
- nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
-+nfit-y += acpi_nfit_test.o
- nfit-y += config_check.o
- 
- nd_pmem-y := $(NVDIMM_SRC)/pmem.o
- nd_pmem-y += pmem-dax.o
-+nd_pmem-y += pmem_test.o
- nd_pmem-y += config_check.o
- 
- nd_btt-y := $(NVDIMM_SRC)/btt.o
-@@ -57,6 +59,7 @@ dax-y += config_check.o
- 
- device_dax-y := $(DAX_SRC)/device.o
- device_dax-y += dax-dev.o
-+device_dax-y += device_dax_test.o
- device_dax-y += config_check.o
- 
- dax_pmem-y := $(DAX_SRC)/pmem.o
-@@ -75,6 +78,7 @@ libnvdimm-$(CONFIG_ND_CLAIM) += $(NVDIMM_SRC)/claim.o
- libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
- libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
-+libnvdimm-y += libnvdimm_test.o
- libnvdimm-y += config_check.o
- 
- obj-m += test/
-diff --git a/tools/testing/nvdimm/acpi_nfit_test.c b/tools/testing/nvdimm/acpi_nfit_test.c
-new file mode 100644
-index 000000000000..43521512e577
---- /dev/null
-+++ b/tools/testing/nvdimm/acpi_nfit_test.c
-@@ -0,0 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright(c) 2018 Intel Corporation. All rights reserved.
-+
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include "watermark.h"
-+
-+nfit_test_watermark(acpi_nfit);
-diff --git a/tools/testing/nvdimm/device_dax_test.c b/tools/testing/nvdimm/device_dax_test.c
-new file mode 100644
-index 000000000000..24b17bf42429
---- /dev/null
-+++ b/tools/testing/nvdimm/device_dax_test.c
-@@ -0,0 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright(c) 2018 Intel Corporation. All rights reserved.
-+
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include "watermark.h"
-+
-+nfit_test_watermark(device_dax);
-diff --git a/tools/testing/nvdimm/libnvdimm_test.c b/tools/testing/nvdimm/libnvdimm_test.c
-new file mode 100644
-index 000000000000..00ca30b23932
---- /dev/null
-+++ b/tools/testing/nvdimm/libnvdimm_test.c
-@@ -0,0 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright(c) 2018 Intel Corporation. All rights reserved.
-+
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include "watermark.h"
-+
-+nfit_test_watermark(libnvdimm);
-diff --git a/tools/testing/nvdimm/pmem_test.c b/tools/testing/nvdimm/pmem_test.c
-new file mode 100644
-index 000000000000..fd38f92275cf
---- /dev/null
-+++ b/tools/testing/nvdimm/pmem_test.c
-@@ -0,0 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright(c) 2018 Intel Corporation. All rights reserved.
-+
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include "watermark.h"
-+
-+nfit_test_watermark(pmem);
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 2b57254342aa..77bd5d096333 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -27,6 +27,7 @@
- #include <nfit.h>
- #include <nd.h>
- #include "nfit_test.h"
-+#include "../watermark.h"
- 
- /*
-  * Generate an NFIT table to describe the following topology:
-@@ -2239,6 +2240,11 @@ static __init int nfit_test_init(void)
- {
- 	int rc, i;
- 
-+	pmem_test();
-+	libnvdimm_test();
-+	acpi_nfit_test();
-+	device_dax_test();
-+
- 	nfit_test_setup(nfit_test_lookup, nfit_test_evaluate_dsm);
- 
- 	nfit_wq = create_singlethread_workqueue("nfit");
-diff --git a/tools/testing/nvdimm/watermark.h b/tools/testing/nvdimm/watermark.h
-new file mode 100644
-index 000000000000..ed0528757bd4
---- /dev/null
-+++ b/tools/testing/nvdimm/watermark.h
-@@ -0,0 +1,21 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright(c) 2018 Intel Corporation. All rights reserved.
-+#ifndef _TEST_NVDIMM_WATERMARK_H_
-+#define _TEST_NVDIMM_WATERMARK_H_
-+int pmem_test(void);
-+int libnvdimm_test(void);
-+int acpi_nfit_test(void);
-+int device_dax_test(void);
-+
-+/*
-+ * dummy routine for nfit_test to validate it is linking to the properly
-+ * mocked module and not the standard one from the base tree.
-+ */
-+#define nfit_test_watermark(x)				\
-+int x##_test(void)					\
-+{							\
-+	pr_debug("%s for nfit_test\n", KBUILD_MODNAME);	\
-+	return 0;					\
-+}							\
-+EXPORT_SYMBOL(x##_test)
-+#endif /* _TEST_NVDIMM_WATERMARK_H_ */
+(Continuing review in the next patch...)
 
+--D
+
+>  {
+> -	struct block_device *bdev = sb->s_bdev;
+>  	struct dax_device *dax_dev;
+>  	pgoff_t pgoff;
+>  	int err, id;
+> @@ -93,22 +91,22 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
+>  	long len;
+>  
+>  	if (blocksize != PAGE_SIZE) {
+> -		pr_debug("VFS (%s): error: unsupported blocksize for dax\n",
+> -				sb->s_id);
+> +		pr_debug("bdev (%d:%d): error: unsupported blocksize for dax\n",
+> +				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
+>  		return -EINVAL;
+>  	}
+>  
+>  	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
+>  	if (err) {
+> -		pr_debug("VFS (%s): error: unaligned partition for dax\n",
+> -				sb->s_id);
+> +		pr_debug("bdev (%d:%d): error: unaligned partition for dax\n",
+> +				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
+>  		return err;
+>  	}
+>  
+>  	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
+>  	if (!dax_dev) {
+> -		pr_debug("VFS (%s): error: device does not support dax\n",
+> -				sb->s_id);
+> +		pr_debug("bdev (%d:%d): error: device does not support dax\n",
+> +				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
+>  		return -EOPNOTSUPP;
+>  	}
+>  
+> @@ -119,8 +117,8 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
+>  	put_dax(dax_dev);
+>  
+>  	if (len < 1) {
+> -		pr_debug("VFS (%s): error: dax access failed (%ld)\n",
+> -				sb->s_id, len);
+> +		pr_debug("bdev (%d:%d): error: dax access failed (%ld)\n",
+> +				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev), len);
+>  		return len < 0 ? len : -EIO;
+>  	}
+>  
+> @@ -128,15 +126,16 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
+>  			|| pfn_t_devmap(pfn))
+>  		/* pass */;
+>  	else {
+> -		pr_debug("VFS (%s): error: dax support not enabled\n",
+> -				sb->s_id);
+> +		pr_debug("bdev (%d:%d): error: dax support not enabled\n",
+> +				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
+>  		return -EOPNOTSUPP;
+>  	}
+>  
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(__bdev_dax_supported);
+> -#endif
+> +EXPORT_SYMBOL_GPL(bdev_dax_supported);
+> +#endif /* CONFIG_FS_DAX */
+> +#endif /* CONFIG_BLOCK */
+>  
+>  enum dax_device_flags {
+>  	/* !alive + rcu grace period == no new operations / mappings */
+> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+> index 38f9222606ee..a0de090b18d5 100644
+> --- a/fs/ext2/super.c
+> +++ b/fs/ext2/super.c
+> @@ -958,7 +958,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+>  	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+>  
+>  	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
+> -		err = bdev_dax_supported(sb, blocksize);
+> +		err = bdev_dax_supported(sb->s_bdev, blocksize);
+>  		if (err) {
+>  			ext2_msg(sb, KERN_ERR,
+>  				"DAX unsupported by block device. Turning off DAX.");
+> diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+> index 18873ea89e08..7ebc8d5cab8c 100644
+> --- a/fs/ext4/super.c
+> +++ b/fs/ext4/super.c
+> @@ -3712,7 +3712,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+>  					" that may contain inline data");
+>  			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
+>  		}
+> -		err = bdev_dax_supported(sb, blocksize);
+> +		err = bdev_dax_supported(sb->s_bdev, blocksize);
+>  		if (err) {
+>  			ext4_msg(sb, KERN_ERR,
+>  				"DAX unsupported by block device. Turning off DAX.");
+> diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+> index 20dc65fef6a4..5fd4d50eb1c6 100644
+> --- a/fs/xfs/xfs_ioctl.c
+> +++ b/fs/xfs/xfs_ioctl.c
+> @@ -1102,7 +1102,7 @@ xfs_ioctl_setattr_dax_invalidate(
+>  	if (fa->fsx_xflags & FS_XFLAG_DAX) {
+>  		if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
+>  			return -EINVAL;
+> -		if (bdev_dax_supported(sb, sb->s_blocksize) < 0)
+> +		if (bdev_dax_supported(sb->s_bdev, sb->s_blocksize) < 0)
+>  			return -EINVAL;
+>  	}
+>  
+> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> index 1dacccc367f8..e8a687232614 100644
+> --- a/fs/xfs/xfs_super.c
+> +++ b/fs/xfs/xfs_super.c
+> @@ -1652,7 +1652,7 @@ xfs_fs_fill_super(
+>  		xfs_warn(mp,
+>  		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+>  
+> -		error = bdev_dax_supported(sb, sb->s_blocksize);
+> +		error = bdev_dax_supported(sb->s_bdev, sb->s_blocksize);
+>  		if (error) {
+>  			xfs_alert(mp,
+>  			"DAX unsupported by block device. Turning off DAX.");
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 5258346c558c..a31a7e3f929b 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -40,11 +40,7 @@ static inline void put_dax(struct dax_device *dax_dev)
+>  
+>  int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
+>  #if IS_ENABLED(CONFIG_FS_DAX)
+> -int __bdev_dax_supported(struct super_block *sb, int blocksize);
+> -static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
+> -{
+> -	return __bdev_dax_supported(sb, blocksize);
+> -}
+> +int bdev_dax_supported(struct block_device *bdev, int blocksize);
+>  
+>  static inline struct dax_device *fs_dax_get_by_host(const char *host)
+>  {
+> @@ -58,7 +54,7 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
+>  
+>  struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
+>  #else
+> -static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
+> +static inline int bdev_dax_supported(struct block_device *bdev, int blocksize)
+>  {
+>  	return -EOPNOTSUPP;
+>  }
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
