@@ -1,68 +1,69 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-MIME-Version: 1.0
-In-Reply-To: <20180201014749.GF4841@magnolia>
-References: <CAOvWMLZVkQ1D=Jn-_O9owewr7U699bN=dmwuBoDnQVLEkkXJ8A@mail.gmail.com>
- <20180201014749.GF4841@magnolia>
-From: Andiry Xu <jix024@eng.ucsd.edu>
-Date: Wed, 31 Jan 2018 18:12:19 -0800
-Message-ID: <CAD4Szjt8ayQYjCPzkuOnRXkRtLg4CNmBT1R29VAJXBkFh+vymw@mail.gmail.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 31 Jan 2018 17:47:49 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
 Subject: Re: [LSF/MM TOPIC] Native NVMM file systems
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Linux MM <linux-mm@kvack.org>, Andiry Xu <jix024@cs.ucsd.edu>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Dave Chinner <david@fromorbit.com>, willy@infradead.org, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Andiry Xu <andiry@gmail.com>, Steven Swanson <swanson@cs.ucsd.edu>, lsf-pc@lists.linux-foundation.org
+Message-ID: <20180201014749.GF4841@magnolia>
+References: <CAOvWMLZVkQ1D=Jn-_O9owewr7U699bN=dmwuBoDnQVLEkkXJ8A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOvWMLZVkQ1D=Jn-_O9owewr7U699bN=dmwuBoDnQVLEkkXJ8A@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Andiry Xu <andiry@gmail.com>
+Cc: lsf-pc@lists.linux-foundation.org, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, dan.j.williams@intel.com, david@fromorbit.com, willy@infradead.org, swanson@cs.ucsd.edu, jix024@cs.ucsd.edu
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCBKYW4gMzEsIDIwMTggYXQgNTo0NyBQTSwgRGFycmljayBKLiBXb25nCjxkYXJyaWNr
-LndvbmdAb3JhY2xlLmNvbT4gd3JvdGU6Cj4gT24gV2VkLCBKYW4gMzEsIDIwMTggYXQgMDQ6NDU6
-MzZQTSAtMDgwMCwgQW5kaXJ5IFh1IHdyb3RlOgo+PiBQTUVNL0RBWCBzaG91bGQgYWxsb3cgZm9y
-IHNpZ25pZmljYW50IGltcHJvdmVtZW50cyBpbiBmaWxlIHN5c3RlbQo+PiBwZXJmb3JtYW5jZSBh
-bmQgZW5hYmxlIG5ldyBwcm9ncmFtbWluZyBtb2RlbHMgdGhhdCBhbGxvdyBkaXJlY3QsCj4+IGVm
-ZmljaWVudCBhY2Nlc3MgdG8gUE1FTSBmcm9tIHVzZXJzcGFjZS4gIEFjaGlldmluZyB0aGVzZSBn
-YWlucyBpbgo+PiBleGlzdGluZyBmaWxlIHN5c3RlbXMgYnVpbHQgZm9yIGJsb2NrIGRldmljZXMg
-KGUuZy4sIFhGUyBhbmQgRVhUNOKApikKPj4gcHJlc2VudHMgYSByYW5nZSBvZiBjaGFsbGVuZ2Vz
-IChlLmcuLAo+PiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxNi85LzExLzE1OSkgYW5kIGhhcyBi
-ZWVuIHRoZSBzdWJqZWN0IG9mIGEgbG90Cj4+IG9mIHJlY2VudCB3b3JrIG9uIGV4dDQgYW5kIHhm
-cy4KPj4KPj4gQW4gYWx0ZXJuYXRpdmUgaXMgdG8gYnVpbGQgYSBOVk1NLWF3YXJlIGZpbGUgc3lz
-dGVtIGZyb20gc2NyYXRjaCB0aGF0Cj4+IHRha2VzIGZ1bGwgYWR2YW50YWdlIG9mIHRoZSBwZXJm
-b3JtYW5jZSB0aGF0IFBNRU0gb2ZmZXJzIGFuZCBhdm9pZHMKPj4gdGhlIGNvbXBsZXhpdHkgdGhh
-dCBibG9jay1iYXNlZCBmaWxlIHN5c3RlbXMgaW5jbHVkZSB0byBtYXhpbWl6ZQo+PiBwZXJmb3Jt
-YW5jZSBvbiBzbG93IHN0b3JhZ2UgKGUuZy4sIHJlbGF4aW5nIGF0b21pY2l0eSBjb25zdHJhaW50
-cyBvbgo+PiBtYW55IG9wZXJhdGlvbnMpLiAgT2YgY291cnNlLCBpdCBhbHNvIGJyaW5ncyB3aXRo
-IGl0IHRoZSBjb21wbGV4aXR5IG9mCj4+IGFub3RoZXIgZmlsZSBzeXN0ZW0uCj4+Cj4+IFdlIHJl
-Y2VudGx5IHNlbnQgb3V0IGEgcGF0Y2ggc2V0IGZvciBvbmUtc3VjaCDigJxjbGVhbiBzbGF0ZeKA
-nSBOVk1NLWF3YXJlCj4+IGZpbGUgc3lzdGVtIGNhbGxlZCBOT1ZBLiAgTk9WQSBpcyBsb2ctc3Ry
-dWN0dXJlZCBEQVggZmlsZSBzeXN0ZW0gd2l0aAo+PiBzZXZlcmFsIG5pY2UgZmVhdHVyZXM6Cj4K
-PiBUaGF0J3MgdGhlIHNlcmllcyB0aGF0IHdhcyBzZW50IG91dCBsYXN0IEF1Z3VzdCwgY29ycmVj
-dD8KPgoKWWVzLiBXZSBhcmUgcHJlcGFyaW5nIGFub3RoZXIgcm91bmQgb2Ygc3VibWlzc2lvbi4K
-Cj4+ICogSGlnaCBwZXJmb3JtYW5jZSwgZXNwZWNpYWxseSBpbiBtZXRhZGF0YSBvcGVyYXRpb25z
-IGR1ZSB0byBlZmZpY2llbnQKPj4gZmluZS1ncmFpbmVkIGxvZ2dpbmcKPj4gKiBIaWdoIHNjYWxh
-YmlsaXR5IHdpdGggcGVyLUNQVSBtZW1vcnkgcG9vbCBhbmQgcGVyLWlub2RlIGxvZ2dpbmcKPj4g
-KiBTdHJvbmcgbWV0YWRhdGEgYW5kIGRhdGEgYXRvbWljaXR5IGd1YXJhbnRlZXMgZm9yIGFsbCBv
-cGVyYXRpb25zCj4+ICogRnVsbCBmaWxlc3lzdGVtIHNuYXBzaG90IHN1cHBvcnQgd2l0aCBEQVgt
-bW1hcAo+PiAqIE1ldGFkYXRhIHJlcGxpY2F0aW9uL2NoZWNrc3VtcyBhbmQgUkFJRC00IHN0eWxl
-IGRhdGEgcHJvdGVjdGlvbgo+Pgo+PiBBdCB0aGUgc3VtbWl0LCB3ZSB3b3VsZCBsaWtlIHRvIGRp
-c2N1c3MgdGhlIHRyYWRlLW9mZnMgYmV0d2Vlbgo+PiBhZGFwdGluZyBOVk1NIGZlYXR1cmVzIHRv
-IGV4aXN0aW5nIGZpbGUgc3lzdGVtcyB2cy4gY3JlYXRpbmcvYWRvcHRpbmcKPj4gYSBwdXJwb3Nl
-LWJ1aWx0IGZpbGUgc3lzdGVtIGZvciBOVk1NLiAgTk9WQSBzZXJ2ZXMgYXMgdXNlZnVsIHN0YXJ0
-aW5nCj4+IHBvaW50IGZvciB0aGF0IGRpc2N1c3Npb24gYnkgZGVtb25zdHJhdGluZyB3aGF04oCZ
-cyBwb3NzaWJsZS4gIEl0IG1heQo+PiBhbHNvIHN1Z2dlc3Qgc29tZSBmZWF0dXJlcyB0aGF0IGNv
-dWxkIGJlIGFkYXB0ZWQgdG8gb3RoZXIgZmlsZSBzeXN0ZW1zCj4+IHRvIGltcHJvdmUgTlZNTSBw
-ZXJmb3JtYW5jZS4KPj4KPj4gV2Ugd2VsY29tZSBwZW9wbGUgdGhhdCBhcmUgaW50ZXJlc3RlZCBp
-biBmaWxlIHN5c3RlbXMgYW5kIE5WTS9EQVguCj4+IFBhcnRpY3VsYXIgcGVvcGxlIHRoYXQgd291
-bGQgYmUgdXNlZnVsIHRvIGhhdmUgaW4gYXR0ZW5kYW5jZSBhcmUgRGFuCj4+IFdpbGxpYW1zLCBE
-YXZlIENoaW5uZXIsIGFuZCBNYXR0aGV3IFdpbGNveC4KPgo+IEkgd291bGRuJ3QgbWluZCBiZWlu
-ZyB0aGVyZSB0b28uIDopCj4KCldlbGNvbWU6KQoKVGhhbmtzLApBbmRpcnkKCj4gLS1ECj4KPj4K
-Pj4gVGhhbmtzLAo+PiBBbmRpcnkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMu
-MDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1t
-Cg==
+On Wed, Jan 31, 2018 at 04:45:36PM -0800, Andiry Xu wrote:
+> PMEM/DAX should allow for significant improvements in file system
+> performance and enable new programming models that allow direct,
+> efficient access to PMEM from userspace.  Achieving these gains in
+> existing file systems built for block devices (e.g., XFS and EXT4…)
+> presents a range of challenges (e.g.,
+> https://lkml.org/lkml/2016/9/11/159) and has been the subject of a lot
+> of recent work on ext4 and xfs.
+> 
+> An alternative is to build a NVMM-aware file system from scratch that
+> takes full advantage of the performance that PMEM offers and avoids
+> the complexity that block-based file systems include to maximize
+> performance on slow storage (e.g., relaxing atomicity constraints on
+> many operations).  Of course, it also brings with it the complexity of
+> another file system.
+>
+> We recently sent out a patch set for one-such “clean slate” NVMM-aware
+> file system called NOVA.  NOVA is log-structured DAX file system with
+> several nice features:
+
+That's the series that was sent out last August, correct?
+
+> * High performance, especially in metadata operations due to efficient
+> fine-grained logging
+> * High scalability with per-CPU memory pool and per-inode logging
+> * Strong metadata and data atomicity guarantees for all operations
+> * Full filesystem snapshot support with DAX-mmap
+> * Metadata replication/checksums and RAID-4 style data protection
+> 
+> At the summit, we would like to discuss the trade-offs between
+> adapting NVMM features to existing file systems vs. creating/adopting
+> a purpose-built file system for NVMM.  NOVA serves as useful starting
+> point for that discussion by demonstrating what’s possible.  It may
+> also suggest some features that could be adapted to other file systems
+> to improve NVMM performance.
+> 
+> We welcome people that are interested in file systems and NVM/DAX.
+> Particular people that would be useful to have in attendance are Dan
+> Williams, Dave Chinner, and Matthew Wilcox.
+
+I wouldn't mind being there too. :)
+
+--D
+
+> 
+> Thanks,
+> Andiry
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
