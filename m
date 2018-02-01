@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B59B321F0DA76
- for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 23:57:00 -0800 (PST)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 8010CAC018F
- for <linux-nvdimm@lists.01.org>;
- Fri,  9 Feb 2018 17:02:37 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [RFC PATCH v3 3/5] ndctl: monitor: add ndclt list-monitor command
-Date: Fri,  9 Feb 2018 17:02:23 +0900
-Message-Id: <20180209080225.5137-4-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
-References: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 312BC223CCF16
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Feb 2018 08:42:06 -0800 (PST)
+Subject: [PATCH v5 4/4] ndctl, test: firmware update unit test
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 01 Feb 2018 09:47:41 -0700
+Message-ID: <151750366160.3199.7502374610065525238.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151750355438.3199.10739483451071461270.stgit@djiang5-desk3.ch.intel.com>
+References: <151750355438.3199.10739483451071461270.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,92 +18,110 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds $ndctl list-monitor command, by which users can list all
-currently running monitors.
-Example: $ndctl list-monitor --all
+Adding a unit test that will use nfit_test kernel module to test the
+firmware update sequence.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- builtin.h       |  1 +
- ndctl/monitor.c | 32 ++++++++++++++++++++++++++++++++
- ndctl/ndctl.c   |  1 +
- 3 files changed, 34 insertions(+)
+ test/Makefile.am        |    3 +-
+ test/firmware-update.sh |   65 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+), 1 deletion(-)
+ create mode 100755 test/firmware-update.sh
 
-diff --git a/builtin.h b/builtin.h
-index 850f6a8..eda5c7a 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -37,6 +37,7 @@ int cmd_init_labels(int argc, const char **argv, void *ctx);
- int cmd_check_labels(int argc, const char **argv, void *ctx);
- int cmd_inject_error(int argc, const char **argv, void *ctx);
- int cmd_create_monitor(int argc, const char **argv, void *ctx);
-+int cmd_list_monitor(int argc, const char **argv, void *ctx);
- int cmd_list(int argc, const char **argv, void *ctx);
- #ifdef ENABLE_TEST
- int cmd_test(int argc, const char **argv, void *ctx);
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index cf1cd6e..53b7c67 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -340,3 +340,35 @@ int cmd_create_monitor(int argc, const char **argv, void *ctx)
- out:
- 	return 1;
- }
+diff --git a/test/Makefile.am b/test/Makefile.am
+index bd73a43..30bc02d 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -16,8 +16,9 @@ TESTS =\
+ 	blk-exhaust.sh \
+ 	sector-mode.sh \
+ 	inject-error.sh \
++	btt-errors.sh \
+ 	hugetlb \
+-	btt-errors.sh
++	firmware-update.sh
+ 
+ check_PROGRAMS =\
+ 	libndctl \
+diff --git a/test/firmware-update.sh b/test/firmware-update.sh
+new file mode 100755
+index 0000000..79767d2
+--- /dev/null
++++ b/test/firmware-update.sh
+@@ -0,0 +1,65 @@
++#!/bin/bash -Ex
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2018 Intel Corporation. All rights reserved.
 +
-+int cmd_list_monitor(int argc, const char **argv, void *ctx)
++[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] && ndctl="../ndctl/ndctl"
++[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
++[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
++bus="nfit_test.0"
++json2var="s/[{}\",]//g; s/:/=/g"
++rc=77
++dev=""
++image="update-fw.img"
++
++trap 'err $LINENO' ERR
++
++# $1: Line number
++# $2: exit code
++err()
 +{
-+	const struct option options[] = {
-+		OPT_BOOLEAN('a', "all", &param.all, "list all monitors")
-+	};
-+	const char * const u[] = {
-+		"ndctl list-monitor [<options>]",
-+		NULL
-+	};
-+	argc = parse_options(argc, argv, options, u, 0);
-+	for (int i = 0; i < argc; i++) {
-+		error("unknown parameter \"%s\"\n", argv[i]);
-+		goto out;
-+	}
-+	DIR *dir;
-+	struct dirent *ent;
-+	dir = opendir("/var/ndctl/monitor/");
-+	if (!dir)
-+		return -1;
-+	while ((ent = readdir(dir)) != NULL)
-+	{
-+		if (strcmp(ent->d_name, ".") == 0
-+				|| strcmp(ent->d_name, "..") == 0)
-+			continue;
-+		printf(" %s\n", ent->d_name);
-+	}
-+	return 0;
-+
-+out:
-+	return 1;
++	[ -n "$2" ] && rc="$2"
++	echo "test/firmware-update.sh: failed at line $1"
++	exit "$rc"
 +}
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 6c63d79..7eae794 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -85,6 +85,7 @@ static struct cmd_struct commands[] = {
- 	{ "check-labels", cmd_check_labels },
- 	{ "inject-error", cmd_inject_error },
- 	{ "create-monitor", cmd_create_monitor },
-+	{ "list-monitor", cmd_list_monitor },
- 	{ "list", cmd_list },
- 	{ "help", cmd_help },
- 	#ifdef ENABLE_TEST
--- 
-2.9.5
-
++
++check_min_kver()
++{
++	local ver="$1"
++	: "${KVER:=$(uname -r)}"
++
++	[ -n "$ver" ] || return 1
++	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
++}
++
++reset()
++{
++	$ndctl disable-region -b "$bus" all
++	$ndctl zero-labels -b "$bus" all
++	$ndctl enable-region -b "$bus" all
++	if [ -f $image ]; then
++		rm -f $image
++	fi
++}
++
++detect()
++{
++	dev=$($ndctl list -b "$bus" -D | jq .[0].dev | tr -d '"')
++	[ -n "$dev" ] || err "$LINENO" 2
++}
++
++do_tests()
++{
++	fallocate -l 196608 $image
++	$ndctl update-firmware -d $dev -f $image
++}
++
++check_min_kver "4.16" || { echo "kernel $KVER may lack firmware update test handling"; exit
++$rc; }
++modprobe nfit_test
++rc=1
++reset
++detect
++do_tests
++reset
++exit 0
++
 
 _______________________________________________
 Linux-nvdimm mailing list
