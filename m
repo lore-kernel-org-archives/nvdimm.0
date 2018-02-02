@@ -1,20 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x22f.google.com (mail-ot0-x22f.google.com
- [IPv6:2607:f8b0:4003:c0f::22f])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BA72A223CCF01
- for <linux-nvdimm@lists.01.org>; Fri,  2 Feb 2018 08:28:23 -0800 (PST)
-Received: by mail-ot0-x22f.google.com with SMTP id v5so20846747oth.5
- for <linux-nvdimm@lists.01.org>; Fri, 02 Feb 2018 08:34:02 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <A7FB1D6BACEF4D4EB3E2672A06076E736A6EB69A@irsmsx111.ger.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id AE19C223CCF17
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Feb 2018 07:09:54 -0800 (PST)
+From: "Plewa, Lukasz" <lukasz.plewa@intel.com>
+Subject: RE: [ndctl PATCH] ndctl: fix leak of daxctl_region instances
+Date: Fri, 2 Feb 2018 15:15:29 +0000
+Message-ID: <A7FB1D6BACEF4D4EB3E2672A06076E736A6EB69A@irsmsx111.ger.corp.intel.com>
 References: <151756015373.24501.12460100041032944306.stgit@dwillia2-desk3.amr.corp.intel.com>
- <A7FB1D6BACEF4D4EB3E2672A06076E736A6EB69A@irsmsx111.ger.corp.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 2 Feb 2018 08:33:58 -0800
-Message-ID: <CAPcyv4in73j+=t+wg9_y0YBzp89x9cNMu4Vs=3Fk6KQdcsJ1cA@mail.gmail.com>
-Subject: Re: [ndctl PATCH] ndctl: fix leak of daxctl_region instances
+In-Reply-To: <151756015373.24501.12460100041032944306.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,15 +23,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Plewa, Lukasz" <lukasz.plewa@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Feb 2, 2018 at 7:15 AM, Plewa, Lukasz <lukasz.plewa@intel.com> wrote:
-> This fix will not work, as daxctl_ctx is freed before free_dax() and daxctl_region_unref() tries to update daxctl_ctx.
+This fix will not work, as daxctl_ctx is freed before free_dax() and daxctl_region_unref() tries to update daxctl_ctx. 
 
-Ah true, we need to take and hold another daxctl_ctx reference for
-each daxctl_region and unref the daxctl_ctx for each daxctl_region.
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf
+> Of Dan Williams
+> Sent: Friday, February 2, 2018 09:29
+> To: linux-nvdimm@lists.01.org
+> Subject: [ndctl PATCH] ndctl: fix leak of daxctl_region instances
+> 
+> The daxctl_region returned by ndctl_dax_get_daxctl_region() should be
+> automatically freed when its parent infrastructure is torn down.
+> 
+> Reported-by: Lukasz Plewa <lukasz.plewa@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  ndctl/lib/libndctl.c |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c index
+> 4119a2e6b564..9314e8b8f81b 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -434,6 +434,7 @@ static void free_pfn(struct ndctl_pfn *pfn, struct
+> list_head *head)
+> 
+>  static void free_dax(struct ndctl_dax *dax, struct list_head *head)  {
+> +	daxctl_region_unref(dax->region);
+>  	__free_pfn(&dax->pfn, head, dax);
+>  }
+> 
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
