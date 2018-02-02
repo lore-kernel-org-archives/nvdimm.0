@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x22f.google.com (mail-ot0-x22f.google.com
+ [IPv6:2607:f8b0:4003:c0f::22f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B13B821CF1CF3
- for <linux-nvdimm@lists.01.org>; Tue, 20 Feb 2018 10:12:25 -0800 (PST)
-Subject: [PATCH v6] ndctl: add option to list firmware information for a DIMM
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 20 Feb 2018 11:18:22 -0700
-Message-ID: <151915058813.67767.11669588596758645038.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BA72A223CCF01
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Feb 2018 08:28:23 -0800 (PST)
+Received: by mail-ot0-x22f.google.com with SMTP id v5so20846747oth.5
+ for <linux-nvdimm@lists.01.org>; Fri, 02 Feb 2018 08:34:02 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <A7FB1D6BACEF4D4EB3E2672A06076E736A6EB69A@irsmsx111.ger.corp.intel.com>
+References: <151756015373.24501.12460100041032944306.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <A7FB1D6BACEF4D4EB3E2672A06076E736A6EB69A@irsmsx111.ger.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 2 Feb 2018 08:33:58 -0800
+Message-ID: <CAPcyv4in73j+=t+wg9_y0YBzp89x9cNMu4Vs=3Fk6KQdcsJ1cA@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl: fix leak of daxctl_region instances
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,59 +26,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: "Plewa, Lukasz" <lukasz.plewa@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding firmware output of firmware information when ndctl list -D -F is used.
-Components displayed are current firmware version, updated firmware version,
-and if a coldboot is required (firmware updated).
+On Fri, Feb 2, 2018 at 7:15 AM, Plewa, Lukasz <lukasz.plewa@intel.com> wrote:
+> This fix will not work, as daxctl_ctx is freed before free_dax() and daxctl_region_unref() tries to update daxctl_ctx.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Tested-by: Jeff Moyer <jmoyer@redhat.com>
----
-
-v6:
-- changed all instaces of API calls of updated_version to next_version for
-  better clarity. Data structure for Intel DSM not changed.
-- changed coldboot_required to need_powercycle for better clarity.
-
-v5:
-- Changed next_version to updated version to be in sync with DSM spec.
-- Changed emission of "unknown" string to -1 for error versions.
-
-v4:
-- Remove output when updated_version is 0. That indicates no updated firmware.
-
-v3:
-- Fixed issue where it skips displaying rest of the details if there's no
-  firmware details.
-
-v2:
-- Added copyright
-- Added support for human readable option (hex) for versions
-- Removed check against CMD_CALL as it's not useful
-
----
-
-Dave Jiang (1):
-      ndctl: add option to list firmware information for a DIMM
-
-
- Documentation/ndctl/ndctl-list.txt |   13 +++++
- ndctl/Makefile.am                  |    1 
- ndctl/lib/firmware.c               |    2 -
- ndctl/lib/intel.c                  |   12 ++++-
- ndctl/lib/libndctl.sym             |    2 -
- ndctl/lib/private.h                |    2 -
- ndctl/libndctl.h                   |    2 -
- ndctl/list.c                       |   13 +++++
- ndctl/util/json-firmware.c         |   91 ++++++++++++++++++++++++++++++++++++
- util/json.h                        |    2 +
- 10 files changed, 134 insertions(+), 6 deletions(-)
- create mode 100644 ndctl/util/json-firmware.c
-
---
+Ah true, we need to take and hold another daxctl_ctx reference for
+each daxctl_region and unref the daxctl_ctx for each daxctl_region.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
