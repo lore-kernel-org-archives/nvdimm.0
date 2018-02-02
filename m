@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4029A21F0DA6F
- for <linux-nvdimm@lists.01.org>; Tue,  6 Feb 2018 19:37:34 -0800 (PST)
-Subject: [PATCH] memremap: fix softlockup reports at teardown
+ by ml01.01.org (Postfix) with ESMTPS id 8164D223CCF17
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Feb 2018 00:32:46 -0800 (PST)
+Subject: [ndctl PATCH] ndctl: update minimum namespace size
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 06 Feb 2018 19:34:11 -0800
-Message-ID: <151797445154.29778.16795392483399217682.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 02 Feb 2018 00:29:18 -0800
+Message-ID: <151756015882.24501.9157437746399427723.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,51 +16,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhlIGNvbmRfcmVzY2hlZCgpIGN1cnJlbnRseSBpbiB0aGUgc2V0dXAgcGF0aCBuZWVkcyB0byBi
-ZSBkdXBsaWNhdGVkIGluCnRoZSB0ZWFyZG93biBwYXRoLiBSYXRoZXIgdGhhbiByZXF1aXJlIGVh
-Y2ggaW5zdGFuY2Ugb2YKZm9yX2VhY2hfZGV2aWNlX3BmbigpIHRvIG9wZW4gY29kZSB0aGUgc2Ft
-ZSBzZXF1ZW5jZSwgZW1iZWQgaXQgaW4gdGhlCmhlbHBlci4KCkxpbms6IGh0dHBzOi8vZ2l0aHVi
-LmNvbS9pbnRlbC9peHBkaW1tX3N3L2lzc3Vlcy8xMQpDYzogIkrDqXLDtG1lIEdsaXNzZSIgPGpn
-bGlzc2VAcmVkaGF0LmNvbT4KQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQHN1c2UuY29tPgpDYzog
-Q2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+CkNjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9y
-Zz4KRml4ZXM6IDcxMzg5NzAzODM5ZSAoIm1tLCB6b25lX2RldmljZTogUmVwbGFjZSB7Z2V0LCBw
-dXR9X3pvbmVfZGV2aWNlX3BhZ2UoKS4uLiIpClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8
-ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIGtlcm5lbC9tZW1yZW1hcC5jIHwgICAxNSAr
-KysrKysrKysrLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCA1IGRlbGV0
-aW9ucygtKQoKZGlmZiAtLWdpdCBhL2tlcm5lbC9tZW1yZW1hcC5jIGIva2VybmVsL21lbXJlbWFw
-LmMKaW5kZXggNDg0OWJlNWY5YjNjLi40ZGQ0Mjc0Y2FiZTIgMTAwNjQ0Ci0tLSBhL2tlcm5lbC9t
-ZW1yZW1hcC5jCisrKyBiL2tlcm5lbC9tZW1yZW1hcC5jCkBAIC0yNzUsOCArMjc1LDE1IEBAIHN0
-YXRpYyB1bnNpZ25lZCBsb25nIHBmbl9lbmQoc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAly
-ZXR1cm4gKHJlcy0+c3RhcnQgKyByZXNvdXJjZV9zaXplKHJlcykpID4+IFBBR0VfU0hJRlQ7CiB9
-CiAKK3N0YXRpYyB1bnNpZ25lZCBsb25nIHBmbl9uZXh0KHVuc2lnbmVkIGxvbmcgcGZuKQorewor
-CWlmIChwZm4gJSAxMDI0ID09IDApCisJCWNvbmRfcmVzY2hlZCgpOworCXJldHVybiBwZm4gKyAx
-OworfQorCiAjZGVmaW5lIGZvcl9lYWNoX2RldmljZV9wZm4ocGZuLCBtYXApIFwKLQlmb3IgKHBm
-biA9IHBmbl9maXJzdChtYXApOyBwZm4gPCBwZm5fZW5kKG1hcCk7IHBmbisrKQorCWZvciAocGZu
-ID0gcGZuX2ZpcnN0KG1hcCk7IHBmbiA8IHBmbl9lbmQobWFwKTsgcGZuID0gcGZuX25leHQocGZu
-KSkKIAogc3RhdGljIHZvaWQgZGV2bV9tZW1yZW1hcF9wYWdlc19yZWxlYXNlKHZvaWQgKmRhdGEp
-CiB7CkBAIC0zMzcsMTAgKzM0NCwxMCBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVj
-dCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAlyZXNvdXJjZV9zaXpl
-X3QgYWxpZ25fc3RhcnQsIGFsaWduX3NpemUsIGFsaWduX2VuZDsKIAlzdHJ1Y3Qgdm1lbV9hbHRt
-YXAgKmFsdG1hcCA9IHBnbWFwLT5hbHRtYXBfdmFsaWQgPwogCQkJJnBnbWFwLT5hbHRtYXAgOiBO
-VUxMOworCXN0cnVjdCByZXNvdXJjZSAqcmVzID0gJnBnbWFwLT5yZXM7CiAJdW5zaWduZWQgbG9u
-ZyBwZm4sIHBnb2ZmLCBvcmRlcjsKIAlwZ3Byb3RfdCBwZ3Byb3QgPSBQQUdFX0tFUk5FTDsKLQlp
-bnQgZXJyb3IsIG5pZCwgaXNfcmFtLCBpID0gMDsKLQlzdHJ1Y3QgcmVzb3VyY2UgKnJlcyA9ICZw
-Z21hcC0+cmVzOworCWludCBlcnJvciwgbmlkLCBpc19yYW07CiAKIAlhbGlnbl9zdGFydCA9IHJl
-cy0+c3RhcnQgJiB+KFNFQ1RJT05fU0laRSAtIDEpOwogCWFsaWduX3NpemUgPSBBTElHTihyZXMt
-PnN0YXJ0ICsgcmVzb3VyY2Vfc2l6ZShyZXMpLCBTRUNUSU9OX1NJWkUpCkBAIC00MDksOCArNDE2
-LDYgQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVj
-dCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJCWxpc3RfZGVsKCZwYWdlLT5scnUpOwogCQlwYWdlLT5w
-Z21hcCA9IHBnbWFwOwogCQlwZXJjcHVfcmVmX2dldChwZ21hcC0+cmVmKTsKLQkJaWYgKCEoKytp
-ICUgMTAyNCkpCi0JCQljb25kX3Jlc2NoZWQoKTsKIAl9CiAKIAlkZXZtX2FkZF9hY3Rpb24oZGV2
-LCBkZXZtX21lbXJlbWFwX3BhZ2VzX3JlbGVhc2UsIHBnbWFwKTsKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
-TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LW52ZGltbQo=
+The kernel starting with version v4.16 supports a minimum namespace size
+as low as PAGE_SIZE. Update the dpa-alloc test to account for the fact
+that its 4K allocations may result in the namespace being activated with
+its parent region.
+
+Cc: Matthew Wilcox <willy@infradead.org>
+Reported-by: Cheng-mean Liu <soccerl@microsoft.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ ndctl/ndctl.h    |    3 ++-
+ test/dpa-alloc.c |    5 +++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/ndctl/ndctl.h b/ndctl/ndctl.h
+index 4cf373b2a5d4..eb5a9b387b3d 100644
+--- a/ndctl/ndctl.h
++++ b/ndctl/ndctl.h
+@@ -15,6 +15,7 @@
+ 
+ #include <ccan/array_size/array_size.h>
+ #include <linux/types.h>
++#include <sys/user.h>
+ 
+ struct nd_cmd_dimm_flags {
+ 	__u32 status;
+@@ -210,7 +211,7 @@ enum nd_driver_flags {
+ };
+ 
+ enum {
+-	ND_MIN_NAMESPACE_SIZE = 0x00400000,
++	ND_MIN_NAMESPACE_SIZE = PAGE_SIZE,
+ };
+ 
+ enum ars_masks {
+diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
+index 7793650699da..8bb7dd7408a1 100644
+--- a/test/dpa-alloc.c
++++ b/test/dpa-alloc.c
+@@ -232,6 +232,11 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 
+ 		uuid_unparse(namespaces[i].uuid, uuid_str);
+ 		size = ndctl_namespace_get_size(victim);
++		rc = ndctl_namespace_disable(victim);
++		if (rc) {
++			fprintf(stderr, "failed to disable %s\n", uuid_str);
++			return rc;
++		}
+ 		rc = ndctl_namespace_delete(victim);
+ 		if (rc) {
+ 			fprintf(stderr, "failed to delete %s\n", uuid_str);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
