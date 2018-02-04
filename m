@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B834921FD73F7
- for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 23:21:05 -0800 (PST)
-Subject: [PATCH v2 4/5] dax: short circuit vma_is_fsdax() in the
+ by ml01.01.org (Postfix) with ESMTPS id B6CA72237A4DE
+ for <linux-nvdimm@lists.01.org>; Sun,  4 Feb 2018 15:08:50 -0800 (PST)
+Subject: [PATCH 2/3] dax: short circuit vma_is_fsdax() in the
  CONFIG_FS_DAX=n case
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 22 Feb 2018 23:18:01 -0800
-Message-ID: <151937028128.18973.18029610933124841542.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151937026001.18973.12034171121582300402.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151937026001.18973.12034171121582300402.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sun, 04 Feb 2018 15:05:25 -0800
+Message-ID: <151778552571.7139.13956395885168306089.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151778551496.7139.17808629759104553625.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151778551496.7139.17808629759104553625.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,8 +23,8 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: alex.williamson@redhat.com
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
 Do not bother looking up the file type in the case when Filesystem-DAX
@@ -40,10 +40,10 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/include/linux/fs.h b/include/linux/fs.h
-index b2fa9b4c1e51..8f80d9fff86d 100644
+index a3329258ff5c..31aeb0b86d85 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
-@@ -3195,6 +3195,8 @@ static inline bool vma_is_fsdax(struct vm_area_struct *vma)
+@@ -3201,6 +3201,8 @@ static inline bool vma_is_fsdax(struct vm_area_struct *vma)
  
  	if (!vma->vm_file)
  		return false;
