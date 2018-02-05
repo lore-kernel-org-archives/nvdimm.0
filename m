@@ -1,13 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 60A3322352296
- for <linux-nvdimm@lists.01.org>; Tue, 27 Feb 2018 09:23:57 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 1/3] nfit_test: improve structure offset handling
-Date: Tue, 27 Feb 2018 10:29:50 -0700
-Message-Id: <20180227172952.22177-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1E0F02034A8A6
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Feb 2018 06:13:41 -0800 (PST)
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com
+ [10.5.11.15])
+ (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+ (No client certificate requested)
+ by mx1.redhat.com (Postfix) with ESMTPS id 9D0E66B22C
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Feb 2018 14:19:22 +0000 (UTC)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: nvml/pmdk libvmmaloc segmentation fault when exit
+References: <20180205092133.svny2wlqrb56t4vc@XZHOUW.usersys.redhat.com>
+Date: Mon, 05 Feb 2018 09:19:21 -0500
+In-Reply-To: <20180205092133.svny2wlqrb56t4vc@XZHOUW.usersys.redhat.com>
+ (Xiong Zhou's message of "Mon, 5 Feb 2018 17:21:33 +0800")
+Message-ID: <x49mv0ny0wm.fsf@segfault.boston.devel.redhat.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,728 +25,270 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, Dave Jiang <dave.jiang@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, linux-kernel@vger.kernel.org
+To: Xiong Zhou <xzhou@redhat.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In nfit_test0_setup() and nfit_test1_setup() we keep an 'offset' value
-which we use to calculate where in our 'nfit_buf' we will place our next
-structure.  The handling of 'offset' and the calculation of the placement
-of the next structure is a bit inconsistent, though.  We don't update
-'offset' after we insert each structure, sometimes causing us to update it
-for multiple structures' sizes at once.  When calculating the position of
-the next structure we aren't always able to just use 'offset', but
-sometimes have to add in other structure sizes as well.
+Hi, Xiong,
 
-Fix this by updating 'offset' after each structure insertion in a
-consistent way, allowing us to always calculate the position of the next
-structure to be inserted by just using 'nfit_buf + offset'.
+pmem@googlegroups.com is the mailing list for nvml discussion.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- tools/testing/nvdimm/test/nfit.c | 183 +++++++++++++++++++++++----------------
- 1 file changed, 109 insertions(+), 74 deletions(-)
+-Jeff
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 620fa78b3b1b..1376fc95c33a 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1366,7 +1366,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	struct acpi_nfit_data_region *bdw;
- 	struct acpi_nfit_flush_address *flush;
- 	struct acpi_nfit_capabilities *pcap;
--	unsigned int offset, i;
-+	unsigned int offset = 0, i;
- 
- 	/*
- 	 * spa0 (interleave first half of dimm0 and dimm1, note storage
-@@ -1380,93 +1380,102 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	spa->range_index = 0+1;
- 	spa->address = t->spa_set_dma[0];
- 	spa->length = SPA0_SIZE;
-+	offset += spa->header.length;
- 
- 	/*
- 	 * spa1 (interleave last half of the 4 DIMMS, note storage
- 	 * does not actually alias the related block-data-window
- 	 * regions)
- 	 */
--	spa = nfit_buf + sizeof(*spa);
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_PM), 16);
- 	spa->range_index = 1+1;
- 	spa->address = t->spa_set_dma[1];
- 	spa->length = SPA1_SIZE;
-+	offset += spa->header.length;
- 
- 	/* spa2 (dcr0) dimm0 */
--	spa = nfit_buf + sizeof(*spa) * 2;
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
- 	spa->range_index = 2+1;
- 	spa->address = t->dcr_dma[0];
- 	spa->length = DCR_SIZE;
-+	offset += spa->header.length;
- 
- 	/* spa3 (dcr1) dimm1 */
--	spa = nfit_buf + sizeof(*spa) * 3;
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
- 	spa->range_index = 3+1;
- 	spa->address = t->dcr_dma[1];
- 	spa->length = DCR_SIZE;
-+	offset += spa->header.length;
- 
- 	/* spa4 (dcr2) dimm2 */
--	spa = nfit_buf + sizeof(*spa) * 4;
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
- 	spa->range_index = 4+1;
- 	spa->address = t->dcr_dma[2];
- 	spa->length = DCR_SIZE;
-+	offset += spa->header.length;
- 
- 	/* spa5 (dcr3) dimm3 */
--	spa = nfit_buf + sizeof(*spa) * 5;
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
- 	spa->range_index = 5+1;
- 	spa->address = t->dcr_dma[3];
- 	spa->length = DCR_SIZE;
-+	offset += spa->header.length;
- 
- 	/* spa6 (bdw for dcr0) dimm0 */
--	spa = nfit_buf + sizeof(*spa) * 6;
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
- 	spa->range_index = 6+1;
- 	spa->address = t->dimm_dma[0];
- 	spa->length = DIMM_SIZE;
-+	offset += spa->header.length;
- 
- 	/* spa7 (bdw for dcr1) dimm1 */
--	spa = nfit_buf + sizeof(*spa) * 7;
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
- 	spa->range_index = 7+1;
- 	spa->address = t->dimm_dma[1];
- 	spa->length = DIMM_SIZE;
-+	offset += spa->header.length;
- 
- 	/* spa8 (bdw for dcr2) dimm2 */
--	spa = nfit_buf + sizeof(*spa) * 8;
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
- 	spa->range_index = 8+1;
- 	spa->address = t->dimm_dma[2];
- 	spa->length = DIMM_SIZE;
-+	offset += spa->header.length;
- 
- 	/* spa9 (bdw for dcr3) dimm3 */
--	spa = nfit_buf + sizeof(*spa) * 9;
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
- 	spa->range_index = 9+1;
- 	spa->address = t->dimm_dma[3];
- 	spa->length = DIMM_SIZE;
-+	offset += spa->header.length;
- 
--	offset = sizeof(*spa) * 10;
- 	/* mem-region0 (spa0, dimm0) */
- 	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
-@@ -1481,9 +1490,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 2;
-+	offset += memdev->header.length;
- 
- 	/* mem-region1 (spa0, dimm1) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map);
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[1];
-@@ -1497,9 +1507,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 2;
- 	memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
-+	offset += memdev->header.length;
- 
- 	/* mem-region2 (spa1, dimm0) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 2;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[0];
-@@ -1513,9 +1524,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 4;
- 	memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
-+	offset += memdev->header.length;
- 
- 	/* mem-region3 (spa1, dimm1) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 3;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[1];
-@@ -1528,9 +1540,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = SPA0_SIZE/2;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 4;
-+	offset += memdev->header.length;
- 
- 	/* mem-region4 (spa1, dimm2) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 4;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[2];
-@@ -1544,9 +1557,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 4;
- 	memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
-+	offset += memdev->header.length;
- 
- 	/* mem-region5 (spa1, dimm3) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 5;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[3];
-@@ -1559,9 +1573,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = SPA0_SIZE/2;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 4;
-+	offset += memdev->header.length;
- 
- 	/* mem-region6 (spa/dcr0, dimm0) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 6;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[0];
-@@ -1574,9 +1589,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
-+	offset += memdev->header.length;
- 
- 	/* mem-region7 (spa/dcr1, dimm1) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 7;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[1];
-@@ -1589,9 +1605,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
-+	offset += memdev->header.length;
- 
- 	/* mem-region8 (spa/dcr2, dimm2) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 8;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[2];
-@@ -1604,9 +1621,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
-+	offset += memdev->header.length;
- 
- 	/* mem-region9 (spa/dcr3, dimm3) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 9;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[3];
-@@ -1619,9 +1637,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
-+	offset += memdev->header.length;
- 
- 	/* mem-region10 (spa/bdw0, dimm0) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 10;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[0];
-@@ -1634,9 +1653,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
-+	offset += memdev->header.length;
- 
- 	/* mem-region11 (spa/bdw1, dimm1) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 11;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[1];
-@@ -1649,9 +1669,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
-+	offset += memdev->header.length;
- 
- 	/* mem-region12 (spa/bdw2, dimm2) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 12;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[2];
-@@ -1664,9 +1685,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
-+	offset += memdev->header.length;
- 
- 	/* mem-region13 (spa/dcr3, dimm3) */
--	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 13;
-+	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
- 	memdev->device_handle = handle[3];
-@@ -1680,12 +1702,12 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
- 	memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
-+	offset += memdev->header.length;
- 
--	offset = offset + sizeof(struct acpi_nfit_memory_map) * 14;
- 	/* dcr-descriptor0: blk */
- 	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
--	dcr->header.length = sizeof(struct acpi_nfit_control_region);
-+	dcr->header.length = sizeof(*dcr);
- 	dcr->region_index = 0+1;
- 	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[0];
-@@ -1696,11 +1718,12 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->command_size = 8;
- 	dcr->status_offset = 8;
- 	dcr->status_size = 4;
-+	offset += dcr->header.length;
- 
- 	/* dcr-descriptor1: blk */
--	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region);
-+	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
--	dcr->header.length = sizeof(struct acpi_nfit_control_region);
-+	dcr->header.length = sizeof(*dcr);
- 	dcr->region_index = 1+1;
- 	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[1];
-@@ -1711,11 +1734,12 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->command_size = 8;
- 	dcr->status_offset = 8;
- 	dcr->status_size = 4;
-+	offset += dcr->header.length;
- 
- 	/* dcr-descriptor2: blk */
--	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region) * 2;
-+	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
--	dcr->header.length = sizeof(struct acpi_nfit_control_region);
-+	dcr->header.length = sizeof(*dcr);
- 	dcr->region_index = 2+1;
- 	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[2];
-@@ -1726,11 +1750,12 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->command_size = 8;
- 	dcr->status_offset = 8;
- 	dcr->status_size = 4;
-+	offset += dcr->header.length;
- 
- 	/* dcr-descriptor3: blk */
--	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region) * 3;
-+	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
--	dcr->header.length = sizeof(struct acpi_nfit_control_region);
-+	dcr->header.length = sizeof(*dcr);
- 	dcr->region_index = 3+1;
- 	dcr_common_init(dcr);
- 	dcr->serial_number = ~handle[3];
-@@ -1741,8 +1766,8 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->command_size = 8;
- 	dcr->status_offset = 8;
- 	dcr->status_size = 4;
-+	offset += dcr->header.length;
- 
--	offset = offset + sizeof(struct acpi_nfit_control_region) * 4;
- 	/* dcr-descriptor0: pmem */
- 	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
-@@ -1753,10 +1778,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->serial_number = ~handle[0];
- 	dcr->code = NFIT_FIC_BYTEN;
- 	dcr->windows = 0;
-+	offset += dcr->header.length;
- 
- 	/* dcr-descriptor1: pmem */
--	dcr = nfit_buf + offset + offsetof(struct acpi_nfit_control_region,
--			window_size);
-+	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 			window_size);
-@@ -1765,10 +1790,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->serial_number = ~handle[1];
- 	dcr->code = NFIT_FIC_BYTEN;
- 	dcr->windows = 0;
-+	offset += dcr->header.length;
- 
- 	/* dcr-descriptor2: pmem */
--	dcr = nfit_buf + offset + offsetof(struct acpi_nfit_control_region,
--			window_size) * 2;
-+	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 			window_size);
-@@ -1777,10 +1802,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->serial_number = ~handle[2];
- 	dcr->code = NFIT_FIC_BYTEN;
- 	dcr->windows = 0;
-+	offset += dcr->header.length;
- 
- 	/* dcr-descriptor3: pmem */
--	dcr = nfit_buf + offset + offsetof(struct acpi_nfit_control_region,
--			window_size) * 3;
-+	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
- 			window_size);
-@@ -1789,54 +1814,56 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	dcr->serial_number = ~handle[3];
- 	dcr->code = NFIT_FIC_BYTEN;
- 	dcr->windows = 0;
-+	offset += dcr->header.length;
- 
--	offset = offset + offsetof(struct acpi_nfit_control_region,
--			window_size) * 4;
- 	/* bdw0 (spa/dcr0, dimm0) */
- 	bdw = nfit_buf + offset;
- 	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
--	bdw->header.length = sizeof(struct acpi_nfit_data_region);
-+	bdw->header.length = sizeof(*bdw);
- 	bdw->region_index = 0+1;
- 	bdw->windows = 1;
- 	bdw->offset = 0;
- 	bdw->size = BDW_SIZE;
- 	bdw->capacity = DIMM_SIZE;
- 	bdw->start_address = 0;
-+	offset += bdw->header.length;
- 
- 	/* bdw1 (spa/dcr1, dimm1) */
--	bdw = nfit_buf + offset + sizeof(struct acpi_nfit_data_region);
-+	bdw = nfit_buf + offset;
- 	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
--	bdw->header.length = sizeof(struct acpi_nfit_data_region);
-+	bdw->header.length = sizeof(*bdw);
- 	bdw->region_index = 1+1;
- 	bdw->windows = 1;
- 	bdw->offset = 0;
- 	bdw->size = BDW_SIZE;
- 	bdw->capacity = DIMM_SIZE;
- 	bdw->start_address = 0;
-+	offset += bdw->header.length;
- 
- 	/* bdw2 (spa/dcr2, dimm2) */
--	bdw = nfit_buf + offset + sizeof(struct acpi_nfit_data_region) * 2;
-+	bdw = nfit_buf + offset;
- 	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
--	bdw->header.length = sizeof(struct acpi_nfit_data_region);
-+	bdw->header.length = sizeof(*bdw);
- 	bdw->region_index = 2+1;
- 	bdw->windows = 1;
- 	bdw->offset = 0;
- 	bdw->size = BDW_SIZE;
- 	bdw->capacity = DIMM_SIZE;
- 	bdw->start_address = 0;
-+	offset += bdw->header.length;
- 
- 	/* bdw3 (spa/dcr3, dimm3) */
--	bdw = nfit_buf + offset + sizeof(struct acpi_nfit_data_region) * 3;
-+	bdw = nfit_buf + offset;
- 	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
--	bdw->header.length = sizeof(struct acpi_nfit_data_region);
-+	bdw->header.length = sizeof(*bdw);
- 	bdw->region_index = 3+1;
- 	bdw->windows = 1;
- 	bdw->offset = 0;
- 	bdw->size = BDW_SIZE;
- 	bdw->capacity = DIMM_SIZE;
- 	bdw->start_address = 0;
-+	offset += bdw->header.length;
- 
--	offset = offset + sizeof(struct acpi_nfit_data_region) * 4;
- 	/* flush0 (dimm0) */
- 	flush = nfit_buf + offset;
- 	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
-@@ -1845,48 +1872,52 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	flush->hint_count = NUM_HINTS;
- 	for (i = 0; i < NUM_HINTS; i++)
- 		flush->hint_address[i] = t->flush_dma[0] + i * sizeof(u64);
-+	offset += flush->header.length;
- 
- 	/* flush1 (dimm1) */
--	flush = nfit_buf + offset + flush_hint_size * 1;
-+	flush = nfit_buf + offset;
- 	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
- 	flush->header.length = flush_hint_size;
- 	flush->device_handle = handle[1];
- 	flush->hint_count = NUM_HINTS;
- 	for (i = 0; i < NUM_HINTS; i++)
- 		flush->hint_address[i] = t->flush_dma[1] + i * sizeof(u64);
-+	offset += flush->header.length;
- 
- 	/* flush2 (dimm2) */
--	flush = nfit_buf + offset + flush_hint_size  * 2;
-+	flush = nfit_buf + offset;
- 	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
- 	flush->header.length = flush_hint_size;
- 	flush->device_handle = handle[2];
- 	flush->hint_count = NUM_HINTS;
- 	for (i = 0; i < NUM_HINTS; i++)
- 		flush->hint_address[i] = t->flush_dma[2] + i * sizeof(u64);
-+	offset += flush->header.length;
- 
- 	/* flush3 (dimm3) */
--	flush = nfit_buf + offset + flush_hint_size * 3;
-+	flush = nfit_buf + offset;
- 	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
- 	flush->header.length = flush_hint_size;
- 	flush->device_handle = handle[3];
- 	flush->hint_count = NUM_HINTS;
- 	for (i = 0; i < NUM_HINTS; i++)
- 		flush->hint_address[i] = t->flush_dma[3] + i * sizeof(u64);
-+	offset += flush->header.length;
- 
- 	/* platform capabilities */
--	pcap = nfit_buf + offset + flush_hint_size * 4;
-+	pcap = nfit_buf + offset;
- 	pcap->header.type = ACPI_NFIT_TYPE_CAPABILITIES;
- 	pcap->header.length = sizeof(*pcap);
- 	pcap->highest_capability = 1;
- 	pcap->capabilities = ACPI_NFIT_CAPABILITY_CACHE_FLUSH |
- 		ACPI_NFIT_CAPABILITY_MEM_FLUSH;
-+	offset += pcap->header.length;
- 
- 	if (t->setup_hotplug) {
--		offset = offset + flush_hint_size * 4 + sizeof(*pcap);
- 		/* dcr-descriptor4: blk */
- 		dcr = nfit_buf + offset;
- 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
--		dcr->header.length = sizeof(struct acpi_nfit_control_region);
-+		dcr->header.length = sizeof(*dcr);
- 		dcr->region_index = 8+1;
- 		dcr_common_init(dcr);
- 		dcr->serial_number = ~handle[4];
-@@ -1897,8 +1928,8 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		dcr->command_size = 8;
- 		dcr->status_offset = 8;
- 		dcr->status_size = 4;
-+		offset += dcr->header.length;
- 
--		offset = offset + sizeof(struct acpi_nfit_control_region);
- 		/* dcr-descriptor4: pmem */
- 		dcr = nfit_buf + offset;
- 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
-@@ -1909,21 +1940,20 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		dcr->serial_number = ~handle[4];
- 		dcr->code = NFIT_FIC_BYTEN;
- 		dcr->windows = 0;
-+		offset += dcr->header.length;
- 
--		offset = offset + offsetof(struct acpi_nfit_control_region,
--				window_size);
- 		/* bdw4 (spa/dcr4, dimm4) */
- 		bdw = nfit_buf + offset;
- 		bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
--		bdw->header.length = sizeof(struct acpi_nfit_data_region);
-+		bdw->header.length = sizeof(*bdw);
- 		bdw->region_index = 8+1;
- 		bdw->windows = 1;
- 		bdw->offset = 0;
- 		bdw->size = BDW_SIZE;
- 		bdw->capacity = DIMM_SIZE;
- 		bdw->start_address = 0;
-+		offset += bdw->header.length;
- 
--		offset = offset + sizeof(struct acpi_nfit_data_region);
- 		/* spa10 (dcr4) dimm4 */
- 		spa = nfit_buf + offset;
- 		spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
-@@ -1932,30 +1962,32 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		spa->range_index = 10+1;
- 		spa->address = t->dcr_dma[4];
- 		spa->length = DCR_SIZE;
-+		offset += spa->header.length;
- 
- 		/*
- 		 * spa11 (single-dimm interleave for hotplug, note storage
- 		 * does not actually alias the related block-data-window
- 		 * regions)
- 		 */
--		spa = nfit_buf + offset + sizeof(*spa);
-+		spa = nfit_buf + offset;
- 		spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 		spa->header.length = sizeof(*spa);
- 		memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_PM), 16);
- 		spa->range_index = 11+1;
- 		spa->address = t->spa_set_dma[2];
- 		spa->length = SPA0_SIZE;
-+		offset += spa->header.length;
- 
- 		/* spa12 (bdw for dcr4) dimm4 */
--		spa = nfit_buf + offset + sizeof(*spa) * 2;
-+		spa = nfit_buf + offset;
- 		spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 		spa->header.length = sizeof(*spa);
- 		memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
- 		spa->range_index = 12+1;
- 		spa->address = t->dimm_dma[4];
- 		spa->length = DIMM_SIZE;
-+		offset += spa->header.length;
- 
--		offset = offset + sizeof(*spa) * 3;
- 		/* mem-region14 (spa/dcr4, dimm4) */
- 		memdev = nfit_buf + offset;
- 		memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
-@@ -1970,10 +2002,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		memdev->address = 0;
- 		memdev->interleave_index = 0;
- 		memdev->interleave_ways = 1;
-+		offset += memdev->header.length;
- 
--		/* mem-region15 (spa0, dimm4) */
--		memdev = nfit_buf + offset +
--				sizeof(struct acpi_nfit_memory_map);
-+		/* mem-region15 (spa11, dimm4) */
-+		memdev = nfit_buf + offset;
- 		memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 		memdev->header.length = sizeof(*memdev);
- 		memdev->device_handle = handle[4];
-@@ -1987,10 +2019,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		memdev->interleave_index = 0;
- 		memdev->interleave_ways = 1;
- 		memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
-+		offset += memdev->header.length;
- 
- 		/* mem-region16 (spa/bdw4, dimm4) */
--		memdev = nfit_buf + offset +
--				sizeof(struct acpi_nfit_memory_map) * 2;
-+		memdev = nfit_buf + offset;
- 		memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 		memdev->header.length = sizeof(*memdev);
- 		memdev->device_handle = handle[4];
-@@ -2003,8 +2035,8 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		memdev->address = 0;
- 		memdev->interleave_index = 0;
- 		memdev->interleave_ways = 1;
-+		offset += memdev->header.length;
- 
--		offset = offset + sizeof(struct acpi_nfit_memory_map) * 3;
- 		/* flush3 (dimm4) */
- 		flush = nfit_buf + offset;
- 		flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
-@@ -2014,6 +2046,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		for (i = 0; i < NUM_HINTS; i++)
- 			flush->hint_address[i] = t->flush_dma[4]
- 				+ i * sizeof(u64);
-+		offset += flush->header.length;
- 	}
- 
- 	post_ars_status(&t->ars_state, &t->badrange, t->spa_set_dma[0],
-@@ -2061,17 +2094,18 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	spa->range_index = 0+1;
- 	spa->address = t->spa_set_dma[0];
- 	spa->length = SPA2_SIZE;
-+	offset += spa->header.length;
- 
- 	/* virtual cd region */
--	spa = nfit_buf + sizeof(*spa);
-+	spa = nfit_buf + offset;
- 	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
- 	spa->header.length = sizeof(*spa);
- 	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_VCD), 16);
- 	spa->range_index = 0;
- 	spa->address = t->spa_set_dma[1];
- 	spa->length = SPA_VCD_SIZE;
-+	offset += spa->header.length;
- 
--	offset += sizeof(*spa) * 2;
- 	/* mem-region0 (spa0, dimm0) */
- 	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
-@@ -2089,8 +2123,8 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	memdev->flags = ACPI_NFIT_MEM_SAVE_FAILED | ACPI_NFIT_MEM_RESTORE_FAILED
- 		| ACPI_NFIT_MEM_FLUSH_FAILED | ACPI_NFIT_MEM_HEALTH_OBSERVED
- 		| ACPI_NFIT_MEM_NOT_ARMED;
-+	offset += memdev->header.length;
- 
--	offset += sizeof(*memdev);
- 	/* dcr-descriptor0 */
- 	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
-@@ -2101,8 +2135,8 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	dcr->serial_number = ~handle[5];
- 	dcr->code = NFIT_FIC_BYTE;
- 	dcr->windows = 0;
--
- 	offset += dcr->header.length;
-+
- 	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
- 	memdev->header.length = sizeof(*memdev);
-@@ -2117,9 +2151,9 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 1;
- 	memdev->flags = ACPI_NFIT_MEM_MAP_FAILED;
-+	offset += memdev->header.length;
- 
- 	/* dcr-descriptor1 */
--	offset += sizeof(*memdev);
- 	dcr = nfit_buf + offset;
- 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
- 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
-@@ -2129,6 +2163,7 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	dcr->serial_number = ~handle[6];
- 	dcr->code = NFIT_FIC_BYTE;
- 	dcr->windows = 0;
-+	offset += dcr->header.length;
- 
- 	post_ars_status(&t->ars_state, &t->badrange, t->spa_set_dma[0],
- 			SPA2_SIZE);
--- 
-2.14.3
+Xiong Zhou <xzhou@redhat.com> writes:
 
+> Hi,
+>
+> This happens when testing nvml or pmdk libvmmalloc library:
+> + dmesg
+> [12890.676033] traps: test_libvmmallo[15789] general protection ip:7f3f01481a31 sp:7ffd85f4b7a0 error:0 in libvmmalloc.so.1.0.0[7f3f0146d000+3e000]
+>
+> gdb output:
+> Program received signal SIGSEGV, Segmentation fault.
+> 0x00007ffff7bada31 in arena_purge () from /usr/local/lib64/libvmmalloc.so.1
+> (gdb) bt
+> #0  0x00007ffff7bada31 in arena_purge () from /usr/local/lib64/libvmmalloc.so.1
+> #1  0x00007ffff7badcca in arena_dalloc_bin_run () from /usr/local/lib64/libvmmalloc.so.1
+> #2  0x00007ffff7baf0e0 in je_vmem_je_arena_dalloc_bin_locked () from /usr/local/lib64/libvmmalloc.so.1
+> #3  0x00007ffff7bc6d31 in je_vmem_je_tcache_bin_flush_small () from /usr/local/lib64/libvmmalloc.so.1
+> #4  0x00007ffff7bc761e in je_vmem_je_tcache_destroy () from /usr/local/lib64/libvmmalloc.so.1
+> #5  0x00007ffff7bc7895 in je_vmem_je_tcache_thread_cleanup () from /usr/local/lib64/libvmmalloc.so.1
+> #6  0x00007ffff7b9dccc in jemalloc_destructor () from /usr/local/lib64/libvmmalloc.so.1
+> #7  0x00007ffff7deb18a in _dl_fini () at dl-fini.c:253
+> #8  0x00007ffff7805b19 in __run_exit_handlers (status=0, listp=0x7ffff7b926c8 <__exit_funcs>, run_list_atexit=run_list_atexit@entry=true) at exit.c:77
+> #9  0x00007ffff7805b67 in __GI_exit (status=<optimized out>) at exit.c:99
+> #10 0x00007ffff77ee38c in __libc_start_main (main=0x40072d <main>, argc=1, ubp_av=0x7fffffffe388, init=<optimized out>, fini=<optimized out>,
+>     rtld_fini=<optimized out>, stack_end=0x7fffffffe378) at ../csu/libc-start.c:308
+> #11 0x0000000000400669 in _start ()
+>
+> I did not find issue opening entry in github repo, hope it's ok
+> sending here.
+>
+> Thanks,
+> Xiong
+>
+> Full test log:
+>
+> # ./nf.sh
+> + cc -ggdb test_libvmmalloc.c '-DALLOC_SIZE=((size_t)(1UL << 8))' -o test_libvmmalloc -lvmmalloc
+> + VMMALLOC_POOL_DIR=/daxmnt/
+> + VMMALLOC_POOL_SIZE=1073741824
+> + ./test_libvmmalloc
+>         Testing ./test_libvmmalloc, alloc size 256
+> ./nf.sh: line 47: 15789 Segmentation fault      VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift ./test_libvmmalloc
+> + ldd -v ./test_libvmmalloc
+>         linux-vdso.so.1 =>  (0x00007ffe4fdf9000)
+>         libvmmalloc.so.1 => /usr/local/lib64/libvmmalloc.so.1 (0x00007f786ce1e000)
+>         libc.so.6 => /lib64/libc.so.6 (0x00007f786ca51000)
+>         libpthread.so.0 => /lib64/libpthread.so.0 (0x00007f786c835000)
+>         /lib64/ld-linux-x86-64.so.2 (0x00007f786d060000)
+>
+>         Version information:
+>         ./test_libvmmalloc:
+>                 libc.so.6 (GLIBC_2.2.5) => /lib64/libc.so.6
+>         /usr/local/lib64/libvmmalloc.so.1:
+>                 ld-linux-x86-64.so.2 (GLIBC_2.3) => /lib64/ld-linux-x86-64.so.2
+>                 libpthread.so.0 (GLIBC_2.3.4) => /lib64/libpthread.so.0
+>                 libpthread.so.0 (GLIBC_2.3.2) => /lib64/libpthread.so.0
+>                 libpthread.so.0 (GLIBC_2.2.5) => /lib64/libpthread.so.0
+>                 libc.so.6 (GLIBC_2.14) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_2.3) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_2.3.2) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_2.7) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_2.17) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_2.3.4) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_2.2.5) => /lib64/libc.so.6
+>         /lib64/libc.so.6:
+>                 ld-linux-x86-64.so.2 (GLIBC_2.3) => /lib64/ld-linux-x86-64.so.2
+>                 ld-linux-x86-64.so.2 (GLIBC_PRIVATE) => /lib64/ld-linux-x86-64.so.2
+>         /lib64/libpthread.so.0:
+>                 ld-linux-x86-64.so.2 (GLIBC_2.2.5) => /lib64/ld-linux-x86-64.so.2
+>                 ld-linux-x86-64.so.2 (GLIBC_2.3) => /lib64/ld-linux-x86-64.so.2
+>                 ld-linux-x86-64.so.2 (GLIBC_PRIVATE) => /lib64/ld-linux-x86-64.so.2
+>                 libc.so.6 (GLIBC_2.14) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_2.3.2) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_PRIVATE) => /lib64/libc.so.6
+>                 libc.so.6 (GLIBC_2.2.5) => /lib64/libc.so.6
+> + echo 0
+> 0
+> + dmesg
+> [12890.676033] traps: test_libvmmallo[15789] general protection ip:7f3f01481a31 sp:7ffd85f4b7a0 error:0 in libvmmalloc.so.1.0.0[7f3f0146d000+3e000]
+> + set +x
+> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7
+> Copyright (C) 2013 Free Software Foundation, Inc.
+> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+> This is free software: you are free to change and redistribute it.
+> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+> and "show warranty" for details.
+> This GDB was configured as "x86_64-redhat-linux-gnu".
+> For bug reporting instructions, please see:
+> <http://www.gnu.org/software/gdb/bugs/>...
+> Reading symbols from /home/xzhou/fsdax/test_libvmmalloc...done.
+> (gdb) b main
+> Breakpoint 1 at 0x40073c: file test_libvmmalloc.c, line 18.
+> (gdb) r
+> Starting program: /home/xzhou/fsdax/./test_libvmmalloc
+> [Thread debugging using libthread_db enabled]
+> Using host libthread_db library "/lib64/libthread_db.so.1".
+>
+> Breakpoint 1, main (argc=1, argv=0x7fffffffe388) at test_libvmmalloc.c:18
+> 18              char *buf = NULL;
+> (gdb) c
+> Continuing.
+>         Testing /home/xzhou/fsdax/./test_libvmmalloc, alloc size 256
+>
+> Program received signal SIGSEGV, Segmentation fault.
+> 0x00007ffff7bada31 in arena_purge () from /usr/local/lib64/libvmmalloc.so.1
+> (gdb) bt
+> #0  0x00007ffff7bada31 in arena_purge () from /usr/local/lib64/libvmmalloc.so.1
+> #1  0x00007ffff7badcca in arena_dalloc_bin_run () from /usr/local/lib64/libvmmalloc.so.1
+> #2  0x00007ffff7baf0e0 in je_vmem_je_arena_dalloc_bin_locked () from /usr/local/lib64/libvmmalloc.so.1
+> #3  0x00007ffff7bc6d31 in je_vmem_je_tcache_bin_flush_small () from /usr/local/lib64/libvmmalloc.so.1
+> #4  0x00007ffff7bc761e in je_vmem_je_tcache_destroy () from /usr/local/lib64/libvmmalloc.so.1
+> #5  0x00007ffff7bc7895 in je_vmem_je_tcache_thread_cleanup () from /usr/local/lib64/libvmmalloc.so.1
+> #6  0x00007ffff7b9dccc in jemalloc_destructor () from /usr/local/lib64/libvmmalloc.so.1
+> #7  0x00007ffff7deb18a in _dl_fini () at dl-fini.c:253
+> #8  0x00007ffff7805b19 in __run_exit_handlers (status=0, listp=0x7ffff7b926c8 <__exit_funcs>, run_list_atexit=run_list_atexit@entry=true) at exit.c:77
+> #9  0x00007ffff7805b67 in __GI_exit (status=<optimized out>) at exit.c:99
+> #10 0x00007ffff77ee38c in __libc_start_main (main=0x40072d <main>, argc=1, ubp_av=0x7fffffffe388, init=<optimized out>, fini=<optimized out>,
+>     rtld_fini=<optimized out>, stack_end=0x7fffffffe378) at ../csu/libc-start.c:308
+> #11 0x0000000000400669 in _start ()
+> (gdb) c
+> Continuing.
+>
+> Program terminated with signal SIGSEGV, Segmentation fault.
+> The program no longer exists.
+> (gdb) q
+>
+> # cat nf.sh
+> #!/bin/bash
+>
+> set xfs /dev/pmem0 /daxmnt
+>
+> [ $# -ne 3 ] && { echo $0 fst dev mnt; exit 1; }
+>
+> #yum install -y libvmmalloc-devel libvmmalloc libvmem-devel
+> #debuginfo-install glibc libgcc libvmmalloc
+>
+> FSTYP=$1
+> DEV1=$2
+> MNT1=$3
+>
+> mountpoint $MNT1 > /dev/null 2>&1 && umount $MNT1
+> mkdir -p $MNT1
+>
+> if [ "$FSTYP" == "ext4" ] ; then
+>         mkfs.ext4 -Fq -b 4096 $DEV1
+> elif [ "$FSTYP" == "xfs" ] ; then
+>         mkfs.xfs -fq -b size=4096 $DEV1
+> fi
+>
+> mount -o dax $DEV1 $MNT1
+>
+> cat > /dev/null <<EOF
+> for psize in 20 21 25 30 31 32 ; do
+> for asize in 3 8 13 21 31 32; do
+>         cc test_libvmmalloc.c -DALLOC_SIZE="((size_t)(1UL << $asize))" -o test_libvmmalloc -lvmmalloc
+>         if [ $? -ne 0 ] ; then
+>                 echo "nvml libvmmalloc $asize cc FAIL"
+>                 exit 1
+>         fi
+>         ((pshift=1<<psize))
+>         echo -ne "\t$psize $asize"
+>         VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift ./test_libvmmalloc && \
+>         VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift ls > /dev/null $MNT1
+> done
+> done
+> EOF
+>
+> psize=30
+> asize=8
+> ((pshift=1<<psize))
+> dmesg -C
+> set -x
+> cc -ggdb test_libvmmalloc.c -DALLOC_SIZE="((size_t)(1UL << $asize))" -o test_libvmmalloc -lvmmalloc || exit
+> VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift ./test_libvmmalloc
+> ldd -v ./test_libvmmalloc
+> echo $?
+> dmesg
+> set +x
+> VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift gdb ./test_libvmmalloc
+>
+> umount $MNT1 $DEV1 > /dev/null 2>&1
+>
+> # cat test_libvmmalloc.c
+> #include <stdio.h>
+> #include <fcntl.h>
+> #include <errno.h>
+> #include <stdlib.h>
+> #include <unistd.h>
+> #include <string.h>
+> #include <libvmem.h>
+>
+> /* alloc size -- 1 KB */
+> #ifndef ALLOC_SIZE
+> #define ALLOC_SIZE ((size_t)(1 << 10))
+> #endif
+>
+> int main(int argc, char *argv[])
+> {
+>         char *path;
+>         char *ptr;
+>         char *buf = NULL;
+>
+>         printf("\tTesting %s, alloc size %lu\n", argv[0], ALLOC_SIZE);
+>
+>         if ((ptr = malloc(ALLOC_SIZE)) == NULL) {
+>                 perror("vmem_malloc");
+>                 exit(1);
+>         }
+>
+>         buf = (char *)malloc(ALLOC_SIZE);
+>         if (buf == NULL) {
+>                 perror("a buf malloc");
+>                 free(ptr);
+>                 exit(1);
+>         }
+>         memset(buf, 'a', ALLOC_SIZE);
+>         strncpy(ptr, buf, ALLOC_SIZE);
+>
+>         buf = (char *)realloc(buf, ALLOC_SIZE - 1);
+>         if (buf == NULL) {
+>                 perror("b buf malloc");
+>                 free(ptr);
+>                 exit(1);
+>         }
+>         memset(buf, 'b', ALLOC_SIZE - 1);
+>         strncpy(ptr, buf, ALLOC_SIZE - 1);
+>
+>         buf = (char *)realloc(buf, ALLOC_SIZE + 1024);
+>         if (buf == NULL) {
+>                 perror("c buf malloc");
+>                 free(ptr);
+>                 exit(1);
+>         }
+>         memset(buf, 'c', ALLOC_SIZE + 1024);
+>         strncpy(ptr, buf, ALLOC_SIZE + 1024);
+>
+>         /* give the memory back */
+>         free(ptr);
+>         free(buf);
+>
+>         return 0;
+> }
+> # git remote -v
+> origin  https://github.com/pmem/nvml.git (fetch)
+> origin  https://github.com/pmem/nvml.git (push)
+> # git log --oneline -1
+> 2f9a347 Merge pull request #2576 from plebioda/bug-fixing
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
