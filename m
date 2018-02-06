@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4F25221F6A6D9
- for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 16:46:30 -0800 (PST)
-Subject: [PATCH v3 3/6] xfs, dax: introduce IS_FSDAX()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 23 Feb 2018 16:43:27 -0800
-Message-ID: <151943300713.29249.545330864711927648.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151943298533.29249.14597996053028346159.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151943298533.29249.14597996053028346159.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8CF772215BD87
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Feb 2018 16:01:25 -0800 (PST)
+Date: Mon, 5 Feb 2018 17:07:06 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [GIT PULL] libnvdimm for 4.16
+Message-ID: <20180206000706.GA24568@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,177 +17,213 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, kbuild test robot <fengguang.wu@intel.com>
+To: torvalds@linux-foundation.org
+Cc: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given that S_DAX is non-zero in the FS_DAX=n + DEV_DAX=y case, another
-mechanism besides the plain IS_DAX() check to compile out dead
-filesystem-dax code paths. Without IS_FSDAX() xfs will fail at link time
-with:
+Hi Linus, please pull from:
 
-    ERROR: "dax_finish_sync_fault" [fs/xfs/xfs.ko] undefined!
-    ERROR: "dax_iomap_fault" [fs/xfs/xfs.ko] undefined!
-    ERROR: "dax_iomap_rw" [fs/xfs/xfs.ko] undefined!
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdim=
+m-for-4.16
 
-This compile failure was previously hidden by the fact that S_DAX was
-erroneously defined to '0' in the FS_DAX=n + DEV_DAX=y case.
+...to receive the libnvdimm update for 4.16.
 
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: linux-xfs@vger.kernel.org
-Cc: <stable@vger.kernel.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+All of these commits have shipped in -next and have received build verifica=
+tion
+notices from 0day.
+
+There is one small merge conflict that Michael Ellerman also noted in his p=
+ull
+request.  In Michael's tree the axonram driver was removed, and in our tree=
+ it
+received two small updates.  The merge can be trivially resolved by just
+keeping the driver removed per Michael's tree.
+
+Regarding the vmem_altmap patches, Michal Hocko took a quick look and while=
+ it
+wasn't a full review he has future plans to reuse vmem_altmap in wider plac=
+es
+in the memory hotplug code, so he's in favor of getting it properly plumbed.
+
+In case you wanted to inspect them or verify the merge I've also pushed the
+three topic branches for this cycle to our nvdimm tree: =
+
+
+  for-4.16/nfit
+  for-4.16/libnvdimm
+  for-4.16/dax
+
 ---
- fs/xfs/xfs_file.c    |   14 +++++++-------
- fs/xfs/xfs_ioctl.c   |    4 ++--
- fs/xfs/xfs_iomap.c   |    6 +++---
- fs/xfs/xfs_reflink.c |    2 +-
- include/linux/fs.h   |    2 ++
- 5 files changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 9ea08326f876..46a098b90fd0 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -288,7 +288,7 @@ xfs_file_read_iter(
- 	if (XFS_FORCED_SHUTDOWN(mp))
- 		return -EIO;
- 
--	if (IS_DAX(inode))
-+	if (IS_FSDAX(inode))
- 		ret = xfs_file_dax_read(iocb, to);
- 	else if (iocb->ki_flags & IOCB_DIRECT)
- 		ret = xfs_file_dio_aio_read(iocb, to);
-@@ -726,7 +726,7 @@ xfs_file_write_iter(
- 	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
- 		return -EIO;
- 
--	if (IS_DAX(inode))
-+	if (IS_FSDAX(inode))
- 		ret = xfs_file_dax_write(iocb, from);
- 	else if (iocb->ki_flags & IOCB_DIRECT) {
- 		/*
-@@ -1045,7 +1045,7 @@ __xfs_filemap_fault(
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--	if (IS_DAX(inode)) {
-+	if (IS_FSDAX(inode)) {
- 		pfn_t pfn;
- 
- 		ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &xfs_iomap_ops);
-@@ -1070,7 +1070,7 @@ xfs_filemap_fault(
- {
- 	/* DAX can shortcut the normal fault path on write faults! */
- 	return __xfs_filemap_fault(vmf, PE_SIZE_PTE,
--			IS_DAX(file_inode(vmf->vma->vm_file)) &&
-+			IS_FSDAX(file_inode(vmf->vma->vm_file)) &&
- 			(vmf->flags & FAULT_FLAG_WRITE));
- }
- 
-@@ -1079,7 +1079,7 @@ xfs_filemap_huge_fault(
- 	struct vm_fault		*vmf,
- 	enum page_entry_size	pe_size)
- {
--	if (!IS_DAX(file_inode(vmf->vma->vm_file)))
-+	if (!IS_FSDAX(file_inode(vmf->vma->vm_file)))
- 		return VM_FAULT_FALLBACK;
- 
- 	/* DAX can shortcut the normal fault path on write faults! */
-@@ -1124,12 +1124,12 @@ xfs_file_mmap(
- 	 * We don't support synchronous mappings for non-DAX files. At least
- 	 * until someone comes with a sensible use case.
- 	 */
--	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
-+	if (!IS_FSDAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
- 		return -EOPNOTSUPP;
- 
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
--	if (IS_DAX(file_inode(filp)))
-+	if (IS_FSDAX(file_inode(filp)))
- 		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
- 	return 0;
- }
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 89fb1eb80aae..234279ff66ce 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1108,9 +1108,9 @@ xfs_ioctl_setattr_dax_invalidate(
- 	}
- 
- 	/* If the DAX state is not changing, we have nothing to do here. */
--	if ((fa->fsx_xflags & FS_XFLAG_DAX) && IS_DAX(inode))
-+	if ((fa->fsx_xflags & FS_XFLAG_DAX) && IS_FSDAX(inode))
- 		return 0;
--	if (!(fa->fsx_xflags & FS_XFLAG_DAX) && !IS_DAX(inode))
-+	if (!(fa->fsx_xflags & FS_XFLAG_DAX) && !IS_FSDAX(inode))
- 		return 0;
- 
- 	/* lock, flush and invalidate mapping in preparation for flag change */
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index 66e1edbfb2b2..cf794d429aec 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -241,7 +241,7 @@ xfs_iomap_write_direct(
- 	 * the reserve block pool for bmbt block allocation if there is no space
- 	 * left but we need to do unwritten extent conversion.
- 	 */
--	if (IS_DAX(VFS_I(ip))) {
-+	if (IS_FSDAX(VFS_I(ip))) {
- 		bmapi_flags = XFS_BMAPI_CONVERT | XFS_BMAPI_ZERO;
- 		if (imap->br_state == XFS_EXT_UNWRITTEN) {
- 			tflags |= XFS_TRANS_RESERVE;
-@@ -952,7 +952,7 @@ static inline bool imap_needs_alloc(struct inode *inode,
- 	return !nimaps ||
- 		imap->br_startblock == HOLESTARTBLOCK ||
- 		imap->br_startblock == DELAYSTARTBLOCK ||
--		(IS_DAX(inode) && imap->br_state == XFS_EXT_UNWRITTEN);
-+		(IS_FSDAX(inode) && imap->br_state == XFS_EXT_UNWRITTEN);
- }
- 
- static inline bool need_excl_ilock(struct xfs_inode *ip, unsigned flags)
-@@ -988,7 +988,7 @@ xfs_file_iomap_begin(
- 		return -EIO;
- 
- 	if (((flags & (IOMAP_WRITE | IOMAP_DIRECT)) == IOMAP_WRITE) &&
--			!IS_DAX(inode) && !xfs_get_extsz_hint(ip)) {
-+			!IS_FSDAX(inode) && !xfs_get_extsz_hint(ip)) {
- 		/* Reserve delalloc blocks for regular writeback. */
- 		return xfs_file_iomap_begin_delay(inode, offset, length, iomap);
- 	}
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 270246943a06..a126e00e05e3 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1351,7 +1351,7 @@ xfs_reflink_remap_range(
- 		goto out_unlock;
- 
- 	/* Don't share DAX file data for now. */
--	if (IS_DAX(inode_in) || IS_DAX(inode_out))
-+	if (IS_FSDAX(inode_in) || IS_FSDAX(inode_out))
- 		goto out_unlock;
- 
- 	ret = vfs_clone_file_prep_inodes(inode_in, pos_in, inode_out, pos_out,
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 79c413985305..a4310a95011b 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1909,6 +1909,8 @@ static inline bool sb_rdonly(const struct super_block *sb) { return sb->s_flags
- #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
- 				 (inode)->i_rdev == WHITEOUT_DEV)
- 
-+#define IS_FSDAX(inode) (IS_ENABLED(CONFIG_FS_DAX) && IS_DAX(inode))
-+
- static inline bool HAS_UNMAPPED_ID(struct inode *inode)
- {
- 	return !uid_valid(inode->i_uid) || !gid_valid(inode->i_gid);
+The following changes since commit a7f2766ac7c359216da4e714dc117c881e39a74a:
 
+  Merge branches 'acpi-gpio', 'acpi-button', 'acpi-battery' and 'acpi-video=
+' (2018-01-18 03:02:16 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdim=
+m-for-4.16
+
+for you to fetch changes up to ee95f4059a833839bf52972191b2d4c3d3cec552:
+
+  Merge branch 'for-4.16/nfit' into libnvdimm-for-next (2018-02-03 00:26:26=
+ -0700)
+
+----------------------------------------------------------------
+libnvdimm for 4.16
+
+* Require struct page by default for filesystem DAX to remove a number of
+  surprising failure cases.  This includes failures with direct I/O, gdb and
+  fork(2).
+
+* Add support for the new Platform Capabilities Structure added to the NFIT=
+ in
+  ACPI 6.2a.  This new table tells us whether the platform supports flushing
+  of CPU and memory controller caches on unexpected power loss events.
+
+* Revamp vmem_altmap and dev_pagemap handling to clean up code and better
+  support future future PCI P2P uses.
+
+* Deprecate the ND_IOCTL_SMART_THRESHOLD command whose payload has become
+  out-of-sync with recent versions of the NVDIMM_FAMILY_INTEL spec, and
+  instead rely on the generic ND_CMD_CALL approach used by the two other IO=
+CTL
+  families, NVDIMM_FAMILY_{HPE,MSFT}.
+
+* Enhance nfit_test so we can test some of the new things added in version =
+1.6
+  of the DSM specification.  This includes testing firmware download and
+  simulating the Last Shutdown State (LSS) status.
+
+----------------------------------------------------------------
+Christoph Hellwig (16):
+      memremap: provide stubs for vmem_altmap_offset and vmem_altmap_free
+      mm: don't export arch_add_memory
+      mm: don't export __add_pages
+      mm: pass the vmem_altmap to arch_add_memory and __add_pages
+      mm: pass the vmem_altmap to vmemmap_populate
+      mm: pass the vmem_altmap to arch_remove_memory and __remove_pages
+      mm: pass the vmem_altmap to vmemmap_free
+      mm: pass the vmem_altmap to memmap_init_zone
+      mm: split altmap memory map allocation from normal case
+      mm: merge vmem_altmap_alloc into altmap_alloc_block_buf
+      mm: move get_dev_pagemap out of line
+      mm: optimize dev_pagemap reference counting around get_dev_pagemap
+      memremap: remove to_vmem_altmap
+      memremap: simplify duplicate region handling in devm_memremap_pages
+      memremap: change devm_memremap_pages interface to use struct dev_page=
+map
+      memremap: merge find_dev_pagemap into get_dev_pagemap
+
+Colin Ian King (1):
+      libnvdimm, namespace: remove redundant initialization of 'nd_mapping'
+
+Dan Williams (8):
+      nfit, libnvdimm: deprecate the generic SMART ioctl
+      tools/testing/nvdimm: smart alarm/threshold control
+      mm, dax: introduce pfn_t_special()
+      ext4: auto disable dax instead of failing mount
+      ext2: auto disable dax instead of failing mount
+      dax: require 'struct page' by default for filesystem dax
+      tools/testing/nvdimm: force nfit_test to depend on instrumented modul=
+es
+      libnvdimm, namespace: make min namespace size 4K
+
+Dave Jiang (6):
+      acpi: nfit: Add support for detect platform CPU cache flush on power =
+loss
+      acpi: nfit: add persistent memory control flag for nd_region
+      libnvdimm: expose platform persistence attribute for nd_region
+      nfit-test: Add platform cap support from ACPI 6.2a to test
+      libnvdimm/nfit_test: add firmware download emulation
+      libnvdimm/nfit_test: adding support for unit testing enable LSS status
+
+Jan H. Sch=F6nherr (2):
+      mm: Fix memory size alignment in devm_memremap_pages_release()
+      mm: Fix devm_memremap_pages() collision handling
+
+Jeff Moyer (1):
+      libnvdimm, btt: fix uninitialized err_lock
+
+Logan Gunthorpe (1):
+      memremap: drop private struct page_map
+
+Luis de Bethencourt (1):
+      device-dax: Fix trailing semicolon
+
+Ross Zwisler (2):
+      Merge branch 'for-4.16/dax' into libnvdimm-for-next
+      Merge branch 'for-4.16/nfit' into libnvdimm-for-next
+
+Toshi Kani (1):
+      acpi, nfit: fix register dimm error handling
+
+ arch/arm64/mm/mmu.c                    |   9 +-
+ arch/ia64/mm/discontig.c               |   6 +-
+ arch/ia64/mm/init.c                    |  18 +-
+ arch/powerpc/mm/init_64.c              |  17 +-
+ arch/powerpc/mm/mem.c                  |  11 +-
+ arch/powerpc/platforms/Kconfig         |   1 +
+ arch/powerpc/sysdev/axonram.c          |   2 +-
+ arch/s390/mm/init.c                    |   7 +-
+ arch/s390/mm/vmem.c                    |   6 +-
+ arch/sh/mm/init.c                      |  10 +-
+ arch/sparc/mm/init_64.c                |   5 +-
+ arch/x86/mm/init_32.c                  |   9 +-
+ arch/x86/mm/init_64.c                  |  94 ++++---
+ drivers/acpi/nfit/core.c               |  26 ++
+ drivers/acpi/nfit/nfit.h               |   1 +
+ drivers/dax/device.c                   |   2 +-
+ drivers/dax/pmem.c                     |  20 +-
+ drivers/dax/super.c                    |  10 +
+ drivers/nvdimm/btt.c                   |   2 +-
+ drivers/nvdimm/bus.c                   |   3 -
+ drivers/nvdimm/namespace_devs.c        |   2 +-
+ drivers/nvdimm/nd.h                    |   9 +-
+ drivers/nvdimm/pfn_devs.c              |  27 +-
+ drivers/nvdimm/pmem.c                  |  41 +--
+ drivers/nvdimm/pmem.h                  |   1 +
+ drivers/nvdimm/region_devs.c           |  13 +
+ drivers/s390/block/Kconfig             |   1 +
+ drivers/s390/block/dcssblk.c           |   3 +-
+ fs/Kconfig                             |   7 +
+ fs/ext2/super.c                        |   7 +-
+ fs/ext4/super.c                        |   9 +-
+ include/linux/libnvdimm.h              |  11 +
+ include/linux/memory_hotplug.h         |  29 +-
+ include/linux/memremap.h               |  77 ++---
+ include/linux/mm.h                     |  22 +-
+ include/linux/pfn_t.h                  |  13 +
+ include/uapi/linux/ndctl.h             |  56 +---
+ kernel/memremap.c                      | 174 +++++-------
+ mm/gup.c                               |   7 +-
+ mm/hmm.c                               |  13 +-
+ mm/memory.c                            |  16 +-
+ mm/memory_hotplug.c                    |  39 ++-
+ mm/page_alloc.c                        |   6 +-
+ mm/sparse-vmemmap.c                    |  67 ++---
+ mm/sparse.c                            |  43 +--
+ tools/testing/nvdimm/Kbuild            |   4 +
+ tools/testing/nvdimm/acpi_nfit_test.c  |   8 +
+ tools/testing/nvdimm/device_dax_test.c |   8 +
+ tools/testing/nvdimm/libnvdimm_test.c  |   8 +
+ tools/testing/nvdimm/pmem_test.c       |   8 +
+ tools/testing/nvdimm/test/iomap.c      |   7 +-
+ tools/testing/nvdimm/test/nfit.c       | 498 +++++++++++++++++++++++++++++=
+----
+ tools/testing/nvdimm/test/nfit_test.h  | 134 +++++++++
+ tools/testing/nvdimm/watermark.h       |  21 ++
+ 54 files changed, 1122 insertions(+), 526 deletions(-)
+ create mode 100644 tools/testing/nvdimm/acpi_nfit_test.c
+ create mode 100644 tools/testing/nvdimm/device_dax_test.c
+ create mode 100644 tools/testing/nvdimm/libnvdimm_test.c
+ create mode 100644 tools/testing/nvdimm/pmem_test.c
+ create mode 100644 tools/testing/nvdimm/watermark.h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
