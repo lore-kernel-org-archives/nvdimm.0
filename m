@@ -1,15 +1,9 @@
-From: "Business Group (gclkjvq)" <wfpzy-Y9sIeH5OGRo@public.gmane.org>
-Subject: =?windows-1251?B?UmU6WzVdIGxpbnV4LW5ldEB2Z2VyLmtlcm5l?=
- =?windows-1251?B?bC5vcmcgV2Ugb2ZmZXIgRS1tYWlsIGRhdGFi?=
- =?windows-1251?B?YXNlcyB3aXRoIDgwJSBkaXNjb3VudCAvIM/w?=
- =?windows-1251?B?5eTr4OPg5ewgRS1tYWlsIOHg5/sg8SA4MCUg?=
- =?windows-1251?B?8ero5Oru6Q==?=
-Date: Tue, 6 Feb 2018 07:54:40 +0300
-Message-ID: <0702B4E7EC3817F4282D64F3F79EF66C@263.net>
-Reply-To: "Business Group \(gclkjvq\)" <dwtwwoj-o+MxOtu4lMCHXe+LvDLADg@public.gmane.org>
+From: "MAILER-DAEMON" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: MESSAGE COULD NOT BE DELIVERED
+Date: Wed, 7 Feb 2018 21:08:25 +0800
+Message-ID: <20180207130243.56DFA21F0DA60@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="cp1251"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============9002812775811638282=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -20,25 +14,82 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-net-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-net-4ESfhGDvgol+CIkdHa1UOg@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ntfs-dev-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-open-source-P3Mejjx7fphMeHKdZgrLhA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-OBmyj6YDURU@public.gmane.org, linux-oxnas-Xt5XgHjqiBU06sgRBLv0+0B+6BGkLq7r@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-parport-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pcisupport-ZM4KX8k1dDJhUPSOf7nbvg@public.gmane.org, linux-pcmcia-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-perf-users-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-SGVsbG8gbGludXgtbmV0QHZnZXIua2VybmVsLm9yZwpXZSBvZmZlciB5b3UgYW4gRS1tYWlsIGRh
-dGFiYXNlIGZvciBhbnkgY291bnRyeSBpbiB0aGUgV29ybGQgd2l0aCA4MCUgZGlzY291bnQuW3d4
-Y3pwYWh1XSAKRm9yIGVmZmVjdGl2ZSBtYXJrZXRpbmcsIGFkdmVydGlzaW5nLCBuZXdzbGV0dGVy
-cy5bY3F0YWxdCkluIG9yZGVyIHRvIHF1aWNrbHkgYXR0cmFjdCBjdXN0b21lcnMgZm9yIHlvdXIg
-YnVzaW5lc3MuW2RienRkXSAKQ3VzdG9tZXJzIHdobyBib3VnaHQgb3VyIGRhdGFiYXNlLCB0cmFp
-bmluZyBhbmQgYWR2aWNlIGZvciBmcmVlLltjeHVoaG12ZV0gCkh1cnJ5LCBkaXNjb3VudHMgYXJl
-IG9ubHkgMiB3ZWVrcy5bZndibGVqYm9dIApEZXRhaWxzIGJ5IGUtbWFpbDogYW5kcmV5MTAwMDc3
-QGdtYWlsLmNvbSBvciBieSBJQ1E6IDY2Njc4NDQzMCBbamd3cHd3bGNdIAoKxO7h8PvpIOTl7fwg
-bGludXgtbmV0QHZnZXIua2VybmVsLm9yZwrP8OXk6+Dj4OXsIMLg7CBFLW1haWwg4eDn+yDv7iDr
-/uHu6SDx8vDg7eUgzOjw4CDxIDgwJSDx6ujk6u7pLlt5dW9haGNdCsTr/yD99PTl6vLo4u376SDs
-4PDq5fLo7ePu4vv1LCDw5err4Ozt+/UsIPDg8fH76+7qLltmY3d3YWZnXSAK0SD25ev8/iDh+/Hy
-8O7j7iDv8Oji6+X35e3o/yDq6+jl7fLu4iDk6/8gwuD45ePuIOHo5+3l8eAuW3JncnZ6eWZhXSAK
-yuvo5e3y4OwsIOrz7+ji+OjsIPMg7eDxIOHg5/ssIO7h8/fl7ejlIOgg6u7t8fPr/PLg9ujoIOHl
-8e/r4PLt7i5bY2tiaHFdIArR7+X46PLlLCDx6ujk6ugg8u7r/OruIDIg7eXk5evoLltiYWJwYmpv
-bl0gCsfgIOTl8uDr/O3u6SDo7fTu8Ozg9ujl6SDu4fDg+eDp8uXx/DogW2xyc3BrZF0gCndiYXNl
-QGxpc3QucnUg6OvoIO/uIElDUTogNjY2Nzg0NDMwIFtrY2N5Z10gCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
-TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LW52ZGltbQo=
+This is a multi-part message in MIME format.
+
+--===============9002812775811638282==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+ğzÊéµí—Ò¹Õ.&Ø™QÅkp•Wp$rŠß1Òå¾u"×n#g“¼0èlÍ/:
+/…¸‚éÎ
+Şf}&¢~]­-°¬¡Z–œÆSÀ¦ñ°ß}Gº#íì¹ä|/ì6&ÚcĞˆ¨N1•òß ³3`ŸI
+¹3Ï¿
+±a”dK\*ÓöYÊ4¬Qpİ]4PªÓÌŠèÎÏ—ÙŸ*Ä4®}³¢÷ØC‰©Û;Å­±&šRAy>îe•×º`¥©o¯sÈôZğ%e àOB¿qœwê.íƒQ•ˆnZÁ”WĞ>;³›F8ß±<È™´ï¨ØÑÛ#
+›¶$fê³ª
+×‚ˆ4œG›/•Ò2(¡¯ØÛÊr'%N„±/zFrq!$7!*>!h|J¾N_?*FAvˆ]‰uÖIVS}Æ'|,05íÎÆ¼È-|Òfì;ö†îAÀêvâ‡¸X
+‚|¢¬|¬ÖézŒ®ÆE¦6´I†6ÔQà”z¢HĞx§mÌŠcÀvŞCÑô^Ğ¼³[Ac§ô{y/R§?SF~-G2÷ü‘Ò«}Å8Ú™§[³XÓ{‚cy.´J¼W˜"Æwx×û_°,İ“¡µDTµæ7èWu!(gR®œ
+Ü~ü
+Gö<Xğˆ™UBœ‡ô­Âb`ğo(o˜˜'©K$8MğM¼Öº™b82”
+Î•‰FØä5)£Opôòúo›:/qC—Ğ ğûº¶Ù]¥ušÌš¸”êğÇ^¢éû*R¼9ğ­Á¦~­pàRoîŸ‘hşö£
+¤slíwfeYzvb¤H(‘
+¨À´ÀÎeFY×j-ñzÎË¡à;Yw‰Ûm/(Î«5±NÅ¡ŸW¨Ú7Z÷¸rçWŸÊ¥åv'^ş7$:2_ŠÅßUø£°BFÃ¬ğy*À¿ÙkV*Ä·ØkÔÆé™]ßÁÔWí^l?1¼YÑ7ıTğÅ®ÃI¹SùKĞ˜\DÀ#ÌİiG½IQöŸµhwLí˜ù_bÌË¶æuåô1_ô:©‹ê¨Q”GıRNÁ E¿“¡i²$|/U–³ìä2Ô¶G4
+jyÅûµWZÚ}Ğ¼b# òk ’!;e…!kÑìşh¼NxôğÆƒ£«„È_‘"äòñ"D¾â‹d‘×}n5°œÊÒx#,W}.´Æô1ZN9.ğñ¯Z¾Z/Ï-ä…mJ­euÛŒNSÇ©²wìÚåÕèwšä
+1š:á>¡a×¸¹Ò/ÛÑ¢¿ü«$ÕL¦j¨ö¶Âz9¶¡ì¤FëÎ
+ïáaÓ¯ —hP¡ZŒ×î2\
+Nz†k¤x¼1
+sh;( ÃÙï$»±Îq^ş—sR3ü’¿![×£,é
+,·ÊÀvÁ5Ä¾fÎI¹W“•cšÜˆRrŠnq
+ì3ıßAÑ÷æ1$(®â?«L
+Bë••j¹QJÖXğå…ı¸ßú`sizJí8Í#o?”õpá—êÂ!,F;c£Hí"ã¶£©•ñ”9éo‹ĞIQR>ú!»åz;D¡Q©Û
+éÄ>Úz½[Ò¹EÓŠÆ#ÖLœ
+d®Ó¾ûo³g÷¥İÂrTáººŒÑÁE'
+°Òşq'ô„·ËN‰É4A'ãàx¡âGÄ½ÁÑCÎÔ|R1|[Ø”ŒAÎëş/âXG|Ï§'È)œD_¶t£Fj%ªÌn4L}úªí’\ÆïÏ#
+¶ïÊ¨"PöQÍôšÍ1’9F*¥ÎåŠòƒ43Ìt%‘ÕënNÄ’%!àdNë¨ÌÊgÅkçˆLÁN¦Ì
+.¤UÌÌŸït÷u
+q¯ïeıªV/XY¶–mòùåÈoïg}°ßØ¦N'ÉŞu·*ıë(ö‹lqƒ¦g`­ÏQV‘}N)ïµ¤<yò„9Ì¦ÚãrRA³ Ê‘DNÅˆ!Ã$FnĞÆ‡±1C¦6…9'ŠÑÇ.˜LoVÅšv]¬ÅòÛĞË®¯ƒUÁbåĞWñ‘°„[ù!dívÜ»‚^[õ:Å…
+ùê·( ÷Á¹'¹
+êihÖ]FÂ!õ>
+`©©|¬ÊNL"Kòş±ö><§TR·"úïP)O¾÷>ğ>
+F)>ş†ˆd‡"<¨o¡´ÚíêÏÛ"ëûKÜyåQ7ËÛÓÁ‰ªDD×—ıÈ6et.
+mºO!7òXçz·P
+q ã629’3ÒˆÜ¨%ò¿X7x¼wq…F×«ù2¶–7ıoz¶Ö³¡¢NzíkDw“ >½è:2Úk™ãßÖüIIcFÑB¼Êvµ_ßb‘!±Ò5Lİa"o
+j2
+}Ü<h‘ÓÏV‡èª0¸Q‡mæhîA„¤à÷òæÈCì&D«ûŒ¿õ-“‰ï³úVècB¾774»´ËX.:
+ã·{S9gìV`àdhŒ6lœ;³V3§oB8—®ëU
+l4za)£WçkáåF:<Ş¢%F^"ç÷Š,‘ôjÓN^ B˜‡ kÀ4ã¤pø­Á[
+^p _¬™ Ty‹´F3ãõœ÷—Ëh
+{²û$ˆşã$ú³ 5XòY¢2óÏå!ÏÑObÜ˜¼RÏF¸|˜6À)*¼ÚÒ»Qß(Ò89gÅ
+~4Òî;ı§³^;ğó‡}¯,´Fƒ).wr‰¬!„­"²Kã’|½—é)I UÙoâÇ†W(X’»YÓ6Ğª!ÂFï2èTŒ¯4Ä1ø"ck¸KÖEé6
+î¢ZÖòV^Ç
+H|´ö°·¾’Í_N¥©ÃÊÜ>T„2ûƒÉ—zE$ï:É¸İ&ôöG
+B#ÃR´ÓŞ8˜5z?×n•ê; L9ÔL¶ğÉRÄáeæØ’}ãìÌ7ooi„Áî .»ĞµŒ1Ry
+>?i™8¾éˆ6{zn'Eg­q¹%k ßÚöÏ¾—zƒCõªŠ±É¿â'nòUàï©iˆkú÷Ä•3­§4SŠ>£f¡ßgoD)cw'¹ß¸[Áô¥¢¼±àƒ(
+¾bHèÊ·LBíÂØÍs*Úä‹c%ÉK)
+ó¤iykyIõÎ4“.ßÁ/¹èFRÔ×Af<l¾Âˆ
+Ê[şç„5|øE’òÚDxºç ÊĞaAe¾,<-E3ï³B‡šÈ’ŸKî_Úş©äq4óääXø>tš±ÂIà]½•ádü„è _E<§²iAöîª¤S2ğ8¸G^D”Î_HøJø«”Ï†é
+zŞLá“EÌÂŞ\-Ñs…<‚ÀàœKçm
+Ğo'Š§ú¬Xƒúvpz|$’2Œ_,S¢q{ŞeŞÀóPn›³Â‰dS‘5È©YJâĞï]¤•n•—2â´ı:s|’ÒËÌ^Æ
+”vôÁ¹Ó„nO‚¢äçÅ§Â§É
+ ÷.n&J)×ùæ…“¿ör<ÎºxÓŠ˜˜iš
+d˜7MÑIŸWoV¥tƒ”§ôÕöebš[ºÚp„ “¼µÎ\S®ùÊZãG˜)<È¨úKvRÊ¶ó-
+‰æì^,ÔÛ´AA”üdW&ııİuÑˆ¼wË?1oÀ§­Ëguo?W|&¶“êp‰!g²rv§pZ±)á/Òş¾—¹Æ§›*À…è'ÆQL’®ó^Š;L0aŸK³G9ÜUÁ¢Šg×lÌ<æÈazf¹ÆøÌŸ ±à,8¤½Öè½‚‡\]ûE\Pªobâh¡k|[çß[_¯…è©
+RĞKp‹Bùk÷ué« ˆVh¤g‚Òyn
+fÒX*ù”xÕÜL˜$_Í9¬×‰½åñ†èê¨ßkcáæur³Ä¢‡Ø±¥¬T´­r$Ü6ä/Ç&¡øù•ğoĞ<¤ÈAÁÎ³Sk¨nf¯U‹µqÍŠû³`½22İw¥™Hx$8âÄRÏæz8#5²ûş
+
+
+--===============9002812775811638282==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============9002812775811638282==--
