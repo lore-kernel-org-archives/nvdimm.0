@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 958DF21F6A6D9
- for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 16:46:25 -0800 (PST)
-Subject: [PATCH v3 2/6] dax: fix dax_mapping() definition in the FS_DAX=n +
- DEV_DAX=y case
+ by ml01.01.org (Postfix) with ESMTPS id 4029A21F0DA6F
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Feb 2018 19:37:34 -0800 (PST)
+Subject: [PATCH] memremap: fix softlockup reports at teardown
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 23 Feb 2018 16:43:22 -0800
-Message-ID: <151943300200.29249.14072486041472340237.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151943298533.29249.14597996053028346159.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151943298533.29249.14597996053028346159.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 06 Feb 2018 19:34:11 -0800
+Message-ID: <151797445154.29778.16795392483399217682.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,64 +16,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, kbuild test robot <fengguang.wu@intel.com>, Christoph Hellwig <hch@lst.de>
+To: linux-mm@kvack.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-An address_space will only have dax exceptional entries when FS_DAX is
-enabled. The current reliance on S_DAX causes compile failures when
-S_DAX is defined for DEV_DAX, but FS_DAX is disabled. Make dax_mapping()
-always return false so that mm/truncate.c drops its link time
-dependencies on fs/dax.c.
-
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/dax.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 0185ecdae135..62e8cf7eb566 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -107,6 +107,10 @@ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- int __dax_zero_page_range(struct block_device *bdev,
- 		struct dax_device *dax_dev, sector_t sector,
- 		unsigned int offset, unsigned int length);
-+static inline bool dax_mapping(struct address_space *mapping)
-+{
-+	return mapping->host && IS_DAX(mapping->host);
-+}
- #else
- static inline int __dax_zero_page_range(struct block_device *bdev,
- 		struct dax_device *dax_dev, sector_t sector,
-@@ -114,12 +118,11 @@ static inline int __dax_zero_page_range(struct block_device *bdev,
- {
- 	return -ENXIO;
- }
--#endif
--
- static inline bool dax_mapping(struct address_space *mapping)
- {
--	return mapping->host && IS_DAX(mapping->host);
-+	return false;
- }
-+#endif
- 
- struct writeback_control;
- int dax_writeback_mapping_range(struct address_space *mapping,
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlIGNvbmRfcmVzY2hlZCgpIGN1cnJlbnRseSBpbiB0aGUgc2V0dXAgcGF0aCBuZWVkcyB0byBi
+ZSBkdXBsaWNhdGVkIGluCnRoZSB0ZWFyZG93biBwYXRoLiBSYXRoZXIgdGhhbiByZXF1aXJlIGVh
+Y2ggaW5zdGFuY2Ugb2YKZm9yX2VhY2hfZGV2aWNlX3BmbigpIHRvIG9wZW4gY29kZSB0aGUgc2Ft
+ZSBzZXF1ZW5jZSwgZW1iZWQgaXQgaW4gdGhlCmhlbHBlci4KCkxpbms6IGh0dHBzOi8vZ2l0aHVi
+LmNvbS9pbnRlbC9peHBkaW1tX3N3L2lzc3Vlcy8xMQpDYzogIkrDqXLDtG1lIEdsaXNzZSIgPGpn
+bGlzc2VAcmVkaGF0LmNvbT4KQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQHN1c2UuY29tPgpDYzog
+Q2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+CkNjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9y
+Zz4KRml4ZXM6IDcxMzg5NzAzODM5ZSAoIm1tLCB6b25lX2RldmljZTogUmVwbGFjZSB7Z2V0LCBw
+dXR9X3pvbmVfZGV2aWNlX3BhZ2UoKS4uLiIpClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8
+ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIGtlcm5lbC9tZW1yZW1hcC5jIHwgICAxNSAr
+KysrKysrKysrLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCA1IGRlbGV0
+aW9ucygtKQoKZGlmZiAtLWdpdCBhL2tlcm5lbC9tZW1yZW1hcC5jIGIva2VybmVsL21lbXJlbWFw
+LmMKaW5kZXggNDg0OWJlNWY5YjNjLi40ZGQ0Mjc0Y2FiZTIgMTAwNjQ0Ci0tLSBhL2tlcm5lbC9t
+ZW1yZW1hcC5jCisrKyBiL2tlcm5lbC9tZW1yZW1hcC5jCkBAIC0yNzUsOCArMjc1LDE1IEBAIHN0
+YXRpYyB1bnNpZ25lZCBsb25nIHBmbl9lbmQoc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAly
+ZXR1cm4gKHJlcy0+c3RhcnQgKyByZXNvdXJjZV9zaXplKHJlcykpID4+IFBBR0VfU0hJRlQ7CiB9
+CiAKK3N0YXRpYyB1bnNpZ25lZCBsb25nIHBmbl9uZXh0KHVuc2lnbmVkIGxvbmcgcGZuKQorewor
+CWlmIChwZm4gJSAxMDI0ID09IDApCisJCWNvbmRfcmVzY2hlZCgpOworCXJldHVybiBwZm4gKyAx
+OworfQorCiAjZGVmaW5lIGZvcl9lYWNoX2RldmljZV9wZm4ocGZuLCBtYXApIFwKLQlmb3IgKHBm
+biA9IHBmbl9maXJzdChtYXApOyBwZm4gPCBwZm5fZW5kKG1hcCk7IHBmbisrKQorCWZvciAocGZu
+ID0gcGZuX2ZpcnN0KG1hcCk7IHBmbiA8IHBmbl9lbmQobWFwKTsgcGZuID0gcGZuX25leHQocGZu
+KSkKIAogc3RhdGljIHZvaWQgZGV2bV9tZW1yZW1hcF9wYWdlc19yZWxlYXNlKHZvaWQgKmRhdGEp
+CiB7CkBAIC0zMzcsMTAgKzM0NCwxMCBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVj
+dCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAlyZXNvdXJjZV9zaXpl
+X3QgYWxpZ25fc3RhcnQsIGFsaWduX3NpemUsIGFsaWduX2VuZDsKIAlzdHJ1Y3Qgdm1lbV9hbHRt
+YXAgKmFsdG1hcCA9IHBnbWFwLT5hbHRtYXBfdmFsaWQgPwogCQkJJnBnbWFwLT5hbHRtYXAgOiBO
+VUxMOworCXN0cnVjdCByZXNvdXJjZSAqcmVzID0gJnBnbWFwLT5yZXM7CiAJdW5zaWduZWQgbG9u
+ZyBwZm4sIHBnb2ZmLCBvcmRlcjsKIAlwZ3Byb3RfdCBwZ3Byb3QgPSBQQUdFX0tFUk5FTDsKLQlp
+bnQgZXJyb3IsIG5pZCwgaXNfcmFtLCBpID0gMDsKLQlzdHJ1Y3QgcmVzb3VyY2UgKnJlcyA9ICZw
+Z21hcC0+cmVzOworCWludCBlcnJvciwgbmlkLCBpc19yYW07CiAKIAlhbGlnbl9zdGFydCA9IHJl
+cy0+c3RhcnQgJiB+KFNFQ1RJT05fU0laRSAtIDEpOwogCWFsaWduX3NpemUgPSBBTElHTihyZXMt
+PnN0YXJ0ICsgcmVzb3VyY2Vfc2l6ZShyZXMpLCBTRUNUSU9OX1NJWkUpCkBAIC00MDksOCArNDE2
+LDYgQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVj
+dCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJCWxpc3RfZGVsKCZwYWdlLT5scnUpOwogCQlwYWdlLT5w
+Z21hcCA9IHBnbWFwOwogCQlwZXJjcHVfcmVmX2dldChwZ21hcC0+cmVmKTsKLQkJaWYgKCEoKytp
+ICUgMTAyNCkpCi0JCQljb25kX3Jlc2NoZWQoKTsKIAl9CiAKIAlkZXZtX2FkZF9hY3Rpb24oZGV2
+LCBkZXZtX21lbXJlbWFwX3BhZ2VzX3JlbGVhc2UsIHBnbWFwKTsKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
