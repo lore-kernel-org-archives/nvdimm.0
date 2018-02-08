@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2472A223CCEEC
- for <linux-nvdimm@lists.01.org>; Thu,  1 Feb 2018 12:27:22 -0800 (PST)
-Subject: [PATCH 2 1/2] dax: change bdev_dax_supported() to take a
- block_device as input
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 01 Feb 2018 13:32:59 -0700
-Message-ID: <151751717968.69886.6978962571680635420.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 3A7D122361E40
+ for <linux-nvdimm@lists.01.org>; Wed,  7 Feb 2018 18:22:46 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH] libnvdimm, testing: Add emulation for smart injection commands
+Date: Wed,  7 Feb 2018 19:28:26 -0700
+Message-Id: <20180208022826.18037-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,199 +15,142 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is in preparation to support DAX for realtime device on XFS.
-bdev_dax_supported() will be taking a block_device as input instead of
-a superblock. The only place a super_block is used in this function is
-providing the id for debug outputs. Also __bdev_dax_supported()
-will be removed since it just directly calls bdev_dax_supported()
-and is not reference by any other code.
+Add support for the smart injection command in the nvdimm unit test
+framework. This allows for directly injecting to smart fields and flags
+that are supported in the injection command. If the injected values are
+past the threshold, then an acpi notification is also triggered.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/dax/super.c |   33 ++++++++++++++++-----------------
- fs/ext2/super.c     |    2 +-
- fs/ext4/super.c     |    2 +-
- fs/xfs/xfs_ioctl.c  |    2 +-
- fs/xfs/xfs_super.c  |    2 +-
- include/linux/dax.h |    8 ++------
- 6 files changed, 22 insertions(+), 27 deletions(-)
+ tools/testing/nvdimm/test/nfit.c      | 41 ++++++++++++++++++++++++++++++++++-
+ tools/testing/nvdimm/test/nfit_test.h | 16 ++++++++++++++
+ 2 files changed, 56 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 473af694ad1c..3bdf6787b6df 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -70,11 +70,10 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
- 	return fs_dax_get_by_host(bdev->bd_disk->disk_name);
- }
- EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
--#endif
- 
- /**
-- * __bdev_dax_supported() - Check if the device supports dax for filesystem
-- * @sb: The superblock of the device
-+ * bdev_dax_supported() - Check if the device supports dax for filesystem
-+ * @sb: The block_device of the device
-  * @blocksize: The block size of the device
-  *
-  * This is a library function for filesystems to check if the block device
-@@ -82,9 +81,8 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-  *
-  * Return: negative errno if unsupported, 0 if supported.
-  */
--int __bdev_dax_supported(struct super_block *sb, int blocksize)
-+int bdev_dax_supported(struct block_device *bdev, int blocksize)
- {
--	struct block_device *bdev = sb->s_bdev;
- 	struct dax_device *dax_dev;
- 	pgoff_t pgoff;
- 	int err, id;
-@@ -93,22 +91,22 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 	long len;
- 
- 	if (blocksize != PAGE_SIZE) {
--		pr_debug("VFS (%s): error: unsupported blocksize for dax\n",
--				sb->s_id);
-+		pr_debug("bdev (%d:%d): error: unsupported blocksize for dax\n",
-+				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
- 		return -EINVAL;
- 	}
- 
- 	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
- 	if (err) {
--		pr_debug("VFS (%s): error: unaligned partition for dax\n",
--				sb->s_id);
-+		pr_debug("bdev (%d:%d): error: unaligned partition for dax\n",
-+				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
- 		return err;
- 	}
- 
- 	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
- 	if (!dax_dev) {
--		pr_debug("VFS (%s): error: device does not support dax\n",
--				sb->s_id);
-+		pr_debug("bdev (%d:%d): error: device does not support dax\n",
-+				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
- 		return -EOPNOTSUPP;
- 	}
- 
-@@ -119,8 +117,8 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 	put_dax(dax_dev);
- 
- 	if (len < 1) {
--		pr_debug("VFS (%s): error: dax access failed (%ld)\n",
--				sb->s_id, len);
-+		pr_debug("bdev (%d:%d): error: dax access failed (%ld)\n",
-+				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev), len);
- 		return len < 0 ? len : -EIO;
- 	}
- 
-@@ -128,15 +126,16 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 			|| pfn_t_devmap(pfn))
- 		/* pass */;
- 	else {
--		pr_debug("VFS (%s): error: dax support not enabled\n",
--				sb->s_id);
-+		pr_debug("bdev (%d:%d): error: dax support not enabled\n",
-+				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
- 		return -EOPNOTSUPP;
- 	}
- 
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 42ee1798971d..9896c4ddd3b8 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -708,7 +708,9 @@ static void smart_notify(struct device *bus_dev,
+ 				>= thresh->media_temperature)
+ 			|| ((thresh->alarm_control & ND_INTEL_SMART_CTEMP_TRIP)
+ 				&& smart->ctrl_temperature
+-				>= thresh->ctrl_temperature)) {
++				>= thresh->ctrl_temperature)
++			|| (smart->health != ND_INTEL_SMART_NON_CRITICAL_HEALTH)
++			|| (smart->shutdown_state != 0)) {
+ 		device_lock(bus_dev);
+ 		__acpi_nvdimm_notify(dimm_dev, 0x81);
+ 		device_unlock(bus_dev);
+@@ -734,6 +736,35 @@ static int nfit_test_cmd_smart_set_threshold(
  	return 0;
  }
--EXPORT_SYMBOL_GPL(__bdev_dax_supported);
--#endif
-+EXPORT_SYMBOL_GPL(bdev_dax_supported);
-+#endif /* CONFIG_FS_DAX */
-+#endif /* CONFIG_BLOCK */
  
- enum dax_device_flags {
- 	/* !alive + rcu grace period == no new operations / mappings */
-diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-index 38f9222606ee..a0de090b18d5 100644
---- a/fs/ext2/super.c
-+++ b/fs/ext2/super.c
-@@ -958,7 +958,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
- 
- 	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
--		err = bdev_dax_supported(sb, blocksize);
-+		err = bdev_dax_supported(sb->s_bdev, blocksize);
- 		if (err) {
- 			ext2_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index 18873ea89e08..7ebc8d5cab8c 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -3712,7 +3712,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
- 					" that may contain inline data");
- 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
- 		}
--		err = bdev_dax_supported(sb, blocksize);
-+		err = bdev_dax_supported(sb->s_bdev, blocksize);
- 		if (err) {
- 			ext4_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 20dc65fef6a4..5fd4d50eb1c6 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1102,7 +1102,7 @@ xfs_ioctl_setattr_dax_invalidate(
- 	if (fa->fsx_xflags & FS_XFLAG_DAX) {
- 		if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
- 			return -EINVAL;
--		if (bdev_dax_supported(sb, sb->s_blocksize) < 0)
-+		if (bdev_dax_supported(sb->s_bdev, sb->s_blocksize) < 0)
- 			return -EINVAL;
- 	}
- 
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 1dacccc367f8..e8a687232614 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1652,7 +1652,7 @@ xfs_fs_fill_super(
- 		xfs_warn(mp,
- 		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
- 
--		error = bdev_dax_supported(sb, sb->s_blocksize);
-+		error = bdev_dax_supported(sb->s_bdev, sb->s_blocksize);
- 		if (error) {
- 			xfs_alert(mp,
- 			"DAX unsupported by block device. Turning off DAX.");
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 5258346c558c..a31a7e3f929b 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -40,11 +40,7 @@ static inline void put_dax(struct dax_device *dax_dev)
- 
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #if IS_ENABLED(CONFIG_FS_DAX)
--int __bdev_dax_supported(struct super_block *sb, int blocksize);
--static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
--{
--	return __bdev_dax_supported(sb, blocksize);
--}
-+int bdev_dax_supported(struct block_device *bdev, int blocksize);
- 
- static inline struct dax_device *fs_dax_get_by_host(const char *host)
++static int nfit_test_cmd_smart_inject(
++		struct nd_intel_smart_inject *inj,
++		unsigned int buf_len,
++		struct nd_intel_smart_threshold *thresh,
++		struct nd_intel_smart *smart,
++		struct device *bus_dev, struct device *dimm_dev)
++{
++	if (buf_len != sizeof(*inj)) {
++		pr_err("TEST: size mismatch. buf = %d, struct = %d\n",
++			buf_len, sizeof(*inj));
++		return -EINVAL;
++	}
++
++	if (inj->mtemp_enable)
++		smart->media_temperature = inj->media_temperature;
++	if (inj->spare_enable)
++		smart->spares = inj->spares;
++	if (inj->fatal_enable)
++		smart->health = ND_INTEL_SMART_FATAL_HEALTH;
++	if (inj->unsafe_shutdown_enable) {
++		smart->shutdown_state = 1;
++		smart->shutdown_count++;
++	}
++	inj->status = 0;
++	smart_notify(bus_dev, dimm_dev, smart, thresh);
++
++	return 0;
++}
++
+ static void uc_error_notify(struct work_struct *work)
  {
-@@ -58,7 +54,7 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
+ 	struct nfit_test *t = container_of(work, typeof(*t), work);
+@@ -934,6 +965,13 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+ 						&t->pdev.dev, t->dimm_dev[i]);
++			case ND_INTEL_SMART_INJECT:
++				return nfit_test_cmd_smart_inject(buf,
++						buf_len,
++						&t->smart_threshold[i -
++							t->dcr_idx],
++						&t->smart[i - t->dcr_idx],
++						&t->pdev.dev, t->dimm_dev[i]);
+ 			default:
+ 				return -ENOTTY;
+ 			}
+@@ -2015,6 +2053,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	set_bit(ND_INTEL_SMART, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_INTEL_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_INTEL_SMART_SET_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
++	set_bit(ND_INTEL_SMART_INJECT, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
+diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
+index 428344519cdf..33752e06ff8d 100644
+--- a/tools/testing/nvdimm/test/nfit_test.h
++++ b/tools/testing/nvdimm/test/nfit_test.h
+@@ -93,6 +93,7 @@ struct nd_cmd_ars_err_inj_stat {
+ #define ND_INTEL_FW_FINISH_UPDATE	15
+ #define ND_INTEL_FW_FINISH_QUERY	16
+ #define ND_INTEL_SMART_SET_THRESHOLD	17
++#define ND_INTEL_SMART_INJECT		18
  
- struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
- #else
--static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
-+static inline int bdev_dax_supported(struct block_device *bdev, int blocksize)
- {
- 	return -EOPNOTSUPP;
- }
+ #define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
+ #define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
+@@ -111,6 +112,10 @@ struct nd_cmd_ars_err_inj_stat {
+ #define ND_INTEL_SMART_NON_CRITICAL_HEALTH      (1 << 0)
+ #define ND_INTEL_SMART_CRITICAL_HEALTH          (1 << 1)
+ #define ND_INTEL_SMART_FATAL_HEALTH             (1 << 2)
++#define ND_INTEL_SMART_INJECT_MTEMP		(1 << 0)
++#define ND_INTEL_SMART_INJECT_SPARE		(1 << 1)
++#define ND_INTEL_SMART_INJECT_FATAL		(1 << 2)
++#define ND_INTEL_SMART_INJECT_SHUTDOWN		(1 << 3)
+ 
+ struct nd_intel_smart {
+ 	__u32 status;
+@@ -158,6 +163,17 @@ struct nd_intel_smart_set_threshold {
+ 	__u32 status;
+ } __packed;
+ 
++struct nd_intel_smart_inject {
++	__u64 flags;
++	__u8 mtemp_enable;
++	__u16 media_temperature;
++	__u8 spare_enable;
++	__u8 spares;
++	__u8 fatal_enable;
++	__u8 unsafe_shutdown_enable;
++	__u32 status;
++} __packed;
++
+ #define INTEL_FW_STORAGE_SIZE		0x100000
+ #define INTEL_FW_MAX_SEND_LEN		0xFFEC
+ #define INTEL_FW_QUERY_INTERVAL		250000
+-- 
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
