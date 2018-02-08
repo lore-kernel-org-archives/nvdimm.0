@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F3A79223DB78C
- for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 23:56:55 -0800 (PST)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id C04C1AC00DC
- for <linux-nvdimm@lists.01.org>;
- Fri,  9 Feb 2018 17:02:35 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [RFC PATCH v3 1/5] ndctl: nvdimmd: add LOG_NOTICE level to
-Date: Fri,  9 Feb 2018 17:02:21 +0900
-Message-Id: <20180209080225.5137-2-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
-References: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 72354222DE13C
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 13:18:28 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 1/2] libnvdimm,
+ testing: Add emulation for smart injection commands
+Date: Thu,  8 Feb 2018 14:24:04 -0700
+Message-Id: <20180208212405.10955-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,55 +24,131 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds LOG_NOTICE level to log_priority for the notifications
-of nvdimm dimm over threshold event. Currently, the LOG_INFO level
-is too low, and the notifications are not up to LOG_ERROR level.
+Add support for the smart injection command in the nvdimm unit test
+framework. This allows for directly injecting to smart fields and flags
+that are supported in the injection command. If the injected values are
+past the threshold, then an acpi notification is also triggered.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- util/log.c | 2 ++
- util/log.h | 3 +++
- 2 files changed, 5 insertions(+)
+ tools/testing/nvdimm/test/nfit.c      | 38 ++++++++++++++++++++++++++++++++++-
+ tools/testing/nvdimm/test/nfit_test.h | 16 +++++++++++++++
+ 2 files changed, 53 insertions(+), 1 deletion(-)
 
-diff --git a/util/log.c b/util/log.c
-index cc4d7d8..c60ca33 100644
---- a/util/log.c
-+++ b/util/log.c
-@@ -50,6 +50,8 @@ static int log_priority(const char *priority)
- 		return LOG_INFO;
- 	if (strncmp(priority, "debug", 5) == 0)
- 		return LOG_DEBUG;
-+	if (strncmp(priority, "notice", 6) == 0)
-+		return LOG_NOTICE;
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 42ee1798971d..1df6131d569f 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -708,7 +708,9 @@ static void smart_notify(struct device *bus_dev,
+ 				>= thresh->media_temperature)
+ 			|| ((thresh->alarm_control & ND_INTEL_SMART_CTEMP_TRIP)
+ 				&& smart->ctrl_temperature
+-				>= thresh->ctrl_temperature)) {
++				>= thresh->ctrl_temperature)
++			|| (smart->health != ND_INTEL_SMART_NON_CRITICAL_HEALTH)
++			|| (smart->shutdown_state != 0)) {
+ 		device_lock(bus_dev);
+ 		__acpi_nvdimm_notify(dimm_dev, 0x81);
+ 		device_unlock(bus_dev);
+@@ -734,6 +736,32 @@ static int nfit_test_cmd_smart_set_threshold(
  	return 0;
  }
  
-diff --git a/util/log.h b/util/log.h
-index 5fc56e8..495e0d3 100644
---- a/util/log.h
-+++ b/util/log.h
-@@ -48,15 +48,18 @@ do { \
- #  endif
- #  define log_info(ctx, arg...) log_cond(ctx, LOG_INFO, ## arg)
- #  define log_err(ctx, arg...) log_cond(ctx, LOG_ERR, ## arg)
-+#  define log_notice(ctx, arg...) log_cond(ctx, LOG_NOTICE, ## arg)
- #else
- #  define log_dbg(ctx, arg...) log_null(ctx, ## arg)
- #  define log_info(ctx, arg...) log_null(ctx, ## arg)
- #  define log_err(ctx, arg...) log_null(ctx, ## arg)
-+#  define log_notice(ctx, arg...) log_null(ctx, ## arg)
- #endif
++static int nfit_test_cmd_smart_inject(
++		struct nd_intel_smart_inject *inj,
++		unsigned int buf_len,
++		struct nd_intel_smart_threshold *thresh,
++		struct nd_intel_smart *smart,
++		struct device *bus_dev, struct device *dimm_dev)
++{
++	if (buf_len != sizeof(*inj))
++		return -EINVAL;
++
++	if (inj->mtemp_enable)
++		smart->media_temperature = inj->media_temperature;
++	if (inj->spare_enable)
++		smart->spares = inj->spares;
++	if (inj->fatal_enable)
++		smart->health = ND_INTEL_SMART_FATAL_HEALTH;
++	if (inj->unsafe_shutdown_enable) {
++		smart->shutdown_state = 1;
++		smart->shutdown_count++;
++	}
++	inj->status = 0;
++	smart_notify(bus_dev, dimm_dev, smart, thresh);
++
++	return 0;
++}
++
+ static void uc_error_notify(struct work_struct *work)
+ {
+ 	struct nfit_test *t = container_of(work, typeof(*t), work);
+@@ -934,6 +962,13 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+ 						&t->pdev.dev, t->dimm_dev[i]);
++			case ND_INTEL_SMART_INJECT:
++				return nfit_test_cmd_smart_inject(buf,
++						buf_len,
++						&t->smart_threshold[i -
++							t->dcr_idx],
++						&t->smart[i - t->dcr_idx],
++						&t->pdev.dev, t->dimm_dev[i]);
+ 			default:
+ 				return -ENOTTY;
+ 			}
+@@ -2015,6 +2050,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	set_bit(ND_INTEL_SMART, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_INTEL_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_INTEL_SMART_SET_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
++	set_bit(ND_INTEL_SMART_INJECT, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
+diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
+index 428344519cdf..33752e06ff8d 100644
+--- a/tools/testing/nvdimm/test/nfit_test.h
++++ b/tools/testing/nvdimm/test/nfit_test.h
+@@ -93,6 +93,7 @@ struct nd_cmd_ars_err_inj_stat {
+ #define ND_INTEL_FW_FINISH_UPDATE	15
+ #define ND_INTEL_FW_FINISH_QUERY	16
+ #define ND_INTEL_SMART_SET_THRESHOLD	17
++#define ND_INTEL_SMART_INJECT		18
  
- #define dbg(x, arg...) log_dbg(&(x)->ctx, ## arg)
- #define info(x, arg...) log_info(&(x)->ctx, ## arg)
- #define err(x, arg...) log_err(&(x)->ctx, ## arg)
-+#define notice(x, arg...) log_notice(&(x)->ctx, ## arg)
+ #define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
+ #define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
+@@ -111,6 +112,10 @@ struct nd_cmd_ars_err_inj_stat {
+ #define ND_INTEL_SMART_NON_CRITICAL_HEALTH      (1 << 0)
+ #define ND_INTEL_SMART_CRITICAL_HEALTH          (1 << 1)
+ #define ND_INTEL_SMART_FATAL_HEALTH             (1 << 2)
++#define ND_INTEL_SMART_INJECT_MTEMP		(1 << 0)
++#define ND_INTEL_SMART_INJECT_SPARE		(1 << 1)
++#define ND_INTEL_SMART_INJECT_FATAL		(1 << 2)
++#define ND_INTEL_SMART_INJECT_SHUTDOWN		(1 << 3)
  
- #ifndef HAVE_SECURE_GETENV
- #  ifdef HAVE___SECURE_GETENV
+ struct nd_intel_smart {
+ 	__u32 status;
+@@ -158,6 +163,17 @@ struct nd_intel_smart_set_threshold {
+ 	__u32 status;
+ } __packed;
+ 
++struct nd_intel_smart_inject {
++	__u64 flags;
++	__u8 mtemp_enable;
++	__u16 media_temperature;
++	__u8 spare_enable;
++	__u8 spares;
++	__u8 fatal_enable;
++	__u8 unsafe_shutdown_enable;
++	__u32 status;
++} __packed;
++
+ #define INTEL_FW_STORAGE_SIZE		0x100000
+ #define INTEL_FW_MAX_SEND_LEN		0xFFEC
+ #define INTEL_FW_QUERY_INTERVAL		250000
 -- 
-2.9.5
-
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
