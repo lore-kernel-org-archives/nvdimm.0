@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 80DC2223DB7A9
- for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 21:29:20 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id D31E8222DE14D
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 12:58:47 -0800 (PST)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 2/4] ndctl: add ndctl_encode_smart_temperature()
-Date: Thu,  8 Feb 2018 22:34:58 -0700
-Message-Id: <20180209053500.6871-2-vishal.l.verma@intel.com>
-In-Reply-To: <20180209053500.6871-1-vishal.l.verma@intel.com>
-References: <20180209053500.6871-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 2/4] ndctl: add ndctl_encode_smart_temperature()
+Date: Thu,  8 Feb 2018 14:04:26 -0700
+Message-Id: <20180208210428.7285-2-vishal.l.verma@intel.com>
+In-Reply-To: <20180208210428.7285-1-vishal.l.verma@intel.com>
+References: <20180208210428.7285-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
