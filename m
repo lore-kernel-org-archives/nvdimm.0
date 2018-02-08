@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E31BD22361E5A
- for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 12:44:14 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id CD01522361E5D
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 12:18:55 -0800 (PST)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3] libnvdimm,
+Subject: [PATCH v2] libnvdimm,
  testing: Add emulation for smart injection commands
-Date: Thu,  8 Feb 2018 13:49:56 -0700
-Message-Id: <20180208204956.4821-1-vishal.l.verma@intel.com>
+Date: Thu,  8 Feb 2018 13:24:38 -0700
+Message-Id: <20180208202438.1173-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,10 +29,6 @@ framework. This allows for directly injecting to smart fields and flags
 that are supported in the injection command. If the injected values are
 past the threshold, then an acpi notification is also triggered.
 
-Also update the default smart ctrl_temperature to start out below the
-default threshold instead of at it. This prevents arbitrary smart
-injections from triggering an acpi notification
-
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
@@ -41,7 +37,7 @@ Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
  2 files changed, 57 insertions(+), 2 deletions(-)
 
 diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 42ee1798971d..b57104ad3bac 100644
+index 42ee1798971d..90aefef4065f 100644
 --- a/tools/testing/nvdimm/test/nfit.c
 +++ b/tools/testing/nvdimm/test/nfit.c
 @@ -708,7 +708,9 @@ static void smart_notify(struct device *bus_dev,
@@ -105,15 +101,15 @@ index 42ee1798971d..b57104ad3bac 100644
  			default:
  				return -ENOTTY;
  			}
-@@ -1221,7 +1259,7 @@ static void smart_init(struct nfit_test *t)
- 			| ND_INTEL_SMART_MTEMP_VALID,
- 		.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
- 		.media_temperature = 23 * 16,
+@@ -1209,7 +1247,7 @@ static void smart_init(struct nfit_test *t)
+ 		.alarm_control = ND_INTEL_SMART_SPARE_TRIP
+ 			| ND_INTEL_SMART_TEMP_TRIP,
+ 		.media_temperature = 40 * 16,
 -		.ctrl_temperature = 30 * 16,
-+		.ctrl_temperature = 25 * 16,
- 		.pmic_temperature = 40 * 16,
- 		.spares = 75,
- 		.alarm_flags = ND_INTEL_SMART_SPARE_TRIP
++		.ctrl_temperature = 35 * 16,
+ 		.spares = 5,
+ 	};
+ 	const struct nd_intel_smart smart_data = {
 @@ -2015,6 +2053,7 @@ static void nfit_test0_setup(struct nfit_test *t)
  	set_bit(ND_INTEL_SMART, &acpi_desc->dimm_cmd_force_en);
  	set_bit(ND_INTEL_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
