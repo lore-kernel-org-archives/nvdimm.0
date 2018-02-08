@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7127F223DB786
- for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 21:29:19 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id EB27F22361E6A
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 12:58:45 -0800 (PST)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 1/4] ndctl,
+Subject: [ndctl PATCH 1/4] ndctl,
  inject-error: error out for a non-existent namespace
-Date: Thu,  8 Feb 2018 22:34:57 -0700
-Message-Id: <20180209053500.6871-1-vishal.l.verma@intel.com>
+Date: Thu,  8 Feb 2018 14:04:25 -0700
+Message-Id: <20180208210428.7285-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
