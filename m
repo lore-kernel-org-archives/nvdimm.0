@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 68E08222DE146
- for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 20:23:37 -0800 (PST)
-Subject: [PATCH v4 08/12] xfs, dax: replace IS_DAX() with IS_FSDAX()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 26 Feb 2018 20:20:37 -0800
-Message-ID: <151970523724.26729.2708434307206092584.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 85279223DB78E
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 22:25:35 -0800 (PST)
+Received: by mail-ot0-x242.google.com with SMTP id f56so6694505otj.13
+ for <linux-nvdimm@lists.01.org>; Thu, 08 Feb 2018 22:31:21 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20180209053500.6871-3-vishal.l.verma@intel.com>
+References: <20180209053500.6871-1-vishal.l.verma@intel.com>
+ <20180209053500.6871-3-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 8 Feb 2018 22:31:20 -0800
+Message-ID: <CAPcyv4jKE4iosbHq1NgemQTbdMev5zMsDagGa+kEA4APb8A_2w@mail.gmail.com>
+Subject: Re: [ndctl PATCH v2 3/4] ndctl: add a new command - inject-smart
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,154 +26,129 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for fixing the broken definition of S_DAX in the
-CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y case, convert all IS_DAX() usages to
-use explicit tests for FSDAX since DAX is ambiguous.
+On Thu, Feb 8, 2018 at 9:34 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Add an inject-smart command to ndctl to allow injection of smart fields,
+> and setting of smart thresholds. If a field is injected that breaches
+> the threshold, or sets a fatal flag, or if a new threshold is set that
+> causes the same effect, generate an acpi health even notification.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  Documentation/ndctl/ndctl-inject-smart.txt | 102 +++++++
+>  builtin.h                                  |   1 +
+>  ndctl/Makefile.am                          |   3 +-
+>  ndctl/inject-smart.c                       | 436 +++++++++++++++++++++++++++++
+>  ndctl/ndctl.c                              |   1 +
+>  5 files changed, 542 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/ndctl/ndctl-inject-smart.txt
+>  create mode 100644 ndctl/inject-smart.c
+>
+> v2: Change inject-smart semantics to avoid sub-commands like --inject
+> and --set. Instead allow injection and threshold setting all in one
+> command by making each a distinct option. (Dan)
+>
+> diff --git a/Documentation/ndctl/ndctl-inject-smart.txt b/Documentation/ndctl/ndctl-inject-smart.txt
+> new file mode 100644
+> index 0000000..212bca0
+> --- /dev/null
+> +++ b/Documentation/ndctl/ndctl-inject-smart.txt
+> @@ -0,0 +1,102 @@
+> +ndctl-inject-smart(1)
+> +=====================
+> +
+> +NAME
+> +----
+> +ndctl-inject-smart - perform smart threshold/injection operations on a DIMM
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'ndctl inject-smart' <dimm> [<options>]
+> +
+> +DESCRIPTION
+> +-----------
+> +A generic DIMM device object, named /dev/nmemX, is registered for each
+> +memory device indicated in the ACPI NFIT table, or other platform NVDIMM
+> +resource discovery mechanism.
+> +
+> +ndctl-inject-smart can be used to set smart thresholds, and inject smart
+> +attributes.
+> +
+> +EXAMPLES
+> +--------
+> +
+> +Set smart controller temperature and spares threshold for DIMM-0 to 32C, spares
+> +threshold to 8, and enable the spares alarm.
+> +[verse]
+> +ndctl inject-smart --ctrl-temperature-threshold=32 --spares-threshold=8 --spares-alarm nmem0
+> +
+> +Inject a media temperature value of 52 and fatal health status flag for DIMM-0
+> +[verse]
+> +ndctl inject-smart --media-temperature=52 --health=fatal nmem0
+> +
+> +
+> +OPTIONS
+> +-------
+> +-b::
+> +--bus=::
+> +       Enforce that the operation only be carried on devices that are
+> +       attached to the given bus. Where 'bus' can be a provider name or a bus
+> +       id number.
+> +
+> +-m::
+> +--media-temperature=::
+> +       Inject <value> for the media temperature smart attribute.
+> +
+> +-M::
+> +--media-temperature-threshold=::
+> +       Set <value> for the smart media temperature threshold.
+> +
+> +--media-temperature-alarm=::
+> +       Enable or disable the smart media temperature alarm. Options are
+> +       'on' or 'off'.
+> +
+> +-c::
+> +--ctrl-temperature=::
+> +       Inject <value> for the controller temperature smart attribute.
+> +
+> +-C::
+> +--ctrl-temperature-threshold=::
+> +       Set <value> for the smart controller temperature threshold.
+> +
+> +--ctrl-temperature-alarm=::
+> +       Enable or disable the smart controller temperature alarm. Options are
+> +       'on' or 'off'.
+> +
+> +-s::
+> +--spares=::
+> +       Inject <value> for the spares smart attribute.
+> +
+> +-S::
+> +--spares-threshold=::
+> +       Set <value> for the smart spares threshold.
+> +
+> +--spares-alarm=::
+> +       Enable or disable the smart spares alarm. Options are 'on' or 'off'.
+> +
+> +-H::
+> +--health=::
+> +       Smart attribute for health status. Provide either 'fatal' or 'nominal'
+> +       to set the state of the attribute.
+> +
+> +-U::
+> +--unsafe-shutdown=::
+> +       Set the flag to spoof an unsafe shutdown on the next power down.
+> +
+> +-v::
+> +--verbose::
+> +       Emit debug messages for the error injection process
 
-Cc: Jan Kara <jack@suse.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: linux-xfs@vger.kernel.org
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: <stable@vger.kernel.org>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/xfs/xfs_file.c    |   14 +++++++-------
- fs/xfs/xfs_ioctl.c   |    4 ++--
- fs/xfs/xfs_iomap.c   |    6 +++---
- fs/xfs/xfs_reflink.c |    2 +-
- 4 files changed, 13 insertions(+), 13 deletions(-)
-
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 9ea08326f876..46a098b90fd0 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -288,7 +288,7 @@ xfs_file_read_iter(
- 	if (XFS_FORCED_SHUTDOWN(mp))
- 		return -EIO;
- 
--	if (IS_DAX(inode))
-+	if (IS_FSDAX(inode))
- 		ret = xfs_file_dax_read(iocb, to);
- 	else if (iocb->ki_flags & IOCB_DIRECT)
- 		ret = xfs_file_dio_aio_read(iocb, to);
-@@ -726,7 +726,7 @@ xfs_file_write_iter(
- 	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
- 		return -EIO;
- 
--	if (IS_DAX(inode))
-+	if (IS_FSDAX(inode))
- 		ret = xfs_file_dax_write(iocb, from);
- 	else if (iocb->ki_flags & IOCB_DIRECT) {
- 		/*
-@@ -1045,7 +1045,7 @@ __xfs_filemap_fault(
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--	if (IS_DAX(inode)) {
-+	if (IS_FSDAX(inode)) {
- 		pfn_t pfn;
- 
- 		ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &xfs_iomap_ops);
-@@ -1070,7 +1070,7 @@ xfs_filemap_fault(
- {
- 	/* DAX can shortcut the normal fault path on write faults! */
- 	return __xfs_filemap_fault(vmf, PE_SIZE_PTE,
--			IS_DAX(file_inode(vmf->vma->vm_file)) &&
-+			IS_FSDAX(file_inode(vmf->vma->vm_file)) &&
- 			(vmf->flags & FAULT_FLAG_WRITE));
- }
- 
-@@ -1079,7 +1079,7 @@ xfs_filemap_huge_fault(
- 	struct vm_fault		*vmf,
- 	enum page_entry_size	pe_size)
- {
--	if (!IS_DAX(file_inode(vmf->vma->vm_file)))
-+	if (!IS_FSDAX(file_inode(vmf->vma->vm_file)))
- 		return VM_FAULT_FALLBACK;
- 
- 	/* DAX can shortcut the normal fault path on write faults! */
-@@ -1124,12 +1124,12 @@ xfs_file_mmap(
- 	 * We don't support synchronous mappings for non-DAX files. At least
- 	 * until someone comes with a sensible use case.
- 	 */
--	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
-+	if (!IS_FSDAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
- 		return -EOPNOTSUPP;
- 
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
--	if (IS_DAX(file_inode(filp)))
-+	if (IS_FSDAX(file_inode(filp)))
- 		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
- 	return 0;
- }
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 89fb1eb80aae..234279ff66ce 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1108,9 +1108,9 @@ xfs_ioctl_setattr_dax_invalidate(
- 	}
- 
- 	/* If the DAX state is not changing, we have nothing to do here. */
--	if ((fa->fsx_xflags & FS_XFLAG_DAX) && IS_DAX(inode))
-+	if ((fa->fsx_xflags & FS_XFLAG_DAX) && IS_FSDAX(inode))
- 		return 0;
--	if (!(fa->fsx_xflags & FS_XFLAG_DAX) && !IS_DAX(inode))
-+	if (!(fa->fsx_xflags & FS_XFLAG_DAX) && !IS_FSDAX(inode))
- 		return 0;
- 
- 	/* lock, flush and invalidate mapping in preparation for flag change */
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index 66e1edbfb2b2..cf794d429aec 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -241,7 +241,7 @@ xfs_iomap_write_direct(
- 	 * the reserve block pool for bmbt block allocation if there is no space
- 	 * left but we need to do unwritten extent conversion.
- 	 */
--	if (IS_DAX(VFS_I(ip))) {
-+	if (IS_FSDAX(VFS_I(ip))) {
- 		bmapi_flags = XFS_BMAPI_CONVERT | XFS_BMAPI_ZERO;
- 		if (imap->br_state == XFS_EXT_UNWRITTEN) {
- 			tflags |= XFS_TRANS_RESERVE;
-@@ -952,7 +952,7 @@ static inline bool imap_needs_alloc(struct inode *inode,
- 	return !nimaps ||
- 		imap->br_startblock == HOLESTARTBLOCK ||
- 		imap->br_startblock == DELAYSTARTBLOCK ||
--		(IS_DAX(inode) && imap->br_state == XFS_EXT_UNWRITTEN);
-+		(IS_FSDAX(inode) && imap->br_state == XFS_EXT_UNWRITTEN);
- }
- 
- static inline bool need_excl_ilock(struct xfs_inode *ip, unsigned flags)
-@@ -988,7 +988,7 @@ xfs_file_iomap_begin(
- 		return -EIO;
- 
- 	if (((flags & (IOMAP_WRITE | IOMAP_DIRECT)) == IOMAP_WRITE) &&
--			!IS_DAX(inode) && !xfs_get_extsz_hint(ip)) {
-+			!IS_FSDAX(inode) && !xfs_get_extsz_hint(ip)) {
- 		/* Reserve delalloc blocks for regular writeback. */
- 		return xfs_file_iomap_begin_delay(inode, offset, length, iomap);
- 	}
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 270246943a06..a126e00e05e3 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1351,7 +1351,7 @@ xfs_reflink_remap_range(
- 		goto out_unlock;
- 
- 	/* Don't share DAX file data for now. */
--	if (IS_DAX(inode_in) || IS_DAX(inode_out))
-+	if (IS_FSDAX(inode_in) || IS_FSDAX(inode_out))
- 		goto out_unlock;
- 
- 	ret = vfs_clone_file_prep_inodes(inode_in, pos_in, inode_out, pos_out,
-
+Nice, and I like your short option choices too.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
