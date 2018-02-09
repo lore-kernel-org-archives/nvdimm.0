@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE87020954CBE
- for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 11:52:16 -0800 (PST)
-From: Tony Luck <tony.luck@intel.com>
-Subject: [PATCH 1/5] EDAC: Drop duplicated array of strings for memory type
- names
-Date: Thu, 22 Feb 2018 11:58:07 -0800
-Message-Id: <20180222195811.27237-2-tony.luck@intel.com>
-In-Reply-To: <20180222195811.27237-1-tony.luck@intel.com>
-References: <20180222195811.27237-1-tony.luck@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 80DC2223DB7A9
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 21:29:20 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 2/4] ndctl: add ndctl_encode_smart_temperature()
+Date: Thu,  8 Feb 2018 22:34:58 -0700
+Message-Id: <20180209053500.6871-2-vishal.l.verma@intel.com>
+In-Reply-To: <20180209053500.6871-1-vishal.l.verma@intel.com>
+References: <20180209053500.6871-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,139 +22,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Borislav Petkov <bp@suse.de>
-Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Somehow we ended up with two separate arrays of strings to describe
-the "enum mem_type" values.
+This provides for encoding of a human-readable temperature value into
+the format expected by the smart command
 
-In edac_mc.c we have an exported list edac_mem_types[] that is used
-by a couple of drivers in debug messaged.
-
-In edac_mc_sysfs.c we have a private list that is used to display
-values in:
-  /sys/devices/system/edac/mc/mc*/dimm*/dimm_mem_type
-  /sys/devices/system/edac/mc/mc*/csrow*/mem_type
-this list was missing a value for MEM_LRDDR3
-
-The string values in the two lists were different :-(
-
-Combining the lists, I kept the values so that the sysfs output
-will be unchanged as some scripts may depend on that.
-
-Reported-by: Borislav Petkov <bp@suse.de>
-Acked-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/edac/edac_mc.c       | 40 ++++++++++++++++++++--------------------
- drivers/edac/edac_mc_sysfs.c | 26 ++------------------------
- 2 files changed, 22 insertions(+), 44 deletions(-)
+ ndctl/lib/libndctl.c   | 16 ++++++++++++++++
+ ndctl/lib/libndctl.sym |  1 +
+ ndctl/libndctl.h       |  1 +
+ 3 files changed, 18 insertions(+)
 
-diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
-index 48193f5f3b56..1f61b736e075 100644
---- a/drivers/edac/edac_mc.c
-+++ b/drivers/edac/edac_mc.c
-@@ -195,26 +195,26 @@ static void edac_mc_dump_mci(struct mem_ctl_info *mci)
- #endif				/* CONFIG_EDAC_DEBUG */
- 
- const char * const edac_mem_types[] = {
--	[MEM_EMPTY]	= "Empty csrow",
--	[MEM_RESERVED]	= "Reserved csrow type",
--	[MEM_UNKNOWN]	= "Unknown csrow type",
--	[MEM_FPM]	= "Fast page mode RAM",
--	[MEM_EDO]	= "Extended data out RAM",
--	[MEM_BEDO]	= "Burst Extended data out RAM",
--	[MEM_SDR]	= "Single data rate SDRAM",
--	[MEM_RDR]	= "Registered single data rate SDRAM",
--	[MEM_DDR]	= "Double data rate SDRAM",
--	[MEM_RDDR]	= "Registered Double data rate SDRAM",
--	[MEM_RMBS]	= "Rambus DRAM",
--	[MEM_DDR2]	= "Unbuffered DDR2 RAM",
--	[MEM_FB_DDR2]	= "Fully buffered DDR2",
--	[MEM_RDDR2]	= "Registered DDR2 RAM",
--	[MEM_XDR]	= "Rambus XDR",
--	[MEM_DDR3]	= "Unbuffered DDR3 RAM",
--	[MEM_RDDR3]	= "Registered DDR3 RAM",
--	[MEM_LRDDR3]	= "Load-Reduced DDR3 RAM",
--	[MEM_DDR4]	= "Unbuffered DDR4 RAM",
--	[MEM_RDDR4]	= "Registered DDR4 RAM",
-+	[MEM_EMPTY]	= "Empty",
-+	[MEM_RESERVED]	= "Reserved",
-+	[MEM_UNKNOWN]	= "Unknown",
-+	[MEM_FPM]	= "FPM",
-+	[MEM_EDO]	= "EDO",
-+	[MEM_BEDO]	= "BEDO",
-+	[MEM_SDR]	= "Unbuffered-SDR",
-+	[MEM_RDR]	= "Registered-SDR",
-+	[MEM_DDR]	= "Unbuffered-DDR",
-+	[MEM_RDDR]	= "Registered-DDR",
-+	[MEM_RMBS]	= "RMBS",
-+	[MEM_DDR2]	= "Unbuffered-DDR2",
-+	[MEM_FB_DDR2]	= "FullyBuffered-DDR2",
-+	[MEM_RDDR2]	= "Registered-DDR2",
-+	[MEM_XDR]	= "XDR",
-+	[MEM_DDR3]	= "Unbuffered-DDR3",
-+	[MEM_RDDR3]	= "Registered-DDR3",
-+	[MEM_LRDDR3]	= "Load-Reduced-DDR3-RAM",
-+	[MEM_DDR4]	= "Unbuffered-DDR4",
-+	[MEM_RDDR4]	= "Registered-DDR4"
- };
- EXPORT_SYMBOL_GPL(edac_mem_types);
- 
-diff --git a/drivers/edac/edac_mc_sysfs.c b/drivers/edac/edac_mc_sysfs.c
-index c70ea82c815c..7481955160a4 100644
---- a/drivers/edac/edac_mc_sysfs.c
-+++ b/drivers/edac/edac_mc_sysfs.c
-@@ -91,28 +91,6 @@ static struct device *mci_pdev;
- /*
-  * various constants for Memory Controllers
-  */
--static const char * const mem_types[] = {
--	[MEM_EMPTY] = "Empty",
--	[MEM_RESERVED] = "Reserved",
--	[MEM_UNKNOWN] = "Unknown",
--	[MEM_FPM] = "FPM",
--	[MEM_EDO] = "EDO",
--	[MEM_BEDO] = "BEDO",
--	[MEM_SDR] = "Unbuffered-SDR",
--	[MEM_RDR] = "Registered-SDR",
--	[MEM_DDR] = "Unbuffered-DDR",
--	[MEM_RDDR] = "Registered-DDR",
--	[MEM_RMBS] = "RMBS",
--	[MEM_DDR2] = "Unbuffered-DDR2",
--	[MEM_FB_DDR2] = "FullyBuffered-DDR2",
--	[MEM_RDDR2] = "Registered-DDR2",
--	[MEM_XDR] = "XDR",
--	[MEM_DDR3] = "Unbuffered-DDR3",
--	[MEM_RDDR3] = "Registered-DDR3",
--	[MEM_DDR4] = "Unbuffered-DDR4",
--	[MEM_RDDR4] = "Registered-DDR4"
--};
--
- static const char * const dev_types[] = {
- 	[DEV_UNKNOWN] = "Unknown",
- 	[DEV_X1] = "x1",
-@@ -196,7 +174,7 @@ static ssize_t csrow_mem_type_show(struct device *dev,
- {
- 	struct csrow_info *csrow = to_csrow(dev);
- 
--	return sprintf(data, "%s\n", mem_types[csrow->channels[0]->dimm->mtype]);
-+	return sprintf(data, "%s\n", edac_mem_types[csrow->channels[0]->dimm->mtype]);
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 4119a2e..ed5a65b 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -87,6 +87,22 @@ NDCTL_EXPORT double ndctl_decode_smart_temperature(unsigned int temp)
+ 	return t;
  }
  
- static ssize_t csrow_dev_type_show(struct device *dev,
-@@ -549,7 +527,7 @@ static ssize_t dimmdev_mem_type_show(struct device *dev,
- {
- 	struct dimm_info *dimm = to_dimm(dev);
++NDCTL_EXPORT unsigned int ndctl_encode_smart_temperature(double temp)
++{
++	bool negative = false;
++	unsigned int t;
++
++	if  (temp < 0) {
++		negative = true;
++		temp *= -1;
++	}
++	t = temp;
++	t *= 16;
++	if (negative)
++		t |= (1 << 15);
++	return t;
++}
++
+ struct ndctl_ctx;
  
--	return sprintf(data, "%s\n", mem_types[dimm->mtype]);
-+	return sprintf(data, "%s\n", edac_mem_types[dimm->mtype]);
- }
+ /**
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index c160847..e7f9675 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -322,6 +322,7 @@ global:
+ 	ndctl_cmd_smart_threshold_set_ctrl_temperature;
+ 	ndctl_cmd_smart_threshold_set_spares;
+ 	ndctl_decode_smart_temperature;
++	ndctl_encode_smart_temperature;
+ 	ndctl_dimm_cmd_new_smart_inject;
+ 	ndctl_cmd_smart_inject_media_temperature;
+ 	ndctl_cmd_smart_inject_spares;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index bd33d39..6091ff3 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -76,6 +76,7 @@ size_t ndctl_min_namespace_size(void);
+ size_t ndctl_sizeof_namespace_index(void);
+ size_t ndctl_sizeof_namespace_label(void);
+ double ndctl_decode_smart_temperature(unsigned int temp);
++unsigned int ndctl_encode_smart_temperature(double temp);
  
- static ssize_t dimmdev_dev_type_show(struct device *dev,
+ struct ndctl_ctx;
+ struct ndctl_ctx *ndctl_ref(struct ndctl_ctx *ctx);
 -- 
-2.14.1
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
