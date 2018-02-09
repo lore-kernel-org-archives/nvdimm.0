@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6AF622237A4FC
- for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 12:58:49 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 4/4] ndctl,
- bash-completion: Add bash completion for inject-smart
-Date: Thu,  8 Feb 2018 14:04:28 -0700
-Message-Id: <20180208210428.7285-4-vishal.l.verma@intel.com>
-In-Reply-To: <20180208210428.7285-1-vishal.l.verma@intel.com>
-References: <20180208210428.7285-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 307EB223DB78C
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 23:56:56 -0800 (PST)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 31B48AC017B
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Feb 2018 17:02:38 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [RFC PATCH v3 4/5] ndctl: monitor: add ndclt show-monitor command
+Date: Fri,  9 Feb 2018 17:02:24 +0900
+Message-Id: <20180209080225.5137-5-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
+References: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,41 +28,87 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This adds bash completion for the enw ndctl inject-smart command.
-non-option arguments are completed with dimms, and new options
-requiring data are marked as such.
+This patch is used to add $ndctl show-monitor command, by which users
+can check the specific of a monitor.
+Example: $ndctl show-monitor --monitor m_nmem1
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- contrib/ndctl | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ builtin.h       |  1 +
+ ndctl/monitor.c | 35 +++++++++++++++++++++++++++++++++++
+ ndctl/ndctl.c   |  1 +
+ 3 files changed, 37 insertions(+)
 
-diff --git a/contrib/ndctl b/contrib/ndctl
-index eeda1c4..9a14383 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -91,7 +91,7 @@ __ndctlcomp()
- 
- 	COMPREPLY=( $( compgen -W "$1" -- "$2" ) )
- 	for cword in "${COMPREPLY[@]}"; do
--		if [[ "$cword" == @(--bus|--region|--type|--mode|--size|--dimm|--reconfig|--uuid|--name|--sector-size|--map|--namespace|--input|--output|--label-version|--align|--block|--count|--firmware) ]]; then
-+		if [[ "$cword" == @(--bus|--region|--type|--mode|--size|--dimm|--reconfig|--uuid|--name|--sector-size|--map|--namespace|--input|--output|--label-version|--align|--block|--count|--firmware|--alarm-control|--media-temperature|--ctrl-temperature|--spares) ]]; then
- 			COMPREPLY[$i]="${cword}="
- 		else
- 			COMPREPLY[$i]="${cword} "
-@@ -262,6 +262,9 @@ __ndctl_comp_non_option_args()
- 	inject-error)
- 		opts="$(__ndctl_get_ns -i)"
- 		;;
-+	inject-smart)
-+		opts="$(__ndctl_get_dimms -i)"
-+		;;
- 	*)
- 		return
- 		;;
+diff --git a/builtin.h b/builtin.h
+index eda5c7a..b5a006d 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -38,6 +38,7 @@ int cmd_check_labels(int argc, const char **argv, void *ctx);
+ int cmd_inject_error(int argc, const char **argv, void *ctx);
+ int cmd_create_monitor(int argc, const char **argv, void *ctx);
+ int cmd_list_monitor(int argc, const char **argv, void *ctx);
++int cmd_show_monitor(int argc, const char **argv, void *ctx);
+ int cmd_list(int argc, const char **argv, void *ctx);
+ #ifdef ENABLE_TEST
+ int cmd_test(int argc, const char **argv, void *ctx);
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index 53b7c67..1cff2d8 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -372,3 +372,38 @@ int cmd_list_monitor(int argc, const char **argv, void *ctx)
+ out:
+ 	return 1;
+ }
++
++int cmd_show_monitor(int argc, const char **argv, void *ctx)
++{
++	const struct option options[] = {
++		OPT_STRING('m', "monitor", &param.monitor, "monitor name",
++				"monitor name")
++	};
++	const char * const u[] = {
++		"ndctl show-monitor <monitor>",
++		NULL
++	};
++	argc = parse_options(argc, argv, options, u, 0);
++	for (int i = 0; i < argc; i++) {
++		error("unknown parameter \"%s\"\n", argv[i]);
++		goto out;
++	}
++	if (!param.monitor) {
++		error("monitor name --monitor is required\n");
++		goto out;
++	}
++
++	char *filename;
++	filename = get_full_path_filename(proc_path, param.monitor);
++	struct json_object *jmonitors = json_object_from_file(filename);
++	if (jmonitors == NULL) {
++		error("monitor %s is not exist\n", param.monitor);
++		goto out;
++	}
++
++	printf("%s\n", json_object_to_json_string_ext(jmonitors,
++				JSON_C_TO_STRING_PRETTY));
++	return 0;
++out:
++	return 1;
++}
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 7eae794..460cf76 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -86,6 +86,7 @@ static struct cmd_struct commands[] = {
+ 	{ "inject-error", cmd_inject_error },
+ 	{ "create-monitor", cmd_create_monitor },
+ 	{ "list-monitor", cmd_list_monitor },
++	{ "show-monitor", cmd_show_monitor },
+ 	{ "list", cmd_list },
+ 	{ "help", cmd_help },
+ 	#ifdef ENABLE_TEST
 -- 
-2.14.3
+2.9.5
+
 
 _______________________________________________
 Linux-nvdimm mailing list
