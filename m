@@ -2,15 +2,16 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4D61520954CC1
- for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 11:52:17 -0800 (PST)
-From: Tony Luck <tony.luck@intel.com>
-Subject: [PATCH 3/5] acpi,
- nfit: Add function to look up nvdimm device and provide SMBIOS handle
-Date: Thu, 22 Feb 2018 11:58:09 -0800
-Message-Id: <20180222195811.27237-4-tony.luck@intel.com>
-In-Reply-To: <20180222195811.27237-1-tony.luck@intel.com>
-References: <20180222195811.27237-1-tony.luck@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 24E8F222DE135
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Feb 2018 16:32:41 -0800 (PST)
+Subject: [PATCH v2 1/2] mm,
+ hugetlbfs: introduce ->pagesize() to vm_operations_struct
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 09 Feb 2018 17:38:27 -0700
+Message-ID: <151822310695.52376.2707461327280470402.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151822289999.52376.4998780583577188804.stgit@djiang5-desk3.ch.intel.com>
+References: <151822289999.52376.4998780583577188804.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,107 +19,122 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Borislav Petkov <bp@suse.de>
-Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
+To: akpm@linux-foundation.org
+Cc: Jane Chu <jane.chu@oracle.com>, linux-nvdimm@lists.01.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-kernel@vger.kernel.org, mhocko@kernel.org, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>
 List-ID: <linux-nvdimm@lists.01.org>
 
-EDAC driver needs to look up attributes of NVDIMMs provided in SMBIOS.
+From: Dan Williams <dan.j.williams@intel.com>
 
-Provide a function that looks up an acpi_nfit_memory_map from a device
-handle (node/socket/mc/channel/dimm) and returns the SMBIOS handle.
-Also pass back the "flags" so we can see if the NVDIMM is OK.
+When device-dax is operating in huge-page mode we want it to behave like
+hugetlbfs and report the MMU page mapping size that is being enforced by
+the vma. Similar to commit 31383c6865a5 "mm, hugetlbfs: introduce
+->split() to vm_operations_struct" it would be messy to teach
+vma_mmu_pagesize() about device-dax page mapping sizes in the same
+(hstate) way that hugetlbfs communicates this attribute.  Instead, these
+patches introduce a new ->pagesize() vm operation.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Reported-by: Jane Chu <jane.chu@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/acpi/nfit/core.c | 27 +++++++++++++++++++++++++++
- include/acpi/nfit.h      | 26 ++++++++++++++++++++++++++
- 2 files changed, 53 insertions(+)
- create mode 100644 include/acpi/nfit.h
+ arch/powerpc/mm/hugetlbpage.c |    5 +----
+ include/linux/mm.h            |    1 +
+ mm/hugetlb.c                  |   23 ++++++++++++-----------
+ 3 files changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index bbe48ad20886..4d6eeb1793e6 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -23,6 +23,7 @@
- #include <linux/io.h>
- #include <linux/nd.h>
- #include <asm/cacheflush.h>
-+#include <acpi/nfit.h>
- #include "nfit.h"
- 
- /*
-@@ -690,6 +691,32 @@ static bool add_memdev(struct acpi_nfit_desc *acpi_desc,
- 	return true;
+diff --git a/arch/powerpc/mm/hugetlbpage.c b/arch/powerpc/mm/hugetlbpage.c
+index a9b9083c5e49..c6a2e577e842 100644
+--- a/arch/powerpc/mm/hugetlbpage.c
++++ b/arch/powerpc/mm/hugetlbpage.c
+@@ -568,10 +568,7 @@ unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
+ 	if (!radix_enabled())
+ 		return 1UL << mmu_psize_to_shift(psize);
+ #endif
+-	if (!is_vm_hugetlb_page(vma))
+-		return PAGE_SIZE;
+-
+-	return huge_page_size(hstate_vma(vma));
++	return vma_kernel_pagesize(vma);
  }
  
-+int nfit_get_smbios_id(u32 device_handle, u16 *flags)
+ static inline bool is_power_of_4(unsigned long x)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ea818ff739cd..37b9aef91ec7 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -383,6 +383,7 @@ struct vm_operations_struct {
+ 	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
+ 	void (*map_pages)(struct vm_fault *vmf,
+ 			pgoff_t start_pgoff, pgoff_t end_pgoff);
++	unsigned long (*pagesize)(struct vm_area_struct * area);
+ 
+ 	/* notification that a previously read-only page is about to become
+ 	 * writable, if an error is returned it will cause a SIGBUS */
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index 9a334f5fb730..8fa069b5cb4d 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -637,14 +637,9 @@ EXPORT_SYMBOL_GPL(linear_hugepage_index);
+  */
+ unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
+ {
+-	struct hstate *hstate;
+-
+-	if (!is_vm_hugetlb_page(vma))
+-		return PAGE_SIZE;
+-
+-	hstate = hstate_vma(vma);
+-
+-	return 1UL << huge_page_shift(hstate);
++	if (vma->vm_ops && vma->vm_ops->pagesize)
++		return vma->vm_ops->pagesize(vma);
++	return PAGE_SIZE;
+ }
+ EXPORT_SYMBOL_GPL(vma_kernel_pagesize);
+ 
+@@ -654,12 +649,10 @@ EXPORT_SYMBOL_GPL(vma_kernel_pagesize);
+  * architectures where it differs, an architecture-specific version of this
+  * function is required.
+  */
+-#ifndef vma_mmu_pagesize
+-unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
++__weak unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
+ {
+ 	return vma_kernel_pagesize(vma);
+ }
+-#endif
+ 
+ /*
+  * Flags for MAP_PRIVATE reservations.  These are stored in the bottom
+@@ -3132,6 +3125,13 @@ static int hugetlb_vm_op_split(struct vm_area_struct *vma, unsigned long addr)
+ 	return 0;
+ }
+ 
++static unsigned long hugetlb_vm_op_pagesize(struct vm_area_struct *vma)
 +{
-+	struct acpi_nfit_memory_map *memdev;
-+	struct acpi_nfit_desc *acpi_desc;
-+	struct nfit_mem *nfit_mem;
++	struct hstate *hstate = hstate_vma(vma);
 +
-+	mutex_lock(&acpi_desc_lock);
-+	list_for_each_entry(acpi_desc, &acpi_descs, list) {
-+		mutex_lock(&acpi_desc->init_mutex);
-+		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+			memdev = __to_nfit_memdev(nfit_mem);
-+			if (memdev->device_handle == device_handle) {
-+				mutex_unlock(&acpi_desc->init_mutex);
-+				mutex_unlock(&acpi_desc_lock);
-+				*flags = memdev->flags;
-+				return memdev->physical_id;
-+			}
-+		}
-+		mutex_unlock(&acpi_desc->init_mutex);
-+	}
-+	mutex_unlock(&acpi_desc_lock);
-+
-+	return -ENODEV;
++	return 1UL << huge_page_shift(hstate);
 +}
-+EXPORT_SYMBOL_GPL(nfit_get_smbios_id);
 +
  /*
-  * An implementation may provide a truncated control region if no block windows
-  * are defined.
-diff --git a/include/acpi/nfit.h b/include/acpi/nfit.h
-new file mode 100644
-index 000000000000..6ccc6eacd855
---- /dev/null
-+++ b/include/acpi/nfit.h
-@@ -0,0 +1,26 @@
-+/*
-+ * Copyright(c) 2017 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#ifndef __ACPI_NFIT_H
-+#define __ACPI_NFIT_H
-+
-+#if IS_ENABLED(CONFIG_ACPI_NFIT)
-+int nfit_get_smbios_id(u32 device_handle, u16 *flags);
-+#else
-+static inline int nfit_get_smbios_id(u32 device_handle, u16 *flags)
-+{
-+	return -EOPNOTSUPP;
-+}
-+#endif
-+
-+#endif /* __ACPI_NFIT_H */
--- 
-2.14.1
+  * We cannot handle pagefaults against hugetlb pages at all.  They cause
+  * handle_mm_fault() to try to instantiate regular-sized pages in the
+@@ -3149,6 +3149,7 @@ const struct vm_operations_struct hugetlb_vm_ops = {
+ 	.open = hugetlb_vm_op_open,
+ 	.close = hugetlb_vm_op_close,
+ 	.split = hugetlb_vm_op_split,
++	.pagesize = hugetlb_vm_op_pagesize,
+ };
+ 
+ static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
 
 _______________________________________________
 Linux-nvdimm mailing list
