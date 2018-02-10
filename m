@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B7F2D2237A4CC
- for <linux-nvdimm@lists.01.org>; Fri,  2 Feb 2018 12:09:28 -0800 (PST)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] acpi, nfit: fix register dimm error handling
-Date: Fri,  2 Feb 2018 14:00:36 -0700
-Message-Id: <20180202210036.3153-1-toshi.kani@hpe.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C6E39222DE135
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Feb 2018 16:32:35 -0800 (PST)
+Subject: [PATCH v2 0/2] mm, smaps: MMUPageSize for device-dax
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 09 Feb 2018 17:38:21 -0700
+Message-ID: <151822289999.52376.4998780583577188804.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,42 +16,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, mhocko@kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-A NULL pointer reference kernel bug was observed when
-acpi_nfit_add_dimm() called in acpi_nfit_register_dimms()
-failed. This error path does not set nfit_mem->nvdimm, but
-the 2nd list_for_each_entry() loop in the function assumes
-it's always set. Add a check to nfit_mem->nvdimm.
+Andrew,
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>From Dan Williams:
+Here is another occasion where we want special-case hugetlbfs enabling
+to also apply to device-dax. I started to wonder what other hstate
+conversions we might do beyond ->split() and ->pagesize(), but this
+appears to be the last of the usages of hstate_vma() in
+generic/non-hugetlbfs specific code paths.
+
+v2:
+I fixed up the powerpc build issue that Michal reported by restoring the
+original location of the function and making the symbol weak.
+
 ---
- drivers/acpi/nfit/core.c |    3 +++
- 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index abeb4df4f22e..b28ce440a06f 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1867,6 +1867,9 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		struct kernfs_node *nfit_kernfs;
- 
- 		nvdimm = nfit_mem->nvdimm;
-+		if (!nvdimm)
-+			continue;
-+
- 		nfit_kernfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
- 		if (nfit_kernfs)
- 			nfit_mem->flags_attr = sysfs_get_dirent(nfit_kernfs,
+Dan Williams (2):
+      mm, hugetlbfs: introduce ->pagesize() to vm_operations_struct
+      device-dax: implement ->pagesize() for smaps to report MMUPageSize
+
+
+ arch/powerpc/mm/hugetlbpage.c |    5 +----
+ drivers/dax/device.c          |   10 ++++++++++
+ include/linux/mm.h            |    1 +
+ mm/hugetlb.c                  |   23 ++++++++++++-----------
+ 4 files changed, 24 insertions(+), 15 deletions(-)
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
