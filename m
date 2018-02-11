@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22a.google.com (mail-oi0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c06::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0EC712034D8D4
- for <linux-nvdimm@lists.01.org>; Wed, 21 Feb 2018 14:56:57 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 1/3] ndctl,
- inject-smart: cleanup uninitialized variable warnings
-Date: Wed, 21 Feb 2018 16:02:50 -0700
-Message-Id: <20180221230252.16632-2-vishal.l.verma@intel.com>
-In-Reply-To: <20180221230252.16632-1-vishal.l.verma@intel.com>
-References: <20180221230252.16632-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6207022361E6B
+ for <linux-nvdimm@lists.01.org>; Sun, 11 Feb 2018 12:14:25 -0800 (PST)
+Received: by mail-oi0-x22a.google.com with SMTP id e15so9709673oiy.2
+ for <linux-nvdimm@lists.01.org>; Sun, 11 Feb 2018 12:20:14 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4hfb2+2nXNpG8A7kQDWx86mGETe5J=tRQJxyHwwKNfZcA@mail.gmail.com>
+References: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
+ <20180209080225.5137-2-qi.fuli@jp.fujitsu.com>
+ <CAPcyv4hfb2+2nXNpG8A7kQDWx86mGETe5J=tRQJxyHwwKNfZcA@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 11 Feb 2018 12:20:12 -0800
+Message-ID: <CAPcyv4g+bFGBp2czZ+ksY-Uas=N06Ax+tZU8oFQd9tn10m3csg@mail.gmail.com>
+Subject: Re: [RFC PATCH v3 1/5] ndctl: nvdimmd: add LOG_NOTICE level to
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,49 +23,27 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: QI Fuli <qi.fuli@jp.fujitsu.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There were a couple of cases where we could try to unref a command that
-had never been initialized. Fix those by always initializing the cmd
-pointers to NULL.
+On Sun, Feb 11, 2018 at 12:18 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Fri, Feb 9, 2018 at 12:02 AM, QI Fuli <qi.fuli@jp.fujitsu.com> wrote:
+>> This patch adds LOG_NOTICE level to log_priority for the notifications
+>> of nvdimm dimm over threshold event. Currently, the LOG_INFO level
+>> is too low, and the notifications are not up to LOG_ERROR level.
+>>
+>
+> Looks good, applied.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/inject-smart.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Although, this patch has little to do with nvdimmd, so I'm changing
+the subject to:
 
-diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
-index 02f8b0e..45dbc8d 100644
---- a/ndctl/inject-smart.c
-+++ b/ndctl/inject-smart.c
-@@ -221,7 +221,7 @@ static int smart_init(void)
- static int smart_set_thresh(struct ndctl_dimm *dimm)
- {
- 	const char *name = ndctl_dimm_get_devname(dimm);
--	struct ndctl_cmd *st_cmd, *sst_cmd;
-+	struct ndctl_cmd *st_cmd = NULL, *sst_cmd = NULL;
- 	int rc = -EOPNOTSUPP;
- 
- 	st_cmd = ndctl_dimm_cmd_new_smart_threshold(dimm);
-@@ -332,7 +332,7 @@ out:
- static int smart_inject(struct ndctl_dimm *dimm)
- {
- 	const char *name = ndctl_dimm_get_devname(dimm);
--	struct ndctl_cmd *si_cmd;
-+	struct ndctl_cmd *si_cmd = NULL;
- 	int rc = -EOPNOTSUPP;
- 
- 	send_inject_val(media_temperature)
--- 
-2.14.3
-
+"ndctl, log: add support for LOG_NOTICE messages"
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
