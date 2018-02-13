@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E239321FD73D5
- for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 23:20:59 -0800 (PST)
-Subject: [PATCH v2 3/5] dax: fix S_DAX definition
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 22 Feb 2018 23:17:56 -0800
-Message-ID: <151937027614.18973.7636331271085629639.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151937026001.18973.12034171121582300402.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151937026001.18973.12034171121582300402.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5DE1821CF1CE3
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Feb 2018 12:38:00 -0800 (PST)
+Date: Tue, 13 Feb 2018 13:43:49 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v3 2/3] dax: change bdev_dax_supported() to support
+ boolean returns
+Message-ID: <20180213204349.GC13682@linux.intel.com>
+References: <151813659955.15926.8922476613392258086.stgit@djiang5-desk3.ch.intel.com>
+ <151813669915.15926.5489252461577531.stgit@djiang5-desk3.ch.intel.com>
+ <20180213203148.GB13682@linux.intel.com>
+ <2e99d401-04f5-5a1c-1b7a-6c0fb6054beb@intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <2e99d401-04f5-5a1c-1b7a-6c0fb6054beb@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,39 +27,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org, darrick.wong@oracle.com, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Make sure S_DAX is defined in the CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y
-case. Otherwise vma_is_dax() may incorrectly return false in the
-Device-DAX case.
+On Tue, Feb 13, 2018 at 01:35:19PM -0700, Dave Jiang wrote:
+> 
+> 
+> On 02/13/2018 01:31 PM, Ross Zwisler wrote:
+> > On Thu, Feb 08, 2018 at 05:38:19PM -0700, Dave Jiang wrote:
+> >> The function return values are confusing with the way the function is
+> >> named. We expect a true or false return value but it actually returns
+> >> 0/-errno.  This makes the code very confusing. Changing the return values
+> >> to return a bool where if DAX is supported then return true and no DAX
+> >> support returns false.
+> >>
+> >> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> >> ---
+> > 
+> >> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+> >> index 655699321c45..636b9c5e1bff 100644
+> >> --- a/fs/ext2/super.c
+> >> +++ b/fs/ext2/super.c
+> >> @@ -958,9 +958,10 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+> >>  	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+> >>  
+> >>  	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
+> >> -		err = sb_dax_supported(sb, blocksize);
+> >> -		if (err)
+> >> +		if(!sb_dax_supported(sb, blocksize)) {
+> >> +			err = -EIO;
+> > 
+> > No need to set 'err' here.  This is just a temporary variable used for some
+> > local checks later in the function.  'ret' is the value that will be returned,
+> > and that is already initialized to -EINVAL which should be fine.
+> 
+> Change ret to -EIO instead to set the correct error return code?
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 79c413985305..b2fa9b4c1e51 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1859,7 +1859,7 @@ struct super_operations {
- #define S_IMA		1024	/* Inode has an associated IMA struct */
- #define S_AUTOMOUNT	2048	/* Automount/referral quasi-directory */
- #define S_NOSEC		4096	/* no suid or xattr security attributes */
--#ifdef CONFIG_FS_DAX
-+#if IS_ENABLED(CONFIG_FS_DAX) || IS_ENABLED(CONFIG_DEV_DAX)
- #define S_DAX		8192	/* Direct Access, avoiding the page cache */
- #else
- #define S_DAX		0	/* Make all the DAX code disappear */
-
+I'm not sure that -EIO is the 'correct' return code.  The old
+sb_dax_supported() code could have returned -EINVAL, -EOPNOTSUPP or -EIO,
+based on what went wrong.  All the other error cases in this function just
+goto failed_mount without messing with 'ret', and we should probably do the
+same.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
