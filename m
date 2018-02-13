@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5111A21CF1CEB
- for <linux-nvdimm@lists.01.org>; Mon, 12 Feb 2018 17:48:50 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 3432C21CF1CF4
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Feb 2018 17:45:50 -0800 (PST)
 Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 880BDAC00A6
- for <linux-nvdimm@lists.01.org>; Tue, 13 Feb 2018 10:54:35 +0900 (JST)
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 0F5E0AC00D3
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Feb 2018 10:51:33 +0900 (JST)
 Subject: Re: [RFC PATCH v3 0/5] ndctl: monitor: monitor the smart events of
 References: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
- <CAPcyv4hrrf2XyHL4gSVoh59n8oQad_eMshc0e9NfuVfVCUwtaw@mail.gmail.com>
+ <1518199586.8128.55.camel@intel.com>
 From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Message-ID: <13e04914-25fd-8b64-86e0-14d9c2263e91@jp.fujitsu.com>
-Date: Tue, 13 Feb 2018 10:54:26 +0900
+Message-ID: <da2909fa-0b80-9196-4e85-033706ef262a@jp.fujitsu.com>
+Date: Tue, 13 Feb 2018 10:51:20 +0900
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4hrrf2XyHL4gSVoh59n8oQad_eMshc0e9NfuVfVCUwtaw@mail.gmail.com>
+In-Reply-To: <1518199586.8128.55.camel@intel.com>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,45 +27,72 @@ Content-Transfer-Encoding: 7bit
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 2018/02/10 13:06, Dan Williams wrote:
 
-> On Fri, Feb 9, 2018 at 12:02 AM, QI Fuli <qi.fuli@jp.fujitsu.com> wrote:
->> This is a patch set of ndctl monitor, a tiny daemon to monitor the smart
+
+On 2018/02/10 3:06, Verma, Vishal L wrote:
+> On Fri, 2018-02-09 at 17:02 +0900, QI Fuli wrote:
+>> This is a patch set of ndctl monitor, a tiny daemon to monitor the
+>> smart
 >> events of nvdimm dimms. When a smart event fires, monitor will output
 >> the notification which including dimm health status to syslog or a
->> special file according to users' configuration. The output notification
->> follows json format and can be consumed by log collectors like Fluentd.
+>> special file according to users' configuration. The output
+>> notification
+>> follows json format and can be consumed by log collectors like
+>> Fluentd.
 >>
->> Currently, I implemeted the following four commands to control monitor daemon.
+>> Currently, I implemeted the following four commands to control
+>> monitor daemon.
 >> $ndctl create-monitor
 >> $ndctl list-monitor
 >> $ndctl show-monitor
 >> $ndclt destroy-monitor
 >>
 >> I will appreciate if you could give some comments.
-> Nice to see this new update.
+>>
+>> Change log since v2:
+>>   - Changing the interface of daemon to the ndctl command line
+>>   - Changing the name of daemon form "nvdimmd" to "monitor"
+>>   - Removing the config file, unit_file, nvdimmd dir
+>>   - Removing nvdimmd_test program
+>>   - Adding ndctl/monitor.c
+>>
+>> Change log since v1:
+>>   - Adding a config file(/etc/nvdimmd/nvdimmd.conf)
+>>   - Using struct log_ctx instead of syslog()
+>>      - Using log_syslog() to save the notify messages to syslog
+>>      - Using log_file() to save the notify messages to special file
+>>   - Adding LOG_NOTICE level to log_priority
+>>   - Using automake instead of Makefile
+>>   - Adding a new util file(nvdimmd/util.c) including helper functions
+>>     needed for nvdimm daemon
+>>   - Adding nvdimmd_test program
+>>
+>> QI Fuli (5):
+>>    ndctl: monitor: add LOG_NOTICE level to log_priority
+>>    ndctl: monitor: add ndclt create-monitor command
+>>    ndctl: monitor: add ndclt list-monitor command
+>>    ndctl: monitor: add ndclt show-monitor command
+>>    ndctl: monitor: add ndclt destroy-monitor command
+>                          ^
+> I haven't had a chance to look at the rest of the series, but spotted a
+> quick typo - this is in the subject line of each commit as well:
+> s/ndclt/ndctl/
+Thank you for your comment, I will be more careful next time.
 >
-> I have a high level comment on the proposed command structure, as far
-> as I can see the only new command we need is:
->
->     ndctl monitor
->
-> ...that launches a monitor. We can have options to control whether
-> that monitor is a one-shot check of events sources, or a daemon that
-> forks into the background, but the 'create', 'list', 'show', and
-> 'destroy' are the responsibility of systemd or System V services. For
-> example:
->
->      create: systemctl start ndctl-monitor
->      show: systemctl status ndctl-monitor
->      destroy: systemctl stop ndctl-monitor
->
->
-Thank you for your comments, I will use systemd in next version.
+>>   builtin.h         |   4 +
+>>   configure.ac      |   3 +
+>>   ndctl/Makefile.am |   3 +-
+>>   ndctl/monitor.c   | 463
+>> ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>   ndctl/ndctl.c     |   4 +
+>>   util/log.c        |   2 +
+>>   util/log.h        |   3 +
+>>   7 files changed, 481 insertions(+), 1 deletion(-)
+>>   create mode 100644 ndctl/monitor.c
+>>
 
 
 _______________________________________________
