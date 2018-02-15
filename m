@@ -1,20 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4489E220F33C2
- for <linux-nvdimm@lists.01.org>; Thu, 15 Feb 2018 13:41:16 -0800 (PST)
-Date: Thu, 15 Feb 2018 13:47:08 -0800
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v5 3/3] xfs: reject removal of realtime flag when datadev
+ by ml01.01.org (Postfix) with ESMTPS id E9769220F33D9
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Feb 2018 13:35:02 -0800 (PST)
+Subject: [PATCH v5 3/3] xfs: reject removal of realtime flag when datadev
  doesn't support DAX
-Message-ID: <20180215214708.GA10446@infradead.org>
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 15 Feb 2018 14:40:54 -0700
+Message-ID: <151873085471.53899.4916392112937742603.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151873070632.53899.3320294279108510082.stgit@djiang5-desk3.ch.intel.com>
 References: <151873070632.53899.3320294279108510082.stgit@djiang5-desk3.ch.intel.com>
- <151873085471.53899.4916392112937742603.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <151873085471.53899.4916392112937742603.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,15 +23,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-nvdimm@lists.01.org, darrick.wong@oracle.com, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+To: darrick.wong@oracle.com
+Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-> +	if ((XFS_IS_REALTIME_INODE(ip)) &&
+In a situation where the rt_dev is DAX and data_dev is not DAX, if the user
+requests to remove the realtime flag via ioctl we can no longer support DAX
+for that file. Dynamic changing of S_DAX on the inode is not supported due
+to various complications in the existing implementation. Therefore until we
+address the dynamic S_DAX change issues, we must disallow realtime flag
+being removed.
 
-No need for the inner braces.
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ fs/xfs/xfs_ioctl.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-Except for that the whole series looks fine to me.
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index 2c70a0a4f59f..59ec742de692 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -1030,6 +1030,20 @@ xfs_ioctl_setattr_xflags(
+ {
+ 	struct xfs_mount	*mp = ip->i_mount;
+ 	uint64_t		di_flags2;
++	struct inode		*inode = VFS_I(ip);
++	struct super_block	*sb = inode->i_sb;
++
++	/*
++	 * In the case that the inode is realtime, and we are trying to remove
++	 * the realtime flag, and the rtdev supports DAX but the datadev does
++	 * not support DAX, we can't allow the realtime flag to be removed
++	 * since we do not support dynamic S_DAX flag removal yet.
++	 */
++	if ((XFS_IS_REALTIME_INODE(ip)) &&
++	    !(fa->fsx_xflags & FS_XFLAG_REALTIME) &&
++	    bdev_dax_supported(mp->m_rtdev_targp->bt_bdev, sb->s_blocksize) &&
++	    !bdev_dax_supported(mp->m_ddev_targp->bt_bdev, sb->s_blocksize))
++		return -ENOTSUPP;
+ 
+ 	/* Can't change realtime flag if any extents are allocated. */
+ 	if ((ip->i_d.di_nextents || ip->i_delayed_blks) &&
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
