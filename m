@@ -1,22 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
- [IPv6:2607:f8b0:4003:c06::231])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 058AF22161164
- for <linux-nvdimm@lists.01.org>; Fri, 16 Feb 2018 16:48:19 -0800 (PST)
-Received: by mail-oi0-x231.google.com with SMTP id y4so3446493oix.2
- for <linux-nvdimm@lists.01.org>; Fri, 16 Feb 2018 16:54:13 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20180213185839.258C.E1E9C6FF@jp.fujitsu.com>
-References: <20180209080225.5137-3-qi.fuli@jp.fujitsu.com>
- <CAPcyv4i=XAsM2OuGgmqdrBJZVhAtPNJFGFdk=HiFAoUB6Re=Gw@mail.gmail.com>
- <20180213185839.258C.E1E9C6FF@jp.fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 16 Feb 2018 16:54:12 -0800
-Message-ID: <CAPcyv4ig9MuGnaD4zxDCL7vfVLEHGfNsUw-Z5gtY9bbEmG9STQ@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 70B2E2216115C
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Feb 2018 21:45:47 -0800 (PST)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 797C2AC014F
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Feb 2018 14:51:35 +0900 (JST)
 Subject: Re: [RFC PATCH v3 2/5] ndctl: monitor: add ndctl create-monitor
  command
+References: <20180209080225.5137-1-qi.fuli@jp.fujitsu.com>
+ <20180209080225.5137-3-qi.fuli@jp.fujitsu.com>
+ <CAPcyv4i=XAsM2OuGgmqdrBJZVhAtPNJFGFdk=HiFAoUB6Re=Gw@mail.gmail.com>
+ <1518483296.4324.12.camel@intel.com>
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Message-ID: <43c35229-30ac-8151-371f-3f7015497ebb@jp.fujitsu.com>
+Date: Thu, 15 Feb 2018 14:51:21 +0900
+MIME-Version: 1.0
+In-Reply-To: <1518483296.4324.12.camel@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,132 +26,110 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: linux-nvdimm@lists.01.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Feb 13, 2018 at 1:58 AM, Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
-> Hi,
->
->> On Fri, Feb 9, 2018 at 12:02 AM, QI Fuli <qi.fuli@jp.fujitsu.com> wrote:
->> > This patch is used to add $ndctl create-monitor command, by which users can
->> > create a new monitor. Users can select the DIMMS to be monitored by using
->> > [--dimm] [--bus] [--region] [--namespace] options. The notifications can
->> > be outputed to a special file or syslog by using [--output] option, the
->> > special file will be placed under /var/log/ndctl. A name is also required for
->> > a monitor,so users can destroy the monitor by the name. When a monitor is
->> > created successfully, a file with same name will be created under
->> > /var/ndctl/monitor.
->> > Example:
->> > #ndctl create-monitor --monitor m_nmem1 --dimm nmem1 --output m_nmem.log
->>
->> Hi Qi,
->>
->> This is getting closer to where I want to see this go, but still some
->> architecture details to incorporate. I mentioned on the cover letter
->> that systemd can handle starting, stopping, and show the status of the
->> monitor. The other detail to incorporate is that monitor events can
->> come DIMMs, but also namespaces, regions, and the bus.
->>
->> The event list I have collected to date is:
->>
->> dimm-spares-remaining
->> dimm-media-temperature
->> dimm-controller-temperature
->> dimm-health-state
->> dimm-unclean-shutdown
->> dimm-detected
->> namespace-media-error
->> namespace-detected
->> region-media-error
->> region-detected
->> bus-media-error
->> bus-address-range-scrub-complete
->> bus-detected
->>
->> ...and I think all of those should be separate options, probably
->> something like the following, but I'd Vishal to comment if this scheme
->> can be handled with the bash tab-completion implementation:
->>
->>    ndctl monitor --dimm-events=spares-remaining,media-temperature
->> --namespace-events=all --regions-events --bus=ACPI.NFIT
->>
->> ...where an empty --<object>-events option is equivalent to
->> --<object>-events=all. Also, similar to "ndctl list" specifying
->> specific buses, namespaces, etc causes the monitor to filter the
->> objects based on those properties.
->
-> Hmmmm....
->
-> Currently, I'm confusing what features/options are required for nvdimm daemon.
-> For example, what is use-case of "--bus=ACPI.NFIT"?
-
-Other platforms may support different bus types, there are also
-proposals like this one for custom NVDIMM buses [1]. The other use
-case is allowing the user to monitor for any media error on the bus,
-or the completion of ARS.
-
-> For normal administorator of a server, what he/she's interest is
-> "need to replace nvdimm module or not", and "need to backup/restore
-> on the nvdimm module or not".
-
-I think that's only part of it. Data center operations want to know
-more than just when it is time to replace a module, they want to
-collect almost any data that the operating system can provide about
-the platform.
-
-> For normal programs, they just use device name or directory/filename of
-> the filesystem on the nvdimm.
->
-> To backup thier data, he/she need to solve relationship between
-> nvdimm modules and device name (/dev/pmem* or /dev/dax*).
->
-> So, IMHO, I suppose "namespace(device name) specifying (or all namespace)"
-> is enough the following events which requires replace the nvdimm module.
->
->  - spare-remaining
->  - helth-state
->  - media-error
->
-> And I'm not sure what is use-case of specifying region, bus, and dimm
-> on these events.
-
-The reason for supporting those other event sources in my mind is
-having a unified interface for tracking topology, health/status, and
-error events.
-
->
-> In addition, could you tell me what administrator/program can do
-> on the following events? What nvdimm daemon should do on each event?
->
->   - media-temperature
->   - controller-temperature
->   - address-range-scrub-complete
->   - unclean-shutdown
-
-Media temperature and controller temperature alarms can signal to data
-center operations that the server is getting too hot, and might need
-remediation, perhaps a specific fan has failed and replacing that fan
-becomes a high priority when these alarms start firing.
-
-Address-range-scrub complete might be a signal that the server may get
-a boost in throughput since the overhead of the background operation
-is now complete. ARS may continue to run long after the server has
-booted, so the end of that event may be important to server loading
-decisions.
-
-Unclean shutdown notification allows events that occurred at the last
-shutdown to be recorded at the next boot. Otherwise an operator would
-need to write a separate tool to go retrieve this information. Having
-it all in one place reduces the number of tools / data-sources that
-operations infrastructure needs to consider.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-January/013926.html
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Cj4+IEhpIFFpLAo+Pgo+PiBUaGlzIGlzIGdldHRpbmcgY2xvc2VyIHRvIHdoZXJlIEkgd2FudCB0
+byBzZWUgdGhpcyBnbywgYnV0IHN0aWxsIHNvbWUKPj4gYXJjaGl0ZWN0dXJlIGRldGFpbHMgdG8g
+aW5jb3Jwb3JhdGUuIEkgbWVudGlvbmVkIG9uIHRoZSBjb3ZlciBsZXR0ZXIKPj4gdGhhdCBzeXN0
+ZW1kIGNhbiBoYW5kbGUgc3RhcnRpbmcsIHN0b3BwaW5nLCBhbmQgc2hvdyB0aGUgc3RhdHVzIG9m
+Cj4+IHRoZQo+PiBtb25pdG9yLiBUaGUgb3RoZXIgZGV0YWlsIHRvIGluY29ycG9yYXRlIGlzIHRo
+YXQgbW9uaXRvciBldmVudHMgY2FuCj4+IGNvbWUgRElNTXMsIGJ1dCBhbHNvIG5hbWVzcGFjZXMs
+IHJlZ2lvbnMsIGFuZCB0aGUgYnVzLgo+Pgo+PiBUaGUgZXZlbnQgbGlzdCBJIGhhdmUgY29sbGVj
+dGVkIHRvIGRhdGUgaXM6Cj4+Cj4+IGRpbW0tc3BhcmVzLXJlbWFpbmluZwo+PiBkaW1tLW1lZGlh
+LXRlbXBlcmF0dXJlCj4+IGRpbW0tY29udHJvbGxlci10ZW1wZXJhdHVyZQo+PiBkaW1tLWhlYWx0
+aC1zdGF0ZQo+PiBkaW1tLXVuY2xlYW4tc2h1dGRvd24KPj4gZGltbS1kZXRlY3RlZAo+PiBuYW1l
+c3BhY2UtbWVkaWEtZXJyb3IKPj4gbmFtZXNwYWNlLWRldGVjdGVkCj4+IHJlZ2lvbi1tZWRpYS1l
+cnJvcgo+PiByZWdpb24tZGV0ZWN0ZWQKPj4gYnVzLW1lZGlhLWVycm9yCj4+IGJ1cy1hZGRyZXNz
+LXJhbmdlLXNjcnViLWNvbXBsZXRlCj4+IGJ1cy1kZXRlY3RlZApCeSByZWZlcnJpbmcgdG8gZGlt
+bV9saXN0ZW4oKSBpbiBzbWFydC1saXN0ZW4uYywgSSB1bmRlcnN0YW5kIGhvdyB0byAKbW9uaXRv
+ciBldmVudHMKY29tZSBESU1Ncy4gSSBoYXZlIGNoZWNrZWQgdGhlIG5kY3RsLCBidXQgSSBjb3Vs
+ZCBub3QgZmluZCBob3cgdG8gCm1vbml0b3IgZXZlbnRzCmNvbWUgbmFtZXNwYWNlcywgcmVnaW9u
+IGFuZCBidXMuIENvdWxkIHlvdSBwbGVhc2UgbWVudGlvbiBtb3JlPwo+PiAuLi5hbmQgSSB0aGlu
+ayBhbGwgb2YgdGhvc2Ugc2hvdWxkIGJlIHNlcGFyYXRlIG9wdGlvbnMsIHByb2JhYmx5Cj4+IHNv
+bWV0aGluZyBsaWtlIHRoZSBmb2xsb3dpbmcsIGJ1dCBJJ2QgVmlzaGFsIHRvIGNvbW1lbnQgaWYg
+dGhpcwo+PiBzY2hlbWUKPj4gY2FuIGJlIGhhbmRsZWQgd2l0aCB0aGUgYmFzaCB0YWItY29tcGxl
+dGlvbiBpbXBsZW1lbnRhdGlvbjoKPj4KPj4gICAgIG5kY3RsIG1vbml0b3IgLS1kaW1tLWV2ZW50
+cz1zcGFyZXMtcmVtYWluaW5nLG1lZGlhLXRlbXBlcmF0dXJlCj4+IC0tbmFtZXNwYWNlLWV2ZW50
+cz1hbGwgLS1yZWdpb25zLWV2ZW50cyAtLWJ1cz1BQ1BJLk5GSVQKPiBZZXMgSSB0aGluayB3ZSBz
+aG91bGQgYmUgYWJsZSB0byBleHRlbmQgYmFzaCBjb21wbGV0aW9uIGZvciBhIGNvbW1hCj4gc2Vw
+YXJhdGVkIGxpc3Qgb2YgYXJndW1lbnRzLgo+Cj4+IC4uLndoZXJlIGFuIGVtcHR5IC0tPG9iamVj
+dD4tZXZlbnRzIG9wdGlvbiBpcyBlcXVpdmFsZW50IHRvCj4+IC0tPG9iamVjdD4tZXZlbnRzPWFs
+bC4gQWxzbywgc2ltaWxhciB0byAibmRjdGwgbGlzdCIgc3BlY2lmeWluZwo+PiBzcGVjaWZpYyBi
+dXNlcywgbmFtZXNwYWNlcywgZXRjIGNhdXNlcyB0aGUgbW9uaXRvciB0byBmaWx0ZXIgdGhlCj4+
+IG9iamVjdHMgYmFzZWQgb24gdGhvc2UgcHJvcGVydGllcy4KPj4KPj4gU2luY2UgIm5kY3RsIGxp
+c3QiIGFscmVhZHkgaGFzIHRoaXMgZmlsdGVyaW5nIGltcGxlbWVudGVkIEknZCBsaWtlIHRvCj4+
+IHNlZSBpdCByZWZhY3RvcmVkIGFuZCBzaGFyZWQgYmV0d2VlbiB0aGUgMiBpbXBsZW1lbnRhdGlv
+bnMgcmF0aGVyCj4+IHRoYW4KPj4gZHVwbGljYXRlZCBhcyBpcyBkb25lIGluIHRoaXMgcGF0Y2gu
+IEluIG90aGVyIHdvcmRzIHJld29yayBjbWRfbGlzdCgpCj4+IGludG8gYSBnZW5lcmljIG52ZGlt
+bSBvYmplY3Qgd2Fsa2luZyByb3V0aW5lIHdpdGggY2FsbGJhY2sgZnVuY3Rpb25zCj4+IHRvICds
+aXN0JyBvciAnbW9uaXRvcicgYSBnaXZlbiBvYmplY3QgdGhhdCBtYXRjaGVzIHRoZSBmaWx0ZXIu
+Cj4+Cj4+IExldCBtZSBrbm93IGlmIHRoZSBhYm92ZSBtYWtlcyBzZW5zZS4gSSdtIHRoaW5raW5n
+IHRoZSAnbmRjdGwgbGlzdCcKPj4gcmVmYWN0b3JpbmcgbWlnaHQgYmUgc29tZXRoaW5nIEkgbmVl
+ZCB0byBoYW5kbGUuClllcywgSSBhZ3JlZSB3aXRoIHJlZmFjdG9yaW5nIG5kY3RsX2xpc3QgYW5k
+IGFkZCBhIHN0cnVjdHVyZSBzaGFyZWQgYmV0d2VlbgpuZGN0bCBsaXN0IGFuZCBuZGN0bCBtb25p
+dG9yLgpCdXQgSSBwcmVmZXIgdG8gdXNlIHRva2VucyByYXRoZXIgdGhhbiBjYWxsYmFjayBmdW5j
+dGlvbnMuCgpJIGFsc28gdGhpbmsgdGhlIG9wdGlvbiBzaG91bGQgc3VwcG9ydCBtdWx0aXBsZSBw
+YXJhbWV0ZXJzIGxpa2VzOgogwqBuZGNsdCBtb25pdG9yIC0tZGltbSBubWVtMSxubWVtMiAtLXJl
+Z2lvbiByZWdpb24xLHJlZ2lvbjIKClRoZSBwYXJhbWV0ZXJzIGZyb20gdGhlIHNhbWUgb3B0aW9u
+IGNhbiBiZSBzdG9yZWQgaW4gYSBsaXN0X25vZGUuCgojZGVmaW5lIGZpbHRlcl9ub2RlKGZpZWxk
+KSBcCnN0cnVjdCBmaWx0ZXJfIyNmaWVsZCMjX25vZGUgeyBcCiDCoMKgwqDCoMKgwqDCoCBjb25z
+dCBjaGFyICpuYW1lOyBcCiDCoMKgwqDCoMKgwqDCoCBzdHJ1Y3QgbGlzdF9ub2RlIGxpc3Q7IFwK
+fTsKCmZpbHRlcl9ub2RlKGJ1cyk7CmZpbHRlcl9ub2RlKGRpbW0pOwpmaWx0ZXJfbm9kZShyZWdp
+b24pOwpmaWx0ZXJfbm9kZShuYW1lc3BhY2UpOwoKc3RydWN0IG5kY3RsX2ZpbHRlciB7CiDCoMKg
+wqDCoMKgwqDCoCBzdHJ1Y3QgbGlzdF9oZWFkIGZpbHRlcl9idXM7CiDCoMKgwqDCoMKgwqDCoCBz
+dHJ1Y3QgbGlzdF9oZWFkIGZpbHRlcl9kaW1tOwogwqDCoMKgwqDCoMKgwqAgc3RydWN0IGxpc3Rf
+aGVhZCBmaWx0ZXJfcmVnaW9uOwogwqDCoMKgwqDCoMKgwqAgc3RydWN0IGxpc3RfaGVhZCBmaWx0
+ZXJfbmFtZXNwYWNlOwp9IG5mOwoKTWFrZSB0aGUgdG9rZW5zIGxpa2UgZm9sbG93czoKCiNkZWZp
+bmUgbGlzdF91dGlsX2ZpZWxkX2ZpbHRlcihmaWVsZCkgXApsaXN0X2Zvcl9lYWNoKCZuZi5maWx0
+ZXJfIyNmaWVsZCwgZmlsdGVyXyMjZmllbGQjI19ub2RlLCBsaXN0KSB7IFwKIMKgwqDCoMKgwqDC
+oMKgIGlmICh1dGlsXyMjZmllbGQjI19maWx0ZXIoZmllbGQsIGZpbHRlcl8jI2ZpZWxkIyNfbm9k
+ZS0+bmFtZSkpIHsgXAogwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGZsYWcgPSB0cnVl
+OyBcCiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgYnJlYWs7IFwKIMKgwqDCoMKgwqDC
+oMKgIH0gXAp9CgojZGVmaW5lIGxpc3RfdXRpbF9idXNfZmlsdGVyX2J5X2ZpZWxkKGZpZWxkKSBc
+Cmxpc3RfZm9yX2VhY2goJm5mLmZpbHRlcl8jI2ZpZWxkLCBmaWx0ZXJfIyNmaWVsZCMjX25vZGUs
+IGxpc3QpIHsgXAogwqDCoMKgwqDCoMKgwqAgaWYgKHV0aWxfYnVzX2ZpbHRlcl9ieV8jI2ZpZWxk
+KGJ1cywgCmZpbHRlcl8jI2ZpZWxkIyNfbm9kZS0+bmFtZSkpIHsgXAogwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgIGZsYWcgPSB0cnVlOyBcCiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqAgYnJlYWs7IFwKIMKgwqDCoMKgwqDCoMKgIH0gXAp9CgojZGVmaW5lIGxpc3RfdXRpbF9k
+aW1tX2ZpbHRlcl9ieV9maWVsZChmaWVsZCkgXApsaXN0X2Zvcl9lYWNoKCZuZi5maWx0ZXJfIyNm
+aWVsZCwgZmlsdGVyXyMjZmllbGQjI19ub2RlLCBsaXN0KSB7IFwKIMKgwqDCoMKgwqDCoMKgIGlm
+ICh1dGlsX2RpbW1fZmlsdGVyX2J5XyMjZmllbGQoZGltbSwgCmZpbHRlcl8jI2ZpZWxkIyNfbm9k
+ZS0+bmFtZSkpIHsgXAogwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGZsYWcgPSB0cnVl
+OyBcCiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgYnJlYWs7IFwKIMKgwqDCoMKgwqDC
+oMKgIH0gXAp9CgpIZXJlIGlzIGhvdyB0byB1c2UgdGhlIHRva2VuczoKCm5kY3RsX2J1c19mb3Jl
+YWNoKGN0eCwgYnVzKSB7CiDCoMKgwqDCoMKgwqDCoCBzdHJ1Y3QgZmlsdGVyX2J1c19ub2RlICpm
+aWx0ZXJfYnVzX25vZGU7CiDCoMKgwqDCoMKgwqDCoCBsaXN0X3V0aWxfZmllbGRfZmlsdGVyKGJ1
+cyk7CiDCoMKgwqDCoMKgwqDCoCBpZiAoIWZsYWcpIHsKIMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoCBzdHJ1Y3QgZmlsdGVyX3JlZ2lvbl9ub2RlICpmaWx0ZXJfcmVnaW9uX25vZGU7CiDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgbGlzdF91dGlsX2J1c19maWx0ZXJfYnlfZmll
+bGQocmVnaW9uKTsKIMKgwqDCoMKgwqDCoMKgIH0KIMKgwqDCoMKgwqDCoMKgIGlmICghZmxhZykg
+ewogwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHN0cnVjdCBmaWx0ZXJfbmFtZXNwYWNl
+X25vZGUgKmZpbHRlcl9uYW1lc3BhY2Vfbm9kZTsKIMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoCBsaXN0X3V0aWxfYnVzX2ZpbHRlcl9ieV9maWVsZChuYW1lc3BhY2UpOwogwqDCoMKgwqDC
+oMKgwqAgfQogwqDCoMKgwqDCoMKgwqAgaWYgKCFmbGFnKQogwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgIGNvbnRpbnVlOwogwqDCoMKgwqDCoMKgwqAgbmRjdGxfZGltbV9mb3JlYWNoKGJ1
+cywgZGltbSkgewogwqDCoMKgIMKgwqDCoCBmbGFnID0gZmFsc2U7CiDCoMKgwqAgwqDCoMKgIHN0
+cnVjdCBmaWx0ZXJfZGltbV9ub2RlICpmaWx0ZXJfZGltbV9ub2RlOwogwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgIGxpc3RfdXRpbF9maWVsZF9maWx0ZXIoZGltbSk7CiDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKCFmbGFnKSB7CiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHN0cnVjdCBmaWx0ZXJfcmVnaW9uX25vZGUgKmZpbHRl
+cl9yZWdpb25fbm9kZTsKIMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqAgbGlzdF91dGlsX2RpbW1fZmlsdGVyX2J5X2ZpZWxkKHJlZ2lvbik7CiDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqAgfQogwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGlm
+ICghZmxhZykgewogwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCBzdHJ1Y3QgZmlsdGVyX25hbWVzcGFjZV9ub2RlIAoqZmlsdGVyX25hbWVzcGFjZV9ub2RlOwog
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBsaXN0X3V0aWxf
+ZGltbV9maWx0ZXJfYnlfZmllbGQobmFtZXNwYWNlKTsKIMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoCB9CiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKCFmbGFnKQogwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBjb250aW51ZTsKIMKg
+wqDCoCB9Cn0KClRvIG1ha2Ugc3VyZSB0aGUgdXRpbF9uZGN0bF9maWx0ZXIoKSBnb2VzIHJpZ2h0
+LCBJIHdvdWxkIGxpa2UgeW91IGdpdmUgCnNvbWUgY29tbWVudHM/CgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
+CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1udmRpbW0K
