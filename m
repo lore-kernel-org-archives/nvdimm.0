@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E9769220F33D9
- for <linux-nvdimm@lists.01.org>; Thu, 15 Feb 2018 13:35:02 -0800 (PST)
-Subject: [PATCH v5 3/3] xfs: reject removal of realtime flag when datadev
+ by ml01.01.org (Postfix) with ESMTPS id 9FA4421CF1CF9
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Feb 2018 09:36:52 -0800 (PST)
+Subject: [PATCH v4 3/3] xfs: reject removal of realtime flag when datadev
  doesn't support DAX
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 15 Feb 2018 14:40:54 -0700
-Message-ID: <151873085471.53899.4916392112937742603.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151873070632.53899.3320294279108510082.stgit@djiang5-desk3.ch.intel.com>
-References: <151873070632.53899.3320294279108510082.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 15 Feb 2018 10:42:44 -0700
+Message-ID: <151871656418.27617.17216472781436196968.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <151871644696.27617.4390718895806529377.stgit@djiang5-desk3.ch.intel.com>
+References: <151871644696.27617.4390718895806529377.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -36,14 +36,14 @@ being removed.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/xfs/xfs_ioctl.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ fs/xfs/xfs_ioctl.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 2c70a0a4f59f..59ec742de692 100644
+index a6a0efc35c76..a2728f803e26 100644
 --- a/fs/xfs/xfs_ioctl.c
 +++ b/fs/xfs/xfs_ioctl.c
-@@ -1030,6 +1030,20 @@ xfs_ioctl_setattr_xflags(
+@@ -1030,6 +1030,21 @@ xfs_ioctl_setattr_xflags(
  {
  	struct xfs_mount	*mp = ip->i_mount;
  	uint64_t		di_flags2;
@@ -58,8 +58,9 @@ index 2c70a0a4f59f..59ec742de692 100644
 +	 */
 +	if ((XFS_IS_REALTIME_INODE(ip)) &&
 +	    !(fa->fsx_xflags & FS_XFLAG_REALTIME) &&
-+	    bdev_dax_supported(mp->m_rtdev_targp->bt_bdev, sb->s_blocksize) &&
-+	    !bdev_dax_supported(mp->m_ddev_targp->bt_bdev, sb->s_blocksize))
++	    bdev_dax_supported(sb, mp->m_rtdev_targp->bt_bdev,
++		    sb->s_blocksize) &&
++	    !bdev_dax_supported(sb, mp->m_ddev_targp->bt_bdev, sb->s_blocksize))
 +		return -ENOTSUPP;
  
  	/* Can't change realtime flag if any extents are allocated. */
