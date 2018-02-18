@@ -1,23 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D910F2237A4C9
- for <linux-nvdimm@lists.01.org>; Mon,  5 Feb 2018 01:15:55 -0800 (PST)
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com
- [10.5.11.16])
- (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by mx1.redhat.com (Postfix) with ESMTPS id 23F344A6FA
- for <linux-nvdimm@lists.01.org>; Mon,  5 Feb 2018 09:21:36 +0000 (UTC)
-Received: from localhost (unknown [10.66.12.130])
- by smtp.corp.redhat.com (Postfix) with ESMTP id 9B0595C25E
- for <linux-nvdimm@lists.01.org>; Mon,  5 Feb 2018 09:21:35 +0000 (UTC)
-Date: Mon, 5 Feb 2018 17:21:33 +0800
-From: Xiong Zhou <xzhou@redhat.com>
-Subject: nvml/pmdk libvmmaloc segmentation fault when exit
-Message-ID: <20180205092133.svny2wlqrb56t4vc@XZHOUW.usersys.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 64F0521FD73EE
+ for <linux-nvdimm@lists.01.org>; Sun, 18 Feb 2018 00:17:43 -0800 (PST)
+Date: Sun, 18 Feb 2018 16:22:48 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v4 2/3] dax: change bdev_dax_supported() to support
+ boolean returns
+Message-ID: <201802181615.wTEEGhEQ%fengguang.wu@intel.com>
+References: <151871655831.27617.969797567050409931.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
+In-Reply-To: <151871655831.27617.969797567050409931.stgit@djiang5-desk3.ch.intel.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -30,253 +24,225 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org, darrick.wong@oracle.com, david@fromorbit.com, linux-xfs@vger.kernel.org, kbuild-all@01.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+Hi Dave,
 
-This happens when testing nvml or pmdk libvmmalloc library:
-+ dmesg
-[12890.676033] traps: test_libvmmallo[15789] general protection ip:7f3f01481a31 sp:7ffd85f4b7a0 error:0 in libvmmalloc.so.1.0.0[7f3f0146d000+3e000]
+I love your patch! Perhaps something to improve:
 
-gdb output:
-Program received signal SIGSEGV, Segmentation fault.
-0x00007ffff7bada31 in arena_purge () from /usr/local/lib64/libvmmalloc.so.1
-(gdb) bt
-#0  0x00007ffff7bada31 in arena_purge () from /usr/local/lib64/libvmmalloc.so.1
-#1  0x00007ffff7badcca in arena_dalloc_bin_run () from /usr/local/lib64/libvmmalloc.so.1
-#2  0x00007ffff7baf0e0 in je_vmem_je_arena_dalloc_bin_locked () from /usr/local/lib64/libvmmalloc.so.1
-#3  0x00007ffff7bc6d31 in je_vmem_je_tcache_bin_flush_small () from /usr/local/lib64/libvmmalloc.so.1
-#4  0x00007ffff7bc761e in je_vmem_je_tcache_destroy () from /usr/local/lib64/libvmmalloc.so.1
-#5  0x00007ffff7bc7895 in je_vmem_je_tcache_thread_cleanup () from /usr/local/lib64/libvmmalloc.so.1
-#6  0x00007ffff7b9dccc in jemalloc_destructor () from /usr/local/lib64/libvmmalloc.so.1
-#7  0x00007ffff7deb18a in _dl_fini () at dl-fini.c:253
-#8  0x00007ffff7805b19 in __run_exit_handlers (status=0, listp=0x7ffff7b926c8 <__exit_funcs>, run_list_atexit=run_list_atexit@entry=true) at exit.c:77
-#9  0x00007ffff7805b67 in __GI_exit (status=<optimized out>) at exit.c:99
-#10 0x00007ffff77ee38c in __libc_start_main (main=0x40072d <main>, argc=1, ubp_av=0x7fffffffe388, init=<optimized out>, fini=<optimized out>,
-    rtld_fini=<optimized out>, stack_end=0x7fffffffe378) at ../csu/libc-start.c:308
-#11 0x0000000000400669 in _start ()
+[auto build test WARNING on linus/master]
+[also build test WARNING on v4.16-rc1 next-20180216]
+[cannot apply to dgc-xfs/for-next]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-I did not find issue opening entry in github repo, hope it's ok
-sending here.
+url:    https://github.com/0day-ci/linux/commits/Dave-Jiang/minimal-DAX-support-for-XFS-realtime-device/20180218-154220
+config: i386-randconfig-x003-201807 (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-Thanks,
-Xiong
+Note: it may well be a FALSE warning. FWIW you are at least aware of it now.
+http://gcc.gnu.org/wiki/Better_Uninitialized_Warnings
 
-Full test log:
+All warnings (new ones prefixed by >>):
 
-# ./nf.sh
-+ cc -ggdb test_libvmmalloc.c '-DALLOC_SIZE=((size_t)(1UL << 8))' -o test_libvmmalloc -lvmmalloc
-+ VMMALLOC_POOL_DIR=/daxmnt/
-+ VMMALLOC_POOL_SIZE=1073741824
-+ ./test_libvmmalloc
-        Testing ./test_libvmmalloc, alloc size 256
-./nf.sh: line 47: 15789 Segmentation fault      VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift ./test_libvmmalloc
-+ ldd -v ./test_libvmmalloc
-        linux-vdso.so.1 =>  (0x00007ffe4fdf9000)
-        libvmmalloc.so.1 => /usr/local/lib64/libvmmalloc.so.1 (0x00007f786ce1e000)
-        libc.so.6 => /lib64/libc.so.6 (0x00007f786ca51000)
-        libpthread.so.0 => /lib64/libpthread.so.0 (0x00007f786c835000)
-        /lib64/ld-linux-x86-64.so.2 (0x00007f786d060000)
+   fs//xfs/xfs_super.c: In function 'xfs_fs_fill_super':
+>> fs//xfs/xfs_super.c:1660:8: warning: 'rtdev_is_dax' may be used uninitialized in this function [-Wmaybe-uninitialized]
+      bool rtdev_is_dax, datadev_is_dax;
+           ^~~~~~~~~~~~
 
-        Version information:
-        ./test_libvmmalloc:
-                libc.so.6 (GLIBC_2.2.5) => /lib64/libc.so.6
-        /usr/local/lib64/libvmmalloc.so.1:
-                ld-linux-x86-64.so.2 (GLIBC_2.3) => /lib64/ld-linux-x86-64.so.2
-                libpthread.so.0 (GLIBC_2.3.4) => /lib64/libpthread.so.0
-                libpthread.so.0 (GLIBC_2.3.2) => /lib64/libpthread.so.0
-                libpthread.so.0 (GLIBC_2.2.5) => /lib64/libpthread.so.0
-                libc.so.6 (GLIBC_2.14) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_2.3) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_2.3.2) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_2.7) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_2.17) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_2.3.4) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_2.2.5) => /lib64/libc.so.6
-        /lib64/libc.so.6:
-                ld-linux-x86-64.so.2 (GLIBC_2.3) => /lib64/ld-linux-x86-64.so.2
-                ld-linux-x86-64.so.2 (GLIBC_PRIVATE) => /lib64/ld-linux-x86-64.so.2
-        /lib64/libpthread.so.0:
-                ld-linux-x86-64.so.2 (GLIBC_2.2.5) => /lib64/ld-linux-x86-64.so.2
-                ld-linux-x86-64.so.2 (GLIBC_2.3) => /lib64/ld-linux-x86-64.so.2
-                ld-linux-x86-64.so.2 (GLIBC_PRIVATE) => /lib64/ld-linux-x86-64.so.2
-                libc.so.6 (GLIBC_2.14) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_2.3.2) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_PRIVATE) => /lib64/libc.so.6
-                libc.so.6 (GLIBC_2.2.5) => /lib64/libc.so.6
-+ echo 0
-0
-+ dmesg
-[12890.676033] traps: test_libvmmallo[15789] general protection ip:7f3f01481a31 sp:7ffd85f4b7a0 error:0 in libvmmalloc.so.1.0.0[7f3f0146d000+3e000]
-+ set +x
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-and "show warranty" for details.
-This GDB was configured as "x86_64-redhat-linux-gnu".
-For bug reporting instructions, please see:
-<http://www.gnu.org/software/gdb/bugs/>...
-Reading symbols from /home/xzhou/fsdax/test_libvmmalloc...done.
-(gdb) b main
-Breakpoint 1 at 0x40073c: file test_libvmmalloc.c, line 18.
-(gdb) r
-Starting program: /home/xzhou/fsdax/./test_libvmmalloc
-[Thread debugging using libthread_db enabled]
-Using host libthread_db library "/lib64/libthread_db.so.1".
+vim +/rtdev_is_dax +1660 fs//xfs/xfs_super.c
 
-Breakpoint 1, main (argc=1, argv=0x7fffffffe388) at test_libvmmalloc.c:18
-18              char *buf = NULL;
-(gdb) c
-Continuing.
-        Testing /home/xzhou/fsdax/./test_libvmmalloc, alloc size 256
+  1566	
+  1567	STATIC int
+  1568	xfs_fs_fill_super(
+  1569		struct super_block	*sb,
+  1570		void			*data,
+  1571		int			silent)
+  1572	{
+  1573		struct inode		*root;
+  1574		struct xfs_mount	*mp = NULL;
+  1575		int			flags = 0, error = -ENOMEM;
+  1576	
+  1577		mp = kzalloc(sizeof(struct xfs_mount), GFP_KERNEL);
+  1578		if (!mp)
+  1579			goto out;
+  1580	
+  1581		spin_lock_init(&mp->m_sb_lock);
+  1582		mutex_init(&mp->m_growlock);
+  1583		atomic_set(&mp->m_active_trans, 0);
+  1584		INIT_DELAYED_WORK(&mp->m_reclaim_work, xfs_reclaim_worker);
+  1585		INIT_DELAYED_WORK(&mp->m_eofblocks_work, xfs_eofblocks_worker);
+  1586		INIT_DELAYED_WORK(&mp->m_cowblocks_work, xfs_cowblocks_worker);
+  1587		mp->m_kobj.kobject.kset = xfs_kset;
+  1588	
+  1589		mp->m_super = sb;
+  1590		sb->s_fs_info = mp;
+  1591	
+  1592		error = xfs_parseargs(mp, (char *)data);
+  1593		if (error)
+  1594			goto out_free_fsname;
+  1595	
+  1596		sb_min_blocksize(sb, BBSIZE);
+  1597		sb->s_xattr = xfs_xattr_handlers;
+  1598		sb->s_export_op = &xfs_export_operations;
+  1599	#ifdef CONFIG_XFS_QUOTA
+  1600		sb->s_qcop = &xfs_quotactl_operations;
+  1601		sb->s_quota_types = QTYPE_MASK_USR | QTYPE_MASK_GRP | QTYPE_MASK_PRJ;
+  1602	#endif
+  1603		sb->s_op = &xfs_super_operations;
+  1604	
+  1605		if (silent)
+  1606			flags |= XFS_MFSI_QUIET;
+  1607	
+  1608		error = xfs_open_devices(mp);
+  1609		if (error)
+  1610			goto out_free_fsname;
+  1611	
+  1612		error = xfs_init_mount_workqueues(mp);
+  1613		if (error)
+  1614			goto out_close_devices;
+  1615	
+  1616		error = xfs_init_percpu_counters(mp);
+  1617		if (error)
+  1618			goto out_destroy_workqueues;
+  1619	
+  1620		/* Allocate stats memory before we do operations that might use it */
+  1621		mp->m_stats.xs_stats = alloc_percpu(struct xfsstats);
+  1622		if (!mp->m_stats.xs_stats) {
+  1623			error = -ENOMEM;
+  1624			goto out_destroy_counters;
+  1625		}
+  1626	
+  1627		error = xfs_readsb(mp, flags);
+  1628		if (error)
+  1629			goto out_free_stats;
+  1630	
+  1631		error = xfs_finish_flags(mp);
+  1632		if (error)
+  1633			goto out_free_sb;
+  1634	
+  1635		error = xfs_setup_devices(mp);
+  1636		if (error)
+  1637			goto out_free_sb;
+  1638	
+  1639		error = xfs_filestream_mount(mp);
+  1640		if (error)
+  1641			goto out_free_sb;
+  1642	
+  1643		/*
+  1644		 * we must configure the block size in the superblock before we run the
+  1645		 * full mount process as the mount process can lookup and cache inodes.
+  1646		 */
+  1647		sb->s_magic = XFS_SB_MAGIC;
+  1648		sb->s_blocksize = mp->m_sb.sb_blocksize;
+  1649		sb->s_blocksize_bits = ffs(sb->s_blocksize) - 1;
+  1650		sb->s_maxbytes = xfs_max_file_offset(sb->s_blocksize_bits);
+  1651		sb->s_max_links = XFS_MAXLINK;
+  1652		sb->s_time_gran = 1;
+  1653		set_posix_acl_flag(sb);
+  1654	
+  1655		/* version 5 superblocks support inode version counters. */
+  1656		if (XFS_SB_VERSION_NUM(&mp->m_sb) == XFS_SB_VERSION_5)
+  1657			sb->s_flags |= SB_I_VERSION;
+  1658	
+  1659		if (mp->m_flags & XFS_MOUNT_DAX) {
+> 1660			bool rtdev_is_dax, datadev_is_dax;
+  1661	
+  1662			xfs_warn(mp,
+  1663			"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+  1664	
+  1665			datadev_is_dax = bdev_dax_supported(sb,
+  1666					mp->m_ddev_targp->bt_bdev, sb->s_blocksize);
+  1667			if (mp->m_rtdev_targp)
+  1668				rtdev_is_dax = bdev_dax_supported(sb,
+  1669						mp->m_rtdev_targp->bt_bdev,
+  1670						sb->s_blocksize);
+  1671			if (!rtdev_is_dax && !datadev_is_dax) {
+  1672				xfs_alert(mp,
+  1673				"DAX unsupported by block device. Turning off DAX.");
+  1674				mp->m_flags &= ~XFS_MOUNT_DAX;
+  1675			}
+  1676			if (xfs_sb_version_hasreflink(&mp->m_sb)) {
+  1677				xfs_alert(mp,
+  1678			"DAX and reflink cannot be used together!");
+  1679				error = -EINVAL;
+  1680				goto out_filestream_unmount;
+  1681			}
+  1682		}
+  1683	
+  1684		if (mp->m_flags & XFS_MOUNT_DISCARD) {
+  1685			struct request_queue *q = bdev_get_queue(sb->s_bdev);
+  1686	
+  1687			if (!blk_queue_discard(q)) {
+  1688				xfs_warn(mp, "mounting with \"discard\" option, but "
+  1689						"the device does not support discard");
+  1690				mp->m_flags &= ~XFS_MOUNT_DISCARD;
+  1691			}
+  1692		}
+  1693	
+  1694		if (xfs_sb_version_hasreflink(&mp->m_sb) && mp->m_sb.sb_rblocks) {
+  1695			xfs_alert(mp,
+  1696		"reflink not compatible with realtime device!");
+  1697			error = -EINVAL;
+  1698			goto out_filestream_unmount;
+  1699		}
+  1700	
+  1701		if (xfs_sb_version_hasrmapbt(&mp->m_sb) && mp->m_sb.sb_rblocks) {
+  1702			xfs_alert(mp,
+  1703		"reverse mapping btree not compatible with realtime device!");
+  1704			error = -EINVAL;
+  1705			goto out_filestream_unmount;
+  1706		}
+  1707	
+  1708		error = xfs_mountfs(mp);
+  1709		if (error)
+  1710			goto out_filestream_unmount;
+  1711	
+  1712		root = igrab(VFS_I(mp->m_rootip));
+  1713		if (!root) {
+  1714			error = -ENOENT;
+  1715			goto out_unmount;
+  1716		}
+  1717		sb->s_root = d_make_root(root);
+  1718		if (!sb->s_root) {
+  1719			error = -ENOMEM;
+  1720			goto out_unmount;
+  1721		}
+  1722	
+  1723		return 0;
+  1724	
+  1725	 out_filestream_unmount:
+  1726		xfs_filestream_unmount(mp);
+  1727	 out_free_sb:
+  1728		xfs_freesb(mp);
+  1729	 out_free_stats:
+  1730		free_percpu(mp->m_stats.xs_stats);
+  1731	 out_destroy_counters:
+  1732		xfs_destroy_percpu_counters(mp);
+  1733	 out_destroy_workqueues:
+  1734		xfs_destroy_mount_workqueues(mp);
+  1735	 out_close_devices:
+  1736		xfs_close_devices(mp);
+  1737	 out_free_fsname:
+  1738		xfs_free_fsname(mp);
+  1739		kfree(mp);
+  1740	 out:
+  1741		return error;
+  1742	
+  1743	 out_unmount:
+  1744		xfs_filestream_unmount(mp);
+  1745		xfs_unmountfs(mp);
+  1746		goto out_free_sb;
+  1747	}
+  1748	
 
-Program received signal SIGSEGV, Segmentation fault.
-0x00007ffff7bada31 in arena_purge () from /usr/local/lib64/libvmmalloc.so.1
-(gdb) bt
-#0  0x00007ffff7bada31 in arena_purge () from /usr/local/lib64/libvmmalloc.so.1
-#1  0x00007ffff7badcca in arena_dalloc_bin_run () from /usr/local/lib64/libvmmalloc.so.1
-#2  0x00007ffff7baf0e0 in je_vmem_je_arena_dalloc_bin_locked () from /usr/local/lib64/libvmmalloc.so.1
-#3  0x00007ffff7bc6d31 in je_vmem_je_tcache_bin_flush_small () from /usr/local/lib64/libvmmalloc.so.1
-#4  0x00007ffff7bc761e in je_vmem_je_tcache_destroy () from /usr/local/lib64/libvmmalloc.so.1
-#5  0x00007ffff7bc7895 in je_vmem_je_tcache_thread_cleanup () from /usr/local/lib64/libvmmalloc.so.1
-#6  0x00007ffff7b9dccc in jemalloc_destructor () from /usr/local/lib64/libvmmalloc.so.1
-#7  0x00007ffff7deb18a in _dl_fini () at dl-fini.c:253
-#8  0x00007ffff7805b19 in __run_exit_handlers (status=0, listp=0x7ffff7b926c8 <__exit_funcs>, run_list_atexit=run_list_atexit@entry=true) at exit.c:77
-#9  0x00007ffff7805b67 in __GI_exit (status=<optimized out>) at exit.c:99
-#10 0x00007ffff77ee38c in __libc_start_main (main=0x40072d <main>, argc=1, ubp_av=0x7fffffffe388, init=<optimized out>, fini=<optimized out>,
-    rtld_fini=<optimized out>, stack_end=0x7fffffffe378) at ../csu/libc-start.c:308
-#11 0x0000000000400669 in _start ()
-(gdb) c
-Continuing.
-
-Program terminated with signal SIGSEGV, Segmentation fault.
-The program no longer exists.
-(gdb) q
-
-# cat nf.sh
-#!/bin/bash
-
-set xfs /dev/pmem0 /daxmnt
-
-[ $# -ne 3 ] && { echo $0 fst dev mnt; exit 1; }
-
-#yum install -y libvmmalloc-devel libvmmalloc libvmem-devel
-#debuginfo-install glibc libgcc libvmmalloc
-
-FSTYP=$1
-DEV1=$2
-MNT1=$3
-
-mountpoint $MNT1 > /dev/null 2>&1 && umount $MNT1
-mkdir -p $MNT1
-
-if [ "$FSTYP" == "ext4" ] ; then
-        mkfs.ext4 -Fq -b 4096 $DEV1
-elif [ "$FSTYP" == "xfs" ] ; then
-        mkfs.xfs -fq -b size=4096 $DEV1
-fi
-
-mount -o dax $DEV1 $MNT1
-
-cat > /dev/null <<EOF
-for psize in 20 21 25 30 31 32 ; do
-for asize in 3 8 13 21 31 32; do
-        cc test_libvmmalloc.c -DALLOC_SIZE="((size_t)(1UL << $asize))" -o test_libvmmalloc -lvmmalloc
-        if [ $? -ne 0 ] ; then
-                echo "nvml libvmmalloc $asize cc FAIL"
-                exit 1
-        fi
-        ((pshift=1<<psize))
-        echo -ne "\t$psize $asize"
-        VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift ./test_libvmmalloc && \
-        VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift ls > /dev/null $MNT1
-done
-done
-EOF
-
-psize=30
-asize=8
-((pshift=1<<psize))
-dmesg -C
-set -x
-cc -ggdb test_libvmmalloc.c -DALLOC_SIZE="((size_t)(1UL << $asize))" -o test_libvmmalloc -lvmmalloc || exit
-VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift ./test_libvmmalloc
-ldd -v ./test_libvmmalloc
-echo $?
-dmesg
-set +x
-VMMALLOC_POOL_DIR=$MNT1/ VMMALLOC_POOL_SIZE=$pshift gdb ./test_libvmmalloc
-
-umount $MNT1 $DEV1 > /dev/null 2>&1
-
-# cat test_libvmmalloc.c
-#include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <libvmem.h>
-
-/* alloc size -- 1 KB */
-#ifndef ALLOC_SIZE
-#define ALLOC_SIZE ((size_t)(1 << 10))
-#endif
-
-int main(int argc, char *argv[])
-{
-        char *path;
-        char *ptr;
-        char *buf = NULL;
-
-        printf("\tTesting %s, alloc size %lu\n", argv[0], ALLOC_SIZE);
-
-        if ((ptr = malloc(ALLOC_SIZE)) == NULL) {
-                perror("vmem_malloc");
-                exit(1);
-        }
-
-        buf = (char *)malloc(ALLOC_SIZE);
-        if (buf == NULL) {
-                perror("a buf malloc");
-                free(ptr);
-                exit(1);
-        }
-        memset(buf, 'a', ALLOC_SIZE);
-        strncpy(ptr, buf, ALLOC_SIZE);
-
-        buf = (char *)realloc(buf, ALLOC_SIZE - 1);
-        if (buf == NULL) {
-                perror("b buf malloc");
-                free(ptr);
-                exit(1);
-        }
-        memset(buf, 'b', ALLOC_SIZE - 1);
-        strncpy(ptr, buf, ALLOC_SIZE - 1);
-
-        buf = (char *)realloc(buf, ALLOC_SIZE + 1024);
-        if (buf == NULL) {
-                perror("c buf malloc");
-                free(ptr);
-                exit(1);
-        }
-        memset(buf, 'c', ALLOC_SIZE + 1024);
-        strncpy(ptr, buf, ALLOC_SIZE + 1024);
-
-        /* give the memory back */
-        free(ptr);
-        free(buf);
-
-        return 0;
-}
-# git remote -v
-origin  https://github.com/pmem/nvml.git (fetch)
-origin  https://github.com/pmem/nvml.git (push)
-# git log --oneline -1
-2f9a347 Merge pull request #2576 from plebioda/bug-fixing
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
