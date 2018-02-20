@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6FBB42034D8FF
- for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 12:43:42 -0800 (PST)
-Subject: [PATCH v2 3/4] ndctl: add check for update firmware supported
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 22 Feb 2018 13:49:42 -0700
-Message-ID: <151933258238.36856.9023500158077113403.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151933257135.36856.6462188364046414070.stgit@djiang5-desk3.ch.intel.com>
-References: <151933257135.36856.6462188364046414070.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D8B2121CF1D03
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Feb 2018 16:19:13 -0800 (PST)
+Date: Tue, 20 Feb 2018 08:24:33 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v6 1/3] fs: allow per-device dax status checking for
+ filesystems
+Message-ID: <201802200834.rXDUV1nU%fengguang.wu@intel.com>
+References: <151880065504.43131.6695118308172421769.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
+In-Reply-To: <151880065504.43131.6695118308172421769.stgit@djiang5-desk3.ch.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,142 +24,109 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org, darrick.wong@oracle.com, david@fromorbit.com, linux-xfs@vger.kernel.org, kbuild-all@01.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding generic and intel support function to allow check if update firmware
-is supported by the kernel.
+Hi Darrick,
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+I love your patch! Yet something to improve:
+
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.16-rc2 next-20180219]
+[cannot apply to dgc-xfs/for-next]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Dave-Jiang/fs-allow-per-device-dax-status-checking-for-filesystems/20180219-121644
+config: x86_64-randconfig-s5-02200659 (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
+
+All errors (new ones prefixed by >>):
+
+>> drivers/dax/super.c:85:5: error: redefinition of 'bdev_dax_supported'
+    int bdev_dax_supported(struct block_device *bdev, int blocksize)
+        ^~~~~~~~~~~~~~~~~~
+   In file included from drivers/dax/super.c:23:0:
+   include/linux/dax.h:56:19: note: previous definition of 'bdev_dax_supported' was here
+    static inline int bdev_dax_supported(struct block_device *bdev,
+                      ^~~~~~~~~~~~~~~~~~
+
+vim +/bdev_dax_supported +85 drivers/dax/super.c
+
+    74	
+    75	/**
+    76	 * bdev_dax_supported() - Check if the device supports dax for filesystem
+    77	 * @bdev: block device to check
+    78	 * @blocksize: The block size of the device
+    79	 *
+    80	 * This is a library function for filesystems to check if the block device
+    81	 * can be mounted with dax option.
+    82	 *
+    83	 * Return: negative errno if unsupported, 0 if supported.
+    84	 */
+  > 85	int bdev_dax_supported(struct block_device *bdev, int blocksize)
+    86	{
+    87		struct dax_device *dax_dev;
+    88		pgoff_t pgoff;
+    89		int err, id;
+    90		void *kaddr;
+    91		pfn_t pfn;
+    92		long len;
+    93		char buf[BDEVNAME_SIZE];
+    94	
+    95		if (blocksize != PAGE_SIZE) {
+    96			pr_debug("%s: error: unsupported blocksize for dax\n",
+    97					bdevname(bdev, buf));
+    98			return -EINVAL;
+    99		}
+   100	
+   101		err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
+   102		if (err) {
+   103			pr_debug("%s: error: unaligned partition for dax\n",
+   104					bdevname(bdev, buf));
+   105			return err;
+   106		}
+   107	
+   108		dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
+   109		if (!dax_dev) {
+   110			pr_debug("%s: error: device does not support dax\n",
+   111					bdevname(bdev, buf));
+   112			return -EOPNOTSUPP;
+   113		}
+   114	
+   115		id = dax_read_lock();
+   116		len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
+   117		dax_read_unlock(id);
+   118	
+   119		put_dax(dax_dev);
+   120	
+   121		if (len < 1) {
+   122			pr_debug("%s: error: dax access failed (%ld)\n",
+   123					bdevname(bdev, buf), len);
+   124			return len < 0 ? len : -EIO;
+   125		}
+   126	
+   127		if ((IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn))
+   128				|| pfn_t_devmap(pfn))
+   129			/* pass */;
+   130		else {
+   131			pr_debug("%s: error: dax support not enabled\n",
+   132					bdevname(bdev, buf));
+   133			return -EOPNOTSUPP;
+   134		}
+   135	
+   136		return 0;
+   137	}
+   138	EXPORT_SYMBOL_GPL(bdev_dax_supported);
+   139	#endif
+   140	
+
 ---
- ndctl/lib/firmware.c   |   11 +++++++++++
- ndctl/lib/intel.c      |   24 ++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |    1 +
- ndctl/lib/private.h    |    1 +
- ndctl/libndctl.h       |    1 +
- ndctl/update.c         |    7 ++++++-
- 6 files changed, 44 insertions(+), 1 deletion(-)
-
-diff --git a/ndctl/lib/firmware.c b/ndctl/lib/firmware.c
-index f6deec5..78d753c 100644
---- a/ndctl/lib/firmware.c
-+++ b/ndctl/lib/firmware.c
-@@ -107,3 +107,14 @@ ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd)
- 	else
- 		return FW_EUNKNOWN;
- }
-+
-+NDCTL_EXPORT bool
-+ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_dimm_ops *ops = dimm->ops;
-+
-+	if (ops && ops->fw_update_supported)
-+		return ops->fw_update_supported(dimm);
-+	else
-+		return false;
-+}
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index cee5204..7d976c5 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -650,6 +650,29 @@ intel_dimm_cmd_new_lss(struct ndctl_dimm *dimm)
- 	return cmd;
- }
- 
-+static bool intel_dimm_fw_update_supported(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL)) {
-+		dbg(ctx, "unsupported cmd: %d\n", ND_CMD_CALL);
-+		return false;
-+	}
-+
-+	/*
-+	 * We only need to check FW_GET_INFO. If that isn't supported then
-+	 * the others aren't either.
-+	 */
-+	if (test_dimm_dsm(dimm, ND_INTEL_FW_GET_INFO)
-+			== DIMM_DSM_UNSUPPORTED) {
-+		dbg(ctx, "unsupported function: %d\n",
-+				ND_INTEL_FW_GET_INFO);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
- struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.cmd_desc = intel_cmd_desc,
- 	.new_smart = intel_dimm_cmd_new_smart,
-@@ -703,4 +726,5 @@ struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.fw_fquery_get_fw_rev = intel_cmd_fw_fquery_get_fw_rev,
- 	.fw_xlat_firmware_status = intel_cmd_fw_xlat_firmware_status,
- 	.new_ack_shutdown_count = intel_dimm_cmd_new_lss,
-+	.fw_update_supported = intel_dimm_fw_update_supported,
- };
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index af9b7d5..cc580f9 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -344,4 +344,5 @@ global:
- 	ndctl_cmd_fw_fquery_get_fw_rev;
- 	ndctl_cmd_fw_xlat_firmware_status;
- 	ndctl_dimm_cmd_new_ack_shutdown_count;
-+	ndctl_dimm_fw_update_supported;
- } LIBNDCTL_13;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 015eeb2..ae4454c 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -325,6 +325,7 @@ struct ndctl_dimm_ops {
- 	unsigned long long (*fw_fquery_get_fw_rev)(struct ndctl_cmd *);
- 	enum ND_FW_STATUS (*fw_xlat_firmware_status)(struct ndctl_cmd *);
- 	struct ndctl_cmd *(*new_ack_shutdown_count)(struct ndctl_dimm *);
-+	bool (*fw_update_supported)(struct ndctl_dimm *);
- };
- 
- struct ndctl_dimm_ops * const intel_dimm_ops;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 9db775b..08030d3 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -625,6 +625,7 @@ unsigned int ndctl_cmd_fw_start_get_context(struct ndctl_cmd *cmd);
- unsigned long long ndctl_cmd_fw_fquery_get_fw_rev(struct ndctl_cmd *cmd);
- enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
- struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
-+bool ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/ndctl/update.c b/ndctl/update.c
-index 4fb572d..b148b70 100644
---- a/ndctl/update.c
-+++ b/ndctl/update.c
-@@ -477,6 +477,10 @@ static int get_ndctl_dimm(struct update_context *uctx, void *ctx)
- 		ndctl_dimm_foreach(bus, dimm) {
- 			if (!util_dimm_filter(dimm, uctx->dimm_id))
- 				continue;
-+			if (!ndctl_dimm_fw_update_supported(dimm)) {
-+				error("DIMM firmware update not supported by the kernel.");
-+				return -ENOTSUP;
-+			}
- 			uctx->dimm = dimm;
- 			rc = update_firmware(uctx);
- 			if (rc < 0) {
-@@ -581,7 +585,8 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx)
- 
- 	rc = get_ndctl_dimm(&uctx, ctx);
- 	if (rc < 0) {
--		error("DIMM %s not found", uctx.dimm_id);
-+		if (rc == -ENODEV)
-+			error("DIMM %s not found", uctx.dimm_id);
- 		return rc;
- 	}
- 
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
