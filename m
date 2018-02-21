@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2B89521FD73F2
- for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 20:23:53 -0800 (PST)
-Subject: [PATCH v4 11/12] dax: fix S_DAX definition
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 26 Feb 2018 20:20:53 -0800
-Message-ID: <151970525357.26729.16503435900105555250.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 7B99C2034D8D6
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Feb 2018 14:56:57 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 3/3] ndctl,
+ update: remove the check for !cmd when dereferencing it
+Date: Wed, 21 Feb 2018 16:02:52 -0700
+Message-Id: <20180221230252.16632-4-vishal.l.verma@intel.com>
+In-Reply-To: <20180221230252.16632-1-vishal.l.verma@intel.com>
+References: <20180221230252.16632-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,42 +18,49 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Make sure S_DAX is defined in the CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y
-case. Otherwise vma_is_dax() may incorrectly return false in the
-Device-DAX case.
+ndctl_cmd_unref() already checks for the cmd being NULL, no need to
+check at every call site.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <stable@vger.kernel.org>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- include/linux/fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ndctl/update.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 8021f10068d3..ae8d2495f51e 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1859,7 +1859,7 @@ struct super_operations {
- #define S_IMA		1024	/* Inode has an associated IMA struct */
- #define S_AUTOMOUNT	2048	/* Automount/referral quasi-directory */
- #define S_NOSEC		4096	/* no suid or xattr security attributes */
--#ifdef CONFIG_FS_DAX
-+#if IS_ENABLED(CONFIG_FS_DAX) || IS_ENABLED(CONFIG_DEV_DAX)
- #define S_DAX		8192	/* Direct Access, avoiding the page cache */
- #else
- #define S_DAX		0	/* Make all the DAX code disappear */
+diff --git a/ndctl/update.c b/ndctl/update.c
+index 71d95eb..4ca6a0d 100644
+--- a/ndctl/update.c
++++ b/ndctl/update.c
+@@ -254,8 +254,7 @@ static int send_firmware(struct update_context *uctx)
+ 	}
+ 
+ cleanup:
+-	if (cmd)
+-		ndctl_cmd_unref(cmd);
++	ndctl_cmd_unref(cmd);
+ 	free(buf);
+ 	return rc;
+ }
+@@ -546,8 +545,7 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx)
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	if (uctx.start)
+-		ndctl_cmd_unref(uctx.start);
++	ndctl_cmd_unref(uctx.start);
+ 
+ 	return 0;
+ }
+-- 
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
