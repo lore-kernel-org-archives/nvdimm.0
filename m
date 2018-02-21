@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x231.google.com (mail-oi0-x231.google.com
+ [IPv6:2607:f8b0:4003:c06::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 90EBD223DB799
- for <linux-nvdimm@lists.01.org>; Fri,  9 Feb 2018 21:27:02 -0800 (PST)
-Subject: [ndctl PATCH] ndctl, hugetlb: skip, don't fail
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Feb 2018 21:23:43 -0800
-Message-ID: <151824022366.4967.8494321995118743101.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7881C2034D8EF
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Feb 2018 15:51:00 -0800 (PST)
+Received: by mail-oi0-x231.google.com with SMTP id a207so2459718oii.10
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Feb 2018 15:57:00 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1519252098.24924.23.camel@intel.com>
+References: <151925075889.65338.1771943064286480835.stgit@djiang5-desk3.ch.intel.com>
+ <151925076435.65338.5271742129529173494.stgit@djiang5-desk3.ch.intel.com>
+ <1519252098.24924.23.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 21 Feb 2018 15:56:59 -0800
+Message-ID: <CAPcyv4jUPddTPvZhKXjV54xLgWKdOFm5Jvzff5bbvwT0q2gggg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ndctl: add "all" dimm-id option for update-firmware
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,37 +27,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The hugetlb test has x86 assumptions. Skip instead of fail to enable
-package build environments that run the unit tests.
+On Wed, Feb 21, 2018 at 2:28 PM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+>
+> On Wed, 2018-02-21 at 15:06 -0700, Dave Jiang wrote:
+>> Adding all option to allow ndctl to update all DIMMs at once.
+>
+> I was going to ask that we should also update the documentation for
+> this command to include the new 'all' behavior, but it looks like
+> during the revisions of the original series, the documentation update
+> to list the options explicitly got dropped?
+>
+> Anyway, can you re-add those, and also talk about --dimm=all there.
+>
+> On a side note, should we make this more inline with other dimm
+> commands, such as xable-dimm or read/write-labels, where the dimm name
+> (or 'all') is a non-option argument? That would make it something like:
+>
+>   ndctl update-firmware --firmware=<file> nmem0 (or 'all)
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/hugetlb.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/test/hugetlb.c b/test/hugetlb.c
-index a08a93ad40f3..11b7a3d25bb2 100644
---- a/test/hugetlb.c
-+++ b/test/hugetlb.c
-@@ -13,12 +13,10 @@ static int test_hugetlb(void)
- 	for (i = 0; i < (int) ARRAY_SIZE(aligns); i++) {
- 		fprintf(stderr, "%s: page_size: %#lx\n", __func__, aligns[i]);
- 		rc = test_dax_directio(-1, aligns[i], NULL, 0);
--		if (rc == -ENOMEM || rc == -EACCES)
--			return 77;
--		else if (rc == -ENOENT && aligns[i] == SZ_1G)
-+		if (rc == -ENOENT && aligns[i] == SZ_1G)
- 			continue; /* system not configured for 1G pages */
- 		else if (rc)
--			return rc;
-+			return 77;
- 	}
- 	return 0;
- }
-
+Sounds good to me, but we should still silently support -d for just
+this command since it appeared in a released version and user
+interfaces are forever.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
