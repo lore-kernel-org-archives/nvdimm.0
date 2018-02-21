@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D31E8222DE14D
- for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 12:58:47 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 0EC712034D8D4
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Feb 2018 14:56:57 -0800 (PST)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/4] ndctl: add ndctl_encode_smart_temperature()
-Date: Thu,  8 Feb 2018 14:04:26 -0700
-Message-Id: <20180208210428.7285-2-vishal.l.verma@intel.com>
-In-Reply-To: <20180208210428.7285-1-vishal.l.verma@intel.com>
-References: <20180208210428.7285-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 1/3] ndctl,
+ inject-smart: cleanup uninitialized variable warnings
+Date: Wed, 21 Feb 2018 16:02:50 -0700
+Message-Id: <20180221230252.16632-2-vishal.l.verma@intel.com>
+In-Reply-To: <20180221230252.16632-1-vishal.l.verma@intel.com>
+References: <20180221230252.16632-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,68 +26,38 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This provides for encoding of a human-readable temperature value into
-the format expected by the smart command
+There were a couple of cases where we could try to unref a command that
+had never been initialized. Fix those by always initializing the cmd
+pointers to NULL.
 
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- ndctl/lib/libndctl.c   | 16 ++++++++++++++++
- ndctl/lib/libndctl.sym |  1 +
- ndctl/libndctl.h       |  1 +
- 3 files changed, 18 insertions(+)
+ ndctl/inject-smart.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 4119a2e..ed5a65b 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -87,6 +87,22 @@ NDCTL_EXPORT double ndctl_decode_smart_temperature(unsigned int temp)
- 	return t;
- }
+diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
+index 02f8b0e..45dbc8d 100644
+--- a/ndctl/inject-smart.c
++++ b/ndctl/inject-smart.c
+@@ -221,7 +221,7 @@ static int smart_init(void)
+ static int smart_set_thresh(struct ndctl_dimm *dimm)
+ {
+ 	const char *name = ndctl_dimm_get_devname(dimm);
+-	struct ndctl_cmd *st_cmd, *sst_cmd;
++	struct ndctl_cmd *st_cmd = NULL, *sst_cmd = NULL;
+ 	int rc = -EOPNOTSUPP;
  
-+NDCTL_EXPORT unsigned int ndctl_encode_smart_temperature(double temp)
-+{
-+	bool negative = false;
-+	unsigned int t;
-+
-+	if  (temp < 0) {
-+		negative = true;
-+		temp *= -1;
-+	}
-+	t = temp;
-+	t *= 16;
-+	if (negative)
-+		t |= (1 << 15);
-+	return t;
-+}
-+
- struct ndctl_ctx;
+ 	st_cmd = ndctl_dimm_cmd_new_smart_threshold(dimm);
+@@ -332,7 +332,7 @@ out:
+ static int smart_inject(struct ndctl_dimm *dimm)
+ {
+ 	const char *name = ndctl_dimm_get_devname(dimm);
+-	struct ndctl_cmd *si_cmd;
++	struct ndctl_cmd *si_cmd = NULL;
+ 	int rc = -EOPNOTSUPP;
  
- /**
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index c160847..e7f9675 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -322,6 +322,7 @@ global:
- 	ndctl_cmd_smart_threshold_set_ctrl_temperature;
- 	ndctl_cmd_smart_threshold_set_spares;
- 	ndctl_decode_smart_temperature;
-+	ndctl_encode_smart_temperature;
- 	ndctl_dimm_cmd_new_smart_inject;
- 	ndctl_cmd_smart_inject_media_temperature;
- 	ndctl_cmd_smart_inject_spares;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index bd33d39..6091ff3 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -76,6 +76,7 @@ size_t ndctl_min_namespace_size(void);
- size_t ndctl_sizeof_namespace_index(void);
- size_t ndctl_sizeof_namespace_label(void);
- double ndctl_decode_smart_temperature(unsigned int temp);
-+unsigned int ndctl_encode_smart_temperature(double temp);
- 
- struct ndctl_ctx;
- struct ndctl_ctx *ndctl_ref(struct ndctl_ctx *ctx);
+ 	send_inject_val(media_temperature)
 -- 
 2.14.3
 
