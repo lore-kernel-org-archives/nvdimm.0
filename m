@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr0-x242.google.com (mail-wr0-x242.google.com
+ [IPv6:2a00:1450:400c:c0c::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9FA4421CF1CF9
- for <linux-nvdimm@lists.01.org>; Thu, 15 Feb 2018 09:36:52 -0800 (PST)
-Subject: [PATCH v4 3/3] xfs: reject removal of realtime flag when datadev
- doesn't support DAX
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 15 Feb 2018 10:42:44 -0700
-Message-ID: <151871656418.27617.17216472781436196968.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151871644696.27617.4390718895806529377.stgit@djiang5-desk3.ch.intel.com>
-References: <151871644696.27617.4390718895806529377.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 70E082034D8C3
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Feb 2018 19:15:23 -0800 (PST)
+Received: by mail-wr0-x242.google.com with SMTP id n7so9110309wrn.5
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Feb 2018 19:21:23 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20180212230558.5546-1-ross.zwisler@linux.intel.com>
+References: <20180212230558.5546-1-ross.zwisler@linux.intel.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Date: Thu, 22 Feb 2018 11:21:20 +0800
+Message-ID: <CACVXFVOyJqpwfwnmMqBkJd8x3kC=YZ-=Y7m-AmgdnqPBg8_OWw@mail.gmail.com>
+Subject: Re: [PATCH] loop: Fix lost writes caused by missing flag
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,49 +25,78 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: stable <stable@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In a situation where the rt_dev is DAX and data_dev is not DAX, if the user
-requests to remove the realtime flag via ioctl we can no longer support DAX
-for that file. Dynamic changing of S_DAX on the inode is not supported due
-to various complications in the existing implementation. Therefore until we
-address the dynamic S_DAX change issues, we must disallow realtime flag
-being removed.
+On Tue, Feb 13, 2018 at 7:05 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> The following commit:
+>
+> commit aa4d86163e4e ("block: loop: switch to VFS ITER_BVEC")
+>
+> replaced __do_lo_send_write(), which used ITER_KVEC iterators, with
+> lo_write_bvec() which uses ITER_BVEC iterators.  In this change, though,
+> the WRITE flag was lost:
+>
+> -       iov_iter_kvec(&from, ITER_KVEC | WRITE, &kvec, 1, len);
+> +       iov_iter_bvec(&i, ITER_BVEC, bvec, 1, bvec->bv_len);
+>
+> This flag is necessary for the DAX case because we make decisions based on
+> whether or not the iterator is a READ or a WRITE in dax_iomap_actor() and
+> in dax_iomap_rw().
+>
+> We end up going through this path in configurations where we combine a PMEM
+> device with 4k sectors, a loopback device and DAX.  The consequence of this
+> missed flag is that what we intend as a write actually turns into a read in
+> the DAX code, so no data is ever written.
+>
+> The very simplest test case is to create a loopback device and try and
+> write a small string to it, then hexdump a few bytes of the device to see
+> if the write took.  Without this patch you read back all zeros, with this
+> you read back the string you wrote.
+>
+> For XFS this causes us to fail or panic during the following xfstests:
+>
+>         xfs/074 xfs/078 xfs/216 xfs/217 xfs/250
+>
+> For ext4 we have a similar issue where writes never happen, but we don't
+> currently have any xfstests that use loopback and show this issue.
+>
+> Fix this by restoring the WRITE flag argument to iov_iter_bvec().  This
+> causes the xfstests to all pass.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Fixes: commit aa4d86163e4e ("block: loop: switch to VFS ITER_BVEC")
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Al Viro <viro@zeniv.linux.org.uk>
+> Cc: stable@vger.kernel.org
+> ---
+>  drivers/block/loop.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/block/loop.c b/drivers/block/loop.c
+> index d5fe720cf149..89d2ee00cced 100644
+> --- a/drivers/block/loop.c
+> +++ b/drivers/block/loop.c
+> @@ -266,7 +266,7 @@ static int lo_write_bvec(struct file *file, struct bio_vec *bvec, loff_t *ppos)
+>         struct iov_iter i;
+>         ssize_t bw;
+>
+> -       iov_iter_bvec(&i, ITER_BVEC, bvec, 1, bvec->bv_len);
+> +       iov_iter_bvec(&i, ITER_BVEC | WRITE, bvec, 1, bvec->bv_len);
+>
+>         file_start_write(file);
+>         bw = vfs_iter_write(file, &i, ppos, 0);
+> --
+> 2.14.3
+>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- fs/xfs/xfs_ioctl.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Reviewed-by: Ming Lei <ming.lei@redhat.com>
 
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index a6a0efc35c76..a2728f803e26 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1030,6 +1030,21 @@ xfs_ioctl_setattr_xflags(
- {
- 	struct xfs_mount	*mp = ip->i_mount;
- 	uint64_t		di_flags2;
-+	struct inode		*inode = VFS_I(ip);
-+	struct super_block	*sb = inode->i_sb;
-+
-+	/*
-+	 * In the case that the inode is realtime, and we are trying to remove
-+	 * the realtime flag, and the rtdev supports DAX but the datadev does
-+	 * not support DAX, we can't allow the realtime flag to be removed
-+	 * since we do not support dynamic S_DAX flag removal yet.
-+	 */
-+	if ((XFS_IS_REALTIME_INODE(ip)) &&
-+	    !(fa->fsx_xflags & FS_XFLAG_REALTIME) &&
-+	    bdev_dax_supported(sb, mp->m_rtdev_targp->bt_bdev,
-+		    sb->s_blocksize) &&
-+	    !bdev_dax_supported(sb, mp->m_ddev_targp->bt_bdev, sb->s_blocksize))
-+		return -ENOTSUPP;
- 
- 	/* Can't change realtime flag if any extents are allocated. */
- 	if ((ip->i_d.di_nextents || ip->i_delayed_blks) &&
 
+-- 
+Ming Lei
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
