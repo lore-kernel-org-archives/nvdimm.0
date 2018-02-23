@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1324D20955F2B
- for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 20:23:48 -0800 (PST)
-Subject: [PATCH v4 10/12] fs, dax: kill IS_DAX()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 26 Feb 2018 20:20:48 -0800
-Message-ID: <151970524837.26729.14336810163194275690.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 5167C220F33CE
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 13:08:14 -0800 (PST)
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 1/2] libnvdimm,
+ label: change min label storage size per UEFI 2.7
+Date: Fri, 23 Feb 2018 14:59:21 -0700
+Message-Id: <20180223215922.25415-2-toshi.kani@hpe.com>
+In-Reply-To: <20180223215922.25415-1-toshi.kani@hpe.com>
+References: <20180223215922.25415-1-toshi.kani@hpe.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,78 +18,48 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for fixing the broken definition of S_DAX in the
-CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y case, convert all the remaining
-IS_DAX() usages to use explicit tests for FSDAX.
+UEFI 2.7 defines in page 758 that:
 
-Cc: Jan Kara <jack@suse.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: <stable@vger.kernel.org>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+  Initial Label Storage Area Configuration
+     :
+  The minimum size of the Label Storage Area is large enough to
+  hold 2 index blocks and 2 labels.
+
+The mininum index block size is 256 bytes, and the minimum label size
+is also 256 bytes.
+
+Change ND_LABEL_MIN_SIZE to (256 * 4) so that NVDIMM devices with
+the minimum label storage area do not fail with the size check in
+nvdimm_init_config_data().
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/iomap.c          |    2 +-
- include/linux/dax.h |    2 +-
- include/linux/fs.h  |    3 +--
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/nvdimm/label.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/iomap.c b/fs/iomap.c
-index afd163586aa0..fe379d8949fd 100644
---- a/fs/iomap.c
-+++ b/fs/iomap.c
-@@ -377,7 +377,7 @@ iomap_zero_range_actor(struct inode *inode, loff_t pos, loff_t count,
- 		offset = pos & (PAGE_SIZE - 1); /* Within page */
- 		bytes = min_t(loff_t, PAGE_SIZE - offset, count);
- 
--		if (IS_DAX(inode))
-+		if (IS_FSDAX(inode))
- 			status = iomap_dax_zero(pos, offset, bytes, iomap);
- 		else
- 			status = iomap_zero(inode, pos, offset, bytes, iomap);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 47edbce4fc52..ce520e932adc 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -124,7 +124,7 @@ static inline ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 
- static inline bool dax_mapping(struct address_space *mapping)
- {
--	return mapping->host && IS_DAX(mapping->host);
-+	return mapping->host && IS_FSDAX(mapping->host);
- }
- 
- struct writeback_control;
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 4a5aa8761011..8021f10068d3 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1903,7 +1903,6 @@ static inline bool sb_rdonly(const struct super_block *sb) { return sb->s_flags
- #define IS_IMA(inode)		((inode)->i_flags & S_IMA)
- #define IS_AUTOMOUNT(inode)	((inode)->i_flags & S_AUTOMOUNT)
- #define IS_NOSEC(inode)		((inode)->i_flags & S_NOSEC)
--#define IS_DAX(inode)		((inode)->i_flags & S_DAX)
- #define IS_ENCRYPTED(inode)	((inode)->i_flags & S_ENCRYPTED)
- 
- #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
-@@ -3203,7 +3202,7 @@ extern int file_update_time(struct file *file);
- 
- static inline bool io_is_direct(struct file *filp)
- {
--	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
-+	return (filp->f_flags & O_DIRECT) || IS_FSDAX(filp->f_mapping->host);
- }
- 
- static inline bool vma_is_dax(struct vm_area_struct *vma)
-
+diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+index 1ebf4d3d01ba..18bbe183b3a9 100644
+--- a/drivers/nvdimm/label.h
++++ b/drivers/nvdimm/label.h
+@@ -33,7 +33,7 @@ enum {
+ 	BTTINFO_UUID_LEN = 16,
+ 	BTTINFO_FLAG_ERROR = 0x1,    /* error state (read-only) */
+ 	BTTINFO_MAJOR_VERSION = 1,
+-	ND_LABEL_MIN_SIZE = 512 * 129, /* see sizeof_namespace_index() */
++	ND_LABEL_MIN_SIZE = 256 * 4, /* see sizeof_namespace_index() */
+ 	ND_LABEL_ID_SIZE = 50,
+ 	ND_NSINDEX_INIT = 0x1,
+ };
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
