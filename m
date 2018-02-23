@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf0-x244.google.com (mail-lf0-x244.google.com
+ [IPv6:2a00:1450:4010:c07::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CD01522361E5D
- for <linux-nvdimm@lists.01.org>; Thu,  8 Feb 2018 12:18:55 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2] libnvdimm,
- testing: Add emulation for smart injection commands
-Date: Thu,  8 Feb 2018 13:24:38 -0700
-Message-Id: <20180208202438.1173-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4D696222630B9
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 22:22:51 -0800 (PST)
+Received: by mail-lf0-x244.google.com with SMTP id t79so10849151lfe.3
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 22:28:52 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <151933258238.36856.9023500158077113403.stgit@djiang5-desk3.ch.intel.com>
+References: <151933257135.36856.6462188364046414070.stgit@djiang5-desk3.ch.intel.com>
+ <151933258238.36856.9023500158077113403.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 22 Feb 2018 22:28:50 -0800
+Message-ID: <CAPcyv4hNgnJjAxve5u3BFFTWKHG5KNmtGJjkfse6Y_4a78kA_Q@mail.gmail.com>
+Subject: Re: [PATCH v2 3/4] ndctl: add check for update firmware supported
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,152 +22,160 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for the smart injection command in the nvdimm unit test
-framework. This allows for directly injecting to smart fields and flags
-that are supported in the injection command. If the injected values are
-past the threshold, then an acpi notification is also triggered.
+On Thu, Feb 22, 2018 at 12:49 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Adding generic and intel support function to allow check if update firmware
+> is supported by the kernel.
+>
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- tools/testing/nvdimm/test/nfit.c      | 43 +++++++++++++++++++++++++++++++++--
- tools/testing/nvdimm/test/nfit_test.h | 16 +++++++++++++
- 2 files changed, 57 insertions(+), 2 deletions(-)
+Looks good, just one user message I'll fix up on applying...
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 42ee1798971d..90aefef4065f 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -708,7 +708,9 @@ static void smart_notify(struct device *bus_dev,
- 				>= thresh->media_temperature)
- 			|| ((thresh->alarm_control & ND_INTEL_SMART_CTEMP_TRIP)
- 				&& smart->ctrl_temperature
--				>= thresh->ctrl_temperature)) {
-+				>= thresh->ctrl_temperature)
-+			|| (smart->health != ND_INTEL_SMART_NON_CRITICAL_HEALTH)
-+			|| (smart->shutdown_state != 0)) {
- 		device_lock(bus_dev);
- 		__acpi_nvdimm_notify(dimm_dev, 0x81);
- 		device_unlock(bus_dev);
-@@ -734,6 +736,35 @@ static int nfit_test_cmd_smart_set_threshold(
- 	return 0;
- }
- 
-+static int nfit_test_cmd_smart_inject(
-+		struct nd_intel_smart_inject *inj,
-+		unsigned int buf_len,
-+		struct nd_intel_smart_threshold *thresh,
-+		struct nd_intel_smart *smart,
-+		struct device *bus_dev, struct device *dimm_dev)
-+{
-+	if (buf_len != sizeof(*inj)) {
-+		pr_err("TEST: size mismatch. buf = %d, struct = %d\n",
-+			buf_len, sizeof(*inj));
-+		return -EINVAL;
-+	}
-+
-+	if (inj->mtemp_enable)
-+		smart->media_temperature = inj->media_temperature;
-+	if (inj->spare_enable)
-+		smart->spares = inj->spares;
-+	if (inj->fatal_enable)
-+		smart->health = ND_INTEL_SMART_FATAL_HEALTH;
-+	if (inj->unsafe_shutdown_enable) {
-+		smart->shutdown_state = 1;
-+		smart->shutdown_count++;
-+	}
-+	inj->status = 0;
-+	smart_notify(bus_dev, dimm_dev, smart, thresh);
-+
-+	return 0;
-+}
-+
- static void uc_error_notify(struct work_struct *work)
- {
- 	struct nfit_test *t = container_of(work, typeof(*t), work);
-@@ -934,6 +965,13 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 							t->dcr_idx],
- 						&t->smart[i - t->dcr_idx],
- 						&t->pdev.dev, t->dimm_dev[i]);
-+			case ND_INTEL_SMART_INJECT:
-+				return nfit_test_cmd_smart_inject(buf,
-+						buf_len,
-+						&t->smart_threshold[i -
-+							t->dcr_idx],
-+						&t->smart[i - t->dcr_idx],
-+						&t->pdev.dev, t->dimm_dev[i]);
- 			default:
- 				return -ENOTTY;
- 			}
-@@ -1209,7 +1247,7 @@ static void smart_init(struct nfit_test *t)
- 		.alarm_control = ND_INTEL_SMART_SPARE_TRIP
- 			| ND_INTEL_SMART_TEMP_TRIP,
- 		.media_temperature = 40 * 16,
--		.ctrl_temperature = 30 * 16,
-+		.ctrl_temperature = 35 * 16,
- 		.spares = 5,
- 	};
- 	const struct nd_intel_smart smart_data = {
-@@ -2015,6 +2053,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_INTEL_SMART, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_INTEL_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_INTEL_SMART_SET_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(ND_INTEL_SMART_INJECT, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
-diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
-index 428344519cdf..33752e06ff8d 100644
---- a/tools/testing/nvdimm/test/nfit_test.h
-+++ b/tools/testing/nvdimm/test/nfit_test.h
-@@ -93,6 +93,7 @@ struct nd_cmd_ars_err_inj_stat {
- #define ND_INTEL_FW_FINISH_UPDATE	15
- #define ND_INTEL_FW_FINISH_QUERY	16
- #define ND_INTEL_SMART_SET_THRESHOLD	17
-+#define ND_INTEL_SMART_INJECT		18
- 
- #define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
- #define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
-@@ -111,6 +112,10 @@ struct nd_cmd_ars_err_inj_stat {
- #define ND_INTEL_SMART_NON_CRITICAL_HEALTH      (1 << 0)
- #define ND_INTEL_SMART_CRITICAL_HEALTH          (1 << 1)
- #define ND_INTEL_SMART_FATAL_HEALTH             (1 << 2)
-+#define ND_INTEL_SMART_INJECT_MTEMP		(1 << 0)
-+#define ND_INTEL_SMART_INJECT_SPARE		(1 << 1)
-+#define ND_INTEL_SMART_INJECT_FATAL		(1 << 2)
-+#define ND_INTEL_SMART_INJECT_SHUTDOWN		(1 << 3)
- 
- struct nd_intel_smart {
- 	__u32 status;
-@@ -158,6 +163,17 @@ struct nd_intel_smart_set_threshold {
- 	__u32 status;
- } __packed;
- 
-+struct nd_intel_smart_inject {
-+	__u64 flags;
-+	__u8 mtemp_enable;
-+	__u16 media_temperature;
-+	__u8 spare_enable;
-+	__u8 spares;
-+	__u8 fatal_enable;
-+	__u8 unsafe_shutdown_enable;
-+	__u32 status;
-+} __packed;
-+
- #define INTEL_FW_STORAGE_SIZE		0x100000
- #define INTEL_FW_MAX_SEND_LEN		0xFFEC
- #define INTEL_FW_QUERY_INTERVAL		250000
--- 
-2.14.3
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  ndctl/lib/firmware.c   |   11 +++++++++++
+>  ndctl/lib/intel.c      |   24 ++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym |    1 +
+>  ndctl/lib/private.h    |    1 +
+>  ndctl/libndctl.h       |    1 +
+>  ndctl/update.c         |    7 ++++++-
+>  6 files changed, 44 insertions(+), 1 deletion(-)
+>
+> diff --git a/ndctl/lib/firmware.c b/ndctl/lib/firmware.c
+> index f6deec5..78d753c 100644
+> --- a/ndctl/lib/firmware.c
+> +++ b/ndctl/lib/firmware.c
+> @@ -107,3 +107,14 @@ ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd)
+>         else
+>                 return FW_EUNKNOWN;
+>  }
+> +
+> +NDCTL_EXPORT bool
+> +ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm)
+> +{
+> +       struct ndctl_dimm_ops *ops = dimm->ops;
+> +
+> +       if (ops && ops->fw_update_supported)
+> +               return ops->fw_update_supported(dimm);
+> +       else
+> +               return false;
+> +}
+> diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+> index cee5204..7d976c5 100644
+> --- a/ndctl/lib/intel.c
+> +++ b/ndctl/lib/intel.c
+> @@ -650,6 +650,29 @@ intel_dimm_cmd_new_lss(struct ndctl_dimm *dimm)
+>         return cmd;
+>  }
+>
+> +static bool intel_dimm_fw_update_supported(struct ndctl_dimm *dimm)
+> +{
+> +       struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+> +
+> +       if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL)) {
+> +               dbg(ctx, "unsupported cmd: %d\n", ND_CMD_CALL);
+> +               return false;
+> +       }
+> +
+> +       /*
+> +        * We only need to check FW_GET_INFO. If that isn't supported then
+> +        * the others aren't either.
+> +        */
+> +       if (test_dimm_dsm(dimm, ND_INTEL_FW_GET_INFO)
+> +                       == DIMM_DSM_UNSUPPORTED) {
+> +               dbg(ctx, "unsupported function: %d\n",
+> +                               ND_INTEL_FW_GET_INFO);
+> +               return false;
+> +       }
+> +
+> +       return true;
+> +}
+> +
+>  struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
+>         .cmd_desc = intel_cmd_desc,
+>         .new_smart = intel_dimm_cmd_new_smart,
+> @@ -703,4 +726,5 @@ struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
+>         .fw_fquery_get_fw_rev = intel_cmd_fw_fquery_get_fw_rev,
+>         .fw_xlat_firmware_status = intel_cmd_fw_xlat_firmware_status,
+>         .new_ack_shutdown_count = intel_dimm_cmd_new_lss,
+> +       .fw_update_supported = intel_dimm_fw_update_supported,
+>  };
+> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+> index af9b7d5..cc580f9 100644
+> --- a/ndctl/lib/libndctl.sym
+> +++ b/ndctl/lib/libndctl.sym
+> @@ -344,4 +344,5 @@ global:
+>         ndctl_cmd_fw_fquery_get_fw_rev;
+>         ndctl_cmd_fw_xlat_firmware_status;
+>         ndctl_dimm_cmd_new_ack_shutdown_count;
+> +       ndctl_dimm_fw_update_supported;
+>  } LIBNDCTL_13;
+> diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+> index 015eeb2..ae4454c 100644
+> --- a/ndctl/lib/private.h
+> +++ b/ndctl/lib/private.h
+> @@ -325,6 +325,7 @@ struct ndctl_dimm_ops {
+>         unsigned long long (*fw_fquery_get_fw_rev)(struct ndctl_cmd *);
+>         enum ND_FW_STATUS (*fw_xlat_firmware_status)(struct ndctl_cmd *);
+>         struct ndctl_cmd *(*new_ack_shutdown_count)(struct ndctl_dimm *);
+> +       bool (*fw_update_supported)(struct ndctl_dimm *);
+>  };
+>
+>  struct ndctl_dimm_ops * const intel_dimm_ops;
+> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+> index 9db775b..08030d3 100644
+> --- a/ndctl/libndctl.h
+> +++ b/ndctl/libndctl.h
+> @@ -625,6 +625,7 @@ unsigned int ndctl_cmd_fw_start_get_context(struct ndctl_cmd *cmd);
+>  unsigned long long ndctl_cmd_fw_fquery_get_fw_rev(struct ndctl_cmd *cmd);
+>  enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
+>  struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
+> +bool ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
+>
+>  #ifdef __cplusplus
+>  } /* extern "C" */
+> diff --git a/ndctl/update.c b/ndctl/update.c
+> index 4fb572d..b148b70 100644
+> --- a/ndctl/update.c
+> +++ b/ndctl/update.c
+> @@ -477,6 +477,10 @@ static int get_ndctl_dimm(struct update_context *uctx, void *ctx)
+>                 ndctl_dimm_foreach(bus, dimm) {
+>                         if (!util_dimm_filter(dimm, uctx->dimm_id))
+>                                 continue;
+> +                       if (!ndctl_dimm_fw_update_supported(dimm)) {
+> +                               error("DIMM firmware update not supported by the kernel.");
 
+Let's changes this message to:
+
+    "%s: firmware update not supported.", ndctl_dimm_get_devname(dimm)
+
+You don't have enough information to tell if it's the 'kernel' or the
+'BIOS', so just say 'not supported'. 'DIMM' is ambiguous, the kernel
+device name is not.
+
+> +                               return -ENOTSUP;
+> +                       }
+>                         uctx->dimm = dimm;
+>                         rc = update_firmware(uctx);
+>                         if (rc < 0) {
+> @@ -581,7 +585,8 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx)
+>
+>         rc = get_ndctl_dimm(&uctx, ctx);
+>         if (rc < 0) {
+> -               error("DIMM %s not found", uctx.dimm_id);
+> +               if (rc == -ENODEV)
+> +                       error("DIMM %s not found", uctx.dimm_id);
+
+When we move this in with the other dimm functionality in ndctl/dimm.c
+we should follow the same message convention there and use lowercase
+'dimm' and the '"nmem%d", id' format when emitting messages for the
+user.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
