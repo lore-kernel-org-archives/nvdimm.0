@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl0-x241.google.com (mail-pl0-x241.google.com
+ [IPv6:2607:f8b0:400e:c01::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1B135223C178C
- for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 23:02:26 -0800 (PST)
-Subject: [ndctl PATCH] ndctl,
- test: kill usage of fallocate in firmware-update.sh
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 22 Feb 2018 22:59:22 -0800
-Message-ID: <151936916209.18166.8915957818264326430.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C5B162243695A
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 04:54:58 -0800 (PST)
+Received: by mail-pl0-x241.google.com with SMTP id k8so4854277pli.8
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 05:01:00 -0800 (PST)
+Date: Fri, 23 Feb 2018 18:30:53 +0530
+From: Aishwarya Pant <aishpant@gmail.com>
+Subject: Re: [PATCH] acpi: nfit: document sysfs interface
+Message-ID: <20180223130053.GA17196@mordor.localdomain>
+References: <20180219180754.GA31007@mordor.localdomain>
+ <CAPcyv4iQzEeZO-LYPvKQJHzrb3mrgENWZdnH2LzDV49tyfNM2Q@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iQzEeZO-LYPvKQJHzrb3mrgENWZdnH2LzDV49tyfNM2Q@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,33 +27,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The 'fallocate -l 196608 $image' step in the test fails when $image is
-on an NFS mount. Use dd instead to create a sparse file. We do not need
-to allocate anything since we are only writing zeros.
+On Wed, Feb 21, 2018 at 03:46:06PM -0800, Dan Williams wrote:
 
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/firmware-update.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+<snip>
 
-diff --git a/test/firmware-update.sh b/test/firmware-update.sh
-index 0d5bcdb3cc42..173647218c28 100755
---- a/test/firmware-update.sh
-+++ b/test/firmware-update.sh
-@@ -49,7 +49,7 @@ detect()
- 
- do_tests()
- {
--	fallocate -l 196608 $image
-+	dd if=/dev/zero of=$image bs=1 count=1 skip=196607
- 	$ndctl update-firmware -d $dev -f $image
- }
- 
+> 
+> So, this looks great and is something I've had on my backlog for a
+> while. That said this is a bit incomplete. These attributes are
+> relative to the the "nd" bus which is the libnvdimm sub-system sysfs
+> interface. This document describes that sysfs layout [3]. Ideally that
+> content would be converted into Documentation/ABI format and merged
+> with what you have done here into an overall
+> Documentation/ABI/testing/sysfs-bus-nvdimm file.
+> 
+> I realize that's quite a bit more work, so I'm fine if we start with
+> the nfit attributes and save that follow on work for a separate patch
+> in the future.
 
+Thanks for the review!
+
+I'll keep the libnvdim interface in my backlog for now. I just sent a revision
+of the nfit patch with the suggested changes.
+
+Aishwarya
+
+> 
+> [3]: https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/tree/Documentation/nvdimm/nvdimm.txt?h=libnvdimm-for-next
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
