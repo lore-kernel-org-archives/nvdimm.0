@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf0-x22b.google.com (mail-lf0-x22b.google.com
+ [IPv6:2a00:1450:4010:c07::22b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 312BC223CCF16
- for <linux-nvdimm@lists.01.org>; Thu,  1 Feb 2018 08:42:06 -0800 (PST)
-Subject: [PATCH v5 4/4] ndctl, test: firmware update unit test
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 01 Feb 2018 09:47:41 -0700
-Message-ID: <151750366160.3199.7502374610065525238.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151750355438.3199.10739483451071461270.stgit@djiang5-desk3.ch.intel.com>
-References: <151750355438.3199.10739483451071461270.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 65175222630CF
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 22:45:29 -0800 (PST)
+Received: by mail-lf0-x22b.google.com with SMTP id t204so10903287lff.9
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 22:51:30 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <151933257135.36856.6462188364046414070.stgit@djiang5-desk3.ch.intel.com>
+References: <151933257135.36856.6462188364046414070.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 22 Feb 2018 22:51:27 -0800
+Message-ID: <CAPcyv4iCb_oH-M39tZHUJeOS__iQH6gKi8BfRKRHe9m+aEJHCQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] ndctl: add more error outs to update firmware and
+ enable verbose debug
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,107 +26,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+To: Dave Jiang <dave.jiang@intel.com>
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a unit test that will use nfit_test kernel module to test the
-firmware update sequence.
+On Thu, Feb 22, 2018 at 12:49 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> update-firmware is missing verbose option for debug outputs. Also adding
+> additional error outs to give better indication if something has failed
+> and why.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- test/Makefile.am        |    3 +-
- test/firmware-update.sh |   65 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 1 deletion(-)
- create mode 100755 test/firmware-update.sh
+On second look, now that we are allowing multiple DIMMs to be updated
+in one invocation, these runtime error messages should be of the form:
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index bd73a43..30bc02d 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -16,8 +16,9 @@ TESTS =\
- 	blk-exhaust.sh \
- 	sector-mode.sh \
- 	inject-error.sh \
-+	btt-errors.sh \
- 	hugetlb \
--	btt-errors.sh
-+	firmware-update.sh
- 
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/firmware-update.sh b/test/firmware-update.sh
-new file mode 100755
-index 0000000..79767d2
---- /dev/null
-+++ b/test/firmware-update.sh
-@@ -0,0 +1,65 @@
-+#!/bin/bash -Ex
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2018 Intel Corporation. All rights reserved.
-+
-+[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] && ndctl="../ndctl/ndctl"
-+[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
-+[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
-+bus="nfit_test.0"
-+json2var="s/[{}\",]//g; s/:/=/g"
-+rc=77
-+dev=""
-+image="update-fw.img"
-+
-+trap 'err $LINENO' ERR
-+
-+# $1: Line number
-+# $2: exit code
-+err()
-+{
-+	[ -n "$2" ] && rc="$2"
-+	echo "test/firmware-update.sh: failed at line $1"
-+	exit "$rc"
-+}
-+
-+check_min_kver()
-+{
-+	local ver="$1"
-+	: "${KVER:=$(uname -r)}"
-+
-+	[ -n "$ver" ] || return 1
-+	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
-+}
-+
-+reset()
-+{
-+	$ndctl disable-region -b "$bus" all
-+	$ndctl zero-labels -b "$bus" all
-+	$ndctl enable-region -b "$bus" all
-+	if [ -f $image ]; then
-+		rm -f $image
-+	fi
-+}
-+
-+detect()
-+{
-+	dev=$($ndctl list -b "$bus" -D | jq .[0].dev | tr -d '"')
-+	[ -n "$dev" ] || err "$LINENO" 2
-+}
-+
-+do_tests()
-+{
-+	fallocate -l 196608 $image
-+	$ndctl update-firmware -d $dev -f $image
-+}
-+
-+check_min_kver "4.16" || { echo "kernel $KVER may lack firmware update test handling"; exit
-+$rc; }
-+modprobe nfit_test
-+rc=1
-+reset
-+detect
-+do_tests
-+reset
-+exit 0
-+
+    "%s: message...\n", ndctl_dimm_get_devname(uctx->dimm)
 
+...note the "\n", that seems to be missing on quite a few of these
+error() calls, I missed that earlier.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
