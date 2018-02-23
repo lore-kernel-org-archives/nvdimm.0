@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7C16421F6A6D7
- for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 12:37:16 -0800 (PST)
-Date: Fri, 23 Feb 2018 13:43:17 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [ndctl PATCH] ndctl, firmware-update: kill usage of flock() in
- verify_fw_file()
-Message-ID: <20180223204317.GA7750@linux.intel.com>
-References: <151936916717.18166.15323371299792291219.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5F942222F4E37
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 23:02:31 -0800 (PST)
+Subject: [ndctl PATCH] ndctl,
+ firmware-update: kill usage of flock() in verify_fw_file()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 22 Feb 2018 22:59:27 -0800
+Message-ID: <151936916717.18166.15323371299792291219.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <151936916717.18166.15323371299792291219.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,22 +21,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Feb 22, 2018 at 10:59:27PM -0800, Dan Williams wrote:
-> It serves no purpose, we never explicitly unlock it, and it causes
-> needless failures if the firmware file happens to be on a filesystem
-> that does not support file locks.
-> 
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+It serves no purpose, we never explicitly unlock it, and it causes
+needless failures if the firmware file happens to be on a filesystem
+that does not support file locks.
 
-Yay, I was hitting this as well in my setup which uses NFS, but wasn't sure if
-the flock was necessary.
+Cc: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ ndctl/update.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+diff --git a/ndctl/update.c b/ndctl/update.c
+index 4ca6a0d0f744..0f0f0d8172c4 100644
+--- a/ndctl/update.c
++++ b/ndctl/update.c
+@@ -470,12 +470,6 @@ static int verify_fw_file(struct update_context *uctx)
+ 	if (uctx->fw_fd < 0)
+ 		return -errno;
+ 
+-	rc = flock(uctx->fw_fd, LOCK_EX | LOCK_NB);
+-	if (rc < 0) {
+-		rc = -errno;
+-		goto cleanup;
+-	}
+-
+ 	if (fstat(uctx->fw_fd, &st) < 0) {
+ 		rc = -errno;
+ 		goto cleanup;
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
