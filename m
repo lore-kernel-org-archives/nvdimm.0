@@ -1,81 +1,46 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 7 Feb 2018 11:41:23 +0100
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [LSF/MM TOPIC] Native NVMM file systems
-Message-ID: <20180207104123.64bjccnfzvnqqor6@quack2.suse.cz>
-References: <CAOvWMLZVkQ1D=Jn-_O9owewr7U699bN=dmwuBoDnQVLEkkXJ8A@mail.gmail.com>
- <CAPcyv4gFePPt7ABOfJitVTEFPh_o838ky0fGjqAHMwnwwkV88Q@mail.gmail.com>
- <CAPcyv4hk6VR3yqhtocZwpyp4VRb59WO3ECfLEJx4pmpYSU_P5Q@mail.gmail.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7C16421F6A6D7
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 12:37:16 -0800 (PST)
+Date: Fri, 23 Feb 2018 13:43:17 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [ndctl PATCH] ndctl, firmware-update: kill usage of flock() in
+ verify_fw_file()
+Message-ID: <20180223204317.GA7750@linux.intel.com>
+References: <151936916717.18166.15323371299792291219.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAPcyv4hk6VR3yqhtocZwpyp4VRb59WO3ECfLEJx4pmpYSU_P5Q@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
+In-Reply-To: <151936916717.18166.15323371299792291219.stgit@dwillia2-desk3.amr.corp.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Andiry Xu <andiry@gmail.com>, lsf-pc@lists.linux-foundation.org, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, david <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, swanson@cs.ucsd.edu, jix024@cs.ucsd.edu, Jan Kara <jack@suse.cz>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 31-01-18 17:13:37, Dan Williams wrote:
-> [ adding Jan and Ross ]
+On Thu, Feb 22, 2018 at 10:59:27PM -0800, Dan Williams wrote:
+> It serves no purpose, we never explicitly unlock it, and it causes
+> needless failures if the firmware file happens to be on a filesystem
+> that does not support file locks.
 > 
-> On Wed, Jan 31, 2018 at 5:03 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> > On Wed, Jan 31, 2018 at 4:45 PM, Andiry Xu <andiry@gmail.com> wrote:
-> >> PMEM/DAX should allow for significant improvements in file system
-> >> performance and enable new programming models that allow direct,
-> >> efficient access to PMEM from userspace.  Achieving these gains in
-> >> existing file systems built for block devices (e.g., XFS and EXT4…)
-> >> presents a range of challenges (e.g.,
-> >> https://lkml.org/lkml/2016/9/11/159) and has been the subject of a lot
-> >> of recent work on ext4 and xfs.
-> >>
-> >> An alternative is to build a NVMM-aware file system from scratch that
-> >> takes full advantage of the performance that PMEM offers and avoids
-> >> the complexity that block-based file systems include to maximize
-> >> performance on slow storage (e.g., relaxing atomicity constraints on
-> >> many operations).  Of course, it also brings with it the complexity of
-> >> another file system.
-> >>
-> >> We recently sent out a patch set for one-such “clean slate” NVMM-aware
-> >> file system called NOVA.  NOVA is log-structured DAX file system with
-> >> several nice features:
-> >>
-> >> * High performance, especially in metadata operations due to efficient
-> >> fine-grained logging
-> >> * High scalability with per-CPU memory pool and per-inode logging
-> >> * Strong metadata and data atomicity guarantees for all operations
-> >> * Full filesystem snapshot support with DAX-mmap
-> >> * Metadata replication/checksums and RAID-4 style data protection
-> >>
-> >> At the summit, we would like to discuss the trade-offs between
-> >> adapting NVMM features to existing file systems vs. creating/adopting
-> >> a purpose-built file system for NVMM.  NOVA serves as useful starting
-> >> point for that discussion by demonstrating what’s possible.  It may
-> >> also suggest some features that could be adapted to other file systems
-> >> to improve NVMM performance.
-> >>
-> >> We welcome people that are interested in file systems and NVM/DAX.
-> >> Particular people that would be useful to have in attendance are Dan
-> >> Williams, Dave Chinner, and Matthew Wilcox.
-> >
-> > The rest of the fs-dax crew would also be useful to have:
-> >
-> > Jan Kara
-> > Ross Zwisler
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Thanks Dan. Yes, I'd be interested in discussions about NOVA. In fact I
-guess the biggest obstacle is currently the review bandwidth. New
-filesystem is a substantial chunk of code and although it does not have to
-be perfect to include it in the kernel it still needs at least some basic
-review...
+Yay, I was hitting this as well in my setup which uses NFS, but wasn't sure if
+the flock was necessary.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
