@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 93D6B21CF1CF9
- for <linux-nvdimm@lists.01.org>; Thu, 15 Feb 2018 09:36:40 -0800 (PST)
-Subject: [PATCH v4 1/3] fs: allow per-device dax status checking for
- filesystems
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 15 Feb 2018 10:42:32 -0700
-Message-ID: <151871655228.27617.3514495396592472682.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <151871644696.27617.4390718895806529377.stgit@djiang5-desk3.ch.intel.com>
-References: <151871644696.27617.4390718895806529377.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E956521F6A6D9
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 16:46:46 -0800 (PST)
+Subject: [PATCH v3 6/6] vfio: disable filesystem-dax page pinning
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 23 Feb 2018 16:43:43 -0800
+Message-ID: <151943302342.29249.273948227195246135.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151943298533.29249.14597996053028346159.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151943298533.29249.14597996053028346159.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,217 +22,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: darrick.wong@oracle.com
-Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Michal Hocko <mhocko@suse.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Alex Williamson <alex.williamson@redhat.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Darrick J. Wong <darrick.wong@oracle.com>
+Filesystem-DAX is incompatible with 'longterm' page pinning. Without
+page cache indirection a DAX mapping maps filesystem blocks directly.
+This means that the filesystem must not modify a file's block map while
+any page in a mapping is pinned. In order to prevent the situation of
+userspace holding of filesystem operations indefinitely, disallow
+'longterm' Filesystem-DAX mappings.
 
-Refactor __bdev_dax_supported into a sb_dax_supported helper for
-single-bdev filesystems and a regular bdev_dax_supported that takes a
-bdev parameter.  This enables multi-device filesystems like xfs to check
-that a dax device can work for the particular filesystem.  Once that's
-in place, actually fix all the parts of XFS where we need to be able to
-distinguish between datadev and rtdev.
+RDMA has the same conflict and the plan there is to add a 'with lease'
+mechanism to allow the kernel to notify userspace that the mapping is
+being torn down for block-map maintenance. Perhaps something similar can
+be put in place for vfio.
 
-This patch fixes the problem where we screw up the dax support checking
-in xfs if the datadev and rtdev have different dax capabilities.
+Note that xfs and ext4 still report:
 
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+   "DAX enabled. Warning: EXPERIMENTAL, use at your own risk"
+
+...at mount time, and resolving the dax-dma-vs-truncate problem is one
+of the last hurdles to remove that designation.
+
+Acked-by: Alex Williamson <alex.williamson@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: kvm@vger.kernel.org
+Cc: <stable@vger.kernel.org>
+Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
+Fixes: d475c6346a38 ("dax,ext2: replace XIP read and write with DAX I/O")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/super.c |    9 +++++----
- fs/ext2/super.c     |    2 +-
- fs/ext4/super.c     |    2 +-
- fs/xfs/xfs_ioctl.c  |    3 ++-
- fs/xfs/xfs_iops.c   |   30 +++++++++++++++++++++++++-----
- fs/xfs/xfs_super.c  |   11 +++++++++--
- include/linux/dax.h |   16 ++++++++++++----
- 7 files changed, 55 insertions(+), 18 deletions(-)
+ drivers/vfio/vfio_iommu_type1.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 473af694ad1c..8a3a168a267f 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -73,8 +73,9 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
- #endif
- 
- /**
-- * __bdev_dax_supported() - Check if the device supports dax for filesystem
-+ * bdev_dax_supported() - Check if the device supports dax for filesystem
-  * @sb: The superblock of the device
-+ * @bdev: block device to check
-  * @blocksize: The block size of the device
-  *
-  * This is a library function for filesystems to check if the block device
-@@ -82,9 +83,9 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-  *
-  * Return: negative errno if unsupported, 0 if supported.
-  */
--int __bdev_dax_supported(struct super_block *sb, int blocksize)
-+int bdev_dax_supported(struct super_block *sb, struct block_device *bdev,
-+		       int blocksize)
+diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type1.c
+index e30e29ae4819..45657e2b1ff7 100644
+--- a/drivers/vfio/vfio_iommu_type1.c
++++ b/drivers/vfio/vfio_iommu_type1.c
+@@ -338,11 +338,12 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned long vaddr,
  {
--	struct block_device *bdev = sb->s_bdev;
- 	struct dax_device *dax_dev;
- 	pgoff_t pgoff;
- 	int err, id;
-@@ -135,7 +136,7 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
+ 	struct page *page[1];
+ 	struct vm_area_struct *vma;
++	struct vm_area_struct *vmas[1];
+ 	int ret;
  
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(__bdev_dax_supported);
-+EXPORT_SYMBOL_GPL(bdev_dax_supported);
- #endif
+ 	if (mm == current->mm) {
+-		ret = get_user_pages_fast(vaddr, 1, !!(prot & IOMMU_WRITE),
+-					  page);
++		ret = get_user_pages_longterm(vaddr, 1, !!(prot & IOMMU_WRITE),
++					      page, vmas);
+ 	} else {
+ 		unsigned int flags = 0;
  
- enum dax_device_flags {
-diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-index 7666c065b96f..28ca694e9e92 100644
---- a/fs/ext2/super.c
-+++ b/fs/ext2/super.c
-@@ -961,7 +961,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+@@ -351,7 +352,18 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned long vaddr,
  
- 	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
--		err = bdev_dax_supported(sb, blocksize);
-+		err = sb_dax_supported(sb, blocksize);
- 		if (err) {
- 			ext2_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index 39bf464c35f1..a09f832aad35 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -3714,7 +3714,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
- 					" that may contain inline data");
- 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
- 		}
--		err = bdev_dax_supported(sb, blocksize);
-+		err = sb_dax_supported(sb, blocksize);
- 		if (err) {
- 			ext4_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 89fb1eb80aae..277355f5c084 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1103,7 +1103,8 @@ xfs_ioctl_setattr_dax_invalidate(
- 	if (fa->fsx_xflags & FS_XFLAG_DAX) {
- 		if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
- 			return -EINVAL;
--		if (bdev_dax_supported(sb, sb->s_blocksize) < 0)
-+		if (bdev_dax_supported(sb, xfs_find_bdev_for_inode(VFS_I(ip)),
-+				sb->s_blocksize) < 0)
- 			return -EINVAL;
+ 		down_read(&mm->mmap_sem);
+ 		ret = get_user_pages_remote(NULL, mm, vaddr, 1, flags, page,
+-					    NULL, NULL);
++					    vmas, NULL);
++		/*
++		 * The lifetime of a vaddr_get_pfn() page pin is
++		 * userspace-controlled. In the fs-dax case this could
++		 * lead to indefinite stalls in filesystem operations.
++		 * Disallow attempts to pin fs-dax pages via this
++		 * interface.
++		 */
++		if (ret > 0 && vma_is_fsdax(vmas[0])) {
++			ret = -EOPNOTSUPP;
++			put_page(page[0]);
++		}
+ 		up_read(&mm->mmap_sem);
  	}
  
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 56475fcd76f2..66cd61c172af 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -1182,6 +1182,30 @@ static const struct inode_operations xfs_inline_symlink_inode_operations = {
- 	.update_time		= xfs_vn_update_time,
- };
- 
-+/* Figure out if this file actually supports DAX. */
-+static bool
-+xfs_inode_supports_dax(
-+	struct xfs_inode	*ip)
-+{
-+	struct xfs_mount	*mp = ip->i_mount;
-+
-+	/* Only supported on non-reflinked files. */
-+	if (!S_ISREG(VFS_I(ip)->i_mode) || xfs_is_reflink_inode(ip))
-+		return false;
-+
-+	/* DAX mount option or DAX iflag must be set. */
-+	if (!(mp->m_flags & XFS_MOUNT_DAX) &&
-+	    !(ip->i_d.di_flags2 & XFS_DIFLAG2_DAX))
-+		return false;
-+
-+	/* Block size must match page size */
-+	if (mp->m_sb.sb_blocksize != PAGE_SIZE)
-+		return false;
-+
-+	/* Device has to support DAX too. */
-+	return xfs_find_daxdev_for_inode(VFS_I(ip)) != NULL;
-+}
-+
- STATIC void
- xfs_diflags_to_iflags(
- 	struct inode		*inode,
-@@ -1200,11 +1224,7 @@ xfs_diflags_to_iflags(
- 		inode->i_flags |= S_SYNC;
- 	if (flags & XFS_DIFLAG_NOATIME)
- 		inode->i_flags |= S_NOATIME;
--	if (S_ISREG(inode->i_mode) &&
--	    ip->i_mount->m_sb.sb_blocksize == PAGE_SIZE &&
--	    !xfs_is_reflink_inode(ip) &&
--	    (ip->i_mount->m_flags & XFS_MOUNT_DAX ||
--	     ip->i_d.di_flags2 & XFS_DIFLAG2_DAX))
-+	if (xfs_inode_supports_dax(ip))
- 		inode->i_flags |= S_DAX;
- }
- 
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 7aba628dc527..f6c74ef9722c 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1657,11 +1657,18 @@ xfs_fs_fill_super(
- 		sb->s_flags |= SB_I_VERSION;
- 
- 	if (mp->m_flags & XFS_MOUNT_DAX) {
-+		int	error2 = 0;
-+
- 		xfs_warn(mp,
- 		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
- 
--		error = bdev_dax_supported(sb, sb->s_blocksize);
--		if (error) {
-+		error = bdev_dax_supported(sb, mp->m_ddev_targp->bt_bdev,
-+				sb->s_blocksize);
-+		if (mp->m_rtdev_targp)
-+			error2 = bdev_dax_supported(sb,
-+					mp->m_rtdev_targp->bt_bdev,
-+					sb->s_blocksize);
-+		if (error && error2) {
- 			xfs_alert(mp,
- 			"DAX unsupported by block device. Turning off DAX.");
- 			mp->m_flags &= ~XFS_MOUNT_DAX;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 0185ecdae135..e640c8a19ec0 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -40,10 +40,11 @@ static inline void put_dax(struct dax_device *dax_dev)
- 
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #if IS_ENABLED(CONFIG_FS_DAX)
--int __bdev_dax_supported(struct super_block *sb, int blocksize);
--static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
-+int bdev_dax_supported(struct super_block *sb, struct block_device *bdev,
-+		       int blocksize);
-+static inline int sb_dax_supported(struct super_block *sb, int blocksize)
- {
--	return __bdev_dax_supported(sb, blocksize);
-+	return bdev_dax_supported(sb, sb->s_bdev, blocksize);
- }
- 
- static inline struct dax_device *fs_dax_get_by_host(const char *host)
-@@ -58,7 +59,14 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
- 
- struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
- #else
--static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
-+static inline int bdev_dax_supported(struct super_block *sb,
-+				     struct block_device *bdev,
-+				     int blocksize)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
-+static inline int sb_dax_supported(struct super_block *sb, int blocksize)
- {
- 	return -EOPNOTSUPP;
- }
 
 _______________________________________________
 Linux-nvdimm mailing list
