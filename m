@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x244.google.com (mail-ot0-x244.google.com
- [IPv6:2607:f8b0:4003:c0f::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx143.netapp.com (mx143.netapp.com
+ [IPv6:2620:10a:4005:8000:2306::c])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 27202209574EB
- for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 12:34:59 -0800 (PST)
-Received: by mail-ot0-x244.google.com with SMTP id n74so1654179ota.1
- for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 12:41:05 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 8D7C7209574E2
+ for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 08:48:26 -0800 (PST)
+From: Boaz Harrosh <boazh@netapp.com>
+Subject: [PATCH] dax: ->direct_access does not sleep anymore
+Message-ID: <6a5a6353-2714-8eb6-2566-a4384a95db0b@netapp.com>
+Date: Mon, 26 Feb 2018 18:50:35 +0200
 MIME-Version: 1.0
-In-Reply-To: <6a5a6353-2714-8eb6-2566-a4384a95db0b@netapp.com>
-References: <6a5a6353-2714-8eb6-2566-a4384a95db0b@netapp.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 26 Feb 2018 12:41:03 -0800
-Message-ID: <CAPcyv4g12j84_qNAdz2nMt0-GU=uMfk2ryHwYZFKGEiqZbkgsg@mail.gmail.com>
-Subject: Re: [PATCH] dax: ->direct_access does not sleep anymore
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,23 +21,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Boaz Harrosh <boazh@netapp.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Feb 26, 2018 at 8:50 AM, Boaz Harrosh <boazh@netapp.com> wrote:
->
-> In Patch:
->         [7a862fb] brd: remove dax support
->
->   Dan Williams has removed the only might_sleep
->   implementation of ->direct_access.
->   So we no longer need to check for it.
->
-> CC: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Boaz Harrosh <boazh@netapp.com>
 
-Looks good, applied.
+In Patch:
+	[7a862fb] brd: remove dax support
+
+  Dan Williams has removed the only might_sleep
+  implementation of ->direct_access.
+  So we no longer need to check for it.
+
+CC: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Boaz Harrosh <boazh@netapp.com>
+---
+ drivers/dax/super.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 3ec8046..0a75550 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -236,12 +236,6 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
+ {
+ 	long avail;
+ 
+-	/*
+-	 * The device driver is allowed to sleep, in order to make the
+-	 * memory directly accessible.
+-	 */
+-	might_sleep();
+-
+ 	if (!dax_dev)
+ 		return -EOPNOTSUPP;
+ 
+-- 
+2.5.5
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
