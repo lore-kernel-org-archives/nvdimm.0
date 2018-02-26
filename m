@@ -1,10 +1,11 @@
-From: anita.graham-zafQt4gSGB9BDgjK7y7TUQ@public.gmane.org
-Subject: NetApp Storage Users List
-Date: Fri, 23 Feb 2018 13:24:54 +0000
-Message-ID: <f403045e6c6600fa590565e116d3@google.com>
+From: "Mrs. Alison" <altmarie-cBm5OqgzVeIUrb4e85K3Fw@public.gmane.org>
+Subject: Ref. Personal Request.
+Date: Sun, 25 Feb 2018 20:36:18 -0800
+Message-ID: <20180225123053.E604821F6A6CA@ml01.01.org>
+Reply-To: "Mrs. Alison" <alskm-rq1DywPmlq4lyWMbetet3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"; DelSp="yes"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,36 +19,15 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-PGRpdiBkaXI9Imx0ciI+PHAgY2xhc3M9ImdtYWlsLW1zb25vc3BhY2luZyI+PHNwYW4gIA0Kc3R5
-bGU9ImZvbnQtc2l6ZToxMXB0O2ZvbnQtZmFtaWx5OkNhbGlicmksc2Fucy1zZXJpZjtjb2xvcjpy
-Z2IoMzEsNzgsMTIxKSI+SGVsbG8gIA0KdGhlcmUswqA8YnI+DQo8YnI+DQpJIHdvdWxkIGxpa2Ug
-dG8ga25vdyBpZiB5b3UgYXJlIGludGVyZXN0ZWQgaW4gYWNxdWlyaW5nwqA8Yj5OZXRBcHAgU3Rv
-cmFnZSAgDQpVc2Vyc8KgTGlzdDwvYj4/wqA8L3NwYW4+PHNwYW4gIA0Kc3R5bGU9ImZvbnQtc2l6
-ZToxMXB0O2ZvbnQtZmFtaWx5OkNhbGlicmksc2Fucy1zZXJpZiI+PHNwYW4+PC9zcGFuPjwvc3Bh
-bj48L3A+DQoNCjxwIGNsYXNzPSJnbWFpbC1tc29ub3NwYWNpbmciPjxiPjxzcGFuICANCnN0eWxl
-PSJmb250LXNpemU6MTFwdDtmb250LWZhbWlseTpDYWxpYnJpLHNhbnMtc2VyaWY7Y29sb3I6cmdi
-KDMxLDc4LDEyMSkiPkxpc3QgIA0KQ29udGFpbnM6PC9zcGFuPjwvYj48c3BhbiAgDQpzdHlsZT0i
-Zm9udC1zaXplOjExcHQ7Zm9udC1mYW1pbHk6Q2FsaWJyaSxzYW5zLXNlcmlmO2NvbG9yOnJnYigz
-MSw3OCwxMjEpIj7CoE5hbWUsDQpDb21wYW55JiMzOTtzIE5hbWUsIFBob25lIE51bWJlciwgRmF4
-IE51bWJlciwgSm9iIFRpdGxlLCBFbWFpbCBhZGRyZXNzLCAgDQpDb21wbGV0ZQ0KTWFpbGluZyBB
-ZGRyZXNzLCBTSUMgY29kZSwgQ29tcGFueSByZXZlbnVlLCBzaXplLCBXZWIgYWRkcmVzcyBldGMu
-IEFsbA0KVGVjaG5vbG9neSAvIENvbXBhbmllcyBQYXJ0bmVycyBhbmQgVXNlcnMgTGlzdCwgSVQg
-ZGVjaXNpb24gTWFrZXJzIGZyb20gIA0KRm9ydHVuZQ0KNTAwIENvbXBhbmllcywgSVQgRGVjaXNp
-b24gTWFrZXJzIGZyb20gU01FIGFzIHdlbGwuPGJyPg0KPGJyPg0KTGV0IG1lIGtub3cgaWYgeW91
-IGFyZSBpbnRlcmVzdGVkIGFuZCBJIHdpbGwgZ2V0IGJhY2sgdG8geW91IHdpdGggdGhlIGNvdW50
-cw0KYW5kIHByaWNpbmcuPGJyPg0KPGJyPg0KUmVnYXJkcyzCoDxicj4NCkFuaXRhIEdyYWhhbTxi
-cj4NCk1hcmtldGluZyBFeGVjdXRpdmXCoDwvc3Bhbj48c3BhbiAgDQpzdHlsZT0iZm9udC1zaXpl
-OjExcHQ7Zm9udC1mYW1pbHk6Q2FsaWJyaSxzYW5zLXNlcmlmIj48c3Bhbj48L3NwYW4+PC9zcGFu
-PjwvcD4NCg0KPHAgY2xhc3M9ImdtYWlsLW1zb25vc3BhY2luZyI+PHNwYW4gIA0Kc3R5bGU9ImZv
-bnQtc2l6ZToxMXB0O2ZvbnQtZmFtaWx5OkNhbGlicmksc2Fucy1zZXJpZjtjb2xvcjpyZ2IoMzEs
-NzgsMTIxKSI+dG8gIA0Kb3B0IG91dCwgcGxlYXNlIHJlcGx5IHdpdGggTGVhdmUgT3V0IGluIHRo
-ZQ0KU3ViamVjdCBMaW5lLjwvc3Bhbj48c3BhbiAgDQpzdHlsZT0iZm9udC1zaXplOjExcHQ7Zm9u
-dC1mYW1pbHk6Q2FsaWJyaSxzYW5zLXNlcmlmIj48c3Bhbj48L3NwYW4+PC9zcGFuPjwvcD48L2Rp
-dj4NCjxwPiZuYnNwOzwvcD48YSBzdHlsZT0nZGlzcGxheTogYmxvY2s7IG1hcmdpbjogMzJweCAw
-IDQwcHggMDsgcGFkZGluZzogIA0KMTBweDsgZm9udC1zaXplOiAxZW07IHRleHQtYWxpZ246IGNl
-bnRlcjsgYm9yZGVyOiAwOyBib3JkZXItdG9wOiAxcHggc29saWQgIA0KZ3JheTsgJyBocmVmPSdo
-dHRwczovL2dvby5nbC8ya3NkUnYnPnBvd2VyZWQgYnkgR1NNLiBGcmVlIG1haWwgbWVyZ2UgYW5k
-ICANCmVtYWlsIG1hcmtldGluZyBzb2Z0d2FyZSBmb3IgR21haWwuPC9hPg0KX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
-bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
-YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+18-02-25, at 08:36:17 PM
+
+Dear linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org,
+
+I urgently need help to secure some of my wealth for investments in your country.
+
+Please get back to me if you can be of help for more details.
+
+Regards,
+
+Alison D.K.M.
+Private e-mail: alskm-rq1DywPmlq4lyWMbetet3w@public.gmane.org
