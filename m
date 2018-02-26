@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EA4E5208F7AA7
- for <linux-nvdimm@lists.01.org>; Fri, 23 Feb 2018 13:32:31 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [ndctl PATCH] ndctl, tests: firmware-update.sh post-test cleanup
-Date: Fri, 23 Feb 2018 14:38:27 -0700
-Message-Id: <20180223213827.24808-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 29536209574FF
+ for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 01:38:25 -0800 (PST)
+Date: Mon, 26 Feb 2018 10:44:28 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 2/5] dax: fix dax_mapping() definition in the FS_DAX=n
+ + DEV_DAX=y case
+Message-ID: <20180226094428.awvicgxhohj4ezpq@quack2.suse.cz>
+References: <151937026001.18973.12034171121582300402.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151937027102.18973.18360014199243139223.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <151937027102.18973.18360014199243139223.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,68 +21,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org, vishal.l.verma@intel.com, dave.jiang@intel.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, kbuild test robot <fengguang.wu@intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When firmware-update.sh is run multiple times by itself, all runs but the
-first fail with this:
+On Thu 22-02-18 23:17:51, Dan Williams wrote:
+> An address_space will only have dax exceptional entries when FS_DAX is
+> enabled. The current reliance on S_DAX causes compile failures when
+> S_DAX is defined for DEV_DAX, but FS_DAX is disabled. Make dax_mapping()
+> always return false so that mm/truncate.c drops its link time
+> dependencies on fs/dax.c.
+> 
+> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+> Cc: linux-fsdevel@vger.kernel.org
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: <stable@vger.kernel.org>
+> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-+ ../ndctl/ndctl update-firmware -d nmem1 -f update-fw.img
-  Error: START FIRMWARE UPDATE failed: 0x9
+Looks good. You can add:
 
-  Error: Another firmware upload in progress or finished.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Fix this by having the test properly clean up and disable all the nfit_test
-regions and unloading the nfit_test module, as we do in test/pmem-errors.sh
-et al.
+								Honza
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- test/firmware-update.sh | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/test/firmware-update.sh b/test/firmware-update.sh
-index 1736472..44c1412 100755
---- a/test/firmware-update.sh
-+++ b/test/firmware-update.sh
-@@ -6,6 +6,7 @@
- [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] && ndctl="./ndctl/ndctl"
- [ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" && exit 1
- bus="nfit_test.0"
-+bus1="nfit_test.1"
- json2var="s/[{}\",]//g; s/:/=/g"
- rc=77
- dev=""
-@@ -41,6 +42,13 @@ reset()
- 	fi
- }
- 
-+cleanup()
-+{
-+	$ndctl disable-region -b "$bus" all
-+	$ndctl disable-region -b "$bus1" all
-+	modprobe -r nfit_test
-+}
-+
- detect()
- {
- 	dev=$($ndctl list -b "$bus" -D | jq .[0].dev | tr -d '"')
-@@ -59,6 +67,5 @@ rc=1
- reset
- detect
- do_tests
--reset
-+cleanup
- exit 0
--
+> ---
+>  include/linux/dax.h |    9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 0185ecdae135..62e8cf7eb566 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -107,6 +107,10 @@ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+>  int __dax_zero_page_range(struct block_device *bdev,
+>  		struct dax_device *dax_dev, sector_t sector,
+>  		unsigned int offset, unsigned int length);
+> +static inline bool dax_mapping(struct address_space *mapping)
+> +{
+> +	return mapping->host && IS_DAX(mapping->host);
+> +}
+>  #else
+>  static inline int __dax_zero_page_range(struct block_device *bdev,
+>  		struct dax_device *dax_dev, sector_t sector,
+> @@ -114,12 +118,11 @@ static inline int __dax_zero_page_range(struct block_device *bdev,
+>  {
+>  	return -ENXIO;
+>  }
+> -#endif
+> -
+>  static inline bool dax_mapping(struct address_space *mapping)
+>  {
+> -	return mapping->host && IS_DAX(mapping->host);
+> +	return false;
+>  }
+> +#endif
+>  
+>  struct writeback_control;
+>  int dax_writeback_mapping_range(struct address_space *mapping,
+> 
 -- 
-2.14.3
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
