@@ -1,8 +1,7 @@
-From: "Mrs. Alison" <altmarie-cBm5OqgzVeIUrb4e85K3Fw@public.gmane.org>
-Subject: Ref. Personal Request.
-Date: Sun, 25 Feb 2018 20:36:18 -0800
-Message-ID: <20180225123053.E604821F6A6CA@ml01.01.org>
-Reply-To: "Mrs. Alison" <alskm-rq1DywPmlq4lyWMbetet3w@public.gmane.org>
+From: "Mail Delivery Subsystem" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery reports about your e-mail
+Date: Mon, 26 Feb 2018 11:25:31 +0800
+Message-ID: <20180226031931.5F3AF22436924@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,15 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-18-02-25, at 08:36:17 PM
+This Message was undeliverable due to the following reason:
 
-Dear linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org,
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-I urgently need help to secure some of my wealth for investments in your country.
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
-Please get back to me if you can be of help for more details.
+Your message was not delivered within 2 days:
+Host 52.182.74.138 is not responding.
 
-Regards,
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-Alison D.K.M.
-Private e-mail: alskm-rq1DywPmlq4lyWMbetet3w@public.gmane.org
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
