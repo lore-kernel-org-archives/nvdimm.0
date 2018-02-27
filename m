@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E8FB821F6A6FE
- for <linux-nvdimm@lists.01.org>; Wed, 28 Feb 2018 15:34:12 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Wed, 28 Feb 2018 16:39:56 -0700
-Message-Id: <20180228234006.21093-1-logang@deltatee.com>
-Subject: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
+ by ml01.01.org (Postfix) with ESMTPS id E94A922352288
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Feb 2018 08:56:49 -0800 (PST)
+Date: Tue, 27 Feb 2018 18:02:53 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 07/12] ext4, dax: replace IS_DAX() with IS_FSDAX()
+Message-ID: <20180227170253.4p33pk3fi53w5qcl@quack2.suse.cz>
+References: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151970523209.26729.7690806551692959424.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <151970523209.26729.7690806551692959424.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,144 +20,144 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Everyone,
+On Mon 26-02-18 20:20:32, Dan Williams wrote:
+> In preparation for fixing the broken definition of S_DAX in the
+> CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y case, convert all IS_DAX() usages to
+> use explicit tests for FSDAX since DAX is ambiguous.
+> 
+> Cc: Jan Kara <jack@suse.com>
+> Cc: "Theodore Ts'o" <tytso@mit.edu>
+> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+> Cc: Matthew Wilcox <mawilcox@microsoft.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: <stable@vger.kernel.org>
+> Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Here's v2 of our series to introduce P2P based copy offload to NVMe
-fabrics. This version has been rebased onto v4.16-rc3 which already
-includes Christoph's devpagemap work the previous version was based
-off as well as a couple of the cleanup patches that were in v1.
+Looks good. You can add:
 
-Additionally, we've made the following changes based on feedback:
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-* Renamed everything to 'p2pdma' per the suggestion from Bjorn as well
-  as a bunch of cleanup and spelling fixes he pointed out in the last
-  series.
+								Honza
 
-* To address Alex's ACS concerns, we change to a simpler method of
-  just disabling ACS behind switches for any kernel that has
-  CONFIG_PCI_P2PDMA.
 
-* We also reject using devices that employ 'dma_virt_ops' which should
-  fairly simply handle Jason's concerns that this work might break with
-  the HFI, QIB and rxe drivers that use the virtual ops to implement
-  their own special DMA operations.
-
-Thanks,
-
-Logan
-
---
-
-This is a continuation of our work to enable using Peer-to-Peer PCI
-memory in NVMe fabrics targets. Many thanks go to Christoph Hellwig who
-provided valuable feedback to get these patches to where they are today.
-
-The concept here is to use memory that's exposed on a PCI BAR as
-data buffers in the NVME target code such that data can be transferred
-from an RDMA NIC to the special memory and then directly to an NVMe
-device avoiding system memory entirely. The upside of this is better
-QoS for applications running on the CPU utilizing memory and lower
-PCI bandwidth required to the CPU (such that systems could be designed
-with fewer lanes connected to the CPU). However, presently, the
-trade-off is currently a reduction in overall throughput. (Largely due
-to hardware issues that would certainly improve in the future).
-
-Due to these trade-offs we've designed the system to only enable using
-the PCI memory in cases where the NIC, NVMe devices and memory are all
-behind the same PCI switch. This will mean many setups that could likely
-work well will not be supported so that we can be more confident it
-will work and not place any responsibility on the user to understand
-their topology. (We chose to go this route based on feedback we
-received at the last LSF). Future work may enable these transfers behind
-a fabric of PCI switches or perhaps using a white list of known good
-root complexes.
-
-In order to enable this functionality, we introduce a few new PCI
-functions such that a driver can register P2P memory with the system.
-Struct pages are created for this memory using devm_memremap_pages()
-and the PCI bus offset is stored in the corresponding pagemap structure.
-
-Another set of functions allow a client driver to create a list of
-client devices that will be used in a given P2P transactions and then
-use that list to find any P2P memory that is supported by all the
-client devices. This list is then also used to selectively disable the
-ACS bits for the downstream ports behind these devices.
-
-In the block layer, we also introduce a P2P request flag to indicate a
-given request targets P2P memory as well as a flag for a request queue
-to indicate a given queue supports targeting P2P memory. P2P requests
-will only be accepted by queues that support it. Also, P2P requests
-are marked to not be merged seeing a non-homogenous request would
-complicate the DMA mapping requirements.
-
-In the PCI NVMe driver, we modify the existing CMB support to utilize
-the new PCI P2P memory infrastructure and also add support for P2P
-memory in its request queue. When a P2P request is received it uses the
-pci_p2pmem_map_sg() function which applies the necessary transformation
-to get the corrent pci_bus_addr_t for the DMA transactions.
-
-In the RDMA core, we also adjust rdma_rw_ctx_init() and
-rdma_rw_ctx_destroy() to take a flags argument which indicates whether
-to use the PCI P2P mapping functions or not.
-
-Finally, in the NVMe fabrics target port we introduce a new
-configuration boolean: 'allow_p2pmem'. When set, the port will attempt
-to find P2P memory supported by the RDMA NIC and all namespaces. If
-supported memory is found, it will be used in all IO transfers. And if
-a port is using P2P memory, adding new namespaces that are not supported
-by that memory will fail.
-
-Logan Gunthorpe (10):
-  PCI/P2PDMA: Support peer to peer memory
-  PCI/P2PDMA: Add sysfs group to display p2pmem stats
-  PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust the bus offset
-  PCI/P2PDMA: Clear ACS P2P flags for all devices behind switches
-  block: Introduce PCI P2P flags for request and request queue
-  IB/core: Add optional PCI P2P flag to rdma_rw_ctx_[init|destroy]()
-  nvme-pci: Use PCI p2pmem subsystem to manage the CMB
-  nvme-pci: Add support for P2P memory in requests
-  nvme-pci: Add a quirk for a pseudo CMB
-  nvmet: Optionally use PCI P2P memory
-
- Documentation/ABI/testing/sysfs-bus-pci |  25 ++
- block/blk-core.c                        |   3 +
- drivers/infiniband/core/rw.c            |  21 +-
- drivers/infiniband/ulp/isert/ib_isert.c |   5 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c   |   7 +-
- drivers/nvme/host/core.c                |   4 +
- drivers/nvme/host/nvme.h                |   8 +
- drivers/nvme/host/pci.c                 | 118 ++++--
- drivers/nvme/target/configfs.c          |  29 ++
- drivers/nvme/target/core.c              |  95 ++++-
- drivers/nvme/target/io-cmd.c            |   3 +
- drivers/nvme/target/nvmet.h             |  10 +
- drivers/nvme/target/rdma.c              |  43 +-
- drivers/pci/Kconfig                     |  20 +
- drivers/pci/Makefile                    |   1 +
- drivers/pci/p2pdma.c                    | 713 ++++++++++++++++++++++++++++++++
- drivers/pci/pci.c                       |   4 +
- include/linux/blk_types.h               |  18 +-
- include/linux/blkdev.h                  |   3 +
- include/linux/memremap.h                |  19 +
- include/linux/pci-p2pdma.h              | 105 +++++
- include/linux/pci.h                     |   4 +
- include/rdma/rw.h                       |   7 +-
- net/sunrpc/xprtrdma/svc_rdma_rw.c       |   6 +-
- 24 files changed, 1204 insertions(+), 67 deletions(-)
- create mode 100644 drivers/pci/p2pdma.c
- create mode 100644 include/linux/pci-p2pdma.h
-
---
-2.11.0
+> ---
+>  fs/ext4/file.c  |   12 +++++-------
+>  fs/ext4/inode.c |    4 ++--
+>  fs/ext4/ioctl.c |    2 +-
+>  fs/ext4/super.c |    2 +-
+>  4 files changed, 9 insertions(+), 11 deletions(-)
+> 
+> diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+> index 51854e7608f0..561ea843b458 100644
+> --- a/fs/ext4/file.c
+> +++ b/fs/ext4/file.c
+> @@ -48,7 +48,7 @@ static ssize_t ext4_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
+>  	 * Recheck under inode lock - at this point we are sure it cannot
+>  	 * change anymore
+>  	 */
+> -	if (!IS_DAX(inode)) {
+> +	if (!IS_FSDAX(inode)) {
+>  		inode_unlock_shared(inode);
+>  		/* Fallback to buffered IO in case we cannot support DAX */
+>  		return generic_file_read_iter(iocb, to);
+> @@ -68,7 +68,7 @@ static ssize_t ext4_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
+>  	if (!iov_iter_count(to))
+>  		return 0; /* skip atime */
+>  
+> -	if (IS_DAX(file_inode(iocb->ki_filp)))
+> +	if (IS_FSDAX(file_inode(iocb->ki_filp)))
+>  		return ext4_dax_read_iter(iocb, to);
+>  	return generic_file_read_iter(iocb, to);
+>  }
+> @@ -216,10 +216,8 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+>  	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
+>  		return -EIO;
+>  
+> -#ifdef CONFIG_FS_DAX
+> -	if (IS_DAX(inode))
+> +	if (IS_FSDAX(inode))
+>  		return ext4_dax_write_iter(iocb, from);
+> -#endif
+>  	if (!o_direct && (iocb->ki_flags & IOCB_NOWAIT))
+>  		return -EOPNOTSUPP;
+>  
+> @@ -361,11 +359,11 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+>  	 * We don't support synchronous mappings for non-DAX files. At least
+>  	 * until someone comes with a sensible use case.
+>  	 */
+> -	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
+> +	if (!IS_FSDAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
+>  		return -EOPNOTSUPP;
+>  
+>  	file_accessed(file);
+> -	if (IS_DAX(file_inode(file))) {
+> +	if (IS_FSDAX(file_inode(file))) {
+>  		vma->vm_ops = &ext4_dax_vm_ops;
+>  		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+>  	} else {
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index c94780075b04..1879b33aa391 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -3858,7 +3858,7 @@ static ssize_t ext4_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+>  		return 0;
+>  
+>  	/* DAX uses iomap path now */
+> -	if (WARN_ON_ONCE(IS_DAX(inode)))
+> +	if (WARN_ON_ONCE(IS_FSDAX(inode)))
+>  		return 0;
+>  
+>  	trace_ext4_direct_IO_enter(inode, offset, count, iov_iter_rw(iter));
+> @@ -4076,7 +4076,7 @@ static int ext4_block_zero_page_range(handle_t *handle,
+>  	if (length > max || length < 0)
+>  		length = max;
+>  
+> -	if (IS_DAX(inode)) {
+> +	if (IS_FSDAX(inode)) {
+>  		return iomap_zero_range(inode, from, length, NULL,
+>  					&ext4_iomap_ops);
+>  	}
+> diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
+> index 7e99ad02f1ba..040fc6570ddb 100644
+> --- a/fs/ext4/ioctl.c
+> +++ b/fs/ext4/ioctl.c
+> @@ -790,7 +790,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+>  				 "Online defrag not supported with bigalloc");
+>  			err = -EOPNOTSUPP;
+>  			goto mext_out;
+> -		} else if (IS_DAX(inode)) {
+> +		} else if (IS_FSDAX(inode)) {
+>  			ext4_msg(sb, KERN_ERR,
+>  				 "Online defrag not supported with DAX");
+>  			err = -EOPNOTSUPP;
+> diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+> index 39bf464c35f1..933e12940181 100644
+> --- a/fs/ext4/super.c
+> +++ b/fs/ext4/super.c
+> @@ -1161,7 +1161,7 @@ static int ext4_set_context(struct inode *inode, const void *ctx, size_t len,
+>  	if (inode->i_ino == EXT4_ROOT_INO)
+>  		return -EPERM;
+>  
+> -	if (WARN_ON_ONCE(IS_DAX(inode) && i_size_read(inode)))
+> +	if (WARN_ON_ONCE(IS_FSDAX(inode) && i_size_read(inode)))
+>  		return -EINVAL;
+>  
+>  	res = ext4_convert_inline_data(inode);
+> 
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
