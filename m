@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ECE3121FD73D4
- for <linux-nvdimm@lists.01.org>; Wed, 28 Feb 2018 15:34:13 -0800 (PST)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Wed, 28 Feb 2018 16:40:04 -0700
-Message-Id: <20180228234006.21093-9-logang@deltatee.com>
-In-Reply-To: <20180228234006.21093-1-logang@deltatee.com>
-References: <20180228234006.21093-1-logang@deltatee.com>
-Subject: [PATCH v2 08/10] nvme-pci: Add support for P2P memory in requests
+ by ml01.01.org (Postfix) with ESMTPS id 43DDA21F6A6C9
+ for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 20:23:00 -0800 (PST)
+Subject: [PATCH v4 01/12] dax: fix vma_is_fsdax() helper
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 26 Feb 2018 20:20:00 -0800
+Message-ID: <151970519993.26729.274277383890046437.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,103 +18,42 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
+Cc: Jane Chu <jane.chu@oracle.com>, Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Gerd Rausch <gerd.rausch@oracle.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-For P2P requests we must use the pci_p2pmem_[un]map_sg() functions
-instead of the dma_map_sg functions.
+Gerd reports that ->i_mode may contain other bits besides S_IFCHR. Use
+S_ISCHR() instead. Otherwise, get_user_pages_longterm() may fail on
+device-dax instances when those are meant to be explicitly allowed.
 
-With that, we can then indicate PCI_P2P support in the request queue.
-For this, we create an NVME_F_PCI_P2P flag which tells the core to
-set QUEUE_FLAG_PCI_P2P in the request queue.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Fixes: 2bb6d2837083 ("mm: introduce get_user_pages_longterm")
+Cc: <stable@vger.kernel.org>
+Reported-by: Gerd Rausch <gerd.rausch@oracle.com>
+Acked-by: Jane Chu <jane.chu@oracle.com>
+Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvme/host/core.c |  4 ++++
- drivers/nvme/host/nvme.h |  1 +
- drivers/nvme/host/pci.c  | 19 +++++++++++++++----
- 3 files changed, 20 insertions(+), 4 deletions(-)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index 0fe7ea35c221..4dd564f175fa 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -2954,7 +2954,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
- 	ns->queue = blk_mq_init_queue(ctrl->tagset);
- 	if (IS_ERR(ns->queue))
- 		goto out_free_ns;
-+
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, ns->queue);
-+	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
-+		queue_flag_set_unlocked(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
-+
- 	ns->queue->queuedata = ns;
- 	ns->ctrl = ctrl;
- 
-diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-index 0521e4707d1c..e38beb1917e2 100644
---- a/drivers/nvme/host/nvme.h
-+++ b/drivers/nvme/host/nvme.h
-@@ -290,6 +290,7 @@ struct nvme_ctrl_ops {
- 	unsigned int flags;
- #define NVME_F_FABRICS			(1 << 0)
- #define NVME_F_METADATA_SUPPORTED	(1 << 1)
-+#define NVME_F_PCI_P2PDMA		(1 << 2)
- 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
- 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
- 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 56ca79be8476..b896a78225cb 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -796,8 +796,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
- 		goto out;
- 
- 	ret = BLK_STS_RESOURCE;
--	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
--			DMA_ATTR_NO_WARN);
-+
-+	if (REQ_IS_PCI_P2PDMA(req))
-+		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
-+					  dma_dir);
-+	else
-+		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
-+					     dma_dir,  DMA_ATTR_NO_WARN);
- 	if (!nr_mapped)
- 		goto out;
- 
-@@ -842,7 +847,12 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 
- 	if (iod->nents) {
--		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+		if (REQ_IS_PCI_P2PDMA(req))
-+			pci_p2pdma_unmap_sg(dev->dev, iod->sg, iod->nents,
-+					    dma_dir);
-+		else
-+			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+
- 		if (blk_integrity_rq(req)) {
- 			if (req_op(req) == REQ_OP_READ)
- 				nvme_dif_remap(req, nvme_dif_complete);
-@@ -2422,7 +2432,8 @@ static int nvme_pci_reg_read64(struct nvme_ctrl *ctrl, u32 off, u64 *val)
- static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
- 	.name			= "pcie",
- 	.module			= THIS_MODULE,
--	.flags			= NVME_F_METADATA_SUPPORTED,
-+	.flags			= NVME_F_METADATA_SUPPORTED |
-+				  NVME_F_PCI_P2PDMA,
- 	.reg_read32		= nvme_pci_reg_read32,
- 	.reg_write32		= nvme_pci_reg_write32,
- 	.reg_read64		= nvme_pci_reg_read64,
--- 
-2.11.0
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 2a815560fda0..79c413985305 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -3198,7 +3198,7 @@ static inline bool vma_is_fsdax(struct vm_area_struct *vma)
+ 	if (!vma_is_dax(vma))
+ 		return false;
+ 	inode = file_inode(vma->vm_file);
+-	if (inode->i_mode == S_IFCHR)
++	if (S_ISCHR(inode->i_mode))
+ 		return false; /* device-dax */
+ 	return true;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
