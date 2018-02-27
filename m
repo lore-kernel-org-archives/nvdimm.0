@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D6908223DB799
- for <linux-nvdimm@lists.01.org>; Fri,  9 Feb 2018 21:27:07 -0800 (PST)
-Subject: [ndctl PATCH] ndctl, firmware: fix kernel version check
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Feb 2018 21:23:48 -0800
-Message-ID: <151824022875.4967.15665172528794072137.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A6A0122352285
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Feb 2018 08:54:27 -0800 (PST)
+Date: Tue, 27 Feb 2018 18:00:31 +0100
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 03/12] ext2, dax: finish implementing dax_sem helpers
+Message-ID: <20180227170031.lgf5tc3vt3umrwbb@quack2.suse.cz>
+References: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151970521121.26729.7741760690622342144.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <151970521121.26729.7741760690622342144.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,33 +24,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The firmware update passes when it should skip due to a misplaced
-newline.
+On Mon 26-02-18 20:20:11, Dan Williams wrote:
+> dax_sem_{up,down}_write_sem() allow the ext2 dax semaphore to be compiled
+> out in the CONFIG_FS_DAX=n case. However there are still some open coded
+> uses of the semaphore. Add dax_sem_{up_read,down_read,_is_locked}()
+> helpers and convert all open-coded usages of the semaphore to the
+> helpers.
 
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/firmware-update.sh |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Just one nit below. With that fixed you can add:
 
-diff --git a/test/firmware-update.sh b/test/firmware-update.sh
-index 79767d2dc41f..0d5bcdb3cc42 100755
---- a/test/firmware-update.sh
-+++ b/test/firmware-update.sh
-@@ -53,8 +53,7 @@ do_tests()
- 	$ndctl update-firmware -d $dev -f $image
- }
- 
--check_min_kver "4.16" || { echo "kernel $KVER may lack firmware update test handling"; exit
--$rc; }
-+check_min_kver "4.16" || { echo "kernel $KVER may lack firmware update test handling"; exit $rc; }
- modprobe nfit_test
- rc=1
- reset
+Reviewed-by: Jan Kara <jack@suse.cz>
 
+> Cc: Jan Kara <jack@suse.com>
+> Cc: <stable@vger.kernel.org>
+> Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  fs/ext2/ext2.h  |    6 ++++++
+>  fs/ext2/file.c  |    5 ++---
+>  fs/ext2/inode.c |    4 +---
+>  3 files changed, 9 insertions(+), 6 deletions(-)
+> 
+> diff --git a/fs/ext2/ext2.h b/fs/ext2/ext2.h
+> index 032295e1d386..7ceb29733cdb 100644
+> --- a/fs/ext2/ext2.h
+> +++ b/fs/ext2/ext2.h
+> @@ -711,9 +711,15 @@ struct ext2_inode_info {
+>  #ifdef CONFIG_FS_DAX
+>  #define dax_sem_down_write(ext2_inode)	down_write(&(ext2_inode)->dax_sem)
+>  #define dax_sem_up_write(ext2_inode)	up_write(&(ext2_inode)->dax_sem)
+> +#define dax_sem_is_locked(ext2_inode)	rwsem_is_locked(&(ext2_inode)->dax_sem)
+> +#define dax_sem_down_read(ext2_inode)	down_read(&(ext2_inode)->dax_sem)
+> +#define dax_sem_up_read(ext2_inode)	up_read(&(ext2_inode)->dax_sem)
+>  #else
+>  #define dax_sem_down_write(ext2_inode)
+>  #define dax_sem_up_write(ext2_inode)
+> +#define dax_sem_is_locked(ext2_inode)	(true)
+
+This is a bit dangerous as depending on the use of dax_sem_is_locked()
+you'd need this to return true or false. E.g. assume we'd have a place
+where we'd like to do:
+
+	WARN_ON(dax_sem_is_locked(inode));
+
+or just
+
+	if (dax_sem_is_locked(inode))
+		bail out due to congestion...
+
+How I'd solve this is that I'd define:
+
+#define assert_dax_sem_locked(ext2_inode) WARN_ON(rwsem_is_locked(&(ext2_inode)->dax_sem)
+
+and just as do {} while (0) for !CONFIG_FS_DAX.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
