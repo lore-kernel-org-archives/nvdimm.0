@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6DC1B20954CBD
- for <linux-nvdimm@lists.01.org>; Thu, 22 Feb 2018 11:52:17 -0800 (PST)
-From: Tony Luck <tony.luck@intel.com>
-Subject: [PATCH 4/5] firmware: dmi: Add function to look up a handle and
- return DIMM size
-Date: Thu, 22 Feb 2018 11:58:10 -0800
-Message-Id: <20180222195811.27237-5-tony.luck@intel.com>
-In-Reply-To: <20180222195811.27237-1-tony.luck@intel.com>
-References: <20180222195811.27237-1-tony.luck@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 64E1920954CAF
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Feb 2018 16:34:39 -0800 (PST)
+Subject: [PATCH 1/2] ndctl: add check for update firmware supported
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 27 Feb 2018 17:40:45 -0700
+Message-ID: <151977844514.31131.543078368987798636.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,108 +16,135 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Borislav Petkov <bp@suse.de>
-Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When we first scan the SMBIOS table, save the size of the DIMM.
+Adding generic and intel support function to allow check if update firmware
+is supported by the kernel.
 
-Provide a function for other code (EDAC driver) to look up the size
-of a DIMM from its SMBIOS handle.
-
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/firmware/dmi_scan.c | 31 +++++++++++++++++++++++++++++++
- include/linux/dmi.h         |  2 ++
- 2 files changed, 33 insertions(+)
+ ndctl/lib/firmware.c   |   11 +++++++++++
+ ndctl/lib/intel.c      |   24 ++++++++++++++++++++++++
+ ndctl/lib/libndctl.sym |    1 +
+ ndctl/lib/private.h    |    1 +
+ ndctl/libndctl.h       |    1 +
+ ndctl/update.c         |    4 ++++
+ 6 files changed, 42 insertions(+)
 
-diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
-index e763e1484331..9947f1f6ef7b 100644
---- a/drivers/firmware/dmi_scan.c
-+++ b/drivers/firmware/dmi_scan.c
-@@ -32,6 +32,7 @@ static char dmi_ids_string[128] __initdata;
- static struct dmi_memdev_info {
- 	const char *device;
- 	const char *bank;
-+	u64 size;
- 	u16 handle;
- } *dmi_memdev;
- static int dmi_memdev_nr;
-@@ -386,6 +387,8 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
- {
- 	const char *d = (const char *)dm;
- 	static int nr;
-+	u64 bytes;
-+	u16 size;
- 
- 	if (dm->type != DMI_ENTRY_MEM_DEVICE || dm->length < 0x12)
- 		return;
-@@ -396,6 +399,20 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
- 	dmi_memdev[nr].handle = get_unaligned(&dm->handle);
- 	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
- 	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
-+
-+	size = get_unaligned((u16 *)&d[0xC]);
-+	if (size == 0)
-+		bytes = 0;
-+	else if (size == 0xffff)
-+		bytes = ~0ul;
-+	else if (size & 0x8000)
-+		bytes = (u64)(size & 0x7fff) << 10;
-+	else if (size != 0x7fff)
-+		bytes = (u64)size << 20;
-+	else
-+		bytes = (u64)get_unaligned((u32 *)&d[0x1C]) << 20;
-+
-+	dmi_memdev[nr].size = bytes;
- 	nr++;
+diff --git a/ndctl/lib/firmware.c b/ndctl/lib/firmware.c
+index f6deec5d..78d753ca 100644
+--- a/ndctl/lib/firmware.c
++++ b/ndctl/lib/firmware.c
+@@ -107,3 +107,14 @@ ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd)
+ 	else
+ 		return FW_EUNKNOWN;
  }
- 
-@@ -1065,3 +1082,17 @@ void dmi_memdev_name(u16 handle, const char **bank, const char **device)
- 	}
- }
- EXPORT_SYMBOL_GPL(dmi_memdev_name);
 +
-+u64 dmi_memdev_size(u16 handle)
++NDCTL_EXPORT bool
++ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm)
 +{
-+	int n;
++	struct ndctl_dimm_ops *ops = dimm->ops;
 +
-+	if (dmi_memdev) {
-+		for (n = 0; n < dmi_memdev_nr; n++) {
-+			if (handle == dmi_memdev[n].handle)
-+				return dmi_memdev[n].size;
-+		}
-+	}
-+	return ~0ul;
++	if (ops && ops->fw_update_supported)
++		return ops->fw_update_supported(dimm);
++	else
++		return false;
 +}
-+EXPORT_SYMBOL_GPL(dmi_memdev_size);
-diff --git a/include/linux/dmi.h b/include/linux/dmi.h
-index 46e151172d95..7f5929123b69 100644
---- a/include/linux/dmi.h
-+++ b/include/linux/dmi.h
-@@ -113,6 +113,7 @@ extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
- 	void *private_data);
- extern bool dmi_match(enum dmi_field f, const char *str);
- extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
-+extern u64 dmi_memdev_size(u16 handle);
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index cee5204c..7d976c50 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -650,6 +650,29 @@ intel_dimm_cmd_new_lss(struct ndctl_dimm *dimm)
+ 	return cmd;
+ }
  
- #else
++static bool intel_dimm_fw_update_supported(struct ndctl_dimm *dimm)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++
++	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL)) {
++		dbg(ctx, "unsupported cmd: %d\n", ND_CMD_CALL);
++		return false;
++	}
++
++	/*
++	 * We only need to check FW_GET_INFO. If that isn't supported then
++	 * the others aren't either.
++	 */
++	if (test_dimm_dsm(dimm, ND_INTEL_FW_GET_INFO)
++			== DIMM_DSM_UNSUPPORTED) {
++		dbg(ctx, "unsupported function: %d\n",
++				ND_INTEL_FW_GET_INFO);
++		return false;
++	}
++
++	return true;
++}
++
+ struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
+ 	.cmd_desc = intel_cmd_desc,
+ 	.new_smart = intel_dimm_cmd_new_smart,
+@@ -703,4 +726,5 @@ struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
+ 	.fw_fquery_get_fw_rev = intel_cmd_fw_fquery_get_fw_rev,
+ 	.fw_xlat_firmware_status = intel_cmd_fw_xlat_firmware_status,
+ 	.new_ack_shutdown_count = intel_dimm_cmd_new_lss,
++	.fw_update_supported = intel_dimm_fw_update_supported,
+ };
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index af9b7d54..cc580f9c 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -344,4 +344,5 @@ global:
+ 	ndctl_cmd_fw_fquery_get_fw_rev;
+ 	ndctl_cmd_fw_xlat_firmware_status;
+ 	ndctl_dimm_cmd_new_ack_shutdown_count;
++	ndctl_dimm_fw_update_supported;
+ } LIBNDCTL_13;
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 015eeb2d..ae4454cf 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -325,6 +325,7 @@ struct ndctl_dimm_ops {
+ 	unsigned long long (*fw_fquery_get_fw_rev)(struct ndctl_cmd *);
+ 	enum ND_FW_STATUS (*fw_xlat_firmware_status)(struct ndctl_cmd *);
+ 	struct ndctl_cmd *(*new_ack_shutdown_count)(struct ndctl_dimm *);
++	bool (*fw_update_supported)(struct ndctl_dimm *);
+ };
  
-@@ -142,6 +143,7 @@ static inline bool dmi_match(enum dmi_field f, const char *str)
- 	{ return false; }
- static inline void dmi_memdev_name(u16 handle, const char **bank,
- 		const char **device) { }
-+static inline u64 dmi_memdev_size(u16 handle) { return ~0ul; }
- static inline const struct dmi_system_id *
- 	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
+ struct ndctl_dimm_ops * const intel_dimm_ops;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 9db775ba..08030d35 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -625,6 +625,7 @@ unsigned int ndctl_cmd_fw_start_get_context(struct ndctl_cmd *cmd);
+ unsigned long long ndctl_cmd_fw_fquery_get_fw_rev(struct ndctl_cmd *cmd);
+ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
+ struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
++bool ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
  
--- 
-2.14.1
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/ndctl/update.c b/ndctl/update.c
+index 0f0f0d81..72f5839b 100644
+--- a/ndctl/update.c
++++ b/ndctl/update.c
+@@ -454,6 +454,10 @@ static int get_ndctl_dimm(struct update_context *uctx, void *ctx)
+ 		ndctl_dimm_foreach(bus, dimm) {
+ 			if (!util_dimm_filter(dimm, uctx->dimm_id))
+ 				continue;
++			if (!ndctl_dimm_fw_update_supported(dimm)) {
++				error("DIMM firmware update not supported by the kernel.");
++				return -ENOTSUP;
++			}
+ 			uctx->dimm = dimm;
+ 			return 0;
+ 		}
 
 _______________________________________________
 Linux-nvdimm mailing list
