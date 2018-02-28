@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5FD4A21CF1CE1
- for <linux-nvdimm@lists.01.org>; Tue, 13 Feb 2018 10:09:43 -0800 (PST)
-Subject: [PATCH v2] ndctl: add option to list firmware information for a DIMM
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 13 Feb 2018 11:15:32 -0700
-Message-ID: <151854564280.33267.17991825626084554488.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E494F21F6A6E6
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Feb 2018 15:34:12 -0800 (PST)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 28 Feb 2018 16:39:58 -0700
+Message-Id: <20180228234006.21093-3-logang@deltatee.com>
+In-Reply-To: <20180228234006.21093-1-logang@deltatee.com>
+References: <20180228234006.21093-1-logang@deltatee.com>
+Subject: [PATCH v2 02/10] PCI/P2PDMA: Add sysfs group to display p2pmem stats
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,217 +17,134 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding firmware output of firmware information when ndctl list -D -F is used.
-Components displayed are current firmware version, updated firmware version,
-and if a coldboot is required (firmware updated).
+Attributes display the total amount of P2P memory, the amount available
+and whether it is published or not.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
+ Documentation/ABI/testing/sysfs-bus-pci | 25 +++++++++++++++++
+ drivers/pci/p2pdma.c                    | 50 +++++++++++++++++++++++++++++++++
+ 2 files changed, 75 insertions(+)
 
-v2:
-- Added copyright
-- Added support for human readable option (hex) for versions
-- Removed check against CMD_CALL as it's not useful
-
- Documentation/ndctl/ndctl-list.txt |   13 +++++
- ndctl/Makefile.am                  |    1 
- ndctl/list.c                       |   15 ++++++
- ndctl/util/json-firmware.c         |   90 ++++++++++++++++++++++++++++++++++++
- util/json.h                        |    2 +
- 5 files changed, 121 insertions(+)
- create mode 100644 ndctl/util/json-firmware.c
-
-diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
-index fc07a71..85b87d4 100644
---- a/Documentation/ndctl/ndctl-list.txt
-+++ b/Documentation/ndctl/ndctl-list.txt
-@@ -110,6 +110,19 @@ include::xable-region-options.txt[]
-   }
+diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
+index 44d4b2be92fd..f5656dae21be 100644
+--- a/Documentation/ABI/testing/sysfs-bus-pci
++++ b/Documentation/ABI/testing/sysfs-bus-pci
+@@ -323,3 +323,28 @@ Description:
+ 
+ 		This is similar to /sys/bus/pci/drivers_autoprobe, but
+ 		affects only the VFs associated with a specific PF.
++
++What:		/sys/bus/pci/devices/.../p2pmem/available
++Date:		November 2017
++Contact:	Logan Gunthorpe <logang@deltatee.com>
++Description:
++		If the device has any Peer-to-Peer memory registered, this
++	        file contains the amount of memory that has not been
++		allocated (in decimal).
++
++What:		/sys/bus/pci/devices/.../p2pmem/size
++Date:		November 2017
++Contact:	Logan Gunthorpe <logang@deltatee.com>
++Description:
++		If the device has any Peer-to-Peer memory registered, this
++	        file contains the total ammount of memory that the device
++		provides (in decimal).
++
++What:		/sys/bus/pci/devices/.../p2pmem/published
++Date:		November 2017
++Contact:	Logan Gunthorpe <logang@deltatee.com>
++Description:
++		If the device has any Peer-to-Peer memory registered, this
++	        file contains a '1' if the memory has been published for
++		use inside the kernel or a '0' if it is only intended
++		for use within the driver that published it.
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index ec0a6cb9e500..a57df78f6a32 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -29,6 +29,53 @@ struct pci_p2pdma {
+ 	bool published;
+ };
+ 
++static ssize_t size_show(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	size_t size = 0;
++
++	if (pdev->p2pdma->pool)
++		size = gen_pool_size(pdev->p2pdma->pool);
++
++	return snprintf(buf, PAGE_SIZE, "%zd\n", size);
++}
++static DEVICE_ATTR_RO(size);
++
++static ssize_t available_show(struct device *dev, struct device_attribute *attr,
++			      char *buf)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	size_t avail = 0;
++
++	if (pdev->p2pdma->pool)
++		avail = gen_pool_avail(pdev->p2pdma->pool);
++
++	return snprintf(buf, PAGE_SIZE, "%zd\n", avail);
++}
++static DEVICE_ATTR_RO(available);
++
++static ssize_t published_show(struct device *dev, struct device_attribute *attr,
++			      char *buf)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", pdev->p2pdma->published);
++}
++static DEVICE_ATTR_RO(published);
++
++static struct attribute *p2pmem_attrs[] = {
++	&dev_attr_size.attr,
++	&dev_attr_available.attr,
++	&dev_attr_published.attr,
++	NULL,
++};
++
++static const struct attribute_group p2pmem_group = {
++	.attrs = p2pmem_attrs,
++	.name = "p2pmem",
++};
++
+ static void pci_p2pdma_percpu_release(struct percpu_ref *ref)
+ {
+ 	struct pci_p2pdma *p2p =
+@@ -55,6 +102,7 @@ static void pci_p2pdma_release(void *data)
+ 	percpu_ref_exit(&pdev->p2pdma->devmap_ref);
+ 
+ 	gen_pool_destroy(pdev->p2pdma->pool);
++	sysfs_remove_group(&pdev->dev.kobj, &p2pmem_group);
+ 	pdev->p2pdma = NULL;
  }
  
-+-F::
-+--firmware::
-+	Include dimm firmware info in the listing. For example:
-+[verse]
-+{
-+  "dev":"nmem0",
-+  "firmware":{
-+      "current_version":0,
-+      "next_version":1,
-+      "coldboot_required":true
-+  }
-+}
-+
- -X::
- --device-dax::
- 	Include device-dax ("daxregion") details when a namespace is in
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index 2054c1a..e0db97b 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -13,6 +13,7 @@ ndctl_SOURCES = ndctl.c \
- 		test.c \
- 		../util/json.c \
- 		util/json-smart.c \
-+		util/json-firmware.c \
- 		inject-error.c \
- 		update.c \
- 		inject-smart.c
-diff --git a/ndctl/list.c b/ndctl/list.c
-index 37a224a..2aaa248 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -35,6 +35,7 @@ static struct {
- 	bool dax;
- 	bool media_errors;
- 	bool human;
-+	bool firmware;
- } list;
+@@ -83,6 +131,8 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
+ 	if (error)
+ 		goto out_pool_destroy;
  
- static unsigned long listopts_to_flags(void)
-@@ -277,6 +278,7 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 				"filter by region-type"),
- 		OPT_BOOLEAN('B', "buses", &list.buses, "include bus info"),
- 		OPT_BOOLEAN('D', "dimms", &list.dimms, "include dimm info"),
-+		OPT_BOOLEAN('F', "firmware", &list.firmware, "include firmware info"),
- 		OPT_BOOLEAN('H', "health", &list.health, "include dimm health"),
- 		OPT_BOOLEAN('R', "regions", &list.regions,
- 				"include region info"),
-@@ -420,6 +422,19 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 				}
- 			}
++	error = sysfs_create_group(&pdev->dev.kobj, &p2pmem_group);
++
+ 	pdev->p2pdma = p2p;
  
-+			if (list.firmware) {
-+				struct json_object *jfirmware;
-+
-+				jfirmware = util_dimm_firmware_to_json(dimm,
-+						listopts_to_flags());
-+				if (jfirmware)
-+					json_object_object_add(jdimm,
-+							"firmware",
-+							jfirmware);
-+				else
-+					continue;
-+			}
-+
- 			/*
- 			 * Without a bus we are collecting dimms anonymously
- 			 * across the platform.
-diff --git a/ndctl/util/json-firmware.c b/ndctl/util/json-firmware.c
-new file mode 100644
-index 0000000..a6c33d8
---- /dev/null
-+++ b/ndctl/util/json-firmware.c
-@@ -0,0 +1,90 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
-+#include <limits.h>
-+#include <util/json.h>
-+#include <uuid/uuid.h>
-+#include <json-c/json.h>
-+#include <ndctl/libndctl.h>
-+#include <ccan/array_size/array_size.h>
-+#include <ndctl.h>
-+
-+struct json_object *util_dimm_firmware_to_json(struct ndctl_dimm *dimm,
-+		unsigned long flags)
-+{
-+	struct json_object *jfirmware = json_object_new_object();
-+	struct json_object *jobj;
-+	struct ndctl_cmd *cmd;
-+	int rc;
-+	uint64_t run, updated;
-+	bool reboot = false;
-+
-+	if (!jfirmware)
-+		return NULL;
-+
-+	cmd = ndctl_dimm_cmd_new_fw_get_info(dimm);
-+	if (!cmd)
-+		goto err;
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc || ndctl_cmd_fw_xlat_firmware_status(cmd) != FW_SUCCESS) {
-+		jobj = json_object_new_string("unknown");
-+		if (jobj)
-+			json_object_object_add(jfirmware, "current_version",
-+					jobj);
-+		goto out;
-+	}
-+
-+	run = ndctl_cmd_fw_info_get_run_version(cmd);
-+	if (run == ULLONG_MAX) {
-+		jobj = json_object_new_string("unknown");
-+		if (jobj)
-+			json_object_object_add(jfirmware, "current_version",
-+					jobj);
-+		goto out;
-+	}
-+
-+	jobj = util_json_object_hex(run, flags);
-+	if (jobj)
-+		json_object_object_add(jfirmware, "current_version", jobj);
-+
-+	updated = ndctl_cmd_fw_info_get_updated_version(cmd);
-+	if (updated == ULLONG_MAX) {
-+		jobj = json_object_new_string("unknown");
-+		if (jobj)
-+			json_object_object_add(jfirmware, "next_version",
-+					jobj);
-+		goto out;
-+	}
-+
-+	if (updated == 0) {
-+		jobj = json_object_new_string("none");
-+		if (jobj)
-+			json_object_object_add(jfirmware, "next_version",
-+					jobj);
-+	} else {
-+		reboot = true;
-+		jobj = util_json_object_hex(updated, flags);
-+		if (jobj)
-+			json_object_object_add(jfirmware,
-+					"next_version", jobj);
-+	}
-+
-+	if (reboot) {
-+		jobj = json_object_new_boolean(reboot);
-+		if (jobj)
-+			json_object_object_add(jfirmware,
-+					"coldboot_required", jobj);
-+	}
-+
-+	ndctl_cmd_unref(cmd);
-+	return jfirmware;
-+
-+err:
-+	json_object_put(jfirmware);
-+	jfirmware = NULL;
-+out:
-+	if (cmd)
-+		ndctl_cmd_unref(cmd);
-+	return jfirmware;
-+}
-+
-diff --git a/util/json.h b/util/json.h
-index 9663475..c5d1603 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -52,4 +52,6 @@ struct json_object *util_json_object_size(unsigned long long size,
- struct json_object *util_json_object_hex(unsigned long long val,
- 		unsigned long flags);
- struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm);
-+struct json_object *util_dimm_firmware_to_json(struct ndctl_dimm *dimm,
-+		unsigned long flags);
- #endif /* __NDCTL_JSON_H__ */
+ 	return 0;
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
