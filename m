@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D6D2420955F2B
- for <linux-nvdimm@lists.01.org>; Mon, 26 Feb 2018 20:23:26 -0800 (PST)
-Subject: [PATCH v4 06/12] ext2, dax: replace IS_DAX() with IS_FSDAX()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 26 Feb 2018 20:20:27 -0800
-Message-ID: <151970522696.26729.5581903247926963915.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151970519370.26729.1011551137381425076.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E074922402E0F
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Feb 2018 15:34:13 -0800 (PST)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 28 Feb 2018 16:40:01 -0700
+Message-Id: <20180228234006.21093-6-logang@deltatee.com>
+In-Reply-To: <20180228234006.21093-1-logang@deltatee.com>
+References: <20180228234006.21093-1-logang@deltatee.com>
+Subject: [PATCH v2 05/10] block: Introduce PCI P2P flags for request and
+ request queue
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,90 +18,110 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for fixing the broken definition of S_DAX in the
-CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y case, convert all IS_DAX() usages to
-use explicit tests for FSDAX since DAX is ambiguous.
+QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
+supports targeting P2P memory.
 
-Cc: Jan Kara <jack@suse.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: <stable@vger.kernel.org>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+REQ_PCI_P2P is introduced to indicate a particular bio request is
+directed to/from PCI P2P memory. A request with this flag is not
+accepted unless the corresponding queues have the QUEUE_FLAG_PCI_P2P
+flag set.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- fs/ext2/file.c  |    6 +++---
- fs/ext2/inode.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ block/blk-core.c          |  3 +++
+ include/linux/blk_types.h | 18 +++++++++++++++++-
+ include/linux/blkdev.h    |  3 +++
+ 3 files changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/fs/ext2/file.c b/fs/ext2/file.c
-index 5ac98d074323..702a36df6c01 100644
---- a/fs/ext2/file.c
-+++ b/fs/ext2/file.c
-@@ -119,7 +119,7 @@ static const struct vm_operations_struct ext2_dax_vm_ops = {
+diff --git a/block/blk-core.c b/block/blk-core.c
+index 2d1a7bbe0634..36a6a304a559 100644
+--- a/block/blk-core.c
++++ b/block/blk-core.c
+@@ -2183,6 +2183,9 @@ generic_make_request_checks(struct bio *bio)
+ 	if ((bio->bi_opf & REQ_NOWAIT) && !queue_is_rq_based(q))
+ 		goto not_supported;
  
- static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	if (!IS_DAX(file_inode(file)))
-+	if (!IS_FSDAX(file_inode(file)))
- 		return generic_file_mmap(file, vma);
++	if ((bio->bi_opf & REQ_PCI_P2PDMA) && !blk_queue_pci_p2pdma(q))
++		goto not_supported;
++
+ 	if (should_fail_bio(bio))
+ 		goto end_io;
  
- 	file_accessed(file);
-@@ -158,14 +158,14 @@ int ext2_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
+index bf18b95ed92d..490122c85b3f 100644
+--- a/include/linux/blk_types.h
++++ b/include/linux/blk_types.h
+@@ -274,6 +274,10 @@ enum req_flag_bits {
+ 	__REQ_BACKGROUND,	/* background IO */
+ 	__REQ_NOWAIT,           /* Don't wait if request will block */
  
- static ssize_t ext2_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
- {
--	if (IS_DAX(iocb->ki_filp->f_mapping->host))
-+	if (IS_FSDAX(iocb->ki_filp->f_mapping->host))
- 		return ext2_dax_read_iter(iocb, to);
- 	return generic_file_read_iter(iocb, to);
- }
++#ifdef CONFIG_PCI_P2PDMA
++	__REQ_PCI_P2PDMA,	/* request is to/from P2P memory */
++#endif
++
+ 	/* command specific flags for REQ_OP_WRITE_ZEROES: */
+ 	__REQ_NOUNMAP,		/* do not free blocks when zeroing */
  
- static ssize_t ext2_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
- {
--	if (IS_DAX(iocb->ki_filp->f_mapping->host))
-+	if (IS_FSDAX(iocb->ki_filp->f_mapping->host))
- 		return ext2_dax_write_iter(iocb, from);
- 	return generic_file_write_iter(iocb, from);
- }
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index e04295e99d90..72284f9fd034 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -733,7 +733,7 @@ static int ext2_get_blocks(struct inode *inode,
- 		goto cleanup;
- 	}
+@@ -298,6 +302,18 @@ enum req_flag_bits {
+ #define REQ_BACKGROUND		(1ULL << __REQ_BACKGROUND)
+ #define REQ_NOWAIT		(1ULL << __REQ_NOWAIT)
  
--	if (IS_DAX(inode)) {
-+	if (IS_FSDAX(inode)) {
- 		/*
- 		 * We must unmap blocks before zeroing so that writeback cannot
- 		 * overwrite zeros with stale data from block device page cache.
-@@ -940,7 +940,7 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
- 	loff_t offset = iocb->ki_pos;
- 	ssize_t ret;
++#ifdef CONFIG_PCI_P2PDMA
++/*
++ * Currently SGLs do not support mixed P2P and regular memory so
++ * requests with P2P memory must not be merged.
++ */
++#define REQ_PCI_P2PDMA		(1ULL << __REQ_PCI_P2PDMA)
++#define REQ_IS_PCI_P2PDMA(req)	((req)->cmd_flags & REQ_PCI_P2PDMA)
++#else
++#define REQ_PCI_P2PDMA		0
++#define REQ_IS_PCI_P2PDMA(req)	0
++#endif /* CONFIG_PCI_P2PDMA */
++
+ #define REQ_NOUNMAP		(1ULL << __REQ_NOUNMAP)
  
--	if (WARN_ON_ONCE(IS_DAX(inode)))
-+	if (WARN_ON_ONCE(IS_FSDAX(inode)))
- 		return -EIO;
+ #define REQ_DRV			(1ULL << __REQ_DRV)
+@@ -306,7 +322,7 @@ enum req_flag_bits {
+ 	(REQ_FAILFAST_DEV | REQ_FAILFAST_TRANSPORT | REQ_FAILFAST_DRIVER)
  
- 	ret = blockdev_direct_IO(iocb, inode, iter, ext2_get_block);
-@@ -1294,7 +1294,7 @@ static int ext2_setsize(struct inode *inode, loff_t newsize)
+ #define REQ_NOMERGE_FLAGS \
+-	(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA)
++	(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA | REQ_PCI_P2PDMA)
  
- 	inode_dio_wait(inode);
+ #define bio_op(bio) \
+ 	((bio)->bi_opf & REQ_OP_MASK)
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index ed63f3b69c12..0b4a386c73ea 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -698,6 +698,7 @@ struct request_queue {
+ #define QUEUE_FLAG_SCSI_PASSTHROUGH 27	/* queue supports SCSI commands */
+ #define QUEUE_FLAG_QUIESCED    28	/* queue has been quiesced */
+ #define QUEUE_FLAG_PREEMPT_ONLY	29	/* only process REQ_PREEMPT requests */
++#define QUEUE_FLAG_PCI_P2PDMA  30	/* device supports pci p2p requests */
  
--	if (IS_DAX(inode)) {
-+	if (IS_FSDAX(inode)) {
- 		error = iomap_zero_range(inode, newsize,
- 					 PAGE_ALIGN(newsize) - newsize, NULL,
- 					 &ext2_iomap_ops);
+ #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
+ 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
+@@ -793,6 +794,8 @@ static inline void queue_flag_clear(unsigned int flag, struct request_queue *q)
+ #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
+ #define blk_queue_scsi_passthrough(q)	\
+ 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
++#define blk_queue_pci_p2pdma(q)	\
++	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
+ 
+ #define blk_noretry_request(rq) \
+ 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
