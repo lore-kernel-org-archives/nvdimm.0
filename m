@@ -1,22 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5FB2B22485A82
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 15:53:30 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id AB808224E690C
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 15:09:29 -0800 (PST)
+Date: Thu, 1 Mar 2018 17:15:36 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 04/10] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Message-ID: <20180301231536.GB74737@bhelgaas-glaptop.roam.corp.google.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
  <20180228234006.21093-5-logang@deltatee.com>
  <20180301180257.GH13722@bhelgaas-glaptop.roam.corp.google.com>
  <0D05579B-789C-4A19-B3A2-C1A630BE31C0@raithlin.com>
- <20180301231536.GB74737@bhelgaas-glaptop.roam.corp.google.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <f876746d-ed91-511d-7fd9-d16232f40bd3@deltatee.com>
-Date: Thu, 1 Mar 2018 16:59:27 -0700
 MIME-Version: 1.0
-In-Reply-To: <20180301231536.GB74737@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
-Subject: Re: [PATCH v2 04/10] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
+Content-Disposition: inline
+In-Reply-To: <0D05579B-789C-4A19-B3A2-C1A630BE31C0@raithlin.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,36 +23,58 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Bjorn Helgaas <helgaas@kernel.org>, Stephen Bates <sbates@raithlin.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Stephen Bates <sbates@raithlin.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Thu, Mar 01, 2018 at 06:54:01PM +0000, Stephen  Bates wrote:
+> Thanks for the detailed review Bjorn!
+> 
+> >> +	  Enabling this option will also disable ACS on all ports behind
+> >> +	  any PCIe switch. This effictively puts all devices behind any
+> >> +	  switch into the same IOMMU group.
+> 
+> >  Does this really mean "all devices behind the same Root Port"?
+> 
+> Not necessarily. You might have a cascade of switches (i.e switches
+> below a switch) to achieve a very large fan-out (in an NVMe SSD
+> array for example) and we will only disable ACS on the ports below
+> the relevant switch.
 
+The question is what the relevant switch is.  We call pci_enable_acs()
+on every PCI device, including Root Ports.  It looks like this relies
+on get_upstream_bridge_port() to filter out some things.  I don't
+think get_upstream_bridge_port() is doing the right thing, so we need
+to sort that out first, I guess.
 
-On 01/03/18 04:15 PM, Bjorn Helgaas wrote:
-> The question is what the relevant switch is.  We call pci_enable_acs()
-> on every PCI device, including Root Ports.  It looks like this relies
-> on get_upstream_bridge_port() to filter out some things.  I don't
-> think get_upstream_bridge_port() is doing the right thing, so we need
-> to sort that out first, I guess.
+> > What does this mean in terms of device security?  I assume it means,
+> > at least, that individual devices can't be assigned to separate VMs.
+> 
+> This was discussed during v1 [1]. Disabling ACS on all downstream
+> ports of the switch means that all the EPs below it have to part of
+> the same IOMMU grouping. However it was also agreed that as long as
+> the ACS disable occurred at boot time (which is does in v2) then the
+> virtualization layer will be aware of it and will perform the IOMMU
+> group formation correctly.
+>     
+> > I don't mind admitting that this patch makes me pretty nervous, and I
+> > don't have a clear idea of what the implications of this are, or how
+> > to communicate those to end users.  "The same IOMMU group" is a pretty
+> > abstract idea.
+>     
+> Alex gave a good overview of the implications in [1].
+> 
+> [1] https://marc.info/?l=linux-pci&m=151512320031739&w=2
 
-Yes, well if a port has an upstream bridge port and that port has an 
-upstream bridge port we are almost certainly looking at a port in a 
-switch. If you have a better suggestion to only disable ACS bits on 
-downstream switch ports I'd be happy to consider it.
+This might be a good start, but whatever the implications are, they
+need to be distilled and made clear directly in the changelog and the
+Kconfig help text.
 
-
-> This might be a good start, but whatever the implications are, they
-> need to be distilled and made clear directly in the changelog and the
-> Kconfig help text.
-
-Well, I tried. I'll expand on it for v3.
-
-Logan
+Bjorn
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
