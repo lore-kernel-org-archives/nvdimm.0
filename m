@@ -1,60 +1,141 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Thu, 1 Mar 2018 11:42:49 -0700
-From: Jason Gunthorpe <jgg@ziepe.ca>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-wm0-f67.google.com (mail-wm0-f67.google.com [74.125.82.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 918D022451194
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 10:29:51 -0800 (PST)
+Received: by mail-wm0-f67.google.com with SMTP id t74so14054150wme.3
+ for <linux-nvdimm@lists.01.org>; Thu, 01 Mar 2018 10:36:00 -0800 (PST)
 Subject: Re: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
-Message-ID: <20180301184249.GI19007@ziepe.ca>
 References: <20180228234006.21093-1-logang@deltatee.com>
  <20180228234006.21093-11-logang@deltatee.com>
  <749e3752-4349-0bdf-5243-3d510c2b26db@grimberg.me>
  <40d69074-31a8-d06a-ade9-90de7712c553@deltatee.com>
- <5649098f-b775-815b-8b9a-f34628873ff4@grimberg.me>
+From: Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <5649098f-b775-815b-8b9a-f34628873ff4@grimberg.me>
+Date: Thu, 1 Mar 2018 20:35:55 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5649098f-b775-815b-8b9a-f34628873ff4@grimberg.me>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Steve Wise <swise@opengridcomputing.com>
+In-Reply-To: <40d69074-31a8-d06a-ade9-90de7712c553@deltatee.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Steve Wise <swise@opengridcomputing.com>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Mar 01, 2018 at 08:35:55PM +0200, Sagi Grimberg wrote:
-> 
-> >On 01/03/18 04:03 AM, Sagi Grimberg wrote:
-> >>Can you describe what would be the plan to have it when these devices
-> >>do come along? I'd say that p2p_dev needs to become a nvmet_ns reference
-> >>and not from nvmet_ctrl. Then, when cmb capable devices come along, the
-> >>ns can prefer to use its own cmb instead of locating a p2p_dev device?
-> >
-> >The patchset already supports CMB drives. That's essentially what patch 7
-> >is for. We change the nvme-pci driver to use the p2pmem code to register
-> >and manage the CMB memory. After that, it is simply available to the nvmet
-> >code. We have already been using this with a couple prototype CMB drives.
-> 
-> The comment was to your statement:
-> "Ideally, we'd want to use an NVME CMB buffer as p2p memory. This would
-> save an extra PCI transfer as the NVME card could just take the data
-> out of it's own memory. However, at this time, cards with CMB buffers
-> don't seem to be available."
-> 
-> Maybe its a left-over which confused me...
-> 
-> Anyways, my question still holds. If I rack several of these
-> nvme drives, ideally we would use _their_ cmbs for I/O that is
-> directed to these namespaces. This is why I was suggesting that
-> p2p_dev should live in nvmet_ns and not in nvmet_ctrl as a single
-> p2p_dev used by all namespaces.
-
-I agree, I don't think this series should target anything other than
-using p2p memory located in one of the devices expected to participate
-in the p2p trasnaction for a first pass..
-
-locality is super important for p2p, so I don't think things should
-start out in a way that makes specifying the desired locality hard.
-
-This is also why I don't entirely understand why this series has a
-generic allocator for p2p mem, it makes little sense to me.
-
-Why wouldn't the nmve driver just claim the entire CMB of its local
-device for its own use? Why involve p2p core code in this?
-
-Jason
+Cj4gT24gMDEvMDMvMTggMDQ6MDMgQU0sIFNhZ2kgR3JpbWJlcmcgd3JvdGU6Cj4+IENhbiB5b3Ug
+ZGVzY3JpYmUgd2hhdCB3b3VsZCBiZSB0aGUgcGxhbiB0byBoYXZlIGl0IHdoZW4gdGhlc2UgZGV2
+aWNlcwo+PiBkbyBjb21lIGFsb25nPyBJJ2Qgc2F5IHRoYXQgcDJwX2RldiBuZWVkcyB0byBiZWNv
+bWUgYSBudm1ldF9ucyByZWZlcmVuY2UKPj4gYW5kIG5vdCBmcm9tIG52bWV0X2N0cmwuIFRoZW4s
+IHdoZW4gY21iIGNhcGFibGUgZGV2aWNlcyBjb21lIGFsb25nLCB0aGUKPj4gbnMgY2FuIHByZWZl
+ciB0byB1c2UgaXRzIG93biBjbWIgaW5zdGVhZCBvZiBsb2NhdGluZyBhIHAycF9kZXYgZGV2aWNl
+Pwo+IAo+IFRoZSBwYXRjaHNldCBhbHJlYWR5IHN1cHBvcnRzIENNQiBkcml2ZXMuIFRoYXQncyBl
+c3NlbnRpYWxseSB3aGF0IHBhdGNoIAo+IDcgaXMgZm9yLiBXZSBjaGFuZ2UgdGhlIG52bWUtcGNp
+IGRyaXZlciB0byB1c2UgdGhlIHAycG1lbSBjb2RlIHRvIAo+IHJlZ2lzdGVyIGFuZCBtYW5hZ2Ug
+dGhlIENNQiBtZW1vcnkuIEFmdGVyIHRoYXQsIGl0IGlzIHNpbXBseSBhdmFpbGFibGUgCj4gdG8g
+dGhlIG52bWV0IGNvZGUuIFdlIGhhdmUgYWxyZWFkeSBiZWVuIHVzaW5nIHRoaXMgd2l0aCBhIGNv
+dXBsZSAKPiBwcm90b3R5cGUgQ01CIGRyaXZlcy4KClRoZSBjb21tZW50IHdhcyB0byB5b3VyIHN0
+YXRlbWVudDoKIklkZWFsbHksIHdlJ2Qgd2FudCB0byB1c2UgYW4gTlZNRSBDTUIgYnVmZmVyIGFz
+IHAycCBtZW1vcnkuIFRoaXMgd291bGQKc2F2ZSBhbiBleHRyYSBQQ0kgdHJhbnNmZXIgYXMgdGhl
+IE5WTUUgY2FyZCBjb3VsZCBqdXN0IHRha2UgdGhlIGRhdGEKb3V0IG9mIGl0J3Mgb3duIG1lbW9y
+eS4gSG93ZXZlciwgYXQgdGhpcyB0aW1lLCBjYXJkcyB3aXRoIENNQiBidWZmZXJzCmRvbid0IHNl
+ZW0gdG8gYmUgYXZhaWxhYmxlLiIKCk1heWJlIGl0cyBhIGxlZnQtb3ZlciB3aGljaCBjb25mdXNl
+ZCBtZS4uLgoKQW55d2F5cywgbXkgcXVlc3Rpb24gc3RpbGwgaG9sZHMuIElmIEkgcmFjayBzZXZl
+cmFsIG9mIHRoZXNlCm52bWUgZHJpdmVzLCBpZGVhbGx5IHdlIHdvdWxkIHVzZSBfdGhlaXJfIGNt
+YnMgZm9yIEkvTyB0aGF0IGlzCmRpcmVjdGVkIHRvIHRoZXNlIG5hbWVzcGFjZXMuIFRoaXMgaXMg
+d2h5IEkgd2FzIHN1Z2dlc3RpbmcgdGhhdApwMnBfZGV2IHNob3VsZCBsaXZlIGluIG52bWV0X25z
+IGFuZCBub3QgaW4gbnZtZXRfY3RybCBhcyBhIHNpbmdsZQpwMnBfZGV2IHVzZWQgYnkgYWxsIG5h
+bWVzcGFjZXMuCgpudm1ldF9ucyBzZWVtcyBsaWtlIGEgbW9yZSBuYXR1cmFsIHBsYWNlIHRvIGhv
+c3QgcDJwX2RldiB3aXRoCmNtYiBpbiBtaW5kLgoKPj4+ICtzdGF0aWMgaW50IG52bWV0X3AycGRt
+YV9hZGRfY2xpZW50KHN0cnVjdCBudm1ldF9jdHJsICpjdHJsLAo+Pj4gK8KgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzdHJ1Y3QgbnZtZXRfbnMgKm5zKQo+Pj4gK3sKPj4+ICvC
+oMKgwqAgaW50IHJldDsKPj4+ICsKPj4+ICvCoMKgwqAgaWYgKCFibGtfcXVldWVfcGNpX3AycGRt
+YShucy0+YmRldi0+YmRfcXVldWUpKSB7Cj4+PiArwqDCoMKgwqDCoMKgwqAgcHJfZXJyKCJwZWVy
+LXRvLXBlZXIgRE1BIGlzIG5vdCBzdXBwb3J0ZWQgYnkgJXNcbiIsCj4+PiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCBucy0+ZGV2aWNlX3BhdGgpOwo+Pj4gK8KgwqDCoMKgwqDCoMKgIHJl
+dHVybiAtRUlOVkFMOwo+Pgo+PiBJJ2Qgc2F5IHRoYXQganVzdCBza2lwIGl0IGluc3RlYWQgb2Yg
+ZmFpbGluZyBpdCwgaW4gdGhlb3J5IG9uZSBjYW4KPj4gY29ubmVjdCBudm1lIGRldmljZXMgdmlh
+IHAycCBtZW0gYW5kIGV4cG9zZSBvdGhlciBkZXZpY2VzIGluIHRoZQo+PiBzYW1lIHN1YnN5c3Rl
+bS4gVGhlIG1lc3NhZ2Ugd291bGQgYmUgcHJfZGVidWcgdG8gcmVkdWNlIGNoYXR0aW5lc3MuCj4g
+Cj4gTm8sIGl0J3MgYWN0dWFsbHkgYSBiaXQgbW9yZSBjb21wbGljYXRlZCB0aGFuIHlvdSBtYWtl
+IGl0LiBUaGVyZSdzIGEgCj4gY291cGxlIGNhc2VzOgo+IAo+IDEpIFRoZSB1c2VyIGFkZHMgYSBu
+YW1lc3BhY2UgYnV0IHRoZXJlIGhhc24ndCBiZWVuIGEgY29ubmVjdGlvbiBhbmQgbm8gCj4gcDJw
+bWVtIGhhcyBiZWVuIHNlbGVjdGVkLiBJbiB0aGlzIGNhc2UgdGhlIGFkZF9jbGllbnQgZnVuY3Rp
+b24gaXMgbmV2ZXIgCj4gY2FsbGVkIGFuZCB0aGUgdXNlciBjYW4gYWRkIHdoYXRldmVyIG5hbWVz
+cGFjZSB0aGV5IGxpa2UuCj4gCj4gMikgV2hlbiB0aGUgZmlyc3QgY29ubmVjdCBoYXBwZW5zLCBu
+dm1ldF9zZXR1cF9wMnBtZW0oKSB3aWxsIGNhbGwgCj4gYWRkX2NsaWVudCgpIGZvciBlYWNoIG5h
+bWVzcGFjZSBhbmQgcmRtYSBkZXZpY2UuIElmIGFueSBvZiB0aGVtIGZhaWwgCj4gdGhlbiBpdCBk
+b2VzIG5vdCB1c2UgYSBQMlAgZGV2aWNlIGFuZCBmYWxscyBiYWNrLCBhcyB5b3UnZCBsaWtlLCB0
+byAKPiByZWd1bGFyIG1lbW9yeS4KPiAKPiAzKSBXaGVuIHRoZSB1c2VyIGFkZHMgYSBuYW1lc3Bh
+Y2UgYWZ0ZXIgYSBwb3J0IGlzIGluIHVzZSBhbmQgYSAKPiBjb21wYXRpYmxlIFAyUCBkZXZpY2Ug
+aGFzIGJlZW4gZm91bmQuIEluIHRoaXMgY2FzZSwgaWYgdGhlIHVzZXIgdHJpZXMgdG8gCj4gYWRk
+IGEgbmFtZXNwYWNlIHRoYXQgaXMgbm90IGNvbXBhdGlibGUgd2l0aCB0aGUgUDJQIGRldmljZSBp
+biB1c2UgdGhlbiAKPiBpdCBmYWlscyBhZGRpbmcgdGhlIG5ldyBuYW1lc3BhY2UuIFRoZSBvbmx5
+IGFsdGVybmF0aXZlIGhlcmUgaXMgdG8gdGVhciAKPiBldmVyeXRoaW5nIGRvd24sIGVuc3VyZSB0
+aGVyZSBhcmUgbm8gUDJQIGVuYWJsZWQgYnVmZmVycyBvcGVuIGFuZCBzdGFydCAKPiB1c2luZyBy
+ZWd1bGFyIG1lbW9yeSBhZ2Fpbi4uLiBUaGF0IGlzIHZlcnkgZGlmZmljdWx0Lgo+IAoKV291bGRu
+J3QgaXQgYWxsIGJlIHNpbXBsZXIgaWYgdGhlIHAycF9kZXYgcmVzb2x1dGlvbiB3b3VsZCBiZSBw
+cml2YXRlCnRvIHRoZSBuYW1lc3BhY2U/CgpTbyBpcyBhZGRpbmcgc29tZSBhbGwgdGhlIG5hbWVz
+cGFjZXMgaW4gYSBzdWJzeXN0ZW0gbXVzdCBjb21wbHkgdG8KdXNpbmcgcDJwPyBTZWVtcyBhIGxp
+dHRsZSBiaXQgaGFyc2ggaWYgaXRzIG5vdCBhYnNvbHV0ZWx5IG5lZWRlZC4gV291bGQKYmUgbmlj
+ZSB0byBleHBvcnQgYSBzdWJzeXN0ZW1zIGJldHdlZW4gdHdvIHBvcnRzIChvbiB0d28gSENBcywg
+YWNyb3NzCk5VTUEgbm9kZXMpIHdoZXJlIHRoZSBob21lIG5vZGUgKHByaW1hcnkgcGF0aCkgd291
+bGQgdXNlIHAycCBhbmQKZmFpbG92ZXIgd291bGQgdXNlIGhvc3QgbWVtb3J5Li4uCgpDYW4geW91
+IGhlbHAgbWUgdW5kZXJzdGFuZCB3aHkgdGhpcyBpcyBhYnNvbHV0ZWx5IG5vdCBmZWFzaWJsZT8K
+Cj4gSSBhbHNvIGRpc2FncmVlIHRoYXQgdGhlc2UgbWVzc2FnZXMgc2hvdWxkIGJlIHByX2RlYnVn
+LiBJZiBhIHVzZXIgaXMgCj4gdHJ5aW5nIHRvIHVzZSBQMlAgbWVtb3J5IGFuZCB0aGV5IGVuYWJs
+ZSBpdCBidXQgdGhlIHN5c3RlbSBkb2Vzbid0IAo+IGNob29zZSB0byB1c2UgdGhlaXIgbWVtb3J5
+IHRoZXkgbXVzdCBrbm93IHdoeSB0aGF0IGlzIHNvIHRoZXkgY2FuIG1ha2UgCj4gdGhlIG5lY2Vz
+c2FyeSBhZGp1c3RtZW50cy4gSWYgdGhlIHN5c3RlbSBkb2Vzbid0IGF0IGxlYXN0IHByaW50IGEg
+ZG1lc2cgCj4gdGhleSBhcmUgaW4gdGhlIGRhcmsuCgpJIHdhcyBhcmd1aW5nIHRoYXQgdGhlIHVz
+ZXIgbWlnaHQgaGF2ZSBpbnRlbnRpb25hbGx5IHdhbnRlZCB0byB1c2UgcDJwCndoZXJlIHBvc3Np
+YmxlIGJ1dCBzdGlsbCBleHBvc2Ugb3RoZXIgbmFtZXNwYWNlcyBvdmVyIGhvc3QgbWVtb3J5LiBG
+b3IKdGhpcyB1c2VyLCB0aGUgbWVzc2FnZXMgYXJlIHNwYW0uIEkgZ3Vlc3MgaW5mby93YXJuIGNv
+dWxkIGFsc28gc3VmZmljZQooYXNzdW1pbmcgd2UgYWxsb3cgaXQsIGlmIHdlIGZhaWwgaXQgdGhl
+biBubyBwb2ludCBvZiB0aGUgZGVidWcgbGV2ZWwKZGlzY3Vzc2lvbikuCgo+IAo+Pj4gK8KgwqDC
+oCB9Cj4+PiArCj4+PiArwqDCoMKgIHJldCA9IHBjaV9wMnBkbWFfYWRkX2NsaWVudCgmY3RybC0+
+cDJwX2NsaWVudHMsIG52bWV0X25zX2RldihucykpOwo+Pj4gK8KgwqDCoCBpZiAocmV0KQo+Pj4g
+K8KgwqDCoMKgwqDCoMKgIHByX2VycigiZmFpbGVkIHRvIGFkZCBwZWVyLXRvLXBlZXIgRE1BIGNs
+aWVudCAlczogJWRcbiIsCj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBucy0+ZGV2
+aWNlX3BhdGgsIHJldCk7Cj4+PiArCj4+PiArwqDCoMKgIHJldHVybiByZXQ7Cj4+PiArfQo+Pj4g
+Kwo+Pj4gwqAgaW50IG52bWV0X25zX2VuYWJsZShzdHJ1Y3QgbnZtZXRfbnMgKm5zKQo+Pj4gwqAg
+ewo+Pj4gwqDCoMKgwqDCoCBzdHJ1Y3QgbnZtZXRfc3Vic3lzICpzdWJzeXMgPSBucy0+c3Vic3lz
+Owo+Pj4gQEAgLTI5OSw2ICszMTksMTQgQEAgaW50IG52bWV0X25zX2VuYWJsZShzdHJ1Y3QgbnZt
+ZXRfbnMgKm5zKQo+Pj4gwqDCoMKgwqDCoCBpZiAocmV0KQo+Pj4gwqDCoMKgwqDCoMKgwqDCoMKg
+IGdvdG8gb3V0X2Jsa2Rldl9wdXQ7Cj4+PiArwqDCoMKgIGxpc3RfZm9yX2VhY2hfZW50cnkoY3Ry
+bCwgJnN1YnN5cy0+Y3RybHMsIHN1YnN5c19lbnRyeSkgewo+Pj4gK8KgwqDCoMKgwqDCoMKgIGlm
+IChjdHJsLT5wMnBfZGV2KSB7Cj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXQgPSBudm1l
+dF9wMnBkbWFfYWRkX2NsaWVudChjdHJsLCBucyk7Cj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCBpZiAocmV0KQo+Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIG91dF9y
+ZW1vdmVfY2xpZW50czsKPj4KPj4gSXMgdGhpcyByZWFsbHkgYSBmYXRhbCBmYWlsdXJlIGdpdmVu
+IHRoYXQgd2UgZmFsbC1iYWNrIHRvIG1haW4KPj4gbWVtb3J5PyBXaHkgbm90IGNvbnRpbnVlIHdp
+dGggbWFpbiBtZW1vcnkgKGFuZCB3YXJuIGF0IGJlc3QpPwo+IAo+IFNlZSBhYm92ZS4gSXQncyBm
+YXRhbCBiZWNhdXNlIHdlIGFyZSBhbHJlYWR5IHVzaW5nIHAycCBtZW1vcnkgYW5kIHdlIAo+IGNh
+bid0IGVhc2lseSB0ZWFyIHRoYXQgYWxsIGRvd24gd2hlbiBhIHVzZXIgYWRkcyBhIG5ldyBuYW1l
+c3BhY2UuCgpJbiBteSBtaW5kLCBJL08gdG8gdGhpcyBuYW1lc3BhY2Ugd291bGQgdXNlIGhvc3Qg
+bWVtb3J5IGFuZCBiZSBkb25lCndpdGggaXQuIEkgZ3Vlc3MgSSBzdGlsbCBkb24ndCB1bmRlcnN0
+YW5kIHdoeSB0aGlzIGlzIG5vdCBwb3NzaWJsZS4KCj4+PiArwqDCoMKgIGN0cmwtPnAycF9kZXYg
+PSBwY2lfcDJwbWVtX2ZpbmQoJmN0cmwtPnAycF9jbGllbnRzKTsKPj4KPj4gVGhpcyBpcyB0aGUg
+Zmlyc3QgcDJwX2RldiBmb3VuZCByaWdodD8gV2hhdCBoYXBwZW5zIGlmIEkgaGF2ZSBtb3JlIHRo
+YW4KPj4gYSBzaW5nbGUgcDJwIGRldmljZT8gSW4gdGhlb3J5IEknZCBoYXZlIG1vcmUgcDJwIG1l
+bW9yeSBJIGNhbiB1c2UuIEhhdmUKPj4geW91IGNvbnNpZGVyZWQgbWFraW5nIHBjaV9wMnBtZW1f
+ZmluZCByZXR1cm4gdGhlIGxlYXN0IHVzZWQgc3VpdGFibGUKPj4gZGV2aWNlPwo+IAo+IFllcywg
+aXQgY3VycmVudGx5IHJldHVybnMgdGhlIGZpcnN0IGZvdW5kLiBJIGltYWdpbmUgYSBidW5jaCBv
+ZiAKPiBpbXByb3ZlbWVudHMgY291bGQgYmUgbWFkZSB0byBpdCBpbiBmdXR1cmUgd29yay4gSG93
+ZXZlciwgSSdkIHByb2JhYmx5IAo+IHN0YXJ0IHdpdGggZmluZGluZyB0aGUgbmVhcmVzdCBwMnAg
+ZGV2aWNlIGFuZCB0aGVuIGZhbGxpbmcgYmFjayB0byB0aGUgCj4gbGVhc3QgdXNlZCBpZiB0aGF0
+J3MgbmVjZXNzYXJ5LiBBdCB0aGlzIHRpbWUgdGhvdWdoIGl0J3Mgbm90IGNsZWFyIGhvdyAKPiBj
+b21wbGljYXRlZCB0aGVzZSBzeXN0ZW1zIHdpbGwgZ2V0IGFuZCB3aGF0J3MgYWN0dWFsbHkgbmVl
+ZGVkIGhlcmUuCgpGYWlyIGVub3VnaC4gSnVzdCB3YW5kZXJpbmcuCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
