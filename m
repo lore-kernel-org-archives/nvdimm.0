@@ -1,21 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from CAN01-TO1-obe.outbound.protection.outlook.com
- (mail-eopbgr670138.outbound.protection.outlook.com [40.107.67.138])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E096A224E692A
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 10:03:51 -0800 (PST)
-From: "Stephen  Bates" <sbates@raithlin.com>
-Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Thu, 1 Mar 2018 18:09:58 +0000
-Message-ID: <B4151146-0490-40D4-BB0A-4FC9DE5841A4@raithlin.com>
+ by ml01.01.org (Postfix) with ESMTPS id DA6B0224E6934
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 09:58:38 -0800 (PST)
 References: <20180228234006.21093-1-logang@deltatee.com>
  <1519876489.4592.3.camel@kernel.crashing.org>
  <1519876569.4592.4.camel@au1.ibm.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <8e808448-fc01-5da0-51e7-1a6657d5a23a@deltatee.com>
+Date: Thu, 1 Mar 2018 11:04:32 -0700
+MIME-Version: 1.0
 In-Reply-To: <1519876569.4592.4.camel@au1.ibm.com>
 Content-Language: en-US
-Content-ID: <BE9423C2497B2D42829F0043A0C1D971@CANPRD01.PROD.OUTLOOK.COM>
-MIME-Version: 1.0
+Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,35 +21,52 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "benh@au1.ibm.com" <benh@au1.ibm.com>, Logan Gunthorpe <logang@deltatee.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>, Oliver OHalloran <oliveroh@au1.ibm.com>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: benh@au1.ibm.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Oliver OHalloran <oliveroh@au1.ibm.com>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
->> So Oliver (CC) was having issues getting any of that to work for us.
->> 
+
+
+On 28/02/18 08:56 PM, Benjamin Herrenschmidt wrote:
+> On Thu, 2018-03-01 at 14:54 +1100, Benjamin Herrenschmidt wrote:
 >> The problem is that acccording to him (I didn't double check the latest
 >> patches) you effectively hotplug the PCIe memory into the system when
 >> creating struct pages.
->> 
+>>
 >> This cannot possibly work for us. First we cannot map PCIe memory as
 >> cachable. (Note that doing so is a bad idea if you are behind a PLX
 >> switch anyway since you'd ahve to manage cache coherency in SW).
->   
->   Note: I think the above means it won't work behind a switch on x86
->   either, will it ?
- 
-Ben 
+> 
+> Note: I think the above means it won't work behind a switch on x86
+> either, will it ?
 
-We have done extensive testing of this series and its predecessors using PCIe switches from both Broadcom (PLX) and Microsemi. We have also done testing on x86_64, ARM64 and ppc64el based ARCH with varying degrees of success. The series as it currently stands only works on x86_64 but modified (hacky) versions have been made to work on ARM64. The x86_64 testing has been done on a range of (Intel) CPUs, servers, PCI EPs (including RDMA NICs from at least three vendors, NVMe SSDs from at least four vendors and P2P devices from four vendors) and PCI switches.
+This works perfectly fine on x86 behind a switch and we've tested it on 
+multiple machines. We've never had an issue of running out of virtual 
+space despite our PCI bars typically being located with an offset of 
+56TB or more. The arch code on x86 also somehow figures out not to map 
+the memory as cachable so that's not an issue (though, at this point, 
+the CPU never accesses the memory so even if it were, it wouldn't affect 
+anything).
 
-I do find it slightly offensive that you would question the series even working. I hope you are not suggesting we would submit this framework multiple times without having done testing on it....
+We also had this working on ARM64 a while back but it required some out 
+of tree ZONE_DEVICE patches and some truly horrid hacks to it's arch 
+code to ioremap the memory into the page map.
 
-Stephen
+You didn't mention what architecture you were trying this on.
 
+It may make sense at this point to make this feature dependent on x86 
+until more work is done to make it properly portable. Something like 
+arch functions that allow adding IO memory pages to with a specific 
+cache setting. Though, if an arch has such restrictive limits on the map 
+size it would probably need to address that too somehow.
+
+Thanks,
+
+Logan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
