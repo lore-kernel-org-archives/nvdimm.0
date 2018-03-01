@@ -1,14 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A81A62253FB57
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 11:09:53 -0800 (PST)
-Subject: [ndctl PATCH] ndctl, list: fix sector_size listing
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Mar 2018 11:07:05 -0800
-Message-ID: <152062242529.34816.8248756922497912006.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 75796224E6908
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 15:39:13 -0800 (PST)
+Date: Thu, 1 Mar 2018 17:45:19 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 01/10] PCI/P2PDMA: Support peer to peer memory
+Message-ID: <20180301234519.GC74737@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180228234006.21093-1-logang@deltatee.com>
+ <20180228234006.21093-2-logang@deltatee.com>
+ <20180301173752.GE13722@bhelgaas-glaptop.roam.corp.google.com>
+ <b81503c2-9f07-b5f6-df06-64d1fdc53386@deltatee.com>
+ <20180301230032.GA74737@bhelgaas-glaptop.roam.corp.google.com>
+ <b3121c36-4ef5-0d8e-e8ef-418b48de9589@deltatee.com>
+ <9B84B347-2CCF-4250-89ED-B29892E76597@raithlin.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <9B84B347-2CCF-4250-89ED-B29892E76597@raithlin.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,89 +29,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Stephen Bates <sbates@raithlin.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit a7320456f1bc "ndctl: add sector_size to 'ndctl list' output"
-mishandles the case where a namespace does not specify a sector_size,
-but otherwise supports a sector_size selection:
+On Thu, Mar 01, 2018 at 11:14:46PM +0000, Stephen  Bates wrote:
+> > I'm pretty sure the spec disallows routing-to-self so doing a P2P 
+> > transaction in that sense isn't going to work unless the device 
+> > specifically supports it and intercepts the traffic before it gets to 
+> > the port.
+> 
+> This is correct. Unless the device intercepts the TLP before it hits
+> the root-port then this would be considered a "route to self"
+> violation and an error event would occur. The same holds for the
+> downstream port on a PCI switch (unless route-to-self violations are
+> disabled which violates the spec but which I have seen done in
+> certain applications).
 
-    # ndctl list --namespace=namespace1.0
-    {
-      "dev":"namespace1.0",
-      "mode":"memory",
-      "size":32763805696,
-      "uuid":"7c985ba5-6d33-48bd-8fde-6c25a520abe0",
-      "sector_size":-1,
-      "blockdev":"pmem1",
-      "numa_node":0
-    }
+I agree that a function doing DMA to a sibling within the same
+multi-function device would probably not generate a TLP for it (I
+would be curious to read about this in the spec if you have a
+pointer).
 
-Fix this and clean up the output to only provide a sector_size in the
-non-default (i.e. != 512 bytes) case.
+More fundamentally, is there some multi-function-specific restriction
+on peer-to-peer DMA?  In conventional PCI, single-function devices on
+the same bus can DMA to each other.  The transactions will appear on
+the bus, but the upstream bridge will ignore them because the address
+is inside the bridge's memory window.  As far as I know, the same
+should happen on PCIe.
 
-Fixes: a7320456f1bc ("ndctl: add sector_size to 'ndctl list' output")
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- util/json.c |   31 +++++++++++++------------------
- 1 file changed, 13 insertions(+), 18 deletions(-)
+I don't know what happens with functions of a multi-function device,
+either in conventional PCI or PCIe.  I don't remember a restriction on
+whether they can DMA to each other, but maybe there is.
 
-diff --git a/util/json.c b/util/json.c
-index 17d8f135b686..e7f789b36385 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -646,6 +646,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 	struct json_object *jndns = json_object_new_object();
- 	struct json_object *jobj, *jbbs = NULL;
- 	unsigned long long size = ULLONG_MAX;
-+	unsigned int sector_size = UINT_MAX;
- 	enum ndctl_namespace_mode mode;
- 	const char *bdev = NULL, *name;
- 	unsigned int bb_count = 0;
-@@ -769,29 +770,23 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 	} else
- 		bdev = ndctl_namespace_get_block_device(ndns);
- 
--	jobj = NULL;
--	if (btt) {
--		jobj = json_object_new_int(ndctl_btt_get_sector_size(btt));
--		if (!jobj)
--			goto err;
--	} else if (!dax) {
--		unsigned int sector_size = ndctl_namespace_get_sector_size(ndns);
--
--		/*
--		 * The kernel will default to a 512 byte sector size on PMEM
--		 * namespaces that don't explicitly have a sector size. This
--		 * happens because they use pre-v1.2 labels or because they
--		 * don't have a label space (devtype=nd_namespace_io).
--		 */
--		if (!sector_size)
--			sector_size = 512;
-+	if (btt)
-+		sector_size = ndctl_btt_get_sector_size(btt);
-+	else if (!dax)
-+		sector_size = ndctl_namespace_get_sector_size(ndns);
- 
-+	/*
-+	 * The kernel will default to a 512 byte sector size on PMEM
-+	 * namespaces that don't explicitly have a sector size. This
-+	 * happens because they use pre-v1.2 labels or because they
-+	 * don't have a label space (devtype=nd_namespace_io).
-+	 */
-+	if (sector_size < UINT_MAX && sector_size > 512) {
- 		jobj = json_object_new_int(sector_size);
- 		if (!jobj)
- 			goto err;
--	}
--	if (jobj)
- 		json_object_object_add(jndns, "sector_size", jobj);
-+	}
- 
- 	if (bdev && bdev[0]) {
- 		jobj = json_object_new_string(bdev);
-
+Bjorn
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
