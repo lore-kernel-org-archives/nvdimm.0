@@ -1,13 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from gate.crashing.org (gate.crashing.org [63.228.1.57])
- (using TLSv1 with cipher AES256-SHA (256/256 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 892A922546BB5
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 15:20:38 -0800 (PST)
-Message-ID: <1519946767.4592.49.camel@kernel.crashing.org>
+ by ml01.01.org (Postfix) with ESMTPS id D2207224E6913
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 15:19:37 -0800 (PST)
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id
+ w21NNH3D087682
+ for <linux-nvdimm@lists.01.org>; Thu, 1 Mar 2018 18:25:46 -0500
+Received: from e06smtp13.uk.ibm.com (e06smtp13.uk.ibm.com [195.75.94.109])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2gerprwn3k-1
+ (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Thu, 01 Mar 2018 18:25:45 -0500
+Received: from localhost
+ by e06smtp13.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <benh@au1.ibm.com>;
+ Thu, 1 Mar 2018 23:25:42 -0000
 Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Fri, 02 Mar 2018 10:26:07 +1100
+From: Benjamin Herrenschmidt <benh@au1.ibm.com>
+Date: Fri, 02 Mar 2018 10:25:34 +1100
 In-Reply-To: <595acefb-18fc-e650-e172-bae271263c4c@deltatee.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
  <1519876489.4592.3.camel@kernel.crashing.org>
@@ -20,6 +33,7 @@ References: <20180228234006.21093-1-logang@deltatee.com>
  <1519945204.4592.45.camel@au1.ibm.com>
  <595acefb-18fc-e650-e172-bae271263c4c@deltatee.com>
 Mime-Version: 1.0
+Message-Id: <1519946734.4592.48.camel@au1.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,6 +41,7 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: benh@au1.ibm.com
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
@@ -36,9 +51,7 @@ Cc: Jens Axboe <axboe@kernel.dk>, linux-block@vger.kernel.org, Oliver OHalloran 
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Thu, 2018-03-01 at 16:19 -0700, Logan Gunthorpe wrote:
-
-(Switching back to my non-IBM address ...)
-
+> 
 > On 01/03/18 04:00 PM, Benjamin Herrenschmidt wrote:
 > > We use only 52 in practice but yes.
 > > 
@@ -58,6 +71,7 @@ The big problem is not the vmemmap, it's the linear mapping.
 
 Cheers,
 Ben.
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
