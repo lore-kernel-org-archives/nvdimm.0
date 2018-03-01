@@ -1,8 +1,14 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Thu, 1 Mar 2018 16:20:38 -0700
-From: Jason Gunthorpe <jgg@ziepe.ca>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from CAN01-TO1-obe.outbound.protection.outlook.com
+ (mail-eopbgr670097.outbound.protection.outlook.com [40.107.67.97])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0E57F22546B9A
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 14:54:44 -0800 (PST)
+From: "Stephen  Bates" <sbates@raithlin.com>
 Subject: Re: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
-Message-ID: <20180301232038.GO19007@ziepe.ca>
+Date: Thu, 1 Mar 2018 23:00:51 +0000
+Message-ID: <77591162-4CCD-446E-A27C-1CDB4996ACB7@raithlin.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
  <20180228234006.21093-11-logang@deltatee.com>
  <749e3752-4349-0bdf-5243-3d510c2b26db@grimberg.me>
@@ -11,37 +17,44 @@ References: <20180228234006.21093-1-logang@deltatee.com>
  <20180301184249.GI19007@ziepe.ca>
  <edaf476a-cfe9-0598-1aa5-14802a9a1477@deltatee.com>
  <20180301224540.GL19007@ziepe.ca>
- <77591162-4CCD-446E-A27C-1CDB4996ACB7@raithlin.com>
+In-Reply-To: <20180301224540.GL19007@ziepe.ca>
+Content-Language: en-US
+Content-ID: <FC9903984427174ABC03C58E2DA1289A@CANPRD01.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <77591162-4CCD-446E-A27C-1CDB4996ACB7@raithlin.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Bates <sbates@raithlin.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Steve Wise <swise@opengridcomputing.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Logan Gunthorpe <logang@deltatee.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Steve Wise <swise@opengridcomputing.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Mar 01, 2018 at 11:00:51PM +0000, Stephen  Bates wrote:
+>> We'd prefer to have a generic way to get p2pmem instead of restricting
+>> ourselves to only using CMBs. We did work in the past where the P2P memory
+ >> was part of an IB adapter and not the NVMe card. So this won't work if it's
+  >> an NVMe only interface.
+    
+ > It just seems like it it making it too complicated.
 
-> > Seems like a very subtle and hard to debug performance trap to leave
-> > for the users, and pretty much the only reason to use P2P is
-> > performance... So why have such a dangerous interface?
-> 
-> P2P is about offloading the memory and PCI subsystem of the host CPU
-> and this is achieved no matter which p2p_dev is used.
+I disagree. Having a common allocator (instead of some separate allocator per driver) makes things simpler.
 
-No, locality matters. If you have a bunch of NICs and bunch of drives
-and the allocator chooses to put all P2P memory on a single drive your
-performance will suck horribly even if all the traffic is offloaded.
+> Seems like a very subtle and hard to debug performance trap to leave
+> for the users, and pretty much the only reason to use P2P is
+> performance... So why have such a dangerous interface?
 
-Performance will suck if you have speed differences between the PCI-E
-devices. Eg a bunch of Gen 3 x8 NVMe cards paired with a Gen 4 x16 NIC
-will not reach full performance unless the p2p buffers are properly
-balanced between all cards.
+P2P is about offloading the memory and PCI subsystem of the host CPU and this is achieved no matter which p2p_dev is used.
 
-This is why I think putting things in one big pool and pretending like
-any P2P mem is interchangable with any other makes zero sense to me,
-it is not how the system actually works. Proper locality matters a
-lot.
+Stephen
+    
 
-Jason
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
