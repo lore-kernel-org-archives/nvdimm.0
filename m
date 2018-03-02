@@ -1,639 +1,177 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AA89122352290
- for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 17:12:13 -0800 (PST)
-Subject: [PATCH] libnvdimm: remove redundant __func__ in dev_dbg
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Mar 2018 17:09:21 -0800
-Message-ID: <152029856149.39547.12704338925946035297.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Fri, 2 Mar 2018 09:46:07 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH v5 08/12] xfs, dax: replace IS_DAX() with IS_FSDAX()
+Message-ID: <20180302174607.GW19312@magnolia>
+References: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151996285683.28483.13394624369523668388.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <151996285683.28483.13394624369523668388.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, stable@vger.kernel.org, Jan Kara <jack@suse.cz>, hch@lst.de, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dynamic debug can be instructed to add the function name to the debug
-output using the +f switch, so there is no need for the libnvdimm
-modules to do it again. If a user decides to add the +f switch for
-libnvdimm's dynamic debug this results in double prints of the function
-name.
+On Thu, Mar 01, 2018 at 07:54:16PM -0800, Dan Williams wrote:
+> In preparation for fixing the broken definition of S_DAX in the
+> CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y case, convert all IS_DAX() usages to
+> use explicit tests for FSDAX since DAX is ambiguous.
+> 
+> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+> Cc: linux-xfs@vger.kernel.org
+> Cc: Matthew Wilcox <mawilcox@microsoft.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: <stable@vger.kernel.org>
+> Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+> Reviewed-by: Jan Kara <jack@suse.cz>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/badrange.c       |    3 +-
- drivers/nvdimm/btt_devs.c       |   21 ++++++++--------
- drivers/nvdimm/bus.c            |   13 +++++-----
- drivers/nvdimm/claim.c          |    2 +-
- drivers/nvdimm/core.c           |    4 ++-
- drivers/nvdimm/dax_devs.c       |    5 ++--
- drivers/nvdimm/dimm_devs.c      |    7 ++---
- drivers/nvdimm/label.c          |   51 ++++++++++++++++++---------------------
- drivers/nvdimm/namespace_devs.c |   38 ++++++++++++-----------------
- drivers/nvdimm/pfn_devs.c       |   25 +++++++++----------
- drivers/nvdimm/pmem.c           |    2 +-
- 11 files changed, 77 insertions(+), 94 deletions(-)
+Looks ok,
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 
-diff --git a/drivers/nvdimm/badrange.c b/drivers/nvdimm/badrange.c
-index e068d72b4357..df17f1cd696d 100644
---- a/drivers/nvdimm/badrange.c
-+++ b/drivers/nvdimm/badrange.c
-@@ -176,8 +176,7 @@ static void set_badblock(struct badblocks *bb, sector_t s, int num)
- 			(u64) s * 512, (u64) num * 512);
- 	/* this isn't an error as the hardware will still throw an exception */
- 	if (badblocks_set(bb, s, num, 1))
--		dev_info_once(bb->dev, "%s: failed for sector %llx\n",
--				__func__, (u64) s);
-+		dev_info_once(bb->dev, "failed for sector %llx\n", (u64) s);
- }
- 
- /**
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index d58925295aa7..795ad4ff35ca 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -26,7 +26,7 @@ static void nd_btt_release(struct device *dev)
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
- 	struct nd_btt *nd_btt = to_nd_btt(dev);
- 
--	dev_dbg(dev, "%s\n", __func__);
-+	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(&nd_btt->dev, &nd_btt->ndns);
- 	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
- 	kfree(nd_btt->uuid);
-@@ -74,8 +74,8 @@ static ssize_t sector_size_store(struct device *dev,
- 	nvdimm_bus_lock(dev);
- 	rc = nd_size_select_store(dev, buf, &nd_btt->lbasize,
- 			btt_lbasize_supported);
--	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
--			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
-+			buf[len - 1] == '\n' ? "" : "\n");
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -101,8 +101,8 @@ static ssize_t uuid_store(struct device *dev,
- 
- 	device_lock(dev);
- 	rc = nd_uuid_store(dev, &nd_btt->uuid, buf, len);
--	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
--			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
-+			buf[len - 1] == '\n' ? "" : "\n");
- 	device_unlock(dev);
- 
- 	return rc ? rc : len;
-@@ -131,8 +131,8 @@ static ssize_t namespace_store(struct device *dev,
- 	device_lock(dev);
- 	nvdimm_bus_lock(dev);
- 	rc = nd_namespace_store(dev, &nd_btt->ndns, buf, len);
--	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
--			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
-+			buf[len - 1] == '\n' ? "" : "\n");
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -206,8 +206,8 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
- 	dev->groups = nd_btt_attribute_groups;
- 	device_initialize(&nd_btt->dev);
- 	if (ndns && !__nd_attach_ndns(&nd_btt->dev, ndns, &nd_btt->ndns)) {
--		dev_dbg(&ndns->dev, "%s failed, already claimed by %s\n",
--				__func__, dev_name(ndns->claim));
-+		dev_dbg(&ndns->dev, "failed, already claimed by %s\n",
-+				dev_name(ndns->claim));
- 		put_device(dev);
- 		return NULL;
- 	}
-@@ -346,8 +346,7 @@ int nd_btt_probe(struct device *dev, struct nd_namespace_common *ndns)
- 		return -ENOMEM;
- 	btt_sb = devm_kzalloc(dev, sizeof(*btt_sb), GFP_KERNEL);
- 	rc = __nd_btt_probe(to_nd_btt(btt_dev), ndns, btt_sb);
--	dev_dbg(dev, "%s: btt: %s\n", __func__,
--			rc == 0 ? dev_name(btt_dev) : "<none>");
-+	dev_dbg(dev, "btt: %s\n", rc == 0 ? dev_name(btt_dev) : "<none>");
- 	if (rc < 0) {
- 		struct nd_btt *nd_btt = to_nd_btt(btt_dev);
- 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 78eabc3a1ab1..0ebc8c4dd0fa 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -984,8 +984,8 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 
- 	if (cmd == ND_CMD_CALL) {
- 		func = pkg.nd_command;
--		dev_dbg(dev, "%s:%s, idx: %llu, in: %u, out: %u, len %llu\n",
--				__func__, dimm_name, pkg.nd_command,
-+		dev_dbg(dev, "%s, idx: %llu, in: %u, out: %u, len %llu\n",
-+				dimm_name, pkg.nd_command,
- 				in_len, out_len, buf_len);
- 	}
- 
-@@ -996,8 +996,8 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		u32 copy;
- 
- 		if (out_size == UINT_MAX) {
--			dev_dbg(dev, "%s:%s unknown output size cmd: %s field: %d\n",
--					__func__, dimm_name, cmd_name, i);
-+			dev_dbg(dev, "%s unknown output size cmd: %s field: %d\n",
-+					dimm_name, cmd_name, i);
- 			return -EFAULT;
- 		}
- 		if (out_len < sizeof(out_env))
-@@ -1012,9 +1012,8 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 
- 	buf_len = (u64) out_len + (u64) in_len;
- 	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
--		dev_dbg(dev, "%s:%s cmd: %s buf_len: %llu > %d\n", __func__,
--				dimm_name, cmd_name, buf_len,
--				ND_IOCTL_MAX_BUFLEN);
-+		dev_dbg(dev, "%s cmd: %s buf_len: %llu > %d\n", dimm_name,
-+				cmd_name, buf_len, ND_IOCTL_MAX_BUFLEN);
- 		return -EINVAL;
- 	}
- 
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index b2fc29b8279b..30852270484f 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -148,7 +148,7 @@ ssize_t nd_namespace_store(struct device *dev,
- 	char *name;
- 
- 	if (dev->driver) {
--		dev_dbg(dev, "%s: -EBUSY\n", __func__);
-+		dev_dbg(dev, "namespace already active\n");
- 		return -EBUSY;
- 	}
- 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 1dc527660637..957820d19be8 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -230,8 +230,8 @@ static int nd_uuid_parse(struct device *dev, u8 *uuid_out, const char *buf,
- 
- 	for (i = 0; i < 16; i++) {
- 		if (!isxdigit(str[0]) || !isxdigit(str[1])) {
--			dev_dbg(dev, "%s: pos: %d buf[%zd]: %c buf[%zd]: %c\n",
--					__func__, i, str - buf, str[0],
-+			dev_dbg(dev, "pos: %d buf[%zd]: %c buf[%zd]: %c\n",
-+					i, str - buf, str[0],
- 					str + 1 - buf, str[1]);
- 			return -EINVAL;
- 		}
-diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-index 1bf2bd318371..0453f49dc708 100644
---- a/drivers/nvdimm/dax_devs.c
-+++ b/drivers/nvdimm/dax_devs.c
-@@ -24,7 +24,7 @@ static void nd_dax_release(struct device *dev)
- 	struct nd_dax *nd_dax = to_nd_dax(dev);
- 	struct nd_pfn *nd_pfn = &nd_dax->nd_pfn;
- 
--	dev_dbg(dev, "%s\n", __func__);
-+	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(dev, &nd_pfn->ndns);
- 	ida_simple_remove(&nd_region->dax_ida, nd_pfn->id);
- 	kfree(nd_pfn->uuid);
-@@ -129,8 +129,7 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
- 	pfn_sb = devm_kzalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
- 	nd_pfn->pfn_sb = pfn_sb;
- 	rc = nd_pfn_validate(nd_pfn, DAX_SIG);
--	dev_dbg(dev, "%s: dax: %s\n", __func__,
--			rc == 0 ? dev_name(dax_dev) : "<none>");
-+	dev_dbg(dev, "dax: %s\n", rc == 0 ? dev_name(dax_dev) : "<none>");
- 	if (rc < 0) {
- 		nd_detach_ndns(dax_dev, &nd_pfn->ndns);
- 		put_device(dax_dev);
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 097794d9f786..e00d45522b80 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -131,7 +131,7 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
- 		}
- 		memcpy(ndd->data + offset, cmd->out_buf, cmd->in_length);
- 	}
--	dev_dbg(ndd->dev, "%s: len: %zu rc: %d\n", __func__, offset, rc);
-+	dev_dbg(ndd->dev, "len: %zu rc: %d\n", offset, rc);
- 	kfree(cmd);
- 
- 	return rc;
-@@ -266,8 +266,7 @@ void nvdimm_drvdata_release(struct kref *kref)
- 	struct device *dev = ndd->dev;
- 	struct resource *res, *_r;
- 
--	dev_dbg(dev, "%s\n", __func__);
--
-+	dev_dbg(dev, "trace\n");
- 	nvdimm_bus_lock(dev);
- 	for_each_dpa_resource_safe(ndd, res, _r)
- 		nvdimm_free_dpa(ndd, res);
-@@ -660,7 +659,7 @@ int nvdimm_bus_check_dimm_count(struct nvdimm_bus *nvdimm_bus, int dimm_count)
- 	nd_synchronize();
- 
- 	device_for_each_child(&nvdimm_bus->dev, &count, count_dimms);
--	dev_dbg(&nvdimm_bus->dev, "%s: count: %d\n", __func__, count);
-+	dev_dbg(&nvdimm_bus->dev, "count: %d\n", count);
- 	if (count != dimm_count)
- 		return -ENXIO;
- 	return 0;
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index de66c02f6140..c858cfadea40 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -121,8 +121,7 @@ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
- 
- 		memcpy(sig, nsindex[i]->sig, NSINDEX_SIG_LEN);
- 		if (memcmp(sig, NSINDEX_SIGNATURE, NSINDEX_SIG_LEN) != 0) {
--			dev_dbg(dev, "%s: nsindex%d signature invalid\n",
--					__func__, i);
-+			dev_dbg(dev, "nsindex%d signature invalid\n", i);
- 			continue;
- 		}
- 
-@@ -135,8 +134,8 @@ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
- 			labelsize = 128;
- 
- 		if (labelsize != sizeof_namespace_label(ndd)) {
--			dev_dbg(dev, "%s: nsindex%d labelsize %d invalid\n",
--					__func__, i, nsindex[i]->labelsize);
-+			dev_dbg(dev, "nsindex%d labelsize %d invalid\n",
-+					i, nsindex[i]->labelsize);
- 			continue;
- 		}
- 
-@@ -145,30 +144,28 @@ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
- 		sum = nd_fletcher64(nsindex[i], sizeof_namespace_index(ndd), 1);
- 		nsindex[i]->checksum = __cpu_to_le64(sum_save);
- 		if (sum != sum_save) {
--			dev_dbg(dev, "%s: nsindex%d checksum invalid\n",
--					__func__, i);
-+			dev_dbg(dev, "nsindex%d checksum invalid\n", i);
- 			continue;
- 		}
- 
- 		seq = __le32_to_cpu(nsindex[i]->seq);
- 		if ((seq & NSINDEX_SEQ_MASK) == 0) {
--			dev_dbg(dev, "%s: nsindex%d sequence: %#x invalid\n",
--					__func__, i, seq);
-+			dev_dbg(dev, "nsindex%d sequence: %#x invalid\n", i, seq);
- 			continue;
- 		}
- 
- 		/* sanity check the index against expected values */
- 		if (__le64_to_cpu(nsindex[i]->myoff)
- 				!= i * sizeof_namespace_index(ndd)) {
--			dev_dbg(dev, "%s: nsindex%d myoff: %#llx invalid\n",
--					__func__, i, (unsigned long long)
-+			dev_dbg(dev, "nsindex%d myoff: %#llx invalid\n",
-+					i, (unsigned long long)
- 					__le64_to_cpu(nsindex[i]->myoff));
- 			continue;
- 		}
- 		if (__le64_to_cpu(nsindex[i]->otheroff)
- 				!= (!i) * sizeof_namespace_index(ndd)) {
--			dev_dbg(dev, "%s: nsindex%d otheroff: %#llx invalid\n",
--					__func__, i, (unsigned long long)
-+			dev_dbg(dev, "nsindex%d otheroff: %#llx invalid\n",
-+					i, (unsigned long long)
- 					__le64_to_cpu(nsindex[i]->otheroff));
- 			continue;
- 		}
-@@ -176,8 +173,7 @@ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
- 		size = __le64_to_cpu(nsindex[i]->mysize);
- 		if (size > sizeof_namespace_index(ndd)
- 				|| size < sizeof(struct nd_namespace_index)) {
--			dev_dbg(dev, "%s: nsindex%d mysize: %#llx invalid\n",
--					__func__, i, size);
-+			dev_dbg(dev, "nsindex%d mysize: %#llx invalid\n", i, size);
- 			continue;
- 		}
- 
-@@ -185,9 +181,8 @@ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
- 		if (nslot * sizeof_namespace_label(ndd)
- 				+ 2 * sizeof_namespace_index(ndd)
- 				> ndd->nsarea.config_size) {
--			dev_dbg(dev, "%s: nsindex%d nslot: %u invalid, config_size: %#x\n",
--					__func__, i, nslot,
--					ndd->nsarea.config_size);
-+			dev_dbg(dev, "nsindex%d nslot: %u invalid, config_size: %#x\n",
-+					i, nslot, ndd->nsarea.config_size);
- 			continue;
- 		}
- 		valid[i] = true;
-@@ -356,8 +351,8 @@ static bool slot_valid(struct nvdimm_drvdata *ndd,
- 		sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
- 		nd_label->checksum = __cpu_to_le64(sum_save);
- 		if (sum != sum_save) {
--			dev_dbg(ndd->dev, "%s fail checksum. slot: %d expect: %#llx\n",
--				__func__, slot, sum);
-+			dev_dbg(ndd->dev, "fail checksum. slot: %d expect: %#llx\n",
-+				slot, sum);
- 			return false;
- 		}
- 	}
-@@ -422,8 +417,8 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
- 			u64 dpa = __le64_to_cpu(nd_label->dpa);
- 
- 			dev_dbg(ndd->dev,
--				"%s: slot%d invalid slot: %d dpa: %llx size: %llx\n",
--					__func__, slot, label_slot, dpa, size);
-+				"slot%d invalid slot: %d dpa: %llx size: %llx\n",
-+					slot, label_slot, dpa, size);
- 			continue;
- 		}
- 		count++;
-@@ -650,7 +645,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	slot = nd_label_alloc_slot(ndd);
- 	if (slot == UINT_MAX)
- 		return -ENXIO;
--	dev_dbg(ndd->dev, "%s: allocated: %d\n", __func__, slot);
-+	dev_dbg(ndd->dev, "allocated: %d\n", slot);
- 
- 	nd_label = to_label(ndd, slot);
- 	memset(nd_label, 0, sizeof_namespace_label(ndd));
-@@ -678,7 +673,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 		sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
- 		nd_label->checksum = __cpu_to_le64(sum);
- 	}
--	nd_dbg_dpa(nd_region, ndd, res, "%s\n", __func__);
-+	nd_dbg_dpa(nd_region, ndd, res, "\n");
- 
- 	/* update label */
- 	offset = nd_label_offset(ndd, nd_label);
-@@ -700,7 +695,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 		break;
- 	}
- 	if (victim) {
--		dev_dbg(ndd->dev, "%s: free: %d\n", __func__, slot);
-+		dev_dbg(ndd->dev, "free: %d\n", slot);
- 		slot = to_slot(ndd, victim->label);
- 		nd_label_free_slot(ndd, slot);
- 		victim->label = NULL;
-@@ -868,7 +863,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 		slot = nd_label_alloc_slot(ndd);
- 		if (slot == UINT_MAX)
- 			goto abort;
--		dev_dbg(ndd->dev, "%s: allocated: %d\n", __func__, slot);
-+		dev_dbg(ndd->dev, "allocated: %d\n", slot);
- 
- 		nd_label = to_label(ndd, slot);
- 		memset(nd_label, 0, sizeof_namespace_label(ndd));
-@@ -928,7 +923,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 
- 	/* free up now unused slots in the new index */
- 	for_each_set_bit(slot, victim_map, victim_map ? nslot : 0) {
--		dev_dbg(ndd->dev, "%s: free: %d\n", __func__, slot);
-+		dev_dbg(ndd->dev, "free: %d\n", slot);
- 		nd_label_free_slot(ndd, slot);
- 	}
- 
-@@ -1092,7 +1087,7 @@ static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
- 		active--;
- 		slot = to_slot(ndd, nd_label);
- 		nd_label_free_slot(ndd, slot);
--		dev_dbg(ndd->dev, "%s: free: %d\n", __func__, slot);
-+		dev_dbg(ndd->dev, "free: %d\n", slot);
- 		list_move_tail(&label_ent->list, &list);
- 		label_ent->label = NULL;
- 	}
-@@ -1100,7 +1095,7 @@ static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
- 
- 	if (active == 0) {
- 		nd_mapping_free_labels(nd_mapping);
--		dev_dbg(ndd->dev, "%s: no more active labels\n", __func__);
-+		dev_dbg(ndd->dev, "no more active labels\n");
- 	}
- 	mutex_unlock(&nd_mapping->lock);
- 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 658ada497be0..89b40ff83025 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -421,7 +421,7 @@ static ssize_t alt_name_store(struct device *dev,
- 	rc = __alt_name_store(dev, buf, len);
- 	if (rc >= 0)
- 		rc = nd_namespace_label_update(nd_region, dev);
--	dev_dbg(dev, "%s: %s(%zd)\n", __func__, rc < 0 ? "fail " : "", rc);
-+	dev_dbg(dev, "%s(%zd)\n", rc < 0 ? "fail " : "", rc);
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -1007,7 +1007,7 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
- 	if (uuid_not_set(uuid, dev, __func__))
- 		return -ENXIO;
- 	if (nd_region->ndr_mappings == 0) {
--		dev_dbg(dev, "%s: not associated with dimm(s)\n", __func__);
-+		dev_dbg(dev, "not associated with dimm(s)\n");
- 		return -ENXIO;
- 	}
- 
-@@ -1105,8 +1105,7 @@ static ssize_t size_store(struct device *dev,
- 		*uuid = NULL;
- 	}
- 
--	dev_dbg(dev, "%s: %llx %s (%d)\n", __func__, val, rc < 0
--			? "fail" : "success", rc);
-+	dev_dbg(dev, "%llx %s (%d)\n", val, rc < 0 ? "fail" : "success", rc);
- 
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
-@@ -1270,8 +1269,8 @@ static ssize_t uuid_store(struct device *dev,
- 		rc = nd_namespace_label_update(nd_region, dev);
- 	else
- 		kfree(uuid);
--	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
--			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
-+			buf[len - 1] == '\n' ? "" : "\n");
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -1355,9 +1354,8 @@ static ssize_t sector_size_store(struct device *dev,
- 		rc = nd_size_select_store(dev, buf, lbasize, supported);
- 	if (rc >= 0)
- 		rc = nd_namespace_label_update(nd_region, dev);
--	dev_dbg(dev, "%s: result: %zd %s: %s%s", __func__,
--			rc, rc < 0 ? "tried" : "wrote", buf,
--			buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd %s: %s%s", rc, rc < 0 ? "tried" : "wrote",
-+			buf, buf[len - 1] == '\n' ? "" : "\n");
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -1519,7 +1517,7 @@ static ssize_t holder_class_store(struct device *dev,
- 	rc = __holder_class_store(dev, buf);
- 	if (rc >= 0)
- 		rc = nd_namespace_label_update(nd_region, dev);
--	dev_dbg(dev, "%s: %s(%zd)\n", __func__, rc < 0 ? "fail " : "", rc);
-+	dev_dbg(dev, "%s(%zd)\n", rc < 0 ? "fail " : "", rc);
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -1717,8 +1715,7 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
- 		if (uuid_not_set(nsblk->uuid, &ndns->dev, __func__))
- 			return ERR_PTR(-ENODEV);
- 		if (!nsblk->lbasize) {
--			dev_dbg(&ndns->dev, "%s: sector size not set\n",
--				__func__);
-+			dev_dbg(&ndns->dev, "sector size not set\n");
- 			return ERR_PTR(-ENODEV);
- 		}
- 		if (!nd_namespace_blk_validate(nsblk))
-@@ -1798,9 +1795,7 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
- 			}
- 
- 			if (found_uuid) {
--				dev_dbg(ndd->dev,
--						"%s duplicate entry for uuid\n",
--						__func__);
-+				dev_dbg(ndd->dev, "duplicate entry for uuid\n");
- 				return false;
- 			}
- 			found_uuid = true;
-@@ -1994,14 +1989,13 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
- 	namespace_pmem_release(dev);
- 	switch (rc) {
- 	case -EINVAL:
--		dev_dbg(&nd_region->dev, "%s: invalid label(s)\n", __func__);
-+		dev_dbg(&nd_region->dev, "invalid label(s)\n");
- 		break;
- 	case -ENODEV:
--		dev_dbg(&nd_region->dev, "%s: label not found\n", __func__);
-+		dev_dbg(&nd_region->dev, "label not found\n");
- 		break;
- 	default:
--		dev_dbg(&nd_region->dev, "%s: unexpected err: %d\n",
--				__func__, rc);
-+		dev_dbg(&nd_region->dev, "unexpected err: %d\n", rc);
- 		break;
- 	}
- 	return ERR_PTR(rc);
-@@ -2334,8 +2328,8 @@ static struct device **scan_labels(struct nd_region *nd_region)
- 
- 	}
- 
--	dev_dbg(&nd_region->dev, "%s: discovered %d %s namespace%s\n",
--			__func__, count, is_nd_blk(&nd_region->dev)
-+	dev_dbg(&nd_region->dev, "discovered %d %s namespace%s\n",
-+			count, is_nd_blk(&nd_region->dev)
- 			? "blk" : "pmem", count == 1 ? "" : "s");
- 
- 	if (count == 0) {
-@@ -2467,7 +2461,7 @@ static int init_active_labels(struct nd_region *nd_region)
- 		get_ndd(ndd);
- 
- 		count = nd_label_active_count(ndd);
--		dev_dbg(ndd->dev, "%s: %d\n", __func__, count);
-+		dev_dbg(ndd->dev, "count: %d\n", count);
- 		if (!count)
- 			continue;
- 		for (j = 0; j < count; j++) {
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index f5c4e8c6e29d..e7e42130a375 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -27,7 +27,7 @@ static void nd_pfn_release(struct device *dev)
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
- 	struct nd_pfn *nd_pfn = to_nd_pfn(dev);
- 
--	dev_dbg(dev, "%s\n", __func__);
-+	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(&nd_pfn->dev, &nd_pfn->ndns);
- 	ida_simple_remove(&nd_region->pfn_ida, nd_pfn->id);
- 	kfree(nd_pfn->uuid);
-@@ -94,8 +94,8 @@ static ssize_t mode_store(struct device *dev,
- 		else
- 			rc = -EINVAL;
- 	}
--	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
--			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
-+			buf[len - 1] == '\n' ? "" : "\n");
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -144,8 +144,8 @@ static ssize_t align_store(struct device *dev,
- 	nvdimm_bus_lock(dev);
- 	rc = nd_size_select_store(dev, buf, &nd_pfn->align,
- 			nd_pfn_supported_alignments());
--	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
--			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
-+			buf[len - 1] == '\n' ? "" : "\n");
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -171,8 +171,8 @@ static ssize_t uuid_store(struct device *dev,
- 
- 	device_lock(dev);
- 	rc = nd_uuid_store(dev, &nd_pfn->uuid, buf, len);
--	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
--			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
-+			buf[len - 1] == '\n' ? "" : "\n");
- 	device_unlock(dev);
- 
- 	return rc ? rc : len;
-@@ -201,8 +201,8 @@ static ssize_t namespace_store(struct device *dev,
- 	device_lock(dev);
- 	nvdimm_bus_lock(dev);
- 	rc = nd_namespace_store(dev, &nd_pfn->ndns, buf, len);
--	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
--			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
-+	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
-+			buf[len - 1] == '\n' ? "" : "\n");
- 	nvdimm_bus_unlock(dev);
- 	device_unlock(dev);
- 
-@@ -314,8 +314,8 @@ struct device *nd_pfn_devinit(struct nd_pfn *nd_pfn,
- 	dev = &nd_pfn->dev;
- 	device_initialize(&nd_pfn->dev);
- 	if (ndns && !__nd_attach_ndns(&nd_pfn->dev, ndns, &nd_pfn->ndns)) {
--		dev_dbg(&ndns->dev, "%s failed, already claimed by %s\n",
--				__func__, dev_name(ndns->claim));
-+		dev_dbg(&ndns->dev, "failed, already claimed by %s\n",
-+				dev_name(ndns->claim));
- 		put_device(dev);
- 		return NULL;
- 	}
-@@ -510,8 +510,7 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
- 	nd_pfn = to_nd_pfn(pfn_dev);
- 	nd_pfn->pfn_sb = pfn_sb;
- 	rc = nd_pfn_validate(nd_pfn, PFN_SIG);
--	dev_dbg(dev, "%s: pfn: %s\n", __func__,
--			rc == 0 ? dev_name(pfn_dev) : "<none>");
-+	dev_dbg(dev, "pfn: %s\n", rc == 0 ? dev_name(pfn_dev) : "<none>");
- 	if (rc < 0) {
- 		nd_detach_ndns(pfn_dev, &nd_pfn->ndns);
- 		put_device(pfn_dev);
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 06f8dcc52ca6..906d31e56261 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -66,7 +66,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
- 		rc = BLK_STS_IOERR;
- 	if (cleared > 0 && cleared / 512) {
- 		cleared /= 512;
--		dev_dbg(dev, "%s: %#llx clear %ld sector%s\n", __func__,
-+		dev_dbg(dev, "%#llx clear %ld sector%s\n",
- 				(unsigned long long) sector, cleared,
- 				cleared > 1 ? "s" : "");
- 		badblocks_clear(&pmem->bb, sector, cleared);
+--D
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+> ---
+>  fs/xfs/xfs_file.c    |   14 +++++++-------
+>  fs/xfs/xfs_ioctl.c   |    4 ++--
+>  fs/xfs/xfs_iomap.c   |    6 +++---
+>  fs/xfs/xfs_reflink.c |    2 +-
+>  4 files changed, 13 insertions(+), 13 deletions(-)
+> 
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index 9ea08326f876..46a098b90fd0 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -288,7 +288,7 @@ xfs_file_read_iter(
+>  	if (XFS_FORCED_SHUTDOWN(mp))
+>  		return -EIO;
+>  
+> -	if (IS_DAX(inode))
+> +	if (IS_FSDAX(inode))
+>  		ret = xfs_file_dax_read(iocb, to);
+>  	else if (iocb->ki_flags & IOCB_DIRECT)
+>  		ret = xfs_file_dio_aio_read(iocb, to);
+> @@ -726,7 +726,7 @@ xfs_file_write_iter(
+>  	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
+>  		return -EIO;
+>  
+> -	if (IS_DAX(inode))
+> +	if (IS_FSDAX(inode))
+>  		ret = xfs_file_dax_write(iocb, from);
+>  	else if (iocb->ki_flags & IOCB_DIRECT) {
+>  		/*
+> @@ -1045,7 +1045,7 @@ __xfs_filemap_fault(
+>  	}
+>  
+>  	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> -	if (IS_DAX(inode)) {
+> +	if (IS_FSDAX(inode)) {
+>  		pfn_t pfn;
+>  
+>  		ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &xfs_iomap_ops);
+> @@ -1070,7 +1070,7 @@ xfs_filemap_fault(
+>  {
+>  	/* DAX can shortcut the normal fault path on write faults! */
+>  	return __xfs_filemap_fault(vmf, PE_SIZE_PTE,
+> -			IS_DAX(file_inode(vmf->vma->vm_file)) &&
+> +			IS_FSDAX(file_inode(vmf->vma->vm_file)) &&
+>  			(vmf->flags & FAULT_FLAG_WRITE));
+>  }
+>  
+> @@ -1079,7 +1079,7 @@ xfs_filemap_huge_fault(
+>  	struct vm_fault		*vmf,
+>  	enum page_entry_size	pe_size)
+>  {
+> -	if (!IS_DAX(file_inode(vmf->vma->vm_file)))
+> +	if (!IS_FSDAX(file_inode(vmf->vma->vm_file)))
+>  		return VM_FAULT_FALLBACK;
+>  
+>  	/* DAX can shortcut the normal fault path on write faults! */
+> @@ -1124,12 +1124,12 @@ xfs_file_mmap(
+>  	 * We don't support synchronous mappings for non-DAX files. At least
+>  	 * until someone comes with a sensible use case.
+>  	 */
+> -	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+> +	if (!IS_FSDAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+>  		return -EOPNOTSUPP;
+>  
+>  	file_accessed(filp);
+>  	vma->vm_ops = &xfs_file_vm_ops;
+> -	if (IS_DAX(file_inode(filp)))
+> +	if (IS_FSDAX(file_inode(filp)))
+>  		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+>  	return 0;
+>  }
+> diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+> index 89fb1eb80aae..234279ff66ce 100644
+> --- a/fs/xfs/xfs_ioctl.c
+> +++ b/fs/xfs/xfs_ioctl.c
+> @@ -1108,9 +1108,9 @@ xfs_ioctl_setattr_dax_invalidate(
+>  	}
+>  
+>  	/* If the DAX state is not changing, we have nothing to do here. */
+> -	if ((fa->fsx_xflags & FS_XFLAG_DAX) && IS_DAX(inode))
+> +	if ((fa->fsx_xflags & FS_XFLAG_DAX) && IS_FSDAX(inode))
+>  		return 0;
+> -	if (!(fa->fsx_xflags & FS_XFLAG_DAX) && !IS_DAX(inode))
+> +	if (!(fa->fsx_xflags & FS_XFLAG_DAX) && !IS_FSDAX(inode))
+>  		return 0;
+>  
+>  	/* lock, flush and invalidate mapping in preparation for flag change */
+> diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+> index 66e1edbfb2b2..cf794d429aec 100644
+> --- a/fs/xfs/xfs_iomap.c
+> +++ b/fs/xfs/xfs_iomap.c
+> @@ -241,7 +241,7 @@ xfs_iomap_write_direct(
+>  	 * the reserve block pool for bmbt block allocation if there is no space
+>  	 * left but we need to do unwritten extent conversion.
+>  	 */
+> -	if (IS_DAX(VFS_I(ip))) {
+> +	if (IS_FSDAX(VFS_I(ip))) {
+>  		bmapi_flags = XFS_BMAPI_CONVERT | XFS_BMAPI_ZERO;
+>  		if (imap->br_state == XFS_EXT_UNWRITTEN) {
+>  			tflags |= XFS_TRANS_RESERVE;
+> @@ -952,7 +952,7 @@ static inline bool imap_needs_alloc(struct inode *inode,
+>  	return !nimaps ||
+>  		imap->br_startblock == HOLESTARTBLOCK ||
+>  		imap->br_startblock == DELAYSTARTBLOCK ||
+> -		(IS_DAX(inode) && imap->br_state == XFS_EXT_UNWRITTEN);
+> +		(IS_FSDAX(inode) && imap->br_state == XFS_EXT_UNWRITTEN);
+>  }
+>  
+>  static inline bool need_excl_ilock(struct xfs_inode *ip, unsigned flags)
+> @@ -988,7 +988,7 @@ xfs_file_iomap_begin(
+>  		return -EIO;
+>  
+>  	if (((flags & (IOMAP_WRITE | IOMAP_DIRECT)) == IOMAP_WRITE) &&
+> -			!IS_DAX(inode) && !xfs_get_extsz_hint(ip)) {
+> +			!IS_FSDAX(inode) && !xfs_get_extsz_hint(ip)) {
+>  		/* Reserve delalloc blocks for regular writeback. */
+>  		return xfs_file_iomap_begin_delay(inode, offset, length, iomap);
+>  	}
+> diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
+> index 270246943a06..a126e00e05e3 100644
+> --- a/fs/xfs/xfs_reflink.c
+> +++ b/fs/xfs/xfs_reflink.c
+> @@ -1351,7 +1351,7 @@ xfs_reflink_remap_range(
+>  		goto out_unlock;
+>  
+>  	/* Don't share DAX file data for now. */
+> -	if (IS_DAX(inode_in) || IS_DAX(inode_out))
+> +	if (IS_FSDAX(inode_in) || IS_FSDAX(inode_out))
+>  		goto out_unlock;
+>  
+>  	ret = vfs_clone_file_prep_inodes(inode_in, pos_in, inode_out, pos_out,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
