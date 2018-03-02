@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 88D822255D6FE
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:56:30 -0800 (PST)
-Subject: [PATCH v5 00/12] vfio,
- dax: prevent long term filesystem-dax pins and other fixes
+ by ml01.01.org (Postfix) with ESMTPS id 0D015224E691C
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:57:31 -0800 (PST)
+Subject: [PATCH v5 11/12] dax: fix S_DAX definition
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Mar 2018 19:53:33 -0800
-Message-ID: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 01 Mar 2018 19:54:34 -0800
+Message-ID: <151996287403.28483.8962319815764432894.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,74 +23,38 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jane Chu <jane.chu@oracle.com>, Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alex Williamson <alex.williamson@redhat.com>, Gerd Rausch <gerd.rausch@oracle.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v4 [1]:
-* Fix the changelog of "dax: introduce IS_DEVDAX() and IS_FSDAX()" to
-  better clarify the need for new helpers (Jan)
-* Replace dax_sem_is_locked() with dax_sem_assert_held() (Jan)
-* Use file_inode() in vma_is_dax() (Jan)
-* Resend the full series to linux-xfs@ (Dave)
-* Collect Jan's Reviewed-by
+Make sure S_DAX is defined in the CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y
+case. Otherwise vma_is_dax() may incorrectly return false in the
+Device-DAX case.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-February/014271.html
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <stable@vger.kernel.org>
+Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The vfio interface, like RDMA, wants to setup long term (indefinite)
-pins of the pages backing an address range so that a guest or userspace
-driver can perform DMA to the with physical address. Given that this
-pinning may lead to filesystem operations deadlocking in the
-filesystem-dax case, the pinning request needs to be rejected.
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index b2b2e15d227b..1242511b1c46 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1859,7 +1859,7 @@ struct super_operations {
+ #define S_IMA		1024	/* Inode has an associated IMA struct */
+ #define S_AUTOMOUNT	2048	/* Automount/referral quasi-directory */
+ #define S_NOSEC		4096	/* no suid or xattr security attributes */
+-#ifdef CONFIG_FS_DAX
++#if IS_ENABLED(CONFIG_FS_DAX) || IS_ENABLED(CONFIG_DEV_DAX)
+ #define S_DAX		8192	/* Direct Access, avoiding the page cache */
+ #else
+ #define S_DAX		0	/* Make all the DAX code disappear */
 
-The longer term fix for vfio, RDMA, and any other long term pin user, is
-to provide a 'pin with lease' mechanism. Similar to the leases that are
-hold for pNFS RDMA layouts, this userspace lease gives the kernel a way
-to notify userspace that the block layout of the file is changing and
-the kernel is revoking access to pinned pages.
-
-Related to this change is the discovery that vma_is_fsdax() was causing
-device-dax inode detection to fail. That lead to series of fixes and
-cleanups to make sure that S_DAX is defined correctly in the
-CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y case.
-
----
-
-Dan Williams (12):
-      dax: fix vma_is_fsdax() helper
-      dax: introduce IS_DEVDAX() and IS_FSDAX()
-      ext2, dax: finish implementing dax_sem helpers
-      ext2, dax: define ext2_dax_*() infrastructure in all cases
-      ext4, dax: define ext4_dax_*() infrastructure in all cases
-      ext2, dax: replace IS_DAX() with IS_FSDAX()
-      ext4, dax: replace IS_DAX() with IS_FSDAX()
-      xfs, dax: replace IS_DAX() with IS_FSDAX()
-      mm, dax: replace IS_DAX() with IS_DEVDAX() or IS_FSDAX()
-      fs, dax: kill IS_DAX()
-      dax: fix S_DAX definition
-      vfio: disable filesystem-dax page pinning
-
-
- drivers/vfio/vfio_iommu_type1.c |   18 ++++++++++++++--
- fs/ext2/ext2.h                  |    6 +++++
- fs/ext2/file.c                  |   19 +++++------------
- fs/ext2/inode.c                 |   10 ++++-----
- fs/ext4/file.c                  |   18 +++++-----------
- fs/ext4/inode.c                 |    4 ++--
- fs/ext4/ioctl.c                 |    2 +-
- fs/ext4/super.c                 |    2 +-
- fs/iomap.c                      |    2 +-
- fs/xfs/xfs_file.c               |   14 ++++++-------
- fs/xfs/xfs_ioctl.c              |    4 ++--
- fs/xfs/xfs_iomap.c              |    6 +++--
- fs/xfs/xfs_reflink.c            |    2 +-
- include/linux/dax.h             |   12 ++++++++---
- include/linux/fs.h              |   43 ++++++++++++++++++++++++++++-----------
- mm/fadvise.c                    |    3 ++-
- mm/filemap.c                    |    4 ++--
- mm/huge_memory.c                |    4 +++-
- mm/madvise.c                    |    3 ++-
- 19 files changed, 102 insertions(+), 74 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
