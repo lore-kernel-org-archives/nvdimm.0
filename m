@@ -1,7 +1,7 @@
-From: "The Post Office" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Thu, 1 Mar 2018 11:22:46 +0800
-Message-ID: <20180301031640.07DA7223522A7@ml01.01.org>
+From: "Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: Data format error
+Date: Fri, 2 Mar 2018 11:25:58 +0800
+Message-ID: <20180302031951.ABC6D22485A9B@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -30,7 +30,7 @@ it is also possible that the computer is turned off, or does not
 have a mail system running right now.
 
 Your message was not delivered within 1 days:
-Host 9.116.188.231 is not responding.
+Host 64.9.254.187 is not responding.
 
 The following recipients did not receive this message:
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
