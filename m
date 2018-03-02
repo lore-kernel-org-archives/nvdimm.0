@@ -1,10 +1,10 @@
-From: "Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: Data format error
-Date: Fri, 2 Mar 2018 11:25:58 +0800
-Message-ID: <20180302031951.ABC6D22485A9B@ml01.01.org>
+From: "luca" <luca-+rmqm0+pkOs@public.gmane.org>
+Subject: Cheap Air Jordans Retro/Michael Kors Sale
+Date: 3 Mar 2018 04:47:02 +0800
+Message-ID: <20180302204109.6191221E082B6@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,22 +18,21 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
-
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
-
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
-
-Your message was not delivered within 1 days:
-Host 64.9.254.187 is not responding.
-
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+PEgxPkNoZWFwIEFpciBKb3JkYW5zIFJldHJvIFNhbGU8L0gxPg0KPEgzPlJlYWwgQ2hlYXAgQWly
+IEpvcmRhbnMgUmV0cm8gU2FsZSBmb3IgTWVuLCBXb21lbiBhbmQgS2lkcy4gQnV5IENoZWFwIEF1
+dGhlbnRpYyBOaWtlIEpvcmRhbiBTaG9lcywgQWlyIEpvcmRhbnMgUmV0cm8gT25saW5lIHdpdGgg
+VG9wIFF1YWxpdHkgYW5kIEZyZWUgU2hpcHBpbmchPC9IMz48QSBocmVmPSJodHRwOi8vd3d3Lmpv
+cmRhbmNoZWFwc2FsZS5jb20vP2lkPWVkbSZhbXA7aW1nPTEiPjxJTUcgc3JjPSJodHRwOi8vd3d3
+LmpvcmRhbmNoZWFwc2FsZS5jb20vaW5jbHVkZXMvdGVtcGxhdGVzL3RlbXBsYXRlX2RlZmF1bHQv
+aW1hZ2VzL2hiMS5wbmciPjwvQT4gDQo8SDM+PEEgaHJlZj0iaHR0cDovL3d3dy5qb3JkYW5jaGVh
+cHNhbGUuY29tLz9pZD1lZG0iPmh0dHA6Ly93d3cuam9yZGFuY2hlYXBzYWxlLmNvbS88L0E+PC9I
+Mz4NCjxIMT5NaWNoYWVsIEtvcnMgT3V0bGV0IOKAkyBTYWxlIE9ubGluZTwvSDE+DQo8SDM+PEEg
+aHJlZj0iaHR0cDovL3d3dy5iYWdza29yc21pY2hhZWwuY29tLz9pZD1lZG0iPmh0dHA6Ly93d3cu
+YmFnc2tvcnNtaWNoYWVsLmNvbTwvQT48L0gzPg0KPEgzPjxBIGhyZWY9Imh0dHA6Ly93d3cuYmFn
+c2tvcnNtaWNoYWVsLmNvbS8/aWQ9ZWRtJmFtcDtpbWc9MiI+PElNRyBzcmM9Imh0dHA6Ly93d3cu
+YmFnc2tvcnNtaWNoYWVsLmNvbS9pbWFnZXMvMi5qcGciPjwvQT48L0gzPg0KPEgzPjxBIGhyZWY9
+Imh0dHA6Ly93d3cuYmFnc2tvcnNtaWNoYWVsLmNvbS8/aWQ9ZWRtIj5odHRwOi8vd3d3LmJhZ3Nr
+b3JzbWljaGFlbC5jb208L0E+PC9IMz4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
