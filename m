@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
+ [140.211.169.12])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8C6362255D6F3
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:51:53 -0800 (PST)
-Subject: [PATCH v3 0/3] mm, smaps: MMUPageSize for device-dax
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Mar 2018 19:48:56 -0800
-Message-ID: <151996253609.27922.9983044853291257359.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 5871821F6A6FD
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Mar 2018 14:33:39 -0800 (PST)
+Date: Fri, 2 Mar 2018 14:39:47 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v3 2/3] mm, hugetlbfs: introduce ->pagesize() to
+ vm_operations_struct
+Message-Id: <20180302143947.ed00df85530df46ec98dbd3e@linux-foundation.org>
+In-Reply-To: <151996254734.27922.15813097401404359642.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151996253609.27922.9983044853291257359.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151996254734.27922.15813097401404359642.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,42 +25,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jane Chu <jane.chu@oracle.com>, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jane Chu <jane.chu@oracle.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2:
-* Split the fix of the definition vma_mmu_pagesize() on powerpc to its
-  own patch.
+On Thu, 01 Mar 2018 19:49:07 -0800 Dan Williams <dan.j.williams@intel.com> wrote:
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-February/014101.html
+> When device-dax is operating in huge-page mode we want it to behave like
+> hugetlbfs and report the MMU page mapping size that is being enforced by
+> the vma. Similar to commit 31383c6865a5 "mm, hugetlbfs: introduce
+> ->split() to vm_operations_struct" it would be messy to teach
+> vma_mmu_pagesize() about device-dax page mapping sizes in the same
+> (hstate) way that hugetlbfs communicates this attribute.  Instead, these
+> patches introduce a new ->pagesize() vm operation.
+> 
+> ...
+>
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -383,6 +383,7 @@ struct vm_operations_struct {
+>  	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
+>  	void (*map_pages)(struct vm_fault *vmf,
+>  			pgoff_t start_pgoff, pgoff_t end_pgoff);
+> +	unsigned long (*pagesize)(struct vm_area_struct * area);
 
----
+fwiw, vm_operations_struct is documented in
+Documentation/filesystems/Locking.  Some bitrotting has occurred :(
 
-Andrew,
-
-Similar to commit 31383c6865a5 "mm, hugetlbfs: introduce ->split() to
-vm_operations_struct" here is another occasion where we want
-special-case hugetlbfs/hstate enabling to also apply to device-dax.
-
-This begs the question what other hstate conversions we might do beyond
-->split() and ->pagesize(), but this appears to be the last of the
-usages of hstate_vma() in generic/non-hugetlbfs specific code paths.
-
----
-
-Dan Williams (3):
-      mm, powerpc: use vma_kernel_pagesize() in vma_mmu_pagesize()
-      mm, hugetlbfs: introduce ->pagesize() to vm_operations_struct
-      device-dax: implement ->pagesize() for smaps to report MMUPageSize
-
-
- arch/powerpc/include/asm/hugetlb.h |    6 ------
- arch/powerpc/mm/hugetlbpage.c      |    5 +----
- drivers/dax/device.c               |   10 ++++++++++
- include/linux/mm.h                 |    1 +
- mm/hugetlb.c                       |   27 ++++++++++++++-------------
- 5 files changed, 26 insertions(+), 23 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
