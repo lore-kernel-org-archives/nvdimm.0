@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5A595225E4001
- for <linux-nvdimm@lists.01.org>; Thu, 22 Mar 2018 11:33:39 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [ndctl PATCH 1/2] ndctl: complete removal of daxctl io
-Date: Thu, 22 Mar 2018 12:40:06 -0600
-Message-Id: <20180322184007.25667-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8C6362255D6F3
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:51:53 -0800 (PST)
+Subject: [PATCH v3 0/3] mm, smaps: MMUPageSize for device-dax
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 01 Mar 2018 19:48:56 -0800
+Message-ID: <151996253609.27922.9983044853291257359.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,93 +16,46 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, "Jiang, Dave" <dave.jiang@intel.com>
+To: akpm@linux-foundation.org
+Cc: Jane Chu <jane.chu@oracle.com>, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-commit 0a8dd795b4cf ("ndctl: removing daxctl io")
+Changes since v2:
+* Split the fix of the definition vma_mmu_pagesize() on powerpc to its
+  own patch.
 
-didn't fully remove all daxctl io, leaving behind a few of the lines which
-were added by the original commit:
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-February/014101.html
 
-commit 67b54c1c76e5 ("ndctl: daxctl: Adding io option for daxctl")
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Fixes: commit 0a8dd795b4cf ("ndctl: removing daxctl io")
 ---
- daxctl/Makefile.am | 1 -
- daxctl/daxctl.c    | 6 ------
- ndctl.spec.in      | 7 -------
- 3 files changed, 14 deletions(-)
 
-diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
-index e256afd..fe467d0 100644
---- a/daxctl/Makefile.am
-+++ b/daxctl/Makefile.am
-@@ -9,7 +9,6 @@ daxctl_SOURCES =\
- 
- daxctl_LDADD =\
- 	lib/libdaxctl.la \
--	../ndctl/lib/libndctl.la \
- 	../libutil.a \
- 	$(UUID_LIBS) \
- 	$(JSON_LIBS)
-diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
-index cedc847..91a4600 100644
---- a/daxctl/daxctl.c
-+++ b/daxctl/daxctl.c
-@@ -67,17 +67,11 @@ static int cmd_help(int argc, const char **argv, void *ctx)
- }
- 
- int cmd_list(int argc, const char **argv, void *ctx);
--#ifdef ENABLE_DAXIO
--int cmd_io(int argc, const char **argv, void *ctx);
--#endif
- 
- static struct cmd_struct commands[] = {
- 	{ "version", cmd_version },
- 	{ "list", cmd_list },
- 	{ "help", cmd_help },
--#ifdef ENABLE_DAXIO
--	{ "io", cmd_io },
--#endif
- };
- 
- int main(int argc, const char **argv)
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 3a5edc3..e2c879c 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -20,9 +20,6 @@ BuildRequires:	pkgconfig(libudev)
- BuildRequires:	pkgconfig(uuid)
- BuildRequires:	pkgconfig(json-c)
- BuildRequires:	pkgconfig(bash-completion)
--%ifarch x86_64
--BuildRequires:	pkgconfig(libpmem)
--%endif
- 
- %description
- Utility library for managing the "libnvdimm" subsystem.  The "libnvdimm"
-@@ -93,11 +90,7 @@ control API for these devices.
- %build
- echo %{version} > version
- ./autogen.sh
--%ifarch x86_64
--%configure --disable-static --disable-silent-rules --with-libpmem
--%else
- %configure --disable-static --disable-silent-rules
--%endif
- make %{?_smp_mflags}
- 
- %install
--- 
-2.14.3
+Andrew,
 
+Similar to commit 31383c6865a5 "mm, hugetlbfs: introduce ->split() to
+vm_operations_struct" here is another occasion where we want
+special-case hugetlbfs/hstate enabling to also apply to device-dax.
+
+This begs the question what other hstate conversions we might do beyond
+->split() and ->pagesize(), but this appears to be the last of the
+usages of hstate_vma() in generic/non-hugetlbfs specific code paths.
+
+---
+
+Dan Williams (3):
+      mm, powerpc: use vma_kernel_pagesize() in vma_mmu_pagesize()
+      mm, hugetlbfs: introduce ->pagesize() to vm_operations_struct
+      device-dax: implement ->pagesize() for smaps to report MMUPageSize
+
+
+ arch/powerpc/include/asm/hugetlb.h |    6 ------
+ arch/powerpc/mm/hugetlbpage.c      |    5 +----
+ drivers/dax/device.c               |   10 ++++++++++
+ include/linux/mm.h                 |    1 +
+ mm/hugetlb.c                       |   27 ++++++++++++++-------------
+ 5 files changed, 26 insertions(+), 23 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
