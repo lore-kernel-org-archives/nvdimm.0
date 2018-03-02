@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x243.google.com (mail-pf0-x243.google.com
- [IPv6:2607:f8b0:400e:c00::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0C0C122603AE1
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:39 -0800 (PST)
-Received: by mail-pf0-x243.google.com with SMTP id 17so2613917pfw.11
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:57 -0800 (PST)
-From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 34/83] Journal: NOVA light weight journal definitions.
-Date: Sat, 10 Mar 2018 10:18:15 -0800
-Message-Id: <1520705944-6723-35-git-send-email-jix024@eng.ucsd.edu>
-In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
-References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+ by ml01.01.org (Postfix) with ESMTPS id B8C7C2255D6FE
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:52:09 -0800 (PST)
+Subject: [PATCH v3 3/3] device-dax: implement ->pagesize() for smaps to
+ report MMUPageSize
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 01 Mar 2018 19:49:12 -0800
+Message-ID: <151996255287.27922.18397777516059080245.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151996253609.27922.9983044853291257359.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151996253609.27922.9983044853291257359.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,122 +19,49 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
+To: akpm@linux-foundation.org
+Cc: Jane Chu <jane.chu@oracle.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Andiry Xu <jix024@cs.ucsd.edu>
+Given that device-dax is making similar page mapping size guarantees as
+hugetlbfs, emit the size in smaps and any other kernel path that
+requests the mapping size of a vma.
 
-NOVA uses per-CPU lite journals to provide fast atomicity guarantees
-for multi-log appending and multi-word inplace updates.
-
-NOVA uses undo journaling. Each journal is a circular buffer
-of 4KB pmem page. Two pointers, journal_head and journal_tail
-reside in the reserved journal block, and point to the journal page.
-If the two pointers are not equal, there are uncommitted transactions
-and NOVA recovers the data by replaying the journal entries.
-
-Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
+Reported-by: Jane Chu <jane.chu@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/nova/bbuild.c  |  1 +
- fs/nova/journal.h | 43 +++++++++++++++++++++++++++++++++++++++++++
- fs/nova/log.c     |  1 +
- fs/nova/super.c   |  1 +
- 4 files changed, 46 insertions(+)
- create mode 100644 fs/nova/journal.h
+ drivers/dax/device.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/fs/nova/bbuild.c b/fs/nova/bbuild.c
-index 66053cb..af1b352 100644
---- a/fs/nova/bbuild.c
-+++ b/fs/nova/bbuild.c
-@@ -25,6 +25,7 @@
- #include <linux/random.h>
- #include <linux/delay.h>
- #include "nova.h"
-+#include "journal.h"
- #include "super.h"
- #include "inode.h"
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 2137dbc29877..0b61f48f21a6 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -439,10 +439,20 @@ static int dev_dax_split(struct vm_area_struct *vma, unsigned long addr)
+ 	return 0;
+ }
  
-diff --git a/fs/nova/journal.h b/fs/nova/journal.h
-new file mode 100644
-index 0000000..d1d0ffb
---- /dev/null
-+++ b/fs/nova/journal.h
-@@ -0,0 +1,43 @@
-+#ifndef __JOURNAL_H
-+#define __JOURNAL_H
-+
-+#include <linux/types.h>
-+#include <linux/fs.h>
-+#include "nova.h"
-+#include "super.h"
-+
-+
-+/* ======================= Lite journal ========================= */
-+
-+#define NOVA_MAX_JOURNAL_LENGTH 128
-+
-+#define	JOURNAL_INODE	1
-+#define	JOURNAL_ENTRY	2
-+
-+/* Lightweight journal entry */
-+struct nova_lite_journal_entry {
-+	__le64 type;       // JOURNAL_INODE or JOURNAL_ENTRY
-+	__le64 data1;
-+	__le64 data2;
-+	__le32 padding;
-+	__le32 csum;
-+} __attribute((__packed__));
-+
-+/* Head and tail pointers into a circular queue of journal entries.  There's
-+ * one of these per CPU.
-+ */
-+struct journal_ptr_pair {
-+	__le64 journal_head;
-+	__le64 journal_tail;
-+};
-+
-+static inline
-+struct journal_ptr_pair *nova_get_journal_pointers(struct super_block *sb,
-+	int cpu)
++static unsigned long dev_dax_pagesize(struct vm_area_struct *vma)
 +{
-+	return (struct journal_ptr_pair *)((char *)nova_get_block(sb,
-+		NOVA_DEF_BLOCK_SIZE_4K * JOURNAL_START) + cpu * CACHELINE_SIZE);
++	struct file *filp = vma->vm_file;
++	struct dev_dax *dev_dax = filp->private_data;
++	struct dax_region *dax_region = dev_dax->region;
++
++	return dax_region->align;
 +}
 +
-+
-+#endif
-diff --git a/fs/nova/log.c b/fs/nova/log.c
-index bdd133e..f01b7c8 100644
---- a/fs/nova/log.c
-+++ b/fs/nova/log.c
-@@ -16,6 +16,7 @@
-  */
+ static const struct vm_operations_struct dax_vm_ops = {
+ 	.fault = dev_dax_fault,
+ 	.huge_fault = dev_dax_huge_fault,
+ 	.split = dev_dax_split,
++	.pagesize = dev_dax_pagesize,
+ };
  
- #include "nova.h"
-+#include "journal.h"
- #include "inode.h"
- #include "log.h"
- 
-diff --git a/fs/nova/super.c b/fs/nova/super.c
-index c0427fd..d73c202 100644
---- a/fs/nova/super.c
-+++ b/fs/nova/super.c
-@@ -38,6 +38,7 @@
- #include <linux/list.h>
- #include <linux/dax.h>
- #include "nova.h"
-+#include "journal.h"
- #include "super.h"
- 
- int measure_timing;
--- 
-2.7.4
+ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
 
 _______________________________________________
 Linux-nvdimm mailing list
