@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AAC7321F0DB38
- for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:12:37 -0700 (PDT)
-Subject: [PATCH v8 06/18] ext2, dax: introduce ext2_dax_aops
+ by ml01.01.org (Postfix) with ESMTPS id 042F4223522B6
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:56:46 -0800 (PST)
+Subject: [PATCH v5 03/12] ext2, dax: finish implementing dax_sem helpers
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 30 Mar 2018 21:02:41 -0700
-Message-ID: <152246896163.36038.15934876342603748972.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 01 Mar 2018 19:53:50 -0800
+Message-ID: <151996283005.28483.12905745385121745420.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,159 +23,85 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, kbuild test robot <lkp@intel.com>, snitzer@redhat.com, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Otherwise, direct-I/O
-triggers incorrect page cache assumptions and warnings.
+dax_sem_{up,down}_write_sem() allow the ext2 dax semaphore to be
+compiled out in the CONFIG_FS_DAX=n case. However there are still some
+open coded uses of the semaphore. Add dax_sem_{up_read,down_read}() and
+dax_sem_assert_held() helpers. Use them to convert all open-coded usages
+of the semaphore to the helpers.
 
-Cc: Jan Kara <jack@suse.com>
-Reported-by: kbuild test robot <lkp@intel.com>
+Cc: <stable@vger.kernel.org>
+Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/ext2/ext2.h  |    1 +
- fs/ext2/inode.c |   46 +++++++++++++++++++++++++++-------------------
- fs/ext2/namei.c |   18 ++----------------
- 3 files changed, 30 insertions(+), 35 deletions(-)
+ fs/ext2/ext2.h  |    6 ++++++
+ fs/ext2/file.c  |    5 ++---
+ fs/ext2/inode.c |    4 +---
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/fs/ext2/ext2.h b/fs/ext2/ext2.h
-index 032295e1d386..cc40802ddfa8 100644
+index 032295e1d386..203c31dfe549 100644
 --- a/fs/ext2/ext2.h
 +++ b/fs/ext2/ext2.h
-@@ -814,6 +814,7 @@ extern const struct inode_operations ext2_file_inode_operations;
- extern const struct file_operations ext2_file_operations;
+@@ -711,9 +711,15 @@ struct ext2_inode_info {
+ #ifdef CONFIG_FS_DAX
+ #define dax_sem_down_write(ext2_inode)	down_write(&(ext2_inode)->dax_sem)
+ #define dax_sem_up_write(ext2_inode)	up_write(&(ext2_inode)->dax_sem)
++#define dax_sem_assert_held(ei)		WARN_ON(!rwsem_is_locked(&(ei)->dax_sem))
++#define dax_sem_down_read(ext2_inode)	down_read(&(ext2_inode)->dax_sem)
++#define dax_sem_up_read(ext2_inode)	up_read(&(ext2_inode)->dax_sem)
+ #else
+ #define dax_sem_down_write(ext2_inode)
+ #define dax_sem_up_write(ext2_inode)
++#define dax_sem_assert_held(ext2_inode)
++#define dax_sem_down_read(ext2_inode)
++#define dax_sem_up_read(ext2_inode)
+ #endif
  
- /* inode.c */
-+extern void ext2_set_file_ops(struct inode *inode);
- extern const struct address_space_operations ext2_aops;
- extern const struct address_space_operations ext2_nobh_aops;
- extern const struct iomap_ops ext2_iomap_ops;
+ /*
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index 09640220fda8..1c7ea1bcddde 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -91,18 +91,17 @@ static ssize_t ext2_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ static int ext2_dax_fault(struct vm_fault *vmf)
+ {
+ 	struct inode *inode = file_inode(vmf->vma->vm_file);
+-	struct ext2_inode_info *ei = EXT2_I(inode);
+ 	int ret;
+ 
+ 	if (vmf->flags & FAULT_FLAG_WRITE) {
+ 		sb_start_pagefault(inode->i_sb);
+ 		file_update_time(vmf->vma->vm_file);
+ 	}
+-	down_read(&ei->dax_sem);
++	dax_sem_down_read(EXT2_I(inode));
+ 
+ 	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, NULL, NULL, &ext2_iomap_ops);
+ 
+-	up_read(&ei->dax_sem);
++	dax_sem_up_read(EXT2_I(inode));
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+ 		sb_end_pagefault(inode->i_sb);
+ 	return ret;
 diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 9b2ac55ac34f..1e01fabef130 100644
+index 9b2ac55ac34f..4783db0e4873 100644
 --- a/fs/ext2/inode.c
 +++ b/fs/ext2/inode.c
-@@ -940,9 +940,6 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
- 	loff_t offset = iocb->ki_pos;
- 	ssize_t ret;
+@@ -1187,9 +1187,7 @@ static void __ext2_truncate_blocks(struct inode *inode, loff_t offset)
+ 	blocksize = inode->i_sb->s_blocksize;
+ 	iblock = (offset + blocksize-1) >> EXT2_BLOCK_SIZE_BITS(inode->i_sb);
  
--	if (WARN_ON_ONCE(IS_DAX(inode)))
--		return -EIO;
--
- 	ret = blockdev_direct_IO(iocb, inode, iter, ext2_get_block);
- 	if (ret < 0 && iov_iter_rw(iter) == WRITE)
- 		ext2_write_failed(mapping, offset + count);
-@@ -952,17 +949,16 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
- static int
- ext2_writepages(struct address_space *mapping, struct writeback_control *wbc)
- {
 -#ifdef CONFIG_FS_DAX
--	if (dax_mapping(mapping)) {
--		return dax_writeback_mapping_range(mapping,
--						   mapping->host->i_sb->s_bdev,
--						   wbc);
--	}
+-	WARN_ON(!rwsem_is_locked(&ei->dax_sem));
 -#endif
--
- 	return mpage_writepages(mapping, wbc, ext2_get_block);
- }
++	dax_sem_assert_held(ei);
  
-+static int
-+ext2_dax_writepages(struct address_space *mapping, struct writeback_control *wbc)
-+{
-+	return dax_writeback_mapping_range(mapping,
-+			mapping->host->i_sb->s_bdev, wbc);
-+}
-+
- const struct address_space_operations ext2_aops = {
- 	.readpage		= ext2_readpage,
- 	.readpages		= ext2_readpages,
-@@ -990,6 +986,13 @@ const struct address_space_operations ext2_nobh_aops = {
- 	.error_remove_page	= generic_error_remove_page,
- };
- 
-+static const struct address_space_operations ext2_dax_aops = {
-+	.writepages		= ext2_dax_writepages,
-+	.direct_IO		= noop_direct_IO,
-+	.set_page_dirty		= noop_set_page_dirty,
-+	.invalidatepage		= noop_invalidatepage,
-+};
-+
- /*
-  * Probably it should be a library function... search for first non-zero word
-  * or memcmp with zero_page, whatever is better for particular architecture.
-@@ -1388,6 +1391,18 @@ void ext2_set_inode_flags(struct inode *inode)
- 		inode->i_flags |= S_DAX;
- }
- 
-+void ext2_set_file_ops(struct inode *inode)
-+{
-+	inode->i_op = &ext2_file_inode_operations;
-+	inode->i_fop = &ext2_file_operations;
-+	if (IS_DAX(inode))
-+		inode->i_mapping->a_ops = &ext2_dax_aops;
-+	else if (test_opt(inode->i_sb, NOBH))
-+		inode->i_mapping->a_ops = &ext2_nobh_aops;
-+	else
-+		inode->i_mapping->a_ops = &ext2_aops;
-+}
-+
- struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
- {
- 	struct ext2_inode_info *ei;
-@@ -1480,14 +1495,7 @@ struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
- 		ei->i_data[n] = raw_inode->i_block[n];
- 
- 	if (S_ISREG(inode->i_mode)) {
--		inode->i_op = &ext2_file_inode_operations;
--		if (test_opt(inode->i_sb, NOBH)) {
--			inode->i_mapping->a_ops = &ext2_nobh_aops;
--			inode->i_fop = &ext2_file_operations;
--		} else {
--			inode->i_mapping->a_ops = &ext2_aops;
--			inode->i_fop = &ext2_file_operations;
--		}
-+		ext2_set_file_ops(inode);
- 	} else if (S_ISDIR(inode->i_mode)) {
- 		inode->i_op = &ext2_dir_inode_operations;
- 		inode->i_fop = &ext2_dir_operations;
-diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
-index e078075dc66f..55f7caadb093 100644
---- a/fs/ext2/namei.c
-+++ b/fs/ext2/namei.c
-@@ -107,14 +107,7 @@ static int ext2_create (struct inode * dir, struct dentry * dentry, umode_t mode
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
- 
--	inode->i_op = &ext2_file_inode_operations;
--	if (test_opt(inode->i_sb, NOBH)) {
--		inode->i_mapping->a_ops = &ext2_nobh_aops;
--		inode->i_fop = &ext2_file_operations;
--	} else {
--		inode->i_mapping->a_ops = &ext2_aops;
--		inode->i_fop = &ext2_file_operations;
--	}
-+	ext2_set_file_ops(inode);
- 	mark_inode_dirty(inode);
- 	return ext2_add_nondir(dentry, inode);
- }
-@@ -125,14 +118,7 @@ static int ext2_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
- 
--	inode->i_op = &ext2_file_inode_operations;
--	if (test_opt(inode->i_sb, NOBH)) {
--		inode->i_mapping->a_ops = &ext2_nobh_aops;
--		inode->i_fop = &ext2_file_operations;
--	} else {
--		inode->i_mapping->a_ops = &ext2_aops;
--		inode->i_fop = &ext2_file_operations;
--	}
-+	ext2_set_file_ops(inode);
- 	mark_inode_dirty(inode);
- 	d_tmpfile(dentry, inode);
- 	unlock_new_inode(inode);
+ 	n = ext2_block_to_path(inode, iblock, offsets, NULL);
+ 	if (n == 0)
 
 _______________________________________________
 Linux-nvdimm mailing list
