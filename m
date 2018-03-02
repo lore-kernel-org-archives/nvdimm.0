@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3BE652264D229
- for <linux-nvdimm@lists.01.org>; Mon, 12 Mar 2018 12:29:13 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 12 Mar 2018 13:35:19 -0600
-Message-Id: <20180312193525.2855-6-logang@deltatee.com>
-In-Reply-To: <20180312193525.2855-1-logang@deltatee.com>
-References: <20180312193525.2855-1-logang@deltatee.com>
-Subject: [PATCH v3 05/11] PCI/P2PDMA: Add P2P DMA driver writer's documentation
+ by ml01.01.org (Postfix) with ESMTPS id 6A26922546B8C
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:57:35 -0800 (PST)
+Subject: [PATCH v5 12/12] vfio: disable filesystem-dax page pinning
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 01 Mar 2018 19:54:39 -0800
+Message-ID: <151996287917.28483.16157329534570989926.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,247 +18,85 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Jonathan Corbet <corbet@lwn.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
+Cc: Michal Hocko <mhocko@suse.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alex Williamson <alex.williamson@redhat.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a restructured text file describing how to write drivers
-with support for P2P DMA transactions. The document describes
-how to use the APIs that were added in the previous few
-commits.
+Filesystem-DAX is incompatible with 'longterm' page pinning. Without
+page cache indirection a DAX mapping maps filesystem blocks directly.
+This means that the filesystem must not modify a file's block map while
+any page in a mapping is pinned. In order to prevent the situation of
+userspace holding of filesystem operations indefinitely, disallow
+'longterm' Filesystem-DAX mappings.
 
-Also adds an index for the PCI documentation tree even though this
-is the only PCI document that has ben converted to restructured text
-at this time.
+RDMA has the same conflict and the plan there is to add a 'with lease'
+mechanism to allow the kernel to notify userspace that the mapping is
+being torn down for block-map maintenance. Perhaps something similar can
+be put in place for vfio.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Note that xfs and ext4 still report:
+
+   "DAX enabled. Warning: EXPERIMENTAL, use at your own risk"
+
+...at mount time, and resolving the dax-dma-vs-truncate problem is one
+of the last hurdles to remove that designation.
+
+Acked-by: Alex Williamson <alex.williamson@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: kvm@vger.kernel.org
+Cc: <stable@vger.kernel.org>
+Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
+Tested-by: Haozhong Zhang <haozhong.zhang@intel.com>
+Fixes: d475c6346a38 ("dax,ext2: replace XIP read and write with DAX I/O")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/PCI/index.rst  |  14 ++++
- Documentation/PCI/p2pdma.rst | 164 +++++++++++++++++++++++++++++++++++++++++++
- Documentation/index.rst      |   3 +-
- 3 files changed, 180 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/PCI/index.rst
- create mode 100644 Documentation/PCI/p2pdma.rst
+ drivers/vfio/vfio_iommu_type1.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/PCI/index.rst b/Documentation/PCI/index.rst
-new file mode 100644
-index 000000000000..2fdc4b3c291d
---- /dev/null
-+++ b/Documentation/PCI/index.rst
-@@ -0,0 +1,14 @@
-+==================================
-+Linux PCI Driver Developer's Guide
-+==================================
-+
-+.. toctree::
-+
-+   p2pdma
-+
-+.. only::  subproject and html
-+
-+   Indices
-+   =======
-+
-+   * :ref:`genindex`
-diff --git a/Documentation/PCI/p2pdma.rst b/Documentation/PCI/p2pdma.rst
-new file mode 100644
-index 000000000000..d7edd48a3941
---- /dev/null
-+++ b/Documentation/PCI/p2pdma.rst
-@@ -0,0 +1,164 @@
-+============================
-+PCI Peer-to-Peer DMA Support
-+============================
-+
-+The PCI bus has pretty decent support for performing DMA transfers
-+between two endpoints on the bus. This type of transaction is
-+henceforth called Peer-to-Peer (or P2P). However, there are a number of
-+issues that make P2P transactions tricky to do in a perfectly safe way.
-+
-+One of the biggest issues is that PCI Root Complexes are not required
-+to support forwarding packets between Root Ports. To make things worse,
-+there is no simple way to determine if a given Root Complex supports
-+this or not. (See PCIe r4.0, sec 1.3.1). Therefore, as of this writing,
-+the kernel only supports doing P2P when the endpoints involved are all
-+behind a PCIe Switch as this guarantees the packets will always be routable.
-+
-+The second issue is that to make use of existing interfaces in Linux,
-+memory that is used for P2P transactions needs to be backed by struct
-+pages. However, PCI BARs are not typically cache coherent so there are
-+a few corner case gotchas with these pages so developers need to
-+be careful about what they do with them.
-+
-+
-+Driver Writer's Guide
-+====================
-+
-+In a given P2P implementation there may be three or more different
-+types of kernel drivers in play:
-+
-+* Providers - A driver which provides or publishes P2P resources like
-+  memory or doorbell registers to other drivers.
-+* Clients - A driver which makes use of a resource by setting up a
-+  DMA transaction to it.
-+* Orchestrators - A driver which orchestrates the flow of data between
-+  clients and providers
-+
-+In many cases there could be overlap between these three types (ie.
-+it may be typical for a driver to be both a provider and a client).
-+
-+For example, in the NVMe Target Copy Offload implementation:
-+
-+* The NVMe PCI driver is both a client, provider and orchestrator
-+  in that it exposes any CMB (Controller Memory Buffer) as a P2P memory
-+  resource (provider), it accepts P2P memory pages as buffers in requests
-+  to be used directly (client) and it can also make use the CMB as
-+  submission queue entries.
-+* The RDMA driver is a client in this arrangement so that an RNIC
-+  can DMA directly to the memory exposed by the NVME device.
-+* The NVMe Target driver (nvmet) can orchestrate the data from the RNIC
-+  to the P2P memory (CMB) and then to the NVMe device (and vice versa).
-+
-+This is currently the only arrangement supported by the kernel but
-+one could imagine slight tweaks to this that would allow for the same
-+functionality. For example, if a specific RNIC added a BAR with some
-+memory behind it, its driver could add support as a P2P provider and
-+then the NVMe Target could use the RNIC's memory instead of the CMB
-+in cases where the NVMe cards in use do not have CMB support.
-+
-+
-+Provider Drivers
-+----------------
-+
-+A provider simply needs to register a BAR (or a portion of a BAR)
-+as a P2P DMA resource using :c:func:`pci_p2pdma_add_resource()`.
-+This will register struct pages for all the specified memory.
-+
-+After that it may optionally publish all of its resources as
-+P2P memory using :c:func:`pci_p2pmem_publish()`. This will allow
-+any orchestrator drivers to find and use the memory. When marked in
-+this way, the resource must be regular memory with no side effects.
-+
-+For the time being this is fairly rudimentary in that all resources
-+are typically going to be P2P memory. Future work will likely expand
-+this to include other types of resources like doorbells.
-+
-+
-+Client Drivers
-+--------------
-+
-+A client driver typically only has to conditionally change its DMA map
-+routine to use the mapping functions :c:func:`pci_p2pdma_map_sg()` and
-+:c:func:`pci_p2pdma_unmap_sg()` instead of the usual :c:func:`dma_map_sg()`
-+functions.
-+
-+The client may also, optionally, make use of
-+:c:func:`is_pci_p2pdma_page()` to determine when to use the P2P mapping
-+functions and when to use the regular mapping functions. In some
-+situations, it may be more appropriate to use a flag to indicate a
-+given request is P2P memory and map appropriately (for example the
-+block layer uses a flag to keep P2P memory out of queues that do not
-+have P2P client support). It is important to ensure that struct pages that
-+back P2P memory stay out of code that does not have support for them.
-+
-+
-+Orchestrator Drivers
-+--------------------
-+
-+The first task an orchestrator driver must do is compile a list of
-+all client drivers that will be involved in a given transaction. For
-+example, the NVMe Target driver creates a list including all NVMe drives
-+and the RNIC in use. The list is stored as an anonymous struct
-+list_head which must be initialized with the usual INIT_LIST_HEAD.
-+The following functions may then be used to add to, remove from and free
-+the list of clients with the functions :c:func:`pci_p2pdma_add_client()`,
-+:c:func:`pci_p2pdma_remove_client()` and
-+:c:func:`pci_p2pdma_client_list_free()`.
-+
-+With the client list in hand, the orchestrator may then call
-+:c:func:`pci_p2pmem_find()` to obtain a published P2P memory provider
-+that is supported (behind the same switch) as all the clients. If more
-+than one provider is supported, the one nearest to all the clients will
-+be chosen first. If there are more than one provider is an equal distance
-+away, the one returned will be chosen at random. This function returns the PCI
-+device to use for the provider with a reference taken and therefore
-+when it's no longer needed it should be returned with pci_dev_put().
-+
-+Alternatively, if the orchestrator knows (via some other means)
-+which provider it wants to use it may use :c:func:`pci_has_p2pmem()`
-+to determine if it has P2P memory and :c:func:`pci_p2pdma_distance()`
-+to determine the cumulative distance between it and a potential
-+list of clients.
-+
-+With a supported provider in hand, the driver can then call
-+:c:func:`pci_p2pdma_assign_provider()` to assign the provider
-+to the client list. This function returns false if any of the
-+clients are unsupported by the provider.
-+
-+Once a provider is assigned to a client list via either
-+:c:func:`pci_p2pmem_find()` or :c:func:`pci_p2pdma_assign_provider()`,
-+the list is permanently bound to the provider such that any new clients
-+added to the list must be supported by the already selected provider.
-+If they are not supported, :c:func:`pci_p2pdma_add_client()` will return
-+an error. In this way, orchestrators are free to add and remove devices
-+without having to recheck support or tear down existing transfers to
-+change P2P providers.
-+
-+Once a provider is selected, the orchestrator can then use
-+:c:func:`pci_alloc_p2pmem()` and :c:func:`pci_free_p2pmem()` to
-+allocate P2P memory from the provider. :c:func:`pci_p2pmem_alloc_sgl()`
-+and :c:func:`pci_p2pmem_free_sgl()` are convenience functions for
-+allocating scatter-gather lists with P2P memory.
-+
-+Struct Page Caveats
-+-------------------
-+
-+Driver writers should be very careful about not passing these special
-+struct pages to code that isn't prepared for it. At this time, the kernel
-+interfaces do not have any checks for ensuring this. This obviously
-+precludes passing these pages to userspace.
-+
-+P2P memory is also technically IO memory but should never have any side
-+effects behind it. Thus, the order of loads and stores should not be important
-+and ioreadX(), iowriteX() and friends should not be necessary.
-+However, as the memory is not cache coherent, if access ever needs to
-+be protected by a spinlock then :c:func:`mmiowb()` must be used before
-+unlocking the lock. (See ACQUIRES VS I/O ACCESSES in
-+Documentation/memory-barriers.txt)
-+
-+
-+P2P DMA API Functions
-+=====================
-+
-+.. kernel-doc:: drivers/pci/p2pdma.c
-+   :export:
-diff --git a/Documentation/index.rst b/Documentation/index.rst
-index ef5080cbf009..c31bf0918413 100644
---- a/Documentation/index.rst
-+++ b/Documentation/index.rst
-@@ -45,7 +45,7 @@ the kernel interface as seen by application developers.
- .. toctree::
-    :maxdepth: 2
+diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type1.c
+index e30e29ae4819..45657e2b1ff7 100644
+--- a/drivers/vfio/vfio_iommu_type1.c
++++ b/drivers/vfio/vfio_iommu_type1.c
+@@ -338,11 +338,12 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned long vaddr,
+ {
+ 	struct page *page[1];
+ 	struct vm_area_struct *vma;
++	struct vm_area_struct *vmas[1];
+ 	int ret;
  
--   userspace-api/index	      
-+   userspace-api/index
+ 	if (mm == current->mm) {
+-		ret = get_user_pages_fast(vaddr, 1, !!(prot & IOMMU_WRITE),
+-					  page);
++		ret = get_user_pages_longterm(vaddr, 1, !!(prot & IOMMU_WRITE),
++					      page, vmas);
+ 	} else {
+ 		unsigned int flags = 0;
  
+@@ -351,7 +352,18 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned long vaddr,
  
- Introduction to kernel development
-@@ -88,6 +88,7 @@ needed).
-    sound/index
-    crypto/index
-    filesystems/index
-+   PCI/index
+ 		down_read(&mm->mmap_sem);
+ 		ret = get_user_pages_remote(NULL, mm, vaddr, 1, flags, page,
+-					    NULL, NULL);
++					    vmas, NULL);
++		/*
++		 * The lifetime of a vaddr_get_pfn() page pin is
++		 * userspace-controlled. In the fs-dax case this could
++		 * lead to indefinite stalls in filesystem operations.
++		 * Disallow attempts to pin fs-dax pages via this
++		 * interface.
++		 */
++		if (ret > 0 && vma_is_fsdax(vmas[0])) {
++			ret = -EOPNOTSUPP;
++			put_page(page[0]);
++		}
+ 		up_read(&mm->mmap_sem);
+ 	}
  
- Architecture-specific documentation
- -----------------------------------
--- 
-2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
