@@ -1,17 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
+ [IPv6:2607:f8b0:4003:c06::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 035CC209574EE
- for <linux-nvdimm@lists.01.org>; Thu,  8 Mar 2018 16:14:32 -0800 (PST)
-Date: Thu, 8 Mar 2018 17:20:48 -0700
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH] loop: Fix lost writes caused by missing flag
-Message-ID: <20180309002048.GA22835@linux.intel.com>
-References: <20180212230558.5546-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C3BB021F0DA76
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Mar 2018 18:13:07 -0800 (PST)
+Received: by mail-oi0-x243.google.com with SMTP id u73so8433470oie.3
+ for <linux-nvdimm@lists.01.org>; Fri, 02 Mar 2018 18:19:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180212230558.5546-1-ross.zwisler@linux.intel.com>
+In-Reply-To: <CAPcyv4jM=N=wjnK4gWxHu0Fk9VXnfReLf6shW6mbzvf3sahjrQ@mail.gmail.com>
+References: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180302221020.GA30722@lst.de>
+ <CAPcyv4gKyvkHY_qQTYvd8wrLpaXXciJyWZY+9T7Q_Eg-Zuxpgw@mail.gmail.com>
+ <20180302225734.GE31240@lst.de>
+ <CAPcyv4jM=N=wjnK4gWxHu0Fk9VXnfReLf6shW6mbzvf3sahjrQ@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 2 Mar 2018 18:19:16 -0800
+Message-ID: <CAPcyv4iZ3QCR5qjvEdBEZ3PikEujJbWK62TiKoceEoG2N+dUzw@mail.gmail.com>
+Subject: Re: [PATCH v5 00/12] vfio, dax: prevent long term filesystem-dax pins
+ and other fixes
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,82 +30,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Jens Axboe <axboe@kernel.dk>
-Cc: stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-nvdimm@lists.01.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, KVM list <kvm@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Alex Williamson <alex.williamson@redhat.com>, Gerd Rausch <gerd.rausch@oracle.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This has gotten Reviewed-by tags from Christoph and Ming Lei.
+On Fri, Mar 2, 2018 at 3:49 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Fri, Mar 2, 2018 at 2:57 PM, Christoph Hellwig <hch@lst.de> wrote:
+>> On Fri, Mar 02, 2018 at 02:21:40PM -0800, Dan Williams wrote:
+>>> They are indeed a hodge-podge. The problem is that the current
+>>> IS_DAX() is broken. So I'd like to propose fixing IS_DAX() with
+>>> IS_FSDAX() + IS_DEVDAX() for 4.16-rc4 and queue up these wider reworks
+>>> you propose for the next merge window.
+>>
+>> The only thing broken about IS_DAX are the code elimination games
+>> based on the CONFIG_* flags.  Remove those and just add proper stubs
+>> for the dax routines and everything will be fine for now until we can
+>> kill that inode flag.
+>>
+>> IS_FSDAX and IS_DEVDAX on the other hand are a giant mess that isn't
+>> helping anyone.
+>
+> Ok, I'll take another shot at something suitable for 4.16, but without
+> these new helpers...
 
-Al, are you the right person to merge this?  Or is the correct person Jens,
-whom I accidentally didn't include when I sent this out?
-
-Just wanted to make sure this got merged, and to see whether it was targeting
-v4.16 or v4.17.
-
-Thanks,
-- Ross
-
-On Mon, Feb 12, 2018 at 04:05:58PM -0700, Ross Zwisler wrote:
-> The following commit:
-> 
-> commit aa4d86163e4e ("block: loop: switch to VFS ITER_BVEC")
-> 
-> replaced __do_lo_send_write(), which used ITER_KVEC iterators, with
-> lo_write_bvec() which uses ITER_BVEC iterators.  In this change, though,
-> the WRITE flag was lost:
-> 
-> -       iov_iter_kvec(&from, ITER_KVEC | WRITE, &kvec, 1, len);
-> +       iov_iter_bvec(&i, ITER_BVEC, bvec, 1, bvec->bv_len);
-> 
-> This flag is necessary for the DAX case because we make decisions based on
-> whether or not the iterator is a READ or a WRITE in dax_iomap_actor() and
-> in dax_iomap_rw().
-> 
-> We end up going through this path in configurations where we combine a PMEM
-> device with 4k sectors, a loopback device and DAX.  The consequence of this
-> missed flag is that what we intend as a write actually turns into a read in
-> the DAX code, so no data is ever written.
-> 
-> The very simplest test case is to create a loopback device and try and
-> write a small string to it, then hexdump a few bytes of the device to see
-> if the write took.  Without this patch you read back all zeros, with this
-> you read back the string you wrote.
-> 
-> For XFS this causes us to fail or panic during the following xfstests:
-> 
-> 	xfs/074 xfs/078 xfs/216 xfs/217 xfs/250
-> 
-> For ext4 we have a similar issue where writes never happen, but we don't
-> currently have any xfstests that use loopback and show this issue.
-> 
-> Fix this by restoring the WRITE flag argument to iov_iter_bvec().  This
-> causes the xfstests to all pass.
-> 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Fixes: commit aa4d86163e4e ("block: loop: switch to VFS ITER_BVEC")
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Al Viro <viro@zeniv.linux.org.uk>
-> Cc: stable@vger.kernel.org
-> ---
->  drivers/block/loop.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/block/loop.c b/drivers/block/loop.c
-> index d5fe720cf149..89d2ee00cced 100644
-> --- a/drivers/block/loop.c
-> +++ b/drivers/block/loop.c
-> @@ -266,7 +266,7 @@ static int lo_write_bvec(struct file *file, struct bio_vec *bvec, loff_t *ppos)
->  	struct iov_iter i;
->  	ssize_t bw;
->  
-> -	iov_iter_bvec(&i, ITER_BVEC, bvec, 1, bvec->bv_len);
-> +	iov_iter_bvec(&i, ITER_BVEC | WRITE, bvec, 1, bvec->bv_len);
->  
->  	file_start_write(file);
->  	bw = vfs_iter_write(file, &i, ppos, 0);
-> -- 
-> 2.14.3
-> 
+I'll drop patches 2-11 for now, and just get the high priority fixes
+in for the next rc.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
