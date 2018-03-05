@@ -1,9 +1,10 @@
-From: "The Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: report
-Date: Mon, 5 Mar 2018 11:32:02 +0800
-Message-ID: <20180305032554.DF3F221F6A6D0@ml01.01.org>
+From: =?utf-8?B?5aec5qaG6Zuq?= <xkcbcdz-Qo48iF3vxJE@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+ROi8g55So5Lq65Y2V5L2N5b+F5aSH5ZCI5ZCM5rOV55+l6K+G?=
+Date: Tue, 6 Mar 2018 02:39:26 +0800
+Message-ID: <3293055511F56D92F13200581821AD56@zfkm.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0567018648962044963=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,33 +18,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============0567018648962044963==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-<²%£¼eyÉiÒ45ÓN3ð':¬%¿Ô p’wP°EÊ§Oâ¤:Ö²•-Ô¥
-·A·Í£:¡{ÐDÃ”¡ëgOá(E?Dñê7“˜ÔRmìÁ`:Ãõš÷¸JþÊnÆÅ
-!À'µwÔd­›ò~ñ—lpðòE¼¢iMA»«
-º0Wh„¯‹Ù<z-§2ñ»Ú
-àåê?1".WVÆIæîP"‰¹),ìÓöü¨sÓ¸|
-rRÑpâ/’°|™ó?w£ô.Fí©™GCY™e³V‰H”ÖDƒ-ÖC<œU#p8ËÖSl³9¨ºA•nd·°±}ø¤'š˜u)œ/¼`ËñGû¿#•z¢Z3’\
- BB¡±L
-²Y389
-Cõ‡ 
-
-
---===============0567018648962044963==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============0567018648962044963==--
+bGludXgtbnZkaW1tLy8gDQror6Yt57uGIC3lhoUgLeWuuSAgLeivtyAgLemYhSAgLeivuyAgLemZ
+hCAt5Lu2DQoyMDE4LTMtNgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
+cmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
