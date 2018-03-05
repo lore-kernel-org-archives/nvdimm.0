@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
+ [IPv6:2607:f8b0:4003:c06::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 46A6622485A9D
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:56:41 -0800 (PST)
-Subject: [PATCH v5 02/12] dax: introduce IS_DEVDAX() and IS_FSDAX()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Mar 2018 19:53:44 -0800
-Message-ID: <151996282448.28483.10415125852182473579.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 85C1422283527
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 15:06:25 -0800 (PST)
+Received: by mail-oi0-x241.google.com with SMTP id b8so13420825oib.11
+ for <linux-nvdimm@lists.01.org>; Mon, 05 Mar 2018 15:12:39 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <151977844514.31131.543078368987798636.stgit@djiang5-desk3.ch.intel.com>
+References: <151977844514.31131.543078368987798636.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 5 Mar 2018 15:12:37 -0800
+Message-ID: <CAPcyv4jYpZ-6WmB+V1s-onjEE4m1DDkSAQ4XF=Cpx1-vCOt8kQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ndctl: add check for update firmware supported
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,81 +25,141 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, hch@lst.de
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The current IS_DAX() helper that checks if a file is in DAX mode serves
-two purposes. It is a control flow branch condition for DAX vs
-non-DAX paths and it is a mechanism to perform dead code elimination. The
-dead code elimination is required in the CONFIG_FS_DAX=n case since
-there are symbols in fs/dax.c that will be elided. While the
-dead code elimination can be addressed with nop stubs for the fs/dax.c
-symbols that does not address the need for a DAX control flow helper
-where fs/dax.c symbols are not involved.
+On Tue, Feb 27, 2018 at 4:40 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Adding generic and intel support function to allow check if update firmware
+> is supported by the kernel.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  ndctl/lib/firmware.c   |   11 +++++++++++
+>  ndctl/lib/intel.c      |   24 ++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym |    1 +
+>  ndctl/lib/private.h    |    1 +
+>  ndctl/libndctl.h       |    1 +
+>  ndctl/update.c         |    4 ++++
+>  6 files changed, 42 insertions(+)
+>
+> diff --git a/ndctl/lib/firmware.c b/ndctl/lib/firmware.c
+> index f6deec5d..78d753ca 100644
+> --- a/ndctl/lib/firmware.c
+> +++ b/ndctl/lib/firmware.c
+> @@ -107,3 +107,14 @@ ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd)
+>         else
+>                 return FW_EUNKNOWN;
+>  }
+> +
+> +NDCTL_EXPORT bool
+> +ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm)
+> +{
+> +       struct ndctl_dimm_ops *ops = dimm->ops;
+> +
+> +       if (ops && ops->fw_update_supported)
+> +               return ops->fw_update_supported(dimm);
+> +       else
+> +               return false;
 
-Moreover, the control flow changes, in some cases, need to be cognizant
-of whether the DAX file is a typical file or a Device-DAX special file.
-Introduce IS_DEVDAX() and IS_FSDAX() to simultaneously address the
-file-type control flow and dead-code elimination use cases. IS_DAX()
-will be deleted after all sites are converted to use the file-type
-specific helper.
+My concern with "bool" is that upper level software can't tell the
+difference between firmware update support missing from the library,
+for example on HPE or MSFT command family DIMMs, or firmware update
+support missing in the kernel or platform BIOS. Let's make this an
+integer with ENOTTY for the case when (ops->fw_update_supported ==
+NULL), and EOPNOTSUPP for the case when the support cannot be found by
+->fw_update_supported().
 
-Note, this change is also a pre-requisite for fixing the definition of
-the S_DAX inode flag in the CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y case.
-The flag needs to be defined, non-zero, if either DAX facility is
-enabled.
+> +}
+> diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+> index cee5204c..7d976c50 100644
+> --- a/ndctl/lib/intel.c
+> +++ b/ndctl/lib/intel.c
+> @@ -650,6 +650,29 @@ intel_dimm_cmd_new_lss(struct ndctl_dimm *dimm)
+>         return cmd;
+>  }
+>
+> +static bool intel_dimm_fw_update_supported(struct ndctl_dimm *dimm)
+> +{
+> +       struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+> +
+> +       if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL)) {
+> +               dbg(ctx, "unsupported cmd: %d\n", ND_CMD_CALL);
+> +               return false;
+> +       }
+> +
+> +       /*
+> +        * We only need to check FW_GET_INFO. If that isn't supported then
+> +        * the others aren't either.
+> +        */
+> +       if (test_dimm_dsm(dimm, ND_INTEL_FW_GET_INFO)
+> +                       == DIMM_DSM_UNSUPPORTED) {
+> +               dbg(ctx, "unsupported function: %d\n",
+> +                               ND_INTEL_FW_GET_INFO);
+> +               return false;
+> +       }
+> +
+> +       return true;
+> +}
+> +
+>  struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
+>         .cmd_desc = intel_cmd_desc,
+>         .new_smart = intel_dimm_cmd_new_smart,
+> @@ -703,4 +726,5 @@ struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
+>         .fw_fquery_get_fw_rev = intel_cmd_fw_fquery_get_fw_rev,
+>         .fw_xlat_firmware_status = intel_cmd_fw_xlat_firmware_status,
+>         .new_ack_shutdown_count = intel_dimm_cmd_new_lss,
+> +       .fw_update_supported = intel_dimm_fw_update_supported,
+>  };
+> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+> index af9b7d54..cc580f9c 100644
+> --- a/ndctl/lib/libndctl.sym
+> +++ b/ndctl/lib/libndctl.sym
+> @@ -344,4 +344,5 @@ global:
+>         ndctl_cmd_fw_fquery_get_fw_rev;
+>         ndctl_cmd_fw_xlat_firmware_status;
+>         ndctl_dimm_cmd_new_ack_shutdown_count;
+> +       ndctl_dimm_fw_update_supported;
+>  } LIBNDCTL_13;
+> diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+> index 015eeb2d..ae4454cf 100644
+> --- a/ndctl/lib/private.h
+> +++ b/ndctl/lib/private.h
+> @@ -325,6 +325,7 @@ struct ndctl_dimm_ops {
+>         unsigned long long (*fw_fquery_get_fw_rev)(struct ndctl_cmd *);
+>         enum ND_FW_STATUS (*fw_xlat_firmware_status)(struct ndctl_cmd *);
+>         struct ndctl_cmd *(*new_ack_shutdown_count)(struct ndctl_dimm *);
+> +       bool (*fw_update_supported)(struct ndctl_dimm *);
+>  };
+>
+>  struct ndctl_dimm_ops * const intel_dimm_ops;
+> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+> index 9db775ba..08030d35 100644
+> --- a/ndctl/libndctl.h
+> +++ b/ndctl/libndctl.h
+> @@ -625,6 +625,7 @@ unsigned int ndctl_cmd_fw_start_get_context(struct ndctl_cmd *cmd);
+>  unsigned long long ndctl_cmd_fw_fquery_get_fw_rev(struct ndctl_cmd *cmd);
+>  enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
+>  struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
+> +bool ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
+>
+>  #ifdef __cplusplus
+>  } /* extern "C" */
+> diff --git a/ndctl/update.c b/ndctl/update.c
+> index 0f0f0d81..72f5839b 100644
+> --- a/ndctl/update.c
+> +++ b/ndctl/update.c
+> @@ -454,6 +454,10 @@ static int get_ndctl_dimm(struct update_context *uctx, void *ctx)
+>                 ndctl_dimm_foreach(bus, dimm) {
+>                         if (!util_dimm_filter(dimm, uctx->dimm_id))
+>                                 continue;
+> +                       if (!ndctl_dimm_fw_update_supported(dimm)) {
+> +                               error("DIMM firmware update not supported by the kernel.");
 
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: linux-xfs@vger.kernel.org
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: <stable@vger.kernel.org>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Reported-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/fs.h |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
-
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 79c413985305..bd0c46880572 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1909,6 +1909,28 @@ static inline bool sb_rdonly(const struct super_block *sb) { return sb->s_flags
- #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
- 				 (inode)->i_rdev == WHITEOUT_DEV)
- 
-+static inline bool IS_DEVDAX(struct inode *inode)
-+{
-+	if (!IS_ENABLED(CONFIG_DEV_DAX))
-+		return false;
-+	if ((inode->i_flags & S_DAX) == 0)
-+		return false;
-+	if (!S_ISCHR(inode->i_mode))
-+		return false;
-+	return true;
-+}
-+
-+static inline bool IS_FSDAX(struct inode *inode)
-+{
-+	if (!IS_ENABLED(CONFIG_FS_DAX))
-+		return false;
-+	if ((inode->i_flags & S_DAX) == 0)
-+		return false;
-+	if (S_ISCHR(inode->i_mode))
-+		return false;
-+	return true;
-+}
-+
- static inline bool HAS_UNMAPPED_ID(struct inode *inode)
- {
- 	return !uid_valid(inode->i_uid) || !gid_valid(inode->i_gid);
-
+This is not always true. Consider the case where the kernel has the
+support but the platform BIOS does not correct. Let's differentiate
+not supported by libndctl vs not supported by the current
+platform-firmware + kernel combination.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
