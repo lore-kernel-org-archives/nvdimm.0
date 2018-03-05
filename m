@@ -1,10 +1,9 @@
-From: "luca" <luca-+rmqm0+pkOs@public.gmane.org>
-Subject: Cheap Air Jordans Retro/Michael Kors Sale
-Date: 3 Mar 2018 04:47:02 +0800
-Message-ID: <20180302204109.6191221E082B6@ml01.01.org>
+From: "The Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: report
+Date: Mon, 5 Mar 2018 11:32:02 +0800
+Message-ID: <20180305032554.DF3F221F6A6D0@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0567018648962044963=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,21 +17,33 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-PEgxPkNoZWFwIEFpciBKb3JkYW5zIFJldHJvIFNhbGU8L0gxPg0KPEgzPlJlYWwgQ2hlYXAgQWly
-IEpvcmRhbnMgUmV0cm8gU2FsZSBmb3IgTWVuLCBXb21lbiBhbmQgS2lkcy4gQnV5IENoZWFwIEF1
-dGhlbnRpYyBOaWtlIEpvcmRhbiBTaG9lcywgQWlyIEpvcmRhbnMgUmV0cm8gT25saW5lIHdpdGgg
-VG9wIFF1YWxpdHkgYW5kIEZyZWUgU2hpcHBpbmchPC9IMz48QSBocmVmPSJodHRwOi8vd3d3Lmpv
-cmRhbmNoZWFwc2FsZS5jb20vP2lkPWVkbSZhbXA7aW1nPTEiPjxJTUcgc3JjPSJodHRwOi8vd3d3
-LmpvcmRhbmNoZWFwc2FsZS5jb20vaW5jbHVkZXMvdGVtcGxhdGVzL3RlbXBsYXRlX2RlZmF1bHQv
-aW1hZ2VzL2hiMS5wbmciPjwvQT4gDQo8SDM+PEEgaHJlZj0iaHR0cDovL3d3dy5qb3JkYW5jaGVh
-cHNhbGUuY29tLz9pZD1lZG0iPmh0dHA6Ly93d3cuam9yZGFuY2hlYXBzYWxlLmNvbS88L0E+PC9I
-Mz4NCjxIMT5NaWNoYWVsIEtvcnMgT3V0bGV0IOKAkyBTYWxlIE9ubGluZTwvSDE+DQo8SDM+PEEg
-aHJlZj0iaHR0cDovL3d3dy5iYWdza29yc21pY2hhZWwuY29tLz9pZD1lZG0iPmh0dHA6Ly93d3cu
-YmFnc2tvcnNtaWNoYWVsLmNvbTwvQT48L0gzPg0KPEgzPjxBIGhyZWY9Imh0dHA6Ly93d3cuYmFn
-c2tvcnNtaWNoYWVsLmNvbS8/aWQ9ZWRtJmFtcDtpbWc9MiI+PElNRyBzcmM9Imh0dHA6Ly93d3cu
-YmFnc2tvcnNtaWNoYWVsLmNvbS9pbWFnZXMvMi5qcGciPjwvQT48L0gzPg0KPEgzPjxBIGhyZWY9
-Imh0dHA6Ly93d3cuYmFnc2tvcnNtaWNoYWVsLmNvbS8/aWQ9ZWRtIj5odHRwOi8vd3d3LmJhZ3Nr
-b3JzbWljaGFlbC5jb208L0E+PC9IMz4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+This is a multi-part message in MIME format.
+
+--===============0567018648962044963==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<²%£¼eyÉiÒ45ÓN3ð':¬%¿Ô p’wP°EÊ§Oâ¤:Ö²•-Ô¥
+·A·Í£:¡{ÐDÃ”¡ëgOá(E?Dñê7“˜ÔRmìÁ`:Ãõš÷¸JþÊnÆÅ
+!À'µwÔd­›ò~ñ—lpðòE¼¢iMA»«
+º0Wh„¯‹Ù<z-§2ñ»Ú
+àåê?1".WVÆIæîP"‰¹),ìÓöü¨sÓ¸|
+rRÑpâ/’°|™ó?w£ô.Fí©™GCY™e³V‰H”ÖDƒ-ÖC<œU#p8ËÖSl³9¨ºA•nd·°±}ø¤'š˜u)œ/¼`ËñGû¿#•z¢Z3’\
+ BB¡±L
+²Y389
+Cõ‡ 
+
+
+--===============0567018648962044963==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============0567018648962044963==--
