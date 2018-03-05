@@ -1,23 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from EUR01-DB5-obe.outbound.protection.outlook.com
- (mail-db5eur01on0069.outbound.protection.outlook.com [104.47.2.69])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mail-wm0-f66.google.com (mail-wm0-f66.google.com [74.125.82.66])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A676220955F24
- for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 12:04:55 -0800 (PST)
-Date: Mon, 5 Mar 2018 13:10:53 -0700
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH v2 07/10] nvme-pci: Use PCI p2pmem subsystem to manage
- the CMB
-Message-ID: <20180305201053.GK11337@mellanox.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9C2F721E0828B
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 11:51:22 -0800 (PST)
+Received: by mail-wm0-f66.google.com with SMTP id t3so18315190wmc.2
+ for <linux-nvdimm@lists.01.org>; Mon, 05 Mar 2018 11:57:35 -0800 (PST)
+Subject: Re: [PATCH v2 07/10] nvme-pci: Use PCI p2pmem subsystem to manage the
+ CMB
 References: <20180228234006.21093-1-logang@deltatee.com>
  <20180228234006.21093-8-logang@deltatee.com>
  <CAOSf1CEj1vmLLd27-642=XSnL9ODkpEC0qLHA2_W5_7rV5+4Pg@mail.gmail.com>
  <20180305160004.GA30975@localhost.localdomain>
- <36c78987-006a-a97f-1d18-b0a08cbea9d4@grimberg.me>
+From: Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <36c78987-006a-a97f-1d18-b0a08cbea9d4@grimberg.me>
+Date: Mon, 5 Mar 2018 21:57:27 +0200
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <36c78987-006a-a97f-1d18-b0a08cbea9d4@grimberg.me>
+In-Reply-To: <20180305160004.GA30975@localhost.localdomain>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,82 +25,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: Jens Axboe <axboe@kernel.dk>, linux-block@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Keith Busch <keith.busch@intel.com>, Oliver <oohall@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Mar 05, 2018 at 09:57:27PM +0200, Sagi Grimberg wrote:
 
-> Keith, while we're on this, regardless of cmb, is SQE memcopy and DB update
-> ordering always guaranteed?
+>>> -       if (nvmeq->sq_cmds_io)
+>>> -               memcpy_toio(&nvmeq->sq_cmds_io[tail], cmd, sizeof(*cmd));
+>>> -       else
+>>> -               memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
+>>> +       memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
+>>
+>> Hmm, how safe is replacing memcpy_toio() with regular memcpy()? On PPC
+>> the _toio() variant enforces alignment, does the copy with 4 byte
+>> stores, and has a full barrier after the copy. In comparison our
+>> regular memcpy() does none of those things and may use unaligned and
+>> vector load/stores. For normal (cacheable) memory that is perfectly
+>> fine, but they can cause alignment faults when targeted at MMIO
+>> (cache-inhibited) memory.
+>>
+>> I think in this particular case it might be ok since we know SEQs are
+>> aligned to 64 byte boundaries and the copy is too small to use our
+>> vectorised memcpy(). I'll assume we don't need explicit ordering
+>> between writes of SEQs since the existing code doesn't seem to care
+>> unless the doorbell is being rung, so you're probably fine there too.
+>> That said, I still think this is a little bit sketchy and at the very
+>> least you should add a comment explaining what's going on when the CMB
+>> is being used. If someone more familiar with the NVMe driver could
+>> chime in I would appreciate it.
 > 
-> If you look at mlx4 (rdma device driver) that works exactly the same as
-> nvme you will find:
-> --
->                 qp->sq.head += nreq;
+> I may not be understanding the concern, but I'll give it a shot.
 > 
->                 /*
->                  * Make sure that descriptors are written before
->                  * doorbell record.
->                  */
->                 wmb();
+> You're right, the start of any SQE is always 64-byte aligned, so that
+> should satisfy alignment requirements.
 > 
->                 writel(qp->doorbell_qpn,
->                        to_mdev(ibqp->device)->uar_map + MLX4_SEND_DOORBELL);
+> The order when writing multiple/successive SQEs in a submission queue
+> does matter, and this is currently serialized through the q_lock.
 > 
->                 /*
->                  * Make sure doorbells don't leak out of SQ spinlock
->                  * and reach the HCA out of order.
->                  */
->                 mmiowb();
-> --
+> The order in which the bytes of a single SQE is written doesn't really
+> matter as long as the entire SQE is written into the CMB prior to writing
+> that SQ's doorbell register.
 > 
-> That seems to explicitly make sure to place a barrier before updating
-> the doorbell. So as I see it, either ordering is guaranteed and the
-> above code is redundant, or nvme needs to do the same.
+> The doorbell register is written immediately after copying a command
+> entry into the submission queue (ignore "shadow buffer" features),
+> so the doorbells written to commands submitted is 1:1.
+> 
+> If a CMB SQE and DB order is not enforced with the memcpy, then we do
+> need a barrier after the SQE's memcpy and before the doorbell's writel.
 
-A wmb() is always required before operations that can trigger DMA.
+Keith, while we're on this, regardless of cmb, is SQE memcopy and DB 
+update ordering always guaranteed?
 
-The reason ARM has a barrier in writel() is not to make it ordered
-with respect to CPU stores to cachable memory, but to make it ordered
-with respect to *other* writels.
+If you look at mlx4 (rdma device driver) that works exactly the same as
+nvme you will find:
+--
+                 qp->sq.head += nreq;
 
-Eg Linux defines this:
+                 /*
+                  * Make sure that descriptors are written before
+                  * doorbell record.
+                  */
+                 wmb();
 
-writel(A, mem);
-writel(B, mem);
+                 writel(qp->doorbell_qpn,
+                        to_mdev(ibqp->device)->uar_map + 
+MLX4_SEND_DOORBELL);
 
-To always produce two TLPs on PCI-E when mem is UC BAR memory.
+                 /*
+                  * Make sure doorbells don't leak out of SQ spinlock
+                  * and reach the HCA out of order.
+                  */
+                 mmiowb();
+--
 
-And ARM cannot guarentee that without the extra barrier.
+That seems to explicitly make sure to place a barrier before updating
+the doorbell. So as I see it, either ordering is guaranteed and the
+above code is redundant, or nvme needs to do the same.
 
-So now we see stuff like this:
-
-writel_relaxed(A, mem);
-writel_relaxed(B, mem+4);
-
-Which says the TLPs to A and B can be issued in any order..
-
-So when reading the above mlx code, we see the first wmb() being used
-to ensure that CPU stores to cachable memory are visible to the DMA
-triggered by the doorbell ring.
-
-The mmiowb() is used to ensure that DB writes are not combined and not
-issued in any order other than implied by the lock that encloses the
-whole thing. This is needed because uar_map is WC memory.
-
-We don't have ordering with respect to two writel's here, so if ARM
-performance was a concern the writel could be switched to
-writel_relaxed().
-
-Presumably nvme has similar requirments, although I guess the DB
-register is mapped UC not WC?
-
-Jason
+Thoughts?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
