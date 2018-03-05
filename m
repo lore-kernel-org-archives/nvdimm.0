@@ -1,22 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from smtp.codeaurora.org (smtp.codeaurora.org [198.145.29.96])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0445021E08297
- for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 09:56:47 -0800 (PST)
-Subject: Re: [PATCH v2 07/10] nvme-pci: Use PCI p2pmem subsystem to manage the
- CMB
+ by ml01.01.org (Postfix) with ESMTPS id 0753A223CDC10
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 09:04:45 -0800 (PST)
 References: <20180228234006.21093-1-logang@deltatee.com>
  <20180228234006.21093-8-logang@deltatee.com>
  <CAOSf1CEj1vmLLd27-642=XSnL9ODkpEC0qLHA2_W5_7rV5+4Pg@mail.gmail.com>
  <20180305160004.GA30975@localhost.localdomain>
- <3f56c76d-6a5c-7c2f-5442-c9209749b598@deltatee.com>
-From: Sinan Kaya <okaya@codeaurora.org>
-Message-ID: <f4f69d48-97b2-ebeb-6c97-83878ea4c419@codeaurora.org>
-Date: Mon, 5 Mar 2018 13:02:57 -0500
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <3f56c76d-6a5c-7c2f-5442-c9209749b598@deltatee.com>
+Date: Mon, 5 Mar 2018 10:10:41 -0700
 MIME-Version: 1.0
-In-Reply-To: <3f56c76d-6a5c-7c2f-5442-c9209749b598@deltatee.com>
+In-Reply-To: <20180305160004.GA30975@localhost.localdomain>
 Content-Language: en-US
+Subject: Re: [PATCH v2 07/10] nvme-pci: Use PCI p2pmem subsystem to manage the
+ CMB
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,100 +23,92 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>, Keith Busch <keith.busch@intel.com>, Oliver <oohall@gmail.com>
+To: Keith Busch <keith.busch@intel.com>, Oliver <oohall@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gMy81LzIwMTggMTI6MTAgUE0sIExvZ2FuIEd1bnRob3JwZSB3cm90ZToKPiAKPiAKPiBPbiAw
-NS8wMy8xOCAwOTowMCBBTSwgS2VpdGggQnVzY2ggd3JvdGU6Cj4+IE9uIE1vbiwgTWFyIDA1LCAy
-MDE4IGF0IDEyOjMzOjI5UE0gKzExMDAsIE9saXZlciB3cm90ZToKPj4+IE9uIFRodSwgTWFyIDEs
-IDIwMTggYXQgMTA6NDAgQU0sIExvZ2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4g
-d3JvdGU6Cj4+Pj4gQEAgLTQyOSwxMCArNDI5LDcgQEAgc3RhdGljIHZvaWQgX19udm1lX3N1Ym1p
-dF9jbWQoc3RydWN0IG52bWVfcXVldWUgKm52bWVxLAo+Pj4+IMKgIHsKPj4+PiDCoMKgwqDCoMKg
-wqDCoMKgIHUxNiB0YWlsID0gbnZtZXEtPnNxX3RhaWw7Cj4+Pgo+Pj4+IC3CoMKgwqDCoMKgwqAg
-aWYgKG52bWVxLT5zcV9jbWRzX2lvKQo+Pj4+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IG1lbWNweV90b2lvKCZudm1lcS0+c3FfY21kc19pb1t0YWlsXSwgY21kLCBzaXplb2YoKmNtZCkp
-Owo+Pj4+IC3CoMKgwqDCoMKgwqAgZWxzZQo+Pj4+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgIG1lbWNweSgmbnZtZXEtPnNxX2NtZHNbdGFpbF0sIGNtZCwgc2l6ZW9mKCpjbWQpKTsKPj4+
-PiArwqDCoMKgwqDCoMKgIG1lbWNweSgmbnZtZXEtPnNxX2NtZHNbdGFpbF0sIGNtZCwgc2l6ZW9m
-KCpjbWQpKTsKPj4+Cj4+PiBIbW0sIGhvdyBzYWZlIGlzIHJlcGxhY2luZyBtZW1jcHlfdG9pbygp
-IHdpdGggcmVndWxhciBtZW1jcHkoKT8gT24gUFBDCj4+PiB0aGUgX3RvaW8oKSB2YXJpYW50IGVu
-Zm9yY2VzIGFsaWdubWVudCwgZG9lcyB0aGUgY29weSB3aXRoIDQgYnl0ZQo+Pj4gc3RvcmVzLCBh
-bmQgaGFzIGEgZnVsbCBiYXJyaWVyIGFmdGVyIHRoZSBjb3B5LiBJbiBjb21wYXJpc29uIG91cgo+
-Pj4gcmVndWxhciBtZW1jcHkoKSBkb2VzIG5vbmUgb2YgdGhvc2UgdGhpbmdzIGFuZCBtYXkgdXNl
-IHVuYWxpZ25lZCBhbmQKPj4+IHZlY3RvciBsb2FkL3N0b3Jlcy4gRm9yIG5vcm1hbCAoY2FjaGVh
-YmxlKSBtZW1vcnkgdGhhdCBpcyBwZXJmZWN0bHkKPj4+IGZpbmUsIGJ1dCB0aGV5IGNhbiBjYXVz
-ZSBhbGlnbm1lbnQgZmF1bHRzIHdoZW4gdGFyZ2V0ZWQgYXQgTU1JTwo+Pj4gKGNhY2hlLWluaGli
-aXRlZCkgbWVtb3J5Lgo+Pj4KPj4+IEkgdGhpbmsgaW4gdGhpcyBwYXJ0aWN1bGFyIGNhc2UgaXQg
-bWlnaHQgYmUgb2sgc2luY2Ugd2Uga25vdyBTRVFzIGFyZQo+Pj4gYWxpZ25lZCB0byA2NCBieXRl
-IGJvdW5kYXJpZXMgYW5kIHRoZSBjb3B5IGlzIHRvbyBzbWFsbCB0byB1c2Ugb3VyCj4+PiB2ZWN0
-b3Jpc2VkIG1lbWNweSgpLiBJJ2xsIGFzc3VtZSB3ZSBkb24ndCBuZWVkIGV4cGxpY2l0IG9yZGVy
-aW5nCj4+PiBiZXR3ZWVuIHdyaXRlcyBvZiBTRVFzIHNpbmNlIHRoZSBleGlzdGluZyBjb2RlIGRv
-ZXNuJ3Qgc2VlbSB0byBjYXJlCj4+PiB1bmxlc3MgdGhlIGRvb3JiZWxsIGlzIGJlaW5nIHJ1bmcs
-IHNvIHlvdSdyZSBwcm9iYWJseSBmaW5lIHRoZXJlIHRvby4KPj4+IFRoYXQgc2FpZCwgSSBzdGls
-bCB0aGluayB0aGlzIGlzIGEgbGl0dGxlIGJpdCBza2V0Y2h5IGFuZCBhdCB0aGUgdmVyeQo+Pj4g
-bGVhc3QgeW91IHNob3VsZCBhZGQgYSBjb21tZW50IGV4cGxhaW5pbmcgd2hhdCdzIGdvaW5nIG9u
-IHdoZW4gdGhlIENNQgo+Pj4gaXMgYmVpbmcgdXNlZC4gSWYgc29tZW9uZSBtb3JlIGZhbWlsaWFy
-IHdpdGggdGhlIE5WTWUgZHJpdmVyIGNvdWxkCj4+PiBjaGltZSBpbiBJIHdvdWxkIGFwcHJlY2lh
-dGUgaXQuCj4+Cj4+IEkgbWF5IG5vdCBiZSB1bmRlcnN0YW5kaW5nIHRoZSBjb25jZXJuLCBidXQg
-SSdsbCBnaXZlIGl0IGEgc2hvdC4KPj4KPj4gWW91J3JlIHJpZ2h0LCB0aGUgc3RhcnQgb2YgYW55
-IFNRRSBpcyBhbHdheXMgNjQtYnl0ZSBhbGlnbmVkLCBzbyB0aGF0Cj4+IHNob3VsZCBzYXRpc2Z5
-IGFsaWdubWVudCByZXF1aXJlbWVudHMuCj4+Cj4+IFRoZSBvcmRlciB3aGVuIHdyaXRpbmcgbXVs
-dGlwbGUvc3VjY2Vzc2l2ZSBTUUVzIGluIGEgc3VibWlzc2lvbiBxdWV1ZQo+PiBkb2VzIG1hdHRl
-ciwgYW5kIHRoaXMgaXMgY3VycmVudGx5IHNlcmlhbGl6ZWQgdGhyb3VnaCB0aGUgcV9sb2NrLgo+
-Pgo+PiBUaGUgb3JkZXIgaW4gd2hpY2ggdGhlIGJ5dGVzIG9mIGEgc2luZ2xlIFNRRSBpcyB3cml0
-dGVuIGRvZXNuJ3QgcmVhbGx5Cj4+IG1hdHRlciBhcyBsb25nIGFzIHRoZSBlbnRpcmUgU1FFIGlz
-IHdyaXR0ZW4gaW50byB0aGUgQ01CIHByaW9yIHRvIHdyaXRpbmcKPj4gdGhhdCBTUSdzIGRvb3Ji
-ZWxsIHJlZ2lzdGVyLgo+Pgo+PiBUaGUgZG9vcmJlbGwgcmVnaXN0ZXIgaXMgd3JpdHRlbiBpbW1l
-ZGlhdGVseSBhZnRlciBjb3B5aW5nIGEgY29tbWFuZAo+PiBlbnRyeSBpbnRvIHRoZSBzdWJtaXNz
-aW9uIHF1ZXVlIChpZ25vcmUgInNoYWRvdyBidWZmZXIiIGZlYXR1cmVzKSwKPj4gc28gdGhlIGRv
-b3JiZWxscyB3cml0dGVuIHRvIGNvbW1hbmRzIHN1Ym1pdHRlZCBpcyAxOjEuCj4+Cj4+IElmIGEg
-Q01CIFNRRSBhbmQgREIgb3JkZXIgaXMgbm90IGVuZm9yY2VkIHdpdGggdGhlIG1lbWNweSwgdGhl
-biB3ZSBkbwo+PiBuZWVkIGEgYmFycmllciBhZnRlciB0aGUgU1FFJ3MgbWVtY3B5IGFuZCBiZWZv
-cmUgdGhlIGRvb3JiZWxsJ3Mgd3JpdGVsLgo+IAo+IAo+IFRoYW5rcyBmb3IgdGhlIGluZm9ybWF0
-aW9uIEtlaXRoLgo+IAo+IEFkZGluZyB0byB0aGlzOiByZWd1bGFyIG1lbWNweSBnZW5lcmFsbHkg
-YWxzbyBlbmZvcmNlcyBhbGlnbm1lbnQgYXMgdW5hbGlnbmVkIGFjY2VzcyB0byByZWd1bGFyIG1l
-bW9yeSBpcyB0eXBpY2FsbHkgYmFkIGluIHNvbWUgd2F5IG9uIG1vc3QgYXJjaGVzLiBUaGUgZ2Vu
-ZXJpYyBtZW1jcHlfdG9pbyBhbHNvIGRvZXMgbm90IGhhdmUgYW55IGJhcnJpZXIgYXMgaXQgaXMg
-anVzdCBhIGNhbGwgdG8gbWVtY3B5LiBBcm02NCBhbHNvIGRvZXMgbm90IGFwcGVhciB0byBoYXZl
-IGEgYmFycmllciBpbiBpdHMgaW1wbGVtZW50YXRpb24gYW5kIGluIHRoZSBzaG9ydCBzdXJ2ZXkg
-SSBkaWQgSSBjb3VsZCBub3QgZmluZCBhbnkgaW1wbGVtZW50YXRpb24gd2l0aCBhIGJhcnJpZXIu
-IEkgYWxzbyBkaWQgbm90IGZpbmQgYSBwcGMgaW1wbGVtZW50YXRpb24gaW4gdGhlIHRyZWUgYnV0
-IGl0IHdvdWxkIGJlIHdlaXJkIGZvciBpdCB0byBhZGQgYSBiYXJyaWVyIHdoZW4gb3RoZXIgYXJj
-aGVzIGRvIG5vdCBhcHBlYXIgdG8gbmVlZCBpdC4KPiAKPiBXZSd2ZSBiZWVuIG9wZXJhdGluZyBv
-biB0aGUgYXNzdW1wdGlvbiB0aGF0IG1lbW9yeSBtYXBwZWQgYnkgZGV2bV9tZW1yZW1hcF9wYWdl
-cygpIGNhbiBiZSB0cmVhdGVkIGFzIHJlZ3VsYXIgbWVtb3J5LiBUaGlzIGlzIGVtcGhhc2l6ZWQg
-YnkgdGhlIGZhY3QgdGhhdCBpdCBkb2VzIG5vdCByZXR1cm4gYW4gX19pb21lbSBwb2ludGVyLiBJ
-ZiB0aGlzIGFzc3VtcHRpb24gZG9lcyBub3QgaG9sZCBmb3IgYW4gYXJjaCB0aGVuIHdlIGNhbm5v
-dCBzdXBwb3J0IFAyUCBETUEgd2l0aG91dCBhbiBvdmVyaGF1bCBvZiBtYW55IGtlcm5lbCBpbnRl
-cmZhY2VzIG9yIGNyZWF0aW5nIG90aGVyIGJhY2tlbmQgaW50ZXJmYWNlcyBpbnRvIHRoZSBkcml2
-ZXJzIHdoaWNoIHRha2UgZGlmZmVyZW50IGRhdGEgdHlwZXMgKGllLiB3ZSdkIGhhdmUgdG8gYnlw
-YXNzIHRoZSBlbnRpcmUgYmxvY2sgbGF5ZXIgd2hlbiB0cnlpbmcgdG8gd3JpdGUgZGF0YSBpbiBw
-MnBtZW0gdG8gYW4gbnZtZSBkZXZpY2UuIFRoaXMgaXMgdmVyeSB1bmRlc2lyYWJsZS4KPiAKCndy
-aXRlbCBoYXMgYSBiYXJyaWVyIGluc2lkZSBvbiBBUk02NC4KCmh0dHBzOi8vZWxpeGlyLmJvb3Rs
-aW4uY29tL2xpbnV4L2xhdGVzdC9zb3VyY2UvYXJjaC9hcm02NC9pbmNsdWRlL2FzbS9pby5oI0wx
-NDMKCldoeSBkbyB5b3UgbmVlZCBhbm90aGVyIGJhcnJpZXI/CgoKQUNDRVNTSU5HIERFVklDRVMK
-LS0tLS0tLS0tLS0tLS0tLS0KCk1hbnkgZGV2aWNlcyBjYW4gYmUgbWVtb3J5IG1hcHBlZCwgYW5k
-IHNvIGFwcGVhciB0byB0aGUgQ1BVIGFzIGlmIHRoZXkncmUganVzdAphIHNldCBvZiBtZW1vcnkg
-bG9jYXRpb25zLiAgVG8gY29udHJvbCBzdWNoIGEgZGV2aWNlLCB0aGUgZHJpdmVyIHVzdWFsbHkg
-aGFzIHRvCm1ha2UgdGhlIHJpZ2h0IG1lbW9yeSBhY2Nlc3NlcyBpbiBleGFjdGx5IHRoZSByaWdo
-dCBvcmRlci4KCkhvd2V2ZXIsIGhhdmluZyBhIGNsZXZlciBDUFUgb3IgYSBjbGV2ZXIgY29tcGls
-ZXIgY3JlYXRlcyBhIHBvdGVudGlhbCBwcm9ibGVtCmluIHRoYXQgdGhlIGNhcmVmdWxseSBzZXF1
-ZW5jZWQgYWNjZXNzZXMgaW4gdGhlIGRyaXZlciBjb2RlIHdvbid0IHJlYWNoIHRoZQpkZXZpY2Ug
-aW4gdGhlIHJlcXVpc2l0ZSBvcmRlciBpZiB0aGUgQ1BVIG9yIHRoZSBjb21waWxlciB0aGlua3Mg
-aXQgaXMgbW9yZQplZmZpY2llbnQgdG8gcmVvcmRlciwgY29tYmluZSBvciBtZXJnZSBhY2Nlc3Nl
-cyAtIHNvbWV0aGluZyB0aGF0IHdvdWxkIGNhdXNlCnRoZSBkZXZpY2UgdG8gbWFsZnVuY3Rpb24u
-CgpJbnNpZGUgb2YgdGhlIExpbnV4IGtlcm5lbCwgSS9PIHNob3VsZCBiZSBkb25lIHRocm91Z2gg
-dGhlIGFwcHJvcHJpYXRlIGFjY2Vzc29yCnJvdXRpbmVzIC0gc3VjaCBhcyBpbmIoKSBvciB3cml0
-ZWwoKSAtIHdoaWNoIGtub3cgaG93IHRvIG1ha2Ugc3VjaCBhY2Nlc3NlcwphcHByb3ByaWF0ZWx5
-IHNlcXVlbnRpYWwuIAoKCj4gTG9nYW4KPiAKPiAKPiAKCgotLSAKU2luYW4gS2F5YQpRdWFsY29t
-bSBEYXRhY2VudGVyIFRlY2hub2xvZ2llcywgSW5jLiBhcyBhbiBhZmZpbGlhdGUgb2YgUXVhbGNv
-bW0gVGVjaG5vbG9naWVzLCBJbmMuClF1YWxjb21tIFRlY2hub2xvZ2llcywgSW5jLiBpcyBhIG1l
-bWJlciBvZiB0aGUgQ29kZSBBdXJvcmEgRm9ydW0sIGEgTGludXggRm91bmRhdGlvbiBDb2xsYWJv
-cmF0aXZlIFByb2plY3QuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+
+
+On 05/03/18 09:00 AM, Keith Busch wrote:
+> On Mon, Mar 05, 2018 at 12:33:29PM +1100, Oliver wrote:
+>> On Thu, Mar 1, 2018 at 10:40 AM, Logan Gunthorpe <logang@deltatee.com> wrote:
+>>> @@ -429,10 +429,7 @@ static void __nvme_submit_cmd(struct nvme_queue *nvmeq,
+>>>   {
+>>>          u16 tail = nvmeq->sq_tail;
+>>
+>>> -       if (nvmeq->sq_cmds_io)
+>>> -               memcpy_toio(&nvmeq->sq_cmds_io[tail], cmd, sizeof(*cmd));
+>>> -       else
+>>> -               memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
+>>> +       memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
+>>
+>> Hmm, how safe is replacing memcpy_toio() with regular memcpy()? On PPC
+>> the _toio() variant enforces alignment, does the copy with 4 byte
+>> stores, and has a full barrier after the copy. In comparison our
+>> regular memcpy() does none of those things and may use unaligned and
+>> vector load/stores. For normal (cacheable) memory that is perfectly
+>> fine, but they can cause alignment faults when targeted at MMIO
+>> (cache-inhibited) memory.
+>>
+>> I think in this particular case it might be ok since we know SEQs are
+>> aligned to 64 byte boundaries and the copy is too small to use our
+>> vectorised memcpy(). I'll assume we don't need explicit ordering
+>> between writes of SEQs since the existing code doesn't seem to care
+>> unless the doorbell is being rung, so you're probably fine there too.
+>> That said, I still think this is a little bit sketchy and at the very
+>> least you should add a comment explaining what's going on when the CMB
+>> is being used. If someone more familiar with the NVMe driver could
+>> chime in I would appreciate it.
+> 
+> I may not be understanding the concern, but I'll give it a shot.
+> 
+> You're right, the start of any SQE is always 64-byte aligned, so that
+> should satisfy alignment requirements.
+> 
+> The order when writing multiple/successive SQEs in a submission queue
+> does matter, and this is currently serialized through the q_lock.
+> 
+> The order in which the bytes of a single SQE is written doesn't really
+> matter as long as the entire SQE is written into the CMB prior to writing
+> that SQ's doorbell register.
+> 
+> The doorbell register is written immediately after copying a command
+> entry into the submission queue (ignore "shadow buffer" features),
+> so the doorbells written to commands submitted is 1:1.
+> 
+> If a CMB SQE and DB order is not enforced with the memcpy, then we do
+> need a barrier after the SQE's memcpy and before the doorbell's writel.
+
+
+Thanks for the information Keith.
+
+Adding to this: regular memcpy generally also enforces alignment as 
+unaligned access to regular memory is typically bad in some way on most 
+arches. The generic memcpy_toio also does not have any barrier as it is 
+just a call to memcpy. Arm64 also does not appear to have a barrier in 
+its implementation and in the short survey I did I could not find any 
+implementation with a barrier. I also did not find a ppc implementation 
+in the tree but it would be weird for it to add a barrier when other 
+arches do not appear to need it.
+
+We've been operating on the assumption that memory mapped by 
+devm_memremap_pages() can be treated as regular memory. This is 
+emphasized by the fact that it does not return an __iomem pointer. If 
+this assumption does not hold for an arch then we cannot support P2P DMA 
+without an overhaul of many kernel interfaces or creating other backend 
+interfaces into the drivers which take different data types (ie. we'd 
+have to bypass the entire block layer when trying to write data in 
+p2pmem to an nvme device. This is very undesirable.
+
+Logan
+
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
