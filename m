@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 63F49224C0F33
- for <linux-nvdimm@lists.01.org>; Tue,  6 Mar 2018 15:40:07 -0800 (PST)
-Subject: [PATCH v3 2/2] ndctl: merge firmware-update to dimm.c as one of the
+ by ml01.01.org (Postfix) with ESMTPS id 60235223522BD
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Mar 2018 10:19:34 -0800 (PST)
+Subject: [PATCH v2 2/2] ndctl: merge firmware-update to dimm.c as one of the
  dimm ops
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 06 Mar 2018 16:46:21 -0700
-Message-ID: <152037998114.39785.6202884508699614720.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152037991431.39785.10704524597897615503.stgit@djiang5-desk3.ch.intel.com>
-References: <152037991431.39785.10704524597897615503.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 06 Mar 2018 11:25:47 -0700
+Message-ID: <152036074714.9605.8381665043684141367.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152036051666.9605.11333285528137008907.stgit@djiang5-desk3.ch.intel.com>
+References: <152036051666.9605.11333285528137008907.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -54,7 +54,7 @@ index e0db97ba..213cabd7 100644
  
  if ENABLE_DESTRUCTIVE
 diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 7259506f..0638ec53 100644
+index 7259506f..5968c540 100644
 --- a/ndctl/dimm.c
 +++ b/ndctl/dimm.c
 @@ -13,6 +13,8 @@
@@ -502,7 +502,7 @@ index 7259506f..0638ec53 100644
 +		error("DIMM firmware update not supported by the kernel");
 +		return rc;
 +	case -EIO:
-+		error("DIMM firmware update not supported by either platform firmware or the kernel.");
++		error("DIMM firmware update not supported by platform firmware.");
 +		return rc;
 +	}
 +
