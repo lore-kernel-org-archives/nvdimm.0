@@ -1,18 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x244.google.com (mail-pl0-x244.google.com
- [IPv6:2607:f8b0:400e:c01::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 813502258AEF8
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:14 -0800 (PST)
-Received: by mail-pl0-x244.google.com with SMTP id m22-v6so7032124pls.5
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:33 -0800 (PST)
-From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 14/83] Add range node kmem cache.
-Date: Sat, 10 Mar 2018 10:17:55 -0800
-Message-Id: <1520705944-6723-15-git-send-email-jix024@eng.ucsd.edu>
-In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
-References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+ by ml01.01.org (Postfix) with ESMTPS id D8201223522AA
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Mar 2018 14:01:12 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] ndctl, test: add a unit test for partition
+ rescanning
+Date: Tue, 6 Mar 2018 22:07:25 +0000
+Message-ID: <1520374044.24924.84.camel@intel.com>
+References: <20180305235655.9927-1-vishal.l.verma@intel.com>
+ <CAPcyv4gDVp7pHWRgcBaOgyULT_Z+cohD6qfw5X-YmZ2-dOuthg@mail.gmail.com>
+ <1520372466.24924.82.camel@intel.com>
+ <CAPcyv4gmAxdvRMtmJe7jjUF5PerWEZ9XwLDFdOquugWPjXc1kw@mail.gmail.com>
+ <1520372951.24924.83.camel@intel.com>
+ <CAPcyv4iLarigni-Koa9fFiTQtKwYtmR4qrFrouMBiNMdOSWWmA@mail.gmail.com>
+In-Reply-To: <CAPcyv4iLarigni-Koa9fFiTQtKwYtmR4qrFrouMBiNMdOSWWmA@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <5561B0C0FB922E4DB39301E5E5005D1D@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,163 +26,166 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "Dokupil, Dariusz" <dariusz.dokupil@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Andiry Xu <jix024@cs.ucsd.edu>
 
-Range node specifies a range of [start, end]. and is managed by a red-black tree.
-NOVA uses range node to manage NVM allocator and inodes being used.
+On Tue, 2018-03-06 at 14:04 -0800, Dan Williams wrote:
+> On Tue, Mar 6, 2018 at 1:49 PM, Verma, Vishal L
+> <vishal.l.verma@intel.com> wrote:
+> > 
+> > On Tue, 2018-03-06 at 13:47 -0800, Dan Williams wrote:
+> > > On Tue, Mar 6, 2018 at 1:41 PM, Verma, Vishal L
+> > > <vishal.l.verma@intel.com> wrote:
+> > > > 
+> > > > On Tue, 2018-03-06 at 13:34 -0800, Dan Williams wrote:
+> > > > > On Mon, Mar 5, 2018 at 3:56 PM, Vishal Verma <vishal.l.verma@
+> > > > > inte
+> > > > > l.co
+> > > > > m> wrote:
+> > > > > > pre-4.16 kernels had a bug where BTT partitions wouldn't
+> > > > > > come
+> > > > > > up on
+> > > > > > driver probe because we were adding a zero-sized disk. Add
+> > > > > > a
+> > > > > > unit
+> > > > > > test
+> > > > > > that creates partitions, and cycles the namespace to ensure
+> > > > > > the
+> > > > > > partitions are automatically brought up. This performs the
+> > > > > > test
+> > > > > > for
+> > > > > > raw,
+> > > > > > memory, and sector modes.
+> > > > > > 
+> > > > > > Reported-by: Dariusz Dokupil <dariusz.dokupil@intel.com>
+> > > > > > Cc: Dan Williams <dan.j.williams@intel.com>
+> > > > > > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> > > > > > ---
+> > > > > >  test/Makefile.am          |   3 +-
+> > > > > >  test/rescan-partitions.sh | 106
+> > > > > > ++++++++++++++++++++++++++++++++++++++++++++++
+> > > > > >  2 files changed, 108 insertions(+), 1 deletion(-)
+> > > > > >  create mode 100755 test/rescan-partitions.sh
+> > > > > > 
+> > > > > > diff --git a/test/Makefile.am b/test/Makefile.am
+> > > > > > index 749055c..496a663 100644
+> > > > > > --- a/test/Makefile.am
+> > > > > > +++ b/test/Makefile.am
+> > > > > > @@ -20,7 +20,8 @@ TESTS =\
+> > > > > >         hugetlb \
+> > > > > >         btt-pad-compat.sh \
+> > > > > >         firmware-update.sh \
+> > > > > > -       ack-shutdown-count-set
+> > > > > > +       ack-shutdown-count-set \
+> > > > > > +       rescan-partitions.sh
+> > > > > > 
+> > > > > >  check_PROGRAMS =\
+> > > > > >         libndctl \
+> > > > > > diff --git a/test/rescan-partitions.sh b/test/rescan-
+> > > > > > partitions.sh
+> > > > > > new file mode 100755
+> > > > > > index 0000000..6dd289b
+> > > > > > --- /dev/null
+> > > > > > +++ b/test/rescan-partitions.sh
+> > > > > > @@ -0,0 +1,106 @@
+> > > > > > +#!/bin/bash -Ex
+> > > > > > +# SPDX-License-Identifier: GPL-2.0
+> > > > > > +# Copyright(c) 2018 Intel Corporation. All rights
+> > > > > > reserved.
+> > > > > > +
+> > > > > > +[ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ] &&
+> > > > > > ndctl="../ndctl/ndctl"
+> > > > > > +[ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ] &&
+> > > > > > ndctl="./ndctl/ndctl"
+> > > > > > +[ -z "$ndctl" ] && echo "Couldn't find an ndctl binary" &&
+> > > > > > exit 1
+> > > > > > +bus="nfit_test.0"
+> > > > > > +json2var="s/[{}\",]//g; s/:/=/g"
+> > > > > > +dev=""
+> > > > > > +size=""
+> > > > > > +blockdev=""
+> > > > > > +rc=77
+> > > > > > +
+> > > > > > +trap 'err $LINENO' ERR
+> > > > > > +
+> > > > > > +# sample json:
+> > > > > > +#{
+> > > > > > +#  "dev":"namespace5.0",
+> > > > > > +#  "mode":"sector",
+> > > > > > +#  "size":"60.00 MiB (62.92 MB)",
+> > > > > > +#  "uuid":"f1baa71a-d165-4da4-bb6a-083a2b0e6469",
+> > > > > > +#  "blockdev":"pmem5s",
+> > > > > > +#}
+> > > > > > +
+> > > > > > +# $1: Line number
+> > > > > > +# $2: exit code
+> > > > > > +err()
+> > > > > > +{
+> > > > > > +       [ -n "$2" ] && rc="$2"
+> > > > > > +       echo "test/rescan-partitions.sh: failed at line $1"
+> > > > > > +       exit "$rc"
+> > > > > > +}
+> > > > > > +
+> > > > > > +check_min_kver()
+> > > > > > +{
+> > > > > > +       local ver="$1"
+> > > > > > +       : "${KVER:=$(uname -r)}"
+> > > > > > +
+> > > > > > +       [ -n "$ver" ] || return 1
+> > > > > > +       [[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V |
+> > > > > > head
+> > > > > > -1)"
+> > > > > > ]]
+> > > > > > +}
+> > > > > > +check_min_kver "4.16" || { echo "kernel $KVER may not
+> > > > > > contain
+> > > > > > fixes for partition rescanning"; exit "$rc"; }
+> > > > > 
+> > > > > I have a proposal for kernel version checks going forward.
+> > > > > How
+> > > > > about
+> > > > > tests that fail the kernel version check return SKIP / PASS,
+> > > > > and
+> > > > > kernels that pass the kernel version check return FAIL / PASS
+> > > > > for
+> > > > > the
+> > > > > test. This way we don't bail out early on backport kernels
+> > > > > that
+> > > > > could
+> > > > > otherwise pass the test.
+> > > > > 
+> > > > > Thoughts?
+> > > > 
+> > > > So do you mean, for example, if a kernel version check fails,
+> > > > don't
+> > > > skip immediately. Instead continue to run the test, and if
+> > > > something
+> > > > actually fails, then return with a SKIP.
+> > > > 
+> > > > And conversely, for a kernel version that passes the included
+> > > > check, no
+> > > > other condition can return a SKIP?  (What about something like
+> > > > missing
+> > > > packages?)
+> > > 
+> > > Yeah, how about an unmet dependency whether it is kernel version
+> > > or
+> > > support package results in a SKIP / PASS result, but if all
+> > > dependencies are met the test becomes FAIL / PASS?
+> > 
+> > Yeah that makes sense to me.
+> 
+> I also think it's past time that we made check_min_kver() a function
+> in separate source file that all the shell tests import by sourcing.
 
-Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
----
- fs/nova/nova.h  |  8 ++++++++
- fs/nova/super.c | 45 ++++++++++++++++++++++++++++++++++++++++++---
- fs/nova/super.h |  2 ++
- 3 files changed, 52 insertions(+), 3 deletions(-)
-
-diff --git a/fs/nova/nova.h b/fs/nova/nova.h
-index ba7ffca..e0e85fb 100644
---- a/fs/nova/nova.h
-+++ b/fs/nova/nova.h
-@@ -301,6 +301,14 @@ static inline u64 nova_get_epoch_id(struct super_block *sb)
- }
- 
- #include "inode.h"
-+
-+/* A node in the RB tree representing a range of pages */
-+struct nova_range_node {
-+	struct rb_node node;
-+	unsigned long range_low;
-+	unsigned long range_high;
-+};
-+
- #include "bbuild.h"
- 
- /* ====================================================== */
-diff --git a/fs/nova/super.c b/fs/nova/super.c
-index f41cc04..aec1cd3 100644
---- a/fs/nova/super.c
-+++ b/fs/nova/super.c
-@@ -52,6 +52,7 @@ MODULE_PARM_DESC(nova_dbgmask, "Control debugging output");
- static struct super_operations nova_sops;
- 
- static struct kmem_cache *nova_inode_cachep;
-+static struct kmem_cache *nova_range_node_cachep;
- 
- 
- /* FIXME: should the following variable be one per NOVA instance? */
-@@ -686,6 +687,20 @@ static void nova_put_super(struct super_block *sb)
- 	sb->s_fs_info = NULL;
- }
- 
-+inline void nova_free_range_node(struct nova_range_node *node)
-+{
-+	kmem_cache_free(nova_range_node_cachep, node);
-+}
-+
-+inline struct nova_range_node *nova_alloc_range_node(struct super_block *sb)
-+{
-+	struct nova_range_node *p;
-+
-+	p = (struct nova_range_node *)
-+		kmem_cache_zalloc(nova_range_node_cachep, GFP_NOFS);
-+	return p;
-+}
-+
- static struct inode *nova_alloc_inode(struct super_block *sb)
- {
- 	struct nova_inode_info *vi;
-@@ -719,6 +734,17 @@ static void init_once(void *foo)
- 	inode_init_once(&vi->vfs_inode);
- }
- 
-+static int __init init_rangenode_cache(void)
-+{
-+	nova_range_node_cachep = kmem_cache_create("nova_range_node_cache",
-+					sizeof(struct nova_range_node),
-+					0, (SLAB_RECLAIM_ACCOUNT |
-+					SLAB_MEM_SPREAD), NULL);
-+	if (nova_range_node_cachep == NULL)
-+		return -ENOMEM;
-+	return 0;
-+}
-+
- static int __init init_inodecache(void)
- {
- 	nova_inode_cachep = kmem_cache_create("nova_inode_cache",
-@@ -740,6 +766,11 @@ static void destroy_inodecache(void)
- 	kmem_cache_destroy(nova_inode_cachep);
- }
- 
-+static void destroy_rangenode_cache(void)
-+{
-+	kmem_cache_destroy(nova_range_node_cachep);
-+}
-+
- 
- /*
-  * the super block writes are all done "on the fly", so the
-@@ -781,20 +812,27 @@ static int __init init_nova_fs(void)
- 	nova_info("Arch new instructions support: CLWB %s\n",
- 			support_clwb ? "YES" : "NO");
- 
--	rc = init_inodecache();
-+	rc = init_rangenode_cache();
- 	if (rc)
- 		goto out;
- 
--	rc = register_filesystem(&nova_fs_type);
-+	rc = init_inodecache();
- 	if (rc)
- 		goto out1;
- 
-+	rc = register_filesystem(&nova_fs_type);
-+	if (rc)
-+		goto out2;
-+
- out:
- 	NOVA_END_TIMING(init_t, init_time);
- 	return rc;
- 
--out1:
-+out2:
- 	destroy_inodecache();
-+
-+out1:
-+	destroy_rangenode_cache();
- 	goto out;
- }
- 
-@@ -802,6 +840,7 @@ static void __exit exit_nova_fs(void)
- {
- 	unregister_filesystem(&nova_fs_type);
- 	destroy_inodecache();
-+	destroy_rangenode_cache();
- }
- 
- MODULE_AUTHOR("Andiry Xu <jix024@cs.ucsd.edu>");
-diff --git a/fs/nova/super.h b/fs/nova/super.h
-index cb53908..b478080 100644
---- a/fs/nova/super.h
-+++ b/fs/nova/super.h
-@@ -145,5 +145,7 @@ static inline struct nova_super_block *nova_get_super(struct super_block *sb)
- }
- 
- extern void nova_error_mng(struct super_block *sb, const char *fmt, ...);
-+extern struct nova_range_node *nova_alloc_range_node(struct super_block *sb);
-+extern void nova_free_range_node(struct nova_range_node *node);
- 
- #endif
--- 
-2.7.4
-
+There are definitely a fair number of boilerplate things that we've
+been copying around from test to test. I can take a shot at a cleanup.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
