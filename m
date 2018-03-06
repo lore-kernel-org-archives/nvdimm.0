@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C952622283504
- for <linux-nvdimm@lists.01.org>; Tue,  6 Mar 2018 15:39:56 -0800 (PST)
-Subject: [PATCH v3 0/2] ndctl: move firmware update to dimm action
+ by ml01.01.org (Postfix) with ESMTPS id B93C1223522BD
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Mar 2018 10:19:22 -0800 (PST)
+Subject: [PATCH v2 0/2] ndctl: move firmware update to dimm action
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 06 Mar 2018 16:46:10 -0700
-Message-ID: <152037991431.39785.10704524597897615503.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 06 Mar 2018 11:25:36 -0700
+Message-ID: <152036051666.9605.11333285528137008907.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,9 +27,6 @@ List-ID: <linux-nvdimm@lists.01.org>
 The following series moves firmware update to dimm.c in order to take
 advantage of the command line parsing that already exists and remove
 duplications.
-
-v3:
-- Modified error printout for op not supported per Dan's comment.
 
 v2:
 - Add distinct return errors for lack of support in ndctl, kernel, or
