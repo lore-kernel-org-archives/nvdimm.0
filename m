@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8C39D21E08287
- for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 20:00:18 -0800 (PST)
-Date: Mon, 5 Mar 2018 21:06:30 -0700
+ by ml01.01.org (Postfix) with ESMTPS id 4E42821E082AE
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 16:49:36 -0800 (PST)
+Date: Mon, 5 Mar 2018 17:55:48 -0700
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH] acpi, nfit: remove redundant __func__ in dev_dbg
-Message-ID: <20180306040630.GA9905@linux.intel.com>
+Message-ID: <20180306005548.GB15227@linux.intel.com>
 References: <20180302122049.13900-1-jthumshirn@suse.de>
 MIME-Version: 1.0
 Content-Disposition: inline
@@ -40,9 +40,9 @@ On Fri, Mar 02, 2018 at 01:20:49PM +0100, Johannes Thumshirn wrote:
 > 
 > Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
 
-Oh, Johannes I noticed that here is one stray one still in
-drivers/acpi/nfit/mce.c.  Do you mind pulling it into your patch to keep the
-drivers/acpi/nfit/* changes together?
+I looked through this and this all looked right to me.
+
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
