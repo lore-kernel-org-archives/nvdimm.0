@@ -1,21 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
- [IPv6:2607:f8b0:4003:c06::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B88DF2034D8CB
- for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 15:28:37 -0800 (PST)
-Received: by mail-oi0-x243.google.com with SMTP id c18so13444515oiy.9
- for <linux-nvdimm@lists.01.org>; Mon, 05 Mar 2018 15:34:50 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id EC38422283527
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 16:00:27 -0800 (PST)
+Date: Mon, 5 Mar 2018 17:06:39 -0700
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 2 2/2] xfs: fix rt_dev usage for DAX
+Message-ID: <20180306000639.GA15227@linux.intel.com>
+References: <151751717968.69886.6978962571680635420.stgit@djiang5-desk3.ch.intel.com>
+ <151751718516.69886.135497175511444689.stgit@djiang5-desk3.ch.intel.com>
+ <20180201234413.idd27uqzqbg54ddk@destitution>
+ <20180202004332.GZ4849@magnolia>
+ <d267ed33-950e-a5c5-73ce-36da6c940513@intel.com>
+ <20180206231915.GA26233@magnolia>
 MIME-Version: 1.0
-In-Reply-To: <151977845090.31131.6667674364134899336.stgit@djiang5-desk3.ch.intel.com>
-References: <151977844514.31131.543078368987798636.stgit@djiang5-desk3.ch.intel.com>
- <151977845090.31131.6667674364134899336.stgit@djiang5-desk3.ch.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 5 Mar 2018 15:34:49 -0800
-Message-ID: <CAPcyv4hsDY-bjw27Vi2mPxD67ve1C=jqN6pdYrix947k5Xfh8w@mail.gmail.com>
-Subject: Re: [PATCH 2/2] ndctl: merge firmware-update to dimm.c as one of the
- dimm ops
+Content-Disposition: inline
+In-Reply-To: <20180206231915.GA26233@magnolia>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,103 +28,91 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Feb 27, 2018 at 4:40 PM, Dave Jiang <dave.jiang@intel.com> wrote:
-> Since update-firmware replicate a lot of the parsing code that dimm.c
-> already uses, moving update-firmware to dimm.c and utilize the already
-> working functionalities.
+On Tue, Feb 06, 2018 at 03:19:15PM -0800, Darrick J. Wong wrote:
+<>
+> The last time I paid much attention to DAX was the thread "re-enable XFS
+> per-inode DAX"[1] last September.  Motivating me to merge anything else
+> into DAX involves convincing me that we (mm, fs, dax developers) have
+> some kind of agreement about what we want the user-visible interfaces to
+> DAX to look like.  
+
+Yep, I agree that is the next step.
+
+> Namely:
+> 
+> 0. On what level do we allow users / administrators to control usage of
+> the dax paths?  Can the hardware convey enough detail to the kernel that
+> the kernel can make a reasonable decision on its own whether buffered or
+> dax io make more sense?  If so, can we please just have that?  If not,
+> why?
+
+Maybe eventually via the HMAT, but I don't think we have any systems today
+that do a good job of this.
+
+> 1. If we want to let users override whatever decision the kernel makes,
+> how should we do this?  One mount option that applies to everything,
+> like ext4?  Inheritable inode flags, like xfs?  Do we have one to force
+> it on even if the kernel doesn't want to?  Do we have another to force
+> it off even if the kernel wants to?  Do we even want to go down this
+> path?  Can we get away with making the answer to Q0 "yes" and then see
+> if anyone actually complains about not having fine-grained control?
+
+I agree with Dan's assessment that even if we can make the kernel smart enough
+to know when it's not a performance loss to use DAX (i.e. the persistent
+memory you're using DAX on is just as fast as the page cache), users will
+probably still want to retain the ability to force it on for use cases like
+MAP_SYNC, and force it off for things like RDMA or VFIO, at least until the
+page pinning work is complete.
+
+Personally I'm still hopeful that we can have both the mount option and the
+inheritable inode flags, and that we can figure out what we need to to get
+S_DAX transitions happening again.
+
+> 2. Under what conditions can we support dynamic changing of S_DAX on
+> inodes at runtime?  Will this switching work at any time?  Only for
+> files that are open but not mmap'd?  Only for files that are empty?
 >
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  ndctl/Makefile.am |    1
->  ndctl/dimm.c      |  495 ++++++++++++++++++++++++++++++++++++++++++++++++
->  ndctl/update.c    |  549 -----------------------------------------------------
->  3 files changed, 493 insertions(+), 552 deletions(-)
->  delete mode 100644 ndctl/update.c
+> 3. The MAP_SYNC support that was merged into 4.15 -- is this sufficient
+> to allow this fsyncless clflush business that everyone seems to want?
 
-Looks good, although I notice some things now that I didn't realize
-when this was first merged. Something to follow up on later...
+Yep, I think so.  The next big battles are S_DAX transitions, per-inode DAX
+support, and of course the page pinning / leases code that Dan & Christoph
+have been talking about.
 
-[..]
-> diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-> index 7259506f..576e6342 100644
-> --- a/ndctl/dimm.c
-> +++ b/ndctl/dimm.c
-> @@ -13,6 +13,8 @@
->  #include <stdio.h>
->  #include <errno.h>
->  #include <stdlib.h>
-> +#include <sys/types.h>
-> +#include <sys/stat.h>
->  #include <unistd.h>
->  #include <limits.h>
->  #include <syslog.h>
-> @@ -29,11 +31,49 @@
->  #include <ccan/minmax/minmax.h>
->  #include <ccan/array_size/array_size.h>
->
-> +#define ND_CMD_STATUS_SUCCESS  0
-> +#define ND_CMD_STATUS_NOTSUPP  1
-> +#define        ND_CMD_STATUS_NOTEXIST  2
-> +#define ND_CMD_STATUS_INVALPARM        3
-> +#define ND_CMD_STATUS_HWERR    4
-> +#define ND_CMD_STATUS_RETRY    5
-> +#define ND_CMD_STATUS_UNKNOWN  6
-> +#define ND_CMD_STATUS_EXTEND   7
-> +#define ND_CMD_STATUS_NORES    8
-> +#define ND_CMD_STATUS_NOTREADY 9
+> 4. Can someone please fix the XFS iomap_begin function to handle CoW
+> properly?  I think it's a simple matter of allocate blocks, memcpy, and
+> remap, though I don't know how to do that. ;)
+> 
+> 5. Do we test any of this stuff?
 
-It would be nice to translate these into standard posix error codes,
-but that's a change for the future when we go to add support for a
-NVDIMM_FAMILY_INTEL firmware update procedure.
+Yes, I think in general we do a pretty good job of DAX test case coverage
+between a combination of xfstests (which I have added to as I've fixed DAX
+related bugs), nfit_test and the ndctl unit tests.  hch has recently suggested
+we start using blktests as well, though I don't think we've actually made any
+new tests there yet.  Suggestions on how we can get better test coverage are
+welcome.
 
-> +
-> +#define ND_CMD_STATUS_START_BUSY       0x10000
-> +#define ND_CMD_STATUS_SEND_CTXINVAL    0x10000
-> +#define ND_CMD_STATUS_FIN_CTXINVAL     0x10000
-> +#define ND_CMD_STATUS_FIN_DONE         0x20000
-> +#define ND_CMD_STATUS_FIN_BAD          0x30000
-> +#define ND_CMD_STATUS_FIN_ABORTED      0x40000
-> +#define ND_CMD_STATUS_FQ_CTXINVAL      0x10000
-> +#define ND_CMD_STATUS_FQ_BUSY          0x20000
-> +#define ND_CMD_STATUS_FQ_BAD           0x30000
-> +#define ND_CMD_STATUS_FQ_ORDER         0x40000
+> The thread from last September left off with promises to go define what
+> interface and behaviors we are providing to userspace, but afaict none
+> of that ever happened?  If we don't resolve these questions before LSF
+> then I think what's needed is to lock everyone in a room to hash all
+> this out. :P
 
-These all seem to be binary api hard coded to the Intel format. These
-might need pushing down into the library behind the abstraction. The
-fact that these are in ndctl/dimm.c and not ndct/libndctl.h leads me
-to believe that it's currently impossible to use the firmware update
-library APIs in a 3rd party application, right?
+Yep, that's accurate.  I got pulled off onto other work and am just now
+finding my way back.  I think talking about it at LSF sounds great, but it's a
+shame that hch won't be available.  It'll be nice to finally meet dchinner,
+though. :)
 
-> +
-> +struct fw_info {
-> +       uint32_t store_size;
-> +       uint32_t update_size;
-> +       uint32_t query_interval;
-> +       uint32_t max_query;
-> +       uint64_t run_version;
-> +       uint32_t context;
-> +};
-> +
-> +struct update_context {
-> +       size_t fw_size;
-> +       struct fw_info dimm_fw;
-> +       struct ndctl_cmd *start;
-> +};
-> +
->  struct action_context {
->         struct json_object *jdimms;
->         enum ndctl_namespace_version labelversion;
->         FILE *f_out;
->         FILE *f_in;
-> +       struct update_context update;
->  };
-
-These definitions can move to their own ndctl/firmware-update.h header
-file in the future.
+> --D
+> 
+> PS: My personal inclination is {yes, get rid of all that until someone
+> complains, i think so but haven't tested it, ???, i sure hope so}.
+> 
+> [1] https://marc.info/?l=linux-xfs&m=150638135225793&w=2
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
