@@ -1,18 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8942321E0828A
- for <linux-nvdimm@lists.01.org>; Thu,  8 Mar 2018 13:01:54 -0800 (PST)
-Date: Thu, 8 Mar 2018 14:08:09 -0700
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v2 3/3] ndctl: add filtering based on numa_node
-Message-ID: <20180308210809.GA11622@vverma7-desk1.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EED19224DCA3A
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Mar 2018 09:43:46 -0800 (PST)
+Received: by mail-oi0-x244.google.com with SMTP id c12so4985060oic.7
+ for <linux-nvdimm@lists.01.org>; Thu, 08 Mar 2018 09:50:03 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20180308172134.GC18491@linux.intel.com>
 References: <CAPcyv4gSMyVRbVNRubtdQ7_mrY8NpKWwx0p1vdz6j1KLGssSEw@mail.gmail.com>
  <20180307185355.4425-1-ross.zwisler@linux.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180307185355.4425-1-ross.zwisler@linux.intel.com>
+ <1520455336.6316.4.camel@intel.com>
+ <CAPcyv4jC3G0CdBwY_4EVOqNEgYvxmGPiHPt5yUFMH0PJ0jxxVA@mail.gmail.com>
+ <20180308172134.GC18491@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 8 Mar 2018 09:50:01 -0800
+Message-ID: <CAPcyv4ijd3=drHj2bPhyqUW0u1PeWGbv2J8riS9n19iLkz-+Kw@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] ndctl: add filtering based on numa_node
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,96 +30,62 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 03/07, Ross Zwisler wrote:
-> Add support to 'ndctl list' so that we can filter DIMMs, regions and
-> namespaces based on numa node.
-> 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> ---
-> v2: Use NUMA_NO_NODE intead of hard coding -1 (Dan).
-> ---
->  Documentation/ndctl/ndctl-list.txt |  4 ++++
->  ndctl/list.c                       |  2 ++
->  util/filter.c                      | 40 ++++++++++++++++++++++++++++++++++++--
->  util/filter.h                      |  1 +
->  4 files changed, 45 insertions(+), 2 deletions(-)
-> 
+On Thu, Mar 8, 2018 at 9:21 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Wed, Mar 07, 2018 at 12:48:28PM -0800, Dan Williams wrote:
+>> On Wed, Mar 7, 2018 at 12:42 PM, Verma, Vishal L
+>> <vishal.l.verma@intel.com> wrote:
+>> >
+>> > On Wed, 2018-03-07 at 11:53 -0700, Ross Zwisler wrote:
+>> >> Add support to 'ndctl list' so that we can filter DIMMs, regions and
+>> >> namespaces based on numa node.
+>> >
+>> > Something for the future - perhaps we can add this same numa node based
+>> > filtering to all the operations on namespaces/regions/dimms.
+>>
+>> This does have the region filtering, and that should also
+>> automatically filter namespaces since we wouldn't even consider the
+>> namespaces on a region where the numa node doesn't match.
+>
+> What other supports of operations were you thinking about?  Like
+>
+> ndctl disable-region --numa_node=0
+>
+> or something?  It doesn't look like we use other ndctl list type filters for
+> other operations like that today?  This seems powerful if we were to implement
+> it, but easy to accidentally operate on namespaces/regions you didn't intend.
 
-Here is the bash completion update for this option.
-I've tested it on my single-node VM, but Ross, can you test it on your
-setup and let me know if it completes for the available nodes fine?
+This is Linux, defer to giving users all the rope they want.
 
-Thanks,
-	-Vishal
+>
+>> > Does it make sense to accept an 'all' option for numa node? We're only
+>> > using it for filtering, and 'all' == not supplying the option at all..
+>>
+>> Same could be said for all the other places we accept all, I think it
+>> should be "all or nothing" (heh heh heh), i.e. if we accept it as an
+>> option for dimms regions and namespaces, why not numa nodes?
+>
+> On a somewhat related note, what do you guys think of an option like this:
+>
+> ndctl list --all
+>
+> Which would just give you a full dump of all the various bits of info, so it
+> would currently be equivalent to:
+>
+> ndctl list --buses --dimms --health --device-dax  --regions --namespaces
+>         --idle --media-errors
+>
+> Providing you with a single short command to get as much info about a system
+> as possible?
 
-8<-----
-
->From c744e77f26a27e10cc9dd8ca9b1092a45d9d9dcd Mon Sep 17 00:00:00 2001
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Thu, 8 Mar 2018 13:56:59 -0700
-Subject: [ndctl PATCH] ndctl, bash-completion: add completion for --numa-node
-
-ndctl list can now accept a --numa-node option for filtering by numa
-node. Use the nodes in /sys/devices/system/node to provide completion
-options for available nodes.
-
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- contrib/ndctl | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
-
-diff --git a/contrib/ndctl b/contrib/ndctl
-index 89e0252..b1f5e59 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -91,7 +91,7 @@ __ndctlcomp()
- 
- 	COMPREPLY=( $( compgen -W "$1" -- "$2" ) )
- 	for cword in "${COMPREPLY[@]}"; do
--		if [[ "$cword" == @(--bus|--region|--type|--mode|--size|--dimm|--reconfig|--uuid|--name|--sector-size|--map|--namespace|--input|--output|--label-version|--align|--block|--count|--firmware|--media-temperature|--ctrl-temperature|--spares|--media-temperature-threshold|--ctrl-temperature-threshold|--spares-threshold|--media-temperature-alarm|--ctrl-temperature-alarm|--spares-alarm) ]]; then
-+		if [[ "$cword" == @(--bus|--region|--type|--mode|--size|--dimm|--reconfig|--uuid|--name|--sector-size|--map|--namespace|--input|--output|--label-version|--align|--block|--count|--firmware|--media-temperature|--ctrl-temperature|--spares|--media-temperature-threshold|--ctrl-temperature-threshold|--spares-threshold|--media-temperature-alarm|--ctrl-temperature-alarm|--spares-alarm|--numa_node) ]]; then
- 			COMPREPLY[$i]="${cword}="
- 		else
- 			COMPREPLY[$i]="${cword} "
-@@ -152,6 +152,21 @@ __ndctl_get_sector_sizes()
- 	fi
- }
- 
-+__ndctl_get_nodes()
-+{
-+	local nlist=""
-+
-+	for node in /sys/devices/system/node/node*; do
-+		node="$(basename $node)"
-+		if [[ $node =~ node([0-9]+) ]]; then
-+			nlist="$nlist ${BASH_REMATCH[1]}"
-+		else
-+			continue
-+		fi
-+	done
-+	echo "$nlist"
-+}
-+
- __ndctl_file_comp()
- {
- 	local cur="$1"
-@@ -217,6 +232,9 @@ __ndctl_comp_options()
- 		--spares-alarm)
- 			opts="on off"
- 			;;
-+		--numa_node)
-+			opts=$(__ndctl_get_nodes)
-+			;;
- 		*)
- 			return
- 			;;
--- 
-2.14.3
-
+Sounds good to me... should also include --firmware in that list. I'd
+probably call it --everything since "all" is already reserved as a
+keyword for specific object types. I.e. "ndct list" by default is
+"all" namespaces so I would expect "ndctl list --all" to also be all
+namespaces.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
