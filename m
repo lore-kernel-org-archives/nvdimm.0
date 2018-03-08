@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EA0AE2253FB77
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 02:31:46 -0800 (PST)
-Date: Fri, 9 Mar 2018 11:38:01 +0100
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH 5/5] EDAC, skx_edac: Detect non-volatile DIMMs
-Message-ID: <20180309113801.14b06cdf@endymion>
-In-Reply-To: <20180222195811.27237-6-tony.luck@intel.com>
-References: <20180222195811.27237-1-tony.luck@intel.com>
- <20180222195811.27237-6-tony.luck@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id EA2FB21ED1C77
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Mar 2018 08:49:14 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH] radix tree test suite: fix mapshift build target
+Date: Thu,  8 Mar 2018 09:55:24 -0700
+Message-Id: <20180308165524.17427-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,95 +15,66 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Tony Luck <tony.luck@intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, linux-nvdimm@lists.01.org, Aristeu Rozanski <aris@redhat.com>, "Rafael J. Wysocki  <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Qiuxu Zhuo" <qiuxu.zhuo@intel.com>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>
+To: Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Tony,
+The following commit
 
-On Thu, 22 Feb 2018 11:58:11 -0800, Tony Luck wrote:
-> This just covers the topology function of the EDAC driver.
-> We locate which DIMM slots are populated with NVDIMMs and
-> query the NFIT and SMBIOS tables to get the size.
-> 
-> Signed-off-by: Tony Luck <tony.luck@intel.com>
-> ---
->  drivers/edac/Kconfig    |  5 +++-
->  drivers/edac/skx_edac.c | 68 ++++++++++++++++++++++++++++++++++++++++++++-----
->  2 files changed, 66 insertions(+), 7 deletions(-)
-> (...)
-> +static int get_nvdimm_info(struct dimm_info *dimm, struct skx_imc *imc,
-> +			   int chan, int dimmno)
-> +{
-> +	int smbios_handle;
-> +	u32 dev_handle;
-> +	u16 flags;
-> +	u64 size = 0;
-> +
-> +	dev_handle = ACPI_NFIT_BUILD_DEVICE_HANDLE(dimmno, chan, imc->lmc,
-> +						   imc->src_id, 0);
-> +
-> +	smbios_handle = nfit_get_smbios_id(dev_handle, &flags);
-> +	if (smbios_handle == -EOPNOTSUPP) {
-> +		pr_warn_once("skx_edac: can't find size of NVDIMM. Try enabling CONFIG_ACPI_NFIT\n");
-> +		goto unknown_size;
+  commit c6ce3e2fe3da ("radix tree test suite: Add config option for map
+  shift")
 
-I'm curious why you continue in this (worse) error case, but stop on
-all other (some presumably less critical) error cases? Specifically I
-can't see how an unknown size returned by the dmi subsystem can be worse
-than not being able to query the size at all.
+Introduced a phony makefile target called 'mapshift' that ends up
+generating the file generated/map-shift.h.  This phony target was then
+added as a dependency of the top level 'targets' build target, which is
+what is run when you go to tools/testing/radix-tree and just type 'make'.
 
-> +	}
-> +	if (smbios_handle < 0) {
-> +		skx_printk(KERN_ERR, "Can't find handle for NVDIMM ADR=%x\n", dev_handle);
-> +		return 0;
-> +	}
-> +
-> +	if (flags & ACPI_NFIT_MEM_MAP_FAILED) {
-> +		skx_printk(KERN_ERR, "NVDIMM ADR=%x is not mapped\n", dev_handle);
-> +		return 0;
-> +	}
-> +
-> +	size = dmi_memdev_size(smbios_handle);
-> +	if (size == ~0ul) {
+Unfortunately, this phony target doesn't actually work as a dependency, so
+you end up getting:
 
-If you agree with my comment on previous patch then this becomes ~0ull.
+$ make
+make: *** No rule to make target 'generated/map-shift.h', needed by 'main.o'.  Stop.
+make: *** Waiting for unfinished jobs....
 
-> +		skx_printk(KERN_ERR, "Can't find size for NVDIMM ADR=%x/SMBIOS=%x\n",
-> +			   dev_handle, smbios_handle);
-> +		return 0;
-> +	}
-> +
-> +unknown_size:
-> +	edac_dbg(0, "mc#%d: channel %d, dimm %d, %lld Mb (%lld pages)\n",
+Fix this by making the file generated/map-shift.h our real makefile target,
+and add this a dependency of the top level build target.
 
-%llu instead of %lld (twice)?
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ tools/testing/radix-tree/Makefile | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-> +		 imc->mc, chan, dimmno, size >> 20, size >> PAGE_SHIFT);
-> +
-> +	dimm->nr_pages = size >> PAGE_SHIFT;
-
-If you moved the debug print after, you wouldn't have to do the shift
-twice.
-
-> +	dimm->grain = 32;
-> +	dimm->dtype = DEV_UNKNOWN;
-> +	dimm->mtype = MEM_NVDIMM;
-> +	dimm->edac_mode = EDAC_SECDED; /* likely better than this */
-> +
-> +	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
-> +		 imc->src_id, imc->lmc, chan, dimmno);
-> +
-> +	return 1;
-> +}
-
+diff --git a/tools/testing/radix-tree/Makefile b/tools/testing/radix-tree/Makefile
+index fa7ee369b3c9..db66f8a0d4be 100644
+--- a/tools/testing/radix-tree/Makefile
++++ b/tools/testing/radix-tree/Makefile
+@@ -17,7 +17,7 @@ ifeq ($(BUILD), 32)
+ 	LDFLAGS += -m32
+ endif
+ 
+-targets: mapshift $(TARGETS)
++targets: generated/map-shift.h $(TARGETS)
+ 
+ main:	$(OFILES)
+ 
+@@ -42,9 +42,7 @@ radix-tree.c: ../../../lib/radix-tree.c
+ idr.c: ../../../lib/idr.c
+ 	sed -e 's/^static //' -e 's/__always_inline //' -e 's/inline //' < $< > $@
+ 
+-.PHONY: mapshift
+-
+-mapshift:
++generated/map-shift.h:
+ 	@if ! grep -qws $(SHIFT) generated/map-shift.h; then		\
+ 		echo "#define RADIX_TREE_MAP_SHIFT $(SHIFT)" >		\
+ 				generated/map-shift.h;			\
 -- 
-Jean Delvare
-SUSE L3 Support
+2.14.3
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
