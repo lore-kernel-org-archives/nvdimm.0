@@ -2,15 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D015224E691C
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:57:31 -0800 (PST)
-Subject: [PATCH v5 11/12] dax: fix S_DAX definition
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Mar 2018 19:54:34 -0800
-Message-ID: <151996287403.28483.8962319815764432894.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id AF542220C2A54
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 08:32:16 -0800 (PST)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH] MAINTAINERS: add coverage for drivers/block
+Date: Fri,  9 Mar 2018 09:38:26 -0700
+Message-Id: <20180309163826.25042-1-ross.zwisler@linux.intel.com>
+In-reply-to: <92dc07f1-dfbd-2449-ce76-502455f56136@kernel.dk>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,42 +16,35 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Jens Axboe <axboe@kernel.dk>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Make sure S_DAX is defined in the CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y
-case. Otherwise vma_is_dax() may incorrectly return false in the
-Device-DAX case.
+To help folks like me that use scripts/get_maintainer.pl.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <stable@vger.kernel.org>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- include/linux/fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index b2b2e15d227b..1242511b1c46 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1859,7 +1859,7 @@ struct super_operations {
- #define S_IMA		1024	/* Inode has an associated IMA struct */
- #define S_AUTOMOUNT	2048	/* Automount/referral quasi-directory */
- #define S_NOSEC		4096	/* no suid or xattr security attributes */
--#ifdef CONFIG_FS_DAX
-+#if IS_ENABLED(CONFIG_FS_DAX) || IS_ENABLED(CONFIG_DEV_DAX)
- #define S_DAX		8192	/* Direct Access, avoiding the page cache */
- #else
- #define S_DAX		0	/* Make all the DAX code disappear */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4623caf8d72d..7ff83f4c9aeb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2685,6 +2685,7 @@ L:	linux-block@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git
+ S:	Maintained
+ F:	block/
++F:	drivers/block/
+ F:	kernel/trace/blktrace.c
+ F:	lib/sbitmap.c
+ 
+-- 
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
