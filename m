@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B956E2253FB47
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 10:18:12 -0800 (PST)
-Subject: [PATCH v5 2/2] ndctl: merge firmware-update to dimm.c as one of the
+ by ml01.01.org (Postfix) with ESMTPS id E119C2253FB41
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 10:10:03 -0800 (PST)
+Subject: [PATCH v4 2/2] ndctl: merge firmware-update to dimm.c as one of the
  dimm ops
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 09 Mar 2018 11:24:28 -0700
-Message-ID: <152061986871.59417.740881208975233272.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152061972651.59417.11057669626979340979.stgit@djiang5-desk3.ch.intel.com>
-References: <152061972651.59417.11057669626979340979.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 09 Mar 2018 11:16:20 -0700
+Message-ID: <152061938078.58280.16990448534266028553.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152061924045.58280.15236814067229580330.stgit@djiang5-desk3.ch.intel.com>
+References: <152061924045.58280.15236814067229580330.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
