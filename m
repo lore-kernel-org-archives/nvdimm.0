@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0ECF021E49038
- for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 11:19:28 -0700 (PDT)
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: [PATCH 1/3] libnvdimm: provide module_nd_driver wrapper
-Date: Wed, 14 Mar 2018 19:25:06 +0100
-Message-Id: <20180314182508.10351-2-jthumshirn@suse.de>
-In-Reply-To: <20180314182508.10351-1-jthumshirn@suse.de>
-References: <20180314182508.10351-1-jthumshirn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id B7C0D2253FB47
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 10:18:00 -0800 (PST)
+Subject: [PATCH v5 0/2] ndctl: move firmware update to dimm action
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 09 Mar 2018 11:24:17 -0700
+Message-ID: <152061972651.59417.11057669626979340979.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,48 +16,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>, Linux NV-DIMM Mailing List <linux-nvdimm@lists.01.org>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a module_nd_driver() wrapper over simple nd_driver_register()
-nd_driver_unregister() combinations in module_init() and module_exit()
-respectively.
+The following series moves firmware update to dimm.c in order to take
+advantage of the command line parsing that already exists and remove
+duplications.
 
-Note an explicit nd_driver_unregister() had to be implemented as nd
-bus drivers did call device_unregister() direcly in the module_exit()
-function.
+v5:
+- Same as v4 except with the correct diff hopefully. stgit dropped some
+changes in v4.
 
-Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
+v4:
+- Fixed man page for firmware update.
+- Added check for all Intel DSMs for update firmware supported check.
+
+v3:
+- Modified error printout for op not supported per Dan's comment.
+
+v2:
+- Add distinct return errors for lack of support in ndctl, kernel, or
+  platform.
+- Moved the firmware update defines and structs to its own header.
+
 ---
- include/linux/nd.h | 6 ++++++
- 1 file changed, 6 insertions(+)
 
-diff --git a/include/linux/nd.h b/include/linux/nd.h
-index 5dc6b695437d..43c181a6add5 100644
---- a/include/linux/nd.h
-+++ b/include/linux/nd.h
-@@ -180,6 +180,12 @@ struct nd_region;
- void nvdimm_region_notify(struct nd_region *nd_region, enum nvdimm_event event);
- int __must_check __nd_driver_register(struct nd_device_driver *nd_drv,
- 		struct module *module, const char *mod_name);
-+static inline void nd_driver_unregister(struct nd_device_driver *drv)
-+{
-+	driver_unregister(&drv->drv);
-+}
- #define nd_driver_register(driver) \
- 	__nd_driver_register(driver, THIS_MODULE, KBUILD_MODNAME)
-+#define module_nd_driver(driver) \
-+	module_driver(driver, nd_driver_register, nd_driver_unregister)
- #endif /* __LINUX_ND_H__ */
--- 
-2.13.6
+Dave Jiang (2):
+      ndctl: add check for update firmware supported
+      ndctl: merge firmware-update to dimm.c as one of the dimm ops
 
+
+ ndctl/Makefile.am       |    1 
+ ndctl/dimm.c            |  475 +++++++++++++++++++++++++++++++++++++++++
+ ndctl/firmware-update.h |   45 ++++
+ ndctl/lib/firmware.c    |   11 +
+ ndctl/lib/intel.c       |   32 +++
+ ndctl/lib/libndctl.sym  |    1 
+ ndctl/lib/private.h     |    1 
+ ndctl/libndctl.h        |    1 
+ ndctl/update.c          |  545 -----------------------------------------------
+ 9 files changed, 564 insertions(+), 548 deletions(-)
+ create mode 100644 ndctl/firmware-update.h
+ delete mode 100644 ndctl/update.c
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
