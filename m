@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B7B9722135D5D
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 11:33:01 -0800 (PST)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [ndctl PATCH] ndctl, list: fix sector_size listing
-References: <152062242529.34816.8248756922497912006.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Fri, 09 Mar 2018 14:39:17 -0500
-In-Reply-To: <152062242529.34816.8248756922497912006.stgit@dwillia2-desk3.amr.corp.intel.com>
- (Dan Williams's message of "Fri, 09 Mar 2018 11:07:05 -0800")
-Message-ID: <x49y3j1ujh6.fsf@segfault.boston.devel.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id A81A62253FB57
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 11:09:53 -0800 (PST)
+Subject: [ndctl PATCH] ndctl, list: fix sector_size listing
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 09 Mar 2018 11:07:05 -0800
+Message-ID: <152062242529.34816.8248756922497912006.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,101 +20,89 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Williams <dan.j.williams@intel.com> writes:
+Commit a7320456f1bc "ndctl: add sector_size to 'ndctl list' output"
+mishandles the case where a namespace does not specify a sector_size,
+but otherwise supports a sector_size selection:
 
-> Commit a7320456f1bc "ndctl: add sector_size to 'ndctl list' output"
-> mishandles the case where a namespace does not specify a sector_size,
-> but otherwise supports a sector_size selection:
->
->     # ndctl list --namespace=namespace1.0
->     {
->       "dev":"namespace1.0",
->       "mode":"memory",
->       "size":32763805696,
->       "uuid":"7c985ba5-6d33-48bd-8fde-6c25a520abe0",
->       "sector_size":-1,
->       "blockdev":"pmem1",
->       "numa_node":0
->     }
->
-> Fix this and clean up the output to only provide a sector_size in the
-> non-default (i.e. != 512 bytes) case.
+    # ndctl list --namespace=namespace1.0
+    {
+      "dev":"namespace1.0",
+      "mode":"memory",
+      "size":32763805696,
+      "uuid":"7c985ba5-6d33-48bd-8fde-6c25a520abe0",
+      "sector_size":-1,
+      "blockdev":"pmem1",
+      "numa_node":0
+    }
 
-That sounds confusing.  Why not just always print out the sector size?
+Fix this and clean up the output to only provide a sector_size in the
+non-default (i.e. != 512 bytes) case.
 
--Jeff
+Fixes: a7320456f1bc ("ndctl: add sector_size to 'ndctl list' output")
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ util/json.c |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
->
-> Fixes: a7320456f1bc ("ndctl: add sector_size to 'ndctl list' output")
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  util/json.c |   31 +++++++++++++------------------
->  1 file changed, 13 insertions(+), 18 deletions(-)
->
-> diff --git a/util/json.c b/util/json.c
-> index 17d8f135b686..e7f789b36385 100644
-> --- a/util/json.c
-> +++ b/util/json.c
-> @@ -646,6 +646,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
->  	struct json_object *jndns = json_object_new_object();
->  	struct json_object *jobj, *jbbs = NULL;
->  	unsigned long long size = ULLONG_MAX;
-> +	unsigned int sector_size = UINT_MAX;
->  	enum ndctl_namespace_mode mode;
->  	const char *bdev = NULL, *name;
->  	unsigned int bb_count = 0;
-> @@ -769,29 +770,23 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
->  	} else
->  		bdev = ndctl_namespace_get_block_device(ndns);
->  
-> -	jobj = NULL;
-> -	if (btt) {
-> -		jobj = json_object_new_int(ndctl_btt_get_sector_size(btt));
-> -		if (!jobj)
-> -			goto err;
-> -	} else if (!dax) {
-> -		unsigned int sector_size = ndctl_namespace_get_sector_size(ndns);
-> -
-> -		/*
-> -		 * The kernel will default to a 512 byte sector size on PMEM
-> -		 * namespaces that don't explicitly have a sector size. This
-> -		 * happens because they use pre-v1.2 labels or because they
-> -		 * don't have a label space (devtype=nd_namespace_io).
-> -		 */
-> -		if (!sector_size)
-> -			sector_size = 512;
-> +	if (btt)
-> +		sector_size = ndctl_btt_get_sector_size(btt);
-> +	else if (!dax)
-> +		sector_size = ndctl_namespace_get_sector_size(ndns);
->  
-> +	/*
-> +	 * The kernel will default to a 512 byte sector size on PMEM
-> +	 * namespaces that don't explicitly have a sector size. This
-> +	 * happens because they use pre-v1.2 labels or because they
-> +	 * don't have a label space (devtype=nd_namespace_io).
-> +	 */
-> +	if (sector_size < UINT_MAX && sector_size > 512) {
->  		jobj = json_object_new_int(sector_size);
->  		if (!jobj)
->  			goto err;
-> -	}
-> -	if (jobj)
->  		json_object_object_add(jndns, "sector_size", jobj);
-> +	}
->  
->  	if (bdev && bdev[0]) {
->  		jobj = json_object_new_string(bdev);
->
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm@lists.01.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/util/json.c b/util/json.c
+index 17d8f135b686..e7f789b36385 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -646,6 +646,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	struct json_object *jndns = json_object_new_object();
+ 	struct json_object *jobj, *jbbs = NULL;
+ 	unsigned long long size = ULLONG_MAX;
++	unsigned int sector_size = UINT_MAX;
+ 	enum ndctl_namespace_mode mode;
+ 	const char *bdev = NULL, *name;
+ 	unsigned int bb_count = 0;
+@@ -769,29 +770,23 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	} else
+ 		bdev = ndctl_namespace_get_block_device(ndns);
+ 
+-	jobj = NULL;
+-	if (btt) {
+-		jobj = json_object_new_int(ndctl_btt_get_sector_size(btt));
+-		if (!jobj)
+-			goto err;
+-	} else if (!dax) {
+-		unsigned int sector_size = ndctl_namespace_get_sector_size(ndns);
+-
+-		/*
+-		 * The kernel will default to a 512 byte sector size on PMEM
+-		 * namespaces that don't explicitly have a sector size. This
+-		 * happens because they use pre-v1.2 labels or because they
+-		 * don't have a label space (devtype=nd_namespace_io).
+-		 */
+-		if (!sector_size)
+-			sector_size = 512;
++	if (btt)
++		sector_size = ndctl_btt_get_sector_size(btt);
++	else if (!dax)
++		sector_size = ndctl_namespace_get_sector_size(ndns);
+ 
++	/*
++	 * The kernel will default to a 512 byte sector size on PMEM
++	 * namespaces that don't explicitly have a sector size. This
++	 * happens because they use pre-v1.2 labels or because they
++	 * don't have a label space (devtype=nd_namespace_io).
++	 */
++	if (sector_size < UINT_MAX && sector_size > 512) {
+ 		jobj = json_object_new_int(sector_size);
+ 		if (!jobj)
+ 			goto err;
+-	}
+-	if (jobj)
+ 		json_object_object_add(jndns, "sector_size", jobj);
++	}
+ 
+ 	if (bdev && bdev[0]) {
+ 		jobj = json_object_new_string(bdev);
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
