@@ -1,7 +1,7 @@
-From: "The Post Office" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Message could not be delivered
-Date: Thu, 8 Mar 2018 11:27:41 +0800
-Message-ID: <20180308032127.4EF17224DCA5A@ml01.01.org>
+From: david-5PQXiBttweQ+Va1GwOuvDg@public.gmane.org
+Subject: Returned mail: Data format error
+Date: Fri, 9 Mar 2018 11:22:10 +0800
+Message-ID: <20180309031553.D6120225892B5@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,13 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Thu, 8 Mar 2018 11:27:41 +0800
-from lists.01.org [88.6.88.60]
+The original message was received at Fri, 9 Mar 2018 11:22:10 +0800
+from volminator.com [160.97.106.188]
 
 ----- The following addresses had permanent fatal errors -----
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:"The Post Office" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-<<< 501 "The Post Office" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
