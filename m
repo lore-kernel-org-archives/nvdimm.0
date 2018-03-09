@@ -1,16 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x242.google.com (mail-pl0-x242.google.com
- [IPv6:2607:f8b0:400e:c01::242])
+Received: from mail-ot0-x232.google.com (mail-ot0-x232.google.com
+ [IPv6:2607:f8b0:4003:c0f::232])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 43F5020954CCE
- for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 20:51:58 -0800 (PST)
-Received: by mail-pl0-x242.google.com with SMTP id s13-v6so11234312plq.6
- for <linux-nvdimm@lists.01.org>; Mon, 05 Mar 2018 20:58:11 -0800 (PST)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH] kernel/memremap: Remove stale devres_free() call
-Date: Tue,  6 Mar 2018 15:56:47 +1100
-Message-Id: <20180306045647.7784-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id C40DF220C2A60
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 09:20:29 -0800 (PST)
+Received: by mail-ot0-x232.google.com with SMTP id f11so9336537otj.12
+ for <linux-nvdimm@lists.01.org>; Fri, 09 Mar 2018 09:26:47 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4iO1TVLXPPC=RXHWLfaSXO0wBcSOUMJevZgbeVmF+vrTA@mail.gmail.com>
+References: <151407695916.38751.2866053440557472361.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151407705124.38751.12934858054023659736.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180104111233.GD29010@quack2.suse.cz>
+ <CAA9_cmcL7E7F+sEp1wn6H4TQBQeNttm_MSJjKT9jNfOri8iK9g@mail.gmail.com>
+ <20180108135002.mk427dfa3wfphsgt@quack2.suse.cz>
+ <CAPcyv4hU6JxZDwZypD5hiQ+4tj=RDXKvB-0+dAckE8wFpaCCkg@mail.gmail.com>
+ <20180309125625.n6hpu6ooi6rhzqzs@quack2.suse.cz>
+ <CAPcyv4iO1TVLXPPC=RXHWLfaSXO0wBcSOUMJevZgbeVmF+vrTA@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 9 Mar 2018 09:26:45 -0800
+Message-ID: <CAPcyv4ghFy6AY3VfKo=_v86QMn5R7fCQ2pz7=WjghRtBd+ChSw@mail.gmail.com>
+Subject: Re: [PATCH v4 17/18] mm, fs, dax: dax_flush_dma, handle dma vs
+ block-map-change collisions
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,50 +29,127 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, linux-xfs <linux-xfs@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-devm_memremap_pages() was re-worked in e8d513483300 to take a caller
-allocated struct dev_pagemap as a function parameter. A call to
-devres_free() was left in the error cleanup path which results in
-a kernel panic if the remap fails for some reason. Remove it
-to fix the panic and let devm_memremap_pages() fail gracefully.
+On Fri, Mar 9, 2018 at 8:15 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Fri, Mar 9, 2018 at 4:56 AM, Jan Kara <jack@suse.cz> wrote:
+>> On Thu 08-03-18 09:02:30, Dan Williams wrote:
+>>> On Mon, Jan 8, 2018 at 5:50 AM, Jan Kara <jack@suse.cz> wrote:
+>>> > On Sun 07-01-18 13:58:42, Dan Williams wrote:
+>>> >> On Thu, Jan 4, 2018 at 3:12 AM, Jan Kara <jack@suse.cz> wrote:
+>>> >> > On Sat 23-12-17 16:57:31, Dan Williams wrote:
+>>> >> >
+>>> >> >> +     /*
+>>> >> >> +      * Flush dax_dma_lock() sections to ensure all possible page
+>>> >> >> +      * references have been taken, or will block on the fs
+>>> >> >> +      * 'mmap_lock'.
+>>> >> >> +      */
+>>> >> >> +     synchronize_rcu();
+>>> >> >
+>>> >> > Frankly, I don't like synchronize_rcu() in a relatively hot path like this.
+>>> >> > Cannot we just abuse get_dev_pagemap() to fail if truncation is in progress
+>>> >> > for the pfn? We could indicate that by some bit in struct page or something
+>>> >> > like that.
+>>> >>
+>>> >> We would need a lockless way to take a reference conditionally if the
+>>> >> page is not subject to truncation.
+>>> >>
+>>> >> I recall the raid5 code did something similar where it split a
+>>> >> reference count into 2 fields. I.e. take page->_refcount and use the
+>>> >> upper bits as a truncation count. Something like:
+>>> >>
+>>> >> do {
+>>> >>     old = atomic_read(&page->_refcount);
+>>> >>     if (old & trunc_mask) /* upper bits of _refcount */
+>>> >>         return false;
+>>> >>     new = cnt + 1;
+>>> >> } while (atomic_cmpxchg(&page->_refcount, old, new) != old);
+>>> >> return true; /* we incremented the _refcount while the truncation
+>>> >> count was zero */
+>>> >>
+>>> >> ...the only concern is teaching the put_page() path to consider that
+>>> >> 'trunc_mask' when determining that the page is idle.
+>>> >>
+>>> >> Other ideas?
+>>> >
+>>> > What I rather thought about was an update to GUP paths (like
+>>> > follow_page_pte()):
+>>> >
+>>> >         if (flags & FOLL_GET) {
+>>> >                 get_page(page);
+>>> >                 if (pte_devmap(pte)) {
+>>> >                         /*
+>>> >                          * Pairs with the barrier in the truncate path.
+>>> >                          * Could be possibly _after_atomic version of the
+>>> >                          * barrier.
+>>> >                          */
+>>> >                         smp_mb();
+>>> >                         if (PageTruncateInProgress(page)) {
+>>> >                                 put_page(page);
+>>> >                                 ..bail...
+>>> >                         }
+>>> >                 }
+>>> >         }
+>>> >
+>>> > and in the truncate path:
+>>> >
+>>> >         down_write(inode->i_mmap_sem);
+>>> >         walk all pages in the mapping and mark them PageTruncateInProgress().
+>>> >         unmap_mapping_range(...);
+>>> >         /*
+>>> >          * Pairs with the barrier in GUP path. In fact not necessary since
+>>> >          * unmap_mapping_range() provides us with the barrier already.
+>>> >          */
+>>> >         smp_mb();
+>>> >         /*
+>>> >          * By now we are either guaranteed to see grabbed page reference or
+>>> >          * GUP is guaranteed to see PageTruncateInProgress().
+>>> >          */
+>>> >         while ((page = dax_find_referenced_page(mapping))) {
+>>> >                 ...
+>>> >         }
+>>> >
+>>> > The barriers need some verification, I've opted for the conservative option
+>>> > but I guess you get the idea.
+>>>
+>>> [ Reviving this thread for the next rev of this patch set for 4.17
+>>> consideration ]
+>>>
+>>> I don't think this barrier scheme can work in the presence of
+>>> get_user_pages_fast(). The get_user_pages_fast() path can race
+>>> unmap_mapping_range() to take out an elevated reference count on a
+>>> page.
+>>
+>> Why the scheme cannot work? Sure you'd need to patch also gup_pte_range()
+>> and a similar thing for PMDs to recheck PageTruncateInProgress() after
+>> grabbing the page reference. But in principle I don't see anything
+>> fundamentally different between gup_fast() and plain gup().
+>
+> Ah, yes I didn't grok the abort on PageTruncateInProgress() until I
+> read this again (and again), I'll try that.
 
-Fixes: e8d513483300 ("memremap: change devm_memremap_pages interface to use struct dev_pagemap")
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
----
-Both in-tree users of devm_memremap_pages() embed dev_pagemap into other
-structures so this shouldn't cause any leaks. Logan's p2p series does
-add one usage that assumes pgmap will be freed on error so that'll
-need fixing.
----
- kernel/memremap.c | 1 -
- 1 file changed, 1 deletion(-)
+Ok, so the problem is that PageTruncateInProgress() for a given page
+is hard to detect without trapping deeper into the filesystem, at
+least in the XFS case. The usage of xfs_break_layouts() happens well
+before we know that a given file offset is going to be truncated. By
+the time we're at a point in the call stack where we are committed to
+truncating a given page it is then awkward to drop locks and wait on
+the next page collision.
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 4dd4274cabe2..895e6b76b25e 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -427,7 +427,6 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
-  err_pfn_remap:
-  err_radix:
- 	pgmap_radix_release(res, pgoff);
--	devres_free(pgmap);
- 	return ERR_PTR(error);
- }
- EXPORT_SYMBOL(devm_memremap_pages);
--- 
-2.9.5
-
+In order to support an early 'break' of dax layouts before touching
+the extent map we can't rely on being able to positively determine the
+pages that collide with a given truncate/hole-punch range. Instead the
+approach I've taken drains all pinned / referenced pages for the inode
+before attempting an operation that *might* lead to an extent unmap
+event. This mirrors the pNFS lease case where all leases are broken
+regardless of whether they actually collide with an extent that is
+under active access from a remote client.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
