@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DE6122253FB47
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 10:18:06 -0800 (PST)
-Subject: [PATCH v5 1/2] ndctl: add check for update firmware supported
+ by ml01.01.org (Postfix) with ESMTPS id 8ACF622283522
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 10:09:58 -0800 (PST)
+Subject: [PATCH v4 1/2] ndctl: add check for update firmware supported
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 09 Mar 2018 11:24:23 -0700
-Message-ID: <152061986331.59417.2385734318939148285.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152061972651.59417.11057669626979340979.stgit@djiang5-desk3.ch.intel.com>
-References: <152061972651.59417.11057669626979340979.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 09 Mar 2018 11:16:15 -0700
+Message-ID: <152061937538.58280.3500193419929286233.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152061924045.58280.15236814067229580330.stgit@djiang5-desk3.ch.intel.com>
+References: <152061924045.58280.15236814067229580330.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
