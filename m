@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg0-x244.google.com (mail-pg0-x244.google.com
- [IPv6:2607:f8b0:400e:c05::244])
+Received: from mail-pg0-x242.google.com (mail-pg0-x242.google.com
+ [IPv6:2607:f8b0:400e:c05::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A2E0D2258AF1B
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:20 -0800 (PST)
-Received: by mail-pg0-x244.google.com with SMTP id m19so4837331pgn.1
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:39 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 9A68722603AEC
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:30 -0800 (PST)
+Received: by mail-pg0-x242.google.com with SMTP id g8so4832459pgv.7
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:49 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 19/83] Add pmem block free routines.
-Date: Sat, 10 Mar 2018 10:18:00 -0800
-Message-Id: <1520705944-6723-20-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 27/83] Save the inode inuse list to pmem upon umount
+Date: Sat, 10 Mar 2018 10:18:08 -0800
+Message-Id: <1520705944-6723-28-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,305 +31,96 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
-NOVA allocates/frees log pages and data pages in the same way.
-For block free, NOVA first gets the corresponding free list by
-checking the block number, and then inserts the freed range in
-the red-black tree. NOVA always merge adjacent free ranges if possible.
-
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/balloc.c | 223 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- fs/nova/balloc.h |   8 ++
- fs/nova/nova.h   |  23 ++++++
- 3 files changed, 254 insertions(+)
+ fs/nova/bbuild.c | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/bbuild.h |  1 +
+ fs/nova/super.c  |  1 +
+ 3 files changed, 50 insertions(+)
 
-diff --git a/fs/nova/balloc.c b/fs/nova/balloc.c
-index 0742fe0..9108721 100644
---- a/fs/nova/balloc.c
-+++ b/fs/nova/balloc.c
-@@ -218,6 +218,229 @@ inline int nova_insert_blocktree(struct nova_sb_info *sbi,
- 	return ret;
+diff --git a/fs/nova/bbuild.c b/fs/nova/bbuild.c
+index 12a2f11..66053cb 100644
+--- a/fs/nova/bbuild.c
++++ b/fs/nova/bbuild.c
+@@ -116,6 +116,54 @@ static u64 nova_save_free_list_blocknodes(struct super_block *sb, int cpu,
+ 	return temp_tail;
  }
  
-+/* Used for both block free tree and inode inuse tree */
-+int nova_find_free_slot(struct nova_sb_info *sbi,
-+	struct rb_root *tree, unsigned long range_low,
-+	unsigned long range_high, struct nova_range_node **prev,
-+	struct nova_range_node **next)
++void nova_save_inode_list_to_log(struct super_block *sb)
 +{
-+	struct nova_range_node *ret_node = NULL;
-+	struct rb_node *tmp;
-+	int check_prev = 0, check_next = 0;
-+	int ret;
-+
-+	ret = nova_find_range_node(sbi, tree, range_low, &ret_node);
-+	if (ret) {
-+		nova_dbg("%s ERROR: %lu - %lu already in free list\n",
-+			__func__, range_low, range_high);
-+		return -EINVAL;
-+	}
-+
-+	if (!ret_node) {
-+		*prev = *next = NULL;
-+	} else if (ret_node->range_high < range_low) {
-+		*prev = ret_node;
-+		tmp = rb_next(&ret_node->node);
-+		if (tmp) {
-+			*next = container_of(tmp, struct nova_range_node, node);
-+			check_next = 1;
-+		} else {
-+			*next = NULL;
-+		}
-+	} else if (ret_node->range_low > range_high) {
-+		*next = ret_node;
-+		tmp = rb_prev(&ret_node->node);
-+		if (tmp) {
-+			*prev = container_of(tmp, struct nova_range_node, node);
-+			check_prev = 1;
-+		} else {
-+			*prev = NULL;
-+		}
-+	} else {
-+		nova_dbg("%s ERROR: %lu - %lu overlaps with existing node %lu - %lu\n",
-+			 __func__, range_low, range_high, ret_node->range_low,
-+			ret_node->range_high);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * blocknr: start block number
-+ * num: number of freed pages
-+ * btype: is large page?
-+ * log_page: is log page?
-+ */
-+static int nova_free_blocks(struct super_block *sb, unsigned long blocknr,
-+	int num, unsigned short btype, int log_page)
-+{
++	struct nova_inode *pi = nova_get_inode_by_ino(sb, NOVA_INODELIST_INO);
++	struct nova_inode_info_header sih;
 +	struct nova_sb_info *sbi = NOVA_SB(sb);
-+	struct rb_root *tree;
-+	unsigned long block_low;
-+	unsigned long block_high;
-+	unsigned long num_blocks = 0;
-+	struct nova_range_node *prev = NULL;
-+	struct nova_range_node *next = NULL;
-+	struct nova_range_node *curr_node;
-+	struct free_list *free_list;
-+	int cpuid;
-+	int new_node_used = 0;
-+	int ret;
-+	timing_t free_time;
-+
-+	if (num <= 0) {
-+		nova_dbg("%s ERROR: free %d\n", __func__, num);
-+		return -EINVAL;
-+	}
-+
-+	NOVA_START_TIMING(free_blocks_t, free_time);
-+	cpuid = blocknr / sbi->per_list_blocks;
-+
-+	/* Pre-allocate blocknode */
-+	curr_node = nova_alloc_blocknode(sb);
-+	if (curr_node == NULL) {
-+		/* returning without freeing the block*/
-+		NOVA_END_TIMING(free_blocks_t, free_time);
-+		return -ENOMEM;
-+	}
-+
-+	free_list = nova_get_free_list(sb, cpuid);
-+	spin_lock(&free_list->s_lock);
-+
-+	tree = &(free_list->block_free_tree);
-+
-+	num_blocks = nova_get_numblocks(btype) * num;
-+	block_low = blocknr;
-+	block_high = blocknr + num_blocks - 1;
-+
-+	nova_dbgv("Free: %lu - %lu\n", block_low, block_high);
-+
-+	if (blocknr < free_list->block_start ||
-+			blocknr + num > free_list->block_end + 1) {
-+		nova_err(sb, "free blocks %lu to %lu, free list %d, start %lu, end %lu\n",
-+				blocknr, blocknr + num - 1,
-+				free_list->index,
-+				free_list->block_start,
-+				free_list->block_end);
-+		ret = -EIO;
-+		goto out;
-+	}
-+
-+	ret = nova_find_free_slot(sbi, tree, block_low,
-+					block_high, &prev, &next);
-+
-+	if (ret) {
-+		nova_dbg("%s: find free slot fail: %d\n", __func__, ret);
-+		goto out;
-+	}
-+
-+	if (prev && next && (block_low == prev->range_high + 1) &&
-+			(block_high + 1 == next->range_low)) {
-+		/* fits the hole */
-+		rb_erase(&next->node, tree);
-+		free_list->num_blocknode--;
-+		prev->range_high = next->range_high;
-+		if (free_list->last_node == next)
-+			free_list->last_node = prev;
-+		nova_free_blocknode(sb, next);
-+		goto block_found;
-+	}
-+	if (prev && (block_low == prev->range_high + 1)) {
-+		/* Aligns left */
-+		prev->range_high += num_blocks;
-+		goto block_found;
-+	}
-+	if (next && (block_high + 1 == next->range_low)) {
-+		/* Aligns right */
-+		next->range_low -= num_blocks;
-+		goto block_found;
-+	}
-+
-+	/* Aligns somewhere in the middle */
-+	curr_node->range_low = block_low;
-+	curr_node->range_high = block_high;
-+	new_node_used = 1;
-+	ret = nova_insert_blocktree(sbi, tree, curr_node);
-+	if (ret) {
-+		new_node_used = 0;
-+		goto out;
-+	}
-+	if (!prev)
-+		free_list->first_node = curr_node;
-+	if (!next)
-+		free_list->last_node = curr_node;
-+
-+	free_list->num_blocknode++;
-+
-+block_found:
-+	free_list->num_free_blocks += num_blocks;
-+
-+	if (log_page) {
-+		free_list->free_log_count++;
-+		free_list->freed_log_pages += num_blocks;
-+	} else {
-+		free_list->free_data_count++;
-+		free_list->freed_data_pages += num_blocks;
-+	}
-+
-+out:
-+	spin_unlock(&free_list->s_lock);
-+	if (new_node_used == 0)
-+		nova_free_blocknode(sb, curr_node);
-+
-+	NOVA_END_TIMING(free_blocks_t, free_time);
-+	return ret;
-+}
-+
-+int nova_free_data_blocks(struct super_block *sb,
-+	struct nova_inode_info_header *sih, unsigned long blocknr, int num)
-+{
-+	int ret;
-+	timing_t free_time;
-+
-+	nova_dbgv("Inode %lu: free %d data block from %lu to %lu\n",
-+			sih->ino, num, blocknr, blocknr + num - 1);
-+	if (blocknr == 0) {
-+		nova_dbg("%s: ERROR: %lu, %d\n", __func__, blocknr, num);
-+		return -EINVAL;
-+	}
-+	NOVA_START_TIMING(free_data_t, free_time);
-+	ret = nova_free_blocks(sb, blocknr, num, sih->i_blk_type, 0);
-+	if (ret) {
-+		nova_err(sb, "Inode %lu: free %d data block from %lu to %lu failed!\n",
-+			 sih->ino, num, blocknr, blocknr + num - 1);
-+		dump_stack();
-+	}
-+	NOVA_END_TIMING(free_data_t, free_time);
-+
-+	return ret;
-+}
-+
-+int nova_free_log_blocks(struct super_block *sb,
-+	struct nova_inode_info_header *sih, unsigned long blocknr, int num)
-+{
-+	int ret;
-+	timing_t free_time;
-+
-+	nova_dbgv("Inode %lu: free %d log block from %lu to %lu\n",
-+			sih->ino, num, blocknr, blocknr + num - 1);
-+	if (blocknr == 0) {
-+		nova_dbg("%s: ERROR: %lu, %d\n", __func__, blocknr, num);
-+		return -EINVAL;
-+	}
-+	NOVA_START_TIMING(free_log_t, free_time);
-+	ret = nova_free_blocks(sb, blocknr, num, sih->i_blk_type, 1);
-+	if (ret) {
-+		nova_err(sb, "Inode %lu: free %d log block from %lu to %lu failed!\n",
-+			 sih->ino, num, blocknr, blocknr + num - 1);
-+		dump_stack();
-+	}
-+	NOVA_END_TIMING(free_log_t, free_time);
-+
-+	return ret;
-+}
-+
- /* We do not take locks so it's inaccurate */
- unsigned long nova_count_free_blocks(struct super_block *sb)
- {
-diff --git a/fs/nova/balloc.h b/fs/nova/balloc.h
-index 537532e..249eb72 100644
---- a/fs/nova/balloc.h
-+++ b/fs/nova/balloc.h
-@@ -69,6 +69,14 @@ extern void nova_init_blockmap(struct super_block *sb, int recovery);
- extern unsigned long nova_count_free_blocks(struct super_block *sb);
- inline int nova_insert_blocktree(struct nova_sb_info *sbi,
- 	struct rb_root *tree, struct nova_range_node *new_node);
-+extern int nova_free_data_blocks(struct super_block *sb,
-+	struct nova_inode_info_header *sih, unsigned long blocknr, int num);
-+extern int nova_free_log_blocks(struct super_block *sb,
-+	struct nova_inode_info_header *sih, unsigned long blocknr, int num);
-+int nova_find_free_slot(struct nova_sb_info *sbi,
-+	struct rb_root *tree, unsigned long range_low,
-+	unsigned long range_high, struct nova_range_node **prev,
-+	struct nova_range_node **next);
- 
- extern int nova_insert_range_node(struct rb_root *tree,
- 				  struct nova_range_node *new_node);
-diff --git a/fs/nova/nova.h b/fs/nova/nova.h
-index 404e133..0992f50 100644
---- a/fs/nova/nova.h
-+++ b/fs/nova/nova.h
-@@ -312,6 +312,29 @@ struct nova_range_node {
- #include "bbuild.h"
- #include "balloc.h"
- 
-+static inline unsigned long
-+nova_get_numblocks(unsigned short btype)
-+{
 +	unsigned long num_blocks;
++	unsigned long num_nodes = 0;
++	struct inode_map *inode_map;
++	unsigned long i;
++	u64 temp_tail;
++	u64 new_block;
++	int allocated;
 +
-+	if (btype == NOVA_BLOCK_TYPE_4K) {
-+		num_blocks = 1;
-+	} else if (btype == NOVA_BLOCK_TYPE_2M) {
-+		num_blocks = 512;
-+	} else {
-+		//btype == NOVA_BLOCK_TYPE_1G
-+		num_blocks = 0x40000;
++	sih.ino = NOVA_INODELIST_INO;
++	sih.i_blk_type = NOVA_DEFAULT_BLOCK_TYPE;
++	sih.i_blocks = 0;
++
++	for (i = 0; i < sbi->cpus; i++) {
++		inode_map = &sbi->inode_maps[i];
++		num_nodes += inode_map->num_range_node_inode;
 +	}
-+	return num_blocks;
++
++	num_blocks = num_nodes / RANGENODE_PER_PAGE;
++	if (num_nodes % RANGENODE_PER_PAGE)
++		num_blocks++;
++
++	allocated = nova_allocate_inode_log_pages(sb, &sih, num_blocks,
++						&new_block, ANY_CPU, 0);
++	if (allocated != num_blocks) {
++		nova_dbg("Error saving inode list: %d\n", allocated);
++		return;
++	}
++
++	temp_tail = new_block;
++	for (i = 0; i < sbi->cpus; i++) {
++		inode_map = &sbi->inode_maps[i];
++		temp_tail = nova_save_range_nodes_to_log(sb,
++				&inode_map->inode_inuse_tree, temp_tail, i);
++	}
++
++	pi->log_head = new_block;
++	nova_update_tail(pi, temp_tail);
++	nova_flush_buffer(&pi->log_head, CACHELINE_SIZE, 0);
++
++	nova_dbg("%s: %lu inode nodes, pi head 0x%llx, tail 0x%llx\n",
++		__func__, num_nodes, pi->log_head, pi->log_tail);
 +}
 +
-+static inline unsigned long
-+nova_get_blocknr(struct super_block *sb, u64 block, unsigned short btype)
-+{
-+	return block >> PAGE_SHIFT;
-+}
-+
-+
- /* ====================================================== */
- /* ==============  Function prototypes  ================= */
- /* ====================================================== */
+ void nova_save_blocknode_mappings_to_log(struct super_block *sb)
+ {
+ 	struct nova_inode *pi = nova_get_inode_by_ino(sb, NOVA_BLOCKNODE_INO);
+diff --git a/fs/nova/bbuild.h b/fs/nova/bbuild.h
+index 59cc379..5d2b5f0 100644
+--- a/fs/nova/bbuild.h
++++ b/fs/nova/bbuild.h
+@@ -3,6 +3,7 @@
+ 
+ void nova_init_header(struct super_block *sb,
+ 	struct nova_inode_info_header *sih, u16 i_mode);
++void nova_save_inode_list_to_log(struct super_block *sb);
+ void nova_save_blocknode_mappings_to_log(struct super_block *sb);
+ 
+ #endif
+diff --git a/fs/nova/super.c b/fs/nova/super.c
+index 9b60873..69e4afc 100644
+--- a/fs/nova/super.c
++++ b/fs/nova/super.c
+@@ -734,6 +734,7 @@ static void nova_put_super(struct super_block *sb)
+ 	int i;
+ 
+ 	if (sbi->virt_addr) {
++		nova_save_inode_list_to_log(sb);
+ 		/* Save everything before blocknode mapping! */
+ 		nova_save_blocknode_mappings_to_log(sb);
+ 		sbi->virt_addr = NULL;
 -- 
 2.7.4
 
