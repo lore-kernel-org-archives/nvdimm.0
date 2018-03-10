@@ -3,15 +3,14 @@ Received: from mail-pf0-x242.google.com (mail-pf0-x242.google.com
  [IPv6:2607:f8b0:400e:c00::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6A0A722631477
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:54 -0800 (PST)
-Received: by mail-pf0-x242.google.com with SMTP id q13so2624170pff.0
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:13 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 4095222603B1B
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:40 -0800 (PST)
+Received: by mail-pf0-x242.google.com with SMTP id h19so2612510pfd.12
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:59 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 47/83] Dir: Add initial dentries when initializing a
- directory inode log.
-Date: Sat, 10 Mar 2018 10:18:28 -0800
-Message-Id: <1520705944-6723-48-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 35/83] Journal: Lite journal helper routines.
+Date: Sat, 10 Mar 2018 10:18:16 -0800
+Message-Id: <1520705944-6723-36-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -32,142 +31,137 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
-For root directory and newly created directory via mkdir(),
-we append . and .. dentries to the directory inode log.
-
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/dir.c   | 82 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- fs/nova/nova.h  |  2 ++
- fs/nova/super.c |  5 ++++
- 3 files changed, 89 insertions(+)
+ fs/nova/Makefile  |   2 +-
+ fs/nova/journal.c | 108 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 109 insertions(+), 1 deletion(-)
+ create mode 100644 fs/nova/journal.c
 
-diff --git a/fs/nova/dir.c b/fs/nova/dir.c
-index 5bea57a..377d2da 100644
---- a/fs/nova/dir.c
-+++ b/fs/nova/dir.c
-@@ -139,3 +139,85 @@ void nova_delete_dir_tree(struct super_block *sb,
+diff --git a/fs/nova/Makefile b/fs/nova/Makefile
+index b3638a4..4aeadea 100644
+--- a/fs/nova/Makefile
++++ b/fs/nova/Makefile
+@@ -4,4 +4,4 @@
  
- 	NOVA_END_TIMING(delete_dir_tree_t, delete_time);
- }
+ obj-$(CONFIG_NOVA_FS) += nova.o
+ 
+-nova-y := balloc.o bbuild.o inode.o log.o rebuild.o stats.o super.o
++nova-y := balloc.o bbuild.o inode.o journal.o log.o rebuild.o stats.o super.o
+diff --git a/fs/nova/journal.c b/fs/nova/journal.c
+new file mode 100644
+index 0000000..75d590f
+--- /dev/null
++++ b/fs/nova/journal.c
+@@ -0,0 +1,108 @@
++/*
++ * NOVA journaling facility.
++ *
++ * This file contains journaling code to guarantee the atomicity of directory
++ * operations that span multiple inodes (unlink, rename, etc).
++ *
++ * Copyright 2015-2016 Regents of the University of California,
++ * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
++ * Copyright 2012-2013 Intel Corporation
++ * Copyright 2009-2011 Marco Stornelli <marco.stornelli@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
 +
-+/* ========================= Entry operations ============================= */
++#include <linux/module.h>
++#include <linux/string.h>
++#include <linux/init.h>
++#include <linux/vfs.h>
++#include <linux/uaccess.h>
++#include <linux/mm.h>
++#include <linux/mutex.h>
++#include <linux/sched.h>
++#include "nova.h"
++#include "journal.h"
 +
-+static unsigned int nova_init_dentry(struct super_block *sb,
-+	struct nova_dentry *de_entry, u64 self_ino, u64 parent_ino,
-+	u64 epoch_id)
++/**************************** Lite journal ******************************/
++
++static inline void
++nova_print_lite_transaction(struct nova_lite_journal_entry *entry)
 +{
-+	void *start = de_entry;
-+	struct nova_inode_log_page *curr_page = start;
-+	unsigned int length;
-+	unsigned short de_len;
-+
-+	de_len = NOVA_DIR_LOG_REC_LEN(1);
-+	memset(de_entry, 0, de_len);
-+	de_entry->entry_type = DIR_LOG;
-+	de_entry->epoch_id = epoch_id;
-+	de_entry->trans_id = 0;
-+	de_entry->ino = cpu_to_le64(self_ino);
-+	de_entry->name_len = 1;
-+	de_entry->de_len = cpu_to_le16(de_len);
-+	de_entry->mtime = timespec_trunc(current_kernel_time(),
-+					 sb->s_time_gran).tv_sec;
-+
-+	de_entry->links_count = 1;
-+	strncpy(de_entry->name, ".\0", 2);
-+	nova_persist_entry(de_entry);
-+
-+	length = de_len;
-+
-+	de_entry = (struct nova_dentry *)((char *)de_entry + length);
-+	de_len = NOVA_DIR_LOG_REC_LEN(2);
-+	memset(de_entry, 0, de_len);
-+	de_entry->entry_type = DIR_LOG;
-+	de_entry->epoch_id = epoch_id;
-+	de_entry->trans_id = 0;
-+	de_entry->ino = cpu_to_le64(parent_ino);
-+	de_entry->name_len = 2;
-+	de_entry->de_len = cpu_to_le16(de_len);
-+	de_entry->mtime = timespec_trunc(current_kernel_time(),
-+					 sb->s_time_gran).tv_sec;
-+
-+	de_entry->links_count = 2;
-+	strncpy(de_entry->name, "..\0", 3);
-+	nova_persist_entry(de_entry);
-+	length += de_len;
-+
-+	nova_set_page_num_entries(sb, curr_page, 2, 1);
-+
-+	nova_flush_buffer(start, length, 0);
-+	return length;
++	nova_dbg("Entry %p: Type %llu, data1 0x%llx, data2 0x%llx\n, checksum %u\n",
++			entry, entry->type,
++			entry->data1, entry->data2, entry->csum);
 +}
 +
-+/* Append . and .. entries */
-+int nova_append_dir_init_entries(struct super_block *sb,
-+	struct nova_inode *pi, u64 self_ino, u64 parent_ino, u64 epoch_id)
++static inline int nova_update_journal_entry_csum(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
 +{
-+	struct nova_inode_info_header sih;
-+	int allocated;
-+	u64 new_block;
-+	unsigned int length;
-+	struct nova_dentry *de_entry;
++	u32 crc = 0;
 +
-+	sih.ino = self_ino;
-+	sih.i_blk_type = NOVA_DEFAULT_BLOCK_TYPE;
++	crc = nova_crc32c(~0, (__u8 *)entry,
++			(sizeof(struct nova_lite_journal_entry)
++			 - sizeof(__le32)));
 +
-+	allocated = nova_allocate_inode_log_pages(sb, &sih, 1, &new_block,
-+							ANY_CPU, 0);
-+	if (allocated != 1) {
-+		nova_err(sb, "ERROR: no inode log page available\n");
-+		return -ENOMEM;
++	entry->csum = cpu_to_le32(crc);
++	nova_flush_buffer(entry, sizeof(struct nova_lite_journal_entry), 0);
++	return 0;
++}
++
++static inline int nova_check_entry_integrity(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
++{
++	u32 crc = 0;
++
++	crc = nova_crc32c(~0, (__u8 *)entry,
++			(sizeof(struct nova_lite_journal_entry)
++			 - sizeof(__le32)));
++
++	if (entry->csum == cpu_to_le32(crc))
++		return 0;
++	else
++		return 1;
++}
++
++// Get the next journal entry.  Journal entries are stored in a circular
++// buffer.  They live a 1-page circular buffer.
++//
++// TODO: Add check to ensure that the journal doesn't grow too large.
++static inline u64 next_lite_journal(u64 curr_p)
++{
++	size_t size = sizeof(struct nova_lite_journal_entry);
++
++	if ((curr_p & (PAGE_SIZE - 1)) + size >= PAGE_SIZE)
++		return (curr_p & PAGE_MASK);
++
++	return curr_p + size;
++}
++
++// Walk the journal for one CPU, and verify the checksum on each entry.
++static int nova_check_journal_entries(struct super_block *sb,
++	struct journal_ptr_pair *pair)
++{
++	struct nova_lite_journal_entry *entry;
++	u64 temp;
++	int ret;
++
++	temp = pair->journal_head;
++	while (temp != pair->journal_tail) {
++		entry = (struct nova_lite_journal_entry *)nova_get_block(sb,
++									temp);
++		ret = nova_check_entry_integrity(sb, entry);
++		if (ret) {
++			nova_dbg("Entry %p checksum failure\n", entry);
++			nova_print_lite_transaction(entry);
++			return ret;
++		}
++		temp = next_lite_journal(temp);
 +	}
-+
-+	pi->log_tail = pi->log_head = new_block;
-+
-+	de_entry = (struct nova_dentry *)nova_get_block(sb, new_block);
-+
-+	length = nova_init_dentry(sb, de_entry, self_ino, parent_ino, epoch_id);
-+
-+	nova_update_tail(pi, new_block + length);
 +
 +	return 0;
 +}
-diff --git a/fs/nova/nova.h b/fs/nova/nova.h
-index 3890479..a94f44d 100644
---- a/fs/nova/nova.h
-+++ b/fs/nova/nova.h
-@@ -458,6 +458,8 @@ void nova_delete_dir_tree(struct super_block *sb,
- struct nova_dentry *nova_find_dentry(struct super_block *sb,
- 	struct nova_inode *pi, struct inode *inode, const char *name,
- 	unsigned long name_len);
-+int nova_append_dir_init_entries(struct super_block *sb,
-+	struct nova_inode *pi, u64 self_ino, u64 parent_ino, u64 epoch_id);
- 
- /* rebuild.c */
- int nova_rebuild_inode(struct super_block *sb, struct nova_inode_info *si,
-diff --git a/fs/nova/super.c b/fs/nova/super.c
-index 216d396..1e67062 100644
---- a/fs/nova/super.c
-+++ b/fs/nova/super.c
-@@ -349,6 +349,7 @@ static struct nova_inode *nova_init(struct super_block *sb,
- 	struct nova_inode *root_i, *pi;
- 	struct nova_super_block *super;
- 	struct nova_sb_info *sbi = NOVA_SB(sb);
-+	u64 epoch_id;
- 	timing_t init_time;
- 
- 	NOVA_START_TIMING(new_init_t, init_time);
-@@ -415,6 +416,10 @@ static struct nova_inode *nova_init(struct super_block *sb,
- 
- 	nova_flush_buffer(root_i, sizeof(*root_i), false);
- 
-+	epoch_id = nova_get_epoch_id(sb);
-+	nova_append_dir_init_entries(sb, root_i, NOVA_ROOT_INO,
-+					NOVA_ROOT_INO, epoch_id);
-+
- 	PERSISTENT_MARK();
- 	PERSISTENT_BARRIER();
- 	nova_info("NOVA initialization finish\n");
 -- 
 2.7.4
 
