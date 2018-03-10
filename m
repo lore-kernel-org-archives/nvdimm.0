@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg0-x242.google.com (mail-pg0-x242.google.com
+ [IPv6:2607:f8b0:400e:c05::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4595C22402E1A
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 09:31:47 -0800 (PST)
-Date: Thu, 1 Mar 2018 11:37:52 -0600
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2 01/10] PCI/P2PDMA: Support peer to peer memory
-Message-ID: <20180301173752.GE13722@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180228234006.21093-1-logang@deltatee.com>
- <20180228234006.21093-2-logang@deltatee.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180228234006.21093-2-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1359822646314
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:20 -0800 (PST)
+Received: by mail-pg0-x242.google.com with SMTP id l4so4832218pgp.11
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:38 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 68/83] File operation: copy-on-write write.
+Date: Sat, 10 Mar 2018 10:18:49 -0800
+Message-Id: <1520705944-6723-69-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,313 +20,449 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-cy9wZWVyIHRvIHBlZXIvcGVlci10by1wZWVyLyB0byBtYXRjaCB0ZXh0IGJlbG93IGFuZCBpbiBz
-cGVjLgoKT24gV2VkLCBGZWIgMjgsIDIwMTggYXQgMDQ6Mzk6NTdQTSAtMDcwMCwgTG9nYW4gR3Vu
-dGhvcnBlIHdyb3RlOgo+IFNvbWUgUENJIGRldmljZXMgbWF5IGhhdmUgbWVtb3J5IG1hcHBlZCBp
-biBhIEJBUiBzcGFjZSB0aGF0J3MKPiBpbnRlbmRlZCBmb3IgdXNlIGluIFBlZXItdG8tUGVlciB0
-cmFuc2FjdGlvbnMuIEluIG9yZGVyIHRvIGVuYWJsZQo+IHN1Y2ggdHJhbnNhY3Rpb25zIHRoZSBt
-ZW1vcnkgbXVzdCBiZSByZWdpc3RlcmVkIHdpdGggWk9ORV9ERVZJQ0UgcGFnZXMKPiBzbyBpdCBj
-YW4gYmUgdXNlZCBieSBETUEgaW50ZXJmYWNlcyBpbiBleGlzdGluZyBkcml2ZXJzLgoKcy9QZWVy
-LXRvLVBlZXIvcGVlci10by1wZWVyLyB0byBtYXRjaCBzcGVjIGFuZCB0eXBpY2FsIHVzYWdlLgoK
-SXMgdGhlcmUgYW55dGhpbmcgYWJvdXQgdGhpcyBtZW1vcnkgdGhhdCBtYWtlcyBpdCBzcGVjaWZp
-Y2FsbHkKaW50ZW5kZWQgZm9yIHBlZXItdG8tcGVlciB0cmFuc2FjdGlvbnM/ICBJIGFzc3VtZSB0
-aGUgZGV2aWNlIGNhbid0CnJlYWxseSB0ZWxsIHdoZXRoZXIgYSB0cmFuc2FjdGlvbiBpcyBmcm9t
-IGEgQ1BVIG9yIGEgcGVlci4KCj4gQSBrZXJuZWwgaW50ZXJmYWNlIGlzIHByb3ZpZGVkIHNvIHRo
-YXQgb3RoZXIgc3Vic3lzdGVtcyBjYW4gZmluZCBhbmQKPiBhbGxvY2F0ZSBjaHVua3Mgb2YgUDJQ
-IG1lbW9yeSBhcyBuZWNlc3NhcnkgdG8gZmFjaWxpdGF0ZSB0cmFuc2ZlcnMKPiBiZXR3ZWVuIHR3
-byBQQ0kgcGVlcnMuIERlcGVuZGluZyBvbiBoYXJkd2FyZSwgdGhpcyBtYXkgcmVkdWNlIHRoZQo+
-IGJhbmR3aWR0aCBvZiB0aGUgdHJhbnNmZXIgYnV0IHdvdWxkIHNpZ25pZmljYW50bHkgcmVkdWNl
-IHByZXNzdXJlCj4gb24gc3lzdGVtIG1lbW9yeS4gVGhpcyBtYXkgYmUgZGVzaXJhYmxlIGluIG1h
-bnkgY2FzZXM6IGZvciBleGFtcGxlIGEKPiBzeXN0ZW0gY291bGQgYmUgZGVzaWduZWQgd2l0aCBh
-IHNtYWxsIENQVSBjb25uZWN0ZWQgdG8gYSBQQ0kgc3dpdGNoIGJ5IGEKPiBzbWFsbCBudW1iZXIg
-b2YgbGFuZXMgd2hpY2ggd291bGQgbWF4aW1pemUgdGhlIG51bWJlciBvZiBsYW5lcyBhdmFpbGFi
-bGUKPiB0byBjb25uZWN0IHRvIE5WTUUgZGV2aWNlcy4KCiJBIGtlcm5lbCBpbnRlcmZhY2UgaXMg
-cHJvdmlkZWQiIGNvdWxkIG1lYW4gInRoZSBrZXJuZWwgcHJvdmlkZXMgYW4KaW50ZXJmYWNlIiwg
-aW5kZXBlbmRlbnQgb2YgYW55dGhpbmcgdGhpcyBwYXRjaCBkb2VzLCBidXQgSSB0aGluayB5b3UK
-bWVhbiAqdGhpcyBwYXRjaCBzcGVjaWZpY2FsbHkqIGFkZHMgdGhlIGludGVyZmFjZS4KCk1heWJl
-IHNvbWV0aGluZyBsaWtlOgoKICBBZGQgaW50ZXJmYWNlcyBmb3Igb3RoZXIgc3Vic3lzdGVtcyB0
-byBmaW5kIGFuZCBhbGxvY2F0ZSAuLi46CgogICAgaW50IHBjaV9wMnBkbWFfYWRkX2NsaWVudCgp
-OwogICAgc3RydWN0IHBjaV9kZXYgKnBjaV9wMnBtZW1fZmluZCgpOwogICAgdm9pZCAqcGNpX2Fs
-bG9jX3AycG1lbSgpOwoKICBUaGlzIG1heSByZWR1Y2UgYmFuZHdpZHRoIG9mIHRoZSB0cmFuc2Zl
-ciBidXQgc2lnbmlmaWNhbnRseSByZWR1Y2UKICAuLi4KCkJUVywgbWF5YmUgdGhlcmUgY291bGQg
-YmUgc29tZSBraW5kIG9mIGd1aWRlIGZvciBkZXZpY2UgZHJpdmVyIHdyaXRlcnMKaW4gRG9jdW1l
-bnRhdGlvbi9QQ0kvPwoKPiBUaGUgaW50ZXJmYWNlIHJlcXVpcmVzIGEgdXNlciBkcml2ZXIgdG8g
-Y29sbGVjdCBhIGxpc3Qgb2YgY2xpZW50IGRldmljZXMKPiBpbnZvbHZlZCBpbiB0aGUgdHJhbnNh
-Y3Rpb24gd2l0aCB0aGUgcGNpX3AycG1lbV9hZGRfY2xpZW50KigpIGZ1bmN0aW9ucwo+IHRoZW4g
-Y2FsbCBwY2lfcDJwbWVtX2ZpbmQoKSB0byBvYnRhaW4gYW55IHN1aXRhYmxlIFAyUCBtZW1vcnku
-IE9uY2UKPiB0aGlzIGlzIGRvbmUgdGhlIGxpc3QgaXMgYm91bmQgdG8gdGhlIG1lbW9yeSBhbmQg
-dGhlIGNhbGxpbmcgZHJpdmVyIGlzCj4gZnJlZSB0byBhZGQgYW5kIHJlbW92ZSBjbGllbnRzIGFz
-IG5lY2Vzc2FyeS4gVGhlIEFDUyBiaXRzIG9uIHRoZQo+IGRvd25zdHJlYW0gc3dpdGNoIHBvcnQg
-d2lsbCBiZSBtYW5hZ2VkIGZvciBhbGwgdGhlIHJlZ2lzdGVyZWQgY2xpZW50cy4KPiAKPiBUaGUg
-Y29kZSBpcyBkZXNpZ25lZCB0byBvbmx5IHV0aWxpemUgdGhlIHAycG1lbSBkZXZpY2UgaWYgYWxs
-IHRoZSBkZXZpY2VzCj4gaW52b2x2ZWQgaW4gYSB0cmFuc2ZlciBhcmUgYmVoaW5kIHRoZSBzYW1l
-IFBDSSBzd2l0Y2guIFRoaXMgaXMgYmVjYXVzZQo+IHVzaW5nIFAyUCB0cmFuc2FjdGlvbnMgdGhy
-b3VnaCB0aGUgUENJIHJvb3QgY29tcGxleCBjYW4gaGF2ZSBwZXJmb3JtYW5jZQo+IGxpbWl0YXRp
-b25zIG9yLCB3b3JzZSwgbWlnaHQgbm90IHdvcmsgYXQgYWxsLiBGaW5kaW5nIG91dCBob3cgd2Vs
-bCBhCj4gcGFydGljdWxhciBSQyBzdXBwb3J0cyBQMlAgdHJhbnNmZXJzIGlzIG5vbi10cml2aWFs
-LiBBZGRpdGlvbmFsbHksIHRoZQo+IGJlbmVmaXRzIG9mIFAyUCB0cmFuc2ZlcnMgdGhhdCBnbyB0
-aHJvdWdoIHRoZSBSQyBpcyBsaW1pdGVkIHRvIG9ubHkKPiByZWR1Y2luZyBEUkFNIHVzYWdlLgoK
-SSB0aGluayBpdCB3b3VsZCBiZSBjbGVhcmVyIGFuZCBzdWZmaWNpZW50IHRvIHNpbXBseSBzYXkg
-dGhhdCB3ZSBoYXZlCm5vIHdheSB0byBrbm93IHdoZXRoZXIgcGVlci10by1wZWVyIHJvdXRpbmcg
-YmV0d2VlbiBQQ0llIFJvb3QgUG9ydHMgaXMKc3VwcG9ydGVkIChQQ0llIHI0LjAsIHNlYyAxLjMu
-MSkuCgpUaGUgZmFjdCB0aGF0IHlvdSB1c2UgdGhlIFBDSWUgdGVybSAic3dpdGNoIiBzdWdnZXN0
-cyB0aGF0IGEgUENJZQpTd2l0Y2ggaXMgcmVxdWlyZWQsIGJ1dCBpc24ndCBpdCBzdWZmaWNpZW50
-IGZvciB0aGUgcGVlcnMgdG8gYmUgYmVsb3cKdGhlIHNhbWUgIlBDSSBicmlkZ2UiLCB3aGljaCB3
-b3VsZCBpbmNsdWRlIFBDSWUgUm9vdCBQb3J0cywgUENJZQpTd2l0Y2ggRG93bnN0cmVhbSBQb3J0
-cywgYW5kIGNvbnZlbnRpb25hbCBQQ0kgYnJpZGdlcz8KClRoZSBjb21tZW50cyBhdCBnZXRfdXBz
-dHJlYW1fYnJpZGdlX3BvcnQoKSBzdWdnZXN0IHRoYXQgdGhpcyBpc24ndAplbm91Z2gsIGFuZCB0
-aGUgcGVlcnMgYWN0dWFsbHkgZG8gaGF2ZSB0byBiZSBiZWxvdyB0aGUgc2FtZSBQQ0llClN3aXRj
-aCwgYnV0IEkgZG9uJ3Qga25vdyB3aHkuCgo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3BjaS9LY29u
-ZmlnIGIvZHJpdmVycy9wY2kvS2NvbmZpZwo+IGluZGV4IDM0YjU2YThmODQ4MC4uODQwODMxNDE4
-Y2JkIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvcGNpL0tjb25maWcKPiArKysgYi9kcml2ZXJzL3Bj
-aS9LY29uZmlnCj4gQEAgLTEyNCw2ICsxMjQsMjIgQEAgY29uZmlnIFBDSV9QQVNJRAo+ICAKPiAg
-CSAgSWYgdW5zdXJlLCBzYXkgTi4KPiAgCj4gK2NvbmZpZyBQQ0lfUDJQRE1BCj4gKwlib29sICJQ
-Q0kgUGVlciB0byBQZWVyIHRyYW5zZmVyIHN1cHBvcnQiCj4gKwlkZXBlbmRzIG9uIFpPTkVfREVW
-SUNFCj4gKwlzZWxlY3QgR0VORVJJQ19BTExPQ0FUT1IKPiArCWhlbHAKPiArCSAgRW5hYmxl0ZUg
-ZHJpdmVycyB0byBkbyBQQ0kgcGVlciB0byBwZWVyIHRyYW5zYWN0aW9ucyB0byBhbmQgZnJvbQoK
-cy9wZWVyIHRvIHBlZXIvcGVlci10by1wZWVyLyAoaW4gYm9vbCBhbmQgaGVscCB0ZXh0KQoKPiAr
-CSAgQkFScyB0aGF0IGFyZSBleHBvc2VkIGluIG90aGVyIGRldmljZXMgdGhhdCBhcmUgdGhlIHBh
-cnQgb2YKPiArCSAgdGhlIGhpZXJhcmNoeSB3aGVyZSBwZWVyLXRvLXBlZXIgRE1BIGlzIGd1YXJh
-bnRlZWQgYnkgdGhlIFBDSQo+ICsJICBzcGVjaWZpY2F0aW9uIHRvIHdvcmsgKGllLiBhbnl0aGlu
-ZyBiZWxvdyBhIHNpbmdsZSBQQ0kgYnJpZGdlKS4KPiArCj4gKwkgIE1hbnkgUENJZSByb290IGNv
-bXBsZXhlcyBkbyBub3Qgc3VwcG9ydCBQMlAgdHJhbnNhY3Rpb25zIGFuZAo+ICsJICBpdCdzIGhh
-cmQgdG8gdGVsbCB3aGljaCBzdXBwb3J0IGl0IHdpdGggZ29vZCBwZXJmb3JtYW5jZSwgc28KPiAr
-CSAgYXQgdGhpcyB0aW1lIHlvdSB3aWxsIG5lZWQgYSBQQ0llIHN3aXRjaC4KClVudGlsIHdlIGhh
-dmUgYSB3YXkgdG8gZmlndXJlIG91dCB3aGljaCBvZiB0aGVtIHN1cHBvcnQgUDJQLApwZXJmb3Jt
-YW5jZSBpcyBhIGRvbid0LWNhcmUuCgo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3BjaS9wMnBkbWEu
-YyBiL2RyaXZlcnMvcGNpL3AycGRtYS5jCj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPiBpbmRleCAw
-MDAwMDAwMDAwMDAuLmVjMGE2Y2I5ZTUwMAo+IC0tLSAvZGV2L251bGwKPiArKysgYi9kcml2ZXJz
-L3BjaS9wMnBkbWEuYwo+IEBAIC0wLDAgKzEsNTY4IEBACj4gKy8qIFNQRFgtTGljZW5zZS1JZGVu
-dGlmaWVyOiBHUEwtMi4wICovCj4gKy8qCj4gKyAqIFBDSSBQZWVyIDIgUGVlciBETUEgc3VwcG9y
-dC4KCnMvUGVlciAyIFBlZXIvcGVlci10by1wZWVyLwoKPiArICogVGhpcyBwcm9ncmFtIGlzIGZy
-ZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkgaXQKPiAr
-ICogdW5kZXIgdGhlIHRlcm1zIGFuZCBjb25kaXRpb25zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJs
-aWMgTGljZW5zZSwKPiArICogdmVyc2lvbiAyLCBhcyBwdWJsaXNoZWQgYnkgdGhlIEZyZWUgU29m
-dHdhcmUgRm91bmRhdGlvbi4KPiArICoKPiArICogVGhpcyBwcm9ncmFtIGlzIGRpc3RyaWJ1dGVk
-IGluIHRoZSBob3BlIGl0IHdpbGwgYmUgdXNlZnVsLCBidXQgV0lUSE9VVAo+ICsgKiBBTlkgV0FS
-UkFOVFk7IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZiBNRVJDSEFOVEFCSUxJ
-VFkgb3IKPiArICogRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlIEdO
-VSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvcgo+ICsgKiBtb3JlIGRldGFpbHMuCgpJIHRoaW5r
-IHRoZSBTUERYIHRhZyBpcyBtZWFudCB0byByZW1vdmUgdGhlIG5lZWQgZm9yIGluY2x1ZGluZyB0
-aGUKbGljZW5zZSB0ZXh0LCBzbyB5b3Ugc2hvdWxkIGJlIGFibGUgdG8gcmVtb3ZlIHRoaXMuICBP
-aCwgYW5kIG9uZQp0cml2aWFsIGFuZCBhbm5veWluZyBuaXQsIEkgdGhpbmsgZm9yIHRoZSBTUERY
-IHRhZywgd2UncmUgc3VwcG9zZWQgdG8KdXNlICIvLyIgaW4gLmMgZmlsZXMgYW5kICIvKiAqLyIg
-aW4gLmggZmlsZXMuCgo+ICsgKiBwY2lfcDJwZG1hX2FkZF9yZXNvdXJjZSAtIGFkZCBtZW1vcnkg
-Zm9yIHVzZSBhcyBwMnAgbWVtb3J5Cj4gKyAqIEBwY2k6IHRoZSBkZXZpY2UgdG8gYWRkIHRoZSBt
-ZW1vcnkgdG8KCnMvQHBjaS9AcGRldi8KCj4gKyAqIEBiYXI6IFBDSSBCQVIgdG8gYWRkCj4gKyAq
-IEBzaXplOiBzaXplIG9mIHRoZSBtZW1vcnkgdG8gYWRkLCBtYXkgYmUgemVybyB0byB1c2UgdGhl
-IHdob2xlIEJBUgo+ICsgKiBAb2Zmc2V0OiBvZmZzZXQgaW50byB0aGUgUENJIEJBUgo+ICsgKgo+
-ICsgKiBUaGUgbWVtb3J5IHdpbGwgYmUgZ2l2ZW4gWk9ORV9ERVZJQ0Ugc3RydWN0IHBhZ2VzIHNv
-IHRoYXQgaXQgbWF5Cj4gKyAqIGJlIHVzZWQgd2l0aCBhbnkgZG1hIHJlcXVlc3QuCgpzL2RtYS9E
-TUEvCgo+ICtpbnQgcGNpX3AycGRtYV9hZGRfcmVzb3VyY2Uoc3RydWN0IHBjaV9kZXYgKnBkZXYs
-IGludCBiYXIsIHNpemVfdCBzaXplLAo+ICsJCQkgICAgdTY0IG9mZnNldCkKPiArewo+ICsJc3Ry
-dWN0IGRldl9wYWdlbWFwICpwZ21hcDsKPiArCXZvaWQgKmFkZHI7Cj4gKwlpbnQgZXJyb3I7Cj4g
-Kwo+ICsJaWYgKCEocGNpX3Jlc291cmNlX2ZsYWdzKHBkZXYsIGJhcikgJiBJT1JFU09VUkNFX01F
-TSkpCj4gKwkJcmV0dXJuIC1FSU5WQUw7Cj4gKwo+ICsJaWYgKG9mZnNldCA+PSBwY2lfcmVzb3Vy
-Y2VfbGVuKHBkZXYsIGJhcikpCj4gKwkJcmV0dXJuIC1FSU5WQUw7Cj4gKwo+ICsJaWYgKCFzaXpl
-KQo+ICsJCXNpemUgPSBwY2lfcmVzb3VyY2VfbGVuKHBkZXYsIGJhcikgLSBvZmZzZXQ7Cj4gKwo+
-ICsJaWYgKHNpemUgKyBvZmZzZXQgPiBwY2lfcmVzb3VyY2VfbGVuKHBkZXYsIGJhcikpCj4gKwkJ
-cmV0dXJuIC1FSU5WQUw7Cj4gKwo+ICsJaWYgKCFwZGV2LT5wMnBkbWEpIHsKPiArCQllcnJvciA9
-IHBjaV9wMnBkbWFfc2V0dXAocGRldik7Cj4gKwkJaWYgKGVycm9yKQo+ICsJCQlyZXR1cm4gZXJy
-b3I7Cj4gKwl9Cj4gKwo+ICsJcGdtYXAgPSBkZXZtX2t6YWxsb2MoJnBkZXYtPmRldiwgc2l6ZW9m
-KCpwZ21hcCksIEdGUF9LRVJORUwpOwo+ICsJaWYgKCFwZ21hcCkKPiArCQlyZXR1cm4gLUVOT01F
-TTsKPiArCj4gKwlwZ21hcC0+cmVzLnN0YXJ0ID0gcGNpX3Jlc291cmNlX3N0YXJ0KHBkZXYsIGJh
-cikgKyBvZmZzZXQ7Cj4gKwlwZ21hcC0+cmVzLmVuZCA9IHBnbWFwLT5yZXMuc3RhcnQgKyBzaXpl
-IC0gMTsKPiArCXBnbWFwLT5yZXMuZmxhZ3MgPSBwY2lfcmVzb3VyY2VfZmxhZ3MocGRldiwgYmFy
-KTsKPiArCXBnbWFwLT5yZWYgPSAmcGRldi0+cDJwZG1hLT5kZXZtYXBfcmVmOwo+ICsJcGdtYXAt
-PnR5cGUgPSBNRU1PUllfREVWSUNFX1BDSV9QMlBETUE7Cj4gKwo+ICsJYWRkciA9IGRldm1fbWVt
-cmVtYXBfcGFnZXMoJnBkZXYtPmRldiwgcGdtYXApOwo+ICsJaWYgKElTX0VSUihhZGRyKSkKCkZy
-ZWUgcGdtYXAgaGVyZT8gIEFuZCBpbiB0aGUgb3RoZXIgZXJyb3IgY2FzZSBiZWxvdz8gIE9yIG1h
-eWJlIHRoaXMKaGFwcGVucyB2aWEgdGhlIGRldm1fKiBtYWdpYz8gIElmIHNvLCB3aGVuIHdvdWxk
-IHRoYXQgYWN0dWFsbHkgaGFwcGVuPwpXb3VsZCBwZ21hcCBiZSBlZmZlY3RpdmVseSBsZWFrZWQg
-dW50aWwgdGhlIHBkZXYgaXMgZGVzdHJveWVkPwoKPiArCQlyZXR1cm4gUFRSX0VSUihhZGRyKTsK
-PiArCj4gKwllcnJvciA9IGdlbl9wb29sX2FkZF92aXJ0KHBkZXYtPnAycGRtYS0+cG9vbCwgKHVp
-bnRwdHJfdClhZGRyLAo+ICsJCQlwY2lfYnVzX2FkZHJlc3MocGRldiwgYmFyKSArIG9mZnNldCwK
-PiArCQkJcmVzb3VyY2Vfc2l6ZSgmcGdtYXAtPnJlcyksIGRldl90b19ub2RlKCZwZGV2LT5kZXYp
-KTsKPiArCWlmIChlcnJvcikKPiArCQlyZXR1cm4gZXJyb3I7Cj4gKwo+ICsJZXJyb3IgPSBkZXZt
-X2FkZF9hY3Rpb25fb3JfcmVzZXQoJnBkZXYtPmRldiwgcGNpX3AycGRtYV9wZXJjcHVfa2lsbCwK
-PiArCQkJCQkgICZwZGV2LT5wMnBkbWEtPmRldm1hcF9yZWYpOwo+ICsJaWYgKGVycm9yKQo+ICsJ
-CXJldHVybiBlcnJvcjsKPiArCj4gKwlkZXZfaW5mbygmcGRldi0+ZGV2LCAiYWRkZWQgcGVlci10
-by1wZWVyIERNQSBtZW1vcnkgJXBSXG4iLAo+ICsJCSAmcGdtYXAtPnJlcyk7CgpzL2Rldl9pbmZv
-L3BjaV9pbmZvLyAoYWxzbyBzaW1pbGFyIHVzYWdlcyBiZWxvdywgZXhjZXB0IGZvciB0aGUgb25l
-IG9yCnR3byBjYXNlcyB3aGVyZSB5b3UgZG9uJ3QgaGF2ZSBhIHBjaV9kZXYpLgoKPiArCXJldHVy
-biAwOwo+ICt9Cj4gK0VYUE9SVF9TWU1CT0xfR1BMKHBjaV9wMnBkbWFfYWRkX3Jlc291cmNlKTsK
-Cj4gKyAqIElmIGEgZGV2aWNlIGlzIGJlaGluZCBhIHN3aXRjaCwgd2UgdHJ5IHRvIGZpbmQgdGhl
-IHVwc3RyZWFtIGJyaWRnZQo+ICsgKiBwb3J0IG9mIHRoZSBzd2l0Y2guIFRoaXMgcmVxdWlyZXMg
-dHdvIGNhbGxzIHRvIHBjaV91cHN0cmVhbV9icmlkZ2U6Cj4gKyAqIG9uZSBmb3IgdGhlIHVwc3Ry
-ZWFtIHBvcnQgb24gdGhlIHN3aXRjaCwgb25lIG9uIHRoZSB1cHN0cmVhbSBwb3J0Cj4gKyAqIGZv
-ciB0aGUgbmV4dCBsZXZlbCBpbiB0aGUgaGllcmFyY2h5LiBCZWNhdXNlIG9mIHRoaXMsIGRldmlj
-ZXMgY29ubmVjdGVkCj4gKyAqIHRvIHRoZSByb290IHBvcnQgd2lsbCBiZSByZWplY3RlZC4KCnMv
-cGNpX3Vwc3RyZWFtX2JyaWRnZS9wY2lfdXBzdHJlYW1fYnJpZGdlKCkvCgpUaGlzIHdob2xlIHRo
-aW5nIGlzIGNvbmZ1c2luZyB0byBtZS4gIFdoeSBkbyB5b3Ugd2FudCB0byByZWplY3QgcGVlcnMK
-ZGlyZWN0bHkgY29ubmVjdGVkIHRvIHRoZSBzYW1lIHJvb3QgcG9ydD8gIFdoeSBkbyB5b3UgcmVx
-dWlyZSB0aGUgc2FtZQpTd2l0Y2ggVXBzdHJlYW0gUG9ydD8gIFlvdSBkb24ndCBleGNsdWRlIGNv
-bnZlbnRpb25hbCBQQ0ksIGJ1dCBpdApsb29rcyBsaWtlIHlvdSB3b3VsZCByZXF1aXJlIHBlZXJz
-IHRvIHNoYXJlICp0d28qIHVwc3RyZWFtIFBDSS10by1QQ0kKYnJpZGdlcz8gIEkgd291bGQgdGhp
-bmsgYSBzaW5nbGUgc2hhcmVkIHVwc3RyZWFtIGJyaWRnZSAoY29udmVudGlvbmFsLApQQ0llIFN3
-aXRjaCBEb3duc3RyZWFtIFBvcnQsIG9yIFBDSWUgUm9vdCBQb3J0KSB3b3VsZCBiZSBzdWZmaWNp
-ZW50PwoKQXBvbG9naWVzIGlmIHlvdSd2ZSBhbnN3ZXJlZCB0aGlzIGJlZm9yZTsgbWF5YmUganVz
-dCBpbmNsdWRlIGEgbGl0dGxlCmV4cGxhbmF0aW9uIGhlcmUgc28gSSBkb24ndCBhc2sgYWdhaW4g
-OikKCj4gK3N0YXRpYyBzdHJ1Y3QgcGNpX2RldiAqZ2V0X3Vwc3RyZWFtX2JyaWRnZV9wb3J0KHN0
-cnVjdCBwY2lfZGV2ICpwZGV2KQo+ICt7Cj4gKwlzdHJ1Y3QgcGNpX2RldiAqdXAxLCAqdXAyOwo+
-ICsKPiArCWlmICghcGRldikKPiArCQlyZXR1cm4gTlVMTDsKPiArCj4gKwl1cDEgPSBwY2lfZGV2
-X2dldChwY2lfdXBzdHJlYW1fYnJpZGdlKHBkZXYpKTsKPiArCWlmICghdXAxKQo+ICsJCXJldHVy
-biBOVUxMOwo+ICsKPiArCXVwMiA9IHBjaV9kZXZfZ2V0KHBjaV91cHN0cmVhbV9icmlkZ2UodXAx
-KSk7Cj4gKwlwY2lfZGV2X3B1dCh1cDEpOwo+ICsKPiArCXJldHVybiB1cDI7Cj4gK30KPiArCj4g
-K3N0YXRpYyBib29sIF9fdXBzdHJlYW1fYnJpZGdlc19tYXRjaChzdHJ1Y3QgcGNpX2RldiAqdXBz
-dHJlYW0sCj4gKwkJCQkgICAgIHN0cnVjdCBwY2lfZGV2ICpjbGllbnQpCj4gK3sKPiArCXN0cnVj
-dCBwY2lfZGV2ICpkbWFfdXA7Cj4gKwlib29sIHJldCA9IHRydWU7Cj4gKwo+ICsJZG1hX3VwID0g
-Z2V0X3Vwc3RyZWFtX2JyaWRnZV9wb3J0KGNsaWVudCk7Cj4gKwo+ICsJaWYgKCFkbWFfdXApIHsK
-PiArCQlkZXZfZGJnKCZjbGllbnQtPmRldiwgIm5vdCBhIFBDSSBkZXZpY2UgYmVoaW5kIGEgYnJp
-ZGdlXG4iKTsKPiArCQlyZXQgPSBmYWxzZTsKPiArCQlnb3RvIG91dDsKPiArCX0KPiArCj4gKwlp
-ZiAodXBzdHJlYW0gIT0gZG1hX3VwKSB7Cj4gKwkJZGV2X2RiZygmY2xpZW50LT5kZXYsCj4gKwkJ
-CSJkb2VzIG5vdCByZXNpZGUgb24gdGhlIHNhbWUgdXBzdHJlYW0gYnJpZGdlXG4iKTsKPiArCQly
-ZXQgPSBmYWxzZTsKPiArCQlnb3RvIG91dDsKPiArCX0KPiArCj4gK291dDoKPiArCXBjaV9kZXZf
-cHV0KGRtYV91cCk7Cj4gKwlyZXR1cm4gcmV0Owo+ICt9Cj4gKwo+ICtzdGF0aWMgYm9vbCB1cHN0
-cmVhbV9icmlkZ2VzX21hdGNoKHN0cnVjdCBwY2lfZGV2ICpwZGV2LAo+ICsJCQkJICAgc3RydWN0
-IHBjaV9kZXYgKmNsaWVudCkKPiArewo+ICsJc3RydWN0IHBjaV9kZXYgKnVwc3RyZWFtOwo+ICsJ
-Ym9vbCByZXQ7Cj4gKwo+ICsJdXBzdHJlYW0gPSBnZXRfdXBzdHJlYW1fYnJpZGdlX3BvcnQocGRl
-dik7Cj4gKwlpZiAoIXVwc3RyZWFtKSB7Cj4gKwkJZGV2X3dhcm4oJnBkZXYtPmRldiwgIm5vdCBi
-ZWhpbmQgYSBQQ0kgYnJpZGdlXG4iKTsKPiArCQlyZXR1cm4gZmFsc2U7Cj4gKwl9Cj4gKwo+ICsJ
-cmV0ID0gX191cHN0cmVhbV9icmlkZ2VzX21hdGNoKHVwc3RyZWFtLCBjbGllbnQpOwo+ICsKPiAr
-CXBjaV9kZXZfcHV0KHVwc3RyZWFtKTsKPiArCj4gKwlyZXR1cm4gcmV0Owo+ICt9Cj4gKwo+ICtz
-dHJ1Y3QgcGNpX3AycGRtYV9jbGllbnQgewo+ICsJc3RydWN0IGxpc3RfaGVhZCBsaXN0Owo+ICsJ
-c3RydWN0IHBjaV9kZXYgKmNsaWVudDsKPiArCXN0cnVjdCBwY2lfZGV2ICpwMnBkbWE7CgpNYXli
-ZSBjYWxsIHRoaXMgInBlZXIiIG9yIHNvbWV0aGluZyBpbnN0ZWFkIG9mICJwMnBkbWEiLCBzaW5j
-ZSBwMnBkbWEKaXMgYWxzbyB1c2VkIGZvciBzdHJ1Y3QgcGNpX3AycGRtYSB0aGluZ3M/Cgo+ICsg
-KiBwY2lfcDJwZG1hX2FkZF9jbGllbnQgLSBhbGxvY2F0ZSBhIG5ldyBlbGVtZW50IGluIGEgY2xp
-ZW50IGRldmljZSBsaXN0Cj4gKyAqIEBoZWFkOiBsaXN0IGhlYWQgb2YgcDJwZG1hIGNsaWVudHMK
-PiArICogQGRldjogZGV2aWNlIHRvIGFkZCB0byB0aGUgbGlzdAo+ICsgKgo+ICsgKiBUaGlzIGFk
-ZHMgQGRldiB0byBhIGxpc3Qgb2YgY2xpZW50cyB1c2VkIGJ5IGEgcDJwZG1hIGRldmljZS4KPiAr
-ICogVGhpcyBsaXN0IHNob3VsZCBiZSBwYXNzZWQgdG8gcDJwbWVtX2ZpbmQoKS4gT25jZSBwMnBt
-ZW1fZmluZCgpIGhhcwo+ICsgKiBiZWVuIGNhbGxlZCBzdWNjZXNzZnVsbHksIHRoZSBsaXN0IHdp
-bGwgYmUgYm91bmQgdG8gYSBzcGVjaWZpYyBwMnBkbWEKPiArICogZGV2aWNlIGFuZCBuZXcgY2xp
-ZW50cyBjYW4gb25seSBiZSBhZGRlZCB0byB0aGUgbGlzdCBpZiB0aGV5IGFyZQo+ICsgKiBzdXBw
-b3J0ZWQgYnkgdGhhdCBwMnBkbWEgZGV2aWNlLgo+ICsgKgo+ICsgKiBUaGUgY2FsbGVyIGlzIGV4
-cGVjdGVkIHRvIGhhdmUgYSBsb2NrIHdoaWNoIHByb3RlY3RzIEBoZWFkIGFzIG5lY2Vzc2FyeQo+
-ICsgKiBzbyB0aGF0IG5vbmUgb2YgdGhlIHBjaV9wMnAgZnVuY3Rpb25zIGNhbiBiZSBjYWxsZWQg
-Y29uY3VycmVudGx5Cj4gKyAqIG9uIHRoYXQgbGlzdC4KPiArICoKPiArICogUmV0dXJucyAwIGlm
-IHRoZSBjbGllbnQgd2FzIHN1Y2Nlc3NmdWxseSBhZGRlZC4KPiArICovCj4gK2ludCBwY2lfcDJw
-ZG1hX2FkZF9jbGllbnQoc3RydWN0IGxpc3RfaGVhZCAqaGVhZCwgc3RydWN0IGRldmljZSAqZGV2
-KQo+ICt7Cj4gKwlzdHJ1Y3QgcGNpX3AycGRtYV9jbGllbnQgKml0ZW0sICpuZXdfaXRlbTsKPiAr
-CXN0cnVjdCBwY2lfZGV2ICpwMnBkbWEgPSBOVUxMOwo+ICsJc3RydWN0IHBjaV9kZXYgKmNsaWVu
-dDsKPiArCWludCByZXQ7Cj4gKwo+ICsJaWYgKElTX0VOQUJMRUQoQ09ORklHX0RNQV9WSVJUX09Q
-UykgJiYgZGV2LT5kbWFfb3BzID09ICZkbWFfdmlydF9vcHMpIHsKPiArCQlkZXZfd2FybihkZXYs
-Cj4gKwkJCSAiY2Fubm90IGJlIHVzZWQgZm9yIHBlZXItdG8tcGVlciBETUEgYmVjYXVzZSB0aGUg
-ZHJpdmVyIG1ha2VzIHVzZSBvZiBkbWFfdmlydF9vcHNcbiIpOwo+ICsJCXJldHVybiAtRU5PREVW
-Owo+ICsJfQo+ICsKPiArCj4gKwljbGllbnQgPSBmaW5kX3BhcmVudF9wY2lfZGV2KGRldik7CgpT
-aW5jZSAicGNpX3AycGRtYV9hZGRfY2xpZW50KCkiIGluY2x1ZGVzICJwY2lfIiBpbiBpdHMgbmFt
-ZSwgaXQgc2VlbXMKc29ydCBvZiB3ZWlyZCB0aGF0IGNhbGxlcnMgc3VwcGx5IGEgbm9uLVBDSSBk
-ZXZpY2UgYW5kIHRoZW4gd2UgbG9vayB1cAphIFBDSSBkZXZpY2UgaGVyZS4gIEkgYXNzdW1lIHlv
-dSBoYXZlIHNvbWUgcmVhc29uIGZvciB0aGlzOyBpZiB5b3UKYWRkZWQgYSB3cml0ZXVwIGluIERv
-Y3VtZW50YXRpb24vUENJLCB0aGF0IHdvdWxkIGJlIGEgZ29vZCBwbGFjZSB0bwplbGFib3JhdGUg
-b24gdGhhdCwgbWF5YmUgd2l0aCBhIG9uZS1saW5lIGNsdWUgaGVyZS4KCj4gKwlpZiAoIWNsaWVu
-dCkgewo+ICsJCWRldl93YXJuKGRldiwKPiArCQkJICJjYW5ub3QgYmUgdXNlZCBmb3IgcGVlci10
-by1wZWVyIERNQSBhcyBpdCBpcyBub3QgYSBQQ0kgZGV2aWNlXG4iKTsKPiArCQlyZXR1cm4gLUVO
-T0RFVjsKPiArCX0KPiArCj4gKwlpdGVtID0gbGlzdF9maXJzdF9lbnRyeV9vcl9udWxsKGhlYWQs
-IHN0cnVjdCBwY2lfcDJwZG1hX2NsaWVudCwgbGlzdCk7Cj4gKwlpZiAoaXRlbSAmJiBpdGVtLT5w
-MnBkbWEpIHsKPiArCQlwMnBkbWEgPSBpdGVtLT5wMnBkbWE7Cj4gKwo+ICsJCWlmICghdXBzdHJl
-YW1fYnJpZGdlc19tYXRjaChwMnBkbWEsIGNsaWVudCkpIHsKPiArCQkJcmV0ID0gLUVYREVWOwo+
-ICsJCQlnb3RvIHB1dF9jbGllbnQ7Cj4gKwkJfQo+ICsJfQo+ICsKPiArCW5ld19pdGVtID0ga3ph
-bGxvYyhzaXplb2YoKm5ld19pdGVtKSwgR0ZQX0tFUk5FTCk7Cj4gKwlpZiAoIW5ld19pdGVtKSB7
-Cj4gKwkJcmV0ID0gLUVOT01FTTsKPiArCQlnb3RvIHB1dF9jbGllbnQ7Cj4gKwl9Cj4gKwo+ICsJ
-bmV3X2l0ZW0tPmNsaWVudCA9IGNsaWVudDsKPiArCW5ld19pdGVtLT5wMnBkbWEgPSBwY2lfZGV2
-X2dldChwMnBkbWEpOwo+ICsKPiArCWxpc3RfYWRkX3RhaWwoJm5ld19pdGVtLT5saXN0LCBoZWFk
-KTsKPiArCj4gKwlyZXR1cm4gMDsKPiArCj4gK3B1dF9jbGllbnQ6Cj4gKwlwY2lfZGV2X3B1dChj
-bGllbnQpOwo+ICsJcmV0dXJuIHJldDsKPiArfQo+ICtFWFBPUlRfU1lNQk9MX0dQTChwY2lfcDJw
-ZG1hX2FkZF9jbGllbnQpOwoKPiArICogcGNpX2FsbG9jX3AycF9tZW0gLSBhbGxvY2F0ZSBwZWVy
-LXRvLXBlZXIgRE1BIG1lbW9yeQo+ICsgKiBAcGRldjoJdGhlIGRldmljZSB0byBhbGxvY2F0ZSBt
-ZW1vcnkgZnJvbQo+ICsgKiBAc2l6ZToJbnVtYmVyIG9mIGJ5dGVzIHRvIGFsbG9jYXRlCj4gKyAq
-Cj4gKyAqIFJldHVybnMgdGhlIGFsbG9jYXRlZCBtZW1vcnkgb3IgTlVMTCBvbiBlcnJvci4KPiAr
-ICovCj4gK3ZvaWQgKnBjaV9hbGxvY19wMnBtZW0oc3RydWN0IHBjaV9kZXYgKnBkZXYsIHNpemVf
-dCBzaXplKQo+ICt7Cj4gKwl2b2lkICpyZXQ7Cj4gKwo+ICsJaWYgKHVubGlrZWx5KCFwZGV2LT5w
-MnBkbWEpKQoKSXMgdGhpcyBhIGhvdCBwYXRoPyAgSSdtIG5vdCBzdXJlIGl0J3Mgd29ydGggY2x1
-dHRlcmluZwpub24tcGVyZm9ybWFuY2UgcGF0aHMgd2l0aCBsaWtlbHkvdW5saWtlbHkuCgo+ICsJ
-CXJldHVybiBOVUxMOwo+ICsKPiArCWlmICh1bmxpa2VseSghcGVyY3B1X3JlZl90cnlnZXRfbGl2
-ZSgmcGRldi0+cDJwZG1hLT5kZXZtYXBfcmVmKSkpCj4gKwkJcmV0dXJuIE5VTEw7Cj4gKwo+ICsJ
-cmV0ID0gKHZvaWQgKikodWludHB0cl90KWdlbl9wb29sX2FsbG9jKHBkZXYtPnAycGRtYS0+cG9v
-bCwgc2l6ZSk7CgpXaHkgdGhlIGRvdWJsZSBjYXN0PyAgV291bGRuJ3QgIih2b2lkICopIiBiZSBz
-dWZmaWNpZW50PwoKPiArCWlmICh1bmxpa2VseSghcmV0KSkKPiArCQlwZXJjcHVfcmVmX3B1dCgm
-cGRldi0+cDJwZG1hLT5kZXZtYXBfcmVmKTsKPiArCj4gKwlyZXR1cm4gcmV0Owo+ICt9Cj4gK0VY
-UE9SVF9TWU1CT0xfR1BMKHBjaV9hbGxvY19wMnBtZW0pOwo+ICsKPiArLyoqCj4gKyAqIHBjaV9m
-cmVlX3AycG1lbSAtIGFsbG9jYXRlIHBlZXItdG8tcGVlciBETUEgbWVtb3J5Cj4gKyAqIEBwZGV2
-Ogl0aGUgZGV2aWNlIHRoZSBtZW1vcnkgd2FzIGFsbG9jYXRlZCBmcm9tCj4gKyAqIEBhZGRyOglh
-ZGRyZXNzIG9mIHRoZSBtZW1vcnkgdGhhdCB3YXMgYWxsb2NhdGVkCj4gKyAqIEBzaXplOgludW1i
-ZXIgb2YgYnl0ZXMgdGhhdCB3YXMgYWxsb2NhdGVkCj4gKyAqLwo+ICt2b2lkIHBjaV9mcmVlX3Ay
-cG1lbShzdHJ1Y3QgcGNpX2RldiAqcGRldiwgdm9pZCAqYWRkciwgc2l6ZV90IHNpemUpCj4gK3sK
-PiArCWdlbl9wb29sX2ZyZWUocGRldi0+cDJwZG1hLT5wb29sLCAodWludHB0cl90KWFkZHIsIHNp
-emUpOwoKSW4gdjQuNi1yYzEsIGdlbl9wb29sX2ZyZWUoKSB0YWtlcyAidW5zaWduZWQgbG9uZyBh
-ZGRyIi4gIEkga25vdyB0aGlzCmlzIGJhc2VkIG9uIC1yYzM7IGlzIHRoaXMgc29tZXRoaW5nIHRo
-YXQgY2hhbmdlZCBiZXR3ZWVuIC1yYzEgYW5kCi1yYzM/Cgo+ICsJcGVyY3B1X3JlZl9wdXQoJnBk
-ZXYtPnAycGRtYS0+ZGV2bWFwX3JlZik7Cj4gK30KPiArRVhQT1JUX1NZTUJPTF9HUEwocGNpX2Zy
-ZWVfcDJwbWVtKTsKPiArCj4gKy8qKgo+ICsgKiBwY2lfdmlydF90b19idXMgLSByZXR1cm4gdGhl
-IFBDSSBidXMgYWRkcmVzcyBmb3IgYSBnaXZlbiB2aXJ0dWFsCj4gKyAqCWFkZHJlc3Mgb2J0YWlu
-ZWQgd2l0aCBwY2lfYWxsb2NfcDJwbWVtCgpzL3BjaV9hbGxvY19wMnBtZW0vcGNpX2FsbG9jX3Ay
-cG1lbSgpLwoKPiArICogQHBkZXY6CXRoZSBkZXZpY2UgdGhlIG1lbW9yeSB3YXMgYWxsb2NhdGVk
-IGZyb20KPiArICogQGFkZHI6CWFkZHJlc3Mgb2YgdGhlIG1lbW9yeSB0aGF0IHdhcyBhbGxvY2F0
-ZWQKPiArICovCj4gK3BjaV9idXNfYWRkcl90IHBjaV9wMnBtZW1fdmlydF90b19idXMoc3RydWN0
-IHBjaV9kZXYgKnBkZXYsIHZvaWQgKmFkZHIpCj4gK3sKPiArCWlmICghYWRkcikKPiArCQlyZXR1
-cm4gMDsKPiArCWlmICghcGRldi0+cDJwZG1hKQo+ICsJCXJldHVybiAwOwo+ICsKPiArCS8qCj4g
-KwkgKiBOb3RlOiB3aGVuIHdlIGFkZGVkIHRoZSBtZW1vcnkgdG8gdGhlIHBvb2wgd2UgdXNlZCB0
-aGUgUENJCj4gKwkgKiBidXMgYWRkcmVzcyBhcyB0aGUgcGh5c2ljYWwgYWRkcmVzcy4gU28gZ2Vu
-X3Bvb2xfdmlydF90b19waHlzKCkKPiArCSAqIGFjdHVhbGx5IHJldHVybnMgdGhlIGJ1cyBhZGRy
-ZXNzIGRlc3BpdGUgdGhlIG1pc2xlYWRpbmcgbmFtZS4KPiArCSAqLwo+ICsJcmV0dXJuIGdlbl9w
-b29sX3ZpcnRfdG9fcGh5cyhwZGV2LT5wMnBkbWEtPnBvb2wsICh1bnNpZ25lZCBsb25nKWFkZHIp
-Owo+ICt9Cj4gK0VYUE9SVF9TWU1CT0xfR1BMKHBjaV9wMnBtZW1fdmlydF90b19idXMpOwo+ICsK
-PiArLyoqCj4gKyAqIHBjaV9wMnBtZW1fYWxsb2Nfc2dsIC0gYWxsb2NhdGUgcGVlci10by1wZWVy
-IERNQSBtZW1vcnkgaW4gYW4gc2NhdHRlcmxpc3QKCnMvYW4gc2NhdHRlcmxpc3QvYSBzY2F0dGVy
-bGlzdC8KCj4gKyAqIEBwZGV2Ogl0aGUgZGV2aWNlIHRvIGFsbG9jYXRlIG1lbW9yeSBmcm9tCj4g
-KyAqIEBzZ2w6CXRoZSBhbGxvY2F0ZWQgc2NhdHRlcmxpc3QKPiArICogQG5lbnRzOiAgICAgIHRo
-ZSBudW1iZXIgb2YgU0cgZW50cmllcyBpbiB0aGUgbGlzdAo+ICsgKiBAbGVuZ3RoOiAgICAgbnVt
-YmVyIG9mIGJ5dGVzIHRvIGFsbG9jYXRlCj4gKyAqCj4gKyAqIFJldHVybnMgMCBvbiBzdWNjZXNz
-Cj4gKyAqLwo+ICtpbnQgcGNpX3AycG1lbV9hbGxvY19zZ2woc3RydWN0IHBjaV9kZXYgKnBkZXYs
-IHN0cnVjdCBzY2F0dGVybGlzdCAqKnNnbCwKPiArCQkJIHVuc2lnbmVkIGludCAqbmVudHMsIHUz
-MiBsZW5ndGgpCj4gK3sKPiArCXN0cnVjdCBzY2F0dGVybGlzdCAqc2c7Cj4gKwl2b2lkICphZGRy
-Owo+ICsKPiArCXNnID0ga3phbGxvYyhzaXplb2YoKnNnKSwgR0ZQX0tFUk5FTCk7Cj4gKwlpZiAo
-IXNnKQo+ICsJCXJldHVybiAtRU5PTUVNOwo+ICsKPiArCXNnX2luaXRfdGFibGUoc2csIDEpOwo+
-ICsKPiArCWFkZHIgPSBwY2lfYWxsb2NfcDJwbWVtKHBkZXYsIGxlbmd0aCk7Cj4gKwlpZiAoIWFk
-ZHIpCj4gKwkJZ290byBvdXRfZnJlZV9zZzsKPiArCj4gKwlzZ19zZXRfYnVmKHNnLCBhZGRyLCBs
-ZW5ndGgpOwo+ICsJKnNnbCA9IHNnOwo+ICsJKm5lbnRzID0gMTsKPiArCXJldHVybiAwOwo+ICsK
-PiArb3V0X2ZyZWVfc2c6Cj4gKwlrZnJlZShzZyk7Cj4gKwlyZXR1cm4gLUVOT01FTTsKPiArfQo+
-ICtFWFBPUlRfU1lNQk9MX0dQTChwY2lfcDJwbWVtX2FsbG9jX3NnbCk7Cj4gKwo+ICsvKioKPiAr
-ICogcGNpX3AycG1lbV9mcmVlX3NnbCAtIGZyZWUgYSBzY2F0dGVybGlzdCAgYWxsb2NhdGVkIGJ5
-IHBjaV9wMnBtZW1fYWxsb2Nfc2dsCgpzLyAgYWxsb2NhdGVkLyBhbGxvY2F0ZWQvIChyZW1vdmUg
-ZXh0cmEgc3BhY2UpCnMvcGNpX3AycG1lbV9hbGxvY19zZ2wvcGNpX3AycG1lbV9hbGxvY19zZ2wo
-KS8KCj4gKyAqIEBwZGV2Ogl0aGUgZGV2aWNlIHRvIGFsbG9jYXRlIG1lbW9yeSBmcm9tCj4gKyAq
-IEBzZ2w6CXRoZSBhbGxvY2F0ZWQgc2NhdHRlcmxpc3QKPiArICogQG5lbnRzOiAgICAgIHRoZSBu
-dW1iZXIgb2YgU0cgZW50cmllcyBpbiB0aGUgbGlzdAo+ICsgKi8KPiArdm9pZCBwY2lfcDJwbWVt
-X2ZyZWVfc2dsKHN0cnVjdCBwY2lfZGV2ICpwZGV2LCBzdHJ1Y3Qgc2NhdHRlcmxpc3QgKnNnbCwK
-PiArCQkJIHVuc2lnbmVkIGludCBuZW50cykKPiArewo+ICsJc3RydWN0IHNjYXR0ZXJsaXN0ICpz
-ZzsKPiArCWludCBjb3VudDsKPiArCj4gKwlpZiAoIXNnbCB8fCAhbmVudHMpCj4gKwkJcmV0dXJu
-Owo+ICsKPiArCWZvcl9lYWNoX3NnKHNnbCwgc2csIG5lbnRzLCBjb3VudCkKPiArCQlwY2lfZnJl
-ZV9wMnBtZW0ocGRldiwgc2dfdmlydChzZyksIHNnLT5sZW5ndGgpOwo+ICsJa2ZyZWUoc2dsKTsK
-PiArfQo+ICtFWFBPUlRfU1lNQk9MX0dQTChwY2lfcDJwbWVtX2ZyZWVfc2dsKTsKPiArCj4gKy8q
-Kgo+ICsgKiBwY2lfcDJwbWVtX3B1Ymxpc2ggLSBwdWJsaXNoIHRoZSBwZWVyLXRvLXBlZXIgRE1B
-IG1lbW9yeSBmb3IgdXNlIGJ5Cj4gKyAqCW90aGVyIGRldmljZXMgd2l0aCBwY2lfcDJwbWVtX2Zp
-bmQKCnMvcGNpX3AycG1lbV9maW5kL3BjaV9wMnBtZW1fZmluZCgpLwoKPiBkaWZmIC0tZ2l0IGEv
-aW5jbHVkZS9saW51eC9wY2ktcDJwZG1hLmggYi9pbmNsdWRlL2xpbnV4L3BjaS1wMnBkbWEuaAo+
-IG5ldyBmaWxlIG1vZGUgMTAwNjQ0Cj4gaW5kZXggMDAwMDAwMDAwMDAwLi5jMGRkZTNkM2FhYzQK
-PiAtLS0gL2Rldi9udWxsCj4gKysrIGIvaW5jbHVkZS9saW51eC9wY2ktcDJwZG1hLmgKPiBAQCAt
-MCwwICsxLDg3IEBACj4gKy8qIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wICovCj4g
-Ky8qCj4gKyAqIENvcHlyaWdodCAoYykgMjAxNi0yMDE3LCBNaWNyb3NlbWkgQ29ycG9yYXRpb24K
-PiArICogQ29weXJpZ2h0IChjKSAyMDE3LCBDaHJpc3RvcGggSGVsbHdpZy4KPiArICoKPiArICog
-VGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFu
-ZC9vciBtb2RpZnkgaXQKPiArICogdW5kZXIgdGhlIHRlcm1zIGFuZCBjb25kaXRpb25zIG9mIHRo
-ZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSwKPiArICogdmVyc2lvbiAyLCBhcyBwdWJsaXNo
-ZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbi4KPiArICoKPiArICogVGhpcyBwcm9n
-cmFtIGlzIGRpc3RyaWJ1dGVkIGluIHRoZSBob3BlIGl0IHdpbGwgYmUgdXNlZnVsLCBidXQgV0lU
-SE9VVAo+ICsgKiBBTlkgV0FSUkFOVFk7IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50
-eSBvZiBNRVJDSEFOVEFCSUxJVFkgb3IKPiArICogRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBV
-UlBPU0UuICBTZWUgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvcgo+ICsgKiBtb3Jl
-IGRldGFpbHMuCgpSZW1vdmUgbGljZW5zZSB0ZXh0LgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1udmRpbW0K
+From: Andiry Xu <jix024@cs.ucsd.edu>
+
+If the file is not mmaped, NOVA performs copy-on-write.
+The CoW is composed of parts:
+
+1. Allocate contiguous data pages.
+2. Copy data from user buffer to the data pages.
+   If the write is not aligned to page size, also copy data from existing
+   pmem pages.
+3. Allocate and initialize a file write item, add it to a linked list.
+4. Repeat 1 - 3 until the whole user data is copied to pmem pages.
+5. Commit the list of file write items to the log and update the radix tree.
+6. Update log tail pointer once all the items are committed.
+
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
+---
+ fs/nova/dax.c  | 149 +++++++++++++++++++++++++++++++++++++++++
+ fs/nova/file.c | 208 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/nova.h |   8 +++
+ 3 files changed, 365 insertions(+)
+
+diff --git a/fs/nova/dax.c b/fs/nova/dax.c
+index 1669dc0..9561d8e 100644
+--- a/fs/nova/dax.c
++++ b/fs/nova/dax.c
+@@ -22,6 +22,113 @@
+ #include "inode.h"
+ 
+ 
++static inline int nova_copy_partial_block(struct super_block *sb,
++	struct nova_inode_info_header *sih,
++	struct nova_file_write_entry *entry, unsigned long index,
++	size_t offset, size_t length, void *kmem)
++{
++	void *ptr;
++	int rc = 0;
++	unsigned long nvmm;
++
++	nvmm = get_nvmm(sb, sih, entry, index);
++	ptr = nova_get_block(sb, (nvmm << PAGE_SHIFT));
++
++	if (ptr != NULL) {
++		if (support_clwb)
++			rc = memcpy_mcsafe(kmem + offset, ptr + offset,
++						length);
++		else
++			memcpy_to_pmem_nocache(kmem + offset, ptr + offset,
++						length);
++	}
++
++	/* TODO: If rc < 0, go to MCE data recovery. */
++	return rc;
++}
++
++static inline int nova_handle_partial_block(struct super_block *sb,
++	struct nova_inode_info_header *sih,
++	struct nova_file_write_entry *entry, unsigned long index,
++	size_t offset, size_t length, void *kmem)
++{
++	struct nova_sb_info *sbi = NOVA_SB(sb);
++
++	if (entry == NULL) {
++		/* Fill zero */
++		if (support_clwb)
++			memset(kmem + offset, 0, length);
++		else
++			memcpy_to_pmem_nocache(kmem + offset,
++					sbi->zeroed_page, length);
++	} else {
++		nova_copy_partial_block(sb, sih, entry, index,
++					offset, length, kmem);
++
++	}
++	if (support_clwb)
++		nova_flush_buffer(kmem + offset, length, 0);
++	return 0;
++}
++
++/*
++ * Fill the new start/end block from original blocks.
++ * Do nothing if fully covered; copy if original blocks present;
++ * Fill zero otherwise.
++ */
++int nova_handle_head_tail_blocks(struct super_block *sb,
++	struct inode *inode, loff_t pos, size_t count, void *kmem)
++{
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++	size_t offset, eblk_offset;
++	unsigned long start_blk, end_blk, num_blocks;
++	struct nova_file_write_entry *entry;
++	timing_t partial_time;
++	int ret = 0;
++
++	NOVA_START_TIMING(partial_block_t, partial_time);
++	offset = pos & (sb->s_blocksize - 1);
++	num_blocks = ((count + offset - 1) >> sb->s_blocksize_bits) + 1;
++	/* offset in the actual block size block */
++	offset = pos & (nova_inode_blk_size(sih) - 1);
++	start_blk = pos >> sb->s_blocksize_bits;
++	end_blk = start_blk + num_blocks - 1;
++
++	nova_dbg_verbose("%s: %lu blocks\n", __func__, num_blocks);
++	/* We avoid zeroing the alloc'd range, which is going to be overwritten
++	 * by this system call anyway
++	 */
++	nova_dbg_verbose("%s: start offset %lu start blk %lu %p\n", __func__,
++				offset, start_blk, kmem);
++	if (offset != 0) {
++		entry = nova_get_write_entry(sb, sih, start_blk);
++		ret = nova_handle_partial_block(sb, sih, entry,
++						start_blk, 0, offset, kmem);
++		if (ret < 0)
++			return ret;
++	}
++
++	kmem = (void *)((char *)kmem +
++			((num_blocks - 1) << sb->s_blocksize_bits));
++	eblk_offset = (pos + count) & (nova_inode_blk_size(sih) - 1);
++	nova_dbg_verbose("%s: end offset %lu, end blk %lu %p\n", __func__,
++				eblk_offset, end_blk, kmem);
++	if (eblk_offset != 0) {
++		entry = nova_get_write_entry(sb, sih, end_blk);
++
++		ret = nova_handle_partial_block(sb, sih, entry, end_blk,
++						eblk_offset,
++						sb->s_blocksize - eblk_offset,
++						kmem);
++		if (ret < 0)
++			return ret;
++	}
++	NOVA_END_TIMING(partial_block_t, partial_time);
++
++	return ret;
++}
++
+ static int nova_reassign_file_tree(struct super_block *sb,
+ 	struct nova_inode_info_header *sih, u64 begin_tail, u64 end_tail)
+ {
+@@ -110,3 +217,45 @@ int nova_commit_writes_to_log(struct super_block *sb, struct nova_inode *pi,
+ 
+ 	return ret;
+ }
++
++int nova_cleanup_incomplete_write(struct super_block *sb,
++	struct nova_inode_info_header *sih, struct list_head *head, int free)
++{
++	struct nova_file_write_item *entry_item, *temp;
++	struct nova_file_write_entry *entry;
++	unsigned long blocknr;
++
++	list_for_each_entry_safe(entry_item, temp, head, list) {
++		entry = &entry_item->entry;
++		blocknr = nova_get_blocknr(sb, entry->block, sih->i_blk_type);
++		nova_free_data_blocks(sb, sih, blocknr, entry->num_pages);
++
++		if (free)
++			nova_free_file_write_item(entry_item);
++	}
++
++	return 0;
++}
++
++void nova_init_file_write_item(struct super_block *sb,
++	struct nova_inode_info_header *sih, struct nova_file_write_item *item,
++	u64 epoch_id, u64 pgoff, int num_pages, u64 blocknr, u32 time,
++	u64 file_size)
++{
++	struct nova_file_write_entry *entry = &item->entry;
++
++	INIT_LIST_HEAD(&item->list);
++	memset(entry, 0, sizeof(struct nova_file_write_entry));
++	entry->entry_type = FILE_WRITE;
++	entry->reassigned = 0;
++	entry->epoch_id = epoch_id;
++	entry->trans_id = sih->trans_id;
++	entry->pgoff = cpu_to_le64(pgoff);
++	entry->num_pages = cpu_to_le32(num_pages);
++	entry->invalid_pages = 0;
++	entry->block = cpu_to_le64(nova_get_block_off(sb, blocknr,
++							sih->i_blk_type));
++	entry->mtime = cpu_to_le32(time);
++
++	entry->size = file_size;
++}
+diff --git a/fs/nova/file.c b/fs/nova/file.c
+index 842da45..26f15c7 100644
+--- a/fs/nova/file.c
++++ b/fs/nova/file.c
+@@ -256,10 +256,218 @@ static ssize_t nova_dax_file_read(struct file *filp, char __user *buf,
+ 	return res;
+ }
+ 
++/*
++ * Perform a COW write.   Must hold the inode lock before calling.
++ */
++static ssize_t do_nova_cow_file_write(struct file *filp,
++	const char __user *buf,	size_t len, loff_t *ppos)
++{
++	struct address_space *mapping = filp->f_mapping;
++	struct inode	*inode = mapping->host;
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++	struct super_block *sb = inode->i_sb;
++	struct nova_inode *pi;
++	struct nova_file_write_item *entry_item;
++	struct list_head item_head;
++	struct nova_inode_update update;
++	ssize_t	    written = 0;
++	loff_t pos;
++	size_t count, offset, copied;
++	unsigned long start_blk, num_blocks;
++	unsigned long total_blocks;
++	unsigned long blocknr = 0;
++	int allocated = 0;
++	void *kmem;
++	u64 file_size;
++	size_t bytes;
++	long status = 0;
++	timing_t cow_write_time, memcpy_time;
++	unsigned long step = 0;
++	ssize_t ret;
++	u64 epoch_id;
++	u32 time;
++
++
++	if (len == 0)
++		return 0;
++
++	sih_lock(sih);
++	NOVA_START_TIMING(cow_write_t, cow_write_time);
++	INIT_LIST_HEAD(&item_head);
++
++	if (!access_ok(VERIFY_READ, buf, len)) {
++		ret = -EFAULT;
++		goto out;
++	}
++	pos = *ppos;
++
++	if (filp->f_flags & O_APPEND)
++		pos = i_size_read(inode);
++
++	count = len;
++
++	pi = nova_get_block(sb, sih->pi_addr);
++
++	offset = pos & (sb->s_blocksize - 1);
++	num_blocks = ((count + offset - 1) >> sb->s_blocksize_bits) + 1;
++	total_blocks = num_blocks;
++	start_blk = pos >> sb->s_blocksize_bits;
++
++	/* offset in the actual block size block */
++
++	ret = file_remove_privs(filp);
++	if (ret)
++		goto out;
++
++	inode->i_ctime = inode->i_mtime = current_time(inode);
++	time = current_time(inode).tv_sec;
++
++	nova_dbgv("%s: inode %lu, offset %lld, count %lu\n",
++			__func__, inode->i_ino,	pos, count);
++
++	epoch_id = nova_get_epoch_id(sb);
++	update.tail = sih->log_tail;
++	while (num_blocks > 0) {
++		offset = pos & (nova_inode_blk_size(sih) - 1);
++		start_blk = pos >> sb->s_blocksize_bits;
++
++		/* don't zero-out the allocated blocks */
++		allocated = nova_new_data_blocks(sb, sih, &blocknr, start_blk,
++				 num_blocks, ALLOC_NO_INIT, ANY_CPU,
++				 ALLOC_FROM_HEAD);
++
++		nova_dbg_verbose("%s: alloc %d blocks @ %lu\n", __func__,
++						allocated, blocknr);
++
++		if (allocated <= 0) {
++			nova_dbg("%s alloc blocks failed %d\n", __func__,
++								allocated);
++			ret = allocated;
++			goto out;
++		}
++
++		step++;
++		bytes = sb->s_blocksize * allocated - offset;
++		if (bytes > count)
++			bytes = count;
++
++		kmem = nova_get_block(inode->i_sb,
++			     nova_get_block_off(sb, blocknr, sih->i_blk_type));
++
++		if (offset || ((offset + bytes) & (PAGE_SIZE - 1)) != 0)  {
++			ret = nova_handle_head_tail_blocks(sb, inode, pos,
++							   bytes, kmem);
++			if (ret)
++				goto out;
++		}
++		/* Now copy from user buf */
++		//		nova_dbg("Write: %p\n", kmem);
++		NOVA_START_TIMING(memcpy_w_nvmm_t, memcpy_time);
++		copied = bytes - memcpy_to_pmem_nocache(kmem + offset,
++						buf, bytes);
++		NOVA_END_TIMING(memcpy_w_nvmm_t, memcpy_time);
++
++		if (pos + copied > inode->i_size)
++			file_size = cpu_to_le64(pos + copied);
++		else
++			file_size = cpu_to_le64(inode->i_size);
++
++		entry_item = nova_alloc_file_write_item(sb);
++		if (!entry_item) {
++			ret = -ENOMEM;
++			goto out;
++		}
++
++		nova_init_file_write_item(sb, sih, entry_item, epoch_id,
++					start_blk, allocated, blocknr, time,
++					file_size);
++
++		list_add_tail(&entry_item->list, &item_head);
++
++		nova_dbgv("Write: %p, %lu\n", kmem, copied);
++		if (copied > 0) {
++			status = copied;
++			written += copied;
++			pos += copied;
++			buf += copied;
++			count -= copied;
++			num_blocks -= allocated;
++		}
++		if (unlikely(copied != bytes)) {
++			nova_dbg("%s ERROR!: %p, bytes %lu, copied %lu\n",
++				__func__, kmem, bytes, copied);
++			if (status >= 0)
++				status = -EFAULT;
++		}
++		if (status < 0)
++			break;
++	}
++
++	ret = nova_commit_writes_to_log(sb, pi, inode,
++					&item_head, total_blocks, 1);
++	if (ret < 0) {
++		nova_err(sb, "commit to log failed\n");
++		goto out;
++	}
++
++	ret = written;
++	NOVA_STATS_ADD(cow_write_breaks, step);
++	nova_dbgv("blocks: %lu, %lu\n", inode->i_blocks, sih->i_blocks);
++
++	*ppos = pos;
++	if (pos > inode->i_size) {
++		i_size_write(inode, pos);
++		sih->i_size = pos;
++	}
++
++out:
++	if (ret < 0)
++		nova_cleanup_incomplete_write(sb, sih, &item_head, 1);
++
++	NOVA_END_TIMING(cow_write_t, cow_write_time);
++	NOVA_STATS_ADD(cow_write_bytes, written);
++	sih_unlock(sih);
++
++	return ret;
++}
++
++/*
++ * Acquire locks and perform COW write.
++ */
++ssize_t nova_cow_file_write(struct file *filp,
++	const char __user *buf,	size_t len, loff_t *ppos)
++{
++	struct address_space *mapping = filp->f_mapping;
++	struct inode *inode = mapping->host;
++	int ret;
++
++	if (len == 0)
++		return 0;
++
++	sb_start_write(inode->i_sb);
++	inode_lock(inode);
++
++	ret = do_nova_cow_file_write(filp, buf, len, ppos);
++
++	inode_unlock(inode);
++	sb_end_write(inode->i_sb);
++
++	return ret;
++}
++
++
++static ssize_t nova_dax_file_write(struct file *filp, const char __user *buf,
++				   size_t len, loff_t *ppos)
++{
++	return nova_cow_file_write(filp, buf, len, ppos);
++}
++
+ 
+ const struct file_operations nova_dax_file_operations = {
+ 	.llseek		= nova_llseek,
+ 	.read		= nova_dax_file_read,
++	.write		= nova_dax_file_write,
+ 	.open		= nova_open,
+ 	.fsync		= nova_fsync,
+ 	.flush		= nova_flush,
+diff --git a/fs/nova/nova.h b/fs/nova/nova.h
+index dcda02a..1c2205e 100644
+--- a/fs/nova/nova.h
++++ b/fs/nova/nova.h
+@@ -465,9 +465,17 @@ nova_get_blocknr(struct super_block *sb, u64 block, unsigned short btype)
+ /* ====================================================== */
+ 
+ /* dax.c */
++int nova_handle_head_tail_blocks(struct super_block *sb,
++	struct inode *inode, loff_t pos, size_t count, void *kmem);
+ int nova_commit_writes_to_log(struct super_block *sb, struct nova_inode *pi,
+ 	struct inode *inode, struct list_head *head, unsigned long new_blocks,
+ 	int free);
++int nova_cleanup_incomplete_write(struct super_block *sb,
++	struct nova_inode_info_header *sih, struct list_head *head, int free);
++void nova_init_file_write_item(struct super_block *sb,
++	struct nova_inode_info_header *sih, struct nova_file_write_item *item,
++	u64 epoch_id, u64 pgoff, int num_pages, u64 blocknr, u32 time,
++	u64 file_size);
+ 
+ /* dir.c */
+ extern const struct file_operations nova_dir_operations;
+-- 
+2.7.4
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
