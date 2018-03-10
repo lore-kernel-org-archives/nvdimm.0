@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x243.google.com (mail-pf0-x243.google.com
- [IPv6:2607:f8b0:400e:c00::243])
+Received: from mail-pl0-x242.google.com (mail-pl0-x242.google.com
+ [IPv6:2607:f8b0:400e:c01::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5E39A226462E2
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:11 -0800 (PST)
-Received: by mail-pf0-x243.google.com with SMTP id d26so2620394pfn.5
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:30 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 3F67922603AE2
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:46 -0800 (PST)
+Received: by mail-pl0-x242.google.com with SMTP id 61-v6so7023789plf.3
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:05 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 61/83] Super: Add nova_export_ops.
-Date: Sat, 10 Mar 2018 10:18:42 -0800
-Message-Id: <1520705944-6723-62-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 40/83] Log operation: file write entry append.
+Date: Sat, 10 Mar 2018 10:18:21 -0800
+Message-Id: <1520705944-6723-41-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,84 +31,108 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
+NOVA performs writes by appending file write entries to the log.
+A file write entry is the metadata of a write operation, and
+contains pointers to the data blocks. A single write operation
+may append multiple file write entries to the log, if the
+allocator cannot provide enough contiguous data blocks.
+
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/super.c | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ fs/nova/log.c | 51 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/log.h |  3 +++
+ 2 files changed, 54 insertions(+)
 
-diff --git a/fs/nova/super.c b/fs/nova/super.c
-index daf3270..0847e57 100644
---- a/fs/nova/super.c
-+++ b/fs/nova/super.c
-@@ -51,6 +51,7 @@ module_param(nova_dbgmask, int, 0444);
- MODULE_PARM_DESC(nova_dbgmask, "Control debugging output");
+diff --git a/fs/nova/log.c b/fs/nova/log.c
+index 13f9597..437db26 100644
+--- a/fs/nova/log.c
++++ b/fs/nova/log.c
+@@ -20,6 +20,18 @@
+ #include "inode.h"
+ #include "log.h"
  
- static struct super_operations nova_sops;
-+static const struct export_operations nova_export_ops;
- 
- static struct kmem_cache *nova_inode_cachep;
- static struct kmem_cache *nova_range_node_cachep;
-@@ -631,6 +632,7 @@ static int nova_fill_super(struct super_block *sb, void *data, int silent)
- 	sb->s_op = &nova_sops;
- 	sb->s_maxbytes = nova_max_size(sb->s_blocksize_bits);
- 	sb->s_time_gran = 1000000000; // 1 second.
-+	sb->s_export_op = &nova_export_ops;
- 	sb->s_xattr = NULL;
- 	sb->s_flags |= MS_NOSEC;
- 
-@@ -904,6 +906,52 @@ static struct file_system_type nova_fs_type = {
- 	.kill_sb	= kill_block_super,
- };
- 
-+static struct inode *nova_nfs_get_inode(struct super_block *sb,
-+					 u64 ino, u32 generation)
++static int nova_update_write_entry(struct super_block *sb,
++	struct nova_file_write_entry *entry,
++	struct nova_log_entry_info *entry_info)
 +{
-+	struct inode *inode;
-+
-+	if (ino < NOVA_ROOT_INO)
-+		return ERR_PTR(-ESTALE);
-+
-+	if (ino > LONG_MAX)
-+		return ERR_PTR(-ESTALE);
-+
-+	inode = nova_iget(sb, ino);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
-+
-+	if (generation && inode->i_generation != generation) {
-+		/* we didn't find the right inode.. */
-+		iput(inode);
-+		return ERR_PTR(-ESTALE);
-+	}
-+
-+	return inode;
++	entry->epoch_id = cpu_to_le64(entry_info->epoch_id);
++	entry->trans_id = cpu_to_le64(entry_info->trans_id);
++	entry->mtime = cpu_to_le32(entry_info->time);
++	entry->size = cpu_to_le64(entry_info->file_size);
++	nova_persist_entry(entry);
++	return 0;
 +}
 +
-+static struct dentry *nova_fh_to_dentry(struct super_block *sb,
-+					 struct fid *fid, int fh_len,
-+					 int fh_type)
+ static int nova_update_old_dentry(struct super_block *sb,
+ 	struct inode *dir, struct nova_dentry *dentry,
+ 	struct nova_log_entry_info *entry_info)
+@@ -91,6 +103,11 @@ static int nova_update_log_entry(struct super_block *sb, struct inode *inode,
+ 
+ 	switch (type) {
+ 	case FILE_WRITE:
++		if (entry_info->inplace)
++			nova_update_write_entry(sb, entry, entry_info);
++		else
++			memcpy_to_pmem_nocache(entry, entry_info->data,
++				sizeof(struct nova_file_write_entry));
+ 		break;
+ 	case DIR_LOG:
+ 		if (entry_info->inplace)
+@@ -149,6 +166,40 @@ static int nova_append_log_entry(struct super_block *sb,
+ 	return 0;
+ }
+ 
++/*
++ * Append a nova_file_write_entry to the current nova_inode_log_page.
++ * blocknr and start_blk are pgoff.
++ * We cannot update pi->log_tail here because a transaction may contain
++ * multiple entries.
++ */
++int nova_append_file_write_entry(struct super_block *sb, struct nova_inode *pi,
++	struct inode *inode, struct nova_file_write_item *item,
++	struct nova_inode_update *update)
 +{
-+	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
-+				    nova_nfs_get_inode);
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++	struct nova_file_write_entry *data = &item->entry;
++	struct nova_log_entry_info entry_info;
++	timing_t append_time;
++	int ret;
++
++	NOVA_START_TIMING(append_file_entry_t, append_time);
++
++	entry_info.type = FILE_WRITE;
++	entry_info.update = update;
++	entry_info.data = data;
++	entry_info.epoch_id = data->epoch_id;
++	entry_info.trans_id = data->trans_id;
++	entry_info.inplace = 0;
++
++	ret = nova_append_log_entry(sb, pi, inode, sih, &entry_info);
++	if (ret)
++		nova_err(sb, "%s failed\n", __func__);
++
++	NOVA_END_TIMING(append_file_entry_t, append_time);
++	return ret;
 +}
 +
-+static struct dentry *nova_fh_to_parent(struct super_block *sb,
-+					 struct fid *fid, int fh_len,
-+					 int fh_type)
-+{
-+	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
-+				    nova_nfs_get_inode);
-+}
-+
-+static const struct export_operations nova_export_ops = {
-+	.fh_to_dentry	= nova_fh_to_dentry,
-+	.fh_to_parent	= nova_fh_to_parent,
-+	.get_parent	= nova_get_parent,
-+};
-+
- static int __init init_nova_fs(void)
- {
- 	int rc = 0;
+ int nova_append_dentry(struct super_block *sb, struct nova_inode *pi,
+ 	struct inode *dir, struct dentry *dentry, u64 ino,
+ 	unsigned short de_len, struct nova_inode_update *update,
+diff --git a/fs/nova/log.h b/fs/nova/log.h
+index 305e69b..db7a72e 100644
+--- a/fs/nova/log.h
++++ b/fs/nova/log.h
+@@ -364,6 +364,9 @@ static inline int is_dir_init_entry(struct super_block *sb,
+ }
+ 
+ 
++int nova_append_file_write_entry(struct super_block *sb, struct nova_inode *pi,
++	struct inode *inode, struct nova_file_write_item *item,
++	struct nova_inode_update *update);
+ int nova_append_dentry(struct super_block *sb, struct nova_inode *pi,
+ 	struct inode *dir, struct dentry *dentry, u64 ino,
+ 	unsigned short de_len, struct nova_inode_update *update,
 -- 
 2.7.4
 
