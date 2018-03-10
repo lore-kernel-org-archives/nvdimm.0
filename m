@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl0-x242.google.com (mail-pl0-x242.google.com
+ [IPv6:2607:f8b0:400e:c01::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 07D0B22106DC3
- for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:13:32 -0700 (PDT)
-Subject: [PATCH v8 16/18] xfs: prepare xfs_break_layouts() to be called with
- XFS_MMAPLOCK_EXCL
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 30 Mar 2018 21:03:35 -0700
-Message-ID: <152246901577.36038.3837971666969319217.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id D5E342263149B
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:02 -0800 (PST)
+Received: by mail-pl0-x242.google.com with SMTP id 61-v6so7023997plf.3
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:21 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 54/83] Namei: create and mknod.
+Date: Sat, 10 Mar 2018 10:18:35 -0800
+Message-Id: <1520705944-6723-55-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,122 +20,187 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, snitzer@redhat.com, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for adding coordination between extent unmap operations
-and busy dax-pages, update xfs_break_layouts() to permit it to be called
-with the mmap lock held. This lock scheme will be required for
-coordinating the break of 'dax layouts' (non-idle dax (ZONE_DEVICE)
-pages mapped into the file's address space). Breaking dax layouts will
-be added to xfs_break_layouts() in a future patch, for now this preps
-the unmap call sites to take and hold XFS_MMAPLOCK_EXCL over the call to
-xfs_break_layouts().
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: "Darrick J. Wong" <darrick.wong@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+NOVA allocates and initializes a new inode, and appends a dentry
+to the directory's log. Then NOVA creates a transaction to
+commit both changes atomically: update the directory log tail
+pointer and validate the new inode.
+
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/xfs/xfs_file.c  |    5 +----
- fs/xfs/xfs_ioctl.c |    5 +----
- fs/xfs/xfs_iops.c  |   10 +++++++---
- fs/xfs/xfs_pnfs.c  |    3 ++-
- 4 files changed, 11 insertions(+), 12 deletions(-)
+ fs/nova/namei.c | 141 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 141 insertions(+)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 9ea08326f876..18edf04811d0 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -768,7 +768,7 @@ xfs_file_fallocate(
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	long			error;
- 	enum xfs_prealloc_flags	flags = 0;
--	uint			iolock = XFS_IOLOCK_EXCL;
-+	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
- 	loff_t			new_size = 0;
- 	bool			do_file_insert = false;
+diff --git a/fs/nova/namei.c b/fs/nova/namei.c
+index 8076f5b..a07cc4f 100644
+--- a/fs/nova/namei.c
++++ b/fs/nova/namei.c
+@@ -68,6 +68,145 @@ static struct dentry *nova_lookup(struct inode *dir, struct dentry *dentry,
+ 	return d_splice_alias(inode, dentry);
+ }
  
-@@ -782,9 +782,6 @@ xfs_file_fallocate(
- 	if (error)
- 		goto out_unlock;
- 
--	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
--	iolock |= XFS_MMAPLOCK_EXCL;
--
- 	if (mode & FALLOC_FL_PUNCH_HOLE) {
- 		error = xfs_free_file_space(ip, offset, len);
- 		if (error)
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 89fb1eb80aae..4151fade4bb1 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -614,7 +614,7 @@ xfs_ioc_space(
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	struct iattr		iattr;
- 	enum xfs_prealloc_flags	flags = 0;
--	uint			iolock = XFS_IOLOCK_EXCL;
-+	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
- 	int			error;
- 
- 	/*
-@@ -648,9 +648,6 @@ xfs_ioc_space(
- 	if (error)
- 		goto out_unlock;
- 
--	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
--	iolock |= XFS_MMAPLOCK_EXCL;
--
- 	switch (bf->l_whence) {
- 	case 0: /*SEEK_SET*/
- 		break;
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 951e84df5576..d23aa08426f9 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -1028,13 +1028,17 @@ xfs_vn_setattr(
- 
- 	if (iattr->ia_valid & ATTR_SIZE) {
- 		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
--		uint			iolock = XFS_IOLOCK_EXCL;
-+		uint			iolock;
++static void nova_lite_transaction_for_new_inode(struct super_block *sb,
++	struct nova_inode *pi, struct nova_inode *pidir, struct inode *inode,
++	struct inode *dir, struct nova_inode_update *update)
++{
++	struct nova_sb_info *sbi = NOVA_SB(sb);
++	int cpu;
++	u64 journal_tail;
++	timing_t trans_time;
 +
-+		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
-+		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
++	NOVA_START_TIMING(create_trans_t, trans_time);
++
++	cpu = smp_processor_id();
++	spin_lock(&sbi->journal_locks[cpu]);
++
++	// If you change what's required to create a new inode, you need to
++	// update this functions so the changes will be roll back on failure.
++	journal_tail = nova_create_inode_transaction(sb, inode, dir, cpu, 1, 0);
++
++	nova_update_inode(sb, dir, pidir, update);
++
++	pi->valid = 1;
++	nova_persist_inode(pi);
++	PERSISTENT_BARRIER();
++
++	nova_commit_lite_transaction(sb, journal_tail, cpu);
++	spin_unlock(&sbi->journal_locks[cpu]);
++
++	NOVA_END_TIMING(create_trans_t, trans_time);
++}
++
++/* Returns new tail after append */
++/*
++ * By the time this is called, we already have created
++ * the directory cache entry for the new file, but it
++ * is so far negative - it has no inode.
++ *
++ * If the create succeeds, we fill in the inode information
++ * with d_instantiate().
++ */
++static int nova_create(struct inode *dir, struct dentry *dentry, umode_t mode,
++			bool excl)
++{
++	struct inode *inode = NULL;
++	int err = PTR_ERR(inode);
++	struct super_block *sb = dir->i_sb;
++	struct nova_inode *pidir, *pi;
++	struct nova_inode_update update;
++	u64 pi_addr = 0;
++	u64 ino, epoch_id;
++	timing_t create_time;
++
++	NOVA_START_TIMING(create_t, create_time);
++
++	pidir = nova_get_inode(sb, dir);
++	if (!pidir)
++		goto out_err;
++
++	epoch_id = nova_get_epoch_id(sb);
++	ino = nova_new_nova_inode(sb, &pi_addr);
++	if (ino == 0)
++		goto out_err;
++
++	update.tail = 0;
++	err = nova_add_dentry(dentry, ino, 0, &update, epoch_id);
++	if (err)
++		goto out_err;
++
++	nova_dbgv("%s: %s\n", __func__, dentry->d_name.name);
++	nova_dbgv("%s: inode %llu, dir %lu\n", __func__, ino, dir->i_ino);
++	inode = nova_new_vfs_inode(TYPE_CREATE, dir, pi_addr, ino, mode,
++					0, 0, &dentry->d_name, epoch_id);
++	if (IS_ERR(inode))
++		goto out_err;
++
++	d_instantiate(dentry, inode);
++	unlock_new_inode(inode);
++
++	pi = nova_get_block(sb, pi_addr);
++	nova_lite_transaction_for_new_inode(sb, pi, pidir, inode, dir,
++						&update);
++	NOVA_END_TIMING(create_t, create_time);
++	return err;
++out_err:
++	nova_err(sb, "%s return %d\n", __func__, err);
++	NOVA_END_TIMING(create_t, create_time);
++	return err;
++}
++
++static int nova_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
++		       dev_t rdev)
++{
++	struct inode *inode = NULL;
++	int err = PTR_ERR(inode);
++	struct super_block *sb = dir->i_sb;
++	u64 pi_addr = 0;
++	struct nova_inode *pidir, *pi;
++	struct nova_inode_update update;
++	u64 ino;
++	u64 epoch_id;
++	timing_t mknod_time;
++
++	NOVA_START_TIMING(mknod_t, mknod_time);
++
++	pidir = nova_get_inode(sb, dir);
++	if (!pidir)
++		goto out_err;
++
++	epoch_id = nova_get_epoch_id(sb);
++	ino = nova_new_nova_inode(sb, &pi_addr);
++	if (ino == 0)
++		goto out_err;
++
++	nova_dbgv("%s: %s\n", __func__, dentry->d_name.name);
++	nova_dbgv("%s: inode %llu, dir %lu\n", __func__, ino, dir->i_ino);
++
++	update.tail = 0;
++	err = nova_add_dentry(dentry, ino, 0, &update, epoch_id);
++	if (err)
++		goto out_err;
++
++	inode = nova_new_vfs_inode(TYPE_MKNOD, dir, pi_addr, ino, mode,
++					0, rdev, &dentry->d_name, epoch_id);
++	if (IS_ERR(inode))
++		goto out_err;
++
++	d_instantiate(dentry, inode);
++	unlock_new_inode(inode);
++
++	pi = nova_get_block(sb, pi_addr);
++	nova_lite_transaction_for_new_inode(sb, pi, pidir, inode, dir,
++						&update);
++	NOVA_END_TIMING(mknod_t, mknod_time);
++	return err;
++out_err:
++	nova_err(sb, "%s return %d\n", __func__, err);
++	NOVA_END_TIMING(mknod_t, mknod_time);
++	return err;
++}
++
+ struct dentry *nova_get_parent(struct dentry *child)
+ {
+ 	struct inode *inode;
+@@ -93,5 +232,7 @@ struct dentry *nova_get_parent(struct dentry *child)
+ }
  
- 		error = xfs_break_layouts(d_inode(dentry), &iolock);
--		if (error)
-+		if (error) {
-+			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
- 			return error;
-+		}
- 
--		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
- 		error = xfs_vn_setattr_size(dentry, iattr);
- 		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
- 	} else {
-diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
-index aa6c5c193f45..6ea7b0b55d02 100644
---- a/fs/xfs/xfs_pnfs.c
-+++ b/fs/xfs/xfs_pnfs.c
-@@ -43,7 +43,8 @@ xfs_break_layouts(
- 	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
- 		xfs_iunlock(ip, *iolock);
- 		error = break_layout(inode, true);
--		*iolock = XFS_IOLOCK_EXCL;
-+		*iolock &= ~XFS_IOLOCK_SHARED;
-+		*iolock |= XFS_IOLOCK_EXCL;
- 		xfs_ilock(ip, *iolock);
- 	}
- 
+ const struct inode_operations nova_dir_inode_operations = {
++	.create		= nova_create,
+ 	.lookup		= nova_lookup,
++	.mknod		= nova_mknod,
+ };
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
