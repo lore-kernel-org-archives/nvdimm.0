@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x244.google.com (mail-pl0-x244.google.com
- [IPv6:2607:f8b0:400e:c01::244])
+Received: from mail-pf0-x241.google.com (mail-pf0-x241.google.com
+ [IPv6:2607:f8b0:400e:c00::241])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DCB912258AEFB
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:11 -0800 (PST)
-Received: by mail-pl0-x244.google.com with SMTP id u13-v6so7031217plq.1
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:30 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 5DE5122603B11
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:35 -0800 (PST)
+Received: by mail-pf0-x241.google.com with SMTP id u5so2617710pfh.6
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:54 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 12/83] Add timing for mount and init.
-Date: Sat, 10 Mar 2018 10:17:53 -0800
-Message-Id: <1520705944-6723-13-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 31/83] Add new vfs inode allocation.
+Date: Sat, 10 Mar 2018 10:18:12 -0800
+Message-Id: <1520705944-6723-32-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,113 +31,192 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
+This routine allocates and initializes a new vfs inode, and setup
+the attributes of corresponding NOVA inode and inode_info.
+inode operations are missing now.
+
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/super.c | 25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ fs/nova/inode.c | 144 +++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ fs/nova/inode.h |   3 ++
+ 2 files changed, 146 insertions(+), 1 deletion(-)
 
-diff --git a/fs/nova/super.c b/fs/nova/super.c
-index 9295d23..3efb560 100644
---- a/fs/nova/super.c
-+++ b/fs/nova/super.c
-@@ -347,6 +347,9 @@ static struct nova_inode *nova_init(struct super_block *sb,
- 	struct nova_inode *root_i, *pi;
- 	struct nova_super_block *super;
- 	struct nova_sb_info *sbi = NOVA_SB(sb);
-+	timing_t init_time;
-+
-+	NOVA_START_TIMING(new_init_t, init_time);
- 
- 	nova_info("creating an empty nova of size %lu\n", size);
- 	sbi->num_blocks = ((unsigned long)(size) >> PAGE_SHIFT);
-@@ -357,6 +360,7 @@ static struct nova_inode *nova_init(struct super_block *sb,
- 
- 	if (!nova_check_size(sb, size)) {
- 		nova_warn("Specified NOVA size too small 0x%lx.\n", size);
-+		NOVA_END_TIMING(new_init_t, init_time);
- 		return ERR_PTR(-EINVAL);
- 	}
- 
-@@ -399,6 +403,7 @@ static struct nova_inode *nova_init(struct super_block *sb,
- 	PERSISTENT_MARK();
- 	PERSISTENT_BARRIER();
- 	nova_info("NOVA initialization finish\n");
-+	NOVA_END_TIMING(new_init_t, init_time);
- 	return root_i;
+diff --git a/fs/nova/inode.c b/fs/nova/inode.c
+index e4b8960..15517cc 100644
+--- a/fs/nova/inode.c
++++ b/fs/nova/inode.c
+@@ -363,7 +363,49 @@ static inline int nova_search_inodetree(struct nova_sb_info *sbi,
+ 	return nova_find_range_node(sbi, tree, internal_ino, ret_node);
  }
  
-@@ -473,15 +478,22 @@ static int nova_fill_super(struct super_block *sb, void *data, int silent)
- 	unsigned long blocksize;
- 	u32 random = 0;
- 	int retval = -EINVAL;
-+	timing_t mount_time;
+-int nova_alloc_unused_inode(struct super_block *sb, int cpuid,
++static void nova_get_inode_flags(struct inode *inode, struct nova_inode *pi)
++{
++	unsigned int flags = inode->i_flags;
++	unsigned int nova_flags = le32_to_cpu(pi->i_flags);
 +
-+	NOVA_START_TIMING(mount_t, mount_time);
++	nova_flags &= ~(FS_SYNC_FL | FS_APPEND_FL | FS_IMMUTABLE_FL |
++			 FS_NOATIME_FL | FS_DIRSYNC_FL);
++	if (flags & S_SYNC)
++		nova_flags |= FS_SYNC_FL;
++	if (flags & S_APPEND)
++		nova_flags |= FS_APPEND_FL;
++	if (flags & S_IMMUTABLE)
++		nova_flags |= FS_IMMUTABLE_FL;
++	if (flags & S_NOATIME)
++		nova_flags |= FS_NOATIME_FL;
++	if (flags & S_DIRSYNC)
++		nova_flags |= FS_DIRSYNC_FL;
++
++	pi->i_flags = cpu_to_le32(nova_flags);
++}
++
++static void nova_init_inode(struct inode *inode, struct nova_inode *pi)
++{
++	pi->i_mode = cpu_to_le16(inode->i_mode);
++	pi->i_uid = cpu_to_le32(i_uid_read(inode));
++	pi->i_gid = cpu_to_le32(i_gid_read(inode));
++	pi->i_links_count = cpu_to_le16(inode->i_nlink);
++	pi->i_size = cpu_to_le64(inode->i_size);
++	pi->i_atime = cpu_to_le32(inode->i_atime.tv_sec);
++	pi->i_ctime = cpu_to_le32(inode->i_ctime.tv_sec);
++	pi->i_mtime = cpu_to_le32(inode->i_mtime.tv_sec);
++	pi->i_generation = cpu_to_le32(inode->i_generation);
++	pi->log_head = 0;
++	pi->log_tail = 0;
++	pi->deleted = 0;
++	pi->delete_epoch_id = 0;
++	nova_get_inode_flags(inode, pi);
++
++	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
++		pi->dev.rdev = cpu_to_le32(inode->i_rdev);
++}
++
++static int nova_alloc_unused_inode(struct super_block *sb, int cpuid,
+ 	unsigned long *ino)
+ {
+ 	struct nova_sb_info *sbi = NOVA_SB(sb);
+@@ -529,6 +571,106 @@ u64 nova_new_nova_inode(struct super_block *sb, u64 *pi_addr)
+ 	return ino;
+ }
  
- 	BUILD_BUG_ON(sizeof(struct nova_super_block) > NOVA_SB_SIZE);
- 
- 	sbi = kzalloc(sizeof(struct nova_sb_info), GFP_KERNEL);
--	if (!sbi)
-+	if (!sbi) {
-+		NOVA_END_TIMING(mount_t, mount_time);
- 		return -ENOMEM;
++struct inode *nova_new_vfs_inode(enum nova_new_inode_type type,
++	struct inode *dir, u64 pi_addr, u64 ino, umode_t mode,
++	size_t size, dev_t rdev, const struct qstr *qstr, u64 epoch_id)
++{
++	struct super_block *sb;
++	struct nova_sb_info *sbi;
++	struct inode *inode;
++	struct nova_inode *diri = NULL;
++	struct nova_inode_info *si;
++	struct nova_inode_info_header *sih = NULL;
++	struct nova_inode *pi;
++	int errval;
++	timing_t new_inode_time;
++
++	NOVA_START_TIMING(new_vfs_inode_t, new_inode_time);
++	sb = dir->i_sb;
++	sbi = (struct nova_sb_info *)sb->s_fs_info;
++	inode = new_inode(sb);
++	if (!inode) {
++		errval = -ENOMEM;
++		goto fail2;
 +	}
 +
- 	sbi->nova_sb = kzalloc(sizeof(struct nova_super_block), GFP_KERNEL);
- 	if (!sbi->nova_sb) {
- 		kfree(sbi);
-+		NOVA_END_TIMING(mount_t, mount_time);
- 		return -ENOMEM;
- 	}
- 
-@@ -591,6 +603,7 @@ static int nova_fill_super(struct super_block *sb, void *data, int silent)
- 		nova_update_mount_time(sb);
- 
- 	retval = 0;
-+	NOVA_END_TIMING(mount_t, mount_time);
- 	return retval;
- 
- out:
-@@ -600,6 +613,7 @@ static int nova_fill_super(struct super_block *sb, void *data, int silent)
- 	kfree(sbi->nova_sb);
- 	kfree(sbi);
- 	nova_dbg("%s failed: return %d\n", __func__, retval);
-+	NOVA_END_TIMING(mount_t, mount_time);
- 	return retval;
- }
- 
-@@ -701,6 +715,9 @@ static struct file_system_type nova_fs_type = {
- static int __init init_nova_fs(void)
- {
- 	int rc = 0;
-+	timing_t init_time;
++	inode_init_owner(inode, dir, mode);
++	inode->i_blocks = inode->i_size = 0;
++	inode->i_mtime = inode->i_atime = inode->i_ctime = current_time(inode);
 +
-+	NOVA_START_TIMING(init_t, init_time);
++	inode->i_generation = atomic_add_return(1, &sbi->next_generation);
++	inode->i_size = size;
++
++	diri = nova_get_inode(sb, dir);
++	if (!diri) {
++		errval = -EACCES;
++		goto fail1;
++	}
++
++	pi = (struct nova_inode *)nova_get_block(sb, pi_addr);
++	nova_dbg_verbose("%s: allocating inode %llu @ 0x%llx\n",
++					__func__, ino, pi_addr);
++
++	/* chosen inode is in ino */
++	inode->i_ino = ino;
++
++	switch (type) {
++	case TYPE_CREATE:
++		inode->i_mapping->a_ops = &nova_aops_dax;
++		break;
++	case TYPE_MKNOD:
++		init_special_inode(inode, mode, rdev);
++		break;
++	case TYPE_SYMLINK:
++		inode->i_mapping->a_ops = &nova_aops_dax;
++		break;
++	case TYPE_MKDIR:
++		inode->i_mapping->a_ops = &nova_aops_dax;
++		set_nlink(inode, 2);
++		break;
++	default:
++		nova_dbg("Unknown new inode type %d\n", type);
++		break;
++	}
++
++	/*
++	 * Pi is part of the dir log so no transaction is needed,
++	 * but we need to flush to NVMM.
++	 */
++	pi->i_blk_type = NOVA_DEFAULT_BLOCK_TYPE;
++	pi->i_flags = nova_mask_flags(mode, diri->i_flags);
++	pi->nova_ino = ino;
++	pi->i_create_time = current_time(inode).tv_sec;
++	pi->create_epoch_id = epoch_id;
++	nova_init_inode(inode, pi);
++
++	si = NOVA_I(inode);
++	sih = &si->header;
++	nova_init_header(sb, sih, inode->i_mode);
++	sih->pi_addr = pi_addr;
++	sih->ino = ino;
++	sih->i_blk_type = NOVA_DEFAULT_BLOCK_TYPE;
++
++	nova_set_inode_flags(inode, pi, le32_to_cpu(pi->i_flags));
++	sih->i_flags = le32_to_cpu(pi->i_flags);
++
++	if (insert_inode_locked(inode) < 0) {
++		nova_err(sb, "nova_new_inode failed ino %lx\n", inode->i_ino);
++		errval = -EINVAL;
++		goto fail1;
++	}
++
++	nova_flush_buffer(pi, NOVA_INODE_SIZE, 0);
++	NOVA_END_TIMING(new_vfs_inode_t, new_inode_time);
++	return inode;
++fail1:
++	make_bad_inode(inode);
++	iput(inode);
++fail2:
++	NOVA_END_TIMING(new_vfs_inode_t, new_inode_time);
++	return ERR_PTR(errval);
++}
++
+ int nova_write_inode(struct inode *inode, struct writeback_control *wbc)
+ {
+ 	/* write_inode should never be called because we always keep our inodes
+diff --git a/fs/nova/inode.h b/fs/nova/inode.h
+index fc1876c..943f77f 100644
+--- a/fs/nova/inode.h
++++ b/fs/nova/inode.h
+@@ -230,6 +230,9 @@ struct inode *nova_iget(struct super_block *sb, unsigned long ino);
+ inline int nova_insert_inodetree(struct nova_sb_info *sbi,
+ 	struct nova_range_node *new_node, int cpu);
+ u64 nova_new_nova_inode(struct super_block *sb, u64 *pi_addr);
++struct inode *nova_new_vfs_inode(enum nova_new_inode_type type,
++	struct inode *dir, u64 pi_addr, u64 ino, umode_t mode,
++	size_t size, dev_t rdev, const struct qstr *qstr, u64 epoch_id);
+ extern int nova_write_inode(struct inode *inode, struct writeback_control *wbc);
+ extern void nova_dirty_inode(struct inode *inode, int flags);
  
- 	nova_dbg("%s: %d cpus online\n", __func__, num_online_cpus());
- 	if (arch_has_clwb())
-@@ -711,17 +728,19 @@ static int __init init_nova_fs(void)
- 
- 	rc = init_inodecache();
- 	if (rc)
--		return rc;
-+		goto out;
- 
- 	rc = register_filesystem(&nova_fs_type);
- 	if (rc)
- 		goto out1;
- 
-+out:
-+	NOVA_END_TIMING(init_t, init_time);
- 	return rc;
- 
- out1:
- 	destroy_inodecache();
--	return rc;
-+	goto out;
- }
- 
- static void __exit exit_nova_fs(void)
 -- 
 2.7.4
 
