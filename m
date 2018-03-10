@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg0-x242.google.com (mail-pg0-x242.google.com
+ [IPv6:2607:f8b0:400e:c05::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 78D6D2252CBAB
- for <linux-nvdimm@lists.01.org>; Thu, 22 Mar 2018 17:27:40 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.16-rc7
-Date: Fri, 23 Mar 2018 00:34:10 +0000
-Message-ID: <1521765242.9257.19.camel@intel.com>
-Content-Language: en-US
-Content-ID: <A20C5207B42157439D50FD9D053FAC95@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 26C9322603B0A
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:33 -0800 (PST)
+Received: by mail-pg0-x242.google.com with SMTP id g12so4844245pgs.0
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:51 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 29/83] Add write_inode and dirty_inode routines.
+Date: Sat, 10 Mar 2018 10:18:10 -0800
+Message-Id: <1520705944-6723-30-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,82 +20,96 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
+---
+ fs/nova/inode.c | 33 +++++++++++++++++++++++++++++++++
+ fs/nova/inode.h |  2 ++
+ fs/nova/super.c |  2 ++
+ 3 files changed, 37 insertions(+)
 
-...to receive 2 regression fixes, 2 bug fixes for older issues, 2
-fixes for new functionality added this cycle that have userspace ABI
-concerns, and a small cleanup. These have appeared in a linux-next
-release and have a build success report from the 0day robot.
+diff --git a/fs/nova/inode.c b/fs/nova/inode.c
+index a30b6aa..29d172a 100644
+--- a/fs/nova/inode.c
++++ b/fs/nova/inode.c
+@@ -489,6 +489,39 @@ int nova_free_inuse_inode(struct super_block *sb, unsigned long ino)
+ 	return ret;
+ }
+ 
++int nova_write_inode(struct inode *inode, struct writeback_control *wbc)
++{
++	/* write_inode should never be called because we always keep our inodes
++	 * clean. So let us know if write_inode ever gets called.
++	 */
++//	BUG();
++	return 0;
++}
++
++/*
++ * dirty_inode() is called from mark_inode_dirty_sync()
++ * usually dirty_inode should not be called because NOVA always keeps its inodes
++ * clean. Only exception is touch_atime which calls dirty_inode to update the
++ * i_atime field.
++ */
++void nova_dirty_inode(struct inode *inode, int flags)
++{
++	struct super_block *sb = inode->i_sb;
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++	struct nova_inode *pi;
++
++	pi = nova_get_block(sb, sih->pi_addr);
++
++	/* only i_atime should have changed if at all.
++	 * we can do in-place atomic update
++	 */
++	pi->i_atime = cpu_to_le32(inode->i_atime.tv_sec);
++	nova_persist_inode(pi);
++	/* Relax atime persistency */
++	nova_flush_buffer(&pi->i_atime, sizeof(pi->i_atime), 0);
++}
++
+ static ssize_t nova_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+ {
+ 	/* DAX does not support direct IO */
+diff --git a/fs/nova/inode.h b/fs/nova/inode.h
+index e00b3b9..f9f5c14 100644
+--- a/fs/nova/inode.h
++++ b/fs/nova/inode.h
+@@ -229,5 +229,7 @@ int nova_get_inode_address(struct super_block *sb, u64 ino,
+ struct inode *nova_iget(struct super_block *sb, unsigned long ino);
+ inline int nova_insert_inodetree(struct nova_sb_info *sbi,
+ 	struct nova_range_node *new_node, int cpu);
++extern int nova_write_inode(struct inode *inode, struct writeback_control *wbc);
++extern void nova_dirty_inode(struct inode *inode, int flags);
+ 
+ #endif
+diff --git a/fs/nova/super.c b/fs/nova/super.c
+index 69e4afc..c0427fd 100644
+--- a/fs/nova/super.c
++++ b/fs/nova/super.c
+@@ -861,6 +861,8 @@ static void destroy_rangenode_cache(void)
+ static struct super_operations nova_sops = {
+ 	.alloc_inode	= nova_alloc_inode,
+ 	.destroy_inode	= nova_destroy_inode,
++	.write_inode	= nova_write_inode,
++	.dirty_inode	= nova_dirty_inode,
+ 	.put_super	= nova_put_super,
+ 	.statfs		= nova_statfs,
+ 	.remount_fs	= nova_remount,
+-- 
+2.7.4
 
-* The 4.16 rework of altmap handling led to some configurations leaking
-page table allocations due to freeing from the altmap reservation
-rather than the page allocator. The impact without the fix is leaked
-memory and a WARN() message when tearing down libnvdimm namespaces. The
-rework also missed a place where error handling code needed to be
-removed that can lead to a crash if devm_memremap_pages() fails.
-
-* acpi_map_pxm_to_node() had a latent bug whereby it could misidentify
-the closest online node to a given proximity domain.
-
-* Block integrity handling was reworked several kernels back to allow
-calling add_disk() after setting up the integrity profile. The nd_btt
-and nd_blk drivers are just now catching up to fix automatic partition
-detection at driver load time.
-
-* The new peristence_domain attribute, a platform indicator of whether
-cpu caches are powerfail protected for example, is meant to be a single
-value enum and not a set of flags. This oversight was caught while
-reviewing new userspace code in libndctl to communicate the attribute.
-Fix this new enabling up so that we are not stuck with an unwanted
-userspace ABI.
-
-The following changes since commit 661e50bc853209e41a5c14a290ca4decc43cbfd1:
-
-  Linux 4.16-rc4 (2018-03-04 14:54:11 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
-
-for you to fetch changes up to fe9a552e715dfe5167d52deb74ea16335896bdaf:
-
-  libnvdimm, nfit: fix persistence domain reporting (2018-03-21 15:12:07 -0700)
-
-----------------------------------------------------------------
-Colin Ian King (1):
-      libnvdimm: remove redundant assignment to pointer 'dev'
-
-Dan Williams (4):
-      x86, memremap: fix altmap accounting at free
-      acpi, numa: fix pxm to online numa node associations
-      libnvdimm, region: hide persistence_domain when unknown
-      libnvdimm, nfit: fix persistence domain reporting
-
-Oliver O'Halloran (1):
-      kernel/memremap: Remove stale devres_free() call
-
-Vishal Verma (1):
-      libnvdimm, {btt, blk}: do integrity setup before add_disk()
-
- arch/x86/mm/init_64.c        | 60 +++++++++++++++++++++-----------------------
- drivers/acpi/nfit/core.c     | 10 +++++---
- drivers/acpi/numa.c          | 10 +++++---
- drivers/nvdimm/blk.c         |  3 +--
- drivers/nvdimm/btt.c         |  3 +--
- drivers/nvdimm/pfn_devs.c    |  2 +-
- drivers/nvdimm/region_devs.c | 17 ++++++++++---
- kernel/memremap.c            |  1 -
- 8 files changed, 57 insertions(+), 49 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
