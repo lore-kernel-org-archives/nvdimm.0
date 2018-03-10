@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg0-x241.google.com (mail-pg0-x241.google.com
- [IPv6:2607:f8b0:400e:c05::241])
+Received: from mail-pg0-x243.google.com (mail-pg0-x243.google.com
+ [IPv6:2607:f8b0:400e:c05::243])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A004A220C2A5E
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:01 -0800 (PST)
-Received: by mail-pg0-x241.google.com with SMTP id l4so4831433pgp.11
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:20 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 711C72258AEF1
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:27 -0800 (PST)
+Received: by mail-pg0-x243.google.com with SMTP id s13so1927081pgn.12
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:46 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 04/83] NOVA inode definition.
-Date: Sat, 10 Mar 2018 10:17:45 -0800
-Message-Id: <1520705944-6723-5-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 74/83] File operation: Mmap.
+Date: Sat, 10 Mar 2018 10:18:55 -0800
+Message-Id: <1520705944-6723-75-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,219 +31,129 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
-inode.h defines the non-volatile and volatile NOVA inode data structures.
-
-The non-volatile NOVA inode (nova_inode) is aligned to 128 bytes and contains
-file/directory metadata information. The most important fields
-are log_head and log_tail. log_head points to the start of
-the log, and log_tail points to the end of the latest committed
-log entry. NOVA make updates to the inode by appending
-to the log tail and update the log_tail pointer atomically.
-
-The volatile NOVA inode (nova_inode_info) contains necessary
-information to limit access to the non-volatile NOVA inode during runtime.
-It has a radix tree to map file offset or filenames to the corresponding
-log entries.
+NOVA uses the iomap framework to support mmap operation.
+Currently it does not support huge page mmap.
 
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/inode.h | 187 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 187 insertions(+)
- create mode 100644 fs/nova/inode.h
+ fs/nova/dax.c  | 53 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/file.c | 25 +++++++++++++++++++++++++
+ fs/nova/nova.h |  1 +
+ 3 files changed, 79 insertions(+)
 
-diff --git a/fs/nova/inode.h b/fs/nova/inode.h
-new file mode 100644
-index 0000000..f9187e3
---- /dev/null
-+++ b/fs/nova/inode.h
-@@ -0,0 +1,187 @@
-+#ifndef __INODE_H
-+#define __INODE_H
+diff --git a/fs/nova/dax.c b/fs/nova/dax.c
+index e639b23..fa424b1 100644
+--- a/fs/nova/dax.c
++++ b/fs/nova/dax.c
+@@ -915,3 +915,56 @@ const struct iomap_ops nova_iomap_ops = {
+ 	.iomap_begin	= nova_iomap_begin,
+ 	.iomap_end	= nova_iomap_end,
+ };
 +
-+struct nova_inode_info_header;
-+struct nova_inode;
 +
-+#include "super.h"
++/* TODO: Hugemap mmap */
++static int nova_dax_huge_fault(struct vm_fault *vmf,
++	enum page_entry_size pe_size)
++{
++	int ret = 0;
++	timing_t fault_time;
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	struct inode *inode = mapping->host;
 +
-+enum nova_new_inode_type {
-+	TYPE_CREATE = 0,
-+	TYPE_MKNOD,
-+	TYPE_SYMLINK,
-+	TYPE_MKDIR
++	NOVA_START_TIMING(pmd_fault_t, fault_time);
++
++	nova_dbgv("%s: inode %lu, pgoff %lu\n",
++		  __func__, inode->i_ino, vmf->pgoff);
++
++	if (vmf->flags & FAULT_FLAG_WRITE)
++		file_update_time(vmf->vma->vm_file);
++
++	ret = dax_iomap_fault(vmf, pe_size, NULL, NULL, &nova_iomap_ops);
++
++	NOVA_END_TIMING(pmd_fault_t, fault_time);
++	return ret;
++}
++
++static int nova_dax_fault(struct vm_fault *vmf)
++{
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	struct inode *inode = mapping->host;
++
++	nova_dbgv("%s: inode %lu, pgoff %lu, flags 0x%x\n",
++		  __func__, inode->i_ino, vmf->pgoff, vmf->flags);
++
++	return nova_dax_huge_fault(vmf, PE_SIZE_PTE);
++}
++
++static int nova_dax_pfn_mkwrite(struct vm_fault *vmf)
++{
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	struct inode *inode = mapping->host;
++
++	nova_dbgv("%s: inode %lu, pgoff %lu, flags 0x%x\n",
++		  __func__, inode->i_ino, vmf->pgoff, vmf->flags);
++
++	return nova_dax_huge_fault(vmf, PE_SIZE_PTE);
++}
++
++const struct vm_operations_struct nova_dax_vm_ops = {
++	.fault	= nova_dax_fault,
++	.huge_fault = nova_dax_huge_fault,
++	.page_mkwrite = nova_dax_fault,
++	.pfn_mkwrite = nova_dax_pfn_mkwrite,
 +};
-+
-+
-+/*
-+ * Structure of an inode in PMEM
-+ * Keep the inode size to within 120 bytes: We use the last eight bytes
-+ * as inode table tail pointer.
-+ */
-+struct nova_inode {
-+
-+	/* first 40 bytes */
-+	u8	i_rsvd;		 /* reserved. used to be checksum */
-+	u8	valid;		 /* Is this inode valid? */
-+	u8	deleted;	 /* Is this inode deleted? */
-+	u8	i_blk_type;	 /* data block size this inode uses */
-+	__le32	i_flags;	 /* Inode flags */
-+	__le64	i_size;		 /* Size of data in bytes */
-+	__le32	i_ctime;	 /* Inode modification time */
-+	__le32	i_mtime;	 /* Inode b-tree Modification time */
-+	__le32	i_atime;	 /* Access time */
-+	__le16	i_mode;		 /* File mode */
-+	__le16	i_links_count;	 /* Links count */
-+
-+	__le64	i_xattr;	 /* Extended attribute block */
-+
-+	/* second 40 bytes */
-+	__le32	i_uid;		 /* Owner Uid */
-+	__le32	i_gid;		 /* Group Id */
-+	__le32	i_generation;	 /* File version (for NFS) */
-+	__le32	i_create_time;	 /* Create time */
-+	__le64	nova_ino;	 /* nova inode number */
-+
-+	__le64	log_head;	 /* Log head pointer */
-+	__le64	log_tail;	 /* Log tail pointer */
-+
-+	/* last 40 bytes */
-+	__le64	create_epoch_id; /* Transaction ID when create */
-+	__le64	delete_epoch_id; /* Transaction ID when deleted */
-+
-+	struct {
-+		__le32 rdev;	 /* major/minor # */
-+	} dev;			 /* device inode */
-+
-+	__le32	csum;            /* CRC32 checksum */
-+
-+	/* Leave 8 bytes for inode table tail pointer */
-+} __attribute((__packed__));
-+
-+/*
-+ * NOVA-specific inode state kept in DRAM
-+ */
-+struct nova_inode_info_header {
-+	/* For files, tree holds a map from file offsets to
-+	 * write log entries.
-+	 *
-+	 * For directories, tree holds a map from a hash of the file name to
-+	 * dentry log entry.
-+	 */
-+	struct radix_tree_root tree;
-+	struct rw_semaphore i_sem;	/* Protect log and tree */
-+	unsigned short i_mode;		/* Dir or file? */
-+	unsigned int i_flags;
-+	unsigned long log_pages;	/* Num of log pages */
-+	unsigned long i_size;
-+	unsigned long i_blocks;
-+	unsigned long ino;
-+	unsigned long pi_addr;
-+	unsigned long valid_entries;	/* For thorough GC */
-+	unsigned long num_entries;	/* For thorough GC */
-+	u64 last_setattr;		/* Last setattr entry */
-+	u64 last_link_change;		/* Last link change entry */
-+	u64 last_dentry;		/* Last updated dentry */
-+	u64 trans_id;			/* Transaction ID */
-+	u64 log_head;			/* Log head pointer */
-+	u64 log_tail;			/* Log tail pointer */
-+	u8  i_blk_type;
-+};
-+
-+/*
-+ * DRAM state for inodes
-+ */
-+struct nova_inode_info {
-+	struct nova_inode_info_header header;
-+	struct inode vfs_inode;
-+};
-+
-+
-+static inline struct nova_inode_info *NOVA_I(struct inode *inode)
+diff --git a/fs/nova/file.c b/fs/nova/file.c
+index a6b5bd3..0ae0333 100644
+--- a/fs/nova/file.c
++++ b/fs/nova/file.c
+@@ -617,10 +617,35 @@ static ssize_t nova_dax_file_write(struct file *filp, const char __user *buf,
+ }
+ 
+ 
++static int nova_dax_file_mmap(struct file *file, struct vm_area_struct *vma)
 +{
-+	return container_of(inode, struct nova_inode_info, vfs_inode);
-+}
++	struct inode *inode = file->f_mapping->host;
 +
-+static inline void sih_lock(struct nova_inode_info_header *header)
-+{
-+	down_write(&header->i_sem);
-+}
++	file_accessed(file);
 +
-+static inline void sih_unlock(struct nova_inode_info_header *header)
-+{
-+	up_write(&header->i_sem);
-+}
++	vma->vm_flags |= VM_MIXEDMAP;
 +
-+static inline void sih_lock_shared(struct nova_inode_info_header *header)
-+{
-+	down_read(&header->i_sem);
-+}
++	vma->vm_ops = &nova_dax_vm_ops;
 +
-+static inline void sih_unlock_shared(struct nova_inode_info_header *header)
-+{
-+	up_read(&header->i_sem);
-+}
++	nova_dbg_mmap4k("[%s:%d] inode %lu, MMAP 4KPAGE vm_start(0x%lx), "
++			"vm_end(0x%lx), vm pgoff %lu, %lu blocks, "
++			"vm_flags(0x%lx), vm_page_prot(0x%lx)\n",
++			__func__, __LINE__,
++			inode->i_ino, vma->vm_start, vma->vm_end,
++			vma->vm_pgoff,
++			(vma->vm_end - vma->vm_start) >> PAGE_SHIFT,
++			vma->vm_flags,
++			pgprot_val(vma->vm_page_prot));
 +
-+static inline unsigned int
-+nova_inode_blk_shift(struct nova_inode_info_header *sih)
-+{
-+	return blk_type_to_shift[sih->i_blk_type];
-+}
-+
-+static inline uint32_t nova_inode_blk_size(struct nova_inode_info_header *sih)
-+{
-+	return blk_type_to_size[sih->i_blk_type];
-+}
-+
-+static inline u64 nova_get_reserved_inode_addr(struct super_block *sb,
-+	u64 inode_number)
-+{
-+	return (NOVA_DEF_BLOCK_SIZE_4K * RESERVE_INODE_START) +
-+			inode_number * NOVA_INODE_SIZE;
-+}
-+
-+static inline struct nova_inode *nova_get_reserved_inode(struct super_block *sb,
-+	u64 inode_number)
-+{
-+	struct nova_sb_info *sbi = NOVA_SB(sb);
-+	u64 addr;
-+
-+	addr = nova_get_reserved_inode_addr(sb, inode_number);
-+
-+	return (struct nova_inode *)(sbi->virt_addr + addr);
-+}
-+
-+static inline struct nova_inode *nova_get_inode_by_ino(struct super_block *sb,
-+						  u64 ino)
-+{
-+	if (ino == 0 || ino >= NOVA_NORMAL_INODE_START)
-+		return NULL;
-+
-+	return nova_get_reserved_inode(sb, ino);
-+}
-+
-+static inline struct nova_inode *nova_get_inode(struct super_block *sb,
-+	struct inode *inode)
-+{
-+	struct nova_inode_info *si = NOVA_I(inode);
-+	struct nova_inode_info_header *sih = &si->header;
-+	struct nova_inode fake_pi;
-+	void *addr;
-+	int rc;
-+
-+	addr = nova_get_block(sb, sih->pi_addr);
-+	rc = memcpy_mcsafe(&fake_pi, addr, sizeof(struct nova_inode));
-+	if (rc)
-+		return NULL;
-+
-+	return (struct nova_inode *)addr;
-+}
-+
-+static inline int nova_persist_inode(struct nova_inode *pi)
-+{
-+	nova_flush_buffer(pi, sizeof(struct nova_inode), 1);
 +	return 0;
 +}
 +
-+#endif
++
+ const struct file_operations nova_dax_file_operations = {
+ 	.llseek		= nova_llseek,
+ 	.read		= nova_dax_file_read,
+ 	.write		= nova_dax_file_write,
++	.mmap		= nova_dax_file_mmap,
+ 	.open		= nova_open,
+ 	.fsync		= nova_fsync,
+ 	.flush		= nova_flush,
+diff --git a/fs/nova/nova.h b/fs/nova/nova.h
+index 0d62c47..d209cfc 100644
+--- a/fs/nova/nova.h
++++ b/fs/nova/nova.h
+@@ -488,6 +488,7 @@ ssize_t do_nova_inplace_file_write(struct file *filp, const char __user *buf,
+ 	size_t len, loff_t *ppos);
+ 
+ extern const struct iomap_ops nova_iomap_ops;
++extern const struct vm_operations_struct nova_dax_vm_ops;
+ 
+ 
+ /* dir.c */
 -- 
 2.7.4
 
