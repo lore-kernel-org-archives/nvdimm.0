@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x241.google.com (mail-pf0-x241.google.com
+ [IPv6:2607:f8b0:400e:c00::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE495220C2A59
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 08:54:26 -0700 (PDT)
-Subject: [PATCH v6 04/15] xfs, dax: introduce xfs_dax_aops
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Mar 2018 08:51:45 -0700
-Message-ID: <152112910519.24669.5862622842481813804.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E0DFF22603B11
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:37 -0800 (PST)
+Received: by mail-pf0-x241.google.com with SMTP id z10so2607547pfh.13
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:56 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 33/83] Inode log and entry printing for debug purpose.
+Date: Sat, 10 Mar 2018 10:18:14 -0800
+Message-Id: <1520705944-6723-34-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,127 +20,284 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Otherwise, direct-I/O
-triggers incorrect page cache assumptions and warnings like the
-following:
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
- WARNING: CPU: 27 PID: 1783 at fs/xfs/xfs_aops.c:1468
- xfs_vm_set_page_dirty+0xf3/0x1b0 [xfs]
- [..]
- CPU: 27 PID: 1783 Comm: dma-collision Tainted: G           O 4.15.0-rc2+ #984
- [..]
- Call Trace:
-  set_page_dirty_lock+0x40/0x60
-  bio_set_pages_dirty+0x37/0x50
-  iomap_dio_actor+0x2b7/0x3b0
-  ? iomap_dio_zero+0x110/0x110
-  iomap_apply+0xa4/0x110
-  iomap_dio_rw+0x29e/0x3b0
-  ? iomap_dio_zero+0x110/0x110
-  ? xfs_file_dio_aio_read+0x7c/0x1a0 [xfs]
-  xfs_file_dio_aio_read+0x7c/0x1a0 [xfs]
-  xfs_file_read_iter+0xa0/0xc0 [xfs]
-  __vfs_read+0xf9/0x170
-  vfs_read+0xa6/0x150
-  SyS_pread64+0x93/0xb0
-  entry_SYSCALL_64_fastpath+0x1f/0x96
-
-...where the default set_page_dirty() handler assumes that dirty state
-is being tracked in 'struct page' flags.
-
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/xfs/xfs_aops.c |   21 +++++++++++++++++----
- fs/xfs/xfs_aops.h |    1 +
- fs/xfs/xfs_iops.c |    5 ++++-
- 3 files changed, 22 insertions(+), 5 deletions(-)
+ fs/nova/nova.h  |   3 +
+ fs/nova/stats.c | 234 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 237 insertions(+)
 
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 9c6a830da0ee..5f1f5948ecc2 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -1194,16 +1194,22 @@ xfs_vm_writepages(
- 	int			ret;
+diff --git a/fs/nova/nova.h b/fs/nova/nova.h
+index bf4b6ac..03c4991 100644
+--- a/fs/nova/nova.h
++++ b/fs/nova/nova.h
+@@ -367,6 +367,9 @@ void nova_get_IO_stats(void);
+ void nova_print_timing_stats(struct super_block *sb);
+ void nova_clear_stats(struct super_block *sb);
+ void nova_print_inode(struct nova_inode *pi);
++void nova_print_inode_log(struct super_block *sb, struct inode *inode);
++void nova_print_inode_log_pages(struct super_block *sb, struct inode *inode);
++int nova_check_inode_logs(struct super_block *sb, struct nova_inode *pi);
+ void nova_print_free_lists(struct super_block *sb);
  
- 	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
--	if (dax_mapping(mapping))
--		return dax_writeback_mapping_range(mapping,
--				xfs_find_bdev_for_inode(mapping->host), wbc);
--
- 	ret = write_cache_pages(mapping, wbc, xfs_do_writepage, &wpc);
- 	if (wpc.ioend)
- 		ret = xfs_submit_ioend(wbc, wpc.ioend, ret);
- 	return ret;
+ #endif /* __NOVA_H */
+diff --git a/fs/nova/stats.c b/fs/nova/stats.c
+index 9ddd267..990e964 100644
+--- a/fs/nova/stats.c
++++ b/fs/nova/stats.c
+@@ -333,6 +333,240 @@ void nova_print_inode(struct nova_inode *pi)
+ 		pi->create_epoch_id, pi->delete_epoch_id);
  }
  
-+STATIC int
-+xfs_dax_writepages(
-+	struct address_space	*mapping,
-+	struct writeback_control *wbc)
++static inline void nova_print_file_write_entry(struct super_block *sb,
++	u64 curr, struct nova_file_write_entry *entry)
 +{
-+	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
-+	return dax_writeback_mapping_range(mapping,
-+			xfs_find_bdev_for_inode(mapping->host), wbc);
++	nova_dbg("file write entry @ 0x%llx: epoch %llu, trans %llu, "
++			"pgoff %llu, pages %u, blocknr %llu, reassigned %u, "
++			"invalid count %u, size %llu, mtime %u\n",
++			curr, entry->epoch_id, entry->trans_id,
++			entry->pgoff, entry->num_pages,
++			entry->block >> PAGE_SHIFT,
++			entry->reassigned,
++			entry->invalid_pages, entry->size, entry->mtime);
 +}
 +
- /*
-  * Called to move a page into cleanable state - and from there
-  * to be released. The page should already be clean. We always
-@@ -1505,3 +1511,10 @@ const struct address_space_operations xfs_address_space_operations = {
- 	.is_partially_uptodate  = block_is_partially_uptodate,
- 	.error_remove_page	= generic_error_remove_page,
- };
++static inline void nova_print_set_attr_entry(struct super_block *sb,
++	u64 curr, struct nova_setattr_logentry *entry)
++{
++	nova_dbg("set attr entry @ 0x%llx: epoch %llu, trans %llu, invalid %u, "
++			"mode %u, size %llu, atime %u, mtime %u, ctime %u\n",
++			curr, entry->epoch_id, entry->trans_id,
++			entry->invalid, entry->mode,
++			entry->size, entry->atime, entry->mtime, entry->ctime);
++}
 +
-+const struct address_space_operations xfs_dax_aops = {
-+	.direct_IO		= xfs_vm_direct_IO,
-+	.writepages		= xfs_dax_writepages,
-+	.set_page_dirty		= noop_set_page_dirty,
-+	.invalidatepage		= noop_invalidatepage,
-+};
-diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
-index 88c85ea63da0..69346d460dfa 100644
---- a/fs/xfs/xfs_aops.h
-+++ b/fs/xfs/xfs_aops.h
-@@ -54,6 +54,7 @@ struct xfs_ioend {
- };
- 
- extern const struct address_space_operations xfs_address_space_operations;
-+extern const struct address_space_operations xfs_dax_aops;
- 
- int	xfs_setfilesize(struct xfs_inode *ip, xfs_off_t offset, size_t size);
- 
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 56475fcd76f2..951e84df5576 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -1272,7 +1272,10 @@ xfs_setup_iops(
- 	case S_IFREG:
- 		inode->i_op = &xfs_inode_operations;
- 		inode->i_fop = &xfs_file_operations;
--		inode->i_mapping->a_ops = &xfs_address_space_operations;
-+		if (IS_DAX(inode))
-+			inode->i_mapping->a_ops = &xfs_dax_aops;
-+		else
-+			inode->i_mapping->a_ops = &xfs_address_space_operations;
- 		break;
- 	case S_IFDIR:
- 		if (xfs_sb_version_hasasciici(&XFS_M(inode->i_sb)->m_sb))
++static inline void nova_print_link_change_entry(struct super_block *sb,
++	u64 curr, struct nova_link_change_entry *entry)
++{
++	nova_dbg("link change entry @ 0x%llx: epoch %llu, trans %llu, "
++			"invalid %u, links %u, flags %u, ctime %u\n",
++			curr, entry->epoch_id, entry->trans_id,
++			entry->invalid, entry->links,
++			entry->flags, entry->ctime);
++}
++
++static inline size_t nova_print_dentry(struct super_block *sb,
++	u64 curr, struct nova_dentry *entry)
++{
++	nova_dbg("dir logentry @ 0x%llx: epoch %llu, trans %llu, "
++			"reassigned %u, invalid %u, inode %llu, links %u, "
++			"namelen %u, rec len %u, name %s, mtime %u\n",
++			curr, entry->epoch_id, entry->trans_id,
++			entry->reassigned, entry->invalid,
++			le64_to_cpu(entry->ino),
++			entry->links_count, entry->name_len,
++			le16_to_cpu(entry->de_len), entry->name,
++			entry->mtime);
++
++	return le16_to_cpu(entry->de_len);
++}
++
++u64 nova_print_log_entry(struct super_block *sb, u64 curr)
++{
++	void *addr;
++	size_t size;
++	u8 type;
++
++	addr = (void *)nova_get_block(sb, curr);
++	type = nova_get_entry_type(addr);
++	switch (type) {
++	case SET_ATTR:
++		nova_print_set_attr_entry(sb, curr, addr);
++		curr += sizeof(struct nova_setattr_logentry);
++		break;
++	case LINK_CHANGE:
++		nova_print_link_change_entry(sb, curr, addr);
++		curr += sizeof(struct nova_link_change_entry);
++		break;
++	case FILE_WRITE:
++		nova_print_file_write_entry(sb, curr, addr);
++		curr += sizeof(struct nova_file_write_entry);
++		break;
++	case DIR_LOG:
++		size = nova_print_dentry(sb, curr, addr);
++		curr += size;
++		if (size == 0) {
++			nova_dbg("%s: dentry with size 0 @ 0x%llx\n",
++					__func__, curr);
++			curr += sizeof(struct nova_file_write_entry);
++			NOVA_ASSERT(0);
++		}
++		break;
++	case NEXT_PAGE:
++		nova_dbg("%s: next page sign @ 0x%llx\n", __func__, curr);
++		curr = PAGE_TAIL(curr);
++		break;
++	default:
++		nova_dbg("%s: unknown type %d, 0x%llx\n", __func__, type, curr);
++		curr += sizeof(struct nova_file_write_entry);
++		NOVA_ASSERT(0);
++		break;
++	}
++
++	return curr;
++}
++
++void nova_print_curr_log_page(struct super_block *sb, u64 curr)
++{
++	struct nova_inode_page_tail *tail;
++	u64 start, end;
++
++	start = BLOCK_OFF(curr);
++	end = PAGE_TAIL(curr);
++
++	while (start < end)
++		start = nova_print_log_entry(sb, start);
++
++	tail = nova_get_block(sb, end);
++	nova_dbg("Page tail. curr 0x%llx, next page 0x%llx, %u entries, %u invalid\n",
++			start, tail->next_page,
++			tail->num_entries, tail->invalid_entries);
++}
++
++void nova_print_nova_log(struct super_block *sb,
++	struct nova_inode_info_header *sih)
++{
++	u64 curr;
++
++	if (sih->log_tail == 0 || sih->log_head == 0)
++		return;
++
++	curr = sih->log_head;
++	nova_dbg("Pi %lu: log head 0x%llx, tail 0x%llx\n",
++			sih->ino, curr, sih->log_tail);
++	while (curr != sih->log_tail) {
++		if ((curr & (PAGE_SIZE - 1)) == LOG_BLOCK_TAIL) {
++			struct nova_inode_page_tail *tail =
++					nova_get_block(sb, curr);
++			nova_dbg("Log tail, curr 0x%llx, next page 0x%llx, "
++					"%u entries, %u invalid\n",
++					curr, tail->next_page,
++					tail->num_entries,
++					tail->invalid_entries);
++			curr = tail->next_page;
++		} else {
++			curr = nova_print_log_entry(sb, curr);
++		}
++	}
++}
++
++void nova_print_inode_log(struct super_block *sb, struct inode *inode)
++{
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++
++	nova_print_nova_log(sb, sih);
++}
++
++int nova_get_nova_log_pages(struct super_block *sb,
++	struct nova_inode_info_header *sih, struct nova_inode *pi)
++{
++	struct nova_inode_log_page *curr_page;
++	u64 curr, next;
++	int count = 1;
++
++	if (pi->log_head == 0 || pi->log_tail == 0) {
++		nova_dbg("Pi %lu has no log\n", sih->ino);
++		return 0;
++	}
++
++	curr = pi->log_head;
++	curr_page = (struct nova_inode_log_page *)nova_get_block(sb, curr);
++	while ((next = curr_page->page_tail.next_page) != 0) {
++		curr = next;
++		curr_page = (struct nova_inode_log_page *)
++			nova_get_block(sb, curr);
++		count++;
++	}
++
++	return count;
++}
++
++void nova_print_nova_log_pages(struct super_block *sb,
++	struct nova_inode_info_header *sih)
++{
++	struct nova_inode_log_page *curr_page;
++	u64 curr, next;
++	int count = 1;
++	int used = count;
++
++	if (sih->log_head == 0 || sih->log_tail == 0) {
++		nova_dbg("Pi %lu has no log\n", sih->ino);
++		return;
++	}
++
++	curr = sih->log_head;
++	nova_dbg("Pi %lu: log head @ 0x%llx, tail @ 0x%llx\n",
++			sih->ino, curr, sih->log_tail);
++	curr_page = (struct nova_inode_log_page *)nova_get_block(sb, curr);
++	while ((next = curr_page->page_tail.next_page) != 0) {
++		nova_dbg("Current page 0x%llx, next page 0x%llx, %u entries, %u invalid\n",
++			curr >> PAGE_SHIFT, next >> PAGE_SHIFT,
++			curr_page->page_tail.num_entries,
++			curr_page->page_tail.invalid_entries);
++		if (sih->log_tail >> PAGE_SHIFT == curr >> PAGE_SHIFT)
++			used = count;
++		curr = next;
++		curr_page = (struct nova_inode_log_page *)
++			nova_get_block(sb, curr);
++		count++;
++	}
++	if (sih->log_tail >> PAGE_SHIFT == curr >> PAGE_SHIFT)
++		used = count;
++	nova_dbg("Pi %lu: log used %d pages, has %d pages, si reports %lu pages\n",
++		sih->ino, used, count,
++		sih->log_pages);
++}
++
++void nova_print_inode_log_pages(struct super_block *sb, struct inode *inode)
++{
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++
++	nova_print_nova_log_pages(sb, sih);
++}
++
++int nova_check_inode_logs(struct super_block *sb, struct nova_inode *pi)
++{
++	int count = 0;
++	int tail_at = 0;
++	u64 curr;
++
++	curr = pi->log_head;
++
++	while (curr) {
++		count++;
++		if ((curr >> PAGE_SHIFT) == (pi->log_tail >> PAGE_SHIFT))
++			tail_at = count;
++		curr = next_log_page(sb, curr);
++	}
++
++	nova_dbg("Log %d pages, tail @ page %d\n", count, tail_at);
++
++	return 0;
++}
++
+ void nova_print_free_lists(struct super_block *sb)
+ {
+ 	struct nova_sb_info *sbi = NOVA_SB(sb);
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
