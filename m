@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D25D121ED1C5F
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 22:57:42 -0800 (PST)
-Subject: [PATCH v5 01/11] dax: store pfns in the radix
+ by ml01.01.org (Postfix) with ESMTPS id D630221E082AA
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 22:57:51 -0800 (PST)
+Subject: [PATCH v5 03/11] ext4, dax: introduce ext4_dax_aops
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Mar 2018 22:54:54 -0800
-Message-ID: <152066489469.40260.488488206119107110.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 09 Mar 2018 22:55:05 -0800
+Message-ID: <152066490498.40260.13597428016512482129.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -23,258 +23,52 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: jack@suse.cz, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for examining the busy state of dax pages in the truncate
-path, switch from sectors to pfns in the radix.
+In preparation for the dax implementation to start associating dax pages
+to inodes via page->mapping, we need to provide a 'struct
+address_space_operations' instance for dax. Otherwise, direct-I/O
+triggers incorrect page cache assumptions and warnings.
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: linux-ext4@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/super.c |   15 +++++++--
- fs/dax.c            |   83 +++++++++++++++++++--------------------------------
- 2 files changed, 43 insertions(+), 55 deletions(-)
+ fs/ext4/inode.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index ecdc292aa4e4..2b2332b605e4 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -124,10 +124,19 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
- 		return len < 0 ? len : -EIO;
- 	}
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index c94780075b04..ef21f0ad38ff 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3946,6 +3946,13 @@ static const struct address_space_operations ext4_da_aops = {
+ 	.error_remove_page	= generic_error_remove_page,
+ };
  
--	if ((IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn))
--			|| pfn_t_devmap(pfn))
-+	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
-+		/*
-+		 * An arch that has enabled the pmem api should also
-+		 * have its drivers support pfn_t_devmap()
-+		 *
-+		 * This is a developer warning and should not trigger in
-+		 * production. dax_flush() will crash since it depends
-+		 * on being able to do (page_address(pfn_to_page())).
-+		 */
-+		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
-+	} else if (pfn_t_devmap(pfn)) {
- 		/* pass */;
--	else {
-+	} else {
- 		pr_debug("VFS (%s): error: dax support not enabled\n",
- 				sb->s_id);
- 		return -EOPNOTSUPP;
-diff --git a/fs/dax.c b/fs/dax.c
-index 0276df90e86c..b646a46e4d12 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -73,16 +73,15 @@ fs_initcall(init_dax_wait_table);
- #define RADIX_DAX_ZERO_PAGE	(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
- #define RADIX_DAX_EMPTY		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
- 
--static unsigned long dax_radix_sector(void *entry)
-+static unsigned long dax_radix_pfn(void *entry)
++static const struct address_space_operations ext4_dax_aops = {
++	.writepages		= ext4_writepages,
++	.direct_IO		= ext4_direct_IO,
++	.set_page_dirty		= dax_set_page_dirty,
++	.invalidatepage		= dax_invalidatepage,
++};
++
+ void ext4_set_aops(struct inode *inode)
  {
- 	return (unsigned long)entry >> RADIX_DAX_SHIFT;
- }
- 
--static void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
-+static void *dax_radix_locked_entry(unsigned long pfn, unsigned long flags)
- {
- 	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
--			((unsigned long)sector << RADIX_DAX_SHIFT) |
--			RADIX_DAX_ENTRY_LOCK);
-+			(pfn << RADIX_DAX_SHIFT) | RADIX_DAX_ENTRY_LOCK);
- }
- 
- static unsigned int dax_radix_order(void *entry)
-@@ -526,12 +525,13 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
-  */
- static void *dax_insert_mapping_entry(struct address_space *mapping,
- 				      struct vm_fault *vmf,
--				      void *entry, sector_t sector,
-+				      void *entry, pfn_t pfn_t,
- 				      unsigned long flags, bool dirty)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
--	void *new_entry;
-+	unsigned long pfn = pfn_t_to_pfn(pfn_t);
- 	pgoff_t index = vmf->pgoff;
-+	void *new_entry;
- 
- 	if (dirty)
- 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-@@ -546,7 +546,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+ 	switch (ext4_inode_journal_mode(inode)) {
+@@ -3958,7 +3965,9 @@ void ext4_set_aops(struct inode *inode)
+ 	default:
+ 		BUG();
  	}
- 
- 	spin_lock_irq(&mapping->tree_lock);
--	new_entry = dax_radix_locked_entry(sector, flags);
-+	new_entry = dax_radix_locked_entry(pfn, flags);
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
- 		/*
-@@ -657,17 +657,14 @@ static void dax_mapping_entry_mkclean(struct address_space *mapping,
- 	i_mmap_unlock_read(mapping);
- }
- 
--static int dax_writeback_one(struct block_device *bdev,
--		struct dax_device *dax_dev, struct address_space *mapping,
--		pgoff_t index, void *entry)
-+static int dax_writeback_one(struct dax_device *dax_dev,
-+		struct address_space *mapping, pgoff_t index, void *entry)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
--	void *entry2, **slot, *kaddr;
--	long ret = 0, id;
--	sector_t sector;
--	pgoff_t pgoff;
-+	void *entry2, **slot;
-+	unsigned long pfn;
-+	long ret = 0;
- 	size_t size;
--	pfn_t pfn;
- 
- 	/*
- 	 * A page got tagged dirty in DAX mapping? Something is seriously
-@@ -683,10 +680,10 @@ static int dax_writeback_one(struct block_device *bdev,
- 		goto put_unlocked;
- 	/*
- 	 * Entry got reallocated elsewhere? No need to writeback. We have to
--	 * compare sectors as we must not bail out due to difference in lockbit
-+	 * compare pfns as we must not bail out due to difference in lockbit
- 	 * or entry type.
- 	 */
--	if (dax_radix_sector(entry2) != dax_radix_sector(entry))
-+	if (dax_radix_pfn(entry2) != dax_radix_pfn(entry))
- 		goto put_unlocked;
- 	if (WARN_ON_ONCE(dax_is_empty_entry(entry) ||
- 				dax_is_zero_entry(entry))) {
-@@ -712,33 +709,15 @@ static int dax_writeback_one(struct block_device *bdev,
- 	/*
- 	 * Even if dax_writeback_mapping_range() was given a wbc->range_start
- 	 * in the middle of a PMD, the 'index' we are given will be aligned to
--	 * the start index of the PMD, as will the sector we pull from
--	 * 'entry'.  This allows us to flush for PMD_SIZE and not have to
--	 * worry about partial PMD writebacks.
-+	 * the start index of the PMD, as will the pfn we pull from 'entry'.
-+	 * This allows us to flush for PMD_SIZE and not have to worry about
-+	 * partial PMD writebacks.
- 	 */
--	sector = dax_radix_sector(entry);
-+	pfn = dax_radix_pfn(entry);
- 	size = PAGE_SIZE << dax_radix_order(entry);
- 
--	id = dax_read_lock();
--	ret = bdev_dax_pgoff(bdev, sector, size, &pgoff);
--	if (ret)
--		goto dax_unlock;
--
--	/*
--	 * dax_direct_access() may sleep, so cannot hold tree_lock over
--	 * its invocation.
--	 */
--	ret = dax_direct_access(dax_dev, pgoff, size / PAGE_SIZE, &kaddr, &pfn);
--	if (ret < 0)
--		goto dax_unlock;
--
--	if (WARN_ON_ONCE(ret < size / PAGE_SIZE)) {
--		ret = -EIO;
--		goto dax_unlock;
--	}
--
--	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(pfn));
--	dax_flush(dax_dev, kaddr, size);
-+	dax_mapping_entry_mkclean(mapping, index, pfn);
-+	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), size);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
- 	 * cannot be new dirty data in the pfn after the flush has completed as
-@@ -749,8 +728,6 @@ static int dax_writeback_one(struct block_device *bdev,
- 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
- 	spin_unlock_irq(&mapping->tree_lock);
- 	trace_dax_writeback_one(mapping->host, index, size >> PAGE_SHIFT);
-- dax_unlock:
--	dax_read_unlock(id);
- 	put_locked_mapping_entry(mapping, index);
- 	return ret;
- 
-@@ -808,8 +785,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 				break;
- 			}
- 
--			ret = dax_writeback_one(bdev, dax_dev, mapping,
--					indices[i], pvec.pages[i]);
-+			ret = dax_writeback_one(dax_dev, mapping, indices[i],
-+					pvec.pages[i]);
- 			if (ret < 0) {
- 				mapping_set_error(mapping, ret);
- 				goto out;
-@@ -877,6 +854,7 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
- 	int ret = VM_FAULT_NOPAGE;
- 	struct page *zero_page;
- 	void *entry2;
-+	pfn_t pfn;
- 
- 	zero_page = ZERO_PAGE(0);
- 	if (unlikely(!zero_page)) {
-@@ -884,14 +862,15 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
- 		goto out;
- 	}
- 
--	entry2 = dax_insert_mapping_entry(mapping, vmf, entry, 0,
-+	pfn = page_to_pfn_t(zero_page);
-+	entry2 = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
- 			RADIX_DAX_ZERO_PAGE, false);
- 	if (IS_ERR(entry2)) {
- 		ret = VM_FAULT_SIGBUS;
- 		goto out;
- 	}
- 
--	vm_insert_mixed(vmf->vma, vaddr, page_to_pfn_t(zero_page));
-+	vm_insert_mixed(vmf->vma, vaddr, pfn);
- out:
- 	trace_dax_load_hole(inode, vmf, ret);
- 	return ret;
-@@ -1200,8 +1179,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 		if (error < 0)
- 			goto error_finish_iomap;
- 
--		entry = dax_insert_mapping_entry(mapping, vmf, entry,
--						 dax_iomap_sector(&iomap, pos),
-+		entry = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
- 						 0, write && !sync);
- 		if (IS_ERR(entry)) {
- 			error = PTR_ERR(entry);
-@@ -1280,13 +1258,15 @@ static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
- 	void *ret = NULL;
- 	spinlock_t *ptl;
- 	pmd_t pmd_entry;
-+	pfn_t pfn;
- 
- 	zero_page = mm_get_huge_zero_page(vmf->vma->vm_mm);
- 
- 	if (unlikely(!zero_page))
- 		goto fallback;
- 
--	ret = dax_insert_mapping_entry(mapping, vmf, entry, 0,
-+	pfn = page_to_pfn_t(zero_page);
-+	ret = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
- 			RADIX_DAX_PMD | RADIX_DAX_ZERO_PAGE, false);
- 	if (IS_ERR(ret))
- 		goto fallback;
-@@ -1409,8 +1389,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 		if (error < 0)
- 			goto finish_iomap;
- 
--		entry = dax_insert_mapping_entry(mapping, vmf, entry,
--						dax_iomap_sector(&iomap, pos),
-+		entry = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
- 						RADIX_DAX_PMD, write && !sync);
- 		if (IS_ERR(entry))
- 			goto finish_iomap;
+-	if (test_opt(inode->i_sb, DELALLOC))
++	if (IS_DAX(inode))
++		inode->i_mapping->a_ops = &ext4_dax_aops;
++	else if (test_opt(inode->i_sb, DELALLOC))
+ 		inode->i_mapping->a_ops = &ext4_da_aops;
+ 	else
+ 		inode->i_mapping->a_ops = &ext4_aops;
 
 _______________________________________________
 Linux-nvdimm mailing list
