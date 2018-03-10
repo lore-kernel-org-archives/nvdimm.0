@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BC3A4220C2A59
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 08:54:46 -0700 (PDT)
-Subject: [PATCH v6 05/15] ext4, dax: introduce ext4_dax_aops
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Mar 2018 08:51:50 -0700
-Message-ID: <152112911073.24669.9909626935784919021.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 443DA223DB103
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 01:49:42 -0800 (PST)
+Date: Sat, 10 Mar 2018 10:55:58 +0100
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v5 11/11] xfs, dax: introduce xfs_break_dax_layouts()
+Message-ID: <20180310095558.GC31604@lst.de>
+References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152066494840.40260.6478694186268933246.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <152066494840.40260.6478694186268933246.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,95 +24,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, hch@lst.de
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Otherwise, direct-I/O
-triggers incorrect page cache assumptions and warnings.
+> +static int xfs_wait_dax_page(
+> +		atomic_t                *count,
+> +		unsigned int            mode)
+> +{
 
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: linux-ext4@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/ext4/inode.c |   38 +++++++++++++++++++++++++++++++-------
- 1 file changed, 31 insertions(+), 7 deletions(-)
+Normal XFS style would be:
 
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index c94780075b04..f9884e41cb39 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -2725,12 +2725,6 @@ static int ext4_writepages(struct address_space *mapping,
- 	percpu_down_read(&sbi->s_journal_flag_rwsem);
- 	trace_ext4_writepages(inode, wbc);
- 
--	if (dax_mapping(mapping)) {
--		ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev,
--						  wbc);
--		goto out_writepages;
--	}
--
- 	/*
- 	 * No pages to write? This is mainly a kludge to avoid starting
- 	 * a transaction for special inodes like journal inode on last iput()
-@@ -2955,6 +2949,27 @@ static int ext4_writepages(struct address_space *mapping,
- 	return ret;
- }
- 
-+static int ext4_dax_writepages(struct address_space *mapping,
-+			       struct writeback_control *wbc)
-+{
-+	int ret;
-+	long nr_to_write = wbc->nr_to_write;
-+	struct inode *inode = mapping->host;
-+	struct ext4_sb_info *sbi = EXT4_SB(mapping->host->i_sb);
-+
-+	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-+		return -EIO;
-+
-+	percpu_down_read(&sbi->s_journal_flag_rwsem);
-+	trace_ext4_writepages(inode, wbc);
-+
-+	ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev, wbc);
-+	trace_ext4_writepages_result(inode, wbc, ret,
-+				     nr_to_write - wbc->nr_to_write);
-+	percpu_up_read(&sbi->s_journal_flag_rwsem);
-+	return ret;
-+}
-+
- static int ext4_nonda_switch(struct super_block *sb)
- {
- 	s64 free_clusters, dirty_clusters;
-@@ -3946,6 +3961,13 @@ static const struct address_space_operations ext4_da_aops = {
- 	.error_remove_page	= generic_error_remove_page,
- };
- 
-+static const struct address_space_operations ext4_dax_aops = {
-+	.direct_IO		= ext4_direct_IO,
-+	.writepages		= ext4_dax_writepages,
-+	.set_page_dirty		= noop_set_page_dirty,
-+	.invalidatepage		= noop_invalidatepage,
-+};
-+
- void ext4_set_aops(struct inode *inode)
- {
- 	switch (ext4_inode_journal_mode(inode)) {
-@@ -3958,7 +3980,9 @@ void ext4_set_aops(struct inode *inode)
- 	default:
- 		BUG();
- 	}
--	if (test_opt(inode->i_sb, DELALLOC))
-+	if (IS_DAX(inode))
-+		inode->i_mapping->a_ops = &ext4_dax_aops;
-+	else if (test_opt(inode->i_sb, DELALLOC))
- 		inode->i_mapping->a_ops = &ext4_da_aops;
- 	else
- 		inode->i_mapping->a_ops = &ext4_aops;
+static int
+xfs_wait_dax_page(
+	atomic_t		*count,
+	unsigned int		mode)
+{
 
+> +	struct page             *page = refcount_to_page(count);
+> +	struct address_space    *mapping = page->mapping;
+> +	struct inode            *inode = mapping->host;
+> +	struct xfs_inode        *ip = XFS_I(inode);
+
+Looks we don't really need the mapping and inode variables:
+
+	struct page		*page = refcount_to_page(count);
+	struct xfs_inode	*ip = XFS_I(page->mapping->host);
+
+> +	do {
+> +		if (flags & XFS_BREAK_REMOTE)
+> +			ret = xfs_break_leased_layouts(inode, iolock);
+> +		if (ret)
+> +			return ret;
+> +		if (flags & XFS_BREAK_MAPS)
+> +			ret = xfs_break_dax_layouts(inode, *iolock);
+> +		/*
+> +		 * EBUSY indicates that we dropped locks and waited for
+> +		 * the dax layout to be released. When that happens we
+> +		 * need to revalidate that no new leases or pinned dax
+> +		 * mappings have been established.
+> +		 */
+> +	} while (ret == -EBUSY);
+
+Maybe instead of the flags argument this should be a type argument
+of something like
+
+enum layout_break_reason {
+	BREAK_WRITE,		/* write to file */
+	BREAK_TRUNCATE,		/* truncate or hole punch */
+};
+
+as that makes the intent more clear?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
