@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg0-x242.google.com (mail-pg0-x242.google.com
- [IPv6:2607:f8b0:400e:c05::242])
+Received: from mail-pl0-x243.google.com (mail-pl0-x243.google.com
+ [IPv6:2607:f8b0:400e:c01::243])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9745C22646317
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:28 -0800 (PST)
-Received: by mail-pg0-x242.google.com with SMTP id g8so4833068pgv.7
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:47 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 5C96522603B11
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:47 -0800 (PST)
+Received: by mail-pl0-x243.google.com with SMTP id m22-v6so7032535pls.5
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:06 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 75/83] File operation: read/write iter.
-Date: Sat, 10 Mar 2018 10:18:56 -0800
-Message-Id: <1520705944-6723-76-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 41/83] Log operation: setattr entry append
+Date: Sat, 10 Mar 2018 10:18:22 -0800
+Message-Id: <1520705944-6723-42-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,97 +31,103 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
-They use the iomap framework to do read/write. Due to software overheads
-they are slower than dax read/write.
+NOVA appends a setattr entry to the log upon inode modification operations:
+set size, chmod, etc.
 
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/file.c | 65 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ fs/nova/log.c | 64 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/fs/nova/file.c b/fs/nova/file.c
-index 0ae0333..7e90415 100644
---- a/fs/nova/file.c
-+++ b/fs/nova/file.c
-@@ -260,6 +260,69 @@ static long nova_fallocate(struct file *file, int mode, loff_t offset,
- 	return ret;
+diff --git a/fs/nova/log.c b/fs/nova/log.c
+index 437db26..f85b63e 100644
+--- a/fs/nova/log.c
++++ b/fs/nova/log.c
+@@ -20,6 +20,37 @@
+ #include "inode.h"
+ #include "log.h"
+ 
++static void nova_update_setattr_entry(struct inode *inode,
++	struct nova_setattr_logentry *entry,
++	struct nova_log_entry_info *entry_info)
++{
++	struct iattr *attr = entry_info->attr;
++	unsigned int ia_valid = attr->ia_valid, attr_mask;
++
++	/* These files are in the lowest byte */
++	attr_mask = ATTR_MODE | ATTR_UID | ATTR_GID | ATTR_SIZE |
++			ATTR_ATIME | ATTR_MTIME | ATTR_CTIME;
++
++	entry->entry_type	= SET_ATTR;
++	entry->attr	= ia_valid & attr_mask;
++	entry->mode	= cpu_to_le16(inode->i_mode);
++	entry->uid	= cpu_to_le32(i_uid_read(inode));
++	entry->gid	= cpu_to_le32(i_gid_read(inode));
++	entry->atime	= cpu_to_le32(inode->i_atime.tv_sec);
++	entry->ctime	= cpu_to_le32(inode->i_ctime.tv_sec);
++	entry->mtime	= cpu_to_le32(inode->i_mtime.tv_sec);
++	entry->epoch_id = cpu_to_le64(entry_info->epoch_id);
++	entry->trans_id	= cpu_to_le64(entry_info->trans_id);
++	entry->invalid	= 0;
++
++	if (ia_valid & ATTR_SIZE)
++		entry->size = cpu_to_le64(attr->ia_size);
++	else
++		entry->size = cpu_to_le64(inode->i_size);
++
++	nova_persist_entry(entry);
++}
++
+ static int nova_update_write_entry(struct super_block *sb,
+ 	struct nova_file_write_entry *entry,
+ 	struct nova_log_entry_info *entry_info)
+@@ -116,6 +147,7 @@ static int nova_update_log_entry(struct super_block *sb, struct inode *inode,
+ 			nova_update_new_dentry(sb, inode, entry, entry_info);
+ 		break;
+ 	case SET_ATTR:
++		nova_update_setattr_entry(inode, entry, entry_info);
+ 		break;
+ 	case LINK_CHANGE:
+ 		break;
+@@ -166,6 +198,38 @@ static int nova_append_log_entry(struct super_block *sb,
+ 	return 0;
  }
  
-+static ssize_t nova_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
++/* Returns new tail after append */
++static int nova_append_setattr_entry(struct super_block *sb,
++	struct nova_inode *pi, struct inode *inode, struct iattr *attr,
++	struct nova_inode_update *update, u64 *last_setattr, u64 epoch_id)
 +{
-+	struct inode *inode = iocb->ki_filp->f_mapping->host;
-+	ssize_t ret;
-+	timing_t read_iter_time;
-+
-+	if (!iov_iter_count(to))
-+		return 0;
-+
-+	NOVA_START_TIMING(read_iter_t, read_iter_time);
-+
-+	inode_lock_shared(inode);
-+	ret = dax_iomap_rw(iocb, to, &nova_iomap_ops);
-+	inode_unlock_shared(inode);
-+
-+	file_accessed(iocb->ki_filp);
-+	NOVA_END_TIMING(read_iter_t, read_iter_time);
-+	return ret;
-+}
-+
-+static ssize_t nova_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
-+{
-+	struct file *file = iocb->ki_filp;
-+	struct inode *inode = file->f_mapping->host;
 +	struct nova_inode_info *si = NOVA_I(inode);
 +	struct nova_inode_info_header *sih = &si->header;
-+	loff_t offset;
-+	size_t count;
-+	ssize_t ret;
-+	timing_t write_iter_time;
++	struct nova_log_entry_info entry_info;
++	timing_t append_time;
++	int ret;
 +
-+	NOVA_START_TIMING(write_iter_t, write_iter_time);
-+	inode_lock(inode);
-+	ret = generic_write_checks(iocb, from);
-+	if (ret <= 0)
-+		goto out_unlock;
++	NOVA_START_TIMING(append_setattr_t, append_time);
++	entry_info.type = SET_ATTR;
++	entry_info.attr = attr;
++	entry_info.update = update;
++	entry_info.epoch_id = epoch_id;
++	entry_info.trans_id = sih->trans_id;
 +
-+	ret = file_remove_privs(file);
-+	if (ret)
-+		goto out_unlock;
-+
-+	ret = file_update_time(file);
-+	if (ret)
-+		goto out_unlock;
-+
-+	count = iov_iter_count(from);
-+	offset = iocb->ki_pos;
-+
-+	ret = dax_iomap_rw(iocb, from, &nova_iomap_ops);
-+	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
-+		i_size_write(inode, iocb->ki_pos);
-+		sih->i_size = iocb->ki_pos;
-+		mark_inode_dirty(inode);
++	ret = nova_append_log_entry(sb, pi, inode, sih, &entry_info);
++	if (ret) {
++		nova_err(sb, "%s failed\n", __func__);
++		goto out;
 +	}
 +
-+out_unlock:
-+	inode_unlock(inode);
-+	if (ret > 0)
-+		ret = generic_write_sync(iocb, ret);
-+	NOVA_END_TIMING(write_iter_t, write_iter_time);
++	*last_setattr = sih->last_setattr;
++	sih->last_setattr = entry_info.curr_p;
++
++out:
++	NOVA_END_TIMING(append_setattr_t, append_time);
 +	return ret;
 +}
 +
- static ssize_t
- do_dax_mapping_read(struct file *filp, char __user *buf,
- 	size_t len, loff_t *ppos)
-@@ -645,6 +708,8 @@ const struct file_operations nova_dax_file_operations = {
- 	.llseek		= nova_llseek,
- 	.read		= nova_dax_file_read,
- 	.write		= nova_dax_file_write,
-+	.read_iter	= nova_dax_read_iter,
-+	.write_iter	= nova_dax_write_iter,
- 	.mmap		= nova_dax_file_mmap,
- 	.open		= nova_open,
- 	.fsync		= nova_fsync,
+ /*
+  * Append a nova_file_write_entry to the current nova_inode_log_page.
+  * blocknr and start_blk are pgoff.
 -- 
 2.7.4
 
