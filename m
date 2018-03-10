@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg0-x244.google.com (mail-pg0-x244.google.com
- [IPv6:2607:f8b0:400e:c05::244])
+Received: from mail-pl0-x244.google.com (mail-pl0-x244.google.com
+ [IPv6:2607:f8b0:400e:c01::244])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B93C22258AEFB
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:15 -0800 (PST)
-Received: by mail-pg0-x244.google.com with SMTP id l4so4831581pgp.11
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:34 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id ACC722263149B
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:01 -0800 (PST)
+Received: by mail-pl0-x244.google.com with SMTP id 9-v6so7020007ple.11
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:20 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 15/83] Add free list data structure.
-Date: Sat, 10 Mar 2018 10:17:56 -0800
-Message-Id: <1520705944-6723-16-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 53/83] Namei: lookup.
+Date: Sat, 10 Mar 2018 10:18:34 -0800
+Message-Id: <1520705944-6723-54-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,40 +31,59 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
-Free list is the data structure that NOVA uses to manage free pmem blocks.
-Each CPU has its own free list to avoid contention.
-Free list manages free pmem blocks (represented in range node) with red-black tree.
+NOVA lookup the inode number by searching the radix tree with
+the filename hash value and locating the corresponding dentry on the log.
 
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/Makefile |  2 +-
- fs/nova/balloc.c | 58 +++++++++++++++++++++++++++++++++++++++++++++++++
- fs/nova/balloc.h | 66 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- fs/nova/nova.h   |  1 +
- fs/nova/super.c  | 11 ++++++++++
- fs/nova/super.h  |  4 ++++
- 6 files changed, 141 insertions(+), 1 deletion(-)
- create mode 100644 fs/nova/balloc.c
- create mode 100644 fs/nova/balloc.h
+ fs/nova/Makefile |  3 +-
+ fs/nova/inode.c  |  2 ++
+ fs/nova/namei.c  | 97 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/nova.h   |  4 +++
+ 4 files changed, 105 insertions(+), 1 deletion(-)
+ create mode 100644 fs/nova/namei.c
 
 diff --git a/fs/nova/Makefile b/fs/nova/Makefile
-index 886356a..e2f7b07 100644
+index 3a3243c..eb97e46 100644
 --- a/fs/nova/Makefile
 +++ b/fs/nova/Makefile
-@@ -4,4 +4,4 @@
+@@ -4,4 +4,5 @@
  
  obj-$(CONFIG_NOVA_FS) += nova.o
  
--nova-y := bbuild.o inode.o rebuild.o stats.o super.o
-+nova-y := balloc.o bbuild.o inode.o rebuild.o stats.o super.o
-diff --git a/fs/nova/balloc.c b/fs/nova/balloc.c
+-nova-y := balloc.o bbuild.o dir.o inode.o journal.o log.o rebuild.o stats.o super.o
++nova-y := balloc.o bbuild.o dir.o inode.o journal.o log.o namei.o\
++	  rebuild.o stats.o super.o
+diff --git a/fs/nova/inode.c b/fs/nova/inode.c
+index 17addd3..2d3f7a3 100644
+--- a/fs/nova/inode.c
++++ b/fs/nova/inode.c
+@@ -181,6 +181,7 @@ static int nova_read_inode(struct super_block *sb, struct inode *inode,
+ 	case S_IFREG:
+ 		break;
+ 	case S_IFDIR:
++		inode->i_op = &nova_dir_inode_operations;
+ 		inode->i_fop = &nova_dir_operations;
+ 		break;
+ 	case S_IFLNK:
+@@ -881,6 +882,7 @@ struct inode *nova_new_vfs_inode(enum nova_new_inode_type type,
+ 		inode->i_mapping->a_ops = &nova_aops_dax;
+ 		break;
+ 	case TYPE_MKDIR:
++		inode->i_op = &nova_dir_inode_operations;
+ 		inode->i_fop = &nova_dir_operations;
+ 		inode->i_mapping->a_ops = &nova_aops_dax;
+ 		set_nlink(inode, 2);
+diff --git a/fs/nova/namei.c b/fs/nova/namei.c
 new file mode 100644
-index 0000000..450c942
+index 0000000..8076f5b
 --- /dev/null
-+++ b/fs/nova/balloc.c
-@@ -0,0 +1,58 @@
++++ b/fs/nova/namei.c
+@@ -0,0 +1,97 @@
 +/*
-+ * NOVA persistent memory management
++ * BRIEF DESCRIPTION
++ *
++ * Inode operations for directories.
 + *
 + * Copyright 2015-2016 Regents of the University of California,
 + * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
@@ -73,189 +92,106 @@ index 0000000..450c942
 + * Copyright 2003 Sony Corporation
 + * Copyright 2003 Matsushita Electric Industrial Co., Ltd.
 + * 2003-2004 (c) MontaVista Software, Inc. , Steve Longerbeam
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
++ * This file is licensed under the terms of the GNU General Public
++ * License version 2. This program is licensed "as is" without any
++ * warranty of any kind, whether express or implied.
 + */
-+
 +#include <linux/fs.h>
-+#include <linux/bitops.h>
++#include <linux/pagemap.h>
 +#include "nova.h"
++#include "journal.h"
 +#include "inode.h"
 +
-+int nova_alloc_block_free_lists(struct super_block *sb)
++static ino_t nova_inode_by_name(struct inode *dir, struct qstr *entry,
++				 struct nova_dentry **res_entry)
 +{
-+	struct nova_sb_info *sbi = NOVA_SB(sb);
-+	struct free_list *free_list;
-+	int i;
++	struct super_block *sb = dir->i_sb;
++	struct nova_dentry *direntry;
 +
-+	sbi->free_lists = kcalloc(sbi->cpus, sizeof(struct free_list),
-+				  GFP_KERNEL);
++	direntry = nova_find_dentry(sb, NULL, dir,
++					entry->name, entry->len);
++	if (direntry == NULL)
++		return 0;
 +
-+	if (!sbi->free_lists)
-+		return -ENOMEM;
++	*res_entry = direntry;
++	return direntry->ino;
++}
 +
-+	for (i = 0; i < sbi->cpus; i++) {
-+		free_list = nova_get_free_list(sb, i);
-+		free_list->block_free_tree = RB_ROOT;
-+		spin_lock_init(&free_list->s_lock);
-+		free_list->index = i;
++static struct dentry *nova_lookup(struct inode *dir, struct dentry *dentry,
++				   unsigned int flags)
++{
++	struct inode *inode = NULL;
++	struct nova_dentry *de;
++	ino_t ino;
++	timing_t lookup_time;
++
++	NOVA_START_TIMING(lookup_t, lookup_time);
++	if (dentry->d_name.len > NOVA_NAME_LEN) {
++		nova_dbg("%s: namelen %u exceeds limit\n",
++			__func__, dentry->d_name.len);
++		return ERR_PTR(-ENAMETOOLONG);
 +	}
 +
-+	return 0;
++	nova_dbg_verbose("%s: %s\n", __func__, dentry->d_name.name);
++	ino = nova_inode_by_name(dir, &dentry->d_name, &de);
++	nova_dbg_verbose("%s: ino %lu\n", __func__, ino);
++	if (ino) {
++		inode = nova_iget(dir->i_sb, ino);
++		if (inode == ERR_PTR(-ESTALE) || inode == ERR_PTR(-ENOMEM)
++				|| inode == ERR_PTR(-EACCES)) {
++			nova_err(dir->i_sb,
++				  "%s: get inode failed: %lu\n",
++				  __func__, (unsigned long)ino);
++			return ERR_PTR(-EIO);
++		}
++	}
++
++	NOVA_END_TIMING(lookup_t, lookup_time);
++	return d_splice_alias(inode, dentry);
 +}
 +
-+void nova_delete_free_lists(struct super_block *sb)
++struct dentry *nova_get_parent(struct dentry *child)
 +{
-+	struct nova_sb_info *sbi = NOVA_SB(sb);
++	struct inode *inode;
++	struct qstr dotdot = QSTR_INIT("..", 2);
++	struct nova_dentry *de = NULL;
++	ino_t ino;
 +
-+	/* Each tree is freed in save_blocknode_mappings */
-+	kfree(sbi->free_lists);
-+	sbi->free_lists = NULL;
-+}
++	nova_inode_by_name(child->d_inode, &dotdot, &de);
++	if (!de)
++		return ERR_PTR(-ENOENT);
 +
-+
-diff --git a/fs/nova/balloc.h b/fs/nova/balloc.h
-new file mode 100644
-index 0000000..e7c7a1d
---- /dev/null
-+++ b/fs/nova/balloc.h
-@@ -0,0 +1,66 @@
-+#ifndef __BALLOC_H
-+#define __BALLOC_H
-+
-+#include "inode.h"
-+
-+/* DRAM structure to hold a list of free PMEM blocks */
-+struct free_list {
-+	spinlock_t s_lock;
-+	struct rb_root	block_free_tree;
-+	struct nova_range_node *first_node; // lowest address free range
-+	struct nova_range_node *last_node; // highest address free range
-+
-+	int		index; // Which CPU do I belong to?
-+
-+	/*
-+	 * Start and end of allocatable range, inclusive.
++	/* FIXME: can de->ino be avoided by using the return value of
++	 * nova_inode_by_name()?
 +	 */
-+	unsigned long	block_start;
-+	unsigned long	block_end;
++	ino = le64_to_cpu(de->ino);
 +
-+	unsigned long	num_free_blocks;
++	if (ino)
++		inode = nova_iget(child->d_inode->i_sb, ino);
++	else
++		return ERR_PTR(-ENOENT);
 +
-+	/* How many nodes in the rb tree? */
-+	unsigned long	num_blocknode;
-+
-+	u32		csum;		/* Protect integrity */
-+
-+	/* Statistics */
-+	unsigned long	alloc_log_count;
-+	unsigned long	alloc_data_count;
-+	unsigned long	free_log_count;
-+	unsigned long	free_data_count;
-+	unsigned long	alloc_log_pages;
-+	unsigned long	alloc_data_pages;
-+	unsigned long	freed_log_pages;
-+	unsigned long	freed_data_pages;
-+
-+	u64		padding[8];	/* Cache line break */
-+};
-+
-+static inline
-+struct free_list *nova_get_free_list(struct super_block *sb, int cpu)
-+{
-+	struct nova_sb_info *sbi = NOVA_SB(sb);
-+
-+	return &sbi->free_lists[cpu];
++	return d_obtain_alias(inode);
 +}
 +
-+enum nova_alloc_direction {ALLOC_FROM_HEAD = 0,
-+			   ALLOC_FROM_TAIL = 1};
-+
-+enum nova_alloc_init {ALLOC_NO_INIT = 0,
-+		      ALLOC_INIT_ZERO = 1};
-+
-+enum alloc_type {
-+	LOG = 1,
-+	DATA,
++const struct inode_operations nova_dir_inode_operations = {
++	.lookup		= nova_lookup,
 +};
-+
-+
-+
-+
-+int nova_alloc_block_free_lists(struct super_block *sb);
-+void nova_delete_free_lists(struct super_block *sb);
-+
-+#endif
 diff --git a/fs/nova/nova.h b/fs/nova/nova.h
-index e0e85fb..c4abdd8 100644
+index 983c6b2..03ea0bd 100644
 --- a/fs/nova/nova.h
 +++ b/fs/nova/nova.h
-@@ -310,6 +310,7 @@ struct nova_range_node {
- };
+@@ -484,6 +484,10 @@ int nova_add_dentry(struct dentry *dentry, u64 ino, int inc_link,
+ int nova_remove_dentry(struct dentry *dentry, int dec_link,
+ 	struct nova_inode_update *update, u64 epoch_id);
  
- #include "bbuild.h"
-+#include "balloc.h"
- 
- /* ====================================================== */
- /* ==============  Function prototypes  ================= */
-diff --git a/fs/nova/super.c b/fs/nova/super.c
-index aec1cd3..43b24a7 100644
---- a/fs/nova/super.c
-+++ b/fs/nova/super.c
-@@ -545,6 +545,13 @@ static int nova_fill_super(struct super_block *sb, void *data, int silent)
- 		goto out;
- 	}
- 
-+	if (nova_alloc_block_free_lists(sb)) {
-+		retval = -ENOMEM;
-+		nova_err(sb, "%s: Failed to allocate block free lists.",
-+			 __func__);
-+		goto out;
-+	}
++/* namei.c */
++extern const struct inode_operations nova_dir_inode_operations;
++extern struct dentry *nova_get_parent(struct dentry *child);
 +
- 	/* Init a new nova instance */
- 	if (sbi->s_mount_opt & NOVA_MOUNT_FORMAT) {
- 		root_pi = nova_init(sb, sbi->initsize);
-@@ -611,6 +618,8 @@ static int nova_fill_super(struct super_block *sb, void *data, int silent)
- 	kfree(sbi->zeroed_page);
- 	sbi->zeroed_page = NULL;
- 
-+	nova_delete_free_lists(sb);
-+
- 	kfree(sbi->nova_sb);
- 	kfree(sbi);
- 	nova_dbg("%s failed: return %d\n", __func__, retval);
-@@ -679,6 +688,8 @@ static void nova_put_super(struct super_block *sb)
- 		sbi->virt_addr = NULL;
- 	}
- 
-+	nova_delete_free_lists(sb);
-+
- 	kfree(sbi->zeroed_page);
- 	nova_dbgmask = 0;
- 
-diff --git a/fs/nova/super.h b/fs/nova/super.h
-index b478080..dcafbd8 100644
---- a/fs/nova/super.h
-+++ b/fs/nova/super.h
-@@ -118,6 +118,10 @@ struct nova_sb_info {
- 
- 	/* ZEROED page for cache page initialized */
- 	void *zeroed_page;
-+
-+	/* Per-CPU free block list */
-+	struct free_list *free_lists;
-+	unsigned long per_list_blocks;
- };
- 
- static inline struct nova_sb_info *NOVA_SB(struct super_block *sb)
+ /* rebuild.c */
+ int nova_rebuild_dir_inode_tree(struct super_block *sb,
+ 	struct nova_inode *pi, u64 pi_addr,
 -- 
 2.7.4
 
