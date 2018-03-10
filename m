@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x241.google.com (mail-pl0-x241.google.com
- [IPv6:2607:f8b0:400e:c01::241])
+Received: from mail-pg0-x241.google.com (mail-pg0-x241.google.com
+ [IPv6:2607:f8b0:400e:c05::241])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 22BC922631491
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:04 -0800 (PST)
-Received: by mail-pl0-x241.google.com with SMTP id w22-v6so7026134pll.2
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:22 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 1954622603AF4
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:34 -0800 (PST)
+Received: by mail-pg0-x241.google.com with SMTP id x2so695762pgo.9
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:52 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 55/83] Namei: mkdir
-Date: Sat, 10 Mar 2018 10:18:36 -0800
-Message-Id: <1520705944-6723-56-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 30/83] New NOVA inode allocation.
+Date: Sat, 10 Mar 2018 10:18:11 -0800
+Message-Id: <1520705944-6723-31-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,106 +31,78 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
-NOVA mkdir is similar to create. The difference is NOVA will
-allocate log page for the newly created directory, and append
-init dentries.
+Allocate the new inode in a round-robin way.
+Extend the inode table if needed.
 
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/namei.c | 74 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
+ fs/nova/inode.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ fs/nova/inode.h |  1 +
+ 2 files changed, 41 insertions(+)
 
-diff --git a/fs/nova/namei.c b/fs/nova/namei.c
-index a07cc4f..a95b2fe 100644
---- a/fs/nova/namei.c
-+++ b/fs/nova/namei.c
-@@ -207,6 +207,79 @@ static int nova_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
- 	return err;
+diff --git a/fs/nova/inode.c b/fs/nova/inode.c
+index 29d172a..e4b8960 100644
+--- a/fs/nova/inode.c
++++ b/fs/nova/inode.c
+@@ -489,6 +489,46 @@ int nova_free_inuse_inode(struct super_block *sb, unsigned long ino)
+ 	return ret;
  }
  
-+static int nova_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
++/* Returns 0 on failure */
++u64 nova_new_nova_inode(struct super_block *sb, u64 *pi_addr)
 +{
-+	struct super_block *sb = dir->i_sb;
-+	struct inode *inode;
-+	struct nova_inode *pidir, *pi;
-+	struct nova_inode_info *si, *sidir;
-+	struct nova_inode_info_header *sih = NULL;
-+	struct nova_inode_update update;
-+	u64 pi_addr = 0;
-+	u64 ino;
-+	u64 epoch_id;
-+	int err = -EMLINK;
-+	timing_t mkdir_time;
++	struct nova_sb_info *sbi = NOVA_SB(sb);
++	struct inode_map *inode_map;
++	unsigned long free_ino = 0;
++	int map_id;
++	u64 ino = 0;
++	int ret;
++	timing_t new_inode_time;
 +
-+	NOVA_START_TIMING(mkdir_t, mkdir_time);
-+	if (dir->i_nlink >= NOVA_LINK_MAX)
-+		goto out;
++	NOVA_START_TIMING(new_nova_inode_t, new_inode_time);
++	map_id = sbi->map_id;
++	sbi->map_id = (sbi->map_id + 1) % sbi->cpus;
 +
-+	ino = nova_new_nova_inode(sb, &pi_addr);
-+	if (ino == 0)
-+		goto out_err;
++	inode_map = &sbi->inode_maps[map_id];
 +
-+	epoch_id = nova_get_epoch_id(sb);
-+	nova_dbgv("%s: name %s\n", __func__, dentry->d_name.name);
-+	nova_dbgv("%s: inode %llu, dir %lu, link %d\n", __func__,
-+				ino, dir->i_ino, dir->i_nlink);
-+
-+	update.tail = 0;
-+	err = nova_add_dentry(dentry, ino, 1, &update, epoch_id);
-+	if (err) {
-+		nova_dbg("failed to add dir entry\n");
-+		goto out_err;
++	mutex_lock(&inode_map->inode_table_mutex);
++	ret = nova_alloc_unused_inode(sb, map_id, &free_ino);
++	if (ret) {
++		nova_dbg("%s: alloc inode number failed %d\n", __func__, ret);
++		mutex_unlock(&inode_map->inode_table_mutex);
++		return 0;
 +	}
 +
-+	inode = nova_new_vfs_inode(TYPE_MKDIR, dir, pi_addr, ino,
-+					S_IFDIR | mode, sb->s_blocksize,
-+					0, &dentry->d_name, epoch_id);
-+	if (IS_ERR(inode)) {
-+		err = PTR_ERR(inode);
-+		goto out_err;
++	ret = nova_get_inode_address(sb, free_ino, pi_addr, 1);
++	if (ret) {
++		nova_dbg("%s: get inode address failed %d\n", __func__, ret);
++		mutex_unlock(&inode_map->inode_table_mutex);
++		return 0;
 +	}
 +
-+	pi = nova_get_inode(sb, inode);
-+	err = nova_append_dir_init_entries(sb, pi, inode->i_ino, dir->i_ino,
-+					epoch_id);
-+	if (err < 0)
-+		goto out_err;
++	mutex_unlock(&inode_map->inode_table_mutex);
 +
-+	/* Build the dir tree */
-+	si = NOVA_I(inode);
-+	sih = &si->header;
-+	nova_rebuild_dir_inode_tree(sb, pi, pi_addr, sih);
++	ino = free_ino;
 +
-+	pidir = nova_get_inode(sb, dir);
-+	sidir = NOVA_I(dir);
-+	sih = &si->header;
-+	dir->i_blocks = sih->i_blocks;
-+	inc_nlink(dir);
-+	d_instantiate(dentry, inode);
-+	unlock_new_inode(inode);
-+
-+	nova_lite_transaction_for_new_inode(sb, pi, pidir, inode, dir,
-+					&update);
-+out:
-+	NOVA_END_TIMING(mkdir_t, mkdir_time);
-+	return err;
-+
-+out_err:
-+//	clear_nlink(inode);
-+	nova_err(sb, "%s return %d\n", __func__, err);
-+	goto out;
++	NOVA_END_TIMING(new_nova_inode_t, new_inode_time);
++	return ino;
 +}
 +
- struct dentry *nova_get_parent(struct dentry *child)
+ int nova_write_inode(struct inode *inode, struct writeback_control *wbc)
  {
- 	struct inode *inode;
-@@ -234,5 +307,6 @@ struct dentry *nova_get_parent(struct dentry *child)
- const struct inode_operations nova_dir_inode_operations = {
- 	.create		= nova_create,
- 	.lookup		= nova_lookup,
-+	.mkdir		= nova_mkdir,
- 	.mknod		= nova_mknod,
- };
+ 	/* write_inode should never be called because we always keep our inodes
+diff --git a/fs/nova/inode.h b/fs/nova/inode.h
+index f9f5c14..fc1876c 100644
+--- a/fs/nova/inode.h
++++ b/fs/nova/inode.h
+@@ -229,6 +229,7 @@ int nova_get_inode_address(struct super_block *sb, u64 ino,
+ struct inode *nova_iget(struct super_block *sb, unsigned long ino);
+ inline int nova_insert_inodetree(struct nova_sb_info *sbi,
+ 	struct nova_range_node *new_node, int cpu);
++u64 nova_new_nova_inode(struct super_block *sb, u64 *pi_addr);
+ extern int nova_write_inode(struct inode *inode, struct writeback_control *wbc);
+ extern void nova_dirty_inode(struct inode *inode, int flags);
+ 
 -- 
 2.7.4
 
