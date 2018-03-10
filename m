@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x243.google.com (mail-ot0-x243.google.com
+ [IPv6:2607:f8b0:4003:c0f::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E17F121E08199
- for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 17:52:58 -0700 (PDT)
-Subject: [PATCH 2/2] acpi/nfit: allow knob to disable ARS being issued at
- kernel boot
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 30 Mar 2018 17:52:58 -0700
-Message-ID: <152245757796.54599.9893948384668311683.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152245757217.54599.588915759449280143.stgit@djiang5-desk3.ch.intel.com>
-References: <152245757217.54599.588915759449280143.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EAA73223DB0F8
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 16:14:02 -0800 (PST)
+Received: by mail-ot0-x243.google.com with SMTP id r30so10314844otr.2
+ for <linux-nvdimm@lists.01.org>; Fri, 09 Mar 2018 16:20:20 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1520639241.6316.59.camel@intel.com>
+References: <20180309233416.13243-1-ross.zwisler@linux.intel.com>
+ <1520639241.6316.59.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 9 Mar 2018 16:20:18 -0800
+Message-ID: <CAPcyv4jgaUvxX-7n5xwtrO5iCWnY-q8mLC=UAGh+8KOWTCSMvw@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl: fail NUMA filtering when unsupported
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,52 +26,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a kernel module parameter no_start_ars in order to bypass kernel
-initiating scrubbing ARS.
+On Fri, Mar 9, 2018 at 3:47 PM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+>
+> On Fri, 2018-03-09 at 16:34 -0700, Ross Zwisler wrote:
+>> For systems that don't support NUMA, numactl gives a loud and fatal
+>> error:
+>>
+>>   # numactl -N 0 ls
+>>   numactl: This system does not support NUMA policy
+>>
+>> Follow this model in ndctl for NUMA based filtering:
+>>
+>>   # ./ndctl/ndctl list --numa-node=0
+>>     Error: This system does not support NUMA
+>>
+>> This is done instead of just quietly filtering out all dimms, regions
+>> and
+>> namespaces because the NUMA node they were trying to match didn't
+>> exist in
+>> the system.
+>>
+>> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  util/filter.c | 10 ++++++++++
+>>  1 file changed, 10 insertions(+)
+>>
+>> diff --git a/util/filter.c b/util/filter.c
+>> index 291d7ed..fdc46a3 100644
+>> --- a/util/filter.c
+>> +++ b/util/filter.c
+>> @@ -14,7 +14,10 @@
+>>  #include <string.h>
+>>  #include <stdlib.h>
+>>  #include <limits.h>
+>> +#include <unistd.h>
+>> +#include <sys/stat.h>
+>>  #include <util/util.h>
+>> +#include <sys/types.h>
+>>  #include <ndctl/ndctl.h>
+>>  #include <util/filter.h>
+>>  #include <ndctl/libndctl.h>
+>> @@ -328,6 +331,13 @@ int util_filter_walk(struct ndctl_ctx *ctx,
+>> struct util_filter_ctx *fctx,
+>>       }
+>>
+>>       if (param->numa_node && strcmp(param->numa_node, "all") !=
+>> 0) {
+>> +             struct stat st;
+>> +
+>> +             if (stat("/sys/devices/system/node", &st)) {
+>> +                     error("This system does not support
+>> NUMA\n");
+>> +                     return -EINVAL;
+>> +             }
+>
+> Is it ok to just directly read sysfs here? Alternatively we could use
+> the get_mempolicy syscall (like libnuma does) but that requires linking
+> with -lnuma..
+>
+> https://github.com/numactl/numactl/blob/master/libnuma.c#L800
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/acpi/nfit/core.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 32670b82fbfc..fa4023ffa022 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -55,6 +55,10 @@ module_param(default_dsm_family, int, S_IRUGO);
- MODULE_PARM_DESC(default_dsm_family,
- 		"Try this DSM type first when identifying NVDIMM family");
- 
-+static int no_start_ars = 0;
-+module_param(no_start_ars, int, S_IRUGO);
-+MODULE_PARM_DESC(no_start_ars, "Disable kernel from initiate ARS at boot");
-+
- LIST_HEAD(acpi_descs);
- DEFINE_MUTEX(acpi_desc_lock);
- 
-@@ -2962,10 +2966,13 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 		 * we'll just go ahead and register the region.
- 		 */
- 		if (!acpi_desc->init_complete) {
--			dev_dbg(dev, "Range %d requested for ARS\n",
--				nfit_spa->spa->range_index);
--			nfit_spa->ars_state = NFIT_ARS_STATE_REQUESTED;
--			ars_needed++;
-+			if (!no_start_ars) {
-+				dev_dbg(dev, "Range %d requested for ARS\n",
-+						nfit_spa->spa->range_index);
-+				nfit_spa->ars_state =
-+					NFIT_ARS_STATE_REQUESTED;
-+				ars_needed++;
-+			}
- 		} else {
- 			acpi_nfit_register_region(acpi_desc, nfit_spa);
- 			dev_dbg(dev, "Range %d register region\n",
-
+I don't mind linking against libnuma if the goal is to mimic the
+behavior of numactl.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
