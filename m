@@ -1,21 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wr0-f196.google.com (mail-wr0-f196.google.com
- [209.85.128.196])
+Received: from mail-pl0-x243.google.com (mail-pl0-x243.google.com
+ [IPv6:2607:f8b0:400e:c01::243])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6922522451180
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 02:57:17 -0800 (PST)
-Received: by mail-wr0-f196.google.com with SMTP id u49so5622724wrc.10
- for <linux-nvdimm@lists.01.org>; Thu, 01 Mar 2018 03:03:25 -0800 (PST)
-Subject: Re: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
-References: <20180228234006.21093-1-logang@deltatee.com>
- <20180228234006.21093-11-logang@deltatee.com>
-From: Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <749e3752-4349-0bdf-5243-3d510c2b26db@grimberg.me>
-Date: Thu, 1 Mar 2018 13:03:21 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180228234006.21093-11-logang@deltatee.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id C80262258AF01
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:10 -0800 (PST)
+Received: by mail-pl0-x243.google.com with SMTP id 61-v6so7023341plf.3
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:29 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 11/83] Add timing and I/O statistics for performance analysis
+ and profiling.
+Date: Sat, 10 Mar 2018 10:17:52 -0800
+Message-Id: <1520705944-6723-12-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,149 +21,556 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Steve Wise <swise@opengridcomputing.com>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Cj4gV2UgY3JlYXRlIGEgY29uZmlnZnMgYXR0cmlidXRlIGluIGVhY2ggbnZtZS1mYWJyaWNzIHRh
-cmdldCBwb3J0IHRvCj4gZW5hYmxlIHAycCBtZW1vcnkgdXNlLiBXaGVuIGVuYWJsZWQsIHRoZSBw
-b3J0IHdpbGwgb25seSB0aGVuIHVzZSB0aGUKPiBwMnAgbWVtb3J5IGlmIGEgcDJwIG1lbW9yeSBk
-ZXZpY2UgY2FuIGJlIGZvdW5kIHdoaWNoIGlzIGJlaGluZCB0aGUKPiBzYW1lIHN3aXRjaCBhcyB0
-aGUgUkRNQSBwb3J0IGFuZCBhbGwgdGhlIGJsb2NrIGRldmljZXMgaW4gdXNlLiBJZgo+IHRoZSB1
-c2VyIGVuYWJsZWQgaXQgYW4gbm8gZGV2aWNlcyBhcmUgZm91bmQsIHRoZW4gdGhlIHN5c3RlbSB3
-aWxsCj4gc2lsZW50bHkgZmFsbCBiYWNrIG9uIHVzaW5nIHJlZ3VsYXIgbWVtb3J5Lgo+IAo+IElm
-IGFwcHJvcHJpYXRlLCB0aGF0IHBvcnQgd2lsbCBhbGxvY2F0ZSBtZW1vcnkgZm9yIHRoZSBSRE1B
-IGJ1ZmZlcnMKPiBmb3IgcXVldWVzIGZyb20gdGhlIHAycG1lbSBkZXZpY2UgZmFsbGluZyBiYWNr
-IHRvIHN5c3RlbSBtZW1vcnkgc2hvdWxkCj4gYW55dGhpbmcgZmFpbC4KCk5pY2UuCgo+IElkZWFs
-bHksIHdlJ2Qgd2FudCB0byB1c2UgYW4gTlZNRSBDTUIgYnVmZmVyIGFzIHAycCBtZW1vcnkuIFRo
-aXMgd291bGQKPiBzYXZlIGFuIGV4dHJhIFBDSSB0cmFuc2ZlciBhcyB0aGUgTlZNRSBjYXJkIGNv
-dWxkIGp1c3QgdGFrZSB0aGUgZGF0YQo+IG91dCBvZiBpdCdzIG93biBtZW1vcnkuIEhvd2V2ZXIs
-IGF0IHRoaXMgdGltZSwgY2FyZHMgd2l0aCBDTUIgYnVmZmVycwo+IGRvbid0IHNlZW0gdG8gYmUg
-YXZhaWxhYmxlLgoKQ2FuIHlvdSBkZXNjcmliZSB3aGF0IHdvdWxkIGJlIHRoZSBwbGFuIHRvIGhh
-dmUgaXQgd2hlbiB0aGVzZSBkZXZpY2VzCmRvIGNvbWUgYWxvbmc/IEknZCBzYXkgdGhhdCBwMnBf
-ZGV2IG5lZWRzIHRvIGJlY29tZSBhIG52bWV0X25zIHJlZmVyZW5jZQphbmQgbm90IGZyb20gbnZt
-ZXRfY3RybC4gVGhlbiwgd2hlbiBjbWIgY2FwYWJsZSBkZXZpY2VzIGNvbWUgYWxvbmcsIHRoZQpu
-cyBjYW4gcHJlZmVyIHRvIHVzZSBpdHMgb3duIGNtYiBpbnN0ZWFkIG9mIGxvY2F0aW5nIGEgcDJw
-X2RldiBkZXZpY2U/Cgo+ICtzdGF0aWMgaW50IG52bWV0X3AycGRtYV9hZGRfY2xpZW50KHN0cnVj
-dCBudm1ldF9jdHJsICpjdHJsLAo+ICsJCQkJICAgc3RydWN0IG52bWV0X25zICpucykKPiArewo+
-ICsJaW50IHJldDsKPiArCj4gKwlpZiAoIWJsa19xdWV1ZV9wY2lfcDJwZG1hKG5zLT5iZGV2LT5i
-ZF9xdWV1ZSkpIHsKPiArCQlwcl9lcnIoInBlZXItdG8tcGVlciBETUEgaXMgbm90IHN1cHBvcnRl
-ZCBieSAlc1xuIiwKPiArCQkgICAgICAgbnMtPmRldmljZV9wYXRoKTsKPiArCQlyZXR1cm4gLUVJ
-TlZBTDsKCkknZCBzYXkgdGhhdCBqdXN0IHNraXAgaXQgaW5zdGVhZCBvZiBmYWlsaW5nIGl0LCBp
-biB0aGVvcnkgb25lIGNhbgpjb25uZWN0IG52bWUgZGV2aWNlcyB2aWEgcDJwIG1lbSBhbmQgZXhw
-b3NlIG90aGVyIGRldmljZXMgaW4gdGhlCnNhbWUgc3Vic3lzdGVtLiBUaGUgbWVzc2FnZSB3b3Vs
-ZCBiZSBwcl9kZWJ1ZyB0byByZWR1Y2UgY2hhdHRpbmVzcy4KCj4gKwl9Cj4gKwo+ICsJcmV0ID0g
-cGNpX3AycGRtYV9hZGRfY2xpZW50KCZjdHJsLT5wMnBfY2xpZW50cywgbnZtZXRfbnNfZGV2KG5z
-KSk7Cj4gKwlpZiAocmV0KQo+ICsJCXByX2VycigiZmFpbGVkIHRvIGFkZCBwZWVyLXRvLXBlZXIg
-RE1BIGNsaWVudCAlczogJWRcbiIsCj4gKwkJICAgICAgIG5zLT5kZXZpY2VfcGF0aCwgcmV0KTsK
-PiArCj4gKwlyZXR1cm4gcmV0Owo+ICt9Cj4gKwo+ICAgaW50IG52bWV0X25zX2VuYWJsZShzdHJ1
-Y3QgbnZtZXRfbnMgKm5zKQo+ICAgewo+ICAgCXN0cnVjdCBudm1ldF9zdWJzeXMgKnN1YnN5cyA9
-IG5zLT5zdWJzeXM7Cj4gQEAgLTI5OSw2ICszMTksMTQgQEAgaW50IG52bWV0X25zX2VuYWJsZShz
-dHJ1Y3QgbnZtZXRfbnMgKm5zKQo+ICAgCWlmIChyZXQpCj4gICAJCWdvdG8gb3V0X2Jsa2Rldl9w
-dXQ7Cj4gICAKPiArCWxpc3RfZm9yX2VhY2hfZW50cnkoY3RybCwgJnN1YnN5cy0+Y3RybHMsIHN1
-YnN5c19lbnRyeSkgewo+ICsJCWlmIChjdHJsLT5wMnBfZGV2KSB7Cj4gKwkJCXJldCA9IG52bWV0
-X3AycGRtYV9hZGRfY2xpZW50KGN0cmwsIG5zKTsKPiArCQkJaWYgKHJldCkKPiArCQkJCWdvdG8g
-b3V0X3JlbW92ZV9jbGllbnRzOwoKSXMgdGhpcyByZWFsbHkgYSBmYXRhbCBmYWlsdXJlIGdpdmVu
-IHRoYXQgd2UgZmFsbC1iYWNrIHRvIG1haW4KbWVtb3J5PyBXaHkgbm90IGNvbnRpbnVlIHdpdGgg
-bWFpbiBtZW1vcnkgKGFuZCB3YXJuIGF0IGJlc3QpPwoKPiArLyoKPiArICogSWYgYWxsb3dfcDJw
-bWVtIGlzIHNldCwgd2Ugd2lsbCB0cnkgdG8gdXNlIFAyUCBtZW1vcnkgZm9yIHRoZSBTR0wgbGlz
-dHMgZm9yCj4gKyAqIM6ZL08gY29tbWFuZHMuIFRoaXMgcmVxdWlyZXMgdGhlIFBDSSBwMnAgZGV2
-aWNlIHRvIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUKPiArICogYmFja2luZyBkZXZpY2UgZm9yIGV2
-ZXJ5IG5hbWVzcGFjZSBvbiB0aGlzIGNvbnRyb2xsZXIuCj4gKyAqLwo+ICtzdGF0aWMgdm9pZCBu
-dm1ldF9zZXR1cF9wMnBtZW0oc3RydWN0IG52bWV0X2N0cmwgKmN0cmwsIHN0cnVjdCBudm1ldF9y
-ZXEgKnJlcSkKPiArewo+ICsJc3RydWN0IG52bWV0X25zICpuczsKPiArCWludCByZXQ7Cj4gKwo+
-ICsJaWYgKCFyZXEtPnBvcnQtPmFsbG93X3AycG1lbSB8fCAhcmVxLT5wMnBfY2xpZW50KQo+ICsJ
-CXJldHVybjsKPiArCj4gKwltdXRleF9sb2NrKCZjdHJsLT5zdWJzeXMtPmxvY2spOwo+ICsKPiAr
-CXJldCA9IHBjaV9wMnBkbWFfYWRkX2NsaWVudCgmY3RybC0+cDJwX2NsaWVudHMsIHJlcS0+cDJw
-X2NsaWVudCk7Cj4gKwlpZiAocmV0KSB7Cj4gKwkJcHJfZXJyKCJmYWlsZWQgYWRkaW5nIHBlZXIt
-dG8tcGVlciBETUEgY2xpZW50ICVzOiAlZFxuIiwKPiArCQkgICAgICAgZGV2X25hbWUocmVxLT5w
-MnBfY2xpZW50KSwgcmV0KTsKPiArCQlnb3RvIGZyZWVfZGV2aWNlczsKPiArCX0KPiArCj4gKwls
-aXN0X2Zvcl9lYWNoX2VudHJ5X3JjdShucywgJmN0cmwtPnN1YnN5cy0+bmFtZXNwYWNlcywgZGV2
-X2xpbmspIHsKPiArCQlyZXQgPSBudm1ldF9wMnBkbWFfYWRkX2NsaWVudChjdHJsLCBucyk7Cj4g
-KwkJaWYgKHJldCkKPiArCQkJZ290byBmcmVlX2RldmljZXM7Cj4gKwl9Cj4gKwo+ICsJY3RybC0+
-cDJwX2RldiA9IHBjaV9wMnBtZW1fZmluZCgmY3RybC0+cDJwX2NsaWVudHMpOwoKVGhpcyBpcyB0
-aGUgZmlyc3QgcDJwX2RldiBmb3VuZCByaWdodD8gV2hhdCBoYXBwZW5zIGlmIEkgaGF2ZSBtb3Jl
-IHRoYW4KYSBzaW5nbGUgcDJwIGRldmljZT8gSW4gdGhlb3J5IEknZCBoYXZlIG1vcmUgcDJwIG1l
-bW9yeSBJIGNhbiB1c2UuIEhhdmUKeW91IGNvbnNpZGVyZWQgbWFraW5nIHBjaV9wMnBtZW1fZmlu
-ZCByZXR1cm4gdGhlIGxlYXN0IHVzZWQgc3VpdGFibGUKZGV2aWNlPwoKPiArCWlmICghY3RybC0+
-cDJwX2Rldikgewo+ICsJCXByX2luZm8oIm5vIHN1cHBvcnRlZCBwZWVyLXRvLXBlZXIgbWVtb3J5
-IGRldmljZXMgZm91bmRcbiIpOwo+ICsJCWdvdG8gZnJlZV9kZXZpY2VzOwo+ICsJfQo+ICsJbXV0
-ZXhfdW5sb2NrKCZjdHJsLT5zdWJzeXMtPmxvY2spOwo+ICsKPiArCXByX2luZm8oInVzaW5nIHBl
-ZXItdG8tcGVlciBtZW1vcnkgb24gJXNcbiIsIHBjaV9uYW1lKGN0cmwtPnAycF9kZXYpKTsKPiAr
-CXJldHVybjsKPiArCj4gK2ZyZWVfZGV2aWNlczoKPiArCXBjaV9wMnBkbWFfY2xpZW50X2xpc3Rf
-ZnJlZSgmY3RybC0+cDJwX2NsaWVudHMpOwo+ICsJbXV0ZXhfdW5sb2NrKCZjdHJsLT5zdWJzeXMt
-PmxvY2spOwo+ICt9Cj4gKwo+ICtzdGF0aWMgdm9pZCBudm1ldF9yZWxlYXNlX3AycG1lbShzdHJ1
-Y3QgbnZtZXRfY3RybCAqY3RybCkKPiArewo+ICsJaWYgKCFjdHJsLT5wMnBfZGV2KQo+ICsJCXJl
-dHVybjsKPiArCj4gKwltdXRleF9sb2NrKCZjdHJsLT5zdWJzeXMtPmxvY2spOwo+ICsKPiArCXBj
-aV9wMnBkbWFfY2xpZW50X2xpc3RfZnJlZSgmY3RybC0+cDJwX2NsaWVudHMpOwo+ICsJcGNpX2Rl
-dl9wdXQoY3RybC0+cDJwX2Rldik7Cj4gKwljdHJsLT5wMnBfZGV2ID0gTlVMTDsKPiArCj4gKwlt
-dXRleF91bmxvY2soJmN0cmwtPnN1YnN5cy0+bG9jayk7Cj4gK30KPiArCj4gICB1MTYgbnZtZXRf
-YWxsb2NfY3RybChjb25zdCBjaGFyICpzdWJzeXNucW4sIGNvbnN0IGNoYXIgKmhvc3RucW4sCj4g
-ICAJCXN0cnVjdCBudm1ldF9yZXEgKnJlcSwgdTMyIGthdG8sIHN0cnVjdCBudm1ldF9jdHJsICoq
-Y3RybHApCj4gICB7Cj4gQEAgLTgwMCw2ICs4OTAsNyBAQCB1MTYgbnZtZXRfYWxsb2NfY3RybChj
-b25zdCBjaGFyICpzdWJzeXNucW4sIGNvbnN0IGNoYXIgKmhvc3RucW4sCj4gICAKPiAgIAlJTklU
-X1dPUksoJmN0cmwtPmFzeW5jX2V2ZW50X3dvcmssIG52bWV0X2FzeW5jX2V2ZW50X3dvcmspOwo+
-ICAgCUlOSVRfTElTVF9IRUFEKCZjdHJsLT5hc3luY19ldmVudHMpOwo+ICsJSU5JVF9MSVNUX0hF
-QUQoJmN0cmwtPnAycF9jbGllbnRzKTsKPiAgIAo+ICAgCW1lbWNweShjdHJsLT5zdWJzeXNucW4s
-IHN1YnN5c25xbiwgTlZNRl9OUU5fU0laRSk7Cj4gICAJbWVtY3B5KGN0cmwtPmhvc3RucW4sIGhv
-c3RucW4sIE5WTUZfTlFOX1NJWkUpOwo+IEBAIC04NTUsNiArOTQ2LDcgQEAgdTE2IG52bWV0X2Fs
-bG9jX2N0cmwoY29uc3QgY2hhciAqc3Vic3lzbnFuLCBjb25zdCBjaGFyICpob3N0bnFuLAo+ICAg
-CQljdHJsLT5rYXRvID0gRElWX1JPVU5EX1VQKGthdG8sIDEwMDApOwo+ICAgCX0KPiAgIAludm1l
-dF9zdGFydF9rZWVwX2FsaXZlX3RpbWVyKGN0cmwpOwo+ICsJbnZtZXRfc2V0dXBfcDJwbWVtKGN0
-cmwsIHJlcSk7Cj4gICAKPiAgIAltdXRleF9sb2NrKCZzdWJzeXMtPmxvY2spOwo+ICAgCWxpc3Rf
-YWRkX3RhaWwoJmN0cmwtPnN1YnN5c19lbnRyeSwgJnN1YnN5cy0+Y3RybHMpOwo+IEBAIC04OTEs
-NiArOTgzLDcgQEAgc3RhdGljIHZvaWQgbnZtZXRfY3RybF9mcmVlKHN0cnVjdCBrcmVmICpyZWYp
-Cj4gICAJZmx1c2hfd29yaygmY3RybC0+YXN5bmNfZXZlbnRfd29yayk7Cj4gICAJY2FuY2VsX3dv
-cmtfc3luYygmY3RybC0+ZmF0YWxfZXJyX3dvcmspOwo+ICAgCj4gKwludm1ldF9yZWxlYXNlX3Ay
-cG1lbShjdHJsKTsKPiAgIAlpZGFfc2ltcGxlX3JlbW92ZSgmY250bGlkX2lkYSwgY3RybC0+Y250
-bGlkKTsKPiAgIAo+ICAgCWtmcmVlKGN0cmwtPnNxcyk7Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-bnZtZS90YXJnZXQvaW8tY21kLmMgYi9kcml2ZXJzL252bWUvdGFyZ2V0L2lvLWNtZC5jCj4gaW5k
-ZXggMjhiYmRmZjRhODhiLi5hMjEzZjhmYzNiZjMgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9udm1l
-L3RhcmdldC9pby1jbWQuYwo+ICsrKyBiL2RyaXZlcnMvbnZtZS90YXJnZXQvaW8tY21kLmMKPiBA
-QCAtNTYsNiArNTYsOSBAQCBzdGF0aWMgdm9pZCBudm1ldF9leGVjdXRlX3J3KHN0cnVjdCBudm1l
-dF9yZXEgKnJlcSkKPiAgIAkJb3AgPSBSRVFfT1BfUkVBRDsKPiAgIAl9Cj4gICAKPiArCWlmIChp
-c19wY2lfcDJwZG1hX3BhZ2Uoc2dfcGFnZShyZXEtPnNnKSkpCj4gKwkJb3BfZmxhZ3MgfD0gUkVR
-X1BDSV9QMlBETUE7Cj4gKwo+ICAgCXNlY3RvciA9IGxlNjRfdG9fY3B1KHJlcS0+Y21kLT5ydy5z
-bGJhKTsKPiAgIAlzZWN0b3IgPDw9IChyZXEtPm5zLT5ibGtzaXplX3NoaWZ0IC0gOSk7Cj4gICAK
-PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udm1lL3RhcmdldC9udm1ldC5oIGIvZHJpdmVycy9udm1l
-L3RhcmdldC9udm1ldC5oCj4gaW5kZXggNDE3ZjZjMDMzMWNjLi44NWExNzA5MTQ1ODggMTAwNjQ0
-Cj4gLS0tIGEvZHJpdmVycy9udm1lL3RhcmdldC9udm1ldC5oCj4gKysrIGIvZHJpdmVycy9udm1l
-L3RhcmdldC9udm1ldC5oCj4gQEAgLTY0LDYgKzY0LDExIEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0
-IG52bWV0X25zICp0b19udm1ldF9ucyhzdHJ1Y3QgY29uZmlnX2l0ZW0gKml0ZW0pCj4gICAJcmV0
-dXJuIGNvbnRhaW5lcl9vZih0b19jb25maWdfZ3JvdXAoaXRlbSksIHN0cnVjdCBudm1ldF9ucywg
-Z3JvdXApOwo+ICAgfQo+ICAgCj4gK3N0YXRpYyBpbmxpbmUgc3RydWN0IGRldmljZSAqbnZtZXRf
-bnNfZGV2KHN0cnVjdCBudm1ldF9ucyAqbnMpCj4gK3sKPiArCXJldHVybiBkaXNrX3RvX2Rldihu
-cy0+YmRldi0+YmRfZGlzayk7Cj4gK30KPiArCj4gICBzdHJ1Y3QgbnZtZXRfY3Egewo+ICAgCXUx
-NgkJCXFpZDsKPiAgIAl1MTYJCQlzaXplOwo+IEBAIC05OCw2ICsxMDMsNyBAQCBzdHJ1Y3QgbnZt
-ZXRfcG9ydCB7Cj4gICAJc3RydWN0IGxpc3RfaGVhZAkJcmVmZXJyYWxzOwo+ICAgCXZvaWQJCQkJ
-KnByaXY7Cj4gICAJYm9vbAkJCQllbmFibGVkOwo+ICsJYm9vbAkJCQlhbGxvd19wMnBtZW07Cj4g
-ICB9Owo+ICAgCj4gICBzdGF0aWMgaW5saW5lIHN0cnVjdCBudm1ldF9wb3J0ICp0b19udm1ldF9w
-b3J0KHN0cnVjdCBjb25maWdfaXRlbSAqaXRlbSkKPiBAQCAtMTMxLDYgKzEzNyw4IEBAIHN0cnVj
-dCBudm1ldF9jdHJsIHsKPiAgIAlzdHJ1Y3Qgd29ya19zdHJ1Y3QJZmF0YWxfZXJyX3dvcms7Cj4g
-ICAKPiAgIAlzdHJ1Y3QgbnZtZXRfZmFicmljc19vcHMgKm9wczsKPiArCXN0cnVjdCBwY2lfZGV2
-CQkqcDJwX2RldjsKPiArCXN0cnVjdCBsaXN0X2hlYWQJcDJwX2NsaWVudHM7Cj4gICAKPiAgIAlj
-aGFyCQkJc3Vic3lzbnFuW05WTUZfTlFOX0ZJRUxEX0xFTl07Cj4gICAJY2hhcgkJCWhvc3RucW5b
-TlZNRl9OUU5fRklFTERfTEVOXTsKPiBAQCAtMjMyLDYgKzI0MCw4IEBAIHN0cnVjdCBudm1ldF9y
-ZXEgewo+ICAgCj4gICAJdm9pZCAoKmV4ZWN1dGUpKHN0cnVjdCBudm1ldF9yZXEgKnJlcSk7Cj4g
-ICAJc3RydWN0IG52bWV0X2ZhYnJpY3Nfb3BzICpvcHM7Cj4gKwo+ICsJc3RydWN0IGRldmljZSAq
-cDJwX2NsaWVudDsKPiAgIH07Cj4gICAKPiAgIHN0YXRpYyBpbmxpbmUgdm9pZCBudm1ldF9zZXRf
-c3RhdHVzKHN0cnVjdCBudm1ldF9yZXEgKnJlcSwgdTE2IHN0YXR1cykKPiBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9udm1lL3RhcmdldC9yZG1hLmMgYi9kcml2ZXJzL252bWUvdGFyZ2V0L3JkbWEuYwo+
-IGluZGV4IDAyMDM1NGUxMTM1MS4uN2ExZjA5OTk1ZWQ1IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMv
-bnZtZS90YXJnZXQvcmRtYS5jCj4gKysrIGIvZHJpdmVycy9udm1lL3RhcmdldC9yZG1hLmMKPiBA
-QCAtMjMsNiArMjMsNyBAQAo+ICAgI2luY2x1ZGUgPGxpbnV4L3N0cmluZy5oPgo+ICAgI2luY2x1
-ZGUgPGxpbnV4L3dhaXQuaD4KPiAgICNpbmNsdWRlIDxsaW51eC9pbmV0Lmg+Cj4gKyNpbmNsdWRl
-IDxsaW51eC9wY2ktcDJwZG1hLmg+Cj4gICAjaW5jbHVkZSA8YXNtL3VuYWxpZ25lZC5oPgo+ICAg
-Cj4gICAjaW5jbHVkZSA8cmRtYS9pYl92ZXJicy5oPgo+IEBAIC02OCw2ICs2OSw3IEBAIHN0cnVj
-dCBudm1ldF9yZG1hX3JzcCB7Cj4gICAJdTgJCQluX3JkbWE7Cj4gICAJdTMyCQkJZmxhZ3M7Cj4g
-ICAJdTMyCQkJaW52YWxpZGF0ZV9ya2V5Owo+ICsJc3RydWN0IHBjaV9kZXYJCSpwMnBfZGV2OwoK
-R2l2ZW4gdGhhdCBwMnBfY2xpZW50IGlzIGluIG52bWV0X3JlcSwgSSB0aGluayBpdCBtYWtlIHNl
-bnNlCnRoYXQgdGhlIHAycF9kZXYgaXRzZWxmIHdvdWxkIGFsc28gbGl2ZSB0aGVyZS4gSW4gdGhl
-b3J5LCBub3RoaW5nCmlzIHByZXZlbnRpbmcgRkMgZnJvbSB1c2luZyBpdCBhcyB3ZWxsLgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0g
-bWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5v
-cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+From: Andiry Xu <jix024@cs.ucsd.edu>
+
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
+---
+ fs/nova/Makefile |   2 +-
+ fs/nova/nova.h   |  12 +++
+ fs/nova/stats.c  | 263 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/stats.h  | 178 +++++++++++++++++++++++++++++++++++++
+ fs/nova/super.c  |   6 ++
+ 5 files changed, 460 insertions(+), 1 deletion(-)
+ create mode 100644 fs/nova/stats.c
+ create mode 100644 fs/nova/stats.h
+
+diff --git a/fs/nova/Makefile b/fs/nova/Makefile
+index eb19646..886356a 100644
+--- a/fs/nova/Makefile
++++ b/fs/nova/Makefile
+@@ -4,4 +4,4 @@
+ 
+ obj-$(CONFIG_NOVA_FS) += nova.o
+ 
+-nova-y := bbuild.o inode.o rebuild.o super.o
++nova-y := bbuild.o inode.o rebuild.o stats.o super.o
+diff --git a/fs/nova/nova.h b/fs/nova/nova.h
+index ded9fe8..ba7ffca 100644
+--- a/fs/nova/nova.h
++++ b/fs/nova/nova.h
+@@ -48,6 +48,7 @@
+ #include <linux/pagevec.h>
+ 
+ #include "nova_def.h"
++#include "stats.h"
+ 
+ #define PAGE_SHIFT_2M 21
+ #define PAGE_SHIFT_1G 30
+@@ -135,6 +136,10 @@ extern unsigned int nova_dbgmask;
+ #define	ANY_CPU				(65536)
+ #define	FREE_BATCH			(16)
+ 
++
++extern int measure_timing;
++
++
+ extern unsigned int blk_type_to_shift[NOVA_BLOCK_TYPE_MAX];
+ extern unsigned int blk_type_to_size[NOVA_BLOCK_TYPE_MAX];
+ 
+@@ -306,4 +311,11 @@ static inline u64 nova_get_epoch_id(struct super_block *sb)
+ int nova_rebuild_inode(struct super_block *sb, struct nova_inode_info *si,
+ 	u64 ino, u64 pi_addr, int rebuild_dir);
+ 
++/* stats.c */
++void nova_get_timing_stats(void);
++void nova_get_IO_stats(void);
++void nova_print_timing_stats(struct super_block *sb);
++void nova_clear_stats(struct super_block *sb);
++void nova_print_inode(struct nova_inode *pi);
++
+ #endif /* __NOVA_H */
+diff --git a/fs/nova/stats.c b/fs/nova/stats.c
+new file mode 100644
+index 0000000..4b7c317
+--- /dev/null
++++ b/fs/nova/stats.c
+@@ -0,0 +1,263 @@
++/*
++ * NOVA File System statistics
++ *
++ * Copyright 2015-2016 Regents of the University of California,
++ * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++
++#include "nova.h"
++
++const char *Timingstring[TIMING_NUM] = {
++	/* Init */
++	"================ Initialization ================",
++	"init",
++	"mount",
++	"ioremap",
++	"new_init",
++	"recovery",
++
++	/* Namei operations */
++	"============= Directory operations =============",
++	"create",
++	"lookup",
++	"link",
++	"unlink",
++	"symlink",
++	"mkdir",
++	"rmdir",
++	"mknod",
++	"rename",
++	"readdir",
++	"add_dentry",
++	"remove_dentry",
++	"setattr",
++	"setsize",
++
++	/* I/O operations */
++	"================ I/O operations ================",
++	"dax_read",
++	"cow_write",
++	"inplace_write",
++	"copy_to_nvmm",
++	"dax_get_block",
++	"read_iter",
++	"write_iter",
++
++	/* Memory operations */
++	"============== Memory operations ===============",
++	"memcpy_read_nvmm",
++	"memcpy_write_nvmm",
++	"memcpy_write_back_to_nvmm",
++	"handle_partial_block",
++
++	/* Memory management */
++	"============== Memory management ===============",
++	"alloc_blocks",
++	"new_data_blocks",
++	"new_log_blocks",
++	"free_blocks",
++	"free_data_blocks",
++	"free_log_blocks",
++
++	/* Transaction */
++	"================= Transaction ==================",
++	"transaction_new_inode",
++	"transaction_link_change",
++	"update_tail",
++
++	/* Logging */
++	"============= Logging operations ===============",
++	"append_dir_entry",
++	"append_file_entry",
++	"append_link_change",
++	"append_setattr",
++	"inplace_update_entry",
++
++	/* Tree */
++	"=============== Tree operations ================",
++	"checking_entry",
++	"assign_blocks",
++
++	/* GC */
++	"============= Garbage collection ===============",
++	"log_fast_gc",
++	"log_thorough_gc",
++	"check_invalid_log",
++
++	/* Others */
++	"================ Miscellaneous =================",
++	"find_cache_page",
++	"fsync",
++	"write_pages",
++	"fallocate",
++	"direct_IO",
++	"free_old_entry",
++	"delete_file_tree",
++	"delete_dir_tree",
++	"new_vfs_inode",
++	"new_nova_inode",
++	"free_inode",
++	"free_inode_log",
++	"evict_inode",
++
++	/* Mmap */
++	"=============== MMap operations ================",
++	"mmap_page_fault",
++	"mmap_pmd_fault",
++	"mmap_pfn_mkwrite",
++
++	/* Rebuild */
++	"=================== Rebuild ====================",
++	"rebuild_dir",
++	"rebuild_file",
++};
++
++u64 Timingstats[TIMING_NUM];
++DEFINE_PER_CPU(u64[TIMING_NUM], Timingstats_percpu);
++u64 Countstats[TIMING_NUM];
++DEFINE_PER_CPU(u64[TIMING_NUM], Countstats_percpu);
++u64 IOstats[STATS_NUM];
++DEFINE_PER_CPU(u64[STATS_NUM], IOstats_percpu);
++
++static void nova_print_IO_stats(struct super_block *sb)
++{
++	nova_info("=========== NOVA I/O stats ===========\n");
++	nova_info("Read %llu, bytes %llu, average %llu\n",
++		Countstats[dax_read_t], IOstats[read_bytes],
++		Countstats[dax_read_t] ?
++			IOstats[read_bytes] / Countstats[dax_read_t] : 0);
++	nova_info("COW write %llu, bytes %llu, average %llu, write breaks %llu, average %llu\n",
++		Countstats[cow_write_t], IOstats[cow_write_bytes],
++		Countstats[cow_write_t] ?
++			IOstats[cow_write_bytes] / Countstats[cow_write_t] : 0,
++		IOstats[cow_write_breaks], Countstats[cow_write_t] ?
++			IOstats[cow_write_breaks] / Countstats[cow_write_t]
++			: 0);
++	nova_info("Inplace write %llu, bytes %llu, average %llu, write breaks %llu, average %llu\n",
++		Countstats[inplace_write_t], IOstats[inplace_write_bytes],
++		Countstats[inplace_write_t] ?
++			IOstats[inplace_write_bytes] /
++			Countstats[inplace_write_t] : 0,
++		IOstats[inplace_write_breaks], Countstats[inplace_write_t] ?
++			IOstats[inplace_write_breaks] /
++			Countstats[inplace_write_t] : 0);
++}
++
++void nova_get_timing_stats(void)
++{
++	int i;
++	int cpu;
++
++	for (i = 0; i < TIMING_NUM; i++) {
++		Timingstats[i] = 0;
++		Countstats[i] = 0;
++		for_each_possible_cpu(cpu) {
++			Timingstats[i] += per_cpu(Timingstats_percpu[i], cpu);
++			Countstats[i] += per_cpu(Countstats_percpu[i], cpu);
++		}
++	}
++}
++
++void nova_get_IO_stats(void)
++{
++	int i;
++	int cpu;
++
++	for (i = 0; i < STATS_NUM; i++) {
++		IOstats[i] = 0;
++		for_each_possible_cpu(cpu)
++			IOstats[i] += per_cpu(IOstats_percpu[i], cpu);
++	}
++}
++
++void nova_print_timing_stats(struct super_block *sb)
++{
++	int i;
++
++	nova_get_timing_stats();
++	nova_get_IO_stats();
++
++	nova_info("=========== NOVA kernel timing stats ============\n");
++	for (i = 0; i < TIMING_NUM; i++) {
++		/* Title */
++		if (Timingstring[i][0] == '=') {
++			nova_info("\n%s\n\n", Timingstring[i]);
++			continue;
++		}
++
++		if (measure_timing || Timingstats[i]) {
++			nova_info("%s: count %llu, timing %llu, average %llu\n",
++				Timingstring[i],
++				Countstats[i],
++				Timingstats[i],
++				Countstats[i] ?
++				Timingstats[i] / Countstats[i] : 0);
++		} else {
++			nova_info("%s: count %llu\n",
++				Timingstring[i],
++				Countstats[i]);
++		}
++	}
++
++	nova_info("\n");
++	nova_print_IO_stats(sb);
++}
++
++static void nova_clear_timing_stats(void)
++{
++	int i;
++	int cpu;
++
++	for (i = 0; i < TIMING_NUM; i++) {
++		Countstats[i] = 0;
++		Timingstats[i] = 0;
++		for_each_possible_cpu(cpu) {
++			per_cpu(Timingstats_percpu[i], cpu) = 0;
++			per_cpu(Countstats_percpu[i], cpu) = 0;
++		}
++	}
++}
++
++static void nova_clear_IO_stats(struct super_block *sb)
++{
++	int i;
++	int cpu;
++
++	for (i = 0; i < STATS_NUM; i++) {
++		IOstats[i] = 0;
++		for_each_possible_cpu(cpu)
++			per_cpu(IOstats_percpu[i], cpu) = 0;
++	}
++}
++
++void nova_clear_stats(struct super_block *sb)
++{
++	nova_clear_timing_stats();
++	nova_clear_IO_stats(sb);
++}
++
++void nova_print_inode(struct nova_inode *pi)
++{
++	nova_dbg("%s: NOVA inode %llu\n", __func__, pi->nova_ino);
++	nova_dbg("valid %u, deleted %u, blk type %u, flags %u\n",
++		pi->valid, pi->deleted, pi->i_blk_type, pi->i_flags);
++	nova_dbg("size %llu, ctime %u, mtime %u, atime %u\n",
++		pi->i_size, pi->i_ctime, pi->i_mtime, pi->i_atime);
++	nova_dbg("mode %u, links %u, xattr 0x%llx\n",
++		pi->i_mode, pi->i_links_count, pi->i_xattr);
++	nova_dbg("uid %u, gid %u, gen %u, create time %u\n",
++		pi->i_uid, pi->i_gid, pi->i_generation, pi->i_create_time);
++	nova_dbg("head 0x%llx, tail 0x%llx\n",
++		pi->log_head, pi->log_tail);
++	nova_dbg("create epoch id %llu, delete epoch id %llu\n",
++		pi->create_epoch_id, pi->delete_epoch_id);
++}
+diff --git a/fs/nova/stats.h b/fs/nova/stats.h
+new file mode 100644
+index 0000000..8dbd02d
+--- /dev/null
++++ b/fs/nova/stats.h
+@@ -0,0 +1,178 @@
++/*
++ * NOVA File System statistics
++ *
++ * Copyright 2015-2016 Regents of the University of California,
++ * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++
++#ifndef __STATS_H
++#define __STATS_H
++
++
++/* ======================= Timing ========================= */
++enum timing_category {
++	/* Init */
++	init_title_t,
++	init_t,
++	mount_t,
++	ioremap_t,
++	new_init_t,
++	recovery_t,
++
++	/* Namei operations */
++	namei_title_t,
++	create_t,
++	lookup_t,
++	link_t,
++	unlink_t,
++	symlink_t,
++	mkdir_t,
++	rmdir_t,
++	mknod_t,
++	rename_t,
++	readdir_t,
++	add_dentry_t,
++	remove_dentry_t,
++	setattr_t,
++	setsize_t,
++
++	/* I/O operations */
++	io_title_t,
++	dax_read_t,
++	cow_write_t,
++	inplace_write_t,
++	copy_to_nvmm_t,
++	dax_get_block_t,
++	read_iter_t,
++	write_iter_t,
++
++	/* Memory operations */
++	memory_title_t,
++	memcpy_r_nvmm_t,
++	memcpy_w_nvmm_t,
++	memcpy_w_wb_t,
++	partial_block_t,
++
++	/* Memory management */
++	mm_title_t,
++	new_blocks_t,
++	new_data_blocks_t,
++	new_log_blocks_t,
++	free_blocks_t,
++	free_data_t,
++	free_log_t,
++
++	/* Transaction */
++	trans_title_t,
++	create_trans_t,
++	link_trans_t,
++	update_tail_t,
++
++	/* Logging */
++	logging_title_t,
++	append_dir_entry_t,
++	append_file_entry_t,
++	append_link_change_t,
++	append_setattr_t,
++	update_entry_t,
++
++	/* Tree */
++	tree_title_t,
++	check_entry_t,
++	assign_t,
++
++	/* GC */
++	gc_title_t,
++	fast_gc_t,
++	thorough_gc_t,
++	check_invalid_t,
++
++	/* Others */
++	others_title_t,
++	find_cache_t,
++	fsync_t,
++	write_pages_t,
++	fallocate_t,
++	direct_IO_t,
++	free_old_t,
++	delete_file_tree_t,
++	delete_dir_tree_t,
++	new_vfs_inode_t,
++	new_nova_inode_t,
++	free_inode_t,
++	free_inode_log_t,
++	evict_inode_t,
++
++	/* Mmap */
++	mmap_title_t,
++	mmap_fault_t,
++	pmd_fault_t,
++	pfn_mkwrite_t,
++
++	/* Rebuild */
++	rebuild_title_t,
++	rebuild_dir_t,
++	rebuild_file_t,
++
++	/* Sentinel */
++	TIMING_NUM,
++};
++
++enum stats_category {
++	alloc_steps,
++	cow_write_breaks,
++	inplace_write_breaks,
++	read_bytes,
++	cow_write_bytes,
++	inplace_write_bytes,
++	fast_checked_pages,
++	thorough_checked_pages,
++	fast_gc_pages,
++	thorough_gc_pages,
++	dax_new_blocks,
++	inplace_new_blocks,
++	fdatasync,
++
++	/* Sentinel */
++	STATS_NUM,
++};
++
++extern const char *Timingstring[TIMING_NUM];
++extern u64 Timingstats[TIMING_NUM];
++DECLARE_PER_CPU(u64[TIMING_NUM], Timingstats_percpu);
++extern u64 Countstats[TIMING_NUM];
++DECLARE_PER_CPU(u64[TIMING_NUM], Countstats_percpu);
++extern u64 IOstats[STATS_NUM];
++DECLARE_PER_CPU(u64[STATS_NUM], IOstats_percpu);
++
++typedef struct timespec timing_t;
++
++#define NOVA_START_TIMING(name, start) \
++	{if (measure_timing) getrawmonotonic(&start); }
++
++#define NOVA_END_TIMING(name, start) \
++	{if (measure_timing) { \
++		timing_t end; \
++		getrawmonotonic(&end); \
++		__this_cpu_add(Timingstats_percpu[name], \
++			(end.tv_sec - start.tv_sec) * 1000000000 + \
++			(end.tv_nsec - start.tv_nsec)); \
++	} \
++	__this_cpu_add(Countstats_percpu[name], 1); \
++	}
++
++#define NOVA_STATS_ADD(name, value) \
++	{__this_cpu_add(IOstats_percpu[name], value); }
++
++
++
++#endif
+diff --git a/fs/nova/super.c b/fs/nova/super.c
+index e0e38ab..9295d23 100644
+--- a/fs/nova/super.c
++++ b/fs/nova/super.c
+@@ -40,8 +40,12 @@
+ #include "nova.h"
+ #include "super.h"
+ 
++int measure_timing;
+ int support_clwb;
+ 
++module_param(measure_timing, int, 0444);
++MODULE_PARM_DESC(measure_timing, "Timing measurement");
++
+ module_param(nova_dbgmask, int, 0444);
+ MODULE_PARM_DESC(nova_dbgmask, "Control debugging output");
+ 
+@@ -500,6 +504,8 @@ static int nova_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto out;
+ 	}
+ 
++	nova_dbg("measure timing %d\n", measure_timing);
++
+ 	get_random_bytes(&random, sizeof(u32));
+ 	atomic_set(&sbi->next_generation, random);
+ 
+-- 
+2.7.4
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
