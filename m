@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x242.google.com (mail-pf0-x242.google.com
+ [IPv6:2607:f8b0:400e:c00::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BB45A220C2A4B
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 09:01:58 -0700 (PDT)
-Subject: [PATCH v6 02/15] fs,
- dax: prepare for dax-specific address_space_operations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Mar 2018 08:51:33 -0700
-Message-ID: <152112909383.24669.7898033239205318865.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 5FE812253FB7A
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:41 -0800 (PST)
+Received: by mail-pf0-x242.google.com with SMTP id 68so2619767pfx.3
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:00 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 36/83] Journal: Lite journal recovery.
+Date: Sat, 10 Mar 2018 10:18:17 -0800
+Message-Id: <1520705944-6723-37-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,129 +20,87 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Define some generic VFS aops
-helpers for dax. These noop implementations are there in the dax case to
-prevent the VFS from falling back to operations with page-cache
-assumptions, dax_writeback_mapping_range() may not be referenced in the
-FS_DAX=n case.
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Matthew Wilcox <mawilcox@microsoft.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/libfs.c          |   27 +++++++++++++++++++++++++++
- include/linux/dax.h |   12 +++++++++---
- include/linux/fs.h  |    3 +++
- 3 files changed, 39 insertions(+), 3 deletions(-)
+ fs/nova/journal.c | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
 
-diff --git a/fs/libfs.c b/fs/libfs.c
-index 7ff3cb904acd..e49d0ac6f800 100644
---- a/fs/libfs.c
-+++ b/fs/libfs.c
-@@ -1060,6 +1060,33 @@ int noop_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- }
- EXPORT_SYMBOL(noop_fsync);
+diff --git a/fs/nova/journal.c b/fs/nova/journal.c
+index 75d590f..f31de97 100644
+--- a/fs/nova/journal.c
++++ b/fs/nova/journal.c
+@@ -106,3 +106,58 @@ static int nova_check_journal_entries(struct super_block *sb,
  
-+int noop_set_page_dirty(struct page *page)
+ 	return 0;
+ }
++
++/**************************** Journal Recovery ******************************/
++
++static void nova_undo_journal_entry(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
 +{
-+	/*
-+	 * Unlike __set_page_dirty_no_writeback that handles dirty page
-+	 * tracking in the page object, dax does all dirty tracking in
-+	 * the inode address_space in response to mkwrite faults. In the
-+	 * dax case we only need to worry about potentially dirty CPU
-+	 * caches, not dirty page cache pages to write back.
-+	 *
-+	 * This callback is defined to prevent fallback to
-+	 * __set_page_dirty_buffers() in set_page_dirty().
-+	 */
++	u64 addr, value;
++
++	addr = le64_to_cpu(entry->data1);
++	value = le64_to_cpu(entry->data2);
++
++	*(u64 *)nova_get_block(sb, addr) = (u64)value;
++	nova_flush_buffer((void *)nova_get_block(sb, addr), CACHELINE_SIZE, 0);
++}
++
++static void nova_undo_lite_journal_entry(struct super_block *sb,
++	struct nova_lite_journal_entry *entry)
++{
++	u64 type;
++
++	type = le64_to_cpu(entry->type);
++
++	switch (type) {
++	case JOURNAL_INODE:
++		/* Currently unused */
++		break;
++	case JOURNAL_ENTRY:
++		nova_undo_journal_entry(sb, entry);
++		break;
++	default:
++		nova_dbg("%s: unknown data type %llu\n", __func__, type);
++		break;
++	}
++}
++
++/* Roll back all journal enries */
++static int nova_recover_lite_journal(struct super_block *sb,
++	struct journal_ptr_pair *pair)
++{
++	struct nova_lite_journal_entry *entry;
++	u64 temp;
++
++	temp = pair->journal_head;
++	while (temp != pair->journal_tail) {
++		entry = (struct nova_lite_journal_entry *)nova_get_block(sb,
++									temp);
++		nova_undo_lite_journal_entry(sb, entry);
++		temp = next_lite_journal(temp);
++	}
++
++	pair->journal_tail = pair->journal_head;
++	nova_flush_buffer(&pair->journal_head, CACHELINE_SIZE, 1);
++
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(noop_set_page_dirty);
-+
-+void noop_invalidatepage(struct page *page, unsigned int offset,
-+		unsigned int length)
-+{
-+	/*
-+	 * There is no page cache to invalidate in the dax case, however
-+	 * we need this callback defined to prevent falling back to
-+	 * block_invalidatepage() in do_invalidatepage().
-+	 */
-+}
-+EXPORT_SYMBOL_GPL(noop_invalidatepage);
-+
- /* Because kfree isn't assignment-compatible with void(void*) ;-/ */
- void kfree_link(void *p)
- {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 0185ecdae135..ae27a7efe7ab 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -38,6 +38,7 @@ static inline void put_dax(struct dax_device *dax_dev)
- }
- #endif
- 
-+struct writeback_control;
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #if IS_ENABLED(CONFIG_FS_DAX)
- int __bdev_dax_supported(struct super_block *sb, int blocksize);
-@@ -57,6 +58,8 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
- }
- 
- struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
-+int dax_writeback_mapping_range(struct address_space *mapping,
-+		struct block_device *bdev, struct writeback_control *wbc);
- #else
- static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
- {
-@@ -76,6 +79,12 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
- {
- 	return NULL;
- }
-+
-+static inline int dax_writeback_mapping_range(struct address_space *mapping,
-+		struct block_device *bdev, struct writeback_control *wbc)
-+{
-+	return -EOPNOTSUPP;
-+}
- #endif
- 
- int dax_read_lock(void);
-@@ -121,7 +130,4 @@ static inline bool dax_mapping(struct address_space *mapping)
- 	return mapping->host && IS_DAX(mapping->host);
- }
- 
--struct writeback_control;
--int dax_writeback_mapping_range(struct address_space *mapping,
--		struct block_device *bdev, struct writeback_control *wbc);
- #endif
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 79c413985305..b57db31d294d 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -3129,6 +3129,9 @@ extern int simple_rmdir(struct inode *, struct dentry *);
- extern int simple_rename(struct inode *, struct dentry *,
- 			 struct inode *, struct dentry *, unsigned int);
- extern int noop_fsync(struct file *, loff_t, loff_t, int);
-+extern int noop_set_page_dirty(struct page *page);
-+extern void noop_invalidatepage(struct page *page, unsigned int offset,
-+		unsigned int length);
- extern int simple_empty(struct dentry *);
- extern int simple_readpage(struct file *file, struct page *page);
- extern int simple_write_begin(struct file *file, struct address_space *mapping,
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
