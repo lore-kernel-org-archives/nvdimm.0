@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3A8702255D6F3
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:52:04 -0800 (PST)
-Subject: [PATCH v3 2/3] mm,
- hugetlbfs: introduce ->pagesize() to vm_operations_struct
+ by ml01.01.org (Postfix) with ESMTPS id 44BCE21ED1C42
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 22:57:58 -0800 (PST)
+Subject: [PATCH v5 04/11] ext2, dax: introduce ext2_dax_aops
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Mar 2018 19:49:07 -0800
-Message-ID: <151996254734.27922.15813097401404359642.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151996253609.27922.9983044853291257359.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151996253609.27922.9983044853291257359.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 09 Mar 2018 22:55:10 -0800
+Message-ID: <152066491013.40260.6636252082600988714.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,81 +22,124 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jane Chu <jane.chu@oracle.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: jack@suse.cz, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-When device-dax is operating in huge-page mode we want it to behave like
-hugetlbfs and report the MMU page mapping size that is being enforced by
-the vma. Similar to commit 31383c6865a5 "mm, hugetlbfs: introduce
-->split() to vm_operations_struct" it would be messy to teach
-vma_mmu_pagesize() about device-dax page mapping sizes in the same
-(hstate) way that hugetlbfs communicates this attribute.  Instead, these
-patches introduce a new ->pagesize() vm operation.
+In preparation for the dax implementation to start associating dax pages
+to inodes via page->mapping, we need to provide a 'struct
+address_space_operations' instance for dax. Otherwise, direct-I/O
+triggers incorrect page cache assumptions and warnings.
 
-Reported-by: Jane Chu <jane.chu@oracle.com>
+Cc: Jan Kara <jack@suse.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/mm.h |    1 +
- mm/hugetlb.c       |   19 +++++++++++--------
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ fs/ext2/ext2.h  |    1 +
+ fs/ext2/inode.c |   28 ++++++++++++++++++++--------
+ fs/ext2/namei.c |   18 ++----------------
+ 3 files changed, 23 insertions(+), 24 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index ad06d42adb1a..be0040c9f81b 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -383,6 +383,7 @@ struct vm_operations_struct {
- 	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
- 	void (*map_pages)(struct vm_fault *vmf,
- 			pgoff_t start_pgoff, pgoff_t end_pgoff);
-+	unsigned long (*pagesize)(struct vm_area_struct * area);
+diff --git a/fs/ext2/ext2.h b/fs/ext2/ext2.h
+index 032295e1d386..cc40802ddfa8 100644
+--- a/fs/ext2/ext2.h
++++ b/fs/ext2/ext2.h
+@@ -814,6 +814,7 @@ extern const struct inode_operations ext2_file_inode_operations;
+ extern const struct file_operations ext2_file_operations;
  
- 	/* notification that a previously read-only page is about to become
- 	 * writable, if an error is returned it will cause a SIGBUS */
-diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-index f9c4ea42b04a..aaafe5ebaa3e 100644
---- a/mm/hugetlb.c
-+++ b/mm/hugetlb.c
-@@ -636,14 +636,9 @@ EXPORT_SYMBOL_GPL(linear_hugepage_index);
-  */
- unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
- {
--	struct hstate *hstate;
--
--	if (!is_vm_hugetlb_page(vma))
--		return PAGE_SIZE;
--
--	hstate = hstate_vma(vma);
--
--	return 1UL << huge_page_shift(hstate);
-+	if (vma->vm_ops && vma->vm_ops->pagesize)
-+		return vma->vm_ops->pagesize(vma);
-+	return PAGE_SIZE;
- }
- EXPORT_SYMBOL_GPL(vma_kernel_pagesize);
- 
-@@ -3150,6 +3145,13 @@ static int hugetlb_vm_op_split(struct vm_area_struct *vma, unsigned long addr)
- 	return 0;
- }
- 
-+static unsigned long hugetlb_vm_op_pagesize(struct vm_area_struct *vma)
-+{
-+	struct hstate *hstate = hstate_vma(vma);
-+
-+	return 1UL << huge_page_shift(hstate);
-+}
-+
- /*
-  * We cannot handle pagefaults against hugetlb pages at all.  They cause
-  * handle_mm_fault() to try to instantiate regular-sized pages in the
-@@ -3167,6 +3169,7 @@ const struct vm_operations_struct hugetlb_vm_ops = {
- 	.open = hugetlb_vm_op_open,
- 	.close = hugetlb_vm_op_close,
- 	.split = hugetlb_vm_op_split,
-+	.pagesize = hugetlb_vm_op_pagesize,
+ /* inode.c */
++extern void ext2_set_file_ops(struct inode *inode);
+ extern const struct address_space_operations ext2_aops;
+ extern const struct address_space_operations ext2_nobh_aops;
+ extern const struct iomap_ops ext2_iomap_ops;
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 9b2ac55ac34f..09608f7e9e39 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -990,6 +990,13 @@ const struct address_space_operations ext2_nobh_aops = {
+ 	.error_remove_page	= generic_error_remove_page,
  };
  
- static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
++const struct address_space_operations ext2_dax_aops = {
++	.writepages		= ext2_writepages,
++	.direct_IO		= ext2_direct_IO,
++	.set_page_dirty		= dax_set_page_dirty,
++	.invalidatepage		= dax_invalidatepage,
++};
++
+ /*
+  * Probably it should be a library function... search for first non-zero word
+  * or memcmp with zero_page, whatever is better for particular architecture.
+@@ -1388,6 +1395,18 @@ void ext2_set_inode_flags(struct inode *inode)
+ 		inode->i_flags |= S_DAX;
+ }
+ 
++void ext2_set_file_ops(struct inode *inode)
++{
++	inode->i_op = &ext2_file_inode_operations;
++	inode->i_fop = &ext2_file_operations;
++	if (IS_DAX(inode))
++		inode->i_mapping->a_ops = &ext2_dax_aops;
++	else if (test_opt(inode->i_sb, NOBH))
++		inode->i_mapping->a_ops = &ext2_nobh_aops;
++	else
++		inode->i_mapping->a_ops = &ext2_aops;
++}
++
+ struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
+ {
+ 	struct ext2_inode_info *ei;
+@@ -1480,14 +1499,7 @@ struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
+ 		ei->i_data[n] = raw_inode->i_block[n];
+ 
+ 	if (S_ISREG(inode->i_mode)) {
+-		inode->i_op = &ext2_file_inode_operations;
+-		if (test_opt(inode->i_sb, NOBH)) {
+-			inode->i_mapping->a_ops = &ext2_nobh_aops;
+-			inode->i_fop = &ext2_file_operations;
+-		} else {
+-			inode->i_mapping->a_ops = &ext2_aops;
+-			inode->i_fop = &ext2_file_operations;
+-		}
++		ext2_set_file_ops(inode);
+ 	} else if (S_ISDIR(inode->i_mode)) {
+ 		inode->i_op = &ext2_dir_inode_operations;
+ 		inode->i_fop = &ext2_dir_operations;
+diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
+index e078075dc66f..55f7caadb093 100644
+--- a/fs/ext2/namei.c
++++ b/fs/ext2/namei.c
+@@ -107,14 +107,7 @@ static int ext2_create (struct inode * dir, struct dentry * dentry, umode_t mode
+ 	if (IS_ERR(inode))
+ 		return PTR_ERR(inode);
+ 
+-	inode->i_op = &ext2_file_inode_operations;
+-	if (test_opt(inode->i_sb, NOBH)) {
+-		inode->i_mapping->a_ops = &ext2_nobh_aops;
+-		inode->i_fop = &ext2_file_operations;
+-	} else {
+-		inode->i_mapping->a_ops = &ext2_aops;
+-		inode->i_fop = &ext2_file_operations;
+-	}
++	ext2_set_file_ops(inode);
+ 	mark_inode_dirty(inode);
+ 	return ext2_add_nondir(dentry, inode);
+ }
+@@ -125,14 +118,7 @@ static int ext2_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
+ 	if (IS_ERR(inode))
+ 		return PTR_ERR(inode);
+ 
+-	inode->i_op = &ext2_file_inode_operations;
+-	if (test_opt(inode->i_sb, NOBH)) {
+-		inode->i_mapping->a_ops = &ext2_nobh_aops;
+-		inode->i_fop = &ext2_file_operations;
+-	} else {
+-		inode->i_mapping->a_ops = &ext2_aops;
+-		inode->i_fop = &ext2_file_operations;
+-	}
++	ext2_set_file_ops(inode);
+ 	mark_inode_dirty(inode);
+ 	d_tmpfile(dentry, inode);
+ 	unlock_new_inode(inode);
 
 _______________________________________________
 Linux-nvdimm mailing list
