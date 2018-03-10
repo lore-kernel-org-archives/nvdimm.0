@@ -1,16 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2FB5C225E9667
- for <linux-nvdimm@lists.01.org>; Thu, 22 Mar 2018 11:26:54 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/3] readdir_r(3) is deprecated, use readdir(3) instead
-Date: Thu, 22 Mar 2018 12:33:21 -0600
-Message-Id: <20180322183322.23076-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180322183322.23076-1-ross.zwisler@linux.intel.com>
-References: <20180322183322.23076-1-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+In-Reply-To: <20180227214144.GP7000@dastard>
+References: <CAD4SzjvOr_akMXX8JhKCMB_A3KD66v2q0An4ULB9TF8d0Sb4PA@mail.gmail.com>
+ <20180227214144.GP7000@dastard>
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Date: Fri, 9 Mar 2018 21:27:41 -0800
+Message-ID: <CAD4SzjsvB6BxXAOZvV6+OnO2QqX11i0B45LA0E47KSBkd0-OaA@mail.gmail.com>
+Subject: Re: xfstests 344 deadlock on NOVA
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,48 +14,93 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andi Kleen <ak@linux.intel.com>, linux-nvdimm@lists.01.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Linux FS Devel <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, jack@suse.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Z2NjIDcuMy4xIHByb3ZpZGVzIHRoZSBmb2xsb3dpbmcgd2FybmluZyB3aGVuIGNvbXBpbGluZyBh
-ZmZpbml0eS5jOgoKYWZmaW5pdHkuYzogSW4gZnVuY3Rpb24g4oCYYWZmaW5pdHlfZmlsZeKAmToK
-YWZmaW5pdHkuYzoxNTg6Mjogd2FybmluZzog4oCYcmVhZGRpcl9y4oCZIGlzIGRlcHJlY2F0ZWQg
-Wy1XZGVwcmVjYXRlZC1kZWNsYXJhdGlvbnNdCiAgd2hpbGUgKHJlYWRkaXJfcihkaXIsICZkZSwg
-JmRlcCkgPT0gMCAmJiBkZXApIHsKICBefn5+fgpJbiBmaWxlIGluY2x1ZGVkIGZyb20gYWZmaW5p
-dHkuYzozOTowOgovdXNyL2luY2x1ZGUvZGlyZW50Lmg6MTgzOjEyOiBub3RlOiBkZWNsYXJlZCBo
-ZXJlCiBleHRlcm4gaW50IHJlYWRkaXJfciAoRElSICpfX3Jlc3RyaWN0IF9fZGlycCwKICAgICAg
-ICAgICAgXn5+fn5+fn5+CgpBY2NvcmRpbmcgdG8gdGhlIG1hbiBwYWdlIGZvciByZWFkZGlyX3Io
-MyksIGNhbGxzIHRoaXMgZnVuY3Rpb24gc2hvdWxkIGJlCmZpeGVkIHRvIGluc3RlYWQgdXNlIHJl
-YWRkaXIoMykuCgpPbmUgaW50ZXJlc3Rpbmcgbm90ZTogSSBoYWQgdG8gbW92ZSB0aGUgYWZmaW5p
-dHlfY2xhc3MoKSBjYWxsIGFib3ZlIHRoZQpjbG9zZWRpcihkaXIpIGNhbGwgaW4gYWZmaW5pdHlf
-ZmlsZSgpIGJlY2F1c2Ugd2l0aCByZWFkZGlyKDMpIHRoZSBzdHJpbmcKc3RvcmVkIGluICduYW1l
-JyBpcyBjbGVhcmVkIG9uIGNsb3NlZGlyKCkuICBUaGlzIGRvZXNuJ3QgaGFwcGVuIHdpdGgKcmVh
-ZGRpcl9yKCkgZm9yIHNvbWUgcmVhc29uLgoKU2lnbmVkLW9mZi1ieTogUm9zcyBad2lzbGVyIDxy
-b3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPgotLS0KIGFmZmluaXR5LmMgfCA5ICsrKysrKy0t
-LQogMSBmaWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYg
-LS1naXQgYS9hZmZpbml0eS5jIGIvYWZmaW5pdHkuYwppbmRleCA4NTU5N2ZjLi4wNjc4NGY3IDEw
-MDY0NAotLS0gYS9hZmZpbml0eS5jCisrKyBiL2FmZmluaXR5LmMKQEAgLTEzMSw3ICsxMzEsNyBA
-QCBzdGF0aWMgaW50IGFmZmluaXR5X2ZpbGUoc3RydWN0IGJpdG1hc2sgKm1hc2ssIGNoYXIgKmNs
-cywgY29uc3QgY2hhciAqZmlsZSkKIAlpbnQgbjsKIAl1bnNpZ25lZCBtYWogPSAwLCBtaW4gPSAw
-OwogCWRldl90IGQ7Ci0Jc3RydWN0IGRpcmVudCBkZSwgKmRlcDsKKwlzdHJ1Y3QgZGlyZW50ICpk
-ZXA7CiAKIAljbHMgPSAiYmxvY2siOwogCWNoYXIgZm5bc2l6ZW9mKCIvc3lzL2NsYXNzLyIpICsg
-c3RybGVuKGNscyldOwpAQCAtMTU1LDggKzE1NSwxMCBAQCBzdGF0aWMgaW50IGFmZmluaXR5X2Zp
-bGUoc3RydWN0IGJpdG1hc2sgKm1hc2ssIGNoYXIgKmNscywgY29uc3QgY2hhciAqZmlsZSkKIAkJ
-CSAgY2xzKTsKIAkJcmV0dXJuIC0xOwogCX0KLQl3aGlsZSAocmVhZGRpcl9yKGRpciwgJmRlLCAm
-ZGVwKSA9PSAwICYmIGRlcCkgeworCXdoaWxlICgoZGVwID0gcmVhZGRpcihkaXIpKSAhPSBOVUxM
-KSB7CiAJCWNoYXIgKm5hbWUgPSBkZXAtPmRfbmFtZTsKKwkJaW50IHJldDsKKwogCQlpZiAoKm5h
-bWUgPT0gJy4nKQogCQkJY29udGludWU7CiAJCWNoYXIgKmRldjsKQEAgLTE3OSw4ICsxODEsOSBA
-QCBzdGF0aWMgaW50IGFmZmluaXR5X2ZpbGUoc3RydWN0IGJpdG1hc2sgKm1hc2ssIGNoYXIgKmNs
-cywgY29uc3QgY2hhciAqZmlsZSkKIAkJaWYgKG1ham9yKGQpICE9IG1haiB8fCBtaW5vcihkKSAh
-PSBtaW4pCiAJCQljb250aW51ZTsKIAorCQlyZXQgPSBhZmZpbml0eV9jbGFzcyhtYXNrLCAiYmxv
-Y2siLCBuYW1lKTsKIAkJY2xvc2VkaXIoZGlyKTsKLQkJcmV0dXJuIGFmZmluaXR5X2NsYXNzKG1h
-c2ssICJibG9jayIsIG5hbWUpOworCQlyZXR1cm4gcmV0OwogCX0KIAljbG9zZWRpcihkaXIpOwog
-CW51bWFfd2FybihXX2Jsb2NrZGV2NSwgIkNhbm5vdCBmaW5kIGJsb2NrIGRldmljZSAleDoleCBp
-biBzeXNmcyBmb3IgYCVzJyIsCi0tIAoyLjE0LjMKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
-aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW52ZGltbQo=
+On Tue, Feb 27, 2018 at 1:41 PM, Dave Chinner <david@fromorbit.com> wrote:
+> On Tue, Feb 27, 2018 at 11:15:55AM -0800, Andiry Xu wrote:
+>> Hi,
+>>
+>> I encounter a problem when running xfstests on NOVA. I appreciate your
+>> help very much.
+>>
+>> Some background: NOVA adopts a per-inode logging design. Metadata
+>> changes are appended to the log and persisted before returning to the
+>> user space. For example, a write() in NOVA works like this:
+>>
+>> Allocate new pmem blocks and fill with user data
+>> Append the metadata that describes this write to the end of the inode log
+>> Update the log tail pointer atomically to commit the write
+>> Update in-DRAM radix tree to point to the metadata (for fast lookup)
+>>
+>> The log appending and radix tree update are protected by inode_lock().
+>>
+>> For mmap, nova_dax_get_blocks (similar to ext2_get_blocks)  needs to
+>> persist the metadata for new allocations. So it has to append the new
+>> allocation metadata to the log, and hence needs to lock the inode.
+>> This causes deadlock in xfstests 344 with concurrent pwrite and mmap
+>> write:
+>>
+>> Thread 1:
+>> pwrite
+>> -> nova_dax_file_write()
+>> ---> inode_lock()
+>> -----> invalidate_inode_pages2_range()
+>> -------> schedule()
+>
+> Why did this thread schedule here?
+>
+>> Thread 2:
+>> dax_fault
+>> -> nova_dax_get_blocks()
+>> ---> inode_lock() // deadlock
+>
+> It's just waiting on an inode_lock() to be released by another
+> thread. What resource is it holding locked that the first thread
+> needs to make progress?
+>
+>> If I remove invalidate_inode_pages2_range() in write path, xfstests
+>> 344 passed, but 428 will fail.
+>>
+>> It appears to me that ext2/ext4 does not have this issue because they
+>> don't persist metadata immediately and hence do not take inode lock.
+>
+> Did you realise that you can't take the inode->i_rwsem in the page
+> fault path (i.e. under the mmap_sem) because that's a known deadlock
+> vector against the read/write IO path?
+>
+> (i.e. you can use a mmap'd buffer over a range of the same file as
+> the data buffer for the IO, then take a page fault when trying to
+> copy data into/out of that buffer while holding the inode->i_rwsem)
+>
+>> But nova_dax_get_blocks() has to persist the metadata and needs to
+>> lock the inode to access the log. Is there a way to workaround this?
+>> Thank you very much.
+>
+> I'm pretty sure you don't want to use inode->i_rwsem for internal
+> metadata serialisation requirements. XFS uses xfs_inode->i_ilock for
+> this, ext4 uses a combination of other locks, etc, and it's done to
+> separate internal serialisation requirements from user data access
+> and VFS serialisation requirements...
+>
+
+Thank you. I have fixed the issue by using a different semaphore.
+
+Thanks,
+Andiry
+
+> Cheers,
+>
+> Dave.
+> --
+> Dave Chinner
+> david@fromorbit.com
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
