@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x243.google.com (mail-pf0-x243.google.com
+ [IPv6:2607:f8b0:400e:c00::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0EB621ED1C42
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 22:58:36 -0800 (PST)
-Subject: [PATCH v5 11/11] xfs, dax: introduce xfs_break_dax_layouts()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Mar 2018 22:55:48 -0800
-Message-ID: <152066494840.40260.6478694186268933246.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 0C0C122603AE1
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:39 -0800 (PST)
+Received: by mail-pf0-x243.google.com with SMTP id 17so2613917pfw.11
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:57 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 34/83] Journal: NOVA light weight journal definitions.
+Date: Sat, 10 Mar 2018 10:18:15 -0800
+Message-Id: <1520705944-6723-35-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,130 +20,122 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-xfs_break_dax_layouts(), similar to xfs_break_leased_layouts(), scans
-for busy / pinned dax pages and waits for those pages to go idle before
-any potential extent unmap operation.
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-dax_layout_busy_page() handles synchronizing against new page-busy
-events (get_user_pages). It invalidates all mappings to trigger the
-get_user_pages slow path which will eventually block on the xfs inode
-log held in XFS_MMAPLOCK_EXCL mode. If dax_layout_busy_page() finds a
-busy page it returns it for xfs to wait for the page-idle event that
-will fire when the page reference count reaches 1 (recall ZONE_DEVICE
-pages are idle at count 1). While waiting, the XFS_MMAPLOCK_EXCL lock is
-dropped in order to not deadlock the process that might be trying to
-elevate the page count of more pages before arranging for any of them to
-go idle. I.e. the typical case of submitting I/O is that
-iov_iter_get_pages() elevates the reference count of all pages in the
-I/O before starting I/O on the first page.
+NOVA uses per-CPU lite journals to provide fast atomicity guarantees
+for multi-log appending and multi-word inplace updates.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+NOVA uses undo journaling. Each journal is a circular buffer
+of 4KB pmem page. Two pointers, journal_head and journal_tail
+reside in the reserved journal block, and point to the journal page.
+If the two pointers are not equal, there are uncommitted transactions
+and NOVA recovers the data by replaying the journal entries.
+
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/xfs/xfs_file.c |   68 +++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 65 insertions(+), 3 deletions(-)
+ fs/nova/bbuild.c  |  1 +
+ fs/nova/journal.h | 43 +++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/log.c     |  1 +
+ fs/nova/super.c   |  1 +
+ 4 files changed, 46 insertions(+)
+ create mode 100644 fs/nova/journal.h
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index f914f0628dc2..3e7a69cebf95 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -752,6 +752,55 @@ xfs_file_write_iter(
- 	return ret;
- }
+diff --git a/fs/nova/bbuild.c b/fs/nova/bbuild.c
+index 66053cb..af1b352 100644
+--- a/fs/nova/bbuild.c
++++ b/fs/nova/bbuild.c
+@@ -25,6 +25,7 @@
+ #include <linux/random.h>
+ #include <linux/delay.h>
+ #include "nova.h"
++#include "journal.h"
+ #include "super.h"
+ #include "inode.h"
  
-+static int xfs_wait_dax_page(
-+		atomic_t                *count,
-+		unsigned int            mode)
+diff --git a/fs/nova/journal.h b/fs/nova/journal.h
+new file mode 100644
+index 0000000..d1d0ffb
+--- /dev/null
++++ b/fs/nova/journal.h
+@@ -0,0 +1,43 @@
++#ifndef __JOURNAL_H
++#define __JOURNAL_H
++
++#include <linux/types.h>
++#include <linux/fs.h>
++#include "nova.h"
++#include "super.h"
++
++
++/* ======================= Lite journal ========================= */
++
++#define NOVA_MAX_JOURNAL_LENGTH 128
++
++#define	JOURNAL_INODE	1
++#define	JOURNAL_ENTRY	2
++
++/* Lightweight journal entry */
++struct nova_lite_journal_entry {
++	__le64 type;       // JOURNAL_INODE or JOURNAL_ENTRY
++	__le64 data1;
++	__le64 data2;
++	__le32 padding;
++	__le32 csum;
++} __attribute((__packed__));
++
++/* Head and tail pointers into a circular queue of journal entries.  There's
++ * one of these per CPU.
++ */
++struct journal_ptr_pair {
++	__le64 journal_head;
++	__le64 journal_tail;
++};
++
++static inline
++struct journal_ptr_pair *nova_get_journal_pointers(struct super_block *sb,
++	int cpu)
 +{
-+	uint                    iolock = XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL;
-+	struct page             *page = refcount_to_page(count);
-+	struct address_space    *mapping = page->mapping;
-+	struct inode            *inode = mapping->host;
-+	struct xfs_inode        *ip = XFS_I(inode);
-+
-+	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL));
-+
-+	if (page_ref_count(page) == 1)
-+		return 0;
-+
-+	xfs_iunlock(ip, iolock);
-+	schedule();
-+	xfs_ilock(ip, iolock);
-+
-+	if (signal_pending_state(mode, current))
-+		return -EINTR;
-+	return 1;
++	return (struct journal_ptr_pair *)((char *)nova_get_block(sb,
++		NOVA_DEF_BLOCK_SIZE_4K * JOURNAL_START) + cpu * CACHELINE_SIZE);
 +}
 +
-+static int
-+xfs_break_dax_layouts(
-+	struct inode		*inode,
-+	uint			iolock)
-+{
-+	struct page		*page;
-+	int			ret;
 +
-+	page = dax_layout_busy_page(inode->i_mapping);
-+	if (!page)
-+		return 0;
-+
-+	ret = wait_on_atomic_one(&page->_refcount, xfs_wait_dax_page,
-+			TASK_INTERRUPTIBLE);
-+
-+	if (ret <= 0)
-+		return ret;
-+
-+	/*
-+	 * We slept, so need to retry. Yes, this assumes transient page
-+	 * pins.
-+	 */
-+	return -EBUSY;
-+}
-+
- int
- xfs_break_layouts(
- 	struct inode		*inode,
-@@ -765,12 +814,25 @@ xfs_break_layouts(
- 	if (flags & XFS_BREAK_REMOTE)
- 		iolock_assert |= XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL;
- 	if (flags & XFS_BREAK_MAPS)
--		iolock_assert |= XFS_MMAPLOCK_EXCL;
-+		iolock_assert |= XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL;
++#endif
+diff --git a/fs/nova/log.c b/fs/nova/log.c
+index bdd133e..f01b7c8 100644
+--- a/fs/nova/log.c
++++ b/fs/nova/log.c
+@@ -16,6 +16,7 @@
+  */
  
- 	ASSERT(xfs_isilocked(ip, iolock_assert));
+ #include "nova.h"
++#include "journal.h"
+ #include "inode.h"
+ #include "log.h"
  
--	if (flags & XFS_BREAK_REMOTE)
--		ret = xfs_break_leased_layouts(inode, iolock);
-+	do {
-+		if (flags & XFS_BREAK_REMOTE)
-+			ret = xfs_break_leased_layouts(inode, iolock);
-+		if (ret)
-+			return ret;
-+		if (flags & XFS_BREAK_MAPS)
-+			ret = xfs_break_dax_layouts(inode, *iolock);
-+		/*
-+		 * EBUSY indicates that we dropped locks and waited for
-+		 * the dax layout to be released. When that happens we
-+		 * need to revalidate that no new leases or pinned dax
-+		 * mappings have been established.
-+		 */
-+	} while (ret == -EBUSY);
-+
- 	return ret;
- }
+diff --git a/fs/nova/super.c b/fs/nova/super.c
+index c0427fd..d73c202 100644
+--- a/fs/nova/super.c
++++ b/fs/nova/super.c
+@@ -38,6 +38,7 @@
+ #include <linux/list.h>
+ #include <linux/dax.h>
+ #include "nova.h"
++#include "journal.h"
+ #include "super.h"
  
+ int measure_timing;
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
