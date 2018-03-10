@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg0-x242.google.com (mail-pg0-x242.google.com
+ [IPv6:2607:f8b0:400e:c05::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 82E7821ED1C42
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 22:58:30 -0800 (PST)
-Subject: [PATCH v5 10/11] xfs: prepare xfs_break_layouts() for another
- layout type
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Mar 2018 22:55:42 -0800
-Message-ID: <152066494277.40260.7360641938196726871.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 8092722603AE5
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:24 -0800 (PST)
+Received: by mail-pg0-x242.google.com with SMTP id e3so4833329pga.6
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:43 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 22/83] Inode log pages allocation and reclaimation.
+Date: Sat, 10 Mar 2018 10:18:03 -0800
+Message-Id: <1520705944-6723-23-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,260 +20,402 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-When xfs is operating as the back-end of a pNFS block server, it prevents
-collisions between local and remote operations by requiring a lease to
-be held for remotely accessed blocks. Local filesystem operations break
-those leases before writing or mutating the extent map of the file.
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-A similar mechanism is needed to prevent operations on pinned dax
-mappings, like device-DMA, from colliding with extent unmap operations.
+NOVA allocates one log page for each new inode. When the log is full,
+NOVA allocates new log pages, extends the log by either doubling the log size
+or increasing by fixed length, depends on log size.
 
-XFS_BREAK_REMOTE and XFS_BREAK_MAPS are introduced as flags to control
-the layouts that need to be broken by xfs_break_layouts(). While
-XFS_BREAK_REMOTE is invoked in all calls to the new xfs_break_layouts(),
-XFS_BREAK_MAPS only needs to specified when extents may be unmapped,
-i.e. xfs_file_fallocate() and xfs_ioc_space(). XFS_BREAK_MAPS also
-imposes the additional locking constraint of breaking (awaiting) pinned
-dax mappings while holding XFS_MMAPLOCK_EXCL.
-
-There is a small functional change in this rework. For the cases where
-XFS_BREAK_MAPS is specified to xfs_break_layouts(), the
-XFS_MMAPLOCK_EXCL ilock is held over the break_layouts() loop in
-xfs_break_leased_layouts().
-
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Dave Chinner <david@fromorbit.com>
-Reported-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/xfs/xfs_file.c  |   32 ++++++++++++++++++++++++++------
- fs/xfs/xfs_inode.h |    9 +++++++++
- fs/xfs/xfs_ioctl.c |    9 +++------
- fs/xfs/xfs_iops.c  |   12 +++++++-----
- fs/xfs/xfs_pnfs.c  |    8 +++-----
- fs/xfs/xfs_pnfs.h  |    4 ++--
- 6 files changed, 50 insertions(+), 24 deletions(-)
+ fs/nova/Makefile |   2 +-
+ fs/nova/log.c    | 327 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/log.h    |  11 ++
+ 3 files changed, 339 insertions(+), 1 deletion(-)
+ create mode 100644 fs/nova/log.c
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 9ea08326f876..f914f0628dc2 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -350,7 +350,7 @@ xfs_file_aio_write_checks(
- 	if (error <= 0)
- 		return error;
+diff --git a/fs/nova/Makefile b/fs/nova/Makefile
+index e2f7b07..b3638a4 100644
+--- a/fs/nova/Makefile
++++ b/fs/nova/Makefile
+@@ -4,4 +4,4 @@
  
--	error = xfs_break_layouts(inode, iolock);
-+	error = xfs_break_layouts(inode, iolock, XFS_BREAK_REMOTE);
- 	if (error)
- 		return error;
+ obj-$(CONFIG_NOVA_FS) += nova.o
  
-@@ -752,6 +752,28 @@ xfs_file_write_iter(
- 	return ret;
- }
- 
-+int
-+xfs_break_layouts(
-+	struct inode		*inode,
-+	uint			*iolock,
-+	unsigned long		flags)
+-nova-y := balloc.o bbuild.o inode.o rebuild.o stats.o super.o
++nova-y := balloc.o bbuild.o inode.o log.o rebuild.o stats.o super.o
+diff --git a/fs/nova/log.c b/fs/nova/log.c
+new file mode 100644
+index 0000000..bdd133e
+--- /dev/null
++++ b/fs/nova/log.c
+@@ -0,0 +1,327 @@
++/*
++ * BRIEF DESCRIPTION
++ *
++ * Log methods
++ *
++ * Copyright 2015-2016 Regents of the University of California,
++ * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
++ * Copyright 2012-2013 Intel Corporation
++ * Copyright 2009-2011 Marco Stornelli <marco.stornelli@gmail.com>
++ * Copyright 2003 Sony Corporation
++ * Copyright 2003 Matsushita Electric Industrial Co., Ltd.
++ * 2003-2004 (c) MontaVista Software, Inc. , Steve Longerbeam
++ * This file is licensed under the terms of the GNU General Public
++ * License version 2. This program is licensed "as is" without any
++ * warranty of any kind, whether express or implied.
++ */
++
++#include "nova.h"
++#include "inode.h"
++#include "log.h"
++
++/* Coalesce log pages to a singly linked list */
++static int nova_coalesce_log_pages(struct super_block *sb,
++	unsigned long prev_blocknr, unsigned long first_blocknr,
++	unsigned long num_pages)
 +{
-+	struct xfs_inode	*ip = XFS_I(inode);
-+	uint			iolock_assert = 0;
-+	int			ret = 0;
++	unsigned long next_blocknr;
++	u64 curr_block, next_page;
++	struct nova_inode_log_page *curr_page;
++	int i;
 +
-+	if (flags & XFS_BREAK_REMOTE)
-+		iolock_assert |= XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL;
-+	if (flags & XFS_BREAK_MAPS)
-+		iolock_assert |= XFS_MMAPLOCK_EXCL;
++	if (prev_blocknr) {
++		/* Link prev block and newly allocated head block */
++		curr_block = nova_get_block_off(sb, prev_blocknr,
++						NOVA_BLOCK_TYPE_4K);
++		curr_page = (struct nova_inode_log_page *)
++				nova_get_block(sb, curr_block);
++		next_page = nova_get_block_off(sb, first_blocknr,
++				NOVA_BLOCK_TYPE_4K);
++		nova_set_next_page_address(sb, curr_page, next_page, 0);
++	}
 +
-+	ASSERT(xfs_isilocked(ip, iolock_assert));
++	next_blocknr = first_blocknr + 1;
++	curr_block = nova_get_block_off(sb, first_blocknr,
++						NOVA_BLOCK_TYPE_4K);
++	curr_page = (struct nova_inode_log_page *)
++				nova_get_block(sb, curr_block);
++	for (i = 0; i < num_pages - 1; i++) {
++		next_page = nova_get_block_off(sb, next_blocknr,
++				NOVA_BLOCK_TYPE_4K);
++		nova_set_page_num_entries(sb, curr_page, 0, 0);
++		nova_set_page_invalid_entries(sb, curr_page, 0, 0);
++		nova_set_next_page_address(sb, curr_page, next_page, 0);
++		curr_page++;
++		next_blocknr++;
++	}
 +
-+	if (flags & XFS_BREAK_REMOTE)
-+		ret = xfs_break_leased_layouts(inode, iolock);
-+	return ret;
++	/* Last page */
++	nova_set_page_num_entries(sb, curr_page, 0, 0);
++	nova_set_page_invalid_entries(sb, curr_page, 0, 0);
++	nova_set_next_page_address(sb, curr_page, 0, 1);
++	return 0;
 +}
 +
- #define	XFS_FALLOC_FL_SUPPORTED						\
- 		(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |		\
- 		 FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_ZERO_RANGE |	\
-@@ -768,7 +790,7 @@ xfs_file_fallocate(
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	long			error;
- 	enum xfs_prealloc_flags	flags = 0;
--	uint			iolock = XFS_IOLOCK_EXCL;
-+	uint			iolock = XFS_IOLOCK_EXCL|XFS_MMAPLOCK_EXCL;
- 	loff_t			new_size = 0;
- 	bool			do_file_insert = false;
- 
-@@ -778,13 +800,11 @@ xfs_file_fallocate(
- 		return -EOPNOTSUPP;
- 
- 	xfs_ilock(ip, iolock);
--	error = xfs_break_layouts(inode, &iolock);
-+	error = xfs_break_layouts(inode, &iolock,
-+			XFS_BREAK_REMOTE | XFS_BREAK_MAPS);
- 	if (error)
- 		goto out_unlock;
- 
--	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
--	iolock |= XFS_MMAPLOCK_EXCL;
--
- 	if (mode & FALLOC_FL_PUNCH_HOLE) {
- 		error = xfs_free_file_space(ip, offset, len);
- 		if (error)
-diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
-index 3e8dc990d41c..9b73ceb09cb1 100644
---- a/fs/xfs/xfs_inode.h
-+++ b/fs/xfs/xfs_inode.h
-@@ -379,6 +379,12 @@ static inline void xfs_ifunlock(struct xfs_inode *ip)
- 					>> XFS_ILOCK_SHIFT)
- 
- /*
-+ * Flags for layout breaks
-+ */
-+#define XFS_BREAK_REMOTE (1<<0) /* break remote layout leases */
-+#define XFS_BREAK_MAPS   (1<<1) /* break local direct (dax) mappings */
++/* Log block resides in NVMM */
++int nova_allocate_inode_log_pages(struct super_block *sb,
++	struct nova_inode_info_header *sih, unsigned long num_pages,
++	u64 *new_block, int cpuid, enum nova_alloc_direction from_tail)
++{
++	unsigned long new_inode_blocknr;
++	unsigned long first_blocknr;
++	unsigned long prev_blocknr;
++	int allocated;
++	int ret_pages = 0;
++
++	allocated = nova_new_log_blocks(sb, sih, &new_inode_blocknr,
++			num_pages, ALLOC_NO_INIT, cpuid, from_tail);
++
++	if (allocated <= 0) {
++		nova_err(sb, "ERROR: no inode log page available: %d %d\n",
++			num_pages, allocated);
++		return allocated;
++	}
++	ret_pages += allocated;
++	num_pages -= allocated;
++	nova_dbg_verbose("Pi %lu: Alloc %d log blocks @ 0x%lx\n",
++			sih->ino, allocated, new_inode_blocknr);
++
++	/* Coalesce the pages */
++	nova_coalesce_log_pages(sb, 0, new_inode_blocknr, allocated);
++	first_blocknr = new_inode_blocknr;
++	prev_blocknr = new_inode_blocknr + allocated - 1;
++
++	/* Allocate remaining pages */
++	while (num_pages) {
++		allocated = nova_new_log_blocks(sb, sih,
++					&new_inode_blocknr, num_pages,
++					ALLOC_NO_INIT, cpuid, from_tail);
++
++		nova_dbg_verbose("Alloc %d log blocks @ 0x%lx\n",
++					allocated, new_inode_blocknr);
++		if (allocated <= 0) {
++			nova_dbg("%s: no inode log page available: %lu %d\n",
++				__func__, num_pages, allocated);
++			/* Return whatever we have */
++			break;
++		}
++		ret_pages += allocated;
++		num_pages -= allocated;
++		nova_coalesce_log_pages(sb, prev_blocknr, new_inode_blocknr,
++						allocated);
++		prev_blocknr = new_inode_blocknr + allocated - 1;
++	}
++
++	*new_block = nova_get_block_off(sb, first_blocknr,
++						NOVA_BLOCK_TYPE_4K);
++
++	return ret_pages;
++}
++
++static int nova_initialize_inode_log(struct super_block *sb,
++	struct nova_inode *pi, struct nova_inode_info_header *sih,
++	int log_id)
++{
++	u64 new_block;
++	int allocated;
++
++	allocated = nova_allocate_inode_log_pages(sb, sih,
++					1, &new_block, ANY_CPU,
++					log_id == MAIN_LOG ? 0 : 1);
++	if (allocated != 1) {
++		nova_err(sb, "%s ERROR: no inode log page available\n",
++					__func__);
++		return -ENOSPC;
++	}
++
++	pi->log_tail = new_block;
++	nova_flush_buffer(&pi->log_tail, CACHELINE_SIZE, 0);
++	pi->log_head = new_block;
++	sih->log_head = sih->log_tail = new_block;
++	sih->log_pages = 1;
++	nova_flush_buffer(&pi->log_head, CACHELINE_SIZE, 1);
++
++	return 0;
++}
 +
 +/*
-  * For multiple groups support: if S_ISGID bit is set in the parent
-  * directory, group of new file is set to that of the parent, and
-  * new subdirectory gets S_ISGID bit from parent.
-@@ -447,6 +453,9 @@ int	xfs_zero_eof(struct xfs_inode *ip, xfs_off_t offset,
- 		     xfs_fsize_t isize, bool *did_zeroing);
- int	xfs_zero_range(struct xfs_inode *ip, xfs_off_t pos, xfs_off_t count,
- 		bool *did_zero);
-+int	xfs_break_layouts(struct inode *inode, uint *iolock,
-+		unsigned long flags);
++ * Extend the log.  If the log is less than EXTEND_THRESHOLD pages, double its
++ * allocated size.  Otherwise, increase by EXTEND_THRESHOLD. Then, do GC.
++ */
++static u64 nova_extend_inode_log(struct super_block *sb, struct nova_inode *pi,
++	struct nova_inode_info_header *sih, u64 curr_p)
++{
++	u64 new_block = 0;
++	int allocated;
++	unsigned long num_pages;
++	int ret;
 +
- 
- /* from xfs_iops.c */
- extern void xfs_setup_inode(struct xfs_inode *ip);
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 89fb1eb80aae..31288d900c8a 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -39,7 +39,6 @@
- #include "xfs_icache.h"
- #include "xfs_symlink.h"
- #include "xfs_trans.h"
--#include "xfs_pnfs.h"
- #include "xfs_acl.h"
- #include "xfs_btree.h"
- #include <linux/fsmap.h>
-@@ -614,7 +613,7 @@ xfs_ioc_space(
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	struct iattr		iattr;
- 	enum xfs_prealloc_flags	flags = 0;
--	uint			iolock = XFS_IOLOCK_EXCL;
-+	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
- 	int			error;
- 
- 	/*
-@@ -644,13 +643,11 @@ xfs_ioc_space(
- 		return error;
- 
- 	xfs_ilock(ip, iolock);
--	error = xfs_break_layouts(inode, &iolock);
-+	error = xfs_break_layouts(inode, &iolock,
-+			XFS_BREAK_REMOTE | XFS_BREAK_MAPS);
- 	if (error)
- 		goto out_unlock;
- 
--	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
--	iolock |= XFS_MMAPLOCK_EXCL;
--
- 	switch (bf->l_whence) {
- 	case 0: /*SEEK_SET*/
- 		break;
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 951e84df5576..15a1c7c874d9 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -37,7 +37,6 @@
- #include "xfs_da_btree.h"
- #include "xfs_dir2.h"
- #include "xfs_trans_space.h"
--#include "xfs_pnfs.h"
- #include "xfs_iomap.h"
- 
- #include <linux/capability.h>
-@@ -1030,11 +1029,14 @@ xfs_vn_setattr(
- 		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
- 		uint			iolock = XFS_IOLOCK_EXCL;
- 
--		error = xfs_break_layouts(d_inode(dentry), &iolock);
--		if (error)
--			return error;
--
- 		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
-+		error = xfs_break_layouts(d_inode(dentry), &iolock,
-+				XFS_BREAK_REMOTE | XFS_BREAK_MAPS);
++	nova_dbgv("%s: inode %lu, curr 0x%llx\n", __func__, sih->ino, curr_p);
 +
-+		if (error) {
-+			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
-+			return error;
++	if (curr_p == 0) {
++		ret = nova_initialize_inode_log(sb, pi, sih, MAIN_LOG);
++		if (ret)
++			return 0;
++
++		return sih->log_head;
++	}
++
++	num_pages = sih->log_pages >= EXTEND_THRESHOLD ?
++				EXTEND_THRESHOLD : sih->log_pages;
++
++	allocated = nova_allocate_inode_log_pages(sb, sih,
++					num_pages, &new_block, ANY_CPU, 0);
++	nova_dbg_verbose("Link block %llu to block %llu\n",
++					curr_p >> PAGE_SHIFT,
++					new_block >> PAGE_SHIFT);
++	if (allocated <= 0) {
++		nova_err(sb, "%s ERROR: no inode log page available\n",
++					__func__);
++		nova_dbg("curr_p 0x%llx, %lu pages\n", curr_p,
++					sih->log_pages);
++		return 0;
++	}
++
++	/* Perform GC */
++	return new_block;
++}
++
++/* For thorough GC, simply append one more page */
++static u64 nova_append_one_log_page(struct super_block *sb,
++	struct nova_inode_info_header *sih, u64 curr_p)
++{
++	struct nova_inode_log_page *curr_page;
++	u64 new_block;
++	u64 curr_block;
++	int allocated;
++
++	allocated = nova_allocate_inode_log_pages(sb, sih, 1, &new_block,
++							ANY_CPU, 0);
++	if (allocated != 1) {
++		nova_err(sb, "%s: ERROR: no inode log page available\n",
++				__func__);
++		return 0;
++	}
++
++	if (curr_p == 0) {
++		curr_p = new_block;
++	} else {
++		/* Link prev block and newly allocated head block */
++		curr_block = BLOCK_OFF(curr_p);
++		curr_page = (struct nova_inode_log_page *)
++				nova_get_block(sb, curr_block);
++		nova_set_next_page_address(sb, curr_page, new_block, 1);
++	}
++
++	return curr_p;
++}
++
++/* Get the append location. Extent the log if needed. */
++u64 nova_get_append_head(struct super_block *sb, struct nova_inode *pi,
++	struct nova_inode_info_header *sih, u64 tail, size_t size, int log_id,
++	int thorough_gc, int *extended)
++{
++	u64 curr_p;
++
++	if (tail)
++		curr_p = tail;
++	else
++		curr_p = sih->log_tail;
++
++	if (curr_p == 0 || (is_last_entry(curr_p, size) &&
++				next_log_page(sb, curr_p) == 0)) {
++		if (is_last_entry(curr_p, size)) {
++			nova_set_next_page_flag(sb, curr_p);
 +		}
- 		error = xfs_vn_setattr_size(dentry, iattr);
- 		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
- 	} else {
-diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
-index aa6c5c193f45..ed13c9baffff 100644
---- a/fs/xfs/xfs_pnfs.c
-+++ b/fs/xfs/xfs_pnfs.c
-@@ -31,15 +31,13 @@
-  * rules in the page fault path we don't bother.
-  */
- int
--xfs_break_layouts(
-+xfs_break_leased_layouts(
- 	struct inode		*inode,
- 	uint			*iolock)
- {
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	int			error;
++
++		/* Alternate log should not go here */
++		if (log_id != MAIN_LOG)
++			return 0;
++
++		if (thorough_gc == 0) {
++			curr_p = nova_extend_inode_log(sb, pi, sih, curr_p);
++		} else {
++			curr_p = nova_append_one_log_page(sb, sih, curr_p);
++			/* For thorough GC */
++			*extended = 1;
++		}
++
++		if (curr_p == 0)
++			return 0;
++	}
++
++	if (is_last_entry(curr_p, size)) {
++		nova_set_next_page_flag(sb, curr_p);
++		curr_p = next_log_page(sb, curr_p);
++	}
++
++	return curr_p;
++}
++
++int nova_free_contiguous_log_blocks(struct super_block *sb,
++	struct nova_inode_info_header *sih, u64 head)
++{
++	unsigned long blocknr, start_blocknr = 0;
++	u64 curr_block = head;
++	u8 btype = sih->i_blk_type;
++	int num_free = 0;
++	int freed = 0;
++
++	while (curr_block > 0) {
++		if (ENTRY_LOC(curr_block)) {
++			nova_dbg("%s: ERROR: invalid block %llu\n",
++					__func__, curr_block);
++			break;
++		}
++
++		blocknr = nova_get_blocknr(sb, le64_to_cpu(curr_block),
++				    btype);
++		nova_dbg_verbose("%s: free page %llu\n", __func__, curr_block);
++		curr_block = next_log_page(sb, curr_block);
++
++		if (start_blocknr == 0) {
++			start_blocknr = blocknr;
++			num_free = 1;
++		} else {
++			if (blocknr == start_blocknr + num_free) {
++				num_free++;
++			} else {
++				/* A new start */
++				nova_free_log_blocks(sb, sih, start_blocknr,
++							num_free);
++				freed += num_free;
++				start_blocknr = blocknr;
++				num_free = 1;
++			}
++		}
++	}
++	if (start_blocknr) {
++		nova_free_log_blocks(sb, sih, start_blocknr, num_free);
++		freed += num_free;
++	}
++
++	return freed;
++}
++
++int nova_free_inode_log(struct super_block *sb, struct nova_inode *pi,
++	struct nova_inode_info_header *sih)
++{
++	int freed = 0;
++	timing_t free_time;
++
++	if (sih->log_head == 0 || sih->log_tail == 0)
++		return 0;
++
++	NOVA_START_TIMING(free_inode_log_t, free_time);
++
++	/* The inode is invalid now, no need to fence */
++	if (pi) {
++		pi->log_head = pi->log_tail = 0;
++		nova_flush_buffer(&pi->log_head, CACHELINE_SIZE, 0);
++	}
++
++	freed = nova_free_contiguous_log_blocks(sb, sih, sih->log_head);
++
++	NOVA_END_TIMING(free_inode_log_t, free_time);
++	return 0;
++}
+diff --git a/fs/nova/log.h b/fs/nova/log.h
+index 61586a3..2bc131f 100644
+--- a/fs/nova/log.h
++++ b/fs/nova/log.h
+@@ -35,6 +35,7 @@ struct	nova_inode_log_page {
+ 	struct nova_inode_page_tail page_tail;
+ } __attribute((__packed__));
  
--	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
--
- 	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
- 		xfs_iunlock(ip, *iolock);
- 		error = break_layout(inode, true);
-@@ -120,8 +118,8 @@ xfs_fs_map_blocks(
- 	 * Lock out any other I/O before we flush and invalidate the pagecache,
- 	 * and then hand out a layout to the remote system.  This is very
- 	 * similar to direct I/O, except that the synchronization is much more
--	 * complicated.  See the comment near xfs_break_layouts for a detailed
--	 * explanation.
-+	 * complicated.  See the comment near xfs_break_leased_layouts
-+	 * for a detailed explanation.
- 	 */
- 	xfs_ilock(ip, XFS_IOLOCK_EXCL);
++#define	EXTEND_THRESHOLD	256
  
-diff --git a/fs/xfs/xfs_pnfs.h b/fs/xfs/xfs_pnfs.h
-index bf45951e28fe..12f46fe6d902 100644
---- a/fs/xfs/xfs_pnfs.h
-+++ b/fs/xfs/xfs_pnfs.h
-@@ -9,10 +9,10 @@ int xfs_fs_map_blocks(struct inode *inode, loff_t offset, u64 length,
- int xfs_fs_commit_blocks(struct inode *inode, struct iomap *maps, int nr_maps,
- 		struct iattr *iattr);
- 
--int xfs_break_layouts(struct inode *inode, uint *iolock);
-+int xfs_break_leased_layouts(struct inode *inode, uint *iolock);
- #else
- static inline int
--xfs_break_layouts(struct inode *inode, uint *iolock)
-+xfs_break_leased_layouts(struct inode *inode, uint *iolock)
- {
- 	return 0;
+ enum nova_entry_type {
+ 	FILE_WRITE = 1,
+@@ -183,5 +184,15 @@ static inline bool goto_next_page(struct super_block *sb, u64 curr_p)
  }
+ 
+ 
++int nova_allocate_inode_log_pages(struct super_block *sb,
++	struct nova_inode_info_header *sih, unsigned long num_pages,
++	u64 *new_block, int cpuid, enum nova_alloc_direction from_tail);
++u64 nova_get_append_head(struct super_block *sb, struct nova_inode *pi,
++	struct nova_inode_info_header *sih, u64 tail, size_t size, int log_id,
++	int thorough_gc, int *extended);
++int nova_free_contiguous_log_blocks(struct super_block *sb,
++	struct nova_inode_info_header *sih, u64 head);
++int nova_free_inode_log(struct super_block *sb, struct nova_inode *pi,
++	struct nova_inode_info_header *sih);
+ 
+ #endif
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
