@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl0-x244.google.com (mail-pl0-x244.google.com
+ [IPv6:2607:f8b0:400e:c01::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5C68C224DD140
- for <linux-nvdimm@lists.01.org>; Thu, 29 Mar 2018 15:30:34 -0700 (PDT)
-Subject: [PATCH 2/4] acpi/libnvdimm: search through BERT records and add to
- nvdimm badblocks
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 29 Mar 2018 15:37:13 -0700
-Message-ID: <152236303313.35558.14974025959641773033.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152236282506.35558.2067249639136170490.stgit@djiang5-desk3.ch.intel.com>
-References: <152236282506.35558.2067249639136170490.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 82AAF2258AF15
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:48 -0800 (PST)
+Received: by mail-pl0-x244.google.com with SMTP id m22-v6so7032557pls.5
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:07 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 42/83] Log operation: link change append.
+Date: Sat, 10 Mar 2018 10:18:23 -0800
+Message-Id: <1520705944-6723-43-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,94 +20,119 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, tony.luck@intel.com, rjw@rjwysocki.net, lenb@kernel.org, linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-To avoid hitting bad address in nvdimm from previous boot, we will search
-through the BERT records to find the matching address and add them to the
-nvdimm_bus badblocks.
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+NOVA appends link change entries to atomically update link count and ctime.
+This occurs in link, unlink and rmdir.
+
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- drivers/acpi/nfit/core.c  |   22 ++++++++++++++++++++++
- drivers/nvdimm/core.c     |    6 ++++++
- include/linux/libnvdimm.h |    1 +
- 3 files changed, 29 insertions(+)
+ fs/nova/log.c | 52 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nova/log.h |  3 +++
+ 2 files changed, 55 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index bbe48ad20886..3e3b95298a21 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2639,6 +2639,15 @@ static bool nfit_spa_is_volatile(struct acpi_nfit_system_address *spa)
- 		nfit_spa_type(spa) == NFIT_SPA_VOLATILE);
+diff --git a/fs/nova/log.c b/fs/nova/log.c
+index f85b63e..4638ccf 100644
+--- a/fs/nova/log.c
++++ b/fs/nova/log.c
+@@ -51,6 +51,25 @@ static void nova_update_setattr_entry(struct inode *inode,
+ 	nova_persist_entry(entry);
  }
  
-+static void acpi_nfit_bert_callback(void *data, u64 addr, u64 len)
++static void nova_update_link_change_entry(struct inode *inode,
++	struct nova_link_change_entry *entry,
++	struct nova_log_entry_info *entry_info)
 +{
-+	struct nd_region *nd_region = (struct nd_region *)data;
-+	struct nvdimm_bus *nvdimm_bus = nvdimm_region_to_bus(nd_region);
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
 +
-+	nvdimm_bus_add_badrange(nvdimm_bus, ALIGN(addr, L1_CACHE_BYTES), len);
-+	nvdimm_region_notify(nd_region, NVDIMM_REVALIDATE_POISON);
++	entry->entry_type	= LINK_CHANGE;
++	entry->epoch_id		= cpu_to_le64(entry_info->epoch_id);
++	entry->trans_id		= cpu_to_le64(entry_info->trans_id);
++	entry->invalid		= 0;
++	entry->links		= cpu_to_le16(inode->i_nlink);
++	entry->ctime		= cpu_to_le32(inode->i_ctime.tv_sec);
++	entry->flags		= cpu_to_le32(sih->i_flags);
++	entry->generation	= cpu_to_le32(inode->i_generation);
++
++	nova_persist_entry(entry);
 +}
 +
- static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_spa *nfit_spa)
- {
-@@ -2735,6 +2744,19 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 	if (rc)
- 		dev_err(acpi_desc->dev, "failed to register spa range %d\n",
- 				nfit_spa->spa->range_index);
+ static int nova_update_write_entry(struct super_block *sb,
+ 	struct nova_file_write_entry *entry,
+ 	struct nova_log_entry_info *entry_info)
+@@ -150,6 +169,7 @@ static int nova_update_log_entry(struct super_block *sb, struct inode *inode,
+ 		nova_update_setattr_entry(inode, entry, entry_info);
+ 		break;
+ 	case LINK_CHANGE:
++		nova_update_link_change_entry(inode, entry, entry_info);
+ 		break;
+ 	default:
+ 		break;
+@@ -230,6 +250,38 @@ static int nova_append_setattr_entry(struct super_block *sb,
+ 	return ret;
+ }
+ 
++/* Returns new tail after append */
++int nova_append_link_change_entry(struct super_block *sb,
++	struct nova_inode *pi, struct inode *inode,
++	struct nova_inode_update *update, u64 *old_linkc, u64 epoch_id)
++{
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++	struct nova_log_entry_info entry_info;
++	int ret = 0;
++	timing_t append_time;
 +
-+	/* If we have a region, we can check the BERT */
-+	if (nfit_spa->nd_region) {
-+		int count = bert_find_mem_error_record(
-+				acpi_nfit_bert_callback,
-+				(void *)nfit_spa->nd_region, spa->address,
-+				spa->length);
++	NOVA_START_TIMING(append_link_change_t, append_time);
 +
-+		if (count > 0)
-+			dev_dbg(acpi_desc->dev, "%d BERT records added\n",
-+					count);
++	entry_info.type = LINK_CHANGE;
++	entry_info.update = update;
++	entry_info.epoch_id = epoch_id;
++	entry_info.trans_id = sih->trans_id;
++
++	ret = nova_append_log_entry(sb, pi, inode, sih, &entry_info);
++	if (ret) {
++		nova_err(sb, "%s failed\n", __func__);
++		goto out;
 +	}
 +
- 	return rc;
++	*old_linkc = sih->last_link_change;
++	sih->last_link_change = entry_info.curr_p;
++	sih->trans_id++;
++out:
++	NOVA_END_TIMING(append_link_change_t, append_time);
++	return ret;
++}
++
+ /*
+  * Append a nova_file_write_entry to the current nova_inode_log_page.
+  * blocknr and start_blk are pgoff.
+diff --git a/fs/nova/log.h b/fs/nova/log.h
+index db7a72e..f36f4a3 100644
+--- a/fs/nova/log.h
++++ b/fs/nova/log.h
+@@ -364,6 +364,9 @@ static inline int is_dir_init_entry(struct super_block *sb,
  }
  
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 1dc527660637..7dbdb80e72be 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -27,6 +27,12 @@
- LIST_HEAD(nvdimm_bus_list);
- DEFINE_MUTEX(nvdimm_bus_list_mutex);
  
-+struct nvdimm_bus *nvdimm_region_to_bus(struct nd_region *nd_region)
-+{
-+	return walk_to_nvdimm_bus(&nd_region->dev);
-+}
-+EXPORT_SYMBOL(nvdimm_region_to_bus);
-+
- void nvdimm_bus_lock(struct device *dev)
- {
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index ff855ed965fb..0c3cb02e5706 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -200,6 +200,7 @@ u64 nd_fletcher64(void *addr, size_t len, bool le);
- void nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
-+struct nvdimm_bus *nvdimm_region_to_bus(struct nd_region *nd_region);
- 
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- #define ARCH_MEMREMAP_PMEM MEMREMAP_WB
++int nova_append_link_change_entry(struct super_block *sb,
++	struct nova_inode *pi, struct inode *inode,
++	struct nova_inode_update *update, u64 *old_linkc, u64 epoch_id);
+ int nova_append_file_write_entry(struct super_block *sb, struct nova_inode *pi,
+ 	struct inode *inode, struct nova_file_write_item *item,
+ 	struct nova_inode_update *update);
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
