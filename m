@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg0-x243.google.com (mail-pg0-x243.google.com
+ [IPv6:2607:f8b0:400e:c05::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3399E20954BBD
- for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 16:00:17 -0700 (PDT)
-Subject: [PATCH v7 06/14] ext2, dax: introduce ext2_dax_aops
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 21 Mar 2018 15:57:43 -0700
-Message-ID: <152167306296.5268.6656046711107190095.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 4B3FE2258AEF8
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:18 -0800 (PST)
+Received: by mail-pg0-x243.google.com with SMTP id x2so695637pgo.9
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:37 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 17/83] Add statfs support.
+Date: Sat, 10 Mar 2018 10:17:58 -0800
+Message-Id: <1520705944-6723-18-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,154 +20,101 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, kbuild test robot <lkp@intel.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Otherwise, direct-I/O
-triggers incorrect page cache assumptions and warnings.
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-Cc: Jan Kara <jack@suse.com>
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/ext2/ext2.h  |    1 +
- fs/ext2/inode.c |   43 +++++++++++++++++++++++++++----------------
- fs/ext2/namei.c |   18 ++----------------
- 3 files changed, 30 insertions(+), 32 deletions(-)
+ fs/nova/balloc.c | 18 ++++++++++++++++++
+ fs/nova/balloc.h |  1 +
+ fs/nova/super.c  | 19 +++++++++++++++++++
+ 3 files changed, 38 insertions(+)
 
-diff --git a/fs/ext2/ext2.h b/fs/ext2/ext2.h
-index 032295e1d386..cc40802ddfa8 100644
---- a/fs/ext2/ext2.h
-+++ b/fs/ext2/ext2.h
-@@ -814,6 +814,7 @@ extern const struct inode_operations ext2_file_inode_operations;
- extern const struct file_operations ext2_file_operations;
+diff --git a/fs/nova/balloc.c b/fs/nova/balloc.c
+index cb627db..0742fe0 100644
+--- a/fs/nova/balloc.c
++++ b/fs/nova/balloc.c
+@@ -217,3 +217,21 @@ inline int nova_insert_blocktree(struct nova_sb_info *sbi,
  
- /* inode.c */
-+extern void ext2_set_file_ops(struct inode *inode);
- extern const struct address_space_operations ext2_aops;
- extern const struct address_space_operations ext2_nobh_aops;
- extern const struct iomap_ops ext2_iomap_ops;
-diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-index 9b2ac55ac34f..8ea394c8ffce 100644
---- a/fs/ext2/inode.c
-+++ b/fs/ext2/inode.c
-@@ -952,17 +952,16 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
- static int
- ext2_writepages(struct address_space *mapping, struct writeback_control *wbc)
- {
--#ifdef CONFIG_FS_DAX
--	if (dax_mapping(mapping)) {
--		return dax_writeback_mapping_range(mapping,
--						   mapping->host->i_sb->s_bdev,
--						   wbc);
--	}
--#endif
--
- 	return mpage_writepages(mapping, wbc, ext2_get_block);
+ 	return ret;
  }
- 
-+static int
-+ext2_dax_writepages(struct address_space *mapping, struct writeback_control *wbc)
++
++/* We do not take locks so it's inaccurate */
++unsigned long nova_count_free_blocks(struct super_block *sb)
 +{
-+	return dax_writeback_mapping_range(mapping,
-+			mapping->host->i_sb->s_bdev, wbc);
++	struct nova_sb_info *sbi = NOVA_SB(sb);
++	struct free_list *free_list;
++	unsigned long num_free_blocks = 0;
++	int i;
++
++	for (i = 0; i < sbi->cpus; i++) {
++		free_list = nova_get_free_list(sb, i);
++		num_free_blocks += free_list->num_free_blocks;
++	}
++
++	return num_free_blocks;
 +}
 +
- const struct address_space_operations ext2_aops = {
- 	.readpage		= ext2_readpage,
- 	.readpages		= ext2_readpages,
-@@ -990,6 +989,13 @@ const struct address_space_operations ext2_nobh_aops = {
- 	.error_remove_page	= generic_error_remove_page,
++
+diff --git a/fs/nova/balloc.h b/fs/nova/balloc.h
+index 57a93e4..537532e 100644
+--- a/fs/nova/balloc.h
++++ b/fs/nova/balloc.h
+@@ -66,6 +66,7 @@ inline struct nova_range_node *nova_alloc_blocknode(struct super_block *sb);
+ inline void nova_free_blocknode(struct super_block *sb,
+ 	struct nova_range_node *bnode);
+ extern void nova_init_blockmap(struct super_block *sb, int recovery);
++extern unsigned long nova_count_free_blocks(struct super_block *sb);
+ inline int nova_insert_blocktree(struct nova_sb_info *sbi,
+ 	struct rb_root *tree, struct nova_range_node *new_node);
+ 
+diff --git a/fs/nova/super.c b/fs/nova/super.c
+index 9762f26..3500d19 100644
+--- a/fs/nova/super.c
++++ b/fs/nova/super.c
+@@ -629,6 +629,24 @@ static int nova_fill_super(struct super_block *sb, void *data, int silent)
+ 	return retval;
+ }
+ 
++static int nova_statfs(struct dentry *d, struct kstatfs *buf)
++{
++	struct super_block *sb = d->d_sb;
++	struct nova_sb_info *sbi = (struct nova_sb_info *)sb->s_fs_info;
++
++	buf->f_type = NOVA_SUPER_MAGIC;
++	buf->f_bsize = sb->s_blocksize;
++
++	buf->f_blocks = sbi->num_blocks;
++	buf->f_bfree = buf->f_bavail = nova_count_free_blocks(sb);
++	buf->f_files = LONG_MAX;
++	buf->f_ffree = LONG_MAX - sbi->s_inodes_used_count;
++	buf->f_namelen = NOVA_NAME_LEN;
++	nova_dbg_verbose("nova_stats: total 4k free blocks 0x%llx\n",
++		buf->f_bfree);
++	return 0;
++}
++
+ static int nova_show_options(struct seq_file *seq, struct dentry *root)
+ {
+ 	struct nova_sb_info *sbi = NOVA_SB(root->d_sb);
+@@ -794,6 +812,7 @@ static struct super_operations nova_sops = {
+ 	.alloc_inode	= nova_alloc_inode,
+ 	.destroy_inode	= nova_destroy_inode,
+ 	.put_super	= nova_put_super,
++	.statfs		= nova_statfs,
+ 	.remount_fs	= nova_remount,
+ 	.show_options	= nova_show_options,
  };
- 
-+static const struct address_space_operations ext2_dax_aops = {
-+	.direct_IO		= ext2_direct_IO,
-+	.writepages		= ext2_dax_writepages,
-+	.set_page_dirty		= noop_set_page_dirty,
-+	.invalidatepage		= noop_invalidatepage,
-+};
-+
- /*
-  * Probably it should be a library function... search for first non-zero word
-  * or memcmp with zero_page, whatever is better for particular architecture.
-@@ -1388,6 +1394,18 @@ void ext2_set_inode_flags(struct inode *inode)
- 		inode->i_flags |= S_DAX;
- }
- 
-+void ext2_set_file_ops(struct inode *inode)
-+{
-+	inode->i_op = &ext2_file_inode_operations;
-+	inode->i_fop = &ext2_file_operations;
-+	if (IS_DAX(inode))
-+		inode->i_mapping->a_ops = &ext2_dax_aops;
-+	else if (test_opt(inode->i_sb, NOBH))
-+		inode->i_mapping->a_ops = &ext2_nobh_aops;
-+	else
-+		inode->i_mapping->a_ops = &ext2_aops;
-+}
-+
- struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
- {
- 	struct ext2_inode_info *ei;
-@@ -1480,14 +1498,7 @@ struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
- 		ei->i_data[n] = raw_inode->i_block[n];
- 
- 	if (S_ISREG(inode->i_mode)) {
--		inode->i_op = &ext2_file_inode_operations;
--		if (test_opt(inode->i_sb, NOBH)) {
--			inode->i_mapping->a_ops = &ext2_nobh_aops;
--			inode->i_fop = &ext2_file_operations;
--		} else {
--			inode->i_mapping->a_ops = &ext2_aops;
--			inode->i_fop = &ext2_file_operations;
--		}
-+		ext2_set_file_ops(inode);
- 	} else if (S_ISDIR(inode->i_mode)) {
- 		inode->i_op = &ext2_dir_inode_operations;
- 		inode->i_fop = &ext2_dir_operations;
-diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
-index e078075dc66f..55f7caadb093 100644
---- a/fs/ext2/namei.c
-+++ b/fs/ext2/namei.c
-@@ -107,14 +107,7 @@ static int ext2_create (struct inode * dir, struct dentry * dentry, umode_t mode
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
- 
--	inode->i_op = &ext2_file_inode_operations;
--	if (test_opt(inode->i_sb, NOBH)) {
--		inode->i_mapping->a_ops = &ext2_nobh_aops;
--		inode->i_fop = &ext2_file_operations;
--	} else {
--		inode->i_mapping->a_ops = &ext2_aops;
--		inode->i_fop = &ext2_file_operations;
--	}
-+	ext2_set_file_ops(inode);
- 	mark_inode_dirty(inode);
- 	return ext2_add_nondir(dentry, inode);
- }
-@@ -125,14 +118,7 @@ static int ext2_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
- 
--	inode->i_op = &ext2_file_inode_operations;
--	if (test_opt(inode->i_sb, NOBH)) {
--		inode->i_mapping->a_ops = &ext2_nobh_aops;
--		inode->i_fop = &ext2_file_operations;
--	} else {
--		inode->i_mapping->a_ops = &ext2_aops;
--		inode->i_fop = &ext2_file_operations;
--	}
-+	ext2_set_file_ops(inode);
- 	mark_inode_dirty(inode);
- 	d_tmpfile(dentry, inode);
- 	unlock_new_inode(inode);
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
