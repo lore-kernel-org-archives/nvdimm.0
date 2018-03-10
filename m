@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl0-x241.google.com (mail-pl0-x241.google.com
+ [IPv6:2607:f8b0:400e:c01::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CC7B4224488BE
- for <linux-nvdimm@lists.01.org>; Mon, 12 Mar 2018 11:18:10 -0700 (PDT)
-From: Tony Luck <tony.luck@intel.com>
-Subject: [PATCH 1/5] EDAC: Drop duplicated array of strings for memory type
- names
-Date: Mon, 12 Mar 2018 11:24:26 -0700
-Message-Id: <20180312182430.10335-2-tony.luck@intel.com>
-In-Reply-To: <20180312182430.10335-1-tony.luck@intel.com>
-References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
- <20180312182430.10335-1-tony.luck@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0F38321E082A6
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:13:58 -0800 (PST)
+Received: by mail-pl0-x241.google.com with SMTP id f23-v6so7023447plr.10
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:17 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 02/83] Add nova_def.h.
+Date: Sat, 10 Mar 2018 10:17:43 -0800
+Message-Id: <1520705944-6723-3-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,139 +25,157 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Borislav Petkov <bp@suse.de>
-Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Aristeu Rozanski <aris@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Somehow we ended up with two separate arrays of strings to describe
-the "enum mem_type" values.
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-In edac_mc.c we have an exported list edac_mem_types[] that is used
-by a couple of drivers in debug messaged.
+This file defines NOVA filesystem macros and routines to persist updates
+by using Intel persistent memory instruction CLWB or clflush.
 
-In edac_mc_sysfs.c we have a private list that is used to display
-values in:
-  /sys/devices/system/edac/mc/mc*/dimm*/dimm_mem_type
-  /sys/devices/system/edac/mc/mc*/csrow*/mem_type
-this list was missing a value for MEM_LRDDR3
-
-The string values in the two lists were different :-(
-
-Combining the lists, I kept the values so that the sysfs output
-will be unchanged as some scripts may depend on that.
-
-Reported-by: Borislav Petkov <bp@suse.de>
-Acked-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- drivers/edac/edac_mc.c       | 40 ++++++++++++++++++++--------------------
- drivers/edac/edac_mc_sysfs.c | 26 ++------------------------
- 2 files changed, 22 insertions(+), 44 deletions(-)
+ fs/nova/nova_def.h | 128 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 128 insertions(+)
+ create mode 100644 fs/nova/nova_def.h
 
-diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
-index 48193f5f3b56..1f61b736e075 100644
---- a/drivers/edac/edac_mc.c
-+++ b/drivers/edac/edac_mc.c
-@@ -195,26 +195,26 @@ static void edac_mc_dump_mci(struct mem_ctl_info *mci)
- #endif				/* CONFIG_EDAC_DEBUG */
- 
- const char * const edac_mem_types[] = {
--	[MEM_EMPTY]	= "Empty csrow",
--	[MEM_RESERVED]	= "Reserved csrow type",
--	[MEM_UNKNOWN]	= "Unknown csrow type",
--	[MEM_FPM]	= "Fast page mode RAM",
--	[MEM_EDO]	= "Extended data out RAM",
--	[MEM_BEDO]	= "Burst Extended data out RAM",
--	[MEM_SDR]	= "Single data rate SDRAM",
--	[MEM_RDR]	= "Registered single data rate SDRAM",
--	[MEM_DDR]	= "Double data rate SDRAM",
--	[MEM_RDDR]	= "Registered Double data rate SDRAM",
--	[MEM_RMBS]	= "Rambus DRAM",
--	[MEM_DDR2]	= "Unbuffered DDR2 RAM",
--	[MEM_FB_DDR2]	= "Fully buffered DDR2",
--	[MEM_RDDR2]	= "Registered DDR2 RAM",
--	[MEM_XDR]	= "Rambus XDR",
--	[MEM_DDR3]	= "Unbuffered DDR3 RAM",
--	[MEM_RDDR3]	= "Registered DDR3 RAM",
--	[MEM_LRDDR3]	= "Load-Reduced DDR3 RAM",
--	[MEM_DDR4]	= "Unbuffered DDR4 RAM",
--	[MEM_RDDR4]	= "Registered DDR4 RAM",
-+	[MEM_EMPTY]	= "Empty",
-+	[MEM_RESERVED]	= "Reserved",
-+	[MEM_UNKNOWN]	= "Unknown",
-+	[MEM_FPM]	= "FPM",
-+	[MEM_EDO]	= "EDO",
-+	[MEM_BEDO]	= "BEDO",
-+	[MEM_SDR]	= "Unbuffered-SDR",
-+	[MEM_RDR]	= "Registered-SDR",
-+	[MEM_DDR]	= "Unbuffered-DDR",
-+	[MEM_RDDR]	= "Registered-DDR",
-+	[MEM_RMBS]	= "RMBS",
-+	[MEM_DDR2]	= "Unbuffered-DDR2",
-+	[MEM_FB_DDR2]	= "FullyBuffered-DDR2",
-+	[MEM_RDDR2]	= "Registered-DDR2",
-+	[MEM_XDR]	= "XDR",
-+	[MEM_DDR3]	= "Unbuffered-DDR3",
-+	[MEM_RDDR3]	= "Registered-DDR3",
-+	[MEM_LRDDR3]	= "Load-Reduced-DDR3-RAM",
-+	[MEM_DDR4]	= "Unbuffered-DDR4",
-+	[MEM_RDDR4]	= "Registered-DDR4"
- };
- EXPORT_SYMBOL_GPL(edac_mem_types);
- 
-diff --git a/drivers/edac/edac_mc_sysfs.c b/drivers/edac/edac_mc_sysfs.c
-index c70ea82c815c..7481955160a4 100644
---- a/drivers/edac/edac_mc_sysfs.c
-+++ b/drivers/edac/edac_mc_sysfs.c
-@@ -91,28 +91,6 @@ static struct device *mci_pdev;
- /*
-  * various constants for Memory Controllers
-  */
--static const char * const mem_types[] = {
--	[MEM_EMPTY] = "Empty",
--	[MEM_RESERVED] = "Reserved",
--	[MEM_UNKNOWN] = "Unknown",
--	[MEM_FPM] = "FPM",
--	[MEM_EDO] = "EDO",
--	[MEM_BEDO] = "BEDO",
--	[MEM_SDR] = "Unbuffered-SDR",
--	[MEM_RDR] = "Registered-SDR",
--	[MEM_DDR] = "Unbuffered-DDR",
--	[MEM_RDDR] = "Registered-DDR",
--	[MEM_RMBS] = "RMBS",
--	[MEM_DDR2] = "Unbuffered-DDR2",
--	[MEM_FB_DDR2] = "FullyBuffered-DDR2",
--	[MEM_RDDR2] = "Registered-DDR2",
--	[MEM_XDR] = "XDR",
--	[MEM_DDR3] = "Unbuffered-DDR3",
--	[MEM_RDDR3] = "Registered-DDR3",
--	[MEM_DDR4] = "Unbuffered-DDR4",
--	[MEM_RDDR4] = "Registered-DDR4"
--};
--
- static const char * const dev_types[] = {
- 	[DEV_UNKNOWN] = "Unknown",
- 	[DEV_X1] = "x1",
-@@ -196,7 +174,7 @@ static ssize_t csrow_mem_type_show(struct device *dev,
- {
- 	struct csrow_info *csrow = to_csrow(dev);
- 
--	return sprintf(data, "%s\n", mem_types[csrow->channels[0]->dimm->mtype]);
-+	return sprintf(data, "%s\n", edac_mem_types[csrow->channels[0]->dimm->mtype]);
- }
- 
- static ssize_t csrow_dev_type_show(struct device *dev,
-@@ -549,7 +527,7 @@ static ssize_t dimmdev_mem_type_show(struct device *dev,
- {
- 	struct dimm_info *dimm = to_dimm(dev);
- 
--	return sprintf(data, "%s\n", mem_types[dimm->mtype]);
-+	return sprintf(data, "%s\n", edac_mem_types[dimm->mtype]);
- }
- 
- static ssize_t dimmdev_dev_type_show(struct device *dev,
+diff --git a/fs/nova/nova_def.h b/fs/nova/nova_def.h
+new file mode 100644
+index 0000000..1cbed6f
+--- /dev/null
++++ b/fs/nova/nova_def.h
+@@ -0,0 +1,128 @@
++/*
++ * BRIEF DESCRIPTION
++ *
++ * Definitions for the NOVA filesystem.
++ *
++ * Copyright 2015-2016 Regents of the University of California,
++ * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
++ * Copyright 2012-2013 Intel Corporation
++ * Copyright 2009-2011 Marco Stornelli <marco.stornelli@gmail.com>
++ * Copyright 2003 Sony Corporation
++ * Copyright 2003 Matsushita Electric Industrial Co., Ltd.
++ * 2003-2004 (c) MontaVista Software, Inc. , Steve Longerbeam
++ *
++ * This file is licensed under the terms of the GNU General Public
++ * License version 2. This program is licensed "as is" without any
++ * warranty of any kind, whether express or implied.
++ */
++#ifndef _LINUX_NOVA_DEF_H
++#define _LINUX_NOVA_DEF_H
++
++#include <linux/types.h>
++#include <linux/magic.h>
++
++#define	NOVA_SUPER_MAGIC	0x4E4F5641	/* NOVA */
++
++/*
++ * The NOVA filesystem constants/structures
++ */
++
++/*
++ * Mount flags
++ */
++#define NOVA_MOUNT_XATTR_USER   0x000002    /* Extended user attributes */
++#define NOVA_MOUNT_POSIX_ACL    0x000004    /* POSIX Access Control Lists */
++#define NOVA_MOUNT_DAX          0x000008    /* Direct Access */
++#define NOVA_MOUNT_ERRORS_CONT  0x000010    /* Continue on errors */
++#define NOVA_MOUNT_ERRORS_RO    0x000020    /* Remount fs ro on errors */
++#define NOVA_MOUNT_ERRORS_PANIC 0x000040    /* Panic on errors */
++#define NOVA_MOUNT_HUGEMMAP     0x000080    /* Huge mappings with mmap */
++#define NOVA_MOUNT_HUGEIOREMAP  0x000100    /* Huge mappings with ioremap */
++#define NOVA_MOUNT_FORMAT       0x000200    /* was FS formatted on mount? */
++
++/*
++ * Maximal count of links to a file
++ */
++#define NOVA_LINK_MAX          32000
++
++#define NOVA_DEF_BLOCK_SIZE_4K 4096
++
++#define NOVA_INODE_BITS   7
++#define NOVA_INODE_SIZE   128    /* must be power of two */
++
++#define NOVA_NAME_LEN 255
++
++#define MAX_CPUS 1024
++
++/* NOVA supported data blocks */
++#define NOVA_BLOCK_TYPE_4K     0
++#define NOVA_BLOCK_TYPE_2M     1
++#define NOVA_BLOCK_TYPE_1G     2
++#define NOVA_BLOCK_TYPE_MAX    3
++
++#define META_BLK_SHIFT 9
++
++/*
++ * Play with this knob to change the default block type.
++ * By changing the NOVA_DEFAULT_BLOCK_TYPE to 2M or 1G,
++ * we should get pretty good coverage in testing.
++ */
++#define NOVA_DEFAULT_BLOCK_TYPE NOVA_BLOCK_TYPE_4K
++
++
++/* ======================= Write ordering ========================= */
++
++#define CACHELINE_SIZE  (64)
++#define CACHELINE_MASK  (~(CACHELINE_SIZE - 1))
++#define CACHELINE_ALIGN(addr) (((addr)+CACHELINE_SIZE-1) & CACHELINE_MASK)
++
++
++static inline bool arch_has_clwb(void)
++{
++	return static_cpu_has(X86_FEATURE_CLWB);
++}
++
++extern int support_clwb;
++
++#define _mm_clflush(addr)\
++	asm volatile("clflush %0" : "+m" (*(volatile char *)(addr)))
++#define _mm_clflushopt(addr)\
++	asm volatile(".byte 0x66; clflush %0" : "+m" \
++		     (*(volatile char *)(addr)))
++#define _mm_clwb(addr)\
++	asm volatile(".byte 0x66; xsaveopt %0" : "+m" \
++		     (*(volatile char *)(addr)))
++
++/* Provides ordering from all previous clflush too */
++static inline void PERSISTENT_MARK(void)
++{
++	/* TODO: Fix me. */
++}
++
++static inline void PERSISTENT_BARRIER(void)
++{
++	asm volatile ("sfence\n" : : );
++}
++
++static inline void nova_flush_buffer(void *buf, uint32_t len, bool fence)
++{
++	uint32_t i;
++
++	len = len + ((unsigned long)(buf) & (CACHELINE_SIZE - 1));
++	if (support_clwb) {
++		for (i = 0; i < len; i += CACHELINE_SIZE)
++			_mm_clwb(buf + i);
++	} else {
++		for (i = 0; i < len; i += CACHELINE_SIZE)
++			_mm_clflush(buf + i);
++	}
++	/* Do a fence only if asked. We often don't need to do a fence
++	 * immediately after clflush because even if we get context switched
++	 * between clflush and subsequent fence, the context switch operation
++	 * provides implicit fence.
++	 */
++	if (fence)
++		PERSISTENT_BARRIER();
++}
++
++#endif /* _LINUX_NOVA_DEF_H */
 -- 
-2.14.1
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
