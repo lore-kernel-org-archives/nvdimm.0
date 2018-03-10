@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x241.google.com (mail-pl0-x241.google.com
- [IPv6:2607:f8b0:400e:c01::241])
+Received: from mail-pf0-x242.google.com (mail-pf0-x242.google.com
+ [IPv6:2607:f8b0:400e:c00::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E46DD226462E5
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:08 -0800 (PST)
-Received: by mail-pl0-x241.google.com with SMTP id f23-v6so7024355plr.10
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:27 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 5FCC122646306
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:16 -0800 (PST)
+Received: by mail-pf0-x242.google.com with SMTP id h11so2617868pfn.4
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:35 -0800 (PST)
 From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 59/83] Namei: setattr
-Date: Sat, 10 Mar 2018 10:18:40 -0800
-Message-Id: <1520705944-6723-60-git-send-email-jix024@eng.ucsd.edu>
+Subject: [RFC v2 65/83] File operation: read.
+Date: Sat, 10 Mar 2018 10:18:46 -0800
+Message-Id: <1520705944-6723-66-git-send-email-jix024@eng.ucsd.edu>
 In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,236 +31,173 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Andiry Xu <jix024@cs.ucsd.edu>
 
-Add notify_change for setattr operations. Truncate the file blocks
-if the file is shrunk.
+NOVA is a DAX file system and does not use page cache.
+For read, NOVA looks up the file write entry by searching the radix tree,
+and copies data from pmem pages to user buffer directly.
 
 Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/nova/inode.c | 180 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- fs/nova/inode.h |   1 +
- fs/nova/namei.c |   2 +
- 3 files changed, 183 insertions(+)
+ fs/nova/file.c | 144 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 144 insertions(+)
 
-diff --git a/fs/nova/inode.c b/fs/nova/inode.c
-index 2d3f7a3..2092a55 100644
---- a/fs/nova/inode.c
-+++ b/fs/nova/inode.c
-@@ -141,6 +141,58 @@ void nova_set_inode_flags(struct inode *inode, struct nova_inode *pi,
- 	inode->i_flags |= S_DAX;
+diff --git a/fs/nova/file.c b/fs/nova/file.c
+index f60fdf3..842da45 100644
+--- a/fs/nova/file.c
++++ b/fs/nova/file.c
+@@ -113,9 +113,153 @@ static int nova_open(struct inode *inode, struct file *filp)
+ 	return generic_file_open(inode, filp);
  }
  
-+static inline void check_eof_blocks(struct super_block *sb,
-+	struct nova_inode *pi, struct inode *inode,
-+	struct nova_inode_info_header *sih)
++static ssize_t
++do_dax_mapping_read(struct file *filp, char __user *buf,
++	size_t len, loff_t *ppos)
 +{
-+	if ((pi->i_flags & cpu_to_le32(NOVA_EOFBLOCKS_FL)) &&
-+		(inode->i_size + sb->s_blocksize) > (sih->i_blocks
-+			<< sb->s_blocksize_bits)) {
-+		pi->i_flags &= cpu_to_le32(~NOVA_EOFBLOCKS_FL);
-+		nova_persist_inode(pi);
-+	}
-+}
-+
-+/*
-+ * Free data blocks from inode in the range start <=> end
-+ */
-+static void nova_truncate_file_blocks(struct inode *inode, loff_t start,
-+				    loff_t end, u64 epoch_id)
-+{
-+	struct super_block *sb = inode->i_sb;
-+	struct nova_inode *pi = nova_get_inode(sb, inode);
-+	struct nova_inode_info *si = NOVA_I(inode);
-+	struct nova_inode_info_header *sih = &si->header;
-+	unsigned int data_bits = blk_type_to_shift[sih->i_blk_type];
-+	unsigned long first_blocknr, last_blocknr;
-+	int freed = 0;
-+
-+	inode->i_mtime = inode->i_ctime = current_time(inode);
-+
-+	nova_dbg_verbose("truncate: pi %p iblocks %lx %llx %llx %llx\n", pi,
-+			 sih->i_blocks, start, end, pi->i_size);
-+
-+	first_blocknr = (start + (1UL << data_bits) - 1) >> data_bits;
-+
-+	if (end == 0)
-+		return;
-+	last_blocknr = (end - 1) >> data_bits;
-+
-+	if (first_blocknr > last_blocknr)
-+		return;
-+
-+	freed = nova_delete_file_tree(sb, sih, first_blocknr,
-+				last_blocknr, true, false, epoch_id);
-+
-+	inode->i_blocks -= (freed * (1 << (data_bits -
-+				sb->s_blocksize_bits)));
-+
-+	sih->i_blocks = inode->i_blocks;
-+	/* Check for the flag EOFBLOCKS is still valid after the set size */
-+	check_eof_blocks(sb, pi, inode, sih);
-+
-+}
-+
- /* copy persistent state to struct inode */
- static int nova_read_inode(struct super_block *sb, struct inode *inode,
- 	u64 pi_addr)
-@@ -963,6 +1015,134 @@ void nova_dirty_inode(struct inode *inode, int flags)
- 	nova_flush_buffer(&pi->i_atime, sizeof(pi->i_atime), 0);
- }
- 
-+/*
-+ * Zero the tail page. Used in resize request
-+ * to avoid to keep data in case the file grows again.
-+ */
-+static void nova_clear_last_page_tail(struct super_block *sb,
-+	struct inode *inode, loff_t newsize)
-+{
-+	struct nova_sb_info *sbi = NOVA_SB(sb);
-+	struct nova_inode_info *si = NOVA_I(inode);
-+	struct nova_inode_info_header *sih = &si->header;
-+	unsigned long offset = newsize & (sb->s_blocksize - 1);
-+	unsigned long pgoff, length;
-+	u64 nvmm;
-+	char *nvmm_addr;
-+
-+	if (offset == 0 || newsize > inode->i_size)
-+		return;
-+
-+	length = sb->s_blocksize - offset;
-+	pgoff = newsize >> sb->s_blocksize_bits;
-+
-+	nvmm = nova_find_nvmm_block(sb, sih, NULL, pgoff);
-+	if (nvmm == 0)
-+		return;
-+
-+	nvmm_addr = (char *)nova_get_block(sb, nvmm);
-+	memcpy_to_pmem_nocache(nvmm_addr + offset, sbi->zeroed_page, length);
-+}
-+
-+static void nova_setsize(struct inode *inode, loff_t oldsize, loff_t newsize,
-+	u64 epoch_id)
-+{
++	struct inode *inode = filp->f_mapping->host;
 +	struct super_block *sb = inode->i_sb;
 +	struct nova_inode_info *si = NOVA_I(inode);
 +	struct nova_inode_info_header *sih = &si->header;
-+	timing_t setsize_time;
++	struct nova_file_write_entry *entry;
++	pgoff_t index, end_index;
++	unsigned long offset;
++	loff_t isize, pos;
++	size_t copied = 0, error = 0;
++	timing_t memcpy_time;
 +
-+	/* We only support truncate regular file */
-+	if (!(S_ISREG(inode->i_mode))) {
-+		nova_err(inode->i_sb, "%s:wrong file mode %x\n", inode->i_mode);
-+		return;
-+	}
++	pos = *ppos;
++	index = pos >> PAGE_SHIFT;
++	offset = pos & ~PAGE_MASK;
 +
-+	NOVA_START_TIMING(setsize_t, setsize_time);
-+
-+	inode_dio_wait(inode);
-+
-+	nova_dbgv("%s: inode %lu, old size %llu, new size %llu\n",
-+		__func__, inode->i_ino, oldsize, newsize);
-+
-+	sih_lock(sih);
-+	if (newsize != oldsize) {
-+		nova_clear_last_page_tail(sb, inode, newsize);
-+		i_size_write(inode, newsize);
-+		sih->i_size = newsize;
-+	}
-+
-+	/* FIXME: we should make sure that there is nobody reading the inode
-+	 * before truncating it. Also we need to munmap the truncated range
-+	 * from application address space, if mmapped.
-+	 */
-+	/* synchronize_rcu(); */
-+
-+	/* FIXME: Do we need to clear truncated DAX pages? */
-+//	dax_truncate_page(inode, newsize, nova_dax_get_block);
-+
-+	truncate_pagecache(inode, newsize);
-+	nova_truncate_file_blocks(inode, newsize, oldsize, epoch_id);
-+	sih_unlock(sih);
-+	NOVA_END_TIMING(setsize_t, setsize_time);
-+}
-+
-+int nova_notify_change(struct dentry *dentry, struct iattr *attr)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct nova_inode_info *si = NOVA_I(inode);
-+	struct nova_inode_info_header *sih = &si->header;
-+	struct super_block *sb = inode->i_sb;
-+	struct nova_inode *pi = nova_get_inode(sb, inode);
-+	int ret;
-+	unsigned int ia_valid = attr->ia_valid, attr_mask;
-+	loff_t oldsize = inode->i_size;
-+	u64 epoch_id;
-+	timing_t setattr_time;
-+
-+	NOVA_START_TIMING(setattr_t, setattr_time);
-+	if (!pi) {
-+		ret = -EACCES;
++	if (!access_ok(VERIFY_WRITE, buf, len)) {
++		error = -EFAULT;
 +		goto out;
 +	}
 +
-+	ret = setattr_prepare(dentry, attr);
-+	if (ret)
++	isize = i_size_read(inode);
++	if (!isize)
 +		goto out;
 +
-+	/* Update inode with attr except for size */
-+	setattr_copy(inode, attr);
++	nova_dbgv("%s: inode %lu, offset %lld, count %lu, size %lld\n",
++		__func__, inode->i_ino,	pos, len, isize);
 +
-+	epoch_id = nova_get_epoch_id(sb);
++	if (len > isize - pos)
++		len = isize - pos;
 +
-+	attr_mask = ATTR_MODE | ATTR_UID | ATTR_GID | ATTR_SIZE | ATTR_ATIME
-+			| ATTR_MTIME | ATTR_CTIME;
-+
-+	ia_valid = ia_valid & attr_mask;
-+
-+	if (ia_valid == 0)
++	if (len <= 0)
 +		goto out;
 +
-+	ret = nova_handle_setattr_operation(sb, inode, pi, ia_valid,
-+					attr, epoch_id);
-+	if (ret)
-+		goto out;
++	end_index = (isize - 1) >> PAGE_SHIFT;
++	do {
++		unsigned long nr, left;
++		unsigned long nvmm;
++		void *dax_mem = NULL;
++		int zero = 0;
 +
-+	/* Only after log entry is committed, we can truncate size */
-+	if ((ia_valid & ATTR_SIZE) && (attr->ia_size != oldsize ||
-+			pi->i_flags & cpu_to_le32(NOVA_EOFBLOCKS_FL))) {
-+//		nova_set_blocksize_hint(sb, inode, pi, attr->ia_size);
++		/* nr is the maximum number of bytes to copy from this page */
++		if (index >= end_index) {
++			if (index > end_index)
++				goto out;
++			nr = ((isize - 1) & ~PAGE_MASK) + 1;
++			if (nr <= offset)
++				goto out;
++		}
 +
-+		/* now we can freely truncate the inode */
-+		nova_setsize(inode, oldsize, attr->ia_size, epoch_id);
-+	}
++		entry = nova_get_write_entry(sb, sih, index);
++		if (unlikely(entry == NULL)) {
++			nova_dbgv("Required extent not found: pgoff %lu, inode size %lld\n",
++				index, isize);
++			nr = PAGE_SIZE;
++			zero = 1;
++			goto memcpy;
++		}
 +
-+	sih->trans_id++;
++		/* Find contiguous blocks */
++		if (index < entry->pgoff ||
++			index - entry->pgoff >= entry->num_pages) {
++			nova_err(sb, "%s ERROR: %lu, entry pgoff %llu, num %u, blocknr %llu\n",
++				__func__, index, entry->pgoff,
++				entry->num_pages, entry->block >> PAGE_SHIFT);
++			return -EINVAL;
++		}
++		if (entry->reassigned == 0) {
++			nr = (entry->num_pages - (index - entry->pgoff))
++				* PAGE_SIZE;
++		} else {
++			nr = PAGE_SIZE;
++		}
++
++		nvmm = get_nvmm(sb, sih, entry, index);
++		dax_mem = nova_get_block(sb, (nvmm << PAGE_SHIFT));
++
++memcpy:
++		nr = nr - offset;
++		if (nr > len - copied)
++			nr = len - copied;
++
++		NOVA_START_TIMING(memcpy_r_nvmm_t, memcpy_time);
++
++		if (!zero)
++			left = __copy_to_user(buf + copied,
++						dax_mem + offset, nr);
++		else
++			left = __clear_user(buf + copied, nr);
++
++		NOVA_END_TIMING(memcpy_r_nvmm_t, memcpy_time);
++
++		if (left) {
++			nova_dbg("%s ERROR!: bytes %lu, left %lu\n",
++				__func__, nr, left);
++			error = -EFAULT;
++			goto out;
++		}
++
++		copied += (nr - left);
++		offset += (nr - left);
++		index += offset >> PAGE_SHIFT;
++		offset &= ~PAGE_MASK;
++	} while (copied < len);
++
 +out:
-+	NOVA_END_TIMING(setattr_t, setattr_time);
-+	return ret;
++	*ppos = pos + copied;
++	if (filp)
++		file_accessed(filp);
++
++	NOVA_STATS_ADD(read_bytes, copied);
++
++	nova_dbgv("%s returned %zu\n", __func__, copied);
++	return copied ? copied : error;
 +}
 +
- static ssize_t nova_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
- {
- 	/* DAX does not support direct IO */
-diff --git a/fs/nova/inode.h b/fs/nova/inode.h
-index 42690e6..4ddf8c2 100644
---- a/fs/nova/inode.h
-+++ b/fs/nova/inode.h
-@@ -267,5 +267,6 @@ int nova_delete_file_tree(struct super_block *sb,
- extern void nova_evict_inode(struct inode *inode);
- extern int nova_write_inode(struct inode *inode, struct writeback_control *wbc);
- extern void nova_dirty_inode(struct inode *inode, int flags);
-+extern int nova_notify_change(struct dentry *dentry, struct iattr *attr);
++/*
++ * Wrappers. We need to use the read lock to avoid
++ * concurrent truncate operation. No problem for write because we held
++ * lock.
++ */
++static ssize_t nova_dax_file_read(struct file *filp, char __user *buf,
++			    size_t len, loff_t *ppos)
++{
++	struct inode *inode = filp->f_mapping->host;
++	struct nova_inode_info *si = NOVA_I(inode);
++	struct nova_inode_info_header *sih = &si->header;
++	ssize_t res;
++	timing_t dax_read_time;
++
++	NOVA_START_TIMING(dax_read_t, dax_read_time);
++	inode_lock_shared(inode);
++	sih_lock_shared(sih);
++	res = do_dax_mapping_read(filp, buf, len, ppos);
++	sih_unlock_shared(sih);
++	inode_unlock_shared(inode);
++	NOVA_END_TIMING(dax_read_t, dax_read_time);
++	return res;
++}
++
  
- #endif
-diff --git a/fs/nova/namei.c b/fs/nova/namei.c
-index bb50c0a..1966bff 100644
---- a/fs/nova/namei.c
-+++ b/fs/nova/namei.c
-@@ -768,4 +768,6 @@ const struct inode_operations nova_dir_inode_operations = {
- 	.rmdir		= nova_rmdir,
- 	.mknod		= nova_mknod,
- 	.rename		= nova_rename,
-+	.setattr	= nova_notify_change,
-+	.get_acl	= NULL,
- };
+ const struct file_operations nova_dax_file_operations = {
+ 	.llseek		= nova_llseek,
++	.read		= nova_dax_file_read,
+ 	.open		= nova_open,
+ 	.fsync		= nova_fsync,
+ 	.flush		= nova_flush,
 -- 
 2.7.4
 
