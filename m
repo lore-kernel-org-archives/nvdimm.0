@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf0-x244.google.com (mail-pf0-x244.google.com
+ [IPv6:2607:f8b0:400e:c00::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D8F6121E082AA
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 22:57:40 -0800 (PST)
-Subject: [PATCH v5 00/11] dax: fix dma vs truncate/hole-punch
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Mar 2018 22:54:49 -0800
-Message-ID: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 5535022631491
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:59 -0800 (PST)
+Received: by mail-pf0-x244.google.com with SMTP id f80so2617780pfa.8
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:18 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 51/83] Rebuild: directory inode.
+Date: Sat, 10 Mar 2018 10:18:32 -0800
+Message-Id: <1520705944-6723-52-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,133 +20,442 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Theodore Ts'o <tytso@mit.edu>, Michal Hocko <mhocko@suse.com>, jack@suse.cz, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <mawilcox@microsoft.com>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-ext4@vger.kernel.org, hch@lst.de
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v4 [1]:
-* Kill the DEFINE_FSDAX_AOPS macro and just open code new
-  address_space_operations instances for each fs (Matthew, Jan, Dave,
-  Christoph)
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-* Rename routines that had a 'dma_' prefix with 'dax_layout_' and merge
-  the dax-layout-break into xfs_break_layouts() (Dave, Christoph)
+When vfs issues a read inode command, or when the inode is newly allocated,
+walk through the inode log to rebuild inode information and the radix tree.
 
-* Rework the implementation to have the fsdax core find the pages, but
-  leave the responsibility of waiting on those pages to the filesystem
-  (Dave).
-
-* Drop the nfit_test infrastructure for testing this mechanism, I plan
-  to investigate better mechanisms for injecting arbitrary put_page()
-  delays for dax pages relative to an extent unmap operation. The
-  dm_delay target does not do what I want since it operates at whole
-  device level. A better test interface would be a mechanism to delay
-  I/O completion based on whether a bio referenced a given LBA.
-
-Not changed since v4:
-* This implementation still relies on RCU for synchronizing
-  get_user_pages() and get_user_pages_fast() against
-  dax_layout_busy_page(). We could perform the operation with just
-  barriers if we knew at get_user_pages() time that the pages were flagged
-  for truncation.  However, dax_layout_busy_page() does not have the
-  information to flag that a page is actually going to be truncated, only
-  that it *might* be truncated.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-December/013704.html
-
-----
-
-Background:
-
-get_user_pages() in the filesystem pins file backed memory pages for
-access by devices performing dma. However, it only pins the memory pages
-not the page-to-file offset association. If a file is truncated the
-pages are mapped out of the file and dma may continue indefinitely into
-a page that is owned by a device driver. This breaks coherency of the
-file vs dma, but the assumption is that if userspace wants the
-file-space truncated it does not matter what data is inbound from the
-device, it is not relevant anymore. The only expectation is that dma can
-safely continue while the filesystem reallocates the block(s).
-
-Problem:
-
-This expectation that dma can safely continue while the filesystem
-changes the block map is broken by dax. With dax the target dma page
-*is* the filesystem block. The model of leaving the page pinned for dma,
-but truncating the file block out of the file, means that the filesytem
-is free to reallocate a block under active dma to another file and now
-the expected data-incoherency situation has turned into active
-data-corruption.
-
-Solution:
-
-Defer all filesystem operations (fallocate(), truncate()) on a dax mode
-file while any page/block in the file is under active dma. This solution
-assumes that dma is transient. Cases where dma operations are known to
-not be transient, like RDMA, have been explicitly disabled via
-commits like 5f1d43de5416 "IB/core: disable memory registration of
-filesystem-dax vmas".
-
-The dax_layout_busy_page() routine is called by filesystems with a lock
-held against mm faults (i_mmap_lock) to find pinned / busy dax pages.
-The process of looking up a busy page invalidates all mappings
-to trigger any subsequent get_user_pages() to block on i_mmap_lock.
-The filesystem continues to call dax_layout_busy_page() until it finally
-returns no more active pages. This approach assumes that the page
-pinning is transient, if that assumption is violated the system would
-have likely hung from the uncompleted I/O.
-
-
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
+ fs/nova/inode.h   |  15 +++
+ fs/nova/nova.h    |  21 ++++
+ fs/nova/rebuild.c | 329 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 364 insertions(+), 1 deletion(-)
 
-Dan Williams (11):
-      dax: store pfns in the radix
-      xfs, dax: introduce xfs_dax_aops
-      ext4, dax: introduce ext4_dax_aops
-      ext2, dax: introduce ext2_dax_aops
-      fs, dax: use page->mapping to warn if truncate collides with a busy page
-      mm, dax: enable filesystems to trigger dev_pagemap ->page_free callbacks
-      mm, dev_pagemap: introduce CONFIG_DEV_PAGEMAP_OPS
-      wait_bit: introduce {wait_on,wake_up}_atomic_one
-      mm, fs, dax: handle layout changes to pinned dax mappings
-      xfs: prepare xfs_break_layouts() for another layout type
-      xfs, dax: introduce xfs_break_dax_layouts()
+diff --git a/fs/nova/inode.h b/fs/nova/inode.h
+index 62c8bdc..42690e6 100644
+--- a/fs/nova/inode.h
++++ b/fs/nova/inode.h
+@@ -97,6 +97,21 @@ struct nova_inode_info_header {
+ 	u8  i_blk_type;
+ };
+ 
++/* For rebuild purpose, temporarily store pi infomation */
++struct nova_inode_rebuild {
++	u64	i_size;
++	u32	i_flags;	/* Inode flags */
++	u32	i_ctime;	/* Inode modification time */
++	u32	i_mtime;	/* Inode b-tree Modification time */
++	u32	i_atime;	/* Access time */
++	u32	i_uid;		/* Owner Uid */
++	u32	i_gid;		/* Group Id */
++	u32	i_generation;	/* File version (for NFS) */
++	u16	i_links_count;	/* Links count */
++	u16	i_mode;		/* File mode */
++	u64	trans_id;
++};
++
+ /*
+  * DRAM state for inodes
+  */
+diff --git a/fs/nova/nova.h b/fs/nova/nova.h
+index 3a51dae..983c6b2 100644
+--- a/fs/nova/nova.h
++++ b/fs/nova/nova.h
+@@ -301,6 +301,24 @@ static inline u64 nova_get_epoch_id(struct super_block *sb)
+ }
+ 
+ #include "inode.h"
++
++static inline int nova_get_head_tail(struct super_block *sb,
++	struct nova_inode *pi, struct nova_inode_info_header *sih)
++{
++	struct nova_inode fake_pi;
++	int rc;
++
++	rc = memcpy_mcsafe(&fake_pi, pi, sizeof(struct nova_inode));
++	if (rc)
++		return rc;
++
++	sih->i_blk_type = fake_pi.i_blk_type;
++	sih->log_head = fake_pi.log_head;
++	sih->log_tail = fake_pi.log_tail;
++
++	return rc;
++}
++
+ #include "log.h"
+ 
+ struct nova_range_node_lowhigh {
+@@ -467,6 +485,9 @@ int nova_remove_dentry(struct dentry *dentry, int dec_link,
+ 	struct nova_inode_update *update, u64 epoch_id);
+ 
+ /* rebuild.c */
++int nova_rebuild_dir_inode_tree(struct super_block *sb,
++	struct nova_inode *pi, u64 pi_addr,
++	struct nova_inode_info_header *sih);
+ int nova_rebuild_inode(struct super_block *sb, struct nova_inode_info *si,
+ 	u64 ino, u64 pi_addr, int rebuild_dir);
+ 
+diff --git a/fs/nova/rebuild.c b/fs/nova/rebuild.c
+index 0595851..9a1327d 100644
+--- a/fs/nova/rebuild.c
++++ b/fs/nova/rebuild.c
+@@ -18,6 +18,319 @@
+ #include "nova.h"
+ #include "inode.h"
+ 
++/* entry given to this function is a copy in dram */
++static void nova_apply_setattr_entry(struct super_block *sb,
++	struct nova_inode_rebuild *reb,	struct nova_inode_info_header *sih,
++	struct nova_setattr_logentry *entry)
++{
++	unsigned int data_bits = blk_type_to_shift[sih->i_blk_type];
++	unsigned long first_blocknr, last_blocknr;
++	loff_t start, end;
++	int freed = 0;
++
++	reb->i_mode	= entry->mode;
++	reb->i_uid	= entry->uid;
++	reb->i_gid	= entry->gid;
++	reb->i_atime	= entry->atime;
++
++	if (S_ISREG(reb->i_mode)) {
++		start = entry->size;
++		end = reb->i_size;
++
++		first_blocknr = (start + (1UL << data_bits) - 1) >> data_bits;
++
++		if (end > 0)
++			last_blocknr = (end - 1) >> data_bits;
++		else
++			last_blocknr = 0;
++
++		freed = nova_delete_file_tree(sb, sih, first_blocknr,
++					last_blocknr, false, false, 0);
++	}
++}
++
++/* entry given to this function is a copy in dram */
++static void nova_apply_link_change_entry(struct super_block *sb,
++	struct nova_inode_rebuild *reb,	struct nova_link_change_entry *entry)
++{
++	reb->i_links_count	= entry->links;
++	reb->i_ctime		= entry->ctime;
++	reb->i_flags		= entry->flags;
++	reb->i_generation	= entry->generation;
++
++	/* Do not flush now */
++}
++
++static void nova_update_inode_with_rebuild(struct super_block *sb,
++	struct nova_inode_rebuild *reb, struct nova_inode *pi)
++{
++	pi->i_size = cpu_to_le64(reb->i_size);
++	pi->i_flags = cpu_to_le32(reb->i_flags);
++	pi->i_uid = cpu_to_le32(reb->i_uid);
++	pi->i_gid = cpu_to_le32(reb->i_gid);
++	pi->i_atime = cpu_to_le32(reb->i_atime);
++	pi->i_ctime = cpu_to_le32(reb->i_ctime);
++	pi->i_mtime = cpu_to_le32(reb->i_mtime);
++	pi->i_generation = cpu_to_le32(reb->i_generation);
++	pi->i_links_count = cpu_to_le16(reb->i_links_count);
++	pi->i_mode = cpu_to_le16(reb->i_mode);
++}
++
++static int nova_init_inode_rebuild(struct super_block *sb,
++	struct nova_inode_rebuild *reb, struct nova_inode *pi)
++{
++	struct nova_inode fake_pi;
++	int rc;
++
++	rc = memcpy_mcsafe(&fake_pi, pi, sizeof(struct nova_inode));
++	if (rc)
++		return rc;
++
++	reb->i_size = le64_to_cpu(fake_pi.i_size);
++	reb->i_flags = le32_to_cpu(fake_pi.i_flags);
++	reb->i_uid = le32_to_cpu(fake_pi.i_uid);
++	reb->i_gid = le32_to_cpu(fake_pi.i_gid);
++	reb->i_atime = le32_to_cpu(fake_pi.i_atime);
++	reb->i_ctime = le32_to_cpu(fake_pi.i_ctime);
++	reb->i_mtime = le32_to_cpu(fake_pi.i_mtime);
++	reb->i_generation = le32_to_cpu(fake_pi.i_generation);
++	reb->i_links_count = le16_to_cpu(fake_pi.i_links_count);
++	reb->i_mode = le16_to_cpu(fake_pi.i_mode);
++	reb->trans_id = 0;
++
++	return rc;
++}
++
++static inline void nova_rebuild_file_time_and_size(struct super_block *sb,
++	struct nova_inode_rebuild *reb, u32 mtime, u32 ctime, u64 size)
++{
++	reb->i_mtime = cpu_to_le32(mtime);
++	reb->i_ctime = cpu_to_le32(ctime);
++	reb->i_size = cpu_to_le64(size);
++}
++
++static int nova_rebuild_inode_start(struct super_block *sb,
++	struct nova_inode *pi, struct nova_inode_info_header *sih,
++	struct nova_inode_rebuild *reb, u64 pi_addr)
++{
++	int ret;
++
++	ret = nova_get_head_tail(sb, pi, sih);
++	if (ret)
++		return ret;
++
++	ret = nova_init_inode_rebuild(sb, reb, pi);
++	if (ret)
++		return ret;
++
++	sih->pi_addr = pi_addr;
++
++	nova_dbg_verbose("Log head 0x%llx, tail 0x%llx\n",
++				sih->log_head, sih->log_tail);
++	sih->log_pages = 1;
++
++	return ret;
++}
++
++static int nova_rebuild_inode_finish(struct super_block *sb,
++	struct nova_inode *pi, struct nova_inode_info_header *sih,
++	struct nova_inode_rebuild *reb, u64 curr_p)
++{
++	u64 next;
++
++	sih->i_size = le64_to_cpu(reb->i_size);
++	sih->i_mode = le64_to_cpu(reb->i_mode);
++	sih->i_flags = le32_to_cpu(reb->i_flags);
++	sih->trans_id = reb->trans_id + 1;
++
++	nova_update_inode_with_rebuild(sb, reb, pi);
++	nova_persist_inode(pi);
++
++	/* Keep traversing until log ends */
++	curr_p &= PAGE_MASK;
++	while ((next = next_log_page(sb, curr_p)) > 0) {
++		sih->log_pages++;
++		curr_p = next;
++	}
++
++	return 0;
++}
++
++/******************* Directory rebuild *********************/
++
++static inline void nova_rebuild_dir_time_and_size(struct super_block *sb,
++	struct nova_inode_rebuild *reb, struct nova_dentry *entry)
++{
++	if (!entry || !reb)
++		return;
++
++	reb->i_ctime = entry->mtime;
++	reb->i_mtime = entry->mtime;
++	reb->i_links_count = entry->links_count;
++	//reb->i_size = entry->size;
++}
++
++static void nova_reassign_last_dentry(struct super_block *sb,
++	struct nova_inode_info_header *sih, u64 curr_p)
++{
++	struct nova_dentry *dentry, *old_dentry;
++
++	if (sih->last_dentry == 0) {
++		sih->last_dentry = curr_p;
++	} else {
++		old_dentry = (struct nova_dentry *)nova_get_block(sb,
++							sih->last_dentry);
++		dentry = (struct nova_dentry *)nova_get_block(sb, curr_p);
++		if (dentry->trans_id >= old_dentry->trans_id)
++			sih->last_dentry = curr_p;
++	}
++}
++
++static inline int nova_replay_add_dentry(struct super_block *sb,
++	struct nova_inode_info_header *sih, struct nova_dentry *entry)
++{
++	if (!entry->name_len)
++		return -EINVAL;
++
++	nova_dbg_verbose("%s: add %s\n", __func__, entry->name);
++	return nova_insert_dir_radix_tree(sb, sih,
++			entry->name, entry->name_len, entry);
++}
++
++/* entry given to this function is a copy in dram */
++static inline int nova_replay_remove_dentry(struct super_block *sb,
++	struct nova_inode_info_header *sih, struct nova_dentry *entry)
++{
++	nova_dbg_verbose("%s: remove %s\n", __func__, entry->name);
++	nova_remove_dir_radix_tree(sb, sih, entry->name,
++					entry->name_len, 1, NULL);
++	return 0;
++}
++
++static int nova_rebuild_handle_dentry(struct super_block *sb,
++	struct nova_inode_info_header *sih, struct nova_inode_rebuild *reb,
++	struct nova_dentry *entry, u64 curr_p)
++{
++	int ret = 0;
++
++	nova_dbgv("curr_p: 0x%llx, type %d, ino %llu, name %s, namelen %u, rec len %u\n",
++			curr_p,
++			entry->entry_type, le64_to_cpu(entry->ino),
++			entry->name, entry->name_len,
++			le16_to_cpu(entry->de_len));
++
++	nova_reassign_last_dentry(sb, sih, curr_p);
++
++	if (entry->invalid == 0) {
++		if (entry->ino > 0)
++			ret = nova_replay_add_dentry(sb, sih, entry);
++		else
++			ret = nova_replay_remove_dentry(sb, sih, entry);
++	}
++
++	if (ret) {
++		nova_err(sb, "%s ERROR %d\n", __func__, ret);
++		return ret;
++	}
++
++	if (entry->trans_id >= reb->trans_id) {
++		nova_rebuild_dir_time_and_size(sb, reb, entry);
++		reb->trans_id = entry->trans_id;
++	}
++
++	return ret;
++}
++
++int nova_rebuild_dir_inode_tree(struct super_block *sb,
++	struct nova_inode *pi, u64 pi_addr,
++	struct nova_inode_info_header *sih)
++{
++	struct nova_dentry *entry = NULL;
++	struct nova_setattr_logentry *attr_entry = NULL;
++	struct nova_link_change_entry *lc_entry = NULL;
++	struct nova_inode_rebuild rebuild, *reb;
++	u64 ino = pi->nova_ino;
++	unsigned short de_len;
++	timing_t rebuild_time;
++	void *addr, *entryc = NULL;
++	u64 curr_p;
++	u8 type;
++	int ret;
++
++	NOVA_START_TIMING(rebuild_dir_t, rebuild_time);
++	nova_dbgv("Rebuild dir %llu tree\n", ino);
++
++	reb = &rebuild;
++	ret = nova_rebuild_inode_start(sb, pi, sih, reb, pi_addr);
++	if (ret)
++		goto out;
++
++	curr_p = sih->log_head;
++	if (curr_p == 0) {
++		nova_err(sb, "Dir %llu log is NULL!\n", ino);
++		ret = -ENOSPC;
++		goto out;
++	}
++
++	while (curr_p != sih->log_tail) {
++		if (goto_next_page(sb, curr_p)) {
++			sih->log_pages++;
++			curr_p = next_log_page(sb, curr_p);
++		}
++
++		if (curr_p == 0) {
++			nova_err(sb, "Dir %llu log is NULL!\n", ino);
++			ret = -EIO;
++			goto out;
++		}
++
++		addr = (void *)nova_get_block(sb, curr_p);
++
++		entryc = addr;
++
++		type = nova_get_entry_type(entryc);
++
++		switch (type) {
++		case SET_ATTR:
++			attr_entry = (struct nova_setattr_logentry *)entryc;
++			nova_apply_setattr_entry(sb, reb, sih, attr_entry);
++			sih->last_setattr = curr_p;
++			curr_p += sizeof(struct nova_setattr_logentry);
++			break;
++		case LINK_CHANGE:
++			lc_entry = (struct nova_link_change_entry *)entryc;
++			if (lc_entry->trans_id >= reb->trans_id) {
++				nova_apply_link_change_entry(sb, reb, lc_entry);
++				reb->trans_id = lc_entry->trans_id;
++			}
++			sih->last_link_change = curr_p;
++			curr_p += sizeof(struct nova_link_change_entry);
++			break;
++		case DIR_LOG:
++			entry = (struct nova_dentry *)addr;
++			ret = nova_rebuild_handle_dentry(sb, sih, reb,
++					entry, curr_p);
++			if (ret)
++				goto out;
++			de_len = le16_to_cpu(DENTRY(entryc)->de_len);
++			curr_p += de_len;
++			break;
++		default:
++			nova_dbg("%s: unknown type %d, 0x%llx\n",
++					__func__, type, curr_p);
++			NOVA_ASSERT(0);
++			break;
++		}
++	}
++
++	ret = nova_rebuild_inode_finish(sb, pi, sih, reb, curr_p);
++	sih->i_blocks = sih->log_pages;
++
++out:
++	NOVA_END_TIMING(rebuild_dir_t, rebuild_time);
++	return ret;
++}
++
+ /* initialize nova inode header and other DRAM data structures */
+ int nova_rebuild_inode(struct super_block *sb, struct nova_inode_info *si,
+ 	u64 ino, u64 pi_addr, int rebuild_dir)
+@@ -42,7 +355,21 @@ int nova_rebuild_inode(struct super_block *sb, struct nova_inode_info *si,
+ 
+ 	sih->ino = ino;
+ 
+-	/* Traverse the log */
++	switch (__le16_to_cpu(pi->i_mode) & S_IFMT) {
++	case S_IFLNK:
++		/* Treat symlink files as normal files */
++		/* Fall through */
++	case S_IFREG:
++		break;
++	case S_IFDIR:
++		if (rebuild_dir)
++			nova_rebuild_dir_inode_tree(sb, pi, pi_addr, sih);
++		break;
++	default:
++		sih->pi_addr = pi_addr;
++		break;
++	}
++
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
 
-
- drivers/dax/super.c      |   96 +++++++++++++++--
- drivers/nvdimm/pmem.c    |    3 -
- fs/Kconfig               |    1 
- fs/dax.c                 |  259 +++++++++++++++++++++++++++++++++++++---------
- fs/ext2/ext2.h           |    1 
- fs/ext2/inode.c          |   28 ++++-
- fs/ext2/namei.c          |   18 ---
- fs/ext2/super.c          |    6 +
- fs/ext4/inode.c          |   11 ++
- fs/ext4/super.c          |    6 +
- fs/xfs/xfs_aops.c        |    7 +
- fs/xfs/xfs_aops.h        |    1 
- fs/xfs/xfs_file.c        |   94 ++++++++++++++++-
- fs/xfs/xfs_inode.h       |    9 ++
- fs/xfs/xfs_ioctl.c       |    9 +-
- fs/xfs/xfs_iops.c        |   17 ++-
- fs/xfs/xfs_pnfs.c        |    8 +
- fs/xfs/xfs_pnfs.h        |    4 -
- fs/xfs/xfs_super.c       |   20 ++--
- include/linux/dax.h      |   45 +++++++-
- include/linux/memremap.h |   28 ++---
- include/linux/mm.h       |   61 ++++++++---
- include/linux/wait_bit.h |   13 ++
- kernel/memremap.c        |   30 +++++
- kernel/sched/wait_bit.c  |   59 +++++++++-
- mm/Kconfig               |    5 +
- mm/gup.c                 |    5 +
- mm/hmm.c                 |   13 --
- mm/swap.c                |    3 -
- 29 files changed, 663 insertions(+), 197 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
