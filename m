@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg0-x244.google.com (mail-pg0-x244.google.com
+ [IPv6:2607:f8b0:400e:c05::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A90CF220C2A58
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 22:58:24 -0800 (PST)
-Subject: [PATCH v5 09/11] mm, fs,
- dax: handle layout changes to pinned dax mappings
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 09 Mar 2018 22:55:37 -0800
-Message-ID: <152066493762.40260.14701327157254972582.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id AABD422603B11
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:36 -0800 (PST)
+Received: by mail-pg0-x244.google.com with SMTP id m19so4837488pgn.1
+ for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:55 -0800 (PST)
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Subject: [RFC v2 32/83] Add log entry definitions.
+Date: Sat, 10 Mar 2018 10:18:13 -0800
+Message-Id: <1520705944-6723-33-git-send-email-jix024@eng.ucsd.edu>
+In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,276 +20,232 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-xfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Background:
+From: Andiry Xu <jix024@cs.ucsd.edu>
 
-get_user_pages() in the filesystem pins file backed memory pages for
-access by devices performing dma. However, it only pins the memory pages
-not the page-to-file offset association. If a file is truncated the
-pages are mapped out of the file and dma may continue indefinitely into
-a page that is owned by a device driver. This breaks coherency of the
-file vs dma, but the assumption is that if userspace wants the
-file-space truncated it does not matter what data is inbound from the
-device, it is not relevant anymore. The only expectation is that dma can
-safely continue while the filesystem reallocates the block(s).
+NOVA appends log entries to the inode log upon metadata change.
 
-Problem:
+NOVA has four kinds of log entries:
 
-This expectation that dma can safely continue while the filesystem
-changes the block map is broken by dax. With dax the target dma page
-*is* the filesystem block. The model of leaving the page pinned for dma,
-but truncating the file block out of the file, means that the filesytem
-is free to reallocate a block under active dma to another file and now
-the expected data-incoherency situation has turned into active
-data-corruption.
+File write entry describes a write to a contiguous range of pmem pages,
+Dentry describes a file/directory being added or removed from a directory,
+Setattr entry is used for updating inode attributes,
+Link change entry describes link changes to an inode, e.g. link/unlink.
+All of them are aligned to 8 bytes.
 
-Solution:
-
-Defer all filesystem operations (fallocate(), truncate()) on a dax mode
-file while any page/block in the file is under active dma. This solution
-assumes that dma is transient. Cases where dma operations are known to
-not be transient, like RDMA, have been explicitly disabled via
-commits like 5f1d43de5416 "IB/core: disable memory registration of
-filesystem-dax vmas".
-
-The dax_layout_busy_page() routine is called by filesystems with a lock
-held against mm faults (i_mmap_lock) to find pinned / busy dax pages.
-The process of looking up a busy page invalidates all mappings
-to trigger any subsequent get_user_pages() to block on i_mmap_lock.
-The filesystem continues to call dax_layout_busy_page() until it finally
-returns no more active pages. This approach assumes that the page
-pinning is transient, if that assumption is violated the system would
-have likely hung from the uncompleted I/O.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
 ---
- fs/dax.c            |   93 +++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h |   30 ++++++++++++++++
- mm/gup.c            |    5 +++
- 3 files changed, 128 insertions(+)
+ fs/nova/log.h | 180 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 180 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index fecf463a1468..cfaaf31fae85 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -375,6 +375,19 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
- 	}
+diff --git a/fs/nova/log.h b/fs/nova/log.h
+index 2bc131f..6b4a085 100644
+--- a/fs/nova/log.h
++++ b/fs/nova/log.h
+@@ -62,6 +62,175 @@ static inline void nova_set_entry_type(void *p, enum nova_entry_type type)
+ 	*(u8 *)p = type;
  }
  
-+static struct page *dax_busy_page(void *entry)
-+{
-+	unsigned long pfn, end_pfn;
-+
-+	for_each_entry_pfn(entry, pfn, end_pfn) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		if (page_ref_count(page) > 1)
-+			return page;
-+	}
-+	return NULL;
-+}
-+
- /*
-  * Find radix tree entry at given index. If it points to an exceptional entry,
-  * return it with the radix tree entry locked. If the radix tree doesn't
-@@ -516,6 +529,85 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
- 	return entry;
- }
- 
-+/**
-+ * dax_layout_busy_page - find first pinned page in @mapping
-+ * @mapping: address space to scan for a page with ref count > 1
++/*
++ * Write log entry.  Records a write to a contiguous range of PMEM pages.
 + *
-+ * DAX requires ZONE_DEVICE mapped pages. These pages are never
-+ * 'onlined' to the page allocator so they are considered idle when
-+ * page->count == 1. A filesystem uses this interface to determine if
-+ * any page in the mapping is busy, i.e. for DMA, or other
-+ * get_user_pages() usages.
-+ *
-+ * It is expected that the filesystem is holding locks to block the
-+ * establishment of new mappings in this address_space. I.e. it expects
-+ * to be able to run unmap_mapping_range() and subsequently not race
-+ * mapping_mapped() becoming true. It expects that get_user_pages() pte
-+ * walks are performed under rcu_read_lock().
++ * Documentation/filesystems/nova.txt contains descriptions of some fields.
 + */
-+struct page *dax_layout_busy_page(struct address_space *mapping)
++struct nova_file_write_entry {
++	u8	entry_type;
++	u8	reassigned;	/* Data is not latest */
++	u8	padding[2];
++	__le32	num_pages;
++	__le64	block;          /* offset of first block in this write */
++	__le64	pgoff;          /* file offset at the beginning of this write */
++	__le32	invalid_pages;	/* For GC */
++	/* For both ctime and mtime */
++	__le32	mtime;
++	__le64	size;           /* Write size for non-aligned writes */
++	__le64	epoch_id;
++	__le64	trans_id;
++	__le32	csumpadding;
++	__le32	csum;
++} __attribute((__packed__));
++
++#define WENTRY(entry)	((struct nova_file_write_entry *) entry)
++
++/* List of file write entries */
++struct nova_file_write_item {
++	struct nova_file_write_entry	entry;
++	struct list_head		list;
++};
++
++/*
++ * Log entry for adding a file/directory to a directory.
++ *
++ * Update DIR_LOG_REC_LEN if modify this struct!
++ */
++struct nova_dentry {
++	u8	entry_type;
++	u8	name_len;		/* length of the dentry name */
++	u8	reassigned;		/* Currently deleted */
++	u8	invalid;		/* Invalid now? */
++	__le16	de_len;			/* length of this dentry */
++	__le16	links_count;
++	__le32	mtime;			/* For both mtime and ctime */
++	__le32	csum;			/* entry checksum */
++	__le64	ino;			/* inode no pointed to by this entry */
++	__le64	padding;
++	__le64	epoch_id;
++	__le64	trans_id;
++	char	name[NOVA_NAME_LEN + 1];	/* File name */
++} __attribute((__packed__));
++
++#define DENTRY(entry)	((struct nova_dentry *) entry)
++
++#define NOVA_DIR_PAD			8	/* Align to 8 bytes boundary */
++#define NOVA_DIR_ROUND			(NOVA_DIR_PAD - 1)
++#define NOVA_DENTRY_HEADER_LEN		48
++#define NOVA_DIR_LOG_REC_LEN(name_len) \
++	(((name_len + 1) + NOVA_DENTRY_HEADER_LEN \
++	 + NOVA_DIR_ROUND) & ~NOVA_DIR_ROUND)
++
++#define NOVA_MAX_ENTRY_LEN		NOVA_DIR_LOG_REC_LEN(NOVA_NAME_LEN)
++
++/*
++ * Log entry for updating file attributes.
++ */
++struct nova_setattr_logentry {
++	u8	entry_type;
++	u8	attr;       /* bitmap of which attributes to update */
++	__le16	mode;
++	__le32	uid;
++	__le32	gid;
++	__le32	atime;
++	__le32	mtime;
++	__le32	ctime;
++	__le64	size;        /* File size after truncation */
++	__le64	epoch_id;
++	__le64	trans_id;
++	u8	invalid;
++	u8	paddings[3];
++	__le32	csum;
++} __attribute((__packed__));
++
++#define SENTRY(entry)	((struct nova_setattr_logentry *) entry)
++
++/* Link change log entry.
++ *
++ * TODO: Do we need this to be 32 bytes?
++ */
++struct nova_link_change_entry {
++	u8	entry_type;
++	u8	invalid;
++	__le16	links;
++	__le32	ctime;
++	__le32	flags;
++	__le32	generation;    /* for NFS handles */
++	__le64	epoch_id;
++	__le64	trans_id;
++	__le32	csumpadding;
++	__le32	csum;
++} __attribute((__packed__));
++
++#define LCENTRY(entry)	((struct nova_link_change_entry *) entry)
++
++
++/*
++ * Transient DRAM structure that describes changes needed to append a log entry
++ * to an inode
++ */
++struct nova_inode_update {
++	u64 head;
++	u64 tail;
++	u64 curr_entry;
++	struct nova_dentry *create_dentry;
++	struct nova_dentry *delete_dentry;
++};
++
++
++/*
++ * Transient DRAM structure to parameterize the creation of a log entry.
++ */
++struct nova_log_entry_info {
++	enum nova_entry_type type;
++	struct iattr *attr;
++	struct nova_inode_update *update;
++	void *data;	/* struct dentry */
++	u64 epoch_id;
++	u64 trans_id;
++	u64 curr_p;	/* output */
++	u64 file_size;	/* de_len for dentry */
++	u64 ino;
++	u32 time;
++	int link_change;
++	int inplace;	/* For file write entry */
++};
++
++
++
++static inline size_t nova_get_log_entry_size(struct super_block *sb,
++	enum nova_entry_type type)
 +{
-+	pgoff_t	indices[PAGEVEC_SIZE];
-+	struct page *page = NULL;
-+	struct pagevec pvec;
-+	pgoff_t	index, end;
-+	unsigned i;
++	size_t size = 0;
 +
-+	/*
-+	 * In the 'limited' case get_user_pages() for dax is disabled.
-+	 */
-+	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
-+		return NULL;
-+
-+	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
-+		return NULL;
-+
-+	pagevec_init(&pvec);
-+	index = 0;
-+	end = -1;
-+	/*
-+	 * Flush dax_layout_lock() sections to ensure all possible page
-+	 * references have been taken, or otherwise arrange for faults
-+	 * to block on the filesystem lock that is taken for
-+	 * establishing new mappings.
-+	 */
-+	unmap_mapping_range(mapping, 0, 0, 1);
-+	synchronize_rcu();
-+
-+	while (index < end && pagevec_lookup_entries(&pvec, mapping, index,
-+				min(end - index, (pgoff_t)PAGEVEC_SIZE),
-+				indices)) {
-+		for (i = 0; i < pagevec_count(&pvec); i++) {
-+			struct page *pvec_ent = pvec.pages[i];
-+			void *entry;
-+
-+			index = indices[i];
-+			if (index >= end)
-+				break;
-+
-+			if (!radix_tree_exceptional_entry(pvec_ent))
-+				continue;
-+
-+			spin_lock_irq(&mapping->tree_lock);
-+			entry = get_unlocked_mapping_entry(mapping, index, NULL);
-+			if (entry)
-+				page = dax_busy_page(entry);
-+			put_unlocked_mapping_entry(mapping, index, entry);
-+			spin_unlock_irq(&mapping->tree_lock);
-+			if (page)
-+				break;
-+		}
-+		pagevec_remove_exceptionals(&pvec);
-+		pagevec_release(&pvec);
-+		index++;
-+
-+		if (page)
-+			break;
++	switch (type) {
++	case FILE_WRITE:
++		size = sizeof(struct nova_file_write_entry);
++		break;
++	case DIR_LOG:
++		size = NOVA_DENTRY_HEADER_LEN;
++		break;
++	case SET_ATTR:
++		size = sizeof(struct nova_setattr_logentry);
++		break;
++	case LINK_CHANGE:
++		size = sizeof(struct nova_link_change_entry);
++		break;
++	default:
++		break;
 +	}
-+	return page;
-+}
-+EXPORT_SYMBOL_GPL(dax_layout_busy_page);
 +
- static int __dax_invalidate_mapping_entry(struct address_space *mapping,
- 					  pgoff_t index, bool trunc)
++	return size;
++}
++
++static inline void nova_persist_entry(void *entry)
++{
++	size_t entry_len = CACHELINE_SIZE;
++
++	nova_flush_buffer(entry, entry_len, 0);
++}
++
+ static inline u64 next_log_page(struct super_block *sb, u64 curr)
  {
-@@ -540,6 +632,7 @@ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
- 	spin_unlock_irq(&mapping->tree_lock);
- 	return ret;
+ 	struct nova_inode_log_page *curr_page;
+@@ -183,6 +352,17 @@ static inline bool goto_next_page(struct super_block *sb, u64 curr_p)
+ 	return false;
  }
-+
- /*
-  * Delete exceptional DAX entry at @index from @mapping. Wait for radix tree
-  * entry to get unlocked before deleting it.
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 9b4259aee016..62671a636512 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -56,6 +56,18 @@ void fs_dax_release(struct dax_device *dax_dev, void *owner);
- int dax_set_page_dirty(struct page *page);
- void dax_invalidatepage(struct page *page, unsigned int offset,
- 		unsigned int length);
-+
-+static inline void dax_layout_lock(void)
-+{
-+	rcu_read_lock();
-+}
-+
-+static inline void dax_layout_unlock(void)
-+{
-+	rcu_read_unlock();
-+}
-+
-+struct page *dax_layout_busy_page(struct address_space *mapping);
- #else
- static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
- {
-@@ -79,6 +91,19 @@ static inline void fs_dax_release(struct dax_device *dax_dev, void *owner)
  
- #define dax_set_page_dirty NULL
- #define dax_invalidatepage NULL
-+
-+static inline void dax_layout_lock(void)
++static inline int is_dir_init_entry(struct super_block *sb,
++	struct nova_dentry *entry)
 +{
++	if (entry->name_len == 1 && strncmp(entry->name, ".", 1) == 0)
++		return 1;
++	if (entry->name_len == 2 && strncmp(entry->name, "..", 2) == 0)
++		return 1;
++
++	return 0;
 +}
 +
-+static inline void dax_layout_unlock(void)
-+{
-+}
-+
-+static inline struct page *dax_layout_busy_page(struct address_space *mapping)
-+{
-+	return NULL;
-+}
- #endif
  
- int dax_read_lock(void);
-@@ -108,6 +133,11 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
- 
-+static inline struct page *refcount_to_page(atomic_t *c)
-+{
-+	return container_of(c, struct page, _refcount);
-+}
-+
- #ifdef CONFIG_FS_DAX
- int __dax_zero_page_range(struct block_device *bdev,
- 		struct dax_device *dax_dev, sector_t sector,
-diff --git a/mm/gup.c b/mm/gup.c
-index 1b46e6e74881..a81efac6983a 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -13,6 +13,7 @@
- #include <linux/sched/signal.h>
- #include <linux/rwsem.h>
- #include <linux/hugetlb.h>
-+#include <linux/dax.h>
- 
- #include <asm/mmu_context.h>
- #include <asm/pgtable.h>
-@@ -693,7 +694,9 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		if (unlikely(fatal_signal_pending(current)))
- 			return i ? i : -ERESTARTSYS;
- 		cond_resched();
-+		dax_layout_lock();
- 		page = follow_page_mask(vma, start, foll_flags, &page_mask);
-+		dax_layout_unlock();
- 		if (!page) {
- 			int ret;
- 			ret = faultin_page(tsk, vma, start, &foll_flags,
-@@ -1809,7 +1812,9 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 
- 	if (gup_fast_permitted(start, nr_pages, write)) {
- 		local_irq_disable();
-+		dax_layout_lock();
- 		gup_pgd_range(addr, end, write, pages, &nr);
-+		dax_layout_unlock();
- 		local_irq_enable();
- 		ret = nr;
- 	}
+ int nova_allocate_inode_log_pages(struct super_block *sb,
+ 	struct nova_inode_info_header *sih, unsigned long num_pages,
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
