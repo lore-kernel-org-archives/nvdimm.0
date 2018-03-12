@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x242.google.com (mail-pf0-x242.google.com
- [IPv6:2607:f8b0:400e:c00::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5FE812253FB7A
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:41 -0800 (PST)
-Received: by mail-pf0-x242.google.com with SMTP id 68so2619767pfx.3
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:00 -0800 (PST)
-From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 36/83] Journal: Lite journal recovery.
-Date: Sat, 10 Mar 2018 10:18:17 -0800
-Message-Id: <1520705944-6723-37-git-send-email-jix024@eng.ucsd.edu>
-In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
-References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+ by ml01.01.org (Postfix) with ESMTPS id CC7B4224488BE
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Mar 2018 11:18:10 -0700 (PDT)
+From: Tony Luck <tony.luck@intel.com>
+Subject: [PATCH 1/5] EDAC: Drop duplicated array of strings for memory type
+ names
+Date: Mon, 12 Mar 2018 11:24:26 -0700
+Message-Id: <20180312182430.10335-2-tony.luck@intel.com>
+In-Reply-To: <20180312182430.10335-1-tony.luck@intel.com>
+References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
+ <20180312182430.10335-1-tony.luck@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,82 +24,139 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
+To: Borislav Petkov <bp@suse.de>
+Cc: Jean Delvare <jdelvare@suse.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Aristeu Rozanski <aris@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Andiry Xu <jix024@cs.ucsd.edu>
+Somehow we ended up with two separate arrays of strings to describe
+the "enum mem_type" values.
 
-Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
+In edac_mc.c we have an exported list edac_mem_types[] that is used
+by a couple of drivers in debug messaged.
+
+In edac_mc_sysfs.c we have a private list that is used to display
+values in:
+  /sys/devices/system/edac/mc/mc*/dimm*/dimm_mem_type
+  /sys/devices/system/edac/mc/mc*/csrow*/mem_type
+this list was missing a value for MEM_LRDDR3
+
+The string values in the two lists were different :-(
+
+Combining the lists, I kept the values so that the sysfs output
+will be unchanged as some scripts may depend on that.
+
+Reported-by: Borislav Petkov <bp@suse.de>
+Acked-by: Borislav Petkov <bp@suse.de>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 ---
- fs/nova/journal.c | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ drivers/edac/edac_mc.c       | 40 ++++++++++++++++++++--------------------
+ drivers/edac/edac_mc_sysfs.c | 26 ++------------------------
+ 2 files changed, 22 insertions(+), 44 deletions(-)
 
-diff --git a/fs/nova/journal.c b/fs/nova/journal.c
-index 75d590f..f31de97 100644
---- a/fs/nova/journal.c
-+++ b/fs/nova/journal.c
-@@ -106,3 +106,58 @@ static int nova_check_journal_entries(struct super_block *sb,
+diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
+index 48193f5f3b56..1f61b736e075 100644
+--- a/drivers/edac/edac_mc.c
++++ b/drivers/edac/edac_mc.c
+@@ -195,26 +195,26 @@ static void edac_mc_dump_mci(struct mem_ctl_info *mci)
+ #endif				/* CONFIG_EDAC_DEBUG */
  
- 	return 0;
+ const char * const edac_mem_types[] = {
+-	[MEM_EMPTY]	= "Empty csrow",
+-	[MEM_RESERVED]	= "Reserved csrow type",
+-	[MEM_UNKNOWN]	= "Unknown csrow type",
+-	[MEM_FPM]	= "Fast page mode RAM",
+-	[MEM_EDO]	= "Extended data out RAM",
+-	[MEM_BEDO]	= "Burst Extended data out RAM",
+-	[MEM_SDR]	= "Single data rate SDRAM",
+-	[MEM_RDR]	= "Registered single data rate SDRAM",
+-	[MEM_DDR]	= "Double data rate SDRAM",
+-	[MEM_RDDR]	= "Registered Double data rate SDRAM",
+-	[MEM_RMBS]	= "Rambus DRAM",
+-	[MEM_DDR2]	= "Unbuffered DDR2 RAM",
+-	[MEM_FB_DDR2]	= "Fully buffered DDR2",
+-	[MEM_RDDR2]	= "Registered DDR2 RAM",
+-	[MEM_XDR]	= "Rambus XDR",
+-	[MEM_DDR3]	= "Unbuffered DDR3 RAM",
+-	[MEM_RDDR3]	= "Registered DDR3 RAM",
+-	[MEM_LRDDR3]	= "Load-Reduced DDR3 RAM",
+-	[MEM_DDR4]	= "Unbuffered DDR4 RAM",
+-	[MEM_RDDR4]	= "Registered DDR4 RAM",
++	[MEM_EMPTY]	= "Empty",
++	[MEM_RESERVED]	= "Reserved",
++	[MEM_UNKNOWN]	= "Unknown",
++	[MEM_FPM]	= "FPM",
++	[MEM_EDO]	= "EDO",
++	[MEM_BEDO]	= "BEDO",
++	[MEM_SDR]	= "Unbuffered-SDR",
++	[MEM_RDR]	= "Registered-SDR",
++	[MEM_DDR]	= "Unbuffered-DDR",
++	[MEM_RDDR]	= "Registered-DDR",
++	[MEM_RMBS]	= "RMBS",
++	[MEM_DDR2]	= "Unbuffered-DDR2",
++	[MEM_FB_DDR2]	= "FullyBuffered-DDR2",
++	[MEM_RDDR2]	= "Registered-DDR2",
++	[MEM_XDR]	= "XDR",
++	[MEM_DDR3]	= "Unbuffered-DDR3",
++	[MEM_RDDR3]	= "Registered-DDR3",
++	[MEM_LRDDR3]	= "Load-Reduced-DDR3-RAM",
++	[MEM_DDR4]	= "Unbuffered-DDR4",
++	[MEM_RDDR4]	= "Registered-DDR4"
+ };
+ EXPORT_SYMBOL_GPL(edac_mem_types);
+ 
+diff --git a/drivers/edac/edac_mc_sysfs.c b/drivers/edac/edac_mc_sysfs.c
+index c70ea82c815c..7481955160a4 100644
+--- a/drivers/edac/edac_mc_sysfs.c
++++ b/drivers/edac/edac_mc_sysfs.c
+@@ -91,28 +91,6 @@ static struct device *mci_pdev;
+ /*
+  * various constants for Memory Controllers
+  */
+-static const char * const mem_types[] = {
+-	[MEM_EMPTY] = "Empty",
+-	[MEM_RESERVED] = "Reserved",
+-	[MEM_UNKNOWN] = "Unknown",
+-	[MEM_FPM] = "FPM",
+-	[MEM_EDO] = "EDO",
+-	[MEM_BEDO] = "BEDO",
+-	[MEM_SDR] = "Unbuffered-SDR",
+-	[MEM_RDR] = "Registered-SDR",
+-	[MEM_DDR] = "Unbuffered-DDR",
+-	[MEM_RDDR] = "Registered-DDR",
+-	[MEM_RMBS] = "RMBS",
+-	[MEM_DDR2] = "Unbuffered-DDR2",
+-	[MEM_FB_DDR2] = "FullyBuffered-DDR2",
+-	[MEM_RDDR2] = "Registered-DDR2",
+-	[MEM_XDR] = "XDR",
+-	[MEM_DDR3] = "Unbuffered-DDR3",
+-	[MEM_RDDR3] = "Registered-DDR3",
+-	[MEM_DDR4] = "Unbuffered-DDR4",
+-	[MEM_RDDR4] = "Registered-DDR4"
+-};
+-
+ static const char * const dev_types[] = {
+ 	[DEV_UNKNOWN] = "Unknown",
+ 	[DEV_X1] = "x1",
+@@ -196,7 +174,7 @@ static ssize_t csrow_mem_type_show(struct device *dev,
+ {
+ 	struct csrow_info *csrow = to_csrow(dev);
+ 
+-	return sprintf(data, "%s\n", mem_types[csrow->channels[0]->dimm->mtype]);
++	return sprintf(data, "%s\n", edac_mem_types[csrow->channels[0]->dimm->mtype]);
  }
-+
-+/**************************** Journal Recovery ******************************/
-+
-+static void nova_undo_journal_entry(struct super_block *sb,
-+	struct nova_lite_journal_entry *entry)
-+{
-+	u64 addr, value;
-+
-+	addr = le64_to_cpu(entry->data1);
-+	value = le64_to_cpu(entry->data2);
-+
-+	*(u64 *)nova_get_block(sb, addr) = (u64)value;
-+	nova_flush_buffer((void *)nova_get_block(sb, addr), CACHELINE_SIZE, 0);
-+}
-+
-+static void nova_undo_lite_journal_entry(struct super_block *sb,
-+	struct nova_lite_journal_entry *entry)
-+{
-+	u64 type;
-+
-+	type = le64_to_cpu(entry->type);
-+
-+	switch (type) {
-+	case JOURNAL_INODE:
-+		/* Currently unused */
-+		break;
-+	case JOURNAL_ENTRY:
-+		nova_undo_journal_entry(sb, entry);
-+		break;
-+	default:
-+		nova_dbg("%s: unknown data type %llu\n", __func__, type);
-+		break;
-+	}
-+}
-+
-+/* Roll back all journal enries */
-+static int nova_recover_lite_journal(struct super_block *sb,
-+	struct journal_ptr_pair *pair)
-+{
-+	struct nova_lite_journal_entry *entry;
-+	u64 temp;
-+
-+	temp = pair->journal_head;
-+	while (temp != pair->journal_tail) {
-+		entry = (struct nova_lite_journal_entry *)nova_get_block(sb,
-+									temp);
-+		nova_undo_lite_journal_entry(sb, entry);
-+		temp = next_lite_journal(temp);
-+	}
-+
-+	pair->journal_tail = pair->journal_head;
-+	nova_flush_buffer(&pair->journal_head, CACHELINE_SIZE, 1);
-+
-+	return 0;
-+}
+ 
+ static ssize_t csrow_dev_type_show(struct device *dev,
+@@ -549,7 +527,7 @@ static ssize_t dimmdev_mem_type_show(struct device *dev,
+ {
+ 	struct dimm_info *dimm = to_dimm(dev);
+ 
+-	return sprintf(data, "%s\n", mem_types[dimm->mtype]);
++	return sprintf(data, "%s\n", edac_mem_types[dimm->mtype]);
+ }
+ 
+ static ssize_t dimmdev_dev_type_show(struct device *dev,
 -- 
-2.7.4
+2.14.1
 
 _______________________________________________
 Linux-nvdimm mailing list
