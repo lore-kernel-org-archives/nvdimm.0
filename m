@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 674AA2034D8DE
- for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 21:54:47 -0700 (PDT)
-Subject: [PATCH] x86, memremap: fix altmap accounting at free
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 13 Mar 2018 21:52:04 -0700
-Message-ID: <152100312423.27180.6073263768072550564.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 84CEC2264D22B
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Mar 2018 12:29:14 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Mon, 12 Mar 2018 13:35:24 -0600
+Message-Id: <20180312193525.2855-11-logang@deltatee.com>
+In-Reply-To: <20180312193525.2855-1-logang@deltatee.com>
+References: <20180312193525.2855-1-logang@deltatee.com>
+Subject: [PATCH v3 10/11] nvme-pci: Add a quirk for a pseudo CMB
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,242 +17,97 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit 24b6d4164348 "mm: pass the vmem_altmap to vmemmap_free" converted
-the vmemmap_free() path to pass the altmap argument all the way through
-the call chain rather than looking it up based on the page.
-Unfortunately that ends up over freeing altmap allocated pages in some
-cases since free_pagetable() is used to free both memmap space and pte
-space, where only the memmap stored in huge pages uses altmap
-allocations.
+Introduce a quirk to use CMB-like memory on older devices that have
+an exposed BAR but do not advertise support for using CMBLOC and
+CMBSIZE.
 
-Given that altmap allocations for memmap space are special cased in
-vmemmap_populate_hugepages() add a symmetric / special case
-free_hugepage_table() to handle altmap freeing, and cleanup the unneeded
-passing of altmap to leaf functions that do not require it.
+We'd like to use some of these older cards to test P2P memory.
 
-Without this change the sanity check accounting in
-devm_memremap_pages_release() will throw a warning with the following
-signature.
-
- nd_pmem pfn10.1: devm_memremap_pages_release: failed to free all reserved pages
- WARNING: CPU: 44 PID: 3539 at kernel/memremap.c:310 devm_memremap_pages_release+0x1c7/0x220
- CPU: 44 PID: 3539 Comm: ndctl Tainted: G             L   4.16.0-rc1-linux-stable #7
- RIP: 0010:devm_memremap_pages_release+0x1c7/0x220
- [..]
- Call Trace:
-  release_nodes+0x225/0x270
-  device_release_driver_internal+0x15d/0x210
-  bus_remove_device+0xe2/0x160
-  device_del+0x130/0x310
-  ? klist_release+0x56/0x100
-  ? nd_region_notify+0xc0/0xc0 [libnvdimm]
-  device_unregister+0x16/0x60
-
-This was missed in testing since not all configurations will trigger
-this warning.
-
-Fixes: 24b6d4164348 ("mm: pass the vmem_altmap to vmemmap_free")
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- arch/x86/mm/init_64.c |   60 +++++++++++++++++++++++--------------------------
- 1 file changed, 28 insertions(+), 32 deletions(-)
+ drivers/nvme/host/nvme.h |  7 +++++++
+ drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 8b72923f1d35..af11a2890235 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -800,17 +800,11 @@ int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index 1fb2b6603d49..d1381bfc40f1 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -83,6 +83,13 @@ enum nvme_quirks {
+ 	 * Supports the LighNVM command set if indicated in vs[1].
+ 	 */
+ 	NVME_QUIRK_LIGHTNVM			= (1 << 6),
++
++	/*
++	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
++	 * NVRAM that have CMB-like memory on a BAR but does not set
++	 * CMBLOC or CMBSZ.
++	 */
++	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 7),
+ };
  
- #define PAGE_INUSE 0xFD
- 
--static void __meminit free_pagetable(struct page *page, int order,
--		struct vmem_altmap *altmap)
-+static void __meminit free_pagetable(struct page *page, int order)
- {
- 	unsigned long magic;
- 	unsigned int nr_pages = 1 << order;
- 
--	if (altmap) {
--		vmem_altmap_free(altmap, nr_pages);
--		return;
--	}
--
- 	/* bootmem page has reserved flag */
- 	if (PageReserved(page)) {
- 		__ClearPageReserved(page);
-@@ -826,9 +820,17 @@ static void __meminit free_pagetable(struct page *page, int order,
- 		free_pages((unsigned long)page_address(page), order);
+ /*
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 0ebab7ab4d7e..a798e08a07bc 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -1683,6 +1683,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
  }
+ static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
  
--static void __meminit free_pte_table(pte_t *pte_start, pmd_t *pmd,
-+static void __meminit free_hugepage_table(struct page *page,
- 		struct vmem_altmap *altmap)
- {
-+	if (altmap)
-+		vmem_altmap_free(altmap, PMD_SIZE / PAGE_SIZE);
-+	else
-+		free_pagetable(page, get_order(PMD_SIZE));
++static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
++{
++	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
++		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
++		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
 +}
 +
-+static void __meminit free_pte_table(pte_t *pte_start, pmd_t *pmd)
-+{
- 	pte_t *pte;
- 	int i;
- 
-@@ -839,14 +841,13 @@ static void __meminit free_pte_table(pte_t *pte_start, pmd_t *pmd,
- 	}
- 
- 	/* free a pte talbe */
--	free_pagetable(pmd_page(*pmd), 0, altmap);
-+	free_pagetable(pmd_page(*pmd), 0);
- 	spin_lock(&init_mm.page_table_lock);
- 	pmd_clear(pmd);
- 	spin_unlock(&init_mm.page_table_lock);
- }
- 
--static void __meminit free_pmd_table(pmd_t *pmd_start, pud_t *pud,
--		struct vmem_altmap *altmap)
-+static void __meminit free_pmd_table(pmd_t *pmd_start, pud_t *pud)
+ static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
  {
- 	pmd_t *pmd;
- 	int i;
-@@ -858,14 +859,13 @@ static void __meminit free_pmd_table(pmd_t *pmd_start, pud_t *pud,
- 	}
+ 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
+@@ -1702,10 +1709,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	struct pci_dev *pdev = to_pci_dev(dev->dev);
+ 	int bar;
  
- 	/* free a pmd talbe */
--	free_pagetable(pud_page(*pud), 0, altmap);
-+	free_pagetable(pud_page(*pud), 0);
- 	spin_lock(&init_mm.page_table_lock);
- 	pud_clear(pud);
- 	spin_unlock(&init_mm.page_table_lock);
- }
+-	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
+-	if (!dev->cmbsz)
+-		return;
+-	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
++		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
++		dev->cmbloc = 4;
++	} else {
++		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
++		if (!dev->cmbsz)
++			return;
++		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	}
  
--static void __meminit free_pud_table(pud_t *pud_start, p4d_t *p4d,
--		struct vmem_altmap *altmap)
-+static void __meminit free_pud_table(pud_t *pud_start, p4d_t *p4d)
- {
- 	pud_t *pud;
- 	int i;
-@@ -877,7 +877,7 @@ static void __meminit free_pud_table(pud_t *pud_start, p4d_t *p4d,
- 	}
- 
- 	/* free a pud talbe */
--	free_pagetable(p4d_page(*p4d), 0, altmap);
-+	free_pagetable(p4d_page(*p4d), 0);
- 	spin_lock(&init_mm.page_table_lock);
- 	p4d_clear(p4d);
- 	spin_unlock(&init_mm.page_table_lock);
-@@ -885,7 +885,7 @@ static void __meminit free_pud_table(pud_t *pud_start, p4d_t *p4d,
- 
- static void __meminit
- remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
--		 struct vmem_altmap *altmap, bool direct)
-+		 bool direct)
- {
- 	unsigned long next, pages = 0;
- 	pte_t *pte;
-@@ -916,7 +916,7 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
- 			 * freed when offlining, or simplely not in use.
- 			 */
- 			if (!direct)
--				free_pagetable(pte_page(*pte), 0, altmap);
-+				free_pagetable(pte_page(*pte), 0);
- 
- 			spin_lock(&init_mm.page_table_lock);
- 			pte_clear(&init_mm, addr, pte);
-@@ -939,7 +939,7 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
- 
- 			page_addr = page_address(pte_page(*pte));
- 			if (!memchr_inv(page_addr, PAGE_INUSE, PAGE_SIZE)) {
--				free_pagetable(pte_page(*pte), 0, altmap);
-+				free_pagetable(pte_page(*pte), 0);
- 
- 				spin_lock(&init_mm.page_table_lock);
- 				pte_clear(&init_mm, addr, pte);
-@@ -974,9 +974,8 @@ remove_pmd_table(pmd_t *pmd_start, unsigned long addr, unsigned long end,
- 			if (IS_ALIGNED(addr, PMD_SIZE) &&
- 			    IS_ALIGNED(next, PMD_SIZE)) {
- 				if (!direct)
--					free_pagetable(pmd_page(*pmd),
--						       get_order(PMD_SIZE),
--						       altmap);
-+					free_hugepage_table(pmd_page(*pmd),
-+							    altmap);
- 
- 				spin_lock(&init_mm.page_table_lock);
- 				pmd_clear(pmd);
-@@ -989,9 +988,8 @@ remove_pmd_table(pmd_t *pmd_start, unsigned long addr, unsigned long end,
- 				page_addr = page_address(pmd_page(*pmd));
- 				if (!memchr_inv(page_addr, PAGE_INUSE,
- 						PMD_SIZE)) {
--					free_pagetable(pmd_page(*pmd),
--						       get_order(PMD_SIZE),
--						       altmap);
-+					free_hugepage_table(pmd_page(*pmd),
-+							    altmap);
- 
- 					spin_lock(&init_mm.page_table_lock);
- 					pmd_clear(pmd);
-@@ -1003,8 +1001,8 @@ remove_pmd_table(pmd_t *pmd_start, unsigned long addr, unsigned long end,
- 		}
- 
- 		pte_base = (pte_t *)pmd_page_vaddr(*pmd);
--		remove_pte_table(pte_base, addr, next, altmap, direct);
--		free_pte_table(pte_base, pmd, altmap);
-+		remove_pte_table(pte_base, addr, next, direct);
-+		free_pte_table(pte_base, pmd);
- 	}
- 
- 	/* Call free_pmd_table() in remove_pud_table(). */
-@@ -1033,8 +1031,7 @@ remove_pud_table(pud_t *pud_start, unsigned long addr, unsigned long end,
- 			    IS_ALIGNED(next, PUD_SIZE)) {
- 				if (!direct)
- 					free_pagetable(pud_page(*pud),
--						       get_order(PUD_SIZE),
--						       altmap);
-+						       get_order(PUD_SIZE));
- 
- 				spin_lock(&init_mm.page_table_lock);
- 				pud_clear(pud);
-@@ -1048,8 +1045,7 @@ remove_pud_table(pud_t *pud_start, unsigned long addr, unsigned long end,
- 				if (!memchr_inv(page_addr, PAGE_INUSE,
- 						PUD_SIZE)) {
- 					free_pagetable(pud_page(*pud),
--						       get_order(PUD_SIZE),
--						       altmap);
-+						       get_order(PUD_SIZE));
- 
- 					spin_lock(&init_mm.page_table_lock);
- 					pud_clear(pud);
-@@ -1062,7 +1058,7 @@ remove_pud_table(pud_t *pud_start, unsigned long addr, unsigned long end,
- 
- 		pmd_base = pmd_offset(pud, 0);
- 		remove_pmd_table(pmd_base, addr, next, direct, altmap);
--		free_pmd_table(pmd_base, pud, altmap);
-+		free_pmd_table(pmd_base, pud);
- 	}
- 
- 	if (direct)
-@@ -1094,7 +1090,7 @@ remove_p4d_table(p4d_t *p4d_start, unsigned long addr, unsigned long end,
- 		 * to adapt for boot-time switching between 4 and 5 level page tables.
- 		 */
- 		if (CONFIG_PGTABLE_LEVELS == 5)
--			free_pud_table(pud_base, p4d, altmap);
-+			free_pud_table(pud_base, p4d);
- 	}
- 
- 	if (direct)
+ 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
+ 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
+@@ -2719,6 +2731,10 @@ static const struct pci_device_id nvme_id_table[] = {
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
+ 	{ PCI_DEVICE(0x1d1d, 0x2807),	/* CNEX WL */
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
++	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
++	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
+ 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
