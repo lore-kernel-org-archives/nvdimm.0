@@ -1,18 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x242.google.com (mail-pl0-x242.google.com
- [IPv6:2607:f8b0:400e:c01::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8A4342263148F
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:00 -0800 (PST)
-Received: by mail-pl0-x242.google.com with SMTP id f23-v6so7024249plr.10
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:19 -0800 (PST)
-From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 52/83] Rebuild: file inode.
-Date: Sat, 10 Mar 2018 10:18:33 -0800
-Message-Id: <1520705944-6723-53-git-send-email-jix024@eng.ucsd.edu>
-In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
-References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+ by ml01.01.org (Postfix) with ESMTPS id 360EE2264D223
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Mar 2018 12:29:13 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Mon, 12 Mar 2018 13:35:14 -0600
+Message-Id: <20180312193525.2855-1-logang@deltatee.com>
+Subject: [PATCH v3 00/11] Copy Offload in NVMe Fabrics with P2P PCI Memory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,186 +20,164 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Andiry Xu <jix024@cs.ucsd.edu>
+Hi Everyone,
 
-Rebuild file inode metadata and radix tree on read_inode.
+Here's v3 of our series to introduce P2P based copy offload to NVMe
+fabrics. This version has been rebased onto v4.16-rc5.
 
-Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
----
- fs/nova/log.h     |   4 ++
- fs/nova/rebuild.c | 124 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 128 insertions(+)
+Thanks,
 
-diff --git a/fs/nova/log.h b/fs/nova/log.h
-index 87ce5f9..bdb85eb 100644
---- a/fs/nova/log.h
-+++ b/fs/nova/log.h
-@@ -385,6 +385,10 @@ int nova_inplace_update_write_entry(struct super_block *sb,
- int nova_append_file_write_entry(struct super_block *sb, struct nova_inode *pi,
- 	struct inode *inode, struct nova_file_write_item *item,
- 	struct nova_inode_update *update);
-+int nova_assign_write_entry(struct super_block *sb,
-+	struct nova_inode_info_header *sih,
-+	struct nova_file_write_entry *entry,
-+	bool free);
- int nova_invalidate_dentries(struct super_block *sb,
- 	struct nova_inode_update *update);
- int nova_inplace_update_dentry(struct super_block *sb,
-diff --git a/fs/nova/rebuild.c b/fs/nova/rebuild.c
-index 9a1327d..07cf6e3 100644
---- a/fs/nova/rebuild.c
-+++ b/fs/nova/rebuild.c
-@@ -156,6 +156,126 @@ static int nova_rebuild_inode_finish(struct super_block *sb,
- 	return 0;
- }
- 
-+static void nova_rebuild_handle_write_entry(struct super_block *sb,
-+	struct nova_inode_info_header *sih, struct nova_inode_rebuild *reb,
-+	struct nova_file_write_entry *entry)
-+{
-+	if (entry->num_pages != entry->invalid_pages) {
-+		/*
-+		 * The overlaped blocks are already freed.
-+		 * Don't double free them, just re-assign the pointers.
-+		 */
-+		nova_assign_write_entry(sb, sih, entry, false);
-+	}
-+
-+	if (entry->trans_id >= sih->trans_id) {
-+		nova_rebuild_file_time_and_size(sb, reb,
-+					entry->mtime, entry->mtime,
-+					entry->size);
-+		reb->trans_id = entry->trans_id;
-+	}
-+
-+	/* Update sih->i_size for setattr apply operations */
-+	sih->i_size = le64_to_cpu(reb->i_size);
-+}
-+
-+static int nova_rebuild_file_inode_tree(struct super_block *sb,
-+	struct nova_inode *pi, u64 pi_addr,
-+	struct nova_inode_info_header *sih)
-+{
-+	struct nova_file_write_entry *entry = NULL;
-+	struct nova_setattr_logentry *attr_entry = NULL;
-+	struct nova_link_change_entry *link_change_entry = NULL;
-+	struct nova_inode_rebuild rebuild, *reb;
-+	unsigned int data_bits = blk_type_to_shift[sih->i_blk_type];
-+	u64 ino = pi->nova_ino;
-+	timing_t rebuild_time;
-+	void *addr, *entryc = NULL;
-+	u64 curr_p;
-+	u8 type;
-+	int ret;
-+
-+	NOVA_START_TIMING(rebuild_file_t, rebuild_time);
-+	nova_dbg_verbose("Rebuild file inode %llu tree\n", ino);
-+
-+	reb = &rebuild;
-+	ret = nova_rebuild_inode_start(sb, pi, sih, reb, pi_addr);
-+	if (ret)
-+		goto out;
-+
-+	curr_p = sih->log_head;
-+	if (curr_p == 0 && sih->log_tail == 0)
-+		goto out;
-+
-+//	nova_print_nova_log(sb, sih);
-+
-+	while (curr_p != sih->log_tail) {
-+		if (goto_next_page(sb, curr_p)) {
-+			sih->log_pages++;
-+			curr_p = next_log_page(sb, curr_p);
-+		}
-+
-+		if (curr_p == 0) {
-+			nova_err(sb, "File inode %llu log is NULL!\n", ino);
-+			ret = -EIO;
-+			goto out;
-+		}
-+
-+		addr = (void *)nova_get_block(sb, curr_p);
-+
-+		entryc = addr;
-+
-+		type = nova_get_entry_type(entryc);
-+
-+		switch (type) {
-+		case SET_ATTR:
-+			attr_entry = (struct nova_setattr_logentry *)entryc;
-+			nova_apply_setattr_entry(sb, reb, sih, attr_entry);
-+			sih->last_setattr = curr_p;
-+			if (attr_entry->trans_id >= reb->trans_id) {
-+				nova_rebuild_file_time_and_size(sb, reb,
-+							attr_entry->mtime,
-+							attr_entry->ctime,
-+							attr_entry->size);
-+				reb->trans_id = attr_entry->trans_id;
-+			}
-+
-+			/* Update sih->i_size for setattr operation */
-+			sih->i_size = le64_to_cpu(reb->i_size);
-+			curr_p += sizeof(struct nova_setattr_logentry);
-+			break;
-+		case LINK_CHANGE:
-+			link_change_entry =
-+				(struct nova_link_change_entry *)entryc;
-+			nova_apply_link_change_entry(sb, reb,
-+						link_change_entry);
-+			sih->last_link_change = curr_p;
-+			curr_p += sizeof(struct nova_link_change_entry);
-+			break;
-+		case FILE_WRITE:
-+			entry = (struct nova_file_write_entry *)addr;
-+			nova_rebuild_handle_write_entry(sb, sih, reb,
-+						entryc);
-+			curr_p += sizeof(struct nova_file_write_entry);
-+			break;
-+		default:
-+			nova_err(sb, "unknown type %d, 0x%llx\n", type, curr_p);
-+			NOVA_ASSERT(0);
-+			curr_p += sizeof(struct nova_file_write_entry);
-+			break;
-+		}
-+
-+	}
-+
-+	ret = nova_rebuild_inode_finish(sb, pi, sih, reb, curr_p);
-+	sih->i_blocks = sih->log_pages + (sih->i_size >> data_bits);
-+
-+out:
-+//	nova_print_inode_log_page(sb, inode);
-+	NOVA_END_TIMING(rebuild_file_t, rebuild_time);
-+	return ret;
-+}
-+
- /******************* Directory rebuild *********************/
- 
- static inline void nova_rebuild_dir_time_and_size(struct super_block *sb,
-@@ -360,12 +480,16 @@ int nova_rebuild_inode(struct super_block *sb, struct nova_inode_info *si,
- 		/* Treat symlink files as normal files */
- 		/* Fall through */
- 	case S_IFREG:
-+		nova_rebuild_file_inode_tree(sb, pi, pi_addr, sih);
- 		break;
- 	case S_IFDIR:
- 		if (rebuild_dir)
- 			nova_rebuild_dir_inode_tree(sb, pi, pi_addr, sih);
- 		break;
- 	default:
-+		/* In case of special inode, walk the log */
-+		if (pi->log_head)
-+			nova_rebuild_file_inode_tree(sb, pi, pi_addr, sih);
- 		sih->pi_addr = pi_addr;
- 		break;
- 	}
--- 
-2.7.4
+Logan
 
+
+Changes in v3:
+
+* Many more fixes and minor cleanups that were spotted by Bjorn
+
+* Additional explanation of the ACS change in both the commit message
+  and Kconfig doc. Also, the code that disables the ACS bits is surrounded
+  explicitly by an #ifdef
+
+* Removed the flag we added to rdma_rw_ctx() in favour of using
+  is_pci_p2pdma_page(), as suggested by Sagi.
+
+* Adjust pci_p2pmem_find() so that it prefers P2P providers that
+  are closest to (or the same as) the clients using them. In cases
+  of ties, the provider is randomly chosen.
+
+* Modify the NVMe Target code so that the PCI device name of the provider
+  may be explicitly specified, bypassing the logic in pci_p2pmem_find().
+  (Note: it's still enforced that the provider must be behind the
+   same switch as the clients).
+
+* As requested by Bjorn, added documentation for driver writers.
+
+
+Changes in v2:
+
+* Renamed everything to 'p2pdma' per the suggestion from Bjorn as well
+  as a bunch of cleanup and spelling fixes he pointed out in the last
+  series.
+
+* To address Alex's ACS concerns, we change to a simpler method of
+  just disabling ACS behind switches for any kernel that has
+  CONFIG_PCI_P2PDMA.
+
+* We also reject using devices that employ 'dma_virt_ops' which should
+  fairly simply handle Jason's concerns that this work might break with
+  the HFI, QIB and rxe drivers that use the virtual ops to implement
+  their own special DMA operations.
+
+--
+
+This is a continuation of our work to enable using Peer-to-Peer PCI
+memory in NVMe fabrics targets. Many thanks go to Christoph Hellwig who
+provided valuable feedback to get these patches to where they are today.
+
+The concept here is to use memory that's exposed on a PCI BAR as
+data buffers in the NVME target code such that data can be transferred
+from an RDMA NIC to the special memory and then directly to an NVMe
+device avoiding system memory entirely. The upside of this is better
+QoS for applications running on the CPU utilizing memory and lower
+PCI bandwidth required to the CPU (such that systems could be designed
+with fewer lanes connected to the CPU). However, presently, the
+trade-off is currently a reduction in overall throughput. (Largely due
+to hardware issues that would certainly improve in the future).
+
+Due to these trade-offs we've designed the system to only enable using
+the PCI memory in cases where the NIC, NVMe devices and memory are all
+behind the same PCI switch. This will mean many setups that could likely
+work well will not be supported so that we can be more confident it
+will work and not place any responsibility on the user to understand
+their topology. (We chose to go this route based on feedback we
+received at the last LSF). Future work may enable these transfers behind
+a fabric of PCI switches or perhaps using a white list of known good
+root complexes.
+
+In order to enable this functionality, we introduce a few new PCI
+functions such that a driver can register P2P memory with the system.
+Struct pages are created for this memory using devm_memremap_pages()
+and the PCI bus offset is stored in the corresponding pagemap structure.
+
+Another set of functions allow a client driver to create a list of
+client devices that will be used in a given P2P transactions and then
+use that list to find any P2P memory that is supported by all the
+client devices. This list is then also used to selectively disable the
+ACS bits for the downstream ports behind these devices.
+
+In the block layer, we also introduce a P2P request flag to indicate a
+given request targets P2P memory as well as a flag for a request queue
+to indicate a given queue supports targeting P2P memory. P2P requests
+will only be accepted by queues that support it. Also, P2P requests
+are marked to not be merged seeing a non-homogenous request would
+complicate the DMA mapping requirements.
+
+In the PCI NVMe driver, we modify the existing CMB support to utilize
+the new PCI P2P memory infrastructure and also add support for P2P
+memory in its request queue. When a P2P request is received it uses the
+pci_p2pmem_map_sg() function which applies the necessary transformation
+to get the corrent pci_bus_addr_t for the DMA transactions.
+
+In the RDMA core, we also adjust rdma_rw_ctx_init() and
+rdma_rw_ctx_destroy() to take a flags argument which indicates whether
+to use the PCI P2P mapping functions or not.
+
+Finally, in the NVMe fabrics target port we introduce a new
+configuration boolean: 'allow_p2pmem'. When set, the port will attempt
+to find P2P memory supported by the RDMA NIC and all namespaces. If
+supported memory is found, it will be used in all IO transfers. And if
+a port is using P2P memory, adding new namespaces that are not supported
+by that memory will fail.
+
+Logan Gunthorpe (11):
+  PCI/P2PDMA: Support peer-to-peer memory
+  PCI/P2PDMA: Add sysfs group to display p2pmem stats
+  PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust the bus offset
+  PCI/P2PDMA: Clear ACS P2P flags for all devices behind switches
+  PCI/P2PDMA: Add P2P DMA driver writer's documentation
+  block: Introduce PCI P2P flags for request and request queue
+  IB/core: Ensure we map P2P memory correctly in
+    rdma_rw_ctx_[init|destroy]()
+  nvme-pci: Use PCI p2pmem subsystem to manage the CMB
+  nvme-pci: Add support for P2P memory in requests
+  nvme-pci: Add a quirk for a pseudo CMB
+  nvmet: Optionally use PCI P2P memory
+
+ Documentation/ABI/testing/sysfs-bus-pci |  25 +
+ Documentation/PCI/index.rst             |  14 +
+ Documentation/PCI/p2pdma.rst            | 164 +++++++
+ Documentation/index.rst                 |   3 +-
+ block/blk-core.c                        |   3 +
+ drivers/infiniband/core/rw.c            |  13 +-
+ drivers/nvme/host/core.c                |   4 +
+ drivers/nvme/host/nvme.h                |   8 +
+ drivers/nvme/host/pci.c                 | 118 +++--
+ drivers/nvme/target/configfs.c          |  67 +++
+ drivers/nvme/target/core.c              | 106 +++-
+ drivers/nvme/target/io-cmd.c            |   3 +
+ drivers/nvme/target/nvmet.h             |  12 +
+ drivers/nvme/target/rdma.c              |  32 +-
+ drivers/pci/Kconfig                     |  25 +
+ drivers/pci/Makefile                    |   1 +
+ drivers/pci/p2pdma.c                    | 828 ++++++++++++++++++++++++++++++++
+ drivers/pci/pci.c                       |   6 +
+ include/linux/blk_types.h               |  18 +-
+ include/linux/blkdev.h                  |   3 +
+ include/linux/memremap.h                |  19 +
+ include/linux/pci-p2pdma.h              | 119 +++++
+ include/linux/pci.h                     |   4 +
+ 23 files changed, 1543 insertions(+), 52 deletions(-)
+ create mode 100644 Documentation/PCI/index.rst
+ create mode 100644 Documentation/PCI/p2pdma.rst
+ create mode 100644 drivers/pci/p2pdma.c
+ create mode 100644 include/linux/pci-p2pdma.h
+
+--
+2.11.0
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
