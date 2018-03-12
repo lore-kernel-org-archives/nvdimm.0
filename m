@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AF542220C2A54
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 08:32:16 -0800 (PST)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] MAINTAINERS: add coverage for drivers/block
-Date: Fri,  9 Mar 2018 09:38:26 -0700
-Message-Id: <20180309163826.25042-1-ross.zwisler@linux.intel.com>
-In-reply-to: <92dc07f1-dfbd-2449-ce76-502455f56136@kernel.dk>
+ by ml01.01.org (Postfix) with ESMTPS id 6F0A4224488AE
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Mar 2018 11:11:06 -0700 (PDT)
+Received: by mail-oi0-x244.google.com with SMTP id x12so13111253oie.13
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Mar 2018 11:17:27 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180312141721.GB4214@redhat.com>
+References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152066492680.40260.6843692416565308005.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180312141721.GB4214@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 12 Mar 2018 11:17:25 -0700
+Message-ID: <CAPcyv4jdOdvUZHS43Q18h3yTNzmiVJceEcVN5XSKstTkQHfDFQ@mail.gmail.com>
+Subject: Re: [PATCH v5 07/11] mm, dev_pagemap: introduce CONFIG_DEV_PAGEMAP_OPS
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,37 +23,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jens Axboe <axboe@kernel.dk>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, david <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-To help folks like me that use scripts/get_maintainer.pl.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4623caf8d72d..7ff83f4c9aeb 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2685,6 +2685,7 @@ L:	linux-block@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git
- S:	Maintained
- F:	block/
-+F:	drivers/block/
- F:	kernel/trace/blktrace.c
- F:	lib/sbitmap.c
- 
--- 
-2.14.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCBNYXIgMTIsIDIwMTggYXQgNzoxNyBBTSwgSmVyb21lIEdsaXNzZSA8amdsaXNzZUBy
+ZWRoYXQuY29tPiB3cm90ZToKPiBPbiBGcmksIE1hciAwOSwgMjAxOCBhdCAxMDo1NToyNlBNIC0w
+ODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4+IFRoZSBITU0gc3ViLXN5c3RlbSBleHRlbmRlZCBk
+ZXZfcGFnZW1hcCB0byBhcnJhbmdlIGEgY2FsbGJhY2sgd2hlbiBhCj4+IGRldl9wYWdlbWFwIG1h
+bmFnZWQgcGFnZSBpcyBmcmVlZC4gU2luY2UgYSBkZXZfcGFnZW1hcCBwYWdlIGlzIGZyZWUgLwo+
+PiBpZGxlIHdoZW4gaXRzIHJlZmVyZW5jZSBjb3VudCBpcyAxIGl0IHJlcXVpcmVzIGFuIGFkZGl0
+aW9uYWwgYnJhbmNoIHRvCj4+IGNoZWNrIHRoZSBwYWdlLXR5cGUgYXQgcHV0X3BhZ2UoKSB0aW1l
+LiBHaXZlbiBwdXRfcGFnZSgpIGlzIGEgaG90LXBhdGgKPj4gd2UgZG8gbm90IHdhbnQgdG8gaW5j
+dXIgdGhhdCBjaGVjayBpZiBITU0gaXMgbm90IGluIHVzZSwgc28gYSBzdGF0aWMKPj4gYnJhbmNo
+IGlzIHVzZWQgdG8gYXZvaWQgdGhhdCBvdmVyaGVhZCB3aGVuIG5vdCBuZWNlc3NhcnkuCj4+Cj4+
+IE5vdywgdGhlIEZTX0RBWCBpbXBsZW1lbnRhdGlvbiB3YW50cyB0byByZXVzZSB0aGlzIG1lY2hh
+bmlzbSBmb3IKPj4gcmVjZWl2aW5nIGRldl9wYWdlbWFwIC0+cGFnZV9mcmVlKCkgY2FsbGJhY2tz
+LiBSZXdvcmsgdGhlIEhNTS1zcGVjaWZpYwo+PiBzdGF0aWMta2V5IGludG8gYSBnZW5lcmljIG1l
+Y2hhbmlzbSB0aGF0IGVpdGhlciBITU0gb3IgRlNfREFYIGNvZGUgcGF0aHMKPj4gY2FuIGVuYWJs
+ZS4KPgo+IFdoeSBFWFBPUlRfU1lNQk9MX0dQTCBhbmQgbm90IEVYUE9SVF9TWU1CT0wgbGlrZSBp
+dCB3YXMgcHJpb3IgdG8gdGhpcwo+IHBhdGNoID8gTm90IGkgY2FyZSB0aGF0IG11Y2ggYWJvdXQg
+dGhhdCwganVzdCB3b25kZXJpbmcuIE1heWJlIGtlZXAgaXQKPiBFWFBPUlRfU1lNQk9MKCkgPwoK
+SE1NIGhhcyBzaWduaWZpY2FudCBpbnRlZ3JhdGlvbnMgYW5kIHVzZWZ1bCBoYWNrcyB3aXRoaW4g
+dGhlIG1tCnN1Yi1zeXN0ZW0sIEkgdGhpbmsgd2Ugc2hvdWxkIGdvIGZ1cnRoZXIgdGhhbiBqdXN0
+IHRoZXNlIHN5bWJvbHMgYW5kCmFsc28gaW5jbHVkZSBkZXZtX21lbXJlbWFwX3BhZ2VzKCkgYXMg
+RVhQT1JUX1NZTUJPTF9HUEwuIEl0IHdhcyBzaW1wbHkKYW4gb3ZlcnNpZ2h0IHRoYXQgdGhlc2Ug
+d2VyZSBFWFBPUlRfU1lNQk9MIHByZXZpb3VzbHkuCgo+IEluIGFueSBjYXNlCj4gUmV2aWV3ZWQt
+Ynk6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+CgpUaGFua3MhCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBt
+YWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
