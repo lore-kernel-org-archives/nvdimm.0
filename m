@@ -1,10 +1,10 @@
-From: =?utf-8?B?5p2c5Y2a5LmJ?= <zncolf-Hyi8uI8E5Og@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+ROi8g5Lq65Yqb6LWE5rqQ?=
-Date: Fri, 9 Mar 2018 14:54:46 +0800
-Message-ID: <A0D4345E5714A41A1DFE7BD8A6EDFC2E@saou.com>
+From: "Post Office" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: hello
+Date: Mon, 12 Mar 2018 11:19:49 +0800
+Message-ID: <20180312031326.B6EE422546BA0@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,7 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-bGludXgtbnZkaW1tLy8gDQror6YtIOe7hiAt5YaFIC3lrrkgIC3or7cgIC3pmIUgIC3or7sgIC3p
-mYQgLeS7tg0KMjAxOC0zLTkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+The original message was received at Mon, 12 Mar 2018 11:19:49 +0800
+from lists.01.org [184.144.151.118]
+
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
