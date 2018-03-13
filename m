@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22e.google.com (mail-oi0-x22e.google.com
+ [IPv6:2607:f8b0:4003:c06::22e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7A5E621E4905F
- for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 16:35:52 -0700 (PDT)
-Subject: [ndctl PATCH v2] ndctl, list: fix namespace json object parenting
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 13 Mar 2018 16:33:10 -0700
-Message-ID: <152098394967.38244.14033629842721195081.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B33A321E49055
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 13:29:59 -0700 (PDT)
+Received: by mail-oi0-x22e.google.com with SMTP id b8so840891oib.11
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 13:36:21 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <152097246946.29587.17095835339672187253.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152097246946.29587.17095835339672187253.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 13 Mar 2018 13:36:19 -0700
+Message-ID: <CAPcyv4h+x8hOMq0Hbg1xkGRzrON0jJXQkAsbPLsgGFG9m_AhZw@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl, list: fix namespace json object parenting
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,112 +25,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When listing namespaces and regions a generic jplatform object is
-created to house the regions array. However, commit f8cc6fee4e4d "ndctl,
-list: refactor core topology walking into util_filter_walk()"
-inadvertently added namespaces to that jplatform, and otherwise failed
-to parent namespaces to their proper parent region.
+On Tue, Mar 13, 2018 at 1:21 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> When listing namespaces and regions a generic jplatform object is
+> created to house the regions array. However, commit f8cc6fee4e4d "ndctl,
+> list: refactor core topology walking into util_filter_walk()"
+> inadvertently added namespaces to that jplatform. Namespaces should only
+> be added to jplatform in the case when regions are not being listed.
+> Otherwise we get duplicated output and a double-put assertion as seen
+> below:
 
-    # ndctl list -RNu
-    {
-      "regions":[
-        {
-          "dev":"region1",
-          "size":"511.00 GiB (548.68 GB)",
-          "available_size":0,
-          "type":"pmem",
-          "numa_node":0,
-          "namespaces":[
-            {
-              "dev":"namespace1.0",
-              "mode":"raw",
-              "size":"511.00 GiB (548.68 GB)",
-              "sector_size":512,
-              "blockdev":"pmem1",
-              "numa_node":0
-            },
-            {
-              "dev":"namespace0.0", <------- wrong region
-              "mode":"fsdax",
-              "size":"4.00 GiB (4.29 GB)",
-              "sector_size":512,
-              "blockdev":"pmem0",
-              "numa_node":0
-            }
-          ]
-        },
-        {
-          "dev":"region0",
-          "size":"4.00 GiB (4.29 GB)",
-          "available_size":0,
-          "type":"pmem"
-        }
-      ],
-      "namespaces":[  <------ we already listed the namespaces
-        {
-          "dev":"namespace1.0",
-          "mode":"raw",
-          "size":"511.00 GiB (548.68 GB)",
-          "sector_size":512,
-          "blockdev":"pmem1",
-          "numa_node":0
-        },
-        {
-          "dev":"namespace0.0",
-          "mode":"fsdax",
-          "size":"4.00 GiB (4.29 GB)",
-          "sector_size":512,
-          "blockdev":"pmem0",
-          "numa_node":0
-        }
-      ]
-    }
-    ndctl: json_object.c:188: json_object_put: Assertion `jso->_ref_count > 0' failed.
-    Aborted (core dumped)  <------ not ideal
-
-Clear out the jnamespaces tracking as the filter walk transitions to the
-next region, and make sure that jnamepsaces is not added to jplatform
-when regions are being displayed.
-
-Fixes: f8cc6fee4e4d(" ndctl, list: refactor core topology walking...")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-v2: fix breaking namespace arrays on region boundaries
-
- ndctl/list.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/ndctl/list.c b/ndctl/list.c
-index 0ca5b6dee5eb..fe8036eabc3b 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -245,6 +245,13 @@ static bool filter_region(struct ndctl_region *region,
- 	lfa->jregion = jregion;
- 
- 	/*
-+	 * We've started a new region, any previous jnamespaces will
-+	 * have been parented to the last region. Clear out jnamespaces
-+	 * so we start a new array per region.
-+	 */
-+	lfa->jnamespaces = NULL;
-+
-+	/*
- 	 * Without a bus we are collecting regions anonymously across
- 	 * the platform.
- 	 */
-@@ -366,7 +373,7 @@ static int list_display(struct list_filter_arg *lfa)
- 			json_object_object_add(jplatform, "dimms", jdimms);
- 		if (jregions)
- 			json_object_object_add(jplatform, "regions", jregions);
--		if (jnamespaces)
-+		if (jnamespaces && !jregions)
- 			json_object_object_add(jplatform, "namespaces",
- 					jnamespaces);
- 		printf("%s\n", json_object_to_json_string_ext(jplatform,
-
+Ignore this patch, I see a different problem.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
