@@ -2,20 +2,19 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3371421E082B5
- for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 04:54:12 -0700 (PDT)
-Date: Wed, 14 Mar 2018 13:00:11 +0100
-From: Borislav Petkov <bp@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id D8859224CCC1D
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 09:09:47 -0700 (PDT)
+Date: Tue, 13 Mar 2018 17:16:06 +0100
+From: Jean Delvare <jdelvare@suse.de>
 Subject: Re: [PATCH 5/5] EDAC, skx_edac: Detect non-volatile DIMMs
-Message-ID: <20180314120011.GF3173@pd.tnic>
+Message-ID: <20180313171606.4fef3ab6@endymion>
+In-Reply-To: <20180313155956.zapcx3l5bb72w4yz@agluck-desk>
 References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
  <20180312182430.10335-1-tony.luck@intel.com>
  <20180312182430.10335-6-tony.luck@intel.com>
  <20180313105901.0f18d027@endymion>
  <20180313155956.zapcx3l5bb72w4yz@agluck-desk>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180313155956.zapcx3l5bb72w4yz@agluck-desk>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,125 +22,59 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Aristeu Rozanski <aris@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jean Delvare <jdelvare@suse.de>, Len Brown <lenb@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Borislav Petkov <bp@alien8.de>, Aristeu Rozanski <aris@redhat.com>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCBNYXIgMTMsIDIwMTggYXQgMDg6NTk6NTZBTSAtMDcwMCwgTHVjaywgVG9ueSB3cm90
-ZToKPiBUaGFua3MuICBCb3JpcyAuLi4gcmVhZHkgdG8gZ28gbm93PyBPciBkbyB5b3UgaGF2ZSBz
-b21lIG90aGVyIGNvbW1lbnRzPwoKSSd2ZSBjb21taXR0ZWQgdGhpcy4gUnVubmluZyBidWlsZCBz
-bW9rZSB0ZXN0cyBub3cuCgpUaHguCgotLS0KRnJvbTogVG9ueSBMdWNrIDx0b255Lmx1Y2tAaW50
-ZWwuY29tPgpEYXRlOiBNb24sIDEyIE1hciAyMDE4IDExOjI0OjMwIC0wNzAwClN1YmplY3Q6IFtQ
-QVRDSF0gRURBQywgc2t4X2VkYWM6IERldGVjdCBub24tdm9sYXRpbGUgRElNTXMKClRoaXMganVz
-dCBjb3ZlcnMgdGhlIHRvcG9sb2d5IGZ1bmN0aW9uIG9mIHRoZSBFREFDIGRyaXZlci4gV2UgbG9j
-YXRlCndoaWNoIERJTU0gc2xvdHMgYXJlIHBvcHVsYXRlZCB3aXRoIE5WRElNTXMgYW5kIHF1ZXJ5
-IHRoZSBORklUIGFuZApTTUJJT1MgdGFibGVzIHRvIGdldCB0aGUgc2l6ZS4KClJldmlld2VkLWJ5
-OiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+CkNjOiBBcmlzdGV1IFJvemFuc2tpIDxh
-cmlzQHJlZGhhdC5jb20+CkNjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
-bT4KQ2M6IExlbiBCcm93biA8bGVuYkBrZXJuZWwub3JnPgpDYzogTWF1cm8gQ2FydmFsaG8gQ2hl
-aGFiIDxtY2hlaGFiQGtlcm5lbC5vcmc+CkNjOiBRaXV4dSBaaHVvIDxxaXV4dS56aHVvQGludGVs
-LmNvbT4KQ2M6ICJSYWZhZWwgSi4gV3lzb2NraSIgPHJqd0Byand5c29ja2kubmV0PgpDYzogbGlu
-dXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWVkYWMgPGxpbnV4LWVkYWNAdmdlci5r
-ZXJuZWwub3JnPgpDYzogbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpMaW5rOiBodHRwOi8vbGtt
-bC5rZXJuZWwub3JnL3IvMjAxODAzMTIxODI0MzAuMTAzMzUtNi10b255Lmx1Y2tAaW50ZWwuY29t
-ClNpZ25lZC1vZmYtYnk6IEJvcmlzbGF2IFBldGtvdiA8YnBAc3VzZS5kZT4KLS0tCiBkcml2ZXJz
-L2VkYWMvS2NvbmZpZyAgICB8ICA1ICsrKy0KIGRyaXZlcnMvZWRhYy9za3hfZWRhYy5jIHwgNjcg
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLQogMiBmaWxl
-cyBjaGFuZ2VkLCA2NSBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvZWRhYy9LY29uZmlnIGIvZHJpdmVycy9lZGFjL0tjb25maWcKaW5kZXggY2I0ZmYx
-Y2M2ZWI0Li4wN2Q1NjlkMzJiOTAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZWRhYy9LY29uZmlnCisr
-KyBiL2RyaXZlcnMvZWRhYy9LY29uZmlnCkBAIC0yMzIsOSArMjMyLDEyIEBAIGNvbmZpZyBFREFD
-X1NCUklER0UKIGNvbmZpZyBFREFDX1NLWAogCXRyaXN0YXRlICJJbnRlbCBTa3lsYWtlIHNlcnZl
-ciBJbnRlZ3JhdGVkIE1DIgogCWRlcGVuZHMgb24gUENJICYmIFg4Nl82NCAmJiBYODZfTUNFX0lO
-VEVMICYmIFBDSV9NTUNPTkZJRworCXNlbGVjdCBETUkKIAloZWxwCiAJICBTdXBwb3J0IGZvciBl
-cnJvciBkZXRlY3Rpb24gYW5kIGNvcnJlY3Rpb24gdGhlIEludGVsCi0JICBTa3lsYWtlIHNlcnZl
-ciBJbnRlZ3JhdGVkIE1lbW9yeSBDb250cm9sbGVycy4KKwkgIFNreWxha2Ugc2VydmVyIEludGVn
-cmF0ZWQgTWVtb3J5IENvbnRyb2xsZXJzLiBJZiB5b3VyCisJICBzeXN0ZW0gaGFzIG5vbi12b2xh
-dGlsZSBESU1NcyB5b3Ugc2hvdWxkIGFsc28gbWFudWFsbHkKKwkgIHNlbGVjdCBDT05GSUdfQUNQ
-SV9ORklULgogCiBjb25maWcgRURBQ19QTkQyCiAJdHJpc3RhdGUgIkludGVsIFBvbmRpY2hlcnJ5
-MiIKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZWRhYy9za3hfZWRhYy5jIGIvZHJpdmVycy9lZGFjL3Nr
-eF9lZGFjLmMKaW5kZXggOTEyYzQ5MzBjOWVmLi5mYWUwOTUxNjJjMDEgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvZWRhYy9za3hfZWRhYy5jCisrKyBiL2RyaXZlcnMvZWRhYy9za3hfZWRhYy5jCkBAIC0x
-NCw2ICsxNCw4IEBACiAKICNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KICNpbmNsdWRlIDxsaW51
-eC9pbml0Lmg+CisjaW5jbHVkZSA8bGludXgvYWNwaS5oPgorI2luY2x1ZGUgPGxpbnV4L2RtaS5o
-PgogI2luY2x1ZGUgPGxpbnV4L3BjaS5oPgogI2luY2x1ZGUgPGxpbnV4L3BjaV9pZHMuaD4KICNp
-bmNsdWRlIDxsaW51eC9zbGFiLmg+CkBAIC0yNCw2ICsyNiw3IEBACiAjaW5jbHVkZSA8bGludXgv
-Yml0bWFwLmg+CiAjaW5jbHVkZSA8bGludXgvbWF0aDY0Lmg+CiAjaW5jbHVkZSA8bGludXgvbW9k
-X2RldmljZXRhYmxlLmg+CisjaW5jbHVkZSA8YWNwaS9uZml0Lmg+CiAjaW5jbHVkZSA8YXNtL2Nw
-dV9kZXZpY2VfaWQuaD4KICNpbmNsdWRlIDxhc20vaW50ZWwtZmFtaWx5Lmg+CiAjaW5jbHVkZSA8
-YXNtL3Byb2Nlc3Nvci5oPgpAQCAtMzAyLDYgKzMwNSw3IEBAIHN0YXRpYyBpbnQgZ2V0X2RpbW1f
-YXR0cih1MzIgcmVnLCBpbnQgbG9iaXQsIGludCBoaWJpdCwgaW50IGFkZCwgaW50IG1pbnZhbCwK
-IH0KIAogI2RlZmluZSBJU19ESU1NX1BSRVNFTlQobXRyKQkJR0VUX0JJVEZJRUxEKChtdHIpLCAx
-NSwgMTUpCisjZGVmaW5lIElTX05WRElNTV9QUkVTRU5UKG1jZGRydGNmZywgaSkJR0VUX0JJVEZJ
-RUxEKChtY2RkcnRjZmcpLCAoaSksIChpKSkKIAogI2RlZmluZSBudW1yYW5rKHJlZykgZ2V0X2Rp
-bW1fYXR0cigocmVnKSwgMTIsIDEzLCAwLCAwLCAyLCAicmFua3MiKQogI2RlZmluZSBudW1yb3co
-cmVnKSBnZXRfZGltbV9hdHRyKChyZWcpLCAyLCA0LCAxMiwgMSwgNiwgInJvd3MiKQpAQCAtMzUw
-LDggKzM1NCw2IEBAIHN0YXRpYyBpbnQgZ2V0X2RpbW1faW5mbyh1MzIgbXRyLCB1MzIgYW1hcCwg
-c3RydWN0IGRpbW1faW5mbyAqZGltbSwKIAlpbnQgIGJhbmtzID0gMTYsIHJhbmtzLCByb3dzLCBj
-b2xzLCBucGFnZXM7CiAJdTY0IHNpemU7CiAKLQlpZiAoIUlTX0RJTU1fUFJFU0VOVChtdHIpKQot
-CQlyZXR1cm4gMDsKIAlyYW5rcyA9IG51bXJhbmsobXRyKTsKIAlyb3dzID0gbnVtcm93KG10cik7
-CiAJY29scyA9IG51bWNvbChtdHIpOwpAQCAtMzgzLDYgKzM4NSw1NCBAQCBzdGF0aWMgaW50IGdl
-dF9kaW1tX2luZm8odTMyIG10ciwgdTMyIGFtYXAsIHN0cnVjdCBkaW1tX2luZm8gKmRpbW0sCiAJ
-cmV0dXJuIDE7CiB9CiAKK3N0YXRpYyBpbnQgZ2V0X252ZGltbV9pbmZvKHN0cnVjdCBkaW1tX2lu
-Zm8gKmRpbW0sIHN0cnVjdCBza3hfaW1jICppbWMsCisJCQkgICBpbnQgY2hhbiwgaW50IGRpbW1u
-bykKK3sKKwlpbnQgc21iaW9zX2hhbmRsZTsKKwl1MzIgZGV2X2hhbmRsZTsKKwl1MTYgZmxhZ3M7
-CisJdTY0IHNpemUgPSAwOworCisJZGV2X2hhbmRsZSA9IEFDUElfTkZJVF9CVUlMRF9ERVZJQ0Vf
-SEFORExFKGRpbW1ubywgY2hhbiwgaW1jLT5sbWMsCisJCQkJCQkgICBpbWMtPnNyY19pZCwgMCk7
-CisKKwlzbWJpb3NfaGFuZGxlID0gbmZpdF9nZXRfc21iaW9zX2lkKGRldl9oYW5kbGUsICZmbGFn
-cyk7CisJaWYgKHNtYmlvc19oYW5kbGUgPT0gLUVPUE5PVFNVUFApIHsKKwkJcHJfd2Fybl9vbmNl
-KEVEQUNfTU9EX1NUUiAiOiBDYW4ndCBmaW5kIHNpemUgb2YgTlZESU1NLiBUcnkgZW5hYmxpbmcg
-Q09ORklHX0FDUElfTkZJVFxuIik7CisJCWdvdG8gdW5rbm93bl9zaXplOworCX0KKworCWlmIChz
-bWJpb3NfaGFuZGxlIDwgMCkgeworCQlza3hfcHJpbnRrKEtFUk5fRVJSLCAiQ2FuJ3QgZmluZCBo
-YW5kbGUgZm9yIE5WRElNTSBBRFI9JXhcbiIsIGRldl9oYW5kbGUpOworCQlnb3RvIHVua25vd25f
-c2l6ZTsKKwl9CisKKwlpZiAoZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX01BUF9GQUlMRUQpIHsKKwkJ
-c2t4X3ByaW50ayhLRVJOX0VSUiwgIk5WRElNTSBBRFI9JXggaXMgbm90IG1hcHBlZFxuIiwgZGV2
-X2hhbmRsZSk7CisJCWdvdG8gdW5rbm93bl9zaXplOworCX0KKworCXNpemUgPSBkbWlfbWVtZGV2
-X3NpemUoc21iaW9zX2hhbmRsZSk7CisJaWYgKHNpemUgPT0gfjB1bGwpCisJCXNreF9wcmludGso
-S0VSTl9FUlIsICJDYW4ndCBmaW5kIHNpemUgZm9yIE5WRElNTSBBRFI9JXgvU01CSU9TPSV4XG4i
-LAorCQkJICAgZGV2X2hhbmRsZSwgc21iaW9zX2hhbmRsZSk7CisKK3Vua25vd25fc2l6ZToKKwlk
-aW1tLT5ucl9wYWdlcyA9IHNpemUgPj4gUEFHRV9TSElGVDsKKwlkaW1tLT5ncmFpbiA9IDMyOwor
-CWRpbW0tPmR0eXBlID0gREVWX1VOS05PV047CisJZGltbS0+bXR5cGUgPSBNRU1fTlZESU1NOwor
-CWRpbW0tPmVkYWNfbW9kZSA9IEVEQUNfU0VDREVEOyAvKiBsaWtlbHkgYmV0dGVyIHRoYW4gdGhp
-cyAqLworCisJZWRhY19kYmcoMCwgIm1jIyVkOiBjaGFubmVsICVkLCBkaW1tICVkLCAlbGx1IE1i
-ICgldSBwYWdlcylcbiIsCisJCSBpbWMtPm1jLCBjaGFuLCBkaW1tbm8sIHNpemUgPj4gMjAsIGRp
-bW0tPm5yX3BhZ2VzKTsKKworCXNucHJpbnRmKGRpbW0tPmxhYmVsLCBzaXplb2YoZGltbS0+bGFi
-ZWwpLCAiQ1BVX1NyY0lEIyV1X01DIyV1X0NoYW4jJXVfRElNTSMldSIsCisJCSBpbWMtPnNyY19p
-ZCwgaW1jLT5sbWMsIGNoYW4sIGRpbW1ubyk7CisKKwlyZXR1cm4gKHNpemUgPT0gMCB8fCBzaXpl
-ID09IH4wdWxsKSA/IDAgOiAxOworfQorCiAjZGVmaW5lIFNLWF9HRVRfTVRNVFIoZGV2LCByZWcp
-IFwKIAlwY2lfcmVhZF9jb25maWdfZHdvcmQoKGRldiksIDB4ODdjLCAmcmVnKQogCkBAIC0zOTks
-MjAgKzQ0OSwyNCBAQCBzdGF0aWMgaW50IHNreF9nZXRfZGltbV9jb25maWcoc3RydWN0IG1lbV9j
-dGxfaW5mbyAqbWNpKQogewogCXN0cnVjdCBza3hfcHZ0ICpwdnQgPSBtY2ktPnB2dF9pbmZvOwog
-CXN0cnVjdCBza3hfaW1jICppbWMgPSBwdnQtPmltYzsKKwl1MzIgbXRyLCBhbWFwLCBtY2RkcnRj
-Zmc7CiAJc3RydWN0IGRpbW1faW5mbyAqZGltbTsKIAlpbnQgaSwgajsKLQl1MzIgbXRyLCBhbWFw
-OwogCWludCBuZGltbXM7CiAKIAlmb3IgKGkgPSAwOyBpIDwgTlVNX0NIQU5ORUxTOyBpKyspIHsK
-IAkJbmRpbW1zID0gMDsKIAkJcGNpX3JlYWRfY29uZmlnX2R3b3JkKGltYy0+Y2hhbltpXS5jZGV2
-LCAweDhDLCAmYW1hcCk7CisJCXBjaV9yZWFkX2NvbmZpZ19kd29yZChpbWMtPmNoYW5baV0uY2Rl
-diwgMHg0MDAsICZtY2RkcnRjZmcpOwogCQlmb3IgKGogPSAwOyBqIDwgTlVNX0RJTU1TOyBqKysp
-IHsKIAkJCWRpbW0gPSBFREFDX0RJTU1fUFRSKG1jaS0+bGF5ZXJzLCBtY2ktPmRpbW1zLAogCQkJ
-CQkgICAgIG1jaS0+bl9sYXllcnMsIGksIGosIDApOwogCQkJcGNpX3JlYWRfY29uZmlnX2R3b3Jk
-KGltYy0+Y2hhbltpXS5jZGV2LAogCQkJCQkweDgwICsgNCpqLCAmbXRyKTsKLQkJCW5kaW1tcyAr
-PSBnZXRfZGltbV9pbmZvKG10ciwgYW1hcCwgZGltbSwgaW1jLCBpLCBqKTsKKwkJCWlmIChJU19E
-SU1NX1BSRVNFTlQobXRyKSkKKwkJCQluZGltbXMgKz0gZ2V0X2RpbW1faW5mbyhtdHIsIGFtYXAs
-IGRpbW0sIGltYywgaSwgaik7CisJCQllbHNlIGlmIChJU19OVkRJTU1fUFJFU0VOVChtY2RkcnRj
-ZmcsIGopKQorCQkJCW5kaW1tcyArPSBnZXRfbnZkaW1tX2luZm8oZGltbSwgaW1jLCBpLCBqKTsK
-IAkJfQogCQlpZiAobmRpbW1zICYmICFza3hfY2hlY2tfZWNjKGltYy0+Y2hhblswXS5jZGV2KSkg
-ewogCQkJc2t4X3ByaW50ayhLRVJOX0VSUiwgIkVDQyBpcyBkaXNhYmxlZCBvbiBpbWMgJWRcbiIs
-IGltYy0+bWMpOwpAQCAtNDY4LDEzICs1MjIsMTQgQEAgc3RhdGljIGludCBza3hfcmVnaXN0ZXJf
-bWNpKHN0cnVjdCBza3hfaW1jICppbWMpCiAJcHZ0ID0gbWNpLT5wdnRfaW5mbzsKIAlwdnQtPmlt
-YyA9IGltYzsKIAotCW1jaS0+Y3RsX25hbWUgPSBrYXNwcmludGYoR0ZQX0tFUk5FTCwgIlNreWxh
-a2UgU29ja2V0IyVkIElNQyMlZCIsIGltYy0+bm9kZV9pZCwgaW1jLT5sbWMpOworCW1jaS0+Y3Rs
-X25hbWUgPSBrYXNwcmludGYoR0ZQX0tFUk5FTCwgIlNreWxha2UgU29ja2V0IyVkIElNQyMlZCIs
-CisJCQkJICBpbWMtPm5vZGVfaWQsIGltYy0+bG1jKTsKIAlpZiAoIW1jaS0+Y3RsX25hbWUpIHsK
-IAkJcmMgPSAtRU5PTUVNOwogCQlnb3RvIGZhaWwwOwogCX0KIAotCW1jaS0+bXR5cGVfY2FwID0g
-TUVNX0ZMQUdfRERSNDsKKwltY2ktPm10eXBlX2NhcCA9IE1FTV9GTEFHX0REUjQgfCBNRU1fRkxB
-R19OVkRJTU07CiAJbWNpLT5lZGFjX2N0bF9jYXAgPSBFREFDX0ZMQUdfTk9ORTsKIAltY2ktPmVk
-YWNfY2FwID0gRURBQ19GTEFHX05PTkU7CiAJbWNpLT5tb2RfbmFtZSA9IEVEQUNfTU9EX1NUUjsK
-LS0gCjIuMTMuMAoKU1VTRSBMaW51eCBHbWJILCBHRjogRmVsaXggSW1lbmTDtnJmZmVyLCBKYW5l
-IFNtaXRoYXJkLCBHcmFoYW0gTm9ydG9uLCBIUkIgMjEyODQgKEFHIE7DvHJuYmVyZykKLS0gCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
-bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Tue, 13 Mar 2018 08:59:56 -0700, Luck, Tony wrote:
+> On Tue, Mar 13, 2018 at 10:59:01AM +0100, Jean Delvare wrote:
+> > > +	edac_dbg(0, "mc#%d: channel %d, dimm %d, %llu Mb (%u pages)\n",  
+> > 
+> > I did not notice on previous review, but I think "b" in general means
+> > bit not byte, so "MB" would be better.  
+> 
+> Heh! We've been cut & pasting that line from EDAC drivers since the i7core_edac.c
+> I think the origin is in 2.6.35. So you are far from the only person to not
+> notice it in a review :-)
+
+Hehe :-D Then I guess a patch fixing all drivers are once is in order,
+after your patch set it accepted.
+
+> > > +		 imc->mc, chan, dimmno, size >> 20, dimm->nr_pages);
+> > > +
+> > > +	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
+> > > +		 imc->src_id, imc->lmc, chan, dimmno);
+> > > +
+> > > +	return 1;
+> > > +}  
+> > 
+> > Now this function always return 1, that doesn't make a lot of sense?  
+> 
+> I could fix the return to be:
+> 
+> 
+> diff --git a/drivers/edac/skx_edac.c b/drivers/edac/skx_edac.c
+> index 84c18bb1e0cd..1a66e145c0bd 100644
+> --- a/drivers/edac/skx_edac.c
+> +++ b/drivers/edac/skx_edac.c
+> @@ -429,7 +429,7 @@ static int get_nvdimm_info(struct dimm_info *dimm, struct skx_imc *imc,
+>  	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
+>  		 imc->src_id, imc->lmc, chan, dimmno);
+>  
+> -	return 1;
+> +	return (size == 0 || size == ~0ull) ? 0 : 1;
+>  }
+
+Yes, I think it makes sense, thanks.
+
+-- 
+Jean Delvare
+SUSE L3 Support
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
