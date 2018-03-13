@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D789F224CCC12
- for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 08:53:49 -0700 (PDT)
-Date: Tue, 13 Mar 2018 08:59:56 -0700
-From: "Luck, Tony" <tony.luck@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 679F222487296
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 02:52:42 -0700 (PDT)
+Date: Tue, 13 Mar 2018 10:59:01 +0100
+From: Jean Delvare <jdelvare@suse.de>
 Subject: Re: [PATCH 5/5] EDAC, skx_edac: Detect non-volatile DIMMs
-Message-ID: <20180313155956.zapcx3l5bb72w4yz@agluck-desk>
+Message-ID: <20180313105901.0f18d027@endymion>
+In-Reply-To: <20180312182430.10335-6-tony.luck@intel.com>
 References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
  <20180312182430.10335-1-tony.luck@intel.com>
  <20180312182430.10335-6-tony.luck@intel.com>
- <20180313105901.0f18d027@endymion>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180313105901.0f18d027@endymion>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,57 +24,109 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jean Delvare <jdelvare@suse.de>
+To: Tony Luck <tony.luck@intel.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Borislav Petkov <bp@alien8.de>, Aristeu Rozanski <aris@redhat.com>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Mar 13, 2018 at 10:59:01AM +0100, Jean Delvare wrote:
-> > +	edac_dbg(0, "mc#%d: channel %d, dimm %d, %llu Mb (%u pages)\n",
+Hi Tony,
+
+On Mon, 12 Mar 2018 11:24:30 -0700, Tony Luck wrote:
+> This just covers the topology function of the EDAC driver.
+> We locate which DIMM slots are populated with NVDIMMs and
+> query the NFIT and SMBIOS tables to get the size.
 > 
-> I did not notice on previous review, but I think "b" in general means
-> bit not byte, so "MB" would be better.
-
-Heh! We've been cut & pasting that line from EDAC drivers since the i7core_edac.c
-I think the origin is in 2.6.35. So you are far from the only person to not
-notice it in a review :-)
-
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
+> ---
+>  drivers/edac/Kconfig    |  5 +++-
+>  drivers/edac/skx_edac.c | 66 ++++++++++++++++++++++++++++++++++++++++++++-----
+>  2 files changed, 64 insertions(+), 7 deletions(-)
 > 
-> > +		 imc->mc, chan, dimmno, size >> 20, dimm->nr_pages);
-> > +
-> > +	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
-> > +		 imc->src_id, imc->lmc, chan, dimmno);
-> > +
-> > +	return 1;
-> > +}
-> 
-> Now this function always return 1, that doesn't make a lot of sense?
+> diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
+> index 3c4017007647..c12e34564557 100644
+> --- a/drivers/edac/Kconfig
+> +++ b/drivers/edac/Kconfig
+> @@ -232,9 +232,12 @@ config EDAC_SBRIDGE
+>  config EDAC_SKX
+>  	tristate "Intel Skylake server Integrated MC"
+>  	depends on PCI && X86_64 && X86_MCE_INTEL && PCI_MMCONFIG
+> +	select DMI
+>  	help
+>  	  Support for error detection and correction the Intel
+> -	  Skylake server Integrated Memory Controllers.
+> +	  Skylake server Integrated Memory Controllers. If your
+> +	  system has non-volatile DIMMs you should also manually
+> +	  select CONFIG_ACPI_NFIT
 
-I could fix the return to be:
+Nitpicking: trailing dot is missing.
 
+>  
+>  config EDAC_PND2
+>  	tristate "Intel Pondicherry2"
+> diff --git a/drivers/edac/skx_edac.c b/drivers/edac/skx_edac.c
+> index 912c4930c9ef..84c18bb1e0cd 100644
+> --- a/drivers/edac/skx_edac.c
+> +++ b/drivers/edac/skx_edac.c
+> (...)
+> +static int get_nvdimm_info(struct dimm_info *dimm, struct skx_imc *imc,
+> +			   int chan, int dimmno)
+> +{
+> +	int smbios_handle;
+> +	u32 dev_handle;
+> +	u16 flags;
+> +	u64 size = 0;
+> +
+> +	dev_handle = ACPI_NFIT_BUILD_DEVICE_HANDLE(dimmno, chan, imc->lmc,
+> +						   imc->src_id, 0);
+> +
+> +	smbios_handle = nfit_get_smbios_id(dev_handle, &flags);
+> +	if (smbios_handle == -EOPNOTSUPP) {
+> +		pr_warn_once("skx_edac: can't find size of NVDIMM. Try enabling CONFIG_ACPI_NFIT\n");
+> +		goto unknown_size;
+> +	}
+> +	if (smbios_handle < 0) {
+> +		skx_printk(KERN_ERR, "Can't find handle for NVDIMM ADR=%x\n", dev_handle);
+> +		goto unknown_size;
+> +	}
+> +
+> +	if (flags & ACPI_NFIT_MEM_MAP_FAILED) {
+> +		skx_printk(KERN_ERR, "NVDIMM ADR=%x is not mapped\n", dev_handle);
+> +		goto unknown_size;
+> +	}
+> +
+> +	size = dmi_memdev_size(smbios_handle);
+> +	if (size == ~0ull)
+> +		skx_printk(KERN_ERR, "Can't find size for NVDIMM ADR=%x/SMBIOS=%x\n",
+> +			   dev_handle, smbios_handle);
+> +
+> +unknown_size:
+> +	dimm->nr_pages = size >> PAGE_SHIFT;
+> +	dimm->grain = 32;
+> +	dimm->dtype = DEV_UNKNOWN;
+> +	dimm->mtype = MEM_NVDIMM;
+> +	dimm->edac_mode = EDAC_SECDED; /* likely better than this */
+> +
+> +	edac_dbg(0, "mc#%d: channel %d, dimm %d, %llu Mb (%u pages)\n",
 
-diff --git a/drivers/edac/skx_edac.c b/drivers/edac/skx_edac.c
-index 84c18bb1e0cd..1a66e145c0bd 100644
---- a/drivers/edac/skx_edac.c
-+++ b/drivers/edac/skx_edac.c
-@@ -429,7 +429,7 @@ static int get_nvdimm_info(struct dimm_info *dimm, struct skx_imc *imc,
- 	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
- 		 imc->src_id, imc->lmc, chan, dimmno);
- 
--	return 1;
-+	return (size == 0 || size == ~0ull) ? 0 : 1;
- }
- 
- #define SKX_GET_MTMTR(dev, reg) \
+I did not notice on previous review, but I think "b" in general means
+bit not byte, so "MB" would be better.
 
+> +		 imc->mc, chan, dimmno, size >> 20, dimm->nr_pages);
+> +
+> +	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
+> +		 imc->src_id, imc->lmc, chan, dimmno);
+> +
+> +	return 1;
+> +}
 
+Now this function always return 1, that doesn't make a lot of sense?
 
-> Other than these details, the dmi-related code looks good to me now.
-> 
-> Reviewed-by: Jean Delvare <jdelvare@suse.de> # for DMI
+Other than these details, the dmi-related code looks good to me now.
 
-Thanks.  Boris ... ready to go now? Or do you have some other comments?
+Reviewed-by: Jean Delvare <jdelvare@suse.de> # for DMI
 
--Tony
+-- 
+Jean Delvare
+SUSE L3 Support
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
