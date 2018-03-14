@@ -1,18 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x242.google.com (mail-pl0-x242.google.com
- [IPv6:2607:f8b0:400e:c01::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A43D322603B10
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:15:07 -0800 (PST)
-Received: by mail-pl0-x242.google.com with SMTP id m22-v6so7032836pls.5
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:21:26 -0800 (PST)
-From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 58/83] Namei: rename
-Date: Sat, 10 Mar 2018 10:18:39 -0800
-Message-Id: <1520705944-6723-59-git-send-email-jix024@eng.ucsd.edu>
-In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
-References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+ by ml01.01.org (Postfix) with ESMTPS id 3371421E082B5
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 04:54:12 -0700 (PDT)
+Date: Wed, 14 Mar 2018 13:00:11 +0100
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH 5/5] EDAC, skx_edac: Detect non-volatile DIMMs
+Message-ID: <20180314120011.GF3173@pd.tnic>
+References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
+ <20180312182430.10335-1-tony.luck@intel.com>
+ <20180312182430.10335-6-tony.luck@intel.com>
+ <20180313105901.0f18d027@endymion>
+ <20180313155956.zapcx3l5bb72w4yz@agluck-desk>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180313155956.zapcx3l5bb72w4yz@agluck-desk>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,242 +23,125 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Qiuxu Zhuo <qiuxu.zhuo@intel.com>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Aristeu Rozanski <aris@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jean Delvare <jdelvare@suse.de>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Andiry Xu <jix024@cs.ucsd.edu>
-
-Rename is the most cpmplex namei operation. The target dir may be
-different from the source dir, and the target inode may exist.
-Rename involves up to four inodes, and NOVA uses rename transation
-to atomically update all the affected inodes.
-
-Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
----
- fs/nova/namei.c | 195 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 195 insertions(+)
-
-diff --git a/fs/nova/namei.c b/fs/nova/namei.c
-index 4bf6396..bb50c0a 100644
---- a/fs/nova/namei.c
-+++ b/fs/nova/namei.c
-@@ -541,6 +541,200 @@ static int nova_rmdir(struct inode *dir, struct dentry *dentry)
- 	return err;
- }
- 
-+static int nova_rename(struct inode *old_dir,
-+			struct dentry *old_dentry,
-+			struct inode *new_dir, struct dentry *new_dentry,
-+			unsigned int flags)
-+{
-+	struct inode *old_inode = old_dentry->d_inode;
-+	struct inode *new_inode = new_dentry->d_inode;
-+	struct super_block *sb = old_inode->i_sb;
-+	struct nova_sb_info *sbi = NOVA_SB(sb);
-+	struct nova_inode *old_pi = NULL, *new_pi = NULL;
-+	struct nova_inode *new_pidir = NULL, *old_pidir = NULL;
-+	struct nova_dentry *father_entry = NULL;
-+	char *head_addr = NULL;
-+	int invalidate_new_inode = 0;
-+	struct nova_inode_update update_dir_new;
-+	struct nova_inode_update update_dir_old;
-+	struct nova_inode_update update_new;
-+	struct nova_inode_update update_old;
-+	u64 old_linkc1 = 0, old_linkc2 = 0;
-+	int err = -ENOENT;
-+	int inc_link = 0, dec_link = 0;
-+	int cpu;
-+	int change_parent = 0;
-+	u64 journal_tail;
-+	u64 epoch_id;
-+	timing_t rename_time;
-+
-+	nova_dbgv("%s: rename %s to %s,\n", __func__,
-+			old_dentry->d_name.name, new_dentry->d_name.name);
-+	nova_dbgv("%s: %s inode %lu, old dir %lu, new dir %lu, new inode %lu\n",
-+			__func__, S_ISDIR(old_inode->i_mode) ? "dir" : "normal",
-+			old_inode->i_ino, old_dir->i_ino, new_dir->i_ino,
-+			new_inode ? new_inode->i_ino : 0);
-+
-+	if (flags & ~RENAME_NOREPLACE)
-+		return -EINVAL;
-+
-+	NOVA_START_TIMING(rename_t, rename_time);
-+
-+	if (new_inode) {
-+		err = -ENOTEMPTY;
-+		if (S_ISDIR(old_inode->i_mode) && !nova_empty_dir(new_inode))
-+			goto out;
-+	} else {
-+		if (S_ISDIR(old_inode->i_mode)) {
-+			err = -EMLINK;
-+			if (new_dir->i_nlink >= NOVA_LINK_MAX)
-+				goto out;
-+		}
-+	}
-+
-+	if (S_ISDIR(old_inode->i_mode)) {
-+		dec_link = -1;
-+		if (!new_inode)
-+			inc_link = 1;
-+		/*
-+		 * Tricky for in-place update:
-+		 * New dentry is always after renamed dentry, so we have to
-+		 * make sure new dentry has the correct links count
-+		 * to workaround the rebuild nlink issue.
-+		 */
-+		if (old_dir == new_dir) {
-+			inc_link--;
-+			if (inc_link == 0)
-+				dec_link = 0;
-+		}
-+	}
-+
-+	epoch_id = nova_get_epoch_id(sb);
-+	new_pidir = nova_get_inode(sb, new_dir);
-+	old_pidir = nova_get_inode(sb, old_dir);
-+
-+	old_pi = nova_get_inode(sb, old_inode);
-+	old_inode->i_ctime = current_time(old_inode);
-+	update_old.tail = 0;
-+	err = nova_append_link_change_entry(sb, old_pi, old_inode,
-+					&update_old, &old_linkc1, epoch_id);
-+	if (err)
-+		goto out;
-+
-+	if (S_ISDIR(old_inode->i_mode) && old_dir != new_dir) {
-+		/* My father is changed. Update .. entry */
-+		/* For simplicity, we use in-place update and journal it */
-+		change_parent = 1;
-+		head_addr = (char *)nova_get_block(sb, old_pi->log_head);
-+		father_entry = (struct nova_dentry *)(head_addr +
-+					NOVA_DIR_LOG_REC_LEN(1));
-+
-+		if (le64_to_cpu(father_entry->ino) != old_dir->i_ino)
-+			nova_err(sb, "%s: dir %lu parent should be %lu, but actually %lu\n",
-+				__func__,
-+				old_inode->i_ino, old_dir->i_ino,
-+				le64_to_cpu(father_entry->ino));
-+	}
-+
-+	update_dir_new.tail = 0;
-+	if (new_inode) {
-+		/* First remove the old entry in the new directory */
-+		err = nova_remove_dentry(new_dentry, 0, &update_dir_new,
-+					epoch_id);
-+		if (err)
-+			goto out;
-+	}
-+
-+	/* link into the new directory. */
-+	err = nova_add_dentry(new_dentry, old_inode->i_ino,
-+				inc_link, &update_dir_new, epoch_id);
-+	if (err)
-+		goto out;
-+
-+	if (inc_link > 0)
-+		inc_nlink(new_dir);
-+
-+	update_dir_old.tail = 0;
-+	if (old_dir == new_dir) {
-+		update_dir_old.tail = update_dir_new.tail;
-+	}
-+
-+	err = nova_remove_dentry(old_dentry, dec_link, &update_dir_old,
-+					epoch_id);
-+	if (err)
-+		goto out;
-+
-+	if (dec_link < 0)
-+		drop_nlink(old_dir);
-+
-+	if (new_inode) {
-+		new_pi = nova_get_inode(sb, new_inode);
-+		new_inode->i_ctime = current_time(new_inode);
-+
-+		if (S_ISDIR(old_inode->i_mode)) {
-+			if (new_inode->i_nlink)
-+				drop_nlink(new_inode);
-+		}
-+		if (new_inode->i_nlink)
-+			drop_nlink(new_inode);
-+
-+		update_new.tail = 0;
-+		err = nova_append_link_change_entry(sb, new_pi, new_inode,
-+						&update_new, &old_linkc2,
-+						epoch_id);
-+		if (err)
-+			goto out;
-+	}
-+
-+	cpu = smp_processor_id();
-+	spin_lock(&sbi->journal_locks[cpu]);
-+	if (new_inode && new_inode->i_nlink == 0)
-+		invalidate_new_inode = 1;
-+	journal_tail = nova_create_rename_transaction(sb, old_inode, old_dir,
-+				new_inode,
-+				old_dir != new_dir ? new_dir : NULL,
-+				father_entry,
-+				invalidate_new_inode,
-+				cpu);
-+
-+	nova_update_inode(sb, old_inode, old_pi, &update_old);
-+	nova_update_inode(sb, old_dir, old_pidir, &update_dir_old);
-+
-+	if (old_pidir != new_pidir)
-+		nova_update_inode(sb, new_dir, new_pidir, &update_dir_new);
-+
-+	if (change_parent && father_entry) {
-+		father_entry->ino = cpu_to_le64(new_dir->i_ino);
-+		nova_persist_entry(father_entry);
-+	}
-+
-+	if (new_inode) {
-+		if (invalidate_new_inode) {
-+			new_pi->valid = 0;
-+			new_pi->delete_epoch_id = epoch_id;
-+		}
-+		nova_update_inode(sb, new_inode, new_pi, &update_new);
-+	}
-+
-+	PERSISTENT_BARRIER();
-+
-+	nova_commit_lite_transaction(sb, journal_tail, cpu);
-+	spin_unlock(&sbi->journal_locks[cpu]);
-+
-+	nova_invalidate_link_change_entry(sb, old_linkc1);
-+	nova_invalidate_link_change_entry(sb, old_linkc2);
-+	if (new_inode)
-+		nova_invalidate_dentries(sb, &update_dir_new);
-+	nova_invalidate_dentries(sb, &update_dir_old);
-+
-+	NOVA_END_TIMING(rename_t, rename_time);
-+	return 0;
-+out:
-+	nova_err(sb, "%s return %d\n", __func__, err);
-+	NOVA_END_TIMING(rename_t, rename_time);
-+	return err;
-+}
-+
- struct dentry *nova_get_parent(struct dentry *child)
- {
- 	struct inode *inode;
-@@ -573,4 +767,5 @@ const struct inode_operations nova_dir_inode_operations = {
- 	.mkdir		= nova_mkdir,
- 	.rmdir		= nova_rmdir,
- 	.mknod		= nova_mknod,
-+	.rename		= nova_rename,
- };
--- 
-2.7.4
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCBNYXIgMTMsIDIwMTggYXQgMDg6NTk6NTZBTSAtMDcwMCwgTHVjaywgVG9ueSB3cm90
+ZToKPiBUaGFua3MuICBCb3JpcyAuLi4gcmVhZHkgdG8gZ28gbm93PyBPciBkbyB5b3UgaGF2ZSBz
+b21lIG90aGVyIGNvbW1lbnRzPwoKSSd2ZSBjb21taXR0ZWQgdGhpcy4gUnVubmluZyBidWlsZCBz
+bW9rZSB0ZXN0cyBub3cuCgpUaHguCgotLS0KRnJvbTogVG9ueSBMdWNrIDx0b255Lmx1Y2tAaW50
+ZWwuY29tPgpEYXRlOiBNb24sIDEyIE1hciAyMDE4IDExOjI0OjMwIC0wNzAwClN1YmplY3Q6IFtQ
+QVRDSF0gRURBQywgc2t4X2VkYWM6IERldGVjdCBub24tdm9sYXRpbGUgRElNTXMKClRoaXMganVz
+dCBjb3ZlcnMgdGhlIHRvcG9sb2d5IGZ1bmN0aW9uIG9mIHRoZSBFREFDIGRyaXZlci4gV2UgbG9j
+YXRlCndoaWNoIERJTU0gc2xvdHMgYXJlIHBvcHVsYXRlZCB3aXRoIE5WRElNTXMgYW5kIHF1ZXJ5
+IHRoZSBORklUIGFuZApTTUJJT1MgdGFibGVzIHRvIGdldCB0aGUgc2l6ZS4KClJldmlld2VkLWJ5
+OiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+CkNjOiBBcmlzdGV1IFJvemFuc2tpIDxh
+cmlzQHJlZGhhdC5jb20+CkNjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
+bT4KQ2M6IExlbiBCcm93biA8bGVuYkBrZXJuZWwub3JnPgpDYzogTWF1cm8gQ2FydmFsaG8gQ2hl
+aGFiIDxtY2hlaGFiQGtlcm5lbC5vcmc+CkNjOiBRaXV4dSBaaHVvIDxxaXV4dS56aHVvQGludGVs
+LmNvbT4KQ2M6ICJSYWZhZWwgSi4gV3lzb2NraSIgPHJqd0Byand5c29ja2kubmV0PgpDYzogbGlu
+dXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWVkYWMgPGxpbnV4LWVkYWNAdmdlci5r
+ZXJuZWwub3JnPgpDYzogbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpMaW5rOiBodHRwOi8vbGtt
+bC5rZXJuZWwub3JnL3IvMjAxODAzMTIxODI0MzAuMTAzMzUtNi10b255Lmx1Y2tAaW50ZWwuY29t
+ClNpZ25lZC1vZmYtYnk6IEJvcmlzbGF2IFBldGtvdiA8YnBAc3VzZS5kZT4KLS0tCiBkcml2ZXJz
+L2VkYWMvS2NvbmZpZyAgICB8ICA1ICsrKy0KIGRyaXZlcnMvZWRhYy9za3hfZWRhYy5jIHwgNjcg
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLQogMiBmaWxl
+cyBjaGFuZ2VkLCA2NSBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvZWRhYy9LY29uZmlnIGIvZHJpdmVycy9lZGFjL0tjb25maWcKaW5kZXggY2I0ZmYx
+Y2M2ZWI0Li4wN2Q1NjlkMzJiOTAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZWRhYy9LY29uZmlnCisr
+KyBiL2RyaXZlcnMvZWRhYy9LY29uZmlnCkBAIC0yMzIsOSArMjMyLDEyIEBAIGNvbmZpZyBFREFD
+X1NCUklER0UKIGNvbmZpZyBFREFDX1NLWAogCXRyaXN0YXRlICJJbnRlbCBTa3lsYWtlIHNlcnZl
+ciBJbnRlZ3JhdGVkIE1DIgogCWRlcGVuZHMgb24gUENJICYmIFg4Nl82NCAmJiBYODZfTUNFX0lO
+VEVMICYmIFBDSV9NTUNPTkZJRworCXNlbGVjdCBETUkKIAloZWxwCiAJICBTdXBwb3J0IGZvciBl
+cnJvciBkZXRlY3Rpb24gYW5kIGNvcnJlY3Rpb24gdGhlIEludGVsCi0JICBTa3lsYWtlIHNlcnZl
+ciBJbnRlZ3JhdGVkIE1lbW9yeSBDb250cm9sbGVycy4KKwkgIFNreWxha2Ugc2VydmVyIEludGVn
+cmF0ZWQgTWVtb3J5IENvbnRyb2xsZXJzLiBJZiB5b3VyCisJICBzeXN0ZW0gaGFzIG5vbi12b2xh
+dGlsZSBESU1NcyB5b3Ugc2hvdWxkIGFsc28gbWFudWFsbHkKKwkgIHNlbGVjdCBDT05GSUdfQUNQ
+SV9ORklULgogCiBjb25maWcgRURBQ19QTkQyCiAJdHJpc3RhdGUgIkludGVsIFBvbmRpY2hlcnJ5
+MiIKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZWRhYy9za3hfZWRhYy5jIGIvZHJpdmVycy9lZGFjL3Nr
+eF9lZGFjLmMKaW5kZXggOTEyYzQ5MzBjOWVmLi5mYWUwOTUxNjJjMDEgMTAwNjQ0Ci0tLSBhL2Ry
+aXZlcnMvZWRhYy9za3hfZWRhYy5jCisrKyBiL2RyaXZlcnMvZWRhYy9za3hfZWRhYy5jCkBAIC0x
+NCw2ICsxNCw4IEBACiAKICNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KICNpbmNsdWRlIDxsaW51
+eC9pbml0Lmg+CisjaW5jbHVkZSA8bGludXgvYWNwaS5oPgorI2luY2x1ZGUgPGxpbnV4L2RtaS5o
+PgogI2luY2x1ZGUgPGxpbnV4L3BjaS5oPgogI2luY2x1ZGUgPGxpbnV4L3BjaV9pZHMuaD4KICNp
+bmNsdWRlIDxsaW51eC9zbGFiLmg+CkBAIC0yNCw2ICsyNiw3IEBACiAjaW5jbHVkZSA8bGludXgv
+Yml0bWFwLmg+CiAjaW5jbHVkZSA8bGludXgvbWF0aDY0Lmg+CiAjaW5jbHVkZSA8bGludXgvbW9k
+X2RldmljZXRhYmxlLmg+CisjaW5jbHVkZSA8YWNwaS9uZml0Lmg+CiAjaW5jbHVkZSA8YXNtL2Nw
+dV9kZXZpY2VfaWQuaD4KICNpbmNsdWRlIDxhc20vaW50ZWwtZmFtaWx5Lmg+CiAjaW5jbHVkZSA8
+YXNtL3Byb2Nlc3Nvci5oPgpAQCAtMzAyLDYgKzMwNSw3IEBAIHN0YXRpYyBpbnQgZ2V0X2RpbW1f
+YXR0cih1MzIgcmVnLCBpbnQgbG9iaXQsIGludCBoaWJpdCwgaW50IGFkZCwgaW50IG1pbnZhbCwK
+IH0KIAogI2RlZmluZSBJU19ESU1NX1BSRVNFTlQobXRyKQkJR0VUX0JJVEZJRUxEKChtdHIpLCAx
+NSwgMTUpCisjZGVmaW5lIElTX05WRElNTV9QUkVTRU5UKG1jZGRydGNmZywgaSkJR0VUX0JJVEZJ
+RUxEKChtY2RkcnRjZmcpLCAoaSksIChpKSkKIAogI2RlZmluZSBudW1yYW5rKHJlZykgZ2V0X2Rp
+bW1fYXR0cigocmVnKSwgMTIsIDEzLCAwLCAwLCAyLCAicmFua3MiKQogI2RlZmluZSBudW1yb3co
+cmVnKSBnZXRfZGltbV9hdHRyKChyZWcpLCAyLCA0LCAxMiwgMSwgNiwgInJvd3MiKQpAQCAtMzUw
+LDggKzM1NCw2IEBAIHN0YXRpYyBpbnQgZ2V0X2RpbW1faW5mbyh1MzIgbXRyLCB1MzIgYW1hcCwg
+c3RydWN0IGRpbW1faW5mbyAqZGltbSwKIAlpbnQgIGJhbmtzID0gMTYsIHJhbmtzLCByb3dzLCBj
+b2xzLCBucGFnZXM7CiAJdTY0IHNpemU7CiAKLQlpZiAoIUlTX0RJTU1fUFJFU0VOVChtdHIpKQot
+CQlyZXR1cm4gMDsKIAlyYW5rcyA9IG51bXJhbmsobXRyKTsKIAlyb3dzID0gbnVtcm93KG10cik7
+CiAJY29scyA9IG51bWNvbChtdHIpOwpAQCAtMzgzLDYgKzM4NSw1NCBAQCBzdGF0aWMgaW50IGdl
+dF9kaW1tX2luZm8odTMyIG10ciwgdTMyIGFtYXAsIHN0cnVjdCBkaW1tX2luZm8gKmRpbW0sCiAJ
+cmV0dXJuIDE7CiB9CiAKK3N0YXRpYyBpbnQgZ2V0X252ZGltbV9pbmZvKHN0cnVjdCBkaW1tX2lu
+Zm8gKmRpbW0sIHN0cnVjdCBza3hfaW1jICppbWMsCisJCQkgICBpbnQgY2hhbiwgaW50IGRpbW1u
+bykKK3sKKwlpbnQgc21iaW9zX2hhbmRsZTsKKwl1MzIgZGV2X2hhbmRsZTsKKwl1MTYgZmxhZ3M7
+CisJdTY0IHNpemUgPSAwOworCisJZGV2X2hhbmRsZSA9IEFDUElfTkZJVF9CVUlMRF9ERVZJQ0Vf
+SEFORExFKGRpbW1ubywgY2hhbiwgaW1jLT5sbWMsCisJCQkJCQkgICBpbWMtPnNyY19pZCwgMCk7
+CisKKwlzbWJpb3NfaGFuZGxlID0gbmZpdF9nZXRfc21iaW9zX2lkKGRldl9oYW5kbGUsICZmbGFn
+cyk7CisJaWYgKHNtYmlvc19oYW5kbGUgPT0gLUVPUE5PVFNVUFApIHsKKwkJcHJfd2Fybl9vbmNl
+KEVEQUNfTU9EX1NUUiAiOiBDYW4ndCBmaW5kIHNpemUgb2YgTlZESU1NLiBUcnkgZW5hYmxpbmcg
+Q09ORklHX0FDUElfTkZJVFxuIik7CisJCWdvdG8gdW5rbm93bl9zaXplOworCX0KKworCWlmIChz
+bWJpb3NfaGFuZGxlIDwgMCkgeworCQlza3hfcHJpbnRrKEtFUk5fRVJSLCAiQ2FuJ3QgZmluZCBo
+YW5kbGUgZm9yIE5WRElNTSBBRFI9JXhcbiIsIGRldl9oYW5kbGUpOworCQlnb3RvIHVua25vd25f
+c2l6ZTsKKwl9CisKKwlpZiAoZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX01BUF9GQUlMRUQpIHsKKwkJ
+c2t4X3ByaW50ayhLRVJOX0VSUiwgIk5WRElNTSBBRFI9JXggaXMgbm90IG1hcHBlZFxuIiwgZGV2
+X2hhbmRsZSk7CisJCWdvdG8gdW5rbm93bl9zaXplOworCX0KKworCXNpemUgPSBkbWlfbWVtZGV2
+X3NpemUoc21iaW9zX2hhbmRsZSk7CisJaWYgKHNpemUgPT0gfjB1bGwpCisJCXNreF9wcmludGso
+S0VSTl9FUlIsICJDYW4ndCBmaW5kIHNpemUgZm9yIE5WRElNTSBBRFI9JXgvU01CSU9TPSV4XG4i
+LAorCQkJICAgZGV2X2hhbmRsZSwgc21iaW9zX2hhbmRsZSk7CisKK3Vua25vd25fc2l6ZToKKwlk
+aW1tLT5ucl9wYWdlcyA9IHNpemUgPj4gUEFHRV9TSElGVDsKKwlkaW1tLT5ncmFpbiA9IDMyOwor
+CWRpbW0tPmR0eXBlID0gREVWX1VOS05PV047CisJZGltbS0+bXR5cGUgPSBNRU1fTlZESU1NOwor
+CWRpbW0tPmVkYWNfbW9kZSA9IEVEQUNfU0VDREVEOyAvKiBsaWtlbHkgYmV0dGVyIHRoYW4gdGhp
+cyAqLworCisJZWRhY19kYmcoMCwgIm1jIyVkOiBjaGFubmVsICVkLCBkaW1tICVkLCAlbGx1IE1i
+ICgldSBwYWdlcylcbiIsCisJCSBpbWMtPm1jLCBjaGFuLCBkaW1tbm8sIHNpemUgPj4gMjAsIGRp
+bW0tPm5yX3BhZ2VzKTsKKworCXNucHJpbnRmKGRpbW0tPmxhYmVsLCBzaXplb2YoZGltbS0+bGFi
+ZWwpLCAiQ1BVX1NyY0lEIyV1X01DIyV1X0NoYW4jJXVfRElNTSMldSIsCisJCSBpbWMtPnNyY19p
+ZCwgaW1jLT5sbWMsIGNoYW4sIGRpbW1ubyk7CisKKwlyZXR1cm4gKHNpemUgPT0gMCB8fCBzaXpl
+ID09IH4wdWxsKSA/IDAgOiAxOworfQorCiAjZGVmaW5lIFNLWF9HRVRfTVRNVFIoZGV2LCByZWcp
+IFwKIAlwY2lfcmVhZF9jb25maWdfZHdvcmQoKGRldiksIDB4ODdjLCAmcmVnKQogCkBAIC0zOTks
+MjAgKzQ0OSwyNCBAQCBzdGF0aWMgaW50IHNreF9nZXRfZGltbV9jb25maWcoc3RydWN0IG1lbV9j
+dGxfaW5mbyAqbWNpKQogewogCXN0cnVjdCBza3hfcHZ0ICpwdnQgPSBtY2ktPnB2dF9pbmZvOwog
+CXN0cnVjdCBza3hfaW1jICppbWMgPSBwdnQtPmltYzsKKwl1MzIgbXRyLCBhbWFwLCBtY2RkcnRj
+Zmc7CiAJc3RydWN0IGRpbW1faW5mbyAqZGltbTsKIAlpbnQgaSwgajsKLQl1MzIgbXRyLCBhbWFw
+OwogCWludCBuZGltbXM7CiAKIAlmb3IgKGkgPSAwOyBpIDwgTlVNX0NIQU5ORUxTOyBpKyspIHsK
+IAkJbmRpbW1zID0gMDsKIAkJcGNpX3JlYWRfY29uZmlnX2R3b3JkKGltYy0+Y2hhbltpXS5jZGV2
+LCAweDhDLCAmYW1hcCk7CisJCXBjaV9yZWFkX2NvbmZpZ19kd29yZChpbWMtPmNoYW5baV0uY2Rl
+diwgMHg0MDAsICZtY2RkcnRjZmcpOwogCQlmb3IgKGogPSAwOyBqIDwgTlVNX0RJTU1TOyBqKysp
+IHsKIAkJCWRpbW0gPSBFREFDX0RJTU1fUFRSKG1jaS0+bGF5ZXJzLCBtY2ktPmRpbW1zLAogCQkJ
+CQkgICAgIG1jaS0+bl9sYXllcnMsIGksIGosIDApOwogCQkJcGNpX3JlYWRfY29uZmlnX2R3b3Jk
+KGltYy0+Y2hhbltpXS5jZGV2LAogCQkJCQkweDgwICsgNCpqLCAmbXRyKTsKLQkJCW5kaW1tcyAr
+PSBnZXRfZGltbV9pbmZvKG10ciwgYW1hcCwgZGltbSwgaW1jLCBpLCBqKTsKKwkJCWlmIChJU19E
+SU1NX1BSRVNFTlQobXRyKSkKKwkJCQluZGltbXMgKz0gZ2V0X2RpbW1faW5mbyhtdHIsIGFtYXAs
+IGRpbW0sIGltYywgaSwgaik7CisJCQllbHNlIGlmIChJU19OVkRJTU1fUFJFU0VOVChtY2RkcnRj
+ZmcsIGopKQorCQkJCW5kaW1tcyArPSBnZXRfbnZkaW1tX2luZm8oZGltbSwgaW1jLCBpLCBqKTsK
+IAkJfQogCQlpZiAobmRpbW1zICYmICFza3hfY2hlY2tfZWNjKGltYy0+Y2hhblswXS5jZGV2KSkg
+ewogCQkJc2t4X3ByaW50ayhLRVJOX0VSUiwgIkVDQyBpcyBkaXNhYmxlZCBvbiBpbWMgJWRcbiIs
+IGltYy0+bWMpOwpAQCAtNDY4LDEzICs1MjIsMTQgQEAgc3RhdGljIGludCBza3hfcmVnaXN0ZXJf
+bWNpKHN0cnVjdCBza3hfaW1jICppbWMpCiAJcHZ0ID0gbWNpLT5wdnRfaW5mbzsKIAlwdnQtPmlt
+YyA9IGltYzsKIAotCW1jaS0+Y3RsX25hbWUgPSBrYXNwcmludGYoR0ZQX0tFUk5FTCwgIlNreWxh
+a2UgU29ja2V0IyVkIElNQyMlZCIsIGltYy0+bm9kZV9pZCwgaW1jLT5sbWMpOworCW1jaS0+Y3Rs
+X25hbWUgPSBrYXNwcmludGYoR0ZQX0tFUk5FTCwgIlNreWxha2UgU29ja2V0IyVkIElNQyMlZCIs
+CisJCQkJICBpbWMtPm5vZGVfaWQsIGltYy0+bG1jKTsKIAlpZiAoIW1jaS0+Y3RsX25hbWUpIHsK
+IAkJcmMgPSAtRU5PTUVNOwogCQlnb3RvIGZhaWwwOwogCX0KIAotCW1jaS0+bXR5cGVfY2FwID0g
+TUVNX0ZMQUdfRERSNDsKKwltY2ktPm10eXBlX2NhcCA9IE1FTV9GTEFHX0REUjQgfCBNRU1fRkxB
+R19OVkRJTU07CiAJbWNpLT5lZGFjX2N0bF9jYXAgPSBFREFDX0ZMQUdfTk9ORTsKIAltY2ktPmVk
+YWNfY2FwID0gRURBQ19GTEFHX05PTkU7CiAJbWNpLT5tb2RfbmFtZSA9IEVEQUNfTU9EX1NUUjsK
+LS0gCjIuMTMuMAoKU1VTRSBMaW51eCBHbWJILCBHRjogRmVsaXggSW1lbmTDtnJmZmVyLCBKYW5l
+IFNtaXRoYXJkLCBHcmFoYW0gTm9ydG9uLCBIUkIgMjEyODQgKEFHIE7DvHJuYmVyZykKLS0gCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
+bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
