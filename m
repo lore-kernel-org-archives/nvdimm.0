@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 84CEC2264D22B
- for <linux-nvdimm@lists.01.org>; Mon, 12 Mar 2018 12:29:14 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 12 Mar 2018 13:35:24 -0600
-Message-Id: <20180312193525.2855-11-logang@deltatee.com>
-In-Reply-To: <20180312193525.2855-1-logang@deltatee.com>
-References: <20180312193525.2855-1-logang@deltatee.com>
-Subject: [PATCH v3 10/11] nvme-pci: Add a quirk for a pseudo CMB
+ by ml01.01.org (Postfix) with ESMTPS id 1AAFB21E49035
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 15:20:23 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2] ndctl,
+ docs: cleanup the man page for create-namespace
+Date: Wed, 14 Mar 2018 16:26:41 -0600
+Message-Id: <20180314222641.2826-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,92 +21,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce a quirk to use CMB-like memory on older devices that have
-an exposed BAR but do not advertise support for using CMBLOC and
-CMBSIZE.
+Clean up some rendering artifacts in the man page for
+ndctl-create-namespace.
 
-We'd like to use some of these older cards to test P2P memory.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvme/host/nvme.h |  7 +++++++
- drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
- 2 files changed, 27 insertions(+), 4 deletions(-)
+ Documentation/ndctl/ndctl-create-namespace.txt | 54 +++++++++++++-------------
+ 1 file changed, 26 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-index 1fb2b6603d49..d1381bfc40f1 100644
---- a/drivers/nvme/host/nvme.h
-+++ b/drivers/nvme/host/nvme.h
-@@ -83,6 +83,13 @@ enum nvme_quirks {
- 	 * Supports the LighNVM command set if indicated in vs[1].
- 	 */
- 	NVME_QUIRK_LIGHTNVM			= (1 << 6),
+v2: Make the "In the latter case.." paragraph a continuation of the
+first bullet.
+
+diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
+index c8b1c99..8de6689 100644
+--- a/Documentation/ndctl/ndctl-create-namespace.txt
++++ b/Documentation/ndctl/ndctl-create-namespace.txt
+@@ -171,32 +171,31 @@ OPTIONS
+ 	Section 6.5.10 NVDIMM Label Methods) support "labelled
+ 	namespace" operation.
+ 
+-	There are two cases where the kernel will default to
+-	label-less operation:
+-
+-	* NVDIMM does not support labels
+-
+-	* The NVDIMM supports labels, but the Label Index Block (see
+-	  UEFI 2.7) is not present and there is no capacity aliasing
+-	  between 'blk' and 'pmem' regions.
+-
+-	In the latter case the configuration can be upgraded to
+-	labelled operation by writing an index block on all DIMMs in a
+-	region and re-enabling that region. The 'autolabel' capability
+-	of 'ndctl create-namespace --reconfig' tries to do this by
+-	default if it can determine that all DIMM capacity is
+-	referenced by the namespace being reconfigured. It will
+-	otherwise fail to autolabel and remain in label-less mode if
+-	it finds a DIMM contributes capacity to more than one region.
+-	This check prevents inadvertent data loss of that other region
+-	is in active use. The --autolabel option is implied by
+-	default, the --no-autolabel option can be used to disable this
+-	behavior. When automatic labeling fails and labelled operation
+-	is still desired the safety policy can be bypassed by the
+-	following commands, note that all data on all regions is
+-	forfeited by running these commands:
+-
+-	[verse]
++	- There are two cases where the kernel will default to
++	  label-less operation:
 +
-+	/*
-+	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
-+	 * NVRAM that have CMB-like memory on a BAR but does not set
-+	 * CMBLOC or CMBSZ.
-+	 */
-+	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 7),
- };
- 
- /*
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 0ebab7ab4d7e..a798e08a07bc 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -1683,6 +1683,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
- }
- static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
- 
-+static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
-+{
-+	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
-+		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
-+		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
-+}
++	  * NVDIMM does not support labels
 +
- static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
- {
- 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
-@@ -1702,10 +1709,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
- 	struct pci_dev *pdev = to_pci_dev(dev->dev);
- 	int bar;
- 
--	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
--	if (!dev->cmbsz)
--		return;
--	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
-+	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
-+		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
-+		dev->cmbloc = 4;
-+	} else {
-+		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
-+		if (!dev->cmbsz)
-+			return;
-+		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
-+	}
- 
- 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
- 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
-@@ -2719,6 +2731,10 @@ static const struct pci_device_id nvme_id_table[] = {
- 		.driver_data = NVME_QUIRK_LIGHTNVM, },
- 	{ PCI_DEVICE(0x1d1d, 0x2807),	/* CNEX WL */
- 		.driver_data = NVME_QUIRK_LIGHTNVM, },
-+	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
-+		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
-+	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
-+		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
- 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
++	  * The NVDIMM supports labels, but the Label Index Block (see
++	    UEFI 2.7) is not present and there is no capacity aliasing
++	    between 'blk' and 'pmem' regions.
++
++	- In the latter case the configuration can be upgraded to
++	  labelled operation by writing an index block on all DIMMs in a
++	  region and re-enabling that region. The 'autolabel' capability
++	  of 'ndctl create-namespace --reconfig' tries to do this by
++	  default if it can determine that all DIMM capacity is
++	  referenced by the namespace being reconfigured. It will
++	  otherwise fail to autolabel and remain in label-less mode if
++	  it finds a DIMM contributes capacity to more than one region.
++	  This check prevents inadvertent data loss of that other region
++	  is in active use. The --autolabel option is implied by
++	  default, the --no-autolabel option can be used to disable this
++	  behavior. When automatic labeling fails and labelled operation
++	  is still desired the safety policy can be bypassed by the
++	  following commands, note that all data on all regions is
++	  forfeited by running these commands:
++
+ 	ndctl disable-region all
+ 	ndctl init-labels all
+ 	ndctl enable-region all
+@@ -222,5 +221,4 @@ linkndctl:ndctl-zero-labels[1],
+ linkndctl:ndctl-init-labels[1],
+ linkndctl:ndctl-disable-namespace[1],
+ linkndctl:ndctl-enable-namespace[1],
+-http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol
+-]
++http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol]
 -- 
-2.11.0
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
