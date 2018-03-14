@@ -1,12 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x243.google.com (mail-ot0-x243.google.com
- [IPv6:2607:f8b0:4003:c0f::243])
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40D7B20956088
- for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 22:40:07 -0700 (PDT)
-Received: by mail-ot0-x243.google.com with SMTP id t2-v6so5727750otj.4
- for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 22:46:31 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 1F2B420954B9B
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 21:06:37 -0700 (PDT)
+Received: by mail-ot0-x242.google.com with SMTP id w38-v6so1937814ota.8
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Mar 2018 21:13:00 -0700 (PDT)
 MIME-Version: 1.0
 In-Reply-To: <20180313102056.GJ4043@hirez.programming.kicks-ass.net>
 References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
@@ -15,8 +15,8 @@ References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.co
  <CAPcyv4jr53dqVTzdEQ6Ln1Qg7nWVMQSVTkf6uc+Lg6Y-xruhuw@mail.gmail.com>
  <20180313102056.GJ4043@hirez.programming.kicks-ass.net>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 14 Mar 2018 22:46:30 -0700
-Message-ID: <CAPcyv4jR4_juttgKJj_RQBfX8VfFpB5buh_-f1XJvOaVJ6aiog@mail.gmail.com>
+Date: Tue, 13 Mar 2018 21:12:58 -0700
+Message-ID: <CAPcyv4h3SPqx879nnvQt0rvwanKksxLTqChCQa9ZQH8hsd_7yg@mail.gmail.com>
 Subject: Re: [RFC][PATCH] sched/wait_bit: Introduce
  wait_var_event()/wake_up_var()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -74,15 +74,11 @@ On Tue, Mar 13, 2018 at 3:20 AM, Peter Zijlstra <peterz@infradead.org> wrote:
 >
 >         wait_var_event(&your_atomic, atomic_read(&your_atomic) == 1);
 
-This works for me, you can add
+Nice!
 
-Tested-by: Dan Williams <dan.j.williams@intel.com>
-
-...to the upstream version.
-
-Can we add this new api in an immutable commit tip/sched/core tree, so
-I can base my fix on it? The wait_for_atomic_t removal can then come
-in follow-on patches.
+I'll give this a shot. I will need to add
+wait_var_event_interruptible(), but other than that it looks workable
+to me.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
