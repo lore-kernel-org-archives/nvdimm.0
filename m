@@ -1,7 +1,7 @@
-From: "Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Tue, 13 Mar 2018 11:36:40 +0800
-Message-ID: <20180313033014.8B14D22492730@ml01.01.org>
+From: dave-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Subject: Mail System Error - Returned Mail
+Date: Wed, 14 Mar 2018 11:25:45 +0800
+Message-ID: <20180314031920.C21DD21E49028@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,13 +18,13 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Tue, 13 Mar 2018 11:36:40 +0800
-from lists.01.org [48.169.118.47]
+The original message was received at Wed, 14 Mar 2018 11:25:45 +0800
+from linux.vnet.ibm.com [21.189.161.32]
 
 ----- The following addresses had permanent fatal errors -----
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
 ----- Transcript of session follows -----
   while talking to lists.01.org.:
->>> MAIL From:"Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-<<< 501 "Bounced mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
+>>> MAIL From:dave-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+<<< 501 dave-23VcF4HTsmIX0ybBhKVfKaZ29KkhBp7w@public.gmane.org Refused
