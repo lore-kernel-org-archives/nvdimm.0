@@ -1,22 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x243.google.com (mail-ot0-x243.google.com
+ [IPv6:2607:f8b0:4003:c0f::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6CFE22095606B
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 02:52:24 -0700 (PDT)
-From: David Howells <dhowells@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 40D7B20956088
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 22:40:07 -0700 (PDT)
+Received: by mail-ot0-x243.google.com with SMTP id t2-v6so5727750otj.4
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 22:46:31 -0700 (PDT)
+MIME-Version: 1.0
 In-Reply-To: <20180313102056.GJ4043@hirez.programming.kicks-ass.net>
-References: <20180313102056.GJ4043@hirez.programming.kicks-ass.net>
- <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152066488891.40260.14605734226832760468.stgit@dwillia2-desk3.amr.corp.intel.com>
  <152066493247.40260.10849841915366086021.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20180311112725.GC4043@hirez.programming.kicks-ass.net>
  <CAPcyv4jr53dqVTzdEQ6Ln1Qg7nWVMQSVTkf6uc+Lg6Y-xruhuw@mail.gmail.com>
+ <20180313102056.GJ4043@hirez.programming.kicks-ass.net>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 14 Mar 2018 22:46:30 -0700
+Message-ID: <CAPcyv4jR4_juttgKJj_RQBfX8VfFpB5buh_-f1XJvOaVJ6aiog@mail.gmail.com>
 Subject: Re: [RFC][PATCH] sched/wait_bit: Introduce
  wait_var_event()/wake_up_var()
-MIME-Version: 1.0
-Content-ID: <3395.1521107922.1@warthog.procyon.org.uk>
-Date: Thu, 15 Mar 2018 09:58:42 +0000
-Message-ID: <3396.1521107922@warthog.procyon.org.uk>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,19 +31,58 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-xfs <linux-xfs@vger.kernel.org>, Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, david <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, dhowells@redhat.com, Ingo Molnar <mingo@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+Cc: David Howells <dhowells@redhat.com>, Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, david <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, linux-xfs <linux-xfs@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Peter Zijlstra <peterz@infradead.org> wrote:
+On Tue, Mar 13, 2018 at 3:20 AM, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Sun, Mar 11, 2018 at 10:15:55AM -0700, Dan Williams wrote:
+>> On Sun, Mar 11, 2018 at 4:27 AM, Peter Zijlstra <peterz@infradead.org> wrote:
+>> > On Fri, Mar 09, 2018 at 10:55:32PM -0800, Dan Williams wrote:
+>> >> Add a generic facility for awaiting an atomic_t to reach a value of 1.
+>> >>
+>> >> Page reference counts typically need to reach 0 to be considered a
+>> >> free / inactive page. However, ZONE_DEVICE pages allocated via
+>> >> devm_memremap_pages() are never 'onlined', i.e. the put_page() typically
+>> >> done at init time to assign pages to the page allocator is skipped.
+>> >>
+>> >> These pages will have their reference count elevated > 1 by
+>> >> get_user_pages() when they are under DMA. In order to coordinate DMA to
+>> >> these pages vs filesytem operations like hole-punch and truncate the
+>> >> filesystem-dax implementation needs to capture the DMA-idle event i.e.
+>> >> the 2 to 1 count transition).
+>> >>
+>> >> For now, this implementation does not have functional behavior change,
+>> >> follow-on patches will add waiters for these page-idle events.
+>> >
+>> > Argh, no no no.. That whole wait_for_atomic_t thing is a giant
+>> > trainwreck already and now you're making it worse still.
+>> >
+>> > Please have a look here:
+>> >
+>> >   https://lkml.kernel.org/r/20171101190644.chwhfpoz3ywxx2m7@hirez.programming.kicks-ass.net
+>>
+>> That thread seems to be worried about the object disappearing the
+>> moment it's reference count reaches a target. That isn't the case with
+>> the memmap / struct page objects for ZONE_DEVICE pages. I understand
+>> wait_for_atomic_one() is broken in the general case, but as far as I
+>> can see it works fine specifically for ZONE_DEVICE page busy tracking,
+>> just not generic object lifetime.
+>
+> How's this, compile tested (x86_64-allmodconfig) only.
+>
+> This allows you to write:
+>
+>         wait_var_event(&your_atomic, atomic_read(&your_atomic) == 1);
 
-> > > Argh, no no no.. That whole wait_for_atomic_t thing is a giant
-> > > trainwreck already and now you're making it worse still.
+This works for me, you can add
 
-Your patch description needs to say why this isn't a trainwreck when you
-consider wait_for_atomic_t() to be one since it does things in a very similar
-way.
+Tested-by: Dan Williams <dan.j.williams@intel.com>
 
-David
+...to the upstream version.
+
+Can we add this new api in an immutable commit tip/sched/core tree, so
+I can base my fix on it? The wait_for_atomic_t removal can then come
+in follow-on patches.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
