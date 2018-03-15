@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B5814225E9679
- for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 16:01:05 -0700 (PDT)
-Subject: [PATCH v7 14/14] xfs, dax: introduce xfs_break_dax_layouts()
+ by ml01.01.org (Postfix) with ESMTPS id BC3A4220C2A59
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 08:54:46 -0700 (PDT)
+Subject: [PATCH v6 05/15] ext4, dax: introduce ext4_dax_aops
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 21 Mar 2018 15:58:31 -0700
-Message-ID: <152167311132.5268.8502709708606276650.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 15 Mar 2018 08:51:50 -0700
+Message-ID: <152112911073.24669.9909626935784919021.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,116 +23,93 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Cc: jack@suse.cz, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-xfs_break_dax_layouts(), similar to xfs_break_leased_layouts(), scans
-for busy / pinned dax pages and waits for those pages to go idle before
-any potential extent unmap operation.
+In preparation for the dax implementation to start associating dax pages
+to inodes via page->mapping, we need to provide a 'struct
+address_space_operations' instance for dax. Otherwise, direct-I/O
+triggers incorrect page cache assumptions and warnings.
 
-dax_layout_busy_page() handles synchronizing against new page-busy
-events (get_user_pages). It invalidates all mappings to trigger the
-get_user_pages slow path which will eventually block on the xfs inode
-lock held in XFS_MMAPLOCK_EXCL mode. If dax_layout_busy_page() finds a
-busy page it returns it for xfs to wait for the page-idle event that
-will fire when the page reference count reaches 1 (recall ZONE_DEVICE
-pages are idle at count 1, see generic_dax_pagefree()).
-
-While waiting, the XFS_MMAPLOCK_EXCL lock is dropped in order to not
-deadlock the process that might be trying to elevate the page count of
-more pages before arranging for any of them to go idle. I.e. the typical
-case of submitting I/O is that iov_iter_get_pages() elevates the
-reference count of all pages in the I/O before starting I/O on the first
-page. The process of elevating the reference count of all pages involved
-in an I/O may cause faults that need to take XFS_MMAPLOCK_EXCL.
-
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: linux-ext4@vger.kernel.org
 Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_file.c |   59 ++++++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 49 insertions(+), 10 deletions(-)
+ fs/ext4/inode.c |   38 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 7f37fadf007e..d4573f93fddb 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -752,6 +752,38 @@ xfs_file_write_iter(
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index c94780075b04..f9884e41cb39 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -2725,12 +2725,6 @@ static int ext4_writepages(struct address_space *mapping,
+ 	percpu_down_read(&sbi->s_journal_flag_rwsem);
+ 	trace_ext4_writepages(inode, wbc);
+ 
+-	if (dax_mapping(mapping)) {
+-		ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev,
+-						  wbc);
+-		goto out_writepages;
+-	}
+-
+ 	/*
+ 	 * No pages to write? This is mainly a kludge to avoid starting
+ 	 * a transaction for special inodes like journal inode on last iput()
+@@ -2955,6 +2949,27 @@ static int ext4_writepages(struct address_space *mapping,
  	return ret;
  }
  
-+static void
-+xfs_wait_var_event(
-+	struct inode		*inode,
-+	uint			iolock,
-+	bool			*did_unlock)
++static int ext4_dax_writepages(struct address_space *mapping,
++			       struct writeback_control *wbc)
 +{
-+	struct xfs_inode        *ip = XFS_I(inode);
++	int ret;
++	long nr_to_write = wbc->nr_to_write;
++	struct inode *inode = mapping->host;
++	struct ext4_sb_info *sbi = EXT4_SB(mapping->host->i_sb);
 +
-+	*did_unlock = true;
-+	xfs_iunlock(ip, iolock);
-+	schedule();
-+	xfs_ilock(ip, iolock);
++	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
++		return -EIO;
++
++	percpu_down_read(&sbi->s_journal_flag_rwsem);
++	trace_ext4_writepages(inode, wbc);
++
++	ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev, wbc);
++	trace_ext4_writepages_result(inode, wbc, ret,
++				     nr_to_write - wbc->nr_to_write);
++	percpu_up_read(&sbi->s_journal_flag_rwsem);
++	return ret;
 +}
 +
-+static int
-+xfs_break_dax_layouts(
-+	struct inode		*inode,
-+	uint			iolock,
-+	bool			*did_unlock)
-+{
-+	struct page		*page;
-+
-+	*did_unlock = false;
-+	page = dax_layout_busy_page(inode->i_mapping);
-+	if (!page)
-+		return 0;
-+
-+	return ___wait_var_event(&page->_refcount,
-+			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
-+			0, 0, xfs_wait_var_event(inode, iolock, did_unlock));
-+}
-+
- int
- xfs_break_layouts(
- 	struct inode		*inode,
-@@ -766,16 +798,23 @@ xfs_break_layouts(
- 				| (reason == BREAK_UNMAPI
- 					? XFS_MMAPLOCK_EXCL : 0)));
+ static int ext4_nonda_switch(struct super_block *sb)
+ {
+ 	s64 free_clusters, dirty_clusters;
+@@ -3946,6 +3961,13 @@ static const struct address_space_operations ext4_da_aops = {
+ 	.error_remove_page	= generic_error_remove_page,
+ };
  
--	switch (reason) {
--	case BREAK_UNMAPI:
--		/* fall through */
--	case BREAK_WRITE:
--		error = xfs_break_leased_layouts(inode, iolock, &did_unlock);
--		break;
--	default:
--		error = -EINVAL;
--		break;
--	}
-+	do {
-+		switch (reason) {
-+		case BREAK_UNMAPI:
-+			error = xfs_break_dax_layouts(inode, *iolock,
-+					&did_unlock);
-+			/* fall through */
-+		case BREAK_WRITE:
-+			if (error || did_unlock)
-+				break;
-+			error = xfs_break_leased_layouts(inode, iolock,
-+					&did_unlock);
-+			break;
-+		default:
-+			error = -EINVAL;
-+			break;
-+		}
-+	} while (error == 0 && did_unlock);
- 
- 	return error;
- }
++static const struct address_space_operations ext4_dax_aops = {
++	.direct_IO		= ext4_direct_IO,
++	.writepages		= ext4_dax_writepages,
++	.set_page_dirty		= noop_set_page_dirty,
++	.invalidatepage		= noop_invalidatepage,
++};
++
+ void ext4_set_aops(struct inode *inode)
+ {
+ 	switch (ext4_inode_journal_mode(inode)) {
+@@ -3958,7 +3980,9 @@ void ext4_set_aops(struct inode *inode)
+ 	default:
+ 		BUG();
+ 	}
+-	if (test_opt(inode->i_sb, DELALLOC))
++	if (IS_DAX(inode))
++		inode->i_mapping->a_ops = &ext4_dax_aops;
++	else if (test_opt(inode->i_sb, DELALLOC))
+ 		inode->i_mapping->a_ops = &ext4_da_aops;
+ 	else
+ 		inode->i_mapping->a_ops = &ext4_aops;
 
 _______________________________________________
 Linux-nvdimm mailing list
