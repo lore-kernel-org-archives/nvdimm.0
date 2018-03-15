@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io0-x242.google.com (mail-io0-x242.google.com
+ [IPv6:2607:f8b0:4001:c06::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 58B9F20954B8A
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 08:55:43 -0700 (PDT)
-Subject: [PATCH v6 14/15] xfs: prepare xfs_break_layouts() for another
- layout type
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Mar 2018 08:52:45 -0700
-Message-ID: <152112916514.24669.8643877835071945330.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id ACA2C2202E480
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 23:09:53 -0700 (PDT)
+Received: by mail-io0-x242.google.com with SMTP id e30so7219323ioc.3
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Mar 2018 23:16:17 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20180315050653.GC4860@magnolia>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+ <1520705944-6723-5-git-send-email-jix024@eng.ucsd.edu>
+ <20180315050653.GC4860@magnolia>
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Date: Wed, 14 Mar 2018 23:16:15 -0700
+Message-ID: <CAD4SzjvseYcy0n7xcHtpQQM_+zHMPYXzn_UXBfk81dfV76CQug@mail.gmail.com>
+Subject: Re: [RFC v2 04/83] NOVA inode definition.
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,166 +27,282 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: coughlan@redhat.com, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Andiry Xu <jix024@cs.ucsd.edu>, miklos@szeredi.hu, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, jack@suse.com, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Steven Swanson <swanson@cs.ucsd.edu>, swhiteho@redhat.com, Jian Xu <andiry.xu@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When xfs is operating as the back-end of a pNFS block server, it prevents
-collisions between local and remote operations by requiring a lease to
-be held for remotely accessed blocks. Local filesystem operations break
-those leases before writing or mutating the extent map of the file.
+On Wed, Mar 14, 2018 at 10:06 PM, Darrick J. Wong
+<darrick.wong@oracle.com> wrote:
+> On Sat, Mar 10, 2018 at 10:17:45AM -0800, Andiry Xu wrote:
+>> From: Andiry Xu <jix024@cs.ucsd.edu>
+>>
+>> inode.h defines the non-volatile and volatile NOVA inode data structures.
+>>
+>> The non-volatile NOVA inode (nova_inode) is aligned to 128 bytes and contains
+>> file/directory metadata information. The most important fields
+>> are log_head and log_tail. log_head points to the start of
+>> the log, and log_tail points to the end of the latest committed
+>> log entry. NOVA make updates to the inode by appending
+>> to the log tail and update the log_tail pointer atomically.
+>>
+>> The volatile NOVA inode (nova_inode_info) contains necessary
+>> information to limit access to the non-volatile NOVA inode during runtime.
+>> It has a radix tree to map file offset or filenames to the corresponding
+>> log entries.
+>>
+>> Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
+>> ---
+>>  fs/nova/inode.h | 187 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 187 insertions(+)
+>>  create mode 100644 fs/nova/inode.h
+>>
+>> diff --git a/fs/nova/inode.h b/fs/nova/inode.h
+>> new file mode 100644
+>> index 0000000..f9187e3
+>> --- /dev/null
+>> +++ b/fs/nova/inode.h
+>> @@ -0,0 +1,187 @@
+>> +#ifndef __INODE_H
+>> +#define __INODE_H
+>> +
+>> +struct nova_inode_info_header;
+>> +struct nova_inode;
+>> +
+>> +#include "super.h"
+>> +
+>> +enum nova_new_inode_type {
+>> +     TYPE_CREATE = 0,
+>> +     TYPE_MKNOD,
+>> +     TYPE_SYMLINK,
+>> +     TYPE_MKDIR
+>> +};
+>> +
+>> +
+>> +/*
+>> + * Structure of an inode in PMEM
+>> + * Keep the inode size to within 120 bytes: We use the last eight bytes
+>> + * as inode table tail pointer.
+>
+> I would've expected a
+> BUILD_BUG_ON(NOVA_INODE_SIZE - sizeof(struct nova_inode) == 8);
+> or something to enforce this.
+>
 
-A similar mechanism is needed to prevent operations on pinned dax
-mappings, like device-DMA, from colliding with extent unmap operations.
+Thanks, will do.
 
-BREAK_WRITE and BREAK_TRUNCATE are introduced as two distinct levels of
-layout breaking.
+> (Or just equate inode number with byte offset?  I looked ahead at the
+> directory entries and they seem to be 64-bit...)
+>
+> I guess I'm being lazy and doing a on-disk-format-only review. :)
+>
+>> + */
+>> +struct nova_inode {
+>> +
+>> +     /* first 40 bytes */
+>> +     u8      i_rsvd;          /* reserved. used to be checksum */
+>
+> Magic number?
+>
 
-Layouts are broken in the BREAK_WRITE case to ensure that layout-holders
-do not collide with local writes. Additionally, layouts are broken in
-the BREAK_TRUNCATE case to make sure the layout-holder has a consistent
-view of the file's extent map. While BREAK_WRITE breaks can be satisfied
-be recalling FL_LAYOUT leases, BREAK_TRUNCATE breaks additionally
-require waiting for busy dax-pages to go idle.
+OK.
 
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Dave Chinner <david@fromorbit.com>
-Reported-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/xfs/xfs_file.c  |   23 +++++++++++++++++------
- fs/xfs/xfs_inode.h |   18 ++++++++++++++++--
- fs/xfs/xfs_ioctl.c |    2 +-
- fs/xfs/xfs_iops.c  |    5 +++--
- 4 files changed, 37 insertions(+), 11 deletions(-)
+>> +     u8      valid;           /* Is this inode valid? */
+>> +     u8      deleted;         /* Is this inode deleted? */
+>
+> Would i_mode == 0 cover these?
+>
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 5742d395a4e4..399c5221f101 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -352,7 +352,7 @@ xfs_file_aio_write_checks(
- 
- 	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
- 	*iolock |= XFS_MMAPLOCK_EXCL;
--	error = xfs_break_layouts(inode, iolock);
-+	error = xfs_break_layouts(inode, iolock, BREAK_WRITE);
- 	if (error) {
- 		*iolock &= ~XFS_MMAPLOCK_EXCL;
- 		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
-@@ -762,7 +762,8 @@ xfs_file_write_iter(
- int
- xfs_break_layouts(
- 	struct inode		*inode,
--	uint			*iolock)
-+	uint			*iolock,
-+	enum layout_break_reason reason)
- {
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	int			ret;
-@@ -770,9 +771,19 @@ xfs_break_layouts(
- 	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED | XFS_IOLOCK_EXCL
- 				| XFS_MMAPLOCK_EXCL));
- 
--	ret = xfs_break_leased_layouts(inode, iolock);
--	if (ret > 0)
--		ret = 0;
-+	switch (reason) {
-+	case BREAK_TRUNCATE:
-+		/* fall through */
-+	case BREAK_WRITE:
-+		ret = xfs_break_leased_layouts(inode, iolock);
-+		if (ret > 0)
-+			ret = 0;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		break;
-+	}
-+
- 	return ret;
- }
- 
-@@ -802,7 +813,7 @@ xfs_file_fallocate(
- 		return -EOPNOTSUPP;
- 
- 	xfs_ilock(ip, iolock);
--	error = xfs_break_layouts(inode, &iolock);
-+	error = xfs_break_layouts(inode, &iolock, BREAK_TRUNCATE);
- 	if (error)
- 		goto out_unlock;
- 
-diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
-index 74c63f3a720f..1a66c7afcf45 100644
---- a/fs/xfs/xfs_inode.h
-+++ b/fs/xfs/xfs_inode.h
-@@ -379,6 +379,20 @@ static inline void xfs_ifunlock(struct xfs_inode *ip)
- 					>> XFS_ILOCK_SHIFT)
- 
- /*
-+ * Layouts are broken in the BREAK_WRITE case to ensure that
-+ * layout-holders do not collide with local writes. Additionally,
-+ * layouts are broken in the BREAK_TRUNCATE case to make sure the
-+ * layout-holder has a consistent view of the file's extent map. While
-+ * BREAK_WRITE breaks can be satisfied be recalling FL_LAYOUT leases,
-+ * BREAK_TRUNCATE breaks additionally require waiting for busy dax-pages
-+ * to go idle.
-+ */
-+enum layout_break_reason {
-+        BREAK_WRITE,
-+        BREAK_TRUNCATE,
-+};
-+
-+/*
-  * For multiple groups support: if S_ISGID bit is set in the parent
-  * directory, group of new file is set to that of the parent, and
-  * new subdirectory gets S_ISGID bit from parent.
-@@ -447,8 +461,8 @@ int	xfs_zero_eof(struct xfs_inode *ip, xfs_off_t offset,
- 		     xfs_fsize_t isize, bool *did_zeroing);
- int	xfs_zero_range(struct xfs_inode *ip, xfs_off_t pos, xfs_off_t count,
- 		bool *did_zero);
--int	xfs_break_layouts(struct inode *inode, uint *iolock);
--
-+int	xfs_break_layouts(struct inode *inode, uint *iolock,
-+		enum layout_break_reason reason);
- 
- /* from xfs_iops.c */
- extern void xfs_setup_inode(struct xfs_inode *ip);
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index d70a1919e787..847a67186d95 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -643,7 +643,7 @@ xfs_ioc_space(
- 		return error;
- 
- 	xfs_ilock(ip, iolock);
--	error = xfs_break_layouts(inode, &iolock);
-+	error = xfs_break_layouts(inode, &iolock, BREAK_TRUNCATE);
- 	if (error)
- 		goto out_unlock;
- 
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index 78eb56d447df..f9fcadb5b555 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -1026,13 +1026,14 @@ xfs_vn_setattr(
- 	int			error;
- 
- 	if (iattr->ia_valid & ATTR_SIZE) {
--		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
-+		struct inode		*inode = d_inode(dentry);
-+		struct xfs_inode	*ip = XFS_I(inode);
- 		uint			iolock;
- 
- 		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
- 		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
- 
--		error = xfs_break_layouts(d_inode(dentry), &iolock);
-+		error = xfs_break_layouts(inode, &iolock, BREAK_TRUNCATE);
- 		if (error) {
- 			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
- 			return error;
+Deleted flag comes from NOVA-Fortis code. I will check if i_mode can cover it.
 
+>> +     u8      i_blk_type;      /* data block size this inode uses */
+>
+> I would've thought these would just be bits of i_flags?
+>
+> Also, if I have a 1G blocksize file and free space fragments to the
+> point that there's > 1G of free space but none of it contiguous, I guess
+> I can expect ENOSPC?
+>
+
+Yes, but 1G blocksize has not been tested.
+
+>> +     __le32  i_flags;         /* Inode flags */
+>> +     __le64  i_size;          /* Size of data in bytes */
+>> +     __le32  i_ctime;         /* Inode modification time */
+>> +     __le32  i_mtime;         /* Inode b-tree Modification time */
+>> +     __le32  i_atime;         /* Access time */
+>
+> Same y2038 grumble from the previous patch.
+>
+
+Will fix.
+
+>> +     __le16  i_mode;          /* File mode */
+>> +     __le16  i_links_count;   /* Links count */
+>> +
+>> +     __le64  i_xattr;         /* Extended attribute block */
+>> +
+>> +     /* second 40 bytes */
+>> +     __le32  i_uid;           /* Owner Uid */
+>> +     __le32  i_gid;           /* Group Id */
+>> +     __le32  i_generation;    /* File version (for NFS) */
+>> +     __le32  i_create_time;   /* Create time */
+>> +     __le64  nova_ino;        /* nova inode number */
+>> +
+>> +     __le64  log_head;        /* Log head pointer */
+>> +     __le64  log_tail;        /* Log tail pointer */
+>> +
+>> +     /* last 40 bytes */
+>> +     __le64  create_epoch_id; /* Transaction ID when create */
+>> +     __le64  delete_epoch_id; /* Transaction ID when deleted */
+>> +
+>> +     struct {
+>> +             __le32 rdev;     /* major/minor # */
+>> +     } dev;                   /* device inode */
+>> +
+>> +     __le32  csum;            /* CRC32 checksum */
+>> +     /* Leave 8 bytes for inode table tail pointer */
+>> +} __attribute((__packed__));
+>> +
+>> +/*
+>> + * NOVA-specific inode state kept in DRAM
+>> + */
+>> +struct nova_inode_info_header {
+>> +     /* For files, tree holds a map from file offsets to
+>> +      * write log entries.
+>> +      *
+>> +      * For directories, tree holds a map from a hash of the file name to
+>> +      * dentry log entry.
+>> +      */
+>> +     struct radix_tree_root tree;
+>> +     struct rw_semaphore i_sem;      /* Protect log and tree */
+>> +     unsigned short i_mode;          /* Dir or file? */
+>> +     unsigned int i_flags;
+>> +     unsigned long log_pages;        /* Num of log pages */
+>> +     unsigned long i_size;
+>> +     unsigned long i_blocks;
+>> +     unsigned long ino;
+>> +     unsigned long pi_addr;
+>> +     unsigned long valid_entries;    /* For thorough GC */
+>> +     unsigned long num_entries;      /* For thorough GC */
+>> +     u64 last_setattr;               /* Last setattr entry */
+>> +     u64 last_link_change;           /* Last link change entry */
+>> +     u64 last_dentry;                /* Last updated dentry */
+>> +     u64 trans_id;                   /* Transaction ID */
+>> +     u64 log_head;                   /* Log head pointer */
+>> +     u64 log_tail;                   /* Log tail pointer */
+>> +     u8  i_blk_type;
+>> +};
+>> +
+>> +/*
+>> + * DRAM state for inodes
+>> + */
+>> +struct nova_inode_info {
+>> +     struct nova_inode_info_header header;
+>> +     struct inode vfs_inode;
+>> +};
+>> +
+>> +
+>> +static inline struct nova_inode_info *NOVA_I(struct inode *inode)
+>> +{
+>> +     return container_of(inode, struct nova_inode_info, vfs_inode);
+>> +}
+>> +
+>> +static inline void sih_lock(struct nova_inode_info_header *header)
+>
+> "sih"?  What happened to the "nova" prefix?
+>
+
+This structure is born before the name NOVA was decided.
+
+Thanks,
+Andiry
+
+> --D
+>
+>> +{
+>> +     down_write(&header->i_sem);
+>> +}
+>> +
+>> +static inline void sih_unlock(struct nova_inode_info_header *header)
+>> +{
+>> +     up_write(&header->i_sem);
+>> +}
+>> +
+>> +static inline void sih_lock_shared(struct nova_inode_info_header *header)
+>> +{
+>> +     down_read(&header->i_sem);
+>> +}
+>> +
+>> +static inline void sih_unlock_shared(struct nova_inode_info_header *header)
+>> +{
+>> +     up_read(&header->i_sem);
+>> +}
+>> +
+>> +static inline unsigned int
+>> +nova_inode_blk_shift(struct nova_inode_info_header *sih)
+>> +{
+>> +     return blk_type_to_shift[sih->i_blk_type];
+>> +}
+>> +
+>> +static inline uint32_t nova_inode_blk_size(struct nova_inode_info_header *sih)
+>> +{
+>> +     return blk_type_to_size[sih->i_blk_type];
+>> +}
+>> +
+>> +static inline u64 nova_get_reserved_inode_addr(struct super_block *sb,
+>> +     u64 inode_number)
+>> +{
+>> +     return (NOVA_DEF_BLOCK_SIZE_4K * RESERVE_INODE_START) +
+>> +                     inode_number * NOVA_INODE_SIZE;
+>> +}
+>> +
+>> +static inline struct nova_inode *nova_get_reserved_inode(struct super_block *sb,
+>> +     u64 inode_number)
+>> +{
+>> +     struct nova_sb_info *sbi = NOVA_SB(sb);
+>> +     u64 addr;
+>> +
+>> +     addr = nova_get_reserved_inode_addr(sb, inode_number);
+>> +
+>> +     return (struct nova_inode *)(sbi->virt_addr + addr);
+>> +}
+>> +
+>> +static inline struct nova_inode *nova_get_inode_by_ino(struct super_block *sb,
+>> +                                               u64 ino)
+>> +{
+>> +     if (ino == 0 || ino >= NOVA_NORMAL_INODE_START)
+>> +             return NULL;
+>> +
+>> +     return nova_get_reserved_inode(sb, ino);
+>> +}
+>> +
+>> +static inline struct nova_inode *nova_get_inode(struct super_block *sb,
+>> +     struct inode *inode)
+>> +{
+>> +     struct nova_inode_info *si = NOVA_I(inode);
+>> +     struct nova_inode_info_header *sih = &si->header;
+>> +     struct nova_inode fake_pi;
+>> +     void *addr;
+>> +     int rc;
+>> +
+>> +     addr = nova_get_block(sb, sih->pi_addr);
+>> +     rc = memcpy_mcsafe(&fake_pi, addr, sizeof(struct nova_inode));
+>> +     if (rc)
+>> +             return NULL;
+>> +
+>> +     return (struct nova_inode *)addr;
+>> +}
+>> +
+>> +static inline int nova_persist_inode(struct nova_inode *pi)
+>> +{
+>> +     nova_flush_buffer(pi, sizeof(struct nova_inode), 1);
+>> +     return 0;
+>> +}
+>> +
+>> +#endif
+>> --
+>> 2.7.4
+>>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
