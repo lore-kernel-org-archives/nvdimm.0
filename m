@@ -1,21 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x22c.google.com (mail-oi0-x22c.google.com
- [IPv6:2607:f8b0:4003:c06::22c])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7E3E7220C2A7F
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 17:57:26 -0700 (PDT)
-Received: by mail-oi0-x22c.google.com with SMTP id b8so7322446oib.11
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 18:03:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <58684e81-ac3a-718e-a717-0a1b54766100@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id D0060223FCF2F
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 03:35:06 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 990FCAC00C6
+ for <linux-nvdimm@lists.01.org>;
+ Thu, 15 Mar 2018 19:41:19 +0900 (JST)
+Subject: Re: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
 References: <20180313113308.2136-1-qi.fuli@jp.fujitsu.com>
  <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
- <58684e81-ac3a-718e-a717-0a1b54766100@jp.fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Mar 2018 18:03:49 -0700
-Message-ID: <CAPcyv4jRxaVu6XXcRDatr8VHJAdR-nn7DVb9Z3oUs_MmK9sBAQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Message-ID: <58684e81-ac3a-718e-a717-0a1b54766100@jp.fujitsu.com>
+Date: Thu, 15 Mar 2018 19:41:06 +0900
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,61 +24,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Mar 15, 2018 at 3:41 AM, Qi, Fuli <qi.fuli@jp.fujitsu.com> wrote:
->>>
->>> In this implemention, when a ndctl monitor starts with [--daemon] option, all
->>> the arguments will be saved into a temp file named as daemon-name and placed
->>> under /etc/sysconfig/ndctl/ directory. The temp file would be used as an
->>> EnvironmentFile by systemd, and it would be deleted automatically when the
->>> systemd service is stopped.
->>
->> The monitors started by hand should be kept separate from the monitors
->> started by systemd. The default monitor started by systemd should get
->> its configuration from /etc/ndctl.conf, and we should otherwise have a
->> --conf-file option to the monitor to override the default
->> configuration. Any other monitors started outside of the systemd
->> should remain independent.
->
-> Thank you very much for your comments. I still have something unclear about
-> how to manage ndctl monitor daemon. Let's clarify the specification of monitor daemon.
->
-> I have the following questions.
->  a) About command line interface
->     1) I would like to confirm when a monitor daemon is launched  by using
->        command line interface with [--daemon] option (like # ndctl monitor
->        --dimm nmem1 --daemon), then how to manage it? (i.e. stop, check status)
-
-I don't want to invent new policy here, how do other daemons behave
-with respect to this, can you investigate? Use mdadm or dnsmasq as an
-example.
-
->     2) When multiple daemons be running at same time, how can we recognize
->        each of them?
-
-Process id.
-
->
->  b) About using systemctl command
->     3) Should we need to limit the maximum number of running daemons to be one?
->        If yes, I am thinking the option should support multiple values, then
->        users can modify the default configuration by using [--conf-file] option.
->        # ndctl monitor --dimm nmem1,nmem2 --conf-file
->
->     4) If multiple daemons can be running at the same time, multiple configuration
->        files named <daemon-name> are needed. Do you agree that let users create the
->        configuration file manually when they want to launch a monitor daemon?
-
-Yes, we should always support a local configuration file in addition
-to the default configuration.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Pj4gSW4gdGhpcyBpbXBsZW1lbnRpb24sIHdoZW4gYSBuZGN0bCBtb25pdG9yIHN0YXJ0cyB3aXRo
+IFstLWRhZW1vbl0gb3B0aW9uLCBhbGwKPj4gdGhlIGFyZ3VtZW50cyB3aWxsIGJlIHNhdmVkIGlu
+dG8gYSB0ZW1wIGZpbGUgbmFtZWQgYXMgZGFlbW9uLW5hbWUgYW5kIHBsYWNlZAo+PiB1bmRlciAv
+ZXRjL3N5c2NvbmZpZy9uZGN0bC8gZGlyZWN0b3J5LiBUaGUgdGVtcCBmaWxlIHdvdWxkIGJlIHVz
+ZWQgYXMgYW4KPj4gRW52aXJvbm1lbnRGaWxlIGJ5IHN5c3RlbWQsIGFuZCBpdCB3b3VsZCBiZSBk
+ZWxldGVkIGF1dG9tYXRpY2FsbHkgd2hlbiB0aGUKPj4gc3lzdGVtZCBzZXJ2aWNlIGlzIHN0b3Bw
+ZWQuCj4gVGhlIG1vbml0b3JzIHN0YXJ0ZWQgYnkgaGFuZCBzaG91bGQgYmUga2VwdCBzZXBhcmF0
+ZSBmcm9tIHRoZSBtb25pdG9ycwo+IHN0YXJ0ZWQgYnkgc3lzdGVtZC4gVGhlIGRlZmF1bHQgbW9u
+aXRvciBzdGFydGVkIGJ5IHN5c3RlbWQgc2hvdWxkIGdldAo+IGl0cyBjb25maWd1cmF0aW9uIGZy
+b20gL2V0Yy9uZGN0bC5jb25mLCBhbmQgd2Ugc2hvdWxkIG90aGVyd2lzZSBoYXZlIGEKPiAtLWNv
+bmYtZmlsZSBvcHRpb24gdG8gdGhlIG1vbml0b3IgdG8gb3ZlcnJpZGUgdGhlIGRlZmF1bHQKPiBj
+b25maWd1cmF0aW9uLiBBbnkgb3RoZXIgbW9uaXRvcnMgc3RhcnRlZCBvdXRzaWRlIG9mIHRoZSBz
+eXN0ZW1kCj4gc2hvdWxkIHJlbWFpbiBpbmRlcGVuZGVudC4KVGhhbmsgeW91IHZlcnkgbXVjaCBm
+b3IgeW91ciBjb21tZW50cy4gSSBzdGlsbCBoYXZlIHNvbWV0aGluZyB1bmNsZWFyIGFib3V0Cmhv
+dyB0byBtYW5hZ2UgbmRjdGwgbW9uaXRvciBkYWVtb24uIExldCdzIGNsYXJpZnkgdGhlIHNwZWNp
+ZmljYXRpb24gb2YgCm1vbml0b3IgZGFlbW9uLgoKSSBoYXZlIHRoZSBmb2xsb3dpbmcgcXVlc3Rp
+b25zLgogwqBhKSBBYm91dCBjb21tYW5kIGxpbmUgaW50ZXJmYWNlCiDCoMKgwqAgMSkgSSB3b3Vs
+ZCBsaWtlIHRvIGNvbmZpcm0gd2hlbiBhIG1vbml0b3IgZGFlbW9uIGlzIGxhdW5jaGVkwqAgYnkg
+dXNpbmcKIMKgwqDCoMKgwqDCoCBjb21tYW5kIGxpbmUgaW50ZXJmYWNlIHdpdGggWy0tZGFlbW9u
+XSBvcHRpb24gKGxpa2UgIyBuZGN0bCBtb25pdG9yCiDCoMKgwqDCoMKgwqAgLS1kaW1tIG5tZW0x
+IC0tZGFlbW9uKSwgdGhlbiBob3cgdG8gbWFuYWdlIGl0PyAoaS5lLiBzdG9wLCBjaGVjayAKc3Rh
+dHVzKQogwqDCoMKgIDIpIFdoZW4gbXVsdGlwbGUgZGFlbW9ucyBiZSBydW5uaW5nIGF0IHNhbWUg
+dGltZSwgaG93IGNhbiB3ZSByZWNvZ25pemUKIMKgwqDCoMKgwqDCoCBlYWNoIG9mIHRoZW0/Cgog
+wqBiKSBBYm91dCB1c2luZyBzeXN0ZW1jdGwgY29tbWFuZAogwqDCoMKgIDMpIFNob3VsZCB3ZSBu
+ZWVkIHRvIGxpbWl0IHRoZSBtYXhpbXVtIG51bWJlciBvZiBydW5uaW5nIGRhZW1vbnMgdG8gCmJl
+IG9uZT8KIMKgwqDCoMKgwqDCoCBJZiB5ZXMsIEkgYW0gdGhpbmtpbmcgdGhlIG9wdGlvbiBzaG91
+bGQgc3VwcG9ydCBtdWx0aXBsZSB2YWx1ZXMsIAp0aGVuCiDCoMKgwqDCoMKgwqAgdXNlcnMgY2Fu
+IG1vZGlmeSB0aGUgZGVmYXVsdCBjb25maWd1cmF0aW9uIGJ5IHVzaW5nIApbLS1jb25mLWZpbGVd
+IG9wdGlvbi4KIMKgwqDCoMKgwqDCoCAjIG5kY3RsIG1vbml0b3IgLS1kaW1tIG5tZW0xLG5tZW0y
+IC0tY29uZi1maWxlCgogwqDCoMKgIDQpIElmIG11bHRpcGxlIGRhZW1vbnMgY2FuIGJlIHJ1bm5p
+bmcgYXQgdGhlIHNhbWUgdGltZSwgbXVsdGlwbGUgCmNvbmZpZ3VyYXRpb24KIMKgwqDCoMKgwqDC
+oCBmaWxlcyBuYW1lZCA8ZGFlbW9uLW5hbWU+IGFyZSBuZWVkZWQuIERvIHlvdSBhZ3JlZSB0aGF0
+IGxldCAKdXNlcnMgY3JlYXRlIHRoZQogwqDCoMKgwqDCoMKgIGNvbmZpZ3VyYXRpb24gZmlsZSBt
+YW51YWxseSB3aGVuIHRoZXkgd2FudCB0byBsYXVuY2ggYSBtb25pdG9yIApkYWVtb24/Cj4+IER1
+ZSB0byB0aGUgZGVsZXRpb24gdGhlIGZvbGxvd2luZyBjb21tYW5kcyB3aWxsIG5vdCB3b3JrLgo+
+PiAjIHN5c3RlbWN0bCBlbmFibGUgbmRjdGwtbW9uaXRvckBkYWVtb24tbmFtZS5zZXJ2aWNlCj4+
+ICMgc3lzdGVtY3RsIHJlc3RhcnQgbmRjdGwtbW9uaXRvckBkYWVtb24tbmFtZS5zZXJ2aWNlCj4+
+Cj4+IEkgYW0gbm90IHN1cmUgd2hldGhlciB0aGVzZSBjb21tYW5kcyBhcmUgbmVlZGVkIGZvciBu
+ZGN0bCBtb25pdG9yIGRhZW1vbiwKPj4geW91ciBjb21tZW50cyB3aWxsIGJlIGFwcHJlY2lhdGVk
+Lgo+IEJvdGggdGhvc2UgY29tbWFuZHMgYXJlIG5lZWRlZC4KPgoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
+dGluZm8vbGludXgtbnZkaW1tCg==
