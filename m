@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E4615224BBC5A
- for <linux-nvdimm@lists.01.org>; Tue, 20 Mar 2018 14:44:01 -0700 (PDT)
-Subject: [PATCH v3] ndctl: Add support for get bus and region persistence
- domain
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 20 Mar 2018 14:50:27 -0700
-Message-ID: <152158255868.52915.9362618183529367890.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A6AD022487290
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 08:54:54 -0700 (PDT)
+Subject: [PATCH v6 09/15] mm, dev_pagemap: introduce CONFIG_DEV_PAGEMAP_OPS
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 15 Mar 2018 08:52:12 -0700
+Message-ID: <152112913205.24669.12417777615718867473.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,244 +18,203 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding helper functions to iterate through sysfs region persistence domain
-attribute. The region will display the domain with the most persistence for the
-region.  The bus will display the domain attribute with the least persistence
-amongst all the regions. ndctl_bus_get_persistence_domain() and
-ndctl_region_get_persistence_domain are exported. ndctl list will also display
-the region persistence domain as well.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-
-v3:
-- fixed up return types per Ross's comments
-- removed persistence_domain for bus and calculate on the fly per Dan's comment
-
-v2:
-- Simplied scanning of persistence domain from Ross's comments.
-
- ndctl/lib/libndctl.c   |   85 ++++++++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |    2 +
- ndctl/libndctl.h       |   11 ++++++
- ndctl/list.c           |   16 +++++++++
- 4 files changed, 114 insertions(+)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index a165e697..bd2afa01 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -180,6 +180,7 @@ struct ndctl_region {
- 	} iset;
- 	FILE *badblocks;
- 	struct badblock bb;
-+	enum ndctl_persistence persistence_domain;
- };
- 
- /**
-@@ -916,6 +917,22 @@ NDCTL_EXPORT struct ndctl_bus *ndctl_bus_get_by_provider(struct ndctl_ctx *ctx,
- 	return NULL;
- }
- 
-+NDCTL_EXPORT enum ndctl_persistence
-+ndctl_bus_get_persistence_domain(struct ndctl_bus *bus)
-+{
-+	struct ndctl_region *region;
-+	enum ndctl_persistence pd = PERSISTENCE_UNKNOWN;
-+
-+	/* iterate through region to get the region persistence domain */
-+	ndctl_region_foreach(bus, region) {
-+		/* we are looking for the least persistence domain */
-+		if (pd > region->persistence_domain)
-+			pd = region->persistence_domain;
-+	}
-+
-+	return pd;
-+}
-+
- NDCTL_EXPORT struct ndctl_btt *ndctl_region_get_btt_seed(struct ndctl_region *region)
- {
- 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-@@ -1755,6 +1772,62 @@ static int region_set_type(struct ndctl_region *region, char *path)
- 	return 0;
- }
- 
-+static enum ndctl_persistence region_get_pd_type(char *name)
-+{
-+	if (strncmp("cpu_cache", name, 9) == 0)
-+		return PERSISTENCE_CPU_CACHE;
-+	else if (strncmp("memory_controller", name, 17) == 0)
-+		return PERSISTENCE_MEM_CTRL;
-+	else
-+		return PERSISTENCE_UNKNOWN;
-+}
-+
-+static int region_persistence_scan(struct ndctl_region *region)
-+{
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-+	char *pd_path;
-+	FILE *pf;
-+	char buf[64];
-+	int rc = 0;
-+	enum ndctl_persistence pd = PERSISTENCE_NONE;
-+
-+	region->persistence_domain = PERSISTENCE_NONE;
-+	if (asprintf(&pd_path, "%s/persistence_domain",
-+				region->region_path) < 0) {
-+		rc = -errno;
-+		err(ctx, "region persist domain path allocation failure\n");
-+		return rc;
-+	}
-+
-+	pf = fopen(pd_path, "re");
-+	if (!pf) {
-+		rc = -errno;
-+		free(pd_path);
-+		return rc;
-+	}
-+
-+	do {
-+		rc = fscanf(pf, "%s", buf);
-+		if (rc == EOF) {
-+			if (ferror(pf)) {
-+				rc = -errno;
-+				goto out;
-+			}
-+		} else if (rc == 1)
-+			pd = region_get_pd_type(buf);
-+
-+		if (region->persistence_domain < pd)
-+			region->persistence_domain = pd;
-+	} while (rc != EOF);
-+
-+	rc = 0;
-+
-+out:
-+	fclose(pf);
-+	free(pd_path);
-+	return rc;
-+}
-+
- static void *add_region(void *parent, int id, const char *region_base)
- {
- 	char buf[SYSFS_ATTR_SIZE];
-@@ -1831,6 +1904,12 @@ static void *add_region(void *parent, int id, const char *region_base)
- 	list_add(&bus->regions, &region->list);
- 
- 	free(path);
-+
-+	/* get the persistence domain attribs */
-+	if (region_persistence_scan(region) < 0)
-+		err(ctx, "%s: region persistence scan failed\n",
-+				ndctl_region_get_devname(region));
-+
- 	return region;
- 
-  err_read:
-@@ -2093,6 +2172,12 @@ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_regio
- 	return ndctl_region_get_next_badblock(region);
- }
- 
-+NDCTL_EXPORT enum ndctl_persistence
-+ndctl_region_get_persistence_domain(struct ndctl_region *region)
-+{
-+	return region->persistence_domain;
-+}
-+
- static struct nd_cmd_vendor_tail *to_vendor_tail(struct ndctl_cmd *cmd)
- {
- 	struct nd_cmd_vendor_tail *tail = (struct nd_cmd_vendor_tail *)
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 21276614..3209aefe 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -350,4 +350,6 @@ global:
- 	ndctl_dimm_cmd_new_ack_shutdown_count;
- 	ndctl_region_get_numa_node;
- 	ndctl_dimm_fw_update_supported;
-+	ndctl_region_get_persistence_domain;
-+	ndctl_bus_get_persistence_domain;
- } LIBNDCTL_14;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index f3a27411..84f441ef 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -115,6 +115,7 @@ int ndctl_bus_is_cmd_supported(struct ndctl_bus *bus, int cmd);
- unsigned int ndctl_bus_get_revision(struct ndctl_bus *bus);
- unsigned int ndctl_bus_get_id(struct ndctl_bus *bus);
- const char *ndctl_bus_get_provider(struct ndctl_bus *bus);
-+enum ndctl_persistence ndctl_bus_get_persistence_domain(struct ndctl_bus *bus);
- int ndctl_bus_wait_probe(struct ndctl_bus *bus);
- int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus);
- unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus);
-@@ -305,6 +306,14 @@ struct badblock {
- 	unsigned long long offset;
- 	unsigned int len;
- };
-+
-+enum ndctl_persistence {
-+	PERSISTENCE_NONE = 0,
-+	PERSISTENCE_MEM_CTRL,
-+	PERSISTENCE_CPU_CACHE,
-+	PERSISTENCE_UNKNOWN,
-+};
-+
- struct ndctl_region;
- struct ndctl_region *ndctl_region_get_first(struct ndctl_bus *bus);
- struct ndctl_region *ndctl_region_get_next(struct ndctl_region *region);
-@@ -347,6 +356,8 @@ struct ndctl_region *ndctl_bus_get_region_by_physical_address(struct ndctl_bus *
-         for (dimm = ndctl_region_get_first_dimm(region); \
-              dimm != NULL; \
-              dimm = ndctl_region_get_next_dimm(region, dimm))
-+enum ndctl_persistence ndctl_region_get_persistence_domain(
-+		struct ndctl_region *region);
- int ndctl_region_is_enabled(struct ndctl_region *region);
- int ndctl_region_enable(struct ndctl_region *region);
- int ndctl_region_disable_invalidate(struct ndctl_region *region);
-diff --git a/ndctl/list.c b/ndctl/list.c
-index fe8036ea..59efa31d 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -73,6 +73,7 @@ static struct json_object *region_to_json(struct ndctl_region *region,
- 	struct ndctl_interleave_set *iset;
- 	struct ndctl_mapping *mapping;
- 	unsigned int bb_count = 0;
-+	enum ndctl_persistence pd;
- 	int numa;
- 
- 	if (!jregion)
-@@ -174,6 +175,21 @@ static struct json_object *region_to_json(struct ndctl_region *region,
- 	if ((flags & UTIL_JSON_MEDIA_ERRORS) && jbbs)
- 		json_object_object_add(jregion, "badblocks", jbbs);
- 
-+	pd = ndctl_region_get_persistence_domain(region);
-+	switch (pd) {
-+		case PERSISTENCE_CPU_CACHE:
-+			jobj = json_object_new_string("cpu_cache");
-+			break;
-+		case PERSISTENCE_MEM_CTRL:
-+			jobj = json_object_new_string("memory_controller");
-+			break;
-+		default:
-+			jobj = NULL;
-+	}
-+
-+	if (jobj)
-+		json_object_object_add(jregion, "persistence_domain", jobj);
-+
- 	return jregion;
-  err:
- 	fail("\n");
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlIEhNTSBzdWItc3lzdGVtIGV4dGVuZGVkIGRldl9wYWdlbWFwIHRvIGFycmFuZ2UgYSBjYWxs
+YmFjayB3aGVuIGEKZGV2X3BhZ2VtYXAgbWFuYWdlZCBwYWdlIGlzIGZyZWVkLiBTaW5jZSBhIGRl
+dl9wYWdlbWFwIHBhZ2UgaXMgZnJlZSAvCmlkbGUgd2hlbiBpdHMgcmVmZXJlbmNlIGNvdW50IGlz
+IDEgaXQgcmVxdWlyZXMgYW4gYWRkaXRpb25hbCBicmFuY2ggdG8KY2hlY2sgdGhlIHBhZ2UtdHlw
+ZSBhdCBwdXRfcGFnZSgpIHRpbWUuIEdpdmVuIHB1dF9wYWdlKCkgaXMgYSBob3QtcGF0aAp3ZSBk
+byBub3Qgd2FudCB0byBpbmN1ciB0aGF0IGNoZWNrIGlmIEhNTSBpcyBub3QgaW4gdXNlLCBzbyBh
+IHN0YXRpYwpicmFuY2ggaXMgdXNlZCB0byBhdm9pZCB0aGF0IG92ZXJoZWFkIHdoZW4gbm90IG5l
+Y2Vzc2FyeS4KCk5vdywgdGhlIEZTX0RBWCBpbXBsZW1lbnRhdGlvbiB3YW50cyB0byByZXVzZSB0
+aGlzIG1lY2hhbmlzbSBmb3IKcmVjZWl2aW5nIGRldl9wYWdlbWFwIC0+cGFnZV9mcmVlKCkgY2Fs
+bGJhY2tzLiBSZXdvcmsgdGhlIEhNTS1zcGVjaWZpYwpzdGF0aWMta2V5IGludG8gYSBnZW5lcmlj
+IG1lY2hhbmlzbSB0aGF0IGVpdGhlciBITU0gb3IgRlNfREFYIGNvZGUgcGF0aHMKY2FuIGVuYWJs
+ZS4KCkNjOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BzdXNlLmNvbT4KUmV2aWV3ZWQtYnk6ICJKw6ly
+w7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1vZmYtYnk6IERhbiBXaWxs
+aWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIGRyaXZlcnMvZGF4L3N1cGVyLmMg
+ICAgICB8ICAgIDIgKysKIGZzL0tjb25maWcgICAgICAgICAgICAgICB8ICAgIDEgKwogaW5jbHVk
+ZS9saW51eC9tZW1yZW1hcC5oIHwgICAyMCArKy0tLS0tLS0tLS0tLS0KIGluY2x1ZGUvbGludXgv
+bW0uaCAgICAgICB8ICAgNjEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0t
+LS0tLS0tLQoga2VybmVsL21lbXJlbWFwLmMgICAgICAgIHwgICAzMCArKysrKysrKysrKysrKysr
+KysrKy0tLQogbW0vS2NvbmZpZyAgICAgICAgICAgICAgIHwgICAgNSArKysrCiBtbS9obW0uYyAg
+ICAgICAgICAgICAgICAgfCAgIDEzICsrLS0tLS0tLS0KIG1tL3N3YXAuYyAgICAgICAgICAgICAg
+ICB8ICAgIDMgKysKIDggZmlsZXMgY2hhbmdlZCwgODQgaW5zZXJ0aW9ucygrKSwgNTEgZGVsZXRp
+b25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9kYXgvc3VwZXIuYyBiL2RyaXZlcnMvZGF4L3N1
+cGVyLmMKaW5kZXggZWNlZmU5ZjdlYjYwLi42MTliMWVkNjQzNGMgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvZGF4L3N1cGVyLmMKKysrIGIvZHJpdmVycy9kYXgvc3VwZXIuYwpAQCAtMTkxLDYgKzE5MSw3
+IEBAIHN0cnVjdCBkYXhfZGV2aWNlICpmc19kYXhfY2xhaW1fYmRldihzdHJ1Y3QgYmxvY2tfZGV2
+aWNlICpiZGV2LCB2b2lkICpvd25lcikKIAkJcmV0dXJuIE5VTEw7CiAJfQogCisJZGV2X3BhZ2Vt
+YXBfZ2V0X29wcygpOwogCXBnbWFwLT50eXBlID0gTUVNT1JZX0RFVklDRV9GU19EQVg7CiAJcGdt
+YXAtPnBhZ2VfZnJlZSA9IGdlbmVyaWNfZGF4X3BhZ2VmcmVlOwogCXBnbWFwLT5kYXRhID0gb3du
+ZXI7CkBAIC0yMTUsNiArMjE2LDcgQEAgdm9pZCBmc19kYXhfcmVsZWFzZShzdHJ1Y3QgZGF4X2Rl
+dmljZSAqZGF4X2Rldiwgdm9pZCAqb3duZXIpCiAJcGdtYXAtPnR5cGUgPSBNRU1PUllfREVWSUNF
+X0hPU1Q7CiAJcGdtYXAtPnBhZ2VfZnJlZSA9IE5VTEw7CiAJcGdtYXAtPmRhdGEgPSBOVUxMOwor
+CWRldl9wYWdlbWFwX3B1dF9vcHMoKTsKIAltdXRleF91bmxvY2soJmRldm1hcF9sb2NrKTsKIH0K
+IEVYUE9SVF9TWU1CT0xfR1BMKGZzX2RheF9yZWxlYXNlKTsKZGlmZiAtLWdpdCBhL2ZzL0tjb25m
+aWcgYi9mcy9LY29uZmlnCmluZGV4IGJjODIxYTg2ZDk2NS4uMWYwODMyYmJjMzJmIDEwMDY0NAot
+LS0gYS9mcy9LY29uZmlnCisrKyBiL2ZzL0tjb25maWcKQEAgLTM4LDYgKzM4LDcgQEAgY29uZmln
+IEZTX0RBWAogCWJvb2wgIkRpcmVjdCBBY2Nlc3MgKERBWCkgc3VwcG9ydCIKIAlkZXBlbmRzIG9u
+IE1NVQogCWRlcGVuZHMgb24gIShBUk0gfHwgTUlQUyB8fCBTUEFSQykKKwlzZWxlY3QgREVWX1BB
+R0VNQVBfT1BTCiAJc2VsZWN0IEZTX0lPTUFQCiAJc2VsZWN0IERBWAogCWhlbHAKZGlmZiAtLWdp
+dCBhL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaCBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaApp
+bmRleCAwMmQ2ZDA0MmVlN2YuLjlmYWYyNWQ2YWJlZiAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51
+eC9tZW1yZW1hcC5oCisrKyBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaApAQCAtMSw3ICsxLDYg
+QEAKIC8qIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wICovCiAjaWZuZGVmIF9MSU5V
+WF9NRU1SRU1BUF9IXwogI2RlZmluZSBfTElOVVhfTUVNUkVNQVBfSF8KLSNpbmNsdWRlIDxsaW51
+eC9tbS5oPgogI2luY2x1ZGUgPGxpbnV4L2lvcG9ydC5oPgogI2luY2x1ZGUgPGxpbnV4L3BlcmNw
+dS1yZWZjb3VudC5oPgogCkBAIC0xMzAsNiArMTI5LDkgQEAgc3RydWN0IGRldl9wYWdlbWFwIHsK
+IAllbnVtIG1lbW9yeV90eXBlIHR5cGU7CiB9OwogCit2b2lkIGRldl9wYWdlbWFwX2dldF9vcHMo
+dm9pZCk7Cit2b2lkIGRldl9wYWdlbWFwX3B1dF9vcHModm9pZCk7CisKICNpZmRlZiBDT05GSUdf
+Wk9ORV9ERVZJQ0UKIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2
+LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKTsKIHN0cnVjdCBkZXZfcGFnZW1hcCAqZ2V0X2Rl
+dl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcgcGZuLApAQCAtMTM3LDggKzEzOSw2IEBAIHN0cnVjdCBk
+ZXZfcGFnZW1hcCAqZ2V0X2Rldl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcgcGZuLAogCiB1bnNpZ25l
+ZCBsb25nIHZtZW1fYWx0bWFwX29mZnNldChzdHJ1Y3Qgdm1lbV9hbHRtYXAgKmFsdG1hcCk7CiB2
+b2lkIHZtZW1fYWx0bWFwX2ZyZWUoc3RydWN0IHZtZW1fYWx0bWFwICphbHRtYXAsIHVuc2lnbmVk
+IGxvbmcgbnJfcGZucyk7Ci0KLXN0YXRpYyBpbmxpbmUgYm9vbCBpc196b25lX2RldmljZV9wYWdl
+KGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKTsKICNlbHNlCiBzdGF0aWMgaW5saW5lIHZvaWQgKmRl
+dm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2LAogCQlzdHJ1Y3QgZGV2X3BhZ2Vt
+YXAgKnBnbWFwKQpAQCAtMTY5LDIwICsxNjksNiBAQCBzdGF0aWMgaW5saW5lIHZvaWQgdm1lbV9h
+bHRtYXBfZnJlZShzdHJ1Y3Qgdm1lbV9hbHRtYXAgKmFsdG1hcCwKIH0KICNlbmRpZiAvKiBDT05G
+SUdfWk9ORV9ERVZJQ0UgKi8KIAotI2lmIGRlZmluZWQoQ09ORklHX0RFVklDRV9QUklWQVRFKSB8
+fCBkZWZpbmVkKENPTkZJR19ERVZJQ0VfUFVCTElDKQotc3RhdGljIGlubGluZSBib29sIGlzX2Rl
+dmljZV9wcml2YXRlX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2UgKnBhZ2UpCi17Ci0JcmV0dXJuIGlz
+X3pvbmVfZGV2aWNlX3BhZ2UocGFnZSkgJiYKLQkJcGFnZS0+cGdtYXAtPnR5cGUgPT0gTUVNT1JZ
+X0RFVklDRV9QUklWQVRFOwotfQotCi1zdGF0aWMgaW5saW5lIGJvb2wgaXNfZGV2aWNlX3B1Ymxp
+Y19wYWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKQotewotCXJldHVybiBpc196b25lX2Rldmlj
+ZV9wYWdlKHBhZ2UpICYmCi0JCXBhZ2UtPnBnbWFwLT50eXBlID09IE1FTU9SWV9ERVZJQ0VfUFVC
+TElDOwotfQotI2VuZGlmIC8qIENPTkZJR19ERVZJQ0VfUFJJVkFURSB8fCBDT05GSUdfREVWSUNF
+X1BVQkxJQyAqLwotCiBzdGF0aWMgaW5saW5lIHZvaWQgcHV0X2Rldl9wYWdlbWFwKHN0cnVjdCBk
+ZXZfcGFnZW1hcCAqcGdtYXApCiB7CiAJaWYgKHBnbWFwKQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9s
+aW51eC9tbS5oIGIvaW5jbHVkZS9saW51eC9tbS5oCmluZGV4IGFkMDZkNDJhZGIxYS4uMDg4Yzc2
+YmNlMzYwIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L21tLmgKKysrIGIvaW5jbHVkZS9saW51
+eC9tbS5oCkBAIC04MTIsMjcgKzgxMiw1NSBAQCBzdGF0aWMgaW5saW5lIGJvb2wgaXNfem9uZV9k
+ZXZpY2VfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSkKIH0KICNlbmRpZgogCi0jaWYgZGVm
+aW5lZChDT05GSUdfREVWSUNFX1BSSVZBVEUpIHx8IGRlZmluZWQoQ09ORklHX0RFVklDRV9QVUJM
+SUMpCi12b2lkIHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19wYWdlKHN0cnVjdCBw
+YWdlICpwYWdlKTsKLURFQ0xBUkVfU1RBVElDX0tFWV9GQUxTRShkZXZpY2VfcHJpdmF0ZV9rZXkp
+OwotI2RlZmluZSBJU19ITU1fRU5BQkxFRCBzdGF0aWNfYnJhbmNoX3VubGlrZWx5KCZkZXZpY2Vf
+cHJpdmF0ZV9rZXkpCi1zdGF0aWMgaW5saW5lIGJvb2wgaXNfZGV2aWNlX3ByaXZhdGVfcGFnZShj
+b25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSk7Ci1zdGF0aWMgaW5saW5lIGJvb2wgaXNfZGV2aWNlX3B1
+YmxpY19wYWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKTsKLSNlbHNlIC8qIENPTkZJR19ERVZJ
+Q0VfUFJJVkFURSB8fCBDT05GSUdfREVWSUNFX1BVQkxJQyAqLwotc3RhdGljIGlubGluZSB2b2lk
+IHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19wYWdlKHN0cnVjdCBwYWdlICpwYWdl
+KQorI2lmZGVmIENPTkZJR19ERVZfUEFHRU1BUF9PUFMKK3ZvaWQgX19wdXRfZGV2bWFwX21hbmFn
+ZWRfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSk7CitERUNMQVJFX1NUQVRJQ19LRVlfRkFMU0UoZGV2
+bWFwX21hbmFnZWRfa2V5KTsKK3N0YXRpYyBpbmxpbmUgYm9vbCBwdXRfZGV2bWFwX21hbmFnZWRf
+cGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkKIHsKKwlpZiAoIXN0YXRpY19icmFuY2hfdW5saWtlbHko
+JmRldm1hcF9tYW5hZ2VkX2tleSkpCisJCXJldHVybiBmYWxzZTsKKwlpZiAoIWlzX3pvbmVfZGV2
+aWNlX3BhZ2UocGFnZSkpCisJCXJldHVybiBmYWxzZTsKKwlzd2l0Y2ggKHBhZ2UtPnBnbWFwLT50
+eXBlKSB7CisJY2FzZSBNRU1PUllfREVWSUNFX1BSSVZBVEU6CisJY2FzZSBNRU1PUllfREVWSUNF
+X1BVQkxJQzoKKwljYXNlIE1FTU9SWV9ERVZJQ0VfRlNfREFYOgorCQlfX3B1dF9kZXZtYXBfbWFu
+YWdlZF9wYWdlKHBhZ2UpOworCQlyZXR1cm4gdHJ1ZTsKKwlkZWZhdWx0OgorCQlicmVhazsKKwl9
+CisJcmV0dXJuIGZhbHNlOwogfQotI2RlZmluZSBJU19ITU1fRU5BQkxFRCAwCisKIHN0YXRpYyBp
+bmxpbmUgYm9vbCBpc19kZXZpY2VfcHJpdmF0ZV9wYWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdl
+KQogewotCXJldHVybiBmYWxzZTsKKwlyZXR1cm4gaXNfem9uZV9kZXZpY2VfcGFnZShwYWdlKSAm
+JgorCQlwYWdlLT5wZ21hcC0+dHlwZSA9PSBNRU1PUllfREVWSUNFX1BSSVZBVEU7CiB9CisKIHN0
+YXRpYyBpbmxpbmUgYm9vbCBpc19kZXZpY2VfcHVibGljX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2Ug
+KnBhZ2UpCiB7CisJcmV0dXJuIGlzX3pvbmVfZGV2aWNlX3BhZ2UocGFnZSkgJiYKKwkJcGFnZS0+
+cGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9QVUJMSUM7Cit9CisKKyNlbHNlIC8qIENPTkZJ
+R19ERVZfUEFHRU1BUF9PUFMgKi8KK3N0YXRpYyBpbmxpbmUgYm9vbCBwdXRfZGV2bWFwX21hbmFn
+ZWRfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkKK3sKIAlyZXR1cm4gZmFsc2U7CiB9Ci0jZW5kaWYg
+LyogQ09ORklHX0RFVklDRV9QUklWQVRFIHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCiAKK3N0
+YXRpYyBpbmxpbmUgYm9vbCBpc19kZXZpY2VfcHJpdmF0ZV9wYWdlKGNvbnN0IHN0cnVjdCBwYWdl
+ICpwYWdlKQoreworCXJldHVybiBmYWxzZTsKK30KKworc3RhdGljIGlubGluZSBib29sIGlzX2Rl
+dmljZV9wdWJsaWNfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSkKK3sKKwlyZXR1cm4gZmFs
+c2U7Cit9CisjZW5kaWYgLyogQ09ORklHX0RFVl9QQUdFTUFQX09QUyAqLwogCiBzdGF0aWMgaW5s
+aW5lIHZvaWQgZ2V0X3BhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UpCiB7CkBAIC04NTAsMTYgKzg3OCwx
+MyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgcHV0X3BhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UpCiAJcGFn
+ZSA9IGNvbXBvdW5kX2hlYWQocGFnZSk7CiAKIAkvKgotCSAqIEZvciBwcml2YXRlIGRldmljZSBw
+YWdlcyB3ZSBuZWVkIHRvIGNhdGNoIHJlZmNvdW50IHRyYW5zaXRpb24gZnJvbQotCSAqIDIgdG8g
+MSwgd2hlbiByZWZjb3VudCByZWFjaCBvbmUgaXQgbWVhbnMgdGhlIHByaXZhdGUgZGV2aWNlIHBh
+Z2UgaXMKLQkgKiBmcmVlIGFuZCB3ZSBuZWVkIHRvIGluZm9ybSB0aGUgZGV2aWNlIGRyaXZlciB0
+aHJvdWdoIGNhbGxiYWNrLiBTZWUKKwkgKiBGb3IgZGV2bWFwIG1hbmFnZWQgcGFnZXMgd2UgbmVl
+ZCB0byBjYXRjaCByZWZjb3VudCB0cmFuc2l0aW9uIGZyb20KKwkgKiAyIHRvIDEsIHdoZW4gcmVm
+Y291bnQgcmVhY2ggb25lIGl0IG1lYW5zIHRoZSBwYWdlIGlzIGZyZWUgYW5kIHdlCisJICogbmVl
+ZCB0byBpbmZvcm0gdGhlIGRldmljZSBkcml2ZXIgdGhyb3VnaCBjYWxsYmFjay4gU2VlCiAJICog
+aW5jbHVkZS9saW51eC9tZW1yZW1hcC5oIGFuZCBITU0gZm9yIGRldGFpbHMuCiAJICovCi0JaWYg
+KElTX0hNTV9FTkFCTEVEICYmIHVubGlrZWx5KGlzX2RldmljZV9wcml2YXRlX3BhZ2UocGFnZSkg
+fHwKLQkgICAgdW5saWtlbHkoaXNfZGV2aWNlX3B1YmxpY19wYWdlKHBhZ2UpKSkpIHsKLQkJcHV0
+X3pvbmVfZGV2aWNlX3ByaXZhdGVfb3JfcHVibGljX3BhZ2UocGFnZSk7CisJaWYgKHB1dF9kZXZt
+YXBfbWFuYWdlZF9wYWdlKHBhZ2UpKQogCQlyZXR1cm47Ci0JfQogCiAJaWYgKHB1dF9wYWdlX3Rl
+c3R6ZXJvKHBhZ2UpKQogCQlfX3B1dF9wYWdlKHBhZ2UpOwpkaWZmIC0tZ2l0IGEva2VybmVsL21l
+bXJlbWFwLmMgYi9rZXJuZWwvbWVtcmVtYXAuYwppbmRleCA0ZGQ0Mjc0Y2FiZTIuLjcyZDBiYjZm
+YzQ3ZCAxMDA2NDQKLS0tIGEva2VybmVsL21lbXJlbWFwLmMKKysrIGIva2VybmVsL21lbXJlbWFw
+LmMKQEAgLTQ3Niw4ICs0NzYsMzAgQEAgc3RydWN0IGRldl9wYWdlbWFwICpnZXRfZGV2X3BhZ2Vt
+YXAodW5zaWduZWQgbG9uZyBwZm4sCiB9CiAjZW5kaWYgLyogQ09ORklHX1pPTkVfREVWSUNFICov
+CiAKLSNpZiBJU19FTkFCTEVEKENPTkZJR19ERVZJQ0VfUFJJVkFURSkgfHwgIElTX0VOQUJMRUQo
+Q09ORklHX0RFVklDRV9QVUJMSUMpCi12b2lkIHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1
+YmxpY19wYWdlKHN0cnVjdCBwYWdlICpwYWdlKQorI2lmZGVmIENPTkZJR19ERVZfUEFHRU1BUF9P
+UFMKK0RFRklORV9TVEFUSUNfS0VZX0ZBTFNFKGRldm1hcF9tYW5hZ2VkX2tleSk7CitFWFBPUlRf
+U1lNQk9MX0dQTChkZXZtYXBfbWFuYWdlZF9rZXkpOworc3RhdGljIGF0b21pY190IGRldm1hcF9l
+bmFibGU7CisKKy8qCisgKiBUb2dnbGUgdGhlIHN0YXRpYyBrZXkgZm9yIC0+cGFnZV9mcmVlKCkg
+Y2FsbGJhY2tzIHdoZW4gZGV2X3BhZ2VtYXAKKyAqIHBhZ2VzIGdvIGlkbGUuCisgKi8KK3ZvaWQg
+ZGV2X3BhZ2VtYXBfZ2V0X29wcyh2b2lkKQoreworCWlmIChhdG9taWNfaW5jX3JldHVybigmZGV2
+bWFwX2VuYWJsZSkgPT0gMSkKKwkJc3RhdGljX2JyYW5jaF9lbmFibGUoJmRldm1hcF9tYW5hZ2Vk
+X2tleSk7Cit9CitFWFBPUlRfU1lNQk9MX0dQTChkZXZfcGFnZW1hcF9nZXRfb3BzKTsKKwordm9p
+ZCBkZXZfcGFnZW1hcF9wdXRfb3BzKHZvaWQpCit7CisJaWYgKGF0b21pY19kZWNfYW5kX3Rlc3Qo
+JmRldm1hcF9lbmFibGUpKQorCQlzdGF0aWNfYnJhbmNoX2Rpc2FibGUoJmRldm1hcF9tYW5hZ2Vk
+X2tleSk7Cit9CitFWFBPUlRfU1lNQk9MX0dQTChkZXZfcGFnZW1hcF9wdXRfb3BzKTsKKwordm9p
+ZCBfX3B1dF9kZXZtYXBfbWFuYWdlZF9wYWdlKHN0cnVjdCBwYWdlICpwYWdlKQogewogCWludCBj
+b3VudCA9IHBhZ2VfcmVmX2RlY19yZXR1cm4ocGFnZSk7CiAKQEAgLTQ5Nyw1ICs1MTksNSBAQCB2
+b2lkIHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19wYWdlKHN0cnVjdCBwYWdlICpw
+YWdlKQogCX0gZWxzZSBpZiAoIWNvdW50KQogCQlfX3B1dF9wYWdlKHBhZ2UpOwogfQotRVhQT1JU
+X1NZTUJPTChwdXRfem9uZV9kZXZpY2VfcHJpdmF0ZV9vcl9wdWJsaWNfcGFnZSk7Ci0jZW5kaWYg
+LyogQ09ORklHX0RFVklDRV9QUklWQVRFIHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCitFWFBP
+UlRfU1lNQk9MX0dQTChfX3B1dF9kZXZtYXBfbWFuYWdlZF9wYWdlKTsKKyNlbmRpZiAvKiBDT05G
+SUdfREVWX1BBR0VNQVBfT1BTICovCmRpZmYgLS1naXQgYS9tbS9LY29uZmlnIGIvbW0vS2NvbmZp
+ZwppbmRleCBjNzgyZThmYjcyMzUuLmRjMzI4Mjg5ODRhMyAxMDA2NDQKLS0tIGEvbW0vS2NvbmZp
+ZworKysgYi9tbS9LY29uZmlnCkBAIC03MDAsNiArNzAwLDkgQEAgY29uZmlnIEFSQ0hfSEFTX0hN
+TQogY29uZmlnIE1JR1JBVEVfVk1BX0hFTFBFUgogCWJvb2wKIAorY29uZmlnIERFVl9QQUdFTUFQ
+X09QUworCWJvb2wKKwogY29uZmlnIEhNTQogCWJvb2wKIAlzZWxlY3QgTUlHUkFURV9WTUFfSEVM
+UEVSCkBAIC03MjAsNiArNzIzLDcgQEAgY29uZmlnIERFVklDRV9QUklWQVRFCiAJYm9vbCAiVW5h
+ZGRyZXNzYWJsZSBkZXZpY2UgbWVtb3J5IChHUFUgbWVtb3J5LCAuLi4pIgogCWRlcGVuZHMgb24g
+QVJDSF9IQVNfSE1NCiAJc2VsZWN0IEhNTQorCXNlbGVjdCBERVZfUEFHRU1BUF9PUFMKIAogCWhl
+bHAKIAkgIEFsbG93cyBjcmVhdGlvbiBvZiBzdHJ1Y3QgcGFnZXMgdG8gcmVwcmVzZW50IHVuYWRk
+cmVzc2FibGUgZGV2aWNlCkBAIC03MzAsNiArNzM0LDcgQEAgY29uZmlnIERFVklDRV9QVUJMSUMK
+IAlib29sICJBZGRyZXNzYWJsZSBkZXZpY2UgbWVtb3J5IChsaWtlIEdQVSBtZW1vcnkpIgogCWRl
+cGVuZHMgb24gQVJDSF9IQVNfSE1NCiAJc2VsZWN0IEhNTQorCXNlbGVjdCBERVZfUEFHRU1BUF9P
+UFMKIAogCWhlbHAKIAkgIEFsbG93cyBjcmVhdGlvbiBvZiBzdHJ1Y3QgcGFnZXMgdG8gcmVwcmVz
+ZW50IGFkZHJlc3NhYmxlIGRldmljZQpkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwpp
+bmRleCAzMjA1NDViOThmZjUuLjRhYTU1NGU3NmQwNiAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysr
+IGIvbW0vaG1tLmMKQEAgLTM1LDE1ICszNSw2IEBACiAKICNkZWZpbmUgUEFfU0VDVElPTl9TSVpF
+ICgxVUwgPDwgUEFfU0VDVElPTl9TSElGVCkKIAotI2lmIGRlZmluZWQoQ09ORklHX0RFVklDRV9Q
+UklWQVRFKSB8fCBkZWZpbmVkKENPTkZJR19ERVZJQ0VfUFVCTElDKQotLyoKLSAqIERldmljZSBw
+cml2YXRlIG1lbW9yeSBzZWUgSE1NIChEb2N1bWVudGF0aW9uL3ZtL2htbS50eHQpIG9yIGhtbS5o
+Ci0gKi8KLURFRklORV9TVEFUSUNfS0VZX0ZBTFNFKGRldmljZV9wcml2YXRlX2tleSk7Ci1FWFBP
+UlRfU1lNQk9MKGRldmljZV9wcml2YXRlX2tleSk7Ci0jZW5kaWYgLyogQ09ORklHX0RFVklDRV9Q
+UklWQVRFIHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCi0KLQogI2lmIElTX0VOQUJMRUQoQ09O
+RklHX0hNTV9NSVJST1IpCiBzdGF0aWMgY29uc3Qgc3RydWN0IG1tdV9ub3RpZmllcl9vcHMgaG1t
+X21tdV9ub3RpZmllcl9vcHM7CiAKQEAgLTk5Niw3ICs5ODcsNyBAQCBzdHJ1Y3QgaG1tX2Rldm1l
+bSAqaG1tX2Rldm1lbV9hZGQoY29uc3Qgc3RydWN0IGhtbV9kZXZtZW1fb3BzICpvcHMsCiAJcmVz
+b3VyY2Vfc2l6ZV90IGFkZHI7CiAJaW50IHJldDsKIAotCXN0YXRpY19icmFuY2hfZW5hYmxlKCZk
+ZXZpY2VfcHJpdmF0ZV9rZXkpOworCWRldl9wYWdlbWFwX2dldF9vcHMoKTsKIAogCWRldm1lbSA9
+IGRldnJlc19hbGxvY19ub2RlKCZobW1fZGV2bWVtX3JlbGVhc2UsIHNpemVvZigqZGV2bWVtKSwK
+IAkJCQkgICBHRlBfS0VSTkVMLCBkZXZfdG9fbm9kZShkZXZpY2UpKTsKQEAgLTEwOTAsNyArMTA4
+MSw3IEBAIHN0cnVjdCBobW1fZGV2bWVtICpobW1fZGV2bWVtX2FkZF9yZXNvdXJjZShjb25zdCBz
+dHJ1Y3QgaG1tX2Rldm1lbV9vcHMgKm9wcywKIAlpZiAocmVzLT5kZXNjICE9IElPUkVTX0RFU0Nf
+REVWSUNFX1BVQkxJQ19NRU1PUlkpCiAJCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOwogCi0Jc3Rh
+dGljX2JyYW5jaF9lbmFibGUoJmRldmljZV9wcml2YXRlX2tleSk7CisJZGV2X3BhZ2VtYXBfZ2V0
+X29wcygpOwogCiAJZGV2bWVtID0gZGV2cmVzX2FsbG9jX25vZGUoJmhtbV9kZXZtZW1fcmVsZWFz
+ZSwgc2l6ZW9mKCpkZXZtZW0pLAogCQkJCSAgIEdGUF9LRVJORUwsIGRldl90b19ub2RlKGRldmlj
+ZSkpOwpkaWZmIC0tZ2l0IGEvbW0vc3dhcC5jIGIvbW0vc3dhcC5jCmluZGV4IDBmMTczMzBkZDBl
+NS4uZWVkODQ2Y2ZjOGI4IDEwMDY0NAotLS0gYS9tbS9zd2FwLmMKKysrIGIvbW0vc3dhcC5jCkBA
+IC0yOSw2ICsyOSw3IEBACiAjaW5jbHVkZSA8bGludXgvY3B1Lmg+CiAjaW5jbHVkZSA8bGludXgv
+bm90aWZpZXIuaD4KICNpbmNsdWRlIDxsaW51eC9iYWNraW5nLWRldi5oPgorI2luY2x1ZGUgPGxp
+bnV4L21lbXJlbWFwLmg+CiAjaW5jbHVkZSA8bGludXgvbWVtY29udHJvbC5oPgogI2luY2x1ZGUg
+PGxpbnV4L2dmcC5oPgogI2luY2x1ZGUgPGxpbnV4L3Vpby5oPgpAQCAtNzQ0LDcgKzc0NSw3IEBA
+IHZvaWQgcmVsZWFzZV9wYWdlcyhzdHJ1Y3QgcGFnZSAqKnBhZ2VzLCBpbnQgbnIpCiAJCQkJCQkg
+ICAgICAgZmxhZ3MpOwogCQkJCWxvY2tlZF9wZ2RhdCA9IE5VTEw7CiAJCQl9Ci0JCQlwdXRfem9u
+ZV9kZXZpY2VfcHJpdmF0ZV9vcl9wdWJsaWNfcGFnZShwYWdlKTsKKwkJCXB1dF9kZXZtYXBfbWFu
+YWdlZF9wYWdlKHBhZ2UpOwogCQkJY29udGludWU7CiAJCX0KIAoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
+dGluZm8vbGludXgtbnZkaW1tCg==
