@@ -1,7 +1,7 @@
-From: dave-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
-Subject: Mail System Error - Returned Mail
-Date: Wed, 14 Mar 2018 11:25:45 +0800
-Message-ID: <20180314031920.C21DD21E49028@ml01.01.org>
+From: "Post Office" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: Data format error
+Date: Fri, 16 Mar 2018 15:49:57 +0800
+Message-ID: <20180316074325.8640620954BAE@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,13 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Wed, 14 Mar 2018 11:25:45 +0800
-from linux.vnet.ibm.com [21.189.161.32]
+The original message was received at Fri, 16 Mar 2018 15:49:57 +0800
+from lists.01.org [140.63.74.149]
 
 ----- The following addresses had permanent fatal errors -----
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:dave-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
-<<< 501 dave-23VcF4HTsmIX0ybBhKVfKaZ29KkhBp7w@public.gmane.org Refused
