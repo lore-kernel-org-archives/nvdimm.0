@@ -2,19 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DDA8B22489CB5
- for <linux-nvdimm@lists.01.org>; Fri, 16 Mar 2018 00:27:52 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 438FBAC013E
- for <linux-nvdimm@lists.01.org>; Fri, 16 Mar 2018 16:34:13 +0900 (JST)
-Date: Fri, 16 Mar 2018 16:33:12 +0900
+ by ml01.01.org (Postfix) with ESMTPS id 61385223FCF4C
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 23:49:06 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 3EE79AC01E2
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Mar 2018 15:55:25 +0900 (JST)
+Date: Fri, 16 Mar 2018 15:55:18 +0900
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
 Subject: Re: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
-In-Reply-To: <CAPcyv4jRxaVu6XXcRDatr8VHJAdR-nn7DVb9Z3oUs_MmK9sBAQ@mail.gmail.com>
-References: <58684e81-ac3a-718e-a717-0a1b54766100@jp.fujitsu.com>
- <CAPcyv4jRxaVu6XXcRDatr8VHJAdR-nn7DVb9Z3oUs_MmK9sBAQ@mail.gmail.com>
-Message-Id: <20180316163309.7296.E1E9C6FF@jp.fujitsu.com>
+In-Reply-To: <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
+References: <20180313113308.2136-1-qi.fuli@jp.fujitsu.com>
+ <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
+Message-Id: <20180316155515.7293.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -31,32 +30,38 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> >  b) About using systemctl command
-> >     3) Should we need to limit the maximum number of running daemons to be one?
-> >        If yes, I am thinking the option should support multiple values, then
-> >        users can modify the default configuration by using [--conf-file] option.
-> >        # ndctl monitor --dimm nmem1,nmem2 --conf-file
+Hi,
 
-I talked about here with Qi-san, and probably I understand what he really 
-wanted to ask here.
+> > +static void log_syslog(struct ndctl_ctx *ctx, int priority, const char *file,
+> > +       int line, const char *fn, const char *format, va_list args)
+> > +{
+> > +       char *buf = (char *)malloc(BUF_SIZE);
+> > +       vsnprintf(buf, BUF_SIZE, format, args);
+> > +       syslog(priority, "%s", buf);
+> > +       free(buf);
+> > +}
+> 
+> This seems to be reinventing setting up a log file that I'm sure we
+> could borrow or link to...
+> 
+> ndctl borrows heavily from git, and git does logging in it's daemon.c,
+> I'd be happier if you copied that.
 
-Currently, ndctl user can specify just "one" filter option, like --dimm nmem1,
-but he/she can not specify 2 or more options like --dimm nmem1,nmem2,nmem3.
+Maybe silly question...., but is it OK about OSS lisence?
 
-So, he would like to ask which we should select in the following.
+In my understanding,  basically the lisence of git is GPL2,
+LGPL is used just for use xdiff/ or some libc code in git....
+https://github.com/git/git/blob/master/COPYING
+https://github.com/git/git/blob/master/LGPL-2.1
 
-  a) Change ndctl for users to be able to specify multiple filter option.
-     This change affects not only daemon, but also ndctl list command.
-     In addition, we need to decide how much filter can be specified.
-  b) Keep current filter.
-     To monitor plural area(dimm/region/namespace/bus), plural daemons
-     are executed for each area which is specified one option.
-     This does not require option change.
+However, the lisence of ndctl is LGPL2.1
+https://github.com/pmem/ndctl/blob/master/COPYING
 
-Though Qi-san wanted to select b) at this question,
-it is just workaround, we should select a) I think...
+If we copied from git to ndctl, then I suppose that ndctl
+daemon may have to use GPL2 rather than LGPL2.1, right?
 
-Thanks,
+Bye,
+
 
 
 _______________________________________________
