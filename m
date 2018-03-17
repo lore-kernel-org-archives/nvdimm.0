@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4ADE922468000
- for <linux-nvdimm@lists.01.org>; Sat, 17 Mar 2018 16:40:55 -0700 (PDT)
-Date: Sun, 18 Mar 2018 07:47:14 +0800
+ by ml01.01.org (Postfix) with ESMTPS id 17A11223DB0F9
+ for <linux-nvdimm@lists.01.org>; Sat, 17 Mar 2018 15:05:34 -0700 (PDT)
+Date: Sun, 18 Mar 2018 06:11:35 +0800
 From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH v6 15/15] xfs, dax: introduce xfs_break_dax_layouts()
-Message-ID: <201803180712.G4gxjoVt%fengguang.wu@intel.com>
+Message-ID: <201803180504.JmKVXfiX%fengguang.wu@intel.com>
 References: <152112917064.24669.8101553386217458496.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 In-Reply-To: <152112917064.24669.8101553386217458496.stgit@dwillia2-desk3.amr.corp.intel.com>
@@ -37,30 +37,25 @@ I love your patch! Yet something to improve:
 [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
 url:    https://github.com/0day-ci/linux/commits/Dan-Williams/dax-fix-dma-vs-truncate-hole-punch/20180318-050250
-config: x86_64-randconfig-s2-03180641 (attached as .config)
-compiler: gcc-6 (Debian 6.4.0-9) 6.4.0 20171026
+config: x86_64-randconfig-x014-201811 (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
 reproduce:
         # save the attached .config to linux build tree
         make ARCH=x86_64 
 
 All errors (new ones prefixed by >>):
 
-   fs//xfs/xfs_file.c: In function 'xfs_break_dax_layouts':
->> fs//xfs/xfs_file.c:786:8: error: implicit declaration of function '___wait_var_event' [-Werror=implicit-function-declaration]
+   fs/xfs/xfs_file.c: In function 'xfs_break_dax_layouts':
+>> fs/xfs/xfs_file.c:786:8: error: implicit declaration of function '___wait_var_event'; did you mean 'xfs_wait_var_event'? [-Werror=implicit-function-declaration]
      ret = ___wait_var_event(&page->_refcount,
            ^~~~~~~~~~~~~~~~~
-   fs//xfs/xfs_file.c:788:4: error: invalid use of void expression
+           xfs_wait_var_event
+>> fs/xfs/xfs_file.c:788:10: error: invalid use of void expression
        0, 0, xfs_wait_var_event(inode, iolock));
-       ^
-   cc1: some warnings being treated as errors
---
-   drivers//dax/super.c: In function 'generic_dax_pagefree':
->> drivers//dax/super.c:170:2: error: implicit declaration of function 'wake_up_var' [-Werror=implicit-function-declaration]
-     wake_up_var(&page->_refcount);
-     ^~~~~~~~~~~
+             ^~~~~~~~~~~~~~~~~~
    cc1: some warnings being treated as errors
 
-vim +/___wait_var_event +786 fs//xfs/xfs_file.c
+vim +786 fs/xfs/xfs_file.c
 
    773	
    774	static int
@@ -77,7 +72,7 @@ vim +/___wait_var_event +786 fs//xfs/xfs_file.c
    785	
  > 786		ret = ___wait_var_event(&page->_refcount,
    787				atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
-   788				0, 0, xfs_wait_var_event(inode, iolock));
+ > 788				0, 0, xfs_wait_var_event(inode, iolock));
    789		if (ret < 0)
    790			return ret;
    791		return 1;
