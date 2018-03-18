@@ -1,10 +1,10 @@
-From: "Post Office" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: Data format error
-Date: Fri, 16 Mar 2018 15:49:57 +0800
-Message-ID: <20180316074325.8640620954BAE@ml01.01.org>
+From: qwsdfgju53rwgf-8qjykBgCivw@public.gmane.org
+Subject: =?GB2312?B?tPq/qtX9uea3osax?=
+Date: Mon, 19 Mar 2018 00:08:06 +0800
+Message-ID: <20180318160143.459B822571B59@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,8 +18,9 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Fri, 16 Mar 2018 15:49:57 +0800
-from lists.01.org [140.63.74.149]
-
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+CsT6usOjus7SuavLvtPQuPe12NDQ0rXU9ta1y7ChtsbVzagv16jTw6G3y7ChpMaxo7sKufO5q8u+
+yOfT0NDo0qq7ttOtwLS159PrztLBqs+1o7rHrr6twO0gMTM3MTM1NDMzMzQgIFFRo7oxNDgyNjAy
+NjYxCgqjqNTatMvXo8T6o7rQwsTqv+zA1qGiye3M5b2hv7WhosrC0rXLs9DEo6kKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxp
+bmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21h
+aWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
