@@ -1,22 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
+Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6251921F0DB19
- for <linux-nvdimm@lists.01.org>; Thu, 29 Mar 2018 02:55:54 -0700 (PDT)
-Received: from g01jpfmpwkw03.exch.g01.fujitsu.local
- (g01jpfmpwkw03.exch.g01.fujitsu.local [10.0.193.57])
- by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id C4AB6AC00F2
- for <linux-nvdimm@lists.01.org>; Thu, 29 Mar 2018 19:02:29 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
-Date: Thu, 29 Mar 2018 10:02:27 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222764A26E@g01jpexmbkw01>
+ by ml01.01.org (Postfix) with ESMTPS id 6E5FA20954B86
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Mar 2018 17:57:30 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id D1E61AC0083
+ for <linux-nvdimm@lists.01.org>;
+ Tue, 20 Mar 2018 10:03:54 +0900 (JST)
+Subject: Re: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
 References: <20180313113308.2136-1-qi.fuli@jp.fujitsu.com>
  <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
-In-Reply-To: <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
-Content-Language: ja-JP
+ <f46164e9-676f-bd69-0e44-03139d275bfe@jp.fujitsu.com>
+ <CAPcyv4jZ6zYWEdAeVM2DQKyroCSVc+-x4kHY-9wtLPX=ZdN9Tg@mail.gmail.com>
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Message-ID: <8862cf22-1e78-2bdf-0abe-4403164d3240@jp.fujitsu.com>
+Date: Tue, 20 Mar 2018 10:03:44 +0900
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4jZ6zYWEdAeVM2DQKyroCSVc+-x4kHY-9wtLPX=ZdN9Tg@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,74 +26,45 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dan Williams' <dan.j.williams@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogRGFuIFdpbGxpYW1zIFtt
-YWlsdG86ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgTWFyY2gg
-MTUsIDIwMTggMzoyMCBBTQ0KPiBUbzogUWksIEZ1bGkv5paJIOemj+WIqSA8cWkuZnVsaUBqcC5m
-dWppdHN1LmNvbT4NCj4gQ2M6IGxpbnV4LW52ZGltbSA8bGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-Zz4NCj4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggdjRdIG5kY3RsOiBtb25pdG9yOiBhZGQgbmRj
-dGwgbW9uaXRvciBkYWVtb24NCj4gDQo+IE9uIFR1ZSwgTWFyIDEzLCAyMDE4IGF0IDQ6MzMgQU0s
-IFFJIEZ1bGkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+IHdyb3RlOg0KPiA+IFRoaXMgaXMgdGhl
-IHY0IHBhdGNoIGZvciBuZGN0bCBtb25pdG9yIGRhZW1vbiwgYSB0aW55IGRhZW1vbiB0byBtb25p
-dG9yIHRoZQ0KPiA+IHNtYXJ0IGV2ZW50cyBvZiBudmRpbW0gRElNTXMuIFVzZXJzIGNhbiBydW4g
-YSBtb25pdG9yIGFzIGEgb25lLXNob3QNCj4gY29tbWFuZA0KPiA+IG9yIGEgZGFlbW9uIGluIGJh
-Y2tncm91bmQgYnkgdXNpbmcgdGhlIFstLWRhZW1vbl0gb3B0aW9uLiBESU1NcyB0byBtb25pdG9y
-DQo+ID4gY2FuIGJlIHNlbGVjdGVkIGJ5IFstLWRpbW1dIFstLWJ1c10gWy0tcmVnaW9uXSBbLS1u
-YW1lc3BhY2VdIG9wdGlvbnMuDQo+ID4gV2hlbiBhIHNtYXJ0IGV2ZW50IGZpcmVzLCBtb25pdG9y
-IGRhZW1vbiB3aWxsIGxvZyB0aGUgbm90aWZpY2F0aW9uIHdoaWNoDQo+ID4gaW5jbHVkaW5nIGRp
-bW0gaGVhbHRoIHN0YXR1cyB0byBzeXNsb2cgb3IgYSBsb2dmaWxlIGJ5IHNldHRpbmcgWy0tbG9n
-XSBvcHRpb24uDQo+ID4gVGhlIG5vdGlmaWNhdGlvbiBmb2xsb3dzIGpzb24gZm9ybWF0IGFuZCBj
-YW4gYmUgY29uc3VtZWQgYnkgbG9nIGNvbGxlY3RvcnMNCj4gPiBsaWtlIEZsdWVudGVkLg0KPiA+
-DQo+ID4gRm9yIGV4YW1wbGUsIGEgbW9uaXRvciBkYWVtb24gY2FuIGJlIHN0YXJ0ZWQgYnkgdGhl
-IGZvbGxvd2luZyBjb21tYW5kOg0KPiA+ICMgbmRjdGwgbW9uaXRvciAtLWRpbW0gbm1lbTEgLS1s
-b2cgL3Zhci9sb2cvbW9uaXRvci5sb2cgLS1kYWVtb24NCj4gZGFlbW9uLW5hbWUNCj4gPg0KPiA+
-IFRoZW4gY2hlY2sgdGhlIG1vbml0b3IgZGFlbW9uIHN0YXR1cyBieSB1c2luZyBzeXN0ZW1kOg0K
-PiA+ICMgc3lzdGVtY3RsIHN0YXR1cyBuZGN0bC1tb25pdG9yQGRhZW1vbi1uYW1lLnNlcnZpY2UN
-Cj4gPg0KPiA+IFRvIHN0b3AgdGhlIG1vbml0b3IgZGFlbW9uIGJ5Og0KPiA+ICMgc3lzdGVtY3Rs
-IHN0b3AgbmRjdGwtbW9uaXRvckBkYWVtb24tbmFtZS5zZXJ2aWNlDQo+ID4NCj4gPiBBbHNvLCBh
-IG1vbml0b3IgZGFlbW9uIGNhbiBiZSBzdGFydGVkIGJ5IHN5c3RlbWQ6DQo+ID4gIyBzeXN0ZW1j
-dGwgc3RhcnQgbmRjdGwtbW9uaXRvci5zZXJ2aWNlDQo+ID4gV2hpY2ggbW9uaXRvcnMgYWxsIGRp
-bW1zLg0KPiA+DQo+ID4gSW4gdGhpcyBpbXBsZW1lbnRpb24sIHdoZW4gYSBuZGN0bCBtb25pdG9y
-IHN0YXJ0cyB3aXRoIFstLWRhZW1vbl0gb3B0aW9uLCBhbGwNCj4gPiB0aGUgYXJndW1lbnRzIHdp
-bGwgYmUgc2F2ZWQgaW50byBhIHRlbXAgZmlsZSBuYW1lZCBhcyBkYWVtb24tbmFtZSBhbmQgcGxh
-Y2VkDQo+ID4gdW5kZXIgL2V0Yy9zeXNjb25maWcvbmRjdGwvIGRpcmVjdG9yeS4gVGhlIHRlbXAg
-ZmlsZSB3b3VsZCBiZSB1c2VkIGFzIGFuDQo+ID4gRW52aXJvbm1lbnRGaWxlIGJ5IHN5c3RlbWQs
-IGFuZCBpdCB3b3VsZCBiZSBkZWxldGVkIGF1dG9tYXRpY2FsbHkgd2hlbiB0aGUNCj4gPiBzeXN0
-ZW1kIHNlcnZpY2UgaXMgc3RvcHBlZC4NCj4gDQo+IFRoZSBtb25pdG9ycyBzdGFydGVkIGJ5IGhh
-bmQgc2hvdWxkIGJlIGtlcHQgc2VwYXJhdGUgZnJvbSB0aGUgbW9uaXRvcnMNCj4gc3RhcnRlZCBi
-eSBzeXN0ZW1kLiBUaGUgZGVmYXVsdCBtb25pdG9yIHN0YXJ0ZWQgYnkgc3lzdGVtZCBzaG91bGQg
-Z2V0DQo+IGl0cyBjb25maWd1cmF0aW9uIGZyb20gL2V0Yy9uZGN0bC5jb25mLCBhbmQgd2Ugc2hv
-dWxkIG90aGVyd2lzZSBoYXZlIGENCj4gLS1jb25mLWZpbGUgb3B0aW9uIHRvIHRoZSBtb25pdG9y
-IHRvIG92ZXJyaWRlIHRoZSBkZWZhdWx0DQo+IGNvbmZpZ3VyYXRpb24uIEFueSBvdGhlciBtb25p
-dG9ycyBzdGFydGVkIG91dHNpZGUgb2YgdGhlIHN5c3RlbWQNCj4gc2hvdWxkIHJlbWFpbiBpbmRl
-cGVuZGVudC4NCj4gDQoNCkkgcHJlZmVyIHRvIGFkZCBhbiBFbnZpcm9ubWVudEZpbGUgbGlrZSAv
-ZXRjL3N5c2NvbmZpZy9uZGN0bC9tb25pdG9yIHRvIHN5c3RlbWQNCnJhdGhlciB0aGFuIGFkZCBh
-IGNvbmZpZ3VyYXRpb24gZmlsZS4gQWNjb3JkaW5nIHRvIFsxXSwgZW52aXJvbm1lbnQgdmFyaWFi
-bGUNCnN1YnN0aXR1dGlvbiBpcyBzdXBwb3J0ZWQgaW4gc3lzdGVtZC5zZXJ2aWNlLCBzbyB3ZSBj
-YW4gZGVmaW5lIHRoZSB2YXJpYWJsZXMgdGhyb3VnaCANCiJFbnZpcm9ubWVudEZpbGU9L2V0Yy9z
-eXNjb25maWcvbmRjdGwvbW9uaXRvciIuDQpJbiB0aGlzIGZhc2hpb24sIHdlIGRvIG5vdCBuZWVk
-IHRvIGFkZCBhbnkgZXh0cmEgY29kZXMgdG8gcGFyc2UgdGhlIGNvbmZpZ3VyYXRpb24gZmlsZS4N
-Cg0KSW4gdGhpcyBjYXNlLCBbLS1jb25mLWZpbGVdIG9wdGlvbiBpcyBub3QgbmVjZXNzYXJ5IGVp
-dGhlci4NCkFjY29yZGluZyB0byBbMl0sIHN5dGVtZCB1bml0cyBjYW4gYmUgaW5zdGFudGlhdGVk
-IGZyb20gYSB0ZW1wbGF0ZSBmaWxlLCB0aHVzIHdlIG9ubHkNCm5lZWQgdG8gYWRkIGEgdGVtcGxh
-dGUgdW5pdCBmaWxlIGluIGFkdmFuY2UuIA0KSWYgdXNlciB3YW50cyB0byBydW4gbXVsdGlwbGUg
-bW9uaXRvcnMgd2l0aCBkaWZmZXJlbnQgY29uZmlndXJhdGlvbnMsIHRoZXkgY2FuIGRpZmZlcmVu
-dGlhdGUNCnRoZW0gYnkgYWRkaW5nIG11bHRpcGxlIEVudmlyb25tZW50RmlsZXMsIGxpa2UgL2V0
-Yy9zeXNjb25maWcvbmRjdGwvPG1vbml0b3IxLi4ubj4uDQpUaGVuIHRoZSBtb25pdG9ycyBjYW4g
-YmUgc3RhcnRlZCBieSBjb21tYW5kIGxpa2UNCiIjIHN5c3RlbWN0bCBzdGFydCBuZGN0bC1tb25p
-dG9yQDxtb25pdG9yMS4uLm4+LnNlcnZpY2UiLg0KDQpXaGVuIHRoZSBtb25pdG9ycyBzdGFydGVk
-IGJ5IGhhbmQsIGl0IHdpbGwgZG8gbm90IG5lZWQgYW55IGNvbmZpZ3VyYXRpb24gZmlsZXMsDQpi
-ZWNhdXNlIHdlIGNhbiBhZGQgb3B0aW9ucyBhbmQgcGFyYW1ldGVycyBkaXJlY3RseS4NCg0KWzFd
-aHR0cHM6Ly93d3cuZnJlZWRlc2t0b3Aub3JnL3NvZnR3YXJlL3N5c3RlbWQvbWFuL3N5c3RlbWQu
-c2VydmljZS5odG1sDQpbMl1odHRwczovL3d3dy5mcmVlZGVza3RvcC5vcmcvc29mdHdhcmUvc3lz
-dGVtZC9tYW4vc3lzdGVtZC51bml0Lmh0bWwNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
-QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LW52ZGltbQo=
+
+>>>> -                       if (!fctx->filter_region(region, fctx))
+>>>> +                       if (fctx->filter_region &&
+>>>> +                                       !fctx->filter_region(region,
+>>>> fctx))
+>>> No, I don't agree with these change. The filter_bus() and
+>>> filter_region() callbacks are mandatory because, like list, you need
+>>> to be prepared to handle dimms underneath the bus, and namespaces
+>>> underneath a region.
+>>
+>> The filter_bus() and filter_region() callbacks are mandatory in ndctl list,
+>> but not in ndctl monitor.
+>> Current design only monitors the events coming from DIMMs, does not monitor
+>> events coming from buses yet. When monitoring the events coming from DIMMs,
+>> we just need to put the DIMMs which match filters into a linklist using
+>> filter_dimm(). No additional actions will be taken on buses. It is the
+>> similar
+>> case as in ndctl list, when the command does not contain [--buses] option,
+>> filter_bus() will always return true.
+> Right, I'd prefer that you create a ->filter_bus() implementation for
+> your use case that always returns true rather than change the core to
+> allow a ->filter_bus() routine to be omitted. This way the core stays
+> generic for all use cases and the bus monitoring can be added without
+> touching the core.
+>
+>
+OK, I see.
+Thank you very much.
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
