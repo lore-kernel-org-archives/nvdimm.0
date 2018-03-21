@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 380F322352290
- for <linux-nvdimm@lists.01.org>; Mon,  5 Mar 2018 17:12:24 -0800 (PST)
-Subject: [PATCH] device-dax: remove redundant __func__ in dev_dbg
+ by ml01.01.org (Postfix) with ESMTPS id 1A446225E9648
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 15:59:50 -0700 (PDT)
+Subject: [PATCH v7 01/14] dax: store pfns in the radix
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Mar 2018 17:09:32 -0800
-Message-ID: <152029856688.39547.15137553409024621536.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 21 Mar 2018 15:57:15 -0700
+Message-ID: <152167303564.5268.1688659101150820042.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,182 +23,258 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dynamic debug can be instructed to add the function name to the debug
-output using the +f switch, so there is no need for the dax modules to
-do it again. If a user decides to add the +f switch for the dax modules'
-dynamic debug this results in double prints of the function name.
+In preparation for examining the busy state of dax pages in the truncate
+path, switch from sectors to pfns in the radix.
 
-Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/device.c |   38 +++++++++++++++++---------------------
- drivers/dax/pmem.c   |    6 +++---
- 2 files changed, 20 insertions(+), 24 deletions(-)
+ drivers/dax/super.c |   15 +++++++--
+ fs/dax.c            |   83 +++++++++++++++++++--------------------------------
+ 2 files changed, 43 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 2137dbc29877..37be5a306c8f 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -257,8 +257,8 @@ static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 
- 	dax_region = dev_dax->region;
- 	if (dax_region->align > PAGE_SIZE) {
--		dev_dbg(dev, "%s: alignment (%#x) > fault size (%#x)\n",
--			__func__, dax_region->align, fault_size);
-+		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
-+			dax_region->align, fault_size);
- 		return VM_FAULT_SIGBUS;
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index ecdc292aa4e4..2b2332b605e4 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -124,10 +124,19 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
+ 		return len < 0 ? len : -EIO;
  	}
  
-@@ -267,8 +267,7 @@ static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
+-	if ((IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn))
+-			|| pfn_t_devmap(pfn))
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
++		/*
++		 * An arch that has enabled the pmem api should also
++		 * have its drivers support pfn_t_devmap()
++		 *
++		 * This is a developer warning and should not trigger in
++		 * production. dax_flush() will crash since it depends
++		 * on being able to do (page_address(pfn_to_page())).
++		 */
++		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
++	} else if (pfn_t_devmap(pfn)) {
+ 		/* pass */;
+-	else {
++	} else {
+ 		pr_debug("VFS (%s): error: dax support not enabled\n",
+ 				sb->s_id);
+ 		return -EOPNOTSUPP;
+diff --git a/fs/dax.c b/fs/dax.c
+index 0276df90e86c..b646a46e4d12 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -73,16 +73,15 @@ fs_initcall(init_dax_wait_table);
+ #define RADIX_DAX_ZERO_PAGE	(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
+ #define RADIX_DAX_EMPTY		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
  
- 	phys = dax_pgoff_to_phys(dev_dax, vmf->pgoff, PAGE_SIZE);
- 	if (phys == -1) {
--		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
--				vmf->pgoff);
-+		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", vmf->pgoff);
- 		return VM_FAULT_SIGBUS;
+-static unsigned long dax_radix_sector(void *entry)
++static unsigned long dax_radix_pfn(void *entry)
+ {
+ 	return (unsigned long)entry >> RADIX_DAX_SHIFT;
+ }
+ 
+-static void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
++static void *dax_radix_locked_entry(unsigned long pfn, unsigned long flags)
+ {
+ 	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
+-			((unsigned long)sector << RADIX_DAX_SHIFT) |
+-			RADIX_DAX_ENTRY_LOCK);
++			(pfn << RADIX_DAX_SHIFT) | RADIX_DAX_ENTRY_LOCK);
+ }
+ 
+ static unsigned int dax_radix_order(void *entry)
+@@ -526,12 +525,13 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
+  */
+ static void *dax_insert_mapping_entry(struct address_space *mapping,
+ 				      struct vm_fault *vmf,
+-				      void *entry, sector_t sector,
++				      void *entry, pfn_t pfn_t,
+ 				      unsigned long flags, bool dirty)
+ {
+ 	struct radix_tree_root *page_tree = &mapping->page_tree;
+-	void *new_entry;
++	unsigned long pfn = pfn_t_to_pfn(pfn_t);
+ 	pgoff_t index = vmf->pgoff;
++	void *new_entry;
+ 
+ 	if (dirty)
+ 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+@@ -546,7 +546,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
  	}
  
-@@ -299,14 +298,14 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
+ 	spin_lock_irq(&mapping->tree_lock);
+-	new_entry = dax_radix_locked_entry(sector, flags);
++	new_entry = dax_radix_locked_entry(pfn, flags);
  
- 	dax_region = dev_dax->region;
- 	if (dax_region->align > PMD_SIZE) {
--		dev_dbg(dev, "%s: alignment (%#x) > fault size (%#x)\n",
--			__func__, dax_region->align, fault_size);
-+		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
-+			dax_region->align, fault_size);
- 		return VM_FAULT_SIGBUS;
- 	}
+ 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+ 		/*
+@@ -657,17 +657,14 @@ static void dax_mapping_entry_mkclean(struct address_space *mapping,
+ 	i_mmap_unlock_read(mapping);
+ }
  
- 	/* dax pmd mappings require pfn_t_devmap() */
- 	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
--		dev_dbg(dev, "%s: region lacks devmap flags\n", __func__);
-+		dev_dbg(dev, "region lacks devmap flags\n");
- 		return VM_FAULT_SIGBUS;
- 	}
- 
-@@ -323,8 +322,7 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 	pgoff = linear_page_index(vmf->vma, pmd_addr);
- 	phys = dax_pgoff_to_phys(dev_dax, pgoff, PMD_SIZE);
- 	if (phys == -1) {
--		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
--				pgoff);
-+		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", pgoff);
- 		return VM_FAULT_SIGBUS;
- 	}
- 
-@@ -351,14 +349,14 @@ static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 
- 	dax_region = dev_dax->region;
- 	if (dax_region->align > PUD_SIZE) {
--		dev_dbg(dev, "%s: alignment (%#x) > fault size (%#x)\n",
--			__func__, dax_region->align, fault_size);
-+		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
-+			dax_region->align, fault_size);
- 		return VM_FAULT_SIGBUS;
- 	}
- 
- 	/* dax pud mappings require pfn_t_devmap() */
- 	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
--		dev_dbg(dev, "%s: region lacks devmap flags\n", __func__);
-+		dev_dbg(dev, "region lacks devmap flags\n");
- 		return VM_FAULT_SIGBUS;
- 	}
- 
-@@ -375,8 +373,7 @@ static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 	pgoff = linear_page_index(vmf->vma, pud_addr);
- 	phys = dax_pgoff_to_phys(dev_dax, pgoff, PUD_SIZE);
- 	if (phys == -1) {
--		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
--				pgoff);
-+		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", pgoff);
- 		return VM_FAULT_SIGBUS;
- 	}
- 
-@@ -399,9 +396,8 @@ static int dev_dax_huge_fault(struct vm_fault *vmf,
- 	struct file *filp = vmf->vma->vm_file;
- 	struct dev_dax *dev_dax = filp->private_data;
- 
--	dev_dbg(&dev_dax->dev, "%s: %s: %s (%#lx - %#lx) size = %d\n", __func__,
--			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
--			? "write" : "read",
-+	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
-+			(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
- 			vmf->vma->vm_start, vmf->vma->vm_end, pe_size);
- 
- 	id = dax_read_lock();
-@@ -450,7 +446,7 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
- 	struct dev_dax *dev_dax = filp->private_data;
- 	int rc, id;
- 
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
-+	dev_dbg(&dev_dax->dev, "trace\n");
+-static int dax_writeback_one(struct block_device *bdev,
+-		struct dax_device *dax_dev, struct address_space *mapping,
+-		pgoff_t index, void *entry)
++static int dax_writeback_one(struct dax_device *dax_dev,
++		struct address_space *mapping, pgoff_t index, void *entry)
+ {
+ 	struct radix_tree_root *page_tree = &mapping->page_tree;
+-	void *entry2, **slot, *kaddr;
+-	long ret = 0, id;
+-	sector_t sector;
+-	pgoff_t pgoff;
++	void *entry2, **slot;
++	unsigned long pfn;
++	long ret = 0;
+ 	size_t size;
+-	pfn_t pfn;
  
  	/*
- 	 * We lock to check dax_dev liveness and will re-check at
-@@ -508,7 +504,7 @@ static int dax_open(struct inode *inode, struct file *filp)
- 	struct inode *__dax_inode = dax_inode(dax_dev);
- 	struct dev_dax *dev_dax = dax_get_private(dax_dev);
+ 	 * A page got tagged dirty in DAX mapping? Something is seriously
+@@ -683,10 +680,10 @@ static int dax_writeback_one(struct block_device *bdev,
+ 		goto put_unlocked;
+ 	/*
+ 	 * Entry got reallocated elsewhere? No need to writeback. We have to
+-	 * compare sectors as we must not bail out due to difference in lockbit
++	 * compare pfns as we must not bail out due to difference in lockbit
+ 	 * or entry type.
+ 	 */
+-	if (dax_radix_sector(entry2) != dax_radix_sector(entry))
++	if (dax_radix_pfn(entry2) != dax_radix_pfn(entry))
+ 		goto put_unlocked;
+ 	if (WARN_ON_ONCE(dax_is_empty_entry(entry) ||
+ 				dax_is_zero_entry(entry))) {
+@@ -712,33 +709,15 @@ static int dax_writeback_one(struct block_device *bdev,
+ 	/*
+ 	 * Even if dax_writeback_mapping_range() was given a wbc->range_start
+ 	 * in the middle of a PMD, the 'index' we are given will be aligned to
+-	 * the start index of the PMD, as will the sector we pull from
+-	 * 'entry'.  This allows us to flush for PMD_SIZE and not have to
+-	 * worry about partial PMD writebacks.
++	 * the start index of the PMD, as will the pfn we pull from 'entry'.
++	 * This allows us to flush for PMD_SIZE and not have to worry about
++	 * partial PMD writebacks.
+ 	 */
+-	sector = dax_radix_sector(entry);
++	pfn = dax_radix_pfn(entry);
+ 	size = PAGE_SIZE << dax_radix_order(entry);
  
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
-+	dev_dbg(&dev_dax->dev, "trace\n");
- 	inode->i_mapping = __dax_inode->i_mapping;
- 	inode->i_mapping->host = __dax_inode;
- 	filp->f_mapping = inode->i_mapping;
-@@ -523,7 +519,7 @@ static int dax_release(struct inode *inode, struct file *filp)
- {
- 	struct dev_dax *dev_dax = filp->private_data;
+-	id = dax_read_lock();
+-	ret = bdev_dax_pgoff(bdev, sector, size, &pgoff);
+-	if (ret)
+-		goto dax_unlock;
+-
+-	/*
+-	 * dax_direct_access() may sleep, so cannot hold tree_lock over
+-	 * its invocation.
+-	 */
+-	ret = dax_direct_access(dax_dev, pgoff, size / PAGE_SIZE, &kaddr, &pfn);
+-	if (ret < 0)
+-		goto dax_unlock;
+-
+-	if (WARN_ON_ONCE(ret < size / PAGE_SIZE)) {
+-		ret = -EIO;
+-		goto dax_unlock;
+-	}
+-
+-	dax_mapping_entry_mkclean(mapping, index, pfn_t_to_pfn(pfn));
+-	dax_flush(dax_dev, kaddr, size);
++	dax_mapping_entry_mkclean(mapping, index, pfn);
++	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), size);
+ 	/*
+ 	 * After we have flushed the cache, we can clear the dirty tag. There
+ 	 * cannot be new dirty data in the pfn after the flush has completed as
+@@ -749,8 +728,6 @@ static int dax_writeback_one(struct block_device *bdev,
+ 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
+ 	spin_unlock_irq(&mapping->tree_lock);
+ 	trace_dax_writeback_one(mapping->host, index, size >> PAGE_SHIFT);
+- dax_unlock:
+-	dax_read_unlock(id);
+ 	put_locked_mapping_entry(mapping, index);
+ 	return ret;
  
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
-+	dev_dbg(&dev_dax->dev, "trace\n");
- 	return 0;
- }
+@@ -808,8 +785,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 				break;
+ 			}
  
-@@ -565,7 +561,7 @@ static void unregister_dev_dax(void *dev)
- 	struct inode *inode = dax_inode(dax_dev);
- 	struct cdev *cdev = inode->i_cdev;
+-			ret = dax_writeback_one(bdev, dax_dev, mapping,
+-					indices[i], pvec.pages[i]);
++			ret = dax_writeback_one(dax_dev, mapping, indices[i],
++					pvec.pages[i]);
+ 			if (ret < 0) {
+ 				mapping_set_error(mapping, ret);
+ 				goto out;
+@@ -877,6 +854,7 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
+ 	int ret = VM_FAULT_NOPAGE;
+ 	struct page *zero_page;
+ 	void *entry2;
++	pfn_t pfn;
  
--	dev_dbg(dev, "%s\n", __func__);
-+	dev_dbg(dev, "trace\n");
+ 	zero_page = ZERO_PAGE(0);
+ 	if (unlikely(!zero_page)) {
+@@ -884,14 +862,15 @@ static int dax_load_hole(struct address_space *mapping, void *entry,
+ 		goto out;
+ 	}
  
- 	kill_dev_dax(dev_dax);
- 	cdev_device_del(cdev, dev);
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index 31b6ecce4c64..f7c0137e9325 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -34,7 +34,7 @@ static void dax_pmem_percpu_release(struct percpu_ref *ref)
- {
- 	struct dax_pmem *dax_pmem = to_dax_pmem(ref);
+-	entry2 = dax_insert_mapping_entry(mapping, vmf, entry, 0,
++	pfn = page_to_pfn_t(zero_page);
++	entry2 = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
+ 			RADIX_DAX_ZERO_PAGE, false);
+ 	if (IS_ERR(entry2)) {
+ 		ret = VM_FAULT_SIGBUS;
+ 		goto out;
+ 	}
  
--	dev_dbg(dax_pmem->dev, "%s\n", __func__);
-+	dev_dbg(dax_pmem->dev, "trace\n");
- 	complete(&dax_pmem->cmp);
- }
+-	vm_insert_mixed(vmf->vma, vaddr, page_to_pfn_t(zero_page));
++	vm_insert_mixed(vmf->vma, vaddr, pfn);
+ out:
+ 	trace_dax_load_hole(inode, vmf, ret);
+ 	return ret;
+@@ -1200,8 +1179,7 @@ static int dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		if (error < 0)
+ 			goto error_finish_iomap;
  
-@@ -43,7 +43,7 @@ static void dax_pmem_percpu_exit(void *data)
- 	struct percpu_ref *ref = data;
- 	struct dax_pmem *dax_pmem = to_dax_pmem(ref);
+-		entry = dax_insert_mapping_entry(mapping, vmf, entry,
+-						 dax_iomap_sector(&iomap, pos),
++		entry = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
+ 						 0, write && !sync);
+ 		if (IS_ERR(entry)) {
+ 			error = PTR_ERR(entry);
+@@ -1280,13 +1258,15 @@ static int dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
+ 	void *ret = NULL;
+ 	spinlock_t *ptl;
+ 	pmd_t pmd_entry;
++	pfn_t pfn;
  
--	dev_dbg(dax_pmem->dev, "%s\n", __func__);
-+	dev_dbg(dax_pmem->dev, "trace\n");
- 	wait_for_completion(&dax_pmem->cmp);
- 	percpu_ref_exit(ref);
- }
-@@ -53,7 +53,7 @@ static void dax_pmem_percpu_kill(void *data)
- 	struct percpu_ref *ref = data;
- 	struct dax_pmem *dax_pmem = to_dax_pmem(ref);
+ 	zero_page = mm_get_huge_zero_page(vmf->vma->vm_mm);
  
--	dev_dbg(dax_pmem->dev, "%s\n", __func__);
-+	dev_dbg(dax_pmem->dev, "trace\n");
- 	percpu_ref_kill(ref);
- }
+ 	if (unlikely(!zero_page))
+ 		goto fallback;
  
+-	ret = dax_insert_mapping_entry(mapping, vmf, entry, 0,
++	pfn = page_to_pfn_t(zero_page);
++	ret = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
+ 			RADIX_DAX_PMD | RADIX_DAX_ZERO_PAGE, false);
+ 	if (IS_ERR(ret))
+ 		goto fallback;
+@@ -1409,8 +1389,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		if (error < 0)
+ 			goto finish_iomap;
+ 
+-		entry = dax_insert_mapping_entry(mapping, vmf, entry,
+-						dax_iomap_sector(&iomap, pos),
++		entry = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
+ 						RADIX_DAX_PMD, write && !sync);
+ 		if (IS_ERR(entry))
+ 			goto finish_iomap;
 
 _______________________________________________
 Linux-nvdimm mailing list
