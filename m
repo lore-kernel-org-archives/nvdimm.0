@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3E2F422146722
- for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 11:19:14 -0700 (PDT)
-Subject: [PATCH v6] ndctl: Add support for get bus and region persistence
- domain
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 21 Mar 2018 11:25:45 -0700
-Message-ID: <152165661511.64371.6272999879312007642.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6B0E722146747
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 15:44:03 -0700 (PDT)
+From: "Jiang, Dave" <dave.jiang@intel.com>
+Subject: RE: [PATCH] libnvdimm, nfit: fix persistence domain reporting
+Date: Wed, 21 Mar 2018 22:50:33 +0000
+Message-ID: <112A412BB11A1242B37129D931BCE5348309A035@fmsmsx117.amr.corp.intel.com>
+References: <152167195887.4609.5407001869524973776.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152167195887.4609.5407001869524973776.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,261 +23,97 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding helper functions to iterate through sysfs region persistence domain
-attribute. The region will display the domain with the most persistence for the
-region.  The bus will display the domain attribute with the least persistence
-amongst all the regions. ndctl_bus_get_persistence_domain() and
-ndctl_region_get_persistence_domain are exported. ndctl list will also display
-the region persistence domain as well.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-v6:
-- emit "none" when there's nothing in sysfs attrib, and "unknown" when there
-  is no sysfs attrib at all.
-- Use sysfs_read_attr() to retrieve domain values
-- Change INT32_MAX to INT_MAX.
 
-v5:
-- space out ndctl_persistence_domain for future attributes
+> -----Original Message-----
+> From: Williams, Dan J
+> Sent: Wednesday, March 21, 2018 3:39 PM
+> To: linux-nvdimm@lists.01.org
+> Cc: Jiang, Dave <dave.jiang@intel.com>; Rafael J. Wysocki <rjw@rjwysocki.net>; Ross Zwisler <ross.zwisler@linux.intel.com>; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] libnvdimm, nfit: fix persistence domain reporting
+> 
+> The persistence domain is a point in the platform where once writes
+> reach that destination the platform claims it will make them persistent
+> relative to power loss. In the ACPI NFIT this is currently communicated
+> as 2 bits in the "NFIT - Platform Capabilities Structure". The bits
+> comprise a hierarchy, i.e. bit0 "CPU Cache Flush to NVDIMM Durability on
+> Power Loss Capable" implies bit1 "Memory Controller Flush to NVDIMM
+> Durability on Power Loss Capable".
+> 
+> Commit 96c3a239054a "libnvdimm: expose platform persistence attr..."
+> shows the persistence domain as flags, but it's really an enumerated
+> hierarchy.
+> 
+> Fix this newly introduced user ABI to show the closest available
+> persistence domain before userspace develops dependencies on seeing, or
+> needing to develop code to tolerate, the raw NFIT flags communicated
+> through the libnvdimm-generic region attribute.
+> 
+> Fixes: 96c3a239054a ("libnvdimm: expose platform persistence attr...")
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-v4:
-- change enum ndctl_persistence to enum ndctl_persistence_domain
 
-v3:
-- fixed up return types per Ross's comments
-- removed persistence_domain for bus and calculate on the fly per Dan's comment
+Thanks for the fix!
 
-v2:
-- Simplied scanning of persistence domain from Ross's comments.
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
- ndctl/lib/libndctl.c   |   84 ++++++++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |    2 +
- ndctl/libndctl.h       |   13 +++++++
- ndctl/list.c           |   20 +++++++++++
- 4 files changed, 119 insertions(+)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index a165e697..ed40fd0e 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -180,6 +180,7 @@ struct ndctl_region {
- 	} iset;
- 	FILE *badblocks;
- 	struct badblock bb;
-+	enum ndctl_persistence_domain persistence_domain;
- };
- 
- /**
-@@ -916,6 +917,22 @@ NDCTL_EXPORT struct ndctl_bus *ndctl_bus_get_by_provider(struct ndctl_ctx *ctx,
- 	return NULL;
- }
- 
-+NDCTL_EXPORT enum ndctl_persistence_domain
-+ndctl_bus_get_persistence_domain(struct ndctl_bus *bus)
-+{
-+	struct ndctl_region *region;
-+	enum ndctl_persistence_domain pd = PERSISTENCE_UNKNOWN;
-+
-+	/* iterate through region to get the region persistence domain */
-+	ndctl_region_foreach(bus, region) {
-+		/* we are looking for the least persistence domain */
-+		if (pd > region->persistence_domain)
-+			pd = region->persistence_domain;
-+	}
-+
-+	return pd;
-+}
-+
- NDCTL_EXPORT struct ndctl_btt *ndctl_region_get_btt_seed(struct ndctl_region *region)
- {
- 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-@@ -1755,6 +1772,61 @@ static int region_set_type(struct ndctl_region *region, char *path)
- 	return 0;
- }
- 
-+static enum ndctl_persistence_domain region_get_pd_type(char *name)
-+{
-+	if (strncmp("cpu_cache", name, 9) == 0)
-+		return PERSISTENCE_CPU_CACHE;
-+	else if (strncmp("memory_controller", name, 17) == 0)
-+		return PERSISTENCE_MEM_CTRL;
-+	else
-+		return PERSISTENCE_UNKNOWN;
-+}
-+
-+static int region_persistence_scan(struct ndctl_region *region)
-+{
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-+	char *pd_path;
-+	char buf[SYSFS_ATTR_SIZE], *attrib;
-+	int rc = 0;
-+	enum ndctl_persistence_domain pd = PERSISTENCE_NONE;
-+
-+	region->persistence_domain = PERSISTENCE_NONE;
-+	if (asprintf(&pd_path, "%s/persistence_domain",
-+				region->region_path) < 0) {
-+		rc = -errno;
-+		err(ctx, "region persist domain path allocation failure\n");
-+		return rc;
-+	}
-+
-+	if (sysfs_read_attr(ctx, pd_path, buf) < 0) {
-+		region->persistence_domain = PERSISTENCE_UNKNOWN;
-+		free(pd_path);
-+		return -ENXIO;
-+	}
-+
-+	attrib = strtok(buf, " ");
-+	/* empty string */
-+	if (!attrib)
-+		goto out;
-+
-+	pd = region_get_pd_type(attrib);
-+	if (region->persistence_domain < pd)
-+		region->persistence_domain = pd;
-+
-+	do {
-+		attrib = strtok(NULL, " ");
-+		if (!attrib)
-+			break;
-+		pd = region_get_pd_type(attrib);
-+		if (region->persistence_domain < pd)
-+			region->persistence_domain = pd;
-+	} while (attrib);
-+
-+out:
-+	free(pd_path);
-+	return 0;
-+}
-+
- static void *add_region(void *parent, int id, const char *region_base)
- {
- 	char buf[SYSFS_ATTR_SIZE];
-@@ -1831,6 +1903,12 @@ static void *add_region(void *parent, int id, const char *region_base)
- 	list_add(&bus->regions, &region->list);
- 
- 	free(path);
-+
-+	/* get the persistence domain attribs */
-+	if (region_persistence_scan(region) < 0)
-+		err(ctx, "%s: region persistence scan failed\n",
-+				ndctl_region_get_devname(region));
-+
- 	return region;
- 
-  err_read:
-@@ -2093,6 +2171,12 @@ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_regio
- 	return ndctl_region_get_next_badblock(region);
- }
- 
-+NDCTL_EXPORT enum ndctl_persistence_domain
-+ndctl_region_get_persistence_domain(struct ndctl_region *region)
-+{
-+	return region->persistence_domain;
-+}
-+
- static struct nd_cmd_vendor_tail *to_vendor_tail(struct ndctl_cmd *cmd)
- {
- 	struct nd_cmd_vendor_tail *tail = (struct nd_cmd_vendor_tail *)
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 21276614..3209aefe 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -350,4 +350,6 @@ global:
- 	ndctl_dimm_cmd_new_ack_shutdown_count;
- 	ndctl_region_get_numa_node;
- 	ndctl_dimm_fw_update_supported;
-+	ndctl_region_get_persistence_domain;
-+	ndctl_bus_get_persistence_domain;
- } LIBNDCTL_14;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index f3a27411..cf6a77fd 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -18,6 +18,7 @@
- #include <stdint.h>
- #include <unistd.h>
- #include <errno.h>
-+#include <limits.h>
- 
- #ifdef HAVE_LIBUUID
- #include <uuid/uuid.h>
-@@ -115,6 +116,8 @@ int ndctl_bus_is_cmd_supported(struct ndctl_bus *bus, int cmd);
- unsigned int ndctl_bus_get_revision(struct ndctl_bus *bus);
- unsigned int ndctl_bus_get_id(struct ndctl_bus *bus);
- const char *ndctl_bus_get_provider(struct ndctl_bus *bus);
-+enum ndctl_persistence_domain ndctl_bus_get_persistence_domain(
-+		struct ndctl_bus *bus);
- int ndctl_bus_wait_probe(struct ndctl_bus *bus);
- int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus);
- unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus);
-@@ -305,6 +308,14 @@ struct badblock {
- 	unsigned long long offset;
- 	unsigned int len;
- };
-+
-+enum ndctl_persistence_domain {
-+	PERSISTENCE_NONE = 0,
-+	PERSISTENCE_MEM_CTRL = 10,
-+	PERSISTENCE_CPU_CACHE = 20,
-+	PERSISTENCE_UNKNOWN = INT_MAX,
-+};
-+
- struct ndctl_region;
- struct ndctl_region *ndctl_region_get_first(struct ndctl_bus *bus);
- struct ndctl_region *ndctl_region_get_next(struct ndctl_region *region);
-@@ -347,6 +358,8 @@ struct ndctl_region *ndctl_bus_get_region_by_physical_address(struct ndctl_bus *
-         for (dimm = ndctl_region_get_first_dimm(region); \
-              dimm != NULL; \
-              dimm = ndctl_region_get_next_dimm(region, dimm))
-+enum ndctl_persistence_domain ndctl_region_get_persistence_domain(
-+		struct ndctl_region *region);
- int ndctl_region_is_enabled(struct ndctl_region *region);
- int ndctl_region_enable(struct ndctl_region *region);
- int ndctl_region_disable_invalidate(struct ndctl_region *region);
-diff --git a/ndctl/list.c b/ndctl/list.c
-index fe8036ea..6cf7c393 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -73,6 +73,7 @@ static struct json_object *region_to_json(struct ndctl_region *region,
- 	struct ndctl_interleave_set *iset;
- 	struct ndctl_mapping *mapping;
- 	unsigned int bb_count = 0;
-+	enum ndctl_persistence_domain pd;
- 	int numa;
- 
- 	if (!jregion)
-@@ -174,6 +175,25 @@ static struct json_object *region_to_json(struct ndctl_region *region,
- 	if ((flags & UTIL_JSON_MEDIA_ERRORS) && jbbs)
- 		json_object_object_add(jregion, "badblocks", jbbs);
- 
-+	pd = ndctl_region_get_persistence_domain(region);
-+	switch (pd) {
-+	case PERSISTENCE_CPU_CACHE:
-+		jobj = json_object_new_string("cpu_cache");
-+		break;
-+	case PERSISTENCE_MEM_CTRL:
-+		jobj = json_object_new_string("memory_controller");
-+		break;
-+	case PERSISTENCE_NONE:
-+		jobj = json_object_new_string("none");
-+		break;
-+	default:
-+		jobj = json_object_new_string("unknown");
-+		break;
-+	}
-+
-+	if (jobj)
-+		json_object_object_add(jregion, "persistence_domain", jobj);
-+
- 	return jregion;
-  err:
- 	fail("\n");
+> ---
+>  drivers/acpi/nfit/core.c     |   10 +++++++---
+>  drivers/nvdimm/region_devs.c |   10 ++++++----
+>  2 files changed, 13 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index bbe48ad20886..eb09ef55c38a 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2675,10 +2675,14 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+>  	else
+>  		ndr_desc->numa_node = NUMA_NO_NODE;
+> 
+> -	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
+> +	/*
+> +	 * Persistence domain bits are hierarchical, if
+> +	 * ACPI_NFIT_CAPABILITY_CACHE_FLUSH is set then
+> +	 * ACPI_NFIT_CAPABILITY_MEM_FLUSH is implied.
+> +	 */
+> +	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
+>  		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
+> -
+> -	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
+> +	else if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
+>  		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc->flags);
+> 
+>  	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index a8e9d428c0a5..1593e1806b16 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -532,11 +532,13 @@ static ssize_t persistence_domain_show(struct device *dev,
+>  		struct device_attribute *attr, char *buf)
+>  {
+>  	struct nd_region *nd_region = to_nd_region(dev);
+> -	unsigned long flags = nd_region->flags;
+> 
+> -	return sprintf(buf, "%s%s\n",
+> -			flags & BIT(ND_REGION_PERSIST_CACHE) ? "cpu_cache " : "",
+> -			flags & BIT(ND_REGION_PERSIST_MEMCTRL) ? "memory_controller " : "");
+> +	if (test_bit(ND_REGION_PERSIST_CACHE, &nd_region->flags))
+> +		return sprintf(buf, "cpu_cache\n");
+> +	else if (test_bit(ND_REGION_PERSIST_MEMCTRL, &nd_region->flags))
+> +		return sprintf(buf, "memory_controller\n");
+> +	else
+> +		return sprintf(buf, "\n");
+>  }
+>  static DEVICE_ATTR_RO(persistence_domain);
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
