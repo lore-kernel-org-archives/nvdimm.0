@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 18DB922146737
- for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 16:42:39 -0700 (PDT)
-Subject: [PATCH v9] ndctl: Add support for get bus and region persistence
+ by ml01.01.org (Postfix) with ESMTPS id BB1C822146745
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 14:49:28 -0700 (PDT)
+Subject: [PATCH v8] ndctl: Add support for get bus and region persistence
  domain
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 21 Mar 2018 16:49:10 -0700
-Message-ID: <152167600661.35262.16217551907257988883.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 21 Mar 2018 14:55:58 -0700
+Message-ID: <152166928995.8527.12510174159084562855.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,7 +26,7 @@ Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Adding helper functions to iterate through sysfs region persistence domain
-attribute. The region will display the domain reported by sysfs for the
+attribute. The region will display the domain with the most persistence for the
 region.  The bus will display the domain attribute with the least persistence
 amongst all the regions. ndctl_bus_get_persistence_domain() and
 ndctl_region_get_persistence_domain are exported. ndctl list will also display
@@ -34,10 +34,6 @@ the region persistence domain as well.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
-v9:
-- Clean up after "libnvdimm, nfit: fix persistence domain reporting" kernel
-  patch changes.
-
 v8:
 - Fix get ndctl_bus_get_persistence_domain logic
 
@@ -64,14 +60,14 @@ v3:
 v2:
 - Simplied scanning of persistence domain from Ross's comments.
 
- ndctl/lib/libndctl.c   |   42 ++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |    2 ++
- ndctl/libndctl.h       |   14 ++++++++++++++
- ndctl/list.c           |   20 ++++++++++++++++++++
- 4 files changed, 78 insertions(+)
+ ndctl/lib/libndctl.c   |   88 ++++++++++++++++++++++++++++++++++++++++++++++++
+ ndctl/lib/libndctl.sym |    2 +
+ ndctl/libndctl.h       |   14 ++++++++
+ ndctl/list.c           |   20 +++++++++++
+ 4 files changed, 124 insertions(+)
 
 diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index a165e697..2a20dd16 100644
+index a165e697..b8046d25 100644
 --- a/ndctl/lib/libndctl.c
 +++ b/ndctl/lib/libndctl.c
 @@ -180,6 +180,7 @@ struct ndctl_region {
@@ -105,7 +101,7 @@ index a165e697..2a20dd16 100644
  NDCTL_EXPORT struct ndctl_btt *ndctl_region_get_btt_seed(struct ndctl_region *region)
  {
  	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-@@ -1755,6 +1772,18 @@ static int region_set_type(struct ndctl_region *region, char *path)
+@@ -1755,6 +1772,65 @@ static int region_set_type(struct ndctl_region *region, char *path)
  	return 0;
  }
  
@@ -115,30 +111,76 @@ index a165e697..2a20dd16 100644
 +		return PERSISTENCE_CPU_CACHE;
 +	else if (strncmp("memory_controller", name, 17) == 0)
 +		return PERSISTENCE_MEM_CTRL;
-+	else if (strncmp("none", name, 4) == 0)
-+		return PERSISTENCE_NONE;
 +	else
 +		return PERSISTENCE_UNKNOWN;
++}
++
++static int region_persistence_scan(struct ndctl_region *region)
++{
++	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
++	char *pd_path;
++	char buf[SYSFS_ATTR_SIZE], *attrib;
++	int rc = 0;
++	enum ndctl_persistence_domain pd;
++
++	region->persistence_domain = PERSISTENCE_UNINIT;
++	if (asprintf(&pd_path, "%s/persistence_domain",
++				region->region_path) < 0) {
++		rc = -errno;
++		err(ctx, "region persist domain path allocation failure\n");
++		region->persistence_domain = PERSISTENCE_UNKNOWN;
++		return rc;
++	}
++
++	if (sysfs_read_attr(ctx, pd_path, buf) < 0) {
++		/* no sysfs attrib */
++		region->persistence_domain = PERSISTENCE_UNKNOWN;
++		rc = -ENXIO;
++		goto out;
++	}
++
++	attrib = strtok(buf, " ");
++	/* empty string */
++	if (!attrib) {
++		region->persistence_domain = PERSISTENCE_UNKNOWN;
++		goto out;
++	}
++
++	pd = region_get_pd_type(attrib);
++	if (region->persistence_domain < pd)
++		region->persistence_domain = pd;
++
++	do {
++		attrib = strtok(NULL, " ");
++		if (!attrib)
++			break;
++		pd = region_get_pd_type(attrib);
++		if (region->persistence_domain < pd)
++			region->persistence_domain = pd;
++	} while (attrib);
++
++out:
++	free(pd_path);
++	return rc;
 +}
 +
  static void *add_region(void *parent, int id, const char *region_base)
  {
  	char buf[SYSFS_ATTR_SIZE];
-@@ -1830,6 +1859,13 @@ static void *add_region(void *parent, int id, const char *region_base)
- 
+@@ -1831,6 +1907,12 @@ static void *add_region(void *parent, int id, const char *region_base)
  	list_add(&bus->regions, &region->list);
  
-+	/* get the persistence domain attrib */
-+	sprintf(path, "%s/persistence_domain", region_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		region->persistence_domain = PERSISTENCE_UNKNOWN;
-+	else
-+		region->persistence_domain = region_get_pd_type(buf);
-+
  	free(path);
++
++	/* get the persistence domain attribs */
++	if (region_persistence_scan(region) < 0)
++		err(ctx, "%s: region persistence scan failed\n",
++				ndctl_region_get_devname(region));
++
  	return region;
  
-@@ -2093,6 +2129,12 @@ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_regio
+  err_read:
+@@ -2093,6 +2175,12 @@ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_regio
  	return ndctl_region_get_next_badblock(region);
  }
  
