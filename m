@@ -1,7 +1,7 @@
-From: "MAILER-DAEMON" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Tue, 20 Mar 2018 18:32:42 +0800
-Message-ID: <20180320102631.3FFE22202E4A2@ml01.01.org>
+From: brett-txnq4BgKaOg@public.gmane.org
+Subject: Returned mail: Data format error
+Date: Wed, 21 Mar 2018 11:06:16 +0800
+Message-ID: <20180321025949.BD10120956071@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,4 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was included as attachment
+This Message was undeliverable due to the following reason:
+
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
+
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 6 days:
+Host 204.208.68.189 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-txnq4BgKaOg@public.gmane.org
+if you feel this message to be in error.
