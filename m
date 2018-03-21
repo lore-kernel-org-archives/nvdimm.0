@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E08D223DB11E
- for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 12:48:41 -0700 (PDT)
-Subject: [PATCH v7] ndctl: Add support for get bus and region persistence
+ by ml01.01.org (Postfix) with ESMTPS id 3E2F422146722
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 11:19:14 -0700 (PDT)
+Subject: [PATCH v6] ndctl: Add support for get bus and region persistence
  domain
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 21 Mar 2018 12:55:11 -0700
-Message-ID: <152166202957.70855.18173170834465139126.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 21 Mar 2018 11:25:45 -0700
+Message-ID: <152165661511.64371.6272999879312007642.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -34,10 +34,6 @@ the region persistence domain as well.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
-v7:
-- set attrib to unknown when no attrib detected instead of none. will add
-  support of none attrib in kernel at a later time.
-
 v6:
 - emit "none" when there's nothing in sysfs attrib, and "unknown" when there
   is no sysfs attrib at all.
@@ -57,14 +53,14 @@ v3:
 v2:
 - Simplied scanning of persistence domain from Ross's comments.
 
- ndctl/lib/libndctl.c   |   88 ++++++++++++++++++++++++++++++++++++++++++++++++
+ ndctl/lib/libndctl.c   |   84 ++++++++++++++++++++++++++++++++++++++++++++++++
  ndctl/lib/libndctl.sym |    2 +
  ndctl/libndctl.h       |   13 +++++++
  ndctl/list.c           |   20 +++++++++++
- 4 files changed, 123 insertions(+)
+ 4 files changed, 119 insertions(+)
 
 diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index a165e697..991042df 100644
+index a165e697..ed40fd0e 100644
 --- a/ndctl/lib/libndctl.c
 +++ b/ndctl/lib/libndctl.c
 @@ -180,6 +180,7 @@ struct ndctl_region {
@@ -98,7 +94,7 @@ index a165e697..991042df 100644
  NDCTL_EXPORT struct ndctl_btt *ndctl_region_get_btt_seed(struct ndctl_region *region)
  {
  	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-@@ -1755,6 +1772,65 @@ static int region_set_type(struct ndctl_region *region, char *path)
+@@ -1755,6 +1772,61 @@ static int region_set_type(struct ndctl_region *region, char *path)
  	return 0;
  }
  
@@ -125,23 +121,19 @@ index a165e697..991042df 100644
 +				region->region_path) < 0) {
 +		rc = -errno;
 +		err(ctx, "region persist domain path allocation failure\n");
-+		region->persistence_domain = PERSISTENCE_UNKNOWN;
 +		return rc;
 +	}
 +
 +	if (sysfs_read_attr(ctx, pd_path, buf) < 0) {
-+		/* no sysfs attrib */
 +		region->persistence_domain = PERSISTENCE_UNKNOWN;
-+		rc = -ENXIO;
-+		goto out;
++		free(pd_path);
++		return -ENXIO;
 +	}
 +
 +	attrib = strtok(buf, " ");
 +	/* empty string */
-+	if (!attrib) {
-+		region->persistence_domain = PERSISTENCE_UNKNOWN;
++	if (!attrib)
 +		goto out;
-+	}
 +
 +	pd = region_get_pd_type(attrib);
 +	if (region->persistence_domain < pd)
@@ -158,13 +150,13 @@ index a165e697..991042df 100644
 +
 +out:
 +	free(pd_path);
-+	return rc;
++	return 0;
 +}
 +
  static void *add_region(void *parent, int id, const char *region_base)
  {
  	char buf[SYSFS_ATTR_SIZE];
-@@ -1831,6 +1907,12 @@ static void *add_region(void *parent, int id, const char *region_base)
+@@ -1831,6 +1903,12 @@ static void *add_region(void *parent, int id, const char *region_base)
  	list_add(&bus->regions, &region->list);
  
  	free(path);
@@ -177,7 +169,7 @@ index a165e697..991042df 100644
  	return region;
  
   err_read:
-@@ -2093,6 +2175,12 @@ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_regio
+@@ -2093,6 +2171,12 @@ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_regio
  	return ndctl_region_get_next_badblock(region);
  }
  
