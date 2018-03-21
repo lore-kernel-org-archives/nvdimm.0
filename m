@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4C8D921F0DB3E
- for <linux-nvdimm@lists.01.org>; Thu, 29 Mar 2018 09:30:13 -0700 (PDT)
-Date: Thu, 29 Mar 2018 18:36:51 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v7 08/14] mm, dax: enable filesystems to trigger
- dev_pagemap ->page_free callbacks
-Message-ID: <20180329163651.laz5smducdjgkk2e@quack2.suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 1BCB820954BBD
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Mar 2018 16:00:28 -0700 (PDT)
+Subject: [PATCH v7 08/14] mm,
+ dax: enable filesystems to trigger dev_pagemap ->page_free callbacks
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 21 Mar 2018 15:57:53 -0700
+Message-ID: <152167307372.5268.6763116136733564047.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152167307372.5268.6763116136733564047.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <152167307372.5268.6763116136733564047.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,448 +19,223 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
+Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 21-03-18 15:57:53, Dan Williams wrote:
-> In order to resolve collisions between filesystem operations and DMA to
-> DAX mapped pages we need a callback when DMA completes. With a callback
-> we can hold off filesystem operations while DMA is in-flight and then
-> resume those operations when the last put_page() occurs on a DMA page.
-> =
-
-> Recall that the 'struct page' entries for DAX memory are created with
-> devm_memremap_pages(). That routine arranges for the pages to be
-> allocated, but never onlined, so a DAX page is DMA-idle when its
-> reference count reaches one.
-> =
-
-> Also recall that the HMM sub-system added infrastructure to trap the
-> page-idle (2-to-1 reference count) transition of the pages allocated by
-> devm_memremap_pages() and trigger a callback via the 'struct
-> dev_pagemap' associated with the page range. Whereas the HMM callbacks
-> are going to a device driver to manage bounce pages in device-memory in
-> the filesystem-dax case we will call back to filesystem specified
-> callback.
-> =
-
-> Since the callback is not known at devm_memremap_pages() time we arrange
-> for the filesystem to install it at mount time. No functional changes
-> are expected as this only registers a nop handler for the ->page_free()
-> event for device-mapped pages.
-> =
-
-> Cc: Michal Hocko <mhocko@suse.com>
-> Reviewed-by: "J=E9r=F4me Glisse" <jglisse@redhat.com>
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-The patch looks good to me. You can add:
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
-> ---
->  drivers/dax/super.c      |   79 ++++++++++++++++++++++++++++++++++++++++=
-------
->  drivers/nvdimm/pmem.c    |    3 +-
->  fs/ext2/super.c          |    6 ++-
->  fs/ext4/super.c          |    6 ++-
->  fs/xfs/xfs_super.c       |   20 ++++++------
->  include/linux/dax.h      |   17 +++++-----
->  include/linux/memremap.h |    8 +++++
->  7 files changed, 103 insertions(+), 36 deletions(-)
-> =
-
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index 2b2332b605e4..ecefe9f7eb60 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -29,6 +29,7 @@ static struct vfsmount *dax_mnt;
->  static DEFINE_IDA(dax_minor_ida);
->  static struct kmem_cache *dax_cache __read_mostly;
->  static struct super_block *dax_superblock __read_mostly;
-> +static DEFINE_MUTEX(devmap_lock);
->  =
-
->  #define DAX_HASH_SIZE (PAGE_SIZE / sizeof(struct hlist_head))
->  static struct hlist_head dax_host_list[DAX_HASH_SIZE];
-> @@ -62,16 +63,6 @@ int bdev_dax_pgoff(struct block_device *bdev, sector_t=
- sector, size_t size,
->  }
->  EXPORT_SYMBOL(bdev_dax_pgoff);
->  =
-
-> -#if IS_ENABLED(CONFIG_FS_DAX)
-> -struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
-> -{
-> -	if (!blk_queue_dax(bdev->bd_queue))
-> -		return NULL;
-> -	return fs_dax_get_by_host(bdev->bd_disk->disk_name);
-> -}
-> -EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-> -#endif
-> -
->  /**
->   * __bdev_dax_supported() - Check if the device supports dax for filesys=
-tem
->   * @sb: The superblock of the device
-> @@ -169,9 +160,66 @@ struct dax_device {
->  	const char *host;
->  	void *private;
->  	unsigned long flags;
-> +	struct dev_pagemap *pgmap;
->  	const struct dax_operations *ops;
->  };
->  =
-
-> +#if IS_ENABLED(CONFIG_FS_DAX)
-> +static void generic_dax_pagefree(struct page *page, void *data)
-> +{
-> +	/* TODO: wakeup page-idle waiters */
-> +}
-> +
-> +struct dax_device *fs_dax_claim_bdev(struct block_device *bdev, void *ow=
-ner)
-> +{
-> +	struct dax_device *dax_dev;
-> +	struct dev_pagemap *pgmap;
-> +
-> +	if (!blk_queue_dax(bdev->bd_queue))
-> +		return NULL;
-> +	dax_dev =3D fs_dax_get_by_host(bdev->bd_disk->disk_name);
-> +	if (!dax_dev->pgmap)
-> +		return dax_dev;
-> +	pgmap =3D dax_dev->pgmap;
-> +
-> +	mutex_lock(&devmap_lock);
-> +	if ((pgmap->data && pgmap->data !=3D owner) || pgmap->page_free
-> +			|| pgmap->page_fault
-> +			|| pgmap->type !=3D MEMORY_DEVICE_HOST) {
-> +		put_dax(dax_dev);
-> +		mutex_unlock(&devmap_lock);
-> +		return NULL;
-> +	}
-> +
-> +	pgmap->type =3D MEMORY_DEVICE_FS_DAX;
-> +	pgmap->page_free =3D generic_dax_pagefree;
-> +	pgmap->data =3D owner;
-> +	mutex_unlock(&devmap_lock);
-> +
-> +	return dax_dev;
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_claim_bdev);
-> +
-> +void fs_dax_release(struct dax_device *dax_dev, void *owner)
-> +{
-> +	struct dev_pagemap *pgmap =3D dax_dev ? dax_dev->pgmap : NULL;
-> +
-> +	put_dax(dax_dev);
-> +	if (!pgmap)
-> +		return;
-> +	if (!pgmap->data)
-> +		return;
-> +
-> +	mutex_lock(&devmap_lock);
-> +	WARN_ON(pgmap->data !=3D owner);
-> +	pgmap->type =3D MEMORY_DEVICE_HOST;
-> +	pgmap->page_free =3D NULL;
-> +	pgmap->data =3D NULL;
-> +	mutex_unlock(&devmap_lock);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_release);
-> +#endif
-> +
->  static ssize_t write_cache_show(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
-> @@ -499,6 +547,17 @@ struct dax_device *alloc_dax(void *private, const ch=
-ar *__host,
->  }
->  EXPORT_SYMBOL_GPL(alloc_dax);
->  =
-
-> +struct dax_device *alloc_dax_devmap(void *private, const char *host,
-> +		const struct dax_operations *ops, struct dev_pagemap *pgmap)
-> +{
-> +	struct dax_device *dax_dev =3D alloc_dax(private, host, ops);
-> +
-> +	if (dax_dev)
-> +		dax_dev->pgmap =3D pgmap;
-> +	return dax_dev;
-> +}
-> +EXPORT_SYMBOL_GPL(alloc_dax_devmap);
-> +
->  void put_dax(struct dax_device *dax_dev)
->  {
->  	if (!dax_dev)
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index 06f8dcc52ca6..e6d7351f3379 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -408,7 +408,8 @@ static int pmem_attach_disk(struct device *dev,
->  	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_res);
->  	disk->bb =3D &pmem->bb;
->  =
-
-> -	dax_dev =3D alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
-> +	dax_dev =3D alloc_dax_devmap(pmem, disk->disk_name, &pmem_dax_ops,
-> +			&pmem->pgmap);
->  	if (!dax_dev) {
->  		put_disk(disk);
->  		return -ENOMEM;
-> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-> index 7666c065b96f..6ae20e319bc4 100644
-> --- a/fs/ext2/super.c
-> +++ b/fs/ext2/super.c
-> @@ -172,7 +172,7 @@ static void ext2_put_super (struct super_block * sb)
->  	brelse (sbi->s_sbh);
->  	sb->s_fs_info =3D NULL;
->  	kfree(sbi->s_blockgroup_lock);
-> -	fs_put_dax(sbi->s_daxdev);
-> +	fs_dax_release(sbi->s_daxdev, sb);
->  	kfree(sbi);
->  }
->  =
-
-> @@ -817,7 +817,7 @@ static unsigned long descriptor_loc(struct super_bloc=
-k *sb,
->  =
-
->  static int ext2_fill_super(struct super_block *sb, void *data, int silen=
-t)
->  {
-> -	struct dax_device *dax_dev =3D fs_dax_get_by_bdev(sb->s_bdev);
-> +	struct dax_device *dax_dev =3D fs_dax_claim_bdev(sb->s_bdev, sb);
->  	struct buffer_head * bh;
->  	struct ext2_sb_info * sbi;
->  	struct ext2_super_block * es;
-> @@ -1213,7 +1213,7 @@ static int ext2_fill_super(struct super_block *sb, =
-void *data, int silent)
->  	kfree(sbi->s_blockgroup_lock);
->  	kfree(sbi);
->  failed:
-> -	fs_put_dax(dax_dev);
-> +	fs_dax_release(dax_dev, sb);
->  	return ret;
->  }
->  =
-
-> diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-> index 39bf464c35f1..315a323729e3 100644
-> --- a/fs/ext4/super.c
-> +++ b/fs/ext4/super.c
-> @@ -952,7 +952,7 @@ static void ext4_put_super(struct super_block *sb)
->  	if (sbi->s_chksum_driver)
->  		crypto_free_shash(sbi->s_chksum_driver);
->  	kfree(sbi->s_blockgroup_lock);
-> -	fs_put_dax(sbi->s_daxdev);
-> +	fs_dax_release(sbi->s_daxdev, sb);
->  	kfree(sbi);
->  }
->  =
-
-> @@ -3398,7 +3398,7 @@ static void ext4_set_resv_clusters(struct super_blo=
-ck *sb)
->  =
-
->  static int ext4_fill_super(struct super_block *sb, void *data, int silen=
-t)
->  {
-> -	struct dax_device *dax_dev =3D fs_dax_get_by_bdev(sb->s_bdev);
-> +	struct dax_device *dax_dev =3D fs_dax_claim_bdev(sb->s_bdev, sb);
->  	char *orig_data =3D kstrdup(data, GFP_KERNEL);
->  	struct buffer_head *bh;
->  	struct ext4_super_block *es =3D NULL;
-> @@ -4408,7 +4408,7 @@ static int ext4_fill_super(struct super_block *sb, =
-void *data, int silent)
->  out_free_base:
->  	kfree(sbi);
->  	kfree(orig_data);
-> -	fs_put_dax(dax_dev);
-> +	fs_dax_release(dax_dev, sb);
->  	return err ? err : ret;
->  }
->  =
-
-> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-> index 93588ea3d3d2..ef7dd7148c0b 100644
-> --- a/fs/xfs/xfs_super.c
-> +++ b/fs/xfs/xfs_super.c
-> @@ -724,7 +724,7 @@ xfs_close_devices(
->  =
-
->  		xfs_free_buftarg(mp, mp->m_logdev_targp);
->  		xfs_blkdev_put(logdev);
-> -		fs_put_dax(dax_logdev);
-> +		fs_dax_release(dax_logdev, mp);
->  	}
->  	if (mp->m_rtdev_targp) {
->  		struct block_device *rtdev =3D mp->m_rtdev_targp->bt_bdev;
-> @@ -732,10 +732,10 @@ xfs_close_devices(
->  =
-
->  		xfs_free_buftarg(mp, mp->m_rtdev_targp);
->  		xfs_blkdev_put(rtdev);
-> -		fs_put_dax(dax_rtdev);
-> +		fs_dax_release(dax_rtdev, mp);
->  	}
->  	xfs_free_buftarg(mp, mp->m_ddev_targp);
-> -	fs_put_dax(dax_ddev);
-> +	fs_dax_release(dax_ddev, mp);
->  }
->  =
-
->  /*
-> @@ -753,9 +753,9 @@ xfs_open_devices(
->  	struct xfs_mount	*mp)
->  {
->  	struct block_device	*ddev =3D mp->m_super->s_bdev;
-> -	struct dax_device	*dax_ddev =3D fs_dax_get_by_bdev(ddev);
-> -	struct dax_device	*dax_logdev =3D NULL, *dax_rtdev =3D NULL;
-> +	struct dax_device	*dax_ddev =3D fs_dax_claim_bdev(ddev, mp);
->  	struct block_device	*logdev =3D NULL, *rtdev =3D NULL;
-> +	struct dax_device	*dax_logdev =3D NULL, *dax_rtdev =3D NULL;
->  	int			error;
->  =
-
->  	/*
-> @@ -765,7 +765,7 @@ xfs_open_devices(
->  		error =3D xfs_blkdev_get(mp, mp->m_logname, &logdev);
->  		if (error)
->  			goto out;
-> -		dax_logdev =3D fs_dax_get_by_bdev(logdev);
-> +		dax_logdev =3D fs_dax_claim_bdev(logdev, mp);
->  	}
->  =
-
->  	if (mp->m_rtname) {
-> @@ -779,7 +779,7 @@ xfs_open_devices(
->  			error =3D -EINVAL;
->  			goto out_close_rtdev;
->  		}
-> -		dax_rtdev =3D fs_dax_get_by_bdev(rtdev);
-> +		dax_rtdev =3D fs_dax_claim_bdev(rtdev, mp);
->  	}
->  =
-
->  	/*
-> @@ -813,14 +813,14 @@ xfs_open_devices(
->  	xfs_free_buftarg(mp, mp->m_ddev_targp);
->   out_close_rtdev:
->  	xfs_blkdev_put(rtdev);
-> -	fs_put_dax(dax_rtdev);
-> +	fs_dax_release(dax_rtdev, mp);
->   out_close_logdev:
->  	if (logdev && logdev !=3D ddev) {
->  		xfs_blkdev_put(logdev);
-> -		fs_put_dax(dax_logdev);
-> +		fs_dax_release(dax_logdev, mp);
->  	}
->   out:
-> -	fs_put_dax(dax_ddev);
-> +	fs_dax_release(dax_ddev, mp);
->  	return error;
->  }
->  =
-
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index ae27a7efe7ab..92a1d3ee1615 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -52,12 +52,8 @@ static inline struct dax_device *fs_dax_get_by_host(co=
-nst char *host)
->  	return dax_get_by_host(host);
->  }
->  =
-
-> -static inline void fs_put_dax(struct dax_device *dax_dev)
-> -{
-> -	put_dax(dax_dev);
-> -}
-> -
-> -struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
-> +struct dax_device *fs_dax_claim_bdev(struct block_device *bdev, void *ow=
-ner);
-> +void fs_dax_release(struct dax_device *dax_dev, void *owner);
->  int dax_writeback_mapping_range(struct address_space *mapping,
->  		struct block_device *bdev, struct writeback_control *wbc);
->  #else
-> @@ -71,13 +67,14 @@ static inline struct dax_device *fs_dax_get_by_host(c=
-onst char *host)
->  	return NULL;
->  }
->  =
-
-> -static inline void fs_put_dax(struct dax_device *dax_dev)
-> +static inline struct dax_device *fs_dax_claim_bdev(struct block_device *=
-bdev,
-> +		void *owner)
->  {
-> +	return NULL;
->  }
->  =
-
-> -static inline struct dax_device *fs_dax_get_by_bdev(struct block_device =
-*bdev)
-> +static inline void fs_dax_release(struct dax_device *dax_dev, void *owne=
-r)
->  {
-> -	return NULL;
->  }
->  =
-
->  static inline int dax_writeback_mapping_range(struct address_space *mapp=
-ing,
-> @@ -91,6 +88,8 @@ int dax_read_lock(void);
->  void dax_read_unlock(int id);
->  struct dax_device *alloc_dax(void *private, const char *host,
->  		const struct dax_operations *ops);
-> +struct dax_device *alloc_dax_devmap(void *private, const char *host,
-> +		const struct dax_operations *ops, struct dev_pagemap *pgmap);
->  bool dax_alive(struct dax_device *dax_dev);
->  void kill_dax(struct dax_device *dax_dev);
->  void *dax_get_private(struct dax_device *dax_dev);
-> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-> index 7b4899c06f49..02d6d042ee7f 100644
-> --- a/include/linux/memremap.h
-> +++ b/include/linux/memremap.h
-> @@ -53,11 +53,19 @@ struct vmem_altmap {
->   * driver can hotplug the device memory using ZONE_DEVICE and with that =
-memory
->   * type. Any page of a process can be migrated to such memory. However n=
-o one
->   * should be allow to pin such memory so that it can always be evicted.
-> + *
-> + * MEMORY_DEVICE_FS_DAX:
-> + * When MEMORY_DEVICE_HOST memory is represented by a device that can
-> + * host a filesystem, for example /dev/pmem0, that filesystem can
-> + * register for a callback when a page is idled. For the filesystem-dax
-> + * case page idle callbacks are used to coordinate DMA vs
-> + * hole-punch/truncate.
->   */
->  enum memory_type {
->  	MEMORY_DEVICE_HOST =3D 0,
->  	MEMORY_DEVICE_PRIVATE,
->  	MEMORY_DEVICE_PUBLIC,
-> +	MEMORY_DEVICE_FS_DAX,
->  };
->  =
-
->  /*
-> =
-
--- =
-
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SW4gb3JkZXIgdG8gcmVzb2x2ZSBjb2xsaXNpb25zIGJldHdlZW4gZmlsZXN5c3RlbSBvcGVyYXRp
+b25zIGFuZCBETUEgdG8KREFYIG1hcHBlZCBwYWdlcyB3ZSBuZWVkIGEgY2FsbGJhY2sgd2hlbiBE
+TUEgY29tcGxldGVzLiBXaXRoIGEgY2FsbGJhY2sKd2UgY2FuIGhvbGQgb2ZmIGZpbGVzeXN0ZW0g
+b3BlcmF0aW9ucyB3aGlsZSBETUEgaXMgaW4tZmxpZ2h0IGFuZCB0aGVuCnJlc3VtZSB0aG9zZSBv
+cGVyYXRpb25zIHdoZW4gdGhlIGxhc3QgcHV0X3BhZ2UoKSBvY2N1cnMgb24gYSBETUEgcGFnZS4K
+ClJlY2FsbCB0aGF0IHRoZSAnc3RydWN0IHBhZ2UnIGVudHJpZXMgZm9yIERBWCBtZW1vcnkgYXJl
+IGNyZWF0ZWQgd2l0aApkZXZtX21lbXJlbWFwX3BhZ2VzKCkuIFRoYXQgcm91dGluZSBhcnJhbmdl
+cyBmb3IgdGhlIHBhZ2VzIHRvIGJlCmFsbG9jYXRlZCwgYnV0IG5ldmVyIG9ubGluZWQsIHNvIGEg
+REFYIHBhZ2UgaXMgRE1BLWlkbGUgd2hlbiBpdHMKcmVmZXJlbmNlIGNvdW50IHJlYWNoZXMgb25l
+LgoKQWxzbyByZWNhbGwgdGhhdCB0aGUgSE1NIHN1Yi1zeXN0ZW0gYWRkZWQgaW5mcmFzdHJ1Y3R1
+cmUgdG8gdHJhcCB0aGUKcGFnZS1pZGxlICgyLXRvLTEgcmVmZXJlbmNlIGNvdW50KSB0cmFuc2l0
+aW9uIG9mIHRoZSBwYWdlcyBhbGxvY2F0ZWQgYnkKZGV2bV9tZW1yZW1hcF9wYWdlcygpIGFuZCB0
+cmlnZ2VyIGEgY2FsbGJhY2sgdmlhIHRoZSAnc3RydWN0CmRldl9wYWdlbWFwJyBhc3NvY2lhdGVk
+IHdpdGggdGhlIHBhZ2UgcmFuZ2UuIFdoZXJlYXMgdGhlIEhNTSBjYWxsYmFja3MKYXJlIGdvaW5n
+IHRvIGEgZGV2aWNlIGRyaXZlciB0byBtYW5hZ2UgYm91bmNlIHBhZ2VzIGluIGRldmljZS1tZW1v
+cnkgaW4KdGhlIGZpbGVzeXN0ZW0tZGF4IGNhc2Ugd2Ugd2lsbCBjYWxsIGJhY2sgdG8gZmlsZXN5
+c3RlbSBzcGVjaWZpZWQKY2FsbGJhY2suCgpTaW5jZSB0aGUgY2FsbGJhY2sgaXMgbm90IGtub3du
+IGF0IGRldm1fbWVtcmVtYXBfcGFnZXMoKSB0aW1lIHdlIGFycmFuZ2UKZm9yIHRoZSBmaWxlc3lz
+dGVtIHRvIGluc3RhbGwgaXQgYXQgbW91bnQgdGltZS4gTm8gZnVuY3Rpb25hbCBjaGFuZ2VzCmFy
+ZSBleHBlY3RlZCBhcyB0aGlzIG9ubHkgcmVnaXN0ZXJzIGEgbm9wIGhhbmRsZXIgZm9yIHRoZSAt
+PnBhZ2VfZnJlZSgpCmV2ZW50IGZvciBkZXZpY2UtbWFwcGVkIHBhZ2VzLgoKQ2M6IE1pY2hhbCBI
+b2NrbyA8bWhvY2tvQHN1c2UuY29tPgpSZXZpZXdlZC1ieTogIkrDqXLDtG1lIEdsaXNzZSIgPGpn
+bGlzc2VAcmVkaGF0LmNvbT4KUmV2aWV3ZWQtYnk6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0
+LmRlPgpTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
+bT4KLS0tCiBkcml2ZXJzL2RheC9zdXBlci5jICAgICAgfCAgIDc5ICsrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKystLS0tLS0KIGRyaXZlcnMvbnZkaW1tL3BtZW0uYyAgICB8
+ICAgIDMgKy0KIGZzL2V4dDIvc3VwZXIuYyAgICAgICAgICB8ICAgIDYgKystCiBmcy9leHQ0L3N1
+cGVyLmMgICAgICAgICAgfCAgICA2ICsrLQogZnMveGZzL3hmc19zdXBlci5jICAgICAgIHwgICAy
+MCArKysrKystLS0tLS0KIGluY2x1ZGUvbGludXgvZGF4LmggICAgICB8ICAgMTcgKysrKystLS0t
+LQogaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oIHwgICAgOCArKysrKwogNyBmaWxlcyBjaGFuZ2Vk
+LCAxMDMgaW5zZXJ0aW9ucygrKSwgMzYgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9kYXgvc3VwZXIuYyBiL2RyaXZlcnMvZGF4L3N1cGVyLmMKaW5kZXggMmIyMzMyYjYwNWU0Li5l
+Y2VmZTlmN2ViNjAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZGF4L3N1cGVyLmMKKysrIGIvZHJpdmVy
+cy9kYXgvc3VwZXIuYwpAQCAtMjksNiArMjksNyBAQCBzdGF0aWMgc3RydWN0IHZmc21vdW50ICpk
+YXhfbW50Owogc3RhdGljIERFRklORV9JREEoZGF4X21pbm9yX2lkYSk7CiBzdGF0aWMgc3RydWN0
+IGttZW1fY2FjaGUgKmRheF9jYWNoZSBfX3JlYWRfbW9zdGx5Owogc3RhdGljIHN0cnVjdCBzdXBl
+cl9ibG9jayAqZGF4X3N1cGVyYmxvY2sgX19yZWFkX21vc3RseTsKK3N0YXRpYyBERUZJTkVfTVVU
+RVgoZGV2bWFwX2xvY2spOwogCiAjZGVmaW5lIERBWF9IQVNIX1NJWkUgKFBBR0VfU0laRSAvIHNp
+emVvZihzdHJ1Y3QgaGxpc3RfaGVhZCkpCiBzdGF0aWMgc3RydWN0IGhsaXN0X2hlYWQgZGF4X2hv
+c3RfbGlzdFtEQVhfSEFTSF9TSVpFXTsKQEAgLTYyLDE2ICs2Myw2IEBAIGludCBiZGV2X2RheF9w
+Z29mZihzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2LCBzZWN0b3JfdCBzZWN0b3IsIHNpemVfdCBz
+aXplLAogfQogRVhQT1JUX1NZTUJPTChiZGV2X2RheF9wZ29mZik7CiAKLSNpZiBJU19FTkFCTEVE
+KENPTkZJR19GU19EQVgpCi1zdHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2dldF9ieV9iZGV2KHN0
+cnVjdCBibG9ja19kZXZpY2UgKmJkZXYpCi17Ci0JaWYgKCFibGtfcXVldWVfZGF4KGJkZXYtPmJk
+X3F1ZXVlKSkKLQkJcmV0dXJuIE5VTEw7Ci0JcmV0dXJuIGZzX2RheF9nZXRfYnlfaG9zdChiZGV2
+LT5iZF9kaXNrLT5kaXNrX25hbWUpOwotfQotRVhQT1JUX1NZTUJPTF9HUEwoZnNfZGF4X2dldF9i
+eV9iZGV2KTsKLSNlbmRpZgotCiAvKioKICAqIF9fYmRldl9kYXhfc3VwcG9ydGVkKCkgLSBDaGVj
+ayBpZiB0aGUgZGV2aWNlIHN1cHBvcnRzIGRheCBmb3IgZmlsZXN5c3RlbQogICogQHNiOiBUaGUg
+c3VwZXJibG9jayBvZiB0aGUgZGV2aWNlCkBAIC0xNjksOSArMTYwLDY2IEBAIHN0cnVjdCBkYXhf
+ZGV2aWNlIHsKIAljb25zdCBjaGFyICpob3N0OwogCXZvaWQgKnByaXZhdGU7CiAJdW5zaWduZWQg
+bG9uZyBmbGFnczsKKwlzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwOwogCWNvbnN0IHN0cnVjdCBk
+YXhfb3BlcmF0aW9ucyAqb3BzOwogfTsKIAorI2lmIElTX0VOQUJMRUQoQ09ORklHX0ZTX0RBWCkK
+K3N0YXRpYyB2b2lkIGdlbmVyaWNfZGF4X3BhZ2VmcmVlKHN0cnVjdCBwYWdlICpwYWdlLCB2b2lk
+ICpkYXRhKQoreworCS8qIFRPRE86IHdha2V1cCBwYWdlLWlkbGUgd2FpdGVycyAqLworfQorCitz
+dHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2NsYWltX2JkZXYoc3RydWN0IGJsb2NrX2RldmljZSAq
+YmRldiwgdm9pZCAqb3duZXIpCit7CisJc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXY7CisJc3Ry
+dWN0IGRldl9wYWdlbWFwICpwZ21hcDsKKworCWlmICghYmxrX3F1ZXVlX2RheChiZGV2LT5iZF9x
+dWV1ZSkpCisJCXJldHVybiBOVUxMOworCWRheF9kZXYgPSBmc19kYXhfZ2V0X2J5X2hvc3QoYmRl
+di0+YmRfZGlzay0+ZGlza19uYW1lKTsKKwlpZiAoIWRheF9kZXYtPnBnbWFwKQorCQlyZXR1cm4g
+ZGF4X2RldjsKKwlwZ21hcCA9IGRheF9kZXYtPnBnbWFwOworCisJbXV0ZXhfbG9jaygmZGV2bWFw
+X2xvY2spOworCWlmICgocGdtYXAtPmRhdGEgJiYgcGdtYXAtPmRhdGEgIT0gb3duZXIpIHx8IHBn
+bWFwLT5wYWdlX2ZyZWUKKwkJCXx8IHBnbWFwLT5wYWdlX2ZhdWx0CisJCQl8fCBwZ21hcC0+dHlw
+ZSAhPSBNRU1PUllfREVWSUNFX0hPU1QpIHsKKwkJcHV0X2RheChkYXhfZGV2KTsKKwkJbXV0ZXhf
+dW5sb2NrKCZkZXZtYXBfbG9jayk7CisJCXJldHVybiBOVUxMOworCX0KKworCXBnbWFwLT50eXBl
+ID0gTUVNT1JZX0RFVklDRV9GU19EQVg7CisJcGdtYXAtPnBhZ2VfZnJlZSA9IGdlbmVyaWNfZGF4
+X3BhZ2VmcmVlOworCXBnbWFwLT5kYXRhID0gb3duZXI7CisJbXV0ZXhfdW5sb2NrKCZkZXZtYXBf
+bG9jayk7CisKKwlyZXR1cm4gZGF4X2RldjsKK30KK0VYUE9SVF9TWU1CT0xfR1BMKGZzX2RheF9j
+bGFpbV9iZGV2KTsKKwordm9pZCBmc19kYXhfcmVsZWFzZShzdHJ1Y3QgZGF4X2RldmljZSAqZGF4
+X2Rldiwgdm9pZCAqb3duZXIpCit7CisJc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCA9IGRheF9k
+ZXYgPyBkYXhfZGV2LT5wZ21hcCA6IE5VTEw7CisKKwlwdXRfZGF4KGRheF9kZXYpOworCWlmICgh
+cGdtYXApCisJCXJldHVybjsKKwlpZiAoIXBnbWFwLT5kYXRhKQorCQlyZXR1cm47CisKKwltdXRl
+eF9sb2NrKCZkZXZtYXBfbG9jayk7CisJV0FSTl9PTihwZ21hcC0+ZGF0YSAhPSBvd25lcik7CisJ
+cGdtYXAtPnR5cGUgPSBNRU1PUllfREVWSUNFX0hPU1Q7CisJcGdtYXAtPnBhZ2VfZnJlZSA9IE5V
+TEw7CisJcGdtYXAtPmRhdGEgPSBOVUxMOworCW11dGV4X3VubG9jaygmZGV2bWFwX2xvY2spOwor
+fQorRVhQT1JUX1NZTUJPTF9HUEwoZnNfZGF4X3JlbGVhc2UpOworI2VuZGlmCisKIHN0YXRpYyBz
+c2l6ZV90IHdyaXRlX2NhY2hlX3Nob3coc3RydWN0IGRldmljZSAqZGV2LAogCQlzdHJ1Y3QgZGV2
+aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQogewpAQCAtNDk5LDYgKzU0NywxNyBAQCBz
+dHJ1Y3QgZGF4X2RldmljZSAqYWxsb2NfZGF4KHZvaWQgKnByaXZhdGUsIGNvbnN0IGNoYXIgKl9f
+aG9zdCwKIH0KIEVYUE9SVF9TWU1CT0xfR1BMKGFsbG9jX2RheCk7CiAKK3N0cnVjdCBkYXhfZGV2
+aWNlICphbGxvY19kYXhfZGV2bWFwKHZvaWQgKnByaXZhdGUsIGNvbnN0IGNoYXIgKmhvc3QsCisJ
+CWNvbnN0IHN0cnVjdCBkYXhfb3BlcmF0aW9ucyAqb3BzLCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBn
+bWFwKQoreworCXN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2ID0gYWxsb2NfZGF4KHByaXZhdGUs
+IGhvc3QsIG9wcyk7CisKKwlpZiAoZGF4X2RldikKKwkJZGF4X2Rldi0+cGdtYXAgPSBwZ21hcDsK
+KwlyZXR1cm4gZGF4X2RldjsKK30KK0VYUE9SVF9TWU1CT0xfR1BMKGFsbG9jX2RheF9kZXZtYXAp
+OworCiB2b2lkIHB1dF9kYXgoc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYpCiB7CiAJaWYgKCFk
+YXhfZGV2KQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcG1lbS5jIGIvZHJpdmVycy9udmRp
+bW0vcG1lbS5jCmluZGV4IDA2ZjhkY2M1MmNhNi4uZTZkNzM1MWYzMzc5IDEwMDY0NAotLS0gYS9k
+cml2ZXJzL252ZGltbS9wbWVtLmMKKysrIGIvZHJpdmVycy9udmRpbW0vcG1lbS5jCkBAIC00MDgs
+NyArNDA4LDggQEAgc3RhdGljIGludCBwbWVtX2F0dGFjaF9kaXNrKHN0cnVjdCBkZXZpY2UgKmRl
+diwKIAludmRpbW1fYmFkYmxvY2tzX3BvcHVsYXRlKG5kX3JlZ2lvbiwgJnBtZW0tPmJiLCAmYmJf
+cmVzKTsKIAlkaXNrLT5iYiA9ICZwbWVtLT5iYjsKIAotCWRheF9kZXYgPSBhbGxvY19kYXgocG1l
+bSwgZGlzay0+ZGlza19uYW1lLCAmcG1lbV9kYXhfb3BzKTsKKwlkYXhfZGV2ID0gYWxsb2NfZGF4
+X2Rldm1hcChwbWVtLCBkaXNrLT5kaXNrX25hbWUsICZwbWVtX2RheF9vcHMsCisJCQkmcG1lbS0+
+cGdtYXApOwogCWlmICghZGF4X2RldikgewogCQlwdXRfZGlzayhkaXNrKTsKIAkJcmV0dXJuIC1F
+Tk9NRU07CmRpZmYgLS1naXQgYS9mcy9leHQyL3N1cGVyLmMgYi9mcy9leHQyL3N1cGVyLmMKaW5k
+ZXggNzY2NmMwNjViOTZmLi42YWUyMGUzMTliYzQgMTAwNjQ0Ci0tLSBhL2ZzL2V4dDIvc3VwZXIu
+YworKysgYi9mcy9leHQyL3N1cGVyLmMKQEAgLTE3Miw3ICsxNzIsNyBAQCBzdGF0aWMgdm9pZCBl
+eHQyX3B1dF9zdXBlciAoc3RydWN0IHN1cGVyX2Jsb2NrICogc2IpCiAJYnJlbHNlIChzYmktPnNf
+c2JoKTsKIAlzYi0+c19mc19pbmZvID0gTlVMTDsKIAlrZnJlZShzYmktPnNfYmxvY2tncm91cF9s
+b2NrKTsKLQlmc19wdXRfZGF4KHNiaS0+c19kYXhkZXYpOworCWZzX2RheF9yZWxlYXNlKHNiaS0+
+c19kYXhkZXYsIHNiKTsKIAlrZnJlZShzYmkpOwogfQogCkBAIC04MTcsNyArODE3LDcgQEAgc3Rh
+dGljIHVuc2lnbmVkIGxvbmcgZGVzY3JpcHRvcl9sb2Moc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwK
+IAogc3RhdGljIGludCBleHQyX2ZpbGxfc3VwZXIoc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwgdm9p
+ZCAqZGF0YSwgaW50IHNpbGVudCkKIHsKLQlzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2RldiA9IGZz
+X2RheF9nZXRfYnlfYmRldihzYi0+c19iZGV2KTsKKwlzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2Rl
+diA9IGZzX2RheF9jbGFpbV9iZGV2KHNiLT5zX2JkZXYsIHNiKTsKIAlzdHJ1Y3QgYnVmZmVyX2hl
+YWQgKiBiaDsKIAlzdHJ1Y3QgZXh0Ml9zYl9pbmZvICogc2JpOwogCXN0cnVjdCBleHQyX3N1cGVy
+X2Jsb2NrICogZXM7CkBAIC0xMjEzLDcgKzEyMTMsNyBAQCBzdGF0aWMgaW50IGV4dDJfZmlsbF9z
+dXBlcihzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiLCB2b2lkICpkYXRhLCBpbnQgc2lsZW50KQogCWtm
+cmVlKHNiaS0+c19ibG9ja2dyb3VwX2xvY2spOwogCWtmcmVlKHNiaSk7CiBmYWlsZWQ6Ci0JZnNf
+cHV0X2RheChkYXhfZGV2KTsKKwlmc19kYXhfcmVsZWFzZShkYXhfZGV2LCBzYik7CiAJcmV0dXJu
+IHJldDsKIH0KIApkaWZmIC0tZ2l0IGEvZnMvZXh0NC9zdXBlci5jIGIvZnMvZXh0NC9zdXBlci5j
+CmluZGV4IDM5YmY0NjRjMzVmMS4uMzE1YTMyMzcyOWUzIDEwMDY0NAotLS0gYS9mcy9leHQ0L3N1
+cGVyLmMKKysrIGIvZnMvZXh0NC9zdXBlci5jCkBAIC05NTIsNyArOTUyLDcgQEAgc3RhdGljIHZv
+aWQgZXh0NF9wdXRfc3VwZXIoc3RydWN0IHN1cGVyX2Jsb2NrICpzYikKIAlpZiAoc2JpLT5zX2No
+a3N1bV9kcml2ZXIpCiAJCWNyeXB0b19mcmVlX3NoYXNoKHNiaS0+c19jaGtzdW1fZHJpdmVyKTsK
+IAlrZnJlZShzYmktPnNfYmxvY2tncm91cF9sb2NrKTsKLQlmc19wdXRfZGF4KHNiaS0+c19kYXhk
+ZXYpOworCWZzX2RheF9yZWxlYXNlKHNiaS0+c19kYXhkZXYsIHNiKTsKIAlrZnJlZShzYmkpOwog
+fQogCkBAIC0zMzk4LDcgKzMzOTgsNyBAQCBzdGF0aWMgdm9pZCBleHQ0X3NldF9yZXN2X2NsdXN0
+ZXJzKHN0cnVjdCBzdXBlcl9ibG9jayAqc2IpCiAKIHN0YXRpYyBpbnQgZXh0NF9maWxsX3N1cGVy
+KHN0cnVjdCBzdXBlcl9ibG9jayAqc2IsIHZvaWQgKmRhdGEsIGludCBzaWxlbnQpCiB7Ci0Jc3Ry
+dWN0IGRheF9kZXZpY2UgKmRheF9kZXYgPSBmc19kYXhfZ2V0X2J5X2JkZXYoc2ItPnNfYmRldik7
+CisJc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYgPSBmc19kYXhfY2xhaW1fYmRldihzYi0+c19i
+ZGV2LCBzYik7CiAJY2hhciAqb3JpZ19kYXRhID0ga3N0cmR1cChkYXRhLCBHRlBfS0VSTkVMKTsK
+IAlzdHJ1Y3QgYnVmZmVyX2hlYWQgKmJoOwogCXN0cnVjdCBleHQ0X3N1cGVyX2Jsb2NrICplcyA9
+IE5VTEw7CkBAIC00NDA4LDcgKzQ0MDgsNyBAQCBzdGF0aWMgaW50IGV4dDRfZmlsbF9zdXBlcihz
+dHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiLCB2b2lkICpkYXRhLCBpbnQgc2lsZW50KQogb3V0X2ZyZWVf
+YmFzZToKIAlrZnJlZShzYmkpOwogCWtmcmVlKG9yaWdfZGF0YSk7Ci0JZnNfcHV0X2RheChkYXhf
+ZGV2KTsKKwlmc19kYXhfcmVsZWFzZShkYXhfZGV2LCBzYik7CiAJcmV0dXJuIGVyciA/IGVyciA6
+IHJldDsKIH0KIApkaWZmIC0tZ2l0IGEvZnMveGZzL3hmc19zdXBlci5jIGIvZnMveGZzL3hmc19z
+dXBlci5jCmluZGV4IDkzNTg4ZWEzZDNkMi4uZWY3ZGQ3MTQ4YzBiIDEwMDY0NAotLS0gYS9mcy94
+ZnMveGZzX3N1cGVyLmMKKysrIGIvZnMveGZzL3hmc19zdXBlci5jCkBAIC03MjQsNyArNzI0LDcg
+QEAgeGZzX2Nsb3NlX2RldmljZXMoCiAKIAkJeGZzX2ZyZWVfYnVmdGFyZyhtcCwgbXAtPm1fbG9n
+ZGV2X3RhcmdwKTsKIAkJeGZzX2Jsa2Rldl9wdXQobG9nZGV2KTsKLQkJZnNfcHV0X2RheChkYXhf
+bG9nZGV2KTsKKwkJZnNfZGF4X3JlbGVhc2UoZGF4X2xvZ2RldiwgbXApOwogCX0KIAlpZiAobXAt
+Pm1fcnRkZXZfdGFyZ3ApIHsKIAkJc3RydWN0IGJsb2NrX2RldmljZSAqcnRkZXYgPSBtcC0+bV9y
+dGRldl90YXJncC0+YnRfYmRldjsKQEAgLTczMiwxMCArNzMyLDEwIEBAIHhmc19jbG9zZV9kZXZp
+Y2VzKAogCiAJCXhmc19mcmVlX2J1ZnRhcmcobXAsIG1wLT5tX3J0ZGV2X3RhcmdwKTsKIAkJeGZz
+X2Jsa2Rldl9wdXQocnRkZXYpOwotCQlmc19wdXRfZGF4KGRheF9ydGRldik7CisJCWZzX2RheF9y
+ZWxlYXNlKGRheF9ydGRldiwgbXApOwogCX0KIAl4ZnNfZnJlZV9idWZ0YXJnKG1wLCBtcC0+bV9k
+ZGV2X3RhcmdwKTsKLQlmc19wdXRfZGF4KGRheF9kZGV2KTsKKwlmc19kYXhfcmVsZWFzZShkYXhf
+ZGRldiwgbXApOwogfQogCiAvKgpAQCAtNzUzLDkgKzc1Myw5IEBAIHhmc19vcGVuX2RldmljZXMo
+CiAJc3RydWN0IHhmc19tb3VudAkqbXApCiB7CiAJc3RydWN0IGJsb2NrX2RldmljZQkqZGRldiA9
+IG1wLT5tX3N1cGVyLT5zX2JkZXY7Ci0Jc3RydWN0IGRheF9kZXZpY2UJKmRheF9kZGV2ID0gZnNf
+ZGF4X2dldF9ieV9iZGV2KGRkZXYpOwotCXN0cnVjdCBkYXhfZGV2aWNlCSpkYXhfbG9nZGV2ID0g
+TlVMTCwgKmRheF9ydGRldiA9IE5VTEw7CisJc3RydWN0IGRheF9kZXZpY2UJKmRheF9kZGV2ID0g
+ZnNfZGF4X2NsYWltX2JkZXYoZGRldiwgbXApOwogCXN0cnVjdCBibG9ja19kZXZpY2UJKmxvZ2Rl
+diA9IE5VTEwsICpydGRldiA9IE5VTEw7CisJc3RydWN0IGRheF9kZXZpY2UJKmRheF9sb2dkZXYg
+PSBOVUxMLCAqZGF4X3J0ZGV2ID0gTlVMTDsKIAlpbnQJCQllcnJvcjsKIAogCS8qCkBAIC03NjUs
+NyArNzY1LDcgQEAgeGZzX29wZW5fZGV2aWNlcygKIAkJZXJyb3IgPSB4ZnNfYmxrZGV2X2dldCht
+cCwgbXAtPm1fbG9nbmFtZSwgJmxvZ2Rldik7CiAJCWlmIChlcnJvcikKIAkJCWdvdG8gb3V0Owot
+CQlkYXhfbG9nZGV2ID0gZnNfZGF4X2dldF9ieV9iZGV2KGxvZ2Rldik7CisJCWRheF9sb2dkZXYg
+PSBmc19kYXhfY2xhaW1fYmRldihsb2dkZXYsIG1wKTsKIAl9CiAKIAlpZiAobXAtPm1fcnRuYW1l
+KSB7CkBAIC03NzksNyArNzc5LDcgQEAgeGZzX29wZW5fZGV2aWNlcygKIAkJCWVycm9yID0gLUVJ
+TlZBTDsKIAkJCWdvdG8gb3V0X2Nsb3NlX3J0ZGV2OwogCQl9Ci0JCWRheF9ydGRldiA9IGZzX2Rh
+eF9nZXRfYnlfYmRldihydGRldik7CisJCWRheF9ydGRldiA9IGZzX2RheF9jbGFpbV9iZGV2KHJ0
+ZGV2LCBtcCk7CiAJfQogCiAJLyoKQEAgLTgxMywxNCArODEzLDE0IEBAIHhmc19vcGVuX2Rldmlj
+ZXMoCiAJeGZzX2ZyZWVfYnVmdGFyZyhtcCwgbXAtPm1fZGRldl90YXJncCk7CiAgb3V0X2Nsb3Nl
+X3J0ZGV2OgogCXhmc19ibGtkZXZfcHV0KHJ0ZGV2KTsKLQlmc19wdXRfZGF4KGRheF9ydGRldik7
+CisJZnNfZGF4X3JlbGVhc2UoZGF4X3J0ZGV2LCBtcCk7CiAgb3V0X2Nsb3NlX2xvZ2RldjoKIAlp
+ZiAobG9nZGV2ICYmIGxvZ2RldiAhPSBkZGV2KSB7CiAJCXhmc19ibGtkZXZfcHV0KGxvZ2Rldik7
+Ci0JCWZzX3B1dF9kYXgoZGF4X2xvZ2Rldik7CisJCWZzX2RheF9yZWxlYXNlKGRheF9sb2dkZXYs
+IG1wKTsKIAl9CiAgb3V0OgotCWZzX3B1dF9kYXgoZGF4X2RkZXYpOworCWZzX2RheF9yZWxlYXNl
+KGRheF9kZGV2LCBtcCk7CiAJcmV0dXJuIGVycm9yOwogfQogCmRpZmYgLS1naXQgYS9pbmNsdWRl
+L2xpbnV4L2RheC5oIGIvaW5jbHVkZS9saW51eC9kYXguaAppbmRleCBhZTI3YTdlZmU3YWIuLjky
+YTFkM2VlMTYxNSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9kYXguaAorKysgYi9pbmNsdWRl
+L2xpbnV4L2RheC5oCkBAIC01MiwxMiArNTIsOCBAQCBzdGF0aWMgaW5saW5lIHN0cnVjdCBkYXhf
+ZGV2aWNlICpmc19kYXhfZ2V0X2J5X2hvc3QoY29uc3QgY2hhciAqaG9zdCkKIAlyZXR1cm4gZGF4
+X2dldF9ieV9ob3N0KGhvc3QpOwogfQogCi1zdGF0aWMgaW5saW5lIHZvaWQgZnNfcHV0X2RheChz
+dHJ1Y3QgZGF4X2RldmljZSAqZGF4X2RldikKLXsKLQlwdXRfZGF4KGRheF9kZXYpOwotfQotCi1z
+dHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2dldF9ieV9iZGV2KHN0cnVjdCBibG9ja19kZXZpY2Ug
+KmJkZXYpOworc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9jbGFpbV9iZGV2KHN0cnVjdCBibG9j
+a19kZXZpY2UgKmJkZXYsIHZvaWQgKm93bmVyKTsKK3ZvaWQgZnNfZGF4X3JlbGVhc2Uoc3RydWN0
+IGRheF9kZXZpY2UgKmRheF9kZXYsIHZvaWQgKm93bmVyKTsKIGludCBkYXhfd3JpdGViYWNrX21h
+cHBpbmdfcmFuZ2Uoc3RydWN0IGFkZHJlc3Nfc3BhY2UgKm1hcHBpbmcsCiAJCXN0cnVjdCBibG9j
+a19kZXZpY2UgKmJkZXYsIHN0cnVjdCB3cml0ZWJhY2tfY29udHJvbCAqd2JjKTsKICNlbHNlCkBA
+IC03MSwxMyArNjcsMTQgQEAgc3RhdGljIGlubGluZSBzdHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4
+X2dldF9ieV9ob3N0KGNvbnN0IGNoYXIgKmhvc3QpCiAJcmV0dXJuIE5VTEw7CiB9CiAKLXN0YXRp
+YyBpbmxpbmUgdm9pZCBmc19wdXRfZGF4KHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2KQorc3Rh
+dGljIGlubGluZSBzdHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2NsYWltX2JkZXYoc3RydWN0IGJs
+b2NrX2RldmljZSAqYmRldiwKKwkJdm9pZCAqb3duZXIpCiB7CisJcmV0dXJuIE5VTEw7CiB9CiAK
+LXN0YXRpYyBpbmxpbmUgc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9nZXRfYnlfYmRldihzdHJ1
+Y3QgYmxvY2tfZGV2aWNlICpiZGV2KQorc3RhdGljIGlubGluZSB2b2lkIGZzX2RheF9yZWxlYXNl
+KHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCB2b2lkICpvd25lcikKIHsKLQlyZXR1cm4gTlVM
+TDsKIH0KIAogc3RhdGljIGlubGluZSBpbnQgZGF4X3dyaXRlYmFja19tYXBwaW5nX3JhbmdlKHN0
+cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLApAQCAtOTEsNiArODgsOCBAQCBpbnQgZGF4X3Jl
+YWRfbG9jayh2b2lkKTsKIHZvaWQgZGF4X3JlYWRfdW5sb2NrKGludCBpZCk7CiBzdHJ1Y3QgZGF4
+X2RldmljZSAqYWxsb2NfZGF4KHZvaWQgKnByaXZhdGUsIGNvbnN0IGNoYXIgKmhvc3QsCiAJCWNv
+bnN0IHN0cnVjdCBkYXhfb3BlcmF0aW9ucyAqb3BzKTsKK3N0cnVjdCBkYXhfZGV2aWNlICphbGxv
+Y19kYXhfZGV2bWFwKHZvaWQgKnByaXZhdGUsIGNvbnN0IGNoYXIgKmhvc3QsCisJCWNvbnN0IHN0
+cnVjdCBkYXhfb3BlcmF0aW9ucyAqb3BzLCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKTsKIGJv
+b2wgZGF4X2FsaXZlKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2KTsKIHZvaWQga2lsbF9kYXgo
+c3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYpOwogdm9pZCAqZGF4X2dldF9wcml2YXRlKHN0cnVj
+dCBkYXhfZGV2aWNlICpkYXhfZGV2KTsKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWVtcmVt
+YXAuaCBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaAppbmRleCA3YjQ4OTljMDZmNDkuLjAyZDZk
+MDQyZWU3ZiAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCisrKyBiL2luY2x1
+ZGUvbGludXgvbWVtcmVtYXAuaApAQCAtNTMsMTEgKzUzLDE5IEBAIHN0cnVjdCB2bWVtX2FsdG1h
+cCB7CiAgKiBkcml2ZXIgY2FuIGhvdHBsdWcgdGhlIGRldmljZSBtZW1vcnkgdXNpbmcgWk9ORV9E
+RVZJQ0UgYW5kIHdpdGggdGhhdCBtZW1vcnkKICAqIHR5cGUuIEFueSBwYWdlIG9mIGEgcHJvY2Vz
+cyBjYW4gYmUgbWlncmF0ZWQgdG8gc3VjaCBtZW1vcnkuIEhvd2V2ZXIgbm8gb25lCiAgKiBzaG91
+bGQgYmUgYWxsb3cgdG8gcGluIHN1Y2ggbWVtb3J5IHNvIHRoYXQgaXQgY2FuIGFsd2F5cyBiZSBl
+dmljdGVkLgorICoKKyAqIE1FTU9SWV9ERVZJQ0VfRlNfREFYOgorICogV2hlbiBNRU1PUllfREVW
+SUNFX0hPU1QgbWVtb3J5IGlzIHJlcHJlc2VudGVkIGJ5IGEgZGV2aWNlIHRoYXQgY2FuCisgKiBo
+b3N0IGEgZmlsZXN5c3RlbSwgZm9yIGV4YW1wbGUgL2Rldi9wbWVtMCwgdGhhdCBmaWxlc3lzdGVt
+IGNhbgorICogcmVnaXN0ZXIgZm9yIGEgY2FsbGJhY2sgd2hlbiBhIHBhZ2UgaXMgaWRsZWQuIEZv
+ciB0aGUgZmlsZXN5c3RlbS1kYXgKKyAqIGNhc2UgcGFnZSBpZGxlIGNhbGxiYWNrcyBhcmUgdXNl
+ZCB0byBjb29yZGluYXRlIERNQSB2cworICogaG9sZS1wdW5jaC90cnVuY2F0ZS4KICAqLwogZW51
+bSBtZW1vcnlfdHlwZSB7CiAJTUVNT1JZX0RFVklDRV9IT1NUID0gMCwKIAlNRU1PUllfREVWSUNF
+X1BSSVZBVEUsCiAJTUVNT1JZX0RFVklDRV9QVUJMSUMsCisJTUVNT1JZX0RFVklDRV9GU19EQVgs
+CiB9OwogCiAvKgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0
+dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
