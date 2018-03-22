@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 78B44224BBC5E
- for <linux-nvdimm@lists.01.org>; Tue, 20 Mar 2018 13:47:12 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl, sysfs: null terminate buffer on error
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 20 Mar 2018 13:44:37 -0700
-Message-ID: <152157867701.19898.6466178424544300544.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9E96F22551B9E
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Mar 2018 00:44:32 -0700 (PDT)
+Date: Thu, 22 Mar 2018 08:51:02 +0100
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v7 10/14] memremap: mark devm_memremap_pages()
+ EXPORT_SYMBOL_GPL
+Message-ID: <20180322075102.GE28713@lst.de>
+References: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152167308477.5268.13030863847054062531.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <152167308477.5268.13030863847054062531.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,30 +25,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Terminate the buffer for sysfs_read_attr() users that might not
-properly handle the error code.
+Looks good,
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- util/sysfs.c |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/util/sysfs.c b/util/sysfs.c
-index e067f065a820..0440fd0f49a3 100644
---- a/util/sysfs.c
-+++ b/util/sysfs.c
-@@ -39,6 +39,7 @@ int __sysfs_read_attr(struct log_ctx *ctx, const char *path, char *buf)
- 	n = read(fd, buf, SYSFS_ATTR_SIZE);
- 	close(fd);
- 	if (n < 0 || n >= SYSFS_ATTR_SIZE) {
-+		buf[0] = 0;
- 		log_dbg(ctx, "failed to read %s: %s\n", path, strerror(errno));
- 		return -errno;
- 	}
-
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
