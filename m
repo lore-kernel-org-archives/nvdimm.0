@@ -1,10 +1,9 @@
-From: sam-USEhDDGxZ0nR7s880joybQ@public.gmane.org
-Subject: Returned mail: Data format error
-Date: Thu, 22 Mar 2018 11:05:53 +0800
-Message-ID: <20180322025924.475A42264D247@ml01.01.org>
+From: "Returned mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: dcmpfmh
+Date: Thu, 22 Mar 2018 11:55:26 +0800
+Message-ID: <20180322034914.17CC0226462FE@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1195738684983002725=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,13 +17,31 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Thu, 22 Mar 2018 11:05:53 +0800
-from hocevar.net [106.146.195.149]
+This is a multi-part message in MIME format.
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+--===============1195738684983002725==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:sam-USEhDDGxZ0nR7s880joybQ@public.gmane.org
-<<< 501 sam-USEhDDGxZ0ntq/LXCagqSw@public.gmane.org Refused
+WõØ×MÊâ¦ ]–¢)'º`ë^êZ6Œ¯Z°Kˆ<]ý8Õ»|ÚÒ(.ÕRÜC}Yî’NÉÚSÖjïd"Ý¿ê-ˆFb™*ˆzÃÑ†ûÆF½×ÎM»™î,¾vJØ^G´_xb…’ãÞÁxhÒivß‡ú2#ÔŽ,»1æ©¨Žxµq²VöÓ:ÔAâ7ßTÎÏa
+Ž<~Çi;i´£‡2Õb`KoøyŠ•uÅx_\ühyWÜ/Ÿ¶5‡ÈPÙÔŠŽŒØ&
+S)~&ˆÞcúÓsvyz$Q
+êêîºZtPéÈ{Ø4íñ,ŽM4f¨\©Álo¢wQªB’œE®#¤î‡9xlx³«H¢fJîÄ6aš.Æ‘/ß–wÉ°¶~B
+8·)ŽÂ¼žýØfŽ)N„,wûý(fú¬Ö\.TD·&7£”¥&]ÏÛ/Üwe~uM«[²¦ªA‹Øµ¥‡†5sû^Ý’í\Ñ;ÁÄô!'e;Z
+]8'úû¼Œh ‘gÆ3IÉPØD7ÌëD§%E5t~ÕNÍÒ‰7?»z\x«‹\!‹Ì8!,ß–cUÈ9ÚÌŠ¾÷Ð„:çZ¤5
+U¾uß¶û2žd¼Ž9W®¹kö#¡nÌÇLÁpMÙ1Œ¶F¡±nZ”¦àµY©n:üœÝl0\ÒÖ$
+
+
+--===============1195738684983002725==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============1195738684983002725==--
