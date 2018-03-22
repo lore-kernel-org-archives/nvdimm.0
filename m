@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8ACF622283522
- for <linux-nvdimm@lists.01.org>; Fri,  9 Mar 2018 10:09:58 -0800 (PST)
-Subject: [PATCH v4 1/2] ndctl: add check for update firmware supported
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 09 Mar 2018 11:16:15 -0700
-Message-ID: <152061937538.58280.3500193419929286233.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152061924045.58280.15236814067229580330.stgit@djiang5-desk3.ch.intel.com>
-References: <152061924045.58280.15236814067229580330.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2FB5C225E9667
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Mar 2018 11:26:54 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 2/3] readdir_r(3) is deprecated, use readdir(3) instead
+Date: Thu, 22 Mar 2018 12:33:21 -0600
+Message-Id: <20180322183322.23076-2-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180322183322.23076-1-ross.zwisler@linux.intel.com>
+References: <20180322183322.23076-1-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,160 +18,48 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Andi Kleen <ak@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding generic and intel support function to allow check if update firmware
-is supported by the kernel.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/lib/firmware.c   |   11 +++++++++++
- ndctl/lib/intel.c      |   32 ++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |    1 +
- ndctl/lib/private.h    |    1 +
- ndctl/libndctl.h       |    1 +
- ndctl/update.c         |   13 +++++++++++++
- 6 files changed, 59 insertions(+)
-
-diff --git a/ndctl/lib/firmware.c b/ndctl/lib/firmware.c
-index f6deec5d..277b5399 100644
---- a/ndctl/lib/firmware.c
-+++ b/ndctl/lib/firmware.c
-@@ -107,3 +107,14 @@ ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd)
- 	else
- 		return FW_EUNKNOWN;
- }
-+
-+NDCTL_EXPORT int
-+ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_dimm_ops *ops = dimm->ops;
-+
-+	if (ops && ops->fw_update_supported)
-+		return ops->fw_update_supported(dimm);
-+	else
-+		return -ENOTTY;
-+}
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index cee5204c..c966379a 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -650,6 +650,37 @@ intel_dimm_cmd_new_lss(struct ndctl_dimm *dimm)
- 	return cmd;
- }
- 
-+static int intel_dimm_fw_update_supported(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL)) {
-+		dbg(ctx, "unsupported cmd: %d\n", ND_CMD_CALL);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	/*
-+	 * We only need to check FW_GET_INFO. If that isn't supported then
-+	 * the others aren't either.
-+	 */
-+	if (test_dimm_dsm(dimm, ND_INTEL_FW_GET_INFO) ==
-+			DIMM_DSM_UNSUPPORTED ||
-+			test_dimm_dsm(dimm, ND_INTEL_FW_START_UPDATE) ==
-+			DIMM_DSM_UNSUPPORTED ||
-+			test_dimm_dsm(dimm, ND_INTEL_FW_SEND_DATA) ==
-+			DIMM_DSM_UNSUPPORTED ||
-+			test_dimm_dsm(dimm, ND_INTEL_FW_FINISH_UPDATE) ==
-+			DIMM_DSM_UNSUPPORTED ||
-+			test_dimm_dsm(dimm, ND_INTEL_FW_FINISH_STATUS_QUERY) ==
-+			DIMM_DSM_UNSUPPORTED) {
-+		dbg(ctx, "unsupported function: %d\n",
-+				ND_INTEL_FW_GET_INFO);
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
- struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.cmd_desc = intel_cmd_desc,
- 	.new_smart = intel_dimm_cmd_new_smart,
-@@ -703,4 +734,5 @@ struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.fw_fquery_get_fw_rev = intel_cmd_fw_fquery_get_fw_rev,
- 	.fw_xlat_firmware_status = intel_cmd_fw_xlat_firmware_status,
- 	.new_ack_shutdown_count = intel_dimm_cmd_new_lss,
-+	.fw_update_supported = intel_dimm_fw_update_supported,
- };
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index af9b7d54..cc580f9c 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -344,4 +344,5 @@ global:
- 	ndctl_cmd_fw_fquery_get_fw_rev;
- 	ndctl_cmd_fw_xlat_firmware_status;
- 	ndctl_dimm_cmd_new_ack_shutdown_count;
-+	ndctl_dimm_fw_update_supported;
- } LIBNDCTL_13;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 015eeb2d..1cad06b7 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -325,6 +325,7 @@ struct ndctl_dimm_ops {
- 	unsigned long long (*fw_fquery_get_fw_rev)(struct ndctl_cmd *);
- 	enum ND_FW_STATUS (*fw_xlat_firmware_status)(struct ndctl_cmd *);
- 	struct ndctl_cmd *(*new_ack_shutdown_count)(struct ndctl_dimm *);
-+	int (*fw_update_supported)(struct ndctl_dimm *);
- };
- 
- struct ndctl_dimm_ops * const intel_dimm_ops;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 9db775ba..d223ea81 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -625,6 +625,7 @@ unsigned int ndctl_cmd_fw_start_get_context(struct ndctl_cmd *cmd);
- unsigned long long ndctl_cmd_fw_fquery_get_fw_rev(struct ndctl_cmd *cmd);
- enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
- struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
-+int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/ndctl/update.c b/ndctl/update.c
-index 0f0f0d81..b4ae1ddb 100644
---- a/ndctl/update.c
-+++ b/ndctl/update.c
-@@ -449,11 +449,24 @@ static int get_ndctl_dimm(struct update_context *uctx, void *ctx)
- {
- 	struct ndctl_dimm *dimm;
- 	struct ndctl_bus *bus;
-+	int rc;
- 
- 	ndctl_bus_foreach(ctx, bus)
- 		ndctl_dimm_foreach(bus, dimm) {
- 			if (!util_dimm_filter(dimm, uctx->dimm_id))
- 				continue;
-+			rc = ndctl_dimm_fw_update_supported(dimm);
-+			switch (rc) {
-+			case -ENOTTY:
-+				error("DIMM firmware update not supported by ndctl.");
-+				return rc;
-+			case -EOPNOTSUPP:
-+				error("DIMM firmware update not supported by the kernel");
-+				return rc;
-+			case -EIO:
-+				error("DIMM firmware update not supported by platform firmware.");
-+				return rc;
-+			}
- 			uctx->dimm = dimm;
- 			return 0;
- 		}
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Z2NjIDcuMy4xIHByb3ZpZGVzIHRoZSBmb2xsb3dpbmcgd2FybmluZyB3aGVuIGNvbXBpbGluZyBh
+ZmZpbml0eS5jOgoKYWZmaW5pdHkuYzogSW4gZnVuY3Rpb24g4oCYYWZmaW5pdHlfZmlsZeKAmToK
+YWZmaW5pdHkuYzoxNTg6Mjogd2FybmluZzog4oCYcmVhZGRpcl9y4oCZIGlzIGRlcHJlY2F0ZWQg
+Wy1XZGVwcmVjYXRlZC1kZWNsYXJhdGlvbnNdCiAgd2hpbGUgKHJlYWRkaXJfcihkaXIsICZkZSwg
+JmRlcCkgPT0gMCAmJiBkZXApIHsKICBefn5+fgpJbiBmaWxlIGluY2x1ZGVkIGZyb20gYWZmaW5p
+dHkuYzozOTowOgovdXNyL2luY2x1ZGUvZGlyZW50Lmg6MTgzOjEyOiBub3RlOiBkZWNsYXJlZCBo
+ZXJlCiBleHRlcm4gaW50IHJlYWRkaXJfciAoRElSICpfX3Jlc3RyaWN0IF9fZGlycCwKICAgICAg
+ICAgICAgXn5+fn5+fn5+CgpBY2NvcmRpbmcgdG8gdGhlIG1hbiBwYWdlIGZvciByZWFkZGlyX3Io
+MyksIGNhbGxzIHRoaXMgZnVuY3Rpb24gc2hvdWxkIGJlCmZpeGVkIHRvIGluc3RlYWQgdXNlIHJl
+YWRkaXIoMykuCgpPbmUgaW50ZXJlc3Rpbmcgbm90ZTogSSBoYWQgdG8gbW92ZSB0aGUgYWZmaW5p
+dHlfY2xhc3MoKSBjYWxsIGFib3ZlIHRoZQpjbG9zZWRpcihkaXIpIGNhbGwgaW4gYWZmaW5pdHlf
+ZmlsZSgpIGJlY2F1c2Ugd2l0aCByZWFkZGlyKDMpIHRoZSBzdHJpbmcKc3RvcmVkIGluICduYW1l
+JyBpcyBjbGVhcmVkIG9uIGNsb3NlZGlyKCkuICBUaGlzIGRvZXNuJ3QgaGFwcGVuIHdpdGgKcmVh
+ZGRpcl9yKCkgZm9yIHNvbWUgcmVhc29uLgoKU2lnbmVkLW9mZi1ieTogUm9zcyBad2lzbGVyIDxy
+b3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPgotLS0KIGFmZmluaXR5LmMgfCA5ICsrKysrKy0t
+LQogMSBmaWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYg
+LS1naXQgYS9hZmZpbml0eS5jIGIvYWZmaW5pdHkuYwppbmRleCA4NTU5N2ZjLi4wNjc4NGY3IDEw
+MDY0NAotLS0gYS9hZmZpbml0eS5jCisrKyBiL2FmZmluaXR5LmMKQEAgLTEzMSw3ICsxMzEsNyBA
+QCBzdGF0aWMgaW50IGFmZmluaXR5X2ZpbGUoc3RydWN0IGJpdG1hc2sgKm1hc2ssIGNoYXIgKmNs
+cywgY29uc3QgY2hhciAqZmlsZSkKIAlpbnQgbjsKIAl1bnNpZ25lZCBtYWogPSAwLCBtaW4gPSAw
+OwogCWRldl90IGQ7Ci0Jc3RydWN0IGRpcmVudCBkZSwgKmRlcDsKKwlzdHJ1Y3QgZGlyZW50ICpk
+ZXA7CiAKIAljbHMgPSAiYmxvY2siOwogCWNoYXIgZm5bc2l6ZW9mKCIvc3lzL2NsYXNzLyIpICsg
+c3RybGVuKGNscyldOwpAQCAtMTU1LDggKzE1NSwxMCBAQCBzdGF0aWMgaW50IGFmZmluaXR5X2Zp
+bGUoc3RydWN0IGJpdG1hc2sgKm1hc2ssIGNoYXIgKmNscywgY29uc3QgY2hhciAqZmlsZSkKIAkJ
+CSAgY2xzKTsKIAkJcmV0dXJuIC0xOwogCX0KLQl3aGlsZSAocmVhZGRpcl9yKGRpciwgJmRlLCAm
+ZGVwKSA9PSAwICYmIGRlcCkgeworCXdoaWxlICgoZGVwID0gcmVhZGRpcihkaXIpKSAhPSBOVUxM
+KSB7CiAJCWNoYXIgKm5hbWUgPSBkZXAtPmRfbmFtZTsKKwkJaW50IHJldDsKKwogCQlpZiAoKm5h
+bWUgPT0gJy4nKQogCQkJY29udGludWU7CiAJCWNoYXIgKmRldjsKQEAgLTE3OSw4ICsxODEsOSBA
+QCBzdGF0aWMgaW50IGFmZmluaXR5X2ZpbGUoc3RydWN0IGJpdG1hc2sgKm1hc2ssIGNoYXIgKmNs
+cywgY29uc3QgY2hhciAqZmlsZSkKIAkJaWYgKG1ham9yKGQpICE9IG1haiB8fCBtaW5vcihkKSAh
+PSBtaW4pCiAJCQljb250aW51ZTsKIAorCQlyZXQgPSBhZmZpbml0eV9jbGFzcyhtYXNrLCAiYmxv
+Y2siLCBuYW1lKTsKIAkJY2xvc2VkaXIoZGlyKTsKLQkJcmV0dXJuIGFmZmluaXR5X2NsYXNzKG1h
+c2ssICJibG9jayIsIG5hbWUpOworCQlyZXR1cm4gcmV0OwogCX0KIAljbG9zZWRpcihkaXIpOwog
+CW51bWFfd2FybihXX2Jsb2NrZGV2NSwgIkNhbm5vdCBmaW5kIGJsb2NrIGRldmljZSAleDoleCBp
+biBzeXNmcyBmb3IgYCVzJyIsCi0tIAoyLjE0LjMKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
+aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
+bnV4LW52ZGltbQo=
