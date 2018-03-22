@@ -1,22 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x22b.google.com (mail-ot0-x22b.google.com
- [IPv6:2607:f8b0:4003:c0f::22b])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 994272252CBDA
- for <linux-nvdimm@lists.01.org>; Thu, 22 Mar 2018 08:44:12 -0700 (PDT)
-Received: by mail-ot0-x22b.google.com with SMTP id i28-v6so9955965otf.8
- for <linux-nvdimm@lists.01.org>; Thu, 22 Mar 2018 08:50:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180322072734.GB28713@lst.de>
-References: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152167310580.5268.18270880990191450094.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20180322072734.GB28713@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 22 Mar 2018 08:50:43 -0700
-Message-ID: <CAPcyv4hPR4fFH61Vg5ik=GCnBgrC9+vN==A146YqB9Dts8Fv0g@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4D6A322551B9C
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Mar 2018 00:21:04 -0700 (PDT)
+Date: Thu, 22 Mar 2018 08:27:34 +0100
+From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [PATCH v7 13/14] xfs: prepare xfs_break_layouts() for another
  layout type
+Message-ID: <20180322072734.GB28713@lst.de>
+References: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152167310580.5268.18270880990191450094.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <152167310580.5268.18270880990191450094.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,45 +25,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Mar 22, 2018 at 12:27 AM, Christoph Hellwig <hch@lst.de> wrote:
->> +     ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED | XFS_IOLOCK_EXCL
->> +                             | (reason == BREAK_UNMAPI
->> +                                     ? XFS_MMAPLOCK_EXCL : 0)));
->
-> please split the assert, e.g.:
->
->         ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED | XFS_IOLOCK_EXCL));
->
->         switch (reason) {
-> +       case BREAK_UNMAPI:
->                 ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+> +	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED | XFS_IOLOCK_EXCL
+> +				| (reason == BREAK_UNMAPI
+> +					? XFS_MMAPLOCK_EXCL : 0)));
 
-Sure, I was thinking to keep it out of the loop, but the common case
-is that this loop only iterates once.
+please split the assert, e.g.:
 
->> +             /* fall through */
->> +     case BREAK_WRITE:
->> +             error = xfs_break_leased_layouts(inode, iolock, &did_unlock);
->> +             break;
->> +     default:
->> +             error = -EINVAL;
->> +             break;
->> +     }
->> +
->> +     return error;
->
-> I have to say I'd prefer BREAK_UNMAP over BREAK_UNMAPI given that weird
-> I suffix doesn't buy us anything, but that's just a minor issue.
+	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED | XFS_IOLOCK_EXCL));
 
-Ok will do.
+	switch (reason) {
++	case BREAK_UNMAPI:
+		ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+> +		/* fall through */
+> +	case BREAK_WRITE:
+> +		error = xfs_break_leased_layouts(inode, iolock, &did_unlock);
+> +		break;
+> +	default:
+> +		error = -EINVAL;
+> +		break;
+> +	}
+> +
+> +	return error;
 
-> Otherwise looks good:
->
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
+I have to say I'd prefer BREAK_UNMAP over BREAK_UNMAPI given that weird
+I suffix doesn't buy us anything, but that's just a minor issue.
+
+Otherwise looks good:
+
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
