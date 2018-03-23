@@ -1,9 +1,10 @@
-From: =?GB2312?B?va2V08P3?= <oozanche-POP08Y4Zc/w@public.gmane.org>
-Subject: =?GB2312?B?u9i4tKO6vLzK9cjL1LHI57rOwey1vM3FttM=?=
-Date: Fri, 23 Mar 2018 00:31:22 +0800
-Message-ID: <20180322162444.57B7422551B8D@ml01.01.org>
+From: "Garnet Winkelman  " <newsletterkyqj-KD6vb7Cx16iAN7j2eeZu5A@public.gmane.org>
+Subject: re: Buy Instagram followers cheap
+Date: Thu, 22 Mar 2018 18:09:51 -0700
+Message-ID: <C9544CDC.DAC148CB@myinstabuzz.se>
+Reply-To: Garnet Winkelman   <newsletterkyqj-KD6vb7Cx16iAN7j2eeZu5A@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6533092379697060566=="
+Content-Type: multipart/mixed; boundary="===============7216505606218874200=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,21 +15,45 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format
+This is a multi-part message in MIME format.
 
---===============6533092379697060566==
-Content-Type: text/plain
+--===============7216505606218874200==
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 
-3955639556
+Real Instagram followers at affordable rates
+http://www.myinstabuzz.se/buy-instagram-followers/
 
-00:31:20---Çë ²é ÔÄ ¸½ ¼þ ÄÚ ÈÝ
+Sample followers in the html report attached
 
---===============6533092379697060566==
+Thank you
+Garnet Winkelman  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option available in the footer of our website
+
+
+--===============7216505606218874200==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -39,4 +64,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============6533092379697060566==--
+--===============7216505606218874200==--
