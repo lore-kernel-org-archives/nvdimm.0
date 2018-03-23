@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D9A49224BBC41
- for <linux-nvdimm@lists.01.org>; Tue, 20 Mar 2018 14:56:29 -0700 (PDT)
-Subject: [PATCH v4] ndctl: Add support for get bus and region persistence
- domain
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 20 Mar 2018 15:02:59 -0700
-Message-ID: <152158332323.54131.4095700460006442823.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1900722146724
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Mar 2018 09:47:29 -0700 (PDT)
+Subject: [ndctl PATCH] ndctl, documentation: update copyright
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 23 Mar 2018 09:44:57 -0700
+Message-ID: <152182349753.29410.6891491989222586676.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,242 +20,674 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding helper functions to iterate through sysfs region persistence domain
-attribute. The region will display the domain with the most persistence for the
-region.  The bus will display the domain attribute with the least persistence
-amongst all the regions. ndctl_bus_get_persistence_domain() and
-ndctl_region_get_persistence_domain are exported. ndctl list will also display
-the region persistence domain as well.
+Use SPDX identifiers in the documentation source, and move the
+"Copyright" boilerplate that is emitted into the man page into a common
+header file.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ Documentation/copyright.txt                     |    8 ++++++++
+ Documentation/daxctl/Makefile.am                |    3 ++-
+ Documentation/daxctl/daxctl-list.txt            |    9 +++------
+ Documentation/daxctl/daxctl.txt                 |    4 ++++
+ Documentation/ndctl/Makefile.am                 |    3 ++-
+ Documentation/ndctl/dimm-description.txt        |    2 ++
+ Documentation/ndctl/human-option.txt            |    2 ++
+ Documentation/ndctl/labels-description.txt      |    2 ++
+ Documentation/ndctl/labels-options.txt          |    2 ++
+ Documentation/ndctl/namespace-description.txt   |    2 ++
+ Documentation/ndctl/ndctl-check-labels.txt      |    9 +++------
+ Documentation/ndctl/ndctl-check-namespace.txt   |    9 +++------
+ Documentation/ndctl/ndctl-create-namespace.txt  |    9 +++------
+ Documentation/ndctl/ndctl-destroy-namespace.txt |    9 +++------
+ Documentation/ndctl/ndctl-disable-dimm.txt      |    9 +++------
+ Documentation/ndctl/ndctl-disable-namespace.txt |    9 +++------
+ Documentation/ndctl/ndctl-disable-region.txt    |    9 +++------
+ Documentation/ndctl/ndctl-enable-dimm.txt       |    9 +++------
+ Documentation/ndctl/ndctl-enable-namespace.txt  |    9 +++------
+ Documentation/ndctl/ndctl-enable-region.txt     |    9 +++------
+ Documentation/ndctl/ndctl-init-labels.txt       |    9 +++------
+ Documentation/ndctl/ndctl-inject-error.txt      |    9 +++------
+ Documentation/ndctl/ndctl-inject-smart.txt      |    9 +++------
+ Documentation/ndctl/ndctl-list.txt              |    9 +++------
+ Documentation/ndctl/ndctl-read-labels.txt       |    9 +++------
+ Documentation/ndctl/ndctl-update-firmware.txt   |    9 +++------
+ Documentation/ndctl/ndctl-write-labels.txt      |    2 ++
+ Documentation/ndctl/ndctl-zero-labels.txt       |    9 +++------
+ Documentation/ndctl/ndctl.txt                   |    9 +++------
+ Documentation/ndctl/region-description.txt      |    2 ++
+ Documentation/ndctl/xable-dimm-options.txt      |    2 ++
+ Documentation/ndctl/xable-namespace-options.txt |    2 ++
+ Documentation/ndctl/xable-region-options.txt    |    2 ++
+ 33 files changed, 93 insertions(+), 116 deletions(-)
+ create mode 100644 Documentation/copyright.txt
 
-v4:
-- change enum ndctl_persistence to enum ndctl_persistence_domain
-
-v3:
-- fixed up return types per Ross's comments
-- removed persistence_domain for bus and calculate on the fly per Dan's comment
-
-v2:
-- Simplied scanning of persistence domain from Ross's comments.
-
- ndctl/lib/libndctl.c   |   85 ++++++++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |    2 +
- ndctl/libndctl.h       |   12 +++++++
- ndctl/list.c           |   16 +++++++++
- 4 files changed, 115 insertions(+)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index a165e697..d97f1501 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -180,6 +180,7 @@ struct ndctl_region {
- 	} iset;
- 	FILE *badblocks;
- 	struct badblock bb;
-+	enum ndctl_persistence_domain persistence_domain;
- };
+diff --git a/Documentation/copyright.txt b/Documentation/copyright.txt
+new file mode 100644
+index 000000000000..1d603645211c
+--- /dev/null
++++ b/Documentation/copyright.txt
+@@ -0,0 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
++
++COPYRIGHT
++---------
++Copyright (c) 2016 - 2018, Intel Corporation. License GPLv2: GNU GPL
++version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
++you are free to change and redistribute it.  There is NO WARRANTY, to
++the extent permitted by law.
+diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
+index 5913c94ca3be..259dafd18e5e 100644
+--- a/Documentation/daxctl/Makefile.am
++++ b/Documentation/daxctl/Makefile.am
+@@ -22,6 +22,7 @@ CLEANFILES = $(man1_MANS)
  
- /**
-@@ -916,6 +917,22 @@ NDCTL_EXPORT struct ndctl_bus *ndctl_bus_get_by_provider(struct ndctl_ctx *ctx,
- 	return NULL;
+ XML_DEPS = \
+ 	../../version.m4 \
++	../copyright.txt \
+ 	Makefile \
+ 	asciidoc.conf
+ 
+@@ -33,6 +34,6 @@ RM ?= rm -f
+ 		--unsafe -adaxctl_version=$(VERSION) -o $@+ $< && \
+ 		mv $@+ $@
+ 
+-%.1: %.xml
++%.1: %.xml $(XML_DEPS)
+ 	$(AM_V_GEN)$(RM) $@ && \
+ 		$(XMLTO) -o . -m ../manpage-normal.xsl man $<
+diff --git a/Documentation/daxctl/daxctl-list.txt b/Documentation/daxctl/daxctl-list.txt
+index 6249645f4bbd..99ca4a1b4f28 100644
+--- a/Documentation/daxctl/daxctl-list.txt
++++ b/Documentation/daxctl/daxctl-list.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ daxctl-list(1)
+ =============
+ 
+@@ -93,9 +95,4 @@ OPTIONS
+   "size":"30.57 GiB (32.83 GB)"
  }
  
-+NDCTL_EXPORT enum ndctl_persistence_domain
-+ndctl_bus_get_persistence_domain(struct ndctl_bus *bus)
-+{
-+	struct ndctl_region *region;
-+	enum ndctl_persistence_domain pd = PERSISTENCE_UNKNOWN;
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+diff --git a/Documentation/daxctl/daxctl.txt b/Documentation/daxctl/daxctl.txt
+index 5da9746ea62a..f81b161c9771 100644
+--- a/Documentation/daxctl/daxctl.txt
++++ b/Documentation/daxctl/daxctl.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
 +
-+	/* iterate through region to get the region persistence domain */
-+	ndctl_region_foreach(bus, region) {
-+		/* we are looking for the least persistence domain */
-+		if (pd > region->persistence_domain)
-+			pd = region->persistence_domain;
-+	}
+ daxctl(1)
+ =========
+ 
+@@ -27,6 +29,8 @@ the Linux kernel Device-DAX facility. This facility enables DAX mappings
+ of performance / feature differentiated memory without need of a
+ filesystem.
+ 
++include::../copyright.txt[]
 +
-+	return pd;
-+}
+ SEE ALSO
+ --------
+ linkdaxctl:ndctl-create-namespace[1],
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 27b207698d5a..9acb4acd966a 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -40,6 +40,7 @@ XML_DEPS = \
+ 	../../version.m4 \
+ 	Makefile \
+ 	asciidoc.conf \
++	../copyright.txt \
+ 	region-description.txt \
+ 	xable-region-options.txt \
+ 	dimm-description.txt \
+@@ -56,6 +57,6 @@ RM ?= rm -f
+ 		--unsafe -andctl_version=$(VERSION) -o $@+ $< && \
+ 		mv $@+ $@
+ 
+-%.1: %.xml
++%.1: %.xml $(XML_DEPS)
+ 	$(AM_V_GEN)$(RM) $@ && \
+ 		$(XMLTO) -o . -m ../manpage-normal.xsl man $<
+diff --git a/Documentation/ndctl/dimm-description.txt b/Documentation/ndctl/dimm-description.txt
+index 95d0891c0b13..96666a0a51b4 100644
+--- a/Documentation/ndctl/dimm-description.txt
++++ b/Documentation/ndctl/dimm-description.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
 +
- NDCTL_EXPORT struct ndctl_btt *ndctl_region_get_btt_seed(struct ndctl_region *region)
- {
- 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-@@ -1755,6 +1772,62 @@ static int region_set_type(struct ndctl_region *region, char *path)
- 	return 0;
+ DESCRIPTION
+ -----------
+ A generic DIMM device object, named /dev/nmemX, is registered for each
+diff --git a/Documentation/ndctl/human-option.txt b/Documentation/ndctl/human-option.txt
+index ce2fefad174e..af1215c22dae 100644
+--- a/Documentation/ndctl/human-option.txt
++++ b/Documentation/ndctl/human-option.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ -u::
+ --human::
+ 	Format numbers representing storage sizes, or offsets as human
+diff --git a/Documentation/ndctl/labels-description.txt b/Documentation/ndctl/labels-description.txt
+index 8e89ae1c52e7..6244a49a9d3f 100644
+--- a/Documentation/ndctl/labels-description.txt
++++ b/Documentation/ndctl/labels-description.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ DESCRIPTION
+ -----------
+ The namespace label area is a small persistent partition of capacity
+diff --git a/Documentation/ndctl/labels-options.txt b/Documentation/ndctl/labels-options.txt
+index e13cdc5f24b1..539ace079557 100644
+--- a/Documentation/ndctl/labels-options.txt
++++ b/Documentation/ndctl/labels-options.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ <memory device(s)>::
+ 	One or more 'nmemX' device names. The keyword 'all' can be specified to
+ 	operate on every dimm in the system, optionally filtered by bus id (see
+diff --git a/Documentation/ndctl/namespace-description.txt b/Documentation/ndctl/namespace-description.txt
+index 0446642bf308..32ab5cd83983 100644
+--- a/Documentation/ndctl/namespace-description.txt
++++ b/Documentation/ndctl/namespace-description.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ DESCRIPTION
+ -----------
+ A REGION, after resolving DPA aliasing and LABEL specified boundaries,
+diff --git a/Documentation/ndctl/ndctl-check-labels.txt b/Documentation/ndctl/ndctl-check-labels.txt
+index a7c8a5f2dcbd..3cfb1e1c9181 100644
+--- a/Documentation/ndctl/ndctl-check-labels.txt
++++ b/Documentation/ndctl/ndctl-check-labels.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-check-labels(1)
+ ====================
+ 
+@@ -19,12 +21,7 @@ OPTIONS
+ -------
+ include::labels-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-check-namespace.txt b/Documentation/ndctl/ndctl-check-namespace.txt
+index ea4183af9444..2ece4e770305 100644
+--- a/Documentation/ndctl/ndctl-check-namespace.txt
++++ b/Documentation/ndctl/ndctl-check-namespace.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-check-namespace(1)
+ =========================
+ 
+@@ -67,12 +69,7 @@ OPTIONS
+ --region=::
+ include::xable-region-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
+index 8de6689f857f..14c5409f059b 100644
+--- a/Documentation/ndctl/ndctl-create-namespace.txt
++++ b/Documentation/ndctl/ndctl-create-namespace.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-create-namespace(1)
+ =========================
+ 
+@@ -208,12 +210,7 @@ OPTIONS
+ --region=::
+ include::xable-region-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-destroy-namespace.txt b/Documentation/ndctl/ndctl-destroy-namespace.txt
+index 7078c0b21929..f1a6e30de5ea 100644
+--- a/Documentation/ndctl/ndctl-destroy-namespace.txt
++++ b/Documentation/ndctl/ndctl-destroy-namespace.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-destroy-namespace(1)
+ =========================
+ 
+@@ -25,12 +27,7 @@ include::xable-namespace-options.txt[]
+ 	namespace' operations will be aborted.  The namespace must be
+ 	unmounted before being destroyed.
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-disable-dimm.txt b/Documentation/ndctl/ndctl-disable-dimm.txt
+index b767402e93b8..d5a8d19966cf 100644
+--- a/Documentation/ndctl/ndctl-disable-dimm.txt
++++ b/Documentation/ndctl/ndctl-disable-dimm.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-disable-dimm(1)
+ =======================
+ 
+@@ -17,12 +19,7 @@ OPTIONS
+ <dimm>::
+ include::xable-dimm-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-disable-namespace.txt b/Documentation/ndctl/ndctl-disable-namespace.txt
+index 5304ff97b900..5d3a8be1f503 100644
+--- a/Documentation/ndctl/ndctl-disable-namespace.txt
++++ b/Documentation/ndctl/ndctl-disable-namespace.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-disable-namespace(1)
+ =========================
+ 
+@@ -16,12 +18,7 @@ OPTIONS
+ -------
+ include::xable-namespace-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-disable-region.txt b/Documentation/ndctl/ndctl-disable-region.txt
+index 5871ebe09650..ea1fd3ac0008 100644
+--- a/Documentation/ndctl/ndctl-disable-region.txt
++++ b/Documentation/ndctl/ndctl-disable-region.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-disable-region(1)
+ =======================
+ 
+@@ -17,12 +19,7 @@ OPTIONS
+ <region>::
+ include::xable-region-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-enable-dimm.txt b/Documentation/ndctl/ndctl-enable-dimm.txt
+index 5b399c20bd15..cd9908d41696 100644
+--- a/Documentation/ndctl/ndctl-enable-dimm.txt
++++ b/Documentation/ndctl/ndctl-enable-dimm.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-enable-dimm(1)
+ ====================
+ 
+@@ -17,12 +19,7 @@ OPTIONS
+ <dimm>::
+ include::xable-dimm-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-enable-namespace.txt b/Documentation/ndctl/ndctl-enable-namespace.txt
+index 69971a0f68a1..9390a992177f 100644
+--- a/Documentation/ndctl/ndctl-enable-namespace.txt
++++ b/Documentation/ndctl/ndctl-enable-namespace.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-enable-namespace(1)
+ =========================
+ 
+@@ -16,12 +18,7 @@ OPTIONS
+ -------
+ include::xable-namespace-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-enable-region.txt b/Documentation/ndctl/ndctl-enable-region.txt
+index c4939e0f7caa..6c4ad9fefb0a 100644
+--- a/Documentation/ndctl/ndctl-enable-region.txt
++++ b/Documentation/ndctl/ndctl-enable-region.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-enable-region(1)
+ ====================
+ 
+@@ -17,12 +19,7 @@ OPTIONS
+ <region>::
+ include::xable-region-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-init-labels.txt b/Documentation/ndctl/ndctl-init-labels.txt
+index d30ccc5fed0d..580d82aa99cf 100644
+--- a/Documentation/ndctl/ndctl-init-labels.txt
++++ b/Documentation/ndctl/ndctl-init-labels.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-init-labels(1)
+ ====================
+ 
+@@ -76,12 +78,7 @@ include::labels-options.txt[]
+ 	be an existing / valid namespace index.  Warning, this will
+ 	destroy all defined namespaces on the dimm.
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-inject-error.txt b/Documentation/ndctl/ndctl-inject-error.txt
+index fbf38374be38..01f6c22f1561 100644
+--- a/Documentation/ndctl/ndctl-inject-error.txt
++++ b/Documentation/ndctl/ndctl-inject-error.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-inject-error(1)
+ =====================
+ 
+@@ -96,12 +98,7 @@ include::human-option.txt[]
+ --region=::
+ include::xable-region-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-inject-smart.txt b/Documentation/ndctl/ndctl-inject-smart.txt
+index 212bca0f6ae5..0dc6481cace3 100644
+--- a/Documentation/ndctl/ndctl-inject-smart.txt
++++ b/Documentation/ndctl/ndctl-inject-smart.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-inject-smart(1)
+ =====================
+ 
+@@ -90,12 +92,7 @@ OPTIONS
+ 
+ include::human-option.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2018, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
+index c4b38f975b8c..04affc42323d 100644
+--- a/Documentation/ndctl/ndctl-list.txt
++++ b/Documentation/ndctl/ndctl-list.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-list(1)
+ =============
+ 
+@@ -221,12 +223,7 @@ include::human-option.txt[]
+   "badblock_count":8
  }
  
-+static enum ndctl_persistence_domain region_get_pd_type(char *name)
-+{
-+	if (strncmp("cpu_cache", name, 9) == 0)
-+		return PERSISTENCE_CPU_CACHE;
-+	else if (strncmp("memory_controller", name, 17) == 0)
-+		return PERSISTENCE_MEM_CTRL;
-+	else
-+		return PERSISTENCE_UNKNOWN;
-+}
-+
-+static int region_persistence_scan(struct ndctl_region *region)
-+{
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-+	char *pd_path;
-+	FILE *pf;
-+	char buf[64];
-+	int rc = 0;
-+	enum ndctl_persistence_domain pd = PERSISTENCE_NONE;
-+
-+	region->persistence_domain = PERSISTENCE_NONE;
-+	if (asprintf(&pd_path, "%s/persistence_domain",
-+				region->region_path) < 0) {
-+		rc = -errno;
-+		err(ctx, "region persist domain path allocation failure\n");
-+		return rc;
-+	}
-+
-+	pf = fopen(pd_path, "re");
-+	if (!pf) {
-+		rc = -errno;
-+		free(pd_path);
-+		return rc;
-+	}
-+
-+	do {
-+		rc = fscanf(pf, "%s", buf);
-+		if (rc == EOF) {
-+			if (ferror(pf)) {
-+				rc = -errno;
-+				goto out;
-+			}
-+		} else if (rc == 1)
-+			pd = region_get_pd_type(buf);
-+
-+		if (region->persistence_domain < pd)
-+			region->persistence_domain = pd;
-+	} while (rc != EOF);
-+
-+	rc = 0;
-+
-+out:
-+	fclose(pf);
-+	free(pd_path);
-+	return rc;
-+}
-+
- static void *add_region(void *parent, int id, const char *region_base)
- {
- 	char buf[SYSFS_ATTR_SIZE];
-@@ -1831,6 +1904,12 @@ static void *add_region(void *parent, int id, const char *region_base)
- 	list_add(&bus->regions, &region->list);
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
  
- 	free(path);
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-read-labels.txt b/Documentation/ndctl/ndctl-read-labels.txt
+index a15e0f1061d6..0127e15f0721 100644
+--- a/Documentation/ndctl/ndctl-read-labels.txt
++++ b/Documentation/ndctl/ndctl-read-labels.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
 +
-+	/* get the persistence domain attribs */
-+	if (region_persistence_scan(region) < 0)
-+		err(ctx, "%s: region persistence scan failed\n",
-+				ndctl_region_get_devname(region));
-+
- 	return region;
+ ndctl-read-labels(1)
+ ====================
  
-  err_read:
-@@ -2093,6 +2172,12 @@ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_regio
- 	return ndctl_region_get_next_badblock(region);
- }
+@@ -25,12 +27,7 @@ include::labels-options.txt[]
+ 	parse the label data into json assuming the 'NVDIMM Namespace
+ 	Specification' format.
  
-+NDCTL_EXPORT enum ndctl_persistence_domain
-+ndctl_region_get_persistence_domain(struct ndctl_region *region)
-+{
-+	return region->persistence_domain;
-+}
-+
- static struct nd_cmd_vendor_tail *to_vendor_tail(struct ndctl_cmd *cmd)
- {
- 	struct nd_cmd_vendor_tail *tail = (struct nd_cmd_vendor_tail *)
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 21276614..3209aefe 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -350,4 +350,6 @@ global:
- 	ndctl_dimm_cmd_new_ack_shutdown_count;
- 	ndctl_region_get_numa_node;
- 	ndctl_dimm_fw_update_supported;
-+	ndctl_region_get_persistence_domain;
-+	ndctl_bus_get_persistence_domain;
- } LIBNDCTL_14;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index f3a27411..1378c36d 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -115,6 +115,8 @@ int ndctl_bus_is_cmd_supported(struct ndctl_bus *bus, int cmd);
- unsigned int ndctl_bus_get_revision(struct ndctl_bus *bus);
- unsigned int ndctl_bus_get_id(struct ndctl_bus *bus);
- const char *ndctl_bus_get_provider(struct ndctl_bus *bus);
-+enum ndctl_persistence_domain ndctl_bus_get_persistence_domain(
-+		struct ndctl_bus *bus);
- int ndctl_bus_wait_probe(struct ndctl_bus *bus);
- int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus);
- unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus);
-@@ -305,6 +307,14 @@ struct badblock {
- 	unsigned long long offset;
- 	unsigned int len;
- };
-+
-+enum ndctl_persistence_domain {
-+	PERSISTENCE_NONE = 0,
-+	PERSISTENCE_MEM_CTRL,
-+	PERSISTENCE_CPU_CACHE,
-+	PERSISTENCE_UNKNOWN,
-+};
-+
- struct ndctl_region;
- struct ndctl_region *ndctl_region_get_first(struct ndctl_bus *bus);
- struct ndctl_region *ndctl_region_get_next(struct ndctl_region *region);
-@@ -347,6 +357,8 @@ struct ndctl_region *ndctl_bus_get_region_by_physical_address(struct ndctl_bus *
-         for (dimm = ndctl_region_get_first_dimm(region); \
-              dimm != NULL; \
-              dimm = ndctl_region_get_next_dimm(region, dimm))
-+enum ndctl_persistence_domain ndctl_region_get_persistence_domain(
-+		struct ndctl_region *region);
- int ndctl_region_is_enabled(struct ndctl_region *region);
- int ndctl_region_enable(struct ndctl_region *region);
- int ndctl_region_disable_invalidate(struct ndctl_region *region);
-diff --git a/ndctl/list.c b/ndctl/list.c
-index fe8036ea..c9f4b74d 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -73,6 +73,7 @@ static struct json_object *region_to_json(struct ndctl_region *region,
- 	struct ndctl_interleave_set *iset;
- 	struct ndctl_mapping *mapping;
- 	unsigned int bb_count = 0;
-+	enum ndctl_persistence_domain pd;
- 	int numa;
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
  
- 	if (!jregion)
-@@ -174,6 +175,21 @@ static struct json_object *region_to_json(struct ndctl_region *region,
- 	if ((flags & UTIL_JSON_MEDIA_ERRORS) && jbbs)
- 		json_object_object_add(jregion, "badblocks", jbbs);
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl-update-firmware.txt b/Documentation/ndctl/ndctl-update-firmware.txt
+index bd8ef24ca80e..449d85810546 100644
+--- a/Documentation/ndctl/ndctl-update-firmware.txt
++++ b/Documentation/ndctl/ndctl-update-firmware.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl-update-firmware(1)
+ ========================
  
-+	pd = ndctl_region_get_persistence_domain(region);
-+	switch (pd) {
-+		case PERSISTENCE_CPU_CACHE:
-+			jobj = json_object_new_string("cpu_cache");
-+			break;
-+		case PERSISTENCE_MEM_CTRL:
-+			jobj = json_object_new_string("memory_controller");
-+			break;
-+		default:
-+			jobj = NULL;
-+	}
+@@ -30,9 +32,4 @@ include::xable-dimm-options.txt[]
+ --verbose::
+         Emit debug messages for the namespace check process.
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2017 - 2018, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-write-labels.txt b/Documentation/ndctl/ndctl-write-labels.txt
+index 5e54cece95ca..38bb0110c269 100644
+--- a/Documentation/ndctl/ndctl-write-labels.txt
++++ b/Documentation/ndctl/ndctl-write-labels.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
 +
-+	if (jobj)
-+		json_object_object_add(jregion, "persistence_domain", jobj);
+ ndctl-write-labels(1)
+ =====================
+ 
+diff --git a/Documentation/ndctl/ndctl-zero-labels.txt b/Documentation/ndctl/ndctl-zero-labels.txt
+index 4d56696b1933..a1a5518fe93e 100644
+--- a/Documentation/ndctl/ndctl-zero-labels.txt
++++ b/Documentation/ndctl/ndctl-zero-labels.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
 +
- 	return jregion;
-  err:
- 	fail("\n");
+ ndctl-zero-labels(1)
+ ====================
+ 
+@@ -18,12 +20,7 @@ OPTIONS
+ -------
+ include::labels-options.txt[]
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/ndctl.txt b/Documentation/ndctl/ndctl.txt
+index b2e2ab93c4f5..b33e2777f5b4 100644
+--- a/Documentation/ndctl/ndctl.txt
++++ b/Documentation/ndctl/ndctl.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ ndctl(1)
+ =======
+ 
+@@ -30,12 +32,7 @@ supported by the tool include, provisioning capacity (namespaces), as
+ well as enumerating/enabling/disabling the devices (dimms, regions,
+ namspaces) associated with an NVDIMM bus.
+ 
+-COPYRIGHT
+----------
+-Copyright (c) 2016 - 2017, Intel Corporation. License GPLv2: GNU GPL
+-version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+-you are free to change and redistribute it.  There is NO WARRANTY, to
+-the extent permitted by law.
++include::../copyright.txt[]
+ 
+ SEE ALSO
+ --------
+diff --git a/Documentation/ndctl/region-description.txt b/Documentation/ndctl/region-description.txt
+index bc3d12295c01..c14416a3be69 100644
+--- a/Documentation/ndctl/region-description.txt
++++ b/Documentation/ndctl/region-description.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ DESCRIPTION
+ -----------
+ A generic REGION device is registered for each PMEM range or
+diff --git a/Documentation/ndctl/xable-dimm-options.txt b/Documentation/ndctl/xable-dimm-options.txt
+index ad79208a61eb..709e2e4202dd 100644
+--- a/Documentation/ndctl/xable-dimm-options.txt
++++ b/Documentation/ndctl/xable-dimm-options.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ 	A 'nmemX' device name, or a dimm id number. The keyword 'all' can
+ 	be specified to carry out the operation on every dimm in the system,
+ 	optionally filtered by bus id (see --bus= option).
+diff --git a/Documentation/ndctl/xable-namespace-options.txt b/Documentation/ndctl/xable-namespace-options.txt
+index cb24c2d61328..babc248f2288 100644
+--- a/Documentation/ndctl/xable-namespace-options.txt
++++ b/Documentation/ndctl/xable-namespace-options.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ <namespace>::
+ A 'namespaceX.Y' device name. The keyword 'all' can be specified to carry out
+ the operation on every namespace in the system, optionally filtered by region
+diff --git a/Documentation/ndctl/xable-region-options.txt b/Documentation/ndctl/xable-region-options.txt
+index 243510cc0742..69d39266a4f1 100644
+--- a/Documentation/ndctl/xable-region-options.txt
++++ b/Documentation/ndctl/xable-region-options.txt
+@@ -1,3 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
+ 	A 'regionX' device name, or a region id number. The keyword 'all' can
+ 	be specified to carry out the operation on every region in the system,
+ 	optionally filtered by bus id (see --bus= option).
 
 _______________________________________________
 Linux-nvdimm mailing list
