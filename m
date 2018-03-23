@@ -1,11 +1,12 @@
-From: "Garnet Winkelman  " <newsletterkyqj-KD6vb7Cx16iAN7j2eeZu5A@public.gmane.org>
-Subject: re: Buy Instagram followers cheap
-Date: Thu, 22 Mar 2018 18:09:51 -0700
-Message-ID: <C9544CDC.DAC148CB@myinstabuzz.se>
-Reply-To: Garnet Winkelman   <newsletterkyqj-KD6vb7Cx16iAN7j2eeZu5A@public.gmane.org>
+From: "Mail Delivery Subsystem" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: (unknown)
+Date: Fri, 23 Mar 2018 11:05:12 +0800
+Message-ID: <20180323025841.8908922551BA9@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7216505606218874200=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: 
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,50 +19,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+This Message was undeliverable due to the following reason:
 
---===============7216505606218874200==
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
-Real Instagram followers at affordable rates
-http://www.myinstabuzz.se/buy-instagram-followers/
+Your message was not delivered within 3 days:
+Host 160.236.182.197 is not responding.
 
-Sample followers in the html report attached
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-Thank you
-Garnet Winkelman  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option available in the footer of our website
-
-
---===============7216505606218874200==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============7216505606218874200==--
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
