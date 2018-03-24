@@ -1,9 +1,11 @@
-From: "Mail Delivery Subsystem" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Report
-Date: Fri, 23 Mar 2018 11:41:12 +0800
-Message-ID: <20180323033508.17A0D22571B3A@ml01.01.org>
+From: test-nzHKrfn1bK+XhpQ5CvzBxw@public.gmane.org
+Subject: Dear Friend
+Date: 23 Mar 2018 17:54:35 -0700
+Message-ID: <20180323175435.6BDDF1D4004F840B@barbaazteca.com>
+Reply-To: cutvag042-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6766897046868664884=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,42 +19,37 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============6766897046868664884==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-MºëÉ;¼<ôÃò
-:Q8åkÙ±Â(Lì|T
-‰jî½»6J|lÒ´õA”Õ9Qªåp,es÷sêŠ¨”ëÆ,³3¡¥kVê9”äz$1
-§‡jn`™zÚÃ-¥öP‰`ï¹è¶,„öÈÃˆWHA?[ZG^C¨Ø‹ˆ-PÖ—aÈ•¤;ñWk%_‹âKG£úE|
-/İ;ü3z| ¸©Tymy‰x7ãÊåAºˆOŒšŸ#ÙeF]D»uM/6ÏãPú3yà°Wb¤D>•JÆØ
-R§Ñj_¢‰ï”Q×ä²7o†pé$´c%¶¶Ûš¥Ó×Böc‡½¸FB´‰Ó/§âƒ±Ñé8uI¼¦#2ø¾mÌoTG¨…‘’êÍØÂF.ê"‹·Å
-Ë9ßDwH
-¬Æ©Ùê¬
-“é_ğSzp´)Hóú¯ÙîÄ¡Ø_şÓëŠ—û&ş8\å2&
-OÂXôöB‡¦hìo[
-¼—²ÆNË×Î«È]2)·ªó.·-µ;Ég«Æ¬Ãz±Ø¹­Bî‰a'ªê\
-ëèA–´¤µ„L9ÏßïŠışlR
-:Câ»4³›©üÆ\Kb¹:McÇ¢snhà[Îv—EŠ§†š³šq*°¼…BMñ„ZZ>ÁFÄôãîjR×-İs½'\ş$«s—6‰Ø’r°–¶Èyµ^£Q6²bÉPiíÑ®j\a·Ÿš¸İi
-*×“GV·*Ì`“ñÌÕë;R%3ùğóªËç´^hÜ‚‹Ç²¨¤ùáoĞ³ø´µ£|İªÎ.†SíŸëfq¶’Øˆwø®vL›weó$9¾&›>QlçdÒa?l¹¢ZøÊ•'’¶*Tã$.½õ^“pĞ‰Á·è'N¸X¡¢û ìR‹¼”$6BÓº¢“Pò
-<dsoŞmºšIkÇ! ŸàxëMnV•>Íy®!Xï‡±aµe™¼û`f
-0ò*>OÄß±a¯e2d“‰u«‡"şÚC¦èÖáñJbPù%)ô‡]MˆişÎ¸Ú£x EÏñÒ­ t<e™ÄÁzŒÍA<¿íKêæät{&¢áÖh•½‹Nj;`Ÿ†uÃa' xŠb£Oå‚¦Û±•Ş‘0f–ğ²RÑ«SyµHe¨Îq"¡UÙ-˜ñr,`Â»ªDÌ>¤#”—¬_ÜùÙí8ºg8Ø÷È3
-j>‹EÔ¿ƒl^3 r\«×cå
-2\~7§²jgû‹x¡t£­Ï´_·çĞ†ıAÏÁP}ÛÒÓU”hª3Z,B°Ø§Á•ê"ÒáÆ¥U—{ÙØ¨<VšI×]ó“ÛÏ¡ÎlÛTdgU«šşœ¸ÈgIL—ŒØm’UwÅl;5ø&iâ9±ûã2¶{¸<†¡mqj'(±¨6wÌƒî-Ä†q0Ë¥„ÄB«ì¾¦ÖF„ïIo›1d¾ Ap­ãñ#Òå`g^¼OëËŒ¾ˆ™
-
-
---===============6766897046868664884==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6766897046868664884==--
+CgoKCkV4eG9uTW9iaWwgSG91c2UKRXJteW4gV2F5CkxlYXRoZXJoZWFkClN1cnJleSwgS1QyMiA4
+VVguCgoKRGVhciBTaXIvTWFkYW0KCgpJIGFtIE1yLkNvbnJhZCBPbHNlbi1VdHbDpWcsIHJlcHJl
+c2VudGluZyB0aGUgb3BlcmF0aW9uIGFuZCAKY29ycG9yYXRlIGFmZmFpcnMgaW4gY29udHJhY3Qg
+cmVsYXRlZCBtYXR0ZXJzIG9mIEV4eG9uIE1vYmlsIGluIApMb25kb24gKGh0dHA6Ly93d3cuZXh4
+b25tb2JpbC5jb20pLiAgRXh4b24gTW9iaWwgaXMgb25lIG9mIHRoZSAKV29ybGQgTGFyZ2VzdCBv
+aWwgcHJvZHVjaW5nIGFuZCBNYW5hZ2VtZW50IENvbXBhbnkgd2l0aCBvdmVyIDEuMiAKVHJpbGxp
+b24gcG91bmRzIENhcGl0YWwgY29udHJhY3QgSW52ZXN0bWVudC4KCkFzIGEgU2VuaW9yIERlbGVn
+YXRlIGFuZCBQcmluY2lwYWwgRmluYW5jaWFsIE9mZmljZXIgIG9mIEV4eG9uIApNb2JpbCB0aGF0
+IGhhbmRsZSBjb250cmFjdCByZWxhdGVkIG1hdHRlcnMsIEkgc3VjY2Vzc2Z1bGx5IG92ZXIgCmlu
+dm9pY2VkIGEgY29udHJhY3QgZmV3IHllYXJzIGJhY2sgd2hpY2ggaXMgbm90IGtub3duIGJ5IGFu
+eWJvZHkgCmFuZCwgSSBuZWVkIHlvdXIgZnVsbCBjb29wZXJhdGlvbiBhbmQgcGFydG5lcnNoaXAg
+dG8gcmUtcHJvZmlsZSAKdGhpcyBjb250cmFjdCBmdW5kcyBhbW91bnRpbmcgdG8gI0dCUCAxOC41
+TSBHQlAgdG8geW91ciBuYW1lIGFzIAp0aGUgY29udHJhY3RvciB0aGF0IGV4ZWN1dGVkIHRoaXMg
+Y29udHJhY3QgaW4gQXNpYSBmZXcgeWVhcnMuCgpUaGUgZnVuZCB3aWxsIGJlIHBhaWQgdG8geW91
+IHRocm91Z2ggYSBGaW5hbmNlIENvbXBhbnkgd2hlcmUgaXQgCmlzIHByZXNlbnRseSBkZXBvc2l0
+ZWQgYXMgc29vbiBhcyB0aGUgZmlsaW5nIGFuZCBkb2N1bWVudGF0aW9uIApwcm9jZXNzIGlzIGNv
+bmNsdWRlZCBpbiB5b3VyIG5hbWUgYmVjYXVzZSB0aGUgY29udHJhY3Qgd2FzIApleGVjdXRlZCBi
+eSBFeHhvbiBNb2JpbCBVbml0ZWQgS2luZ2RvbSBpbiBBc2lhLgoKTW9zdCBpbXBvcnRhbnRseSwg
+eW91IHdpbGwgYmUgcmVxdWlyZWQgdG8gZmlsbCB5b3VyIGRhdGEncyBzdGF0ZWQgCmJlbG93IHRv
+IGVuYWJsZSBtZSBhcnJhbmdlIGxlZ2FsIGRvY3VtZW50cyB0aGF0IHdpbGwgcHJvb2YgeW91IGFz
+IAphIHNvbGUgY29udHJhY3RvciB3aXRoIEVYWE9OIE1PQklMOgoKKDEpLiBTdGFuZCBhcyB0aGUg
+YmVuZWZpY2lhcnkgLyBjb250cmFjdG9yIHdpdGggRXh4b24gTW9iaWwgdG8gCnJlY2VpdmUgdGhl
+IGZ1bmRzIGFzIEkgd2lsbCBwcmVzZW50IHlvdSBiZWZvcmUgdGhlIGZpcm0gd2l0aCAKbGVnYWwg
+ZG9jdW1lbnRzLgogKDIpLiBSZWNlaXZlIHRoZSBmdW5kcyBpbnRvIGEgYnVzaW5lc3MvcGVyc29u
+YWwgYmFuayBhY2NvdW50IGluIAp5b3VyIGNvdW50cnkuCgooMykuIEF0IHRoZSBjb21wbGV0aW9u
+IG9mIHRoaXMgdHJhbnNhY3Rpb24sIHRoZSBzaGFyaW5nIHJhdGVzIApzaGFsbCBiZSA2MCUgZm9y
+IG1lLCA0MCUgZm9yIHlvdS4KCig0KSBGdWxsIE5hbWVzOwooNSkgQ29udGFjdCBBZGRyZXNzOgoo
+NikgRGlyZWN0IFRlbGVwaG9uZSBObzoKKDcpIE9jY3VwYXRpb246Cig4KSBBZ2UgYW5kIE1hcml0
+YWwgU3RhdHVzOgooOSkgTWVhbnMgb2YgSWRlbnRpZmljYXRpb246CgoKTm90ZTogR2V0IGJhY2sg
+dG8gbWUgYXMgc29vbiBhcyBwb3NzaWJsZSBGb3IgbW9yZSBkZXRhaWxzIGFib3V0IAp0aGUgZnVu
+ZHMuCgoKQmVzdCBSZWdhcmRzLApNci5Db25yYWQgT2xzZW4tVXR2w6VnCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxp
+c3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
