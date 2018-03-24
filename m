@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from CAN01-QB1-obe.outbound.protection.outlook.com
- (mail-eopbgr660114.outbound.protection.outlook.com [40.107.66.114])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9EA392210D9EB
- for <linux-nvdimm@lists.01.org>; Sat, 24 Mar 2018 08:22:10 -0700 (PDT)
-From: "Stephen  Bates" <sbates@raithlin.com>
+ by ml01.01.org (Postfix) with ESMTPS id D79F22210D9D8
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Mar 2018 20:43:16 -0700 (PDT)
+Date: Fri, 23 Mar 2018 22:49:47 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
 Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
-Date: Sat, 24 Mar 2018 15:28:43 +0000
-Message-ID: <121026DC-40C7-4F4E-BE27-BDA652BDEB6A@raithlin.com>
+Message-ID: <20180324034947.GE210003@bhelgaas-glaptop.roam.corp.google.com>
 References: <a0af83f8-2cbc-862b-6f8b-231991527cfc@deltatee.com>
  <3ea80992-a0fc-08f2-d93d-ae0ec4e3f4ce@codeaurora.org>
  <4eb6850c-df1b-fd44-3ee0-d43a50270b53@deltatee.com>
@@ -19,11 +18,9 @@ References: <a0af83f8-2cbc-862b-6f8b-231991527cfc@deltatee.com>
  <C90AA66C-FFC6-4CCA-B959-7BBECA65509C@raithlin.com>
  <20180323215046.GC210003@bhelgaas-glaptop.roam.corp.google.com>
  <dc414fa5-1af9-0ba7-e12e-4cd9df313119@deltatee.com>
- <20180324034947.GE210003@bhelgaas-glaptop.roam.corp.google.com>
-In-Reply-To: <20180324034947.GE210003@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
-Content-ID: <40F4DE2D03BE0945B1840DC8069596E8@CANPRD01.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <dc414fa5-1af9-0ba7-e12e-4cd9df313119@deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -35,28 +32,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Bjorn Helgaas <helgaas@kernel.org>, Logan Gunthorpe <logang@deltatee.com>
-Cc: Jens Axboe <axboe@kernel.dk>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Alex Williamson <alex.williamson@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Sinan Kaya <okaya@codeaurora.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Keith Busch <keith.busch@intel.com>, Christoph Hellwig <hch@lst.de>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jens Axboe <axboe@kernel.dk>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Alex Williamson <alex.williamson@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Sinan Kaya <okaya@codeaurora.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Keith Busch <keith.busch@intel.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Fri, Mar 23, 2018 at 03:59:14PM -0600, Logan Gunthorpe wrote:
+> On 23/03/18 03:50 PM, Bjorn Helgaas wrote:
+> > Popping way up the stack, my original point was that I'm trying to
+> > remove restrictions on what devices can participate in
+> > peer-to-peer DMA.  I think it's fairly clear that in conventional
+> > PCI, any devices in the same PCI hierarchy, i.e., below the same
+> > host-to-PCI bridge, should be able to DMA to each other.
+> 
+> Yup, we are working on this.
+> 
+> > The routing behavior of PCIe is supposed to be compatible with
+> > conventional PCI, and I would argue that this effectively requires
+> > multi-function PCIe devices to have the internal routing required
+> > to avoid the route-to-self issue.
+> 
 > That would be very nice but many devices do not support the internal
-> route. 
+> route. We've had to work around this in the past and as I mentioned
+> earlier that NVMe devices have a flag indicating support. However,
+> if a device wants to be involved in P2P it must support it and we
+> can exclude devices that don't support it by simply not enabling
+> their drivers.
 
-But Logan in the NVMe case we are discussing movement within a single function (i.e. from a NVMe namespace to a NVMe CMB on the same function). Bjorn is discussing movement between two functions (PFs or VFs) in the same PCIe EP. In the case of multi-function endpoints I think the standard requires those devices to support internal DMAs for transfers between those functions (but does not require it within a function).
+Do you think these devices that don't support internal DMA between
+functions are within spec, or should we handle them as exceptions,
+e.g., via quirks?
 
-So I think the summary is:
+If NVMe defines a flag indicating peer-to-peer support, that would
+suggest to me that these devices are within spec.
 
-1. There is no requirement for a single function to support internal DMAs but in the case of NVMe we do have a protocol specific way for a NVMe function to indicate it supports via the CMB BAR. Other protocols may also have such methods but I am not aware of them at this time.
+I looked up the CMBSZ register you mentioned (NVMe 1.3a, sec 3.1.12).
+You must be referring to the WDS, RDS, LISTS, CQS, and SQS bits.  If
+WDS is set, the controller supports having Write-related data and
+metadata in the Controller Memory Buffer.  That would mean the driver
+could put certain queues in controller memory instead of in host
+memory.  The controller could then read the queue from its own
+internal memory rather than issuing a PCIe transaction to read it from
+host memory.
 
-2. For multi-function end-points I think it is a requirement that DMAs *between* functions are supported via an internal path but this can be over-ridden by ACS when supported in the EP.
+That makes sense to me, but I don't see the connection to
+peer-to-peer.  There's no multi-function device in this picture, so
+it's not about internal DMA between functions.
 
-3. For multi-function end-points there is no requirement to support internal DMA within each individual function (i.e. a la point 1 but extended to each function in a MF device). 
+WDS, etc., tell us about capabilities of the controller.  If WDS is
+set, the CPU (or a peer PCIe device) can write things to controller
+memory.  If it is clear, neither the CPU nor a peer device can put
+things there.  So it doesn't seem to tell us anything about
+peer-to-peer specifically.  It looks like information needed by the
+NVMe driver, but not by the PCI core.
 
-Based on my review of the specification I concur with Bjorn that p2pdma between functions in a MF end-point should be assured to be supported via the standard. However if the p2pdma involves only a single function in a MF device then we can only support NVMe CMBs for now. Let's review and see what the options are for supporting this in the next respin.
-
-Stephen
-
-
+Bjorn
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
