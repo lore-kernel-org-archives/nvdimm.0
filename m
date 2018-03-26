@@ -1,10 +1,10 @@
-From: "Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Message could not be delivered
-Date: Mon, 26 Mar 2018 10:46:24 +0800
-Message-ID: <20180326024011.C7DFE224CCC14@ml01.01.org>
+From: =?utf-8?B?56em5Li75Lu7?= <awkhsasm-gNiBSqMgfCw@public.gmane.org>
+Subject: =?utf-8?B?5Zue5aSN77ya5paw5bi45oCB5LiL5LyB5Lia5Yqz5Yqo5YWz57O75Y+R5bGV6LaL5Yq/?=
+Date: Mon, 26 Mar 2018 20:35:36 +0800
+Message-ID: <07337244878C171EA564C6C55CFF8FF9@lgq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,13 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Mon, 26 Mar 2018 10:46:24 +0800
-from lists.01.org [65.54.123.48]
-
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:"Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-<<< 501 "Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
+LS0tLSDljp/pgq7ku7bkv6Hmga8gLS0tLS0NCuWPkeS7tuS6ujrnp6bkuLvku7s8YXdraHNhc21A
+bGdxLmNvbT4NCuaUtuS7tuS6ujpsaW51eC1udmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
+cmc+Ow0KDQogDQogCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpo
+dHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
