@@ -1,16 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7E70720954BAE
- for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:12:22 -0700 (PDT)
-Subject: [PATCH v8 03/18] block, dax: remove dead code in blkdev_writepages()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 30 Mar 2018 21:02:26 -0700
-Message-ID: <152246894622.36038.13910410206438248860.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 358AC225E964E
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Mar 2018 08:31:22 -0700 (PDT)
+References: <20180312193525.2855-1-logang@deltatee.com>
+ <20180312193525.2855-2-logang@deltatee.com>
+ <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303@codeaurora.org>
+ <24d8e5c2-065d-8bde-3f5d-7f158be9c578@deltatee.com>
+ <20180326121138.00005e30@huawei.com>
+ <20180326140118.GA221690@bhelgaas-glaptop.roam.corp.google.com>
+ <c717eb06-1e83-f0f3-4d6c-15531aa808e0@deltatee.com>
+ <20180327094701.0000300d@huawei.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <27171a6c-0e0b-4b2b-16ef-38bb3cf563a8@deltatee.com>
+Date: Tue, 27 Mar 2018 09:37:37 -0600
 MIME-Version: 1.0
+In-Reply-To: <20180327094701.0000300d@huawei.com>
+Content-Language: en-US
+Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,40 +30,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, snitzer@redhat.com, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jens Axboe <axboe@kernel.dk>, linux-block@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Keith Busch <keith.busch@intel.com>, Eric Wehage <Eric.Wehage@huawei.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Block device inodes never have S_DAX set, so kill the check for DAX and
-diversion to dax_writeback_mapping_range().
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/block_dev.c |    5 -----
- 1 file changed, 5 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index fe09ef9c21f3..846ee2d31781 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -1946,11 +1946,6 @@ static int blkdev_releasepage(struct page *page, gfp_t wait)
- static int blkdev_writepages(struct address_space *mapping,
- 			     struct writeback_control *wbc)
- {
--	if (dax_mapping(mapping)) {
--		struct block_device *bdev = I_BDEV(mapping->host);
--
--		return dax_writeback_mapping_range(mapping, bdev, wbc);
--	}
- 	return generic_writepages(mapping, wbc);
- }
- 
+On 27/03/18 02:47 AM, Jonathan Cameron wrote:
+> I'll see if I can get our PCI SIG people to follow this through and see if
+> it is just an omission or as Bjorn suggested, there is some reason we
+> aren't thinking of that makes it hard.
+
+That would be great! Thanks!
+
+Logan
 
 _______________________________________________
 Linux-nvdimm mailing list
