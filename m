@@ -1,8 +1,8 @@
-From: "柯绮彤" <Hftppmd7670-VogryctSy6bfzPdbeaSgJA@public.gmane.org>
-Subject: 79360项目管理人员推动项目运作的能力
-Date: Thu, 29 Mar 2018 03:46:39 +0800
-Message-ID: <SAK20180329$27EC31E5.$4C834F7B@manorhousek.com>
-Reply-To: 柯绮彤 <Hftppmd7670-VogryctSy6bfzPdbeaSgJA@public.gmane.org>
+From: "向泽天" <fzaksrp5357-xKB+XdaLZv9Wk0Htik3J/w@public.gmane.org>
+Subject: 如何缩短生产周期，准时交货和降低库存
+Date: Thu, 29 Mar 2018 05:39:46 +0800
+Message-ID: <SAK20180329$4C4F5F98.$2F9FC1FD@mcmgroup.com>
+Reply-To: 向泽天 <fzaksrp5357-xKB+XdaLZv9Wk0Htik3J/w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="gb2312"
 Content-Transfer-Encoding: base64
@@ -19,7 +19,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-CgrPw8PFoaKzyba8oaK549bdz6/Ou9SktqjW0KOho6GjoQoKz+ogz7ggxNrI3SDH6yDUpMDAILi9
-vP4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Cs/qz7jE2sjdIMfrINSkwMAguL28/s28xqwgCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
+QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LW52ZGltbQo=
