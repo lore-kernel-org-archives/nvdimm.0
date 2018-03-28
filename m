@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B837A22546B8F
- for <linux-nvdimm@lists.01.org>; Thu,  1 Mar 2018 19:57:13 -0800 (PST)
-Subject: [PATCH v5 08/12] xfs, dax: replace IS_DAX() with IS_FSDAX()
+ by ml01.01.org (Postfix) with ESMTPS id 9566B221C1923
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Mar 2018 14:02:54 -0700 (PDT)
+Subject: [PATCH] acpi, nfit: rework NVDIMM leaf method detection
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 01 Mar 2018 19:54:16 -0800
-Message-ID: <151996285683.28483.13394624369523668388.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151996281307.28483.12343847096989509127.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 28 Mar 2018 14:00:27 -0700
+Message-ID: <152227082782.1504.17033843515446218287.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,153 +20,134 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: linux-acpi@vger.kernel.org
+Cc: Erik Schmauss <erik.schmauss@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for fixing the broken definition of S_DAX in the
-CONFIG_FS_DAX=n + CONFIG_DEV_DAX=y case, convert all IS_DAX() usages to
-use explicit tests for FSDAX since DAX is ambiguous.
+Some BIOSen do not handle 0-byte transfer lengths for the _LSR and _LSW
+(label storage read/write) methods. This causes Linux to fallback to the
+deprecated _DSM path, or otherwise disable label support.
 
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: linux-xfs@vger.kernel.org
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Introduce acpi_nvdimm_has_method() to detect whether a method is
+available rather than calling the method, require _LSI and _LSR to be
+paired, and require read support before enabling write support.
+
 Cc: <stable@vger.kernel.org>
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Reviewed-by: Jan Kara <jack@suse.cz>
+Fixes: 4b27db7e26cd ("acpi, nfit: add support for the _LS...")
+Suggested-by: Erik Schmauss <erik.schmauss@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_file.c    |   14 +++++++-------
- fs/xfs/xfs_ioctl.c   |    4 ++--
- fs/xfs/xfs_iomap.c   |    6 +++---
- fs/xfs/xfs_reflink.c |    2 +-
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/acpi/nfit/core.c |   41 +++++++++++++++++++++--------------------
+ drivers/acpi/nfit/nfit.h |    5 ++---
+ 2 files changed, 23 insertions(+), 23 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 9ea08326f876..46a098b90fd0 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -288,7 +288,7 @@ xfs_file_read_iter(
- 	if (XFS_FORCED_SHUTDOWN(mp))
- 		return -EIO;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 4530d89044db..12fb414fa678 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -196,7 +196,7 @@ static int xlat_nvdimm_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd
+ 		 * In the _LSI, _LSR, _LSW case the locked status is
+ 		 * communicated via the read/write commands
+ 		 */
+-		if (nfit_mem->has_lsi)
++		if (nfit_mem->has_lsr)
+ 			break;
  
--	if (IS_DAX(inode))
-+	if (IS_FSDAX(inode))
- 		ret = xfs_file_dax_read(iocb, to);
- 	else if (iocb->ki_flags & IOCB_DIRECT)
- 		ret = xfs_file_dio_aio_read(iocb, to);
-@@ -726,7 +726,7 @@ xfs_file_write_iter(
- 	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
- 		return -EIO;
+ 		if (status >> 16 & ND_CONFIG_LOCKED)
+@@ -483,7 +483,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
  
--	if (IS_DAX(inode))
-+	if (IS_FSDAX(inode))
- 		ret = xfs_file_dax_write(iocb, from);
- 	else if (iocb->ki_flags & IOCB_DIRECT) {
- 		/*
-@@ -1045,7 +1045,7 @@ __xfs_filemap_fault(
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--	if (IS_DAX(inode)) {
-+	if (IS_FSDAX(inode)) {
- 		pfn_t pfn;
- 
- 		ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &xfs_iomap_ops);
-@@ -1070,7 +1070,7 @@ xfs_filemap_fault(
- {
- 	/* DAX can shortcut the normal fault path on write faults! */
- 	return __xfs_filemap_fault(vmf, PE_SIZE_PTE,
--			IS_DAX(file_inode(vmf->vma->vm_file)) &&
-+			IS_FSDAX(file_inode(vmf->vma->vm_file)) &&
- 			(vmf->flags & FAULT_FLAG_WRITE));
+ 	/* call the BIOS, prefer the named methods over _DSM if available */
+-	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
++	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsr)
+ 		out_obj = acpi_label_info(handle);
+ 	else if (nvdimm && cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
+ 		struct nd_cmd_get_config_data_hdr *p = buf;
+@@ -1653,12 +1653,23 @@ static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
+ 	device_unlock(dev->parent);
  }
  
-@@ -1079,7 +1079,7 @@ xfs_filemap_huge_fault(
- 	struct vm_fault		*vmf,
- 	enum page_entry_size	pe_size)
++static bool acpi_nvdimm_has_method(struct acpi_device *adev, char *method)
++{
++	acpi_handle handle;
++	acpi_status status;
++
++	status = acpi_get_handle(adev->handle, method, &handle);
++
++	if (ACPI_SUCCESS(status))
++		return true;
++	return false;
++}
++
+ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_mem *nfit_mem, u32 device_handle)
  {
--	if (!IS_DAX(file_inode(vmf->vma->vm_file)))
-+	if (!IS_FSDAX(file_inode(vmf->vma->vm_file)))
- 		return VM_FAULT_FALLBACK;
+ 	struct acpi_device *adev, *adev_dimm;
+ 	struct device *dev = acpi_desc->dev;
+-	union acpi_object *obj;
+ 	unsigned long dsm_mask;
+ 	const guid_t *guid;
+ 	int i;
+@@ -1731,25 +1742,15 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 					1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
  
- 	/* DAX can shortcut the normal fault path on write faults! */
-@@ -1124,12 +1124,12 @@ xfs_file_mmap(
- 	 * We don't support synchronous mappings for non-DAX files. At least
- 	 * until someone comes with a sensible use case.
- 	 */
--	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
-+	if (!IS_FSDAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
- 		return -EOPNOTSUPP;
+-	obj = acpi_label_info(adev_dimm->handle);
+-	if (obj) {
+-		ACPI_FREE(obj);
+-		nfit_mem->has_lsi = 1;
+-		dev_dbg(dev, "%s: has _LSI\n", dev_name(&adev_dimm->dev));
+-	}
+-
+-	obj = acpi_label_read(adev_dimm->handle, 0, 0);
+-	if (obj) {
+-		ACPI_FREE(obj);
+-		nfit_mem->has_lsr = 1;
++	if (acpi_nvdimm_has_method(adev_dimm, "_LSI")
++			&& acpi_nvdimm_has_method(adev_dimm, "_LSR")) {
+ 		dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
++		nfit_mem->has_lsr = true;
+ 	}
  
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
--	if (IS_DAX(file_inode(filp)))
-+	if (IS_FSDAX(file_inode(filp)))
- 		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+-	obj = acpi_label_write(adev_dimm->handle, 0, 0, NULL);
+-	if (obj) {
+-		ACPI_FREE(obj);
+-		nfit_mem->has_lsw = 1;
++	if (nfit_mem->has_lsr && acpi_nvdimm_has_method(adev_dimm, "_LSW")) {
+ 		dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
++		nfit_mem->has_lsw = true;
+ 	}
+ 
  	return 0;
- }
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 89fb1eb80aae..234279ff66ce 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1108,9 +1108,9 @@ xfs_ioctl_setattr_dax_invalidate(
- 	}
+@@ -1838,10 +1839,10 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 			cmd_mask |= nfit_mem->dsm_mask & NVDIMM_STANDARD_CMDMASK;
+ 		}
  
- 	/* If the DAX state is not changing, we have nothing to do here. */
--	if ((fa->fsx_xflags & FS_XFLAG_DAX) && IS_DAX(inode))
-+	if ((fa->fsx_xflags & FS_XFLAG_DAX) && IS_FSDAX(inode))
- 		return 0;
--	if (!(fa->fsx_xflags & FS_XFLAG_DAX) && !IS_DAX(inode))
-+	if (!(fa->fsx_xflags & FS_XFLAG_DAX) && !IS_FSDAX(inode))
- 		return 0;
+-		if (nfit_mem->has_lsi)
++		if (nfit_mem->has_lsr) {
+ 			set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
+-		if (nfit_mem->has_lsr)
+ 			set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
++		}
+ 		if (nfit_mem->has_lsw)
+ 			set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
  
- 	/* lock, flush and invalidate mapping in preparation for flag change */
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index 66e1edbfb2b2..cf794d429aec 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -241,7 +241,7 @@ xfs_iomap_write_direct(
- 	 * the reserve block pool for bmbt block allocation if there is no space
- 	 * left but we need to do unwritten extent conversion.
- 	 */
--	if (IS_DAX(VFS_I(ip))) {
-+	if (IS_FSDAX(VFS_I(ip))) {
- 		bmapi_flags = XFS_BMAPI_CONVERT | XFS_BMAPI_ZERO;
- 		if (imap->br_state == XFS_EXT_UNWRITTEN) {
- 			tflags |= XFS_TRANS_RESERVE;
-@@ -952,7 +952,7 @@ static inline bool imap_needs_alloc(struct inode *inode,
- 	return !nimaps ||
- 		imap->br_startblock == HOLESTARTBLOCK ||
- 		imap->br_startblock == DELAYSTARTBLOCK ||
--		(IS_DAX(inode) && imap->br_state == XFS_EXT_UNWRITTEN);
-+		(IS_FSDAX(inode) && imap->br_state == XFS_EXT_UNWRITTEN);
- }
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 50d36e166d70..ac9c49463731 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -171,9 +171,8 @@ struct nfit_mem {
+ 	struct resource *flush_wpq;
+ 	unsigned long dsm_mask;
+ 	int family;
+-	u32 has_lsi:1;
+-	u32 has_lsr:1;
+-	u32 has_lsw:1;
++	bool has_lsr;
++	bool has_lsw;
+ };
  
- static inline bool need_excl_ilock(struct xfs_inode *ip, unsigned flags)
-@@ -988,7 +988,7 @@ xfs_file_iomap_begin(
- 		return -EIO;
- 
- 	if (((flags & (IOMAP_WRITE | IOMAP_DIRECT)) == IOMAP_WRITE) &&
--			!IS_DAX(inode) && !xfs_get_extsz_hint(ip)) {
-+			!IS_FSDAX(inode) && !xfs_get_extsz_hint(ip)) {
- 		/* Reserve delalloc blocks for regular writeback. */
- 		return xfs_file_iomap_begin_delay(inode, offset, length, iomap);
- 	}
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 270246943a06..a126e00e05e3 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1351,7 +1351,7 @@ xfs_reflink_remap_range(
- 		goto out_unlock;
- 
- 	/* Don't share DAX file data for now. */
--	if (IS_DAX(inode_in) || IS_DAX(inode_out))
-+	if (IS_FSDAX(inode_in) || IS_FSDAX(inode_out))
- 		goto out_unlock;
- 
- 	ret = vfs_clone_file_prep_inodes(inode_in, pos_in, inode_out, pos_out,
+ struct acpi_nfit_desc {
 
 _______________________________________________
 Linux-nvdimm mailing list
