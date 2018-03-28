@@ -1,8 +1,8 @@
-From: "羿恩荣" <Nckcjfv8852-L3t5yVpv2fmXzmuOJsdVMQ@public.gmane.org>
-Subject: 955651现代化档案管理
-Date: Wed, 28 Mar 2018 23:52:44 +0800
-Message-ID: <SAK20180328$6D2335B6.$331EAA95@allflexusa.com>
-Reply-To: 羿恩荣 <Nckcjfv8852-L3t5yVpv2fmXzmuOJsdVMQ@public.gmane.org>
+From: "柯绮彤" <Hftppmd7670-VogryctSy6bfzPdbeaSgJA@public.gmane.org>
+Subject: 79360项目管理人员推动项目运作的能力
+Date: Thu, 29 Mar 2018 03:46:39 +0800
+Message-ID: <SAK20180329$27EC31E5.$4C834F7B@manorhousek.com>
+Reply-To: 柯绮彤 <Hftppmd7670-VogryctSy6bfzPdbeaSgJA@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="gb2312"
 Content-Transfer-Encoding: base64
@@ -19,7 +19,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Cs/qz7jE2sjdIMfrINSkwMAguL28/gpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+CgrPw8PFoaKzyba8oaK549bdz6/Ou9SktqjW0KOho6GjoQoKz+ogz7ggxNrI3SDH6yDUpMDAILi9
+vP4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
+bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
+dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
