@@ -1,11 +1,10 @@
-From: "向泽天" <fzaksrp5357-xKB+XdaLZv9Wk0Htik3J/w@public.gmane.org>
-Subject: 如何缩短生产周期，准时交货和降低库存
-Date: Thu, 29 Mar 2018 05:39:46 +0800
-Message-ID: <SAK20180329$4C4F5F98.$2F9FC1FD@mcmgroup.com>
-Reply-To: 向泽天 <fzaksrp5357-xKB+XdaLZv9Wk0Htik3J/w@public.gmane.org>
+From: schuchmann-ogs+x9k7xBHcX9AoAvVr1bNAH6kLmebB@public.gmane.org
+Subject: Delivery reports about your e-mail
+Date: Thu, 29 Mar 2018 11:25:06 +0800
+Message-ID: <20180329031827.EB578224DD152@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,7 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Cs/qz7jE2sjdIMfrINSkwMAguL28/s28xqwgCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
-QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LW52ZGltbQo=
+This Message was undeliverable due to the following reason:
+
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
+
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 5 days:
+Host 121.237.213.30 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-ogs+x9k7xBHcX9AoAvVr1bNAH6kLmebB@public.gmane.org
+if you feel this message to be in error.
