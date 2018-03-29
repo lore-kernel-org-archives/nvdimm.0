@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D7C83220C2A59
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 08:54:42 -0700 (PDT)
-Subject: [PATCH v6 07/15] fs,
- dax: use page->mapping to warn if truncate collides with a busy page
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Mar 2018 08:52:01 -0700
-Message-ID: <152112912106.24669.9677997765966949415.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D34F421F0DB1A
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Mar 2018 08:24:12 -0700 (PDT)
+Date: Thu, 29 Mar 2018 17:30:51 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v7 04/14] xfs, dax: introduce xfs_dax_aops
+Message-ID: <20180329153051.xostr764yps6bjg2@quack2.suse.cz>
+References: <152167302988.5268.4370226749268662682.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152167305269.5268.2789359915651914497.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <152167305269.5268.2789359915651914497.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,140 +24,135 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Catch cases where extent unmap operations encounter pages that are
-pinned / busy. Typically this is pinned pages that are under active dma.
-This warning is a canary for potential data corruption as truncated
-blocks could be allocated to a new file while the device is still
-performing i/o.
+On Wed 21-03-18 15:57:32, Dan Williams wrote:
+> In preparation for the dax implementation to start associating dax pages
+> to inodes via page->mapping, we need to provide a 'struct
+> address_space_operations' instance for dax. Otherwise, direct-I/O
+> triggers incorrect page cache assumptions and warnings like the
+> following:
+> 
+>  WARNING: CPU: 27 PID: 1783 at fs/xfs/xfs_aops.c:1468
+>  xfs_vm_set_page_dirty+0xf3/0x1b0 [xfs]
+>  [..]
+>  CPU: 27 PID: 1783 Comm: dma-collision Tainted: G           O 4.15.0-rc2+ #984
+>  [..]
+>  Call Trace:
+>   set_page_dirty_lock+0x40/0x60
+>   bio_set_pages_dirty+0x37/0x50
+>   iomap_dio_actor+0x2b7/0x3b0
+>   ? iomap_dio_zero+0x110/0x110
+>   iomap_apply+0xa4/0x110
+>   iomap_dio_rw+0x29e/0x3b0
+>   ? iomap_dio_zero+0x110/0x110
+>   ? xfs_file_dio_aio_read+0x7c/0x1a0 [xfs]
+>   xfs_file_dio_aio_read+0x7c/0x1a0 [xfs]
+>   xfs_file_read_iter+0xa0/0xc0 [xfs]
+>   __vfs_read+0xf9/0x170
+>   vfs_read+0xa6/0x150
+>   SyS_pread64+0x93/0xb0
+>   entry_SYSCALL_64_fastpath+0x1f/0x96
+> 
+> ...where the default set_page_dirty() handler assumes that dirty state
+> is being tracked in 'struct page' flags.
+> 
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Matthew Wilcox <mawilcox@microsoft.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> Suggested-by: Jan Kara <jack@suse.cz>
+> Suggested-by: Dave Chinner <david@fromorbit.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Here is an example of a collision that this implementation catches:
+Looks good to me. You can add:
 
- WARNING: CPU: 2 PID: 1286 at fs/dax.c:343 dax_disassociate_entry+0x55/0x80
- [..]
- Call Trace:
-  __dax_invalidate_mapping_entry+0x6c/0xf0
-  dax_delete_mapping_entry+0xf/0x20
-  truncate_exceptional_pvec_entries.part.12+0x1af/0x200
-  truncate_inode_pages_range+0x268/0x970
-  ? tlb_gather_mmu+0x10/0x20
-  ? up_write+0x1c/0x40
-  ? unmap_mapping_range+0x73/0x140
-  xfs_free_file_space+0x1b6/0x5b0 [xfs]
-  ? xfs_file_fallocate+0x7f/0x320 [xfs]
-  ? down_write_nested+0x40/0x70
-  ? xfs_ilock+0x21d/0x2f0 [xfs]
-  xfs_file_fallocate+0x162/0x320 [xfs]
-  ? rcu_read_lock_sched_held+0x3f/0x70
-  ? rcu_sync_lockdep_assert+0x2a/0x50
-  ? __sb_start_write+0xd0/0x1b0
-  ? vfs_fallocate+0x20c/0x270
-  vfs_fallocate+0x154/0x270
-  SyS_fallocate+0x43/0x80
-  entry_SYSCALL_64_fastpath+0x1f/0x96
-
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |   56 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index b646a46e4d12..9ba043eb6294 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -298,6 +298,56 @@ static void put_unlocked_mapping_entry(struct address_space *mapping,
- 	dax_wake_mapping_entry_waiter(mapping, index, entry, false);
- }
- 
-+static unsigned long dax_entry_size(void *entry)
-+{
-+	if (dax_is_zero_entry(entry))
-+		return 0;
-+	else if (dax_is_empty_entry(entry))
-+		return 0;
-+	else if (dax_is_pmd_entry(entry))
-+		return HPAGE_SIZE;
-+	else
-+		return PAGE_SIZE;
-+}
-+
-+#define for_each_entry_pfn(entry, pfn, end_pfn) \
-+	for (pfn = dax_radix_pfn(entry), \
-+			end_pfn = pfn + dax_entry_size(entry) / PAGE_SIZE; \
-+			pfn < end_pfn; \
-+			pfn++)
-+
-+static void dax_associate_entry(void *entry, struct address_space *mapping)
-+{
-+	unsigned long pfn, end_pfn;
-+
-+	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
-+		return;
-+
-+	for_each_entry_pfn(entry, pfn, end_pfn) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		WARN_ON_ONCE(page->mapping);
-+		page->mapping = mapping;
-+	}
-+}
-+
-+static void dax_disassociate_entry(void *entry, struct address_space *mapping,
-+		bool trunc)
-+{
-+	unsigned long pfn, end_pfn;
-+
-+	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
-+		return;
-+
-+	for_each_entry_pfn(entry, pfn, end_pfn) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
-+		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
-+		page->mapping = NULL;
-+	}
-+}
-+
- /*
-  * Find radix tree entry at given index. If it points to an exceptional entry,
-  * return it with the radix tree entry locked. If the radix tree doesn't
-@@ -404,6 +454,7 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
- 		}
- 
- 		if (pmd_downgrade) {
-+			dax_disassociate_entry(entry, mapping, false);
- 			radix_tree_delete(&mapping->page_tree, index);
- 			mapping->nrexceptional--;
- 			dax_wake_mapping_entry_waiter(mapping, index, entry,
-@@ -453,6 +504,7 @@ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
- 	    (radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_DIRTY) ||
- 	     radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE)))
- 		goto out;
-+	dax_disassociate_entry(entry, mapping, trunc);
- 	radix_tree_delete(page_tree, index);
- 	mapping->nrexceptional--;
- 	ret = 1;
-@@ -547,6 +599,10 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 
- 	spin_lock_irq(&mapping->tree_lock);
- 	new_entry = dax_radix_locked_entry(pfn, flags);
-+	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
-+		dax_disassociate_entry(entry, mapping, false);
-+		dax_associate_entry(new_entry, mapping);
-+	}
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
- 		/*
+								Honza
 
+> ---
+>  fs/xfs/xfs_aops.c |   21 +++++++++++++++++----
+>  fs/xfs/xfs_aops.h |    1 +
+>  fs/xfs/xfs_iops.c |    5 ++++-
+>  3 files changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+> index 9c6a830da0ee..5f1f5948ecc2 100644
+> --- a/fs/xfs/xfs_aops.c
+> +++ b/fs/xfs/xfs_aops.c
+> @@ -1194,16 +1194,22 @@ xfs_vm_writepages(
+>  	int			ret;
+>  
+>  	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
+> -	if (dax_mapping(mapping))
+> -		return dax_writeback_mapping_range(mapping,
+> -				xfs_find_bdev_for_inode(mapping->host), wbc);
+> -
+>  	ret = write_cache_pages(mapping, wbc, xfs_do_writepage, &wpc);
+>  	if (wpc.ioend)
+>  		ret = xfs_submit_ioend(wbc, wpc.ioend, ret);
+>  	return ret;
+>  }
+>  
+> +STATIC int
+> +xfs_dax_writepages(
+> +	struct address_space	*mapping,
+> +	struct writeback_control *wbc)
+> +{
+> +	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
+> +	return dax_writeback_mapping_range(mapping,
+> +			xfs_find_bdev_for_inode(mapping->host), wbc);
+> +}
+> +
+>  /*
+>   * Called to move a page into cleanable state - and from there
+>   * to be released. The page should already be clean. We always
+> @@ -1505,3 +1511,10 @@ const struct address_space_operations xfs_address_space_operations = {
+>  	.is_partially_uptodate  = block_is_partially_uptodate,
+>  	.error_remove_page	= generic_error_remove_page,
+>  };
+> +
+> +const struct address_space_operations xfs_dax_aops = {
+> +	.direct_IO		= xfs_vm_direct_IO,
+> +	.writepages		= xfs_dax_writepages,
+> +	.set_page_dirty		= noop_set_page_dirty,
+> +	.invalidatepage		= noop_invalidatepage,
+> +};
+> diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
+> index 88c85ea63da0..69346d460dfa 100644
+> --- a/fs/xfs/xfs_aops.h
+> +++ b/fs/xfs/xfs_aops.h
+> @@ -54,6 +54,7 @@ struct xfs_ioend {
+>  };
+>  
+>  extern const struct address_space_operations xfs_address_space_operations;
+> +extern const struct address_space_operations xfs_dax_aops;
+>  
+>  int	xfs_setfilesize(struct xfs_inode *ip, xfs_off_t offset, size_t size);
+>  
+> diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+> index 56475fcd76f2..951e84df5576 100644
+> --- a/fs/xfs/xfs_iops.c
+> +++ b/fs/xfs/xfs_iops.c
+> @@ -1272,7 +1272,10 @@ xfs_setup_iops(
+>  	case S_IFREG:
+>  		inode->i_op = &xfs_inode_operations;
+>  		inode->i_fop = &xfs_file_operations;
+> -		inode->i_mapping->a_ops = &xfs_address_space_operations;
+> +		if (IS_DAX(inode))
+> +			inode->i_mapping->a_ops = &xfs_dax_aops;
+> +		else
+> +			inode->i_mapping->a_ops = &xfs_address_space_operations;
+>  		break;
+>  	case S_IFDIR:
+>  		if (xfs_sb_version_hasasciici(&XFS_M(inode->i_sb)->m_sb))
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
