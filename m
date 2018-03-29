@@ -1,19 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x241.google.com (mail-pf0-x241.google.com
- [IPv6:2607:f8b0:400e:c00::241])
+Received: from mail-it0-x230.google.com (mail-it0-x230.google.com
+ [IPv6:2607:f8b0:4001:c0b::230])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D4212253FB7A
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:14:02 -0800 (PST)
-Received: by mail-pf0-x241.google.com with SMTP id d26so2619756pfn.5
- for <linux-nvdimm@lists.01.org>; Sat, 10 Mar 2018 10:20:21 -0800 (PST)
-From: Andiry Xu <jix024@eng.ucsd.edu>
-Subject: [RFC v2 05/83] Add NOVA filesystem definitions and useful helper
- routines.
-Date: Sat, 10 Mar 2018 10:17:46 -0800
-Message-Id: <1520705944-6723-6-git-send-email-jix024@eng.ucsd.edu>
-In-Reply-To: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
-References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+ by ml01.01.org (Postfix) with ESMTPS id 535F12210D9DF
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Mar 2018 20:04:03 -0700 (PDT)
+Received: by mail-it0-x230.google.com with SMTP id r19-v6so6367495itc.0
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Mar 2018 20:10:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAL_Jsq+jC2mAXbKh9c8dbLXZmWbD-sFemrk+8p-oGMkXqSMfnQ@mail.gmail.com>
+References: <20180323081209.31387-1-oohall@gmail.com>
+ <20180323081209.31387-6-oohall@gmail.com>
+ <20180326222448.l7ukrslvccvrjnjf@rob-hp-laptop>
+ <CAOSf1CFpFwzLMx0xmM+JmbQCiOA=QU_S5g0uf-qx181vJ_Xc1w@mail.gmail.com>
+ <CAL_Jsq+jC2mAXbKh9c8dbLXZmWbD-sFemrk+8p-oGMkXqSMfnQ@mail.gmail.com>
+From: Oliver <oohall@gmail.com>
+Date: Thu, 29 Mar 2018 14:10:40 +1100
+Message-ID: <CAOSf1CH6qUrj4SuTsYzYJCjaOecPzrwYkwCe6fL90Ot6Yto0GQ@mail.gmail.com>
+Subject: Re: [PATCH 6/6] doc/devicetree: NVDIMM region documentation
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,335 +25,171 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: coughlan@redhat.com, miklos@szeredi.hu, Andiry Xu <jix024@cs.ucsd.edu>, david@fromorbit.com, jack@suse.com, swanson@cs.ucsd.edu, swhiteho@redhat.com, andiry.xu@gmail.com
+To: Rob Herring <robh@kernel.org>
+Cc: Device Tree <devicetree@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Andiry Xu <jix024@cs.ucsd.edu>
+On Thu, Mar 29, 2018 at 4:06 AM, Rob Herring <robh@kernel.org> wrote:
+> On Tue, Mar 27, 2018 at 9:53 AM, Oliver <oohall@gmail.com> wrote:
+>> On Tue, Mar 27, 2018 at 9:24 AM, Rob Herring <robh@kernel.org> wrote:
+>>> On Fri, Mar 23, 2018 at 07:12:09PM +1100, Oliver O'Halloran wrote:
+>>>> Add device-tree binding documentation for the nvdimm region driver.
+>>>>
+>>>> Cc: devicetree@vger.kernel.org
+>>>> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+>>>> ---
+>>>>  .../devicetree/bindings/nvdimm/nvdimm-region.txt   | 45 ++++++++++++++++++++++
+>>>>  1 file changed, 45 insertions(+)
+>>>>  create mode 100644 Documentation/devicetree/bindings/nvdimm/nvdimm-region.txt
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/nvdimm/nvdimm-region.txt b/Documentation/devicetree/bindings/nvdimm/nvdimm-region.txt
+>>>> new file mode 100644
+>>>> index 000000000000..02091117ff16
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/nvdimm/nvdimm-region.txt
+>>>> @@ -0,0 +1,45 @@
+>>>> +Device-tree bindings for NVDIMM memory regions
+>>>> +-----------------------------------------------------
+>>>> +
+>>>> +Non-volatile DIMMs are memory modules used to provide (cacheable) main memory
+>>>
+>>> Are DIMMs always going to be the only form factor for NV memory?
+>>>
+>>> And if you have multiple DIMMs, does each DT node correspond to a DIMM?
+>>
+>> A nvdimm-region might correspond to a single NVDIMM, a set of
+>> interleaved NVDIMMs, or it might just be a chunk of normal memory that
+>> you want treated as a NVDIMM for some reason. The last case is useful
+>> for provisioning install media on servers since it allows you do
+>> download a DVD image, turn it into an nvdimm-region, and kexec into
+>> the installer which can use it as a root disk. That may seem a little
+>> esoteric, but it's handy and we're using a full linux environment for
+>> our boot loader so it's easy to make use of.
+>
+> I'm really just asking if we should drop the "dimm" name because it is
+> not always a DIMM. Maybe pmem instead? I don't know, naming is
+> hard(TM).
 
-NOVA stores offset rather than absolute addresses in pmem.
-nova_get_block() and nova_get_addr_off() provide transitions
-between these two kinds of addresses.
+pmem is probably a better name. I'll fix that up.
 
-Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
----
- fs/nova/nova.h | 299 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 299 insertions(+)
- create mode 100644 fs/nova/nova.h
+>>> If not, then what if we want/need to provide power control to a DIMM?
+>>
+>> That would require a DIMM (and probably memory controller) specific
+>> driver. I've deliberately left out how regions are mapped back to
+>> DIMMs from the binding since it's not really clear to me how that
+>> should work. A phandle array pointing to each DIMM device (which could
+>> be anything) would do the trick, but I've found that a bit awkward to
+>> plumb into the model that libnvdimm expects.
+>>
+>>>> +that retains its contents across power cycles. In more practical terms, they
+>>>> +are kind of storage device where the contents can be accessed by the CPU
+>>>> +directly, rather than indirectly via a storage controller or similar. The an
+>>>> +nvdimm-region specifies a physical address range that is hosted on an NVDIMM
+>>>> +device.
+>>>> +
+>>>> +Bindings for the region nodes:
+>>>> +-----------------------------
+>>>> +
+>>>> +Required properties:
+>>>> +     - compatible = "nvdimm-region"
+>>>> +
+>>>> +     - reg = <base, size>;
+>>>> +             The system physical address range of this nvdimm region.
+>>>> +
+>>>> +Optional properties:
+>>>> +     - Any relevant NUMA assocativity properties for the target platform.
+>>>> +     - A "volatile" property indicating that this region is actually in
+>>>> +       normal DRAM and does not require cache flushes after each write.
+>>>> +
+>>>> +A complete example:
+>>>> +--------------------
+>>>> +
+>>>> +/ {
+>>>> +     #size-cells = <2>;
+>>>> +     #address-cells = <2>;
+>>>> +
+>>>> +     platform {
+>>>
+>>> Perhaps we need a more well defined node here. Like we have 'memory' for
+>>> memory nodes.
+>>
+>> I think treating it as a platform device is fine. Memory nodes are
+>
+> Platform device is a Linux term...
+>
+>> special since the OS needs to know where it can allocate early in boot
+>> and I don't see non-volatile memory as being similarly significant.
+>> Fundamentally an NVDIMM is just a memory mapped storage device so we
+>> should be able to defer looking at them until later in boot.
+>
+> It's not clear if 'platform' is just an example or random name or what
+> the node is required to be called. In the latter case, we should be
+> much more specific because 'platform' could be anything. In the former
+> case, then we have no way to find or validate the node because the
+> name could be anything and there's no compatible property either.
 
-diff --git a/fs/nova/nova.h b/fs/nova/nova.h
-new file mode 100644
-index 0000000..5eb696c
---- /dev/null
-+++ b/fs/nova/nova.h
-@@ -0,0 +1,299 @@
-+/*
-+ * BRIEF DESCRIPTION
-+ *
-+ * Definitions for the NOVA filesystem.
-+ *
-+ * Copyright 2015-2016 Regents of the University of California,
-+ * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
-+ * Copyright 2012-2013 Intel Corporation
-+ * Copyright 2009-2011 Marco Stornelli <marco.stornelli@gmail.com>
-+ * Copyright 2003 Sony Corporation
-+ * Copyright 2003 Matsushita Electric Industrial Co., Ltd.
-+ * 2003-2004 (c) MontaVista Software, Inc. , Steve Longerbeam
-+ * This file is licensed under the terms of the GNU General Public
-+ * License version 2. This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
-+ */
-+#ifndef __NOVA_H
-+#define __NOVA_H
-+
-+#include <linux/fs.h>
-+#include <linux/dax.h>
-+#include <linux/init.h>
-+#include <linux/time.h>
-+#include <linux/rtc.h>
-+#include <linux/mm.h>
-+#include <linux/delay.h>
-+#include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+#include <linux/sched.h>
-+#include <linux/mutex.h>
-+#include <linux/pagemap.h>
-+#include <linux/backing-dev.h>
-+#include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
-+#include <linux/rcupdate.h>
-+#include <linux/types.h>
-+#include <linux/rbtree.h>
-+#include <linux/radix-tree.h>
-+#include <linux/version.h>
-+#include <linux/kthread.h>
-+#include <linux/buffer_head.h>
-+#include <linux/uio.h>
-+#include <linux/iomap.h>
-+#include <linux/crc32c.h>
-+#include <asm/tlbflush.h>
-+#include <linux/version.h>
-+#include <linux/pfn_t.h>
-+#include <linux/pagevec.h>
-+
-+#include "nova_def.h"
-+
-+#define PAGE_SHIFT_2M 21
-+#define PAGE_SHIFT_1G 30
-+
-+
-+/*
-+ * Debug code
-+ */
-+#ifdef pr_fmt
-+#undef pr_fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#endif
-+
-+/* #define nova_dbg(s, args...)		pr_debug(s, ## args) */
-+#define nova_dbg(s, args ...)		pr_info(s, ## args)
-+#define nova_err(sb, s, args ...)	nova_error_mng(sb, s, ## args)
-+#define nova_warn(s, args ...)		pr_warn(s, ## args)
-+#define nova_info(s, args ...)		pr_info(s, ## args)
-+
-+extern unsigned int nova_dbgmask;
-+#define NOVA_DBGMASK_MMAPHUGE	       (0x00000001)
-+#define NOVA_DBGMASK_MMAP4K	       (0x00000002)
-+#define NOVA_DBGMASK_MMAPVERBOSE       (0x00000004)
-+#define NOVA_DBGMASK_MMAPVVERBOSE      (0x00000008)
-+#define NOVA_DBGMASK_VERBOSE	       (0x00000010)
-+#define NOVA_DBGMASK_TRANSACTION       (0x00000020)
-+
-+#define nova_dbg_mmap4k(s, args ...)		 \
-+	((nova_dbgmask & NOVA_DBGMASK_MMAP4K) ? nova_dbg(s, args) : 0)
-+#define nova_dbg_mmapv(s, args ...)		 \
-+	((nova_dbgmask & NOVA_DBGMASK_MMAPVERBOSE) ? nova_dbg(s, args) : 0)
-+#define nova_dbg_mmapvv(s, args ...)		 \
-+	((nova_dbgmask & NOVA_DBGMASK_MMAPVVERBOSE) ? nova_dbg(s, args) : 0)
-+
-+#define nova_dbg_verbose(s, args ...)		 \
-+	((nova_dbgmask & NOVA_DBGMASK_VERBOSE) ? nova_dbg(s, ##args) : 0)
-+#define nova_dbgv(s, args ...)	nova_dbg_verbose(s, ##args)
-+#define nova_dbg_trans(s, args ...)		 \
-+	((nova_dbgmask & NOVA_DBGMASK_TRANSACTION) ? nova_dbg(s, ##args) : 0)
-+
-+#define NOVA_ASSERT(x) do {\
-+			       if (!(x))\
-+				       nova_warn("assertion failed %s:%d: %s\n", \
-+			       __FILE__, __LINE__, #x);\
-+		       } while (0)
-+
-+#define nova_set_bit		       __test_and_set_bit_le
-+#define nova_clear_bit		       __test_and_clear_bit_le
-+#define nova_find_next_zero_bit	       find_next_zero_bit_le
-+
-+#define clear_opt(o, opt)	(o &= ~NOVA_MOUNT_ ## opt)
-+#define set_opt(o, opt)		(o |= NOVA_MOUNT_ ## opt)
-+#define test_opt(sb, opt)	(NOVA_SB(sb)->s_mount_opt & NOVA_MOUNT_ ## opt)
-+
-+#define NOVA_LARGE_INODE_TABLE_SIZE    (0x200000)
-+/* NOVA size threshold for using 2M blocks for inode table */
-+#define NOVA_LARGE_INODE_TABLE_THREASHOLD    (0x20000000)
-+/*
-+ * nova inode flags
-+ *
-+ * NOVA_EOFBLOCKS_FL	There are blocks allocated beyond eof
-+ */
-+#define NOVA_EOFBLOCKS_FL      0x20000000
-+/* Flags that should be inherited by new inodes from their parent. */
-+#define NOVA_FL_INHERITED (FS_SECRM_FL | FS_UNRM_FL | FS_COMPR_FL | \
-+			    FS_SYNC_FL | FS_NODUMP_FL | FS_NOATIME_FL |	\
-+			    FS_COMPRBLK_FL | FS_NOCOMP_FL | \
-+			    FS_JOURNAL_DATA_FL | FS_NOTAIL_FL | FS_DIRSYNC_FL)
-+/* Flags that are appropriate for regular files (all but dir-specific ones). */
-+#define NOVA_REG_FLMASK (~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
-+/* Flags that are appropriate for non-directories/regular files. */
-+#define NOVA_OTHER_FLMASK (FS_NODUMP_FL | FS_NOATIME_FL)
-+#define NOVA_FL_USER_VISIBLE (FS_FL_USER_VISIBLE | NOVA_EOFBLOCKS_FL)
-+
-+/* IOCTLs */
-+#define	NOVA_PRINT_TIMING		0xBCD00010
-+#define	NOVA_CLEAR_STATS		0xBCD00011
-+#define	NOVA_PRINT_LOG			0xBCD00013
-+#define	NOVA_PRINT_LOG_BLOCKNODE	0xBCD00014
-+#define	NOVA_PRINT_LOG_PAGES		0xBCD00015
-+#define	NOVA_PRINT_FREE_LISTS		0xBCD00018
-+
-+
-+#define	READDIR_END			(ULONG_MAX)
-+#define	ANY_CPU				(65536)
-+#define	FREE_BATCH			(16)
-+
-+extern unsigned int blk_type_to_shift[NOVA_BLOCK_TYPE_MAX];
-+extern unsigned int blk_type_to_size[NOVA_BLOCK_TYPE_MAX];
-+
-+
-+/* Mask out flags that are inappropriate for the given type of inode. */
-+static inline __le32 nova_mask_flags(umode_t mode, __le32 flags)
-+{
-+	flags &= cpu_to_le32(NOVA_FL_INHERITED);
-+	if (S_ISDIR(mode))
-+		return flags;
-+	else if (S_ISREG(mode))
-+		return flags & cpu_to_le32(NOVA_REG_FLMASK);
-+	else
-+		return flags & cpu_to_le32(NOVA_OTHER_FLMASK);
-+}
-+
-+static inline u32 nova_crc32c(u32 crc, const u8 *data, size_t len)
-+{
-+	u8 *ptr = (u8 *) data;
-+	u64 acc = crc; /* accumulator, crc32c value in lower 32b */
-+	u32 csum;
-+
-+	/* x86 instruction crc32 is part of SSE-4.2 */
-+	if (static_cpu_has(X86_FEATURE_XMM4_2)) {
-+		/* This inline assembly implementation should be equivalent
-+		 * to the kernel's crc32c_intel_le_hw() function used by
-+		 * crc32c(), but this performs better on test machines.
-+		 */
-+		while (len > 8) {
-+			asm volatile(/* 64b quad words */
-+				"crc32q (%1), %0"
-+				: "=r" (acc)
-+				: "r"  (ptr), "0" (acc)
-+			);
-+			ptr += 8;
-+			len -= 8;
-+		}
-+
-+		while (len > 0) {
-+			asm volatile(/* trailing bytes */
-+				"crc32b (%1), %0"
-+				: "=r" (acc)
-+				: "r"  (ptr), "0" (acc)
-+			);
-+			ptr++;
-+			len--;
-+		}
-+
-+		csum = (u32) acc;
-+	} else {
-+		/* The kernel's crc32c() function should also detect and use the
-+		 * crc32 instruction of SSE-4.2. But calling in to this function
-+		 * is about 3x to 5x slower than the inline assembly version on
-+		 * some test machines.
-+		 */
-+		csum = crc32c(crc, data, len);
-+	}
-+
-+	return csum;
-+}
-+
-+static inline int memcpy_to_pmem_nocache(void *dst, const void *src,
-+	unsigned int size)
-+{
-+	int ret;
-+
-+	ret = __copy_from_user_inatomic_nocache(dst, src, size);
-+
-+	return ret;
-+}
-+
-+
-+/* assumes the length to be 4-byte aligned */
-+static inline void memset_nt(void *dest, uint32_t dword, size_t length)
-+{
-+	uint64_t dummy1, dummy2;
-+	uint64_t qword = ((uint64_t)dword << 32) | dword;
-+
-+	asm volatile ("movl %%edx,%%ecx\n"
-+		"andl $63,%%edx\n"
-+		"shrl $6,%%ecx\n"
-+		"jz 9f\n"
-+		"1:	 movnti %%rax,(%%rdi)\n"
-+		"2:	 movnti %%rax,1*8(%%rdi)\n"
-+		"3:	 movnti %%rax,2*8(%%rdi)\n"
-+		"4:	 movnti %%rax,3*8(%%rdi)\n"
-+		"5:	 movnti %%rax,4*8(%%rdi)\n"
-+		"8:	 movnti %%rax,5*8(%%rdi)\n"
-+		"7:	 movnti %%rax,6*8(%%rdi)\n"
-+		"8:	 movnti %%rax,7*8(%%rdi)\n"
-+		"leaq 64(%%rdi),%%rdi\n"
-+		"decl %%ecx\n"
-+		"jnz 1b\n"
-+		"9:	movl %%edx,%%ecx\n"
-+		"andl $7,%%edx\n"
-+		"shrl $3,%%ecx\n"
-+		"jz 11f\n"
-+		"10:	 movnti %%rax,(%%rdi)\n"
-+		"leaq 8(%%rdi),%%rdi\n"
-+		"decl %%ecx\n"
-+		"jnz 10b\n"
-+		"11:	 movl %%edx,%%ecx\n"
-+		"shrl $2,%%ecx\n"
-+		"jz 12f\n"
-+		"movnti %%eax,(%%rdi)\n"
-+		"12:\n"
-+		: "=D"(dummy1), "=d" (dummy2)
-+		: "D" (dest), "a" (qword), "d" (length)
-+		: "memory", "rcx");
-+}
-+
-+
-+#include "super.h" // Remove when we factor out these and other functions.
-+
-+/* Translate an offset the beginning of the Nova instance to a PMEM address.
-+ *
-+ * If this is part of a read-modify-write of the block,
-+ * nova_memunlock_block() before calling!
-+ */
-+static inline void *nova_get_block(struct super_block *sb, u64 block)
-+{
-+	struct nova_super_block *ps = nova_get_super(sb);
-+
-+	return block ? ((void *)ps + block) : NULL;
-+}
-+
-+static inline int nova_get_reference(struct super_block *sb, u64 block,
-+	void *dram, void **nvmm, size_t size)
-+{
-+	int rc;
-+
-+	*nvmm = nova_get_block(sb, block);
-+	rc = memcpy_mcsafe(dram, *nvmm, size);
-+	return rc;
-+}
-+
-+
-+static inline u64
-+nova_get_addr_off(struct nova_sb_info *sbi, void *addr)
-+{
-+	NOVA_ASSERT((addr >= sbi->virt_addr) &&
-+			(addr < (sbi->virt_addr + sbi->initsize)));
-+	return (u64)(addr - sbi->virt_addr);
-+}
-+
-+static inline u64
-+nova_get_block_off(struct super_block *sb, unsigned long blocknr,
-+		    unsigned short btype)
-+{
-+	return (u64)blocknr << PAGE_SHIFT;
-+}
-+
-+
-+static inline u64 nova_get_epoch_id(struct super_block *sb)
-+{
-+	struct nova_sb_info *sbi = NOVA_SB(sb);
-+
-+	return sbi->s_epoch_id;
-+}
-+
-+#include "inode.h"
-+#endif /* __NOVA_H */
--- 
-2.7.4
+Sorry, the platform node is just there as an example. I'll remove it.
 
+> "region" is pretty generic too.
+
+It is, but I didn't see a compelling reason to call it something else.
+
+>> That said you might have problems with XIP kernels and what not. I
+>> think that problem is better solved through other means though.
+>>
+>>>> +             region@5000 {
+>>>> +                     compatible = "nvdimm-region;
+>>>> +                     reg = <0x00000001 0x00000000 0x00000000 0x40000000>
+>>>> +
+>>>> +             };
+>>>> +
+>>>> +             region@6000 {
+>>>> +                     compatible = "nvdimm-region";
+>>>> +                     reg = <0x00000001 0x00000000 0x00000000 0x40000000>
+>
+> Thinking about this some more, the 2 levels of nodes is pointless.
+> Just follow memory nodes structure.
+>
+> nv-memory@100000000 {
+>   compatible = "nvdimm-region";
+>   reg = <0x00000001 0x00000000 0x00000000 0x40000000>;
+> };
+>
+> nv-memory@200000000 {
+>   compatible = "nvdimm-region";
+>   reg = <0x00000002 0x00000000 0x00000000 0x40000000>;
+> };
+>
+> or:
+>
+> nv-memory@100000000 {
+>   compatible = "nvdimm-region";
+>   reg = <0x00000001 0x00000000 0x00000000 0x40000000>
+>     <0x00000002 0x00000000 0x00000000 0x40000000>;
+> };
+>
+> Both forms should be allowed.
+
+In the example you need two separate nodes since one has the
+"volatile" property to indicate it's backed by normal memory while the
+other doesn't. That detail is important since the OS can skip doing
+cache flushes when writing to a region that it knows is volatile.
+
+Anyway, the usefulness of having multiple ranges in the reg is a bit
+dubious since you should never see dis-contiguous ranges of memory
+backed by the same devices. Keep in mind that this binding here is
+deliberately skeletal and leaves out the parts required to map the
+region to the backing devices, once that is added there's not going to
+be a whole lot of room for coalescing nodes. That said, I'll add
+support for it anyway since it might be nice to have for hand-written
+DTs (ours are mostly generated by FW).
+
+Thanks,
+Oliver
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
