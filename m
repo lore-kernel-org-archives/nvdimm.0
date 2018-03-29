@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 81CCF224DD133
- for <linux-nvdimm@lists.01.org>; Thu, 29 Mar 2018 15:30:28 -0700 (PDT)
-Subject: [PATCH 1/4] acpi: add find error record in BERT function
+ by ml01.01.org (Postfix) with ESMTPS id 5C68C224DD140
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Mar 2018 15:30:34 -0700 (PDT)
+Subject: [PATCH 2/4] acpi/libnvdimm: search through BERT records and add to
+ nvdimm badblocks
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 29 Mar 2018 15:37:07 -0700
-Message-ID: <152236302712.35558.17322719540329044966.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 29 Mar 2018 15:37:13 -0700
+Message-ID: <152236303313.35558.14974025959641773033.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: <152236282506.35558.2067249639136170490.stgit@djiang5-desk3.ch.intel.com>
 References: <152236282506.35558.2067249639136170490.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
@@ -23,250 +24,89 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: tony.luck@intel.com, linux-nvdimm@lists.01.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Ying Huang <ying.huang@intel.com>, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, tony.luck@intel.com, rjw@rjwysocki.net, lenb@kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding helper function for searching through BERT records and matching
-memory based errors that matches in the given resource range given. A
-callback function is passed in from the caller to process the matched
-memory records. This is in preparation for adding bad memory ranges
-fir nvdimm from the BERT.
+To avoid hitting bad address in nvdimm from previous boot, we will search
+through the BERT records to find the matching address and add them to the
+nvdimm_bus badblocks.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Cc: Ying Huang <ying.huang@intel.com>
 ---
- drivers/acpi/apei/bert.c |  137 ++++++++++++++++++++++++++++++++++++++++++----
- include/linux/acpi.h     |   10 +++
- 2 files changed, 134 insertions(+), 13 deletions(-)
+ drivers/acpi/nfit/core.c  |   22 ++++++++++++++++++++++
+ drivers/nvdimm/core.c     |    6 ++++++
+ include/linux/libnvdimm.h |    1 +
+ 3 files changed, 29 insertions(+)
 
-diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-index 12771fcf0417..9569c15bd616 100644
---- a/drivers/acpi/apei/bert.c
-+++ b/drivers/acpi/apei/bert.c
-@@ -26,6 +26,7 @@
- #include <linux/init.h>
- #include <linux/acpi.h>
- #include <linux/io.h>
-+#include <acpi/ghes.h>
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index bbe48ad20886..3e3b95298a21 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2639,6 +2639,15 @@ static bool nfit_spa_is_volatile(struct acpi_nfit_system_address *spa)
+ 		nfit_spa_type(spa) == NFIT_SPA_VOLATILE);
+ }
  
- #include "apei-internal.h"
- 
-@@ -34,33 +35,36 @@
- 
- static int bert_disable;
- 
--static void __init bert_print_all(struct acpi_bert_region *region,
--				  unsigned int region_len)
-+static int bert_process_region(struct acpi_bert_region *region,
-+		unsigned int region_len,
-+		int (*process)(struct acpi_hest_generic_status *estatus,
-+			void *data), void *data)
- {
- 	struct acpi_hest_generic_status *estatus =
- 		(struct acpi_hest_generic_status *)region;
- 	int remain = region_len;
- 	u32 estatus_len;
-+	int rc;
- 
- 	if (!estatus->block_status)
--		return;
-+		return -ENXIO;
- 
- 	while (remain > sizeof(struct acpi_bert_region)) {
- 		if (cper_estatus_check(estatus)) {
- 			pr_err(FW_BUG "Invalid error record.\n");
--			return;
-+			return -ENXIO;
- 		}
- 
- 		estatus_len = cper_estatus_len(estatus);
- 		if (remain < estatus_len) {
--			pr_err(FW_BUG "Truncated status block (length: %u).\n",
--			       estatus_len);
--			return;
-+			pr_err(FW_BUG "Truncated status block (len: %u).\n",
-+					estatus_len);
-+			return -ENXIO;
- 		}
- 
--		pr_info_once("Error records from previous boot:\n");
--
--		cper_estatus_print(KERN_INFO HW_ERR, estatus);
-+		rc = process(estatus, data);
-+		if (rc < 0)
-+			return rc;
- 
- 		/*
- 		 * Because the boot error source is "one-time polled" type,
-@@ -72,10 +76,22 @@ static void __init bert_print_all(struct acpi_bert_region *region,
- 		estatus = (void *)estatus + estatus_len;
- 		/* No more error records. */
- 		if (!estatus->block_status)
--			return;
-+			return -ENXIO;
- 
- 		remain -= estatus_len;
- 	}
++static void acpi_nfit_bert_callback(void *data, u64 addr, u64 len)
++{
++	struct nd_region *nd_region = (struct nd_region *)data;
++	struct nvdimm_bus *nvdimm_bus = nvdimm_region_to_bus(nd_region);
 +
-+	return 0;
++	nvdimm_bus_add_badrange(nvdimm_bus, ALIGN(addr, L1_CACHE_BYTES), len);
++	nvdimm_region_notify(nd_region, NVDIMM_REVALIDATE_POISON);
 +}
 +
-+static int __init bert_print(struct acpi_hest_generic_status *estatus,
-+		void *data)
-+{
-+	pr_info_once("Error records from previous boot:\n");
-+
-+	cper_estatus_print(KERN_INFO HW_ERR, estatus);
-+
-+	return 0;
- }
- 
- static int __init setup_bert_disable(char *str)
-@@ -86,7 +102,7 @@ static int __init setup_bert_disable(char *str)
- }
- __setup("bert_disable", setup_bert_disable);
- 
--static int __init bert_check_table(struct acpi_table_bert *bert_tab)
-+static int bert_check_table(struct acpi_table_bert *bert_tab)
+ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_spa *nfit_spa)
  {
- 	if (bert_tab->header.length < sizeof(struct acpi_table_bert) ||
- 	    bert_tab->region_length < sizeof(struct acpi_bert_region))
-@@ -138,7 +154,8 @@ static int __init bert_init(void)
- 		goto out_fini;
- 	boot_error_region = ioremap_cache(bert_tab->address, region_len);
- 	if (boot_error_region) {
--		bert_print_all(boot_error_region, region_len);
-+		bert_process_region(boot_error_region, region_len,
-+				bert_print, NULL);
- 		iounmap(boot_error_region);
- 	} else {
- 		rc = -ENOMEM;
-@@ -152,3 +169,97 @@ static int __init bert_init(void)
- }
- 
- late_initcall(bert_init);
+@@ -2735,6 +2744,19 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	if (rc)
+ 		dev_err(acpi_desc->dev, "failed to register spa range %d\n",
+ 				nfit_spa->spa->range_index);
 +
-+struct mem_err_cb_ctx
-+{
-+	void (*cb)(void *data, u64 addr, u64 len);
-+	void *data;
-+	u64 addr;
-+	u64 len;
-+};
++	/* If we have a region, we can check the BERT */
++	if (nfit_spa->nd_region) {
++		int count = bert_find_mem_error_record(
++				acpi_nfit_bert_callback,
++				(void *)nfit_spa->nd_region, spa->address,
++				spa->length);
 +
-+static int bert_process_mem_err(struct acpi_hest_generic_status *estatus,
-+		void *data)
-+{
-+	struct mem_err_cb_ctx *ctx = data;
-+	u16 severity;
-+	u64 end = ctx->addr + ctx->len - 1;
-+	struct acpi_hest_generic_data *gdata;
-+	int found = 0;
-+
-+	severity = estatus->error_severity;
-+	if (severity != CPER_SEV_CORRECTED) {
-+		apei_estatus_for_each_section(estatus, gdata) {
-+			guid_t *sec_type =
-+				(guid_t *)gdata->section_type;
-+			struct cper_sec_mem_err *mem_err =
-+				acpi_hest_get_payload(gdata);
-+
-+			if (!guid_equal(sec_type,
-+					&CPER_SEC_PLATFORM_MEM))
-+				continue;
-+
-+			if (!(mem_err->validation_bits &
-+					CPER_MEM_VALID_PA))
-+				continue;
-+
-+			if (ctx->addr > mem_err->physical_addr ||
-+				end < mem_err->physical_addr)
-+				continue;
-+
-+			ctx->cb(ctx->data, mem_err->physical_addr,
-+					L1_CACHE_BYTES);
-+			found++;
-+		}
++		if (count > 0)
++			dev_dbg(acpi_desc->dev, "%d BERT records added\n",
++					count);
 +	}
 +
-+	return found;
-+}
-+
-+int bert_find_mem_error_record(void (*cb)(void *data, u64 addr, u64 len),
-+		void *data, u64 addr, u64 len)
-+{
-+	acpi_status status;
-+	int rc;
-+	unsigned int region_len;
-+	struct acpi_bert_region *bert_region;
-+	struct acpi_table_bert *bert_tab;
-+	struct mem_err_cb_ctx ctx = {
-+		.cb = cb,
-+		.data = data,
-+		.addr = addr,
-+		.len = len,
-+	};
-+
-+	if (acpi_disabled)
-+		return 0;
-+
-+	status = acpi_get_table(ACPI_SIG_BERT, 0,
-+			(struct acpi_table_header **)&bert_tab);
-+	if (status == AE_NOT_FOUND)
-+		return 0;
-+
-+	if (ACPI_FAILURE(status))
-+		return -EINVAL;
-+
-+	rc = bert_check_table(bert_tab);
-+	if (rc)
-+		return rc;
-+
-+	region_len = bert_tab->region_length;
-+	bert_region = acpi_os_map_memory(bert_tab->address, region_len);
-+	if (!bert_region) {
-+		rc = -ENOMEM;
-+		goto put_table;
-+	}
-+
-+	rc = bert_process_region(bert_region, region_len,
-+				bert_process_mem_err, &ctx);
-+
-+	acpi_os_unmap_memory(bert_region, region_len);
-+put_table:
-+	acpi_put_table((struct acpi_table_header *)bert_tab);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(bert_find_mem_error_record);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 968173ec2726..57ed7b39f386 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1146,6 +1146,10 @@ int __acpi_probe_device_table(struct acpi_probe_entry *start, int nr);
- 					  (&ACPI_PROBE_TABLE_END(t) -	\
- 					   &ACPI_PROBE_TABLE(t)));	\
- 	})
-+
-+int bert_find_mem_error_record(
-+		void (*cb)(void *data, u64 addr, u64 len),
-+		void *data, u64 addr, u64 len);
- #else
- static inline int acpi_dev_get_property(struct acpi_device *adev,
- 					const char *name, acpi_object_type type,
-@@ -1247,6 +1251,12 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *fwnode,
- 		     (void *) data }
+ 	return rc;
+ }
  
- #define acpi_probe_device_table(t)	({ int __r = 0; __r;})
-+int bert_find_mem_error_record(
-+		void (*cb)(void *data, u64 addr, u64 len),
-+		void *data, u64 addr, u64 len)
-+{
-+	return -EOPNOTSUPP;
-+}
- #endif
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 1dc527660637..7dbdb80e72be 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -27,6 +27,12 @@
+ LIST_HEAD(nvdimm_bus_list);
+ DEFINE_MUTEX(nvdimm_bus_list_mutex);
  
- #ifdef CONFIG_ACPI_TABLE_UPGRADE
++struct nvdimm_bus *nvdimm_region_to_bus(struct nd_region *nd_region)
++{
++	return walk_to_nvdimm_bus(&nd_region->dev);
++}
++EXPORT_SYMBOL(nvdimm_region_to_bus);
++
+ void nvdimm_bus_lock(struct device *dev)
+ {
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index ff855ed965fb..0c3cb02e5706 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -200,6 +200,7 @@ u64 nd_fletcher64(void *addr, size_t len, bool le);
+ void nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
+ int nvdimm_has_cache(struct nd_region *nd_region);
++struct nvdimm_bus *nvdimm_region_to_bus(struct nd_region *nd_region);
+ 
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ #define ARCH_MEMREMAP_PMEM MEMREMAP_WB
 
 _______________________________________________
 Linux-nvdimm mailing list
