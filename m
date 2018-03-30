@@ -1,10 +1,9 @@
-From: schuchmann-ogs+x9k7xBHcX9AoAvVr1bNAH6kLmebB@public.gmane.org
-Subject: Delivery reports about your e-mail
-Date: Thu, 29 Mar 2018 11:25:06 +0800
-Message-ID: <20180329031827.EB578224DD152@ml01.01.org>
+From: =?GB2312?B?w8+IkNXV?= <iviuqiang-zMpUey7/ozHz1n+OaKNE4w@public.gmane.org>
+Subject: =?GB2312?B?UmWjusjnus7Nu8bGyfqy+sa/vrG53MDt?=
+Date: Fri, 30 Mar 2018 10:03:27 +0800
+Message-ID: <20180330020327.E94C121F0DB15@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0785881083192449130=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,25 +14,29 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
+This is a multi-part message in MIME format
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+--===============0785881083192449130==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
 
-Your message was not delivered within 5 days:
-Host 121.237.213.30 is not responding.
+带您走进高科技龙头企业「联想」Lenovo
 
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+附  件  亲  启
 
-Please reply to postmaster-ogs+x9k7xBHcX9AoAvVr1bNAH6kLmebB@public.gmane.org
-if you feel this message to be in error.
+--===============0785881083192449130==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============0785881083192449130==--
