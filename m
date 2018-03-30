@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2352.austin.hpe.com (g2t2352.austin.hpe.com [15.233.44.25])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3F66521F85E90
- for <linux-nvdimm@lists.01.org>; Wed, 28 Mar 2018 13:08:53 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] ndctl, label: change nvdimm_num_label_slots per UEFI 2.7
-Date: Wed, 28 Mar 2018 14:15:12 -0600
-Message-Id: <20180328201512.5688-1-toshi.kani@hpe.com>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id E271921E0817D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 16:37:08 -0700 (PDT)
+Date: Sat, 31 Mar 2018 07:36:54 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 1/4] acpi: add find error record in BERT function
+Message-ID: <201803310742.jTzcHxid%fengguang.wu@intel.com>
+References: <152236302712.35558.17322719540329044966.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <152236302712.35558.17322719540329044966.stgit@djiang5-desk3.ch.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,85 +19,75 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: tony.luck@intel.com, linux-nvdimm@lists.01.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, kbuild-all@01.org, Ying Huang <ying.huang@intel.com>, lenb@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-sizeof_namespace_index() fails when NVDIMM devices have the minimum
-1024 bytes label storage area.  nvdimm_num_label_slots() returns 3
-slots while the area is only big enough for 2 slots.
+Hi Dave,
 
-Change nvdimm_num_label_slots() to calculate a number of label slots
-according to UEFI 2.7 spec.
+I love your patch! Yet something to improve:
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+[auto build test ERROR on pm/linux-next]
+[also build test ERROR on v4.16-rc7 next-20180329]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Dave-Jiang/Adding-support-to-parse-BERT-for-libnvdimm/20180331-065821
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+config: i386-tinyconfig (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
+
+All errors (new ones prefixed by >>):
+
+   arch/x86/kernel/setup.o: In function `bert_find_mem_error_record':
+>> setup.c:(.text+0x3): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/i8259.o: In function `bert_find_mem_error_record':
+   i8259.c:(.text+0x2c2): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/irqinit.o: In function `bert_find_mem_error_record':
+   irqinit.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/bootflag.o: In function `bert_find_mem_error_record':
+   bootflag.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/e820.o: In function `bert_find_mem_error_record':
+   e820.c:(.text+0xb1): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/pci-dma.o: In function `bert_find_mem_error_record':
+   pci-dma.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/rtc.o: In function `bert_find_mem_error_record':
+   rtc.c:(.text+0x41): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   kernel/sysctl.o: In function `bert_find_mem_error_record':
+   sysctl.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/platform.o: In function `bert_find_mem_error_record':
+   platform.c:(.text+0x1e8): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/cpu.o: In function `bert_find_mem_error_record':
+   cpu.c:(.text+0x1a1): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/property.o: In function `bert_find_mem_error_record':
+   property.c:(.text+0x2aa): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/cacheinfo.o: In function `bert_find_mem_error_record':
+   cacheinfo.c:(.text+0x2e5): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/dma-mapping.o: In function `bert_find_mem_error_record':
+   dma-mapping.c:(.text+0x104): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+
 ---
- ndctl/lib/dimm.c |   34 ++++++++++++++++++++++++----------
- 1 file changed, 24 insertions(+), 10 deletions(-)
-
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index b3e032e..6b78a4b 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -66,9 +66,27 @@ static unsigned int sizeof_namespace_label(struct nvdimm_data *ndd)
- 	return ndctl_dimm_sizeof_namespace_label(to_dimm(ndd));
- }
- 
-+static size_t __sizeof_namespace_index(u32 nslot)
-+{
-+	return ALIGN(sizeof(struct namespace_index) + DIV_ROUND_UP(nslot, 8),
-+			NSINDEX_ALIGN);
-+}
-+
-+static int __nvdimm_num_label_slots(struct nvdimm_data *ndd,
-+		size_t index_size)
-+{
-+	return (ndd->config_size - index_size * 2) /
-+			sizeof_namespace_label(ndd);
-+}
-+
- static int nvdimm_num_label_slots(struct nvdimm_data *ndd)
- {
--	return ndd->config_size / (sizeof_namespace_label(ndd) + 1);
-+	u32 tmp_nslot, n;
-+
-+	tmp_nslot = ndd->config_size / sizeof_namespace_label(ndd);
-+	n = __sizeof_namespace_index(tmp_nslot) / NSINDEX_ALIGN;
-+
-+	return __nvdimm_num_label_slots(ndd, NSINDEX_ALIGN * n);
- }
- 
- static unsigned int sizeof_namespace_index(struct nvdimm_data *ndd)
-@@ -78,18 +96,14 @@ static unsigned int sizeof_namespace_index(struct nvdimm_data *ndd)
- 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
- 
- 	/*
--	 * The minimum index space is 512 bytes, with that amount of
--	 * index we can describe ~1400 labels which is less than a byte
--	 * of overhead per label.  Round up to a byte of overhead per
--	 * label and determine the size of the index region.  Yes, this
--	 * starts to waste space at larger config_sizes, but it's
--	 * unlikely we'll ever see anything but 128K.
-+	 * Per UEFI 2.7, the minimum size of the Label Storage Area is large
-+	 * enough to hold 2 index blocks and 2 labels.  The minimum index
-+	 * block size is 256 bytes, and the minimum label size is 256 bytes.
- 	 */
- 	nslot = nvdimm_num_label_slots(ndd);
- 	space = ndd->config_size - nslot * sizeof_namespace_label(ndd);
--	size = ALIGN(sizeof(struct namespace_index) + DIV_ROUND_UP(nslot, 8),
--			NSINDEX_ALIGN) * 2;
--	if (size <= space)
-+	size = __sizeof_namespace_index(nslot) * 2;
-+	if (size <= space && nslot >= 2)
- 		return size / 2;
- 
- 	err(ctx, "%s: label area (%ld) too small to host (%d byte) labels\n",
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
