@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B5A3021F0DB38
- for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:12:32 -0700 (PDT)
-Subject: [PATCH v8 05/18] ext4, dax: introduce ext4_dax_aops
+ by ml01.01.org (Postfix) with ESMTPS id 576F12095606D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:13:21 -0700 (PDT)
+Subject: [PATCH v8 14/18] memremap: mark devm_memremap_pages()
+ EXPORT_SYMBOL_GPL
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 30 Mar 2018 21:02:36 -0700
-Message-ID: <152246895649.36038.5391043415273091960.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 30 Mar 2018 21:03:25 -0700
+Message-ID: <152246900495.36038.12673192605922080966.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -18,111 +19,34 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, snitzer@redhat.com, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, hch@lst.de
+Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, snitzer@redhat.com, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Otherwise, direct-I/O
-triggers incorrect page cache assumptions and warnings.
-
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: linux-ext4@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/ext4/inode.c |   42 +++++++++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 11 deletions(-)
-
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index c94780075b04..249a97b19181 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -2725,12 +2725,6 @@ static int ext4_writepages(struct address_space *mapping,
- 	percpu_down_read(&sbi->s_journal_flag_rwsem);
- 	trace_ext4_writepages(inode, wbc);
- 
--	if (dax_mapping(mapping)) {
--		ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev,
--						  wbc);
--		goto out_writepages;
--	}
--
- 	/*
- 	 * No pages to write? This is mainly a kludge to avoid starting
- 	 * a transaction for special inodes like journal inode on last iput()
-@@ -2955,6 +2949,27 @@ static int ext4_writepages(struct address_space *mapping,
- 	return ret;
- }
- 
-+static int ext4_dax_writepages(struct address_space *mapping,
-+			       struct writeback_control *wbc)
-+{
-+	int ret;
-+	long nr_to_write = wbc->nr_to_write;
-+	struct inode *inode = mapping->host;
-+	struct ext4_sb_info *sbi = EXT4_SB(mapping->host->i_sb);
-+
-+	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-+		return -EIO;
-+
-+	percpu_down_read(&sbi->s_journal_flag_rwsem);
-+	trace_ext4_writepages(inode, wbc);
-+
-+	ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev, wbc);
-+	trace_ext4_writepages_result(inode, wbc, ret,
-+				     nr_to_write - wbc->nr_to_write);
-+	percpu_up_read(&sbi->s_journal_flag_rwsem);
-+	return ret;
-+}
-+
- static int ext4_nonda_switch(struct super_block *sb)
- {
- 	s64 free_clusters, dirty_clusters;
-@@ -3857,10 +3872,6 @@ static ssize_t ext4_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
- 	if (ext4_has_inline_data(inode))
- 		return 0;
- 
--	/* DAX uses iomap path now */
--	if (WARN_ON_ONCE(IS_DAX(inode)))
--		return 0;
--
- 	trace_ext4_direct_IO_enter(inode, offset, count, iov_iter_rw(iter));
- 	if (iov_iter_rw(iter) == READ)
- 		ret = ext4_direct_IO_read(iocb, iter);
-@@ -3946,6 +3957,13 @@ static const struct address_space_operations ext4_da_aops = {
- 	.error_remove_page	= generic_error_remove_page,
- };
- 
-+static const struct address_space_operations ext4_dax_aops = {
-+	.writepages		= ext4_dax_writepages,
-+	.direct_IO		= noop_direct_IO,
-+	.set_page_dirty		= noop_set_page_dirty,
-+	.invalidatepage		= noop_invalidatepage,
-+};
-+
- void ext4_set_aops(struct inode *inode)
- {
- 	switch (ext4_inode_journal_mode(inode)) {
-@@ -3958,7 +3976,9 @@ void ext4_set_aops(struct inode *inode)
- 	default:
- 		BUG();
- 	}
--	if (test_opt(inode->i_sb, DELALLOC))
-+	if (IS_DAX(inode))
-+		inode->i_mapping->a_ops = &ext4_dax_aops;
-+	else if (test_opt(inode->i_sb, DELALLOC))
- 		inode->i_mapping->a_ops = &ext4_da_aops;
- 	else
- 		inode->i_mapping->a_ops = &ext4_aops;
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlIGRldm1fbWVtcmVtYXBfcGFnZXMoKSBmYWNpbGl0eSBpcyB0aWdodGx5IGludGVncmF0ZWQg
+d2l0aCB0aGUKa2VybmVsJ3MgbWVtb3J5IGhvdHBsdWcgZnVuY3Rpb25hbGl0eS4gSXQgaW5qZWN0
+cyBhbiBhbHRtYXAgYXJndW1lbnQKZGVlcCBpbnRvIHRoZSBhcmNoaXRlY3R1cmUgc3BlY2lmaWMg
+dm1lbW1hcCBpbXBsZW1lbnRhdGlvbiB0byBhbGxvdwphbGxvY2F0aW5nIGZyb20gc3BlY2lmaWMg
+cmVzZXJ2ZWQgcGFnZXMsIGFuZCBpdCBoYXMgTGludXggc3BlY2lmaWMKYXNzdW1wdGlvbnMgYWJv
+dXQgcGFnZSBzdHJ1Y3R1cmUgcmVmZXJlbmNlIGNvdW50aW5nIHJlbGF0aXZlIHRvCmdldF91c2Vy
+X3BhZ2VzKCkgYW5kIGdldF91c2VyX3BhZ2VzX2Zhc3QoKS4gSXQgd2FzIGFuIG92ZXJzaWdodCB0
+aGF0CnRoaXMgd2FzIG5vdCBtYXJrZWQgRVhQT1JUX1NZTUJPTF9HUEwgZnJvbSB0aGUgb3V0c2V0
+LgoKQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQHN1c2UuY29tPgpDYzogIkrDqXLDtG1lIEdsaXNz
+ZSIgPGpnbGlzc2VAcmVkaGF0LmNvbT4KUmV2aWV3ZWQtYnk6IENocmlzdG9waCBIZWxsd2lnIDxo
+Y2hAbHN0LmRlPgpTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGlu
+dGVsLmNvbT4KLS0tCiBrZXJuZWwvbWVtcmVtYXAuYyB8ICAgIDIgKy0KIDEgZmlsZSBjaGFuZ2Vk
+LCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2tlcm5lbC9tZW1y
+ZW1hcC5jIGIva2VybmVsL21lbXJlbWFwLmMKaW5kZXggMDdhNmE0MDVjZjNkLi40YjBlMTdkZjg5
+ODEgMTAwNjQ0Ci0tLSBhL2tlcm5lbC9tZW1yZW1hcC5jCisrKyBiL2tlcm5lbC9tZW1yZW1hcC5j
+CkBAIC0yNTcsNyArMjU3LDcgQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2
+aWNlICpkZXYsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJZGV2cmVzX2ZyZWUocGdtYXAp
+OwogCXJldHVybiBFUlJfUFRSKGVycm9yKTsKIH0KLUVYUE9SVF9TWU1CT0woZGV2bV9tZW1yZW1h
+cF9wYWdlcyk7CitFWFBPUlRfU1lNQk9MX0dQTChkZXZtX21lbXJlbWFwX3BhZ2VzKTsKIAogdW5z
+aWduZWQgbG9uZyB2bWVtX2FsdG1hcF9vZmZzZXQoc3RydWN0IHZtZW1fYWx0bWFwICphbHRtYXAp
+CiB7CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
+aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
