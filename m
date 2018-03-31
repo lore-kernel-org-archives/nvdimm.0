@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A6AD022487290
- for <linux-nvdimm@lists.01.org>; Thu, 15 Mar 2018 08:54:54 -0700 (PDT)
-Subject: [PATCH v6 09/15] mm, dev_pagemap: introduce CONFIG_DEV_PAGEMAP_OPS
+ by ml01.01.org (Postfix) with ESMTPS id 451FF21E0818A
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:12:54 -0700 (PDT)
+Subject: [PATCH v8 09/18] dax,
+ dm: allow device-mapper to operate without dax support
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Mar 2018 08:52:12 -0700
-Message-ID: <152112913205.24669.12417777615718867473.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152112908134.24669.10222746224538377035.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 30 Mar 2018 21:02:58 -0700
+Message-ID: <152246897808.36038.9873046364733003385.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,203 +19,307 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: jack@suse.cz, kbuild test robot <lkp@intel.com>, snitzer@redhat.com, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Bart Van Assche <Bart.VanAssche@wdc.com>, hch@lst.de, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhlIEhNTSBzdWItc3lzdGVtIGV4dGVuZGVkIGRldl9wYWdlbWFwIHRvIGFycmFuZ2UgYSBjYWxs
-YmFjayB3aGVuIGEKZGV2X3BhZ2VtYXAgbWFuYWdlZCBwYWdlIGlzIGZyZWVkLiBTaW5jZSBhIGRl
-dl9wYWdlbWFwIHBhZ2UgaXMgZnJlZSAvCmlkbGUgd2hlbiBpdHMgcmVmZXJlbmNlIGNvdW50IGlz
-IDEgaXQgcmVxdWlyZXMgYW4gYWRkaXRpb25hbCBicmFuY2ggdG8KY2hlY2sgdGhlIHBhZ2UtdHlw
-ZSBhdCBwdXRfcGFnZSgpIHRpbWUuIEdpdmVuIHB1dF9wYWdlKCkgaXMgYSBob3QtcGF0aAp3ZSBk
-byBub3Qgd2FudCB0byBpbmN1ciB0aGF0IGNoZWNrIGlmIEhNTSBpcyBub3QgaW4gdXNlLCBzbyBh
-IHN0YXRpYwpicmFuY2ggaXMgdXNlZCB0byBhdm9pZCB0aGF0IG92ZXJoZWFkIHdoZW4gbm90IG5l
-Y2Vzc2FyeS4KCk5vdywgdGhlIEZTX0RBWCBpbXBsZW1lbnRhdGlvbiB3YW50cyB0byByZXVzZSB0
-aGlzIG1lY2hhbmlzbSBmb3IKcmVjZWl2aW5nIGRldl9wYWdlbWFwIC0+cGFnZV9mcmVlKCkgY2Fs
-bGJhY2tzLiBSZXdvcmsgdGhlIEhNTS1zcGVjaWZpYwpzdGF0aWMta2V5IGludG8gYSBnZW5lcmlj
-IG1lY2hhbmlzbSB0aGF0IGVpdGhlciBITU0gb3IgRlNfREFYIGNvZGUgcGF0aHMKY2FuIGVuYWJs
-ZS4KCkNjOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BzdXNlLmNvbT4KUmV2aWV3ZWQtYnk6ICJKw6ly
-w7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClNpZ25lZC1vZmYtYnk6IERhbiBXaWxs
-aWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgotLS0KIGRyaXZlcnMvZGF4L3N1cGVyLmMg
-ICAgICB8ICAgIDIgKysKIGZzL0tjb25maWcgICAgICAgICAgICAgICB8ICAgIDEgKwogaW5jbHVk
-ZS9saW51eC9tZW1yZW1hcC5oIHwgICAyMCArKy0tLS0tLS0tLS0tLS0KIGluY2x1ZGUvbGludXgv
-bW0uaCAgICAgICB8ICAgNjEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0t
-LS0tLS0tLQoga2VybmVsL21lbXJlbWFwLmMgICAgICAgIHwgICAzMCArKysrKysrKysrKysrKysr
-KysrKy0tLQogbW0vS2NvbmZpZyAgICAgICAgICAgICAgIHwgICAgNSArKysrCiBtbS9obW0uYyAg
-ICAgICAgICAgICAgICAgfCAgIDEzICsrLS0tLS0tLS0KIG1tL3N3YXAuYyAgICAgICAgICAgICAg
-ICB8ICAgIDMgKysKIDggZmlsZXMgY2hhbmdlZCwgODQgaW5zZXJ0aW9ucygrKSwgNTEgZGVsZXRp
-b25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9kYXgvc3VwZXIuYyBiL2RyaXZlcnMvZGF4L3N1
-cGVyLmMKaW5kZXggZWNlZmU5ZjdlYjYwLi42MTliMWVkNjQzNGMgMTAwNjQ0Ci0tLSBhL2RyaXZl
-cnMvZGF4L3N1cGVyLmMKKysrIGIvZHJpdmVycy9kYXgvc3VwZXIuYwpAQCAtMTkxLDYgKzE5MSw3
-IEBAIHN0cnVjdCBkYXhfZGV2aWNlICpmc19kYXhfY2xhaW1fYmRldihzdHJ1Y3QgYmxvY2tfZGV2
-aWNlICpiZGV2LCB2b2lkICpvd25lcikKIAkJcmV0dXJuIE5VTEw7CiAJfQogCisJZGV2X3BhZ2Vt
-YXBfZ2V0X29wcygpOwogCXBnbWFwLT50eXBlID0gTUVNT1JZX0RFVklDRV9GU19EQVg7CiAJcGdt
-YXAtPnBhZ2VfZnJlZSA9IGdlbmVyaWNfZGF4X3BhZ2VmcmVlOwogCXBnbWFwLT5kYXRhID0gb3du
-ZXI7CkBAIC0yMTUsNiArMjE2LDcgQEAgdm9pZCBmc19kYXhfcmVsZWFzZShzdHJ1Y3QgZGF4X2Rl
-dmljZSAqZGF4X2Rldiwgdm9pZCAqb3duZXIpCiAJcGdtYXAtPnR5cGUgPSBNRU1PUllfREVWSUNF
-X0hPU1Q7CiAJcGdtYXAtPnBhZ2VfZnJlZSA9IE5VTEw7CiAJcGdtYXAtPmRhdGEgPSBOVUxMOwor
-CWRldl9wYWdlbWFwX3B1dF9vcHMoKTsKIAltdXRleF91bmxvY2soJmRldm1hcF9sb2NrKTsKIH0K
-IEVYUE9SVF9TWU1CT0xfR1BMKGZzX2RheF9yZWxlYXNlKTsKZGlmZiAtLWdpdCBhL2ZzL0tjb25m
-aWcgYi9mcy9LY29uZmlnCmluZGV4IGJjODIxYTg2ZDk2NS4uMWYwODMyYmJjMzJmIDEwMDY0NAot
-LS0gYS9mcy9LY29uZmlnCisrKyBiL2ZzL0tjb25maWcKQEAgLTM4LDYgKzM4LDcgQEAgY29uZmln
-IEZTX0RBWAogCWJvb2wgIkRpcmVjdCBBY2Nlc3MgKERBWCkgc3VwcG9ydCIKIAlkZXBlbmRzIG9u
-IE1NVQogCWRlcGVuZHMgb24gIShBUk0gfHwgTUlQUyB8fCBTUEFSQykKKwlzZWxlY3QgREVWX1BB
-R0VNQVBfT1BTCiAJc2VsZWN0IEZTX0lPTUFQCiAJc2VsZWN0IERBWAogCWhlbHAKZGlmZiAtLWdp
-dCBhL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaCBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaApp
-bmRleCAwMmQ2ZDA0MmVlN2YuLjlmYWYyNWQ2YWJlZiAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51
-eC9tZW1yZW1hcC5oCisrKyBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaApAQCAtMSw3ICsxLDYg
-QEAKIC8qIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wICovCiAjaWZuZGVmIF9MSU5V
-WF9NRU1SRU1BUF9IXwogI2RlZmluZSBfTElOVVhfTUVNUkVNQVBfSF8KLSNpbmNsdWRlIDxsaW51
-eC9tbS5oPgogI2luY2x1ZGUgPGxpbnV4L2lvcG9ydC5oPgogI2luY2x1ZGUgPGxpbnV4L3BlcmNw
-dS1yZWZjb3VudC5oPgogCkBAIC0xMzAsNiArMTI5LDkgQEAgc3RydWN0IGRldl9wYWdlbWFwIHsK
-IAllbnVtIG1lbW9yeV90eXBlIHR5cGU7CiB9OwogCit2b2lkIGRldl9wYWdlbWFwX2dldF9vcHMo
-dm9pZCk7Cit2b2lkIGRldl9wYWdlbWFwX3B1dF9vcHModm9pZCk7CisKICNpZmRlZiBDT05GSUdf
-Wk9ORV9ERVZJQ0UKIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2
-LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKTsKIHN0cnVjdCBkZXZfcGFnZW1hcCAqZ2V0X2Rl
-dl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcgcGZuLApAQCAtMTM3LDggKzEzOSw2IEBAIHN0cnVjdCBk
-ZXZfcGFnZW1hcCAqZ2V0X2Rldl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcgcGZuLAogCiB1bnNpZ25l
-ZCBsb25nIHZtZW1fYWx0bWFwX29mZnNldChzdHJ1Y3Qgdm1lbV9hbHRtYXAgKmFsdG1hcCk7CiB2
-b2lkIHZtZW1fYWx0bWFwX2ZyZWUoc3RydWN0IHZtZW1fYWx0bWFwICphbHRtYXAsIHVuc2lnbmVk
-IGxvbmcgbnJfcGZucyk7Ci0KLXN0YXRpYyBpbmxpbmUgYm9vbCBpc196b25lX2RldmljZV9wYWdl
-KGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKTsKICNlbHNlCiBzdGF0aWMgaW5saW5lIHZvaWQgKmRl
-dm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2LAogCQlzdHJ1Y3QgZGV2X3BhZ2Vt
-YXAgKnBnbWFwKQpAQCAtMTY5LDIwICsxNjksNiBAQCBzdGF0aWMgaW5saW5lIHZvaWQgdm1lbV9h
-bHRtYXBfZnJlZShzdHJ1Y3Qgdm1lbV9hbHRtYXAgKmFsdG1hcCwKIH0KICNlbmRpZiAvKiBDT05G
-SUdfWk9ORV9ERVZJQ0UgKi8KIAotI2lmIGRlZmluZWQoQ09ORklHX0RFVklDRV9QUklWQVRFKSB8
-fCBkZWZpbmVkKENPTkZJR19ERVZJQ0VfUFVCTElDKQotc3RhdGljIGlubGluZSBib29sIGlzX2Rl
-dmljZV9wcml2YXRlX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2UgKnBhZ2UpCi17Ci0JcmV0dXJuIGlz
-X3pvbmVfZGV2aWNlX3BhZ2UocGFnZSkgJiYKLQkJcGFnZS0+cGdtYXAtPnR5cGUgPT0gTUVNT1JZ
-X0RFVklDRV9QUklWQVRFOwotfQotCi1zdGF0aWMgaW5saW5lIGJvb2wgaXNfZGV2aWNlX3B1Ymxp
-Y19wYWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKQotewotCXJldHVybiBpc196b25lX2Rldmlj
-ZV9wYWdlKHBhZ2UpICYmCi0JCXBhZ2UtPnBnbWFwLT50eXBlID09IE1FTU9SWV9ERVZJQ0VfUFVC
-TElDOwotfQotI2VuZGlmIC8qIENPTkZJR19ERVZJQ0VfUFJJVkFURSB8fCBDT05GSUdfREVWSUNF
-X1BVQkxJQyAqLwotCiBzdGF0aWMgaW5saW5lIHZvaWQgcHV0X2Rldl9wYWdlbWFwKHN0cnVjdCBk
-ZXZfcGFnZW1hcCAqcGdtYXApCiB7CiAJaWYgKHBnbWFwKQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9s
-aW51eC9tbS5oIGIvaW5jbHVkZS9saW51eC9tbS5oCmluZGV4IGFkMDZkNDJhZGIxYS4uMDg4Yzc2
-YmNlMzYwIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L21tLmgKKysrIGIvaW5jbHVkZS9saW51
-eC9tbS5oCkBAIC04MTIsMjcgKzgxMiw1NSBAQCBzdGF0aWMgaW5saW5lIGJvb2wgaXNfem9uZV9k
-ZXZpY2VfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSkKIH0KICNlbmRpZgogCi0jaWYgZGVm
-aW5lZChDT05GSUdfREVWSUNFX1BSSVZBVEUpIHx8IGRlZmluZWQoQ09ORklHX0RFVklDRV9QVUJM
-SUMpCi12b2lkIHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19wYWdlKHN0cnVjdCBw
-YWdlICpwYWdlKTsKLURFQ0xBUkVfU1RBVElDX0tFWV9GQUxTRShkZXZpY2VfcHJpdmF0ZV9rZXkp
-OwotI2RlZmluZSBJU19ITU1fRU5BQkxFRCBzdGF0aWNfYnJhbmNoX3VubGlrZWx5KCZkZXZpY2Vf
-cHJpdmF0ZV9rZXkpCi1zdGF0aWMgaW5saW5lIGJvb2wgaXNfZGV2aWNlX3ByaXZhdGVfcGFnZShj
-b25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSk7Ci1zdGF0aWMgaW5saW5lIGJvb2wgaXNfZGV2aWNlX3B1
-YmxpY19wYWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKTsKLSNlbHNlIC8qIENPTkZJR19ERVZJ
-Q0VfUFJJVkFURSB8fCBDT05GSUdfREVWSUNFX1BVQkxJQyAqLwotc3RhdGljIGlubGluZSB2b2lk
-IHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19wYWdlKHN0cnVjdCBwYWdlICpwYWdl
-KQorI2lmZGVmIENPTkZJR19ERVZfUEFHRU1BUF9PUFMKK3ZvaWQgX19wdXRfZGV2bWFwX21hbmFn
-ZWRfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSk7CitERUNMQVJFX1NUQVRJQ19LRVlfRkFMU0UoZGV2
-bWFwX21hbmFnZWRfa2V5KTsKK3N0YXRpYyBpbmxpbmUgYm9vbCBwdXRfZGV2bWFwX21hbmFnZWRf
-cGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkKIHsKKwlpZiAoIXN0YXRpY19icmFuY2hfdW5saWtlbHko
-JmRldm1hcF9tYW5hZ2VkX2tleSkpCisJCXJldHVybiBmYWxzZTsKKwlpZiAoIWlzX3pvbmVfZGV2
-aWNlX3BhZ2UocGFnZSkpCisJCXJldHVybiBmYWxzZTsKKwlzd2l0Y2ggKHBhZ2UtPnBnbWFwLT50
-eXBlKSB7CisJY2FzZSBNRU1PUllfREVWSUNFX1BSSVZBVEU6CisJY2FzZSBNRU1PUllfREVWSUNF
-X1BVQkxJQzoKKwljYXNlIE1FTU9SWV9ERVZJQ0VfRlNfREFYOgorCQlfX3B1dF9kZXZtYXBfbWFu
-YWdlZF9wYWdlKHBhZ2UpOworCQlyZXR1cm4gdHJ1ZTsKKwlkZWZhdWx0OgorCQlicmVhazsKKwl9
-CisJcmV0dXJuIGZhbHNlOwogfQotI2RlZmluZSBJU19ITU1fRU5BQkxFRCAwCisKIHN0YXRpYyBp
-bmxpbmUgYm9vbCBpc19kZXZpY2VfcHJpdmF0ZV9wYWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdl
-KQogewotCXJldHVybiBmYWxzZTsKKwlyZXR1cm4gaXNfem9uZV9kZXZpY2VfcGFnZShwYWdlKSAm
-JgorCQlwYWdlLT5wZ21hcC0+dHlwZSA9PSBNRU1PUllfREVWSUNFX1BSSVZBVEU7CiB9CisKIHN0
-YXRpYyBpbmxpbmUgYm9vbCBpc19kZXZpY2VfcHVibGljX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2Ug
-KnBhZ2UpCiB7CisJcmV0dXJuIGlzX3pvbmVfZGV2aWNlX3BhZ2UocGFnZSkgJiYKKwkJcGFnZS0+
-cGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9QVUJMSUM7Cit9CisKKyNlbHNlIC8qIENPTkZJ
-R19ERVZfUEFHRU1BUF9PUFMgKi8KK3N0YXRpYyBpbmxpbmUgYm9vbCBwdXRfZGV2bWFwX21hbmFn
-ZWRfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkKK3sKIAlyZXR1cm4gZmFsc2U7CiB9Ci0jZW5kaWYg
-LyogQ09ORklHX0RFVklDRV9QUklWQVRFIHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCiAKK3N0
-YXRpYyBpbmxpbmUgYm9vbCBpc19kZXZpY2VfcHJpdmF0ZV9wYWdlKGNvbnN0IHN0cnVjdCBwYWdl
-ICpwYWdlKQoreworCXJldHVybiBmYWxzZTsKK30KKworc3RhdGljIGlubGluZSBib29sIGlzX2Rl
-dmljZV9wdWJsaWNfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSkKK3sKKwlyZXR1cm4gZmFs
-c2U7Cit9CisjZW5kaWYgLyogQ09ORklHX0RFVl9QQUdFTUFQX09QUyAqLwogCiBzdGF0aWMgaW5s
-aW5lIHZvaWQgZ2V0X3BhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UpCiB7CkBAIC04NTAsMTYgKzg3OCwx
-MyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgcHV0X3BhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UpCiAJcGFn
-ZSA9IGNvbXBvdW5kX2hlYWQocGFnZSk7CiAKIAkvKgotCSAqIEZvciBwcml2YXRlIGRldmljZSBw
-YWdlcyB3ZSBuZWVkIHRvIGNhdGNoIHJlZmNvdW50IHRyYW5zaXRpb24gZnJvbQotCSAqIDIgdG8g
-MSwgd2hlbiByZWZjb3VudCByZWFjaCBvbmUgaXQgbWVhbnMgdGhlIHByaXZhdGUgZGV2aWNlIHBh
-Z2UgaXMKLQkgKiBmcmVlIGFuZCB3ZSBuZWVkIHRvIGluZm9ybSB0aGUgZGV2aWNlIGRyaXZlciB0
-aHJvdWdoIGNhbGxiYWNrLiBTZWUKKwkgKiBGb3IgZGV2bWFwIG1hbmFnZWQgcGFnZXMgd2UgbmVl
-ZCB0byBjYXRjaCByZWZjb3VudCB0cmFuc2l0aW9uIGZyb20KKwkgKiAyIHRvIDEsIHdoZW4gcmVm
-Y291bnQgcmVhY2ggb25lIGl0IG1lYW5zIHRoZSBwYWdlIGlzIGZyZWUgYW5kIHdlCisJICogbmVl
-ZCB0byBpbmZvcm0gdGhlIGRldmljZSBkcml2ZXIgdGhyb3VnaCBjYWxsYmFjay4gU2VlCiAJICog
-aW5jbHVkZS9saW51eC9tZW1yZW1hcC5oIGFuZCBITU0gZm9yIGRldGFpbHMuCiAJICovCi0JaWYg
-KElTX0hNTV9FTkFCTEVEICYmIHVubGlrZWx5KGlzX2RldmljZV9wcml2YXRlX3BhZ2UocGFnZSkg
-fHwKLQkgICAgdW5saWtlbHkoaXNfZGV2aWNlX3B1YmxpY19wYWdlKHBhZ2UpKSkpIHsKLQkJcHV0
-X3pvbmVfZGV2aWNlX3ByaXZhdGVfb3JfcHVibGljX3BhZ2UocGFnZSk7CisJaWYgKHB1dF9kZXZt
-YXBfbWFuYWdlZF9wYWdlKHBhZ2UpKQogCQlyZXR1cm47Ci0JfQogCiAJaWYgKHB1dF9wYWdlX3Rl
-c3R6ZXJvKHBhZ2UpKQogCQlfX3B1dF9wYWdlKHBhZ2UpOwpkaWZmIC0tZ2l0IGEva2VybmVsL21l
-bXJlbWFwLmMgYi9rZXJuZWwvbWVtcmVtYXAuYwppbmRleCA0ZGQ0Mjc0Y2FiZTIuLjcyZDBiYjZm
-YzQ3ZCAxMDA2NDQKLS0tIGEva2VybmVsL21lbXJlbWFwLmMKKysrIGIva2VybmVsL21lbXJlbWFw
-LmMKQEAgLTQ3Niw4ICs0NzYsMzAgQEAgc3RydWN0IGRldl9wYWdlbWFwICpnZXRfZGV2X3BhZ2Vt
-YXAodW5zaWduZWQgbG9uZyBwZm4sCiB9CiAjZW5kaWYgLyogQ09ORklHX1pPTkVfREVWSUNFICov
-CiAKLSNpZiBJU19FTkFCTEVEKENPTkZJR19ERVZJQ0VfUFJJVkFURSkgfHwgIElTX0VOQUJMRUQo
-Q09ORklHX0RFVklDRV9QVUJMSUMpCi12b2lkIHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1
-YmxpY19wYWdlKHN0cnVjdCBwYWdlICpwYWdlKQorI2lmZGVmIENPTkZJR19ERVZfUEFHRU1BUF9P
-UFMKK0RFRklORV9TVEFUSUNfS0VZX0ZBTFNFKGRldm1hcF9tYW5hZ2VkX2tleSk7CitFWFBPUlRf
-U1lNQk9MX0dQTChkZXZtYXBfbWFuYWdlZF9rZXkpOworc3RhdGljIGF0b21pY190IGRldm1hcF9l
-bmFibGU7CisKKy8qCisgKiBUb2dnbGUgdGhlIHN0YXRpYyBrZXkgZm9yIC0+cGFnZV9mcmVlKCkg
-Y2FsbGJhY2tzIHdoZW4gZGV2X3BhZ2VtYXAKKyAqIHBhZ2VzIGdvIGlkbGUuCisgKi8KK3ZvaWQg
-ZGV2X3BhZ2VtYXBfZ2V0X29wcyh2b2lkKQoreworCWlmIChhdG9taWNfaW5jX3JldHVybigmZGV2
-bWFwX2VuYWJsZSkgPT0gMSkKKwkJc3RhdGljX2JyYW5jaF9lbmFibGUoJmRldm1hcF9tYW5hZ2Vk
-X2tleSk7Cit9CitFWFBPUlRfU1lNQk9MX0dQTChkZXZfcGFnZW1hcF9nZXRfb3BzKTsKKwordm9p
-ZCBkZXZfcGFnZW1hcF9wdXRfb3BzKHZvaWQpCit7CisJaWYgKGF0b21pY19kZWNfYW5kX3Rlc3Qo
-JmRldm1hcF9lbmFibGUpKQorCQlzdGF0aWNfYnJhbmNoX2Rpc2FibGUoJmRldm1hcF9tYW5hZ2Vk
-X2tleSk7Cit9CitFWFBPUlRfU1lNQk9MX0dQTChkZXZfcGFnZW1hcF9wdXRfb3BzKTsKKwordm9p
-ZCBfX3B1dF9kZXZtYXBfbWFuYWdlZF9wYWdlKHN0cnVjdCBwYWdlICpwYWdlKQogewogCWludCBj
-b3VudCA9IHBhZ2VfcmVmX2RlY19yZXR1cm4ocGFnZSk7CiAKQEAgLTQ5Nyw1ICs1MTksNSBAQCB2
-b2lkIHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19wYWdlKHN0cnVjdCBwYWdlICpw
-YWdlKQogCX0gZWxzZSBpZiAoIWNvdW50KQogCQlfX3B1dF9wYWdlKHBhZ2UpOwogfQotRVhQT1JU
-X1NZTUJPTChwdXRfem9uZV9kZXZpY2VfcHJpdmF0ZV9vcl9wdWJsaWNfcGFnZSk7Ci0jZW5kaWYg
-LyogQ09ORklHX0RFVklDRV9QUklWQVRFIHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCitFWFBP
-UlRfU1lNQk9MX0dQTChfX3B1dF9kZXZtYXBfbWFuYWdlZF9wYWdlKTsKKyNlbmRpZiAvKiBDT05G
-SUdfREVWX1BBR0VNQVBfT1BTICovCmRpZmYgLS1naXQgYS9tbS9LY29uZmlnIGIvbW0vS2NvbmZp
-ZwppbmRleCBjNzgyZThmYjcyMzUuLmRjMzI4Mjg5ODRhMyAxMDA2NDQKLS0tIGEvbW0vS2NvbmZp
-ZworKysgYi9tbS9LY29uZmlnCkBAIC03MDAsNiArNzAwLDkgQEAgY29uZmlnIEFSQ0hfSEFTX0hN
-TQogY29uZmlnIE1JR1JBVEVfVk1BX0hFTFBFUgogCWJvb2wKIAorY29uZmlnIERFVl9QQUdFTUFQ
-X09QUworCWJvb2wKKwogY29uZmlnIEhNTQogCWJvb2wKIAlzZWxlY3QgTUlHUkFURV9WTUFfSEVM
-UEVSCkBAIC03MjAsNiArNzIzLDcgQEAgY29uZmlnIERFVklDRV9QUklWQVRFCiAJYm9vbCAiVW5h
-ZGRyZXNzYWJsZSBkZXZpY2UgbWVtb3J5IChHUFUgbWVtb3J5LCAuLi4pIgogCWRlcGVuZHMgb24g
-QVJDSF9IQVNfSE1NCiAJc2VsZWN0IEhNTQorCXNlbGVjdCBERVZfUEFHRU1BUF9PUFMKIAogCWhl
-bHAKIAkgIEFsbG93cyBjcmVhdGlvbiBvZiBzdHJ1Y3QgcGFnZXMgdG8gcmVwcmVzZW50IHVuYWRk
-cmVzc2FibGUgZGV2aWNlCkBAIC03MzAsNiArNzM0LDcgQEAgY29uZmlnIERFVklDRV9QVUJMSUMK
-IAlib29sICJBZGRyZXNzYWJsZSBkZXZpY2UgbWVtb3J5IChsaWtlIEdQVSBtZW1vcnkpIgogCWRl
-cGVuZHMgb24gQVJDSF9IQVNfSE1NCiAJc2VsZWN0IEhNTQorCXNlbGVjdCBERVZfUEFHRU1BUF9P
-UFMKIAogCWhlbHAKIAkgIEFsbG93cyBjcmVhdGlvbiBvZiBzdHJ1Y3QgcGFnZXMgdG8gcmVwcmVz
-ZW50IGFkZHJlc3NhYmxlIGRldmljZQpkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwpp
-bmRleCAzMjA1NDViOThmZjUuLjRhYTU1NGU3NmQwNiAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysr
-IGIvbW0vaG1tLmMKQEAgLTM1LDE1ICszNSw2IEBACiAKICNkZWZpbmUgUEFfU0VDVElPTl9TSVpF
-ICgxVUwgPDwgUEFfU0VDVElPTl9TSElGVCkKIAotI2lmIGRlZmluZWQoQ09ORklHX0RFVklDRV9Q
-UklWQVRFKSB8fCBkZWZpbmVkKENPTkZJR19ERVZJQ0VfUFVCTElDKQotLyoKLSAqIERldmljZSBw
-cml2YXRlIG1lbW9yeSBzZWUgSE1NIChEb2N1bWVudGF0aW9uL3ZtL2htbS50eHQpIG9yIGhtbS5o
-Ci0gKi8KLURFRklORV9TVEFUSUNfS0VZX0ZBTFNFKGRldmljZV9wcml2YXRlX2tleSk7Ci1FWFBP
-UlRfU1lNQk9MKGRldmljZV9wcml2YXRlX2tleSk7Ci0jZW5kaWYgLyogQ09ORklHX0RFVklDRV9Q
-UklWQVRFIHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCi0KLQogI2lmIElTX0VOQUJMRUQoQ09O
-RklHX0hNTV9NSVJST1IpCiBzdGF0aWMgY29uc3Qgc3RydWN0IG1tdV9ub3RpZmllcl9vcHMgaG1t
-X21tdV9ub3RpZmllcl9vcHM7CiAKQEAgLTk5Niw3ICs5ODcsNyBAQCBzdHJ1Y3QgaG1tX2Rldm1l
-bSAqaG1tX2Rldm1lbV9hZGQoY29uc3Qgc3RydWN0IGhtbV9kZXZtZW1fb3BzICpvcHMsCiAJcmVz
-b3VyY2Vfc2l6ZV90IGFkZHI7CiAJaW50IHJldDsKIAotCXN0YXRpY19icmFuY2hfZW5hYmxlKCZk
-ZXZpY2VfcHJpdmF0ZV9rZXkpOworCWRldl9wYWdlbWFwX2dldF9vcHMoKTsKIAogCWRldm1lbSA9
-IGRldnJlc19hbGxvY19ub2RlKCZobW1fZGV2bWVtX3JlbGVhc2UsIHNpemVvZigqZGV2bWVtKSwK
-IAkJCQkgICBHRlBfS0VSTkVMLCBkZXZfdG9fbm9kZShkZXZpY2UpKTsKQEAgLTEwOTAsNyArMTA4
-MSw3IEBAIHN0cnVjdCBobW1fZGV2bWVtICpobW1fZGV2bWVtX2FkZF9yZXNvdXJjZShjb25zdCBz
-dHJ1Y3QgaG1tX2Rldm1lbV9vcHMgKm9wcywKIAlpZiAocmVzLT5kZXNjICE9IElPUkVTX0RFU0Nf
-REVWSUNFX1BVQkxJQ19NRU1PUlkpCiAJCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOwogCi0Jc3Rh
-dGljX2JyYW5jaF9lbmFibGUoJmRldmljZV9wcml2YXRlX2tleSk7CisJZGV2X3BhZ2VtYXBfZ2V0
-X29wcygpOwogCiAJZGV2bWVtID0gZGV2cmVzX2FsbG9jX25vZGUoJmhtbV9kZXZtZW1fcmVsZWFz
-ZSwgc2l6ZW9mKCpkZXZtZW0pLAogCQkJCSAgIEdGUF9LRVJORUwsIGRldl90b19ub2RlKGRldmlj
-ZSkpOwpkaWZmIC0tZ2l0IGEvbW0vc3dhcC5jIGIvbW0vc3dhcC5jCmluZGV4IDBmMTczMzBkZDBl
-NS4uZWVkODQ2Y2ZjOGI4IDEwMDY0NAotLS0gYS9tbS9zd2FwLmMKKysrIGIvbW0vc3dhcC5jCkBA
-IC0yOSw2ICsyOSw3IEBACiAjaW5jbHVkZSA8bGludXgvY3B1Lmg+CiAjaW5jbHVkZSA8bGludXgv
-bm90aWZpZXIuaD4KICNpbmNsdWRlIDxsaW51eC9iYWNraW5nLWRldi5oPgorI2luY2x1ZGUgPGxp
-bnV4L21lbXJlbWFwLmg+CiAjaW5jbHVkZSA8bGludXgvbWVtY29udHJvbC5oPgogI2luY2x1ZGUg
-PGxpbnV4L2dmcC5oPgogI2luY2x1ZGUgPGxpbnV4L3Vpby5oPgpAQCAtNzQ0LDcgKzc0NSw3IEBA
-IHZvaWQgcmVsZWFzZV9wYWdlcyhzdHJ1Y3QgcGFnZSAqKnBhZ2VzLCBpbnQgbnIpCiAJCQkJCQkg
-ICAgICAgZmxhZ3MpOwogCQkJCWxvY2tlZF9wZ2RhdCA9IE5VTEw7CiAJCQl9Ci0JCQlwdXRfem9u
-ZV9kZXZpY2VfcHJpdmF0ZV9vcl9wdWJsaWNfcGFnZShwYWdlKTsKKwkJCXB1dF9kZXZtYXBfbWFu
-YWdlZF9wYWdlKHBhZ2UpOwogCQkJY29udGludWU7CiAJCX0KIAoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbnZkaW1tCg==
+Change device-mapper's DAX dependency to require the presence of at
+least one DAX_DRIVER. This allows device-mapper to be built without
+bringing the DAX core along which is especially wasteful when there are
+no DAX drivers, like BLK_DEV_PMEM, configured.
+
+Cc: Alasdair Kergon <agk@redhat.com>
+Reported-by: Bart Van Assche <Bart.VanAssche@wdc.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Reviewed-by: Mike Snitzer <snitzer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/md/Kconfig         |    1 
+ drivers/md/dm-linear.c     |    6 +++
+ drivers/md/dm-log-writes.c |   95 +++++++++++++++++++++++---------------------
+ drivers/md/dm-stripe.c     |    6 +++
+ drivers/md/dm.c            |   10 +++--
+ include/linux/dax.h        |   30 +++++++++++---
+ 6 files changed, 92 insertions(+), 56 deletions(-)
+
+diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
+index 2c8ac3688815..6dfc328b8f99 100644
+--- a/drivers/md/Kconfig
++++ b/drivers/md/Kconfig
+@@ -201,7 +201,6 @@ config BLK_DEV_DM_BUILTIN
+ config BLK_DEV_DM
+ 	tristate "Device mapper support"
+ 	select BLK_DEV_DM_BUILTIN
+-	select DAX
+ 	---help---
+ 	  Device-mapper is a low level volume manager.  It works by allowing
+ 	  people to specify mappings for ranges of logical sectors.  Various
+diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+index d5f8eff7c11d..89443e0ededa 100644
+--- a/drivers/md/dm-linear.c
++++ b/drivers/md/dm-linear.c
+@@ -154,6 +154,7 @@ static int linear_iterate_devices(struct dm_target *ti,
+ 	return fn(ti, lc->dev, lc->start, ti->len, data);
+ }
+ 
++#if IS_ENABLED(CONFIG_DAX_DRIVER)
+ static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn)
+ {
+@@ -184,6 +185,11 @@ static size_t linear_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
+ 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
+ }
+ 
++#else
++#define linear_dax_direct_access NULL
++#define linear_dax_copy_from_iter NULL
++#endif
++
+ static struct target_type linear_target = {
+ 	.name   = "linear",
+ 	.version = {1, 4, 0},
+diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
+index 3362d866793b..7fcb4216973f 100644
+--- a/drivers/md/dm-log-writes.c
++++ b/drivers/md/dm-log-writes.c
+@@ -610,51 +610,6 @@ static int log_mark(struct log_writes_c *lc, char *data)
+ 	return 0;
+ }
+ 
+-static int log_dax(struct log_writes_c *lc, sector_t sector, size_t bytes,
+-		   struct iov_iter *i)
+-{
+-	struct pending_block *block;
+-
+-	if (!bytes)
+-		return 0;
+-
+-	block = kzalloc(sizeof(struct pending_block), GFP_KERNEL);
+-	if (!block) {
+-		DMERR("Error allocating dax pending block");
+-		return -ENOMEM;
+-	}
+-
+-	block->data = kzalloc(bytes, GFP_KERNEL);
+-	if (!block->data) {
+-		DMERR("Error allocating dax data space");
+-		kfree(block);
+-		return -ENOMEM;
+-	}
+-
+-	/* write data provided via the iterator */
+-	if (!copy_from_iter(block->data, bytes, i)) {
+-		DMERR("Error copying dax data");
+-		kfree(block->data);
+-		kfree(block);
+-		return -EIO;
+-	}
+-
+-	/* rewind the iterator so that the block driver can use it */
+-	iov_iter_revert(i, bytes);
+-
+-	block->datalen = bytes;
+-	block->sector = bio_to_dev_sectors(lc, sector);
+-	block->nr_sectors = ALIGN(bytes, lc->sectorsize) >> lc->sectorshift;
+-
+-	atomic_inc(&lc->pending_blocks);
+-	spin_lock_irq(&lc->blocks_lock);
+-	list_add_tail(&block->list, &lc->unflushed_blocks);
+-	spin_unlock_irq(&lc->blocks_lock);
+-	wake_up_process(lc->log_kthread);
+-
+-	return 0;
+-}
+-
+ static void log_writes_dtr(struct dm_target *ti)
+ {
+ 	struct log_writes_c *lc = ti->private;
+@@ -920,6 +875,52 @@ static void log_writes_io_hints(struct dm_target *ti, struct queue_limits *limit
+ 	limits->io_min = limits->physical_block_size;
+ }
+ 
++#if IS_ENABLED(CONFIG_DAX_DRIVER)
++static int log_dax(struct log_writes_c *lc, sector_t sector, size_t bytes,
++		   struct iov_iter *i)
++{
++	struct pending_block *block;
++
++	if (!bytes)
++		return 0;
++
++	block = kzalloc(sizeof(struct pending_block), GFP_KERNEL);
++	if (!block) {
++		DMERR("Error allocating dax pending block");
++		return -ENOMEM;
++	}
++
++	block->data = kzalloc(bytes, GFP_KERNEL);
++	if (!block->data) {
++		DMERR("Error allocating dax data space");
++		kfree(block);
++		return -ENOMEM;
++	}
++
++	/* write data provided via the iterator */
++	if (!copy_from_iter(block->data, bytes, i)) {
++		DMERR("Error copying dax data");
++		kfree(block->data);
++		kfree(block);
++		return -EIO;
++	}
++
++	/* rewind the iterator so that the block driver can use it */
++	iov_iter_revert(i, bytes);
++
++	block->datalen = bytes;
++	block->sector = bio_to_dev_sectors(lc, sector);
++	block->nr_sectors = ALIGN(bytes, lc->sectorsize) >> lc->sectorshift;
++
++	atomic_inc(&lc->pending_blocks);
++	spin_lock_irq(&lc->blocks_lock);
++	list_add_tail(&block->list, &lc->unflushed_blocks);
++	spin_unlock_irq(&lc->blocks_lock);
++	wake_up_process(lc->log_kthread);
++
++	return 0;
++}
++
+ static long log_writes_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+ 					 long nr_pages, void **kaddr, pfn_t *pfn)
+ {
+@@ -956,6 +957,10 @@ static size_t log_writes_dax_copy_from_iter(struct dm_target *ti,
+ dax_copy:
+ 	return dax_copy_from_iter(lc->dev->dax_dev, pgoff, addr, bytes, i);
+ }
++#else
++#define log_writes_dax_direct_access NULL
++#define log_writes_dax_copy_from_iter NULL
++#endif
+ 
+ static struct target_type log_writes_target = {
+ 	.name   = "log-writes",
+diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
+index b5e892149c54..ac2e8ee9d586 100644
+--- a/drivers/md/dm-stripe.c
++++ b/drivers/md/dm-stripe.c
+@@ -311,6 +311,7 @@ static int stripe_map(struct dm_target *ti, struct bio *bio)
+ 	return DM_MAPIO_REMAPPED;
+ }
+ 
++#if IS_ENABLED(CONFIG_DAX_DRIVER)
+ static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn)
+ {
+@@ -351,6 +352,11 @@ static size_t stripe_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
+ 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
+ }
+ 
++#else
++#define stripe_dax_direct_access NULL
++#define stripe_dax_copy_from_iter NULL
++#endif
++
+ /*
+  * Stripe status:
+  *
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index 68136806d365..ffc93aecc02a 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -1800,7 +1800,7 @@ static void cleanup_mapped_device(struct mapped_device *md)
+ static struct mapped_device *alloc_dev(int minor)
+ {
+ 	int r, numa_node_id = dm_get_numa_node();
+-	struct dax_device *dax_dev;
++	struct dax_device *dax_dev = NULL;
+ 	struct mapped_device *md;
+ 	void *old_md;
+ 
+@@ -1866,9 +1866,11 @@ static struct mapped_device *alloc_dev(int minor)
+ 	md->disk->private_data = md;
+ 	sprintf(md->disk->disk_name, "dm-%d", minor);
+ 
+-	dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
+-	if (!dax_dev)
+-		goto bad;
++	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
++		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
++		if (!dax_dev)
++			goto bad;
++	}
+ 	md->dax_dev = dax_dev;
+ 
+ 	add_disk_no_queue_reg(md->disk);
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index ae27a7efe7ab..f9eb22ad341e 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -26,16 +26,39 @@ extern struct attribute_group dax_attribute_group;
+ 
+ #if IS_ENABLED(CONFIG_DAX)
+ struct dax_device *dax_get_by_host(const char *host);
++struct dax_device *alloc_dax(void *private, const char *host,
++		const struct dax_operations *ops);
+ void put_dax(struct dax_device *dax_dev);
++void kill_dax(struct dax_device *dax_dev);
++void dax_write_cache(struct dax_device *dax_dev, bool wc);
++bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ #else
+ static inline struct dax_device *dax_get_by_host(const char *host)
+ {
+ 	return NULL;
+ }
+-
++static inline struct dax_device *alloc_dax(void *private, const char *host,
++		const struct dax_operations *ops)
++{
++	/*
++	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
++	 * NULL is an error or expected.
++	 */
++	return NULL;
++}
+ static inline void put_dax(struct dax_device *dax_dev)
+ {
+ }
++static inline void kill_dax(struct dax_device *dax_dev)
++{
++}
++static inline void dax_write_cache(struct dax_device *dax_dev, bool wc)
++{
++}
++static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
++{
++	return false;
++}
+ #endif
+ 
+ struct writeback_control;
+@@ -89,18 +112,13 @@ static inline int dax_writeback_mapping_range(struct address_space *mapping,
+ 
+ int dax_read_lock(void);
+ void dax_read_unlock(int id);
+-struct dax_device *alloc_dax(void *private, const char *host,
+-		const struct dax_operations *ops);
+ bool dax_alive(struct dax_device *dax_dev);
+-void kill_dax(struct dax_device *dax_dev);
+ void *dax_get_private(struct dax_device *dax_dev);
+ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
+ 		void **kaddr, pfn_t *pfn);
+ size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+ 		size_t bytes, struct iov_iter *i);
+ void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
+-void dax_write_cache(struct dax_device *dax_dev, bool wc);
+-bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ 
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 		const struct iomap_ops *ops);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
