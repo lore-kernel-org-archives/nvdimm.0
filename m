@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 25A1820957463
- for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:13:37 -0700 (PDT)
-Subject: [PATCH v8 17/18] xfs: prepare xfs_break_layouts() for another
- layout type
+ by ml01.01.org (Postfix) with ESMTPS id B678421F0DB0D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:12:27 -0700 (PDT)
+Subject: [PATCH v8 04/18] xfs, dax: introduce xfs_dax_aops
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 30 Mar 2018 21:03:41 -0700
-Message-ID: <152246902093.36038.6900888641940957516.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 30 Mar 2018 21:02:31 -0700
+Message-ID: <152246895136.36038.419954203239973310.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -24,248 +23,147 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, snitzer@redhat.com, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Cc: jack@suse.cz, snitzer@redhat.com, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When xfs is operating as the back-end of a pNFS block server, it
-prevents collisions between local and remote operations by requiring a
-lease to be held for remotely accessed blocks. Local filesystem
-operations break those leases before writing or mutating the extent map
-of the file.
+In preparation for the dax implementation to start associating dax pages
+to inodes via page->mapping, we need to provide a 'struct
+address_space_operations' instance for dax. Otherwise, direct-I/O
+triggers incorrect page cache assumptions and warnings like the
+following:
 
-A similar mechanism is needed to prevent operations on pinned dax
-mappings, like device-DMA, from colliding with extent unmap operations.
+ WARNING: CPU: 27 PID: 1783 at fs/xfs/xfs_aops.c:1468
+ xfs_vm_set_page_dirty+0xf3/0x1b0 [xfs]
+ [..]
+ CPU: 27 PID: 1783 Comm: dma-collision Tainted: G           O 4.15.0-rc2+ #984
+ [..]
+ Call Trace:
+  set_page_dirty_lock+0x40/0x60
+  bio_set_pages_dirty+0x37/0x50
+  iomap_dio_actor+0x2b7/0x3b0
+  ? iomap_dio_zero+0x110/0x110
+  iomap_apply+0xa4/0x110
+  iomap_dio_rw+0x29e/0x3b0
+  ? iomap_dio_zero+0x110/0x110
+  ? xfs_file_dio_aio_read+0x7c/0x1a0 [xfs]
+  xfs_file_dio_aio_read+0x7c/0x1a0 [xfs]
+  xfs_file_read_iter+0xa0/0xc0 [xfs]
+  __vfs_read+0xf9/0x170
+  vfs_read+0xa6/0x150
+  SyS_pread64+0x93/0xb0
+  entry_SYSCALL_64_fastpath+0x1f/0x96
 
-BREAK_WRITE and BREAK_UNMAP are introduced as two distinct levels of
-layout breaking.
+...where the default set_page_dirty() handler assumes that dirty state
+is being tracked in 'struct page' flags.
 
-Layouts are broken in the BREAK_WRITE case to ensure that layout-holders
-do not collide with local writes. Additionally, layouts are broken in
-the BREAK_UNMAP case to make sure the layout-holder has a consistent
-view of the file's extent map. While BREAK_WRITE breaks can be satisfied
-be recalling FL_LAYOUT leases, BREAK_UNMAP breaks additionally require
-waiting for busy dax-pages to go idle while holding XFS_MMAPLOCK_EXCL.
-
-After this refactoring xfs_break_layouts() becomes the entry point for
-coordinating both types of breaks. Finally, xfs_break_leased_layouts()
-becomes just the BREAK_WRITE handler.
-
-Note that the unlock tracking is needed in a follow on change. That will
-coordinate retrying either break handler until both successfully test
-for a lease break while maintaining the lock state.
-
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Reported-by: Dave Chinner <david@fromorbit.com>
-Reported-by: Christoph Hellwig <hch@lst.de>
+Suggested-by: Jan Kara <jack@suse.cz>
+Suggested-by: Dave Chinner <david@fromorbit.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_file.c  |   30 ++++++++++++++++++++++++++++--
- fs/xfs/xfs_inode.h |   16 ++++++++++++++++
- fs/xfs/xfs_ioctl.c |    3 +--
- fs/xfs/xfs_iops.c  |    6 +++---
- fs/xfs/xfs_pnfs.c  |   13 +++++++------
- fs/xfs/xfs_pnfs.h  |    6 ++++--
- 6 files changed, 59 insertions(+), 15 deletions(-)
+ fs/xfs/xfs_aops.c |   34 ++++++++++++++++++----------------
+ fs/xfs/xfs_aops.h |    1 +
+ fs/xfs/xfs_iops.c |    5 ++++-
+ 3 files changed, 23 insertions(+), 17 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 18edf04811d0..51e6506bdcb1 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -350,7 +350,7 @@ xfs_file_aio_write_checks(
- 	if (error <= 0)
- 		return error;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index 9c6a830da0ee..e7a56c4786ff 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1194,16 +1194,22 @@ xfs_vm_writepages(
+ 	int			ret;
  
--	error = xfs_break_layouts(inode, iolock);
-+	error = xfs_break_layouts(inode, iolock, BREAK_WRITE);
- 	if (error)
- 		return error;
- 
-@@ -752,6 +752,32 @@ xfs_file_write_iter(
+ 	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
+-	if (dax_mapping(mapping))
+-		return dax_writeback_mapping_range(mapping,
+-				xfs_find_bdev_for_inode(mapping->host), wbc);
+-
+ 	ret = write_cache_pages(mapping, wbc, xfs_do_writepage, &wpc);
+ 	if (wpc.ioend)
+ 		ret = xfs_submit_ioend(wbc, wpc.ioend, ret);
  	return ret;
  }
  
-+int
-+xfs_break_layouts(
-+	struct inode		*inode,
-+	uint			*iolock,
-+	enum layout_break_reason reason)
++STATIC int
++xfs_dax_writepages(
++	struct address_space	*mapping,
++	struct writeback_control *wbc)
 +{
-+	bool			retry = false;
-+	int			error = 0;
-+
-+	ASSERT(xfs_isilocked(XFS_I(inode), XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
-+
-+	switch (reason) {
-+	case BREAK_UNMAP:
-+		ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
-+		/* fall through */
-+	case BREAK_WRITE:
-+		error = xfs_break_leased_layouts(inode, iolock, &retry);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		return -EINVAL;
-+	}
-+
-+	return error;
++	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
++	return dax_writeback_mapping_range(mapping,
++			xfs_find_bdev_for_inode(mapping->host), wbc);
 +}
 +
- #define	XFS_FALLOC_FL_SUPPORTED						\
- 		(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |		\
- 		 FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_ZERO_RANGE |	\
-@@ -778,7 +804,7 @@ xfs_file_fallocate(
- 		return -EOPNOTSUPP;
- 
- 	xfs_ilock(ip, iolock);
--	error = xfs_break_layouts(inode, &iolock);
-+	error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
- 	if (error)
- 		goto out_unlock;
- 
-diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
-index 3e8dc990d41c..7e1a077dfc04 100644
---- a/fs/xfs/xfs_inode.h
-+++ b/fs/xfs/xfs_inode.h
-@@ -379,6 +379,20 @@ static inline void xfs_ifunlock(struct xfs_inode *ip)
- 					>> XFS_ILOCK_SHIFT)
- 
  /*
-+ * Layouts are broken in the BREAK_WRITE case to ensure that
-+ * layout-holders do not collide with local writes. Additionally,
-+ * layouts are broken in the BREAK_UNMAP case to make sure the
-+ * layout-holder has a consistent view of the file's extent map. While
-+ * BREAK_WRITE breaks can be satisfied be recalling FL_LAYOUT leases,
-+ * BREAK_UNMAP breaks additionally require waiting for busy dax-pages to
-+ * go idle.
-+ */
-+enum layout_break_reason {
-+        BREAK_WRITE,
-+        BREAK_UNMAP,
-+};
+  * Called to move a page into cleanable state - and from there
+  * to be released. The page should already be clean. We always
+@@ -1367,17 +1373,6 @@ xfs_get_blocks(
+ 	return error;
+ }
+ 
+-STATIC ssize_t
+-xfs_vm_direct_IO(
+-	struct kiocb		*iocb,
+-	struct iov_iter		*iter)
+-{
+-	/*
+-	 * We just need the method present so that open/fcntl allow direct I/O.
+-	 */
+-	return -EINVAL;
+-}
+-
+ STATIC sector_t
+ xfs_vm_bmap(
+ 	struct address_space	*mapping,
+@@ -1500,8 +1495,15 @@ const struct address_space_operations xfs_address_space_operations = {
+ 	.releasepage		= xfs_vm_releasepage,
+ 	.invalidatepage		= xfs_vm_invalidatepage,
+ 	.bmap			= xfs_vm_bmap,
+-	.direct_IO		= xfs_vm_direct_IO,
++	.direct_IO		= noop_direct_IO,
+ 	.migratepage		= buffer_migrate_page,
+ 	.is_partially_uptodate  = block_is_partially_uptodate,
+ 	.error_remove_page	= generic_error_remove_page,
+ };
 +
-+/*
-  * For multiple groups support: if S_ISGID bit is set in the parent
-  * directory, group of new file is set to that of the parent, and
-  * new subdirectory gets S_ISGID bit from parent.
-@@ -447,6 +461,8 @@ int	xfs_zero_eof(struct xfs_inode *ip, xfs_off_t offset,
- 		     xfs_fsize_t isize, bool *did_zeroing);
- int	xfs_zero_range(struct xfs_inode *ip, xfs_off_t pos, xfs_off_t count,
- 		bool *did_zero);
-+int	xfs_break_layouts(struct inode *inode, uint *iolock,
-+		enum layout_break_reason reason);
++const struct address_space_operations xfs_dax_aops = {
++	.writepages		= xfs_dax_writepages,
++	.direct_IO		= noop_direct_IO,
++	.set_page_dirty		= noop_set_page_dirty,
++	.invalidatepage		= noop_invalidatepage,
++};
+diff --git a/fs/xfs/xfs_aops.h b/fs/xfs/xfs_aops.h
+index 88c85ea63da0..69346d460dfa 100644
+--- a/fs/xfs/xfs_aops.h
++++ b/fs/xfs/xfs_aops.h
+@@ -54,6 +54,7 @@ struct xfs_ioend {
+ };
  
- /* from xfs_iops.c */
- extern void xfs_setup_inode(struct xfs_inode *ip);
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 4151fade4bb1..91e73d663099 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -39,7 +39,6 @@
- #include "xfs_icache.h"
- #include "xfs_symlink.h"
- #include "xfs_trans.h"
--#include "xfs_pnfs.h"
- #include "xfs_acl.h"
- #include "xfs_btree.h"
- #include <linux/fsmap.h>
-@@ -644,7 +643,7 @@ xfs_ioc_space(
- 		return error;
+ extern const struct address_space_operations xfs_address_space_operations;
++extern const struct address_space_operations xfs_dax_aops;
  
- 	xfs_ilock(ip, iolock);
--	error = xfs_break_layouts(inode, &iolock);
-+	error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
- 	if (error)
- 		goto out_unlock;
+ int	xfs_setfilesize(struct xfs_inode *ip, xfs_off_t offset, size_t size);
  
 diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index d23aa08426f9..04abb077e91a 100644
+index 56475fcd76f2..951e84df5576 100644
 --- a/fs/xfs/xfs_iops.c
 +++ b/fs/xfs/xfs_iops.c
-@@ -37,7 +37,6 @@
- #include "xfs_da_btree.h"
- #include "xfs_dir2.h"
- #include "xfs_trans_space.h"
--#include "xfs_pnfs.h"
- #include "xfs_iomap.h"
- 
- #include <linux/capability.h>
-@@ -1027,13 +1026,14 @@ xfs_vn_setattr(
- 	int			error;
- 
- 	if (iattr->ia_valid & ATTR_SIZE) {
--		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
-+		struct inode		*inode = d_inode(dentry);
-+		struct xfs_inode	*ip = XFS_I(inode);
- 		uint			iolock;
- 
- 		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
- 		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
- 
--		error = xfs_break_layouts(d_inode(dentry), &iolock);
-+		error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
- 		if (error) {
- 			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
- 			return error;
-diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
-index 6ea7b0b55d02..40e69edb7e2e 100644
---- a/fs/xfs/xfs_pnfs.c
-+++ b/fs/xfs/xfs_pnfs.c
-@@ -31,17 +31,18 @@
-  * rules in the page fault path we don't bother.
-  */
- int
--xfs_break_layouts(
-+xfs_break_leased_layouts(
- 	struct inode		*inode,
--	uint			*iolock)
-+	uint			*iolock,
-+	bool			*did_unlock)
- {
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	int			error;
- 
--	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
--
-+	*did_unlock = false;
- 	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
- 		xfs_iunlock(ip, *iolock);
-+		*did_unlock = true;
- 		error = break_layout(inode, true);
- 		*iolock &= ~XFS_IOLOCK_SHARED;
- 		*iolock |= XFS_IOLOCK_EXCL;
-@@ -121,8 +122,8 @@ xfs_fs_map_blocks(
- 	 * Lock out any other I/O before we flush and invalidate the pagecache,
- 	 * and then hand out a layout to the remote system.  This is very
- 	 * similar to direct I/O, except that the synchronization is much more
--	 * complicated.  See the comment near xfs_break_layouts for a detailed
--	 * explanation.
-+	 * complicated.  See the comment near xfs_break_leased_layouts
-+	 * for a detailed explanation.
- 	 */
- 	xfs_ilock(ip, XFS_IOLOCK_EXCL);
- 
-diff --git a/fs/xfs/xfs_pnfs.h b/fs/xfs/xfs_pnfs.h
-index bf45951e28fe..0f2f51037064 100644
---- a/fs/xfs/xfs_pnfs.h
-+++ b/fs/xfs/xfs_pnfs.h
-@@ -9,11 +9,13 @@ int xfs_fs_map_blocks(struct inode *inode, loff_t offset, u64 length,
- int xfs_fs_commit_blocks(struct inode *inode, struct iomap *maps, int nr_maps,
- 		struct iattr *iattr);
- 
--int xfs_break_layouts(struct inode *inode, uint *iolock);
-+int xfs_break_leased_layouts(struct inode *inode, uint *iolock,
-+		bool *did_unlock);
- #else
- static inline int
--xfs_break_layouts(struct inode *inode, uint *iolock)
-+xfs_break_leased_layouts(struct inode *inode, uint *iolock, bool *did_unlock)
- {
-+	*did_unlock = false;
- 	return 0;
- }
- #endif /* CONFIG_EXPORTFS_BLOCK_OPS */
+@@ -1272,7 +1272,10 @@ xfs_setup_iops(
+ 	case S_IFREG:
+ 		inode->i_op = &xfs_inode_operations;
+ 		inode->i_fop = &xfs_file_operations;
+-		inode->i_mapping->a_ops = &xfs_address_space_operations;
++		if (IS_DAX(inode))
++			inode->i_mapping->a_ops = &xfs_dax_aops;
++		else
++			inode->i_mapping->a_ops = &xfs_address_space_operations;
+ 		break;
+ 	case S_IFDIR:
+ 		if (xfs_sb_version_hasasciici(&XFS_M(inode->i_sb)->m_sb))
 
 _______________________________________________
 Linux-nvdimm mailing list
