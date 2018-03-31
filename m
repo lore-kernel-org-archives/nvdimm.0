@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 620AE20954BAE
- for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:12:17 -0700 (PDT)
-Subject: [PATCH v8 02/18] fs,
- dax: prepare for dax-specific address_space_operations
+ by ml01.01.org (Postfix) with ESMTPS id 2ADFE20957463
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:13:42 -0700 (PDT)
+Subject: [PATCH v8 18/18] xfs, dax: introduce xfs_break_dax_layouts()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 30 Mar 2018 21:02:21 -0700
-Message-ID: <152246894108.36038.6687731709071362598.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 30 Mar 2018 21:03:46 -0700
+Message-ID: <152246902607.36038.15813002361509305325.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -24,139 +23,117 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, snitzer@redhat.com, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Cc: jack@suse.cz, snitzer@redhat.com, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for the dax implementation to start associating dax pages
-to inodes via page->mapping, we need to provide a 'struct
-address_space_operations' instance for dax. Define some generic VFS aops
-helpers for dax. These noop implementations are there in the dax case to
-prevent the VFS from falling back to operations with page-cache
-assumptions, dax_writeback_mapping_range() may not be referenced in the
-FS_DAX=n case.
+xfs_break_dax_layouts(), similar to xfs_break_leased_layouts(), scans
+for busy / pinned dax pages and waits for those pages to go idle before
+any potential extent unmap operation.
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
+dax_layout_busy_page() handles synchronizing against new page-busy
+events (get_user_pages). It invalidates all mappings to trigger the
+get_user_pages slow path which will eventually block on the xfs inode
+lock held in XFS_MMAPLOCK_EXCL mode. If dax_layout_busy_page() finds a
+busy page it returns it for xfs to wait for the page-idle event that
+will fire when the page reference count reaches 1 (recall ZONE_DEVICE
+pages are idle at count 1, see generic_dax_pagefree()).
+
+While waiting, the XFS_MMAPLOCK_EXCL lock is dropped in order to not
+deadlock the process that might be trying to elevate the page count of
+more pages before arranging for any of them to go idle. I.e. the typical
+case of submitting I/O is that iov_iter_get_pages() elevates the
+reference count of all pages in the I/O before starting I/O on the first
+page. The process of elevating the reference count of all pages involved
+in an I/O may cause faults that need to take XFS_MMAPLOCK_EXCL.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Matthew Wilcox <mawilcox@microsoft.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Suggested-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Suggested-by: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/libfs.c          |   39 +++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h |   12 +++++++++---
- include/linux/fs.h  |    4 ++++
- 3 files changed, 52 insertions(+), 3 deletions(-)
+ fs/xfs/xfs_file.c |   60 +++++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 49 insertions(+), 11 deletions(-)
 
-diff --git a/fs/libfs.c b/fs/libfs.c
-index 7ff3cb904acd..0fb590d79f30 100644
---- a/fs/libfs.c
-+++ b/fs/libfs.c
-@@ -1060,6 +1060,45 @@ int noop_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 51e6506bdcb1..0342f6fb782f 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -752,6 +752,38 @@ xfs_file_write_iter(
+ 	return ret;
  }
- EXPORT_SYMBOL(noop_fsync);
  
-+int noop_set_page_dirty(struct page *page)
++static void
++xfs_wait_var_event(
++	struct inode		*inode,
++	uint			iolock,
++	bool			*did_unlock)
 +{
-+	/*
-+	 * Unlike __set_page_dirty_no_writeback that handles dirty page
-+	 * tracking in the page object, dax does all dirty tracking in
-+	 * the inode address_space in response to mkwrite faults. In the
-+	 * dax case we only need to worry about potentially dirty CPU
-+	 * caches, not dirty page cache pages to write back.
-+	 *
-+	 * This callback is defined to prevent fallback to
-+	 * __set_page_dirty_buffers() in set_page_dirty().
-+	 */
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(noop_set_page_dirty);
++	struct xfs_inode        *ip = XFS_I(inode);
 +
-+void noop_invalidatepage(struct page *page, unsigned int offset,
-+		unsigned int length)
++	*did_unlock = true;
++	xfs_iunlock(ip, iolock);
++	schedule();
++	xfs_ilock(ip, iolock);
++}
++
++static int
++xfs_break_dax_layouts(
++	struct inode		*inode,
++	uint			iolock,
++	bool			*did_unlock)
 +{
-+	/*
-+	 * There is no page cache to invalidate in the dax case, however
-+	 * we need this callback defined to prevent falling back to
-+	 * block_invalidatepage() in do_invalidatepage().
-+	 */
-+}
-+EXPORT_SYMBOL_GPL(noop_invalidatepage);
++	struct page		*page;
 +
-+ssize_t noop_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
-+{
-+	/*
-+	 * iomap based filesystems support direct I/O without need for
-+	 * this callback. However, it still needs to be set in
-+	 * inode->a_ops so that open/fcntl know that direct I/O is
-+	 * generally supported.
-+	 */
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(noop_direct_IO);
++	*did_unlock = false;
++	page = dax_layout_busy_page(inode->i_mapping);
++	if (!page)
++		return 0;
 +
- /* Because kfree isn't assignment-compatible with void(void*) ;-/ */
- void kfree_link(void *p)
- {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 0185ecdae135..ae27a7efe7ab 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -38,6 +38,7 @@ static inline void put_dax(struct dax_device *dax_dev)
- }
- #endif
- 
-+struct writeback_control;
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #if IS_ENABLED(CONFIG_FS_DAX)
- int __bdev_dax_supported(struct super_block *sb, int blocksize);
-@@ -57,6 +58,8 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
- }
- 
- struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
-+int dax_writeback_mapping_range(struct address_space *mapping,
-+		struct block_device *bdev, struct writeback_control *wbc);
- #else
- static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
- {
-@@ -76,6 +79,12 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
- {
- 	return NULL;
- }
-+
-+static inline int dax_writeback_mapping_range(struct address_space *mapping,
-+		struct block_device *bdev, struct writeback_control *wbc)
-+{
-+	return -EOPNOTSUPP;
++	return ___wait_var_event(&page->_refcount,
++			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
++			0, 0, xfs_wait_var_event(inode, iolock, did_unlock));
 +}
- #endif
++
+ int
+ xfs_break_layouts(
+ 	struct inode		*inode,
+@@ -763,17 +795,23 @@ xfs_break_layouts(
  
- int dax_read_lock(void);
-@@ -121,7 +130,4 @@ static inline bool dax_mapping(struct address_space *mapping)
- 	return mapping->host && IS_DAX(mapping->host);
+ 	ASSERT(xfs_isilocked(XFS_I(inode), XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
+ 
+-	switch (reason) {
+-	case BREAK_UNMAP:
+-		ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
+-		/* fall through */
+-	case BREAK_WRITE:
+-		error = xfs_break_leased_layouts(inode, iolock, &retry);
+-		break;
+-	default:
+-		WARN_ON_ONCE(1);
+-		return -EINVAL;
+-	}
++	do {
++		switch (reason) {
++		case BREAK_UNMAP:
++			ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
++
++			error = xfs_break_dax_layouts(inode, *iolock, &retry);
++			/* fall through */
++		case BREAK_WRITE:
++			if (error || retry)
++				break;
++			error = xfs_break_leased_layouts(inode, iolock, &retry);
++			break;
++		default:
++			WARN_ON_ONCE(1);
++			return -EINVAL;
++		}
++	} while (error == 0 && retry);
+ 
+ 	return error;
  }
- 
--struct writeback_control;
--int dax_writeback_mapping_range(struct address_space *mapping,
--		struct block_device *bdev, struct writeback_control *wbc);
- #endif
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 79c413985305..44f7f7080faa 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -3129,6 +3129,10 @@ extern int simple_rmdir(struct inode *, struct dentry *);
- extern int simple_rename(struct inode *, struct dentry *,
- 			 struct inode *, struct dentry *, unsigned int);
- extern int noop_fsync(struct file *, loff_t, loff_t, int);
-+extern int noop_set_page_dirty(struct page *page);
-+extern void noop_invalidatepage(struct page *page, unsigned int offset,
-+		unsigned int length);
-+extern ssize_t noop_direct_IO(struct kiocb *iocb, struct iov_iter *iter);
- extern int simple_empty(struct dentry *);
- extern int simple_readpage(struct file *file, struct page *page);
- extern int simple_write_begin(struct file *file, struct address_space *mapping,
 
 _______________________________________________
 Linux-nvdimm mailing list
