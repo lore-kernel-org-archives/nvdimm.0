@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7CACF21E08197
- for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 17:52:53 -0700 (PDT)
-Subject: [PATCH 1/2] acpi/libnvdimm: rework ARS query and removing blocking
- on timeout at init
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 30 Mar 2018 17:52:52 -0700
-Message-ID: <152245757217.54599.588915759449280143.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A0DBD2095606D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Mar 2018 21:13:15 -0700 (PDT)
+Subject: [PATCH v8 13/18] mm, dev_pagemap: introduce CONFIG_DEV_PAGEMAP_OPS
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 30 Mar 2018 21:03:19 -0700
+Message-ID: <152246899919.36038.9145086226090928099.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,479 +18,257 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, snitzer@redhat.com, david@fromorbit.com, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Christoph Hellwig <hch@lst.de>, Thomas Meyer <thomas@m3y3r.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On initialization we are going to set bit 1 of Start ARS DSM flag. This
-allows us to retrieve the data from the previous scrub without starting a
-scrub. This is to obtain any badblocks on all the DIMMs that does not have
-scrubbing started by the BIOS. Previously we block surfacing the regions
-until ARS is completed on all regions. That has been removed and we will
-now do scrubbing in the background with a delayed workqueue. The delayed
-workqueue will be scheduled starting at 1 second delay and doubled every
-time it has to be rescheduled up to 30 minutes delay. The reschedule will
-no longer be timing out.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/acpi/nfit/core.c |  263 ++++++++++++++++++++++------------------------
- drivers/acpi/nfit/nfit.h |   14 ++
- 2 files changed, 135 insertions(+), 142 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 33c13324e265..32670b82fbfc 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -35,10 +35,6 @@ static bool force_enable_dimms;
- module_param(force_enable_dimms, bool, S_IRUGO|S_IWUSR);
- MODULE_PARM_DESC(force_enable_dimms, "Ignore _STA (ACPI DIMM device) status");
- 
--static unsigned int scrub_timeout = NFIT_ARS_TIMEOUT;
--module_param(scrub_timeout, uint, S_IRUGO|S_IWUSR);
--MODULE_PARM_DESC(scrub_timeout, "Initial scrub timeout in seconds");
--
- /* after three payloads of overflow, it's dead jim */
- static unsigned int scrub_overflow_abort = 3;
- module_param(scrub_overflow_abort, uint, S_IRUGO|S_IWUSR);
-@@ -1250,7 +1246,8 @@ static ssize_t scrub_show(struct device *dev,
- 		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
- 		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
--				(work_busy(&acpi_desc->work)) ? "+\n" : "\n");
-+				(work_busy(&acpi_desc->dwork.work)) ?
-+				"+\n" : "\n");
- 	}
- 	device_unlock(dev);
- 	return rc;
-@@ -2799,86 +2796,6 @@ static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc,
- 	return 0;
- }
- 
--static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
--		struct nfit_spa *nfit_spa)
--{
--	struct acpi_nfit_system_address *spa = nfit_spa->spa;
--	unsigned int overflow_retry = scrub_overflow_abort;
--	u64 init_ars_start = 0, init_ars_len = 0;
--	struct device *dev = acpi_desc->dev;
--	unsigned int tmo = scrub_timeout;
--	int rc;
--
--	if (!nfit_spa->ars_required || !nfit_spa->nd_region)
--		return;
--
--	rc = ars_start(acpi_desc, nfit_spa);
--	/*
--	 * If we timed out the initial scan we'll still be busy here,
--	 * and will wait another timeout before giving up permanently.
--	 */
--	if (rc < 0 && rc != -EBUSY)
--		return;
--
--	do {
--		u64 ars_start, ars_len;
--
--		if (acpi_desc->cancel)
--			break;
--		rc = acpi_nfit_query_poison(acpi_desc, nfit_spa);
--		if (rc == -ENOTTY)
--			break;
--		if (rc == -EBUSY && !tmo) {
--			dev_warn(dev, "range %d ars timeout, aborting\n",
--					spa->range_index);
--			break;
--		}
--
--		if (rc == -EBUSY) {
--			/*
--			 * Note, entries may be appended to the list
--			 * while the lock is dropped, but the workqueue
--			 * being active prevents entries being deleted /
--			 * freed.
--			 */
--			mutex_unlock(&acpi_desc->init_mutex);
--			ssleep(1);
--			tmo--;
--			mutex_lock(&acpi_desc->init_mutex);
--			continue;
--		}
--
--		/* we got some results, but there are more pending... */
--		if (rc == -ENOSPC && overflow_retry--) {
--			if (!init_ars_len) {
--				init_ars_len = acpi_desc->ars_status->length;
--				init_ars_start = acpi_desc->ars_status->address;
--			}
--			rc = ars_continue(acpi_desc);
--		}
--
--		if (rc < 0) {
--			dev_warn(dev, "range %d ars continuation failed\n",
--					spa->range_index);
--			break;
--		}
--
--		if (init_ars_len) {
--			ars_start = init_ars_start;
--			ars_len = init_ars_len;
--		} else {
--			ars_start = acpi_desc->ars_status->address;
--			ars_len = acpi_desc->ars_status->length;
--		}
--		dev_dbg(dev, "spa range: %d ars from %#llx + %#llx complete\n",
--				spa->range_index, ars_start, ars_len);
--		/* notify the region about new poison entries */
--		nvdimm_region_notify(nfit_spa->nd_region,
--				NVDIMM_REVALIDATE_POISON);
--		break;
--	} while (1);
--}
--
- static void acpi_nfit_scrub(struct work_struct *work)
- {
- 	struct device *dev;
-@@ -2887,37 +2804,57 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 	u64 init_scrub_address = 0;
- 	bool init_ars_done = false;
- 	struct acpi_nfit_desc *acpi_desc;
--	unsigned int tmo = scrub_timeout;
- 	unsigned int overflow_retry = scrub_overflow_abort;
-+	int ars_needed = 0;
- 
--	acpi_desc = container_of(work, typeof(*acpi_desc), work);
-+	acpi_desc = container_of(work, typeof(*acpi_desc), dwork.work);
- 	dev = acpi_desc->dev;
- 
--	/*
--	 * We scrub in 2 phases.  The first phase waits for any platform
--	 * firmware initiated scrubs to complete and then we go search for the
--	 * affected spa regions to mark them scanned.  In the second phase we
--	 * initiate a directed scrub for every range that was not scrubbed in
--	 * phase 1. If we're called for a 'rescan', we harmlessly pass through
--	 * the first phase, but really only care about running phase 2, where
--	 * regions can be notified of new poison.
--	 */
--
--	/* process platform firmware initiated scrubs */
-  retry:
- 	mutex_lock(&acpi_desc->init_mutex);
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
- 		struct nd_cmd_ars_status *ars_status;
--		struct acpi_nfit_system_address *spa;
--		u64 ars_start, ars_len;
-+		struct acpi_nfit_system_address *spa = nfit_spa->spa;
-+		u64 ars_start_addr, ars_len;
- 		int rc;
- 
- 		if (acpi_desc->cancel)
--			break;
-+			goto out;
- 
--		if (nfit_spa->nd_region)
-+		if (nfit_spa->ars_state == NFIT_ARS_STATE_COMPLETE ||
-+			nfit_spa->ars_state == NFIT_ARS_STATE_UNSUPPORTED ||
-+			nfit_spa->ars_state == NFIT_ARS_STATE_FAILED)
- 			continue;
- 
-+		if (nfit_spa->ars_state == NFIT_ARS_STATE_REQUESTED) {
-+			dev_dbg(dev, "Range %d starting ARS\n",
-+					spa->range_index);
-+			rc = ars_start(acpi_desc, nfit_spa);
-+			if (rc == -EBUSY) {
-+				queue_delayed_work(nfit_wq, &acpi_desc->dwork,
-+						acpi_desc->scrub_timeout * HZ);
-+				/*
-+				 * Increase timeout for next time around.
-+				 * We'll max it at 30mins.
-+				 */
-+				dev_dbg(dev, "Range %d ARS start busy. reschedule in %u seconds\n",
-+						spa->range_index,
-+						acpi_desc->scrub_timeout);
-+				acpi_desc->scrub_timeout =
-+					min_t(unsigned int,
-+						acpi_desc->scrub_timeout * 2,
-+						1800);
-+				goto out;
-+			}
-+			if (rc < 0) {
-+				dev_dbg(dev, "Range %d ARS start failed.\n",
-+						spa->range_index);
-+				nfit_spa->ars_state = NFIT_ARS_STATE_FAILED;
-+				continue;
-+			}
-+			nfit_spa->ars_state = NFIT_ARS_STATE_IN_PROGRESS;
-+		}
-+
- 		if (init_ars_done) {
- 			/*
- 			 * No need to re-query, we're now just
-@@ -2930,23 +2867,30 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 
- 		if (rc == -ENOTTY) {
- 			/* no ars capability, just register spa and move on */
-+			nfit_spa->ars_state = NFIT_ARS_STATE_UNSUPPORTED;
- 			acpi_nfit_register_region(acpi_desc, nfit_spa);
- 			continue;
- 		}
- 
--		if (rc == -EBUSY && !tmo) {
--			/* fallthrough to directed scrub in phase 2 */
--			dev_warn(dev, "timeout awaiting ars results, continuing...\n");
--			break;
--		} else if (rc == -EBUSY) {
--			mutex_unlock(&acpi_desc->init_mutex);
--			ssleep(1);
--			tmo--;
--			goto retry;
-+		if (rc == -EBUSY) {
-+			nfit_spa->ars_state = NFIT_ARS_STATE_IN_PROGRESS;
-+			queue_delayed_work(nfit_wq, &acpi_desc->dwork,
-+					acpi_desc->scrub_timeout * HZ);
-+			/*
-+			 * Increase timeout for next time around. We'll max
-+			 * it at 30mins
-+			 */
-+			dev_dbg(dev, "Range %d ARS query busy. reschedule in %u seconds\n",
-+					spa->range_index,
-+					acpi_desc->scrub_timeout);
-+			acpi_desc->scrub_timeout = min_t(unsigned int,
-+					acpi_desc->scrub_timeout * 2, 1800);
-+			goto out;
- 		}
- 
- 		/* we got some results, but there are more pending... */
- 		if (rc == -ENOSPC && overflow_retry--) {
-+			nfit_spa->ars_state = NFIT_ARS_STATE_IN_PROGRESS;
- 			ars_status = acpi_desc->ars_status;
- 			/*
- 			 * Record the original scrub range, so that we
-@@ -2965,57 +2909,86 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 		}
- 
- 		if (rc < 0) {
--			/*
--			 * Initial scrub failed, we'll give it one more
--			 * try below...
--			 */
--			break;
-+			nfit_spa->ars_state = NFIT_ARS_STATE_FAILED;
-+			dev_warn(dev, "Range %d ars continuation failed\n",
-+					spa->range_index);
-+			continue;
- 		}
- 
- 		/* We got some final results, record completed ranges */
- 		ars_status = acpi_desc->ars_status;
- 		if (init_scrub_length) {
--			ars_start = init_scrub_address;
--			ars_len = ars_start + init_scrub_length;
-+			ars_start_addr = init_scrub_address;
-+			ars_len = ars_start_addr + init_scrub_length;
- 		} else {
--			ars_start = ars_status->address;
-+			ars_start_addr = ars_status->address;
- 			ars_len = ars_status->length;
- 		}
--		spa = nfit_spa->spa;
- 
- 		if (!init_ars_done) {
- 			init_ars_done = true;
--			dev_dbg(dev, "init scrub %#llx + %#llx complete\n",
--					ars_start, ars_len);
-+			dev_dbg(dev, "Scrub %#llx + %#llx complete\n",
-+					ars_start_addr, ars_len);
- 		}
--		if (ars_start <= spa->address && ars_start + ars_len
--				>= spa->address + spa->length)
-+
-+		if (ars_start_addr <= spa->address && ars_start_addr + ars_len
-+				>= spa->address + spa->length &&
-+				!nfit_spa->nd_region) {
- 			acpi_nfit_register_region(acpi_desc, nfit_spa);
-+			dev_dbg(dev, "Range %d register region\n",
-+				nfit_spa->spa->range_index);
-+		}
-+
-+		dev_dbg(dev, "Range %d ARS done\n", spa->range_index);
-+		nfit_spa->ars_state = NFIT_ARS_STATE_COMPLETE;
-+		acpi_desc->scrub_timeout = 1;
-+		if (nfit_spa->nd_region)
-+			nvdimm_region_notify(nfit_spa->nd_region,
-+					NVDIMM_REVALIDATE_POISON);
- 	}
- 
- 	/*
- 	 * For all the ranges not covered by an initial scrub we still
--	 * want to see if there are errors, but it's ok to discover them
--	 * asynchronously.
-+	 * want to see if there are errors
- 	 */
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-+		if (nfit_spa->nd_region)
-+			continue;
-+
- 		/*
--		 * Flag all the ranges that still need scrubbing, but
--		 * register them now to make data available.
-+		 * If we are going through here first time and region
-+		 * is not registered, we know BIOS has not scrubbed
-+		 * the range and we need to request scrubbing. Otherwise
-+		 * we'll just go ahead and register the region.
- 		 */
--		if (!nfit_spa->nd_region) {
--			nfit_spa->ars_required = 1;
-+		if (!acpi_desc->init_complete) {
-+			dev_dbg(dev, "Range %d requested for ARS\n",
-+				nfit_spa->spa->range_index);
-+			nfit_spa->ars_state = NFIT_ARS_STATE_REQUESTED;
-+			ars_needed++;
-+		} else {
- 			acpi_nfit_register_region(acpi_desc, nfit_spa);
-+			dev_dbg(dev, "Range %d register region\n",
-+				nfit_spa->spa->range_index);
- 		}
- 	}
--	acpi_desc->init_complete = 1;
- 
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
--		acpi_nfit_async_scrub(acpi_desc, nfit_spa);
-+		dev_dbg(dev, "Range %d ars state: %d\n",
-+				nfit_spa->spa->range_index,
-+				nfit_spa->ars_state);
-+	acpi_desc->init_complete = 1;
-+	if (ars_needed) {
-+		queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
-+		goto out;
-+	} else
-+		acpi_desc->ars_start_flags = 0;
-+
- 	acpi_desc->scrub_count++;
--	acpi_desc->ars_start_flags = 0;
- 	if (acpi_desc->scrub_count_state)
- 		sysfs_notify_dirent(acpi_desc->scrub_count_state);
-+
-+out:
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
- 
-@@ -3032,9 +3005,13 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
- 				return rc;
- 		}
- 
--	acpi_desc->ars_start_flags = 0;
-+	/*
-+	 * At initialization, we are going to grab all the known errors
-+	 * instead of starting ARS.
-+	 */
-+	acpi_desc->ars_start_flags = ND_ARS_RETURN_PREV_DATA;
- 	if (!acpi_desc->cancel)
--		queue_work(nfit_wq, &acpi_desc->work);
-+		queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
- 	return 0;
- }
- 
-@@ -3230,7 +3207,7 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 	 * just needs guarantees that any ars it initiates are not
- 	 * interrupted by any intervening start reqeusts from userspace.
- 	 */
--	if (work_busy(&acpi_desc->work))
-+	if (work_busy(&acpi_desc->dwork.work))
- 		return -EBUSY;
- 
- 	return 0;
-@@ -3241,7 +3218,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, u8 flags)
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_spa *nfit_spa;
- 
--	if (work_busy(&acpi_desc->work))
-+	if (work_busy(&acpi_desc->dwork.work))
- 		return -EBUSY;
- 
- 	mutex_lock(&acpi_desc->init_mutex);
-@@ -3256,10 +3233,14 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, u8 flags)
- 		if (nfit_spa_type(spa) != NFIT_SPA_PM)
- 			continue;
- 
--		nfit_spa->ars_required = 1;
-+		if (nfit_spa->ars_state == NFIT_ARS_STATE_UNSUPPORTED ||
-+			nfit_spa->ars_state == NFIT_ARS_STATE_FAILED)
-+			continue;
-+
-+		nfit_spa->ars_state = NFIT_ARS_STATE_REQUESTED;
- 	}
- 	acpi_desc->ars_start_flags = flags;
--	queue_work(nfit_wq, &acpi_desc->work);
-+	queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
- 	dev_dbg(dev, "ars_scan triggered\n");
- 	mutex_unlock(&acpi_desc->init_mutex);
- 
-@@ -3290,7 +3271,8 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
- 	INIT_LIST_HEAD(&acpi_desc->dimms);
- 	INIT_LIST_HEAD(&acpi_desc->list);
- 	mutex_init(&acpi_desc->init_mutex);
--	INIT_WORK(&acpi_desc->work, acpi_nfit_scrub);
-+	acpi_desc->scrub_timeout = 1;
-+	INIT_DELAYED_WORK(&acpi_desc->dwork, acpi_nfit_scrub);
- }
- EXPORT_SYMBOL_GPL(acpi_nfit_desc_init);
- 
-@@ -3314,6 +3296,7 @@ void acpi_nfit_shutdown(void *data)
- 
- 	mutex_lock(&acpi_desc->init_mutex);
- 	acpi_desc->cancel = 1;
-+	cancel_delayed_work_sync(&acpi_desc->dwork);
- 	mutex_unlock(&acpi_desc->init_mutex);
- 
- 	/*
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index ac9c49463731..dde28f33a371 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -117,10 +117,19 @@ enum nfit_dimm_notifiers {
- 	NFIT_NOTIFY_DIMM_HEALTH = 0x81,
- };
- 
-+enum nfit_ars_state {
-+	NFIT_ARS_STATE_IDLE = 0,
-+	NFIT_ARS_STATE_REQUESTED,
-+	NFIT_ARS_STATE_IN_PROGRESS,
-+	NFIT_ARS_STATE_COMPLETE,
-+	NFIT_ARS_STATE_UNSUPPORTED,
-+	NFIT_ARS_STATE_FAILED,
-+};
-+
- struct nfit_spa {
- 	struct list_head list;
- 	struct nd_region *nd_region;
--	unsigned int ars_required:1;
-+	enum nfit_ars_state ars_state;
- 	u32 clear_err_unit;
- 	u32 max_ars;
- 	struct acpi_nfit_system_address spa[0];
-@@ -191,7 +200,7 @@ struct acpi_nfit_desc {
- 	u8 ars_start_flags;
- 	struct nd_cmd_ars_status *ars_status;
- 	size_t ars_status_size;
--	struct work_struct work;
-+	struct delayed_work dwork;
- 	struct list_head list;
- 	struct kernfs_node *scrub_count_state;
- 	unsigned int scrub_count;
-@@ -202,6 +211,7 @@ struct acpi_nfit_desc {
- 	unsigned long bus_cmd_force_en;
- 	unsigned long bus_nfit_cmd_force_en;
- 	unsigned int platform_cap;
-+	unsigned int scrub_timeout;
- 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
- 			void *iobuf, u64 len, int rw);
- };
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhlIEhNTSBzdWItc3lzdGVtIGV4dGVuZGVkIGRldl9wYWdlbWFwIHRvIGFycmFuZ2UgYSBjYWxs
+YmFjayB3aGVuIGEKZGV2X3BhZ2VtYXAgbWFuYWdlZCBwYWdlIGlzIGZyZWVkLiBTaW5jZSBhIGRl
+dl9wYWdlbWFwIHBhZ2UgaXMgZnJlZSAvCmlkbGUgd2hlbiBpdHMgcmVmZXJlbmNlIGNvdW50IGlz
+IDEgaXQgcmVxdWlyZXMgYW4gYWRkaXRpb25hbCBicmFuY2ggdG8KY2hlY2sgdGhlIHBhZ2UtdHlw
+ZSBhdCBwdXRfcGFnZSgpIHRpbWUuIEdpdmVuIHB1dF9wYWdlKCkgaXMgYSBob3QtcGF0aAp3ZSBk
+byBub3Qgd2FudCB0byBpbmN1ciB0aGF0IGNoZWNrIGlmIEhNTSBpcyBub3QgaW4gdXNlLCBzbyBh
+IHN0YXRpYwpicmFuY2ggaXMgdXNlZCB0byBhdm9pZCB0aGF0IG92ZXJoZWFkIHdoZW4gbm90IG5l
+Y2Vzc2FyeS4KCk5vdywgdGhlIEZTX0RBWCBpbXBsZW1lbnRhdGlvbiB3YW50cyB0byByZXVzZSB0
+aGlzIG1lY2hhbmlzbSBmb3IKcmVjZWl2aW5nIGRldl9wYWdlbWFwIC0+cGFnZV9mcmVlKCkgY2Fs
+bGJhY2tzLiBSZXdvcmsgdGhlIEhNTS1zcGVjaWZpYwpzdGF0aWMta2V5IGludG8gYSBnZW5lcmlj
+IG1lY2hhbmlzbSB0aGF0IGVpdGhlciBITU0gb3IgRlNfREFYIGNvZGUgcGF0aHMKY2FuIGVuYWJs
+ZS4KCkZvciBBUkNIPXVtIGJ1aWxkcywgYW5kIGFueSBvdGhlciBhcmNoIHRoYXQgbGFja3MgWk9O
+RV9ERVZJQ0Ugc3VwcG9ydCwKY2FyZSBtdXN0IGJlIHRha2VuIHRvIGNvbXBpbGUgb3V0IHRoZSBE
+RVZfUEFHRU1BUF9PUFMgaW5mcmFzdHJ1Y3R1cmUuCkhvd2V2ZXIsIHdlIHN0aWxsIG5lZWQgdG8g
+c3VwcG9ydCBGU19EQVggaW4gdGhlIEZTX0RBWF9MSU1JVEVEIGNhc2UKaW1wbGVtZW50ZWQgYnkg
+dGhlIHMzOTAvZGNzc2JsayBkcml2ZXIuCgpDYzogTWFydGluIFNjaHdpZGVmc2t5IDxzY2h3aWRl
+ZnNreUBkZS5pYm0uY29tPgpDYzogSGVpa28gQ2Fyc3RlbnMgPGhlaWtvLmNhcnN0ZW5zQGRlLmli
+bS5jb20+CkNjOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BzdXNlLmNvbT4KUmVwb3J0ZWQtYnk6IFRo
+b21hcyBNZXllciA8dGhvbWFzQG0zeTNyLmRlPgpSZXZpZXdlZC1ieTogQ2hyaXN0b3BoIEhlbGx3
+aWcgPGhjaEBsc3QuZGU+ClJldmlld2VkLWJ5OiAiSsOpcsO0bWUgR2xpc3NlIiA8amdsaXNzZUBy
+ZWRoYXQuY29tPgpSZXZpZXdlZC1ieTogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KU2lnbmVkLW9m
+Zi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ci0tLQogZHJpdmVy
+cy9kYXgvc3VwZXIuYyAgICAgIHwgICAgNCArKy0KIGZzL0tjb25maWcgICAgICAgICAgICAgICB8
+ICAgIDEgKwogaW5jbHVkZS9saW51eC9kYXguaCAgICAgIHwgICAzNSArKysrKysrKysrKysrKysr
+LS0tLS0tLQogaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oIHwgICAxNyAtLS0tLS0tLS0tLQogaW5j
+bHVkZS9saW51eC9tbS5oICAgICAgIHwgICA3MSArKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrLS0tLS0tLS0tLS0tCiBrZXJuZWwvbWVtcmVtYXAuYyAgICAgICAgfCAgIDMwICsrKysr
+KysrKysrKysrKysrLS0KIG1tL0tjb25maWcgICAgICAgICAgICAgICB8ICAgIDUgKysrCiBtbS9o
+bW0uYyAgICAgICAgICAgICAgICAgfCAgIDEzICstLS0tLS0tCiBtbS9zd2FwLmMgICAgICAgICAg
+ICAgICAgfCAgICAzICstCiA5IGZpbGVzIGNoYW5nZWQsIDExNiBpbnNlcnRpb25zKCspLCA2MyBk
+ZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9zdXBlci5jIGIvZHJpdmVycy9k
+YXgvc3VwZXIuYwppbmRleCA3ZDI2MGYxMThhMzkuLjNiYWZhZGRkMDJmMSAxMDA2NDQKLS0tIGEv
+ZHJpdmVycy9kYXgvc3VwZXIuYworKysgYi9kcml2ZXJzL2RheC9zdXBlci5jCkBAIC0xNjQsNyAr
+MTY0LDcgQEAgc3RydWN0IGRheF9kZXZpY2UgewogCWNvbnN0IHN0cnVjdCBkYXhfb3BlcmF0aW9u
+cyAqb3BzOwogfTsKIAotI2lmIElTX0VOQUJMRUQoQ09ORklHX0ZTX0RBWCkKKyNpZiBJU19FTkFC
+TEVEKENPTkZJR19ERVZfUEFHRU1BUF9PUFMpCiBzdGF0aWMgdm9pZCBnZW5lcmljX2RheF9wYWdl
+ZnJlZShzdHJ1Y3QgcGFnZSAqcGFnZSwgdm9pZCAqZGF0YSkKIHsKIAkvKiBUT0RPOiB3YWtldXAg
+cGFnZS1pZGxlIHdhaXRlcnMgKi8KQEAgLTE5MCw2ICsxOTAsNyBAQCBzdHJ1Y3QgZGF4X2Rldmlj
+ZSAqZnNfZGF4X2NsYWltKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCB2b2lkICpvd25lcikK
+IAkJcmV0dXJuIE5VTEw7CiAJfQogCisJZGV2X3BhZ2VtYXBfZ2V0X29wcygpOwogCXBnbWFwLT50
+eXBlID0gTUVNT1JZX0RFVklDRV9GU19EQVg7CiAJcGdtYXAtPnBhZ2VfZnJlZSA9IGdlbmVyaWNf
+ZGF4X3BhZ2VmcmVlOwogCXBnbWFwLT5kYXRhID0gb3duZXI7CkBAIC0yMjgsNiArMjI5LDcgQEAg
+dm9pZCBfX2ZzX2RheF9yZWxlYXNlKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCB2b2lkICpv
+d25lcikKIAlwZ21hcC0+dHlwZSA9IE1FTU9SWV9ERVZJQ0VfSE9TVDsKIAlwZ21hcC0+cGFnZV9m
+cmVlID0gTlVMTDsKIAlwZ21hcC0+ZGF0YSA9IE5VTEw7CisJZGV2X3BhZ2VtYXBfcHV0X29wcygp
+OwogCW11dGV4X3VubG9jaygmZGV2bWFwX2xvY2spOwogfQogRVhQT1JUX1NZTUJPTF9HUEwoX19m
+c19kYXhfcmVsZWFzZSk7CmRpZmYgLS1naXQgYS9mcy9LY29uZmlnIGIvZnMvS2NvbmZpZwppbmRl
+eCBiYzgyMWE4NmQ5NjUuLjFlMDUwZTAxMmViOSAxMDA2NDQKLS0tIGEvZnMvS2NvbmZpZworKysg
+Yi9mcy9LY29uZmlnCkBAIC0zOCw2ICszOCw3IEBAIGNvbmZpZyBGU19EQVgKIAlib29sICJEaXJl
+Y3QgQWNjZXNzIChEQVgpIHN1cHBvcnQiCiAJZGVwZW5kcyBvbiBNTVUKIAlkZXBlbmRzIG9uICEo
+QVJNIHx8IE1JUFMgfHwgU1BBUkMpCisJc2VsZWN0IERFVl9QQUdFTUFQX09QUyBpZiAoWk9ORV9E
+RVZJQ0UgJiYgIUZTX0RBWF9MSU1JVEVEKQogCXNlbGVjdCBGU19JT01BUAogCXNlbGVjdCBEQVgK
+IAloZWxwCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2RheC5oIGIvaW5jbHVkZS9saW51eC9k
+YXguaAppbmRleCBhODhmZjAwOWUyYTEuLmEzNmI3NGFhOTZlOCAxMDA2NDQKLS0tIGEvaW5jbHVk
+ZS9saW51eC9kYXguaAorKysgYi9pbmNsdWRlL2xpbnV4L2RheC5oCkBAIC00LDYgKzQsNyBAQAog
+CiAjaW5jbHVkZSA8bGludXgvZnMuaD4KICNpbmNsdWRlIDxsaW51eC9tbS5oPgorI2luY2x1ZGUg
+PGxpbnV4L2dlbmhkLmg+CiAjaW5jbHVkZSA8bGludXgvcmFkaXgtdHJlZS5oPgogI2luY2x1ZGUg
+PGFzbS9wZ3RhYmxlLmg+CiAKQEAgLTg3LDEyICs4OCw4IEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0
+IGRheF9kZXZpY2UgKmZzX2RheF9nZXRfYnlfaG9zdChjb25zdCBjaGFyICpob3N0KQogCXJldHVy
+biBkYXhfZ2V0X2J5X2hvc3QoaG9zdCk7CiB9CiAKLXN0cnVjdCBkYXhfZGV2aWNlICpmc19kYXhf
+Y2xhaW1fYmRldihzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2LCB2b2lkICpvd25lcik7Ci12b2lk
+IGZzX2RheF9yZWxlYXNlKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCB2b2lkICpvd25lcik7
+CiBpbnQgZGF4X3dyaXRlYmFja19tYXBwaW5nX3JhbmdlKHN0cnVjdCBhZGRyZXNzX3NwYWNlICpt
+YXBwaW5nLAogCQlzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2LCBzdHJ1Y3Qgd3JpdGViYWNrX2Nv
+bnRyb2wgKndiYyk7Ci1zdHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2NsYWltKHN0cnVjdCBkYXhf
+ZGV2aWNlICpkYXhfZGV2LCB2b2lkICpvd25lcik7Ci12b2lkIF9fZnNfZGF4X3JlbGVhc2Uoc3Ry
+dWN0IGRheF9kZXZpY2UgKmRheF9kZXYsIHZvaWQgKm93bmVyKTsKICNlbHNlCiBzdGF0aWMgaW5s
+aW5lIGludCBiZGV2X2RheF9zdXBwb3J0ZWQoc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwgaW50IGJs
+b2Nrc2l6ZSkKIHsKQEAgLTEwNCwyNiArMTAxLDQyIEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0IGRh
+eF9kZXZpY2UgKmZzX2RheF9nZXRfYnlfaG9zdChjb25zdCBjaGFyICpob3N0KQogCXJldHVybiBO
+VUxMOwogfQogCitzdGF0aWMgaW5saW5lIGludCBkYXhfd3JpdGViYWNrX21hcHBpbmdfcmFuZ2Uo
+c3RydWN0IGFkZHJlc3Nfc3BhY2UgKm1hcHBpbmcsCisJCXN0cnVjdCBibG9ja19kZXZpY2UgKmJk
+ZXYsIHN0cnVjdCB3cml0ZWJhY2tfY29udHJvbCAqd2JjKQoreworCXJldHVybiAtRU9QTk9UU1VQ
+UDsKK30KKyNlbmRpZgorCisjaWYgSVNfRU5BQkxFRChDT05GSUdfREVWX1BBR0VNQVBfT1BTKQor
+c3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9jbGFpbV9iZGV2KHN0cnVjdCBibG9ja19kZXZpY2Ug
+KmJkZXYsIHZvaWQgKm93bmVyKTsKK3N0cnVjdCBkYXhfZGV2aWNlICpmc19kYXhfY2xhaW0oc3Ry
+dWN0IGRheF9kZXZpY2UgKmRheF9kZXYsIHZvaWQgKm93bmVyKTsKK3ZvaWQgX19mc19kYXhfcmVs
+ZWFzZShzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2Rldiwgdm9pZCAqb3duZXIpOwordm9pZCBmc19k
+YXhfcmVsZWFzZShzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2Rldiwgdm9pZCAqb3duZXIpOworI2Vs
+c2UKKyNpZmRlZiBDT05GSUdfQkxPQ0sKIHN0YXRpYyBpbmxpbmUgc3RydWN0IGRheF9kZXZpY2Ug
+KmZzX2RheF9jbGFpbV9iZGV2KHN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYsCiAJCXZvaWQgKm93
+bmVyKQogewotCXJldHVybiBOVUxMOworCXJldHVybiBmc19kYXhfZ2V0X2J5X2hvc3QoYmRldi0+
+YmRfZGlzay0+ZGlza19uYW1lKTsKIH0KLQotc3RhdGljIGlubGluZSB2b2lkIGZzX2RheF9yZWxl
+YXNlKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCB2b2lkICpvd25lcikKKyNlbHNlCitzdGF0
+aWMgaW5saW5lIHN0cnVjdCBkYXhfZGV2aWNlICpmc19kYXhfY2xhaW1fYmRldihzdHJ1Y3QgYmxv
+Y2tfZGV2aWNlICpiZGV2LAorCQl2b2lkICpvd25lcikKIHsKKwlyZXR1cm4gTlVMTDsKIH0KKyNl
+bmRpZgogCi1zdGF0aWMgaW5saW5lIGludCBkYXhfd3JpdGViYWNrX21hcHBpbmdfcmFuZ2Uoc3Ry
+dWN0IGFkZHJlc3Nfc3BhY2UgKm1hcHBpbmcsCi0JCXN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYs
+IHN0cnVjdCB3cml0ZWJhY2tfY29udHJvbCAqd2JjKQorc3RhdGljIGlubGluZSB2b2lkIGZzX2Rh
+eF9yZWxlYXNlKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCB2b2lkICpvd25lcikKIHsKLQly
+ZXR1cm4gLUVPUE5PVFNVUFA7CisJcHV0X2RheChkYXhfZGV2KTsKIH0KIAogc3RhdGljIGlubGlu
+ZSBzdHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2NsYWltKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhf
+ZGV2LAogCQl2b2lkICpvd25lcikKIHsKLQlyZXR1cm4gTlVMTDsKKwlyZXR1cm4gZGF4X2RldjsK
+IH0KIAogc3RhdGljIGlubGluZSB2b2lkIF9fZnNfZGF4X3JlbGVhc2Uoc3RydWN0IGRheF9kZXZp
+Y2UgKmRheF9kZXYsIHZvaWQgKm93bmVyKQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9tZW1y
+ZW1hcC5oIGIvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCmluZGV4IDAyZDZkMDQyZWU3Zi4uOGNj
+NjE5ZmUzNDdiIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L21lbXJlbWFwLmgKKysrIGIvaW5j
+bHVkZS9saW51eC9tZW1yZW1hcC5oCkBAIC0xLDcgKzEsNiBAQAogLyogU1BEWC1MaWNlbnNlLUlk
+ZW50aWZpZXI6IEdQTC0yLjAgKi8KICNpZm5kZWYgX0xJTlVYX01FTVJFTUFQX0hfCiAjZGVmaW5l
+IF9MSU5VWF9NRU1SRU1BUF9IXwotI2luY2x1ZGUgPGxpbnV4L21tLmg+CiAjaW5jbHVkZSA8bGlu
+dXgvaW9wb3J0Lmg+CiAjaW5jbHVkZSA8bGludXgvcGVyY3B1LXJlZmNvdW50Lmg+CiAKQEAgLTEz
+Nyw4ICsxMzYsNiBAQCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKmdldF9kZXZfcGFnZW1hcCh1bnNpZ25l
+ZCBsb25nIHBmbiwKIAogdW5zaWduZWQgbG9uZyB2bWVtX2FsdG1hcF9vZmZzZXQoc3RydWN0IHZt
+ZW1fYWx0bWFwICphbHRtYXApOwogdm9pZCB2bWVtX2FsdG1hcF9mcmVlKHN0cnVjdCB2bWVtX2Fs
+dG1hcCAqYWx0bWFwLCB1bnNpZ25lZCBsb25nIG5yX3BmbnMpOwotCi1zdGF0aWMgaW5saW5lIGJv
+b2wgaXNfem9uZV9kZXZpY2VfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSk7CiAjZWxzZQog
+c3RhdGljIGlubGluZSB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2UgKmRl
+diwKIAkJc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKQEAgLTE2OSwyMCArMTY2LDYgQEAgc3Rh
+dGljIGlubGluZSB2b2lkIHZtZW1fYWx0bWFwX2ZyZWUoc3RydWN0IHZtZW1fYWx0bWFwICphbHRt
+YXAsCiB9CiAjZW5kaWYgLyogQ09ORklHX1pPTkVfREVWSUNFICovCiAKLSNpZiBkZWZpbmVkKENP
+TkZJR19ERVZJQ0VfUFJJVkFURSkgfHwgZGVmaW5lZChDT05GSUdfREVWSUNFX1BVQkxJQykKLXN0
+YXRpYyBpbmxpbmUgYm9vbCBpc19kZXZpY2VfcHJpdmF0ZV9wYWdlKGNvbnN0IHN0cnVjdCBwYWdl
+ICpwYWdlKQotewotCXJldHVybiBpc196b25lX2RldmljZV9wYWdlKHBhZ2UpICYmCi0JCXBhZ2Ut
+PnBnbWFwLT50eXBlID09IE1FTU9SWV9ERVZJQ0VfUFJJVkFURTsKLX0KLQotc3RhdGljIGlubGlu
+ZSBib29sIGlzX2RldmljZV9wdWJsaWNfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSkKLXsK
+LQlyZXR1cm4gaXNfem9uZV9kZXZpY2VfcGFnZShwYWdlKSAmJgotCQlwYWdlLT5wZ21hcC0+dHlw
+ZSA9PSBNRU1PUllfREVWSUNFX1BVQkxJQzsKLX0KLSNlbmRpZiAvKiBDT05GSUdfREVWSUNFX1BS
+SVZBVEUgfHwgQ09ORklHX0RFVklDRV9QVUJMSUMgKi8KLQogc3RhdGljIGlubGluZSB2b2lkIHB1
+dF9kZXZfcGFnZW1hcChzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogewogCWlmIChwZ21hcCkK
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbW0uaCBiL2luY2x1ZGUvbGludXgvbW0uaAppbmRl
+eCBhZDA2ZDQyYWRiMWEuLmJlOTk2OWUzY2YwOSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9t
+bS5oCisrKyBiL2luY2x1ZGUvbGludXgvbW0uaApAQCAtODEyLDI3ICs4MTIsNjUgQEAgc3RhdGlj
+IGlubGluZSBib29sIGlzX3pvbmVfZGV2aWNlX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2UgKnBhZ2Up
+CiB9CiAjZW5kaWYKIAotI2lmIGRlZmluZWQoQ09ORklHX0RFVklDRV9QUklWQVRFKSB8fCBkZWZp
+bmVkKENPTkZJR19ERVZJQ0VfUFVCTElDKQotdm9pZCBwdXRfem9uZV9kZXZpY2VfcHJpdmF0ZV9v
+cl9wdWJsaWNfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSk7Ci1ERUNMQVJFX1NUQVRJQ19LRVlfRkFM
+U0UoZGV2aWNlX3ByaXZhdGVfa2V5KTsKLSNkZWZpbmUgSVNfSE1NX0VOQUJMRUQgc3RhdGljX2Jy
+YW5jaF91bmxpa2VseSgmZGV2aWNlX3ByaXZhdGVfa2V5KQotc3RhdGljIGlubGluZSBib29sIGlz
+X2RldmljZV9wcml2YXRlX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2UgKnBhZ2UpOwotc3RhdGljIGlu
+bGluZSBib29sIGlzX2RldmljZV9wdWJsaWNfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSk7
+Ci0jZWxzZSAvKiBDT05GSUdfREVWSUNFX1BSSVZBVEUgfHwgQ09ORklHX0RFVklDRV9QVUJMSUMg
+Ki8KLXN0YXRpYyBpbmxpbmUgdm9pZCBwdXRfem9uZV9kZXZpY2VfcHJpdmF0ZV9vcl9wdWJsaWNf
+cGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkKKyNpZmRlZiBDT05GSUdfREVWX1BBR0VNQVBfT1BTCit2
+b2lkIGRldl9wYWdlbWFwX2dldF9vcHModm9pZCk7Cit2b2lkIGRldl9wYWdlbWFwX3B1dF9vcHMo
+dm9pZCk7Cit2b2lkIF9fcHV0X2Rldm1hcF9tYW5hZ2VkX3BhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2Up
+OworREVDTEFSRV9TVEFUSUNfS0VZX0ZBTFNFKGRldm1hcF9tYW5hZ2VkX2tleSk7CitzdGF0aWMg
+aW5saW5lIGJvb2wgcHV0X2Rldm1hcF9tYW5hZ2VkX3BhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UpCit7
+CisJaWYgKCFzdGF0aWNfYnJhbmNoX3VubGlrZWx5KCZkZXZtYXBfbWFuYWdlZF9rZXkpKQorCQly
+ZXR1cm4gZmFsc2U7CisJaWYgKCFpc196b25lX2RldmljZV9wYWdlKHBhZ2UpKQorCQlyZXR1cm4g
+ZmFsc2U7CisJc3dpdGNoIChwYWdlLT5wZ21hcC0+dHlwZSkgeworCWNhc2UgTUVNT1JZX0RFVklD
+RV9QUklWQVRFOgorCWNhc2UgTUVNT1JZX0RFVklDRV9QVUJMSUM6CisJY2FzZSBNRU1PUllfREVW
+SUNFX0ZTX0RBWDoKKwkJX19wdXRfZGV2bWFwX21hbmFnZWRfcGFnZShwYWdlKTsKKwkJcmV0dXJu
+IHRydWU7CisJZGVmYXVsdDoKKwkJYnJlYWs7CisJfQorCXJldHVybiBmYWxzZTsKK30KKworc3Rh
+dGljIGlubGluZSBib29sIGlzX2RldmljZV9wcml2YXRlX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2Ug
+KnBhZ2UpCiB7CisJcmV0dXJuIGlzX3pvbmVfZGV2aWNlX3BhZ2UocGFnZSkgJiYKKwkJcGFnZS0+
+cGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9QUklWQVRFOwogfQotI2RlZmluZSBJU19ITU1f
+RU5BQkxFRCAwCisKK3N0YXRpYyBpbmxpbmUgYm9vbCBpc19kZXZpY2VfcHVibGljX3BhZ2UoY29u
+c3Qgc3RydWN0IHBhZ2UgKnBhZ2UpCit7CisJcmV0dXJuIGlzX3pvbmVfZGV2aWNlX3BhZ2UocGFn
+ZSkgJiYKKwkJcGFnZS0+cGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9QVUJMSUM7Cit9CisK
+KyNlbHNlIC8qIENPTkZJR19ERVZfUEFHRU1BUF9PUFMgKi8KK3N0YXRpYyBpbmxpbmUgdm9pZCBk
+ZXZfcGFnZW1hcF9nZXRfb3BzKHZvaWQpCit7Cit9CisKK3N0YXRpYyBpbmxpbmUgdm9pZCBkZXZf
+cGFnZW1hcF9wdXRfb3BzKHZvaWQpCit7Cit9CisKK3N0YXRpYyBpbmxpbmUgYm9vbCBwdXRfZGV2
+bWFwX21hbmFnZWRfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkKK3sKKwlyZXR1cm4gZmFsc2U7Cit9
+CisKIHN0YXRpYyBpbmxpbmUgYm9vbCBpc19kZXZpY2VfcHJpdmF0ZV9wYWdlKGNvbnN0IHN0cnVj
+dCBwYWdlICpwYWdlKQogewogCXJldHVybiBmYWxzZTsKIH0KKwogc3RhdGljIGlubGluZSBib29s
+IGlzX2RldmljZV9wdWJsaWNfcGFnZShjb25zdCBzdHJ1Y3QgcGFnZSAqcGFnZSkKIHsKIAlyZXR1
+cm4gZmFsc2U7CiB9Ci0jZW5kaWYgLyogQ09ORklHX0RFVklDRV9QUklWQVRFIHx8IENPTkZJR19E
+RVZJQ0VfUFVCTElDICovCi0KKyNlbmRpZiAvKiBDT05GSUdfREVWX1BBR0VNQVBfT1BTICovCiAK
+IHN0YXRpYyBpbmxpbmUgdm9pZCBnZXRfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkKIHsKQEAgLTg1
+MCwxNiArODg4LDEzIEBAIHN0YXRpYyBpbmxpbmUgdm9pZCBwdXRfcGFnZShzdHJ1Y3QgcGFnZSAq
+cGFnZSkKIAlwYWdlID0gY29tcG91bmRfaGVhZChwYWdlKTsKIAogCS8qCi0JICogRm9yIHByaXZh
+dGUgZGV2aWNlIHBhZ2VzIHdlIG5lZWQgdG8gY2F0Y2ggcmVmY291bnQgdHJhbnNpdGlvbiBmcm9t
+Ci0JICogMiB0byAxLCB3aGVuIHJlZmNvdW50IHJlYWNoIG9uZSBpdCBtZWFucyB0aGUgcHJpdmF0
+ZSBkZXZpY2UgcGFnZSBpcwotCSAqIGZyZWUgYW5kIHdlIG5lZWQgdG8gaW5mb3JtIHRoZSBkZXZp
+Y2UgZHJpdmVyIHRocm91Z2ggY2FsbGJhY2suIFNlZQorCSAqIEZvciBkZXZtYXAgbWFuYWdlZCBw
+YWdlcyB3ZSBuZWVkIHRvIGNhdGNoIHJlZmNvdW50IHRyYW5zaXRpb24gZnJvbQorCSAqIDIgdG8g
+MSwgd2hlbiByZWZjb3VudCByZWFjaCBvbmUgaXQgbWVhbnMgdGhlIHBhZ2UgaXMgZnJlZSBhbmQg
+d2UKKwkgKiBuZWVkIHRvIGluZm9ybSB0aGUgZGV2aWNlIGRyaXZlciB0aHJvdWdoIGNhbGxiYWNr
+LiBTZWUKIAkgKiBpbmNsdWRlL2xpbnV4L21lbXJlbWFwLmggYW5kIEhNTSBmb3IgZGV0YWlscy4K
+IAkgKi8KLQlpZiAoSVNfSE1NX0VOQUJMRUQgJiYgdW5saWtlbHkoaXNfZGV2aWNlX3ByaXZhdGVf
+cGFnZShwYWdlKSB8fAotCSAgICB1bmxpa2VseShpc19kZXZpY2VfcHVibGljX3BhZ2UocGFnZSkp
+KSkgewotCQlwdXRfem9uZV9kZXZpY2VfcHJpdmF0ZV9vcl9wdWJsaWNfcGFnZShwYWdlKTsKKwlp
+ZiAocHV0X2Rldm1hcF9tYW5hZ2VkX3BhZ2UocGFnZSkpCiAJCXJldHVybjsKLQl9CiAKIAlpZiAo
+cHV0X3BhZ2VfdGVzdHplcm8ocGFnZSkpCiAJCV9fcHV0X3BhZ2UocGFnZSk7CmRpZmYgLS1naXQg
+YS9rZXJuZWwvbWVtcmVtYXAuYyBiL2tlcm5lbC9tZW1yZW1hcC5jCmluZGV4IDUyYTI3NDJmNTI3
+Zi4uMDdhNmE0MDVjZjNkIDEwMDY0NAotLS0gYS9rZXJuZWwvbWVtcmVtYXAuYworKysgYi9rZXJu
+ZWwvbWVtcmVtYXAuYwpAQCAtMzAyLDggKzMwMiwzMCBAQCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKmdl
+dF9kZXZfcGFnZW1hcCh1bnNpZ25lZCBsb25nIHBmbiwKIAlyZXR1cm4gcGdtYXA7CiB9CiAKLSNp
+ZiBJU19FTkFCTEVEKENPTkZJR19ERVZJQ0VfUFJJVkFURSkgfHwgIElTX0VOQUJMRUQoQ09ORklH
+X0RFVklDRV9QVUJMSUMpCi12b2lkIHB1dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19w
+YWdlKHN0cnVjdCBwYWdlICpwYWdlKQorI2lmZGVmIENPTkZJR19ERVZfUEFHRU1BUF9PUFMKK0RF
+RklORV9TVEFUSUNfS0VZX0ZBTFNFKGRldm1hcF9tYW5hZ2VkX2tleSk7CitFWFBPUlRfU1lNQk9M
+X0dQTChkZXZtYXBfbWFuYWdlZF9rZXkpOworc3RhdGljIGF0b21pY190IGRldm1hcF9lbmFibGU7
+CisKKy8qCisgKiBUb2dnbGUgdGhlIHN0YXRpYyBrZXkgZm9yIC0+cGFnZV9mcmVlKCkgY2FsbGJh
+Y2tzIHdoZW4gZGV2X3BhZ2VtYXAKKyAqIHBhZ2VzIGdvIGlkbGUuCisgKi8KK3ZvaWQgZGV2X3Bh
+Z2VtYXBfZ2V0X29wcyh2b2lkKQoreworCWlmIChhdG9taWNfaW5jX3JldHVybigmZGV2bWFwX2Vu
+YWJsZSkgPT0gMSkKKwkJc3RhdGljX2JyYW5jaF9lbmFibGUoJmRldm1hcF9tYW5hZ2VkX2tleSk7
+Cit9CitFWFBPUlRfU1lNQk9MX0dQTChkZXZfcGFnZW1hcF9nZXRfb3BzKTsKKwordm9pZCBkZXZf
+cGFnZW1hcF9wdXRfb3BzKHZvaWQpCit7CisJaWYgKGF0b21pY19kZWNfYW5kX3Rlc3QoJmRldm1h
+cF9lbmFibGUpKQorCQlzdGF0aWNfYnJhbmNoX2Rpc2FibGUoJmRldm1hcF9tYW5hZ2VkX2tleSk7
+Cit9CitFWFBPUlRfU1lNQk9MX0dQTChkZXZfcGFnZW1hcF9wdXRfb3BzKTsKKwordm9pZCBfX3B1
+dF9kZXZtYXBfbWFuYWdlZF9wYWdlKHN0cnVjdCBwYWdlICpwYWdlKQogewogCWludCBjb3VudCA9
+IHBhZ2VfcmVmX2RlY19yZXR1cm4ocGFnZSk7CiAKQEAgLTMyMyw1ICszNDUsNSBAQCB2b2lkIHB1
+dF96b25lX2RldmljZV9wcml2YXRlX29yX3B1YmxpY19wYWdlKHN0cnVjdCBwYWdlICpwYWdlKQog
+CX0gZWxzZSBpZiAoIWNvdW50KQogCQlfX3B1dF9wYWdlKHBhZ2UpOwogfQotRVhQT1JUX1NZTUJP
+TChwdXRfem9uZV9kZXZpY2VfcHJpdmF0ZV9vcl9wdWJsaWNfcGFnZSk7Ci0jZW5kaWYgLyogQ09O
+RklHX0RFVklDRV9QUklWQVRFIHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCitFWFBPUlRfU1lN
+Qk9MX0dQTChfX3B1dF9kZXZtYXBfbWFuYWdlZF9wYWdlKTsKKyNlbmRpZiAvKiBDT05GSUdfREVW
+X1BBR0VNQVBfT1BTICovCmRpZmYgLS1naXQgYS9tbS9LY29uZmlnIGIvbW0vS2NvbmZpZwppbmRl
+eCBjNzgyZThmYjcyMzUuLmRjMzI4Mjg5ODRhMyAxMDA2NDQKLS0tIGEvbW0vS2NvbmZpZworKysg
+Yi9tbS9LY29uZmlnCkBAIC03MDAsNiArNzAwLDkgQEAgY29uZmlnIEFSQ0hfSEFTX0hNTQogY29u
+ZmlnIE1JR1JBVEVfVk1BX0hFTFBFUgogCWJvb2wKIAorY29uZmlnIERFVl9QQUdFTUFQX09QUwor
+CWJvb2wKKwogY29uZmlnIEhNTQogCWJvb2wKIAlzZWxlY3QgTUlHUkFURV9WTUFfSEVMUEVSCkBA
+IC03MjAsNiArNzIzLDcgQEAgY29uZmlnIERFVklDRV9QUklWQVRFCiAJYm9vbCAiVW5hZGRyZXNz
+YWJsZSBkZXZpY2UgbWVtb3J5IChHUFUgbWVtb3J5LCAuLi4pIgogCWRlcGVuZHMgb24gQVJDSF9I
+QVNfSE1NCiAJc2VsZWN0IEhNTQorCXNlbGVjdCBERVZfUEFHRU1BUF9PUFMKIAogCWhlbHAKIAkg
+IEFsbG93cyBjcmVhdGlvbiBvZiBzdHJ1Y3QgcGFnZXMgdG8gcmVwcmVzZW50IHVuYWRkcmVzc2Fi
+bGUgZGV2aWNlCkBAIC03MzAsNiArNzM0LDcgQEAgY29uZmlnIERFVklDRV9QVUJMSUMKIAlib29s
+ICJBZGRyZXNzYWJsZSBkZXZpY2UgbWVtb3J5IChsaWtlIEdQVSBtZW1vcnkpIgogCWRlcGVuZHMg
+b24gQVJDSF9IQVNfSE1NCiAJc2VsZWN0IEhNTQorCXNlbGVjdCBERVZfUEFHRU1BUF9PUFMKIAog
+CWhlbHAKIAkgIEFsbG93cyBjcmVhdGlvbiBvZiBzdHJ1Y3QgcGFnZXMgdG8gcmVwcmVzZW50IGFk
+ZHJlc3NhYmxlIGRldmljZQpkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCAz
+MjA1NDViOThmZjUuLjRhYTU1NGU3NmQwNiAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0v
+aG1tLmMKQEAgLTM1LDE1ICszNSw2IEBACiAKICNkZWZpbmUgUEFfU0VDVElPTl9TSVpFICgxVUwg
+PDwgUEFfU0VDVElPTl9TSElGVCkKIAotI2lmIGRlZmluZWQoQ09ORklHX0RFVklDRV9QUklWQVRF
+KSB8fCBkZWZpbmVkKENPTkZJR19ERVZJQ0VfUFVCTElDKQotLyoKLSAqIERldmljZSBwcml2YXRl
+IG1lbW9yeSBzZWUgSE1NIChEb2N1bWVudGF0aW9uL3ZtL2htbS50eHQpIG9yIGhtbS5oCi0gKi8K
+LURFRklORV9TVEFUSUNfS0VZX0ZBTFNFKGRldmljZV9wcml2YXRlX2tleSk7Ci1FWFBPUlRfU1lN
+Qk9MKGRldmljZV9wcml2YXRlX2tleSk7Ci0jZW5kaWYgLyogQ09ORklHX0RFVklDRV9QUklWQVRF
+IHx8IENPTkZJR19ERVZJQ0VfUFVCTElDICovCi0KLQogI2lmIElTX0VOQUJMRUQoQ09ORklHX0hN
+TV9NSVJST1IpCiBzdGF0aWMgY29uc3Qgc3RydWN0IG1tdV9ub3RpZmllcl9vcHMgaG1tX21tdV9u
+b3RpZmllcl9vcHM7CiAKQEAgLTk5Niw3ICs5ODcsNyBAQCBzdHJ1Y3QgaG1tX2Rldm1lbSAqaG1t
+X2Rldm1lbV9hZGQoY29uc3Qgc3RydWN0IGhtbV9kZXZtZW1fb3BzICpvcHMsCiAJcmVzb3VyY2Vf
+c2l6ZV90IGFkZHI7CiAJaW50IHJldDsKIAotCXN0YXRpY19icmFuY2hfZW5hYmxlKCZkZXZpY2Vf
+cHJpdmF0ZV9rZXkpOworCWRldl9wYWdlbWFwX2dldF9vcHMoKTsKIAogCWRldm1lbSA9IGRldnJl
+c19hbGxvY19ub2RlKCZobW1fZGV2bWVtX3JlbGVhc2UsIHNpemVvZigqZGV2bWVtKSwKIAkJCQkg
+ICBHRlBfS0VSTkVMLCBkZXZfdG9fbm9kZShkZXZpY2UpKTsKQEAgLTEwOTAsNyArMTA4MSw3IEBA
+IHN0cnVjdCBobW1fZGV2bWVtICpobW1fZGV2bWVtX2FkZF9yZXNvdXJjZShjb25zdCBzdHJ1Y3Qg
+aG1tX2Rldm1lbV9vcHMgKm9wcywKIAlpZiAocmVzLT5kZXNjICE9IElPUkVTX0RFU0NfREVWSUNF
+X1BVQkxJQ19NRU1PUlkpCiAJCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOwogCi0Jc3RhdGljX2Jy
+YW5jaF9lbmFibGUoJmRldmljZV9wcml2YXRlX2tleSk7CisJZGV2X3BhZ2VtYXBfZ2V0X29wcygp
+OwogCiAJZGV2bWVtID0gZGV2cmVzX2FsbG9jX25vZGUoJmhtbV9kZXZtZW1fcmVsZWFzZSwgc2l6
+ZW9mKCpkZXZtZW0pLAogCQkJCSAgIEdGUF9LRVJORUwsIGRldl90b19ub2RlKGRldmljZSkpOwpk
+aWZmIC0tZ2l0IGEvbW0vc3dhcC5jIGIvbW0vc3dhcC5jCmluZGV4IDBmMTczMzBkZDBlNS4uZWVk
+ODQ2Y2ZjOGI4IDEwMDY0NAotLS0gYS9tbS9zd2FwLmMKKysrIGIvbW0vc3dhcC5jCkBAIC0yOSw2
+ICsyOSw3IEBACiAjaW5jbHVkZSA8bGludXgvY3B1Lmg+CiAjaW5jbHVkZSA8bGludXgvbm90aWZp
+ZXIuaD4KICNpbmNsdWRlIDxsaW51eC9iYWNraW5nLWRldi5oPgorI2luY2x1ZGUgPGxpbnV4L21l
+bXJlbWFwLmg+CiAjaW5jbHVkZSA8bGludXgvbWVtY29udHJvbC5oPgogI2luY2x1ZGUgPGxpbnV4
+L2dmcC5oPgogI2luY2x1ZGUgPGxpbnV4L3Vpby5oPgpAQCAtNzQ0LDcgKzc0NSw3IEBAIHZvaWQg
+cmVsZWFzZV9wYWdlcyhzdHJ1Y3QgcGFnZSAqKnBhZ2VzLCBpbnQgbnIpCiAJCQkJCQkgICAgICAg
+ZmxhZ3MpOwogCQkJCWxvY2tlZF9wZ2RhdCA9IE5VTEw7CiAJCQl9Ci0JCQlwdXRfem9uZV9kZXZp
+Y2VfcHJpdmF0ZV9vcl9wdWJsaWNfcGFnZShwYWdlKTsKKwkJCXB1dF9kZXZtYXBfbWFuYWdlZF9w
+YWdlKHBhZ2UpOwogCQkJY29udGludWU7CiAJCX0KIAoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtbnZkaW1tCg==
