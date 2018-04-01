@@ -1,55 +1,54 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0679521E080FE
- for <linux-nvdimm@lists.01.org>; Thu, 19 Apr 2018 08:11:37 -0700 (PDT)
-From: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH ndctl v2 3/3] Documentation: add asciidoctor-extensions.rb to
- .gitignore
-Date: Thu, 19 Apr 2018 17:11:20 +0200
-Message-Id: <20180419151120.11041-4-tiwai@suse.de>
-In-Reply-To: <20180419151120.11041-1-tiwai@suse.de>
-References: <20180419151120.11041-1-tiwai@suse.de>
+From: "Debt Recovery" <noreply-ECdoofKTLTdBDgjK7y7TUQ@public.gmane.org>
+Subject: Re : {Alerting You}
+Date: Sun, 1 Apr 2018 14:49:13 -0700
+Message-ID: <20180401214940.64920225F31FC@ml01.01.org>
+Reply-To: Debt Recovery <allanwoodmarko-ytc+IHgoah0@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-List-ID: <linux-nvdimm@lists.01.org>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-Two new files were added for asciidoctor support.
-
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- .gitignore | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/.gitignore b/.gitignore
-index 20a04dedd862..c7d11d91398c 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -15,6 +15,8 @@ Makefile.in
- *.1
- Documentation/daxctl/asciidoc.conf
- Documentation/ndctl/asciidoc.conf
-+Documentation/daxctl/asciidoctor-extensions.rb
-+Documentation/ndctl/asciidoctor-extensions.rb
- .dirstamp
- daxctl/daxctl
- daxctl/lib/libdaxctl.la
--- 
-2.16.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGVsbG8sCgoKICBJIGFtIHZlcnkgc29ycnkgSSBoYXZlIHRvIHJlYWNoIHlvdSB0aHJvdWdoIHRo
+aXMgbWVkaXVtLiBJIGFtIGEgbWVtYmVyIG9mIHRoZSBFdXJvcGVhbiBEZWJ0IFJlY292ZXJ5IFVu
+aXQgYW5kIEkgYW0gYXdhcmUgb2YgeW91ciBvcmRlYWwgYWJvdXQgeW91ciB1bnBhaWQgZnVuZC4K
+Ckl0IG1heSBhbHNvIGludGVyZXN0IHlvdSB0byBrbm93IHRoYXQsIG5vdCBsb25nIGFmdGVyIHRo
+ZSBEZWJ0IE1hbmFnZW1lbnQgT2ZmaWNlIChETU8pIGNvbXBsZXRlZCB0aGUgbWVyZ2VyIGFuZCBh
+Y3F1aXNpdGlvbiBwcm9jZXNzIG9mIGFsbCBwZW5kaW5nIHBheW1lbnRzIGluIHJlc3BvbnNlIHRv
+IHRoZSBwZXRpdGlvbiByYWlzZWQgYnkgdGhlIGludGVybmF0aW9uYWwgY29tbXVuaXR5IGFib3V0
+IHRoZWlyIHVucGFpZCBmdW5kcy4gSSBkaXNjb3ZlcmVkIHRoYXQgdGhlaXIgYm9zcyBjb25uaXZl
+ZCB3aXRoIHNvbWUgdG9wIG9mZmljaWFscyB0byBkaXZlcnQgZnVuZHMgYXBwcm92ZSB0byBzZXR0
+bGUgdW5wYWlkIGluaGVyaXRhbmNlcywgZW1haWwgbG90dGVyeSB3aW5uZXJzLCBJbnRlcm5ldCBz
+Y2FtIHZpY3RpbXMsIHVuY2xhaW1lZCBjb25zaWdubWVudHMoY29uY2VhbGVkIGZ1bmRzKSBhbmQg
+SW50ZXJuYXRpb25hbCBDb250cmFjdG9ycy4KClRoZSBETU8gaGFzIGFscmVhZHkgZ2l2ZW4gYXBw
+cm92YWwgZm9yIHRoZSBwYXltZW50IG9mIHlvdXIgZnVuZCBidXQgdGhleSBkZWxpYmVyYXRlbHkg
+d2l0aGhlbGQgeW91ciBwYXltZW50IGZpbGUgYW5kIGNvbnRpbnVlIHRvIGRlbWFuZCBmZWVzIGZy
+b20geW91IHRocm91Z2ggdGhlaXIgYXNzb2NpYXRlcyBmcm9tIGRpZmZlcmVudCB1bmFzc2lnbmVk
+IGFmZmlsaWF0ZXMgbW9zdGx5IGZyb20gQWZyaWNhLCBVUyBhbmQgdGhlIE5ldGhlcmxhbmRzIGFs
+bCBpbiBhbiBhdHRlbXB0IHRvIGZydXN0cmF0ZSB5b3UgYW5kIGVucmljaCB0aGVtc2VsdmVzLiBJ
+IHdvbmRlciB3aHkgeW91IGhhdmVu4oCZdCBub3RpY2UgYWxsIHRoZXNlIHdoaWxlLgoKWW91IG1h
+eSBjaG9vc2UgdG8gZGlzYmVsaWV2ZSB0aGlzIGVtYWlsIGFzIGluY29uY2VpdmFibGUgZmFjdHMg
+YnV0IG15IGRvY3RyaW5lIGRvZXMgbm90IHBlcm1pdCBzdWNoIGFjdCwgcmVhc29uIEkgaGF2ZSB0
+byBvcGVuIHVwIHRvIHlvdSB0byBzZWVrIHRoZSByaWdodCBjaGFubmVsLiBZb3VyIGZ1bmQgd2Fz
+IGF1dGhvcml6ZWQgdG8gYmUgcGFpZCB0byB5b3UgdGhyb3VnaCB0aGUgRE1PIGFzc2V0IG1hbmFn
+ZW1lbnQgZmlybSB3aXRoIGEgQ2xhaW0gQ29kZSBOdW1iZXJzLCB3aGljaCB3YXMgc3VwcG9zZWQg
+dG8gaGF2ZSBiZWVuIGlzc3VlZCB0byB5b3UgYmVmb3JlIG5vdy4KClVwb24geW91ciByZXNwb25z
+ZSwgSSBzaGFsbCBndWlkZSB5b3UgdGhyb3VnaCBhbmQgcHJvdmlkZSB5b3Ugd2l0aCBkZXRhaWxz
+IHRvIGNvbnRhY3QgdGhlIGFzc2lnbmVkIGFmZmlsaWF0ZSB3aG8gd2lsbCBleHBlZGl0aW91c2x5
+IGZhY2lsaXRhdGUgdGhlIHJlbGVhc2Ugb2YgeW91ciBmdW5kLgoKVGhhbmtzIGFuZCBoYXZlIGEg
+d29uZGVyZnVsIGRheS4KCllvdXJzIEZhaXRoZnVsbHksCkFkbWluaXN0cmF0aXZlIFN0YWZmLgpF
+dXJvcGVhbiBEZWJ0IFJlY292ZXJ5IEFnZW50LCAKVUsuUmVmOkVEUkEvMjkwMzE4L1VLMDMuCgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
+bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
+MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
