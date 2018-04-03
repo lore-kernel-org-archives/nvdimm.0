@@ -1,20 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D3D6321FB7D45
- for <linux-nvdimm@lists.01.org>; Wed,  4 Apr 2018 09:26:13 -0700 (PDT)
-From: "Kani, Toshi" <toshi.kani@hpe.com>
-Subject: Re: [PATCH 5/6] nfit, address-range-scrub: rework and simplify ARS
- state machine
-Date: Wed, 4 Apr 2018 16:26:09 +0000
-Message-ID: <1522859143.2693.296.camel@hpe.com>
+Received: from mail-ot0-x233.google.com (mail-ot0-x233.google.com
+ [IPv6:2607:f8b0:4003:c0f::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DF343226C7C38
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Apr 2018 08:33:59 -0700 (PDT)
+Received: by mail-ot0-x233.google.com with SMTP id m22-v6so19820320otf.10
+ for <linux-nvdimm@lists.01.org>; Tue, 03 Apr 2018 08:33:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <f4c0ca57-3c4a-9805-a66a-6a61aec2b108@intel.com>
 References: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
  <152273078779.38372.13062348829183334140.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152273078779.38372.13062348829183334140.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <2261346303772C44A1DC3B4EEC8487D4@NAMPRD84.PROD.OUTLOOK.COM>
-MIME-Version: 1.0
+ <f4c0ca57-3c4a-9805-a66a-6a61aec2b108@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 3 Apr 2018 08:33:58 -0700
+Message-ID: <CAPcyv4hbt-YNA_NA6Sic7Uzfg6EVwtPPyztFrGPjoYze9nfT9g@mail.gmail.com>
+Subject: Re: [PATCH 5/6] nfit, address-range-scrub: rework and simplify ARS
+ state machine
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,59 +28,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, 2018-04-02 at 21:46 -0700, Dan Williams wrote:
- :
-> +static int init_ars(struct acpi_nfit_desc *acpi_desc, struct nfit_spa *nfit_spa,
-> +		int query_rc)
->  {
-> -	struct acpi_nfit_system_address *spa = nfit_spa->spa;
-> -	unsigned int overflow_retry = scrub_overflow_abort;
-> -	u64 init_ars_start = 0, init_ars_len = 0;
-> -	struct device *dev = acpi_desc->dev;
-> -	unsigned int tmo = scrub_timeout;
->  	int rc;
->  
-> -	if (!test_bit(ARS_REQ, &nfit_spa->ars_state) || !nfit_spa->nd_region)
-> -		return;
-> +	switch (query_rc) {
-> +	case 0:
-> +		/* ARS is idle, lets look for critical known errors... */
-> +		break;
-> +	case -EBUSY:
-> +		/*
-> +		 * ARS is already running, some agent thought it was ok
-> +		 * to busy ARS before handing off to the nfit driver.
-> +		 */
-> +		clear_bit(ARS_SHORT, &nfit_spa->ars_state);
-> +		rc = query_rc;
-> +		goto out;
-> +	case -ENOSPC:
-> +		/* ARS continuation needed... */
-> +		clear_bit(ARS_SHORT, &nfit_spa->ars_state);
-> +		rc = query_rc;
-> +		goto out;
-> +	default:
-> +		rc = query_rc;
-> +		goto out;
-> +	}
->  
-> +	WARN_ON_ONCE(!test_bit(ARS_SHORT, &nfit_spa->ars_state));
+On Tue, Apr 3, 2018 at 8:29 AM, Dave Jiang <dave.jiang@intel.com> wrote:
+>
+[..]
+>> +               if (test_and_set_bit(ARS_REQ, &nfit_spa->ars_state))
+>> +                       busy++;
+>> +               else {
+>> +                       if (flags == ND_ARS_RETURN_PREV_DATA)
+>
+>
+> if (flags & ND_ARS_RETURN_PREV_DATA)?
+>
+> I think the spec allows other bits set in the flag byte.
+>
 
-I am hitting this WARN_ON_ONCE.  I think there is an issue in the code
-flow that ars_complete() clears ARS_SHORT before init_ars().
-
-  acpi_nfit_scrub
-    acpi_nfit_query_poison
-      ars_status_process_records
-         ars_complete
-    init_ars
-
-Thanks!
--Toshi
+True, and it might be better to pass in the kernel's ARS_SHORT flag
+rather than the firmware interface value.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
