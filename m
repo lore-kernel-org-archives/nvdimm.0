@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2093221E08175
- for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 13:10:12 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [ndctl PATCH 2/2] ndctl: fix some spelling mistakes
-Date: Mon,  9 Apr 2018 14:09:20 -0600
-Message-Id: <20180409200920.20177-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180409200920.20177-1-ross.zwisler@linux.intel.com>
-References: <20180409200920.20177-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B549A21FB7D45
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Apr 2018 04:50:06 -0700 (PDT)
+Date: Tue, 3 Apr 2018 13:50:03 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v8 05/18] ext4, dax: introduce ext4_dax_aops
+Message-ID: <20180403115003.qfbedsjtxwirqkh6@quack2.suse.cz>
+References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152246895649.36038.5391043415273091960.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <152246895649.36038.5391043415273091960.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,75 +20,121 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, snitzer@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- Documentation/ndctl/ndctl-create-namespace.txt |  2 +-
- ccan/list/list.h                               | 12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+On Fri 30-03-18 21:02:36, Dan Williams wrote:
+> In preparation for the dax implementation to start associating dax pages
+> to inodes via page->mapping, we need to provide a 'struct
+> address_space_operations' instance for dax. Otherwise, direct-I/O
+> triggers incorrect page cache assumptions and warnings.
+> 
+> Cc: "Theodore Ts'o" <tytso@mit.edu>
+> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+> Cc: linux-ext4@vger.kernel.org
+> Cc: Jan Kara <jack@suse.cz>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
-index 14c5409..29c55f5 100644
---- a/Documentation/ndctl/ndctl-create-namespace.txt
-+++ b/Documentation/ndctl/ndctl-create-namespace.txt
-@@ -42,7 +42,7 @@ OPTIONS
- -m::
- --mode=::
- 	- "raw": expose the namespace capacity directly with
--	  limitations.  Neither a raw pmem namepace nor raw blk
-+	  limitations.  Neither a raw pmem namespace nor raw blk
- 	  namespace support sector atomicity by default (see "sector"
- 	  mode below).  A raw pmem namespace may have limited to no dax
- 	  support depending the kernel. In other words operations like
-diff --git a/ccan/list/list.h b/ccan/list/list.h
-index 4d1d34e..b4c2d75 100644
---- a/ccan/list/list.h
-+++ b/ccan/list/list.h
-@@ -540,20 +540,20 @@ static inline void list_prepend_list_(struct list_head *to,
- /**
-  * list_for_each_off - iterate through a list of memory regions.
-  * @h: the list_head
-- * @i: the pointer to a memory region wich contains list node data.
-+ * @i: the pointer to a memory region which contains list node data.
-  * @off: offset(relative to @i) at which list node data resides.
-  *
-  * This is a low-level wrapper to iterate @i over the entire list, used to
-- * implement all oher, more high-level, for-each constructs. It's a for loop,
-+ * implement all other, more high-level, for-each constructs. It's a for loop,
-  * so you can break and continue as normal.
-  *
-  * WARNING! Being the low-level macro that it is, this wrapper doesn't know
-- * nor care about the type of @i. The only assumtion made is that @i points
-+ * nor care about the type of @i. The only assumption made is that @i points
-  * to a chunk of memory that at some @offset, relative to @i, contains a
-  * properly filled `struct node_list' which in turn contains pointers to
-- * memory chunks and it's turtles all the way down. Whith all that in mind
-+ * memory chunks and it's turtles all the way down. With all that in mind
-  * remember that given the wrong pointer/offset couple this macro will
-- * happilly churn all you memory untill SEGFAULT stops it, in other words
-+ * happily churn all you memory until SEGFAULT stops it, in other words
-  * caveat emptor.
-  *
-  * It is worth mentioning that one of legitimate use-cases for that wrapper
-@@ -577,7 +577,7 @@ static inline void list_prepend_list_(struct list_head *to,
-  * list_for_each_safe_off - iterate through a list of memory regions, maybe
-  * during deletion
-  * @h: the list_head
-- * @i: the pointer to a memory region wich contains list node data.
-+ * @i: the pointer to a memory region which contains list node data.
-  * @nxt: the structure containing the list_node
-  * @off: offset(relative to @i) at which list node data resides.
-  *
+Looks good. You can add:
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+> ---
+>  fs/ext4/inode.c |   42 +++++++++++++++++++++++++++++++-----------
+>  1 file changed, 31 insertions(+), 11 deletions(-)
+> 
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index c94780075b04..249a97b19181 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -2725,12 +2725,6 @@ static int ext4_writepages(struct address_space *mapping,
+>  	percpu_down_read(&sbi->s_journal_flag_rwsem);
+>  	trace_ext4_writepages(inode, wbc);
+>  
+> -	if (dax_mapping(mapping)) {
+> -		ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev,
+> -						  wbc);
+> -		goto out_writepages;
+> -	}
+> -
+>  	/*
+>  	 * No pages to write? This is mainly a kludge to avoid starting
+>  	 * a transaction for special inodes like journal inode on last iput()
+> @@ -2955,6 +2949,27 @@ static int ext4_writepages(struct address_space *mapping,
+>  	return ret;
+>  }
+>  
+> +static int ext4_dax_writepages(struct address_space *mapping,
+> +			       struct writeback_control *wbc)
+> +{
+> +	int ret;
+> +	long nr_to_write = wbc->nr_to_write;
+> +	struct inode *inode = mapping->host;
+> +	struct ext4_sb_info *sbi = EXT4_SB(mapping->host->i_sb);
+> +
+> +	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
+> +		return -EIO;
+> +
+> +	percpu_down_read(&sbi->s_journal_flag_rwsem);
+> +	trace_ext4_writepages(inode, wbc);
+> +
+> +	ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev, wbc);
+> +	trace_ext4_writepages_result(inode, wbc, ret,
+> +				     nr_to_write - wbc->nr_to_write);
+> +	percpu_up_read(&sbi->s_journal_flag_rwsem);
+> +	return ret;
+> +}
+> +
+>  static int ext4_nonda_switch(struct super_block *sb)
+>  {
+>  	s64 free_clusters, dirty_clusters;
+> @@ -3857,10 +3872,6 @@ static ssize_t ext4_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+>  	if (ext4_has_inline_data(inode))
+>  		return 0;
+>  
+> -	/* DAX uses iomap path now */
+> -	if (WARN_ON_ONCE(IS_DAX(inode)))
+> -		return 0;
+> -
+>  	trace_ext4_direct_IO_enter(inode, offset, count, iov_iter_rw(iter));
+>  	if (iov_iter_rw(iter) == READ)
+>  		ret = ext4_direct_IO_read(iocb, iter);
+> @@ -3946,6 +3957,13 @@ static const struct address_space_operations ext4_da_aops = {
+>  	.error_remove_page	= generic_error_remove_page,
+>  };
+>  
+> +static const struct address_space_operations ext4_dax_aops = {
+> +	.writepages		= ext4_dax_writepages,
+> +	.direct_IO		= noop_direct_IO,
+> +	.set_page_dirty		= noop_set_page_dirty,
+> +	.invalidatepage		= noop_invalidatepage,
+> +};
+> +
+>  void ext4_set_aops(struct inode *inode)
+>  {
+>  	switch (ext4_inode_journal_mode(inode)) {
+> @@ -3958,7 +3976,9 @@ void ext4_set_aops(struct inode *inode)
+>  	default:
+>  		BUG();
+>  	}
+> -	if (test_opt(inode->i_sb, DELALLOC))
+> +	if (IS_DAX(inode))
+> +		inode->i_mapping->a_ops = &ext4_dax_aops;
+> +	else if (test_opt(inode->i_sb, DELALLOC))
+>  		inode->i_mapping->a_ops = &ext4_da_aops;
+>  	else
+>  		inode->i_mapping->a_ops = &ext4_aops;
+> 
 -- 
-2.14.3
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
