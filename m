@@ -2,14 +2,17 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 404C821E08119
- for <linux-nvdimm@lists.01.org>; Thu, 19 Apr 2018 08:11:37 -0700 (PDT)
-From: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH ndctl v2 2/3] Documentation: Add the support for asciidoctor
-Date: Thu, 19 Apr 2018 17:11:19 +0200
-Message-Id: <20180419151120.11041-3-tiwai@suse.de>
-In-Reply-To: <20180419151120.11041-1-tiwai@suse.de>
-References: <20180419151120.11041-1-tiwai@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id B3F0721FB7D45
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Apr 2018 04:51:11 -0700 (PDT)
+Date: Tue, 3 Apr 2018 13:51:10 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v8 06/18] ext2, dax: introduce ext2_dax_aops
+Message-ID: <20180403115110.x272sevqcutguna6@quack2.suse.cz>
+References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152246896163.36038.15934876342603748972.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <152246896163.36038.15934876342603748972.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,225 +20,176 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: jack@suse.cz, kbuild test robot <lkp@intel.com>, snitzer@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds the support for asciidoctor to be used for generating
-documents instead of asciidoc.  It's enabled via --enable-asciidoctor
-configure option while asciidoc is used still as default.
+On Fri 30-03-18 21:02:41, Dan Williams wrote:
+> In preparation for the dax implementation to start associating dax pages
+> to inodes via page->mapping, we need to provide a 'struct
+> address_space_operations' instance for dax. Otherwise, direct-I/O
+> triggers incorrect page cache assumptions and warnings.
+> 
+> Cc: Jan Kara <jack@suse.com>
+> Reported-by: kbuild test robot <lkp@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-In addition to the configure option, a few other changes were needed:
-* some asciidoc.conf python stuff has to be replaced with asciidoctor
-  ruby extension; copied mostly from git
-* asciidoctor requires slightly different options
-* the man pages are generated directly via asciidoctor without xmlto
-  processing; less package dependency
+Looks good. You can add:
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- Documentation/asciidoctor-extensions.rb.in | 28 ++++++++++++++++++++++++++++
- Documentation/daxctl/Makefile.am           | 28 ++++++++++++++++++++++++++--
- Documentation/ndctl/Makefile.am            | 28 ++++++++++++++++++++++++++--
- configure.ac                               | 17 +++++++++++++++--
- 4 files changed, 95 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/asciidoctor-extensions.rb.in
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/Documentation/asciidoctor-extensions.rb.in b/Documentation/asciidoctor-extensions.rb.in
-new file mode 100644
-index 000000000000..ebdd665f1fb9
---- /dev/null
-+++ b/Documentation/asciidoctor-extensions.rb.in
-@@ -0,0 +1,28 @@
-+require 'asciidoctor'
-+require 'asciidoctor/extensions'
-+
-+module @Utility@
-+  module Documentation
-+    class Link@Utility@Processor < Asciidoctor::Extensions::InlineMacroProcessor
-+      use_dsl
-+
-+      named :chrome
-+
-+      def process(parent, target, attrs)
-+        if parent.document.basebackend? 'html'
-+          prefix = parent.document.attr('@utility@-relative-html-prefix')
-+          %(<a href="#{prefix}#{target}.html">#{target}(#{attrs[1]})</a>\n)
-+        elsif parent.document.basebackend? 'docbook'
-+          "<citerefentry>\n" \
-+            "<refentrytitle>#{target}</refentrytitle>" \
-+            "<manvolnum>#{attrs[1]}</manvolnum>\n" \
-+          "</citerefentry>\n"
-+        end
-+      end
-+    end
-+  end
-+end
-+
-+Asciidoctor::Extensions.register do
-+  inline_macro @Utility@::Documentation::Link@Utility@Processor, :link@utility@
-+end
-diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
-index 259dafd18e5e..7b753095d7a7 100644
---- a/Documentation/daxctl/Makefile.am
-+++ b/Documentation/daxctl/Makefile.am
-@@ -9,11 +9,22 @@
- # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- # General Public License for more details.
- 
--do_subst = sed -e 's,UTILITY,daxctl,g'
-+if USE_ASCIIDOCTOR
-+
-+do_subst = sed -e 's,@Utility@,Daxctl,g' -e's,@utility@,daxctl,g'
-+CONFFILE = asciidoctor-extensions.rb
-+asciidoctor-extensions.rb: ../asciidoctor-extensions.rb.in
-+	$(AM_V_GEN) $(do_subst) < $< > $@
- 
-+else
-+
-+do_subst = sed -e 's,UTILITY,daxctl,g'
-+CONFFILE = asciidoc.conf
- asciidoc.conf: ../asciidoc.conf.in
- 	$(AM_V_GEN) $(do_subst) < $< > $@
- 
-+endif
-+
- man1_MANS = \
- 	daxctl.1 \
- 	daxctl-list.1
-@@ -24,10 +35,21 @@ XML_DEPS = \
- 	../../version.m4 \
- 	../copyright.txt \
- 	Makefile \
--	asciidoc.conf
-+	$(CONFFILE)
- 
- RM ?= rm -f
- 
-+if USE_ASCIIDOCTOR
-+
-+%.1: %.txt $(XML_DEPS)
-+	$(AM_V_GEN)$(RM) $@+ $@ && \
-+		$(ASCIIDOC) -b manpage -d manpage -acompat-mode \
-+		-amansource=daxctl -amanmanual="daxctl Manual" \
-+		-andctl_version=$(VERSION) -o $@+ $< && \
-+		mv $@+ $@
-+
-+else
-+
- %.xml: %.txt $(XML_DEPS)
- 	$(AM_V_GEN)$(RM) $@+ $@ && \
- 		$(ASCIIDOC) -b docbook -d manpage -f asciidoc.conf \
-@@ -37,3 +59,5 @@ RM ?= rm -f
- %.1: %.xml $(XML_DEPS)
- 	$(AM_V_GEN)$(RM) $@ && \
- 		$(XMLTO) -o . -m ../manpage-normal.xsl man $<
-+
-+endif
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 4f04087598b5..70ec4597bd06 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -9,11 +9,22 @@
- # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- # General Public License for more details.
- 
--do_subst = sed -e 's,UTILITY,ndctl,g'
-+if USE_ASCIIDOCTOR
-+
-+do_subst = sed -e 's,@Utility@,Ndctl,g' -e's,@utility@,ndctl,g'
-+CONFFILE = asciidoctor-extensions.rb
-+asciidoctor-extensions.rb: ../asciidoctor-extensions.rb.in
-+	$(AM_V_GEN) $(do_subst) < $< > $@
- 
-+else
-+
-+do_subst = sed -e 's,UTILITY,ndctl,g'
-+CONFFILE = asciidoc.conf
- asciidoc.conf: ../asciidoc.conf.in
- 	$(AM_V_GEN) $(do_subst) < $< > $@
- 
-+endif
-+
- man1_MANS = \
- 	ndctl.1 \
- 	ndctl-wait-scrub.1 \
-@@ -41,7 +52,7 @@ CLEANFILES = $(man1_MANS)
- XML_DEPS = \
- 	../../version.m4 \
- 	Makefile \
--	asciidoc.conf \
-+	$(CONFFILE) \
- 	../copyright.txt \
- 	region-description.txt \
- 	xable-region-options.txt \
-@@ -54,6 +65,17 @@ XML_DEPS = \
- 
- RM ?= rm -f
- 
-+if USE_ASCIIDOCTOR
-+
-+%.1: %.txt $(XML_DEPS)
-+	$(AM_V_GEN)$(RM) $@+ $@ && \
-+		$(ASCIIDOC) -b manpage -d manpage -acompat-mode \
-+		-amansource=ndctl -amanmanual="ndctl Manual" \
-+		-andctl_version=$(VERSION) -o $@+ $< && \
-+		mv $@+ $@
-+
-+else
-+
- %.xml: %.txt $(XML_DEPS)
- 	$(AM_V_GEN)$(RM) $@+ $@ && \
- 		$(ASCIIDOC) -b docbook -d manpage -f asciidoc.conf \
-@@ -63,3 +85,5 @@ RM ?= rm -f
- %.1: %.xml $(XML_DEPS)
- 	$(AM_V_GEN)$(RM) $@ && \
- 		$(XMLTO) -o . -m ../manpage-normal.xsl man $<
-+
-+endif
-diff --git a/configure.ac b/configure.ac
-index 3eaac32feb80..cddad16925f8 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -42,16 +42,29 @@ AS_IF([test "x$enable_docs" = "xyes"], [
- ])
- AM_CONDITIONAL([ENABLE_DOCS], [test "x$enable_docs" = "xyes"])
- 
--AC_CHECK_PROG(ASCIIDOC, [asciidoc], [$(which asciidoc)], [missing])
-+AC_ARG_ENABLE([asciidoctor],
-+	AS_HELP_STRING([--enable-asciidoctor],
-+	[use asciidoctor for documentation build]),
-+	[], enable_asciidoctor=no)
-+AM_CONDITIONAL([USE_ASCIIDOCTOR], [test "x$enable_asciidoctor" = "xyes"])
-+if test "x$enable_asciidoctor" = "xyes"; then
-+	asciidoc="asciidoctor"
-+else
-+	asciidoc="asciidoc"
-+fi
-+AC_CHECK_PROG(ASCIIDOC, [$asciidoc], [$(which $asciidoc)], [missing])
- if test "x$ASCIIDOC" = xmissing -a "x$enable_docs" = "xyes"; then
--       AC_MSG_ERROR([asciidoc needed to build documentation])
-+	AC_MSG_ERROR([$asciidoc needed to build documentation])
- fi
- AC_SUBST([ASCIIDOC])
-+
-+if test x"$asciidoc" = x"asciidoc"; then
- AC_CHECK_PROG(XMLTO, [xmlto], [$(which xmlto)], [missing])
- if test "x$XMLTO" = xmissing -a "x$enable_docs" = "xyes"; then
-        AC_MSG_ERROR([xmlto needed to build documentation])
- fi
- AC_SUBST([XMLTO])
-+fi
- 
- AC_C_TYPEOF
- AC_DEFINE([HAVE_STATEMENT_EXPR], 1, [Define to 1 if you have statement expressions.])
+								Honza
+
+> ---
+>  fs/ext2/ext2.h  |    1 +
+>  fs/ext2/inode.c |   46 +++++++++++++++++++++++++++-------------------
+>  fs/ext2/namei.c |   18 ++----------------
+>  3 files changed, 30 insertions(+), 35 deletions(-)
+> 
+> diff --git a/fs/ext2/ext2.h b/fs/ext2/ext2.h
+> index 032295e1d386..cc40802ddfa8 100644
+> --- a/fs/ext2/ext2.h
+> +++ b/fs/ext2/ext2.h
+> @@ -814,6 +814,7 @@ extern const struct inode_operations ext2_file_inode_operations;
+>  extern const struct file_operations ext2_file_operations;
+>  
+>  /* inode.c */
+> +extern void ext2_set_file_ops(struct inode *inode);
+>  extern const struct address_space_operations ext2_aops;
+>  extern const struct address_space_operations ext2_nobh_aops;
+>  extern const struct iomap_ops ext2_iomap_ops;
+> diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+> index 9b2ac55ac34f..1e01fabef130 100644
+> --- a/fs/ext2/inode.c
+> +++ b/fs/ext2/inode.c
+> @@ -940,9 +940,6 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+>  	loff_t offset = iocb->ki_pos;
+>  	ssize_t ret;
+>  
+> -	if (WARN_ON_ONCE(IS_DAX(inode)))
+> -		return -EIO;
+> -
+>  	ret = blockdev_direct_IO(iocb, inode, iter, ext2_get_block);
+>  	if (ret < 0 && iov_iter_rw(iter) == WRITE)
+>  		ext2_write_failed(mapping, offset + count);
+> @@ -952,17 +949,16 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+>  static int
+>  ext2_writepages(struct address_space *mapping, struct writeback_control *wbc)
+>  {
+> -#ifdef CONFIG_FS_DAX
+> -	if (dax_mapping(mapping)) {
+> -		return dax_writeback_mapping_range(mapping,
+> -						   mapping->host->i_sb->s_bdev,
+> -						   wbc);
+> -	}
+> -#endif
+> -
+>  	return mpage_writepages(mapping, wbc, ext2_get_block);
+>  }
+>  
+> +static int
+> +ext2_dax_writepages(struct address_space *mapping, struct writeback_control *wbc)
+> +{
+> +	return dax_writeback_mapping_range(mapping,
+> +			mapping->host->i_sb->s_bdev, wbc);
+> +}
+> +
+>  const struct address_space_operations ext2_aops = {
+>  	.readpage		= ext2_readpage,
+>  	.readpages		= ext2_readpages,
+> @@ -990,6 +986,13 @@ const struct address_space_operations ext2_nobh_aops = {
+>  	.error_remove_page	= generic_error_remove_page,
+>  };
+>  
+> +static const struct address_space_operations ext2_dax_aops = {
+> +	.writepages		= ext2_dax_writepages,
+> +	.direct_IO		= noop_direct_IO,
+> +	.set_page_dirty		= noop_set_page_dirty,
+> +	.invalidatepage		= noop_invalidatepage,
+> +};
+> +
+>  /*
+>   * Probably it should be a library function... search for first non-zero word
+>   * or memcmp with zero_page, whatever is better for particular architecture.
+> @@ -1388,6 +1391,18 @@ void ext2_set_inode_flags(struct inode *inode)
+>  		inode->i_flags |= S_DAX;
+>  }
+>  
+> +void ext2_set_file_ops(struct inode *inode)
+> +{
+> +	inode->i_op = &ext2_file_inode_operations;
+> +	inode->i_fop = &ext2_file_operations;
+> +	if (IS_DAX(inode))
+> +		inode->i_mapping->a_ops = &ext2_dax_aops;
+> +	else if (test_opt(inode->i_sb, NOBH))
+> +		inode->i_mapping->a_ops = &ext2_nobh_aops;
+> +	else
+> +		inode->i_mapping->a_ops = &ext2_aops;
+> +}
+> +
+>  struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
+>  {
+>  	struct ext2_inode_info *ei;
+> @@ -1480,14 +1495,7 @@ struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
+>  		ei->i_data[n] = raw_inode->i_block[n];
+>  
+>  	if (S_ISREG(inode->i_mode)) {
+> -		inode->i_op = &ext2_file_inode_operations;
+> -		if (test_opt(inode->i_sb, NOBH)) {
+> -			inode->i_mapping->a_ops = &ext2_nobh_aops;
+> -			inode->i_fop = &ext2_file_operations;
+> -		} else {
+> -			inode->i_mapping->a_ops = &ext2_aops;
+> -			inode->i_fop = &ext2_file_operations;
+> -		}
+> +		ext2_set_file_ops(inode);
+>  	} else if (S_ISDIR(inode->i_mode)) {
+>  		inode->i_op = &ext2_dir_inode_operations;
+>  		inode->i_fop = &ext2_dir_operations;
+> diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
+> index e078075dc66f..55f7caadb093 100644
+> --- a/fs/ext2/namei.c
+> +++ b/fs/ext2/namei.c
+> @@ -107,14 +107,7 @@ static int ext2_create (struct inode * dir, struct dentry * dentry, umode_t mode
+>  	if (IS_ERR(inode))
+>  		return PTR_ERR(inode);
+>  
+> -	inode->i_op = &ext2_file_inode_operations;
+> -	if (test_opt(inode->i_sb, NOBH)) {
+> -		inode->i_mapping->a_ops = &ext2_nobh_aops;
+> -		inode->i_fop = &ext2_file_operations;
+> -	} else {
+> -		inode->i_mapping->a_ops = &ext2_aops;
+> -		inode->i_fop = &ext2_file_operations;
+> -	}
+> +	ext2_set_file_ops(inode);
+>  	mark_inode_dirty(inode);
+>  	return ext2_add_nondir(dentry, inode);
+>  }
+> @@ -125,14 +118,7 @@ static int ext2_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
+>  	if (IS_ERR(inode))
+>  		return PTR_ERR(inode);
+>  
+> -	inode->i_op = &ext2_file_inode_operations;
+> -	if (test_opt(inode->i_sb, NOBH)) {
+> -		inode->i_mapping->a_ops = &ext2_nobh_aops;
+> -		inode->i_fop = &ext2_file_operations;
+> -	} else {
+> -		inode->i_mapping->a_ops = &ext2_aops;
+> -		inode->i_fop = &ext2_file_operations;
+> -	}
+> +	ext2_set_file_ops(inode);
+>  	mark_inode_dirty(inode);
+>  	d_tmpfile(dentry, inode);
+>  	unlock_new_inode(inode);
+> 
 -- 
-2.16.3
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
