@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x244.google.com (mail-ot0-x244.google.com
- [IPv6:2607:f8b0:4003:c0f::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 33741226C7C43
- for <linux-nvdimm@lists.01.org>; Tue,  3 Apr 2018 11:24:51 -0700 (PDT)
-Received: by mail-ot0-x244.google.com with SMTP id n40-v6so20465880otd.3
- for <linux-nvdimm@lists.01.org>; Tue, 03 Apr 2018 11:24:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <152246898322.36038.17918469633893320678.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152246898322.36038.17918469633893320678.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 34F7F22526491
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Apr 2018 14:22:03 -0700 (PDT)
+Subject: [ndctl PATCH 2/5] ndctl,
+ scrub: report the bus scrub state in 'ndctl list'
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 3 Apr 2018 11:24:50 -0700
-Message-ID: <CAPcyv4jaZV3AhYaOA3d0SQ-AOvb4RKhj4_q-PR0bpt3aoax2mA@mail.gmail.com>
-Subject: Re: [PATCH v8 10/18] dax, dm: introduce ->fs_{claim, release}()
- dax_device infrastructure
+Date: Wed, 04 Apr 2018 14:12:06 -0700
+Message-ID: <152287632679.29230.14997478290667449138.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152287631592.29230.11531789298631204393.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152287631592.29230.11531789298631204393.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,195 +19,151 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm <linux-nvdimm@lists.01.org>
-Cc: Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Matthew Wilcox <mawilcox@microsoft.com>, david <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCBNYXIgMzAsIDIwMTggYXQgOTowMyBQTSwgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
-aWFtc0BpbnRlbC5jb20+IHdyb3RlOgo+IEluIHByZXBhcmF0aW9uIGZvciBhbGxvd2luZyBmaWxl
-c3lzdGVtcyB0byBhdWdtZW50IHRoZSBkZXZfcGFnZW1hcAo+IGFzc29jaWF0ZWQgd2l0aCBhIGRh
-eF9kZXZpY2UsIGFkZCBhbiAtPmZzX2NsYWltKCkgY2FsbGJhY2suIFRoZQo+IC0+ZnNfY2xhaW0o
-KSBjYWxsYmFjayBpcyBsZXZlcmFnZWQgYnkgdGhlIGRldmljZS1tYXBwZXIgZGF4Cj4gaW1wbGVt
-ZW50YXRpb24gdG8gaXRlcmF0ZSBhbGwgbWVtYmVyIGRldmljZXMgaW4gdGhlIG1hcCBhbmQgcmVw
-ZWF0IHRoZQo+IGNsYWltIG9wZXJhdGlvbiBhY3Jvc3MgdGhlIGFycmF5Lgo+Cj4gSW4gb3JkZXIg
-dG8gcmVzb2x2ZSBjb2xsaXNpb25zIGJldHdlZW4gZmlsZXN5c3RlbSBvcGVyYXRpb25zIGFuZCBE
-TUEgdG8KPiBEQVggbWFwcGVkIHBhZ2VzIHdlIG5lZWQgYSBjYWxsYmFjayB3aGVuIERNQSBjb21w
-bGV0ZXMuIFdpdGggYSBjYWxsYmFjawo+IHdlIGNhbiBob2xkIG9mZiBmaWxlc3lzdGVtIG9wZXJh
-dGlvbnMgd2hpbGUgRE1BIGlzIGluLWZsaWdodCBhbmQgdGhlbgo+IHJlc3VtZSB0aG9zZSBvcGVy
-YXRpb25zIHdoZW4gdGhlIGxhc3QgcHV0X3BhZ2UoKSBvY2N1cnMgb24gYSBETUEgcGFnZS4KPiBU
-aGUgLT5mc19jbGFpbSgpIG9wZXJhdGlvbiBhcnJhbmdlcyBmb3IgdGhpcyBjYWxsYmFjayB0byBi
-ZSByZWdpc3RlcmVkLAo+IGFsdGhvdWdoIHRoYXQgaW1wbGVtZW50YXRpb24gaXMgc2F2ZWQgZm9y
-IGEgbGF0ZXIgcGF0Y2guCj4KPiBDYzogQWxhc2RhaXIgS2VyZ29uIDxhZ2tAcmVkaGF0LmNvbT4K
-PiBDYzogTWlrZSBTbml0emVyIDxzbml0emVyQHJlZGhhdC5jb20+CgpNaWtlLCBkbyB0aGVzZSBE
-TSB0b3VjaGVzIGxvb2sgb2sgdG8geW91PyAgV2UgbmVlZCB0aGVzZSAtPmZzX2NsYWltKCkKLyAt
-PmZzX3JlbGVhc2UoKSBpbnRlcmZhY2VzIGZvciBkZXZpY2UtbWFwcGVyIHRvIHNldCB1cCBmaWxl
-c3lzdGVtLWRheAppbmZyYXN0cnVjdHVyZSBvbiBhbGwgc3ViLWRldmljZXMgd2hlbmV2ZXIgYSBk
-YXgtY2FwYWJsZSBETSBkZXZpY2UgaXMKbW91bnRlZC4gSXQgYnVpbGRzIG9uIHRoZSBkZXZpY2Ut
-bWFwcGVyIGRheCBkZXBlbmRlbmN5IHJlbW92YWwKcGF0Y2hlcy4KCj4gQ2M6IE1hdHRoZXcgV2ls
-Y294IDxtYXdpbGNveEBtaWNyb3NvZnQuY29tPgo+IENjOiBSb3NzIFp3aXNsZXIgPHJvc3Muendp
-c2xlckBsaW51eC5pbnRlbC5jb20+Cj4gQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxqZ2xpc3NlQHJl
-ZGhhdC5jb20+Cj4gQ2M6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0LmRlPgo+IENjOiBKYW4g
-S2FyYSA8amFja0BzdXNlLmN6Pgo+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmou
-d2lsbGlhbXNAaW50ZWwuY29tPgo+IC0tLQo+ICBkcml2ZXJzL2RheC9zdXBlci5jICAgICAgfCAg
-IDgwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgZHJp
-dmVycy9tZC9kbS5jICAgICAgICAgIHwgICA1NiArKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKwo+ICBpbmNsdWRlL2xpbnV4L2RheC5oICAgICAgfCAgIDE2ICsrKysrKysrKwo+ICBpbmNs
-dWRlL2xpbnV4L21lbXJlbWFwLmggfCAgICA4ICsrKysrCj4gIDQgZmlsZXMgY2hhbmdlZCwgMTYw
-IGluc2VydGlvbnMoKykKPgo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9zdXBlci5jIGIvZHJp
-dmVycy9kYXgvc3VwZXIuYwo+IGluZGV4IDJiMjMzMmI2MDVlNC4uYzRjZjI4NGRmZTFjIDEwMDY0
-NAo+IC0tLSBhL2RyaXZlcnMvZGF4L3N1cGVyLmMKPiArKysgYi9kcml2ZXJzL2RheC9zdXBlci5j
-Cj4gQEAgLTI5LDYgKzI5LDcgQEAgc3RhdGljIHN0cnVjdCB2ZnNtb3VudCAqZGF4X21udDsKPiAg
-c3RhdGljIERFRklORV9JREEoZGF4X21pbm9yX2lkYSk7Cj4gIHN0YXRpYyBzdHJ1Y3Qga21lbV9j
-YWNoZSAqZGF4X2NhY2hlIF9fcmVhZF9tb3N0bHk7Cj4gIHN0YXRpYyBzdHJ1Y3Qgc3VwZXJfYmxv
-Y2sgKmRheF9zdXBlcmJsb2NrIF9fcmVhZF9tb3N0bHk7Cj4gK3N0YXRpYyBERUZJTkVfTVVURVgo
-ZGV2bWFwX2xvY2spOwo+Cj4gICNkZWZpbmUgREFYX0hBU0hfU0laRSAoUEFHRV9TSVpFIC8gc2l6
-ZW9mKHN0cnVjdCBobGlzdF9oZWFkKSkKPiAgc3RhdGljIHN0cnVjdCBobGlzdF9oZWFkIGRheF9o
-b3N0X2xpc3RbREFYX0hBU0hfU0laRV07Cj4gQEAgLTE2OSw5ICsxNzAsODggQEAgc3RydWN0IGRh
-eF9kZXZpY2Ugewo+ICAgICAgICAgY29uc3QgY2hhciAqaG9zdDsKPiAgICAgICAgIHZvaWQgKnBy
-aXZhdGU7Cj4gICAgICAgICB1bnNpZ25lZCBsb25nIGZsYWdzOwo+ICsgICAgICAgc3RydWN0IGRl
-dl9wYWdlbWFwICpwZ21hcDsKPiAgICAgICAgIGNvbnN0IHN0cnVjdCBkYXhfb3BlcmF0aW9ucyAq
-b3BzOwo+ICB9Owo+Cj4gKyNpZiBJU19FTkFCTEVEKENPTkZJR19GU19EQVgpCj4gK3N0YXRpYyB2
-b2lkIGdlbmVyaWNfZGF4X3BhZ2VmcmVlKHN0cnVjdCBwYWdlICpwYWdlLCB2b2lkICpkYXRhKQo+
-ICt7Cj4gKyAgICAgICAvKiBUT0RPOiB3YWtldXAgcGFnZS1pZGxlIHdhaXRlcnMgKi8KPiArfQo+
-ICsKPiArc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9jbGFpbShzdHJ1Y3QgZGF4X2RldmljZSAq
-ZGF4X2Rldiwgdm9pZCAqb3duZXIpCj4gK3sKPiArICAgICAgIHN0cnVjdCBkZXZfcGFnZW1hcCAq
-cGdtYXA7Cj4gKwo+ICsgICAgICAgaWYgKCFkYXhfZGV2LT5wZ21hcCkKPiArICAgICAgICAgICAg
-ICAgcmV0dXJuIGRheF9kZXY7Cj4gKyAgICAgICBwZ21hcCA9IGRheF9kZXYtPnBnbWFwOwo+ICsK
-PiArICAgICAgIG11dGV4X2xvY2soJmRldm1hcF9sb2NrKTsKPiArICAgICAgIGlmIChwZ21hcC0+
-ZGF0YSAmJiBwZ21hcC0+ZGF0YSA9PSBvd25lcikgewo+ICsgICAgICAgICAgICAgICAvKiBkbSBt
-aWdodCB0cnkgdG8gY2xhaW0gdGhlIHNhbWUgZGV2aWNlIG1vcmUgdGhhbiBvbmNlLi4uICovCj4g
-KyAgICAgICAgICAgICAgIG11dGV4X3VubG9jaygmZGV2bWFwX2xvY2spOwo+ICsgICAgICAgICAg
-ICAgICByZXR1cm4gZGF4X2RldjsKPiArICAgICAgIH0gZWxzZSBpZiAocGdtYXAtPnBhZ2VfZnJl
-ZSB8fCBwZ21hcC0+cGFnZV9mYXVsdAo+ICsgICAgICAgICAgICAgICAgICAgICAgIHx8IHBnbWFw
-LT50eXBlICE9IE1FTU9SWV9ERVZJQ0VfSE9TVCkgewo+ICsgICAgICAgICAgICAgICBwdXRfZGF4
-KGRheF9kZXYpOwo+ICsgICAgICAgICAgICAgICBtdXRleF91bmxvY2soJmRldm1hcF9sb2NrKTsK
-PiArICAgICAgICAgICAgICAgcmV0dXJuIE5VTEw7Cj4gKyAgICAgICB9Cj4gKwo+ICsgICAgICAg
-cGdtYXAtPnR5cGUgPSBNRU1PUllfREVWSUNFX0ZTX0RBWDsKPiArICAgICAgIHBnbWFwLT5wYWdl
-X2ZyZWUgPSBnZW5lcmljX2RheF9wYWdlZnJlZTsKPiArICAgICAgIHBnbWFwLT5kYXRhID0gb3du
-ZXI7Cj4gKyAgICAgICBtdXRleF91bmxvY2soJmRldm1hcF9sb2NrKTsKPiArCj4gKyAgICAgICBy
-ZXR1cm4gZGF4X2RldjsKPiArfQo+ICtFWFBPUlRfU1lNQk9MX0dQTChmc19kYXhfY2xhaW0pOwo+
-ICsKPiArc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9jbGFpbV9iZGV2KHN0cnVjdCBibG9ja19k
-ZXZpY2UgKmJkZXYsIHZvaWQgKm93bmVyKQo+ICt7Cj4gKyAgICAgICBzdHJ1Y3QgZGF4X2Rldmlj
-ZSAqZGF4X2RldjsKPiArCj4gKyAgICAgICBpZiAoIWJsa19xdWV1ZV9kYXgoYmRldi0+YmRfcXVl
-dWUpKQo+ICsgICAgICAgICAgICAgICByZXR1cm4gTlVMTDsKPiArICAgICAgIGRheF9kZXYgPSBm
-c19kYXhfZ2V0X2J5X2hvc3QoYmRldi0+YmRfZGlzay0+ZGlza19uYW1lKTsKPiArICAgICAgIGlm
-IChkYXhfZGV2LT5vcHMtPmZzX2NsYWltKQo+ICsgICAgICAgICAgICAgICByZXR1cm4gZGF4X2Rl
-di0+b3BzLT5mc19jbGFpbShkYXhfZGV2LCBvd25lcik7Cj4gKyAgICAgICBlbHNlCj4gKyAgICAg
-ICAgICAgICAgIHJldHVybiBmc19kYXhfY2xhaW0oZGF4X2Rldiwgb3duZXIpOwo+ICt9Cj4gK0VY
-UE9SVF9TWU1CT0xfR1BMKGZzX2RheF9jbGFpbV9iZGV2KTsKPiArCj4gK3ZvaWQgX19mc19kYXhf
-cmVsZWFzZShzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2Rldiwgdm9pZCAqb3duZXIpCj4gK3sKPiAr
-ICAgICAgIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBkYXhfZGV2ID8gZGF4X2Rldi0+cGdt
-YXAgOiBOVUxMOwo+ICsKPiArICAgICAgIHB1dF9kYXgoZGF4X2Rldik7Cj4gKyAgICAgICBpZiAo
-IXBnbWFwKQo+ICsgICAgICAgICAgICAgICByZXR1cm47Cj4gKyAgICAgICBpZiAoIXBnbWFwLT5k
-YXRhKQo+ICsgICAgICAgICAgICAgICByZXR1cm47Cj4gKwo+ICsgICAgICAgbXV0ZXhfbG9jaygm
-ZGV2bWFwX2xvY2spOwo+ICsgICAgICAgV0FSTl9PTihwZ21hcC0+ZGF0YSAhPSBvd25lcik7Cj4g
-KyAgICAgICBwZ21hcC0+dHlwZSA9IE1FTU9SWV9ERVZJQ0VfSE9TVDsKPiArICAgICAgIHBnbWFw
-LT5wYWdlX2ZyZWUgPSBOVUxMOwo+ICsgICAgICAgcGdtYXAtPmRhdGEgPSBOVUxMOwo+ICsgICAg
-ICAgbXV0ZXhfdW5sb2NrKCZkZXZtYXBfbG9jayk7Cj4gK30KPiArRVhQT1JUX1NZTUJPTF9HUEwo
-X19mc19kYXhfcmVsZWFzZSk7Cj4gKwo+ICt2b2lkIGZzX2RheF9yZWxlYXNlKHN0cnVjdCBkYXhf
-ZGV2aWNlICpkYXhfZGV2LCB2b2lkICpvd25lcikKPiArewo+ICsgICAgICAgaWYgKGRheF9kZXYt
-Pm9wcy0+ZnNfcmVsZWFzZSkKPiArICAgICAgICAgICAgICAgZGF4X2Rldi0+b3BzLT5mc19yZWxl
-YXNlKGRheF9kZXYsIG93bmVyKTsKPiArICAgICAgIGVsc2UKPiArICAgICAgICAgICAgICAgX19m
-c19kYXhfcmVsZWFzZShkYXhfZGV2LCBvd25lcik7Cj4gK30KPiArRVhQT1JUX1NZTUJPTF9HUEwo
-ZnNfZGF4X3JlbGVhc2UpOwo+ICsjZW5kaWYKPiArCj4gIHN0YXRpYyBzc2l6ZV90IHdyaXRlX2Nh
-Y2hlX3Nob3coc3RydWN0IGRldmljZSAqZGV2LAo+ICAgICAgICAgICAgICAgICBzdHJ1Y3QgZGV2
-aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQo+ICB7Cj4gZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvbWQvZG0uYyBiL2RyaXZlcnMvbWQvZG0uYwo+IGluZGV4IGZmYzkzYWVjYzAyYS4uOTY0Y2I3
-NTM3ZjExIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbWQvZG0uYwo+ICsrKyBiL2RyaXZlcnMvbWQv
-ZG0uYwo+IEBAIC0xMDkwLDYgKzEwOTAsNjAgQEAgc3RhdGljIHNpemVfdCBkbV9kYXhfY29weV9m
-cm9tX2l0ZXIoc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYsIHBnb2ZmX3QgcGdvZmYsCj4gICAg
-ICAgICByZXR1cm4gcmV0Owo+ICB9Cj4KPiArc3RhdGljIGludCBkbV9kYXhfZGV2X2NsYWltKHN0
-cnVjdCBkbV90YXJnZXQgKnRpLCBzdHJ1Y3QgZG1fZGV2ICpkZXYsCj4gKyAgICAgICAgICAgICAg
-IHNlY3Rvcl90IHN0YXJ0LCBzZWN0b3JfdCBsZW4sIHZvaWQgKm93bmVyKQo+ICt7Cj4gKyAgICAg
-ICBpZiAoZnNfZGF4X2NsYWltKGRldi0+ZGF4X2Rldiwgb3duZXIpKQo+ICsgICAgICAgICAgICAg
-ICByZXR1cm4gMDsKPiArICAgICAgIC8qCj4gKyAgICAgICAgKiBPdXRzaWRlIG9mIGEga2VybmVs
-IGJ1ZyB0aGVyZSBpcyBubyByZWFzb24gYSBkYXhfZGV2IHNob3VsZAo+ICsgICAgICAgICogZmFp
-bCBhIGNsYWltIGF0dGVtcHQuIERldmljZS1tYXBwZXIgc2hvdWxkIGhhdmUgZXhjbHVzaXZlCj4g
-KyAgICAgICAgKiBvd25lcnNoaXAgb2YgdGhlIGRtX2RldiBhbmQgdGhlIGZpbGVzeXN0ZW0gc2hv
-dWxkIGhhdmUKPiArICAgICAgICAqIGV4Y2x1c2l2ZSBvd25lcnNoaXAgb2YgdGhlIGRtX3Rhcmdl
-dC4KPiArICAgICAgICAqLwo+ICsgICAgICAgV0FSTl9PTl9PTkNFKDEpOwo+ICsgICAgICAgcmV0
-dXJuIC1FTlhJTzsKPiArfQo+ICsKPiArc3RhdGljIGludCBkbV9kYXhfZGV2X3JlbGVhc2Uoc3Ry
-dWN0IGRtX3RhcmdldCAqdGksIHN0cnVjdCBkbV9kZXYgKmRldiwKPiArICAgICAgICAgICAgICAg
-c2VjdG9yX3Qgc3RhcnQsIHNlY3Rvcl90IGxlbiwgdm9pZCAqb3duZXIpCj4gK3sKPiArICAgICAg
-IF9fZnNfZGF4X3JlbGVhc2UoZGV2LT5kYXhfZGV2LCBvd25lcik7Cj4gKyAgICAgICByZXR1cm4g
-MDsKPiArfQo+ICsKPiArc3RhdGljIHN0cnVjdCBkYXhfZGV2aWNlICpkbV9kYXhfaXRlcmF0ZShz
-dHJ1Y3QgZGF4X2RldmljZSAqZGF4X2RldiwKPiArICAgICAgICAgICAgICAgaXRlcmF0ZV9kZXZp
-Y2VzX2NhbGxvdXRfZm4gZm4sIHZvaWQgKmFyZykKPiArewo+ICsgICAgICAgc3RydWN0IG1hcHBl
-ZF9kZXZpY2UgKm1kID0gZGF4X2dldF9wcml2YXRlKGRheF9kZXYpOwo+ICsgICAgICAgc3RydWN0
-IGRtX3RhYmxlICptYXA7Cj4gKyAgICAgICBzdHJ1Y3QgZG1fdGFyZ2V0ICp0aTsKPiArICAgICAg
-IGludCBpLCBzcmN1X2lkeDsKPiArCj4gKyAgICAgICBtYXAgPSBkbV9nZXRfbGl2ZV90YWJsZSht
-ZCwgJnNyY3VfaWR4KTsKPiArCj4gKyAgICAgICBmb3IgKGkgPSAwOyBpIDwgZG1fdGFibGVfZ2V0
-X251bV90YXJnZXRzKG1hcCk7IGkrKykgewo+ICsgICAgICAgICAgICAgICB0aSA9IGRtX3RhYmxl
-X2dldF90YXJnZXQobWFwLCBpKTsKPiArCj4gKyAgICAgICAgICAgICAgIGlmICh0aS0+dHlwZS0+
-aXRlcmF0ZV9kZXZpY2VzKQo+ICsgICAgICAgICAgICAgICAgICAgICAgIHRpLT50eXBlLT5pdGVy
-YXRlX2RldmljZXModGksIGZuLCBhcmcpOwo+ICsgICAgICAgfQo+ICsKPiArICAgICAgIGRtX3B1
-dF9saXZlX3RhYmxlKG1kLCBzcmN1X2lkeCk7Cj4gKyAgICAgICByZXR1cm4gZGF4X2RldjsKPiAr
-fQo+ICsKPiArc3RhdGljIHN0cnVjdCBkYXhfZGV2aWNlICpkbV9kYXhfZnNfY2xhaW0oc3RydWN0
-IGRheF9kZXZpY2UgKmRheF9kZXYsCj4gKyAgICAgICAgICAgICAgIHZvaWQgKm93bmVyKQo+ICt7
-Cj4gKyAgICAgICByZXR1cm4gZG1fZGF4X2l0ZXJhdGUoZGF4X2RldiwgZG1fZGF4X2Rldl9jbGFp
-bSwgb3duZXIpOwo+ICt9Cj4gKwo+ICtzdGF0aWMgdm9pZCBkbV9kYXhfZnNfcmVsZWFzZShzdHJ1
-Y3QgZGF4X2RldmljZSAqZGF4X2Rldiwgdm9pZCAqb3duZXIpCj4gK3sKPiArICAgICAgIGRtX2Rh
-eF9pdGVyYXRlKGRheF9kZXYsIGRtX2RheF9kZXZfcmVsZWFzZSwgb3duZXIpOwo+ICt9Cj4gKwo+
-ICAvKgo+ICAgKiBBIHRhcmdldCBtYXkgY2FsbCBkbV9hY2NlcHRfcGFydGlhbF9iaW8gb25seSBm
-cm9tIHRoZSBtYXAgcm91dGluZS4gIEl0IGlzCj4gICAqIGFsbG93ZWQgZm9yIGFsbCBiaW8gdHlw
-ZXMgZXhjZXB0IFJFUV9QUkVGTFVTSCBhbmQgUkVRX09QX1pPTkVfUkVTRVQuCj4gQEAgLTMxMTEs
-NiArMzE2NSw4IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgYmxvY2tfZGV2aWNlX29wZXJhdGlvbnMg
-ZG1fYmxrX2RvcHMgPSB7Cj4gIHN0YXRpYyBjb25zdCBzdHJ1Y3QgZGF4X29wZXJhdGlvbnMgZG1f
-ZGF4X29wcyA9IHsKPiAgICAgICAgIC5kaXJlY3RfYWNjZXNzID0gZG1fZGF4X2RpcmVjdF9hY2Nl
-c3MsCj4gICAgICAgICAuY29weV9mcm9tX2l0ZXIgPSBkbV9kYXhfY29weV9mcm9tX2l0ZXIsCj4g
-KyAgICAgICAuZnNfY2xhaW0gPSBkbV9kYXhfZnNfY2xhaW0sCj4gKyAgICAgICAuZnNfcmVsZWFz
-ZSA9IGRtX2RheF9mc19yZWxlYXNlLAo+ICB9Owo+Cj4gIC8qCj4gZGlmZiAtLWdpdCBhL2luY2x1
-ZGUvbGludXgvZGF4LmggYi9pbmNsdWRlL2xpbnV4L2RheC5oCj4gaW5kZXggZjllYjIyYWQzNDFl
-Li5lOWQ1OWE2YjA2ZTEgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9saW51eC9kYXguaAo+ICsrKyBi
-L2luY2x1ZGUvbGludXgvZGF4LmgKPiBAQCAtMjAsNiArMjAsMTAgQEAgc3RydWN0IGRheF9vcGVy
-YXRpb25zIHsKPiAgICAgICAgIC8qIGNvcHlfZnJvbV9pdGVyOiByZXF1aXJlZCBvcGVyYXRpb24g
-Zm9yIGZzLWRheCBkaXJlY3QtaS9vICovCj4gICAgICAgICBzaXplX3QgKCpjb3B5X2Zyb21faXRl
-cikoc3RydWN0IGRheF9kZXZpY2UgKiwgcGdvZmZfdCwgdm9pZCAqLCBzaXplX3QsCj4gICAgICAg
-ICAgICAgICAgICAgICAgICAgc3RydWN0IGlvdl9pdGVyICopOwo+ICsgICAgICAgLyogZnNfY2xh
-aW06IHNldHVwIGZpbGVzeXRlbSBwYXJhbWV0ZXJzIGZvciB0aGUgZGV2aWNlJ3MgZGV2X3BhZ2Vt
-YXAgKi8KPiArICAgICAgIHN0cnVjdCBkYXhfZGV2aWNlICooKmZzX2NsYWltKShzdHJ1Y3QgZGF4
-X2RldmljZSAqLCB2b2lkICopOwo+ICsgICAgICAgLyogZnNfcmVsZWFzZTogcmVzdG9yZSBkZXZp
-Y2UncyBkZXZfcGFnZW1hcCB0byBpdHMgZGVmYXVsdCBzdGF0ZSAqLwo+ICsgICAgICAgdm9pZCAo
-KmZzX3JlbGVhc2UpKHN0cnVjdCBkYXhfZGV2aWNlICosIHZvaWQgKik7Cj4gIH07Cj4KPiAgZXh0
-ZXJuIHN0cnVjdCBhdHRyaWJ1dGVfZ3JvdXAgZGF4X2F0dHJpYnV0ZV9ncm91cDsKPiBAQCAtODMs
-NiArODcsOCBAQCBzdGF0aWMgaW5saW5lIHZvaWQgZnNfcHV0X2RheChzdHJ1Y3QgZGF4X2Rldmlj
-ZSAqZGF4X2RldikKPiAgc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9nZXRfYnlfYmRldihzdHJ1
-Y3QgYmxvY2tfZGV2aWNlICpiZGV2KTsKPiAgaW50IGRheF93cml0ZWJhY2tfbWFwcGluZ19yYW5n
-ZShzdHJ1Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGluZywKPiAgICAgICAgICAgICAgICAgc3RydWN0
-IGJsb2NrX2RldmljZSAqYmRldiwgc3RydWN0IHdyaXRlYmFja19jb250cm9sICp3YmMpOwo+ICtz
-dHJ1Y3QgZGF4X2RldmljZSAqZnNfZGF4X2NsYWltKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2
-LCB2b2lkICpvd25lcik7Cj4gK3ZvaWQgX19mc19kYXhfcmVsZWFzZShzdHJ1Y3QgZGF4X2Rldmlj
-ZSAqZGF4X2Rldiwgdm9pZCAqb3duZXIpOwo+ICAjZWxzZQo+ICBzdGF0aWMgaW5saW5lIGludCBi
-ZGV2X2RheF9zdXBwb3J0ZWQoc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwgaW50IGJsb2Nrc2l6ZSkK
-PiAgewo+IEBAIC0xMDgsNiArMTE0LDE2IEBAIHN0YXRpYyBpbmxpbmUgaW50IGRheF93cml0ZWJh
-Y2tfbWFwcGluZ19yYW5nZShzdHJ1Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGluZywKPiAgewo+ICAg
-ICAgICAgcmV0dXJuIC1FT1BOT1RTVVBQOwo+ICB9Cj4gKwo+ICtzdGF0aWMgaW5saW5lIHN0cnVj
-dCBkYXhfZGV2aWNlICpmc19kYXhfY2xhaW0oc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYsCj4g
-KyAgICAgICAgICAgICAgIHZvaWQgKm93bmVyKQo+ICt7Cj4gKyAgICAgICByZXR1cm4gTlVMTDsK
-PiArfQo+ICsKPiArc3RhdGljIGlubGluZSB2b2lkIF9fZnNfZGF4X3JlbGVhc2Uoc3RydWN0IGRh
-eF9kZXZpY2UgKmRheF9kZXYsIHZvaWQgKm93bmVyKQo+ICt7Cj4gK30KPiAgI2VuZGlmCj4KPiAg
-aW50IGRheF9yZWFkX2xvY2sodm9pZCk7Cj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWVt
-cmVtYXAuaCBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaAo+IGluZGV4IDdiNDg5OWMwNmY0OS4u
-MDJkNmQwNDJlZTdmIDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaAo+ICsr
-KyBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaAo+IEBAIC01MywxMSArNTMsMTkgQEAgc3RydWN0
-IHZtZW1fYWx0bWFwIHsKPiAgICogZHJpdmVyIGNhbiBob3RwbHVnIHRoZSBkZXZpY2UgbWVtb3J5
-IHVzaW5nIFpPTkVfREVWSUNFIGFuZCB3aXRoIHRoYXQgbWVtb3J5Cj4gICAqIHR5cGUuIEFueSBw
-YWdlIG9mIGEgcHJvY2VzcyBjYW4gYmUgbWlncmF0ZWQgdG8gc3VjaCBtZW1vcnkuIEhvd2V2ZXIg
-bm8gb25lCj4gICAqIHNob3VsZCBiZSBhbGxvdyB0byBwaW4gc3VjaCBtZW1vcnkgc28gdGhhdCBp
-dCBjYW4gYWx3YXlzIGJlIGV2aWN0ZWQuCj4gKyAqCj4gKyAqIE1FTU9SWV9ERVZJQ0VfRlNfREFY
-Ogo+ICsgKiBXaGVuIE1FTU9SWV9ERVZJQ0VfSE9TVCBtZW1vcnkgaXMgcmVwcmVzZW50ZWQgYnkg
-YSBkZXZpY2UgdGhhdCBjYW4KPiArICogaG9zdCBhIGZpbGVzeXN0ZW0sIGZvciBleGFtcGxlIC9k
-ZXYvcG1lbTAsIHRoYXQgZmlsZXN5c3RlbSBjYW4KPiArICogcmVnaXN0ZXIgZm9yIGEgY2FsbGJh
-Y2sgd2hlbiBhIHBhZ2UgaXMgaWRsZWQuIEZvciB0aGUgZmlsZXN5c3RlbS1kYXgKPiArICogY2Fz
-ZSBwYWdlIGlkbGUgY2FsbGJhY2tzIGFyZSB1c2VkIHRvIGNvb3JkaW5hdGUgRE1BIHZzCj4gKyAq
-IGhvbGUtcHVuY2gvdHJ1bmNhdGUuCj4gICAqLwo+ICBlbnVtIG1lbW9yeV90eXBlIHsKPiAgICAg
-ICAgIE1FTU9SWV9ERVZJQ0VfSE9TVCA9IDAsCj4gICAgICAgICBNRU1PUllfREVWSUNFX1BSSVZB
-VEUsCj4gICAgICAgICBNRU1PUllfREVWSUNFX1BVQkxJQywKPiArICAgICAgIE1FTU9SWV9ERVZJ
-Q0VfRlNfREFYLAo+ICB9Owo+Cj4gIC8qCj4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
-bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
-bnZkaW1tCg==
+In preparation for adding 'wait-scrub' and 'start-scrub' utility
+helpers, indicate the current state of ARS operations in the listing for
+bus objects. The field is omitted if the bus does not support ARS
+operations.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ ndctl/lib/libndctl.c   |   49 ++++++++++++++++++++++++++++++++++++++----------
+ ndctl/lib/libndctl.sym |    1 +
+ ndctl/libndctl.h       |    1 +
+ util/json.c            |   10 ++++++++++
+ 4 files changed, 51 insertions(+), 10 deletions(-)
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 743863b5c7e7..ff0d44ffefe6 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -1114,29 +1114,58 @@ NDCTL_EXPORT int ndctl_bus_wait_probe(struct ndctl_bus *bus)
+ 	return rc < 0 ? -ENXIO : 0;
+ }
+ 
+-NDCTL_EXPORT unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus)
++static int __ndctl_bus_get_scrub_state(struct ndctl_bus *bus,
++		unsigned int *scrub_count, bool *active)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
+ 	char buf[SYSFS_ATTR_SIZE];
+-	unsigned int scrub_count;
+ 	char in_progress = '\0';
+ 	int rc;
+ 
+ 	rc = sysfs_read_attr(ctx, bus->scrub_path, buf);
+ 	if (rc < 0)
+-		return UINT_MAX;
++		return -EOPNOTSUPP;
+ 
+-	rc = sscanf(buf, "%u%c", &scrub_count, &in_progress);
++	rc = sscanf(buf, "%u%c", scrub_count, &in_progress);
+ 	if (rc < 0)
+-		return UINT_MAX;
+-	if (rc == 0) {
++		return -ENXIO;
++
++	switch (rc) {
++	case 1:
++		*active = false;
++		return 0;
++	case 2:
++		if (in_progress == '+') {
++			*active = true;
++			return 0;
++		}
++		/* fall through */
++	default:
+ 		/* unable to read scrub count */
+-		return UINT_MAX;
++		return -ENXIO;
+ 	}
+-	if (rc >= 1)
+-		return scrub_count;
++}
++
++NDCTL_EXPORT int ndctl_bus_get_scrub_state(struct ndctl_bus *bus)
++{
++	unsigned int scrub_count = 0;
++	bool active = false;
++	int rc;
++
++	rc = __ndctl_bus_get_scrub_state(bus, &scrub_count, &active);
++	if (rc < 0)
++		return rc;
++	return active;
++}
++
++NDCTL_EXPORT unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus)
++{
++	unsigned int scrub_count = 0;
++	bool active = false;
+ 
+-	return UINT_MAX;
++	if (__ndctl_bus_get_scrub_state(bus, &scrub_count, &active))
++		return UINT_MAX;
++	return scrub_count;
+ }
+ 
+ /**
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 3209aefe6672..06cace96724f 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -352,4 +352,5 @@ global:
+ 	ndctl_dimm_fw_update_supported;
+ 	ndctl_region_get_persistence_domain;
+ 	ndctl_bus_get_persistence_domain;
++	ndctl_bus_get_scrub_state;
+ } LIBNDCTL_14;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index cf6a77fd0992..36c04d871bd5 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -121,6 +121,7 @@ enum ndctl_persistence_domain ndctl_bus_get_persistence_domain(
+ int ndctl_bus_wait_probe(struct ndctl_bus *bus);
+ int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus);
+ unsigned int ndctl_bus_get_scrub_count(struct ndctl_bus *bus);
++int ndctl_bus_get_scrub_state(struct ndctl_bus *bus);
+ int ndctl_bus_has_error_injection(struct ndctl_bus *bus);
+ 
+ struct ndctl_dimm;
+diff --git a/util/json.c b/util/json.c
+index a464f21d6d5a..5b4b4c374d44 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -124,6 +124,7 @@ struct json_object *util_bus_to_json(struct ndctl_bus *bus)
+ {
+ 	struct json_object *jbus = json_object_new_object();
+ 	struct json_object *jobj;
++	int scrub;
+ 
+ 	if (!jbus)
+ 		return NULL;
+@@ -138,6 +139,15 @@ struct json_object *util_bus_to_json(struct ndctl_bus *bus)
+ 		goto err;
+ 	json_object_object_add(jbus, "dev", jobj);
+ 
++	scrub = ndctl_bus_get_scrub_state(bus);
++	if (scrub < 0)
++		return jbus;
++
++	jobj = json_object_new_string(scrub ? "active" : "idle");
++	if (!jobj)
++		goto err;
++	json_object_object_add(jbus, "scrub_state", jobj);
++
+ 	return jbus;
+  err:
+ 	json_object_put(jbus);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
