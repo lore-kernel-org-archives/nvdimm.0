@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 151522265A192
- for <linux-nvdimm@lists.01.org>; Mon, 23 Apr 2018 16:31:02 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 23 Apr 2018 17:30:35 -0600
-Message-Id: <20180423233046.21476-4-logang@deltatee.com>
-In-Reply-To: <20180423233046.21476-1-logang@deltatee.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
-Subject: [PATCH v4 03/14] PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust
- the bus offset
+ by ml01.01.org (Postfix) with ESMTPS id 96E5622526491
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Apr 2018 14:22:13 -0700 (PDT)
+Subject: [ndctl PATCH 4/5] ndctl: add new START and WAIT actions
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 04 Apr 2018 14:12:17 -0700
+Message-ID: <152287633697.29230.7355050331429260998.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152287631592.29230.11531789298631204393.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152287631592.29230.11531789298631204393.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,139 +18,48 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The DMA address used when mapping PCI P2P memory must be the PCI bus
-address. Thus, introduce pci_p2pmem_[un]map_sg() to map the correct
-addresses when using P2P memory.
+In preparation for adding 'start-scrub' and 'wait-scrub' utilities,
+define new device actions for these operations.
 
-For this, we assume that an SGL passed to these functions contain all
-P2P memory or no P2P memory.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/pci/p2pdma.c       | 51 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/memremap.h   |  1 +
- include/linux/pci-p2pdma.h | 13 ++++++++++++
- 3 files changed, 65 insertions(+)
+ ndctl/action.h    |    2 ++
+ ndctl/namespace.c |    3 +++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 4daad6374869..ed9dce8552a2 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -190,6 +190,8 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 	pgmap->res.flags = pci_resource_flags(pdev, bar);
- 	pgmap->ref = &pdev->p2pdma->devmap_ref;
- 	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
-+	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
-+		pci_resource_start(pdev, bar);
- 
- 	addr = devm_memremap_pages(&pdev->dev, pgmap);
- 	if (IS_ERR(addr)) {
-@@ -746,3 +748,52 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- 	pdev->p2pdma->p2pmem_published = publish;
- }
- EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
-+
-+/**
-+ * pci_p2pdma_map_sg - map a PCI peer-to-peer sg for DMA
-+ * @dev: device doing the DMA request
-+ * @sg: scatter list to map
-+ * @nents: elements in the scatterlist
-+ * @dir: DMA direction
-+ *
-+ * Returns the number of SG entries mapped
-+ */
-+int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		      enum dma_data_direction dir)
-+{
-+	struct dev_pagemap *pgmap;
-+	struct scatterlist *s;
-+	phys_addr_t paddr;
-+	int i;
-+
-+	/*
-+	 * p2pdma mappings are not compatible with devices that use
-+	 * dma_virt_ops.
-+	 */
-+	if (IS_ENABLED(CONFIG_DMA_VIRT_OPS) && dev->dma_ops == &dma_virt_ops)
-+		return 0;
-+
-+	for_each_sg(sg, s, nents, i) {
-+		pgmap = sg_page(s)->pgmap;
-+		paddr = sg_phys(s);
-+
-+		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
-+		sg_dma_len(s) = s->length;
-+	}
-+
-+	return nents;
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
-+
-+/**
-+ * pci_p2pdma_unmap_sg - unmap a PCI peer-to-peer sg for DMA
-+ * @dev: device doing the DMA request
-+ * @sg: scatter list to map
-+ * @nents: elements in the scatterlist
-+ * @dir: DMA direction
-+ */
-+void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
-+			 enum dma_data_direction dir)
-+{
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_unmap_sg);
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 9e907c338a44..1660f64ce96f 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -125,6 +125,7 @@ struct dev_pagemap {
- 	struct device *dev;
- 	void *data;
- 	enum memory_type type;
-+	u64 pci_p2pdma_bus_offset;
+diff --git a/ndctl/action.h b/ndctl/action.h
+index 43ea62adbcd2..1ecad49530d5 100644
+--- a/ndctl/action.h
++++ b/ndctl/action.h
+@@ -11,5 +11,7 @@ enum device_action {
+ 	ACTION_CREATE,
+ 	ACTION_DESTROY,
+ 	ACTION_CHECK,
++	ACTION_WAIT,
++	ACTION_START,
  };
- 
- #ifdef CONFIG_ZONE_DEVICE
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 80e931cb1235..0cde88341eeb 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -35,6 +35,10 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
- 					 unsigned int *nents, u32 length);
- void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
-+int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		      enum dma_data_direction dir);
-+void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
-+			 enum dma_data_direction dir);
- #else /* CONFIG_PCI_P2PDMA */
- static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
- 		size_t size, u64 offset)
-@@ -96,5 +100,14 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
- static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- {
- }
-+static inline int pci_p2pdma_map_sg(struct device *dev,
-+	struct scatterlist *sg, int nents, enum dma_data_direction dir)
-+{
-+	return 0;
-+}
-+static inline void pci_p2pdma_unmap_sg(struct device *dev,
-+	struct scatterlist *sg, int nents, enum dma_data_direction dir)
-+{
-+}
- #endif /* CONFIG_PCI_P2PDMA */
- #endif /* _LINUX_PCI_P2P_H */
--- 
-2.11.0
+ #endif /* __NDCTL_ACTION_H__ */
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index aef356abbee1..1c39d9b01adc 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -1054,6 +1054,9 @@ static int do_xaction_namespace(const char *namespace,
+ 					if (rc < 0)
+ 						return rc;
+ 					return 1;
++				default:
++					rc = -EINVAL;
++					break;
+ 				}
+ 				if (rc >= 0)
+ 					success++;
 
 _______________________________________________
 Linux-nvdimm mailing list
