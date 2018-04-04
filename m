@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x242.google.com (mail-it0-x242.google.com
- [IPv6:2607:f8b0:4001:c0b::242])
+Received: from mail-pl0-x241.google.com (mail-pl0-x241.google.com
+ [IPv6:2607:f8b0:400e:c01::241])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1C207225264B7
- for <linux-nvdimm@lists.01.org>; Thu,  5 Apr 2018 00:15:10 -0700 (PDT)
-Received: by mail-it0-x242.google.com with SMTP id x144-v6so1041903itc.0
- for <linux-nvdimm@lists.01.org>; Thu, 05 Apr 2018 00:15:10 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 8CEE422526490
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Apr 2018 16:19:56 -0700 (PDT)
+Received: by mail-pl0-x241.google.com with SMTP id 61-v6so14404439plb.2
+ for <linux-nvdimm@lists.01.org>; Wed, 04 Apr 2018 16:19:56 -0700 (PDT)
 From: Balbir Singh <bsingharora@gmail.com>
-Subject: [PATCH v2 0/3]  Add support for memcpy_mcsafe
-Date: Thu,  5 Apr 2018 17:14:57 +1000
-Message-Id: <20180405071500.22320-1-bsingharora@gmail.com>
+Subject: [RESEND 0/3] Add support for memcpy_mcsafe
+Date: Thu,  5 Apr 2018 09:19:40 +1000
+Message-Id: <20180404231943.29581-1-bsingharora@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -47,11 +47,6 @@ A large part of the testing was done under a simulator by selectively
 inserting machine check exceptions in a test driver doing memcpy_mcsafe
 via ioctls.
 
-Changelog v2
- - Fix the logic of shifting in addr_to_pfn
- - Use shift consistently instead of PAGE_SHIFT
- - Fix a typo in patch1
-
 Balbir Singh (3):
   powerpc/mce: Bug fixes for MCE handling in kernel space
   powerpc/memcpy: Add memcpy_mcsafe for pmem
@@ -59,11 +54,11 @@ Balbir Singh (3):
 
  arch/powerpc/include/asm/mce.h      |   3 +-
  arch/powerpc/include/asm/string.h   |   2 +
- arch/powerpc/kernel/mce.c           |  77 ++++++++++++-
- arch/powerpc/kernel/mce_power.c     |  26 +++--
+ arch/powerpc/kernel/mce.c           |  76 +++++++++++-
+ arch/powerpc/kernel/mce_power.c     |  17 +--
  arch/powerpc/lib/Makefile           |   2 +-
- arch/powerpc/lib/memcpy_mcsafe_64.S | 212 ++++++++++++++++++++++++++++++++++++
- 6 files changed, 308 insertions(+), 14 deletions(-)
+ arch/powerpc/lib/memcpy_mcsafe_64.S | 225 ++++++++++++++++++++++++++++++++++++
+ 6 files changed, 314 insertions(+), 11 deletions(-)
  create mode 100644 arch/powerpc/lib/memcpy_mcsafe_64.S
 
 -- 
