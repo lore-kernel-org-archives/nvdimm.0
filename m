@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
- [IPv6:2607:f8b0:4003:c06::243])
+Received: from mail-ot0-x241.google.com (mail-ot0-x241.google.com
+ [IPv6:2607:f8b0:4003:c0f::241])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5DBF1226516C9
- for <linux-nvdimm@lists.01.org>; Sat,  7 Apr 2018 12:38:25 -0700 (PDT)
-Received: by mail-oi0-x243.google.com with SMTP id f63-v6so4116249oic.4
- for <linux-nvdimm@lists.01.org>; Sat, 07 Apr 2018 12:38:25 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 412D12264A20F
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Apr 2018 07:12:02 -0700 (PDT)
+Received: by mail-ot0-x241.google.com with SMTP id h26-v6so23441940otj.12
+ for <linux-nvdimm@lists.01.org>; Wed, 04 Apr 2018 07:12:02 -0700 (PDT)
 MIME-Version: 1.0
 In-Reply-To: <20180404094656.dssixqvvdcp5jff2@quack2.suse.cz>
 References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
  <152246901060.36038.4487158506830998280.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20180404094656.dssixqvvdcp5jff2@quack2.suse.cz>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 7 Apr 2018 12:38:24 -0700
-Message-ID: <CAPcyv4joRA=BrurYZ1kzXpMG=jnXik9+LdLqH9961jM5VnmU7w@mail.gmail.com>
+Date: Wed, 4 Apr 2018 07:12:01 -0700
+Message-ID: <CAPcyv4jnKeVpXXLOqG9exXBRSCyS_c9AAiogg9bb_AnZv-3gWQ@mail.gmail.com>
 Subject: Re: [PATCH v8 15/18] mm, fs,
  dax: handle layout changes to pinned dax mappings
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -29,10 +29,8 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Jan Kara <jack@suse.cz>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Josh Triplett <josh.triplett@intel.com>, Mike Snitzer <snitzer@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-xfs <linux-xfs@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Mike Snitzer <snitzer@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-xfs <linux-xfs@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
-
-[ adding Paul and Josh ]
 
 On Wed, Apr 4, 2018 at 2:46 AM, Jan Kara <jack@suse.cz> wrote:
 > On Fri 30-03-18 21:03:30, Dan Williams wrote:
@@ -154,10 +152,13 @@ On Wed, Apr 4, 2018 at 2:46 AM, Jan Kara <jack@suse.cz> wrote:
 > than 200 times (the process is indeed sitting in __wait_rcu_gp all the
 > time). IMHO that's just too costly.
 
-I wonder if this can be trivially solved by using srcu. I.e. we don't
-need to wait for a global quiescent state, just a
-get_user_pages_fast() quiescent state. ...or is that an abuse of the
-srcu api?
+Agree. I was quietly hoping that it wouldn't be that bad, but numbers
+are numbers.
+
+At this point I think we should just go with the
+address_space_operations conversions and the sector-to-pfn conversion
+for what's stored in the dax radix for 4.17-rc1, and circle back on a
+better way to do this synchronization for 4.18.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
