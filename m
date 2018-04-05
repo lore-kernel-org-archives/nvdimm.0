@@ -1,54 +1,62 @@
-From: "Debt Recovery" <noreply-ECdoofKTLTdBDgjK7y7TUQ@public.gmane.org>
-Subject: Re : {Alerting You}
-Date: Mon, 2 Apr 2018 00:02:43 -0700
-Message-ID: <20180402063717.20E9E399B6CC@mail.fitser.com>
-Reply-To: Debt Recovery <allanwoodmarko-ytc+IHgoah0@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [RFC 0/2] kvm "fake DAX" device flushing
+Date: Thu,  5 Apr 2018 16:18:31 +0530
+Message-ID: <20180405104834.10457-1-pagupta@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org
+Cc: jack@suse.cz, stefanha@redhat.com, dan.j.williams@intel.com, riel@surriel.com, haozhong.zhang@intel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, ross.zwisler@intel.com, david@redhat.com, xiaoguangrong.eric@gmail.com, hch@infradead.org, marcel@redhat.com, mst@redhat.com, niteshnarayanlal@hotmail.com, imammedo@redhat.com, pagupta@redhat.com
 List-Id: linux-nvdimm@lists.01.org
 
-SGVsbG8sCgoKICBJIGFtIHZlcnkgc29ycnkgSSBoYXZlIHRvIHJlYWNoIHlvdSB0aHJvdWdoIHRo
-aXMgbWVkaXVtLiBJIGFtIGEgbWVtYmVyIG9mIHRoZSBFdXJvcGVhbiBEZWJ0IFJlY292ZXJ5IFVu
-aXQgYW5kIEkgYW0gYXdhcmUgb2YgeW91ciBvcmRlYWwgYWJvdXQgeW91ciB1bnBhaWQgZnVuZC4K
-Ckl0IG1heSBhbHNvIGludGVyZXN0IHlvdSB0byBrbm93IHRoYXQsIG5vdCBsb25nIGFmdGVyIHRo
-ZSBEZWJ0IE1hbmFnZW1lbnQgT2ZmaWNlIChETU8pIGNvbXBsZXRlZCB0aGUgbWVyZ2VyIGFuZCBh
-Y3F1aXNpdGlvbiBwcm9jZXNzIG9mIGFsbCBwZW5kaW5nIHBheW1lbnRzIGluIHJlc3BvbnNlIHRv
-IHRoZSBwZXRpdGlvbiByYWlzZWQgYnkgdGhlIGludGVybmF0aW9uYWwgY29tbXVuaXR5IGFib3V0
-IHRoZWlyIHVucGFpZCBmdW5kcy4gSSBkaXNjb3ZlcmVkIHRoYXQgdGhlaXIgYm9zcyBjb25uaXZl
-ZCB3aXRoIHNvbWUgdG9wIG9mZmljaWFscyB0byBkaXZlcnQgZnVuZHMgYXBwcm92ZSB0byBzZXR0
-bGUgdW5wYWlkIGluaGVyaXRhbmNlcywgZW1haWwgbG90dGVyeSB3aW5uZXJzLCBJbnRlcm5ldCBz
-Y2FtIHZpY3RpbXMsIHVuY2xhaW1lZCBjb25zaWdubWVudHMoY29uY2VhbGVkIGZ1bmRzKSBhbmQg
-SW50ZXJuYXRpb25hbCBDb250cmFjdG9ycy4KClRoZSBETU8gaGFzIGFscmVhZHkgZ2l2ZW4gYXBw
-cm92YWwgZm9yIHRoZSBwYXltZW50IG9mIHlvdXIgZnVuZCBidXQgdGhleSBkZWxpYmVyYXRlbHkg
-d2l0aGhlbGQgeW91ciBwYXltZW50IGZpbGUgYW5kIGNvbnRpbnVlIHRvIGRlbWFuZCBmZWVzIGZy
-b20geW91IHRocm91Z2ggdGhlaXIgYXNzb2NpYXRlcyBmcm9tIGRpZmZlcmVudCB1bmFzc2lnbmVk
-IGFmZmlsaWF0ZXMgbW9zdGx5IGZyb20gQWZyaWNhLCBVUyBhbmQgdGhlIE5ldGhlcmxhbmRzIGFs
-bCBpbiBhbiBhdHRlbXB0IHRvIGZydXN0cmF0ZSB5b3UgYW5kIGVucmljaCB0aGVtc2VsdmVzLiBJ
-IHdvbmRlciB3aHkgeW91IGhhdmVu4oCZdCBub3RpY2UgYWxsIHRoZXNlIHdoaWxlLgoKWW91IG1h
-eSBjaG9vc2UgdG8gZGlzYmVsaWV2ZSB0aGlzIGVtYWlsIGFzIGluY29uY2VpdmFibGUgZmFjdHMg
-YnV0IG15IGRvY3RyaW5lIGRvZXMgbm90IHBlcm1pdCBzdWNoIGFjdCwgcmVhc29uIEkgaGF2ZSB0
-byBvcGVuIHVwIHRvIHlvdSB0byBzZWVrIHRoZSByaWdodCBjaGFubmVsLiBZb3VyIGZ1bmQgd2Fz
-IGF1dGhvcml6ZWQgdG8gYmUgcGFpZCB0byB5b3UgdGhyb3VnaCB0aGUgRE1PIGFzc2V0IG1hbmFn
-ZW1lbnQgZmlybSB3aXRoIGEgQ2xhaW0gQ29kZSBOdW1iZXJzLCB3aGljaCB3YXMgc3VwcG9zZWQg
-dG8gaGF2ZSBiZWVuIGlzc3VlZCB0byB5b3UgYmVmb3JlIG5vdy4KClVwb24geW91ciByZXNwb25z
-ZSwgSSBzaGFsbCBndWlkZSB5b3UgdGhyb3VnaCBhbmQgcHJvdmlkZSB5b3Ugd2l0aCBkZXRhaWxz
-IHRvIGNvbnRhY3QgdGhlIGFzc2lnbmVkIGFmZmlsaWF0ZSB3aG8gd2lsbCBleHBlZGl0aW91c2x5
-IGZhY2lsaXRhdGUgdGhlIHJlbGVhc2Ugb2YgeW91ciBmdW5kLgoKVGhhbmtzIGFuZCBoYXZlIGEg
-d29uZGVyZnVsIGRheS4KCllvdXJzIEZhaXRoZnVsbHksCkFkbWluaXN0cmF0aXZlIFN0YWZmLgpF
-dXJvcGVhbiBEZWJ0IFJlY292ZXJ5IEFnZW50LCAKVUsuUmVmOkVEUkEvMjkwMzE4L1VLMDMuCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
-bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
-MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+We are sharing RFC version of 'fake DAX' flushing
+interface for feedback. This is still work in progress
+and not yet ready for merging.
+
+Prototype implements two major parts:
+
+- Qemu virtio-pmem device
+  It exposes a persistent memory range to KVM guest which at host side is file
+  backed memory and works as persistent memory device. In addition to this it
+  provides a virtio flushing interface for KVM guest to do a Qemu side sync for
+  guest DAX persistent memory range.  
+
+- Guest virtio-pmem driver
+  Reads persistent memory range from paravirt device and registers with 'nvdimm_bus'.
+  'nvdimm/pmem' driver uses this information to allocate persistent memory range. 
+  Also, we have implemented guest side of VIRTIO flushing interface.
+  
+Changes from previous RFC:
+
+- Reuse existing 'pmem' code instead of creating an entirely new block driver.
+- Use VIRTIO driver to register memory information with nvdimm_bus and create
+  region_type accordingly. 
+- Use VIRTIO flushing interface from existing pmem driver code based on
+  registered flushign mechanism.
+
+We have done the implementation based on suggestions here [1]. Previous RFC is
+shared here [2]. Details of project idea for 'fake DAX' flushing is shared 
+here [3] & [4].
+
+[1] https://marc.info/?l=linux-mm&m=150782346802290&w=2
+[2] https://marc.info/?l=kvm&m=151630416506527&w=2
+[3] https://www.spinics.net/lists/kvm/msg149761.html
+[4] https://www.spinics.net/lists/kvm/msg153095.html
+
+Work yet to be done:
+
+- Qemu RAM address handling independent of PC-DIMM so that memory
+  operations(get_free_address) can be used for VIRTIO device type as well. 
+  (David Hildenbrand CCed has a prototype for this).
+- Qemu device flush functionality trigger with guest fsync on file.
+- Qemu live migration work when host page cache is used.
+- Multiple virtio-pmem disks support.
+- Prepare virtio spec after we get feedback on current approach.
+
+ drivers/nvdimm/region_devs.c     |    7 ++
+ drivers/virtio/Kconfig           |   12 +++
+ drivers/virtio/Makefile          |    1 
+ drivers/virtio/virtio_pmem.c     |  122 +++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h        |    2 
+ include/uapi/linux/virtio_ids.h  |    1 
+ include/uapi/linux/virtio_pmem.h |   61 +++++++++++++++++++
+ 7 files changed, 206 insertions(+)
