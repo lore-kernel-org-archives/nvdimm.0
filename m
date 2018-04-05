@@ -1,13 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vk0-x243.google.com (mail-vk0-x243.google.com
+ [IPv6:2607:f8b0:400c:c05::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0C0802267F11B
- for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 13:10:11 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [ndctl PATCH 1/2] ndctl: s/memory/fsdax/ in some user visible places
-Date: Mon,  9 Apr 2018 14:09:19 -0600
-Message-Id: <20180409200920.20177-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E4EEA225264BB
+ for <linux-nvdimm@lists.01.org>; Thu,  5 Apr 2018 05:24:09 -0700 (PDT)
+Received: by mail-vk0-x243.google.com with SMTP id v205so12862985vkv.13
+ for <linux-nvdimm@lists.01.org>; Thu, 05 Apr 2018 05:24:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAOSf1CFy0im+H368Krr2QVteAumq58CRF_Kfatyv7wvj1n4AGw@mail.gmail.com>
+References: <20180405071500.22320-1-bsingharora@gmail.com>
+ <20180405071500.22320-3-bsingharora@gmail.com>
+ <CAOSf1CFy0im+H368Krr2QVteAumq58CRF_Kfatyv7wvj1n4AGw@mail.gmail.com>
+From: Balbir Singh <bsingharora@gmail.com>
+Date: Thu, 5 Apr 2018 22:24:07 +1000
+Message-ID: <CAKTCnzngahex_sL2raoHFuXqTxgVV7a57R9YmcT1TN-ROsFXnw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] powerpc/memcpy: Add memcpy_mcsafe for pmem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,75 +23,36 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Oliver <oohall@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Nicholas Piggin <npiggin@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding on to the work started by:
+On Thu, Apr 5, 2018 at 9:26 PM, Oliver <oohall@gmail.com> wrote:
+> On Thu, Apr 5, 2018 at 5:14 PM, Balbir Singh <bsingharora@gmail.com> wrote:
+>> The pmem infrastructure uses memcpy_mcsafe in the pmem
+>> layer so as to convert machine check excpetions into
+>> a return value on failure in case a machine check
+>> exception is encoutered during the memcpy.
+>>
+>
+> Would it be possible to move the bulk of the copyuser code into a
+> seperate file which can be #included once the these err macros are
+> defined? Anton's memcpy is pretty hairy and I don't think anyone wants
+> to have multiple copies of it in the tree, even in a cut down form.
+>
 
-commit ebb4fb605e68 ("ndctl, create-namespace: introduce "fsdax" and "devdax" modes")
+I've split it out for now, in the future that might be a good thing to do.
+The copy_tofrom_user_power7 falls backs on __copy_tofrom_user_base
+to track exactly how much is left over. Adding these changes there would
+create a larger churn and need way more testing. I've taken this short-cut
+for now with a promise to fix that as the semantics of memcpy_mcsafe()
+change to do more accurate tracking of how much was copied over.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- Documentation/ndctl/ndctl-inject-error.txt | 2 +-
- ndctl/namespace.c                          | 8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/Documentation/ndctl/ndctl-inject-error.txt b/Documentation/ndctl/ndctl-inject-error.txt
-index 01f6c22..94c4e69 100644
---- a/Documentation/ndctl/ndctl-inject-error.txt
-+++ b/Documentation/ndctl/ndctl-inject-error.txt
-@@ -45,7 +45,7 @@ OPTIONS
- 
- 	NOTE: The offset is interpreted in different ways based on the "mode"
- 	of the namespace. For "raw" mode, the offset is the base namespace
--	offset. For "memory" mode (i.e. a "pfn" namespace), the offset is
-+	offset. For "fsdax" mode (i.e. a "pfn" namespace), the offset is
- 	relative to the user-visible part of the namespace, and the offset
- 	introduced by the kernel's metadata will be accounted for. For a
- 	"sector" mode namespace (i.e. a "BTT" namespace), the offset is
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index f2c5644..e619dc1 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -103,7 +103,7 @@ OPT_STRING('n', "name", &param.name, "name", \
- OPT_STRING('s', "size", &param.size, "size", \
- 	"specify the namespace size in bytes (default: available capacity)"), \
- OPT_STRING('m', "mode", &param.mode, "operation-mode", \
--	"specify a mode for the namespace, 'sector', 'memory', or 'raw'"), \
-+	"specify a mode for the namespace, 'sector', 'fsdax', or 'raw'"), \
- OPT_STRING('M', "map", &param.map, "memmap-location", \
- 	"specify 'mem' or 'dev' for the location of the memmap"), \
- OPT_STRING('l', "sector-size", &param.sector_size, "lba-size", \
-@@ -696,7 +696,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 
- 		if (ndns && p->mode != NDCTL_NS_MODE_MEMORY
- 			&& p->mode != NDCTL_NS_MODE_DAX) {
--			debug("%s: --map= only valid for memory mode namespace\n",
-+			debug("%s: --map= only valid for fsdax mode namespace\n",
- 				ndctl_namespace_get_devname(ndns));
- 			return -EINVAL;
- 		}
-@@ -709,10 +709,10 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
- 
- 		if (!pfn && param.mode_default) {
--			debug("%s memory mode not available\n", region_name);
-+			debug("%s fsdax mode not available\n", region_name);
- 			p->mode = NDCTL_NS_MODE_RAW;
- 		} else if (!pfn) {
--			error("operation failed, %s memory mode not available\n",
-+			error("operation failed, %s fsdax mode not available\n",
- 					region_name);
- 			return -EINVAL;
- 		}
--- 
-2.14.3
-
+Balbir Singh.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
