@@ -1,18 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B3F0721FB7D45
- for <linux-nvdimm@lists.01.org>; Tue,  3 Apr 2018 04:51:11 -0700 (PDT)
-Date: Tue, 3 Apr 2018 13:51:10 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v8 06/18] ext2, dax: introduce ext2_dax_aops
-Message-ID: <20180403115110.x272sevqcutguna6@quack2.suse.cz>
-References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152246896163.36038.15934876342603748972.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 28389225F321D
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Apr 2018 14:39:14 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] ndctl: fix ndctl_persistence_domain declaration
+Date: Fri, 6 Apr 2018 21:39:12 +0000
+Message-ID: <1523050750.19605.11.camel@intel.com>
+References: <1523021334-9976-1-git-send-email-lukasz.plewa@intel.com>
+ <CAPcyv4h97ig8hRPPVPOA-kKTNpuciWHtMeT3s1xyqv=5wyDbcw@mail.gmail.com>
+In-Reply-To: <CAPcyv4h97ig8hRPPVPOA-kKTNpuciWHtMeT3s1xyqv=5wyDbcw@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <A8C686C703185E4BA345021CEC18F144@intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <152246896163.36038.15934876342603748972.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,177 +21,28 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: jack@suse.cz, kbuild test robot <lkp@intel.com>, snitzer@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Plewa, Lukasz" <lukasz.plewa@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 30-03-18 21:02:41, Dan Williams wrote:
-> In preparation for the dax implementation to start associating dax pages
-> to inodes via page->mapping, we need to provide a 'struct
-> address_space_operations' instance for dax. Otherwise, direct-I/O
-> triggers incorrect page cache assumptions and warnings.
-> 
-> Cc: Jan Kara <jack@suse.com>
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-Looks good. You can add:
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
-> ---
->  fs/ext2/ext2.h  |    1 +
->  fs/ext2/inode.c |   46 +++++++++++++++++++++++++++-------------------
->  fs/ext2/namei.c |   18 ++----------------
->  3 files changed, 30 insertions(+), 35 deletions(-)
-> 
-> diff --git a/fs/ext2/ext2.h b/fs/ext2/ext2.h
-> index 032295e1d386..cc40802ddfa8 100644
-> --- a/fs/ext2/ext2.h
-> +++ b/fs/ext2/ext2.h
-> @@ -814,6 +814,7 @@ extern const struct inode_operations ext2_file_inode_operations;
->  extern const struct file_operations ext2_file_operations;
->  
->  /* inode.c */
-> +extern void ext2_set_file_ops(struct inode *inode);
->  extern const struct address_space_operations ext2_aops;
->  extern const struct address_space_operations ext2_nobh_aops;
->  extern const struct iomap_ops ext2_iomap_ops;
-> diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
-> index 9b2ac55ac34f..1e01fabef130 100644
-> --- a/fs/ext2/inode.c
-> +++ b/fs/ext2/inode.c
-> @@ -940,9 +940,6 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
->  	loff_t offset = iocb->ki_pos;
->  	ssize_t ret;
->  
-> -	if (WARN_ON_ONCE(IS_DAX(inode)))
-> -		return -EIO;
-> -
->  	ret = blockdev_direct_IO(iocb, inode, iter, ext2_get_block);
->  	if (ret < 0 && iov_iter_rw(iter) == WRITE)
->  		ext2_write_failed(mapping, offset + count);
-> @@ -952,17 +949,16 @@ ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
->  static int
->  ext2_writepages(struct address_space *mapping, struct writeback_control *wbc)
->  {
-> -#ifdef CONFIG_FS_DAX
-> -	if (dax_mapping(mapping)) {
-> -		return dax_writeback_mapping_range(mapping,
-> -						   mapping->host->i_sb->s_bdev,
-> -						   wbc);
-> -	}
-> -#endif
-> -
->  	return mpage_writepages(mapping, wbc, ext2_get_block);
->  }
->  
-> +static int
-> +ext2_dax_writepages(struct address_space *mapping, struct writeback_control *wbc)
-> +{
-> +	return dax_writeback_mapping_range(mapping,
-> +			mapping->host->i_sb->s_bdev, wbc);
-> +}
-> +
->  const struct address_space_operations ext2_aops = {
->  	.readpage		= ext2_readpage,
->  	.readpages		= ext2_readpages,
-> @@ -990,6 +986,13 @@ const struct address_space_operations ext2_nobh_aops = {
->  	.error_remove_page	= generic_error_remove_page,
->  };
->  
-> +static const struct address_space_operations ext2_dax_aops = {
-> +	.writepages		= ext2_dax_writepages,
-> +	.direct_IO		= noop_direct_IO,
-> +	.set_page_dirty		= noop_set_page_dirty,
-> +	.invalidatepage		= noop_invalidatepage,
-> +};
-> +
->  /*
->   * Probably it should be a library function... search for first non-zero word
->   * or memcmp with zero_page, whatever is better for particular architecture.
-> @@ -1388,6 +1391,18 @@ void ext2_set_inode_flags(struct inode *inode)
->  		inode->i_flags |= S_DAX;
->  }
->  
-> +void ext2_set_file_ops(struct inode *inode)
-> +{
-> +	inode->i_op = &ext2_file_inode_operations;
-> +	inode->i_fop = &ext2_file_operations;
-> +	if (IS_DAX(inode))
-> +		inode->i_mapping->a_ops = &ext2_dax_aops;
-> +	else if (test_opt(inode->i_sb, NOBH))
-> +		inode->i_mapping->a_ops = &ext2_nobh_aops;
-> +	else
-> +		inode->i_mapping->a_ops = &ext2_aops;
-> +}
-> +
->  struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
->  {
->  	struct ext2_inode_info *ei;
-> @@ -1480,14 +1495,7 @@ struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
->  		ei->i_data[n] = raw_inode->i_block[n];
->  
->  	if (S_ISREG(inode->i_mode)) {
-> -		inode->i_op = &ext2_file_inode_operations;
-> -		if (test_opt(inode->i_sb, NOBH)) {
-> -			inode->i_mapping->a_ops = &ext2_nobh_aops;
-> -			inode->i_fop = &ext2_file_operations;
-> -		} else {
-> -			inode->i_mapping->a_ops = &ext2_aops;
-> -			inode->i_fop = &ext2_file_operations;
-> -		}
-> +		ext2_set_file_ops(inode);
->  	} else if (S_ISDIR(inode->i_mode)) {
->  		inode->i_op = &ext2_dir_inode_operations;
->  		inode->i_fop = &ext2_dir_operations;
-> diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
-> index e078075dc66f..55f7caadb093 100644
-> --- a/fs/ext2/namei.c
-> +++ b/fs/ext2/namei.c
-> @@ -107,14 +107,7 @@ static int ext2_create (struct inode * dir, struct dentry * dentry, umode_t mode
->  	if (IS_ERR(inode))
->  		return PTR_ERR(inode);
->  
-> -	inode->i_op = &ext2_file_inode_operations;
-> -	if (test_opt(inode->i_sb, NOBH)) {
-> -		inode->i_mapping->a_ops = &ext2_nobh_aops;
-> -		inode->i_fop = &ext2_file_operations;
-> -	} else {
-> -		inode->i_mapping->a_ops = &ext2_aops;
-> -		inode->i_fop = &ext2_file_operations;
-> -	}
-> +	ext2_set_file_ops(inode);
->  	mark_inode_dirty(inode);
->  	return ext2_add_nondir(dentry, inode);
->  }
-> @@ -125,14 +118,7 @@ static int ext2_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
->  	if (IS_ERR(inode))
->  		return PTR_ERR(inode);
->  
-> -	inode->i_op = &ext2_file_inode_operations;
-> -	if (test_opt(inode->i_sb, NOBH)) {
-> -		inode->i_mapping->a_ops = &ext2_nobh_aops;
-> -		inode->i_fop = &ext2_file_operations;
-> -	} else {
-> -		inode->i_mapping->a_ops = &ext2_aops;
-> -		inode->i_fop = &ext2_file_operations;
-> -	}
-> +	ext2_set_file_ops(inode);
->  	mark_inode_dirty(inode);
->  	d_tmpfile(dentry, inode);
->  	unlock_new_inode(inode);
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCAyMDE4LTA0LTA2IGF0IDA3OjQwIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIEZyaSwgQXByIDYsIDIwMTggYXQgNjoyOCBBTSwgIDxsdWthc3oucGxld2FAaW50ZWwuY29t
+PiB3cm90ZToNCj4gPiBGcm9tOiDFgXVrYXN6IFBsZXdhIDxsdWthc3oucGxld2FAaW50ZWwuY29t
+Pg0KPiA+IA0KPiA+IHRoZSBkZWNsYXJhdGlvbiBvZiBuZGN0bF9wZXJzaXN0ZW5jZV9kb21haW4g
+c2hvdWxkIGJlIGFib3ZlIGZpcnN0IHVzZQ0KPiA+IG9mIHRoaXMgZW51bQ0KPiA+IA0KPiA+IFJl
+cG9ydGVkLWJ5OiBLYW1pbCBEaWVkcmljaCA8a2FtaWwuZGllZHJpY2hAaW50ZWwuY29tPg0KPiA+
+IFNpZ25lZC1vZmYtYnk6IMWBdWthc3ogUGxld2EgPGx1a2Fzei5wbGV3YUBpbnRlbC5jb20+DQo+
+ID4gLS0tDQo+ID4gIG5kY3RsL2xpYm5kY3RsLmggfCAxNCArKysrKysrLS0tLS0tLQ0KPiA+ICAx
+IGZpbGUgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQ0KPiANCj4gTG9v
+a3MgZ29vZCwNCj4gDQo+IFJldmlld2VkLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1z
+QGludGVsLmNvbT4NCg0KVGhhbmtzLCBhcHBsaWVkLg0KPiBfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXw0KPiBMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0DQo+
+IExpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCj4gaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
+bi9saXN0aW5mby9saW51eC1udmRpbW0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
