@@ -1,11 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.134.183])
- by ml01.01.org (Postfix) with ESMTP id 81BD6228392ED
- for <linux-nvdimm@lists.01.org>; Thu, 26 Apr 2018 20:30:46 -0700 (PDT)
-From: "Automatic Email Delivery Software" <MAILER-DAEMON@lists.01.org>
-Subject: RETURNED MAIL: DATA FORMAT ERROR
-Date: Fri, 27 Apr 2018 11:30:49 +0800
-MIME-Version: 1.0
+Received: from mail-pf0-x241.google.com (mail-pf0-x241.google.com
+ [IPv6:2607:f8b0:400e:c00::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3FDAC226FAA63
+ for <linux-nvdimm@lists.01.org>; Thu,  5 Apr 2018 22:21:55 -0700 (PDT)
+Received: by mail-pf0-x241.google.com with SMTP id u86so10153676pfd.2
+ for <linux-nvdimm@lists.01.org>; Thu, 05 Apr 2018 22:21:55 -0700 (PDT)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH v3 4/4] powerpc/powernv: Create platform devs for nvdimm buses
+Date: Fri,  6 Apr 2018 15:21:16 +1000
+Message-Id: <20180406052116.31483-4-oohall@gmail.com>
+In-Reply-To: <20180406052116.31483-1-oohall@gmail.com>
+References: <20180406052116.31483-1-oohall@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -13,35 +20,39 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20180427033048.8B46122839312@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: linuxppc-dev@lists.ozlabs.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This Message was undeliverable due to the following reason:
+Scan the devicetree for an nvdimm-bus compatible and create
+a platform device for them.
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+---
+ arch/powerpc/platforms/powernv/opal.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
-
-Your message was not delivered within 6 days:
-Host 53.28.80.160 is not responding.
-
-The following recipients did not receive this message:
-<linux-nvdimm@lists.01.org>
-
-Please reply to postmaster@lists.01.org
-if you feel this message to be in error.
-
-
+diff --git a/arch/powerpc/platforms/powernv/opal.c b/arch/powerpc/platforms/powernv/opal.c
+index c15182765ff5..c37485a3c5c9 100644
+--- a/arch/powerpc/platforms/powernv/opal.c
++++ b/arch/powerpc/platforms/powernv/opal.c
+@@ -821,6 +821,9 @@ static int __init opal_init(void)
+ 	/* Create i2c platform devices */
+ 	opal_pdev_init("ibm,opal-i2c");
+ 
++	/* Handle non-volatile memory devices */
++	opal_pdev_init("pmem-region");
++
+ 	/* Setup a heatbeat thread if requested by OPAL */
+ 	opal_init_heartbeat();
+ 
+-- 
+2.9.5
 
 _______________________________________________
 Linux-nvdimm mailing list
