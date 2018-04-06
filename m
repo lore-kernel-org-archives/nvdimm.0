@@ -1,26 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x230.google.com (mail-ot0-x230.google.com
+ [IPv6:2607:f8b0:4003:c0f::230])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EF2AB21F2E106
- for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 01:38:38 -0700 (PDT)
-Received: from g01jpfmpwkw01.exch.g01.fujitsu.local
- (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
- by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id D83CFAC00A4
- for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 17:38:31 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
-Date: Mon, 9 Apr 2018 08:38:29 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222764CC51@g01jpexmbkw01>
+ by ml01.01.org (Postfix) with ESMTPS id 4F09222620E82
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Apr 2018 12:03:01 -0700 (PDT)
+Received: by mail-ot0-x230.google.com with SMTP id f47-v6so2283589oth.2
+ for <linux-nvdimm@lists.01.org>; Fri, 06 Apr 2018 12:03:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3222764C387@g01jpexmbkw01>
 References: <20180313113308.2136-1-qi.fuli@jp.fujitsu.com>
  <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764A26E@g01jpexmbkw01>
  <CAPcyv4jGnJ7geYUsQxjnSiHnRwCOWx8HOYVcx+Bom7AfRYLsyA@mail.gmail.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764C387@g01jpexmbkw01>
- <CAPcyv4j5gDKMhCN02PQkf1JUvzUSOYTJWZf854y0p3emKvV5DA@mail.gmail.com>
-In-Reply-To: <CAPcyv4j5gDKMhCN02PQkf1JUvzUSOYTJWZf854y0p3emKvV5DA@mail.gmail.com>
-Content-Language: ja-JP
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 6 Apr 2018 12:02:59 -0700
+Message-ID: <CAPcyv4j5gDKMhCN02PQkf1JUvzUSOYTJWZf854y0p3emKvV5DA@mail.gmail.com>
+Subject: Re: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,64 +25,52 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dan Williams' <dan.j.williams@intel.com>
+To: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogRGFuIFdpbGxpYW1zIFtt
-YWlsdG86ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tXQ0KPiBTZW50OiBTYXR1cmRheSwgQXByaWwg
-NywgMjAxOCA0OjAzIEFNDQo+IFRvOiBRaSwgRnVsaS/mlokg56aP5YipIDxxaS5mdWxpQGpwLmZ1
-aml0c3UuY29tPg0KPiBDYzogbGludXgtbnZkaW1tIDxsaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Pg0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCB2NF0gbmRjdGw6IG1vbml0b3I6IGFkZCBuZGN0
-bCBtb25pdG9yIGRhZW1vbg0KPiANCj4gYnVzPSI8YnVzIGZpbHRlciBvcHRpb24+Ig0KPiANCj4g
-DQo+IE9uIFRodSwgQXByIDUsIDIwMTggYXQgNDoxNyBQTSwgUWksIEZ1bGkgPHFpLmZ1bGlAanAu
-ZnVqaXRzdS5jb20+IHdyb3RlOg0KPiBbLi5dDQo+ID4+IFRoaXMgc2VlbXMgdG8gbmVlZGxlc3Ns
-eSB0aWUgbmRjdGwgdG8gc3lzdGVtZCwgaXQgc2hvdWxkIGJlIGFibGUgdG8NCj4gPj4gb3BlcmF0
-ZSB3aXRob3V0IHJlcXVpcmluZyBzeXN0ZW1kLiBJIGV4cGVjdCBpdCB3b3VsZCBiZQ0KPiA+PiBz
-dHJhaWdodGZvcndhcmQgdG8gY29weSB0aGUgY29uZmlndXJhdGlvbiBmaWxlIGltcGxlbWVudGF0
-aW9uIGZyb20gZ2l0Lg0KPiA+DQo+ID4gSSBoYXZlIHJlYWQgdGhlIGNvbmZpZ3VyYXRpb24gZmls
-ZSBpbXBsZW1lbnRhdGlvbiBvZiBnaXQsIG15DQo+ID4gdW5kZXJzdGFuZGluZyBpcyB0aGF0IGdp
-dCBkYWVtb24gZG9lcyBub3QgaGF2ZSBhbnkgb3B0aW9ucyB1c2VkIHRvIG92ZXJyaWRlDQo+IGRl
-ZmF1bHQgY29uZmlndXJhdGlvbi4NCj4gPiBJIHdhbnQgdG8gY29uZmlybSBpZiB0aGUgY29uZmln
-dXJhdGlvbiBmaWxlIGlzIG9ubHkgdXNlZCBmb3IgbmRjdGwgbW9uaXRvci4NCj4gPiBJZiB5ZXMs
-IEkgZG8gbm90IHRoaW5rIGNvcHkgdGhlIGNvbmZpZ3VyYXRpb24gZmlsZSBpbXBsZW1lbnRhdGlv
-biBmcm9tDQo+ID4gZ2l0IGlzIGEgZ29vZCBjaG9pY2UsIGJlY2F1c2Ugb25seSBnZXR0aW5nIGtl
-eXMgYW5kIHZhbHVlcyBmcm9tDQo+ID4gY29uZmlndXJhdGlvbiBmaWxlIGlzIG5lZWRlZCBmb3Ig
-dXMgYW5kIHRoZSBzdHJ1Y3R1cmUgb2YgY29uZmlndXJhdGlvbiBmaWxlDQo+IGltcGxlbWVudGF0
-aW9uIGluIGdpdCBpcyB0b28gY29tcGxleGl0eS4NCj4gPiBJIHByZWZlciB0byBib3Jyb3cgZnJv
-bSB1ZGV2WzFdLCBiZWNhdXNlIHRoZSBpbXBsZW1lbnRhdGlvbiBpbiB1ZGV2IGlzIHNpbXBsZXIN
-Cj4gYW5kIGl0IHNlZW1zIG5kY3RsIGFsc28gYm9ycm93cyBhIGxvdCBmcm9tIHVkZXYuDQo+ID4N
-Cj4gPiBbMV0NCj4gPiBodHRwczovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgvaG90cGx1
-Zy91ZGV2LmdpdC90cmVlL3NyYy9saWJ1ZGV2DQo+ID4gLmMNCj4gDQo+IFRoYW5rIHlvdSBmb3Ig
-ZG9pbmcgdGhlIGR1ZSBkaWxpZ2VuY2Ugb24gdGhpcyBpbnZlc3RpZ2F0aW9uIGl0IGlzIGFwcHJl
-Y2lhdGVkLg0KPiANCj4gSSB0aGluayB0aGUgc2ltcGxlIHVkZXYgYXBwcm9hY2ggaXMgYWNjZXB0
-YWJsZS4gR29pbmcgYmFjayB0byB0aGUgcHJvcG9zZWQNCj4gY29tbWFuZCBsaW5lIG9wdGlvbnMg
-b2Y6IC0tZGltbS1ldmVudHMsIC0tbmFtZXNwYWNlLWV2ZW50cywgLS1yZWdpb24tZXZlbnRzLA0K
-PiAtLWJ1cy1ldmVudHMgYW5kIGRldmljZSBmaWx0ZXIgc2VsZWN0b3JzIChsaWtlIHRoZSBuZGN0
-bCBsaXN0IG9wdGlvbnMpIHdlIGNhbiBqdXN0IGhhdmUNCj4gdmFyaWFibGVzIGluIHRoZSBjb25m
-aWcgZmlsZSBmb3IgdGhvc2UsIHNvOg0KPiANCj4gZGltbS1ldmVudHM9IjxsaXN0IG9mIGRpbW0g
-ZXZlbnRzPiINCj4gbmFtZXNwYWNlLWV2ZW50cz09IjxsaXN0IG9mIG5hbWVzcGFjZSBldmVudHM+
-Ig0KPiByZWdpb24tZXZlbnRzPT0iPGxpc3Qgb2YgcmVnaW9uIGV2ZW50cz4iDQo+IGJ1cy1ldmVu
-dHM9IjxsaXN0IG9mIGJ1cyBldmVudHM+Ig0KPiBkaW1tPSI8YnVzIGZpbHRlciBvcHRpb24+Ig0K
-PiBkaW1tPSI8ZGltbSBmaWx0ZXIgb3B0aW9uPiINCj4gcmVnaW9uPSI8cmVnaW9uIGZpbHRlciBv
-cHRpb24+Ig0KPiBuYW1lc3BhY2U9IjxuYW1lc3BhY2UgZmlsdGVyIG9wdGlvbj4iDQo+IA0KPiBU
-aG91Z2h0cz8NCg0KVGhhbmsgeW91IHZlcnkgbXVjaC4NCg0KSSB0aGluayB0aGUgImxvZ2ZpbGU9
-PGxvZ2ZpbGUgcGF0aD4iIGlzIGFsc28gbmVlZGVkIGluIHRoZSBjb25maWd1cmF0aW9uIGZpbGUu
-DQoNCk9uZSBtb3JlIHF1ZXN0aW9uIGlzIHRoYXQgZG8geW91IHRoaW5rIGl0IGlzIG5lY2Vzc2Fy
-eSBmb3IgbmRjdGwgbGlzdCB0byBzdXBwb3J0ICJvbmUgb3B0aW9uIG11bHRpcGxlIGFyZ3VtZW50
-cyI/DQpDdXJyZW50bHksIG9ubHkgIm9uZSBvcHRpb24gb25lIGFyZ3VtZW50IiBpcyBhbGxvd2Vk
-IGluIG5kY3RsIGxpc3QgbGlrZSAibmRjdGwgbGlzdCAtLWRpbW0gbm1lbTEgLS1idXMgbmRidXMx
-Ii4NCkR1ZSB0byBtb25pdG9yIHNob3VsZCBzdXBwb3J0ICJvbmUgb3B0aW9uIG11bHRpcGxlIGFy
-Z3VtZW50cyIgbGlrZSAibmRjdGwgbW9uaXRvciAtLWRpbW0gbm1lbTEsbm1lbTIiLA0KSSBhbSB0
-aGlua2luZyBtb2RpZnkgdGhlICJzdHJ1dCB1dGlsX2ZpbHRlcl9wYXJhbXMiIGluIHV0aWwvZmls
-dGVyLmgsIGNoYW5nZSB0aGUgImNvbnN0IGNoYXIgKmJ1cyIgdG8gImNoYXIgKipidXNlcyINCm9y
-ICJsaW5rX2xpc3QgYnVzIiBhbmQgcmVmYWN0b3IgdGhlIHV0aWxfZmlsdGVyX3dhbGsgaW4gdXRp
-bC9maWx0ZXIuaCwgdGhlbiBuZGN0bCBsaXN0IGFsc28gY2FuIHN1cHBvcnQgIm5kY3RsIGxpc3Qg
-LS1kaW1tIG5tZW0xLG5tZW0yIi4NCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+bus="<bus filter option>"
+
+
+On Thu, Apr 5, 2018 at 4:17 PM, Qi, Fuli <qi.fuli@jp.fujitsu.com> wrote:
+[..]
+>> This seems to needlessly tie ndctl to systemd, it should be able to operate without
+>> requiring systemd. I expect it would be straightforward to copy the configuration file
+>> implementation from git.
+>
+> I have read the configuration file implementation of git, my understanding is that git daemon does not
+> have any options used to override default configuration.
+> I want to confirm if the configuration file is only used for ndctl monitor.
+> If yes, I do not think copy the configuration file implementation from git is a good choice,
+> because only getting keys and values from configuration file is needed for us and the structure of
+> configuration file implementation in git is too complexity.
+> I prefer to borrow from udev[1], because the implementation in udev is simpler and it seems ndctl also borrows a lot from udev.
+>
+> [1] https://git.kernel.org/pub/scm/linux/hotplug/udev.git/tree/src/libudev.c
+
+Thank you for doing the due diligence on this investigation it is appreciated.
+
+I think the simple udev approach is acceptable. Going back to the
+proposed command line options of: --dimm-events, --namespace-events,
+--region-events, --bus-events and device filter selectors (like the
+ndctl list options) we can just have variables in the config file for
+those, so:
+
+dimm-events="<list of dimm events>"
+namespace-events=="<list of namespace events>"
+region-events=="<list of region events>"
+bus-events="<list of bus events>"
+dimm="<bus filter option>"
+dimm="<dimm filter option>"
+region="<region filter option>"
+namespace="<namespace filter option>"
+
+Thoughts?
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
