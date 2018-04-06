@@ -1,18 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
+ [IPv6:2607:f8b0:4003:c06::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 26F322264A1E8
- for <linux-nvdimm@lists.01.org>; Wed,  4 Apr 2018 02:55:20 -0700 (PDT)
-Date: Wed, 4 Apr 2018 11:55:18 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v8 18/18] xfs, dax: introduce xfs_break_dax_layouts()
-Message-ID: <20180404095518.65exgpxuca3tqhav@quack2.suse.cz>
-References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152246902607.36038.15813002361509305325.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BF2E822620E68
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Apr 2018 15:51:44 -0700 (PDT)
+Received: by mail-oi0-x241.google.com with SMTP id 126-v6so2512403oig.0
+ for <linux-nvdimm@lists.01.org>; Fri, 06 Apr 2018 15:51:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <152246902607.36038.15813002361509305325.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <1523054143.2693.346.camel@hpe.com>
+References: <152298833162.13386.16059994933936258291.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152298834229.13386.9535080244838507823.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <1523052334.2693.330.camel@hpe.com>
+ <CAPcyv4i+xGYeO0qPuaoFTqZDe9BG1griYx0VwbUzfWs0As5yxQ@mail.gmail.com>
+ <1523054143.2693.346.camel@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 6 Apr 2018 15:51:43 -0700
+Message-ID: <CAPcyv4iV5O-08hfhhb1riuTxVzRUG0O2Pioyx7qcCWpY0rZMkA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v2 2/3] nfit, address-range-scrub: rework and
+ simplify ARS state machine
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,139 +30,89 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, snitzer@redhat.com, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: "Kani, Toshi" <toshi.kani@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 30-03-18 21:03:46, Dan Williams wrote:
-> xfs_break_dax_layouts(), similar to xfs_break_leased_layouts(), scans
-> for busy / pinned dax pages and waits for those pages to go idle before
-> any potential extent unmap operation.
-> 
-> dax_layout_busy_page() handles synchronizing against new page-busy
-> events (get_user_pages). It invalidates all mappings to trigger the
-> get_user_pages slow path which will eventually block on the xfs inode
-> lock held in XFS_MMAPLOCK_EXCL mode. If dax_layout_busy_page() finds a
-> busy page it returns it for xfs to wait for the page-idle event that
-> will fire when the page reference count reaches 1 (recall ZONE_DEVICE
-> pages are idle at count 1, see generic_dax_pagefree()).
-> 
-> While waiting, the XFS_MMAPLOCK_EXCL lock is dropped in order to not
-> deadlock the process that might be trying to elevate the page count of
-> more pages before arranging for any of them to go idle. I.e. the typical
-> case of submitting I/O is that iov_iter_get_pages() elevates the
-> reference count of all pages in the I/O before starting I/O on the first
-> page. The process of elevating the reference count of all pages involved
-> in an I/O may cause faults that need to take XFS_MMAPLOCK_EXCL.
-> 
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Dave Chinner <david@fromorbit.com>
-> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+On Fri, Apr 6, 2018 at 3:36 PM, Kani, Toshi <toshi.kani@hpe.com> wrote:
+> On Fri, 2018-04-06 at 15:13 -0700, Dan Williams wrote:
+>> On Fri, Apr 6, 2018 at 3:06 PM, Kani, Toshi <toshi.kani@hpe.com> wrote:
+>> > On Thu, 2018-04-05 at 21:19 -0700, Dan Williams wrote:
+>> > > ARS is an operation that can take 10s to 100s of seconds to find media
+>> > > errors that should rarely be present. If the platform crashes due to
+>> > > media errors in persistent memory, the expectation is that the BIOS will
+>> > > report those known errors in a 'short' ARS request.
+>> > >
+>> > > A 'short' ARS request asks platform firmware to return an ARS payload
+>> > > with all known errors, but without issuing a 'long' scrub. At driver
+>> > > init a short request is issued to all PMEM ranges before registering
+>> > > regions. Then, in the background, a long ARS is scheduled for each
+>> > > region.
+>> >
+>> > I confirmed that this version addressed the WARN_ONCE issue.
+>> >
+>> > > The ARS implementation is simplified to centralize ARS completion work
+>> > > in the ars_complete() helper called from ars_status_process_records().
+>> > > The timeout is removed since there is no facility to cancel ARS, and
+>> > > system init is never blocked waiting for a 'long' ARS. The ars_state
+>> > > flags are used to coordinate ARS requests from driver init, ARS requests
+>> > > from userspace, and ARS requests in response to media error
+>> > > notifications.
+>> >
+>> > While I like the simplification of the code, I leaned that we need to
+>> > handle both cases below:
+>> >
+>> >  1) No FW ARS Scan: ARS short scan and enable pmem devices without delay
+>> > (new behavior by this patch)
+>> >  2) FW ARS Scan: Wait for FW ARS scan to complete, and then enable pmem
+>> > devices
+>> >
+>> > Case 2) is still necessary because:
+>> >
+>> >  - After a system crash in certain error scenario, FW may not be able to
+>> > obtain all error records and need ARS long scan to retrieve them.
+>> >  - Other OSes do not initiate an ARS long scan, and assume FW to start
+>> > it at POST when necessary.
+>>
+>> Given that there is no specification for how long an ARS can take it
+>> is not acceptable for system boot to be blocked indefinitely. In the
+>> case where firmware can't populate enough errors into the short scan,
+>
+> I am less concerned if we get not-enough errors from the short scan in
+> case 2).  A background ARS long scan can then fill the gap.  In this
+> case, however, it does not get any error from ARS, including previously
+> populated ones, since the short scan is not called before enabling pmem
+> devices.
 
-...
+Right, if the BIOS kicks off ARS it is getting in the way of the OS
+doing the short scan. My position is that the BIOS is being too
+paranoid in that case, and should not be doing ARS at boot. We have
+machine check recovery and the low expected rate of errors as
+mitigations that allow namespaces to come up as early as possible. We
+certainly do not do this type of paranoid waiting for disk devices,
+why would NVDIMMs be any different?
 
-> ---
->  fs/xfs/xfs_file.c |   60 +++++++++++++++++++++++++++++++++++++++++++----------
->  1 file changed, 49 insertions(+), 11 deletions(-)
-> 
-> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-> index 51e6506bdcb1..0342f6fb782f 100644
-> --- a/fs/xfs/xfs_file.c
-> +++ b/fs/xfs/xfs_file.c
-> @@ -752,6 +752,38 @@ xfs_file_write_iter(
->  	return ret;
->  }
->  
-> +static void
-> +xfs_wait_var_event(
-> +	struct inode		*inode,
-> +	uint			iolock,
-> +	bool			*did_unlock)
-> +{
-> +	struct xfs_inode        *ip = XFS_I(inode);
-> +
-> +	*did_unlock = true;
-> +	xfs_iunlock(ip, iolock);
-> +	schedule();
-> +	xfs_ilock(ip, iolock);
-> +}
+So yes, the new proposed Linux ARS policy is deliberately ignoring
+BIOSen that want to leave ARS running as the OS is booting. If a
+platform BIOS implementation really wants all known errors to be found
+before starting namespaces it should wait for ARS completion before
+finishing POST. Hopefully, no BIOS does that because the OS has better
+ways to make forward progress and mitigate errors.
 
-With this scheme, there's a problem that it can be easily livelocked. E.g.
-when I created a program that maps a file on DAX fs and does AIO DIO from
-it indefinitely (with 64 iocbs in flight), truncate of that file never gets
-past xfs_break_layouts(). The reason is that once we drop all locks, new
-iocbs can be submitted, they grab new page references and these prevent
-truncation next time... So I think we need to somehow fix this retry scheme
-so that we guarantee forward progress of the truncate. E.g. if we kept
-IOLOCK locked, that would prevent new iocbs from being submitted...
+>> *and* machine check error recovery can't handle the errors we're well
+>> into "this system needs manual remediation" territory. In that case an
+>> administrator can do the following:
+>>
+>> 1/ boot with "modprobe.blacklist=nd_pmem" to stop pmem namespaces from
+>> starting automatically
+>> 2/ call "ndctl wait-scrub" to wait for the OS or BIOS initiated ARS to complete
+>> 3/ manually start up namespaces with the up to date error list
+>> "modprobe nd_pmem"
+>
+> It's good to know that we have a remedy, but exposing all previously
+> populated errors as a result does not sound right to me.
 
-								Honza
-
-
-> +
-> +static int
-> +xfs_break_dax_layouts(
-> +	struct inode		*inode,
-> +	uint			iolock,
-> +	bool			*did_unlock)
-> +{
-> +	struct page		*page;
-> +
-> +	*did_unlock = false;
-> +	page = dax_layout_busy_page(inode->i_mapping);
-> +	if (!page)
-> +		return 0;
-> +
-> +	return ___wait_var_event(&page->_refcount,
-> +			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
-> +			0, 0, xfs_wait_var_event(inode, iolock, did_unlock));
-> +}
-> +
->  int
->  xfs_break_layouts(
->  	struct inode		*inode,
-> @@ -763,17 +795,23 @@ xfs_break_layouts(
->  
->  	ASSERT(xfs_isilocked(XFS_I(inode), XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
->  
-> -	switch (reason) {
-> -	case BREAK_UNMAP:
-> -		ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
-> -		/* fall through */
-> -	case BREAK_WRITE:
-> -		error = xfs_break_leased_layouts(inode, iolock, &retry);
-> -		break;
-> -	default:
-> -		WARN_ON_ONCE(1);
-> -		return -EINVAL;
-> -	}
-> +	do {
-> +		switch (reason) {
-> +		case BREAK_UNMAP:
-> +			ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
-> +
-> +			error = xfs_break_dax_layouts(inode, *iolock, &retry);
-> +			/* fall through */
-> +		case BREAK_WRITE:
-> +			if (error || retry)
-> +				break;
-> +			error = xfs_break_leased_layouts(inode, iolock, &retry);
-> +			break;
-> +		default:
-> +			WARN_ON_ONCE(1);
-> +			return -EINVAL;
-> +		}
-> +	} while (error == 0 && retry);
->  
->  	return error;
->  }
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+They're not exposed if they are not being actively consumed.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
