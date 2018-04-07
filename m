@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 223FF21FB7D3A
- for <linux-nvdimm@lists.01.org>; Mon,  2 Apr 2018 21:56:29 -0700 (PDT)
-Subject: [PATCH 6/6] nfit,
- address-range-scrub: add module option to skip initial ars
+ by ml01.01.org (Postfix) with ESMTPS id A9BF7226516A2
+ for <linux-nvdimm@lists.01.org>; Sat,  7 Apr 2018 08:55:53 -0700 (PDT)
+Subject: [PATCH v3 1/3] nfit,
+ address-range-scrub: determine one platform max_ars value
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 02 Apr 2018 21:46:33 -0700
-Message-ID: <152273079304.38372.3756477895030033611.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 07 Apr 2018 08:45:57 -0700
+Message-ID: <152311595730.35426.1207968874687834260.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152311595210.35426.13667585208560808244.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152311595210.35426.13667585208560808244.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,50 +24,194 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-After attempting to quickly retrieve known errors the kernel proceeds to
-kick off a long running ARS. Add a module option to disable this
-behavior at initialization time, or at new region discovery time.
-Otherwise, ARS can be started manually regardless of the state of this
-setting.
+acpi_nfit_query_poison() is awkward in that it requires an nfit_spa
+argument in order to determine what max_ars value to use. Instead probe
+for the minimum max_ars across all scrub-capable ranges in the system
+and drop the nfit_spa argument.
 
-Co-developed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+This enables a larger rework / simplification of the ARS state machine
+whereby the status can be retrieved once and then iterated over all
+address ranges to reap completions.
+
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/acpi/nfit/core.c |   78 ++++++++++++++++++++++++----------------------
+ drivers/acpi/nfit/nfit.h |    2 +
+ 2 files changed, 41 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 29a033f3455d..848e05b25d7d 100644
+index 9c56022c216f..866853abebea 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -49,6 +49,10 @@ module_param(default_dsm_family, int, S_IRUGO);
- MODULE_PARM_DESC(default_dsm_family,
- 		"Try this DSM type first when identifying NVDIMM family");
+@@ -2494,16 +2494,16 @@ static int ars_get_status(struct acpi_nfit_desc *acpi_desc)
+ 	int rc, cmd_rc;
  
-+static int no_init_ars;
-+module_param(no_init_ars, int, 0644);
-+MODULE_PARM_DESC(no_init_ars, "Skip ARS run at nfit init time");
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_STATUS, ars_status,
+-			acpi_desc->ars_status_size, &cmd_rc);
++			acpi_desc->max_ars, &cmd_rc);
+ 	if (rc < 0)
+ 		return rc;
+ 	return cmd_rc;
+ }
+ 
+-static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc,
+-		struct nd_cmd_ars_status *ars_status)
++static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nvdimm_bus *nvdimm_bus = acpi_desc->nvdimm_bus;
++	struct nd_cmd_ars_status *ars_status = acpi_desc->ars_status;
+ 	int rc;
+ 	u32 i;
+ 
+@@ -2739,60 +2739,35 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	return rc;
+ }
+ 
+-static int ars_status_alloc(struct acpi_nfit_desc *acpi_desc,
+-		u32 max_ars)
++static int ars_status_alloc(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nd_cmd_ars_status *ars_status;
+ 
+-	if (acpi_desc->ars_status && acpi_desc->ars_status_size >= max_ars) {
+-		memset(acpi_desc->ars_status, 0, acpi_desc->ars_status_size);
++	if (acpi_desc->ars_status) {
++		memset(acpi_desc->ars_status, 0, acpi_desc->max_ars);
+ 		return 0;
+ 	}
+ 
+-	if (acpi_desc->ars_status)
+-		devm_kfree(dev, acpi_desc->ars_status);
+-	acpi_desc->ars_status = NULL;
+-	ars_status = devm_kzalloc(dev, max_ars, GFP_KERNEL);
++	ars_status = devm_kzalloc(dev, acpi_desc->max_ars, GFP_KERNEL);
+ 	if (!ars_status)
+ 		return -ENOMEM;
+ 	acpi_desc->ars_status = ars_status;
+-	acpi_desc->ars_status_size = max_ars;
+ 	return 0;
+ }
+ 
+-static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc,
+-		struct nfit_spa *nfit_spa)
++static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc)
+ {
+-	struct acpi_nfit_system_address *spa = nfit_spa->spa;
+ 	int rc;
+ 
+-	if (!nfit_spa->max_ars) {
+-		struct nd_cmd_ars_cap ars_cap;
+-
+-		memset(&ars_cap, 0, sizeof(ars_cap));
+-		rc = ars_get_cap(acpi_desc, &ars_cap, nfit_spa);
+-		if (rc < 0)
+-			return rc;
+-		nfit_spa->max_ars = ars_cap.max_ars_out;
+-		nfit_spa->clear_err_unit = ars_cap.clear_err_unit;
+-		/* check that the supported scrub types match the spa type */
+-		if (nfit_spa_type(spa) == NFIT_SPA_VOLATILE &&
+-				((ars_cap.status >> 16) & ND_ARS_VOLATILE) == 0)
+-			return -ENOTTY;
+-		else if (nfit_spa_type(spa) == NFIT_SPA_PM &&
+-				((ars_cap.status >> 16) & ND_ARS_PERSISTENT) == 0)
+-			return -ENOTTY;
+-	}
+-
+-	if (ars_status_alloc(acpi_desc, nfit_spa->max_ars))
++	if (ars_status_alloc(acpi_desc))
+ 		return -ENOMEM;
+ 
+ 	rc = ars_get_status(acpi_desc);
+ 	if (rc < 0 && rc != -ENOSPC)
+ 		return rc;
+ 
+-	if (ars_status_process_records(acpi_desc, acpi_desc->ars_status))
++	if (ars_status_process_records(acpi_desc))
+ 		return -ENOMEM;
+ 
+ 	return 0;
+@@ -2824,7 +2799,7 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
+ 
+ 		if (acpi_desc->cancel)
+ 			break;
+-		rc = acpi_nfit_query_poison(acpi_desc, nfit_spa);
++		rc = acpi_nfit_query_poison(acpi_desc);
+ 		if (rc == -ENOTTY)
+ 			break;
+ 		if (rc == -EBUSY && !tmo) {
+@@ -2925,7 +2900,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
+ 			 */
+ 			rc = 0;
+ 		} else
+-			rc = acpi_nfit_query_poison(acpi_desc, nfit_spa);
++			rc = acpi_nfit_query_poison(acpi_desc);
+ 
+ 		if (rc == -ENOTTY) {
+ 			/* no ars capability, just register spa and move on */
+@@ -3018,6 +2993,31 @@ static void acpi_nfit_scrub(struct work_struct *work)
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ }
+ 
++static void acpi_nfit_init_ars(struct acpi_nfit_desc *acpi_desc,
++		struct nfit_spa *nfit_spa)
++{
++	int type = nfit_spa_type(nfit_spa->spa);
++	struct nd_cmd_ars_cap ars_cap;
++	int rc;
 +
- LIST_HEAD(acpi_descs);
- DEFINE_MUTEX(acpi_desc_lock);
++	memset(&ars_cap, 0, sizeof(ars_cap));
++	rc = ars_get_cap(acpi_desc, &ars_cap, nfit_spa);
++	if (rc < 0)
++		return;
++	/* check that the supported scrub types match the spa type */
++	if (type == NFIT_SPA_VOLATILE && ((ars_cap.status >> 16)
++				& ND_ARS_VOLATILE) == 0)
++		return;
++	if (type == NFIT_SPA_PM && ((ars_cap.status >> 16)
++				& ND_ARS_PERSISTENT) == 0)
++		return;
++
++	nfit_spa->max_ars = ars_cap.max_ars_out;
++	nfit_spa->clear_err_unit = ars_cap.clear_err_unit;
++	acpi_desc->max_ars = max(nfit_spa->max_ars, acpi_desc->max_ars);
++}
++
++
+ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nfit_spa *nfit_spa;
+@@ -3026,8 +3026,10 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ 		int rc, type = nfit_spa_type(nfit_spa->spa);
  
-@@ -2868,8 +2872,11 @@ static int init_ars(struct acpi_nfit_desc *acpi_desc, struct nfit_spa *nfit_spa,
- 
- 	WARN_ON_ONCE(!test_bit(ARS_SHORT, &nfit_spa->ars_state));
- 	rc = ars_start(acpi_desc, nfit_spa);
--	if (rc == 0)
-+	if (rc == 0) {
- 		rc = acpi_nfit_query_poison(acpi_desc, nfit_spa);
-+		if (!no_init_ars)
-+			set_bit(ARS_REQ, &nfit_spa->ars_state);
-+	}
- out:
- 	if (acpi_nfit_register_region(acpi_desc, nfit_spa))
- 		set_bit(ARS_FAILED, &nfit_spa->ars_state);
+ 		/* PMEM and VMEM will be registered by the ARS workqueue */
+-		if (type == NFIT_SPA_PM || type == NFIT_SPA_VOLATILE)
++		if (type == NFIT_SPA_PM || type == NFIT_SPA_VOLATILE) {
++			acpi_nfit_init_ars(acpi_desc, nfit_spa);
+ 			continue;
++		}
+ 		/* BLK apertures belong to BLK region registration below */
+ 		if (type == NFIT_SPA_BDW)
+ 			continue;
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 2b97e5f76bdf..45e7949986a8 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -197,10 +197,10 @@ struct acpi_nfit_desc {
+ 	struct device *dev;
+ 	u8 ars_start_flags;
+ 	struct nd_cmd_ars_status *ars_status;
+-	size_t ars_status_size;
+ 	struct work_struct work;
+ 	struct list_head list;
+ 	struct kernfs_node *scrub_count_state;
++	unsigned int max_ars;
+ 	unsigned int scrub_count;
+ 	unsigned int scrub_mode;
+ 	unsigned int cancel:1;
 
 _______________________________________________
 Linux-nvdimm mailing list
