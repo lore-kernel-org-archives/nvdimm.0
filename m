@@ -1,18 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-ua0-x243.google.com (mail-ua0-x243.google.com
+ [IPv6:2607:f8b0:400c:c08::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B549A21FB7D45
- for <linux-nvdimm@lists.01.org>; Tue,  3 Apr 2018 04:50:06 -0700 (PDT)
-Date: Tue, 3 Apr 2018 13:50:03 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v8 05/18] ext4, dax: introduce ext4_dax_aops
-Message-ID: <20180403115003.qfbedsjtxwirqkh6@quack2.suse.cz>
-References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152246895649.36038.5391043415273091960.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 355362265A8DE
+ for <linux-nvdimm@lists.01.org>; Sat,  7 Apr 2018 01:08:40 -0700 (PDT)
+Received: by mail-ua0-x243.google.com with SMTP id q26so2121298uab.0
+ for <linux-nvdimm@lists.01.org>; Sat, 07 Apr 2018 01:08:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <152246895649.36038.5391043415273091960.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <CAPcyv4hRut3MjihCStXkO6QGXYQf6gmoPPmv_=9K-Z8qoVLL0Q@mail.gmail.com>
+References: <20180406052116.31483-1-oohall@gmail.com>
+ <CAPcyv4hRut3MjihCStXkO6QGXYQf6gmoPPmv_=9K-Z8qoVLL0Q@mail.gmail.com>
+From: Balbir Singh <bsingharora@gmail.com>
+Date: Sat, 7 Apr 2018 18:08:39 +1000
+Message-ID: <CAKTCnzmuqTZWVXdUfMLRQMHW3MK8qtKbTXxBy9Lt32h4ET237A@mail.gmail.com>
+Subject: Re: [PATCH v3 1/4] libnvdimm: Add of_node to region and bus
+ descriptors
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,116 +28,35 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, snitzer@redhat.com, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, hch@lst.de
+Cc: linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 30-03-18 21:02:36, Dan Williams wrote:
-> In preparation for the dax implementation to start associating dax pages
-> to inodes via page->mapping, we need to provide a 'struct
-> address_space_operations' instance for dax. Otherwise, direct-I/O
-> triggers incorrect page cache assumptions and warnings.
-> 
-> Cc: "Theodore Ts'o" <tytso@mit.edu>
-> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-> Cc: linux-ext4@vger.kernel.org
-> Cc: Jan Kara <jack@suse.cz>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+On Sat, Apr 7, 2018 at 4:28 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Thu, Apr 5, 2018 at 10:21 PM, Oliver O'Halloran <oohall@gmail.com> wrote:
+>> We want to be able to cross reference the region and bus devices
+>> with the device tree node that they were spawned from. libNVDIMM
+>> handles creating the actual devices for these internally, so we
+>> need to pass in a pointer to the relevant node in the descriptor.
+>>
+>> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+>> Acked-by: Dan Williams <dan.j.williams@intel.com>
+>
+> These look good to me. I'll get them applied today and let them soak
+> over the weekend for a pull request on Monday.
+>
+> If anyone wants to add Acks or Reviews I can append them to the merge
+> tag. If there are any NAKs please speak up now, but as far as I know
+> there are no pending device-tree design concerns.
 
-Looks good. You can add:
+Hi, Dan
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+I can ack Oliver's work, will do so in each patch
 
-								Honza
+Overall
 
-> ---
->  fs/ext4/inode.c |   42 +++++++++++++++++++++++++++++++-----------
->  1 file changed, 31 insertions(+), 11 deletions(-)
-> 
-> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-> index c94780075b04..249a97b19181 100644
-> --- a/fs/ext4/inode.c
-> +++ b/fs/ext4/inode.c
-> @@ -2725,12 +2725,6 @@ static int ext4_writepages(struct address_space *mapping,
->  	percpu_down_read(&sbi->s_journal_flag_rwsem);
->  	trace_ext4_writepages(inode, wbc);
->  
-> -	if (dax_mapping(mapping)) {
-> -		ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev,
-> -						  wbc);
-> -		goto out_writepages;
-> -	}
-> -
->  	/*
->  	 * No pages to write? This is mainly a kludge to avoid starting
->  	 * a transaction for special inodes like journal inode on last iput()
-> @@ -2955,6 +2949,27 @@ static int ext4_writepages(struct address_space *mapping,
->  	return ret;
->  }
->  
-> +static int ext4_dax_writepages(struct address_space *mapping,
-> +			       struct writeback_control *wbc)
-> +{
-> +	int ret;
-> +	long nr_to_write = wbc->nr_to_write;
-> +	struct inode *inode = mapping->host;
-> +	struct ext4_sb_info *sbi = EXT4_SB(mapping->host->i_sb);
-> +
-> +	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-> +		return -EIO;
-> +
-> +	percpu_down_read(&sbi->s_journal_flag_rwsem);
-> +	trace_ext4_writepages(inode, wbc);
-> +
-> +	ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev, wbc);
-> +	trace_ext4_writepages_result(inode, wbc, ret,
-> +				     nr_to_write - wbc->nr_to_write);
-> +	percpu_up_read(&sbi->s_journal_flag_rwsem);
-> +	return ret;
-> +}
-> +
->  static int ext4_nonda_switch(struct super_block *sb)
->  {
->  	s64 free_clusters, dirty_clusters;
-> @@ -3857,10 +3872,6 @@ static ssize_t ext4_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
->  	if (ext4_has_inline_data(inode))
->  		return 0;
->  
-> -	/* DAX uses iomap path now */
-> -	if (WARN_ON_ONCE(IS_DAX(inode)))
-> -		return 0;
-> -
->  	trace_ext4_direct_IO_enter(inode, offset, count, iov_iter_rw(iter));
->  	if (iov_iter_rw(iter) == READ)
->  		ret = ext4_direct_IO_read(iocb, iter);
-> @@ -3946,6 +3957,13 @@ static const struct address_space_operations ext4_da_aops = {
->  	.error_remove_page	= generic_error_remove_page,
->  };
->  
-> +static const struct address_space_operations ext4_dax_aops = {
-> +	.writepages		= ext4_dax_writepages,
-> +	.direct_IO		= noop_direct_IO,
-> +	.set_page_dirty		= noop_set_page_dirty,
-> +	.invalidatepage		= noop_invalidatepage,
-> +};
-> +
->  void ext4_set_aops(struct inode *inode)
->  {
->  	switch (ext4_inode_journal_mode(inode)) {
-> @@ -3958,7 +3976,9 @@ void ext4_set_aops(struct inode *inode)
->  	default:
->  		BUG();
->  	}
-> -	if (test_opt(inode->i_sb, DELALLOC))
-> +	if (IS_DAX(inode))
-> +		inode->i_mapping->a_ops = &ext4_dax_aops;
-> +	else if (test_opt(inode->i_sb, DELALLOC))
->  		inode->i_mapping->a_ops = &ext4_da_aops;
->  	else
->  		inode->i_mapping->a_ops = &ext4_aops;
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+
+Balbir Singh
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
