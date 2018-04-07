@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE2042034C8AF
- for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 14:53:53 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/3] nvdimm, acpi: add NFIT platform capabilities
-Date: Fri, 27 Apr 2018 15:53:13 -0600
-Message-Id: <20180427215314.23168-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180427215314.23168-1-ross.zwisler@linux.intel.com>
-References: <20180427215314.23168-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4487B226516A2
+ for <linux-nvdimm@lists.01.org>; Sat,  7 Apr 2018 08:55:48 -0700 (PDT)
+Subject: [PATCH v3 0/3] nfit, address-range-scrub: rework and fixes
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 07 Apr 2018 08:45:52 -0700
+Message-ID: <152311595210.35426.13667585208560808244.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,82 +16,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Haozhong Zhang <haozhong.zhang@intel.com>, "Michael S . Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, qemu-devel@nongnu.org, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for the NFIT Platform Capabilities Structure, newly added in
-ACPI 6.2 Errata A.
+Changes since v2 [1]:
+* Handle -EAGAIN (no result) ars_status responses
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- hw/acpi/nvdimm.c | 32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
 
-diff --git a/hw/acpi/nvdimm.c b/hw/acpi/nvdimm.c
-index 59d6e4254c..859b390e07 100644
---- a/hw/acpi/nvdimm.c
-+++ b/hw/acpi/nvdimm.c
-@@ -169,6 +169,21 @@ struct NvdimmNfitControlRegion {
- } QEMU_PACKED;
- typedef struct NvdimmNfitControlRegion NvdimmNfitControlRegion;
- 
-+/*
-+ * NVDIMM Platform Capabilities Structure
-+ *
-+ * Defined in section 5.2.25.9 of ACPI 6.2 Errata A, September 2017
-+ */
-+struct NvdimmNfitPlatformCaps {
-+    uint16_t type;
-+    uint16_t length;
-+    uint8_t highest_cap;
-+    uint8_t reserved[3];
-+    uint32_t capabilities;
-+    uint8_t reserved2[4];
-+} QEMU_PACKED;
-+typedef struct NvdimmNfitPlatformCaps NvdimmNfitPlatformCaps;
-+
- /*
-  * Module serial number is a unique number for each device. We use the
-  * slot id of NVDIMM device to generate this number so that each device
-@@ -351,6 +366,21 @@ static void nvdimm_build_structure_dcr(GArray *structures, DeviceState *dev)
-                                          JEDEC Annex L Release 3. */);
- }
- 
-+/*
-+ * ACPI 6.2 Errata A: 5.2.25.9 NVDIMM Platform Capabilities Structure
-+ */
-+static void
-+nvdimm_build_structure_caps(GArray *structures)
-+{
-+    NvdimmNfitPlatformCaps *nfit_caps;
-+
-+    nfit_caps = acpi_data_push(structures, sizeof(*nfit_caps));
-+
-+    nfit_caps->type = cpu_to_le16(7 /* NVDIMM Platform Capabilities */);
-+    nfit_caps->length = cpu_to_le16(sizeof(*nfit_caps));
-+    nfit_caps->highest_cap = 1;
-+    nfit_caps->capabilities = cpu_to_le32(2 /* memory controller */);
-+}
- static GArray *nvdimm_build_device_structure(void)
- {
-     GSList *device_list = nvdimm_get_device_list();
-@@ -373,6 +403,8 @@ static GArray *nvdimm_build_device_structure(void)
-     }
-     g_slist_free(device_list);
- 
-+    nvdimm_build_structure_caps(structures);
-+
-     return structures;
- }
- 
--- 
-2.14.3
+Given the fact that ARS can take 10s to 100s of seconds it is not
+feasible to wait for ARS completion before publishing persistent memory
+namespaces. Instead convert the ARS implementation to perform a short
+ARS for critical errors, ones that caused a previous system reset,
+before registering namespaces. Finally, arrange for all long ARS
+operations to run in the background and populate the badblock lists at
+run time.
 
+In the extreme situation that an implementation is unable to return
+sufficient results in a short scan and the system encounters media
+errors that machine check recovery does not handle, an administrator can
+arrange to wait for a full ARS scan by doing the following:
+
+1/ Boot with "modprobe.blacklist=nd_pmem" to stop pmem namespaces from
+   starting automatically
+
+2/ Call "ndctl wait-scrub" to wait for the OS or BIOS initiated ARS to complete
+
+3/ Manually start up namespaces with the up to date error list
+   "modprobe nd_pmem"
+
+---
+
+Dan Williams (3):
+      nfit, address-range-scrub: determine one platform max_ars value
+      nfit, address-range-scrub: rework and simplify ARS state machine
+      nfit, address-range-scrub: add module option to skip initial ars
+
+
+ drivers/acpi/nfit/core.c |  557 +++++++++++++++++++++-------------------------
+ drivers/acpi/nfit/nfit.h |    6 
+ 2 files changed, 261 insertions(+), 302 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
