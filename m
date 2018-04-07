@@ -1,15 +1,11 @@
-From: Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: Re: [PATCH 2/6] nfit, address-range-scrub: fix scrub in-progress
- reporting
-Date: Fri, 6 Apr 2018 20:05:25 +0000
-Message-ID: <MW2PR2101MB10346BA9D0C9C38ECC701D41FBBA0@MW2PR2101MB1034.namprd21.prod.outlook.com>
-References: <152273077198.38372.11857145045474104173.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Gilberte Gascon  " <infobkdoe-z2zUxyb0RMeASff5QGzVzliL00/ErVVO@public.gmane.org>
+Subject: re: Premium traffic for lists.01.org
+Date: Sun, 08 Apr 2018 05:10:24 +1100
+Message-ID: <9F6D79DA.CA737958@businesstraffic.to>
+Reply-To: Gilberte Gascon   <infobkdoe-z2zUxyb0RMeASff5QGzVzliL00/ErVVO@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5493897526564036487=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <152273077198.38372.11857145045474104173.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,26 +15,54 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Cc: "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi,
+This is a multi-part message in MIME format.
 
-[This is an automated email]
+--===============5493897526564036487==
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-This commit has been processed because it contains a "Fixes:" tag,
-fixing commit: 37b137ff8c83 nfit, libnvdimm: allow an ARS scrub to be triggered on demand.
+Professional and reliable Service with great results
+http://www.businesstraffic.to/
 
-The bot has also determined it's probably a bug fixing patch. (score: 97.4657)
+Lead generating traffic with very good    bounce rate
 
-The bot has tested the following trees: v4.16, v4.15.15, v4.14.32, v4.9.92.
+For more details read html the report attached
 
-v4.16: Build OK!
-v4.15.15: Build OK!
-v4.14.32: Build OK!
-v4.9.92: Build OK!
+Thank you
+Gilberte Gascon  
 
---
-Thanks,
-Sasha
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option available in the footer of our website
+
+
+--===============5493897526564036487==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============5493897526564036487==--
