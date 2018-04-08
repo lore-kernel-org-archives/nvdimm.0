@@ -1,10 +1,9 @@
-From: "Gilberte Gascon  " <infobkdoe-z2zUxyb0RMeASff5QGzVzliL00/ErVVO@public.gmane.org>
-Subject: re: Premium traffic for lists.01.org
-Date: Sun, 08 Apr 2018 05:10:24 +1100
-Message-ID: <9F6D79DA.CA737958@businesstraffic.to>
-Reply-To: Gilberte Gascon   <infobkdoe-z2zUxyb0RMeASff5QGzVzliL00/ErVVO@public.gmane.org>
+From: "Griselda Sommerfeld  " <newslettercfoz-tiSA+jQIZWSDBdkm8gWGXw@public.gmane.org>
+Subject: re: Get Top 500k Alexa ranks for  ml01.01.org with 50% Discount
+Date: Sun, 08 Apr 2018 12:41:17 +1100
+Message-ID: <B60DD194.BAAB272E@alexapackages.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5493897526564036487=="
+Content-Type: multipart/mixed; boundary="===============6491193995068655467=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,25 +14,25 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
 
---===============5493897526564036487==
+--===============6491193995068655467==
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Professional and reliable Service with great results
-http://www.businesstraffic.to/
+Professional and reliable Service with guaranteed results
+http://www.alexapackages.se/index.php/alexa-rank-packages/
 
-Lead generating traffic with very good    bounce rate
+We will improve your Alexa Rank or your money back
 
-For more details read html the report attached
+Example of websites that we improved in the html report attached
 
 Thank you
-Gilberte Gascon  
+Griselda Sommerfeld  
 
 
 
@@ -54,7 +53,7 @@ Gilberte Gascon  
 Unsubscribe option available in the footer of our website
 
 
---===============5493897526564036487==
+--===============6491193995068655467==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -65,4 +64,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============5493897526564036487==--
+--===============6491193995068655467==--
