@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8FFF0225264AE
- for <linux-nvdimm@lists.01.org>; Wed,  4 Apr 2018 21:37:53 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl,
- rescan-partitions.sh: fix skipping for missing modules
-Date: Wed,  4 Apr 2018 22:37:44 -0600
-Message-Id: <20180405043744.23069-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B25682267F105
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 14:19:34 -0700 (PDT)
+Subject: [PATCH] libnvdimm, of_pmem: workaround OF_NUMA=n build error
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 09 Apr 2018 14:09:38 -0700
+Message-ID: <152330817871.32685.18143005199739186530.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,45 +16,46 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
 List-ID: <linux-nvdimm@lists.01.org>
 
-rescan-partitions would fail if the nfit_test module was not found. Fix
-by moving the modprobe attempt to earlier in the test.
+Stephen reports that an x86 allmodconfig build fails to build the
+of_pmem driver due to a missing definition of of_node_to_nid(). That
+helper is currently only exported in the OF_NUMA=y case. In other cases,
+ppc and sparc, it is a weak symbol, and outside of those platforms it is
+a static inline.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Until an OF_NUMA=n configuration can reliably support usage of
+of_node_to_nid() in modules across architectures, mark this driver as
+'bool' instead of 'tristate'.
+
+Cc: Rob Herring <robh@kernel.org>
+Cc: Oliver O'Halloran <oohall@gmail.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/rescan-partitions.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/nvdimm/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/test/rescan-partitions.sh b/test/rescan-partitions.sh
-index 47f0b62..7ae0957 100755
---- a/test/rescan-partitions.sh
-+++ b/test/rescan-partitions.sh
-@@ -54,7 +54,6 @@ check_prereq "blockdev"
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index 2d6862bf7436..f6c533c4d09b 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -103,7 +103,8 @@ config NVDIMM_DAX
+ 	  Select Y if unsure
  
- reset()
- {
--	modprobe nfit_test
- 	$ndctl disable-region -b "$bus" all
- 	$ndctl zero-labels -b "$bus" all
- 	$ndctl enable-region -b "$bus" all
-@@ -97,6 +96,7 @@ test_mode()
- 	$ndctl destroy-namespace $dev
- }
- 
-+modprobe nfit_test
- rc=1
- reset
- test_mode "raw"
--- 
-2.14.3
+ config OF_PMEM
+-	tristate "Device-tree support for persistent memory regions"
++	# FIXME: make tristate once OF_NUMA dependency removed
++	bool "Device-tree support for persistent memory regions"
+ 	depends on OF
+ 	default LIBNVDIMM
+ 	help
 
 _______________________________________________
 Linux-nvdimm mailing list
