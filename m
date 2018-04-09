@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x244.google.com (mail-ot0-x244.google.com
+ [IPv6:2607:f8b0:4003:c0f::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1A5852267F0F9
- for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 19:15:20 -0700 (PDT)
-Received: from g01jpfmpwkw02.exch.g01.fujitsu.local
- (g01jpfmpwkw02.exch.g01.fujitsu.local [10.0.193.56])
- by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id B233DAC01B6
- for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 11:15:12 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
-Date: Tue, 10 Apr 2018 02:15:10 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222764CEF8@g01jpexmbkw01>
+ by ml01.01.org (Postfix) with ESMTPS id 048B52267F0E5
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 10:45:56 -0700 (PDT)
+Received: by mail-ot0-x244.google.com with SMTP id o9-v6so9598323otj.5
+ for <linux-nvdimm@lists.01.org>; Mon, 09 Apr 2018 10:45:56 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3222764CC51@g01jpexmbkw01>
 References: <20180313113308.2136-1-qi.fuli@jp.fujitsu.com>
  <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764A26E@g01jpexmbkw01>
@@ -19,10 +16,10 @@ References: <20180313113308.2136-1-qi.fuli@jp.fujitsu.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764C387@g01jpexmbkw01>
  <CAPcyv4j5gDKMhCN02PQkf1JUvzUSOYTJWZf854y0p3emKvV5DA@mail.gmail.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764CC51@g01jpexmbkw01>
- <CAPcyv4iYWC3iY+u91PGOQ3aJoJBUbVM--KjtNCA834PTAE4E6Q@mail.gmail.com>
-In-Reply-To: <CAPcyv4iYWC3iY+u91PGOQ3aJoJBUbVM--KjtNCA834PTAE4E6Q@mail.gmail.com>
-Content-Language: ja-JP
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 9 Apr 2018 10:45:55 -0700
+Message-ID: <CAPcyv4iYWC3iY+u91PGOQ3aJoJBUbVM--KjtNCA834PTAE4E6Q@mail.gmail.com>
+Subject: Re: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,48 +27,76 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dan Williams' <dan.j.williams@intel.com>
+To: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> >
-> > Thank you very much.
-> >
-> > I think the "logfile=<logfile path>" is also needed in the configuration file.
-> >
-> > One more question is that do you think it is necessary for ndctl list to support "one
-> option multiple arguments"?
-> > Currently, only "one option one argument" is allowed in ndctl list like "ndctl list
-> --dimm nmem1 --bus ndbus1".
-> > Due to monitor should support "one option multiple arguments" like
-> > "ndctl monitor --dimm nmem1,nmem2", I am thinking modify the "strut
-> util_filter_params" in util/filter.h, change the "const char *bus" to "char **buses"
-> > or "link_list bus" and refactor the util_filter_walk in util/filter.h, then ndctl list also
-> can support "ndctl list --dimm nmem1,nmem2".
-> 
-> That would be a welcome feature. Given that we already support the "all" keyword to
-> match multiple objects in a filter it should be straightforward to support lists of
-> objects.
-> 
-> The only concern is syntax. I think since the label commands "init-labels, read-labels,
-> write-labels" takes a space separated list of objects I think we should do the same
-> specifying multiple object names to the filter.
-> 
-> I.e. a request to list multiple specific dimms would be:
-> 
->     ndctl list --dimm="nmem1 nmem2 nmem3"
-> 
-> ...space separation instead of comma allows you to rewrite that as:
-> 
->     ndctl list --dimm="$(echo nmem{1,2,3)"
-
-Ok, I see.
-I will make a patch to refactor the util_filter_walk() and ndctl list.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCBBcHIgOSwgMjAxOCBhdCAxOjM4IEFNLCBRaSwgRnVsaSA8cWkuZnVsaUBqcC5mdWpp
+dHN1LmNvbT4gd3JvdGU6Cj4KPgo+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+PiBGcm9t
+OiBEYW4gV2lsbGlhbXMgW21haWx0bzpkYW4uai53aWxsaWFtc0BpbnRlbC5jb21dCj4+IFNlbnQ6
+IFNhdHVyZGF5LCBBcHJpbCA3LCAyMDE4IDQ6MDMgQU0KPj4gVG86IFFpLCBGdWxpL+aWiSDnpo/l
+iKkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+Cj4+IENjOiBsaW51eC1udmRpbW0gPGxpbnV4LW52
+ZGltbUBsaXN0cy4wMS5vcmc+Cj4+IFN1YmplY3Q6IFJlOiBbUkZDIFBBVENIIHY0XSBuZGN0bDog
+bW9uaXRvcjogYWRkIG5kY3RsIG1vbml0b3IgZGFlbW9uCj4+Cj4+IGJ1cz0iPGJ1cyBmaWx0ZXIg
+b3B0aW9uPiIKPj4KPj4KPj4gT24gVGh1LCBBcHIgNSwgMjAxOCBhdCA0OjE3IFBNLCBRaSwgRnVs
+aSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4gd3JvdGU6Cj4+IFsuLl0KPj4gPj4gVGhpcyBzZWVt
+cyB0byBuZWVkbGVzc2x5IHRpZSBuZGN0bCB0byBzeXN0ZW1kLCBpdCBzaG91bGQgYmUgYWJsZSB0
+bwo+PiA+PiBvcGVyYXRlIHdpdGhvdXQgcmVxdWlyaW5nIHN5c3RlbWQuIEkgZXhwZWN0IGl0IHdv
+dWxkIGJlCj4+ID4+IHN0cmFpZ2h0Zm9yd2FyZCB0byBjb3B5IHRoZSBjb25maWd1cmF0aW9uIGZp
+bGUgaW1wbGVtZW50YXRpb24gZnJvbSBnaXQuCj4+ID4KPj4gPiBJIGhhdmUgcmVhZCB0aGUgY29u
+ZmlndXJhdGlvbiBmaWxlIGltcGxlbWVudGF0aW9uIG9mIGdpdCwgbXkKPj4gPiB1bmRlcnN0YW5k
+aW5nIGlzIHRoYXQgZ2l0IGRhZW1vbiBkb2VzIG5vdCBoYXZlIGFueSBvcHRpb25zIHVzZWQgdG8g
+b3ZlcnJpZGUKPj4gZGVmYXVsdCBjb25maWd1cmF0aW9uLgo+PiA+IEkgd2FudCB0byBjb25maXJt
+IGlmIHRoZSBjb25maWd1cmF0aW9uIGZpbGUgaXMgb25seSB1c2VkIGZvciBuZGN0bCBtb25pdG9y
+Lgo+PiA+IElmIHllcywgSSBkbyBub3QgdGhpbmsgY29weSB0aGUgY29uZmlndXJhdGlvbiBmaWxl
+IGltcGxlbWVudGF0aW9uIGZyb20KPj4gPiBnaXQgaXMgYSBnb29kIGNob2ljZSwgYmVjYXVzZSBv
+bmx5IGdldHRpbmcga2V5cyBhbmQgdmFsdWVzIGZyb20KPj4gPiBjb25maWd1cmF0aW9uIGZpbGUg
+aXMgbmVlZGVkIGZvciB1cyBhbmQgdGhlIHN0cnVjdHVyZSBvZiBjb25maWd1cmF0aW9uIGZpbGUK
+Pj4gaW1wbGVtZW50YXRpb24gaW4gZ2l0IGlzIHRvbyBjb21wbGV4aXR5Lgo+PiA+IEkgcHJlZmVy
+IHRvIGJvcnJvdyBmcm9tIHVkZXZbMV0sIGJlY2F1c2UgdGhlIGltcGxlbWVudGF0aW9uIGluIHVk
+ZXYgaXMgc2ltcGxlcgo+PiBhbmQgaXQgc2VlbXMgbmRjdGwgYWxzbyBib3Jyb3dzIGEgbG90IGZy
+b20gdWRldi4KPj4gPgo+PiA+IFsxXQo+PiA+IGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3Nj
+bS9saW51eC9ob3RwbHVnL3VkZXYuZ2l0L3RyZWUvc3JjL2xpYnVkZXYKPj4gPiAuYwo+Pgo+PiBU
+aGFuayB5b3UgZm9yIGRvaW5nIHRoZSBkdWUgZGlsaWdlbmNlIG9uIHRoaXMgaW52ZXN0aWdhdGlv
+biBpdCBpcyBhcHByZWNpYXRlZC4KPj4KPj4gSSB0aGluayB0aGUgc2ltcGxlIHVkZXYgYXBwcm9h
+Y2ggaXMgYWNjZXB0YWJsZS4gR29pbmcgYmFjayB0byB0aGUgcHJvcG9zZWQKPj4gY29tbWFuZCBs
+aW5lIG9wdGlvbnMgb2Y6IC0tZGltbS1ldmVudHMsIC0tbmFtZXNwYWNlLWV2ZW50cywgLS1yZWdp
+b24tZXZlbnRzLAo+PiAtLWJ1cy1ldmVudHMgYW5kIGRldmljZSBmaWx0ZXIgc2VsZWN0b3JzIChs
+aWtlIHRoZSBuZGN0bCBsaXN0IG9wdGlvbnMpIHdlIGNhbiBqdXN0IGhhdmUKPj4gdmFyaWFibGVz
+IGluIHRoZSBjb25maWcgZmlsZSBmb3IgdGhvc2UsIHNvOgo+Pgo+PiBkaW1tLWV2ZW50cz0iPGxp
+c3Qgb2YgZGltbSBldmVudHM+Igo+PiBuYW1lc3BhY2UtZXZlbnRzPT0iPGxpc3Qgb2YgbmFtZXNw
+YWNlIGV2ZW50cz4iCj4+IHJlZ2lvbi1ldmVudHM9PSI8bGlzdCBvZiByZWdpb24gZXZlbnRzPiIK
+Pj4gYnVzLWV2ZW50cz0iPGxpc3Qgb2YgYnVzIGV2ZW50cz4iCj4+IGRpbW09IjxidXMgZmlsdGVy
+IG9wdGlvbj4iCj4+IGRpbW09IjxkaW1tIGZpbHRlciBvcHRpb24+Igo+PiByZWdpb249IjxyZWdp
+b24gZmlsdGVyIG9wdGlvbj4iCj4+IG5hbWVzcGFjZT0iPG5hbWVzcGFjZSBmaWx0ZXIgb3B0aW9u
+PiIKPj4KPj4gVGhvdWdodHM/Cj4KPiBUaGFuayB5b3UgdmVyeSBtdWNoLgo+Cj4gSSB0aGluayB0
+aGUgImxvZ2ZpbGU9PGxvZ2ZpbGUgcGF0aD4iIGlzIGFsc28gbmVlZGVkIGluIHRoZSBjb25maWd1
+cmF0aW9uIGZpbGUuCj4KPiBPbmUgbW9yZSBxdWVzdGlvbiBpcyB0aGF0IGRvIHlvdSB0aGluayBp
+dCBpcyBuZWNlc3NhcnkgZm9yIG5kY3RsIGxpc3QgdG8gc3VwcG9ydCAib25lIG9wdGlvbiBtdWx0
+aXBsZSBhcmd1bWVudHMiPwo+IEN1cnJlbnRseSwgb25seSAib25lIG9wdGlvbiBvbmUgYXJndW1l
+bnQiIGlzIGFsbG93ZWQgaW4gbmRjdGwgbGlzdCBsaWtlICJuZGN0bCBsaXN0IC0tZGltbSBubWVt
+MSAtLWJ1cyBuZGJ1czEiLgo+IER1ZSB0byBtb25pdG9yIHNob3VsZCBzdXBwb3J0ICJvbmUgb3B0
+aW9uIG11bHRpcGxlIGFyZ3VtZW50cyIgbGlrZSAibmRjdGwgbW9uaXRvciAtLWRpbW0gbm1lbTEs
+bm1lbTIiLAo+IEkgYW0gdGhpbmtpbmcgbW9kaWZ5IHRoZSAic3RydXQgdXRpbF9maWx0ZXJfcGFy
+YW1zIiBpbiB1dGlsL2ZpbHRlci5oLCBjaGFuZ2UgdGhlICJjb25zdCBjaGFyICpidXMiIHRvICJj
+aGFyICoqYnVzZXMiCj4gb3IgImxpbmtfbGlzdCBidXMiIGFuZCByZWZhY3RvciB0aGUgdXRpbF9m
+aWx0ZXJfd2FsayBpbiB1dGlsL2ZpbHRlci5oLCB0aGVuIG5kY3RsIGxpc3QgYWxzbyBjYW4gc3Vw
+cG9ydCAibmRjdGwgbGlzdCAtLWRpbW0gbm1lbTEsbm1lbTIiLgoKVGhhdCB3b3VsZCBiZSBhIHdl
+bGNvbWUgZmVhdHVyZS4gR2l2ZW4gdGhhdCB3ZSBhbHJlYWR5IHN1cHBvcnQgdGhlCiJhbGwiIGtl
+eXdvcmQgdG8gbWF0Y2ggbXVsdGlwbGUgb2JqZWN0cyBpbiBhIGZpbHRlciBpdCBzaG91bGQgYmUK
+c3RyYWlnaHRmb3J3YXJkIHRvIHN1cHBvcnQgbGlzdHMgb2Ygb2JqZWN0cy4KClRoZSBvbmx5IGNv
+bmNlcm4gaXMgc3ludGF4LiBJIHRoaW5rIHNpbmNlIHRoZSBsYWJlbCBjb21tYW5kcwoiaW5pdC1s
+YWJlbHMsIHJlYWQtbGFiZWxzLCB3cml0ZS1sYWJlbHMiIHRha2VzIGEgc3BhY2Ugc2VwYXJhdGVk
+IGxpc3QKb2Ygb2JqZWN0cyBJIHRoaW5rIHdlIHNob3VsZCBkbyB0aGUgc2FtZSBzcGVjaWZ5aW5n
+IG11bHRpcGxlIG9iamVjdApuYW1lcyB0byB0aGUgZmlsdGVyLgoKSS5lLiBhIHJlcXVlc3QgdG8g
+bGlzdCBtdWx0aXBsZSBzcGVjaWZpYyBkaW1tcyB3b3VsZCBiZToKCiAgICBuZGN0bCBsaXN0IC0t
+ZGltbT0ibm1lbTEgbm1lbTIgbm1lbTMiCgouLi5zcGFjZSBzZXBhcmF0aW9uIGluc3RlYWQgb2Yg
+Y29tbWEgYWxsb3dzIHlvdSB0byByZXdyaXRlIHRoYXQgYXM6CgogICAgbmRjdGwgbGlzdCAtLWRp
+bW09IiQoZWNobyBubWVtezEsMiwzKSIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
