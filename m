@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF08B22618161
- for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 15:49:20 -0700 (PDT)
-Subject: [PATCH 3/5] tools/testing/nvdimm: support nfit_test_dimm attributes
- under nfit_test.1
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 10 Apr 2018 15:39:24 -0700
-Message-ID: <152339996473.16061.5371900618490700760.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152339994885.16061.1760220735664848631.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152339994885.16061.1760220735664848631.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0ED652261817D
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 16:55:12 -0700 (PDT)
+Received: by mail-ot0-x242.google.com with SMTP id h55-v6so33299ote.9
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 16:55:12 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <152340324102.45936.18343395170318650700.stgit@djiang5-desk3.ch.intel.com>
+References: <152340324102.45936.18343395170318650700.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 10 Apr 2018 16:55:11 -0700
+Message-ID: <CAPcyv4hRHww=epfUU7Gq0u1Ot9CojqXFXsUnjD6+B3jzL80XvQ@mail.gmail.com>
+Subject: Re: [PATCH v3] ndctl: add support in libndctl to provide deep flush
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,116 +25,89 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The nfit_test.1 bus provides a pmem topology without blk-aperture
-enabling, so it presents different failure modes for label space
-handling. Allow custom DSM command error injection.
+On Tue, Apr 10, 2018 at 4:35 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Providing an API call in libndctl to support accessing the region deep_flush
+> in sysfs.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>
+> v3:
+> - Add "\n" to sysfs write. (Dan)
+> - add O_CLOEXEC to open() call for sysfs. (Dan)
+>
+> v2: Cover case where deep_flush doesn't exist, i.e. memmap=nn!ss. (Dan)
+>
+>  ndctl/lib/libndctl.c   |   35 +++++++++++++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym |    1 +
+>  ndctl/libndctl.h       |    1 +
+>  3 files changed, 37 insertions(+)
+>
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index 580a450e..03a18985 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -181,6 +181,8 @@ struct ndctl_region {
+>         FILE *badblocks;
+>         struct badblock bb;
+>         enum ndctl_persistence_domain persistence_domain;
+> +       /* file descriptor for deep flush sysfs entry */
+> +       int flush_fd;
+>  };
+>
+>  /**
+> @@ -511,6 +513,8 @@ static void free_region(struct ndctl_region *region)
+>         free(region->region_path);
+>         if (region->badblocks)
+>                 fclose(region->badblocks);
+> +       if (region->flush_fd > 0)
+> +               close(region->flush_fd);
+>         free(region);
+>  }
+>
+> @@ -1049,6 +1053,14 @@ NDCTL_EXPORT unsigned long long ndctl_region_get_resource(struct ndctl_region *r
+>         return strtoull(buf, NULL, 0);
+>  }
+>
+> +NDCTL_EXPORT int ndctl_region_deep_flush(struct ndctl_region *region)
+> +{
+> +       int rc = pwrite(region->flush_fd, "1\n", 1, 0);
+> +
+> +       return (rc == -1) ? -errno : 0;
+> +}
+> +
+> +
+>  NDCTL_EXPORT const char *ndctl_bus_get_cmd_name(struct ndctl_bus *bus, int cmd)
+>  {
+>         return nvdimm_bus_cmd_name(cmd);
+> @@ -1791,6 +1803,7 @@ static void *add_region(void *parent, int id, const char *region_base)
+>         struct ndctl_bus *bus = parent;
+>         struct ndctl_ctx *ctx = bus->ctx;
+>         char *path = calloc(1, strlen(region_base) + 100);
+> +       int perm;
+>
+>         if (!path)
+>                 return NULL;
+> @@ -1866,6 +1879,28 @@ static void *add_region(void *parent, int id, const char *region_base)
+>         else
+>                 region->persistence_domain = region_get_pd_type(buf);
+>
+> +       sprintf(path, "%s/deep_flush", region_base);
+> +       region->flush_fd = open(path, O_RDWR | O_CLOEXEC);
+> +       if (region->flush_fd == -1) {
+> +               /* for those that do not export deep_flush sysfs file */
+> +               if (errno == ENOENT)
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/nvdimm/test/nfit.c |   43 ++++++++++++++++++++++----------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
-
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index dc6cf5630280..c8c88363311b 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1166,12 +1166,12 @@ static int ars_state_init(struct device *dev, struct ars_state *ars_state)
- 
- static void put_dimms(void *data)
- {
--	struct device **dimm_dev = data;
-+	struct nfit_test *t = data;
- 	int i;
- 
--	for (i = 0; i < NUM_DCR; i++)
--		if (dimm_dev[i])
--			device_unregister(dimm_dev[i]);
-+	for (i = 0; i < t->num_dcr; i++)
-+		if (t->dimm_dev[i])
-+			device_unregister(t->dimm_dev[i]);
- }
- 
- static struct class *nfit_test_dimm;
-@@ -1180,13 +1180,11 @@ static int dimm_name_to_id(struct device *dev)
- {
- 	int dimm;
- 
--	if (sscanf(dev_name(dev), "test_dimm%d", &dimm) != 1
--			|| dimm >= NUM_DCR || dimm < 0)
-+	if (sscanf(dev_name(dev), "test_dimm%d", &dimm) != 1)
- 		return -ENXIO;
- 	return dimm;
- }
- 
--
- static ssize_t handle_show(struct device *dev, struct device_attribute *attr,
- 		char *buf)
- {
-@@ -1259,7 +1257,6 @@ static ssize_t fail_cmd_code_store(struct device *dev, struct device_attribute *
- }
- static DEVICE_ATTR_RW(fail_cmd_code);
- 
--
- static struct attribute *nfit_test_dimm_attributes[] = {
- 	&dev_attr_fail_cmd.attr,
- 	&dev_attr_fail_cmd_code.attr,
-@@ -1276,6 +1273,23 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
- 	NULL,
- };
- 
-+static int nfit_test_dimm_init(struct nfit_test *t)
-+{
-+	int i;
-+
-+	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t))
-+		return -ENOMEM;
-+	for (i = 0; i < t->num_dcr; i++) {
-+		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
-+				&t->pdev.dev, 0, NULL,
-+				nfit_test_dimm_attribute_groups,
-+				"test_dimm%d", i + t->dcr_idx);
-+		if (!t->dimm_dev[i])
-+			return -ENOMEM;
-+	}
-+	return 0;
-+}
-+
- static void smart_init(struct nfit_test *t)
- {
- 	int i;
-@@ -1371,17 +1385,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 	if (!t->_fit)
- 		return -ENOMEM;
- 
--	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t->dimm_dev))
-+	if (nfit_test_dimm_init(t))
- 		return -ENOMEM;
--	for (i = 0; i < NUM_DCR; i++) {
--		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
--				&t->pdev.dev, 0, NULL,
--				nfit_test_dimm_attribute_groups,
--				"test_dimm%d", i);
--		if (!t->dimm_dev[i])
--			return -ENOMEM;
--	}
--
- 	smart_init(t);
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
-@@ -1413,6 +1418,8 @@ static int nfit_test1_alloc(struct nfit_test *t)
- 	if (!t->spa_set[1])
- 		return -ENOMEM;
- 
-+	if (nfit_test_dimm_init(t))
-+		return -ENOMEM;
- 	smart_init(t);
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
-
+Hmm, what about EPERM? For example, it should be fine for non-root
+users (who can't open this file as writable) can still list regions.
+So, I think lets kill all "goto err_read" for this thing because
+->flush_fd will be -1 and the user will discover that fact if they
+actually try to trigger the flush. Otherwise pure "ndctl list" users
+should not see any failures to open this file as writable.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
