@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wr0-x233.google.com (mail-wr0-x233.google.com
- [IPv6:2a00:1450:400c:c0c::233])
+Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
+ [IPv6:2607:f8b0:4003:c06::243])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2BB8721EBD1A8
- for <linux-nvdimm@lists.01.org>; Thu, 19 Apr 2018 16:12:58 -0700 (PDT)
-Received: by mail-wr0-x233.google.com with SMTP id s18-v6so18148226wrg.9
- for <linux-nvdimm@lists.01.org>; Thu, 19 Apr 2018 16:12:58 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id C14192261815D
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 16:01:17 -0700 (PDT)
+Received: by mail-oi0-x243.google.com with SMTP id c3-v6so12835158oib.5
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 16:01:17 -0700 (PDT)
 MIME-Version: 1.0
-From: Brian Stark <brian.stark@sanmina.com>
-Date: Thu, 19 Apr 2018 16:12:56 -0700
-Message-ID: <CAKccVayU9NW6gWao=w-h3aZaRrCW-=-J7he0hVeWjBA+hjhJ=g@mail.gmail.com>
-Subject: Write through caching on NVDIMM
+In-Reply-To: <152339792009.39156.13688341802570458197.stgit@djiang5-desk3.ch.intel.com>
+References: <152339792009.39156.13688341802570458197.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 10 Apr 2018 16:01:16 -0700
+Message-ID: <CAPcyv4h9W4_tsVJ_aNWEVTAdg7L=YbVQpAoTW3j4-bgDLGreRw@mail.gmail.com>
+Subject: Re: [PATCH v2] ndctl: add support in libndctl to provide deep flush
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,76 +25,81 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-I was comparing different caching techniques using MTRR entries and I
-found something strange.  Note the output is from a basic utility that
-uses mmap.
+On Tue, Apr 10, 2018 at 3:06 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Providing an API call in libndctl to support accessing the region deep_flush
+> in sysfs.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>
+> v2: Cover case where deep_flush doesn't exist, i.e. memmap=nn!ss. (Dan)
+>
+>  ndctl/lib/libndctl.c   |   35 +++++++++++++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym |    1 +
+>  ndctl/libndctl.h       |    1 +
+>  3 files changed, 37 insertions(+)
+>
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index 580a450e..c34f1e09 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -181,6 +181,8 @@ struct ndctl_region {
+>         FILE *badblocks;
+>         struct badblock bb;
+>         enum ndctl_persistence_domain persistence_domain;
+> +       /* file descriptor for deep flush sysfs entry */
+> +       int flush_fd;
+>  };
+>
+>  /**
+> @@ -511,6 +513,8 @@ static void free_region(struct ndctl_region *region)
+>         free(region->region_path);
+>         if (region->badblocks)
+>                 fclose(region->badblocks);
+> +       if (region->flush_fd > 0)
+> +               close(region->flush_fd);
+>         free(region);
+>  }
+>
+> @@ -1049,6 +1053,14 @@ NDCTL_EXPORT unsigned long long ndctl_region_get_resource(struct ndctl_region *r
+>         return strtoull(buf, NULL, 0);
+>  }
+>
+> +NDCTL_EXPORT int ndctl_region_deep_flush(struct ndctl_region *region)
+> +{
+> +       int rc = pwrite(region->flush_fd, "1", 1, 0);
 
-NV Memory:
+Make this write "1\n" to match standard sysfs manipulation done by
+"echo" that includes a newline.
 
-Write-back
+> +
+> +       return (rc == -1) ? -errno : 0;
+> +}
+> +
+> +
+>  NDCTL_EXPORT const char *ndctl_bus_get_cmd_name(struct ndctl_bus *bus, int cmd)
+>  {
+>         return nvdimm_bus_cmd_name(cmd);
+> @@ -1791,6 +1803,7 @@ static void *add_region(void *parent, int id, const char *region_base)
+>         struct ndctl_bus *bus = parent;
+>         struct ndctl_ctx *ctx = bus->ctx;
+>         char *path = calloc(1, strlen(region_base) + 100);
+> +       int perm;
+>
+>         if (!path)
+>                 return NULL;
+> @@ -1866,6 +1879,28 @@ static void *add_region(void *parent, int id, const char *region_base)
+>         else
+>                 region->persistence_domain = region_get_pd_type(buf);
+>
+> +       sprintf(path, "%s/deep_flush", region_base);
+> +       region->flush_fd = open(path, O_RDWR);
 
-Writes took 2075.993408 Megabytes per second
-Reads took 2130.842529 Megabytes per second No Errors Found
-
-Write-Through
-
-Writes took 55.332256 Megabytes per second
-Reads took 92.310310 Megabytes per second No Errors Found  !!!I was
-expecting this number to be the same as Write-back
-
-Uncached
-
-Writes took 55.331089 Megabytes per second
-Reads took 92.315132 Megabytes per second No Errors Found
-
-Regular memory:
-
-Write-back
-
-Writes took 1875.560791 Megabytes per second
-Reads took 2070.452637 Megabytes per second No Errors Found
-
-Write-Through
-
-Writes took 54.903713 Megabytes per second
-Reads took 2106.244629 Megabytes per second No Errors Found  !!!This
-is what I expected to see for NV Memory
-
-Uncached
-
-Writes took 54.903923 Megabytes per second
-Reads took 90.150986 Megabytes per second No Errors Found
-
-I am using the same driver (which adds MTRR entries to change caching
-type) there is no physical reason why write through should behave
-differently when using NV Memory.  Does anybody on this mailing list
-who may be more familiar with caching techniques know why this might
-me the case?
-
-Brian
-
--- 
-CONFIDENTIALITY
-This e-mail message and any attachments thereto, is 
-intended only for use by the addressee(s) named herein and may contain 
-legally privileged and/or confidential information. If you are not the 
-intended recipient of this e-mail message, you are hereby notified that any 
-dissemination, distribution or copying of this e-mail message, and any 
-attachments thereto, is strictly prohibited.  If you have received this 
-e-mail message in error, please immediately notify the sender and 
-permanently delete the original and any copies of this email and any prints 
-thereof.
-ABSENT AN EXPRESS STATEMENT TO THE CONTRARY HEREINABOVE, THIS 
-E-MAIL IS NOT INTENDED AS A SUBSTITUTE FOR A WRITING.  Notwithstanding the 
-Uniform Electronic Transactions Act or the applicability of any other law 
-of similar substance and effect, absent an express statement to the 
-contrary hereinabove, this e-mail message its contents, and any attachments 
-hereto are not intended to represent an offer or acceptance to enter into a 
-contract and are not otherwise intended to bind the sender, Sanmina 
-Corporation (or any of its subsidiaries), or any other person or entity.
+Make this O_CLOEXEC, so we don't leak fds on exec.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
