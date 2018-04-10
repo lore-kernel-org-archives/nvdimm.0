@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x244.google.com (mail-pf0-x244.google.com
- [IPv6:2607:f8b0:400e:c00::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3B20D2265A8BB
- for <linux-nvdimm@lists.01.org>; Thu,  5 Apr 2018 22:21:53 -0700 (PDT)
-Received: by mail-pf0-x244.google.com with SMTP id j2so10143112pff.10
- for <linux-nvdimm@lists.01.org>; Thu, 05 Apr 2018 22:21:53 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH v3 3/4] doc/devicetree: Persistent memory region bindings
-Date: Fri,  6 Apr 2018 15:21:15 +1000
-Message-Id: <20180406052116.31483-3-oohall@gmail.com>
-In-Reply-To: <20180406052116.31483-1-oohall@gmail.com>
-References: <20180406052116.31483-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id AF36022618161
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 15:49:15 -0700 (PDT)
+Subject: [PATCH 2/5] tools/testing/nvdimm: allow custom error code injection
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 10 Apr 2018 15:39:19 -0700
+Message-ID: <152339995956.16061.8063508678567328863.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152339994885.16061.1760220735664848631.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152339994885.16061.1760220735664848631.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,117 +18,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linuxppc-dev@lists.ozlabs.org
-Cc: devicetree@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add device-tree binding documentation for the nvdimm region driver.
+Given that libnvdimm driver stack takes specific actions on DIMM command
+error codes like -EACCES, provide a facility to inject custom failures.
 
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-v2: Changed name from nvdimm-region to pmem-region.
-    Cleaned up the example binding and fixed the overlapping regions.
-    Added support for multiple regions in a single reg.
-v3: Removed platform bus boilerplate from the example.
-    Changed description of the volatile and reg properties
-    to make them more clear.
----
- .../devicetree/bindings/pmem/pmem-region.txt       | 65 ++++++++++++++++++++++
- MAINTAINERS                                        |  1 +
- 2 files changed, 66 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.txt
+ tools/testing/nvdimm/test/nfit.c |   38 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.txt b/Documentation/devicetree/bindings/pmem/pmem-region.txt
-new file mode 100644
-index 000000000000..5cfa4f016a00
---- /dev/null
-+++ b/Documentation/devicetree/bindings/pmem/pmem-region.txt
-@@ -0,0 +1,65 @@
-+Device-tree bindings for persistent memory regions
-+-----------------------------------------------------
-+
-+Persistent memory refers to a class of memory devices that are:
-+
-+	a) Usable as main system memory (i.e. cacheable), and
-+	b) Retain their contents across power failure.
-+
-+Given b) it is best to think of persistent memory as a kind of memory mapped
-+storage device. To ensure data integrity the operating system needs to manage
-+persistent regions separately to the normal memory pool. To aid with that this
-+binding provides a standardised interface for discovering where persistent
-+memory regions exist inside the physical address space.
-+
-+Bindings for the region nodes:
-+-----------------------------
-+
-+Required properties:
-+	- compatible = "pmem-region"
-+
-+	- reg = <base, size>;
-+		The reg property should specificy an address range that is
-+		translatable to a system physical address range. This address
-+		range should be mappable as normal system memory would be
-+		(i.e cacheable).
-+
-+		If the reg property contains multiple address ranges
-+		each address range will be treated as though it was specified
-+		in a separate device node. Having multiple address ranges in a
-+		node implies no special relationship between the two ranges.
-+
-+Optional properties:
-+	- Any relevant NUMA assocativity properties for the target platform.
-+
-+	- volatile; This property indicates that this region is actually
-+	  backed by non-persistent memory. This lets the OS know that it
-+	  may skip the cache flushes required to ensure data is made
-+	  persistent after a write.
-+
-+	  If this property is absent then the OS must assume that the region
-+	  is backed by non-volatile memory.
-+
-+Examples:
-+--------------------
-+
-+	/*
-+	 * This node specifies one 4KB region spanning from
-+	 * 0x5000 to 0x5fff that is backed by non-volatile memory.
-+	 */
-+	pmem@5000 {
-+		compatible = "pmem-region";
-+		reg = <0x00005000 0x00001000>;
-+	};
-+
-+	/*
-+	 * This node specifies two 4KB regions that are backed by
-+	 * volatile (normal) memory.
-+	 */
-+	pmem@6000 {
-+		compatible = "pmem-region";
-+		reg = < 0x00006000 0x00001000
-+			0x00008000 0x00001000 >;
-+		volatile;
-+	};
-+
-diff --git a/MAINTAINERS b/MAINTAINERS
-index df240740ca78..cbd289d58644 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8020,6 +8020,7 @@ L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/of_pmem.c
-+F:	Documentation/devicetree/bindings/pmem/pmem-region.txt
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index cb166be4918d..dc6cf5630280 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -138,6 +138,7 @@ static u32 handle[] = {
+ };
  
- LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SUBSYSTEM
- M:	Dan Williams <dan.j.williams@intel.com>
--- 
-2.9.5
+ static unsigned long dimm_fail_cmd_flags[NUM_DCR];
++static int dimm_fail_cmd_code[NUM_DCR];
+ 
+ struct nfit_test_fw {
+ 	enum intel_fw_update_state state;
+@@ -892,8 +893,11 @@ static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
+ 	if (i >= ARRAY_SIZE(handle))
+ 		return -ENXIO;
+ 
+-	if ((1 << func) & dimm_fail_cmd_flags[i])
++	if ((1 << func) & dimm_fail_cmd_flags[i]) {
++		if (dimm_fail_cmd_code[i])
++			return dimm_fail_cmd_code[i];
+ 		return -EIO;
++	}
+ 
+ 	return i;
+ }
+@@ -1225,8 +1229,40 @@ static ssize_t fail_cmd_store(struct device *dev, struct device_attribute *attr,
+ }
+ static DEVICE_ATTR_RW(fail_cmd);
+ 
++static ssize_t fail_cmd_code_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	int dimm = dimm_name_to_id(dev);
++
++	if (dimm < 0)
++		return dimm;
++
++	return sprintf(buf, "%d\n", dimm_fail_cmd_code[dimm]);
++}
++
++static ssize_t fail_cmd_code_store(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t size)
++{
++	int dimm = dimm_name_to_id(dev);
++	unsigned long val;
++	ssize_t rc;
++
++	if (dimm < 0)
++		return dimm;
++
++	rc = kstrtol(buf, 0, &val);
++	if (rc)
++		return rc;
++
++	dimm_fail_cmd_code[dimm] = val;
++	return size;
++}
++static DEVICE_ATTR_RW(fail_cmd_code);
++
++
+ static struct attribute *nfit_test_dimm_attributes[] = {
+ 	&dev_attr_fail_cmd.attr,
++	&dev_attr_fail_cmd_code.attr,
+ 	&dev_attr_handle.attr,
+ 	NULL,
+ };
 
 _______________________________________________
 Linux-nvdimm mailing list
