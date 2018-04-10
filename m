@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 970A1225FA047
- for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 20:06:51 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
-Date: Tue, 10 Apr 2018 03:06:49 +0000
-Message-ID: <1523329607.5172.4.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1A5852267F0F9
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 19:15:20 -0700 (PDT)
+Received: from g01jpfmpwkw02.exch.g01.fujitsu.local
+ (g01jpfmpwkw02.exch.g01.fujitsu.local [10.0.193.56])
+ by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id B233DAC01B6
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 11:15:12 +0900 (JST)
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Subject: RE: [RFC PATCH v4] ndctl: monitor: add ndctl monitor daemon
+Date: Tue, 10 Apr 2018 02:15:10 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222764CEF8@g01jpexmbkw01>
 References: <20180313113308.2136-1-qi.fuli@jp.fujitsu.com>
  <CAPcyv4jPghKyQ6AuVJ-R=fiKcQufzHs-DExzcyHTbshF-2bq1Q@mail.gmail.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764A26E@g01jpexmbkw01>
@@ -17,8 +21,7 @@ References: <20180313113308.2136-1-qi.fuli@jp.fujitsu.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764CC51@g01jpexmbkw01>
  <CAPcyv4iYWC3iY+u91PGOQ3aJoJBUbVM--KjtNCA834PTAE4E6Q@mail.gmail.com>
 In-Reply-To: <CAPcyv4iYWC3iY+u91PGOQ3aJoJBUbVM--KjtNCA834PTAE4E6Q@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <772E59BB92190A40A5AAF0DBADF28120@intel.com>
+Content-Language: ja-JP
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,91 +30,48 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: 'Dan Williams' <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCAyMDE4LTA0LTA5IGF0IDEwOjQ1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIE1vbiwgQXByIDksIDIwMTggYXQgMTozOCBBTSwgUWksIEZ1bGkgPHFpLmZ1bGlAanAuZnVq
-aXRzdS5jb20+IHdyb3RlOg0KPiA+IA0KPiA+IA0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
-LS0tLS0NCj4gPiA+IEZyb206IERhbiBXaWxsaWFtcyBbbWFpbHRvOmRhbi5qLndpbGxpYW1zQGlu
-dGVsLmNvbV0NCj4gPiA+IFNlbnQ6IFNhdHVyZGF5LCBBcHJpbCA3LCAyMDE4IDQ6MDMgQU0NCj4g
-PiA+IFRvOiBRaSwgRnVsaS/mlokg56aP5YipIDxxaS5mdWxpQGpwLmZ1aml0c3UuY29tPg0KPiA+
-ID4gQ2M6IGxpbnV4LW52ZGltbSA8bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZz4NCj4gPiA+IFN1
-YmplY3Q6IFJlOiBbUkZDIFBBVENIIHY0XSBuZGN0bDogbW9uaXRvcjogYWRkIG5kY3RsIG1vbml0
-b3IgZGFlbW9uDQo+ID4gPiANCj4gPiA+IGJ1cz0iPGJ1cyBmaWx0ZXIgb3B0aW9uPiINCj4gPiA+
-IA0KPiA+ID4gDQo+ID4gPiBPbiBUaHUsIEFwciA1LCAyMDE4IGF0IDQ6MTcgUE0sIFFpLCBGdWxp
-IDxxaS5mdWxpQGpwLmZ1aml0c3UuY29tPg0KPiA+ID4gd3JvdGU6DQo+ID4gPiBbLi5dDQo+ID4g
-PiA+ID4gVGhpcyBzZWVtcyB0byBuZWVkbGVzc2x5IHRpZSBuZGN0bCB0byBzeXN0ZW1kLCBpdCBz
-aG91bGQgYmUgYWJsZQ0KPiA+ID4gPiA+IHRvDQo+ID4gPiA+ID4gb3BlcmF0ZSB3aXRob3V0IHJl
-cXVpcmluZyBzeXN0ZW1kLiBJIGV4cGVjdCBpdCB3b3VsZCBiZQ0KPiA+ID4gPiA+IHN0cmFpZ2h0
-Zm9yd2FyZCB0byBjb3B5IHRoZSBjb25maWd1cmF0aW9uIGZpbGUgaW1wbGVtZW50YXRpb24NCj4g
-PiA+ID4gPiBmcm9tIGdpdC4NCj4gPiA+ID4gDQo+ID4gPiA+IEkgaGF2ZSByZWFkIHRoZSBjb25m
-aWd1cmF0aW9uIGZpbGUgaW1wbGVtZW50YXRpb24gb2YgZ2l0LCBteQ0KPiA+ID4gPiB1bmRlcnN0
-YW5kaW5nIGlzIHRoYXQgZ2l0IGRhZW1vbiBkb2VzIG5vdCBoYXZlIGFueSBvcHRpb25zIHVzZWQg
-dG8NCj4gPiA+ID4gb3ZlcnJpZGUNCj4gPiA+IA0KPiA+ID4gZGVmYXVsdCBjb25maWd1cmF0aW9u
-Lg0KPiA+ID4gPiBJIHdhbnQgdG8gY29uZmlybSBpZiB0aGUgY29uZmlndXJhdGlvbiBmaWxlIGlz
-IG9ubHkgdXNlZCBmb3IgbmRjdGwNCj4gPiA+ID4gbW9uaXRvci4NCj4gPiA+ID4gSWYgeWVzLCBJ
-IGRvIG5vdCB0aGluayBjb3B5IHRoZSBjb25maWd1cmF0aW9uIGZpbGUgaW1wbGVtZW50YXRpb24N
-Cj4gPiA+ID4gZnJvbQ0KPiA+ID4gPiBnaXQgaXMgYSBnb29kIGNob2ljZSwgYmVjYXVzZSBvbmx5
-IGdldHRpbmcga2V5cyBhbmQgdmFsdWVzIGZyb20NCj4gPiA+ID4gY29uZmlndXJhdGlvbiBmaWxl
-IGlzIG5lZWRlZCBmb3IgdXMgYW5kIHRoZSBzdHJ1Y3R1cmUgb2YNCj4gPiA+ID4gY29uZmlndXJh
-dGlvbiBmaWxlDQo+ID4gPiANCj4gPiA+IGltcGxlbWVudGF0aW9uIGluIGdpdCBpcyB0b28gY29t
-cGxleGl0eS4NCj4gPiA+ID4gSSBwcmVmZXIgdG8gYm9ycm93IGZyb20gdWRldlsxXSwgYmVjYXVz
-ZSB0aGUgaW1wbGVtZW50YXRpb24gaW4gdWRldg0KPiA+ID4gPiBpcyBzaW1wbGVyDQo+ID4gPiAN
-Cj4gPiA+IGFuZCBpdCBzZWVtcyBuZGN0bCBhbHNvIGJvcnJvd3MgYSBsb3QgZnJvbSB1ZGV2Lg0K
-PiA+ID4gPiANCj4gPiA+ID4gWzFdDQo+ID4gPiA+IGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvcHVi
-L3NjbS9saW51eC9ob3RwbHVnL3VkZXYuZ2l0L3RyZWUvc3JjL2xpYnUNCj4gPiA+ID4gZGV2DQo+
-ID4gPiA+IC5jDQo+ID4gPiANCj4gPiA+IFRoYW5rIHlvdSBmb3IgZG9pbmcgdGhlIGR1ZSBkaWxp
-Z2VuY2Ugb24gdGhpcyBpbnZlc3RpZ2F0aW9uIGl0IGlzDQo+ID4gPiBhcHByZWNpYXRlZC4NCj4g
-PiA+IA0KPiA+ID4gSSB0aGluayB0aGUgc2ltcGxlIHVkZXYgYXBwcm9hY2ggaXMgYWNjZXB0YWJs
-ZS4gR29pbmcgYmFjayB0byB0aGUNCj4gPiA+IHByb3Bvc2VkDQo+ID4gPiBjb21tYW5kIGxpbmUg
-b3B0aW9ucyBvZjogLS1kaW1tLWV2ZW50cywgLS1uYW1lc3BhY2UtZXZlbnRzLCAtLXJlZ2lvbi0N
-Cj4gPiA+IGV2ZW50cywNCj4gPiA+IC0tYnVzLWV2ZW50cyBhbmQgZGV2aWNlIGZpbHRlciBzZWxl
-Y3RvcnMgKGxpa2UgdGhlIG5kY3RsIGxpc3QNCj4gPiA+IG9wdGlvbnMpIHdlIGNhbiBqdXN0IGhh
-dmUNCj4gPiA+IHZhcmlhYmxlcyBpbiB0aGUgY29uZmlnIGZpbGUgZm9yIHRob3NlLCBzbzoNCj4g
-PiA+IA0KPiA+ID4gZGltbS1ldmVudHM9IjxsaXN0IG9mIGRpbW0gZXZlbnRzPiINCj4gPiA+IG5h
-bWVzcGFjZS1ldmVudHM9PSI8bGlzdCBvZiBuYW1lc3BhY2UgZXZlbnRzPiINCj4gPiA+IHJlZ2lv
-bi1ldmVudHM9PSI8bGlzdCBvZiByZWdpb24gZXZlbnRzPiINCj4gPiA+IGJ1cy1ldmVudHM9Ijxs
-aXN0IG9mIGJ1cyBldmVudHM+Ig0KPiA+ID4gZGltbT0iPGJ1cyBmaWx0ZXIgb3B0aW9uPiINCj4g
-PiA+IGRpbW09IjxkaW1tIGZpbHRlciBvcHRpb24+Ig0KPiA+ID4gcmVnaW9uPSI8cmVnaW9uIGZp
-bHRlciBvcHRpb24+Ig0KPiA+ID4gbmFtZXNwYWNlPSI8bmFtZXNwYWNlIGZpbHRlciBvcHRpb24+
-Ig0KPiA+ID4gDQo+ID4gPiBUaG91Z2h0cz8NCj4gPiANCj4gPiBUaGFuayB5b3UgdmVyeSBtdWNo
-Lg0KPiA+IA0KPiA+IEkgdGhpbmsgdGhlICJsb2dmaWxlPTxsb2dmaWxlIHBhdGg+IiBpcyBhbHNv
-IG5lZWRlZCBpbiB0aGUNCj4gPiBjb25maWd1cmF0aW9uIGZpbGUuDQo+ID4gDQo+ID4gT25lIG1v
-cmUgcXVlc3Rpb24gaXMgdGhhdCBkbyB5b3UgdGhpbmsgaXQgaXMgbmVjZXNzYXJ5IGZvciBuZGN0
-bCBsaXN0DQo+ID4gdG8gc3VwcG9ydCAib25lIG9wdGlvbiBtdWx0aXBsZSBhcmd1bWVudHMiPw0K
-PiA+IEN1cnJlbnRseSwgb25seSAib25lIG9wdGlvbiBvbmUgYXJndW1lbnQiIGlzIGFsbG93ZWQg
-aW4gbmRjdGwgbGlzdCBsaWtlDQo+ID4gIm5kY3RsIGxpc3QgLS1kaW1tIG5tZW0xIC0tYnVzIG5k
-YnVzMSIuDQo+ID4gRHVlIHRvIG1vbml0b3Igc2hvdWxkIHN1cHBvcnQgIm9uZSBvcHRpb24gbXVs
-dGlwbGUgYXJndW1lbnRzIiBsaWtlDQo+ID4gIm5kY3RsIG1vbml0b3IgLS1kaW1tIG5tZW0xLG5t
-ZW0yIiwNCj4gPiBJIGFtIHRoaW5raW5nIG1vZGlmeSB0aGUgInN0cnV0IHV0aWxfZmlsdGVyX3Bh
-cmFtcyIgaW4gdXRpbC9maWx0ZXIuaCwNCj4gPiBjaGFuZ2UgdGhlICJjb25zdCBjaGFyICpidXMi
-IHRvICJjaGFyICoqYnVzZXMiDQo+ID4gb3IgImxpbmtfbGlzdCBidXMiIGFuZCByZWZhY3RvciB0
-aGUgdXRpbF9maWx0ZXJfd2FsayBpbiB1dGlsL2ZpbHRlci5oLA0KPiA+IHRoZW4gbmRjdGwgbGlz
-dCBhbHNvIGNhbiBzdXBwb3J0ICJuZGN0bCBsaXN0IC0tZGltbSBubWVtMSxubWVtMiIuDQo+IA0K
-PiBUaGF0IHdvdWxkIGJlIGEgd2VsY29tZSBmZWF0dXJlLiBHaXZlbiB0aGF0IHdlIGFscmVhZHkg
-c3VwcG9ydCB0aGUNCj4gImFsbCIga2V5d29yZCB0byBtYXRjaCBtdWx0aXBsZSBvYmplY3RzIGlu
-IGEgZmlsdGVyIGl0IHNob3VsZCBiZQ0KPiBzdHJhaWdodGZvcndhcmQgdG8gc3VwcG9ydCBsaXN0
-cyBvZiBvYmplY3RzLg0KPiANCj4gVGhlIG9ubHkgY29uY2VybiBpcyBzeW50YXguIEkgdGhpbmsg
-c2luY2UgdGhlIGxhYmVsIGNvbW1hbmRzDQo+ICJpbml0LWxhYmVscywgcmVhZC1sYWJlbHMsIHdy
-aXRlLWxhYmVscyIgdGFrZXMgYSBzcGFjZSBzZXBhcmF0ZWQgbGlzdA0KPiBvZiBvYmplY3RzIEkg
-dGhpbmsgd2Ugc2hvdWxkIGRvIHRoZSBzYW1lIHNwZWNpZnlpbmcgbXVsdGlwbGUgb2JqZWN0DQo+
-IG5hbWVzIHRvIHRoZSBmaWx0ZXIuDQoNCkFncmVlZCB3aXRoIHNwYWNlIHNlcGFyYXRlZCBhcmd1
-bWVudHMuIFdoaWxlIGF0IGl0LCBpdCB3b3VsZCBhbHNvIGJlIG5pY2UNCnRvIGV4dGVuZCB0aGUg
-bXVsdGlwbGUgYXJndW1lbnQgc3ludGF4IHRvIG90aGVyIGNvbW1hbmRzLCBmb3IgZXhhbXBsZTog
-DQoNCgluZGN0bCBkaXNhYmxlLW5hbWVzcGFjZSBuYW1lc3BhY2UxLjAgbmFtZXNwYWNlMi4wIC4u
-Lg0KDQo+IA0KPiBJLmUuIGEgcmVxdWVzdCB0byBsaXN0IG11bHRpcGxlIHNwZWNpZmljIGRpbW1z
-IHdvdWxkIGJlOg0KPiANCj4gICAgIG5kY3RsIGxpc3QgLS1kaW1tPSJubWVtMSBubWVtMiBubWVt
-MyINCj4gDQo+IC4uLnNwYWNlIHNlcGFyYXRpb24gaW5zdGVhZCBvZiBjb21tYSBhbGxvd3MgeW91
-IHRvIHJld3JpdGUgdGhhdCBhczoNCj4gDQo+ICAgICBuZGN0bCBsaXN0IC0tZGltbT0iJChlY2hv
-IG5tZW17MSwyLDMpIg0KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXw0KPiBMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0DQo+IExpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcNCj4gaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1u
-dmRpbW0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
-dXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8v
-bGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+> >
+> > Thank you very much.
+> >
+> > I think the "logfile=<logfile path>" is also needed in the configuration file.
+> >
+> > One more question is that do you think it is necessary for ndctl list to support "one
+> option multiple arguments"?
+> > Currently, only "one option one argument" is allowed in ndctl list like "ndctl list
+> --dimm nmem1 --bus ndbus1".
+> > Due to monitor should support "one option multiple arguments" like
+> > "ndctl monitor --dimm nmem1,nmem2", I am thinking modify the "strut
+> util_filter_params" in util/filter.h, change the "const char *bus" to "char **buses"
+> > or "link_list bus" and refactor the util_filter_walk in util/filter.h, then ndctl list also
+> can support "ndctl list --dimm nmem1,nmem2".
+> 
+> That would be a welcome feature. Given that we already support the "all" keyword to
+> match multiple objects in a filter it should be straightforward to support lists of
+> objects.
+> 
+> The only concern is syntax. I think since the label commands "init-labels, read-labels,
+> write-labels" takes a space separated list of objects I think we should do the same
+> specifying multiple object names to the filter.
+> 
+> I.e. a request to list multiple specific dimms would be:
+> 
+>     ndctl list --dimm="nmem1 nmem2 nmem3"
+> 
+> ...space separation instead of comma allows you to rewrite that as:
+> 
+>     ndctl list --dimm="$(echo nmem{1,2,3)"
+
+Ok, I see.
+I will make a patch to refactor the util_filter_walk() and ndctl list.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
