@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D88C62035D6CC
- for <linux-nvdimm@lists.01.org>; Thu, 26 Apr 2018 04:33:33 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id F2AA8AC03BC
- for <linux-nvdimm@lists.01.org>; Thu, 26 Apr 2018 20:33:26 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [PATCH v5 4/4] ndctl,
- monitor: add the unit file of systemd for ndctl-monitor service
-Date: Thu, 26 Apr 2018 20:30:50 +0900
-Message-Id: <20180426113050.11424-5-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180426113050.11424-1-qi.fuli@jp.fujitsu.com>
-References: <20180426113050.11424-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2CE40226516D4
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Apr 2018 04:08:06 -0700 (PDT)
+Received: from relay1.suse.de (charybdis-ext.suse.de [195.135.220.254])
+ by mx2.suse.de (Postfix) with ESMTP id AA23FADF9
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Apr 2018 11:08:03 +0000 (UTC)
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH ndctl 1/2] Documentation: fix title and section markers
+Date: Thu, 12 Apr 2018 13:07:54 +0200
+Message-Id: <20180412110755.31644-2-tiwai@suse.de>
+In-Reply-To: <20180412110755.31644-1-tiwai@suse.de>
+References: <20180412110755.31644-1-tiwai@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,103 +28,236 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds the systemd unit file for ndctl-monitor service.
-The systemd unit directory can be configured by setting environment
-variable "--with-systemd-unit-dir[=DIR]".
+The length of the title and section marker has to be aligned with the
+previous line.  This was caught when running asciidoctor, which is
+more strict than asciidoc.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Also since asciidoctor doesn't like the verse block in some cases,
+replace the code examples with simpler markers.
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 
 ---
- autogen.sh                  |  3 ++-
- configure.ac                | 22 ++++++++++++++++++++++
- ndctl/Makefile.am           |  4 ++++
- ndctl/ndctl-monitor.service |  7 +++++++
- 4 files changed, 35 insertions(+), 1 deletion(-)
- create mode 100644 ndctl/ndctl-monitor.service
+ Documentation/daxctl/daxctl-io.txt          |    5 +++--
+ Documentation/daxctl/daxctl-list.txt        |   13 +++++++------
+ Documentation/ndctl/ndctl-disable-dimm.txt  |    2 +-
+ Documentation/ndctl/ndctl-enable-region.txt |    2 +-
+ Documentation/ndctl/ndctl-init-labels.txt   |   15 ++++++++++-----
+ Documentation/ndctl/ndctl-list.txt          |   13 ++++++++-----
+ 6 files changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/autogen.sh b/autogen.sh
-index a23cf53..b226c7a 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -17,7 +17,8 @@ libdir() {
+--- a/Documentation/ndctl/ndctl-init-labels.txt
++++ b/Documentation/ndctl/ndctl-init-labels.txt
+@@ -24,7 +24,7 @@ the DIMM.
+ EXAMPLE
+ -------
+ Find the DIMMs that comprise a given region:
+-[verse]
++----
+ # ndctl list -RD --region=region1
+ {
+   "dimms":[
+@@ -49,23 +49,28 @@ Find the DIMMs that comprise a given reg
+     }
+   ]
+ }
++----
  
- args="--prefix=/usr \
- --sysconfdir=/etc \
----libdir=$(libdir /usr/lib)"
-+--libdir=$(libdir /usr/lib) \
-+--with-systemd-unit-dir"
+ Disable that region so the DIMM label area can be written from
+ userspace:
+-[verse]
++----
+ # ndctl disable-region region1
++----
  
- echo
- echo "----------------------------------------------------------------"
-diff --git a/configure.ac b/configure.ac
-index cddad16..60c6537 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -135,6 +135,27 @@ AC_CHECK_FUNCS([ \
- 	secure_getenv\
- ])
+ Initialize labels:
+-[verse]
++----
+ # ndctl init-labels nmem0
++----
  
-+PKG_PROG_PKG_CONFIG
-+AC_ARG_WITH([systemd-unit-dir],
-+	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
-+		[Directory for systemd service files]),
-+	[],
-+	[with_systemd_unit_dir=yes])
-+
-+if test "x$with_systemd_unit_dir" = "xyes"; then
-+	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
-+	if test "x$def_systemd_unit_dir" = "x"; then
-+		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
-+		with_systemd_unit_dir=no
-+	else
-+		with_systemd_unit_dir="$def_systemd_unit_dir"
-+	fi
-+fi
-+
-+AS_IF([test "x$with_systemd_unit_dir" != "xno"],
-+	[AC_SUBST([SYSTEMD_UNIT_DIR], [$with_systemd_unit_dir])])
-+AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
-+
- my_CFLAGS="\
- -Wall \
- -Wchar-subscripts \
-@@ -172,6 +193,7 @@ AC_MSG_RESULT([
-         sysconfdir:             ${sysconfdir}
-         libdir:                 ${libdir}
-         includedir:             ${includedir}
-+	systemd-unit-dir:	${SYSTEMD_UNIT_DIR}
+ Re-enable the region:
+-[verse]
++----
+ # ndctl enable-region region1
++----
  
-         compiler:               ${CC}
-         cflags:                 ${CFLAGS}
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index ae3d894..b3053d0 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
- monitor_configdir = /etc/ndctl/
- monitor_config_DATA = $(monitor_config_file)
- EXTRA_DIST += $(monitor_config_file)
-+
-+if ENABLE_SYSTEMD_UNIT_DIR
-+systemd_unitDATA = ndctl-monitor.service
-+endif
-diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
-new file mode 100644
-index 0000000..44f9326
---- /dev/null
-+++ b/ndctl/ndctl-monitor.service
-@@ -0,0 +1,7 @@
-+[Unit]
-+Description=Ndctl Monitor Daemon
-+
-+[Service]
-+Type=forking
-+ExecStart=/usr/bin/ndctl monitor --daemon
-+ExecStop=/bin/kill ${MAINPID}
--- 
-2.17.0.140.g0b0cc9f86
-
-
+ Create a namespace in that region:
+-[verse]
++----
+ # ndctl create-namespace --region=region1
++----
+ 
+ OPTIONS
+ -------
+--- a/Documentation/ndctl/ndctl-disable-dimm.txt
++++ b/Documentation/ndctl/ndctl-disable-dimm.txt
+@@ -1,5 +1,5 @@
+ ndctl-disable-dimm(1)
+-=======================
++=====================
+ 
+ NAME
+ ----
+--- a/Documentation/ndctl/ndctl-enable-region.txt
++++ b/Documentation/ndctl/ndctl-enable-region.txt
+@@ -1,5 +1,5 @@
+ ndctl-enable-region(1)
+-====================
++======================
+ 
+ NAME
+ ----
+--- a/Documentation/daxctl/daxctl-io.txt
++++ b/Documentation/daxctl/daxctl-io.txt
+@@ -1,5 +1,5 @@
+ daxctl-io(1)
+-===========
++============
+ 
+ NAME
+ ----
+@@ -25,7 +25,7 @@ will be performed.
+ 
+ EXAMPLE
+ -------
+-[verse]
++----
+ # daxctl io --zero /dev/dax1.0
+ 
+ # daxctl io --input=/dev/dax1.0 --output=/home/myfile --len=2M --seek=4096
+@@ -33,6 +33,7 @@ EXAMPLE
+ # cat /dev/zero | daxctl io --output=/dev/dax1.0
+ 
+ # daxctl io --input=/dev/zero --output=/dev/dax1.0 --skip=4096
++----
+ 
+ OPTIONS
+ -------
+--- a/Documentation/daxctl/daxctl-list.txt
++++ b/Documentation/daxctl/daxctl-list.txt
+@@ -1,5 +1,5 @@
+ daxctl-list(1)
+-=============
++==============
+ 
+ NAME
+ ----
+@@ -22,10 +22,9 @@ daxctl list --devices
+ 
+ EXAMPLE
+ -------
+-[verse]
++----
+ # daxctl list --regions --devices
+ 
+-["literal"]
+ {
+   "id":1,
+   "devices":[
+@@ -35,6 +34,7 @@ EXAMPLE
+     }
+   ]
+ }
++----
+ 
+ OPTIONS
+ -------
+@@ -52,14 +52,14 @@ OPTIONS
+ 	tuple, or keyword 'all' to filter the listing. For
+ 	example to list the first device instance in region1:
+ 
+-[verse]
++----
+ # daxctl list --dev=1.0
+ 
+-["literal"]
+ {
+   "chardev":"dax1.0",
+   "size":3233808384
+ }
++----
+ 
+ -D::
+ --devices::
+@@ -80,7 +80,7 @@ OPTIONS
+ 	will be formatted as human readable strings with units, other
+ 	fields are converted to hexadecimal strings.  Example:
+ 
+-[verse]
++----
+ # daxctl list
+ {
+   "chardev":"dax1.0",
+@@ -92,6 +92,7 @@ OPTIONS
+   "chardev":"dax1.0",
+   "size":"30.57 GiB (32.83 GB)"
+ }
++----
+ 
+ COPYRIGHT
+ ---------
+--- a/Documentation/ndctl/ndctl-list.txt
++++ b/Documentation/ndctl/ndctl-list.txt
+@@ -21,10 +21,9 @@ ndctl list --namespaces --bus=all --regi
+ 
+ EXAMPLE
+ -------
+-[verse]
++----
+ # ndctl list --buses --namespaces
+ 
+-["literal"]
+ {
+   "provider":"nfit_test.1",
+   "dev":"ndbus2",
+@@ -53,6 +52,7 @@ EXAMPLE
+     }
+   ]
+ }
++----
+ 
+ OPTIONS
+ -------
+@@ -65,8 +65,9 @@ include::xable-region-options.txt[]
+ 	An 'nmemX' device name, or dimm id number. Filter listing by
+ 	devices that reference the given dimm. For example to see all
+ 	namespaces comprised of storage capacity on nmem0:
+-[verse]
++----
+ # ndctl list --dimm=nmem0 --namespaces
++----
+ 
+ -n::
+ --namespace=::
+@@ -182,7 +183,7 @@ include::xable-region-options.txt[]
+ 
+ include::human-option.txt[]
+ 
+-[verse]
++----
+ # ndctl list --region=7
+ {
+   "dev":"region7",
+@@ -192,8 +193,9 @@ include::human-option.txt[]
+   "iset_id":-6382611090938810793,
+   "badblock_count":8
+ }
++----
+ 
+-[verse]
++----
+ # ndctl list --human --region=7
+ {
+   "dev":"region7",
+@@ -203,6 +205,7 @@ include::human-option.txt[]
+   "iset_id":"0xa76c6907811fae57",
+   "badblock_count":8
+ }
++----
+ 
+ COPYRIGHT
+ ---------
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
