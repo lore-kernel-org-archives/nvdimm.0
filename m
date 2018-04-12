@@ -1,11 +1,10 @@
-From: "Barbara Torres" <barbara.torres-hTqmvTgNUnlBsUNHkAkGfw@public.gmane.org>
-Subject: Standout In Crowd With Unique Logo & Website
-Date: Wed, 11 Apr 2018 14:58:01 +0000
-Message-ID: <0b47e8aed0bc08e0dd66ed8bd0d63cb8@150.242.14.114>
-Reply-To: barbara.torres-hTqmvTgNUnlBsUNHkAkGfw@public.gmane.org
+From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: RETURNED MAIL: SEE TRANSCRIPT FOR DETAILS
+Date: Thu, 12 Apr 2018 11:32:58 +0800
+Message-ID: <20180412033259.1250B226CD781@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,33 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-SGVsbG8sCgpIYXZlIHlvdSBldmVyIHRob3VnaHQgYWJvdXQgZ2l2aW5nIHlvdXIgYnVzaW5lc3Mg
-YSBuZXcgYXBwZWFyYW5jZT8gRG8geW91Cmtub3cgd2l0aCBqdXN0IGdpdmluZyB5b3VyIGJ1c2lu
-ZXNzIGEgbmV3IGxvb2ssIHlvdSBjYW4gZXhwZXJpZW5jZSBodWdlCnNhbGVzIG9mIHByb2R1Y3Rz
-IG9yIHNlcnZpY2VzPyBXZWxsLCB3ZSBhcmUgaGVyZSB0byBtYWtlIHlvdXIgYnVzaW5lc3MgbG9v
-awpncmVhdCBpbiB0aGlzIG91ciBlcmEgb2YgdGVjaG5vbG9neS4KCldlIGFyZSBhIGdyb3VwIG9m
-IHByb2Zlc3Npb25hbHMsIHJlbmRlcmluZyB2YXJpb3VzIGZvcm1zIG9mIHNlcnZpY2VzIHRvCmlu
-ZGl2aWR1YWxzLCBhbmQgYnVzaW5lc3Nlcy4gTm8gbWF0dGVyIGhvdyBiaWcgb3Igc21hbGwgeW91
-ciBidXNpbmVzcyBpcywKd2Ugd2lsbCBnaXZlIGl0IHRoYXQgZXhhY3QgbG9vayB0aGF0IHN1aXRz
-IGl0LgoKT3VyIFNlcnZpY2VzCgpXZSBvZmZlciBhIGxvdCBvZiBzZXJ2aWNlcywgYW5kIHRoZXkg
-aW5jbHVkZToKCkxvZ28gRGVzaWducwoKV2Ugd2lsbCBkZXNpZ24gYSBsb2dvIGZvciB5b3VyIGJ1
-c2luZXNzIGFuZCB3ZSBkbyBpdCB3aXRoIG11Y2ggY3JlYXRpdml0eS4KV2Ugd2lsbCBwcm92aWRl
-IHlvdSB3aXRoIDMgZGlmZmVyZW50IGRlc2lnbnMgb2YgdGhlIHNhbWUgaWRlYSwgYW5kIGRlbGl2
-ZXIKdGhlIGZpbmFsIGZpbGVzIGluIGhpZ2ggcmVzb2x1dGlvbnMgYW5kIGZvcm1hdHMgdGhhdCBj
-YW4gYmUgcHJpbnRlZCBvciB1c2VkCm9uIHRoZSB3ZWIuIFlvdSBjYW4gZ2V0IHRoaXMgc2Vydmlj
-ZSB3aXRoIGp1c3QgJDc1LiBCZWxvdyBhcmUgc29tZSBvZiBvdXIKbG9nbyBkZXNpZ25zCgpXZWJz
-aXRlIERlc2lnbnMKCldlIHdpbGwgZGVzaWduIGFuZCBkZXZlbG9wIGEgZHluYW1pYyB3ZWJzaXRl
-IGZvciB5b3VyIGJ1c2luZXNzIHdpdGggJDI1MC4KRXZlcnkgb2YgeW91ciBjdXN0b21lciB3aWxs
-IGVuam95IGV4Y2VsbGVudCB1c2VyIGV4cGVyaWVuY2Ugd2hlbmV2ZXIgaGUgb3IKc2hlIHZpc2l0
-cyB5b3VyIGJ1c2luZXNz4oCZIHdlYnNpdGUuCgpBcnRpY2xlIGFuZCBDb250ZW50IFdyaXRpbmcK
-CldlIGtub3cgdGhlIHVzZWZ1bG5lc3Mgb2YgZ29vZCBhcnRpY2xlcyBhbmQgd2ViIGNvbnRlbnRz
-LCBhbmQgd2l0aCAkMTAsIHlvdQp3aWxsIGdldCBub3RoaW5nIGxlc3MgdGhhbiB0aGUgYmVzdC4K
-ClNFTyBTZXJ2aWNlcwoKV2Ugd2lsbCBkZWxpdmVyIHRoZSBiZXN0IFNFTyBzZXJ2aWNlcyB5b3Ug
-Y2FuIHJhcmVseSBnZXQgZWxzZXdoZXJlLiBXaXRoCm9ubHkgJDE0OSwgd2Ugd2lsbCBiZSBhdCB5
-b3VyIHNlcnZpY2UuCgpQbGFjZSB5b3VyIG9yZGVycyBub3cgYnkgcmVwbHlpbmcgdGhpcyBtYWls
-LCBhbmQgd2Ugd2lsbCBiZSBhdCB5b3VyCnNlcnZpY2UuIFdlIHdhbnQgeW91ciBidXNpbmVzcyB0
-byB0aHJpdmU7IHRodXMgd2UgYXJlIGxvb2tpbmcgZm9yd2FyZCB0bwpyZWNlaXZpbmcgeW91ciBw
-cm9tcHQgcmVwbHkuCgpSZWdhcmRzLApCYXJiYXJhIFRvcnJlcwpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1udmRpbW0K
+This Message was undeliverable due to the following reason:
+
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
+
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 4 days:
+Host 165.159.222.218 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
