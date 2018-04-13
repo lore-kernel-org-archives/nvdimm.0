@@ -1,7 +1,7 @@
-From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: RETURNED MAIL: SEE TRANSCRIPT FOR DETAILS
-Date: Thu, 12 Apr 2018 11:32:58 +0800
-Message-ID: <20180412033259.1250B226CD781@ml01.01.org>
+From: "Automatic Email Delivery Software" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: see transcript for details
+Date: Fri, 13 Apr 2018 11:37:14 +0800
+Message-ID: <20180413033716.1F818226516C1@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,22 +18,4 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
-
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
-
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
-
-Your message was not delivered within 4 days:
-Host 165.159.222.218 is not responding.
-
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+The original message was included as attachment
