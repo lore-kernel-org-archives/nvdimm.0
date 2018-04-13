@@ -1,14 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ACD28226847A6
- for <linux-nvdimm@lists.01.org>; Thu, 19 Apr 2018 03:44:36 -0700 (PDT)
-Date: Thu, 19 Apr 2018 12:44:32 +0200
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id C5AC5220E8CB9
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Apr 2018 15:47:20 -0700 (PDT)
+Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id
+ w3DMiTu7068174
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Apr 2018 18:47:20 -0400
+Received: from e14.ny.us.ibm.com (e14.ny.us.ibm.com [129.33.205.204])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2hb5ksr2m9-1
+ (version=TLSv1.2 cipher=AES256-SHA256 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Apr 2018 18:47:19 -0400
+Received: from localhost
+ by e14.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <paulmck@linux.vnet.ibm.com>;
+ Fri, 13 Apr 2018 18:47:18 -0400
+Date: Fri, 13 Apr 2018 15:48:17 -0700
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: [PATCH v8 15/18] mm, fs, dax: handle layout changes to pinned
  dax mappings
-Message-ID: <20180419104432.7lzk7nbjmwav6ojl@quack2.suse.cz>
 References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.corp.intel.com>
  <152246901060.36038.4487158506830998280.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20180404094656.dssixqvvdcp5jff2@quack2.suse.cz>
@@ -19,6 +32,7 @@ References: <152246892890.36038.18436540150980653229.stgit@dwillia2-desk3.amr.co
 MIME-Version: 1.0
 Content-Disposition: inline
 In-Reply-To: <CAPcyv4h3RPdohsPyiB=GxE8iQCjRRen=knDd=Em5BMy1MYpRvA@mail.gmail.com>
+Message-Id: <20180413224817.GK3948@linux.vnet.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,15 +40,16 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: paulmck@linux.vnet.ibm.com
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Mike Snitzer <snitzer@redhat.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-xfs <linux-xfs@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Josh Triplett <josh.triplett@intel.com>, Paul McKenney <paulmck@linux.vnet.ibm.com>, "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Mike Snitzer <snitzer@redhat.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-xfs <linux-xfs@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Josh Triplett <josh.triplett@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 13-04-18 15:03:51, Dan Williams wrote:
+On Fri, Apr 13, 2018 at 03:03:51PM -0700, Dan Williams wrote:
 > On Mon, Apr 9, 2018 at 9:51 AM, Dan Williams <dan.j.williams@intel.com> wrote:
 > > On Mon, Apr 9, 2018 at 9:49 AM, Jan Kara <jack@suse.cz> wrote:
 > >> On Sat 07-04-18 12:38:24, Dan Williams wrote:
@@ -78,47 +93,12 @@ On Fri 13-04-18 15:03:51, Dan Williams wrote:
 > 0.006149178 unpatched
 > 0.009426360 srcu
 
-Hum, right. Yesterday I was looking into KSM for a different reason and
-I've noticed it also does writeprotect pages and deals with races with GUP.
-And what KSM relies on is:
+You might want to try synchronize_srcu_expedited().  Unlike plain RCU,
+it does not send IPIs, so should be less controversial.  And it might
+well more than make up the performance difference you are seeing above.
 
-write_protect_page()
-  ...
-  entry = ptep_clear_flush(vma, pvmw.address, pvmw.pte);
-  /*
-   * Check that no O_DIRECT or similar I/O is in progress on the
-   * page
-   */
-  if (page_mapcount(page) + 1 + swapped != page_count(page)) {
-    page used -> bail
-  }
+							Thanx, Paul
 
-And this really works because gup_pte_range() does:
-
-  page = pte_page(pte);
-  head = compound_head(page);
-
-  if (!page_cache_get_speculative(head))
-    goto pte_unmap;
-
-  if (unlikely(pte_val(pte) != pte_val(*ptep))) {
-    bail
-  }
-
-So either write_protect_page() page sees the elevated reference or
-gup_pte_range() bails because it will see the pte changed.
-
-In the truncate path things are a bit different but in principle the same
-should work - once truncate blocks page faults and unmaps pages from page
-tables, we can be sure GUP will not grab the page anymore or we'll see
-elevated page count. So IMO there's no need for any additional locking
-against the GUP path (but a comment explaining this is highly desirable I
-guess). 
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
