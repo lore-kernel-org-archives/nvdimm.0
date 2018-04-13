@@ -1,20 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C801B220E8CA6
- for <linux-nvdimm@lists.01.org>; Mon, 16 Apr 2018 16:15:51 -0700 (PDT)
-From: "Schmauss, Erik" <erik.schmauss@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A0360220E8CA7
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Apr 2018 12:11:41 -0700 (PDT)
+From: "Moore, Robert" <robert.moore@intel.com>
 Subject: RE: [PATCH v2 5/7] ACPICA: Integrate package handling with
  module-level code
-Date: Mon, 16 Apr 2018 23:15:49 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED539727606@ORSMSX110.amr.corp.intel.com>
+Date: Fri, 13 Apr 2018 19:11:39 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B7599A3A@ORSMSX110.amr.corp.intel.com>
 References: <20180215210932.15490-1-erik.schmauss@intel.com>
  <CAPcyv4hp_pm2n3H_froFkedd_GMQvsrEc8yZxYzfYkPDYvjDww@mail.gmail.com>
  <CF6A88132359CE47947DB4C6E1709ED5397230D6@ORSMSX110.amr.corp.intel.com>
  <3701399.BBZtpt46yJ@aspire.rjw.lan>
- <CAPcyv4j-iC+b07=JPP_TV1MLHA2iO5iKLvc+jaPHoEuRfzoAFQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4j-iC+b07=JPP_TV1MLHA2iO5iKLvc+jaPHoEuRfzoAFQ@mail.gmail.com>
+In-Reply-To: <3701399.BBZtpt46yJ@aspire.rjw.lan>
 Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -24,35 +23,163 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Moore,
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-WyB0cmltbWluZyBdDQo+ID4+IFJhZmFlbCwgd2UgbWF5IHdhbnQgdG8gaG9sZCBiYWNrIG9uIHRo
-ZSBtb2R1bGUtbGV2ZWwgY29kZSBjaGFuZ2VzDQo+ID4+ICh0aGUgcGF0Y2hlcyBiZWxvdykgZm9y
-IHJjMS4gQmV0d2VlbiB0aGlzIGFuZCB0aGUgc3RyYW5nZSBfVFNTIGlzc3VlLA0KPiA+PiBpdCBz
-ZWVtcyBsaWtlIHRoZXJlIGFyZSBhIGZldyBtb3JlIHRoaW5ncyB0byByZXNvbHZlIGJlZm9yZSB0
-aGlzIGlzDQo+ID4+IHJlYWR5IGZvciBrZXJuZWwgdXBzdHJlYW0uDQo+ID4NCkhpIFJhZmFlbCwN
-Cg0KPiA+IEl0IGxvb2tzIGxpa2UgeW91IGFyZSBhc2tpbmcgbWUgdG8gcXVldWUgdXAgcmV2ZXJ0
-cyBhcyBwZXIgdGhlIERhbidzDQo+ID4gcmVwb3J0LCBpcyB0aGF0IGNvcnJlY3Q/DQoNClRoaXMg
-aXMgaW5kZWVkIHdoYXQgSSBtZWFudCBsYXN0IHdlZWsuIEhvd2V2ZXIsIEkndmUgbG9va2VkIGlu
-dG8gdGhlIGlzc3VlIGFuZCBEYW4ncyBxZW11DQppbnN0YW5jZSBoYWQgQU1MIHRoYXQgd2Ugbm8g
-bG9uZ2VyIHN1cHBvcnQuIFRoaXMgaXMgYmVjYXVzZSB0aGUgQUNQSUNBIGNvbW1pdCBtYWtlcyBj
-aGFuZ2VzIHRvIHRoZSBleGVjdXRpb24gb2YgQU1MDQpkdXJpbmcgdGFibGUgbG9hZCB0byBtYXRj
-aCB3aW5kb3dzIEFNTCBpbnRlcnByZXRlciBiZWhhdmlvciBzbyB0aGlzIGNvbW1pdCBhbHNvIGdv
-dCByaWQgb2Ygc3VwcG9ydCBmb3IgZXhlY3V0aW5nIGNvZGUNCmNvbnRhaW5pbmcgZm9yd2FyZCBy
-ZWZlcmVuY2VzIChleGNlcHQgZm9yIHBhY2thZ2UgZWxlbWVudHMpLg0KDQpJJ3ZlIHN1Z2dlc3Rl
-ZCBhIGZpeCBmb3IgdGhlIGZpcm13YXJlIGluIGEgc2VwYXJhdGUgZW1haWwuIFNvIEkgd291bGQg
-c2F5IHRoYXQgdGhpcyBpc3N1ZSBpcyByZXNvbHZlZCBhZnRlciBpZiBEYW4gY2FuIHJ1bg0KaGlz
-IHRlc3Qgc3VjY2Vzc2Z1bGx5IHdpdGggdGhlIGFkanVzdGVkIGZpcm13YXJlLg0KDQpJZiBEYW4n
-cyB0ZXN0IGlzIHN1Y2Nlc3NmdWwsIHdlIGRvbuKAmXQgbmVlZCB0byByZXZlcnQgdGhlc2UgY2hh
-bmdlcw0KDQpFcmlrDQoNCj4gDQo+IE5vdGUsIHRoYXQgSSdtIHdpbGxpbmcgdG8gdHJ5IGFueSBw
-cm9wb3NlZCBmaXggcGF0Y2hlcyBvbiB0b3AuIEkganVzdCB3YW50ZWQgdG8NCj4gY2xhcmlmeSB0
-aGF0IHdlIGhhdmUgYSBzaW1wbGUgZmFsbGJhY2sgcG9zaXRpb24gaWYgdGhlIGRlYnVnIHN0YXJ0
-cyBkcmFnZ2luZyBvdXQuDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
-cmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Sent: Friday, April 13, 2018 12:43 AM
+> To: Schmauss, Erik <erik.schmauss@intel.com>
+> Cc: Williams, Dan J <dan.j.williams@intel.com>; Linux ACPI <linux-
+> acpi@vger.kernel.org>; Moore, Robert <robert.moore@intel.com>; linux-
+> nvdimm <linux-nvdimm@lists.01.org>
+> Subject: Re: [PATCH v2 5/7] ACPICA: Integrate package handling with
+> module-level code
+> 
+> On Friday, April 13, 2018 6:54:04 AM CEST Schmauss, Erik wrote:
+> >
+> > > -----Original Message-----
+> > > From: Dan Williams [mailto:dan.j.williams@intel.com]
+> > > Sent: Thursday, April 12, 2018 5:57 PM
+> > > To: Schmauss, Erik <erik.schmauss@intel.com>
+> > > Cc: Linux ACPI <linux-acpi@vger.kernel.org>; Rafael J. Wysocki
+> > > <rjw@rjwysocki.net>; Moore, Robert <robert.moore@intel.com>;
+> > > linux-nvdimm <linux-nvdimm@lists.01.org>
+> > > Subject: Re: [PATCH v2 5/7] ACPICA: Integrate package handling with
+> > > module- level code
+> > >
+> > > On Thu, Apr 12, 2018 at 3:50 PM, Dan Williams
+> > > <dan.j.williams@intel.com>
+> > > wrote:
+> > > > [ adding linux-nvdimm ]
+> > > >
+> > > > On Fri, Feb 16, 2018 at 7:20 AM Erik Schmauss
+> > > > <erik.schmauss@intel.com>
+> > > > wrote:
+> > > >
+> > > >> ACPICA commit 8faf6fca445eb7219963d80543fb802302a7a8c7
+> > > >
+> > > >> This change completes the integration of the recent changes to
+> > > >> package object handling with the module-level code support.
+> > > >
+> > > >> For acpi_exec, the -ep flag is removed.
+> > > >
+> > > >> This change allows table load to behave as if it were a method
+> > > >> invocation. Before this, the definition block definition below
+> > > >> would have loaded all named objects at the root scope. After
+> > > >> loading, it would execute the if statements at the root scope.
+> > > >
+> > > >> DefinitionBlock (...)
+> > > >> {
+> > > >>    Name(OBJ1, 0)
+> > > >
+> > > >>    if (1)
+> > > >>    {
+> > > >>      Device (DEV1)
+> > > >>      {
+> > > >>        Name (_HID,0x0)
+> > > >>      }
+> > > >>    }
+> > > >>    Scope (DEV1)
+> > > >>    {
+> > > >>      Name (OBJ2)
+> > > >>    }
+> > > >> }
+> > > >
+> > > >> The above code would load OBJ1 to the namespace, defer the
+> > > >> execution of the if statement and attempt to add OBJ2 within the
+> scope of DEV1.
+> > > >> Since DEV1 is not in scope, this would incur an AE_NOT_FOUND
+> error.
+> > > >> After this error is emitted, the if block is invoked and DEV1 and
+> > > >> its _HID is added to the namespace.
+> > > >
+> > > >> This commit changes the behavior to execute the if block in place
+> > > >> rather than deferring it until all tables are loaded. The new
+> > > >> behavior is as follows: insert OBJ1 in the namespace, invoke the
+> > > >> if statement and add DEV1 and its _HID to the namespace, add OBJ2
+> > > >> to the scope of DEV1.
+> > > >
+> > > >> Bug report links:
+> > > >> Link: https://bugs.acpica.org/show_bug.cgi?id=963
+> > > >> Link: https://bugzilla.kernel.org/show_bug.cgi?id=153541
+> > > >> Link: https://bugzilla.kernel.org/show_bug.cgi?id=196165
+> > > >> Link: https://bugzilla.kernel.org/show_bug.cgi?id=192621
+> > > >> Link: https://bugzilla.kernel.org/show_bug.cgi?id=197207
+> > > >> Link: https://bugzilla.kernel.org/show_bug.cgi?id=198051
+> > > >> Link: https://bugzilla.kernel.org/show_bug.cgi?id=198515
+> > > >
+> > > >> ACPICA repo:
+> > > >> Link: https://github.com/acpica/acpica/commit/8faf6fca
+> > > >
+> > > >> Tested-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> > > >> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> > > >> Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+> > > >
+> > > > Hi,
+> > > >
+> > > > This commit 5a8361f7ecce ("ACPICA: Integrate package handling with
+> > > > module-level code") regresses the detection of persistent memory
+> > > > in my qemu-kvm setup.
+> > > >
+> > >
+> > Hi Dan,
+> >
+> > Thanks for figuring this out. Do you think it's possible for you to
+> send me a full acpidump or some sort hexdump of the QEMU environment?
+> >
+> > > With the following set of clean reverts on top of latest-Linus I'm
+> > > back to a working configuration:
+> > >
+> > >  Revert "ACPICA: Change a compile-time option to a runtime option"
+> > >  Revert "ACPICA: Cleanup/simplify module-level code support"
+> > >  Revert "ACPICA: Rename a global for clarity, no functional change"
+> > >  Revert "ACPICA: Add option to disable Package object name
+> resolution errors"
+> > >  Revert "ACPICA: Integrate package handling with module-level code"
+> > >
+> >
+> > Rafael, we may want to hold back on the module-level code changes (the
+> > patches below) for rc1. Between this and the strange _TSS issue, it
+> > seems like there are a few more things to resolve before this is ready
+> > for kernel upstream.
+> 
+> It looks like you are asking me to queue up reverts as per the Dan's
+> report, is that correct?
+> 
+> > If this is the case, I wonder if we could change the ACPICA version
+> > number so that it is one digit lower or append something to the end of
+> > the version number. This would be helpful in reminding us that it's
+> > not the full release in ACPICA upstream. Either that or remove the
+> > ACPICA release all together for this rc..
+> 
+> I can revert the commit updating the ACPICA version number easily
+> enough. :-)
+[Moore, Robert] 
+
+We should be able to figure this one out soon. Need acpidump
+Bob
+
+
+
+
+> 
+> > > ...i.e.
+> > >
+> > > git revert 34f206fd757c
+> > > git revert a406dea82af8
+> > > git revert e7d970f6fca8
+> > > git revert 959c38a7e128
+> > > git revert 5a8361f7ecce
+> >
+> 
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
