@@ -1,21 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
- [IPv6:2607:f8b0:4003:c06::243])
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 34D482263DD7A
- for <linux-nvdimm@lists.01.org>; Mon, 16 Apr 2018 14:50:54 -0700 (PDT)
-Received: by mail-oi0-x243.google.com with SMTP id y20-v6so4574701oix.5
- for <linux-nvdimm@lists.01.org>; Mon, 16 Apr 2018 14:50:54 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id AEF8C2244E401
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Apr 2018 14:49:16 -0700 (PDT)
+Received: by mail-ot0-x242.google.com with SMTP id p2-v6so2336207otf.3
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Apr 2018 14:49:16 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4jG6sQaZMWfvDw7Y5nc8-z6BHNPvZcqXXW6efSECKS+8A@mail.gmail.com>
+In-Reply-To: <1523915264.2552.7.camel@intel.com>
 References: <20180416212703.14805-1-vishal.l.verma@intel.com>
  <CAPcyv4gWkF0cTCVH1_BNw8287Z_p-ObFS7jM7HUwzXb91xBM3Q@mail.gmail.com>
  <1523915264.2552.7.camel@intel.com>
- <CAPcyv4jG6sQaZMWfvDw7Y5nc8-z6BHNPvZcqXXW6efSECKS+8A@mail.gmail.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Apr 2018 14:50:53 -0700
-Message-ID: <CAPcyv4i4_fbP+M_d1fFQ+J8VXbggEaAQ1CiJtwNO0S_dhqn-Qw@mail.gmail.com>
+Date: Mon, 16 Apr 2018 14:49:15 -0700
+Message-ID: <CAPcyv4jG6sQaZMWfvDw7Y5nc8-z6BHNPvZcqXXW6efSECKS+8A@mail.gmail.com>
 Subject: Re: [ndctl PATCH] ndctl,
  util: add a raw_uuid field to namespace listings
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -33,61 +32,56 @@ To: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Apr 16, 2018 at 2:49 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Mon, Apr 16, 2018 at 2:47 PM, Verma, Vishal L
-> <vishal.l.verma@intel.com> wrote:
->> On Mon, 2018-04-16 at 14:41 -0700, Dan Williams wrote:
->>> On Mon, Apr 16, 2018 at 2:27 PM, Vishal Verma <vishal.l.verma@intel.com>
->>> wrote:
->>> > For boot support efibootmgr needs to be able to lookup up the raw
->>> > namespace uuid to match the device-path that EFI emits. By default
->>> > 'ndctl list' displays the uuid that is present in the address
->>> > abstraction info-block. Add a "raw_uuid" so that tooling can
->>> > correlate the default uuid with the base uuid for the namespace.
->>> >
->>> > Cc: Dan Williams <dan.j.williams@intel.com>
->>> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->>> > ---
->>> >  util/json.c | 23 +++++++++++++++++++++++
->>> >  1 file changed, 23 insertions(+)
->>> >
->>> > diff --git a/util/json.c b/util/json.c
->>> > index 8d65525..efad8f7 100644
->>> > --- a/util/json.c
->>> > +++ b/util/json.c
->>> > @@ -650,6 +650,17 @@ static struct json_object
->>> > *util_dax_badblocks_to_json(struct ndctl_dax *dax,
->>> >                         bb_count, flags);
->>> >  }
->>> >
->>> > +static struct json_object *util_raw_uuid(struct ndctl_namespace *ndns)
->>> > +{
->>> > +       struct json_object *jobj;
->>> > +       uuid_t raw_uuid;
->>> > +       char buf[40];
->>> > +
->>> > +       ndctl_namespace_get_uuid(ndns, raw_uuid);
->>> > +       uuid_unparse(raw_uuid, buf);
->>> > +       return json_object_new_string(buf);
->>> > +}
->>> > +
->>>
->>> I don't mind this new helper, but it seems out of place given all the
->>> other uuid-to-json-string conversions are open-coded in
->>> util_namespace_to_json(). Let's just open-code like all the rest, and
->>> maybe follow on with a global cleanup to use a helper in a later
->>> patch. However, I'm not sure it will be worth it / a net code
->>> reduction.
+On Mon, Apr 16, 2018 at 2:47 PM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+> On Mon, 2018-04-16 at 14:41 -0700, Dan Williams wrote:
+>> On Mon, Apr 16, 2018 at 2:27 PM, Vishal Verma <vishal.l.verma@intel.com>
+>> wrote:
+>> > For boot support efibootmgr needs to be able to lookup up the raw
+>> > namespace uuid to match the device-path that EFI emits. By default
+>> > 'ndctl list' displays the uuid that is present in the address
+>> > abstraction info-block. Add a "raw_uuid" so that tooling can
+>> > correlate the default uuid with the base uuid for the namespace.
+>> >
+>> > Cc: Dan Williams <dan.j.williams@intel.com>
+>> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>> > ---
+>> >  util/json.c | 23 +++++++++++++++++++++++
+>> >  1 file changed, 23 insertions(+)
+>> >
+>> > diff --git a/util/json.c b/util/json.c
+>> > index 8d65525..efad8f7 100644
+>> > --- a/util/json.c
+>> > +++ b/util/json.c
+>> > @@ -650,6 +650,17 @@ static struct json_object
+>> > *util_dax_badblocks_to_json(struct ndctl_dax *dax,
+>> >                         bb_count, flags);
+>> >  }
+>> >
+>> > +static struct json_object *util_raw_uuid(struct ndctl_namespace *ndns)
+>> > +{
+>> > +       struct json_object *jobj;
+>> > +       uuid_t raw_uuid;
+>> > +       char buf[40];
+>> > +
+>> > +       ndctl_namespace_get_uuid(ndns, raw_uuid);
+>> > +       uuid_unparse(raw_uuid, buf);
+>> > +       return json_object_new_string(buf);
+>> > +}
+>> > +
 >>
->> Sure - the others were calling ndctl_{btt,pfn,dax}_get_uuid, where as with
->> this, all the instances call ndctl namespace_get_uuid hence I factored it
->> out as a function, but I'm happy to open code it in the three sites.
+>> I don't mind this new helper, but it seems out of place given all the
+>> other uuid-to-json-string conversions are open-coded in
+>> util_namespace_to_json(). Let's just open-code like all the rest, and
+>> maybe follow on with a global cleanup to use a helper in a later
+>> patch. However, I'm not sure it will be worth it / a net code
+>> reduction.
 >
-> Ah, I'm slow, now I get it. Fine as is.
+> Sure - the others were calling ndctl_{btt,pfn,dax}_get_uuid, where as with
+> this, all the instances call ndctl namespace_get_uuid hence I factored it
+> out as a function, but I'm happy to open code it in the three sites.
 
-aka:
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Ah, I'm slow, now I get it. Fine as is.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
