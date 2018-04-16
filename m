@@ -1,7 +1,7 @@
-From: "Automatic Email Delivery Software" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Fri, 13 Apr 2018 11:37:14 +0800
-Message-ID: <20180413033716.1F818226516C1@ml01.01.org>
+From: hakanson-HXOg1pR/KxyVc3sceRu5cw@public.gmane.org
+Subject: Delivery reports about your e-mail
+Date: Mon, 16 Apr 2018 11:04:44 +0800
+Message-ID: <20180416030447.F028D220E8CD1@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,4 +18,13 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was included as attachment
+The original message was received at Mon, 16 Apr 2018 11:04:44 +0800
+from cse.ogi.edu [8.229.147.201]
+
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:hakanson-HXOg1pR/KxyVc3sceRu5cw@public.gmane.org
+<<< 501 hakanson-HXOg1pR/KxxZ5+5k6wXlvw@public.gmane.org Refused
