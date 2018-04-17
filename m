@@ -1,16 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-ot0-x22b.google.com (mail-ot0-x22b.google.com
+ [IPv6:2607:f8b0:4003:c0f::22b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2DB302265A357
- for <linux-nvdimm@lists.01.org>; Thu, 12 Apr 2018 04:08:06 -0700 (PDT)
-Received: from relay2.suse.de (charybdis-ext.suse.de [195.135.220.254])
- by mx2.suse.de (Postfix) with ESMTP id A67A2ABD0
- for <linux-nvdimm@lists.01.org>; Thu, 12 Apr 2018 11:08:03 +0000 (UTC)
-From: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH ndctl 0/2] Documentation: add asciidoctor support
-Date: Thu, 12 Apr 2018 13:07:53 +0200
-Message-Id: <20180412110755.31644-1-tiwai@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 4CE1B22590E0B
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Apr 2018 21:06:25 -0700 (PDT)
+Received: by mail-ot0-x22b.google.com with SMTP id a14-v6so19942210otf.6
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Apr 2018 21:06:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53972762F@ORSMSX110.amr.corp.intel.com>
+References: <20180215210932.15490-1-erik.schmauss@intel.com>
+ <CAPcyv4hp_pm2n3H_froFkedd_GMQvsrEc8yZxYzfYkPDYvjDww@mail.gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED5397230D6@ORSMSX110.amr.corp.intel.com>
+ <3701399.BBZtpt46yJ@aspire.rjw.lan>
+ <CAPcyv4j-iC+b07=JPP_TV1MLHA2iO5iKLvc+jaPHoEuRfzoAFQ@mail.gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED539727606@ORSMSX110.amr.corp.intel.com>
+ <CAPcyv4jEkQTEWxE=+mf0C5oA0j50ZvjU=QpvL1n6mmtemrnBLg@mail.gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED53972762F@ORSMSX110.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 16 Apr 2018 21:06:24 -0700
+Message-ID: <CAPcyv4jBfb469+P3tdVrxT9NNt5OqutHSkyOmMPmYFS33Oa4JA@mail.gmail.com>
+Subject: Re: [PATCH v2 5/7] ACPICA: Integrate package handling with
+ module-level code
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,47 +29,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Schmauss, Erik" <erik.schmauss@intel.com>
+Cc: Qemu Developers <qemu-devel@nongnu.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Moore,
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
-
-this is a patchset to add the support for asciidoctor to generate
-documents.  The reason for adding this feature is that the future of
-asciidoc isn't clear as it's written in python2, which is now hated by
-all people out of sudden :)
-
-The asciidoctor support is enabled via configure option, the default
-is still asciidoc for now.
-
-
-thanks,
-
-Takashi
-
-===
-
-Takashi Iwai (2):
-  Documentation: fix title and section markers
-  Documentation: Add the support for asciidoctor
-
- Documentation/asciidoctor-extensions.rb.in  |   28 ++++++++++++++++++++++++++++
- Documentation/daxctl/Makefile.am            |   23 ++++++++++++++++++++---
- Documentation/daxctl/daxctl-io.txt          |    5 +++--
- Documentation/daxctl/daxctl-list.txt        |   13 +++++++------
- Documentation/ndctl/Makefile.am             |   23 ++++++++++++++++++++---
- Documentation/ndctl/ndctl-disable-dimm.txt  |    2 +-
- Documentation/ndctl/ndctl-enable-region.txt |    2 +-
- Documentation/ndctl/ndctl-init-labels.txt   |   15 ++++++++++-----
- Documentation/ndctl/ndctl-list.txt          |   13 ++++++++-----
- configure.ac                                |   14 ++++++++++++--
- 10 files changed, 110 insertions(+), 28 deletions(-)
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gTW9uLCBBcHIgMTYsIDIwMTggYXQgNTowNSBQTSwgU2NobWF1c3MsIEVyaWsgPGVyaWsuc2No
+bWF1c3NAaW50ZWwuY29tPiB3cm90ZToKPgo+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+
+PiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFj
+cGktCj4+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERhbiBXaWxsaWFtcwo+
+PiBTZW50OiBNb25kYXksIEFwcmlsIDE2LCAyMDE4IDQ6MjIgUE0KPj4gVG86IFNjaG1hdXNzLCBF
+cmlrIDxlcmlrLnNjaG1hdXNzQGludGVsLmNvbT4KPj4gQ2M6IFJhZmFlbCBKLiBXeXNvY2tpIDxy
+andAcmp3eXNvY2tpLm5ldD47IExpbnV4IEFDUEkgPGxpbnV4LQo+PiBhY3BpQHZnZXIua2VybmVs
+Lm9yZz47IE1vb3JlLCBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+OyBsaW51eC0KPj4g
+bnZkaW1tIDxsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnPjsgUWVtdSBEZXZlbG9wZXJzIDxxZW11
+LQo+PiBkZXZlbEBub25nbnUub3JnPgo+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYyIDUvN10gQUNQ
+SUNBOiBJbnRlZ3JhdGUgcGFja2FnZSBoYW5kbGluZyB3aXRoIG1vZHVsZS0KPj4gbGV2ZWwgY29k
+ZQo+Pgo+PiBPbiBNb24sIEFwciAxNiwgMjAxOCBhdCA0OjE1IFBNLCBTY2htYXVzcywgRXJpayA8
+ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+Cj4+IHdyb3RlOgo+PiA+IFsgdHJpbW1pbmcgXQo+PiA+
+PiA+PiBSYWZhZWwsIHdlIG1heSB3YW50IHRvIGhvbGQgYmFjayBvbiB0aGUgbW9kdWxlLWxldmVs
+IGNvZGUgY2hhbmdlcwo+PiA+PiA+PiAodGhlIHBhdGNoZXMgYmVsb3cpIGZvciByYzEuIEJldHdl
+ZW4gdGhpcyBhbmQgdGhlIHN0cmFuZ2UgX1RTUwo+PiA+PiA+PiBpc3N1ZSwgaXQgc2VlbXMgbGlr
+ZSB0aGVyZSBhcmUgYSBmZXcgbW9yZSB0aGluZ3MgdG8gcmVzb2x2ZSBiZWZvcmUKPj4gPj4gPj4g
+dGhpcyBpcyByZWFkeSBmb3Iga2VybmVsIHVwc3RyZWFtLgo+PiA+PiA+Cj4+ID4gSGkgUmFmYWVs
+LAo+PiA+Cj4+ID4+ID4gSXQgbG9va3MgbGlrZSB5b3UgYXJlIGFza2luZyBtZSB0byBxdWV1ZSB1
+cCByZXZlcnRzIGFzIHBlciB0aGUKPj4gPj4gPiBEYW4ncyByZXBvcnQsIGlzIHRoYXQgY29ycmVj
+dD8KPj4gPgo+PiA+IFRoaXMgaXMgaW5kZWVkIHdoYXQgSSBtZWFudCBsYXN0IHdlZWsuIEhvd2V2
+ZXIsIEkndmUgbG9va2VkIGludG8gdGhlCj4+ID4gaXNzdWUgYW5kIERhbidzIHFlbXUgaW5zdGFu
+Y2UgaGFkIEFNTCB0aGF0IHdlIG5vIGxvbmdlciBzdXBwb3J0LiBUaGlzCj4+ID4gaXMgYmVjYXVz
+ZSB0aGUgQUNQSUNBIGNvbW1pdCBtYWtlcyBjaGFuZ2VzIHRvIHRoZSBleGVjdXRpb24gb2YgQU1M
+Cj4+ID4gZHVyaW5nIHRhYmxlIGxvYWQgdG8gbWF0Y2ggd2luZG93cyBBTUwgaW50ZXJwcmV0ZXIg
+YmVoYXZpb3Igc28gdGhpcyBjb21taXQKPj4gYWxzbyBnb3QgcmlkIG9mIHN1cHBvcnQgZm9yIGV4
+ZWN1dGluZyBjb2RlIGNvbnRhaW5pbmcgZm9yd2FyZCByZWZlcmVuY2VzIChleGNlcHQKPj4gZm9y
+IHBhY2thZ2UgZWxlbWVudHMpLgo+PiA+Cj4+ID4gSSd2ZSBzdWdnZXN0ZWQgYSBmaXggZm9yIHRo
+ZSBmaXJtd2FyZSBpbiBhIHNlcGFyYXRlIGVtYWlsLiBTbyBJIHdvdWxkCj4+ID4gc2F5IHRoYXQg
+dGhpcyBpc3N1ZSBpcyByZXNvbHZlZCBhZnRlciBpZiBEYW4gY2FuIHJ1biBoaXMgdGVzdCBzdWNj
+ZXNzZnVsbHkgd2l0aCB0aGUKPj4gYWRqdXN0ZWQgZmlybXdhcmUuCj4+ID4KPj4gPiBJZiBEYW4n
+cyB0ZXN0IGlzIHN1Y2Nlc3NmdWwsIHdlIGRvbuKAmXQgbmVlZCB0byByZXZlcnQgdGhlc2UgY2hh
+bmdlcwo+Pgo+Cj4gSGkgRGFuLAo+Cj4+IEknbSBjb25jZXJuZWQgYWJvdXQgb3RoZXIgcWVtdS1r
+dm0gdXNlcnMgdGhhdCBkbyBub3QgdXBncmFkZSB0aGVpciBoeXBlcnZpc29yCj4+IGF0IHRoZSBz
+YW1lIHBhY2UgYXMgdGhlaXIgZ3Vlc3Qga2VybmVsLiBFc3BlY2lhbGx5IGZvciBjbG91ZCBwcm92
+aWRlcnMgdGhhdCBtYXkKPj4gYmUgcnVubmluZyBsYXRlc3QgbWFpbmxpbmUga2VybmVsIG9uIG9s
+ZGVyIHFlbXUta3ZtIHRoaXMgd2lsbCBsb29rIGxpa2UgYSBwdXJlCj4+IGtlcm5lbCByZWdyZXNz
+aW9uLiBJcyB0aGVyZSBhIHF1aWNrIGZpeCB3ZSBjYW4gY2FycnkgaW4gdGhlIGtlcm5lbCB0byBz
+dXBwb3J0IHRoZXNlCj4+IGZvcndhcmQgcmVmZXJlbmNlcywgYXQgbGVhc3QgdW50aWwgd2Uga25v
+dyB0aGF0IHFlbXUta3ZtIGlzIG5vIGxvbmdlciBzaGlwcGluZwo+PiB0aGUgYnJva2VuIEFNTD8K
+Pgo+IFRoaXMgaXMgYSB2ZXJ5IGdvb2QgcG9pbnQuIFRoYW5rcyBmb3IgYnJpbmdpbmcgdGhpcyB1
+cCEgT25lIG9wdGlvbiBpcyBmb3IgdGhlbSB0byBzZXQKPiB0aGUgZ2xvYmFsIHZhcmlhYmxlIGFj
+cGlfZ2JsX2V4ZWN1dGVfdGFibGVzX2FzX21ldGhvZHMgaW4gaW5jbHVkZS9hY3BpL2FjcGl4Zi5o
+IHRvIGZhbHNlLgo+IFRoaXMgd2lsbCBlZmZlY3RpdmVseSByZXZlcnQgdGhlIG5ldyBiZWhhdmlv
+ciBpbiB0aGUgQU1MIGludGVycHJldGVyIGFuZCBnbyBiYWNrIHRvIHRoZSBvbGQgd2F5Lgo+IFNp
+bmNlIHRoaXMgaXMgYSBnbG9iYWwgZmxhZywgd2UgY291bGQgaGF2ZSBhIGNvbW1hbmQgbGluZSBv
+cHRpb24gZm9yIExpbnV4IGtlcm5lbCB0byB0dXJuIHRoaXMKPiBmZWF0dXJlIG9uLgo+Cj4gT3V0
+IG9mIGN1cmlvc2l0eSwgaXMgdGhpcyBBQ1BJIHRhYmxlIHNvbWVob3cgY3VzdG9taXplZCBmb3Ig
+eW91ciB3b3JrPyBJIGhhdmUgYSBjb2xsZWN0aW9uCj4gb2YgYWNwaSB0YWJsZXMgYW5kIHlvdXIg
+QUNQSSB0YWJsZXMgYXJlIHRoZSBvbmx5IG9uZXMgdGhhdCBoYXZlIGFuIE9wZXJhdGlvblJlZ2lv
+biBjYWxsZWQKPiBOUkFNLiBXaGF0IGlzIHRoZSBjaGFuY2UgdGhhdCBvdGhlcnMgd2lsbCBiZSBy
+dW5uaW5nIExpbnV4IG9uIHRoZSBzYW1lIHRhYmxlcyBhcyB0aGUgb25lCj4geW91IHNlbnQgbWU/
+CgpJIGRvbid0IHRoaW5rIHRoZXJlJ3MgYW55dGhpbmcgYXR5cGljYWwgYWJvdXQgbXkgcGFydGlj
+dWxhciBzZXR1cC4gSXQKY3JlYXRlcyB0d28gdmlydHVhbCBOVkRJTU1zIHRoYXQgZWFjaCByZXBy
+ZXNlbnQgYSAzMEdCIGFkZHJlc3Mgc3BhY2UuCkkgc3VzcGVjdCBhbnkgdXNlciBvZiB0aGUgS1ZN
+IE5WRElNTSB2aXJ0dWFsaXphdGlvbiB3b3VsZCBzZWUgdGhlIHNhbWUKcHJvYmxlbS4KX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
+aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
+L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
