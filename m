@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 11B2C22512150
- for <linux-nvdimm@lists.01.org>; Mon, 23 Apr 2018 16:31:01 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 23 Apr 2018 17:30:44 -0600
-Message-Id: <20180423233046.21476-13-logang@deltatee.com>
-In-Reply-To: <20180423233046.21476-1-logang@deltatee.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
-Subject: [PATCH v4 12/14] nvmet: Introduce helper functions to allocate and
- free request SGLs
+Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
+ [150.101.137.129])
+ by ml01.01.org (Postfix) with ESMTP id 8788B22590E08
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 16:36:21 -0700 (PDT)
+Date: Wed, 18 Apr 2018 09:36:18 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: ioctl FIBMAP for dax gone in v4.17-rc1
+Message-ID: <20180417233618.GB27893@dastard>
+References: <20180417144059.nwbbynhgq3k3i63q@XZHOUW.usersys.redhat.com>
+ <20180417161056.GA24257@infradead.org>
+ <CAPcyv4i05nP=wmOMwKFbdwqBrYXpcPBCmR4g2b4w8vOZaCBEnQ@mail.gmail.com>
+ <20180417165756.GC24738@magnolia>
+ <BE1492A6-DF52-428C-A3CE-E91F0ACC0ADA@dilger.ca>
+ <20180417175007.GB5210@magnolia>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180417175007.GB5210@magnolia>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,79 +23,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Andreas Dilger <adilger@dilger.ca>, linux-xfs <linux-xfs@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Eric Sandeen <sandeen@sandeen.net>, fstests <fstests@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add helpers to allocate and free the SGL in a struct nvmet_req:
+On Tue, Apr 17, 2018 at 10:50:07AM -0700, Darrick J. Wong wrote:
+> On Tue, Apr 17, 2018 at 11:40:00AM -0600, Andreas Dilger wrote:
+> > On Apr 17, 2018, at 10:57 AM, Darrick J. Wong <darrick.wong@oracle.com> wrote:
+> > > 
+> > > On Tue, Apr 17, 2018 at 09:53:47AM -0700, Dan Williams wrote:
+> > >> On Tue, Apr 17, 2018 at 9:10 AM, Christoph Hellwig <hch@infradead.org> wrote:
+> > >>> On Tue, Apr 17, 2018 at 10:40:59PM +0800, Xiong Zhou wrote:
+> > >>>> We got these in v4.17-rc1:
+> > >>>> 6e2608d xfs, dax: introduce xfs_dax_aops
+> > >>>> fb094c9 ext2, dax: introduce ext2_dax_aops
+> > >>>> 5f0663b ext4, dax: introduce ext4_dax_aops
+> > >>>> 
+> > >>>> And we don't have ->bmap call in these aops, which may lead
+> > >>>> to the ioctl call failure.
+> > >>>> 
+> > >>>> Do we have any plan of adding/supporting it ?
+> > >>>> 
+> > >>>> xfstests generic/223 covers this issue. If we are not going
+> > >>>> to support this call for dax, we need to fix the testcase.
+> > >>> 
+> > >>> Not supporting ->bmap is a good thing as it is hightly dangerous.
+> > >> 
+> > >> I take this to mean "don't fix, it is another casualty of dax being
+> > >> experimental and it won't be coming back". I can get on board with
+> > >> that.
+> > >> 
+> > >> Otherwise, I was about to send a series adding bmap to {xfs,ext2,ext4}_dax_ops.
+> > > 
+> > > Frankly I'd rather see the swapfile code learn how to iomap and then we
+> > > can get rid of bmap in xfs entirely.
+> > 
+> > Is anyone still using LILO to boot?
 
-int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq)
-void nvmet_req_free_sgl(struct nvmet_req *req)
+Yup. I do.
 
-This will be expanded in a future patch to implement peer-to-peer
-memory DMAs and should be common with all target drivers. The presently
-unused 'sq' argument in the alloc function will be necessary to
-decide whether to use peer-to-peer memory and obtain the correct
-provider to allocate the memory.
+[ because grub has a history of corrupting filesystems on my
+machines with it's obnoxious "probe for bootable OS images on update
+by attempting to mount every block device in the system" behaviour. ]
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Sagi Grimberg <sagi@grimberg.me>
----
- drivers/nvme/target/core.c  | 18 ++++++++++++++++++
- drivers/nvme/target/nvmet.h |  2 ++
- 2 files changed, 20 insertions(+)
+> > It needed FIBMAP support to map the
+> > kernel image for booting.
 
-diff --git a/drivers/nvme/target/core.c b/drivers/nvme/target/core.c
-index e95424f172fd..75d44bc3e8d3 100644
---- a/drivers/nvme/target/core.c
-+++ b/drivers/nvme/target/core.c
-@@ -575,6 +575,24 @@ void nvmet_req_execute(struct nvmet_req *req)
- }
- EXPORT_SYMBOL_GPL(nvmet_req_execute);
- 
-+int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq)
-+{
-+	req->sg = sgl_alloc(req->transfer_len, GFP_KERNEL, &req->sg_cnt);
-+	if (!req->sg)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nvmet_req_alloc_sgl);
-+
-+void nvmet_req_free_sgl(struct nvmet_req *req)
-+{
-+	sgl_free(req->sg);
-+	req->sg = NULL;
-+	req->sg_cnt = 0;
-+}
-+EXPORT_SYMBOL_GPL(nvmet_req_free_sgl);
-+
- static inline bool nvmet_cc_en(u32 cc)
- {
- 	return (cc >> NVME_CC_EN_SHIFT) & 0x1;
-diff --git a/drivers/nvme/target/nvmet.h b/drivers/nvme/target/nvmet.h
-index 15fd84ab21f8..10b162615a5e 100644
---- a/drivers/nvme/target/nvmet.h
-+++ b/drivers/nvme/target/nvmet.h
-@@ -273,6 +273,8 @@ bool nvmet_req_init(struct nvmet_req *req, struct nvmet_cq *cq,
- void nvmet_req_uninit(struct nvmet_req *req);
- void nvmet_req_execute(struct nvmet_req *req);
- void nvmet_req_complete(struct nvmet_req *req, u16 status);
-+int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq);
-+void nvmet_req_free_sgl(struct nvmet_req *req);
- 
- void nvmet_cq_setup(struct nvmet_ctrl *ctrl, struct nvmet_cq *cq, u16 qid,
- 		u16 size);
+There's a difference between FIBMAP and ->bmap. One's a syscall
+parameter under ABI constraints and the other is an internal
+implementation.
+
+We have to keep supporting FIBMAP forever, but we can re-implement
+it internally using ->fiemap pretty damn easily - just replace the
+bmap() implementation with a ->fiemap call and replace all the
+direct ->bmap() calls with bmap(). Hence FIBMAP will continue to
+work on all filesystems (including DAX!) and we get the ->bmap
+crap out of the kernel.
+
+Cheers,
+
+Dave.
 -- 
-2.11.0
-
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
