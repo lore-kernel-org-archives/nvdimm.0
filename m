@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D8DAB22512130
- for <linux-nvdimm@lists.01.org>; Mon, 23 Apr 2018 16:31:02 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 23 Apr 2018 17:30:46 -0600
-Message-Id: <20180423233046.21476-15-logang@deltatee.com>
-In-Reply-To: <20180423233046.21476-1-logang@deltatee.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
-MIME-Version: 1.0
-Subject: [PATCH v4 14/14] nvmet: Optionally use PCI P2P memory
+ by ml01.01.org (Postfix) with ESMTPS id 23D4A2263DD68
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Apr 2018 23:40:15 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 67E32AC01EE
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 15:40:12 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [PATCH 2/2] ndctl,
+ list: change -b -d -r -n options to support multiple arguments
+Date: Tue, 17 Apr 2018 15:38:48 +0900
+Message-Id: <20180417063848.5585-3-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180417063848.5585-1-qi.fuli@jp.fujitsu.com>
+References: <20180417063848.5585-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,221 +22,264 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Steve Wise <swise@opengridcomputing.com>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-V2UgY3JlYXRlIGEgY29uZmlnZnMgYXR0cmlidXRlIGluIGVhY2ggbnZtZS1mYWJyaWNzIHRhcmdl
-dCBwb3J0IHRvCmVuYWJsZSBwMnAgbWVtb3J5IHVzZS4gV2hlbiBlbmFibGVkLCB0aGUgcG9ydCB3
-aWxsIG9ubHkgdGhlbiB1c2UgdGhlCnAycCBtZW1vcnkgaWYgYSBwMnAgbWVtb3J5IGRldmljZSBj
-YW4gYmUgZm91bmQgd2hpY2ggaXMgYmVoaW5kIHRoZQpzYW1lIHN3aXRjaCBoZWlyYXJjaHkgYXMg
-dGhlIFJETUEgcG9ydCBhbmQgYWxsIHRoZSBibG9jayBkZXZpY2VzIGluCnVzZS4gSWYgdGhlIHVz
-ZXIgZW5hYmxlZCBpdCBhbmQgbm8gZGV2aWNlcyBhcmUgZm91bmQsIHRoZW4gdGhlIHN5c3RlbQp3
-aWxsIHNpbGVudGx5IGZhbGwgYmFjayBvbiB1c2luZyByZWd1bGFyIG1lbW9yeS4KCklmIGFwcHJv
-cHJpYXRlLCB0aGF0IHBvcnQgd2lsbCBhbGxvY2F0ZSBtZW1vcnkgZm9yIHRoZSBSRE1BIGJ1ZmZl
-cnMKZm9yIHF1ZXVlcyBmcm9tIHRoZSBwMnBtZW0gZGV2aWNlIGZhbGxpbmcgYmFjayB0byBzeXN0
-ZW0gbWVtb3J5IHNob3VsZAphbnl0aGluZyBmYWlsLgoKSWRlYWxseSwgd2UnZCB3YW50IHRvIHVz
-ZSBhbiBOVk1FIENNQiBidWZmZXIgYXMgcDJwIG1lbW9yeS4gVGhpcyB3b3VsZApzYXZlIGFuIGV4
-dHJhIFBDSSB0cmFuc2ZlciBhcyB0aGUgTlZNRSBjYXJkIGNvdWxkIGp1c3QgdGFrZSB0aGUgZGF0
-YQpvdXQgb2YgaXQncyBvd24gbWVtb3J5LiBIb3dldmVyLCBhdCB0aGlzIHRpbWUsIG9ubHkgYSBs
-aW1pdGVkIG51bWJlcgpvZiBjYXJkcyB3aXRoIENNQiBidWZmZXJzIHNlZW0gdG8gYmUgYXZhaWxh
-YmxlLgoKU2lnbmVkLW9mZi1ieTogU3RlcGhlbiBCYXRlcyA8c2JhdGVzQHJhaXRobGluLmNvbT4K
-U2lnbmVkLW9mZi1ieTogU3RldmUgV2lzZSA8c3dpc2VAb3BlbmdyaWRjb21wdXRpbmcuY29tPgpb
-aGNoOiBwYXJ0aWFsIHJld3JpdGUgb2YgdGhlIGluaXRpYWwgY29kZV0KU2lnbmVkLW9mZi1ieTog
-Q2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+ClNpZ25lZC1vZmYtYnk6IExvZ2FuIEd1bnRo
-b3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KLS0tCiBkcml2ZXJzL252bWUvdGFyZ2V0L2NvbmZp
-Z2ZzLmMgfCAgNjcgKysrKysrKysrKysrKysrKysrKysrKwogZHJpdmVycy9udm1lL3RhcmdldC9j
-b3JlLmMgICAgIHwgMTI3ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKyst
-CiBkcml2ZXJzL252bWUvdGFyZ2V0L2lvLWNtZC5jICAgfCAgIDMgKwogZHJpdmVycy9udm1lL3Rh
-cmdldC9udm1ldC5oICAgIHwgIDEzICsrKysrCiBkcml2ZXJzL252bWUvdGFyZ2V0L3JkbWEuYyAg
-ICAgfCAgIDIgKwogNSBmaWxlcyBjaGFuZ2VkLCAyMTAgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlv
-bnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL252bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMgYi9kcml2
-ZXJzL252bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMKaW5kZXggYWQ5ZmYyNzIzNGI1Li41ZWZlMGRhZTBl
-ZTcgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbnZtZS90YXJnZXQvY29uZmlnZnMuYworKysgYi9kcml2
-ZXJzL252bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMKQEAgLTE3LDYgKzE3LDggQEAKICNpbmNsdWRlIDxs
-aW51eC9zbGFiLmg+CiAjaW5jbHVkZSA8bGludXgvc3RhdC5oPgogI2luY2x1ZGUgPGxpbnV4L2N0
-eXBlLmg+CisjaW5jbHVkZSA8bGludXgvcGNpLmg+CisjaW5jbHVkZSA8bGludXgvcGNpLXAycGRt
-YS5oPgogCiAjaW5jbHVkZSAibnZtZXQuaCIKIApAQCAtODY0LDEyICs4NjYsNzcgQEAgc3RhdGlj
-IHZvaWQgbnZtZXRfcG9ydF9yZWxlYXNlKHN0cnVjdCBjb25maWdfaXRlbSAqaXRlbSkKIAlrZnJl
-ZShwb3J0KTsKIH0KIAorI2lmZGVmIENPTkZJR19QQ0lfUDJQRE1BCitzdGF0aWMgc3NpemVfdCBu
-dm1ldF9wMnBtZW1fc2hvdyhzdHJ1Y3QgY29uZmlnX2l0ZW0gKml0ZW0sIGNoYXIgKnBhZ2UpCit7
-CisJc3RydWN0IG52bWV0X3BvcnQgKnBvcnQgPSB0b19udm1ldF9wb3J0KGl0ZW0pOworCisJaWYg
-KCFwb3J0LT51c2VfcDJwbWVtKQorCQlyZXR1cm4gc3ByaW50ZihwYWdlLCAibm9uZVxuIik7CisK
-KwlpZiAoIXBvcnQtPnAycF9kZXYpCisJCXJldHVybiBzcHJpbnRmKHBhZ2UsICJhdXRvXG4iKTsK
-KworCXJldHVybiBzcHJpbnRmKHBhZ2UsICIlc1xuIiwgcGNpX25hbWUocG9ydC0+cDJwX2Rldikp
-OworfQorCitzdGF0aWMgc3NpemVfdCBudm1ldF9wMnBtZW1fc3RvcmUoc3RydWN0IGNvbmZpZ19p
-dGVtICppdGVtLAorCQkJCSAgY29uc3QgY2hhciAqcGFnZSwgc2l6ZV90IGNvdW50KQoreworCXN0
-cnVjdCBudm1ldF9wb3J0ICpwb3J0ID0gdG9fbnZtZXRfcG9ydChpdGVtKTsKKwlzdHJ1Y3QgZGV2
-aWNlICpkZXY7CisJc3RydWN0IHBjaV9kZXYgKnAycF9kZXYgPSBOVUxMOworCWJvb2wgdXNlX3Ay
-cG1lbTsKKworCWRldiA9IGJ1c19maW5kX2RldmljZV9ieV9uYW1lKCZwY2lfYnVzX3R5cGUsIE5V
-TEwsIHBhZ2UpOworCWlmIChkZXYpIHsKKwkJdXNlX3AycG1lbSA9IHRydWU7CisJCXAycF9kZXYg
-PSB0b19wY2lfZGV2KGRldik7CisKKwkJaWYgKCFwY2lfaGFzX3AycG1lbShwMnBfZGV2KSkgewor
-CQkJcHJfZXJyKCJQQ0kgZGV2aWNlIGhhcyBubyBwZWVyLXRvLXBlZXIgbWVtb3J5OiAlc1xuIiwK
-KwkJCSAgICAgICBwYWdlKTsKKwkJCXBjaV9kZXZfcHV0KHAycF9kZXYpOworCQkJcmV0dXJuIC1F
-Tk9ERVY7CisJCX0KKwl9IGVsc2UgaWYgKHN5c2ZzX3N0cmVxKHBhZ2UsICJhdXRvIikpIHsKKwkJ
-dXNlX3AycG1lbSA9IDE7CisJfSBlbHNlIGlmICgocGFnZVswXSA9PSAnMCcgfHwgcGFnZVswXSA9
-PSAnMScpICYmICFpc2NudHJsKHBhZ2VbMV0pKSB7CisJCS8qCisJCSAqIElmIHRoZSB1c2VyIGVu
-dGVycyBhIFBDSSBkZXZpY2UgdGhhdCAgZG9lc24ndCBleGlzdAorCQkgKiBsaWtlICIwMDAwOjAx
-OjAwLjEiLCB3ZSBkb24ndCB3YW50IHN0cnRvYm9vbCB0byB0aGluaworCQkgKiBpdCdzIGEgJzAn
-IHdoZW4gaXQncyBjbGVhcmx5IG5vdCB3aGF0IHRoZSB1c2VyIHdhbnRlZC4KKwkJICogU28gd2Ug
-cmVxdWlyZSAwJ3MgYW5kIDEncyB0byBiZSBleGFjdGx5IG9uZSBjaGFyYWN0ZXIuCisJCSAqLwor
-CQlnb3RvIG5vX3N1Y2hfcGNpX2RldmljZTsKKwl9IGVsc2UgaWYgKHN0cnRvYm9vbChwYWdlLCAm
-dXNlX3AycG1lbSkpIHsKKwkJZ290byBub19zdWNoX3BjaV9kZXZpY2U7CisJfQorCisJZG93bl93
-cml0ZSgmbnZtZXRfY29uZmlnX3NlbSk7CisJcG9ydC0+dXNlX3AycG1lbSA9IHVzZV9wMnBtZW07
-CisJcGNpX2Rldl9wdXQocG9ydC0+cDJwX2Rldik7CisJcG9ydC0+cDJwX2RldiA9IHAycF9kZXY7
-CisJdXBfd3JpdGUoJm52bWV0X2NvbmZpZ19zZW0pOworCisJcmV0dXJuIGNvdW50OworCitub19z
-dWNoX3BjaV9kZXZpY2U6CisJcHJfZXJyKCJObyBzdWNoIFBDSSBkZXZpY2U6ICVzXG4iLCBwYWdl
-KTsKKwlyZXR1cm4gLUVOT0RFVjsKK30KK0NPTkZJR0ZTX0FUVFIobnZtZXRfLCBwMnBtZW0pOwor
-I2VuZGlmIC8qIENPTkZJR19QQ0lfUDJQRE1BICovCisKIHN0YXRpYyBzdHJ1Y3QgY29uZmlnZnNf
-YXR0cmlidXRlICpudm1ldF9wb3J0X2F0dHJzW10gPSB7CiAJJm52bWV0X2F0dHJfYWRkcl9hZHJm
-YW0sCiAJJm52bWV0X2F0dHJfYWRkcl90cmVxLAogCSZudm1ldF9hdHRyX2FkZHJfdHJhZGRyLAog
-CSZudm1ldF9hdHRyX2FkZHJfdHJzdmNpZCwKIAkmbnZtZXRfYXR0cl9hZGRyX3RydHlwZSwKKyNp
-ZmRlZiBDT05GSUdfUENJX1AyUERNQQorCSZudm1ldF9hdHRyX3AycG1lbSwKKyNlbmRpZgogCU5V
-TEwsCiB9OwogCmRpZmYgLS1naXQgYS9kcml2ZXJzL252bWUvdGFyZ2V0L2NvcmUuYyBiL2RyaXZl
-cnMvbnZtZS90YXJnZXQvY29yZS5jCmluZGV4IDc1ZDQ0YmMzZThkMy4uYjJiNjJjZDM2ZjZjIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL252bWUvdGFyZ2V0L2NvcmUuYworKysgYi9kcml2ZXJzL252bWUv
-dGFyZ2V0L2NvcmUuYwpAQCAtMTUsNiArMTUsNyBAQAogI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5o
-PgogI2luY2x1ZGUgPGxpbnV4L3JhbmRvbS5oPgogI2luY2x1ZGUgPGxpbnV4L3JjdWxpc3QuaD4K
-KyNpbmNsdWRlIDxsaW51eC9wY2ktcDJwZG1hLmg+CiAKICNpbmNsdWRlICJudm1ldC5oIgogCkBA
-IC0yNzEsNiArMjcyLDI1IEBAIHZvaWQgbnZtZXRfcHV0X25hbWVzcGFjZShzdHJ1Y3QgbnZtZXRf
-bnMgKm5zKQogCXBlcmNwdV9yZWZfcHV0KCZucy0+cmVmKTsKIH0KIAorc3RhdGljIGludCBudm1l
-dF9wMnBkbWFfYWRkX2NsaWVudChzdHJ1Y3QgbnZtZXRfY3RybCAqY3RybCwKKwkJCQkgICBzdHJ1
-Y3QgbnZtZXRfbnMgKm5zKQoreworCWludCByZXQ7CisKKwlpZiAoIWJsa19xdWV1ZV9wY2lfcDJw
-ZG1hKG5zLT5iZGV2LT5iZF9xdWV1ZSkpIHsKKwkJcHJfZXJyKCJwZWVyLXRvLXBlZXIgRE1BIGlz
-IG5vdCBzdXBwb3J0ZWQgYnkgJXNcbiIsCisJCSAgICAgICBucy0+ZGV2aWNlX3BhdGgpOworCQly
-ZXR1cm4gLUVJTlZBTDsKKwl9CisKKwlyZXQgPSBwY2lfcDJwZG1hX2FkZF9jbGllbnQoJmN0cmwt
-PnAycF9jbGllbnRzLCBudm1ldF9uc19kZXYobnMpKTsKKwlpZiAocmV0KQorCQlwcl9lcnIoImZh
-aWxlZCB0byBhZGQgcGVlci10by1wZWVyIERNQSBjbGllbnQgJXM6ICVkXG4iLAorCQkgICAgICAg
-bnMtPmRldmljZV9wYXRoLCByZXQpOworCisJcmV0dXJuIHJldDsKK30KKwogaW50IG52bWV0X25z
-X2VuYWJsZShzdHJ1Y3QgbnZtZXRfbnMgKm5zKQogewogCXN0cnVjdCBudm1ldF9zdWJzeXMgKnN1
-YnN5cyA9IG5zLT5zdWJzeXM7CkBAIC0yOTksNiArMzE5LDE0IEBAIGludCBudm1ldF9uc19lbmFi
-bGUoc3RydWN0IG52bWV0X25zICpucykKIAlpZiAocmV0KQogCQlnb3RvIG91dF9ibGtkZXZfcHV0
-OwogCisJbGlzdF9mb3JfZWFjaF9lbnRyeShjdHJsLCAmc3Vic3lzLT5jdHJscywgc3Vic3lzX2Vu
-dHJ5KSB7CisJCWlmIChjdHJsLT5wMnBfZGV2KSB7CisJCQlyZXQgPSBudm1ldF9wMnBkbWFfYWRk
-X2NsaWVudChjdHJsLCBucyk7CisJCQlpZiAocmV0KQorCQkJCWdvdG8gb3V0X3JlbW92ZV9jbGll
-bnRzOworCQl9CisJfQorCiAJaWYgKG5zLT5uc2lkID4gc3Vic3lzLT5tYXhfbnNpZCkKIAkJc3Vi
-c3lzLT5tYXhfbnNpZCA9IG5zLT5uc2lkOwogCkBAIC0zMjgsNiArMzU2LDkgQEAgaW50IG52bWV0
-X25zX2VuYWJsZShzdHJ1Y3QgbnZtZXRfbnMgKm5zKQogb3V0X3VubG9jazoKIAltdXRleF91bmxv
-Y2soJnN1YnN5cy0+bG9jayk7CiAJcmV0dXJuIHJldDsKK291dF9yZW1vdmVfY2xpZW50czoKKwls
-aXN0X2Zvcl9lYWNoX2VudHJ5KGN0cmwsICZzdWJzeXMtPmN0cmxzLCBzdWJzeXNfZW50cnkpCisJ
-CXBjaV9wMnBkbWFfcmVtb3ZlX2NsaWVudCgmY3RybC0+cDJwX2NsaWVudHMsIG52bWV0X25zX2Rl
-dihucykpOwogb3V0X2Jsa2Rldl9wdXQ6CiAJYmxrZGV2X3B1dChucy0+YmRldiwgRk1PREVfV1JJ
-VEV8Rk1PREVfUkVBRCk7CiAJbnMtPmJkZXYgPSBOVUxMOwpAQCAtMzYzLDggKzM5NCwxMCBAQCB2
-b2lkIG52bWV0X25zX2Rpc2FibGUoc3RydWN0IG52bWV0X25zICpucykKIAlwZXJjcHVfcmVmX2V4
-aXQoJm5zLT5yZWYpOwogCiAJbXV0ZXhfbG9jaygmc3Vic3lzLT5sb2NrKTsKLQlsaXN0X2Zvcl9l
-YWNoX2VudHJ5KGN0cmwsICZzdWJzeXMtPmN0cmxzLCBzdWJzeXNfZW50cnkpCisJbGlzdF9mb3Jf
-ZWFjaF9lbnRyeShjdHJsLCAmc3Vic3lzLT5jdHJscywgc3Vic3lzX2VudHJ5KSB7CisJCXBjaV9w
-MnBkbWFfcmVtb3ZlX2NsaWVudCgmY3RybC0+cDJwX2NsaWVudHMsIG52bWV0X25zX2Rldihucykp
-OwogCQludm1ldF9hZGRfYXN5bmNfZXZlbnQoY3RybCwgTlZNRV9BRVJfVFlQRV9OT1RJQ0UsIDAs
-IDApOworCX0KIAogCWlmIChucy0+YmRldikKIAkJYmxrZGV2X3B1dChucy0+YmRldiwgRk1PREVf
-V1JJVEV8Rk1PREVfUkVBRCk7CkBAIC01NzcsNiArNjEwLDIxIEBAIEVYUE9SVF9TWU1CT0xfR1BM
-KG52bWV0X3JlcV9leGVjdXRlKTsKIAogaW50IG52bWV0X3JlcV9hbGxvY19zZ2woc3RydWN0IG52
-bWV0X3JlcSAqcmVxLCBzdHJ1Y3QgbnZtZXRfc3EgKnNxKQogeworCXN0cnVjdCBwY2lfZGV2ICpw
-MnBfZGV2ID0gTlVMTDsKKworCWlmIChzcS0+Y3RybCkKKwkJcDJwX2RldiA9IHNxLT5jdHJsLT5w
-MnBfZGV2OworCisJcmVxLT5wMnBfZGV2ID0gTlVMTDsKKwlpZiAoc3EtPnFpZCAmJiBwMnBfZGV2
-KSB7CisJCXJlcS0+c2cgPSBwY2lfcDJwbWVtX2FsbG9jX3NnbChwMnBfZGV2LCAmcmVxLT5zZ19j
-bnQsCisJCQkJCSAgICAgICByZXEtPnRyYW5zZmVyX2xlbik7CisJCWlmIChyZXEtPnNnKSB7CisJ
-CQlyZXEtPnAycF9kZXYgPSBwMnBfZGV2OworCQkJcmV0dXJuIDA7CisJCX0KKwl9CisKIAlyZXEt
-PnNnID0gc2dsX2FsbG9jKHJlcS0+dHJhbnNmZXJfbGVuLCBHRlBfS0VSTkVMLCAmcmVxLT5zZ19j
-bnQpOwogCWlmICghcmVxLT5zZykKIAkJcmV0dXJuIC1FTk9NRU07CkBAIC01ODcsNyArNjM1LDEx
-IEBAIEVYUE9SVF9TWU1CT0xfR1BMKG52bWV0X3JlcV9hbGxvY19zZ2wpOwogCiB2b2lkIG52bWV0
-X3JlcV9mcmVlX3NnbChzdHJ1Y3QgbnZtZXRfcmVxICpyZXEpCiB7Ci0Jc2dsX2ZyZWUocmVxLT5z
-Zyk7CisJaWYgKHJlcS0+cDJwX2RldikKKwkJcGNpX3AycG1lbV9mcmVlX3NnbChyZXEtPnAycF9k
-ZXYsIHJlcS0+c2cpOworCWVsc2UKKwkJc2dsX2ZyZWUocmVxLT5zZyk7CisKIAlyZXEtPnNnID0g
-TlVMTDsKIAlyZXEtPnNnX2NudCA9IDA7CiB9CkBAIC03ODIsNiArODM0LDc0IEBAIGJvb2wgbnZt
-ZXRfaG9zdF9hbGxvd2VkKHN0cnVjdCBudm1ldF9yZXEgKnJlcSwgc3RydWN0IG52bWV0X3N1YnN5
-cyAqc3Vic3lzLAogCQlyZXR1cm4gX19udm1ldF9ob3N0X2FsbG93ZWQoc3Vic3lzLCBob3N0bnFu
-KTsKIH0KIAorLyoKKyAqIElmIGFsbG93X3AycG1lbSBpcyBzZXQsIHdlIHdpbGwgdHJ5IHRvIHVz
-ZSBQMlAgbWVtb3J5IGZvciB0aGUgU0dMIGxpc3RzIGZvcgorICogzpkvTyBjb21tYW5kcy4gVGhp
-cyByZXF1aXJlcyB0aGUgUENJIHAycCBkZXZpY2UgdG8gYmUgY29tcGF0aWJsZSB3aXRoIHRoZQor
-ICogYmFja2luZyBkZXZpY2UgZm9yIGV2ZXJ5IG5hbWVzcGFjZSBvbiB0aGlzIGNvbnRyb2xsZXIu
-CisgKi8KK3N0YXRpYyB2b2lkIG52bWV0X3NldHVwX3AycG1lbShzdHJ1Y3QgbnZtZXRfY3RybCAq
-Y3RybCwgc3RydWN0IG52bWV0X3JlcSAqcmVxKQoreworCXN0cnVjdCBudm1ldF9ucyAqbnM7CisJ
-aW50IHJldDsKKworCWlmICghcmVxLT5wb3J0LT51c2VfcDJwbWVtIHx8ICFyZXEtPnAycF9jbGll
-bnQpCisJCXJldHVybjsKKworCW11dGV4X2xvY2soJmN0cmwtPnN1YnN5cy0+bG9jayk7CisKKwly
-ZXQgPSBwY2lfcDJwZG1hX2FkZF9jbGllbnQoJmN0cmwtPnAycF9jbGllbnRzLCByZXEtPnAycF9j
-bGllbnQpOworCWlmIChyZXQpIHsKKwkJcHJfZXJyKCJmYWlsZWQgYWRkaW5nIHBlZXItdG8tcGVl
-ciBETUEgY2xpZW50ICVzOiAlZFxuIiwKKwkJICAgICAgIGRldl9uYW1lKHJlcS0+cDJwX2NsaWVu
-dCksIHJldCk7CisJCWdvdG8gZnJlZV9kZXZpY2VzOworCX0KKworCWxpc3RfZm9yX2VhY2hfZW50
-cnlfcmN1KG5zLCAmY3RybC0+c3Vic3lzLT5uYW1lc3BhY2VzLCBkZXZfbGluaykgeworCQlyZXQg
-PSBudm1ldF9wMnBkbWFfYWRkX2NsaWVudChjdHJsLCBucyk7CisJCWlmIChyZXQpCisJCQlnb3Rv
-IGZyZWVfZGV2aWNlczsKKwl9CisKKwlpZiAocmVxLT5wb3J0LT5wMnBfZGV2KSB7CisJCWlmICgh
-cGNpX3AycGRtYV9hc3NpZ25fcHJvdmlkZXIocmVxLT5wb3J0LT5wMnBfZGV2LAorCQkJCQkJJmN0
-cmwtPnAycF9jbGllbnRzKSkgeworCQkJcHJfaW5mbygicGVlci10by1wZWVyIG1lbW9yeSBvbiAl
-cyBpcyBub3Qgc3VwcG9ydGVkXG4iLAorCQkJCXBjaV9uYW1lKHJlcS0+cG9ydC0+cDJwX2Rldikp
-OworCQkJZ290byBmcmVlX2RldmljZXM7CisJCX0KKwkJY3RybC0+cDJwX2RldiA9IHBjaV9kZXZf
-Z2V0KHJlcS0+cG9ydC0+cDJwX2Rldik7CisJfSBlbHNlIHsKKwkJY3RybC0+cDJwX2RldiA9IHBj
-aV9wMnBtZW1fZmluZCgmY3RybC0+cDJwX2NsaWVudHMpOworCQlpZiAoIWN0cmwtPnAycF9kZXYp
-IHsKKwkJCXByX2luZm8oIm5vIHN1cHBvcnRlZCBwZWVyLXRvLXBlZXIgbWVtb3J5IGRldmljZXMg
-Zm91bmRcbiIpOworCQkJZ290byBmcmVlX2RldmljZXM7CisJCX0KKwl9CisKKwltdXRleF91bmxv
-Y2soJmN0cmwtPnN1YnN5cy0+bG9jayk7CisKKwlwcl9pbmZvKCJ1c2luZyBwZWVyLXRvLXBlZXIg
-bWVtb3J5IG9uICVzXG4iLCBwY2lfbmFtZShjdHJsLT5wMnBfZGV2KSk7CisJcmV0dXJuOworCitm
-cmVlX2RldmljZXM6CisJcGNpX3AycGRtYV9jbGllbnRfbGlzdF9mcmVlKCZjdHJsLT5wMnBfY2xp
-ZW50cyk7CisJbXV0ZXhfdW5sb2NrKCZjdHJsLT5zdWJzeXMtPmxvY2spOworfQorCitzdGF0aWMg
-dm9pZCBudm1ldF9yZWxlYXNlX3AycG1lbShzdHJ1Y3QgbnZtZXRfY3RybCAqY3RybCkKK3sKKwlp
-ZiAoIWN0cmwtPnAycF9kZXYpCisJCXJldHVybjsKKworCW11dGV4X2xvY2soJmN0cmwtPnN1YnN5
-cy0+bG9jayk7CisKKwlwY2lfcDJwZG1hX2NsaWVudF9saXN0X2ZyZWUoJmN0cmwtPnAycF9jbGll
-bnRzKTsKKwlwY2lfZGV2X3B1dChjdHJsLT5wMnBfZGV2KTsKKwljdHJsLT5wMnBfZGV2ID0gTlVM
-TDsKKworCW11dGV4X3VubG9jaygmY3RybC0+c3Vic3lzLT5sb2NrKTsKK30KKwogdTE2IG52bWV0
-X2FsbG9jX2N0cmwoY29uc3QgY2hhciAqc3Vic3lzbnFuLCBjb25zdCBjaGFyICpob3N0bnFuLAog
-CQlzdHJ1Y3QgbnZtZXRfcmVxICpyZXEsIHUzMiBrYXRvLCBzdHJ1Y3QgbnZtZXRfY3RybCAqKmN0
-cmxwKQogewpAQCAtODIxLDYgKzk0MSw3IEBAIHUxNiBudm1ldF9hbGxvY19jdHJsKGNvbnN0IGNo
-YXIgKnN1YnN5c25xbiwgY29uc3QgY2hhciAqaG9zdG5xbiwKIAogCUlOSVRfV09SSygmY3RybC0+
-YXN5bmNfZXZlbnRfd29yaywgbnZtZXRfYXN5bmNfZXZlbnRfd29yayk7CiAJSU5JVF9MSVNUX0hF
-QUQoJmN0cmwtPmFzeW5jX2V2ZW50cyk7CisJSU5JVF9MSVNUX0hFQUQoJmN0cmwtPnAycF9jbGll
-bnRzKTsKIAogCW1lbWNweShjdHJsLT5zdWJzeXNucW4sIHN1YnN5c25xbiwgTlZNRl9OUU5fU0la
-RSk7CiAJbWVtY3B5KGN0cmwtPmhvc3RucW4sIGhvc3RucW4sIE5WTUZfTlFOX1NJWkUpOwpAQCAt
-ODc2LDYgKzk5Nyw3IEBAIHUxNiBudm1ldF9hbGxvY19jdHJsKGNvbnN0IGNoYXIgKnN1YnN5c25x
-biwgY29uc3QgY2hhciAqaG9zdG5xbiwKIAkJY3RybC0+a2F0byA9IERJVl9ST1VORF9VUChrYXRv
-LCAxMDAwKTsKIAl9CiAJbnZtZXRfc3RhcnRfa2VlcF9hbGl2ZV90aW1lcihjdHJsKTsKKwludm1l
-dF9zZXR1cF9wMnBtZW0oY3RybCwgcmVxKTsKIAogCW11dGV4X2xvY2soJnN1YnN5cy0+bG9jayk7
-CiAJbGlzdF9hZGRfdGFpbCgmY3RybC0+c3Vic3lzX2VudHJ5LCAmc3Vic3lzLT5jdHJscyk7CkBA
-IC05MTIsNiArMTAzNCw3IEBAIHN0YXRpYyB2b2lkIG52bWV0X2N0cmxfZnJlZShzdHJ1Y3Qga3Jl
-ZiAqcmVmKQogCWZsdXNoX3dvcmsoJmN0cmwtPmFzeW5jX2V2ZW50X3dvcmspOwogCWNhbmNlbF93
-b3JrX3N5bmMoJmN0cmwtPmZhdGFsX2Vycl93b3JrKTsKIAorCW52bWV0X3JlbGVhc2VfcDJwbWVt
-KGN0cmwpOwogCWlkYV9zaW1wbGVfcmVtb3ZlKCZjbnRsaWRfaWRhLCBjdHJsLT5jbnRsaWQpOwog
-CiAJa2ZyZWUoY3RybC0+c3FzKTsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZtZS90YXJnZXQvaW8t
-Y21kLmMgYi9kcml2ZXJzL252bWUvdGFyZ2V0L2lvLWNtZC5jCmluZGV4IGNkMjM0NDE3OTY3My4u
-MzliZDM3ZjFmMzEyIDEwMDY0NAotLS0gYS9kcml2ZXJzL252bWUvdGFyZ2V0L2lvLWNtZC5jCisr
-KyBiL2RyaXZlcnMvbnZtZS90YXJnZXQvaW8tY21kLmMKQEAgLTU2LDYgKzU2LDkgQEAgc3RhdGlj
-IHZvaWQgbnZtZXRfZXhlY3V0ZV9ydyhzdHJ1Y3QgbnZtZXRfcmVxICpyZXEpCiAJCW9wID0gUkVR
-X09QX1JFQUQ7CiAJfQogCisJaWYgKGlzX3BjaV9wMnBkbWFfcGFnZShzZ19wYWdlKHJlcS0+c2cp
-KSkKKwkJb3BfZmxhZ3MgfD0gUkVRX1BDSV9QMlBETUE7CisKIAlzZWN0b3IgPSBsZTY0X3RvX2Nw
-dShyZXEtPmNtZC0+cncuc2xiYSk7CiAJc2VjdG9yIDw8PSAocmVxLT5ucy0+Ymxrc2l6ZV9zaGlm
-dCAtIDkpOwogCmRpZmYgLS1naXQgYS9kcml2ZXJzL252bWUvdGFyZ2V0L252bWV0LmggYi9kcml2
-ZXJzL252bWUvdGFyZ2V0L252bWV0LmgKaW5kZXggMTBiMTYyNjE1YTVlLi5mMTkyZmVmZTYxZDkg
-MTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbnZtZS90YXJnZXQvbnZtZXQuaAorKysgYi9kcml2ZXJzL252
-bWUvdGFyZ2V0L252bWV0LmgKQEAgLTY0LDYgKzY0LDExIEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0
-IG52bWV0X25zICp0b19udm1ldF9ucyhzdHJ1Y3QgY29uZmlnX2l0ZW0gKml0ZW0pCiAJcmV0dXJu
-IGNvbnRhaW5lcl9vZih0b19jb25maWdfZ3JvdXAoaXRlbSksIHN0cnVjdCBudm1ldF9ucywgZ3Jv
-dXApOwogfQogCitzdGF0aWMgaW5saW5lIHN0cnVjdCBkZXZpY2UgKm52bWV0X25zX2RldihzdHJ1
-Y3QgbnZtZXRfbnMgKm5zKQoreworCXJldHVybiBkaXNrX3RvX2Rldihucy0+YmRldi0+YmRfZGlz
-ayk7Cit9CisKIHN0cnVjdCBudm1ldF9jcSB7CiAJdTE2CQkJcWlkOwogCXUxNgkJCXNpemU7CkBA
-IC05OCw2ICsxMDMsOCBAQCBzdHJ1Y3QgbnZtZXRfcG9ydCB7CiAJc3RydWN0IGxpc3RfaGVhZAkJ
-cmVmZXJyYWxzOwogCXZvaWQJCQkJKnByaXY7CiAJYm9vbAkJCQllbmFibGVkOworCWJvb2wJCQkJ
-dXNlX3AycG1lbTsKKwlzdHJ1Y3QgcGNpX2RldgkJCSpwMnBfZGV2OwogfTsKIAogc3RhdGljIGlu
-bGluZSBzdHJ1Y3QgbnZtZXRfcG9ydCAqdG9fbnZtZXRfcG9ydChzdHJ1Y3QgY29uZmlnX2l0ZW0g
-Kml0ZW0pCkBAIC0xMzIsNiArMTM5LDkgQEAgc3RydWN0IG52bWV0X2N0cmwgewogCiAJY29uc3Qg
-c3RydWN0IG52bWV0X2ZhYnJpY3Nfb3BzICpvcHM7CiAKKwlzdHJ1Y3QgcGNpX2RldgkJKnAycF9k
-ZXY7CisJc3RydWN0IGxpc3RfaGVhZAlwMnBfY2xpZW50czsKKwogCWNoYXIJCQlzdWJzeXNucW5b
-TlZNRl9OUU5fRklFTERfTEVOXTsKIAljaGFyCQkJaG9zdG5xbltOVk1GX05RTl9GSUVMRF9MRU5d
-OwogfTsKQEAgLTIzNCw2ICsyNDQsOSBAQCBzdHJ1Y3QgbnZtZXRfcmVxIHsKIAogCXZvaWQgKCpl
-eGVjdXRlKShzdHJ1Y3QgbnZtZXRfcmVxICpyZXEpOwogCWNvbnN0IHN0cnVjdCBudm1ldF9mYWJy
-aWNzX29wcyAqb3BzOworCisJc3RydWN0IHBjaV9kZXYgKnAycF9kZXY7CisJc3RydWN0IGRldmlj
-ZSAqcDJwX2NsaWVudDsKIH07CiAKIHN0YXRpYyBpbmxpbmUgdm9pZCBudm1ldF9zZXRfc3RhdHVz
-KHN0cnVjdCBudm1ldF9yZXEgKnJlcSwgdTE2IHN0YXR1cykKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-bnZtZS90YXJnZXQvcmRtYS5jIGIvZHJpdmVycy9udm1lL3RhcmdldC9yZG1hLmMKaW5kZXggZjdh
-MzQ1OWQ2MThmLi4yN2E2ZDhlYTFiNTYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbnZtZS90YXJnZXQv
-cmRtYS5jCisrKyBiL2RyaXZlcnMvbnZtZS90YXJnZXQvcmRtYS5jCkBAIC02NjEsNiArNjYxLDgg
-QEAgc3RhdGljIHZvaWQgbnZtZXRfcmRtYV9oYW5kbGVfY29tbWFuZChzdHJ1Y3QgbnZtZXRfcmRt
-YV9xdWV1ZSAqcXVldWUsCiAJCWNtZC0+c2VuZF9zZ2UuYWRkciwgY21kLT5zZW5kX3NnZS5sZW5n
-dGgsCiAJCURNQV9UT19ERVZJQ0UpOwogCisJY21kLT5yZXEucDJwX2NsaWVudCA9ICZxdWV1ZS0+
-ZGV2LT5kZXZpY2UtPmRldjsKKwogCWlmICghbnZtZXRfcmVxX2luaXQoJmNtZC0+cmVxLCAmcXVl
-dWUtPm52bWVfY3EsCiAJCQkmcXVldWUtPm52bWVfc3EsICZudm1ldF9yZG1hX29wcykpCiAJCXJl
-dHVybjsKLS0gCjIuMTEuMAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+This patch changes --bus, --dimm, --region --namespace options to
+OPT_STRING_LIST in order to support multiple arguments. 
+Users can specify multiple dimm like following:
+
+	ndctl list --dimm="nmem1 nmem2" --bus="ndbus0 ndbus1"
+	ndctl list -d "nmem1 nmem2" -b "ndbus0 ndbus1"
+
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+---
+ ndctl/list.c  | 35 ++++++++++++++++------
+ util/filter.c | 81 ++++++++++++++++++++++++++++++++++++---------------
+ util/filter.h |  9 +++---
+ 3 files changed, 88 insertions(+), 37 deletions(-)
+
+diff --git a/ndctl/list.c b/ndctl/list.c
+index 6cf7c39..14da736 100644
+--- a/ndctl/list.c
++++ b/ndctl/list.c
+@@ -129,11 +129,23 @@ static struct json_object *region_to_json(struct ndctl_region *region,
+ 	ndctl_mapping_foreach(region, mapping) {
+ 		struct ndctl_dimm *dimm = ndctl_mapping_get_dimm(mapping);
+ 		struct json_object *jmapping;
++		struct string_list_node *sln;
++		bool flag = false;
+ 
+ 		if (!list.dimms)
+ 			break;
+ 
+-		if (!util_dimm_filter(dimm, param.dimm))
++		if (!list_empty(&param.dimm)) {
++			list_for_each(&param.dimm, sln, list) {
++				if (util_dimm_filter(dimm, sln->str)) {
++					flag = true;
++					break;
++				}
++			}
++		} else
++			flag = true;
++
++		if (!flag)
+ 			continue;
+ 
+ 		if (!list.idle && !ndctl_dimm_is_enabled(dimm))
+@@ -415,14 +427,19 @@ static int num_list_flags(void)
+ 
+ int cmd_list(int argc, const char **argv, void *ctx)
+ {
++	list_head_init(&param.bus);
++	list_head_init(&param.dimm);
++	list_head_init(&param.region);
++	list_head_init(&param.namespace);
+ 	const struct option options[] = {
+-		OPT_STRING('b', "bus", &param.bus, "bus-id", "filter by bus"),
+-		OPT_STRING('r', "region", &param.region, "region-id",
++		OPT_STRING_LIST('b', "bus", &param.bus, "bus-id",
++				"filter by bus"),
++		OPT_STRING_LIST('r', "region", &param.region, "region-id",
+ 				"filter by region"),
+-		OPT_STRING('d', "dimm", &param.dimm, "dimm-id",
++		OPT_STRING_LIST('d', "dimm", &param.dimm, "dimm-id",
+ 				"filter by dimm"),
+-		OPT_STRING('n', "namespace", &param.namespace, "namespace-id",
+-				"filter by namespace id"),
++		OPT_STRING_LIST('n', "namespace", &param.namespace,
++				"namespace-id", "filter by namespace id"),
+ 		OPT_STRING('m', "mode", &param.mode, "namespace-mode",
+ 				"filter by namespace mode"),
+ 		OPT_STRING('t', "type", &param.type, "region-type",
+@@ -461,9 +478,9 @@ int cmd_list(int argc, const char **argv, void *ctx)
+ 		usage_with_options(u, options);
+ 
+ 	if (num_list_flags() == 0) {
+-		list.buses = !!param.bus;
+-		list.regions = !!param.region;
+-		list.dimms = !!param.dimm;
++		list.buses = !list_empty(&param.bus);
++		list.regions = !list_empty(&param.region);
++		list.dimms = !list_empty(&param.dimm);
+ 		if (list.dax && !param.mode)
+ 			param.mode = "dax";
+ 	}
+diff --git a/util/filter.c b/util/filter.c
+index 6ab391a..3313f53 100644
+--- a/util/filter.c
++++ b/util/filter.c
+@@ -303,13 +303,47 @@ static enum ndctl_namespace_mode mode_to_type(const char *mode)
+ 	return NDCTL_NS_MODE_UNKNOWN;
+ }
+ 
++#define util_field_filter_by_list(field, list_head) \
++if (!list_empty(list_head)) { \
++	list_for_each(list_head, sln, list) { \
++		if (util_##field##_filter(field, sln->str)) { \
++			flag = true; \
++			break; \
++		} \
++	} \
++} else \
++	flag = true; \
++\
++if (flag) \
++	flag = false; \
++else \
++	continue;
++
++#define util_field_filter_by_list_item(field, item, list_head) \
++if (!list_empty(list_head)) { \
++	list_for_each(list_head, sln, list) { \
++		if (util_##field##_filter_by_##item(field, sln->str)) { \
++			flag = true; \
++			break; \
++		} \
++	} \
++} else \
++	flag = true; \
++\
++if (flag) \
++	flag = false; \
++else \
++	continue;
++
+ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 		struct util_filter_params *param)
+ {
+ 	struct ndctl_bus *bus;
++	struct string_list_node *sln;
+ 	unsigned int type = 0;
+ 	int numa_node = NUMA_NO_NODE;
+ 	char *end = NULL;
++	bool flag = false;
+ 
+ 	if (param->type && (strcmp(param->type, "pmem") != 0
+ 				&& strcmp(param->type, "blk") != 0)) {
+@@ -349,11 +383,11 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 		struct ndctl_region *region;
+ 		struct ndctl_dimm *dimm;
+ 
+-		if (!util_bus_filter(bus, param->bus)
+-				|| !util_bus_filter_by_dimm(bus, param->dimm)
+-				|| !util_bus_filter_by_region(bus, param->region)
+-				|| !util_bus_filter_by_namespace(bus, param->namespace))
+-			continue;
++		util_field_filter_by_list(bus, &param->bus);
++		util_field_filter_by_list_item(bus, dimm, &param->dimm);
++		util_field_filter_by_list_item(bus, region, &param->region);
++		util_field_filter_by_list_item(bus, namespace,
++					&param->namespace);
+ 
+ 		if (!fctx->filter_bus(bus, fctx))
+ 			continue;
+@@ -362,27 +396,25 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 			if (!fctx->filter_dimm)
+ 				break;
+ 
+-			if (!util_dimm_filter(dimm, param->dimm)
+-					|| !util_dimm_filter_by_region(dimm,
+-						param->region)
+-					|| !util_dimm_filter_by_namespace(dimm,
+-						param->namespace)
+-					|| !util_dimm_filter_by_numa_node(dimm,
+-						numa_node))
++			util_field_filter_by_list(dimm, &param->dimm);
++			util_field_filter_by_list_item(dimm, region,
++					&param->region);
++			util_field_filter_by_list_item(dimm, namespace,
++					&param->namespace);
++			if (!util_dimm_filter_by_numa_node(dimm, numa_node))
+ 				continue;
+ 
+ 			fctx->filter_dimm(dimm, fctx);
+ 		}
+ 
+ 		ndctl_region_foreach(bus, region) {
+-			struct ndctl_namespace *ndns;
++			struct ndctl_namespace *namespace;
+ 
+-			if (!util_region_filter(region, param->region)
+-					|| !util_region_filter_by_dimm(region,
+-						param->dimm)
+-					|| !util_region_filter_by_namespace(region,
+-						param->namespace))
+-				continue;
++			util_field_filter_by_list(region, &param->region);
++			util_field_filter_by_list_item(region, dimm,
++					&param->dimm);
++			util_field_filter_by_list_item(region, namespace,
++					&param->namespace);
+ 
+ 			if (numa_node != NUMA_NO_NODE &&
+ 			    ndctl_region_get_numa_node(region) != numa_node)
+@@ -394,19 +426,20 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 			if (!fctx->filter_region(region, fctx))
+ 				continue;
+ 
+-			ndctl_namespace_foreach(region, ndns) {
++			ndctl_namespace_foreach(region, namespace) {
+ 				enum ndctl_namespace_mode mode;
+ 
+ 				if (!fctx->filter_namespace)
+ 					break;
+-				if (!util_namespace_filter(ndns, param->namespace))
+-					continue;
+ 
+-				mode = ndctl_namespace_get_mode(ndns);
++				util_field_filter_by_list(namespace,
++						&param->namespace);
++
++				mode = ndctl_namespace_get_mode(namespace);
+ 				if (param->mode && mode_to_type(param->mode) != mode)
+ 					continue;
+ 
+-				fctx->filter_namespace(ndns, fctx);
++				fctx->filter_namespace(namespace, fctx);
+ 			}
+ 		}
+ 	}
+diff --git a/util/filter.h b/util/filter.h
+index effda24..4b21cb3 100644
+--- a/util/filter.h
++++ b/util/filter.h
+@@ -13,6 +13,7 @@
+ #ifndef _UTIL_FILTER_H_
+ #define _UTIL_FILTER_H_
+ #include <stdbool.h>
++#include <ccan/list/list.h>
+ 
+ struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
+ struct ndctl_region *util_region_filter(struct ndctl_region *region,
+@@ -71,12 +72,12 @@ struct util_filter_ctx {
+ };
+ 
+ struct util_filter_params {
+-	const char *bus;
+-	const char *region;
++	struct list_head bus;
++	struct list_head dimm;
++	struct list_head region;
++	struct list_head namespace;
+ 	const char *type;
+-	const char *dimm;
+ 	const char *mode;
+-	const char *namespace;
+ 	const char *numa_node;
+ };
+ 
+-- 
+2.17.0.140.g0b0cc9f86
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
