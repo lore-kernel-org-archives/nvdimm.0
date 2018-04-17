@@ -1,25 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x22a.google.com (mail-ot0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c0f::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ABFB722683917
- for <linux-nvdimm@lists.01.org>; Wed, 18 Apr 2018 03:09:32 -0700 (PDT)
-Received: from g01jpfmpwkw01.exch.g01.fujitsu.local
- (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id F0494AC01FA
- for <linux-nvdimm@lists.01.org>; Wed, 18 Apr 2018 19:09:22 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [PATCH 1/2] ndctl, util: add OPT_STRING_LIST to parse_option
-Date: Wed, 18 Apr 2018 10:09:20 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222764E0C7@g01jpexmbkw01>
+ by ml01.01.org (Postfix) with ESMTPS id 6D9262265A172
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 09:32:09 -0700 (PDT)
+Received: by mail-ot0-x22a.google.com with SMTP id y46-v6so22065432otd.4
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 09:32:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3222764DF5B@g01jpexmbkw01>
 References: <20180417063848.5585-1-qi.fuli@jp.fujitsu.com>
  <20180417063848.5585-2-qi.fuli@jp.fujitsu.com>
  <CAPcyv4g16niVJ+X73nSB9vHn3kNdc_X3ydZ1wy22AwVEp-1Rdw@mail.gmail.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764DF5B@g01jpexmbkw01>
- <CAPcyv4hc5OYNSJT2PpsCH-QcjtBFkMoc-D3TKvAL5UyB9ZZYHQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4hc5OYNSJT2PpsCH-QcjtBFkMoc-D3TKvAL5UyB9ZZYHQ@mail.gmail.com>
-Content-Language: ja-JP
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 17 Apr 2018 09:32:08 -0700
+Message-ID: <CAPcyv4hc5OYNSJT2PpsCH-QcjtBFkMoc-D3TKvAL5UyB9ZZYHQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ndctl, util: add OPT_STRING_LIST to parse_option
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,59 +24,116 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dan Williams' <dan.j.williams@intel.com>
+To: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> >> As far as I can see we do not need to allocate a list or add this new
-> >> OPT_STRING_LIST argument type. Just teach the util_<object>_filter()
-> routines
-> >> that the 'ident' argument may be a space delimited list.  See the attached
-> patch:
-> >
-> > Thank you for your comment.
-> >
-> > The OPT_STRING_LIST is copied from git.
-> > Consider multiple arguments per option should be supported not only in
-> > monitor and list but also in other commands, as Vishal mentioned:
-> >   "ndctl disable-namespace namespace1.0 namespace2.0 ..."
-> 
-> In this case there's no "-n" option so the list parsing is already
-> handled by standard shell argument parsing, i.e. the argv[] array
-> already has the list split.
-> 
-> > If you think this feature is not needed in other commands, I will delete
-> > OPT_STRING_LIST and make a v2 patch.
-> 
-> I can see OPT_STRING_LIST potentially being useful in other scenarios,
-> but for the util_<object>_filter functions it seems an awkward fit to
-> me. We end up doing the parsing twice. Once to parse the space
-> separated list and again to parse each entry against the object to be
-> filtered. In this case I think it is cleaner to handle it internally
-> to the utility functions.  It also makes the util functions more
-> generically useful as I can now use them in scenarios where the string
-> list is not coming from the command line.
-> 
-> Ross noted that the attachment got swallowed by the list, so here it
-> is pasted, please forgive any whitespace damage:
-
-Thank you very much, I made a v2 patch by referring to your sample patch.
-
-Going back to the OPT_STRING_LIST, I think it is necessary for ndctl.
-Because the other options in monitor like --dimm-event, --bus-event 
-also need to support multiple space-separated arguments, these options 
-should be made as a string_list.
-
-One more question is that do you think it is necessary for ndctl to copy 
-OPT_FILENAME in parse_option from git? The difference between OPT_FILENAME 
-and OPT_STRING is that there is an additional fix_filename() in OPTION_FILENAME 
-to process file's path. Considering that ndctl monitor also has file options like 
---logfile, --conf-file, I think we'd better to copy it.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVHVlLCBBcHIgMTcsIDIwMTggYXQgODoyOSBBTSwgUWksIEZ1bGkgPHFpLmZ1bGlAanAuZnVq
+aXRzdS5jb20+IHdyb3RlOgo+Cj4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4+IEZyb206
+IERhbiBXaWxsaWFtcyBbbWFpbHRvOmRhbi5qLndpbGxpYW1zQGludGVsLmNvbV0KPj4gU2VudDog
+VHVlc2RheSwgQXByaWwgMTcsIDIwMTggMTE6NTcgUE0KPj4gVG86IFFpLCBGdWxpL+aWiSDnpo/l
+iKkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+Cj4+IENjOiBsaW51eC1udmRpbW0gPGxpbnV4LW52
+ZGltbUBsaXN0cy4wMS5vcmc+Cj4+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMS8yXSBuZGN0bCwgdXRp
+bDogYWRkIE9QVF9TVFJJTkdfTElTVCB0byBwYXJzZV9vcHRpb24KPj4KPj4gT24gTW9uLCBBcHIg
+MTYsIDIwMTggYXQgMTE6MzggUE0sIFFJIEZ1bGkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+IHdy
+b3RlOgo+PiA+IFRoaXMgcGF0Y2ggYWRkcyBPUFRfU1RSSU5HX0xJU1QgdG8gcGFyc2Vfb3B0aW9u
+IGluIG9yZGVyIHRvIHN1cHBvcnQKPj4gPiBtdWx0aXBsZSBzcGFjZSBzZXBlcmF0ZWQgc3RyaW5n
+IG9iamVjdHMgaW4gb25lIG9wdGlvbi4KPj4gPgo+PiA+IFNpZ25lZC1vZmYtYnk6IFFJIEZ1bGkg
+PHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+Cj4+ID4gLS0tCj4+ID4gIGNjYW4vbGlzdC9saXN0Lmgg
+ICAgIHwgIDYgKysrKysrCj4+ID4gIHV0aWwvcGFyc2Utb3B0aW9ucy5jIHwgMjUgKysrKysrKysr
+KysrKysrKysrKysrKysrKwo+PiA+IHV0aWwvcGFyc2Utb3B0aW9ucy5oIHwgIDMgKysrCj4+ID4g
+IDMgZmlsZXMgY2hhbmdlZCwgMzQgaW5zZXJ0aW9ucygrKQo+PiA+Cj4+ID4gZGlmZiAtLWdpdCBh
+L2NjYW4vbGlzdC9saXN0LmggYi9jY2FuL2xpc3QvbGlzdC5oIGluZGV4Cj4+ID4gNGQxZDM0ZS4u
+ZjZjOTI3ZiAxMDA2NDQKPj4gPiAtLS0gYS9jY2FuL2xpc3QvbGlzdC5oCj4+ID4gKysrIGIvY2Nh
+bi9saXN0L2xpc3QuaAo+PiA+IEBAIC0yNiw2ICsyNiwxMiBAQCBzdHJ1Y3QgbGlzdF9ub2RlCj4+
+ID4gICAgICAgICBzdHJ1Y3QgbGlzdF9ub2RlICpuZXh0LCAqcHJldjsgIH07Cj4+ID4KPj4gPiAr
+c3RydWN0IHN0cmluZ19saXN0X25vZGUKPj4gPiArewo+PiA+ICsgICAgICAgY2hhciAqc3RyOwo+
+PiA+ICsgICAgICAgc3RydWN0IGxpc3Rfbm9kZSBsaXN0Owo+PiA+ICt9Owo+PiA+ICsKPj4gPiAg
+LyoqCj4+ID4gICAqIHN0cnVjdCBsaXN0X2hlYWQgLSB0aGUgaGVhZCBvZiBhIGRvdWJseS1saW5r
+ZWQgbGlzdAo+PiA+ICAgKiBAaDogdGhlIGxpc3RfaGVhZCAoY29udGFpbmluZyBuZXh0IGFuZCBw
+cmV2IHBvaW50ZXJzKSBkaWZmIC0tZ2l0Cj4+ID4gYS91dGlsL3BhcnNlLW9wdGlvbnMuYyBiL3V0
+aWwvcGFyc2Utb3B0aW9ucy5jIGluZGV4IDc1MWMwOTEuLmNhYzE4ZjAKPj4gPiAxMDA2NDQKPj4g
+PiAtLS0gYS91dGlsL3BhcnNlLW9wdGlvbnMuYwo+PiA+ICsrKyBiL3V0aWwvcGFyc2Utb3B0aW9u
+cy5jCj4+ID4gQEAgLTIwLDYgKzIwLDcgQEAKPj4gPiAgI2luY2x1ZGUgPHV0aWwvdXRpbC5oPgo+
+PiA+ICAjaW5jbHVkZSA8dXRpbC9zdHJidWYuaD4KPj4gPiAgI2luY2x1ZGUgPHV0aWwvcGFyc2Ut
+b3B0aW9ucy5oPgo+PiA+ICsjaW5jbHVkZSA8Y2Nhbi9saXN0L2xpc3QuaD4KPj4gPgo+PiA+ICAj
+ZGVmaW5lIE9QVF9TSE9SVCAxCj4+ID4gICNkZWZpbmUgT1BUX1VOU0VUIDIKPj4gPiBAQCAtNjk1
+LDMgKzY5NiwyNyBAQCBpbnQgcGFyc2Vfb3B0X3ZlcmJvc2l0eV9jYihjb25zdCBzdHJ1Y3Qgb3B0
+aW9uICpvcHQsCj4+ID4gICAgICAgICB9Cj4+ID4gICAgICAgICByZXR1cm4gMDsKPj4gPiAgfQo+
+PiA+ICsKPj4gPiAraW50IHBhcnNlX29wdF9zdHJpbmdfbGlzdChjb25zdCBzdHJ1Y3Qgb3B0aW9u
+ICpvcHQsIGNvbnN0IGNoYXIgKmFyZywKPj4gPiAraW50IHVuc2V0KSB7Cj4+ID4gKyAgICAgICBp
+ZiAodW5zZXQpCj4+ID4gKyAgICAgICAgICAgICAgIHJldHVybiAwOwo+PiA+ICsKPj4gPiArICAg
+ICAgIGlmICghYXJnKQo+PiA+ICsgICAgICAgICAgICAgICByZXR1cm4gLTE7Cj4+ID4gKwo+PiA+
+ICsgICAgICAgc3RydWN0IGxpc3RfaGVhZCAqdiA9IG9wdC0+dmFsdWU7Cj4+ID4gKyAgICAgICBj
+aGFyICp0ZW1wID0gc3RyZHVwKGFyZyk7Cj4+ID4gKyAgICAgICBjb25zdCBjaGFyICpkZWxpID0g
+IiAiOwo+PiA+ICsKPj4gPiArICAgICAgIHRlbXAgPSBzdHJ0b2sodGVtcCwgZGVsaSk7Cj4+ID4g
+KyAgICAgICB3aGlsZSAodGVtcCAhPSBOVUxMKSB7Cj4+ID4gKyAgICAgICAgICAgICAgIHN0cnVj
+dCBzdHJpbmdfbGlzdF9ub2RlICpzbG4gPSBtYWxsb2Moc2l6ZW9mKCpzbG4pKTsKPj4gPiArICAg
+ICAgICAgICAgICAgc2xuLT5zdHIgPSB0ZW1wOwo+PiA+ICsgICAgICAgICAgICAgICBsaXN0X2Fk
+ZF90YWlsKHYsICZzbG4tPmxpc3QpOwo+PiA+ICsgICAgICAgICAgICAgICB0ZW1wID0gc3RydG9r
+KE5VTEwsIGRlbGkpOwo+PiA+ICsgICAgICAgfQo+PiA+ICsKPj4gPiArICAgICAgIGZyZWUodGVt
+cCk7Cj4+ID4gKyAgICAgICByZXR1cm4gMDsKPj4gPiArfQo+Pgo+PiBBcyBmYXIgYXMgSSBjYW4g
+c2VlIHdlIGRvIG5vdCBuZWVkIHRvIGFsbG9jYXRlIGEgbGlzdCBvciBhZGQgdGhpcyBuZXcKPj4g
+T1BUX1NUUklOR19MSVNUIGFyZ3VtZW50IHR5cGUuIEp1c3QgdGVhY2ggdGhlIHV0aWxfPG9iamVj
+dD5fZmlsdGVyKCkgcm91dGluZXMKPj4gdGhhdCB0aGUgJ2lkZW50JyBhcmd1bWVudCBtYXkgYmUg
+YSBzcGFjZSBkZWxpbWl0ZWQgbGlzdC4gIFNlZSB0aGUgYXR0YWNoZWQgcGF0Y2g6Cj4KPiBUaGFu
+ayB5b3UgZm9yIHlvdXIgY29tbWVudC4KPgo+IFRoZSBPUFRfU1RSSU5HX0xJU1QgaXMgY29waWVk
+IGZyb20gZ2l0Lgo+IENvbnNpZGVyIG11bHRpcGxlIGFyZ3VtZW50cyBwZXIgb3B0aW9uIHNob3Vs
+ZCBiZSBzdXBwb3J0ZWQgbm90IG9ubHkgaW4KPiBtb25pdG9yIGFuZCBsaXN0IGJ1dCBhbHNvIGlu
+IG90aGVyIGNvbW1hbmRzLCBhcyBWaXNoYWwgbWVudGlvbmVkOgo+ICAgIm5kY3RsIGRpc2FibGUt
+bmFtZXNwYWNlIG5hbWVzcGFjZTEuMCBuYW1lc3BhY2UyLjAgLi4uIgoKSW4gdGhpcyBjYXNlIHRo
+ZXJlJ3Mgbm8gIi1uIiBvcHRpb24gc28gdGhlIGxpc3QgcGFyc2luZyBpcyBhbHJlYWR5CmhhbmRs
+ZWQgYnkgc3RhbmRhcmQgc2hlbGwgYXJndW1lbnQgcGFyc2luZywgaS5lLiB0aGUgYXJndltdIGFy
+cmF5CmFscmVhZHkgaGFzIHRoZSBsaXN0IHNwbGl0LgoKPiBJZiB5b3UgdGhpbmsgdGhpcyBmZWF0
+dXJlIGlzIG5vdCBuZWVkZWQgaW4gb3RoZXIgY29tbWFuZHMsIEkgd2lsbCBkZWxldGUKPiBPUFRf
+U1RSSU5HX0xJU1QgYW5kIG1ha2UgYSB2MiBwYXRjaC4KCkkgY2FuIHNlZSBPUFRfU1RSSU5HX0xJ
+U1QgcG90ZW50aWFsbHkgYmVpbmcgdXNlZnVsIGluIG90aGVyIHNjZW5hcmlvcywKYnV0IGZvciB0
+aGUgdXRpbF88b2JqZWN0Pl9maWx0ZXIgZnVuY3Rpb25zIGl0IHNlZW1zIGFuIGF3a3dhcmQgZml0
+IHRvCm1lLiBXZSBlbmQgdXAgZG9pbmcgdGhlIHBhcnNpbmcgdHdpY2UuIE9uY2UgdG8gcGFyc2Ug
+dGhlIHNwYWNlCnNlcGFyYXRlZCBsaXN0IGFuZCBhZ2FpbiB0byBwYXJzZSBlYWNoIGVudHJ5IGFn
+YWluc3QgdGhlIG9iamVjdCB0byBiZQpmaWx0ZXJlZC4gSW4gdGhpcyBjYXNlIEkgdGhpbmsgaXQg
+aXMgY2xlYW5lciB0byBoYW5kbGUgaXQgaW50ZXJuYWxseQp0byB0aGUgdXRpbGl0eSBmdW5jdGlv
+bnMuICBJdCBhbHNvIG1ha2VzIHRoZSB1dGlsIGZ1bmN0aW9ucyBtb3JlCmdlbmVyaWNhbGx5IHVz
+ZWZ1bCBhcyBJIGNhbiBub3cgdXNlIHRoZW0gaW4gc2NlbmFyaW9zIHdoZXJlIHRoZSBzdHJpbmcK
+bGlzdCBpcyBub3QgY29taW5nIGZyb20gdGhlIGNvbW1hbmQgbGluZS4KClJvc3Mgbm90ZWQgdGhh
+dCB0aGUgYXR0YWNobWVudCBnb3Qgc3dhbGxvd2VkIGJ5IHRoZSBsaXN0LCBzbyBoZXJlIGl0Cmlz
+IHBhc3RlZCwgcGxlYXNlIGZvcmdpdmUgYW55IHdoaXRlc3BhY2UgZGFtYWdlOgoKZGlmZiAtLWdp
+dCBhL3V0aWwvZmlsdGVyLmMgYi91dGlsL2ZpbHRlci5jCmluZGV4IDZhYjM5MWE4MWQ5NC4uYzM3
+YjYyYzdlODU4IDEwMDY0NAotLS0gYS91dGlsL2ZpbHRlci5jCisrKyBiL3V0aWwvZmlsdGVyLmMK
+QEAgLTk4LDI4ICs5OCwzOCBAQCBzdHJ1Y3QgbmRjdGxfbmFtZXNwYWNlCip1dGlsX25hbWVzcGFj
+ZV9maWx0ZXIoc3RydWN0IG5kY3RsX25hbWVzcGFjZSAqbmRucwogICAgICAgIHJldHVybiBOVUxM
+OwogfQoKLXN0cnVjdCBuZGN0bF9kaW1tICp1dGlsX2RpbW1fZmlsdGVyKHN0cnVjdCBuZGN0bF9k
+aW1tICpkaW1tLCBjb25zdCBjaGFyICppZGVudCkKK3N0cnVjdCBuZGN0bF9kaW1tICp1dGlsX2Rp
+bW1fZmlsdGVyKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tLCBjb25zdApjaGFyICpfX2lkZW50KQog
+ewotICAgICAgIGNoYXIgKmVuZCA9IE5VTEw7Ci0gICAgICAgY29uc3QgY2hhciAqbmFtZTsKKyAg
+ICAgICBjaGFyICplbmQgPSBOVUxMLCAqaWRlbnQsICpzYXZlOworICAgICAgIGNvbnN0IGNoYXIg
+Km5hbWUsICpkaW1tX25hbWU7CiAgICAgICAgdW5zaWduZWQgbG9uZyBkaW1tX2lkLCBpZDsKCi0g
+ICAgICAgaWYgKCFpZGVudCB8fCBzdHJjbXAoaWRlbnQsICJhbGwiKSA9PSAwKQorICAgICAgIGlm
+ICghX19pZGVudCB8fCBzdHJjbXAoX19pZGVudCwgImFsbCIpID09IDApCiAgICAgICAgICAgICAg
+ICByZXR1cm4gZGltbTsKCi0gICAgICAgZGltbV9pZCA9IHN0cnRvdWwoaWRlbnQsICZlbmQsIDAp
+OwotICAgICAgIGlmIChlbmQgPT0gaWRlbnQgfHwgZW5kWzBdKQotICAgICAgICAgICAgICAgZGlt
+bV9pZCA9IFVMT05HX01BWDsKKyAgICAgICBpZGVudCA9IHN0cmR1cChfX2lkZW50KTsKKyAgICAg
+ICBpZiAoIWlkZW50KQorICAgICAgICAgICAgICAgcmV0dXJuIE5VTEw7CgotICAgICAgIG5hbWUg
+PSBuZGN0bF9kaW1tX2dldF9kZXZuYW1lKGRpbW0pOwotICAgICAgIGlkID0gbmRjdGxfZGltbV9n
+ZXRfaWQoZGltbSk7CisgICAgICAgZm9yIChuYW1lID0gc3RydG9rX3IoaWRlbnQsICIgIiwgJnNh
+dmUpOyBuYW1lOworICAgICAgICAgICAgICAgICAgICAgICBuYW1lID0gc3RydG9rX3IoTlVMTCwg
+IiAiLCAmc2F2ZSkpIHsKKyAgICAgICAgICAgICAgIGRpbW1faWQgPSBzdHJ0b3VsKG5hbWUsICZl
+bmQsIDApOworICAgICAgICAgICAgICAgaWYgKGVuZCA9PSBpZGVudCB8fCBlbmRbMF0pCisgICAg
+ICAgICAgICAgICAgICAgICAgIGRpbW1faWQgPSBVTE9OR19NQVg7CgotICAgICAgIGlmIChkaW1t
+X2lkIDwgVUxPTkdfTUFYICYmIGRpbW1faWQgPT0gaWQpCi0gICAgICAgICAgICAgICByZXR1cm4g
+ZGltbTsKKyAgICAgICAgICAgICAgIGRpbW1fbmFtZSA9IG5kY3RsX2RpbW1fZ2V0X2Rldm5hbWUo
+ZGltbSk7CisgICAgICAgICAgICAgICBpZCA9IG5kY3RsX2RpbW1fZ2V0X2lkKGRpbW0pOwoKLSAg
+ICAgICBpZiAoZGltbV9pZCA9PSBVTE9OR19NQVggJiYgc3RyY21wKGlkZW50LCBuYW1lKSA9PSAw
+KQotICAgICAgICAgICAgICAgcmV0dXJuIGRpbW07CisgICAgICAgICAgICAgICBpZiAoZGltbV9p
+ZCA8IFVMT05HX01BWCAmJiBkaW1tX2lkID09IGlkKQorICAgICAgICAgICAgICAgICAgICAgICBi
+cmVhazsKKworICAgICAgICAgICAgICAgaWYgKGRpbW1faWQgPT0gVUxPTkdfTUFYICYmIHN0cmNt
+cChkaW1tX25hbWUsIG5hbWUpID09IDApCisgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOwor
+ICAgICAgIH0KKyAgICAgICBmcmVlKGlkZW50KTsKCisgICAgICAgaWYgKG5hbWUpCisgICAgICAg
+ICAgICAgICByZXR1cm4gZGltbTsKICAgICAgICByZXR1cm4gTlVMTDsKIH0KX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
+bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
+YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
