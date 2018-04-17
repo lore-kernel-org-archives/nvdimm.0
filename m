@@ -1,23 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x241.google.com (mail-ot0-x241.google.com
+ [IPv6:2607:f8b0:4003:c0f::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 48D0A2263DD78
- for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 08:29:28 -0700 (PDT)
-Received: from g01jpfmpwkw01.exch.g01.fujitsu.local
- (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id AD6BBAC009A
- for <linux-nvdimm@lists.01.org>; Wed, 18 Apr 2018 00:29:24 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [PATCH 1/2] ndctl, util: add OPT_STRING_LIST to parse_option
-Date: Tue, 17 Apr 2018 15:29:22 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222764DF5B@g01jpexmbkw01>
+ by ml01.01.org (Postfix) with ESMTPS id F185A21F2E185
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 07:56:38 -0700 (PDT)
+Received: by mail-ot0-x241.google.com with SMTP id h55-v6so21671591ote.9
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 07:56:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180417063848.5585-2-qi.fuli@jp.fujitsu.com>
 References: <20180417063848.5585-1-qi.fuli@jp.fujitsu.com>
  <20180417063848.5585-2-qi.fuli@jp.fujitsu.com>
- <CAPcyv4g16niVJ+X73nSB9vHn3kNdc_X3ydZ1wy22AwVEp-1Rdw@mail.gmail.com>
-In-Reply-To: <CAPcyv4g16niVJ+X73nSB9vHn3kNdc_X3ydZ1wy22AwVEp-1Rdw@mail.gmail.com>
-Content-Language: ja-JP
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 17 Apr 2018 07:56:37 -0700
+Message-ID: <CAPcyv4g16niVJ+X73nSB9vHn3kNdc_X3ydZ1wy22AwVEp-1Rdw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ndctl, util: add OPT_STRING_LIST to parse_option
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,69 +22,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dan Williams' <dan.j.williams@intel.com>
+To: QI Fuli <qi.fuli@jp.fujitsu.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IERhbiBXaWxsaWFtcyBbbWFp
-bHRvOmRhbi5qLndpbGxpYW1zQGludGVsLmNvbV0NCj4gU2VudDogVHVlc2RheSwgQXByaWwgMTcs
-IDIwMTggMTE6NTcgUE0NCj4gVG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVq
-aXRzdS5jb20+DQo+IENjOiBsaW51eC1udmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+
-DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMS8yXSBuZGN0bCwgdXRpbDogYWRkIE9QVF9TVFJJTkdf
-TElTVCB0byBwYXJzZV9vcHRpb24NCj4gDQo+IE9uIE1vbiwgQXByIDE2LCAyMDE4IGF0IDExOjM4
-IFBNLCBRSSBGdWxpIDxxaS5mdWxpQGpwLmZ1aml0c3UuY29tPiB3cm90ZToNCj4gPiBUaGlzIHBh
-dGNoIGFkZHMgT1BUX1NUUklOR19MSVNUIHRvIHBhcnNlX29wdGlvbiBpbiBvcmRlciB0byBzdXBw
-b3J0DQo+ID4gbXVsdGlwbGUgc3BhY2Ugc2VwZXJhdGVkIHN0cmluZyBvYmplY3RzIGluIG9uZSBv
-cHRpb24uDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBRSSBGdWxpIDxxaS5mdWxpQGpwLmZ1aml0
-c3UuY29tPg0KPiA+IC0tLQ0KPiA+ICBjY2FuL2xpc3QvbGlzdC5oICAgICB8ICA2ICsrKysrKw0K
-PiA+ICB1dGlsL3BhcnNlLW9wdGlvbnMuYyB8IDI1ICsrKysrKysrKysrKysrKysrKysrKysrKysN
-Cj4gPiB1dGlsL3BhcnNlLW9wdGlvbnMuaCB8ICAzICsrKw0KPiA+ICAzIGZpbGVzIGNoYW5nZWQs
-IDM0IGluc2VydGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9jY2FuL2xpc3QvbGlzdC5o
-IGIvY2Nhbi9saXN0L2xpc3QuaCBpbmRleA0KPiA+IDRkMWQzNGUuLmY2YzkyN2YgMTAwNjQ0DQo+
-ID4gLS0tIGEvY2Nhbi9saXN0L2xpc3QuaA0KPiA+ICsrKyBiL2NjYW4vbGlzdC9saXN0LmgNCj4g
-PiBAQCAtMjYsNiArMjYsMTIgQEAgc3RydWN0IGxpc3Rfbm9kZQ0KPiA+ICAgICAgICAgc3RydWN0
-IGxpc3Rfbm9kZSAqbmV4dCwgKnByZXY7ICB9Ow0KPiA+DQo+ID4gK3N0cnVjdCBzdHJpbmdfbGlz
-dF9ub2RlDQo+ID4gK3sNCj4gPiArICAgICAgIGNoYXIgKnN0cjsNCj4gPiArICAgICAgIHN0cnVj
-dCBsaXN0X25vZGUgbGlzdDsNCj4gPiArfTsNCj4gPiArDQo+ID4gIC8qKg0KPiA+ICAgKiBzdHJ1
-Y3QgbGlzdF9oZWFkIC0gdGhlIGhlYWQgb2YgYSBkb3VibHktbGlua2VkIGxpc3QNCj4gPiAgICog
-QGg6IHRoZSBsaXN0X2hlYWQgKGNvbnRhaW5pbmcgbmV4dCBhbmQgcHJldiBwb2ludGVycykgZGlm
-ZiAtLWdpdA0KPiA+IGEvdXRpbC9wYXJzZS1vcHRpb25zLmMgYi91dGlsL3BhcnNlLW9wdGlvbnMu
-YyBpbmRleCA3NTFjMDkxLi5jYWMxOGYwDQo+ID4gMTAwNjQ0DQo+ID4gLS0tIGEvdXRpbC9wYXJz
-ZS1vcHRpb25zLmMNCj4gPiArKysgYi91dGlsL3BhcnNlLW9wdGlvbnMuYw0KPiA+IEBAIC0yMCw2
-ICsyMCw3IEBADQo+ID4gICNpbmNsdWRlIDx1dGlsL3V0aWwuaD4NCj4gPiAgI2luY2x1ZGUgPHV0
-aWwvc3RyYnVmLmg+DQo+ID4gICNpbmNsdWRlIDx1dGlsL3BhcnNlLW9wdGlvbnMuaD4NCj4gPiAr
-I2luY2x1ZGUgPGNjYW4vbGlzdC9saXN0Lmg+DQo+ID4NCj4gPiAgI2RlZmluZSBPUFRfU0hPUlQg
-MQ0KPiA+ICAjZGVmaW5lIE9QVF9VTlNFVCAyDQo+ID4gQEAgLTY5NSwzICs2OTYsMjcgQEAgaW50
-IHBhcnNlX29wdF92ZXJib3NpdHlfY2IoY29uc3Qgc3RydWN0IG9wdGlvbiAqb3B0LA0KPiA+ICAg
-ICAgICAgfQ0KPiA+ICAgICAgICAgcmV0dXJuIDA7DQo+ID4gIH0NCj4gPiArDQo+ID4gK2ludCBw
-YXJzZV9vcHRfc3RyaW5nX2xpc3QoY29uc3Qgc3RydWN0IG9wdGlvbiAqb3B0LCBjb25zdCBjaGFy
-ICphcmcsDQo+ID4gK2ludCB1bnNldCkgew0KPiA+ICsgICAgICAgaWYgKHVuc2V0KQ0KPiA+ICsg
-ICAgICAgICAgICAgICByZXR1cm4gMDsNCj4gPiArDQo+ID4gKyAgICAgICBpZiAoIWFyZykNCj4g
-PiArICAgICAgICAgICAgICAgcmV0dXJuIC0xOw0KPiA+ICsNCj4gPiArICAgICAgIHN0cnVjdCBs
-aXN0X2hlYWQgKnYgPSBvcHQtPnZhbHVlOw0KPiA+ICsgICAgICAgY2hhciAqdGVtcCA9IHN0cmR1
-cChhcmcpOw0KPiA+ICsgICAgICAgY29uc3QgY2hhciAqZGVsaSA9ICIgIjsNCj4gPiArDQo+ID4g
-KyAgICAgICB0ZW1wID0gc3RydG9rKHRlbXAsIGRlbGkpOw0KPiA+ICsgICAgICAgd2hpbGUgKHRl
-bXAgIT0gTlVMTCkgew0KPiA+ICsgICAgICAgICAgICAgICBzdHJ1Y3Qgc3RyaW5nX2xpc3Rfbm9k
-ZSAqc2xuID0gbWFsbG9jKHNpemVvZigqc2xuKSk7DQo+ID4gKyAgICAgICAgICAgICAgIHNsbi0+
-c3RyID0gdGVtcDsNCj4gPiArICAgICAgICAgICAgICAgbGlzdF9hZGRfdGFpbCh2LCAmc2xuLT5s
-aXN0KTsNCj4gPiArICAgICAgICAgICAgICAgdGVtcCA9IHN0cnRvayhOVUxMLCBkZWxpKTsNCj4g
-PiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICBmcmVlKHRlbXApOw0KPiA+ICsgICAgICAg
-cmV0dXJuIDA7DQo+ID4gK30NCj4gDQo+IEFzIGZhciBhcyBJIGNhbiBzZWUgd2UgZG8gbm90IG5l
-ZWQgdG8gYWxsb2NhdGUgYSBsaXN0IG9yIGFkZCB0aGlzIG5ldw0KPiBPUFRfU1RSSU5HX0xJU1Qg
-YXJndW1lbnQgdHlwZS4gSnVzdCB0ZWFjaCB0aGUgdXRpbF88b2JqZWN0Pl9maWx0ZXIoKSByb3V0
-aW5lcw0KPiB0aGF0IHRoZSAnaWRlbnQnIGFyZ3VtZW50IG1heSBiZSBhIHNwYWNlIGRlbGltaXRl
-ZCBsaXN0LiAgU2VlIHRoZSBhdHRhY2hlZCBwYXRjaDoNCg0KVGhhbmsgeW91IGZvciB5b3VyIGNv
-bW1lbnQuDQoNClRoZSBPUFRfU1RSSU5HX0xJU1QgaXMgY29waWVkIGZyb20gZ2l0Lg0KQ29uc2lk
-ZXIgbXVsdGlwbGUgYXJndW1lbnRzIHBlciBvcHRpb24gc2hvdWxkIGJlIHN1cHBvcnRlZCBub3Qg
-b25seSBpbg0KbW9uaXRvciBhbmQgbGlzdCBidXQgYWxzbyBpbiBvdGhlciBjb21tYW5kcywgYXMg
-VmlzaGFsIG1lbnRpb25lZDoNCiAgIm5kY3RsIGRpc2FibGUtbmFtZXNwYWNlIG5hbWVzcGFjZTEu
-MCBuYW1lc3BhY2UyLjAgLi4uIg0KDQpJZiB5b3UgdGhpbmsgdGhpcyBmZWF0dXJlIGlzIG5vdCBu
-ZWVkZWQgaW4gb3RoZXIgY29tbWFuZHMsIEkgd2lsbCBkZWxldGUNCk9QVF9TVFJJTkdfTElTVCBh
-bmQgbWFrZSBhIHYyIHBhdGNoLg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMu
-MDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1t
-Cg==
+On Mon, Apr 16, 2018 at 11:38 PM, QI Fuli <qi.fuli@jp.fujitsu.com> wrote:
+> This patch adds OPT_STRING_LIST to parse_option in order to support
+> multiple space seperated string objects in one option.
+>
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  ccan/list/list.h     |  6 ++++++
+>  util/parse-options.c | 25 +++++++++++++++++++++++++
+>  util/parse-options.h |  3 +++
+>  3 files changed, 34 insertions(+)
+>
+> diff --git a/ccan/list/list.h b/ccan/list/list.h
+> index 4d1d34e..f6c927f 100644
+> --- a/ccan/list/list.h
+> +++ b/ccan/list/list.h
+> @@ -26,6 +26,12 @@ struct list_node
+>         struct list_node *next, *prev;
+>  };
+>
+> +struct string_list_node
+> +{
+> +       char *str;
+> +       struct list_node list;
+> +};
+> +
+>  /**
+>   * struct list_head - the head of a doubly-linked list
+>   * @h: the list_head (containing next and prev pointers)
+> diff --git a/util/parse-options.c b/util/parse-options.c
+> index 751c091..cac18f0 100644
+> --- a/util/parse-options.c
+> +++ b/util/parse-options.c
+> @@ -20,6 +20,7 @@
+>  #include <util/util.h>
+>  #include <util/strbuf.h>
+>  #include <util/parse-options.h>
+> +#include <ccan/list/list.h>
+>
+>  #define OPT_SHORT 1
+>  #define OPT_UNSET 2
+> @@ -695,3 +696,27 @@ int parse_opt_verbosity_cb(const struct option *opt,
+>         }
+>         return 0;
+>  }
+> +
+> +int parse_opt_string_list(const struct option *opt, const char *arg, int unset)
+> +{
+> +       if (unset)
+> +               return 0;
+> +
+> +       if (!arg)
+> +               return -1;
+> +
+> +       struct list_head *v = opt->value;
+> +       char *temp = strdup(arg);
+> +       const char *deli = " ";
+> +
+> +       temp = strtok(temp, deli);
+> +       while (temp != NULL) {
+> +               struct string_list_node *sln = malloc(sizeof(*sln));
+> +               sln->str = temp;
+> +               list_add_tail(v, &sln->list);
+> +               temp = strtok(NULL, deli);
+> +       }
+> +
+> +       free(temp);
+> +       return 0;
+> +}
+
+As far as I can see we do not need to allocate a list or add this new
+OPT_STRING_LIST argument type. Just teach the util_<object>_filter()
+routines that the 'ident' argument may be a space delimited list.  See
+the attached patch:
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
