@@ -1,15 +1,11 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0C89222512128
- for <linux-nvdimm@lists.01.org>; Mon, 23 Apr 2018 16:31:01 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Mon, 23 Apr 2018 17:30:42 -0600
-Message-Id: <20180423233046.21476-11-logang@deltatee.com>
-In-Reply-To: <20180423233046.21476-1-logang@deltatee.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
-Subject: [PATCH v4 10/14] nvme-pci: Add support for P2P memory in requests
+Received: from lists.01.org (unknown [183.14.30.8])
+ by ml01.01.org (Postfix) with ESMTP id 35B2D226838EB
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 20:26:27 -0700 (PDT)
+From: "Returned mail" <noreply@lists.01.org>
+Subject: Returned mail: see transcript for details
+Date: Wed, 18 Apr 2018 11:26:28 +0800
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,107 +13,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============6497812292142710512=="
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+Message-Id: <20180418032631.1AB4F22683916@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-For P2P requests, we must use the pci_p2pmem_[un]map_sg() functions
-instead of the dma_map_sg functions.
+This is a multi-part message in MIME format.
 
-With that, we can then indicate PCI_P2P support in the request queue.
-For this, we create an NVME_F_PCI_P2P flag which tells the core to
-set QUEUE_FLAG_PCI_P2P in the request queue.
+--===============6497812292142710512==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
----
- drivers/nvme/host/core.c |  4 ++++
- drivers/nvme/host/nvme.h |  1 +
- drivers/nvme/host/pci.c  | 19 +++++++++++++++----
- 3 files changed, 20 insertions(+), 4 deletions(-)
+.^��{����ݪ��[n>f�S�f��"�$�"�{��el �?פ\既6S�ħh�R�
+��w��
+��>�Z�;�t0g�b[��R�7�MAtk Z�Z�M�D�LR��S���9�_��ct���'�W�[�)4
+��c)�˹'��YekԠe���:�Hs�3��
+t9ü�R���`�!Bݳ.���bJ����?1���N�e�����qi����F���A�:���}�g"ð�(*-
+��G���I�
+��guid���������e[�'��7�i���ֲ̥UwT>��m?���ܝ\pZ����x\�"<���ȫ�^T��o��'�HܓHC��M��5�o��fP4�.�T?��� S�W�0��R�Fi�*�|�ůä�贷���`�"c�d�����j�Q"D>^ӝ��a-#`O-ԝ�
+�e�����-�1�2����^����
+��`�N8ݟ�hBA�:{�{*����Y���&�M�жZ��|uz��Xt�2P��)���2/?ި�%���'�ȑp�բ�]:��afqIg�/�
+x�\�D��Q�Kx��gp�x>��xT�s��q�iF!^�Ӌ���k��80y�q��e�����c��A��3޷#Ȏ�ũ3RP�"׃�U{|�k�XE��_���.�Hʔ:r>�!2����-s�~r���UR��wۯj�N��Q�z�T�
+�g�x���<�P���6�
+����A9��»E�Wr({����K7ﰒ��׎��1!��Ob�����6�/�P"�P�E5����[������q8.�Ġ�j�Y�WNh���w8��y)��H��ݑ�ә���Fq��,e6iTq��h���)��Q�O$ k�}��Ѝ�s��K6�n�0�Z�$���,���5����
+gC>�}�����k
+4�s*�����K!�^ޣ*��I[~��TJؤ�����Q"{������ٷxg�܃]RJ��ֺ�C�,r�(b�7Dc������92���-X; �10�<�X��Lai��rIh8x�~"�s�;���P��S5�Q��Í�G��3؏�-������l����A�Զ�v)*T��9_��H5,�ƿ�*�:D�sK��G����p��
+�u2�w/����5C�lV��sH�C��9|b&}x!q�9�����I/s�H�&��9�?
+����*�ұ��*��K'�Ac
+�$�ǭ�*��;��sDT�0��ZQvhW-�H�PnL�.;��kbΘ."�o{���P���JR���Q`h���`4��[7����K�*R��(hޡj{o���D��#u�|ia1�LUC���_��cCbKv��*(U�B��9��9V�ݩ�
+4��!�����C3�G�J�6���N_���&��b\<]j�kWp�ƙ^��JF�W}���nX�����Ep0b糲�ٻۓ�_�Kv�V||�����y�-߮s��N&0F�̠����l6۸����������|���J��8>�ҵ
+��U�
+��%f��zc��2Ew]O�hjø9^˺�dĒ!��:-d�W�N049�����"/W"�)��A1���yT��Hb>�Y�X̮W(�ѫ�?M��7 X�Ҵv�ն�A_��\1qW��B6\M�^ێ�
+�
+E�sn�����IpJ�)
+Z�8*����ԫ�'f��
+�Eq�.o1���O��cz��F�9F�`�q�~>]��Zwu�^7|�&�wM��3�8�{u�$/�N#y���Y{5�ʁV�Mmgv�`�7���h<ٷ��e[4˗r�iC������{7ߦ�nq�K�_��9՛������:ė7Z|>���^1Ύ�G�'��A�]��B�-<5S5�1I��,�-��"�Ѕ
+��:-J�04�aܑ��]g�w%���8�Cy�,9.����iꌝ9O�8]�ʅPQT�f��,��ӷ]�����Z{lJ xq�f���g��j�З���*Ä�����X��g߲1ӒtƂ{
+�#w:���7l�zA<((sJ�͢tJg>���xŦ�$�Y��ہ*��p�o&�7D�҇�Q�$uί,ꄼMpB���'��'�!�2�B�.!���&��
+���vBxom�w`��6�����f�$��I�/d����
+ѵ��)uSQr�l#�ڂ�}�H��Zθ �o�ߕ�'XP��ZH3T9FV�y��ܶF0
+��(�]bA��PƼ0 ��B�y�l��g��W���n
 
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index 9df4f71e58ca..2ca9debbcf2b 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -2977,7 +2977,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
- 	ns->queue = blk_mq_init_queue(ctrl->tagset);
- 	if (IS_ERR(ns->queue))
- 		goto out_free_ns;
-+
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, ns->queue);
-+	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
-+		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
-+
- 	ns->queue->queuedata = ns;
- 	ns->ctrl = ctrl;
- 
-diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-index 061fecfd44f5..9a689c13998f 100644
---- a/drivers/nvme/host/nvme.h
-+++ b/drivers/nvme/host/nvme.h
-@@ -306,6 +306,7 @@ struct nvme_ctrl_ops {
- 	unsigned int flags;
- #define NVME_F_FABRICS			(1 << 0)
- #define NVME_F_METADATA_SUPPORTED	(1 << 1)
-+#define NVME_F_PCI_P2PDMA		(1 << 2)
- 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
- 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
- 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 514da4de3c85..09b6aba6ed28 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -798,8 +798,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
- 		goto out;
- 
- 	ret = BLK_STS_RESOURCE;
--	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
--			DMA_ATTR_NO_WARN);
-+
-+	if (REQ_IS_PCI_P2PDMA(req))
-+		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
-+					  dma_dir);
-+	else
-+		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
-+					     dma_dir,  DMA_ATTR_NO_WARN);
- 	if (!nr_mapped)
- 		goto out;
- 
-@@ -844,7 +849,12 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 
- 	if (iod->nents) {
--		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+		if (REQ_IS_PCI_P2PDMA(req))
-+			pci_p2pdma_unmap_sg(dev->dev, iod->sg, iod->nents,
-+					    dma_dir);
-+		else
-+			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+
- 		if (blk_integrity_rq(req)) {
- 			if (req_op(req) == REQ_OP_READ)
- 				nvme_dif_remap(req, nvme_dif_complete);
-@@ -2439,7 +2449,8 @@ static int nvme_pci_get_address(struct nvme_ctrl *ctrl, char *buf, int size)
- static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
- 	.name			= "pcie",
- 	.module			= THIS_MODULE,
--	.flags			= NVME_F_METADATA_SUPPORTED,
-+	.flags			= NVME_F_METADATA_SUPPORTED |
-+				  NVME_F_PCI_P2PDMA,
- 	.reg_read32		= nvme_pci_reg_read32,
- 	.reg_write32		= nvme_pci_reg_write32,
- 	.reg_read64		= nvme_pci_reg_read64,
--- 
-2.11.0
+
+--===============6497812292142710512==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============6497812292142710512==--
