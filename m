@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x242.google.com (mail-pl0-x242.google.com
- [IPv6:2607:f8b0:400e:c01::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5A464226085BC
- for <linux-nvdimm@lists.01.org>; Tue,  3 Apr 2018 07:25:16 -0700 (PDT)
-Received: by mail-pl0-x242.google.com with SMTP id g20-v6so9001459plo.9
- for <linux-nvdimm@lists.01.org>; Tue, 03 Apr 2018 07:25:16 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [RESEND v2 2/4] libnvdimm: Add device-tree based driver
-Date: Wed,  4 Apr 2018 00:24:13 +1000
-Message-Id: <20180403142415.30083-2-oohall@gmail.com>
-In-Reply-To: <20180403142415.30083-1-oohall@gmail.com>
-References: <20180403142415.30083-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3F79221E08115
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Apr 2018 08:11:37 -0700 (PDT)
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH ndctl v2 1/3] Documentation: fix title and section markers
+Date: Thu, 19 Apr 2018 17:11:18 +0200
+Message-Id: <20180419151120.11041-2-tiwai@suse.de>
+In-Reply-To: <20180419151120.11041-1-tiwai@suse.de>
+References: <20180419151120.11041-1-tiwai@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,204 +22,288 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linuxppc-dev@lists.ozlabs.org
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds peliminary device-tree bindings for persistent memory
-regions. The driver registers a libnvdimm bus for each pmem-region
-node and each address range under the node is converted to a region
-within that bus.
+The length of the title and section marker has to be aligned with the
+previous line.  This was caught when running asciidoctor, which is
+more strict than asciidoc.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
----
-v2: Made each bus have a separate node rather having a shared bus.
-    Renamed to of_pmem rather than of_nvdimm.
-    Changed log level of happy-path messages to debug.
----
- MAINTAINERS              |   7 +++
- drivers/nvdimm/Kconfig   |  10 ++++
- drivers/nvdimm/Makefile  |   1 +
- drivers/nvdimm/of_pmem.c | 119 +++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 137 insertions(+)
- create mode 100644 drivers/nvdimm/of_pmem.c
+Also since asciidoctor doesn't like the verse block in some cases,
+replace the code examples with simpler markers.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4e62756936fa..6ef38be700e8 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8035,6 +8035,13 @@ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/pmem*
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ Documentation/daxctl/daxctl-list.txt        | 13 +++++++------
+ Documentation/ndctl/ndctl-disable-dimm.txt  |  2 +-
+ Documentation/ndctl/ndctl-enable-region.txt |  2 +-
+ Documentation/ndctl/ndctl-init-labels.txt   | 15 ++++++++++-----
+ Documentation/ndctl/ndctl-list.txt          | 13 ++++++++-----
+ Documentation/ndctl/ndctl-start-scrub.txt   |  6 ++++--
+ Documentation/ndctl/ndctl-wait-scrub.txt    |  6 ++++--
+ 7 files changed, 35 insertions(+), 22 deletions(-)
+
+diff --git a/Documentation/daxctl/daxctl-list.txt b/Documentation/daxctl/daxctl-list.txt
+index 99ca4a1b4f28..cb82c3cc6fb2 100644
+--- a/Documentation/daxctl/daxctl-list.txt
++++ b/Documentation/daxctl/daxctl-list.txt
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
  
-+LIBNVDIMM: DEVICETREE BINDINGS
-+M:	Oliver O'Halloran <oohall@gmail.com>
-+L:	linux-nvdimm@lists.01.org
-+Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
-+S:	Supported
-+F:	drivers/nvdimm/of_pmem.c
-+
- LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SUBSYSTEM
- M:	Dan Williams <dan.j.williams@intel.com>
- L:	linux-nvdimm@lists.01.org
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index a65f2e1d9f53..2d6862bf7436 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -102,4 +102,14 @@ config NVDIMM_DAX
+ daxctl-list(1)
+-=============
++==============
  
- 	  Select Y if unsure
+ NAME
+ ----
+@@ -24,10 +24,9 @@ daxctl list --devices
  
-+config OF_PMEM
-+	tristate "Device-tree support for persistent memory regions"
-+	depends on OF
-+	default LIBNVDIMM
-+	help
-+	  Allows regions of persistent memory to be described in the
-+	  device-tree.
-+
-+	  Select Y if unsure.
-+
- endif
-diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
-index 70d5f3ad9909..e8847045dac0 100644
---- a/drivers/nvdimm/Makefile
-+++ b/drivers/nvdimm/Makefile
-@@ -4,6 +4,7 @@ obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
- obj-$(CONFIG_ND_BTT) += nd_btt.o
- obj-$(CONFIG_ND_BLK) += nd_blk.o
- obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
-+obj-$(CONFIG_OF_PMEM) += of_pmem.o
+ EXAMPLE
+ -------
+-[verse]
++----
+ # daxctl list --regions --devices
  
- nd_pmem-y := pmem.o
+-["literal"]
+ {
+   "id":1,
+   "devices":[
+@@ -37,6 +36,7 @@ EXAMPLE
+     }
+   ]
+ }
++----
  
-diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-new file mode 100644
-index 000000000000..374c796ea1de
---- /dev/null
-+++ b/drivers/nvdimm/of_pmem.c
-@@ -0,0 +1,119 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+
-+#define pr_fmt(fmt) "of_pmem: " fmt
-+
-+#include <linux/of_platform.h>
-+#include <linux/of_address.h>
-+#include <linux/libnvdimm.h>
-+#include <linux/module.h>
-+#include <linux/ioport.h>
-+#include <linux/slab.h>
-+
-+static const struct attribute_group *region_attr_groups[] = {
-+	&nd_region_attribute_group,
-+	&nd_device_attribute_group,
-+	NULL,
-+};
-+
-+static const struct attribute_group *bus_attr_groups[] = {
-+	&nvdimm_bus_attribute_group,
-+	NULL,
-+};
-+
-+struct of_nd_private {
-+	struct nvdimm_bus_descriptor bus_desc;
-+	struct nvdimm_bus *bus;
-+};
-+
-+static int of_nd_region_probe(struct platform_device *pdev)
-+{
-+	struct of_nd_private *priv;
-+	struct device_node *np;
-+	struct nvdimm_bus *bus;
-+	bool is_volatile;
-+	int i;
-+
-+	np = dev_of_node(&pdev->dev);
-+	if (!np)
-+		return -ENXIO;
-+
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	priv->bus_desc.attr_groups = bus_attr_groups;
-+	priv->bus_desc.provider_name = "of_pmem";
-+	priv->bus_desc.module = THIS_MODULE;
-+	priv->bus_desc.of_node = np;
-+
-+	priv->bus = bus = nvdimm_bus_register(&pdev->dev, &priv->bus_desc);
-+	if (!bus) {
-+		kfree(priv);
-+		return -ENODEV;
-+	}
-+	platform_set_drvdata(pdev, priv);
-+
-+	is_volatile = !!of_find_property(np, "volatile", NULL);
-+	dev_dbg(&pdev->dev, "Registering %s regions from %pOF\n",
-+			is_volatile ? "volatile" : "non-volatile",  np);
-+
-+	for (i = 0; i < pdev->num_resources; i++) {
-+		struct nd_region_desc ndr_desc;
-+		struct nd_region *region;
-+
-+		/*
-+		 * NB: libnvdimm copies the data from ndr_desc into it's own
-+		 * structures so passing a stack pointer is fine.
-+		 */
-+		memset(&ndr_desc, 0, sizeof(ndr_desc));
-+		ndr_desc.attr_groups = region_attr_groups;
-+		ndr_desc.numa_node = of_node_to_nid(np);
-+		ndr_desc.res = &pdev->resource[i];
-+		ndr_desc.of_node = np;
-+		set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-+
-+		if (is_volatile)
-+			region = nvdimm_volatile_region_create(bus, &ndr_desc);
-+		else
-+			region = nvdimm_pmem_region_create(bus, &ndr_desc);
-+
-+		if (!region)
-+			dev_warn(&pdev->dev, "Unable to register region %pR from %pOF\n",
-+					ndr_desc.res, np);
-+		else
-+			dev_dbg(&pdev->dev, "Registered region %pR from %pOF\n",
-+					ndr_desc.res, np);
-+	}
-+
-+	return 0;
-+}
-+
-+static int of_nd_region_remove(struct platform_device *pdev)
-+{
-+	struct of_nd_private *priv = platform_get_drvdata(pdev);
-+
-+	nvdimm_bus_unregister(priv->bus);
-+	kfree(priv);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id of_nd_region_match[] = {
-+	{ .compatible = "pmem-region" },
-+	{ },
-+};
-+
-+static struct platform_driver of_nd_region_driver = {
-+	.probe = of_nd_region_probe,
-+	.remove = of_nd_region_remove,
-+	.driver = {
-+		.name = "of_pmem",
-+		.owner = THIS_MODULE,
-+		.of_match_table = of_nd_region_match,
-+	},
-+};
-+
-+module_platform_driver(of_nd_region_driver);
-+MODULE_DEVICE_TABLE(of, of_nd_region_match);
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("IBM Corporation");
+ OPTIONS
+ -------
+@@ -54,14 +54,14 @@ OPTIONS
+ 	tuple, or keyword 'all' to filter the listing. For
+ 	example to list the first device instance in region1:
+ 
+-[verse]
++----
+ # daxctl list --dev=1.0
+ 
+-["literal"]
+ {
+   "chardev":"dax1.0",
+   "size":3233808384
+ }
++----
+ 
+ -D::
+ --devices::
+@@ -82,7 +82,7 @@ OPTIONS
+ 	will be formatted as human readable strings with units, other
+ 	fields are converted to hexadecimal strings.  Example:
+ 
+-[verse]
++----
+ # daxctl list
+ {
+   "chardev":"dax1.0",
+@@ -94,5 +94,6 @@ OPTIONS
+   "chardev":"dax1.0",
+   "size":"30.57 GiB (32.83 GB)"
+ }
++----
+ 
+ include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-disable-dimm.txt b/Documentation/ndctl/ndctl-disable-dimm.txt
+index d5a8d19966cf..7706ac351abc 100644
+--- a/Documentation/ndctl/ndctl-disable-dimm.txt
++++ b/Documentation/ndctl/ndctl-disable-dimm.txt
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ 
+ ndctl-disable-dimm(1)
+-=======================
++=====================
+ 
+ NAME
+ ----
+diff --git a/Documentation/ndctl/ndctl-enable-region.txt b/Documentation/ndctl/ndctl-enable-region.txt
+index 6c4ad9fefb0a..e5cbddbe6cf7 100644
+--- a/Documentation/ndctl/ndctl-enable-region.txt
++++ b/Documentation/ndctl/ndctl-enable-region.txt
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ 
+ ndctl-enable-region(1)
+-====================
++======================
+ 
+ NAME
+ ----
+diff --git a/Documentation/ndctl/ndctl-init-labels.txt b/Documentation/ndctl/ndctl-init-labels.txt
+index 580d82aa99cf..736d52d03cab 100644
+--- a/Documentation/ndctl/ndctl-init-labels.txt
++++ b/Documentation/ndctl/ndctl-init-labels.txt
+@@ -26,7 +26,7 @@ the DIMM.
+ EXAMPLE
+ -------
+ Find the DIMMs that comprise a given region:
+-[verse]
++----
+ # ndctl list -RD --region=region1
+ {
+   "dimms":[
+@@ -51,23 +51,28 @@ Find the DIMMs that comprise a given region:
+     }
+   ]
+ }
++----
+ 
+ Disable that region so the DIMM label area can be written from
+ userspace:
+-[verse]
++----
+ # ndctl disable-region region1
++----
+ 
+ Initialize labels:
+-[verse]
++----
+ # ndctl init-labels nmem0
++----
+ 
+ Re-enable the region:
+-[verse]
++----
+ # ndctl enable-region region1
++----
+ 
+ Create a namespace in that region:
+-[verse]
++----
+ # ndctl create-namespace --region=region1
++----
+ 
+ OPTIONS
+ -------
+diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
+index 2abc572a6ad5..13ebdcdd55ff 100644
+--- a/Documentation/ndctl/ndctl-list.txt
++++ b/Documentation/ndctl/ndctl-list.txt
+@@ -23,10 +23,9 @@ ndctl list --namespaces --bus=all --region=all
+ 
+ EXAMPLE
+ -------
+-[verse]
++----
+ # ndctl list --buses --namespaces
+ 
+-["literal"]
+ {
+   "provider":"nfit_test.1",
+   "dev":"ndbus2",
+@@ -55,6 +54,7 @@ EXAMPLE
+     }
+   ]
+ }
++----
+ 
+ OPTIONS
+ -------
+@@ -67,8 +67,9 @@ include::xable-region-options.txt[]
+ 	An 'nmemX' device name, or dimm id number. Filter listing by
+ 	devices that reference the given dimm. For example to see all
+ 	namespaces comprised of storage capacity on nmem0:
+-[verse]
++----
+ # ndctl list --dimm=nmem0 --namespaces
++----
+ 
+ -n::
+ --namespace=::
+@@ -201,7 +202,7 @@ include::xable-region-options.txt[]
+ 
+ include::human-option.txt[]
+ 
+-[verse]
++----
+ # ndctl list --region=7
+ {
+   "dev":"region7",
+@@ -211,8 +212,9 @@ include::human-option.txt[]
+   "iset_id":-6382611090938810793,
+   "badblock_count":8
+ }
++----
+ 
+-[verse]
++----
+ # ndctl list --human --region=7
+ {
+   "dev":"region7",
+@@ -222,6 +224,7 @@ include::human-option.txt[]
+   "iset_id":"0xa76c6907811fae57",
+   "badblock_count":8
+ }
++----
+ 
+ include::../copyright.txt[]
+ 
+diff --git a/Documentation/ndctl/ndctl-start-scrub.txt b/Documentation/ndctl/ndctl-start-scrub.txt
+index 365918dec920..eb49fc28e9bc 100644
+--- a/Documentation/ndctl/ndctl-start-scrub.txt
++++ b/Documentation/ndctl/ndctl-start-scrub.txt
+@@ -24,7 +24,7 @@ EXAMPLE
+ -------
+ Start a scrub on all nvdimm buses in the system. The json listing report
+ only includes the buses that support ARS operations.
+-[verse]
++----
+ 
+ # ndctl start-scrub
+ [
+@@ -39,12 +39,14 @@ only includes the buses that support ARS operations.
+     "scrub_state":"active"
+   }
+ ]
++----
+ 
+ When specifying an individual bus, or if there is only one bus in the
+ system, the command reports whether ARS support is available.
+-[verse]
++----
+ # ndctl start-scrub e820
+ error starting scrub: Operation not supported
++----
+ 
+ OPTIONS
+ -------
+diff --git a/Documentation/ndctl/ndctl-wait-scrub.txt b/Documentation/ndctl/ndctl-wait-scrub.txt
+index 6b5f61fcf48f..9aef68704d6b 100644
+--- a/Documentation/ndctl/ndctl-wait-scrub.txt
++++ b/Documentation/ndctl/ndctl-wait-scrub.txt
+@@ -25,7 +25,7 @@ EXAMPLE
+ -------
+ Wait for scrub on all nvdimm buses in the system. The json listing
+ report at the end only includes the buses that support ARS operations.
+-[verse]
++----
+ # ndctl wait-scrub
+ [
+   {
+@@ -39,12 +39,14 @@ report at the end only includes the buses that support ARS operations.
+     "scrub_state":"idle"
+   }
+ ]
++----
+ 
+ When specifying an individual bus, or if there is only one bus in the
+ system, the command reports whether ARS support is available.
+-[verse]
++----
+ # ndctl wait-scrub e820
+ error waiting for scrub completion: Operation not supported
++----
+ 
+ OPTIONS
+ -------
 -- 
-2.9.5
+2.16.3
 
 _______________________________________________
 Linux-nvdimm mailing list
