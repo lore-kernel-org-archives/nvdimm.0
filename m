@@ -1,15 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 97722228392E0
- for <linux-nvdimm@lists.01.org>; Sat, 21 Apr 2018 17:17:28 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.17-rc2
-Date: Sun, 22 Apr 2018 00:17:25 +0000
-Message-ID: <1524356236.26036.13.camel@intel.com>
-Content-Language: en-US
-Content-ID: <07665B705A136D459F8F248D670F4E73@intel.com>
+Received: from lists.01.org (unknown [183.14.28.193])
+ by ml01.01.org (Postfix) with ESMTP id EB39322637DFF
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Apr 2018 20:25:06 -0700 (PDT)
+From: "MAILER-DAEMON" <MAILER-DAEMON@lists.01.org>
+Subject: Mail System Error - Returned Mail
+Date: Fri, 20 Apr 2018 11:25:09 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,75 +13,46 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============4631595276378677058=="
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Message-Id: <20180420032509.38806226EAC63@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from
+This is a multi-part message in MIME format.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+--===============4631595276378677058==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-...to receive, a regression fix, new unit test infrastructure and a
-build fix.
+��?�LK�H7$�~�}4ڥ(��׆��c�
+H�e�g��-�`�G%���f�(L4xD���"�#T�"����`���#b�d7�j�����(D.��<�������X��Ҿ%��c��H�������:��j7����ͬ��H#|�Q�j�� ��T6Q�T��U�R1x�R�(>�8��Q0�XB `�����d��U/���Z�uQ�w�����I6n�Pc7��:o�PbHl�?�5��s�D�l�T�CE%�<�_Pb�v|�5��wQKvV1hu\8���.�Mﲷ/q3�� ߴ�VD�\�r����"�|��䑯������c�NT!;v�3NL�o���~��pʏs¿��YN'�FC�Vm�����`�M�{������x{�K(�h��q�Z?�w��N��*��`$�M���ߩ.-���~�{�$�Nd�O�V�����%�j���ꌆ�'�vM����CG] 
+kn���fS�ٸV�D����Dv��e�C�R0W3���᲎~s%:��:#
+�~����F�J]�(]�cN�5u�R�Y���H�,��G�q��Y�I�:�KZ�ݤ,��vMu][��R�_~�y��n"��Y#듺�L�Ļ��醱��b���c;ﮟы*��֯i�<z��o�
+�H7�#8��"!X%pX�v�X��p��d�v����,ׯ3��Mt4�}?/D9Z��Y߭����0Ya����1ݿ���w����8��`�lC�Jcp��3w7�?�P"���t�҂弽�1.���i�4XtY��HM��"��d��f罱u� `0�F]მ����E���~���GxD�Ǣ�"yvv�O|tT���_L�\��S�kĶ�d%|�盄&�0���E����xP:h����lḆ3�g������:�l�e����r�L j�jщ��9F�Jй���˿IU�B>Ae���������g���c�
+�tf4|�~�HC��C`a�AHz'#g�0`ח�E��:Pl�{��2v�8��}8��wp|��:�u�
+�(�q���$�B����R;���ޏi�qla
+�D^]�M�QBF�^�)�BOsQ��:�:;��r�{z�é�9��³���ďPXR�>���W�����>���/�<�e����G$
+_A��U�}���c����T��Pz^�SS�\��i~�Yr/M�o��c9�2_T�ƪ4���!���Y[���:�q8۸OT���"H{dG�e'�8��Rq��>����8�E;ˁ��m"�Zii��dM��Җ�etK3q�8ȃ2Mr������7�� �v��:��
+�${�߽r��bvT*9*�R��?ϖ��D�
+O��X����|4%��>C�S���t�#%T���mYY�e�
+�JG25ar9���/i��C"�f��j�Gɜ���6���n�Si��6[��B��4D8�]���H���6�U��;�s��$�!��X�.�#ڣ7��̳����wˁfD�V�w�h^4�w[�*kR!��-�fW�<083�[���E�;Bl�FYed;
+A!?�<Tk�s��YYS���r���P.նB���p1C�t�N���;�#�n��߯Q8�,F���#̳����H���Q�\j����V�ЩvI�/ ���n�8��4>��L��L,35�?�o�"Q㱠x��J��*[6
+ᡠN%������
+�(
 
-* The regression fix addresses support for the new NVDIMM label storage
-area access commands (_LSI, _LSR, and _LSW). The Intel specific version
-of these commands communicated the "Device Locked" status on the label-
-storage-information command. However, these new commands (standardized
-in ACPI 6.2) communicate the "Device Locked" status on the label-
-storage-read command, and the driver was missing the indication.
-Reading from locked persistent memory is similar to reading unmapped
-PCI memory space, returns all 1's.
 
-* Unit test infrastructure is added to regression test the "Device
-Locked" detection failure.
+--===============4631595276378677058==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-* A build fix is included to allow the "of_pmem" driver to be built as
-a module and translate an Open Firmware described device to its local
-numa node.
-
----
-
-The following changes since commit 60cc43fc888428bb2f18f08997432d426a243338:
-
-  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
-
-for you to fetch changes up to c5794510d7b5f210f05531ff9e82432cf7244367:
-
-  MAINTAINERS: Add backup maintainers for libnvdimm and DAX (2018-04-19 15:22:50 -0700)
-
-----------------------------------------------------------------
-Dan Williams (6):
-      libnvdimm, dimm: handle EACCES failures from label reads
-      tools/testing/nvdimm: allow custom error code injection
-      tools/testing/nvdimm: support nfit_test_dimm attributes under nfit_test.1
-      tools/testing/nvdimm: fix missing newline in nfit_test_dimm 'handle' attribute
-      tools/testing/nvdimm: enable labels for nfit_test.1 dimms
-      Revert "libnvdimm, of_pmem: workaround OF_NUMA=n build error"
-
-Dave Jiang (2):
-      device-dax: allow MAP_SYNC to succeed
-      MAINTAINERS: Add backup maintainers for libnvdimm and DAX
-
-Rob Herring (1):
-      libnvdimm, of_pmem: use dev_to_node() instead of of_node_to_nid()
-
- MAINTAINERS                      | 15 +++++++
- drivers/dax/device.c             |  2 +
- drivers/nvdimm/Kconfig           |  3 +-
- drivers/nvdimm/dimm_devs.c       | 22 ++++++-----
- drivers/nvdimm/of_pmem.c         |  2 +-
- tools/testing/nvdimm/test/nfit.c | 84 +++++++++++++++++++++++++++++++---------
- 6 files changed, 96 insertions(+), 32 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============4631595276378677058==--
