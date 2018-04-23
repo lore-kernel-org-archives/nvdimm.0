@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 31A4E226516D8
- for <linux-nvdimm@lists.01.org>; Sat,  7 Apr 2018 09:48:52 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl, test: fix pmem-errors.sh vs new ARS rework
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 07 Apr 2018 09:38:56 -0700
-Message-ID: <152311913670.5287.392327526734931887.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 151522265A192
+ for <linux-nvdimm@lists.01.org>; Mon, 23 Apr 2018 16:31:02 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Mon, 23 Apr 2018 17:30:35 -0600
+Message-Id: <20180423233046.21476-4-logang@deltatee.com>
+In-Reply-To: <20180423233046.21476-1-logang@deltatee.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+Subject: [PATCH v4 03/14] PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust
+ the bus offset
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,71 +18,139 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Due to locking constraints the nfit_test implementation is not able to
-internally trigger ARS, so just run and wait for ARS manually in this
-test. For example, here is what happens if nfit_test call
-acpi_nfit_ars_rescan() from within the ioctl path.
+The DMA address used when mapping PCI P2P memory must be the PCI bus
+address. Thus, introduce pci_p2pmem_[un]map_sg() to map the correct
+addresses when using P2P memory.
 
- WARNING: possible circular locking dependency detected
- 4.16.0-rc4+ #1686 Tainted: G           OE
- ------------------------------------------------------
- kworker/u80:0/6 is trying to acquire lock:
-  (&nvdimm_bus->reconfig_mutex){+.+.}, at: [<0000000048851014>] nvdimm_badblocks_populate+0x41/0x150 [libnvdimm]
+For this, we assume that an SGL passed to these functions contain all
+P2P memory or no P2P memory.
 
- but task is already holding lock:
-  (&acpi_desc->init_mutex){+.+.}, at: [<00000000016af3e5>] acpi_nfit_scrub+0x3b/0x2d0 [nfit]
-
- which lock already depends on the new lock.
-
- the existing dependency chain (in reverse order) is:
-
- -> #1 (&acpi_desc->init_mutex){+.+.}:
-        acpi_nfit_ars_rescan+0x28/0x160 [nfit]
-        nfit_test_ctl+0x976/0x1040 [nfit_test]
-        __nd_ioctl+0x5d8/0x650 [libnvdimm]
-        nd_ioctl+0xa4/0xb0 [libnvdimm]
-        do_vfs_ioctl+0xa5/0x6d0
-        SyS_ioctl+0x74/0x80
-        do_syscall_64+0x79/0x230
-        entry_SYSCALL_64_after_hwframe+0x42/0xb7
-
- -> #0 (&nvdimm_bus->reconfig_mutex){+.+.}:
-        __mutex_lock+0x7f/0xa00
-        nvdimm_badblocks_populate+0x41/0x150 [libnvdimm]
-        nd_region_notify+0x95/0xb0 [libnvdimm]
-        nd_device_notify+0x40/0x50 [libnvdimm]
-        ars_complete.isra.19+0x5d/0xb0 [nfit]
-        ars_complete_all+0x42/0x60 [nfit]
-        acpi_nfit_scrub+0x84/0x2d0 [nfit]
-        process_one_work+0x212/0x660
-        worker_thread+0x3a/0x390
-        kthread+0x11e/0x140
-        ret_from_fork+0x3a/0x50
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- test/pmem-errors.sh |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/p2pdma.c       | 51 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/memremap.h   |  1 +
+ include/linux/pci-p2pdma.h | 13 ++++++++++++
+ 3 files changed, 65 insertions(+)
 
-diff --git a/test/pmem-errors.sh b/test/pmem-errors.sh
-index 7c0487d1ac49..e0ab9e866b92 100755
---- a/test/pmem-errors.sh
-+++ b/test/pmem-errors.sh
-@@ -59,6 +59,7 @@ err_sector="$(((size/512) / 2))"
- err_count=8
- if ! read sector len < /sys/block/$blockdev/badblocks; then
- 	$NDCTL inject-error --block="$err_sector" --count=$err_count $dev
-+	$NDCTL start-scrub; $NDCTL wait-scrub
- fi
- read sector len < /sys/block/$blockdev/badblocks
- [ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && false
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index 4daad6374869..ed9dce8552a2 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -190,6 +190,8 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
+ 	pgmap->res.flags = pci_resource_flags(pdev, bar);
+ 	pgmap->ref = &pdev->p2pdma->devmap_ref;
+ 	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
++	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
++		pci_resource_start(pdev, bar);
+ 
+ 	addr = devm_memremap_pages(&pdev->dev, pgmap);
+ 	if (IS_ERR(addr)) {
+@@ -746,3 +748,52 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ 	pdev->p2pdma->p2pmem_published = publish;
+ }
+ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
++
++/**
++ * pci_p2pdma_map_sg - map a PCI peer-to-peer sg for DMA
++ * @dev: device doing the DMA request
++ * @sg: scatter list to map
++ * @nents: elements in the scatterlist
++ * @dir: DMA direction
++ *
++ * Returns the number of SG entries mapped
++ */
++int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
++		      enum dma_data_direction dir)
++{
++	struct dev_pagemap *pgmap;
++	struct scatterlist *s;
++	phys_addr_t paddr;
++	int i;
++
++	/*
++	 * p2pdma mappings are not compatible with devices that use
++	 * dma_virt_ops.
++	 */
++	if (IS_ENABLED(CONFIG_DMA_VIRT_OPS) && dev->dma_ops == &dma_virt_ops)
++		return 0;
++
++	for_each_sg(sg, s, nents, i) {
++		pgmap = sg_page(s)->pgmap;
++		paddr = sg_phys(s);
++
++		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
++		sg_dma_len(s) = s->length;
++	}
++
++	return nents;
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
++
++/**
++ * pci_p2pdma_unmap_sg - unmap a PCI peer-to-peer sg for DMA
++ * @dev: device doing the DMA request
++ * @sg: scatter list to map
++ * @nents: elements in the scatterlist
++ * @dir: DMA direction
++ */
++void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
++			 enum dma_data_direction dir)
++{
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_unmap_sg);
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 9e907c338a44..1660f64ce96f 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -125,6 +125,7 @@ struct dev_pagemap {
+ 	struct device *dev;
+ 	void *data;
+ 	enum memory_type type;
++	u64 pci_p2pdma_bus_offset;
+ };
+ 
+ #ifdef CONFIG_ZONE_DEVICE
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index 80e931cb1235..0cde88341eeb 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -35,6 +35,10 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
+ 					 unsigned int *nents, u32 length);
+ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
++int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
++		      enum dma_data_direction dir);
++void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
++			 enum dma_data_direction dir);
+ #else /* CONFIG_PCI_P2PDMA */
+ static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+ 		size_t size, u64 offset)
+@@ -96,5 +100,14 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
+ static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ {
+ }
++static inline int pci_p2pdma_map_sg(struct device *dev,
++	struct scatterlist *sg, int nents, enum dma_data_direction dir)
++{
++	return 0;
++}
++static inline void pci_p2pdma_unmap_sg(struct device *dev,
++	struct scatterlist *sg, int nents, enum dma_data_direction dir)
++{
++}
+ #endif /* CONFIG_PCI_P2PDMA */
+ #endif /* _LINUX_PCI_P2P_H */
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
