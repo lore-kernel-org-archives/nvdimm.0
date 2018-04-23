@@ -1,11 +1,10 @@
-From: =?utf-8?B?5rGq5Li75Lu7?= <wwskx-rZrH0017nKM@public.gmane.org>
-Subject: =?utf-8?B?OTY0NjE3Mzg377ya5L6b5bqU6ZO+5Y+K6YeH6LSt566h55CG5Lq65ZGY?=
- =?utf-8?B?5b+F5aSH55qE6LSi56iO55+l6K+G?=
-Date: Thu, 28 Jul 2011 13:02:58 +0800
-Message-ID: <33D80E0DA3CF7392161FD357B255E396@hbi.org>
+From: "Pamila Papineau  " <infoguewu-z2zUxyb0RMeASff5QGzVzliL00/ErVVO@public.gmane.org>
+Subject: re: Premium traffic for lists.01.org
+Date: Sun, 22 Apr 2018 20:15:27 -0800
+Message-ID: <911D9314.CA55A506@businesstraffic.to>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,7 +18,30 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-5Lqy77yabGludXgtbnZkaW1tDQpxaW5nICBuaW4gIGNoYXl1ZSAgZnVqaWFuCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
-IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Professional and reliable Service with great results
+http://www.businesstraffic.to/
+
+Lead generating traffic with very good    bounce rate
+
+For more details read html the report attached
+
+Thank you
+Pamila Papineau =A0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option available in the footer of our website
