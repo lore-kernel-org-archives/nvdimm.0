@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-it0-x22a.google.com (mail-it0-x22a.google.com
+ [IPv6:2607:f8b0:4001:c0b::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 414EA21E0810B
- for <linux-nvdimm@lists.01.org>; Tue, 24 Apr 2018 15:53:36 -0700 (PDT)
-Subject: [PATCH v2 2/2] ndctl: convert namespace actions to use
- util_filter_walk()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 24 Apr 2018 15:53:35 -0700
-Message-ID: <152461033237.17395.15327229223399294227.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152461031638.17395.12751766602088283269.stgit@djiang5-desk3.ch.intel.com>
-References: <152461031638.17395.12751766602088283269.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DAC0C2279CF13
+ for <linux-nvdimm@lists.01.org>; Mon, 23 Apr 2018 08:55:26 -0700 (PDT)
+Received: by mail-it0-x22a.google.com with SMTP id f6-v6so11611878ita.2
+ for <linux-nvdimm@lists.01.org>; Mon, 23 Apr 2018 08:55:26 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20180423061201.GC26268@magnolia>
+References: <1520705944-6723-1-git-send-email-jix024@eng.ucsd.edu>
+ <1520705944-6723-7-git-send-email-jix024@eng.ucsd.edu>
+ <20180423061201.GC26268@magnolia>
+From: Andiry Xu <jix024@eng.ucsd.edu>
+Date: Mon, 23 Apr 2018 08:55:24 -0700
+Message-ID: <CAD4SzjvGVNz1D3iWjrY7+=x7-5np_bzbe3YmRGz1KSXQ2Uisng@mail.gmail.com>
+Subject: Re: [RFC v2 06/83] Add inode get/read methods.
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,273 +27,263 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Tom Coughlan <coughlan@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Andiry Xu <jix024@cs.ucsd.edu>, miklos@szeredi.hu, Dave Chinner <david@fromorbit.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jan Kara <jack@suse.com>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Steven Swanson <swanson@cs.ucsd.edu>, Steven Whitehouse <swhiteho@redhat.com>, Jian Xu <andiry.xu@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-util_filter_walk() does the looping through of busses and regions. Removing
-duplicate code in namespace ops and provide filter functions so we can
-utilize util_filter_walk() and share common code.
+On Sun, Apr 22, 2018 at 11:12 PM, Darrick J. Wong
+<darrick.wong@oracle.com> wrote:
+> [haaa, I finally found time to read more of these]
+>
+> On Sat, Mar 10, 2018 at 10:17:47AM -0800, Andiry Xu wrote:
+>> From: Andiry Xu <jix024@cs.ucsd.edu>
+>>
+>> These routines are incomplete and currently only support reserved inodes,
+>> whose addresses are fixed. This is necessary for fill_super to work.
+>> File/dir operations are left NULL.
+>>
+>> Signed-off-by: Andiry Xu <jix024@cs.ucsd.edu>
+>> ---
+>>  fs/nova/inode.c | 176 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  fs/nova/inode.h |   3 +
+>>  2 files changed, 179 insertions(+)
+>>  create mode 100644 fs/nova/inode.c
+>>
+>> diff --git a/fs/nova/inode.c b/fs/nova/inode.c
+>> new file mode 100644
+>> index 0000000..bfdc5dc
+>> --- /dev/null
+>> +++ b/fs/nova/inode.c
+>> @@ -0,0 +1,176 @@
+>> +/*
+>> + * BRIEF DESCRIPTION
+>> + *
+>> + * Inode methods (allocate/free/read/write).
+>> + *
+>> + * Copyright 2015-2016 Regents of the University of California,
+>> + * UCSD Non-Volatile Systems Lab, Andiry Xu <jix024@cs.ucsd.edu>
+>> + * Copyright 2012-2013 Intel Corporation
+>> + * Copyright 2009-2011 Marco Stornelli <marco.stornelli@gmail.com>
+>> + * Copyright 2003 Sony Corporation
+>> + * Copyright 2003 Matsushita Electric Industrial Co., Ltd.
+>> + * 2003-2004 (c) MontaVista Software, Inc. , Steve Longerbeam
+>> + * This file is licensed under the terms of the GNU General Public
+>> + * License version 2. This program is licensed "as is" without any
+>> + * warranty of any kind, whether express or implied.
+>> + */
+>> +
+>> +#include <linux/fs.h>
+>> +#include <linux/aio.h>
+>> +#include <linux/highuid.h>
+>> +#include <linux/module.h>
+>> +#include <linux/mpage.h>
+>> +#include <linux/backing-dev.h>
+>> +#include <linux/types.h>
+>> +#include <linux/ratelimit.h>
+>> +#include "nova.h"
+>> +#include "inode.h"
+>> +
+>> +unsigned int blk_type_to_shift[NOVA_BLOCK_TYPE_MAX] = {12, 21, 30};
+>> +uint32_t blk_type_to_size[NOVA_BLOCK_TYPE_MAX] = {0x1000, 0x200000, 0x40000000};
+>> +
+>> +void nova_set_inode_flags(struct inode *inode, struct nova_inode *pi,
+>> +     unsigned int flags)
+>> +{
+>> +     inode->i_flags &=
+>> +             ~(S_SYNC | S_APPEND | S_IMMUTABLE | S_NOATIME | S_DIRSYNC);
+>> +     if (flags & FS_SYNC_FL)
+>> +             inode->i_flags |= S_SYNC;
+>> +     if (flags & FS_APPEND_FL)
+>> +             inode->i_flags |= S_APPEND;
+>> +     if (flags & FS_IMMUTABLE_FL)
+>> +             inode->i_flags |= S_IMMUTABLE;
+>> +     if (flags & FS_NOATIME_FL)
+>> +             inode->i_flags |= S_NOATIME;
+>> +     if (flags & FS_DIRSYNC_FL)
+>> +             inode->i_flags |= S_DIRSYNC;
+>> +     if (!pi->i_xattr)
+>> +             inode_has_no_xattr(inode);
+>> +     inode->i_flags |= S_DAX;
+>> +}
+>> +
+>> +/* copy persistent state to struct inode */
+>> +static int nova_read_inode(struct super_block *sb, struct inode *inode,
+>> +     u64 pi_addr)
+>> +{
+>> +     struct nova_inode_info *si = NOVA_I(inode);
+>> +     struct nova_inode *pi, fake_pi;
+>> +     struct nova_inode_info_header *sih = &si->header;
+>> +     int ret = -EIO;
+>> +     unsigned long ino;
+>> +
+>> +     ret = nova_get_reference(sb, pi_addr, &fake_pi,
+>> +                     (void **)&pi, sizeof(struct nova_inode));
+>> +     if (ret) {
+>> +             nova_dbg("%s: read pi @ 0x%llx failed\n",
+>> +                             __func__, pi_addr);
+>> +             goto bad_inode;
+>> +     }
+>> +
+>> +     inode->i_mode = sih->i_mode;
+>
+> Hm, do you validate the on-pmem metadata as it's read in?  What if
+> i_mode is garbage?
+>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
+I have checksum for inode and all metadata structures in the
+NOVA-fortis code. I removed them in this patchset to make the code
+shorter and simpler.
 
-v2:
-- split out the conversion of util_filter_params to make things more
-  readable (Dan).
-- Not pass in mode as util_filter_params and put back the mode check in
-  util_filter_walk() (Dan).
+>> +     i_uid_write(inode, le32_to_cpu(pi->i_uid));
+>> +     i_gid_write(inode, le32_to_cpu(pi->i_gid));
+>> +//   set_nlink(inode, le16_to_cpu(pi->i_links_count));
+>
+> C++ comment?
+>
 
- ndctl/namespace.c |  158 +++++++++++++++++++++++++++++------------------------
- util/filter.c     |    5 +-
- util/filter.h     |    8 +++
- 3 files changed, 98 insertions(+), 73 deletions(-)
+Will fix.
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index e7173ce9..4661771e 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -983,14 +983,86 @@ static int namespace_reconfig(struct ndctl_region *region,
- int namespace_check(struct ndctl_namespace *ndns, bool verbose, bool force,
- 		bool repair, bool logfix);
- 
-+static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx *ctx)
-+{
-+	return true;
-+}
-+
-+static bool filter_region(struct ndctl_region *region,
-+		struct util_filter_ctx *ctx)
-+{
-+	struct ndns_filter_arg *nfa = ctx->ndns;
-+	int rc = 0;
-+	bool out = true;
-+
-+	if (nfa->action == ACTION_CREATE && !nfa->namespace) {
-+		rc = namespace_create(region);
-+		if (rc != -EAGAIN) {
-+			if (rc == 0)
-+				rc = 1;
-+			/* don't proceed in the filter loop */
-+			out = false;
-+		}
-+	}
-+
-+	nfa->rc = rc;
-+	return out;
-+}
-+
-+static void filter_namespace(struct ndctl_namespace *ndns,
-+		struct util_filter_ctx *ctx)
-+{
-+	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
-+	struct ndns_filter_arg *nfa = ctx->ndns;
-+	const char *ndns_name;
-+	int rc;
-+
-+	/* we have an error, don't do anything else */
-+	if (nfa->rc < 0)
-+		return;
-+
-+	ndns_name = ndctl_namespace_get_devname(ndns);
-+	if (strcmp(nfa->namespace, "all") != 0
-+			&& strcmp(nfa->namespace, ndns_name) != 0)
-+		return;
-+
-+	switch (nfa->action) {
-+	case ACTION_DISABLE:
-+		rc = ndctl_namespace_disable_safe(ndns);
-+		break;
-+	case ACTION_ENABLE:
-+		rc = ndctl_namespace_enable(ndns);
-+		break;
-+	case ACTION_DESTROY:
-+		rc = namespace_destroy(region, ndns);
-+		break;
-+	case ACTION_CHECK:
-+		rc = namespace_check(ndns, verbose, force, repair, logfix);
-+		if (rc < 0) {
-+			nfa->rc = rc;
-+			return;
-+		}
-+	case ACTION_CREATE:
-+		rc = namespace_reconfig(region, ndns);
-+		if (rc < 0) {
-+			nfa->rc = rc;
-+			return;
-+		}
-+	default:
-+		rc = -EINVAL;
-+		break;
-+	}
-+
-+	if (rc >= 0)
-+		nfa->rc++;
-+}
-+
- static int do_xaction_namespace(const char *namespace,
- 		enum device_action action, struct ndctl_ctx *ctx)
- {
--	struct ndctl_namespace *ndns, *_n;
--	int rc = -ENXIO, success = 0;
--	struct ndctl_region *region;
--	const char *ndns_name;
--	struct ndctl_bus *bus;
-+	int rc = -ENXIO;
-+	struct util_filter_ctx fctx = { 0 };
-+	struct ndns_filter_arg nfa = { 0 };
- 
- 	if (!namespace && action != ACTION_CREATE)
- 		return rc;
-@@ -998,74 +1070,18 @@ static int do_xaction_namespace(const char *namespace,
- 	if (verbose)
- 		ndctl_set_log_priority(ctx, LOG_DEBUG);
- 
--        ndctl_bus_foreach(ctx, bus) {
--		if (!util_bus_filter(bus, param.bus))
--			continue;
-+	fctx.filter_bus = filter_bus;
-+	fctx.filter_region = filter_region;
-+	fctx.filter_namespace = filter_namespace;
-+	fctx.ndns = &nfa;
-+	fctx.ndns->action = action;
-+	fctx.ndns->namespace = namespace;
- 
--		ndctl_region_foreach(bus, region) {
--			if (!util_region_filter(region, param.region))
--				continue;
--
--			if (param.type) {
--				if (strcmp(param.type, "pmem") == 0
--						&& ndctl_region_get_type(region)
--						== ND_DEVICE_REGION_PMEM)
--					/* pass */;
--				else if (strcmp(param.type, "blk") == 0
--						&& ndctl_region_get_type(region)
--						== ND_DEVICE_REGION_BLK)
--					/* pass */;
--				else
--					continue;
--			}
--
--			if (action == ACTION_CREATE && !namespace) {
--				rc = namespace_create(region);
--				if (rc == -EAGAIN)
--					continue;
--				if (rc == 0)
--					rc = 1;
--				return rc;
--			}
--			ndctl_namespace_foreach_safe(region, ndns, _n) {
--				ndns_name = ndctl_namespace_get_devname(ndns);
--
--				if (strcmp(namespace, "all") != 0
--						&& strcmp(namespace, ndns_name) != 0)
--					continue;
--				switch (action) {
--				case ACTION_DISABLE:
--					rc = ndctl_namespace_disable_safe(ndns);
--					break;
--				case ACTION_ENABLE:
--					rc = ndctl_namespace_enable(ndns);
--					break;
--				case ACTION_DESTROY:
--					rc = namespace_destroy(region, ndns);
--					break;
--				case ACTION_CHECK:
--					rc = namespace_check(ndns, verbose,
--							force, repair, logfix);
--					if (rc < 0)
--						return rc;
--					break;
--				case ACTION_CREATE:
--					rc = namespace_reconfig(region, ndns);
--					if (rc < 0)
--						return rc;
--					return 1;
--				default:
--					rc = -EINVAL;
--					break;
--				}
--				if (rc >= 0)
--					success++;
--			}
--		}
--	}
-+	rc = util_filter_walk(ctx, &fctx, &param);
-+	if (rc < 0)
-+		return rc;
- 
--	if (success)
--		return success;
-+	rc = nfa.rc;
- 	return rc;
- }
- 
-diff --git a/util/filter.c b/util/filter.c
-index 6ab391a8..d98c551e 100644
---- a/util/filter.c
-+++ b/util/filter.c
-@@ -18,6 +18,7 @@
- #include <sys/stat.h>
- #include <util/util.h>
- #include <sys/types.h>
-+#include <ndctl/action.h>
- #include <ndctl/ndctl.h>
- #include <util/filter.h>
- #include <ndctl/libndctl.h>
-@@ -375,7 +376,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
- 		}
- 
- 		ndctl_region_foreach(bus, region) {
--			struct ndctl_namespace *ndns;
-+			struct ndctl_namespace *ndns, *_n;
- 
- 			if (!util_region_filter(region, param->region)
- 					|| !util_region_filter_by_dimm(region,
-@@ -394,7 +395,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
- 			if (!fctx->filter_region(region, fctx))
- 				continue;
- 
--			ndctl_namespace_foreach(region, ndns) {
-+			ndctl_namespace_foreach_safe(region, ndns, _n) {
- 				enum ndctl_namespace_mode mode;
- 
- 				if (!fctx->filter_namespace)
-diff --git a/util/filter.h b/util/filter.h
-index effda24b..ce3336a5 100644
---- a/util/filter.h
-+++ b/util/filter.h
-@@ -13,6 +13,7 @@
- #ifndef _UTIL_FILTER_H_
- #define _UTIL_FILTER_H_
- #include <stdbool.h>
-+#include <ndctl/action.h>
- 
- struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
- struct ndctl_region *util_region_filter(struct ndctl_region *region,
-@@ -50,6 +51,12 @@ struct list_filter_arg {
- 	unsigned long flags;
- };
- 
-+struct ndns_filter_arg {
-+	enum device_action action;
-+	const char *namespace;
-+	int rc;
-+};
-+
- /*
-  * struct util_filter_ctx - control and callbacks for util_filter_walk()
-  * ->filter_bus() and ->filter_region() return bool because the
-@@ -67,6 +74,7 @@ struct util_filter_ctx {
- 	union {
- 		void *arg;
- 		struct list_filter_arg *list;
-+		struct ndns_filter_arg *ndns;
- 	};
- };
- 
+>> +     inode->i_generation = le32_to_cpu(pi->i_generation);
+>> +     nova_set_inode_flags(inode, pi, le32_to_cpu(pi->i_flags));
+>> +     ino = inode->i_ino;
+>> +
+>> +     /* check if the inode is active. */
+>> +     if (inode->i_mode == 0 || pi->deleted == 1) {
+>> +             /* this inode is deleted */
+>> +             ret = -ESTALE;
+>> +             goto bad_inode;
+>> +     }
+>> +
+>> +     inode->i_blocks = sih->i_blocks;
+>
+> Not le64_to_cpu(sih->i_blocks)?  Or is that somewhere else I'm
+> missing...
+>
 
+sih is the in-DRAM inode structure, so le64_to_cpu is not needed. When
+we read inode from pmem (nova_inode *pi) to sih, we need
+le64_to_cpu(). The endian checking is not performed thoroughly as it
+only supports x86-64 now.
+
+>> +
+>> +     switch (inode->i_mode & S_IFMT) {
+>> +     case S_IFREG:
+>> +             break;
+>> +     case S_IFDIR:
+>> +             break;
+>> +     case S_IFLNK:
+>> +             break;
+>> +     default:
+>> +             init_special_inode(inode, inode->i_mode,
+>> +                                le32_to_cpu(pi->dev.rdev));
+>> +             break;
+>> +     }
+>> +
+>> +     /* Update size and time after rebuild the tree */
+>> +     inode->i_size = le64_to_cpu(sih->i_size);
+>
+> FWIW the type of i_size is loff_t, which is an unsigned type.  Despite
+> this, the VFS does not support files with negative sizes... which means
+> that this probably ought to check for that.
+>
+
+I will think about that. Thanks.
+
+Thanks,
+Andiry
+
+> --D
+>
+>> +     inode->i_atime.tv_sec = (__s32)le32_to_cpu(pi->i_atime);
+>> +     inode->i_ctime.tv_sec = (__s32)le32_to_cpu(pi->i_ctime);
+>> +     inode->i_mtime.tv_sec = (__s32)le32_to_cpu(pi->i_mtime);
+>> +     inode->i_atime.tv_nsec = inode->i_mtime.tv_nsec =
+>> +                                      inode->i_ctime.tv_nsec = 0;
+>> +     set_nlink(inode, le16_to_cpu(pi->i_links_count));
+>> +     return 0;
+>> +
+>> +bad_inode:
+>> +     make_bad_inode(inode);
+>> +     return ret;
+>> +}
+>> +
+>> +/* Get the address in PMEM of an inode by inode number.  Allocate additional
+>> + * block to store additional inodes if necessary.
+>> + */
+>> +int nova_get_inode_address(struct super_block *sb, u64 ino,
+>> +     u64 *pi_addr, int extendable)
+>> +{
+>> +     if (ino < NOVA_NORMAL_INODE_START) {
+>> +             *pi_addr = nova_get_reserved_inode_addr(sb, ino);
+>> +             return 0;
+>> +     }
+>> +
+>> +     *pi_addr = 0;
+>> +     return 0;
+>> +}
+>> +
+>> +struct inode *nova_iget(struct super_block *sb, unsigned long ino)
+>> +{
+>> +     struct nova_inode_info *si;
+>> +     struct inode *inode;
+>> +     u64 pi_addr;
+>> +     int err;
+>> +
+>> +     inode = iget_locked(sb, ino);
+>> +     if (unlikely(!inode))
+>> +             return ERR_PTR(-ENOMEM);
+>> +     if (!(inode->i_state & I_NEW))
+>> +             return inode;
+>> +
+>> +     si = NOVA_I(inode);
+>> +
+>> +     nova_dbgv("%s: inode %lu\n", __func__, ino);
+>> +
+>> +     err = nova_get_inode_address(sb, ino, &pi_addr, 0);
+>> +     if (err) {
+>> +             nova_dbg("%s: get inode %lu address failed %d\n",
+>> +                      __func__, ino, err);
+>> +             goto fail;
+>> +     }
+>> +
+>> +     if (pi_addr == 0) {
+>> +             nova_dbg("%s: failed to get pi_addr for inode %lu\n",
+>> +                      __func__, ino);
+>> +             err = -EACCES;
+>> +             goto fail;
+>> +     }
+>> +
+>> +     err = nova_read_inode(sb, inode, pi_addr);
+>> +     if (unlikely(err)) {
+>> +             nova_dbg("%s: failed to read inode %lu\n", __func__, ino);
+>> +             goto fail;
+>> +
+>> +     }
+>> +
+>> +     inode->i_ino = ino;
+>> +
+>> +     unlock_new_inode(inode);
+>> +     return inode;
+>> +fail:
+>> +     iget_failed(inode);
+>> +     return ERR_PTR(err);
+>> +}
+>> +
+>> diff --git a/fs/nova/inode.h b/fs/nova/inode.h
+>> index f9187e3..dbd5256 100644
+>> --- a/fs/nova/inode.h
+>> +++ b/fs/nova/inode.h
+>> @@ -184,4 +184,7 @@ static inline int nova_persist_inode(struct nova_inode *pi)
+>>       return 0;
+>>  }
+>>
+>> +int nova_get_inode_address(struct super_block *sb, u64 ino,
+>> +     u64 *pi_addr, int extendable);
+>> +struct inode *nova_iget(struct super_block *sb, unsigned long ino);
+>>  #endif
+>> --
+>> 2.7.4
+>>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
