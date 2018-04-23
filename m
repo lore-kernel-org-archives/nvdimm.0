@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x242.google.com (mail-pf0-x242.google.com
- [IPv6:2607:f8b0:400e:c00::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 71D19220E8CC5
- for <linux-nvdimm@lists.01.org>; Sat, 14 Apr 2018 08:49:08 -0700 (PDT)
-Received: by mail-pf0-x242.google.com with SMTP id h69so8368038pfe.13
- for <linux-nvdimm@lists.01.org>; Sat, 14 Apr 2018 08:49:08 -0700 (PDT)
-Date: Sat, 14 Apr 2018 21:20:59 +0530
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Subject: [PATCH] dax: Change return type to vm_fault_t
-Message-ID: <20180414155059.GA18015@jordon-HP-15-Notebook-PC>
-MIME-Version: 1.0
-Content-Disposition: inline
+ by ml01.01.org (Postfix) with ESMTPS id 0C89222512128
+ for <linux-nvdimm@lists.01.org>; Mon, 23 Apr 2018 16:31:01 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Mon, 23 Apr 2018 17:30:42 -0600
+Message-Id: <20180423233046.21476-11-logang@deltatee.com>
+In-Reply-To: <20180423233046.21476-1-logang@deltatee.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+Subject: [PATCH v4 10/14] nvme-pci: Add support for P2P memory in requests
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,100 +17,105 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: willy@infradead.org, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use new return type vm_fault_t for fault and
-huge_fault handler.
+For P2P requests, we must use the pci_p2pmem_[un]map_sg() functions
+instead of the dma_map_sg functions.
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
+With that, we can then indicate PCI_P2P support in the request queue.
+For this, we create an NVME_F_PCI_P2P flag which tells the core to
+set QUEUE_FLAG_PCI_P2P in the request queue.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/dax/device.c | 26 +++++++++++---------------
- 1 file changed, 11 insertions(+), 15 deletions(-)
+ drivers/nvme/host/core.c |  4 ++++
+ drivers/nvme/host/nvme.h |  1 +
+ drivers/nvme/host/pci.c  | 19 +++++++++++++++----
+ 3 files changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 2137dbc..a122701 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -243,11 +243,11 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
- 	return -1;
- }
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index 9df4f71e58ca..2ca9debbcf2b 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -2977,7 +2977,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
+ 	ns->queue = blk_mq_init_queue(ctrl->tagset);
+ 	if (IS_ERR(ns->queue))
+ 		goto out_free_ns;
++
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, ns->queue);
++	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
++		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
++
+ 	ns->queue->queuedata = ns;
+ 	ns->ctrl = ctrl;
  
--static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
-+static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
-+				struct vm_fault *vmf)
- {
- 	struct device *dev = &dev_dax->dev;
- 	struct dax_region *dax_region;
--	int rc = VM_FAULT_SIGBUS;
- 	phys_addr_t phys;
- 	pfn_t pfn;
- 	unsigned int fault_size = PAGE_SIZE;
-@@ -274,17 +274,11 @@ static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index 061fecfd44f5..9a689c13998f 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -306,6 +306,7 @@ struct nvme_ctrl_ops {
+ 	unsigned int flags;
+ #define NVME_F_FABRICS			(1 << 0)
+ #define NVME_F_METADATA_SUPPORTED	(1 << 1)
++#define NVME_F_PCI_P2PDMA		(1 << 2)
+ 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
+ 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
+ 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 514da4de3c85..09b6aba6ed28 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -798,8 +798,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
+ 		goto out;
  
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 	ret = BLK_STS_RESOURCE;
+-	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
+-			DMA_ATTR_NO_WARN);
++
++	if (REQ_IS_PCI_P2PDMA(req))
++		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
++					  dma_dir);
++	else
++		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
++					     dma_dir,  DMA_ATTR_NO_WARN);
+ 	if (!nr_mapped)
+ 		goto out;
  
--	rc = vm_insert_mixed(vmf->vma, vmf->address, pfn);
--
--	if (rc == -ENOMEM)
--		return VM_FAULT_OOM;
--	if (rc < 0 && rc != -EBUSY)
--		return VM_FAULT_SIGBUS;
--
--	return VM_FAULT_NOPAGE;
-+	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
- }
+@@ -844,7 +849,12 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
+ 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
  
--static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
-+static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
-+				struct vm_fault *vmf)
- {
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	struct device *dev = &dev_dax->dev;
-@@ -335,7 +329,8 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- }
- 
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
-+static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
-+				struct vm_fault *vmf)
- {
- 	unsigned long pud_addr = vmf->address & PUD_MASK;
- 	struct device *dev = &dev_dax->dev;
-@@ -386,13 +381,14 @@ static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
--static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
-+static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
-+				struct vm_fault *vmf)
- {
- 	return VM_FAULT_FALLBACK;
- }
- #endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- 
--static int dev_dax_huge_fault(struct vm_fault *vmf,
-+static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
- 	int rc, id;
-@@ -423,7 +419,7 @@ static int dev_dax_huge_fault(struct vm_fault *vmf,
- 	return rc;
- }
- 
--static int dev_dax_fault(struct vm_fault *vmf)
-+static vm_fault_t dev_dax_fault(struct vm_fault *vmf)
- {
- 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
- }
+ 	if (iod->nents) {
+-		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++		if (REQ_IS_PCI_P2PDMA(req))
++			pci_p2pdma_unmap_sg(dev->dev, iod->sg, iod->nents,
++					    dma_dir);
++		else
++			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++
+ 		if (blk_integrity_rq(req)) {
+ 			if (req_op(req) == REQ_OP_READ)
+ 				nvme_dif_remap(req, nvme_dif_complete);
+@@ -2439,7 +2449,8 @@ static int nvme_pci_get_address(struct nvme_ctrl *ctrl, char *buf, int size)
+ static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
+ 	.name			= "pcie",
+ 	.module			= THIS_MODULE,
+-	.flags			= NVME_F_METADATA_SUPPORTED,
++	.flags			= NVME_F_METADATA_SUPPORTED |
++				  NVME_F_PCI_P2PDMA,
+ 	.reg_read32		= nvme_pci_reg_read32,
+ 	.reg_write32		= nvme_pci_reg_write32,
+ 	.reg_read64		= nvme_pci_reg_read64,
 -- 
-1.9.1
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
