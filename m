@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AADA422618140
- for <linux-nvdimm@lists.01.org>; Tue, 10 Apr 2018 14:28:47 -0700 (PDT)
-Subject: [PATCH] ndctl: add support in libndctl to provide deep flush
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 10 Apr 2018 14:28:46 -0700
-Message-ID: <152339572662.31576.8455896889778879725.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 825DC2041B285
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Apr 2018 03:17:36 -0700 (PDT)
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH ndctl v3 3/3] Documentation: add asciidoctor-extensions.rb to
+ .gitignore
+Date: Tue, 24 Apr 2018 12:17:33 +0200
+Message-Id: <20180424101733.17233-4-tiwai@suse.de>
+In-Reply-To: <20180424101733.17233-1-tiwai@suse.de>
+References: <20180424101733.17233-1-tiwai@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,109 +18,36 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Providing an API call in libndctl to support accessing the region deep_flush
-in sysfs.
+Two new files were added for asciidoctor support.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- 0 files changed
+ .gitignore | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 580a450e..fb4dca73 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -181,6 +181,8 @@ struct ndctl_region {
- 	FILE *badblocks;
- 	struct badblock bb;
- 	enum ndctl_persistence_domain persistence_domain;
-+	/* file descriptor for deep flush sysfs entry */
-+	int flush_fd;
- };
- 
- /**
-@@ -511,6 +513,8 @@ static void free_region(struct ndctl_region *region)
- 	free(region->region_path);
- 	if (region->badblocks)
- 		fclose(region->badblocks);
-+	if (region->flush_fd > 0)
-+		close(region->flush_fd);
- 	free(region);
- }
- 
-@@ -1049,6 +1053,12 @@ NDCTL_EXPORT unsigned long long ndctl_region_get_resource(struct ndctl_region *r
- 	return strtoull(buf, NULL, 0);
- }
- 
-+NDCTL_EXPORT int ndctl_region_deep_flush(struct ndctl_region *region)
-+{
-+	return pwrite(region->flush_fd, "1", 1, 0);
-+}
-+
-+
- NDCTL_EXPORT const char *ndctl_bus_get_cmd_name(struct ndctl_bus *bus, int cmd)
- {
- 	return nvdimm_bus_cmd_name(cmd);
-@@ -1791,6 +1801,7 @@ static void *add_region(void *parent, int id, const char *region_base)
- 	struct ndctl_bus *bus = parent;
- 	struct ndctl_ctx *ctx = bus->ctx;
- 	char *path = calloc(1, strlen(region_base) + 100);
-+	int perm;
- 
- 	if (!path)
- 		return NULL;
-@@ -1866,6 +1877,22 @@ static void *add_region(void *parent, int id, const char *region_base)
- 	else
- 		region->persistence_domain = region_get_pd_type(buf);
- 
-+	sprintf(path, "%s/deep_flush", region_base);
-+	region->flush_fd = open(path, O_RDWR);
-+	if (region->flush_fd == -1)
-+		goto err_read;
-+
-+	if (pread(region->flush_fd, buf, 1, 0) == -1) {
-+		close(region->flush_fd);
-+		goto err_read;
-+	}
-+
-+	perm = strtol(buf, NULL, 0);
-+	if (perm == 0) {
-+		region->flush_fd = -1;
-+		close(region->flush_fd);
-+	}
-+
- 	free(path);
- 	return region;
- 
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 3209aefe..38cc3b9a 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -352,4 +352,5 @@ global:
- 	ndctl_dimm_fw_update_supported;
- 	ndctl_region_get_persistence_domain;
- 	ndctl_bus_get_persistence_domain;
-+	ndctl_region_deep_flush;
- } LIBNDCTL_14;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index cf6a77fd..1a622ae5 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -365,6 +365,7 @@ int ndctl_region_enable(struct ndctl_region *region);
- int ndctl_region_disable_invalidate(struct ndctl_region *region);
- int ndctl_region_disable_preserve(struct ndctl_region *region);
- void ndctl_region_cleanup(struct ndctl_region *region);
-+int ndctl_region_deep_flush(struct ndctl_region *region);
- 
- struct ndctl_interleave_set;
- struct ndctl_interleave_set *ndctl_region_get_interleave_set(
+diff --git a/.gitignore b/.gitignore
+index 20a04dedd862..c7d11d91398c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -15,6 +15,8 @@ Makefile.in
+ *.1
+ Documentation/daxctl/asciidoc.conf
+ Documentation/ndctl/asciidoc.conf
++Documentation/daxctl/asciidoctor-extensions.rb
++Documentation/ndctl/asciidoctor-extensions.rb
+ .dirstamp
+ daxctl/daxctl
+ daxctl/lib/libdaxctl.la
+-- 
+2.16.3
 
 _______________________________________________
 Linux-nvdimm mailing list
