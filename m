@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7383F21EBD1DF
- for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 11:18:41 -0700 (PDT)
-Subject: [PATCH v4 2/4] ndctl: convert namespace actions to use
- util_filter_walk()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 27 Apr 2018 11:18:40 -0700
-Message-ID: <152485312055.47995.12642343910789705739.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152485300486.47995.7487206758776476576.stgit@djiang5-desk3.ch.intel.com>
-References: <152485300486.47995.7487206758776476576.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 94B582041B28B
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Apr 2018 03:17:36 -0700 (PDT)
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH ndctl v3 2/3] Documentation: Add the support for asciidoctor
+Date: Tue, 24 Apr 2018 12:17:32 +0200
+Message-Id: <20180424101733.17233-3-tiwai@suse.de>
+In-Reply-To: <20180424101733.17233-1-tiwai@suse.de>
+References: <20180424101733.17233-1-tiwai@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,286 +17,228 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-util_filter_walk() does the looping through of busses and regions. Removing
-duplicate code in namespace ops and provide filter functions so we can
-utilize util_filter_walk() and share common code.
+This patch adds the support for asciidoctor to be used for generating
+documents instead of asciidoc.  It's enabled via --enable-asciidoctor
+configure option while asciidoc is used still as default.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+In addition to the configure option, a few other changes were needed:
+* some asciidoc.conf python stuff has to be replaced with asciidoctor
+  ruby extension; copied mostly from git
+* asciidoctor requires slightly different options
+* the man pages are generated directly via asciidoctor without xmlto
+  processing; less package dependency
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- ndctl/namespace.c |  164 ++++++++++++++++++++++++++++++-----------------------
- test/btt-check.sh |    2 -
- util/filter.c     |    5 +-
- util/filter.h     |    8 +++
- 4 files changed, 105 insertions(+), 74 deletions(-)
+ Documentation/asciidoctor-extensions.rb.in | 30 ++++++++++++++++++++++++++++++
+ Documentation/daxctl/Makefile.am           | 29 +++++++++++++++++++++++++++--
+ Documentation/ndctl/Makefile.am            | 29 +++++++++++++++++++++++++++--
+ configure.ac                               | 17 +++++++++++++++--
+ 4 files changed, 99 insertions(+), 6 deletions(-)
+ create mode 100644 Documentation/asciidoctor-extensions.rb.in
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index e61f500c..404d6761 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -983,14 +983,92 @@ static int namespace_reconfig(struct ndctl_region *region,
- int namespace_check(struct ndctl_namespace *ndns, bool verbose, bool force,
- 		bool repair, bool logfix);
- 
-+static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx *ctx)
-+{
-+	return true;
-+}
+diff --git a/Documentation/asciidoctor-extensions.rb.in b/Documentation/asciidoctor-extensions.rb.in
+new file mode 100644
+index 000000000000..a0307d0cacef
+--- /dev/null
++++ b/Documentation/asciidoctor-extensions.rb.in
+@@ -0,0 +1,30 @@
++require 'asciidoctor'
++require 'asciidoctor/extensions'
 +
-+static bool filter_region(struct ndctl_region *region,
-+		struct util_filter_ctx *ctx)
-+{
-+	struct nsaction_filter_arg *nfa = ctx->nsaction;
-+	int rc = 0;
-+	bool out = true;
++module @Utility@
++  module Documentation
++    class Link@Utility@Processor < Asciidoctor::Extensions::InlineMacroProcessor
++      use_dsl
 +
-+	if (nfa->action == ACTION_CREATE && !nfa->namespace) {
-+		if (nfa->rc == 1)
-+			return false;
++      named :chrome
 +
-+		rc = namespace_create(region);
-+		if (rc != -EAGAIN) {
-+			if (rc == 0)
-+				rc = 1;
-+			/* don't proceed in the filter loop */
-+			out = false;
-+		}
-+		nfa->rc = rc;
-+	}
++      def process(parent, target, attrs)
++        if parent.document.basebackend? 'html'
++          prefix = parent.document.attr('@utility@-relative-html-prefix')
++          %(<a href="#{prefix}#{target}.html">#{target}(#{attrs[1]})</a>\n)
++        elsif parent.document.basebackend? 'manpage'
++          "#{target}(#{attrs[1]})"
++        elsif parent.document.basebackend? 'docbook'
++          "<citerefentry>\n" \
++            "<refentrytitle>#{target}</refentrytitle>" \
++            "<manvolnum>#{attrs[1]}</manvolnum>\n" \
++          "</citerefentry>\n"
++        end
++      end
++    end
++  end
++end
 +
-+	return out;
-+}
++Asciidoctor::Extensions.register do
++  inline_macro @Utility@::Documentation::Link@Utility@Processor, :link@utility@
++end
+diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
+index 259dafd18e5e..fc0fbe138d93 100644
+--- a/Documentation/daxctl/Makefile.am
++++ b/Documentation/daxctl/Makefile.am
+@@ -9,11 +9,22 @@
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # General Public License for more details.
+ 
+-do_subst = sed -e 's,UTILITY,daxctl,g'
++if USE_ASCIIDOCTOR
 +
-+static void filter_namespace(struct ndctl_namespace *ndns,
-+		struct util_filter_ctx *ctx)
-+{
-+	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
-+	struct nsaction_filter_arg *nfa = ctx->nsaction;
-+	const char *ndns_name;
-+	int rc;
++do_subst = sed -e 's,@Utility@,Daxctl,g' -e's,@utility@,daxctl,g'
++CONFFILE = asciidoctor-extensions.rb
++asciidoctor-extensions.rb: ../asciidoctor-extensions.rb.in
++	$(AM_V_GEN) $(do_subst) < $< > $@
+ 
++else
 +
-+	/* we have an error, don't do anything else */
-+	if (nfa->rc < 0)
-+		return;
++do_subst = sed -e 's,UTILITY,daxctl,g'
++CONFFILE = asciidoc.conf
+ asciidoc.conf: ../asciidoc.conf.in
+ 	$(AM_V_GEN) $(do_subst) < $< > $@
+ 
++endif
 +
-+	ndns_name = ndctl_namespace_get_devname(ndns);
-+	if (strcmp(nfa->namespace, "all") != 0
-+			&& strcmp(nfa->namespace, ndns_name) != 0) {
-+		return;
-+	}
+ man1_MANS = \
+ 	daxctl.1 \
+ 	daxctl-list.1
+@@ -24,10 +35,22 @@ XML_DEPS = \
+ 	../../version.m4 \
+ 	../copyright.txt \
+ 	Makefile \
+-	asciidoc.conf
++	$(CONFFILE)
+ 
+ RM ?= rm -f
+ 
++if USE_ASCIIDOCTOR
 +
-+	switch (nfa->action) {
-+	case ACTION_DISABLE:
-+		rc = ndctl_namespace_disable_safe(ndns);
-+		break;
-+	case ACTION_ENABLE:
-+		rc = ndctl_namespace_enable(ndns);
-+		break;
-+	case ACTION_DESTROY:
-+		rc = namespace_destroy(region, ndns);
-+		break;
-+	case ACTION_CHECK:
-+		rc = namespace_check(ndns, verbose, force, repair, logfix);
-+		if (rc < 0) {
-+			nfa->rc = rc;
-+			return;
-+		}
-+		break;
-+	case ACTION_CREATE:
-+		rc = namespace_reconfig(region, ndns);
-+		if (rc < 0) {
-+			nfa->rc = rc;
-+			return;
-+		}
-+		break;
-+	default:
-+		rc = -EINVAL;
-+		break;
-+	}
++%.1: %.txt $(XML_DEPS)
++	$(AM_V_GEN)$(RM) $@+ $@ && \
++		$(ASCIIDOC) -b manpage -d manpage -acompat-mode \
++		-I. -rasciidoctor-extensions \
++		-amansource=daxctl -amanmanual="daxctl Manual" \
++		-andctl_version=$(VERSION) -o $@+ $< && \
++		mv $@+ $@
 +
-+	if (rc >= 0)
-+		nfa->rc++;
-+}
++else
 +
- static int do_xaction_namespace(const char *namespace,
- 		enum device_action action, struct ndctl_ctx *ctx)
- {
--	struct ndctl_namespace *ndns, *_n;
--	int rc = -ENXIO, success = 0;
--	struct ndctl_region *region;
--	const char *ndns_name;
--	struct ndctl_bus *bus;
-+	int rc = -ENXIO;
-+	struct util_filter_ctx fctx = { 0 };
-+	struct nsaction_filter_arg nfa = { 0 };
- 
- 	if (!namespace && action != ACTION_CREATE)
- 		return rc;
-@@ -998,74 +1076,18 @@ static int do_xaction_namespace(const char *namespace,
- 	if (verbose)
- 		ndctl_set_log_priority(ctx, LOG_DEBUG);
- 
--        ndctl_bus_foreach(ctx, bus) {
--		if (!util_bus_filter(bus, uf_param.bus))
--			continue;
--
--		ndctl_region_foreach(bus, region) {
--			if (!util_region_filter(region, uf_param.region))
--				continue;
--
--			if (uf_param.type) {
--				if (strcmp(uf_param.type, "pmem") == 0
--						&& ndctl_region_get_type(region)
--						== ND_DEVICE_REGION_PMEM)
--					/* pass */;
--				else if (strcmp(uf_param.type, "blk") == 0
--						&& ndctl_region_get_type(region)
--						== ND_DEVICE_REGION_BLK)
--					/* pass */;
--				else
--					continue;
--			}
-+	fctx.filter_bus = filter_bus;
-+	fctx.filter_region = filter_region;
-+	fctx.filter_namespace = filter_namespace;
-+	fctx.nsaction = &nfa;
-+	fctx.nsaction->action = action;
-+	fctx.nsaction->namespace = namespace;
- 
--			if (action == ACTION_CREATE && !namespace) {
--				rc = namespace_create(region);
--				if (rc == -EAGAIN)
--					continue;
--				if (rc == 0)
--					rc = 1;
--				return rc;
--			}
--			ndctl_namespace_foreach_safe(region, ndns, _n) {
--				ndns_name = ndctl_namespace_get_devname(ndns);
--
--				if (strcmp(namespace, "all") != 0
--						&& strcmp(namespace, ndns_name) != 0)
--					continue;
--				switch (action) {
--				case ACTION_DISABLE:
--					rc = ndctl_namespace_disable_safe(ndns);
--					break;
--				case ACTION_ENABLE:
--					rc = ndctl_namespace_enable(ndns);
--					break;
--				case ACTION_DESTROY:
--					rc = namespace_destroy(region, ndns);
--					break;
--				case ACTION_CHECK:
--					rc = namespace_check(ndns, verbose,
--							force, repair, logfix);
--					if (rc < 0)
--						return rc;
--					break;
--				case ACTION_CREATE:
--					rc = namespace_reconfig(region, ndns);
--					if (rc < 0)
--						return rc;
--					return 1;
--				default:
--					rc = -EINVAL;
--					break;
--				}
--				if (rc >= 0)
--					success++;
--			}
--		}
--	}
-+	rc = util_filter_walk(ctx, &fctx, &uf_param);
-+	if (rc < 0)
-+		return rc;
- 
--	if (success)
--		return success;
-+	rc = nfa.rc;
- 	return rc;
- }
- 
-diff --git a/test/btt-check.sh b/test/btt-check.sh
-index 353d4375..50c1b592 100755
---- a/test/btt-check.sh
-+++ b/test/btt-check.sh
-@@ -1,4 +1,4 @@
--#!/bin/bash -E
-+#!/bin/bash -Ex
- 
- # Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
- # 
-diff --git a/util/filter.c b/util/filter.c
-index 0d3cc02f..b7a4fbd6 100644
---- a/util/filter.c
-+++ b/util/filter.c
-@@ -18,6 +18,7 @@
- #include <sys/stat.h>
- #include <util/util.h>
- #include <sys/types.h>
-+#include <ndctl/action.h>
- #include <ndctl/ndctl.h>
- #include <util/filter.h>
- #include <ndctl/libndctl.h>
-@@ -418,7 +419,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
- 		}
- 
- 		ndctl_region_foreach(bus, region) {
--			struct ndctl_namespace *ndns;
-+			struct ndctl_namespace *ndns, *_n;
- 
- 			if (!util_region_filter(region, param->region)
- 					|| !util_region_filter_by_dimm(region,
-@@ -437,7 +438,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
- 			if (!fctx->filter_region(region, fctx))
- 				continue;
- 
--			ndctl_namespace_foreach(region, ndns) {
-+			ndctl_namespace_foreach_safe(region, ndns, _n) {
- 				enum ndctl_namespace_mode mode;
- 
- 				if (!fctx->filter_namespace)
-diff --git a/util/filter.h b/util/filter.h
-index effda24b..9f3786a9 100644
---- a/util/filter.h
-+++ b/util/filter.h
-@@ -13,6 +13,7 @@
- #ifndef _UTIL_FILTER_H_
- #define _UTIL_FILTER_H_
- #include <stdbool.h>
-+#include <ndctl/action.h>
- 
- struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
- struct ndctl_region *util_region_filter(struct ndctl_region *region,
-@@ -50,6 +51,12 @@ struct list_filter_arg {
- 	unsigned long flags;
- };
- 
-+struct nsaction_filter_arg {
-+	enum device_action action;
-+	const char *namespace;
-+	int rc;
-+};
+ %.xml: %.txt $(XML_DEPS)
+ 	$(AM_V_GEN)$(RM) $@+ $@ && \
+ 		$(ASCIIDOC) -b docbook -d manpage -f asciidoc.conf \
+@@ -37,3 +60,5 @@ RM ?= rm -f
+ %.1: %.xml $(XML_DEPS)
+ 	$(AM_V_GEN)$(RM) $@ && \
+ 		$(XMLTO) -o . -m ../manpage-normal.xsl man $<
 +
- /*
-  * struct util_filter_ctx - control and callbacks for util_filter_walk()
-  * ->filter_bus() and ->filter_region() return bool because the
-@@ -67,6 +74,7 @@ struct util_filter_ctx {
- 	union {
- 		void *arg;
- 		struct list_filter_arg *list;
-+		struct nsaction_filter_arg *nsaction;
- 	};
- };
++endif
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index fab05b91b23a..4fd9636faa0f 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -9,11 +9,22 @@
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # General Public License for more details.
  
+-do_subst = sed -e 's,UTILITY,ndctl,g'
++if USE_ASCIIDOCTOR
++
++do_subst = sed -e 's,@Utility@,Ndctl,g' -e's,@utility@,ndctl,g'
++CONFFILE = asciidoctor-extensions.rb
++asciidoctor-extensions.rb: ../asciidoctor-extensions.rb.in
++	$(AM_V_GEN) $(do_subst) < $< > $@
+ 
++else
++
++do_subst = sed -e 's,UTILITY,ndctl,g'
++CONFFILE = asciidoc.conf
+ asciidoc.conf: ../asciidoc.conf.in
+ 	$(AM_V_GEN) $(do_subst) < $< > $@
+ 
++endif
++
+ man1_MANS = \
+ 	ndctl.1 \
+ 	ndctl-wait-scrub.1 \
+@@ -42,7 +53,7 @@ CLEANFILES = $(man1_MANS)
+ XML_DEPS = \
+ 	../../version.m4 \
+ 	Makefile \
+-	asciidoc.conf \
++	$(CONFFILE) \
+ 	../copyright.txt \
+ 	region-description.txt \
+ 	xable-region-options.txt \
+@@ -55,6 +66,18 @@ XML_DEPS = \
+ 
+ RM ?= rm -f
+ 
++if USE_ASCIIDOCTOR
++
++%.1: %.txt $(XML_DEPS)
++	$(AM_V_GEN)$(RM) $@+ $@ && \
++		$(ASCIIDOC) -b manpage -d manpage -acompat-mode \
++		-I. -rasciidoctor-extensions \
++		-amansource=ndctl -amanmanual="ndctl Manual" \
++		-andctl_version=$(VERSION) -o $@+ $< && \
++		mv $@+ $@
++
++else
++
+ %.xml: %.txt $(XML_DEPS)
+ 	$(AM_V_GEN)$(RM) $@+ $@ && \
+ 		$(ASCIIDOC) -b docbook -d manpage -f asciidoc.conf \
+@@ -64,3 +87,5 @@ RM ?= rm -f
+ %.1: %.xml $(XML_DEPS)
+ 	$(AM_V_GEN)$(RM) $@ && \
+ 		$(XMLTO) -o . -m ../manpage-normal.xsl man $<
++
++endif
+diff --git a/configure.ac b/configure.ac
+index 3eaac32feb80..cddad16925f8 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -42,16 +42,29 @@ AS_IF([test "x$enable_docs" = "xyes"], [
+ ])
+ AM_CONDITIONAL([ENABLE_DOCS], [test "x$enable_docs" = "xyes"])
+ 
+-AC_CHECK_PROG(ASCIIDOC, [asciidoc], [$(which asciidoc)], [missing])
++AC_ARG_ENABLE([asciidoctor],
++	AS_HELP_STRING([--enable-asciidoctor],
++	[use asciidoctor for documentation build]),
++	[], enable_asciidoctor=no)
++AM_CONDITIONAL([USE_ASCIIDOCTOR], [test "x$enable_asciidoctor" = "xyes"])
++if test "x$enable_asciidoctor" = "xyes"; then
++	asciidoc="asciidoctor"
++else
++	asciidoc="asciidoc"
++fi
++AC_CHECK_PROG(ASCIIDOC, [$asciidoc], [$(which $asciidoc)], [missing])
+ if test "x$ASCIIDOC" = xmissing -a "x$enable_docs" = "xyes"; then
+-       AC_MSG_ERROR([asciidoc needed to build documentation])
++	AC_MSG_ERROR([$asciidoc needed to build documentation])
+ fi
+ AC_SUBST([ASCIIDOC])
++
++if test x"$asciidoc" = x"asciidoc"; then
+ AC_CHECK_PROG(XMLTO, [xmlto], [$(which xmlto)], [missing])
+ if test "x$XMLTO" = xmissing -a "x$enable_docs" = "xyes"; then
+        AC_MSG_ERROR([xmlto needed to build documentation])
+ fi
+ AC_SUBST([XMLTO])
++fi
+ 
+ AC_C_TYPEOF
+ AC_DEFINE([HAVE_STATEMENT_EXPR], 1, [Define to 1 if you have statement expressions.])
+-- 
+2.16.3
 
 _______________________________________________
 Linux-nvdimm mailing list
