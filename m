@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5E716220E8CB6
- for <linux-nvdimm@lists.01.org>; Tue, 17 Apr 2018 23:34:22 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 41421AC02D2
- for <linux-nvdimm@lists.01.org>;
- Wed, 18 Apr 2018 15:34:11 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [PATCH v2] ndctl,
- filter: refacor util_<obj>_filter() to support multiple
- space-seperated arguments
-Date: Wed, 18 Apr 2018 15:32:42 +0900
-Message-Id: <20180418063242.9221-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3357B220E8E0E
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Apr 2018 16:43:42 -0700 (PDT)
+Subject: [PATCH v9 8/9] xfs: prepare xfs_break_layouts() for another layout
+ type
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 24 Apr 2018 16:33:45 -0700
+Message-ID: <152461282522.17530.3412820006999654385.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,233 +19,253 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch refactors util_<obj>_filter to support multiple space-seperated
-arguments. Currently, only one <object> can be filtered by <object>'s name
-in util_<obj>_filter(). As a result, when users want to moniotr multiple
-dimms, they have to run multiple monitor processes. This feature teachs the
-util_dimm_filter() that the "ident" argument maybe a space-seperatd string
-which includes multiple dimm_names. Therefore the monitor can filter
-multiple dimms in one process.
+When xfs is operating as the back-end of a pNFS block server, it
+prevents collisions between local and remote operations by requiring a
+lease to be held for remotely accessed blocks. Local filesystem
+operations break those leases before writing or mutating the extent map
+of the file.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+A similar mechanism is needed to prevent operations on pinned dax
+mappings, like device-DMA, from colliding with extent unmap operations.
+
+BREAK_WRITE and BREAK_UNMAP are introduced as two distinct levels of
+layout breaking.
+
+Layouts are broken in the BREAK_WRITE case to ensure that layout-holders
+do not collide with local writes. Additionally, layouts are broken in
+the BREAK_UNMAP case to make sure the layout-holder has a consistent
+view of the file's extent map. While BREAK_WRITE breaks can be satisfied
+be recalling FL_LAYOUT leases, BREAK_UNMAP breaks additionally require
+waiting for busy dax-pages to go idle while holding XFS_MMAPLOCK_EXCL.
+
+After this refactoring xfs_break_layouts() becomes the entry point for
+coordinating both types of breaks. Finally, xfs_break_leased_layouts()
+becomes just the BREAK_WRITE handler.
+
+Note that the unlock tracking is needed in a follow on change. That will
+coordinate retrying either break handler until both successfully test
+for a lease break while maintaining the lock state.
+
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Reported-by: Dave Chinner <david@fromorbit.com>
+Reported-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-Change log since v1:
-  - Removing OPT_STRING_LIST from parse-option
-
 ---
- util/filter.c | 141 ++++++++++++++++++++++++++++++++------------------
- 1 file changed, 92 insertions(+), 49 deletions(-)
+ fs/xfs/xfs_file.c  |   30 ++++++++++++++++++++++++++++--
+ fs/xfs/xfs_inode.h |   16 ++++++++++++++++
+ fs/xfs/xfs_ioctl.c |    3 +--
+ fs/xfs/xfs_iops.c  |    6 +++---
+ fs/xfs/xfs_pnfs.c  |   13 +++++++------
+ fs/xfs/xfs_pnfs.h  |    6 ++++--
+ 6 files changed, 59 insertions(+), 15 deletions(-)
 
-diff --git a/util/filter.c b/util/filter.c
-index 6ab391a..0d3cc02 100644
---- a/util/filter.c
-+++ b/util/filter.c
-@@ -25,101 +25,144 @@
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 35309bd046be..1a5176b21803 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -312,7 +312,7 @@ xfs_file_aio_write_checks(
+ 	if (error <= 0)
+ 		return error;
  
- #define NUMA_NO_NODE    (-1)
+-	error = xfs_break_layouts(inode, iolock);
++	error = xfs_break_layouts(inode, iolock, BREAK_WRITE);
+ 	if (error)
+ 		return error;
  
--struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident)
-+struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *__ident)
- {
--	char *end = NULL;
-+	char *end = NULL, *ident, *save;
- 	unsigned long bus_id, id;
--	const char *provider, *devname;
-+	const char *provider, *devname, *name;
- 
--	if (!ident || strcmp(ident, "all") == 0)
-+	if (!__ident || strcmp(__ident, "all") == 0)
- 		return bus;
- 
--	bus_id = strtoul(ident, &end, 0);
--	if (end == ident || end[0])
--		bus_id = ULONG_MAX;
-+	ident = strdup(__ident);
-+	if (!ident)
-+		return NULL;
- 
--	provider = ndctl_bus_get_provider(bus);
--	devname = ndctl_bus_get_devname(bus);
--	id = ndctl_bus_get_id(bus);
-+	for (name = strtok_r(ident, " ", &save); name;
-+			name = strtok_r(NULL, " ", &save)) {
-+		bus_id = strtoul(ident, &end, 0);
-+		if (end == ident || end[0])
-+			bus_id = ULONG_MAX;
- 
--	if (bus_id < ULONG_MAX && bus_id == id)
--		return bus;
-+		provider = ndctl_bus_get_provider(bus);
-+		devname = ndctl_bus_get_devname(bus);
-+		id = ndctl_bus_get_id(bus);
- 
--	if (bus_id == ULONG_MAX && (strcmp(ident, provider) == 0
--				|| strcmp(ident, devname) == 0))
--		return bus;
-+		if (bus_id < ULONG_MAX && bus_id == id)
-+			break;
- 
-+		if (bus_id == ULONG_MAX && (strcmp(provider, name) == 0
-+				|| strcmp(devname, name) == 0))
-+			break;
-+	}
-+	free(ident);
-+
-+	if (name)
-+		return bus;
- 	return NULL;
+@@ -718,6 +718,32 @@ xfs_file_write_iter(
+ 	return ret;
  }
  
- struct ndctl_region *util_region_filter(struct ndctl_region *region,
--		const char *ident)
-+		const char *__ident)
- {
--	char *end = NULL;
--	const char *name;
-+	char *end = NULL, *ident, *save;
-+	const char *name, *region_name;
- 	unsigned long region_id, id;
- 
--	if (!ident || strcmp(ident, "all") == 0)
-+	if (!__ident || strcmp(__ident, "all") == 0)
- 		return region;
- 
--	region_id = strtoul(ident, &end, 0);
--	if (end == ident || end[0])
--		region_id = ULONG_MAX;
-+	ident = strdup(__ident);
-+	if (!ident)
-+		return NULL;
- 
--	name = ndctl_region_get_devname(region);
--	id = ndctl_region_get_id(region);
-+	for (name = strtok_r(ident, " ", &save); name;
-+			name = strtok_r(NULL, " ", &save)) {
-+		region_id = strtoul(ident, &end, 0);
-+		if (end == ident || end[0])
-+			region_id = ULONG_MAX;
- 
--	if (region_id < ULONG_MAX && region_id == id)
--		return region;
-+		region_name = ndctl_region_get_devname(region);
-+		id = ndctl_region_get_id(region);
- 
--	if (region_id == ULONG_MAX && strcmp(ident, name) == 0)
--		return region;
-+		if (region_id < ULONG_MAX && region_id == id)
-+			break;
++int
++xfs_break_layouts(
++	struct inode		*inode,
++	uint			*iolock,
++	enum layout_break_reason reason)
++{
++	bool			retry = false;
++	int			error = 0;
 +
-+		if (region_id == ULONG_MAX && strcmp(region_name, name) == 0)
-+			break;
-+	}
-+	free(ident);
- 
-+	if (name)
-+		return region;
- 	return NULL;
- }
- 
- struct ndctl_namespace *util_namespace_filter(struct ndctl_namespace *ndns,
--		const char *ident)
-+		const char *__ident)
- {
- 	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
- 	unsigned long region_id, ndns_id;
-+	const char *name;
-+	char *ident, *save;
- 
--	if (!ident || strcmp(ident, "all") == 0)
-+	if (!__ident || strcmp(__ident, "all") == 0)
- 		return ndns;
- 
--	if (strcmp(ident, ndctl_namespace_get_devname(ndns)) == 0)
--		return ndns;
-+	ident = strdup(__ident);
-+	if (!ident)
-+		return NULL;
- 
--	if (sscanf(ident, "%ld.%ld", &region_id, &ndns_id) == 2
--			&& ndctl_region_get_id(region) == region_id
--			&& ndctl_namespace_get_id(ndns) == ndns_id)
--		return ndns;
-+	for (name = strtok_r(ident, " ", &save); name;
-+			name = strtok_r(NULL, " ", &save)) {
-+		if (strcmp(name, ndctl_namespace_get_devname(ndns)) == 0)
-+			break;
++	ASSERT(xfs_isilocked(XFS_I(inode), XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
 +
-+		if (sscanf(name, "%ld.%ld", &region_id, &ndns_id) == 2
-+				&& ndctl_region_get_id(region) == region_id
-+				&& ndctl_namespace_get_id(ndns) == ndns_id)
-+			break;
++	switch (reason) {
++	case BREAK_UNMAP:
++		ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
++		/* fall through */
++	case BREAK_WRITE:
++		error = xfs_break_leased_layouts(inode, iolock, &retry);
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		return -EINVAL;
 +	}
-+	free(ident);
- 
-+	if (name)
-+		return ndns;
- 	return NULL;
- }
- 
--struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm *dimm, const char *ident)
-+struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm *dimm,
-+		const char *__ident)
- {
--	char *end = NULL;
--	const char *name;
-+	char *end = NULL, *ident, *save;
-+	const char *name, *dimm_name;
- 	unsigned long dimm_id, id;
- 
--	if (!ident || strcmp(ident, "all") == 0)
-+	if (!__ident || strcmp(__ident, "all") == 0)
- 		return dimm;
- 
--	dimm_id = strtoul(ident, &end, 0);
--	if (end == ident || end[0])
--		dimm_id = ULONG_MAX;
-+	ident = strdup(__ident);
-+	if (!ident)
-+		return NULL;
- 
--	name = ndctl_dimm_get_devname(dimm);
--	id = ndctl_dimm_get_id(dimm);
-+	for (name = strtok_r(ident, " ", &save); name;
-+			name = strtok_r(NULL, " ", &save)) {
-+		dimm_id = strtoul(ident, &end, 0);
-+		if (end == ident || end[0])
-+			dimm_id = ULONG_MAX;
- 
--	if (dimm_id < ULONG_MAX && dimm_id == id)
--		return dimm;
-+		dimm_name = ndctl_dimm_get_devname(dimm);
-+		id = ndctl_dimm_get_id(dimm);
- 
--	if (dimm_id == ULONG_MAX && strcmp(ident, name) == 0)
--		return dimm;
-+		if (dimm_id < ULONG_MAX && dimm_id == id)
-+			break;
 +
-+		if (dimm_id == ULONG_MAX && strcmp(dimm_name, name) == 0)
-+			break;
-+	}
-+	free(ident);
++	return error;
++}
++
+ #define	XFS_FALLOC_FL_SUPPORTED						\
+ 		(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |		\
+ 		 FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_ZERO_RANGE |	\
+@@ -744,7 +770,7 @@ xfs_file_fallocate(
+ 		return -EOPNOTSUPP;
  
-+	if (name)
-+		return dimm;
- 	return NULL;
+ 	xfs_ilock(ip, iolock);
+-	error = xfs_break_layouts(inode, &iolock);
++	error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
+ 	if (error)
+ 		goto out_unlock;
+ 
+diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
+index 1eebc53df7d7..31401cc9d0e6 100644
+--- a/fs/xfs/xfs_inode.h
++++ b/fs/xfs/xfs_inode.h
+@@ -379,6 +379,20 @@ static inline void xfs_ifunlock(struct xfs_inode *ip)
+ 					>> XFS_ILOCK_SHIFT)
+ 
+ /*
++ * Layouts are broken in the BREAK_WRITE case to ensure that
++ * layout-holders do not collide with local writes. Additionally,
++ * layouts are broken in the BREAK_UNMAP case to make sure the
++ * layout-holder has a consistent view of the file's extent map. While
++ * BREAK_WRITE breaks can be satisfied be recalling FL_LAYOUT leases,
++ * BREAK_UNMAP breaks additionally require waiting for busy dax-pages to
++ * go idle.
++ */
++enum layout_break_reason {
++        BREAK_WRITE,
++        BREAK_UNMAP,
++};
++
++/*
+  * For multiple groups support: if S_ISGID bit is set in the parent
+  * directory, group of new file is set to that of the parent, and
+  * new subdirectory gets S_ISGID bit from parent.
+@@ -443,6 +457,8 @@ enum xfs_prealloc_flags {
+ 
+ int	xfs_update_prealloc_flags(struct xfs_inode *ip,
+ 				  enum xfs_prealloc_flags flags);
++int	xfs_break_layouts(struct inode *inode, uint *iolock,
++		enum layout_break_reason reason);
+ 
+ /* from xfs_iops.c */
+ extern void xfs_setup_inode(struct xfs_inode *ip);
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index 4151fade4bb1..91e73d663099 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -39,7 +39,6 @@
+ #include "xfs_icache.h"
+ #include "xfs_symlink.h"
+ #include "xfs_trans.h"
+-#include "xfs_pnfs.h"
+ #include "xfs_acl.h"
+ #include "xfs_btree.h"
+ #include <linux/fsmap.h>
+@@ -644,7 +643,7 @@ xfs_ioc_space(
+ 		return error;
+ 
+ 	xfs_ilock(ip, iolock);
+-	error = xfs_break_layouts(inode, &iolock);
++	error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
+ 	if (error)
+ 		goto out_unlock;
+ 
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index 138fb36ca875..ce0c1f9466a8 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -37,7 +37,6 @@
+ #include "xfs_da_btree.h"
+ #include "xfs_dir2.h"
+ #include "xfs_trans_space.h"
+-#include "xfs_pnfs.h"
+ #include "xfs_iomap.h"
+ 
+ #include <linux/capability.h>
+@@ -1030,13 +1029,14 @@ xfs_vn_setattr(
+ 	int			error;
+ 
+ 	if (iattr->ia_valid & ATTR_SIZE) {
+-		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
++		struct inode		*inode = d_inode(dentry);
++		struct xfs_inode	*ip = XFS_I(inode);
+ 		uint			iolock;
+ 
+ 		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+ 		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+ 
+-		error = xfs_break_layouts(d_inode(dentry), &iolock);
++		error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
+ 		if (error) {
+ 			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+ 			return error;
+diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
+index 6ea7b0b55d02..40e69edb7e2e 100644
+--- a/fs/xfs/xfs_pnfs.c
++++ b/fs/xfs/xfs_pnfs.c
+@@ -31,17 +31,18 @@
+  * rules in the page fault path we don't bother.
+  */
+ int
+-xfs_break_layouts(
++xfs_break_leased_layouts(
+ 	struct inode		*inode,
+-	uint			*iolock)
++	uint			*iolock,
++	bool			*did_unlock)
+ {
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	int			error;
+ 
+-	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
+-
++	*did_unlock = false;
+ 	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
+ 		xfs_iunlock(ip, *iolock);
++		*did_unlock = true;
+ 		error = break_layout(inode, true);
+ 		*iolock &= ~XFS_IOLOCK_SHARED;
+ 		*iolock |= XFS_IOLOCK_EXCL;
+@@ -121,8 +122,8 @@ xfs_fs_map_blocks(
+ 	 * Lock out any other I/O before we flush and invalidate the pagecache,
+ 	 * and then hand out a layout to the remote system.  This is very
+ 	 * similar to direct I/O, except that the synchronization is much more
+-	 * complicated.  See the comment near xfs_break_layouts for a detailed
+-	 * explanation.
++	 * complicated.  See the comment near xfs_break_leased_layouts
++	 * for a detailed explanation.
+ 	 */
+ 	xfs_ilock(ip, XFS_IOLOCK_EXCL);
+ 
+diff --git a/fs/xfs/xfs_pnfs.h b/fs/xfs/xfs_pnfs.h
+index bf45951e28fe..0f2f51037064 100644
+--- a/fs/xfs/xfs_pnfs.h
++++ b/fs/xfs/xfs_pnfs.h
+@@ -9,11 +9,13 @@ int xfs_fs_map_blocks(struct inode *inode, loff_t offset, u64 length,
+ int xfs_fs_commit_blocks(struct inode *inode, struct iomap *maps, int nr_maps,
+ 		struct iattr *iattr);
+ 
+-int xfs_break_layouts(struct inode *inode, uint *iolock);
++int xfs_break_leased_layouts(struct inode *inode, uint *iolock,
++		bool *did_unlock);
+ #else
+ static inline int
+-xfs_break_layouts(struct inode *inode, uint *iolock)
++xfs_break_leased_layouts(struct inode *inode, uint *iolock, bool *did_unlock)
+ {
++	*did_unlock = false;
+ 	return 0;
  }
- 
--- 
-2.17.0.140.g0b0cc9f86
-
+ #endif /* CONFIG_EXPORTFS_BLOCK_OPS */
 
 _______________________________________________
 Linux-nvdimm mailing list
