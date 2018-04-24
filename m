@@ -1,10 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.28.193])
- by ml01.01.org (Postfix) with ESMTP id EB39322637DFF
- for <linux-nvdimm@lists.01.org>; Thu, 19 Apr 2018 20:25:06 -0700 (PDT)
-From: "MAILER-DAEMON" <MAILER-DAEMON@lists.01.org>
-Subject: Mail System Error - Returned Mail
-Date: Fri, 20 Apr 2018 11:25:09 +0800
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 67CE7220E8E0E
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Apr 2018 16:43:36 -0700 (PDT)
+Subject: [PATCH v9 7/9] xfs: prepare xfs_break_layouts() to be called with
+ XFS_MMAPLOCK_EXCL
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 24 Apr 2018 16:33:40 -0700
+Message-ID: <152461282007.17530.4005479436001566081.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -13,46 +19,124 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============4631595276378677058=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20180420032509.38806226EAC63@ml01.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: jack@suse.cz, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a multi-part message in MIME format.
+In preparation for adding coordination between extent unmap operations
+and busy dax-pages, update xfs_break_layouts() to permit it to be called
+with the mmap lock held. This lock scheme will be required for
+coordinating the break of 'dax layouts' (non-idle dax (ZONE_DEVICE)
+pages mapped into the file's address space). Breaking dax layouts will
+be added to xfs_break_layouts() in a future patch, for now this preps
+the unmap call sites to take and hold XFS_MMAPLOCK_EXCL over the call to
+xfs_break_layouts().
 
---===============4631595276378677058==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: "Darrick J. Wong" <darrick.wong@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ fs/xfs/xfs_file.c  |    5 +----
+ fs/xfs/xfs_ioctl.c |    5 +----
+ fs/xfs/xfs_iops.c  |   10 +++++++---
+ fs/xfs/xfs_pnfs.c  |    3 ++-
+ 4 files changed, 11 insertions(+), 12 deletions(-)
 
-��?�LK�H7$�~�}4ڥ(��׆��c�
-H�e�g��-�`�G%���f�(L4xD���"�#T�"����`���#b�d7�j�����(D.��<�������X��Ҿ%��c��H�������:��j7����ͬ��H#|�Q�j�� ��T6Q�T��U�R1x�R�(>�8��Q0�XB `�����d��U/���Z�uQ�w�����I6n�Pc7��:o�PbHl�?�5��s�D�l�T�CE%�<�_Pb�v|�5��wQKvV1hu\8���.�Mﲷ/q3�� ߴ�VD�\�r����"�|��䑯������c�NT!;v�3NL�o���~��pʏs¿��YN'�FC�Vm�����`�M�{������x{�K(�h��q�Z?�w��N��*��`$�M���ߩ.-���~�{�$�Nd�O�V�����%�j���ꌆ�'�vM����CG] 
-kn���fS�ٸV�D����Dv��e�C�R0W3���᲎~s%:��:#
-�~����F�J]�(]�cN�5u�R�Y���H�,��G�q��Y�I�:�KZ�ݤ,��vMu][��R�_~�y��n"��Y#듺�L�Ļ��醱��b���c;ﮟы*��֯i�<z��o�
-�H7�#8��"!X%pX�v�X��p��d�v����,ׯ3��Mt4�}?/D9Z��Y߭����0Ya����1ݿ���w����8��`�lC�Jcp��3w7�?�P"���t�҂弽�1.���i�4XtY��HM��"��d��f罱u� `0�F]მ����E���~���GxD�Ǣ�"yvv�O|tT���_L�\��S�kĶ�d%|�盄&�0���E����xP:h����lḆ3�g������:�l�e����r�L j�jщ��9F�Jй���˿IU�B>Ae���������g���c�
-�tf4|�~�HC��C`a�AHz'#g�0`ח�E��:Pl�{��2v�8��}8��wp|��:�u�
-�(�q���$�B����R;���ޏi�qla
-�D^]�M�QBF�^�)�BOsQ��:�:;��r�{z�é�9��³���ďPXR�>���W�����>���/�<�e����G$
-_A��U�}���c����T��Pz^�SS�\��i~�Yr/M�o��c9�2_T�ƪ4���!���Y[���:�q8۸OT���"H{dG�e'�8��Rq��>����8�E;ˁ��m"�Zii��dM��Җ�etK3q�8ȃ2Mr������7�� �v��:��
-�${�߽r��bvT*9*�R��?ϖ��D�
-O��X����|4%��>C�S���t�#%T���mYY�e�
-�JG25ar9���/i��C"�f��j�Gɜ���6���n�Si��6[��B��4D8�]���H���6�U��;�s��$�!��X�.�#ڣ7��̳����wˁfD�V�w�h^4�w[�*kR!��-�fW�<083�[���E�;Bl�FYed;
-A!?�<Tk�s��YYS���r���P.նB���p1C�t�N���;�#�n��߯Q8�,F���#̳����H���Q�\j����V�ЩvI�/ ���n�8��4>��L��L,35�?�o�"Q㱠x��J��*[6
-ᡠN%������
-�(
-
-
---===============4631595276378677058==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 299aee4b7b0b..35309bd046be 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -734,7 +734,7 @@ xfs_file_fallocate(
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	long			error;
+ 	enum xfs_prealloc_flags	flags = 0;
+-	uint			iolock = XFS_IOLOCK_EXCL;
++	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+ 	loff_t			new_size = 0;
+ 	bool			do_file_insert = false;
+ 
+@@ -748,9 +748,6 @@ xfs_file_fallocate(
+ 	if (error)
+ 		goto out_unlock;
+ 
+-	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+-	iolock |= XFS_MMAPLOCK_EXCL;
+-
+ 	if (mode & FALLOC_FL_PUNCH_HOLE) {
+ 		error = xfs_free_file_space(ip, offset, len);
+ 		if (error)
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index 89fb1eb80aae..4151fade4bb1 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -614,7 +614,7 @@ xfs_ioc_space(
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	struct iattr		iattr;
+ 	enum xfs_prealloc_flags	flags = 0;
+-	uint			iolock = XFS_IOLOCK_EXCL;
++	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+ 	int			error;
+ 
+ 	/*
+@@ -648,9 +648,6 @@ xfs_ioc_space(
+ 	if (error)
+ 		goto out_unlock;
+ 
+-	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+-	iolock |= XFS_MMAPLOCK_EXCL;
+-
+ 	switch (bf->l_whence) {
+ 	case 0: /*SEEK_SET*/
+ 		break;
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index a3ed3c811dfa..138fb36ca875 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -1031,13 +1031,17 @@ xfs_vn_setattr(
+ 
+ 	if (iattr->ia_valid & ATTR_SIZE) {
+ 		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
+-		uint			iolock = XFS_IOLOCK_EXCL;
++		uint			iolock;
++
++		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
++		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+ 
+ 		error = xfs_break_layouts(d_inode(dentry), &iolock);
+-		if (error)
++		if (error) {
++			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+ 			return error;
++		}
+ 
+-		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+ 		error = xfs_vn_setattr_size(dentry, iattr);
+ 		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+ 	} else {
+diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
+index aa6c5c193f45..6ea7b0b55d02 100644
+--- a/fs/xfs/xfs_pnfs.c
++++ b/fs/xfs/xfs_pnfs.c
+@@ -43,7 +43,8 @@ xfs_break_layouts(
+ 	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
+ 		xfs_iunlock(ip, *iolock);
+ 		error = break_layout(inode, true);
+-		*iolock = XFS_IOLOCK_EXCL;
++		*iolock &= ~XFS_IOLOCK_SHARED;
++		*iolock |= XFS_IOLOCK_EXCL;
+ 		xfs_ilock(ip, *iolock);
+ 	}
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============4631595276378677058==--
