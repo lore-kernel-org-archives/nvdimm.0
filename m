@@ -1,21 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x241.google.com (mail-it0-x241.google.com
- [IPv6:2607:f8b0:4001:c0b::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 397392274F3DF
- for <linux-nvdimm@lists.01.org>; Thu, 12 Apr 2018 15:51:02 -0700 (PDT)
-Received: by mail-it0-x241.google.com with SMTP id r19-v6so980290itc.0
- for <linux-nvdimm@lists.01.org>; Thu, 12 Apr 2018 15:51:01 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id C6EC4220E8E13
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Apr 2018 14:37:33 -0700 (PDT)
+Subject: [PATCH] ndctl: convert namespace ops to use util_filter_walk()
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 24 Apr 2018 14:37:32 -0700
+Message-ID: <152460585223.9828.17816938916320036281.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-References: <20180215210932.15490-1-erik.schmauss@intel.com>
- <20180215210932.15490-6-erik.schmauss@intel.com>
-In-Reply-To: <20180215210932.15490-6-erik.schmauss@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 12 Apr 2018 22:50:49 +0000
-Message-ID: <CAA9_cmftDhE4dbEAPSXhW2DY2j_toWmsU2E-NJ6cG3Vd0MdXVw@mail.gmail.com>
-Subject: Re: [PATCH v2 5/7] ACPICA: Integrate package handling with
- module-level code
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,547 +20,600 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: erik.schmauss@intel.com
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bob Moore <robert.moore@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-[ adding linux-nvdimm ]
+util_filter_walk() does the looping through of busses and regions. Removing
+duplicate code in namespace ops and provide filter functions so we can
+utilize util_filter_walk() and share common code.
 
-On Fri, Feb 16, 2018 at 7:20 AM Erik Schmauss <erik.schmauss@intel.com>
-wrote:
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ ndctl/namespace.c |  281 ++++++++++++++++++++++++++++-------------------------
+ util/filter.c     |   11 +-
+ util/filter.h     |    8 ++
+ 3 files changed, 162 insertions(+), 138 deletions(-)
 
-> ACPICA commit 8faf6fca445eb7219963d80543fb802302a7a8c7
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index fe86d826..9c504e7f 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -35,26 +35,24 @@ static bool verbose;
+ static bool force;
+ static bool repair;
+ static bool logfix;
+-static struct parameters {
++static struct {
+ 	bool do_scan;
+ 	bool mode_default;
+ 	bool align_default;
+ 	bool autolabel;
+-	const char *bus;
+ 	const char *map;
+-	const char *type;
+ 	const char *uuid;
+ 	const char *name;
+ 	const char *size;
+-	const char *mode;
+-	const char *region;
+ 	const char *reconfig;
+ 	const char *sector_size;
+ 	const char *align;
+-} param = {
++} ndns_action = {
+ 	.autolabel = true,
+ };
+ 
++struct util_filter_params param;
++
+ void builtin_xaction_namespace_reset(void)
+ {
+ 	/*
+@@ -94,26 +92,26 @@ OPT_STRING('r', "region", &param.region, "region-id", \
+ OPT_BOOLEAN('v', "verbose", &verbose, "emit extra debug messages to stderr")
+ 
+ #define CREATE_OPTIONS() \
+-OPT_STRING('e', "reconfig", &param.reconfig, "reconfig namespace", \
++OPT_STRING('e', "reconfig", &ndns_action.reconfig, "reconfig namespace", \
+ 	"reconfigure existing namespace"), \
+-OPT_STRING('u', "uuid", &param.uuid, "uuid", \
++OPT_STRING('u', "uuid", &ndns_action.uuid, "uuid", \
+ 	"specify the uuid for the namespace (default: autogenerate)"), \
+-OPT_STRING('n', "name", &param.name, "name", \
++OPT_STRING('n', "name", &ndns_action.name, "name", \
+ 	"specify an optional free form name for the namespace"), \
+-OPT_STRING('s', "size", &param.size, "size", \
++OPT_STRING('s', "size", &ndns_action.size, "size", \
+ 	"specify the namespace size in bytes (default: available capacity)"), \
+ OPT_STRING('m', "mode", &param.mode, "operation-mode", \
+ 	"specify a mode for the namespace, 'sector', 'fsdax', 'devdax' or 'raw'"), \
+-OPT_STRING('M', "map", &param.map, "memmap-location", \
++OPT_STRING('M', "map", &ndns_action.map, "memmap-location", \
+ 	"specify 'mem' or 'dev' for the location of the memmap"), \
+-OPT_STRING('l', "sector-size", &param.sector_size, "lba-size", \
++OPT_STRING('l', "sector-size", &ndns_action.sector_size, "lba-size", \
+ 	"specify the logical sector size in bytes"), \
+ OPT_STRING('t', "type", &param.type, "type", \
+ 	"specify the type of namespace to create 'pmem' or 'blk'"), \
+-OPT_STRING('a', "align", &param.align, "align", \
++OPT_STRING('a', "align", &ndns_action.align, "align", \
+ 	"specify the namespace alignment in bytes (default: 2M)"), \
+ OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active"), \
+-OPT_BOOLEAN('L', "autolabel", &param.autolabel, "automatically initialize labels")
++OPT_BOOLEAN('L', "autolabel", &ndns_action.autolabel, "automatically initialize labels")
+ 
+ #define CHECK_OPTIONS() \
+ OPT_BOOLEAN('R', "repair", &repair, "perform metadata repairs"), \
+@@ -158,7 +156,7 @@ static int set_defaults(enum device_action mode)
+ 				param.type);
+ 			rc = -EINVAL;
+ 		}
+-	} else if (!param.reconfig && mode == ACTION_CREATE)
++	} else if (!ndns_action.reconfig && mode == ACTION_CREATE)
+ 		param.type = "pmem";
+ 
+ 	if (param.mode) {
+@@ -180,32 +178,32 @@ static int set_defaults(enum device_action mode)
+ 			error("invalid mode '%s'\n", param.mode);
+ 			rc = -EINVAL;
+ 		}
+-	} else if (!param.reconfig && param.type) {
++	} else if (!ndns_action.reconfig && param.type) {
+ 		if (strcmp(param.type, "pmem") == 0)
+ 			param.mode = "memory";
+ 		else
+ 			param.mode = "safe";
+-		param.mode_default = true;
++		ndns_action.mode_default = true;
+ 	}
+ 
+-	if (param.map) {
+-		if (strcmp(param.map, "mem") == 0)
++	if (ndns_action.map) {
++		if (strcmp(ndns_action.map, "mem") == 0)
+ 			/* pass */;
+-		else if (strcmp(param.map, "dev") == 0)
++		else if (strcmp(ndns_action.map, "dev") == 0)
+ 			/* pass */;
+ 		else {
+-			error("invalid map location '%s'\n", param.map);
++			error("invalid map location '%s'\n", ndns_action.map);
+ 			rc = -EINVAL;
+ 		}
+ 
+-		if (!param.reconfig && param.mode
++		if (!ndns_action.reconfig && param.mode
+ 				&& strcmp(param.mode, "memory") != 0
+ 				&& strcmp(param.mode, "dax") != 0) {
+ 			error("--map only valid for an dax mode pmem namespace\n");
+ 			rc = -EINVAL;
+ 		}
+-	} else if (!param.reconfig)
+-		param.map = "dev";
++	} else if (!ndns_action.reconfig)
++		ndns_action.map = "dev";
+ 
+ 	/* check for incompatible mode and type combinations */
+ 	if (param.type && param.mode && strcmp(param.type, "blk") == 0
+@@ -215,39 +213,43 @@ static int set_defaults(enum device_action mode)
+ 		rc = -ENXIO;
+ 	}
+ 
+-	if (param.size && parse_size64(param.size) == ULLONG_MAX) {
++	if (ndns_action.size &&
++			parse_size64(ndns_action.size) == ULLONG_MAX) {
+ 		error("failed to parse namespace size '%s'\n",
+-				param.size);
++				ndns_action.size);
+ 		rc = -EINVAL;
+ 	}
+ 
+-	if (param.align && parse_size64(param.align) == ULLONG_MAX) {
++	if (ndns_action.align &&
++			parse_size64(ndns_action.align) == ULLONG_MAX) {
+ 		error("failed to parse namespace alignment '%s'\n",
+-				param.align);
++				ndns_action.align);
+ 		rc = -EINVAL;
+-	} else if (!param.align) {
+-		param.align = "2M";
+-		param.align_default = true;
++	} else if (!ndns_action.align) {
++		ndns_action.align = "2M";
++		ndns_action.align_default = true;
+ 	}
+ 
+-	if (param.uuid) {
++	if (ndns_action.uuid) {
+ 		uuid_t uuid;
+ 
+-		if (uuid_parse(param.uuid, uuid)) {
+-			error("failed to parse uuid: '%s'\n", param.uuid);
++		if (uuid_parse(ndns_action.uuid, uuid)) {
++			error("failed to parse uuid: '%s'\n",
++					ndns_action.uuid);
+ 			rc = -EINVAL;
+ 		}
+ 	}
+ 
+-	if (param.sector_size) {
+-		if (parse_size64(param.sector_size) == ULLONG_MAX) {
+-			error("invalid sector size: %s\n", param.sector_size);
++	if (ndns_action.sector_size) {
++		if (parse_size64(ndns_action.sector_size) == ULLONG_MAX) {
++			error("invalid sector size: %s\n",
++					ndns_action.sector_size);
+ 			rc = -EINVAL;
+ 		}
+ 	} else if (((param.type && strcmp(param.type, "blk") == 0)
+ 			|| (param.mode && strcmp(param.mode, "safe") == 0))) {
+ 		/* default sector size for blk-type or safe-mode */
+-		param.sector_size = "4096";
++		ndns_action.sector_size = "4096";
+ 	}
+ 
+ 	return rc;
+@@ -267,7 +269,7 @@ static const char *parse_namespace_options(int argc, const char **argv,
+ 	};
+ 	int i, rc = 0;
+ 
+-	param.do_scan = argc == 1;
++	ndns_action.do_scan = argc == 1;
+         argc = parse_options(argc, argv, options, u, 0);
+ 
+ 	rc = set_defaults(mode);
+@@ -305,7 +307,7 @@ static const char *parse_namespace_options(int argc, const char **argv,
+ 		return NULL; /* we won't return from usage_with_options() */
+ 	}
+ 
+-	return mode == ACTION_CREATE ? param.reconfig : argv[0];
++	return mode == ACTION_CREATE ? ndns_action.reconfig : argv[0];
+ }
+ 
+ #define try(prefix, op, dev, p) \
+@@ -474,21 +476,22 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		return -EAGAIN;
+ 	}
+ 
+-	if (param.size)
+-		p->size = __parse_size64(param.size, &units);
++	if (ndns_action.size)
++		p->size = __parse_size64(ndns_action.size, &units);
+ 	else if (ndns)
+ 		p->size = ndctl_namespace_get_size(ndns);
+ 
+-	if (param.uuid) {
+-		if (uuid_parse(param.uuid, p->uuid) != 0) {
++	if (ndns_action.uuid) {
++		if (uuid_parse(ndns_action.uuid, p->uuid) != 0) {
+ 			debug("%s: invalid uuid\n", __func__);
+ 			return -EINVAL;
+ 		}
+ 	} else
+ 		uuid_generate(p->uuid);
+ 
+-	if (param.name)
+-		rc = snprintf(p->name, sizeof(p->name), "%s", param.name);
++	if (ndns_action.name)
++		rc = snprintf(p->name, sizeof(p->name), "%s",
++				ndns_action.name);
+ 	else if (ndns)
+ 		rc = snprintf(p->name, sizeof(p->name), "%s",
+ 				ndctl_namespace_get_alt_name(ndns));
+@@ -520,11 +523,11 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 	} else if (ndns)
+ 		p->mode = ndctl_namespace_get_mode(ndns);
+ 
+-	if (param.align) {
++	if (ndns_action.align) {
+ 		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
+ 		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
+ 
+-		p->align = parse_size64(param.align);
++		p->align = parse_size64(ndns_action.align);
+ 
+ 		if (p->mode == NDCTL_NS_MODE_MEMORY && p->align != SZ_2M
+ 				&& (!pfn || !ndctl_pfn_has_align(pfn))) {
+@@ -545,7 +548,7 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 			debug("%s not support 'align' for devdax mode\n",
+ 					region_name);
+ 			return -EAGAIN;
+-		} else if (!param.align_default
++		} else if (!ndns_action.align_default
+ 				&& (p->mode == NDCTL_NS_MODE_SAFE
+ 					|| p->mode == NDCTL_NS_MODE_RAW)) {
+ 			/*
+@@ -565,7 +568,7 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		 * memory.
+ 		 */
+ 		resource = ndctl_region_get_resource(region);
+-		if (param.align_default && resource < ULLONG_MAX
++		if (ndns_action.align_default && resource < ULLONG_MAX
+ 				&& (resource & (SZ_2M - 1))) {
+ 			debug("%s: falling back to a 4K alignment\n",
+ 					region_name);
+@@ -578,7 +581,7 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		case SZ_1G:
+ 			break;
+ 		default:
+-			error("unsupported align: %s\n", param.align);
++			error("unsupported align: %s\n", ndns_action.align);
+ 			return -ENXIO;
+ 		}
+ 
+@@ -616,16 +619,17 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		p->size *= size_align;
+ 		p->size /= units;
+ 		error("'--size=' must align to interleave-width: %d and alignment: %ld\n"
+-				"  did you intend --size=%lld%s?\n", ways, param.align
++				"  did you intend --size=%lld%s?\n",
++				ways, ndns_action.align
+ 				? p->align : SZ_4K, p->size, suffix);
+ 		return -EINVAL;
+ 	}
+ 
+-	if (param.sector_size) {
++	if (ndns_action.sector_size) {
+ 		struct ndctl_btt *btt;
+ 		int num, i;
+ 
+-		p->sector_size = parse_size64(param.sector_size);
++		p->sector_size = parse_size64(ndns_action.sector_size);
+ 		btt = ndctl_region_get_btt_seed(region);
+ 		if (p->mode == NDCTL_NS_MODE_SAFE) {
+ 			if (!btt) {
+@@ -688,8 +692,8 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 			p->sector_size = 512;
+ 	}
+ 
+-	if (param.map) {
+-		if (!strcmp(param.map, "mem"))
++	if (ndns_action.map) {
++		if (!strcmp(ndns_action.map, "mem"))
+ 			p->loc = NDCTL_PFN_LOC_RAM;
+ 		else
+ 			p->loc = NDCTL_PFN_LOC_PMEM;
+@@ -708,7 +712,7 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 	if (do_setup_pfn(ndns, p)) {
+ 		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
+ 
+-		if (!pfn && param.mode_default) {
++		if (!pfn && ndns_action.mode_default) {
+ 			debug("%s fsdax mode not available\n", region_name);
+ 			p->mode = NDCTL_NS_MODE_RAW;
+ 		} else if (!pfn) {
+@@ -729,7 +733,7 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		}
+ 	}
+ 
+-	p->autolabel = param.autolabel;
++	p->autolabel = ndns_action.autolabel;
+ 
+ 	return 0;
+ }
+@@ -984,14 +988,87 @@ static int namespace_reconfig(struct ndctl_region *region,
+ int namespace_check(struct ndctl_namespace *ndns, bool verbose, bool force,
+ 		bool repair, bool logfix);
+ 
++static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx *ctx)
++{
++	return true;
++}
++
++static bool filter_region(struct ndctl_region *region,
++		struct util_filter_ctx *ctx)
++{
++	struct ndns_filter_arg *nfa = ctx->ndns;
++	int rc = 0;
++	bool out = true;
++
++	if (nfa->action == ACTION_CREATE && !nfa->namespace) {
++		rc = namespace_create(region);
++		if (rc != -EAGAIN) {
++			if (rc == 0)
++				rc = 1;
++			/* don't proceed in the filter loop */
++			out = false;
++		}
++	}
++
++	nfa->rc = rc;
++	return out;
++}
++
++static void filter_namespace(struct ndctl_namespace *ndns,
++		struct util_filter_ctx *ctx)
++{
++	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
++	struct ndns_filter_arg *nfa = ctx->ndns;
++	const char *ndns_name;
++	int rc;
++
++	/* we have an error, don't do anything else */
++	if (nfa->rc < 0)
++		return;
++
++	ndns_name = ndctl_namespace_get_devname(ndns);
++	if (strcmp(nfa->namespace, "all") != 0
++			&& strcmp(nfa->namespace, ndns_name) != 0)
++		return;
++
++	switch (nfa->action) {
++	case ACTION_DISABLE:
++		rc = ndctl_namespace_disable_safe(ndns);
++		break;
++	case ACTION_ENABLE:
++		rc = ndctl_namespace_enable(ndns);
++		break;
++	case ACTION_DESTROY:
++		rc = namespace_destroy(region, ndns);
++		break;
++	case ACTION_CHECK:
++		rc = namespace_check(ndns, verbose, force, repair, logfix);
++		if (rc < 0) {
++			nfa->rc = rc;
++			return;
++		}
++	case ACTION_CREATE:
++		rc = namespace_reconfig(region, ndns);
++		if (rc < 0) {
++			nfa->rc = rc;
++			return;
++		}
++	default:
++		rc = -EINVAL;
++		break;
++	}
++
++	if (rc >= 0)
++		nfa->rc++;
++}
++
+ static int do_xaction_namespace(const char *namespace,
+ 		enum device_action action, struct ndctl_ctx *ctx)
+ {
+-	struct ndctl_namespace *ndns, *_n;
+-	int rc = -ENXIO, success = 0;
+-	struct ndctl_region *region;
+-	const char *ndns_name;
+-	struct ndctl_bus *bus;
++	int rc = -ENXIO;
++
++	struct util_filter_ctx fctx = { 0 };
++	struct ndns_filter_arg nfa = { 0 };
+ 
+ 	if (!namespace && action != ACTION_CREATE)
+ 		return rc;
+@@ -999,74 +1076,18 @@ static int do_xaction_namespace(const char *namespace,
+ 	if (verbose)
+ 		ndctl_set_log_priority(ctx, LOG_DEBUG);
+ 
+-        ndctl_bus_foreach(ctx, bus) {
+-		if (!util_bus_filter(bus, param.bus))
+-			continue;
+-
+-		ndctl_region_foreach(bus, region) {
+-			if (!util_region_filter(region, param.region))
+-				continue;
+-
+-			if (param.type) {
+-				if (strcmp(param.type, "pmem") == 0
+-						&& ndctl_region_get_type(region)
+-						== ND_DEVICE_REGION_PMEM)
+-					/* pass */;
+-				else if (strcmp(param.type, "blk") == 0
+-						&& ndctl_region_get_type(region)
+-						== ND_DEVICE_REGION_BLK)
+-					/* pass */;
+-				else
+-					continue;
+-			}
++	fctx.filter_bus = filter_bus;
++	fctx.filter_region = filter_region;
++	fctx.filter_namespace = filter_namespace;
++	fctx.ndns = &nfa;
++	fctx.ndns->action = action;
++	fctx.ndns->namespace = namespace;
+ 
+-			if (action == ACTION_CREATE && !namespace) {
+-				rc = namespace_create(region);
+-				if (rc == -EAGAIN)
+-					continue;
+-				if (rc == 0)
+-					rc = 1;
+-				return rc;
+-			}
+-			ndctl_namespace_foreach_safe(region, ndns, _n) {
+-				ndns_name = ndctl_namespace_get_devname(ndns);
+-
+-				if (strcmp(namespace, "all") != 0
+-						&& strcmp(namespace, ndns_name) != 0)
+-					continue;
+-				switch (action) {
+-				case ACTION_DISABLE:
+-					rc = ndctl_namespace_disable_safe(ndns);
+-					break;
+-				case ACTION_ENABLE:
+-					rc = ndctl_namespace_enable(ndns);
+-					break;
+-				case ACTION_DESTROY:
+-					rc = namespace_destroy(region, ndns);
+-					break;
+-				case ACTION_CHECK:
+-					rc = namespace_check(ndns, verbose,
+-							force, repair, logfix);
+-					if (rc < 0)
+-						return rc;
+-					break;
+-				case ACTION_CREATE:
+-					rc = namespace_reconfig(region, ndns);
+-					if (rc < 0)
+-						return rc;
+-					return 1;
+-				default:
+-					rc = -EINVAL;
+-					break;
+-				}
+-				if (rc >= 0)
+-					success++;
+-			}
+-		}
+-	}
++	rc = util_filter_walk(ctx, &fctx, &param);
++	if (rc < 0)
++		return rc;
+ 
+-	if (success)
+-		return success;
++	rc = nfa.rc;
+ 	return rc;
+ }
+ 
+@@ -1119,7 +1140,7 @@ int cmd_create_namespace(int argc, const char **argv, void *ctx)
+ 			ACTION_CREATE, create_options, xable_usage);
+ 	int created = do_xaction_namespace(namespace, ACTION_CREATE, ctx);
+ 
+-	if (created < 1 && param.do_scan) {
++	if (created < 1 && ndns_action.do_scan) {
+ 		/*
+ 		 * In the default scan case we try pmem first and then
+ 		 * fallback to blk before giving up.
+diff --git a/util/filter.c b/util/filter.c
+index 6ab391a8..98e68ebe 100644
+--- a/util/filter.c
++++ b/util/filter.c
+@@ -18,6 +18,7 @@
+ #include <sys/stat.h>
+ #include <util/util.h>
+ #include <sys/types.h>
++#include <ndctl/action.h>
+ #include <ndctl/ndctl.h>
+ #include <util/filter.h>
+ #include <ndctl/libndctl.h>
+@@ -375,7 +376,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 		}
+ 
+ 		ndctl_region_foreach(bus, region) {
+-			struct ndctl_namespace *ndns;
++			struct ndctl_namespace *ndns, *_n;
+ 
+ 			if (!util_region_filter(region, param->region)
+ 					|| !util_region_filter_by_dimm(region,
+@@ -394,18 +395,12 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 			if (!fctx->filter_region(region, fctx))
+ 				continue;
+ 
+-			ndctl_namespace_foreach(region, ndns) {
+-				enum ndctl_namespace_mode mode;
+-
++			ndctl_namespace_foreach_safe(region, ndns, _n) {
+ 				if (!fctx->filter_namespace)
+ 					break;
+ 				if (!util_namespace_filter(ndns, param->namespace))
+ 					continue;
+ 
+-				mode = ndctl_namespace_get_mode(ndns);
+-				if (param->mode && mode_to_type(param->mode) != mode)
+-					continue;
+-
+ 				fctx->filter_namespace(ndns, fctx);
+ 			}
+ 		}
+diff --git a/util/filter.h b/util/filter.h
+index effda24b..ce3336a5 100644
+--- a/util/filter.h
++++ b/util/filter.h
+@@ -13,6 +13,7 @@
+ #ifndef _UTIL_FILTER_H_
+ #define _UTIL_FILTER_H_
+ #include <stdbool.h>
++#include <ndctl/action.h>
+ 
+ struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
+ struct ndctl_region *util_region_filter(struct ndctl_region *region,
+@@ -50,6 +51,12 @@ struct list_filter_arg {
+ 	unsigned long flags;
+ };
+ 
++struct ndns_filter_arg {
++	enum device_action action;
++	const char *namespace;
++	int rc;
++};
++
+ /*
+  * struct util_filter_ctx - control and callbacks for util_filter_walk()
+  * ->filter_bus() and ->filter_region() return bool because the
+@@ -67,6 +74,7 @@ struct util_filter_ctx {
+ 	union {
+ 		void *arg;
+ 		struct list_filter_arg *list;
++		struct ndns_filter_arg *ndns;
+ 	};
+ };
+ 
 
-> This change completes the integration of the recent changes to
-> package object handling with the module-level code support.
-
-> For acpi_exec, the -ep flag is removed.
-
-> This change allows table load to behave as if it were a method
-> invocation. Before this, the definition block definition below would
-> have loaded all named objects at the root scope. After loading, it
-> would execute the if statements at the root scope.
-
-> DefinitionBlock (...)
-> {
->    Name(OBJ1, 0)
-
->    if (1)
->    {
->      Device (DEV1)
->      {
->        Name (_HID,0x0)
->      }
->    }
->    Scope (DEV1)
->    {
->      Name (OBJ2)
->    }
-> }
-
-> The above code would load OBJ1 to the namespace, defer the execution
-> of the if statement and attempt to add OBJ2 within the scope of DEV1.
-> Since DEV1 is not in scope, this would incur an AE_NOT_FOUND error.
-> After this error is emitted, the if block is invoked and DEV1 and its
-> _HID is added to the namespace.
-
-> This commit changes the behavior to execute the if block in place
-> rather than deferring it until all tables are loaded. The new
-> behavior is as follows: insert OBJ1 in the namespace, invoke the if
-> statement and add DEV1 and its _HID to the namespace, add OBJ2 to the
-> scope of DEV1.
-
-> Bug report links:
-> Link: https://bugs.acpica.org/show_bug.cgi?id=963
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=153541
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=196165
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=192621
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=197207
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=198051
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=198515
-
-> ACPICA repo:
-> Link: https://github.com/acpica/acpica/commit/8faf6fca
-
-> Tested-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-
-Hi,
-
-This commit 5a8361f7ecce ("ACPICA: Integrate package handling with
-module-level code") regresses the detection of persistent memory in my
-qemu-kvm setup.
-
-Expect:
-
-# ndctl list -BR
-[
-   {
-     "provider":"ACPI.NFIT",
-     "dev":"ndbus1",
-     "regions":[
-       {
-         "dev":"region1",
-         "size":33285996544,
-         "available_size":0,
-         "type":"pmem",
-         "numa_node":0,
-         "iset_id":52512752653219036,
-         "persistence_domain":"unknown"
-       },
-       {
-         "dev":"region2",
-         "size":33285996544,
-         "available_size":0,
-         "type":"pmem",
-         "numa_node":0,
-         "iset_id":52512795602891997,
-         "persistence_domain":"unknown"
-       }
-     ]
-   },
-   {
-     "provider":"e820",
-     "dev":"ndbus0",
-     "regions":[
-       {
-         "dev":"region0",
-         "size":4294967296,
-         "available_size":0,
-         "type":"pmem",
-         "persistence_domain":"unknown"
-       }
-     ]
-   }
-]
-
-Actual:
-
-# ndctl list -BR
-{
-   "provider":"e820",
-   "dev":"ndbus0",
-   "regions":[
-     {
-       "dev":"region0",
-       "size":4294967296,
-       "available_size":0,
-       "type":"pmem",
-       "persistence_domain":"unknown"
-     }
-   ]
-}
-
-The immediately preceding commit 7decc66df940 ("ACPICA: Revert "Fix for
-implicit result conversion for the To____ functions"") works fine.
-
-Commit 5a8361f7ecce does not revert cleanly. Here is my qemu-kvm command
-line:
-
-label_size=$((128*1024))
-mem_size=$((31 << 30))
-
-kvm=(
-         $qemu
-         -enable-kvm
-         -cpu kvm64
-         -kernel $kernel
-         -initrd $initrd
-         -m 16G,slots=4,maxmem=128G
-
-         -machine pc-i440fx-2.4,accel=kvm,usb=off,vmport=off,nvdimm
-         -cpu SandyBridge
-         -smp 40
-         -netdev tap,id=hostnet0,ifname=tap0,script=no,downscript=no
-         -device
-virtio-net-pci,netdev=hostnet0,id=net0,mac=52:54:00:b7:a1:ad,bus=pci.0,addr=0x7
-         -object
-memory-backend-file,id=mem1,share,mem-path=${mem}1,size=$((label_size +
-mem_size))
-         -device nvdimm,memdev=mem1,id=nv1,label-size=${label_size}
-
-         -object
-memory-backend-file,id=mem2,share,mem-path=${mem}2,size=$((label_size +
-mem_size))
-         -device nvdimm,memdev=mem2,id=nv2,label-size=${label_size}
-         -numa node
-         -numa node
-         -device ahci,id=sata0,bus=pci.0,addr=0x8
-         -drive file=$IMAGE,if=none,id=drive-sata0-0-0,format=raw
-         -device ide-hd,bus=sata0.0,drive=drive-sata0-0-0,id=sata0-0-0
-         -boot order=nc
-         -no-reboot
-         -watchdog i6300esb
-         -rtc base=localtime
-         -serial stdio
-         -display none
-         -monitor null
-)
-
-...where the important lines that setup the pmem emulation are:
-
-         -object
-memory-backend-file,id=mem1,share,mem-path=${mem}1,size=$((label_size +
-mem_size))
-         -device nvdimm,memdev=mem1,id=nv1,label-size=${label_size}
-
-         -object
-memory-backend-file,id=mem2,share,mem-path=${mem}2,size=$((label_size +
-mem_size))
-         -device nvdimm,memdev=mem2,id=nv2,label-size=${label_size}
-
-My qemu-kvm version is: v2.7.0-1059-g63e18bdfd8a0
-
-Let me know if you need any more information or help getting the kvm setup
-going.
-
-
-> ---
->   drivers/acpi/acpica/dspkginit.c | 128
-++++++++++++++++++++++------------------
->   drivers/acpi/acpica/dswexec.c   |   6 +-
->   drivers/acpi/acpica/nsparse.c   |   5 +-
->   drivers/acpi/acpica/pstree.c    |   1 +
->   include/acpi/acpixf.h           |   8 ++-
->   5 files changed, 85 insertions(+), 63 deletions(-)
-
-> diff --git a/drivers/acpi/acpica/dspkginit.c
-b/drivers/acpi/acpica/dspkginit.c
-> index 902bee78036c..a307a07aeacd 100644
-> --- a/drivers/acpi/acpica/dspkginit.c
-> +++ b/drivers/acpi/acpica/dspkginit.c
-> @@ -47,6 +47,7 @@
->   #include "amlcode.h"
->   #include "acdispat.h"
->   #include "acinterp.h"
-> +#include "acparser.h"
-
->   #define _COMPONENT          ACPI_NAMESPACE
->   ACPI_MODULE_NAME("dspkginit")
-> @@ -94,12 +95,19 @@ acpi_ds_build_internal_package_obj(struct
-acpi_walk_state *walk_state,
->          union acpi_parse_object *parent;
->          union acpi_operand_object *obj_desc = NULL;
->          acpi_status status = AE_OK;
-> +       u8 module_level_code = FALSE;
->          u16 reference_count;
->          u32 index;
->          u32 i;
-
->          ACPI_FUNCTION_TRACE(ds_build_internal_package_obj);
-
-> +       /* Check if we are executing module level code */
-> +
-> +       if (walk_state->parse_flags & ACPI_PARSE_MODULE_LEVEL) {
-> +               module_level_code = TRUE;
-> +       }
-> +
->          /* Find the parent of a possibly nested package */
-
->          parent = op->common.parent;
-> @@ -130,24 +138,44 @@ acpi_ds_build_internal_package_obj(struct
-acpi_walk_state *walk_state,
-
->          /*
->           * Allocate the element array (array of pointers to the individual
-> -        * objects) based on the num_elements parameter. Add an extra
-pointer slot
-> -        * so that the list is always null terminated.
-> +        * objects) if necessary. the count is based on the num_elements
-> +        * parameter. Add an extra pointer slot so that the list is always
-> +        * null terminated.
->           */
-> -       obj_desc->package.elements = ACPI_ALLOCATE_ZEROED(((acpi_size)
-> -                                                          element_count +
-> -                                                          1) *
-sizeof(void *));
-> -
->          if (!obj_desc->package.elements) {
-> -               acpi_ut_delete_object_desc(obj_desc);
-> -               return_ACPI_STATUS(AE_NO_MEMORY);
-> +               obj_desc->package.elements =
-ACPI_ALLOCATE_ZEROED(((acpi_size)
-> +
-  element_count
-> +                                                                  +
-> +                                                                  1) *
-> +
-sizeof(void
-> +
-  *));
-> +
-> +               if (!obj_desc->package.elements) {
-> +                       acpi_ut_delete_object_desc(obj_desc);
-> +                       return_ACPI_STATUS(AE_NO_MEMORY);
-> +               }
-> +
-> +               obj_desc->package.count = element_count;
->          }
-
-> -       obj_desc->package.count = element_count;
-> +       /* First arg is element count. Second arg begins the initializer
-list */
-> +
->          arg = op->common.value.arg;
->          arg = arg->common.next;
-
-> -       if (arg) {
-> -               obj_desc->package.flags |= AOPOBJ_DATA_VALID;
-> +       /*
-> +        * If we are executing module-level code, we will defer the
-> +        * full resolution of the package elements in order to support
-> +        * forward references from the elements. This provides
-> +        * compatibility with other ACPI implementations.
-> +        */
-> +       if (module_level_code) {
-> +               obj_desc->package.aml_start = walk_state->aml;
-> +               obj_desc->package.aml_length = 0;
-> +
-> +               ACPI_DEBUG_PRINT_RAW((ACPI_DB_PARSE,
-> +                                     "%s: Deferring resolution of
-Package elements\n",
-> +                                     ACPI_GET_FUNCTION_NAME));
->          }
-
->          /*
-> @@ -187,15 +215,19 @@ acpi_ds_build_internal_package_obj(struct
-acpi_walk_state *walk_state,
->                                              "****DS namepath not found"));
->                          }
-
-> -                       /*
-> -                        * Initialize this package element. This function
-handles the
-> -                        * resolution of named references within the
-package.
-> -                        */
-> -                       acpi_ds_init_package_element(0,
-> -                                                    obj_desc->package.
-> -                                                    elements[i], NULL,
-> -                                                    &obj_desc->package.
-> -                                                    elements[i]);
-> +                       if (!module_level_code) {
-> +                               /*
-> +                                * Initialize this package element. This
-function handles the
-> +                                * resolution of named references within
-the package.
-> +                                * Forward references from module-level
-code are deferred
-> +                                * until all ACPI tables are loaded.
-> +                                */
-> +                               acpi_ds_init_package_element(0,
-> +
-  obj_desc->package.
-> +                                                            elements[i],
-NULL,
-> +
-  &obj_desc->package.
-> +                                                            elements[i]);
-> +                       }
->                  }
-
->                  if (*obj_desc_ptr) {
-> @@ -265,15 +297,21 @@ acpi_ds_build_internal_package_obj(struct
-acpi_walk_state *walk_state,
->                   * num_elements count.
->                   *
->                   * Note: this is not an error, the package is padded out
-> -                * with NULLs.
-> +                * with NULLs as per the ACPI specification.
->                   */
-> -               ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> -                                 "Package List length (%u) smaller than
-NumElements "
-> -                                 "count (%u), padded with null
-elements\n",
-> -                                 i, element_count));
-> +               ACPI_DEBUG_PRINT_RAW((ACPI_DB_INFO,
-> +                                     "%s: Package List length (%u)
-smaller than NumElements "
-> +                                     "count (%u), padded with null
-elements\n",
-> +                                     ACPI_GET_FUNCTION_NAME, i,
-> +                                     element_count));
-> +       }
-> +
-> +       /* Module-level packages will be resolved later */
-> +
-> +       if (!module_level_code) {
-> +               obj_desc->package.flags |= AOPOBJ_DATA_VALID;
->          }
-
-> -       obj_desc->package.flags |= AOPOBJ_DATA_VALID;
->          op->common.node = ACPI_CAST_PTR(struct acpi_namespace_node,
-obj_desc);
->          return_ACPI_STATUS(status);
->   }
-> @@ -363,6 +401,10 @@ acpi_ds_resolve_package_element(union
-acpi_operand_object **element_ptr)
->          /* Check if reference element is already resolved */
-
->          if (element->reference.resolved) {
-> +               ACPI_DEBUG_PRINT_RAW((ACPI_DB_PARSE,
-> +                                     "%s: Package element is already
-resolved\n",
-> +                                     ACPI_GET_FUNCTION_NAME));
-> +
->                  return_VOID;
->          }
-
-> @@ -383,7 +425,10 @@ acpi_ds_resolve_package_element(union
-acpi_operand_object **element_ptr)
->                                  "Could not find/resolve named package
-element: %s",
->                                  external_path));
-
-> +               /* Not found, set the element to NULL */
-> +
->                  ACPI_FREE(external_path);
-> +               acpi_ut_remove_reference(*element_ptr);
->                  *element_ptr = NULL;
->                  return_VOID;
->          } else if (resolved_node->type == ACPI_TYPE_ANY) {
-> @@ -397,23 +442,6 @@ acpi_ds_resolve_package_element(union
-acpi_operand_object **element_ptr)
->                  *element_ptr = NULL;
->                  return_VOID;
->          }
-> -#if 0
-> -       else if (resolved_node->flags & ANOBJ_TEMPORARY) {
-> -               /*
-> -                * A temporary node found here indicates that the
-reference is
-> -                * to a node that was created within this method. We are
-not
-> -                * going to allow it (especially if the package is
-returned
-> -                * from the method) -- the temporary node will be deleted
-out
-> -                * from under the method. (05/2017).
-> -                */
-> -               ACPI_ERROR((AE_INFO,
-> -                           "Package element refers to a temporary name
-[%4.4s], "
-> -                           "inserting a NULL element",
-> -                           resolved_node->name.ascii));
-> -               *element_ptr = NULL;
-> -               return_VOID;
-> -       }
-> -#endif
-
->          /*
->           * Special handling for Alias objects. We need resolved_node to
-point
-> @@ -449,20 +477,6 @@ acpi_ds_resolve_package_element(union
-acpi_operand_object **element_ptr)
->          if (ACPI_FAILURE(status)) {
->                  return_VOID;
->          }
-> -#if 0
-> -/* TBD - alias support */
-> -       /*
-> -        * Special handling for Alias objects. We need to setup the type
-> -        * and the Op->Common.Node to point to the Alias target. Note,
-> -        * Alias has at most one level of indirection internally.
-> -        */
-> -       type = op->common.node->type;
-> -       if (type == ACPI_TYPE_LOCAL_ALIAS) {
-> -               type = obj_desc->common.type;
-> -               op->common.node = ACPI_CAST_PTR(struct
-acpi_namespace_node,
-> -                                               op->common.node->object);
-> -       }
-> -#endif
-
->          switch (type) {
->                  /*
-> diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
-> index 2c07d220a50f..46962e34fc02 100644
-> --- a/drivers/acpi/acpica/dswexec.c
-> +++ b/drivers/acpi/acpica/dswexec.c
-> @@ -576,8 +576,10 @@ acpi_status acpi_ds_exec_end_op(struct
-acpi_walk_state *walk_state)
->                  case AML_TYPE_CREATE_OBJECT:
-
->                          ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-> -                                         "Executing CreateObject
-(Buffer/Package) Op=%p AMLPtr=%p\n",
-> -                                         op, op->named.data));
-> +                                         "Executing CreateObject
-(Buffer/Package) Op=%p Child=%p ParentOpcode=%4.4X\n",
-> +                                         op, op->named.value.arg,
-> +                                         op->common.parent->common.
-> +                                         aml_opcode));
-
->                          switch (op->common.parent->common.aml_opcode) {
->                          case AML_NAME_OP:
-> diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
-> index 6ac2d26a2cfb..acb1aede720e 100644
-> --- a/drivers/acpi/acpica/nsparse.c
-> +++ b/drivers/acpi/acpica/nsparse.c
-> @@ -267,8 +267,9 @@ acpi_ns_parse_table(u32 table_index, struct
-acpi_namespace_node *start_node)
->          ACPI_FUNCTION_TRACE(ns_parse_table);
-
->          if (acpi_gbl_parse_table_as_term_list) {
-> -               ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
-> -                                 "**** Start table execution pass\n"));
-> +               ACPI_DEBUG_PRINT_RAW((ACPI_DB_PARSE,
-> +                                     "%s: **** Start table execution
-pass\n",
-> +                                     ACPI_GET_FUNCTION_NAME));
-
->                  status = acpi_ns_execute_table(table_index, start_node);
->                  if (ACPI_FAILURE(status)) {
-> diff --git a/drivers/acpi/acpica/pstree.c b/drivers/acpi/acpica/pstree.c
-> index f9fa88c79b32..a4dd08eca47c 100644
-> --- a/drivers/acpi/acpica/pstree.c
-> +++ b/drivers/acpi/acpica/pstree.c
-> @@ -295,6 +295,7 @@ union acpi_parse_object *acpi_ps_get_child(union
-acpi_parse_object *op)
-
->          case AML_BUFFER_OP:
->          case AML_PACKAGE_OP:
-> +       case AML_VARIABLE_PACKAGE_OP:
->          case AML_METHOD_OP:
->          case AML_IF_OP:
->          case AML_WHILE_OP:
-> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-> index c2bf1255f5aa..84c946882589 100644
-> --- a/include/acpi/acpixf.h
-> +++ b/include/acpi/acpixf.h
-> @@ -192,15 +192,19 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt,
-FALSE);
-
->   /*
->    * Optionally support group module level code.
-> + * NOTE, this is essentially obsolete and will be removed soon
-> + * (01/2018).
->    */
-> -ACPI_INIT_GLOBAL(u8, acpi_gbl_group_module_level_code, TRUE);
-> +ACPI_INIT_GLOBAL(u8, acpi_gbl_group_module_level_code, FALSE);
-
->   /*
->    * Optionally support module level code by parsing the entire table as
->    * a term_list. Default is FALSE, do not execute entire table until some
->    * lock order issues are fixed.
-> + * NOTE, this is essentially obsolete and will be removed soon
-> + * (01/2018).
->    */
-> -ACPI_INIT_GLOBAL(u8, acpi_gbl_parse_table_as_term_list, FALSE);
-> +ACPI_INIT_GLOBAL(u8, acpi_gbl_parse_table_as_term_list, TRUE);
-
->   /*
->    * Optionally use 32-bit FADT addresses if and when there is a conflict
-> --
-> 2.14.3
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
