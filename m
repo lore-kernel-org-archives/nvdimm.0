@@ -1,61 +1,95 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC v2 2/2] pmem: device flush over VIRTIO
-Date: Wed, 25 Apr 2018 07:23:53 -0700
-Message-ID: <CAPcyv4gpZzKfE7jY1peYOVd6sVhNz7jce1s_xNH_2Lt8AjRK-Q@mail.gmail.com>
-References: <20180425112415.12327-1-pagupta@redhat.com>
- <20180425112415.12327-3-pagupta@redhat.com>
+From: Eric Blake <eblake@redhat.com>
+Subject: Re: [Qemu-devel] [RFC v2] qemu: Add virtio pmem device
+Date: Wed, 25 Apr 2018 09:23:45 -0500
+Message-ID: <79f72139-0fcb-3d5e-a16c-24f3b5ee1a07@redhat.com>
+References: <152465613714.2268.4576822049531163532@71c20359a636>
+ <1558768042.22416958.1524657509446.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180425112415.12327-3-pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Xiao Guangrong <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Zwisler, Ross" <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Igor Mammedov <imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Nitesh Narayan Lal <nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="mmDwZV4M0zXDDT20DagSjiWsqCXrchrth"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1558768042.22416958.1524657509446.JavaMail.zimbra@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pankaj Gupta <pagupta@redhat.com>, qemu-devel@nongnu.org
+Cc: jack@suse.cz, kvm@vger.kernel.org, david@redhat.com, linux-nvdimm@ml01.01.org, ross zwisler <ross.zwisler@intel.com>, lcapitulino@redhat.com, linux-mm@kvack.org, niteshnarayanlal@hotmail.com, mst@redhat.com, hch@infradead.org, marcel@redhat.com, nilal@redhat.com, haozhong zhang <haozhong.zhang@intel.com>, famz@redhat.com, riel@surriel.com, stefanha@redhat.com, pbonzini@redhat.com, dan j williams <dan.j.williams@intel.com>, kwolf@redhat.com, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, linux-kernel@vger.kernel.org, imammedo@redhat.com
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Apr 25, 2018 at 4:24 AM, Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> This patch adds functionality to perform
-> flush from guest to hosy over VIRTIO
-> when 'ND_REGION_VIRTIO'flag is set on
-> nd_negion. Flag is set by 'virtio-pmem'
-> driver.
->
-> Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/nvdimm/region_devs.c | 7 +++++++
->  1 file changed, 7 insertions(+)
->
-> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> index a612be6..6c6454e 100644
-> --- a/drivers/nvdimm/region_devs.c
-> +++ b/drivers/nvdimm/region_devs.c
-> @@ -20,6 +20,7 @@
->  #include <linux/nd.h>
->  #include "nd-core.h"
->  #include "nd.h"
-> +#include <linux/virtio_pmem.h>
->
->  /*
->   * For readq() and writeq() on 32-bit builds, the hi-lo, lo-hi order is
-> @@ -1074,6 +1075,12 @@ void nvdimm_flush(struct nd_region *nd_region)
->         struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
->         int i, idx;
->
-> +       /* call PV device flush */
-> +       if (test_bit(ND_REGION_VIRTIO, &nd_region->flags)) {
-> +               virtio_pmem_flush(&nd_region->dev);
-> +               return;
-> +       }
-> +
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--mmDwZV4M0zXDDT20DagSjiWsqCXrchrth
+Content-Type: multipart/mixed; boundary="vBkAcENT23vZalYco71XxAjzoGHE2FcjS";
+ protected-headers="v1"
+From: Eric Blake <eblake@redhat.com>
+To: Pankaj Gupta <pagupta@redhat.com>, qemu-devel@nongnu.org
+Cc: jack@suse.cz, kvm@vger.kernel.org, david@redhat.com,
+ linux-nvdimm@ml01.01.org, ross zwisler <ross.zwisler@intel.com>,
+ lcapitulino@redhat.com, linux-mm@kvack.org, niteshnarayanlal@hotmail.com,
+ mst@redhat.com, hch@infradead.org, marcel@redhat.com, nilal@redhat.com,
+ haozhong zhang <haozhong.zhang@intel.com>, famz@redhat.com,
+ riel@surriel.com, stefanha@redhat.com, pbonzini@redhat.com,
+ dan j williams <dan.j.williams@intel.com>, kwolf@redhat.com,
+ xiaoguangrong eric <xiaoguangrong.eric@gmail.com>,
+ linux-kernel@vger.kernel.org, imammedo@redhat.com
+Message-ID: <79f72139-0fcb-3d5e-a16c-24f3b5ee1a07@redhat.com>
+Subject: Re: [Qemu-devel] [RFC v2] qemu: Add virtio pmem device
+References: <152465613714.2268.4576822049531163532@71c20359a636>
+ <1558768042.22416958.1524657509446.JavaMail.zimbra@redhat.com>
+In-Reply-To: <1558768042.22416958.1524657509446.JavaMail.zimbra@redhat.com>
 
-I'd rather introduce a ->flush() operation hanging off of 'struct
-nd_region' so that this multiplexing can be a static setting.
+--vBkAcENT23vZalYco71XxAjzoGHE2FcjS
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+
+On 04/25/2018 06:58 AM, Pankaj Gupta wrote:
+>=20
+> Hi,
+>=20
+> Compile failures are because Qemu 'Memory-Device changes' are not yet
+> in qemu master. As mentioned in Qemu patch message patch is
+> dependent on 'Memeory-device' patches by 'David Hildenbrand'.
+
+
+On 04/25/2018 06:24 AM, Pankaj Gupta wrote:
+> This PV device code is dependent and tested
+> with 'David Hildenbrand's ' patchset[1] to
+> map non-PCDIMM devices to guest address space.
+> There is still upstream discussion on using
+> among PCI bar vs memory device, will update
+> as per concensus.
+>
+> [1] https://marc.info/?l=3Dqemu-devel&m=3D152450249319168&w=3D2
+
+Then let's spell that in a way that patchew understands (since patchew
+does not know how to turn marc.info references into Message-IDs):
+
+Based-on: <20180423165126.15441-1-david@redhat.com>
+
+--=20
+Eric Blake, Principal Software Engineer
+Red Hat, Inc.           +1-919-301-3266
+Virtualization:  qemu.org | libvirt.org
+
+
+--vBkAcENT23vZalYco71XxAjzoGHE2FcjS--
+
+--mmDwZV4M0zXDDT20DagSjiWsqCXrchrth
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Public key at http://people.redhat.com/eblake/eblake.gpg
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQEzBAEBCAAdFiEEccLMIrHEYCkn0vOqp6FrSiUnQ2oFAlrgj3EACgkQp6FrSiUn
+Q2rWJgf9Fi1g3YjOnasyD2+TxIYRagQbx7/Sg/F2VvSqM3NyJ+Wk9/7iNIzkyLPg
+99LY6CY46HaSyftjTGrQqc9D5bwpvXWn4gg2O311rMOlrSO+dPBixFs7fMm3wxgx
+WGZ9W5NdfYWLG+crVHyCBymKvwW/l+bVvAn4URLoiHXCJQu6DKhsdp/N8bpdSUfr
+XPbCVzgqIoA3dpVOR3aEHqIyVPqwnKwbI9Lya11/upKF7Zczvjp+TJZe/1k+v7v1
+pD1CNy0v32pYYgEqt7lwo4eWCM+ZS8zyWHV+MG6pXHg4jfFEmPbsOwGSYm1T5zjH
+4hQowL4JcnXSBPhNr8ew9xwqW0kBbw==
+=e3JN
+-----END PGP SIGNATURE-----
+
+--mmDwZV4M0zXDDT20DagSjiWsqCXrchrth--
