@@ -1,155 +1,51 @@
-From: Eric Blake <eblake@redhat.com>
-Subject: Re: [Qemu-devel] [RFC v2] qemu: Add virtio pmem device
-Date: Wed, 25 Apr 2018 09:25:37 -0500
-Message-ID: <25f3e433-cfa6-4a62-ba7f-47aef1119dfc@redhat.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC v2 1/2] virtio: add pmem driver
+Date: Wed, 25 Apr 2018 07:43:52 -0700
+Message-ID: <CAPcyv4hiowWozV527sQA_e4fdgCYbD6xfG==vepAqu0hxQEQcw@mail.gmail.com>
 References: <20180425112415.12327-1-pagupta@redhat.com>
- <20180425112415.12327-4-pagupta@redhat.com>
+ <20180425112415.12327-2-pagupta@redhat.com>
+ <CAPcyv4hvrB08XPTbVK0xT2_1Xmaid=-v3OMxJVDTNwQucsOHLA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="CFJqPHc1lVbGj70GneZIm5syNGVZjNCpA"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425112415.12327-4-pagupta@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pankaj Gupta <pagupta@redhat.com>, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-mm@kvack.org
-Cc: kwolf@redhat.com, haozhong.zhang@intel.com, jack@suse.cz, xiaoguangrong.eric@gmail.com, riel@surriel.com, niteshnarayanlal@hotmail.com, david@redhat.com, ross.zwisler@intel.com, lcapitulino@redhat.com, hch@infradead.org, mst@redhat.com, stefanha@redhat.com, imammedo@redhat.com, marcel@redhat.com, pbonzini@redhat.com, dan.j.williams@intel.com, nilal@redhat.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4hvrB08XPTbVK0xT2_1Xmaid=-v3OMxJVDTNwQucsOHLA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Zwisler, Ross" <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Xiao Guangrong <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Igor Mammedov <imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---CFJqPHc1lVbGj70GneZIm5syNGVZjNCpA
-Content-Type: multipart/mixed; boundary="1IGSjTW0uM1A8ilmt1jp7ZPWiEf26VDfr";
- protected-headers="v1"
-From: Eric Blake <eblake@redhat.com>
-To: Pankaj Gupta <pagupta@redhat.com>, linux-kernel@vger.kernel.org,
- kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org,
- linux-mm@kvack.org
-Cc: kwolf@redhat.com, haozhong.zhang@intel.com, jack@suse.cz,
- xiaoguangrong.eric@gmail.com, riel@surriel.com,
- niteshnarayanlal@hotmail.com, david@redhat.com, ross.zwisler@intel.com,
- lcapitulino@redhat.com, hch@infradead.org, mst@redhat.com,
- stefanha@redhat.com, imammedo@redhat.com, marcel@redhat.com,
- pbonzini@redhat.com, dan.j.williams@intel.com, nilal@redhat.com
-Message-ID: <25f3e433-cfa6-4a62-ba7f-47aef1119dfc@redhat.com>
-Subject: Re: [Qemu-devel] [RFC v2] qemu: Add virtio pmem device
-References: <20180425112415.12327-1-pagupta@redhat.com>
- <20180425112415.12327-4-pagupta@redhat.com>
-In-Reply-To: <20180425112415.12327-4-pagupta@redhat.com>
+[ adding Jeff directly since he has also been looking at
+infrastructure to track when MAP_SYNC should be disabled ]
 
---1IGSjTW0uM1A8ilmt1jp7ZPWiEf26VDfr
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
-
-On 04/25/2018 06:24 AM, Pankaj Gupta wrote:
-> This patch adds virtio-pmem Qemu device.
->=20
-> This device presents memory address range=20
-> information to guest which is backed by file=20
-> backend type. It acts like persistent memory=20
-> device for KVM guest. Guest can perform read=20
-> and persistent write operations on this memory=20
-> range with the help of DAX capable filesystem.
->=20
-> Persistent guest writes are assured with the=20
-> help of virtio based flushing interface. When=20
-> guest userspace space performs fsync on file=20
-> fd on pmem device, a flush command is send to=20
-> Qemu over VIRTIO and host side flush/sync is=20
-> done on backing image file.
->=20
-> This PV device code is dependent and tested=20
-> with 'David Hildenbrand's ' patchset[1] to=20
-> map non-PCDIMM devices to guest address space.
-
-This sentence doesn't belong in git history.  It is better to put
-information like this...
-
-> There is still upstream discussion on using=20
-> among PCI bar vs memory device, will update=20
-> as per concensus.
-
-s/concensus/consensus/
-
->=20
-> [1] https://marc.info/?l=3Dqemu-devel&m=3D152450249319168&w=3D2
->=20
-> Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> ---
-
-=2E..here, where it is part of the email, but not picked up by 'git am'.
-
-
-> +++ b/qapi/misc.json
-> @@ -2871,6 +2871,29 @@
->            }
->  }
-> =20
-> +##
-> +# @VirtioPMemDeviceInfo:
-> +#
-> +# VirtioPMem state information
-> +#
-> +# @id: device's ID
-> +#
-> +# @start: physical address, where device is mapped
-> +#
-> +# @size: size of memory that the device provides
-> +#
-> +# @memdev: memory backend linked with device
-> +#
-> +# Since: 2.13
-> +##
-> +{ 'struct': 'VirtioPMemDeviceInfo',
-> +    'data': { '*id': 'str',
-> +	      'start': 'size',
-> +	      'size': 'size',
-
-TAB damage.
-
-> +              'memdev': 'str'
-> +	    }
-> +}
-> +
->  ##
->  # @MemoryDeviceInfo:
->  #
-> @@ -2880,7 +2903,8 @@
->  ##
->  { 'union': 'MemoryDeviceInfo',
->    'data': { 'dimm': 'PCDIMMDeviceInfo',
-> -            'nvdimm': 'PCDIMMDeviceInfo'
-> +            'nvdimm': 'PCDIMMDeviceInfo',
-> +	    'virtio-pmem': 'VirtioPMemDeviceInfo'
->            }
->  }
-> =20
->=20
-
---=20
-Eric Blake, Principal Software Engineer
-Red Hat, Inc.           +1-919-301-3266
-Virtualization:  qemu.org | libvirt.org
-
-
---1IGSjTW0uM1A8ilmt1jp7ZPWiEf26VDfr--
-
---CFJqPHc1lVbGj70GneZIm5syNGVZjNCpA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Comment: Public key at http://people.redhat.com/eblake/eblake.gpg
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQEzBAEBCAAdFiEEccLMIrHEYCkn0vOqp6FrSiUnQ2oFAlrgj+EACgkQp6FrSiUn
-Q2oftQgAkgISPCCNGA8QYSXkQfHKQ2qPa3CR6cJ1vSVXjJWEsPypyfrQ4P/caxJC
-OaTfjufz0Tgn/kn1MOzeDYgQGnOjYZJC+1YYcMhR8arrUb6Whv4ejHpnXGNC1lxJ
-hLcRxPhD7fg7CW55xgi/pXF1OLUxMMQdtyd57SCW5rCt5NPi8TZRsDOiM34KEbDW
-EewLjBrjnueBaLVywp5I0KFODWua4/qSmkzB3E/EnHw66uHKrWH0PAHnH2s3OnwL
-0o4eBB2YnSrf2eKCuLY5XvJwD9HyRQm9h6sKnuP7+PqzaLlycHphA1jfOL+hNK2w
-txr4zrD38INfFRWQy0QHUt84HMGbPg==
-=ylBq
------END PGP SIGNATURE-----
-
---CFJqPHc1lVbGj70GneZIm5syNGVZjNCpA--
+On Wed, Apr 25, 2018 at 7:21 AM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Wed, Apr 25, 2018 at 4:24 AM, Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>> This patch adds virtio-pmem driver for KVM
+>> guest.
+>
+> Minor nit, please expand your changelog line wrapping to 72 columns.
+>
+>>
+>> Guest reads the persistent memory range
+>> information from Qemu over VIRTIO and registers
+>> it on nvdimm_bus. It also creates a nd_region
+>> object with the persistent memory range
+>> information so that existing 'nvdimm/pmem'
+>> driver can reserve this into system memory map.
+>> This way 'virtio-pmem' driver uses existing
+>> functionality of pmem driver to register persistent
+>> memory compatible for DAX capable filesystems.
+>
+> We need some additional enabling to disable MAP_SYNC for this
+> configuration. In other words, if fsync() is required then we must
+> disable the MAP_SYNC optimization. I think this should be a struct
+> dax_device property looked up at mmap time in each MAP_SYNC capable
+> ->mmap() file operation implementation.
