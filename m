@@ -1,15 +1,15 @@
 From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Qemu-devel] [RFC v2] qemu: Add virtio pmem device
-Date: Wed, 25 Apr 2018 10:55:57 -0400 (EDT)
-Message-ID: <634642140.22649359.1524668157371.JavaMail.zimbra@redhat.com>
+Subject: Re: [Qemu-devel] [RFC v2 1/2] virtio: add pmem driver
+Date: Wed, 25 Apr 2018 11:11:09 -0400 (EDT)
+Message-ID: <1651348200.22658063.1524669069712.JavaMail.zimbra@redhat.com>
 References: <20180425112415.12327-1-pagupta@redhat.com>
- <20180425112415.12327-4-pagupta@redhat.com>
- <25f3e433-cfa6-4a62-ba7f-47aef1119dfc@redhat.com>
+ <20180425112415.12327-2-pagupta@redhat.com>
+ <20180425174705-mutt-send-email-mst@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <25f3e433-cfa6-4a62-ba7f-47aef1119dfc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20180425174705-mutt-send-email-mst-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,107 +19,117 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Eric Blake <eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, ross zwisler <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xiaoguangrong eric <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiaoguangrong eric <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ross zwisler <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 
 > 
-> On 04/25/2018 06:24 AM, Pankaj Gupta wrote:
-> > This patch adds virtio-pmem Qemu device.
-> > 
-> > This device presents memory address range
-> > information to guest which is backed by file
-> > backend type. It acts like persistent memory
-> > device for KVM guest. Guest can perform read
-> > and persistent write operations on this memory
-> > range with the help of DAX capable filesystem.
-> > 
-> > Persistent guest writes are assured with the
-> > help of virtio based flushing interface. When
-> > guest userspace space performs fsync on file
-> > fd on pmem device, a flush command is send to
-> > Qemu over VIRTIO and host side flush/sync is
-> > done on backing image file.
-> > 
-> > This PV device code is dependent and tested
-> > with 'David Hildenbrand's ' patchset[1] to
-> > map non-PCDIMM devices to guest address space.
-> 
-> This sentence doesn't belong in git history.  It is better to put
-> information like this...
-> 
-> > There is still upstream discussion on using
-> > among PCI bar vs memory device, will update
-> > as per concensus.
-> 
-> s/concensus/consensus/
-> 
-> > 
-> > [1] https://marc.info/?l=qemu-devel&m=152450249319168&w=2
-> > 
-> > Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > ---
-> 
-> ...here, where it is part of the email, but not picked up by 'git am'.
-
-I see.
-
-Thanks!
-> 
-> 
-> > +++ b/qapi/misc.json
-> > @@ -2871,6 +2871,29 @@
-> >            }
-> >  }
+> On Wed, Apr 25, 2018 at 04:54:13PM +0530, Pankaj Gupta wrote:
+> > diff --git a/include/uapi/linux/virtio_ids.h
+> > b/include/uapi/linux/virtio_ids.h
+> > index 6d5c3b2..5ebd049 100644
+> > --- a/include/uapi/linux/virtio_ids.h
+> > +++ b/include/uapi/linux/virtio_ids.h
+> > @@ -43,5 +43,6 @@
+> >  #define VIRTIO_ID_INPUT        18 /* virtio input */
+> >  #define VIRTIO_ID_VSOCK        19 /* virtio vsock transport */
+> >  #define VIRTIO_ID_CRYPTO       20 /* virtio crypto */
+> > +#define VIRTIO_ID_PMEM         21 /* virtio pmem */
 > >  
-> > +##
-> > +# @VirtioPMemDeviceInfo:
-> > +#
-> > +# VirtioPMem state information
-> > +#
-> > +# @id: device's ID
-> > +#
-> > +# @start: physical address, where device is mapped
-> > +#
-> > +# @size: size of memory that the device provides
-> > +#
-> > +# @memdev: memory backend linked with device
-> > +#
-> > +# Since: 2.13
-> > +##
-> > +{ 'struct': 'VirtioPMemDeviceInfo',
-> > +    'data': { '*id': 'str',
-> > +	      'start': 'size',
-> > +	      'size': 'size',
+> >  #endif /* _LINUX_VIRTIO_IDS_H */
 > 
-> TAB damage.
+> Please register the device id with virtio TC.
+
+O.K Will create virtio spec and follow the procedure.
+ 
+> 
+> 
+> > diff --git a/include/uapi/linux/virtio_pmem.h
+> > b/include/uapi/linux/virtio_pmem.h
+> > new file mode 100644
+> > index 0000000..2ec27cb
+> > --- /dev/null
+> > +++ b/include/uapi/linux/virtio_pmem.h
+> > @@ -0,0 +1,58 @@
+> > +/* Virtio pmem Driver
+> > + *
+> > + * Discovers persitent memory range information
+> > + * from host and provides a virtio based flushing
+> > + * interface.
+> > + */
+> > +
+> > +#ifndef _LINUX_VIRTIO_PMEM_H
+> > +#define _LINUX_VIRTIO_PMEM_H
+> > +
+> > +#include <linux/types.h>
+> > +#include <linux/virtio_types.h>
+> > +#include <linux/virtio_ids.h>
+> > +#include <linux/virtio_config.h>
+> > +#include <linux/virtio_ring.h>
+> > +
+> > +
+> > +struct virtio_pmem_config {
+> > +
+> 
+> don't add empty lines pls.
 
 o.k
 
 > 
-> > +              'memdev': 'str'
-> > +	    }
-> > +}
+> > +	uint64_t start;
+> > +	uint64_t size;
+> 
+> Used LE fields for everything.
+
+o.k
+
+> 
+> > +};
 > > +
-> >  ##
-> >  # @MemoryDeviceInfo:
-> >  #
-> > @@ -2880,7 +2903,8 @@
-> >  ##
-> >  { 'union': 'MemoryDeviceInfo',
-> >    'data': { 'dimm': 'PCDIMMDeviceInfo',
-> > -            'nvdimm': 'PCDIMMDeviceInfo'
-> > +            'nvdimm': 'PCDIMMDeviceInfo',
-> > +	    'virtio-pmem': 'VirtioPMemDeviceInfo'
-> >            }
-> >  }
-> >  
-> > 
+> > +struct virtio_pmem {
+> > +
+> > +	struct virtio_device *vdev;
+> > +	struct virtqueue *req_vq;
+> > +
+> > +	uint64_t start;
+> > +	uint64_t size;
+> > +} __packed;
 > 
-> --
-> Eric Blake, Principal Software Engineer
-> Red Hat, Inc.           +1-919-301-3266
-> Virtualization:  qemu.org | libvirt.org
+> This does not belong in uapi, and should not be packed either.
+
+o.k
+
 > 
+> > +
+> > +static struct virtio_device_id id_table[] = {
+> > +	{ VIRTIO_ID_PMEM, VIRTIO_DEV_ANY_ID },
+> > +	{ 0 },
+> > +};
+> > +
+> > +void virtio_pmem_flush(struct device *dev)
+> > +{
+> > +	struct scatterlist sg;
+> > +	struct virtio_device *vdev  = dev_to_virtio(dev->parent->parent);
+> > +	struct virtio_pmem   *vpmem = vdev->priv;
+> > +	char *buf = "FLUSH";
+> > +	int err;
+> > +
+> > +	sg_init_one(&sg, buf, sizeof(buf));
+> > +
+> > +	err = virtqueue_add_outbuf(vpmem->req_vq, &sg, 1, buf, GFP_KERNEL);
+> > +
+> > +	if (err) {
+> > +		dev_err(&vdev->dev, "failed to send command to virtio pmem device\n");
+> > +		return;
+> > +	}
+> > +
+> > +	virtqueue_kick(vpmem->req_vq);
+> > +};
 > 
+> this doesn't belong in uapi.
+
+o.k.
+
+Thanks,
+Pankaj
