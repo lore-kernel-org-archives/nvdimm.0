@@ -1,24 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x236.google.com (mail-ot0-x236.google.com
- [IPv6:2607:f8b0:4003:c0f::236])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B21262041B281
- for <linux-nvdimm@lists.01.org>; Wed, 25 Apr 2018 00:32:53 -0700 (PDT)
-Received: by mail-ot0-x236.google.com with SMTP id y10-v6so11262227otg.10
- for <linux-nvdimm@lists.01.org>; Wed, 25 Apr 2018 00:32:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3222764EEE1@g01jpexmbkw01>
+ by ml01.01.org (Postfix) with ESMTPS id 39B2F2282E584
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Apr 2018 19:39:40 -0700 (PDT)
+Received: from g01jpfmpwkw01.exch.g01.fujitsu.local
+ (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
+ by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id E38F6AC01FC
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Apr 2018 11:39:30 +0900 (JST)
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Subject: RE: [PATCH v2] ndctl, filter: refacor util_<obj>_filter() to
+ support multiple space-seperated arguments
+Date: Wed, 25 Apr 2018 02:39:29 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222764EEE1@g01jpexmbkw01>
 References: <20180418063242.9221-1-qi.fuli@jp.fujitsu.com>
  <CAPcyv4gb0JVRtW8QQy_TkJyZmpteGveOgzAPt66Otx0sftyrHw@mail.gmail.com>
  <1524067583.6010.7.camel@intel.com>
  <0DEDF3B159719A448A49EF0E7B11E3222764E26B@g01jpexmbkw01>
- <0DEDF3B159719A448A49EF0E7B11E3222764EEE1@g01jpexmbkw01>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 25 Apr 2018 00:32:52 -0700
-Message-ID: <CAPcyv4h_Ddu5uWfJkbu2-KQZ4ChQi-uL=VH5k8y=LVX=7518ow@mail.gmail.com>
-Subject: Re: [PATCH v2] ndctl, filter: refacor util_<obj>_filter() to support
- multiple space-seperated arguments
+In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3222764E26B@g01jpexmbkw01>
+Content-Language: ja-JP
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,22 +27,58 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+To: "'Verma, Vishal L'" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Apr 24, 2018 at 7:39 PM, Qi, Fuli <qi.fuli@jp.fujitsu.com> wrote:
-> When I ran the command # ndctl list --dimm="all nmem1 nmem2", I found
-> only "nmem1" and "nmem2" can be listed, the keyword "all" was ignored.
-> I want to confirm is this result expected?
-> If not, I will make a follow up patch to fix this bug.
-
-Yes, good catch, that's a bug.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+V2hlbiBJIHJhbiB0aGUgY29tbWFuZCAjIG5kY3RsIGxpc3QgLS1kaW1tPSJhbGwgbm1lbTEgbm1l
+bTIiLCBJIGZvdW5kDQpvbmx5ICJubWVtMSIgYW5kICJubWVtMiIgY2FuIGJlIGxpc3RlZCwgdGhl
+IGtleXdvcmQgImFsbCIgd2FzIGlnbm9yZWQuDQpJIHdhbnQgdG8gY29uZmlybSBpcyB0aGlzIHJl
+c3VsdCBleHBlY3RlZD8gDQpJZiBub3QsIEkgd2lsbCBtYWtlIGEgZm9sbG93IHVwIHBhdGNoIHRv
+IGZpeCB0aGlzIGJ1Zy4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBM
+aW51eC1udmRpbW0gW21haWx0bzpsaW51eC1udmRpbW0tYm91bmNlc0BsaXN0cy4wMS5vcmddIE9u
+IEJlaGFsZiBPZiBRaSwNCj4gRnVsaQ0KPiBTZW50OiBUaHVyc2RheSwgQXByaWwgMTksIDIwMTgg
+MTE6MTAgQU0NCj4gVG86ICdWZXJtYSwgVmlzaGFsIEwnIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5j
+b20+OyBXaWxsaWFtcywgRGFuIEoNCj4gPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gQ2M6
+IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCj4gU3ViamVjdDogUkU6IFtQQVRDSCB2Ml0gbmRj
+dGwsIGZpbHRlcjogcmVmYWNvciB1dGlsXzxvYmo+X2ZpbHRlcigpIHRvIHN1cHBvcnQgbXVsdGlw
+bGUNCj4gc3BhY2Utc2VwZXJhdGVkIGFyZ3VtZW50cw0KPiANCj4gPiBGcm9tOiBWZXJtYSwgVmlz
+aGFsIEwgW21haWx0bzp2aXNoYWwubC52ZXJtYUBpbnRlbC5jb21dDQo+ID4gU2VudDogVGh1cnNk
+YXksIEFwcmlsIDE5LCAyMDE4IDE6MDYgQU0NCj4gPiBUbzogV2lsbGlhbXMsIERhbiBKIDxkYW4u
+ai53aWxsaWFtc0BpbnRlbC5jb20+OyBRaSwgRnVsaS/mlokg56aP5YipDQo+ID4gPHFpLmZ1bGlA
+anAuZnVqaXRzdS5jb20+DQo+ID4gQ2M6IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCj4gPiBT
+dWJqZWN0OiBSZTogW1BBVENIIHYyXSBuZGN0bCwgZmlsdGVyOiByZWZhY29yIHV0aWxfPG9iaj5f
+ZmlsdGVyKCkgdG8NCj4gPiBzdXBwb3J0IG11bHRpcGxlIHNwYWNlLXNlcGVyYXRlZCBhcmd1bWVu
+dHMNCj4gPg0KPiA+IE9uIFdlZCwgMjAxOC0wNC0xOCBhdCAwNzozMSAtMDcwMCwgRGFuIFdpbGxp
+YW1zIHdyb3RlOg0KPiA+ID4gT24gVHVlLCBBcHIgMTcsIDIwMTggYXQgMTE6MzIgUE0sIFFJIEZ1
+bGkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+IHdyb3RlOg0KPiA+ID4gPiBUaGlzIHBhdGNoIHJl
+ZmFjdG9ycyB1dGlsXzxvYmo+X2ZpbHRlciB0byBzdXBwb3J0IG11bHRpcGxlIHNwYWNlLQ0KPiA+
+ID4gPiBzZXBlcmF0ZWQgYXJndW1lbnRzLiBDdXJyZW50bHksIG9ubHkgb25lIDxvYmplY3Q+IGNh
+biBiZSBmaWx0ZXJlZA0KPiA+ID4gPiBieSA8b2JqZWN0PidzIG5hbWUgaW4gdXRpbF88b2JqPl9m
+aWx0ZXIoKS4gQXMgYSByZXN1bHQsIHdoZW4gdXNlcnMNCj4gPiA+ID4gd2FudCB0byBtb25pb3Ry
+IG11bHRpcGxlIGRpbW1zLCB0aGV5IGhhdmUgdG8gcnVuIG11bHRpcGxlIG1vbml0b3INCj4gPiA+
+ID4gcHJvY2Vzc2VzLiBUaGlzIGZlYXR1cmUgdGVhY2hzIHRoZQ0KPiA+ID4gPiB1dGlsX2RpbW1f
+ZmlsdGVyKCkgdGhhdCB0aGUgImlkZW50IiBhcmd1bWVudCBtYXliZSBhDQo+ID4gPiA+IHNwYWNl
+LXNlcGVyYXRkIHN0cmluZyB3aGljaCBpbmNsdWRlcyBtdWx0aXBsZSBkaW1tX25hbWVzLg0KPiA+
+ID4gPiBUaGVyZWZvcmUgdGhlIG1vbml0b3IgY2FuIGZpbHRlciBtdWx0aXBsZSBkaW1tcyBpbiBv
+bmUgcHJvY2Vzcy4NCj4gPiA+ID4NCj4gPiA+ID4gU2lnbmVkLW9mZi1ieTogUUkgRnVsaSA8cWku
+ZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gPiA+ID4gU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1z
+IDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4NCj4gPiBJJ2xsIGZpeCB1cCB0aGUgdGFn
+cyBsaWtlIHNvOg0KPiA+DQo+ID4gQmFzZWQtb24tYS1wYXRjaC1ieTogRGFuIFdpbGxpYW1zIDxk
+YW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4gUmV2aWV3ZWQtYnk6IERhbiBXaWxsaWFtcyA8
+ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFFJIEZ1bGkgPHFp
+LmZ1bGlAanAuZnVqaXRzdS5jb20+DQo+ID4NCj4gPg0KPiA+IFRoYW5rcywNCj4gPiAJLVZpc2hh
+bA0KPiA+DQo+ID4gPiA+DQo+ID4gPiA+IENoYW5nZSBsb2cgc2luY2UgdjE6DQo+ID4gPiA+ICAg
+LSBSZW1vdmluZyBPUFRfU1RSSU5HX0xJU1QgZnJvbSBwYXJzZS1vcHRpb24NCj4gPiA+DQo+ID4g
+PiBMb29rcyBnb29kOg0KPiA+ID4NCj4gPiA+IFJldmlld2VkLWJ5OiBEYW4gV2lsbGlhbXMgPGRh
+bi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gDQo+IFRoYW5rIHlvdSB2ZXJ5IG11Y2guDQo+ICAt
+IFFpDQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQo+
+IExpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QNCj4gTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0K
+PiBodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQ0KX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1t
+IG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEu
+b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
