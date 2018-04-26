@@ -1,10 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mbay.net (unknown [183.14.134.217])
- by ml01.01.org (Postfix) with ESMTP id 388F121F2E0F1
- for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 19:46:36 -0700 (PDT)
-From: jalvo@mbay.net
-Subject: Returned mail: see transcript for details
-Date: Tue, 10 Apr 2018 10:46:35 +0800
+Received: from lists.01.org (unknown [183.14.134.178])
+ by ml01.01.org (Postfix) with ESMTP id 0FCCE202E5F0C
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Apr 2018 20:06:10 -0700 (PDT)
+From: "Mail Administrator" <postmaster@lists.01.org>
+Subject: Message could not be delivered
+Date: Thu, 26 Apr 2018 11:06:12 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,11 +17,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20180410024639.989F5226FAA93@ml01.01.org>
+Message-Id: <20180426030612.D6BA3202E5F11@ml01.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The original message was included as attachment
+The original message was received at Thu, 26 Apr 2018 11:06:12 +0800
+from lists.01.org [222.187.51.196]
+
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm@lists.01.org>
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
