@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 034EE21EBD1DF
- for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 11:18:31 -0700 (PDT)
-Subject: [PATCH v4 0/4] ndctl: convert actions to use util_filter_walk
+ by ml01.01.org (Postfix) with ESMTPS id 4F476203B8FF3
+ for <linux-nvdimm@lists.01.org>; Thu, 26 Apr 2018 11:17:04 -0700 (PDT)
+Subject: [PATCH v3 0/4] convert actions to use util_filter_walk
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 27 Apr 2018 11:18:29 -0700
-Message-ID: <152485300486.47995.7487206758776476576.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 26 Apr 2018 11:17:02 -0700
+Message-ID: <152476632250.70161.9698682147434730585.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -30,10 +30,6 @@ code and reduce maintenance on individual versions of the same code.
 In this series we are convering namespace, region, and dimm actions.
 
 ---
-
-v4:
-- change struct names to be less confusing. (Dan)
-
 v3:
 - fixed some corner cases in namespace patch.
 - changed param renaming to reduce change for util_filter_params. (Dan)
@@ -45,7 +41,6 @@ v2:
   readable (Dan).
 - Not pass in mode as util_filter_params and put back the mode check in
   util_filter_walk() (Dan).
----
 
 Dave Jiang (4):
       ndctl: convert namespace actions to use util_filter_params
