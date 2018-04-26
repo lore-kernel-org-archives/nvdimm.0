@@ -1,10 +1,11 @@
-From: "Mail Administrator" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Message could not be delivered
-Date: Thu, 26 Apr 2018 11:06:12 +0800
-Message-ID: <20180426030612.D4D10202E5F10@ml01.01.org>
+From: =?utf-8?B?5YiY5Li75Lu7?= <kizllv-h0mbY7aVjyM@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+R77ya5LuT566h5Lq65ZGY5o6M5o+h54mp5paZ566h55CG55qE5oqA5benLS1saQ==?=
+ =?utf-8?B?bnV4LW52ZGltbQ==?=
+Date: Thu, 26 Apr 2018 13:34:33 +0800
+Message-ID: <FDE7F998AD8D6E3352E59D96BE6EEFF4@eul.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,8 +19,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Thu, 26 Apr 2018 11:06:12 +0800
-from lists.01.org [222.187.51.196]
-
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+6ZmEIOS7tiDlhoUg5a65IOivtyDmgqgg5p+lIOmYhSAKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtbnZkaW1tCg==
