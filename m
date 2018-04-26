@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl0-x243.google.com (mail-pl0-x243.google.com
- [IPv6:2607:f8b0:400e:c01::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B20EA226085BC
- for <linux-nvdimm@lists.01.org>; Tue,  3 Apr 2018 07:25:02 -0700 (PDT)
-Received: by mail-pl0-x243.google.com with SMTP id b6-v6so7037784pla.11
- for <linux-nvdimm@lists.01.org>; Tue, 03 Apr 2018 07:25:02 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [RESEND v2 1/4] libnvdimm: Add of_node to region and bus descriptors
-Date: Wed,  4 Apr 2018 00:24:12 +1000
-Message-Id: <20180403142415.30083-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id E3807203B8FF3
+ for <linux-nvdimm@lists.01.org>; Thu, 26 Apr 2018 11:17:08 -0700 (PDT)
+Subject: [PATCH v3 1/4] ndctl: convert namespace actions to use
+ util_filter_params
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 26 Apr 2018 11:17:08 -0700
+Message-ID: <152476662812.70161.4900273108048073021.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152476632250.70161.9698682147434730585.stgit@djiang5-desk3.ch.intel.com>
+References: <152476632250.70161.9698682147434730585.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,81 +19,158 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linuxppc-dev@lists.ozlabs.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-We want to be able to cross reference the region and bus devices
-with the device tree node that they were spawned from. libNVDIMM
-handles creating the actual devices for these internally, so we
-need to pass in a pointer to the relevant node in the descriptor.
+In preparation of moving to using util_filter_walk, moving parts of
+namespace params to util_filter_params.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/nvdimm/bus.c         | 1 +
- drivers/nvdimm/region_devs.c | 1 +
- include/linux/libnvdimm.h    | 3 +++
- 3 files changed, 5 insertions(+)
+ ndctl/namespace.c |   41 ++++++++++++++++++++---------------------
+ 1 file changed, 20 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 78eabc3a1ab1..c6106914f396 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -358,6 +358,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 	nvdimm_bus->dev.release = nvdimm_bus_release;
- 	nvdimm_bus->dev.groups = nd_desc->attr_groups;
- 	nvdimm_bus->dev.bus = &nvdimm_bus_type;
-+	nvdimm_bus->dev.of_node = nd_desc->of_node;
- 	dev_set_name(&nvdimm_bus->dev, "ndbus%d", nvdimm_bus->id);
- 	rc = device_register(&nvdimm_bus->dev);
- 	if (rc) {
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index e6d01911e092..2f1d5771100e 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1005,6 +1005,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 	dev->parent = &nvdimm_bus->dev;
- 	dev->type = dev_type;
- 	dev->groups = ndr_desc->attr_groups;
-+	dev->of_node = ndr_desc->of_node;
- 	nd_region->ndr_size = resource_size(ndr_desc->res);
- 	nd_region->ndr_start = ndr_desc->res->start;
- 	nd_device_register(dev);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index ff855ed965fb..f61cb5050297 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -76,12 +76,14 @@ typedef int (*ndctl_fn)(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc);
- 
-+struct device_node;
- struct nvdimm_bus_descriptor {
- 	const struct attribute_group **attr_groups;
- 	unsigned long bus_dsm_mask;
- 	unsigned long cmd_mask;
- 	struct module *module;
- 	char *provider_name;
-+	struct device_node *of_node;
- 	ndctl_fn ndctl;
- 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
- 	int (*clear_to_send)(struct nvdimm_bus_descriptor *nd_desc,
-@@ -123,6 +125,7 @@ struct nd_region_desc {
- 	int num_lanes;
- 	int numa_node;
- 	unsigned long flags;
-+	struct device_node *of_node;
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index fe86d826..e61f500c 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -40,14 +40,11 @@ static struct parameters {
+ 	bool mode_default;
+ 	bool align_default;
+ 	bool autolabel;
+-	const char *bus;
+ 	const char *map;
+-	const char *type;
+ 	const char *uuid;
+ 	const char *name;
+ 	const char *size;
+ 	const char *mode;
+-	const char *region;
+ 	const char *reconfig;
+ 	const char *sector_size;
+ 	const char *align;
+@@ -55,6 +52,8 @@ static struct parameters {
+ 	.autolabel = true,
  };
  
- struct device;
--- 
-2.9.5
++struct util_filter_params uf_param;
++
+ void builtin_xaction_namespace_reset(void)
+ {
+ 	/*
+@@ -87,9 +86,9 @@ struct parsed_parameters {
+ 	}})
+ 
+ #define BASE_OPTIONS() \
+-OPT_STRING('b', "bus", &param.bus, "bus-id", \
++OPT_STRING('b', "bus", &uf_param.bus, "bus-id", \
+ 	"limit namespace to a bus with an id or provider of <bus-id>"), \
+-OPT_STRING('r', "region", &param.region, "region-id", \
++OPT_STRING('r', "region", &uf_param.region, "region-id", \
+ 	"limit namespace to a region with an id or name of <region-id>"), \
+ OPT_BOOLEAN('v', "verbose", &verbose, "emit extra debug messages to stderr")
+ 
+@@ -108,7 +107,7 @@ OPT_STRING('M', "map", &param.map, "memmap-location", \
+ 	"specify 'mem' or 'dev' for the location of the memmap"), \
+ OPT_STRING('l', "sector-size", &param.sector_size, "lba-size", \
+ 	"specify the logical sector size in bytes"), \
+-OPT_STRING('t', "type", &param.type, "type", \
++OPT_STRING('t', "type", &uf_param.type, "type", \
+ 	"specify the type of namespace to create 'pmem' or 'blk'"), \
+ OPT_STRING('a', "align", &param.align, "align", \
+ 	"specify the namespace alignment in bytes (default: 2M)"), \
+@@ -148,18 +147,18 @@ static int set_defaults(enum device_action mode)
+ {
+ 	int rc = 0;
+ 
+-	if (param.type) {
+-		if (strcmp(param.type, "pmem") == 0)
++	if (uf_param.type) {
++		if (strcmp(uf_param.type, "pmem") == 0)
+ 			/* pass */;
+-		else if (strcmp(param.type, "blk") == 0)
++		else if (strcmp(uf_param.type, "blk") == 0)
+ 			/* pass */;
+ 		else {
+ 			error("invalid type '%s', must be either 'pmem' or 'blk'\n",
+-				param.type);
++				uf_param.type);
+ 			rc = -EINVAL;
+ 		}
+ 	} else if (!param.reconfig && mode == ACTION_CREATE)
+-		param.type = "pmem";
++		uf_param.type = "pmem";
+ 
+ 	if (param.mode) {
+ 		if (strcmp(param.mode, "safe") == 0)
+@@ -180,8 +179,8 @@ static int set_defaults(enum device_action mode)
+ 			error("invalid mode '%s'\n", param.mode);
+ 			rc = -EINVAL;
+ 		}
+-	} else if (!param.reconfig && param.type) {
+-		if (strcmp(param.type, "pmem") == 0)
++	} else if (!param.reconfig && uf_param.type) {
++		if (strcmp(uf_param.type, "pmem") == 0)
+ 			param.mode = "memory";
+ 		else
+ 			param.mode = "safe";
+@@ -208,7 +207,7 @@ static int set_defaults(enum device_action mode)
+ 		param.map = "dev";
+ 
+ 	/* check for incompatible mode and type combinations */
+-	if (param.type && param.mode && strcmp(param.type, "blk") == 0
++	if (uf_param.type && param.mode && strcmp(uf_param.type, "blk") == 0
+ 			&& (strcmp(param.mode, "memory") == 0
+ 				|| strcmp(param.mode, "dax") == 0)) {
+ 		error("only 'pmem' namespaces support dax operation\n");
+@@ -244,7 +243,7 @@ static int set_defaults(enum device_action mode)
+ 			error("invalid sector size: %s\n", param.sector_size);
+ 			rc = -EINVAL;
+ 		}
+-	} else if (((param.type && strcmp(param.type, "blk") == 0)
++	} else if (((uf_param.type && strcmp(uf_param.type, "blk") == 0)
+ 			|| (param.mode && strcmp(param.mode, "safe") == 0))) {
+ 		/* default sector size for blk-type or safe-mode */
+ 		param.sector_size = "4096";
+@@ -1000,19 +999,19 @@ static int do_xaction_namespace(const char *namespace,
+ 		ndctl_set_log_priority(ctx, LOG_DEBUG);
+ 
+         ndctl_bus_foreach(ctx, bus) {
+-		if (!util_bus_filter(bus, param.bus))
++		if (!util_bus_filter(bus, uf_param.bus))
+ 			continue;
+ 
+ 		ndctl_region_foreach(bus, region) {
+-			if (!util_region_filter(region, param.region))
++			if (!util_region_filter(region, uf_param.region))
+ 				continue;
+ 
+-			if (param.type) {
+-				if (strcmp(param.type, "pmem") == 0
++			if (uf_param.type) {
++				if (strcmp(uf_param.type, "pmem") == 0
+ 						&& ndctl_region_get_type(region)
+ 						== ND_DEVICE_REGION_PMEM)
+ 					/* pass */;
+-				else if (strcmp(param.type, "blk") == 0
++				else if (strcmp(uf_param.type, "blk") == 0
+ 						&& ndctl_region_get_type(region)
+ 						== ND_DEVICE_REGION_BLK)
+ 					/* pass */;
+@@ -1125,7 +1124,7 @@ int cmd_create_namespace(int argc, const char **argv, void *ctx)
+ 		 * fallback to blk before giving up.
+ 		 */
+ 		memset(&param, 0, sizeof(param));
+-		param.type = "blk";
++		uf_param.type = "blk";
+ 		set_defaults(ACTION_CREATE);
+ 		created = do_xaction_namespace(NULL, ACTION_CREATE, ctx);
+ 	}
 
 _______________________________________________
 Linux-nvdimm mailing list
