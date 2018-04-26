@@ -1,78 +1,72 @@
 From: Stefan Hajnoczi <stefanha@gmail.com>
-Subject: Re: [RFC v2 2/2] pmem: device flush over VIRTIO
-Date: Thu, 26 Apr 2018 14:15:17 +0100
-Message-ID: <20180426131517.GB30991@stefanha-x1.localdomain>
+Subject: Re: [RFC v2] qemu: Add virtio pmem device
+Date: Thu, 26 Apr 2018 14:24:06 +0100
+Message-ID: <20180426132406.GC30991@stefanha-x1.localdomain>
 References: <20180425112415.12327-1-pagupta@redhat.com>
- <20180425112415.12327-3-pagupta@redhat.com>
+ <20180425112415.12327-4-pagupta@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
+        protocol="application/pgp-signature"; boundary="Fig2xvG2VGoz8o/s"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180425112415.12327-3-pagupta@redhat.com>
+In-Reply-To: <20180425112415.12327-4-pagupta@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pankaj Gupta <pagupta@redhat.com>
 Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-mm@kvack.org, jack@suse.cz, stefanha@redhat.com, dan.j.williams@intel.com, riel@surriel.com, haozhong.zhang@intel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, ross.zwisler@intel.com, david@redhat.com, xiaoguangrong.eric@gmail.com, hch@infradead.org, marcel@redhat.com, mst@redhat.com, niteshnarayanlal@hotmail.com, imammedo@redhat.com, lcapitulino@redhat.com
 List-Id: linux-nvdimm@lists.01.org
 
 
---NDin8bjvE/0mNLFQ
+--Fig2xvG2VGoz8o/s
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 25, 2018 at 04:54:14PM +0530, Pankaj Gupta wrote:
-> This patch adds functionality to perform=20
-> flush from guest to hosy over VIRTIO=20
-> when 'ND_REGION_VIRTIO'flag is set on=20
-> nd_negion. Flag is set by 'virtio-pmem'
-> driver.
->=20
-> Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> ---
->  drivers/nvdimm/region_devs.c | 7 +++++++
->  1 file changed, 7 insertions(+)
->=20
-> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> index a612be6..6c6454e 100644
-> --- a/drivers/nvdimm/region_devs.c
-> +++ b/drivers/nvdimm/region_devs.c
-> @@ -20,6 +20,7 @@
->  #include <linux/nd.h>
->  #include "nd-core.h"
->  #include "nd.h"
-> +#include <linux/virtio_pmem.h>
-> =20
->  /*
->   * For readq() and writeq() on 32-bit builds, the hi-lo, lo-hi order is
-> @@ -1074,6 +1075,12 @@ void nvdimm_flush(struct nd_region *nd_region)
->  	struct nd_region_data *ndrd =3D dev_get_drvdata(&nd_region->dev);
->  	int i, idx;
-> =20
-> +       /* call PV device flush */
-> +	if (test_bit(ND_REGION_VIRTIO, &nd_region->flags)) {
-> +		virtio_pmem_flush(&nd_region->dev);
-> +		return;
-> +	}
+On Wed, Apr 25, 2018 at 04:54:15PM +0530, Pankaj Gupta wrote:
+> +static void virtio_pmem_flush(VirtIODevice *vdev, VirtQueue *vq)
+> +{
+> +    VirtQueueElement *elem;
+> +    VirtIOPMEM *pmem = VIRTIO_PMEM(vdev);
+> +    HostMemoryBackend *backend = MEMORY_BACKEND(pmem->memdev);
+> +    int fd = memory_region_get_fd(&backend->mr);
+> +
+> +    elem = virtqueue_pop(vq, sizeof(VirtQueueElement));
+> +    if (!elem) {
+> +        return;
+> +    }
+> +    /* flush raw backing image */
+> +    fsync(fd);
 
-How does libnvdimm know when flush has completed?
+fsync(2) is a blocking syscall.  This can hang QEMU for an unbounded
+amount of time.
 
-Callers expect the flush to be finished when nvdimm_flush() returns but
-the virtio driver has only queued the request, it hasn't waited for
-completion!
+Please do the fsync from a thread pool.  See block/file-posix.c's
+aio_worker() for an example.
 
---NDin8bjvE/0mNLFQ
+> +static void virtio_pmem_get_config(VirtIODevice *vdev, uint8_t *config)
+> +{
+> +    VirtIOPMEM *pmem = VIRTIO_PMEM(vdev);
+> +    struct virtio_pmem_config *pmemcfg = (struct virtio_pmem_config *) config;
+> +
+> +    pmemcfg->start = pmem->start;
+> +    pmemcfg->size  = pmem->size;
+
+Endianness.  Please use virtio_st*_p() instead.
+
+> +#define VIRTIO_PMEM_PLUG 0
+
+What is this?
+
+--Fig2xvG2VGoz8o/s
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEcBAEBAgAGBQJa4dDlAAoJEJykq7OBq3PI980IAJY41FLfXhqcQzxR13OvtKqj
-cM7mQMJIee6fETlh9HYqEh7dOvOHhpqojY9PEKA+Bu1f/KC3Y03liilCCKdLiHc+
-WpCVSyT3nOTjPlY4tS+e4WEEzaCwqNYu8rbz7sfJxd1c+4Hl9VuLfBQLieSnTsmE
-GUawKQak2e+c7EdOdKxmxtaeZfX1qJcm6ZMhbqSrvIrzR+E+fz4WKmntxrdgeDwY
-4IzZHK5h2u4z0jSeLf0tfdWf/77y1IWPqKGvuK6MTZHFxvMn6AiI4VZ116LfXgNC
-l7SS25ehqJ5WGgBrUYsL40QAimQDSCQL2ouNwyx/Q1+Ub/xi6TWKN17u3UV5Bpc=
-=i3H2
+iQEcBAEBAgAGBQJa4dL2AAoJEJykq7OBq3PIp2cH/04ij3qJX2uJVEfJckUXj9lJ
+fjMJsmgdYmJatxT52TPw12puheCukYnuCbsWspRls4Q2Lr0sKRZ1vQ9nObO8yTUT
+jtsRUwuiezUPUwih88GHt0Rud52SZtq9fCtkYf3mupjxn22n9x2xeFVMqgKvKZoJ
+QdfS/K5FrrD+wBAptUjTMWt7Kf0mTANUDUUfHj5zgQwT6nwHbFyImF3etC4I98Yf
+MSjPFw3V5mF4TYV5ZoPHXQmE6tjVj2G17SJiKfa5x53RNUMDTYD4DJaLQnCeRLLa
+7ka5Z4SDUlBvZkLDEAx5VQ7rWHPjCpoddcqqXAhiDGDBb6zZAKtY7i/WUV9kxaE=
+=NyIA
 -----END PGP SIGNATURE-----
 
---NDin8bjvE/0mNLFQ--
+--Fig2xvG2VGoz8o/s--
