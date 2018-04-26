@@ -2,16 +2,22 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8C9DF202E5EF5
- for <linux-nvdimm@lists.01.org>; Wed, 25 Apr 2018 17:59:30 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 53C9CAC00EA
- for <linux-nvdimm@lists.01.org>; Thu, 26 Apr 2018 09:59:23 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [PATCH v2] ndctl,
- filter: fix "keyword 'all' is ignored" in util_<obj>_filter()
-Date: Thu, 26 Apr 2018 09:56:48 +0900
-Message-Id: <20180426005648.13028-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 288C8202E5EEC
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Apr 2018 17:25:11 -0700 (PDT)
+Received: from g01jpfmpwkw01.exch.g01.fujitsu.local
+ (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
+ by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 41604AC0238
+ for <linux-nvdimm@lists.01.org>; Thu, 26 Apr 2018 09:25:07 +0900 (JST)
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Subject: RE: [PATCH] ndctl, filter: fix "keyword 'all' is ignored" in
+ util_<obj>_filter()
+Date: Thu, 26 Apr 2018 00:25:03 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222764F252@g01jpexmbkw01>
+References: <20180425073843.19900-1-qi.fuli@jp.fujitsu.com>
+ <CAPcyv4iEQdcH8CUfWbT03s90MDDkMcyrA93cQRogW7X_4yY=pw@mail.gmail.com>
+In-Reply-To: <CAPcyv4iEQdcH8CUfWbT03s90MDDkMcyrA93cQRogW7X_4yY=pw@mail.gmail.com>
+Content-Language: ja-JP
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,115 +25,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: 'Dan Williams' <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a follow up patch for commit c70adc3cf6bf ("ndctl, filter: refactor
-util_<obj>_filter() to support multiple space-seperated arguments")
-refactored util_<obj>_filter() to support multiple space-seperated arguments.
-But, when the keyword "all" is included in space-seperated arguments,
-it will be treaded as <object>'s name. This patch fixes it.
-
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
-
-Change log since v1:
- - Removing the strcmp(__ident, "all") == 0 at the top of util_<obj>_filter()
- - Changing the strcmp(ident, "all") == 0 to strcmp(name, "all") == 0
-
----
- util/filter.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
-
-diff --git a/util/filter.c b/util/filter.c
-index 0d3cc02..1734bce 100644
---- a/util/filter.c
-+++ b/util/filter.c
-@@ -31,7 +31,7 @@ struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *__ident)
- 	unsigned long bus_id, id;
- 	const char *provider, *devname, *name;
- 
--	if (!__ident || strcmp(__ident, "all") == 0)
-+	if (!__ident)
- 		return bus;
- 
- 	ident = strdup(__ident);
-@@ -40,6 +40,9 @@ struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *__ident)
- 
- 	for (name = strtok_r(ident, " ", &save); name;
- 			name = strtok_r(NULL, " ", &save)) {
-+		if (strcmp(name, "all") == 0)
-+			break;
-+
- 		bus_id = strtoul(ident, &end, 0);
- 		if (end == ident || end[0])
- 			bus_id = ULONG_MAX;
-@@ -69,7 +72,7 @@ struct ndctl_region *util_region_filter(struct ndctl_region *region,
- 	const char *name, *region_name;
- 	unsigned long region_id, id;
- 
--	if (!__ident || strcmp(__ident, "all") == 0)
-+	if (!__ident)
- 		return region;
- 
- 	ident = strdup(__ident);
-@@ -78,6 +81,9 @@ struct ndctl_region *util_region_filter(struct ndctl_region *region,
- 
- 	for (name = strtok_r(ident, " ", &save); name;
- 			name = strtok_r(NULL, " ", &save)) {
-+		if (strcmp(name, "all") == 0)
-+			break;
-+
- 		region_id = strtoul(ident, &end, 0);
- 		if (end == ident || end[0])
- 			region_id = ULONG_MAX;
-@@ -106,7 +112,7 @@ struct ndctl_namespace *util_namespace_filter(struct ndctl_namespace *ndns,
- 	const char *name;
- 	char *ident, *save;
- 
--	if (!__ident || strcmp(__ident, "all") == 0)
-+	if (!__ident)
- 		return ndns;
- 
- 	ident = strdup(__ident);
-@@ -115,6 +121,9 @@ struct ndctl_namespace *util_namespace_filter(struct ndctl_namespace *ndns,
- 
- 	for (name = strtok_r(ident, " ", &save); name;
- 			name = strtok_r(NULL, " ", &save)) {
-+		if (strcmp(name, "all") == 0)
-+			break;
-+
- 		if (strcmp(name, ndctl_namespace_get_devname(ndns)) == 0)
- 			break;
- 
-@@ -137,7 +146,7 @@ struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm *dimm,
- 	const char *name, *dimm_name;
- 	unsigned long dimm_id, id;
- 
--	if (!__ident || strcmp(__ident, "all") == 0)
-+	if (!__ident)
- 		return dimm;
- 
- 	ident = strdup(__ident);
-@@ -146,6 +155,9 @@ struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm *dimm,
- 
- 	for (name = strtok_r(ident, " ", &save); name;
- 			name = strtok_r(NULL, " ", &save)) {
-+		if (strcmp(name, "all") == 0)
-+			break;
-+
- 		dimm_id = strtoul(ident, &end, 0);
- 		if (end == ident || end[0])
- 			dimm_id = ULONG_MAX;
--- 
-2.17.0.140.g0b0cc9f86
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogRGFuIFdpbGxpYW1zIFtt
+YWlsdG86ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIEFwcmls
+IDI1LCAyMDE4IDExOjExIFBNDQo+IFRvOiBRaSwgRnVsaS/mlokg56aP5YipIDxxaS5mdWxpQGpw
+LmZ1aml0c3UuY29tPg0KPiBDYzogbGludXgtbnZkaW1tIDxsaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBuZGN0bCwgZmlsdGVyOiBmaXggImtleXdvcmQg
+J2FsbCcgaXMgaWdub3JlZCIgaW4gdXRpbF88b2JqPl9maWx0ZXIoKQ0KPiANCj4gT24gV2VkLCBB
+cHIgMjUsIDIwMTggYXQgMTI6MzggQU0sIFFJIEZ1bGkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+
+IHdyb3RlOg0KPiA+IFRoaXMgaXMgYSBmb2xsb3cgdXAgcGF0Y2ggZm9yIGNvbW1pdCBjNzBhZGMz
+Y2Y2YmYgKCJuZGN0bCwgZmlsdGVyOg0KPiA+IHJlZmFjdG9yDQo+ID4gdXRpbF88b2JqPl9maWx0
+ZXIoKSB0byBzdXBwb3J0IG11bHRpcGxlIHNwYWNlLXNlcGVyYXRlZCBhcmd1bWVudHMiKQ0KPiA+
+IHJlZmFjdG9yZWQgdXRpbF88b2JqPl9maWx0ZXIoKSB0byBzdXBwb3J0IG11bHRpcGxlIHNwYWNl
+LXNlcGVyYXRlZCBhcmd1bWVudHMuDQo+ID4gQnV0LCB3aGVuIHRoZSBrZXl3b3JkICJhbGwiIGlz
+IGluY2x1ZGVkIGluIHNwYWNlLXNlcGVyYXRlZCBhcmd1bWVudHMsDQo+ID4gaXQgd2lsbCBiZSB0
+cmVhZGVkIGFzIDxvYmplY3Q+J3MgbmFtZS4gVGhpcyBwYXRjaCBmaXhlcyBpdC4NCj4gPg0KPiA+
+IFNpZ25lZC1vZmYtYnk6IFFJIEZ1bGkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+DQo+ID4gLS0t
+DQo+ID4gIHV0aWwvZmlsdGVyLmMgfCAxMiArKysrKysrKysrKysNCj4gPiAgMSBmaWxlIGNoYW5n
+ZWQsIDEyIGluc2VydGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS91dGlsL2ZpbHRlci5j
+IGIvdXRpbC9maWx0ZXIuYyBpbmRleCAwZDNjYzAyLi45MDgxYTZkDQo+ID4gMTAwNjQ0DQo+ID4g
+LS0tIGEvdXRpbC9maWx0ZXIuYw0KPiA+ICsrKyBiL3V0aWwvZmlsdGVyLmMNCj4gPiBAQCAtNDAs
+NiArNDAsOSBAQCBzdHJ1Y3QgbmRjdGxfYnVzICp1dGlsX2J1c19maWx0ZXIoc3RydWN0IG5kY3Rs
+X2J1cw0KPiA+ICpidXMsIGNvbnN0IGNoYXIgKl9faWRlbnQpDQo+ID4NCj4gPiAgICAgICAgIGZv
+ciAobmFtZSA9IHN0cnRva19yKGlkZW50LCAiICIsICZzYXZlKTsgbmFtZTsNCj4gPiAgICAgICAg
+ICAgICAgICAgICAgICAgICBuYW1lID0gc3RydG9rX3IoTlVMTCwgIiAiLCAmc2F2ZSkpIHsNCj4g
+PiArICAgICAgICAgICAgICAgaWYgKHN0cmNtcChpZGVudCwgImFsbCIpID09IDApDQo+ID4gKyAg
+ICAgICAgICAgICAgICAgICAgICAgYnJlYWs7DQo+ID4gKw0KPiANCj4gTGV0J3MgYWxzbyByZW1v
+dmUgdGhlIHN0cmNtcChfX2lkZW50LCAiYWxsIikgYXQgdGhlIHRvcCBvZiBlYWNoIG9mIHRoZXNl
+IHJvdXRpbmVzIHRvDQo+IGtlZXAgdGhlIGNoZWNrIGZvciAiYWxsIiBjZW50cmFsaXplZC4NCj4g
+DQpPSywgVGhhbmsgeW91IQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
