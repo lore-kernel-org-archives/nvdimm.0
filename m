@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5FBB9220E8E0E
- for <linux-nvdimm@lists.01.org>; Tue, 24 Apr 2018 16:43:10 -0700 (PDT)
-Subject: [PATCH v9 2/9] mm,
- dax: enable filesystems to trigger dev_pagemap ->page_free callbacks
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 24 Apr 2018 16:33:13 -0700
-Message-ID: <152461279341.17530.15922380333372355441.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id F21C22034C8AD
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 14:53:53 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 3/3] nvdimm: platform capabilities command line option
+Date: Fri, 27 Apr 2018 15:53:14 -0600
+Message-Id: <20180427215314.23168-3-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180427215314.23168-1-ross.zwisler@linux.intel.com>
+References: <20180427215314.23168-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,173 +17,191 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Haozhong Zhang <haozhong.zhang@intel.com>, "Michael S . Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, qemu-devel@nongnu.org, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SW4gb3JkZXIgdG8gcmVzb2x2ZSBjb2xsaXNpb25zIGJldHdlZW4gZmlsZXN5c3RlbSBvcGVyYXRp
-b25zIGFuZCBETUEgdG8KREFYIG1hcHBlZCBwYWdlcyB3ZSBuZWVkIGEgY2FsbGJhY2sgd2hlbiBE
-TUEgY29tcGxldGVzLiBXaXRoIGEgY2FsbGJhY2sKd2UgY2FuIGhvbGQgb2ZmIGZpbGVzeXN0ZW0g
-b3BlcmF0aW9ucyB3aGlsZSBETUEgaXMgaW4tZmxpZ2h0IGFuZCB0aGVuCnJlc3VtZSB0aG9zZSBv
-cGVyYXRpb25zIHdoZW4gdGhlIGxhc3QgcHV0X3BhZ2UoKSBvY2N1cnMgb24gYSBETUEgcGFnZS4K
-ClJlY2FsbCB0aGF0IHRoZSAnc3RydWN0IHBhZ2UnIGVudHJpZXMgZm9yIERBWCBtZW1vcnkgYXJl
-IGNyZWF0ZWQgd2l0aApkZXZtX21lbXJlbWFwX3BhZ2VzKCkuIFRoYXQgcm91dGluZSBhcnJhbmdl
-cyBmb3IgdGhlIHBhZ2VzIHRvIGJlCmFsbG9jYXRlZCwgYnV0IG5ldmVyIG9ubGluZWQsIHNvIGEg
-REFYIHBhZ2UgaXMgRE1BLWlkbGUgd2hlbiBpdHMKcmVmZXJlbmNlIGNvdW50IHJlYWNoZXMgb25l
-LgoKQWxzbyByZWNhbGwgdGhhdCB0aGUgSE1NIHN1Yi1zeXN0ZW0gYWRkZWQgaW5mcmFzdHJ1Y3R1
-cmUgdG8gdHJhcCB0aGUKcGFnZS1pZGxlICgyLXRvLTEgcmVmZXJlbmNlIGNvdW50KSB0cmFuc2l0
-aW9uIG9mIHRoZSBwYWdlcyBhbGxvY2F0ZWQgYnkKZGV2bV9tZW1yZW1hcF9wYWdlcygpIGFuZCB0
-cmlnZ2VyIGEgY2FsbGJhY2sgdmlhIHRoZSAnc3RydWN0CmRldl9wYWdlbWFwJyBhc3NvY2lhdGVk
-IHdpdGggdGhlIHBhZ2UgcmFuZ2UuIFdoZXJlYXMgdGhlIEhNTSBjYWxsYmFja3MKYXJlIGdvaW5n
-IHRvIGEgZGV2aWNlIGRyaXZlciB0byBtYW5hZ2UgYm91bmNlIHBhZ2VzIGluIGRldmljZS1tZW1v
-cnkgaW4KdGhlIGZpbGVzeXN0ZW0tZGF4IGNhc2Ugd2Ugd2lsbCBjYWxsIGJhY2sgdG8gZmlsZXN5
-c3RlbSBzcGVjaWZpZWQKY2FsbGJhY2suCgpTaW5jZSB0aGUgY2FsbGJhY2sgaXMgbm90IGtub3du
-IGF0IGRldm1fbWVtcmVtYXBfcGFnZXMoKSB0aW1lIHdlIGFycmFuZ2UKZm9yIHRoZSBmaWxlc3lz
-dGVtIHRvIGluc3RhbGwgaXQgYXQgbW91bnQgdGltZS4gTm8gZnVuY3Rpb25hbCBjaGFuZ2VzCmFy
-ZSBleHBlY3RlZCBhcyB0aGlzIG9ubHkgcmVnaXN0ZXJzIGEgbm9wIGhhbmRsZXIgZm9yIHRoZSAt
-PnBhZ2VfZnJlZSgpCmV2ZW50IGZvciBkZXZpY2UtbWFwcGVkIHBhZ2VzLgoKQ2M6IE1pY2hhbCBI
-b2NrbyA8bWhvY2tvQHN1c2UuY29tPgpSZXZpZXdlZC1ieTogIkrDqXLDtG1lIEdsaXNzZSIgPGpn
-bGlzc2VAcmVkaGF0LmNvbT4KUmV2aWV3ZWQtYnk6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0
-LmRlPgpSZXZpZXdlZC1ieTogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KU2lnbmVkLW9mZi1ieTog
-RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ci0tLQogZHJpdmVycy9kYXgv
-c3VwZXIuYyAgIHwgICAyMSArKysrKysrKysrKy0tLS0tLS0tLS0KIGRyaXZlcnMvbnZkaW1tL3Bt
-ZW0uYyB8ICAgIDMgKystCiBmcy9leHQyL3N1cGVyLmMgICAgICAgfCAgICA2ICsrKy0tLQogZnMv
-ZXh0NC9zdXBlci5jICAgICAgIHwgICAgNiArKystLS0KIGZzL3hmcy94ZnNfc3VwZXIuYyAgICB8
-ICAgMjAgKysrKysrKysrKy0tLS0tLS0tLS0KIGluY2x1ZGUvbGludXgvZGF4LmggICB8ICAgMTQg
-KysrKysrKystLS0tLS0KIDYgZmlsZXMgY2hhbmdlZCwgMzcgaW5zZXJ0aW9ucygrKSwgMzMgZGVs
-ZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9kYXgvc3VwZXIuYyBiL2RyaXZlcnMvZGF4
-L3N1cGVyLmMKaW5kZXggZTYyYTY0YjljOWZiLi5lNDg2NGYzMTllMTYgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvZGF4L3N1cGVyLmMKKysrIGIvZHJpdmVycy9kYXgvc3VwZXIuYwpAQCAtNjMsMTYgKzYz
-LDYgQEAgaW50IGJkZXZfZGF4X3Bnb2ZmKHN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYsIHNlY3Rv
-cl90IHNlY3Rvciwgc2l6ZV90IHNpemUsCiB9CiBFWFBPUlRfU1lNQk9MKGJkZXZfZGF4X3Bnb2Zm
-KTsKIAotI2lmIElTX0VOQUJMRUQoQ09ORklHX0ZTX0RBWCkKLXN0cnVjdCBkYXhfZGV2aWNlICpm
-c19kYXhfZ2V0X2J5X2JkZXYoc3RydWN0IGJsb2NrX2RldmljZSAqYmRldikKLXsKLQlpZiAoIWJs
-a19xdWV1ZV9kYXgoYmRldi0+YmRfcXVldWUpKQotCQlyZXR1cm4gTlVMTDsKLQlyZXR1cm4gZnNf
-ZGF4X2dldF9ieV9ob3N0KGJkZXYtPmJkX2Rpc2stPmRpc2tfbmFtZSk7Ci19Ci1FWFBPUlRfU1lN
-Qk9MX0dQTChmc19kYXhfZ2V0X2J5X2JkZXYpOwotI2VuZGlmCi0KIC8qKgogICogX19iZGV2X2Rh
-eF9zdXBwb3J0ZWQoKSAtIENoZWNrIGlmIHRoZSBkZXZpY2Ugc3VwcG9ydHMgZGF4IGZvciBmaWxl
-c3lzdGVtCiAgKiBAc2I6IFRoZSBzdXBlcmJsb2NrIG9mIHRoZSBkZXZpY2UKQEAgLTU3NSw2ICs1
-NjUsMTcgQEAgc3RydWN0IGRheF9kZXZpY2UgKmFsbG9jX2RheCh2b2lkICpwcml2YXRlLCBjb25z
-dCBjaGFyICpfX2hvc3QsCiB9CiBFWFBPUlRfU1lNQk9MX0dQTChhbGxvY19kYXgpOwogCitzdHJ1
-Y3QgZGF4X2RldmljZSAqYWxsb2NfZGF4X2Rldm1hcCh2b2lkICpwcml2YXRlLCBjb25zdCBjaGFy
-ICpob3N0LAorCQljb25zdCBzdHJ1Y3QgZGF4X29wZXJhdGlvbnMgKm9wcywgc3RydWN0IGRldl9w
-YWdlbWFwICpwZ21hcCkKK3sKKwlzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2RldiA9IGFsbG9jX2Rh
-eChwcml2YXRlLCBob3N0LCBvcHMpOworCisJaWYgKGRheF9kZXYpCisJCWRheF9kZXYtPnBnbWFw
-ID0gcGdtYXA7CisJcmV0dXJuIGRheF9kZXY7Cit9CitFWFBPUlRfU1lNQk9MX0dQTChhbGxvY19k
-YXhfZGV2bWFwKTsKKwogdm9pZCBwdXRfZGF4KHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2KQog
-ewogCWlmICghZGF4X2RldikKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYyBiL2Ry
-aXZlcnMvbnZkaW1tL3BtZW0uYwppbmRleCA5ZDcxNDkyNmVjZjUuLmZjMWExYWIyNWU5ZSAxMDA2
-NDQKLS0tIGEvZHJpdmVycy9udmRpbW0vcG1lbS5jCisrKyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0u
-YwpAQCAtNDA4LDcgKzQwOCw4IEBAIHN0YXRpYyBpbnQgcG1lbV9hdHRhY2hfZGlzayhzdHJ1Y3Qg
-ZGV2aWNlICpkZXYsCiAJbnZkaW1tX2JhZGJsb2Nrc19wb3B1bGF0ZShuZF9yZWdpb24sICZwbWVt
-LT5iYiwgJmJiX3Jlcyk7CiAJZGlzay0+YmIgPSAmcG1lbS0+YmI7CiAKLQlkYXhfZGV2ID0gYWxs
-b2NfZGF4KHBtZW0sIGRpc2stPmRpc2tfbmFtZSwgJnBtZW1fZGF4X29wcyk7CisJZGF4X2RldiA9
-IGFsbG9jX2RheF9kZXZtYXAocG1lbSwgZGlzay0+ZGlza19uYW1lLCAmcG1lbV9kYXhfb3BzLAor
-CQkJJnBtZW0tPnBnbWFwKTsKIAlpZiAoIWRheF9kZXYpIHsKIAkJcHV0X2Rpc2soZGlzayk7CiAJ
-CXJldHVybiAtRU5PTUVNOwpkaWZmIC0tZ2l0IGEvZnMvZXh0Mi9zdXBlci5jIGIvZnMvZXh0Mi9z
-dXBlci5jCmluZGV4IGRlMTY5NDUxMmYxZi4uNDIxYzdkNGJlZDM5IDEwMDY0NAotLS0gYS9mcy9l
-eHQyL3N1cGVyLmMKKysrIGIvZnMvZXh0Mi9zdXBlci5jCkBAIC0xNzIsNyArMTcyLDcgQEAgc3Rh
-dGljIHZvaWQgZXh0Ml9wdXRfc3VwZXIgKHN0cnVjdCBzdXBlcl9ibG9jayAqIHNiKQogCWJyZWxz
-ZSAoc2JpLT5zX3NiaCk7CiAJc2ItPnNfZnNfaW5mbyA9IE5VTEw7CiAJa2ZyZWUoc2JpLT5zX2Js
-b2NrZ3JvdXBfbG9jayk7Ci0JZnNfcHV0X2RheChzYmktPnNfZGF4ZGV2KTsKKwlmc19kYXhfcmVs
-ZWFzZShzYmktPnNfZGF4ZGV2LCBzYik7CiAJa2ZyZWUoc2JpKTsKIH0KIApAQCAtODE3LDcgKzgx
-Nyw3IEBAIHN0YXRpYyB1bnNpZ25lZCBsb25nIGRlc2NyaXB0b3JfbG9jKHN0cnVjdCBzdXBlcl9i
-bG9jayAqc2IsCiAKIHN0YXRpYyBpbnQgZXh0Ml9maWxsX3N1cGVyKHN0cnVjdCBzdXBlcl9ibG9j
-ayAqc2IsIHZvaWQgKmRhdGEsIGludCBzaWxlbnQpCiB7Ci0Jc3RydWN0IGRheF9kZXZpY2UgKmRh
-eF9kZXYgPSBmc19kYXhfZ2V0X2J5X2JkZXYoc2ItPnNfYmRldik7CisJc3RydWN0IGRheF9kZXZp
-Y2UgKmRheF9kZXYgPSBmc19kYXhfY2xhaW1fYmRldihzYi0+c19iZGV2LCBzYik7CiAJc3RydWN0
-IGJ1ZmZlcl9oZWFkICogYmg7CiAJc3RydWN0IGV4dDJfc2JfaW5mbyAqIHNiaTsKIAlzdHJ1Y3Qg
-ZXh0Ml9zdXBlcl9ibG9jayAqIGVzOwpAQCAtMTIxMyw3ICsxMjEzLDcgQEAgc3RhdGljIGludCBl
-eHQyX2ZpbGxfc3VwZXIoc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwgdm9pZCAqZGF0YSwgaW50IHNp
-bGVudCkKIAlrZnJlZShzYmktPnNfYmxvY2tncm91cF9sb2NrKTsKIAlrZnJlZShzYmkpOwogZmFp
-bGVkOgotCWZzX3B1dF9kYXgoZGF4X2Rldik7CisJZnNfZGF4X3JlbGVhc2UoZGF4X2Rldiwgc2Ip
-OwogCXJldHVybiByZXQ7CiB9CiAKZGlmZiAtLWdpdCBhL2ZzL2V4dDQvc3VwZXIuYyBiL2ZzL2V4
-dDQvc3VwZXIuYwppbmRleCAxODVmN2U2MWY0Y2YuLjNlNWQwZjllODc3MiAxMDA2NDQKLS0tIGEv
-ZnMvZXh0NC9zdXBlci5jCisrKyBiL2ZzL2V4dDQvc3VwZXIuYwpAQCAtOTU0LDcgKzk1NCw3IEBA
-IHN0YXRpYyB2b2lkIGV4dDRfcHV0X3N1cGVyKHN0cnVjdCBzdXBlcl9ibG9jayAqc2IpCiAJaWYg
-KHNiaS0+c19jaGtzdW1fZHJpdmVyKQogCQljcnlwdG9fZnJlZV9zaGFzaChzYmktPnNfY2hrc3Vt
-X2RyaXZlcik7CiAJa2ZyZWUoc2JpLT5zX2Jsb2NrZ3JvdXBfbG9jayk7Ci0JZnNfcHV0X2RheChz
-YmktPnNfZGF4ZGV2KTsKKwlmc19kYXhfcmVsZWFzZShzYmktPnNfZGF4ZGV2LCBzYik7CiAJa2Zy
-ZWUoc2JpKTsKIH0KIApAQCAtMzQwNyw3ICszNDA3LDcgQEAgc3RhdGljIHZvaWQgZXh0NF9zZXRf
-cmVzdl9jbHVzdGVycyhzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiKQogCiBzdGF0aWMgaW50IGV4dDRf
-ZmlsbF9zdXBlcihzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiLCB2b2lkICpkYXRhLCBpbnQgc2lsZW50
-KQogewotCXN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2ID0gZnNfZGF4X2dldF9ieV9iZGV2KHNi
-LT5zX2JkZXYpOworCXN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2ID0gZnNfZGF4X2NsYWltX2Jk
-ZXYoc2ItPnNfYmRldiwgc2IpOwogCWNoYXIgKm9yaWdfZGF0YSA9IGtzdHJkdXAoZGF0YSwgR0ZQ
-X0tFUk5FTCk7CiAJc3RydWN0IGJ1ZmZlcl9oZWFkICpiaDsKIAlzdHJ1Y3QgZXh0NF9zdXBlcl9i
-bG9jayAqZXMgPSBOVUxMOwpAQCAtNDQyOSw3ICs0NDI5LDcgQEAgc3RhdGljIGludCBleHQ0X2Zp
-bGxfc3VwZXIoc3RydWN0IHN1cGVyX2Jsb2NrICpzYiwgdm9pZCAqZGF0YSwgaW50IHNpbGVudCkK
-IG91dF9mcmVlX2Jhc2U6CiAJa2ZyZWUoc2JpKTsKIAlrZnJlZShvcmlnX2RhdGEpOwotCWZzX3B1
-dF9kYXgoZGF4X2Rldik7CisJZnNfZGF4X3JlbGVhc2UoZGF4X2Rldiwgc2IpOwogCXJldHVybiBl
-cnIgPyBlcnIgOiByZXQ7CiB9CiAKZGlmZiAtLWdpdCBhL2ZzL3hmcy94ZnNfc3VwZXIuYyBiL2Zz
-L3hmcy94ZnNfc3VwZXIuYwppbmRleCBkNzE0MjQwNTI5MTcuLmY1M2Y4YTQ3YTUyNiAxMDA2NDQK
-LS0tIGEvZnMveGZzL3hmc19zdXBlci5jCisrKyBiL2ZzL3hmcy94ZnNfc3VwZXIuYwpAQCAtNzI0
-LDcgKzcyNCw3IEBAIHhmc19jbG9zZV9kZXZpY2VzKAogCiAJCXhmc19mcmVlX2J1ZnRhcmcobXAt
-Pm1fbG9nZGV2X3RhcmdwKTsKIAkJeGZzX2Jsa2Rldl9wdXQobG9nZGV2KTsKLQkJZnNfcHV0X2Rh
-eChkYXhfbG9nZGV2KTsKKwkJZnNfZGF4X3JlbGVhc2UoZGF4X2xvZ2RldiwgbXApOwogCX0KIAlp
-ZiAobXAtPm1fcnRkZXZfdGFyZ3ApIHsKIAkJc3RydWN0IGJsb2NrX2RldmljZSAqcnRkZXYgPSBt
-cC0+bV9ydGRldl90YXJncC0+YnRfYmRldjsKQEAgLTczMiwxMCArNzMyLDEwIEBAIHhmc19jbG9z
-ZV9kZXZpY2VzKAogCiAJCXhmc19mcmVlX2J1ZnRhcmcobXAtPm1fcnRkZXZfdGFyZ3ApOwogCQl4
-ZnNfYmxrZGV2X3B1dChydGRldik7Ci0JCWZzX3B1dF9kYXgoZGF4X3J0ZGV2KTsKKwkJZnNfZGF4
-X3JlbGVhc2UoZGF4X3J0ZGV2LCBtcCk7CiAJfQogCXhmc19mcmVlX2J1ZnRhcmcobXAtPm1fZGRl
-dl90YXJncCk7Ci0JZnNfcHV0X2RheChkYXhfZGRldik7CisJZnNfZGF4X3JlbGVhc2UoZGF4X2Rk
-ZXYsIG1wKTsKIH0KIAogLyoKQEAgLTc1Myw5ICs3NTMsOSBAQCB4ZnNfb3Blbl9kZXZpY2VzKAog
-CXN0cnVjdCB4ZnNfbW91bnQJKm1wKQogewogCXN0cnVjdCBibG9ja19kZXZpY2UJKmRkZXYgPSBt
-cC0+bV9zdXBlci0+c19iZGV2OwotCXN0cnVjdCBkYXhfZGV2aWNlCSpkYXhfZGRldiA9IGZzX2Rh
-eF9nZXRfYnlfYmRldihkZGV2KTsKLQlzdHJ1Y3QgZGF4X2RldmljZQkqZGF4X2xvZ2RldiA9IE5V
-TEwsICpkYXhfcnRkZXYgPSBOVUxMOworCXN0cnVjdCBkYXhfZGV2aWNlCSpkYXhfZGRldiA9IGZz
-X2RheF9jbGFpbV9iZGV2KGRkZXYsIG1wKTsKIAlzdHJ1Y3QgYmxvY2tfZGV2aWNlCSpsb2dkZXYg
-PSBOVUxMLCAqcnRkZXYgPSBOVUxMOworCXN0cnVjdCBkYXhfZGV2aWNlCSpkYXhfbG9nZGV2ID0g
-TlVMTCwgKmRheF9ydGRldiA9IE5VTEw7CiAJaW50CQkJZXJyb3I7CiAKIAkvKgpAQCAtNzY1LDcg
-Kzc2NSw3IEBAIHhmc19vcGVuX2RldmljZXMoCiAJCWVycm9yID0geGZzX2Jsa2Rldl9nZXQobXAs
-IG1wLT5tX2xvZ25hbWUsICZsb2dkZXYpOwogCQlpZiAoZXJyb3IpCiAJCQlnb3RvIG91dDsKLQkJ
-ZGF4X2xvZ2RldiA9IGZzX2RheF9nZXRfYnlfYmRldihsb2dkZXYpOworCQlkYXhfbG9nZGV2ID0g
-ZnNfZGF4X2NsYWltX2JkZXYobG9nZGV2LCBtcCk7CiAJfQogCiAJaWYgKG1wLT5tX3J0bmFtZSkg
-ewpAQCAtNzc5LDcgKzc3OSw3IEBAIHhmc19vcGVuX2RldmljZXMoCiAJCQllcnJvciA9IC1FSU5W
-QUw7CiAJCQlnb3RvIG91dF9jbG9zZV9ydGRldjsKIAkJfQotCQlkYXhfcnRkZXYgPSBmc19kYXhf
-Z2V0X2J5X2JkZXYocnRkZXYpOworCQlkYXhfcnRkZXYgPSBmc19kYXhfY2xhaW1fYmRldihydGRl
-diwgbXApOwogCX0KIAogCS8qCkBAIC04MTMsMTQgKzgxMywxNCBAQCB4ZnNfb3Blbl9kZXZpY2Vz
-KAogCXhmc19mcmVlX2J1ZnRhcmcobXAtPm1fZGRldl90YXJncCk7CiAgb3V0X2Nsb3NlX3J0ZGV2
-OgogCXhmc19ibGtkZXZfcHV0KHJ0ZGV2KTsKLQlmc19wdXRfZGF4KGRheF9ydGRldik7CisJZnNf
-ZGF4X3JlbGVhc2UoZGF4X3J0ZGV2LCBtcCk7CiAgb3V0X2Nsb3NlX2xvZ2RldjoKIAlpZiAobG9n
-ZGV2ICYmIGxvZ2RldiAhPSBkZGV2KSB7CiAJCXhmc19ibGtkZXZfcHV0KGxvZ2Rldik7Ci0JCWZz
-X3B1dF9kYXgoZGF4X2xvZ2Rldik7CisJCWZzX2RheF9yZWxlYXNlKGRheF9sb2dkZXYsIG1wKTsK
-IAl9CiAgb3V0OgotCWZzX3B1dF9kYXgoZGF4X2RkZXYpOworCWZzX2RheF9yZWxlYXNlKGRheF9k
-ZGV2LCBtcCk7CiAJcmV0dXJuIGVycm9yOwogfQogCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4
-L2RheC5oIGIvaW5jbHVkZS9saW51eC9kYXguaAppbmRleCBhZjAyZjkzYzk0M2EuLmZlMzIyZDY3
-ODU2ZSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9kYXguaAorKysgYi9pbmNsdWRlL2xpbnV4
-L2RheC5oCkBAIC0zMyw2ICszMyw4IEBAIGV4dGVybiBzdHJ1Y3QgYXR0cmlidXRlX2dyb3VwIGRh
-eF9hdHRyaWJ1dGVfZ3JvdXA7CiBzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2dldF9ieV9ob3N0KGNv
-bnN0IGNoYXIgKmhvc3QpOwogc3RydWN0IGRheF9kZXZpY2UgKmFsbG9jX2RheCh2b2lkICpwcml2
-YXRlLCBjb25zdCBjaGFyICpob3N0LAogCQljb25zdCBzdHJ1Y3QgZGF4X29wZXJhdGlvbnMgKm9w
-cyk7CitzdHJ1Y3QgZGF4X2RldmljZSAqYWxsb2NfZGF4X2Rldm1hcCh2b2lkICpwcml2YXRlLCBj
-b25zdCBjaGFyICpob3N0LAorCQljb25zdCBzdHJ1Y3QgZGF4X29wZXJhdGlvbnMgKm9wcywgc3Ry
-dWN0IGRldl9wYWdlbWFwICpwZ21hcCk7CiB2b2lkIHB1dF9kYXgoc3RydWN0IGRheF9kZXZpY2Ug
-KmRheF9kZXYpOwogdm9pZCBraWxsX2RheChzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2Rldik7CiB2
-b2lkIGRheF93cml0ZV9jYWNoZShzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2RldiwgYm9vbCB3Yyk7
-CkBAIC01MSw2ICs1MywxMiBAQCBzdGF0aWMgaW5saW5lIHN0cnVjdCBkYXhfZGV2aWNlICphbGxv
-Y19kYXgodm9pZCAqcHJpdmF0ZSwgY29uc3QgY2hhciAqaG9zdCwKIAkgKi8KIAlyZXR1cm4gTlVM
-TDsKIH0KK3N0YXRpYyBpbmxpbmUgc3RydWN0IGRheF9kZXZpY2UgKmFsbG9jX2RheF9kZXZtYXAo
-dm9pZCAqcHJpdmF0ZSwKKwkJY29uc3QgY2hhciAqaG9zdCwgY29uc3Qgc3RydWN0IGRheF9vcGVy
-YXRpb25zICpvcHMsCisJCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCit7CisJcmV0dXJuIE5V
-TEw7Cit9CiBzdGF0aWMgaW5saW5lIHZvaWQgcHV0X2RheChzdHJ1Y3QgZGF4X2RldmljZSAqZGF4
-X2RldikKIHsKIH0KQEAgLTg1LDcgKzkzLDYgQEAgc3RhdGljIGlubGluZSB2b2lkIGZzX3B1dF9k
-YXgoc3RydWN0IGRheF9kZXZpY2UgKmRheF9kZXYpCiAJcHV0X2RheChkYXhfZGV2KTsKIH0KIAot
-c3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9nZXRfYnlfYmRldihzdHJ1Y3QgYmxvY2tfZGV2aWNl
-ICpiZGV2KTsKIGludCBkYXhfd3JpdGViYWNrX21hcHBpbmdfcmFuZ2Uoc3RydWN0IGFkZHJlc3Nf
-c3BhY2UgKm1hcHBpbmcsCiAJCXN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYsIHN0cnVjdCB3cml0
-ZWJhY2tfY29udHJvbCAqd2JjKTsKIHN0cnVjdCBkYXhfZGV2aWNlICpmc19kYXhfY2xhaW0oc3Ry
-dWN0IGRheF9kZXZpY2UgKmRheF9kZXYsIHZvaWQgKm93bmVyKTsKQEAgLTEyMywxMSArMTMwLDYg
-QEAgc3RhdGljIGlubGluZSB2b2lkIGZzX3B1dF9kYXgoc3RydWN0IGRheF9kZXZpY2UgKmRheF9k
-ZXYpCiB7CiB9CiAKLXN0YXRpYyBpbmxpbmUgc3RydWN0IGRheF9kZXZpY2UgKmZzX2RheF9nZXRf
-YnlfYmRldihzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2KQotewotCXJldHVybiBOVUxMOwotfQot
-CiBzdGF0aWMgaW5saW5lIGludCBkYXhfd3JpdGViYWNrX21hcHBpbmdfcmFuZ2Uoc3RydWN0IGFk
-ZHJlc3Nfc3BhY2UgKm1hcHBpbmcsCiAJCXN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYsIHN0cnVj
-dCB3cml0ZWJhY2tfY29udHJvbCAqd2JjKQogewoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRp
-bW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtbnZkaW1tCg==
+Add a device command line option to allow the user to control the Platform
+Capabilities Structure in the virtualized NFIT.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ docs/nvdimm.txt         | 22 ++++++++++++++++++++++
+ hw/acpi/nvdimm.c        | 29 +++++++++++++++++++++++++----
+ hw/mem/nvdimm.c         | 28 ++++++++++++++++++++++++++++
+ include/hw/mem/nvdimm.h |  6 ++++++
+ 4 files changed, 81 insertions(+), 4 deletions(-)
+
+diff --git a/docs/nvdimm.txt b/docs/nvdimm.txt
+index e903d8bb09..13a2c15b70 100644
+--- a/docs/nvdimm.txt
++++ b/docs/nvdimm.txt
+@@ -153,3 +153,25 @@ guest NVDIMM region mapping structure.  This unarmed flag indicates
+ guest software that this vNVDIMM device contains a region that cannot
+ accept persistent writes. In result, for example, the guest Linux
+ NVDIMM driver, marks such vNVDIMM device as read-only.
++
++Platform Capabilities
++---------------------
++
++ACPI 6.2 Errata A added support for a new Platform Capabilities Structure
++which allows the platform to communicate what features it supports related to
++NVDIMM data durability.  Users can provide a capabilities value to a guest via
++the optional "cap" device command line option:
++
++ -device nvdimm,id=nvdimm1,memdev=mem1,cap=3
++
++As of ACPI 6.2 Errata A, the following values are valid for the bottom two
++bits:
++
++2 - Memory Controller Flush to NVDIMM Durability on Power Loss Capable.
++3 - CPU Cache Flush to NVDIMM Durability on Power Loss Capable.
++
++For a complete list of the flags available please consult the ACPI spec.
++
++These platform capabilities apply to the entire virtual platform, so it is
++recommended that only one "cap" device command option be given per virtual
++machine.  This value will apply to all NVDIMMs in the virtual platform.
+diff --git a/hw/acpi/nvdimm.c b/hw/acpi/nvdimm.c
+index 859b390e07..375237c96c 100644
+--- a/hw/acpi/nvdimm.c
++++ b/hw/acpi/nvdimm.c
+@@ -370,7 +370,7 @@ static void nvdimm_build_structure_dcr(GArray *structures, DeviceState *dev)
+  * ACPI 6.2 Errata A: 5.2.25.9 NVDIMM Platform Capabilities Structure
+  */
+ static void
+-nvdimm_build_structure_caps(GArray *structures)
++nvdimm_build_structure_caps(GArray *structures, uint32_t capabilities)
+ {
+     NvdimmNfitPlatformCaps *nfit_caps;
+ 
+@@ -378,13 +378,31 @@ nvdimm_build_structure_caps(GArray *structures)
+ 
+     nfit_caps->type = cpu_to_le16(7 /* NVDIMM Platform Capabilities */);
+     nfit_caps->length = cpu_to_le16(sizeof(*nfit_caps));
+-    nfit_caps->highest_cap = 1;
+-    nfit_caps->capabilities = cpu_to_le32(2 /* memory controller */);
++    nfit_caps->highest_cap = 2;
++    nfit_caps->capabilities = cpu_to_le32(capabilities);
+ }
++
++static uint32_t nvdimm_get_capabilities(DeviceState *dev)
++{
++    static uint32_t capabilities = 0;
++    uint32_t this_cap = object_property_get_uint(OBJECT(dev),
++                                            NVDIMM_CAPABILITIES_PROP, NULL);
++
++    if (this_cap && !capabilities)
++        capabilities = this_cap;
++
++    if (this_cap && this_cap != capabilities)
++        nvdimm_debug("WARNING: multiple capabilities (%d and %d) defined\n",
++                this_cap, capabilities);
++
++    return capabilities;
++}
++
+ static GArray *nvdimm_build_device_structure(void)
+ {
+     GSList *device_list = nvdimm_get_device_list();
+     GArray *structures = g_array_new(false, true /* clear */, 1);
++    uint32_t capabilities = 0;
+ 
+     for (; device_list; device_list = device_list->next) {
+         DeviceState *dev = device_list->data;
+@@ -400,10 +418,13 @@ static GArray *nvdimm_build_device_structure(void)
+ 
+         /* build NVDIMM Control Region Structure. */
+         nvdimm_build_structure_dcr(structures, dev);
++
++        capabilities = nvdimm_get_capabilities(dev);
+     }
+     g_slist_free(device_list);
+ 
+-    nvdimm_build_structure_caps(structures);
++    if (capabilities)
++        nvdimm_build_structure_caps(structures, capabilities);
+ 
+     return structures;
+ }
+diff --git a/hw/mem/nvdimm.c b/hw/mem/nvdimm.c
+index 4087aca25e..923364e190 100644
+--- a/hw/mem/nvdimm.c
++++ b/hw/mem/nvdimm.c
+@@ -87,6 +87,31 @@ static void nvdimm_set_unarmed(Object *obj, bool value, Error **errp)
+     error_propagate(errp, local_err);
+ }
+ 
++static void nvdimm_get_capabilities(Object *obj, Visitor *v, const char *name,
++                                  void *opaque, Error **errp)
++{
++    NVDIMMDevice *nvdimm = NVDIMM(obj);
++    uint32_t value = nvdimm->capabilities;
++
++    visit_type_uint32(v, name, &value, errp);
++}
++
++static void nvdimm_set_capabilities(Object *obj, Visitor *v, const char *name,
++                                  void *opaque, Error **errp)
++{
++    NVDIMMDevice *nvdimm = NVDIMM(obj);
++    Error *local_err = NULL;
++    uint32_t value;
++
++    visit_type_uint32(v, name, &value, &local_err);
++    if (local_err)
++        goto out;
++
++    nvdimm->capabilities = value;
++out:
++    error_propagate(errp, local_err);
++}
++
+ static void nvdimm_init(Object *obj)
+ {
+     object_property_add(obj, NVDIMM_LABEL_SIZE_PROP, "int",
+@@ -94,6 +119,9 @@ static void nvdimm_init(Object *obj)
+                         NULL, NULL);
+     object_property_add_bool(obj, NVDIMM_UNARMED_PROP,
+                              nvdimm_get_unarmed, nvdimm_set_unarmed, NULL);
++    object_property_add(obj, NVDIMM_CAPABILITIES_PROP, "uint32",
++                        nvdimm_get_capabilities, nvdimm_set_capabilities,
++                        NULL, NULL, NULL);
+ }
+ 
+ static MemoryRegion *nvdimm_get_memory_region(PCDIMMDevice *dimm, Error **errp)
+diff --git a/include/hw/mem/nvdimm.h b/include/hw/mem/nvdimm.h
+index 74c60332e1..68af64ff46 100644
+--- a/include/hw/mem/nvdimm.h
++++ b/include/hw/mem/nvdimm.h
+@@ -50,6 +50,7 @@
+ 
+ #define NVDIMM_LABEL_SIZE_PROP "label-size"
+ #define NVDIMM_UNARMED_PROP    "unarmed"
++#define NVDIMM_CAPABILITIES_PROP "cap"
+ 
+ struct NVDIMMDevice {
+     /* private */
+@@ -83,6 +84,11 @@ struct NVDIMMDevice {
+      * the guest write persistence.
+      */
+     bool unarmed;
++
++    /*
++     * Platform capabilities, section 5.2.25.9 of ACPI 6.2 Errata A
++     */
++    uint32_t capabilities;
+ };
+ typedef struct NVDIMMDevice NVDIMMDevice;
+ 
+-- 
+2.14.3
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
