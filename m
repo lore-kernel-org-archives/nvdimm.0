@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 781F02034C8BB
- for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 15:08:35 -0700 (PDT)
-Subject: [PATCH v5 4/4] ndctl: convert dimm actions to use util_filter_walk()
+ by ml01.01.org (Postfix) with ESMTPS id 5E80C2034C8A1
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 11:18:52 -0700 (PDT)
+Subject: [PATCH v4 4/4] ndctl: convert dimm actions to use util_filter_walk()
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 27 Apr 2018 15:08:34 -0700
-Message-ID: <152486691456.66587.8240554544503922957.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152486678857.66587.12260245215754521561.stgit@djiang5-desk3.ch.intel.com>
-References: <152486678857.66587.12260245215754521561.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 27 Apr 2018 11:18:51 -0700
+Message-ID: <152485313162.47995.17962466882440254997.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152485300486.47995.7487206758776476576.stgit@djiang5-desk3.ch.intel.com>
+References: <152485300486.47995.7487206758776476576.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
