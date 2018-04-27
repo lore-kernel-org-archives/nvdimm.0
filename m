@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf0-x242.google.com (mail-pf0-x242.google.com
- [IPv6:2607:f8b0:400e:c00::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DFC2621F2E0ED
- for <linux-nvdimm@lists.01.org>; Mon,  9 Apr 2018 00:46:19 -0700 (PDT)
-Received: by mail-pf0-x242.google.com with SMTP id g14so5406360pfh.3
- for <linux-nvdimm@lists.01.org>; Mon, 09 Apr 2018 00:46:19 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH] drivers/of: Introduce ARCH_HAS_OWN_OF_NUMA
-Date: Mon,  9 Apr 2018 17:46:04 +1000
-Message-Id: <20180409074604.17671-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 747872034C8BB
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 15:08:24 -0700 (PDT)
+Subject: [PATCH v5 2/4] ndctl: convert namespace actions to use
+ util_filter_walk()
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 27 Apr 2018 15:08:23 -0700
+Message-ID: <152486690348.66587.15082403237213429099.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152486678857.66587.12260245215754521561.stgit@djiang5-desk3.ch.intel.com>
+References: <152486678857.66587.12260245215754521561.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,125 +19,285 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: sfr@canb.auug.org.au, devicetree@vger.kernel.org, linux-nvdimm@lists.01.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Some OF platforms (pseries and some SPARC systems) has their own
-implementations of NUMA affinity detection rather than using the generic
-OF_NUMA driver, which mainly exists for arm64. For other platforms one
-of two fallbacks provided by the base OF driver are used depending on
-CONFIG_NUMA.
+util_filter_walk() does the looping through of busses and regions. Removing
+duplicate code in namespace ops and provide filter functions so we can
+utilize util_filter_walk() and share common code.
 
-In the CONFIG_NUMA=n case the fallback is an inline function in of.h.
-In the =y case the fallback is a real function which is defined as a
-weak symbol so that it may be overwritten by the architecture if desired.
-
-The problem with this arrangement is that the real implementations all
-export of_node_to_nid(). Unfortunately it's not possible to export the
-fallback since it would clash with the non-weak version. As a result
-we get build failures when:
-
-a) CONFIG_NUMA=y && CONFIG_OF=y, and
-b) The platform doesn't implement of_node_to_nid(), and
-c) A module uses of_node_to_nid()
-
-Given b) will be true for most platforms this is fairly easy to hit
-and has been observed on ia64 and x86.
-
-This patch remedies the problem by introducing the ARCH_HAS_OWN_OF_NUMA
-Kconfig option which is selected if an architecture provides an
-implementation of of_node_to_nid(). If a platform does not use it's own,
-or the generic OF_NUMA, then always use the inline fallback in of.h so
-we don't need to futz around with exports.
-
-Cc: devicetree@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Fixes: 298535c00a2c ("of, numa: Add NUMA of binding implementation.")
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- arch/powerpc/Kconfig | 1 +
- arch/sparc/Kconfig   | 1 +
- drivers/of/Kconfig   | 3 +++
- drivers/of/base.c    | 7 -------
- include/linux/of.h   | 2 +-
- 5 files changed, 6 insertions(+), 8 deletions(-)
+ ndctl/namespace.c |  163 ++++++++++++++++++++++++++++++-----------------------
+ test/btt-check.sh |    2 -
+ util/filter.c     |    5 +-
+ util/filter.h     |    8 +++
+ 4 files changed, 104 insertions(+), 74 deletions(-)
 
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index c32a181a7cbb..74ce5f3564ae 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -625,6 +625,7 @@ config NUMA
- 	bool "NUMA support"
- 	depends on PPC64
- 	default y if SMP && PPC_PSERIES
-+	select ARCH_HAS_OWN_OF_NUMA
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index e61f500c..b0505ce8 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -983,14 +983,91 @@ static int namespace_reconfig(struct ndctl_region *region,
+ int namespace_check(struct ndctl_namespace *ndns, bool verbose, bool force,
+ 		bool repair, bool logfix);
  
- config NODES_SHIFT
- 	int
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 8767e45f1b2b..f8071f1c3edb 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -299,6 +299,7 @@ config GENERIC_LOCKBREAK
- config NUMA
- 	bool "NUMA support"
- 	depends on SPARC64 && SMP
-+	select ARCH_HAS_OWN_OF_NUMA
- 
- config NODES_SHIFT
- 	int "Maximum NUMA Nodes (as a power of 2)"
-diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index ad3fcad4d75b..01c62b747b25 100644
---- a/drivers/of/Kconfig
-+++ b/drivers/of/Kconfig
-@@ -103,4 +103,7 @@ config OF_OVERLAY
- config OF_NUMA
- 	bool
- 
-+config ARCH_HAS_OWN_OF_NUMA
-+	bool
++static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx *ctx)
++{
++	return true;
++}
 +
- endif # OF
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 848f549164cd..82a9584bb0e2 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -84,13 +84,6 @@ int of_n_size_cells(struct device_node *np)
- }
- EXPORT_SYMBOL(of_n_size_cells);
++static bool filter_region(struct ndctl_region *region,
++		struct util_filter_ctx *ctx)
++{
++	struct nsaction_filter_arg *nfa = ctx->nsaction;
++	int rc = 0;
++	bool out = true;
++
++	if (nfa->action == ACTION_CREATE && !nfa->namespace) {
++		if (nfa->rc == 1)
++			return false;
++
++		rc = namespace_create(region);
++		if (rc != -EAGAIN) {
++			if (rc == 0)
++				rc = 1;
++			/* don't proceed in the filter loop */
++			out = false;
++		}
++		nfa->rc = rc;
++	}
++
++	return out;
++}
++
++static void filter_namespace(struct ndctl_namespace *ndns,
++		struct util_filter_ctx *ctx)
++{
++	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
++	struct nsaction_filter_arg *nfa = ctx->nsaction;
++	const char *ndns_name;
++	int rc;
++
++	if (!nfa->namespace)
++		return;
++
++	ndns_name = ndctl_namespace_get_devname(ndns);
++	if (strcmp(nfa->namespace, "all") != 0
++			&& strcmp(nfa->namespace, ndns_name) != 0) {
++		return;
++	}
++
++	switch (nfa->action) {
++	case ACTION_DISABLE:
++		rc = ndctl_namespace_disable_safe(ndns);
++		break;
++	case ACTION_ENABLE:
++		rc = ndctl_namespace_enable(ndns);
++		break;
++	case ACTION_DESTROY:
++		rc = namespace_destroy(region, ndns);
++		break;
++	case ACTION_CHECK:
++		rc = namespace_check(ndns, verbose, force, repair, logfix);
++		if (rc < 0) {
++			nfa->rc = rc;
++			return;
++		}
++		break;
++	case ACTION_CREATE:
++		rc = namespace_reconfig(region, ndns);
++		if (rc < 0) {
++			nfa->rc = rc;
++			return;
++		}
++		break;
++	default:
++		rc = -EINVAL;
++		break;
++	}
++
++	if (rc >= 0)
++		nfa->rc++;
++}
++
+ static int do_xaction_namespace(const char *namespace,
+ 		enum device_action action, struct ndctl_ctx *ctx)
+ {
+-	struct ndctl_namespace *ndns, *_n;
+-	int rc = -ENXIO, success = 0;
+-	struct ndctl_region *region;
+-	const char *ndns_name;
+-	struct ndctl_bus *bus;
++	int rc = -ENXIO;
++	struct util_filter_ctx fctx = { 0 };
++	struct nsaction_filter_arg nfa = { 0 };
  
--#ifdef CONFIG_NUMA
--int __weak of_node_to_nid(struct device_node *np)
--{
--	return NUMA_NO_NODE;
--}
--#endif
+ 	if (!namespace && action != ACTION_CREATE)
+ 		return rc;
+@@ -998,74 +1075,18 @@ static int do_xaction_namespace(const char *namespace,
+ 	if (verbose)
+ 		ndctl_set_log_priority(ctx, LOG_DEBUG);
+ 
+-        ndctl_bus_foreach(ctx, bus) {
+-		if (!util_bus_filter(bus, uf_param.bus))
+-			continue;
 -
- static struct device_node **phandle_cache;
- static u32 phandle_cache_mask;
+-		ndctl_region_foreach(bus, region) {
+-			if (!util_region_filter(region, uf_param.region))
+-				continue;
+-
+-			if (uf_param.type) {
+-				if (strcmp(uf_param.type, "pmem") == 0
+-						&& ndctl_region_get_type(region)
+-						== ND_DEVICE_REGION_PMEM)
+-					/* pass */;
+-				else if (strcmp(uf_param.type, "blk") == 0
+-						&& ndctl_region_get_type(region)
+-						== ND_DEVICE_REGION_BLK)
+-					/* pass */;
+-				else
+-					continue;
+-			}
++	fctx.filter_bus = filter_bus;
++	fctx.filter_region = filter_region;
++	fctx.filter_namespace = filter_namespace;
++	fctx.nsaction = &nfa;
++	fctx.nsaction->action = action;
++	fctx.nsaction->namespace = namespace;
  
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 4d25e4f952d9..9bb42dac5e65 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -942,7 +942,7 @@ static inline int of_cpu_node_to_id(struct device_node *np)
- #define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
- #endif
+-			if (action == ACTION_CREATE && !namespace) {
+-				rc = namespace_create(region);
+-				if (rc == -EAGAIN)
+-					continue;
+-				if (rc == 0)
+-					rc = 1;
+-				return rc;
+-			}
+-			ndctl_namespace_foreach_safe(region, ndns, _n) {
+-				ndns_name = ndctl_namespace_get_devname(ndns);
+-
+-				if (strcmp(namespace, "all") != 0
+-						&& strcmp(namespace, ndns_name) != 0)
+-					continue;
+-				switch (action) {
+-				case ACTION_DISABLE:
+-					rc = ndctl_namespace_disable_safe(ndns);
+-					break;
+-				case ACTION_ENABLE:
+-					rc = ndctl_namespace_enable(ndns);
+-					break;
+-				case ACTION_DESTROY:
+-					rc = namespace_destroy(region, ndns);
+-					break;
+-				case ACTION_CHECK:
+-					rc = namespace_check(ndns, verbose,
+-							force, repair, logfix);
+-					if (rc < 0)
+-						return rc;
+-					break;
+-				case ACTION_CREATE:
+-					rc = namespace_reconfig(region, ndns);
+-					if (rc < 0)
+-						return rc;
+-					return 1;
+-				default:
+-					rc = -EINVAL;
+-					break;
+-				}
+-				if (rc >= 0)
+-					success++;
+-			}
+-		}
+-	}
++	rc = util_filter_walk(ctx, &fctx, &uf_param);
++	if (rc < 0)
++		return rc;
  
--#if defined(CONFIG_OF) && defined(CONFIG_NUMA)
-+#if defined(CONFIG_OF_NUMA) || defined(CONFIG_ARCH_HAS_OWN_OF_NUMA)
- extern int of_node_to_nid(struct device_node *np);
- #else
- static inline int of_node_to_nid(struct device_node *device)
--- 
-2.9.5
+-	if (success)
+-		return success;
++	rc = nfa.rc;
+ 	return rc;
+ }
+ 
+diff --git a/test/btt-check.sh b/test/btt-check.sh
+index 353d4375..50c1b592 100755
+--- a/test/btt-check.sh
++++ b/test/btt-check.sh
+@@ -1,4 +1,4 @@
+-#!/bin/bash -E
++#!/bin/bash -Ex
+ 
+ # Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
+ # 
+diff --git a/util/filter.c b/util/filter.c
+index 0d3cc02f..b7a4fbd6 100644
+--- a/util/filter.c
++++ b/util/filter.c
+@@ -18,6 +18,7 @@
+ #include <sys/stat.h>
+ #include <util/util.h>
+ #include <sys/types.h>
++#include <ndctl/action.h>
+ #include <ndctl/ndctl.h>
+ #include <util/filter.h>
+ #include <ndctl/libndctl.h>
+@@ -418,7 +419,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 		}
+ 
+ 		ndctl_region_foreach(bus, region) {
+-			struct ndctl_namespace *ndns;
++			struct ndctl_namespace *ndns, *_n;
+ 
+ 			if (!util_region_filter(region, param->region)
+ 					|| !util_region_filter_by_dimm(region,
+@@ -437,7 +438,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 			if (!fctx->filter_region(region, fctx))
+ 				continue;
+ 
+-			ndctl_namespace_foreach(region, ndns) {
++			ndctl_namespace_foreach_safe(region, ndns, _n) {
+ 				enum ndctl_namespace_mode mode;
+ 
+ 				if (!fctx->filter_namespace)
+diff --git a/util/filter.h b/util/filter.h
+index effda24b..9f3786a9 100644
+--- a/util/filter.h
++++ b/util/filter.h
+@@ -13,6 +13,7 @@
+ #ifndef _UTIL_FILTER_H_
+ #define _UTIL_FILTER_H_
+ #include <stdbool.h>
++#include <ndctl/action.h>
+ 
+ struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
+ struct ndctl_region *util_region_filter(struct ndctl_region *region,
+@@ -50,6 +51,12 @@ struct list_filter_arg {
+ 	unsigned long flags;
+ };
+ 
++struct nsaction_filter_arg {
++	enum device_action action;
++	const char *namespace;
++	int rc;
++};
++
+ /*
+  * struct util_filter_ctx - control and callbacks for util_filter_walk()
+  * ->filter_bus() and ->filter_region() return bool because the
+@@ -67,6 +74,7 @@ struct util_filter_ctx {
+ 	union {
+ 		void *arg;
+ 		struct list_filter_arg *list;
++		struct nsaction_filter_arg *nsaction;
+ 	};
+ };
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
