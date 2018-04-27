@@ -1,15 +1,10 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 30FE921FB7D37
- for <linux-nvdimm@lists.01.org>; Mon,  2 Apr 2018 21:56:03 -0700 (PDT)
-Subject: [PATCH 1/6] nfit: fix region registration vs block-data-window ranges
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 02 Apr 2018 21:46:06 -0700
-Message-ID: <152273076649.38372.8379231668189794225.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from lists.01.org (unknown [183.14.134.183])
+ by ml01.01.org (Postfix) with ESMTP id 81BD6228392ED
+ for <linux-nvdimm@lists.01.org>; Thu, 26 Apr 2018 20:30:46 -0700 (PDT)
+From: "Automatic Email Delivery Software" <MAILER-DAEMON@lists.01.org>
+Subject: RETURNED MAIL: DATA FORMAT ERROR
+Date: Fri, 27 Apr 2018 11:30:49 +0800
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,58 +17,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Message-Id: <20180427033048.8B46122839312@ml01.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: stable@vger.kernel.org, linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit 1cf03c00e7c1 "nfit: scrub and register regions in a workqueue"
-mistakenly attempts to register a region per BLK aperture. There is
-nothing to register for individual apertures as they belong as a set to
-a BLK aperture group that are registered with a corresponding
-DIMM-control-region. Filter them for registration to prevent some
-needless devm_kzalloc() allocations.
+This Message was undeliverable due to the following reason:
 
-Cc: <stable@vger.kernel.org>
-Fixes: 1cf03c00e7c1 ("nfit: scrub and register regions in a workqueue")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 12fb414fa678..ea9f3e727fef 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3018,15 +3018,21 @@ static void acpi_nfit_scrub(struct work_struct *work)
- static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
- {
- 	struct nfit_spa *nfit_spa;
--	int rc;
- 
--	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
--		if (nfit_spa_type(nfit_spa->spa) == NFIT_SPA_DCR) {
--			/* BLK regions don't need to wait for ars results */
--			rc = acpi_nfit_register_region(acpi_desc, nfit_spa);
--			if (rc)
--				return rc;
--		}
-+	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-+		int rc, type = nfit_spa_type(nfit_spa->spa);
-+
-+		/* PMEM and VMEM will be registered by the ARS workqueue */
-+		if (type == NFIT_SPA_PM || type == NFIT_SPA_VOLATILE)
-+			continue;
-+		/* BLK apertures belong to BLK region registration below */
-+		if (type == NFIT_SPA_BDW)
-+			continue;
-+		/* BLK regions don't need to wait for ARS results */
-+		rc = acpi_nfit_register_region(acpi_desc, nfit_spa);
-+		if (rc)
-+			return rc;
-+	}
- 
- 	acpi_desc->ars_start_flags = 0;
- 	if (!acpi_desc->cancel)
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 6 days:
+Host 53.28.80.160 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm@lists.01.org>
+
+Please reply to postmaster@lists.01.org
+if you feel this message to be in error.
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
