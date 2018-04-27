@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3A03C2034C8BB
- for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 15:08:19 -0700 (PDT)
-Subject: [PATCH v5 1/4] ndctl: convert namespace actions to use
+ by ml01.01.org (Postfix) with ESMTPS id 38DF921EBD1DF
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Apr 2018 11:18:36 -0700 (PDT)
+Subject: [PATCH v4 1/4] ndctl: convert namespace actions to use
  util_filter_params
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 27 Apr 2018 15:08:18 -0700
-Message-ID: <152486689811.66587.18275859939849621342.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152486678857.66587.12260245215754521561.stgit@djiang5-desk3.ch.intel.com>
-References: <152486678857.66587.12260245215754521561.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 27 Apr 2018 11:18:34 -0700
+Message-ID: <152485311474.47995.14489426172073650323.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152485300486.47995.7487206758776476576.stgit@djiang5-desk3.ch.intel.com>
+References: <152485300486.47995.7487206758776476576.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
