@@ -1,74 +1,62 @@
-From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Qemu-devel] [RFC v2 1/2] virtio: add pmem driver
-Date: Sat, 28 Apr 2018 06:48:41 -0400 (EDT)
-Message-ID: <1266554822.23475618.1524912521209.JavaMail.zimbra@redhat.com>
-References: <20180425112415.12327-1-pagupta@redhat.com>
- <20180425112415.12327-2-pagupta@redhat.com>
- <20180426131236.GA30991@stefanha-x1.localdomain>
- <197910974.22984070.1524757499459.JavaMail.zimbra@redhat.com>
- <20180427133146.GB11150@stefanha-x1.localdomain>
+From: Stefan Hajnoczi <stefanha@redhat.com>
+Subject: Re: [PATCH 3/3] nvdimm: platform capabilities command
+ line option
+Date: Mon, 30 Apr 2018 12:39:05 +0100
+Message-ID: <20180430113905.GJ4002@stefanha-x1.localdomain>
+References: <20180427215314.23168-1-ross.zwisler@linux.intel.com>
+	<20180427215314.23168-3-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180427133146.GB11150-lxVrvc10SDRcolVlb+j0YCZi+YwRKgec@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Stefan Hajnoczi <stefanha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ross zwisler <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xiaoguangrong eric <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LG0Ll82vYr46+VA1"
+Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+Content-Disposition: inline
+In-Reply-To: <20180427215314.23168-3-ross.zwisler@linux.intel.com>
+List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
+List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
+List-Post: <mailto:qemu-devel@nongnu.org>
+List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
+List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
+Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
+Sender: "Qemu-devel"
+	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: qemu-devel@nongnu.org, Haozhong Zhang <haozhong.zhang@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Eduardo Habkost <ehabkost@redhat.com>, "Michael S . Tsirkin" <mst@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
 
-> > > > +        int err;
-> > > > +
-> > > > +        sg_init_one(&sg, buf, sizeof(buf));
-> > > > +
-> > > > +        err = virtqueue_add_outbuf(vpmem->req_vq, &sg, 1, buf, GFP_KERNEL);
-> > > > +
-> > > > +        if (err) {
-> > > > +                dev_err(&vdev->dev, "failed to send command to virtio pmem
-> > > > device\n");
-> > > > +                return;
-> > > > +        }
-> > > > +
-> > > > +        virtqueue_kick(vpmem->req_vq);
-> > > 
-> > > Is any locking necessary?  Two CPUs must not invoke virtio_pmem_flush()
-> > > at the same time.  Not sure if anything guarantees this, maybe you're
-> > > relying on libnvdimm but I haven't checked.
-> > 
-> > I thought about it to some extent, and wanted to go ahead with simple
-> > version first:
-> > 
-> > - I think file 'inode -> locking' sill is there for request on single file.
-> > - For multiple files, our aim is to just flush the backend block image.
-> > - Even there is collision for virt queue read/write entry it should just
-> > trigger a Qemu fsync.
-> >   We just want most recent flush to assure guest writes are synced
-> >   properly.
-> > 
-> > Important point here: We are doing entire block fsync for guest virtual
-> > disk.
-> 
-> I don't understand your answer.  Is locking necessary or not?
+--LG0Ll82vYr46+VA1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It will be required with other changes.
+On Fri, Apr 27, 2018 at 03:53:14PM -0600, Ross Zwisler wrote:
+> Add a device command line option to allow the user to control the Platform
+> Capabilities Structure in the virtualized NFIT.
+>=20
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> ---
+>  docs/nvdimm.txt         | 22 ++++++++++++++++++++++
+>  hw/acpi/nvdimm.c        | 29 +++++++++++++++++++++++++----
+>  hw/mem/nvdimm.c         | 28 ++++++++++++++++++++++++++++
+>  include/hw/mem/nvdimm.h |  6 ++++++
+>  4 files changed, 81 insertions(+), 4 deletions(-)
 
-> 
-> From the virtqueue_add_outbuf() documentation:
-> 
->  * Caller must ensure we don't call this with other virtqueue operations
->  * at the same time (except where noted).
+Reviewed-by: Stefan Hajnoczi <stefanha@redhat.com>
 
-Yes, I also saw it. But thought if can avoid it with current functionality. :)
+--LG0Ll82vYr46+VA1
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
 
-Thanks,
-Pankaj
+iQEcBAEBAgAGBQJa5wBZAAoJEJykq7OBq3PIgSwH/jdArigadKjwVEC8XJJFB+vs
+9mBMvZiLjolxAy/hCJfna2CrYBtR/RxTUT3aSGWufp2LtRNUG5VnEXFHtMW4Yxqx
+arW1W6fgq9K7w42+3fSbZf/mq+9yXbhq2V6I/4W2WDuW3+upDpTnNkR2tkf9LebB
+If808A9CdGSTBg9i5kwyy3ALz7exE5iMdBHBpDoBs5/+Bkn9LU0jZvWw5qMwqfL3
+ZHkcB5XWu5pQbHYyLAV3dDrvd1vZCd6XcZMa0Mg4RzufzBYdmOLMudF5zXbQDGFt
+duxbvaHm/CImLlF1p2kaOvyzMa0DEmZu/ggibXjXMR2EBqE8vX6gnkpJji6T7hA=
+=JkUR
+-----END PGP SIGNATURE-----
+
+--LG0Ll82vYr46+VA1--
