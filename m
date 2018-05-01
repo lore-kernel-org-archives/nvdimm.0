@@ -1,337 +1,67 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D294D2063E2F1
- for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:09:14 -0700 (PDT)
-Subject: [PATCH v2 6/9] dax: introduce a ->copy_to_iter dax operation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 02 May 2018 21:59:18 -0700
-Message-ID: <152532355794.17218.14245493414576545182.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+From: "Marco Mclennan  " <newsletterhfui-KD6vb7Cx16iAN7j2eeZu5A@public.gmane.org>
+Subject: re: Buy Instagram followers cheap
+Date: Mon, 30 Apr 2018 20:54:54 -0500
+Message-ID: <E2DC8569.47C646F5@myinstabuzz.se>
+Reply-To: Marco Mclennan   <newsletterhfui-KD6vb7Cx16iAN7j2eeZu5A@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============2910808821128542900=="
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+--===============2910808821128542900==
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Mike Snitzer <snitzer@redhat.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
-List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to the ->copy_from_iter() operation, a platform may want to
-deploy an architecture or device specific routine for handling reads
-from a dax_device like /dev/pmemX. On x86 this routine will point to a
-machine check safe version of copy_to_iter(). For now, add the plumbing
-to device-mapper and the dax core.
 
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/super.c           |   10 ++++++++++
- drivers/md/dm-linear.c        |   16 ++++++++++++++++
- drivers/md/dm-log-writes.c    |   15 +++++++++++++++
- drivers/md/dm-stripe.c        |   21 +++++++++++++++++++++
- drivers/md/dm.c               |   25 +++++++++++++++++++++++++
- drivers/nvdimm/pmem.c         |    7 +++++++
- drivers/s390/block/dcssblk.c  |    7 +++++++
- fs/dax.c                      |    3 ++-
- include/linux/dax.h           |    5 +++++
- include/linux/device-mapper.h |    5 +++--
- 10 files changed, 111 insertions(+), 3 deletions(-)
+Real Instagram followers at affordable rates
+http://www.myinstabuzz.se/buy-instagram-followers/
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 2b2332b605e4..31b839113399 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -282,6 +282,16 @@ size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- }
- EXPORT_SYMBOL_GPL(dax_copy_from_iter);
- 
-+size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t bytes, struct iov_iter *i)
-+{
-+	if (!dax_alive(dax_dev))
-+		return 0;
-+
-+	return dax_dev->ops->copy_to_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+EXPORT_SYMBOL_GPL(dax_copy_to_iter);
-+
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_wb_cache_pmem(void *addr, size_t size);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 775c06d953b7..d10964d41fd7 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -185,9 +185,24 @@ static size_t linear_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
-+static size_t linear_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct linear_c *lc = ti->private;
-+	struct block_device *bdev = lc->dev->bdev;
-+	struct dax_device *dax_dev = lc->dev->dax_dev;
-+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
-+
-+	dev_sector = linear_map_sector(ti, sector);
-+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+	return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+
- #else
- #define linear_dax_direct_access NULL
- #define linear_dax_copy_from_iter NULL
-+#define linear_dax_copy_to_iter NULL
- #endif
- 
- static struct target_type linear_target = {
-@@ -204,6 +219,7 @@ static struct target_type linear_target = {
- 	.iterate_devices = linear_iterate_devices,
- 	.direct_access = linear_dax_direct_access,
- 	.dax_copy_from_iter = linear_dax_copy_from_iter,
-+	.dax_copy_to_iter = linear_dax_copy_to_iter,
- };
- 
- int __init dm_linear_init(void)
-diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
-index c90c7c08a77f..9ea2b0291f20 100644
---- a/drivers/md/dm-log-writes.c
-+++ b/drivers/md/dm-log-writes.c
-@@ -962,9 +962,23 @@ static size_t log_writes_dax_copy_from_iter(struct dm_target *ti,
- dax_copy:
- 	return dax_copy_from_iter(lc->dev->dax_dev, pgoff, addr, bytes, i);
- }
-+
-+static size_t log_writes_dax_copy_to_iter(struct dm_target *ti,
-+					  pgoff_t pgoff, void *addr, size_t bytes,
-+					  struct iov_iter *i)
-+{
-+	struct log_writes_c *lc = ti->private;
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+
-+	if (bdev_dax_pgoff(lc->dev->bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+	return dax_copy_to_iter(lc->dev->dax_dev, pgoff, addr, bytes, i);
-+}
-+
- #else
- #define log_writes_dax_direct_access NULL
- #define log_writes_dax_copy_from_iter NULL
-+#define log_writes_dax_copy_to_iter NULL
- #endif
- 
- static struct target_type log_writes_target = {
-@@ -982,6 +996,7 @@ static struct target_type log_writes_target = {
- 	.io_hints = log_writes_io_hints,
- 	.direct_access = log_writes_dax_direct_access,
- 	.dax_copy_from_iter = log_writes_dax_copy_from_iter,
-+	.dax_copy_to_iter = log_writes_dax_copy_to_iter,
- };
- 
- static int __init dm_log_writes_init(void)
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index fe7fb9b1aec3..8547d7594338 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -354,9 +354,29 @@ static size_t stripe_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
-+static size_t stripe_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
-+	struct stripe_c *sc = ti->private;
-+	struct dax_device *dax_dev;
-+	struct block_device *bdev;
-+	uint32_t stripe;
-+
-+	stripe_map_sector(sc, sector, &stripe, &dev_sector);
-+	dev_sector += sc->stripe[stripe].physical_start;
-+	dax_dev = sc->stripe[stripe].dev->dax_dev;
-+	bdev = sc->stripe[stripe].dev->bdev;
-+
-+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+	return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+
- #else
- #define stripe_dax_direct_access NULL
- #define stripe_dax_copy_from_iter NULL
-+#define stripe_dax_copy_to_iter NULL
- #endif
- 
- /*
-@@ -478,6 +498,7 @@ static struct target_type stripe_target = {
- 	.io_hints = stripe_io_hints,
- 	.direct_access = stripe_dax_direct_access,
- 	.dax_copy_from_iter = stripe_dax_copy_from_iter,
-+	.dax_copy_to_iter = stripe_dax_copy_to_iter,
- };
- 
- int __init dm_stripe_init(void)
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 4ea404dbcf0b..cd942905dd1e 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1088,6 +1088,30 @@ static size_t dm_dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return ret;
- }
- 
-+static size_t dm_dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct mapped_device *md = dax_get_private(dax_dev);
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+	struct dm_target *ti;
-+	long ret = 0;
-+	int srcu_idx;
-+
-+	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
-+
-+	if (!ti)
-+		goto out;
-+	if (!ti->type->dax_copy_to_iter) {
-+		ret = copy_to_iter(addr, bytes, i);
-+		goto out;
-+	}
-+	ret = ti->type->dax_copy_to_iter(ti, pgoff, addr, bytes, i);
-+ out:
-+	dm_put_live_table(md, srcu_idx);
-+
-+	return ret;
-+}
-+
- /*
-  * A target may call dm_accept_partial_bio only from the map routine.  It is
-  * allowed for all bio types except REQ_PREFLUSH and REQ_OP_ZONE_RESET.
-@@ -3133,6 +3157,7 @@ static const struct block_device_operations dm_blk_dops = {
- static const struct dax_operations dm_dax_ops = {
- 	.direct_access = dm_dax_direct_access,
- 	.copy_from_iter = dm_dax_copy_from_iter,
-+	.copy_to_iter = dm_dax_copy_to_iter,
- };
- 
- /*
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index e023d6aa22b5..1b8ab48365de 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -264,9 +264,16 @@ static size_t pmem_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return copy_from_iter_flushcache(addr, bytes, i);
- }
- 
-+static size_t pmem_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	return copy_to_iter(addr, bytes, i);
-+}
-+
- static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_dax_direct_access,
- 	.copy_from_iter = pmem_copy_from_iter,
-+	.copy_to_iter = pmem_copy_to_iter,
- };
- 
- static const struct attribute_group *pmem_attribute_groups[] = {
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 0a312e450207..29024492b8ed 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -51,9 +51,16 @@ static size_t dcssblk_dax_copy_from_iter(struct dax_device *dax_dev,
- 	return copy_from_iter(addr, bytes, i);
- }
- 
-+static size_t dcssblk_dax_copy_to_iter(struct dax_device *dax_dev,
-+		pgoff_t pgoff, void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	return copy_to_iter(addr, bytes, i);
-+}
-+
- static const struct dax_operations dcssblk_dax_ops = {
- 	.direct_access = dcssblk_dax_direct_access,
- 	.copy_from_iter = dcssblk_dax_copy_from_iter,
-+	.copy_to_iter = dcssblk_dax_copy_to_iter,
- };
- 
- struct dcssblk_dev_info {
-diff --git a/fs/dax.c b/fs/dax.c
-index aaec72ded1b6..a64afdf7ec0d 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1057,7 +1057,8 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
- 					map_len, iter);
- 		else
--			map_len = copy_to_iter(kaddr, map_len, iter);
-+			map_len = dax_copy_to_iter(dax_dev, pgoff, kaddr,
-+					map_len, iter);
- 		if (map_len <= 0) {
- 			ret = map_len ? map_len : -EFAULT;
- 			break;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index f9eb22ad341e..a43b396fb336 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -20,6 +20,9 @@ struct dax_operations {
- 	/* copy_from_iter: required operation for fs-dax direct-i/o */
- 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
- 			struct iov_iter *);
-+	/* copy_to_iter: required operation for fs-dax direct-i/o */
-+	size_t (*copy_to_iter)(struct dax_device *, pgoff_t, void *, size_t,
-+			struct iov_iter *);
- };
- 
- extern struct attribute_group dax_attribute_group;
-@@ -118,6 +121,8 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
- 		void **kaddr, pfn_t *pfn);
- size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
-+size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t bytes, struct iov_iter *i);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
- 
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index 31fef7c34185..6fb0808e87c8 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -133,7 +133,7 @@ typedef int (*dm_busy_fn) (struct dm_target *ti);
-  */
- typedef long (*dm_dax_direct_access_fn) (struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn);
--typedef size_t (*dm_dax_copy_from_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
-+typedef size_t (*dm_dax_copy_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i);
- #define PAGE_SECTORS (PAGE_SIZE / 512)
- 
-@@ -184,7 +184,8 @@ struct target_type {
- 	dm_iterate_devices_fn iterate_devices;
- 	dm_io_hints_fn io_hints;
- 	dm_dax_direct_access_fn direct_access;
--	dm_dax_copy_from_iter_fn dax_copy_from_iter;
-+	dm_dax_copy_iter_fn dax_copy_from_iter;
-+	dm_dax_copy_iter_fn dax_copy_to_iter;
- 
- 	/* For internal device-mapper use. */
- 	struct list_head list;
+Sample followers in the html report attached
+
+Thank you
+Marco Mclennan  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option available in the footer of our website
+
+
+--===============2910808821128542900==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============2910808821128542900==--
