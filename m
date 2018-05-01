@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 306D92063D74D
- for <linux-nvdimm@lists.01.org>; Wed, 30 May 2018 10:00:21 -0700 (PDT)
-Date: Wed, 30 May 2018 13:00:19 -0400 (EDT)
-From: Mikulas Patocka <mpatocka@redhat.com>
-Subject: arch_wb_cache_pmem on ARM64
-Message-ID: <alpine.LRH.2.02.1805301254340.25056@file01.intranet.prod.int.rdu2.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8B408203B8C02
+ for <linux-nvdimm@lists.01.org>; Tue,  1 May 2018 15:50:45 -0700 (PDT)
+Date: Wed, 2 May 2018 06:49:44 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 4/6] x86, memcpy_mcsafe: define copy_to_iter_mcsafe()
+Message-ID: <201805020551.YQoEZubE%fengguang.wu@intel.com>
+References: <152520752986.36522.6608981678390805141.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+In-Reply-To: <152520752986.36522.6608981678390805141.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,27 +23,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Robin Murphy <robin.murphy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, kbuild-all@01.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi
+Hi Dan,
 
-I'd like to ask what's the purpose of dmb(osh) in the function 
-arch_wb_cache_pmem in arch/arm64/mm/flush.c?
+I love your patch! Yet something to improve:
 
-void arch_wb_cache_pmem(void *addr, size_t size)
-{
-        /* Ensure order against any prior non-cacheable writes */
-        dmb(osh);
-        __clean_dcache_area_pop(addr, size);
-}
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.17-rc3 next-20180501]
+[cannot apply to tip/x86/core]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-The processor may flush the cache spontaneously, that means that all the 
-flushing may actually happen before the dmb(osh) instruction - so what 
-does that dmb instruction guard against?
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/use-memcpy_mcsafe-for-copy_to_iter/20180502-045742
+config: i386-tinyconfig (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-Mikulas
+All errors (new ones prefixed by >>):
+
+   lib/iov_iter.c: In function 'copyout_mcsafe':
+>> lib/iov_iter.c:146:7: error: implicit declaration of function 'copy_to_user_mcsafe'; did you mean 'copy_to_iter_mcsafe'? [-Werror=implicit-function-declaration]
+      n = copy_to_user_mcsafe((__force void *) to, from, n);
+          ^~~~~~~~~~~~~~~~~~~
+          copy_to_iter_mcsafe
+   cc1: some warnings being treated as errors
+
+vim +146 lib/iov_iter.c
+
+   141	
+   142	static int copyout_mcsafe(void __user *to, const void *from, size_t n)
+   143	{
+   144		if (access_ok(VERIFY_WRITE, to, n)) {
+   145			kasan_check_read(from, n);
+ > 146			n = copy_to_user_mcsafe((__force void *) to, from, n);
+   147		}
+   148		return n;
+   149	}
+   150	
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
