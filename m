@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8B408203B8C02
- for <linux-nvdimm@lists.01.org>; Tue,  1 May 2018 15:50:45 -0700 (PDT)
-Date: Wed, 2 May 2018 06:49:44 +0800
+ by ml01.01.org (Postfix) with ESMTPS id 84F6C203B9257
+ for <linux-nvdimm@lists.01.org>; Tue,  1 May 2018 15:18:32 -0700 (PDT)
+Date: Wed, 2 May 2018 06:17:31 +0800
 From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH 4/6] x86, memcpy_mcsafe: define copy_to_iter_mcsafe()
-Message-ID: <201805020551.YQoEZubE%fengguang.wu@intel.com>
+Message-ID: <201805020610.rm0QMt7e%fengguang.wu@intel.com>
 References: <152520752986.36522.6608981678390805141.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 In-Reply-To: <152520752986.36522.6608981678390805141.stgit@dwillia2-desk3.amr.corp.intel.com>
@@ -37,8 +37,8 @@ I love your patch! Yet something to improve:
 [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
 url:    https://github.com/0day-ci/linux/commits/Dan-Williams/use-memcpy_mcsafe-for-copy_to_iter/20180502-045742
-config: i386-tinyconfig (attached as .config)
-compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
+config: i386-randconfig-s1-201817 (attached as .config)
+compiler: gcc-6 (Debian 6.4.0-9) 6.4.0 20171026
 reproduce:
         # save the attached .config to linux build tree
         make ARCH=i386 
@@ -46,13 +46,12 @@ reproduce:
 All errors (new ones prefixed by >>):
 
    lib/iov_iter.c: In function 'copyout_mcsafe':
->> lib/iov_iter.c:146:7: error: implicit declaration of function 'copy_to_user_mcsafe'; did you mean 'copy_to_iter_mcsafe'? [-Werror=implicit-function-declaration]
+>> lib/iov_iter.c:146:7: error: implicit declaration of function 'copy_to_user_mcsafe' [-Werror=implicit-function-declaration]
       n = copy_to_user_mcsafe((__force void *) to, from, n);
           ^~~~~~~~~~~~~~~~~~~
-          copy_to_iter_mcsafe
    cc1: some warnings being treated as errors
 
-vim +146 lib/iov_iter.c
+vim +/copy_to_user_mcsafe +146 lib/iov_iter.c
 
    141	
    142	static int copyout_mcsafe(void __user *to, const void *from, size_t n)
