@@ -1,14 +1,30 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x22a.google.com (mail-ot0-x22a.google.com
+ [IPv6:2607:f8b0:4003:c0f::22a])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8460F2063E2F1
- for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:08:32 -0700 (PDT)
-Subject: [PATCH v2 0/9] use memcpy_mcsafe() for copy_to_iter()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 02 May 2018 21:58:35 -0700
-Message-ID: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 145B220957B17
+ for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 10:47:13 -0700 (PDT)
+Received: by mail-ot0-x22a.google.com with SMTP id n1-v6so17590094otf.7
+ for <linux-nvdimm@lists.01.org>; Wed, 02 May 2018 10:47:13 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CALCETrXxnaj+YL_NDM1u0tM9v6p8ZtQw62n+y4Tv4ScB0DdZPw@mail.gmail.com>
+References: <152520750404.36522.15462513519590065300.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CA+55aFwoOee_8H-1KRnY1G-Ud4Rez16s8xjVbG8YOPn1jqxxtg@mail.gmail.com>
+ <CAPcyv4jA98NVNqYFpj29OHE45HVp1DMH9oFO4-neWKA_4WKTwA@mail.gmail.com>
+ <CA+55aFwZ3hrrOJ5W-C8gdam3aGNxz8FEAq9gPnRBkVmwu4BvYA@mail.gmail.com>
+ <CAPcyv4i=cjQr9xvxt+Mjp-fhzyNJdTTp7uaAtpJN9R4gPg_j-Q@mail.gmail.com>
+ <CA+55aFyZXWoiWnEU8S1PNNyUTWsi7UCnBuDKOobfMLaE8uFKJg@mail.gmail.com>
+ <CAPcyv4jTUn2gSPSB1r7p9A7VNxBf54Aa5dnGbGsomDqmbvsHLQ@mail.gmail.com>
+ <CA+55aFzDt1uvDBqgkB0T2o2-d5Fi0tBiGcy5iAZ-wRNdAL4uQw@mail.gmail.com>
+ <CAPcyv4hQVKL=OtoYbWDGfOMdWen3MkF5qBPrek98+w2gODHvtg@mail.gmail.com>
+ <CAPcyv4ixtVC3w9BE3Z2ME-qMPCh9evBKP51SDrNPXAsg7xH1RQ@mail.gmail.com>
+ <CA+55aFy2LAzRbjCEghN_7SAZgAOr0RoUFDwYkkB+V91jdTg-YA@mail.gmail.com>
+ <CALCETrXxnaj+YL_NDM1u0tM9v6p8ZtQw62n+y4Tv4ScB0DdZPw@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 2 May 2018 10:47:12 -0700
+Message-ID: <CAPcyv4jNkPjYLitvkw4mzXpm650rcYA7GJ6++psp_FZLRshE0g@mail.gmail.com>
+Subject: Re: [PATCH 0/6] use memcpy_mcsafe() for copy_to_iter()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,90 +36,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Andrew Morton <akpm@linux-foundation.org>, Mike Snitzer <snitzer@redhat.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: Andy Lutomirski <luto@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Peter Zijlstra <peterz@infradead.org>, X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1 [1]:
+On Wed, May 2, 2018 at 9:19 AM, Andy Lutomirski <luto@kernel.org> wrote:
+> On Tue, May 1, 2018 at 8:34 PM Linus Torvalds
+> <torvalds@linux-foundation.org>
+> wrote:
+>
+>> On Tue, May 1, 2018 at 8:22 PM Dan Williams <dan.j.williams@intel.com>
+>> wrote:
+>
+>> > All that to say that having a typical RAM page covering poisoned pmem
+>> > would complicate the 'clear badblocks' implementation.
+>
+>> Ugh, ok.
+>
+>> I guess the good news is that your patches aren't so big, and don't really
+>> affect anything else.
+>
+>
+> I pondered this a bit.  Doing better might be a big pain in the arse.  The
+> interesting case is where ordinary kernel code (memcpy, plain old memory
+> operands, etc) access faulty pmem.  This means that there's no extable
+> entry around.  If we actually try to recover, we have a few problems:
+>
+>   - We can't sanely skip the instruction without causing random errors.
+>
+>   - If the access was through the kernel direct map, then we could plausibly
+> remap a different page in place of the faulty page.  The problem is that,
+> if the page is *writable* and we share it between more than one faulty
+> page, then we're enabling a giant information leak.  But we still need to
+> figure out how we're supposed to invalidate the old mapping from a random,
+> potentially atomic context.
+>
+>   - If the access is through kmap or similar, then we're talking about
+> modifying a PTE out from under kernel code that really isn't expecting us
+> to modify it.
+>
+>   - How are we supposed to signal the process or fail a syscall?  The fault
+> could have come from interrupt context, softirq context, kernel thread
+> context, etc, and figuring out who's to blame seems quite awkward and
+> fragile.
+>
+> All that being said, I suspect that we still have issues even with accesses
+> to user VAs that are protected by extable entries.  The whole #MC mechanism
+> is a supremely shitty interface for recoverable errors (especially on
+> Intel), and I'm a bit scared of what happens if the offending access is,
+> say, inside a perf NMI.
+>
+> Dan, is there any chance you could put some pressure on the architecture
+> folks to invent an entirely new, less shitty way to tell the OS about
+> recoverable memory errors?  And to make it testable by normal people?
+> Needing big metal EINJ hardware to test the house of cards that is #MC is
+> just awful and means that there are few enough kernel developers that are
+> actually able to test that I can probably count them on one hand.  And I'm
+> not one of them...
 
-* Remove the loop unrolling in the assembly implementation since it
-  significantly complicates the exception handling (Linus)
-
-* Introduce a ->copy_to_iter() dax operation for symmetry with the
-  existing ->copy_from_iter() operation to allow platform /
-  device-specific implementations.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-May/015548.html
-
----
-
-Currently memcpy_mcsafe() is only deployed in the pmem driver when
-reading through a /dev/pmemX block device. However, a filesystem in dax
-mode mounted on a /dev/pmemX block device will bypass the block layer
-and the driver for reads. The filesystem-dax (fsdax) read case uses
-dax_direct_access() and copy_to_iter() to bypass the block layer.
-
-The result of the bypass is that the kernel treats machine checks during
-read as system fatal (reboot) when they could simply be flagged as an
-I/O error, similar to performing reads through the pmem driver. Prevent
-this fatal condition by deploying memcpy_mcsafe() in the fsdax read
-path.
-
-The main differences between this copy_to_user_mcsafe() and
-copy_user_generic_unrolled() are:
-
-* Typical tail/residue handling after a fault retries the copy
-  byte-by-byte until the fault happens again. Re-triggering machine
-  checks is potentially fatal so the implementation uses source alignment
-  and poison alignment assumptions to avoid re-triggering machine
-  checks.
-
-* SMAP coordination is handled external to the assembly with
-  __uaccess_begin() and __uaccess_end().
-
-* ITER_KVEC and ITER_BVEC can now end prematurely with an error.
-
-The new MCSAFE_DEBUG facility is proposed as a way to unit test the
-exception handling without requiring an ACPI EINJ capable platform.
-
----
-
-Dan Williams (9):
-      x86, memcpy_mcsafe: remove loop unrolling
-      x86, memcpy_mcsafe: add labels for write fault handling
-      x86, memcpy_mcsafe: return bytes remaining
-      x86, memcpy_mcsafe: add write-protection-fault handling
-      x86, memcpy_mcsafe: define copy_to_iter_mcsafe()
-      dax: introduce a ->copy_to_iter dax operation
-      dax: report bytes remaining in dax_iomap_actor()
-      pmem: switch to copy_to_iter_mcsafe()
-      x86, nfit_test: unit test for memcpy_mcsafe()
-
-
- arch/x86/Kconfig                    |    1 
- arch/x86/Kconfig.debug              |    3 +
- arch/x86/include/asm/mcsafe_debug.h |   50 ++++++++++++++++
- arch/x86/include/asm/string_64.h    |   10 ++-
- arch/x86/include/asm/uaccess_64.h   |   14 ++++
- arch/x86/lib/memcpy_64.S            |  109 ++++++++++++++++-------------------
- arch/x86/lib/usercopy_64.c          |   17 +++++
- drivers/dax/super.c                 |   10 +++
- drivers/md/dm-linear.c              |   16 +++++
- drivers/md/dm-log-writes.c          |   15 +++++
- drivers/md/dm-stripe.c              |   21 +++++++
- drivers/md/dm.c                     |   25 ++++++++
- drivers/nvdimm/claim.c              |    3 +
- drivers/nvdimm/pmem.c               |   13 +++-
- drivers/s390/block/dcssblk.c        |    7 ++
- fs/dax.c                            |   21 ++++---
- include/linux/dax.h                 |    5 ++
- include/linux/device-mapper.h       |    5 +-
- include/linux/string.h              |    4 +
- include/linux/uio.h                 |   15 +++++
- lib/iov_iter.c                      |   61 ++++++++++++++++++++
- tools/testing/nvdimm/test/nfit.c    |   48 +++++++++++++++
- 22 files changed, 394 insertions(+), 79 deletions(-)
- create mode 100644 arch/x86/include/asm/mcsafe_debug.h
+I feel this testing pain too. The EINJ facility is not ubiquitous
+which is why I punted and wrote patch 6 to unit test this. You're
+right that does not scale for all the potential places we'd like to be
+able to safely handle memory errors in the kernel.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
