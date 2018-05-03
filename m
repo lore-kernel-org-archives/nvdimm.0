@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B5DEA203BA51D
- for <linux-nvdimm@lists.01.org>; Sat,  5 May 2018 23:30:21 -0700 (PDT)
-Date: Sun, 6 May 2018 14:30:14 +0800
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH v3 1/3] resource: Use list_head to link sibling resource
-Message-ID: <20180506063014.GG19030@localhost.localdomain>
-References: <20180419001848.3041-2-bhe@redhat.com>
- <201804261137.HPgv5SSG%fengguang.wu@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 707852063E2F5
+ for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:09:20 -0700 (PDT)
+Subject: [PATCH v2 7/9] dax: report bytes remaining in dax_iomap_actor()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 02 May 2018 21:59:23 -0700
+Message-ID: <152532356340.17218.13406212965402419668.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <201804261137.HPgv5SSG%fengguang.wu@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,84 +22,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kbuild test robot <lkp@intel.com>
-Cc: nicolas.pitre@linaro.org, Brijesh Singh <brijesh.singh@amd.com>, Tom Lendacky <thomas.lendacky@amd.com>, David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, Wei Yang <richard.weiyang@gmail.com>, Keith Busch <keith.busch@intel.com>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Frank Rowand <frowand.list@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Stephen Hemminger <sthemmin@microsoft.com>, linux-nvdimm@lists.01.org, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, linux-input@vger.kernel.org, Borislav Petkov <bp@suse.de>, devicetree@vger.kernel.org, Haiyang Zhang <haiyangz@microsoft.com>, josh@joshtriplett.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, robh+dt@kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Jonathan Derrick <jonathan.derrick@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, kbuild-all@01.org, devel@linuxdriverproject.org, akpm@linux-foundation.org
+To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 04/26/18 at 11:23am, kbuild test robot wrote:
-> Hi Baoquan,
-> 
-> I love your patch! Yet something to improve:
-> 
-> [auto build test ERROR on linus/master]
-> [also build test ERROR on v4.17-rc2 next-20180424]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Baoquan-He/resource-Use-list_head-to-link-sibling-resource/20180419-223752
-> config: xtensa-common_defconfig (attached as .config)
-> compiler: xtensa-linux-gcc (GCC) 7.2.0
-> reproduce:
->         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=xtensa 
-> 
-> All errors (new ones prefixed by >>):
-> 
->    In file included from arch/xtensa/lib/pci-auto.c:22:0:
->    arch/xtensa/include/asm/pci-bridge.h: In function 'pcibios_init_resource':
-> >> arch/xtensa/include/asm/pci-bridge.h:74:15: error: incompatible types when assigning to type 'struct list_head' from type 'void *'
->      res->sibling = NULL;
->                   ^
->    arch/xtensa/include/asm/pci-bridge.h:75:13: error: incompatible types when assigning to type 'struct list_head' from type 'void *'
->      res->child = NULL;
+In preparation for protecting the dax read(2) path from media errors
+with copy_to_iter_mcsafe() (via dax_copy_to_iter()), convert the
+implementation to report the bytes successfully transferred.
 
-Thanks, below fix can fix it.
+Cc: <x86@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ fs/dax.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/arch/xtensa/include/asm/pci-bridge.h b/arch/xtensa/include/asm/pci-bridge.h
-index 0b68c76ec1e6..f487b06817df 100644
---- a/arch/xtensa/include/asm/pci-bridge.h
-+++ b/arch/xtensa/include/asm/pci-bridge.h
-@@ -71,8 +71,8 @@ static inline void pcibios_init_resource(struct resource *res,
- 	res->flags = flags;
- 	res->name = name;
- 	res->parent = NULL;
--	res->sibling = NULL;
--	res->child = NULL;
-+	INIT_LIST_HEAD(&res->child);
-+	INIT_LIST_HEAD(&res->sibling);
- }
+diff --git a/fs/dax.c b/fs/dax.c
+index a64afdf7ec0d..34a2d435ae4b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -991,6 +991,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 	struct iov_iter *iter = data;
+ 	loff_t end = pos + length, done = 0;
+ 	ssize_t ret = 0;
++	size_t xfer;
+ 	int id;
  
+ 	if (iov_iter_rw(iter) == READ) {
+@@ -1054,19 +1055,20 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 		 * vfs_write(), depending on which operation we are doing.
+ 		 */
+ 		if (iov_iter_rw(iter) == WRITE)
+-			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
++			xfer = dax_copy_from_iter(dax_dev, pgoff, kaddr,
+ 					map_len, iter);
+ 		else
+-			map_len = dax_copy_to_iter(dax_dev, pgoff, kaddr,
++			xfer = dax_copy_to_iter(dax_dev, pgoff, kaddr,
+ 					map_len, iter);
+-		if (map_len <= 0) {
+-			ret = map_len ? map_len : -EFAULT;
+-			break;
+-		}
  
-
->                 ^
-> 
-> vim +74 arch/xtensa/include/asm/pci-bridge.h
-> 
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  65  
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  66  static inline void pcibios_init_resource(struct resource *res,
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  67  		unsigned long start, unsigned long end, int flags, char *name)
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  68  {
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  69  	res->start = start;
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  70  	res->end = end;
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  71  	res->flags = flags;
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  72  	res->name = name;
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  73  	res->parent = NULL;
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23 @74  	res->sibling = NULL;
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  75  	res->child = NULL;
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  76  }
-> 9a8fd558 include/asm-xtensa/pci-bridge.h Chris Zankel 2005-06-23  77  
-> 
-> :::::: The code at line 74 was first introduced by commit
-> :::::: 9a8fd5589902153a134111ed7a40f9cca1f83254 [PATCH] xtensa: Architecture support for Tensilica Xtensa Part 6
-> 
-> :::::: TO: Chris Zankel <czankel@tensilica.com>
-> :::::: CC: Linus Torvalds <torvalds@ppc970.osdl.org>
-> 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-
+-		pos += map_len;
+-		length -= map_len;
+-		done += map_len;
++		pos += xfer;
++		length -= xfer;
++		done += xfer;
++
++		if (xfer == 0)
++			ret = -EFAULT;
++		if (xfer < map_len)
++			break;
+ 	}
+ 	dax_read_unlock(id);
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
