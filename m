@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 57CF220971743
- for <linux-nvdimm@lists.01.org>; Fri, 18 May 2018 18:45:26 -0700 (PDT)
-Subject: [PATCH v11 7/7] xfs, dax: introduce xfs_break_dax_layouts()
+ by ml01.01.org (Postfix) with ESMTPS id 8460F2063E2F1
+ for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:08:32 -0700 (PDT)
+Subject: [PATCH v2 0/9] use memcpy_mcsafe() for copy_to_iter()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 18 May 2018 18:35:29 -0700
-Message-ID: <152669372916.34337.4066620800998291994.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 02 May 2018 21:58:35 -0700
+Message-ID: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,128 +21,89 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Cc: tony.luck@intel.com, Andrew Morton <akpm@linux-foundation.org>, Mike Snitzer <snitzer@redhat.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-xfs_break_dax_layouts(), similar to xfs_break_leased_layouts(), scans
-for busy / pinned dax pages and waits for those pages to go idle before
-any potential extent unmap operation.
+Changes since v1 [1]:
 
-dax_layout_busy_page() handles synchronizing against new page-busy
-events (get_user_pages). It invalidates all mappings to trigger the
-get_user_pages slow path which will eventually block on the xfs inode
-lock held in XFS_MMAPLOCK_EXCL mode. If dax_layout_busy_page() finds a
-busy page it returns it for xfs to wait for the page-idle event that
-will fire when the page reference count reaches 1 (recall ZONE_DEVICE
-pages are idle at count 1, see generic_dax_pagefree()).
+* Remove the loop unrolling in the assembly implementation since it
+  significantly complicates the exception handling (Linus)
 
-While waiting, the XFS_MMAPLOCK_EXCL lock is dropped in order to not
-deadlock the process that might be trying to elevate the page count of
-more pages before arranging for any of them to go idle. I.e. the typical
-case of submitting I/O is that iov_iter_get_pages() elevates the
-reference count of all pages in the I/O before starting I/O on the first
-page. The process of elevating the reference count of all pages involved
-in an I/O may cause faults that need to take XFS_MMAPLOCK_EXCL.
+* Introduce a ->copy_to_iter() dax operation for symmetry with the
+  existing ->copy_from_iter() operation to allow platform /
+  device-specific implementations.
 
-Although XFS_MMAPLOCK_EXCL is dropped while waiting, XFS_IOLOCK_EXCL is
-held while sleeping. We need this to prevent starvation of the truncate
-path as continuous submission of direct-I/O could starve the truncate
-path indefinitely if the lock is dropped.
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-May/015548.html
 
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Acked-by: Darrick J. Wong <darrick.wong@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/xfs/xfs_file.c |   61 ++++++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 51 insertions(+), 10 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 4774c7172ef4..f5695dc314f1 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -718,6 +718,38 @@ xfs_file_write_iter(
- 	return ret;
- }
- 
-+static void
-+xfs_wait_dax_page(
-+	struct inode		*inode,
-+	bool			*did_unlock)
-+{
-+	struct xfs_inode        *ip = XFS_I(inode);
-+
-+	*did_unlock = true;
-+	xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
-+	schedule();
-+	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
-+}
-+
-+static int
-+xfs_break_dax_layouts(
-+	struct inode		*inode,
-+	uint			iolock,
-+	bool			*did_unlock)
-+{
-+	struct page		*page;
-+
-+	ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
-+
-+	page = dax_layout_busy_page(inode->i_mapping);
-+	if (!page)
-+		return 0;
-+
-+	return ___wait_var_event(&page->_refcount,
-+			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
-+			0, 0, xfs_wait_dax_page(inode, did_unlock));
-+}
-+
- int
- xfs_break_layouts(
- 	struct inode		*inode,
-@@ -725,19 +757,28 @@ xfs_break_layouts(
- 	enum layout_break_reason reason)
- {
- 	bool			retry;
-+	int			error;
- 
- 	ASSERT(xfs_isilocked(XFS_I(inode), XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
- 
--	switch (reason) {
--	case BREAK_UNMAP:
--		ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
--		/* fall through */
--	case BREAK_WRITE:
--		return xfs_break_leased_layouts(inode, iolock, &retry);
--	default:
--		WARN_ON_ONCE(1);
--		return -EINVAL;
--	}
-+	do {
-+		retry = false;
-+		switch (reason) {
-+		case BREAK_UNMAP:
-+			error = xfs_break_dax_layouts(inode, *iolock, &retry);
-+			if (error || retry)
-+				break;
-+			/* fall through */
-+		case BREAK_WRITE:
-+			error = xfs_break_leased_layouts(inode, iolock, &retry);
-+			break;
-+		default:
-+			WARN_ON_ONCE(1);
-+			error = -EINVAL;
-+		}
-+	} while (error == 0 && retry);
-+
-+	return error;
- }
- 
- #define	XFS_FALLOC_FL_SUPPORTED						\
+Currently memcpy_mcsafe() is only deployed in the pmem driver when
+reading through a /dev/pmemX block device. However, a filesystem in dax
+mode mounted on a /dev/pmemX block device will bypass the block layer
+and the driver for reads. The filesystem-dax (fsdax) read case uses
+dax_direct_access() and copy_to_iter() to bypass the block layer.
 
+The result of the bypass is that the kernel treats machine checks during
+read as system fatal (reboot) when they could simply be flagged as an
+I/O error, similar to performing reads through the pmem driver. Prevent
+this fatal condition by deploying memcpy_mcsafe() in the fsdax read
+path.
+
+The main differences between this copy_to_user_mcsafe() and
+copy_user_generic_unrolled() are:
+
+* Typical tail/residue handling after a fault retries the copy
+  byte-by-byte until the fault happens again. Re-triggering machine
+  checks is potentially fatal so the implementation uses source alignment
+  and poison alignment assumptions to avoid re-triggering machine
+  checks.
+
+* SMAP coordination is handled external to the assembly with
+  __uaccess_begin() and __uaccess_end().
+
+* ITER_KVEC and ITER_BVEC can now end prematurely with an error.
+
+The new MCSAFE_DEBUG facility is proposed as a way to unit test the
+exception handling without requiring an ACPI EINJ capable platform.
+
+---
+
+Dan Williams (9):
+      x86, memcpy_mcsafe: remove loop unrolling
+      x86, memcpy_mcsafe: add labels for write fault handling
+      x86, memcpy_mcsafe: return bytes remaining
+      x86, memcpy_mcsafe: add write-protection-fault handling
+      x86, memcpy_mcsafe: define copy_to_iter_mcsafe()
+      dax: introduce a ->copy_to_iter dax operation
+      dax: report bytes remaining in dax_iomap_actor()
+      pmem: switch to copy_to_iter_mcsafe()
+      x86, nfit_test: unit test for memcpy_mcsafe()
+
+
+ arch/x86/Kconfig                    |    1 
+ arch/x86/Kconfig.debug              |    3 +
+ arch/x86/include/asm/mcsafe_debug.h |   50 ++++++++++++++++
+ arch/x86/include/asm/string_64.h    |   10 ++-
+ arch/x86/include/asm/uaccess_64.h   |   14 ++++
+ arch/x86/lib/memcpy_64.S            |  109 ++++++++++++++++-------------------
+ arch/x86/lib/usercopy_64.c          |   17 +++++
+ drivers/dax/super.c                 |   10 +++
+ drivers/md/dm-linear.c              |   16 +++++
+ drivers/md/dm-log-writes.c          |   15 +++++
+ drivers/md/dm-stripe.c              |   21 +++++++
+ drivers/md/dm.c                     |   25 ++++++++
+ drivers/nvdimm/claim.c              |    3 +
+ drivers/nvdimm/pmem.c               |   13 +++-
+ drivers/s390/block/dcssblk.c        |    7 ++
+ fs/dax.c                            |   21 ++++---
+ include/linux/dax.h                 |    5 ++
+ include/linux/device-mapper.h       |    5 +-
+ include/linux/string.h              |    4 +
+ include/linux/uio.h                 |   15 +++++
+ lib/iov_iter.c                      |   61 ++++++++++++++++++++
+ tools/testing/nvdimm/test/nfit.c    |   48 +++++++++++++++
+ 22 files changed, 394 insertions(+), 79 deletions(-)
+ create mode 100644 arch/x86/include/asm/mcsafe_debug.h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
