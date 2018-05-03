@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1B89E2096184C
- for <linux-nvdimm@lists.01.org>; Thu, 24 May 2018 19:55:23 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id D76CB203BEA47
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 12:24:35 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/7] dax: change bdev_dax_supported() to support boolean
- returns
-Date: Thu, 24 May 2018 20:55:13 -0600
-Message-Id: <20180525025518.11405-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180525025518.11405-1-ross.zwisler@linux.intel.com>
-References: <20180525025518.11405-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH 4/5] radix tree test suite: multi-order iteration race
+Date: Thu,  3 May 2018 13:24:29 -0600
+Message-Id: <20180503192430.7582-5-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180503192430.7582-1-ross.zwisler@linux.intel.com>
+References: <20180503192430.7582-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,189 +22,185 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dave Jiang <dave.jiang@intel.com>
+Add a test which shows a race in the multi-order iteration code.  This test
+reliably hits the race in under a second on my machine, and is the result
+of a real bug report against kernel a production v4.15 based kernel
+(4.15.6-300.fc27.x86_64).  With a real kernel this issue is hit when using
+order 9 PMD DAX radix tree entries.
 
-The function return values are confusing with the way the function is
-named. We expect a true or false return value but it actually returns
-0/-errno.  This makes the code very confusing. Changing the return values
-to return a bool where if DAX is supported then return true and no DAX
-support returns false.
+The race has to do with how we tear down multi-order sibling entries when
+we are removing an item from the tree.  Remember that an order 2 entry
+looks like this:
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+struct radix_tree_node.slots[] = [entry][sibling][sibling][sibling]
+
+where 'entry' is in some slot in the struct radix_tree_node, and the three
+slots following 'entry' contain sibling pointers which point back to
+'entry.'
+
+When we delete 'entry' from the tree, we call :
+  radix_tree_delete()
+    radix_tree_delete_item()
+      __radix_tree_delete()
+        replace_slot()
+
+replace_slot() first removes the siblings in order from the first to the
+last, then at then replaces 'entry' with NULL.  This means that for a brief
+period of time we end up with one or more of the siblings removed, so:
+
+struct radix_tree_node.slots[] = [entry][NULL][sibling][sibling]
+
+This causes an issue if you have a reader iterating over the slots in the
+tree via radix_tree_for_each_slot() while only under
+rcu_read_lock()/rcu_read_unlock() protection.  This is a common case in
+mm/filemap.c.
+
+The issue is that when __radix_tree_next_slot() => skip_siblings() tries to
+skip over the sibling entries in the slots, it currently does so with an
+exact match on the slot directly preceding our current slot.  Normally this
+works:
+                                    V preceding slot
+struct radix_tree_node.slots[] = [entry][sibling][sibling][sibling]
+                                            ^ current slot
+
+This lets you find the first sibling, and you skip them all in order.
+
+But in the case where one of the siblings is NULL, that slot is skipped and
+then our sibling detection is interrupted:
+
+                                           V preceding slot
+struct radix_tree_node.slots[] = [entry][NULL][sibling][sibling]
+                                                  ^ current slot
+
+This means that the sibling pointers aren't recognized since they point all
+the way back to 'entry', so we think that they are normal internal radix
+tree pointers.  This causes us to think we need to walk down to a struct
+radix_tree_node starting at the address of 'entry'.
+
+In a real running kernel this will crash the thread with a GP fault when
+you try and dereference the slots in your broken node starting at 'entry'.
+
+In the radix tree test suite this will be caught by the address sanitizer:
+
+==27063==ERROR: AddressSanitizer: heap-buffer-overflow on address
+0x60c0008ae400 at pc 0x00000040ce4f bp 0x7fa89b8fcad0 sp 0x7fa89b8fcac0
+READ of size 8 at 0x60c0008ae400 thread T3
+    #0 0x40ce4e in __radix_tree_next_slot /home/rzwisler/project/linux/tools/testing/radix-tree/radix-tree.c:1660
+    #1 0x4022cc in radix_tree_next_slot linux/../../../../include/linux/radix-tree.h:567
+    #2 0x4022cc in iterator_func /home/rzwisler/project/linux/tools/testing/radix-tree/multiorder.c:655
+    #3 0x7fa8a088d50a in start_thread (/lib64/libpthread.so.0+0x750a)
+    #4 0x7fa8a03bd16e in clone (/lib64/libc.so.6+0xf516e)
+
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- drivers/dax/super.c | 16 ++++++++--------
- fs/ext2/super.c     |  3 +--
- fs/ext4/super.c     |  3 +--
- fs/xfs/xfs_ioctl.c  |  4 ++--
- fs/xfs/xfs_super.c  | 12 ++++++------
- include/linux/dax.h |  6 +++---
- 6 files changed, 21 insertions(+), 23 deletions(-)
+ tools/testing/radix-tree/multiorder.c | 63 +++++++++++++++++++++++++++++++++++
+ tools/testing/radix-tree/test.h       |  1 +
+ 2 files changed, 64 insertions(+)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 9206539c8330..e5447eddecf8 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -80,9 +80,9 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-  * This is a library function for filesystems to check if the block device
-  * can be mounted with dax option.
-  *
-- * Return: negative errno if unsupported, 0 if supported.
-+ * Return: true if supported, false if unsupported
-  */
--int bdev_dax_supported(struct block_device *bdev, int blocksize)
-+bool bdev_dax_supported(struct block_device *bdev, int blocksize)
- {
- 	struct dax_device *dax_dev;
- 	pgoff_t pgoff;
-@@ -95,21 +95,21 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	if (blocksize != PAGE_SIZE) {
- 		pr_debug("%s: error: unsupported blocksize for dax\n",
- 				bdevname(bdev, buf));
--		return -EINVAL;
-+		return false;
- 	}
+diff --git a/tools/testing/radix-tree/multiorder.c b/tools/testing/radix-tree/multiorder.c
+index 59245b3d587c..7bf405638b0b 100644
+--- a/tools/testing/radix-tree/multiorder.c
++++ b/tools/testing/radix-tree/multiorder.c
+@@ -16,6 +16,7 @@
+ #include <linux/radix-tree.h>
+ #include <linux/slab.h>
+ #include <linux/errno.h>
++#include <pthread.h>
  
- 	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
- 	if (err) {
- 		pr_debug("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
--		return err;
-+		return false;
- 	}
+ #include "test.h"
  
- 	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
- 	if (!dax_dev) {
- 		pr_debug("%s: error: device does not support dax\n",
- 				bdevname(bdev, buf));
--		return -EOPNOTSUPP;
-+		return false;
- 	}
- 
- 	id = dax_read_lock();
-@@ -121,7 +121,7 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	if (len < 1) {
- 		pr_debug("%s: error: dax access failed (%ld)\n",
- 				bdevname(bdev, buf), len);
--		return len < 0 ? len : -EIO;
-+		return false;
- 	}
- 
- 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
-@@ -139,10 +139,10 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	} else {
- 		pr_debug("%s: error: dax support not enabled\n",
- 				bdevname(bdev, buf));
--		return -EOPNOTSUPP;
-+		return false;
- 	}
- 
--	return 0;
-+	return true;
- }
- EXPORT_SYMBOL_GPL(bdev_dax_supported);
- #endif
-diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-index 9627c3054b5c..c09289a42dc5 100644
---- a/fs/ext2/super.c
-+++ b/fs/ext2/super.c
-@@ -961,8 +961,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
- 
- 	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
--		err = bdev_dax_supported(sb->s_bdev, blocksize);
--		if (err) {
-+		if (!bdev_dax_supported(sb->s_bdev, blocksize)) {
- 			ext2_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
- 			sbi->s_mount_opt &= ~EXT2_MOUNT_DAX;
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index 089170e99895..2e1622907f4a 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -3732,8 +3732,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
- 					" that may contain inline data");
- 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
- 		}
--		err = bdev_dax_supported(sb->s_bdev, blocksize);
--		if (err) {
-+		if (!bdev_dax_supported(sb->s_bdev, blocksize)) {
- 			ext4_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
- 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 0effd46b965f..2c70a0a4f59f 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1103,8 +1103,8 @@ xfs_ioctl_setattr_dax_invalidate(
- 	if (fa->fsx_xflags & FS_XFLAG_DAX) {
- 		if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
- 			return -EINVAL;
--		if (bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
--				sb->s_blocksize) < 0)
-+		if (!bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
-+				sb->s_blocksize))
- 			return -EINVAL;
- 	}
- 
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 62188c2a4c36..86915dc40eed 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1690,17 +1690,17 @@ xfs_fs_fill_super(
- 		sb->s_flags |= SB_I_VERSION;
- 
- 	if (mp->m_flags & XFS_MOUNT_DAX) {
--		int	error2 = 0;
-+		bool rtdev_is_dax = false, datadev_is_dax;
- 
- 		xfs_warn(mp,
- 		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
- 
--		error = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
--				sb->s_blocksize);
-+		datadev_is_dax = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
-+			sb->s_blocksize);
- 		if (mp->m_rtdev_targp)
--			error2 = bdev_dax_supported(mp->m_rtdev_targp->bt_bdev,
--					sb->s_blocksize);
--		if (error && error2) {
-+			rtdev_is_dax = bdev_dax_supported(
-+				mp->m_rtdev_targp->bt_bdev, sb->s_blocksize);
-+		if (!rtdev_is_dax && !datadev_is_dax) {
- 			xfs_alert(mp,
- 			"DAX unsupported by block device. Turning off DAX.");
- 			mp->m_flags &= ~XFS_MOUNT_DAX;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 509a85ac8470..547eb33dbc9e 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -64,7 +64,7 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
- struct writeback_control;
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #if IS_ENABLED(CONFIG_FS_DAX)
--int bdev_dax_supported(struct block_device *bdev, int blocksize);
-+bool bdev_dax_supported(struct block_device *bdev, int blocksize);
- static inline struct dax_device *fs_dax_get_by_host(const char *host)
- {
- 	return dax_get_by_host(host);
-@@ -79,10 +79,10 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
- int dax_writeback_mapping_range(struct address_space *mapping,
- 		struct block_device *bdev, struct writeback_control *wbc);
- #else
--static inline int bdev_dax_supported(struct block_device *bdev,
-+static inline bool bdev_dax_supported(struct block_device *bdev,
- 		int blocksize)
- {
--	return -EOPNOTSUPP;
-+	return false;
+@@ -624,6 +625,67 @@ static void multiorder_account(void)
+ 	item_kill_tree(&tree);
  }
  
- static inline struct dax_device *fs_dax_get_by_host(const char *host)
++bool stop_iteration = false;
++
++static void *creator_func(void *ptr)
++{
++	/* 'order' is set up to ensure we have sibling entries */
++	unsigned int order = RADIX_TREE_MAP_SHIFT - 1;
++	struct radix_tree_root *tree = ptr;
++	int i;
++
++	for (i = 0; i < 10000; i++) {
++		item_insert_order(tree, 0, order);
++		item_delete_rcu(tree, 0);
++	}
++
++	stop_iteration = true;
++	return NULL;
++}
++
++static void *iterator_func(void *ptr)
++{
++	struct radix_tree_root *tree = ptr;
++	struct radix_tree_iter iter;
++	struct item *item;
++	void **slot;
++
++	while (!stop_iteration) {
++		rcu_read_lock();
++		radix_tree_for_each_slot(slot, tree, &iter, 0) {
++			item = radix_tree_deref_slot(slot);
++
++			if (!item)
++				continue;
++			if (radix_tree_deref_retry(item)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++
++			item_sanity(item, iter.index);
++		}
++		rcu_read_unlock();
++	}
++	return NULL;
++}
++
++static void multiorder_iteration_race(void)
++{
++	const int num_threads = sysconf(_SC_NPROCESSORS_ONLN);
++	pthread_t worker_thread[num_threads];
++	RADIX_TREE(tree, GFP_KERNEL);
++	int i;
++
++	pthread_create(&worker_thread[0], NULL, &creator_func, &tree);
++	for (i = 1; i < num_threads; i++)
++		pthread_create(&worker_thread[i], NULL, &iterator_func, &tree);
++
++	for (i = 0; i < num_threads; i++)
++		pthread_join(worker_thread[i], NULL);
++
++	item_kill_tree(&tree);
++}
++
+ void multiorder_checks(void)
+ {
+ 	int i;
+@@ -644,6 +706,7 @@ void multiorder_checks(void)
+ 	multiorder_join();
+ 	multiorder_split();
+ 	multiorder_account();
++	multiorder_iteration_race();
+ 
+ 	radix_tree_cpu_dead(0);
+ }
+diff --git a/tools/testing/radix-tree/test.h b/tools/testing/radix-tree/test.h
+index 8cf4a7a7f94c..31f1d9b6f506 100644
+--- a/tools/testing/radix-tree/test.h
++++ b/tools/testing/radix-tree/test.h
+@@ -13,6 +13,7 @@ struct item {
+ struct item *item_create(unsigned long index, unsigned int order);
+ int __item_insert(struct radix_tree_root *root, struct item *item);
+ int item_insert(struct radix_tree_root *root, unsigned long index);
++void item_sanity(struct item *item, unsigned long index);
+ int item_insert_order(struct radix_tree_root *root, unsigned long index,
+ 			unsigned order);
+ int item_delete(struct radix_tree_root *root, unsigned long index);
 -- 
 2.14.3
 
