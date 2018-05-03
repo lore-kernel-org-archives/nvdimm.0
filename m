@@ -1,11 +1,10 @@
-From: =?utf-8?B?6LCt5Li75Lu7?= <lqzikhnbk-AlnqVcsWbVI@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+RbGludXgtbnZkaW1t77ya5LyB5Lia5b6u6K++6K6+?=
- =?utf-8?B?6K6h5LiO5Yi25L2c?=
-Date: Thu, 3 May 2018 18:38:28 +0800
-Message-ID: <C959A7CFA18C588544912F2B26D9B0FE@mog.org>
+From: "Mindi Abbe  " <newsletteri-tiSA+jQIZWSDBdkm8gWGXw@public.gmane.org>
+Subject: re: Get Top 500k Alexa ranks for  lists.01.org with 50% Discount
+Date: Thu, 03 May 2018 04:39:54 -0700
+Message-ID: <8F53882E.E59B5BB2@alexapackages.se>
+Reply-To: Mindi Abbe   <newsletteri-tiSA+jQIZWSDBdkm8gWGXw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============6837789032458960961=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,7 +18,51 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-bGludXgtbnZkaW1tICAgICDop4EgICAg6ZmEICUg5Lu2IApfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
-LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
-by9saW51eC1udmRpbW0K
+This is a multi-part message in MIME format.
+
+--===============6837789032458960961==
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+Professional and reliable Service with guaranteed results
+http://www.alexapackages.se/index.php/alexa-rank-packages/
+
+We will improve your Alexa Rank or your money back
+
+Example of websites that we improved in the html report attached
+
+Thank you
+Mindi Abbe  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option available in the footer of our website
+
+
+--===============6837789032458960961==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============6837789032458960961==--
