@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail1.bemta12.messagelabs.com (mail1.bemta12.messagelabs.com
- [216.82.251.11])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6FC60203BBB91
- for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 19:35:32 -0700 (PDT)
-From: Huaisheng HS1 Ye <yehs1@lenovo.com>
-Subject: [External] [RFC PATCH v1 6/6] arch/x86/mm: create page table mapping
- for DRAM and NVDIMM both
-Date: Tue, 8 May 2018 02:35:13 +0000
-Message-ID: <HK2PR03MB1684101846A9D9639BE00001929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
-References: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
- <1525746628-114136-7-git-send-email-yehs1@lenovo.com>
-In-Reply-To: <1525746628-114136-7-git-send-email-yehs1@lenovo.com>
-Content-Language: zh-CN
+ by ml01.01.org (Postfix) with ESMTPS id 27C3E2063E2F1
+ for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:08:49 -0700 (PDT)
+Subject: [PATCH v2 2/9] x86, memcpy_mcsafe: add labels for write fault handling
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 02 May 2018 21:58:51 -0700
+Message-ID: <152532353186.17218.12613043253505288889.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,70 +22,97 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
-Cc: "mhocko@suse.com" <mhocko@suse.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ocean HY1 He <hehy1@lenovo.com>, "penguin-kernel@I-love.SAKURA.ne.jp" <penguin-kernel@I-love.SAKURA.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, "willy@infradead.org" <willy@infradead.org>, "alexander.levin@verizon.com" <alexander.levin@verizon.com>, "hannes@cmpxchg.org" <hannes@cmpxchg.org>, "colyli@suse.de" <colyli@suse.de>, "mgorman@techsingularity.net" <mgorman@techsingularity.net>, "vbabka@suse.cz" <vbabka@suse.cz>
+To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Create PTE, PMD, PUD and P4D levels page table mapping for physical
-addresses of DRAM and NVDIMM both. Here E820_TYPE_PMEM represents
-the region of e820_table.
+The memcpy_mcsafe() implementation handles CPU exceptions when reading
+from the source address. Before it can be used for user copies it needs
+to grow support for handling write faults. In preparation for adding
+that exception handling update the labels for the read cache word X case
+(.L_cache_rX) and write cache word X case (.L_cache_wX).
 
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
-Signed-off-by: Ocean He <hehy1@lenovo.com>
+Cc: <x86@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reported-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/mm/init_64.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ arch/x86/lib/memcpy_64.S |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index af11a28..c03c2091 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -420,6 +420,10 @@ void __init cleanup_highmap(void)
- 			if (!after_bootmem &&
- 			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
- 					     E820_TYPE_RAM) &&
-+#ifdef CONFIG_ZONE_NVM
-+			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
-+					     E820_TYPE_PMEM) &&
-+#endif
- 			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
- 					     E820_TYPE_RESERVED_KERN))
- 				set_pte(pte, __pte(0));
-@@ -475,6 +479,10 @@ void __init cleanup_highmap(void)
- 			if (!after_bootmem &&
- 			    !e820__mapped_any(paddr & PMD_MASK, paddr_next,
- 					     E820_TYPE_RAM) &&
-+#ifdef CONFIG_ZONE_NVM
-+			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
-+					     E820_TYPE_PMEM) &&
-+#endif
- 			    !e820__mapped_any(paddr & PMD_MASK, paddr_next,
- 					     E820_TYPE_RESERVED_KERN))
- 				set_pmd(pmd, __pmd(0));
-@@ -561,6 +569,10 @@ void __init cleanup_highmap(void)
- 			if (!after_bootmem &&
- 			    !e820__mapped_any(paddr & PUD_MASK, paddr_next,
- 					     E820_TYPE_RAM) &&
-+#ifdef CONFIG_ZONE_NVM
-+			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
-+					     E820_TYPE_PMEM) &&
-+#endif
- 			    !e820__mapped_any(paddr & PUD_MASK, paddr_next,
- 					     E820_TYPE_RESERVED_KERN))
- 				set_pud(pud, __pud(0));
-@@ -647,6 +659,10 @@ void __init cleanup_highmap(void)
- 			if (!after_bootmem &&
- 			    !e820__mapped_any(paddr & P4D_MASK, paddr_next,
- 					     E820_TYPE_RAM) &&
-+#ifdef CONFIG_ZONE_NVM
-+			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
-+					     E820_TYPE_PMEM) &&
-+#endif
- 			    !e820__mapped_any(paddr & P4D_MASK, paddr_next,
- 					     E820_TYPE_RESERVED_KERN))
- 				set_p4d(p4d, __p4d(0));
--- 
-1.8.3.1
+diff --git a/arch/x86/lib/memcpy_64.S b/arch/x86/lib/memcpy_64.S
+index 54c971892db5..5709f3ec22a4 100644
+--- a/arch/x86/lib/memcpy_64.S
++++ b/arch/x86/lib/memcpy_64.S
+@@ -204,13 +204,14 @@ ENTRY(__memcpy_mcsafe)
+ 	subl $8, %ecx
+ 	negl %ecx
+ 	subl %ecx, %edx
+-.L_copy_leading_bytes:
++.L_read_leading_bytes:
+ 	movb (%rsi), %al
++.L_write_leading_bytes:
+ 	movb %al, (%rdi)
+ 	incq %rsi
+ 	incq %rdi
+ 	decl %ecx
+-	jnz .L_copy_leading_bytes
++	jnz .L_read_leading_bytes
+ 
+ .L_8byte_aligned:
+ 	movl %edx, %ecx
+@@ -218,13 +219,14 @@ ENTRY(__memcpy_mcsafe)
+ 	shrl $3, %ecx
+ 	jz .L_no_whole_words
+ 
+-.L_copy_words:
++.L_read_words:
+ 	movq (%rsi), %r8
++.L_write_words:
+ 	movq %r8, (%rdi)
+ 	addq $8, %rsi
+ 	addq $8, %rdi
+ 	decl %ecx
+-	jnz .L_copy_words
++	jnz .L_read_words
+ 
+ 	/* Any trailing bytes? */
+ .L_no_whole_words:
+@@ -233,13 +235,14 @@ ENTRY(__memcpy_mcsafe)
+ 
+ 	/* Copy trailing bytes */
+ 	movl %edx, %ecx
+-.L_copy_trailing_bytes:
++.L_read_trailing_bytes:
+ 	movb (%rsi), %al
++.L_write_trailing_bytes:
+ 	movb %al, (%rdi)
+ 	incq %rsi
+ 	incq %rdi
+ 	decl %ecx
+-	jnz .L_copy_trailing_bytes
++	jnz .L_read_trailing_bytes
+ 
+ 	/* Copy successful. Return zero */
+ .L_done_memcpy_trap:
+@@ -256,7 +259,7 @@ EXPORT_SYMBOL_GPL(__memcpy_mcsafe)
+ 
+ 	.previous
+ 
+-	_ASM_EXTABLE_FAULT(.L_copy_leading_bytes, .L_memcpy_mcsafe_fail)
+-	_ASM_EXTABLE_FAULT(.L_copy_words, .L_memcpy_mcsafe_fail)
+-	_ASM_EXTABLE_FAULT(.L_copy_trailing_bytes, .L_memcpy_mcsafe_fail)
++	_ASM_EXTABLE_FAULT(.L_read_leading_bytes, .L_memcpy_mcsafe_fail)
++	_ASM_EXTABLE_FAULT(.L_read_words, .L_memcpy_mcsafe_fail)
++	_ASM_EXTABLE_FAULT(.L_read_trailing_bytes, .L_memcpy_mcsafe_fail)
+ #endif
 
 _______________________________________________
 Linux-nvdimm mailing list
