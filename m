@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 77188210C9968
- for <linux-nvdimm@lists.01.org>; Thu, 31 May 2018 16:36:33 -0700 (PDT)
-Received: from g9t2301.houston.hpecorp.net (g9t2301.houston.hpecorp.net
- [16.220.97.129])
- by g9t5009.houston.hpe.com (Postfix) with ESMTP id 5734C12D
- for <linux-nvdimm@lists.01.org>; Thu, 31 May 2018 23:36:32 +0000 (UTC)
-From: Robert Elliott <elliott@hpe.com>
-Subject: [PATCH] nvdimm: preserve read-only setting for pmem devices
-Date: Thu, 31 May 2018 18:36:36 -0500
-Message-Id: <20180531233636.7775-1-elliott@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id A9BD020957B02
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 11:50:57 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 1/4] libndctl: fix potential buffer overflow in
+ write_cache APIs
+Date: Thu,  3 May 2018 12:50:47 -0600
+Message-Id: <20180503185050.7559-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,68 +24,43 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pmem driver don't honor a forced read-only setting for very long:
-	$ blockdev --setro /dev/pmem0
-	$ blockdev --getro /dev/pmem0
-	1
+We used a local stack variable to hold the sysfs path, which had a
+potential to overflow. Instead, switch to the 'scratch space' bdbs->buf
+to store the sysfs path as it is correctly sized for it.
 
-followed by various commands like these:
-	$ blockdev --rereadpt /dev/pmem0
-	or
-	$ mkfs.ext4 /dev/pmem0
-
-results in this in the kernel serial log:
-	 nd_pmem namespace0.0: region0 read-write, marking pmem0 read-write
-
-with the read-only setting lost:
-	$ blockdev --getro /dev/pmem0
-	0
-
-That's from bus.c nvdimm_revalidate_disk(), which always applies the
-setting from nd_region (which is initially based on the ACPI NFIT
-NVDIMM state flags not_armed bit).
-
-In contrast, commit 20bd1d026aac ("scsi: sd: Keep disk read-only when
-re-reading partition") fixed this issue for SCSI devices to preserve
-the previous setting if it was set to read-only.
-
-This patch modifies bus.c to preserve any previous read-only setting.
-It also eliminates the kernel serial log print except for cases where
-read-write is changed to read-only, so it doesn't print read-only to
-read-only non-changes.
-
-Signed-off-by: Robert Elliott <elliott@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/bus.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ ndctl/lib/libndctl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index a64023690cad..87762afa45b0 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -566,14 +566,17 @@ int nvdimm_revalidate_disk(struct gendisk *disk)
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 59ea82a..2a3ef0c 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -3991,10 +3991,10 @@ static int __ndctl_namespace_set_write_cache(struct ndctl_namespace *ndns,
  {
- 	struct device *dev = disk_to_dev(disk)->parent;
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
--	const char *pol = nd_region->ro ? "only" : "write";
-+	int disk_ro = get_disk_ro(disk);
+ 	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
+ 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
++	char *path = ndns->ndns_buf;
+ 	char buf[SYSFS_ATTR_SIZE];
+ 	int len = ndns->buf_len;
+ 	const char *bdev;
+-	char path[50];
  
--	if (nd_region->ro == get_disk_ro(disk))
-+	/* upgrade to read-only if the region is read-only
-+	 * preserve as read-only if the disk is already read-only
-+	 */
-+	if (disk_ro || nd_region->ro == disk_ro)
- 		return 0;
+ 	if (state != 1 && state != 0)
+ 		return -ENXIO;
+@@ -4034,9 +4034,9 @@ NDCTL_EXPORT int ndctl_namespace_write_cache_is_enabled(
+ 	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
+ 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
+ 	int len = ndns->buf_len, wc;
++	char *path = ndns->ndns_buf;
+ 	char buf[SYSFS_ATTR_SIZE];
+ 	const char *bdev;
+-	char path[50];
  
--	dev_info(dev, "%s read-%s, marking %s read-%s\n",
--			dev_name(&nd_region->dev), pol, disk->disk_name, pol);
--	set_disk_ro(disk, nd_region->ro);
-+	dev_info(dev, "%s read-only, marking %s read-only\n",
-+			dev_name(&nd_region->dev), disk->disk_name);
-+	set_disk_ro(disk, 1);
- 
- 	return 0;
- 
+ 	if (pfn)
+ 		bdev = ndctl_pfn_get_block_device(pfn);
 -- 
 2.14.3
 
