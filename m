@@ -2,14 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EFDE12283930C
- for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 11:50:58 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 3/4] libndctl, test: fix a couple of unchecked returns
-Date: Thu,  3 May 2018 12:50:49 -0600
-Message-Id: <20180503185050.7559-3-vishal.l.verma@intel.com>
-In-Reply-To: <20180503185050.7559-1-vishal.l.verma@intel.com>
-References: <20180503185050.7559-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0F643203BEA44
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 12:24:35 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 2/5] radix tree test suite: fix compilation issue
+Date: Thu,  3 May 2018 13:24:27 -0600
+Message-Id: <20180503192430.7582-3-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180503192430.7582-1-ross.zwisler@linux.intel.com>
+References: <20180503192430.7582-1-ross.zwisler@linux.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,60 +18,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
--Wunused-result with -D_FORTIFY_SOURCE=2 reported a couple of unchecked
-return values, fix them by appropriately failing on errors.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/lib/libndctl.c | 5 ++++-
- test/dax-pmd.c       | 5 ++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 6733b85..47e005e 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -1243,7 +1243,10 @@ NDCTL_EXPORT int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus)
- 				break;
- 			}
- 			dbg(ctx, "poll wake: revents: %d\n", fds.revents);
--			pread(fd, buf, 1, 0);
-+			if (pread(fd, buf, 1, 0) == -1) {
-+				rc = -errno;
-+				break;
-+			}
- 			fds.revents = 0;
- 		}
- 	}
-diff --git a/test/dax-pmd.c b/test/dax-pmd.c
-index 06fe522..65bee6f 100644
---- a/test/dax-pmd.c
-+++ b/test/dax-pmd.c
-@@ -125,7 +125,10 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
- 				rc = -ENXIO;
- 			}
- 			((char *) buf)[0] = 0;
--			pread(fd2, buf, 4096, 0);
-+			if (pread(fd2, buf, 4096, 0) != 4096) {
-+				faili(i);
-+				rc = -ENXIO;
-+			}
- 			if (strcmp(buf, "odirect data") != 0) {
- 				faili(i);
- 				rc = -ENXIO;
--- 
-2.14.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+UHVsbGVkIGZyb20gYSBwYXRjaCBmcm9tIE1hdHRoZXcgV2lsY294IGVudGl0bGVkCiJ4YXJyYXk6
+IEFkZCBkZWZpbml0aW9uIG9mIHN0cnVjdCB4YXJyYXkiOgoKPiBGcm9tOiBNYXR0aGV3IFdpbGNv
+eCA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBNYXR0aGV3IFdpbGNv
+eCA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT4KCmh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcv
+cGF0Y2gvMTAzNDEyNDkvCgpUaGVzZSBkZWZpbmVzIGZpeCB0aGlzIGNvbXBpbGF0aW9uIGVycm9y
+OgoKSW4gZmlsZSBpbmNsdWRlZCBmcm9tIC4vbGludXgvcmFkaXgtdHJlZS5oOjY6MCwKICAgICAg
+ICAgICAgICAgICBmcm9tIC4vbGludXgvLi4vLi4vLi4vLi4vaW5jbHVkZS9saW51eC9pZHIuaDox
+NSwKICAgICAgICAgICAgICAgICBmcm9tIC4vbGludXgvaWRyLmg6MSwKICAgICAgICAgICAgICAg
+ICBmcm9tIGlkci5jOjQ6Ci4vbGludXgvLi4vLi4vLi4vLi4vaW5jbHVkZS9saW51eC9pZHIuaDog
+SW4gZnVuY3Rpb24g4oCYaWRyX2luaXRfYmFzZeKAmToKLi9saW51eC8uLi8uLi8uLi8uLi9pbmNs
+dWRlL2xpbnV4L3JhZGl4LXRyZWUuaDoxMjk6Mjogd2FybmluZzogaW1wbGljaXQgZGVjbGFyYXRp
+b24gb2YgZnVuY3Rpb24g4oCYc3Bpbl9sb2NrX2luaXTigJk7IGRpZCB5b3UgbWVhbiDigJhzcGlu
+bG9ja1904oCZPyBbLVdpbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KICBzcGluX2xvY2tf
+aW5pdCgmKHJvb3QpLT54YV9sb2NrKTsgICAgXAogIF4KLi9saW51eC8uLi8uLi8uLi8uLi9pbmNs
+dWRlL2xpbnV4L2lkci5oOjEyNjoyOiBub3RlOiBpbiBleHBhbnNpb24gb2YgbWFjcm8g4oCYSU5J
+VF9SQURJWF9UUkVF4oCZCiAgSU5JVF9SQURJWF9UUkVFKCZpZHItPmlkcl9ydCwgSURSX1JUX01B
+UktFUik7CiAgXn5+fn5+fn5+fn5+fn5+CgpieSBwcm92aWRpbmcgYSBzcGluX2xvY2tfaW5pdCgp
+IHdyYXBwZXIgZm9yIHRoZSB2NC4xNy1yYyogdmVyc2lvbiBvZiB0aGUKcmFkaXggdHJlZSB0ZXN0
+IHN1aXRlLgoKU2lnbmVkLW9mZi1ieTogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXgu
+aW50ZWwuY29tPgotLS0KIHRvb2xzL2luY2x1ZGUvbGludXgvc3BpbmxvY2suaCB8IDMgKystCiAx
+IGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0
+IGEvdG9vbHMvaW5jbHVkZS9saW51eC9zcGlubG9jay5oIGIvdG9vbHMvaW5jbHVkZS9saW51eC9z
+cGlubG9jay5oCmluZGV4IGIyMWI1ODZiOTg1NC4uMTczOGMwMzkxZGE0IDEwMDY0NAotLS0gYS90
+b29scy9pbmNsdWRlL2xpbnV4L3NwaW5sb2NrLmgKKysrIGIvdG9vbHMvaW5jbHVkZS9saW51eC9z
+cGlubG9jay5oCkBAIC02LDggKzYsOSBAQAogI2luY2x1ZGUgPHN0ZGJvb2wuaD4KIAogI2RlZmlu
+ZSBzcGlubG9ja190CQlwdGhyZWFkX211dGV4X3QKLSNkZWZpbmUgREVGSU5FX1NQSU5MT0NLKHgp
+CXB0aHJlYWRfbXV0ZXhfdCB4ID0gUFRIUkVBRF9NVVRFWF9JTklUSUFMSVpFUjsKKyNkZWZpbmUg
+REVGSU5FX1NQSU5MT0NLKHgpCXB0aHJlYWRfbXV0ZXhfdCB4ID0gUFRIUkVBRF9NVVRFWF9JTklU
+SUFMSVpFUgogI2RlZmluZSBfX1NQSU5fTE9DS19VTkxPQ0tFRCh4KQkocHRocmVhZF9tdXRleF90
+KVBUSFJFQURfTVVURVhfSU5JVElBTElaRVIKKyNkZWZpbmUgc3Bpbl9sb2NrX2luaXQoeCkgICAg
+ICBwdGhyZWFkX211dGV4X2luaXQoeCwgTlVMTCkKIAogI2RlZmluZSBzcGluX2xvY2tfaXJxc2F2
+ZSh4LCBmKQkJKHZvaWQpZiwgcHRocmVhZF9tdXRleF9sb2NrKHgpCiAjZGVmaW5lIHNwaW5fdW5s
+b2NrX2lycXJlc3RvcmUoeCwgZikJKHZvaWQpZiwgcHRocmVhZF9tdXRleF91bmxvY2soeCkKLS0g
+CjIuMTQuMwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
+Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
