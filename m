@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 796CC203BEA4C
- for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 12:24:35 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 3/5] radix tree test suite: add item_delete_rcu()
-Date: Thu,  3 May 2018 13:24:28 -0600
-Message-Id: <20180503192430.7582-4-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180503192430.7582-1-ross.zwisler@linux.intel.com>
-References: <20180503192430.7582-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A4A972063E2F1
+ for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:09:09 -0700 (PDT)
+Subject: [PATCH v2 5/9] x86, memcpy_mcsafe: define copy_to_iter_mcsafe()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 02 May 2018 21:59:07 -0700
+Message-ID: <152532354781.17218.7424857107546723514.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,85 +18,176 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently the lifetime of "struct item" entries in the radix tree are not
-controlled by RCU, but are instead deleted inline as they are removed from
-the tree.
+Use the updated memcpy_mcsafe() implementation to define
+copy_user_mcsafe() and copy_to_iter_mcsafe(). The most significant
+difference from typical copy_to_iter() is that the ITER_KVEC and
+ITER_BVEC iterator types can fail to complete a full transfer.
 
-In the following patches we add a test which has threads iterating over
-items pulled from the tree and verifying them in an
-rcu_read_lock()/rcu_read_unlock() section.  This means that though an item
-has been removed from the tree it could still be being worked on by other
-threads until the RCU grace period expires.  So, we need to actually free
-the "struct item" structures at the end of the grace period, just as we do
-with "struct radix_tree_node" items.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: <x86@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/radix-tree/test.c | 19 +++++++++++++++++++
- tools/testing/radix-tree/test.h |  2 ++
- 2 files changed, 21 insertions(+)
+ arch/x86/Kconfig                  |    1 +
+ arch/x86/include/asm/uaccess_64.h |   11 +++++++
+ include/linux/uio.h               |   15 +++++++++
+ lib/iov_iter.c                    |   61 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 88 insertions(+)
 
-diff --git a/tools/testing/radix-tree/test.c b/tools/testing/radix-tree/test.c
-index 5978ab1f403d..def6015570b2 100644
---- a/tools/testing/radix-tree/test.c
-+++ b/tools/testing/radix-tree/test.c
-@@ -75,6 +75,25 @@ int item_delete(struct radix_tree_root *root, unsigned long index)
- 	return 0;
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index c07f492b871a..6ca22706cd64 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -60,6 +60,7 @@ config X86
+ 	select ARCH_HAS_PMEM_API		if X86_64
+ 	select ARCH_HAS_REFCOUNT
+ 	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
++	select ARCH_HAS_UACCESS_MCSAFE		if X86_64
+ 	select ARCH_HAS_SET_MEMORY
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAS_STRICT_KERNEL_RWX
+diff --git a/arch/x86/include/asm/uaccess_64.h b/arch/x86/include/asm/uaccess_64.h
+index c63efc07891f..62acb613114b 100644
+--- a/arch/x86/include/asm/uaccess_64.h
++++ b/arch/x86/include/asm/uaccess_64.h
+@@ -47,6 +47,17 @@ copy_user_generic(void *to, const void *from, unsigned len)
  }
  
-+static void item_free_rcu(struct rcu_head *head)
+ static __always_inline __must_check unsigned long
++copy_to_user_mcsafe(void *to, const void *from, unsigned len)
 +{
-+	struct item *item = container_of(head, struct item, rcu_head);
++	unsigned long ret;
 +
-+	free(item);
++	__uaccess_begin();
++	ret = memcpy_mcsafe(to, from, len);
++	__uaccess_end();
++	return ret;
 +}
 +
-+int item_delete_rcu(struct radix_tree_root *root, unsigned long index)
-+{
-+	struct item *item = radix_tree_delete(root, index);
-+
-+	if (item) {
-+		item_sanity(item, index);
-+		call_rcu(&item->rcu_head, item_free_rcu);
-+		return 1;
-+	}
-+	return 0;
-+}
-+
- void item_check_present(struct radix_tree_root *root, unsigned long index)
++static __always_inline __must_check unsigned long
+ raw_copy_from_user(void *dst, const void __user *src, unsigned long size)
  {
- 	struct item *item;
-diff --git a/tools/testing/radix-tree/test.h b/tools/testing/radix-tree/test.h
-index d9c031dbeb1a..8cf4a7a7f94c 100644
---- a/tools/testing/radix-tree/test.h
-+++ b/tools/testing/radix-tree/test.h
-@@ -5,6 +5,7 @@
- #include <linux/rcupdate.h>
+ 	int ret = 0;
+diff --git a/include/linux/uio.h b/include/linux/uio.h
+index e67e12adb136..f5766e853a77 100644
+--- a/include/linux/uio.h
++++ b/include/linux/uio.h
+@@ -154,6 +154,12 @@ size_t _copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i);
+ #define _copy_from_iter_flushcache _copy_from_iter_nocache
+ #endif
  
- struct item {
-+	struct rcu_head	rcu_head;
- 	unsigned long index;
- 	unsigned int order;
- };
-@@ -15,6 +16,7 @@ int item_insert(struct radix_tree_root *root, unsigned long index);
- int item_insert_order(struct radix_tree_root *root, unsigned long index,
- 			unsigned order);
- int item_delete(struct radix_tree_root *root, unsigned long index);
-+int item_delete_rcu(struct radix_tree_root *root, unsigned long index);
- struct item *item_lookup(struct radix_tree_root *root, unsigned long index);
++#ifdef CONFIG_ARCH_HAS_UACCESS_MCSAFE
++size_t _copy_to_iter_mcsafe(void *addr, size_t bytes, struct iov_iter *i);
++#else
++#define _copy_to_iter_mcsafe _copy_to_iter
++#endif
++
+ static __always_inline __must_check
+ size_t copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i)
+ {
+@@ -163,6 +169,15 @@ size_t copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i)
+ 		return _copy_from_iter_flushcache(addr, bytes, i);
+ }
  
- void item_check_present(struct radix_tree_root *root, unsigned long index);
--- 
-2.14.3
++static __always_inline __must_check
++size_t copy_to_iter_mcsafe(void *addr, size_t bytes, struct iov_iter *i)
++{
++	if (unlikely(!check_copy_size(addr, bytes, false)))
++		return 0;
++	else
++		return _copy_to_iter_mcsafe(addr, bytes, i);
++}
++
+ size_t iov_iter_zero(size_t bytes, struct iov_iter *);
+ unsigned long iov_iter_alignment(const struct iov_iter *i);
+ unsigned long iov_iter_gap_alignment(const struct iov_iter *i);
+diff --git a/lib/iov_iter.c b/lib/iov_iter.c
+index 970212670b6a..70ebc8ede143 100644
+--- a/lib/iov_iter.c
++++ b/lib/iov_iter.c
+@@ -573,6 +573,67 @@ size_t _copy_to_iter(const void *addr, size_t bytes, struct iov_iter *i)
+ }
+ EXPORT_SYMBOL(_copy_to_iter);
+ 
++#ifdef CONFIG_ARCH_HAS_UACCESS_MCSAFE
++static int copyout_mcsafe(void __user *to, const void *from, size_t n)
++{
++	if (access_ok(VERIFY_WRITE, to, n)) {
++		kasan_check_read(from, n);
++		n = copy_to_user_mcsafe((__force void *) to, from, n);
++	}
++	return n;
++}
++
++static unsigned long memcpy_mcsafe_to_page(struct page *page, size_t offset,
++		const char *from, size_t len)
++{
++	unsigned long ret;
++	char *to;
++
++	to = kmap_atomic(page);
++	ret = memcpy_mcsafe(to + offset, from, len);
++	kunmap_atomic(to);
++
++	return ret;
++}
++
++size_t _copy_to_iter_mcsafe(const void *addr, size_t bytes, struct iov_iter *i)
++{
++	const char *from = addr;
++	unsigned long rem, curr_addr, s_addr = (unsigned long) addr;
++
++	if (unlikely(i->type & ITER_PIPE)) {
++		WARN_ON(1);
++		return 0;
++	}
++	if (iter_is_iovec(i))
++		might_fault();
++	iterate_and_advance(i, bytes, v,
++		copyout_mcsafe(v.iov_base, (from += v.iov_len) - v.iov_len, v.iov_len),
++		({
++		rem = memcpy_mcsafe_to_page(v.bv_page, v.bv_offset,
++                               (from += v.bv_len) - v.bv_len, v.bv_len);
++		if (rem) {
++			curr_addr = (unsigned long) from;
++			bytes = curr_addr - s_addr - rem;
++			return bytes;
++		}
++		}),
++		({
++		rem = memcpy_mcsafe(v.iov_base, (from += v.iov_len) - v.iov_len,
++				v.iov_len);
++		if (rem) {
++			curr_addr = (unsigned long) from;
++			bytes = curr_addr - s_addr - rem;
++			return bytes;
++		}
++		})
++	)
++
++	return bytes;
++}
++EXPORT_SYMBOL_GPL(_copy_to_iter_mcsafe);
++#endif /* CONFIG_ARCH_HAS_UACCESS_MCSAFE */
++
+ size_t _copy_from_iter(void *addr, size_t bytes, struct iov_iter *i)
+ {
+ 	char *to = addr;
 
 _______________________________________________
 Linux-nvdimm mailing list
