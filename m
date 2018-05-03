@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9DA4D20957B07
- for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:16:29 -0700 (PDT)
-Subject: [PATCH v3 5/9] x86, memcpy_mcsafe: define copy_to_iter_mcsafe()
+ by ml01.01.org (Postfix) with ESMTPS id 921CF2063E2FD
+ for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:09:30 -0700 (PDT)
+Subject: [PATCH v2 9/9] x86, nfit_test: unit test for memcpy_mcsafe()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 03 May 2018 17:06:31 -0700
-Message-ID: <152539239150.31796.9189779163576449784.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 02 May 2018 21:59:33 -0700
+Message-ID: <152532357367.17218.12583776735022853270.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,10 +26,20 @@ To: linux-nvdimm@lists.01.org
 Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the updated memcpy_mcsafe() implementation to define
-copy_user_mcsafe() and copy_to_iter_mcsafe(). The most significant
-difference from typical copy_to_iter() is that the ITER_KVEC and
-ITER_BVEC iterator types can fail to complete a full transfer.
+Given the fact that the ACPI "EINJ" (error injection) facility is not
+universally available, implement software infrastructure to validate the
+memcpy_mcsafe() exception handling implementation.
+
+For each potential read exception point in memcpy_mcsafe(), inject a
+emulated exception point at the address identified by 'mcsafe_inject'
+variable. With this infrastructure implement a test to validate that the
+'bytes remaining' calculation is correct for a range of various source
+buffer alignments.
+
+This code is compiled out by default. The CONFIG_MCSAFE_DEBUG
+configuration symbol needs to be manually enabled by editing
+Kconfig.debug. I.e. this functionality can not be accidentally enabled
+by a user / distro, it's only for development.
 
 Cc: <x86@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -41,153 +51,205 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reported-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/Kconfig                  |    1 +
- arch/x86/include/asm/uaccess_64.h |   11 +++++++
- include/linux/uio.h               |   15 +++++++++
- lib/iov_iter.c                    |   61 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 88 insertions(+)
+ arch/x86/Kconfig.debug              |    3 ++
+ arch/x86/include/asm/mcsafe_debug.h |   50 +++++++++++++++++++++++++++++++++++
+ arch/x86/lib/memcpy_64.S            |    7 +++++
+ tools/testing/nvdimm/test/nfit.c    |   48 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 108 insertions(+)
+ create mode 100644 arch/x86/include/asm/mcsafe_debug.h
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index c07f492b871a..6ca22706cd64 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -60,6 +60,7 @@ config X86
- 	select ARCH_HAS_PMEM_API		if X86_64
- 	select ARCH_HAS_REFCOUNT
- 	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
-+	select ARCH_HAS_UACCESS_MCSAFE		if X86_64
- 	select ARCH_HAS_SET_MEMORY
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAS_STRICT_KERNEL_RWX
-diff --git a/arch/x86/include/asm/uaccess_64.h b/arch/x86/include/asm/uaccess_64.h
-index c63efc07891f..62acb613114b 100644
---- a/arch/x86/include/asm/uaccess_64.h
-+++ b/arch/x86/include/asm/uaccess_64.h
-@@ -47,6 +47,17 @@ copy_user_generic(void *to, const void *from, unsigned len)
- }
+diff --git a/arch/x86/Kconfig.debug b/arch/x86/Kconfig.debug
+index 192e4d2f9efc..8bdec78a405f 100644
+--- a/arch/x86/Kconfig.debug
++++ b/arch/x86/Kconfig.debug
+@@ -72,6 +72,9 @@ config EARLY_PRINTK_USB_XDBC
+ 	  You should normally say N here, unless you want to debug early
+ 	  crashes or need a very simple printk logging facility.
  
- static __always_inline __must_check unsigned long
-+copy_to_user_mcsafe(void *to, const void *from, unsigned len)
++config MCSAFE_DEBUG
++	def_bool n
++
+ config X86_PTDUMP_CORE
+ 	def_bool n
+ 
+diff --git a/arch/x86/include/asm/mcsafe_debug.h b/arch/x86/include/asm/mcsafe_debug.h
+new file mode 100644
+index 000000000000..0f85d24b46c5
+--- /dev/null
++++ b/arch/x86/include/asm/mcsafe_debug.h
+@@ -0,0 +1,50 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _MCSAFE_DEBUG_H_
++#define _MCSAFE_DEBUG_H_
++
++#ifndef __ASSEMBLY__
++#ifdef CONFIG_MCSAFE_DEBUG
++extern unsigned long mcsafe_inject;
++
++static inline void set_mcsafe_inject(void *addr)
 +{
-+	unsigned long ret;
-+
-+	__uaccess_begin();
-+	ret = memcpy_mcsafe(to, from, len);
-+	__uaccess_end();
-+	return ret;
-+}
-+
-+static __always_inline __must_check unsigned long
- raw_copy_from_user(void *dst, const void __user *src, unsigned long size)
- {
- 	int ret = 0;
-diff --git a/include/linux/uio.h b/include/linux/uio.h
-index e67e12adb136..f5766e853a77 100644
---- a/include/linux/uio.h
-+++ b/include/linux/uio.h
-@@ -154,6 +154,12 @@ size_t _copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i);
- #define _copy_from_iter_flushcache _copy_from_iter_nocache
- #endif
- 
-+#ifdef CONFIG_ARCH_HAS_UACCESS_MCSAFE
-+size_t _copy_to_iter_mcsafe(void *addr, size_t bytes, struct iov_iter *i);
-+#else
-+#define _copy_to_iter_mcsafe _copy_to_iter
-+#endif
-+
- static __always_inline __must_check
- size_t copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i)
- {
-@@ -163,6 +169,15 @@ size_t copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i)
- 		return _copy_from_iter_flushcache(addr, bytes, i);
- }
- 
-+static __always_inline __must_check
-+size_t copy_to_iter_mcsafe(void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	if (unlikely(!check_copy_size(addr, bytes, false)))
-+		return 0;
++	if (addr)
++		mcsafe_inject = (unsigned long) addr;
 +	else
-+		return _copy_to_iter_mcsafe(addr, bytes, i);
++		mcsafe_inject = ~0UL;
 +}
++#else /* CONFIG_MCSAFE_DEBUG */
++static inline void set_mcsafe_inject(void *addr)
++{
++}
++#endif /* CONFIG_MCSAFE_DEBUG */
 +
- size_t iov_iter_zero(size_t bytes, struct iov_iter *);
- unsigned long iov_iter_alignment(const struct iov_iter *i);
- unsigned long iov_iter_gap_alignment(const struct iov_iter *i);
-diff --git a/lib/iov_iter.c b/lib/iov_iter.c
-index 970212670b6a..70ebc8ede143 100644
---- a/lib/iov_iter.c
-+++ b/lib/iov_iter.c
-@@ -573,6 +573,67 @@ size_t _copy_to_iter(const void *addr, size_t bytes, struct iov_iter *i)
- }
- EXPORT_SYMBOL(_copy_to_iter);
++#else /* __ASSEMBLY__ */
++#include <asm/export.h>
++
++#ifdef CONFIG_MCSAFE_DEBUG
++.macro MCSAFE_DEBUG_CTL
++	.pushsection .data
++	.align 8
++	.globl mcsafe_inject
++	mcsafe_inject:
++		.quad 0
++	EXPORT_SYMBOL_GPL(mcsafe_inject)
++	.popsection
++.endm
++
++.macro MCSAFE_DEBUG offset reg count target
++	leaq \offset(\reg), %r9
++	addq \count, %r9
++	cmp mcsafe_inject, %r9
++	jg \target
++.endm
++#else
++.macro MCSAFE_DEBUG_CTL
++.endm
++
++.macro MCSAFE_DEBUG offset reg count target
++.endm
++#endif /* CONFIG_MCSAFE_DEBUG */
++#endif /* __ASSEMBLY__ */
++#endif /* _MCSAFE_DEBUG_H_ */
+diff --git a/arch/x86/lib/memcpy_64.S b/arch/x86/lib/memcpy_64.S
+index c3b527a9f95d..e5f489b2c6ea 100644
+--- a/arch/x86/lib/memcpy_64.S
++++ b/arch/x86/lib/memcpy_64.S
+@@ -3,6 +3,7 @@
+ #include <linux/linkage.h>
+ #include <asm/errno.h>
+ #include <asm/cpufeatures.h>
++#include <asm/mcsafe_debug.h>
+ #include <asm/alternative-asm.h>
+ #include <asm/export.h>
  
-+#ifdef CONFIG_ARCH_HAS_UACCESS_MCSAFE
-+static int copyout_mcsafe(void __user *to, const void *from, size_t n)
+@@ -183,6 +184,9 @@ ENTRY(memcpy_orig)
+ ENDPROC(memcpy_orig)
+ 
+ #ifndef CONFIG_UML
++
++MCSAFE_DEBUG_CTL
++
+ /*
+  * __memcpy_mcsafe - memory copy with machine check exception handling
+  * Note that we only catch machine checks when reading the source addresses.
+@@ -205,6 +209,7 @@ ENTRY(__memcpy_mcsafe)
+ 	negl %ecx
+ 	subl %ecx, %edx
+ .L_read_leading_bytes:
++	MCSAFE_DEBUG 0 %rsi $1 .E_leading_bytes
+ 	movb (%rsi), %al
+ .L_write_leading_bytes:
+ 	movb %al, (%rdi)
+@@ -220,6 +225,7 @@ ENTRY(__memcpy_mcsafe)
+ 	jz .L_no_whole_words
+ 
+ .L_read_words:
++	MCSAFE_DEBUG 0 %rsi $8 .E_read_words
+ 	movq (%rsi), %r8
+ .L_write_words:
+ 	movq %r8, (%rdi)
+@@ -236,6 +242,7 @@ ENTRY(__memcpy_mcsafe)
+ 	/* Copy trailing bytes */
+ 	movl %edx, %ecx
+ .L_read_trailing_bytes:
++	MCSAFE_DEBUG 0 %rsi $1 .E_trailing_bytes
+ 	movb (%rsi), %al
+ .L_write_trailing_bytes:
+ 	movb %al, (%rdi)
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 4ea385be528f..db04ff658971 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -29,6 +29,8 @@
+ #include "nfit_test.h"
+ #include "../watermark.h"
+ 
++#include <asm/mcsafe_debug.h>
++
+ /*
+  * Generate an NFIT table to describe the following topology:
+  *
+@@ -2681,6 +2683,51 @@ static struct platform_driver nfit_test_driver = {
+ 	.id_table = nfit_test_id,
+ };
+ 
++static char mcsafe_buf[PAGE_SIZE] __attribute__((__aligned__(PAGE_SIZE)));
++
++void mcsafe_test(void)
 +{
-+	if (access_ok(VERIFY_WRITE, to, n)) {
-+		kasan_check_read(from, n);
-+		n = copy_to_user_mcsafe((__force void *) to, from, n);
++	bool do_inject = false;
++	int i;
++
++	if (IS_ENABLED(CONFIG_MCSAFE_DEBUG)) {
++		pr_info("%s: run...\n", __func__);
++	} else {
++		pr_info("%s: disabled, skip.\n", __func__);
++		return;
 +	}
-+	return n;
-+}
 +
-+static unsigned long memcpy_mcsafe_to_page(struct page *page, size_t offset,
-+		const char *from, size_t len)
-+{
-+	unsigned long ret;
-+	char *to;
++retry:
++	for (i = 0; i < 512; i++) {
++		unsigned long expect, rem;
++		void *src, *dst;
 +
-+	to = kmap_atomic(page);
-+	ret = memcpy_mcsafe(to + offset, from, len);
-+	kunmap_atomic(to);
++		if (do_inject) {
++			set_mcsafe_inject(&mcsafe_buf[1024]);
++			expect = 512 - i;
++		} else {
++			set_mcsafe_inject(NULL);
++			expect = 0;
++		}
 +
-+	return ret;
-+}
-+
-+size_t _copy_to_iter_mcsafe(const void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	const char *from = addr;
-+	unsigned long rem, curr_addr, s_addr = (unsigned long) addr;
-+
-+	if (unlikely(i->type & ITER_PIPE)) {
-+		WARN_ON(1);
-+		return 0;
++		dst = &mcsafe_buf[2048];
++		src = &mcsafe_buf[1024 - i];
++		rem = __memcpy_mcsafe(dst, src, 512);
++		if (rem == expect)
++			continue;
++		pr_info("%s: copy(%#lx, %#lx, %d) offset: %d got: %ld expect: %ld\n",
++				__func__, ((unsigned long) dst) & ~PAGE_MASK,
++				((unsigned long ) src) & ~PAGE_MASK,
++				512, i, rem, expect);
 +	}
-+	if (iter_is_iovec(i))
-+		might_fault();
-+	iterate_and_advance(i, bytes, v,
-+		copyout_mcsafe(v.iov_base, (from += v.iov_len) - v.iov_len, v.iov_len),
-+		({
-+		rem = memcpy_mcsafe_to_page(v.bv_page, v.bv_offset,
-+                               (from += v.bv_len) - v.bv_len, v.bv_len);
-+		if (rem) {
-+			curr_addr = (unsigned long) from;
-+			bytes = curr_addr - s_addr - rem;
-+			return bytes;
-+		}
-+		}),
-+		({
-+		rem = memcpy_mcsafe(v.iov_base, (from += v.iov_len) - v.iov_len,
-+				v.iov_len);
-+		if (rem) {
-+			curr_addr = (unsigned long) from;
-+			bytes = curr_addr - s_addr - rem;
-+			return bytes;
-+		}
-+		})
-+	)
 +
-+	return bytes;
++	if (!do_inject) {
++		do_inject = true;
++		goto retry;
++	}
++	set_mcsafe_inject(NULL);
 +}
-+EXPORT_SYMBOL_GPL(_copy_to_iter_mcsafe);
-+#endif /* CONFIG_ARCH_HAS_UACCESS_MCSAFE */
 +
- size_t _copy_from_iter(void *addr, size_t bytes, struct iov_iter *i)
+ static __init int nfit_test_init(void)
  {
- 	char *to = addr;
+ 	int rc, i;
+@@ -2689,6 +2736,7 @@ static __init int nfit_test_init(void)
+ 	libnvdimm_test();
+ 	acpi_nfit_test();
+ 	device_dax_test();
++	mcsafe_test();
+ 
+ 	nfit_test_setup(nfit_test_lookup, nfit_test_evaluate_dsm);
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
