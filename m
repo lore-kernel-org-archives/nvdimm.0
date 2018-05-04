@@ -1,113 +1,176 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Mon, 7 May 2018 11:46:22 -0700
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [RFC PATCH v1 0/6] use mm to manage NVDIMM (pmem) zone
-Message-ID: <20180507184622.GB12361@bombadil.infradead.org>
-References: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 63CF12063E2E8
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:16:18 -0700 (PDT)
+Subject: [PATCH v3 3/9] x86, memcpy_mcsafe: return bytes remaining
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 03 May 2018 17:06:21 -0700
+Message-ID: <152539238119.31796.14318473522414462886.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
-Sender: owner-linux-mm@kvack.org
-To: Huaisheng Ye <yehs1@lenovo.com>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, mhocko@suse.com, vbabka@suse.cz, mgorman@techsingularity.net, pasha.tatashin@oracle.com, alexander.levin@verizon.com, hannes@cmpxchg.org, penguin-kernel@I-love.SAKURA.ne.jp, colyli@suse.de, chengnt@lenovo.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, May 07, 2018 at 10:50:21PM +0800, Huaisheng Ye wrote:
-> Traditionally, NVDIMMs are treated by mm(memory management) subsystem as
-> DEVICE zone, which is a virtual zone and both its start and end of pfn 
-> are equal to 0, mm wouldn’t manage NVDIMM directly as DRAM, kernel uses
-> corresponding drivers, which locate at \drivers\nvdimm\ and 
-> \drivers\acpi\nfit and fs, to realize NVDIMM memory alloc and free with
-> memory hot plug implementation.
+Machine check safe memory copies are currently deployed in the pmem
+driver whenever reading from persistent memory media, so that -EIO is
+returned rather than triggering a kernel panic. While this protects most
+pmem accesses, it is not complete in the filesystem-dax case. When
+filesystem-dax is enabled reads may bypass the block layer and the
+driver via dax_iomap_actor() and its usage of copy_to_iter().
 
-You probably want to let linux-nvdimm know about this patch set.
-Adding to the cc.  Also, I only received patch 0 and 4.  What happened
-to 1-3,5 and 6?
+In preparation for creating a copy_to_iter() variant that can handle
+machine checks, teach memcpy_mcsafe() to return the number of bytes
+remaining rather than -EFAULT when an exception occurs.
 
-> With current kernel, many mm’s classical features like the buddy
-> system, swap mechanism and page cache couldn’t be supported to NVDIMM.
-> What we are doing is to expand kernel mm’s capacity to make it to handle
-> NVDIMM like DRAM. Furthermore we make mm could treat DRAM and NVDIMM
-> separately, that means mm can only put the critical pages to NVDIMM
-> zone, here we created a new zone type as NVM zone. That is to say for 
-> traditional(or normal) pages which would be stored at DRAM scope like
-> Normal, DMA32 and DMA zones. But for the critical pages, which we hope
-> them could be recovered from power fail or system crash, we make them
-> to be persistent by storing them to NVM zone.
-> 
-> We installed two NVDIMMs to Lenovo Thinksystem product as development
-> platform, which has 125GB storage capacity respectively. With these 
-> patches below, mm can create NVM zones for NVDIMMs.
-> 
-> Here is dmesg info,
->  Initmem setup node 0 [mem 0x0000000000001000-0x000000237fffffff]
->  On node 0 totalpages: 36879666
->    DMA zone: 64 pages used for memmap
->    DMA zone: 23 pages reserved
->    DMA zone: 3999 pages, LIFO batch:0
->  mminit::memmap_init Initialising map node 0 zone 0 pfns 1 -> 4096 
->    DMA32 zone: 10935 pages used for memmap
->    DMA32 zone: 699795 pages, LIFO batch:31
->  mminit::memmap_init Initialising map node 0 zone 1 pfns 4096 -> 1048576
->    Normal zone: 53248 pages used for memmap
->    Normal zone: 3407872 pages, LIFO batch:31
->  mminit::memmap_init Initialising map node 0 zone 2 pfns 1048576 -> 4456448
->    NVM zone: 512000 pages used for memmap
->    NVM zone: 32768000 pages, LIFO batch:31
->  mminit::memmap_init Initialising map node 0 zone 3 pfns 4456448 -> 37224448
->  Initmem setup node 1 [mem 0x0000002380000000-0x00000046bfffffff]
->  On node 1 totalpages: 36962304
->    Normal zone: 65536 pages used for memmap
->    Normal zone: 4194304 pages, LIFO batch:31
->  mminit::memmap_init Initialising map node 1 zone 2 pfns 37224448 -> 41418752
->    NVM zone: 512000 pages used for memmap
->    NVM zone: 32768000 pages, LIFO batch:31
->  mminit::memmap_init Initialising map node 1 zone 3 pfns 41418752 -> 74186752
-> 
-> This comes /proc/zoneinfo
-> Node 0, zone      NVM
->   pages free     32768000
->         min      15244
->         low      48012
->         high     80780
->         spanned  32768000
->         present  32768000
->         managed  32768000
->         protection: (0, 0, 0, 0, 0, 0)
->         nr_free_pages 32768000
-> Node 1, zone      NVM
->   pages free     32768000
->         min      15244
->         low      48012
->         high     80780
->         spanned  32768000
->         present  32768000
->         managed  32768000
-> 
-> Huaisheng Ye (6):
->   mm/memblock: Expand definition of flags to support NVDIMM
->   mm/page_alloc.c: get pfn range with flags of memblock
->   mm, zone_type: create ZONE_NVM and fill into GFP_ZONE_TABLE
->   arch/x86/kernel: mark NVDIMM regions from e820_table
->   mm: get zone spanned pages separately for DRAM and NVDIMM
->   arch/x86/mm: create page table mapping for DRAM and NVDIMM both
-> 
->  arch/x86/include/asm/e820/api.h |  3 +++
->  arch/x86/kernel/e820.c          | 20 +++++++++++++-
->  arch/x86/kernel/setup.c         |  8 ++++++
->  arch/x86/mm/init_64.c           | 16 +++++++++++
->  include/linux/gfp.h             | 57 ++++++++++++++++++++++++++++++++++++---
->  include/linux/memblock.h        | 19 +++++++++++++
->  include/linux/mm.h              |  4 +++
->  include/linux/mmzone.h          |  3 +++
->  mm/Kconfig                      | 16 +++++++++++
->  mm/memblock.c                   | 46 +++++++++++++++++++++++++++----
->  mm/nobootmem.c                  |  5 ++--
->  mm/page_alloc.c                 | 60 ++++++++++++++++++++++++++++++++++++++++-
->  12 files changed, 245 insertions(+), 12 deletions(-)
-> 
-> -- 
-> 1.8.3.1
-> 
+Cc: <x86@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Co-developed-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/x86/include/asm/string_64.h |    8 +++++---
+ arch/x86/lib/memcpy_64.S         |   20 ++++++++++++++------
+ drivers/nvdimm/claim.c           |    3 ++-
+ drivers/nvdimm/pmem.c            |    6 +++---
+ include/linux/string.h           |    4 ++--
+ 5 files changed, 26 insertions(+), 15 deletions(-)
+
+diff --git a/arch/x86/include/asm/string_64.h b/arch/x86/include/asm/string_64.h
+index 4752f8984923..d33f92b9fa22 100644
+--- a/arch/x86/include/asm/string_64.h
++++ b/arch/x86/include/asm/string_64.h
+@@ -116,7 +116,8 @@ int strcmp(const char *cs, const char *ct);
+ #endif
+ 
+ #define __HAVE_ARCH_MEMCPY_MCSAFE 1
+-__must_check int __memcpy_mcsafe(void *dst, const void *src, size_t cnt);
++__must_check unsigned long __memcpy_mcsafe(void *dst, const void *src,
++		size_t cnt);
+ DECLARE_STATIC_KEY_FALSE(mcsafe_key);
+ 
+ /**
+@@ -131,9 +132,10 @@ DECLARE_STATIC_KEY_FALSE(mcsafe_key);
+  * actually do machine check recovery. Everyone else can just
+  * use memcpy().
+  *
+- * Return 0 for success, -EFAULT for fail
++ * Return 0 for success, or number of bytes not copied if there was an
++ * exception.
+  */
+-static __always_inline __must_check int
++static __always_inline __must_check unsigned long
+ memcpy_mcsafe(void *dst, const void *src, size_t cnt)
+ {
+ #ifdef CONFIG_X86_MCE
+diff --git a/arch/x86/lib/memcpy_64.S b/arch/x86/lib/memcpy_64.S
+index 5709f3ec22a4..f01a88391c98 100644
+--- a/arch/x86/lib/memcpy_64.S
++++ b/arch/x86/lib/memcpy_64.S
+@@ -252,14 +252,22 @@ ENDPROC(__memcpy_mcsafe)
+ EXPORT_SYMBOL_GPL(__memcpy_mcsafe)
+ 
+ 	.section .fixup, "ax"
+-	/* Return -EFAULT for any failure */
+-.L_memcpy_mcsafe_fail:
+-	mov	$-EFAULT, %rax
++	/*
++	 * Return number of bytes not copied for any failure. Note that
++	 * there is no "tail" handling since the source buffer is 8-byte
++	 * aligned and poison is cacheline aligned.
++	 */
++.E_read_words:
++	shll	$3, %ecx
++.E_leading_bytes:
++	addl	%edx, %ecx
++.E_trailing_bytes:
++	mov	%ecx, %eax
+ 	ret
+ 
+ 	.previous
+ 
+-	_ASM_EXTABLE_FAULT(.L_read_leading_bytes, .L_memcpy_mcsafe_fail)
+-	_ASM_EXTABLE_FAULT(.L_read_words, .L_memcpy_mcsafe_fail)
+-	_ASM_EXTABLE_FAULT(.L_read_trailing_bytes, .L_memcpy_mcsafe_fail)
++	_ASM_EXTABLE_FAULT(.L_read_leading_bytes, .E_leading_bytes)
++	_ASM_EXTABLE_FAULT(.L_read_words, .E_read_words)
++	_ASM_EXTABLE_FAULT(.L_read_trailing_bytes, .E_trailing_bytes)
+ #endif
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index 30852270484f..2e96b34bc936 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -276,7 +276,8 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	if (rw == READ) {
+ 		if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
+ 			return -EIO;
+-		return memcpy_mcsafe(buf, nsio->addr + offset, size);
++		if (memcpy_mcsafe(buf, nsio->addr + offset, size) != 0)
++			return -EIO;
+ 	}
+ 
+ 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 9d714926ecf5..e023d6aa22b5 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -101,15 +101,15 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
+ 		void *pmem_addr, unsigned int len)
+ {
+ 	unsigned int chunk;
+-	int rc;
++	unsigned long rem;
+ 	void *mem;
+ 
+ 	while (len) {
+ 		mem = kmap_atomic(page);
+ 		chunk = min_t(unsigned int, len, PAGE_SIZE);
+-		rc = memcpy_mcsafe(mem + off, pmem_addr, chunk);
++		rem = memcpy_mcsafe(mem + off, pmem_addr, chunk);
+ 		kunmap_atomic(mem);
+-		if (rc)
++		if (rem)
+ 			return BLK_STS_IOERR;
+ 		len -= chunk;
+ 		off = 0;
+diff --git a/include/linux/string.h b/include/linux/string.h
+index dd39a690c841..4a5a0eb7df51 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -147,8 +147,8 @@ extern int memcmp(const void *,const void *,__kernel_size_t);
+ extern void * memchr(const void *,int,__kernel_size_t);
+ #endif
+ #ifndef __HAVE_ARCH_MEMCPY_MCSAFE
+-static inline __must_check int memcpy_mcsafe(void *dst, const void *src,
+-		size_t cnt)
++static inline __must_check unsigned long memcpy_mcsafe(void *dst,
++		const void *src, size_t cnt)
+ {
+ 	memcpy(dst, src, cnt);
+ 	return 0;
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
