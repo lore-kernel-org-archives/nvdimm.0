@@ -1,17 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 214F9203BA504
- for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 16:23:48 -0700 (PDT)
-Date: Mon, 7 May 2018 18:23:46 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Message-ID: <20180507232346.GI161390@bhelgaas-glaptop.roam.corp.google.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5700B20946068
+ for <linux-nvdimm@lists.01.org>; Fri,  4 May 2018 08:52:57 -0700 (PDT)
 References: <20180423233046.21476-1-logang@deltatee.com>
+ <b8acf835-df94-9967-2327-8f0e39d88511@amd.com>
+ <805645c1-ea40-2e57-88eb-5dd34e579b2e@deltatee.com>
+ <3e4e0126-f444-8d88-6793-b5eb97c61f76@amd.com>
+ <ce2e5351-f32a-bd80-1c77-b7fc38842175@deltatee.com>
+ <38d866cf-f7b4-7118-d737-5a5dcd9f3784@amd.com>
+ <2d59aa02-f2fa-bd88-1b6c-923117a6ad28@deltatee.com>
+ <17e7bc28-f499-c7f7-f91a-9f6778de5fd3@amd.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <aa542739-17c1-870d-bac8-1d53eb32ff70@deltatee.com>
+Date: Fri, 4 May 2018 09:52:26 -0600
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180423233046.21476-1-logang@deltatee.com>
+In-Reply-To: <17e7bc28-f499-c7f7-f91a-9f6778de5fd3@amd.com>
+Content-Language: en-US
+Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,84 +26,30 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Keith Busch <keith.busch@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Apr 23, 2018 at 05:30:32PM -0600, Logan Gunthorpe wrote:
-> Hi Everyone,
-> 
-> Here's v4 of our series to introduce P2P based copy offload to NVMe
-> fabrics. This version has been rebased onto v4.17-rc2. A git repo
-> is here:
-> 
-> https://github.com/sbates130272/linux-p2pmem pci-p2p-v4
-> ...
-
-> Logan Gunthorpe (14):
->   PCI/P2PDMA: Support peer-to-peer memory
->   PCI/P2PDMA: Add sysfs group to display p2pmem stats
->   PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust the bus offset
->   PCI/P2PDMA: Clear ACS P2P flags for all devices behind switches
->   docs-rst: Add a new directory for PCI documentation
->   PCI/P2PDMA: Add P2P DMA driver writer's documentation
->   block: Introduce PCI P2P flags for request and request queue
->   IB/core: Ensure we map P2P memory correctly in
->     rdma_rw_ctx_[init|destroy]()
->   nvme-pci: Use PCI p2pmem subsystem to manage the CMB
->   nvme-pci: Add support for P2P memory in requests
->   nvme-pci: Add a quirk for a pseudo CMB
->   nvmet: Introduce helper functions to allocate and free request SGLs
->   nvmet-rdma: Use new SGL alloc/free helper for requests
->   nvmet: Optionally use PCI P2P memory
-> 
->  Documentation/ABI/testing/sysfs-bus-pci    |  25 +
->  Documentation/PCI/index.rst                |  14 +
->  Documentation/driver-api/index.rst         |   2 +-
->  Documentation/driver-api/pci/index.rst     |  20 +
->  Documentation/driver-api/pci/p2pdma.rst    | 166 ++++++
->  Documentation/driver-api/{ => pci}/pci.rst |   0
->  Documentation/index.rst                    |   3 +-
->  block/blk-core.c                           |   3 +
->  drivers/infiniband/core/rw.c               |  13 +-
->  drivers/nvme/host/core.c                   |   4 +
->  drivers/nvme/host/nvme.h                   |   8 +
->  drivers/nvme/host/pci.c                    | 118 +++--
->  drivers/nvme/target/configfs.c             |  67 +++
->  drivers/nvme/target/core.c                 | 143 ++++-
->  drivers/nvme/target/io-cmd.c               |   3 +
->  drivers/nvme/target/nvmet.h                |  15 +
->  drivers/nvme/target/rdma.c                 |  22 +-
->  drivers/pci/Kconfig                        |  26 +
->  drivers/pci/Makefile                       |   1 +
->  drivers/pci/p2pdma.c                       | 814 +++++++++++++++++++++++++++++
->  drivers/pci/pci.c                          |   6 +
->  include/linux/blk_types.h                  |  18 +-
->  include/linux/blkdev.h                     |   3 +
->  include/linux/memremap.h                   |  19 +
->  include/linux/pci-p2pdma.h                 | 118 +++++
->  include/linux/pci.h                        |   4 +
->  26 files changed, 1579 insertions(+), 56 deletions(-)
->  create mode 100644 Documentation/PCI/index.rst
->  create mode 100644 Documentation/driver-api/pci/index.rst
->  create mode 100644 Documentation/driver-api/pci/p2pdma.rst
->  rename Documentation/driver-api/{ => pci}/pci.rst (100%)
->  create mode 100644 drivers/pci/p2pdma.c
->  create mode 100644 include/linux/pci-p2pdma.h
-
-How do you envison merging this?  There's a big chunk in drivers/pci, but
-really no opportunity for conflicts there, and there's significant stuff in
-block and nvme that I don't really want to merge.
-
-If Alex is OK with the ACS situation, I can ack the PCI parts and you could
-merge it elsewhere?
-
-Bjorn
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CgpPbiAwNC8wNS8xOCAwODoyNyBBTSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBBcmUgeW91
+IHN1cmUgdGhhdCB0aGlzIGlzIG1vcmUgY29udmVuaWVudD8gQXQgbGVhc3Qgb24gZmlyc3QgZ2xh
+bmNlIGl0IAo+IGZlZWxzIG92ZXJseSBjb21wbGljYXRlZC4KPiAKPiBJIG1lYW4gd2hhdCdzIHRo
+ZSBkaWZmZXJlbmNlIGJldHdlZW4gdGhlIHR3byBhcHByb2FjaGVzPwo+IAo+ICDCoMKgwqAgc3Vt
+ID0gcGNpX3AycGRtYV9kaXN0YW5jZSh0YXJnZXQsIFtBLCBCLCBDLCB0YXJnZXRdKTsKPiAKPiBh
+bmQKPiAKPiAgwqDCoMKgIHN1bSA9IHBjaV9wMnBkbWFfZGlzdGFuY2UodGFyZ2V0LCBBKTsKPiAg
+wqDCoMKgIHN1bSArPSBwY2lfcDJwZG1hX2Rpc3RhbmNlKHRhcmdldCwgQik7Cj4gIMKgwqDCoCBz
+dW0gKz0gcGNpX3AycGRtYV9kaXN0YW5jZSh0YXJnZXQsIEMpOwoKV2VsbCwgaXQncyBtb3JlIGZv
+ciBjb25zaXN0ZW5jeSB3aXRoIHRoZSBwY2lfcDJwZG1hX2ZpbmQoKSB3aGljaCBoYXMgdG8KdGFr
+ZSBhIGxpc3Qgb2YgZGV2aWNlcyB0byBmaW5kIGEgcmVzb3VyY2Ugd2hpY2ggbWF0Y2hlcyBhbGwg
+b2YgdGhlbS4KKFlvdSBjYW4ndCB1c2UgbXVsdGlwbGUgY2FsbHMgaW4gdGhhdCBjYXNlIGJlY2F1
+c2UgYWxsIHRoZSBkZXZpY2VzIGluCnRoZSBsaXN0IG1pZ2h0IG5vdCBoYXZlIHRoZSBzYW1lIHNl
+dCBvZiBjb21wYXRpYmxlIHByb3ZpZGVycy4pIFRoYXQgd2F5CndlIGNhbiB1c2UgdGhlIHNhbWUg
+bGlzdCB0byBjaGVjayB0aGUgZGlzdGFuY2UgKHdoZW4gdGhlIHVzZXIgc3BlY2lmaWVzCmEgZGV2
+aWNlKSBhcyB3ZSBkbyB0byBmaW5kIGEgY29tcGF0aWJsZSBkZXZpY2UgKHdoZW4gdGhlIHVzZXIg
+d2FudHMgdG8KYXV0b21hdGljYWxseSBmaW5kIG9uZS4KCkxvZ2FuCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
