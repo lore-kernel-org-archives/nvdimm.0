@@ -2,17 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5091F20957B16
- for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 14:37:50 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v2] ndctl, filter: fix "keyword 'all' is ignored" in
- util_<obj>_filter()
-Date: Wed, 2 May 2018 21:37:48 +0000
-Message-ID: <1525297066.5237.16.camel@intel.com>
-References: <20180426005648.13028-1-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180426005648.13028-1-qi.fuli@jp.fujitsu.com>
-Content-Language: en-US
-Content-ID: <E458195FB91F7145A28F7F097C8640A2@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A2C72203B8C94
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:16:02 -0700 (PDT)
+Subject: [PATCH v3 0/9] Series short description
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 03 May 2018 17:06:05 -0700
+Message-ID: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,127 +20,90 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
+To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Andrew Morton <akpm@linux-foundation.org>, Mike Snitzer <snitzer@redhat.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Mika =?utf-8?b?UGVudHRpbMOk?= <mika.penttila@nextfour.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2018-04-26 at 09:56 +0900, QI Fuli wrote:
-> This is a follow up patch for commit c70adc3cf6bf ("ndctl, filter:
-> refactor
-> util_<obj>_filter() to support multiple space-seperated arguments")
-> refactored util_<obj>_filter() to support multiple space-seperated
-> arguments.
-> But, when the keyword "all" is included in space-seperated arguments,
-> it will be treaded as <object>'s name. This patch fixes it.
-> 
-> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
-> 
-> Change log since v1:
->  - Removing the strcmp(__ident, "all") == 0 at the top of
-> util_<obj>_filter()
->  - Changing the strcmp(ident, "all") == 0 to strcmp(name, "all") == 0
-> 
-> ---
->  util/filter.c | 20 ++++++++++++++++----
->  1 file changed, 16 insertions(+), 4 deletions(-)
+Changes since v2 [1]:
 
-Thanks, applied. Just as a future note, you should have the "changes since
-v1" notes below the '---' marker (between the --- and the first file
-diffstat). This prevents it from being picked up as part of the commit
-message.
+* Fix source address increment in mcsafe_handle_tail() (Mika)
 
-Thanks,
-	-Vishal
+* Extend the unit test to inject simulated write faults and validate
+  that data is properly transferred.
 
-> 
-> diff --git a/util/filter.c b/util/filter.c
-> index 0d3cc02..1734bce 100644
-> --- a/util/filter.c
-> +++ b/util/filter.c
-> @@ -31,7 +31,7 @@ struct ndctl_bus *util_bus_filter(struct ndctl_bus
-> *bus, const char *__ident)
->  	unsigned long bus_id, id;
->  	const char *provider, *devname, *name;
->  
-> -	if (!__ident || strcmp(__ident, "all") == 0)
-> +	if (!__ident)
->  		return bus;
->  
->  	ident = strdup(__ident);
-> @@ -40,6 +40,9 @@ struct ndctl_bus *util_bus_filter(struct ndctl_bus
-> *bus, const char *__ident)
->  
->  	for (name = strtok_r(ident, " ", &save); name;
->  			name = strtok_r(NULL, " ", &save)) {
-> +		if (strcmp(name, "all") == 0)
-> +			break;
-> +
->  		bus_id = strtoul(ident, &end, 0);
->  		if (end == ident || end[0])
->  			bus_id = ULONG_MAX;
-> @@ -69,7 +72,7 @@ struct ndctl_region *util_region_filter(struct
-> ndctl_region *region,
->  	const char *name, *region_name;
->  	unsigned long region_id, id;
->  
-> -	if (!__ident || strcmp(__ident, "all") == 0)
-> +	if (!__ident)
->  		return region;
->  
->  	ident = strdup(__ident);
-> @@ -78,6 +81,9 @@ struct ndctl_region *util_region_filter(struct
-> ndctl_region *region,
->  
->  	for (name = strtok_r(ident, " ", &save); name;
->  			name = strtok_r(NULL, " ", &save)) {
-> +		if (strcmp(name, "all") == 0)
-> +			break;
-> +
->  		region_id = strtoul(ident, &end, 0);
->  		if (end == ident || end[0])
->  			region_id = ULONG_MAX;
-> @@ -106,7 +112,7 @@ struct ndctl_namespace *util_namespace_filter(struct
-> ndctl_namespace *ndns,
->  	const char *name;
->  	char *ident, *save;
->  
-> -	if (!__ident || strcmp(__ident, "all") == 0)
-> +	if (!__ident)
->  		return ndns;
->  
->  	ident = strdup(__ident);
-> @@ -115,6 +121,9 @@ struct ndctl_namespace *util_namespace_filter(struct
-> ndctl_namespace *ndns,
->  
->  	for (name = strtok_r(ident, " ", &save); name;
->  			name = strtok_r(NULL, " ", &save)) {
-> +		if (strcmp(name, "all") == 0)
-> +			break;
-> +
->  		if (strcmp(name, ndctl_namespace_get_devname(ndns)) ==
-> 0)
->  			break;
->  
-> @@ -137,7 +146,7 @@ struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm
-> *dimm,
->  	const char *name, *dimm_name;
->  	unsigned long dimm_id, id;
->  
-> -	if (!__ident || strcmp(__ident, "all") == 0)
-> +	if (!__ident)
->  		return dimm;
->  
->  	ident = strdup(__ident);
-> @@ -146,6 +155,9 @@ struct ndctl_dimm *util_dimm_filter(struct ndctl_dimm
-> *dimm,
->  
->  	for (name = strtok_r(ident, " ", &save); name;
->  			name = strtok_r(NULL, " ", &save)) {
-> +		if (strcmp(name, "all") == 0)
-> +			break;
-> +
->  		dimm_id = strtoul(ident, &end, 0);
->  		if (end == ident || end[0])
->  			dimm_id = ULONG_MAX;
+* Rename MCSAFE_DEBUG to MCSAFE_TEST
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-May/015583.html
+
+---
+
+Currently memcpy_mcsafe() is only deployed in the pmem driver when
+reading through a /dev/pmemX block device. However, a filesystem in dax
+mode mounted on a /dev/pmemX block device will bypass the block layer
+and the driver for reads. The filesystem-dax (fsdax) read case uses
+dax_direct_access() and copy_to_iter() to bypass the block layer.
+
+The result of the bypass is that the kernel treats machine checks during
+read as system fatal (reboot) when they could simply be flagged as an
+I/O error, similar to performing reads through the pmem driver. Prevent
+this fatal condition by deploying memcpy_mcsafe() in the fsdax read
+path.
+
+The main differences between this copy_to_user_mcsafe() and
+copy_user_generic_unrolled() are:
+
+* Typical tail/residue handling after a fault retries the copy
+  byte-by-byte until the fault happens again. Re-triggering machine
+  checks is potentially fatal so the implementation uses source alignment
+  and poison alignment assumptions to avoid re-triggering machine
+  checks.
+
+* SMAP coordination is handled external to the assembly with
+  __uaccess_begin() and __uaccess_end().
+
+* ITER_KVEC and ITER_BVEC can now end prematurely with an error.
+
+The new MCSAFE_TEST facility is proposed as a way to unit test the
+exception handling without requiring an ACPI EINJ capable platform.
+
+---
+
+Dan Williams (9):
+      x86, memcpy_mcsafe: remove loop unrolling
+      x86, memcpy_mcsafe: add labels for write fault handling
+      x86, memcpy_mcsafe: return bytes remaining
+      x86, memcpy_mcsafe: add write-protection-fault handling
+      x86, memcpy_mcsafe: define copy_to_iter_mcsafe()
+      dax: introduce a ->copy_to_iter dax operation
+      dax: report bytes remaining in dax_iomap_actor()
+      pmem: switch to copy_to_iter_mcsafe()
+      x86, nfit_test: unit test for memcpy_mcsafe()
+
+
+ arch/x86/Kconfig                   |    1 
+ arch/x86/Kconfig.debug             |    3 +
+ arch/x86/include/asm/mcsafe_test.h |   75 ++++++++++++++++++++++++
+ arch/x86/include/asm/string_64.h   |   10 ++-
+ arch/x86/include/asm/uaccess_64.h  |   14 +++++
+ arch/x86/lib/memcpy_64.S           |  112 +++++++++++++++++-------------------
+ arch/x86/lib/usercopy_64.c         |   21 +++++++
+ drivers/dax/super.c                |   10 +++
+ drivers/md/dm-linear.c             |   16 +++++
+ drivers/md/dm-log-writes.c         |   15 +++++
+ drivers/md/dm-stripe.c             |   21 +++++++
+ drivers/md/dm.c                    |   25 ++++++++
+ drivers/nvdimm/claim.c             |    3 +
+ drivers/nvdimm/pmem.c              |   13 +++-
+ drivers/s390/block/dcssblk.c       |    7 ++
+ fs/dax.c                           |   21 ++++---
+ include/linux/dax.h                |    5 ++
+ include/linux/device-mapper.h      |    5 +-
+ include/linux/string.h             |    4 +
+ include/linux/uio.h                |   15 +++++
+ lib/iov_iter.c                     |   61 ++++++++++++++++++++
+ tools/testing/nvdimm/test/nfit.c   |  104 +++++++++++++++++++++++++++++++++
+ 22 files changed, 482 insertions(+), 79 deletions(-)
+ create mode 100644 arch/x86/include/asm/mcsafe_test.h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
