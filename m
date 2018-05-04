@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 82656203BA4FF
- for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:50:06 -0700 (PDT)
-Subject: [PATCH 07/11] mm, madvise_inject_error: fix page count leak
+ by ml01.01.org (Postfix) with ESMTPS id 342662063E2E8
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:16:13 -0700 (PDT)
+Subject: [PATCH v3 2/9] x86, memcpy_mcsafe: add labels for write fault handling
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 May 2018 07:40:09 -0700
-Message-ID: <152700000922.24093.14813242965473482705.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 03 May 2018 17:06:16 -0700
+Message-ID: <152539237606.31796.6719743548991782264.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,94 +23,96 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Andi Kleen <ak@linux.intel.com>, tony.luck@intel.com, stable@vger.kernel.org, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, linux-fsdevel@vger.kernel.org, Wu Fengguang <fengguang.wu@intel.com>, hch@lst.de
+Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The madvise_inject_error() routine uses get_user_pages() to lookup the
-pfn and other information for injected error, but it fails to release
-that pin.
+The memcpy_mcsafe() implementation handles CPU exceptions when reading
+from the source address. Before it can be used for user copies it needs
+to grow support for handling write faults. In preparation for adding
+that exception handling update the labels for the read cache word X case
+(.L_cache_rX) and write cache word X case (.L_cache_wX).
 
-The dax-dma-vs-truncate warning catches this failure with the following
-signature:
-
- Injecting memory failure for pfn 0x208900 at process virtual address 0x7f3908d00000
- Memory failure: 0x208900: reserved kernel page still referenced by 1 users
- Memory failure: 0x208900: recovery action for reserved kernel page: Failed
- WARNING: CPU: 37 PID: 9566 at fs/dax.c:348 dax_disassociate_entry+0x4e/0x90
- CPU: 37 PID: 9566 Comm: umount Tainted: G        W  OE     4.17.0-rc6+ #1900
- [..]
- RIP: 0010:dax_disassociate_entry+0x4e/0x90
- RSP: 0018:ffffc9000a9b3b30 EFLAGS: 00010002
- RAX: ffffea0008224000 RBX: 0000000000208a00 RCX: 0000000000208900
- RDX: 0000000000000001 RSI: ffff8804058c6160 RDI: 0000000000000008
- RBP: 000000000822000a R08: 0000000000000002 R09: 0000000000208800
- R10: 0000000000000000 R11: 0000000000208801 R12: ffff8804058c6168
- R13: 0000000000000000 R14: 0000000000000002 R15: 0000000000000001
- FS:  00007f4548027fc0(0000) GS:ffff880431d40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 000056316d5f8988 CR3: 00000004298cc000 CR4: 00000000000406e0
- Call Trace:
-  __dax_invalidate_mapping_entry+0xab/0xe0
-  dax_delete_mapping_entry+0xf/0x20
-  truncate_exceptional_pvec_entries.part.14+0x1d4/0x210
-  truncate_inode_pages_range+0x291/0x920
-  ? kmem_cache_free+0x1f8/0x300
-  ? lock_acquire+0x9f/0x200
-  ? truncate_inode_pages_final+0x31/0x50
-  ext4_evict_inode+0x69/0x740
-
-Cc: <stable@vger.kernel.org>
-Fixes: bd1ce5f91f54 ("HWPOISON: avoid grabbing the page count...")
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: <x86@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reported-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/madvise.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ arch/x86/lib/memcpy_64.S |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/mm/madvise.c b/mm/madvise.c
-index 4d3c922ea1a1..246fa4d4eee2 100644
---- a/mm/madvise.c
-+++ b/mm/madvise.c
-@@ -631,11 +631,13 @@ static int madvise_inject_error(int behavior,
+diff --git a/arch/x86/lib/memcpy_64.S b/arch/x86/lib/memcpy_64.S
+index 54c971892db5..5709f3ec22a4 100644
+--- a/arch/x86/lib/memcpy_64.S
++++ b/arch/x86/lib/memcpy_64.S
+@@ -204,13 +204,14 @@ ENTRY(__memcpy_mcsafe)
+ 	subl $8, %ecx
+ 	negl %ecx
+ 	subl %ecx, %edx
+-.L_copy_leading_bytes:
++.L_read_leading_bytes:
+ 	movb (%rsi), %al
++.L_write_leading_bytes:
+ 	movb %al, (%rdi)
+ 	incq %rsi
+ 	incq %rdi
+ 	decl %ecx
+-	jnz .L_copy_leading_bytes
++	jnz .L_read_leading_bytes
  
+ .L_8byte_aligned:
+ 	movl %edx, %ecx
+@@ -218,13 +219,14 @@ ENTRY(__memcpy_mcsafe)
+ 	shrl $3, %ecx
+ 	jz .L_no_whole_words
  
- 	for (; start < end; start += PAGE_SIZE << order) {
-+		unsigned long pfn;
- 		int ret;
+-.L_copy_words:
++.L_read_words:
+ 	movq (%rsi), %r8
++.L_write_words:
+ 	movq %r8, (%rdi)
+ 	addq $8, %rsi
+ 	addq $8, %rdi
+ 	decl %ecx
+-	jnz .L_copy_words
++	jnz .L_read_words
  
- 		ret = get_user_pages_fast(start, 1, 0, &page);
- 		if (ret != 1)
- 			return ret;
-+		pfn = page_to_pfn(page);
+ 	/* Any trailing bytes? */
+ .L_no_whole_words:
+@@ -233,13 +235,14 @@ ENTRY(__memcpy_mcsafe)
  
- 		/*
- 		 * When soft offlining hugepages, after migrating the page
-@@ -651,17 +653,20 @@ static int madvise_inject_error(int behavior,
+ 	/* Copy trailing bytes */
+ 	movl %edx, %ecx
+-.L_copy_trailing_bytes:
++.L_read_trailing_bytes:
+ 	movb (%rsi), %al
++.L_write_trailing_bytes:
+ 	movb %al, (%rdi)
+ 	incq %rsi
+ 	incq %rdi
+ 	decl %ecx
+-	jnz .L_copy_trailing_bytes
++	jnz .L_read_trailing_bytes
  
- 		if (behavior == MADV_SOFT_OFFLINE) {
- 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
--						page_to_pfn(page), start);
-+					pfn, start);
+ 	/* Copy successful. Return zero */
+ .L_done_memcpy_trap:
+@@ -256,7 +259,7 @@ EXPORT_SYMBOL_GPL(__memcpy_mcsafe)
  
- 			ret = soft_offline_page(page, MF_COUNT_INCREASED);
-+			put_page(page);
- 			if (ret)
- 				return ret;
- 			continue;
- 		}
-+		put_page(page);
-+
- 		pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
--						page_to_pfn(page), start);
-+				pfn, start);
+ 	.previous
  
--		ret = memory_failure(page_to_pfn(page), MF_COUNT_INCREASED);
-+		ret = memory_failure(pfn, MF_COUNT_INCREASED);
- 		if (ret)
- 			return ret;
- 	}
+-	_ASM_EXTABLE_FAULT(.L_copy_leading_bytes, .L_memcpy_mcsafe_fail)
+-	_ASM_EXTABLE_FAULT(.L_copy_words, .L_memcpy_mcsafe_fail)
+-	_ASM_EXTABLE_FAULT(.L_copy_trailing_bytes, .L_memcpy_mcsafe_fail)
++	_ASM_EXTABLE_FAULT(.L_read_leading_bytes, .L_memcpy_mcsafe_fail)
++	_ASM_EXTABLE_FAULT(.L_read_words, .L_memcpy_mcsafe_fail)
++	_ASM_EXTABLE_FAULT(.L_read_trailing_bytes, .L_memcpy_mcsafe_fail)
+ #endif
 
 _______________________________________________
 Linux-nvdimm mailing list
