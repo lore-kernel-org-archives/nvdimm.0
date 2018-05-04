@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5076E203BBB9F
- for <linux-nvdimm@lists.01.org>; Wed, 16 May 2018 22:00:33 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [qemu PATCH v2 0/4] support NFIT platform capabilities
-Date: Wed, 16 May 2018 23:00:20 -0600
-Message-Id: <20180517050024.20101-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3B2692063E2E3
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:16:50 -0700 (PDT)
+Subject: [PATCH v3 9/9] x86, nfit_test: unit test for memcpy_mcsafe()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 03 May 2018 17:06:53 -0700
+Message-ID: <152539241304.31796.3835537335428021870.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,53 +18,322 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Igor Mammedov <imammedo@redhat.com>, qemu-devel@nongnu.org
-Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S . Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>
+To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The first 2 patches in this series clean up some things I noticed while
-coding.
+Given the fact that the ACPI "EINJ" (error injection) facility is not
+universally available, implement software infrastructure to validate the
+memcpy_mcsafe() exception handling implementation.
 
-Patch 3 adds support for the new Platform Capabilities Structure, which
-was added to the NFIT in ACPI 6.2 Errata A.  We add a machine command
-line option "nvdimm-cap":
+For each potential read exception point in memcpy_mcsafe(), inject a
+emulated exception point at the address identified by 'mcsafe_inject'
+variable. With this infrastructure implement a test to validate that the
+'bytes remaining' calculation is correct for a range of various source
+buffer alignments.
 
-    -machine pc,accel=kvm,nvdimm,nvdimm-cap=2
+This code is compiled out by default. The CONFIG_MCSAFE_DEBUG
+configuration symbol needs to be manually enabled by editing
+Kconfig.debug. I.e. this functionality can not be accidentally enabled
+by a user / distro, it's only for development.
 
-which allows the user to pass in a value for this structure.  When such
-a value is passed in we will generate the new NFIT subtable.
+Cc: <x86@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reported-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/x86/Kconfig.debug             |    3 +
+ arch/x86/include/asm/mcsafe_test.h |   75 ++++++++++++++++++++++++++
+ arch/x86/lib/memcpy_64.S           |   10 +++
+ tools/testing/nvdimm/test/nfit.c   |  104 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 192 insertions(+)
+ create mode 100644 arch/x86/include/asm/mcsafe_test.h
 
-Patch 4 adds code to the "make check" self test infrastructure so that
-we generate the new Platform Capabilities Structure, and adds it to the
-expected NFIT output so that we test for it.
-
-Thanks to Igor Mammedov for his feedback on v1 of this set.
-
-Ross Zwisler (4):
-  nvdimm: fix typo in label-size definition
-  tests/.gitignore: add entry for generated file
-  nvdimm, acpi: support NFIT platform capabilities
-  ACPI testing: test NFIT platform capabilities
-
- docs/nvdimm.txt                       |  18 ++++++++++++++
- hw/acpi/nvdimm.c                      |  44 ++++++++++++++++++++++++++++++----
- hw/i386/pc.c                          |  31 ++++++++++++++++++++++++
- hw/mem/nvdimm.c                       |   2 +-
- include/hw/i386/pc.h                  |   1 +
- include/hw/mem/nvdimm.h               |   7 +++++-
- tests/.gitignore                      |   1 +
- tests/acpi-test-data/pc/NFIT.dimmpxm  | Bin 224 -> 240 bytes
- tests/acpi-test-data/q35/NFIT.dimmpxm | Bin 224 -> 240 bytes
- tests/bios-tables-test.c              |   2 +-
- 10 files changed, 99 insertions(+), 7 deletions(-)
-
--- 
-2.14.3
+diff --git a/arch/x86/Kconfig.debug b/arch/x86/Kconfig.debug
+index 192e4d2f9efc..c6dd1d980081 100644
+--- a/arch/x86/Kconfig.debug
++++ b/arch/x86/Kconfig.debug
+@@ -72,6 +72,9 @@ config EARLY_PRINTK_USB_XDBC
+ 	  You should normally say N here, unless you want to debug early
+ 	  crashes or need a very simple printk logging facility.
+ 
++config MCSAFE_TEST
++	def_bool n
++
+ config X86_PTDUMP_CORE
+ 	def_bool n
+ 
+diff --git a/arch/x86/include/asm/mcsafe_test.h b/arch/x86/include/asm/mcsafe_test.h
+new file mode 100644
+index 000000000000..eb59804b6201
+--- /dev/null
++++ b/arch/x86/include/asm/mcsafe_test.h
+@@ -0,0 +1,75 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _MCSAFE_TEST_H_
++#define _MCSAFE_TEST_H_
++
++#ifndef __ASSEMBLY__
++#ifdef CONFIG_MCSAFE_TEST
++extern unsigned long mcsafe_test_src;
++extern unsigned long mcsafe_test_dst;
++
++static inline void mcsafe_inject_src(void *addr)
++{
++	if (addr)
++		mcsafe_test_src = (unsigned long) addr;
++	else
++		mcsafe_test_src = ~0UL;
++}
++
++static inline void mcsafe_inject_dst(void *addr)
++{
++	if (addr)
++		mcsafe_test_dst = (unsigned long) addr;
++	else
++		mcsafe_test_dst = ~0UL;
++}
++#else /* CONFIG_MCSAFE_TEST */
++static inline void mcsafe_inject_src(void *addr)
++{
++}
++
++static inline void mcsafe_inject_dst(void *addr)
++{
++}
++#endif /* CONFIG_MCSAFE_TEST */
++
++#else /* __ASSEMBLY__ */
++#include <asm/export.h>
++
++#ifdef CONFIG_MCSAFE_TEST
++.macro MCSAFE_TEST_CTL
++	.pushsection .data
++	.align 8
++	.globl mcsafe_test_src
++	mcsafe_test_src:
++		.quad 0
++	EXPORT_SYMBOL_GPL(mcsafe_test_src)
++	.globl mcsafe_test_dst
++	mcsafe_test_dst:
++		.quad 0
++	EXPORT_SYMBOL_GPL(mcsafe_test_dst)
++	.popsection
++.endm
++
++.macro MCSAFE_TEST_SRC reg count target
++	leaq \count(\reg), %r9
++	cmp mcsafe_test_src, %r9
++	ja \target
++.endm
++
++.macro MCSAFE_TEST_DST reg count target
++	leaq \count(\reg), %r9
++	cmp mcsafe_test_dst, %r9
++	ja \target
++.endm
++#else
++.macro MCSAFE_TEST_CTL
++.endm
++
++.macro MCSAFE_TEST_SRC reg count target
++.endm
++
++.macro MCSAFE_TEST_DST reg count target
++.endm
++#endif /* CONFIG_MCSAFE_TEST */
++#endif /* __ASSEMBLY__ */
++#endif /* _MCSAFE_TEST_H_ */
+diff --git a/arch/x86/lib/memcpy_64.S b/arch/x86/lib/memcpy_64.S
+index c3b527a9f95d..298ef1479240 100644
+--- a/arch/x86/lib/memcpy_64.S
++++ b/arch/x86/lib/memcpy_64.S
+@@ -3,6 +3,7 @@
+ #include <linux/linkage.h>
+ #include <asm/errno.h>
+ #include <asm/cpufeatures.h>
++#include <asm/mcsafe_test.h>
+ #include <asm/alternative-asm.h>
+ #include <asm/export.h>
+ 
+@@ -183,6 +184,9 @@ ENTRY(memcpy_orig)
+ ENDPROC(memcpy_orig)
+ 
+ #ifndef CONFIG_UML
++
++MCSAFE_TEST_CTL
++
+ /*
+  * __memcpy_mcsafe - memory copy with machine check exception handling
+  * Note that we only catch machine checks when reading the source addresses.
+@@ -206,6 +210,8 @@ ENTRY(__memcpy_mcsafe)
+ 	subl %ecx, %edx
+ .L_read_leading_bytes:
+ 	movb (%rsi), %al
++	MCSAFE_TEST_SRC %rsi 1 .E_leading_bytes
++	MCSAFE_TEST_DST %rdi 1 .E_leading_bytes
+ .L_write_leading_bytes:
+ 	movb %al, (%rdi)
+ 	incq %rsi
+@@ -221,6 +227,8 @@ ENTRY(__memcpy_mcsafe)
+ 
+ .L_read_words:
+ 	movq (%rsi), %r8
++	MCSAFE_TEST_SRC %rsi 8 .E_read_words
++	MCSAFE_TEST_DST %rdi 8 .E_write_words
+ .L_write_words:
+ 	movq %r8, (%rdi)
+ 	addq $8, %rsi
+@@ -237,6 +245,8 @@ ENTRY(__memcpy_mcsafe)
+ 	movl %edx, %ecx
+ .L_read_trailing_bytes:
+ 	movb (%rsi), %al
++	MCSAFE_TEST_SRC %rsi 1 .E_trailing_bytes
++	MCSAFE_TEST_DST %rdi 1 .E_trailing_bytes
+ .L_write_trailing_bytes:
+ 	movb %al, (%rdi)
+ 	incq %rsi
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 4ea385be528f..a8fb63edcf89 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -29,6 +29,8 @@
+ #include "nfit_test.h"
+ #include "../watermark.h"
+ 
++#include <asm/mcsafe_test.h>
++
+ /*
+  * Generate an NFIT table to describe the following topology:
+  *
+@@ -2681,6 +2683,107 @@ static struct platform_driver nfit_test_driver = {
+ 	.id_table = nfit_test_id,
+ };
+ 
++static char mcsafe_buf[PAGE_SIZE] __attribute__((__aligned__(PAGE_SIZE)));
++
++enum INJECT {
++	INJECT_NONE,
++	INJECT_SRC,
++	INJECT_DST,
++};
++
++static void mcsafe_test_init(char *dst, char *src, size_t size)
++{
++	size_t i;
++
++	memset(dst, 0xff, size);
++	for (i = 0; i < size; i++)
++		src[i] = (char) i;
++}
++
++static bool mcsafe_test_validate(unsigned char *dst, unsigned char *src,
++		size_t size, unsigned long rem)
++{
++	size_t i;
++
++	for (i = 0; i < size - rem; i++)
++		if (dst[i] != (unsigned char) i) {
++			pr_info_once("%s:%d: offset: %zd got: %#x expect: %#x\n",
++					__func__, __LINE__, i, dst[i],
++					(unsigned char) i);
++			return false;
++		}
++	for (i = size - rem; i < size; i++)
++		if (dst[i] != 0xffU) {
++			pr_info_once("%s:%d: offset: %zd got: %#x expect: 0xff\n",
++					__func__, __LINE__, i, dst[i]);
++			return false;
++		}
++	return true;
++}
++
++void mcsafe_test(void)
++{
++	char *inject_desc[] = { "none", "source", "destination" };
++	enum INJECT inj;
++
++	if (IS_ENABLED(CONFIG_MCSAFE_TEST)) {
++		pr_info("%s: run...\n", __func__);
++	} else {
++		pr_info("%s: disabled, skip.\n", __func__);
++		return;
++	}
++
++	for (inj = INJECT_NONE; inj <= INJECT_DST; inj++) {
++		int i;
++
++		pr_info("%s: inject: %s\n", __func__, inject_desc[inj]);
++		for (i = 0; i < 512; i++) {
++			unsigned long expect, rem;
++			void *src, *dst;
++			bool valid;
++
++			switch (inj) {
++			case INJECT_NONE:
++				mcsafe_inject_src(NULL);
++				mcsafe_inject_dst(NULL);
++				dst = &mcsafe_buf[2048];
++				src = &mcsafe_buf[1024 - i];
++				expect = 0;
++				break;
++			case INJECT_SRC:
++				mcsafe_inject_src(&mcsafe_buf[1024]);
++				mcsafe_inject_dst(NULL);
++				dst = &mcsafe_buf[2048];
++				src = &mcsafe_buf[1024 - i];
++				expect = 512 - i;
++				break;
++			case INJECT_DST:
++				mcsafe_inject_src(NULL);
++				mcsafe_inject_dst(&mcsafe_buf[2048]);
++				dst = &mcsafe_buf[2048 - i];
++				src = &mcsafe_buf[1024];
++				expect = 512 - i;
++				break;
++			}
++
++			mcsafe_test_init(dst, src, 512);
++			rem = __memcpy_mcsafe(dst, src, 512);
++			valid = mcsafe_test_validate(dst, src, 512, expect);
++			if (rem == expect && valid)
++				continue;
++			pr_info("%s: copy(%#lx, %#lx, %d) off: %d rem: %ld %s expect: %ld\n",
++					__func__,
++					((unsigned long) dst) & ~PAGE_MASK,
++					((unsigned long ) src) & ~PAGE_MASK,
++					512, i, rem, valid ? "valid" : "bad",
++					expect);
++		}
++	}
++
++	mcsafe_inject_src(NULL);
++	mcsafe_inject_dst(NULL);
++}
++
+ static __init int nfit_test_init(void)
+ {
+ 	int rc, i;
+@@ -2689,6 +2792,7 @@ static __init int nfit_test_init(void)
+ 	libnvdimm_test();
+ 	acpi_nfit_test();
+ 	device_dax_test();
++	mcsafe_test();
+ 
+ 	nfit_test_setup(nfit_test_lookup, nfit_test_evaluate_dsm);
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
