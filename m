@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
+ [IPv6:2607:f8b0:4003:c06::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9212D203BA4FF
- for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:49:49 -0700 (PDT)
-Subject: [PATCH 04/11] device-dax: set page->index
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 May 2018 07:39:52 -0700
-Message-ID: <152699999266.24093.18001031234939470569.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D63B0203BEA5E
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:08:32 -0700 (PDT)
+Received: by mail-oi0-x243.google.com with SMTP id 11-v6so17692055ois.8
+ for <linux-nvdimm@lists.01.org>; Thu, 03 May 2018 17:08:32 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20180503185050.7559-3-vishal.l.verma@intel.com>
+References: <20180503185050.7559-1-vishal.l.verma@intel.com>
+ <20180503185050.7559-3-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 3 May 2018 17:08:31 -0700
+Message-ID: <CAPcyv4hK19S=O1skqrvgZSbKKfWew2nreJDYPTbKMP+nxW73PA@mail.gmail.com>
+Subject: Re: [ndctl PATCH 3/4] libndctl,
+ test: fix a couple of unchecked returns
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,48 +27,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, tony.luck@intel.com, hch@lst.de
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of enabling memory_failure() handling for device-dax
-mappings, set ->index to the pgoff of the page. The rmap implementation
-requires ->index to bound the search through the vma interval tree.
+On Thu, May 3, 2018 at 11:50 AM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> -Wunused-result with -D_FORTIFY_SOURCE=2 reported a couple of unchecked
+> return values, fix them by appropriately failing on errors.
 
-The ->index value is never cleared. There is no possibility for the
-page to become associated with another pgoff while the device is
-enabled. When the device is disabled the 'struct page' array for the
-device is destroyed and ->index is reinitialized to zero.
+*Building with '-Wunused-result -D_FORTIFY_SOURCE=2' reports...
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/device.c |    4 ++++
- 1 file changed, 4 insertions(+)
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  ndctl/lib/libndctl.c | 5 ++++-
+>  test/dax-pmd.c       | 5 ++++-
+>  2 files changed, 8 insertions(+), 2 deletions(-)
+>
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index 6733b85..47e005e 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -1243,7 +1243,10 @@ NDCTL_EXPORT int ndctl_bus_wait_for_scrub_completion(struct ndctl_bus *bus)
+>                                 break;
+>                         }
+>                         dbg(ctx, "poll wake: revents: %d\n", fds.revents);
+> -                       pread(fd, buf, 1, 0);
+> +                       if (pread(fd, buf, 1, 0) == -1) {
+> +                               rc = -errno;
+> +                               break;
+> +                       }
+>                         fds.revents = 0;
+>                 }
+>         }
+> diff --git a/test/dax-pmd.c b/test/dax-pmd.c
+> index 06fe522..65bee6f 100644
+> --- a/test/dax-pmd.c
+> +++ b/test/dax-pmd.c
+> @@ -125,7 +125,10 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
+>                                 rc = -ENXIO;
+>                         }
+>                         ((char *) buf)[0] = 0;
+> -                       pread(fd2, buf, 4096, 0);
+> +                       if (pread(fd2, buf, 4096, 0) != 4096) {
+> +                               faili(i);
+> +                               rc = -ENXIO;
+> +                       }
+>                         if (strcmp(buf, "odirect data") != 0) {
+>                                 faili(i);
+>                                 rc = -ENXIO;
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 8e986478d48d..b33e45ee4f70 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -418,7 +418,10 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 
- 	if (rc == VM_FAULT_NOPAGE) {
- 		unsigned long i;
-+		pgoff_t pgoff;
- 
-+		pgoff = linear_page_index(vma, vmf->address
-+				& ~(fault_size - 1));
- 		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
- 			struct page *page;
- 
-@@ -426,6 +429,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 			if (page->mapping)
- 				continue;
- 			page->mapping = filp->f_mapping;
-+			page->index = pgoff + i;
- 		}
- 	}
- 	dax_read_unlock(id);
 
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
