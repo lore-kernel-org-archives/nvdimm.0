@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F82421BADAB2
- for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 09:29:10 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl: hide null uuids
+ by ml01.01.org (Postfix) with ESMTPS id 144392063E2E8
+ for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:16:23 -0700 (PDT)
+Subject: [PATCH v3 4/9] x86, memcpy_mcsafe: add write-protection-fault handling
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 May 2018 09:19:13 -0700
-Message-ID: <152700595304.1878.15402579458295755554.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 03 May 2018 17:06:26 -0700
+Message-ID: <152539238635.31796.14056325365122961778.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,77 +18,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mika =?utf-8?b?UGVudHRpbMOk?= <mika.penttila@nextfour.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Clean up the namespace listing to hide the 'raw_uuid' field when it is
-zero.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- util/json.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
-
-diff --git a/util/json.c b/util/json.c
-index 1772177a8abd..c606e1cdf770 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -652,10 +652,12 @@ static struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
- 
- static struct json_object *util_raw_uuid(struct ndctl_namespace *ndns)
- {
--	uuid_t raw_uuid;
- 	char buf[40];
-+	uuid_t raw_uuid;
- 
- 	ndctl_namespace_get_uuid(ndns, raw_uuid);
-+	if (uuid_is_null(raw_uuid))
-+		return NULL;
- 	uuid_unparse(raw_uuid, buf);
- 	return json_object_new_string(buf);
- }
-@@ -734,9 +736,8 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 		json_object_object_add(jndns, "uuid", jobj);
- 
- 		jobj = util_raw_uuid(ndns);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "raw_uuid", jobj);
-+		if (jobj)
-+			json_object_object_add(jndns, "raw_uuid", jobj);
- 		bdev = ndctl_btt_get_block_device(btt);
- 	} else if (pfn) {
- 		ndctl_pfn_get_uuid(pfn, uuid);
-@@ -746,9 +747,8 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 			goto err;
- 		json_object_object_add(jndns, "uuid", jobj);
- 		jobj = util_raw_uuid(ndns);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "raw_uuid", jobj);
-+		if (jobj)
-+			json_object_object_add(jndns, "raw_uuid", jobj);
- 		bdev = ndctl_pfn_get_block_device(pfn);
- 	} else if (dax) {
- 		struct daxctl_region *dax_region;
-@@ -761,9 +761,8 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
- 			goto err;
- 		json_object_object_add(jndns, "uuid", jobj);
- 		jobj = util_raw_uuid(ndns);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "raw_uuid", jobj);
-+		if (jobj)
-+			json_object_object_add(jndns, "raw_uuid", jobj);
- 		if ((flags & UTIL_JSON_DAX) && dax_region) {
- 			jobj = util_daxctl_region_to_json(dax_region, NULL,
- 					flags);
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SW4gcHJlcGFyYXRpb24gZm9yIHVzaW5nIG1lbWNweV9tY3NhZmUoKSB0byBoYW5kbGUgdXNlciBj
+b3BpZXMgaXQgbmVlZHMKdG8gYmUgdG8gaGFuZGxlIHdyaXRlLXByb3RlY3Rpb24gZmF1bHRzIHdo
+aWxlIHdyaXRpbmcgdXNlciBwYWdlcy4gQWRkCk1NVS1mYXVsdCBoYW5kbGVycyBhbG9uZ3NpZGUg
+dGhlIG1hY2hpbmUtY2hlY2sgZXhjZXB0aW9uIGhhbmRsZXJzLgoKTm90ZSB0aGF0IHRoZSBtYWNo
+aW5lIGNoZWNrIGZhdWx0IGV4Y2VwdGlvbiBoYW5kbGluZyBtYWtlcyBhc3N1bXB0aW9ucwphYm91
+dCBzb3VyY2UgYnVmZmVyIGFsaWdubWVudCBhbmQgcG9pc29uIGFsaWdubWVudC4gSW4gdGhlIHdy
+aXRlIGZhdWx0CmNhc2UsIGdpdmVuIHRoZSBkZXN0aW5hdGlvbiBidWZmZXIgaXMgYXJiaXRyYXJp
+bHkgYWxpZ25lZCwgaXQgbmVlZHMgYQpzZXBhcmF0ZSAvIGFkZGl0aW9uYWwgZmF1bHQgaGFuZGxp
+bmcgYXBwcm9hY2guIFRoZSBtY3NhZmVfaGFuZGxlX3RhaWwoKQpoZWxwZXIgaXMgcmV1c2VkLiBU
+aGUgQGxpbWl0IGFyZ3VtZW50IGlzIHNldCB0byBAbGVuIHNpbmNlIHRoZXJlIGlzIG5vCnNhZmV0
+eSBjb25jZXJuIGFib3V0IHJldHJpZ2dlcmluZyBhbiBNTVUgZmF1bHQsIGFuZCB0aGlzIHNpbXBs
+aWZpZXMgdGhlCmFzc2VtYmx5LgoKQ2M6IDx4ODZAa2VybmVsLm9yZz4KQ2M6IEluZ28gTW9sbmFy
+IDxtaW5nb0ByZWRoYXQuY29tPgpDYzogQm9yaXNsYXYgUGV0a292IDxicEBhbGllbjguZGU+CkNj
+OiBUb255IEx1Y2sgPHRvbnkubHVja0BpbnRlbC5jb20+CkNjOiBBbCBWaXJvIDx2aXJvQHplbml2
+LmxpbnV4Lm9yZy51az4KQ2M6IFRob21hcyBHbGVpeG5lciA8dGdseEBsaW51dHJvbml4LmRlPgpD
+YzogQW5keSBMdXRvbWlyc2tpIDxsdXRvQGFtYWNhcGl0YWwubmV0PgpDYzogUGV0ZXIgWmlqbHN0
+cmEgPHBldGVyekBpbmZyYWRlYWQub3JnPgpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1m
+b3VuZGF0aW9uLm9yZz4KQ2M6IExpbnVzIFRvcnZhbGRzIDx0b3J2YWxkc0BsaW51eC1mb3VuZGF0
+aW9uLm9yZz4KUmVwb3J0ZWQtYnk6IE1pa2EgUGVudHRpbMOkIDxtaWthLnBlbnR0aWxhQG5leHRm
+b3VyLmNvbT4KQ28tZGV2ZWxvcGVkLWJ5OiBUb255IEx1Y2sgPHRvbnkubHVja0BpbnRlbC5jb20+
+ClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgot
+LS0KIGFyY2gveDg2L2luY2x1ZGUvYXNtL3VhY2Nlc3NfNjQuaCB8ICAgIDMgKysrCiBhcmNoL3g4
+Ni9saWIvbWVtY3B5XzY0LlMgICAgICAgICAgfCAgIDE0ICsrKysrKysrKysrKysrCiBhcmNoL3g4
+Ni9saWIvdXNlcmNvcHlfNjQuYyAgICAgICAgfCAgIDIxICsrKysrKysrKysrKysrKysrKysrKwog
+MyBmaWxlcyBjaGFuZ2VkLCAzOCBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvYXJjaC94ODYv
+aW5jbHVkZS9hc20vdWFjY2Vzc182NC5oIGIvYXJjaC94ODYvaW5jbHVkZS9hc20vdWFjY2Vzc182
+NC5oCmluZGV4IDYyNTQ2YjNhMzk4ZS4uYzYzZWZjMDc4OTFmIDEwMDY0NAotLS0gYS9hcmNoL3g4
+Ni9pbmNsdWRlL2FzbS91YWNjZXNzXzY0LmgKKysrIGIvYXJjaC94ODYvaW5jbHVkZS9hc20vdWFj
+Y2Vzc182NC5oCkBAIC0xOTQsNCArMTk0LDcgQEAgX19jb3B5X2Zyb21fdXNlcl9mbHVzaGNhY2hl
+KHZvaWQgKmRzdCwgY29uc3Qgdm9pZCBfX3VzZXIgKnNyYywgdW5zaWduZWQgc2l6ZSkKIHVuc2ln
+bmVkIGxvbmcKIGNvcHlfdXNlcl9oYW5kbGVfdGFpbChjaGFyICp0bywgY2hhciAqZnJvbSwgdW5z
+aWduZWQgbGVuKTsKIAordW5zaWduZWQgbG9uZworbWNzYWZlX2hhbmRsZV90YWlsKGNoYXIgKnRv
+LCBjaGFyICpmcm9tLCB1bnNpZ25lZCBsZW4pOworCiAjZW5kaWYgLyogX0FTTV9YODZfVUFDQ0VT
+U182NF9IICovCmRpZmYgLS1naXQgYS9hcmNoL3g4Ni9saWIvbWVtY3B5XzY0LlMgYi9hcmNoL3g4
+Ni9saWIvbWVtY3B5XzY0LlMKaW5kZXggZjAxYTg4MzkxYzk4Li5jM2I1MjdhOWY5NWQgMTAwNjQ0
+Ci0tLSBhL2FyY2gveDg2L2xpYi9tZW1jcHlfNjQuUworKysgYi9hcmNoL3g4Ni9saWIvbWVtY3B5
+XzY0LlMKQEAgLTI2NSw5ICsyNjUsMjMgQEAgRVhQT1JUX1NZTUJPTF9HUEwoX19tZW1jcHlfbWNz
+YWZlKQogCW1vdgklZWN4LCAlZWF4CiAJcmV0CiAKKwkvKgorCSAqIEZvciB3cml0ZSBmYXVsdCBo
+YW5kbGluZywgZ2l2ZW4gdGhlIGRlc3RpbmF0aW9uIGlzIHVuYWxpZ25lZCwKKwkgKiB3ZSBoYW5k
+bGUgZmF1bHRzIG9uIG11bHRpLWJ5dGUgd3JpdGVzIHdpdGggYSBieXRlLWJ5LWJ5dGUKKwkgKiBj
+b3B5IHVwIHRvIHRoZSB3cml0ZS1wcm90ZWN0ZWQgcGFnZS4KKwkgKi8KKy5FX3dyaXRlX3dvcmRz
+OgorCXNobGwJJDMsICVlY3gKKwlhZGRsCSVlZHgsICVlY3gKKwltb3ZsCSVlY3gsICVlZHgKKwlq
+bXAgbWNzYWZlX2hhbmRsZV90YWlsCisKIAkucHJldmlvdXMKIAogCV9BU01fRVhUQUJMRV9GQVVM
+VCguTF9yZWFkX2xlYWRpbmdfYnl0ZXMsIC5FX2xlYWRpbmdfYnl0ZXMpCiAJX0FTTV9FWFRBQkxF
+X0ZBVUxUKC5MX3JlYWRfd29yZHMsIC5FX3JlYWRfd29yZHMpCiAJX0FTTV9FWFRBQkxFX0ZBVUxU
+KC5MX3JlYWRfdHJhaWxpbmdfYnl0ZXMsIC5FX3RyYWlsaW5nX2J5dGVzKQorCV9BU01fRVhUQUJM
+RSguTF93cml0ZV9sZWFkaW5nX2J5dGVzLCAuRV9sZWFkaW5nX2J5dGVzKQorCV9BU01fRVhUQUJM
+RSguTF93cml0ZV93b3JkcywgLkVfd3JpdGVfd29yZHMpCisJX0FTTV9FWFRBQkxFKC5MX3dyaXRl
+X3RyYWlsaW5nX2J5dGVzLCAuRV90cmFpbGluZ19ieXRlcykKICNlbmRpZgpkaWZmIC0tZ2l0IGEv
+YXJjaC94ODYvbGliL3VzZXJjb3B5XzY0LmMgYi9hcmNoL3g4Ni9saWIvdXNlcmNvcHlfNjQuYwpp
+bmRleCA3NWQzNzc2MTIzY2MuLjdlYmM5OTAxZGQwNSAxMDA2NDQKLS0tIGEvYXJjaC94ODYvbGli
+L3VzZXJjb3B5XzY0LmMKKysrIGIvYXJjaC94ODYvbGliL3VzZXJjb3B5XzY0LmMKQEAgLTc1LDYg
+Kzc1LDI3IEBAIGNvcHlfdXNlcl9oYW5kbGVfdGFpbChjaGFyICp0bywgY2hhciAqZnJvbSwgdW5z
+aWduZWQgbGVuKQogCXJldHVybiBsZW47CiB9CiAKKy8qCisgKiBTaW1pbGFyIHRvIGNvcHlfdXNl
+cl9oYW5kbGVfdGFpbCwgcHJvYmUgZm9yIHRoZSB3cml0ZSBmYXVsdCBwb2ludCwKKyAqIGJ1dCBy
+ZXVzZSBfX21lbWNweV9tY3NhZmUgaW4gY2FzZSBhIG5ldyByZWFkIGVycm9yIGlzIGVuY291bnRl
+cmVkLgorICogY2xhYygpIGlzIGhhbmRsZWQgaW4gX2NvcHlfdG9faXRlcl9tY3NhZmUoKS4KKyAq
+LworX192aXNpYmxlIHVuc2lnbmVkIGxvbmcKK21jc2FmZV9oYW5kbGVfdGFpbChjaGFyICp0bywg
+Y2hhciAqZnJvbSwgdW5zaWduZWQgbGVuKQoreworCWZvciAoOyBsZW47IC0tbGVuLCB0bysrLCBm
+cm9tKyspIHsKKwkJLyoKKwkJICogQ2FsbCB0aGUgYXNzZW1ibHkgcm91dGluZSBiYWNrIGRpcmVj
+dGx5IHNpbmNlCisJCSAqIG1lbWNweV9tY3NhZmUoKSBtYXkgc2lsZW50bHkgZmFsbGJhY2sgdG8g
+bWVtY3B5LgorCQkgKi8KKwkJdW5zaWduZWQgbG9uZyByZW0gPSBfX21lbWNweV9tY3NhZmUodG8s
+IGZyb20sIDEpOworCisJCWlmIChyZW0pCisJCQlicmVhazsKKwl9CisJcmV0dXJuIGxlbjsKK30K
+KwogI2lmZGVmIENPTkZJR19BUkNIX0hBU19VQUNDRVNTX0ZMVVNIQ0FDSEUKIC8qKgogICogY2xl
+YW5fY2FjaGVfcmFuZ2UgLSB3cml0ZSBiYWNrIGEgY2FjaGUgcmFuZ2Ugd2l0aCBDTFdCCgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0g
+bWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5v
+cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
