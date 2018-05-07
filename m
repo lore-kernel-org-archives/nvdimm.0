@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mgwym02.jp.fujitsu.com (mgwym02.jp.fujitsu.com [211.128.242.41])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BAB70203BBB9F
- for <linux-nvdimm@lists.01.org>; Wed, 16 May 2018 22:00:33 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [qemu PATCH v2 1/4] nvdimm: fix typo in label-size definition
-Date: Wed, 16 May 2018 23:00:21 -0600
-Message-Id: <20180517050024.20101-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180517050024.20101-1-ross.zwisler@linux.intel.com>
-References: <20180517050024.20101-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0797C20961063
+ for <linux-nvdimm@lists.01.org>; Sun,  6 May 2018 22:10:27 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 31B40AC00D3
+ for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 14:10:21 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [PATCH v6 4/4] ndctl,
+ monitor: add the unit file of systemd for ndctl-monitor service
+Date: Mon,  7 May 2018 14:09:26 +0900
+Message-Id: <20180507050926.17243-5-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180507050926.17243-1-qi.fuli@jp.fujitsu.com>
+References: <20180507050926.17243-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,50 +27,104 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Igor Mammedov <imammedo@redhat.com>, qemu-devel@nongnu.org
-Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S . Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Fixes: commit da6789c27c2e ("nvdimm: add a macro for property "label-size"")
-Reviewed-by: Stefan Hajnoczi <stefanha@redhat.com>
-Reviewed-by: Igor Mammedov <imammedo@redhat.com>
-Cc: Haozhong Zhang <haozhong.zhang@intel.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Stefan Hajnoczi <stefanha@redhat.com>
----
- hw/mem/nvdimm.c         | 2 +-
- include/hw/mem/nvdimm.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+This patch adds the systemd unit file for ndctl-monitor service.
+The systemd unit directory can be configured by setting environment
+variable "--with-systemd-unit-dir[=DIR]".
 
-diff --git a/hw/mem/nvdimm.c b/hw/mem/nvdimm.c
-index acb656b672..4087aca25e 100644
---- a/hw/mem/nvdimm.c
-+++ b/hw/mem/nvdimm.c
-@@ -89,7 +89,7 @@ static void nvdimm_set_unarmed(Object *obj, bool value, Error **errp)
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+---
+ autogen.sh                  |  3 ++-
+ configure.ac                | 22 ++++++++++++++++++++++
+ ndctl/Makefile.am           |  4 ++++
+ ndctl/ndctl-monitor.service |  7 +++++++
+ 4 files changed, 35 insertions(+), 1 deletion(-)
+ create mode 100644 ndctl/ndctl-monitor.service
+
+diff --git a/autogen.sh b/autogen.sh
+index a23cf53..b226c7a 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -17,7 +17,8 @@ libdir() {
  
- static void nvdimm_init(Object *obj)
- {
--    object_property_add(obj, NVDIMM_LABLE_SIZE_PROP, "int",
-+    object_property_add(obj, NVDIMM_LABEL_SIZE_PROP, "int",
-                         nvdimm_get_label_size, nvdimm_set_label_size, NULL,
-                         NULL, NULL);
-     object_property_add_bool(obj, NVDIMM_UNARMED_PROP,
-diff --git a/include/hw/mem/nvdimm.h b/include/hw/mem/nvdimm.h
-index 7fd87c4e1c..74c60332e1 100644
---- a/include/hw/mem/nvdimm.h
-+++ b/include/hw/mem/nvdimm.h
-@@ -48,7 +48,7 @@
- #define NVDIMM_GET_CLASS(obj) OBJECT_GET_CLASS(NVDIMMClass, (obj), \
-                                                TYPE_NVDIMM)
+ args="--prefix=/usr \
+ --sysconfdir=/etc \
+---libdir=$(libdir /usr/lib)"
++--libdir=$(libdir /usr/lib) \
++--with-systemd-unit-dir"
  
--#define NVDIMM_LABLE_SIZE_PROP "label-size"
-+#define NVDIMM_LABEL_SIZE_PROP "label-size"
- #define NVDIMM_UNARMED_PROP    "unarmed"
+ echo
+ echo "----------------------------------------------------------------"
+diff --git a/configure.ac b/configure.ac
+index cddad16..fd227eb 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -135,6 +135,27 @@ AC_CHECK_FUNCS([ \
+ 	secure_getenv\
+ ])
  
- struct NVDIMMDevice {
++PKG_PROG_PKG_CONFIG
++AC_ARG_WITH([systemd-unit-dir],
++	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
++		[Directory for systemd service files]),
++	[],
++	[with_systemd_unit_dir=yes])
++
++if test "x$with_systemd_unit_dir" = "xyes"; then
++	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
++	if test "x$def_systemd_unit_dir" = "x"; then
++		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
++		with_systemd_unit_dir=no
++	else
++		with_systemd_unit_dir="$def_systemd_unit_dir"
++	fi
++fi
++
++AS_IF([test "x$with_systemd_unit_dir" != "xno"],
++	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
++AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
++
+ my_CFLAGS="\
+ -Wall \
+ -Wchar-subscripts \
+@@ -172,6 +193,7 @@ AC_MSG_RESULT([
+         sysconfdir:             ${sysconfdir}
+         libdir:                 ${libdir}
+         includedir:             ${includedir}
++	systemd-unit-dir:	${systemd_unitdir}
+ 
+         compiler:               ${CC}
+         cflags:                 ${CFLAGS}
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index ae3d894..9d008d5 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
+ monitor_configdir = /etc/ndctl/
+ monitor_config_DATA = $(monitor_config_file)
+ EXTRA_DIST += $(monitor_config_file)
++
++if ENABLE_SYSTEMD_UNIT_DIR
++systemd_unit_DATA = ndctl-monitor.service
++endif
+diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
+new file mode 100644
+index 0000000..44f9326
+--- /dev/null
++++ b/ndctl/ndctl-monitor.service
+@@ -0,0 +1,7 @@
++[Unit]
++Description=Ndctl Monitor Daemon
++
++[Service]
++Type=forking
++ExecStart=/usr/bin/ndctl monitor --daemon
++ExecStop=/bin/kill ${MAINPID}
 -- 
-2.14.3
+2.17.0.140.g0b0cc9f86
+
 
 _______________________________________________
 Linux-nvdimm mailing list
