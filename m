@@ -2,13 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 71AF020961069
- for <linux-nvdimm@lists.01.org>; Sun,  6 May 2018 23:32:51 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A19B82094609D
+ for <linux-nvdimm@lists.01.org>; Sun,  6 May 2018 18:14:38 -0700 (PDT)
+Date: Mon, 7 May 2018 09:14:29 +0800
 From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH v4 0/3] resource: Use list_head to link sibling resource
-Date: Mon,  7 May 2018 14:32:21 +0800
-Message-Id: <20180507063224.24229-1-bhe@redhat.com>
+Subject: Re: [PATCH v3 1/3] resource: Use list_head to link sibling resource
+Message-ID: <20180507011429.GG30581@MiWiFi-R3L-srv>
+References: <20180419001848.3041-1-bhe@redhat.com>
+ <20180419001848.3041-2-bhe@redhat.com>
+ <20180426011837.GA79340@WeideMacBook-Pro.local>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180426011837.GA79340@WeideMacBook-Pro.local>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,98 +25,224 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, robh+dt@kernel.org, dan.j.williams@intel.com, nicolas.pitre@linaro.org, josh@joshtriplett.org, fengguang.wu@intel.com, bp@suse.de
-Cc: brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, keith.busch@intel.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, ebiederm@xmission.com, devel@linuxdriverproject.org, davem@davemloft.net
+To: Wei Yang <richard.weiyang@gmail.com>
+Cc: nicolas.pitre@linaro.org, Brijesh Singh <brijesh.singh@amd.com>, devicetree@vger.kernel.org, David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, Keith Busch <keith.busch@intel.com>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Frank Rowand <frowand.list@gmail.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Stephen Hemminger <sthemmin@microsoft.com>, linux-nvdimm@lists.01.org, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, linux-input@vger.kernel.org, Borislav Petkov <bp@suse.de>, Tom Lendacky <thomas.lendacky@amd.com>, Haiyang Zhang <haiyangz@microsoft.com>, josh@joshtriplett.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, robh+dt@kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Jonathan Derrick <jonathan.derrick@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, devel@linuxdriverproject.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patchset is doing:
-1) Replace struct resource's sibling list from singly linked list to
-list_head. Clearing out those pointer operation within singly linked
-list for better code readability.
-2) Based on list_head replacement, add a new function
-walk_system_ram_res_rev() which can does reversed iteration on
-iomem_resource's siblings.
-3) Change kexec_file loading to search system RAM top down for kernel
-loadin, using walk_system_ram_res_rev().
+Hi Wei Yang,
 
-Note:
-This patchset passed testing on my kvm guest, x86_64 arch with network
-enabling. The thing we need pay attetion to is that a root resource's
-child member need be initialized specifically with LIST_HEAD_INIT() if
-statically defined or INIT_LIST_HEAD() for dynamically definition. Here
-Just like we do for iomem_resource/ioport_resource, or the change in
-get_pci_domain_busn_res().
+On 04/26/18 at 09:18am, Wei Yang wrote:
+> On Thu, Apr 19, 2018 at 08:18:46AM +0800, Baoquan He wrote:
+> >The struct resource uses singly linked list to link siblings. It's not
+> >easy to do reverse iteration on sibling list. So replace it with list_head.
+> >
+> 
+> Hi, Baoquan
+> 
+> Besides changing the data structure, I have another proposal to do the reverse
+> iteration. Which means it would not affect other users, if you just want a
+> reverse iteration.
+> 
+> BTW, I don't think Andrew suggest to use linked-list directly. What he wants
+> is a better solution to your first proposal in
+> https://patchwork.kernel.org/patch/10300819/.
+> 
+> Below is my proposal of resource reverse iteration without changing current
+> design.
 
+I got your mail and read it, then interrupted by other thing and forgot
+replying, sorry.
 
-Links of the old posting(Boris pointed out that we should use
-https://lkml.kernel.org/r/Message-ID, while it can't be opened from
-my side, so paste all of them here.):
-v3:
-https://lkml.kernel.org/r/20180419001848.3041-1-bhe@redhat.com
-https://lkml.org/lkml/2018/4/18/767
+I am fine with your code change. As I said before, I have tried to change
+code per reviewers' comment, then let reviewers decide which way is
+better. Please feel free to post formal patches and joining discussion
+about this issue.
 
-v2:
-https://lkml.kernel.org/r/20180408024724.16812-1-bhe@redhat.com
-https://lkml.org/lkml/2018/4/7/169
+Thanks
+Baoquan
 
-v1:
-https://lkml.kernel.org/r/20180322033722.9279-1-bhe@redhat.com
-https://lkml.org/lkml/2018/3/21/952
-
-Changelog:
-v3->v4:
-  Fix several bugs test robot reported. Rewrite cover letter and patch
-  log according to reviewer's comment.
-
-v2->v3:
-  Rename resource functions first_child() and sibling() to
-  resource_first_chils() and resource_sibling(). Dan suggested this.
-
-  Move resource_first_chils() and resource_sibling() to linux/ioport.h
-  and make them as inline function. Rob suggested this. Accordingly add
-  linux/list.h including in linux/ioport.h, please help review if this
-  bring efficiency degradation or code redundancy.
-
-  The change on struct resource {} bring two pointers of size increase,
-  mention this in git log to make it more specifically, Rob suggested
-  this.
-
-v1->v2:
-  Use list_head instead to link resource siblings. This is suggested by
-  Andrew.
-
-  Rewrite walk_system_ram_res_rev() after list_head is taken to link
-  resouce siblings.
-
-Baoquan He (3):
-  resource: Use list_head to link sibling resource
-  resource: add walk_system_ram_res_rev()
-  kexec_file: Load kernel at top of system RAM if required
-
- arch/microblaze/pci/pci-common.c            |  31 ++--
- arch/sparc/kernel/ioport.c                  |   2 +-
- arch/xtensa/include/asm/pci-bridge.h        |   4 +-
- drivers/eisa/eisa-bus.c                     |   2 +
- drivers/gpu/drm/drm_memory.c                |   3 +-
- drivers/gpu/drm/gma500/gtt.c                |   5 +-
- drivers/hv/vmbus_drv.c                      |  52 +++----
- drivers/input/joystick/iforce/iforce-main.c |   4 +-
- drivers/nvdimm/e820.c                       |   2 +-
- drivers/nvdimm/namespace_devs.c             |   6 +-
- drivers/nvdimm/nd.h                         |   5 +-
- drivers/of/address.c                        |   4 +-
- drivers/parisc/lba_pci.c                    |   4 +-
- drivers/pci/host/vmd.c                      |   8 +-
- drivers/pci/probe.c                         |   2 +
- drivers/pci/setup-bus.c                     |   2 +-
- include/linux/ioport.h                      |  20 ++-
- kernel/kexec_file.c                         |   2 +
- kernel/resource.c                           | 221 ++++++++++++++++------------
- 19 files changed, 215 insertions(+), 164 deletions(-)
-
--- 
-2.13.6
-
+> 
+> From 5d7145d44fe48b98572a03884fa3a3aa82e3cef9 Mon Sep 17 00:00:00 2001
+> From: Wei Yang <richard.weiyang@gmail.com>
+> Date: Sat, 24 Mar 2018 23:25:46 +0800
+> Subject: [PATCH] kernel/resource: add walk_system_ram_res_rev()
+> 
+> As discussed on https://patchwork.kernel.org/patch/10300819/, this patch
+> comes up with a variant implementation of walk_system_ram_res_rev(), which
+> uses iteration instead of allocating array to store those resources.
+> 
+> Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+> ---
+>  include/linux/ioport.h |   3 ++
+>  kernel/resource.c      | 113 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 116 insertions(+)
+> 
+> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+> index da0ebaec25f0..473f1d9cb97e 100644
+> --- a/include/linux/ioport.h
+> +++ b/include/linux/ioport.h
+> @@ -277,6 +277,9 @@ extern int
+>  walk_system_ram_res(u64 start, u64 end, void *arg,
+>  		    int (*func)(struct resource *, void *));
+>  extern int
+> +walk_system_ram_res_rev(u64 start, u64 end, void *arg,
+> +		    int (*func)(struct resource *, void *));
+> +extern int
+>  walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
+>  		    void *arg, int (*func)(struct resource *, void *));
+>  
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index 769109f20fb7..d4ec5fbc6875 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -73,6 +73,38 @@ static struct resource *next_resource(struct resource *p, bool sibling_only)
+>  	return p->sibling;
+>  }
+>  
+> +static struct resource *prev_resource(struct resource *p, bool sibling_only)
+> +{
+> +	struct resource *prev;
+> +	if (NULL == iomem_resource.child)
+> +		return NULL;
+> +
+> +	if (p == NULL) {
+> +		prev = iomem_resource.child;
+> +		while (prev->sibling)
+> +			prev = prev->sibling;
+> +	} else {
+> +		if (p->parent->child == p) {
+> +			return p->parent;
+> +		}
+> +
+> +		for (prev = p->parent->child; prev->sibling != p;
+> +			prev = prev->sibling) {}
+> +	}
+> +
+> +	/* Caller wants to traverse through siblings only */
+> +	if (sibling_only)
+> +		return prev;
+> +
+> +	for (;prev->child;) {
+> +		prev = prev->child;
+> +
+> +		while (prev->sibling)
+> +			prev = prev->sibling;
+> +	}
+> +	return prev;
+> +}
+> +
+>  static void *r_next(struct seq_file *m, void *v, loff_t *pos)
+>  {
+>  	struct resource *p = v;
+> @@ -401,6 +433,47 @@ static int find_next_iomem_res(struct resource *res, unsigned long desc,
+>  	return 0;
+>  }
+>  
+> +/*
+> + * Finds the highest iomem resource existing within [res->start.res->end).
+> + * The caller must specify res->start, res->end, res->flags, and optionally
+> + * desc.  If found, returns 0, res is overwritten, if not found, returns -1.
+> + * This function walks the whole tree and not just first level children until
+> + * and unless first_level_children_only is true.
+> + */
+> +static int find_prev_iomem_res(struct resource *res, unsigned long desc,
+> +			       bool first_level_children_only)
+> +{
+> +	struct resource *p;
+> +
+> +	BUG_ON(!res);
+> +	BUG_ON(res->start >= res->end);
+> +
+> +	read_lock(&resource_lock);
+> +
+> +	for (p = prev_resource(NULL, first_level_children_only); p;
+> +		p = prev_resource(p, first_level_children_only)) {
+> +		if ((p->flags & res->flags) != res->flags)
+> +			continue;
+> +		if ((desc != IORES_DESC_NONE) && (desc != p->desc))
+> +			continue;
+> +		if (p->end < res->start || p->child == iomem_resource.child) {
+> +			p = NULL;
+> +			break;
+> +		}
+> +		if ((p->end >= res->start) && (p->start < res->end))
+> +			break;
+> +	}
+> +
+> +	read_unlock(&resource_lock);
+> +	if (!p)
+> +		return -1;
+> +	/* copy data */
+> +	resource_clip(res, p->start, p->end);
+> +	res->flags = p->flags;
+> +	res->desc = p->desc;
+> +	return 0;
+> +}
+> +
+>  static int __walk_iomem_res_desc(struct resource *res, unsigned long desc,
+>  				 bool first_level_children_only,
+>  				 void *arg,
+> @@ -422,6 +495,27 @@ static int __walk_iomem_res_desc(struct resource *res, unsigned long desc,
+>  	return ret;
+>  }
+>  
+> +static int __walk_iomem_res_rev_desc(struct resource *res, unsigned long desc,
+> +				 bool first_level_children_only,
+> +				 void *arg,
+> +				 int (*func)(struct resource *, void *))
+> +{
+> +	u64 orig_start = res->start;
+> +	int ret = -1;
+> +
+> +	while ((res->start < res->end) &&
+> +	       !find_prev_iomem_res(res, desc, first_level_children_only)) {
+> +		ret = (*func)(res, arg);
+> +		if (ret)
+> +			break;
+> +
+> +		res->end = res->start?(res->start - 1):0;
+> +		res->start = orig_start;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  /*
+>   * Walks through iomem resources and calls func() with matching resource
+>   * ranges. This walks through whole tree and not just first level children.
+> @@ -468,6 +562,25 @@ int walk_system_ram_res(u64 start, u64 end, void *arg,
+>  				     arg, func);
+>  }
+>  
+> +/*
+> + * This function, being a variant of walk_system_ram_res(), calls the @func
+> + * callback against all memory ranges of type System RAM which are marked as
+> + * IORESOURCE_SYSTEM_RAM and IORESOUCE_BUSY in reversed order, i.e., from
+> + * higher to lower.
+> + */
+> +int walk_system_ram_res_rev(u64 start, u64 end, void *arg,
+> +				int (*func)(struct resource *, void *))
+> +{
+> +	struct resource res;
+> +
+> +	res.start = start;
+> +	res.end = end;
+> +	res.flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+> +
+> +	return __walk_iomem_res_rev_desc(&res, IORES_DESC_NONE, true,
+> +				     arg, func);
+> +}
+> +
+>  /*
+>   * This function calls the @func callback against all memory ranges, which
+>   * are ranges marked as IORESOURCE_MEM and IORESOUCE_BUSY.
+> -- 
+> 2.15.1
+> 
+> 
+> -- 
+> Wei Yang
+> Help you, Help me
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
