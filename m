@@ -1,101 +1,113 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
- [IPv6:2607:f8b0:4003:c06::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A88E32033D1B1
- for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 11:57:12 -0700 (PDT)
-Received: by mail-oi0-x241.google.com with SMTP id y15-v6so26136237oia.13
- for <linux-nvdimm@lists.01.org>; Mon, 07 May 2018 11:57:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180507184622.GB12361@bombadil.infradead.org>
-References: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
- <20180507184622.GB12361@bombadil.infradead.org>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 7 May 2018 11:57:10 -0700
-Message-ID: <CAPcyv4hBJN3npXwg3Ur32JSWtKvBUZh7F8W+Exx3BB-uKWwPag@mail.gmail.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 7 May 2018 11:46:22 -0700
+From: Matthew Wilcox <willy@infradead.org>
 Subject: Re: [RFC PATCH v1 0/6] use mm to manage NVDIMM (pmem) zone
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>, Huaisheng Ye <yehs1@lenovo.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, chengnt@lenovo.com, Dave Hansen <dave.hansen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pasha.tatashin@oracle.com, Linux MM <linux-mm@kvack.org>, colyli@suse.de, Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, Sasha Levin <alexander.levin@verizon.com>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
+Message-ID: <20180507184622.GB12361@bombadil.infradead.org>
+References: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
+Sender: owner-linux-mm@kvack.org
+To: Huaisheng Ye <yehs1@lenovo.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, mhocko@suse.com, vbabka@suse.cz, mgorman@techsingularity.net, pasha.tatashin@oracle.com, alexander.levin@verizon.com, hannes@cmpxchg.org, penguin-kernel@I-love.SAKURA.ne.jp, colyli@suse.de, chengnt@lenovo.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gTW9uLCBNYXkgNywgMjAxOCBhdCAxMTo0NiBBTSwgTWF0dGhldyBXaWxjb3ggPHdpbGx5QGlu
-ZnJhZGVhZC5vcmc+IHdyb3RlOgo+IE9uIE1vbiwgTWF5IDA3LCAyMDE4IGF0IDEwOjUwOjIxUE0g
-KzA4MDAsIEh1YWlzaGVuZyBZZSB3cm90ZToKPj4gVHJhZGl0aW9uYWxseSwgTlZESU1NcyBhcmUg
-dHJlYXRlZCBieSBtbShtZW1vcnkgbWFuYWdlbWVudCkgc3Vic3lzdGVtIGFzCj4+IERFVklDRSB6
-b25lLCB3aGljaCBpcyBhIHZpcnR1YWwgem9uZSBhbmQgYm90aCBpdHMgc3RhcnQgYW5kIGVuZCBv
-ZiBwZm4KPj4gYXJlIGVxdWFsIHRvIDAsIG1tIHdvdWxkbuKAmXQgbWFuYWdlIE5WRElNTSBkaXJl
-Y3RseSBhcyBEUkFNLCBrZXJuZWwgdXNlcwo+PiBjb3JyZXNwb25kaW5nIGRyaXZlcnMsIHdoaWNo
-IGxvY2F0ZSBhdCBcZHJpdmVyc1xudmRpbW1cIGFuZAo+PiBcZHJpdmVyc1xhY3BpXG5maXQgYW5k
-IGZzLCB0byByZWFsaXplIE5WRElNTSBtZW1vcnkgYWxsb2MgYW5kIGZyZWUgd2l0aAo+PiBtZW1v
-cnkgaG90IHBsdWcgaW1wbGVtZW50YXRpb24uCj4KPiBZb3UgcHJvYmFibHkgd2FudCB0byBsZXQg
-bGludXgtbnZkaW1tIGtub3cgYWJvdXQgdGhpcyBwYXRjaCBzZXQuCj4gQWRkaW5nIHRvIHRoZSBj
-Yy4KClllcywgdGhhbmtzIGZvciB0aGF0IQoKPiBBbHNvLCBJIG9ubHkgcmVjZWl2ZWQgcGF0Y2gg
-MCBhbmQgNC4gIFdoYXQgaGFwcGVuZWQKPiB0byAxLTMsNSBhbmQgNj8KPgo+PiBXaXRoIGN1cnJl
-bnQga2VybmVsLCBtYW55IG1t4oCZcyBjbGFzc2ljYWwgZmVhdHVyZXMgbGlrZSB0aGUgYnVkZHkK
-Pj4gc3lzdGVtLCBzd2FwIG1lY2hhbmlzbSBhbmQgcGFnZSBjYWNoZSBjb3VsZG7igJl0IGJlIHN1
-cHBvcnRlZCB0byBOVkRJTU0uCj4+IFdoYXQgd2UgYXJlIGRvaW5nIGlzIHRvIGV4cGFuZCBrZXJu
-ZWwgbW3igJlzIGNhcGFjaXR5IHRvIG1ha2UgaXQgdG8gaGFuZGxlCj4+IE5WRElNTSBsaWtlIERS
-QU0uIEZ1cnRoZXJtb3JlIHdlIG1ha2UgbW0gY291bGQgdHJlYXQgRFJBTSBhbmQgTlZESU1NCj4+
-IHNlcGFyYXRlbHksIHRoYXQgbWVhbnMgbW0gY2FuIG9ubHkgcHV0IHRoZSBjcml0aWNhbCBwYWdl
-cyB0byBOVkRJTU0KPj4gem9uZSwgaGVyZSB3ZSBjcmVhdGVkIGEgbmV3IHpvbmUgdHlwZSBhcyBO
-Vk0gem9uZS4gVGhhdCBpcyB0byBzYXkgZm9yCj4+IHRyYWRpdGlvbmFsKG9yIG5vcm1hbCkgcGFn
-ZXMgd2hpY2ggd291bGQgYmUgc3RvcmVkIGF0IERSQU0gc2NvcGUgbGlrZQo+PiBOb3JtYWwsIERN
-QTMyIGFuZCBETUEgem9uZXMuIEJ1dCBmb3IgdGhlIGNyaXRpY2FsIHBhZ2VzLCB3aGljaCB3ZSBo
-b3BlCj4+IHRoZW0gY291bGQgYmUgcmVjb3ZlcmVkIGZyb20gcG93ZXIgZmFpbCBvciBzeXN0ZW0g
-Y3Jhc2gsIHdlIG1ha2UgdGhlbQo+PiB0byBiZSBwZXJzaXN0ZW50IGJ5IHN0b3JpbmcgdGhlbSB0
-byBOVk0gem9uZS4KPj4KPj4gV2UgaW5zdGFsbGVkIHR3byBOVkRJTU1zIHRvIExlbm92byBUaGlu
-a3N5c3RlbSBwcm9kdWN0IGFzIGRldmVsb3BtZW50Cj4+IHBsYXRmb3JtLCB3aGljaCBoYXMgMTI1
-R0Igc3RvcmFnZSBjYXBhY2l0eSByZXNwZWN0aXZlbHkuIFdpdGggdGhlc2UKPj4gcGF0Y2hlcyBi
-ZWxvdywgbW0gY2FuIGNyZWF0ZSBOVk0gem9uZXMgZm9yIE5WRElNTXMuCj4+Cj4+IEhlcmUgaXMg
-ZG1lc2cgaW5mbywKPj4gIEluaXRtZW0gc2V0dXAgbm9kZSAwIFttZW0gMHgwMDAwMDAwMDAwMDAx
-MDAwLTB4MDAwMDAwMjM3ZmZmZmZmZl0KPj4gIE9uIG5vZGUgMCB0b3RhbHBhZ2VzOiAzNjg3OTY2
-Ngo+PiAgICBETUEgem9uZTogNjQgcGFnZXMgdXNlZCBmb3IgbWVtbWFwCj4+ICAgIERNQSB6b25l
-OiAyMyBwYWdlcyByZXNlcnZlZAo+PiAgICBETUEgem9uZTogMzk5OSBwYWdlcywgTElGTyBiYXRj
-aDowCj4+ICBtbWluaXQ6Om1lbW1hcF9pbml0IEluaXRpYWxpc2luZyBtYXAgbm9kZSAwIHpvbmUg
-MCBwZm5zIDEgLT4gNDA5Ngo+PiAgICBETUEzMiB6b25lOiAxMDkzNSBwYWdlcyB1c2VkIGZvciBt
-ZW1tYXAKPj4gICAgRE1BMzIgem9uZTogNjk5Nzk1IHBhZ2VzLCBMSUZPIGJhdGNoOjMxCj4+ICBt
-bWluaXQ6Om1lbW1hcF9pbml0IEluaXRpYWxpc2luZyBtYXAgbm9kZSAwIHpvbmUgMSBwZm5zIDQw
-OTYgLT4gMTA0ODU3Ngo+PiAgICBOb3JtYWwgem9uZTogNTMyNDggcGFnZXMgdXNlZCBmb3IgbWVt
-bWFwCj4+ICAgIE5vcm1hbCB6b25lOiAzNDA3ODcyIHBhZ2VzLCBMSUZPIGJhdGNoOjMxCj4+ICBt
-bWluaXQ6Om1lbW1hcF9pbml0IEluaXRpYWxpc2luZyBtYXAgbm9kZSAwIHpvbmUgMiBwZm5zIDEw
-NDg1NzYgLT4gNDQ1NjQ0OAo+PiAgICBOVk0gem9uZTogNTEyMDAwIHBhZ2VzIHVzZWQgZm9yIG1l
-bW1hcAo+PiAgICBOVk0gem9uZTogMzI3NjgwMDAgcGFnZXMsIExJRk8gYmF0Y2g6MzEKPj4gIG1t
-aW5pdDo6bWVtbWFwX2luaXQgSW5pdGlhbGlzaW5nIG1hcCBub2RlIDAgem9uZSAzIHBmbnMgNDQ1
-NjQ0OCAtPiAzNzIyNDQ0OAo+PiAgSW5pdG1lbSBzZXR1cCBub2RlIDEgW21lbSAweDAwMDAwMDIz
-ODAwMDAwMDAtMHgwMDAwMDA0NmJmZmZmZmZmXQo+PiAgT24gbm9kZSAxIHRvdGFscGFnZXM6IDM2
-OTYyMzA0Cj4+ICAgIE5vcm1hbCB6b25lOiA2NTUzNiBwYWdlcyB1c2VkIGZvciBtZW1tYXAKPj4g
-ICAgTm9ybWFsIHpvbmU6IDQxOTQzMDQgcGFnZXMsIExJRk8gYmF0Y2g6MzEKPj4gIG1taW5pdDo6
-bWVtbWFwX2luaXQgSW5pdGlhbGlzaW5nIG1hcCBub2RlIDEgem9uZSAyIHBmbnMgMzcyMjQ0NDgg
-LT4gNDE0MTg3NTIKPj4gICAgTlZNIHpvbmU6IDUxMjAwMCBwYWdlcyB1c2VkIGZvciBtZW1tYXAK
-Pj4gICAgTlZNIHpvbmU6IDMyNzY4MDAwIHBhZ2VzLCBMSUZPIGJhdGNoOjMxCj4+ICBtbWluaXQ6
-Om1lbW1hcF9pbml0IEluaXRpYWxpc2luZyBtYXAgbm9kZSAxIHpvbmUgMyBwZm5zIDQxNDE4NzUy
-IC0+IDc0MTg2NzUyCj4+Cj4+IFRoaXMgY29tZXMgL3Byb2Mvem9uZWluZm8KPj4gTm9kZSAwLCB6
-b25lICAgICAgTlZNCj4+ICAgcGFnZXMgZnJlZSAgICAgMzI3NjgwMDAKPj4gICAgICAgICBtaW4g
-ICAgICAxNTI0NAo+PiAgICAgICAgIGxvdyAgICAgIDQ4MDEyCj4+ICAgICAgICAgaGlnaCAgICAg
-ODA3ODAKPj4gICAgICAgICBzcGFubmVkICAzMjc2ODAwMAo+PiAgICAgICAgIHByZXNlbnQgIDMy
-NzY4MDAwCj4+ICAgICAgICAgbWFuYWdlZCAgMzI3NjgwMDAKPj4gICAgICAgICBwcm90ZWN0aW9u
-OiAoMCwgMCwgMCwgMCwgMCwgMCkKPj4gICAgICAgICBucl9mcmVlX3BhZ2VzIDMyNzY4MDAwCj4+
-IE5vZGUgMSwgem9uZSAgICAgIE5WTQo+PiAgIHBhZ2VzIGZyZWUgICAgIDMyNzY4MDAwCj4+ICAg
-ICAgICAgbWluICAgICAgMTUyNDQKPj4gICAgICAgICBsb3cgICAgICA0ODAxMgo+PiAgICAgICAg
-IGhpZ2ggICAgIDgwNzgwCj4+ICAgICAgICAgc3Bhbm5lZCAgMzI3NjgwMDAKPj4gICAgICAgICBw
-cmVzZW50ICAzMjc2ODAwMAo+PiAgICAgICAgIG1hbmFnZWQgIDMyNzY4MDAwCgpJIHRoaW5rIGFk
-ZGluZyB5ZXQgb25lIG1vcmUgbW0tem9uZSBpcyB0aGUgd3JvbmcgZGlyZWN0aW9uLiBJbnN0ZWFk
-LAp3aGF0IHdlIGhhdmUgYmVlbiBjb25zaWRlcmluZyBpcyBhIG1lY2hhbmlzbSB0byBhbGxvdyBh
-IGRldmljZS1kYXgKaW5zdGFuY2UgdG8gYmUgZ2l2ZW4gYmFjayB0byB0aGUga2VybmVsIGFzIGEg
-ZGlzdGluY3QgbnVtYSBub2RlCm1hbmFnZWQgYnkgdGhlIFZNLiBJdCBzZWVtcyBpdCB0aW1lcyB0
-byBkdXN0IG9mZiB0aG9zZSBwYXRjaGVzLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBs
-aXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1u
-dmRpbW0K
+On Mon, May 07, 2018 at 10:50:21PM +0800, Huaisheng Ye wrote:
+> Traditionally, NVDIMMs are treated by mm(memory management) subsystem as
+> DEVICE zone, which is a virtual zone and both its start and end of pfn 
+> are equal to 0, mm wouldn’t manage NVDIMM directly as DRAM, kernel uses
+> corresponding drivers, which locate at \drivers\nvdimm\ and 
+> \drivers\acpi\nfit and fs, to realize NVDIMM memory alloc and free with
+> memory hot plug implementation.
+
+You probably want to let linux-nvdimm know about this patch set.
+Adding to the cc.  Also, I only received patch 0 and 4.  What happened
+to 1-3,5 and 6?
+
+> With current kernel, many mm’s classical features like the buddy
+> system, swap mechanism and page cache couldn’t be supported to NVDIMM.
+> What we are doing is to expand kernel mm’s capacity to make it to handle
+> NVDIMM like DRAM. Furthermore we make mm could treat DRAM and NVDIMM
+> separately, that means mm can only put the critical pages to NVDIMM
+> zone, here we created a new zone type as NVM zone. That is to say for 
+> traditional(or normal) pages which would be stored at DRAM scope like
+> Normal, DMA32 and DMA zones. But for the critical pages, which we hope
+> them could be recovered from power fail or system crash, we make them
+> to be persistent by storing them to NVM zone.
+> 
+> We installed two NVDIMMs to Lenovo Thinksystem product as development
+> platform, which has 125GB storage capacity respectively. With these 
+> patches below, mm can create NVM zones for NVDIMMs.
+> 
+> Here is dmesg info,
+>  Initmem setup node 0 [mem 0x0000000000001000-0x000000237fffffff]
+>  On node 0 totalpages: 36879666
+>    DMA zone: 64 pages used for memmap
+>    DMA zone: 23 pages reserved
+>    DMA zone: 3999 pages, LIFO batch:0
+>  mminit::memmap_init Initialising map node 0 zone 0 pfns 1 -> 4096 
+>    DMA32 zone: 10935 pages used for memmap
+>    DMA32 zone: 699795 pages, LIFO batch:31
+>  mminit::memmap_init Initialising map node 0 zone 1 pfns 4096 -> 1048576
+>    Normal zone: 53248 pages used for memmap
+>    Normal zone: 3407872 pages, LIFO batch:31
+>  mminit::memmap_init Initialising map node 0 zone 2 pfns 1048576 -> 4456448
+>    NVM zone: 512000 pages used for memmap
+>    NVM zone: 32768000 pages, LIFO batch:31
+>  mminit::memmap_init Initialising map node 0 zone 3 pfns 4456448 -> 37224448
+>  Initmem setup node 1 [mem 0x0000002380000000-0x00000046bfffffff]
+>  On node 1 totalpages: 36962304
+>    Normal zone: 65536 pages used for memmap
+>    Normal zone: 4194304 pages, LIFO batch:31
+>  mminit::memmap_init Initialising map node 1 zone 2 pfns 37224448 -> 41418752
+>    NVM zone: 512000 pages used for memmap
+>    NVM zone: 32768000 pages, LIFO batch:31
+>  mminit::memmap_init Initialising map node 1 zone 3 pfns 41418752 -> 74186752
+> 
+> This comes /proc/zoneinfo
+> Node 0, zone      NVM
+>   pages free     32768000
+>         min      15244
+>         low      48012
+>         high     80780
+>         spanned  32768000
+>         present  32768000
+>         managed  32768000
+>         protection: (0, 0, 0, 0, 0, 0)
+>         nr_free_pages 32768000
+> Node 1, zone      NVM
+>   pages free     32768000
+>         min      15244
+>         low      48012
+>         high     80780
+>         spanned  32768000
+>         present  32768000
+>         managed  32768000
+> 
+> Huaisheng Ye (6):
+>   mm/memblock: Expand definition of flags to support NVDIMM
+>   mm/page_alloc.c: get pfn range with flags of memblock
+>   mm, zone_type: create ZONE_NVM and fill into GFP_ZONE_TABLE
+>   arch/x86/kernel: mark NVDIMM regions from e820_table
+>   mm: get zone spanned pages separately for DRAM and NVDIMM
+>   arch/x86/mm: create page table mapping for DRAM and NVDIMM both
+> 
+>  arch/x86/include/asm/e820/api.h |  3 +++
+>  arch/x86/kernel/e820.c          | 20 +++++++++++++-
+>  arch/x86/kernel/setup.c         |  8 ++++++
+>  arch/x86/mm/init_64.c           | 16 +++++++++++
+>  include/linux/gfp.h             | 57 ++++++++++++++++++++++++++++++++++++---
+>  include/linux/memblock.h        | 19 +++++++++++++
+>  include/linux/mm.h              |  4 +++
+>  include/linux/mmzone.h          |  3 +++
+>  mm/Kconfig                      | 16 +++++++++++
+>  mm/memblock.c                   | 46 +++++++++++++++++++++++++++----
+>  mm/nobootmem.c                  |  5 ++--
+>  mm/page_alloc.c                 | 60 ++++++++++++++++++++++++++++++++++++++++-
+>  12 files changed, 245 insertions(+), 12 deletions(-)
+> 
+> -- 
+> 1.8.3.1
+> 
