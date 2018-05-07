@@ -1,9 +1,10 @@
-From: <jorge.garciao-lCSGIrCkLEvEQt/gHP5Sxw@public.gmane.org>
-Subject: Hello!
-Date: 7 May 2018 08:29:39 +0600
-Message-ID: <B6F18E4C21C933E3A4DB19749C66B6F1@19UMFY3B4I>
+From: "Bounced mail" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: ypqianafktavg
+Date: Mon, 7 May 2018 11:32:16 +0800
+Message-ID: <20180507033204.5AA342277AF1E@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8184439564020745696=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,31 +18,13 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+The original message was received at Mon, 7 May 2018 11:32:16 +0800
+from lists.01.org [155.162.146.209]
 
---===============8184439564020745696==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-Do you want to start making $5900 a day - starting today?
-
-That&#8217;s $5900 today, tomorrow...and for LIFE.
-
-Join this profit opportunity and by this time tomorrow,=20
-you will have received a $5900 deposit into your private bank account.
-
->>>=20
-Click here to make $5900 by this time tomorrow.
---===============8184439564020745696==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============8184439564020745696==--
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:"Bounced mail" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+<<< 501 "Bounced mail" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
