@@ -1,11 +1,9 @@
-From: =?utf-8?B?5L6v57uP55CG?= <zycakhz-bPPz0bK8uSw@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+RbGludXgtbnZkaW1t77ya5pys5bm05bqm5pyA54Ot?=
- =?utf-8?B?6K6u6aKY77yM5ZCI5Li65LiA5LyZ6K+l5aaC5L2V5YiG6YWN5Yip55uK?=
-Date: Tue, 8 May 2018 01:52:52 +0800
-Message-ID: <21B932418333A711B3050141AF33D909@ctkm.com>
+From: <piero-Ypo3yYY5AT8MNw1hK/XMKYH6Mc4MB0Vx@public.gmane.org>
+Subject: Welcome to our company
+Date: 7 May 2018 11:19:14 -0400
+Message-ID: <057275864.201805071158@cortoitaliacinema.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============2421482705340695873=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,11 +17,28 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-bGludXgtbnZkaW1tICAgICDop4EgICAg6ZmEICUg5Lu2IA0K5pys5bm05bqm5pyA54Ot6K6u6aKY
-77yM5ZCI5Li65LiA5LyZ6K+l5aaC5L2V5YiG6YWN5Yip55uKDQrku47ln7rnoYDljp/nkIbliLDm
-qKHlvI/orr7orqHliLDlrp7mk43moYjkvovvvIzml6LmmK/mgJ3nu7TnmoTmj5DljYfvvIzlj4jm
-mK/lrp7liqHnmoTokL3lnLDjgIINCuaIkeS7rOWcqOS4gOWkqeivvueoi+W9k+S4reS4uuaCqOin
-o+WvhiDigJzogqHkuJzlkIjkvJnkurrvvIzkuovkuJrlkIjkvJnkurrvvIznlJ/mgIHlkIjkvJnk
-urrigJ3jgIIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
-Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+--===============2421482705340695873==
+Content-Type: text/plain; charset="cp-850"
+Content-Transfer-Encoding: quoted-printable
+
+Do you want to start making $5900 a day - starting today?
+
+That&#8217;s $5900 today, tomorrow...and for LIFE.
+
+Join this profit opportunity and by this time tomorrow,=20
+you will have received a $5900 deposit into your private bank account.
+
+>>>=20
+Click here to make $5900 by this time tomorrow.
+--===============2421482705340695873==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============2421482705340695873==--
