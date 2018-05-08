@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from CAN01-TO1-obe.outbound.protection.outlook.com
+ (mail-eopbgr670114.outbound.protection.outlook.com [40.107.67.114])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9905D203BEA52
- for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 15:32:09 -0700 (PDT)
-Date: Tue, 8 May 2018 16:32:06 -0600
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all
- devices behind switches
-Message-ID: <20180508163206.7d3bf383@w520.home>
-In-Reply-To: <20905682-9440-7d4b-0260-99d3dc794c3d@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 713F9207E53E6
+ for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 15:25:08 -0700 (PDT)
+From: "Stephen  Bates" <sbates@raithlin.com>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Tue, 8 May 2018 22:25:06 +0000
+Message-ID: <C3CEE4DB-A001-4E4C-B9B9-4B160E4C5367@raithlin.com>
 References: <20180423233046.21476-1-logang@deltatee.com>
  <20180423233046.21476-5-logang@deltatee.com>
  <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
@@ -27,6 +27,9 @@ References: <20180423233046.21476-1-logang@deltatee.com>
  <354F7407-0DC7-470C-B9AA-74FDF9C46B08@raithlin.com>
  <20180508160336.0935ddde@w520.home>
  <20905682-9440-7d4b-0260-99d3dc794c3d@deltatee.com>
+In-Reply-To: <20905682-9440-7d4b-0260-99d3dc794c3d@deltatee.com>
+Content-Language: en-US
+Content-ID: <D47BEDBD514959418998B2F27B79E08B@CANPRD01.PROD.OUTLOOK.COM>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -39,52 +42,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?UTF-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>, Christian =?UTF-8?B?S8O2bmln?= <christian.koenig@amd.com>
+To: Logan Gunthorpe <logang@deltatee.com>, Alex Williamson <alex.williamson@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Christoph Hellwig <hch@lst.de>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig@amd.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 8 May 2018 16:10:19 -0600
-Logan Gunthorpe <logang@deltatee.com> wrote:
+>    Yeah, so based on the discussion I'm leaning toward just having a
+>    command line option that takes a list of BDFs and disables ACS for them.
+>    (Essentially as Dan has suggested.) This avoids the shotgun.
 
-> On 08/05/18 04:03 PM, Alex Williamson wrote:
-> > If IOMMU grouping implies device assignment (because nobody else uses
-> > it to the same extent as device assignment) then the build-time option
-> > falls to pieces, we need a single kernel that can do both.  I think we
-> > need to get more clever about allowing the user to specify exactly at
-> > which points in the topology they want to disable isolation.  Thanks,  
-> 
-> 
-> Yeah, so based on the discussion I'm leaning toward just having a
-> command line option that takes a list of BDFs and disables ACS for them.
-> (Essentially as Dan has suggested.) This avoids the shotgun.
-> 
-> Then, the pci_p2pdma_distance command needs to check that ACS is
-> disabled for all bridges between the two devices. If this is not the
-> case, it returns -1. Future work can check if the EP has ATS support, in
-> which case it has to check for the ACS direct translated bit.
-> 
-> A user then needs to either disable the IOMMU and/or add the command
-> line option to disable ACS for the specific downstream ports in the PCI
-> hierarchy. This means the IOMMU groups will be less granular but
-> presumably the person adding the command line argument understands this.
-> 
-> We may also want to do some work so that there's informative dmesgs on
-> which BDFs need to be specified on the command line so it's not so
-> difficult for the user to figure out.
+I concur that this seems to be where the conversation is taking us.
 
-I'd advise caution with a user supplied BDF approach, we have no
-guaranteed persistence for a device's PCI address.  Adding a device
-might renumber the buses, replacing a device with one that consumes
-more/less bus numbers can renumber the buses, motherboard firmware
-updates could renumber the buses, pci=assign-buses can renumber the
-buses, etc.  This is why the VT-d spec makes use of device paths when
-describing PCI hierarchies, firmware can't know what bus number will be
-assigned to a device, but it does know the base bus number and the path
-of devfns needed to get to it.  I don't know how we come up with an
-option that's easy enough for a user to understand, but reasonably
-robust against hardware changes.  Thanks,
+@Alex - Before we go do this can you provide input on the approach? I don't want to re-spin only to find we are still not converging on the ACS issue....
 
-Alex
+Thanks
+
+Stephen
+    
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
