@@ -1,9 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 56B3E207E53F3
- for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 16:15:40 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 9376F203BEA57
+ for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 16:11:59 -0700 (PDT)
+Date: Tue, 8 May 2018 17:11:50 -0600
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all
+ devices behind switches
+Message-ID: <20180508171150.0e8fd291@w520.home>
+In-Reply-To: <C3CEE4DB-A001-4E4C-B9B9-4B160E4C5367@raithlin.com>
 References: <20180423233046.21476-1-logang@deltatee.com>
  <20180423233046.21476-5-logang@deltatee.com>
  <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
@@ -21,16 +27,8 @@ References: <20180423233046.21476-1-logang@deltatee.com>
  <354F7407-0DC7-470C-B9AA-74FDF9C46B08@raithlin.com>
  <20180508160336.0935ddde@w520.home>
  <20905682-9440-7d4b-0260-99d3dc794c3d@deltatee.com>
- <20180508163206.7d3bf383@w520.home>
- <CAPcyv4i1ksiu1pExF=EE21P2Wz1a9LaDaG247oG_WSbYgcR93g@mail.gmail.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <2ce7908d-1422-55f8-aeba-94ccce2cb484@deltatee.com>
-Date: Tue, 8 May 2018 17:15:21 -0600
+ <C3CEE4DB-A001-4E4C-B9B9-4B160E4C5367@raithlin.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4i1ksiu1pExF=EE21P2Wz1a9LaDaG247oG_WSbYgcR93g@mail.gmail.com>
-Content-Language: en-US
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -42,45 +40,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Alex Williamson <alex.williamson@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+To: Stephen  Bates <sbates@raithlin.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Christoph Hellwig <hch@lst.de>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?UTF-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christian =?UTF-8?B?S8O2bmln?= <christian.koenig@amd.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Tue, 8 May 2018 22:25:06 +0000
+"Stephen  Bates" <sbates@raithlin.com> wrote:
 
-
-On 08/05/18 05:00 PM, Dan Williams wrote:
->> I'd advise caution with a user supplied BDF approach, we have no
->> guaranteed persistence for a device's PCI address.  Adding a device
->> might renumber the buses, replacing a device with one that consumes
->> more/less bus numbers can renumber the buses, motherboard firmware
->> updates could renumber the buses, pci=assign-buses can renumber the
->> buses, etc.  This is why the VT-d spec makes use of device paths when
->> describing PCI hierarchies, firmware can't know what bus number will be
->> assigned to a device, but it does know the base bus number and the path
->> of devfns needed to get to it.  I don't know how we come up with an
->> option that's easy enough for a user to understand, but reasonably
->> robust against hardware changes.  Thanks,
+> >    Yeah, so based on the discussion I'm leaning toward just having a
+> >    command line option that takes a list of BDFs and disables ACS
+> > for them. (Essentially as Dan has suggested.) This avoids the
+> > shotgun.  
 > 
-> True, but at the same time this feature is for "users with custom
-> hardware designed for purpose", I assume they would be willing to take
-> on the bus renumbering risk. It's already the case that
-> /sys/bus/pci/drivers/<x>/bind takes BDF, which is why it seemed to
-> make a similar interface for the command line. Ideally we could later
-> get something into ACPI or other platform firmware to arrange for
-> bridges to disable ACS by default if we see p2p becoming a
-> common-off-the-shelf feature. I.e. a BIOS switch to enable p2p in a
-> given PCI-E sub-domain.
+> I concur that this seems to be where the conversation is taking us.
+> 
+> @Alex - Before we go do this can you provide input on the approach? I
+> don't want to re-spin only to find we are still not converging on the
+> ACS issue....
 
-Yeah, I'm having a hard time coming up with an easy enough solution for
-the user. I agree with Dan though, the bus renumbering risk would be
-fairly low in the custom hardware seeing the switches are likely going
-to be directly soldered to the same board with the CPU.
+I can envision numerous implementation details that makes this less
+trivial than it sounds, but it seems like the thing we need to decide
+first is if intentionally leaving windows between devices with the
+intention of exploiting them for direct P2P DMA in an otherwise IOMMU
+managed address space is something we want to do.  From a security
+perspective, we already handle this with IOMMU groups because many
+devices do not support ACS, the new thing is embracing this rather than
+working around it.  It makes me a little twitchy, but so long as the
+IOMMU groups match the expected worst case routing between devices,
+it's really no different than if we could wipe the ACS capability from
+the device.
 
-That being said, I supposed we could allow the command line to take both
-a BDF or a BaseBus/DF/DF/DF path. Though, implementing this sounds like
-a bit of a challenge.
+On to the implementation details... I already mentioned the BDF issue
+in my other reply.  If we had a way to persistently identify a device,
+would we specify the downstream points at which we want to disable ACS
+or the endpoints that we want to connect?  The latter has a problem
+that the grouping upstream of an endpoint is already set by the time we
+discover the endpoint, so we might need to unwind to get the grouping
+correct.  The former might be more difficult for users to find the
+necessary nodes, but easier for the kernel to deal with during
+discovery.  A runtime, sysfs approach has some benefits here,
+especially in identifying the device assuming we're ok with leaving
+the persistence problem to userspace tools.  I'm still a little fond of
+the idea of exposing an acs_flags attribute for devices in sysfs where
+a write would do a soft unplug and re-add of all affected devices to
+automatically recreate the proper grouping.  Any dynamic change in
+routing and grouping would require all DMA be re-established anyway and
+a soft hotplug seems like an elegant way of handling it.  Thanks,
 
-Logan
+Alex
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
