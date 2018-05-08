@@ -1,23 +1,28 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from CAN01-QB1-obe.outbound.protection.outlook.com
- (mail-eopbgr660092.outbound.protection.outlook.com [40.107.66.92])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 418BB20945D98
- for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 14:27:48 -0700 (PDT)
-From: "Stephen  Bates" <sbates@raithlin.com>
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
-Date: Tue, 8 May 2018 21:27:45 +0000
-Message-ID: <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2@raithlin.com>
+ by ml01.01.org (Postfix) with ESMTPS id 338B820945D98
+ for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 14:26:35 -0700 (PDT)
+Date: Tue, 8 May 2018 15:26:31 -0600
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all
+ devices behind switches
+Message-ID: <20180508152631.50fd583c@w520.home>
+In-Reply-To: <a524127a-3557-3dff-971c-dfe94ba5a01c@deltatee.com>
 References: <20180423233046.21476-1-logang@deltatee.com>
  <20180423233046.21476-5-logang@deltatee.com>
- <CAPcyv4g+5N_n03J-VhmJfrr60Sqk95ZapLKBkwSsGvV4nQ+ZRw@mail.gmail.com>
- <64C231F5-DE36-415F-B308-3A423B0BBACB@raithlin.com>
- <15433946-f7f5-f610-4e80-380fb59920e5@redhat.com>
-In-Reply-To: <15433946-f7f5-f610-4e80-380fb59920e5@redhat.com>
-Content-Language: en-US
-Content-ID: <6ABD44D415AE6949AEE8F86759BEA511@CANPRD01.PROD.OUTLOOK.COM>
+ <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
+ <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
+ <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
+ <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
+ <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
+ <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508144341.0441b676@w520.home>
+ <a524127a-3557-3dff-971c-dfe94ba5a01c@deltatee.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -30,31 +35,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Don Dutile <ddutile@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Logan Gunthorpe <logang@deltatee.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig@amd.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?UTF-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>, Christian =?UTF-8?B?S8O2bmln?= <christian.koenig@amd.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Don
+On Tue, 8 May 2018 14:49:23 -0600
+Logan Gunthorpe <logang@deltatee.com> wrote:
 
->Well, p2p DMA is a function of a cooperating 'agent' somewhere above the two devices.
->    That agent should 'request' to the kernel that ACS be removed/circumvented (p2p enabled) btwn two endpoints.
->    I recommend doing so via a sysfs method.
+> On 08/05/18 02:43 PM, Alex Williamson wrote:
+> > Yes, GPUs seem to be leading the pack in implementing ATS.  So now the
+> > dumb question, why not simply turn off the IOMMU and thus ACS?  The
+> > argument of using the IOMMU for security is rather diminished if we're
+> > specifically enabling devices to poke one another directly and clearly
+> > this isn't favorable for device assignment either.  Are there target
+> > systems where this is not a simple kernel commandline option?  Thanks,  
+> 
+> Well, turning off the IOMMU doesn't necessarily turn off ACS. We've run
+> into some bios's that set the bits on boot (which is annoying).
 
-Yes we looked at something like this in the past but it does hit the IOMMU grouping issue I discussed earlier today which is not acceptable right now. In the long term, once we get IOMMU grouping callbacks to VMs we can look at extending p2pdma in this way. But I don't think this is viable for the initial series. 
+But it would be a much easier proposal to disable ACS when the IOMMU is
+not enabled, ACS has no real purpose in that case.
 
-    
->            So I don't understand the comments why VMs should need to know.
+> I also don't expect people will respond well to making the IOMMU and P2P
+> exclusive. The IOMMU is often used for more than just security and on
+> many platforms it's enabled by default. I'd much rather allow IOMMU use
+> but have fewer isolation groups in much the same way as if you had PCI
+> bridges that didn't support ACS.
 
-As I understand it VMs need to know because VFIO passes IOMMU grouping up into the VMs. So if a IOMMU grouping changes the VM's view of its PCIe topology changes. I think we even have to be cognizant of the fact the OS running on the VM may not even support hot-plug of PCI devices.
-    
-> Is there a thread I need to read up to explain /clear-up the thoughts above?
+The IOMMU and P2P are already not exclusive, we can bounce off the
+IOMMU or make use of ATS as we've previously discussed.  We were
+previously talking about a build time config option that you didn't
+expect distros to use, so I don't think intervention for the user to
+disable the IOMMU if it's enabled by default is a serious concern
+either.
 
-If you search for p2pdma you should find the previous discussions. Thanks for the input!
+What you're trying to do is enabled direct peer-to-peer for endpoints
+which do not support ATS when the IOMMU is enabled, which is not
+something that necessarily makes sense to me.  As I mentioned in a
+previous reply, the IOMMU provides us with an I/O virtual address space
+for devices, ACS is meant to fill the topology based gaps in that
+virtual address space, making transactions follow IOMMU compliant
+routing rules to avoid aliases between the IOVA and physical address
+spaces.  But this series specifically wants to leave those gaps open
+for direct P2P access.
 
-Stephen
-    
-    
+So we compromise the P2P aspect of security, still protecting RAM, but
+potentially only to the extent that a device cannot hop through or
+interfere with other devices to do its bidding.  Device assignment is
+mostly tossed out the window because not only are bigger groups more
+difficult to deal with, the IOVA space is riddled with gaps, which is
+not really a solved problem.  So that leaves avoiding bounce buffers as
+the remaining IOMMU feature, but we're dealing with native express
+devices and relatively high end devices that are probably installed in
+modern systems, so that seems like a non-issue.
 
+Are there other uses I'm forgetting?  We can enable interrupt remapping
+separate from DMA translation, so we can exclude that one.  I'm still
+not seeing why it's terribly undesirable to require devices to support
+ATS if they want to do direct P2P with an IOMMU enabled.  Thanks,
+
+Alex
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
