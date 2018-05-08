@@ -1,23 +1,37 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x234.google.com (mail-ot0-x234.google.com
+ [IPv6:2607:f8b0:4003:c0f::234])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40E85203BA4F7
- for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 16:06:20 -0700 (PDT)
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
+ by ml01.01.org (Postfix) with ESMTPS id E447A20945DB7
+ for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 16:00:34 -0700 (PDT)
+Received: by mail-ot0-x234.google.com with SMTP id n3-v6so1752209ota.5
+ for <linux-nvdimm@lists.01.org>; Tue, 08 May 2018 16:00:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180508163206.7d3bf383@w520.home>
 References: <20180423233046.21476-1-logang@deltatee.com>
  <20180423233046.21476-5-logang@deltatee.com>
- <CAPcyv4g+5N_n03J-VhmJfrr60Sqk95ZapLKBkwSsGvV4nQ+ZRw@mail.gmail.com>
- <64C231F5-DE36-415F-B308-3A423B0BBACB@raithlin.com>
- <15433946-f7f5-f610-4e80-380fb59920e5@redhat.com>
- <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2@raithlin.com>
-From: Don Dutile <ddutile@redhat.com>
-Message-ID: <c5f30ced-7bbf-9420-db1a-72519fc78b3a@redhat.com>
-Date: Tue, 8 May 2018 19:06:17 -0400
-MIME-Version: 1.0
-In-Reply-To: <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2@raithlin.com>
-Content-Language: en-US
+ <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
+ <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
+ <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
+ <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
+ <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
+ <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508144341.0441b676@w520.home>
+ <a524127a-3557-3dff-971c-dfe94ba5a01c@deltatee.com>
+ <20180508152631.50fd583c@w520.home>
+ <354F7407-0DC7-470C-B9AA-74FDF9C46B08@raithlin.com>
+ <20180508160336.0935ddde@w520.home>
+ <20905682-9440-7d4b-0260-99d3dc794c3d@deltatee.com>
+ <20180508163206.7d3bf383@w520.home>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 8 May 2018 16:00:33 -0700
+Message-ID: <CAPcyv4i1ksiu1pExF=EE21P2Wz1a9LaDaG247oG_WSbYgcR93g@mail.gmail.com>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,41 +39,66 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Stephen Bates <sbates@raithlin.com>, Dan Williams <dan.j.williams@intel.com>, Logan Gunthorpe <logang@deltatee.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Alex Williamson <alex.williamson@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 05/08/2018 05:27 PM, Stephen  Bates wrote:
-> Hi Don
-> 
->> Well, p2p DMA is a function of a cooperating 'agent' somewhere above the two devices.
->>     That agent should 'request' to the kernel that ACS be removed/circumvented (p2p enabled) btwn two endpoints.
->>     I recommend doing so via a sysfs method.
-> 
-> Yes we looked at something like this in the past but it does hit the IOMMU grouping issue I discussed earlier today which is not acceptable right now. In the long term, once we get IOMMU grouping callbacks to VMs we can look at extending p2pdma in this way. But I don't think this is viable for the initial series.
-> 
->      
->>             So I don't understand the comments why VMs should need to know.
-> 
-> As I understand it VMs need to know because VFIO passes IOMMU grouping up into the VMs. So if a IOMMU grouping changes the VM's view of its PCIe topology changes. I think we even have to be cognizant of the fact the OS running on the VM may not even support hot-plug of PCI devices.
-Alex:
-Really? IOMMU groups are created by the kernel, so don't know how they would be passed into the VMs, unless indirectly via  PCI(e) layout.
-At best, twiddling w/ACS enablement (emulation) would cause VMs to see different IOMMU groups, but again, VMs are not the security point/level, the host/HV's are.
+On Tue, May 8, 2018 at 3:32 PM, Alex Williamson
+<alex.williamson@redhat.com> wrote:
+> On Tue, 8 May 2018 16:10:19 -0600
+> Logan Gunthorpe <logang@deltatee.com> wrote:
+>
+>> On 08/05/18 04:03 PM, Alex Williamson wrote:
+>> > If IOMMU grouping implies device assignment (because nobody else uses
+>> > it to the same extent as device assignment) then the build-time option
+>> > falls to pieces, we need a single kernel that can do both.  I think we
+>> > need to get more clever about allowing the user to specify exactly at
+>> > which points in the topology they want to disable isolation.  Thanks,
+>>
+>>
+>> Yeah, so based on the discussion I'm leaning toward just having a
+>> command line option that takes a list of BDFs and disables ACS for them.
+>> (Essentially as Dan has suggested.) This avoids the shotgun.
+>>
+>> Then, the pci_p2pdma_distance command needs to check that ACS is
+>> disabled for all bridges between the two devices. If this is not the
+>> case, it returns -1. Future work can check if the EP has ATS support, in
+>> which case it has to check for the ACS direct translated bit.
+>>
+>> A user then needs to either disable the IOMMU and/or add the command
+>> line option to disable ACS for the specific downstream ports in the PCI
+>> hierarchy. This means the IOMMU groups will be less granular but
+>> presumably the person adding the command line argument understands this.
+>>
+>> We may also want to do some work so that there's informative dmesgs on
+>> which BDFs need to be specified on the command line so it's not so
+>> difficult for the user to figure out.
+>
+> I'd advise caution with a user supplied BDF approach, we have no
+> guaranteed persistence for a device's PCI address.  Adding a device
+> might renumber the buses, replacing a device with one that consumes
+> more/less bus numbers can renumber the buses, motherboard firmware
+> updates could renumber the buses, pci=assign-buses can renumber the
+> buses, etc.  This is why the VT-d spec makes use of device paths when
+> describing PCI hierarchies, firmware can't know what bus number will be
+> assigned to a device, but it does know the base bus number and the path
+> of devfns needed to get to it.  I don't know how we come up with an
+> option that's easy enough for a user to understand, but reasonably
+> robust against hardware changes.  Thanks,
 
->      
->> Is there a thread I need to read up to explain /clear-up the thoughts above?
-> 
-> If you search for p2pdma you should find the previous discussions. Thanks for the input!
-> 
-> Stephen
->      
->      
-> 
-
+True, but at the same time this feature is for "users with custom
+hardware designed for purpose", I assume they would be willing to take
+on the bus renumbering risk. It's already the case that
+/sys/bus/pci/drivers/<x>/bind takes BDF, which is why it seemed to
+make a similar interface for the command line. Ideally we could later
+get something into ACPI or other platform firmware to arrange for
+bridges to disable ACS by default if we see p2p becoming a
+common-off-the-shelf feature. I.e. a BIOS switch to enable p2p in a
+given PCI-E sub-domain.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
