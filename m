@@ -1,10 +1,10 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Huaisheng Ye <yehs1@lenovo.com>
 Subject: [RFC PATCH v1 4/6] arch/x86/kernel: mark NVDIMM regions from e820_table
-Date: Tue,  8 May 2018 10:30:26 +0800
-Message-Id: <1525746628-114136-5-git-send-email-yehs1@lenovo.com>
-In-Reply-To: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
-References: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
+Date: Tue,  8 May 2018 10:00:16 +0800
+Message-Id: <1525744818-110207-5-git-send-email-yehs1@lenovo.com>
+In-Reply-To: <1525744818-110207-1-git-send-email-yehs1@lenovo.com>
+References: <1525744818-110207-1-git-send-email-yehs1@lenovo.com>
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org, linux-mm@kvack.org
 Cc: mhocko@suse.com, willy@infradead.org, vbabka@suse.cz, mgorman@techsingularity.net, pasha.tatashin@oracle.com, alexander.levin@verizon.com, hannes@cmpxchg.org, penguin-kernel@I-love.SAKURA.ne.jp, colyli@suse.de, chengnt@lenovo.com, hehy1@lenovo.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Huaisheng Ye <yehs1@lenovo.com>
@@ -42,7 +42,7 @@ index 62be73b..b8006c3 100644
  
  extern u64  e820__memblock_alloc_reserved(u64 size, u64 align);
 diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index 71c11ad..c1dc1cc 100644
+index 6a2cb14..1bf7876 100644
 --- a/arch/x86/kernel/e820.c
 +++ b/arch/x86/kernel/e820.c
 @@ -840,6 +840,13 @@ unsigned long __init e820__end_of_ram_pfn(void)
@@ -59,7 +59,7 @@ index 71c11ad..c1dc1cc 100644
  unsigned long __init e820__end_of_low_ram_pfn(void)
  {
  	return e820_end_pfn(1UL << (32 - PAGE_SHIFT), E820_TYPE_RAM);
-@@ -1246,11 +1253,22 @@ void __init e820__memblock_setup(void)
+@@ -1264,11 +1271,22 @@ void __init e820__memblock_setup(void)
  		end = entry->addr + entry->size;
  		if (end != (resource_size_t)end)
  			continue;
@@ -84,10 +84,10 @@ index 71c11ad..c1dc1cc 100644
  
  	/* Throw away partial pages: */
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 4c616be..84c4ddb 100644
+index 6285697..305975b 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
-@@ -1032,7 +1032,15 @@ void __init setup_arch(char **cmdline_p)
+@@ -1031,7 +1031,15 @@ void __init setup_arch(char **cmdline_p)
  	 * partially used pages are not usable - thus
  	 * we are rounding upwards:
  	 */
