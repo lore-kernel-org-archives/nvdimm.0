@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mail1.bemta12.messagelabs.com (mail1.bemta12.messagelabs.com
+ [216.82.251.11])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 646D820352AB2
- for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 16:17:54 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v5 3/4] ndctl: convert region actions to use
- util_filter_walk()
-Date: Wed, 9 May 2018 23:17:51 +0000
-Message-ID: <1525907870.4429.3.camel@intel.com>
-References: <152486678857.66587.12260245215754521561.stgit@djiang5-desk3.ch.intel.com>
- <152486690886.66587.10650176680608823926.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152486690886.66587.10650176680608823926.stgit@djiang5-desk3.ch.intel.com>
-Content-Language: en-US
-Content-ID: <DDD21DAC6323DB45922CD7C43AB2305E@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6FC60203BBB91
+ for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 19:35:32 -0700 (PDT)
+From: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Subject: [External] [RFC PATCH v1 6/6] arch/x86/mm: create page table mapping
+ for DRAM and NVDIMM both
+Date: Tue, 8 May 2018 02:35:13 +0000
+Message-ID: <HK2PR03MB1684101846A9D9639BE00001929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
+References: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
+ <1525746628-114136-7-git-send-email-yehs1@lenovo.com>
+In-Reply-To: <1525746628-114136-7-git-send-email-yehs1@lenovo.com>
+Content-Language: zh-CN
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,143 +26,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Cc: "mhocko@suse.com" <mhocko@suse.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ocean HY1 He <hehy1@lenovo.com>, "penguin-kernel@I-love.SAKURA.ne.jp" <penguin-kernel@I-love.SAKURA.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, "willy@infradead.org" <willy@infradead.org>, "alexander.levin@verizon.com" <alexander.levin@verizon.com>, "hannes@cmpxchg.org" <hannes@cmpxchg.org>, "colyli@suse.de" <colyli@suse.de>, "mgorman@techsingularity.net" <mgorman@techsingularity.net>, "vbabka@suse.cz" <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 2018-04-27 at 15:08 -0700, Dave Jiang wrote:
-> util_filter_walk() does the looping through of busses and regions.
-> Removing
-> duplicate code in region ops and provide filter functions so we can
-> utilize util_filter_walk() and share common code.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  ndctl/region.c |   59 ++++++++++++++++++++++++++++++++++--------------
-> --------
->  util/filter.h  |    6 ++++++
->  2 files changed, 42 insertions(+), 23 deletions(-)
-> 
-> diff --git a/ndctl/region.c b/ndctl/region.c
-> index 9fc90808..9fd07af6 100644
-> --- a/ndctl/region.c
-> +++ b/ndctl/region.c
-> @@ -19,10 +19,7 @@
->  #include <util/parse-options.h>
->  #include <ndctl/libndctl.h>
->  
-> -static struct {
-> -	const char *bus;
-> -	const char *type;
-> -} param;
-> +struct util_filter_params param;
->  
->  static const struct option region_options[] = {
->  	OPT_STRING('b', "bus", &param.bus, "bus-id",
-> @@ -92,33 +89,49 @@ static int region_action(struct ndctl_region *region,
-> enum device_action mode)
->  	return 0;
->  }
->  
-> +static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx
-> *ctx)
-> +{
-> +	return true;
-> +}
-> +
+Create PTE, PMD, PUD and P4D levels page table mapping for physical
+addresses of DRAM and NVDIMM both. Here E820_TYPE_PMEM represents
+the region of e820_table.
 
-Instead of creating these trivial functions everywhere (also applies to
-namespaces.c, dimm.c), should we just leave fctx.bus_filter NULL. And fix
-util_filter_walk to check for fctx->ptr != NULL any time it calls one of
-the functions..
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
+Signed-off-by: Ocean He <hehy1@lenovo.com>
+---
+ arch/x86/mm/init_64.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-> +static bool filter_region(struct ndctl_region *region,
-> +		struct util_filter_ctx *ctx)
-> +{
-> +	struct rgaction_filter_arg *rfa = ctx->rgaction;
-> +	int rc;
-> +
-> +	if (rfa->rc < 0)
-> +		return false;
-> +
-> +	rc = region_action(region, rfa->action);
-> +
-> +	if (rc == 0)
-> +		rfa->rc++;
-> +	else
-> +		rfa->rc = 0;
-> +
-> +	/* we don't need to fall through, can continue the loop */
-> +	return false;
-> +}
-> +
->  static int do_xable_region(const char *region_arg, enum device_action
-> mode,
->  		struct ndctl_ctx *ctx)
->  {
-> -	int rc = -ENXIO, success = 0;
-> -	struct ndctl_region *region;
-> -	struct ndctl_bus *bus;
-> +	int rc = -ENXIO;
-> +	struct util_filter_ctx fctx = { 0 };
-> +	struct rgaction_filter_arg rfa = { 0 };
->  
->  	if (!region_arg)
->  		goto out;
->  
-> -        ndctl_bus_foreach(ctx, bus) {
-> -		if (!util_bus_filter(bus, param.bus))
-> -			continue;
-> -
-> -		ndctl_region_foreach(bus, region) {
-> -			const char *type =
-> ndctl_region_get_type_name(region);
-> -
-> -			if (param.type && strcmp(param.type, type) != 0)
-> -				continue;
-> -			if (!util_region_filter(region, region_arg))
-> -				continue;
-> -			if (region_action(region, mode) == 0)
-> -				success++;
-> -		}
-> -	}
-> +	fctx.filter_bus = filter_bus;
-> +	fctx.filter_region = filter_region;
-> +	fctx.rgaction = &rfa;
-> +	fctx.rgaction->action = mode;
-> +	rc = util_filter_walk(ctx, &fctx, &param);
-> +	if (rc == 0)
-> +		rc = fctx.rgaction->rc;
->  
-> -	rc = success;
->   out:
->  	param.bus = NULL;
->  	return rc;
-> diff --git a/util/filter.h b/util/filter.h
-> index 9f3786a9..0e0e3bec 100644
-> --- a/util/filter.h
-> +++ b/util/filter.h
-> @@ -57,6 +57,11 @@ struct nsaction_filter_arg {
->  	int rc;
->  };
->  
-> +struct rgaction_filter_arg {
-> +	enum device_action action;
-> +	int rc;
-> +};
-> +
->  /*
->   * struct util_filter_ctx - control and callbacks for util_filter_walk()
->   * ->filter_bus() and ->filter_region() return bool because the
-> @@ -75,6 +80,7 @@ struct util_filter_ctx {
->  		void *arg;
->  		struct list_filter_arg *list;
->  		struct nsaction_filter_arg *nsaction;
-> +		struct rgaction_filter_arg *rgaction;
->  	};
->  };
->  
-> 
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index af11a28..c03c2091 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -420,6 +420,10 @@ void __init cleanup_highmap(void)
+ 			if (!after_bootmem &&
+ 			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
+ 					     E820_TYPE_RAM) &&
++#ifdef CONFIG_ZONE_NVM
++			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
++					     E820_TYPE_PMEM) &&
++#endif
+ 			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
+ 					     E820_TYPE_RESERVED_KERN))
+ 				set_pte(pte, __pte(0));
+@@ -475,6 +479,10 @@ void __init cleanup_highmap(void)
+ 			if (!after_bootmem &&
+ 			    !e820__mapped_any(paddr & PMD_MASK, paddr_next,
+ 					     E820_TYPE_RAM) &&
++#ifdef CONFIG_ZONE_NVM
++			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
++					     E820_TYPE_PMEM) &&
++#endif
+ 			    !e820__mapped_any(paddr & PMD_MASK, paddr_next,
+ 					     E820_TYPE_RESERVED_KERN))
+ 				set_pmd(pmd, __pmd(0));
+@@ -561,6 +569,10 @@ void __init cleanup_highmap(void)
+ 			if (!after_bootmem &&
+ 			    !e820__mapped_any(paddr & PUD_MASK, paddr_next,
+ 					     E820_TYPE_RAM) &&
++#ifdef CONFIG_ZONE_NVM
++			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
++					     E820_TYPE_PMEM) &&
++#endif
+ 			    !e820__mapped_any(paddr & PUD_MASK, paddr_next,
+ 					     E820_TYPE_RESERVED_KERN))
+ 				set_pud(pud, __pud(0));
+@@ -647,6 +659,10 @@ void __init cleanup_highmap(void)
+ 			if (!after_bootmem &&
+ 			    !e820__mapped_any(paddr & P4D_MASK, paddr_next,
+ 					     E820_TYPE_RAM) &&
++#ifdef CONFIG_ZONE_NVM
++			    !e820__mapped_any(paddr & PAGE_MASK, paddr_next,
++					     E820_TYPE_PMEM) &&
++#endif
+ 			    !e820__mapped_any(paddr & P4D_MASK, paddr_next,
+ 					     E820_TYPE_RESERVED_KERN))
+ 				set_p4d(p4d, __p4d(0));
+-- 
+1.8.3.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
