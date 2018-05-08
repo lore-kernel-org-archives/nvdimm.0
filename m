@@ -1,23 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from NAM02-BL2-obe.outbound.protection.outlook.com
+ (mail-bl2nam02on0048.outbound.protection.outlook.com [104.47.38.48])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0EB42203BBBAA
- for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 12:14:08 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 1E347207E540E
+ for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 09:50:41 -0700 (PDT)
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
 References: <20180423233046.21476-1-logang@deltatee.com>
  <20180423233046.21476-5-logang@deltatee.com>
  <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
  <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
  <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
- <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
-Date: Tue, 8 May 2018 13:13:40 -0600
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
+Date: Tue, 8 May 2018 18:50:25 +0200
 MIME-Version: 1.0
-In-Reply-To: <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
+In-Reply-To: <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
 Content-Language: en-US
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,23 +25,52 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Bjorn Helgaas <helgaas@kernel.org>, Alex Williamson <alex.williamson@redhat.com>
+To: Logan Gunthorpe <logang@deltatee.com>, Bjorn Helgaas <helgaas@kernel.org>, Alex Williamson <alex.williamson@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-CgpPbiAwOC8wNS8xOCAxMDo1MCBBTSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBFLmcuIHRy
-YW5zYWN0aW9ucyBhcmUgaW5pdGlhbGx5IHNlbmQgdG8gdGhlIHJvb3QgY29tcGxleCBmb3IgCj4g
-dHJhbnNsYXRpb24sIHRoYXQncyBmb3Igc3VyZS4gQnV0IGF0IGxlYXN0IGZvciBBTUQgR1BVcyB0
-aGUgcm9vdCBjb21wbGV4IAo+IGFuc3dlcnMgd2l0aCB0aGUgdHJhbnNsYXRlZCBhZGRyZXNzIHdo
-aWNoIGlzIHRoZW4gY2FjaGVkIGluIHRoZSBkZXZpY2UuCj4gCj4gU28gZnVydGhlciB0cmFuc2Fj
-dGlvbnMgZm9yIHRoZSBzYW1lIGFkZHJlc3MgcmFuZ2UgdGhlbiBnbyBkaXJlY3RseSB0byAKPiB0
-aGUgZGVzdGluYXRpb24uCgpTb3VuZHMgbGlrZSB5b3UgYXJlIHJlZmVycmluZyB0byBBZGRyZXNz
-IFRyYW5zbGF0aW9uIFNlcnZpY2VzIChBVFMpLgpUaGlzIGlzIHF1aXRlIHNlcGFyYXRlIGZyb20g
-QUNTIGFuZCwgdG8gbXkga25vd2xlZGdlLCBpc24ndCB3aWRlbHkKc3VwcG9ydGVkIGJ5IHN3aXRj
-aCBoYXJkd2FyZS4KCkxvZ2FuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAx
-Lm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+QW0gMDguMDUuMjAxOCB1bSAxODoyNyBzY2hyaWViIExvZ2FuIEd1bnRob3JwZToKPgo+IE9uIDA4
+LzA1LzE4IDAxOjE3IEFNLCBDaHJpc3RpYW4gS8O2bmlnIHdyb3RlOgo+PiBBTUQgQVBVcyBtYW5k
+YXRvcnkgbmVlZCB0aGUgQUNTIGZsYWcgc2V0IGZvciB0aGUgR1BVIGludGVncmF0ZWQgaW4gdGhl
+Cj4+IENQVSB3aGVuIElPTU1VIGlzIGVuYWJsZWQgb3Igb3RoZXJ3aXNlIHlvdSB3aWxsIGJyZWFr
+IFNWTS4KPiBXZWxsLCBnaXZlbiB0aGF0IHRoZSBjdXJyZW50IHNldCBvbmx5IGRpc2FibGVzIEFD
+UyBiaXRzIG9uIGJyaWRnZXMKPiAocHJldmlvdXMgdmVyc2lvbnMgd2VyZSBvbmx5IG9uIHN3aXRj
+aGVzKSB0aGlzIHNob3VsZG4ndCBiZSBhbiBpc3N1ZSBmb3IKPiBpbnRlZ3JhdGVkIGRldmljZXMu
+IFdlIGRvIG5vdCBkaXNhYmxlIEFDUyBmbGFncyBnbG9iYWxseS4KCk9rLCB0aGF0IGlzIGF0IGxl
+YXN0IGEgc3RlcCBpbiB0aGUgcmlnaHQgZGlyZWN0aW9uLiBCdXQgSSB0aGluayB3ZSAKc2VyaW91
+c2x5IG5lZWQgdG8gdGVzdCB0aGF0IGZvciBzaWRlIGVmZmVjdHMuCgo+Cj4+IEFuZCB3aGF0IGV4
+YWN0bHkgaXMgdGhlIHByb2JsZW0gaGVyZT8gSSdtIGN1cnJlbnRseSB0ZXN0aW5nIFAyUCB3aXRo
+Cj4+IEdQVXMgaW4gZGlmZmVyZW50IElPTU1VIGRvbWFpbnMgYW5kIGF0IGxlYXN0IHdpdGggQU1E
+IElPTU1VcyB0aGF0IHdvcmtzCj4+IHBlcmZlY3RseSBmaW5lLgo+IEluIGFkZGl0aW9uIHRvIFN0
+ZXBoZW4ncyBjb21tZW50cywgc2VlaW5nIHdlJ3ZlIGVzdGFibGlzaGVkIGEgZ2VuZXJhbAo+IG5l
+ZWQgdG8gYXZvaWQgdGhlIHJvb3QgY29tcGxleCAodW50aWwgd2UgaGF2ZSBhIHdoaXRlbGlzdCBh
+dCBsZWFzdCkgd2UKPiBtdXN0IGhhdmUgQUNTIGRpc2FibGVkIGFsb25nIHRoZSBwYXRoIGJldHdl
+ZW4gdGhlIGRldmljZXMuIE90aGVyd2lzZSwKPiBhbGwgVExQcyB3aWxsIGdvIHRocm91Z2ggdGhl
+IHJvb3QgY29tcGxleCBhbmQgaWYgdGhlcmUgaXMgbm8gc3VwcG9ydCBpdAo+IHdpbGwgZmFpbC4K
+CldlbGwgSSdtIG5vdCBhbiBleHBlcnQgb24gdGhpcywgYnV0IGlmIEknbSBub3QgY29tcGxldGVs
+eSBtaXN0YWtlbiB0aGF0IAppcyBub3QgY29ycmVjdC4KCkUuZy4gdHJhbnNhY3Rpb25zIGFyZSBp
+bml0aWFsbHkgc2VuZCB0byB0aGUgcm9vdCBjb21wbGV4IGZvciAKdHJhbnNsYXRpb24sIHRoYXQn
+cyBmb3Igc3VyZS4gQnV0IGF0IGxlYXN0IGZvciBBTUQgR1BVcyB0aGUgcm9vdCBjb21wbGV4IAph
+bnN3ZXJzIHdpdGggdGhlIHRyYW5zbGF0ZWQgYWRkcmVzcyB3aGljaCBpcyB0aGVuIGNhY2hlZCBp
+biB0aGUgZGV2aWNlLgoKU28gZnVydGhlciB0cmFuc2FjdGlvbnMgZm9yIHRoZSBzYW1lIGFkZHJl
+c3MgcmFuZ2UgdGhlbiBnbyBkaXJlY3RseSB0byAKdGhlIGRlc3RpbmF0aW9uLgoKV2hhdCB5b3Ug
+ZG9uJ3Qgd2FudCBpcyBkZXZpY2UgaXNvbGF0aW9uLCBjYXVzZSBpbiB0aGlzIGNhc2UgdGhlIHJv
+b3QgCmNvbXBsZXggaGFuZGxlcyB0aGUgdHJhbnNhY3Rpb24gdGhlbXNlbHZlcy4gSUlSQyB0aGVy
+ZSB3aGVyZSBhbHNvIApzb21ldGhpbmcgbGlrZSAiZm9yY2VfaXNvbGF0aW9uIiBhbmQgIm5vYnlw
+YXNzIiBwYXJhbWV0ZXJzIGZvciB0aGUgSU9NTVUgCnRvIGNvbnRyb2wgdGhhdCBiZWhhdmlvci4K
+Ckl0J3MgYWxyZWFkeSBsYXRlIGhlcmUsIGJ1dCBnb2luZyB0byBkaWcgdXAgdGhlIGRvY3VtZW50
+YXRpb24gZm9yIHRoYXQgCnRvbW9ycm93IGFuZC9vciBjb250YWN0IGEgaGFyZHdhcmUgZW5naW5l
+ZXIgaW52b2x2ZWQgaW4gdGhlIEFDUyBzcGVjLgoKUmVnYXJkcywKQ2hyaXN0aWFuLgoKPgo+IElm
+IHRoZSBjb25zZW5zdXMgaXMgd2Ugd2FudCBhIGNvbW1hbmQgbGluZSBvcHRpb24sIHRoZW4gc28g
+YmUgaXQuIEJ1dAo+IHdlJ2xsIGhhdmUgdG8gZGVueSBwcmV0dHkgbXVjaCBhbGwgUDJQIHRyYW5z
+YWN0aW9ucyB1bmxlc3MgdGhlIHVzZXIKPiBjb3JyZWN0bHkgZGlzYWJsZXMgQUNTIGFsb25nIHRo
+ZSBwYXRoIHVzaW5nIHRoZSBjb21tYW5kIGxpbmUgb3B0aW9uIGFuZAo+IHRoaXMgaXMgcmVhbGx5
+IGFubm95aW5nIGZvciB1c2VycyBvZiB0aGlzIGZ1bmN0aW9uYWxpdHkgdG8gdW5kZXJzdGFuZAo+
+IGhvdyB0byBkbyB0aGF0IGNvcnJlY3RseS4KPgo+IExvZ2FuCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
+bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1udmRpbW0K
