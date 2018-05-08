@@ -1,23 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mail1.bemta8.messagelabs.com (mail1.bemta8.messagelabs.com
+ [216.82.243.208])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 658DE203BBBB0
- for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 20:10:06 -0700 (PDT)
-Date: Mon, 7 May 2018 20:09:59 -0700
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [External]  Re: [RFC PATCH v1 0/6] use mm to manage NVDIMM
- (pmem) zone
-Message-ID: <20180508030959.GB16338@bombadil.infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id 83F67203BBB8F
+ for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 19:59:56 -0700 (PDT)
+From: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Subject: RE: [External] Re: [RFC PATCH v1 0/6] use mm to manage NVDIMM (pmem)
+ zone
+Date: Tue, 8 May 2018 02:59:40 +0000
+Message-ID: <HK2PR03MB1684659175EB0A11E75E9B61929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
 References: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
  <20180507184622.GB12361@bombadil.infradead.org>
  <CAPcyv4hBJN3npXwg3Ur32JSWtKvBUZh7F8W+Exx3BB-uKWwPag@mail.gmail.com>
  <x49a7tbi8r3.fsf@segfault.boston.devel.redhat.com>
- <HK2PR03MB1684659175EB0A11E75E9B61929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
+In-Reply-To: <x49a7tbi8r3.fsf@segfault.boston.devel.redhat.com>
+Content-Language: zh-CN
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <HK2PR03MB1684659175EB0A11E75E9B61929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,33 +24,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Huaisheng HS1 Ye <yehs1@lenovo.com>
-Cc: Sasha Levin <alexander.levin@verizon.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, Linux MM <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>, Johannes Weiner <hannes@cmpxchg.org>, "colyli@suse.de" <colyli@suse.de>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>
+To: Jeff Moyer <jmoyer@redhat.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Sasha Levin <alexander.levin@verizon.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, Linux MM <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>, Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, "colyli@suse.de" <colyli@suse.de>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, May 08, 2018 at 02:59:40AM +0000, Huaisheng HS1 Ye wrote:
-> Currently in our mind, an ideal use scenario is that, we put all page caches to
-> zone_nvm, without any doubt, page cache is an efficient and common cache
-> implement, but it has a disadvantage that all dirty data within it would has risk
-> to be missed by power failure or system crash. If we put all page caches to NVDIMMs,
-> all dirty data will be safe. 
-
-That's a common misconception.  Some dirty data will still be in the
-CPU caches.  Are you planning on building servers which have enough
-capacitance to allow the CPU to flush all dirty data from LLC to NV-DIMM?
-
-Then there's the problem of reconnecting the page cache (which is
-pointed to by ephemeral data structures like inodes and dentries) to
-the new inodes.
-
-And then you have to convince customers that what you're doing is safe
-enough for them to trust it ;-)
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Pg0KPkRhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPiB3cml0ZXM6DQo+DQo+
+PiBPbiBNb24sIE1heSA3LCAyMDE4IGF0IDExOjQ2IEFNLCBNYXR0aGV3IFdpbGNveCA8d2lsbHlA
+aW5mcmFkZWFkLm9yZz4NCj53cm90ZToNCj4+PiBPbiBNb24sIE1heSAwNywgMjAxOCBhdCAxMDo1
+MDoyMVBNICswODAwLCBIdWFpc2hlbmcgWWUgd3JvdGU6DQo+Pj4+IFRyYWRpdGlvbmFsbHksIE5W
+RElNTXMgYXJlIHRyZWF0ZWQgYnkgbW0obWVtb3J5IG1hbmFnZW1lbnQpDQo+c3Vic3lzdGVtIGFz
+DQo+Pj4+IERFVklDRSB6b25lLCB3aGljaCBpcyBhIHZpcnR1YWwgem9uZSBhbmQgYm90aCBpdHMg
+c3RhcnQgYW5kIGVuZCBvZiBwZm4NCj4+Pj4gYXJlIGVxdWFsIHRvIDAsIG1tIHdvdWxkbuKAmXQg
+bWFuYWdlIE5WRElNTSBkaXJlY3RseSBhcyBEUkFNLCBrZXJuZWwNCj51c2VzDQo+Pj4+IGNvcnJl
+c3BvbmRpbmcgZHJpdmVycywgd2hpY2ggbG9jYXRlIGF0IFxkcml2ZXJzXG52ZGltbVwgYW5kDQo+
+Pj4+IFxkcml2ZXJzXGFjcGlcbmZpdCBhbmQgZnMsIHRvIHJlYWxpemUgTlZESU1NIG1lbW9yeSBh
+bGxvYyBhbmQgZnJlZSB3aXRoDQo+Pj4+IG1lbW9yeSBob3QgcGx1ZyBpbXBsZW1lbnRhdGlvbi4N
+Cj4+Pg0KPj4+IFlvdSBwcm9iYWJseSB3YW50IHRvIGxldCBsaW51eC1udmRpbW0ga25vdyBhYm91
+dCB0aGlzIHBhdGNoIHNldC4NCj4+PiBBZGRpbmcgdG8gdGhlIGNjLg0KPj4NCj4+IFllcywgdGhh
+bmtzIGZvciB0aGF0IQ0KPj4NCj4+PiBBbHNvLCBJIG9ubHkgcmVjZWl2ZWQgcGF0Y2ggMCBhbmQg
+NC4gIFdoYXQgaGFwcGVuZWQNCj4+PiB0byAxLTMsNSBhbmQgNj8NCj4+Pg0KPj4+PiBXaXRoIGN1
+cnJlbnQga2VybmVsLCBtYW55IG1t4oCZcyBjbGFzc2ljYWwgZmVhdHVyZXMgbGlrZSB0aGUgYnVk
+ZHkNCj4+Pj4gc3lzdGVtLCBzd2FwIG1lY2hhbmlzbSBhbmQgcGFnZSBjYWNoZSBjb3VsZG7igJl0
+IGJlIHN1cHBvcnRlZCB0bw0KPk5WRElNTS4NCj4+Pj4gV2hhdCB3ZSBhcmUgZG9pbmcgaXMgdG8g
+ZXhwYW5kIGtlcm5lbCBtbeKAmXMgY2FwYWNpdHkgdG8gbWFrZSBpdCB0bw0KPmhhbmRsZQ0KPj4+
+PiBOVkRJTU0gbGlrZSBEUkFNLiBGdXJ0aGVybW9yZSB3ZSBtYWtlIG1tIGNvdWxkIHRyZWF0IERS
+QU0gYW5kDQo+TlZESU1NDQo+Pj4+IHNlcGFyYXRlbHksIHRoYXQgbWVhbnMgbW0gY2FuIG9ubHkg
+cHV0IHRoZSBjcml0aWNhbCBwYWdlcyB0byBOVkRJTU0NCj4NCj5QbGVhc2UgZGVmaW5lICJjcml0
+aWNhbCBwYWdlcy4iDQo+DQo+Pj4+IHpvbmUsIGhlcmUgd2UgY3JlYXRlZCBhIG5ldyB6b25lIHR5
+cGUgYXMgTlZNIHpvbmUuIFRoYXQgaXMgdG8gc2F5IGZvcg0KPj4+PiB0cmFkaXRpb25hbChvciBu
+b3JtYWwpIHBhZ2VzIHdoaWNoIHdvdWxkIGJlIHN0b3JlZCBhdCBEUkFNIHNjb3BlIGxpa2UNCj4+
+Pj4gTm9ybWFsLCBETUEzMiBhbmQgRE1BIHpvbmVzLiBCdXQgZm9yIHRoZSBjcml0aWNhbCBwYWdl
+cywgd2hpY2ggd2UgaG9wZQ0KPj4+PiB0aGVtIGNvdWxkIGJlIHJlY292ZXJlZCBmcm9tIHBvd2Vy
+IGZhaWwgb3Igc3lzdGVtIGNyYXNoLCB3ZSBtYWtlIHRoZW0NCj4+Pj4gdG8gYmUgcGVyc2lzdGVu
+dCBieSBzdG9yaW5nIHRoZW0gdG8gTlZNIHpvbmUuDQo+DQo+Wy4uLl0NCj4NCj4+IEkgdGhpbmsg
+YWRkaW5nIHlldCBvbmUgbW9yZSBtbS16b25lIGlzIHRoZSB3cm9uZyBkaXJlY3Rpb24uIEluc3Rl
+YWQsDQo+PiB3aGF0IHdlIGhhdmUgYmVlbiBjb25zaWRlcmluZyBpcyBhIG1lY2hhbmlzbSB0byBh
+bGxvdyBhIGRldmljZS1kYXgNCj4+IGluc3RhbmNlIHRvIGJlIGdpdmVuIGJhY2sgdG8gdGhlIGtl
+cm5lbCBhcyBhIGRpc3RpbmN0IG51bWEgbm9kZQ0KPj4gbWFuYWdlZCBieSB0aGUgVk0uIEl0IHNl
+ZW1zIGl0IHRpbWVzIHRvIGR1c3Qgb2ZmIHRob3NlIHBhdGNoZXMuDQo+DQo+V2hhdCdzIHRoZSB1
+c2UgY2FzZT8gIFRoZSBhYm92ZSBwYXRjaCBkZXNjcmlwdGlvbiBzZWVtcyB0byBpbmRpY2F0ZSBh
+bg0KPmludGVudCB0byByZWNvdmVyIGNvbnRlbnRzIGFmdGVyIGEgcG93ZXIgbG9zcy4gIFdpdGhv
+dXQgc2VlaW5nIHRoZSB3aG9sZQ0KPnNlcmllcywgSSdtIG5vdCBzdXJlIGhvdyB0aGF0J3MgYWNj
+b21wbGlzaGVkIGluIGEgc2FmZSBvciBtZWFuaW5nZnVsDQo+d2F5Lg0KPg0KPkh1YWlzaGVuZywg
+Y291bGQgeW91IHByb3ZpZGUgYSBiaXQgbW9yZSBiYWNrZ3JvdW5kPw0KPg0KDQpDdXJyZW50bHkg
+aW4gb3VyIG1pbmQsIGFuIGlkZWFsIHVzZSBzY2VuYXJpbyBpcyB0aGF0LCB3ZSBwdXQgYWxsIHBh
+Z2UgY2FjaGVzIHRvDQp6b25lX252bSwgd2l0aG91dCBhbnkgZG91YnQsIHBhZ2UgY2FjaGUgaXMg
+YW4gZWZmaWNpZW50IGFuZCBjb21tb24gY2FjaGUNCmltcGxlbWVudCwgYnV0IGl0IGhhcyBhIGRp
+c2FkdmFudGFnZSB0aGF0IGFsbCBkaXJ0eSBkYXRhIHdpdGhpbiBpdCB3b3VsZCBoYXMgcmlzaw0K
+dG8gYmUgbWlzc2VkIGJ5IHBvd2VyIGZhaWx1cmUgb3Igc3lzdGVtIGNyYXNoLiBJZiB3ZSBwdXQg
+YWxsIHBhZ2UgY2FjaGVzIHRvIE5WRElNTXMsDQphbGwgZGlydHkgZGF0YSB3aWxsIGJlIHNhZmUu
+IA0KDQpBbmQgdGhlIG1vc3QgaW1wb3J0YW50IGlzIHRoYXQsIFBhZ2UgY2FjaGUgaXMgZGlmZmVy
+ZW50IGZyb20gZG0tY2FjaGUgb3IgQi1jYWNoZS4NClBhZ2UgY2FjaGUgZXhpc3RzIGF0IG1tLiBT
+bywgaXQgaGFzIG11Y2ggbW9yZSBwZXJmb3JtYW5jZSB0aGFuIG90aGVyIFdyaXRlDQpjYWNoZXMs
+IHdoaWNoIGxvY2F0ZSBhdCBzdG9yYWdlIGxldmVsLg0KDQpBdCBwcmVzZW50IHdlIGhhdmUgcmVh
+bGl6ZWQgTlZNIHpvbmUgdG8gYmUgc3VwcG9ydGVkIGJ5IHR3byBzb2NrZXRzKE5VTUEpDQpwcm9k
+dWN0IGJhc2VkIG9uIExlbm92byBQdXJsZXkgcGxhdGZvcm0sIGFuZCB3ZSBjYW4gZXhwYW5kIE5W
+TSBmbGFnIGludG8NClBhZ2UgQ2FjaGUgYWxsb2NhdGlvbiBpbnRlcmZhY2UsIHNvIGFsbCBQYWdl
+IENhY2hlcyBvZiBzeXN0ZW0gaGFkIGJlZW4gc3RvcmVkDQp0byBOVkRJTU0gc2FmZWx5Lg0KDQpO
+b3cgd2UgYXJlIGZvY3VzaW5nIGhvdyB0byByZWNvdmVyIGRhdGEgZnJvbSBQYWdlIGNhY2hlIGFm
+dGVyIHBvd2VyIG9uLiBUaGF0IGlzLA0KVGhlIGRpcnR5IHBhZ2VzIGNvdWxkIGJlIHNhZmUgYW5k
+IHRoZSB0aW1lIGNvc3Qgb2YgY2FjaGUgdHJhaW5pbmcgd291bGQgYmUgc2F2ZWQgYSBsb3QuDQpC
+ZWNhdXNlIG1hbnkgcGFnZXMgaGF2ZSBhbHJlYWR5IHN0b3JlZCB0byBaT05FX05WTSBiZWZvcmUg
+cG93ZXIgZmFpbHR1cmUuDQoNClRoYW5rcywNCkh1YWlzaGVuZyBZZQ0KDQpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
+aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
+bi9saXN0aW5mby9saW51eC1udmRpbW0K
