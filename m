@@ -1,95 +1,105 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail1.bemta8.messagelabs.com (mail1.bemta8.messagelabs.com
- [216.82.243.208])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 83F67203BBB8F
- for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 19:59:56 -0700 (PDT)
-From: Huaisheng HS1 Ye <yehs1@lenovo.com>
-Subject: RE: [External] Re: [RFC PATCH v1 0/6] use mm to manage NVDIMM (pmem)
- zone
-Date: Tue, 8 May 2018 02:59:40 +0000
-Message-ID: <HK2PR03MB1684659175EB0A11E75E9B61929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
-References: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
- <20180507184622.GB12361@bombadil.infradead.org>
- <CAPcyv4hBJN3npXwg3Ur32JSWtKvBUZh7F8W+Exx3BB-uKWwPag@mail.gmail.com>
- <x49a7tbi8r3.fsf@segfault.boston.devel.redhat.com>
-In-Reply-To: <x49a7tbi8r3.fsf@segfault.boston.devel.redhat.com>
-Content-Language: zh-CN
+Return-Path: <owner-linux-mm@kvack.org>
+From: Huaisheng Ye <yehs1@lenovo.com>
+Subject: [RFC PATCH v1 0/6] use mm to manage NVDIMM (pmem) zone
+Date: Tue,  8 May 2018 10:30:22 +0800
+Message-Id: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jeff Moyer <jmoyer@redhat.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: Sasha Levin <alexander.levin@verizon.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, Linux MM <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>, Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, "colyli@suse.de" <colyli@suse.de>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: mhocko@suse.com, willy@infradead.org, vbabka@suse.cz, mgorman@techsingularity.net, pasha.tatashin@oracle.com, alexander.levin@verizon.com, hannes@cmpxchg.org, penguin-kernel@I-love.SAKURA.ne.jp, colyli@suse.de, chengnt@lenovo.com, hehy1@lenovo.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, Huaisheng Ye <yehs1@lenovo.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Pg0KPkRhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPiB3cml0ZXM6DQo+DQo+
-PiBPbiBNb24sIE1heSA3LCAyMDE4IGF0IDExOjQ2IEFNLCBNYXR0aGV3IFdpbGNveCA8d2lsbHlA
-aW5mcmFkZWFkLm9yZz4NCj53cm90ZToNCj4+PiBPbiBNb24sIE1heSAwNywgMjAxOCBhdCAxMDo1
-MDoyMVBNICswODAwLCBIdWFpc2hlbmcgWWUgd3JvdGU6DQo+Pj4+IFRyYWRpdGlvbmFsbHksIE5W
-RElNTXMgYXJlIHRyZWF0ZWQgYnkgbW0obWVtb3J5IG1hbmFnZW1lbnQpDQo+c3Vic3lzdGVtIGFz
-DQo+Pj4+IERFVklDRSB6b25lLCB3aGljaCBpcyBhIHZpcnR1YWwgem9uZSBhbmQgYm90aCBpdHMg
-c3RhcnQgYW5kIGVuZCBvZiBwZm4NCj4+Pj4gYXJlIGVxdWFsIHRvIDAsIG1tIHdvdWxkbuKAmXQg
-bWFuYWdlIE5WRElNTSBkaXJlY3RseSBhcyBEUkFNLCBrZXJuZWwNCj51c2VzDQo+Pj4+IGNvcnJl
-c3BvbmRpbmcgZHJpdmVycywgd2hpY2ggbG9jYXRlIGF0IFxkcml2ZXJzXG52ZGltbVwgYW5kDQo+
-Pj4+IFxkcml2ZXJzXGFjcGlcbmZpdCBhbmQgZnMsIHRvIHJlYWxpemUgTlZESU1NIG1lbW9yeSBh
-bGxvYyBhbmQgZnJlZSB3aXRoDQo+Pj4+IG1lbW9yeSBob3QgcGx1ZyBpbXBsZW1lbnRhdGlvbi4N
-Cj4+Pg0KPj4+IFlvdSBwcm9iYWJseSB3YW50IHRvIGxldCBsaW51eC1udmRpbW0ga25vdyBhYm91
-dCB0aGlzIHBhdGNoIHNldC4NCj4+PiBBZGRpbmcgdG8gdGhlIGNjLg0KPj4NCj4+IFllcywgdGhh
-bmtzIGZvciB0aGF0IQ0KPj4NCj4+PiBBbHNvLCBJIG9ubHkgcmVjZWl2ZWQgcGF0Y2ggMCBhbmQg
-NC4gIFdoYXQgaGFwcGVuZWQNCj4+PiB0byAxLTMsNSBhbmQgNj8NCj4+Pg0KPj4+PiBXaXRoIGN1
-cnJlbnQga2VybmVsLCBtYW55IG1t4oCZcyBjbGFzc2ljYWwgZmVhdHVyZXMgbGlrZSB0aGUgYnVk
-ZHkNCj4+Pj4gc3lzdGVtLCBzd2FwIG1lY2hhbmlzbSBhbmQgcGFnZSBjYWNoZSBjb3VsZG7igJl0
-IGJlIHN1cHBvcnRlZCB0bw0KPk5WRElNTS4NCj4+Pj4gV2hhdCB3ZSBhcmUgZG9pbmcgaXMgdG8g
-ZXhwYW5kIGtlcm5lbCBtbeKAmXMgY2FwYWNpdHkgdG8gbWFrZSBpdCB0bw0KPmhhbmRsZQ0KPj4+
-PiBOVkRJTU0gbGlrZSBEUkFNLiBGdXJ0aGVybW9yZSB3ZSBtYWtlIG1tIGNvdWxkIHRyZWF0IERS
-QU0gYW5kDQo+TlZESU1NDQo+Pj4+IHNlcGFyYXRlbHksIHRoYXQgbWVhbnMgbW0gY2FuIG9ubHkg
-cHV0IHRoZSBjcml0aWNhbCBwYWdlcyB0byBOVkRJTU0NCj4NCj5QbGVhc2UgZGVmaW5lICJjcml0
-aWNhbCBwYWdlcy4iDQo+DQo+Pj4+IHpvbmUsIGhlcmUgd2UgY3JlYXRlZCBhIG5ldyB6b25lIHR5
-cGUgYXMgTlZNIHpvbmUuIFRoYXQgaXMgdG8gc2F5IGZvcg0KPj4+PiB0cmFkaXRpb25hbChvciBu
-b3JtYWwpIHBhZ2VzIHdoaWNoIHdvdWxkIGJlIHN0b3JlZCBhdCBEUkFNIHNjb3BlIGxpa2UNCj4+
-Pj4gTm9ybWFsLCBETUEzMiBhbmQgRE1BIHpvbmVzLiBCdXQgZm9yIHRoZSBjcml0aWNhbCBwYWdl
-cywgd2hpY2ggd2UgaG9wZQ0KPj4+PiB0aGVtIGNvdWxkIGJlIHJlY292ZXJlZCBmcm9tIHBvd2Vy
-IGZhaWwgb3Igc3lzdGVtIGNyYXNoLCB3ZSBtYWtlIHRoZW0NCj4+Pj4gdG8gYmUgcGVyc2lzdGVu
-dCBieSBzdG9yaW5nIHRoZW0gdG8gTlZNIHpvbmUuDQo+DQo+Wy4uLl0NCj4NCj4+IEkgdGhpbmsg
-YWRkaW5nIHlldCBvbmUgbW9yZSBtbS16b25lIGlzIHRoZSB3cm9uZyBkaXJlY3Rpb24uIEluc3Rl
-YWQsDQo+PiB3aGF0IHdlIGhhdmUgYmVlbiBjb25zaWRlcmluZyBpcyBhIG1lY2hhbmlzbSB0byBh
-bGxvdyBhIGRldmljZS1kYXgNCj4+IGluc3RhbmNlIHRvIGJlIGdpdmVuIGJhY2sgdG8gdGhlIGtl
-cm5lbCBhcyBhIGRpc3RpbmN0IG51bWEgbm9kZQ0KPj4gbWFuYWdlZCBieSB0aGUgVk0uIEl0IHNl
-ZW1zIGl0IHRpbWVzIHRvIGR1c3Qgb2ZmIHRob3NlIHBhdGNoZXMuDQo+DQo+V2hhdCdzIHRoZSB1
-c2UgY2FzZT8gIFRoZSBhYm92ZSBwYXRjaCBkZXNjcmlwdGlvbiBzZWVtcyB0byBpbmRpY2F0ZSBh
-bg0KPmludGVudCB0byByZWNvdmVyIGNvbnRlbnRzIGFmdGVyIGEgcG93ZXIgbG9zcy4gIFdpdGhv
-dXQgc2VlaW5nIHRoZSB3aG9sZQ0KPnNlcmllcywgSSdtIG5vdCBzdXJlIGhvdyB0aGF0J3MgYWNj
-b21wbGlzaGVkIGluIGEgc2FmZSBvciBtZWFuaW5nZnVsDQo+d2F5Lg0KPg0KPkh1YWlzaGVuZywg
-Y291bGQgeW91IHByb3ZpZGUgYSBiaXQgbW9yZSBiYWNrZ3JvdW5kPw0KPg0KDQpDdXJyZW50bHkg
-aW4gb3VyIG1pbmQsIGFuIGlkZWFsIHVzZSBzY2VuYXJpbyBpcyB0aGF0LCB3ZSBwdXQgYWxsIHBh
-Z2UgY2FjaGVzIHRvDQp6b25lX252bSwgd2l0aG91dCBhbnkgZG91YnQsIHBhZ2UgY2FjaGUgaXMg
-YW4gZWZmaWNpZW50IGFuZCBjb21tb24gY2FjaGUNCmltcGxlbWVudCwgYnV0IGl0IGhhcyBhIGRp
-c2FkdmFudGFnZSB0aGF0IGFsbCBkaXJ0eSBkYXRhIHdpdGhpbiBpdCB3b3VsZCBoYXMgcmlzaw0K
-dG8gYmUgbWlzc2VkIGJ5IHBvd2VyIGZhaWx1cmUgb3Igc3lzdGVtIGNyYXNoLiBJZiB3ZSBwdXQg
-YWxsIHBhZ2UgY2FjaGVzIHRvIE5WRElNTXMsDQphbGwgZGlydHkgZGF0YSB3aWxsIGJlIHNhZmUu
-IA0KDQpBbmQgdGhlIG1vc3QgaW1wb3J0YW50IGlzIHRoYXQsIFBhZ2UgY2FjaGUgaXMgZGlmZmVy
-ZW50IGZyb20gZG0tY2FjaGUgb3IgQi1jYWNoZS4NClBhZ2UgY2FjaGUgZXhpc3RzIGF0IG1tLiBT
-bywgaXQgaGFzIG11Y2ggbW9yZSBwZXJmb3JtYW5jZSB0aGFuIG90aGVyIFdyaXRlDQpjYWNoZXMs
-IHdoaWNoIGxvY2F0ZSBhdCBzdG9yYWdlIGxldmVsLg0KDQpBdCBwcmVzZW50IHdlIGhhdmUgcmVh
-bGl6ZWQgTlZNIHpvbmUgdG8gYmUgc3VwcG9ydGVkIGJ5IHR3byBzb2NrZXRzKE5VTUEpDQpwcm9k
-dWN0IGJhc2VkIG9uIExlbm92byBQdXJsZXkgcGxhdGZvcm0sIGFuZCB3ZSBjYW4gZXhwYW5kIE5W
-TSBmbGFnIGludG8NClBhZ2UgQ2FjaGUgYWxsb2NhdGlvbiBpbnRlcmZhY2UsIHNvIGFsbCBQYWdl
-IENhY2hlcyBvZiBzeXN0ZW0gaGFkIGJlZW4gc3RvcmVkDQp0byBOVkRJTU0gc2FmZWx5Lg0KDQpO
-b3cgd2UgYXJlIGZvY3VzaW5nIGhvdyB0byByZWNvdmVyIGRhdGEgZnJvbSBQYWdlIGNhY2hlIGFm
-dGVyIHBvd2VyIG9uLiBUaGF0IGlzLA0KVGhlIGRpcnR5IHBhZ2VzIGNvdWxkIGJlIHNhZmUgYW5k
-IHRoZSB0aW1lIGNvc3Qgb2YgY2FjaGUgdHJhaW5pbmcgd291bGQgYmUgc2F2ZWQgYSBsb3QuDQpC
-ZWNhdXNlIG1hbnkgcGFnZXMgaGF2ZSBhbHJlYWR5IHN0b3JlZCB0byBaT05FX05WTSBiZWZvcmUg
-cG93ZXIgZmFpbHR1cmUuDQoNClRoYW5rcywNCkh1YWlzaGVuZyBZZQ0KDQpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
-bi9saXN0aW5mby9saW51eC1udmRpbW0K
+Traditionally, NVDIMMs are treated by mm(memory management) subsystem as
+DEVICE zone, which is a virtual zone and both its start and end of pfn
+are equal to 0, mm wouldn’t manage NVDIMM directly as DRAM, kernel uses
+corresponding drivers, which locate at \drivers\nvdimm\ and
+\drivers\acpi\nfit and fs, to realize NVDIMM memory alloc and free with
+memory hot plug implementation.
+
+With current kernel, many mm’s classical features like the buddy
+system, swap mechanism and page cache couldn’t be supported to NVDIMM.
+What we are doing is to expand kernel mm’s capacity to make it to handle
+NVDIMM like DRAM. Furthermore we make mm could treat DRAM and NVDIMM
+separately, that means mm can only put the critical pages to NVDIMM
+zone, here we created a new zone type as NVM zone. That is to say for
+traditional(or normal) pages which would be stored at DRAM scope like
+Normal, DMA32 and DMA zones. But for the critical pages, which we hope
+them could be recovered from power fail or system crash, we make them
+to be persistent by storing them to NVM zone.
+
+We installed two NVDIMMs to Lenovo Thinksystem product as development
+platform, which has 125GB storage capacity respectively. With these
+patches below, mm can create NVM zones for NVDIMMs.
+
+Here is dmesg info,
+ Initmem setup node 0 [mem 0x0000000000001000-0x000000237fffffff]
+ On node 0 totalpages: 36879666
+   DMA zone: 64 pages used for memmap
+   DMA zone: 23 pages reserved
+   DMA zone: 3999 pages, LIFO batch:0
+ mminit::memmap_init Initialising map node 0 zone 0 pfns 1 -> 4096
+   DMA32 zone: 10935 pages used for memmap
+   DMA32 zone: 699795 pages, LIFO batch:31
+ mminit::memmap_init Initialising map node 0 zone 1 pfns 4096 -> 1048576
+   Normal zone: 53248 pages used for memmap
+   Normal zone: 3407872 pages, LIFO batch:31
+ mminit::memmap_init Initialising map node 0 zone 2 pfns 1048576 -> 4456448
+   NVM zone: 512000 pages used for memmap
+   NVM zone: 32768000 pages, LIFO batch:31
+ mminit::memmap_init Initialising map node 0 zone 3 pfns 4456448 -> 37224448
+ Initmem setup node 1 [mem 0x0000002380000000-0x00000046bfffffff]
+ On node 1 totalpages: 36962304
+   Normal zone: 65536 pages used for memmap
+   Normal zone: 4194304 pages, LIFO batch:31
+ mminit::memmap_init Initialising map node 1 zone 2 pfns 37224448 -> 41418752
+   NVM zone: 512000 pages used for memmap
+   NVM zone: 32768000 pages, LIFO batch:31
+ mminit::memmap_init Initialising map node 1 zone 3 pfns 41418752 -> 74186752
+
+This comes /proc/zoneinfo
+Node 0, zone      NVM
+  pages free     32768000
+        min      15244
+        low      48012
+        high     80780
+        spanned  32768000
+        present  32768000
+        managed  32768000
+        protection: (0, 0, 0, 0, 0, 0)
+        nr_free_pages 32768000
+Node 1, zone      NVM
+  pages free     32768000
+        min      15244
+        low      48012
+        high     80780
+        spanned  32768000
+        present  32768000
+        managed  32768000
+
+
+Huaisheng Ye (6):
+  mm/memblock: Expand definition of flags to support NVDIMM
+  mm/page_alloc.c: get pfn range with flags of memblock
+  mm, zone_type: create ZONE_NVM and fill into GFP_ZONE_TABLE
+  arch/x86/kernel: mark NVDIMM regions from e820_table
+  mm: get zone spanned pages separately for DRAM and NVDIMM
+  arch/x86/mm: create page table mapping for DRAM and NVDIMM both
+
+ arch/x86/include/asm/e820/api.h |  3 +++
+ arch/x86/kernel/e820.c          | 20 +++++++++++++-
+ arch/x86/kernel/setup.c         |  8 ++++++
+ arch/x86/mm/init_64.c           | 16 +++++++++++
+ include/linux/gfp.h             | 57 ++++++++++++++++++++++++++++++++++++---
+ include/linux/memblock.h        | 19 +++++++++++++
+ include/linux/mm.h              |  4 +++
+ include/linux/mmzone.h          |  3 +++
+ mm/Kconfig                      | 16 +++++++++++
+ mm/memblock.c                   | 46 +++++++++++++++++++++++++++----
+ mm/nobootmem.c                  |  5 ++--
+ mm/page_alloc.c                 | 60 ++++++++++++++++++++++++++++++++++++++++-
+ 12 files changed, 245 insertions(+), 12 deletions(-)
+
+-- 
+1.8.3.1
