@@ -1,216 +1,92 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5CB522096AECC
- for <linux-nvdimm@lists.01.org>; Fri, 25 May 2018 15:01:00 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH resend 2/7] dax: change bdev_dax_supported() to support
- boolean returns
-Date: Fri, 25 May 2018 16:00:50 -0600
-Message-Id: <20180525220055.18920-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180525220055.18920-1-ross.zwisler@linux.intel.com>
-References: <20180525220055.18920-1-ross.zwisler@linux.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Thu, 10 May 2018 07:51:49 +1000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [Ksummit-discuss] bug-introducing patches
+Message-ID: <20180510075149.57c3034a@canb.auug.org.au>
+In-Reply-To: <CAPcyv4jtNXhMwCqpbKkHe5e-nDPK+2Wq=maFsB_SMSGyg7fw5w@mail.gmail.com>
+References: <CAKMK7uHjA27K8y-kwYFyhLy3cSkJJw8Oe1gP=3hZXdfxcWAcNQ@mail.gmail.com>
+        <20180502194632.GB18390@sasha-vm>
+        <20180503020550.GP2714@sirena.org.uk>
+        <20180503031000.GC29205@thunk.org>
+        <0276fcda-0385-8f22-dbdb-e063f7ed8bbe@roeck-us.net>
+        <20180503224217.GR2714@sirena.org.uk>
+        <20180503230905.GA98604@atomide.com>
+        <CAPDyKFrCKkRHwOh-7yfFbvMp+Ykhs7oXrDwhTShSPvUBvpn2ZQ@mail.gmail.com>
+        <20180509084440.GW13402@sirena.org.uk>
+        <CAKMK7uEWYmhA3owSeYM9tNA0tpMm5=4Yqda2j=VfMWi7i8ya8w@mail.gmail.com>
+        <20180509090346.GY13402@sirena.org.uk>
+        <20180509204727.7ff38021@canb.auug.org.au>
+        <CAPcyv4jtNXhMwCqpbKkHe5e-nDPK+2Wq=maFsB_SMSGyg7fw5w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/KyNS2/d6MOKSvSK194yyHAA"; protocol="application/pgp-signature"
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Mark Brown <broonie@kernel.org>, "w@1wt.eu" <w@1wt.eu>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ksummit-discuss@lists.linuxfoundation.org" <ksummit-discuss@lists.linuxfoundation.org>, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dave Jiang <dave.jiang@intel.com>
+--Sig_/KyNS2/d6MOKSvSK194yyHAA
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The function return values are confusing with the way the function is
-named. We expect a true or false return value but it actually returns
-0/-errno.  This makes the code very confusing. Changing the return values
-to return a bool where if DAX is supported then return true and no DAX
-support returns false.
+Hi Dan,
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
----
- drivers/dax/super.c | 16 ++++++++--------
- fs/ext2/super.c     |  3 +--
- fs/ext4/super.c     |  3 +--
- fs/xfs/xfs_ioctl.c  |  4 ++--
- fs/xfs/xfs_super.c  | 12 ++++++------
- include/linux/dax.h |  6 +++---
- 6 files changed, 21 insertions(+), 23 deletions(-)
+On Wed, 9 May 2018 09:04:31 -0700 Dan Williams <dan.j.williams@intel.com> w=
+rote:
+>
+> Please add:
+>=20
+>     git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
+> libnvdimm-fixes
+>=20
+> We currently merge this into libnvdimm-for-next for -next coverage,
+> and resolve any conflicts vs new development. Do you want to see those
+> conflicts? Otherwise I would recommend only pulling libnvdimm-for-next
+> for -next and libnvdimm-fixes for this new -next-fixes effort.
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 9206539c8330..e5447eddecf8 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -80,9 +80,9 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-  * This is a library function for filesystems to check if the block device
-  * can be mounted with dax option.
-  *
-- * Return: negative errno if unsupported, 0 if supported.
-+ * Return: true if supported, false if unsupported
-  */
--int bdev_dax_supported(struct block_device *bdev, int blocksize)
-+bool bdev_dax_supported(struct block_device *bdev, int blocksize)
- {
- 	struct dax_device *dax_dev;
- 	pgoff_t pgoff;
-@@ -95,21 +95,21 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	if (blocksize != PAGE_SIZE) {
- 		pr_debug("%s: error: unsupported blocksize for dax\n",
- 				bdevname(bdev, buf));
--		return -EINVAL;
-+		return false;
- 	}
- 
- 	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
- 	if (err) {
- 		pr_debug("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
--		return err;
-+		return false;
- 	}
- 
- 	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
- 	if (!dax_dev) {
- 		pr_debug("%s: error: device does not support dax\n",
- 				bdevname(bdev, buf));
--		return -EOPNOTSUPP;
-+		return false;
- 	}
- 
- 	id = dax_read_lock();
-@@ -121,7 +121,7 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	if (len < 1) {
- 		pr_debug("%s: error: dax access failed (%ld)\n",
- 				bdevname(bdev, buf), len);
--		return len < 0 ? len : -EIO;
-+		return false;
- 	}
- 
- 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
-@@ -139,10 +139,10 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	} else {
- 		pr_debug("%s: error: dax support not enabled\n",
- 				bdevname(bdev, buf));
--		return -EOPNOTSUPP;
-+		return false;
- 	}
- 
--	return 0;
-+	return true;
- }
- EXPORT_SYMBOL_GPL(bdev_dax_supported);
- #endif
-diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-index 9627c3054b5c..c09289a42dc5 100644
---- a/fs/ext2/super.c
-+++ b/fs/ext2/super.c
-@@ -961,8 +961,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
- 
- 	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
--		err = bdev_dax_supported(sb->s_bdev, blocksize);
--		if (err) {
-+		if (!bdev_dax_supported(sb->s_bdev, blocksize)) {
- 			ext2_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
- 			sbi->s_mount_opt &= ~EXT2_MOUNT_DAX;
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index 089170e99895..2e1622907f4a 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -3732,8 +3732,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
- 					" that may contain inline data");
- 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
- 		}
--		err = bdev_dax_supported(sb->s_bdev, blocksize);
--		if (err) {
-+		if (!bdev_dax_supported(sb->s_bdev, blocksize)) {
- 			ext4_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
- 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 0effd46b965f..2c70a0a4f59f 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1103,8 +1103,8 @@ xfs_ioctl_setattr_dax_invalidate(
- 	if (fa->fsx_xflags & FS_XFLAG_DAX) {
- 		if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
- 			return -EINVAL;
--		if (bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
--				sb->s_blocksize) < 0)
-+		if (!bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
-+				sb->s_blocksize))
- 			return -EINVAL;
- 	}
- 
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 62188c2a4c36..86915dc40eed 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1690,17 +1690,17 @@ xfs_fs_fill_super(
- 		sb->s_flags |= SB_I_VERSION;
- 
- 	if (mp->m_flags & XFS_MOUNT_DAX) {
--		int	error2 = 0;
-+		bool rtdev_is_dax = false, datadev_is_dax;
- 
- 		xfs_warn(mp,
- 		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
- 
--		error = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
--				sb->s_blocksize);
-+		datadev_is_dax = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
-+			sb->s_blocksize);
- 		if (mp->m_rtdev_targp)
--			error2 = bdev_dax_supported(mp->m_rtdev_targp->bt_bdev,
--					sb->s_blocksize);
--		if (error && error2) {
-+			rtdev_is_dax = bdev_dax_supported(
-+				mp->m_rtdev_targp->bt_bdev, sb->s_blocksize);
-+		if (!rtdev_is_dax && !datadev_is_dax) {
- 			xfs_alert(mp,
- 			"DAX unsupported by block device. Turning off DAX.");
- 			mp->m_flags &= ~XFS_MOUNT_DAX;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 509a85ac8470..547eb33dbc9e 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -64,7 +64,7 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
- struct writeback_control;
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #if IS_ENABLED(CONFIG_FS_DAX)
--int bdev_dax_supported(struct block_device *bdev, int blocksize);
-+bool bdev_dax_supported(struct block_device *bdev, int blocksize);
- static inline struct dax_device *fs_dax_get_by_host(const char *host)
- {
- 	return dax_get_by_host(host);
-@@ -79,10 +79,10 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
- int dax_writeback_mapping_range(struct address_space *mapping,
- 		struct block_device *bdev, struct writeback_control *wbc);
- #else
--static inline int bdev_dax_supported(struct block_device *bdev,
-+static inline bool bdev_dax_supported(struct block_device *bdev,
- 		int blocksize)
- {
--	return -EOPNOTSUPP;
-+	return false;
- }
- 
- static inline struct dax_device *fs_dax_get_by_host(const char *host)
--- 
-2.14.3
+The conflicts are usually fine (but if you do the merges, I won't see
+them - which is even better :-)).  I like to have the fixes branches in
+linux-next so that noone has to worry about probelsm in Linus' tree
+that have pending fixes already.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Added from today.
+
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgement of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
+
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+        Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
+
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
+
+--=20
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
+
+--Sig_/KyNS2/d6MOKSvSK194yyHAA
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlrzbXUACgkQAVBC80lX
+0GwzAgf/TxQI4NrJdZFoI7Y//UmYxwfeeSgkLWVg4aKZOOJPzX93qoqf+uLItfGn
+RGKO51U4QQ+CFurwUXGuLOnjTKB2/ehyZYjDxj/UVsp709bDd+1A0vctYf8coYvn
+dmPL+CpX9cLwl8w+FpP1ehy9wxDHlZich7Jh8fspSC34NZ/CuVSFn4e2QpTaq9zb
+rJ2OaZ6Zy/t0+y/dFWtJD+o10Kp6aK4SXdF3o9sBEc9hp/nEBipVBK0BFnSYRbfo
+4xfFh26jpvRLRV64JyK8kzsOJmn6mQRktV6xEEoeN9dDRH1XawwJVSAh7Rb4Xhri
+/9UyA5kh8GCOqE8mQOuie/iO3IGFow==
+=Sccc
+-----END PGP SIGNATURE-----
+
+--Sig_/KyNS2/d6MOKSvSK194yyHAA--
