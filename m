@@ -1,25 +1,32 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from CAN01-QB1-obe.outbound.protection.outlook.com
+ (mail-eopbgr660118.outbound.protection.outlook.com [40.107.66.118])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6880A20348620
- for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 08:47:28 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A601120348613
+ for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 08:41:47 -0700 (PDT)
+From: "Stephen  Bates" <sbates@raithlin.com>
 Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
  behind switches
-References: <20180423233046.21476-1-logang@deltatee.com>
- <20180423233046.21476-5-logang@deltatee.com>
- <CAPcyv4g+5N_n03J-VhmJfrr60Sqk95ZapLKBkwSsGvV4nQ+ZRw@mail.gmail.com>
- <64C231F5-DE36-415F-B308-3A423B0BBACB@raithlin.com>
- <15433946-f7f5-f610-4e80-380fb59920e5@redhat.com>
- <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2@raithlin.com>
- <c5f30ced-7bbf-9420-db1a-72519fc78b3a@redhat.com>
- <20180508180157.7c7b393f@w520.home>
-From: Don Dutile <ddutile@redhat.com>
-Message-ID: <f0d25e16-1201-1fc5-334f-4205abc95500@redhat.com>
-Date: Wed, 9 May 2018 11:47:31 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180508180157.7c7b393f@w520.home>
+Date: Wed, 9 May 2018 15:41:44 +0000
+Message-ID: <1775CC56-4651-422F-953A-18E024D3717C@raithlin.com>
+References: <20180423233046.21476-5-logang@deltatee.com>
+ <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
+ <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
+ <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
+ <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
+ <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
+ <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508205005.GC15608@redhat.com>
+ <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
+ <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
+In-Reply-To: <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
 Content-Language: en-US
+Content-ID: <215EC96ED56B2D49A092AB3D81AEB91E@CANPRD01.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,40 +34,28 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Alex Williamson <alex.williamson@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig@amd.com>, Jerome
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Alex Williamson <alex.williamson@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 05/08/2018 08:01 PM, Alex Williamson wrote:
-> On Tue, 8 May 2018 19:06:17 -0400
-> Don Dutile <ddutile@redhat.com> wrote:
->> On 05/08/2018 05:27 PM, Stephen  Bates wrote:
->>> As I understand it VMs need to know because VFIO passes IOMMU
->>> grouping up into the VMs. So if a IOMMU grouping changes the VM's
->>> view of its PCIe topology changes. I think we even have to be
->>> cognizant of the fact the OS running on the VM may not even support
->>> hot-plug of PCI devices.
->> Alex:
->> Really? IOMMU groups are created by the kernel, so don't know how
->> they would be passed into the VMs, unless indirectly via  PCI(e)
->> layout. At best, twiddling w/ACS enablement (emulation) would cause
->> VMs to see different IOMMU groups, but again, VMs are not the
->> security point/level, the host/HV's are.
-> 
-> Correct, the VM has no concept of the host's IOMMU groups, only the
-> hypervisor knows about the groups, but really only to the extent of
-> which device belongs to which group and whether the group is viable.
-> Any runtime change to grouping though would require DMA mapping
-> updates, which I don't see how we can reasonably do with drivers,
-> vfio-pci or native host drivers, bound to the affected devices.  Thanks,
-> 
-> Alex
-> 
-A change in iommu groups would/could require a device remove/add cycle to get an updated DMA-mapping (yet-another-overused-term: iommu 'domain').
+Christian
+
+>    Interesting point, give me a moment to check that. That finally makes 
+>    all the hardware I have standing around here valuable :)
+    
+Yes. At the very least it provides an initial standards based path for P2P DMAs across RPs which is something we have discussed on this list in the past as being desirable.
+
+BTW I am trying to understand how an ATS capable EP function determines when to perform an ATS Translation Request (ATS TR). Is there an upstream example of the driver for your APU that uses ATS? If so, can you provide a pointer to it. Do you provide some type of entry in the submission queues for commands going to the APU to indicate if the address associated with a specific command should be translated using ATS or not? Or do you simply enable ATS and then all addresses passed to your APU that miss the local cache result in a ATS TR?
+
+Your feedback would be useful and I initiate discussions within the NVMe community on where we might go with ATS...
+
+Thanks
+
+Stephen
 
 _______________________________________________
 Linux-nvdimm mailing list
