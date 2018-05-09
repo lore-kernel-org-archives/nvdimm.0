@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C1AB32063E2E4
- for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:16:33 -0700 (PDT)
-Subject: [PATCH v3 6/9] dax: introduce a ->copy_to_iter dax operation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 03 May 2018 17:06:37 -0700
-Message-ID: <152539239729.31796.4765429575408958580.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A046820965DCC
+ for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 15:49:08 -0700 (PDT)
+Subject: Re: [PATCH v5 2/4] ndctl: convert namespace actions to use
+ util_filter_walk()
+References: <152486678857.66587.12260245215754521561.stgit@djiang5-desk3.ch.intel.com>
+ <152486690348.66587.15082403237213429099.stgit@djiang5-desk3.ch.intel.com>
+ <1525906020.4429.1.camel@intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <3834ebd2-55aa-3a36-9ed7-0d942e007db8@intel.com>
+Date: Wed, 9 May 2018 15:49:07 -0700
 MIME-Version: 1.0
+In-Reply-To: <1525906020.4429.1.camel@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,315 +26,55 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Mike Snitzer <snitzer@redhat.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to the ->copy_from_iter() operation, a platform may want to
-deploy an architecture or device specific routine for handling reads
-from a dax_device like /dev/pmemX. On x86 this routine will point to a
-machine check safe version of copy_to_iter(). For now, add the plumbing
-to device-mapper and the dax core.
 
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/super.c           |   10 ++++++++++
- drivers/md/dm-linear.c        |   16 ++++++++++++++++
- drivers/md/dm-log-writes.c    |   15 +++++++++++++++
- drivers/md/dm-stripe.c        |   21 +++++++++++++++++++++
- drivers/md/dm.c               |   25 +++++++++++++++++++++++++
- drivers/nvdimm/pmem.c         |    7 +++++++
- drivers/s390/block/dcssblk.c  |    7 +++++++
- fs/dax.c                      |    3 ++-
- include/linux/dax.h           |    5 +++++
- include/linux/device-mapper.h |    5 +++--
- 10 files changed, 111 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 2b2332b605e4..31b839113399 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -282,6 +282,16 @@ size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- }
- EXPORT_SYMBOL_GPL(dax_copy_from_iter);
- 
-+size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t bytes, struct iov_iter *i)
-+{
-+	if (!dax_alive(dax_dev))
-+		return 0;
-+
-+	return dax_dev->ops->copy_to_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+EXPORT_SYMBOL_GPL(dax_copy_to_iter);
-+
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_wb_cache_pmem(void *addr, size_t size);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 775c06d953b7..d10964d41fd7 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -185,9 +185,24 @@ static size_t linear_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
-+static size_t linear_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct linear_c *lc = ti->private;
-+	struct block_device *bdev = lc->dev->bdev;
-+	struct dax_device *dax_dev = lc->dev->dax_dev;
-+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
-+
-+	dev_sector = linear_map_sector(ti, sector);
-+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+	return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+
- #else
- #define linear_dax_direct_access NULL
- #define linear_dax_copy_from_iter NULL
-+#define linear_dax_copy_to_iter NULL
- #endif
- 
- static struct target_type linear_target = {
-@@ -204,6 +219,7 @@ static struct target_type linear_target = {
- 	.iterate_devices = linear_iterate_devices,
- 	.direct_access = linear_dax_direct_access,
- 	.dax_copy_from_iter = linear_dax_copy_from_iter,
-+	.dax_copy_to_iter = linear_dax_copy_to_iter,
- };
- 
- int __init dm_linear_init(void)
-diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
-index c90c7c08a77f..9ea2b0291f20 100644
---- a/drivers/md/dm-log-writes.c
-+++ b/drivers/md/dm-log-writes.c
-@@ -962,9 +962,23 @@ static size_t log_writes_dax_copy_from_iter(struct dm_target *ti,
- dax_copy:
- 	return dax_copy_from_iter(lc->dev->dax_dev, pgoff, addr, bytes, i);
- }
-+
-+static size_t log_writes_dax_copy_to_iter(struct dm_target *ti,
-+					  pgoff_t pgoff, void *addr, size_t bytes,
-+					  struct iov_iter *i)
-+{
-+	struct log_writes_c *lc = ti->private;
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+
-+	if (bdev_dax_pgoff(lc->dev->bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+	return dax_copy_to_iter(lc->dev->dax_dev, pgoff, addr, bytes, i);
-+}
-+
- #else
- #define log_writes_dax_direct_access NULL
- #define log_writes_dax_copy_from_iter NULL
-+#define log_writes_dax_copy_to_iter NULL
- #endif
- 
- static struct target_type log_writes_target = {
-@@ -982,6 +996,7 @@ static struct target_type log_writes_target = {
- 	.io_hints = log_writes_io_hints,
- 	.direct_access = log_writes_dax_direct_access,
- 	.dax_copy_from_iter = log_writes_dax_copy_from_iter,
-+	.dax_copy_to_iter = log_writes_dax_copy_to_iter,
- };
- 
- static int __init dm_log_writes_init(void)
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index fe7fb9b1aec3..8547d7594338 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -354,9 +354,29 @@ static size_t stripe_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
- 	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
-+static size_t stripe_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
-+	struct stripe_c *sc = ti->private;
-+	struct dax_device *dax_dev;
-+	struct block_device *bdev;
-+	uint32_t stripe;
-+
-+	stripe_map_sector(sc, sector, &stripe, &dev_sector);
-+	dev_sector += sc->stripe[stripe].physical_start;
-+	dax_dev = sc->stripe[stripe].dev->dax_dev;
-+	bdev = sc->stripe[stripe].dev->bdev;
-+
-+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+	return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+
- #else
- #define stripe_dax_direct_access NULL
- #define stripe_dax_copy_from_iter NULL
-+#define stripe_dax_copy_to_iter NULL
- #endif
- 
- /*
-@@ -478,6 +498,7 @@ static struct target_type stripe_target = {
- 	.io_hints = stripe_io_hints,
- 	.direct_access = stripe_dax_direct_access,
- 	.dax_copy_from_iter = stripe_dax_copy_from_iter,
-+	.dax_copy_to_iter = stripe_dax_copy_to_iter,
- };
- 
- int __init dm_stripe_init(void)
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 4ea404dbcf0b..cd942905dd1e 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1088,6 +1088,30 @@ static size_t dm_dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return ret;
- }
- 
-+static size_t dm_dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct mapped_device *md = dax_get_private(dax_dev);
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+	struct dm_target *ti;
-+	long ret = 0;
-+	int srcu_idx;
-+
-+	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
-+
-+	if (!ti)
-+		goto out;
-+	if (!ti->type->dax_copy_to_iter) {
-+		ret = copy_to_iter(addr, bytes, i);
-+		goto out;
-+	}
-+	ret = ti->type->dax_copy_to_iter(ti, pgoff, addr, bytes, i);
-+ out:
-+	dm_put_live_table(md, srcu_idx);
-+
-+	return ret;
-+}
-+
- /*
-  * A target may call dm_accept_partial_bio only from the map routine.  It is
-  * allowed for all bio types except REQ_PREFLUSH and REQ_OP_ZONE_RESET.
-@@ -3133,6 +3157,7 @@ static const struct block_device_operations dm_blk_dops = {
- static const struct dax_operations dm_dax_ops = {
- 	.direct_access = dm_dax_direct_access,
- 	.copy_from_iter = dm_dax_copy_from_iter,
-+	.copy_to_iter = dm_dax_copy_to_iter,
- };
- 
- /*
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index e023d6aa22b5..1b8ab48365de 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -264,9 +264,16 @@ static size_t pmem_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return copy_from_iter_flushcache(addr, bytes, i);
- }
- 
-+static size_t pmem_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	return copy_to_iter(addr, bytes, i);
-+}
-+
- static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_dax_direct_access,
- 	.copy_from_iter = pmem_copy_from_iter,
-+	.copy_to_iter = pmem_copy_to_iter,
- };
- 
- static const struct attribute_group *pmem_attribute_groups[] = {
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 0a312e450207..29024492b8ed 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -51,9 +51,16 @@ static size_t dcssblk_dax_copy_from_iter(struct dax_device *dax_dev,
- 	return copy_from_iter(addr, bytes, i);
- }
- 
-+static size_t dcssblk_dax_copy_to_iter(struct dax_device *dax_dev,
-+		pgoff_t pgoff, void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	return copy_to_iter(addr, bytes, i);
-+}
-+
- static const struct dax_operations dcssblk_dax_ops = {
- 	.direct_access = dcssblk_dax_direct_access,
- 	.copy_from_iter = dcssblk_dax_copy_from_iter,
-+	.copy_to_iter = dcssblk_dax_copy_to_iter,
- };
- 
- struct dcssblk_dev_info {
-diff --git a/fs/dax.c b/fs/dax.c
-index aaec72ded1b6..a64afdf7ec0d 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1057,7 +1057,8 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
- 					map_len, iter);
- 		else
--			map_len = copy_to_iter(kaddr, map_len, iter);
-+			map_len = dax_copy_to_iter(dax_dev, pgoff, kaddr,
-+					map_len, iter);
- 		if (map_len <= 0) {
- 			ret = map_len ? map_len : -EFAULT;
- 			break;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index f9eb22ad341e..a43b396fb336 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -20,6 +20,9 @@ struct dax_operations {
- 	/* copy_from_iter: required operation for fs-dax direct-i/o */
- 	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
- 			struct iov_iter *);
-+	/* copy_to_iter: required operation for fs-dax direct-i/o */
-+	size_t (*copy_to_iter)(struct dax_device *, pgoff_t, void *, size_t,
-+			struct iov_iter *);
- };
- 
- extern struct attribute_group dax_attribute_group;
-@@ -118,6 +121,8 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
- 		void **kaddr, pfn_t *pfn);
- size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
-+size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-+		size_t bytes, struct iov_iter *i);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
- 
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index 31fef7c34185..6fb0808e87c8 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -133,7 +133,7 @@ typedef int (*dm_busy_fn) (struct dm_target *ti);
-  */
- typedef long (*dm_dax_direct_access_fn) (struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn);
--typedef size_t (*dm_dax_copy_from_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
-+typedef size_t (*dm_dax_copy_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i);
- #define PAGE_SECTORS (PAGE_SIZE / 512)
- 
-@@ -184,7 +184,8 @@ struct target_type {
- 	dm_iterate_devices_fn iterate_devices;
- 	dm_io_hints_fn io_hints;
- 	dm_dax_direct_access_fn direct_access;
--	dm_dax_copy_from_iter_fn dax_copy_from_iter;
-+	dm_dax_copy_iter_fn dax_copy_from_iter;
-+	dm_dax_copy_iter_fn dax_copy_to_iter;
- 
- 	/* For internal device-mapper use. */
- 	struct list_head list;
+On 05/09/2018 03:47 PM, Verma, Vishal L wrote:
+> On Fri, 2018-04-27 at 15:08 -0700, Dave Jiang wrote:
+>> util_filter_walk() does the looping through of busses and regions.
+>> Removing
+>> duplicate code in namespace ops and provide filter functions so we can
+>> utilize util_filter_walk() and share common code.
+>>
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>> ---
+>>  ndctl/namespace.c |  163 ++++++++++++++++++++++++++++++-----------------
+>> ------
+>>  test/btt-check.sh |    2 -
+>>  util/filter.c     |    5 +-
+>>  util/filter.h     |    8 +++
+>>  4 files changed, 104 insertions(+), 74 deletions(-)
+>>
+> 
+> [...]
+> 
+>>  
+>> diff --git a/test/btt-check.sh b/test/btt-check.sh
+>> index 353d4375..50c1b592 100755
+>> --- a/test/btt-check.sh
+>> +++ b/test/btt-check.sh
+>> @@ -1,4 +1,4 @@
+>> -#!/bin/bash -E
+>> +#!/bin/bash -Ex
+> 
+> Did you mean to add this hunk?
 
+No, must be accident from debug.
+
+> 
+>>  
+>>  # Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
+>>  # 
+>> diff --git a/util/filter.c b/util/filter.c
+>> index 0d3cc02f..b7a4fbd6 100644
+>> --- a/util/filter.c
+>> +++ b/util/filter.c
+>>
+> [...]
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
