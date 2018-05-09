@@ -1,24 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail1.bemta8.messagelabs.com (mail1.bemta8.messagelabs.com
+ [216.82.243.198])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6174620348638
- for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 13:56:12 -0700 (PDT)
-Date: Wed, 9 May 2018 22:56:09 +0200
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [External] [RFC PATCH v1 3/6] mm, zone_type: create ZONE_NVM and
+ by ml01.01.org (Postfix) with ESMTPS id 2F6172034861A
+ for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 07:04:48 -0700 (PDT)
+From: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Subject: RE: [External] [RFC PATCH v1 3/6] mm, zone_type: create ZONE_NVM and
  fill into GFP_ZONE_TABLE
-Message-ID: <20180509205609.GV32366@dhcp22.suse.cz>
+Date: Wed, 9 May 2018 14:04:21 +0000
+Message-ID: <HK2PR03MB168425F6D00C30918169C77C92990@HK2PR03MB1684.apcprd03.prod.outlook.com>
 References: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
  <1525746628-114136-4-git-send-email-yehs1@lenovo.com>
  <HK2PR03MB1684653383FFEDAE9B41A548929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
  <ce3a6f37-3b13-0c35-6895-35156c7a290c@infradead.org>
  <HK2PR03MB16847B78265A033C7310DDCB92990@HK2PR03MB1684.apcprd03.prod.outlook.com>
  <20180509114712.GP32366@dhcp22.suse.cz>
- <HK2PR03MB168425F6D00C30918169C77C92990@HK2PR03MB1684.apcprd03.prod.outlook.com>
+In-Reply-To: <20180509114712.GP32366@dhcp22.suse.cz>
+Content-Language: zh-CN
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <HK2PR03MB168425F6D00C30918169C77C92990@HK2PR03MB1684.apcprd03.prod.outlook.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,44 +26,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Huaisheng HS1 Ye <yehs1@lenovo.com>
+To: Michal Hocko <mhocko@kernel.org>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ocean HY1 He <hehy1@lenovo.com>, "penguin-kernel@I-love.SAKURA.ne.jp" <penguin-kernel@I-love.SAKURA.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, Randy Dunlap <rdunlap@infradead.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, "willy@infradead.org" <willy@infradead.org>, "alexander.levin@verizon.com" <alexander.levin@verizon.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "hannes@cmpxchg.org" <hannes@cmpxchg.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "colyli@suse.de" <colyli@suse.de>, "mgorman@techsingularity.net" <mgorman@techsingularity.net>, "vbabka@suse.cz" <vbabka@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 09-05-18 14:04:21, Huaisheng HS1 Ye wrote:
-> > From: owner-linux-mm@kvack.org [mailto:owner-linux-mm@kvack.org] On Behalf Of Michal Hocko
-> > 
-> > On Wed 09-05-18 04:22:10, Huaisheng HS1 Ye wrote:
-[...]
-> > > Current mm treats all memory regions equally, it divides zones just by size, like
-> > 16M for DMA, 4G for DMA32, and others above for Normal.
-> > > The spanned range of all zones couldn't be overlapped.
-> > 
-> > No, this is not correct. Zones can overlap.
-> 
-> Hi Michal,
-> 
-> Thanks for pointing it out.
-> But function zone_sizes_init decides
-> arch_zone_lowest/highest_possible_pfn's size by max_low_pfn, then
-> free_area_init_nodes/node are responsible for calculating the spanned
-> size of zones from memblock memory regions.  So, ZONE_DMA and
-> ZONE_DMA32 and ZONE_NORMAL have separate address scope. How can they
-> be overlapped with each other?
-
-Sorry, I could have been a bit more specific. DMA, DMA32 and Normal
-zones are exclusive. They are mapped to a specific physical range of
-memory so they cannot overlap. I was referring to a general property
-that zones might interleave. Especially zone Normal, Movable and Device.
-
--- 
-Michal Hocko
-SUSE Labs
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiBGcm9tOiBvd25lci1saW51eC1tbUBrdmFjay5vcmcgW21haWx0bzpvd25lci1saW51eC1tbUBr
+dmFjay5vcmddIE9uIEJlaGFsZiBPZiBNaWNoYWwgSG9ja28NCj4gDQo+IE9uIFdlZCAwOS0wNS0x
+OCAwNDoyMjoxMCwgSHVhaXNoZW5nIEhTMSBZZSB3cm90ZToNCj4gPg0KPiA+ID4gT24gMDUvMDcv
+MjAxOCAwNzozMyBQTSwgSHVhaXNoZW5nIEhTMSBZZSB3cm90ZToNCj4gPiA+ID4gZGlmZiAtLWdp
+dCBhL21tL0tjb25maWcgYi9tbS9LY29uZmlnDQo+ID4gPiA+IGluZGV4IGM3ODJlOGYuLjVmZTFm
+NjMgMTAwNjQ0DQo+ID4gPiA+IC0tLSBhL21tL0tjb25maWcNCj4gPiA+ID4gKysrIGIvbW0vS2Nv
+bmZpZw0KPiA+ID4gPiBAQCAtNjg3LDYgKzY4NywyMiBAQCBjb25maWcgWk9ORV9ERVZJQ0UNCj4g
+PiA+ID4NCj4gPiA+ID4gK2NvbmZpZyBaT05FX05WTQ0KPiA+ID4gPiArCWJvb2wgIk1hbmFnZSBO
+VkRJTU0gKHBtZW0pIGJ5IG1lbW9yeSBtYW5hZ2VtZW50IChFWFBFUklNRU5UQUwpIg0KPiA+ID4g
+PiArCWRlcGVuZHMgb24gTlVNQSAmJiBYODZfNjQNCj4gPiA+DQo+ID4gPiBIaSwNCj4gPiA+IEkn
+bSBjdXJpb3VzIHdoeSB0aGlzIGRlcGVuZHMgb24gTlVNQS4gQ291bGRuJ3QgaXQgYmUgdXNlZnVs
+IGluIG5vbi1OVU1BDQo+ID4gPiAoaS5lLiwgVU1BKSBjb25maWdzPw0KPiA+ID4NCj4gPiBJIHdy
+b3RlIHRoZXNlIHBhdGNoZXMgd2l0aCB0d28gc29ja2V0cyB0ZXN0aW5nIHBsYXRmb3JtLCBhbmQg
+dGhlcmUgYXJlIHR3byBERFJzIGFuZA0KPiB0d28gTlZESU1NcyBoYXZlIGJlZW4gaW5zdGFsbGVk
+IHRvIGl0Lg0KPiA+IFNvLCBmb3IgZXZlcnkgc29ja2V0IGl0IGhhcyBvbmUgRERSIGFuZCBvbmUg
+TlZESU1NIHdpdGggaXQuIEhlcmUgaXMgbWVtb3J5IHJlZ2lvbg0KPiBmcm9tIG1lbWJsb2NrLCB5
+b3UgY2FuIGdldCBpdHMgZGlzdHJpYnV0aW9uLg0KPiA+DQo+ID4gIDQzNSBbICAgIDAuMDAwMDAw
+XSBab25lIHJhbmdlczoNCj4gPiAgNDM2IFsgICAgMC4wMDAwMDBdICAgRE1BICAgICAgW21lbSAw
+eDAwMDAwMDAwMDAwMDEwMDAtMHgwMDAwMDAwMDAwZmZmZmZmXQ0KPiA+ICA0MzcgWyAgICAwLjAw
+MDAwMF0gICBETUEzMiAgICBbbWVtIDB4MDAwMDAwMDAwMTAwMDAwMC0weDAwMDAwMDAwZmZmZmZm
+ZmZdDQo+ID4gIDQzOCBbICAgIDAuMDAwMDAwXSAgIE5vcm1hbCAgIFttZW0gMHgwMDAwMDAwMTAw
+MDAwMDAwLTB4MDAwMDAwNDZiZmZmZmZmZl0NCj4gPiAgNDM5IFsgICAgMC4wMDAwMDBdICAgTlZN
+ICAgICAgW21lbSAweDAwMDAwMDA0NDAwMDAwMDAtMHgwMDAwMDA0NmJmZmZmZmZmXQ0KPiA+ICA0
+NDAgWyAgICAwLjAwMDAwMF0gICBEZXZpY2UgICBlbXB0eQ0KPiA+ICA0NDEgWyAgICAwLjAwMDAw
+MF0gTW92YWJsZSB6b25lIHN0YXJ0IGZvciBlYWNoIG5vZGUNCj4gPiAgNDQyIFsgICAgMC4wMDAw
+MDBdIEVhcmx5IG1lbW9yeSBub2RlIHJhbmdlcw0KPiA+ICA0NDMgWyAgICAwLjAwMDAwMF0gICBu
+b2RlICAgMDogW21lbSAweDAwMDAwMDAwMDAwMDEwMDAtMHgwMDAwMDAwMDAwMDlmZmZmXQ0KPiA+
+ICA0NDQgWyAgICAwLjAwMDAwMF0gICBub2RlICAgMDogW21lbSAweDAwMDAwMDAwMDAxMDAwMDAt
+MHgwMDAwMDAwMGE2OWMyZmZmXQ0KPiA+ICA0NDUgWyAgICAwLjAwMDAwMF0gICBub2RlICAgMDog
+W21lbSAweDAwMDAwMDAwYTc2NTQwMDAtMHgwMDAwMDAwMGE4NWVlZmZmXQ0KPiA+ICA0NDYgWyAg
+ICAwLjAwMDAwMF0gICBub2RlICAgMDogW21lbSAweDAwMDAwMDAwYWIzOTkwMDAtMHgwMDAwMDAw
+MGFmM2Y2ZmZmXQ0KPiA+ICA0NDcgWyAgICAwLjAwMDAwMF0gICBub2RlICAgMDogW21lbSAweDAw
+MDAwMDAwYWY0MjkwMDAtMHgwMDAwMDAwMGFmN2ZmZmZmXQ0KPiA+ICA0NDggWyAgICAwLjAwMDAw
+MF0gICBub2RlICAgMDogW21lbSAweDAwMDAwMDAxMDAwMDAwMDAtMHgwMDAwMDAwNDNmZmZmZmZm
+XQlOb3JtYWwgMA0KPiA+ICA0NDkgWyAgICAwLjAwMDAwMF0gICBub2RlICAgMDogW21lbSAweDAw
+MDAwMDA0NDAwMDAwMDAtMHgwMDAwMDAyMzdmZmZmZmZmXQlOVkRJTU0gMA0KPiA+ICA0NTAgWyAg
+ICAwLjAwMDAwMF0gICBub2RlICAgMTogW21lbSAweDAwMDAwMDIzODAwMDAwMDAtMHgwMDAwMDAy
+NzdmZmZmZmZmXQlOb3JtYWwgMQ0KPiA+ICA0NTEgWyAgICAwLjAwMDAwMF0gICBub2RlICAgMTog
+W21lbSAweDAwMDAwMDI3ODAwMDAwMDAtMHgwMDAwMDA0NmJmZmZmZmZmXQlOVkRJTU0gMQ0KPiA+
+DQo+ID4gSWYgd2UgZGlzYWJsZSBOVU1BLCB0aGVyZSBpcyBhIHJlc3VsdCBhcyBOb3JtYWwgYW4g
+TlZESU1NIHpvbmVzIHdpbGwgYmUgb3ZlcmxhcHBpbmcNCj4gd2l0aCBlYWNoIG90aGVyLg0KPiA+
+IEN1cnJlbnQgbW0gdHJlYXRzIGFsbCBtZW1vcnkgcmVnaW9ucyBlcXVhbGx5LCBpdCBkaXZpZGVz
+IHpvbmVzIGp1c3QgYnkgc2l6ZSwgbGlrZQ0KPiAxNk0gZm9yIERNQSwgNEcgZm9yIERNQTMyLCBh
+bmQgb3RoZXJzIGFib3ZlIGZvciBOb3JtYWwuDQo+ID4gVGhlIHNwYW5uZWQgcmFuZ2Ugb2YgYWxs
+IHpvbmVzIGNvdWxkbid0IGJlIG92ZXJsYXBwZWQuDQo+IA0KPiBObywgdGhpcyBpcyBub3QgY29y
+cmVjdC4gWm9uZXMgY2FuIG92ZXJsYXAuDQoNCkhpIE1pY2hhbCwNCg0KVGhhbmtzIGZvciBwb2lu
+dGluZyBpdCBvdXQuDQpCdXQgZnVuY3Rpb24gem9uZV9zaXplc19pbml0IGRlY2lkZXMgYXJjaF96
+b25lX2xvd2VzdC9oaWdoZXN0X3Bvc3NpYmxlX3BmbidzIHNpemUgYnkgbWF4X2xvd19wZm4sIHRo
+ZW4gZnJlZV9hcmVhX2luaXRfbm9kZXMvbm9kZSBhcmUgcmVzcG9uc2libGUgZm9yIGNhbGN1bGF0
+aW5nIHRoZSBzcGFubmVkIHNpemUgb2Ygem9uZXMgZnJvbSBtZW1ibG9jayBtZW1vcnkgcmVnaW9u
+cy4NClNvLCBaT05FX0RNQSBhbmQgWk9ORV9ETUEzMiBhbmQgWk9ORV9OT1JNQUwgaGF2ZSBzZXBh
+cmF0ZSBhZGRyZXNzIHNjb3BlLiBIb3cgY2FuIHRoZXkgYmUgb3ZlcmxhcHBlZCB3aXRoIGVhY2gg
+b3RoZXI/DQoNClNpbmNlcmVseSwNCkh1YWlzaGVuZyBZZSB8INK2u7PKpA0KTGludXgga2VybmVs
+IHwgTGVub3ZvDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
+bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
+YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
