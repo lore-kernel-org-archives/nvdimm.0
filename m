@@ -1,11 +1,11 @@
-From: <organisation-XNtjoG7Ys14T0DljN2ORTw@public.gmane.org>
-Subject: Staff Wanted
-Date: 8 May 2018 10:05:24 -0400
-Message-ID: <5AF1B318.4446.D8A31B@organisation.france-israel.fr>
+From: "Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: see transcript for details
+Date: Wed, 9 May 2018 15:37:59 +0800
+Message-ID: <20180509073754.B8AE9203B8593@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0216254412797624323=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,29 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============0216254412797624323==
-Content-Type: text/plain; charset="cp-850"
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-Description: Mail message body
+The original message was received at Wed, 9 May 2018 15:37:59 +0800
+from lists.01.org [142.59.83.70]
 
-Do you want to start making $5900 a day - starting today?
-
-That&#8217;s $5900 today, tomorrow...and for LIFE.
-
-Join this profit opportunity and by this time tomorrow,=20
-you will have received a $5900 deposit into your private bank account.
-
->>>=20
-Click here to make $5900 by this time tomorrow.
---===============0216254412797624323==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============0216254412797624323==--
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
