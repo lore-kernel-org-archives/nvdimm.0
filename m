@@ -1,17 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail1.bemta12.messagelabs.com (mail1.bemta12.messagelabs.com
+ [216.82.251.7])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 673AC2083796C
- for <linux-nvdimm@lists.01.org>; Thu, 10 May 2018 00:58:03 -0700 (PDT)
-Date: Thu, 10 May 2018 09:57:59 +0200
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [RFC PATCH v1 0/6] use mm to manage NVDIMM (pmem) zone
-Message-ID: <20180510075759.GF32366@dhcp22.suse.cz>
-References: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
+ by ml01.01.org (Postfix) with ESMTPS id 429F4207E36D9
+ for <linux-nvdimm@lists.01.org>; Tue,  8 May 2018 21:48:12 -0700 (PDT)
+From: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Subject: RE: [External] Re: [RFC PATCH v1 0/6] use mm to manage NVDIMM (pmem)
+ zone
+Date: Wed, 9 May 2018 04:47:54 +0000
+Message-ID: <HK2PR03MB16841CBB549F40F86BB8D35C92990@HK2PR03MB1684.apcprd03.prod.outlook.com>
+References: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
+ <20180507184622.GB12361@bombadil.infradead.org>
+ <CAPcyv4hBJN3npXwg3Ur32JSWtKvBUZh7F8W+Exx3BB-uKWwPag@mail.gmail.com>
+ <x49a7tbi8r3.fsf@segfault.boston.devel.redhat.com>
+ <HK2PR03MB1684659175EB0A11E75E9B61929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
+ <20180508030959.GB16338@bombadil.infradead.org>
+In-Reply-To: <20180508030959.GB16338@bombadil.infradead.org>
+Content-Language: zh-CN
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,44 +30,37 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Huaisheng Ye <yehs1@lenovo.com>
-Cc: linux-kernel@vger.kernel.org, hehy1@lenovo.com, penguin-kernel@I-love.SAKURA.ne.jp, chengnt@lenovo.com, linux-nvdimm@lists.01.org, pasha.tatashin@oracle.com, willy@infradead.org, alexander.levin@verizon.com, linux-mm@kvack.org, hannes@cmpxchg.org, akpm@linux-foundation.org, colyli@suse.de, mgorman@techsingularity.net, vbabka@suse.cz
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Sasha Levin <alexander.levin@verizon.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, Linux MM <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>, Johannes Weiner <hannes@cmpxchg.org>, "colyli@suse.de" <colyli@suse.de>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlIDA4LTA1LTE4IDEwOjMwOjIyLCBIdWFpc2hlbmcgWWUgd3JvdGU6Cj4gVHJhZGl0aW9u
-YWxseSwgTlZESU1NcyBhcmUgdHJlYXRlZCBieSBtbShtZW1vcnkgbWFuYWdlbWVudCkgc3Vic3lz
-dGVtIGFzCj4gREVWSUNFIHpvbmUsIHdoaWNoIGlzIGEgdmlydHVhbCB6b25lIGFuZCBib3RoIGl0
-cyBzdGFydCBhbmQgZW5kIG9mIHBmbgo+IGFyZSBlcXVhbCB0byAwLCBtbSB3b3VsZG7igJl0IG1h
-bmFnZSBOVkRJTU0gZGlyZWN0bHkgYXMgRFJBTSwga2VybmVsIHVzZXMKPiBjb3JyZXNwb25kaW5n
-IGRyaXZlcnMsIHdoaWNoIGxvY2F0ZSBhdCBcZHJpdmVyc1xudmRpbW1cIGFuZAo+IFxkcml2ZXJz
-XGFjcGlcbmZpdCBhbmQgZnMsIHRvIHJlYWxpemUgTlZESU1NIG1lbW9yeSBhbGxvYyBhbmQgZnJl
-ZSB3aXRoCj4gbWVtb3J5IGhvdCBwbHVnIGltcGxlbWVudGF0aW9uLgo+IAo+IFdpdGggY3VycmVu
-dCBrZXJuZWwsIG1hbnkgbW3igJlzIGNsYXNzaWNhbCBmZWF0dXJlcyBsaWtlIHRoZSBidWRkeQo+
-IHN5c3RlbSwgc3dhcCBtZWNoYW5pc20gYW5kIHBhZ2UgY2FjaGUgY291bGRu4oCZdCBiZSBzdXBw
-b3J0ZWQgdG8gTlZESU1NLgo+IFdoYXQgd2UgYXJlIGRvaW5nIGlzIHRvIGV4cGFuZCBrZXJuZWwg
-bW3igJlzIGNhcGFjaXR5IHRvIG1ha2UgaXQgdG8gaGFuZGxlCj4gTlZESU1NIGxpa2UgRFJBTS4g
-RnVydGhlcm1vcmUgd2UgbWFrZSBtbSBjb3VsZCB0cmVhdCBEUkFNIGFuZCBOVkRJTU0KPiBzZXBh
-cmF0ZWx5LCB0aGF0IG1lYW5zIG1tIGNhbiBvbmx5IHB1dCB0aGUgY3JpdGljYWwgcGFnZXMgdG8g
-TlZESU1NCj4gem9uZSwgaGVyZSB3ZSBjcmVhdGVkIGEgbmV3IHpvbmUgdHlwZSBhcyBOVk0gem9u
-ZS4KCkhvdyBkbyB5b3UgZGVmaW5lIGNyaXRpY2FsIHBhZ2VzPyBXaG8gaXMgYWxsb3dlZCB0byBh
-bGxvY2F0ZSBmcm9tIHRoZW0/CllvdSBkbyBub3Qgc2VlbSB0byBhZGQgX2FueV8gdXNlciBvZiBH
-RlBfTlZNLgoKPiBUaGF0IGlzIHRvIHNheSBmb3IKPiB0cmFkaXRpb25hbChvciBub3JtYWwpIHBh
-Z2VzIHdoaWNoIHdvdWxkIGJlIHN0b3JlZCBhdCBEUkFNIHNjb3BlIGxpa2UKPiBOb3JtYWwsIERN
-QTMyIGFuZCBETUEgem9uZXMuIEJ1dCBmb3IgdGhlIGNyaXRpY2FsIHBhZ2VzLCB3aGljaCB3ZSBo
-b3BlCj4gdGhlbSBjb3VsZCBiZSByZWNvdmVyZWQgZnJvbSBwb3dlciBmYWlsIG9yIHN5c3RlbSBj
-cmFzaCwgd2UgbWFrZSB0aGVtCj4gdG8gYmUgcGVyc2lzdGVudCBieSBzdG9yaW5nIHRoZW0gdG8g
-TlZNIHpvbmUuCgpUaGlzIGJyaW5ncyBtb3JlIHF1ZXN0aW9ucyB0aGFuIGl0IGFuc3dlcnMuIEZp
-cnN0IG9mIGFsbCBpcyB0aGlzIGdvaW5nCnRvIGJlIGFueSBndWFyYW50ZWU/IExldCdzIHNheSBJ
-IHdhbnQgR0ZQX05WTSwgY2FuIEkgZ2V0IG1lbW9yeSBmcm9tCm90aGVyIHpvbmVzPyBJbiBvdGhl
-ciB3b3JkcyBpcyBzdWNoIGEgcmVxdWVzdCBhbGxvd2VkIHRvIGZhbGxiYWNrIHRvCnN1Y2NlZWQ/
-IEFyZSB3ZSBhbGxvd2VkIHRvIHJlY2xhaW0gbWVtb3J5IGZyb20gdGhlIG5ldyB6b25lPyBXaGF0
-IHNob3VsZApoYXBwZW4gb24gdGhlIE9PTT8gSG93IGlzIHRoZSB1c2VyIGV4cGVjdGVkIHRvIHJl
-c3RvcmUgdGhlIHByZXZpb3VzCmNvbnRlbnQgYWZ0ZXIgcmVib290L2NyYXNoPwoKSSBhbSBzb3Jy
-eSBpZiB0aGVzZSBxdWVzdGlvbnMgYXJlIGFuc3dlcmVkIGluIHRoZSByZXNwZWN0aXZlIHBhdGNo
-ZXMgYnV0Cml0IHdvdWxkIGJlIGdyZWF0IHRvIGhhdmUgdGhpcyBpbiB0aGUgY292ZXIgbGV0dGVy
-IHRvIGhhdmUgYSBnb29kCm92ZXJ2aWV3IG9mIHRoZSB3aG9sZSBkZXNpZ24uIEZyb20gbXkgcXVp
-Y2sgZ2xhbmNlIG92ZXIgcGF0Y2hlcyBteQpwcmV2aW91cyBjb25jZXJucyBhYm91dCBhbiBhZGRp
-dGlvbmFsIHpvbmUgc3RpbGwgaG9sZCwgdGhvdWdoLgotLSAKTWljaGFsIEhvY2tvClNVU0UgTGFi
-cwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
-dmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0
-cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+DQo+IA0KPiBPbiBUdWUsIE1heSAwOCwgMjAxOCBhdCAwMjo1OTo0MEFNICswMDAwLCBIdWFpc2hl
+bmcgSFMxIFllIHdyb3RlOg0KPiA+IEN1cnJlbnRseSBpbiBvdXIgbWluZCwgYW4gaWRlYWwgdXNl
+IHNjZW5hcmlvIGlzIHRoYXQsIHdlIHB1dCBhbGwgcGFnZSBjYWNoZXMgdG8NCj4gPiB6b25lX252
+bSwgd2l0aG91dCBhbnkgZG91YnQsIHBhZ2UgY2FjaGUgaXMgYW4gZWZmaWNpZW50IGFuZCBjb21t
+b24gY2FjaGUNCj4gPiBpbXBsZW1lbnQsIGJ1dCBpdCBoYXMgYSBkaXNhZHZhbnRhZ2UgdGhhdCBh
+bGwgZGlydHkgZGF0YSB3aXRoaW4gaXQgd291bGQgaGFzIHJpc2sNCj4gPiB0byBiZSBtaXNzZWQg
+YnkgcG93ZXIgZmFpbHVyZSBvciBzeXN0ZW0gY3Jhc2guIElmIHdlIHB1dCBhbGwgcGFnZSBjYWNo
+ZXMgdG8gTlZESU1NcywNCj4gPiBhbGwgZGlydHkgZGF0YSB3aWxsIGJlIHNhZmUuDQo+IA0KPiBU
+aGF0J3MgYSBjb21tb24gbWlzY29uY2VwdGlvbi4gIFNvbWUgZGlydHkgZGF0YSB3aWxsIHN0aWxs
+IGJlIGluIHRoZQ0KPiBDUFUgY2FjaGVzLiAgQXJlIHlvdSBwbGFubmluZyBvbiBidWlsZGluZyBz
+ZXJ2ZXJzIHdoaWNoIGhhdmUgZW5vdWdoDQo+IGNhcGFjaXRhbmNlIHRvIGFsbG93IHRoZSBDUFUg
+dG8gZmx1c2ggYWxsIGRpcnR5IGRhdGEgZnJvbSBMTEMgdG8gTlYtRElNTT8NCj4gDQpTb3JyeSBm
+b3Igbm90IGJlaW5nIGNsZWFyLg0KRm9yIENQVSBjYWNoZXMgaWYgdGhlcmUgaXMgYSBwb3dlciBm
+YWlsdXJlLCBOVkRJTU0gaGFzIEFEUiB0byBndWFyYW50ZWUgYW4gaW50ZXJydXB0IHdpbGwgYmUg
+cmVwb3J0ZWQgdG8gQ1BVLCBhbiBpbnRlcnJ1cHQgcmVzcG9uc2UgZnVuY3Rpb24gc2hvdWxkIGJl
+IHJlc3BvbnNpYmxlIHRvIGZsdXNoIGFsbCBkaXJ0eSBkYXRhIHRvIE5WRElNTS4NCklmIHRoZXJl
+IGlzIGEgc3lzdGVtIGNydXNoLCBwZXJoYXBzIENQVSBjb3VsZG4ndCBoYXZlIGNoYW5jZSB0byBl
+eGVjdXRlIHRoaXMgcmVzcG9uc2UuDQoNCkl0IGlzIGhhcmQgdG8gbWFrZSBzdXJlIGV2ZXJ5dGhp
+bmcgaXMgc2FmZSwgd2hhdCB3ZSBjYW4gZG8gaXMganVzdCB0byBzYXZlIHRoZSBkaXJ0eSBkYXRh
+IHdoaWNoIGlzIGFscmVhZHkgc3RvcmVkIHRvIFBhZ2VjYWNoZSwgYnV0IG5vdCBpbiBDUFUgY2Fj
+aGUuDQpJcyB0aGlzIGFuIGltcHJvdmVtZW50IHRoYW4gY3VycmVudD8NCg0KPiBUaGVuIHRoZXJl
+J3MgdGhlIHByb2JsZW0gb2YgcmVjb25uZWN0aW5nIHRoZSBwYWdlIGNhY2hlICh3aGljaCBpcw0K
+PiBwb2ludGVkIHRvIGJ5IGVwaGVtZXJhbCBkYXRhIHN0cnVjdHVyZXMgbGlrZSBpbm9kZXMgYW5k
+IGRlbnRyaWVzKSB0bw0KPiB0aGUgbmV3IGlub2Rlcy4NClllcywgaXQgaXMgbm90IGVhc3kuDQoN
+Cj4gDQo+IEFuZCB0aGVuIHlvdSBoYXZlIHRvIGNvbnZpbmNlIGN1c3RvbWVycyB0aGF0IHdoYXQg
+eW91J3JlIGRvaW5nIGlzIHNhZmUNCj4gZW5vdWdoIGZvciB0aGVtIHRvIHRydXN0IGl0IDstKQ0K
+U3VyZS4g8J+Yig0KDQpTaW5jZXJlbHksDQpIdWFpc2hlbmcgWWUNCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
