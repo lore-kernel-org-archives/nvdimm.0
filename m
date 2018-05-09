@@ -1,19 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
+ [IPv6:2607:f8b0:4003:c06::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E4C43203B85BF
- for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 03:37:36 -0700 (PDT)
-Date: Wed, 9 May 2018 12:37:35 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v9 1/9] dax, dm: introduce ->fs_{claim, release}()
- dax_device infrastructure
-Message-ID: <20180509103735.xa5mlalhudujhgif@quack2.suse.cz>
-References: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152461278783.17530.15159365432572689004.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2825D203B9924
+ for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 15:54:17 -0700 (PDT)
+Received: by mail-oi0-x241.google.com with SMTP id b130-v6so143627oif.12
+ for <linux-nvdimm@lists.01.org>; Wed, 09 May 2018 15:54:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <152461278783.17530.15159365432572689004.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <20180509122733.lokyqv5aluwhlml7@quack2.suse.cz>
+References: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152461283072.17530.11313844322317294220.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180509122733.lokyqv5aluwhlml7@quack2.suse.cz>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 9 May 2018 15:54:16 -0700
+Message-ID: <CAPcyv4hwGc0GUST-bNrgpgrmnfHgcxKf35M8p8mnu2FbSJe7Qw@mail.gmail.com>
+Subject: Re: [PATCH v9 9/9] xfs, dax: introduce xfs_break_dax_layouts()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,358 +23,130 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>
+To: Jan Kara <jack@suse.cz>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Chinner <david@fromorbit.com>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 24-04-18 16:33:07, Dan Williams wrote:
-> In preparation for allowing filesystems to augment the dev_pagemap
-> associated with a dax_device, add an ->fs_claim() callback. The
-> ->fs_claim() callback is leveraged by the device-mapper dax
-> implementation to iterate all member devices in the map and repeat the
-> claim operation across the array.
-> =
+On Wed, May 9, 2018 at 5:27 AM, Jan Kara <jack@suse.cz> wrote:
+> On Tue 24-04-18 16:33:50, Dan Williams wrote:
+>> xfs_break_dax_layouts(), similar to xfs_break_leased_layouts(), scans
+>> for busy / pinned dax pages and waits for those pages to go idle before
+>> any potential extent unmap operation.
+>>
+>> dax_layout_busy_page() handles synchronizing against new page-busy
+>> events (get_user_pages). It invalidates all mappings to trigger the
+>> get_user_pages slow path which will eventually block on the xfs inode
+>> lock held in XFS_MMAPLOCK_EXCL mode. If dax_layout_busy_page() finds a
+>> busy page it returns it for xfs to wait for the page-idle event that
+>> will fire when the page reference count reaches 1 (recall ZONE_DEVICE
+>> pages are idle at count 1, see generic_dax_pagefree()).
+>>
+>> While waiting, the XFS_MMAPLOCK_EXCL lock is dropped in order to not
+>> deadlock the process that might be trying to elevate the page count of
+>> more pages before arranging for any of them to go idle. I.e. the typical
+>> case of submitting I/O is that iov_iter_get_pages() elevates the
+>> reference count of all pages in the I/O before starting I/O on the first
+>> page. The process of elevating the reference count of all pages involved
+>> in an I/O may cause faults that need to take XFS_MMAPLOCK_EXCL.
+>>
+>> Although XFS_MMAPLOCK_EXCL is dropped while waiting, XFS_IOLOCK_EXCL is
+>> held while sleeping. We need this to prevent starvation of the truncate
+>> path as continuous submission of direct-I/O could starve the truncate
+>> path indefinitely if the lock is dropped.
+>>
+>> Cc: Dave Chinner <david@fromorbit.com>
+>> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Reported-by: Jan Kara <jack@suse.cz>
+>> Cc: Christoph Hellwig <hch@lst.de>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+> Looks good to me except some nits below. Feel free to add:
+>
+> Reviewed-by: Jan Kara <jack@suse.cz>
+>
+> for as much as it is worth with XFS code ;)
+>
+>> +static int
+>> +xfs_break_dax_layouts(
+>> +     struct inode            *inode,
+>> +     uint                    iolock,
+>> +     bool                    *did_unlock)
+>> +{
+>> +     struct page             *page;
+>> +
+>> +     *did_unlock = false;
+>> +     page = dax_layout_busy_page(inode->i_mapping);
+>> +     if (!page)
+>> +             return 0;
+>> +
+>> +     return ___wait_var_event(&page->_refcount,
+>> +                     atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
+>> +                     0, 0, xfs_wait_dax_page(inode, did_unlock));
+>> +}
+>> +
+>>  int
+>>  xfs_break_layouts(
+>>       struct inode            *inode,
+>> @@ -729,17 +760,23 @@ xfs_break_layouts(
+>>
+>>       ASSERT(xfs_isilocked(XFS_I(inode), XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
+>>
+>> -     switch (reason) {
+>> -     case BREAK_UNMAP:
+>> -             ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
+>> -             /* fall through */
+>> -     case BREAK_WRITE:
+>> -             error = xfs_break_leased_layouts(inode, iolock, &retry);
+>> -             break;
+>> -     default:
+>> -             WARN_ON_ONCE(1);
+>> -             return -EINVAL;
+>> -     }
+>> +     do {
+>> +             switch (reason) {
+>> +             case BREAK_UNMAP:
+>> +                     ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
+>
+> Maybe move the assertion to xfs_break_dax_layouts()?
 
-> In order to resolve collisions between filesystem operations and DMA to
-> DAX mapped pages we need a callback when DMA completes. With a callback
-> we can hold off filesystem operations while DMA is in-flight and then
-> resume those operations when the last put_page() occurs on a DMA page.
-> The ->fs_claim() operation arranges for this callback to be registered,
-> although that implementation is saved for a later patch.
-> =
+Makes sense, sure.
 
-> Cc: Alasdair Kergon <agk@redhat.com>
-> Cc: Matthew Wilcox <mawilcox@microsoft.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Cc: "J=E9r=F4me Glisse" <jglisse@redhat.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Jan Kara <jack@suse.cz>
-> Acked-by: Mike Snitzer <snitzer@redhat.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+>> +
+>> +                     error = xfs_break_dax_layouts(inode, *iolock, &retry);
+>> +                     /* fall through */
+>> +             case BREAK_WRITE:
+>> +                     if (error || retry)
+>> +                             break;
+>
+> The error handling IMHO belongs above the 'fall through' comment above.
 
-Looks good to me. You can add:
+Ok, yes I think this location is a stale holdover.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+>
+>> +                     error = xfs_break_leased_layouts(inode, iolock, &retry);
+>> +                     break;
+>> +             default:
+>> +                     WARN_ON_ONCE(1);
+>> +                     return -EINVAL;
+>> +             }
+>> +     } while (error == 0 && retry);
+>
+> As a general 'taste' comment, I prefer if the 'retry' is always initialized
+> to 'false' at the beginning of the loop body in these kinds of loops. That
+> way it is obvious we are doing the right thing when looking at the loop
+> body and we don't have to verify that each case statement initializes
+> 'retry' properly (in fact I'd remove the initialization from
+> xfs_break_dax_layouts() and xfs_break_leased_layouts()). But this is more a
+> matter of taste and consistency with other code in the area so I defer to
+> XFS maintainers for a final opinion. Darrick?
 
-								Honza
-
-> ---
->  drivers/dax/super.c      |   76 ++++++++++++++++++++++++++++++++++++++++=
-++++++
->  drivers/md/dm.c          |   57 +++++++++++++++++++++++++++++++++++
->  include/linux/dax.h      |   48 +++++++++++++++++++++++++++++
->  include/linux/memremap.h |    8 +++++
->  4 files changed, 189 insertions(+)
-> =
-
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index 2b2332b605e4..e62a64b9c9fb 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -29,6 +29,7 @@ static struct vfsmount *dax_mnt;
->  static DEFINE_IDA(dax_minor_ida);
->  static struct kmem_cache *dax_cache __read_mostly;
->  static struct super_block *dax_superblock __read_mostly;
-> +static DEFINE_MUTEX(devmap_lock);
->  =
-
->  #define DAX_HASH_SIZE (PAGE_SIZE / sizeof(struct hlist_head))
->  static struct hlist_head dax_host_list[DAX_HASH_SIZE];
-> @@ -169,9 +170,84 @@ struct dax_device {
->  	const char *host;
->  	void *private;
->  	unsigned long flags;
-> +	struct dev_pagemap *pgmap;
->  	const struct dax_operations *ops;
->  };
->  =
-
-> +#if IS_ENABLED(CONFIG_FS_DAX)
-> +static void generic_dax_pagefree(struct page *page, void *data)
-> +{
-> +	/* TODO: wakeup page-idle waiters */
-> +}
-> +
-> +static struct dax_device *__fs_dax_claim(struct dax_device *dax_dev,
-> +		void *owner)
-> +{
-> +	struct dev_pagemap *pgmap;
-> +
-> +	if (!dax_dev->pgmap)
-> +		return dax_dev;
-> +	pgmap =3D dax_dev->pgmap;
-> +
-> +	mutex_lock(&devmap_lock);
-> +	if (pgmap->data && pgmap->data =3D=3D owner) {
-> +		/* dm might try to claim the same device more than once... */
-> +		mutex_unlock(&devmap_lock);
-> +		return dax_dev;
-> +	} else if (pgmap->page_free || pgmap->page_fault
-> +			|| pgmap->type !=3D MEMORY_DEVICE_HOST) {
-> +		put_dax(dax_dev);
-> +		mutex_unlock(&devmap_lock);
-> +		return NULL;
-> +	}
-> +
-> +	pgmap->type =3D MEMORY_DEVICE_FS_DAX;
-> +	pgmap->page_free =3D generic_dax_pagefree;
-> +	pgmap->data =3D owner;
-> +	mutex_unlock(&devmap_lock);
-> +
-> +	return dax_dev;
-> +}
-> +
-> +struct dax_device *fs_dax_claim(struct dax_device *dax_dev, void *owner)
-> +{
-> +	if (dax_dev->ops->fs_claim)
-> +		return dax_dev->ops->fs_claim(dax_dev, owner);
-> +	else
-> +		return __fs_dax_claim(dax_dev, owner);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_claim);
-> +
-> +static void __fs_dax_release(struct dax_device *dax_dev, void *owner)
-> +{
-> +	struct dev_pagemap *pgmap =3D dax_dev->pgmap;
-> +
-> +	put_dax(dax_dev);
-> +	if (!pgmap)
-> +		return;
-> +	if (!pgmap->data)
-> +		return;
-> +
-> +	mutex_lock(&devmap_lock);
-> +	WARN_ON(pgmap->data !=3D owner);
-> +	pgmap->type =3D MEMORY_DEVICE_HOST;
-> +	pgmap->page_free =3D NULL;
-> +	pgmap->data =3D NULL;
-> +	mutex_unlock(&devmap_lock);
-> +}
-> +
-> +void fs_dax_release(struct dax_device *dax_dev, void *owner)
-> +{
-> +	if (!dax_dev)
-> +		return;
-> +	if (dax_dev->ops->fs_release)
-> +		dax_dev->ops->fs_release(dax_dev, owner);
-> +	else
-> +		__fs_dax_release(dax_dev, owner);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_release);
-> +#endif
-> +
->  static ssize_t write_cache_show(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
-> diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-> index 4ea404dbcf0b..468aff8d9694 100644
-> --- a/drivers/md/dm.c
-> +++ b/drivers/md/dm.c
-> @@ -1088,6 +1088,61 @@ static size_t dm_dax_copy_from_iter(struct dax_dev=
-ice *dax_dev, pgoff_t pgoff,
->  	return ret;
->  }
->  =
-
-> +static int dm_dax_dev_claim(struct dm_target *ti, struct dm_dev *dev,
-> +		sector_t start, sector_t len, void *owner)
-> +{
-> +	if (fs_dax_claim(dev->dax_dev, owner))
-> +		return 0;
-> +	/*
-> +	 * Outside of a kernel bug there is no reason a dax_dev should
-> +	 * fail a claim attempt. Device-mapper should have exclusive
-> +	 * ownership of the dm_dev and the filesystem should have
-> +	 * exclusive ownership of the dm_target.
-> +	 */
-> +	WARN_ON_ONCE(1);
-> +	return -ENXIO;
-> +}
-> +
-> +static int dm_dax_dev_release(struct dm_target *ti, struct dm_dev *dev,
-> +		sector_t start, sector_t len, void *owner)
-> +{
-> +	fs_dax_release(dev->dax_dev, owner);
-> +	return 0;
-> +}
-> +
-> +static void dm_dax_iterate_devices(struct dax_device *dax_dev,
-> +		iterate_devices_callout_fn fn, void *arg)
-> +{
-> +	struct mapped_device *md =3D dax_get_private(dax_dev);
-> +	struct dm_table *map;
-> +	struct dm_target *ti;
-> +	int i, srcu_idx;
-> +
-> +	map =3D dm_get_live_table(md, &srcu_idx);
-> +
-> +	for (i =3D 0; i < dm_table_get_num_targets(map); i++) {
-> +		ti =3D dm_table_get_target(map, i);
-> +
-> +		if (ti->type->iterate_devices)
-> +			ti->type->iterate_devices(ti, fn, arg);
-> +	}
-> +
-> +	dm_put_live_table(md, srcu_idx);
-> +}
-> +
-> +static struct dax_device *dm_dax_fs_claim(struct dax_device *dax_dev,
-> +		void *owner)
-> +{
-> +	dm_dax_iterate_devices(dax_dev, dm_dax_dev_claim, owner);
-> +	/* see comment in dm_dax_dev_claim about this unconditional return */
-> +	return dax_dev;
-> +}
-> +
-> +static void dm_dax_fs_release(struct dax_device *dax_dev, void *owner)
-> +{
-> +	dm_dax_iterate_devices(dax_dev, dm_dax_dev_release, owner);
-> +}
-> +
->  /*
->   * A target may call dm_accept_partial_bio only from the map routine.  I=
-t is
->   * allowed for all bio types except REQ_PREFLUSH and REQ_OP_ZONE_RESET.
-> @@ -3133,6 +3188,8 @@ static const struct block_device_operations dm_blk_=
-dops =3D {
->  static const struct dax_operations dm_dax_ops =3D {
->  	.direct_access =3D dm_dax_direct_access,
->  	.copy_from_iter =3D dm_dax_copy_from_iter,
-> +	.fs_claim =3D dm_dax_fs_claim,
-> +	.fs_release =3D dm_dax_fs_release,
->  };
->  =
-
->  /*
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index f9eb22ad341e..af02f93c943a 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -4,6 +4,7 @@
->  =
-
->  #include <linux/fs.h>
->  #include <linux/mm.h>
-> +#include <linux/blkdev.h>
->  #include <linux/radix-tree.h>
->  #include <asm/pgtable.h>
->  =
-
-> @@ -20,6 +21,10 @@ struct dax_operations {
->  	/* copy_from_iter: required operation for fs-dax direct-i/o */
->  	size_t (*copy_from_iter)(struct dax_device *, pgoff_t, void *, size_t,
->  			struct iov_iter *);
-> +	/* fs_claim: setup filesytem parameters for the device's dev_pagemap */
-> +	struct dax_device *(*fs_claim)(struct dax_device *, void *);
-> +	/* fs_release: restore device's dev_pagemap to its default state */
-> +	void (*fs_release)(struct dax_device *, void *);
->  };
->  =
-
->  extern struct attribute_group dax_attribute_group;
-> @@ -83,6 +88,26 @@ static inline void fs_put_dax(struct dax_device *dax_d=
-ev)
->  struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
->  int dax_writeback_mapping_range(struct address_space *mapping,
->  		struct block_device *bdev, struct writeback_control *wbc);
-> +struct dax_device *fs_dax_claim(struct dax_device *dax_dev, void *owner);
-> +#ifdef CONFIG_BLOCK
-> +static inline struct dax_device *fs_dax_claim_bdev(struct block_device *=
-bdev,
-> +		void *owner)
-> +{
-> +	struct dax_device *dax_dev;
-> +
-> +	if (!blk_queue_dax(bdev->bd_queue))
-> +		return NULL;
-> +	dax_dev =3D fs_dax_get_by_host(bdev->bd_disk->disk_name);
-> +	return fs_dax_claim(dax_dev, owner);
-> +}
-> +#else
-> +static inline struct dax_device *fs_dax_claim_bdev(struct block_device *=
-bdev,
-> +		void *owner)
-> +{
-> +	return NULL;
-> +}
-> +#endif
-> +void fs_dax_release(struct dax_device *dax_dev, void *owner);
->  #else
->  static inline int bdev_dax_supported(struct super_block *sb, int blocksi=
-ze)
->  {
-> @@ -108,6 +133,29 @@ static inline int dax_writeback_mapping_range(struct=
- address_space *mapping,
->  {
->  	return -EOPNOTSUPP;
->  }
-> +
-> +static inline struct dax_device *fs_dax_claim(struct dax_device *dax_dev,
-> +		void *owner)
-> +{
-> +	return NULL;
-> +}
-> +
-> +#ifdef CONFIG_BLOCK
-> +static inline struct dax_device *fs_dax_claim_bdev(struct block_device *=
-bdev,
-> +		void *owner)
-> +{
-> +	return fs_dax_get_by_host(bdev->bd_disk->disk_name);
-> +}
-> +#else
-> +static inline struct dax_device *fs_dax_claim_bdev(struct block_device *=
-bdev,
-> +		void *owner)
-> +{
-> +	return NULL;
-> +}
-> +#endif
-> +static inline void fs_dax_release(struct dax_device *dax_dev, void *owne=
-r)
-> +{
-> +}
->  #endif
->  =
-
->  int dax_read_lock(void);
-> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-> index 7b4899c06f49..02d6d042ee7f 100644
-> --- a/include/linux/memremap.h
-> +++ b/include/linux/memremap.h
-> @@ -53,11 +53,19 @@ struct vmem_altmap {
->   * driver can hotplug the device memory using ZONE_DEVICE and with that =
-memory
->   * type. Any page of a process can be migrated to such memory. However n=
-o one
->   * should be allow to pin such memory so that it can always be evicted.
-> + *
-> + * MEMORY_DEVICE_FS_DAX:
-> + * When MEMORY_DEVICE_HOST memory is represented by a device that can
-> + * host a filesystem, for example /dev/pmem0, that filesystem can
-> + * register for a callback when a page is idled. For the filesystem-dax
-> + * case page idle callbacks are used to coordinate DMA vs
-> + * hole-punch/truncate.
->   */
->  enum memory_type {
->  	MEMORY_DEVICE_HOST =3D 0,
->  	MEMORY_DEVICE_PRIVATE,
->  	MEMORY_DEVICE_PUBLIC,
-> +	MEMORY_DEVICE_FS_DAX,
->  };
->  =
-
->  /*
-> =
-
--- =
-
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+I'm fine with making this change, I'll proceed unless / until Darrick says no.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
