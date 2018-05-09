@@ -1,31 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from CAN01-QB1-obe.outbound.protection.outlook.com
- (mail-eopbgr660118.outbound.protection.outlook.com [40.107.66.118])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A601120348613
- for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 08:41:47 -0700 (PDT)
-From: "Stephen  Bates" <sbates@raithlin.com>
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
-Date: Wed, 9 May 2018 15:41:44 +0000
-Message-ID: <1775CC56-4651-422F-953A-18E024D3717C@raithlin.com>
-References: <20180423233046.21476-5-logang@deltatee.com>
- <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
- <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
- <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
- <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
- <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
- <20180508133407.57a46902@w520.home>
- <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
- <20180508141331.7cd737cb@w520.home>
- <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
- <20180508205005.GC15608@redhat.com>
- <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
- <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
-In-Reply-To: <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
-Content-Language: en-US
-Content-ID: <215EC96ED56B2D49A092AB3D81AEB91E@CANPRD01.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 28F4F20965DC8
+ for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 07:44:48 -0700 (PDT)
+Date: Wed, 9 May 2018 08:44:45 -0600
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all
+ devices behind switches
+Message-ID: <20180509084445.626d2732@w520.home>
+In-Reply-To: <B5BFCF39-6BB4-4E45-B805-C8FCC8B79EF3@raithlin.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <20180423233046.21476-5-logang@deltatee.com>
+ <CAPcyv4g+5N_n03J-VhmJfrr60Sqk95ZapLKBkwSsGvV4nQ+ZRw@mail.gmail.com>
+ <64C231F5-DE36-415F-B308-3A423B0BBACB@raithlin.com>
+ <15433946-f7f5-f610-4e80-380fb59920e5@redhat.com>
+ <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2@raithlin.com>
+ <c5f30ced-7bbf-9420-db1a-72519fc78b3a@redhat.com>
+ <20180508180157.7c7b393f@w520.home>
+ <B5BFCF39-6BB4-4E45-B805-C8FCC8B79EF3@raithlin.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -38,25 +31,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig@amd.com>, Jerome
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Alex Williamson <alex.williamson@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Stephen  Bates <sbates@raithlin.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Christian =?UTF-8?B?S8O2bmln?= <christian.koenig@amd.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, =?UTF-8?B?SsOpcsO0?= =?UTF-8?B?bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Don Dutile <ddutile@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Christian
+On Wed, 9 May 2018 12:35:56 +0000
+"Stephen  Bates" <sbates@raithlin.com> wrote:
 
->    Interesting point, give me a moment to check that. That finally makes 
->    all the hardware I have standing around here valuable :)
-    
-Yes. At the very least it provides an initial standards based path for P2P DMAs across RPs which is something we have discussed on this list in the past as being desirable.
+> Hi Alex and Don
+> 
+> >    Correct, the VM has no concept of the host's IOMMU groups, only
+> > the hypervisor knows about the groups,   
+> 
+> But as I understand it these groups are usually passed through to VMs
+> on a pre-group basis by the hypervisor? So IOMMU group 1 might be
+> passed to VM A and IOMMU group 2 passed to VM B. So I agree the VM is
+> not aware of IOMMU groupings but it is impacted by them in the sense
+> that if the groupings change the PCI topology presented to the VM
+> needs to change too.
 
-BTW I am trying to understand how an ATS capable EP function determines when to perform an ATS Translation Request (ATS TR). Is there an upstream example of the driver for your APU that uses ATS? If so, can you provide a pointer to it. Do you provide some type of entry in the submission queues for commands going to the APU to indicate if the address associated with a specific command should be translated using ATS or not? Or do you simply enable ATS and then all addresses passed to your APU that miss the local cache result in a ATS TR?
+Hypervisors don't currently expose any topology based on the grouping,
+the only case where such a concept even makes sense is when a vIOMMU is
+present as devices within the same group cannot have separate address
+spaces.  Our options for exposing such information is also limited, our
+only real option would seem to be placing devices within the same group
+together on a conventional PCI bus to denote the address space
+granularity.  Currently we strongly recommend singleton groups for this
+case and leave any additional configuration constraints to the admin.
 
-Your feedback would be useful and I initiate discussions within the NVMe community on where we might go with ATS...
+The case you note of a group passed to VM A and another passed to VM B
+is exactly an example of why any sort of dynamic routing change needs to
+have the groups fully released, such as via hot-unplug.  For instance,
+a routing change at a shared node above groups 1 & 2 could result in
+the merging of these groups and there is absolutely no way to handle
+that with portions of the group being owned by two separate VMs after
+the merge.  Thanks,
 
-Thanks
-
-Stephen
-
+Alex
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
