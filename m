@@ -1,92 +1,79 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Thu, 10 May 2018 07:51:49 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [Ksummit-discuss] bug-introducing patches
-Message-ID: <20180510075149.57c3034a@canb.auug.org.au>
-In-Reply-To: <CAPcyv4jtNXhMwCqpbKkHe5e-nDPK+2Wq=maFsB_SMSGyg7fw5w@mail.gmail.com>
-References: <CAKMK7uHjA27K8y-kwYFyhLy3cSkJJw8Oe1gP=3hZXdfxcWAcNQ@mail.gmail.com>
-        <20180502194632.GB18390@sasha-vm>
-        <20180503020550.GP2714@sirena.org.uk>
-        <20180503031000.GC29205@thunk.org>
-        <0276fcda-0385-8f22-dbdb-e063f7ed8bbe@roeck-us.net>
-        <20180503224217.GR2714@sirena.org.uk>
-        <20180503230905.GA98604@atomide.com>
-        <CAPDyKFrCKkRHwOh-7yfFbvMp+Ykhs7oXrDwhTShSPvUBvpn2ZQ@mail.gmail.com>
-        <20180509084440.GW13402@sirena.org.uk>
-        <CAKMK7uEWYmhA3owSeYM9tNA0tpMm5=4Yqda2j=VfMWi7i8ya8w@mail.gmail.com>
-        <20180509090346.GY13402@sirena.org.uk>
-        <20180509204727.7ff38021@canb.auug.org.au>
-        <CAPcyv4jtNXhMwCqpbKkHe5e-nDPK+2Wq=maFsB_SMSGyg7fw5w@mail.gmail.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 19EA120965DCE
+ for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 09:04:32 -0700 (PDT)
+Received: by mail-ot0-x242.google.com with SMTP id l22-v6so40762253otj.0
+ for <linux-nvdimm@lists.01.org>; Wed, 09 May 2018 09:04:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/KyNS2/d6MOKSvSK194yyHAA"; protocol="application/pgp-signature"
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Mark Brown <broonie@kernel.org>, "w@1wt.eu" <w@1wt.eu>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ksummit-discuss@lists.linuxfoundation.org" <ksummit-discuss@lists.linuxfoundation.org>, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+In-Reply-To: <20180509204727.7ff38021@canb.auug.org.au>
+References: <CAKMK7uHjA27K8y-kwYFyhLy3cSkJJw8Oe1gP=3hZXdfxcWAcNQ@mail.gmail.com>
+ <20180502194632.GB18390@sasha-vm> <20180503020550.GP2714@sirena.org.uk>
+ <20180503031000.GC29205@thunk.org>
+ <0276fcda-0385-8f22-dbdb-e063f7ed8bbe@roeck-us.net>
+ <20180503224217.GR2714@sirena.org.uk> <20180503230905.GA98604@atomide.com>
+ <CAPDyKFrCKkRHwOh-7yfFbvMp+Ykhs7oXrDwhTShSPvUBvpn2ZQ@mail.gmail.com>
+ <20180509084440.GW13402@sirena.org.uk>
+ <CAKMK7uEWYmhA3owSeYM9tNA0tpMm5=4Yqda2j=VfMWi7i8ya8w@mail.gmail.com>
+ <20180509090346.GY13402@sirena.org.uk>
+ <20180509204727.7ff38021@canb.auug.org.au>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 9 May 2018 09:04:31 -0700
+Message-ID: <CAPcyv4jtNXhMwCqpbKkHe5e-nDPK+2Wq=maFsB_SMSGyg7fw5w@mail.gmail.com>
+Subject: Re: [Ksummit-discuss] bug-introducing patches
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "ksummit-discuss@lists.linuxfoundation.org" <ksummit-discuss@lists.linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "w@1wt.eu" <w@1wt.eu>
 List-ID: <linux-nvdimm@lists.01.org>
 
---Sig_/KyNS2/d6MOKSvSK194yyHAA
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi Dan,
-
-On Wed, 9 May 2018 09:04:31 -0700 Dan Williams <dan.j.williams@intel.com> w=
-rote:
+On Wed, May 9, 2018 at 3:47 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> On Wed, 9 May 2018 18:03:46 +0900 Mark Brown <broonie@kernel.org> wrote:
+>>
+>> On Wed, May 09, 2018 at 10:47:57AM +0200, Daniel Vetter wrote:
+>> > On Wed, May 9, 2018 at 10:44 AM, Mark Brown <broonie@kernel.org> wrote:
+>>
+>> > > I think this is an excellent idea, copying in Stephen for his input.
+>> > > I'm currently on holiday but unless someone convinces me it's a terrible
+>> > > idea I'm willing to at least give it a go on a trial basis once I'm back
+>> > > home.
+>>
+>> > Since Stephen merges all -fixes branches first, before merging all the
+>> > -next branches, he already generates that as part of linux-next. All
+>> > he'd need to do is push that intermediate state out to some
+>> > linux-fixes branch for consumption by test bots.
 >
-> Please add:
->=20
->     git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
-> libnvdimm-fixes
->=20
-> We currently merge this into libnvdimm-for-next for -next coverage,
-> and resolve any conflicts vs new development. Do you want to see those
-> conflicts? Otherwise I would recommend only pulling libnvdimm-for-next
-> for -next and libnvdimm-fixes for this new -next-fixes effort.
+> Good idea ... I will see what I can do.
+>
+>> True.  It's currently only those -fixes branches that people have asked
+>> him to merge separately which isn't as big a proportion of trees as have
+>> them (perhaps fortunately given people's enthusiasm for fixes branches
+>> that don't merge cleanly with their development branches) so we'd also
+>> need to encourage people to add them separately.
+>
+> I currently have 44 such fixes branches.  More welcome!
 
-The conflicts are usually fine (but if you do the merges, I won't see
-them - which is even better :-)).  I like to have the fixes branches in
-linux-next so that noone has to worry about probelsm in Linus' tree
-that have pending fixes already.
+Please add:
 
-Added from today.
+    git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
+libnvdimm-fixes
 
-Thanks for adding your subsystem tree as a participant of linux-next.  As
-you may know, this is not a judgement of your code.  The purpose of
-linux-next is for integration testing and to lower the impact of
-conflicts between subsystems in the next merge window.=20
-
-You will need to ensure that the patches/commits in your tree/series have
-been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-        Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and=20
-     * destined for the current or next Linux merge window.
-
-Basically, this should be just what you would send to Linus (or ask him
-to fetch).  It is allowed to be rebased if you deem it necessary.
-
---=20
-Cheers,
-Stephen Rothwell=20
-sfr@canb.auug.org.au
-
---Sig_/KyNS2/d6MOKSvSK194yyHAA
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlrzbXUACgkQAVBC80lX
-0GwzAgf/TxQI4NrJdZFoI7Y//UmYxwfeeSgkLWVg4aKZOOJPzX93qoqf+uLItfGn
-RGKO51U4QQ+CFurwUXGuLOnjTKB2/ehyZYjDxj/UVsp709bDd+1A0vctYf8coYvn
-dmPL+CpX9cLwl8w+FpP1ehy9wxDHlZich7Jh8fspSC34NZ/CuVSFn4e2QpTaq9zb
-rJ2OaZ6Zy/t0+y/dFWtJD+o10Kp6aK4SXdF3o9sBEc9hp/nEBipVBK0BFnSYRbfo
-4xfFh26jpvRLRV64JyK8kzsOJmn6mQRktV6xEEoeN9dDRH1XawwJVSAh7Rb4Xhri
-/9UyA5kh8GCOqE8mQOuie/iO3IGFow==
-=Sccc
------END PGP SIGNATURE-----
-
---Sig_/KyNS2/d6MOKSvSK194yyHAA--
+We currently merge this into libnvdimm-for-next for -next coverage,
+and resolve any conflicts vs new development. Do you want to see those
+conflicts? Otherwise I would recommend only pulling libnvdimm-for-next
+for -next and libnvdimm-fixes for this new -next-fixes effort.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
