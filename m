@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx142.netapp.com (mx142.netapp.com
- [IPv6:2620:10a:4005:8000:2306::b])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0E185209603C8
- for <linux-nvdimm@lists.01.org>; Wed, 16 May 2018 00:47:41 -0700 (PDT)
-From: "Korman, Yigal" <Yigal.Korman@netapp.com>
-Subject: ndctl create-namespace '--map' option
-Date: Wed, 16 May 2018 07:47:38 +0000
-Message-ID: <MWHPR0601MB36767B701B207CC71A40AC3CEB920@MWHPR0601MB3676.namprd06.prod.outlook.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id 288B9209859A3
+ for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 13:24:49 -0700 (PDT)
+Subject: [PATCH v6 2/4] ndctl: convert namespace actions to use
+ util_filter_walk()
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 11 May 2018 13:24:47 -0700
+Message-ID: <152607028741.4523.17714911638162706853.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152607009656.4523.5355287262776399070.stgit@djiang5-desk3.ch.intel.com>
+References: <152607009656.4523.5355287262776399070.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,16 +23,283 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
-I was wandering why there's no way of checking where an existing namespace keeps its page-structs (AKA --map={mem,dev})?
-'ndctl list --namespaces' doesn't seem to show this.
-Is this intentional? Or just a missing feature?
+util_filter_walk() does the looping through of busses and regions. Removing
+duplicate code in namespace ops and provide filter functions so we can
+utilize util_filter_walk() and share common code.
 
-Thanks,
-Yigal
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ ndctl/namespace.c |  158 +++++++++++++++++++++++++++++------------------------
+ util/filter.c     |   11 +++-
+ util/filter.h     |   10 +++
+ 3 files changed, 106 insertions(+), 73 deletions(-)
+
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index e61f500c..1502a73a 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -983,14 +983,86 @@ static int namespace_reconfig(struct ndctl_region *region,
+ int namespace_check(struct ndctl_namespace *ndns, bool verbose, bool force,
+ 		bool repair, bool logfix);
+ 
++static bool filter_region(struct ndctl_region *region,
++		struct util_filter_ctx *ctx)
++{
++	struct nsaction_filter_arg *nfa = ctx->nsaction;
++	int rc = 0;
++	bool out = true;
++
++	if (nfa->action == ACTION_CREATE && !nfa->namespace) {
++		if (nfa->rc == 1)
++			return false;
++
++		rc = namespace_create(region);
++		if (rc != -EAGAIN) {
++			if (rc == 0)
++				rc = 1;
++			/* don't proceed in the filter loop */
++			out = false;
++		}
++		nfa->rc = rc;
++	}
++
++	return out;
++}
++
++static void filter_namespace(struct ndctl_namespace *ndns,
++		struct util_filter_ctx *ctx)
++{
++	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
++	struct nsaction_filter_arg *nfa = ctx->nsaction;
++	const char *ndns_name;
++	int rc;
++
++	if (!nfa->namespace)
++		return;
++
++	ndns_name = ndctl_namespace_get_devname(ndns);
++	if (strcmp(nfa->namespace, "all") != 0
++			&& strcmp(nfa->namespace, ndns_name) != 0) {
++		return;
++	}
++
++	switch (nfa->action) {
++	case ACTION_DISABLE:
++		rc = ndctl_namespace_disable_safe(ndns);
++		break;
++	case ACTION_ENABLE:
++		rc = ndctl_namespace_enable(ndns);
++		break;
++	case ACTION_DESTROY:
++		rc = namespace_destroy(region, ndns);
++		break;
++	case ACTION_CHECK:
++		rc = namespace_check(ndns, verbose, force, repair, logfix);
++		if (rc < 0) {
++			nfa->rc = rc;
++			return;
++		}
++		break;
++	case ACTION_CREATE:
++		rc = namespace_reconfig(region, ndns);
++		if (rc < 0) {
++			nfa->rc = rc;
++			return;
++		}
++		break;
++	default:
++		rc = -EINVAL;
++		break;
++	}
++
++	if (rc >= 0)
++		nfa->rc++;
++}
++
+ static int do_xaction_namespace(const char *namespace,
+ 		enum device_action action, struct ndctl_ctx *ctx)
+ {
+-	struct ndctl_namespace *ndns, *_n;
+-	int rc = -ENXIO, success = 0;
+-	struct ndctl_region *region;
+-	const char *ndns_name;
+-	struct ndctl_bus *bus;
++	int rc = -ENXIO;
++	struct util_filter_ctx fctx = { 0 };
++	struct nsaction_filter_arg nfa = { 0 };
+ 
+ 	if (!namespace && action != ACTION_CREATE)
+ 		return rc;
+@@ -998,74 +1070,18 @@ static int do_xaction_namespace(const char *namespace,
+ 	if (verbose)
+ 		ndctl_set_log_priority(ctx, LOG_DEBUG);
+ 
+-        ndctl_bus_foreach(ctx, bus) {
+-		if (!util_bus_filter(bus, uf_param.bus))
+-			continue;
+-
+-		ndctl_region_foreach(bus, region) {
+-			if (!util_region_filter(region, uf_param.region))
+-				continue;
+-
+-			if (uf_param.type) {
+-				if (strcmp(uf_param.type, "pmem") == 0
+-						&& ndctl_region_get_type(region)
+-						== ND_DEVICE_REGION_PMEM)
+-					/* pass */;
+-				else if (strcmp(uf_param.type, "blk") == 0
+-						&& ndctl_region_get_type(region)
+-						== ND_DEVICE_REGION_BLK)
+-					/* pass */;
+-				else
+-					continue;
+-			}
++	fctx.filter_bus = filter_bus_passthrough;
++	fctx.filter_region = filter_region;
++	fctx.filter_namespace = filter_namespace;
++	fctx.nsaction = &nfa;
++	fctx.nsaction->action = action;
++	fctx.nsaction->namespace = namespace;
+ 
+-			if (action == ACTION_CREATE && !namespace) {
+-				rc = namespace_create(region);
+-				if (rc == -EAGAIN)
+-					continue;
+-				if (rc == 0)
+-					rc = 1;
+-				return rc;
+-			}
+-			ndctl_namespace_foreach_safe(region, ndns, _n) {
+-				ndns_name = ndctl_namespace_get_devname(ndns);
+-
+-				if (strcmp(namespace, "all") != 0
+-						&& strcmp(namespace, ndns_name) != 0)
+-					continue;
+-				switch (action) {
+-				case ACTION_DISABLE:
+-					rc = ndctl_namespace_disable_safe(ndns);
+-					break;
+-				case ACTION_ENABLE:
+-					rc = ndctl_namespace_enable(ndns);
+-					break;
+-				case ACTION_DESTROY:
+-					rc = namespace_destroy(region, ndns);
+-					break;
+-				case ACTION_CHECK:
+-					rc = namespace_check(ndns, verbose,
+-							force, repair, logfix);
+-					if (rc < 0)
+-						return rc;
+-					break;
+-				case ACTION_CREATE:
+-					rc = namespace_reconfig(region, ndns);
+-					if (rc < 0)
+-						return rc;
+-					return 1;
+-				default:
+-					rc = -EINVAL;
+-					break;
+-				}
+-				if (rc >= 0)
+-					success++;
+-			}
+-		}
+-	}
++	rc = util_filter_walk(ctx, &fctx, &uf_param);
++	if (rc < 0)
++		return rc;
+ 
+-	if (success)
+-		return success;
++	rc = nfa.rc;
+ 	return rc;
+ }
+ 
+diff --git a/util/filter.c b/util/filter.c
+index 1734bce5..c6ded8ab 100644
+--- a/util/filter.c
++++ b/util/filter.c
+@@ -18,6 +18,7 @@
+ #include <sys/stat.h>
+ #include <util/util.h>
+ #include <sys/types.h>
++#include <ndctl/action.h>
+ #include <ndctl/ndctl.h>
+ #include <util/filter.h>
+ #include <ndctl/libndctl.h>
+@@ -430,7 +431,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 		}
+ 
+ 		ndctl_region_foreach(bus, region) {
+-			struct ndctl_namespace *ndns;
++			struct ndctl_namespace *ndns, *_n;
+ 
+ 			if (!util_region_filter(region, param->region)
+ 					|| !util_region_filter_by_dimm(region,
+@@ -449,7 +450,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 			if (!fctx->filter_region(region, fctx))
+ 				continue;
+ 
+-			ndctl_namespace_foreach(region, ndns) {
++			ndctl_namespace_foreach_safe(region, ndns, _n) {
+ 				enum ndctl_namespace_mode mode;
+ 
+ 				if (!fctx->filter_namespace)
+@@ -467,3 +468,9 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 	}
+ 	return 0;
+ }
++
++bool filter_bus_passthrough(struct ndctl_bus *bus,
++		struct util_filter_ctx *ctx)
++{
++	return true;
++}
+diff --git a/util/filter.h b/util/filter.h
+index effda24b..e59bb8da 100644
+--- a/util/filter.h
++++ b/util/filter.h
+@@ -13,6 +13,7 @@
+ #ifndef _UTIL_FILTER_H_
+ #define _UTIL_FILTER_H_
+ #include <stdbool.h>
++#include <ndctl/action.h>
+ 
+ struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
+ struct ndctl_region *util_region_filter(struct ndctl_region *region,
+@@ -50,6 +51,12 @@ struct list_filter_arg {
+ 	unsigned long flags;
+ };
+ 
++struct nsaction_filter_arg {
++	enum device_action action;
++	const char *namespace;
++	int rc;
++};
++
+ /*
+  * struct util_filter_ctx - control and callbacks for util_filter_walk()
+  * ->filter_bus() and ->filter_region() return bool because the
+@@ -67,6 +74,7 @@ struct util_filter_ctx {
+ 	union {
+ 		void *arg;
+ 		struct list_filter_arg *list;
++		struct nsaction_filter_arg *nsaction;
+ 	};
+ };
+ 
+@@ -83,4 +91,6 @@ struct util_filter_params {
+ struct ndctl_ctx;
+ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 		struct util_filter_params *param);
++bool filter_bus_passthrough(struct ndctl_bus *bus,
++		struct util_filter_ctx *ctx);
+ #endif
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
