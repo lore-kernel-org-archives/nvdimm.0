@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 27C3E2063E2F1
- for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:08:49 -0700 (PDT)
-Subject: [PATCH v2 2/9] x86, memcpy_mcsafe: add labels for write fault handling
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 02 May 2018 21:58:51 -0700
-Message-ID: <152532353186.17218.12613043253505288889.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4D3EF203BEA2D
+ for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 11:02:47 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] ndctl: remove warning caused by -D_FORTIFY_SOURCE=2 and
+ -O0 compile flags
+Date: Fri, 11 May 2018 18:02:45 +0000
+Message-ID: <1526061763.4429.14.camel@intel.com>
+References: <152605735888.60453.10483504271205064345.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152605735888.60453.10483504271205064345.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <DE64724B99353E4EB5FBD63736B8EE8E@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,98 +25,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The memcpy_mcsafe() implementation handles CPU exceptions when reading
-from the source address. Before it can be used for user copies it needs
-to grow support for handling write faults. In preparation for adding
-that exception handling update the labels for the read cache word X case
-(.L_cache_rX) and write cache word X case (.L_cache_wX).
+On Fri, 2018-05-11 at 09:49 -0700, Dave Jiang wrote:
+> Compiler spits out warning with -D_FORTIFY_SOURCE=2 and -O0. Moving to
+> -O2
+> to remove warnings.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+> 
+> -v2: Add -O2 option to configure.ac as well. (Vishal)
 
-Cc: <x86@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Reported-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/lib/memcpy_64.S |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+Thanks for the update, applied.
 
-diff --git a/arch/x86/lib/memcpy_64.S b/arch/x86/lib/memcpy_64.S
-index 54c971892db5..5709f3ec22a4 100644
---- a/arch/x86/lib/memcpy_64.S
-+++ b/arch/x86/lib/memcpy_64.S
-@@ -204,13 +204,14 @@ ENTRY(__memcpy_mcsafe)
- 	subl $8, %ecx
- 	negl %ecx
- 	subl %ecx, %edx
--.L_copy_leading_bytes:
-+.L_read_leading_bytes:
- 	movb (%rsi), %al
-+.L_write_leading_bytes:
- 	movb %al, (%rdi)
- 	incq %rsi
- 	incq %rdi
- 	decl %ecx
--	jnz .L_copy_leading_bytes
-+	jnz .L_read_leading_bytes
- 
- .L_8byte_aligned:
- 	movl %edx, %ecx
-@@ -218,13 +219,14 @@ ENTRY(__memcpy_mcsafe)
- 	shrl $3, %ecx
- 	jz .L_no_whole_words
- 
--.L_copy_words:
-+.L_read_words:
- 	movq (%rsi), %r8
-+.L_write_words:
- 	movq %r8, (%rdi)
- 	addq $8, %rsi
- 	addq $8, %rdi
- 	decl %ecx
--	jnz .L_copy_words
-+	jnz .L_read_words
- 
- 	/* Any trailing bytes? */
- .L_no_whole_words:
-@@ -233,13 +235,14 @@ ENTRY(__memcpy_mcsafe)
- 
- 	/* Copy trailing bytes */
- 	movl %edx, %ecx
--.L_copy_trailing_bytes:
-+.L_read_trailing_bytes:
- 	movb (%rsi), %al
-+.L_write_trailing_bytes:
- 	movb %al, (%rdi)
- 	incq %rsi
- 	incq %rdi
- 	decl %ecx
--	jnz .L_copy_trailing_bytes
-+	jnz .L_read_trailing_bytes
- 
- 	/* Copy successful. Return zero */
- .L_done_memcpy_trap:
-@@ -256,7 +259,7 @@ EXPORT_SYMBOL_GPL(__memcpy_mcsafe)
- 
- 	.previous
- 
--	_ASM_EXTABLE_FAULT(.L_copy_leading_bytes, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_copy_words, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_copy_trailing_bytes, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_read_leading_bytes, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_read_words, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_read_trailing_bytes, .L_memcpy_mcsafe_fail)
- #endif
-
+> 
+>  README.md    |    2 +-
+>  autogen.sh   |    2 +-
+>  configure.ac |    3 ++-
+>  3 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/README.md b/README.md
+> index 899dcbb8..e0bc5b7b 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -6,7 +6,7 @@ sub-system in the Linux kernel
+>  Build
+>  =====
+>  `./autogen.sh`  
+> -`./configure CFLAGS='-g -O0' --prefix=/usr --sysconfdir=/etc --
+> libdir=/usr/lib64`  
+> +`./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --
+> libdir=/usr/lib64`  
+>  `make`  
+>  `make check`  
+>  `sudo make install`  
+> diff --git a/autogen.sh b/autogen.sh
+> index a23cf53c..2a52688b 100755
+> --- a/autogen.sh
+> +++ b/autogen.sh
+> @@ -24,5 +24,5 @@ echo "-------------------------------------------------
+> ---------------"
+>  echo "Initialized build system. For a common configuration please run:"
+>  echo "----------------------------------------------------------------"
+>  echo
+> -echo "./configure CFLAGS='-g -O0' $args"
+> +echo "./configure CFLAGS='-g -O2' $args"
+>  echo
+> diff --git a/configure.ac b/configure.ac
+> index 6dbfcee8..a1e4e837 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -149,7 +149,8 @@ my_CFLAGS="\
+>  -Wtype-limits \
+>  -Wmaybe-uninitialized \
+>  -Wunused-result \
+> --D_FORTIFY_SOURCE=2
+> +-D_FORTIFY_SOURCE=2 \
+> +-O2
+>  "
+>  AC_SUBST([my_CFLAGS])
+>  
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
