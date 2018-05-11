@@ -1,16 +1,36 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CA692203B8BFC
- for <linux-nvdimm@lists.01.org>; Tue,  1 May 2018 11:00:34 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 3/4] libndctl,
- inject: add 'v2' APIs for inject and uninject
-Date: Tue,  1 May 2018 12:00:22 -0600
-Message-Id: <20180501180023.30193-4-vishal.l.verma@intel.com>
-In-Reply-To: <20180501180023.30193-1-vishal.l.verma@intel.com>
-References: <20180501180023.30193-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A863C210E0F81
+ for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 15:55:34 -0700 (PDT)
+References: <20180423233046.21476-5-logang@deltatee.com>
+ <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
+ <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508205005.GC15608@redhat.com>
+ <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
+ <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
+ <4e0d0b96-ab02-2662-adf3-fa956efd294c@deltatee.com>
+ <2fc61d29-9eb4-d168-a3e5-955c36e5d821@amd.com>
+ <94C8FE12-7FC3-48BD-9DCA-E6A427E71810@raithlin.com>
+ <f0101988-cf82-7ffb-2aca-d3b8d2f4b504@deltatee.com>
+ <868B49CE-4F0E-4A48-BE78-12149F85F1A4@raithlin.com>
+ <8113cba8-62b9-1801-7a77-f82be223b183@deltatee.com>
+ <cf2b92c9-7c5b-f19c-b5b1-2f2d435296d1@amd.com>
+ <53fa38ce-40dd-6bc1-9b83-c6ccf228b755@deltatee.com>
+ <A50EA568-81E7-4AD7-8C1B-1029FEA92F49@raithlin.com>
+ <YTXPR0101MB2045DC0248A9B125CA276969AA9F0@YTXPR0101MB2045.CANPRD01.PROD.OUTLOOK.COM>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <fe1e1d66-9764-768a-a2da-73845d319b4e@deltatee.com>
+Date: Fri, 11 May 2018 16:55:11 -0600
+MIME-Version: 1.0
+In-Reply-To: <YTXPR0101MB2045DC0248A9B125CA276969AA9F0@YTXPR0101MB2045.CANPRD01.PROD.OUTLOOK.COM>
+Content-Language: en-US
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,291 +38,34 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Stephen Bates <sbates@raithlin.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Jerome Glisse <jglisse@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for adding a saturate option, add two new APIs:
-
-	ndctl_namespace_inject_error2
-	ndctl_namespace_uninject_error2
-
-The old APIs included a flag, such as 'notify' as an explicit part of
-the API, thus limiting new flags/options. In hindsight, this was a
-mistake, and should have been a flags field. Introduce the new v2 APIs
-for injection and un-injection that fix this, and have a flags field.
-
-Convert the users of the old API, i.e. ndctl/inject-error.c, to the new
-API, and treat 'notify' as a flag everywhere.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/inject-error.c   | 33 ++++++++++++++++++---------------
- ndctl/lib/inject.c     | 34 +++++++++++++++++++++++++---------
- ndctl/lib/libndctl.sym |  2 ++
- ndctl/libndctl.h       |  9 +++++++++
- 4 files changed, 54 insertions(+), 24 deletions(-)
-
-diff --git a/ndctl/inject-error.c b/ndctl/inject-error.c
-index 32a58a5..e977136 100644
---- a/ndctl/inject-error.c
-+++ b/ndctl/inject-error.c
-@@ -54,8 +54,8 @@ static struct inject_ctx {
- 	u64 block;
- 	u64 count;
- 	unsigned int op_mask;
--	unsigned long flags;
--	bool notify;
-+	unsigned long json_flags;
-+	unsigned int inject_flags;
- } ictx;
- 
- #define BASE_OPTIONS() \
-@@ -92,9 +92,9 @@ static int inject_init(void)
- {
- 	if (!param.clear && !param.status) {
- 		ictx.op_mask |= 1 << OP_INJECT;
--		ictx.notify = true;
-+		ictx.inject_flags |= (1 << NDCTL_NS_INJECT_NOTIFY);
- 		if (param.no_notify)
--			ictx.notify = false;
-+			ictx.inject_flags &= ~(1 << NDCTL_NS_INJECT_NOTIFY);
- 	}
- 	if (param.clear) {
- 		if (param.status) {
-@@ -144,7 +144,7 @@ static int inject_init(void)
- 	}
- 
- 	if (param.human)
--		ictx.flags |= UTIL_JSON_HUMAN;
-+		ictx.json_flags |= UTIL_JSON_HUMAN;
- 
- 	return 0;
- }
-@@ -152,14 +152,15 @@ static int inject_init(void)
- static int ns_errors_to_json(struct ndctl_namespace *ndns,
- 		unsigned int start_count)
- {
--	unsigned long flags = ictx.flags | UTIL_JSON_MEDIA_ERRORS;
-+	unsigned long json_flags = ictx.json_flags | UTIL_JSON_MEDIA_ERRORS;
- 	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
- 	struct json_object *jndns;
- 	unsigned int count;
- 	int rc, tmo = 30;
- 
- 	/* only wait for scrubs for the inject and notify case */
--	if ((ictx.op_mask & (1 << OP_INJECT)) && ictx.notify) {
-+	if ((ictx.op_mask & (1 << OP_INJECT)) &&
-+			(ictx.inject_flags & (1 << NDCTL_NS_INJECT_NOTIFY))) {
- 		do {
- 			/* wait for a scrub to start */
- 			count = ndctl_bus_get_scrub_count(bus);
-@@ -177,7 +178,7 @@ static int ns_errors_to_json(struct ndctl_namespace *ndns,
- 		}
- 	}
- 
--	jndns = util_namespace_to_json(ndns, flags);
-+	jndns = util_namespace_to_json(ndns, json_flags);
- 	if (jndns)
- 		printf("%s\n", json_object_to_json_string_ext(jndns,
- 				JSON_C_TO_STRING_PRETTY));
-@@ -185,7 +186,7 @@ static int ns_errors_to_json(struct ndctl_namespace *ndns,
- }
- 
- static int inject_error(struct ndctl_namespace *ndns, u64 offset, u64 length,
--		bool notify)
-+		unsigned int flags)
- {
- 	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
- 	unsigned int scrub_count;
-@@ -197,7 +198,7 @@ static int inject_error(struct ndctl_namespace *ndns, u64 offset, u64 length,
- 		return -ENXIO;
- 	}
- 
--	rc = ndctl_namespace_inject_error(ndns, offset, length, notify);
-+	rc = ndctl_namespace_inject_error2(ndns, offset, length, flags);
- 	if (rc) {
- 		fprintf(stderr, "Unable to inject error: %s (%d)\n",
- 			strerror(abs(rc)), rc);
-@@ -207,11 +208,12 @@ static int inject_error(struct ndctl_namespace *ndns, u64 offset, u64 length,
- 	return ns_errors_to_json(ndns, scrub_count);
- }
- 
--static int uninject_error(struct ndctl_namespace *ndns, u64 offset, u64 length)
-+static int uninject_error(struct ndctl_namespace *ndns, u64 offset, u64 length,
-+		unsigned int flags)
- {
- 	int rc;
- 
--	rc = ndctl_namespace_uninject_error(ndns, offset, length);
-+	rc = ndctl_namespace_uninject_error2(ndns, offset, length, flags);
- 	if (rc) {
- 		fprintf(stderr, "Unable to uninject error: %s (%d)\n",
- 			strerror(abs(rc)), rc);
-@@ -254,7 +256,7 @@ static int injection_status(struct ndctl_namespace *ndns)
- 
- 		block = ndctl_bb_get_block(bb);
- 		count = ndctl_bb_get_count(bb);
--		jbb = util_badblock_rec_to_json(block, count, ictx.flags);
-+		jbb = util_badblock_rec_to_json(block, count, ictx.json_flags);
- 		if (!jbb)
- 			break;
- 		json_object_array_add(jbbs, jbb);
-@@ -280,13 +282,14 @@ static int err_inject_ns(struct ndctl_namespace *ndns)
- 	while (op_mask) {
- 		if (op_mask & (1 << OP_INJECT)) {
- 			rc = inject_error(ndns, ictx.block, ictx.count,
--				ictx.notify);
-+				ictx.inject_flags);
- 			if (rc)
- 				return rc;
- 			op_mask &= ~(1 << OP_INJECT);
- 		}
- 		if (op_mask & (1 << OP_CLEAR)) {
--			rc = uninject_error(ndns, ictx.block, ictx.count);
-+			rc = uninject_error(ndns, ictx.block, ictx.count,
-+				ictx.inject_flags);
- 			if (rc)
- 				return rc;
- 			op_mask &= ~(1 << OP_CLEAR);
-diff --git a/ndctl/lib/inject.c b/ndctl/lib/inject.c
-index 2865a7d..5cffe53 100644
---- a/ndctl/lib/inject.c
-+++ b/ndctl/lib/inject.c
-@@ -117,7 +117,7 @@ static int ndctl_namespace_get_clear_unit(struct ndctl_namespace *ndns)
- }
- 
- static int ndctl_namespace_inject_one_error(struct ndctl_namespace *ndns,
--		unsigned long long block, bool notify)
-+		unsigned long long block, unsigned int flags)
- {
- 	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-@@ -147,7 +147,7 @@ static int ndctl_namespace_inject_one_error(struct ndctl_namespace *ndns,
- 	err_inj = (struct nd_cmd_ars_err_inj *)&pkg->nd_payload[0];
- 	err_inj->err_inj_spa_range_base = offset;
- 	err_inj->err_inj_spa_range_length = length;
--	if (notify)
-+	if (flags & (1 << NDCTL_NS_INJECT_NOTIFY))
- 		err_inj->err_inj_options |=
- 			(1 << ND_ARS_ERR_INJ_OPT_NOTIFY);
- 
-@@ -162,8 +162,9 @@ static int ndctl_namespace_inject_one_error(struct ndctl_namespace *ndns,
- 	return rc;
- }
- 
--NDCTL_EXPORT int ndctl_namespace_inject_error(struct ndctl_namespace *ndns,
--		unsigned long long block, unsigned long long count, bool notify)
-+NDCTL_EXPORT int ndctl_namespace_inject_error2(struct ndctl_namespace *ndns,
-+		unsigned long long block, unsigned long long count,
-+		unsigned int flags)
- {
- 	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-@@ -176,7 +177,7 @@ NDCTL_EXPORT int ndctl_namespace_inject_error(struct ndctl_namespace *ndns,
- 		return -EOPNOTSUPP;
- 
- 	for (i = 0; i < count; i++) {
--		rc = ndctl_namespace_inject_one_error(ndns, block + i, notify);
-+		rc = ndctl_namespace_inject_one_error(ndns, block + i, flags);
- 		if (rc) {
- 			err(ctx, "Injection failed at block %llx\n",
- 				block + i);
-@@ -186,8 +187,15 @@ NDCTL_EXPORT int ndctl_namespace_inject_error(struct ndctl_namespace *ndns,
- 	return rc;
- }
- 
-+NDCTL_EXPORT int ndctl_namespace_inject_error(struct ndctl_namespace *ndns,
-+		unsigned long long block, unsigned long long count, bool notify)
-+{
-+	return ndctl_namespace_inject_error2(ndns, block, count,
-+		notify ? (1 << NDCTL_NS_INJECT_NOTIFY) : 0);
-+}
-+
- static int ndctl_namespace_uninject_one_error(struct ndctl_namespace *ndns,
--		unsigned long long block)
-+		unsigned long long block, unsigned int flags)
- {
- 	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-@@ -230,8 +238,9 @@ static int ndctl_namespace_uninject_one_error(struct ndctl_namespace *ndns,
- 	return rc;
- }
- 
--NDCTL_EXPORT int ndctl_namespace_uninject_error(struct ndctl_namespace *ndns,
--		unsigned long long block, unsigned long long count)
-+NDCTL_EXPORT int ndctl_namespace_uninject_error2(struct ndctl_namespace *ndns,
-+		unsigned long long block, unsigned long long count,
-+		unsigned int flags)
- {
- 	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-@@ -244,7 +253,8 @@ NDCTL_EXPORT int ndctl_namespace_uninject_error(struct ndctl_namespace *ndns,
- 		return -EOPNOTSUPP;
- 
- 	for (i = 0; i < count; i++) {
--		rc = ndctl_namespace_uninject_one_error(ndns, block + i);
-+		rc = ndctl_namespace_uninject_one_error(ndns, block + i,
-+			flags);
- 		if (rc) {
- 			err(ctx, "Un-injection failed at block %llx\n",
- 				block + i);
-@@ -254,6 +264,12 @@ NDCTL_EXPORT int ndctl_namespace_uninject_error(struct ndctl_namespace *ndns,
- 	return rc;
- }
- 
-+NDCTL_EXPORT int ndctl_namespace_uninject_error(struct ndctl_namespace *ndns,
-+		unsigned long long block, unsigned long long count)
-+{
-+	return ndctl_namespace_inject_error2(ndns, block, count, 0);
-+}
-+
- static int bb_add_record(struct list_head *h, u64 block, u64 count)
- {
- 	struct ndctl_bb *bb, *bb_iter, *bb_next, *bb_prev;
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 92822be..c1228e5 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -363,4 +363,6 @@ global:
- LIBNDCTL_16 {
- global:
- 	ndctl_cmd_ars_cap_get_clear_unit;
-+	ndctl_namespace_inject_error2;
-+	ndctl_namespace_uninject_error2;
- } LIBNDCTL_15;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 74fe0f4..a001271 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -479,9 +479,18 @@ int ndctl_namespace_get_numa_node(struct ndctl_namespace *ndns);
- int ndctl_namespace_inject_error(struct ndctl_namespace *ndns,
- 		unsigned long long block, unsigned long long count,
- 		bool notify);
-+int ndctl_namespace_inject_error2(struct ndctl_namespace *ndns,
-+		unsigned long long block, unsigned long long count,
-+		unsigned int flags);
- int ndctl_namespace_uninject_error(struct ndctl_namespace *ndns,
- 		unsigned long long block, unsigned long long count);
-+int ndctl_namespace_uninject_error2(struct ndctl_namespace *ndns,
-+		unsigned long long block, unsigned long long count,
-+		unsigned int flags);
- int ndctl_namespace_injection_status(struct ndctl_namespace *ndns);
-+enum ndctl_namespace_inject_flags {
-+	NDCTL_NS_INJECT_NOTIFY = 0,
-+};
- 
- struct ndctl_bb;
- unsigned long long ndctl_bb_get_block(struct ndctl_bb *bb);
--- 
-2.14.3
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gNS8xMS8yMDE4IDQ6MjQgUE0sIFN0ZXBoZW4gIEJhdGVzIHdyb3RlOgo+IEFsbAo+IAo+PiAg
+wqBBbGV4IChvciBhbnlvbmUgZWxzZSkgY2FuIHlvdSBwb2ludCB0byB3aGVyZSBJT1ZBIGFkZHJl
+c3NlcyBhcmUgZ2VuZXJhdGVkPwo+IAo+IEEgY2FzZSBvZiBSVEZNIHBlcmhhcHMgKHRob3VnaCBh
+IHBvaW50ZXIgdG8gdGhlIGNvZGUgd291bGQgc3RpbGwgYmUgYXBwcmVjaWF0ZWQpLgo+IAo+IGh0
+dHBzOi8vd3d3Lmtlcm5lbC5vcmcvZG9jL0RvY3VtZW50YXRpb24vSW50ZWwtSU9NTVUudHh0Cj4g
+Cj4gU29tZSBleGNlcHRpb25zIHRvIElPVkEKPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IElu
+dGVycnVwdCByYW5nZXMgYXJlIG5vdCBhZGRyZXNzIHRyYW5zbGF0ZWQsICgweGZlZTAwMDAwIC0g
+MHhmZWVmZmZmZikuCj4gVGhlIHNhbWUgaXMgdHJ1ZSBmb3IgcGVlciB0byBwZWVyIHRyYW5zYWN0
+aW9ucy4gSGVuY2Ugd2UgcmVzZXJ2ZSB0aGUKPiBhZGRyZXNzIGZyb20gUENJIE1NSU8gcmFuZ2Vz
+IHNvIHRoZXkgYXJlIG5vdCBhbGxvY2F0ZWQgZm9yIElPVkEgYWRkcmVzc2VzLgoKSG1tLCBleGNl
+cHQgSSdtIG5vdCBzdXJlIGhvdyB0byBpbnRlcnByZXQgdGhhdC4gSXQgc291bmRzIGxpa2UgdGhl
+cmUgCmNhbid0IGJlIGFuIElPVkEgYWRkcmVzcyB0aGF0IG92ZXJsYXBzIHdpdGggdGhlIFBDSSBN
+TUlPIHJhbmdlIHdoaWNoIGlzIApnb29kIGFuZCB3aGF0IEknZCBleHBlY3QuCgpCdXQgZm9yIHBl
+ZXIgdG8gcGVlciB0aGV5IHNheSB0aGV5IGRvbid0IHRyYW5zbGF0ZSB0aGUgYWRkcmVzcyB3aGlj
+aCAKaW1wbGllcyB0byBtZSB0aGF0IHRoZSBpbnRlbnRpb24gaXMgZm9yIGEgcGVlciB0byBwZWVy
+IGFkZHJlc3MgdG8gbm90IGJlIAptYXBwZWQgaW4gdGhlIHNhbWUgd2F5IHVzaW5nIHRoZSBkbWFf
+bWFwIGludGVyZmFjZSAob2YgY291cnNlIHRob3VnaCBpZiAKeW91IHdlcmUgdXNpbmcgQVRTIHlv
+dSdkIHdhbnQgdGhpcyBmb3Igc3VyZSkuIFVubGVzcyB0aGUgZXhpc3RpbmcgCmRtYV9tYXAgY29t
+bWFuZCdzIG5vdGljZSBhIFBDSSBNTUlPIGFkZHJlc3MgYW5kIGhhbmRsZSB0aGVtIGRpZmZlcmVu
+dGx5LCAKYnV0IEkgZG9uJ3Qgc2VlIGhvdy4KCkxvZ2FuCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
+LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1udmRpbW0K
