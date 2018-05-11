@@ -1,9 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from NAM03-BY2-obe.outbound.protection.outlook.com
+ (mail-by2nam03on0054.outbound.protection.outlook.com [104.47.42.54])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A455C203B9905
- for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 08:48:54 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 51AF320348631
+ for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 01:53:08 -0700 (PDT)
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
 References: <20180423233046.21476-5-logang@deltatee.com>
  <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
  <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
@@ -23,15 +26,12 @@ References: <20180423233046.21476-5-logang@deltatee.com>
  <f0101988-cf82-7ffb-2aca-d3b8d2f4b504@deltatee.com>
  <868B49CE-4F0E-4A48-BE78-12149F85F1A4@raithlin.com>
  <8113cba8-62b9-1801-7a77-f82be223b183@deltatee.com>
- <cf2b92c9-7c5b-f19c-b5b1-2f2d435296d1@amd.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <53fa38ce-40dd-6bc1-9b83-c6ccf228b755@deltatee.com>
-Date: Fri, 11 May 2018 09:48:27 -0600
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <cf2b92c9-7c5b-f19c-b5b1-2f2d435296d1@amd.com>
+Date: Fri, 11 May 2018 10:52:49 +0200
 MIME-Version: 1.0
-In-Reply-To: <cf2b92c9-7c5b-f19c-b5b1-2f2d435296d1@amd.com>
+In-Reply-To: <8113cba8-62b9-1801-7a77-f82be223b183@deltatee.com>
 Content-Language: en-US
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -39,36 +39,82 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Stephen Bates <sbates@raithlin.com>, Jerome Glisse <jglisse@redhat.com>
+To: Logan Gunthorpe <logang@deltatee.com>, Stephen Bates <sbates@raithlin.com>, Jerome Glisse <jglisse@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Alex Williamson <alex.williamson@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gNS8xMS8yMDE4IDI6NTIgQU0sIENocmlzdGlhbiBLw7ZuaWcgd3JvdGU6Cj4gVGhpcyBvbmx5
-IHdvcmtzIHdoZW4gdGhlIElPVkEgYW5kIHRoZSBQQ0kgYnVzIGFkZHJlc3NlcyBuZXZlciBvdmVy
-bGFwLiAKPiBJJ20gbm90IHN1cmUgaG93IHRoZSBJT1ZBIGFsbG9jYXRpb24gd29ya3MgYnV0IEkg
-ZG9uJ3QgdGhpbmsgd2UgCj4gZ3VhcmFudGVlIHRoYXQgb24gTGludXguCgpJIGZpbmQgdGhpcyBo
-YXJkIHRvIGJlbGlldmUuIFRoZXJlJ3MgYWx3YXlzIHRoZSBwb3NzaWJpbGl0eSB0aGF0IHNvbWUg
-CnBhcnQgb2YgdGhlIHN5c3RlbSBkb2Vzbid0IHN1cHBvcnQgQUNTIHNvIGlmIHRoZSBQQ0kgYnVz
-IGFkZHJlc3NlcyBhbmQgCklPVkEgb3ZlcmxhcCB0aGVyZSdzIGEgZ29vZCBjaGFuY2UgdGhhdCBQ
-MlAgYW5kIEFUUyB3b24ndCB3b3JrIGF0IGFsbCBvbiAKc29tZSBoYXJkd2FyZS4KCgo+IElmIHdl
-IHJlYWxseSB3YW50IHRvIGVuYWJsZSBQMlAgd2l0aG91dCBBVFMgYW5kIElPTU1VIGVuYWJsZWQg
-SSB0aGluayB3ZSAKPiBzaG91bGQgcHJvYmFibHkgYXBwcm9hY2ggaXQgbGlrZSB0aGlzOgo+IAo+
-IGEpIE1ha2UgZG91YmxlIHN1cmUgdGhhdCBJT1ZBIGluIGFuIElPTU1VIGdyb3VwIG5ldmVyIG92
-ZXJsYXAgd2l0aCBQQ0kgCj4gQkFScyBpbiB0aGF0IGdyb3VwLgo+IAo+IGIpIEFkZCBjb25maWd1
-cmF0aW9uIG9wdGlvbnMgdG8gcHV0IGEgd2hvbGUgUENJIGJyYW5jaCBvZiBkZXZpY2VzIChlLmcu
-IAo+IGEgYnJpZGdlKSBpbnRvIGEgc2luZ2xlIElPTU1VIGdyb3VwLgo+IAo+IGMpIEFkZCBhIGNv
-bmZpZ3VyYXRpb24gb3B0aW9uIHRvIGRpc2FibGUgdGhlIEFDUyBiaXQgb24gYnJpZGdlcyBpbiB0
-aGUgCj4gc2FtZSBJT01NVSBncm91cC4KCkkgdGhpbmsgYSBjb25maWd1cmF0aW9uIG9wdGlvbiB0
-byBtYW5hZ2UgSU9NTVUgZ3JvdXBzIGFzIHlvdSBzdWdnZXN0IAp3b3VsZCBiZSBhIHZlcnkgY29t
-cGxleCBpbnRlcmZhY2UgYW5kIGRpZmZpY3VsdCB0byBpbXBsZW1lbnQuIEkgcHJlZmVyIAp0aGUg
-b3B0aW9uIHRvIGRpc2FibGUgdGhlIEFDUyBiaXQgb24gYm9vdCBhbmQgbGV0IHRoZSBleGlzdGlu
-ZyBjb2RlIHB1dCAKdGhlIGRldmljZXMgaW50byB0aGVpciBvd24gSU9NTVUgZ3JvdXAgKGFzIGl0
-IHNob3VsZCBhbHJlYWR5IGRvIHRvIApzdXBwb3J0IGhhcmR3YXJlIHRoYXQgZG9lc24ndCBoYXZl
-IEFDUyBzdXBwb3J0KS4KCkxvZ2FuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+Am 10.05.2018 um 19:15 schrieb Logan Gunthorpe:
+>
+> On 10/05/18 11:11 AM, Stephen  Bates wrote:
+>>> Not to me. In the p2pdma code we specifically program DMA engines with
+>>> the PCI bus address.
+>> Ah yes of course. Brain fart on my part. We are not programming the P2PDMA initiator with an IOVA but with the PCI bus address...
+
+By disabling the ACS bits on the intermediate bridges you turn their 
+address routing from IOVA addresses (which are to be resolved by the 
+root complex) back to PCI bus addresses (which are resolved locally in 
+the bridge).
+
+This only works when the IOVA and the PCI bus addresses never overlap. 
+I'm not sure how the IOVA allocation works but I don't think we 
+guarantee that on Linux.
+
+>>
+>>> So regardless of whether we are using the IOMMU or
+>>> not, the packets will be forwarded directly to the peer. If the ACS
+>>>   Redir bits are on they will be forced back to the RC by the switch and
+>>>   the transaction will fail. If we clear the ACS bits, the TLPs will go
+>>>   where we want and everything will work (but we lose the isolation of ACS).
+>> Agreed.
+
+If we really want to enable P2P without ATS and IOMMU enabled I think we 
+should probably approach it like this:
+
+a) Make double sure that IOVA in an IOMMU group never overlap with PCI 
+BARs in that group.
+
+b) Add configuration options to put a whole PCI branch of devices (e.g. 
+a bridge) into a single IOMMU group.
+
+c) Add a configuration option to disable the ACS bit on bridges in the 
+same IOMMU group.
+
+
+I agree that we have a rather special case here, but I still find that 
+approach rather brave and would vote for disabling P2P without ATS when 
+IOMMU is enabled.
+
+
+BTW: I can't say anything about other implementations, but at least for 
+the AMD-IOMMU the transaction won't fail when it is send to the root 
+complex.
+
+Instead the root complex would send it to the correct device. I already 
+tested that on an AMD Ryzen with IOMMU enabled and P2P between two GPUs 
+(but could be that this only works because of ATS).
+
+Regards,
+Christian.
+
+>>>     For EPs that support ATS, we should (but don't necessarily have to)
+>>>     program them with the IOVA address so they can go through the
+>>>     translation process which will allow P2P without disabling the ACS Redir
+>>>     bits -- provided the ACS direct translation bit is set. (And btw, if it
+>>>     is, then we lose the benefit of ACS protecting against malicious EPs).
+>>>     But, per above, the ATS transaction should involve only the IOVA address
+>>>     so the ACS bits not being set should not break ATS.
+>>      
+>> Well we would still have to clear some ACS bits but now we can clear only for translated addresses.
+> We don't have to clear the ACS Redir bits as we did in the first case.
+> We just have to make sure the ACS Direct Translated bit is set.
+>
+> Logan
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
