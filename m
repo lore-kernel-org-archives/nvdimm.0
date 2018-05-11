@@ -1,7 +1,7 @@
-From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: DELIVERY FAILED
-Date: Thu, 10 May 2018 12:32:57 +0800
-Message-ID: <20180510043242.5975320837990@ml01.01.org>
+From: "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: MESSAGE COULD NOT BE DELIVERED
+Date: Fri, 11 May 2018 14:55:29 +0800
+Message-ID: <20180511065517.74FB12096DCE9@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -29,8 +29,8 @@ Most likely there is a network problem that prevented delivery, but
 it is also possible that the computer is turned off, or does not
 have a mail system running right now.
 
-Your message was not delivered within 2 days:
-Host 137.208.94.36 is not responding.
+Your message was not delivered within 6 days:
+Host 50.21.201.171 is not responding.
 
 The following recipients did not receive this message:
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
