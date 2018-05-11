@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3710D203BBB99
- for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:50:01 -0700 (PDT)
-Subject: [PATCH 06/11] filesystem-dax: perform
- __dax_invalidate_mapping_entry() under the page lock
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 May 2018 07:40:03 -0700
-Message-ID: <152700000355.24093.14726378287214432782.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C32C2209859A3
+ for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 13:24:59 -0700 (PDT)
+Subject: [PATCH v6 4/4] ndctl: convert dimm actions to use util_filter_walk()
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 11 May 2018 13:24:58 -0700
+Message-ID: <152607029887.4523.17951693131401507833.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152607009656.4523.5355287262776399070.stgit@djiang5-desk3.ch.intel.com>
+References: <152607009656.4523.5355287262776399070.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,154 +22,193 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hold the page lock while invalidating mapping entries to prevent races
-between rmap using the address_space and the filesystem freeing the
-address_space.
+util_filter_walk() does the looping through of busses and dimms. Removing
+duplicate code for dimm actions and provide filter functions so we can
+utilize util_filter_walk() and share common code.
 
-This is more complicated than the simple description implies because
-dev_pagemap pages that fsdax uses do not have any concept of page size.
-Size information is stored in the radix and can only be safely read
-while holding the xa_lock. Since lock_page() can not be taken while
-holding xa_lock, drop xa_lock and speculatively lock all the associated
-pages. Once all the pages are locked re-take the xa_lock and revalidate
-that the radix entry did not change.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/dax.c |   91 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 85 insertions(+), 6 deletions(-)
+ ndctl/dimm.c  |   78 +++++++++++++++++++++++++++++++++------------------------
+ util/filter.h |    9 +++++++
+ 2 files changed, 54 insertions(+), 33 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 2e4682cd7c69..e6d44d336283 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -319,6 +319,13 @@ static unsigned long dax_radix_end_pfn(void *entry)
- 	for (pfn = dax_radix_pfn(entry); \
- 			pfn < dax_radix_end_pfn(entry); pfn++)
- 
-+#define for_each_mapped_pfn_reverse(entry, pfn) \
-+	for (pfn = dax_radix_end_pfn(entry) - 1; \
-+			dax_entry_size(entry) \
-+			&& pfn >= dax_radix_pfn(entry); \
-+			pfn--)
-+
-+
- static void dax_associate_entry(void *entry, struct address_space *mapping,
- 		struct vm_area_struct *vma, unsigned long address)
- {
-@@ -497,6 +504,80 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
- 	return entry;
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 1c168997..0b43dc1a 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -822,7 +822,6 @@ static int action_update(struct ndctl_dimm *dimm, struct action_context *actx)
  }
  
-+static bool dax_lock_pages(struct address_space *mapping, pgoff_t index,
-+		void **entry)
-+{
-+	struct radix_tree_root *pages = &mapping->i_pages;
-+	unsigned long pfn;
-+	void *entry2;
-+
-+	xa_lock_irq(pages);
-+	*entry = get_unlocked_mapping_entry(mapping, index, NULL);
-+	if (!*entry || WARN_ON_ONCE(!radix_tree_exceptional_entry(*entry))) {
-+		put_unlocked_mapping_entry(mapping, index, entry);
-+		xa_unlock_irq(pages);
-+		return false;
-+	}
-+
-+	/*
-+	 * In the limited case there are no races to prevent with rmap,
-+	 * because rmap can not perform pfn_to_page().
-+	 */
-+	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
-+		return true;
-+
-+	/*
-+	 * Now, drop the xa_lock, grab all the page locks then validate
-+	 * that the entry has not changed and return with the xa_lock
-+	 * held.
-+	 */
-+	xa_unlock_irq(pages);
-+
-+	/*
-+	 * Retry until the entry stabilizes or someone else invalidates
-+	 * the entry;
-+	 */
-+	for (;;) {
-+		for_each_mapped_pfn(*entry, pfn)
-+			lock_page(pfn_to_page(pfn));
-+
-+		xa_lock_irq(pages);
-+		entry2 = get_unlocked_mapping_entry(mapping, index, NULL);
-+		if (!entry2 || WARN_ON_ONCE(!radix_tree_exceptional_entry(entry2))
-+				|| entry2 != *entry) {
-+			put_unlocked_mapping_entry(mapping, index, entry2);
-+			xa_unlock_irq(pages);
-+
-+			for_each_mapped_pfn_reverse(*entry, pfn)
-+				unlock_page(pfn_to_page(pfn));
-+
-+			if (!entry2 || !radix_tree_exceptional_entry(entry2))
-+				return false;
-+			*entry = entry2;
-+			continue;
-+		}
-+		break;
-+	}
-+
-+	return true;
-+}
-+
-+static void dax_unlock_pages(struct address_space *mapping, pgoff_t index,
-+		void *entry)
-+{
-+	struct radix_tree_root *pages = &mapping->i_pages;
-+	unsigned long pfn;
-+
-+	put_unlocked_mapping_entry(mapping, index, entry);
-+	xa_unlock_irq(pages);
-+
-+	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
-+		return;
-+
-+	for_each_mapped_pfn_reverse(entry, pfn)
-+		unlock_page(pfn_to_page(pfn));
-+}
-+
- static int __dax_invalidate_mapping_entry(struct address_space *mapping,
- 					  pgoff_t index, bool trunc)
- {
-@@ -504,10 +585,8 @@ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
- 	void *entry;
- 	struct radix_tree_root *pages = &mapping->i_pages;
+ static struct parameters {
+-	const char *bus;
+ 	const char *outfile;
+ 	const char *infile;
+ 	const char *labelversion;
+@@ -833,6 +832,8 @@ static struct parameters {
+ 	.labelversion = "1.1",
+ };
  
--	xa_lock_irq(pages);
--	entry = get_unlocked_mapping_entry(mapping, index, NULL);
--	if (!entry || WARN_ON_ONCE(!radix_tree_exceptional_entry(entry)))
--		goto out;
-+	if (!dax_lock_pages(mapping, index, &entry))
-+		return ret;
- 	if (!trunc &&
- 	    (radix_tree_tag_get(pages, index, PAGECACHE_TAG_DIRTY) ||
- 	     radix_tree_tag_get(pages, index, PAGECACHE_TAG_TOWRITE)))
-@@ -517,8 +596,8 @@ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
- 	mapping->nrexceptional--;
- 	ret = 1;
- out:
--	put_unlocked_mapping_entry(mapping, index, entry);
--	xa_unlock_irq(pages);
-+	dax_unlock_pages(mapping, index, entry);
++struct util_filter_params uf_param;
 +
- 	return ret;
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
+ {
+@@ -899,7 +900,7 @@ static int action_check(struct ndctl_dimm *dimm, struct action_context *actx)
+ 
+ 
+ #define BASE_OPTIONS() \
+-OPT_STRING('b', "bus", &param.bus, "bus-id", \
++OPT_STRING('b', "bus", &uf_param.bus, "bus-id", \
+ 	"<nmem> must be on a bus with an id/provider of <bus-id>"), \
+ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
+ 
+@@ -951,18 +952,43 @@ static const struct option init_options[] = {
+ 	OPT_END(),
+ };
+ 
++static void filter_dimm(struct ndctl_dimm *dimm, struct util_filter_ctx *ctx)
++{
++	struct dmaction_filter_arg *dfa = ctx->dmaction;
++	int rc;
++
++	if (dfa->action == action_write) {
++		dfa->dimm = dimm;
++		rc = 0;
++	} else
++		rc = dfa->action(dimm, dfa->actx);
++
++	if (rc == 0)
++		dfa->count++;
++	else if (rc && !dfa->rc)
++		dfa->rc = rc;
++}
++
++/* dummy filter function to skip the loop */
++static bool filter_region(struct ndctl_region *region,
++		struct util_filter_ctx *ctx)
++{
++	return false;
++}
++
+ static int dimm_action(int argc, const char **argv, void *ctx,
+ 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
+ 		const struct option *options, const char *usage)
+ {
+ 	struct action_context actx = { 0 };
+-	int i, rc = 0, count = 0, err = 0;
+-	struct ndctl_dimm *single = NULL;
++	int i, rc = 0, err = 0;
+ 	const char * const u[] = {
+ 		usage,
+ 		NULL
+ 	};
+ 	unsigned long id;
++	struct util_filter_ctx fctx = { 0 };
++	struct dmaction_filter_arg dfa = { 0 };
+ 
+         argc = parse_options(argc, argv, options, u, 0);
+ 
+@@ -1039,45 +1065,31 @@ static int dimm_action(int argc, const char **argv, void *ctx,
+ 		goto out;
+ 	}
+ 
++	fctx.filter_bus = filter_bus_passthrough;
++	fctx.filter_dimm = filter_dimm;
++	fctx.filter_region = filter_region;
++	fctx.dmaction = &dfa;
++	dfa.action = action;
++	dfa.actx = &actx;
++
+ 	rc = 0;
+-	err = 0;
+-	count = 0;
+ 	for (i = 0; i < argc; i++) {
+-		struct ndctl_dimm *dimm;
+-		struct ndctl_bus *bus;
+-
+ 		if (sscanf(argv[i], "nmem%lu", &id) != 1
+ 				&& strcmp(argv[i], "all") != 0)
+ 			continue;
+ 
+-		ndctl_bus_foreach(ctx, bus) {
+-			if (!util_bus_filter(bus, param.bus))
+-				continue;
+-			ndctl_dimm_foreach(bus, dimm) {
+-				if (!util_dimm_filter(dimm, argv[i]))
+-					continue;
+-				if (action == action_write) {
+-					single = dimm;
+-					rc = 0;
+-				} else
+-					rc = action(dimm, &actx);
+-
+-				if (rc == 0)
+-					count++;
+-				else if (rc && !err)
+-					err = rc;
+-			}
+-		}
++		uf_param.dimm = argv[i];
++		rc = util_filter_walk(ctx, &fctx, &uf_param);
+ 	}
+-	rc = err;
++	rc = dfa.rc;
+ 
+ 	if (action == action_write) {
+-		if (count > 1) {
++		if (dfa.count > 1) {
+ 			error("write-labels only supports writing a single dimm\n");
+ 			usage_with_options(u, options);
+ 			return -EINVAL;
+-		} else if (single)
+-			rc = action(single, &actx);
++		} else if (dfa.dimm)
++			rc = action(dfa.dimm, &actx);
+ 	}
+ 
+ 	if (actx.jdimms)
+@@ -1095,8 +1107,8 @@ static int dimm_action(int argc, const char **argv, void *ctx,
+ 	 * count if some actions succeeded, 0 if none were attempted,
+ 	 * negative error code otherwise.
+ 	 */
+-	if (count > 0)
+-		return count;
++	if (dfa.count > 0)
++		return dfa.count;
+ 	return rc;
  }
+ 
+diff --git a/util/filter.h b/util/filter.h
+index 9aede013..e0f83cbf 100644
+--- a/util/filter.h
++++ b/util/filter.h
+@@ -62,6 +62,14 @@ struct rgaction_filter_arg {
+ 	int rc;
+ };
+ 
++struct dmaction_filter_arg {
++	struct action_context *actx;
++	struct ndctl_dimm *dimm;
++	int (*action)(struct ndctl_dimm *dimm, struct action_context *actx);
++	int count;
++	int rc;
++};
++
  /*
+  * struct util_filter_ctx - control and callbacks for util_filter_walk()
+  * ->filter_bus() and ->filter_region() return bool because the
+@@ -81,6 +89,7 @@ struct util_filter_ctx {
+ 		struct list_filter_arg *list;
+ 		struct nsaction_filter_arg *nsaction;
+ 		struct rgaction_filter_arg *rgaction;
++		struct dmaction_filter_arg *dmaction;
+ 	};
+ };
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
