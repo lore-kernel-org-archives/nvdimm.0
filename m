@@ -1,12 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from [117.4.240.239] (unknown [117.4.240.239])
- by ml01.01.org (Postfix) with ESMTP id 4211F207E36D4
- for <linux-nvdimm@lists.01.org>; Thu, 17 May 2018 14:20:17 -0700 (PDT)
-Message-ID: <116210871143530437433844@lists.01.org>
-From: <linux-nvdimm@lists.01.org>
-Subject: I want to find a prince who is given to me by fate.
-Date: 18 May 2018 09:54:12 +0600
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id F040D210E0FB6
+ for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 18:43:27 -0700 (PDT)
+Received: by mail-ot0-x242.google.com with SMTP id h8-v6so8290002otb.2
+ for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 18:43:27 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20180512013450.GA4189@linux.intel.com>
+References: <152607009656.4523.5355287262776399070.stgit@djiang5-desk3.ch.intel.com>
+ <20180512013450.GA4189@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 11 May 2018 18:43:25 -0700
+Message-ID: <CAPcyv4inRfrVN8nAOUAToPUBwJZopfn9a2m-L-EBajvbuq6CPQ@mail.gmail.com>
+Subject: Re: [PATCH v6 0/4] ndctl: convert actions to use util_filter_walk
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,29 +26,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dear,
+On Fri, May 11, 2018 at 6:34 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Fri, May 11, 2018 at 01:24:36PM -0700, Dave Jiang wrote:
+>> util_filter_walk() does the looping through bus/dimm/region/namespace
+>> that a lot of the operations in ndctl uses. Converting them to common
+>> code and reduce maintenance on individual versions of the same code.
+>> In this series we are convering namespace, region, and dimm actions.
+>
+> <>
+>
+>>  ndctl/dimm.c      |   78 +++++++++++++---------
+>>  ndctl/namespace.c |  189 +++++++++++++++++++++++++++++------------------------
+>>  ndctl/region.c    |   54 +++++++++------
+>>  util/filter.c     |   11 +++
+>>  util/filter.h     |   25 +++++++
+>>  5 files changed, 212 insertions(+), 145 deletions(-)
+>
+> Just from the cover letter I'm sort of confused - the paragraph above says we
+> are converging on common code and removing individual versions of the same
+> code...but the patch series grows this code by 70 lines?  I would have
+> expected this to be a net code reduction?
 
-It's a beautiful day and i'am in a hurry to get in touch with you asap!
+It's a fair point about the changelog relative to the diffstat. I
+assume we are also adding the common object looping pattern as part of
+this conversion, so we're gaining functionality?
 
-My name is Sevgi, and I'm from Turkey. 
-I really do believe in a destiny with a bright future for myself and that you could become a part of it become my true soulmate. 
-I do want to be next to a loving man. 
+I.e. does:
 
-I love traveling, movies, pop music, seafood, and doing crazy things, but i feel like loneliness is swallowing me intensely lonely sometimes. 
-I wish to find for my second half, who a man that will give me a real hope and true love! 
+    ndctl disable-region region0 region1
 
-Hope you're interested in becoming a part of my adventure and will reply back soon.
-In the next letter, I'll send you my photo.
-
-Please write me back using my personal email: sevgilonely88@aol.com
-
---------------------------
-Your true soul, 
-Sevgi.
-
+...work now? Previously it was only a singleton. I thought that was
+the motivation?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
