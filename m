@@ -1,11 +1,11 @@
-From: "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: MESSAGE COULD NOT BE DELIVERED
-Date: Fri, 11 May 2018 14:55:29 +0800
-Message-ID: <20180511065517.74FB12096DCE9@ml01.01.org>
+From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Anastaciya22
+Date: 13 May 2018 04:24:44 +0200
+Message-ID: <001501d3ea64$05f20587$6a2660a0$@lists.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============6586678722345418134=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en-us
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,22 +18,25 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
+This is a multi-part message in MIME format.
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+--===============6586678722345418134==
+Content-Language: en-us
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: quoted-printable
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
 
-Your message was not delivered within 6 days:
-Host 50.21.201.171 is not responding.
+I'm dripping between my legs
+--===============6586678722345418134==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+--===============6586678722345418134==--
