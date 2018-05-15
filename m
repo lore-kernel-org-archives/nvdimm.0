@@ -1,11 +1,11 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Anastaciya22
-Date: 13 May 2018 04:24:44 +0200
-Message-ID: <001501d3ea64$05f20587$6a2660a0$@lists.01.org>
+From: "Mail Administrator" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery failed
+Date: Tue, 15 May 2018 11:09:06 +0800
+Message-ID: <20180515030846.E4973203BEA4F@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6586678722345418134=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-us
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,25 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+The original message was received at Tue, 15 May 2018 11:09:06 +0800
+from lists.01.org [37.164.180.254]
 
---===============6586678722345418134==
-Content-Language: en-us
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
-
-
-I'm dripping between my legs
---===============6586678722345418134==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6586678722345418134==--
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
