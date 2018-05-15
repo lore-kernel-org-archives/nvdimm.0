@@ -2,20 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from SMTP.EU.CITRIX.COM (smtp.ctxuk.citrix.com [185.25.65.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 82BB52007E800
- for <linux-nvdimm@lists.01.org>; Tue, 15 May 2018 03:12:36 -0700 (PDT)
-From: George Dunlap <George.Dunlap@citrix.com>
+ by ml01.01.org (Postfix) with ESMTPS id 68A1C2034862F
+ for <linux-nvdimm@lists.01.org>; Tue, 15 May 2018 03:06:07 -0700 (PDT)
+Date: Tue, 15 May 2018 11:05:57 +0100
+From: Roger Pau =?utf-8?B?TW9ubsOp?= <roger.pau@citrix.com>
 Subject: Re: Draft NVDIMM proposal
-Date: Tue, 15 May 2018 10:12:31 +0000
-Message-ID: <83A27BAE-E3A3-45FD-B595-714BE1F839E8@citrix.com>
+Message-ID: <20180515100557.ea2airy4isbn2yzq@MacBook-Pro-de-Roger.local>
 References: <dc4870bd-d227-e425-5ada-96d36e232a9a@citrix.com>
  <d1f6fded-7131-3215-9fc0-36f6acf2bf41@citrix.com>
  <CAPcyv4h2P8wYrrghYPz+DuD-34zhmHAOFBLSKeoJPtYa8q43ng@mail.gmail.com>
- <20180515100557.ea2airy4isbn2yzq@MacBook-Pro-de-Roger.local>
-In-Reply-To: <20180515100557.ea2airy4isbn2yzq@MacBook-Pro-de-Roger.local>
-Content-Language: en-US
-Content-ID: <68C0A3FD8CE012488EEAA9981AFE1C17@citrix.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4h2P8wYrrghYPz+DuD-34zhmHAOFBLSKeoJPtYa8q43ng@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,72 +21,111 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Roger Pau Monne <roger.pau@citrix.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Andrew Cooper <Andrew.Cooper3@citrix.com>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>, Jan Beulich <JBeulich@suse.com>, Yi Zhang <yi.z.zhang@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Andrew Cooper <Andrew.Cooper3@citrix.com>, George Dunlap <george.dunlap@citrix.com>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>, Jan Beulich <JBeulich@suse.com>, Yi Zhang <yi.z.zhang@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCj4gT24gTWF5IDE1LCAyMDE4LCBhdCAxMTowNSBBTSwgUm9nZXIgUGF1IE1vbm5lIDxyb2dl
-ci5wYXVAY2l0cml4LmNvbT4gd3JvdGU6DQo+IA0KPiBKdXN0IHNvbWUgcmVwbGllcy9xdWVzdGlv
-bnMgdG8gc29tZSBvZiB0aGUgcG9pbnRzIHJhaXNlZCBiZWxvdy4NCj4gDQo+IE9uIEZyaSwgTWF5
-IDExLCAyMDE4IGF0IDA5OjMzOjEwQU0gLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4+IFsg
-YWRkaW5nIGxpbnV4LW52ZGltbSBdDQo+PiANCj4+IEdyZWF0IHdyaXRlIHVwISBTb21lIGNvbW1l
-bnRzIGJlbG93Li4uDQo+PiANCj4+IE9uIFdlZCwgTWF5IDksIDIwMTggYXQgMTA6MzUgQU0sIEdl
-b3JnZSBEdW5sYXAgPGdlb3JnZS5kdW5sYXBAY2l0cml4LmNvbT4gd3JvdGU6DQo+Pj4+IFRvIHVz
-ZSBhIG5hbWVzcGFjZSwgYW4gb3BlcmF0aW5nIHN5c3RlbSBuZWVkcyBhdCBhIG1pbmltdW0gdHdv
-IHBpZWNlcw0KPj4+PiBvZiBpbmZvcm1hdGlvbjogVGhlIFVVSUQgYW5kL29yIE5hbWUgb2YgdGhl
-IG5hbWVzcGFjZSwgYW5kIHRoZSBTUEENCj4+Pj4gcmFuZ2Ugd2hlcmUgdGhhdCBuYW1lc3BhY2Ug
-aXMgbWFwcGVkOyBhbmQgaWRlYWxseSBhbHNvIHRoZSBUeXBlIGFuZA0KPj4+PiBBYnN0cmFjdGlv
-biBUeXBlIHRvIGtub3cgaG93IHRvIGludGVycHJldCB0aGUgZGF0YSBpbnNpZGUuDQo+PiANCj4+
-IE5vdCBuZWNlc3NhcmlseSwgbm8uIExpbnV4IHN1cHBvcnRzICJsYWJlbC1sZXNzIiBtb2RlIHdo
-ZXJlIGl0IGV4cG9zZXMNCj4+IHRoZSByYXcgY2FwYWNpdHkgb2YgYSByZWdpb24gaW4gMToxIG1h
-cHBlZCBuYW1lc3BhY2Ugd2l0aG91dCBhIGxhYmVsLg0KPj4gVGhpcyBpcyBob3cgTGludXggc3Vw
-cG9ydHMgImxlZ2FjeSIgTlZESU1NcyB0aGF0IGRvIG5vdCBzdXBwb3J0DQo+PiBsYWJlbHMuDQo+
-IA0KPiBJbiB0aGF0IGNhc2UsIGhvdyBkb2VzIExpbnV4IGtub3cgd2hpY2ggYXJlYSBvZiB0aGUg
-TlZESU1NIGl0IHNob3VsZA0KPiB1c2UgdG8gc3RvcmUgdGhlIHBhZ2Ugc3RydWN0dXJlcz8NCg0K
-VGhlIGFuc3dlciB0byB0aGF0IGlzIHJpZ2h0IGhlcmU6DQoNCj4+Pj4gYGZzZGF4YCBhbmQgYGRl
-dmRheGAgbW9kZSBhcmUgYm90aCBkZXNpZ25lZCB0byBtYWtlIGl0IHBvc3NpYmxlIGZvcg0KPj4+
-PiB1c2VyIHByb2Nlc3NlcyB0byBoYXZlIGRpcmVjdCBtYXBwaW5nIG9mIE5WUkFNLiAgQXMgc3Vj
-aCwgYm90aCBhcmUNCj4+Pj4gb25seSBzdWl0YWJsZSBmb3IgUE1FTSBuYW1lc3BhY2VzICg/KS4g
-IEJvdGggYWxzbyBuZWVkIHRvIGhhdmUga2VybmVsDQo+Pj4+IHBhZ2Ugc3RydWN0dXJlcyBhbGxv
-Y2F0ZWQgZm9yIGVhY2ggcGFnZSBvZiBOVlJBTTsgdGhpcyBhbW91bnRzIHRvIDY0DQo+Pj4+IGJ5
-dGVzIGZvciBldmVyeSA0ayBvZiBOVlJBTS4gIE1lbW9yeSBmb3IgdGhlc2UgcGFnZSBzdHJ1Y3R1
-cmVzIGNhbg0KPj4+PiBlaXRoZXIgYmUgYWxsb2NhdGVkIG91dCBvZiBub3JtYWwgInN5c3RlbSIg
-bWVtb3J5LCBvciBpbnNpZGUgdGhlIFBNRU0NCj4+Pj4gbmFtZXNwYWNlIGl0c2VsZi4NCj4+Pj4g
-DQo+Pj4+IEluIGJvdGggY2FzZXMsIGFuICJpbmZvIGJsb2NrIiwgdmVyeSBzaW1pbGFyIHRvIHRo
-ZSBCVFQgaW5mbyBibG9jaywgaXMNCj4+Pj4gd3JpdHRlbiB0byB0aGUgYmVnaW5uaW5nIG9mIHRo
-ZSBuYW1lc3BhY2Ugd2hlbiBjcmVhdGVkLiAgVGhpcyBpbmZvDQo+Pj4+IGJsb2NrIHNwZWNpZmll
-cyB3aGV0aGVyIHRoZSBwYWdlIHN0cnVjdHVyZXMgY29tZSBmcm9tIHN5c3RlbSBtZW1vcnkgb3IN
-Cj4+Pj4gZnJvbSB0aGUgbmFtZXNwYWNlIGl0c2VsZi4gIElmIGZyb20gdGhlIG5hbWVzcGFjZSBp
-dHNlbGYsIGl0IGNvbnRhaW5zDQo+Pj4+IGluZm9ybWF0aW9uIGFib3V0IHdoYXQgcGFydHMgb2Yg
-dGhlIG5hbWVzcGFjZSBoYXZlIGJlZW4gc2V0IGFzaWRlIGZvcg0KPj4+PiBMaW51eCB0byB1c2Ug
-Zm9yIHRoaXMgcHVycG9zZS4NCg0KVGhhdCBpcywgZWFjaCBmc2RheCAvIGRldmRheCBuYW1lc3Bh
-Y2UgaGFzIGEgc3VwZXJibG9jayB0aGF0LCBpbiBwYXJ0LCBkZWZpbmVzIHdoYXQgcGFydHMgYXJl
-IHVzZWQgZm9yIExpbnV4IGFuZCB3aGF0IHBhcnRzIGFyZSB1c2VkIGZvciBkYXRhLiAgT3IgdG8g
-cHV0IGl0IGEgZGlmZmVyZW50IHdheTogTGludXggZGVjaWRlcyB3aGljaCBwYXJ0cyBvZiBhIG5h
-bWVzcGFjZSB0byB1c2UgZm9yIHBhZ2Ugc3RydWN0dXJlcywgYW5kIHdyaXRlcyBpdCBkb3duIGlu
-IHRoZSBtZXRhZGF0YSBzdGFydGluZyBpbiB0aGUgZmlyc3QgcGFnZSBvZiB0aGUgbmFtZXNwYWNl
-Lg0KDQoNCj4+Pj4gDQo+Pj4+IExpbnV4IGhhcyBhbHNvIGRlZmluZWQgIlR5cGUgR1VJRHMiIGZv
-ciB0aGVzZSB0d28gdHlwZXMgb2YgbmFtZXNwYWNlDQo+Pj4+IHRvIGJlIHN0b3JlZCBpbiB0aGUg
-bmFtZXNwYWNlIGxhYmVsLCBhbHRob3VnaCB0aGVzZSBhcmUgbm90IHlldCBpbiB0aGUNCj4+Pj4g
-QUNQSSBzcGVjLg0KPj4gDQo+PiBUaGV5IG5ldmVyIHdpbGwgYmUuIE9uZSBvZiB0aGUgbW90aXZh
-dGlvbnMgZm9yIEdVSURzIGlzIHRoYXQgYW4gT1MgY2FuDQo+PiBkZWZpbmUgcHJpdmF0ZSBvbmVz
-IHdpdGhvdXQgbmVlZGluZyB0byBnbyBiYWNrIGFuZCBzdGFuZGFyZGl6ZSB0aGVtLg0KPj4gT25s
-eSBHVUlEcyB0aGF0IGFyZSBuZWVkZWQgdG8gaW50ZXItT1MgLyBwcmUtT1MgY29tcGF0aWJpbGl0
-eSB3b3VsZA0KPj4gbmVlZCB0byBiZSBkZWZpbmVkIGluIEFDUEksIGFuZCB0aGVyZSBpcyBubyBl
-eHBlY3RhdGlvbiB0aGF0IG90aGVyDQo+PiBPU2VzIHVuZGVyc3RhbmQgTGludXgncyBmb3JtYXQg
-Zm9yIHJlc2VydmluZyBwYWdlIHN0cnVjdHVyZSBzcGFjZS4NCj4gDQo+IE1heWJlIGl0IHdvdWxk
-IGJlIGhlbHBmdWwgdG8gc29tZWhvdyBtYXJrIHRob3NlIGFyZWFzIGFzDQo+ICJub24tcGVyc2lz
-dGVudCIgc3RvcmFnZSwgc28gdGhhdCBvdGhlciBPU2VzIGtub3cgdGhleSBjYW4gdXNlIHRoaXMN
-Cj4gc3BhY2UgZm9yIHRlbXBvcmFyeSBkYXRhIHRoYXQgZG9lc24ndCBuZWVkIHRvIHN1cnZpdmUg
-YWNyb3NzIHJlYm9vdHM/DQoNCkluIHRoZW9yeSB0aGVyZeKAmXMgbm8gcmVhc29uIGFub3RoZXIg
-T1MgY291bGRu4oCZdCBsZWFybiBMaW51eOKAmXMgZm9ybWF0LCBkaXNjb3ZlciB3aGVyZSB0aGUg
-YmxvY2tzIHdlcmUsIGFuZCB1c2UgdGhvc2UgYmxvY2tzIGZvciBpdHMgb3duIHB1cnBvc2VzIHdo
-aWxlIExpbnV4IHdhc27igJl0IHJ1bm5pbmcuDQoNCkJ1dCB0aGF0IHdvbuKAmXQgaGVscCBYZW4s
-IGFzIHdlIHdhbnQgdG8gdXNlIHRob3NlIGJsb2NrcyB3aGlsZSBMaW51eCAqaXMqIHJ1bm5pbmcu
-DQoNCiAtR2VvcmdlDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Just some replies/questions to some of the points raised below.
+
+On Fri, May 11, 2018 at 09:33:10AM -0700, Dan Williams wrote:
+> [ adding linux-nvdimm ]
+> 
+> Great write up! Some comments below...
+> 
+> On Wed, May 9, 2018 at 10:35 AM, George Dunlap <george.dunlap@citrix.com> wrote:
+> >> To use a namespace, an operating system needs at a minimum two pieces
+> >> of information: The UUID and/or Name of the namespace, and the SPA
+> >> range where that namespace is mapped; and ideally also the Type and
+> >> Abstraction Type to know how to interpret the data inside.
+> 
+> Not necessarily, no. Linux supports "label-less" mode where it exposes
+> the raw capacity of a region in 1:1 mapped namespace without a label.
+> This is how Linux supports "legacy" NVDIMMs that do not support
+> labels.
+
+In that case, how does Linux know which area of the NVDIMM it should
+use to store the page structures?
+
+> >> `fsdax` and `devdax` mode are both designed to make it possible for
+> >> user processes to have direct mapping of NVRAM.  As such, both are
+> >> only suitable for PMEM namespaces (?).  Both also need to have kernel
+> >> page structures allocated for each page of NVRAM; this amounts to 64
+> >> bytes for every 4k of NVRAM.  Memory for these page structures can
+> >> either be allocated out of normal "system" memory, or inside the PMEM
+> >> namespace itself.
+> >>
+> >> In both cases, an "info block", very similar to the BTT info block, is
+> >> written to the beginning of the namespace when created.  This info
+> >> block specifies whether the page structures come from system memory or
+> >> from the namespace itself.  If from the namespace itself, it contains
+> >> information about what parts of the namespace have been set aside for
+> >> Linux to use for this purpose.
+> >>
+> >> Linux has also defined "Type GUIDs" for these two types of namespace
+> >> to be stored in the namespace label, although these are not yet in the
+> >> ACPI spec.
+> 
+> They never will be. One of the motivations for GUIDs is that an OS can
+> define private ones without needing to go back and standardize them.
+> Only GUIDs that are needed to inter-OS / pre-OS compatibility would
+> need to be defined in ACPI, and there is no expectation that other
+> OSes understand Linux's format for reserving page structure space.
+
+Maybe it would be helpful to somehow mark those areas as
+"non-persistent" storage, so that other OSes know they can use this
+space for temporary data that doesn't need to survive across reboots?
+
+> >> # Proposed design / roadmap
+> >>
+> >> Initially, dom0 accesses the NVRAM as normal, using static ACPI tables
+> >> and the DSM methods; mappings are treated by Xen during this phase as
+> >> MMIO.
+> >>
+> >> Once dom0 is ready to pass parts of a namespace through to a guest, it
+> >> makes a hypercall to tell Xen about the namespace.  It includes any
+> >> regions of the namespace which Xen may use for 'scratch'; it also
+> >> includes a flag to indicate whether this 'scratch' space may be used
+> >> for frame tables from other namespaces.
+> >>
+> >> Frame tables are then created for this SPA range.  They will be
+> >> allocated from, in this order: 1) designated 'scratch' range from
+> >> within this namespace 2) designated 'scratch' range from other
+> >> namespaces which has been marked as sharable 3) system RAM.
+> >>
+> >> Xen will either verify that dom0 has no existing mappings, or promote
+> >> the mappings to full pages (taking appropriate reference counts for
+> >> mappings).  Dom0 must ensure that this namespace is not unmapped,
+> >> modified, or relocated until it asks Xen to unmap it.
+> >>
+> >> For Xen frame tables, to begin with, set aside a partition inside a
+> >> namespace to be used by Xen.  Pass this in to Xen when activating the
+> >> namespace; this could be either 2a or 3a from "Page structure
+> >> allocation".  After that, we could decide which of the two more
+> >> streamlined approaches (2b or 3b) to pursue.
+> >>
+> >> At this point, dom0 can pass parts of the mapped namespace into
+> >> guests.  Unfortunately, passing files on a fsdax filesystem is
+> >> probably not safe; but we can pass in full dev-dax or fsdax
+> >> partitions.
+> >>
+> >> From a guest perspective, I propose we provide static NFIT only, no
+> >> access to labels to begin with.  This can be generated in hvmloader
+> >> and/or the toolstack acpi code.
+> 
+> I'm ignorant of Xen internals, but can you not reuse the existing QEMU
+> emulation for labels and NFIT?
+
+We only use QEMU for HVM guests, which would still leave PVH guests
+without NVDIMM support. Ideally we would like to use the same solution
+for both HVM and PVH, which means QEMU cannot be part of that
+solution.
+
+Thanks, Roger.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
