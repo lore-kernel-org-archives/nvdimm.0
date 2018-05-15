@@ -1,19 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from SMTP03.CITRIX.COM (smtp03.citrix.com [162.221.156.55])
+Received: from SMTP.EU.CITRIX.COM (smtp.eu.citrix.com [185.25.65.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 00E35209603EB
- for <linux-nvdimm@lists.01.org>; Tue, 15 May 2018 07:19:12 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E3B74209603E2
+ for <linux-nvdimm@lists.01.org>; Tue, 15 May 2018 06:06:33 -0700 (PDT)
+From: George Dunlap <George.Dunlap@citrix.com>
 Subject: Re: Draft NVDIMM proposal
+Date: Tue, 15 May 2018 13:05:18 +0000
+Message-ID: <6F18C7B5-AE21-4D44-AAB8-913A0B224973@citrix.com>
 References: <dc4870bd-d227-e425-5ada-96d36e232a9a@citrix.com>
  <d1f6fded-7131-3215-9fc0-36f6acf2bf41@citrix.com>
  <CAPcyv4h2P8wYrrghYPz+DuD-34zhmHAOFBLSKeoJPtYa8q43ng@mail.gmail.com>
-From: George Dunlap <george.dunlap@citrix.com>
-Message-ID: <b0ccf9f3-56f7-e061-a5b6-4c5e1bcbecb0@citrix.com>
-Date: Tue, 15 May 2018 15:19:08 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAPcyv4h2P8wYrrghYPz+DuD-34zhmHAOFBLSKeoJPtYa8q43ng@mail.gmail.com>
+ <20180515100557.ea2airy4isbn2yzq@MacBook-Pro-de-Roger.local>
+ <83A27BAE-E3A3-45FD-B595-714BE1F839E8@citrix.com>
+ <5AFAD1FA02000078001C2DFD@prv1-mh.provo.novell.com>
+In-Reply-To: <5AFAD1FA02000078001C2DFD@prv1-mh.provo.novell.com>
 Content-Language: en-US
+Content-ID: <AB9805234B6FB74297C7091B779C13C0@citrix.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,147 +25,91 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Andrew Cooper <Andrew.Cooper3@citrix.com>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>, Jan Beulich <JBeulich@suse.com>, Yi Zhang <yi.z.zhang@intel.com>, Roger Pau Monne <roger.pau@citrix.com>
+To: Jan Beulich <JBeulich@suse.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Andrew Cooper <Andrew.Cooper3@citrix.com>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>, Roger Pau Monne <roger.pau@citrix.com>, "yi.z.zhang@intel.com" <yi.z.zhang@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 05/11/2018 05:33 PM, Dan Williams wrote:
-> [ adding linux-nvdimm ]
-> 
-> Great write up! Some comments below...
-
-Thanks for the quick response!
-
-It seems I still have some fundamental misconceptions about what's going
-on, so I'd better start with that. :-)
-
-Here's the part that I'm having a hard time getting.
-
-If actual data on the NVDIMMs is a noun, and the act of writing is a
-verb, then the SPA and interleave sets are adverbs: they define *how*
-the write happens.  When the processor says, "Write to address X", the
-memory controller converts address X into a <dimm number, dimm-physical
-address> tuple to actually write the data.
-
-So, who decides what this SPA range and interleave set is?  Can the
-operating system change these interleave sets and mappings, or change
-data from PMEM to BLK, and is so, how?
-
-If you read through section 13.19 of the UEFI manual, it seems to imply
-that this is determined by the label area -- that each DIMM has a
-separate label area describing regions local to that DIMM; and that if
-you have 4 DIMMs you'll have 4 label areas, and each label area will
-have a label describing the DPA region on that DIMM which corresponds to
-the interleave set.  And somehow someone sets up the interleave sets and
-SPA based on what's written there.
-
-Which would mean that an operating system could change how the
-interleave sets work by rewriting the various labels on the DIMMs; for
-instance, changing a single 4-way set spanning the entirety of 4 DIMMs,
-to one 4-way set spanning half of 4 DIMMs, and 2 2-way sets spanning
-half of 2 DIMMs each.
-
-But then you say:
-
-> Unlike NVMe an NVDIMM itself has no concept of namespaces. Some DIMMs
-> provide a "label area" which is an out-of-band non-volatile memory
-> area where the OS can store whatever it likes. The UEFI 2.7
-> specification defines a data format for the definition of namespaces
-> on top of persistent memory ranges advertised to the OS via the ACPI
-> NFIT structure.
-
-OK, so that sounds like no, that's that what happens.  So where do the
-SPA range and interleave sets come from?
-
-Random guess: The BIOS / firmware makes it up.  Either it's hard-coded,
-or there's some menu in the BIOS you can use to change things around;
-but once it hits the operating system, that's it -- the mapping of SPA
-range onto interleave sets onto DIMMs is, from the operating system's
-point of view, fixed.
-
-And so (here's another guess) -- when you're talking about namespaces
-and label areas, you're talking about namespaces stored *within a
-pre-existing SPA range*.  You use the same format as described in the
-UEFI spec, but ignore all the stuff about interleave sets and whatever,
-and use system physical addresses relative to the SPA range rather than
-DPAs.
-
-Is that right?
-
-But then there's things like this:
-
-> There is no obligation for an NVDIMM to provide a label area, and as
-> far as I know all NVDIMMs on the market today do not provide a label
-> area.
-[snip]
-> Linux supports "label-less" mode where it exposes
-> the raw capacity of a region in 1:1 mapped namespace without a label.
-> This is how Linux supports "legacy" NVDIMMs that do not support
-> labels.
-
-So are "all NVDIMMs on the market today" then classed as "legacy"
-NVDIMMs because they don't support labels?  And if labels are simply the
-NVDIMM equivalent of a partition table, then what does it mena to
-"support" or "not support" labels?
-
-And then there's this:
-
-> In any
-> event we do the DIMM to SPA association first before reading labels.
-> The OS calculates a so called "Interleave Set Cookie" from the NFIT
-> information to compare against a similar value stored in the labels.
-> This lets the OS determine that the Interleave Set composition has not
-> changed from when the labels were initially written. An Interleave Set
-> Cookie mismatch indicates the labels are stale, corrupted, or that the
-> physical composition of the Interleave Set has changed.
-
-So wait, the SPA and interleave sets can actually change?  And the
-labels which the OS reads actually are per-DIMM, and do control somehow
-how the DPA ranges of individual DIMMs are mapped into interleave sets
-and exposed as SPAs?  (And perhaps, can be changed by the operating system?)
-
-And:
-
-> There are checksums in the Namespace definition to account label
-> validity. Starting with ACPI 6.2 DSMs for labels are deprecated in
-> favor of the new / named methods for label access _LSI, _LSR, and
-> _LSW.
-
-Does this mean the methods will use checksums to verify writes to the
-label area, and refuse writes which create invalid labels?
-
-If all of the above is true, then in what way can it be said that
-"NVDIMM has no concept of namespaces", that an OS can "store whatever it
-likes" in the label area, and that UEFI namespaces are "on top of
-persistent memory ranges advertised to the OS via the ACPI NFIT structure"?
-
-I'm sorry if this is obvious, but I am exactly as confused as I was
-before I started writing this. :-)
-
-This is all pretty foundational.  Xen can read static ACPI tables, but
-it can't do AML.  So to do a proper design for Xen, we need to know:
-1. If Xen can find out, without Linux's help, what namespaces exist and
-if there is one it can use for its own purposes
-2. If the SPA regions can change at runtime.
-
-If SPA regions don't change after boot, and if Xen can find its own
-Xen-specific namespace to use for the frame tables by reading the NFIT
-table, then that significantly reduces the amount of interaction it
-needs with Linux.
-
-If SPA regions *can* change after boot, and if Xen must rely on Linux to
-read labels and find out what it can safely use for frame tables, then
-it makes things significantly more involved.  Not impossible by any
-means, but a lot more complicated.
-
-Hope all that makes sense -- thanks again for your help.
-
- -George
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+DQoNCj4gT24gTWF5IDE1LCAyMDE4LCBhdCAxOjI2IFBNLCBKYW4gQmV1bGljaCA8SkJldWxpY2hA
+c3VzZS5jb20+IHdyb3RlOg0KPiANCj4+Pj4gT24gMTUuMDUuMTggYXQgMTI6MTIsIDxHZW9yZ2Uu
+RHVubGFwQGNpdHJpeC5jb20+IHdyb3RlOg0KPj4+IE9uIE1heSAxNSwgMjAxOCwgYXQgMTE6MDUg
+QU0sIFJvZ2VyIFBhdSBNb25uZSA8cm9nZXIucGF1QGNpdHJpeC5jb20+IHdyb3RlOg0KPj4+IE9u
+IEZyaSwgTWF5IDExLCAyMDE4IGF0IDA5OjMzOjEwQU0gLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90
+ZToNCj4+Pj4gWyBhZGRpbmcgbGludXgtbnZkaW1tIF0NCj4+Pj4gDQo+Pj4+IEdyZWF0IHdyaXRl
+IHVwISBTb21lIGNvbW1lbnRzIGJlbG93Li4uDQo+Pj4+IA0KPj4+PiBPbiBXZWQsIE1heSA5LCAy
+MDE4IGF0IDEwOjM1IEFNLCBHZW9yZ2UgRHVubGFwIDxnZW9yZ2UuZHVubGFwQGNpdHJpeC5jb20+
+IHdyb3RlOg0KPj4+Pj4+IFRvIHVzZSBhIG5hbWVzcGFjZSwgYW4gb3BlcmF0aW5nIHN5c3RlbSBu
+ZWVkcyBhdCBhIG1pbmltdW0gdHdvIHBpZWNlcw0KPj4+Pj4+IG9mIGluZm9ybWF0aW9uOiBUaGUg
+VVVJRCBhbmQvb3IgTmFtZSBvZiB0aGUgbmFtZXNwYWNlLCBhbmQgdGhlIFNQQQ0KPj4+Pj4+IHJh
+bmdlIHdoZXJlIHRoYXQgbmFtZXNwYWNlIGlzIG1hcHBlZDsgYW5kIGlkZWFsbHkgYWxzbyB0aGUg
+VHlwZSBhbmQNCj4+Pj4+PiBBYnN0cmFjdGlvbiBUeXBlIHRvIGtub3cgaG93IHRvIGludGVycHJl
+dCB0aGUgZGF0YSBpbnNpZGUuDQo+Pj4+IA0KPj4+PiBOb3QgbmVjZXNzYXJpbHksIG5vLiBMaW51
+eCBzdXBwb3J0cyAibGFiZWwtbGVzcyIgbW9kZSB3aGVyZSBpdCBleHBvc2VzDQo+Pj4+IHRoZSBy
+YXcgY2FwYWNpdHkgb2YgYSByZWdpb24gaW4gMToxIG1hcHBlZCBuYW1lc3BhY2Ugd2l0aG91dCBh
+IGxhYmVsLg0KPj4+PiBUaGlzIGlzIGhvdyBMaW51eCBzdXBwb3J0cyAibGVnYWN5IiBOVkRJTU1z
+IHRoYXQgZG8gbm90IHN1cHBvcnQNCj4+Pj4gbGFiZWxzLg0KPj4+IA0KPj4+IEluIHRoYXQgY2Fz
+ZSwgaG93IGRvZXMgTGludXgga25vdyB3aGljaCBhcmVhIG9mIHRoZSBOVkRJTU0gaXQgc2hvdWxk
+DQo+Pj4gdXNlIHRvIHN0b3JlIHRoZSBwYWdlIHN0cnVjdHVyZXM/DQo+PiANCj4+IFRoZSBhbnN3
+ZXIgdG8gdGhhdCBpcyByaWdodCBoZXJlOg0KPj4gDQo+Pj4+Pj4gYGZzZGF4YCBhbmQgYGRldmRh
+eGAgbW9kZSBhcmUgYm90aCBkZXNpZ25lZCB0byBtYWtlIGl0IHBvc3NpYmxlIGZvcg0KPj4+Pj4+
+IHVzZXIgcHJvY2Vzc2VzIHRvIGhhdmUgZGlyZWN0IG1hcHBpbmcgb2YgTlZSQU0uICBBcyBzdWNo
+LCBib3RoIGFyZQ0KPj4+Pj4+IG9ubHkgc3VpdGFibGUgZm9yIFBNRU0gbmFtZXNwYWNlcyAoPyku
+ICBCb3RoIGFsc28gbmVlZCB0byBoYXZlIGtlcm5lbA0KPj4+Pj4+IHBhZ2Ugc3RydWN0dXJlcyBh
+bGxvY2F0ZWQgZm9yIGVhY2ggcGFnZSBvZiBOVlJBTTsgdGhpcyBhbW91bnRzIHRvIDY0DQo+Pj4+
+Pj4gYnl0ZXMgZm9yIGV2ZXJ5IDRrIG9mIE5WUkFNLiAgTWVtb3J5IGZvciB0aGVzZSBwYWdlIHN0
+cnVjdHVyZXMgY2FuDQo+Pj4+Pj4gZWl0aGVyIGJlIGFsbG9jYXRlZCBvdXQgb2Ygbm9ybWFsICJz
+eXN0ZW0iIG1lbW9yeSwgb3IgaW5zaWRlIHRoZSBQTUVNDQo+Pj4+Pj4gbmFtZXNwYWNlIGl0c2Vs
+Zi4NCj4+Pj4+PiANCj4+Pj4+PiBJbiBib3RoIGNhc2VzLCBhbiAiaW5mbyBibG9jayIsIHZlcnkg
+c2ltaWxhciB0byB0aGUgQlRUIGluZm8gYmxvY2ssIGlzDQo+Pj4+Pj4gd3JpdHRlbiB0byB0aGUg
+YmVnaW5uaW5nIG9mIHRoZSBuYW1lc3BhY2Ugd2hlbiBjcmVhdGVkLiAgVGhpcyBpbmZvDQo+Pj4+
+Pj4gYmxvY2sgc3BlY2lmaWVzIHdoZXRoZXIgdGhlIHBhZ2Ugc3RydWN0dXJlcyBjb21lIGZyb20g
+c3lzdGVtIG1lbW9yeSBvcg0KPj4+Pj4+IGZyb20gdGhlIG5hbWVzcGFjZSBpdHNlbGYuICBJZiBm
+cm9tIHRoZSBuYW1lc3BhY2UgaXRzZWxmLCBpdCBjb250YWlucw0KPj4+Pj4+IGluZm9ybWF0aW9u
+IGFib3V0IHdoYXQgcGFydHMgb2YgdGhlIG5hbWVzcGFjZSBoYXZlIGJlZW4gc2V0IGFzaWRlIGZv
+cg0KPj4+Pj4+IExpbnV4IHRvIHVzZSBmb3IgdGhpcyBwdXJwb3NlLg0KPj4gDQo+PiBUaGF0IGlz
+LCBlYWNoIGZzZGF4IC8gZGV2ZGF4IG5hbWVzcGFjZSBoYXMgYSBzdXBlcmJsb2NrIHRoYXQsIGlu
+IHBhcnQsIA0KPj4gZGVmaW5lcyB3aGF0IHBhcnRzIGFyZSB1c2VkIGZvciBMaW51eCBhbmQgd2hh
+dCBwYXJ0cyBhcmUgdXNlZCBmb3IgZGF0YS4gIE9yIA0KPj4gdG8gcHV0IGl0IGEgZGlmZmVyZW50
+IHdheTogTGludXggZGVjaWRlcyB3aGljaCBwYXJ0cyBvZiBhIG5hbWVzcGFjZSB0byB1c2UgDQo+
+PiBmb3IgcGFnZSBzdHJ1Y3R1cmVzLCBhbmQgd3JpdGVzIGl0IGRvd24gaW4gdGhlIG1ldGFkYXRh
+IHN0YXJ0aW5nIGluIHRoZSBmaXJzdCANCj4+IHBhZ2Ugb2YgdGhlIG5hbWVzcGFjZS4NCj4gDQo+
+IEFuZCB0aGF0IG1ldGFkYXRhIGxheW91dCBpcyBhZ3JlZWQgdXBvbiBiZXR3ZWVuIGFsbCBPUyB2
+ZW5kb3JzPw0KPiANCj4+Pj4+PiBMaW51eCBoYXMgYWxzbyBkZWZpbmVkICJUeXBlIEdVSURzIiBm
+b3IgdGhlc2UgdHdvIHR5cGVzIG9mIG5hbWVzcGFjZQ0KPj4+Pj4+IHRvIGJlIHN0b3JlZCBpbiB0
+aGUgbmFtZXNwYWNlIGxhYmVsLCBhbHRob3VnaCB0aGVzZSBhcmUgbm90IHlldCBpbiB0aGUNCj4+
+Pj4+PiBBQ1BJIHNwZWMuDQo+Pj4+IA0KPj4+PiBUaGV5IG5ldmVyIHdpbGwgYmUuIE9uZSBvZiB0
+aGUgbW90aXZhdGlvbnMgZm9yIEdVSURzIGlzIHRoYXQgYW4gT1MgY2FuDQo+Pj4+IGRlZmluZSBw
+cml2YXRlIG9uZXMgd2l0aG91dCBuZWVkaW5nIHRvIGdvIGJhY2sgYW5kIHN0YW5kYXJkaXplIHRo
+ZW0uDQo+Pj4+IE9ubHkgR1VJRHMgdGhhdCBhcmUgbmVlZGVkIHRvIGludGVyLU9TIC8gcHJlLU9T
+IGNvbXBhdGliaWxpdHkgd291bGQNCj4+Pj4gbmVlZCB0byBiZSBkZWZpbmVkIGluIEFDUEksIGFu
+ZCB0aGVyZSBpcyBubyBleHBlY3RhdGlvbiB0aGF0IG90aGVyDQo+Pj4+IE9TZXMgdW5kZXJzdGFu
+ZCBMaW51eCdzIGZvcm1hdCBmb3IgcmVzZXJ2aW5nIHBhZ2Ugc3RydWN0dXJlIHNwYWNlLg0KPj4+
+IA0KPj4+IE1heWJlIGl0IHdvdWxkIGJlIGhlbHBmdWwgdG8gc29tZWhvdyBtYXJrIHRob3NlIGFy
+ZWFzIGFzDQo+Pj4gIm5vbi1wZXJzaXN0ZW50IiBzdG9yYWdlLCBzbyB0aGF0IG90aGVyIE9TZXMg
+a25vdyB0aGV5IGNhbiB1c2UgdGhpcw0KPj4+IHNwYWNlIGZvciB0ZW1wb3JhcnkgZGF0YSB0aGF0
+IGRvZXNuJ3QgbmVlZCB0byBzdXJ2aXZlIGFjcm9zcyByZWJvb3RzPw0KPj4gDQo+PiBJbiB0aGVv
+cnkgdGhlcmXigJlzIG5vIHJlYXNvbiBhbm90aGVyIE9TIGNvdWxkbuKAmXQgbGVhcm4gTGludXji
+gJlzIGZvcm1hdCwgDQo+PiBkaXNjb3ZlciB3aGVyZSB0aGUgYmxvY2tzIHdlcmUsIGFuZCB1c2Ug
+dGhvc2UgYmxvY2tzIGZvciBpdHMgb3duIHB1cnBvc2VzIA0KPj4gd2hpbGUgTGludXggd2FzbuKA
+mXQgcnVubmluZy4NCj4gDQo+IFRoaXMgbG9va3MgdG8gaW1wbHkgIm5vIiB0byBteSBxdWVzdGlv
+biBhYm92ZSwgaW4gd2hpY2ggY2FzZSBJIHdvbmRlciBob3cNCj4gd2Ugd291bGQgdXNlIChwYXJ0
+IG9mKSB0aGUgc3BhY2Ugd2hlbiB0aGUgIm90aGVyIiBvd25lciBpcyBlLmcuIFdpbmRvd3MuDQoN
+ClNvIGluIGNsYXNzaWMgRE9TIHBhcnRpdGlvbiB0YWJsZXMsIHlvdSBoYXZlIHBhcnRpdGlvbiB0
+eXBlczsgYW5kIHZhcmlvdXMgb3BlcmF0aW5nIHN5c3RlbXMganVzdCBzb3J0IG9mIOKAnGNsYWlt
+ZWTigJ0gbnVtYmVycyBmb3IgdGhlbXNlbHZlcyAoZS5nLiwgTlRGUywgTGludXggU3dhcCwgJmMp
+LiAgDQoNCkJ1dCB0aGUgRE9TIHBhcnRpdGlvbiB0YWJsZSBudW1iZXIgc3BhY2UgaXMgYWN0dWFs
+bHkgcXVpdGUgc21hbGwuICBTbyBpbiBuYW1lc3BhY2VzLCB5b3UgaGF2ZSBhIHNpbWlsYXIgY29u
+Y2VwdCwgZXhjZXB0IHRoYXQgaXTigJlzIGNhbGxlZCBhIOKAnHR5cGUgR1VJROKAnSwgYW5kIGl0
+4oCZcyBtYXNzaXZlbHkgbG9uZyDigJQgbG9uZyBlbm91Z2ggYW55b25lIHdobyB3YW50cyB0byBt
+YWtlIGEgbmV3IHR5cGUgY2FuIHNpbXBseSBnZW5lcmF0ZSBvbmUgcmFuZG9tbHkgYW5kIGJlIHBy
+ZXR0eSBjb25maWRlbnQgdGhhdCBub2JvZHkgZWxzZSBpcyB1c2luZyB0aGF0IG9uZS4NCg0KU28g
+aWYgdGhlIGxhYmVscyBjb250YWluIGEgVEdVSUQgeW91IHVuZGVyc3RhbmQsIHlvdSB1c2UgaXQs
+IGp1c3QgbGlrZSB5b3Ugd291bGQgYSBwYXJ0aXRpb24gdGhhdCB5b3UgdW5kZXJzdGFuZC4gIElm
+IGl0IGNvbnRhaW5zIEdVSURzIHlvdSBkb27igJl0IHVuZGVyc3RhbmQsIHlvdeKAmWQgYmV0dGVy
+IGxlYXZlIGl0IGFsb25lLg0KDQogLUdlb3JnZQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGlt
+bUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
+eC1udmRpbW0K
