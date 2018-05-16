@@ -1,17 +1,29 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mail1.bemta12.messagelabs.com (mail1.bemta12.messagelabs.com
+ [216.82.251.3])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7374E20965DFB
- for <linux-nvdimm@lists.01.org>; Thu, 10 May 2018 06:39:53 -0700 (PDT)
-Date: Thu, 10 May 2018 15:39:45 +0200
-From: Igor Mammedov <imammedo@redhat.com>
-Subject: Re: [Qemu-devel] [PATCH 2/3] nvdimm, acpi: add NFIT platform
- capabilities
-Message-ID: <20180510153945.3b90acd1@redhat.com>
-In-Reply-To: <20180427215314.23168-2-ross.zwisler@linux.intel.com>
-References: <20180427215314.23168-1-ross.zwisler@linux.intel.com>
- <20180427215314.23168-2-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B611F209603C5
+ for <linux-nvdimm@lists.01.org>; Wed, 16 May 2018 01:33:35 -0700 (PDT)
+From: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Subject: RE: [External] Re: [RFC PATCH v1 0/6] use mm to manage NVDIMM (pmem)
+ zone
+Date: Wed, 16 May 2018 08:33:13 +0000
+Message-ID: <HK2PR03MB1684733BFC9773814A6E522C92920@HK2PR03MB1684.apcprd03.prod.outlook.com>
+References: <1525704627-30114-1-git-send-email-yehs1@lenovo.com>
+ <20180507184622.GB12361@bombadil.infradead.org>
+ <CAPcyv4hBJN3npXwg3Ur32JSWtKvBUZh7F8W+Exx3BB-uKWwPag@mail.gmail.com>
+ <x49a7tbi8r3.fsf@segfault.boston.devel.redhat.com>
+ <HK2PR03MB1684659175EB0A11E75E9B61929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
+ <20180508030959.GB16338@bombadil.infradead.org>
+ <HK2PR03MB16841CBB549F40F86BB8D35C92990@HK2PR03MB1684.apcprd03.prod.outlook.com>
+ <20180510162742.GA30442@bombadil.infradead.org>
+ <HK2PR03MB1684B34F9D1DF18A8CDE18F292930@HK2PR03MB1684.apcprd03.prod.outlook.com>
+ <20180515162003.GA26489@bombadil.infradead.org>
+ <HK2PR03MB1684F8D2724BB8AF1FCCF02A92920@HK2PR03MB1684.apcprd03.prod.outlook.com>
+ <CAPcyv4hFzzF-jZd3-3vLNbB6SHD1Z5+wuRqgiuubnztAEzsSJQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4hFzzF-jZd3-3vLNbB6SHD1Z5+wuRqgiuubnztAEzsSJQ@mail.gmail.com>
+Content-Language: zh-CN
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,80 +36,86 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S . Tsirkin" <mst@redhat.com>, qemu-devel@nongnu.org, Stefan Hajnoczi <stefanha@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Sasha Levin <alexander.levin@verizon.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, Ocean HY1 He <hehy1@lenovo.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, Linux MM <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>, Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, "colyli@suse.de" <colyli@suse.de>, Mel Gorman <mgorman@techsingularity.net>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 27 Apr 2018 15:53:13 -0600
-Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
-
-> Add support for the NFIT Platform Capabilities Structure, newly added in
-> ACPI 6.2 Errata A.
-
-Look fine but I'd squash it into the next 3/3 patch.
-
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> ---
->  hw/acpi/nvdimm.c | 32 ++++++++++++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
+> From: Dan Williams [mailto:dan.j.williams@intel.com]
+> Sent: Wednesday, May 16, 2018 10:49 AM
+> On Tue, May 15, 2018 at 7:05 PM, Huaisheng HS1 Ye <yehs1@lenovo.com> wrote:
+> >> From: Matthew Wilcox [mailto:willy@infradead.org]
+> >> Sent: Wednesday, May 16, 2018 12:20 AM>
+> >> > > > > Then there's the problem of reconnecting the page cache (which is
+> >> > > > > pointed to by ephemeral data structures like inodes and dentries) to
+> >> > > > > the new inodes.
+> >> > > > Yes, it is not easy.
+> >> > >
+> >> > > Right ... and until we have that ability, there's no point in this patch.
+> >> > We are focusing to realize this ability.
+> >>
+> >> But is it the right approach?  So far we have (I think) two parallel
+> >> activities.  The first is for local storage, using DAX to store files
+> >> directly on the pmem.  The second is a physical block cache for network
+> >> filesystems (both NAS and SAN).  You seem to be wanting to supplant the
+> >> second effort, but I think it's much harder to reconnect the logical cache
+> >> (ie the page cache) than it is the physical cache (ie the block cache).
+> >
+> > Dear Matthew,
+> >
+> > Thanks for correcting my idea with cache line.
+> > But I have questions about that, assuming NVDIMM works with pmem mode, even we
+> > used it as physical block cache, like dm-cache, there is potential risk with
+> > this cache line issue, because NVDIMMs are bytes-address storage, right?
 > 
-> diff --git a/hw/acpi/nvdimm.c b/hw/acpi/nvdimm.c
-> index 59d6e4254c..859b390e07 100644
-> --- a/hw/acpi/nvdimm.c
-> +++ b/hw/acpi/nvdimm.c
-> @@ -169,6 +169,21 @@ struct NvdimmNfitControlRegion {
->  } QEMU_PACKED;
->  typedef struct NvdimmNfitControlRegion NvdimmNfitControlRegion;
->  
-> +/*
-> + * NVDIMM Platform Capabilities Structure
-> + *
-> + * Defined in section 5.2.25.9 of ACPI 6.2 Errata A, September 2017
-> + */
-> +struct NvdimmNfitPlatformCaps {
-> +    uint16_t type;
-> +    uint16_t length;
-> +    uint8_t highest_cap;
-> +    uint8_t reserved[3];
-> +    uint32_t capabilities;
-> +    uint8_t reserved2[4];
-> +} QEMU_PACKED;
-> +typedef struct NvdimmNfitPlatformCaps NvdimmNfitPlatformCaps;
-> +
->  /*
->   * Module serial number is a unique number for each device. We use the
->   * slot id of NVDIMM device to generate this number so that each device
-> @@ -351,6 +366,21 @@ static void nvdimm_build_structure_dcr(GArray *structures, DeviceState *dev)
->                                           JEDEC Annex L Release 3. */);
->  }
->  
-> +/*
-> + * ACPI 6.2 Errata A: 5.2.25.9 NVDIMM Platform Capabilities Structure
-> + */
-> +static void
-> +nvdimm_build_structure_caps(GArray *structures)
-> +{
-> +    NvdimmNfitPlatformCaps *nfit_caps;
-> +
-> +    nfit_caps = acpi_data_push(structures, sizeof(*nfit_caps));
-> +
-> +    nfit_caps->type = cpu_to_le16(7 /* NVDIMM Platform Capabilities */);
-> +    nfit_caps->length = cpu_to_le16(sizeof(*nfit_caps));
-> +    nfit_caps->highest_cap = 1;
-> +    nfit_caps->capabilities = cpu_to_le32(2 /* memory controller */);
-> +}
->  static GArray *nvdimm_build_device_structure(void)
->  {
->      GSList *device_list = nvdimm_get_device_list();
-> @@ -373,6 +403,8 @@ static GArray *nvdimm_build_device_structure(void)
->      }
->      g_slist_free(device_list);
->  
-> +    nvdimm_build_structure_caps(structures);
-> +
->      return structures;
->  }
->  
+> No, there is no risk if the cache is designed properly. The pmem
+> driver will not report that the I/O is complete until the entire
+> payload of the data write has made it to persistent memory. The cache
+> driver will not report that the write succeeded until the pmem driver
+> completes the I/O. There is no risk to losing power while the pmem
+> driver is operating because the cache will recover to it's last
+> acknowledged stable state, i.e. it will roll back / undo the
+> incomplete write.
+> 
+> > If system crash happens, that means CPU doesn't have opportunity to flush all dirty
+> > data from cache lines to NVDIMM, during copying data pointed by bio_vec.bv_page to
+> > NVDIMM.
+> > I know there is btt which is used to guarantee sector atomic with block mode,
+> > but for pmem mode that will likely cause mix of new and old data in one page
+> > of NVDIMM.
+> > Correct me if anything wrong.
+> 
+> dm-cache is performing similar metadata management as the btt driver
+> to ensure safe forward progress of the cache state relative to power
+> loss or system-crash.
+
+Dear Dan,
+
+Thanks for your introduction, I've learned a lot from your comments.
+I suppose that there should be implementations to protect data and metadata both in NVDIMMs from system-crash or power loss.
+Not only data but also metadata itself needs to be correct and integrated, so kernel could have chance to recover data to target device after rebooting, right?
+
+> 
+> > Another question, if we used NVDIMMs as physical block cache for network filesystems,
+> > Does industry have existing implementation to bypass Page Cache similarly like DAX way,
+> > that is to say, directly storing data to NVDIMMs from userspace, rather than copying
+> > data from kernel space memory to NVDIMMs.
+> 
+> Any caching solution with associated metadata requires coordination
+> with the kernel, so it is not possible for the kernel to stay
+> completely out of the way. Especially when we're talking about a cache
+> in front of the network there is not much room for DAX to offer
+> improved performance because we need the kernel to takeover on all
+> write-persist operations to update cache metadata.
+
+Agree.
+
+> So, I'm still struggling to see why dm-cache is not a suitable
+> solution for this case. It seems suitable if it is updated to allow
+> direct dma-access to the pmem cache pages from the backing device
+> storage / networking driver.
+
+Sincerely,
+Huaisheng Ye
 
 _______________________________________________
 Linux-nvdimm mailing list
