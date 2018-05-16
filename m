@@ -1,21 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
+Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0EDEA203B9909
- for <linux-nvdimm@lists.01.org>; Fri, 25 May 2018 01:49:26 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 249C9203B85AA
+ for <linux-nvdimm@lists.01.org>; Tue, 15 May 2018 19:44:47 -0700 (PDT)
 Received: from g01jpfmpwkw01.exch.g01.fujitsu.local
  (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 5E7C2AC01E4
- for <linux-nvdimm@lists.01.org>; Fri, 25 May 2018 17:49:22 +0900 (JST)
+ by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id DB0C7AC01E7
+ for <linux-nvdimm@lists.01.org>; Wed, 16 May 2018 11:44:42 +0900 (JST)
 From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
 Subject: RE: [PATCH v6 2/4] ndctl, monitor: add ndctl monitor daemon
-Date: Fri, 25 May 2018 08:49:20 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222766DC25@g01jpexmbkw01>
+Date: Wed, 16 May 2018 02:44:40 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3222766C731@g01jpexmbkw01>
 References: <20180507050926.17243-1-qi.fuli@jp.fujitsu.com>
  <20180507050926.17243-3-qi.fuli@jp.fujitsu.com>
  <CAPcyv4jaqbaKwAAoXd3C_VGRQCcWUXCA545AGyPPXd6D1eEByA@mail.gmail.com>
-In-Reply-To: <CAPcyv4jaqbaKwAAoXd3C_VGRQCcWUXCA545AGyPPXd6D1eEByA@mail.gmail.com>
+ <0DEDF3B159719A448A49EF0E7B11E3222766AB3C@g01jpexmbkw01>
+ <CAPcyv4hCiPQX85Wd445g-vWzCRX_Z5-f4eOMVmxyTVhV+3oEjA@mail.gmail.com>
+In-Reply-To: <CAPcyv4hCiPQX85Wd445g-vWzCRX_Z5-f4eOMVmxyTVhV+3oEjA@mail.gmail.com>
 Content-Language: ja-JP
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -25,58 +27,31 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: 'Dan Williams' <dan.j.williams@intel.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> As mentioned above this function seems to assume that the only DIMM events to
-> send are DIMM health events. It's ok to save other object monitoring to a later patch,
-> but let's at least support DIMM health
-> events:
-> 
-> dimm-spares-remaining
-> dimm-media-temperature
-> dimm-controller-temperature
-> dimm-health-state
-> 
-> ...and DIMM detected events:
-> 
-> dimm-unclean-shutdown
-> dimm-detected
-> 
-> There should be an event type included in the json. Along with 'timestamp' and 'pid'
-> I think we need an 'event' field so that consumer code can make assumptions about
-> the format of the event record. I think 'dimm-health' and 'dimm-detect' are the only
-> event record types we need to support in this initial version.
-> 
-
-Hi, Dan
-
-I would like to confirm whether my understanding of the feature in each dimm-event is right or not.
- a) dimm-spares-remaining	
-   Checking the Spare Block Remaining Trip in Alarm Trips, if set then the notification is dimm-spares-remaining.
- b) dimm-media-temperature
-   Checking the NVDIMM Media Temperature Trip in Alarm Trips, if set then the notification is dimm-media-temperature.
- c) dimm-controller-temperature
-   Checking the NVDIMM Controller Temperature Trip in Alarm Trips, if set then the notification is dimm-controller-temperature.
- d) dimm-health-state
-   Checking the Health Status, if changed then the notification is dimm-health-state.
- e) dimm-unclean-shutdown
-   Checking the Last Shutdown Status, if changed then the notification is dimm-unclean-shutdown.
- f) dimm-detected
-   Checking the UUID of DIMM, if changed then the notification is dimm-detected.
-
-Is there a possibility that a notification contains multiple dimm-events?
-
-Should I need to turn off the event alarm after the notification logged?
-
-Thank you very much.
- QI
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gV2lsbGlhbXMgW21haWx0
+bzpkYW4uai53aWxsaWFtc0BpbnRlbC5jb21dDQo+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDE2LCAy
+MDE4IDI6MDcgQU0NCj4gVG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVqaXRz
+dS5jb20+DQo+IENjOiBsaW51eC1udmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+DQo+
+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjYgMi80XSBuZGN0bCwgbW9uaXRvcjogYWRkIG5kY3RsIG1v
+bml0b3IgZGFlbW9uDQo+IA0KPiBPbiBUdWUsIE1heSAxNSwgMjAxOCBhdCAxOjMyIEFNLCBRaSwg
+RnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4gd3JvdGU6DQo+IFsuLl0NCj4gPj4gQWN0dWFs
+bHksIEkgZG9uJ3Qgc2VlIGEgbmVlZCB0byBoYXZlIExPR19ERVNUSU5BVElPTl9GSUxFIGF0IGFs
+bC4gV2h5DQo+ID4+IG5vdCBqdXN0DQo+ID4+IGRvOg0KPiA+Pg0KPiA+PiAgICAgbmRjdGwgbW9u
+aXRvciAyPmZpbGUNCj4gPj4NCj4gPj4gLi4udG8gcmVkaXJlY3Qgc3RkZXJyIHRvIGEgZmlsZT8N
+Cj4gPg0KPiA+IEluIG15IHVuZGVyc3RhbmRpbmcsIHRoaXMgc3RkZXJyIHJlZGlyZWN0aW9uIGRv
+ZXMgbm90IG1ha2Ugc2Vuc2Ugd2hlbg0KPiA+IG5kY3RsIG1vbml0b3IgcnVucyBhcyBhIGRhZW1v
+biwgZWc6DQo+ID4gICAgIyBuZGN0bCBtb25pdG9yIC0tbG9nZmlsZSBzdGRlcnIgLS1kYWVtb24g
+Mj5maWxlIFdoYXQgZG8geW91IHRoaW5rPw0KPiANCj4gVHJ1ZSwgYW5kIG5vdyB0aGF0IEkgbG9v
+ayBkbnNtYXNxIGFsbG93cyB0aGUgc2FtZSB3aXRoIGl0cyAtLWxvZy1mYWNpbGl0eSBvcHRpb24u
+IE9rLA0KPiBsZXQncyBrZWVwIHRoaXMgZmVhdHVyZS4NCj4gDQo+IEkgYXBwcmVjaWF0ZSB0aGUg
+Y29udGludWVkIGVmZm9ydCBhbmQgcGF0aWVuY2UuDQo+IA0KT2ssIEkgc2VlLg0KVGhhbmsgeW91
+IHZlcnkgbXVjaC4NCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpo
+dHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
