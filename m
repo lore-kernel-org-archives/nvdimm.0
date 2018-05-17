@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 137372034860C
- for <linux-nvdimm@lists.01.org>; Thu, 17 May 2018 08:33:18 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 023A2203BBB9F
+ for <linux-nvdimm@lists.01.org>; Wed, 16 May 2018 22:00:35 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [qemu PATCH v3 3/4] nvdimm, acpi: support NFIT platform capabilities
-Date: Thu, 17 May 2018 09:32:54 -0600
-Message-Id: <20180517153254.5760-1-ross.zwisler@linux.intel.com>
-in-reply-to: <152653373366.258.12058788826462830143@1f70390a8372>
+Subject: [qemu PATCH v2 3/4] nvdimm, acpi: support NFIT platform capabilities
+Date: Wed, 16 May 2018 23:00:23 -0600
+Message-Id: <20180517050024.20101-4-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180517050024.20101-1-ross.zwisler@linux.intel.com>
+References: <20180517050024.20101-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -31,17 +32,12 @@ Structure was added in ACPI 6.2 Errata A.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
-
-v3: Added brackets around single statement "if" conditional to comply
-    with qemu coding style.
-
----
  docs/nvdimm.txt         | 18 ++++++++++++++++++
- hw/acpi/nvdimm.c        | 45 +++++++++++++++++++++++++++++++++++++++++----
+ hw/acpi/nvdimm.c        | 44 ++++++++++++++++++++++++++++++++++++++++----
  hw/i386/pc.c            | 31 +++++++++++++++++++++++++++++++
  include/hw/i386/pc.h    |  1 +
  include/hw/mem/nvdimm.h |  5 +++++
- 5 files changed, 96 insertions(+), 4 deletions(-)
+ 5 files changed, 95 insertions(+), 4 deletions(-)
 
 diff --git a/docs/nvdimm.txt b/docs/nvdimm.txt
 index e903d8bb09..3f18013880 100644
@@ -70,7 +66,7 @@ index e903d8bb09..3f18013880 100644
 +
 +For a complete list of the flags available please consult the ACPI spec.
 diff --git a/hw/acpi/nvdimm.c b/hw/acpi/nvdimm.c
-index 59d6e4254c..946937f3ca 100644
+index 59d6e4254c..980d4c2ebb 100644
 --- a/hw/acpi/nvdimm.c
 +++ b/hw/acpi/nvdimm.c
 @@ -169,6 +169,21 @@ struct NvdimmNfitControlRegion {
@@ -120,18 +116,17 @@ index 59d6e4254c..946937f3ca 100644
  {
      GSList *device_list = nvdimm_get_device_list();
      GArray *structures = g_array_new(false, true /* clear */, 1);
-@@ -373,6 +404,10 @@ static GArray *nvdimm_build_device_structure(void)
+@@ -373,6 +404,9 @@ static GArray *nvdimm_build_device_structure(void)
      }
      g_slist_free(device_list);
  
-+    if (state->capabilities) {
++    if (state->capabilities)
 +        nvdimm_build_structure_caps(structures, state->capabilities);
-+    }
 +
      return structures;
  }
  
-@@ -381,16 +416,18 @@ static void nvdimm_init_fit_buffer(NvdimmFitBuffer *fit_buf)
+@@ -381,16 +415,18 @@ static void nvdimm_init_fit_buffer(NvdimmFitBuffer *fit_buf)
      fit_buf->fit = g_array_new(false, true /* clear */, 1);
  }
  
