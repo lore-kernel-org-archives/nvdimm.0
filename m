@@ -1,7 +1,7 @@
-From: <carmelina-S4Cbhn+XXfJG0H3G4sm+Wg@public.gmane.org>
-Subject: Searching for a beloved prince is my main goal!
-Date: 18 May 2018 03:35:07 +0200
-Message-ID: <439162508698217002578951@discotherm.fr>
+From: MAILER-DAEMON-HoH/+O2SdQnXQG4mRURlbs8NsWr+9BEh@public.gmane.org
+Subject: failure notice
+Date: 18 May 2018 08:16:58 +0900
+Message-ID: <20180517231703.9841920837769@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,6 +18,33 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+Hi. This is the qmail-send program at mail01.weave-sv.jp.
+I'm afraid I wasn't able to deliver your message to the following addresses.
+This is a permanent error; I've given up. Sorry it didn't work out.
+
+<shokkidanafhcofvzcayeachmiki-OZdtBALczc93+QwDJ9on6Q@public.gmane.org>:
+Sorry, no mailbox here by that name. (#5.1.1)
+
+--- Below this line is a copy of the message.
+
+Return-Path: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Received: (qmail 6010 invoked from network); 18 May 2018 08:16:57 +0900
+Received: from unknown (HELO 187-162-140-207.static.axtel.net) (187.162.140.207)
+  by mail01.weave-sv.jp with SMTP; 18 May 2018 08:16:57 +0900
+Message-ID: <AF591A71B3EC32D82E6D06C49B45AF59@6I4O1F833>
+From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: <shokkidanafhcofvzcayeachmiki-OZdtBALczc93+QwDJ9on6Q@public.gmane.org>
+Subject: The world is full of love, I want to be a part of it!
+Date: 17 May 2018 12:02:47 -0600
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: 8bit
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5931
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.5994
+
 Dear,
 
 It's a beautiful day and i'am in a hurry to get in touch with you asap!
@@ -32,8 +59,8 @@ I wish to find for my second half, who a man that will give me a real hope and t
 Hope you're interested in becoming a part of my adventure and will reply back soon.
 In the next letter, I'll send you my photo.
 
-Please write me back using my personal email: sevgilonely88-YDxpq3io04c@public.gmane.org
+Please write me back using my personal email: dentistsevgi88-YDxpq3io04c@public.gmane.org
 
---------------------------
+
 Your true soul, 
 Sevgi.
