@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F2841207E636F
- for <linux-nvdimm@lists.01.org>; Thu, 17 May 2018 15:06:41 -0700 (PDT)
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: RE: [qemu PATCH v2 3/4] nvdimm, acpi: support NFIT platform
- capabilities
-Date: Thu, 17 May 2018 22:06:37 +0000
-Message-ID: <AT5PR8401MB11697DD6A19AA3F499ACDDBAAB910@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
-References: <20180517050024.20101-1-ross.zwisler@linux.intel.com>
- <20180517050024.20101-4-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180517050024.20101-4-ross.zwisler@linux.intel.com>
-Content-Language: en-US
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 137372034860C
+ for <linux-nvdimm@lists.01.org>; Thu, 17 May 2018 08:33:18 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [qemu PATCH v3 3/4] nvdimm, acpi: support NFIT platform capabilities
+Date: Thu, 17 May 2018 09:32:54 -0600
+Message-Id: <20180517153254.5760-1-ross.zwisler@linux.intel.com>
+in-reply-to: <152653373366.258.12058788826462830143@1f70390a8372>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,85 +16,222 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Ross Zwisler' <ross.zwisler@linux.intel.com>, Igor Mammedov <imammedo@redhat.com>, "qemu-devel@nongnu.org" <qemu-devel@nongnu.org>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Igor Mammedov <imammedo@redhat.com>, qemu-devel@nongnu.org
+Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S . Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+Add a machine command line option to allow the user to control the Platform
+Capabilities Structure in the virtualized NFIT.  This Platform Capabilities
+Structure was added in ACPI 6.2 Errata A.
 
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
 
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
-> Ross Zwisler
-> Sent: Thursday, May 17, 2018 12:00 AM
-> Subject: [qemu PATCH v2 3/4] nvdimm, acpi: support NFIT platform
-> capabilities
-> 
-> Add a machine command line option to allow the user to control the
-> Platform
-> Capabilities Structure in the virtualized NFIT.  This Platform
-> Capabilities
-> Structure was added in ACPI 6.2 Errata A.
-> 
-...
-> +Platform Capabilities
-> +---------------------
-> +
-> +ACPI 6.2 Errata A added support for a new Platform Capabilities Structure
-> +which allows the platform to communicate what features it supports
-> related to
-> +NVDIMM data durability.  Users can provide a capabilities value to a
-> guest via
-> +the optional "nvdimm-cap" machine command line option:
-> +
-> +    -machine pc,accel=kvm,nvdimm,nvdimm-cap=2
-> +
-> +As of ACPI 6.2 Errata A, the following values are valid for the bottom
-> two
-> +bits:
-> +
-> +2 - Memory Controller Flush to NVDIMM Durability on Power Loss Capable.
-> +3 - CPU Cache Flush to NVDIMM Durability on Power Loss Capable.
-
-It's a bit unclear that those are decimal values for the field, not 
-bit numbers.
-
-...
-> -static GArray *nvdimm_build_device_structure(void)
-> +/*
-> + * ACPI 6.2 Errata A: 5.2.25.9 NVDIMM Platform Capabilities Structure
-> + */
-> +static void
-> +nvdimm_build_structure_caps(GArray *structures, uint32_t capabilities)
-> +{
-> +    NvdimmNfitPlatformCaps *nfit_caps;
-> +
-> +    nfit_caps = acpi_data_push(structures, sizeof(*nfit_caps));
-> +
-> +    nfit_caps->type = cpu_to_le16(7 /* NVDIMM Platform Capabilities */);
-> +    nfit_caps->length = cpu_to_le16(sizeof(*nfit_caps));
-> +    nfit_caps->highest_cap = 2;
-> +    nfit_caps->capabilities = cpu_to_le32(capabilities);
-
-highest_cap needs to be set to a value that at least covers the highest 
-bit set to 1 used in capabilities.
-
-As capabilities bits are added, there are three different meanings:
-* 1: bit within highest_cap range, platform is claiming the 1 meaning
-* 0: bit within highest_cap range, platform is claiming the 0 meaning
-* not reported: bit not within highest_cap range, so the platform's
-  implementation of this feature is unknown. Not necessarily the same 
-  as the 0 meaning.
-
-So, there should be a way to specify a highest_cap value to convey that
-some of the upper capabilities bits are valid and contain 0.
+v3: Added brackets around single statement "if" conditional to comply
+    with qemu coding style.
 
 ---
-Robert Elliott, HPE Persistent Memory
+ docs/nvdimm.txt         | 18 ++++++++++++++++++
+ hw/acpi/nvdimm.c        | 45 +++++++++++++++++++++++++++++++++++++++++----
+ hw/i386/pc.c            | 31 +++++++++++++++++++++++++++++++
+ include/hw/i386/pc.h    |  1 +
+ include/hw/mem/nvdimm.h |  5 +++++
+ 5 files changed, 96 insertions(+), 4 deletions(-)
 
+diff --git a/docs/nvdimm.txt b/docs/nvdimm.txt
+index e903d8bb09..3f18013880 100644
+--- a/docs/nvdimm.txt
++++ b/docs/nvdimm.txt
+@@ -153,3 +153,21 @@ guest NVDIMM region mapping structure.  This unarmed flag indicates
+ guest software that this vNVDIMM device contains a region that cannot
+ accept persistent writes. In result, for example, the guest Linux
+ NVDIMM driver, marks such vNVDIMM device as read-only.
++
++Platform Capabilities
++---------------------
++
++ACPI 6.2 Errata A added support for a new Platform Capabilities Structure
++which allows the platform to communicate what features it supports related to
++NVDIMM data durability.  Users can provide a capabilities value to a guest via
++the optional "nvdimm-cap" machine command line option:
++
++    -machine pc,accel=kvm,nvdimm,nvdimm-cap=2
++
++As of ACPI 6.2 Errata A, the following values are valid for the bottom two
++bits:
++
++2 - Memory Controller Flush to NVDIMM Durability on Power Loss Capable.
++3 - CPU Cache Flush to NVDIMM Durability on Power Loss Capable.
++
++For a complete list of the flags available please consult the ACPI spec.
+diff --git a/hw/acpi/nvdimm.c b/hw/acpi/nvdimm.c
+index 59d6e4254c..946937f3ca 100644
+--- a/hw/acpi/nvdimm.c
++++ b/hw/acpi/nvdimm.c
+@@ -169,6 +169,21 @@ struct NvdimmNfitControlRegion {
+ } QEMU_PACKED;
+ typedef struct NvdimmNfitControlRegion NvdimmNfitControlRegion;
+ 
++/*
++ * NVDIMM Platform Capabilities Structure
++ *
++ * Defined in section 5.2.25.9 of ACPI 6.2 Errata A, September 2017
++ */
++struct NvdimmNfitPlatformCaps {
++    uint16_t type;
++    uint16_t length;
++    uint8_t highest_cap;
++    uint8_t reserved[3];
++    uint32_t capabilities;
++    uint8_t reserved2[4];
++} QEMU_PACKED;
++typedef struct NvdimmNfitPlatformCaps NvdimmNfitPlatformCaps;
++
+ /*
+  * Module serial number is a unique number for each device. We use the
+  * slot id of NVDIMM device to generate this number so that each device
+@@ -351,7 +366,23 @@ static void nvdimm_build_structure_dcr(GArray *structures, DeviceState *dev)
+                                          JEDEC Annex L Release 3. */);
+ }
+ 
+-static GArray *nvdimm_build_device_structure(void)
++/*
++ * ACPI 6.2 Errata A: 5.2.25.9 NVDIMM Platform Capabilities Structure
++ */
++static void
++nvdimm_build_structure_caps(GArray *structures, uint32_t capabilities)
++{
++    NvdimmNfitPlatformCaps *nfit_caps;
++
++    nfit_caps = acpi_data_push(structures, sizeof(*nfit_caps));
++
++    nfit_caps->type = cpu_to_le16(7 /* NVDIMM Platform Capabilities */);
++    nfit_caps->length = cpu_to_le16(sizeof(*nfit_caps));
++    nfit_caps->highest_cap = 2;
++    nfit_caps->capabilities = cpu_to_le32(capabilities);
++}
++
++static GArray *nvdimm_build_device_structure(AcpiNVDIMMState *state)
+ {
+     GSList *device_list = nvdimm_get_device_list();
+     GArray *structures = g_array_new(false, true /* clear */, 1);
+@@ -373,6 +404,10 @@ static GArray *nvdimm_build_device_structure(void)
+     }
+     g_slist_free(device_list);
+ 
++    if (state->capabilities) {
++        nvdimm_build_structure_caps(structures, state->capabilities);
++    }
++
+     return structures;
+ }
+ 
+@@ -381,16 +416,18 @@ static void nvdimm_init_fit_buffer(NvdimmFitBuffer *fit_buf)
+     fit_buf->fit = g_array_new(false, true /* clear */, 1);
+ }
+ 
+-static void nvdimm_build_fit_buffer(NvdimmFitBuffer *fit_buf)
++static void nvdimm_build_fit_buffer(AcpiNVDIMMState *state)
+ {
++    NvdimmFitBuffer *fit_buf = &state->fit_buf;
++
+     g_array_free(fit_buf->fit, true);
+-    fit_buf->fit = nvdimm_build_device_structure();
++    fit_buf->fit = nvdimm_build_device_structure(state);
+     fit_buf->dirty = true;
+ }
+ 
+ void nvdimm_plug(AcpiNVDIMMState *state)
+ {
+-    nvdimm_build_fit_buffer(&state->fit_buf);
++    nvdimm_build_fit_buffer(state);
+ }
+ 
+ static void nvdimm_build_nfit(AcpiNVDIMMState *state, GArray *table_offsets,
+diff --git a/hw/i386/pc.c b/hw/i386/pc.c
+index d768930d02..1b2684c549 100644
+--- a/hw/i386/pc.c
++++ b/hw/i386/pc.c
+@@ -2182,6 +2182,33 @@ static void pc_machine_set_nvdimm(Object *obj, bool value, Error **errp)
+     pcms->acpi_nvdimm_state.is_enabled = value;
+ }
+ 
++static void pc_machine_get_nvdimm_capabilities(Object *obj, Visitor *v,
++                                               const char *name, void *opaque,
++                                               Error **errp)
++{
++    PCMachineState *pcms = PC_MACHINE(obj);
++    uint32_t value = pcms->acpi_nvdimm_state.capabilities;
++
++    visit_type_uint32(v, name, &value, errp);
++}
++
++static void pc_machine_set_nvdimm_capabilities(Object *obj, Visitor *v,
++                                               const char *name, void *opaque,
++                                               Error **errp)
++{
++    PCMachineState *pcms = PC_MACHINE(obj);
++    Error *error = NULL;
++    uint32_t value;
++
++    visit_type_uint32(v, name, &value, &error);
++    if (error) {
++        error_propagate(errp, error);
++        return;
++    }
++
++    pcms->acpi_nvdimm_state.capabilities = value;
++}
++
+ static bool pc_machine_get_smbus(Object *obj, Error **errp)
+ {
+     PCMachineState *pcms = PC_MACHINE(obj);
+@@ -2395,6 +2422,10 @@ static void pc_machine_class_init(ObjectClass *oc, void *data)
+     object_class_property_add_bool(oc, PC_MACHINE_NVDIMM,
+         pc_machine_get_nvdimm, pc_machine_set_nvdimm, &error_abort);
+ 
++    object_class_property_add(oc, PC_MACHINE_NVDIMM_CAP, "uint32",
++        pc_machine_get_nvdimm_capabilities,
++        pc_machine_set_nvdimm_capabilities, NULL, NULL, &error_abort);
++
+     object_class_property_add_bool(oc, PC_MACHINE_SMBUS,
+         pc_machine_get_smbus, pc_machine_set_smbus, &error_abort);
+ 
+diff --git a/include/hw/i386/pc.h b/include/hw/i386/pc.h
+index 2a98e3ad68..e9b22f929c 100644
+--- a/include/hw/i386/pc.h
++++ b/include/hw/i386/pc.h
+@@ -76,6 +76,7 @@ struct PCMachineState {
+ #define PC_MACHINE_VMPORT           "vmport"
+ #define PC_MACHINE_SMM              "smm"
+ #define PC_MACHINE_NVDIMM           "nvdimm"
++#define PC_MACHINE_NVDIMM_CAP       "nvdimm-cap"
+ #define PC_MACHINE_SMBUS            "smbus"
+ #define PC_MACHINE_SATA             "sata"
+ #define PC_MACHINE_PIT              "pit"
+diff --git a/include/hw/mem/nvdimm.h b/include/hw/mem/nvdimm.h
+index 74c60332e1..3c82751bab 100644
+--- a/include/hw/mem/nvdimm.h
++++ b/include/hw/mem/nvdimm.h
+@@ -134,6 +134,11 @@ struct AcpiNVDIMMState {
+ 
+     /* the IO region used by OSPM to transfer control to QEMU. */
+     MemoryRegion io_mr;
++
++    /*
++     * Platform capabilities, section 5.2.25.9 of ACPI 6.2 Errata A
++     */
++    int32_t capabilities;
+ };
+ typedef struct AcpiNVDIMMState AcpiNVDIMMState;
+ 
+-- 
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
