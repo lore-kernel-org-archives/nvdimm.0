@@ -1,11 +1,10 @@
-From: <adamasjuior-ZycV9c0o7whBDgjK7y7TUQ@public.gmane.org>
-Subject: I want to find true happiness - I want love!
-Date: Wed, 16 May 2018 17:56:57 +0000 (UTC)
-Message-ID: <5AFCB0AD.4090102@gotmail.com>
+From: <ryuji.takata-0yZ40TTo86/XIPQYz3ZeZngSJqDPrsil@public.gmane.org>
+Subject: I need someone who can love and appreciate me.
+Date: 17 May 2018 04:24:59 +0400
+Message-ID: <126CF66C7788F6ED930993887709126C@6W6SI1894VA>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0898455128854105261=="
+Content-Type: multipart/mixed; boundary="===============1820619047851278060=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Date: Wed, 16 May 2018 25:29:01 +0300
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,8 +17,9 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============0898455128854105261==
-Content-Type: text/plain; charset=CP-850; format=flowed
+--===============1820619047851278060==
+Content-Type: text/plain;
+	charset="cp-850"
 Content-Transfer-Encoding: 8bit
 
 Dear,
@@ -34,13 +34,13 @@ I love traveling, movies, pop music, seafood, and doing crazy things, but i feel
 I wish to find for my second half, who a man that will give me a real hope and true love! 
 Hope you're interested in becoming a part of my adventure and will reply back soon. 
 
-Please write me back using my personal email: r_oken-YDxpq3io04c@public.gmane.org
+Please write me back using my personal email: sevgident88-YDxpq3io04c@public.gmane.org
 
 Your true soul, 
 Sevgi.
 
 
---===============0898455128854105261==
+--===============1820619047851278060==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -51,4 +51,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============0898455128854105261==--
+--===============1820619047851278060==--
