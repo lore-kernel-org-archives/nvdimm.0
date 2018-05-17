@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A86B6203BA4E2
- for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:50:21 -0700 (PDT)
-Subject: [PATCH 10/11] mm,
- memory_failure: teach memory_failure() about dev_pagemap pages
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 May 2018 07:40:24 -0700
-Message-ID: <152700002461.24093.13281217260996107277.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D9222207E4DF3
+ for <linux-nvdimm@lists.01.org>; Thu, 17 May 2018 11:45:05 -0700 (PDT)
+Received: from willy by bombadil.infradead.org with local (Exim 4.90_1 #2 (Red
+ Hat Linux)) id 1fJNth-00013q-Gj
+ for linux-nvdimm@lists.01.org; Thu, 17 May 2018 18:45:05 +0000
+Date: Thu, 17 May 2018 11:45:05 -0700
+From: Matthew Wilcox <willy@infradead.org>
+Subject: [PATCH] dax: dax_insert_mapping_entry always succeeds
+Message-ID: <20180517184505.GF26718@bombadil.infradead.org>
 MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,108 +21,89 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ICAgIG1jZTogVW5jb3JyZWN0ZWQgaGFyZHdhcmUgbWVtb3J5IGVycm9yIGluIHVzZXItYWNjZXNz
-IGF0IGFmMzQyMTQyMDAKICAgIHsxfVtIYXJkd2FyZSBFcnJvcl06IEl0IGhhcyBiZWVuIGNvcnJl
-Y3RlZCBieSBoL3cgYW5kIHJlcXVpcmVzIG5vIGZ1cnRoZXIgYWN0aW9uCiAgICBtY2U6IFtIYXJk
-d2FyZSBFcnJvcl06IE1hY2hpbmUgY2hlY2sgZXZlbnRzIGxvZ2dlZAogICAgezF9W0hhcmR3YXJl
-IEVycm9yXTogZXZlbnQgc2V2ZXJpdHk6IGNvcnJlY3RlZAogICAgTWVtb3J5IGZhaWx1cmU6IDB4
-YWYzNDIxNDogcmVzZXJ2ZWQga2VybmVsIHBhZ2Ugc3RpbGwgcmVmZXJlbmNlZCBieSAxIHVzZXJz
-CiAgICBbLi5dCiAgICBNZW1vcnkgZmFpbHVyZTogMHhhZjM0MjE0OiByZWNvdmVyeSBhY3Rpb24g
-Zm9yIHJlc2VydmVkIGtlcm5lbCBwYWdlOiBGYWlsZWQKICAgIG1jZTogTWVtb3J5IGVycm9yIG5v
-dCByZWNvdmVyZWQKCkluIGNvbnRyYXN0IHRvIHR5cGljYWwgbWVtb3J5LCBkZXZfcGFnZW1hcCBw
-YWdlcyBtYXkgYmUgZGF4IG1hcHBlZC4gV2l0aApkYXggdGhlcmUgaXMgbm8gcG9zc2liaWxpdHkg
-dG8gbWFwIGluIGFub3RoZXIgcGFnZSBkeW5hbWljYWxseSBzaW5jZSBkYXgKZXN0YWJsaXNoZXMg
-MToxIHBoeXNpY2FsIGFkZHJlc3MgdG8gZmlsZSBvZmZzZXQgYXNzb2NpYXRpb25zLiBBbHNvCmRl
-dl9wYWdlbWFwIHBhZ2VzIGFzc29jaWF0ZWQgd2l0aCBOVkRJTU0gLyBwZXJzaXN0ZW50IG1lbW9y
-eSBkZXZpY2VzIGNhbgppbnRlcm5hbCByZW1hcC9yZXBhaXIgYWRkcmVzc2VzIHdpdGggcG9pc29u
-LiBXaGlsZSBtZW1vcnlfZmFpbHVyZSgpCmFzc3VtZXMgdGhhdCBpdCBjYW4gZGlzY2FyZCB0eXBp
-Y2FsIHBvaXNvbmVkIHBhZ2VzIGFuZCBrZWVwIHRoZW0KdW5tYXBwZWQgaW5kZWZpbml0ZWx5LCBk
-ZXZfcGFnZW1hcCBwYWdlcyBtYXkgYmUgcmV0dXJuZWQgdG8gc2VydmljZQphZnRlciB0aGUgZXJy
-b3IgaXMgY2xlYXJlZC4KClRlYWNoIG1lbW9yeV9mYWlsdXJlKCkgdG8gZGV0ZWN0IGFuZCBoYW5k
-bGUgTUVNT1JZX0RFVklDRV9IT1NUCmRldl9wYWdlbWFwIHBhZ2VzIHRoYXQgaGF2ZSBwb2lzb24g
-Y29uc3VtZWQgYnkgdXNlcnNwYWNlLiBNYXJrIHRoZQptZW1vcnkgYXMgVUMgaW5zdGVhZCBvZiB1
-bm1hcHBpbmcgaXQgY29tcGxldGVseSB0byBhbGxvdyBvbmdvaW5nIGFjY2Vzcwp2aWEgdGhlIGRl
-dmljZSBkcml2ZXIgKG5kX3BtZW0pLiBMYXRlciwgbmRfcG1lbSB3aWxsIGdyb3cgc3VwcG9ydCBm
-b3IKbWFya2luZyB0aGUgcGFnZSBiYWNrIHRvIFdCIHdoZW4gdGhlIGVycm9yIGlzIGNsZWFyZWQu
-CgpDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KQ2M6IENocmlzdG9waCBIZWxsd2lnIDxoY2hA
-bHN0LmRlPgpDYzogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CkNjOiBNYXR0
-aGV3IFdpbGNveCA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT4KQ2M6IE5hb3lhIEhvcmlndWNoaSA8
-bi1ob3JpZ3VjaGlAYWguanAubmVjLmNvbT4KQ2M6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVy
-QGxpbnV4LmludGVsLmNvbT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
-aWFtc0BpbnRlbC5jb20+Ci0tLQogbW0vbWVtb3J5LWZhaWx1cmUuYyB8ICAxMTcgKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdl
-ZCwgMTE3IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9tbS9tZW1vcnktZmFpbHVyZS5jIGIv
-bW0vbWVtb3J5LWZhaWx1cmUuYwppbmRleCA0MmExOTNlZTE0ZDMuLmY5NTAzNmY5OWE3OSAxMDA2
-NDQKLS0tIGEvbW0vbWVtb3J5LWZhaWx1cmUuYworKysgYi9tbS9tZW1vcnktZmFpbHVyZS5jCkBA
-IC01NSw2ICs1NSw3IEBACiAjaW5jbHVkZSA8bGludXgvaHVnZXRsYi5oPgogI2luY2x1ZGUgPGxp
-bnV4L21lbW9yeV9ob3RwbHVnLmg+CiAjaW5jbHVkZSA8bGludXgvbW1faW5saW5lLmg+CisjaW5j
-bHVkZSA8bGludXgvbWVtcmVtYXAuaD4KICNpbmNsdWRlIDxsaW51eC9rZmlmby5oPgogI2luY2x1
-ZGUgPGxpbnV4L3JhdGVsaW1pdC5oPgogI2luY2x1ZGUgImludGVybmFsLmgiCkBAIC0xMTEyLDYg
-KzExMTMsMTE3IEBAIHN0YXRpYyBpbnQgbWVtb3J5X2ZhaWx1cmVfaHVnZXRsYih1bnNpZ25lZCBs
-b25nIHBmbiwgaW50IGZsYWdzKQogCXJldHVybiByZXM7CiB9CiAKK3N0YXRpYyB1bnNpZ25lZCBs
-b25nIGRheF9tYXBwaW5nX3NpemUoc3RydWN0IHBhZ2UgKnBhZ2UpCit7CisJc3RydWN0IGFkZHJl
-c3Nfc3BhY2UgKm1hcHBpbmcgPSBwYWdlLT5tYXBwaW5nOworCXBnb2ZmX3QgcGdvZmYgPSBwYWdl
-X3RvX3Bnb2ZmKHBhZ2UpOworCXN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hOworCXVuc2lnbmVk
-IGxvbmcgc2l6ZSA9IDA7CisKKwlpX21tYXBfbG9ja19yZWFkKG1hcHBpbmcpOworCXZtYV9pbnRl
-cnZhbF90cmVlX2ZvcmVhY2godm1hLCAmbWFwcGluZy0+aV9tbWFwLCBwZ29mZiwgcGdvZmYpIHsK
-KwkJdW5zaWduZWQgbG9uZyBhZGRyZXNzID0gdm1hX2FkZHJlc3MocGFnZSwgdm1hKTsKKwkJcGdk
-X3QgKnBnZDsKKwkJcDRkX3QgKnA0ZDsKKwkJcHVkX3QgKnB1ZDsKKwkJcG1kX3QgKnBtZDsKKwkJ
-cHRlX3QgKnB0ZTsKKworCQlwZ2QgPSBwZ2Rfb2Zmc2V0KHZtYS0+dm1fbW0sIGFkZHJlc3MpOwor
-CQlpZiAoIXBnZF9wcmVzZW50KCpwZ2QpKQorCQkJY29udGludWU7CisJCXA0ZCA9IHA0ZF9vZmZz
-ZXQocGdkLCBhZGRyZXNzKTsKKwkJaWYgKCFwNGRfcHJlc2VudCgqcDRkKSkKKwkJCWNvbnRpbnVl
-OworCQlwdWQgPSBwdWRfb2Zmc2V0KHA0ZCwgYWRkcmVzcyk7CisJCWlmICghcHVkX3ByZXNlbnQo
-KnB1ZCkpCisJCQljb250aW51ZTsKKwkJaWYgKHB1ZF9kZXZtYXAoKnB1ZCkpIHsKKwkJCXNpemUg
-PSBQVURfU0laRTsKKwkJCWJyZWFrOworCQl9CisJCXBtZCA9IHBtZF9vZmZzZXQocHVkLCBhZGRy
-ZXNzKTsKKwkJaWYgKCFwbWRfcHJlc2VudCgqcG1kKSkKKwkJCWNvbnRpbnVlOworCQlpZiAocG1k
-X2Rldm1hcCgqcG1kKSkgeworCQkJc2l6ZSA9IFBNRF9TSVpFOworCQkJYnJlYWs7CisJCX0KKwkJ
-cHRlID0gcHRlX29mZnNldF9tYXAocG1kLCBhZGRyZXNzKTsKKwkJaWYgKCFwdGVfcHJlc2VudCgq
-cHRlKSkKKwkJCWNvbnRpbnVlOworCQlpZiAocHRlX2Rldm1hcCgqcHRlKSkgeworCQkJc2l6ZSA9
-IFBBR0VfU0laRTsKKwkJCWJyZWFrOworCQl9CisJfQorCWlfbW1hcF91bmxvY2tfcmVhZChtYXBw
-aW5nKTsKKwlyZXR1cm4gc2l6ZTsKK30KKworc3RhdGljIGludCBtZW1vcnlfZmFpbHVyZV9kZXZf
-cGFnZW1hcCh1bnNpZ25lZCBsb25nIHBmbiwgaW50IGZsYWdzLAorCQlzdHJ1Y3QgZGV2X3BhZ2Vt
-YXAgKnBnbWFwKQoreworCXN0cnVjdCBwYWdlICpwYWdlID0gcGZuX3RvX3BhZ2UocGZuKTsKKwlj
-b25zdCBib29sIHVubWFwX3N1Y2Nlc3MgPSB0cnVlOworCXVuc2lnbmVkIGxvbmcgc2l6ZTsKKwlM
-SVNUX0hFQUQodG9raWxsKTsKKwlpbnQgcmMgPSAtRUJVU1k7CisJbG9mZl90IHN0YXJ0OworCisJ
-bG9ja19wYWdlKHBhZ2UpOworCWlmIChod3BvaXNvbl9maWx0ZXIocGFnZSkpIHsKKwkJcmMgPSAw
-OworCQlnb3RvIG91dDsKKwl9CisKKwlzd2l0Y2ggKHBnbWFwLT50eXBlKSB7CisJY2FzZSBNRU1P
-UllfREVWSUNFX1BSSVZBVEU6CisJY2FzZSBNRU1PUllfREVWSUNFX1BVQkxJQzoKKwkJLyoKKwkJ
-ICogVE9ETzogSGFuZGxlIEhNTSBwYWdlcyB3aGljaCBtYXkgbmVlZCBjb29yZGluYXRpb24KKwkJ
-ICogd2l0aCBkZXZpY2Utc2lkZSBtZW1vcnkuCisJCSAqLworCQlnb3RvIG91dDsKKwlkZWZhdWx0
-OgorCQlpZiAoIXBhZ2UtPm1hcHBpbmcpCisJCQlnb3RvIG91dDsKKwkJYnJlYWs7CisJfQorCisJ
-LyoKKwkgKiBJZiB0aGUgcGFnZSBpcyBub3QgbWFwcGVkIGluIHVzZXJzcGFjZSB0aGVuIHJlcG9y
-dCBpdCBhcworCSAqIHVuaGFuZGxlZC4KKwkgKi8KKwlzaXplID0gZGF4X21hcHBpbmdfc2l6ZShw
-YWdlKTsKKwlpZiAoIXNpemUpIHsKKwkJcHJfZXJyKCJNZW1vcnkgZmFpbHVyZTogJSNseDogZmFp
-bGVkIHRvIHVubWFwIHBhZ2VcbiIsIHBmbik7CisJCWdvdG8gb3V0OworCX0KKworCVNldFBhZ2VI
-V1BvaXNvbihwYWdlKTsKKworCS8qCisJICogVW5saWtlIFN5c3RlbS1SQU0gdGhlcmUgaXMgbm8g
-cG9zc2liaWxpdHkgdG8gc3dhcCBpbiBhCisJICogZGlmZmVyZW50IHBoeXNpY2FsIHBhZ2UgYXQg
-YSBnaXZlbiB2aXJ0dWFsIGFkZHJlc3MsIHNvIGFsbAorCSAqIHVzZXJzcGFjZSBjb25zdW1wdGlv
-biBvZiBaT05FX0RFVklDRSBtZW1vcnkgbmVjZXNzaXRhdGVzCisJICogU0lHQlVTIChpLmUuIE1G
-X01VU1RfS0lMTCkKKwkgKi8KKwlmbGFncyB8PSBNRl9BQ1RJT05fUkVRVUlSRUQgfCBNRl9NVVNU
-X0tJTEw7CisJY29sbGVjdF9wcm9jcyhwYWdlLCAmdG9raWxsLCBmbGFncyAmIE1GX0FDVElPTl9S
-RVFVSVJFRCk7CisKKwlzdGFydCA9IChwYWdlLT5pbmRleCA8PCBQQUdFX1NISUZUKSAmIH4oc2l6
-ZSAtIDEpOworCXVubWFwX21hcHBpbmdfcmFuZ2UocGFnZS0+bWFwcGluZywgc3RhcnQsIHN0YXJ0
-ICsgc2l6ZSwgMCk7CisKKwlraWxsX3Byb2NzKCZ0b2tpbGwsIGZsYWdzICYgTUZfTVVTVF9LSUxM
-LCAhdW5tYXBfc3VjY2VzcywgaWxvZzIoc2l6ZSksCisJCQlwZm4sIGZsYWdzKTsKKwlyYyA9IDA7
-CitvdXQ6CisJdW5sb2NrX3BhZ2UocGFnZSk7CisJcHV0X2Rldl9wYWdlbWFwKHBnbWFwKTsKKwly
-ZXR1cm4gcmM7Cit9CisKIC8qKgogICogbWVtb3J5X2ZhaWx1cmUgLSBIYW5kbGUgbWVtb3J5IGZh
-aWx1cmUgb2YgYSBwYWdlLgogICogQHBmbjogUGFnZSBOdW1iZXIgb2YgdGhlIGNvcnJ1cHRlZCBw
-YWdlCkBAIC0xMTM0LDYgKzEyNDYsNyBAQCBpbnQgbWVtb3J5X2ZhaWx1cmUodW5zaWduZWQgbG9u
-ZyBwZm4sIGludCBmbGFncykKIAlzdHJ1Y3QgcGFnZSAqcDsKIAlzdHJ1Y3QgcGFnZSAqaHBhZ2U7
-CiAJc3RydWN0IHBhZ2UgKm9yaWdfaGVhZDsKKwlzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwOwog
-CWludCByZXM7CiAJdW5zaWduZWQgbG9uZyBwYWdlX2ZsYWdzOwogCkBAIC0xMTQ2LDYgKzEyNTks
-MTAgQEAgaW50IG1lbW9yeV9mYWlsdXJlKHVuc2lnbmVkIGxvbmcgcGZuLCBpbnQgZmxhZ3MpCiAJ
-CXJldHVybiAtRU5YSU87CiAJfQogCisJcGdtYXAgPSBnZXRfZGV2X3BhZ2VtYXAocGZuLCBOVUxM
-KTsKKwlpZiAocGdtYXApCisJCXJldHVybiBtZW1vcnlfZmFpbHVyZV9kZXZfcGFnZW1hcChwZm4s
-IGZsYWdzLCBwZ21hcCk7CisKIAlwID0gcGZuX3RvX3BhZ2UocGZuKTsKIAlpZiAoUGFnZUh1Z2Uo
-cCkpCiAJCXJldHVybiBtZW1vcnlfZmFpbHVyZV9odWdldGxiKHBmbiwgZmxhZ3MpOwoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
-aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+
+Another bugfix from the XArray work; please queue for merge.
+
+>From 4a53cab1968d2a1022f35d00b29519970ef624e9 Mon Sep 17 00:00:00 2001
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Date: Thu, 29 Mar 2018 22:47:50 -0400
+Subject: [PATCH] dax: dax_insert_mapping_entry always succeeds
+
+It does not return an error, so we don't need to check the return value
+for IS_ERR().  Indeed, it is a bug to do so; with a sufficiently large
+PFN, a legitimate DAX entry may be mistaken for an error return.
+
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+---
+ fs/dax.c | 18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index f643e8fc34ee..99c5084b845c 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1005,19 +1005,13 @@ static vm_fault_t dax_load_hole(struct address_space *mapping, void *entry,
+ {
+ 	struct inode *inode = mapping->host;
+ 	unsigned long vaddr = vmf->address;
+-	vm_fault_t ret = VM_FAULT_NOPAGE;
+-	void *entry2;
++	vm_fault_t ret;
+ 	pfn_t pfn = pfn_to_pfn_t(my_zero_pfn(vaddr));
+ 
+-	entry2 = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
++	dax_insert_mapping_entry(mapping, vmf, entry, pfn,
+ 			DAX_ZERO_PAGE, false);
+-	if (IS_ERR(entry2)) {
+-		ret = VM_FAULT_SIGBUS;
+-		goto out;
+-	}
+ 
+ 	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
+-out:
+ 	trace_dax_load_hole(inode, vmf, ret);
+ 	return ret;
+ }
+@@ -1327,10 +1321,6 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 		entry = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
+ 						 0, write && !sync);
+-		if (IS_ERR(entry)) {
+-			error = PTR_ERR(entry);
+-			goto error_finish_iomap;
+-		}
+ 
+ 		/*
+ 		 * If we are doing synchronous page fault and inode needs fsync,
+@@ -1411,8 +1401,6 @@ static vm_fault_t dax_pmd_load_hole(struct vm_fault *vmf, struct iomap *iomap,
+ 	pfn = page_to_pfn_t(zero_page);
+ 	ret = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
+ 			DAX_PMD | DAX_ZERO_PAGE, false);
+-	if (IS_ERR(ret))
+-		goto fallback;
+ 
+ 	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
+ 	if (!pmd_none(*(vmf->pmd))) {
+@@ -1534,8 +1522,6 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 		entry = dax_insert_mapping_entry(mapping, vmf, entry, pfn,
+ 						DAX_PMD, write && !sync);
+-		if (IS_ERR(entry))
+-			goto finish_iomap;
+ 
+ 		/*
+ 		 * If we are doing synchronous page fault and inode needs fsync,
+-- 
+2.17.0
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
