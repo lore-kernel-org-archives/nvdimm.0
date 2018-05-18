@@ -1,9 +1,10 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Friendship, love, passion and trust - this is what I'm looking for!
-Date: 18 May 2018 08:37:49 +0700
-Message-ID: <397179208693809177356044@lists.01.org>
+From: <carmelina-S4Cbhn+XXfJG0H3G4sm+Wg@public.gmane.org>
+Subject: Searching for a beloved prince is my main goal!
+Date: 18 May 2018 03:35:07 +0200
+Message-ID: <439162508698217002578951@discotherm.fr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6719103741512717065=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -16,11 +17,6 @@ Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
-
---===============6719103741512717065==
-Content-type: text/plain;
- charset="cp-850"
-Content-transfer-encoding: 8bit
 
 Dear,
 
@@ -41,17 +37,3 @@ Please write me back using my personal email: sevgilonely88-YDxpq3io04c@public.g
 --------------------------
 Your true soul, 
 Sevgi.
-
-
---===============6719103741512717065==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6719103741512717065==--
