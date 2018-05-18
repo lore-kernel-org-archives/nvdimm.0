@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 39715203B9921
- for <linux-nvdimm@lists.01.org>; Mon, 21 May 2018 08:54:50 -0700 (PDT)
-Date: Mon, 21 May 2018 09:54:49 -0600
+ by ml01.01.org (Postfix) with ESMTPS id 8C5942096966C
+ for <linux-nvdimm@lists.01.org>; Fri, 18 May 2018 12:31:46 -0700 (PDT)
+Date: Fri, 18 May 2018 13:31:45 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [qemu PATCH v2 3/4] nvdimm, acpi: support NFIT platform
  capabilities
-Message-ID: <20180521155449.GA22635@linux.intel.com>
+Message-ID: <20180518193145.GA29547@linux.intel.com>
 References: <20180517050024.20101-1-ross.zwisler@linux.intel.com>
  <20180517050024.20101-4-ross.zwisler@linux.intel.com>
  <AT5PR8401MB11697DD6A19AA3F499ACDDBAAB910@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
@@ -46,15 +46,47 @@ On Fri, May 18, 2018 at 04:37:10PM +0000, Elliott, Robert (Persistent Memory) wr
 > 
 > Yes, that helps (unless the parser for that command-line does not 
 > accept hex values).
-
-Yep, the command-line parser does accept hex values.  I ended up just trying
-to make the text clearer, though.
-
+> 
 > It would also help to make the text be:
 > 	"CPU Cache and Memory Controller Flush"
 
-My descriptions for the bits are coming straight out of ACPI. :)  I'd prefer
-to stay consistent with what's written in the spec.
+Yea, let me check on that.  I'll update the wording regardless to try and make
+it more clear.
+
+> ...
+> > > So, there should be a way to specify a highest_cap value to convey that
+> > > some of the upper capabilities bits are valid and contain 0.
+> > 
+> > Right, I'll make this dynamic based on the capabilities value passed in by
+> > the user.  That's a much better solution, thanks.  This should cover all the
+> > same cases as you have outlined above, without burdening the user with yet
+> > another input value.
+> 
+> Automatically determining the highest bit that the user wants to set to 1
+> should be easy, and will probably be the most common case.
+> 
+> It's harder to let the user set some upper bits to 0 but also have them
+> within the highest_cap range.  Since this will be less common, the syntax
+> could be more convoluted, like an optional highest_cap argument
+> to override the automatically generated value.
+> 
+> For example, to report bits 7, 1 and 0 are all set to 1:
+> 	-machine pc,accel=kvm,nvdimm,nvdimm-cap=0x83
+> would automatically set highest_cap to 7.
+> 
+> To report bit 7 set to 0 while bits 1 and 0 are set to 1:
+> 	-machine pc,accel=kvm,nvdimm,nvdimm-cap=0x3,nvdimm-highest-cap=7
+
+Yea, I agree that this is how we could do it, but I don't think this is
+necessary right now.  We currently only have 3 bits in the Capabilities field,
+and right now there is never a case where there is a difference between "I
+don't know about this bit" and "I know about this bit, and it's value is 0".
+
+So, really for now we could essentially just say the highest_cap = 31 and be
+fine.
+
+Let's put off the nvdimm-highest-cap argument complexity until we actually
+have a use case where it adds value.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
