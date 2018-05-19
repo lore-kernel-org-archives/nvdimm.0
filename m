@@ -1,10 +1,14 @@
-From: MAILER-DAEMON-HoH/+O2SdQnXQG4mRURlbs8NsWr+9BEh@public.gmane.org
-Subject: failure notice
-Date: 18 May 2018 08:16:58 +0900
-Message-ID: <20180517231703.9841920837769@ml01.01.org>
+From: "Heike" <dufoulon.francois-GANU6spQydw@public.gmane.org>
+Subject: =?windows-1251?B?UmU6KDMpIGxpbnV4LW52ZGltbUBsaXN0cy4w?=
+ =?windows-1251?B?MS5vcmcgRS1tYWlsIGRhdGFiYXNlIGZvciAk?=
+ =?windows-1251?B?MTAgcGVyIGNvdW50cnkgLyBFLW1haWwg4eDn?=
+ =?windows-1251?B?+yDv7iAkMTAg5+Ag8fLw4O3zLi4u?=
+Date: Sat, 19 May 2018 06:54:05 +0400
+Message-ID: <35CF8D9CFA2E03C01C1950A6420454CF@free.fr>
+Reply-To: Heike <dufoulon.francois-GANU6spQydw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="cp1251"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,49 +22,16 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi. This is the qmail-send program at mail01.weave-sv.jp.
-I'm afraid I wasn't able to deliver your message to the following addresses.
-This is a permanent error; I've given up. Sorry it didn't work out.
-
-<shokkidanafhcofvzcayeachmiki-OZdtBALczc93+QwDJ9on6Q@public.gmane.org>:
-Sorry, no mailbox here by that name. (#5.1.1)
-
---- Below this line is a copy of the message.
-
-Return-Path: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Received: (qmail 6010 invoked from network); 18 May 2018 08:16:57 +0900
-Received: from unknown (HELO 187-162-140-207.static.axtel.net) (187.162.140.207)
-  by mail01.weave-sv.jp with SMTP; 18 May 2018 08:16:57 +0900
-Message-ID: <AF591A71B3EC32D82E6D06C49B45AF59@6I4O1F833>
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: <shokkidanafhcofvzcayeachmiki-OZdtBALczc93+QwDJ9on6Q@public.gmane.org>
-Subject: The world is full of love, I want to be a part of it!
-Date: 17 May 2018 12:02:47 -0600
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: 8bit
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2900.5931
-X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.5994
-
-Dear,
-
-It's a beautiful day and i'am in a hurry to get in touch with you asap!
-
-My name is Sevgi, and I'm from Turkey. 
-I really do believe in a destiny with a bright future for myself and that you could become a part of it become my true soulmate. 
-I do want to be next to a loving man. 
-
-I love traveling, movies, pop music, seafood, and doing crazy things, but i feel like loneliness is swallowing me intensely lonely sometimes. 
-I wish to find for my second half, who a man that will give me a real hope and true love! 
-
-Hope you're interested in becoming a part of my adventure and will reply back soon.
-In the next letter, I'll send you my photo.
-
-Please write me back using my personal email: dentistsevgi88-YDxpq3io04c@public.gmane.org
-
-
-Your true soul, 
-Sevgi.
+SGVsbG8gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpFLW1haWwgZGF0YWJhc2UgZm9yICQxMCBw
+ZXIgY291bnRyeS5bYnh3Y3BdIApGb3IgbWFya2V0aW5nLCBhZHZlcnRpc2luZywgbmV3c2xldHRl
+cnMuW3F5aXFiXSAKKyBCb251c2VzLCBkaXNjb3VudHMgYW5kIG11Y2ggbW9yZS5bZWV0eHl0Zl0g
+CisgRmlyc3QgYmFzZSwgdGhlbiBtb25leS5bcGRqc3R2XSAKSHVycnkgdXAuIERldGFpbHMgb246
+IGFuZHJleTEwMDA3N0BnbWFpbC5jb20gb3IgYnkgSUNROiA2NjY3ODQ0MzAgW3Vub3JuXSAKCsTu
+4fD76SDk5e38IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKRS1tYWlsIOHg5/sg7+4gJDEwIOfg
+IPHy8ODt8y5bb2FqZWtdIArE6/8g7ODw6uXy6O3j7uL79Swg8OXq6+Ds7fv1LCDw4PHx++vu6i5b
+enVramhiYl0gCisgwe7t8/H7LCDx6ujk6ugg6CDs7e7j7uUg5PDz4+7lLltkcG9hcGJwXSAKKyDR
+7eD34OvgIOHg5/ssIO/u8u7sIOTl7fzj6C5bY3JqbnZdIArR7+X46PLlLiDE5fLg6+gg7+46IGFu
+ZHJleTEwMDA3N0BnbWFpbC5jb20g6OvoIO/uIElDUTogNjY2Nzg0NDMwIFt5ZnFpamlnal0gCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
+bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
