@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 560132007E7E5
- for <linux-nvdimm@lists.01.org>; Tue,  1 May 2018 13:55:11 -0700 (PDT)
-Subject: [PATCH 1/6] x86,
- memcpy_mcsafe: update labels in support of write fault handling
+ by ml01.01.org (Postfix) with ESMTPS id 6385C20971734
+ for <linux-nvdimm@lists.01.org>; Fri, 18 May 2018 18:45:21 -0700 (PDT)
+Subject: [PATCH v11 6/7] xfs: prepare xfs_break_layouts() for another layout
+ type
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 01 May 2018 13:45:14 -0700
-Message-ID: <152520751443.36522.2271502200875424777.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152520750404.36522.15462513519590065300.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152520750404.36522.15462513519590065300.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 18 May 2018 18:35:24 -0700
+Message-ID: <152669372402.34337.768265797419905210.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,156 +24,241 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The memcpy_mcsafe() implementation handles CPU exceptions when reading
-from the source address. Before it can be used for user copies it needs
-to grow support for handling write faults. In preparation for adding
-that exception handling update the labels for the read cache word X case
-(.L_cache_rX) and write cache word X case (.L_cache_wX).
+When xfs is operating as the back-end of a pNFS block server, it
+prevents collisions between local and remote operations by requiring a
+lease to be held for remotely accessed blocks. Local filesystem
+operations break those leases before writing or mutating the extent map
+of the file.
 
-Cc: <x86@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Reported-by: Tony Luck <tony.luck@intel.com>
+A similar mechanism is needed to prevent operations on pinned dax
+mappings, like device-DMA, from colliding with extent unmap operations.
+
+BREAK_WRITE and BREAK_UNMAP are introduced as two distinct levels of
+layout breaking.
+
+Layouts are broken in the BREAK_WRITE case to ensure that layout-holders
+do not collide with local writes. Additionally, layouts are broken in
+the BREAK_UNMAP case to make sure the layout-holder has a consistent
+view of the file's extent map. While BREAK_WRITE breaks can be satisfied
+be recalling FL_LAYOUT leases, BREAK_UNMAP breaks additionally require
+waiting for busy dax-pages to go idle while holding XFS_MMAPLOCK_EXCL.
+
+After this refactoring xfs_break_layouts() becomes the entry point for
+coordinating both types of breaks. Finally, xfs_break_leased_layouts()
+becomes just the BREAK_WRITE handler.
+
+Note that the unlock tracking is needed in a follow on change. That will
+coordinate retrying either break handler until both successfully test
+for a lease break while maintaining the lock state.
+
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Reported-by: Dave Chinner <david@fromorbit.com>
+Reported-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/lib/memcpy_64.S |   71 ++++++++++++++++++++++++----------------------
- 1 file changed, 37 insertions(+), 34 deletions(-)
+ fs/xfs/xfs_file.c  |   26 ++++++++++++++++++++++++--
+ fs/xfs/xfs_inode.h |   16 ++++++++++++++++
+ fs/xfs/xfs_ioctl.c |    3 +--
+ fs/xfs/xfs_iops.c  |    6 +++---
+ fs/xfs/xfs_pnfs.c  |   12 ++++++------
+ fs/xfs/xfs_pnfs.h  |    5 +++--
+ 6 files changed, 53 insertions(+), 15 deletions(-)
 
-diff --git a/arch/x86/lib/memcpy_64.S b/arch/x86/lib/memcpy_64.S
-index 9a53a06e5a3e..6a416a7df8ee 100644
---- a/arch/x86/lib/memcpy_64.S
-+++ b/arch/x86/lib/memcpy_64.S
-@@ -204,13 +204,14 @@ ENTRY(memcpy_mcsafe_unrolled)
- 	subl $8, %ecx
- 	negl %ecx
- 	subl %ecx, %edx
--.L_copy_leading_bytes:
-+.L_read_leading_bytes:
- 	movb (%rsi), %al
-+.L_write_leading_bytes:
- 	movb %al, (%rdi)
- 	incq %rsi
- 	incq %rdi
- 	decl %ecx
--	jnz .L_copy_leading_bytes
-+	jnz .L_read_leading_bytes
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 35309bd046be..4774c7172ef4 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -312,7 +312,7 @@ xfs_file_aio_write_checks(
+ 	if (error <= 0)
+ 		return error;
  
- .L_8byte_aligned:
- 	/* Figure out how many whole cache lines (64-bytes) to copy */
-@@ -220,26 +221,26 @@ ENTRY(memcpy_mcsafe_unrolled)
- 	jz .L_no_whole_cache_lines
+-	error = xfs_break_layouts(inode, iolock);
++	error = xfs_break_layouts(inode, iolock, BREAK_WRITE);
+ 	if (error)
+ 		return error;
  
- 	/* Loop copying whole cache lines */
--.L_cache_w0: movq (%rsi), %r8
--.L_cache_w1: movq 1*8(%rsi), %r9
--.L_cache_w2: movq 2*8(%rsi), %r10
--.L_cache_w3: movq 3*8(%rsi), %r11
--	movq %r8, (%rdi)
--	movq %r9, 1*8(%rdi)
--	movq %r10, 2*8(%rdi)
--	movq %r11, 3*8(%rdi)
--.L_cache_w4: movq 4*8(%rsi), %r8
--.L_cache_w5: movq 5*8(%rsi), %r9
--.L_cache_w6: movq 6*8(%rsi), %r10
--.L_cache_w7: movq 7*8(%rsi), %r11
--	movq %r8, 4*8(%rdi)
--	movq %r9, 5*8(%rdi)
--	movq %r10, 6*8(%rdi)
--	movq %r11, 7*8(%rdi)
-+.L_cache_r0: movq (%rsi), %r8
-+.L_cache_r1: movq 1*8(%rsi), %r9
-+.L_cache_r2: movq 2*8(%rsi), %r10
-+.L_cache_r3: movq 3*8(%rsi), %r11
-+.L_cache_w0: movq %r8, (%rdi)
-+.L_cache_w1: movq %r9, 1*8(%rdi)
-+.L_cache_w2: movq %r10, 2*8(%rdi)
-+.L_cache_w3: movq %r11, 3*8(%rdi)
-+.L_cache_r4: movq 4*8(%rsi), %r8
-+.L_cache_r5: movq 5*8(%rsi), %r9
-+.L_cache_r6: movq 6*8(%rsi), %r10
-+.L_cache_r7: movq 7*8(%rsi), %r11
-+.L_cache_w4: movq %r8, 4*8(%rdi)
-+.L_cache_w5: movq %r9, 5*8(%rdi)
-+.L_cache_w6: movq %r10, 6*8(%rdi)
-+.L_cache_w7: movq %r11, 7*8(%rdi)
- 	leaq 64(%rsi), %rsi
- 	leaq 64(%rdi), %rdi
- 	decl %ecx
--	jnz .L_cache_w0
-+	jnz .L_cache_r0
+@@ -718,6 +718,28 @@ xfs_file_write_iter(
+ 	return ret;
+ }
  
- 	/* Are there any trailing 8-byte words? */
- .L_no_whole_cache_lines:
-@@ -249,13 +250,14 @@ ENTRY(memcpy_mcsafe_unrolled)
- 	jz .L_no_whole_words
++int
++xfs_break_layouts(
++	struct inode		*inode,
++	uint			*iolock,
++	enum layout_break_reason reason)
++{
++	bool			retry;
++
++	ASSERT(xfs_isilocked(XFS_I(inode), XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
++
++	switch (reason) {
++	case BREAK_UNMAP:
++		ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
++		/* fall through */
++	case BREAK_WRITE:
++		return xfs_break_leased_layouts(inode, iolock, &retry);
++	default:
++		WARN_ON_ONCE(1);
++		return -EINVAL;
++	}
++}
++
+ #define	XFS_FALLOC_FL_SUPPORTED						\
+ 		(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |		\
+ 		 FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_ZERO_RANGE |	\
+@@ -744,7 +766,7 @@ xfs_file_fallocate(
+ 		return -EOPNOTSUPP;
  
- 	/* Copy trailing words */
--.L_copy_trailing_words:
-+.L_read_trailing_words:
- 	movq (%rsi), %r8
-+.L_write_trailing_words:
- 	mov %r8, (%rdi)
- 	leaq 8(%rsi), %rsi
- 	leaq 8(%rdi), %rdi
- 	decl %ecx
--	jnz .L_copy_trailing_words
-+	jnz .L_read_trailing_words
+ 	xfs_ilock(ip, iolock);
+-	error = xfs_break_layouts(inode, &iolock);
++	error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
+ 	if (error)
+ 		goto out_unlock;
  
- 	/* Any trailing bytes? */
- .L_no_whole_words:
-@@ -264,13 +266,14 @@ ENTRY(memcpy_mcsafe_unrolled)
+diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
+index 1eebc53df7d7..e5b849815ce1 100644
+--- a/fs/xfs/xfs_inode.h
++++ b/fs/xfs/xfs_inode.h
+@@ -379,6 +379,20 @@ static inline void xfs_ifunlock(struct xfs_inode *ip)
+ 					>> XFS_ILOCK_SHIFT)
  
- 	/* Copy trailing bytes */
- 	movl %edx, %ecx
--.L_copy_trailing_bytes:
-+.L_read_trailing_bytes:
- 	movb (%rsi), %al
-+.L_write_trailing_bytes:
- 	movb %al, (%rdi)
- 	incq %rsi
- 	incq %rdi
- 	decl %ecx
--	jnz .L_copy_trailing_bytes
-+	jnz .L_read_trailing_bytes
+ /*
++ * Layouts are broken in the BREAK_WRITE case to ensure that
++ * layout-holders do not collide with local writes. Additionally,
++ * layouts are broken in the BREAK_UNMAP case to make sure the
++ * layout-holder has a consistent view of the file's extent map. While
++ * BREAK_WRITE breaks can be satisfied by recalling FL_LAYOUT leases,
++ * BREAK_UNMAP breaks additionally require waiting for busy dax-pages to
++ * go idle.
++ */
++enum layout_break_reason {
++        BREAK_WRITE,
++        BREAK_UNMAP,
++};
++
++/*
+  * For multiple groups support: if S_ISGID bit is set in the parent
+  * directory, group of new file is set to that of the parent, and
+  * new subdirectory gets S_ISGID bit from parent.
+@@ -443,6 +457,8 @@ enum xfs_prealloc_flags {
  
- 	/* Copy successful. Return zero */
- .L_done_memcpy_trap:
-@@ -287,15 +290,15 @@ EXPORT_SYMBOL_GPL(memcpy_mcsafe_unrolled)
+ int	xfs_update_prealloc_flags(struct xfs_inode *ip,
+ 				  enum xfs_prealloc_flags flags);
++int	xfs_break_layouts(struct inode *inode, uint *iolock,
++		enum layout_break_reason reason);
  
- 	.previous
+ /* from xfs_iops.c */
+ extern void xfs_setup_inode(struct xfs_inode *ip);
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index 4151fade4bb1..91e73d663099 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -39,7 +39,6 @@
+ #include "xfs_icache.h"
+ #include "xfs_symlink.h"
+ #include "xfs_trans.h"
+-#include "xfs_pnfs.h"
+ #include "xfs_acl.h"
+ #include "xfs_btree.h"
+ #include <linux/fsmap.h>
+@@ -644,7 +643,7 @@ xfs_ioc_space(
+ 		return error;
  
--	_ASM_EXTABLE_FAULT(.L_copy_leading_bytes, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_cache_w0, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_cache_w1, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_cache_w2, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_cache_w3, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_cache_w4, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_cache_w5, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_cache_w6, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_cache_w7, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_copy_trailing_words, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_copy_trailing_bytes, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_read_leading_bytes, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_cache_r0, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_cache_r1, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_cache_r2, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_cache_r3, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_cache_r4, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_cache_r5, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_cache_r6, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_cache_r7, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_read_trailing_words, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_read_trailing_bytes, .L_memcpy_mcsafe_fail)
- #endif
+ 	xfs_ilock(ip, iolock);
+-	error = xfs_break_layouts(inode, &iolock);
++	error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
+ 	if (error)
+ 		goto out_unlock;
+ 
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index 138fb36ca875..ce0c1f9466a8 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -37,7 +37,6 @@
+ #include "xfs_da_btree.h"
+ #include "xfs_dir2.h"
+ #include "xfs_trans_space.h"
+-#include "xfs_pnfs.h"
+ #include "xfs_iomap.h"
+ 
+ #include <linux/capability.h>
+@@ -1030,13 +1029,14 @@ xfs_vn_setattr(
+ 	int			error;
+ 
+ 	if (iattr->ia_valid & ATTR_SIZE) {
+-		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
++		struct inode		*inode = d_inode(dentry);
++		struct xfs_inode	*ip = XFS_I(inode);
+ 		uint			iolock;
+ 
+ 		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+ 		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+ 
+-		error = xfs_break_layouts(d_inode(dentry), &iolock);
++		error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
+ 		if (error) {
+ 			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+ 			return error;
+diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
+index 6ea7b0b55d02..f44c3599527d 100644
+--- a/fs/xfs/xfs_pnfs.c
++++ b/fs/xfs/xfs_pnfs.c
+@@ -31,17 +31,17 @@
+  * rules in the page fault path we don't bother.
+  */
+ int
+-xfs_break_layouts(
++xfs_break_leased_layouts(
+ 	struct inode		*inode,
+-	uint			*iolock)
++	uint			*iolock,
++	bool			*did_unlock)
+ {
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	int			error;
+ 
+-	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
+-
+ 	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
+ 		xfs_iunlock(ip, *iolock);
++		*did_unlock = true;
+ 		error = break_layout(inode, true);
+ 		*iolock &= ~XFS_IOLOCK_SHARED;
+ 		*iolock |= XFS_IOLOCK_EXCL;
+@@ -121,8 +121,8 @@ xfs_fs_map_blocks(
+ 	 * Lock out any other I/O before we flush and invalidate the pagecache,
+ 	 * and then hand out a layout to the remote system.  This is very
+ 	 * similar to direct I/O, except that the synchronization is much more
+-	 * complicated.  See the comment near xfs_break_layouts for a detailed
+-	 * explanation.
++	 * complicated.  See the comment near xfs_break_leased_layouts
++	 * for a detailed explanation.
+ 	 */
+ 	xfs_ilock(ip, XFS_IOLOCK_EXCL);
+ 
+diff --git a/fs/xfs/xfs_pnfs.h b/fs/xfs/xfs_pnfs.h
+index bf45951e28fe..940c6c2ad88c 100644
+--- a/fs/xfs/xfs_pnfs.h
++++ b/fs/xfs/xfs_pnfs.h
+@@ -9,10 +9,11 @@ int xfs_fs_map_blocks(struct inode *inode, loff_t offset, u64 length,
+ int xfs_fs_commit_blocks(struct inode *inode, struct iomap *maps, int nr_maps,
+ 		struct iattr *iattr);
+ 
+-int xfs_break_layouts(struct inode *inode, uint *iolock);
++int xfs_break_leased_layouts(struct inode *inode, uint *iolock,
++		bool *did_unlock);
+ #else
+ static inline int
+-xfs_break_layouts(struct inode *inode, uint *iolock)
++xfs_break_leased_layouts(struct inode *inode, uint *iolock, bool *did_unlock)
+ {
+ 	return 0;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
