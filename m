@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BE6832096184C
- for <linux-nvdimm@lists.01.org>; Thu, 24 May 2018 19:55:23 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 4/7] dm: prevent DAX mounts if not supported
-Date: Thu, 24 May 2018 20:55:15 -0600
-Message-Id: <20180525025518.11405-5-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180525025518.11405-1-ross.zwisler@linux.intel.com>
-References: <20180525025518.11405-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 569762096DCE8
+ for <linux-nvdimm@lists.01.org>; Fri, 18 May 2018 18:44:49 -0700 (PDT)
+Subject: [PATCH v11 0/7] dax: fix dma vs truncate/hole-punch
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 18 May 2018 18:34:51 -0700
+Message-ID: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,72 +16,103 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: stable@vger.kernel.org, Michal Hocko <mhocko@suse.com>, kbuild test robot <lkp@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Thomas Meyer <thomas@m3y3r.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently the code in dm_dax_direct_access() only checks whether the target
-type has a direct_access() operation defined, not whether the underlying
-block devices all support DAX.  This latter property can be seen by looking
-at whether we set the QUEUE_FLAG_DAX request queue flag when creating the
-DM device.
+Changes since v9 [1] and v10 [2]
 
-This is problematic if we have, for example, a dm-linear device made up of
-a PMEM namespace in fsdax mode followed by a ramdisk from BRD.
-QUEUE_FLAG_DAX won't be set on the dm-linear device's request queue, but
-we have a working direct_access() entry point and the first member of the
-dm-linear set *does* support DAX.
+* Resend the full series with the reworked "mm: introduce
+  MEMORY_DEVICE_FS_DAX and CONFIG_DEV_PAGEMAP_OPS" (Christoph)
+* Move generic_dax_pagefree() into the pmem driver (Christoph)
+* Cleanup __bdev_dax_supported() (Christoph)
+* Cleanup some stale SRCU bits leftover from other iterations (Jan)
+* Cleanup xfs_break_layouts() (Jan)
 
-This allows the user to create a filesystem on the dm-linear device, and
-then mount it with DAX.  The filesystem's bdev_dax_supported() test will
-pass because it'll operate on the first member of the dm-linear device,
-which happens to be a fsdax PMEM namespace.
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-April/015457.html
+[2]: https://lists.01.org/pipermail/linux-nvdimm/2018-May/015885.html
 
-All DAX I/O will then fail to that dm-linear device because the lack of
-QUEUE_FLAG_DAX prevents fs_dax_get_by_bdev() from working.  This means that
-the struct dax_device isn't ever set in the filesystem, so
-dax_direct_access() will always return -EOPNOTSUPP.
-
-By failing out of dm_dax_direct_access() if QUEUE_FLAG_DAX isn't set we let
-the filesystem know we don't support DAX at mount time.  The filesystem
-will then silently fall back and remove the dax mount option, causing it to
-work properly.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Fixes: commit 545ed20e6df6 ("dm: add infrastructure for DAX support")
 ---
- drivers/md/dm.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 0a7b0107ca78..9728433362d1 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1050,14 +1050,13 @@ static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
- 
- 	if (!ti)
- 		goto out;
--	if (!ti->type->direct_access)
-+	if (!blk_queue_dax(md->queue))
- 		goto out;
- 	len = max_io_len(sector, ti) / PAGE_SECTORS;
- 	if (len < 1)
- 		goto out;
- 	nr_pages = min(len, nr_pages);
--	if (ti->type->direct_access)
--		ret = ti->type->direct_access(ti, pgoff, nr_pages, kaddr, pfn);
-+	ret = ti->type->direct_access(ti, pgoff, nr_pages, kaddr, pfn);
- 
-  out:
- 	dm_put_live_table(md, srcu_idx);
--- 
-2.14.3
+Background:
 
+get_user_pages() in the filesystem pins file backed memory pages for
+access by devices performing dma. However, it only pins the memory pages
+not the page-to-file offset association. If a file is truncated the
+pages are mapped out of the file and dma may continue indefinitely into
+a page that is owned by a device driver. This breaks coherency of the
+file vs dma, but the assumption is that if userspace wants the
+file-space truncated it does not matter what data is inbound from the
+device, it is not relevant anymore. The only expectation is that dma can
+safely continue while the filesystem reallocates the block(s).
+
+Problem:
+
+This expectation that dma can safely continue while the filesystem
+changes the block map is broken by dax. With dax the target dma page
+*is* the filesystem block. The model of leaving the page pinned for dma,
+but truncating the file block out of the file, means that the filesytem
+is free to reallocate a block under active dma to another file and now
+the expected data-incoherency situation has turned into active
+data-corruption.
+
+Solution:
+
+Defer all filesystem operations (fallocate(), truncate()) on a dax mode
+file while any page/block in the file is under active dma. This solution
+assumes that dma is transient. Cases where dma operations are known to
+not be transient, like RDMA, have been explicitly disabled via
+commits like 5f1d43de5416 "IB/core: disable memory registration of
+filesystem-dax vmas".
+
+The dax_layout_busy_page() routine is called by filesystems with a lock
+held against mm faults (i_mmap_lock) to find pinned / busy dax pages.
+The process of looking up a busy page invalidates all mappings
+to trigger any subsequent get_user_pages() to block on i_mmap_lock.
+The filesystem continues to call dax_layout_busy_page() until it finally
+returns no more active pages. This approach assumes that the page
+pinning is transient, if that assumption is violated the system would
+have likely hung from the uncompleted I/O.
+
+---
+
+Dan Williams (7):
+      memremap: split devm_memremap_pages() and memremap() infrastructure
+      mm: introduce MEMORY_DEVICE_FS_DAX and CONFIG_DEV_PAGEMAP_OPS
+      mm: fix __gup_device_huge vs unmap
+      mm, fs, dax: handle layout changes to pinned dax mappings
+      xfs: prepare xfs_break_layouts() to be called with XFS_MMAPLOCK_EXCL
+      xfs: prepare xfs_break_layouts() for another layout type
+      xfs, dax: introduce xfs_break_dax_layouts()
+
+
+ drivers/dax/super.c       |   14 ++-
+ drivers/nvdimm/pfn_devs.c |    2 
+ drivers/nvdimm/pmem.c     |   25 +++++
+ fs/Kconfig                |    1 
+ fs/dax.c                  |   97 +++++++++++++++++++++
+ fs/xfs/xfs_file.c         |   72 ++++++++++++++--
+ fs/xfs/xfs_inode.h        |   16 +++
+ fs/xfs/xfs_ioctl.c        |    8 --
+ fs/xfs/xfs_iops.c         |   16 ++-
+ fs/xfs/xfs_pnfs.c         |   15 ++-
+ fs/xfs/xfs_pnfs.h         |    5 +
+ include/linux/dax.h       |    7 ++
+ include/linux/memremap.h  |   36 ++------
+ include/linux/mm.h        |   71 +++++++++++----
+ kernel/Makefile           |    3 -
+ kernel/iomem.c            |  167 ++++++++++++++++++++++++++++++++++++
+ kernel/memremap.c         |  209 ++++++---------------------------------------
+ mm/Kconfig                |    5 +
+ mm/gup.c                  |   36 ++++++--
+ mm/hmm.c                  |   13 ---
+ mm/swap.c                 |    3 -
+ 21 files changed, 542 insertions(+), 279 deletions(-)
+ create mode 100644 kernel/iomem.c
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
