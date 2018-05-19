@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D15892097DD35
- for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 12:51:12 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 6/7] dm-snap: remove unnecessary direct_access() stub
-Date: Tue, 29 May 2018 13:51:05 -0600
-Message-Id: <20180529195106.14268-7-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
-References: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A84CC20971731
+ for <linux-nvdimm@lists.01.org>; Fri, 18 May 2018 18:45:15 -0700 (PDT)
+Subject: [PATCH v11 5/7] xfs: prepare xfs_break_layouts() to be called with
+ XFS_MMAPLOCK_EXCL
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 18 May 2018 18:35:18 -0700
+Message-ID: <152669371892.34337.6984922688445598813.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,52 +19,122 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This stub was added so that we could use dm-snap with DM_TYPE_DAX_BIO_BASED
-mode devices.  That mode and the transition issues associated with it no
-longer exist, so we can remove this dead code.
+In preparation for adding coordination between extent unmap operations
+and busy dax-pages, update xfs_break_layouts() to permit it to be called
+with the mmap lock held. This lock scheme will be required for
+coordinating the break of 'dax layouts' (non-idle dax (ZONE_DEVICE)
+pages mapped into the file's address space). Breaking dax layouts will
+be added to xfs_break_layouts() in a future patch, for now this preps
+the unmap call sites to take and hold XFS_MMAPLOCK_EXCL over the call to
+xfs_break_layouts().
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: "Darrick J. Wong" <darrick.wong@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/md/dm-snap.c | 8 --------
- 1 file changed, 8 deletions(-)
+ fs/xfs/xfs_file.c  |    5 +----
+ fs/xfs/xfs_ioctl.c |    5 +----
+ fs/xfs/xfs_iops.c  |   10 +++++++---
+ fs/xfs/xfs_pnfs.c  |    3 ++-
+ 4 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/md/dm-snap.c b/drivers/md/dm-snap.c
-index 216035be5661..0143b158d52d 100644
---- a/drivers/md/dm-snap.c
-+++ b/drivers/md/dm-snap.c
-@@ -2305,13 +2305,6 @@ static int origin_map(struct dm_target *ti, struct bio *bio)
- 	return do_origin(o->dev, bio);
- }
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 299aee4b7b0b..35309bd046be 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -734,7 +734,7 @@ xfs_file_fallocate(
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	long			error;
+ 	enum xfs_prealloc_flags	flags = 0;
+-	uint			iolock = XFS_IOLOCK_EXCL;
++	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+ 	loff_t			new_size = 0;
+ 	bool			do_file_insert = false;
  
--static long origin_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
--		long nr_pages, void **kaddr, pfn_t *pfn)
--{
--	DMWARN("device does not support dax.");
--	return -EIO;
--}
+@@ -748,9 +748,6 @@ xfs_file_fallocate(
+ 	if (error)
+ 		goto out_unlock;
+ 
+-	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+-	iolock |= XFS_MMAPLOCK_EXCL;
 -
- /*
-  * Set the target "max_io_len" field to the minimum of all the snapshots'
-  * chunk sizes.
-@@ -2371,7 +2364,6 @@ static struct target_type origin_target = {
- 	.postsuspend = origin_postsuspend,
- 	.status  = origin_status,
- 	.iterate_devices = origin_iterate_devices,
--	.direct_access = origin_dax_direct_access,
- };
+ 	if (mode & FALLOC_FL_PUNCH_HOLE) {
+ 		error = xfs_free_file_space(ip, offset, len);
+ 		if (error)
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index 89fb1eb80aae..4151fade4bb1 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -614,7 +614,7 @@ xfs_ioc_space(
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	struct iattr		iattr;
+ 	enum xfs_prealloc_flags	flags = 0;
+-	uint			iolock = XFS_IOLOCK_EXCL;
++	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+ 	int			error;
  
- static struct target_type snapshot_target = {
--- 
-2.14.3
+ 	/*
+@@ -648,9 +648,6 @@ xfs_ioc_space(
+ 	if (error)
+ 		goto out_unlock;
+ 
+-	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+-	iolock |= XFS_MMAPLOCK_EXCL;
+-
+ 	switch (bf->l_whence) {
+ 	case 0: /*SEEK_SET*/
+ 		break;
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index a3ed3c811dfa..138fb36ca875 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -1031,13 +1031,17 @@ xfs_vn_setattr(
+ 
+ 	if (iattr->ia_valid & ATTR_SIZE) {
+ 		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
+-		uint			iolock = XFS_IOLOCK_EXCL;
++		uint			iolock;
++
++		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
++		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+ 
+ 		error = xfs_break_layouts(d_inode(dentry), &iolock);
+-		if (error)
++		if (error) {
++			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+ 			return error;
++		}
+ 
+-		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+ 		error = xfs_vn_setattr_size(dentry, iattr);
+ 		xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+ 	} else {
+diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
+index aa6c5c193f45..6ea7b0b55d02 100644
+--- a/fs/xfs/xfs_pnfs.c
++++ b/fs/xfs/xfs_pnfs.c
+@@ -43,7 +43,8 @@ xfs_break_layouts(
+ 	while ((error = break_layout(inode, false) == -EWOULDBLOCK)) {
+ 		xfs_iunlock(ip, *iolock);
+ 		error = break_layout(inode, true);
+-		*iolock = XFS_IOLOCK_EXCL;
++		*iolock &= ~XFS_IOLOCK_SHARED;
++		*iolock |= XFS_IOLOCK_EXCL;
+ 		xfs_ilock(ip, *iolock);
+ 	}
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
