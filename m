@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D61A720965DFC
- for <linux-nvdimm@lists.01.org>; Thu, 10 May 2018 06:28:51 -0700 (PDT)
-Date: Thu, 10 May 2018 15:28:48 +0200
-From: Igor Mammedov <imammedo@redhat.com>
-Subject: Re: [Qemu-devel] [PATCH 3/3] nvdimm: platform capabilities command
- line option
-Message-ID: <20180510152848.0f99ea07@redhat.com>
-In-Reply-To: <20180427215314.23168-3-ross.zwisler@linux.intel.com>
-References: <20180427215314.23168-1-ross.zwisler@linux.intel.com>
- <20180427215314.23168-3-ross.zwisler@linux.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 7267A20348610
+ for <linux-nvdimm@lists.01.org>; Mon, 21 May 2018 09:32:11 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [qemu PATCH v4 4/4] ACPI testing: test NFIT platform capabilities
+Date: Mon, 21 May 2018 10:32:03 -0600
+Message-Id: <20180521163203.26590-5-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
+References: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,197 +17,58 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S . Tsirkin" <mst@redhat.com>, qemu-devel@nongnu.org, Stefan Hajnoczi <stefanha@redhat.com>
+To: Igor Mammedov <imammedo@redhat.com>, qemu-devel@nongnu.org
+Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S . Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 27 Apr 2018 15:53:14 -0600
-Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
+Add testing for the newly added NFIT Platform Capabilities Structure.
 
-> Add a device command line option to allow the user to control the Platform
-> Capabilities Structure in the virtualized NFIT.
-> 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> ---
->  docs/nvdimm.txt         | 22 ++++++++++++++++++++++
->  hw/acpi/nvdimm.c        | 29 +++++++++++++++++++++++++----
->  hw/mem/nvdimm.c         | 28 ++++++++++++++++++++++++++++
->  include/hw/mem/nvdimm.h |  6 ++++++
->  4 files changed, 81 insertions(+), 4 deletions(-)
-> 
-> diff --git a/docs/nvdimm.txt b/docs/nvdimm.txt
-> index e903d8bb09..13a2c15b70 100644
-> --- a/docs/nvdimm.txt
-> +++ b/docs/nvdimm.txt
-> @@ -153,3 +153,25 @@ guest NVDIMM region mapping structure.  This unarmed flag indicates
->  guest software that this vNVDIMM device contains a region that cannot
->  accept persistent writes. In result, for example, the guest Linux
->  NVDIMM driver, marks such vNVDIMM device as read-only.
-> +
-> +Platform Capabilities
-> +---------------------
-> +
-> +ACPI 6.2 Errata A added support for a new Platform Capabilities Structure
-> +which allows the platform to communicate what features it supports related to
-> +NVDIMM data durability.  Users can provide a capabilities value to a guest via
-> +the optional "cap" device command line option:
-> +
-> + -device nvdimm,id=nvdimm1,memdev=mem1,cap=3
-> +
-> +As of ACPI 6.2 Errata A, the following values are valid for the bottom two
-> +bits:
-> +
-> +2 - Memory Controller Flush to NVDIMM Durability on Power Loss Capable.
-> +3 - CPU Cache Flush to NVDIMM Durability on Power Loss Capable.
-> +
-> +For a complete list of the flags available please consult the ACPI spec.
-> +
-> +These platform capabilities apply to the entire virtual platform, so it is
-> +recommended that only one "cap" device command option be given per virtual
-> +machine.  This value will apply to all NVDIMMs in the virtual platform.
-This looks like it should be machine property instead of per device one,
-you can get rid of static variable and mismatch check and a weird nvdimm CLI
-option that implies that the option is per device.
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Igor Mammedov <imammedo@redhat.com>
+---
+ tests/acpi-test-data/pc/NFIT.dimmpxm  | Bin 224 -> 240 bytes
+ tests/acpi-test-data/q35/NFIT.dimmpxm | Bin 224 -> 240 bytes
+ tests/bios-tables-test.c              |   2 +-
+ 3 files changed, 1 insertion(+), 1 deletion(-)
 
-Also an extra patch to for make check that will test setting 'cap'
-would be nice (an extra testcase in tests/bios-tables-test.c)
+diff --git a/tests/acpi-test-data/pc/NFIT.dimmpxm b/tests/acpi-test-data/pc/NFIT.dimmpxm
+index 2bfc6c51f31c25a052803c494c933d4948fc0106..598d331b751cd3cb2137d431c1f34bb8957a0d31 100644
+GIT binary patch
+delta 35
+lcmaFB_<@nj&&@OB0|NsCqsm0CYXa;H0t}2m9y1Vw005dH1-}3Q
 
-> diff --git a/hw/acpi/nvdimm.c b/hw/acpi/nvdimm.c
-> index 859b390e07..375237c96c 100644
-> --- a/hw/acpi/nvdimm.c
-> +++ b/hw/acpi/nvdimm.c
-> @@ -370,7 +370,7 @@ static void nvdimm_build_structure_dcr(GArray *structures, DeviceState *dev)
->   * ACPI 6.2 Errata A: 5.2.25.9 NVDIMM Platform Capabilities Structure
->   */
->  static void
-> -nvdimm_build_structure_caps(GArray *structures)
-> +nvdimm_build_structure_caps(GArray *structures, uint32_t capabilities)
->  {
->      NvdimmNfitPlatformCaps *nfit_caps;
->  
-> @@ -378,13 +378,31 @@ nvdimm_build_structure_caps(GArray *structures)
->  
->      nfit_caps->type = cpu_to_le16(7 /* NVDIMM Platform Capabilities */);
->      nfit_caps->length = cpu_to_le16(sizeof(*nfit_caps));
-> -    nfit_caps->highest_cap = 1;
-> -    nfit_caps->capabilities = cpu_to_le32(2 /* memory controller */);
-> +    nfit_caps->highest_cap = 2;
-> +    nfit_caps->capabilities = cpu_to_le32(capabilities);
->  }
-> +
-> +static uint32_t nvdimm_get_capabilities(DeviceState *dev)
-> +{
-> +    static uint32_t capabilities = 0;
-> +    uint32_t this_cap = object_property_get_uint(OBJECT(dev),
-> +                                            NVDIMM_CAPABILITIES_PROP, NULL);
-> +
-> +    if (this_cap && !capabilities)
-> +        capabilities = this_cap;
-> +
-> +    if (this_cap && this_cap != capabilities)
-> +        nvdimm_debug("WARNING: multiple capabilities (%d and %d) defined\n",
-> +                this_cap, capabilities);
-> +
-> +    return capabilities;
-> +}
-> +
->  static GArray *nvdimm_build_device_structure(void)
->  {
->      GSList *device_list = nvdimm_get_device_list();
->      GArray *structures = g_array_new(false, true /* clear */, 1);
-> +    uint32_t capabilities = 0;
->  
->      for (; device_list; device_list = device_list->next) {
->          DeviceState *dev = device_list->data;
-> @@ -400,10 +418,13 @@ static GArray *nvdimm_build_device_structure(void)
->  
->          /* build NVDIMM Control Region Structure. */
->          nvdimm_build_structure_dcr(structures, dev);
-> +
-> +        capabilities = nvdimm_get_capabilities(dev);
->      }
->      g_slist_free(device_list);
->  
-> -    nvdimm_build_structure_caps(structures);
-> +    if (capabilities)
-> +        nvdimm_build_structure_caps(structures, capabilities);
->  
->      return structures;
->  }
-> diff --git a/hw/mem/nvdimm.c b/hw/mem/nvdimm.c
-> index 4087aca25e..923364e190 100644
-> --- a/hw/mem/nvdimm.c
-> +++ b/hw/mem/nvdimm.c
-> @@ -87,6 +87,31 @@ static void nvdimm_set_unarmed(Object *obj, bool value, Error **errp)
->      error_propagate(errp, local_err);
->  }
->  
-> +static void nvdimm_get_capabilities(Object *obj, Visitor *v, const char *name,
-> +                                  void *opaque, Error **errp)
-> +{
-> +    NVDIMMDevice *nvdimm = NVDIMM(obj);
-> +    uint32_t value = nvdimm->capabilities;
-> +
-> +    visit_type_uint32(v, name, &value, errp);
-> +}
-> +
-> +static void nvdimm_set_capabilities(Object *obj, Visitor *v, const char *name,
-> +                                  void *opaque, Error **errp)
-> +{
-> +    NVDIMMDevice *nvdimm = NVDIMM(obj);
-> +    Error *local_err = NULL;
-> +    uint32_t value;
-> +
-> +    visit_type_uint32(v, name, &value, &local_err);
-> +    if (local_err)
-> +        goto out;
-> +
-> +    nvdimm->capabilities = value;
-> +out:
-> +    error_propagate(errp, local_err);
-> +}
-> +
->  static void nvdimm_init(Object *obj)
->  {
->      object_property_add(obj, NVDIMM_LABEL_SIZE_PROP, "int",
-> @@ -94,6 +119,9 @@ static void nvdimm_init(Object *obj)
->                          NULL, NULL);
->      object_property_add_bool(obj, NVDIMM_UNARMED_PROP,
->                               nvdimm_get_unarmed, nvdimm_set_unarmed, NULL);
-> +    object_property_add(obj, NVDIMM_CAPABILITIES_PROP, "uint32",
-> +                        nvdimm_get_capabilities, nvdimm_set_capabilities,
-> +                        NULL, NULL, NULL);
->  }
->  
->  static MemoryRegion *nvdimm_get_memory_region(PCDIMMDevice *dimm, Error **errp)
-> diff --git a/include/hw/mem/nvdimm.h b/include/hw/mem/nvdimm.h
-> index 74c60332e1..68af64ff46 100644
-> --- a/include/hw/mem/nvdimm.h
-> +++ b/include/hw/mem/nvdimm.h
-> @@ -50,6 +50,7 @@
->  
->  #define NVDIMM_LABEL_SIZE_PROP "label-size"
->  #define NVDIMM_UNARMED_PROP    "unarmed"
-> +#define NVDIMM_CAPABILITIES_PROP "cap"
->  
->  struct NVDIMMDevice {
->      /* private */
-> @@ -83,6 +84,11 @@ struct NVDIMMDevice {
->       * the guest write persistence.
->       */
->      bool unarmed;
-> +
-> +    /*
-> +     * Platform capabilities, section 5.2.25.9 of ACPI 6.2 Errata A
-> +     */
-> +    uint32_t capabilities;
->  };
->  typedef struct NVDIMMDevice NVDIMMDevice;
->  
+delta 18
+Zcmeys_<)hi&&@OB0RsaAqyI#%YXCU~1+M@A
+
+diff --git a/tests/acpi-test-data/q35/NFIT.dimmpxm b/tests/acpi-test-data/q35/NFIT.dimmpxm
+index 2bfc6c51f31c25a052803c494c933d4948fc0106..598d331b751cd3cb2137d431c1f34bb8957a0d31 100644
+GIT binary patch
+delta 35
+lcmaFB_<@nj&&@OB0|NsCqsm0CYXa;H0t}2m9y1Vw005dH1-}3Q
+
+delta 18
+Zcmeys_<)hi&&@OB0RsaAqyI#%YXCU~1+M@A
+
+diff --git a/tests/bios-tables-test.c b/tests/bios-tables-test.c
+index bf3e193ae9..256d463cb8 100644
+--- a/tests/bios-tables-test.c
++++ b/tests/bios-tables-test.c
+@@ -830,7 +830,7 @@ static void test_acpi_tcg_dimm_pxm(const char *machine)
+     memset(&data, 0, sizeof(data));
+     data.machine = machine;
+     data.variant = ".dimmpxm";
+-    test_acpi_one(" -machine nvdimm=on"
++    test_acpi_one(" -machine nvdimm=on,nvdimm-cap=3"
+                   " -smp 4,sockets=4"
+                   " -m 128M,slots=3,maxmem=1G"
+                   " -numa node,mem=32M,nodeid=0"
+-- 
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
