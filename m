@@ -1,38 +1,52 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9A967203B8CEC
- for <linux-nvdimm@lists.01.org>; Mon, 21 May 2018 23:20:44 -0700 (PDT)
-Date: Tue, 22 May 2018 08:25:57 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v11 2/7] mm: introduce MEMORY_DEVICE_FS_DAX and
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 21 May 2018 11:04:10 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v10] mm: introduce MEMORY_DEVICE_FS_DAX and
  CONFIG_DEV_PAGEMAP_OPS
-Message-ID: <20180522062557.GB7816@lst.de>
-References: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152669370288.34337.17897113760758005456.stgit@dwillia2-desk3.amr.corp.intel.com>
+Message-ID: <20180521090410.7ygosxzjfhceqrq4@quack2.suse.cz>
+References: <152658753673.26786.16458605771414761966.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180518094616.GA25838@lst.de>
+ <CAPcyv4iO1yss0sfBzHVDy3qja_wc+JT2Zi1zwtApDckTeuG2wQ@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <152669370288.34337.17897113760758005456.stgit@dwillia2-desk3.amr.corp.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+In-Reply-To: <CAPcyv4iO1yss0sfBzHVDy3qja_wc+JT2Zi1zwtApDckTeuG2wQ@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, david@fromorbit.com, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>, Thomas Meyer <thomas@m3y3r.de>
+Cc: Christoph Hellwig <hch@lst.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@suse.com>, kbuild test robot <lkp@intel.com>, Thomas Meyer <thomas@m3y3r.de>, Dave Jiang <dave.jiang@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jan Kara <jack@suse.cz>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Looks good,
+On Fri 18-05-18 09:00:29, Dan Williams wrote:
+> On Fri, May 18, 2018 at 2:46 AM, Christoph Hellwig <hch@lst.de> wrote:
+> >> +     select DEV_PAGEMAP_OPS if (ZONE_DEVICE && !FS_DAX_LIMITED)
+> >
+> > Btw, what was the reason again we couldn't get rid of FS_DAX_LIMITED?
+> 
+> The last I heard from Gerald they were still mildly interested in
+> keeping the dccssblk dax support going with this limited mode, and
+> threatened to add full page support at a later date:
+> 
+> ---
+> From: Gerald
+> 
+> dcssblk seems to work fine, I did not see any SIGBUS while "executing
+> in place" from dcssblk with the current upstream kernel, maybe because
+> we only use dcssblk with fs dax in read-only mode.
+> 
+> Anyway, the dcssblk change is fine with me. I will look into adding
+> struct pages for dcssblk memory later, to make it work again with
+> this change, but for now I do not know of anyone needing this in the
+> upstream kernel.
+> 
+> https://www.spinics.net/lists/linux-xfs/msg14628.html
+> ---
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+We definitely do have customers using "execute in place" on s390x from
+dcssblk. I've got about two bug reports for it when customers were updating
+from old kernels using original XIP to kernels using DAX. So we need to
+keep that working.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
