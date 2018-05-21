@@ -1,20 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x243.google.com (mail-qt0-x243.google.com
+ [IPv6:2607:f8b0:400d:c0d::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD8B4207E36DE
- for <linux-nvdimm@lists.01.org>; Mon, 21 May 2018 11:29:37 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 234CF207E4E1F
+ for <linux-nvdimm@lists.01.org>; Mon, 21 May 2018 10:32:24 -0700 (PDT)
+Received: by mail-qt0-x243.google.com with SMTP id f13-v6so19894969qtp.10
+ for <linux-nvdimm@lists.01.org>; Mon, 21 May 2018 10:32:24 -0700 (PDT)
 Subject: Re: [Qemu-devel] [qemu PATCH v4 2/4] tests/.gitignore: add entry for
  generated file
 References: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
  <20180521163203.26590-3-ross.zwisler@linux.intel.com>
  <6332df7d-3588-9ecc-6220-2f40c1581fe6@redhat.com>
- <be62d517-9b3e-6fe2-7333-b8315e830b4b@amsat.org>
-From: Eric Blake <eblake@redhat.com>
-Message-ID: <cf2f3544-fe8f-4649-6056-f37246009307@redhat.com>
-Date: Mon, 21 May 2018 13:29:31 -0500
+From: =?UTF-8?Q?Philippe_Mathieu-Daud=c3=a9?= <f4bug@amsat.org>
+Message-ID: <be62d517-9b3e-6fe2-7333-b8315e830b4b@amsat.org>
+Date: Mon, 21 May 2018 14:32:16 -0300
 MIME-Version: 1.0
-In-Reply-To: <be62d517-9b3e-6fe2-7333-b8315e830b4b@amsat.org>
+In-Reply-To: <6332df7d-3588-9ecc-6220-2f40c1581fe6@redhat.com>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,29 +25,34 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: =?UTF-8?Q?Philippe_Mathieu-Daud=c3=a9?= <f4bug@amsat.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Igor Mammedov <imammedo@redhat.com>, qemu-devel@nongnu.org
+To: Eric Blake <eblake@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Igor Mammedov <imammedo@redhat.com>, qemu-devel@nongnu.org
 Cc: Kevin Wolf <kwolf@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, qemu block <qemu-block@nongnu.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S . Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gMDUvMjEvMjAxOCAxMjozMiBQTSwgUGhpbGlwcGUgTWF0aGlldS1EYXVkw6kgd3JvdGU6Cgo+
-Pj4KPj4+ICDCoMKgwqDCoHRlc3RzL3Rlc3QtYmxvY2stYmFja2VuZAo+Pj4KCj4+PiArdGVzdC1i
-bG9jay1iYWNrZW5kCj4+PiAgwqAgdGVzdC1ibG9ja2pvYgo+Pj4gIMKgIHRlc3QtYmxvY2tqb2It
-dHhuCj4+PiAgwqAgdGVzdC1idWZmZXJpc3plcm8KPiAKPiBXaGF0IGFib3V0IHVzaW5nIGdpdGln
-bm9yZSBuZWdhdGVkIHBhdHRlcm4gaW4gdGVzdHMvPwoKT3IsIHdoYXQgd2UndmUgdGhyZWF0ZW5l
-ZCB0byBkbyBpbiB0aGUgcGFzdDogcmVuYW1lIGFsbCB1bml0IHRlc3RzIHRvIAp0aGUgcGF0dGVy
-biAqLXRlc3QgaW5zdGVhZCBvZiB0ZXN0LSosIGFzIGEgc3VmZml4IGlzIGEgbG90IGVhc2llciB0
-byAKZXhjbHVkZSB2aWEgZ2xvYiB0aGFuIGEgcHJlZml4LiAgQW5kIHdoaWxlIHdlJ3JlIHJlbmFt
-aW5nIHRoaW5ncywgc29ydCAKdGVzdHMgaW50byBzZXBhcmF0ZSBzdWJkaXJlY3RvcmllcyBhY2Nv
-cmRpbmcgdG8gd2hldGhlciB0aGV5IGFyZSBydW4gYXMgCnBhcnQgb2YgJ21ha2UgY2hlY2stdW5p
-dCcgb3IgJ21ha2UgY2hlY2stcXRlc3QnLiAgQnV0IHVudGlsIHNvbWVvbmUgZG9lcyAKdGhhdCB3
-b3JrLCB0d2Vha2luZyB0aGUgLmdpdGlnbm9yZSBmb3IgaW5kaXZpZHVhbCB0ZXN0cyBhcyB0aGV5
-IGtlZXAgCmdldHRpbmcgYWRkZWQgaXMgbm8gd29yc2UgdGhhbiB3aGF0IHdlJ3ZlIGJlZW4gZG9p
-bmcuCgotLSAKRXJpYyBCbGFrZSwgUHJpbmNpcGFsIFNvZnR3YXJlIEVuZ2luZWVyClJlZCBIYXQs
-IEluYy4gICAgICAgICAgICsxLTkxOS0zMDEtMzI2NgpWaXJ0dWFsaXphdGlvbjogIHFlbXUub3Jn
-IHwgbGlidmlydC5vcmcKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+T24gMDUvMjEvMjAxOCAwMTo0MSBQTSwgRXJpYyBCbGFrZSB3cm90ZToKPiBPbiAwNS8yMS8yMDE4
+IDExOjMyIEFNLCBSb3NzIFp3aXNsZXIgd3JvdGU6Cj4+IEFmdGVyIGEgIm1ha2UgY2hlY2siIHdl
+IGVuZCB1cCB3aXRoIHRoZSBmb2xsb3dpbmc6Cj4+Cj4+ICQgZ2l0IHN0YXR1cwo+PiBPbiBicmFu
+Y2ggbWFzdGVyCj4+IFlvdXIgYnJhbmNoIGlzIHVwLXRvLWRhdGUgd2l0aCAnb3JpZ2luL21hc3Rl
+cicuCj4+Cj4+IFVudHJhY2tlZCBmaWxlczoKPj4gwqDCoCAodXNlICJnaXQgYWRkIDxmaWxlPi4u
+LiIgdG8gaW5jbHVkZSBpbiB3aGF0IHdpbGwgYmUgY29tbWl0dGVkKQo+Pgo+PiDCoMKgwqDCoHRl
+c3RzL3Rlc3QtYmxvY2stYmFja2VuZAo+Pgo+PiBub3RoaW5nIGFkZGVkIHRvIGNvbW1pdCBidXQg
+dW50cmFja2VkIGZpbGVzIHByZXNlbnQgKHVzZSAiZ2l0IGFkZCIgdG8KPj4gdHJhY2spCj4+Cj4+
+IFNpZ25lZC1vZmYtYnk6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNv
+bT4KPj4gRml4ZXM6IGNvbW1pdCBhZDBkZjNlMGZkYWMgKCJibG9jazogdGVzdCBibGtfYWlvX2Zs
+dXNoKCkgd2l0aAo+PiBibGstPnJvb3QgPT0gTlVMTCIpCj4+IENjOiBLZXZpbiBXb2xmIDxrd29s
+ZkByZWRoYXQuY29tPgo+PiAtLS0KPj4gwqAgdGVzdHMvLmdpdGlnbm9yZSB8IDEgKwo+PiDCoCAx
+IGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKykKPiAKPiBSZXZpZXdlZC1ieTogRXJpYyBCbGFr
+ZSA8ZWJsYWtlQHJlZGhhdC5jb20+Cj4gCj4+Cj4+IGRpZmYgLS1naXQgYS90ZXN0cy8uZ2l0aWdu
+b3JlIGIvdGVzdHMvLmdpdGlnbm9yZQo+PiBpbmRleCBmYjYyZDIyOTliLi4yYmM2MWE5YTU4IDEw
+MDY0NAo+PiAtLS0gYS90ZXN0cy8uZ2l0aWdub3JlCj4+ICsrKyBiL3Rlc3RzLy5naXRpZ25vcmUK
+Pj4gQEAgLTIxLDYgKzIxLDcgQEAgdGVzdC1iYXNlNjQKPj4gwqAgdGVzdC1iZHJ2LWRyYWluCj4+
+IMKgIHRlc3QtYml0b3BzCj4+IMKgIHRlc3QtYml0Y250Cj4+ICt0ZXN0LWJsb2NrLWJhY2tlbmQK
+Pj4gwqAgdGVzdC1ibG9ja2pvYgo+PiDCoCB0ZXN0LWJsb2Nram9iLXR4bgo+PiDCoCB0ZXN0LWJ1
+ZmZlcmlzemVybwoKV2hhdCBhYm91dCB1c2luZyBnaXRpZ25vcmUgbmVnYXRlZCBwYXR0ZXJuIGlu
+IHRlc3RzLz8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
+Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
