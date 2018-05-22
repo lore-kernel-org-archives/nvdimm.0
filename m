@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EC1E420969669
- for <linux-nvdimm@lists.01.org>; Fri, 25 May 2018 10:47:44 -0700 (PDT)
-Subject: [PATCH] uio, lib: Fix CONFIG_ARCH_HAS_UACCESS_MCSAFE compilation
+ by ml01.01.org (Postfix) with ESMTPS id C910C203B9935
+ for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:49:39 -0700 (PDT)
+Subject: [PATCH 02/11] device-dax: cleanup vm_fault de-reference chains
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 25 May 2018 10:37:47 -0700
-Message-ID: <152726957962.11148.3528187388080177021.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 22 May 2018 07:39:42 -0700
+Message-ID: <152699998238.24093.9051943906273306897.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,51 +22,142 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: tglx@linutronix.de, x86@kernel.org, mingo@kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, tony.luck@intel.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a common Kconfig CONFIG_ARCH_HAS_UACCESS_MCSAFE that archs can
-optionally select, and fixup the declaration of _copy_to_iter_mcsafe().
+Define a local 'vma' variable rather than repetitively de-referencing
+the passed in 'struct vm_fault *' instance.
 
-Fixes: 8780356ef630 ("x86/asm/memcpy_mcsafe: Define copy_to_iter_mcsafe()")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Ingo, Thomas, fyi, here is a trivial compilation fixup I will carry in
-my tree based on tip/x86/dax. I missed defining the Kconfig symbol, and
-my unit test was only dependent on the low level implementation.
+ drivers/dax/device.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
- include/linux/uio.h |    2 +-
- lib/Kconfig         |    3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/uio.h b/include/linux/uio.h
-index f5766e853a77..409c845d4cd3 100644
---- a/include/linux/uio.h
-+++ b/include/linux/uio.h
-@@ -155,7 +155,7 @@ size_t _copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i);
- #endif
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index d44d98c54d0f..686de08e120b 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -247,13 +247,14 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
+ {
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
  
- #ifdef CONFIG_ARCH_HAS_UACCESS_MCSAFE
--size_t _copy_to_iter_mcsafe(void *addr, size_t bytes, struct iov_iter *i);
-+size_t _copy_to_iter_mcsafe(const void *addr, size_t bytes, struct iov_iter *i);
+-	if (check_vma(dev_dax, vmf->vma, __func__))
++	if (check_vma(dev_dax, vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	dax_region = dev_dax->region;
+@@ -274,13 +275,14 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
++	return vmf_insert_mixed(vma, vmf->address, pfn);
+ }
+ 
+ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+@@ -288,7 +290,7 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PMD_SIZE;
+ 
+-	if (check_vma(dev_dax, vmf->vma, __func__))
++	if (check_vma(dev_dax, vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	dax_region = dev_dax->region;
+@@ -310,11 +312,10 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_FALLBACK;
+ 
+ 	/* if we are outside of the VMA */
+-	if (pmd_addr < vmf->vma->vm_start ||
+-			(pmd_addr + PMD_SIZE) > vmf->vma->vm_end)
++	if (pmd_addr < vma->vm_start || (pmd_addr + PMD_SIZE) > vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+ 
+-	pgoff = linear_page_index(vmf->vma, pmd_addr);
++	pgoff = linear_page_index(vma, pmd_addr);
+ 	phys = dax_pgoff_to_phys(dev_dax, pgoff, PMD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", pgoff);
+@@ -323,7 +324,7 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
++	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
+@@ -332,6 +333,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
+ {
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+@@ -340,7 +342,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 	unsigned int fault_size = PUD_SIZE;
+ 
+ 
+-	if (check_vma(dev_dax, vmf->vma, __func__))
++	if (check_vma(dev_dax, vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	dax_region = dev_dax->region;
+@@ -362,11 +364,10 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_FALLBACK;
+ 
+ 	/* if we are outside of the VMA */
+-	if (pud_addr < vmf->vma->vm_start ||
+-			(pud_addr + PUD_SIZE) > vmf->vma->vm_end)
++	if (pud_addr < vma->vm_start || (pud_addr + PUD_SIZE) > vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+ 
+-	pgoff = linear_page_index(vmf->vma, pud_addr);
++	pgoff = linear_page_index(vma, pud_addr);
+ 	phys = dax_pgoff_to_phys(dev_dax, pgoff, PUD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", pgoff);
+@@ -375,7 +376,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pud(vmf->vma, vmf->address, vmf->pud, pfn,
++	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
  #else
- #define _copy_to_iter_mcsafe _copy_to_iter
- #endif
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 5fe577673b98..907f6e4f1cf2 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -586,6 +586,9 @@ config ARCH_HAS_PMEM_API
- config ARCH_HAS_UACCESS_FLUSHCACHE
- 	bool
+@@ -390,12 +391,13 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+ 	int rc, id;
+-	struct file *filp = vmf->vma->vm_file;
++	struct vm_area_struct *vma = vmf->vma;
++	struct file *filp = vma->vm_file;
+ 	struct dev_dax *dev_dax = filp->private_data;
  
-+config ARCH_HAS_UACCESS_MCSAFE
-+	bool
-+
- config STACKDEPOT
- 	bool
- 	select STACKTRACE
+ 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
+ 			(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
+-			vmf->vma->vm_start, vmf->vma->vm_end, pe_size);
++			vma->vm_start, vma->vm_end, pe_size);
+ 
+ 	id = dax_read_lock();
+ 	switch (pe_size) {
 
 _______________________________________________
 Linux-nvdimm mailing list
