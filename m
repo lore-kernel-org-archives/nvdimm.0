@@ -1,53 +1,178 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 23 May 2018 11:35:37 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 06/11] filesystem-dax: perform
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3710D203BBB99
+ for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:50:01 -0700 (PDT)
+Subject: [PATCH 06/11] filesystem-dax: perform
  __dax_invalidate_mapping_entry() under the page lock
-Message-ID: <20180523093537.duw6jlglcx7fnutw@quack2.suse.cz>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 22 May 2018 07:40:03 -0700
+Message-ID: <152700000355.24093.14726378287214432782.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152700000355.24093.14726378287214432782.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <152700000355.24093.14726378287214432782.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, tony.luck@intel.com
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 22-05-18 07:40:03, Dan Williams wrote:
-> Hold the page lock while invalidating mapping entries to prevent races
-> between rmap using the address_space and the filesystem freeing the
-> address_space.
-> 
-> This is more complicated than the simple description implies because
-> dev_pagemap pages that fsdax uses do not have any concept of page size.
-> Size information is stored in the radix and can only be safely read
-> while holding the xa_lock. Since lock_page() can not be taken while
-> holding xa_lock, drop xa_lock and speculatively lock all the associated
-> pages. Once all the pages are locked re-take the xa_lock and revalidate
-> that the radix entry did not change.
-> 
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Matthew Wilcox <mawilcox@microsoft.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Hold the page lock while invalidating mapping entries to prevent races
+between rmap using the address_space and the filesystem freeing the
+address_space.
 
-IMO this is too ugly to live. The combination of entry locks in the radix
-tree and page locks is just too big mess. And from a quick look I don't see
-a reason why we could not use entry locks to protect rmap code as well -
-when you have PFN for which you need to walk rmap, you can grab
-rcu_read_lock(), then you can safely look at page->mapping, grab xa_lock,
-verify the radix tree points where it should and grab entry lock. I agree
-it's a bit complicated but for memory failure I think it is fine.
+This is more complicated than the simple description implies because
+dev_pagemap pages that fsdax uses do not have any concept of page size.
+Size information is stored in the radix and can only be safely read
+while holding the xa_lock. Since lock_page() can not be taken while
+holding xa_lock, drop xa_lock and speculatively lock all the associated
+pages. Once all the pages are locked re-take the xa_lock and revalidate
+that the radix entry did not change.
 
-Or we could talk about switching everything to page locks instead of entry
-locks but that isn't trivial either as we need something to serialized page
-faults on even before we go into the filesystem and allocate blocks for the
-fault...
-								Honza
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ fs/dax.c |   91 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 85 insertions(+), 6 deletions(-)
 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+diff --git a/fs/dax.c b/fs/dax.c
+index 2e4682cd7c69..e6d44d336283 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -319,6 +319,13 @@ static unsigned long dax_radix_end_pfn(void *entry)
+ 	for (pfn = dax_radix_pfn(entry); \
+ 			pfn < dax_radix_end_pfn(entry); pfn++)
+ 
++#define for_each_mapped_pfn_reverse(entry, pfn) \
++	for (pfn = dax_radix_end_pfn(entry) - 1; \
++			dax_entry_size(entry) \
++			&& pfn >= dax_radix_pfn(entry); \
++			pfn--)
++
++
+ static void dax_associate_entry(void *entry, struct address_space *mapping,
+ 		struct vm_area_struct *vma, unsigned long address)
+ {
+@@ -497,6 +504,80 @@ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
+ 	return entry;
+ }
+ 
++static bool dax_lock_pages(struct address_space *mapping, pgoff_t index,
++		void **entry)
++{
++	struct radix_tree_root *pages = &mapping->i_pages;
++	unsigned long pfn;
++	void *entry2;
++
++	xa_lock_irq(pages);
++	*entry = get_unlocked_mapping_entry(mapping, index, NULL);
++	if (!*entry || WARN_ON_ONCE(!radix_tree_exceptional_entry(*entry))) {
++		put_unlocked_mapping_entry(mapping, index, entry);
++		xa_unlock_irq(pages);
++		return false;
++	}
++
++	/*
++	 * In the limited case there are no races to prevent with rmap,
++	 * because rmap can not perform pfn_to_page().
++	 */
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
++		return true;
++
++	/*
++	 * Now, drop the xa_lock, grab all the page locks then validate
++	 * that the entry has not changed and return with the xa_lock
++	 * held.
++	 */
++	xa_unlock_irq(pages);
++
++	/*
++	 * Retry until the entry stabilizes or someone else invalidates
++	 * the entry;
++	 */
++	for (;;) {
++		for_each_mapped_pfn(*entry, pfn)
++			lock_page(pfn_to_page(pfn));
++
++		xa_lock_irq(pages);
++		entry2 = get_unlocked_mapping_entry(mapping, index, NULL);
++		if (!entry2 || WARN_ON_ONCE(!radix_tree_exceptional_entry(entry2))
++				|| entry2 != *entry) {
++			put_unlocked_mapping_entry(mapping, index, entry2);
++			xa_unlock_irq(pages);
++
++			for_each_mapped_pfn_reverse(*entry, pfn)
++				unlock_page(pfn_to_page(pfn));
++
++			if (!entry2 || !radix_tree_exceptional_entry(entry2))
++				return false;
++			*entry = entry2;
++			continue;
++		}
++		break;
++	}
++
++	return true;
++}
++
++static void dax_unlock_pages(struct address_space *mapping, pgoff_t index,
++		void *entry)
++{
++	struct radix_tree_root *pages = &mapping->i_pages;
++	unsigned long pfn;
++
++	put_unlocked_mapping_entry(mapping, index, entry);
++	xa_unlock_irq(pages);
++
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
++		return;
++
++	for_each_mapped_pfn_reverse(entry, pfn)
++		unlock_page(pfn_to_page(pfn));
++}
++
+ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
+ 					  pgoff_t index, bool trunc)
+ {
+@@ -504,10 +585,8 @@ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
+ 	void *entry;
+ 	struct radix_tree_root *pages = &mapping->i_pages;
+ 
+-	xa_lock_irq(pages);
+-	entry = get_unlocked_mapping_entry(mapping, index, NULL);
+-	if (!entry || WARN_ON_ONCE(!radix_tree_exceptional_entry(entry)))
+-		goto out;
++	if (!dax_lock_pages(mapping, index, &entry))
++		return ret;
+ 	if (!trunc &&
+ 	    (radix_tree_tag_get(pages, index, PAGECACHE_TAG_DIRTY) ||
+ 	     radix_tree_tag_get(pages, index, PAGECACHE_TAG_TOWRITE)))
+@@ -517,8 +596,8 @@ static int __dax_invalidate_mapping_entry(struct address_space *mapping,
+ 	mapping->nrexceptional--;
+ 	ret = 1;
+ out:
+-	put_unlocked_mapping_entry(mapping, index, entry);
+-	xa_unlock_irq(pages);
++	dax_unlock_pages(mapping, index, entry);
++
+ 	return ret;
+ }
+ /*
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
