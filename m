@@ -2,10 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9A82A2063D743
- for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 15:53:45 -0700 (PDT)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [dm-devel] [patch 4/4] dm-writecache: use new API for flushing
+ by ml01.01.org (Postfix) with ESMTPS id 8D18E209603F8
+ for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 13:52:21 -0700 (PDT)
+Date: Tue, 22 May 2018 16:52:17 -0400
+From: Mike Snitzer <snitzer@redhat.com>
+Subject: Re: [patch 4/4] dm-writecache: use new API for flushing
+Message-ID: <20180522205214.GA26259@redhat.com>
 References: <20180519052503.325953342@debian.vm>
  <20180519052635.567438191@debian.vm>
  <20180522063946.GB8054@infradead.org>
@@ -13,12 +15,9 @@ References: <20180519052503.325953342@debian.vm>
  <CAPcyv4g395RccdEPF=sCu5RdCH9zwD+GvOfSp7-F0Oh64CeDgA@mail.gmail.com>
  <20180522191942.GB25904@redhat.com>
  <CAPcyv4hWswV=VCfB7KatoW_zc-kUUju2jD45N-Gsg4sW-XFe-A@mail.gmail.com>
- <20180522205214.GA26259@redhat.com>
-Date: Tue, 22 May 2018 18:53:39 -0400
-In-Reply-To: <20180522205214.GA26259@redhat.com> (Mike Snitzer's message of
- "Tue, 22 May 2018 16:52:17 -0400")
-Message-ID: <x49r2m3nvyk.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hWswV=VCfB7KatoW_zc-kUUju2jD45N-Gsg4sW-XFe-A@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,63 +29,120 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mike Snitzer <snitzer@redhat.com>, Mikulas Patocka <mpatocka@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>, device-mapper development <dm-devel@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>, device-mapper development <dm-devel@redhat.com>, Mikulas Patocka <mpatocka@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, Mike,
+On Tue, May 22 2018 at  3:27pm -0400,
+Dan Williams <dan.j.williams@intel.com> wrote:
 
-Mike Snitzer <snitzer@redhat.com> writes:
+> On Tue, May 22, 2018 at 12:19 PM, Mike Snitzer <snitzer@redhat.com> wrote:
+> > On Tue, May 22 2018 at  3:00pm -0400,
+> > Dan Williams <dan.j.williams@intel.com> wrote:
+> >
+> >> On Tue, May 22, 2018 at 11:41 AM, Mike Snitzer <snitzer@redhat.com> wrote:
+> >> > On Tue, May 22 2018 at  2:39am -0400,
+> >> > Christoph Hellwig <hch@infradead.org> wrote:
+> >> >
+> >> >> On Sat, May 19, 2018 at 07:25:07AM +0200, Mikulas Patocka wrote:
+> >> >> > Use new API for flushing persistent memory.
+> >> >>
+> >> >> The sentence doesnt make much sense.  'A new API', 'A better
+> >> >> abstraction' maybe?
+> >> >>
+> >> >> >
+> >> >> > The problem is this:
+> >> >> > * on X86-64, non-temporal stores have the best performance
+> >> >> > * ARM64 doesn't have non-temporal stores, so we must flush cache. We
+> >> >> >   should flush cache as late as possible, because it performs better this
+> >> >> >   way.
+> >> >> >
+> >> >> > We introduce functions pmem_memcpy, pmem_flush and pmem_commit. To commit
+> >> >> > data persistently, all three functions must be called.
+> >> >> >
+> >> >> > The macro pmem_assign may be used instead of pmem_memcpy. pmem_assign
+> >> >> > (unlike pmem_memcpy) guarantees that 8-byte values are written atomically.
+> >> >> >
+> >> >> > On X86, pmem_memcpy is memcpy_flushcache, pmem_flush is empty and
+> >> >> > pmem_commit is wmb.
+> >> >> >
+> >> >> > On ARM64, pmem_memcpy is memcpy, pmem_flush is arch_wb_cache_pmem and
+> >> >> > pmem_commit is empty.
+> >> >>
+> >> >> All these should be provided by the pmem layer, and be properly
+> >> >> documented.  And be sorted before adding your new target that uses
+> >> >> them.
+> >> >
+> >> > I don't see that as a hard requirement.  Mikulas did the work to figure
+> >> > out what is more optimal on x86_64 vs amd64.  It makes a difference for
+> >> > his target and that is sufficient to carry it locally until/when it is
+> >> > either elevated to pmem.
+> >> >
+> >> > We cannot even get x86 and swait maintainers to reply to repeat requests
+> >> > for review.  Stacking up further deps on pmem isn't high on my list.
+> >> >
+> >>
+> >> Except I'm being responsive.
+> >
+> > Except you're looking to immediately punt to linux-arm-kernel ;)
+> 
+> Well, I'm not, not really. I'm saying drop ARM support, it's not ready.
+> 
+> >
+> >> I agree with Christoph that we should
+> >> build pmem helpers at an architecture level and not per-driver. Let's
+> >> make this driver depend on ARCH_HAS_PMEM_API and require ARM to catch
+> >> up to x86 in this space. We already have PowerPC enabling PMEM API, so
+> >> I don't see an unreasonable barrier to ask the same of ARM. This patch
+> >> is not even cc'd to linux-arm-kernel. Has the subject been broached
+> >> with them?
+> >
+> > No idea.  Not by me.
+> >
+> > The thing is, I'm no expert in pmem.  You are.  Coordinating the change
+> > with ARM et al feels unnecessarily limiting and quicky moves outside my
+> > control.
+> >
+> > Serious question: Why can't this code land in this dm-writecache target
+> > and then be lifted (or obsoleted)?
+> 
+> Because we already have an API, and we don't want to promote local
+> solutions to global problems, or carry  unnecessary technical debt.
+> 
+> >
+> > But if you think it worthwhile to force ARM to step up then fine.  That
+> > does limit the availability of using writecache on ARM while they get
+> > the PMEM API together.
+> >
+> > I'll do whatever you want.. just put the smack down and tell me how it
+> > is ;)
+> 
+> I'd say just control the variables you can control. Drop the ARM
+> support if you want to move forward and propose extensions / updates
+> to the pmem api for x86 and I'll help push those since I was involved
+> in pushing the x86 pmem api in the first instance. That way you don't
+> need to touch this driver as new archs add their pmem api enabling.
 
-> Looking at Mikulas' wrapper API that you and hch are calling into
-> question:
->
-> For ARM it is using arch/arm64/mm/flush.c:arch_wb_cache_pmem().
-> (And ARM does seem to be providing CONFIG_ARCH_HAS_PMEM_API.)
->
-> Whereas x86_64 is using memcpy_flushcache() as provided by
-> CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE.
-> (Yet ARM does provide arch/arm64/lib/uaccess_flushcache.c:memcpy_flushcache)
->
-> Just seems this isn't purely about ARM lacking on an API level (given on
-> x86_64 Mikulas isn't only using CONFIG_ARCH_HAS_PMEM_API).
->
-> Seems this is more to do with x86_64 having efficient Non-temporal
-> stores?
+Looking at Mikulas' wrapper API that you and hch are calling into
+question:
 
-Yeah, I think you've got that all right.
+For ARM it is using arch/arm64/mm/flush.c:arch_wb_cache_pmem().
+(And ARM does seem to be providing CONFIG_ARCH_HAS_PMEM_API.)
 
-> Anyway, I'm still trying to appreciate the details here before I can
-> make any forward progress.
+Whereas x86_64 is using memcpy_flushcache() as provided by
+CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE.
+(Yet ARM does provide arch/arm64/lib/uaccess_flushcache.c:memcpy_flushcache)
 
-Making data persistent on x64 requires 3 steps:
-1) copy the data into pmem   (store instructions)
-2) flush the cache lines associated with the data (clflush, clflush_opt, clwb)
-3) wait on the flush to complete (sfence)
+Just seems this isn't purely about ARM lacking on an API level (given on
+x86_64 Mikulas isn't only using CONFIG_ARCH_HAS_PMEM_API).
 
-I'm not sure if other architectures require step 3.  Mikulas'
-implementation seems to imply that arm64 doesn't require the fence.
+Seems this is more to do with x86_64 having efficient Non-temporal
+stores?
 
-The current pmem api provides:
+Anyway, I'm still trying to appreciate the details here before I can
+make any forward progress.
 
-memcpy*           -- step 1
-memcpy_flushcache -- this combines steps 1 and 2
-dax_flush         -- step 2
-wmb*              -- step 3
-
-* not strictly part of the pmem api
-
-So, if you didn't care about performance, you could write generic code
-that only used memcpy, dax_flush, and wmb (assuming other arches
-actually need the wmb).  What Mikulas did was to abstract out an API
-that could be called by generic code that would work optimally on all
-architectures.
-
-This looks like a worth-while addition to the PMEM API, to me.  Mikulas,
-what do you think about refactoring the code as Christoph suggested?
-
-Cheers,
-Jeff
+Mike
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
