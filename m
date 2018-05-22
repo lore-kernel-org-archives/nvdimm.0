@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 569762096DCE8
- for <linux-nvdimm@lists.01.org>; Fri, 18 May 2018 18:44:49 -0700 (PDT)
-Subject: [PATCH v11 0/7] dax: fix dma vs truncate/hole-punch
+ by ml01.01.org (Postfix) with ESMTPS id 50E8A203BA4E2
+ for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:50:27 -0700 (PDT)
+Subject: [PATCH 11/11] libnvdimm,
+ pmem: restore page attributes when clearing errors
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 18 May 2018 18:34:51 -0700
-Message-ID: <152669369110.34337.14271778212195820353.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 22 May 2018 07:40:29 -0700
+Message-ID: <152700002985.24093.13134641532491041554.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,98 +24,103 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: stable@vger.kernel.org, Michal Hocko <mhocko@suse.com>, kbuild test robot <lkp@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Thomas Meyer <thomas@m3y3r.de>
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, tony.luck@intel.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v9 [1] and v10 [2]
+Use clear_mce_nospec() to restore WB mode for the kernel linear mapping
+of a pmem page that was marked 'HWPoison'. A page with 'HWPoison' set
+has also been marked UC in PAT (page attribute table) via
+set_mce_nospec() to prevent speculative retrievals of poison.
 
-* Resend the full series with the reworked "mm: introduce
-  MEMORY_DEVICE_FS_DAX and CONFIG_DEV_PAGEMAP_OPS" (Christoph)
-* Move generic_dax_pagefree() into the pmem driver (Christoph)
-* Cleanup __bdev_dax_supported() (Christoph)
-* Cleanup some stale SRCU bits leftover from other iterations (Jan)
-* Cleanup xfs_break_layouts() (Jan)
+The 'HWPoison' flag is only cleared when overwriting an entire page.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-April/015457.html
-[2]: https://lists.01.org/pipermail/linux-nvdimm/2018-May/015885.html
-
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/nvdimm/pmem.c |   26 ++++++++++++++++++++++++++
+ drivers/nvdimm/pmem.h |   13 +++++++++++++
+ 2 files changed, 39 insertions(+)
 
-Background:
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 9d714926ecf5..04ee1fdee219 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -20,6 +20,7 @@
+ #include <linux/hdreg.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
++#include <linux/set_memory.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/badblocks.h>
+@@ -51,6 +52,30 @@ static struct nd_region *to_region(struct pmem_device *pmem)
+ 	return to_nd_region(to_dev(pmem)->parent);
+ }
+ 
++static void hwpoison_clear(struct pmem_device *pmem,
++		phys_addr_t phys, unsigned int len)
++{
++	unsigned long pfn_start, pfn_end, pfn;
++
++	/* only pmem in the linear map supports HWPoison */
++	if (is_vmalloc_addr(pmem->virt_addr))
++		return;
++
++	pfn_start = PHYS_PFN(phys);
++	pfn_end = pfn_start + PHYS_PFN(len);
++	for (pfn = pfn_start; pfn < pfn_end; pfn++) {
++		struct page *page = pfn_to_page(pfn);
++
++		/*
++		 * Note, no need to hold a get_dev_pagemap() reference
++		 * here since we're in the driver I/O path and
++		 * outstanding I/O requests pin the dev_pagemap.
++		 */
++		if (test_and_clear_pmem_poison(page))
++			clear_mce_nospec(pfn);
++	}
++}
++
+ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ 		phys_addr_t offset, unsigned int len)
+ {
+@@ -65,6 +90,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ 	if (cleared < len)
+ 		rc = BLK_STS_IOERR;
+ 	if (cleared > 0 && cleared / 512) {
++		hwpoison_clear(pmem, pmem->phys_addr + offset, cleared);
+ 		cleared /= 512;
+ 		dev_dbg(dev, "%#llx clear %ld sector%s\n",
+ 				(unsigned long long) sector, cleared,
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index a64ebc78b5df..59cfe13ea8a8 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef __NVDIMM_PMEM_H__
+ #define __NVDIMM_PMEM_H__
++#include <linux/page-flags.h>
+ #include <linux/badblocks.h>
+ #include <linux/types.h>
+ #include <linux/pfn_t.h>
+@@ -27,4 +28,16 @@ struct pmem_device {
+ 
+ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn);
++
++#ifdef CONFIG_MEMORY_FAILURE
++static inline bool test_and_clear_pmem_poison(struct page *page)
++{
++	return TestClearPageHWPoison(page);
++}
++#else
++static inline bool test_and_clear_pmem_poison(struct page *page)
++{
++	return false;
++}
++#endif
+ #endif /* __NVDIMM_PMEM_H__ */
 
-get_user_pages() in the filesystem pins file backed memory pages for
-access by devices performing dma. However, it only pins the memory pages
-not the page-to-file offset association. If a file is truncated the
-pages are mapped out of the file and dma may continue indefinitely into
-a page that is owned by a device driver. This breaks coherency of the
-file vs dma, but the assumption is that if userspace wants the
-file-space truncated it does not matter what data is inbound from the
-device, it is not relevant anymore. The only expectation is that dma can
-safely continue while the filesystem reallocates the block(s).
-
-Problem:
-
-This expectation that dma can safely continue while the filesystem
-changes the block map is broken by dax. With dax the target dma page
-*is* the filesystem block. The model of leaving the page pinned for dma,
-but truncating the file block out of the file, means that the filesytem
-is free to reallocate a block under active dma to another file and now
-the expected data-incoherency situation has turned into active
-data-corruption.
-
-Solution:
-
-Defer all filesystem operations (fallocate(), truncate()) on a dax mode
-file while any page/block in the file is under active dma. This solution
-assumes that dma is transient. Cases where dma operations are known to
-not be transient, like RDMA, have been explicitly disabled via
-commits like 5f1d43de5416 "IB/core: disable memory registration of
-filesystem-dax vmas".
-
-The dax_layout_busy_page() routine is called by filesystems with a lock
-held against mm faults (i_mmap_lock) to find pinned / busy dax pages.
-The process of looking up a busy page invalidates all mappings
-to trigger any subsequent get_user_pages() to block on i_mmap_lock.
-The filesystem continues to call dax_layout_busy_page() until it finally
-returns no more active pages. This approach assumes that the page
-pinning is transient, if that assumption is violated the system would
-have likely hung from the uncompleted I/O.
-
----
-
-Dan Williams (7):
-      memremap: split devm_memremap_pages() and memremap() infrastructure
-      mm: introduce MEMORY_DEVICE_FS_DAX and CONFIG_DEV_PAGEMAP_OPS
-      mm: fix __gup_device_huge vs unmap
-      mm, fs, dax: handle layout changes to pinned dax mappings
-      xfs: prepare xfs_break_layouts() to be called with XFS_MMAPLOCK_EXCL
-      xfs: prepare xfs_break_layouts() for another layout type
-      xfs, dax: introduce xfs_break_dax_layouts()
-
-
- drivers/dax/super.c       |   14 ++-
- drivers/nvdimm/pfn_devs.c |    2 
- drivers/nvdimm/pmem.c     |   25 +++++
- fs/Kconfig                |    1 
- fs/dax.c                  |   97 +++++++++++++++++++++
- fs/xfs/xfs_file.c         |   72 ++++++++++++++--
- fs/xfs/xfs_inode.h        |   16 +++
- fs/xfs/xfs_ioctl.c        |    8 --
- fs/xfs/xfs_iops.c         |   16 ++-
- fs/xfs/xfs_pnfs.c         |   15 ++-
- fs/xfs/xfs_pnfs.h         |    5 +
- include/linux/dax.h       |    7 ++
- include/linux/memremap.h  |   36 ++------
- include/linux/mm.h        |   71 +++++++++++----
- kernel/Makefile           |    3 -
- kernel/iomem.c            |  167 ++++++++++++++++++++++++++++++++++++
- kernel/memremap.c         |  209 ++++++---------------------------------------
- mm/Kconfig                |    5 +
- mm/gup.c                  |   36 ++++++--
- mm/hmm.c                  |   13 ---
- mm/swap.c                 |    3 -
- 21 files changed, 542 insertions(+), 279 deletions(-)
- create mode 100644 kernel/iomem.c
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
