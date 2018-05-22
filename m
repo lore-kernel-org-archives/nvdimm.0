@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail1.bemta8.messagelabs.com (mail1.bemta8.messagelabs.com
- [216.82.243.201])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2AE7A203BBB91
- for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 19:34:37 -0700 (PDT)
-From: Huaisheng HS1 Ye <yehs1@lenovo.com>
-Subject: [External] [RFC PATCH v1 5/6] mm: get zone spanned pages separately
- for DRAM and NVDIMM
-Date: Tue, 8 May 2018 02:34:17 +0000
-Message-ID: <HK2PR03MB16843F0A91E190ECDBB28F2F929A0@HK2PR03MB1684.apcprd03.prod.outlook.com>
-References: <1525746628-114136-1-git-send-email-yehs1@lenovo.com>
- <1525746628-114136-6-git-send-email-yehs1@lenovo.com>
-In-Reply-To: <1525746628-114136-6-git-send-email-yehs1@lenovo.com>
-Content-Language: zh-CN
+ by ml01.01.org (Postfix) with ESMTPS id 359E2203B992F
+ for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:49:34 -0700 (PDT)
+Subject: [PATCH 01/11] device-dax: convert to vmf_insert_mixed and vm_fault_t
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 22 May 2018 07:39:37 -0700
+Message-ID: <152699997725.24093.7806223020674439995.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,114 +22,152 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
-Cc: "mhocko@suse.com" <mhocko@suse.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ocean HY1 He <hehy1@lenovo.com>, "penguin-kernel@I-love.SAKURA.ne.jp" <penguin-kernel@I-love.SAKURA.ne.jp>, NingTing Cheng <chengnt@lenovo.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "pasha.tatashin@oracle.com" <pasha.tatashin@oracle.com>, "willy@infradead.org" <willy@infradead.org>, "alexander.levin@verizon.com" <alexander.levin@verizon.com>, "hannes@cmpxchg.org" <hannes@cmpxchg.org>, "colyli@suse.de" <colyli@suse.de>, "mgorman@techsingularity.net" <mgorman@techsingularity.net>, "vbabka@suse.cz" <vbabka@suse.cz>
+To: linux-nvdimm@lists.01.org
+Cc: tony.luck@intel.com, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, Souptick Joarder <jrdr.linux@gmail.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-DRAM and NVDIMM are divided into separate zones, thus NVM
-zone is dedicated for NVDIMMs.
+Use new return type vm_fault_t for fault and huge_fault handler. For
+now, this is just documenting that the function returns a VM_FAULT value
+rather than an errno.  Once all instances are converted, vm_fault_t will
+become a distinct type.
 
-During zone_spanned_pages_in_node, spanned pages of zones
-are calculated separately for DRAM and NVDIMM by flags
-MEMBLOCK_NONE and MEMBLOCK_NVDIMM.
+Commit 1c8f422059ae ("mm: change return type to vm_fault_t")
 
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
-Signed-off-by: Ocean He <hehy1@lenovo.com>
+Previously vm_insert_mixed() returned an error code which driver mapped into
+VM_FAULT_* type. The new function vmf_insert_mixed() will replace this
+inefficiency by returning VM_FAULT_* type.
+
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/nobootmem.c  |  5 +++--
- mm/page_alloc.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+), 2 deletions(-)
+ drivers/dax/device.c    |   26 +++++++++++---------------
+ include/linux/huge_mm.h |    5 +++--
+ mm/huge_memory.c        |    4 ++--
+ 3 files changed, 16 insertions(+), 19 deletions(-)
 
-diff --git a/mm/nobootmem.c b/mm/nobootmem.c
-index 9b02fda..19b5291 100644
---- a/mm/nobootmem.c
-+++ b/mm/nobootmem.c
-@@ -143,8 +143,9 @@ static unsigned long __init free_low_memory_core_early(void)
- 	 *  because in some case like Node0 doesn't have RAM installed
- 	 *  low ram will be on Node1
- 	 */
--	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end,
--				NULL)
-+	for_each_free_mem_range(i, NUMA_NO_NODE,
-+				MEMBLOCK_NONE | MEMBLOCK_NVDIMM,
-+				&start, &end, NULL)
- 		count += __free_memory_core(start, end);
- 
- 	return count;
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index d8bd20d..3fd0d95 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -4221,6 +4221,11 @@ static inline void finalise_ac(gfp_t gfp_mask,
- 	 * also used as the starting point for the zonelist iterator. It
- 	 * may get reset for allocations that ignore memory policies.
- 	 */
-+#ifdef CONFIG_ZONE_NVM
-+	/* Bypass ZONE_NVM for Normal alloctions */
-+	if (ac->high_zoneidx > ZONE_NVM)
-+		ac->high_zoneidx = ZONE_NORMAL;
-+#endif
- 	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
- 					ac->high_zoneidx, ac->nodemask);
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index aff2c1594220..d44d98c54d0f 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -244,11 +244,11 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ 	return -1;
  }
-@@ -5808,6 +5813,10 @@ static unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 					unsigned long *zone_end_pfn,
- 					unsigned long *ignored)
- {
-+#ifdef CONFIG_ZONE_NVM
-+	unsigned long start_pfn, end_pfn;
-+#endif
-+
- 	/* When hotadd a new node from cpu_up(), the node should be empty */
- 	if (!node_start_pfn && !node_end_pfn)
- 		return 0;
-@@ -5815,6 +5824,26 @@ static unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 	/* Get the start and end of the zone */
- 	*zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
- 	*zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
-+
-+#ifdef CONFIG_ZONE_NVM
-+	/*
-+	 * Use zone_type to adjust zone size again.
-+	 */
-+	if (zone_type == ZONE_NVM) {
-+		get_pfn_range_for_nid_with_flags(nid, &start_pfn, &end_pfn,
-+							MEMBLOCK_NVDIMM);
-+	} else {
-+		get_pfn_range_for_nid_with_flags(nid, &start_pfn, &end_pfn,
-+							MEMBLOCK_NONE);
-+	}
-+
-+	if (*zone_end_pfn < start_pfn || *zone_start_pfn > end_pfn)
-+		return 0;
-+	/* Move the zone boundaries inside the possile_pfn if necessary */
-+	*zone_end_pfn = min(*zone_end_pfn, end_pfn);
-+	*zone_start_pfn = max(*zone_start_pfn, start_pfn);
-+#endif
-+
- 	adjust_zone_range_for_zone_movable(nid, zone_type,
- 				node_start_pfn, node_end_pfn,
- 				zone_start_pfn, zone_end_pfn);
-@@ -6680,6 +6709,17 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- 		start_pfn = end_pfn;
- 	}
  
-+#ifdef CONFIG_ZONE_NVM
-+	/*
-+	 * Adjust nvm zone included in normal zone
-+	 */
-+	get_pfn_range_for_nid_with_flags(MAX_NUMNODES, &start_pfn, &end_pfn,
-+							    MEMBLOCK_NVDIMM);
-+
-+	arch_zone_lowest_possible_pfn[ZONE_NVM] = start_pfn;
-+	arch_zone_highest_possible_pfn[ZONE_NVM] = end_pfn;
-+#endif
-+
- 	/* Find the PFNs that ZONE_MOVABLE begins at in each node */
- 	memset(zone_movable_pfn, 0, sizeof(zone_movable_pfn));
- 	find_zone_movable_pfns_for_nodes();
--- 
-1.8.3.1
+-static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
++static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
++				struct vm_fault *vmf)
+ {
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+-	int rc = VM_FAULT_SIGBUS;
+ 	phys_addr_t phys;
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
+@@ -274,17 +274,11 @@ static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
+ 
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	rc = vm_insert_mixed(vmf->vma, vmf->address, pfn);
+-
+-	if (rc == -ENOMEM)
+-		return VM_FAULT_OOM;
+-	if (rc < 0 && rc != -EBUSY)
+-		return VM_FAULT_SIGBUS;
+-
+-	return VM_FAULT_NOPAGE;
++	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
+ }
+ 
+-static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
++static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
++				struct vm_fault *vmf)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+@@ -334,7 +328,8 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
++static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
++				struct vm_fault *vmf)
+ {
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+@@ -384,13 +379,14 @@ static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ #else
+-static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
++static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
++				struct vm_fault *vmf)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+ #endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ 
+-static int dev_dax_huge_fault(struct vm_fault *vmf,
++static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+ 	int rc, id;
+@@ -420,7 +416,7 @@ static int dev_dax_huge_fault(struct vm_fault *vmf,
+ 	return rc;
+ }
+ 
+-static int dev_dax_fault(struct vm_fault *vmf)
++static vm_fault_t dev_dax_fault(struct vm_fault *vmf)
+ {
+ 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
+ }
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index a8a126259bc4..d3bbf6bea9e9 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -3,6 +3,7 @@
+ #define _LINUX_HUGE_MM_H
+ 
+ #include <linux/sched/coredump.h>
++#include <linux/mm_types.h>
+ 
+ #include <linux/fs.h> /* only for vma_is_dax() */
+ 
+@@ -46,9 +47,9 @@ extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot,
+ 			int prot_numa);
+-int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++vm_fault_t vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 			pmd_t *pmd, pfn_t pfn, bool write);
+-int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
++vm_fault_t vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 			pud_t *pud, pfn_t pfn, bool write);
+ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index a3a1815f8e11..6af976472a5d 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -755,7 +755,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	spin_unlock(ptl);
+ }
+ 
+-int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++vm_fault_t vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 			pmd_t *pmd, pfn_t pfn, bool write)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
+@@ -815,7 +815,7 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 	spin_unlock(ptl);
+ }
+ 
+-int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
++vm_fault_t vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 			pud_t *pud, pfn_t pfn, bool write)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
 
 _______________________________________________
 Linux-nvdimm mailing list
