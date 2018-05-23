@@ -1,7 +1,7 @@
-From: "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Status
-Date: Mon, 21 May 2018 11:20:19 +0800
-Message-ID: <20180521032023.B48FF207E53E4@ml01.01.org>
+From: "Bounced mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: RETURNED MAIL: DATA FORMAT ERROR
+Date: Wed, 23 May 2018 10:59:05 +0800
+Message-ID: <20180523025908.18BD7207E36C6@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,13 +18,13 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Mon, 21 May 2018 11:20:19 +0800
-from lists.01.org [80.196.162.190]
+The original message was received at Wed, 23 May 2018 10:59:05 +0800
+from lists.01.org [149.215.9.222]
 
 ----- The following addresses had permanent fatal errors -----
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
 ----- Transcript of session follows -----
   while talking to lists.01.org.:
->>> MAIL From:"Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-<<< 501 "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
+>>> MAIL From:"Bounced mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+<<< 501 "Bounced mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>... Refused
