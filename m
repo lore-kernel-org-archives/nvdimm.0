@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A5B4A20D7B24C
- for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 12:54:34 -0700 (PDT)
-Date: Tue, 29 May 2018 13:54:33 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 315FD20969643
+ for <linux-nvdimm@lists.01.org>; Fri, 25 May 2018 10:51:27 -0700 (PDT)
+Date: Fri, 25 May 2018 20:51:22 +0300
+From: "Michael S. Tsirkin" <mst@redhat.com>
 Subject: Re: [qemu PATCH v4 0/4] support NFIT platform capabilities
-Message-ID: <20180529195433.GA16151@linux.intel.com>
+Message-ID: <20180525205051-mutt-send-email-mst@kernel.org>
 References: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
@@ -24,14 +24,8 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Eduardo Habkost <ehabkost@redhat.com>, "Michael S . Tsirkin" <mst@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, qemu-devel@nongnu.org, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
+Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, qemu-devel@nongnu.org, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
-
-Ping on this series.  Rob, I think I've addressed all your feedback.  Can you
-please verify?
-
-Thanks,
-- Ross
 
 On Mon, May 21, 2018 at 10:31:59AM -0600, Ross Zwisler wrote:
 > Changes since v3:
@@ -41,7 +35,9 @@ On Mon, May 21, 2018 at 10:31:59AM -0600, Ross Zwisler wrote:
 >  
 >  * Updated the "Highest Valid Capability" byte to be dynamic based on
 >    the highest valid bit in the user's input. (Rob Elliott)
-> 
+
+Igor could you review pls? I think your comments have been addressed.
+
 > ---
 > 
 > The first 2 patches in this series clean up some things I noticed while
@@ -80,7 +76,6 @@ On Mon, May 21, 2018 at 10:31:59AM -0600, Ross Zwisler wrote:
 > 
 > -- 
 > 2.14.3
-> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
