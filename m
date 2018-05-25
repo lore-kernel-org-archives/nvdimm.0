@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 288B9209859A3
- for <linux-nvdimm@lists.01.org>; Fri, 11 May 2018 13:24:49 -0700 (PDT)
-Subject: [PATCH v6 2/4] ndctl: convert namespace actions to use
- util_filter_walk()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 11 May 2018 13:24:47 -0700
-Message-ID: <152607028741.4523.17714911638162706853.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <152607009656.4523.5355287262776399070.stgit@djiang5-desk3.ch.intel.com>
-References: <152607009656.4523.5355287262776399070.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 8DAF12096AECE
+ for <linux-nvdimm@lists.01.org>; Fri, 25 May 2018 15:01:01 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH resend 5/7] dm: remove DM_TYPE_DAX_BIO_BASED dm_queue_mode
+Date: Fri, 25 May 2018 16:00:53 -0600
+Message-Id: <20180525220055.18920-6-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180525220055.18920-1-ross.zwisler@linux.intel.com>
+References: <20180525220055.18920-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,286 +17,203 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
+Cc: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-util_filter_walk() does the looping through of busses and regions. Removing
-duplicate code in namespace ops and provide filter functions so we can
-utilize util_filter_walk() and share common code.
+The DM_TYPE_DAX_BIO_BASED dm_queue_mode was introduced to prevent DM
+devices that could possibly support DAX from transitioning into DM devices
+that cannot support DAX.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+For example, the following transition will currently fail:
+
+ dm-linear: [fsdax pmem][fsdax pmem] => [fsdax pmem][fsdax raw]
+	      DM_TYPE_DAX_BIO_BASED       DM_TYPE_BIO_BASED
+
+but these will both succeed:
+
+ dm-linear: [fsdax pmem][brd ramdisk] => [fsdax pmem][fsdax raw]
+ 		DM_TYPE_DAX_BASED        DM_TYPE_BIO_BASED
+
+ dm-linear: [fsdax pmem][fsdax raw] => [fsdax pmem][fsdax pmem]
+ 		DM_TYPE_BIO_BASED        DM_TYPE_DAX_BIO_BASED
+
+This seems arbitrary, as really the choice on whether to use DAX happens at
+filesystem mount time.  There's no guarantee that the in the first case
+(double fsdax pmem) we were using the dax mount option with our file
+system.
+
+Instead, get rid of DM_TYPE_DAX_BIO_BASED and all the special casing around
+it, and instead make the request queue's QUEUE_FLAG_DAX be our one source
+of truth.  If this is set, we can use DAX, and if not, not.  We keep this
+up to date in table_load() as the table changes.  As with regular block
+devices the filesystem will then know at mount time whether DAX is a
+supported mount option or not.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- ndctl/namespace.c |  158 +++++++++++++++++++++++++++++------------------------
- util/filter.c     |   11 +++-
- util/filter.h     |   10 +++
- 3 files changed, 106 insertions(+), 73 deletions(-)
+ drivers/md/dm-ioctl.c         | 16 ++++++----------
+ drivers/md/dm-table.c         | 25 ++++++++++---------------
+ drivers/md/dm.c               |  2 --
+ include/linux/device-mapper.h |  8 ++++++--
+ 4 files changed, 22 insertions(+), 29 deletions(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index e61f500c..1502a73a 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -983,14 +983,86 @@ static int namespace_reconfig(struct ndctl_region *region,
- int namespace_check(struct ndctl_namespace *ndns, bool verbose, bool force,
- 		bool repair, bool logfix);
+diff --git a/drivers/md/dm-ioctl.c b/drivers/md/dm-ioctl.c
+index 5acf77de5945..d1f86d0bb2d0 100644
+--- a/drivers/md/dm-ioctl.c
++++ b/drivers/md/dm-ioctl.c
+@@ -1292,15 +1292,6 @@ static int populate_table(struct dm_table *table,
+ 	return dm_table_complete(table);
+ }
  
-+static bool filter_region(struct ndctl_region *region,
-+		struct util_filter_ctx *ctx)
-+{
-+	struct nsaction_filter_arg *nfa = ctx->nsaction;
-+	int rc = 0;
-+	bool out = true;
-+
-+	if (nfa->action == ACTION_CREATE && !nfa->namespace) {
-+		if (nfa->rc == 1)
-+			return false;
-+
-+		rc = namespace_create(region);
-+		if (rc != -EAGAIN) {
-+			if (rc == 0)
-+				rc = 1;
-+			/* don't proceed in the filter loop */
-+			out = false;
-+		}
-+		nfa->rc = rc;
-+	}
-+
-+	return out;
-+}
-+
-+static void filter_namespace(struct ndctl_namespace *ndns,
-+		struct util_filter_ctx *ctx)
-+{
-+	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
-+	struct nsaction_filter_arg *nfa = ctx->nsaction;
-+	const char *ndns_name;
-+	int rc;
-+
-+	if (!nfa->namespace)
-+		return;
-+
-+	ndns_name = ndctl_namespace_get_devname(ndns);
-+	if (strcmp(nfa->namespace, "all") != 0
-+			&& strcmp(nfa->namespace, ndns_name) != 0) {
-+		return;
-+	}
-+
-+	switch (nfa->action) {
-+	case ACTION_DISABLE:
-+		rc = ndctl_namespace_disable_safe(ndns);
-+		break;
-+	case ACTION_ENABLE:
-+		rc = ndctl_namespace_enable(ndns);
-+		break;
-+	case ACTION_DESTROY:
-+		rc = namespace_destroy(region, ndns);
-+		break;
-+	case ACTION_CHECK:
-+		rc = namespace_check(ndns, verbose, force, repair, logfix);
-+		if (rc < 0) {
-+			nfa->rc = rc;
-+			return;
-+		}
-+		break;
-+	case ACTION_CREATE:
-+		rc = namespace_reconfig(region, ndns);
-+		if (rc < 0) {
-+			nfa->rc = rc;
-+			return;
-+		}
-+		break;
-+	default:
-+		rc = -EINVAL;
-+		break;
-+	}
-+
-+	if (rc >= 0)
-+		nfa->rc++;
-+}
-+
- static int do_xaction_namespace(const char *namespace,
- 		enum device_action action, struct ndctl_ctx *ctx)
+-static bool is_valid_type(enum dm_queue_mode cur, enum dm_queue_mode new)
+-{
+-	if (cur == new ||
+-	    (cur == DM_TYPE_BIO_BASED && new == DM_TYPE_DAX_BIO_BASED))
+-		return true;
+-
+-	return false;
+-}
+-
+ static int table_load(struct file *filp, struct dm_ioctl *param, size_t param_size)
  {
--	struct ndctl_namespace *ndns, *_n;
--	int rc = -ENXIO, success = 0;
--	struct ndctl_region *region;
--	const char *ndns_name;
--	struct ndctl_bus *bus;
-+	int rc = -ENXIO;
-+	struct util_filter_ctx fctx = { 0 };
-+	struct nsaction_filter_arg nfa = { 0 };
- 
- 	if (!namespace && action != ACTION_CREATE)
- 		return rc;
-@@ -998,74 +1070,18 @@ static int do_xaction_namespace(const char *namespace,
- 	if (verbose)
- 		ndctl_set_log_priority(ctx, LOG_DEBUG);
- 
--        ndctl_bus_foreach(ctx, bus) {
--		if (!util_bus_filter(bus, uf_param.bus))
--			continue;
--
--		ndctl_region_foreach(bus, region) {
--			if (!util_region_filter(region, uf_param.region))
--				continue;
--
--			if (uf_param.type) {
--				if (strcmp(uf_param.type, "pmem") == 0
--						&& ndctl_region_get_type(region)
--						== ND_DEVICE_REGION_PMEM)
--					/* pass */;
--				else if (strcmp(uf_param.type, "blk") == 0
--						&& ndctl_region_get_type(region)
--						== ND_DEVICE_REGION_BLK)
--					/* pass */;
--				else
--					continue;
--			}
-+	fctx.filter_bus = filter_bus_passthrough;
-+	fctx.filter_region = filter_region;
-+	fctx.filter_namespace = filter_namespace;
-+	fctx.nsaction = &nfa;
-+	fctx.nsaction->action = action;
-+	fctx.nsaction->namespace = namespace;
- 
--			if (action == ACTION_CREATE && !namespace) {
--				rc = namespace_create(region);
--				if (rc == -EAGAIN)
--					continue;
--				if (rc == 0)
--					rc = 1;
--				return rc;
--			}
--			ndctl_namespace_foreach_safe(region, ndns, _n) {
--				ndns_name = ndctl_namespace_get_devname(ndns);
--
--				if (strcmp(namespace, "all") != 0
--						&& strcmp(namespace, ndns_name) != 0)
--					continue;
--				switch (action) {
--				case ACTION_DISABLE:
--					rc = ndctl_namespace_disable_safe(ndns);
--					break;
--				case ACTION_ENABLE:
--					rc = ndctl_namespace_enable(ndns);
--					break;
--				case ACTION_DESTROY:
--					rc = namespace_destroy(region, ndns);
--					break;
--				case ACTION_CHECK:
--					rc = namespace_check(ndns, verbose,
--							force, repair, logfix);
--					if (rc < 0)
--						return rc;
--					break;
--				case ACTION_CREATE:
--					rc = namespace_reconfig(region, ndns);
--					if (rc < 0)
--						return rc;
--					return 1;
--				default:
--					rc = -EINVAL;
--					break;
--				}
--				if (rc >= 0)
--					success++;
--			}
--		}
--	}
-+	rc = util_filter_walk(ctx, &fctx, &uf_param);
-+	if (rc < 0)
-+		return rc;
- 
--	if (success)
--		return success;
-+	rc = nfa.rc;
- 	return rc;
- }
- 
-diff --git a/util/filter.c b/util/filter.c
-index 1734bce5..c6ded8ab 100644
---- a/util/filter.c
-+++ b/util/filter.c
-@@ -18,6 +18,7 @@
- #include <sys/stat.h>
- #include <util/util.h>
- #include <sys/types.h>
-+#include <ndctl/action.h>
- #include <ndctl/ndctl.h>
- #include <util/filter.h>
- #include <ndctl/libndctl.h>
-@@ -430,7 +431,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+ 	int r;
+@@ -1343,12 +1334,17 @@ static int table_load(struct file *filp, struct dm_ioctl *param, size_t param_si
+ 			DMWARN("unable to set up device queue for new table.");
+ 			goto err_unlock_md_type;
  		}
- 
- 		ndctl_region_foreach(bus, region) {
--			struct ndctl_namespace *ndns;
-+			struct ndctl_namespace *ndns, *_n;
- 
- 			if (!util_region_filter(region, param->region)
- 					|| !util_region_filter_by_dimm(region,
-@@ -449,7 +450,7 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
- 			if (!fctx->filter_region(region, fctx))
- 				continue;
- 
--			ndctl_namespace_foreach(region, ndns) {
-+			ndctl_namespace_foreach_safe(region, ndns, _n) {
- 				enum ndctl_namespace_mode mode;
- 
- 				if (!fctx->filter_namespace)
-@@ -467,3 +468,9 @@ int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
+-	} else if (!is_valid_type(dm_get_md_type(md), dm_table_get_type(t))) {
++	} else if (dm_get_md_type(md) != dm_table_get_type(t)) {
+ 		DMWARN("can't change device type after initial table load.");
+ 		r = -EINVAL;
+ 		goto err_unlock_md_type;
  	}
- 	return 0;
- }
-+
-+bool filter_bus_passthrough(struct ndctl_bus *bus,
-+		struct util_filter_ctx *ctx)
-+{
-+	return true;
-+}
-diff --git a/util/filter.h b/util/filter.h
-index effda24b..e59bb8da 100644
---- a/util/filter.h
-+++ b/util/filter.h
-@@ -13,6 +13,7 @@
- #ifndef _UTIL_FILTER_H_
- #define _UTIL_FILTER_H_
- #include <stdbool.h>
-+#include <ndctl/action.h>
  
- struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
- struct ndctl_region *util_region_filter(struct ndctl_region *region,
-@@ -50,6 +51,12 @@ struct list_filter_arg {
- 	unsigned long flags;
++	if (dm_table_supports_dax(t))
++		blk_queue_flag_set(QUEUE_FLAG_DAX, md->queue);
++	else
++		blk_queue_flag_clear(QUEUE_FLAG_DAX, md->queue);
++
+ 	dm_unlock_md_type(md);
+ 
+ 	/* stage inactive table */
+diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
+index 5bb994b012ca..ea5c4a1e6f5b 100644
+--- a/drivers/md/dm-table.c
++++ b/drivers/md/dm-table.c
+@@ -866,7 +866,6 @@ EXPORT_SYMBOL(dm_consume_args);
+ static bool __table_type_bio_based(enum dm_queue_mode table_type)
+ {
+ 	return (table_type == DM_TYPE_BIO_BASED ||
+-		table_type == DM_TYPE_DAX_BIO_BASED ||
+ 		table_type == DM_TYPE_NVME_BIO_BASED);
+ }
+ 
+@@ -888,7 +887,7 @@ static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
+ 	return bdev_dax_supported(dev->bdev, PAGE_SIZE);
+ }
+ 
+-static bool dm_table_supports_dax(struct dm_table *t)
++bool dm_table_supports_dax(struct dm_table *t)
+ {
+ 	struct dm_target *ti;
+ 	unsigned i;
+@@ -907,6 +906,7 @@ static bool dm_table_supports_dax(struct dm_table *t)
+ 
+ 	return true;
+ }
++EXPORT_SYMBOL_GPL(dm_table_supports_dax);
+ 
+ static bool dm_table_does_not_support_partial_completion(struct dm_table *t);
+ 
+@@ -944,7 +944,6 @@ static int dm_table_determine_type(struct dm_table *t)
+ 			/* possibly upgrade to a variant of bio-based */
+ 			goto verify_bio_based;
+ 		}
+-		BUG_ON(t->type == DM_TYPE_DAX_BIO_BASED);
+ 		BUG_ON(t->type == DM_TYPE_NVME_BIO_BASED);
+ 		goto verify_rq_based;
+ 	}
+@@ -981,18 +980,14 @@ static int dm_table_determine_type(struct dm_table *t)
+ verify_bio_based:
+ 		/* We must use this table as bio-based */
+ 		t->type = DM_TYPE_BIO_BASED;
+-		if (dm_table_supports_dax(t) ||
+-		    (list_empty(devices) && live_md_type == DM_TYPE_DAX_BIO_BASED)) {
+-			t->type = DM_TYPE_DAX_BIO_BASED;
+-		} else {
+-			/* Check if upgrading to NVMe bio-based is valid or required */
+-			tgt = dm_table_get_immutable_target(t);
+-			if (tgt && !tgt->max_io_len && dm_table_does_not_support_partial_completion(t)) {
+-				t->type = DM_TYPE_NVME_BIO_BASED;
+-				goto verify_rq_based; /* must be stacked directly on NVMe (blk-mq) */
+-			} else if (list_empty(devices) && live_md_type == DM_TYPE_NVME_BIO_BASED) {
+-				t->type = DM_TYPE_NVME_BIO_BASED;
+-			}
++
++		/* Check if upgrading to NVMe bio-based is valid or required */
++		tgt = dm_table_get_immutable_target(t);
++		if (tgt && !tgt->max_io_len && dm_table_does_not_support_partial_completion(t)) {
++			t->type = DM_TYPE_NVME_BIO_BASED;
++			goto verify_rq_based; /* must be stacked directly on NVMe (blk-mq) */
++		} else if (list_empty(devices) && live_md_type == DM_TYPE_NVME_BIO_BASED) {
++			t->type = DM_TYPE_NVME_BIO_BASED;
+ 		}
+ 		return 0;
+ 	}
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index 9728433362d1..0ce06fa292fd 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -2192,7 +2192,6 @@ int dm_setup_md_queue(struct mapped_device *md, struct dm_table *t)
+ 		}
+ 		break;
+ 	case DM_TYPE_BIO_BASED:
+-	case DM_TYPE_DAX_BIO_BASED:
+ 		dm_init_normal_md_queue(md);
+ 		blk_queue_make_request(md->queue, dm_make_request);
+ 		break;
+@@ -2910,7 +2909,6 @@ struct dm_md_mempools *dm_alloc_md_mempools(struct mapped_device *md, enum dm_qu
+ 
+ 	switch (type) {
+ 	case DM_TYPE_BIO_BASED:
+-	case DM_TYPE_DAX_BIO_BASED:
+ 	case DM_TYPE_NVME_BIO_BASED:
+ 		pool_size = max(dm_get_reserved_bio_based_ios(), min_pool_size);
+ 		front_pad = roundup(per_io_data_size, __alignof__(struct dm_target_io)) + offsetof(struct dm_target_io, clone);
+diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
+index 31fef7c34185..cbf3d7e7ed33 100644
+--- a/include/linux/device-mapper.h
++++ b/include/linux/device-mapper.h
+@@ -27,8 +27,7 @@ enum dm_queue_mode {
+ 	DM_TYPE_BIO_BASED	 = 1,
+ 	DM_TYPE_REQUEST_BASED	 = 2,
+ 	DM_TYPE_MQ_REQUEST_BASED = 3,
+-	DM_TYPE_DAX_BIO_BASED	 = 4,
+-	DM_TYPE_NVME_BIO_BASED	 = 5,
++	DM_TYPE_NVME_BIO_BASED	 = 4,
  };
  
-+struct nsaction_filter_arg {
-+	enum device_action action;
-+	const char *namespace;
-+	int rc;
-+};
+ typedef enum { STATUSTYPE_INFO, STATUSTYPE_TABLE } status_type_t;
+@@ -460,6 +459,11 @@ void dm_table_add_target_callbacks(struct dm_table *t, struct dm_target_callback
+  */
+ void dm_table_set_type(struct dm_table *t, enum dm_queue_mode type);
+ 
++/*
++ * Check to see if this target type and all table devices support DAX.
++ */
++bool dm_table_supports_dax(struct dm_table *t);
 +
  /*
-  * struct util_filter_ctx - control and callbacks for util_filter_walk()
-  * ->filter_bus() and ->filter_region() return bool because the
-@@ -67,6 +74,7 @@ struct util_filter_ctx {
- 	union {
- 		void *arg;
- 		struct list_filter_arg *list;
-+		struct nsaction_filter_arg *nsaction;
- 	};
- };
- 
-@@ -83,4 +91,6 @@ struct util_filter_params {
- struct ndctl_ctx;
- int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
- 		struct util_filter_params *param);
-+bool filter_bus_passthrough(struct ndctl_bus *bus,
-+		struct util_filter_ctx *ctx);
- #endif
+  * Finally call this to make the table ready for use.
+  */
+-- 
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
