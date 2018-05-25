@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A14112098C204
- for <linux-nvdimm@lists.01.org>; Mon, 21 May 2018 09:32:10 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id BE83E21BADAB9
+ for <linux-nvdimm@lists.01.org>; Fri, 25 May 2018 15:01:00 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [qemu PATCH v4 2/4] tests/.gitignore: add entry for generated file
-Date: Mon, 21 May 2018 10:32:01 -0600
-Message-Id: <20180521163203.26590-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
-References: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH resend 3/7] dm: fix test for DAX device support
+Date: Fri, 25 May 2018 16:00:51 -0600
+Message-Id: <20180525220055.18920-4-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180525220055.18920-1-ross.zwisler@linux.intel.com>
+References: <20180525220055.18920-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,42 +22,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Igor Mammedov <imammedo@redhat.com>, qemu-devel@nongnu.org
-Cc: Kevin Wolf <kwolf@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S . Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>
+To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
+Cc: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-After a "make check" we end up with the following:
+Currently device_supports_dax() just checks to see if the QUEUE_FLAG_DAX
+flag is set on the device's request queue to decide whether or not the
+device supports filesystem DAX.  This is insufficient because there are
+devices like PMEM namespaces in raw mode which have QUEUE_FLAG_DAX set but
+which don't actually support DAX.
 
-$ git status
-On branch master
-Your branch is up-to-date with 'origin/master'.
+This means that you could create a dm-linear device, for example, where the
+first part of the dm-linear device was a PMEM namespace in fsdax mode and
+the second part was a PMEM namespace in raw mode.  Both DM and the
+filesystem you put on that dm-linear device would think the whole device
+supports DAX, which would lead to bad behavior once your raw PMEM namespace
+part using DAX needed struct page for something.
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-
-	tests/test-block-backend
-
-nothing added to commit but untracked files present (use "git add" to track)
+Fix this by using bdev_dax_supported() like filesystems do at mount time.
+This checks for raw mode and also performs other tests like checking to
+make sure the dax_direct_access() path works.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Fixes: commit ad0df3e0fdac ("block: test blk_aio_flush() with blk->root == NULL")
-Cc: Kevin Wolf <kwolf@redhat.com>
+Fixes: commit 545ed20e6df6 ("dm: add infrastructure for DAX support")
 ---
- tests/.gitignore | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/md/dm-table.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/tests/.gitignore b/tests/.gitignore
-index fb62d2299b..2bc61a9a58 100644
---- a/tests/.gitignore
-+++ b/tests/.gitignore
-@@ -21,6 +21,7 @@ test-base64
- test-bdrv-drain
- test-bitops
- test-bitcnt
-+test-block-backend
- test-blockjob
- test-blockjob-txn
- test-bufferiszero
+diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
+index 0589a4da12bb..5bb994b012ca 100644
+--- a/drivers/md/dm-table.c
++++ b/drivers/md/dm-table.c
+@@ -885,9 +885,7 @@ EXPORT_SYMBOL_GPL(dm_table_set_type);
+ static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
+ 			       sector_t start, sector_t len, void *data)
+ {
+-	struct request_queue *q = bdev_get_queue(dev->bdev);
+-
+-	return q && blk_queue_dax(q);
++	return bdev_dax_supported(dev->bdev, PAGE_SIZE);
+ }
+ 
+ static bool dm_table_supports_dax(struct dm_table *t)
 -- 
 2.14.3
 
