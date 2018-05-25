@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6E3612063E2FC
- for <linux-nvdimm@lists.01.org>; Wed,  2 May 2018 22:08:54 -0700 (PDT)
-Subject: [PATCH v2 3/9] x86, memcpy_mcsafe: return bytes remaining
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 02 May 2018 21:58:57 -0700
-Message-ID: <152532353758.17218.8596448562346764078.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152532351517.17218.3583455156840230837.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E681C20961853
+ for <linux-nvdimm@lists.01.org>; Thu, 24 May 2018 22:01:26 -0700 (PDT)
+Date: Thu, 24 May 2018 22:01:14 -0700
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH 2/7] dax: change bdev_dax_supported() to support boolean
+ returns
+Message-ID: <20180525050114.GE4507@magnolia>
+References: <20180525025518.11405-1-ross.zwisler@linux.intel.com>
+ <20180525025518.11405-3-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180525025518.11405-3-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,154 +25,199 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, x86@kernel.org, hch@lst.de, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Machine check safe memory copies are currently deployed in the pmem
-driver whenever reading from persistent memory media, so that -EIO is
-returned rather than triggering a kernel panic. While this protects most
-pmem accesses, it is not complete in the filesystem-dax case. When
-filesystem-dax is enabled reads may bypass the block layer and the
-driver via dax_iomap_actor() and its usage of copy_to_iter().
+On Thu, May 24, 2018 at 08:55:13PM -0600, Ross Zwisler wrote:
+> From: Dave Jiang <dave.jiang@intel.com>
+> 
+> The function return values are confusing with the way the function is
+> named. We expect a true or false return value but it actually returns
+> 0/-errno.  This makes the code very confusing. Changing the return values
+> to return a bool where if DAX is supported then return true and no DAX
+> support returns false.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-In preparation for creating a copy_to_iter() variant that can handle
-machine checks, teach memcpy_mcsafe() to return the number of bytes
-remaining rather than -EFAULT when an exception occurs.
+Looks ok,
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 
-Cc: <x86@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Co-developed-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/string_64.h |    8 +++++---
- arch/x86/lib/memcpy_64.S         |   20 ++++++++++++++------
- drivers/nvdimm/claim.c           |    3 ++-
- drivers/nvdimm/pmem.c            |    6 +++---
- include/linux/string.h           |    4 ++--
- 5 files changed, 26 insertions(+), 15 deletions(-)
+--D
 
-diff --git a/arch/x86/include/asm/string_64.h b/arch/x86/include/asm/string_64.h
-index 4752f8984923..d33f92b9fa22 100644
---- a/arch/x86/include/asm/string_64.h
-+++ b/arch/x86/include/asm/string_64.h
-@@ -116,7 +116,8 @@ int strcmp(const char *cs, const char *ct);
- #endif
- 
- #define __HAVE_ARCH_MEMCPY_MCSAFE 1
--__must_check int __memcpy_mcsafe(void *dst, const void *src, size_t cnt);
-+__must_check unsigned long __memcpy_mcsafe(void *dst, const void *src,
-+		size_t cnt);
- DECLARE_STATIC_KEY_FALSE(mcsafe_key);
- 
- /**
-@@ -131,9 +132,10 @@ DECLARE_STATIC_KEY_FALSE(mcsafe_key);
-  * actually do machine check recovery. Everyone else can just
-  * use memcpy().
-  *
-- * Return 0 for success, -EFAULT for fail
-+ * Return 0 for success, or number of bytes not copied if there was an
-+ * exception.
-  */
--static __always_inline __must_check int
-+static __always_inline __must_check unsigned long
- memcpy_mcsafe(void *dst, const void *src, size_t cnt)
- {
- #ifdef CONFIG_X86_MCE
-diff --git a/arch/x86/lib/memcpy_64.S b/arch/x86/lib/memcpy_64.S
-index 5709f3ec22a4..f01a88391c98 100644
---- a/arch/x86/lib/memcpy_64.S
-+++ b/arch/x86/lib/memcpy_64.S
-@@ -252,14 +252,22 @@ ENDPROC(__memcpy_mcsafe)
- EXPORT_SYMBOL_GPL(__memcpy_mcsafe)
- 
- 	.section .fixup, "ax"
--	/* Return -EFAULT for any failure */
--.L_memcpy_mcsafe_fail:
--	mov	$-EFAULT, %rax
-+	/*
-+	 * Return number of bytes not copied for any failure. Note that
-+	 * there is no "tail" handling since the source buffer is 8-byte
-+	 * aligned and poison is cacheline aligned.
-+	 */
-+.E_read_words:
-+	shll	$3, %ecx
-+.E_leading_bytes:
-+	addl	%edx, %ecx
-+.E_trailing_bytes:
-+	mov	%ecx, %eax
- 	ret
- 
- 	.previous
- 
--	_ASM_EXTABLE_FAULT(.L_read_leading_bytes, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_read_words, .L_memcpy_mcsafe_fail)
--	_ASM_EXTABLE_FAULT(.L_read_trailing_bytes, .L_memcpy_mcsafe_fail)
-+	_ASM_EXTABLE_FAULT(.L_read_leading_bytes, .E_leading_bytes)
-+	_ASM_EXTABLE_FAULT(.L_read_words, .E_read_words)
-+	_ASM_EXTABLE_FAULT(.L_read_trailing_bytes, .E_trailing_bytes)
- #endif
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 30852270484f..2e96b34bc936 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -276,7 +276,8 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	if (rw == READ) {
- 		if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
- 			return -EIO;
--		return memcpy_mcsafe(buf, nsio->addr + offset, size);
-+		if (memcpy_mcsafe(buf, nsio->addr + offset, size) != 0)
-+			return -EIO;
- 	}
- 
- 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 9d714926ecf5..e023d6aa22b5 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -101,15 +101,15 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
- 		void *pmem_addr, unsigned int len)
- {
- 	unsigned int chunk;
--	int rc;
-+	unsigned long rem;
- 	void *mem;
- 
- 	while (len) {
- 		mem = kmap_atomic(page);
- 		chunk = min_t(unsigned int, len, PAGE_SIZE);
--		rc = memcpy_mcsafe(mem + off, pmem_addr, chunk);
-+		rem = memcpy_mcsafe(mem + off, pmem_addr, chunk);
- 		kunmap_atomic(mem);
--		if (rc)
-+		if (rem)
- 			return BLK_STS_IOERR;
- 		len -= chunk;
- 		off = 0;
-diff --git a/include/linux/string.h b/include/linux/string.h
-index dd39a690c841..4a5a0eb7df51 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -147,8 +147,8 @@ extern int memcmp(const void *,const void *,__kernel_size_t);
- extern void * memchr(const void *,int,__kernel_size_t);
- #endif
- #ifndef __HAVE_ARCH_MEMCPY_MCSAFE
--static inline __must_check int memcpy_mcsafe(void *dst, const void *src,
--		size_t cnt)
-+static inline __must_check unsigned long memcpy_mcsafe(void *dst,
-+		const void *src, size_t cnt)
- {
- 	memcpy(dst, src, cnt);
- 	return 0;
-
+> ---
+>  drivers/dax/super.c | 16 ++++++++--------
+>  fs/ext2/super.c     |  3 +--
+>  fs/ext4/super.c     |  3 +--
+>  fs/xfs/xfs_ioctl.c  |  4 ++--
+>  fs/xfs/xfs_super.c  | 12 ++++++------
+>  include/linux/dax.h |  6 +++---
+>  6 files changed, 21 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index 9206539c8330..e5447eddecf8 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -80,9 +80,9 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+>   * This is a library function for filesystems to check if the block device
+>   * can be mounted with dax option.
+>   *
+> - * Return: negative errno if unsupported, 0 if supported.
+> + * Return: true if supported, false if unsupported
+>   */
+> -int bdev_dax_supported(struct block_device *bdev, int blocksize)
+> +bool bdev_dax_supported(struct block_device *bdev, int blocksize)
+>  {
+>  	struct dax_device *dax_dev;
+>  	pgoff_t pgoff;
+> @@ -95,21 +95,21 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
+>  	if (blocksize != PAGE_SIZE) {
+>  		pr_debug("%s: error: unsupported blocksize for dax\n",
+>  				bdevname(bdev, buf));
+> -		return -EINVAL;
+> +		return false;
+>  	}
+>  
+>  	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
+>  	if (err) {
+>  		pr_debug("%s: error: unaligned partition for dax\n",
+>  				bdevname(bdev, buf));
+> -		return err;
+> +		return false;
+>  	}
+>  
+>  	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
+>  	if (!dax_dev) {
+>  		pr_debug("%s: error: device does not support dax\n",
+>  				bdevname(bdev, buf));
+> -		return -EOPNOTSUPP;
+> +		return false;
+>  	}
+>  
+>  	id = dax_read_lock();
+> @@ -121,7 +121,7 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
+>  	if (len < 1) {
+>  		pr_debug("%s: error: dax access failed (%ld)\n",
+>  				bdevname(bdev, buf), len);
+> -		return len < 0 ? len : -EIO;
+> +		return false;
+>  	}
+>  
+>  	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
+> @@ -139,10 +139,10 @@ int bdev_dax_supported(struct block_device *bdev, int blocksize)
+>  	} else {
+>  		pr_debug("%s: error: dax support not enabled\n",
+>  				bdevname(bdev, buf));
+> -		return -EOPNOTSUPP;
+> +		return false;
+>  	}
+>  
+> -	return 0;
+> +	return true;
+>  }
+>  EXPORT_SYMBOL_GPL(bdev_dax_supported);
+>  #endif
+> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+> index 9627c3054b5c..c09289a42dc5 100644
+> --- a/fs/ext2/super.c
+> +++ b/fs/ext2/super.c
+> @@ -961,8 +961,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+>  	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+>  
+>  	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
+> -		err = bdev_dax_supported(sb->s_bdev, blocksize);
+> -		if (err) {
+> +		if (!bdev_dax_supported(sb->s_bdev, blocksize)) {
+>  			ext2_msg(sb, KERN_ERR,
+>  				"DAX unsupported by block device. Turning off DAX.");
+>  			sbi->s_mount_opt &= ~EXT2_MOUNT_DAX;
+> diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+> index 089170e99895..2e1622907f4a 100644
+> --- a/fs/ext4/super.c
+> +++ b/fs/ext4/super.c
+> @@ -3732,8 +3732,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+>  					" that may contain inline data");
+>  			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
+>  		}
+> -		err = bdev_dax_supported(sb->s_bdev, blocksize);
+> -		if (err) {
+> +		if (!bdev_dax_supported(sb->s_bdev, blocksize)) {
+>  			ext4_msg(sb, KERN_ERR,
+>  				"DAX unsupported by block device. Turning off DAX.");
+>  			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
+> diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+> index 0effd46b965f..2c70a0a4f59f 100644
+> --- a/fs/xfs/xfs_ioctl.c
+> +++ b/fs/xfs/xfs_ioctl.c
+> @@ -1103,8 +1103,8 @@ xfs_ioctl_setattr_dax_invalidate(
+>  	if (fa->fsx_xflags & FS_XFLAG_DAX) {
+>  		if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
+>  			return -EINVAL;
+> -		if (bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
+> -				sb->s_blocksize) < 0)
+> +		if (!bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
+> +				sb->s_blocksize))
+>  			return -EINVAL;
+>  	}
+>  
+> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> index 62188c2a4c36..86915dc40eed 100644
+> --- a/fs/xfs/xfs_super.c
+> +++ b/fs/xfs/xfs_super.c
+> @@ -1690,17 +1690,17 @@ xfs_fs_fill_super(
+>  		sb->s_flags |= SB_I_VERSION;
+>  
+>  	if (mp->m_flags & XFS_MOUNT_DAX) {
+> -		int	error2 = 0;
+> +		bool rtdev_is_dax = false, datadev_is_dax;
+>  
+>  		xfs_warn(mp,
+>  		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+>  
+> -		error = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
+> -				sb->s_blocksize);
+> +		datadev_is_dax = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
+> +			sb->s_blocksize);
+>  		if (mp->m_rtdev_targp)
+> -			error2 = bdev_dax_supported(mp->m_rtdev_targp->bt_bdev,
+> -					sb->s_blocksize);
+> -		if (error && error2) {
+> +			rtdev_is_dax = bdev_dax_supported(
+> +				mp->m_rtdev_targp->bt_bdev, sb->s_blocksize);
+> +		if (!rtdev_is_dax && !datadev_is_dax) {
+>  			xfs_alert(mp,
+>  			"DAX unsupported by block device. Turning off DAX.");
+>  			mp->m_flags &= ~XFS_MOUNT_DAX;
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 509a85ac8470..547eb33dbc9e 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -64,7 +64,7 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+>  struct writeback_control;
+>  int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
+>  #if IS_ENABLED(CONFIG_FS_DAX)
+> -int bdev_dax_supported(struct block_device *bdev, int blocksize);
+> +bool bdev_dax_supported(struct block_device *bdev, int blocksize);
+>  static inline struct dax_device *fs_dax_get_by_host(const char *host)
+>  {
+>  	return dax_get_by_host(host);
+> @@ -79,10 +79,10 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
+>  int dax_writeback_mapping_range(struct address_space *mapping,
+>  		struct block_device *bdev, struct writeback_control *wbc);
+>  #else
+> -static inline int bdev_dax_supported(struct block_device *bdev,
+> +static inline bool bdev_dax_supported(struct block_device *bdev,
+>  		int blocksize)
+>  {
+> -	return -EOPNOTSUPP;
+> +	return false;
+>  }
+>  
+>  static inline struct dax_device *fs_dax_get_by_host(const char *host)
+> -- 
+> 2.14.3
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
