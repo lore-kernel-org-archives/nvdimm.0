@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A2C72203B8C94
- for <linux-nvdimm@lists.01.org>; Thu,  3 May 2018 17:16:02 -0700 (PDT)
-Subject: [PATCH v3 0/9] Series short description
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 03 May 2018 17:06:05 -0700
-Message-ID: <152539236455.31796.7516599166555186700.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1EA6A2063E2E5
+ for <linux-nvdimm@lists.01.org>; Sat, 26 May 2018 07:08:26 -0700 (PDT)
+Date: Sat, 26 May 2018 22:07:24 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 1/7] fs: allow per-device dax status checking for
+ filesystems
+Message-ID: <201805262206.iJQ3Ghzx%fengguang.wu@intel.com>
+References: <20180525025518.11405-2-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+In-Reply-To: <20180525025518.11405-2-ross.zwisler@linux.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,90 +24,118 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Andrew Morton <akpm@linux-foundation.org>, Mike Snitzer <snitzer@redhat.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Mika =?utf-8?b?UGVudHRpbMOk?= <mika.penttila@nextfour.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-kernel@vger.kernel.org, dm-devel@redhat.com, kbuild-all@01.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2 [1]:
+Hi Darrick,
 
-* Fix source address increment in mcsafe_handle_tail() (Mika)
+I love your patch! Yet something to improve:
 
-* Extend the unit test to inject simulated write faults and validate
-  that data is properly transferred.
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.17-rc6]
+[cannot apply to dm/for-next]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-* Rename MCSAFE_DEBUG to MCSAFE_TEST
+url:    https://github.com/0day-ci/linux/commits/Ross-Zwisler/Fix-DM-DAX-handling/20180526-212746
+config: i386-randconfig-x014-201820 (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-May/015583.html
+All errors (new ones prefixed by >>):
+
+>> drivers//dax/super.c:85:5: error: redefinition of 'bdev_dax_supported'
+    int bdev_dax_supported(struct block_device *bdev, int blocksize)
+        ^~~~~~~~~~~~~~~~~~
+   In file included from drivers//dax/super.c:23:0:
+   include/linux/dax.h:82:19: note: previous definition of 'bdev_dax_supported' was here
+    static inline int bdev_dax_supported(struct block_device *bdev,
+                      ^~~~~~~~~~~~~~~~~~
+
+vim +/bdev_dax_supported +85 drivers//dax/super.c
+
+    74	
+    75	/**
+    76	 * bdev_dax_supported() - Check if the device supports dax for filesystem
+    77	 * @bdev: block device to check
+    78	 * @blocksize: The block size of the device
+    79	 *
+    80	 * This is a library function for filesystems to check if the block device
+    81	 * can be mounted with dax option.
+    82	 *
+    83	 * Return: negative errno if unsupported, 0 if supported.
+    84	 */
+  > 85	int bdev_dax_supported(struct block_device *bdev, int blocksize)
+    86	{
+    87		struct dax_device *dax_dev;
+    88		pgoff_t pgoff;
+    89		int err, id;
+    90		void *kaddr;
+    91		pfn_t pfn;
+    92		long len;
+    93		char buf[BDEVNAME_SIZE];
+    94	
+    95		if (blocksize != PAGE_SIZE) {
+    96			pr_debug("%s: error: unsupported blocksize for dax\n",
+    97					bdevname(bdev, buf));
+    98			return -EINVAL;
+    99		}
+   100	
+   101		err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
+   102		if (err) {
+   103			pr_debug("%s: error: unaligned partition for dax\n",
+   104					bdevname(bdev, buf));
+   105			return err;
+   106		}
+   107	
+   108		dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
+   109		if (!dax_dev) {
+   110			pr_debug("%s: error: device does not support dax\n",
+   111					bdevname(bdev, buf));
+   112			return -EOPNOTSUPP;
+   113		}
+   114	
+   115		id = dax_read_lock();
+   116		len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
+   117		dax_read_unlock(id);
+   118	
+   119		put_dax(dax_dev);
+   120	
+   121		if (len < 1) {
+   122			pr_debug("%s: error: dax access failed (%ld)\n",
+   123					bdevname(bdev, buf), len);
+   124			return len < 0 ? len : -EIO;
+   125		}
+   126	
+   127		if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
+   128			/*
+   129			 * An arch that has enabled the pmem api should also
+   130			 * have its drivers support pfn_t_devmap()
+   131			 *
+   132			 * This is a developer warning and should not trigger in
+   133			 * production. dax_flush() will crash since it depends
+   134			 * on being able to do (page_address(pfn_to_page())).
+   135			 */
+   136			WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
+   137		} else if (pfn_t_devmap(pfn)) {
+   138			/* pass */;
+   139		} else {
+   140			pr_debug("%s: error: dax support not enabled\n",
+   141					bdevname(bdev, buf));
+   142			return -EOPNOTSUPP;
+   143		}
+   144	
+   145		return 0;
+   146	}
+   147	EXPORT_SYMBOL_GPL(bdev_dax_supported);
+   148	#endif
+   149	
 
 ---
-
-Currently memcpy_mcsafe() is only deployed in the pmem driver when
-reading through a /dev/pmemX block device. However, a filesystem in dax
-mode mounted on a /dev/pmemX block device will bypass the block layer
-and the driver for reads. The filesystem-dax (fsdax) read case uses
-dax_direct_access() and copy_to_iter() to bypass the block layer.
-
-The result of the bypass is that the kernel treats machine checks during
-read as system fatal (reboot) when they could simply be flagged as an
-I/O error, similar to performing reads through the pmem driver. Prevent
-this fatal condition by deploying memcpy_mcsafe() in the fsdax read
-path.
-
-The main differences between this copy_to_user_mcsafe() and
-copy_user_generic_unrolled() are:
-
-* Typical tail/residue handling after a fault retries the copy
-  byte-by-byte until the fault happens again. Re-triggering machine
-  checks is potentially fatal so the implementation uses source alignment
-  and poison alignment assumptions to avoid re-triggering machine
-  checks.
-
-* SMAP coordination is handled external to the assembly with
-  __uaccess_begin() and __uaccess_end().
-
-* ITER_KVEC and ITER_BVEC can now end prematurely with an error.
-
-The new MCSAFE_TEST facility is proposed as a way to unit test the
-exception handling without requiring an ACPI EINJ capable platform.
-
----
-
-Dan Williams (9):
-      x86, memcpy_mcsafe: remove loop unrolling
-      x86, memcpy_mcsafe: add labels for write fault handling
-      x86, memcpy_mcsafe: return bytes remaining
-      x86, memcpy_mcsafe: add write-protection-fault handling
-      x86, memcpy_mcsafe: define copy_to_iter_mcsafe()
-      dax: introduce a ->copy_to_iter dax operation
-      dax: report bytes remaining in dax_iomap_actor()
-      pmem: switch to copy_to_iter_mcsafe()
-      x86, nfit_test: unit test for memcpy_mcsafe()
-
-
- arch/x86/Kconfig                   |    1 
- arch/x86/Kconfig.debug             |    3 +
- arch/x86/include/asm/mcsafe_test.h |   75 ++++++++++++++++++++++++
- arch/x86/include/asm/string_64.h   |   10 ++-
- arch/x86/include/asm/uaccess_64.h  |   14 +++++
- arch/x86/lib/memcpy_64.S           |  112 +++++++++++++++++-------------------
- arch/x86/lib/usercopy_64.c         |   21 +++++++
- drivers/dax/super.c                |   10 +++
- drivers/md/dm-linear.c             |   16 +++++
- drivers/md/dm-log-writes.c         |   15 +++++
- drivers/md/dm-stripe.c             |   21 +++++++
- drivers/md/dm.c                    |   25 ++++++++
- drivers/nvdimm/claim.c             |    3 +
- drivers/nvdimm/pmem.c              |   13 +++-
- drivers/s390/block/dcssblk.c       |    7 ++
- fs/dax.c                           |   21 ++++---
- include/linux/dax.h                |    5 ++
- include/linux/device-mapper.h      |    5 +-
- include/linux/string.h             |    4 +
- include/linux/uio.h                |   15 +++++
- lib/iov_iter.c                     |   61 ++++++++++++++++++++
- tools/testing/nvdimm/test/nfit.c   |  104 +++++++++++++++++++++++++++++++++
- 22 files changed, 482 insertions(+), 79 deletions(-)
- create mode 100644 arch/x86/include/asm/mcsafe_test.h
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
