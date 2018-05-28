@@ -1,12 +1,11 @@
-From: "Bounced mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: (unknown)
-Date: Fri, 25 May 2018 11:26:13 +0800
-Message-ID: <20180525032614.71D8D20961854@ml01.01.org>
+From: "Izetta Renfrow  " <newsletterweax-KD6vb7Cx16iAN7j2eeZu5A@public.gmane.org>
+Subject: re: Buy Instagram followers and promote your lists.01.org
+Date: Mon, 28 May 2018 06:51:31 +0300
+Message-ID: <56EED1B1.FDA73BA5@myinstabuzz.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: 
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,8 +18,26 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Fri, 25 May 2018 11:26:13 +0800
-from lists.01.org [137.8.247.250]
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Real Instagram followers at affordable rates
+http://www.myinstabuzz.se/buy-instagram-followers/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe option available in the footer of our website
