@@ -1,7 +1,7 @@
-From: "Izetta Renfrow  " <newsletterweax-KD6vb7Cx16iAN7j2eeZu5A@public.gmane.org>
-Subject: re: Buy Instagram followers and promote your lists.01.org
-Date: Mon, 28 May 2018 06:51:31 +0300
-Message-ID: <56EED1B1.FDA73BA5@myinstabuzz.se>
+From: damien.shaw-XmMp7O8s5jU@public.gmane.org
+Subject: Returned mail: see transcript for details
+Date: Mon, 28 May 2018 16:14:20 +0800
+Message-ID: <20180528081424.8D1112097172F@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,26 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+This Message was undeliverable due to the following reason:
 
-Real Instagram followers at affordable rates
-http://www.myinstabuzz.se/buy-instagram-followers/
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
+Your message was not delivered within 1 days:
+Host 202.58.202.235 is not responding.
 
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Unsubscribe option available in the footer of our website
+Please reply to postmaster-XmMp7O8s5jU@public.gmane.org
+if you feel this message to be in error.
