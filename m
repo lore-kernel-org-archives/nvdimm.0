@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6E3DD2098C211
- for <linux-nvdimm@lists.01.org>; Thu, 31 May 2018 15:03:43 -0700 (PDT)
-Date: Thu, 31 May 2018 16:03:42 -0600
+ by ml01.01.org (Postfix) with ESMTPS id A5B4A20D7B24C
+ for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 12:54:34 -0700 (PDT)
+Date: Tue, 29 May 2018 13:54:33 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [qemu PATCH v4 0/4] support NFIT platform capabilities
-Message-ID: <20180531220342.GH28256@linux.intel.com>
+Message-ID: <20180529195433.GA16151@linux.intel.com>
 References: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
- <20180525205051-mutt-send-email-mst@kernel.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20180525205051-mutt-send-email-mst@kernel.org>
+In-Reply-To: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,23 +23,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, qemu-devel@nongnu.org, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Eduardo Habkost <ehabkost@redhat.com>, "Michael S . Tsirkin" <mst@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, qemu-devel@nongnu.org, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, May 25, 2018 at 08:51:22PM +0300, Michael S. Tsirkin wrote:
-> On Mon, May 21, 2018 at 10:31:59AM -0600, Ross Zwisler wrote:
-> > Changes since v3:
-> >  * Updated the text in docs/nvdimm.txt to make it clear that the value
-> >    being passed in on the command line in an integer made up of various
-> >    bit fields. (Rob Elliott)
-> >  
-> >  * Updated the "Highest Valid Capability" byte to be dynamic based on
-> >    the highest valid bit in the user's input. (Rob Elliott)
-> 
-> Igor could you review pls? I think your comments have been addressed.
+Ping on this series.  Rob, I think I've addressed all your feedback.  Can you
+please verify?
 
-Ping?  Igor, can you pick this up?
+Thanks,
+- Ross
+
+On Mon, May 21, 2018 at 10:31:59AM -0600, Ross Zwisler wrote:
+> Changes since v3:
+>  * Updated the text in docs/nvdimm.txt to make it clear that the value
+>    being passed in on the command line in an integer made up of various
+>    bit fields. (Rob Elliott)
+>  
+>  * Updated the "Highest Valid Capability" byte to be dynamic based on
+>    the highest valid bit in the user's input. (Rob Elliott)
+> 
+> ---
+> 
+> The first 2 patches in this series clean up some things I noticed while
+> coding.
+> 
+> Patch 3 adds support for the new Platform Capabilities Structure, which
+> was added to the NFIT in ACPI 6.2 Errata A.  We add a machine command
+> line option "nvdimm-cap":
+> 
+>     -machine pc,accel=kvm,nvdimm,nvdimm-cap=2
+> 
+> which allows the user to pass in a value for this structure.  When such
+> a value is passed in we will generate the new NFIT subtable.
+> 
+> Patch 4 adds code to the "make check" self test infrastructure so that
+> we generate the new Platform Capabilities Structure, and adds it to the
+> expected NFIT output so that we test for it.
+> 
+> Ross Zwisler (4):
+>   nvdimm: fix typo in label-size definition
+>   tests/.gitignore: add entry for generated file
+>   nvdimm, acpi: support NFIT platform capabilities
+>   ACPI testing: test NFIT platform capabilities
+> 
+>  docs/nvdimm.txt                       |  27 ++++++++++++++++++++
+>  hw/acpi/nvdimm.c                      |  45 +++++++++++++++++++++++++++++++---
+>  hw/i386/pc.c                          |  31 +++++++++++++++++++++++
+>  hw/mem/nvdimm.c                       |   2 +-
+>  include/hw/i386/pc.h                  |   1 +
+>  include/hw/mem/nvdimm.h               |   7 +++++-
+>  tests/.gitignore                      |   1 +
+>  tests/acpi-test-data/pc/NFIT.dimmpxm  | Bin 224 -> 240 bytes
+>  tests/acpi-test-data/q35/NFIT.dimmpxm | Bin 224 -> 240 bytes
+>  tests/bios-tables-test.c              |   2 +-
+>  10 files changed, 109 insertions(+), 7 deletions(-)
+> 
+> -- 
+> 2.14.3
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
