@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 46FED20971747
- for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 12:51:11 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 2/7] dax: change bdev_dax_supported() to support boolean
- returns
-Date: Tue, 29 May 2018 13:51:01 -0600
-Message-Id: <20180529195106.14268-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
-References: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5EC0B2007E80E
+ for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 16:15:35 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2] ndctl, list: display the 'map' location in listings
+Date: Tue, 29 May 2018 17:15:03 -0600
+Message-Id: <20180529231503.31710-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,193 +20,105 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Yigal Korman <yigal.korman@netapp.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dave Jiang <dave.jiang@intel.com>
+For 'fsdax' and 'devdax' namespaces, a 'map' location may be specified
+for page structures storage. This can be 'mem', for system RAM, or 'dev'
+for using pmem as the backing storage. Once set, there was no way of
+telling using ndctl, which of the two locations a namespace was
+configured for. Add this in util_namespace_to_json so that all
+namespace listings contain the map location.
 
-The function return values are confusing with the way the function is
-named. We expect a true or false return value but it actually returns
-0/-errno.  This makes the code very confusing. Changing the return values
-to return a bool where if DAX is supported then return true and no DAX
-support returns false.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: "Yigal Korman" <yigal.korman@netapp.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/dax/super.c | 16 ++++++++--------
- fs/ext2/super.c     |  3 +--
- fs/ext4/super.c     |  3 +--
- fs/xfs/xfs_ioctl.c  |  4 ++--
- fs/xfs/xfs_super.c  | 12 ++++++------
- include/linux/dax.h |  8 ++++----
- 6 files changed, 22 insertions(+), 24 deletions(-)
+ util/json.c | 32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 3943feb9a090..1d7bd96511f0 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -80,9 +80,9 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-  * This is a library function for filesystems to check if the block device
-  * can be mounted with dax option.
-  *
-- * Return: negative errno if unsupported, 0 if supported.
-+ * Return: true if supported, false if unsupported
-  */
--int __bdev_dax_supported(struct block_device *bdev, int blocksize)
-+bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+v2: Also account for memmap=ss!nn or legacy-e820 namespaces. (Dan)
+
+diff --git a/util/json.c b/util/json.c
+index c606e1c..b020300 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -667,11 +667,17 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
  {
- 	struct dax_device *dax_dev;
- 	pgoff_t pgoff;
-@@ -95,21 +95,21 @@ int __bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	if (blocksize != PAGE_SIZE) {
- 		pr_debug("%s: error: unsupported blocksize for dax\n",
- 				bdevname(bdev, buf));
--		return -EINVAL;
-+		return false;
+ 	struct json_object *jndns = json_object_new_object();
+ 	struct json_object *jobj, *jbbs = NULL;
++	const char *locations[] = {
++		[NDCTL_PFN_LOC_NONE] = "none",
++		[NDCTL_PFN_LOC_RAM] = "mem",
++		[NDCTL_PFN_LOC_PMEM] = "dev",
++	};
+ 	unsigned long long size = ULLONG_MAX;
+ 	unsigned int sector_size = UINT_MAX;
+ 	enum ndctl_namespace_mode mode;
+ 	const char *bdev = NULL, *name;
+ 	unsigned int bb_count = 0;
++	enum ndctl_pfn_loc loc;
+ 	struct ndctl_btt *btt;
+ 	struct ndctl_pfn *pfn;
+ 	struct ndctl_dax *dax;
+@@ -693,33 +699,49 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	mode = ndctl_namespace_get_mode(ndns);
+ 	switch (mode) {
+ 	case NDCTL_NS_MODE_MEMORY:
+-		if (pfn) /* dynamic memory mode */
++		jobj = json_object_new_string("fsdax");
++		if (jobj)
++			json_object_object_add(jndns, "mode", jobj);
++		loc = ndctl_pfn_get_location(pfn);
++		if (pfn) { /* dynamic memory mode */
+ 			size = ndctl_pfn_get_size(pfn);
+-		else /* native/static memory mode */
++			jobj = json_object_new_string(locations[loc]);
++		} else { /* native/static memory mode */
+ 			size = ndctl_namespace_get_size(ndns);
+-		jobj = json_object_new_string("fsdax");
++			jobj = json_object_new_string("mem");
++		}
++		if (jobj)
++			json_object_object_add(jndns, "map", jobj);
+ 		break;
+ 	case NDCTL_NS_MODE_DAX:
+ 		if (!dax)
+ 			goto err;
+ 		size = ndctl_dax_get_size(dax);
+ 		jobj = json_object_new_string("devdax");
++		if (jobj)
++			json_object_object_add(jndns, "mode", jobj);
++		loc = ndctl_dax_get_location(dax);
++		jobj = json_object_new_string(locations[loc]);
++		if (jobj)
++			json_object_object_add(jndns, "map", jobj);
+ 		break;
+ 	case NDCTL_NS_MODE_SAFE:
+ 		if (!btt)
+ 			goto err;
+ 		jobj = json_object_new_string("sector");
++		if (jobj)
++			json_object_object_add(jndns, "mode", jobj);
+ 		size = ndctl_btt_get_size(btt);
+ 		break;
+ 	case NDCTL_NS_MODE_RAW:
+ 		size = ndctl_namespace_get_size(ndns);
+ 		jobj = json_object_new_string("raw");
++		if (jobj)
++			json_object_object_add(jndns, "mode", jobj);
+ 		break;
+ 	default:
+ 		jobj = NULL;
  	}
+-	if (jobj)
+-		json_object_object_add(jndns, "mode", jobj);
  
- 	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
- 	if (err) {
- 		pr_debug("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
--		return err;
-+		return false;
- 	}
- 
- 	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
- 	if (!dax_dev) {
- 		pr_debug("%s: error: device does not support dax\n",
- 				bdevname(bdev, buf));
--		return -EOPNOTSUPP;
-+		return false;
- 	}
- 
- 	id = dax_read_lock();
-@@ -121,7 +121,7 @@ int __bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	if (len < 1) {
- 		pr_debug("%s: error: dax access failed (%ld)\n",
- 				bdevname(bdev, buf), len);
--		return len < 0 ? len : -EIO;
-+		return false;
- 	}
- 
- 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
-@@ -139,10 +139,10 @@ int __bdev_dax_supported(struct block_device *bdev, int blocksize)
- 	} else {
- 		pr_debug("%s: error: dax support not enabled\n",
- 				bdevname(bdev, buf));
--		return -EOPNOTSUPP;
-+		return false;
- 	}
- 
--	return 0;
-+	return true;
- }
- EXPORT_SYMBOL_GPL(__bdev_dax_supported);
- #endif
-diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-index 9627c3054b5c..c09289a42dc5 100644
---- a/fs/ext2/super.c
-+++ b/fs/ext2/super.c
-@@ -961,8 +961,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
- 
- 	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
--		err = bdev_dax_supported(sb->s_bdev, blocksize);
--		if (err) {
-+		if (!bdev_dax_supported(sb->s_bdev, blocksize)) {
- 			ext2_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
- 			sbi->s_mount_opt &= ~EXT2_MOUNT_DAX;
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index 089170e99895..2e1622907f4a 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -3732,8 +3732,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
- 					" that may contain inline data");
- 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
- 		}
--		err = bdev_dax_supported(sb->s_bdev, blocksize);
--		if (err) {
-+		if (!bdev_dax_supported(sb->s_bdev, blocksize)) {
- 			ext4_msg(sb, KERN_ERR,
- 				"DAX unsupported by block device. Turning off DAX.");
- 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
-diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
-index 0effd46b965f..2c70a0a4f59f 100644
---- a/fs/xfs/xfs_ioctl.c
-+++ b/fs/xfs/xfs_ioctl.c
-@@ -1103,8 +1103,8 @@ xfs_ioctl_setattr_dax_invalidate(
- 	if (fa->fsx_xflags & FS_XFLAG_DAX) {
- 		if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
- 			return -EINVAL;
--		if (bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
--				sb->s_blocksize) < 0)
-+		if (!bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
-+				sb->s_blocksize))
- 			return -EINVAL;
- 	}
- 
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 62188c2a4c36..86915dc40eed 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -1690,17 +1690,17 @@ xfs_fs_fill_super(
- 		sb->s_flags |= SB_I_VERSION;
- 
- 	if (mp->m_flags & XFS_MOUNT_DAX) {
--		int	error2 = 0;
-+		bool rtdev_is_dax = false, datadev_is_dax;
- 
- 		xfs_warn(mp,
- 		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
- 
--		error = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
--				sb->s_blocksize);
-+		datadev_is_dax = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
-+			sb->s_blocksize);
- 		if (mp->m_rtdev_targp)
--			error2 = bdev_dax_supported(mp->m_rtdev_targp->bt_bdev,
--					sb->s_blocksize);
--		if (error && error2) {
-+			rtdev_is_dax = bdev_dax_supported(
-+				mp->m_rtdev_targp->bt_bdev, sb->s_blocksize);
-+		if (!rtdev_is_dax && !datadev_is_dax) {
- 			xfs_alert(mp,
- 			"DAX unsupported by block device. Turning off DAX.");
- 			mp->m_flags &= ~XFS_MOUNT_DAX;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 2a4f7295c12b..c99692ddd4b5 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -64,8 +64,8 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
- struct writeback_control;
- int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
- #if IS_ENABLED(CONFIG_FS_DAX)
--int __bdev_dax_supported(struct block_device *bdev, int blocksize);
--static inline int bdev_dax_supported(struct block_device *bdev, int blocksize)
-+bool __bdev_dax_supported(struct block_device *bdev, int blocksize);
-+static inline bool bdev_dax_supported(struct block_device *bdev, int blocksize)
- {
- 	return __bdev_dax_supported(bdev, blocksize);
- }
-@@ -84,10 +84,10 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
- int dax_writeback_mapping_range(struct address_space *mapping,
- 		struct block_device *bdev, struct writeback_control *wbc);
- #else
--static inline int bdev_dax_supported(struct block_device *bdev,
-+static inline bool bdev_dax_supported(struct block_device *bdev,
- 		int blocksize)
- {
--	return -EOPNOTSUPP;
-+	return false;
- }
- 
- static inline struct dax_device *fs_dax_get_by_host(const char *host)
+ 	if (size < ULLONG_MAX) {
+ 		jobj = util_json_object_size(size, flags);
 -- 
-2.14.3
+2.17.0
 
 _______________________________________________
 Linux-nvdimm mailing list
