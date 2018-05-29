@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DE7BC2096AEFC
- for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 03:46:37 -0700 (PDT)
-Date: Wed, 9 May 2018 12:46:35 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v9 5/9] mm: fix __gup_device_huge vs unmap
-Message-ID: <20180509104635.57upe2fri7abqu7p@quack2.suse.cz>
-References: <152461278149.17530.2867511144531572045.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152461280975.17530.2817946409563456285.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <152461280975.17530.2817946409563456285.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 380C220D7B243
+ for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 12:51:13 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 7/7] dm-error: remove unnecessary direct_access() stub
+Date: Tue, 29 May 2018 13:51:06 -0600
+Message-Id: <20180529195106.14268-8-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
+References: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,119 +17,52 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, david@fromorbit.com, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
+Cc: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 24-04-18 16:33:29, Dan Williams wrote:
-> get_user_pages_fast() for device pages is missing the typical validation
-> that all page references have been taken while the mapping was valid.
-> Without this validation truncate operations can not reliably coordinate
-> against new page reference events like O_DIRECT.
-> 
-> Cc: <stable@vger.kernel.org>
-> Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-> Reported-by: Jan Kara <jack@suse.cz>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+This stub was added so that we could use dm-error with
+DM_TYPE_DAX_BIO_BASED mode devices.  That mode and the transition issues
+associated with it no longer exist, so we can remove this dead code.
 
-The patch looks good to me. You can add:
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+---
+ drivers/md/dm-target.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
-
-> ---
->  mm/gup.c |   36 ++++++++++++++++++++++++++----------
->  1 file changed, 26 insertions(+), 10 deletions(-)
-> 
-> diff --git a/mm/gup.c b/mm/gup.c
-> index 76af4cfeaf68..84dd2063ca3d 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -1456,32 +1456,48 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
->  	return 1;
->  }
->  
-> -static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-> +static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
->  		unsigned long end, struct page **pages, int *nr)
->  {
->  	unsigned long fault_pfn;
-> +	int nr_start = *nr;
-> +
-> +	fault_pfn = pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-> +	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
-> +		return 0;
->  
-> -	fault_pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-> -	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
-> +	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
-> +		undo_dev_pagemap(nr, nr_start, pages);
-> +		return 0;
-> +	}
-> +	return 1;
->  }
->  
-> -static int __gup_device_huge_pud(pud_t pud, unsigned long addr,
-> +static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
->  		unsigned long end, struct page **pages, int *nr)
->  {
->  	unsigned long fault_pfn;
-> +	int nr_start = *nr;
-> +
-> +	fault_pfn = pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-> +	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
-> +		return 0;
->  
-> -	fault_pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-> -	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
-> +	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
-> +		undo_dev_pagemap(nr, nr_start, pages);
-> +		return 0;
-> +	}
-> +	return 1;
->  }
->  #else
-> -static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-> +static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
->  		unsigned long end, struct page **pages, int *nr)
->  {
->  	BUILD_BUG();
->  	return 0;
->  }
->  
-> -static int __gup_device_huge_pud(pud_t pud, unsigned long addr,
-> +static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
->  		unsigned long end, struct page **pages, int *nr)
->  {
->  	BUILD_BUG();
-> @@ -1499,7 +1515,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
->  		return 0;
->  
->  	if (pmd_devmap(orig))
-> -		return __gup_device_huge_pmd(orig, addr, end, pages, nr);
-> +		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
->  
->  	refs = 0;
->  	page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-> @@ -1537,7 +1553,7 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
->  		return 0;
->  
->  	if (pud_devmap(orig))
-> -		return __gup_device_huge_pud(orig, addr, end, pages, nr);
-> +		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
->  
->  	refs = 0;
->  	page = pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-> 
+diff --git a/drivers/md/dm-target.c b/drivers/md/dm-target.c
+index 314d17ca6466..c4dbc15f7862 100644
+--- a/drivers/md/dm-target.c
++++ b/drivers/md/dm-target.c
+@@ -140,12 +140,6 @@ static void io_err_release_clone_rq(struct request *clone)
+ {
+ }
+ 
+-static long io_err_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+-		long nr_pages, void **kaddr, pfn_t *pfn)
+-{
+-	return -EIO;
+-}
+-
+ static struct target_type error_target = {
+ 	.name = "error",
+ 	.version = {1, 5, 0},
+@@ -155,7 +149,6 @@ static struct target_type error_target = {
+ 	.map  = io_err_map,
+ 	.clone_and_map_rq = io_err_clone_and_map_rq,
+ 	.release_clone_rq = io_err_release_clone_rq,
+-	.direct_access = io_err_dax_direct_access,
+ };
+ 
+ int __init dm_target_init(void)
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.14.3
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
