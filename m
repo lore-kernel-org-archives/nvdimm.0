@@ -1,28 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
- [IPv6:2607:f8b0:4003:c0f::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 19EA120965DCE
- for <linux-nvdimm@lists.01.org>; Wed,  9 May 2018 09:04:32 -0700 (PDT)
-Received: by mail-ot0-x242.google.com with SMTP id l22-v6so40762253otj.0
- for <linux-nvdimm@lists.01.org>; Wed, 09 May 2018 09:04:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180509204727.7ff38021@canb.auug.org.au>
-References: <CAKMK7uHjA27K8y-kwYFyhLy3cSkJJw8Oe1gP=3hZXdfxcWAcNQ@mail.gmail.com>
- <20180502194632.GB18390@sasha-vm> <20180503020550.GP2714@sirena.org.uk>
- <20180503031000.GC29205@thunk.org>
- <0276fcda-0385-8f22-dbdb-e063f7ed8bbe@roeck-us.net>
- <20180503224217.GR2714@sirena.org.uk> <20180503230905.GA98604@atomide.com>
- <CAPDyKFrCKkRHwOh-7yfFbvMp+Ykhs7oXrDwhTShSPvUBvpn2ZQ@mail.gmail.com>
- <20180509084440.GW13402@sirena.org.uk>
- <CAKMK7uEWYmhA3owSeYM9tNA0tpMm5=4Yqda2j=VfMWi7i8ya8w@mail.gmail.com>
- <20180509090346.GY13402@sirena.org.uk>
- <20180509204727.7ff38021@canb.auug.org.au>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 9 May 2018 09:04:31 -0700
-Message-ID: <CAPcyv4jtNXhMwCqpbKkHe5e-nDPK+2Wq=maFsB_SMSGyg7fw5w@mail.gmail.com>
-Subject: Re: [Ksummit-discuss] bug-introducing patches
+ by ml01.01.org (Postfix) with ESMTPS id 0A2372097DD35
+ for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 12:51:11 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 1/7] fs: allow per-device dax status checking for
+ filesystems
+Date: Tue, 29 May 2018 13:51:00 -0600
+Message-Id: <20180529195106.14268-2-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
+References: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,49 +18,260 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "ksummit-discuss@lists.linuxfoundation.org" <ksummit-discuss@lists.linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "w@1wt.eu" <w@1wt.eu>
+To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
+Cc: linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 9, 2018 at 3:47 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> On Wed, 9 May 2018 18:03:46 +0900 Mark Brown <broonie@kernel.org> wrote:
->>
->> On Wed, May 09, 2018 at 10:47:57AM +0200, Daniel Vetter wrote:
->> > On Wed, May 9, 2018 at 10:44 AM, Mark Brown <broonie@kernel.org> wrote:
->>
->> > > I think this is an excellent idea, copying in Stephen for his input.
->> > > I'm currently on holiday but unless someone convinces me it's a terrible
->> > > idea I'm willing to at least give it a go on a trial basis once I'm back
->> > > home.
->>
->> > Since Stephen merges all -fixes branches first, before merging all the
->> > -next branches, he already generates that as part of linux-next. All
->> > he'd need to do is push that intermediate state out to some
->> > linux-fixes branch for consumption by test bots.
->
-> Good idea ... I will see what I can do.
->
->> True.  It's currently only those -fixes branches that people have asked
->> him to merge separately which isn't as big a proportion of trees as have
->> them (perhaps fortunately given people's enthusiasm for fixes branches
->> that don't merge cleanly with their development branches) so we'd also
->> need to encourage people to add them separately.
->
-> I currently have 44 such fixes branches.  More welcome!
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
 
-Please add:
+Change bdev_dax_supported so it takes a bdev parameter.  This enables
+multi-device filesystems like xfs to check that a dax device can work for
+the particular filesystem.  Once that's in place, actually fix all the
+parts of XFS where we need to be able to distinguish between datadev and
+rtdev.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
-libnvdimm-fixes
+This patch fixes the problem where we screw up the dax support checking
+in xfs if the datadev and rtdev have different dax capabilities.
 
-We currently merge this into libnvdimm-for-next for -next coverage,
-and resolve any conflicts vs new development. Do you want to see those
-conflicts? Otherwise I would recommend only pulling libnvdimm-for-next
-for -next and libnvdimm-fixes for this new -next-fixes effort.
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+[rez: Re-added __bdev_dax_supported() for !CONFIG_FS_DAX cases]
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Eric Sandeen <sandeen@redhat.com>
+---
+ drivers/dax/super.c | 26 +++++++++++++-------------
+ fs/ext2/super.c     |  2 +-
+ fs/ext4/super.c     |  2 +-
+ fs/xfs/xfs_ioctl.c  |  3 ++-
+ fs/xfs/xfs_iops.c   | 30 +++++++++++++++++++++++++-----
+ fs/xfs/xfs_super.c  | 10 ++++++++--
+ include/linux/dax.h |  9 +++++----
+ 7 files changed, 55 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 2b2332b605e4..3943feb9a090 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -74,7 +74,7 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+ 
+ /**
+  * __bdev_dax_supported() - Check if the device supports dax for filesystem
+- * @sb: The superblock of the device
++ * @bdev: block device to check
+  * @blocksize: The block size of the device
+  *
+  * This is a library function for filesystems to check if the block device
+@@ -82,33 +82,33 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+  *
+  * Return: negative errno if unsupported, 0 if supported.
+  */
+-int __bdev_dax_supported(struct super_block *sb, int blocksize)
++int __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ {
+-	struct block_device *bdev = sb->s_bdev;
+ 	struct dax_device *dax_dev;
+ 	pgoff_t pgoff;
+ 	int err, id;
+ 	void *kaddr;
+ 	pfn_t pfn;
+ 	long len;
++	char buf[BDEVNAME_SIZE];
+ 
+ 	if (blocksize != PAGE_SIZE) {
+-		pr_debug("VFS (%s): error: unsupported blocksize for dax\n",
+-				sb->s_id);
++		pr_debug("%s: error: unsupported blocksize for dax\n",
++				bdevname(bdev, buf));
+ 		return -EINVAL;
+ 	}
+ 
+ 	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
+ 	if (err) {
+-		pr_debug("VFS (%s): error: unaligned partition for dax\n",
+-				sb->s_id);
++		pr_debug("%s: error: unaligned partition for dax\n",
++				bdevname(bdev, buf));
+ 		return err;
+ 	}
+ 
+ 	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
+ 	if (!dax_dev) {
+-		pr_debug("VFS (%s): error: device does not support dax\n",
+-				sb->s_id);
++		pr_debug("%s: error: device does not support dax\n",
++				bdevname(bdev, buf));
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+@@ -119,8 +119,8 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
+ 	put_dax(dax_dev);
+ 
+ 	if (len < 1) {
+-		pr_debug("VFS (%s): error: dax access failed (%ld)\n",
+-				sb->s_id, len);
++		pr_debug("%s: error: dax access failed (%ld)\n",
++				bdevname(bdev, buf), len);
+ 		return len < 0 ? len : -EIO;
+ 	}
+ 
+@@ -137,8 +137,8 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
+ 	} else if (pfn_t_devmap(pfn)) {
+ 		/* pass */;
+ 	} else {
+-		pr_debug("VFS (%s): error: dax support not enabled\n",
+-				sb->s_id);
++		pr_debug("%s: error: dax support not enabled\n",
++				bdevname(bdev, buf));
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+index de1694512f1f..9627c3054b5c 100644
+--- a/fs/ext2/super.c
++++ b/fs/ext2/super.c
+@@ -961,7 +961,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+ 
+ 	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
+-		err = bdev_dax_supported(sb, blocksize);
++		err = bdev_dax_supported(sb->s_bdev, blocksize);
+ 		if (err) {
+ 			ext2_msg(sb, KERN_ERR,
+ 				"DAX unsupported by block device. Turning off DAX.");
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index eb104e8476f0..089170e99895 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -3732,7 +3732,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 					" that may contain inline data");
+ 			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
+ 		}
+-		err = bdev_dax_supported(sb, blocksize);
++		err = bdev_dax_supported(sb->s_bdev, blocksize);
+ 		if (err) {
+ 			ext4_msg(sb, KERN_ERR,
+ 				"DAX unsupported by block device. Turning off DAX.");
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index 89fb1eb80aae..0effd46b965f 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -1103,7 +1103,8 @@ xfs_ioctl_setattr_dax_invalidate(
+ 	if (fa->fsx_xflags & FS_XFLAG_DAX) {
+ 		if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
+ 			return -EINVAL;
+-		if (bdev_dax_supported(sb, sb->s_blocksize) < 0)
++		if (bdev_dax_supported(xfs_find_bdev_for_inode(VFS_I(ip)),
++				sb->s_blocksize) < 0)
+ 			return -EINVAL;
+ 	}
+ 
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index a3ed3c811dfa..6e83acf74a95 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -1195,6 +1195,30 @@ static const struct inode_operations xfs_inline_symlink_inode_operations = {
+ 	.update_time		= xfs_vn_update_time,
+ };
+ 
++/* Figure out if this file actually supports DAX. */
++static bool
++xfs_inode_supports_dax(
++	struct xfs_inode	*ip)
++{
++	struct xfs_mount	*mp = ip->i_mount;
++
++	/* Only supported on non-reflinked files. */
++	if (!S_ISREG(VFS_I(ip)->i_mode) || xfs_is_reflink_inode(ip))
++		return false;
++
++	/* DAX mount option or DAX iflag must be set. */
++	if (!(mp->m_flags & XFS_MOUNT_DAX) &&
++	    !(ip->i_d.di_flags2 & XFS_DIFLAG2_DAX))
++		return false;
++
++	/* Block size must match page size */
++	if (mp->m_sb.sb_blocksize != PAGE_SIZE)
++		return false;
++
++	/* Device has to support DAX too. */
++	return xfs_find_daxdev_for_inode(VFS_I(ip)) != NULL;
++}
++
+ STATIC void
+ xfs_diflags_to_iflags(
+ 	struct inode		*inode,
+@@ -1213,11 +1237,7 @@ xfs_diflags_to_iflags(
+ 		inode->i_flags |= S_SYNC;
+ 	if (flags & XFS_DIFLAG_NOATIME)
+ 		inode->i_flags |= S_NOATIME;
+-	if (S_ISREG(inode->i_mode) &&
+-	    ip->i_mount->m_sb.sb_blocksize == PAGE_SIZE &&
+-	    !xfs_is_reflink_inode(ip) &&
+-	    (ip->i_mount->m_flags & XFS_MOUNT_DAX ||
+-	     ip->i_d.di_flags2 & XFS_DIFLAG2_DAX))
++	if (xfs_inode_supports_dax(ip))
+ 		inode->i_flags |= S_DAX;
+ }
+ 
+diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+index d71424052917..62188c2a4c36 100644
+--- a/fs/xfs/xfs_super.c
++++ b/fs/xfs/xfs_super.c
+@@ -1690,11 +1690,17 @@ xfs_fs_fill_super(
+ 		sb->s_flags |= SB_I_VERSION;
+ 
+ 	if (mp->m_flags & XFS_MOUNT_DAX) {
++		int	error2 = 0;
++
+ 		xfs_warn(mp,
+ 		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+ 
+-		error = bdev_dax_supported(sb, sb->s_blocksize);
+-		if (error) {
++		error = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
++				sb->s_blocksize);
++		if (mp->m_rtdev_targp)
++			error2 = bdev_dax_supported(mp->m_rtdev_targp->bt_bdev,
++					sb->s_blocksize);
++		if (error && error2) {
+ 			xfs_alert(mp,
+ 			"DAX unsupported by block device. Turning off DAX.");
+ 			mp->m_flags &= ~XFS_MOUNT_DAX;
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index f9eb22ad341e..2a4f7295c12b 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -64,10 +64,10 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ struct writeback_control;
+ int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
+ #if IS_ENABLED(CONFIG_FS_DAX)
+-int __bdev_dax_supported(struct super_block *sb, int blocksize);
+-static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
++int __bdev_dax_supported(struct block_device *bdev, int blocksize);
++static inline int bdev_dax_supported(struct block_device *bdev, int blocksize)
+ {
+-	return __bdev_dax_supported(sb, blocksize);
++	return __bdev_dax_supported(bdev, blocksize);
+ }
+ 
+ static inline struct dax_device *fs_dax_get_by_host(const char *host)
+@@ -84,7 +84,8 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
+ int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct block_device *bdev, struct writeback_control *wbc);
+ #else
+-static inline int bdev_dax_supported(struct super_block *sb, int blocksize)
++static inline int bdev_dax_supported(struct block_device *bdev,
++		int blocksize)
+ {
+ 	return -EOPNOTSUPP;
+ }
+-- 
+2.14.3
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
