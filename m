@@ -1,13 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x243.google.com (mail-ot0-x243.google.com
+ [IPv6:2607:f8b0:4003:c0f::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C44AA2096AEC2
- for <linux-nvdimm@lists.01.org>; Fri, 25 May 2018 15:00:59 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH resend 0/7] Fix DM DAX handling
-Date: Fri, 25 May 2018 16:00:48 -0600
-Message-Id: <20180525220055.18920-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8A23B20985998
+ for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 12:39:41 -0700 (PDT)
+Received: by mail-ot0-x243.google.com with SMTP id y10-v6so18358777otg.10
+ for <linux-nvdimm@lists.01.org>; Tue, 29 May 2018 12:39:41 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1527619927.5328.0.camel@intel.com>
+References: <20180525223556.9244-1-vishal.l.verma@intel.com>
+ <CAA9_cmf6PRzmZBr0aHr65EUqZo_eY95nzD3Y2sW9jho9uPDxeQ@mail.gmail.com>
+ <1527619927.5328.0.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 29 May 2018 12:39:39 -0700
+Message-ID: <CAPcyv4j0azz=VNpNwTEZnMjJp3ChS-pLt90W7Ek_isrcYMWs0Q@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl, list: display the 'map' location in listings
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,76 +23,111 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "Yigal.Korman@netapp.com" <Yigal.Korman@netapp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-No code changes from v1.  Just CCing the xfs mailing list & adding one
-Reviewed-by from Darrick.
+On Tue, May 29, 2018 at 11:52 AM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+> On Mon, 2018-05-28 at 11:04 -0700, Dan Williams wrote:
+>> On Fri, May 25, 2018 at 3:36 PM Vishal Verma <vishal.l.verma@intel.com>
+>> wrote:
+>>
+>> > For 'fsdax' and 'devdax' namespaces, a 'map' location may be specified
+>> > for page structures storage. This can be 'mem', for system RAM, or
+>> > 'dev'
+>> > for using pmem as the backing storage. Once set, there was no way of
+>> > telling using ndctl, which of the two locations a namespace was
+>> > configured for. Add this in util_namespace_to_json so that all
+>> > namespace listings contain the map location.
+>> > Reported-by: "Yigal Korman" <yigal.korman@netapp.com>
+>> > Cc: Dan Williams <dan.j.williams@intel.com>
+>> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>> > ---
+>> >   util/json.c | 18 ++++++++++++++++++
+>> >   1 file changed, 18 insertions(+)
+>> > diff --git a/util/json.c b/util/json.c
+>> > index c606e1c..17dd90c 100644
+>> > --- a/util/json.c
+>> > +++ b/util/json.c
+>> > @@ -667,11 +667,17 @@ struct json_object *util_namespace_to_json(struct
+>>
+>> ndctl_namespace *ndns,
+>> >   {
+>> >          struct json_object *jndns = json_object_new_object();
+>> >          struct json_object *jobj, *jbbs = NULL;
+>> > +       const char *locations[] = {
+>> > +               [NDCTL_PFN_LOC_NONE] = "none",
+>> > +               [NDCTL_PFN_LOC_RAM] = "mem",
+>> > +               [NDCTL_PFN_LOC_PMEM] = "dev",
+>> > +       };
+>> >          unsigned long long size = ULLONG_MAX;
+>> >          unsigned int sector_size = UINT_MAX;
+>> >          enum ndctl_namespace_mode mode;
+>> >          const char *bdev = NULL, *name;
+>> >          unsigned int bb_count = 0;
+>> > +       enum ndctl_pfn_loc loc;
+>> >          struct ndctl_btt *btt;
+>> >          struct ndctl_pfn *pfn;
+>> >          struct ndctl_dax *dax;
+>> > @@ -749,6 +755,12 @@ struct json_object *util_namespace_to_json(struct
+>>
+>> ndctl_namespace *ndns,
+>> >                  jobj = util_raw_uuid(ndns);
+>> >                  if (jobj)
+>> >                          json_object_object_add(jndns, "raw_uuid",
+>> > jobj);
+>> > +               loc = ndctl_pfn_get_location(pfn);
+>> > +               jobj = json_object_new_string(locations[loc]);
+>> > +               if (!jobj)
+>> > +                       goto err;
+>> > +               if (jobj)
+>> > +                       json_object_object_add(jndns, "map", jobj);
+>> >                  bdev = ndctl_pfn_get_block_device(pfn);
+>> >          } else if (dax) {
+>> >                  struct daxctl_region *dax_region;
+>> > @@ -763,6 +775,12 @@ struct json_object *util_namespace_to_json(struct
+>>
+>> ndctl_namespace *ndns,
+>> >                  jobj = util_raw_uuid(ndns);
+>> >                  if (jobj)
+>> >                          json_object_object_add(jndns, "raw_uuid",
+>> > jobj);
+>> > +               loc = ndctl_dax_get_location(dax);
+>> > +               jobj = json_object_new_string(locations[loc]);
+>> > +               if (!jobj)
+>> > +                       goto err;
+>> > +               if (jobj)
+>> > +                       json_object_object_add(jndns, "map", jobj);
+>> >                  if ((flags & UTIL_JSON_DAX) && dax_region) {
+>> >                          jobj = util_daxctl_region_to_json(dax_region,
+>>
+>> NULL,
+>> >                                          flags);
+>>
+>> There appears to be one case missing in this:
+>>
+>>          case NDCTL_NS_MODE_MEMORY:
+>>                  if (pfn) /* dynamic memory mode */
+>>                          size = ndctl_pfn_get_size(pfn);
+>>                  else /* native/static memory mode */
+>>                          size = ndctl_namespace_get_size(ndns);
+>>                  jobj = json_object_new_string("fsdax");
+>>                  break;
+>>
+>> In the "/* native/static memory mode */" configuration we should emit a
+>> 'map:"mem"' indication.
+>
+> Ah good catch. Is this for legacy/labelless namespaces that have been
+> configured into fsdax mode?
 
----
-
-This series fixes a few issues that I found with DM's handling of DAX
-devices.  Here are some of the issues I found:
-
- * We can create a dm-stripe or dm-linear device which is made up of an
-   fsdax PMEM namespace and a raw PMEM namespace but which can hold a
-   filesystem mounted with the -o dax mount option.  DAX operations to
-   the raw PMEM namespace part lack struct page and can fail in
-   interesting/unexpected ways when doing things like fork(), examining
-   memory with gdb, etc.
-
- * We can create a dm-stripe or dm-linear device which is made up of an
-   fsdax PMEM namespace and a BRD ramdisk which can hold a filesystem
-   mounted with the -o dax mount option.  All I/O to this filesystem
-   will fail.
-
- * In DM you can't transition a dm target which could possibly support
-   DAX (mode DM_TYPE_DAX_BIO_BASED) to one which can't support DAX
-   (mode DM_TYPE_BIO_BASED), even if you never use DAX.
-
-The first 2 patches in this series are prep work from Darrick and Dave
-which improve bdev_dax_supported().  The last 5 problems fix the above
-mentioned problems in DM.  I feel that this series simplifies the
-handling of DAX devices in DM, and the last 5 DM-related patches have a
-net code reduction of 50 lines.
-
-Darrick J. Wong (1):
-  fs: allow per-device dax status checking for filesystems
-
-Dave Jiang (1):
-  dax: change bdev_dax_supported() to support boolean returns
-
-Ross Zwisler (5):
-  dm: fix test for DAX device support
-  dm: prevent DAX mounts if not supported
-  dm: remove DM_TYPE_DAX_BIO_BASED dm_queue_mode
-  dm-snap: remove unnecessary direct_access() stub
-  dm-error: remove unnecessary direct_access() stub
-
- drivers/dax/super.c           | 44 +++++++++++++++++++++----------------------
- drivers/md/dm-ioctl.c         | 16 ++++++----------
- drivers/md/dm-snap.c          |  8 --------
- drivers/md/dm-table.c         | 29 +++++++++++-----------------
- drivers/md/dm-target.c        |  7 -------
- drivers/md/dm.c               |  7 ++-----
- fs/ext2/super.c               |  3 +--
- fs/ext4/super.c               |  3 +--
- fs/xfs/xfs_ioctl.c            |  3 ++-
- fs/xfs/xfs_iops.c             | 30 ++++++++++++++++++++++++-----
- fs/xfs/xfs_super.c            | 10 ++++++++--
- include/linux/dax.h           | 12 ++++--------
- include/linux/device-mapper.h |  8 ++++++--
- 13 files changed, 88 insertions(+), 92 deletions(-)
-
--- 
-2.14.3
-
+This is strictly for memmap=ss!nn and legacy-e820 defined namespaces
+where the assumption is that they are small and never need to have the
+map allocated anywhere else but System RAM.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
