@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D18FC203B8BFB
- for <linux-nvdimm@lists.01.org>; Tue,  1 May 2018 11:00:33 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/4] libndctl,
- inject: inject fewer bytes per block by default
-Date: Tue,  1 May 2018 12:00:21 -0600
-Message-Id: <20180501180023.30193-3-vishal.l.verma@intel.com>
-In-Reply-To: <20180501180023.30193-1-vishal.l.verma@intel.com>
-References: <20180501180023.30193-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E701A210C997B
+ for <linux-nvdimm@lists.01.org>; Wed, 30 May 2018 12:55:14 -0700 (PDT)
+Date: Thu, 31 May 2018 03:54:21 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 03/11] device-dax: enable page_mapping()
+Message-ID: <201805310306.5o2l7Hgz%fengguang.wu@intel.com>
+References: <152699998750.24093.5270058390086110946.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <152699998750.24093.5270058390086110946.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,271 +19,97 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: tony.luck@intel.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, kbuild-all@01.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Theoretically a single poisoned byte per block is enough for Linux to
-mark it as a badblock. For each block, instead of injecting a range
-covering the entire badblock, reduce it to clear_err_unit bytes, which
-is obtained from an ars_cap command. If multiple blocks are being
-injected, inject the above number of bytes at the start of each block
-separately. Make the same changes for uninject as well.
+Hi Dan,
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+I love your patch! Yet something to improve:
+
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.17-rc7 next-20180530]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/mm-Teach-memory_failure-about-ZONE_DEVICE-pages/20180525-035652
+config: arm64-allmodconfig (attached as .config)
+compiler: aarch64-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
+reproduce:
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=arm64 
+
+All errors (new ones prefixed by >>):
+
+   drivers//dax/device.c: In function 'dev_dax_huge_fault':
+>> drivers//dax/device.c:413:8: error: too many arguments to function '__dev_dax_pud_fault'
+      rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
+           ^~~~~~~~~~~~~~~~~~~
+   drivers//dax/device.c:380:19: note: declared here
+    static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+                      ^~~~~~~~~~~~~~~~~~~
+
+vim +/__dev_dax_pud_fault +413 drivers//dax/device.c
+
+   386	
+   387	static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+   388			enum page_entry_size pe_size)
+   389	{
+   390		struct vm_area_struct *vma = vmf->vma;
+   391		struct file *filp = vma->vm_file;
+   392		unsigned long fault_size;
+   393		int rc, id;
+   394		pfn_t pfn;
+   395		struct dev_dax *dev_dax = filp->private_data;
+   396	
+   397		dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
+   398				(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
+   399				vma->vm_start, vma->vm_end, pe_size);
+   400	
+   401		id = dax_read_lock();
+   402		switch (pe_size) {
+   403		case PE_SIZE_PTE:
+   404			fault_size = PAGE_SIZE;
+   405			rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
+   406			break;
+   407		case PE_SIZE_PMD:
+   408			fault_size = PMD_SIZE;
+   409			rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
+   410			break;
+   411		case PE_SIZE_PUD:
+   412			fault_size = PUD_SIZE;
+ > 413			rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
+   414			break;
+   415		default:
+   416			rc = VM_FAULT_SIGBUS;
+   417		}
+   418	
+   419		if (rc == VM_FAULT_NOPAGE) {
+   420			unsigned long i;
+   421	
+   422			for (i = 0; i < fault_size / PAGE_SIZE; i++) {
+   423				struct page *page;
+   424	
+   425				page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
+   426				if (page->mapping)
+   427					continue;
+   428				page->mapping = filp->f_mapping;
+   429			}
+   430		}
+   431		dax_read_unlock(id);
+   432	
+   433		return rc;
+   434	}
+   435	
+
 ---
- Documentation/ndctl/ndctl-inject-error.txt |   7 ++
- ndctl/lib/inject.c                         | 181 +++++++++++++++++++++--------
- 2 files changed, 138 insertions(+), 50 deletions(-)
-
-diff --git a/Documentation/ndctl/ndctl-inject-error.txt b/Documentation/ndctl/ndctl-inject-error.txt
-index 94c4e69..07c992a 100644
---- a/Documentation/ndctl/ndctl-inject-error.txt
-+++ b/Documentation/ndctl/ndctl-inject-error.txt
-@@ -18,6 +18,13 @@ ndctl-inject-error can be used to ask the platform to simulate media errors
- in the NVDIMM address space to aid debugging and development of features
- related to error handling.
- 
-+By default, injecting an error actually only injects an error to the first 'n'
-+bytes of the block, where 'n' is the output of ndctl_cmd_ars_cap_get_size().
-+In other words, we only inject one 'ars_unit' per sector. This is sufficient
-+for Linux to mark the whole sector as bad, and will show up as such in the
-+various 'badblocks' lists in the kernel. If multiple blocks are being injected,
-+only the first 'n' bytes of each block specified will be injected as errors.
-+
- WARNING: These commands are DANGEROUS and can cause data loss. They are
- only provided for testing and debugging purposes.
- 
-diff --git a/ndctl/lib/inject.c b/ndctl/lib/inject.c
-index 8bfb5c9..2865a7d 100644
---- a/ndctl/lib/inject.c
-+++ b/ndctl/lib/inject.c
-@@ -89,86 +89,167 @@ static int translate_status(u32 status)
- 	return 0;
- }
- 
--NDCTL_EXPORT int ndctl_namespace_inject_error(struct ndctl_namespace *ndns,
--		unsigned long long block, unsigned long long count, bool notify)
-+static int ndctl_namespace_get_clear_unit(struct ndctl_namespace *ndns)
-+{
-+	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
-+	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-+	unsigned long long ns_offset, ns_size;
-+	unsigned int clear_unit;
-+	struct ndctl_cmd *cmd;
-+	int rc;
-+
-+	ndctl_namespace_get_injection_bounds(ndns, &ns_offset,
-+		&ns_size);
-+	cmd = ndctl_bus_cmd_new_ars_cap(bus, ns_offset, ns_size);
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc) {
-+		dbg(ctx, "Error submitting ars_cap: %d\n", rc);
-+		return rc;
-+	}
-+	clear_unit = ndctl_cmd_ars_cap_get_clear_unit(cmd);
-+	if (clear_unit == 0) {
-+		dbg(ctx, "Got an invalid clear_err_unit from ars_cap\n");
-+		return -EINVAL;
-+	}
-+
-+	ndctl_cmd_unref(cmd);
-+	return clear_unit;
-+}
-+
-+static int ndctl_namespace_inject_one_error(struct ndctl_namespace *ndns,
-+		unsigned long long block, bool notify)
- {
- 	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
- 	struct nd_cmd_ars_err_inj *err_inj;
- 	struct nd_cmd_pkg *pkg;
- 	struct ndctl_cmd *cmd;
--	int rc = -EOPNOTSUPP;
-+	u64 offset, length;
-+	int rc, clear_unit;
- 
--	if (!ndctl_bus_has_error_injection(bus))
--		return -EOPNOTSUPP;
-+	rc = block_to_spa_offset(ndns, block, 1, &offset, &length);
-+	if (rc)
-+		return rc;
- 
--	if (ndctl_bus_has_nfit(bus)) {
--		u64 offset, length;
-+	clear_unit = ndctl_namespace_get_clear_unit(ndns);
-+	if (clear_unit < 0)
-+		return clear_unit;
- 
--		rc = block_to_spa_offset(ndns, block, count, &offset, &length);
--		if (rc)
--			return rc;
--		cmd = ndctl_bus_cmd_new_err_inj(bus);
--		if (!cmd)
--			return -ENOMEM;
-+	/* clamp injection length per block to the clear_unit */
-+	if (length > (unsigned int)clear_unit)
-+		length = clear_unit;
- 
--		pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
--		err_inj = (struct nd_cmd_ars_err_inj *)&pkg->nd_payload[0];
--		err_inj->err_inj_spa_range_base = offset;
--		err_inj->err_inj_spa_range_length = length;
--		if (notify)
--			err_inj->err_inj_options |=
--				(1 << ND_ARS_ERR_INJ_OPT_NOTIFY);
-+	cmd = ndctl_bus_cmd_new_err_inj(bus);
-+	if (!cmd)
-+		return -ENOMEM;
- 
--		rc = ndctl_cmd_submit(cmd);
-+	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
-+	err_inj = (struct nd_cmd_ars_err_inj *)&pkg->nd_payload[0];
-+	err_inj->err_inj_spa_range_base = offset;
-+	err_inj->err_inj_spa_range_length = length;
-+	if (notify)
-+		err_inj->err_inj_options |=
-+			(1 << ND_ARS_ERR_INJ_OPT_NOTIFY);
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc) {
-+		dbg(ctx, "Error submitting command: %d\n", rc);
-+		goto out;
-+	}
-+	rc = translate_status(err_inj->status);
-+ out:
-+	ndctl_cmd_unref(cmd);
-+	return rc;
-+}
-+
-+NDCTL_EXPORT int ndctl_namespace_inject_error(struct ndctl_namespace *ndns,
-+		unsigned long long block, unsigned long long count, bool notify)
-+{
-+	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
-+	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-+	unsigned long long i;
-+	int rc = -EINVAL;
-+
-+	if (!ndctl_bus_has_error_injection(bus))
-+		return -EOPNOTSUPP;
-+	if (!ndctl_bus_has_nfit(bus))
-+		return -EOPNOTSUPP;
-+
-+	for (i = 0; i < count; i++) {
-+		rc = ndctl_namespace_inject_one_error(ndns, block + i, notify);
- 		if (rc) {
--			dbg(ctx, "Error submitting command: %d\n", rc);
--			goto out;
-+			err(ctx, "Injection failed at block %llx\n",
-+				block + i);
-+			return rc;
- 		}
--		rc = translate_status(err_inj->status);
-- out:
--		ndctl_cmd_unref(cmd);
- 	}
- 	return rc;
- }
- 
--NDCTL_EXPORT int ndctl_namespace_uninject_error(struct ndctl_namespace *ndns,
--		unsigned long long block, unsigned long long count)
-+static int ndctl_namespace_uninject_one_error(struct ndctl_namespace *ndns,
-+		unsigned long long block)
- {
- 	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
- 	struct nd_cmd_ars_err_inj_clr *err_inj_clr;
- 	struct nd_cmd_pkg *pkg;
- 	struct ndctl_cmd *cmd;
--	int rc = -EOPNOTSUPP;
-+	u64 offset, length;
-+	int rc, clear_unit;
- 
--	if (!ndctl_bus_has_error_injection(bus))
--		return -EOPNOTSUPP;
-+	rc = block_to_spa_offset(ndns, block, 1, &offset, &length);
-+	if (rc)
-+		return rc;
- 
--	if (ndctl_bus_has_nfit(bus)) {
--		u64 offset, length;
-+	clear_unit = ndctl_namespace_get_clear_unit(ndns);
-+	if (clear_unit < 0)
-+		return clear_unit;
- 
--		rc = block_to_spa_offset(ndns, block, count, &offset, &length);
--		if (rc)
--			return rc;
--		cmd = ndctl_bus_cmd_new_err_inj_clr(bus);
--		if (!cmd)
--			return -ENOMEM;
-+	/* clamp injection length per block to the clear_unit */
-+	if (length > (unsigned int)clear_unit)
-+		length = clear_unit;
- 
--		pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
--		err_inj_clr =
--			(struct nd_cmd_ars_err_inj_clr *)&pkg->nd_payload[0];
--		err_inj_clr->err_inj_clr_spa_range_base = offset;
--		err_inj_clr->err_inj_clr_spa_range_length = length;
-+	cmd = ndctl_bus_cmd_new_err_inj_clr(bus);
-+	if (!cmd)
-+		return -ENOMEM;
- 
--		rc = ndctl_cmd_submit(cmd);
-+	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
-+	err_inj_clr =
-+		(struct nd_cmd_ars_err_inj_clr *)&pkg->nd_payload[0];
-+	err_inj_clr->err_inj_clr_spa_range_base = offset;
-+	err_inj_clr->err_inj_clr_spa_range_length = length;
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc) {
-+		dbg(ctx, "Error submitting command: %d\n", rc);
-+		goto out;
-+	}
-+	rc = translate_status(err_inj_clr->status);
-+ out:
-+	ndctl_cmd_unref(cmd);
-+	return rc;
-+}
-+
-+NDCTL_EXPORT int ndctl_namespace_uninject_error(struct ndctl_namespace *ndns,
-+		unsigned long long block, unsigned long long count)
-+{
-+	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
-+	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-+	unsigned long long i;
-+	int rc = -EINVAL;
-+
-+	if (!ndctl_bus_has_error_injection(bus))
-+		return -EOPNOTSUPP;
-+	if (!ndctl_bus_has_nfit(bus))
-+		return -EOPNOTSUPP;
-+
-+	for (i = 0; i < count; i++) {
-+		rc = ndctl_namespace_uninject_one_error(ndns, block + i);
- 		if (rc) {
--			dbg(ctx, "Error submitting command: %d\n", rc);
--			goto out;
-+			err(ctx, "Un-injection failed at block %llx\n",
-+				block + i);
-+			return rc;
- 		}
--		rc = translate_status(err_inj_clr->status);
-- out:
--		ndctl_cmd_unref(cmd);
- 	}
- 	return rc;
- }
--- 
-2.14.3
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
