@@ -2,23 +2,24 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 790AC209859BD
- for <linux-nvdimm@lists.01.org>; Wed, 30 May 2018 06:42:42 -0700 (PDT)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [dm-devel] [patch 4/4] dm-writecache: use new API for flushing
-References: <20180519052503.325953342@debian.vm>
- <20180519052635.567438191@debian.vm>
- <20180522063946.GB8054@infradead.org>
- <20180522184103.GA25826@redhat.com>
- <CAPcyv4g395RccdEPF=sCu5RdCH9zwD+GvOfSp7-F0Oh64CeDgA@mail.gmail.com>
- <20180522191942.GB25904@redhat.com>
- <CAPcyv4hWswV=VCfB7KatoW_zc-kUUju2jD45N-Gsg4sW-XFe-A@mail.gmail.com>
- <alpine.LRH.2.02.1805280943460.16538@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4gxCNqqG2G3R6f=kH3zNbByhgE2R-trJWurH49-p+51Gg@mail.gmail.com>
-Date: Wed, 30 May 2018 09:42:40 -0400
-In-Reply-To: <CAPcyv4gxCNqqG2G3R6f=kH3zNbByhgE2R-trJWurH49-p+51Gg@mail.gmail.com>
- (Dan Williams's message of "Mon, 28 May 2018 10:41:51 -0700")
-Message-ID: <x49h8mpmf8v.fsf@segfault.boston.devel.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8542B20985990
+ for <linux-nvdimm@lists.01.org>; Wed, 30 May 2018 06:33:47 -0700 (PDT)
+Date: Wed, 30 May 2018 09:33:46 -0400 (EDT)
+From: Mikulas Patocka <mpatocka@redhat.com>
+Subject: Re: [patch 4/4] dm-writecache: use new API for flushing
+In-Reply-To: <20180530132647.GB5157@redhat.com>
+Message-ID: <alpine.LRH.2.02.1805300929500.11327@file01.intranet.prod.int.rdu2.redhat.com>
+References: <alpine.LRH.2.02.1805250213270.13894@file01.intranet.prod.int.rdu2.redhat.com>
+ <20180525125126.GA9275@redhat.com>
+ <CAPcyv4j-v5HGBg9JMBXt7UUyw=K_bGC7t5tQGfXM9G4qjOpFjQ@mail.gmail.com>
+ <alpine.LRH.2.02.1805260246250.15978@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4jwLsCNvNhgvv2DDSZuQsQXYEpKUU_5w1pTnyKj-uDBbQ@mail.gmail.com>
+ <alpine.LRH.2.02.1805280922190.13486@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4jXV4aZ6wqqjVPL8J4LxwTtXnzQCLZ0Wk5oB4_0uxpg7g@mail.gmail.com>
+ <alpine.LRH.2.02.1805300903220.1090@file01.intranet.prod.int.rdu2.redhat.com>
+ <20180530131623.GB2106@redhat.com>
+ <alpine.LRH.2.02.1805300919070.11327@file01.intranet.prod.int.rdu2.redhat.com>
+ <20180530132647.GB5157@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -31,34 +32,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>, device-mapper development <dm-devel@redhat.com>, Mikulas Patocka <mpatocka@redhat.com>, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Mike Snitzer <snitzer@redhat.com>
+Cc: device-mapper development <dm-devel@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Williams <dan.j.williams@intel.com> writes:
 
-> When I read your patch I came away with the impression that ARM had
-> not added memcpy_flushcache() yet and you were working around that
-> fact. Now that I look, ARM *does* define memcpy_flushcache() and
-> you're avoiding it. You use memcpy+arch_wb_pmem where arch_wb_pmem on
-> ARM64 is defined as __clean_dcache_area_pop(dst, cnt). The ARM
-> memcpy_flushcache() implementation is:
->
->     memcpy(dst, src, cnt);
->     __clean_dcache_area_pop(dst, cnt);
->
-> So, I do not see how what you're doing is any less work unless you are
-> flushing less than you copy?
->
-> If memcpy_flushcache() is slower than memcpy + arch_wb_pmem then the
-> ARM implementation is broken and that needs to be addressed not worked
-> around in a driver.
 
-I think Mikulas wanted to batch up multiple copies and flush at the
-end.  According to his commit message, that batching gained him 2%
-performance.
+On Wed, 30 May 2018, Mike Snitzer wrote:
 
--Jeff
+> On Wed, May 30 2018 at  9:21am -0400,
+> Mikulas Patocka <mpatocka@redhat.com> wrote:
+> 
+> > 
+> > 
+> > On Wed, 30 May 2018, Mike Snitzer wrote:
+> > 
+> > > That is really great news, can you submit an incremental patch that
+> > > layers ontop of the linux-dm.git 'dm-4.18' branch?
+> > > 
+> > > Thanks,
+> > > Mike
+> > 
+> > I've sent the current version that I have. I fixed the bugs that were 
+> > reported here (missing DAX, dm_bufio_client_create, __branch_check__ 
+> > long->int truncation).
+> 
+> OK, but a monolithic dm-writecache.c is no longer useful to me.  I can
+> drop Arnd's gcc warning fix (with the idea that Ingo or Steve will take
+> your __branch_check__ patch).  Not sure what the dm_bufio_client_create
+> fix is... must've missed a report about that.
+> 
+> ANyway, point is we're on too a different phase of dm-writecache.c's
+> development.  I've picked it up and am trying to get it ready for the
+> 4.18 merge window (likely opening Sunday).  Therefore it needs to be in
+> a git tree, and incremental changes overlayed.  I cannot be rebasing at
+> this late stage in the 4.18 development window.
+> 
+> Thanks,
+> Mike
+
+I downloaded dm-writecache from your git repository some times ago - but 
+you changed a lot of useless things (i.e. reordering the fields in the 
+structure) since that time - so, you'll have to merge the changes.
+
+You dropped the latency measuring code - why? We still would like to 
+benchmark the driver.
+
+Mikulas
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
