@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7426120961097
- for <linux-nvdimm@lists.01.org>; Mon,  7 May 2018 16:20:31 -0700 (PDT)
-Date: Mon, 7 May 2018 18:20:29 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v4 06/14] PCI/P2PDMA: Add P2P DMA driver writer's
- documentation
-Message-ID: <20180507232029.GH161390@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
- <20180423233046.21476-7-logang@deltatee.com>
+Received: from foss.arm.com (foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id 473E920985994
+ for <linux-nvdimm@lists.01.org>; Wed, 30 May 2018 10:56:56 -0700 (PDT)
+Date: Wed, 30 May 2018 18:56:52 +0100
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: arch_wb_cache_pmem on ARM64
+Message-ID: <20180530175652.fapzlssmkncusier@lakrids.cambridge.arm.com>
+References: <alpine.LRH.2.02.1805301254340.25056@file01.intranet.prod.int.rdu2.redhat.com>
+ <92b97864-52af-88d1-f18d-c6f6764072b0@arm.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20180423233046.21476-7-logang@deltatee.com>
+In-Reply-To: <92b97864-52af-88d1-f18d-c6f6764072b0@arm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,107 +22,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Mikulas Patocka <mpatocka@redhat.com>, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Apr 23, 2018 at 05:30:38PM -0600, Logan Gunthorpe wrote:
-> Add a restructured text file describing how to write drivers
-> with support for P2P DMA transactions. The document describes
-> how to use the APIs that were added in the previous few
-> commits.
+On Wed, May 30, 2018 at 06:31:42PM +0100, Robin Murphy wrote:
+> On 30/05/18 18:00, Mikulas Patocka wrote:
+> > Hi
+> > 
+> > I'd like to ask what's the purpose of dmb(osh) in the function
+> > arch_wb_cache_pmem in arch/arm64/mm/flush.c?
+> > 
+> > void arch_wb_cache_pmem(void *addr, size_t size)
+> > {
+> >          /* Ensure order against any prior non-cacheable writes */
+> >          dmb(osh);
+> >          __clean_dcache_area_pop(addr, size);
+> > }
+> > 
+> > The processor may flush the cache spontaneously, that means that all the
+> > flushing may actually happen before the dmb(osh) instruction - so what
+> > does that dmb instruction guard against?
 > 
-> Also adds an index for the PCI documentation tree even though this
-> is the only PCI document that has been converted to restructured text
-> at this time.
-> 
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> ---
->  Documentation/PCI/index.rst             |  14 +++
->  Documentation/driver-api/pci/index.rst  |   1 +
->  Documentation/driver-api/pci/p2pdma.rst | 166 ++++++++++++++++++++++++++++++++
->  Documentation/index.rst                 |   3 +-
->  4 files changed, 183 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/PCI/index.rst
->  create mode 100644 Documentation/driver-api/pci/p2pdma.rst
-> 
-> diff --git a/Documentation/PCI/index.rst b/Documentation/PCI/index.rst
-> new file mode 100644
-> index 000000000000..2fdc4b3c291d
-> --- /dev/null
-> +++ b/Documentation/PCI/index.rst
-> @@ -0,0 +1,14 @@
-> +==================================
-> +Linux PCI Driver Developer's Guide
-> +==================================
-> +
-> +.. toctree::
-> +
-> +   p2pdma
-> +
-> +.. only::  subproject and html
-> +
-> +   Indices
-> +   =======
-> +
-> +   * :ref:`genindex`
-> diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
-> index 03b57cbf8cc2..d12eeafbfc90 100644
-> --- a/Documentation/driver-api/pci/index.rst
-> +++ b/Documentation/driver-api/pci/index.rst
-> @@ -10,6 +10,7 @@ The Linux PCI driver implementer's API guide
->     :maxdepth: 2
->  
->     pci
-> +   p2pdma
->  
->  .. only::  subproject and html
->  
-> diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
-> new file mode 100644
-> index 000000000000..49a512c405b2
-> --- /dev/null
-> +++ b/Documentation/driver-api/pci/p2pdma.rst
-> @@ -0,0 +1,166 @@
-> +============================
-> +PCI Peer-to-Peer DMA Support
-> +============================
-> +
-> +The PCI bus has pretty decent support for performing DMA transfers
-> +between two endpoints on the bus. This type of transaction is
+> IIRC the (very subtle) problem was to do with the odd case of a transparent
+> (i.e. beyond the PoC) system cache - if data has been written to the pmem
+> region via some non-cacheable alias, then the barrier was necessary to
+> ensure that cache maintenance via the inner-shareable kernel mapping can
+> push any data already at the PoC further along to the PoP.
 
-s/endpoints/devices/
+I think it's simpler than that: the cache maintenance operations
+naturally hazard against cacheable memory accesses, but they don't
+hazard against non-cacheable accesses.
 
-> +henceforth called Peer-to-Peer (or P2P). However, there are a number of
-> +issues that make P2P transactions tricky to do in a perfectly safe way.
-> +
-> +One of the biggest issues is that PCI Root Complexes are not required
+Thus, we need a barrier between the two to ensure ordering.
 
-s/PCI Root Complexes .../
-  PCI doesn't require forwarding transactions between hierarchy domains,
-and in PCIe, each Root Port defines a separate hierarchy domain./
+Non-cacheable accesses are Outer Shareable, so thus the barrier must be
+at least Outer Shareable.
 
-> +to support forwarding packets between Root Ports. To make things worse,
-> +there is no simple way to determine if a given Root Complex supports
-> +this or not. (See PCIe r4.0, sec 1.3.1). Therefore, as of this writing,
-> +the kernel only supports doing P2P when the endpoints involved are all
-> +behind the same PCIe root port as the spec guarantees that all
-> +packets will always be routable but does not require routing between
-> +root ports.
+We *might* be able to get away with OSHST, though.
 
-s/endpoints involved .../
-  devices involved are all behind the same PCI bridge, as such devices are
-  all in the same PCI hierarchy domain, and the spec guarantees that all
-  transactions within the hierarchy will be routable, but it does not
-  require routing between hierarchies./
+For example, Without the barrier, prior non-cacheable stores could sit
+in a store buffer while the cache maintenance was performed, and could
+subsequently be written out after the cache maintenance was complete.
 
-> +
-> +The second issue is that to make use of existing interfaces in Linux,
-> +memory that is used for P2P transactions needs to be backed by struct
-> +pages. However, PCI BARs are not typically cache coherent so there are
-> +a few corner case gotchas with these pages so developers need to
-> +be careful about what they do with them.
+Thanks,
+Mark.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
