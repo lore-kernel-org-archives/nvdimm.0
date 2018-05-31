@@ -1,16 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
+ [IPv6:2607:f8b0:4003:c06::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 359E2203B992F
- for <linux-nvdimm@lists.01.org>; Tue, 22 May 2018 07:49:34 -0700 (PDT)
-Subject: [PATCH 01/11] device-dax: convert to vmf_insert_mixed and vm_fault_t
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 May 2018 07:39:37 -0700
-Message-ID: <152699997725.24093.7806223020674439995.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 50BD8210D6CED
+ for <linux-nvdimm@lists.01.org>; Thu, 31 May 2018 14:49:50 -0700 (PDT)
+Received: by mail-oi0-x243.google.com with SMTP id l22-v6so13091686oib.4
+ for <linux-nvdimm@lists.01.org>; Thu, 31 May 2018 14:49:50 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20180531100849.xkwe5xsjpkw6nev7@quack2.suse.cz>
+References: <152699997165.24093.12194490924829406111.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152699999778.24093.18007971664703285330.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180523084030.dvv4jbvsnzrsaz6q@quack2.suse.cz>
+ <CAPcyv4gUM7Br3XONOVkNCg-mvR5U8QLq+OOc54cLpP61LXhJXA@mail.gmail.com>
+ <20180530081356.mohu6fx22fzd7fxb@quack2.suse.cz>
+ <CAPcyv4iPa_n7c6iLRtNyE4GdXcn7JcF=Z1bUDmNrjrKvnLic2A@mail.gmail.com>
+ <20180531100849.xkwe5xsjpkw6nev7@quack2.suse.cz>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 31 May 2018 14:49:49 -0700
+Message-ID: <CAPcyv4j6zjvzxKb3JUHU+iSrPXybj-uRNFAWXoc46dkMgjyN6g@mail.gmail.com>
+Subject: Re: [PATCH 05/11] filesystem-dax: set page->index
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,153 +31,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tony.luck@intel.com, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, Souptick Joarder <jrdr.linux@gmail.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: Jan Kara <jack@suse.cz>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use new return type vm_fault_t for fault and huge_fault handler. For
-now, this is just documenting that the function returns a VM_FAULT value
-rather than an errno.  Once all instances are converted, vm_fault_t will
-become a distinct type.
+On Thu, May 31, 2018 at 3:08 AM, Jan Kara <jack@suse.cz> wrote:
+[..]
+>> >> As far as I can see reflink+dax would require teaching kernel code
+>> >> paths that ->mapping may not be a singular relationship. Something
+>> >> along the line's of what Jerome was presenting at LSF to create a
+>> >> special value to indicate, "call back into the filesystem (or the page
+>> >> owner)" to perform this operation.
+>> >>
+>> >> In the meantime the kernel crashes when userspace accesses poisoned
+>> >> pmem via DAX. I assume that reworking rmap for the dax+reflink case
+>> >> should not block dax poison handling? Yell if you disagree.
+>> >
+>> > The thing is, up until get_user_pages() vs truncate series ("fs, dax: use
+>> > page->mapping to warn if truncate collides with a busy page" in
+>> > particular), DAX was perfectly fine with reflinks since we never needed
+>> > page->mapping.
+>>
+>> Sure, but if this rmap series had come first I still would have needed
+>> to implement ->mapping. So unless we invent a general ->mapping
+>> replacement and switch all mapping users, it was always going to
+>> collide with DAX eventually.
+>
+> Yes, my comment was more in direction that life would be easier if we could
+> keep DAX without rmap support but I guess that's just too cumbersome.
 
-Commit 1c8f422059ae ("mm: change return type to vm_fault_t")
+I'm open to deeper reworks later. As it stands currently just calling
+madvise(..., MADV_HWPOISON) on a DAX mapping causes a page reference
+to be leaked because the madvise code has no clue about proper
+handling of DAX pages, and consuming real poison leads to a fatal
+condition / reset.
 
-Previously vm_insert_mixed() returned an error code which driver mapped into
-VM_FAULT_* type. The new function vmf_insert_mixed() will replace this
-inefficiency by returning VM_FAULT_* type.
+I think fixing those bugs with the current rmap dependencies on
+->mapping and ->index is step1 and step2 is a longer term solution for
+dax rmap that does also allow reflink. I.e. it's an rmap > reflink
+argument for now.
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/device.c    |   26 +++++++++++---------------
- include/linux/huge_mm.h |    5 +++--
- mm/huge_memory.c        |    4 ++--
- 3 files changed, 16 insertions(+), 19 deletions(-)
+>
+>> > Now this series adds even page->index dependency which makes
+>> > life for rmap with reflinks even harder. So if nothing else we should at
+>> > least make sure reflinked filesystems cannot be mounted with dax mount
+>> > option for now and seriously start looking into how to implement rmap with
+>> > reflinked files for DAX because this noticeably reduces its usefulness.
+>>
+>> This restriction is already in place. In xfs_reflink_remap_range() we have:
+>>
+>>         /* Don't share DAX file data for now. */
+>>         if (IS_DAX(inode_in) || IS_DAX(inode_out))
+>>                 goto out_unlock;
+>
+> OK, good.
+>
+>> All this said, perhaps we don't need to set ->link, it would just mean
+>> a wider search through the rmap tree to find if the given page is
+>> mapped. So, I think I can forgo setting ->link if I teach the rmap
+>> code to search the entire ->mapping.
+>
+> I guess you mean ->index in the above. And now when thinking about it I don't
+> think it is worth the complications to avoid using ->index.
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index aff2c1594220..d44d98c54d0f 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -244,11 +244,11 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
- 	return -1;
- }
- 
--static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
-+static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
-+				struct vm_fault *vmf)
- {
- 	struct device *dev = &dev_dax->dev;
- 	struct dax_region *dax_region;
--	int rc = VM_FAULT_SIGBUS;
- 	phys_addr_t phys;
- 	pfn_t pfn;
- 	unsigned int fault_size = PAGE_SIZE;
-@@ -274,17 +274,11 @@ static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	rc = vm_insert_mixed(vmf->vma, vmf->address, pfn);
--
--	if (rc == -ENOMEM)
--		return VM_FAULT_OOM;
--	if (rc < 0 && rc != -EBUSY)
--		return VM_FAULT_SIGBUS;
--
--	return VM_FAULT_NOPAGE;
-+	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
- }
- 
--static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
-+static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
-+				struct vm_fault *vmf)
- {
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	struct device *dev = &dev_dax->dev;
-@@ -334,7 +328,8 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- }
- 
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
-+static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
-+				struct vm_fault *vmf)
- {
- 	unsigned long pud_addr = vmf->address & PUD_MASK;
- 	struct device *dev = &dev_dax->dev;
-@@ -384,13 +379,14 @@ static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
--static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
-+static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
-+				struct vm_fault *vmf)
- {
- 	return VM_FAULT_FALLBACK;
- }
- #endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- 
--static int dev_dax_huge_fault(struct vm_fault *vmf,
-+static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
- 	int rc, id;
-@@ -420,7 +416,7 @@ static int dev_dax_huge_fault(struct vm_fault *vmf,
- 	return rc;
- }
- 
--static int dev_dax_fault(struct vm_fault *vmf)
-+static vm_fault_t dev_dax_fault(struct vm_fault *vmf)
- {
- 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
- }
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index a8a126259bc4..d3bbf6bea9e9 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -3,6 +3,7 @@
- #define _LINUX_HUGE_MM_H
- 
- #include <linux/sched/coredump.h>
-+#include <linux/mm_types.h>
- 
- #include <linux/fs.h> /* only for vma_is_dax() */
- 
-@@ -46,9 +47,9 @@ extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, pgprot_t newprot,
- 			int prot_numa);
--int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
-+vm_fault_t vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 			pmd_t *pmd, pfn_t pfn, bool write);
--int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
-+vm_fault_t vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
- 			pud_t *pud, pfn_t pfn, bool write);
- enum transparent_hugepage_flag {
- 	TRANSPARENT_HUGEPAGE_FLAG,
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index a3a1815f8e11..6af976472a5d 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -755,7 +755,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	spin_unlock(ptl);
- }
- 
--int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
-+vm_fault_t vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- 			pmd_t *pmd, pfn_t pfn, bool write)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
-@@ -815,7 +815,7 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
- 	spin_unlock(ptl);
- }
- 
--int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
-+vm_fault_t vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
- 			pud_t *pud, pfn_t pfn, bool write)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
-
+Ok, and yes I meant ->index... sorry, too much struct page on the
+brain presently.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
