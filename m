@@ -1,12 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
- [150.101.137.129])
- by ml01.01.org (Postfix) with ESMTP id 8DB3220985980
- for <linux-nvdimm@lists.01.org>; Thu, 31 May 2018 16:05:54 -0700 (PDT)
-Date: Fri, 1 Jun 2018 09:05:50 +1000
-From: Dave Chinner <david@fromorbit.com>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 5F64E207E5401
+ for <linux-nvdimm@lists.01.org>; Thu, 31 May 2018 13:25:58 -0700 (PDT)
+Date: Thu, 31 May 2018 14:25:56 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: Question about Experimental of Filesystem DAX.
-Message-ID: <20180531230550.GN10363@dastard>
+Message-ID: <20180531202556.GA28256@linux.intel.com>
 References: <20180531112731.0CAC.E1E9C6FF@jp.fujitsu.com>
  <20180531150716.GA19764@linux.intel.com>
  <CAPcyv4jpffaM60tTdLTojhh0CDwcbVUdS8td7R6LKWM3bb15dw@mail.gmail.com>
@@ -116,40 +117,20 @@ On Thu, May 31, 2018 at 11:26:43AM -0700, Dan Williams wrote:
 > It's going to be a bit messy because a singular page->mapping
 > association is fundamentally incompatible with DAX. Perhaps a linked
 > list of mapping "siblings"?
-
-I'd much prefer the filesystem allocate/control the struct page that
-is inserted into mapping trees so we can have multiple struct pages
-pointing at the one physical page.  That way we can just insert
-these dynamic struct pages into the relevant mappings and it works
-the same way for both DAX and shared page cache pages.
-
-i.e. the filesystem knows they are shared physical blocks, the
-filesystem controls COW of physical blocks, the filesystem controls
-truncate/invalidation of physical blocks, the filesystem controls
-cache state of the physical blocks. So why are we designing
-infrastructure around the virtual memory and caching infrastructure
-that bypasses the layer that manages and arbitrates access to the
-physical storage?
-
-This seems like we're well down the path of a architectural layering
-violation that is backing us into a corner we're not going to be
-able to get ourselves out of...
-
+> 
 > > Also: ideally XFS would also be able to consume poison event
 > > notifications from the pmem so that it can try to deal with metadata
 > > loss, but that's probably a separate effort.
+> 
+> Right, not a gating item for declaring DAX ready for prime time.
 
-If the design is such that the layer that manages the physical
-storage isn't going to be told about physical storage failures
-before anyone else is informed, it would seem to me like we really
-have introduced a major architectural flaw in DAX....
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Yep, I think that the very loud EXPERIMENTAL message is essentially telling
+users "your data is at risk if you use this".  I totally agree that we still
+have lots of work to do.  However, I don't think that these feature
+enhancements should gate removal of the EXPERIMENTAL notice.   IMHO that
+should only exist as long as we have issues that we know could corrupt data,
+crash the box, etc.  As far as I know those are basically the 2 items on Dan's
+list from a few mails ago (poison recovery & DMA vs truncate).
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
