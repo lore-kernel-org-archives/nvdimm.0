@@ -1,89 +1,110 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B4FFB202E5403
- for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 15:13:08 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl, test: add start/wait scrub to injection tests
-Date: Thu, 28 Jun 2018 16:13:03 -0600
-Message-Id: <20180628221303.3837-1-vishal.l.verma@intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-List-ID: <linux-nvdimm@lists.01.org>
+From: Stefan Hajnoczi <stefanha@gmail.com>
+Subject: Re: Questions about vNVDIMM on qemu/KVM
+Date: Fri, 1 Jun 2018 12:54:29 +0100
+Message-ID: <20180601115429.GL8687@stefanha-x1.localdomain>
+References: <20180523140809.622F.E1E9C6FF@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2EnvhqpWJq810sZn"
+Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+Content-Disposition: inline
+In-Reply-To: <20180523140809.622F.E1E9C6FF@jp.fujitsu.com>
+List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
+List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
+List-Post: <mailto:qemu-devel@nongnu.org>
+List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
+List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
+Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
+Sender: "Qemu-devel"
+	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+To: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Pankaj Gupta <pagupta@redhat.com>, Luiz Capitulino <lcapitulino@redhat.com>, qemu-devel@nongnu.org, NVDIMM-ML <linux-nvdimm@lists.01.org>
+List-Id: linux-nvdimm@lists.01.org
 
-A number of tests that perform error injection were missing the
-start/wait scrub workaround needed for nfit_test namespaces, causing
-these tests to ocassionally fail. Fix it by starting and waiting for a
-scrub after injection in these remaining places.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/btt-errors.sh   | 2 ++
- test/clear.sh        | 1 +
- test/inject-error.sh | 1 +
- 3 files changed, 4 insertions(+)
+--2EnvhqpWJq810sZn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/test/btt-errors.sh b/test/btt-errors.sh
-index e9cc209..cb35865 100755
---- a/test/btt-errors.sh
-+++ b/test/btt-errors.sh
-@@ -115,6 +115,7 @@ bb_inj=$((dataoff/512))
- 
- # inject badblocks for one page at the start of the file
- $NDCTL inject-error --block="$bb_inj" --count=8 $dev
-+$NDCTL start-scrub && $NDCTL wait-scrub
- 
- force_raw 0
- mount -o nodelalloc "/dev/$blockdev" $MNT
-@@ -148,6 +149,7 @@ map=$(hexdump -s 96 -n 4 "/dev/$raw_bdev" | head -1 | cut -d' ' -f2-)
- map=$(tr -d ' ' <<< "0x${map#* }${map%% *}")
- bb_inj=$((map/512))
- $NDCTL inject-error --block="$bb_inj" --count=1 $dev
-+$NDCTL start-scrub && $NDCTL wait-scrub
- force_raw 0
- 
- # make sure reading the first block of the namespace fails
-diff --git a/test/clear.sh b/test/clear.sh
-index 6cc43db..17d5bed 100755
---- a/test/clear.sh
-+++ b/test/clear.sh
-@@ -41,6 +41,7 @@ err_sector="$(((size/512) / 2))"
- err_count=8
- if ! read sector len < /sys/block/$blockdev/badblocks; then
- 	$NDCTL inject-error --block="$err_sector" --count=$err_count $dev
-+	$NDCTL start-scrub && $NDCTL wait-scrub
- fi
- read sector len < /sys/block/$blockdev/badblocks
- [ $((sector * 2)) -ne $((size /512)) ] && echo "fail: $LINENO" && exit 1
-diff --git a/test/inject-error.sh b/test/inject-error.sh
-index 7bda35b..49e68b3 100755
---- a/test/inject-error.sh
-+++ b/test/inject-error.sh
-@@ -77,6 +77,7 @@ do_tests()
- 
- 	# inject normally
- 	$NDCTL inject-error --block=$err_block --count=$err_count $dev
-+	$NDCTL start-scrub && $NDCTL wait-scrub
- 	check_status "$err_block" "$err_count"
- 	if read -r sector len < /sys/block/$blockdev/badblocks; then
- 		test "$sector" -eq "$err_block"
--- 
-2.14.4
+On Wed, May 23, 2018 at 02:08:12PM +0900, Yasunori Goto wrote:
+> Hello,
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CCing Pankaj, who is developing virtio-pmem and may have comments beyond
+what has already been discussed.
+
+> I'm investigating status of vNVDIMM on qemu/KVM,
+> and I have some questions about it. I'm glad if anyone answer them.
+>=20
+> In my understanding, qemu/KVM has a feature to show NFIT for guest,
+> and it will be still updated about platform capability with this patch se=
+t.
+> https://lists.gnu.org/archive/html/qemu-devel/2018-05/msg04756.html
+>=20
+> And libvirt also supports this feature with <memory model=3D'nvdimm'>
+> https://libvirt.org/formatdomain.html#elementsMemory
+>=20
+>=20
+> However, virtio-pmem is developing now, and it is better
+> for archtectures to detect regions of NVDIMM without ACPI (like s390x)
+> In addition, It is also necessary to flush guest contents on vNVDIMM
+> who has a backend-file.=20
+>=20
+>=20
+> Q1) Does ACPI.NFIT bus of qemu/kvm remain with virtio-pmem?=20
+>     How do each roles become it if both NFIT and virtio-pmem will be avai=
+lable?
+>     If my understanding is correct, both NFIT and virtio-pmem is used to
+>     detect vNVDIMM regions, but only one seems to be necessary....
+>=20
+>     Otherwize, is the NFIT bus just for keeping compatibility,=20
+>     and virtio-pmem is promising way?
+>=20
+>    =20
+> Q2) What bus is(will be?) created for virtio-pmem?
+>     I could confirm the bus of NFIT is created with <memory model=3D'nvdi=
+mm'>,
+>     and I heard other bus will be created for virtio-pmem, but I could not
+>     find what bus is created concretely.
+>     ---
+>       # ndctl list -B
+>       {
+>          "provider":"ACPI.NFIT",
+>          "dev":"ndbus0"
+>       }
+>     ---
+>   =20
+>     I think it affects what operations user will be able to, and what=20
+>     notification is necessary for vNVDIMM.=20
+>     ACPI defines some operations like namespace controll, and notification
+>     for NVDIMM health status or others.
+>     (I suppose that other status notification might be necessary for vNVD=
+IMM,
+>      but I'm not sure yet...)
+>=20
+> If my understanding is wrong, please correct me.
+>=20
+> Thanks,
+> ---
+> Yasunori Goto
+>=20
+>=20
+>=20
+
+--2EnvhqpWJq810sZn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEcBAEBAgAGBQJbETP1AAoJEJykq7OBq3PIAToH/0iQQq1xrjtmm9Pei8pYlY+X
+nyA9L2Q4VhEla9wurFPtksJrKq8aDjou/JwaciD4LNqKWBXR0WNp5j7HNDFe6Jez
+4Kax0uUrCra7PKnFr4fK6EZq7JJF/3gT+Pkr0r2Q/hBLCGYgeMjVN2fnIV3Hyl3p
+ZeKfluimW/8rfCsZxqorRRcZCo6//pJtnTx+HEbmThD5RIeFtAN7yK1rNzWMMWYr
+Ncmb69ktN0CC2kn7pCF5VfjaSrM1MUFcpUXTGU5ENE5pQ+ox0gggh38jSmVm1XUu
+24gDBZxnm3QIVGiYOVFisalpxDlkGcIAJA0OhGbI38hzkTLiEbCBl0zyf5IUB3c=
+=xGxs
+-----END PGP SIGNATURE-----
+
+--2EnvhqpWJq810sZn--
