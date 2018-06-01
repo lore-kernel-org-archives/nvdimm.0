@@ -1,110 +1,72 @@
-From: Stefan Hajnoczi <stefanha@gmail.com>
-Subject: Re: Questions about vNVDIMM on qemu/KVM
-Date: Fri, 1 Jun 2018 12:54:29 +0100
-Message-ID: <20180601115429.GL8687@stefanha-x1.localdomain>
-References: <20180523140809.622F.E1E9C6FF@jp.fujitsu.com>
+From: Igor Mammedov <imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Qemu-devel] [RFC v2 0/2] kvm "fake DAX" device flushing
+Date: Fri, 1 Jun 2018 14:24:10 +0200
+Message-ID: <20180601142410.5c986f13@redhat.com>
+References: <20180425112415.12327-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2EnvhqpWJq810sZn"
-Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-Content-Disposition: inline
-In-Reply-To: <20180523140809.622F.E1E9C6FF@jp.fujitsu.com>
-List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
-List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
-List-Post: <mailto:qemu-devel@nongnu.org>
-List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
-List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
-Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
-Sender: "Qemu-devel"
-	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Pankaj Gupta <pagupta@redhat.com>, Luiz Capitulino <lcapitulino@redhat.com>, qemu-devel@nongnu.org, NVDIMM-ML <linux-nvdimm@lists.01.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180425112415.12327-1-pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+On Wed, 25 Apr 2018 16:54:12 +0530
+Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
 
---2EnvhqpWJq810sZn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[...]
+> - Qemu virtio-pmem device
+>   It exposes a persistent memory range to KVM guest which 
+>   at host side is file backed memory and works as persistent 
+>   memory device. In addition to this it provides virtio 
+>   device handling of flushing interface. KVM guest performs
+>   Qemu side asynchronous sync using this interface.
+a random high level question,
+Have you considered using a separate (from memory itself)
+virtio device as controller for exposing some memory, async flushing.
+And then just slaving pc-dimm devices to it with notification/ACPI
+code suppressed so that guest won't touch them?
 
-On Wed, May 23, 2018 at 02:08:12PM +0900, Yasunori Goto wrote:
-> Hello,
+That way it might be more scale-able, you consume only 1 PCI slot
+for controller vs multiple for virtio-pmem devices.
 
-CCing Pankaj, who is developing virtio-pmem and may have comments beyond
-what has already been discussed.
 
-> I'm investigating status of vNVDIMM on qemu/KVM,
-> and I have some questions about it. I'm glad if anyone answer them.
->=20
-> In my understanding, qemu/KVM has a feature to show NFIT for guest,
-> and it will be still updated about platform capability with this patch se=
-t.
-> https://lists.gnu.org/archive/html/qemu-devel/2018-05/msg04756.html
->=20
-> And libvirt also supports this feature with <memory model=3D'nvdimm'>
-> https://libvirt.org/formatdomain.html#elementsMemory
->=20
->=20
-> However, virtio-pmem is developing now, and it is better
-> for archtectures to detect regions of NVDIMM without ACPI (like s390x)
-> In addition, It is also necessary to flush guest contents on vNVDIMM
-> who has a backend-file.=20
->=20
->=20
-> Q1) Does ACPI.NFIT bus of qemu/kvm remain with virtio-pmem?=20
->     How do each roles become it if both NFIT and virtio-pmem will be avai=
-lable?
->     If my understanding is correct, both NFIT and virtio-pmem is used to
->     detect vNVDIMM regions, but only one seems to be necessary....
->=20
->     Otherwize, is the NFIT bus just for keeping compatibility,=20
->     and virtio-pmem is promising way?
->=20
->    =20
-> Q2) What bus is(will be?) created for virtio-pmem?
->     I could confirm the bus of NFIT is created with <memory model=3D'nvdi=
-mm'>,
->     and I heard other bus will be created for virtio-pmem, but I could not
->     find what bus is created concretely.
->     ---
->       # ndctl list -B
->       {
->          "provider":"ACPI.NFIT",
->          "dev":"ndbus0"
->       }
->     ---
->   =20
->     I think it affects what operations user will be able to, and what=20
->     notification is necessary for vNVDIMM.=20
->     ACPI defines some operations like namespace controll, and notification
->     for NVDIMM health status or others.
->     (I suppose that other status notification might be necessary for vNVD=
-IMM,
->      but I'm not sure yet...)
->=20
-> If my understanding is wrong, please correct me.
->=20
-> Thanks,
-> ---
-> Yasunori Goto
->=20
->=20
->=20
-
---2EnvhqpWJq810sZn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEcBAEBAgAGBQJbETP1AAoJEJykq7OBq3PIAToH/0iQQq1xrjtmm9Pei8pYlY+X
-nyA9L2Q4VhEla9wurFPtksJrKq8aDjou/JwaciD4LNqKWBXR0WNp5j7HNDFe6Jez
-4Kax0uUrCra7PKnFr4fK6EZq7JJF/3gT+Pkr0r2Q/hBLCGYgeMjVN2fnIV3Hyl3p
-ZeKfluimW/8rfCsZxqorRRcZCo6//pJtnTx+HEbmThD5RIeFtAN7yK1rNzWMMWYr
-Ncmb69ktN0CC2kn7pCF5VfjaSrM1MUFcpUXTGU5ENE5pQ+ox0gggh38jSmVm1XUu
-24gDBZxnm3QIVGiYOVFisalpxDlkGcIAJA0OhGbI38hzkTLiEbCBl0zyf5IUB3c=
-=xGxs
------END PGP SIGNATURE-----
-
---2EnvhqpWJq810sZn--
+> Changes from previous RFC[1]:
+> 
+> - Reuse existing 'pmem' code for registering persistent 
+>   memory and other operations instead of creating an entirely 
+>   new block driver.
+> - Use VIRTIO driver to register memory information with 
+>   nvdimm_bus and create region_type accordingly. 
+> - Call VIRTIO flush from existing pmem driver.
+> 
+> Details of project idea for 'fake DAX' flushing interface is 
+> shared [2] & [3].
+> 
+> Pankaj Gupta (2):
+>    Add virtio-pmem guest driver
+>    pmem: device flush over VIRTIO
+> 
+> [1] https://marc.info/?l=linux-mm&m=150782346802290&w=2
+> [2] https://www.spinics.net/lists/kvm/msg149761.html
+> [3] https://www.spinics.net/lists/kvm/msg153095.html  
+> 
+>  drivers/nvdimm/region_devs.c     |    7 ++
+>  drivers/virtio/Kconfig           |   12 +++
+>  drivers/virtio/Makefile          |    1 
+>  drivers/virtio/virtio_pmem.c     |  118 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/libnvdimm.h        |    4 +
+>  include/uapi/linux/virtio_ids.h  |    1 
+>  include/uapi/linux/virtio_pmem.h |   58 +++++++++++++++++++
+>  7 files changed, 201 insertions(+)
+> 
