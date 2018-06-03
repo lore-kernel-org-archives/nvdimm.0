@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 23190211A0B87
- for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 16:58:08 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 1/3] libnvdimm: unconditionally deep flush on *sync
-Date: Tue,  5 Jun 2018 17:58:00 -0600
-Message-Id: <20180605235802.14531-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0006D203B9904
+ for <linux-nvdimm@lists.01.org>; Sat,  2 Jun 2018 22:32:51 -0700 (PDT)
+Subject: [PATCH v2 02/11] device-dax: Cleanup vm_fault de-reference chains
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 02 Jun 2018 22:22:54 -0700
+Message-ID: <152800337429.17112.14515997163907857953.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,80 +18,146 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prior to this commit we would only do a "deep flush" in response to an
-msync/fsync/sync call if the nvdimm_has_cache() returned true at the time
-we were setting up the request queue.  This happens due to the write cache
-value passed in to blk_queue_write_cache().  We do have a "write_cache"
-sysfs entry for namespaces, i.e.:
+Define a local 'vma' variable rather than repetitively de-referencing
+the passed in 'struct vm_fault *' instance.
 
-  /sys/bus/nd/devices/pfn0.1/block/pmem0/dax/write_cache
-
-which can be used to control whether or not the kernel thinks a given
-namespace has a write cache, but this didn't modify the deep flush behavior
-that we set up when the driver was initialized.  Instead, it only modified
-whether or not DAX would flush CPU caches in response to *sync calls.
-
-Simplify this by making the *sync "deep flush" always happen, regardless of
-the write cache setting of a namespace.  The DAX CPU cache flushing will be
-controlled by a combination of the write_cache setting as well as whether
-the platform supports flush-on-fail CPU caches.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/pmem.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/dax/device.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 9d714926ecf5..a152dd9e4134 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -299,7 +299,7 @@ static int pmem_attach_disk(struct device *dev,
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index d44d98c54d0f..686de08e120b 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -247,13 +247,14 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
  {
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
--	int nid = dev_to_node(dev), fua, wbc;
-+	int nid = dev_to_node(dev), fua;
- 	struct resource *res = &nsio->res;
- 	struct resource bb_res;
- 	struct nd_pfn *nd_pfn = NULL;
-@@ -335,7 +335,6 @@ static int pmem_attach_disk(struct device *dev,
- 		dev_warn(dev, "unable to guarantee persistence of writes\n");
- 		fua = 0;
- 	}
--	wbc = nvdimm_has_cache(nd_region);
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
  
- 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
- 				dev_name(&ndns->dev))) {
-@@ -382,7 +381,7 @@ static int pmem_attach_disk(struct device *dev,
- 		return PTR_ERR(addr);
- 	pmem->virt_addr = addr;
+-	if (check_vma(dev_dax, vmf->vma, __func__))
++	if (check_vma(dev_dax, vma, __func__))
+ 		return VM_FAULT_SIGBUS;
  
--	blk_queue_write_cache(q, wbc, fua);
-+	blk_queue_write_cache(q, true, fua);
- 	blk_queue_make_request(q, pmem_make_request);
- 	blk_queue_physical_block_size(q, PAGE_SIZE);
- 	blk_queue_logical_block_size(q, pmem_sector_size(ndns));
-@@ -413,7 +412,7 @@ static int pmem_attach_disk(struct device *dev,
- 		put_disk(disk);
- 		return -ENOMEM;
- 	}
--	dax_write_cache(dax_dev, wbc);
-+	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
- 	pmem->dax_dev = dax_dev;
+ 	dax_region = dev_dax->region;
+@@ -274,13 +275,14 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
  
- 	gendev = disk_to_dev(disk);
--- 
-2.14.4
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
++	return vmf_insert_mixed(vma, vmf->address, pfn);
+ }
+ 
+ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+@@ -288,7 +290,7 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PMD_SIZE;
+ 
+-	if (check_vma(dev_dax, vmf->vma, __func__))
++	if (check_vma(dev_dax, vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	dax_region = dev_dax->region;
+@@ -310,11 +312,10 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_FALLBACK;
+ 
+ 	/* if we are outside of the VMA */
+-	if (pmd_addr < vmf->vma->vm_start ||
+-			(pmd_addr + PMD_SIZE) > vmf->vma->vm_end)
++	if (pmd_addr < vma->vm_start || (pmd_addr + PMD_SIZE) > vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+ 
+-	pgoff = linear_page_index(vmf->vma, pmd_addr);
++	pgoff = linear_page_index(vma, pmd_addr);
+ 	phys = dax_pgoff_to_phys(dev_dax, pgoff, PMD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", pgoff);
+@@ -323,7 +324,7 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
++	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
+@@ -332,6 +333,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
+ {
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+@@ -340,7 +342,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 	unsigned int fault_size = PUD_SIZE;
+ 
+ 
+-	if (check_vma(dev_dax, vmf->vma, __func__))
++	if (check_vma(dev_dax, vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	dax_region = dev_dax->region;
+@@ -362,11 +364,10 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_FALLBACK;
+ 
+ 	/* if we are outside of the VMA */
+-	if (pud_addr < vmf->vma->vm_start ||
+-			(pud_addr + PUD_SIZE) > vmf->vma->vm_end)
++	if (pud_addr < vma->vm_start || (pud_addr + PUD_SIZE) > vma->vm_end)
+ 		return VM_FAULT_SIGBUS;
+ 
+-	pgoff = linear_page_index(vmf->vma, pud_addr);
++	pgoff = linear_page_index(vma, pud_addr);
+ 	phys = dax_pgoff_to_phys(dev_dax, pgoff, PUD_SIZE);
+ 	if (phys == -1) {
+ 		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", pgoff);
+@@ -375,7 +376,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pud(vmf->vma, vmf->address, vmf->pud, pfn,
++	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ #else
+@@ -390,12 +391,13 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+ 	int rc, id;
+-	struct file *filp = vmf->vma->vm_file;
++	struct vm_area_struct *vma = vmf->vma;
++	struct file *filp = vma->vm_file;
+ 	struct dev_dax *dev_dax = filp->private_data;
+ 
+ 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
+ 			(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
+-			vmf->vma->vm_start, vmf->vma->vm_end, pe_size);
++			vma->vm_start, vma->vm_end, pe_size);
+ 
+ 	id = dax_read_lock();
+ 	switch (pe_size) {
 
 _______________________________________________
 Linux-nvdimm mailing list
