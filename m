@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DC7C1210F2CFE
- for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:22:40 -0700 (PDT)
-Subject: [PATCH v3 12/12] libnvdimm,
- pmem: Restore page attributes when clearing errors
+ by ml01.01.org (Postfix) with ESMTPS id 70AFA2096F328
+ for <linux-nvdimm@lists.01.org>; Sat,  2 Jun 2018 22:33:28 -0700 (PDT)
+Subject: [PATCH v2 09/11] mm,
+ memory_failure: Fix page->mapping assumptions relative to the page
+ lock
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 04 Jun 2018 16:12:43 -0700
-Message-ID: <152815396335.39010.17157370539429298762.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 02 Jun 2018 22:23:31 -0700
+Message-ID: <152800341110.17112.2806198295112832622.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,99 +28,176 @@ To: linux-nvdimm@lists.01.org
 Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use clear_mce_nospec() to restore WB mode for the kernel linear mapping
-of a pmem page that was marked 'HWPoison'. A page with 'HWPoison' set
-has also been marked UC in PAT (page attribute table) via
-set_mce_nospec() to prevent speculative retrievals of poison.
+The current memory_failure() implementation assumes that lock_page() is
+sufficient for stabilizing page->mapping and that ->mapping->host will
+not be freed. The dax implementation, on the other hand, relies on
+xa_lock_irq() for stabilizing the page->mapping relationship and it is
+not possible to hold the lock over current routines in the
+memory_failure() path that run under lock_page().
 
-The 'HWPoison' flag is only cleared when overwriting an entire page.
+Teach the various memory_failure() helpers to pin the address_space and
+revalidate page->mapping under xa_lock_irq(mapping->i_pages).
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/pmem.c |   26 ++++++++++++++++++++++++++
- drivers/nvdimm/pmem.h |   13 +++++++++++++
- 2 files changed, 39 insertions(+)
+ mm/memory-failure.c |   56 +++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 38 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 9d714926ecf5..04ee1fdee219 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -20,6 +20,7 @@
- #include <linux/hdreg.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-+#include <linux/set_memory.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/badblocks.h>
-@@ -51,6 +52,30 @@ static struct nd_region *to_region(struct pmem_device *pmem)
- 	return to_nd_region(to_dev(pmem)->parent);
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 42a193ee14d3..b6efb78ba49b 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -179,12 +179,20 @@ EXPORT_SYMBOL_GPL(hwpoison_filter);
+  * ``action required'' if error happened in current execution context
+  */
+ static int kill_proc(struct task_struct *t, unsigned long addr,
+-			unsigned long pfn, unsigned size_shift, int flags)
++		struct address_space *mapping, struct page *page,
++		unsigned size_shift, int flags)
+ {
+-	int ret;
++	int ret = 0;
++
++	/* revalidate the page before killing the process */
++	xa_lock_irq(&mapping->i_pages);
++	if (page->mapping != mapping) {
++		xa_unlock_irq(&mapping->i_pages);
++		return 0;
++	}
+ 
+ 	pr_err("Memory failure: %#lx: Killing %s:%d due to hardware memory corruption\n",
+-		pfn, t->comm, t->pid);
++			page_to_pfn(page), t->comm, t->pid);
+ 
+ 	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
+ 		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)addr,
+@@ -199,6 +207,7 @@ static int kill_proc(struct task_struct *t, unsigned long addr,
+ 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)addr,
+ 				      size_shift, t);  /* synchronous? */
+ 	}
++	xa_unlock_irq(&mapping->i_pages);
+ 	if (ret < 0)
+ 		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
+ 			t->comm, t->pid, ret);
+@@ -316,8 +325,8 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+  * wrong earlier.
+  */
+ static void kill_procs(struct list_head *to_kill, int forcekill,
+-			  bool fail, unsigned size_shift, unsigned long pfn,
+-			  int flags)
++		bool fail, unsigned size_shift, struct address_space *mapping,
++		struct page *page, int flags)
+ {
+ 	struct to_kill *tk, *next;
+ 
+@@ -330,7 +339,8 @@ static void kill_procs(struct list_head *to_kill, int forcekill,
+ 			 */
+ 			if (fail || tk->addr_valid == 0) {
+ 				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
+-				       pfn, tk->tsk->comm, tk->tsk->pid);
++						page_to_pfn(page), tk->tsk->comm,
++						tk->tsk->pid);
+ 				force_sig(SIGKILL, tk->tsk);
+ 			}
+ 
+@@ -341,9 +351,10 @@ static void kill_procs(struct list_head *to_kill, int forcekill,
+ 			 * process anyways.
+ 			 */
+ 			else if (kill_proc(tk->tsk, tk->addr,
+-					      pfn, size_shift, flags) < 0)
++					      mapping, page, size_shift, flags) < 0)
+ 				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
+-				       pfn, tk->tsk->comm, tk->tsk->pid);
++						page_to_pfn(page), tk->tsk->comm,
++						tk->tsk->pid);
+ 		}
+ 		put_task_struct(tk->tsk);
+ 		kfree(tk);
+@@ -429,21 +440,27 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
+ /*
+  * Collect processes when the error hit a file mapped page.
+  */
+-static void collect_procs_file(struct page *page, struct list_head *to_kill,
+-			      struct to_kill **tkc, int force_early)
++static void collect_procs_file(struct address_space *mapping, struct page *page,
++		struct list_head *to_kill, struct to_kill **tkc,
++		int force_early)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+-	struct address_space *mapping = page->mapping;
+ 
+ 	i_mmap_lock_read(mapping);
+ 	read_lock(&tasklist_lock);
+ 	for_each_process(tsk) {
+-		pgoff_t pgoff = page_to_pgoff(page);
++		pgoff_t pgoff;
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
+ 
+ 		if (!t)
+ 			continue;
++		xa_lock_irq(&mapping->i_pages);
++		if (page->mapping != mapping) {
++			xa_unlock_irq(&mapping->i_pages);
++			break;
++		}
++		pgoff = page_to_pgoff(page);
+ 		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff,
+ 				      pgoff) {
+ 			/*
+@@ -456,6 +473,7 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+ 			if (vma->vm_mm == t->mm)
+ 				add_to_kill(t, page, vma, to_kill, tkc);
+ 		}
++		xa_unlock_irq(&mapping->i_pages);
+ 	}
+ 	read_unlock(&tasklist_lock);
+ 	i_mmap_unlock_read(mapping);
+@@ -467,12 +485,12 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+  * First preallocate one tokill structure outside the spin locks,
+  * so that we can kill at least one process reasonably reliable.
+  */
+-static void collect_procs(struct page *page, struct list_head *tokill,
+-				int force_early)
++static void collect_procs(struct address_space *mapping, struct page *page,
++		struct list_head *tokill, int force_early)
+ {
+ 	struct to_kill *tk;
+ 
+-	if (!page->mapping)
++	if (!mapping)
+ 		return;
+ 
+ 	tk = kmalloc(sizeof(struct to_kill), GFP_NOIO);
+@@ -481,7 +499,7 @@ static void collect_procs(struct page *page, struct list_head *tokill,
+ 	if (PageAnon(page))
+ 		collect_procs_anon(page, tokill, &tk, force_early);
+ 	else
+-		collect_procs_file(page, tokill, &tk, force_early);
++		collect_procs_file(mapping, page, tokill, &tk, force_early);
+ 	kfree(tk);
  }
  
-+static void hwpoison_clear(struct pmem_device *pmem,
-+		phys_addr_t phys, unsigned int len)
-+{
-+	unsigned long pfn_start, pfn_end, pfn;
-+
-+	/* only pmem in the linear map supports HWPoison */
-+	if (is_vmalloc_addr(pmem->virt_addr))
-+		return;
-+
-+	pfn_start = PHYS_PFN(phys);
-+	pfn_end = pfn_start + PHYS_PFN(len);
-+	for (pfn = pfn_start; pfn < pfn_end; pfn++) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		/*
-+		 * Note, no need to hold a get_dev_pagemap() reference
-+		 * here since we're in the driver I/O path and
-+		 * outstanding I/O requests pin the dev_pagemap.
-+		 */
-+		if (test_and_clear_pmem_poison(page))
-+			clear_mce_nospec(pfn);
-+	}
-+}
-+
- static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
- 		phys_addr_t offset, unsigned int len)
- {
-@@ -65,6 +90,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
- 	if (cleared < len)
- 		rc = BLK_STS_IOERR;
- 	if (cleared > 0 && cleared / 512) {
-+		hwpoison_clear(pmem, pmem->phys_addr + offset, cleared);
- 		cleared /= 512;
- 		dev_dbg(dev, "%#llx clear %ld sector%s\n",
- 				(unsigned long long) sector, cleared,
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index a64ebc78b5df..59cfe13ea8a8 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -1,6 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef __NVDIMM_PMEM_H__
- #define __NVDIMM_PMEM_H__
-+#include <linux/page-flags.h>
- #include <linux/badblocks.h>
- #include <linux/types.h>
- #include <linux/pfn_t.h>
-@@ -27,4 +28,16 @@ struct pmem_device {
+@@ -986,7 +1004,8 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 	 * there's nothing that can be done.
+ 	 */
+ 	if (kill)
+-		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
++		collect_procs(mapping, hpage, &tokill,
++				flags & MF_ACTION_REQUIRED);
  
- long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn);
-+
-+#ifdef CONFIG_MEMORY_FAILURE
-+static inline bool test_and_clear_pmem_poison(struct page *page)
-+{
-+	return TestClearPageHWPoison(page);
-+}
-+#else
-+static inline bool test_and_clear_pmem_poison(struct page *page)
-+{
-+	return false;
-+}
-+#endif
- #endif /* __NVDIMM_PMEM_H__ */
+ 	unmap_success = try_to_unmap(hpage, ttu);
+ 	if (!unmap_success)
+@@ -1012,7 +1031,8 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 	 */
+ 	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
+ 	size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
+-	kill_procs(&tokill, forcekill, !unmap_success, size_shift, pfn, flags);
++	kill_procs(&tokill, forcekill, !unmap_success, size_shift, mapping,
++			hpage, flags);
+ 
+ 	return unmap_success;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
