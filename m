@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4ADCA211F8878
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 10:00:02 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [ndctl PATCHv2] ndctl: Use max_available_extent for namespaces
-Date: Tue, 26 Jun 2018 11:00:27 -0600
-Message-Id: <20180626170027.6942-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D96212110C817
+ for <linux-nvdimm@lists.01.org>; Sun,  3 Jun 2018 13:05:31 -0700 (PDT)
+Subject: [PATCH] acpi, nfit: Remove ecc_unit_size
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 03 Jun 2018 12:55:34 -0700
+Message-ID: <152805573421.36904.10280982218277525255.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,122 +16,106 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The available_size attribute returns all the unused regions, but a
-namespace has to use contiguous free regions. This patch uses the
-attribute returning the largest capacity that can be created for
-determining if the namespace can be created.
+The "Clear Error Unit" may be smaller than the ECC unit size on some
+devices. For example, poison may be tracked at 64-byte alignment even
+though the ECC unit is larger. Unless / until the ACPI specification
+provides a non-ambiguous way to communicate this property do not expose
+this to userspace.
 
-If this is used on a kernel that predates the new attribute, ndctl will
-fall back to the previous behavior using available_size. While that may
-still fail, it is more likely to succeed than returning a hard-coded
-value. 
+Software that had been using this property must already be prepared for
+the case where the property is not provided on older kernels, so it is
+safe to remove this attribute.
 
-Signed-off-by: Keith Busch <keith.busch@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-v1 -> v2:
+ Documentation/ABI/removed/sysfs-bus-nfit |   17 +++++++++++++++++
+ Documentation/ABI/testing/sysfs-bus-nfit |   19 -------------------
+ drivers/acpi/nfit/core.c                 |   11 -----------
+ 3 files changed, 17 insertions(+), 30 deletions(-)
+ create mode 100644 Documentation/ABI/removed/sysfs-bus-nfit
 
-  Appropriate subject-prefex for ndctl.
-
-  Added the fallback to the previous behavior if the attribute is not
-  found, and noted this behavior in the changelog.
-
- ndctl/lib/libndctl.c   | 31 +++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  1 +
- ndctl/libndctl.h       |  2 ++
- ndctl/namespace.c      |  2 +-
- 4 files changed, 35 insertions(+), 1 deletion(-)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 47e005e..8ff1fa6 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -2025,6 +2025,37 @@ NDCTL_EXPORT unsigned long long ndctl_region_get_available_size(
- 	return strtoull(buf, NULL, 0);
+diff --git a/Documentation/ABI/removed/sysfs-bus-nfit b/Documentation/ABI/removed/sysfs-bus-nfit
+new file mode 100644
+index 000000000000..ae8c1ca53828
+--- /dev/null
++++ b/Documentation/ABI/removed/sysfs-bus-nfit
+@@ -0,0 +1,17 @@
++What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
++Date:		Aug, 2017
++KernelVersion:	v4.14 (Removed v4.18)
++Contact:	linux-nvdimm@lists.01.org
++Description:
++		(RO) Size of a write request to a DIMM that will not incur a
++		read-modify-write cycle at the memory controller.
++
++		When the nfit driver initializes it runs an ARS (Address Range
++		Scrub) operation across every pmem range. Part of that process
++		involves determining the ARS capabilities of a given address
++		range. One of the capabilities that is reported is the 'Clear
++		Uncorrectable Error Range Length Unit Size' (see: ACPI 6.2
++		section 9.20.7.4 Function Index 1 - Query ARS Capabilities).
++		This property indicates the boundary at which the NVDIMM may
++		need to perform read-modify-write cycles to maintain ECC (Error
++		Correcting Code) blocks.
+diff --git a/Documentation/ABI/testing/sysfs-bus-nfit b/Documentation/ABI/testing/sysfs-bus-nfit
+index 619eb8ca0f99..a1cb44dcb908 100644
+--- a/Documentation/ABI/testing/sysfs-bus-nfit
++++ b/Documentation/ABI/testing/sysfs-bus-nfit
+@@ -212,22 +212,3 @@ Description:
+ 		range. Used by NVDIMM Region Mapping Structure to uniquely refer
+ 		to this structure. Value of 0 is reserved and not used as an
+ 		index.
+-
+-
+-What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
+-Date:		Aug, 2017
+-KernelVersion:	v4.14
+-Contact:	linux-nvdimm@lists.01.org
+-Description:
+-		(RO) Size of a write request to a DIMM that will not incur a
+-		read-modify-write cycle at the memory controller.
+-
+-		When the nfit driver initializes it runs an ARS (Address Range
+-		Scrub) operation across every pmem range. Part of that process
+-		involves determining the ARS capabilities of a given address
+-		range. One of the capabilities that is reported is the 'Clear
+-		Uncorrectable Error Range Length Unit Size' (see: ACPI 6.2
+-		section 9.20.7.4 Function Index 1 - Query ARS Capabilities).
+-		This property indicates the boundary at which the NVDIMM may
+-		need to perform read-modify-write cycles to maintain ECC (Error
+-		Correcting Code) blocks.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e2235ed3e4be..b87252bf4571 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1978,19 +1978,8 @@ static ssize_t range_index_show(struct device *dev,
  }
+ static DEVICE_ATTR_RO(range_index);
  
-+NDCTL_EXPORT unsigned long long ndctl_region_get_max_available_extent(
-+		struct ndctl_region *region)
-+{
-+	unsigned int nstype = ndctl_region_get_nstype(region);
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-+	char *path = region->region_buf;
-+	int len = region->buf_len;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	switch (nstype) {
-+	case ND_DEVICE_NAMESPACE_PMEM:
-+	case ND_DEVICE_NAMESPACE_BLK:
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	if (snprintf(path, len,
-+		     "%s/max_available_extent", region->region_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_region_get_devname(region));
-+		return ULLONG_MAX;
-+	}
-+
-+	/* fall back to legacy behavior if max extents is not exported */
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		return ndctl_region_get_available_size(region);
-+
-+	return strtoull(buf, NULL, 0);
-+}
-+
- NDCTL_EXPORT unsigned int ndctl_region_get_range_index(struct ndctl_region *region)
- {
- 	return region->range_index;
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index c1228e5..22fd026 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -123,6 +123,7 @@ global:
- 	ndctl_region_get_mappings;
- 	ndctl_region_get_size;
- 	ndctl_region_get_available_size;
-+	ndctl_region_get_max_available_extent;
- 	ndctl_region_get_type;
- 	ndctl_region_get_namespace_seed;
- 	ndctl_region_get_btt_seed;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index be997ac..624115d 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -338,6 +338,8 @@ unsigned int ndctl_region_get_interleave_ways(struct ndctl_region *region);
- unsigned int ndctl_region_get_mappings(struct ndctl_region *region);
- unsigned long long ndctl_region_get_size(struct ndctl_region *region);
- unsigned long long ndctl_region_get_available_size(struct ndctl_region *region);
-+unsigned long long ndctl_region_get_max_available_extent(
-+		struct ndctl_region *region);
- unsigned int ndctl_region_get_range_index(struct ndctl_region *region);
- unsigned int ndctl_region_get_type(struct ndctl_region *region);
- struct ndctl_namespace *ndctl_region_get_namespace_seed(
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index fe86d82..4a562a2 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -764,7 +764,7 @@ static int namespace_create(struct ndctl_region *region)
- 		return -EAGAIN;
- 	}
+-static ssize_t ecc_unit_size_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	struct nd_region *nd_region = to_nd_region(dev);
+-	struct nfit_spa *nfit_spa = nd_region_provider_data(nd_region);
+-
+-	return sprintf(buf, "%d\n", nfit_spa->clear_err_unit);
+-}
+-static DEVICE_ATTR_RO(ecc_unit_size);
+-
+ static struct attribute *acpi_nfit_region_attributes[] = {
+ 	&dev_attr_range_index.attr,
+-	&dev_attr_ecc_unit_size.attr,
+ 	NULL,
+ };
  
--	available = ndctl_region_get_available_size(region);
-+	available = ndctl_region_get_max_available_extent(region);
- 	if (!available || p.size > available) {
- 		debug("%s: insufficient capacity size: %llx avail: %llx\n",
- 			devname, p.size, available);
--- 
-2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
