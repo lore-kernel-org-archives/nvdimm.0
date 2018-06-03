@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt0-x243.google.com (mail-qt0-x243.google.com
- [IPv6:2607:f8b0:400d:c0d::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 410B32116121A
- for <linux-nvdimm@lists.01.org>; Tue, 19 Jun 2018 12:37:09 -0700 (PDT)
-Received: by mail-qt0-x243.google.com with SMTP id y89-v6so854231qtd.10
- for <linux-nvdimm@lists.01.org>; Tue, 19 Jun 2018 12:37:09 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: [PATCH v3 0/2] ndctl,
- test: Add some global variables and functions to cleanup.
-Date: Tue, 19 Jun 2018 15:36:57 -0400
-Message-Id: <20180619193659.17815-1-msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2B73B2097F541
+ for <linux-nvdimm@lists.01.org>; Sat,  2 Jun 2018 22:32:57 -0700 (PDT)
+Subject: [PATCH v2 03/11] device-dax: Enable page_mapping()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 02 Jun 2018 22:22:59 -0700
+Message-ID: <152800337974.17112.9294212013929043806.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,57 +18,168 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is additional cleanup patches for test scripts.
-Add following global variable and functions to test/common file.
-Then, cleanup test script to use them.
+In support of enabling memory_failure() handling for device-dax
+mappings, set the ->mapping association of pages backing device-dax
+mappings. The rmap implementation requires page_mapping() to return the
+address_space hosting the vmas that map the page.
 
- - NFIT_TEST_BUS[01] (global variable)
-   Buses are created when nfit_test module is loaded.
+The ->mapping pointer is never cleared. There is no possibility for the
+page to become associated with another address_space while the device is
+enabled. When the device is disabled the 'struct page' array for the
+device is destroyed / later reinitialized to zero.
 
- - NDCTL (global variable)
-   ndctl command path (renamed).
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/device.c |   53 +++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 37 insertions(+), 16 deletions(-)
 
- - _cleanup
-   Helper function cleans up nfit_test module.
-
- - json2var
-   Helper function (filter) converts json to var.
-
-Changelog:
- - Fix missing '-b' before $NFIT_TEST_BUS*.
- - Fix the subject to "ndctl, test:...".
-
-Masayoshi Mizuma (2):
-  nfit, test: Add NFIT_TEST_BUS[01] variable and some helper funtions to common
-  nfit, test: cleanup test scripts
-
- test/blk-exhaust.sh       | 21 ++++++----------
- test/btt-check.sh         | 52 ++++++++++++++++++---------------------
- test/btt-errors.sh        | 30 +++++++++++-----------
- test/btt-pad-compat.sh    | 36 ++++++++++++---------------
- test/clear.sh             | 25 +++++++------------
- test/common               | 29 +++++++++++++++++++---
- test/create.sh            | 26 +++++++++-----------
- test/daxdev-errors.sh     | 29 ++++++++--------------
- test/firmware-update.sh   | 25 +++++--------------
- test/inject-error.sh      | 24 ++++++++----------
- test/label-compat.sh      | 17 +++++--------
- test/multi-dax.sh         | 23 ++++++-----------
- test/pmem-errors.sh       | 19 +++++---------
- test/rescan-partitions.sh | 22 ++++++++---------
- test/sector-mode.sh       | 22 ++++++-----------
- 15 files changed, 172 insertions(+), 228 deletions(-)
-
--- 
-2.18.0.rc1
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 686de08e120b..f7e926f4ec12 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -245,13 +245,12 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ }
+ 
+ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
+ 
+ 	if (check_vma(dev_dax, vma, __func__))
+@@ -273,13 +272,13 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_mixed(vma, vmf->address, pfn);
++	return vmf_insert_mixed(vma, vmf->address, *pfn);
+ }
+ 
+ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -287,7 +286,6 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PMD_SIZE;
+ 
+ 	if (check_vma(dev_dax, vma, __func__))
+@@ -322,15 +320,15 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
++	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, *pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -338,7 +336,6 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PUD_SIZE;
+ 
+ 
+@@ -374,9 +371,9 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, pfn,
++	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, *pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ #else
+@@ -390,9 +387,11 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+-	int rc, id;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct file *filp = vma->vm_file;
++	unsigned long fault_size;
++	int rc, id;
++	pfn_t pfn;
+ 	struct dev_dax *dev_dax = filp->private_data;
+ 
+ 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
+@@ -402,17 +401,39 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 	id = dax_read_lock();
+ 	switch (pe_size) {
+ 	case PE_SIZE_PTE:
+-		rc = __dev_dax_pte_fault(dev_dax, vmf);
++		fault_size = PAGE_SIZE;
++		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	case PE_SIZE_PMD:
+-		rc = __dev_dax_pmd_fault(dev_dax, vmf);
++		fault_size = PMD_SIZE;
++		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	case PE_SIZE_PUD:
+-		rc = __dev_dax_pud_fault(dev_dax, vmf);
++		fault_size = PUD_SIZE;
++		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	default:
+ 		rc = VM_FAULT_SIGBUS;
+ 	}
++
++	if (rc == VM_FAULT_NOPAGE) {
++		unsigned long i;
++
++		/*
++		 * In the device-dax case the only possibility for a
++		 * VM_FAULT_NOPAGE result is when device-dax capacity is
++		 * mapped. No need to consider the zero page, or racing
++		 * conflicting mappings.
++		 */
++		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
++			struct page *page;
++
++			page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
++			if (page->mapping)
++				continue;
++			page->mapping = filp->f_mapping;
++		}
++	}
+ 	dax_read_unlock(id);
+ 
+ 	return rc;
 
 _______________________________________________
 Linux-nvdimm mailing list
