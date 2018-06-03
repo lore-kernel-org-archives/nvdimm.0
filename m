@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5C213210C644E
- for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:21:53 -0700 (PDT)
-Subject: [PATCH v3 03/12] device-dax: Enable page_mapping()
+ by ml01.01.org (Postfix) with ESMTPS id 77284209818AA
+ for <linux-nvdimm@lists.01.org>; Sat,  2 Jun 2018 22:33:38 -0700 (PDT)
+Subject: [PATCH v2 11/11] libnvdimm,
+ pmem: Restore page attributes when clearing errors
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 04 Jun 2018 16:11:55 -0700
-Message-ID: <152815391576.39010.14402839848074832654.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 02 Jun 2018 22:23:41 -0700
+Message-ID: <152800342137.17112.17757085615233828006.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,166 +27,99 @@ To: linux-nvdimm@lists.01.org
 Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of enabling memory_failure() handling for device-dax
-mappings, set the ->mapping association of pages backing device-dax
-mappings. The rmap implementation requires page_mapping() to return the
-address_space hosting the vmas that map the page.
+Use clear_mce_nospec() to restore WB mode for the kernel linear mapping
+of a pmem page that was marked 'HWPoison'. A page with 'HWPoison' set
+has also been marked UC in PAT (page attribute table) via
+set_mce_nospec() to prevent speculative retrievals of poison.
 
-The ->mapping pointer is never cleared. There is no possibility for the
-page to become associated with another address_space while the device is
-enabled. When the device is disabled the 'struct page' array for the
-device is destroyed / later reinitialized to zero.
+The 'HWPoison' flag is only cleared when overwriting an entire page.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/device.c |   55 +++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 38 insertions(+), 17 deletions(-)
+ drivers/nvdimm/pmem.c |   26 ++++++++++++++++++++++++++
+ drivers/nvdimm/pmem.h |   13 +++++++++++++
+ 2 files changed, 39 insertions(+)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 686de08e120b..7ec246549721 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -245,13 +245,12 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 9d714926ecf5..04ee1fdee219 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -20,6 +20,7 @@
+ #include <linux/hdreg.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
++#include <linux/set_memory.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/badblocks.h>
+@@ -51,6 +52,30 @@ static struct nd_region *to_region(struct pmem_device *pmem)
+ 	return to_nd_region(to_dev(pmem)->parent);
  }
  
- static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf)
-+				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct device *dev = &dev_dax->dev;
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
--	pfn_t pfn;
- 	unsigned int fault_size = PAGE_SIZE;
- 
- 	if (check_vma(dev_dax, vma, __func__))
-@@ -273,13 +272,13 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_mixed(vma, vmf->address, pfn);
-+	return vmf_insert_mixed(vma, vmf->address, *pfn);
- }
- 
- static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf)
-+				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -287,7 +286,6 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
--	pfn_t pfn;
- 	unsigned int fault_size = PMD_SIZE;
- 
- 	if (check_vma(dev_dax, vma, __func__))
-@@ -322,15 +320,15 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
-+	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, *pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- 
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf)
-+				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	unsigned long pud_addr = vmf->address & PUD_MASK;
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -338,7 +336,6 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
--	pfn_t pfn;
- 	unsigned int fault_size = PUD_SIZE;
- 
- 
-@@ -374,14 +371,14 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, pfn,
-+	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, *pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf)
-+				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	return VM_FAULT_FALLBACK;
- }
-@@ -390,9 +387,11 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
--	int rc, id;
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct file *filp = vma->vm_file;
-+	unsigned long fault_size;
-+	int rc, id;
-+	pfn_t pfn;
- 	struct dev_dax *dev_dax = filp->private_data;
- 
- 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
-@@ -402,17 +401,39 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 	id = dax_read_lock();
- 	switch (pe_size) {
- 	case PE_SIZE_PTE:
--		rc = __dev_dax_pte_fault(dev_dax, vmf);
-+		fault_size = PAGE_SIZE;
-+		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
- 		break;
- 	case PE_SIZE_PMD:
--		rc = __dev_dax_pmd_fault(dev_dax, vmf);
-+		fault_size = PMD_SIZE;
-+		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
- 		break;
- 	case PE_SIZE_PUD:
--		rc = __dev_dax_pud_fault(dev_dax, vmf);
-+		fault_size = PUD_SIZE;
-+		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
- 		break;
- 	default:
- 		rc = VM_FAULT_SIGBUS;
- 	}
++static void hwpoison_clear(struct pmem_device *pmem,
++		phys_addr_t phys, unsigned int len)
++{
++	unsigned long pfn_start, pfn_end, pfn;
 +
-+	if (rc == VM_FAULT_NOPAGE) {
-+		unsigned long i;
++	/* only pmem in the linear map supports HWPoison */
++	if (is_vmalloc_addr(pmem->virt_addr))
++		return;
++
++	pfn_start = PHYS_PFN(phys);
++	pfn_end = pfn_start + PHYS_PFN(len);
++	for (pfn = pfn_start; pfn < pfn_end; pfn++) {
++		struct page *page = pfn_to_page(pfn);
 +
 +		/*
-+		 * In the device-dax case the only possibility for a
-+		 * VM_FAULT_NOPAGE result is when device-dax capacity is
-+		 * mapped. No need to consider the zero page, or racing
-+		 * conflicting mappings.
++		 * Note, no need to hold a get_dev_pagemap() reference
++		 * here since we're in the driver I/O path and
++		 * outstanding I/O requests pin the dev_pagemap.
 +		 */
-+		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
-+			struct page *page;
-+
-+			page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
-+			if (page->mapping)
-+				continue;
-+			page->mapping = filp->f_mapping;
-+		}
++		if (test_and_clear_pmem_poison(page))
++			clear_mce_nospec(pfn);
 +	}
- 	dax_read_unlock(id);
++}
++
+ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ 		phys_addr_t offset, unsigned int len)
+ {
+@@ -65,6 +90,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ 	if (cleared < len)
+ 		rc = BLK_STS_IOERR;
+ 	if (cleared > 0 && cleared / 512) {
++		hwpoison_clear(pmem, pmem->phys_addr + offset, cleared);
+ 		cleared /= 512;
+ 		dev_dbg(dev, "%#llx clear %ld sector%s\n",
+ 				(unsigned long long) sector, cleared,
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index a64ebc78b5df..59cfe13ea8a8 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef __NVDIMM_PMEM_H__
+ #define __NVDIMM_PMEM_H__
++#include <linux/page-flags.h>
+ #include <linux/badblocks.h>
+ #include <linux/types.h>
+ #include <linux/pfn_t.h>
+@@ -27,4 +28,16 @@ struct pmem_device {
  
- 	return rc;
+ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn);
++
++#ifdef CONFIG_MEMORY_FAILURE
++static inline bool test_and_clear_pmem_poison(struct page *page)
++{
++	return TestClearPageHWPoison(page);
++}
++#else
++static inline bool test_and_clear_pmem_poison(struct page *page)
++{
++	return false;
++}
++#endif
+ #endif /* __NVDIMM_PMEM_H__ */
 
 _______________________________________________
 Linux-nvdimm mailing list
