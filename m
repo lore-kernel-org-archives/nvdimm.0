@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 660D3210F75AB
- for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 17:00:50 -0700 (PDT)
-Subject: [PATCH v4 06/12] mm,
- madvise_inject_error: Let memory_failure() optionally take a page
- reference
+ by ml01.01.org (Postfix) with ESMTPS id 7AAA021109394
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:22:24 -0700 (PDT)
+Subject: [PATCH v3 09/12] mm, memory_failure: Pass page size to kill_proc()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 08 Jun 2018 16:50:52 -0700
-Message-ID: <152850185265.38390.2828727053299635327.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 04 Jun 2018 16:12:27 -0700
+Message-ID: <152815394736.39010.11494385796300796935.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,80 +23,91 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, hch@lst.de
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The madvise_inject_error() routine uses get_user_pages() to lookup the
-pfn and other information for injected error, but it does not release
-that pin. The assumption is that failed pages should be taken out of
-circulation.
+Given that ZONE_DEVICE / dev_pagemap pages are never assembled into
+compound pages, the size determination logic in kill_proc() needs
+updating for the dev_pagemap case. In preparation for dev_pagemap
+support rework memory_failure() and kill_proc() to pass / consume the page
+size explicitly.
 
-However, for dax mappings it is not possible to take pages out of
-circulation since they are 1:1 physically mapped as filesystem blocks,
-or device-dax capacity. They also typically represent persistent memory
-which has an error clearing capability.
-
-In preparation for adding a special handler for dax mappings, shift the
-responsibility of taking the page reference to memory_failure(). I.e.
-drop the page reference and do not specify MF_COUNT_INCREASED to
-memory_failure().
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/madvise.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/mm/madvise.c b/mm/madvise.c
-index 4d3c922ea1a1..b731933dddae 100644
---- a/mm/madvise.c
-+++ b/mm/madvise.c
-@@ -631,11 +631,13 @@ static int madvise_inject_error(int behavior,
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 9d142b9b86dc..42a193ee14d3 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -179,18 +179,16 @@ EXPORT_SYMBOL_GPL(hwpoison_filter);
+  * ``action required'' if error happened in current execution context
+  */
+ static int kill_proc(struct task_struct *t, unsigned long addr,
+-			unsigned long pfn, struct page *page, int flags)
++			unsigned long pfn, unsigned size_shift, int flags)
+ {
+-	short addr_lsb;
+ 	int ret;
  
+ 	pr_err("Memory failure: %#lx: Killing %s:%d due to hardware memory corruption\n",
+ 		pfn, t->comm, t->pid);
+-	addr_lsb = compound_order(compound_head(page)) + PAGE_SHIFT;
  
- 	for (; start < end; start += PAGE_SIZE << order) {
-+		unsigned long pfn;
- 		int ret;
- 
- 		ret = get_user_pages_fast(start, 1, 0, &page);
- 		if (ret != 1)
- 			return ret;
-+		pfn = page_to_pfn(page);
- 
+ 	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
+ 		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)addr,
+-				       addr_lsb, current);
++				       size_shift, current);
+ 	} else {
  		/*
- 		 * When soft offlining hugepages, after migrating the page
-@@ -651,17 +653,27 @@ static int madvise_inject_error(int behavior,
- 
- 		if (behavior == MADV_SOFT_OFFLINE) {
- 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
--						page_to_pfn(page), start);
-+					pfn, start);
- 
- 			ret = soft_offline_page(page, MF_COUNT_INCREASED);
- 			if (ret)
- 				return ret;
- 			continue;
- 		}
-+
- 		pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
--						page_to_pfn(page), start);
-+				pfn, start);
-+
-+		ret = memory_failure(pfn, 0);
-+
-+		/*
-+		 * Drop the page reference taken by get_user_pages_fast(). In
-+		 * the absence of MF_COUNT_INCREASED the memory_failure()
-+		 * routine is responsible for pinning the page to prevent it
-+		 * from being released back to the page allocator.
-+		 */
-+		put_page(page);
- 
--		ret = memory_failure(page_to_pfn(page), MF_COUNT_INCREASED);
- 		if (ret)
- 			return ret;
+ 		 * Don't use force here, it's convenient if the signal
+@@ -199,7 +197,7 @@ static int kill_proc(struct task_struct *t, unsigned long addr,
+ 		 * to SIG_IGN, but hopefully no one will do that?
+ 		 */
+ 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)addr,
+-				      addr_lsb, t);  /* synchronous? */
++				      size_shift, t);  /* synchronous? */
  	}
+ 	if (ret < 0)
+ 		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
+@@ -318,7 +316,7 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+  * wrong earlier.
+  */
+ static void kill_procs(struct list_head *to_kill, int forcekill,
+-			  bool fail, struct page *page, unsigned long pfn,
++			  bool fail, unsigned size_shift, unsigned long pfn,
+ 			  int flags)
+ {
+ 	struct to_kill *tk, *next;
+@@ -343,7 +341,7 @@ static void kill_procs(struct list_head *to_kill, int forcekill,
+ 			 * process anyways.
+ 			 */
+ 			else if (kill_proc(tk->tsk, tk->addr,
+-					      pfn, page, flags) < 0)
++					      pfn, size_shift, flags) < 0)
+ 				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
+ 				       pfn, tk->tsk->comm, tk->tsk->pid);
+ 		}
+@@ -928,6 +926,7 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+ 	bool unmap_success;
++	unsigned size_shift;
+ 	int kill = 1, forcekill;
+ 	struct page *hpage = *hpagep;
+ 	bool mlocked = PageMlocked(hpage);
+@@ -1012,7 +1011,8 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 	 * any accesses to the poisoned memory.
+ 	 */
+ 	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
+-	kill_procs(&tokill, forcekill, !unmap_success, p, pfn, flags);
++	size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
++	kill_procs(&tokill, forcekill, !unmap_success, size_shift, pfn, flags);
+ 
+ 	return unmap_success;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
