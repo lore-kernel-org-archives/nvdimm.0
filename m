@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7C498210DBE63
- for <linux-nvdimm@lists.01.org>; Fri, 15 Jun 2018 12:51:35 -0700 (PDT)
-Date: Fri, 15 Jun 2018 12:51:33 -0700
-From: Matthew Wilcox <willy@infradead.org>
-Subject: [RFC] ktest: add pmem support
-Message-ID: <20180615195133.GB16350@bombadil.infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id C3A94202E5481
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:21:42 -0700 (PDT)
+Subject: [PATCH v3 01/12] device-dax: Convert to vmf_insert_mixed and
+ vm_fault_t
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 04 Jun 2018 16:11:44 -0700
+Message-ID: <152815390489.39010.3971784109885060718.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,95 +23,153 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Kent Overstreet <kent.overstreet@gmail.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, Souptick Joarder <jrdr.linux@gmail.com>, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
+Use new return type vm_fault_t for fault and huge_fault handler. For
+now, this is just documenting that the function returns a VM_FAULT value
+rather than an errno.  Once all instances are converted, vm_fault_t will
+become a distinct type.
 
-I haven't got a filesystem mounted using DAX yet, but I thought I might
-as well send out the current patch against ktest for enabling persistent
-memory.  It's clearly *wrong*, but I do get a /dev/pmem0 device under
-Linux once I add all the right config options.  So it's a start, and
-people who are deeper into this than I am can suggest things to do to
-make it better.
+Commit 1c8f422059ae ("mm: change return type to vm_fault_t")
 
-diff --git a/boot.ktest b/boot.ktest
-index 8b22e1d..7e7d252 100644
---- a/boot.ktest
-+++ b/boot.ktest
-@@ -5,6 +5,7 @@ require-lib tests/prelude.sh
- config-mem 2G
- config-scratch-devs 4G
- config-scratch-devs 4G
-+config-pmem-devs 4G
- config-timeout 600000
+Previously vm_insert_mixed() returned an error code which driver mapped into
+VM_FAULT_* type. The new function vmf_insert_mixed() will replace this
+inefficiency by returning VM_FAULT_* type.
+
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/device.c    |   26 +++++++++++---------------
+ include/linux/huge_mm.h |    5 +++--
+ mm/huge_memory.c        |    4 ++--
+ 3 files changed, 16 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index aff2c1594220..d44d98c54d0f 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -244,11 +244,11 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ 	return -1;
+ }
  
- main()
-diff --git a/lib/libktest.sh b/lib/libktest.sh
-index 7843088..ad1ea62 100644
---- a/lib/libktest.sh
-+++ b/lib/libktest.sh
-@@ -271,7 +271,7 @@ start_vm()
+-static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
++static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
++				struct vm_fault *vmf)
+ {
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+-	int rc = VM_FAULT_SIGBUS;
+ 	phys_addr_t phys;
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
+@@ -274,17 +274,11 @@ static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
  
-     case $ktest_arch in
- 	x86|x86_64)
--	    qemu_cmd+=(-cpu host -machine accel=kvm)
-+	    qemu_cmd+=(-cpu host -machine accel=kvm,nvdimm)
- 	    ;;
- 	mips)
- 	    qemu_cmd+=(-cpu 24Kf -machine malta)
-@@ -283,7 +283,7 @@ start_vm()
-     esac
+ 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
  
-     qemu_cmd+=(								\
--	-m		"$ktest_mem"					\
-+	-m		"$ktest_mem,slots=8,maxmem=1T"			\
- 	-smp		"$ktest_cpus"					\
- 	-kernel		"$ktest_kernel_binary/vmlinuz"			\
- 	-append		"$(join_by " " ${kernelargs[@]})"		\
-@@ -316,6 +316,13 @@ start_vm()
- 	disknr=$((disknr + 1))
-     }
+-	rc = vm_insert_mixed(vmf->vma, vmf->address, pfn);
+-
+-	if (rc == -ENOMEM)
+-		return VM_FAULT_OOM;
+-	if (rc < 0 && rc != -EBUSY)
+-		return VM_FAULT_SIGBUS;
+-
+-	return VM_FAULT_NOPAGE;
++	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
+ }
  
-+    qemu_pmem()
-+    {
-+	qemu_cmd+=(-object memory-backend-file,id=mem$disknr,share,"$1",align=128M)
-+	qemu_cmd+=(-device nvdimm,memdev=mem$disknr,id=nv$disknr,label-size=2M)
-+	disknr=$((disknr + 1))
-+    }
-+
-     qemu_disk file="$ktest_root_image",snapshot=on
+-static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
++static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
++				struct vm_fault *vmf)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+@@ -334,7 +328,8 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
+ }
  
-     for size in "${ktest_scratch_devs[@]}"; do
-@@ -325,6 +332,13 @@ start_vm()
- 	qemu_disk file="$file",cache=unsafe
-     done
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
++static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
++				struct vm_fault *vmf)
+ {
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+@@ -384,13 +379,14 @@ static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ #else
+-static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
++static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
++				struct vm_fault *vmf)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+ #endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
  
-+    for size in "${ktest_pmem_devs[@]}"; do
-+	local file="$ktest_tmp/dev-$disknr"
-+
-+	fallocate -l "$size" "$file"
-+	qemu_pmem mem-path="$file",size=$size
-+    done
-+
-     set|grep -vE '^[A-Z]' > "$ktest_tmp/env"
+-static int dev_dax_huge_fault(struct vm_fault *vmf,
++static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+ 	int rc, id;
+@@ -420,7 +416,7 @@ static int dev_dax_huge_fault(struct vm_fault *vmf,
+ 	return rc;
+ }
  
-     set +o errexit
-diff --git a/lib/parse-test.sh b/lib/parse-test.sh
-index 30b23ad..353d713 100644
---- a/lib/parse-test.sh
-+++ b/lib/parse-test.sh
-@@ -90,6 +90,11 @@ parse_test_deps()
- 	ktest_scratch_devs+=("$1")
-     }
+-static int dev_dax_fault(struct vm_fault *vmf)
++static vm_fault_t dev_dax_fault(struct vm_fault *vmf)
+ {
+ 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
+ }
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index a8a126259bc4..d3bbf6bea9e9 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -3,6 +3,7 @@
+ #define _LINUX_HUGE_MM_H
  
-+    config-pmem-devs()
-+    {
-+	ktest_pmem_devs+=("$1")
-+    }
-+
-     config-image()
-     {
- 	ktest_root_image=$1
+ #include <linux/sched/coredump.h>
++#include <linux/mm_types.h>
+ 
+ #include <linux/fs.h> /* only for vma_is_dax() */
+ 
+@@ -46,9 +47,9 @@ extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot,
+ 			int prot_numa);
+-int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++vm_fault_t vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 			pmd_t *pmd, pfn_t pfn, bool write);
+-int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
++vm_fault_t vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 			pud_t *pud, pfn_t pfn, bool write);
+ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index a3a1815f8e11..6af976472a5d 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -755,7 +755,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	spin_unlock(ptl);
+ }
+ 
+-int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++vm_fault_t vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 			pmd_t *pmd, pfn_t pfn, bool write)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
+@@ -815,7 +815,7 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 	spin_unlock(ptl);
+ }
+ 
+-int vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
++vm_fault_t vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 			pud_t *pud, pfn_t pfn, bool write)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
