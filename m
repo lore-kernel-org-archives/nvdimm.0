@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0AD2A21B02845
- for <linux-nvdimm@lists.01.org>; Wed, 27 Jun 2018 18:45:08 -0700 (PDT)
-From: Eric Sandeen <sandeen@redhat.com>
-Subject: [PATCH] mm: reject MAP_SHARED_VALIDATE without new flags
-Message-ID: <60052659-7b37-cb69-bf9f-1683caa46219@redhat.com>
-Date: Wed, 27 Jun 2018 20:45:00 -0500
+ by ml01.01.org (Postfix) with ESMTPS id DC7C1210F2CFE
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:22:40 -0700 (PDT)
+Subject: [PATCH v3 12/12] libnvdimm,
+ pmem: Restore page attributes when clearing errors
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 04 Jun 2018 16:12:43 -0700
+Message-ID: <152815396335.39010.17157370539429298762.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,59 +23,103 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: fsdevel <linux-fsdevel@vger.kernel.org>, linux-mm@kvack.org, Linux API <linux-api@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Zhibin Li <zhibli@redhat.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-mmap(2) says the syscall will return EINVAL if "flags contained neither
-MAP_PRIVATE or MAP_SHARED, or contained both of these values."
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-However, commit 
-1c972597 ("mm: introduce MAP_SHARED_VALIDATE ...")
-introduced a new flag, MAP_SHARED_VALIDATE, with a value of 0x3,
-which is indistinguishable from (MAP_SHARED|MAP_PRIVATE).
+Use clear_mce_nospec() to restore WB mode for the kernel linear mapping
+of a pmem page that was marked 'HWPoison'. A page with 'HWPoison' set
+has also been marked UC in PAT (page attribute table) via
+set_mce_nospec() to prevent speculative retrievals of poison.
 
-Thus the invalid flag combination of (MAP_SHARED|MAP_PRIVATE) now
-passes without error, which is a regression.
+The 'HWPoison' flag is only cleared when overwriting an entire page.
 
-I'm not sure of the best way out of this, other than to change the
-API description to say that MAP_SHARED_VALIDATE is only allowed in
-combination with "new" flags, and reject it if it's used only with
-flags contained in LEGACY_MAP_MASK.
-
-This will require the mmap(2) manpage to enumerate which flags don't
-require validation, as well, so the user knows when to use the
-VALIDATE flag.
-
-I'm not super happy with this, because it also means that code
-which explicitly asks for mmap(MAP_SHARED|MAP_PRIVATE|MAP_SYNC) will
-also pass, but I'm not sure there's anything to do about that.
-
-Reported-by: Zhibin Li <zhibli@redhat.com>
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/nvdimm/pmem.c |   26 ++++++++++++++++++++++++++
+ drivers/nvdimm/pmem.h |   13 +++++++++++++
+ 2 files changed, 39 insertions(+)
 
-diff --git a/mm/mmap.c b/mm/mmap.c
-index d1eb87ef4b1a..b1dc84466365 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1440,6 +1440,16 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 9d714926ecf5..04ee1fdee219 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -20,6 +20,7 @@
+ #include <linux/hdreg.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
++#include <linux/set_memory.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/badblocks.h>
+@@ -51,6 +52,30 @@ static struct nd_region *to_region(struct pmem_device *pmem)
+ 	return to_nd_region(to_dev(pmem)->parent);
+ }
  
- 		if (!file_mmap_ok(file, inode, pgoff, len))
- 			return -EOVERFLOW;
++static void hwpoison_clear(struct pmem_device *pmem,
++		phys_addr_t phys, unsigned int len)
++{
++	unsigned long pfn_start, pfn_end, pfn;
++
++	/* only pmem in the linear map supports HWPoison */
++	if (is_vmalloc_addr(pmem->virt_addr))
++		return;
++
++	pfn_start = PHYS_PFN(phys);
++	pfn_end = pfn_start + PHYS_PFN(len);
++	for (pfn = pfn_start; pfn < pfn_end; pfn++) {
++		struct page *page = pfn_to_page(pfn);
++
 +		/*
-+		 * MAP_SHARED_VALIDATE is indistinguishable from
-+		 * (MAP_SHARED|MAP_PRIVATE) which must return -EINVAL.
-+		 * If the flags contain MAP_SHARED_VALIDATE and none of the
-+		 * non-legacy flags, the user gets EINVAL.
++		 * Note, no need to hold a get_dev_pagemap() reference
++		 * here since we're in the driver I/O path and
++		 * outstanding I/O requests pin the dev_pagemap.
 +		 */
-+		if (((flags & MAP_SHARED_VALIDATE) == MAP_SHARED_VALIDATE) &&
-+		    !(flags & ~LEGACY_MAP_MASK)) {
-+			return -EINVAL;
-+		}
++		if (test_and_clear_pmem_poison(page))
++			clear_mce_nospec(pfn);
++	}
++}
++
+ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ 		phys_addr_t offset, unsigned int len)
+ {
+@@ -65,6 +90,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ 	if (cleared < len)
+ 		rc = BLK_STS_IOERR;
+ 	if (cleared > 0 && cleared / 512) {
++		hwpoison_clear(pmem, pmem->phys_addr + offset, cleared);
+ 		cleared /= 512;
+ 		dev_dbg(dev, "%#llx clear %ld sector%s\n",
+ 				(unsigned long long) sector, cleared,
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index a64ebc78b5df..59cfe13ea8a8 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef __NVDIMM_PMEM_H__
+ #define __NVDIMM_PMEM_H__
++#include <linux/page-flags.h>
+ #include <linux/badblocks.h>
+ #include <linux/types.h>
+ #include <linux/pfn_t.h>
+@@ -27,4 +28,16 @@ struct pmem_device {
  
- 		flags_mask = LEGACY_MAP_MASK | file->f_op->mmap_supported_flags;
- 
+ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn);
++
++#ifdef CONFIG_MEMORY_FAILURE
++static inline bool test_and_clear_pmem_poison(struct page *page)
++{
++	return TestClearPageHWPoison(page);
++}
++#else
++static inline bool test_and_clear_pmem_poison(struct page *page)
++{
++	return false;
++}
++#endif
+ #endif /* __NVDIMM_PMEM_H__ */
 
 _______________________________________________
 Linux-nvdimm mailing list
