@@ -1,22 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4518521129985
- for <linux-nvdimm@lists.01.org>; Thu,  7 Jun 2018 07:38:41 -0700 (PDT)
-Date: Thu, 7 Jun 2018 16:38:38 +0200
-From: Jan Kara <jack@suse.cz>
+Received: from ipmail03.adl2.internode.on.net (ipmail03.adl2.internode.on.net
+ [150.101.137.141])
+ by ml01.01.org (Postfix) with ESMTP id 3CB09209603ED
+ for <linux-nvdimm@lists.01.org>; Sun,  3 Jun 2018 20:51:57 -0700 (PDT)
+Date: Mon, 4 Jun 2018 13:51:18 +1000
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: Question about Experimental of Filesystem DAX.
-Message-ID: <20180607143838.6gdms3qlok6ikzrf@quack2.suse.cz>
+Message-ID: <20180604035118.GN10363@dastard>
 References: <20180531112731.0CAC.E1E9C6FF@jp.fujitsu.com>
  <20180531150716.GA19764@linux.intel.com>
  <CAPcyv4jpffaM60tTdLTojhh0CDwcbVUdS8td7R6LKWM3bb15dw@mail.gmail.com>
  <20180531174636.GA7825@magnolia>
  <CAPcyv4gS1GCN9TFjngTmmHu83-uMgRpvvx842ZGnvxB3PbgU+Q@mail.gmail.com>
- <20180531230550.GN10363@dastard>
+ <20180531202556.GA28256@linux.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20180531230550.GN10363@dastard>
+In-Reply-To: <20180531202556.GA28256@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,78 +27,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, NVDIMM-ML <linux-nvdimm@lists.01.org>, linux-xfs <linux-xfs@vger.kernel.org>, Yasunori Goto <y-goto@jp.fujitsu.com>, linux-ext4 <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 01-06-18 09:05:50, Dave Chinner wrote:
-> On Thu, May 31, 2018 at 11:26:43AM -0700, Dan Williams wrote:
-> > On Thu, May 31, 2018 at 10:46 AM, Darrick J. Wong
-> > > The recent thread between Jan and Dan make me wonder if making mappings
-> > > share struct pages is going to be a nightmare to add to the mm code,
-> > > though...
-> > 
-> > It's going to be a bit messy because a singular page->mapping
-> > association is fundamentally incompatible with DAX. Perhaps a linked
-> > list of mapping "siblings"?
+On Thu, May 31, 2018 at 02:25:56PM -0600, Ross Zwisler wrote:
+> > Right, not a gating item for declaring DAX ready for prime time.
 > 
-> I'd much prefer the filesystem allocate/control the struct page that
-> is inserted into mapping trees so we can have multiple struct pages
-> pointing at the one physical page.  That way we can just insert
-> these dynamic struct pages into the relevant mappings and it works
-> the same way for both DAX and shared page cache pages.
+> Yep, I think that the very loud EXPERIMENTAL message is essentially telling
+> users "your data is at risk if you use this".
 
-Yes, that's one option but the overhead in terms of memory and CPU is
-non-trivial and as Dan writes there are assumptions in MM code that
-PFN<->struct page is 1:1 relationship (or possibly 1:0 as struct page can
-be missing for certain types of pfns). But at this point I think the exact
-data structure layout is not that important (whether there will be dynamic
-struct pages or some other linkage). I think we first need to settle on
-how responsibilities between MM and filesystems are going to be split.
+And that's a call the filesystem maintainers need to make, not the
+DAX developers. It's clear from recent "oh fuck, DAX on XFS has
+stopped working in 4.17" a long time after after the changes that
+broke went into the mainline kernel indicates we have a serious
+testing problem here.
 
-> i.e. the filesystem knows they are shared physical blocks, the
-> filesystem controls COW of physical blocks, the filesystem controls
-> truncate/invalidation of physical blocks, the filesystem controls
-> cache state of the physical blocks. So why are we designing
-> infrastructure around the virtual memory and caching infrastructure
-> that bypasses the layer that manages and arbitrates access to the
-> physical storage?
+i.e. that the filesystem developers who will have to maintain this
+stuff and deal with all the "DAX ate my data" bug reports haven't
+been testing DAX on their filesysetms at all in recent times. And
+that kinda says to me that the EXPERIMENTAL flag is not getting
+removed any time soon....
 
-I agree with this but let's see whether we are on the same page.  What MM
-mostly cares about and in particular what Dan needs to solve is "given
-struct page, give me all page tables that map this page". And it seems
-completely fair to me to maintain such translation within MM code as the
-filesystem generally does not care in too big detail about memory mappings
-of files.  When something with the page is going happen (like breaking cow,
-truncate, whatever), the filesystem just tells MM to invalidate all page
-tables for the page and subsequent page faults will fill in updated
-information - nothing new here.
+> As far as I know those are basically the 2 items on Dan's
+> list from a few mails ago (poison recovery & DMA vs truncate).
 
-Then there's a second slightly different question - and I suspect you are
-speaking about that one - "given struct page, give me all radix trees
-pointing to this page". This is more a filesystem caching question (even in
-case of DAX, you can think of this as caching of inode + logical offset =>
-physical block translations). Currently this translation is maintained by
-page cache and again the filesystem is mostly ignorant of details of what
-and when gets cached and just tells the MM when it should throw away the
-cached information (through truncate/invalidate_inode_pages()).
+FWIW, I have not been testing DAX because I'm waiting for
+infrastructure problems like DMA vs truncate to get fixed first....
 
-With reflink and DAX / shared page cache these questions get more complex
-to answer but in principle I don't see why the mapping from the struct page
-to radix trees should not be maintained (with a help of the filesystem) in
-generic code. Sure the interface now needs to be more flexible and in that
-sense filesystems will be more in control what the page cache is doing -
-e.g. ->readpage callback would probably need to be passed just inode +
-logical offset and *the filesystem* will now need to find / allocate
-approprite page, fill it up, and tell page cache this page is now caching
-given offset in the file. And page cache will add this inode + offset to a
-list of things caching this page. Do you agree or you had something
-different in mind?
+Cheers,
 
-								Honza
+Dave.
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
