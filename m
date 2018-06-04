@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1C916211E3708
- for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 17:00:07 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3] ndctl: refactor validation of the ars_status command
-Date: Tue,  5 Jun 2018 17:59:59 -0600
-Message-Id: <20180605235959.11974-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 07B9021114798
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:22:29 -0700 (PDT)
+Subject: [PATCH v3 10/12] mm,
+ memory_failure: Fix page->mapping assumptions relative to the page
+ lock
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 04 Jun 2018 16:12:32 -0700
+Message-ID: <152815395246.39010.12602980036860395531.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,158 +20,184 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The APIs that iterate over the information contained in an ars_atatus
-command require a prior, successfully completed ars_status command
-struct. We were neglecting to verify that the firmware status too
-indicates a success. We were also incorrectly requiring that
-ars_status->status be zero, where as a positive status only indicates an
-underrun. The underrun is fine as the firmware is not expected to
-completely fill the max_ars_out sized buffer.
+The current memory_failure() implementation assumes that lock_page() is
+sufficient for stabilizing page->mapping and that ->mapping->host will
+not be freed. The dax implementation, on the other hand, relies on
+xa_lock_irq() for stabilizing the page->mapping relationship and it is
+not possible to hold the lock over current routines in the
+memory_failure() path that run under lock_page().
 
-Refactor this checking to mimic validate_ars_cap() which checks the
-firmware status, and fixes the check for the cmd status. Use this for
-ndctl_cmd_ars_in_progress as well which had the same (incorrect)
-cmd->status check.
+Teach the various memory_failure() helpers to pin the address_space and
+revalidate page->mapping under xa_lock_irq(mapping->i_pages).
 
-Reported-by: Tomasz Rochumski <tomasz.rochumski@intel.com>
-Tested-by: Jacek Zloch <jacek.zloch@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/lib/ars.c | 69 ++++++++++++++++++++++++++++++-------------------
- 1 file changed, 43 insertions(+), 26 deletions(-)
+ mm/memory-failure.c |   56 +++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 38 insertions(+), 18 deletions(-)
 
-v3: do cmd validation before dereferencing any of the fields in the
-command.
-
-diff --git a/ndctl/lib/ars.c b/ndctl/lib/ars.c
-index 1ff6cf7..1e0cfdc 100644
---- a/ndctl/lib/ars.c
-+++ b/ndctl/lib/ars.c
-@@ -195,24 +195,44 @@ NDCTL_EXPORT unsigned int ndctl_cmd_ars_cap_get_clear_unit(
- 	return 0;
- }
- 
-+static bool __validate_ars_stat(struct ndctl_cmd *ars_stat)
-+{
-+	/*
-+	 * A positive status indicates an underrun, but that is fine since
-+	 * the firmware is not expected to completely fill the max_ars_out
-+	 * sized buffer.
-+	 */
-+	if (ars_stat->type != ND_CMD_ARS_STATUS || ars_stat->status < 0)
-+		return false;
-+	if ((ndctl_cmd_get_firmware_status(ars_stat) & ARS_STATUS_MASK) != 0)
-+		return false;
-+	return true;
-+}
-+
-+#define validate_ars_stat(ctx, ars_stat) \
-+({ \
-+	bool __valid = __validate_ars_stat(ars_stat); \
-+	if (!__valid) \
-+		dbg(ctx, "expected sucessfully completed ars_stat command\n"); \
-+	__valid; \
-+})
-+
- NDCTL_EXPORT int ndctl_cmd_ars_in_progress(struct ndctl_cmd *cmd)
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 42a193ee14d3..b6efb78ba49b 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -179,12 +179,20 @@ EXPORT_SYMBOL_GPL(hwpoison_filter);
+  * ``action required'' if error happened in current execution context
+  */
+ static int kill_proc(struct task_struct *t, unsigned long addr,
+-			unsigned long pfn, unsigned size_shift, int flags)
++		struct address_space *mapping, struct page *page,
++		unsigned size_shift, int flags)
  {
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(cmd));
- 
--	if (cmd->type == ND_CMD_ARS_STATUS && cmd->status == 0) {
--		if (cmd->ars_status->status == 1 << 16) {
--			/*
--			 * If in-progress, invalidate the ndctl_cmd, so
--			 * that if we're called again without a fresh
--			 * ars_status command, we fail.
--			 */
--			cmd->status = 1;
--			return 1;
--		}
-+	if (!validate_ars_stat(ctx, cmd))
- 		return 0;
--	}
- 
--	dbg(ctx, "invalid ars_status\n");
-+	if (ndctl_cmd_get_firmware_status(cmd) == 1 << 16) {
-+		/*
-+		 * If in-progress, invalidate the ndctl_cmd, so
-+		 * that if we're called again without a fresh
-+		 * ars_status command, we fail.
-+		 */
-+		cmd->status = 1;
-+		return 1;
+-	int ret;
++	int ret = 0;
++
++	/* revalidate the page before killing the process */
++	xa_lock_irq(&mapping->i_pages);
++	if (page->mapping != mapping) {
++		xa_unlock_irq(&mapping->i_pages);
++		return 0;
 +	}
- 	return 0;
- }
  
-@@ -220,11 +240,10 @@ NDCTL_EXPORT unsigned int ndctl_cmd_ars_num_records(struct ndctl_cmd *ars_stat)
- {
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(ars_stat));
+ 	pr_err("Memory failure: %#lx: Killing %s:%d due to hardware memory corruption\n",
+-		pfn, t->comm, t->pid);
++			page_to_pfn(page), t->comm, t->pid);
  
--	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
--		return ars_stat->ars_status->num_records;
-+	if (!validate_ars_stat(ctx, ars_stat))
-+		return 0;
- 
--	dbg(ctx, "invalid ars_status\n");
--	return 0;
-+	return ars_stat->ars_status->num_records;
- }
- 
- NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_addr(
-@@ -232,16 +251,15 @@ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_addr(
- {
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(ars_stat));
- 
-+	if (!validate_ars_stat(ctx, ars_stat))
-+		return 0;
-+
- 	if (rec_index >= ars_stat->ars_status->num_records) {
- 		dbg(ctx, "invalid record index\n");
- 		return 0;
+ 	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
+ 		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)addr,
+@@ -199,6 +207,7 @@ static int kill_proc(struct task_struct *t, unsigned long addr,
+ 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)addr,
+ 				      size_shift, t);  /* synchronous? */
  	}
- 
--	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
--		return ars_stat->ars_status->records[rec_index].err_address;
--
--	dbg(ctx, "invalid ars_status\n");
--	return 0;
-+	return ars_stat->ars_status->records[rec_index].err_address;
- }
- 
- NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_len(
-@@ -249,16 +267,15 @@ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_len(
++	xa_unlock_irq(&mapping->i_pages);
+ 	if (ret < 0)
+ 		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
+ 			t->comm, t->pid, ret);
+@@ -316,8 +325,8 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+  * wrong earlier.
+  */
+ static void kill_procs(struct list_head *to_kill, int forcekill,
+-			  bool fail, unsigned size_shift, unsigned long pfn,
+-			  int flags)
++		bool fail, unsigned size_shift, struct address_space *mapping,
++		struct page *page, int flags)
  {
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(ars_stat));
+ 	struct to_kill *tk, *next;
  
-+	if (!validate_ars_stat(ctx, ars_stat))
-+		return 0;
-+
- 	if (rec_index >= ars_stat->ars_status->num_records) {
- 		dbg(ctx, "invalid record index\n");
- 		return 0;
+@@ -330,7 +339,8 @@ static void kill_procs(struct list_head *to_kill, int forcekill,
+ 			 */
+ 			if (fail || tk->addr_valid == 0) {
+ 				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
+-				       pfn, tk->tsk->comm, tk->tsk->pid);
++						page_to_pfn(page), tk->tsk->comm,
++						tk->tsk->pid);
+ 				force_sig(SIGKILL, tk->tsk);
+ 			}
+ 
+@@ -341,9 +351,10 @@ static void kill_procs(struct list_head *to_kill, int forcekill,
+ 			 * process anyways.
+ 			 */
+ 			else if (kill_proc(tk->tsk, tk->addr,
+-					      pfn, size_shift, flags) < 0)
++					      mapping, page, size_shift, flags) < 0)
+ 				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
+-				       pfn, tk->tsk->comm, tk->tsk->pid);
++						page_to_pfn(page), tk->tsk->comm,
++						tk->tsk->pid);
+ 		}
+ 		put_task_struct(tk->tsk);
+ 		kfree(tk);
+@@ -429,21 +440,27 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
+ /*
+  * Collect processes when the error hit a file mapped page.
+  */
+-static void collect_procs_file(struct page *page, struct list_head *to_kill,
+-			      struct to_kill **tkc, int force_early)
++static void collect_procs_file(struct address_space *mapping, struct page *page,
++		struct list_head *to_kill, struct to_kill **tkc,
++		int force_early)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+-	struct address_space *mapping = page->mapping;
+ 
+ 	i_mmap_lock_read(mapping);
+ 	read_lock(&tasklist_lock);
+ 	for_each_process(tsk) {
+-		pgoff_t pgoff = page_to_pgoff(page);
++		pgoff_t pgoff;
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
+ 
+ 		if (!t)
+ 			continue;
++		xa_lock_irq(&mapping->i_pages);
++		if (page->mapping != mapping) {
++			xa_unlock_irq(&mapping->i_pages);
++			break;
++		}
++		pgoff = page_to_pgoff(page);
+ 		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff,
+ 				      pgoff) {
+ 			/*
+@@ -456,6 +473,7 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+ 			if (vma->vm_mm == t->mm)
+ 				add_to_kill(t, page, vma, to_kill, tkc);
+ 		}
++		xa_unlock_irq(&mapping->i_pages);
  	}
+ 	read_unlock(&tasklist_lock);
+ 	i_mmap_unlock_read(mapping);
+@@ -467,12 +485,12 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+  * First preallocate one tokill structure outside the spin locks,
+  * so that we can kill at least one process reasonably reliable.
+  */
+-static void collect_procs(struct page *page, struct list_head *tokill,
+-				int force_early)
++static void collect_procs(struct address_space *mapping, struct page *page,
++		struct list_head *tokill, int force_early)
+ {
+ 	struct to_kill *tk;
  
--	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
--		return ars_stat->ars_status->records[rec_index].length;
--
--	dbg(ctx, "invalid ars_status\n");
--	return 0;
-+	return ars_stat->ars_status->records[rec_index].length;
+-	if (!page->mapping)
++	if (!mapping)
+ 		return;
+ 
+ 	tk = kmalloc(sizeof(struct to_kill), GFP_NOIO);
+@@ -481,7 +499,7 @@ static void collect_procs(struct page *page, struct list_head *tokill,
+ 	if (PageAnon(page))
+ 		collect_procs_anon(page, tokill, &tk, force_early);
+ 	else
+-		collect_procs_file(page, tokill, &tk, force_early);
++		collect_procs_file(mapping, page, tokill, &tk, force_early);
+ 	kfree(tk);
  }
  
- NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_clear_error(
--- 
-2.17.0
+@@ -986,7 +1004,8 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 	 * there's nothing that can be done.
+ 	 */
+ 	if (kill)
+-		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
++		collect_procs(mapping, hpage, &tokill,
++				flags & MF_ACTION_REQUIRED);
+ 
+ 	unmap_success = try_to_unmap(hpage, ttu);
+ 	if (!unmap_success)
+@@ -1012,7 +1031,8 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 	 */
+ 	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
+ 	size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
+-	kill_procs(&tokill, forcekill, !unmap_success, size_shift, pfn, flags);
++	kill_procs(&tokill, forcekill, !unmap_success, size_shift, mapping,
++			hpage, flags);
+ 
+ 	return unmap_success;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
