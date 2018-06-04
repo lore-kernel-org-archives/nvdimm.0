@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9AC5E210DA795
- for <linux-nvdimm@lists.01.org>; Thu,  7 Jun 2018 08:50:05 -0700 (PDT)
-Date: Thu, 7 Jun 2018 17:50:03 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v3 04/12] device-dax: Set page->index
-Message-ID: <20180607155003.dwndud2xsnpqpcxl@quack2.suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id BC291210C644E
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:21:58 -0700 (PDT)
+Subject: [PATCH v3 04/12] device-dax: Set page->index
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 04 Jun 2018 16:12:01 -0700
+Message-ID: <152815392126.39010.6403368422475215562.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152815392126.39010.6403368422475215562.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <152815392126.39010.6403368422475215562.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,30 +22,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon 04-06-18 16:12:01, Dan Williams wrote:
-> In support of enabling memory_failure() handling for device-dax
-> mappings, set ->index to the pgoff of the page. The rmap implementation
-> requires ->index to bound the search through the vma interval tree.
-> 
-> The ->index value is never cleared. There is no possibility for the
-> page to become associated with another pgoff while the device is
-> enabled. When the device is disabled the 'struct page' array for the
-> device is destroyed and ->index is reinitialized to zero.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+In support of enabling memory_failure() handling for device-dax
+mappings, set ->index to the pgoff of the page. The rmap implementation
+requires ->index to bound the search through the vma interval tree.
 
-Looks good to me. You can add:
+The ->index value is never cleared. There is no possibility for the
+page to become associated with another pgoff while the device is
+enabled. When the device is disabled the 'struct page' array for the
+device is destroyed and ->index is reinitialized to zero.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/device.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 7ec246549721..2b120e397e08 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -418,6 +418,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 
+ 	if (rc == VM_FAULT_NOPAGE) {
+ 		unsigned long i;
++		pgoff_t pgoff;
+ 
+ 		/*
+ 		 * In the device-dax case the only possibility for a
+@@ -425,6 +426,8 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		 * mapped. No need to consider the zero page, or racing
+ 		 * conflicting mappings.
+ 		 */
++		pgoff = linear_page_index(vma, vmf->address
++				& ~(fault_size - 1));
+ 		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
+ 			struct page *page;
+ 
+@@ -432,6 +435,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 			if (page->mapping)
+ 				continue;
+ 			page->mapping = filp->f_mapping;
++			page->index = pgoff + i;
+ 		}
+ 	}
+ 	dax_read_unlock(id);
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
