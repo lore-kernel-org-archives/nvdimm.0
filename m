@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1DB202110939E
- for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 17:47:17 -0700 (PDT)
-Subject: [PATCH 1/3] libnvdimm: Introduce locked DIMM capacity support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 14 Jun 2018 17:37:19 -0700
-Message-ID: <152902303977.10541.4641412754161257441.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 23190211A0B87
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 16:58:08 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2 1/3] libnvdimm: unconditionally deep flush on *sync
+Date: Tue,  5 Jun 2018 17:58:00 -0600
+Message-Id: <20180605235802.14531-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,132 +15,80 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a DIMM is locked its namespace label area may not be. Introduce the
-distinction of locked namespaces to allow namespace enumeration while
-the capacity is locked.
+Prior to this commit we would only do a "deep flush" in response to an
+msync/fsync/sync call if the nvdimm_has_cache() returned true at the time
+we were setting up the request queue.  This happens due to the write cache
+value passed in to blk_queue_write_cache().  We do have a "write_cache"
+sysfs entry for namespaces, i.e.:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+  /sys/bus/nd/devices/pfn0.1/block/pmem0/dax/write_cache
+
+which can be used to control whether or not the kernel thinks a given
+namespace has a write cache, but this didn't modify the deep flush behavior
+that we set up when the driver was initialized.  Instead, it only modified
+whether or not DAX would flush CPU caches in response to *sync calls.
+
+Simplify this by making the *sync "deep flush" always happen, regardless of
+the write cache setting of a namespace.  The DAX CPU cache flushing will be
+controlled by a combination of the write_cache setting as well as whether
+the platform supports flush-on-fail CPU caches.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/dimm.c           |   24 ++++++++++++++++++++++--
- drivers/nvdimm/namespace_devs.c |   23 +++++++++++++++++++++++
- drivers/nvdimm/nd.h             |    1 +
- 3 files changed, 46 insertions(+), 2 deletions(-)
+ drivers/nvdimm/pmem.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index 233907889f96..6c8fb7590838 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -34,6 +34,9 @@ static int nvdimm_probe(struct device *dev)
- 		return rc;
- 	}
- 
-+	/* reset locked, to be validated below... */
-+	nvdimm_clear_locked(dev);
-+
- 	ndd = kzalloc(sizeof(*ndd), GFP_KERNEL);
- 	if (!ndd)
- 		return -ENOMEM;
-@@ -48,12 +51,30 @@ static int nvdimm_probe(struct device *dev)
- 	get_device(dev);
- 	kref_init(&ndd->kref);
- 
-+	/*
-+	 * EACCES failures reading the namespace label-area-properties
-+	 * are interpreted as the DIMM capacity being locked but the
-+	 * namespace labels themselves being accessible.
-+	 */
- 	rc = nvdimm_init_nsarea(ndd);
--	if (rc == -EACCES)
-+	if (rc == -EACCES) {
-+		/*
-+		 * See nvdimm_namespace_common_probe() where we fail to
-+		 * allow namespaces to probe while the DIMM is locked,
-+		 * but we do allow for namespace enumeration.
-+		 */
- 		nvdimm_set_locked(dev);
-+		rc = 0;
-+	}
- 	if (rc)
- 		goto err;
- 
-+	/*
-+	 * EACCES failures reading the namespace label-data are
-+	 * interpreted as the label area being locked in addition to the
-+	 * DIMM capacity. We fail the dimm probe to prevent regions from
-+	 * attempting to parse the label area.
-+	 */
- 	rc = nvdimm_init_config_data(ndd);
- 	if (rc == -EACCES)
- 		nvdimm_set_locked(dev);
-@@ -72,7 +93,6 @@ static int nvdimm_probe(struct device *dev)
- 		if (rc == 0)
- 			nvdimm_set_aliasing(dev);
- 	}
--	nvdimm_clear_locked(dev);
- 	nvdimm_bus_unlock(dev);
- 
- 	if (rc)
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 28afdd668905..cb322f2bc605 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1144,6 +1144,26 @@ resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns)
- }
- EXPORT_SYMBOL(nvdimm_namespace_capacity);
- 
-+bool nvdimm_namespace_locked(struct nd_namespace_common *ndns)
-+{
-+	int i;
-+	bool locked = false;
-+	struct device *dev = &ndns->dev;
-+	struct nd_region *nd_region = to_nd_region(dev->parent);
-+
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nvdimm *nvdimm = nd_mapping->nvdimm;
-+
-+		if (test_bit(NDD_LOCKED, &nvdimm->flags)) {
-+			dev_dbg(dev, "%s locked\n", nvdimm_name(nvdimm));
-+			locked = true;
-+		}
-+	}
-+	return locked;
-+}
-+EXPORT_SYMBOL(nvdimm_namespace_locked);
-+
- static ssize_t size_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 9d714926ecf5..a152dd9e4134 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -299,7 +299,7 @@ static int pmem_attach_disk(struct device *dev,
  {
-@@ -1695,6 +1715,9 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
- 		}
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+-	int nid = dev_to_node(dev), fua, wbc;
++	int nid = dev_to_node(dev), fua;
+ 	struct resource *res = &nsio->res;
+ 	struct resource bb_res;
+ 	struct nd_pfn *nd_pfn = NULL;
+@@ -335,7 +335,6 @@ static int pmem_attach_disk(struct device *dev,
+ 		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ 		fua = 0;
  	}
+-	wbc = nvdimm_has_cache(nd_region);
  
-+	if (nvdimm_namespace_locked(ndns))
-+		return ERR_PTR(-EACCES);
-+
- 	size = nvdimm_namespace_capacity(ndns);
- 	if (size < ND_MIN_NAMESPACE_SIZE) {
- 		dev_dbg(&ndns->dev, "%pa, too small must be at least %#x\n",
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 32e0364b48b9..9d17abd9f8d0 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -357,6 +357,7 @@ struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
- 		struct nd_label_id *label_id, resource_size_t start,
- 		resource_size_t n);
- resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns);
-+bool nvdimm_namespace_locked(struct nd_namespace_common *ndns);
- struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev);
- int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns);
- int nvdimm_namespace_detach_btt(struct nd_btt *nd_btt);
+ 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+ 				dev_name(&ndns->dev))) {
+@@ -382,7 +381,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		return PTR_ERR(addr);
+ 	pmem->virt_addr = addr;
+ 
+-	blk_queue_write_cache(q, wbc, fua);
++	blk_queue_write_cache(q, true, fua);
+ 	blk_queue_make_request(q, pmem_make_request);
+ 	blk_queue_physical_block_size(q, PAGE_SIZE);
+ 	blk_queue_logical_block_size(q, pmem_sector_size(ndns));
+@@ -413,7 +412,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		put_disk(disk);
+ 		return -ENOMEM;
+ 	}
+-	dax_write_cache(dax_dev, wbc);
++	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
+ 	pmem->dax_dev = dax_dev;
+ 
+ 	gendev = disk_to_dev(disk);
+-- 
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
