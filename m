@@ -1,23 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 33C6821197377
- for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 15:07:02 -0700 (PDT)
-Date: Tue, 5 Jun 2018 16:07:00 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 271D4211575FE
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 11:37:27 -0700 (PDT)
+Date: Tue, 5 Jun 2018 21:37:25 +0300
+From: "Michael S. Tsirkin" <mst@redhat.com>
 Subject: Re: [qemu PATCH v4 3/4] nvdimm, acpi: support NFIT platform
  capabilities
-Message-ID: <20180605220700.GB16066@linux.intel.com>
+Message-ID: <20180605213547-mutt-send-email-mst@kernel.org>
 References: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
  <20180521163203.26590-4-ross.zwisler@linux.intel.com>
  <20180605182243-mutt-send-email-mst@kernel.org>
  <20180605164205.GA21034@linux.intel.com>
  <CAPcyv4jSoFifTc05WGgxkEX6i7b12zYyB+VchJVW_+QPQzO7Fg@mail.gmail.com>
- <20180605213547-mutt-send-email-mst@kernel.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20180605213547-mutt-send-email-mst@kernel.org>
+In-Reply-To: <CAPcyv4jSoFifTc05WGgxkEX6i7b12zYyB+VchJVW_+QPQzO7Fg@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,73 +28,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Michael S. Tsirkin" <mst@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jun 05, 2018 at 09:37:25PM +0300, Michael S. Tsirkin wrote:
-> On Tue, Jun 05, 2018 at 11:15:00AM -0700, Dan Williams wrote:
-> > On Tue, Jun 5, 2018 at 9:42 AM, Ross Zwisler
-> > <ross.zwisler@linux.intel.com> wrote:
-> > > On Tue, Jun 05, 2018 at 06:25:27PM +0300, Michael S. Tsirkin wrote:
-> > >> On Mon, May 21, 2018 at 10:32:02AM -0600, Ross Zwisler wrote:
-> > >> > Add a machine command line option to allow the user to control the Platform
-> > >> > Capabilities Structure in the virtualized NFIT.  This Platform Capabilities
-> > >> > Structure was added in ACPI 6.2 Errata A.
-> > >> >
-> > >> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> > >>
-> > >> I tried playing with it and encoding the capabilities is
-> > >> quite awkward.
-> > >>
-> > >> Can we add bits for specific capabilities instead of nvdimm-cap?
-> > >>
-> > >> How about:
-> > >>
-> > >> "cpu-flush-on-power-loss-cap"
-> > >> "memory-flush-on-power-loss-cap"
-> > >> "byte-addressable-mirroring-cap"
-> > >
-> > > Hmmm...I don't like that as much because:
-> > >
-> > > a) It's very verbose.  Looking at my current qemu command line few other
-> > >    options require that many characters, and you'd commonly be defining more
-> > >    than one of these for a given VM.
-> > >
-> > > b) It means that the QEMU will need to be updated if/when new flags are added,
-> > >    because we'll have to have new options for each flag.  The current
-> > >    implementation is more future-proof because you can specify any flags
-> > >    value you want.
-> > >
-> > > However, if you feel strongly about this, I'll make the change.
-> > 
-> > Straw-man: Could we do something similar with what we are doing in ndctl?
-> > 
-> > enum ndctl_persistence_domain {
-> >         PERSISTENCE_NONE = 0,
-> >         PERSISTENCE_MEM_CTRL = 10,
-> >         PERSISTENCE_CPU_CACHE = 20,
-> >         PERSISTENCE_UNKNOWN = INT_MAX,
-> > };
-> > 
-> > ...and have the command line take a number where "10" and "20" are
-> > supported today, but allows us to adapt to new persistence domains in
-> > the future.
+On Tue, Jun 05, 2018 at 11:15:00AM -0700, Dan Williams wrote:
+> On Tue, Jun 5, 2018 at 9:42 AM, Ross Zwisler
+> <ross.zwisler@linux.intel.com> wrote:
+> > On Tue, Jun 05, 2018 at 06:25:27PM +0300, Michael S. Tsirkin wrote:
+> >> On Mon, May 21, 2018 at 10:32:02AM -0600, Ross Zwisler wrote:
+> >> > Add a machine command line option to allow the user to control the Platform
+> >> > Capabilities Structure in the virtualized NFIT.  This Platform Capabilities
+> >> > Structure was added in ACPI 6.2 Errata A.
+> >> >
+> >> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> >>
+> >> I tried playing with it and encoding the capabilities is
+> >> quite awkward.
+> >>
+> >> Can we add bits for specific capabilities instead of nvdimm-cap?
+> >>
+> >> How about:
+> >>
+> >> "cpu-flush-on-power-loss-cap"
+> >> "memory-flush-on-power-loss-cap"
+> >> "byte-addressable-mirroring-cap"
+> >
+> > Hmmm...I don't like that as much because:
+> >
+> > a) It's very verbose.  Looking at my current qemu command line few other
+> >    options require that many characters, and you'd commonly be defining more
+> >    than one of these for a given VM.
+> >
+> > b) It means that the QEMU will need to be updated if/when new flags are added,
+> >    because we'll have to have new options for each flag.  The current
+> >    implementation is more future-proof because you can specify any flags
+> >    value you want.
+> >
+> > However, if you feel strongly about this, I'll make the change.
 > 
-> I'm fine with that except can we have symbolic names instead of numbers
-> on command line?
+> Straw-man: Could we do something similar with what we are doing in ndctl?
 > 
-> -- 
-> MST
+> enum ndctl_persistence_domain {
+>         PERSISTENCE_NONE = 0,
+>         PERSISTENCE_MEM_CTRL = 10,
+>         PERSISTENCE_CPU_CACHE = 20,
+>         PERSISTENCE_UNKNOWN = INT_MAX,
+> };
+> 
+> ...and have the command line take a number where "10" and "20" are
+> supported today, but allows us to adapt to new persistence domains in
+> the future.
 
-Okay, we can move to the symbolic names.  Do you want them to be that long, or
-would:
+I'm fine with that except can we have symbolic names instead of numbers
+on command line?
 
-nvdimm-cap-cpu
-nvdimm-cap-mem-ctrl
-nvdimm-cap-mirroring
-
-or something be better?
+-- 
+MST
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
