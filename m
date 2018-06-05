@@ -1,13 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
+ [IPv6:2607:f8b0:4003:c06::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EDACE2096F33A
- for <linux-nvdimm@lists.01.org>; Sun, 24 Jun 2018 22:39:09 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl, test: remove an unused variable assignment
-Date: Sun, 24 Jun 2018 23:38:58 -0600
-Message-Id: <20180625053858.5927-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BCFD0211B6972
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 15:12:22 -0700 (PDT)
+Received: by mail-oi0-x241.google.com with SMTP id i205-v6so3607442oib.1
+ for <linux-nvdimm@lists.01.org>; Tue, 05 Jun 2018 15:12:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180605215926.GA16066@linux.intel.com>
+References: <20180605205841.15878-1-ross.zwisler@linux.intel.com>
+ <20180605205841.15878-2-ross.zwisler@linux.intel.com>
+ <CAPcyv4ipWTDP0dNeyUd2vba1GcYb61BQ-w2yWms8o8SeMtBiRA@mail.gmail.com>
+ <20180605215926.GA16066@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 5 Jun 2018 15:12:20 -0700
+Message-ID: <CAPcyv4h4U_nocetqT-ejjc5O7gzmAh6oShvb7CQ+3eVM1qw6tA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] libnvdimm: don't flush power-fail protected CPU caches
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,43 +24,89 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Static analysis complains that 'rc' was overwritten immediately after
-assigning to it, and therefore the assignment is useless. Remove it.
+On Tue, Jun 5, 2018 at 2:59 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Tue, Jun 05, 2018 at 02:20:38PM -0700, Dan Williams wrote:
+>> On Tue, Jun 5, 2018 at 1:58 PM, Ross Zwisler
+>> <ross.zwisler@linux.intel.com> wrote:
+>> > This commit:
+>> >
+>> > 5fdf8e5ba566 ("libnvdimm: re-enable deep flush for pmem devices via fsync()")
+>> >
+>> > intended to make sure that deep flush was always available even on
+>> > platforms which support a power-fail protected CPU cache.  An unintended
+>> > side effect of this change was that we also lost the ability to skip
+>> > flushing CPU caches on those power-fail protected CPU cache.
+>> >
+>> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> > Fixes: 5fdf8e5ba566 ("libnvdimm: re-enable deep flush for pmem devices via fsync()")
+>> > ---
+>> >  drivers/dax/super.c   | 20 +++++++++++++++++++-
+>> >  drivers/nvdimm/pmem.c |  2 ++
+>> >  include/linux/dax.h   |  9 +++++++++
+>> >  3 files changed, 30 insertions(+), 1 deletion(-)
+>> >
+>> > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+>> > index c2c46f96b18c..457e0bb6c936 100644
+>> > --- a/drivers/dax/super.c
+>> > +++ b/drivers/dax/super.c
+>> > @@ -152,6 +152,8 @@ enum dax_device_flags {
+>> >         DAXDEV_ALIVE,
+>> >         /* gate whether dax_flush() calls the low level flush routine */
+>> >         DAXDEV_WRITE_CACHE,
+>> > +       /* only flush the CPU caches if they are not power fail protected */
+>> > +       DAXDEV_FLUSH_ON_SYNC,
+>> >  };
+>> >
+>> >  /**
+>> > @@ -283,7 +285,8 @@ EXPORT_SYMBOL_GPL(dax_copy_from_iter);
+>> >  void arch_wb_cache_pmem(void *addr, size_t size);
+>> >  void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
+>> >  {
+>> > -       if (unlikely(!dax_write_cache_enabled(dax_dev)))
+>> > +       if (unlikely(!dax_write_cache_enabled(dax_dev)) ||
+>> > +                       !dax_flush_on_sync_enabled(dax_dev))
+>>
+>> This seems backwards. I think we should teach the pmem driver to still
+>> issue deep flush even when dax_write_cache_enabled() is false.
+>
+> That does still happen.  Deep flush is essentially controlled by the 'wbc'
+> variable in pmem_attach_disk(), which we use to set blk_queue_write_cache().
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/dsm-fail.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Right, what I'm trying to kill is the need to add
+dax_flush_on_sync_enabled() I think we can handle this local to the
+pmem driver and not extend the 'dax' api.
 
-diff --git a/test/dsm-fail.c b/test/dsm-fail.c
-index 45a6c4f..6845f81 100644
---- a/test/dsm-fail.c
-+++ b/test/dsm-fail.c
-@@ -339,11 +339,9 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 	sprintf(path, "%s/fail_cmd", DIMM_PATH);
- 	sprintf(buf, "0\n");
- 	rc = __sysfs_write_attr(&log_ctx, path, buf);
--	if (rc) {
-+	if (rc)
- 		fprintf(stderr, "%s: failed to clear fail_cmd mask\n",
- 				ndctl_dimm_get_devname(victim));
--		rc = -ENXIO;
--	}
- 	rc = ndctl_dimm_enable(victim);
- 	if (rc) {
- 		fprintf(stderr, "failed to enable victim: %s after clearing error\n",
--- 
-2.17.0
+> My understanding is that this causes the block layer to send down
+> REQ_FUA/REQ_PREFLUSH BIOs, and it's in response to these that we do a deep
+> flush via nvdimm_flush().  Whether this happens is totally up to the device's
+> write cache setting, and doesn't look at whether the platform has
+> flush-on-fail CPU caches.
+>
+> This does bring up another wrinkle, though: we export a write_cache sysfs
+> entry that you can use to change the write cache setting of a namespace:
+>
+> i.e.:
+>         /sys/bus/nd/devices/pfn0.1/block/pmem0/dax/write_cache
+>
+> This changes whether or not the DAXDEV_WRITE_CACHE flag is set, but does *not*
+> change whether the block queue says it supports a write cache
+> (blk_queue_write_cache()).  So, the sysfs entry ends up controlling whether or
+> not we do CPU cache flushing via DAX, but does not do anything with the deep
+> flush code.
+>
+> I'm guessing this should be fixed?  I'll go take a look...
 
+I think we need to disconnect DAXDEV_WRITE_CACHE from the indication
+of the filesystem triggerring nvdimm_flush() via REQ_{FUA,FLUSH}.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
