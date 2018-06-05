@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 46892211D675E
- for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 16:58:09 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 92501211EFEE3
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 13:59:01 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v2 2/3] libnvdimm: use dax_write_cache* helpers
-Date: Tue,  5 Jun 2018 17:58:01 -0600
-Message-Id: <20180605235802.14531-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180605235802.14531-1-ross.zwisler@linux.intel.com>
-References: <20180605235802.14531-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH 1/2] libnvdimm: use dax_write_cache* helpers
+Date: Tue,  5 Jun 2018 14:58:40 -0600
+Message-Id: <20180605205841.15878-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
