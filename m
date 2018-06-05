@@ -1,109 +1,174 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v4 12/12] libnvdimm,
- pmem: Restore page attributes when clearing errors
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 08 Jun 2018 16:51:24 -0700
-Message-ID: <152850188462.38390.4202931981794505577.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1C916211E3708
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 17:00:07 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3] ndctl: refactor validation of the ars_status command
+Date: Tue,  5 Jun 2018 17:59:59 -0600
+Message-Id: <20180605235959.11974-1-vishal.l.verma@intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: hch@lst.de, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, jack@suse.cz
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use clear_mce_nospec() to restore WB mode for the kernel linear mapping
-of a pmem page that was marked 'HWPoison'. A page with 'HWPoison' set
-has also been marked UC in PAT (page attribute table) via
-set_mce_nospec() to prevent speculative retrievals of poison.
+The APIs that iterate over the information contained in an ars_atatus
+command require a prior, successfully completed ars_status command
+struct. We were neglecting to verify that the firmware status too
+indicates a success. We were also incorrectly requiring that
+ars_status->status be zero, where as a positive status only indicates an
+underrun. The underrun is fine as the firmware is not expected to
+completely fill the max_ars_out sized buffer.
 
-The 'HWPoison' flag is only cleared when overwriting an entire page.
+Refactor this checking to mimic validate_ars_cap() which checks the
+firmware status, and fixes the check for the cmd status. Use this for
+ndctl_cmd_ars_in_progress as well which had the same (incorrect)
+cmd->status check.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Tomasz Rochumski <tomasz.rochumski@intel.com>
+Tested-by: Jacek Zloch <jacek.zloch@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/pmem.c |   26 ++++++++++++++++++++++++++
- drivers/nvdimm/pmem.h |   13 +++++++++++++
- 2 files changed, 39 insertions(+)
+ ndctl/lib/ars.c | 69 ++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 43 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 9d714926ecf5..04ee1fdee219 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -20,6 +20,7 @@
- #include <linux/hdreg.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-+#include <linux/set_memory.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/badblocks.h>
-@@ -51,6 +52,30 @@ static struct nd_region *to_region(struct pmem_device *pmem)
- 	return to_nd_region(to_dev(pmem)->parent);
+v3: do cmd validation before dereferencing any of the fields in the
+command.
+
+diff --git a/ndctl/lib/ars.c b/ndctl/lib/ars.c
+index 1ff6cf7..1e0cfdc 100644
+--- a/ndctl/lib/ars.c
++++ b/ndctl/lib/ars.c
+@@ -195,24 +195,44 @@ NDCTL_EXPORT unsigned int ndctl_cmd_ars_cap_get_clear_unit(
+ 	return 0;
  }
  
-+static void hwpoison_clear(struct pmem_device *pmem,
-+		phys_addr_t phys, unsigned int len)
++static bool __validate_ars_stat(struct ndctl_cmd *ars_stat)
 +{
-+	unsigned long pfn_start, pfn_end, pfn;
-+
-+	/* only pmem in the linear map supports HWPoison */
-+	if (is_vmalloc_addr(pmem->virt_addr))
-+		return;
-+
-+	pfn_start = PHYS_PFN(phys);
-+	pfn_end = pfn_start + PHYS_PFN(len);
-+	for (pfn = pfn_start; pfn < pfn_end; pfn++) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		/*
-+		 * Note, no need to hold a get_dev_pagemap() reference
-+		 * here since we're in the driver I/O path and
-+		 * outstanding I/O requests pin the dev_pagemap.
-+		 */
-+		if (test_and_clear_pmem_poison(page))
-+			clear_mce_nospec(pfn);
-+	}
++	/*
++	 * A positive status indicates an underrun, but that is fine since
++	 * the firmware is not expected to completely fill the max_ars_out
++	 * sized buffer.
++	 */
++	if (ars_stat->type != ND_CMD_ARS_STATUS || ars_stat->status < 0)
++		return false;
++	if ((ndctl_cmd_get_firmware_status(ars_stat) & ARS_STATUS_MASK) != 0)
++		return false;
++	return true;
 +}
 +
- static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
- 		phys_addr_t offset, unsigned int len)
++#define validate_ars_stat(ctx, ars_stat) \
++({ \
++	bool __valid = __validate_ars_stat(ars_stat); \
++	if (!__valid) \
++		dbg(ctx, "expected sucessfully completed ars_stat command\n"); \
++	__valid; \
++})
++
+ NDCTL_EXPORT int ndctl_cmd_ars_in_progress(struct ndctl_cmd *cmd)
  {
-@@ -65,6 +90,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
- 	if (cleared < len)
- 		rc = BLK_STS_IOERR;
- 	if (cleared > 0 && cleared / 512) {
-+		hwpoison_clear(pmem, pmem->phys_addr + offset, cleared);
- 		cleared /= 512;
- 		dev_dbg(dev, "%#llx clear %ld sector%s\n",
- 				(unsigned long long) sector, cleared,
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index a64ebc78b5df..59cfe13ea8a8 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -1,6 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef __NVDIMM_PMEM_H__
- #define __NVDIMM_PMEM_H__
-+#include <linux/page-flags.h>
- #include <linux/badblocks.h>
- #include <linux/types.h>
- #include <linux/pfn_t.h>
-@@ -27,4 +28,16 @@ struct pmem_device {
+ 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(cmd));
  
- long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn);
+-	if (cmd->type == ND_CMD_ARS_STATUS && cmd->status == 0) {
+-		if (cmd->ars_status->status == 1 << 16) {
+-			/*
+-			 * If in-progress, invalidate the ndctl_cmd, so
+-			 * that if we're called again without a fresh
+-			 * ars_status command, we fail.
+-			 */
+-			cmd->status = 1;
+-			return 1;
+-		}
++	if (!validate_ars_stat(ctx, cmd))
+ 		return 0;
+-	}
+ 
+-	dbg(ctx, "invalid ars_status\n");
++	if (ndctl_cmd_get_firmware_status(cmd) == 1 << 16) {
++		/*
++		 * If in-progress, invalidate the ndctl_cmd, so
++		 * that if we're called again without a fresh
++		 * ars_status command, we fail.
++		 */
++		cmd->status = 1;
++		return 1;
++	}
+ 	return 0;
+ }
+ 
+@@ -220,11 +240,10 @@ NDCTL_EXPORT unsigned int ndctl_cmd_ars_num_records(struct ndctl_cmd *ars_stat)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(ars_stat));
+ 
+-	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
+-		return ars_stat->ars_status->num_records;
++	if (!validate_ars_stat(ctx, ars_stat))
++		return 0;
+ 
+-	dbg(ctx, "invalid ars_status\n");
+-	return 0;
++	return ars_stat->ars_status->num_records;
+ }
+ 
+ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_addr(
+@@ -232,16 +251,15 @@ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_addr(
+ {
+ 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(ars_stat));
+ 
++	if (!validate_ars_stat(ctx, ars_stat))
++		return 0;
 +
-+#ifdef CONFIG_MEMORY_FAILURE
-+static inline bool test_and_clear_pmem_poison(struct page *page)
-+{
-+	return TestClearPageHWPoison(page);
-+}
-+#else
-+static inline bool test_and_clear_pmem_poison(struct page *page)
-+{
-+	return false;
-+}
-+#endif
- #endif /* __NVDIMM_PMEM_H__ */
+ 	if (rec_index >= ars_stat->ars_status->num_records) {
+ 		dbg(ctx, "invalid record index\n");
+ 		return 0;
+ 	}
+ 
+-	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
+-		return ars_stat->ars_status->records[rec_index].err_address;
+-
+-	dbg(ctx, "invalid ars_status\n");
+-	return 0;
++	return ars_stat->ars_status->records[rec_index].err_address;
+ }
+ 
+ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_len(
+@@ -249,16 +267,15 @@ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_len(
+ {
+ 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(ars_stat));
+ 
++	if (!validate_ars_stat(ctx, ars_stat))
++		return 0;
++
+ 	if (rec_index >= ars_stat->ars_status->num_records) {
+ 		dbg(ctx, "invalid record index\n");
+ 		return 0;
+ 	}
+ 
+-	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
+-		return ars_stat->ars_status->records[rec_index].length;
+-
+-	dbg(ctx, "invalid ars_status\n");
+-	return 0;
++	return ars_stat->ars_status->records[rec_index].length;
+ }
+ 
+ NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_clear_error(
+-- 
+2.17.0
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
