@@ -1,23 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x241.google.com (mail-ot0-x241.google.com
- [IPv6:2607:f8b0:4003:c0f::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 69C8921199B22
- for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 07:33:19 -0700 (PDT)
-Received: by mail-ot0-x241.google.com with SMTP id h6-v6so3078213otj.0
- for <linux-nvdimm@lists.01.org>; Tue, 05 Jun 2018 07:33:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180605141104.GF19202@dhcp22.suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 5F643211211FD
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 07:11:07 -0700 (PDT)
+Date: Tue, 5 Jun 2018 16:11:04 +0200
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH v2 00/11] mm: Teach memory_failure() about ZONE_DEVICE
+ pages
+Message-ID: <20180605141104.GF19202@dhcp22.suse.cz>
 References: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20180604124031.GP19202@dhcp22.suse.cz>
  <CAPcyv4gLxz7Ke6ApXoATDN31PSGwTgNRLTX-u1dtT3d+6jmzjw@mail.gmail.com>
- <20180605141104.GF19202@dhcp22.suse.cz>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 5 Jun 2018 07:33:17 -0700
-Message-ID: <CAPcyv4iGd56kc2NG5GDYMqW740RNr7NZr9DRft==fPxPyieq7Q@mail.gmail.com>
-Subject: Re: [PATCH v2 00/11] mm: Teach memory_failure() about ZONE_DEVICE
- pages
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gLxz7Ke6ApXoATDN31PSGwTgNRLTX-u1dtT3d+6jmzjw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,62 +26,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, Linux MM <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Souptick Joarder <jrdr.linux@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-edac@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>, Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, Linux MM <linux-mm@kvack.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Souptick Joarder <jrdr.linux@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-edac@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jun 5, 2018 at 7:11 AM, Michal Hocko <mhocko@kernel.org> wrote:
-> On Mon 04-06-18 07:31:25, Dan Williams wrote:
-> [...]
->> I'm trying to solve this real world problem when real poison is
->> consumed through a dax mapping:
->>
->>         mce: Uncorrected hardware memory error in user-access at af34214200
->>         {1}[Hardware Error]: It has been corrected by h/w and requires
->> no further action
->>         mce: [Hardware Error]: Machine check events logged
->>         {1}[Hardware Error]: event severity: corrected
->>         Memory failure: 0xaf34214: reserved kernel page still
->> referenced by 1 users
->>         [..]
->>         Memory failure: 0xaf34214: recovery action for reserved kernel
->> page: Failed
->>         mce: Memory error not recovered
->>
->> ...i.e. currently all poison consumed through dax mappings is
->> needlessly system fatal.
->
-> Thanks. That should be a part of the changelog.
+On Mon 04-06-18 07:31:25, Dan Williams wrote:
+[...]
+> I'm trying to solve this real world problem when real poison is
+> consumed through a dax mapping:
+> 
+>         mce: Uncorrected hardware memory error in user-access at af34214200
+>         {1}[Hardware Error]: It has been corrected by h/w and requires
+> no further action
+>         mce: [Hardware Error]: Machine check events logged
+>         {1}[Hardware Error]: event severity: corrected
+>         Memory failure: 0xaf34214: reserved kernel page still
+> referenced by 1 users
+>         [..]
+>         Memory failure: 0xaf34214: recovery action for reserved kernel
+> page: Failed
+>         mce: Memory error not recovered
+> 
+> ...i.e. currently all poison consumed through dax mappings is
+> needlessly system fatal.
 
-...added for v3:
-https://lists.01.org/pipermail/linux-nvdimm/2018-June/016153.html
+Thanks. That should be a part of the changelog. It would be great to
+describe why this cannot be simply handled by hwpoison code without any
+ZONE_DEVICE specific hacks? The error is recoverable so why does
+hwpoison code even care?
 
-> It would be great to
-> describe why this cannot be simply handled by hwpoison code without any
-> ZONE_DEVICE specific hacks? The error is recoverable so why does
-> hwpoison code even care?
->
-
-Up until we started testing hardware poison recovery for persistent
-memory I assumed that the kernel did not need any new enabling to get
-basic support for recovering userspace consumed poison.
-
-However, the recovery code has a dedicated path for many different
-page states (see: action_page_types). Without any changes it
-incorrectly assumes that a dax mapped page is a page cache page
-undergoing dma, or some other pinned operation. It also assumes that
-the page must be offlined which is not correct / possible for dax
-mapped pages. There is a possibility to repair poison to dax mapped
-persistent memory pages, and the pages can't otherwise be offlined
-because they 1:1 correspond with a physical storage block, i.e.
-offlining pmem would be equivalent to punching a hole in the physical
-address space.
-
-There's also the entanglement of device-dax which guarantees a given
-mapping size (4K, 2M, 1G). This requires determining the size of the
-mapping encompassing a given pfn to know how much to unmap. Since dax
-mapped pfns don't come from the page allocator we need to read the
-page size from the page tables, not compound_order(page).
+-- 
+Michal Hocko
+SUSE Labs
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
