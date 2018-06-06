@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CA2F7211648BC
- for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 12:05:01 -0700 (PDT)
-Date: Wed, 6 Jun 2018 22:04:56 +0300
-From: "Michael S. Tsirkin" <mst@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 90363210F2D1C
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 10:08:50 -0700 (PDT)
+Date: Wed, 6 Jun 2018 11:08:49 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [qemu PATCH v4 3/4] nvdimm, acpi: support NFIT platform
  capabilities
-Message-ID: <20180606220431-mutt-send-email-mst@kernel.org>
+Message-ID: <20180606170849.GA31789@linux.intel.com>
 References: <20180521163203.26590-1-ross.zwisler@linux.intel.com>
  <20180521163203.26590-4-ross.zwisler@linux.intel.com>
  <20180605182243-mutt-send-email-mst@kernel.org>
@@ -34,7 +34,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
+Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S. Tsirkin" <mst@redhat.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Wed, Jun 06, 2018 at 11:00:33AM -0600, Ross Zwisler wrote:
@@ -126,10 +126,20 @@ On Wed, Jun 06, 2018 at 11:00:33AM -0600, Ross Zwisler wrote:
 > a new one that uses symbolic names?  Or did you still just want to replace the
 > numeric one since it hasn't appeared in a QEMU release yet?
 
-The later. No release => no stable APIs.
+I guess another alternative would be to just add symbolic name options to the
+existing command line option, i.e. allow all of these:
 
--- 
-MST
+nvdimm-cap=3		# CPU cache
+nvdimm-cap=cpu		# CPU cache
+nvdimm-cap=2		# memory controller
+nvdimm-cap=mem-ctrl	# memory controller
+
+And just have them as aliases.  This retains backwards compatibility with
+what is already there, allows for other numeric values without QEMU updates if
+other bits are defined (though we are still tightly tied to ACPI in this
+case), and provides a symbolic name which is easier to use.
+
+Thoughts?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
