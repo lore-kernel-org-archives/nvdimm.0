@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
+ [IPv6:2607:f8b0:4003:c06::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A9C512098C8D8
- for <linux-nvdimm@lists.01.org>; Sat,  2 Jun 2018 12:29:04 -0700 (PDT)
-Subject: [PATCH] libnvdimm, e820: Register all pmem resources
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 02 Jun 2018 12:19:07 -0700
-Message-ID: <152796714712.17931.6164610183818441048.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 60ACA21163710
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 10:49:39 -0700 (PDT)
+Received: by mail-oi0-x241.google.com with SMTP id h79-v6so6032226oig.13
+ for <linux-nvdimm@lists.01.org>; Wed, 06 Jun 2018 10:49:39 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20180606164515.25677-1-ross.zwisler@linux.intel.com>
+References: <20180606164515.25677-1-ross.zwisler@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 6 Jun 2018 10:49:38 -0700
+Message-ID: <CAPcyv4i0h2nFnkh7-a3ZLdRz569QUJov3Qkf3nzAmesqzNUSYg@mail.gmail.com>
+Subject: Re: [PATCH v3 1/4] pmem, libnvdimm: complete REQ_FLUSH => REQ_PREFLUSH
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,116 +25,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There is currently a mismatch between the resources that will trigger
-the e820_pmem driver to register/load and the resources that will
-actually be surfaced as pmem ranges. register_e820_pmem() uses
-walk_iomem_res_desc() which includes children and siblings. In contrast,
-e820_pmem_probe() only considers top level resources. For example the
-following resource tree results in the driver being loaded, but no
-resources being registered:
+On Wed, Jun 6, 2018 at 9:45 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Complete the move from REQ_FLUSH to REQ_PREFLUSH that apparently started
+> way back in v4.8.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-    398000000000-39bfffffffff : PCI Bus 0000:ae
-      39be00000000-39bf07ffffff : PCI Bus 0000:af
-        39be00000000-39beffffffff : 0000:af:00.0
-          39be10000000-39beffffffff : Persistent Memory (legacy)
-
-Fix this up to allow definitions of "legacy" pmem ranges anywhere in
-system-physical address space. Not that it is a recommended or safe to
-define a pmem range in PCI space, but it is useful for debug /
-experimentation, and the restriction on being a top-level resource was
-arbitrary.
-
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/e820.c |   41 ++++++++++++++++++++++-------------------
- kernel/resource.c     |    1 +
- 2 files changed, 23 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
-index 6f9a6ffd7cde..521eaf53a52a 100644
---- a/drivers/nvdimm/e820.c
-+++ b/drivers/nvdimm/e820.c
-@@ -38,12 +38,27 @@ static int e820_range_to_nid(resource_size_t addr)
- }
- #endif
- 
-+static int e820_register_one(struct resource *res, void *data)
-+{
-+	struct nd_region_desc ndr_desc;
-+	struct nvdimm_bus *nvdimm_bus = data;
-+
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+	ndr_desc.res = res;
-+	ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
-+	ndr_desc.numa_node = e820_range_to_nid(res->start);
-+	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-+	if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
-+		return -ENXIO;
-+	return 0;
-+}
-+
- static int e820_pmem_probe(struct platform_device *pdev)
- {
- 	static struct nvdimm_bus_descriptor nd_desc;
- 	struct device *dev = &pdev->dev;
- 	struct nvdimm_bus *nvdimm_bus;
--	struct resource *p;
-+	int rc = -ENXIO;
- 
- 	nd_desc.attr_groups = e820_pmem_attribute_groups;
- 	nd_desc.provider_name = "e820";
-@@ -53,27 +68,15 @@ static int e820_pmem_probe(struct platform_device *pdev)
- 		goto err;
- 	platform_set_drvdata(pdev, nvdimm_bus);
- 
--	for (p = iomem_resource.child; p ; p = p->sibling) {
--		struct nd_region_desc ndr_desc;
--
--		if (p->desc != IORES_DESC_PERSISTENT_MEMORY_LEGACY)
--			continue;
--
--		memset(&ndr_desc, 0, sizeof(ndr_desc));
--		ndr_desc.res = p;
--		ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
--		ndr_desc.numa_node = e820_range_to_nid(p->start);
--		set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
--		if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
--			goto err;
--	}
--
-+	rc = walk_iomem_res_desc(IORES_DESC_PERSISTENT_MEMORY_LEGACY,
-+			IORESOURCE_MEM, 0, -1, nvdimm_bus, e820_register_one);
-+	if (rc)
-+		goto err;
- 	return 0;
--
-- err:
-+err:
- 	nvdimm_bus_unregister(nvdimm_bus);
- 	dev_err(dev, "failed to register legacy persistent memory ranges\n");
--	return -ENXIO;
-+	return rc;
- }
- 
- static struct platform_driver e820_pmem_driver = {
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 2af6c03858b9..b85f59e8a4b8 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -448,6 +448,7 @@ int walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start,
- 
- 	return __walk_iomem_res_desc(&res, desc, false, arg, func);
- }
-+EXPORT_SYMBOL_GPL(walk_iomem_res_desc);
- 
- /*
-  * This function calls the @func callback against all memory ranges of type
-
+Yup, long overdue. Applied for 4.18.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
