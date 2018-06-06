@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from youngberry.canonical.com (youngberry.canonical.com
- [91.189.89.112]) (using TLSv1 with cipher AES256-SHA (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BE1EF203369DD
- for <linux-nvdimm@lists.01.org>; Sat, 30 Jun 2018 14:11:55 -0700 (PDT)
-From: Colin Ian King <colin.king@canonical.com>
-Subject: re: memremap: change devm_memremap_pages interface to use struct
- dev_pagemap
-Message-ID: <5f52b3d3-6720-426d-6f8c-dfed997e4705@canonical.com>
-Date: Sat, 30 Jun 2018 22:11:41 +0100
-MIME-Version: 1.0
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id B757A209884BC
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 09:45:17 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 4/4] libnvdimm: don't flush power-fail protected CPU caches
+Date: Wed,  6 Jun 2018 10:45:15 -0600
+Message-Id: <20180606164515.25677-4-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180606164515.25677-1-ross.zwisler@linux.intel.com>
+References: <20180606164515.25677-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,43 +17,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+This commit:
 
-static analysis with CoverityScan detected an issue with the following
-commit:
+5fdf8e5ba566 ("libnvdimm: re-enable deep flush for pmem devices via fsync()")
 
-commit e8d5134833006a46fcbefc5f4a84d0b62bd520e7
-Author: Christoph Hellwig <hch@lst.de>
-Date:   Fri Dec 29 08:54:05 2017 +0100
+intended to make sure that deep flush was always available even on
+platforms which support a power-fail protected CPU cache.  An unintended
+side effect of this change was that we also lost the ability to skip
+flushing CPU caches on those power-fail protected CPU cache.
 
-    memremap: change devm_memremap_pages interface to use struct dev_pagemap
+Fix this by skipping the low level cache flushing in dax_flush() if we have
+CPU caches which are power-fail protected.  The user can still override this
+behavior by manually setting the write_cache state of a namespace.  See
+libndctl's ndctl_namespace_write_cache_is_enabled(),
+ndctl_namespace_enable_write_cache() and
+ndctl_namespace_disable_write_cache() functions.
 
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Fixes: 5fdf8e5ba566 ("libnvdimm: re-enable deep flush for pmem devices via fsync()")
+---
+ drivers/nvdimm/region_devs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-247        }
-248
-   CID 1464431 (#1 of 1): Unchecked return value (CHECKED_RETURN)
-check_return: Calling devm_add_action without checking return value (as
-is done elsewhere 33 out of 35 times).
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index a612be6f019d..ec3543b83330 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1132,7 +1132,8 @@ EXPORT_SYMBOL_GPL(nvdimm_has_flush);
+ 
+ int nvdimm_has_cache(struct nd_region *nd_region)
+ {
+-	return is_nd_pmem(&nd_region->dev);
++	return is_nd_pmem(&nd_region->dev) &&
++		!test_bit(ND_REGION_PERSIST_CACHE, &nd_region->flags);
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_has_cache);
+ 
+-- 
+2.14.4
 
-249        devm_add_action(dev, devm_memremap_pages_release, pgmap);
-250
-251        return __va(res->start);
-
-devm_add_action can fail and return -ENOMEM because it calls
-devres_alloc which can fail in an out of memory situation. So I believe
-it may be pertinent to add a -ENOMEM check and clean up appropriately.
-I'm not sure of the correct way to perform the error clean up, so I'm
-sending this report instead of a fix.
-
-Colin
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
