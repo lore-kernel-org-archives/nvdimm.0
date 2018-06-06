@@ -1,14 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5C2E92096F328
- for <linux-nvdimm@lists.01.org>; Sat,  2 Jun 2018 22:32:41 -0700 (PDT)
-Subject: [PATCH v2 00/11] mm: Teach memory_failure() about ZONE_DEVICE pages
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 02 Jun 2018 22:22:43 -0700
-Message-ID: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5D66521103DC8
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 15:29:54 -0700 (PDT)
+Date: Wed, 6 Jun 2018 18:29:49 -0400
+From: Mike Snitzer <snitzer@redhat.com>
+Subject: Re: [PATCH v2 5/7] dm: remove DM_TYPE_DAX_BIO_BASED dm_queue_mode
+Message-ID: <20180606222949.GA4465@redhat.com>
+References: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
+ <20180529195106.14268-6-ross.zwisler@linux.intel.com>
+ <20180601220443.GB18712@redhat.com>
+ <20180604232416.GB10666@linux.intel.com>
+ <20180605004558.GB6898@redhat.com>
+ <20180606172421.GA2208@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180606172421.GA2208@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,77 +28,145 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Tony Luck <tony.luck@intel.com>, jack@suse.cz, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, Michal Hocko <mhocko@suse.com>, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Souptick Joarder <jrdr.linux@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>, linux-edac@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Toshi Kani <toshi.kani@hpe.com>, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-xfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1 [1]:
-* Rework the locking to not use lock_page() instead use a combination of
-  rcu_read_lock(), xa_lock_irq(&mapping->pages), and igrab() to validate
-  that dax pages are still associated with the given mapping, and to
-  prevent the address_space from being freed while memory_failure() is
-  busy. (Jan)
+On Wed, Jun 06 2018 at  1:24P -0400,
+Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
 
-* Fix use of MF_COUNT_INCREASED in madvise_inject_error() to account for
-  the case where the injected error is a dax mapping and the pinned
-  reference needs to be dropped. (Naoya)
+> On Mon, Jun 04, 2018 at 08:46:28PM -0400, Mike Snitzer wrote:
+> > On Mon, Jun 04 2018 at  7:24pm -0400,
+> > Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
+> > 
+> > > On Fri, Jun 01, 2018 at 06:04:43PM -0400, Mike Snitzer wrote:
+> > > > On Tue, May 29 2018 at  3:51pm -0400,
+> > > > Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
+> > > > 
+> > > > > The DM_TYPE_DAX_BIO_BASED dm_queue_mode was introduced to prevent DM
+> > > > > devices that could possibly support DAX from transitioning into DM devices
+> > > > > that cannot support DAX.
+> > > > > 
+> > > > > For example, the following transition will currently fail:
+> > > > > 
+> > > > >  dm-linear: [fsdax pmem][fsdax pmem] => [fsdax pmem][fsdax raw]
+> > > > > 	      DM_TYPE_DAX_BIO_BASED       DM_TYPE_BIO_BASED
+> > > > > 
+> > > > > but these will both succeed:
+> > > > > 
+> > > > >  dm-linear: [fsdax pmem][brd ramdisk] => [fsdax pmem][fsdax raw]
+> > > > >  	      DM_TYPE_DAX_BIO_BASED        DM_TYPE_BIO_BASED
+> > > > > 
+> > > > 
+> > > > I fail to see how this succeeds given
+> > > > drivers/md/dm-ioctl.c:is_valid_type() only allows transitions from:
+> > > > 
+> > > > DM_TYPE_BIO_BASED => DM_TYPE_DAX_BIO_BASED
+> > > 
+> > > Right, sorry, that was a typo.  What I meant was:
+> > > 
+> > > > For example, the following transition will currently fail:
+> > > > 
+> > > >  dm-linear: [fsdax pmem][fsdax pmem] => [fsdax pmem][fsdax raw]
+> > > >               DM_TYPE_DAX_BIO_BASED       DM_TYPE_BIO_BASED
+> > > > 
+> > > > but these will both succeed:
+> > > > 
+> > > >  dm-linear: [fsdax pmem][brd ramdisk] => [fsdax pmem][fsdax raw]
+> > > >                 DM_TYPE_BIO_BASED        DM_TYPE_BIO_BASED
+> > > > 
+> > > >  dm-linear: [fsdax pmem][fsdax raw] => [fsdax pmem][fsdax pmem]
+> > > >                 DM_TYPE_BIO_BASED        DM_TYPE_DAX_BIO_BASED
+> > > 
+> > > So we allow 2 of the 3 transitions, but the reason that we disallow the third
+> > > isn't fully clear to me.
+> > > 
+> > > > >  dm-linear: [fsdax pmem][fsdax raw] => [fsdax pmem][fsdax pmem]
+> > > > >  		DM_TYPE_BIO_BASED        DM_TYPE_DAX_BIO_BASED
+> > > > > 
+> > > > > This seems arbitrary, as really the choice on whether to use DAX happens at
+> > > > > filesystem mount time.  There's no guarantee that the in the first case
+> > > > > (double fsdax pmem) we were using the dax mount option with our file
+> > > > > system.
+> > > > > 
+> > > > > Instead, get rid of DM_TYPE_DAX_BIO_BASED and all the special casing around
+> > > > > it, and instead make the request queue's QUEUE_FLAG_DAX be our one source
+> > > > > of truth.  If this is set, we can use DAX, and if not, not.  We keep this
+> > > > > up to date in table_load() as the table changes.  As with regular block
+> > > > > devices the filesystem will then know at mount time whether DAX is a
+> > > > > supported mount option or not.
+> > > > 
+> > > > If you don't think you need this specialization that is fine.. but DM
+> > > > devices supporting suspending (as part of table reloads) so is there any
+> > > > risk that there will be inflight IO (say if someone did 'dmsetup suspend
+> > > > --noflush').. and then upon reload the device type changed out from
+> > > > under us.. anyway, I don't have all the PMEM DAX stuff paged back into
+> > > > my head yet.
+> > > > 
+> > > > But this just seems like we really shouldn't be allowing the
+> > > > transition from what was DM_TYPE_DAX_BIO_BASED back to DM_TYPE_BIO_BASED
+> > > 
+> > > I admit I don't fully understand all the ways that DM supports suspending and
+> > > resuming devices.  Is there actually a case where we can change out the DM
+> > > devices while I/O is running, and somehow end up trying to issue a DAX I/O to
+> > > a device that doesn't support DAX?
+> > 
+> > Yes, provided root permissions, it's very easy to dmsetup suspend/load/resume
+> > to replace any portion of the DM device's logical address space to map to an
+> > entirely different DM target (with a different backing store).  It's
+> > pretty intrusive to do such things, but easily done and powerful.
+> > 
+> > Mike
+> 
+> Hmmm, I don't understand how you can do this if there is a filesystem built on
+> your DM device?  Say you have a DM device, either striped or linear, that is
+> made up of 2 devices, and then you use dmsetup to replace one of the DM member
+> devices with something else.  You've just swapped out half of your LBA space
+> with new data, right? 
+> 
+> I don't understand how you can expect a filesystem built on the old DM device
+> to still work?  You especially can't do this while the filesystem is mounted -
+> all the in-core filesystem metadata would be garbage because the on-media data
+> would have totally changed.
 
-* Clarify with a comment that VM_FAULT_NOPAGE may not always indicate a
-  mapping of the storage capacity, it could also indicate the zero page.
-  (Jan)
+Sure it can cause you to no longer have access to the original backing
+store (e.g. swapping in an "error" target instead of linear).
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-May/015932.html
+But this ability to suspend a DM device with a table that is using
+"linear", load a new table (that uses a different target) into the
+inactive table slot, and then resume to make the device active is how
+things like snapshot support are achieved.  The "linear" target gets
+replaced with "snapshot-origin', etc.
+ 
+> So, when dealing with a filesystem, the flow must be:
+> 
+> unmount your filesystem
+> redo your DM device, changing out devices
+> reformat your filesystem on the new DM device
+> remount your filesystem
+> 
+> Right?
 
----
+No.
 
-As it stands, memory_failure() gets thoroughly confused by dev_pagemap
-backed mappings. The recovery code has specific enabling for several
-possible page states and needs new enabling to handle poison in dax
-mappings.
+> If so, then I don't see how a transition of the DM device from
+> supporting DAX to not supporting DAX or vice versa could harm us, as we can't
+> be doing filesystem I/O at the time when we change the composition of the DM
+> device.
 
-In order to support reliable reverse mapping of user space addresses:
+Yes you can.  That is the entire point.
 
-1/ Add new locking in the memory_failure() rmap path to prevent races
-that would typically be handled by the page lock.
+BTW, I'm not saying you have to change the backing store.  I'm saying
+you _can_ if you would like.  Obviously if you remove the backing store
+with the filesystem then you'll not be able to access the filesystem.
 
-2/ Since dev_pagemap pages are hidden from the page allocator and the
-"compound page" accounting machinery, add a mechanism to determine the
-size of the mapping that encompasses a given poisoned pfn.
+The point of all this is to say, DM table swaps can be good and
+powerful.  But they can also be harmful.  The goal of preventing
+transitions from DM_TYPE_DAX_BIO_BASED to DM_TYPE_BIO_BASED was to
+shield users from doing obviously wrong things... things they might not
+realize are problematic because of the relatively opaque nature of "DAX"
+support.
 
-3/ Given pmem errors can be repaired, change the speculatively accessed
-poison protection, mce_unmap_kpfn(), to be reversible and otherwise
-allow ongoing access from the kernel.
-
----
-
-Dan Williams (11):
-      device-dax: Convert to vmf_insert_mixed and vm_fault_t
-      device-dax: Cleanup vm_fault de-reference chains
-      device-dax: Enable page_mapping()
-      device-dax: Set page->index
-      filesystem-dax: Set page->index
-      mm, madvise_inject_error: Let memory_failure() optionally take a page reference
-      x86, memory_failure: Introduce {set,clear}_mce_nospec()
-      mm, memory_failure: Pass page size to kill_proc()
-      mm, memory_failure: Fix page->mapping assumptions relative to the page lock
-      mm, memory_failure: Teach memory_failure() about dev_pagemap pages
-      libnvdimm, pmem: Restore page attributes when clearing errors
-
-
- arch/x86/include/asm/set_memory.h         |   29 ++++
- arch/x86/kernel/cpu/mcheck/mce-internal.h |   15 --
- arch/x86/kernel/cpu/mcheck/mce.c          |   38 -----
- drivers/dax/device.c                      |   97 ++++++++-----
- drivers/nvdimm/pmem.c                     |   26 ++++
- drivers/nvdimm/pmem.h                     |   13 ++
- fs/dax.c                                  |   16 ++
- include/linux/huge_mm.h                   |    5 -
- include/linux/mm.h                        |    1 
- include/linux/set_memory.h                |   14 ++
- mm/huge_memory.c                          |    4 -
- mm/madvise.c                              |   18 ++
- mm/memory-failure.c                       |  209 ++++++++++++++++++++++++++---
- 13 files changed, 366 insertions(+), 119 deletions(-)
+Mike
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
