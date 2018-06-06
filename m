@@ -1,19 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DCBC920337374
- for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 01:27:58 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 6F70EAC00BD
- for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 17:27:52 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [PATCH v7 3/3] ndctl,
- monitor: add the unit file of systemd for ndctl-monitor service
-Date: Mon, 18 Jun 2018 17:27:01 +0900
-Message-Id: <20180618082701.12326-4-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180618082701.12326-1-qi.fuli@jp.fujitsu.com>
-References: <20180618082701.12326-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5F041210F154B
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Jun 2018 18:45:19 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id B3D49AC00A2
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 10:45:13 +0900 (JST)
+Date: Wed, 06 Jun 2018 10:44:45 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [Qemu-devel] Questions about vNVDIMM on qemu/KVM
+In-Reply-To: <120916025.39666078.1528099386072.JavaMail.zimbra@redhat.com>
+References: <20180601115429.GL8687@stefanha-x1.localdomain>
+ <120916025.39666078.1528099386072.JavaMail.zimbra@redhat.com>
+Message-Id: <20180606104437.40CE.E1E9C6FF@jp.fujitsu.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,111 +23,123 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: Stefan Hajnoczi <stefanha@gmail.com>, NVDIMM-ML <linux-nvdimm@lists.01.org>, qemu-devel@nongnu.org, Luiz Capitulino <lcapitulino@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds the systemd unit file for ndctl-monitor service.
-The systemd unit directory can be configured by setting environment
-variable "--with-systemd-unit-dir[=DIR]".
+> Hi,
+>  
+> > 
+> > > I'm investigating status of vNVDIMM on qemu/KVM,
+> > > and I have some questions about it. I'm glad if anyone answer them.
+> > > 
+> > > In my understanding, qemu/KVM has a feature to show NFIT for guest,
+> > > and it will be still updated about platform capability with this patch set.
+> > > https://lists.gnu.org/archive/html/qemu-devel/2018-05/msg04756.html
+> > > 
+> > > And libvirt also supports this feature with <memory model='nvdimm'>
+> > > https://libvirt.org/formatdomain.html#elementsMemory
+> > > 
+> > > 
+> > > However, virtio-pmem is developing now, and it is better
+> > > for archtectures to detect regions of NVDIMM without ACPI (like s390x)
+> > > In addition, It is also necessary to flush guest contents on vNVDIMM
+> > > who has a backend-file.
+> > > 
+> > > 
+> > > Q1) Does ACPI.NFIT bus of qemu/kvm remain with virtio-pmem?
+>         No.
+> 
+> > >     How do each roles become it if both NFIT and virtio-pmem will be
+> > >     available?
+> 
+>         There are two main use cases:
+> 
+>         1] DAX memory region pass-through to guest:
+>         -------------------------------------------
+>         As this region is present in actual physical NVDIMM device and exposed to guest,
+>         ACPI/NFIT way is used. If all the persistent memory is used by only this way we 
+>         don't need 'virtio-pmem'.
+> 
+>         2] Emulated DAX memory region in host passed to guest:
+>         --------------------------------------------------------
+>         If this type of region is exposed to guest, it will be preferable to use
+>         'virtio-pmem'. 
+> 
+>         This is regular host memory which is mmaped in guest address space for emulating 
+>         persistent memory. Guest writes are present in host page cache and not assured to be 
+>         written on backing disk without an explicit flush/sync call.
+>  
+>         'virtio-pmem' will solve the problem of flushing guest writes present in host page cache.
+>         With filesystems at host which use journal-ling like (ext4, xfs), they automatically call 
+>         'fsync' at regular intervals. but still there is not 100% assurance of all write persistence until
+>         an explicit flush is done from guest. So, we need an additional fsync to flush guest writes to 
+>         backing disk. We are using this approach to avoid using guest page cache and keep page cache management 
+>         of all the guests at host side.
+>         
+>         If both ACPI NFIT and virtio-pmem are present, both will have their corresponding memory regions and 
+>         defined by memory type "Persistent shared Memory" in case of virtio-pmem and "Persistent Memory" for 
+>         ACPI NVDIMM. This is to differentiate both the memory types.
 
-A monitor daemon can be started as a system service:
-   # systemctl start ndctl-monitor.service
+Ok.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> 
+> > >     If my understanding is correct, both NFIT and virtio-pmem is used to
+> > >     detect vNVDIMM regions, but only one seems to be necessary....
+> > > 
+> > >     Otherwize, is the NFIT bus just for keeping compatibility,
+> > >     and virtio-pmem is promising way?
+> > > 
+> > >     
+> > > Q2) What bus is(will be?) created for virtio-pmem?
+> > >     I could confirm the bus of NFIT is created with <memory
+> > >     model='nvdimm'>,
+> 
+>         For virtio-pmem also its nvdimm bus.
+> 
+> > >     and I heard other bus will be created for virtio-pmem, but I could not
+> > >     find what bus is created concretely.
+> > >     ---
+> > >       # ndctl list -B
+> > >       {
+> > >          "provider":"ACPI.NFIT",
+> > >          "dev":"ndbus0"
+> > >       }
+> > >     ---
+> > >    
+> > >     I think it affects what operations user will be able to, and what
+> > >     notification is necessary for vNVDIMM.
+> > >     ACPI defines some operations like namespace controll, and notification
+> > >     for NVDIMM health status or others.
+> > >     (I suppose that other status notification might be necessary for
+> > >     vNVDIMM,
+> > >      but I'm not sure yet...)
+> 
+>          For virtio-pmem, we are not providing advance features like namespace and various
+>          other features which ACPI/NVDIMM hardware provides. This is just to keep paravirt
+>          device simple.
+
+Hmm, I see.
+Thank you for your explanation.
+
+Bye.
 ---
- autogen.sh                  |  3 ++-
- configure.ac                | 22 ++++++++++++++++++++++
- ndctl/Makefile.am           |  4 ++++
- ndctl/ndctl-monitor.service |  7 +++++++
- 4 files changed, 35 insertions(+), 1 deletion(-)
- create mode 100644 ndctl/ndctl-monitor.service
+Yasunori Goto
 
-diff --git a/autogen.sh b/autogen.sh
-index 2a52688..21b0e25 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -17,7 +17,8 @@ libdir() {
- 
- args="--prefix=/usr \
- --sysconfdir=/etc \
----libdir=$(libdir /usr/lib)"
-+--libdir=$(libdir /usr/lib) \
-+--with-systemd-unit-dir"
- 
- echo
- echo "----------------------------------------------------------------"
-diff --git a/configure.ac b/configure.ac
-index 17b5a65..4013599 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -140,6 +140,27 @@ AC_CHECK_FUNCS([ \
- 	secure_getenv\
- ])
- 
-+PKG_PROG_PKG_CONFIG
-+AC_ARG_WITH([systemd-unit-dir],
-+	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
-+		[Directory for systemd service files]),
-+	[],
-+	[with_systemd_unit_dir=yes])
-+
-+if test "x$with_systemd_unit_dir" = "xyes"; then
-+	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
-+	if test "x$def_systemd_unit_dir" = "x"; then
-+		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
-+		with_systemd_unit_dir=no
-+	else
-+		with_systemd_unit_dir="$def_systemd_unit_dir"
-+	fi
-+fi
-+
-+AS_IF([test "x$with_systemd_unit_dir" != "xno"],
-+	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
-+AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
-+
- my_CFLAGS="\
- -Wall \
- -Wchar-subscripts \
-@@ -181,6 +202,7 @@ AC_MSG_RESULT([
-         sysconfdir:             ${sysconfdir}
-         libdir:                 ${libdir}
-         includedir:             ${includedir}
-+	systemd-unit-dir:	${systemd_unitdir}
- 
-         compiler:               ${CC}
-         cflags:                 ${CFLAGS}
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index ae3d894..9d008d5 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
- monitor_configdir = /etc/ndctl/
- monitor_config_DATA = $(monitor_config_file)
- EXTRA_DIST += $(monitor_config_file)
-+
-+if ENABLE_SYSTEMD_UNIT_DIR
-+systemd_unit_DATA = ndctl-monitor.service
-+endif
-diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
-new file mode 100644
-index 0000000..44f9326
---- /dev/null
-+++ b/ndctl/ndctl-monitor.service
-@@ -0,0 +1,7 @@
-+[Unit]
-+Description=Ndctl Monitor Daemon
-+
-+[Service]
-+Type=forking
-+ExecStart=/usr/bin/ndctl monitor --daemon
-+ExecStop=/bin/kill ${MAINPID}
--- 
-2.17.1
+
+> 
+>          Moreover I have not yet looked at ndctl side of things. I am not 100% sure how
+>          ndctl will handle 'virtio-pmem'.
+> 
+>         Adding 'Dan' in loop, he can add his thoughts.
+> 
+> Thanks,
+> Pankaj
+> 
 
 
 _______________________________________________
