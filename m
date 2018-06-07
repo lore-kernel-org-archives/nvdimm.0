@@ -2,18 +2,17 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C210320988465
- for <linux-nvdimm@lists.01.org>; Thu,  7 Jun 2018 22:39:46 -0700 (PDT)
-Subject: Re: [Qemu-devel] [qemu PATCH 3/5] hw/i386: Update SSDT table used by
- "make check"
+ by ml01.01.org (Postfix) with ESMTPS id E40152110D514
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Jun 2018 16:14:33 -0700 (PDT)
+Date: Fri, 8 Jun 2018 02:14:31 +0300
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: Re: [qemu PATCH 3/5] hw/i386: Update SSDT table used by "make check"
+Message-ID: <20180608021134-mutt-send-email-mst@kernel.org>
 References: <20180607223111.27792-1-ross.zwisler@linux.intel.com>
  <20180607223111.27792-3-ross.zwisler@linux.intel.com>
-From: Thomas Huth <thuth@redhat.com>
-Message-ID: <103368a5-2665-c2f9-ba58-607e5ec491e1@redhat.com>
-Date: Fri, 8 Jun 2018 07:39:36 +0200
 MIME-Version: 1.0
+Content-Disposition: inline
 In-Reply-To: <20180607223111.27792-3-ross.zwisler@linux.intel.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,11 +24,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Peter Maydell <peter.maydell@linaro.org>, Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Cornelia Huck <cohuck@redhat.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Peter Maydell <peter.maydell@linaro.org>, Thomas Huth <thuth@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Cornelia Huck <cohuck@redhat.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 08.06.2018 00:31, Ross Zwisler wrote:
+On Thu, Jun 07, 2018 at 04:31:09PM -0600, Ross Zwisler wrote:
 > This commit:
 > 
 > commit aa78a16d8645 ("hw/i386: Rename 2.13 machine types to 3.0")
@@ -46,6 +45,9 @@ On 08.06.2018 00:31, Ross Zwisler wrote:
 >   <     Name (MEMA, 0x07FFF000)
 >   ---
 >   >     Name (MEMA, 0x07FFE000)
+
+Weird. How come the phys address changes just because of machine name?
+
 > 
 > Update the binary table that we compare against so it reflects this name
 > change.
@@ -69,11 +71,8 @@ On 08.06.2018 00:31, Ross Zwisler wrote:
 > delta 23
 > fcmZ3>x|WqIIM^j*EfWI+W57nP1x(Bj{<8xBPMZev
 > 
-
-Thanks, that fixes the warning for me.
-
-Tested-by: Thomas Huth <thuth@redhat.com>
-
+> -- 
+> 2.14.4
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
