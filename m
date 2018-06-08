@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7B1F6211147A7
- for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:22:09 -0700 (PDT)
-Subject: [PATCH v3 06/12] mm,
- madvise_inject_error: Let memory_failure() optionally take a page
- reference
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 04 Jun 2018 16:12:12 -0700
-Message-ID: <152815393199.39010.5209788235715575901.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 546602110718F
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 08:36:31 -0700 (PDT)
+Date: Fri, 8 Jun 2018 09:36:30 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [qemu PATCH 1/5] gitignore: ignore generated qapi job files
+Message-ID: <20180608153630.GB27156@linux.intel.com>
+References: <20180607223111.27792-1-ross.zwisler@linux.intel.com>
+ <edcae62f-e3b6-6e25-60a5-843eeae89396@redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <edcae62f-e3b6-6e25-60a5-843eeae89396@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,82 +24,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, hch@lst.de
+To: Eric Blake <eblake@redhat.com>
+Cc: Kevin Wolf <kwolf@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S. Tsirkin" <mst@redhat.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The madvise_inject_error() routine uses get_user_pages() to lookup the
-pfn and other information for injected error, but it does not release
-that pin. The assumption is that failed pages should be taken out of
-circulation.
+On Fri, Jun 08, 2018 at 09:59:00AM -0500, Eric Blake wrote:
+> On 06/07/2018 05:31 PM, Ross Zwisler wrote:
+> > With a fully built QEMU I currently see the following with "git status":
+> > 
+> >    Untracked files:
+> >      (use "git add <file>..." to include in what will be committed)
+> > 
+> >    	qapi/qapi-commands-job.c
+> >    	qapi/qapi-commands-job.h
+> >    	qapi/qapi-events-job.c
+> >    	qapi/qapi-events-job.h
+> >    	qapi/qapi-types-job.c
+> >    	qapi/qapi-types-job.h
+> >    	qapi/qapi-visit-job.c
+> >    	qapi/qapi-visit-job.h
+> > 
+> > These are all generated files.  Ignore them.
+> > 
+> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > Cc: Kevin Wolf <kwolf@redhat.com>
+> > Cc: Eric Blake <eblake@redhat.com>
+> > Fixes: commit bf42508f24ee ("job: Introduce qapi/job.json")
+> 
+> You're the third to post this:
+> 
+> https://lists.gnu.org/archive/html/qemu-devel/2018-05/msg07280.html
+> https://lists.gnu.org/archive/html/qemu-devel/2018-06/msg01624.html
 
-However, for dax mappings it is not possible to take pages out of
-circulation since they are 1:1 physically mapped as filesystem blocks,
-or device-dax capacity. They also typically represent persistent memory
-which has an error clearing capability.
-
-In preparation for adding a special handler for dax mappings, shift the
-responsibility of taking the page reference to memory_failure(). I.e.
-drop the page reference and do not specify MF_COUNT_INCREASED to
-memory_failure().
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/madvise.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
-
-diff --git a/mm/madvise.c b/mm/madvise.c
-index 4d3c922ea1a1..b731933dddae 100644
---- a/mm/madvise.c
-+++ b/mm/madvise.c
-@@ -631,11 +631,13 @@ static int madvise_inject_error(int behavior,
- 
- 
- 	for (; start < end; start += PAGE_SIZE << order) {
-+		unsigned long pfn;
- 		int ret;
- 
- 		ret = get_user_pages_fast(start, 1, 0, &page);
- 		if (ret != 1)
- 			return ret;
-+		pfn = page_to_pfn(page);
- 
- 		/*
- 		 * When soft offlining hugepages, after migrating the page
-@@ -651,17 +653,27 @@ static int madvise_inject_error(int behavior,
- 
- 		if (behavior == MADV_SOFT_OFFLINE) {
- 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
--						page_to_pfn(page), start);
-+					pfn, start);
- 
- 			ret = soft_offline_page(page, MF_COUNT_INCREASED);
- 			if (ret)
- 				return ret;
- 			continue;
- 		}
-+
- 		pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
--						page_to_pfn(page), start);
-+				pfn, start);
-+
-+		ret = memory_failure(pfn, 0);
-+
-+		/*
-+		 * Drop the page reference taken by get_user_pages_fast(). In
-+		 * the absence of MF_COUNT_INCREASED the memory_failure()
-+		 * routine is responsible for pinning the page to prevent it
-+		 * from being released back to the page allocator.
-+		 */
-+		put_page(page);
- 
--		ret = memory_failure(page_to_pfn(page), MF_COUNT_INCREASED);
- 		if (ret)
- 			return ret;
- 	}
-
+I pulled your master branch yesterday before posting the series.  If multiple
+people are sending fixes to the same issue and the fixes are correct, the
+easiest way to stop getting those fixes is probably to merge one of the
+patches.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
