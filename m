@@ -1,22 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
- [IPv6:2607:f8b0:4003:c06::244])
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 24F1621123892
- for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 09:16:51 -0700 (PDT)
-Received: by mail-oi0-x244.google.com with SMTP id t133-v6so12304316oif.10
- for <linux-nvdimm@lists.01.org>; Fri, 08 Jun 2018 09:16:51 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E1A6E210EE4F3
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 09:14:30 -0700 (PDT)
+Received: by mail-ot0-x242.google.com with SMTP id a5-v6so16286319otf.12
+ for <linux-nvdimm@lists.01.org>; Fri, 08 Jun 2018 09:14:30 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180608190040-mutt-send-email-mst@kernel.org>
+In-Reply-To: <20180608185714-mutt-send-email-mst@kernel.org>
 References: <20180607223111.27792-1-ross.zwisler@linux.intel.com>
  <20180607223111.27792-2-ross.zwisler@linux.intel.com>
  <20180608020724-mutt-send-email-mst@kernel.org>
  <5352d2fb-9244-78b0-4f4b-2818359a4425@redhat.com>
- <20180608190040-mutt-send-email-mst@kernel.org>
+ <20180608153402.GA27156@linux.intel.com>
+ <20180608185714-mutt-send-email-mst@kernel.org>
 From: Peter Maydell <peter.maydell@linaro.org>
-Date: Fri, 8 Jun 2018 17:16:30 +0100
-Message-ID: <CAFEAcA-h3xxeRFO32pnqrwR_wZ1=us-t0FunS2aJRpQV==3-GQ@mail.gmail.com>
+Date: Fri, 8 Jun 2018 17:14:09 +0100
+Message-ID: <CAFEAcA943cBfMbjBJcheTWAL+mWa4vu5uL62LvKXS4agd+ZRMA@mail.gmail.com>
 Subject: Re: [Qemu-devel] [qemu PATCH 2/5] acpi: "make check" should fail on
  asl mismatch
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -34,19 +35,13 @@ To: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Thomas Huth <thuth@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 8 June 2018 at 17:03, Michael S. Tsirkin <mst@redhat.com> wrote:
-> Pull requests are somewhat different, they are usually tested for lack
-> of warnings. This change didn't arrive as a result of a pull request
-> maybe that's why it slipped through the cracks. Peter?
->
-> Maybe we need a "pedantic" flag to fail on any warnings, or just catch
-> output to stderr.
+On 8 June 2018 at 16:59, Michael S. Tsirkin <mst@redhat.com> wrote:
+> The expected value tests are a debugging aid. They do not catch bugs and
+> aren't designed to. In particular the comparisons do not even run if
+> IASL isn't installed.
 
-If there's a situation that shouldn't exist in the tree (ie
-a bug), then make check should catch it, and result in a
-failure, not just printing random stuff to stderr. Otherwise
-I'm not going to notice it, whether I'm applying a pull request
-or an individual patch.
+If they're not actually tests to catch bugs, maybe we shouldn't
+be running them in "make check" ?
 
 thanks
 -- PMM
