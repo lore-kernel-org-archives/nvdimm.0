@@ -1,158 +1,176 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C9D9221110034
- for <linux-nvdimm@lists.01.org>; Fri,  1 Jun 2018 16:28:09 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2] ndctl: refactor validation of the ars_status command
-Date: Fri,  1 Jun 2018 17:27:56 -0600
-Message-Id: <20180601232756.27791-1-vishal.l.verma@intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v4 03/12] device-dax: Enable page_mapping()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 08 Jun 2018 16:50:37 -0700
+Message-ID: <152850183732.38390.13744173577899382680.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Sender: owner-linux-mm@kvack.org
 To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, hch@lst.de, linux-mm@kvack.org, linux-fsdevel@vger.kernel.orgjack@suse.cz
 List-ID: <linux-nvdimm@lists.01.org>
 
-The APIs that iterate over the information contained in an ars_atatus
-command require a prior, successfully completed ars_status command
-struct. We were neglecting to verify that the firmware status too
-indicates a success. We were also incorrectly requiring that
-ars_status->status be zero, where as a positive status only indicates an
-underrun. The underrun is fine as the firmware is not expected to
-completely fill the max_ars_out sized buffer.
+In support of enabling memory_failure() handling for device-dax
+mappings, set the ->mapping association of pages backing device-dax
+mappings. The rmap implementation requires page_mapping() to return the
+address_space hosting the vmas that map the page.
 
-Refactor this checking to mimic validate_ars_cap() which checks the
-firmware status, and fixes the check for the cmd status. Use this for
-ndctl_cmd_ars_in_progress as well which had the same (incorrect)
-cmd->status check.
+The ->mapping pointer is never cleared. There is no possibility for the
+page to become associated with another address_space while the device is
+enabled. When the device is disabled the 'struct page' array for the
+device is destroyed / later reinitialized to zero.
 
-Reported-by: Tomasz Rochumski <tomasz.rochumski@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/lib/ars.c | 65 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 41 insertions(+), 24 deletions(-)
+ drivers/dax/device.c |   55 +++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 38 insertions(+), 17 deletions(-)
 
-diff --git a/ndctl/lib/ars.c b/ndctl/lib/ars.c
-index 1ff6cf7..b199646 100644
---- a/ndctl/lib/ars.c
-+++ b/ndctl/lib/ars.c
-@@ -195,24 +195,44 @@ NDCTL_EXPORT unsigned int ndctl_cmd_ars_cap_get_clear_unit(
- 	return 0;
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 686de08e120b..7ec246549721 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -245,13 +245,12 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
  }
  
-+static bool __validate_ars_stat(struct ndctl_cmd *ars_stat)
-+{
-+	/*
-+	 * A positive status indicates an underrun, but that is fine since
-+	 * the firmware is not expected to completely fill the max_ars_out
-+	 * sized buffer.
-+	 */
-+	if (ars_stat->type != ND_CMD_ARS_STATUS || ars_stat->status < 0)
-+		return false;
-+	if ((ndctl_cmd_get_firmware_status(ars_stat) & ARS_STATUS_MASK) != 0)
-+		return false;
-+	return true;
-+}
-+
-+#define validate_ars_stat(ctx, ars_stat) \
-+({ \
-+	bool __valid = __validate_ars_stat(ars_stat); \
-+	if (!__valid) \
-+		dbg(ctx, "expected sucessfully completed ars_stat command\n"); \
-+	__valid; \
-+})
-+
- NDCTL_EXPORT int ndctl_cmd_ars_in_progress(struct ndctl_cmd *cmd)
+ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
  {
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(cmd));
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
  
--	if (cmd->type == ND_CMD_ARS_STATUS && cmd->status == 0) {
--		if (cmd->ars_status->status == 1 << 16) {
--			/*
--			 * If in-progress, invalidate the ndctl_cmd, so
--			 * that if we're called again without a fresh
--			 * ars_status command, we fail.
--			 */
--			cmd->status = 1;
--			return 1;
--		}
-+	if (!validate_ars_stat(ctx, cmd))
- 		return 0;
--	}
+ 	if (check_vma(dev_dax, vma, __func__))
+@@ -273,13 +272,13 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
  
--	dbg(ctx, "invalid ars_status\n");
-+	if (ndctl_cmd_get_firmware_status(cmd) == 1 << 16) {
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_mixed(vma, vmf->address, pfn);
++	return vmf_insert_mixed(vma, vmf->address, *pfn);
+ }
+ 
+ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -287,7 +286,6 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PMD_SIZE;
+ 
+ 	if (check_vma(dev_dax, vma, __func__))
+@@ -322,15 +320,15 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
++	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, *pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -338,7 +336,6 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PUD_SIZE;
+ 
+ 
+@@ -374,14 +371,14 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, pfn,
++	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, *pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ #else
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+@@ -390,9 +387,11 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+-	int rc, id;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct file *filp = vma->vm_file;
++	unsigned long fault_size;
++	int rc, id;
++	pfn_t pfn;
+ 	struct dev_dax *dev_dax = filp->private_data;
+ 
+ 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
+@@ -402,17 +401,39 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 	id = dax_read_lock();
+ 	switch (pe_size) {
+ 	case PE_SIZE_PTE:
+-		rc = __dev_dax_pte_fault(dev_dax, vmf);
++		fault_size = PAGE_SIZE;
++		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	case PE_SIZE_PMD:
+-		rc = __dev_dax_pmd_fault(dev_dax, vmf);
++		fault_size = PMD_SIZE;
++		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	case PE_SIZE_PUD:
+-		rc = __dev_dax_pud_fault(dev_dax, vmf);
++		fault_size = PUD_SIZE;
++		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	default:
+ 		rc = VM_FAULT_SIGBUS;
+ 	}
++
++	if (rc == VM_FAULT_NOPAGE) {
++		unsigned long i;
++
 +		/*
-+		 * If in-progress, invalidate the ndctl_cmd, so
-+		 * that if we're called again without a fresh
-+		 * ars_status command, we fail.
++		 * In the device-dax case the only possibility for a
++		 * VM_FAULT_NOPAGE result is when device-dax capacity is
++		 * mapped. No need to consider the zero page, or racing
++		 * conflicting mappings.
 +		 */
-+		cmd->status = 1;
-+		return 1;
++		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
++			struct page *page;
++
++			page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
++			if (page->mapping)
++				continue;
++			page->mapping = filp->f_mapping;
++		}
 +	}
- 	return 0;
- }
+ 	dax_read_unlock(id);
  
-@@ -220,11 +240,10 @@ NDCTL_EXPORT unsigned int ndctl_cmd_ars_num_records(struct ndctl_cmd *ars_stat)
- {
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(ars_stat));
- 
--	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
--		return ars_stat->ars_status->num_records;
-+	if (!validate_ars_stat(ctx, ars_stat))
-+		return 0;
- 
--	dbg(ctx, "invalid ars_status\n");
--	return 0;
-+	return ars_stat->ars_status->num_records;
- }
- 
- NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_addr(
-@@ -237,11 +256,10 @@ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_addr(
- 		return 0;
- 	}
- 
--	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
--		return ars_stat->ars_status->records[rec_index].err_address;
-+	if (!validate_ars_stat(ctx, ars_stat))
-+		return 0;
- 
--	dbg(ctx, "invalid ars_status\n");
--	return 0;
-+	return ars_stat->ars_status->records[rec_index].err_address;
- }
- 
- NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_len(
-@@ -254,11 +272,10 @@ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_len(
- 		return 0;
- 	}
- 
--	if (ars_stat->type == ND_CMD_ARS_STATUS && ars_stat->status == 0)
--		return ars_stat->ars_status->records[rec_index].length;
-+	if (!validate_ars_stat(ctx, ars_stat))
-+		return 0;
- 
--	dbg(ctx, "invalid ars_status\n");
--	return 0;
-+	return ars_stat->ars_status->records[rec_index].length;
- }
- 
- NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_clear_error(
--- 
-2.17.0
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+ 	return rc;
