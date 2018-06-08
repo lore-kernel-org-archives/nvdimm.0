@@ -1,113 +1,109 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3F68F207E6349
- for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 01:27:24 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id DEAF6AC00A3
- for <linux-nvdimm@lists.01.org>;
- Mon, 18 Jun 2018 17:27:19 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [PATCH v7 0/3] ndctl, monitor: add ndctl monitor daemon
-Date: Mon, 18 Jun 2018 17:26:58 +0900
-Message-Id: <20180618082701.12326-1-qi.fuli@jp.fujitsu.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v4 12/12] libnvdimm,
+ pmem: Restore page attributes when clearing errors
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 08 Jun 2018 16:51:24 -0700
+Message-ID: <152850188462.38390.4202931981794505577.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Sender: owner-linux-mm@kvack.org
 To: linux-nvdimm@lists.01.org
+Cc: hch@lst.de, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, jack@suse.cz
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is the v7 patch for ndctl monitor, a tiny daemon to monitor
-the smart events of nvdimm DIMMs. Since NVDIMM does not have a
-feature like mirroring, if it breaks down, the data will be
-impossible to restore. Ndctl monitor daemon will catch the smart
-events notify from firmware and outputs notification to logfile,
-therefore users can replace NVDIMM before it is completely broken.
+Use clear_mce_nospec() to restore WB mode for the kernel linear mapping
+of a pmem page that was marked 'HWPoison'. A page with 'HWPoison' set
+has also been marked UC in PAT (page attribute table) via
+set_mce_nospec() to prevent speculative retrievals of poison.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+The 'HWPoison' flag is only cleared when overwriting an entire page.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Change log since v6:
- - Changing License to GPL-2.0
- - Adding event object to output notification
- - Adding [--dimm-event] option to filter notification by event type
- - Rewriting read_config_file()
- - Replacing monitor_dimm_event() with monitor_event()
- - Renaming some variables
+ drivers/nvdimm/pmem.c |   26 ++++++++++++++++++++++++++
+ drivers/nvdimm/pmem.h |   13 +++++++++++++
+ 2 files changed, 39 insertions(+)
 
-Change log since v5:
- - Fixing systemd unit file cannot be installed bug
- - Adding license to ./util/abspath.c
-
-Change log since v4:
- - Adding OPTION_FILENAME to make sure filename is correct
- - Adding configuration file
- - Adding [--config-file] option to override the default configuration
- - Making some options support multiple space-seperated arguments
- - Making systemctl enable ndctl-monitor.service command work
- - Making systemctl restart ndctl-monitor.service command work
- - Making the directory of systemd unit file to be configurable
- - Changing log_file() and log_syslog() to logreport()
- - Changing date format in notification to nanoseconds since epoch
- - Changing select() to epoll()
- - Adding filter_bus() and filter_region()
-
-Change log since v3:
- - Removing create-monitor, show-monitor, list-monitor, destroy-monitor
- - Adding [--daemon] option to run ndctl monitor as a daemon 
- - Using systemd to manage ndctl monitor daemon
- - Replacing filter_monitor_dimm() with filter_dimm()
-
-Change log since v2:
- - Changing the interface of daemon to the ndctl command line
- - Changing the name of daemon form "nvdimmd" to "monitor"
- - Removing the config file, unit_file, nvdimmd dir
- - Removing nvdimmd_test program
- - Adding ndctl/monitor.c
-
-Change log since v1:
- - Adding a config file(/etc/nvdimmd/nvdimmd.conf)
- - Using struct log_ctx instead of syslog()
-    - Using log_syslog() to save the notify messages to syslog
-    - Using log_file() to save the notify messages to special file
- - Adding LOG_NOTICE level to log_priority
- - Using automake instead of Makefile
- - Adding a new util file(nvdimmd/util.c) including helper functions
-   needed for nvdimm daemon
- - Adding nvdimmd_test program
-
-QI Fuli (3):
-  ndctl, monitor: add ndctl monitor
-  ndctl, monitor: add main ndctl monitor configuration file
-  ndctl, monitor: add the unit file of systemd for ndctl-monitor service
-
- autogen.sh                  |   3 +-
- builtin.h                   |   1 +
- configure.ac                |  22 ++
- ndctl/Makefile.am           |  12 +-
- ndctl/monitor.c             | 647 ++++++++++++++++++++++++++++++++++++
- ndctl/monitor.conf          |  42 +++
- ndctl/ndctl-monitor.service |   7 +
- ndctl/ndctl.c               |   1 +
- 8 files changed, 733 insertions(+), 2 deletions(-)
- create mode 100644 ndctl/monitor.c
- create mode 100644 ndctl/monitor.conf
- create mode 100644 ndctl/ndctl-monitor.service
-
--- 
-2.17.1
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 9d714926ecf5..04ee1fdee219 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -20,6 +20,7 @@
+ #include <linux/hdreg.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
++#include <linux/set_memory.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/badblocks.h>
+@@ -51,6 +52,30 @@ static struct nd_region *to_region(struct pmem_device *pmem)
+ 	return to_nd_region(to_dev(pmem)->parent);
+ }
+ 
++static void hwpoison_clear(struct pmem_device *pmem,
++		phys_addr_t phys, unsigned int len)
++{
++	unsigned long pfn_start, pfn_end, pfn;
++
++	/* only pmem in the linear map supports HWPoison */
++	if (is_vmalloc_addr(pmem->virt_addr))
++		return;
++
++	pfn_start = PHYS_PFN(phys);
++	pfn_end = pfn_start + PHYS_PFN(len);
++	for (pfn = pfn_start; pfn < pfn_end; pfn++) {
++		struct page *page = pfn_to_page(pfn);
++
++		/*
++		 * Note, no need to hold a get_dev_pagemap() reference
++		 * here since we're in the driver I/O path and
++		 * outstanding I/O requests pin the dev_pagemap.
++		 */
++		if (test_and_clear_pmem_poison(page))
++			clear_mce_nospec(pfn);
++	}
++}
++
+ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ 		phys_addr_t offset, unsigned int len)
+ {
+@@ -65,6 +90,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+ 	if (cleared < len)
+ 		rc = BLK_STS_IOERR;
+ 	if (cleared > 0 && cleared / 512) {
++		hwpoison_clear(pmem, pmem->phys_addr + offset, cleared);
+ 		cleared /= 512;
+ 		dev_dbg(dev, "%#llx clear %ld sector%s\n",
+ 				(unsigned long long) sector, cleared,
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index a64ebc78b5df..59cfe13ea8a8 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef __NVDIMM_PMEM_H__
+ #define __NVDIMM_PMEM_H__
++#include <linux/page-flags.h>
+ #include <linux/badblocks.h>
+ #include <linux/types.h>
+ #include <linux/pfn_t.h>
+@@ -27,4 +28,16 @@ struct pmem_device {
+ 
+ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn);
++
++#ifdef CONFIG_MEMORY_FAILURE
++static inline bool test_and_clear_pmem_poison(struct page *page)
++{
++	return TestClearPageHWPoison(page);
++}
++#else
++static inline bool test_and_clear_pmem_poison(struct page *page)
++{
++	return false;
++}
++#endif
+ #endif /* __NVDIMM_PMEM_H__ */
