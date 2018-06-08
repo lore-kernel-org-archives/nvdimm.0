@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D96212110C817
- for <linux-nvdimm@lists.01.org>; Sun,  3 Jun 2018 13:05:31 -0700 (PDT)
-Subject: [PATCH] acpi, nfit: Remove ecc_unit_size
+ by ml01.01.org (Postfix) with ESMTPS id D308F210E1297
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 17:00:44 -0700 (PDT)
+Subject: [PATCH v4 05/12] filesystem-dax: Set page->index
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 03 Jun 2018 12:55:34 -0700
-Message-ID: <152805573421.36904.10280982218277525255.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 08 Jun 2018 16:50:47 -0700
+Message-ID: <152850184756.38390.8348959280033335538.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,101 +23,75 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The "Clear Error Unit" may be smaller than the ECC unit size on some
-devices. For example, poison may be tracked at 64-byte alignment even
-though the ECC unit is larger. Unless / until the ACPI specification
-provides a non-ambiguous way to communicate this property do not expose
-this to userspace.
+In support of enabling memory_failure() handling for filesystem-dax
+mappings, set ->index to the pgoff of the page. The rmap implementation
+requires ->index to bound the search through the vma interval tree. The
+index is set and cleared at dax_associate_entry() and
+dax_disassociate_entry() time respectively.
 
-Software that had been using this property must already be prepared for
-the case where the property is not provided on older kernels, so it is
-safe to remove this attribute.
-
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/ABI/removed/sysfs-bus-nfit |   17 +++++++++++++++++
- Documentation/ABI/testing/sysfs-bus-nfit |   19 -------------------
- drivers/acpi/nfit/core.c                 |   11 -----------
- 3 files changed, 17 insertions(+), 30 deletions(-)
- create mode 100644 Documentation/ABI/removed/sysfs-bus-nfit
+ fs/dax.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/ABI/removed/sysfs-bus-nfit b/Documentation/ABI/removed/sysfs-bus-nfit
-new file mode 100644
-index 000000000000..ae8c1ca53828
---- /dev/null
-+++ b/Documentation/ABI/removed/sysfs-bus-nfit
-@@ -0,0 +1,17 @@
-+What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
-+Date:		Aug, 2017
-+KernelVersion:	v4.14 (Removed v4.18)
-+Contact:	linux-nvdimm@lists.01.org
-+Description:
-+		(RO) Size of a write request to a DIMM that will not incur a
-+		read-modify-write cycle at the memory controller.
-+
-+		When the nfit driver initializes it runs an ARS (Address Range
-+		Scrub) operation across every pmem range. Part of that process
-+		involves determining the ARS capabilities of a given address
-+		range. One of the capabilities that is reported is the 'Clear
-+		Uncorrectable Error Range Length Unit Size' (see: ACPI 6.2
-+		section 9.20.7.4 Function Index 1 - Query ARS Capabilities).
-+		This property indicates the boundary at which the NVDIMM may
-+		need to perform read-modify-write cycles to maintain ECC (Error
-+		Correcting Code) blocks.
-diff --git a/Documentation/ABI/testing/sysfs-bus-nfit b/Documentation/ABI/testing/sysfs-bus-nfit
-index 619eb8ca0f99..a1cb44dcb908 100644
---- a/Documentation/ABI/testing/sysfs-bus-nfit
-+++ b/Documentation/ABI/testing/sysfs-bus-nfit
-@@ -212,22 +212,3 @@ Description:
- 		range. Used by NVDIMM Region Mapping Structure to uniquely refer
- 		to this structure. Value of 0 is reserved and not used as an
- 		index.
--
--
--What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
--Date:		Aug, 2017
--KernelVersion:	v4.14
--Contact:	linux-nvdimm@lists.01.org
--Description:
--		(RO) Size of a write request to a DIMM that will not incur a
--		read-modify-write cycle at the memory controller.
--
--		When the nfit driver initializes it runs an ARS (Address Range
--		Scrub) operation across every pmem range. Part of that process
--		involves determining the ARS capabilities of a given address
--		range. One of the capabilities that is reported is the 'Clear
--		Uncorrectable Error Range Length Unit Size' (see: ACPI 6.2
--		section 9.20.7.4 Function Index 1 - Query ARS Capabilities).
--		This property indicates the boundary at which the NVDIMM may
--		need to perform read-modify-write cycles to maintain ECC (Error
--		Correcting Code) blocks.
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index e2235ed3e4be..b87252bf4571 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1978,19 +1978,8 @@ static ssize_t range_index_show(struct device *dev,
+diff --git a/fs/dax.c b/fs/dax.c
+index aaec72ded1b6..cccf6cad1a7a 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -319,18 +319,27 @@ static unsigned long dax_radix_end_pfn(void *entry)
+ 	for (pfn = dax_radix_pfn(entry); \
+ 			pfn < dax_radix_end_pfn(entry); pfn++)
+ 
+-static void dax_associate_entry(void *entry, struct address_space *mapping)
++/*
++ * TODO: for reflink+dax we need a way to associate a single page with
++ * multiple address_space instances at different linear_page_index()
++ * offsets.
++ */
++static void dax_associate_entry(void *entry, struct address_space *mapping,
++		struct vm_area_struct *vma, unsigned long address)
+ {
+-	unsigned long pfn;
++	unsigned long size = dax_entry_size(entry), pfn, index;
++	int i = 0;
+ 
+ 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+ 		return;
+ 
++	index = linear_page_index(vma, address & ~(size - 1));
+ 	for_each_mapped_pfn(entry, pfn) {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+ 		WARN_ON_ONCE(page->mapping);
+ 		page->mapping = mapping;
++		page->index = index + i++;
+ 	}
  }
- static DEVICE_ATTR_RO(range_index);
  
--static ssize_t ecc_unit_size_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	struct nd_region *nd_region = to_nd_region(dev);
--	struct nfit_spa *nfit_spa = nd_region_provider_data(nd_region);
--
--	return sprintf(buf, "%d\n", nfit_spa->clear_err_unit);
--}
--static DEVICE_ATTR_RO(ecc_unit_size);
--
- static struct attribute *acpi_nfit_region_attributes[] = {
- 	&dev_attr_range_index.attr,
--	&dev_attr_ecc_unit_size.attr,
- 	NULL,
- };
+@@ -348,6 +357,7 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+ 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+ 		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+ 		page->mapping = NULL;
++		page->index = 0;
+ 	}
+ }
  
+@@ -604,7 +614,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+ 	new_entry = dax_radix_locked_entry(pfn, flags);
+ 	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
+ 		dax_disassociate_entry(entry, mapping, false);
+-		dax_associate_entry(new_entry, mapping);
++		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
+ 	}
+ 
+ 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
 
 _______________________________________________
 Linux-nvdimm mailing list
