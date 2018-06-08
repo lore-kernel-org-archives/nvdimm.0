@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B1B772111B78E
- for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 17:01:06 -0700 (PDT)
-Subject: [PATCH v4 09/12] mm, memory_failure: Pass page size to kill_proc()
+ by ml01.01.org (Postfix) with ESMTPS id 0D9D221121210
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 17:00:40 -0700 (PDT)
+Subject: [PATCH v4 04/12] device-dax: Set page->index
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 08 Jun 2018 16:51:08 -0700
-Message-ID: <152850186890.38390.5754581007005072615.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 08 Jun 2018 16:50:42 -0700
+Message-ID: <152850184244.38390.9412836755220715157.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -23,91 +23,53 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, jack@suse.cz, hch@lst.de
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given that ZONE_DEVICE / dev_pagemap pages are never assembled into
-compound pages, the size determination logic in kill_proc() needs
-updating for the dev_pagemap case. In preparation for dev_pagemap
-support rework memory_failure() and kill_proc() to pass / consume the page
-size explicitly.
+In support of enabling memory_failure() handling for device-dax
+mappings, set ->index to the pgoff of the page. The rmap implementation
+requires ->index to bound the search through the vma interval tree.
 
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+The ->index value is never cleared. There is no possibility for the
+page to become associated with another pgoff while the device is
+enabled. When the device is disabled the 'struct page' array for the
+device is destroyed and ->index is reinitialized to zero.
+
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- mm/memory-failure.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/dax/device.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index 9d142b9b86dc..42a193ee14d3 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -179,18 +179,16 @@ EXPORT_SYMBOL_GPL(hwpoison_filter);
-  * ``action required'' if error happened in current execution context
-  */
- static int kill_proc(struct task_struct *t, unsigned long addr,
--			unsigned long pfn, struct page *page, int flags)
-+			unsigned long pfn, unsigned size_shift, int flags)
- {
--	short addr_lsb;
- 	int ret;
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 7ec246549721..2b120e397e08 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -418,6 +418,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
  
- 	pr_err("Memory failure: %#lx: Killing %s:%d due to hardware memory corruption\n",
- 		pfn, t->comm, t->pid);
--	addr_lsb = compound_order(compound_head(page)) + PAGE_SHIFT;
+ 	if (rc == VM_FAULT_NOPAGE) {
+ 		unsigned long i;
++		pgoff_t pgoff;
  
- 	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
- 		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)addr,
--				       addr_lsb, current);
-+				       size_shift, current);
- 	} else {
  		/*
- 		 * Don't use force here, it's convenient if the signal
-@@ -199,7 +197,7 @@ static int kill_proc(struct task_struct *t, unsigned long addr,
- 		 * to SIG_IGN, but hopefully no one will do that?
+ 		 * In the device-dax case the only possibility for a
+@@ -425,6 +426,8 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		 * mapped. No need to consider the zero page, or racing
+ 		 * conflicting mappings.
  		 */
- 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)addr,
--				      addr_lsb, t);  /* synchronous? */
-+				      size_shift, t);  /* synchronous? */
- 	}
- 	if (ret < 0)
- 		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
-@@ -318,7 +316,7 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
-  * wrong earlier.
-  */
- static void kill_procs(struct list_head *to_kill, int forcekill,
--			  bool fail, struct page *page, unsigned long pfn,
-+			  bool fail, unsigned size_shift, unsigned long pfn,
- 			  int flags)
- {
- 	struct to_kill *tk, *next;
-@@ -343,7 +341,7 @@ static void kill_procs(struct list_head *to_kill, int forcekill,
- 			 * process anyways.
- 			 */
- 			else if (kill_proc(tk->tsk, tk->addr,
--					      pfn, page, flags) < 0)
-+					      pfn, size_shift, flags) < 0)
- 				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 		}
-@@ -928,6 +926,7 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
- 	bool unmap_success;
-+	unsigned size_shift;
- 	int kill = 1, forcekill;
- 	struct page *hpage = *hpagep;
- 	bool mlocked = PageMlocked(hpage);
-@@ -1012,7 +1011,8 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
- 	 * any accesses to the poisoned memory.
- 	 */
- 	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
--	kill_procs(&tokill, forcekill, !unmap_success, p, pfn, flags);
-+	size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
-+	kill_procs(&tokill, forcekill, !unmap_success, size_shift, pfn, flags);
++		pgoff = linear_page_index(vma, vmf->address
++				& ~(fault_size - 1));
+ 		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
+ 			struct page *page;
  
- 	return unmap_success;
- }
+@@ -432,6 +435,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 			if (page->mapping)
+ 				continue;
+ 			page->mapping = filp->f_mapping;
++			page->index = pgoff + i;
+ 		}
+ 	}
+ 	dax_read_unlock(id);
 
 _______________________________________________
 Linux-nvdimm mailing list
