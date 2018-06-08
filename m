@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D308F210E1297
- for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 17:00:44 -0700 (PDT)
-Subject: [PATCH v4 05/12] filesystem-dax: Set page->index
+ by ml01.01.org (Postfix) with ESMTPS id 660D3210F75AB
+ for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 17:00:50 -0700 (PDT)
+Subject: [PATCH v4 06/12] mm,
+ madvise_inject_error: Let memory_failure() optionally take a page
+ reference
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 08 Jun 2018 16:50:47 -0700
-Message-ID: <152850184756.38390.8348959280033335538.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 08 Jun 2018 16:50:52 -0700
+Message-ID: <152850185265.38390.2828727053299635327.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -23,75 +25,80 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of enabling memory_failure() handling for filesystem-dax
-mappings, set ->index to the pgoff of the page. The rmap implementation
-requires ->index to bound the search through the vma interval tree. The
-index is set and cleared at dax_associate_entry() and
-dax_disassociate_entry() time respectively.
+The madvise_inject_error() routine uses get_user_pages() to lookup the
+pfn and other information for injected error, but it does not release
+that pin. The assumption is that failed pages should be taken out of
+circulation.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+However, for dax mappings it is not possible to take pages out of
+circulation since they are 1:1 physically mapped as filesystem blocks,
+or device-dax capacity. They also typically represent persistent memory
+which has an error clearing capability.
+
+In preparation for adding a special handler for dax mappings, shift the
+responsibility of taking the page reference to memory_failure(). I.e.
+drop the page reference and do not specify MF_COUNT_INCREASED to
+memory_failure().
+
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/madvise.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index aaec72ded1b6..cccf6cad1a7a 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -319,18 +319,27 @@ static unsigned long dax_radix_end_pfn(void *entry)
- 	for (pfn = dax_radix_pfn(entry); \
- 			pfn < dax_radix_end_pfn(entry); pfn++)
+diff --git a/mm/madvise.c b/mm/madvise.c
+index 4d3c922ea1a1..b731933dddae 100644
+--- a/mm/madvise.c
++++ b/mm/madvise.c
+@@ -631,11 +631,13 @@ static int madvise_inject_error(int behavior,
  
--static void dax_associate_entry(void *entry, struct address_space *mapping)
-+/*
-+ * TODO: for reflink+dax we need a way to associate a single page with
-+ * multiple address_space instances at different linear_page_index()
-+ * offsets.
-+ */
-+static void dax_associate_entry(void *entry, struct address_space *mapping,
-+		struct vm_area_struct *vma, unsigned long address)
- {
--	unsigned long pfn;
-+	unsigned long size = dax_entry_size(entry), pfn, index;
-+	int i = 0;
  
- 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
- 		return;
+ 	for (; start < end; start += PAGE_SIZE << order) {
++		unsigned long pfn;
+ 		int ret;
  
-+	index = linear_page_index(vma, address & ~(size - 1));
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
+ 		ret = get_user_pages_fast(start, 1, 0, &page);
+ 		if (ret != 1)
+ 			return ret;
++		pfn = page_to_pfn(page);
  
- 		WARN_ON_ONCE(page->mapping);
- 		page->mapping = mapping;
-+		page->index = index + i++;
+ 		/*
+ 		 * When soft offlining hugepages, after migrating the page
+@@ -651,17 +653,27 @@ static int madvise_inject_error(int behavior,
+ 
+ 		if (behavior == MADV_SOFT_OFFLINE) {
+ 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
+-						page_to_pfn(page), start);
++					pfn, start);
+ 
+ 			ret = soft_offline_page(page, MF_COUNT_INCREASED);
+ 			if (ret)
+ 				return ret;
+ 			continue;
+ 		}
++
+ 		pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
+-						page_to_pfn(page), start);
++				pfn, start);
++
++		ret = memory_failure(pfn, 0);
++
++		/*
++		 * Drop the page reference taken by get_user_pages_fast(). In
++		 * the absence of MF_COUNT_INCREASED the memory_failure()
++		 * routine is responsible for pinning the page to prevent it
++		 * from being released back to the page allocator.
++		 */
++		put_page(page);
+ 
+-		ret = memory_failure(page_to_pfn(page), MF_COUNT_INCREASED);
+ 		if (ret)
+ 			return ret;
  	}
- }
- 
-@@ -348,6 +357,7 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
- 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
- 		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
- 		page->mapping = NULL;
-+		page->index = 0;
- 	}
- }
- 
-@@ -604,7 +614,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 	new_entry = dax_radix_locked_entry(pfn, flags);
- 	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
- 		dax_disassociate_entry(entry, mapping, false);
--		dax_associate_entry(new_entry, mapping);
-+		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
- 	}
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
 
 _______________________________________________
 Linux-nvdimm mailing list
