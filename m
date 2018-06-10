@@ -1,14 +1,10 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: IN YOUR LAST NAME
-Date: Tue, 05 Jun 2018 19:43:58 +0200
-Message-ID: <20180605180600.8AE31211DDA15@ml01.01.org>
-Reply-To: bennyhigginsbhb2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: <peck63-jVhzMN/8pNBBDgjK7y7TUQ@public.gmane.org>
+Subject: Enjoy?
+Date: 11 Jun 2018 05:40:59 +0600
+Message-ID: <FB413A8DA280F615AFD4634C6E18FB41@RVL9V5N6N>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2671159543741106226=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Description: Mail message body
-From: "BENNY HIGGINS"<>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,8 +17,25 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Greetings:BHB here its regards an inheritance in your name.contact benny via bennyhigginsbhb2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org for more details
+--===============2671159543741106226==
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: 8bit
 
-Regards
+my nipples are punctured
 
-Benny
+iboommarketing.com/wp-content/themes/point/
+
+
+--===============2671159543741106226==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============2671159543741106226==--
