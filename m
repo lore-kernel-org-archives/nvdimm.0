@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk0-x243.google.com (mail-qk0-x243.google.com
+ [IPv6:2607:f8b0:400d:c09::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2FC072118A5AD
- for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 05:34:25 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 61F5EAC015A
- for <linux-nvdimm@lists.01.org>;
- Thu, 14 Jun 2018 21:34:16 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: Question about how to emulate the dimm-controller-temperature event
-Date: Thu, 14 Jun 2018 21:34:08 +0900
-Message-Id: <20180614123408.12162-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 437FB21163706
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 09:46:04 -0700 (PDT)
+Received: by mail-qk0-x243.google.com with SMTP id g14-v6so13308264qkm.6
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 09:46:04 -0700 (PDT)
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: [PATCH 1/2] test: add some helper function for test script
+Date: Mon, 11 Jun 2018 12:45:30 -0400
+Message-Id: <20180611164531.8242-2-msys.mizuma@gmail.com>
+In-Reply-To: <20180611164531.8242-1-msys.mizuma@gmail.com>
+References: <20180611164531.8242-1-msys.mizuma@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,19 +26,83 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-I want to make an emulation of dimm-controller-temperature event to test if ndctl monitor could catch this dimm event.
-I tried to use ndctl inject-smart command, but I found the controller temperature smart attribute of dimm cannot be injected by command like
-	# ndctl inject-smart nmem2 --ctrl-temperature 40.
+From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 
-I checked smart_inject() in ndctl/inject-smart.c and NVDIMM DMS Interface-v1.7,
-and could not find any interface which can set the controller-temperature of dimm.
+Some test scripts have same function. So, this patch introduces
+the functions to 'test/common' new file.
 
-Does anyone know how to emulate the dimm-controller-temperature event?
+Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+---
+ test/common | 57 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
+ create mode 100644 test/common
 
-Thank you very much.
-
+diff --git a/test/common b/test/common
+new file mode 100644
+index 0000000..7e64eec
+--- /dev/null
++++ b/test/common
+@@ -0,0 +1,57 @@
++
++# Global variables
++
++# ndctl
++#
++if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
++	export ndctl=../ndctl/ndctl
++elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
++	export ndctl=./ndctl/ndctl
++else
++	echo "Couldn't find an ndctl binary"
++	exit 1
++fi
++
++# Functions
++
++# err
++# $1: line number which error detected
++# $2: cleanup function (optional)
++#
++err()
++{
++	echo test/$(basename $0): failed at line $1
++	[ -n "$2" ] && "$2"
++	exit $rc
++}
++
++# check_min_kver
++# $1: Supported kernel version. format: X.Y
++#
++check_min_kver()
++{
++	local ver="$1"
++	: "${KVER:=$(uname -r)}"
++
++	[ -n "$ver" ] || return 1
++	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
++}
++
++# do_skip
++# $1: Skip message
++#
++do_skip()
++{
++	echo kernel $(uname -r): $1
++	exit 77
++}
++
++# check_prereq
++# $1: command to check
++#
++check_prereq()
++{
++	if ! command -v "$1" >/dev/null; then
++		do_skip "missing $1, skipping..."
++	fi
++}
 -- 
 2.17.1
 
