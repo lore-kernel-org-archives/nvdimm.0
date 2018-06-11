@@ -1,11 +1,12 @@
-From: <info-pXhyi+k+vRPbmG5+kqVDhQ@public.gmane.org>
-Subject: Do you believe in love? I am!
-Date: 11 Jun 2018 12:23:13 +0100
-Message-ID: <0F5704133A5C402D752631187E620F57@XKLJDRY37X4>
+From: <annahn-bOv4yBwr/IM@public.gmane.org>
+Subject: I need real happiness. Will you give me this feeling ?!
+Date: 11 Jun 2018 04:44:39 -0600
+Message-ID: <001b01d40174$010f1444$2ed62b88$@genie.co>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
