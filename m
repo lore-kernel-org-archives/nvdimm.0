@@ -1,22 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
- [IPv6:2607:f8b0:4003:c06::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 092E6212B7782
- for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 16:38:03 -0700 (PDT)
-Received: by mail-oi0-x241.google.com with SMTP id l22-v6so670890oib.4
- for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 16:38:03 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180612201420.GA12706@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1287D21309D13
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 13:14:22 -0700 (PDT)
+Date: Tue, 12 Jun 2018 14:14:20 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v4 11/12] mm, memory_failure: Teach memory_failure()
+ about dev_pagemap pages
+Message-ID: <20180612201420.GA12706@linux.intel.com>
 References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
  <152850187949.38390.1012249765651998342.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20180612201420.GA12706@linux.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 Jun 2018 16:38:02 -0700
-Message-ID: <CAPcyv4htXbtUieMJH2bSgNoVqkUikFES6b7nL=a+FVs0Syg+wg@mail.gmail.com>
-Subject: Re: [PATCH v4 11/12] mm, memory_failure: Teach memory_failure() about
- dev_pagemap pages
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <152850187949.38390.1012249765651998342.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,92 +21,126 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Matthew Wilcox <mawilcox@microsoft.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <mawilcox@microsoft.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCBKdW4gMTIsIDIwMTggYXQgMToxNCBQTSwgUm9zcyBad2lzbGVyCjxyb3NzLnp3aXNs
-ZXJAbGludXguaW50ZWwuY29tPiB3cm90ZToKPiBPbiBGcmksIEp1biAwOCwgMjAxOCBhdCAwNDo1
-MToxOVBNIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4+ICAgICBtY2U6IFVuY29ycmVjdGVk
-IGhhcmR3YXJlIG1lbW9yeSBlcnJvciBpbiB1c2VyLWFjY2VzcyBhdCBhZjM0MjE0MjAwCj4+ICAg
-ICB7MX1bSGFyZHdhcmUgRXJyb3JdOiBJdCBoYXMgYmVlbiBjb3JyZWN0ZWQgYnkgaC93IGFuZCBy
-ZXF1aXJlcyBubyBmdXJ0aGVyIGFjdGlvbgo+PiAgICAgbWNlOiBbSGFyZHdhcmUgRXJyb3JdOiBN
-YWNoaW5lIGNoZWNrIGV2ZW50cyBsb2dnZWQKPj4gICAgIHsxfVtIYXJkd2FyZSBFcnJvcl06IGV2
-ZW50IHNldmVyaXR5OiBjb3JyZWN0ZWQKPj4gICAgIE1lbW9yeSBmYWlsdXJlOiAweGFmMzQyMTQ6
-IHJlc2VydmVkIGtlcm5lbCBwYWdlIHN0aWxsIHJlZmVyZW5jZWQgYnkgMSB1c2Vycwo+PiAgICAg
-Wy4uXQo+PiAgICAgTWVtb3J5IGZhaWx1cmU6IDB4YWYzNDIxNDogcmVjb3ZlcnkgYWN0aW9uIGZv
-ciByZXNlcnZlZCBrZXJuZWwgcGFnZTogRmFpbGVkCj4+ICAgICBtY2U6IE1lbW9yeSBlcnJvciBu
-b3QgcmVjb3ZlcmVkCj4+Cj4+IEluIGNvbnRyYXN0IHRvIHR5cGljYWwgbWVtb3J5LCBkZXZfcGFn
-ZW1hcCBwYWdlcyBtYXkgYmUgZGF4IG1hcHBlZC4gV2l0aAo+PiBkYXggdGhlcmUgaXMgbm8gcG9z
-c2liaWxpdHkgdG8gbWFwIGluIGFub3RoZXIgcGFnZSBkeW5hbWljYWxseSBzaW5jZSBkYXgKPj4g
-ZXN0YWJsaXNoZXMgMToxIHBoeXNpY2FsIGFkZHJlc3MgdG8gZmlsZSBvZmZzZXQgYXNzb2NpYXRp
-b25zLiBBbHNvCj4+IGRldl9wYWdlbWFwIHBhZ2VzIGFzc29jaWF0ZWQgd2l0aCBOVkRJTU0gLyBw
-ZXJzaXN0ZW50IG1lbW9yeSBkZXZpY2VzIGNhbgo+PiBpbnRlcm5hbCByZW1hcC9yZXBhaXIgYWRk
-cmVzc2VzIHdpdGggcG9pc29uLiBXaGlsZSBtZW1vcnlfZmFpbHVyZSgpCj4+IGFzc3VtZXMgdGhh
-dCBpdCBjYW4gZGlzY2FyZCB0eXBpY2FsIHBvaXNvbmVkIHBhZ2VzIGFuZCBrZWVwIHRoZW0KPj4g
-dW5tYXBwZWQgaW5kZWZpbml0ZWx5LCBkZXZfcGFnZW1hcCBwYWdlcyBtYXkgYmUgcmV0dXJuZWQg
-dG8gc2VydmljZQo+PiBhZnRlciB0aGUgZXJyb3IgaXMgY2xlYXJlZC4KPj4KPj4gVGVhY2ggbWVt
-b3J5X2ZhaWx1cmUoKSB0byBkZXRlY3QgYW5kIGhhbmRsZSBNRU1PUllfREVWSUNFX0hPU1QKPj4g
-ZGV2X3BhZ2VtYXAgcGFnZXMgdGhhdCBoYXZlIHBvaXNvbiBjb25zdW1lZCBieSB1c2Vyc3BhY2Uu
-IE1hcmsgdGhlCj4+IG1lbW9yeSBhcyBVQyBpbnN0ZWFkIG9mIHVubWFwcGluZyBpdCBjb21wbGV0
-ZWx5IHRvIGFsbG93IG9uZ29pbmcgYWNjZXNzCj4+IHZpYSB0aGUgZGV2aWNlIGRyaXZlciAobmRf
-cG1lbSkuIExhdGVyLCBuZF9wbWVtIHdpbGwgZ3JvdyBzdXBwb3J0IGZvcgo+PiBtYXJraW5nIHRo
-ZSBwYWdlIGJhY2sgdG8gV0Igd2hlbiB0aGUgZXJyb3IgaXMgY2xlYXJlZC4KPj4KPj4gQ2M6IEph
-biBLYXJhIDxqYWNrQHN1c2UuY3o+Cj4+IENjOiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5k
-ZT4KPj4gQ2M6IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgo+PiBDYzogTWF0
-dGhldyBXaWxjb3ggPG1hd2lsY294QG1pY3Jvc29mdC5jb20+Cj4+IENjOiBOYW95YSBIb3JpZ3Vj
-aGkgPG4taG9yaWd1Y2hpQGFoLmpwLm5lYy5jb20+Cj4+IENjOiBSb3NzIFp3aXNsZXIgPHJvc3Mu
-endpc2xlckBsaW51eC5pbnRlbC5jb20+Cj4+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8
-ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgo+PiAtLS0KPiA8Pgo+PiArc3RhdGljIGludCBtZW1v
-cnlfZmFpbHVyZV9kZXZfcGFnZW1hcCh1bnNpZ25lZCBsb25nIHBmbiwgaW50IGZsYWdzLAo+PiAr
-ICAgICAgICAgICAgIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCj4+ICt7Cj4+ICsgICAgIGNv
-bnN0IGJvb2wgdW5tYXBfc3VjY2VzcyA9IHRydWU7Cj4+ICsgICAgIHVuc2lnbmVkIGxvbmcgc2l6
-ZTsKPj4gKyAgICAgc3RydWN0IHBhZ2UgKnBhZ2U7Cj4+ICsgICAgIExJU1RfSEVBRCh0b2tpbGwp
-Owo+PiArICAgICBpbnQgcmMgPSAtRUJVU1k7Cj4+ICsgICAgIGxvZmZfdCBzdGFydDsKPj4gKwo+
-PiArICAgICAvKgo+PiArICAgICAgKiBQcmV2ZW50IHRoZSBpbm9kZSBmcm9tIGJlaW5nIGZyZWVk
-IHdoaWxlIHdlIGFyZSBpbnRlcnJvZ2F0aW5nCj4+ICsgICAgICAqIHRoZSBhZGRyZXNzX3NwYWNl
-LCB0eXBpY2FsbHkgdGhpcyB3b3VsZCBiZSBoYW5kbGVkIGJ5Cj4+ICsgICAgICAqIGxvY2tfcGFn
-ZSgpLCBidXQgZGF4IHBhZ2VzIGRvIG5vdCB1c2UgdGhlIHBhZ2UgbG9jay4KPj4gKyAgICAgICov
-Cj4+ICsgICAgIHBhZ2UgPSBkYXhfbG9ja19wYWdlKHBmbik7Cj4+ICsgICAgIGlmICghcGFnZSkK
-Pj4gKyAgICAgICAgICAgICBnb3RvIG91dDsKPj4gKwo+PiArICAgICBpZiAoaHdwb2lzb25fZmls
-dGVyKHBhZ2UpKSB7Cj4+ICsgICAgICAgICAgICAgcmMgPSAwOwo+PiArICAgICAgICAgICAgIGdv
-dG8gdW5sb2NrOwo+PiArICAgICB9Cj4+ICsKPj4gKyAgICAgc3dpdGNoIChwZ21hcC0+dHlwZSkg
-ewo+PiArICAgICBjYXNlIE1FTU9SWV9ERVZJQ0VfUFJJVkFURToKPj4gKyAgICAgY2FzZSBNRU1P
-UllfREVWSUNFX1BVQkxJQzoKPj4gKyAgICAgICAgICAgICAvKgo+PiArICAgICAgICAgICAgICAq
-IFRPRE86IEhhbmRsZSBITU0gcGFnZXMgd2hpY2ggbWF5IG5lZWQgY29vcmRpbmF0aW9uCj4+ICsg
-ICAgICAgICAgICAgICogd2l0aCBkZXZpY2Utc2lkZSBtZW1vcnkuCj4+ICsgICAgICAgICAgICAg
-ICovCj4+ICsgICAgICAgICAgICAgZ290byB1bmxvY2s7Cj4+ICsgICAgIGRlZmF1bHQ6Cj4+ICsg
-ICAgICAgICAgICAgYnJlYWs7Cj4+ICsgICAgIH0KPj4gKwo+PiArICAgICAvKgo+PiArICAgICAg
-KiBJZiB0aGUgcGFnZSBpcyBub3QgbWFwcGVkIGluIHVzZXJzcGFjZSB0aGVuIHJlcG9ydCBpdCBh
-cwo+PiArICAgICAgKiB1bmhhbmRsZWQuCj4+ICsgICAgICAqLwo+PiArICAgICBzaXplID0gZGF4
-X21hcHBpbmdfc2l6ZShwYWdlKTsKPj4gKyAgICAgaWYgKCFzaXplKSB7Cj4+ICsgICAgICAgICAg
-ICAgcHJfZXJyKCJNZW1vcnkgZmFpbHVyZTogJSNseDogZmFpbGVkIHRvIHVubWFwIHBhZ2VcbiIs
-IHBmbik7Cj4+ICsgICAgICAgICAgICAgZ290byB1bmxvY2s7Cj4+ICsgICAgIH0KPj4gKwo+PiAr
-ICAgICBTZXRQYWdlSFdQb2lzb24ocGFnZSk7Cj4+ICsKPj4gKyAgICAgLyoKPj4gKyAgICAgICog
-VW5saWtlIFN5c3RlbS1SQU0gdGhlcmUgaXMgbm8gcG9zc2liaWxpdHkgdG8gc3dhcCBpbiBhCj4+
-ICsgICAgICAqIGRpZmZlcmVudCBwaHlzaWNhbCBwYWdlIGF0IGEgZ2l2ZW4gdmlydHVhbCBhZGRy
-ZXNzLCBzbyBhbGwKPj4gKyAgICAgICogdXNlcnNwYWNlIGNvbnN1bXB0aW9uIG9mIFpPTkVfREVW
-SUNFIG1lbW9yeSBuZWNlc3NpdGF0ZXMKPj4gKyAgICAgICogU0lHQlVTIChpLmUuIE1GX01VU1Rf
-S0lMTCkKPj4gKyAgICAgICovCj4+ICsgICAgIGZsYWdzIHw9IE1GX0FDVElPTl9SRVFVSVJFRCB8
-IE1GX01VU1RfS0lMTDsKPj4gKyAgICAgY29sbGVjdF9wcm9jcyhwYWdlLCAmdG9raWxsLCBmbGFn
-cyAmIE1GX0FDVElPTl9SRVFVSVJFRCk7Cj4KPiBZb3Uga25vdyAiZmxhZ3MgJiBNRl9BQ1RJT05f
-UkVRVUlSRUQiIHdpbGwgYWx3YXlzIGJlIHRydWUsIHNvIHlvdSBjYW4ganVzdAo+IHBhc3MgaW4g
-TUZfQUNUSU9OX1JFUVVJUkVEIG9yIGV2ZW4ganVzdCAidHJ1ZSIuCj4KPj4gKwo+PiArICAgICBz
-dGFydCA9IChwYWdlLT5pbmRleCA8PCBQQUdFX1NISUZUKSAmIH4oc2l6ZSAtIDEpOwo+PiArICAg
-ICB1bm1hcF9tYXBwaW5nX3JhbmdlKHBhZ2UtPm1hcHBpbmcsIHN0YXJ0LCBzdGFydCArIHNpemUs
-IDApOwo+PiArCj4+ICsgICAgIGtpbGxfcHJvY3MoJnRva2lsbCwgZmxhZ3MgJiBNRl9NVVNUX0tJ
-TEwsICF1bm1hcF9zdWNjZXNzLCBpbG9nMihzaXplKSwKPgo+IFlvdSBrbm93ICJmbGFncyAmIE1G
-X01VU1RfS0lMTCIgd2lsbCBhbHdheXMgYmUgdHJ1ZSwgc28geW91IGNhbiBqdXN0IHBhc3MgaW4K
-PiBNRl9NVVNUX0tJTEwgb3IgZXZlbiBqdXN0ICJ0cnVlIi4KPgo+IEFsc28sIHlvdSBjYW4gZ2V0
-IHJpZCBvZiB0aGUgY29uc3RhbnQgInVubWFwX3N1Y2Nlc3MiIGlmIHlvdSB3YW50IGFuZCBqdXN0
-Cj4gcGFzcyBpbiBmYWxzZSBhcyB0aGUgM3JkIGFyZ3VtZW50LgoKSSBkb24ndCBsaWtlIHJlYWRp
-bmcgInRydWUiIGFuZCAiZmFsc2UiIGFzIGFyZ3VtZW50cyB0byBmdW5jdGlvbnMsCmJlY2F1c2Ug
-dGhlIGltbWVkaWF0ZSBuZXh0IHF1ZXN0aW9uIGlzICJ3aGF0IGRvZXMgdHJ1ZSBtZWFuIj8gSSBj
-b3VsZApqdXN0IHBhc3MgTUZfTVVTVF9LSUxMIGFuZCBNRl9BQ1RJT05fUkVRVUlSRUQgZGlyZWN0
-bHksIGJ1dCB3YXMgdHJ5aW5nCnRvIGtlZXAgc29tZSBjb25zaXN0ZW5jeSB3aXRoIG90aGVyIGNh
-bGxlcnMgaW4gdGhhdCBmaWxlLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
-MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Fri, Jun 08, 2018 at 04:51:19PM -0700, Dan Williams wrote:
+>     mce: Uncorrected hardware memory error in user-access at af34214200
+>     {1}[Hardware Error]: It has been corrected by h/w and requires no fur=
+ther action
+>     mce: [Hardware Error]: Machine check events logged
+>     {1}[Hardware Error]: event severity: corrected
+>     Memory failure: 0xaf34214: reserved kernel page still referenced by 1=
+ users
+>     [..]
+>     Memory failure: 0xaf34214: recovery action for reserved kernel page: =
+Failed
+>     mce: Memory error not recovered
+> =
+
+> In contrast to typical memory, dev_pagemap pages may be dax mapped. With
+> dax there is no possibility to map in another page dynamically since dax
+> establishes 1:1 physical address to file offset associations. Also
+> dev_pagemap pages associated with NVDIMM / persistent memory devices can
+> internal remap/repair addresses with poison. While memory_failure()
+> assumes that it can discard typical poisoned pages and keep them
+> unmapped indefinitely, dev_pagemap pages may be returned to service
+> after the error is cleared.
+> =
+
+> Teach memory_failure() to detect and handle MEMORY_DEVICE_HOST
+> dev_pagemap pages that have poison consumed by userspace. Mark the
+> memory as UC instead of unmapping it completely to allow ongoing access
+> via the device driver (nd_pmem). Later, nd_pmem will grow support for
+> marking the page back to WB when the error is cleared.
+> =
+
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
+> Cc: Matthew Wilcox <mawilcox@microsoft.com>
+> Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+<>
+> +static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+> +		struct dev_pagemap *pgmap)
+> +{
+> +	const bool unmap_success =3D true;
+> +	unsigned long size;
+> +	struct page *page;
+> +	LIST_HEAD(tokill);
+> +	int rc =3D -EBUSY;
+> +	loff_t start;
+> +
+> +	/*
+> +	 * Prevent the inode from being freed while we are interrogating
+> +	 * the address_space, typically this would be handled by
+> +	 * lock_page(), but dax pages do not use the page lock.
+> +	 */
+> +	page =3D dax_lock_page(pfn);
+> +	if (!page)
+> +		goto out;
+> +
+> +	if (hwpoison_filter(page)) {
+> +		rc =3D 0;
+> +		goto unlock;
+> +	}
+> +
+> +	switch (pgmap->type) {
+> +	case MEMORY_DEVICE_PRIVATE:
+> +	case MEMORY_DEVICE_PUBLIC:
+> +		/*
+> +		 * TODO: Handle HMM pages which may need coordination
+> +		 * with device-side memory.
+> +		 */
+> +		goto unlock;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	/*
+> +	 * If the page is not mapped in userspace then report it as
+> +	 * unhandled.
+> +	 */
+> +	size =3D dax_mapping_size(page);
+> +	if (!size) {
+> +		pr_err("Memory failure: %#lx: failed to unmap page\n", pfn);
+> +		goto unlock;
+> +	}
+> +
+> +	SetPageHWPoison(page);
+> +
+> +	/*
+> +	 * Unlike System-RAM there is no possibility to swap in a
+> +	 * different physical page at a given virtual address, so all
+> +	 * userspace consumption of ZONE_DEVICE memory necessitates
+> +	 * SIGBUS (i.e. MF_MUST_KILL)
+> +	 */
+> +	flags |=3D MF_ACTION_REQUIRED | MF_MUST_KILL;
+> +	collect_procs(page, &tokill, flags & MF_ACTION_REQUIRED);
+
+You know "flags & MF_ACTION_REQUIRED" will always be true, so you can just
+pass in MF_ACTION_REQUIRED or even just "true".
+
+> +
+> +	start =3D (page->index << PAGE_SHIFT) & ~(size - 1);
+> +	unmap_mapping_range(page->mapping, start, start + size, 0);
+> +
+> +	kill_procs(&tokill, flags & MF_MUST_KILL, !unmap_success, ilog2(size),
+
+You know "flags & MF_MUST_KILL" will always be true, so you can just pass in
+MF_MUST_KILL or even just "true".
+
+Also, you can get rid of the constant "unmap_success" if you want and just
+pass in false as the 3rd argument.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
