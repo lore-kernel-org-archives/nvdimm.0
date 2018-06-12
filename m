@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 73A22211D07A1
- for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 21:50:20 -0700 (PDT)
-Date: Tue, 12 Jun 2018 12:49:55 +0800
+ by ml01.01.org (Postfix) with ESMTPS id 6DA462119BACD
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 21:38:16 -0700 (PDT)
+Date: Tue, 12 Jun 2018 12:37:50 +0800
 From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH v5 2/4] resource: Use list_head to link sibling resource
-Message-ID: <201806121251.hDRqpKgN%fengguang.wu@intel.com>
+Message-ID: <201806121242.NKm8SoJR%fengguang.wu@intel.com>
 References: <20180612032831.29747-3-bhe@redhat.com>
 MIME-Version: 1.0
 In-Reply-To: <20180612032831.29747-3-bhe@redhat.com>
@@ -29,23 +29,23 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 Hi Baoquan,
 
-I love your patch! Perhaps something to improve:
+I love your patch! Yet something to improve:
 
-[auto build test WARNING on linus/master]
-[also build test WARNING on v4.17 next-20180608]
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.17 next-20180608]
 [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
 url:    https://github.com/0day-ci/linux/commits/Baoquan-He/resource-Use-list_head-to-link-sibling-resource/20180612-113600
-config: x86_64-randconfig-x011-201823 (attached as .config)
+config: i386-tinyconfig (attached as .config)
 compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
 reproduce:
         # save the attached .config to linux build tree
-        make ARCH=x86_64 
+        make ARCH=i386 
 
-All warnings (new ones prefixed by >>):
+All errors (new ones prefixed by >>):
 
    kernel/resource.c: In function 'reparent_resources':
-   kernel/resource.c:1005:26: error: passing argument 2 of 'list_add' from incompatible pointer type [-Werror=incompatible-pointer-types]
+>> kernel/resource.c:1005:26: error: passing argument 2 of 'list_add' from incompatible pointer type [-Werror=incompatible-pointer-types]
      list_add(&res->sibling, &p->sibling.prev);
                              ^
    In file included from include/linux/ioport.h:15:0,
@@ -56,7 +56,7 @@ All warnings (new ones prefixed by >>):
    In file included from include/linux/list.h:9:0,
                     from include/linux/ioport.h:15,
                     from kernel/resource.c:14:
-   kernel/resource.c:1013:26: error: 'new' undeclared (first use in this function); did you mean 'net'?
+>> kernel/resource.c:1013:26: error: 'new' undeclared (first use in this function); did you mean 'net'?
      list_for_each_entry(p, &new->child, sibling) {
                              ^
    include/linux/kernel.h:963:26: note: in definition of macro 'container_of'
@@ -68,7 +68,7 @@ All warnings (new ones prefixed by >>):
    include/linux/list.h:464:13: note: in expansion of macro 'list_first_entry'
      for (pos = list_first_entry(head, typeof(*pos), member); \
                 ^~~~~~~~~~~~~~~~
->> kernel/resource.c:1013:2: note: in expansion of macro 'list_for_each_entry'
+   kernel/resource.c:1013:2: note: in expansion of macro 'list_for_each_entry'
      list_for_each_entry(p, &new->child, sibling) {
      ^~~~~~~~~~~~~~~~~~~
    kernel/resource.c:1013:26: note: each undeclared identifier is reported only once for each function it appears in
@@ -83,12 +83,12 @@ All warnings (new ones prefixed by >>):
    include/linux/list.h:464:13: note: in expansion of macro 'list_first_entry'
      for (pos = list_first_entry(head, typeof(*pos), member); \
                 ^~~~~~~~~~~~~~~~
->> kernel/resource.c:1013:2: note: in expansion of macro 'list_for_each_entry'
+   kernel/resource.c:1013:2: note: in expansion of macro 'list_for_each_entry'
      list_for_each_entry(p, &new->child, sibling) {
      ^~~~~~~~~~~~~~~~~~~
    cc1: some warnings being treated as errors
 
-vim +/list_for_each_entry +1013 kernel/resource.c
+vim +/list_add +1005 kernel/resource.c
 
    983	
    984	/*
@@ -112,7 +112,7 @@ vim +/list_for_each_entry +1013 kernel/resource.c
   1002		if (first == NULL)
   1003			return -1;	/* didn't find any conflicting entries? */
   1004		res->parent = parent;
-  1005		list_add(&res->sibling, &p->sibling.prev);
+> 1005		list_add(&res->sibling, &p->sibling.prev);
   1006		INIT_LIST_HEAD(&res->child);
   1007	
   1008		/*
