@@ -1,20 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 655122117513A
- for <linux-nvdimm@lists.01.org>; Wed, 13 Jun 2018 09:30:46 -0700 (PDT)
-Date: Wed, 13 Jun 2018 18:30:42 +0200
-From: Igor Mammedov <imammedo@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 81540211F2828
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 22:40:50 -0700 (PDT)
+Message-ID: <1528810024.3385.15.camel@linux.intel.com>
 Subject: Re: [Qemu-devel] [RFC PATCH 1/1] nvdimm: let qemu requiring section
  alignment of pmem resource.
-Message-ID: <20180613183042.2ce134a6@redhat.com>
-In-Reply-To: <20180612150425.hjydg5cbtlllzh67@HZ>
+From: "Zhang,Yi" <yi.z.zhang@linux.intel.com>
+Date: Tue, 12 Jun 2018 21:27:04 +0800
+In-Reply-To: <CAPcyv4jJSYiCu_qNWgU8KR3sFQE032Uu6LCQq-CTxF0jpkooiA@mail.gmail.com>
 References: <e74aee54657de6f8d643a92ba21f467db149c2c8.1528714312.git.yi.z.zhang@linux.intel.com>
  <20180611162630.GH17756@stefanha-x1.localdomain>
  <CAPcyv4jJSYiCu_qNWgU8KR3sFQE032Uu6LCQq-CTxF0jpkooiA@mail.gmail.com>
- <20180612150425.hjydg5cbtlllzh67@HZ>
-MIME-Version: 1.0
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,87 +21,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Haozhong Zhang <hzzhan9@gmail.com>
-Cc: Xiao Guangrong <xiaoguangrong.eric@gmail.com>, "Michael S. Tsirkin" <mst@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Zhang Yi <yi.z.zhang@linux.intel.com>, Stefan Hajnoczi <stefanha@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>, Stefan Hajnoczi <stefanha@redhat.com>
+Cc: Xiao Guangrong <xiaoguangrong.eric@gmail.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Michael S. Tsirkin" <mst@redhat.com>, Qemu Developers <qemu-devel@nongnu.org>, Igor Mammedov <imammedo@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 12 Jun 2018 23:04:25 +0800
-Haozhong Zhang <hzzhan9@gmail.com> wrote:
-
-> On 06/11/18 19:55, Dan Williams wrote:
-> > On Mon, Jun 11, 2018 at 9:26 AM, Stefan Hajnoczi <stefanha@redhat.com> wrote:  
-> > > On Mon, Jun 11, 2018 at 06:54:25PM +0800, Zhang Yi wrote:  
-> > >> Nvdimm driver use Memory hot-plug APIs to map it's pmem resource,
-> > >> which at a section granularity.
-> > >>
-> > >> When QEMU emulated the vNVDIMM device, decrease the label-storage,
-> > >> QEMU will put the vNVDIMMs directly next to one another in physical
-> > >> address space, which means that the boundary between them won't
-> > >> align to the 128 MB memory section size.  
-> > >
-> > > I'm having a hard time parsing this.
-> > >
-> > > Where does the "128 MB memory section size" come from?  ACPI?
-> > > A chipset-specific value?
-> > >  
-> > 
-> > The devm_memremap_pages() implementation use the memory hotplug core
-> > to allocate the 'struct page' array/map for persistent memory. Memory
-> > hotplug can only be performed in terms of sections, 128MB on x86_64.  
-> 
-> IIUC, it also affects the normal RAM hotplug to a Linux VM on QEMU. If
-> that is the case, it will be helpful to lift this option to pc-dimm.
-
-Default alignment on page size boundary is implemented for the reason
-that QEMU has no idea about guest os alignments req. and these requirements
-might vary greatly depending on guest os running.
-With some guests it works just fine even with 2M alignments/dimm sizes.
-
-So it's up to upper layers which know what guest os is running to pick
-plugged dimm sizes. So if a particular linux version minimum block size
-is 128, then mgmt needs to plug dimm with size which is multiple of that.
-That should satisfy whatever alignment req guest os has.
-
-In case of nvdimm we need to fix address allocation in QEMU to account
-for label size which broke above rule leading to "overlap" over label
-area of nvdimm which isn't mapped into guest address space, but that's
-probably it.
-
-PS:
-not related to patch question.
-Intel guys contributed most of the code to nvdimm and continue actively
-to develop it. Can we have a designated maintainer for nvdimm part from
-Intel in addition to authors who just code/merge feature and disappear
-(not reachable) shortly after that?
-
-
-> Thanks,
-> Haozhong
-> 
-> > There is some limited support for allowing devm_memremap_pages() to
-> > overlap 'System RAM' within a given section, but it does not currently
-> > support multiple devm_memremap_pages() calls overlapping within the
-> > same section. There is currently a kernel bug where we do not handle
-> > this unsupported configuration gracefully. The fix will cause
-> > configurations configurations that try to overlap 2 persistent memory
-> > ranges in the same section to fail.
-> > 
-> > The proposed fix is trying to make sure that QEMU does not run afoul
-> > of this constraint.
-> > 
-> > There is currently no line of sight to reduce the minimum memory
-> > hotplug alignment size to less than 128M. Also, as other architectures
-> > outside of x86_64 add devm_memremap_pages() support, the minimum
-> > section alignment constraint might change and is a property of a guest
-> > OS. My understanding is that some guest OSes might expect an even
-> > larger persistent memory minimum alignment.
-> >   
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24g5LiALCAyMDE4LTA2LTExIGF0IDE5OjU1IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
+T24gTW9uLCBKdW4gMTEsIDIwMTggYXQgOToyNiBBTSwgU3RlZmFuIEhham5vY3ppIDxzdGVmYW5o
+YUByZWRoYXQuY29tCj4gPiB3cm90ZToKPiA+IAo+ID4gT24gTW9uLCBKdW4gMTEsIDIwMTggYXQg
+MDY6NTQ6MjVQTSArMDgwMCwgWmhhbmcgWWkgd3JvdGU6Cj4gPiA+IAo+ID4gPiBOdmRpbW0gZHJp
+dmVyIHVzZSBNZW1vcnkgaG90LXBsdWcgQVBJcyB0byBtYXAgaXQncyBwbWVtIHJlc291cmNlLAo+
+ID4gPiB3aGljaCBhdCBhIHNlY3Rpb24gZ3JhbnVsYXJpdHkuCj4gPiA+IAo+ID4gPiBXaGVuIFFF
+TVUgZW11bGF0ZWQgdGhlIHZOVkRJTU0gZGV2aWNlLCBkZWNyZWFzZSB0aGUgbGFiZWwtCj4gPiA+
+IHN0b3JhZ2UsCj4gPiA+IFFFTVUgd2lsbCBwdXQgdGhlIHZOVkRJTU1zIGRpcmVjdGx5IG5leHQg
+dG8gb25lIGFub3RoZXIgaW4KPiA+ID4gcGh5c2ljYWwKPiA+ID4gYWRkcmVzcyBzcGFjZSwgd2hp
+Y2ggbWVhbnMgdGhhdCB0aGUgYm91bmRhcnkgYmV0d2VlbiB0aGVtIHdvbid0Cj4gPiA+IGFsaWdu
+IHRvIHRoZSAxMjggTUIgbWVtb3J5IHNlY3Rpb24gc2l6ZS4KPiA+IEknbSBoYXZpbmcgYSBoYXJk
+IHRpbWUgcGFyc2luZyB0aGlzLgo+ID4gCj4gPiBXaGVyZSBkb2VzIHRoZSAiMTI4IE1CIG1lbW9y
+eSBzZWN0aW9uIHNpemUiIGNvbWUgZnJvbT/CoMKgQUNQST8KPiA+IEEgY2hpcHNldC1zcGVjaWZp
+YyB2YWx1ZT8KPiA+IAo+IFRoZSBkZXZtX21lbXJlbWFwX3BhZ2VzKCkgaW1wbGVtZW50YXRpb24g
+dXNlIHRoZSBtZW1vcnkgaG90cGx1ZyBjb3JlCj4gdG8gYWxsb2NhdGUgdGhlICdzdHJ1Y3QgcGFn
+ZScgYXJyYXkvbWFwIGZvciBwZXJzaXN0ZW50IG1lbW9yeS4gTWVtb3J5Cj4gaG90cGx1ZyBjYW4g
+b25seSBiZSBwZXJmb3JtZWQgaW4gdGVybXMgb2Ygc2VjdGlvbnMsIDEyOE1CIG9uIHg4Nl82NC4K
+PiBUaGVyZSBpcyBzb21lIGxpbWl0ZWQgc3VwcG9ydCBmb3IgYWxsb3dpbmcgZGV2bV9tZW1yZW1h
+cF9wYWdlcygpIHRvCj4gb3ZlcmxhcCAnU3lzdGVtIFJBTScgd2l0aGluIGEgZ2l2ZW4gc2VjdGlv
+biwgYnV0IGl0IGRvZXMgbm90Cj4gY3VycmVudGx5Cj4gc3VwcG9ydCBtdWx0aXBsZSBkZXZtX21l
+bXJlbWFwX3BhZ2VzKCkgY2FsbHMgb3ZlcmxhcHBpbmcgd2l0aGluIHRoZQo+IHNhbWUgc2VjdGlv
+bi4gVGhlcmUgaXMgY3VycmVudGx5IGEga2VybmVsIGJ1ZyB3aGVyZSB3ZSBkbyBub3QgaGFuZGxl
+Cj4gdGhpcyB1bnN1cHBvcnRlZCBjb25maWd1cmF0aW9uIGdyYWNlZnVsbHkuIFRoZSBmaXggd2ls
+bCBjYXVzZQo+IGNvbmZpZ3VyYXRpb25zIGNvbmZpZ3VyYXRpb25zIHRoYXQgdHJ5IHRvIG92ZXJs
+YXAgMiBwZXJzaXN0ZW50IG1lbW9yeQo+IHJhbmdlcyBpbiB0aGUgc2FtZSBzZWN0aW9uIHRvIGZh
+aWwuCj4gCj4gVGhlIHByb3Bvc2VkIGZpeCBpcyB0cnlpbmcgdG8gbWFrZSBzdXJlIHRoYXQgUUVN
+VSBkb2VzIG5vdCBydW4gYWZvdWwKPiBvZiB0aGlzIGNvbnN0cmFpbnQuCj4gCj4gVGhlcmUgaXMg
+Y3VycmVudGx5IG5vIGxpbmUgb2Ygc2lnaHQgdG8gcmVkdWNlIHRoZSBtaW5pbXVtIG1lbW9yeQo+
+IGhvdHBsdWcgYWxpZ25tZW50IHNpemUgdG8gbGVzcyB0aGFuIDEyOE0uIEFsc28sIGFzIG90aGVy
+Cj4gYXJjaGl0ZWN0dXJlcwo+IG91dHNpZGUgb2YgeDg2XzY0IGFkZCBkZXZtX21lbXJlbWFwX3Bh
+Z2VzKCkgc3VwcG9ydCwgdGhlIG1pbmltdW0KPiBzZWN0aW9uIGFsaWdubWVudCBjb25zdHJhaW50
+IG1pZ2h0IGNoYW5nZSBhbmQgaXMgYSBwcm9wZXJ0eSBvZiBhCj4gZ3Vlc3QKPiBPUy4gTXkgdW5k
+ZXJzdGFuZGluZyBpcyB0aGF0IHNvbWUgZ3Vlc3QgT1NlcyBtaWdodCBleHBlY3QgYW4gZXZlbgo+
+IGxhcmdlciBwZXJzaXN0ZW50IG1lbW9yeSBtaW5pbXVtIGFsaWdubWVudC4KPiAKVGhhbmtzIERh
+bidzIGV4cGxhbmF0aW9uLCBJIHN0aWxsIGhhdmUgYSBxdWVzdGlvbiB0aGF0IHdoeSB3ZQpvdmVy
+bGFwcGluZwp0aGUgdW4tYWxpZ24gYXJlYSDCoGluc3RlYWQgb2YgZHJvcCBpdD8gYW5kIGxldCBp
+dCBhbGlnbiB0byB0aGUgbmV4dApzZWN0aW9uLsKgCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
+ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1udmRpbW0K
