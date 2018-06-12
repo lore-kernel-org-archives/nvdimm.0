@@ -1,21 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-io0-x242.google.com (mail-io0-x242.google.com
- [IPv6:2607:f8b0:4001:c06::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CF6F5210F41E1
- for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 12:01:49 -0700 (PDT)
-Received: by mail-io0-x242.google.com with SMTP id u4-v6so17826020iof.2
- for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 12:01:49 -0700 (PDT)
-MIME-Version: 1.0
-References: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
- <1461620099-11933-2-git-send-email-toshi.kani@hpe.com>
-In-Reply-To: <1461620099-11933-2-git-send-email-toshi.kani@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Jun 2018 12:01:37 -0700
-Message-ID: <CAA9_cmenbY9GStibRjO0BfTq0kzzzqThiLeOygJsT9L03BFsBQ@mail.gmail.com>
-Subject: Re: [PATCH v3 1/2] acpi/nfit: Update nfit driver to comply with ACPI
- 6.1
+ by ml01.01.org (Postfix) with ESMTPS id 510DE211E3E1A
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 20:30:26 -0700 (PDT)
+From: Baoquan He <bhe@redhat.com>
+Subject: [PATCH v5 4/4] kexec_file: Load kernel at top of system RAM if
+ required
+Date: Tue, 12 Jun 2018 11:28:31 +0800
+Message-Id: <20180612032831.29747-5-bhe@redhat.com>
+In-Reply-To: <20180612032831.29747-1-bhe@redhat.com>
+References: <20180612032831.29747-1-bhe@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,30 +18,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bob Moore <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, robh+dt@kernel.org, dan.j.williams@intel.com, nicolas.pitre@linaro.org, josh@joshtriplett.org, fengguang.wu@intel.com, bp@suse.de
+Cc: brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, keith.busch@intel.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, ebiederm@xmission.com, devel@linuxdriverproject.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Apr 25, 2016 at 2:43 PM Toshi Kani <toshi.kani@hpe.com> wrote:
->
-> ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure
-> as follows.
->  - Valid Fields, Manufacturing Location, and Manufacturing Date
->    are added from reserved range.  No change in the structure size.
->  - IDs (SPD values) are stored as arrays of bytes (i.e. big-endian
->    format).  The spec clarifies that they need to be represented
->    as arrays of bytes as well.
->
+For kexec_file loading, if kexec_buf.top_down is 'true', the memory which
+is used to load kernel/initrd/purgatory is supposed to be allocated from
+top to down. This is what we have been doing all along in the old kexec
+loading interface and the kexec loading is still default setting in some
+distributions. However, the current kexec_file loading interface doesn't
+do likt this. The function arch_kexec_walk_mem() it calls ignores checking
+kexec_buf.top_down, but calls walk_system_ram_res() directly to go through
+all resources of System RAM from bottom to up, to try to find memory region
+which can contain the specific kexec buffer, then call locate_mem_hole_callback()
+to allocate memory in that found memory region from top to down. This brings
+confusion especially when KASLR is widely supported , users have to make clear
+why kexec/kdump kernel loading position is different between these two
+interfaces in order to exclude unnecessary noises. Hence these two interfaces
+need be unified on behaviour.
 
-Circling back on this a couple years too late... where are you reading
-this "arrays of bytes" note. As far as I can see this is wrong. JEDEC
-says that vendor id is stored LSB of the id is stored at the lowest
-byte in SPD, which is little endian. So it seems Linux has showing the
-incorrect value for a long time now.
+Here add checking if kexec_buf.top_down is 'true' in arch_kexec_walk_mem(),
+if yes, call the newly added walk_system_ram_res_rev() to find memory region
+from top to down to load kernel.
+
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: kexec@lists.infradead.org
+---
+ kernel/kexec_file.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kernel/kexec_file.c b/kernel/kexec_file.c
+index 75d8e7cf040e..7a66d9d5a534 100644
+--- a/kernel/kexec_file.c
++++ b/kernel/kexec_file.c
+@@ -518,6 +518,8 @@ int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
+ 					   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
+ 					   crashk_res.start, crashk_res.end,
+ 					   kbuf, func);
++	else if (kbuf->top_down)
++		return walk_system_ram_res_rev(0, ULONG_MAX, kbuf, func);
+ 	else
+ 		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
+ }
+-- 
+2.13.6
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
