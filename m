@@ -1,21 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ua0-x241.google.com (mail-ua0-x241.google.com
- [IPv6:2607:f8b0:400c:c08::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7E98221157FE4
- for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 01:29:02 -0700 (PDT)
-Received: by mail-ua0-x241.google.com with SMTP id 74-v6so15404228uav.1
- for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 01:29:02 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180612032831.29747-2-bhe@redhat.com>
-References: <20180612032831.29747-1-bhe@redhat.com>
- <20180612032831.29747-2-bhe@redhat.com>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Tue, 12 Jun 2018 11:29:00 +0300
-Message-ID: <CAHp75Vd6v4+RTq-5uw_BJpT6=w2KGjTfU+rEst6+8igs2cyntw@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 462D8210C66AF
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 20:56:09 -0700 (PDT)
+Date: Tue, 12 Jun 2018 11:55:46 +0800
+From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH v5 1/4] resource: Move reparent_resources() to
  kernel/resource.c and make it public
+Message-ID: <201806121130.gf9upRAU%fengguang.wu@intel.com>
+References: <20180612032831.29747-2-bhe@redhat.com>
+MIME-Version: 1.0
+In-Reply-To: <20180612032831.29747-2-bhe@redhat.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,60 +25,83 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Baoquan He <bhe@redhat.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, brijesh.singh@amd.com, devicetree <devicetree@vger.kernel.org>, David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, Keith Busch <keith.busch@intel.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, baiyaowei@cmss.chinamobile.com, KY Srinivasan <kys@microsoft.com>, Frank Rowand <frowand.list@gmail.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Stephen Hemminger <sthemmin@microsoft.com>, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, linux-input <linux-input@vger.kernel.org>, Gustavo Padovan <gustavo@padovan.org>, Borislav Petkov <bp@suse.de>, Dave Young <dyoung@redhat.com>, Tom Lendacky <thomas.lendacky@amd.com>, Haiyang Zhang <haiyangz@microsoft.com>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Josh Triplett <josh@joshtriplett.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Rob Herring <robh+dt@kernel.org>, Sean Paul <seanpaul@chromium.org>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jon Derrick <jonathan.derrick@intel.com>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, kexec@lists.infradead.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Eric Biederman <ebiederm@xmission.com>, devel@linuxdriverproject.org, Andrew Morton <akpm@linux-foundation.org>, kbuild test robot <fengguang.wu@intel.com>, "open list:LINUX FOR POWERPC PA SEMI PWRFICIENT" <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>
+Cc: nicolas.pitre@linaro.org, brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, keith.busch@intel.com, jcmvbkbc@gmail.com, Paul Mackerras <paulus@samba.org>, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, bp@suse.de, dyoung@redhat.com, ebiederm@xmission.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, josh@joshtriplett.org, jglisse@redhat.com, robh+dt@kernel.org, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, kbuild-all@01.org, devel@linuxdriverproject.org, akpm@linux-foundation.org, fengguang.wu@intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jun 12, 2018 at 6:28 AM, Baoquan He <bhe@redhat.com> wrote:
-> reparent_resources() is duplicated in arch/microblaze/pci/pci-common.c
-> and arch/powerpc/kernel/pci-common.c, so move it to kernel/resource.c
-> so that it's shared. Later its code also need be updated using list_head
-> to replace singly linked list.
+Hi Baoquan,
 
-While this is a good deduplication of the code, some requirements for
-public functions would be good to satisfy.
+I love your patch! Yet something to improve:
 
-> +/*
-> + * Reparent resource children of pr that conflict with res
-> + * under res, and make res replace those children.
-> + */
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.17 next-20180608]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-kernel doc format, though...
+url:    https://github.com/0day-ci/linux/commits/Baoquan-He/resource-Use-list_head-to-link-sibling-resource/20180612-113600
+config: i386-tinyconfig (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-> +static int reparent_resources(struct resource *parent,
-> +                                    struct resource *res)
+Note: the linux-review/Baoquan-He/resource-Use-list_head-to-link-sibling-resource/20180612-113600 HEAD 5545e79eef6387857faf41cdffa7be6b1f5d4efe builds fine.
+      It only hurts bisectibility.
 
-...is it really public with static keyword?!
+All errors (new ones prefixed by >>):
 
+>> kernel/resource.c:990:12: error: static declaration of 'reparent_resources' follows non-static declaration
+    static int reparent_resources(struct resource *parent,
+               ^~~~~~~~~~~~~~~~~~
+   In file included from kernel/resource.c:14:0:
+   include/linux/ioport.h:195:5: note: previous declaration of 'reparent_resources' was here
+    int reparent_resources(struct resource *parent, struct resource *res);
+        ^~~~~~~~~~~~~~~~~~
+   kernel/resource.c:990:12: warning: 'reparent_resources' defined but not used [-Wunused-function]
+    static int reparent_resources(struct resource *parent,
+               ^~~~~~~~~~~~~~~~~~
 
+vim +/reparent_resources +990 kernel/resource.c
 
-> +{
+   985	
+   986	/*
+   987	 * Reparent resource children of pr that conflict with res
+   988	 * under res, and make res replace those children.
+   989	 */
+ > 990	static int reparent_resources(struct resource *parent,
+   991					     struct resource *res)
+   992	{
+   993		struct resource *p, **pp;
+   994		struct resource **firstpp = NULL;
+   995	
+   996		for (pp = &parent->child; (p = *pp) != NULL; pp = &p->sibling) {
+   997			if (p->end < res->start)
+   998				continue;
+   999			if (res->end < p->start)
+  1000				break;
+  1001			if (p->start < res->start || p->end > res->end)
+  1002				return -1;	/* not completely contained */
+  1003			if (firstpp == NULL)
+  1004				firstpp = pp;
+  1005		}
+  1006		if (firstpp == NULL)
+  1007			return -1;	/* didn't find any conflicting entries? */
+  1008		res->parent = parent;
+  1009		res->child = *firstpp;
+  1010		res->sibling = *pp;
+  1011		*firstpp = res;
+  1012		*pp = NULL;
+  1013		for (p = res->child; p != NULL; p = p->sibling) {
+  1014			p->parent = res;
+  1015			pr_debug("PCI: Reparented %s %pR under %s\n",
+  1016				 p->name, p, res->name);
+  1017		}
+  1018		return 0;
+  1019	}
+  1020	EXPORT_SYMBOL(reparent_resources);
+  1021	
 
-> +       for (pp = &parent->child; (p = *pp) != NULL; pp = &p->sibling) {
-> +               if (p->end < res->start)
-> +                       continue;
-> +               if (res->end < p->start)
-> +                       break;
-
-> +               if (p->start < res->start || p->end > res->end)
-> +                       return -1;      /* not completely contained */
-
-Usually we are expecting real eeror codes.
-
-> +               if (firstpp == NULL)
-> +                       firstpp = pp;
-> +       }
-
-> +       if (firstpp == NULL)
-> +               return -1;      /* didn't find any conflicting entries? */
-
-Ditto.
-
-> +}
-> +EXPORT_SYMBOL(reparent_resources);
-
--- 
-With Best Regards,
-Andy Shevchenko
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
