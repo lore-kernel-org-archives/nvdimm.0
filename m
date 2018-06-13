@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7AAA021109394
- for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:22:24 -0700 (PDT)
-Subject: [PATCH v3 09/12] mm, memory_failure: Pass page size to kill_proc()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 04 Jun 2018 16:12:27 -0700
-Message-ID: <152815394736.39010.11494385796300796935.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 655122117513A
+ for <linux-nvdimm@lists.01.org>; Wed, 13 Jun 2018 09:30:46 -0700 (PDT)
+Date: Wed, 13 Jun 2018 18:30:42 +0200
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: Re: [Qemu-devel] [RFC PATCH 1/1] nvdimm: let qemu requiring section
+ alignment of pmem resource.
+Message-ID: <20180613183042.2ce134a6@redhat.com>
+In-Reply-To: <20180612150425.hjydg5cbtlllzh67@HZ>
+References: <e74aee54657de6f8d643a92ba21f467db149c2c8.1528714312.git.yi.z.zhang@linux.intel.com>
+ <20180611162630.GH17756@stefanha-x1.localdomain>
+ <CAPcyv4jJSYiCu_qNWgU8KR3sFQE032Uu6LCQq-CTxF0jpkooiA@mail.gmail.com>
+ <20180612150425.hjydg5cbtlllzh67@HZ>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,92 +26,81 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, jack@suse.cz, hch@lst.de
+To: Haozhong Zhang <hzzhan9@gmail.com>
+Cc: Xiao Guangrong <xiaoguangrong.eric@gmail.com>, "Michael S. Tsirkin" <mst@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Zhang Yi <yi.z.zhang@linux.intel.com>, Stefan Hajnoczi <stefanha@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given that ZONE_DEVICE / dev_pagemap pages are never assembled into
-compound pages, the size determination logic in kill_proc() needs
-updating for the dev_pagemap case. In preparation for dev_pagemap
-support rework memory_failure() and kill_proc() to pass / consume the page
-size explicitly.
+On Tue, 12 Jun 2018 23:04:25 +0800
+Haozhong Zhang <hzzhan9@gmail.com> wrote:
 
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/memory-failure.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+> On 06/11/18 19:55, Dan Williams wrote:
+> > On Mon, Jun 11, 2018 at 9:26 AM, Stefan Hajnoczi <stefanha@redhat.com> wrote:  
+> > > On Mon, Jun 11, 2018 at 06:54:25PM +0800, Zhang Yi wrote:  
+> > >> Nvdimm driver use Memory hot-plug APIs to map it's pmem resource,
+> > >> which at a section granularity.
+> > >>
+> > >> When QEMU emulated the vNVDIMM device, decrease the label-storage,
+> > >> QEMU will put the vNVDIMMs directly next to one another in physical
+> > >> address space, which means that the boundary between them won't
+> > >> align to the 128 MB memory section size.  
+> > >
+> > > I'm having a hard time parsing this.
+> > >
+> > > Where does the "128 MB memory section size" come from?  ACPI?
+> > > A chipset-specific value?
+> > >  
+> > 
+> > The devm_memremap_pages() implementation use the memory hotplug core
+> > to allocate the 'struct page' array/map for persistent memory. Memory
+> > hotplug can only be performed in terms of sections, 128MB on x86_64.  
+> 
+> IIUC, it also affects the normal RAM hotplug to a Linux VM on QEMU. If
+> that is the case, it will be helpful to lift this option to pc-dimm.
 
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index 9d142b9b86dc..42a193ee14d3 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -179,18 +179,16 @@ EXPORT_SYMBOL_GPL(hwpoison_filter);
-  * ``action required'' if error happened in current execution context
-  */
- static int kill_proc(struct task_struct *t, unsigned long addr,
--			unsigned long pfn, struct page *page, int flags)
-+			unsigned long pfn, unsigned size_shift, int flags)
- {
--	short addr_lsb;
- 	int ret;
- 
- 	pr_err("Memory failure: %#lx: Killing %s:%d due to hardware memory corruption\n",
- 		pfn, t->comm, t->pid);
--	addr_lsb = compound_order(compound_head(page)) + PAGE_SHIFT;
- 
- 	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
- 		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)addr,
--				       addr_lsb, current);
-+				       size_shift, current);
- 	} else {
- 		/*
- 		 * Don't use force here, it's convenient if the signal
-@@ -199,7 +197,7 @@ static int kill_proc(struct task_struct *t, unsigned long addr,
- 		 * to SIG_IGN, but hopefully no one will do that?
- 		 */
- 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)addr,
--				      addr_lsb, t);  /* synchronous? */
-+				      size_shift, t);  /* synchronous? */
- 	}
- 	if (ret < 0)
- 		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
-@@ -318,7 +316,7 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
-  * wrong earlier.
-  */
- static void kill_procs(struct list_head *to_kill, int forcekill,
--			  bool fail, struct page *page, unsigned long pfn,
-+			  bool fail, unsigned size_shift, unsigned long pfn,
- 			  int flags)
- {
- 	struct to_kill *tk, *next;
-@@ -343,7 +341,7 @@ static void kill_procs(struct list_head *to_kill, int forcekill,
- 			 * process anyways.
- 			 */
- 			else if (kill_proc(tk->tsk, tk->addr,
--					      pfn, page, flags) < 0)
-+					      pfn, size_shift, flags) < 0)
- 				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 		}
-@@ -928,6 +926,7 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
- 	bool unmap_success;
-+	unsigned size_shift;
- 	int kill = 1, forcekill;
- 	struct page *hpage = *hpagep;
- 	bool mlocked = PageMlocked(hpage);
-@@ -1012,7 +1011,8 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
- 	 * any accesses to the poisoned memory.
- 	 */
- 	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
--	kill_procs(&tokill, forcekill, !unmap_success, p, pfn, flags);
-+	size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
-+	kill_procs(&tokill, forcekill, !unmap_success, size_shift, pfn, flags);
- 
- 	return unmap_success;
- }
+Default alignment on page size boundary is implemented for the reason
+that QEMU has no idea about guest os alignments req. and these requirements
+might vary greatly depending on guest os running.
+With some guests it works just fine even with 2M alignments/dimm sizes.
+
+So it's up to upper layers which know what guest os is running to pick
+plugged dimm sizes. So if a particular linux version minimum block size
+is 128, then mgmt needs to plug dimm with size which is multiple of that.
+That should satisfy whatever alignment req guest os has.
+
+In case of nvdimm we need to fix address allocation in QEMU to account
+for label size which broke above rule leading to "overlap" over label
+area of nvdimm which isn't mapped into guest address space, but that's
+probably it.
+
+PS:
+not related to patch question.
+Intel guys contributed most of the code to nvdimm and continue actively
+to develop it. Can we have a designated maintainer for nvdimm part from
+Intel in addition to authors who just code/merge feature and disappear
+(not reachable) shortly after that?
+
+
+> Thanks,
+> Haozhong
+> 
+> > There is some limited support for allowing devm_memremap_pages() to
+> > overlap 'System RAM' within a given section, but it does not currently
+> > support multiple devm_memremap_pages() calls overlapping within the
+> > same section. There is currently a kernel bug where we do not handle
+> > this unsupported configuration gracefully. The fix will cause
+> > configurations configurations that try to overlap 2 persistent memory
+> > ranges in the same section to fail.
+> > 
+> > The proposed fix is trying to make sure that QEMU does not run afoul
+> > of this constraint.
+> > 
+> > There is currently no line of sight to reduce the minimum memory
+> > hotplug alignment size to less than 128M. Also, as other architectures
+> > outside of x86_64 add devm_memremap_pages() support, the minimum
+> > section alignment constraint might change and is a property of a guest
+> > OS. My understanding is that some guest OSes might expect an even
+> > larger persistent memory minimum alignment.
+> >   
 
 _______________________________________________
 Linux-nvdimm mailing list
