@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE9C1211C608A
- for <linux-nvdimm@lists.01.org>; Wed, 20 Jun 2018 15:15:14 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/2] ext4: handle layout changes to pinned DAX mappings
-Date: Wed, 20 Jun 2018 16:15:03 -0600
-Message-Id: <20180620221503.25237-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180620221503.25237-1-ross.zwisler@linux.intel.com>
-References: <20180620221503.25237-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BBF812128DD4D
+ for <linux-nvdimm@lists.01.org>; Wed, 13 Jun 2018 12:01:04 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl: Update README.md for code blocks
+Date: Wed, 13 Jun 2018 13:00:56 -0600
+Message-Id: <20180613190056.2984-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,150 +20,173 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, Jeff Moyer <jmoyer@redhat.com>, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Follow the lead of xfs_break_dax_layouts() and add synchronization between
-operations in ext4 which remove blocks from an inode (hole punch, truncate
-down, etc.) and pages which are pinned due to DAX DMA operations.
+README.md had inline code blocks for various config lines, but one of
+them, "override device_dax * extra", was missing the two spaces at the
+end causing the markdown renderer to put the next line adjacent to it
+instead of below. This caused depmod to be misconfigured if one
+copy-pasted from the github landing page.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Fix this by replacing multi-line code blocks using the "```" block
+markers everywhere. Also add the kernel.org wiki URL to the
+Documentation section, and fix list numbering.
+
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/ext4/ext4.h     |  1 +
- fs/ext4/extents.c  | 12 ++++++++++++
- fs/ext4/inode.c    | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
- fs/ext4/truncate.h |  1 +
- 4 files changed, 62 insertions(+)
+ README.md | 102 ++++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 61 insertions(+), 41 deletions(-)
 
-diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-index 0b127853c584..34bccd64d83d 100644
---- a/fs/ext4/ext4.h
-+++ b/fs/ext4/ext4.h
-@@ -2460,6 +2460,7 @@ extern int ext4_get_inode_loc(struct inode *, struct ext4_iloc *);
- extern int ext4_inode_attach_jinode(struct inode *inode);
- extern int ext4_can_truncate(struct inode *inode);
- extern int ext4_truncate(struct inode *);
-+extern int ext4_break_layouts(struct inode *);
- extern int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length);
- extern int ext4_truncate_restart_trans(handle_t *, struct inode *, int nblocks);
- extern void ext4_set_inode_flags(struct inode *);
-diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
-index 0057fe3f248d..a6aef06f455b 100644
---- a/fs/ext4/extents.c
-+++ b/fs/ext4/extents.c
-@@ -4820,6 +4820,13 @@ static long ext4_zero_range(struct file *file, loff_t offset,
- 		 * released from page cache.
- 		 */
- 		down_write(&EXT4_I(inode)->i_mmap_sem);
-+
-+		ret = ext4_break_layouts(inode);
-+		if (ret) {
-+			up_write(&EXT4_I(inode)->i_mmap_sem);
-+			goto out_mutex;
-+		}
-+
- 		ret = ext4_update_disksize_before_punch(inode, offset, len);
- 		if (ret) {
- 			up_write(&EXT4_I(inode)->i_mmap_sem);
-@@ -5493,6 +5500,11 @@ int ext4_collapse_range(struct inode *inode, loff_t offset, loff_t len)
- 	 * page cache.
- 	 */
- 	down_write(&EXT4_I(inode)->i_mmap_sem);
-+
-+	ret = ext4_break_layouts(inode);
-+	if (ret)
-+		goto out_mmap;
-+
- 	/*
- 	 * Need to round down offset to be aligned with page size boundary
- 	 * for page size > block size.
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 2ea07efbe016..c795e5118745 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -4193,6 +4193,41 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
- 	return 0;
- }
+diff --git a/README.md b/README.md
+index e0bc5b7..b4cf673 100644
+--- a/README.md
++++ b/README.md
+@@ -5,11 +5,14 @@ sub-system in the Linux kernel
  
-+static void ext4_wait_dax_page(struct ext4_inode_info *ei, bool *did_unlock)
-+{
-+	*did_unlock = true;
-+	up_write(&ei->i_mmap_sem);
-+	schedule();
-+	down_write(&ei->i_mmap_sem);
-+}
+ Build
+ =====
+-`./autogen.sh`  
+-`./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64`  
+-`make`  
+-`make check`  
+-`sudo make install`  
 +
-+int ext4_break_layouts(struct inode *inode)
-+{
-+	struct ext4_inode_info *ei = EXT4_I(inode);
-+	struct page *page;
-+	bool retry;
-+	int error;
-+
-+	if (unlikely(!rwsem_is_locked(&ei->i_mmap_sem))) {
-+		WARN_ON_ONCE(1);
-+		return -EINVAL;
-+	}
-+
-+	do {
-+		retry = false;
-+		page = dax_layout_busy_page(inode->i_mapping);
-+		if (!page)
-+			return 0;
-+
-+		error = ___wait_var_event(&page->_refcount,
-+				atomic_read(&page->_refcount) == 1,
-+				TASK_INTERRUPTIBLE, 0, 0,
-+				ext4_wait_dax_page(ei, &retry));
-+	} while (error == 0 && retry);
-+
-+	return error;
-+}
-+
- /*
-  * ext4_punch_hole: punches a hole in a file by releasing the blocks
-  * associated with the given offset and length
-@@ -4266,6 +4301,11 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
- 	 * page cache.
- 	 */
- 	down_write(&EXT4_I(inode)->i_mmap_sem);
-+
-+	ret = ext4_break_layouts(inode);
-+	if (ret)
-+		goto out_dio;
-+
- 	first_block_offset = round_up(offset, sb->s_blocksize);
- 	last_block_offset = round_down((offset + length), sb->s_blocksize) - 1;
++```
++./autogen.sh
++./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64
++make
++make check
++sudo make install
++```
  
-@@ -5554,6 +5594,14 @@ int ext4_setattr(struct dentry *dentry, struct iattr *attr)
- 				ext4_wait_for_tail_page_commit(inode);
- 		}
- 		down_write(&EXT4_I(inode)->i_mmap_sem);
+ There are a number of packages required for the build steps that may not
+ be installed by default.   For information about the required packages,
+@@ -23,45 +26,56 @@ See the latest documentation for the NVDIMM kernel sub-system here:
+   
+ https://git.kernel.org/cgit/linux/kernel/git/nvdimm/nvdimm.git/tree/Documentation/nvdimm/nvdimm.txt?h=libnvdimm-for-next
+ 
++A getting started guide is also available on the kernel.org nvdimm wiki:
 +
-+		rc = ext4_break_layouts(inode);
-+		if (rc) {
-+			up_write(&EXT4_I(inode)->i_mmap_sem);
-+			error = rc;
-+			goto err_out;
-+		}
++https://nvdimm.wiki.kernel.org/start
 +
- 		/*
- 		 * Truncate pagecache after we've waited for commit
- 		 * in data=journal mode to make pages freeable.
-diff --git a/fs/ext4/truncate.h b/fs/ext4/truncate.h
-index 0cb13badf473..a3b78241e9f6 100644
---- a/fs/ext4/truncate.h
-+++ b/fs/ext4/truncate.h
-@@ -12,6 +12,7 @@
- static inline void ext4_truncate_failed_write(struct inode *inode)
- {
- 	down_write(&EXT4_I(inode)->i_mmap_sem);
-+	ext4_break_layouts(inode);
- 	truncate_inode_pages(inode->i_mapping, inode->i_size);
- 	ext4_truncate(inode);
- 	up_write(&EXT4_I(inode)->i_mmap_sem);
+ Unit Tests
+ ==========
+ The unit tests run by `make check` require the nfit_test.ko module to be
+ loaded.  To build and install nfit_test.ko:
+ 
+ 1. Obtain the kernel source.  For example,  
+-`git clone -b libnvdimm-for-next
+-git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git`  
++   `git clone -b libnvdimm-for-next git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git`  
+ 
+-2. Skip to step 3 if the kernel version is >= v4.8.  Otherwise, for
++1. Skip to step 3 if the kernel version is >= v4.8.  Otherwise, for
+    kernel versions < v4.8, configure the kernel to make some memory
+    available to CMA (contiguous memory allocator). This will be used to
+    emulate DAX.  
+-`CONFIG_DMA_CMA=y`  
+-`CONFIG_CMA_SIZE_MBYTES=200`  
+-**or**  
+-`cma=200M` on the kernel command line.  
++   ```
++   CONFIG_DMA_CMA=y
++   CONFIG_CMA_SIZE_MBYTES=200
++   ```
++   **or**  
++   `cma=200M` on the kernel command line.  
+ 
+-3. Compile the libnvdimm sub-system as a module, make sure "zone device"
++1. Compile the libnvdimm sub-system as a module, make sure "zone device"
+    memory is enabled, and enable the btt, pfn, and dax features of the
+    sub-system:  
+-`CONFIG_X86_PMEM_LEGACY=m`  
+-`CONFIG_ZONE_DEVICE=y`  
+-`CONFIG_LIBNVDIMM=m`  
+-`CONFIG_BLK_DEV_PMEM=m`  
+-`CONFIG_ND_BLK=m`  
+-`CONFIG_BTT=y`  
+-`CONFIG_NVDIMM_PFN=y`  
+-`CONFIG_NVDIMM_DAX=y`  
+-`CONFIG_DEV_DAX_PMEM=m`
+-
+-4. Build and install the unit test enabled libnvdimm modules in the
++
++   ```
++   CONFIG_X86_PMEM_LEGACY=m
++   CONFIG_ZONE_DEVICE=y
++   CONFIG_LIBNVDIMM=m
++   CONFIG_BLK_DEV_PMEM=m
++   CONFIG_ND_BLK=m
++   CONFIG_BTT=y
++   CONFIG_NVDIMM_PFN=y
++   CONFIG_NVDIMM_DAX=y
++   CONFIG_DEV_DAX_PMEM=m
++   ```
++
++1. Build and install the unit test enabled libnvdimm modules in the
+    following order.  The unit test modules need to be in place prior to
+    the `depmod` that runs during the final `modules_install`  
+-`make M=tools/testing/nvdimm`  
+-`sudo make M=tools/testing/nvdimm modules_install`  
+-`sudo make modules_install`
+ 
+-5. Now run `make check` in the ndctl source directory, or `ndctl test`,
++   ```
++   make M=tools/testing/nvdimm
++   sudo make M=tools/testing/nvdimm modules_install
++   sudo make modules_install
++   ```
++
++1. Now run `make check` in the ndctl source directory, or `ndctl test`,
+    if ndctl was built with `--enable-test`.
+ 
+ Troubleshooting
+@@ -73,23 +87,29 @@ test modules are not available, or the test versions of the modules are
+ superseded by the "in-tree/production" version of the modules `make
+ check` will skip tests and report a message like the following in
+ test/test-suite.log:  
+-`SKIP: libndctl`  
+-`==============`  
+-`test/init: nfit_test_init: nfit.ko: appears to be production version: /lib/modules/4.8.8-200.fc24.x86_64/kernel/drivers/acpi/nfit/nfit.ko.xz`  
+-`__ndctl_test_skip: explicit skip test_libndctl:2684`  
+-`nfit_test unavailable skipping tests`  
++
++```
++SKIP: libndctl
++==============
++test/init: nfit_test_init: nfit.ko: appears to be production version: /lib/modules/4.8.8-200.fc24.x86_64/kernel/drivers/acpi/nfit/nfit.ko.xz
++__ndctl_test_skip: explicit skip test_libndctl:2684
++nfit_test unavailable skipping tests
++```
+ 
+ If the unit test modules are indeed available in the modules 'extra'
+ directory the default depmod policy can be overridden by adding a file
+ to /etc/depmod.d with the following contents:  
+-`override nfit * extra`  
+-`override device_dax * extra`
+-`override dax_pmem * extra`  
+-`override libnvdimm * extra`  
+-`override nd_blk * extra`  
+-`override nd_btt * extra`  
+-`override nd_e820 * extra`  
+-`override nd_pmem * extra`  
++
++```
++override nfit * extra
++override device_dax * extra
++override dax_pmem * extra
++override libnvdimm * extra
++override nd_blk * extra
++override nd_btt * extra
++override nd_e820 * extra
++override nd_pmem * extra
++```
+ 
+ The nfit_test module emulates pmem with memory allocated via vmalloc().
+ One of the side effects is that this breaks 'physically contiguous'
 -- 
-2.14.4
+2.17.0
 
 _______________________________________________
 Linux-nvdimm mailing list
