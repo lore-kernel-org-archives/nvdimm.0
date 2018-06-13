@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk0-x241.google.com (mail-qk0-x241.google.com
+ [IPv6:2607:f8b0:400d:c09::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8384B2118B64F
- for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 09:45:17 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 1/4] pmem, libnvdimm: complete REQ_FLUSH => REQ_PREFLUSH
-Date: Wed,  6 Jun 2018 10:45:12 -0600
-Message-Id: <20180606164515.25677-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 999D021314737
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 18:56:42 -0700 (PDT)
+Received: by mail-qk0-x241.google.com with SMTP id y4-v6so634684qka.5
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 18:56:42 -0700 (PDT)
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: [PATCH v2 1/2] ndctl, test: add some helper function for test script
+Date: Tue, 12 Jun 2018 21:56:15 -0400
+Message-Id: <20180613015616.26487-2-msys.mizuma@gmail.com>
+In-Reply-To: <20180613015616.26487-1-msys.mizuma@gmail.com>
+References: <20180613015616.26487-1-msys.mizuma@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,45 +25,89 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Complete the move from REQ_FLUSH to REQ_PREFLUSH that apparently started
-way back in v4.8.
+From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Some test scripts have same function. So, this patch introduces
+the functions to 'test/common' new file.
+
+Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 ---
- drivers/nvdimm/pmem.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ test/common | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+ create mode 100644 test/common
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 9d714926ecf5..252adfab1e47 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -164,11 +164,6 @@ static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 	return rc;
- }
- 
--/* account for REQ_FLUSH rename, replace with REQ_PREFLUSH after v4.8-rc1 */
--#ifndef REQ_FLUSH
--#define REQ_FLUSH REQ_PREFLUSH
--#endif
--
- static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- {
- 	blk_status_t rc = 0;
-@@ -179,7 +174,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- 	struct pmem_device *pmem = q->queuedata;
- 	struct nd_region *nd_region = to_region(pmem);
- 
--	if (bio->bi_opf & REQ_FLUSH)
-+	if (bio->bi_opf & REQ_PREFLUSH)
- 		nvdimm_flush(nd_region);
- 
- 	do_acct = nd_iostat_start(bio, &start);
+diff --git a/test/common b/test/common
+new file mode 100644
+index 0000000..8fafa91
+--- /dev/null
++++ b/test/common
+@@ -0,0 +1,60 @@
++
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2018, FUJITSU LIMITED. All rights reserved.
++
++# Global variables
++
++# ndctl
++#
++if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
++	export ndctl=../ndctl/ndctl
++elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
++	export ndctl=./ndctl/ndctl
++else
++	echo "Couldn't find an ndctl binary"
++	exit 1
++fi
++
++# Functions
++
++# err
++# $1: line number which error detected
++# $2: cleanup function (optional)
++#
++err()
++{
++	echo test/$(basename $0): failed at line $1
++	[ -n "$2" ] && "$2"
++	exit $rc
++}
++
++# check_min_kver
++# $1: Supported kernel version. format: X.Y
++#
++check_min_kver()
++{
++	local ver="$1"
++	: "${KVER:=$(uname -r)}"
++
++	[ -n "$ver" ] || return 1
++	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
++}
++
++# do_skip
++# $1: Skip message
++#
++do_skip()
++{
++	echo kernel $(uname -r): $1
++	exit 77
++}
++
++# check_prereq
++# $1: command to check
++#
++check_prereq()
++{
++	if ! command -v "$1" >/dev/null; then
++		do_skip "missing $1, skipping..."
++	fi
++}
 -- 
-2.14.4
+2.18.0.rc1
 
 _______________________________________________
 Linux-nvdimm mailing list
