@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 964702118B65E
- for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 09:45:17 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 2/4] libnvdimm: unconditionally deep flush on *sync
-Date: Wed,  6 Jun 2018 10:45:13 -0600
-Message-Id: <20180606164515.25677-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180606164515.25677-1-ross.zwisler@linux.intel.com>
-References: <20180606164515.25677-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 293D2212E258A
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 23:55:54 -0700 (PDT)
+Date: Wed, 13 Jun 2018 14:55:47 +0800
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCH v5 2/4] resource: Use list_head to link sibling resource
+Message-ID: <20180613065547.GH1820@MiWiFi-R3L-srv>
+References: <alpine.DEB.2.20.1806121708070.3334@hadrien>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.20.1806121708070.3334@hadrien>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,83 +19,63 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: brijesh.singh@amd.com, thomas.lendacky@amd.com, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, keith.busch@intel.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, kbuild-all@01.org, devicetree@vger.kernel.org, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, ebiederm@xmission.com, devel@linuxdriverproject.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prior to this commit we would only do a "deep flush" (have nvdimm_flush()
-write to each of the flush hints for a region) in response to an
-msync/fsync/sync call if the nvdimm_has_cache() returned true at the time
-we were setting up the request queue.  This happens due to the write cache
-value passed in to blk_queue_write_cache(), which then causes the block
-layer to send down BIOs with REQ_FUA and REQ_PREFLUSH set.  We do have a
-"write_cache" sysfs entry for namespaces, i.e.:
+On 06/12/18 at 05:10pm, Julia Lawall wrote:
+> This looks wrong.  After a list iterator, the index variable points to a
+> dummy structure.
+> 
+> julia
+> 
+> url:    https://github.com/0day-ci/linux/commits/Baoquan-He/resource-Use-list_head-to-link-sibling-resource/20180612-113600
+> :::::: branch date: 7 hours ago
+> :::::: commit date: 7 hours ago
+> 
+> >> kernel/resource.c:265:17-20: ERROR: invalid reference to the index variable of the iterator on line 253
+> 
+> # https://github.com/0day-ci/linux/commit/e906f15906750a86913ba2b1f08bad99129d3dfc
+> git remote add linux-review https://github.com/0day-ci/linux
+> git remote update linux-review
+> git checkout e906f15906750a86913ba2b1f08bad99129d3dfc
+> vim +265 kernel/resource.c
+> 
+> ^1da177e4 Linus Torvalds 2005-04-16  247
+> 5eeec0ec9 Yinghai Lu     2009-12-22  248  static void __release_child_resources(struct resource *r)
+> 5eeec0ec9 Yinghai Lu     2009-12-22  249  {
+> e906f1590 Baoquan He     2018-06-12  250  	struct resource *tmp, *next;
+> 5eeec0ec9 Yinghai Lu     2009-12-22  251  	resource_size_t size;
+> 5eeec0ec9 Yinghai Lu     2009-12-22  252
+> e906f1590 Baoquan He     2018-06-12 @253  	list_for_each_entry_safe(tmp, next, &r->child, sibling) {
+> 5eeec0ec9 Yinghai Lu     2009-12-22  254  		tmp->parent = NULL;
+> e906f1590 Baoquan He     2018-06-12  255  		INIT_LIST_HEAD(&tmp->sibling);
 
-  /sys/bus/nd/devices/pfn0.1/block/pmem0/dax/write_cache
+							list_del_init(&tmp->sibling);
 
-which can be used to control whether or not the kernel thinks a given
-namespace has a write cache, but this didn't modify the deep flush behavior
-that we set up when the driver was initialized.  Instead, it only modified
-whether or not DAX would flush CPU caches via dax_flush() in response to
-*sync calls.
+Thanks, Julia. Here I should use list_del_init(&op->list) to
+replace INIT_LIST_HEAD(&tmp->sibling). 
 
-Simplify this by making the *sync deep flush always happen, regardless of
-the write cache setting of a namespace.  The DAX CPU cache flushing will
-still be controlled the write_cache setting of the namespace.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pmem.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 252adfab1e47..97b4c39a9267 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -294,7 +294,7 @@ static int pmem_attach_disk(struct device *dev,
- {
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
--	int nid = dev_to_node(dev), fua, wbc;
-+	int nid = dev_to_node(dev), fua;
- 	struct resource *res = &nsio->res;
- 	struct resource bb_res;
- 	struct nd_pfn *nd_pfn = NULL;
-@@ -330,7 +330,6 @@ static int pmem_attach_disk(struct device *dev,
- 		dev_warn(dev, "unable to guarantee persistence of writes\n");
- 		fua = 0;
- 	}
--	wbc = nvdimm_has_cache(nd_region);
- 
- 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
- 				dev_name(&ndns->dev))) {
-@@ -377,7 +376,7 @@ static int pmem_attach_disk(struct device *dev,
- 		return PTR_ERR(addr);
- 	pmem->virt_addr = addr;
- 
--	blk_queue_write_cache(q, wbc, fua);
-+	blk_queue_write_cache(q, true, fua);
- 	blk_queue_make_request(q, pmem_make_request);
- 	blk_queue_physical_block_size(q, PAGE_SIZE);
- 	blk_queue_logical_block_size(q, pmem_sector_size(ndns));
-@@ -408,7 +407,7 @@ static int pmem_attach_disk(struct device *dev,
- 		put_disk(disk);
- 		return -ENOMEM;
- 	}
--	dax_write_cache(dax_dev, wbc);
-+	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
- 	pmem->dax_dev = dax_dev;
- 
- 	gendev = disk_to_dev(disk);
--- 
-2.14.4
-
+> 5eeec0ec9 Yinghai Lu     2009-12-22  256  		__release_child_resources(tmp);
+> 5eeec0ec9 Yinghai Lu     2009-12-22  257
+> 5eeec0ec9 Yinghai Lu     2009-12-22  258  		printk(KERN_DEBUG "release child resource %pR\n", tmp);
+> 5eeec0ec9 Yinghai Lu     2009-12-22  259  		/* need to restore size, and keep flags */
+> 5eeec0ec9 Yinghai Lu     2009-12-22  260  		size = resource_size(tmp);
+> 5eeec0ec9 Yinghai Lu     2009-12-22  261  		tmp->start = 0;
+> 5eeec0ec9 Yinghai Lu     2009-12-22  262  		tmp->end = size - 1;
+> 5eeec0ec9 Yinghai Lu     2009-12-22  263  	}
+> e906f1590 Baoquan He     2018-06-12  264
+> e906f1590 Baoquan He     2018-06-12 @265  	INIT_LIST_HEAD(&tmp->child);
+> 5eeec0ec9 Yinghai Lu     2009-12-22  266  }
+> 5eeec0ec9 Yinghai Lu     2009-12-22  267
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
