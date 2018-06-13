@@ -1,15 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x244.google.com (mail-qt0-x244.google.com
+ [IPv6:2607:f8b0:400d:c0d::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5C1F220979D5D
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 08:34:45 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCH] ndctl: Use max_available_extent for creating namespaces
-Date: Tue, 26 Jun 2018 09:37:35 -0600
-Message-Id: <20180626153736.6770-3-keith.busch@intel.com>
-In-Reply-To: <20180626153736.6770-1-keith.busch@intel.com>
-References: <20180626153736.6770-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 22CE82116DA35
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 18:42:48 -0700 (PDT)
+Received: by mail-qt0-x244.google.com with SMTP id o9-v6so997263qtp.3
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 18:42:48 -0700 (PDT)
+Subject: Re: [PATCH 2/2] test: cleanup test scripts
+References: <20180611164531.8242-1-msys.mizuma@gmail.com>
+ <20180611164531.8242-3-msys.mizuma@gmail.com>
+ <1528846089.4998.15.camel@intel.com>
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <3dcfea10-cab9-16d4-736e-306355b62933@gmail.com>
+Date: Tue, 12 Jun 2018 21:42:46 -0400
+MIME-Version: 1.0
+In-Reply-To: <1528846089.4998.15.camel@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,110 +24,120 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+To: vishal.l.verma@intel.com, linux-nvdimm@lists.01.org
+Cc: m.mizuma@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-The available_size attribute returns all the unused regions, but a
-namespace has to use contiguous free regions. This patch uses the
-attribute returning the largest capacity that can be created for
-determining if the namespace can be created.
+Hi Vishal,
 
-Signed-off-by: Keith Busch <keith.busch@intel.com>
----
- ndctl/lib/libndctl.c   | 30 ++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  1 +
- ndctl/libndctl.h       |  2 ++
- ndctl/namespace.c      |  2 +-
- 4 files changed, 34 insertions(+), 1 deletion(-)
+Thank you for your review! I'll send v2 patch.
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 47e005e..a820fb3 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -2025,6 +2025,36 @@ NDCTL_EXPORT unsigned long long ndctl_region_get_available_size(
- 	return strtoull(buf, NULL, 0);
- }
- 
-+NDCTL_EXPORT unsigned long long ndctl_region_get_max_available_extent(
-+		struct ndctl_region *region)
-+{
-+	unsigned int nstype = ndctl_region_get_nstype(region);
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-+	char *path = region->region_buf;
-+	int len = region->buf_len;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	switch (nstype) {
-+	case ND_DEVICE_NAMESPACE_PMEM:
-+	case ND_DEVICE_NAMESPACE_BLK:
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	if (snprintf(path, len,
-+		     "%s/max_available_extent", region->region_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_region_get_devname(region));
-+		return ULLONG_MAX;
-+	}
-+
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		return ULLONG_MAX;
-+
-+	return strtoull(buf, NULL, 0);
-+}
-+
- NDCTL_EXPORT unsigned int ndctl_region_get_range_index(struct ndctl_region *region)
- {
- 	return region->range_index;
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index c1228e5..22fd026 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -123,6 +123,7 @@ global:
- 	ndctl_region_get_mappings;
- 	ndctl_region_get_size;
- 	ndctl_region_get_available_size;
-+	ndctl_region_get_max_available_extent;
- 	ndctl_region_get_type;
- 	ndctl_region_get_namespace_seed;
- 	ndctl_region_get_btt_seed;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index be997ac..624115d 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -338,6 +338,8 @@ unsigned int ndctl_region_get_interleave_ways(struct ndctl_region *region);
- unsigned int ndctl_region_get_mappings(struct ndctl_region *region);
- unsigned long long ndctl_region_get_size(struct ndctl_region *region);
- unsigned long long ndctl_region_get_available_size(struct ndctl_region *region);
-+unsigned long long ndctl_region_get_max_available_extent(
-+		struct ndctl_region *region);
- unsigned int ndctl_region_get_range_index(struct ndctl_region *region);
- unsigned int ndctl_region_get_type(struct ndctl_region *region);
- struct ndctl_namespace *ndctl_region_get_namespace_seed(
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index fe86d82..4a562a2 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -764,7 +764,7 @@ static int namespace_create(struct ndctl_region *region)
- 		return -EAGAIN;
- 	}
- 
--	available = ndctl_region_get_available_size(region);
-+	available = ndctl_region_get_max_available_extent(region);
- 	if (!available || p.size > available) {
- 		debug("%s: insufficient capacity size: %llx avail: %llx\n",
- 			devname, p.size, available);
--- 
-2.14.3
+- Masa
 
+On 06/12/2018 07:28 PM, Verma, Vishal L wrote:
+> On Mon, 2018-06-11 at 12:45 -0400, Masayoshi Mizuma wrote:
+>> From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+>>
+>> Include 'common' file to use some fucntions for test scripts.
+>>
+>> Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+>> ---
+>>  test/blk-exhaust.sh       | 21 +++-------------
+>>  test/btt-check.sh         | 35 ++++++++------------------
+>>  test/btt-errors.sh        | 20 ++++-----------
+>>  test/btt-pad-compat.sh    | 52 ++++++++++++++-------------------------
+>>  test/clear.sh             | 21 +++-------------
+>>  test/create.sh            | 21 +++-------------
+>>  test/daxdev-errors.sh     | 19 +++-----------
+>>  test/firmware-update.sh   | 25 ++++---------------
+>>  test/inject-error.sh      | 31 ++++++-----------------
+>>  test/label-compat.sh      | 21 +++-------------
+>>  test/multi-dax.sh         | 19 +++-----------
+>>  test/pmem-errors.sh       | 20 +++++----------
+>>  test/rescan-partitions.sh | 44 +++++++++------------------------
+>>  test/sector-mode.sh       |  5 +---
+>>  14 files changed, 89 insertions(+), 265 deletions(-)
+> 
+> Hi Masayoshi,
+> 
+> This is a welcome cleanup. It looks good except for a couple of nits.
+> First, can you add a SPDX style license header to the new test/common file?
+> Second, see below -
+> 
+> [..]
+> 
+>>
+>> diff --git a/test/firmware-update.sh b/test/firmware-update.sh
+>> index c2cf578..1ed60b1 100755
+>> --- a/test/firmware-update.sh
+>> +++ b/test/firmware-update.sh
+>> @@ -12,25 +12,9 @@ rc=77
+>>  dev=""
+>>  image="update-fw.img"
+>>  
+>> -trap 'err $LINENO' ERR
+>> +. ./common
+>>  
+>> -# $1: Line number
+>> -# $2: exit code
+>> -err()
+>> -{
+>> -	[ -n "$2" ] && rc="$2"
+>> -	echo "test/firmware-update.sh: failed at line $1"
+>> -	exit "$rc"
+>> -}
+>> -
+>> -check_min_kver()
+>> -{
+>> -	local ver="$1"
+>> -	: "${KVER:=$(uname -r)}"
+>> -
+>> -	[ -n "$ver" ] || return 1
+>> -	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
+>> -}
+>> +trap 'err $LINENO' ERR
+>>  
+>>  reset()
+>>  {
+>> @@ -52,7 +36,7 @@ cleanup()
+>>  detect()
+>>  {
+>>  	dev=$($ndctl list -b "$bus" -D | jq .[0].dev | tr -d '"')
+>> -	[ -n "$dev" ] || err "$LINENO" 2
+>> +	[ -n "$dev" ] || rc=2 && err "$LINENO"
+> 
+> This || .. && will not work as expected. If $dev is null it will set rc to
+> 2, and if it exists, then it will err(). What we want is 
+> 
+> [ -n "$dev" ] || { rc=2 && err "$LINENO"; }
+> Or even better,
+> 
+>    @@ -36,7 +36,7 @@ cleanup()
+>     detect()
+>     {
+>            dev=$($ndctl list -b "$bus" -D | jq .[0].dev | tr -d '"')
+>    -   [ -n "$dev" ] || rc=2 && err "$LINENO"
+>    + [ -n "$dev" ] || err "$LINENO"
+>     }
+>     
+>     do_tests()
+>    @@ -50,6 +50,7 @@ check_min_kver "4.16" || do_skip "may lack firmware update test handling"
+>     modprobe nfit_test
+>     rc=1
+>     reset
+>    +rc=2
+>     detect
+>     do_tests
+> 
+> The rest looks good.
+> 
+> Thanks,
+> 	-Vishal
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
