@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 57CEB2112E005
- for <linux-nvdimm@lists.01.org>; Wed,  6 Jun 2018 11:26:10 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2] ndctl: add an api for getting the ars_status
- overflow flag
-Date: Wed,  6 Jun 2018 12:26:05 -0600
-Message-Id: <20180606182605.28670-1-vishal.l.verma@intel.com>
+Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C9418210ED79C
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 12:37:11 -0700 (PDT)
+From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Subject: RE: [PATCH] mm: disallow mapping that conflict for
+ devm_memremap_pages()
+Date: Thu, 14 Jun 2018 19:37:08 +0000
+Message-ID: <AT5PR8401MB11698094C482D26E172B8E41AB7D0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+References: <152900070339.49084.2958083852988708457.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <152900070339.49084.2958083852988708457.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,88 +20,45 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jacek Zloch <jacek.zloch@intel.com>
+To: 'Dave Jiang' <dave.jiang@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ARS status command defines a 'flags' field that wasn't being exposed
-via an API yet. Since there is only one flag defined in ACPI 6.2, add a
-helper for retrieving it (overflow flag).
 
-Reported-by: Jacek Zloch <jacek.zloch@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
+> Dave Jiang
+> Sent: Thursday, June 14, 2018 1:25 PM
+> Subject: [PATCH] mm: disallow mapping that conflict for
+> devm_memremap_pages()
+...
+> +	conflict_pgmap = get_dev_pagemap(PHYS_PFN(align_start), NULL);
+> +	if (conflict_pgmap) {
+> +		dev_warn(dev, "Conflicting mapping in same section\n");
+> +		put_dev_pagemap(conflict_pgmap);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	conflict_pgmap = get_dev_pagemap(PHYS_PFN(align_end), NULL);
+> +	if (conflict_pgmap) {
+> +		dev_warn(dev, "Conflicting mapping in same section\n");
+> +		put_dev_pagemap(conflict_pgmap);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+
+Unique warning messages would help narrow down the problem.
+
+dev_WARN is one way to make them unique, if a backtrace is also appropriate.
+
+
 ---
- ndctl/lib/ars.c        | 11 +++++++++++
- ndctl/lib/libndctl.sym |  1 +
- ndctl/libndctl.h       |  4 ++++
- 3 files changed, 16 insertions(+)
+Robert Elliott, HPE Persistent Memory
 
-v2: instead of exposing the binary representation of flags, provide a
-helper for each flag. ACPI currently defines a single 'overflow' flag.
-(Dan)
-
-diff --git a/ndctl/lib/ars.c b/ndctl/lib/ars.c
-index e04b51e..b765c88 100644
---- a/ndctl/lib/ars.c
-+++ b/ndctl/lib/ars.c
-@@ -269,6 +269,17 @@ NDCTL_EXPORT unsigned long long ndctl_cmd_ars_get_record_len(
- 	return ars_stat->ars_status->records[rec_index].length;
- }
- 
-+NDCTL_EXPORT int ndctl_cmd_ars_stat_get_flag_overflow(
-+		struct ndctl_cmd *ars_stat)
-+{
-+	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(cmd_to_bus(ars_stat));
-+
-+	if (!validate_ars_stat(ctx, ars_stat))
-+		return -EINVAL;
-+
-+	return (ars_stat->ars_status->flags & ND_ARS_STAT_FLAG_OVERFLOW);
-+}
-+
- NDCTL_EXPORT struct ndctl_cmd *ndctl_bus_cmd_new_clear_error(
- 		unsigned long long address, unsigned long long len,
- 		struct ndctl_cmd *ars_cap)
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index c1228e5..e939993 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -365,4 +365,5 @@ global:
- 	ndctl_cmd_ars_cap_get_clear_unit;
- 	ndctl_namespace_inject_error2;
- 	ndctl_namespace_uninject_error2;
-+	ndctl_cmd_ars_stat_get_flag_overflow;
- } LIBNDCTL_15;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index be997ac..3d141a6 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -187,6 +187,9 @@ int ndctl_dimm_is_enabled(struct ndctl_dimm *dimm);
- int ndctl_dimm_disable(struct ndctl_dimm *dimm);
- int ndctl_dimm_enable(struct ndctl_dimm *dimm);
- 
-+/* ars_status flags */
-+#define ND_ARS_STAT_FLAG_OVERFLOW (1 << 0)
-+
- struct ndctl_cmd;
- struct ndctl_cmd *ndctl_bus_cmd_new_ars_cap(struct ndctl_bus *bus,
- 		unsigned long long address, unsigned long long len);
-@@ -210,6 +213,7 @@ struct ndctl_cmd *ndctl_bus_cmd_new_clear_error(unsigned long long address,
- unsigned long long ndctl_cmd_clear_error_get_cleared(
- 		struct ndctl_cmd *clear_err);
- unsigned int ndctl_cmd_ars_cap_get_clear_unit(struct ndctl_cmd *ars_cap);
-+int ndctl_cmd_ars_stat_get_flag_overflow(struct ndctl_cmd *ars_stat);
- 
- /*
-  * Note: ndctl_cmd_smart_get_temperature is an alias for
--- 
-2.17.0
 
 _______________________________________________
 Linux-nvdimm mailing list
