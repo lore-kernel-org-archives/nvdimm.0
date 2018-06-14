@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk0-x231.google.com (mail-qk0-x231.google.com
+ [IPv6:2607:f8b0:400d:c09::231])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 41E4C21BADAB6
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 10:59:36 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 3/3] dm: prevent DAX mounts if not supported
-Date: Tue, 26 Jun 2018 11:59:32 -0600
-Message-Id: <20180626175932.8899-4-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180626175932.8899-1-ross.zwisler@linux.intel.com>
-References: <20180626175932.8899-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 95E6F2110AE0C
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 12:43:50 -0700 (PDT)
+Received: by mail-qk0-x231.google.com with SMTP id j80-v6so4338789qke.9
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 12:43:50 -0700 (PDT)
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: [PATCH 0/2] nfit,
+ test: Add some global variables and functions to cleanup.
+Date: Thu, 14 Jun 2018 15:43:34 -0400
+Message-Id: <20180614194336.15341-1-msys.mizuma@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,107 +24,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently device_supports_dax() just checks to see if the QUEUE_FLAG_DAX
-flag is set on the device's request queue to decide whether or not the
-device supports filesystem DAX.  Really we should be using
-bdev_dax_supported() like filesystems do at mount time.  This performs
-other tests like checking to make sure the dax_direct_access() path works.
+This is additional cleanup patches for test scripts.
+Add following global variable and functions to test/common file.
+Then, cleanup test script to use them.
 
-Conditionally set QUEUE_FLAG_DAX on the DM device's request queue based on
-whether all underlying devices support DAX.  Now that bdev_dax_supported()
-explicitly checks for this flag, this will ensure that filesystems built
-upon DM devices will only be able to mount with DAX if all underlying
-devices also support DAX.
+ - NFIT_TEST_BUS[01] (global variable)
+   Buses are created when nfit_test module is loaded.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Fixes: commit 545ed20e6df6 ("dm: add infrastructure for DAX support")
-Cc: stable@vger.kernel.org
----
- drivers/md/dm-ioctl.c         | 5 +++++
- drivers/md/dm-table.c         | 7 +++----
- drivers/md/dm.c               | 3 +--
- include/linux/device-mapper.h | 5 +++++
- 4 files changed, 14 insertions(+), 6 deletions(-)
+ - NDCTL (global variable)
+   ndctl command path (renamed).
 
-diff --git a/drivers/md/dm-ioctl.c b/drivers/md/dm-ioctl.c
-index b810ea77e6b1..0055bdbee5b1 100644
---- a/drivers/md/dm-ioctl.c
-+++ b/drivers/md/dm-ioctl.c
-@@ -1350,6 +1350,11 @@ static int table_load(struct file *filp, struct dm_ioctl *param, size_t param_si
- 		goto err_unlock_md_type;
- 	}
- 
-+	if (dm_table_supports_dax(t))
-+		blk_queue_flag_set(QUEUE_FLAG_DAX, md->queue);
-+	else
-+		blk_queue_flag_clear(QUEUE_FLAG_DAX, md->queue);
-+
- 	dm_unlock_md_type(md);
- 
- 	/* stage inactive table */
-diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
-index 938766794c2e..c673b4a51fb2 100644
---- a/drivers/md/dm-table.c
-+++ b/drivers/md/dm-table.c
-@@ -885,12 +885,10 @@ EXPORT_SYMBOL_GPL(dm_table_set_type);
- static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
- 			       sector_t start, sector_t len, void *data)
- {
--	struct request_queue *q = bdev_get_queue(dev->bdev);
--
--	return q && blk_queue_dax(q);
-+	return bdev_dax_supported(dev->bdev, PAGE_SIZE);
- }
- 
--static bool dm_table_supports_dax(struct dm_table *t)
-+bool dm_table_supports_dax(struct dm_table *t)
- {
- 	struct dm_target *ti;
- 	unsigned i;
-@@ -909,6 +907,7 @@ static bool dm_table_supports_dax(struct dm_table *t)
- 
- 	return true;
- }
-+EXPORT_SYMBOL_GPL(dm_table_supports_dax);
- 
- static bool dm_table_does_not_support_partial_completion(struct dm_table *t);
- 
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index e65429a29c06..bef5a3f243ed 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1056,8 +1056,7 @@ static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
- 	if (len < 1)
- 		goto out;
- 	nr_pages = min(len, nr_pages);
--	if (ti->type->direct_access)
--		ret = ti->type->direct_access(ti, pgoff, nr_pages, kaddr, pfn);
-+	ret = ti->type->direct_access(ti, pgoff, nr_pages, kaddr, pfn);
- 
-  out:
- 	dm_put_live_table(md, srcu_idx);
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index 6fb0808e87c8..45ea9e1f9af9 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -461,6 +461,11 @@ void dm_table_add_target_callbacks(struct dm_table *t, struct dm_target_callback
-  */
- void dm_table_set_type(struct dm_table *t, enum dm_queue_mode type);
- 
-+/*
-+ * Check to see if this target type and all table devices support DAX.
-+ */
-+bool dm_table_supports_dax(struct dm_table *t);
-+
- /*
-  * Finally call this to make the table ready for use.
-  */
+ - _cleanup
+   Helper function cleans up nfit_test module.
+
+ - json2var
+   Helper function (filter) converts json to var.
+
+Masayoshi Mizuma (2):
+  nfit, test: Add NFIT_TEST_BUS[01] variable and some helper funtions to common
+  nfit, test: cleanup test scripts
+
+ test/blk-exhaust.sh       | 21 ++++++----------
+ test/btt-check.sh         | 52 ++++++++++++++++++---------------------
+ test/btt-errors.sh        |  7 +++---
+ test/btt-pad-compat.sh    | 36 ++++++++++++---------------
+ test/clear.sh             | 25 +++++++------------
+ test/common               | 29 +++++++++++++++++++---
+ test/create.sh            | 26 +++++++++-----------
+ test/daxdev-errors.sh     | 29 ++++++++--------------
+ test/firmware-update.sh   | 25 +++++--------------
+ test/inject-error.sh      | 24 ++++++++----------
+ test/label-compat.sh      | 17 +++++--------
+ test/multi-dax.sh         | 23 ++++++-----------
+ test/pmem-errors.sh       | 19 +++++---------
+ test/rescan-partitions.sh | 22 ++++++++---------
+ test/sector-mode.sh       | 22 ++++++-----------
+ 15 files changed, 161 insertions(+), 216 deletions(-)
+
 -- 
-2.14.4
+2.18.0.rc1
 
 _______________________________________________
 Linux-nvdimm mailing list
