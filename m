@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk0-x244.google.com (mail-qk0-x244.google.com
+ [IPv6:2607:f8b0:400d:c09::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D479211F889C
- for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 19:31:16 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 33AE1AC0308
- for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 11:31:08 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [PATCH v9 3/3] ndctl,
- monitor: add the unit file of systemd for ndctl-monitor service
-Date: Fri, 29 Jun 2018 11:30:50 +0900
-Message-Id: <20180629023050.29217-4-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180629023050.29217-1-qi.fuli@jp.fujitsu.com>
-References: <20180629023050.29217-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 85BE921164C5B
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 12:43:51 -0700 (PDT)
+Received: by mail-qk0-x244.google.com with SMTP id 185-v6so4337213qkk.11
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 12:43:51 -0700 (PDT)
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: [PATCH 1/2] nfit,
+ test: Add NFIT_TEST_BUS[01] variable and some helper funtions to
+ common
+Date: Thu, 14 Jun 2018 15:43:35 -0400
+Message-Id: <20180614194336.15341-2-msys.mizuma@gmail.com>
+In-Reply-To: <20180614194336.15341-1-msys.mizuma@gmail.com>
+References: <20180614194336.15341-1-msys.mizuma@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,106 +28,84 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds the systemd unit file for ndctl-monitor service.
-The systemd unit directory can be configured by setting environment
-variable "--with-systemd-unit-dir[=DIR]".
+From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 
-A monitor daemon can be started as a system service:
-   # systemctl start ndctl-monitor.service
+Add following global variable and functions to test/common file.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+ - NFIT_TEST_BUS[01] (global variable)
+   Buses are created when nfit_test module is loaded.
+
+ - NDCTL (global variable)
+   ndctl command path (renamed).
+
+ - _cleanup
+   Helper function cleans up nfit_test module.
+
+ - json2var
+   Helper function (filter) converts json to var.
+
+Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 ---
- autogen.sh                  |  3 ++-
- configure.ac                | 22 ++++++++++++++++++++++
- ndctl/Makefile.am           |  4 ++++
- ndctl/ndctl-monitor.service |  7 +++++++
- 4 files changed, 35 insertions(+), 1 deletion(-)
- create mode 100644 ndctl/ndctl-monitor.service
+ test/common | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/autogen.sh b/autogen.sh
-index 2a52688..21b0e25 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -17,7 +17,8 @@ libdir() {
+diff --git a/test/common b/test/common
+index 8fafa91..fb4e18e 100644
+--- a/test/common
++++ b/test/common
+@@ -4,17 +4,23 @@
  
- args="--prefix=/usr \
- --sysconfdir=/etc \
----libdir=$(libdir /usr/lib)"
-+--libdir=$(libdir /usr/lib) \
-+--with-systemd-unit-dir"
+ # Global variables
  
- echo
- echo "----------------------------------------------------------------"
-diff --git a/configure.ac b/configure.ac
-index cf44260..a5ba9a1 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -143,6 +143,27 @@ AC_CHECK_FUNCS([ \
- 	secure_getenv\
- ])
+-# ndctl
++# NDCTL
+ #
+ if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
+-	export ndctl=../ndctl/ndctl
++	export NDCTL=../ndctl/ndctl
+ elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
+-	export ndctl=./ndctl/ndctl
++	export NDCTL=./ndctl/ndctl
+ else
+ 	echo "Couldn't find an ndctl binary"
+ 	exit 1
+ fi
  
-+PKG_PROG_PKG_CONFIG
-+AC_ARG_WITH([systemd-unit-dir],
-+	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
-+		[Directory for systemd service files]),
-+	[],
-+	[with_systemd_unit_dir=yes])
++# NFIT_TEST_BUS[01]
++#
++NFIT_TEST_BUS0=nfit_test.0
++NFIT_TEST_BUS1=nfit_test.1
 +
-+if test "x$with_systemd_unit_dir" = "xyes"; then
-+	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
-+	if test "x$def_systemd_unit_dir" = "x"; then
-+		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
-+		with_systemd_unit_dir=no
-+	else
-+		with_systemd_unit_dir="$def_systemd_unit_dir"
-+	fi
-+fi
 +
-+AS_IF([test "x$with_systemd_unit_dir" != "xno"],
-+	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
-+AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
-+
- my_CFLAGS="\
- -Wall \
- -Wchar-subscripts \
-@@ -184,6 +205,7 @@ AC_MSG_RESULT([
-         sysconfdir:             ${sysconfdir}
-         libdir:                 ${libdir}
-         includedir:             ${includedir}
-+	systemd-unit-dir:	${systemd_unitdir}
+ # Functions
  
-         compiler:               ${CC}
-         cflags:                 ${CFLAGS}
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index ae3d894..9d008d5 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
- monitor_configdir = /etc/ndctl/
- monitor_config_DATA = $(monitor_config_file)
- EXTRA_DIST += $(monitor_config_file)
+ # err
+@@ -58,3 +64,20 @@ check_prereq()
+ 		do_skip "missing $1, skipping..."
+ 	fi
+ }
 +
-+if ENABLE_SYSTEMD_UNIT_DIR
-+systemd_unit_DATA = ndctl-monitor.service
-+endif
-diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
-new file mode 100644
-index 0000000..44f9326
---- /dev/null
-+++ b/ndctl/ndctl-monitor.service
-@@ -0,0 +1,7 @@
-+[Unit]
-+Description=Ndctl Monitor Daemon
++# _cleanup
++#
++_cleanup()
++{
++	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
++	$NDCTL disable-region -b $NFIT_TEST_BUS1 all
++	modprobe -r nfit_test
++}
 +
-+[Service]
-+Type=forking
-+ExecStart=/usr/bin/ndctl monitor --daemon
-+ExecStop=/bin/kill ${MAINPID}
++# json2var
++# stdin: json
++#
++json2var()
++{
++	sed -e "s/[{}\",]//g; s/:/=/g"
++}
 -- 
-2.18.0
-
+2.18.0.rc1
 
 _______________________________________________
 Linux-nvdimm mailing list
