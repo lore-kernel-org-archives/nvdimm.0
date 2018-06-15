@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4FDF3211F8889
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 16:15:33 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl,
- test: check availability of MAP_SYNC for poison test
+ by ml01.01.org (Postfix) with ESMTPS id 03BF92110939E
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 17:47:23 -0700 (PDT)
+Subject: [PATCH 2/3] acpi,
+ nfit: Prefer _DSM over _LSR for namespace label reads
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 26 Jun 2018 16:05:27 -0700
-Message-ID: <153005432756.18809.2045444497326930293.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 14 Jun 2018 17:37:25 -0700
+Message-ID: <152902304504.10541.15111766266820956936.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,40 +23,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The poison handling test requires the systems that have both MAP_SYNC
-and BUS_MCEERR_AR definitions. Add the missing MAP_SYNC gate for this
-test to detect this functionality at build time.
+The _LSR method indicates locked status via error-code-3 returned in the
+_LSR payload. When any error is returned the payload of _LSR is
+truncated to a zero-length buffer.
+
+The _DSM path in comparison allows system software to retrieve the
+locked status *and* namespace label area contents.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- configure.ac |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/acpi/nfit/core.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index 17b5a657149c..cf4426076c65 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -102,10 +102,13 @@ AS_IF([test "x$enable_test" = "xyes"],
- 	[AC_DEFINE([ENABLE_TEST], [1], [ndctl test support])])
- AM_CONDITIONAL([ENABLE_TEST], [test "x$enable_test" = "xyes"])
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e2235ed3e4be..5ce3b0221073 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1694,7 +1694,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ {
+ 	struct acpi_device *adev, *adev_dimm;
+ 	struct device *dev = acpi_desc->dev;
+-	unsigned long dsm_mask;
++	unsigned long dsm_mask, label_mask;
+ 	const guid_t *guid;
+ 	int i;
+ 	int family = -1;
+@@ -1766,6 +1766,16 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 					1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
  
--AC_CHECK_DECLS([BUS_MCEERR_AR], [enable_poison=yes], [], [[#include <signal.h>]])
--AS_IF([test "x$enable_poison" = "xyes"],
-+AC_CHECK_DECLS([BUS_MCEERR_AR], [enable_bus_mc_err=yes], [], [[#include <signal.h>]])
-+AC_CHECK_DECLS([MAP_SYNC], [enable_map_sync=yes], [], [[#include <linux/mman.h>]])
++	/*
++	 * Prefer the NVDIMM_FAMILY_INTEL label read commands if present
++	 * due to their better semantics handling locked capacity.
++	 */
++	label_mask = 1 << ND_CMD_GET_CONFIG_SIZE | 1 << ND_CMD_GET_CONFIG_DATA
++		| 1 << ND_CMD_SET_CONFIG_DATA;
++	if (family == NVDIMM_FAMILY_INTEL
++			&& (dsm_mask & label_mask) == label_mask)
++		return 0;
 +
-+AS_IF([test "x$enable_bus_mc_err" = "xyes" -a "x$enable_map_sync" = "xyes"],
- 	[AC_DEFINE([ENABLE_POISON], [1], [ndctl test poison support])])
--AM_CONDITIONAL([ENABLE_POISON], [test "x$enable_poison" = "xyes"])
-+AM_CONDITIONAL([ENABLE_POISON],
-+	[test "x$enable_bus_mc_err" = "xyes" -a "x$enable_map_sync" = "xyes"])
- 
- PKG_CHECK_MODULES([KMOD], [libkmod])
- PKG_CHECK_MODULES([UDEV], [libudev])
+ 	if (acpi_nvdimm_has_method(adev_dimm, "_LSI")
+ 			&& acpi_nvdimm_has_method(adev_dimm, "_LSR")) {
+ 		dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
 
 _______________________________________________
 Linux-nvdimm mailing list
