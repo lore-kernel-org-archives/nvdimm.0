@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E2C64210C2D65
- for <linux-nvdimm@lists.01.org>; Fri, 15 Jun 2018 13:33:40 -0700 (PDT)
-Subject: [PATCH v2] mm: disallow mapping that conflict for
- devm_memremap_pages()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 15 Jun 2018 13:33:39 -0700
-Message-ID: <152909478401.50143.312364396244072931.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1DB202110939E
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 17:47:17 -0700 (PDT)
+Subject: [PATCH 1/3] libnvdimm: Introduce locked DIMM capacity support
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Jun 2018 17:37:19 -0700
+Message-ID: <152902303977.10541.4641412754161257441.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,88 +22,128 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When pmem namespaces created are smaller than section size, this can cause
-issue during removal and gpf was observed:
+When a DIMM is locked its namespace label area may not be. Introduce the
+distinction of locked namespaces to allow namespace enumeration while
+the capacity is locked.
 
-[ 249.613597] general protection fault: 0000 1 SMP PTI
-[ 249.725203] CPU: 36 PID: 3941 Comm: ndctl Tainted: G W
-4.14.28-1.el7uek.x86_64 #2
-[ 249.745495] task: ffff88acda150000 task.stack: ffffc900233a4000
-[ 249.752107] RIP: 0010:__put_page+0x56/0x79
-[ 249.844675] Call Trace:
-[ 249.847410] devm_memremap_pages_release+0x155/0x23a
-[ 249.852953] release_nodes+0x21e/0x260
-[ 249.857138] devres_release_all+0x3c/0x48
-[ 249.861606] device_release_driver_internal+0x15c/0x207
-[ 249.867439] device_release_driver+0x12/0x14
-[ 249.872204] unbind_store+0xba/0xd8
-[ 249.876098] drv_attr_store+0x27/0x31
-[ 249.880186] sysfs_kf_write+0x3f/0x46
-[ 249.884266] kernfs_fop_write+0x10f/0x18b
-[ 249.888734] __vfs_write+0x3a/0x16d
-[ 249.892628] ? selinux_file_permission+0xe5/0x116
-[ 249.897881] ? security_file_permission+0x41/0xbb
-[ 249.903133] vfs_write+0xb2/0x1a1
-[ 249.906835] ? syscall_trace_enter+0x1ce/0x2b8
-[ 249.911795] SyS_write+0x55/0xb9
-[ 249.915397] do_syscall_64+0x79/0x1ae
-[ 249.919485] entry_SYSCALL_64_after_hwframe+0x3d/0x0
-
-Add code to check whether we have mapping already in the same section and
-prevent additional mapping from created if that is the case.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/nvdimm/dimm.c           |   24 ++++++++++++++++++++++--
+ drivers/nvdimm/namespace_devs.c |   23 +++++++++++++++++++++++
+ drivers/nvdimm/nd.h             |    1 +
+ 3 files changed, 46 insertions(+), 2 deletions(-)
 
-v2: Change dev_warn() to dev_WARN() to provide helpful backtrace. (Robert E)
-
- kernel/memremap.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
-
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 5857267a4af5..a734b1747466 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -176,10 +176,27 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 	unsigned long pfn, pgoff, order;
- 	pgprot_t pgprot = PAGE_KERNEL;
- 	int error, nid, is_ram;
-+	struct dev_pagemap *conflict_pgmap;
+diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
+index 233907889f96..6c8fb7590838 100644
+--- a/drivers/nvdimm/dimm.c
++++ b/drivers/nvdimm/dimm.c
+@@ -34,6 +34,9 @@ static int nvdimm_probe(struct device *dev)
+ 		return rc;
+ 	}
  
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
- 		- align_start;
-+	align_end = align_start + align_size - 1;
++	/* reset locked, to be validated below... */
++	nvdimm_clear_locked(dev);
 +
-+	conflict_pgmap = get_dev_pagemap(PHYS_PFN(align_start), NULL);
-+	if (conflict_pgmap) {
-+		dev_WARN(dev, "Conflicting mapping in same section\n");
-+		put_dev_pagemap(conflict_pgmap);
-+		return ERR_PTR(-ENOMEM);
+ 	ndd = kzalloc(sizeof(*ndd), GFP_KERNEL);
+ 	if (!ndd)
+ 		return -ENOMEM;
+@@ -48,12 +51,30 @@ static int nvdimm_probe(struct device *dev)
+ 	get_device(dev);
+ 	kref_init(&ndd->kref);
+ 
++	/*
++	 * EACCES failures reading the namespace label-area-properties
++	 * are interpreted as the DIMM capacity being locked but the
++	 * namespace labels themselves being accessible.
++	 */
+ 	rc = nvdimm_init_nsarea(ndd);
+-	if (rc == -EACCES)
++	if (rc == -EACCES) {
++		/*
++		 * See nvdimm_namespace_common_probe() where we fail to
++		 * allow namespaces to probe while the DIMM is locked,
++		 * but we do allow for namespace enumeration.
++		 */
+ 		nvdimm_set_locked(dev);
++		rc = 0;
 +	}
+ 	if (rc)
+ 		goto err;
+ 
++	/*
++	 * EACCES failures reading the namespace label-data are
++	 * interpreted as the label area being locked in addition to the
++	 * DIMM capacity. We fail the dimm probe to prevent regions from
++	 * attempting to parse the label area.
++	 */
+ 	rc = nvdimm_init_config_data(ndd);
+ 	if (rc == -EACCES)
+ 		nvdimm_set_locked(dev);
+@@ -72,7 +93,6 @@ static int nvdimm_probe(struct device *dev)
+ 		if (rc == 0)
+ 			nvdimm_set_aliasing(dev);
+ 	}
+-	nvdimm_clear_locked(dev);
+ 	nvdimm_bus_unlock(dev);
+ 
+ 	if (rc)
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 28afdd668905..cb322f2bc605 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1144,6 +1144,26 @@ resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns)
+ }
+ EXPORT_SYMBOL(nvdimm_namespace_capacity);
+ 
++bool nvdimm_namespace_locked(struct nd_namespace_common *ndns)
++{
++	int i;
++	bool locked = false;
++	struct device *dev = &ndns->dev;
++	struct nd_region *nd_region = to_nd_region(dev->parent);
 +
-+	conflict_pgmap = get_dev_pagemap(PHYS_PFN(align_end), NULL);
-+	if (conflict_pgmap) {
-+		dev_WARN(dev, "Conflicting mapping in same section\n");
-+		put_dev_pagemap(conflict_pgmap);
-+		return ERR_PTR(-ENOMEM);
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++
++		if (test_bit(NDD_LOCKED, &nvdimm->flags)) {
++			dev_dbg(dev, "%s locked\n", nvdimm_name(nvdimm));
++			locked = true;
++		}
 +	}
++	return locked;
++}
++EXPORT_SYMBOL(nvdimm_namespace_locked);
 +
- 	is_ram = region_intersects(align_start, align_size,
- 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+ static ssize_t size_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -1695,6 +1715,9 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
+ 		}
+ 	}
  
-@@ -199,7 +216,6 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 
- 	mutex_lock(&pgmap_lock);
- 	error = 0;
--	align_end = align_start + align_size - 1;
- 
- 	foreach_order_pgoff(res, order, pgoff) {
- 		error = __radix_tree_insert(&pgmap_radix,
++	if (nvdimm_namespace_locked(ndns))
++		return ERR_PTR(-EACCES);
++
+ 	size = nvdimm_namespace_capacity(ndns);
+ 	if (size < ND_MIN_NAMESPACE_SIZE) {
+ 		dev_dbg(&ndns->dev, "%pa, too small must be at least %#x\n",
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 32e0364b48b9..9d17abd9f8d0 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -357,6 +357,7 @@ struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
+ 		struct nd_label_id *label_id, resource_size_t start,
+ 		resource_size_t n);
+ resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns);
++bool nvdimm_namespace_locked(struct nd_namespace_common *ndns);
+ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev);
+ int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns);
+ int nvdimm_namespace_detach_btt(struct nd_btt *nd_btt);
 
 _______________________________________________
 Linux-nvdimm mailing list
