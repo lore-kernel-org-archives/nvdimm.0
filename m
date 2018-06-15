@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8871B2112387D
- for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 17:00:29 -0700 (PDT)
-Subject: [PATCH v4 02/12] device-dax: Cleanup vm_fault de-reference chains
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 08 Jun 2018 16:50:32 -0700
-Message-ID: <152850183221.38390.15042297366983937566.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E2C64210C2D65
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Jun 2018 13:33:40 -0700 (PDT)
+Subject: [PATCH v2] mm: disallow mapping that conflict for
+ devm_memremap_pages()
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 15 Jun 2018 13:33:39 -0700
+Message-ID: <152909478401.50143.312364396244072931.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,142 +21,88 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Define a local 'vma' variable rather than repetitively de-referencing
-the passed in 'struct vm_fault *' instance.
+When pmem namespaces created are smaller than section size, this can cause
+issue during removal and gpf was observed:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+[ 249.613597] general protection fault: 0000 1 SMP PTI
+[ 249.725203] CPU: 36 PID: 3941 Comm: ndctl Tainted: G W
+4.14.28-1.el7uek.x86_64 #2
+[ 249.745495] task: ffff88acda150000 task.stack: ffffc900233a4000
+[ 249.752107] RIP: 0010:__put_page+0x56/0x79
+[ 249.844675] Call Trace:
+[ 249.847410] devm_memremap_pages_release+0x155/0x23a
+[ 249.852953] release_nodes+0x21e/0x260
+[ 249.857138] devres_release_all+0x3c/0x48
+[ 249.861606] device_release_driver_internal+0x15c/0x207
+[ 249.867439] device_release_driver+0x12/0x14
+[ 249.872204] unbind_store+0xba/0xd8
+[ 249.876098] drv_attr_store+0x27/0x31
+[ 249.880186] sysfs_kf_write+0x3f/0x46
+[ 249.884266] kernfs_fop_write+0x10f/0x18b
+[ 249.888734] __vfs_write+0x3a/0x16d
+[ 249.892628] ? selinux_file_permission+0xe5/0x116
+[ 249.897881] ? security_file_permission+0x41/0xbb
+[ 249.903133] vfs_write+0xb2/0x1a1
+[ 249.906835] ? syscall_trace_enter+0x1ce/0x2b8
+[ 249.911795] SyS_write+0x55/0xb9
+[ 249.915397] do_syscall_64+0x79/0x1ae
+[ 249.919485] entry_SYSCALL_64_after_hwframe+0x3d/0x0
+
+Add code to check whether we have mapping already in the same section and
+prevent additional mapping from created if that is the case.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/dax/device.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index d44d98c54d0f..686de08e120b 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -247,13 +247,14 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
- static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
- 				struct vm_fault *vmf)
- {
-+	struct vm_area_struct *vma = vmf->vma;
- 	struct device *dev = &dev_dax->dev;
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
- 	pfn_t pfn;
- 	unsigned int fault_size = PAGE_SIZE;
+v2: Change dev_warn() to dev_WARN() to provide helpful backtrace. (Robert E)
+
+ kernel/memremap.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 5857267a4af5..a734b1747466 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -176,10 +176,27 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+ 	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	int error, nid, is_ram;
++	struct dev_pagemap *conflict_pgmap;
  
--	if (check_vma(dev_dax, vmf->vma, __func__))
-+	if (check_vma(dev_dax, vma, __func__))
- 		return VM_FAULT_SIGBUS;
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
+ 		- align_start;
++	align_end = align_start + align_size - 1;
++
++	conflict_pgmap = get_dev_pagemap(PHYS_PFN(align_start), NULL);
++	if (conflict_pgmap) {
++		dev_WARN(dev, "Conflicting mapping in same section\n");
++		put_dev_pagemap(conflict_pgmap);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	conflict_pgmap = get_dev_pagemap(PHYS_PFN(align_end), NULL);
++	if (conflict_pgmap) {
++		dev_WARN(dev, "Conflicting mapping in same section\n");
++		put_dev_pagemap(conflict_pgmap);
++		return ERR_PTR(-ENOMEM);
++	}
++
+ 	is_ram = region_intersects(align_start, align_size,
+ 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
  
- 	dax_region = dev_dax->region;
-@@ -274,13 +275,14 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+@@ -199,7 +216,6 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
  
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+-	align_end = align_start + align_size - 1;
  
--	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
-+	return vmf_insert_mixed(vma, vmf->address, pfn);
- }
- 
- static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
- 				struct vm_fault *vmf)
- {
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
-+	struct vm_area_struct *vma = vmf->vma;
- 	struct device *dev = &dev_dax->dev;
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
-@@ -288,7 +290,7 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
- 	pfn_t pfn;
- 	unsigned int fault_size = PMD_SIZE;
- 
--	if (check_vma(dev_dax, vmf->vma, __func__))
-+	if (check_vma(dev_dax, vma, __func__))
- 		return VM_FAULT_SIGBUS;
- 
- 	dax_region = dev_dax->region;
-@@ -310,11 +312,10 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
- 		return VM_FAULT_FALLBACK;
- 
- 	/* if we are outside of the VMA */
--	if (pmd_addr < vmf->vma->vm_start ||
--			(pmd_addr + PMD_SIZE) > vmf->vma->vm_end)
-+	if (pmd_addr < vma->vm_start || (pmd_addr + PMD_SIZE) > vma->vm_end)
- 		return VM_FAULT_SIGBUS;
- 
--	pgoff = linear_page_index(vmf->vma, pmd_addr);
-+	pgoff = linear_page_index(vma, pmd_addr);
- 	phys = dax_pgoff_to_phys(dev_dax, pgoff, PMD_SIZE);
- 	if (phys == -1) {
- 		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", pgoff);
-@@ -323,7 +324,7 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
- 
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
-+	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- 
-@@ -332,6 +333,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- 				struct vm_fault *vmf)
- {
- 	unsigned long pud_addr = vmf->address & PUD_MASK;
-+	struct vm_area_struct *vma = vmf->vma;
- 	struct device *dev = &dev_dax->dev;
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
-@@ -340,7 +342,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- 	unsigned int fault_size = PUD_SIZE;
- 
- 
--	if (check_vma(dev_dax, vmf->vma, __func__))
-+	if (check_vma(dev_dax, vma, __func__))
- 		return VM_FAULT_SIGBUS;
- 
- 	dax_region = dev_dax->region;
-@@ -362,11 +364,10 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- 		return VM_FAULT_FALLBACK;
- 
- 	/* if we are outside of the VMA */
--	if (pud_addr < vmf->vma->vm_start ||
--			(pud_addr + PUD_SIZE) > vmf->vma->vm_end)
-+	if (pud_addr < vma->vm_start || (pud_addr + PUD_SIZE) > vma->vm_end)
- 		return VM_FAULT_SIGBUS;
- 
--	pgoff = linear_page_index(vmf->vma, pud_addr);
-+	pgoff = linear_page_index(vma, pud_addr);
- 	phys = dax_pgoff_to_phys(dev_dax, pgoff, PUD_SIZE);
- 	if (phys == -1) {
- 		dev_dbg(dev, "pgoff_to_phys(%#lx) failed\n", pgoff);
-@@ -375,7 +376,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- 
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_pfn_pud(vmf->vma, vmf->address, vmf->pud, pfn,
-+	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
-@@ -390,12 +391,13 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
- 	int rc, id;
--	struct file *filp = vmf->vma->vm_file;
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct file *filp = vma->vm_file;
- 	struct dev_dax *dev_dax = filp->private_data;
- 
- 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
- 			(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
--			vmf->vma->vm_start, vmf->vma->vm_end, pe_size);
-+			vma->vm_start, vma->vm_end, pe_size);
- 
- 	id = dax_read_lock();
- 	switch (pe_size) {
+ 	foreach_order_pgoff(res, order, pgoff) {
+ 		error = __radix_tree_insert(&pgmap_radix,
 
 _______________________________________________
 Linux-nvdimm mailing list
