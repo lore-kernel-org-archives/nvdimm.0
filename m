@@ -2,12 +2,16 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C7FE6211BFCDA
- for <linux-nvdimm@lists.01.org>; Wed, 20 Jun 2018 15:51:51 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [fstests PATCH 1/2] src/: fix up mmap() error checking
-Date: Wed, 20 Jun 2018 16:51:46 -0600
-Message-Id: <20180620225147.12151-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 85CD52110C83B
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 17:47:27 -0700 (PDT)
+Subject: [PATCH 3/3] tools/testing/nvdimm: Make DSM failure code injection
+ an override
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Jun 2018 17:37:30 -0700
+Message-ID: <152902305016.10541.6695000206945040942.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,127 +19,139 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Eryu Guan <eguan@redhat.com>, fstests@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-ext4@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-I noticed that in some of my C tests in src/ I was incorrectly checking for
-mmap() failure by looking for NULL instead of MAP_FAILED.  Fix those and
-clean up some places where we were testing against -1 (the actual value of
-MAP_FAILED) which was manually being cast to a pointer.
+In order to emulate the behavior of the NVDIMM_FAMILY_INTEL DSMs
+nfit_test needs the ability to execute the DSM and then override the
+return code.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Split the current return code injection from get_dimm() and apply at
+after the function has executed to override the return status.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- src/aio-dio-regress/aio-io-setup-with-nonwritable-context-pointer.c | 2 +-
- src/fstest.c                                                        | 2 +-
- src/t_ext4_dax_inline_corruption.c                                  | 4 ++--
- src/t_ext4_dax_journal_corruption.c                                 | 4 ++--
- src/t_mmap_stale_pmd.c                                              | 2 ++
- src/t_mmap_writev.c                                                 | 2 +-
- 6 files changed, 9 insertions(+), 7 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   49 +++++++++++++++++++++++++-------------
+ 1 file changed, 32 insertions(+), 17 deletions(-)
 
-diff --git a/src/aio-dio-regress/aio-io-setup-with-nonwritable-context-pointer.c b/src/aio-dio-regress/aio-io-setup-with-nonwritable-context-pointer.c
-index 092cbb42..af381177 100644
---- a/src/aio-dio-regress/aio-io-setup-with-nonwritable-context-pointer.c
-+++ b/src/aio-dio-regress/aio-io-setup-with-nonwritable-context-pointer.c
-@@ -40,7 +40,7 @@ main(int __attribute__((unused)) argc, char **argv)
- 	void *addr;
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 4ea385be528f..6f19d6e28f5f 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -882,6 +882,16 @@ static int nd_intel_test_cmd_set_lss_status(struct nfit_test *t,
+ 	return 0;
+ }
  
- 	addr = mmap(NULL, 4096, PROT_READ, MAP_SHARED|MAP_ANONYMOUS, 0, 0);
--	if (!addr) {
-+	if (addr == MAP_FAILED) {
- 		perror("mmap");
- 		exit(1);
- 	}
-diff --git a/src/fstest.c b/src/fstest.c
-index f7e2d3eb..e4b9e081 100644
---- a/src/fstest.c
-+++ b/src/fstest.c
-@@ -138,7 +138,7 @@ bozo!
- 			exit(1);
++static int override_return_code(int dimm, unsigned int func, int rc)
++{
++	if ((1 << func) & dimm_fail_cmd_flags[dimm]) {
++		if (dimm_fail_cmd_code[dimm])
++			return dimm_fail_cmd_code[dimm];
++		return -EIO;
++	}
++	return rc;
++}
++
+ static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
+ {
+ 	int i;
+@@ -892,13 +902,6 @@ static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
+ 			break;
+ 	if (i >= ARRAY_SIZE(handle))
+ 		return -ENXIO;
+-
+-	if ((1 << func) & dimm_fail_cmd_flags[i]) {
+-		if (dimm_fail_cmd_code[i])
+-			return dimm_fail_cmd_code[i];
+-		return -EIO;
+-	}
+-
+ 	return i;
+ }
+ 
+@@ -937,48 +940,59 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 
+ 			switch (func) {
+ 			case ND_INTEL_ENABLE_LSS_STATUS:
+-				return nd_intel_test_cmd_set_lss_status(t,
++				rc = nd_intel_test_cmd_set_lss_status(t,
+ 						buf, buf_len);
++				break;
+ 			case ND_INTEL_FW_GET_INFO:
+-				return nd_intel_test_get_fw_info(t, buf,
++				rc = nd_intel_test_get_fw_info(t, buf,
+ 						buf_len, i - t->dcr_idx);
++				break;
+ 			case ND_INTEL_FW_START_UPDATE:
+-				return nd_intel_test_start_update(t, buf,
++				rc = nd_intel_test_start_update(t, buf,
+ 						buf_len, i - t->dcr_idx);
++				break;
+ 			case ND_INTEL_FW_SEND_DATA:
+-				return nd_intel_test_send_data(t, buf,
++				rc = nd_intel_test_send_data(t, buf,
+ 						buf_len, i - t->dcr_idx);
++				break;
+ 			case ND_INTEL_FW_FINISH_UPDATE:
+-				return nd_intel_test_finish_fw(t, buf,
++				rc = nd_intel_test_finish_fw(t, buf,
+ 						buf_len, i - t->dcr_idx);
++				break;
+ 			case ND_INTEL_FW_FINISH_QUERY:
+-				return nd_intel_test_finish_query(t, buf,
++				rc = nd_intel_test_finish_query(t, buf,
+ 						buf_len, i - t->dcr_idx);
++				break;
+ 			case ND_INTEL_SMART:
+-				return nfit_test_cmd_smart(buf, buf_len,
++				rc = nfit_test_cmd_smart(buf, buf_len,
+ 						&t->smart[i - t->dcr_idx]);
++				break;
+ 			case ND_INTEL_SMART_THRESHOLD:
+-				return nfit_test_cmd_smart_threshold(buf,
++				rc = nfit_test_cmd_smart_threshold(buf,
+ 						buf_len,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx]);
++				break;
+ 			case ND_INTEL_SMART_SET_THRESHOLD:
+-				return nfit_test_cmd_smart_set_threshold(buf,
++				rc = nfit_test_cmd_smart_set_threshold(buf,
+ 						buf_len,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+ 						&t->pdev.dev, t->dimm_dev[i]);
++				break;
+ 			case ND_INTEL_SMART_INJECT:
+-				return nfit_test_cmd_smart_inject(buf,
++				rc = nfit_test_cmd_smart_inject(buf,
+ 						buf_len,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+ 						&t->pdev.dev, t->dimm_dev[i]);
++				break;
+ 			default:
+ 				return -ENOTTY;
+ 			}
++			return override_return_code(i, func, rc);
  		}
- 		p = mmap(NULL, file_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
--		if (p == (char *)-1) {
-+		if (p == MAP_FAILED) {
- 			perror("mmap");
- 			exit(1);
+ 
+ 		if (!test_bit(cmd, &cmd_mask)
+@@ -1004,6 +1018,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		default:
+ 			return -ENOTTY;
  		}
-diff --git a/src/t_ext4_dax_inline_corruption.c b/src/t_ext4_dax_inline_corruption.c
-index 4b7d8938..b52bcc0d 100644
---- a/src/t_ext4_dax_inline_corruption.c
-+++ b/src/t_ext4_dax_inline_corruption.c
-@@ -37,14 +37,14 @@ int main(int argc, char *argv[])
- 		err_exit("fd");
- 
- 	data = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
--	if (!data)
-+	if (data == MAP_FAILED)
- 		err_exit("mmap data");
- 
- 	/* this fallocate turns off inline data and turns on DAX */
- 	fallocate(fd, 0, 0, PAGE(2));
- 
- 	dax_data = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
--	if (!dax_data)
-+	if (dax_data == MAP_FAILED)
- 		err_exit("mmap dax_data");
- 
- 	/*
-diff --git a/src/t_ext4_dax_journal_corruption.c b/src/t_ext4_dax_journal_corruption.c
-index 18a2acdc..fccef8f5 100644
---- a/src/t_ext4_dax_journal_corruption.c
-+++ b/src/t_ext4_dax_journal_corruption.c
-@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
- 	fallocate(fd, 0, 0, len);
- 
- 	dax_data = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
--	if (!dax_data)
-+	if (dax_data == MAP_FAILED)
- 		err_exit("mmap dax_data");
- 
- 	/*
-@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
- 	chattr_cmd(chattr, "+j", file);
- 
- 	data = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
--	if (!data)
-+	if (data == MAP_FAILED)
- 		err_exit("mmap data");
- 
- 	/*
-diff --git a/src/t_mmap_stale_pmd.c b/src/t_mmap_stale_pmd.c
-index b4472227..6a52201c 100644
---- a/src/t_mmap_stale_pmd.c
-+++ b/src/t_mmap_stale_pmd.c
-@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
- 	ftruncate(fd, MiB(4));
- 
- 	data = mmap(NULL, MiB(2), PROT_READ, MAP_SHARED, fd, MiB(2));
-+	if (data == MAP_FAILED)
-+		err_exit("mmap");
- 
- 	/*
- 	 * This faults in a 2MiB zero page to satisfy the read.
-diff --git a/src/t_mmap_writev.c b/src/t_mmap_writev.c
-index e5ca08ab..43acc15f 100644
---- a/src/t_mmap_writev.c
-+++ b/src/t_mmap_writev.c
-@@ -51,7 +51,7 @@ int main(int argc, char **argv)
- 	if (fd==-1) {perror("open");exit(1);}
- 
- 	base = mmap(NULL,16384,PROT_READ,MAP_SHARED,fd,0);
--	if  (base == (void *)-1) { perror("mmap");exit(1); }
-+	if  (base == MAP_FAILED) { perror("mmap");exit(1); }
- 
- 	unlink(new_file);
- 
--- 
-2.14.4
++		return override_return_code(i, func, rc);
+ 	} else {
+ 		struct ars_state *ars_state = &t->ars_state;
+ 		struct nd_cmd_pkg *call_pkg = buf;
 
 _______________________________________________
 Linux-nvdimm mailing list
