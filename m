@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6C5AE210F48CE
- for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 11:02:07 -0700 (PDT)
-Subject: [PATCH] libnvdimm,
- pmem: Fix memcpy_mcsafe() return code handling in nsio_rw_bytes()
+ by ml01.01.org (Postfix) with ESMTPS id 9CBC0210F6727
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 17:40:21 -0700 (PDT)
+Subject: [PATCH] tools/testing/nvdimm: Fix support for emulating controller
+ temperature
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Jun 2018 10:52:09 -0700
-Message-ID: <152934432951.24427.11070204367866836632.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 14 Jun 2018 17:30:23 -0700
+Message-ID: <152902262388.10279.6032527372904228835.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,35 +22,32 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit 60622d68227d "x86/asm/memcpy_mcsafe: Return bytes remaining"
-converted callers of memcpy_mcsafe() to expect a positive 'bytes
-remaining' value rather than a negative error code. The nsio_rw_bytes()
-conversion failed to return success. The failure is benign in that
-nsio_rw_bytes() will end up writing back what it just read.
+In addition to populating the value the payload also needs to set the
+"controller temperature valid" flag.
 
-Fixes: 60622d68227d ("x86/asm/memcpy_mcsafe: Return bytes remaining")
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+Fixes: cdd77d3e1930 ("nfit, libnvdimm: deprecate the generic SMART ioctl")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/claim.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/nvdimm/test/nfit.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 2e96b34bc936..fb667bf469c7 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -278,6 +278,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 			return -EIO;
- 		if (memcpy_mcsafe(buf, nsio->addr + offset, size) != 0)
- 			return -EIO;
-+		return 0;
- 	}
- 
- 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 6f19d6e28f5f..15dc280eb3ae 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1321,7 +1321,8 @@ static void smart_init(struct nfit_test *t)
+ 			| ND_INTEL_SMART_ALARM_VALID
+ 			| ND_INTEL_SMART_USED_VALID
+ 			| ND_INTEL_SMART_SHUTDOWN_VALID
+-			| ND_INTEL_SMART_MTEMP_VALID,
++			| ND_INTEL_SMART_MTEMP_VALID
++			| ND_INTEL_SMART_CTEMP_VALID,
+ 		.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
+ 		.media_temperature = 23 * 16,
+ 		.ctrl_temperature = 25 * 16,
 
 _______________________________________________
 Linux-nvdimm mailing list
