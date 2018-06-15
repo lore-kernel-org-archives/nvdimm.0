@@ -1,20 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk0-x244.google.com (mail-qk0-x244.google.com
- [IPv6:2607:f8b0:400d:c09::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 85BE921164C5B
- for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 12:43:51 -0700 (PDT)
-Received: by mail-qk0-x244.google.com with SMTP id 185-v6so4337213qkk.11
- for <linux-nvdimm@lists.01.org>; Thu, 14 Jun 2018 12:43:51 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: [PATCH 1/2] nfit,
- test: Add NFIT_TEST_BUS[01] variable and some helper funtions to
- common
-Date: Thu, 14 Jun 2018 15:43:35 -0400
-Message-Id: <20180614194336.15341-2-msys.mizuma@gmail.com>
-In-Reply-To: <20180614194336.15341-1-msys.mizuma@gmail.com>
-References: <20180614194336.15341-1-msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id CBDB1210DBE76
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Jun 2018 10:59:50 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2] ndctl, contrib: Add helper scripts for new release
+Date: Fri, 15 Jun 2018 11:59:43 -0600
+Message-Id: <20180615175943.415-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,84 +21,318 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Add a couple of helper scripts to codify the release process.
+First is do_abidiff: This builds RPMs for two different versions of
+ndctl (specified as a git revision range, for example vXX.Y..HEAD). It
+then uses abipkgdiff to determine whether the commits in that range
+(collectively) introduced any compatibility breaking ABI changes.
+Changing or removing a publicly exported function is considered a
+breakage, where as adding new functions is acceptable.
 
-Add following global variable and functions to test/common file.
+Second is prepare-release.sh: Its primary purpose is to codify the
+libtool version update. It does a variety of sanity checks to ensure we
+didn't involuntarily bump the soname, or update the libtool version in
+an unexpected way.
 
- - NFIT_TEST_BUS[01] (global variable)
-   Buses are created when nfit_test module is loaded.
+prepare-release.sh also calls do_abidiff to perform an abi check between
+the last bug-fix update and the new version about to be released.
 
- - NDCTL (global variable)
-   ndctl command path (renamed).
-
- - _cleanup
-   Helper function cleans up nfit_test module.
-
- - json2var
-   Helper function (filter) converts json to var.
-
-Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- test/common | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ contrib/do_abidiff         |  73 ++++++++++++++
+ contrib/prepare-release.sh | 198 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 271 insertions(+)
+ create mode 100755 contrib/do_abidiff
+ create mode 100755 contrib/prepare-release.sh
 
-diff --git a/test/common b/test/common
-index 8fafa91..fb4e18e 100644
---- a/test/common
-+++ b/test/common
-@@ -4,17 +4,23 @@
- 
- # Global variables
- 
--# ndctl
-+# NDCTL
- #
- if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
--	export ndctl=../ndctl/ndctl
-+	export NDCTL=../ndctl/ndctl
- elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
--	export ndctl=./ndctl/ndctl
-+	export NDCTL=./ndctl/ndctl
- else
- 	echo "Couldn't find an ndctl binary"
- 	exit 1
- fi
- 
-+# NFIT_TEST_BUS[01]
-+#
-+NFIT_TEST_BUS0=nfit_test.0
-+NFIT_TEST_BUS1=nfit_test.1
+diff --git a/contrib/do_abidiff b/contrib/do_abidiff
+new file mode 100755
+index 0000000..a520c3c
+--- /dev/null
++++ b/contrib/do_abidiff
+@@ -0,0 +1,73 @@
++#!/bin/bash -e
 +
++range="$*"
++old="${range%%..*}"
++new="${range##*..}"
 +
- # Functions
- 
- # err
-@@ -58,3 +64,20 @@ check_prereq()
- 		do_skip "missing $1, skipping..."
- 	fi
- }
-+
-+# _cleanup
-+#
-+_cleanup()
++err()
 +{
-+	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
-+	$NDCTL disable-region -b $NFIT_TEST_BUS1 all
-+	modprobe -r nfit_test
++	echo "$1"
++	exit 1
 +}
 +
-+# json2var
-+# stdin: json
-+#
-+json2var()
++build_rpm()
 +{
-+	sed -e "s/[{}\",]//g; s/:/=/g"
++	local cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
++	local ref="$1"
++	local version=""
++
++	# prepare ndctl tree
++	rm -rf results_ndctl
++	git checkout -b rel_${ref} $ref
++	./autogen.sh
++	./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64
++	make clean
++	make rhel/ndctl.spec
++	cp rhel/ndctl.spec .
++
++	# build and copy RPMs
++	version="$(./git-version)"
++	git archive  --format=tar --prefix="ndctl-${version}/" HEAD | gzip > ndctl-${version}.tar.gz
++	fedpkg --release master --module-name ndctl mockbuild
++	mkdir -p release/rel_${ref}/
++	cp results_ndctl/*/*/*.x86_64.rpm release/rel_${ref}/
++
++	# restore ndctl branch and cleanup
++	git checkout $cur
++	git branch -D rel_${ref}
++	rm ndctl-${version}.tar.gz
++	rm ndctl-${version}*.src.rpm
++	rm -rf results_ndctl
++	rm -f ndctl.spec
 +}
++
++do_diff()
++{
++	local pkg="$1"
++	local old_base="$(find . -regex "./release/rel_${old}/${pkg}-[0-9]+.*" | head -1)"
++	local new_base="$(find . -regex "./release/rel_${new}/${pkg}-[0-9]+.*" | head -1)"
++	local old_dev="$(find . -regex "./release/rel_${old}/${pkg}-devel-[0-9]+.*" | head -1)"
++	local new_dev="$(find . -regex "./release/rel_${new}/${pkg}-devel-[0-9]+.*" | head -1)"
++	local old_lib="$(find . -regex "./release/rel_${old}/${pkg}-libs-[0-9]+.*" | head -1)"
++	local new_lib="$(find . -regex "./release/rel_${new}/${pkg}-libs-[0-9]+.*" | head -1)"
++
++	[ -n "$pkg" ] || err "specify a package for diff (ndctl, daxctl)"
++
++	abipkgdiff --dso-only --no-added-syms --harmless --drop-private-types \
++		--devel1 "$old_dev" --devel2 "$new_dev" \
++		"$old_base" "$new_base"
++	abipkgdiff  --no-added-syms --harmless --drop-private-types \
++		--devel1 "$old_dev" --devel2 "$new_dev" \
++		"$old_lib" "$new_lib"
++}
++
++[ -e "COPYING" ] || err "Run from the top level of an ndctl tree"
++if ! command -v "abipkgdiff" >/dev/null; then
++	err "missing abipkgdiff. Please install libabigail"
++fi
++rm -rf release/rel*
++
++build_rpm $old > release/buildlog_$old 2>&1
++build_rpm $new > release/buildlog_$new 2>&1
++do_diff ndctl
++do_diff daxctl
+diff --git a/contrib/prepare-release.sh b/contrib/prepare-release.sh
+new file mode 100755
+index 0000000..45be4d8
+--- /dev/null
++++ b/contrib/prepare-release.sh
+@@ -0,0 +1,198 @@
++#!/bin/bash -e
++
++# Arguments:
++#  fix - fixup release instead of a full release
++#  ignore_rev - ignore the check for _REVISION in libtool versioning checks
++
++# Notes:
++#  - Checkout to the appropriate branch beforehand
++#     master - for major release
++#     ndctl-xx.y - for fixup release
++#    This is important for generating the shortlog
++#  - Add a temporary commit that updates the libtool versions as needed.
++#    This will later become the release commit. Use --amend to add in the
++#    git-version update and the message body.
++
++# Pre-reqs:
++#  - libabigail  (for abipkgdiff)
++#  - fedpkg (for mock build)
++
++# TODO
++#  - auto generate a release commit/tag message template
++#  - determine the most recent kernel release and add it to the above
++#  - perform documentation update for pmem.io/ndctl
++
++cleanup()
++{
++	rm -rf release
++	mkdir release/
++}
++
++err()
++{
++	echo "$1"
++	exit 1
++}
++
++parse_args()
++{
++	local args="$*"
++	grep -q "fix" <<< "$args" && rel_fix="1" || rel_fix=""
++	grep -q "ignore_rev" <<< "$args" && ignore_rev="1" || ignore_rev=""
++}
++
++check_branch()
++{
++	local cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
++	if [ -n "$rel_fix" ]; then
++		# fixup release, expect ndctl-xx.y branch
++		if ! grep -Eq "^ndctl.[0-9]+\.y$" <<< "$cur"; then
++			err "expected an ndctl-xx.y branch for fixup release"
++		fi
++	else
++		# major release, expect master branch
++		if ! grep -Eq "^master$" <<< "$cur"; then
++			err "expected master branch for a major release"
++		fi
++	fi
++	if ! git diff-index --quiet HEAD --; then
++		err "$cur has uncommitted/unstaged changes"
++	fi
++}
++
++last_maj()
++{
++	git tag  | sort -V | grep -E "v[0-9]+$" | tail -1
++}
++
++last_fix()
++{
++	local base="$1"
++	git tag  | sort -V | grep -E "$base\.?[0-9]*$" | tail -1
++}
++
++next_maj()
++{
++	local last="$1"
++	local num=${last#v}
++
++	newnum="$((num + 1))"
++	echo "v$newnum"
++}
++
++next_fix()
++{
++	local last="$1"
++	local num=${last##*.}
++	local base=${last%%.*}
++
++	newnum=$((num + 1))
++	echo "$base.$newnum"
++}
++
++gen_lists()
++{
++	local range="$1"
++
++	git shortlog "$range" > release/shortlog
++	git log --pretty=format:"%s" "$range" > release/commits
++	c_count=$(git log --pretty=format:"%s" "$range" | wc -l)
++}
++
++# Check libtool versions in Makefile.am.in
++# $1: lib name (currently libndctl or libdaxctl)
++check_libtool_vers()
++{
++	local lib="$1"
++	local lib_u="${lib^^}"
++	local libdir="${lib##lib}"
++	local symfile="${libdir}/lib/${lib}.sym"
++	local last_cur=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_CURRENT" | cut -d'=' -f2)
++	local last_rev=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_REVISION" | cut -d'=' -f2)
++	local last_age=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_AGE" | cut -d'=' -f2)
++	local last_soname=$((last_cur - last_age))
++	local next_cur=$(git show HEAD:Makefile.am.in | grep -E "^${lib_u}_CURRENT" | cut -d'=' -f2)
++	local next_rev=$(git show HEAD:Makefile.am.in | grep -E "^${lib_u}_REVISION" | cut -d'=' -f2)
++	local next_age=$(git show HEAD:Makefile.am.in | grep -E "^${lib_u}_AGE" | cut -d'=' -f2)
++	local next_soname=$((next_cur - next_age))
++	local soname_diff=$((next_soname - last_soname))
++
++	# generally libtool versions either reset to zero or increase only by one
++	# _CURRENT monotonically increases (by one)
++	if [ "$((next_cur - last_cur))" -gt 1 ]; then
++		err "${lib_u}_CURRENT can increase at most by 1"
++	fi
++	if [ "$next_rev" -ne 0 ]; then
++		if [ "$((next_rev - last_rev))" -gt 1 ]; then
++			err "${lib_u}_REVISION can increase at most by 1"
++		fi
++	fi
++	if [ "$next_age" -ne 0 ]; then
++		if [ "$((next_age - last_age))" -gt 1 ]; then
++			err "${lib_u}_AGE can increase at most by 1"
++		fi
++	fi
++
++	# test for soname change
++	if [ "$soname_diff" -ne 0 ]; then
++		err "${lib}: expected soname to stay unchanged"
++	fi
++
++	# tests based on whether symfile changed
++	# compatibility breaking changes are left for libabigail to detect
++	test -s "$symfile" || err "$symfile: not found"
++	if [ -n "$(git diff --name-only $last_ref..HEAD $symfile)" ]; then
++		# symfile has changed, cur and age should increase
++		if [ "$((next_cur - last_cur))" -ne 1 ]; then
++			err "based on $symfile, ${lib_u}_CURRENT should've increased by 1"
++		fi
++		if [ "$((next_age - last_age))" -ne 1 ]; then
++			err "based on $symfile, ${lib_u}_AGE should've increased by 1"
++		fi
++	else
++		# no changes to symfile, revision should've increased if source changed
++		if [ -n "$ignore_rev" ]; then
++			: # skip
++		elif [ -n "$(git diff --name-only $last_ref..HEAD $libdir/)" ]; then
++			if [ "$((next_rev - last_rev))" -ne 1 ]; then
++				err "based on $symfile, ${lib_u}_REVISION should've increased by 1"
++			fi
++		fi
++	fi
++}
++
++
++# main
++cleanup
++parse_args "$*"
++check_branch
++[ -e "COPYING" ] || err "Run from the top level of an ndctl tree"
++
++last_maj=$(last_maj)
++test -n "$last_maj" || err "Unable to determine last release"
++
++last_fix=$(last_fix $last_maj)
++test -n "$last_fix" || err "Unable to determine last fixup tag for $last_maj"
++
++next_maj=$(next_maj "$last_maj")
++next_fix=$(next_fix "$last_fix")
++[ -n "$rel_fix" ] && last_ref="$last_fix" || last_ref="$last_maj"
++[ -n "$rel_fix" ] && next_ref="$next_fix" || next_ref="$next_maj"
++
++check_libtool_vers "libndctl"
++check_libtool_vers "libdaxctl"
++
++gen_lists ${last_ref}..HEAD
++
++# For ABI diff purposes, use the latest fixes tag
++contrib/do_abidiff ${last_fix}..HEAD
++
++# once everything passes, update the git-version
++sed -i -e "s/DEF_VER=[0-9]\+.*/DEF_VER=${next_ref#v}/" git-version
++
++echo "Ready to release ndctl-$next_ref with $c_count new commits."
++echo "Add git-version to the top commit to get the updated version."
++echo "Use release/commits and release/shortlog to compose the release message"
++echo "The release commit typically contains the Makefile.am.in libtool version"
++echo "update, and the git-version update."
++echo "Finally, ensure the release commit as well as the tag are PGP signed."
 -- 
-2.18.0.rc1
+2.17.0
 
 _______________________________________________
 Linux-nvdimm mailing list
