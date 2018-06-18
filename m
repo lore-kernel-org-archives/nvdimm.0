@@ -1,176 +1,134 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v4 03/12] device-dax: Enable page_mapping()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 08 Jun 2018 16:50:37 -0700
-Message-ID: <152850183732.38390.13744173577899382680.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DCBC920337374
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 01:27:58 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 6F70EAC00BD
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 17:27:52 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [PATCH v7 3/3] ndctl,
+ monitor: add the unit file of systemd for ndctl-monitor service
+Date: Mon, 18 Jun 2018 17:27:01 +0900
+Message-Id: <20180618082701.12326-4-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180618082701.12326-1-qi.fuli@jp.fujitsu.com>
+References: <20180618082701.12326-1-qi.fuli@jp.fujitsu.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, hch@lst.de, linux-mm@kvack.org, linux-fsdevel@vger.kernel.orgjack@suse.cz
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of enabling memory_failure() handling for device-dax
-mappings, set the ->mapping association of pages backing device-dax
-mappings. The rmap implementation requires page_mapping() to return the
-address_space hosting the vmas that map the page.
+This patch adds the systemd unit file for ndctl-monitor service.
+The systemd unit directory can be configured by setting environment
+variable "--with-systemd-unit-dir[=DIR]".
 
-The ->mapping pointer is never cleared. There is no possibility for the
-page to become associated with another address_space while the device is
-enabled. When the device is disabled the 'struct page' array for the
-device is destroyed / later reinitialized to zero.
+A monitor daemon can be started as a system service:
+   # systemctl start ndctl-monitor.service
 
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- drivers/dax/device.c |   55 +++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 38 insertions(+), 17 deletions(-)
+ autogen.sh                  |  3 ++-
+ configure.ac                | 22 ++++++++++++++++++++++
+ ndctl/Makefile.am           |  4 ++++
+ ndctl/ndctl-monitor.service |  7 +++++++
+ 4 files changed, 35 insertions(+), 1 deletion(-)
+ create mode 100644 ndctl/ndctl-monitor.service
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 686de08e120b..7ec246549721 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -245,13 +245,12 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
- }
+diff --git a/autogen.sh b/autogen.sh
+index 2a52688..21b0e25 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -17,7 +17,8 @@ libdir() {
  
- static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf)
-+				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct device *dev = &dev_dax->dev;
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
--	pfn_t pfn;
- 	unsigned int fault_size = PAGE_SIZE;
+ args="--prefix=/usr \
+ --sysconfdir=/etc \
+---libdir=$(libdir /usr/lib)"
++--libdir=$(libdir /usr/lib) \
++--with-systemd-unit-dir"
  
- 	if (check_vma(dev_dax, vma, __func__))
-@@ -273,13 +272,13 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
- 		return VM_FAULT_SIGBUS;
- 	}
+ echo
+ echo "----------------------------------------------------------------"
+diff --git a/configure.ac b/configure.ac
+index 17b5a65..4013599 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -140,6 +140,27 @@ AC_CHECK_FUNCS([ \
+ 	secure_getenv\
+ ])
  
--	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_mixed(vma, vmf->address, pfn);
-+	return vmf_insert_mixed(vma, vmf->address, *pfn);
- }
- 
- static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf)
-+				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -287,7 +286,6 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
--	pfn_t pfn;
- 	unsigned int fault_size = PMD_SIZE;
- 
- 	if (check_vma(dev_dax, vma, __func__))
-@@ -322,15 +320,15 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
-+	return vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, *pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- 
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf)
-+				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	unsigned long pud_addr = vmf->address & PUD_MASK;
- 	struct vm_area_struct *vma = vmf->vma;
-@@ -338,7 +336,6 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- 	struct dax_region *dax_region;
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
--	pfn_t pfn;
- 	unsigned int fault_size = PUD_SIZE;
- 
- 
-@@ -374,14 +371,14 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
- 
--	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, pfn,
-+	return vmf_insert_pfn_pud(vma, vmf->address, vmf->pud, *pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf)
-+				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	return VM_FAULT_FALLBACK;
- }
-@@ -390,9 +387,11 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
- static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
--	int rc, id;
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct file *filp = vma->vm_file;
-+	unsigned long fault_size;
-+	int rc, id;
-+	pfn_t pfn;
- 	struct dev_dax *dev_dax = filp->private_data;
- 
- 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
-@@ -402,17 +401,39 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 	id = dax_read_lock();
- 	switch (pe_size) {
- 	case PE_SIZE_PTE:
--		rc = __dev_dax_pte_fault(dev_dax, vmf);
-+		fault_size = PAGE_SIZE;
-+		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
- 		break;
- 	case PE_SIZE_PMD:
--		rc = __dev_dax_pmd_fault(dev_dax, vmf);
-+		fault_size = PMD_SIZE;
-+		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
- 		break;
- 	case PE_SIZE_PUD:
--		rc = __dev_dax_pud_fault(dev_dax, vmf);
-+		fault_size = PUD_SIZE;
-+		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
- 		break;
- 	default:
- 		rc = VM_FAULT_SIGBUS;
- 	}
++PKG_PROG_PKG_CONFIG
++AC_ARG_WITH([systemd-unit-dir],
++	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
++		[Directory for systemd service files]),
++	[],
++	[with_systemd_unit_dir=yes])
 +
-+	if (rc == VM_FAULT_NOPAGE) {
-+		unsigned long i;
++if test "x$with_systemd_unit_dir" = "xyes"; then
++	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
++	if test "x$def_systemd_unit_dir" = "x"; then
++		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
++		with_systemd_unit_dir=no
++	else
++		with_systemd_unit_dir="$def_systemd_unit_dir"
++	fi
++fi
 +
-+		/*
-+		 * In the device-dax case the only possibility for a
-+		 * VM_FAULT_NOPAGE result is when device-dax capacity is
-+		 * mapped. No need to consider the zero page, or racing
-+		 * conflicting mappings.
-+		 */
-+		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
-+			struct page *page;
++AS_IF([test "x$with_systemd_unit_dir" != "xno"],
++	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
++AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
 +
-+			page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
-+			if (page->mapping)
-+				continue;
-+			page->mapping = filp->f_mapping;
-+		}
-+	}
- 	dax_read_unlock(id);
+ my_CFLAGS="\
+ -Wall \
+ -Wchar-subscripts \
+@@ -181,6 +202,7 @@ AC_MSG_RESULT([
+         sysconfdir:             ${sysconfdir}
+         libdir:                 ${libdir}
+         includedir:             ${includedir}
++	systemd-unit-dir:	${systemd_unitdir}
  
- 	return rc;
+         compiler:               ${CC}
+         cflags:                 ${CFLAGS}
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index ae3d894..9d008d5 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
+ monitor_configdir = /etc/ndctl/
+ monitor_config_DATA = $(monitor_config_file)
+ EXTRA_DIST += $(monitor_config_file)
++
++if ENABLE_SYSTEMD_UNIT_DIR
++systemd_unit_DATA = ndctl-monitor.service
++endif
+diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
+new file mode 100644
+index 0000000..44f9326
+--- /dev/null
++++ b/ndctl/ndctl-monitor.service
+@@ -0,0 +1,7 @@
++[Unit]
++Description=Ndctl Monitor Daemon
++
++[Service]
++Type=forking
++ExecStart=/usr/bin/ndctl monitor --daemon
++ExecStop=/bin/kill ${MAINPID}
+-- 
+2.17.1
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
