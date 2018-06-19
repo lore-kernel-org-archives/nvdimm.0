@@ -1,21 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x241.google.com (mail-qt0-x241.google.com
+ [IPv6:2607:f8b0:400d:c0d::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 14A5221213EE5
- for <linux-nvdimm@lists.01.org>; Tue, 12 Jun 2018 15:45:11 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v6 1/4] ndctl, util: add OPTION_FILENAME to parse_opt_type
-Date: Tue, 12 Jun 2018 22:45:09 +0000
-Message-ID: <1528843507.4998.8.camel@intel.com>
-References: <20180507050926.17243-1-qi.fuli@jp.fujitsu.com>
- <20180507050926.17243-2-qi.fuli@jp.fujitsu.com>
- <CAPcyv4hcq4jbsP=tSHJ2NqDVAFepmT0UQj-xJVt3KjauHw3ZVA@mail.gmail.com>
- <0DEDF3B159719A448A49EF0E7B11E3222766C70A@g01jpexmbkw01>
-In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3222766C70A@g01jpexmbkw01>
-Content-Language: en-US
-Content-ID: <8BC8D490BC0BC94681B0EBD4A9AC5166@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id AAC8D21131DB8
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Jun 2018 13:44:14 -0700 (PDT)
+Received: by mail-qt0-x241.google.com with SMTP id i18-v6so1047986qtp.12
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Jun 2018 13:44:14 -0700 (PDT)
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: [PATCH] ndctl: add a test file to .gitignore
+Date: Tue, 19 Jun 2018 16:44:10 -0400
+Message-Id: <20180619204410.19766-1-msys.mizuma@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,33 +18,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gV2VkLCAyMDE4LTA1LTE2IGF0IDAyOjQyICswMDAwLCBRaSwgRnVsaSB3cm90ZToNCj4gPiAt
-LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206IERhbiBXaWxsaWFtcyBbbWFpbHRv
-OmRhbi5qLndpbGxpYW1zQGludGVsLmNvbV0NCj4gPiBTZW50OiBTYXR1cmRheSwgTWF5IDEyLCAy
-MDE4IDE6NDIgQU0NCj4gPiBUbzogUWksIEZ1bGkv5paJIOemj+WIqSA8cWkuZnVsaUBqcC5mdWpp
-dHN1LmNvbT4NCj4gPiBDYzogbGludXgtbnZkaW1tIDxsaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Pg0KPiA+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjYgMS80XSBuZGN0bCwgdXRpbDogYWRkIE9QVElP
-Tl9GSUxFTkFNRSB0bw0KPiA+IHBhcnNlX29wdF90eXBlDQo+ID4gDQo+ID4gT24gU3VuLCBNYXkg
-NiwgMjAxOCBhdCAxMDowOSBQTSwgUUkgRnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4g
-PiB3cm90ZToNCj4gPiA+IFRoaXMgcGF0Y2ggYm9ycm93cyB0aGUgT1BUSU9OX0ZJTEVOQU1FIGZy
-b20gZ2l0IHRvIG5kY3RsIHRvIG1ha2Ugc3VyZQ0KPiA+ID4gZmlsZW5hbWUgaXMgY29ycmVjdC4g
-U29tZSByZWxhdGVkIHJlZmFjdG9yaW5nIGlzIGFsc28gaW5jbHVkZWQ6DQo+ID4gPiAgIC0gYWRk
-cyBwYXJzZV9vcHRpb25zX3ByZWZpeCgpIGludGVyZmFjZQ0KPiA+ID4gICAtIG1vdmVzIGlzX2Fi
-c29sdXRlIGZyb20gdXRpbC9oZWxwLmMgdG8gdXRpbC91dGlsLmMNCj4gPiA+ICAgLSBhZGRzIGEg
-bmV3IGZpbGUgdXRpbC9hYnNwYXRoLmMNCj4gPiA+IA0KPiA+ID4gU2lnbmVkLW9mZi1ieTogUUkg
-RnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gPiANCj4gPiBSZXZpZXdlZC1ieTogRGFu
-IFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4gDQo+IA0KPiBTaW5jZSB0
-aGlzIHBhdGNoIGlzIGluZGVwZW5kZW50IGZyb20gdGhlIG90aGVycywgY291bGQgeW91IHBsZWFz
-ZSBtZXJnZQ0KPiB0aGlzIG9uZSBmaXJzdD8NCg0KSGkgUWksDQoNClllcyBJIGhhdmUgYXBwbGll
-ZCB0aGUgZmlyc3QgcGF0Y2gsIGFuZCBpdCBpcyBub3cgaW4gdGhlIHBlbmRpbmcgYnJhbmNoLg0K
-DQpUaGFua3MsDQoJLVZpc2hhbApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
-MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+
+Add test/ack-shutdown-count-set to .gitignore.
+
+Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+---
+ .gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/.gitignore b/.gitignore
+index c7d11d9..1016b3b 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -55,3 +55,4 @@ test/smart-listen
+ test/smart-notify
+ test/fio.job
+ test/local-write-0-verify.state
++test/ack-shutdown-count-set
+-- 
+2.18.0.rc1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
