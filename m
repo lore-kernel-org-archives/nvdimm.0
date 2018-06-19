@@ -1,13 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x243.google.com (mail-qt0-x243.google.com
+ [IPv6:2607:f8b0:400d:c0d::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BBF812128DD4D
- for <linux-nvdimm@lists.01.org>; Wed, 13 Jun 2018 12:01:04 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl: Update README.md for code blocks
-Date: Wed, 13 Jun 2018 13:00:56 -0600
-Message-Id: <20180613190056.2984-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 112DC21173C96
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Jun 2018 12:34:19 -0700 (PDT)
+Received: by mail-qt0-x243.google.com with SMTP id d3-v6so882031qto.1
+ for <linux-nvdimm@lists.01.org>; Tue, 19 Jun 2018 12:34:18 -0700 (PDT)
+Received: from [10.18.17.172] (nat-pool-bos-t.redhat.com. [66.187.233.206])
+ by smtp.gmail.com with ESMTPSA id q77-v6sm426021qki.73.2018.06.19.12.34.17
+ for <linux-nvdimm@lists.01.org>
+ (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+ Tue, 19 Jun 2018 12:34:17 -0700 (PDT)
+Subject: Re: [PATCH v2 0/2] nfit, test: Add some global variables and
+ functions to cleanup.
+References: <20180619193031.17555-1-msys.mizuma@gmail.com>
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <400f53a8-d94e-b881-9227-8e79347e9317@gmail.com>
+Date: Tue, 19 Jun 2018 15:34:19 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180619193031.17555-1-msys.mizuma@gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,7 +28,6 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
@@ -23,171 +35,51 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-README.md had inline code blocks for various config lines, but one of
-them, "override device_dax * extra", was missing the two spaces at the
-end causing the markdown renderer to put the next line adjacent to it
-instead of below. This caused depmod to be misconfigured if one
-copy-pasted from the github landing page.
+I think the subject is wrong... I'll resend them, sorry.
 
-Fix this by replacing multi-line code blocks using the "```" block
-markers everywhere. Also add the kernel.org wiki URL to the
-Documentation section, and fix list numbering.
+- Masa
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- README.md | 102 ++++++++++++++++++++++++++++++++----------------------
- 1 file changed, 61 insertions(+), 41 deletions(-)
-
-diff --git a/README.md b/README.md
-index e0bc5b7..b4cf673 100644
---- a/README.md
-+++ b/README.md
-@@ -5,11 +5,14 @@ sub-system in the Linux kernel
- 
- Build
- =====
--`./autogen.sh`  
--`./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64`  
--`make`  
--`make check`  
--`sudo make install`  
-+
-+```
-+./autogen.sh
-+./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64
-+make
-+make check
-+sudo make install
-+```
- 
- There are a number of packages required for the build steps that may not
- be installed by default.   For information about the required packages,
-@@ -23,45 +26,56 @@ See the latest documentation for the NVDIMM kernel sub-system here:
-   
- https://git.kernel.org/cgit/linux/kernel/git/nvdimm/nvdimm.git/tree/Documentation/nvdimm/nvdimm.txt?h=libnvdimm-for-next
- 
-+A getting started guide is also available on the kernel.org nvdimm wiki:
-+
-+https://nvdimm.wiki.kernel.org/start
-+
- Unit Tests
- ==========
- The unit tests run by `make check` require the nfit_test.ko module to be
- loaded.  To build and install nfit_test.ko:
- 
- 1. Obtain the kernel source.  For example,  
--`git clone -b libnvdimm-for-next
--git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git`  
-+   `git clone -b libnvdimm-for-next git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git`  
- 
--2. Skip to step 3 if the kernel version is >= v4.8.  Otherwise, for
-+1. Skip to step 3 if the kernel version is >= v4.8.  Otherwise, for
-    kernel versions < v4.8, configure the kernel to make some memory
-    available to CMA (contiguous memory allocator). This will be used to
-    emulate DAX.  
--`CONFIG_DMA_CMA=y`  
--`CONFIG_CMA_SIZE_MBYTES=200`  
--**or**  
--`cma=200M` on the kernel command line.  
-+   ```
-+   CONFIG_DMA_CMA=y
-+   CONFIG_CMA_SIZE_MBYTES=200
-+   ```
-+   **or**  
-+   `cma=200M` on the kernel command line.  
- 
--3. Compile the libnvdimm sub-system as a module, make sure "zone device"
-+1. Compile the libnvdimm sub-system as a module, make sure "zone device"
-    memory is enabled, and enable the btt, pfn, and dax features of the
-    sub-system:  
--`CONFIG_X86_PMEM_LEGACY=m`  
--`CONFIG_ZONE_DEVICE=y`  
--`CONFIG_LIBNVDIMM=m`  
--`CONFIG_BLK_DEV_PMEM=m`  
--`CONFIG_ND_BLK=m`  
--`CONFIG_BTT=y`  
--`CONFIG_NVDIMM_PFN=y`  
--`CONFIG_NVDIMM_DAX=y`  
--`CONFIG_DEV_DAX_PMEM=m`
--
--4. Build and install the unit test enabled libnvdimm modules in the
-+
-+   ```
-+   CONFIG_X86_PMEM_LEGACY=m
-+   CONFIG_ZONE_DEVICE=y
-+   CONFIG_LIBNVDIMM=m
-+   CONFIG_BLK_DEV_PMEM=m
-+   CONFIG_ND_BLK=m
-+   CONFIG_BTT=y
-+   CONFIG_NVDIMM_PFN=y
-+   CONFIG_NVDIMM_DAX=y
-+   CONFIG_DEV_DAX_PMEM=m
-+   ```
-+
-+1. Build and install the unit test enabled libnvdimm modules in the
-    following order.  The unit test modules need to be in place prior to
-    the `depmod` that runs during the final `modules_install`  
--`make M=tools/testing/nvdimm`  
--`sudo make M=tools/testing/nvdimm modules_install`  
--`sudo make modules_install`
- 
--5. Now run `make check` in the ndctl source directory, or `ndctl test`,
-+   ```
-+   make M=tools/testing/nvdimm
-+   sudo make M=tools/testing/nvdimm modules_install
-+   sudo make modules_install
-+   ```
-+
-+1. Now run `make check` in the ndctl source directory, or `ndctl test`,
-    if ndctl was built with `--enable-test`.
- 
- Troubleshooting
-@@ -73,23 +87,29 @@ test modules are not available, or the test versions of the modules are
- superseded by the "in-tree/production" version of the modules `make
- check` will skip tests and report a message like the following in
- test/test-suite.log:  
--`SKIP: libndctl`  
--`==============`  
--`test/init: nfit_test_init: nfit.ko: appears to be production version: /lib/modules/4.8.8-200.fc24.x86_64/kernel/drivers/acpi/nfit/nfit.ko.xz`  
--`__ndctl_test_skip: explicit skip test_libndctl:2684`  
--`nfit_test unavailable skipping tests`  
-+
-+```
-+SKIP: libndctl
-+==============
-+test/init: nfit_test_init: nfit.ko: appears to be production version: /lib/modules/4.8.8-200.fc24.x86_64/kernel/drivers/acpi/nfit/nfit.ko.xz
-+__ndctl_test_skip: explicit skip test_libndctl:2684
-+nfit_test unavailable skipping tests
-+```
- 
- If the unit test modules are indeed available in the modules 'extra'
- directory the default depmod policy can be overridden by adding a file
- to /etc/depmod.d with the following contents:  
--`override nfit * extra`  
--`override device_dax * extra`
--`override dax_pmem * extra`  
--`override libnvdimm * extra`  
--`override nd_blk * extra`  
--`override nd_btt * extra`  
--`override nd_e820 * extra`  
--`override nd_pmem * extra`  
-+
-+```
-+override nfit * extra
-+override device_dax * extra
-+override dax_pmem * extra
-+override libnvdimm * extra
-+override nd_blk * extra
-+override nd_btt * extra
-+override nd_e820 * extra
-+override nd_pmem * extra
-+```
- 
- The nfit_test module emulates pmem with memory allocated via vmalloc().
- One of the side effects is that this breaks 'physically contiguous'
--- 
-2.17.0
-
+On 06/19/2018 03:30 PM, Masayoshi Mizuma wrote:
+> This is additional cleanup patches for test scripts.
+> Add following global variable and functions to test/common file.
+> Then, cleanup test script to use them.
+> 
+>  - NFIT_TEST_BUS[01] (global variable)
+>    Buses are created when nfit_test module is loaded.
+> 
+>  - NDCTL (global variable)
+>    ndctl command path (renamed).
+> 
+>  - _cleanup
+>    Helper function cleans up nfit_test module.
+> 
+>  - json2var
+>    Helper function (filter) converts json to var.
+> 
+> Changelog:
+>  - Fix missing '-b' before $NFIT_TEST_BUS*.
+> 
+> Masayoshi Mizuma (2):
+>   nfit, test: Add NFIT_TEST_BUS[01] variable and some helper funtions to common
+>   nfit, test: cleanup test scripts
+> 
+>  test/blk-exhaust.sh       | 21 ++++++----------
+>  test/btt-check.sh         | 52 ++++++++++++++++++---------------------
+>  test/btt-errors.sh        | 30 +++++++++++-----------
+>  test/btt-pad-compat.sh    | 36 ++++++++++++---------------
+>  test/clear.sh             | 25 +++++++------------
+>  test/common               | 29 +++++++++++++++++++---
+>  test/create.sh            | 26 +++++++++-----------
+>  test/daxdev-errors.sh     | 29 ++++++++--------------
+>  test/firmware-update.sh   | 25 +++++--------------
+>  test/inject-error.sh      | 24 ++++++++----------
+>  test/label-compat.sh      | 17 +++++--------
+>  test/multi-dax.sh         | 23 ++++++-----------
+>  test/pmem-errors.sh       | 19 +++++---------
+>  test/rescan-partitions.sh | 22 ++++++++---------
+>  test/sector-mode.sh       | 22 ++++++-----------
+>  15 files changed, 172 insertions(+), 228 deletions(-)
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
