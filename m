@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A90D82110396D
- for <linux-nvdimm@lists.01.org>; Thu,  7 Jun 2018 15:31:24 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id BCFEE210E3DF5
+ for <linux-nvdimm@lists.01.org>; Thu, 21 Jun 2018 09:34:06 -0700 (PDT)
+Date: Thu, 21 Jun 2018 10:34:05 -0600
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [qemu PATCH 3/5] hw/i386: Update SSDT table used by "make check"
-Date: Thu,  7 Jun 2018 16:31:09 -0600
-Message-Id: <20180607223111.27792-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180607223111.27792-1-ross.zwisler@linux.intel.com>
-References: <20180607223111.27792-1-ross.zwisler@linux.intel.com>
+Subject: Re: [fstests PATCH 2/2] generic/999: test DAX DMA vs
+ truncate/hole-punch
+Message-ID: <20180621163405.GA7014@linux.intel.com>
+References: <20180620225147.12151-1-ross.zwisler@linux.intel.com>
+ <20180620225147.12151-2-ross.zwisler@linux.intel.com>
+ <20180621021842.GB13748@dastard>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180621021842.GB13748@dastard>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,57 +22,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Peter Maydell <peter.maydell@linaro.org>, Thomas Huth <thuth@redhat.com>, Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Cornelia Huck <cohuck@redhat.com>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>, Eryu Guan <eguan@redhat.com>, linux-nvdimm@lists.01.org, fstests@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This commit:
+On Thu, Jun 21, 2018 at 12:18:42PM +1000, Dave Chinner wrote:
+> On Wed, Jun 20, 2018 at 04:51:47PM -0600, Ross Zwisler wrote:
+<>
+> > +rm -f $seqres.full
+> > +
+> > +# Modify as appropriate.
+> > +_supported_fs generic
+> > +_supported_os Linux
+> > +_require_test
+> > +_require_test_program "t_mmap_collision"
+> > +
+> > +# turn off DAX on our scratch device so we can get normal O_DIRECT behavior
+> > +export MOUNT_OPTIONS=""
+> > +_scratch_unmount >> $seqres.full 2>&1
+> > +_scratch_mount >> $seqres.full 2>&1
+> 
+> _exclude_scratch_mount_option "dax"
+> 
+> i.e. we skip the test if "-o dax" is in the mount options. We try
+> not to turn off all mount options, because then we never exercise
+> any filesystem configuration other than mount defaults, regardless of
+> what other mount options the tester has specified on the CLI or
+> in config files...
+> 
+> > +Silence is golden
+> > diff --git a/tests/generic/group b/tests/generic/group
+> > index 83a6fdab..793f71ed 100644
+> > --- a/tests/generic/group
+> > +++ b/tests/generic/group
+> > @@ -501,3 +501,4 @@
+> >  496 auto quick swap
+> >  497 auto quick swap collapse
+> >  498 auto quick log
+> > +999 auto quick dax
+> 
+> Why should this be in a "dax" group when the test explicitly turns
+> off the the DAX mount option?
 
-commit aa78a16d8645 ("hw/i386: Rename 2.13 machine types to 3.0")
+Right, sorry, this is a bit confusing.  We only turn off dax for the scratch
+device, but we use the full mount options for the test device.  To reproduce
+the bug I'm looking for we would like those mount options to include -o dax
+(hence the membership in the dax group), but the test runs fine without this
+so I didn't want to require the dax mount option for the test to run.
 
-updated the name used to create the q35 machine, which in turn changed the
-SSDT table which is generated when we run "make check":
+I'll add comments to this effect, and I'll address the rest of your feedback
+in v2.
 
-  acpi-test: Warning! SSDT mismatch. Actual [asl:/tmp/asl-QZDWJZ.dsl,
-  aml:/tmp/aml-T8JYJZ], Expected [asl:/tmp/asl-DTWVJZ.dsl,
-  aml:tests/acpi-test-data/q35/SSDT.dimmpxm].
-
-Here's the only difference, aside from the checksum:
-
-  <     Name (MEMA, 0x07FFF000)
-  ---
-  >     Name (MEMA, 0x07FFE000)
-
-Update the binary table that we compare against so it reflects this name
-change.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Peter Maydell <peter.maydell@linaro.org>
-Cc: Cornelia Huck <cohuck@redhat.com>
-Cc: Thomas Huth <thuth@redhat.com>
-Cc: Eduardo Habkost <ehabkost@redhat.com>
-Fixes: commit aa78a16d8645 ("hw/i386: Rename 2.13 machine types to 3.0")
----
- tests/acpi-test-data/q35/SSDT.dimmpxm | Bin 685 -> 685 bytes
- 1 file changed, 0 insertions(+), 0 deletions(-)
-
-diff --git a/tests/acpi-test-data/q35/SSDT.dimmpxm b/tests/acpi-test-data/q35/SSDT.dimmpxm
-index 8ba0e67cb72daa81a65da4906d37a5e0f4af1fd4..2d5b721bcf9c398feb6d005761f898015042e8a4 100644
-GIT binary patch
-delta 23
-fcmZ3>x|WqIIM^j*EfWI+qr*n71x(Bz{<8xBPCEwk
-
-delta 23
-fcmZ3>x|WqIIM^j*EfWI+W57nP1x(Bj{<8xBPMZev
-
--- 
-2.14.4
-
+Thank you for the review.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
