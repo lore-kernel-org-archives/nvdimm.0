@@ -1,10 +1,10 @@
-From: romitogiovanni-BxPUBGRmqdQY9M7jn3tMcg@public.gmane.org
-Subject: Miranda
-Date: Thu, 21 Jun 2018 12:56:23 +0200
-Message-ID: <cfjdsn2-w5tm71-40@abruzzocitta.it>
+From: info1-a5DtITUVYf9BDgjK7y7TUQ@public.gmane.org
+Subject: Marybeth
+Date: Fri, 22 Jun 2018 11:00:45 +0200
+Message-ID: <85lkfe9-8ewryn-67@every-e.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,11 +18,9 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-VGhlcmUgeW91IGFyZSwgZ2VudGxlbWFuLg0KSSB3YW50IGEgcGFydG5lci4NCkkgd2FudCB0byBl
-eHBlcmllbmNlIHVuZm9yZ2V0dGFibGUgbG92ZSENCllvdSBjYW4gYW5zd2VyIG1lIGZvbGxvd2lu
-ZyB0aGUgbGluay4NCkRvbuKAmXQgbWFrZSBtZSB3YWl0IHlvdSBmb3IgdG9vIGxvbmcuDQoNCmh0
-dHA6Ly93d3cuYnVmZmV0cmVhbGNlLmNvbS5ici9jM2ZnNWcyYnN6L3Zkb2NlLnBocD9iR2x1ZFhn
-dGJuWmthVzF0UUd4cGMzUnpMakF4TG05eVp3PT0NCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
-aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW52ZGltbQo=
+Text me back using the link and we can have a date.
+I want to get many kisses!
+Lick all my butt and do it tenderly.
+All that I want is passion and fucking.
+
+http://www.svai.tom.ru/kshsern/w9d8alos5m.php?bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw==
