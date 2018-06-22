@@ -1,7 +1,7 @@
-From: info1-a5DtITUVYf9BDgjK7y7TUQ@public.gmane.org
-Subject: Marybeth
-Date: Fri, 22 Jun 2018 11:00:45 +0200
-Message-ID: <85lkfe9-8ewryn-67@every-e.com>
+From: job-Y6lhYzpOhGeD2xfEYUDpZg@public.gmane.org
+Subject: Corrin
+Date: Fri, 22 Jun 2018 14:56:44 +0200
+Message-ID: <9A75991C.1613750@allsiknow.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,9 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Text me back using the link and we can have a date.
-I want to get many kisses!
-Lick all my butt and do it tenderly.
-All that I want is passion and fucking.
+Yo.
+Finally, I am ready to message you.
+I adore you! From the earth till the moon!
+My feelings are powerful!
+We are not even acquainted but I really want to be close.
+Give me a chance, dude.
 
-http://www.svai.tom.ru/kshsern/w9d8alos5m.php?bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw==
+http://bigskyresources.com/1u6sjzqg6/f0os1s0d.php?bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw==
