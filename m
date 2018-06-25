@@ -1,10 +1,10 @@
-From: "Mandie Morgan" <Morgan-si8HlygDe4JK+chPfbUtsiScOKytdF0U@public.gmane.org>
-Subject: Mandie
-Date: Wed, 22 Aug 2018 18:03:54 +0200
-Message-ID: <TQYDRX-950802689-xzyo@zahid52wah.us>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: samy.bn-INUnGthYPftBDgjK7y7TUQ@public.gmane.org
+Subject: Candida
+Date: Mon, 25 Jun 2018 14:25:28 +0200
+Message-ID: <2127C83A.FF9EEAFC8968A0D7@tekiano.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,14 +15,11 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: lavinas-1bsj00HTURQqBK0yyeNSIwh0onu2mTI+@public.gmane.org, bvhw-thF4r3d8Mt0Gy6NMK7a+iQ@public.gmane.org, mylene.keller-WOQS26cwAR58UrSeD/g0lQ@public.gmane.org, rena-xAXlW7tP12wE8Gx1Vj3tGg@public.gmane.org, support-RjF9EZKuJUso2H3pi/jiKEEOCMrvLtNR@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, officeadmin1c-I22EZOz5ncJS43UKArkRJw@public.gmane.org, blankenship.19804-WKt2KCOFRljk6sNE1ETtvQ@public.gmane.org, a.najjar-Sxm2W54npx3R7s880joybQ@public.gmane.org, merja.valtanen-B6SKYC7qzBuEazanehQPrg@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-V2VsbCBoZWxsby4gSSBhbSBhIGN1dGUgZ2lybCEgDQpEbyB5b3UgZGVzaXJlIHRvIGRhdGUgbWU/
-IERvbuKAmXQgd2FzdGUgdGhlIHRpbWUgYW5kIGFuc3dlciBtZSBvbiB0aGlzIGVtYWlsIGZvbGxv
-d2luZyB0aGUgbGluay4NCklmIHlvdSBkb27igJl0IGJlbGlldmUgbWUsIEkgc2hvdWxkIHRyYW5z
-bWl0IHlvdSBteSBzZXh5IHBob3RvcyBhcyBwcm92ZS4NCmh0dHA6Ly93d3cucmFrb3ZpY2hrb2Yu
-cnUvcnk5OHRtZHZzL21jM2JkcXMzLnBocD9iR2x1ZFhndGJuWmthVzF0UUd4cGMzUnpMakF4TG05
-eVp3PT0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
-dXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8v
-bGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+If you want to get acquainted with a smoking-hot miss, this is your chance!
+I love to meet new people, have fun, and get dirty.
+I can send you my pictures right now!
+
+http://www.setoken.info/ni06r/ov4jzkam.php?bGF2aW5hc0Bjb3N0YW1hcmZvcmkuY29tLmJy
