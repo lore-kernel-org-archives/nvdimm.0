@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0BB8A20336AD5
- for <linux-nvdimm@lists.01.org>; Mon, 25 Jun 2018 09:20:40 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 1814B20972829
+ for <linux-nvdimm@lists.01.org>; Sun, 24 Jun 2018 22:21:25 -0700 (PDT)
+Date: Sun, 24 Jun 2018 23:21:24 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
 Subject: Re: [ndctl PATCH] ndctl, Documentation: Add namespace 'theory of
  operation'
+Message-ID: <20180625052124.GA4189@vverma7-mobl4.lm.intel.com>
 References: <152987589167.5032.13806344242673075164.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Dave Jiang <dave.jiang@intel.com>
-Message-ID: <00a8a2ed-77c1-9b25-57d8-1466d141688f@intel.com>
-Date: Mon, 25 Jun 2018 09:20:39 -0700
 MIME-Version: 1.0
+Content-Disposition: inline
 In-Reply-To: <152987589167.5032.13806344242673075164.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,20 +24,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, vishal.l.verma@intel.com
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 06/24/2018 02:31 PM, Dan Williams wrote:
+On 06/24, Dan Williams wrote:
 > Provide more background information on namespace mechanics, the mode
 > types, and expected usage models.
 > 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
 > ---
 >  Documentation/ndctl/namespace-description.txt  |   56 +++++++++++++++++++++---
 >  Documentation/ndctl/ndctl-create-namespace.txt |    1 
@@ -102,6 +97,10 @@ Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 > +
 > +	- raw: Raw mode is effectively just a memory disk that does
 > +	  not support DAX. Typically this indicates an namespace that was
+
+s/an/a/ - but I can fix that up while applying.
+Looks good otherwise, and reads much better.
+
 > +	  created by tooling or another operating system that did not know how
 > +	  to create a Linux 'fsdax' or 'devdax' mode namespace. This mode is
 > +	  compatible with other operating systems, but again, does not support
@@ -115,11 +114,6 @@ Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 >  linkndctl:ndctl-enable-namespace[1],
 >  http://www.uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf[UEFI NVDIMM Label Protocol]
 > +https://nvdimm.wiki.kernel.org[Linux Persistent Memory Wiki]
-> 
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm@lists.01.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
 > 
 _______________________________________________
 Linux-nvdimm mailing list
