@@ -1,9 +1,9 @@
-From: <ajoaquinats-8Cmw1+NI3eNeoWH0uzbU5w@public.gmane.org>
-Subject: I burn with passion ...
-Date: Mon, 25 Jun 2018 16:26:43 +0600
-Message-ID: <5B30C363.2060607@excite.it>
+From: <matsuda-7a102d8M9dv+2FeEXyspIVaTQe2KTcn/@public.gmane.org>
+Subject: Try me tonight...
+Date: 24 Jun 2018 23:40:20 -0600
+Message-ID: <4C4EB661CEB499191BE3349BE1C33663@J3ASBLP8>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0119944248986541053=="
+Content-Type: multipart/mixed; boundary="===============3591315022908970567=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,16 +17,17 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============0119944248986541053==
-Content-Type: text/plain; charset=CP-850; format=flowed
+--===============3591315022908970567==
+Content-Type: text/plain;
+	charset="cp-850"
 Content-Transfer-Encoding: 8bit
 
-free girls
+squeeze my nipples
 
->>> http://bit.do/3274hksf
+>>> http://bit.do/a34f
 
 
---===============0119944248986541053==
+--===============3591315022908970567==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -37,4 +38,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============0119944248986541053==--
+--===============3591315022908970567==--
