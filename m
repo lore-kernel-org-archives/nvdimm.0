@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6890B2097DD18
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 08:34:45 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCH 2/2] libnvdimm: Export max available extent
-Date: Tue, 26 Jun 2018 09:37:36 -0600
-Message-Id: <20180626153736.6770-4-keith.busch@intel.com>
-In-Reply-To: <20180626153736.6770-1-keith.busch@intel.com>
-References: <20180626153736.6770-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 77BCC202E53F3
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Jun 2018 19:00:34 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 1DDACAC007F
+ for <linux-nvdimm@lists.01.org>;
+ Tue, 26 Jun 2018 11:00:27 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [PATCH v2] ndctl, list: add controller temperature threshold
+Date: Tue, 26 Jun 2018 11:00:12 +0900
+Message-Id: <20180626020012.14097-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,57 +24,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The 'available_size' attribute showing the combined total of all
-unallocated space isn't always useful to know how large of a namespace
-a user may be able to allocate if the region is fragmented. This patch
-will export the largest extent of contiguous unallocated space that may
-be allocated to create a new namespace.
+This patch is used for adding controller_temperature_threshold and
+alarm_controller_temperature to list. When a dimm-controller-temperature
+event fires, users need to know the current controller temperature
+threshold value.
 
-Signed-off-by: Keith Busch <keith.busch@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- drivers/nvdimm/region_devs.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ ndctl/util/json-smart.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 8af483d7ef57..82aaf7d6488d 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -433,6 +433,21 @@ static ssize_t available_size_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(available_size);
+diff --git a/ndctl/util/json-smart.c b/ndctl/util/json-smart.c
+index 9482b35..6a1f294 100644
+--- a/ndctl/util/json-smart.c
++++ b/ndctl/util/json-smart.c
+@@ -47,6 +47,18 @@ static void smart_threshold_to_json(struct ndctl_dimm *dimm,
+ 					"temperature_threshold", jobj);
+ 	}
  
-+static ssize_t max_available_extent_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	unsigned long long available = 0;
++	if (alarm_control & ND_SMART_CTEMP_TRIP) {
++		unsigned int temp;
++		double t;
 +
-+	nvdimm_bus_lock(dev);
-+	wait_nvdimm_bus_probe_idle(dev);
-+	available = nd_region_contiguous_max(nd_region);
-+	nvdimm_bus_unlock(dev);
++		temp = ndctl_cmd_smart_threshold_get_ctrl_temperature(cmd);
++		t = ndctl_decode_smart_temperature(temp);
++		jobj = json_object_new_double(t);
++		if (jobj)
++			json_object_object_add(jhealth,
++				"controller_temperature_threshold", jobj);
++	}
 +
-+	return sprintf(buf, "%llu\n", available);
-+}
-+static DEVICE_ATTR_RO(max_available_extent);
+ 	if (alarm_control & ND_SMART_SPARE_TRIP) {
+ 		unsigned int spares;
+ 
+@@ -130,12 +142,17 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
+ 	if (flags & ND_SMART_ALARM_VALID) {
+ 		unsigned int alarm_flags = ndctl_cmd_smart_get_alarm_flags(cmd);
+ 		bool temp_flag = !!(alarm_flags & ND_SMART_TEMP_TRIP);
++		bool ctrl_temp_flag = !!(alarm_flags & ND_SMART_CTEMP_TRIP);
+ 		bool spares_flag = !!(alarm_flags & ND_SMART_SPARE_TRIP);
+ 
+ 		jobj = json_object_new_boolean(temp_flag);
+ 		if (jobj)
+ 			json_object_object_add(jhealth, "alarm_temperature", jobj);
+ 
++		jobj = json_object_new_boolean(ctrl_temp_flag);
++		if (jobj)
++			json_object_object_add(jhealth, "alarm_controller_temperature", jobj);
 +
- static ssize_t init_namespaces_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -584,6 +599,7 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_read_only.attr,
- 	&dev_attr_set_cookie.attr,
- 	&dev_attr_available_size.attr,
-+	&dev_attr_max_available_extent.attr,
- 	&dev_attr_namespace_seed.attr,
- 	&dev_attr_init_namespaces.attr,
- 	&dev_attr_badblocks.attr,
+ 		jobj = json_object_new_boolean(spares_flag);
+ 		if (jobj)
+ 			json_object_object_add(jhealth, "alarm_spares", jobj);
 -- 
-2.14.3
+2.17.1
+
 
 _______________________________________________
 Linux-nvdimm mailing list
