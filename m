@@ -1,19 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8257B203369E1
- for <linux-nvdimm@lists.01.org>; Sat, 30 Jun 2018 01:07:49 -0700 (PDT)
-Received: from g01jpfmpwkw02.exch.g01.fujitsu.local
- (g01jpfmpwkw02.exch.g01.fujitsu.local [10.0.193.56])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 85201AC00C1
- for <linux-nvdimm@lists.01.org>; Sat, 30 Jun 2018 17:07:41 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: Question about ndctl unit tests
-Date: Sat, 30 Jun 2018 08:07:40 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E32237E966C2@g01jpexmbkw01>
-Content-Language: en-US
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id ED866202E53D8
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 11:23:06 -0700 (PDT)
+From: Keith Busch <keith.busch@intel.com>
+Subject: [ndctl PATCHv3] ndctl: Use max_available_extent for namespace
+Date: Tue, 26 Jun 2018 12:26:29 -0600
+Message-Id: <20180626182629.7333-1-keith.busch@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,81 +15,117 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "Mizuma, Masayoshi" <m.mizuma@jp.fujitsu.com>, Gotou,
+To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+The available_size attribute returns all the unused regions, but a
+namespace has to use contiguous free regions. This patch uses the
+attribute returning the largest capacity that can be created for
+determining if the namespace can be created.
 
-When I ran the unit tests, I found "libndctl" and "dsm-fail" cannot pass the test.
-Here is the test log.
+Signed-off-by: Keith Busch <keith.busch@intel.com>
+---
+v2 -> v3:
 
-# less test/libndctl.log
-libkmod: kmod_module_remove_module: could not remove 'nfit_test': No such file or directory
-check_set_config_data: dimm: 0 read2 data miscompare: 0
-check_set_config_data: dimm: 0x1 read2 data miscompare: 0
-check_set_config_data: dimm: 0x100 read2 data miscompare: 0
-check_set_config_data: dimm: 0x101 read2 data miscompare: 0
-check_dax_autodetect: dax_ndns: 0x1049f10 ndns: 0x1049f10
-namespace1.0: expected write_cache enabled
-check_namespaces: namespace1.0 validate_write_cache failed
-ndctl-test0 failed: -6
-libkmod: kmod_module_remove_module: could not remove 'nfit_test': Resource temporarily unavailable
-libdaxctl: daxctl_unref: context 0x1038170 released
-libndctl: ndctl_unref: context 0x1039290 released
-FAIL libndctl (exit status: 1)
+  Added dbg() message to indicate kernel support
 
-# less test/dsm-fail.log
-victim: nmem0
-validate_namespace_options:571: region1: falling back to a 4K alignment
-validate_namespace_options:571: region1: falling back to a 4K alignment
-do_test:294
-libndctl: ndctl_dimm_enable: nmem0: failed to enable
-fail expected nmem0 enable success victim: nmem0 rc: -6
-libkmod: kmod_module_remove_module: could not remove 'nfit_test': Resource temporarily unavailable
-libdaxctl: daxctl_unref: context 0x89f170 released
-libndctl: ndctl_unref: context 0x8a0290 released
-{
-  "dev":"namespace1.0",
-  "mode":"raw",
-  "size":4194304,
-  "uuid":"9a07ca1d-54cd-4252-b87e-475b24af8a1c",
-  "sector_size":512,
-  "blockdev":"pmem1"
-}
-{
-  "dev":"namespace1.1",
-  "mode":"raw",
-  "size":4194304,
-  "uuid":"2eb40a75-5c5f-4ed9-b36e-4fd0abba7783",
-  "sector_size":512,
-  "blockdev":"pmem1.1"
-}
-FAIL dsm-fail (exit status: 250)
+ ndctl/lib/libndctl.c   | 33 +++++++++++++++++++++++++++++++++
+ ndctl/lib/libndctl.sym |  1 +
+ ndctl/libndctl.h       |  2 ++
+ ndctl/namespace.c      |  2 +-
+ 4 files changed, 37 insertions(+), 1 deletion(-)
 
-And my kernel version:
-$ uname -a
-Linux 4.18.0-rc2+ #25 SMP
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 47e005e..78c70d6 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -2025,6 +2025,39 @@ NDCTL_EXPORT unsigned long long ndctl_region_get_available_size(
+ 	return strtoull(buf, NULL, 0);
+ }
+ 
++NDCTL_EXPORT unsigned long long ndctl_region_get_max_available_extent(
++		struct ndctl_region *region)
++{
++	unsigned int nstype = ndctl_region_get_nstype(region);
++	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
++	char *path = region->region_buf;
++	int len = region->buf_len;
++	char buf[SYSFS_ATTR_SIZE];
++
++	switch (nstype) {
++	case ND_DEVICE_NAMESPACE_PMEM:
++	case ND_DEVICE_NAMESPACE_BLK:
++		break;
++	default:
++		return 0;
++	}
++
++	if (snprintf(path, len,
++		     "%s/max_available_extent", region->region_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				ndctl_region_get_devname(region));
++		return ULLONG_MAX;
++	}
++
++	/* fall back to legacy behavior if max extents is not exported */
++	if (sysfs_read_attr(ctx, path, buf) < 0) {
++		dbg(ctx, "max extents attribute not exported on older kernels\n");
++		return ndctl_region_get_available_size(region);
++	}
++
++	return strtoull(buf, NULL, 0);
++}
++
+ NDCTL_EXPORT unsigned int ndctl_region_get_range_index(struct ndctl_region *region)
+ {
+ 	return region->range_index;
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index c1228e5..22fd026 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -123,6 +123,7 @@ global:
+ 	ndctl_region_get_mappings;
+ 	ndctl_region_get_size;
+ 	ndctl_region_get_available_size;
++	ndctl_region_get_max_available_extent;
+ 	ndctl_region_get_type;
+ 	ndctl_region_get_namespace_seed;
+ 	ndctl_region_get_btt_seed;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index be997ac..624115d 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -338,6 +338,8 @@ unsigned int ndctl_region_get_interleave_ways(struct ndctl_region *region);
+ unsigned int ndctl_region_get_mappings(struct ndctl_region *region);
+ unsigned long long ndctl_region_get_size(struct ndctl_region *region);
+ unsigned long long ndctl_region_get_available_size(struct ndctl_region *region);
++unsigned long long ndctl_region_get_max_available_extent(
++		struct ndctl_region *region);
+ unsigned int ndctl_region_get_range_index(struct ndctl_region *region);
+ unsigned int ndctl_region_get_type(struct ndctl_region *region);
+ struct ndctl_namespace *ndctl_region_get_namespace_seed(
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index fe86d82..4a562a2 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -764,7 +764,7 @@ static int namespace_create(struct ndctl_region *region)
+ 		return -EAGAIN;
+ 	}
+ 
+-	available = ndctl_region_get_available_size(region);
++	available = ndctl_region_get_max_available_extent(region);
+ 	if (!available || p.size > available) {
+ 		debug("%s: insufficient capacity size: %llx avail: %llx\n",
+ 			devname, p.size, available);
+-- 
+2.14.3
 
-I guess the reason is that the nfit_test module cannot be removed.
-# modprobe -r nfit_test
-modprobe: FATAL: Module nfit_test is in use.
-# lsmod | grep nfit_test
-nfit_test              40960  8
-nd_pmem                20480  1 nfit_test
-nfit                   65536  1 nfit_test
-device_dax             20480  2 dax_pmem,nfit_test
-libnvdimm             163840  7 dax_pmem,nfit_test,nd_btt,nd_pmem,nd_e820,nd_blk,nfit
-nfit_test_iomap        20480  6 dax_pmem,nfit_test,device_dax,nd_pmem,libnvdimm,nfit
-
-Does anyone know how to fix it?
-
-Thank you very much.
-QI
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
