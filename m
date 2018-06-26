@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CA55621A02937
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 10:59:34 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3 0/3] Fix DM DAX handling
-Date: Tue, 26 Jun 2018 11:59:29 -0600
-Message-Id: <20180626175932.8899-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 851ED20979D41
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 08:34:45 -0700 (PDT)
+From: Keith Busch <keith.busch@intel.com>
+Subject: [PATCH 1/2] libnvdimm: Use largest contiguous area for namespace size
+Date: Tue, 26 Jun 2018 09:37:34 -0600
+Message-Id: <20180626153736.6770-2-keith.busch@intel.com>
+In-Reply-To: <20180626153736.6770-1-keith.busch@intel.com>
+References: <20180626153736.6770-1-keith.busch@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,56 +22,124 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This series fixes a few issues that I found with DM's handling of DAX
-devices.  Here are some of the issues I found:
+This patch will find the largest free extent to determine the max size
+for a namespace that can be created.
 
- * We can create a dm-stripe or dm-linear device which is made up of an
-   fsdax PMEM namespace and a raw PMEM namespace but which can hold a
-   filesystem mounted with the -o dax mount option.  DAX operations to
-   the raw PMEM namespace part lack struct page and can fail in
-   interesting/unexpected ways when doing things like fork(), examining
-   memory with gdb, etc.
-
- * We can create a dm-stripe or dm-linear device which is made up of an
-   fsdax PMEM namespace and a BRD ramdisk which can hold a filesystem
-   mounted with the -o dax mount option.  All I/O to this filesystem
-   will fail.
-
+Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
+ drivers/nvdimm/dimm_devs.c      | 29 +++++++++++++++++++++++++++++
+ drivers/nvdimm/namespace_devs.c |  2 +-
+ drivers/nvdimm/nd-core.h        |  3 +++
+ drivers/nvdimm/region_devs.c    | 23 +++++++++++++++++++++++
+ 4 files changed, 56 insertions(+), 1 deletion(-)
 
-Changes since v2:
-  * Only set QUEUE_FLAG_DAX for fsdax mode PMEM namespaces. (Mike)
-  * Check for QUEUE_FLAG_DAX in __bdev_dax_supported(). (Mike)
-  * Get rid of DM_TYPE_DAX_BIO_BASED reworks. (Mike)
-  * Dropped the first 2 prep patches of v2 since they were merged for
-    v4.18-rc1.  (Thanks, Darrick!)
-
----
-
-Mike, can you take this series through your tree?
-
-Personally I think this should be treated as a bug fix and merged in the
-v4.18-rc* series.
-
-Ross Zwisler (3):
-  pmem: only set QUEUE_FLAG_DAX for fsdax mode
-  dax: bdev_dax_supported() check for QUEUE_FLAG_DAX
-  dm: prevent DAX mounts if not supported
-
- drivers/dax/super.c           | 8 ++++++++
- drivers/md/dm-ioctl.c         | 5 +++++
- drivers/md/dm-table.c         | 7 +++----
- drivers/md/dm.c               | 3 +--
- drivers/nvdimm/pmem.c         | 3 ++-
- include/linux/device-mapper.h | 5 +++++
- 6 files changed, 24 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 8d348b22ba45..147613e0f872 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -536,6 +536,35 @@ resource_size_t nd_blk_available_dpa(struct nd_region *nd_region)
+ 	return info.available;
+ }
+ 
++/**
++ * nd_pmem_largest_contiguous_available_dpa - For the given dimm+region,
++ * 	return the larges contiguous dpa range.
++ * @nd_region: constrain available space check to this reference region
++ * @nd_mapping: container of dpa-resource-root + labels
++ */
++resource_size_t nd_pmem_max_contiguous_dpa(struct nd_region *nd_region,
++					   struct nd_mapping *nd_mapping)
++{
++	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++	resource_size_t start, end, max = 0;
++	struct resource *res;
++
++	if (!ndd)
++		return 0;
++
++	start = nd_mapping->start;
++	end = start + nd_mapping->size;
++
++	for_each_dpa_resource(ndd, res) {
++		if ((res->start - start) > max)
++			max = res->start - start;
++		start = res->start + resource_size(res);
++	}
++	if (start < end && end - start > max)
++		max = end - start;
++	return max;
++}
++
+ /**
+  * nd_pmem_available_dpa - for the given dimm+region account unallocated dpa
+  * @nd_mapping: container of dpa-resource-root + labels
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 28afdd668905..c00d1d2d48f9 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1032,7 +1032,7 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
+ 
+ 		allocated += nvdimm_allocated_dpa(ndd, &label_id);
+ 	}
+-	available = nd_region_available_dpa(nd_region);
++	available = nd_region_contiguous_max(nd_region);
+ 
+ 	if (val > available + allocated)
+ 		return -ENOSPC;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 79274ead54fb..8e4acd075b0f 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -100,6 +100,9 @@ struct nd_region;
+ struct nvdimm_drvdata;
+ struct nd_mapping;
+ void nd_mapping_free_labels(struct nd_mapping *nd_mapping);
++resource_size_t nd_pmem_max_contiguous_dpa(struct nd_region *nd_region,
++					   struct nd_mapping *nd_mapping);
++resource_size_t nd_region_contiguous_max(struct nd_region *nd_region);
+ resource_size_t nd_pmem_available_dpa(struct nd_region *nd_region,
+ 		struct nd_mapping *nd_mapping, resource_size_t *overlap);
+ resource_size_t nd_blk_available_dpa(struct nd_region *nd_region);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index ec3543b83330..8af483d7ef57 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -357,6 +357,29 @@ static ssize_t set_cookie_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(set_cookie);
+ 
++resource_size_t nd_region_contiguous_max(struct nd_region *nd_region)
++{
++	resource_size_t available = 0;
++	int i;
++
++	WARN_ON(!is_nvdimm_bus_locked(&nd_region->dev));
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++
++		/* if a dimm is disabled the available capacity is zero */
++		if (!ndd)
++			return 0;
++
++		if (is_memory(&nd_region->dev))
++			available += nd_pmem_max_contiguous_dpa(nd_region,
++								nd_mapping);
++		else if (is_nd_blk(&nd_region->dev))
++			available += nd_blk_available_dpa(nd_region);
++	}
++	return available;
++}
++
+ resource_size_t nd_region_available_dpa(struct nd_region *nd_region)
+ {
+ 	resource_size_t blk_max_overlap = 0, available, overlap;
 -- 
-2.14.4
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
