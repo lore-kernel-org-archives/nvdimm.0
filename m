@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x244.google.com (mail-ot0-x244.google.com
+ [IPv6:2607:f8b0:4003:c0f::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B4B68211280F3
- for <linux-nvdimm@lists.01.org>; Thu,  7 Jun 2018 15:31:25 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [qemu PATCH 5/5] nvdimm: make persistence option symbolic
-Date: Thu,  7 Jun 2018 16:31:11 -0600
-Message-Id: <20180607223111.27792-5-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180607223111.27792-1-ross.zwisler@linux.intel.com>
-References: <20180607223111.27792-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5DAB0202E53D9
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Jun 2018 19:22:06 -0700 (PDT)
+Received: by mail-ot0-x244.google.com with SMTP id d19-v6so17324257oti.8
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Jun 2018 19:22:06 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180618082701.12326-2-qi.fuli@jp.fujitsu.com>
+References: <20180618082701.12326-1-qi.fuli@jp.fujitsu.com>
+ <20180618082701.12326-2-qi.fuli@jp.fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 25 Jun 2018 19:22:04 -0700
+Message-ID: <CAPcyv4ij+ypk0-5T9OXxAMcsrcBGYni-HVfrOnLmiTh75dEJmw@mail.gmail.com>
+Subject: Re: [PATCH v7 1/3] ndctl, monitor: add ndctl monitor
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,198 +22,655 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Eduardo Habkost <ehabkost@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Qemu Developers <qemu-devel@nongnu.org>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>
+To: QI Fuli <qi.fuli@jp.fujitsu.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Replace the "nvdimm-cap" option which took numeric arguments such as "2"
-with a more user friendly "nvdimm-persistence" option which takes symbolic
-arguments "cpu" or "mem-ctrl".
+On Mon, Jun 18, 2018 at 1:26 AM, QI Fuli <qi.fuli@jp.fujitsu.com> wrote:
+> Ndctl monitor is used for monitoring the smart events of nvdimm DIMMs.
+> When a smart event fires, monitor will output the notifications which
+> including dimm health status and event infomations to syslog, stderr
+> or a logfile by setting [--logfile] option. The notifications follow
+> json format and can be consumed by log collectors like Fluentd.
+> DIMMsto monitor can be selected by [--dimm] [--region] [--namespace]
+> [--bus] options, and event type can be filtered by [--dimm-event] option,
+> these options support mutiple space-seperated arguments.
+>
+> Ndctl monitor can be forked as a daemon by using [--daemon] option, like:
+>    # ndctl monitor --daemon --logfile /var/log/ndctl/monitor.log
+>
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Michael S. Tsirkin <mst@redhat.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
----
- docs/nvdimm.txt          | 31 ++++++++++++-------------------
- hw/acpi/nvdimm.c         |  4 ++--
- hw/i386/pc.c             | 35 +++++++++++++++++------------------
- include/hw/i386/pc.h     |  2 +-
- include/hw/mem/nvdimm.h  |  3 ++-
- tests/bios-tables-test.c |  2 +-
- 6 files changed, 35 insertions(+), 42 deletions(-)
+This is looking good, just some some small cleanups / refactoring below:
 
-diff --git a/docs/nvdimm.txt b/docs/nvdimm.txt
-index 8b48fb4633..24b443b655 100644
---- a/docs/nvdimm.txt
-+++ b/docs/nvdimm.txt
-@@ -154,29 +154,22 @@ guest software that this vNVDIMM device contains a region that cannot
- accept persistent writes. In result, for example, the guest Linux
- NVDIMM driver, marks such vNVDIMM device as read-only.
- 
--Platform Capabilities
-----------------------
-+NVDIMM Persistence
-+------------------
- 
- ACPI 6.2 Errata A added support for a new Platform Capabilities Structure
- which allows the platform to communicate what features it supports related to
--NVDIMM data durability.  Users can provide a capabilities value to a guest via
--the optional "nvdimm-cap" machine command line option:
-+NVDIMM data persistence.  Users can provide a persistence value to a guest via
-+the optional "nvdimm-persistence" machine command line option:
- 
--    -machine pc,accel=kvm,nvdimm,nvdimm-cap=2
-+    -machine pc,accel=kvm,nvdimm,nvdimm-persistence=cpu
- 
--This "nvdimm-cap" field is an integer, and is the combined value of the
--various capability bits defined in table 5-137 of the ACPI 6.2 Errata A spec.
-+There are currently two valid values for this option:
- 
--Here is a quick summary of the three bits that are defined as of that spec:
-+"mem-ctrl" - The platform supports flushing dirty data from the memory
-+             controller to the NVDIMMs in the event of power loss.
- 
--Bit[0] - CPU Cache Flush to NVDIMM Durability on Power Loss Capable.
--Bit[1] - Memory Controller Flush to NVDIMM Durability on Power Loss Capable.
--         Note: If bit 0 is set to 1 then this bit shall be set to 1 as well.
--Bit[2] - Byte Addressable Persistent Memory Hardware Mirroring Capable.
--
--So, a "nvdimm-cap" value of 2 would mean that the platform supports Memory
--Controller Flush on Power Loss, a value of 3 would mean that the platform
--supports CPU Cache Flush and Memory Controller Flush on Power Loss, etc.
--
--For a complete list of the flags available and for more detailed descriptions,
--please consult the ACPI spec.
-+"cpu"      - The platform supports flushing dirty data from the CPU cache to
-+             the NVDIMMs in the event of power loss.  This implies that the
-+             platform also supports flushing dirty data through the memory
-+             controller on power loss.
-diff --git a/hw/acpi/nvdimm.c b/hw/acpi/nvdimm.c
-index 87e4280c71..27eeb6609f 100644
---- a/hw/acpi/nvdimm.c
-+++ b/hw/acpi/nvdimm.c
-@@ -404,8 +404,8 @@ static GArray *nvdimm_build_device_structure(AcpiNVDIMMState *state)
-     }
-     g_slist_free(device_list);
- 
--    if (state->capabilities) {
--        nvdimm_build_structure_caps(structures, state->capabilities);
-+    if (state->persistence) {
-+        nvdimm_build_structure_caps(structures, state->persistence);
-     }
- 
-     return structures;
-diff --git a/hw/i386/pc.c b/hw/i386/pc.c
-index f3befe6721..5bba9dcf5a 100644
---- a/hw/i386/pc.c
-+++ b/hw/i386/pc.c
-@@ -2181,31 +2181,30 @@ static void pc_machine_set_nvdimm(Object *obj, bool value, Error **errp)
-     pcms->acpi_nvdimm_state.is_enabled = value;
- }
- 
--static void pc_machine_get_nvdimm_capabilities(Object *obj, Visitor *v,
--                                               const char *name, void *opaque,
--                                               Error **errp)
-+static char *pc_machine_get_nvdimm_persistence(Object *obj, Error **errp)
- {
-     PCMachineState *pcms = PC_MACHINE(obj);
--    uint32_t value = pcms->acpi_nvdimm_state.capabilities;
- 
--    visit_type_uint32(v, name, &value, errp);
-+    return g_strdup(pcms->acpi_nvdimm_state.persistence_string);
- }
- 
--static void pc_machine_set_nvdimm_capabilities(Object *obj, Visitor *v,
--                                               const char *name, void *opaque,
-+static void pc_machine_set_nvdimm_persistence(Object *obj, const char *value,
-                                                Error **errp)
- {
-     PCMachineState *pcms = PC_MACHINE(obj);
--    Error *error = NULL;
--    uint32_t value;
--
--    visit_type_uint32(v, name, &value, &error);
--    if (error) {
--        error_propagate(errp, error);
--        return;
-+    AcpiNVDIMMState *nvdimm_state = &pcms->acpi_nvdimm_state;
-+
-+    if (strcmp(value, "cpu") == 0)
-+        nvdimm_state->persistence = 3;
-+    else if (strcmp(value, "mem-ctrl") == 0)
-+        nvdimm_state->persistence = 2;
-+    else {
-+        error_report("-machine nvdimm-persistence=%s: unsupported option", value);
-+        exit(EXIT_FAILURE);
-     }
- 
--    pcms->acpi_nvdimm_state.capabilities = value;
-+    g_free(nvdimm_state->persistence_string);
-+    nvdimm_state->persistence_string = g_strdup(value);
- }
- 
- static bool pc_machine_get_smbus(Object *obj, Error **errp)
-@@ -2421,9 +2420,9 @@ static void pc_machine_class_init(ObjectClass *oc, void *data)
-     object_class_property_add_bool(oc, PC_MACHINE_NVDIMM,
-         pc_machine_get_nvdimm, pc_machine_set_nvdimm, &error_abort);
- 
--    object_class_property_add(oc, PC_MACHINE_NVDIMM_CAP, "uint32",
--        pc_machine_get_nvdimm_capabilities,
--        pc_machine_set_nvdimm_capabilities, NULL, NULL, &error_abort);
-+    object_class_property_add_str(oc, PC_MACHINE_NVDIMM_PERSIST,
-+        pc_machine_get_nvdimm_persistence,
-+        pc_machine_set_nvdimm_persistence, &error_abort);
- 
-     object_class_property_add_bool(oc, PC_MACHINE_SMBUS,
-         pc_machine_get_smbus, pc_machine_set_smbus, &error_abort);
-diff --git a/include/hw/i386/pc.h b/include/hw/i386/pc.h
-index 04d1f8c6c3..fc8dedca12 100644
---- a/include/hw/i386/pc.h
-+++ b/include/hw/i386/pc.h
-@@ -76,7 +76,7 @@ struct PCMachineState {
- #define PC_MACHINE_VMPORT           "vmport"
- #define PC_MACHINE_SMM              "smm"
- #define PC_MACHINE_NVDIMM           "nvdimm"
--#define PC_MACHINE_NVDIMM_CAP       "nvdimm-cap"
-+#define PC_MACHINE_NVDIMM_PERSIST   "nvdimm-persistence"
- #define PC_MACHINE_SMBUS            "smbus"
- #define PC_MACHINE_SATA             "sata"
- #define PC_MACHINE_PIT              "pit"
-diff --git a/include/hw/mem/nvdimm.h b/include/hw/mem/nvdimm.h
-index 3c82751bab..9340631cfc 100644
---- a/include/hw/mem/nvdimm.h
-+++ b/include/hw/mem/nvdimm.h
-@@ -138,7 +138,8 @@ struct AcpiNVDIMMState {
-     /*
-      * Platform capabilities, section 5.2.25.9 of ACPI 6.2 Errata A
-      */
--    int32_t capabilities;
-+    int32_t persistence;
-+    char    *persistence_string;
- };
- typedef struct AcpiNVDIMMState AcpiNVDIMMState;
- 
-diff --git a/tests/bios-tables-test.c b/tests/bios-tables-test.c
-index 9b5db1ee8f..b95d56aa4e 100644
---- a/tests/bios-tables-test.c
-+++ b/tests/bios-tables-test.c
-@@ -831,7 +831,7 @@ static void test_acpi_tcg_dimm_pxm(const char *machine)
-     memset(&data, 0, sizeof(data));
-     data.machine = machine;
-     data.variant = ".dimmpxm";
--    test_acpi_one(" -machine nvdimm=on,nvdimm-cap=3"
-+    test_acpi_one(" -machine nvdimm=on,nvdimm-persistence=cpu"
-                   " -smp 4,sockets=4"
-                   " -m 128M,slots=3,maxmem=1G"
-                   " -numa node,mem=32M,nodeid=0"
--- 
-2.14.4
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  builtin.h         |   1 +
+>  ndctl/Makefile.am |   3 +-
+>  ndctl/monitor.c   | 532 ++++++++++++++++++++++++++++++++++++++++++++++
+>  ndctl/ndctl.c     |   1 +
+>  4 files changed, 536 insertions(+), 1 deletion(-)
+>  create mode 100644 ndctl/monitor.c
+>
+> diff --git a/builtin.h b/builtin.h
+> index d3cc723..675a6ce 100644
+> --- a/builtin.h
+> +++ b/builtin.h
+> @@ -39,6 +39,7 @@ int cmd_inject_error(int argc, const char **argv, void *ctx);
+>  int cmd_wait_scrub(int argc, const char **argv, void *ctx);
+>  int cmd_start_scrub(int argc, const char **argv, void *ctx);
+>  int cmd_list(int argc, const char **argv, void *ctx);
+> +int cmd_monitor(int argc, const char **argv, void *ctx);
+>  #ifdef ENABLE_TEST
+>  int cmd_test(int argc, const char **argv, void *ctx);
+>  #endif
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index d22a379..7dbf223 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -16,7 +16,8 @@ ndctl_SOURCES = ndctl.c \
+>                 util/json-smart.c \
+>                 util/json-firmware.c \
+>                 inject-error.c \
+> -               inject-smart.c
+> +               inject-smart.c \
+> +               monitor.c
+>
+>  if ENABLE_DESTRUCTIVE
+>  ndctl_SOURCES += ../test/blk_namespaces.c \
+> diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+> new file mode 100644
+> index 0000000..12aa499
+> --- /dev/null
+> +++ b/ndctl/monitor.c
+> @@ -0,0 +1,532 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/* Copyright(c) 2018, FUJITSU LIMITED. All rights reserved. */
+> +
+> +#include <stdio.h>
+> +#include <json-c/json.h>
+> +#include <libgen.h>
+> +#include <dirent.h>
+> +#include <util/log.h>
+> +#include <util/json.h>
+> +#include <util/filter.h>
+> +#include <util/util.h>
+> +#include <util/parse-options.h>
+> +#include <util/strbuf.h>
+> +#include <ndctl/lib/private.h>
+> +#include <ndctl/libndctl.h>
+> +#include <sys/stat.h>
+> +#include <sys/epoll.h>
+> +#define BUF_SIZE 2048
+> +
+> +#define DIMM_SPARES_REMAINING  (1 << 0)
+> +#define DIMM_MEDIA_TEMPERATURE (1 << 1)
+> +#define DIMM_CTRL_TEMPERATURE  (1 << 2)
+> +#define DIMM_HEALTH_STATE      (1 << 3)
+> +#define DIMM_UNCLEAN_SHUTDOWN  (1 << 4)
+> +
+> +static enum log_destination {
+> +       LOG_DESTINATION_STDERR = 1,
+> +       LOG_DESTINATION_SYSLOG = 2,
+> +       LOG_DESTINATION_FILE = 3,
+> +} log_destination = LOG_DESTINATION_SYSLOG;
+> +
+> +static struct {
+> +       const char *logfile;
+> +       const char *dimm_event;
+> +       bool daemon;
+> +} monitor;
+> +
+> +struct monitor_dimm {
+> +       struct ndctl_dimm *dimm;
+> +       int health_eventfd;
+> +       unsigned int health;
+> +       unsigned int event_flags;
+> +       struct list_node list;
+> +};
+> +
+> +struct monitor_filter_arg {
+> +       struct list_head dimms;
+> +       int maxfd_dimm;
+> +       int num_dimm;
+> +       unsigned long flags;
+> +};
+> +
+> +struct util_filter_params param;
+> +
+> +static int did_fail;
+> +
+> +#define fail(fmt, ...) \
+> +do { \
+> +       did_fail = 1; \
+> +       err((struct ndctl_ctx *)ctx, "ndctl-%s:%s:%d: " fmt, \
+> +                       VERSION, __func__, __LINE__, ##__VA_ARGS__); \
+> +} while (0)
+> +
+> +static bool is_dir(char *filepath)
+> +{
+> +       DIR *dir = opendir(filepath);
+> +       if (dir) {
+> +               closedir(dir);
+> +               return true;
+> +       }
+> +       return false;
+> +}
+> +
+> +static void logreport(struct ndctl_ctx *ctx, int priority, const char *file,
+> +               int line, const char *fn, const char *format, va_list args)
 
+Rather than have this single 'logreport' routine that then turns
+around and looks at 'log_destination' with a switch statement, just
+install the proper log function directly.
+
+
+> +{
+> +       char *log_dir;
+> +       FILE *f;
+> +       char *buf = (char *)malloc(BUF_SIZE);
+
+No need to cast the return value from malloc() and please put a space
+between variable declarations and code.
+
+> +       vsnprintf(buf, BUF_SIZE, format, args);
+> +
+> +       switch (log_destination) {
+> +       case LOG_DESTINATION_STDERR:
+> +               fprintf(stderr, "%s\n", buf);
+> +               goto end;
+
+For example, we don't need this one because log_stderr is the default
+that is setup by log_init() via ndctl_new().
+
+> +
+> +       case LOG_DESTINATION_SYSLOG:
+> +               syslog(priority, "%s\n", buf);
+> +               goto end;
+
+...create a log_syslog()
+
+> +
+> +       case LOG_DESTINATION_FILE:
+> +               log_dir = dirname(strdup(monitor.logfile));
+> +               if (!log_dir) {
+> +                       log_destination = LOG_DESTINATION_SYSLOG;
+> +                       fail("strdup %s failed\n%s", monitor.logfile, buf);
+> +                       goto end;
+> +               }
+> +               if (!is_dir(log_dir)) {
+> +                       log_destination = LOG_DESTINATION_SYSLOG;
+> +                       fail("dir: %s is required\n%s", log_dir, buf);
+> +                       free(log_dir);
+> +                       goto end;
+> +               }
+> +               f = fopen(monitor.logfile, "a+");
+> +               if (!f) {
+> +                       log_destination = LOG_DESTINATION_SYSLOG;
+> +                       fail("open logfile %s failed\n%s", monitor.logfile, buf);
+> +                       free(log_dir);
+> +                       goto end;
+> +               }
+> +               fprintf(f, "%s\n", buf);
+> +               fclose(f);
+> +               free(log_dir);
+> +               goto end;
+> +       }
+
+...create a log_file() routine for this case.
+
+> +end:
+> +       free(buf);
+> +       return;
+> +}
+> +
+> +static int get_monitor_dimm_data(struct monitor_dimm *mdimm)
+> +{
+> +       struct ndctl_cmd *cmd;
+> +       unsigned int alarm_flags;
+> +
+> +       cmd = ndctl_dimm_cmd_new_smart(mdimm->dimm);
+> +       if (!cmd)
+> +               goto out;
+> +
+> +       if (ndctl_cmd_submit(cmd))
+> +               goto out;
+> +
+> +       mdimm->health_eventfd = ndctl_dimm_get_health_eventfd(mdimm->dimm);
+> +
+> +       alarm_flags = ndctl_cmd_smart_get_alarm_flags(cmd);
+> +       if (alarm_flags & ND_SMART_SPARE_TRIP)
+> +               mdimm->event_flags |= DIMM_SPARES_REMAINING;
+> +       if (alarm_flags & ND_SMART_MTEMP_TRIP)
+> +               mdimm->event_flags |= DIMM_MEDIA_TEMPERATURE;
+> +       if (alarm_flags & ND_SMART_CTEMP_TRIP)
+> +               mdimm->event_flags |= DIMM_CTRL_TEMPERATURE;
+> +
+> +       mdimm->health = ndctl_cmd_smart_get_health(cmd);
+> +
+> +       if (ndctl_cmd_smart_get_shutdown_state(cmd))
+> +               mdimm->event_flags |= DIMM_UNCLEAN_SHUTDOWN;
+> +
+> +       ndctl_cmd_unref(cmd);
+> +       return 0;
+> +out:
+> +       if (cmd)
+> +               ndctl_cmd_unref(cmd);
+> +       return 1;
+> +}
+> +
+> +static struct json_object *dimm_event_to_json(struct monitor_dimm *mdimm)
+> +{
+> +       struct json_object *jevent, *jobj, *jdimm_health, *jdimm_detect;
+> +       struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(mdimm->dimm);
+> +
+> +       jevent = json_object_new_object();
+> +       if (!jevent) {
+> +               fail("\n");
+> +               return NULL;
+> +       }
+> +
+> +       jdimm_health = json_object_new_array();
+> +       jdimm_detect = json_object_new_array();
+> +       if (!jdimm_health || !jdimm_detect) {
+> +               fail("\n");
+> +               goto out;
+> +       }
+> +
+> +       if (mdimm->event_flags & DIMM_SPARES_REMAINING) {
+> +               jobj = json_object_new_string("dimm-spares-remaining");
+> +               if (!jobj)
+> +                       goto out;
+> +               json_object_array_add(jdimm_health, jobj);
+> +       }
+> +       if (mdimm->event_flags & DIMM_MEDIA_TEMPERATURE) {
+> +               jobj = json_object_new_string("dimm-media-temperature");
+> +               if (!jobj)
+> +                       goto out;
+> +               json_object_array_add(jdimm_health, jobj);
+> +       }
+> +       if (mdimm->event_flags & DIMM_CTRL_TEMPERATURE) {
+> +               jobj = json_object_new_string("dimm-controller-temperature");
+> +               if (!jobj)
+> +                       goto out;
+> +               json_object_array_add(jdimm_health, jobj);
+> +       }
+> +       if (mdimm->event_flags & DIMM_HEALTH_STATE) {
+> +               jobj = json_object_new_string("dimm-health-state");
+> +               if (!jobj)
+> +                       goto out;
+> +               json_object_array_add(jdimm_health, jobj);
+> +       }
+> +       if (mdimm->event_flags & DIMM_UNCLEAN_SHUTDOWN) {
+> +               jobj = json_object_new_string("dimm-unclean-shutdown");
+> +               if (!jobj)
+> +                       goto out;
+> +               json_object_array_add(jdimm_detect, jobj);
+> +       }
+> +
+> +       if (json_object_array_length(jdimm_health) > 0)
+> +               json_object_object_add(jevent, "dimm-health", jdimm_health);
+> +       else
+> +               free (jdimm_health);
+> +
+> +       if (json_object_array_length(jdimm_detect) > 0)
+> +               json_object_object_add(jevent, "dimm-detect", jdimm_detect);
+> +       else
+> +               free (jdimm_detect);
+> +
+> +       return jevent;
+> +out:
+> +       if (jdimm_health)
+> +               free(jdimm_health);
+> +       if (jdimm_detect)
+> +               free(jdimm_detect);
+> +       free(jevent);
+> +       return NULL;
+> +}
+
+Is this routine trying to show which events fired? I think these
+should be json-boolean types where the value is true / false and the
+key is the event-type name.
+
+
+> +
+> +static int notify_dimm_event(struct monitor_dimm *mdimm)
+> +{
+> +       struct json_object *jmsg, *jdimm, *jobj;
+> +       struct timespec ts;
+> +       char timestamp[32];
+> +       struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(mdimm->dimm);
+> +
+> +       jmsg = json_object_new_object();
+> +       if (!jmsg) {
+> +               fail("\n");
+> +               return -1;
+> +       }
+> +
+> +       clock_gettime(CLOCK_REALTIME, &ts);
+> +       sprintf(timestamp, "%10ld.%09ld", ts.tv_sec, ts.tv_nsec);
+> +       jobj = json_object_new_string(timestamp);
+> +       if (!jobj) {
+> +               fail("\n");
+> +               return -1;
+> +       }
+> +       json_object_object_add(jmsg, "timestamp", jobj);
+> +
+> +       jobj = json_object_new_int(getpid());
+> +       if (!jobj) {
+> +               fail("\n");
+> +               return -1;
+> +       }
+> +       json_object_object_add(jmsg, "pid", jobj);
+> +
+> +       jobj = dimm_event_to_json(mdimm);
+> +       if (!jobj) {
+> +               fail("\n");
+> +               return -1;
+> +       }
+> +       json_object_object_add(jmsg, "event", jobj);
+> +
+> +       jdimm = util_dimm_to_json(mdimm->dimm, 0);
+> +       if (!jdimm) {
+> +               fail("\n");
+> +               return -1;
+> +       }
+> +       json_object_object_add(jmsg, "dimm", jdimm);
+> +
+> +       jobj = util_dimm_health_to_json(mdimm->dimm);
+> +       if (!jobj) {
+> +               fail("\n");
+> +               return -1;
+> +       }
+> +       json_object_object_add(jdimm, "health", jobj);
+> +
+> +       notice(ctx, "%s",
+> +               json_object_to_json_string_ext(jmsg, JSON_C_TO_STRING_PLAIN));
+> +       return 0;
+> +}
+
+Where is the memory released for the newly created json objects in this routine?
+
+> +
+> +static struct monitor_dimm *util_dimm_event_filter(struct monitor_dimm *mdimm,
+> +               const char *__ident)
+> +{
+> +       char *ident, *save;
+> +       const char *name;
+> +       struct monitor_dimm *__mdimm;
+> +       struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(mdimm->dimm);
+> +
+> +       __mdimm = calloc(1, sizeof(struct monitor_dimm));
+> +       if (!__mdimm) {
+> +               fail("\n");
+> +               return NULL;
+> +       }
+> +
+> +       __mdimm->dimm = mdimm->dimm;
+> +       if (get_monitor_dimm_data(__mdimm)) {
+> +               fail("\n");
+> +               goto out;
+> +       }
+> +       if (mdimm->health != __mdimm->health)
+> +               __mdimm->event_flags |= DIMM_HEALTH_STATE;
+> +
+> +       if (!__ident)
+> +               return __mdimm;
+> +
+> +       ident = strdup(__ident);
+> +       if (!ident)
+> +               goto out;
+> +
+> +       for (name = strtok_r(ident, " ", &save); name;
+> +                       name = strtok_r(NULL, " ", &save)) {
+> +               if (strcmp(name, "all") == 0)
+> +                       break;
+> +
+> +               if (strcmp(name, "dimm-spares-remaining") == 0) {
+> +                       if (__mdimm->event_flags & DIMM_SPARES_REMAINING)
+> +                               break;
+> +               } else if (strcmp(name, "dimm-media-temperature") == 0) {
+> +                       if (__mdimm->event_flags & DIMM_MEDIA_TEMPERATURE)
+> +                               break;
+> +               } else if (strcmp(name, "dimm-controller-temperature") == 0) {
+> +                       if (__mdimm->event_flags & DIMM_CTRL_TEMPERATURE)
+> +                               break;
+> +               } else if (strcmp(name, "dimm-health-state") == 0) {
+> +                       if (__mdimm->event_flags & DIMM_HEALTH_STATE)
+> +                               break;
+> +               } else if (strcmp(name, "dimm-unclean-shutdown") == 0) {
+> +                       if (__mdimm->event_flags & DIMM_UNCLEAN_SHUTDOWN)
+> +                               break;
+> +               }
+> +       }
+> +       free(ident);
+> +
+> +       if (name)
+> +               return __mdimm;
+> +out:
+> +       free(__mdimm);
+> +       return NULL;
+> +}
+> +
+> +static bool filter_region(struct ndctl_region *region,
+> +               struct util_filter_ctx *ctx)
+> +{
+> +       return true;
+> +}
+> +
+> +static void filter_dimm(struct ndctl_dimm *dimm, struct util_filter_ctx *ctx)
+> +{
+> +       struct monitor_dimm *mdimm, *__mdimm;
+> +       struct monitor_filter_arg *mfa = (struct monitor_filter_arg *)ctx->arg;
+> +
+> +       if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART_THRESHOLD))
+> +               return;
+> +
+> +       if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART))
+> +               return;
+> +
+> +       mdimm = calloc(1, sizeof(struct monitor_dimm));
+> +       if (!mdimm)
+> +               return;
+> +
+> +       mdimm->dimm = dimm;
+> +       if (get_monitor_dimm_data(mdimm))
+> +               goto out;
+> +
+> +       if (mdimm->event_flags) {
+> +               __mdimm = util_dimm_event_filter(mdimm, monitor.dimm_event);
+> +               if (__mdimm) {
+> +                       if (notify_dimm_event(__mdimm))
+> +                               fail("notify dimm event failed\n");
+> +                       free(__mdimm);
+> +               }
+> +       }
+> +
+> +       list_add_tail(&mfa->dimms, &mdimm->list);
+> +       if (mdimm->health_eventfd > mfa->maxfd_dimm)
+> +               mfa->maxfd_dimm = mdimm->health_eventfd;
+> +       mfa->num_dimm++;
+> +       return;
+> +out:
+> +       free(mdimm);
+> +       return;
+> +}
+> +
+> +static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx *ctx)
+> +{
+> +       return true;
+> +}
+> +
+> +static int monitor_event(struct ndctl_ctx *ctx,
+> +               struct monitor_filter_arg *mfa)
+> +{
+> +       struct epoll_event ev, *events;
+> +       int nfds, epollfd, i, rc;
+> +       struct monitor_dimm *mdimm, *__mdimm;
+> +       char buf;
+> +
+> +       events = malloc(sizeof(struct epoll_event) * mfa->num_dimm);
+
+Let's use calloc here.
+
+> +       if (!events) {
+> +               fail("malloc for events error\n");
+> +               goto out;
+> +       }
+> +       epollfd = epoll_create1(0);
+> +       if (epollfd == -1) {
+> +               fail("epoll_create1 error\n");
+> +               goto out;
+> +       }
+> +       list_for_each(&mfa->dimms, mdimm, list) {
+> +               memset(&ev, 0, sizeof(ev));
+> +               rc = pread(mdimm->health_eventfd, &buf, sizeof(buf), 0);
+> +               if (rc < 0) {
+> +                       fail("pread error\n");
+> +                       goto out;
+> +               }
+> +               ev.data.ptr = mdimm;
+> +               if (epoll_ctl(epollfd, EPOLL_CTL_ADD,
+> +                               mdimm->health_eventfd, &ev) != 0) {
+> +                       fail("epoll_ctl error\n");
+> +                       goto out;
+> +               }
+> +       }
+> +
+> +       while (1) {
+> +               did_fail = 0;
+> +               nfds = epoll_wait(epollfd, events, mfa->num_dimm, -1);
+> +               if (nfds <= 0) {
+> +                       fail("epoll_wait error\n");
+> +                       goto out;
+> +               }
+> +               for (i = 0; i < nfds; i++) {
+> +                       mdimm = events[i].data.ptr;
+> +                       __mdimm = util_dimm_event_filter(mdimm,
+> +                                       monitor.dimm_event);
+> +                       if (__mdimm) {
+> +                               if (notify_dimm_event(__mdimm))
+> +                                       fail("notify dimm event failed\n");
+> +                               free(__mdimm);
+> +                       }
+> +                       rc = pread(mdimm->health_eventfd, &buf, sizeof(buf), 0);
+> +                       if (rc < 0) {
+> +                               fail("pread error\n");
+> +                               goto out;
+> +                       }
+> +               }
+> +               if (did_fail)
+> +                       goto out;
+> +       }
+> +       return 0;
+> +out:
+> +       return 1;
+> +}
+> +
+> +int cmd_monitor(int argc, const char **argv, void *ctx)
+> +{
+> +       int i;
+> +       const struct option options[] = {
+> +               OPT_STRING('b', "bus", &param.bus, "bus-id", "filter by bus"),
+> +               OPT_STRING('r', "region", &param.region, "region-id",
+> +                               "filter by region"),
+> +               OPT_STRING('d', "dimm", &param.dimm, "dimm-id",
+> +                               "filter by dimm"),
+> +               OPT_STRING('n', "namespace", &param.namespace,
+> +                               "namespace-id", "filter by namespace id"),
+> +               OPT_FILENAME('l', "logfile", &monitor.logfile,
+> +                               "file | syslog | stderr",
+> +                               "where to output the monitor's notification"),
+> +               OPT_BOOLEAN('f', "daemon", &monitor.daemon,
+> +                               "run ndctl monitor as a daemon"),
+> +               OPT_STRING('D', "dimm-event", &monitor.dimm_event,
+> +                       "dimm-spares-remaining | dimm-media-temperature | dimm-controller-temperature | dimm-health-state | dimm-unclean-shutdown",
+> +                       "filter by DIMM event type"),
+> +               OPT_END(),
+> +       };
+> +       const char * const u[] = {
+> +               "ndctl monitor [<options>]",
+> +               NULL
+> +       };
+> +       const char *prefix = "./";
+> +       struct util_filter_ctx fctx = { 0 };
+> +       struct monitor_filter_arg mfa = { 0 };
+> +
+> +       argc = parse_options_prefix(argc, argv, prefix, options, u, 0);
+> +       for (i = 0; i < argc; i++) {
+> +               error("unknown parameter \"%s\"\n", argv[i]);
+> +       }
+> +       if (argc)
+> +               usage_with_options(u, options);
+> +
+> +       ndctl_set_log_fn((struct ndctl_ctx *)ctx, logreport);
+> +       ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_INFO);
+> +
+> +       if (monitor.logfile) {
+> +               if (strcmp(monitor.logfile, "./stderr") == 0)
+> +                       log_destination = LOG_DESTINATION_STDERR;
+> +               else if (strcmp(monitor.logfile, "./syslog") == 0)
+> +                       log_destination = LOG_DESTINATION_SYSLOG;
+> +               else
+> +                       log_destination = LOG_DESTINATION_FILE;
+> +       }
+> +
+> +       if (monitor.daemon) {
+> +               if (daemon(0, 0) != 0) {
+> +                       fail("daemon start failed\n");
+> +                       goto out;
+> +               }
+> +               info((struct ndctl_ctx *)ctx, "ndctl monitor daemon started\n");
+> +       }
+> +
+> +       fctx.filter_bus = filter_bus;
+> +       fctx.filter_dimm = filter_dimm;
+> +       fctx.filter_region = filter_region;
+> +       fctx.filter_namespace = NULL;
+> +       fctx.arg = &mfa;
+> +       list_head_init(&mfa.dimms);
+> +       mfa.num_dimm = 0;
+> +       mfa.maxfd_dimm = -1;
+> +       mfa.flags = 0;
+> +
+> +       if (util_filter_walk(ctx, &fctx, &param))
+> +               goto out;
+> +
+> +       if (!mfa.num_dimm) {
+> +               fail("no dimms can be monitored\n");
+> +               goto out;
+> +       }
+> +
+> +       if (monitor_event(ctx, &mfa))
+> +               goto out;
+> +
+> +       return 0;
+> +out:
+> +       return 1;
+> +}
+> diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+> index 7daadeb..73dabfa 100644
+> --- a/ndctl/ndctl.c
+> +++ b/ndctl/ndctl.c
+> @@ -89,6 +89,7 @@ static struct cmd_struct commands[] = {
+>         { "wait-scrub", cmd_wait_scrub },
+>         { "start-scrub", cmd_start_scrub },
+>         { "list", cmd_list },
+> +       { "monitor", cmd_monitor},
+>         { "help", cmd_help },
+>         #ifdef ENABLE_TEST
+>         { "test", cmd_test },
+> --
+> 2.17.1
+>
+>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
