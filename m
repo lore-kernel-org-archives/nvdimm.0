@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8B03221B02845
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 15:31:09 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 941DA21B02845
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 10:59:35 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 2/3] dax: bdev_dax_supported() check for QUEUE_FLAG_DAX
-Date: Tue, 26 Jun 2018 16:30:40 -0600
-Message-Id: <20180626223041.15653-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180626223041.15653-1-ross.zwisler@linux.intel.com>
-References: <20180626223041.15653-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 2/3] dax: bdev_dax_supported() check for QUEUE_FLAG_DAX
+Date: Tue, 26 Jun 2018 11:59:31 -0600
+Message-Id: <20180626175932.8899-3-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180626175932.8899-1-ross.zwisler@linux.intel.com>
+References: <20180626175932.8899-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Add an explicit check for QUEUE_FLAG_DAX to __bdev_dax_supported().  This
@@ -34,7 +34,6 @@ filesystem on that device mount with the DAX option.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Suggested-by: Mike Snitzer <snitzer@redhat.com>
-Fixes: commit 545ed20e6df6 ("dm: add infrastructure for DAX support")
 Cc: stable@vger.kernel.org
 ---
  drivers/dax/super.c | 8 ++++++++
