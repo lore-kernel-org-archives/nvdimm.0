@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CCEA8211F889C
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 13:43:26 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [ndctl PATCH 2/2] ndctl: Add 'list' verbose documentation
-Date: Tue, 26 Jun 2018 14:46:49 -0600
-Message-Id: <20180626204649.7665-2-keith.busch@intel.com>
-In-Reply-To: <20180626204649.7665-1-keith.busch@intel.com>
-References: <20180626204649.7665-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7701B21B02845
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 10:07:27 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCHv2] ndctl: Use max_available_extent for namespaces
+Date: Tue, 26 Jun 2018 17:07:19 +0000
+Message-ID: <1530032832.27147.27.camel@intel.com>
+References: <20180626170027.6942-1-keith.busch@intel.com>
+In-Reply-To: <20180626170027.6942-1-keith.busch@intel.com>
+Content-Language: en-US
+Content-ID: <A9A7BCCD4142404E9D9FF10A0654A713@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,45 +20,133 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "Busch, Keith" <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "y-goto@jp.fujitsu.com" <y-goto@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Keith Busch <keith.busch@intel.com>
----
- Documentation/ndctl/ndctl-list.txt | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+On Tue, 2018-06-26 at 11:00 -0600, Keith Busch wrote:
+> The available_size attribute returns all the unused regions, but a
+> namespace has to use contiguous free regions. This patch uses the
+> attribute returning the largest capacity that can be created for
+> determining if the namespace can be created.
+> 
+> If this is used on a kernel that predates the new attribute, ndctl will
+> fall back to the previous behavior using available_size. While that may
+> still fail, it is more likely to succeed than returning a hard-coded
+> value. 
+> 
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+> v1 -> v2:
+> 
+>   Appropriate subject-prefex for ndctl.
+> 
+>   Added the fallback to the previous behavior if the attribute is not
+>   found, and noted this behavior in the changelog.
+> 
+>  ndctl/lib/libndctl.c   | 31 +++++++++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym |  1 +
+>  ndctl/libndctl.h       |  2 ++
+>  ndctl/namespace.c      |  2 +-
+>  4 files changed, 35 insertions(+), 1 deletion(-)
+> 
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index 47e005e..8ff1fa6 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -2025,6 +2025,37 @@ NDCTL_EXPORT unsigned long long
+> ndctl_region_get_available_size(
+>  	return strtoull(buf, NULL, 0);
+>  }
+>  
+> +NDCTL_EXPORT unsigned long long ndctl_region_get_max_available_extent(
+> +		struct ndctl_region *region)
+> +{
+> +	unsigned int nstype = ndctl_region_get_nstype(region);
+> +	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+> +	char *path = region->region_buf;
+> +	int len = region->buf_len;
+> +	char buf[SYSFS_ATTR_SIZE];
+> +
+> +	switch (nstype) {
+> +	case ND_DEVICE_NAMESPACE_PMEM:
+> +	case ND_DEVICE_NAMESPACE_BLK:
+> +		break;
+> +	default:
+> +		return 0;
+> +	}
+> +
+> +	if (snprintf(path, len,
+> +		     "%s/max_available_extent", region->region_path) >=
+> len) {
+> +		err(ctx, "%s: buffer too small!\n",
+> +				ndctl_region_get_devname(region));
+> +		return ULLONG_MAX;
+> +	}
+> +
+> +	/* fall back to legacy behavior if max extents is not exported
+> */
+> +	if (sysfs_read_attr(ctx, path, buf) < 0)
+> +		return ndctl_region_get_available_size(region);
 
-diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
-index 13ebdcd..791638c 100644
---- a/Documentation/ndctl/ndctl-list.txt
-+++ b/Documentation/ndctl/ndctl-list.txt
-@@ -200,6 +200,18 @@ include::xable-region-options.txt[]
-   ]
- }
- 
-+-v::
-+--verbose::
-+	Increase verbosity of the output. This can be specified
-+	multiple times to be even more verbose on the informational and
-+	miscellaneous output, and can be used to override the flags for
-+	showing specific information.
-+
-+[verse]
-+ndctl list -v
-+ndctl list -vv
-+ndctl list -vvv
-+
- include::human-option.txt[]
- 
- ----
--- 
-2.14.3
+Instead of silently falling back to the legacy behavior, perhaps we should
+print a dbg() warning here so that the user can be prompted to update their
+kernel.
 
+> +
+> +	return strtoull(buf, NULL, 0);
+> +}
+> +
+>  NDCTL_EXPORT unsigned int ndctl_region_get_range_index(struct
+> ndctl_region *region)
+>  {
+>  	return region->range_index;
+> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+> index c1228e5..22fd026 100644
+> --- a/ndctl/lib/libndctl.sym
+> +++ b/ndctl/lib/libndctl.sym
+> @@ -123,6 +123,7 @@ global:
+>  	ndctl_region_get_mappings;
+>  	ndctl_region_get_size;
+>  	ndctl_region_get_available_size;
+> +	ndctl_region_get_max_available_extent;
+>  	ndctl_region_get_type;
+>  	ndctl_region_get_namespace_seed;
+>  	ndctl_region_get_btt_seed;
+> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+> index be997ac..624115d 100644
+> --- a/ndctl/libndctl.h
+> +++ b/ndctl/libndctl.h
+> @@ -338,6 +338,8 @@ unsigned int ndctl_region_get_interleave_ways(struct
+> ndctl_region *region);
+>  unsigned int ndctl_region_get_mappings(struct ndctl_region *region);
+>  unsigned long long ndctl_region_get_size(struct ndctl_region *region);
+>  unsigned long long ndctl_region_get_available_size(struct ndctl_region
+> *region);
+> +unsigned long long ndctl_region_get_max_available_extent(
+> +		struct ndctl_region *region);
+>  unsigned int ndctl_region_get_range_index(struct ndctl_region *region);
+>  unsigned int ndctl_region_get_type(struct ndctl_region *region);
+>  struct ndctl_namespace *ndctl_region_get_namespace_seed(
+> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+> index fe86d82..4a562a2 100644
+> --- a/ndctl/namespace.c
+> +++ b/ndctl/namespace.c
+> @@ -764,7 +764,7 @@ static int namespace_create(struct ndctl_region
+> *region)
+>  		return -EAGAIN;
+>  	}
+>  
+> -	available = ndctl_region_get_available_size(region);
+> +	available = ndctl_region_get_max_available_extent(region);
+>  	if (!available || p.size > available) {
+>  		debug("%s: insufficient capacity size: %llx avail:
+> %llx\n",
+>  			devname, p.size, available);
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
