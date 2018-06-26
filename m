@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BEDF7211F888F
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 12:13:49 -0700 (PDT)
-Date: Tue, 26 Jun 2018 15:13:46 -0400
-From: Mike Snitzer <snitzer@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id CB71A211F888F
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 12:12:36 -0700 (PDT)
+Date: Tue, 26 Jun 2018 13:12:35 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH v3 1/3] pmem: only set QUEUE_FLAG_DAX for fsdax mode
-Message-ID: <20180626191346.GA7233@redhat.com>
+Message-ID: <20180626191235.GB18273@linux.intel.com>
 References: <20180626175932.8899-1-ross.zwisler@linux.intel.com>
  <20180626175932.8899-2-ross.zwisler@linux.intel.com>
  <CAPcyv4iWgPnHmBKhUvhManC6UL9CkLqN_d8vBo6KmcPJdPzuUw@mail.gmail.com>
@@ -28,12 +28,10 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, device-mapper development <dm-devel@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Mike Snitzer <snitzer@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, device-mapper development <dm-devel@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jun 26 2018 at  3:07pm -0400,
-Dan Williams <dan.j.williams@intel.com> wrote:
-
+On Tue, Jun 26, 2018 at 12:07:40PM -0700, Dan Williams wrote:
 > On Tue, Jun 26, 2018 at 11:58 AM, Mike Snitzer <snitzer@redhat.com> wrote:
 > > On Tue, Jun 26 2018 at  2:52pm -0400,
 > > Dan Williams <dan.j.williams@intel.com> wrote:
@@ -65,12 +63,8 @@ Dan Williams <dan.j.williams@intel.com> wrote:
 > is not a regression. It does not identify which commit it is repairing
 > or the user visible failure mode.
 
-So you're taking issue with making stacked dax configs work in older
-kernels?  That's fine.  We can drop the stable cc if you like.
-
-But I mean we intended for this to work.. so the Fixes commit references
-can easily be added, e.g.: 545ed20e6df68a4d2584a29a2a28ee8b2f7e9547
-("dm: add infrastructure for DAX support")
+Ah, do I need a Fixes: tag for patch 2, then?  That one *does* need to go to
+stable, I think.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
