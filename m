@@ -2,13 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B2B3B21A143EF
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 16:15:58 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 4FDF3211F8889
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 16:15:33 -0700 (PDT)
 Subject: [ndctl PATCH] ndctl,
  test: check availability of MAP_SYNC for poison test
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 26 Jun 2018 16:06:00 -0700
-Message-ID: <153005436089.18842.1250190791301459045.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 26 Jun 2018 16:05:27 -0700
+Message-ID: <153005432756.18809.2045444497326930293.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
