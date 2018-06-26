@@ -1,15 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B6BBA210F75D4
- for <linux-nvdimm@lists.01.org>; Fri,  8 Jun 2018 16:58:39 -0700 (PDT)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm for 4.18
-Date: Fri, 8 Jun 2018 23:58:29 +0000
-Message-ID: <1528502307.25740.14.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id F20CD20972139
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 09:34:43 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] ndctl: Use max_available_extent for creating namespaces
+Date: Tue, 26 Jun 2018 16:34:37 +0000
+Message-ID: <1530030875.27147.24.camel@intel.com>
+References: <20180626153736.6770-1-keith.busch@intel.com>
+ <20180626153736.6770-3-keith.busch@intel.com>
+ <1530029963.27147.21.camel@intel.com>
+ <20180626162924.GB6754@localhost.localdomain>
+ <1530030454.27147.23.camel@intel.com>
+ <CAPcyv4hzER7RpeHnsEAJdsnb8CzruZdoK2m3hKVeAsJXkC_ryg@mail.gmail.com>
+In-Reply-To: <CAPcyv4hzER7RpeHnsEAJdsnb8CzruZdoK2m3hKVeAsJXkC_ryg@mail.gmail.com>
 Content-Language: en-US
-Content-ID: <86896C0D4D77914E8F521A70B6A1C926@intel.com>
+Content-ID: <E5EEA74427BCBE4C800F5E345E08F221@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,151 +29,72 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "y-goto@jp.fujitsu.com" <y-goto@jp.fujitsu.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+On Tue, 2018-06-26 at 09:32 -0700, Dan Williams wrote:
+> On Tue, Jun 26, 2018 at 9:27 AM, Verma, Vishal L
+> <vishal.l.verma@intel.com> wrote:
+> > On Tue, 2018-06-26 at 10:29 -0600, Keith Busch wrote:
+> > > On Tue, Jun 26, 2018 at 09:19:28AM -0700, Verma, Vishal L wrote:
+> > > > On Tue, 2018-06-26 at 09:37 -0600, Keith Busch wrote:
+> > > > > The available_size attribute returns all the unused regions, but
+> > > > > a
+> > > > > namespace has to use contiguous free regions. This patch uses the
+> > > > > attribute returning the largest capacity that can be created for
+> > > > > determining if the namespace can be created.
+> > > > > 
+> > > > > Signed-off-by: Keith Busch <keith.busch@intel.com>
+> > > > > ---
+> > > > >  ndctl/lib/libndctl.c   | 30 ++++++++++++++++++++++++++++++
+> > > > >  ndctl/lib/libndctl.sym |  1 +
+> > > > >  ndctl/libndctl.h       |  2 ++
+> > > > >  ndctl/namespace.c      |  2 +-
+> > > > >  4 files changed, 34 insertions(+), 1 deletion(-)
+> > > > 
+> > > > Hi Keith,
+> > > > 
+> > > > The patch looks good, but just a couple of 'meta' comments.
+> > > > 1. We typically send ndctl patches separately from kernel patches
+> > > > (i.e.
+> > > > not
+> > > > thraded together).
+> > > > 2. for ndctl patches, an 'ndctl PATCH' prefix is recommended. You
+> > > > can
+> > > > set a
+> > > > repo local config parameter for doing this automatically on git
+> > > > format-
+> > > > patch.
+> > > >     git config format.subjectprefix "ndctl PATCH"
+> > > > 
+> > > > I'm thinking the kernel changes will be queued for 4.19, which
+> > > > means
+> > > > the
+> > > > ndctl changes will go into v62.
+> > > 
+> > > Thanks for the info. I'll make those changes for next time.
+> > > 
+> > > I think I may need to send a v2 for this. Should we have this fall
+> > > back
+> > > to
+> > > the available_size for the older kernels where the
+> > > max_available_extents
+> > > attribute is not provided? I actually had that in my repo and used a
+> > > slightly older patch here, but I'm not sure if its okay to strongly
+> > > couple an ndctl release to a kernel version.
+> > 
+> > I was thinking that too. Typically we don't guarantee ndctl to work
+> > with
+> > old kernels, but this does seem like a bit of an invasive change.
+> > 
+> > Dan, thoughts?
+> 
+> It should fall back if the attribute is not available. Our *tests*
+> aren't guaranteed to pass on older kernels, but ndctl proper should
+> try it's best to accommodate old kernels.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.18
-
-...to receive the first part of the libnvdimm / persistent memory
-support update for 4.18. These patches have all been in -next for
-several releases. The 'DAX DMA vs Truncate' work has had extra soak
-time as it nearly missed 4.17.
-
-This pull request adds a user for the new 'bytes-remaining' updates to
-memcpy_mcsafe() that you already received through Ingo via the x86-dax-
-for-linus pull. There is a minor collision with bdev_dax_supported()
-reworks that you pulled from xfs, and another minor collision of the
-vm_fault_t conversion you received from Andrew. A potential merge
-resolution is here: https://git.kernel.org/pub/scm/linux/kernel/git/nvd
-imm/nvdimm.git/log/?h=libnvdimm-for-4.18-merge
-
-Not included in this pull, but still targeting this cycle, is support
-for handling memory media errors (poison) consumed via userspace dax
-mappings.
-
----
-
-The following changes since commit b04e217704b7f879c6b91222b066983a44a7a09f:
-
-  Linux 4.17-rc7 (2018-05-27 13:01:47 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.18
-
-for you to fetch changes up to 930218affeadd1325ea17e053f0dcecf218f5a4f:
-
-  Merge branch 'for-4.18/mcsafe' into libnvdimm-for-next (2018-06-08 15:16:44 -0700)
-
-----------------------------------------------------------------
-libnvdimm for 4.18
-
-* DAX broke a fundamental assumption of truncate of file mapped pages.
-  The truncate path assumed that it is safe to disconnect a pinned page
-  from a file and let the filesystem reclaim the physical block. With DAX
-  the page is equivalent to the filesystem block. Introduce
-  dax_layout_busy_page() to enable filesystems to wait for pinned DAX
-  pages to be released. Without this wait a filesystem could allocate
-  blocks under active device-DMA to a new file.
-
-* DAX arranges for the block layer to be bypassed and uses
-  dax_direct_access() + copy_to_iter() to satisfy read(2) calls.
-  However, the memcpy_mcsafe() facility is available through the pmem
-  block driver. In order to safely handle media errors, via the DAX
-  block-layer bypass, introduce copy_to_iter_mcsafe().
-
-* Fix cache management policy relative to the ACPI NFIT Platform
-  Capabilities Structure to properly elide cache flushes when they are not
-  necessary. The table indicates whether CPU caches are power-fail
-  protected. Clarify that a deep flush is always performed on
-  REQ_{FUA,PREFLUSH} requests.
-
-----------------------------------------------------------------
-Dan Williams (17):
-      memremap: split devm_memremap_pages() and memremap() infrastructure
-      mm: introduce MEMORY_DEVICE_FS_DAX and CONFIG_DEV_PAGEMAP_OPS
-      mm: fix __gup_device_huge vs unmap
-      mm, fs, dax: handle layout changes to pinned dax mappings
-      xfs: prepare xfs_break_layouts() to be called with XFS_MMAPLOCK_EXCL
-      xfs: prepare xfs_break_layouts() for another layout type
-      xfs, dax: introduce xfs_break_dax_layouts()
-      uio, lib: Fix CONFIG_ARCH_HAS_UACCESS_MCSAFE compilation
-      dax: Introduce a ->copy_to_iter dax operation
-      dax: Report bytes remaining in dax_iomap_actor()
-      pmem: Switch to copy_to_iter_mcsafe()
-      x86, nfit_test: Add unit test for memcpy_mcsafe()
-      libnvdimm: Debug probe times
-      libnvdimm, e820: Register all pmem resources
-      acpi, nfit: Remove ecc_unit_size
-      Merge branch 'for-4.18/dax' into libnvdimm-for-next
-      Merge branch 'for-4.18/mcsafe' into libnvdimm-for-next
-
-Matthew Wilcox (1):
-      dax: dax_insert_mapping_entry always succeeds
-
-Robert Elliott (1):
-      linvdimm, pmem: Preserve read-only setting for pmem devices
-
-Ross Zwisler (4):
-      libnvdimm, pmem: Complete REQ_FLUSH => REQ_PREFLUSH
-      libnvdimm, pmem: Unconditionally deep flush on *sync
-      libnvdimm, pmem: Do not flush power-fail protected CPU caches
-      dax: Use dax_write_cache* helpers
-
- Documentation/ABI/removed/sysfs-bus-nfit |  17 +++
- Documentation/ABI/testing/sysfs-bus-nfit |  19 ---
- arch/x86/Kconfig                         |   1 +
- arch/x86/Kconfig.debug                   |   3 +
- arch/x86/include/asm/mcsafe_test.h       |  75 +++++++++++
- arch/x86/include/asm/string_64.h         |  10 +-
- arch/x86/include/asm/uaccess_64.h        |  14 +++
- arch/x86/lib/memcpy_64.S                 | 112 ++++++++---------
- arch/x86/lib/usercopy_64.c               |  21 ++++
- drivers/acpi/nfit/core.c                 |  11 --
- drivers/dax/super.c                      |  33 +++--
- drivers/md/dm-linear.c                   |  16 +++
- drivers/md/dm-log-writes.c               |  15 +++
- drivers/md/dm-stripe.c                   |  21 ++++
- drivers/md/dm.c                          |  25 ++++
- drivers/nvdimm/bus.c                     |  19 ++-
- drivers/nvdimm/claim.c                   |   3 +-
- drivers/nvdimm/e820.c                    |  41 +++---
- drivers/nvdimm/pfn_devs.c                |   2 -
- drivers/nvdimm/pmem.c                    |  52 ++++++--
- drivers/nvdimm/region_devs.c             |   3 +-
- drivers/s390/block/dcssblk.c             |   7 ++
- fs/Kconfig                               |   1 +
- fs/dax.c                                 | 136 ++++++++++++++++----
- fs/xfs/xfs_file.c                        |  72 ++++++++++-
- fs/xfs/xfs_inode.h                       |  16 +++
- fs/xfs/xfs_ioctl.c                       |   8 +-
- fs/xfs/xfs_iops.c                        |  16 ++-
- fs/xfs/xfs_pnfs.c                        |  15 +--
- fs/xfs/xfs_pnfs.h                        |   5 +-
- include/linux/dax.h                      |  12 ++
- include/linux/device-mapper.h            |   5 +-
- include/linux/memremap.h                 |  36 ++----
- include/linux/mm.h                       |  71 ++++++++---
- include/linux/string.h                   |   4 +-
- include/linux/uio.h                      |  15 +++
- kernel/Makefile                          |   3 +-
- kernel/iomem.c                           | 167 ++++++++++++++++++++++++
- kernel/memremap.c                        | 210 +++++--------------------------
- kernel/resource.c                        |   1 +
- lib/Kconfig                              |   3 +
- lib/iov_iter.c                           |  61 +++++++++
- mm/Kconfig                               |   5 +
- mm/gup.c                                 |  36 ++++--
- mm/hmm.c                                 |  13 +-
- mm/swap.c                                |   3 +-
- tools/testing/nvdimm/test/nfit.c         | 104 +++++++++++++++
- 47 files changed, 1092 insertions(+), 446 deletions(-)
- create mode 100644 Documentation/ABI/removed/sysfs-bus-nfit
- create mode 100644 arch/x86/include/asm/mcsafe_test.h
- create mode 100644 kernel/iomem.c
+Ah yes makes sense.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
