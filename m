@@ -1,24 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
- [IPv6:2607:f8b0:4003:c06::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 84C25202E5302
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 14:03:01 -0700 (PDT)
-Received: by mail-oi0-x241.google.com with SMTP id h79-v6so17320945oig.13
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 14:03:01 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1530046327.14039.273.camel@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id C9739211F8889
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 13:54:27 -0700 (PDT)
+From: "Kani, Toshi" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v3 1/3] pmem: only set QUEUE_FLAG_DAX for fsdax mode
+Date: Tue, 26 Jun 2018 20:54:03 +0000
+Message-ID: <1530046327.14039.273.camel@hpe.com>
 References: <20180626175932.8899-1-ross.zwisler@linux.intel.com>
  <20180626175932.8899-2-ross.zwisler@linux.intel.com>
  <CAPcyv4iWgPnHmBKhUvhManC6UL9CkLqN_d8vBo6KmcPJdPzuUw@mail.gmail.com>
  <20180626185830.GA7171@redhat.com>
  <CAPcyv4h6HO6fs6k7QMD77jkz2djCeWCtWomCdNb0-1Q4VKanqw@mail.gmail.com>
- <20180626191346.GA7233@redhat.com> <1530046327.14039.273.camel@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 26 Jun 2018 14:02:59 -0700
-Message-ID: <CAPcyv4hP_Y3xdyCa-UkYCMJ5OtnjnkwPZDS2Z2Ge8+5ymBONwQ@mail.gmail.com>
-Subject: Re: [PATCH v3 1/3] pmem: only set QUEUE_FLAG_DAX for fsdax mode
+ <20180626191346.GA7233@redhat.com>
+In-Reply-To: <20180626191346.GA7233@redhat.com>
+Content-Language: en-US
+Content-ID: <3D1889CB4901114A9FD8D1212F7DAD23@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,63 +29,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Kani, Toshi" <toshi.kani@hpe.com>
-Cc: "snitzer@redhat.com" <snitzer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "snitzer@redhat.com" <snitzer@redhat.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jun 26, 2018 at 1:54 PM, Kani, Toshi <toshi.kani@hpe.com> wrote:
-> On Tue, 2018-06-26 at 15:13 -0400, Mike Snitzer wrote:
->> On Tue, Jun 26 2018 at  3:07pm -0400,
->> Dan Williams <dan.j.williams@intel.com> wrote:
->>
->> > On Tue, Jun 26, 2018 at 11:58 AM, Mike Snitzer <snitzer@redhat.com> wrote:
->> > > On Tue, Jun 26 2018 at  2:52pm -0400,
->> > > Dan Williams <dan.j.williams@intel.com> wrote:
->> > >
->> > > > On Tue, Jun 26, 2018 at 10:59 AM, Ross Zwisler
->> > > > <ross.zwisler@linux.intel.com> wrote:
->> > > > > QUEUE_FLAG_DAX is an indication that a given block device supports
->> > > > > filesystem DAX and should not be set for PMEM namespaces which are in "raw"
->> > > > > or "sector" modes.  These namespaces lack struct page and are prevented
->> > > > > from participating in filesystem DAX.
->> > > > >
->> > > > > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
->> > > > > Suggested-by: Mike Snitzer <snitzer@redhat.com>
->> > > > > Cc: stable@vger.kernel.org
->> > > >
->> > > > Why is this cc: stable? What is the user visible impact of this change
->> > > > especially given the requirement to validate QUEUE_FLAG_DAX with
->> > > > bdev_dax_supported()? Patch looks good, but it's just a cosmetic fixup
->> > > > afaics.
->> > >
->> > > This isn't cosmetic when you consider that stacking up a DM device is
->> > > looking at this flag to determine whether a table does or does _not_
->> > > support DAX.
->> > >
->> > > So this patch, in conjunction with the other changes in the series, is
->> > > certainly something I'd consider appropriate for stable.
->> >
->> > I think this classifies as something that never worked correctly and
->> > is not a regression. It does not identify which commit it is repairing
->> > or the user visible failure mode.
->>
->> So you're taking issue with making stacked dax configs work in older
->> kernels?  That's fine.  We can drop the stable cc if you like.
->>
->> But I mean we intended for this to work.. so the Fixes commit references
->> can easily be added, e.g.: 545ed20e6df68a4d2584a29a2a28ee8b2f7e9547
->> ("dm: add infrastructure for DAX support")
->
-> When this dm change was made, the pmem driver supported DAX for both raw
-> and memory modes (note: sector mode does not use the pmem driver).  I
-> think the issue was introduced when we dropped DAX support from raw
-> mode.
+On Tue, 2018-06-26 at 15:13 -0400, Mike Snitzer wrote:
+> On Tue, Jun 26 2018 at  3:07pm -0400,
+> Dan Williams <dan.j.williams@intel.com> wrote:
+> 
+> > On Tue, Jun 26, 2018 at 11:58 AM, Mike Snitzer <snitzer@redhat.com> wrote:
+> > > On Tue, Jun 26 2018 at  2:52pm -0400,
+> > > Dan Williams <dan.j.williams@intel.com> wrote:
+> > > 
+> > > > On Tue, Jun 26, 2018 at 10:59 AM, Ross Zwisler
+> > > > <ross.zwisler@linux.intel.com> wrote:
+> > > > > QUEUE_FLAG_DAX is an indication that a given block device supports
+> > > > > filesystem DAX and should not be set for PMEM namespaces which are in "raw"
+> > > > > or "sector" modes.  These namespaces lack struct page and are prevented
+> > > > > from participating in filesystem DAX.
+> > > > > 
+> > > > > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > > > > Suggested-by: Mike Snitzer <snitzer@redhat.com>
+> > > > > Cc: stable@vger.kernel.org
+> > > > 
+> > > > Why is this cc: stable? What is the user visible impact of this change
+> > > > especially given the requirement to validate QUEUE_FLAG_DAX with
+> > > > bdev_dax_supported()? Patch looks good, but it's just a cosmetic fixup
+> > > > afaics.
+> > > 
+> > > This isn't cosmetic when you consider that stacking up a DM device is
+> > > looking at this flag to determine whether a table does or does _not_
+> > > support DAX.
+> > > 
+> > > So this patch, in conjunction with the other changes in the series, is
+> > > certainly something I'd consider appropriate for stable.
+> > 
+> > I think this classifies as something that never worked correctly and
+> > is not a regression. It does not identify which commit it is repairing
+> > or the user visible failure mode.
+> 
+> So you're taking issue with making stacked dax configs work in older
+> kernels?  That's fine.  We can drop the stable cc if you like.
+> 
+> But I mean we intended for this to work.. so the Fixes commit references
+> can easily be added, e.g.: 545ed20e6df68a4d2584a29a2a28ee8b2f7e9547
+> ("dm: add infrastructure for DAX support")
 
-Still DAX with raw mode never really worked any way. It was also
-something that was broken from day one. So what happens to someone who
-happened to avoid all the problems with page-less DAX and enabled
-device-mapper on top? That failure mode detail needs to be added to
-this changelog if we want to propose this for -stable.
+When this dm change was made, the pmem driver supported DAX for both raw
+and memory modes (note: sector mode does not use the pmem driver).  I
+think the issue was introduced when we dropped DAX support from raw
+mode.
+
+Thanks,
+-Toshi
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
