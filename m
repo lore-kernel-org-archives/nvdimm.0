@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 44F6A202E53D9
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 15:31:10 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id D50D121B02845
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 12:01:35 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v5 3/3] dm: prevent DAX mounts if not supported
-Date: Tue, 26 Jun 2018 16:30:41 -0600
-Message-Id: <20180626223041.15653-4-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180626223041.15653-1-ross.zwisler@linux.intel.com>
-References: <20180626223041.15653-1-ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 3/3] dm: prevent DAX mounts if not supported
+Date: Tue, 26 Jun 2018 13:01:29 -0600
+Message-Id: <20180626190129.18112-1-ross.zwisler@linux.intel.com>
+In-reply-to: <20180626175932.8899-4-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,7 +22,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Toshi Kani <toshi.kani@hpe.com>, Mike Snitzer <snitzer@redhat.com>, dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Currently device_supports_dax() just checks to see if the QUEUE_FLAG_DAX
@@ -32,18 +31,20 @@ device supports filesystem DAX.  Really we should be using
 bdev_dax_supported() like filesystems do at mount time.  This performs
 other tests like checking to make sure the dax_direct_access() path works.
 
-We also explicitly clear QUEUE_FLAG_DAX on the DM device's request queue if
-any of the underlying devices do not support DAX.  This makes the handling
-of QUEUE_FLAG_DAX consistent with the setting/clearing of most other flags
-in dm_table_set_restrictions().
-
-Now that bdev_dax_supported() explicitly checks for QUEUE_FLAG_DAX, this
-will ensure that filesystems built upon DM devices will only be able to
-mount with DAX if all underlying devices also support DAX.
+Conditionally set QUEUE_FLAG_DAX on the DM device's request queue based on
+whether all underlying devices support DAX.  Now that bdev_dax_supported()
+explicitly checks for this flag, this will ensure that filesystems built
+upon DM devices will only be able to mount with DAX if all underlying
+devices also support DAX.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Fixes: commit 545ed20e6df6 ("dm: add infrastructure for DAX support")
 Cc: stable@vger.kernel.org
+
+---
+
+Changes in v4:
+ * Set/clear QUEUE_FLAG_DAX in dm_table_set_restrictions(). (Mike)
 ---
  drivers/md/dm-table.c | 7 ++++---
  drivers/md/dm.c       | 3 +--
