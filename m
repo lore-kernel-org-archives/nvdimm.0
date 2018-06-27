@@ -1,10 +1,10 @@
-From: azialo-tPKdFJINDco2PyMruv/ykfUpdFzICT1y@public.gmane.org
-Subject: Nettie
-Date: Sun, 24 Jun 2018 23:06:29 +0200
-Message-ID: <41xkaxp3p9xy2jpjqyz2hir5.1069893357235@interieur.gouv.ci>
+From: arcelia.mcdonald-z3miRIg2pnO1cxs19T39qQC/G2K4zDHf@public.gmane.org
+Subject: Managed Service Providers (MSPs)
+Date: Wed, 27 Jun 2018 08:38:15 -0700
+Message-ID: <CAHm-C70jYwx_sZS5YnyLBCdGW-98w9bZJeuQFHx5eE6BhOAgiw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,12 +15,20 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: bvhw-thF4r3d8Mt0Gy6NMK7a+iQ@public.gmane.org, mylene.keller-WOQS26cwAR58UrSeD/g0lQ@public.gmane.org, rena-xAXlW7tP12wE8Gx1Vj3tGg@public.gmane.org, support-RjF9EZKuJUso2H3pi/jiKEEOCMrvLtNR@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, officeadmin1c-I22EZOz5ncJS43UKArkRJw@public.gmane.org, blankenship.19804-WKt2KCOFRljk6sNE1ETtvQ@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-What a wonderful day! I found the way how to make it even better.
-You should read this to the end and make a decision.
-What is better: fantastic lovemaking or day-to-day affairs?
-This link is for you.
-
-http://www.ebonyenglish.com.br/qvld59utug/fm27649a.php?YnZod0Bncm90dG8tdGljaW5vLmNo
+SGksCgoKCkkganVzdCB3YW50ZWQgdG8gY2hlY2sgaWYgeW91IHdvdWxkIGJlIGludGVyZXN0ZWQg
+aW4gYSBsaXN0IG9mIE1hbmFnZWQKU2VydmljZSBQcm92aWRlcnMgKE1TUHMpIGFuZCBNYW5hZ2Vk
+IFNlY3VyaXR5IFNlcnZpY2UgUHJvdmlkZXJzIChNU1NQcyk/CgoKCuKAoiAgICAgICAgIE1hbmFn
+ZWQgU2VydmljZSBQcm92aWRlcnMgKE1TUOKAmXMpIOKAkyAyNSwwMDAgdW5pcXVlIGNvbXBhbmll
+cwoK4oCiICAgICAgICAgTWFuYWdlZCBTZWN1cml0eSBTZXJ2aWNlIFByb3ZpZGVycyAoTVNTUOKA
+mXMpIOKAkyA3LDUyMCB1bmlxdWUKY29tcGFuaWVzCgpJVCBEZWNpc2lvbiBNYWtlcnMg4oCTIDZt
+aWxsaW9uCgpCdXNpbmVzcyBEZWNpc2lvbiBNYWtlcnMg4oCTIDEwIG1pbGxpb24KCktpbmRseSBy
+ZXZpZXcgYW5kIGxldCBtZSBrbm93IGlmIEkgY2FuIHNoYXJlIG1vcmUgaW5mb3JtYXRpb24gb24g
+dGhpcy4KCkkgbG9vayBmb3J3YXJkIHRvIGhlYXJpbmcgZnJvbSB5b3UuCgoKClJlZ2FyZHMsCgpB
+YnJhaGFtIFNvbG9tb24KCk1TUCBMaXN0IFNwZWNpYWxpc3QKCgoKRm9yIE9wdC1PdXQgcmVwbHkg
+d2l0aCDigJxOb3QgSW50ZXJlc3RlZOKAnS4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
+bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+bnZkaW1tCg==
