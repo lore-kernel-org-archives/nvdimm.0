@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mgwym02.jp.fujitsu.com (mgwym02.jp.fujitsu.com [211.128.242.41])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 841CF211F8886
- for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 16:39:34 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [ndctl PATCH 1/3] ndctl: simplify JSON print flag handling
-Date: Fri, 29 Jun 2018 17:39:25 -0600
-Message-Id: <20180629233927.6232-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E5BE221B02845
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 22:25:06 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 5FB9CAC054D
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Jun 2018 14:24:57 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [PATCH v8 0/3] ndctl, monitor: add ndctl monitor daemon
+Date: Wed, 27 Jun 2018 14:24:23 +0900
+Message-Id: <20180627052426.26020-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,167 +24,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "Kani, Toshi" <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-json_object_to_json_string_ext()'s second argument is a flags field which
-we always want to be JSON_C_TO_STRING_PRETTY.  We were going to a lot of
-trouble for this, though.  We had multiple variables set to be this one
-flag and util_display_json_array() took it as an argument, even though it
-never varied.
+This is the v8 patch for ndctl monitor, a tiny daemon to monitor
+the smart events of nvdimm DIMMs. Since NVDIMM does not have a
+feature like mirroring, if it breaks down, the data will be
+impossible to restore. Ndctl monitor daemon will catch the smart
+events notify from firmware and outputs notification to logfile,
+therefore users can replace NVDIMM before it is completely broken.
 
-Instead, just pass in the necessary flag when calling
-json_object_to_json_string_ext(), removing the local variables and the extra
-argument to util_display_json_array().
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- daxctl/list.c        |  5 ++---
- ndctl/bus.c          |  3 +--
- ndctl/dimm.c         |  3 +--
- ndctl/inject-smart.c |  3 +--
- ndctl/list.c         | 11 +++++------
- util/json.c          |  3 ++-
- util/json.h          |  2 +-
- 7 files changed, 13 insertions(+), 17 deletions(-)
+Change log since v7:
+ - Replacing logreport() with log_file() and log_syslog()
+ - Refactoring read_config_file()
+ - Replacing set_confile() with parse_config()
+ - Fixing the ndctl/ndct.conf file
 
-diff --git a/daxctl/list.c b/daxctl/list.c
-index 254f0ac..ed9e76c 100644
---- a/daxctl/list.c
-+++ b/daxctl/list.c
-@@ -50,7 +50,6 @@ static struct {
- };
- 
- static int did_fail;
--static int jflag = JSON_C_TO_STRING_PRETTY;
- 
- #define fail(fmt, ...) \
- do { \
-@@ -130,9 +129,9 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 	}
- 
- 	if (jregions)
--		util_display_json_array(stdout, jregions, jflag);
-+		util_display_json_array(stdout, jregions);
- 	else if (jdevs)
--		util_display_json_array(stdout, jdevs, jflag);
-+		util_display_json_array(stdout, jdevs);
- 
- 	if (did_fail)
- 		return -ENOMEM;
-diff --git a/ndctl/bus.c b/ndctl/bus.c
-index fc31d06..b7b7d65 100644
---- a/ndctl/bus.c
-+++ b/ndctl/bus.c
-@@ -88,8 +88,7 @@ static int bus_action(int argc, const char **argv, const char *usage,
- 	}
- 
- 	if (success)
--		util_display_json_array(stdout, jbuses,
--				JSON_C_TO_STRING_PRETTY);
-+		util_display_json_array(stdout, jbuses);
- 	else
- 		json_object_put(jbuses);
- 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 1c16899..6964c5e 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -1081,8 +1081,7 @@ static int dimm_action(int argc, const char **argv, void *ctx,
- 	}
- 
- 	if (actx.jdimms)
--		util_display_json_array(actx.f_out, actx.jdimms,
--				JSON_C_TO_STRING_PRETTY);
-+		util_display_json_array(actx.f_out, actx.jdimms);
- 
- 	if (actx.f_out != stdout)
- 		fclose(actx.f_out);
-diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
-index 60de9fe..2e62c89 100644
---- a/ndctl/inject-smart.c
-+++ b/ndctl/inject-smart.c
-@@ -375,8 +375,7 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
- 		jhealth = util_dimm_health_to_json(dimm);
- 		if (jhealth) {
- 			json_object_object_add(jdimm, "health", jhealth);
--			util_display_json_array(stdout, jdimms,
--				JSON_C_TO_STRING_PRETTY);
-+			util_display_json_array(stdout, jdimms);
- 		}
- 	}
- out:
-diff --git a/ndctl/list.c b/ndctl/list.c
-index 6cf7c39..030d73f 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -56,7 +56,6 @@ static unsigned long listopts_to_flags(void)
- struct util_filter_params param;
- 
- static int did_fail;
--static int jflag = JSON_C_TO_STRING_PRETTY;
- 
- #define fail(fmt, ...) \
- do { \
-@@ -380,7 +379,7 @@ static int list_display(struct list_filter_arg *lfa)
- 	struct json_object *jbuses = lfa->jbuses;
- 
- 	if (jbuses)
--		util_display_json_array(stdout, jbuses, jflag);
-+		util_display_json_array(stdout, jbuses);
- 	else if ((!!jdimms + !!jregions + !!jnamespaces) > 1) {
- 		struct json_object *jplatform = json_object_new_object();
- 
-@@ -397,14 +396,14 @@ static int list_display(struct list_filter_arg *lfa)
- 			json_object_object_add(jplatform, "namespaces",
- 					jnamespaces);
- 		printf("%s\n", json_object_to_json_string_ext(jplatform,
--					jflag));
-+					JSON_C_TO_STRING_PRETTY));
- 		json_object_put(jplatform);
- 	} else if (jdimms)
--		util_display_json_array(stdout, jdimms, jflag);
-+		util_display_json_array(stdout, jdimms);
- 	else if (jregions)
--		util_display_json_array(stdout, jregions, jflag);
-+		util_display_json_array(stdout, jregions);
- 	else if (jnamespaces)
--		util_display_json_array(stdout, jnamespaces, jflag);
-+		util_display_json_array(stdout, jnamespaces);
- 	return 0;
- }
- 
-diff --git a/util/json.c b/util/json.c
-index 94ed948..ff894c7 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -105,9 +105,10 @@ struct json_object *util_json_object_hex(unsigned long long val,
- 	return jobj;
- }
- 
--void util_display_json_array(FILE *f_out, struct json_object *jarray, int jflag)
-+void util_display_json_array(FILE *f_out, struct json_object *jarray)
- {
- 	int len = json_object_array_length(jarray);
-+	int jflag = JSON_C_TO_STRING_PRETTY;
- 
- 	if (json_object_array_length(jarray) > 1)
- 		fprintf(f_out, "%s\n", json_object_to_json_string_ext(jarray, jflag));
-diff --git a/util/json.h b/util/json.h
-index c5d1603..d0167cf 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -26,7 +26,7 @@ enum util_json_flags {
- };
- 
- struct json_object;
--void util_display_json_array(FILE *f_out, struct json_object *jarray, int jflag);
-+void util_display_json_array(FILE *f_out, struct json_object *jarray);
- struct json_object *util_bus_to_json(struct ndctl_bus *bus);
- struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
- 		unsigned long flags);
+Change log since v6:
+ - Changing License to GPL-2.0
+ - Adding event object to output notification
+ - Adding [--dimm-event] option to filter notification by event type
+ - Rewriting read_config_file()
+ - Replacing monitor_dimm_event() with monitor_event()
+ - Renaming some variables
+
+Change log since v5:
+ - Fixing systemd unit file cannot be installed bug
+ - Adding license to ./util/abspath.c
+
+Change log since v4:
+ - Adding OPTION_FILENAME to make sure filename is correct
+ - Adding configuration file
+ - Adding [--config-file] option to override the default configuration
+ - Making some options support multiple space-seperated arguments
+ - Making systemctl enable ndctl-monitor.service command work
+ - Making systemctl restart ndctl-monitor.service command work
+ - Making the directory of systemd unit file to be configurable
+ - Changing log_file() and log_syslog() to logreport()
+ - Changing date format in notification to nanoseconds since epoch
+ - Changing select() to epoll()
+ - Adding filter_bus() and filter_region()
+
+Change log since v3:
+ - Removing create-monitor, show-monitor, list-monitor, destroy-monitor
+ - Adding [--daemon] option to run ndctl monitor as a daemon 
+ - Using systemd to manage ndctl monitor daemon
+ - Replacing filter_monitor_dimm() with filter_dimm()
+
+Change log since v2:
+ - Changing the interface of daemon to the ndctl command line
+ - Changing the name of daemon form "nvdimmd" to "monitor"
+ - Removing the config file, unit_file, nvdimmd dir
+ - Removing nvdimmd_test program
+ - Adding ndctl/monitor.c
+
+Change log since v1:
+ - Adding a config file(/etc/nvdimmd/nvdimmd.conf)
+ - Using struct log_ctx instead of syslog()
+    - Using log_syslog() to save the notify messages to syslog
+    - Using log_file() to save the notify messages to special file
+ - Adding LOG_NOTICE level to log_priority
+ - Using automake instead of Makefile
+ - Adding a new util file(nvdimmd/util.c) including helper functions
+   needed for nvdimm daemon
+ - Adding nvdimmd_test program
+
+QI Fuli (3):
+  ndctl, monitor: add ndctl monitor
+  ndctl, monitor: add main ndctl monitor configuration file
+  ndctl, monitor: add the unit file of systemd for ndctl-monitor service
+
+ autogen.sh                  |   3 +-
+ builtin.h                   |   1 +
+ configure.ac                |  22 ++
+ ndctl/Makefile.am           |  12 +-
+ ndctl/monitor.c             | 623 ++++++++++++++++++++++++++++++++++++
+ ndctl/monitor.conf          |  41 +++
+ ndctl/ndctl-monitor.service |   7 +
+ ndctl/ndctl.c               |   1 +
+ 8 files changed, 708 insertions(+), 2 deletions(-)
+ create mode 100644 ndctl/monitor.c
+ create mode 100644 ndctl/monitor.conf
+ create mode 100644 ndctl/ndctl-monitor.service
+
 -- 
-2.14.4
+2.17.1
+
 
 _______________________________________________
 Linux-nvdimm mailing list
