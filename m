@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mgwym02.jp.fujitsu.com (mgwym02.jp.fujitsu.com [211.128.242.41])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 67AD021B02845
- for <linux-nvdimm@lists.01.org>; Wed, 27 Jun 2018 15:15:51 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] Documentation: add a newline in namespace Theory of
- Operations
-Date: Wed, 27 Jun 2018 16:15:43 -0600
-Message-Id: <20180627221543.23586-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E8C7A202E53F2
+ for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 22:25:10 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id B5DFDAC00AA
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Jun 2018 14:25:05 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [PATCH v8 2/3] ndctl,
+ monitor: add main ndctl monitor configuration file
+Date: Wed, 27 Jun 2018 14:24:25 +0900
+Message-Id: <20180627052426.26020-3-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180627052426.26020-1-qi.fuli@jp.fujitsu.com>
+References: <20180627052426.26020-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,30 +30,230 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The first bullet in the modes description was merged in with the
-previous paragraph in the online version of the man pages. Fix by adding
-a newline before the bulleted list.
+This patch adds the main configuration file(/etc/ndctl/monitor.conf)
+of ndctl monitor. It contains the configuration directives that give
+ndctl monitor instructions. Users can change the configuration by
+editing this file or using [--config-file] option to override this
+file. The changed value will work after restart ndctl monitor service.
 
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- Documentation/ndctl/namespace-description.txt | 1 +
- 1 file changed, 1 insertion(+)
+ ndctl/Makefile.am  |   5 ++
+ ndctl/monitor.c    | 115 +++++++++++++++++++++++++++++++++++++++++++++
+ ndctl/monitor.conf |  41 ++++++++++++++++
+ 3 files changed, 161 insertions(+)
+ create mode 100644 ndctl/monitor.conf
 
-diff --git a/Documentation/ndctl/namespace-description.txt b/Documentation/ndctl/namespace-description.txt
-index 1dd687e..94999e5 100644
---- a/Documentation/ndctl/namespace-description.txt
-+++ b/Documentation/ndctl/namespace-description.txt
-@@ -21,6 +21,7 @@ area.
- A namespace can be provisioned to operate in one of 4 modes, 'fsdax',
- 'devdax', 'sector', and 'raw'. Here are the expected usage models for
- these modes:
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index 7dbf223..ae3d894 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -42,3 +42,8 @@ ndctl_SOURCES += ../test/libndctl.c \
+ 		 ../test/multi-pmem.c \
+ 		 ../test/core.c
+ endif
 +
- 	- fsdax: Filesystem-DAX mode is the default mode of a namespace
- 	  when specifying 'ndctl create-namespace' with no options. It creates
- 	  a block device (/dev/pmemX[.Y]) that supports the DAX capabilities
++monitor_config_file = monitor.conf
++monitor_configdir = /etc/ndctl/
++monitor_config_DATA = $(monitor_config_file)
++EXTRA_DIST += $(monitor_config_file)
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index d926a81..56a1d0b 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -25,6 +25,7 @@
+ 
+ static struct monitor {
+ 	const char *logfile;
++	const char *config_file;
+ 	const char *dimm_event;
+ 	bool daemon;
+ } monitor;
+@@ -432,6 +433,109 @@ out:
+ 	return 1;
+ }
+ 
++static void parse_config(const char **arg, char *key, char *val, char *ident)
++{
++	struct strbuf value = STRBUF_INIT;
++	size_t arg_len = *arg ? strlen(*arg) : 0;
++
++	if (!ident || !key || (strcmp(ident, key) != 0))
++		return;
++
++	if (arg_len) {
++		strbuf_add(&value, *arg, arg_len);
++		strbuf_addstr(&value, " ");
++	}
++	strbuf_addstr(&value, val);
++	*arg = strbuf_detach(&value, NULL);
++}
++
++static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
++		struct util_filter_params *_param)
++{
++	FILE *f;
++	int line = 0;
++	size_t len = 0;
++	char *buf, *value, *config_file;
++	const char *def_config_file = "/etc/ndctl/monitor.conf";
++
++	if (_monitor->config_file)
++		config_file = strdup(_monitor->config_file);
++	else
++		config_file = strdup(def_config_file);
++	if (!config_file) {
++		fail("strdup default config file failed\n");
++		goto out;
++	}
++
++	buf = malloc(BUF_SIZE);
++	if (!buf) {
++		fail("malloc read config-file buf error\n");
++		goto out;
++	}
++
++	f = fopen(config_file, "r");
++	if (!f) {
++		fail("config-file: %s cannot be opened\n", config_file);
++		goto out;
++	}
++
++	while (fgets(buf, BUF_SIZE, f)) {
++		value = NULL;
++		line++;
++
++		while (isspace(*buf))
++			buf++;
++
++		if (*buf == '#' || *buf == '\0')
++			continue;
++
++		value = strchr(buf, '=');
++		if (!value) {
++			fail("config-file syntax error, skip line[%i]\n", line);
++			continue;
++		}
++
++		value[0] = '\0';
++		value++;
++
++		while (isspace(value[0]))
++			value++;
++
++		len = strlen(buf);
++		if (len == 0)
++			continue;
++		while (isspace(buf[len-1]))
++			len--;
++		buf[len] = '\0';
++
++		len = strlen(value);
++		if (len == 0)
++			continue;
++		while (isspace(value[len-1]))
++			len--;
++		value[len] = '\0';
++
++		if (len == 0)
++			continue;
++
++		parse_config(&_param->bus, "bus", value, buf);
++		parse_config(&_param->dimm, "dimm", value, buf);
++		parse_config(&_param->region, "region", value, buf);
++		parse_config(&_param->namespace, "namespace", value, buf);
++		parse_config(&_monitor->dimm_event, "dimm-event", value, buf);
++
++		if (!_monitor->logfile)
++			parse_config(&_monitor->logfile, "logfile", value, buf);
++	}
++	fclose(f);
++	free(config_file);
++	return 0;
++out:
++	if (config_file)
++		free(config_file);
++	return 1;
++}
++
+ int cmd_monitor(int argc, const char **argv, void *ctx)
+ {
+ 	int i;
+@@ -445,6 +549,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+ 				"namespace-id", "filter by namespace id"),
+ 		OPT_FILENAME('l', "logfile", &monitor.logfile, "file | syslog",
+ 				"where to output the monitor's notification"),
++		OPT_FILENAME('c', "config-file", &monitor.config_file,
++				"config-file", "override the default config"),
+ 		OPT_BOOLEAN('f', "daemon", &monitor.daemon,
+ 				"run ndctl monitor as a daemon"),
+ 		OPT_STRING('D', "dimm-event", &monitor.dimm_event,
+@@ -473,6 +579,15 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+ 		ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
+ 	ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_NOTICE);
+ 
++	if (read_config_file((struct ndctl_ctx *)ctx, &monitor, &param))
++		goto out;
++
++	if (monitor.logfile && (strcmp(monitor.logfile, "./syslog") != 0)
++			&& (strcmp(monitor.logfile, "syslog") != 0)) {
++		fix_filename(prefix, (const char **)&monitor.logfile);
++		ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_file);
++	}
++
+ 	if (monitor.daemon) {
+ 		if (daemon(0, 0) != 0) {
+ 			fail("daemon start failed\n");
+diff --git a/ndctl/monitor.conf b/ndctl/monitor.conf
+new file mode 100644
+index 0000000..5c10a8d
+--- /dev/null
++++ b/ndctl/monitor.conf
+@@ -0,0 +1,41 @@
++# This is the main ndctl monitor configuration file. It contains the
++# configuration directives that give ndctl monitor instructions.
++# You can change the configuration of ndctl monitor by editing this
++# file or using [--config-file=<file>] option to override this one.
++# The changed value will work after restart ndctl monitor service.
++
++# In this file, lines starting with a hash (#) are comments.
++# The configurations should follow <key> = <value> style.
++# Multiple space-separated values are allowed, but except the following
++# characters: : ? / \ % " ' $ & ! * { } [ ] ( ) = < > @
++
++# The objects to monitor are filtered via dimm's name by setting key "dimm".
++# If this value is different from the value of [--dimm=<value>] option,
++# both of the values will work.
++# dimm = all
++
++# The objects to monitor are filtered via its parent bus by setting key "bus".
++# If this value is different from the value of [--bus=<value>] option,
++# both of the values will work.
++# bus = all
++
++# The objects to monitor are filtered via region by setting key "region".
++# If this value is different from the value of [--region=<value>] option,
++# both of the values will work.
++# region = all
++
++# The objects to monitor are filtered via namespace by setting key "namespace".
++# If this value is different from the value of [--namespace=<value>] option,
++# both of the values will work.
++# namespace = all
++
++# The DIMM events to monitor are filtered via event type by setting key
++# "dimm-event". If this value is different from the value of
++# [--dimm-event=<value>] option, both of the values will work.
++# dimm-event = all
++
++# Users can choose to output the notifications to syslog (logfile=syslog)
++# or to write into a special file (logfile=<file>) by setting key "logfile".
++# If this value is in conflict with the value of [--logfile=<value>] option,
++# this value will be ignored.
++# logfile = /var/log/ndctl/monitor.log
 -- 
-2.14.4
+2.17.1
+
 
 _______________________________________________
 Linux-nvdimm mailing list
