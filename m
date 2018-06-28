@@ -1,18 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40BD5207DF290
- for <linux-nvdimm@lists.01.org>; Fri,  1 Jun 2018 13:19:44 -0700 (PDT)
-Date: Fri, 1 Jun 2018 16:19:25 -0400
-From: Mike Snitzer <snitzer@redhat.com>
-Subject: Re: [PATCH v2 3/7] dm: fix test for DAX device support
-Message-ID: <20180601201924.GA1144@redhat.com>
-References: <20180529195106.14268-1-ross.zwisler@linux.intel.com>
- <20180529195106.14268-4-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DA8F8202E53F1
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Jun 2018 21:18:33 -0700 (PDT)
+Subject: Re: [PATCH] mm: reject MAP_SHARED_VALIDATE without new flags
+References: <60052659-7b37-cb69-bf9f-1683caa46219@redhat.com>
+ <CA+55aFzeA7N3evSF2jKHu8JoTQuKDLCMKx7RiPhmym97-8HY7A@mail.gmail.com>
+ <1e2ad827-6ff4-4b1e-c4d9-79ca4e432a6c@sandeen.net>
+ <CA+55aFxs7Cc30fCiENw0R+XDJhUJ-w=z=NLLzYfT5gF2Qh-60Q@mail.gmail.com>
+From: Eric Sandeen <sandeen@redhat.com>
+Message-ID: <52d82353-2746-269a-c1e3-e4aec4fbf0f9@redhat.com>
+Date: Wed, 27 Jun 2018 23:18:30 -0500
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180529195106.14268-4-ross.zwisler@linux.intel.com>
+In-Reply-To: <CA+55aFxs7Cc30fCiENw0R+XDJhUJ-w=z=NLLzYfT5gF2Qh-60Q@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,64 +26,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Eric Sandeen <sandeen@sandeen.net>
+Cc: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, zhibli@redhat.com, linux-xfs <linux-xfs@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, May 29 2018 at  3:51P -0400,
-Ross Zwisler <ross.zwisler@linux.intel.com> wrote:
-
-> Currently device_supports_dax() just checks to see if the QUEUE_FLAG_DAX
-> flag is set on the device's request queue to decide whether or not the
-> device supports filesystem DAX.  This is insufficient because there are
-> devices like PMEM namespaces in raw mode which have QUEUE_FLAG_DAX set but
-> which don't actually support DAX.
-
-Isn't that a PMEM bug then?
-
-What is the point of setting QUEUE_FLAG_DAX if it cannot be trusted?
- 
-> This means that you could create a dm-linear device, for example, where the
-> first part of the dm-linear device was a PMEM namespace in fsdax mode and
-> the second part was a PMEM namespace in raw mode.  Both DM and the
-> filesystem you put on that dm-linear device would think the whole device
-> supports DAX, which would lead to bad behavior once your raw PMEM namespace
-> part using DAX needed struct page for something.
-
-The PMEM namespace in raw mode shouldn't be setting QUEUE_FLAG_DAX, if
-it didn't then the stacked-up linear DM wouldn't 
-
-> Fix this by using bdev_dax_supported() like filesystems do at mount time.
-> This checks for raw mode and also performs other tests like checking to
-> make sure the dax_direct_access() path works.
-
-Sorry "This" does those things where?
-
+On 6/27/18 9:37 PM, Linus Torvalds wrote:
+> On Wed, Jun 27, 2018 at 7:17 PM Eric Sandeen <sandeen@sandeen.net> wrote:
+>>
+>> What broke is that mmap(MAP_SHARED|MAP_PRIVATE) now succeeds without error,
+>> whereas before it rightly returned -EINVAL.
 > 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Fixes: commit 545ed20e6df6 ("dm: add infrastructure for DAX support")
-> ---
->  drivers/md/dm-table.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+> You're still confusing *behavior* with breakage.
 > 
-> diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
-> index 0589a4da12bb..5bb994b012ca 100644
-> --- a/drivers/md/dm-table.c
-> +++ b/drivers/md/dm-table.c
-> @@ -885,9 +885,7 @@ EXPORT_SYMBOL_GPL(dm_table_set_type);
->  static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
->  			       sector_t start, sector_t len, void *data)
->  {
-> -	struct request_queue *q = bdev_get_queue(dev->bdev);
-> -
-> -	return q && blk_queue_dax(q);
-> +	return bdev_dax_supported(dev->bdev, PAGE_SIZE);
->  }
->  
->  static bool dm_table_supports_dax(struct dm_table *t)
-> -- 
-> 2.14.3
+> Yes. New *behavior* is that MAP_SHARED|MAP_PRIVATE is now a valid
+> thing. It means "MAP_SHARED_VALIDATE".
 > 
+> Behavior changed.  That's normal. Every single time we add a system
+> call, behavior changes: a system call that used to return -ENOSYS now
+> returns something else.
+> 
+> That's not breakage, that's just intentional new behavior.
+
+*shrug* semantics aside, the new behavior is out there in a public
+API, so I guess there's nothing to do at this point other than
+to document the change more clearly.  It's true that my patch could
+possibly break existing users.
+
+The man page is clearly wrong at this point, both in terms of the
+error code section, and the claim that MAP_SHARED and MAP_PRIVATE
+behave as described in POSIX (because POSIX states that these
+two flags may not be specified together.)
+
+-Eric
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
