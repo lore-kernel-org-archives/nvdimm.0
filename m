@@ -1,20 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
- [IPv6:2607:f8b0:4003:c0f::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 36E7B202E546A
- for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 13:38:01 -0700 (PDT)
-Received: by mail-ot0-x242.google.com with SMTP id l15-v6so7611710oth.6
- for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 13:38:01 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <89b98efe-1eb7-87ed-99e4-7d87315318d0@oracle.com>
-References: <152902248546.9927.13473307820258257919.stgit@dwillia2-desk3.amr.corp.intel.com>
- <89b98efe-1eb7-87ed-99e4-7d87315318d0@oracle.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 28 Jun 2018 13:37:59 -0700
-Message-ID: <CAPcyv4h=T5wg=NKoCcSTDrC96EQ2xg3eEHK3Hj52qEBin2285w@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id DBFE521BADAB2
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 12:28:25 -0700 (PDT)
 Subject: Re: [ndctl PATCH] ndctl, test: Disable poison tests for now
+References: <152902248546.9927.13473307820258257919.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: jane.chu@oracle.com
+Message-ID: <89b98efe-1eb7-87ed-99e4-7d87315318d0@oracle.com>
+Date: Thu, 28 Jun 2018 12:28:19 -0700
+MIME-Version: 1.0
+In-Reply-To: <152902248546.9927.13473307820258257919.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,50 +19,246 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jane Chu <jane.chu@oracle.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jun 28, 2018 at 12:28 PM,  <jane.chu@oracle.com> wrote:
-> Hi, Dan,
+Hi, Dan,
+
+I'm concerned about this check
+
++	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 19, 0)))
+
+I read it as: this ndctl test only works for upstream kernel 4.19 and above.
+
+For Linux distributors, such as us, we pick a major upstream release as the
+base OS, then painstakingly backport desired upstream patches etc.
+Our latest OS version string will be 4.14.x.y.z for a long while,
+that means the ndctl test won't work even if we backport the 4.19 nvdimm
+patches over.
+
+Is it possible to come up with a more accommodating method?
+
+One way might be is to 'dd' a block of 0s to the injected block
+immediately after a successful injection?  For now, doing so leaves the
+'badblocks' and the poison bit in place.
+
+Thanks!
+-jane
+
+
+On 06/14/2018 05:28 PM, Dan Williams wrote:
+> Given that poison injection crashes the kernel, disable the test by
+> default until 4.19.
 >
-> I'm concerned about this check
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>   test.h            |    8 ++++----
+>   test/Makefile.am  |    4 +++-
+>   test/dax-pmd.c    |   14 ++++++++++----
+>   test/dax-poison.c |    8 ++++++--
+>   test/dax.sh       |   19 ++++++++++++++-----
+>   test/device-dax.c |    2 +-
+>   6 files changed, 38 insertions(+), 17 deletions(-)
 >
-> +       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 19, 0)))
+> diff --git a/test.h b/test.h
+> index e627785a5334..fa0c0cff9daf 100644
+> --- a/test.h
+> +++ b/test.h
+> @@ -39,11 +39,11 @@ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ct
+>   int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+>   int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t offset);
+>   #ifdef ENABLE_POISON
+> -int test_dax_poison(int dax_fd, unsigned long align, void *dax_addr,
+> -		off_t offset, bool fsdax);
+> +int test_dax_poison(struct ndctl_test *test, int dax_fd, unsigned long align,
+> +		void *dax_addr, off_t offset, bool fsdax);
+>   #else
+> -static inline int test_dax_poison(int dax_fd, unsigned long align,
+> -		void *dax_addr, off_t offset, bool fsdax)
+> +static inline int test_dax_poison(struct ndctl_test *test, int dax_fd,
+> +		unsigned long align, void *dax_addr, off_t offset, bool fsdax)
+>   {
+>   	return 0;
+>   }
+> diff --git a/test/Makefile.am b/test/Makefile.am
+> index a9b8b3eccbbf..92cf29d6065e 100644
+> --- a/test/Makefile.am
+> +++ b/test/Makefile.am
+> @@ -94,7 +94,9 @@ parent_uuid_LDADD = $(LIBNDCTL_LIB) $(UUID_LIBS) $(KMOD_LIBS)
+>   dax_dev_SOURCES = dax-dev.c $(testcore)
+>   dax_dev_LDADD = $(LIBNDCTL_LIB) $(KMOD_LIBS)
+>   
+> -dax_pmd_SOURCES = dax-pmd.c
+> +dax_pmd_SOURCES = dax-pmd.c \
+> +		$(testcore)
+> +
+>   hugetlb_SOURCES = hugetlb.c \
+>   		  dax-pmd.c
+>   
+> diff --git a/test/dax-pmd.c b/test/dax-pmd.c
+> index 0b4bd98edce4..8ed3e9b764f9 100644
+> --- a/test/dax-pmd.c
+> +++ b/test/dax-pmd.c
+> @@ -194,7 +194,7 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
+>   }
+>   
+>   /* test_pmd assumes that fd references a pre-allocated + dax-capable file */
+> -static int test_pmd(int fd)
+> +static int test_pmd(struct ndctl_test *test, int fd)
+>   {
+>   	unsigned long long m_align, p_align, pmd_off;
+>   	static const bool fsdax = true;
+> @@ -257,7 +257,7 @@ static int test_pmd(int fd)
+>   	if (rc)
+>   		goto err_directio;
+>   
+> -	rc = test_dax_poison(fd, HPAGE_SIZE, pmd_addr, pmd_off, fsdax);
+> +	rc = test_dax_poison(test, fd, HPAGE_SIZE, pmd_addr, pmd_off, fsdax);
+>   
+>    err_directio:
+>    err_extent:
+> @@ -268,14 +268,20 @@ static int test_pmd(int fd)
+>   
+>   int __attribute__((weak)) main(int argc, char *argv[])
+>   {
+> +	struct ndctl_test *test = ndctl_test_new(0);
+>   	int fd, rc;
+>   
+> +	if (!test) {
+> +		fprintf(stderr, "failed to initialize test\n");
+> +		return EXIT_FAILURE;
+> +	}
+> +
+>   	if (argc < 1)
+>   		return -EINVAL;
+>   
+>   	fd = open(argv[1], O_RDWR);
+> -	rc = test_pmd(fd);
+> +	rc = test_pmd(test, fd);
+>   	if (fd >= 0)
+>   		close(fd);
+> -	return rc;
+> +	return ndctl_test_result(test, rc);
+>   }
+> diff --git a/test/dax-poison.c b/test/dax-poison.c
+> index 7faa402e623c..a25bf0b17d61 100644
+> --- a/test/dax-poison.c
+> +++ b/test/dax-poison.c
+> @@ -15,6 +15,7 @@
+>   #include <test.h>
+>   #include <util/size.h>
+>   #include <stdbool.h>
+> +#include <linux/version.h>
+>   
+>   #define fail() fprintf(stderr, "%s: failed at: %d (%s)\n", \
+>   	__func__, __LINE__, strerror(errno))
+> @@ -43,8 +44,8 @@ static void sigbus_hdl(int sig, siginfo_t *si, void *ptr)
+>   	siglongjmp(sj_env, 1);
+>   }
+>   
+> -int test_dax_poison(int dax_fd, unsigned long align, void *dax_addr,
+> -		off_t offset, bool fsdax)
+> +int test_dax_poison(struct ndctl_test *test, int dax_fd, unsigned long align,
+> +		void *dax_addr, off_t offset, bool fsdax)
+>   {
+>   	unsigned char *addr = MAP_FAILED;
+>   	struct sigaction act;
+> @@ -52,6 +53,9 @@ int test_dax_poison(int dax_fd, unsigned long align, void *dax_addr,
+>   	void *buf;
+>   	int rc;
+>   
+> +	if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 19, 0)))
+> +		return 77;
+> +
+>   	/*
+>   	 * MADV_HWPOISON must be page aligned, and this routine assumes
+>   	 * align is >= 8K
+> diff --git a/test/dax.sh b/test/dax.sh
+> index e35f914a6425..30fe16721935 100755
+> --- a/test/dax.sh
+> +++ b/test/dax.sh
+> @@ -28,6 +28,15 @@ err() {
+>   	exit $rc
+>   }
+>   
+> +run_test() {
+> +	if ! ./dax-pmd $MNT/$FILE; then
+> +		rc=$?
+> +		if [ $rc -ne 77 -a $rc -ne 0 ]; then
+> +			err
+> +		fi
+> +	fi
+> +}
+> +
+>   set -e
+>   mkdir -p $MNT
+>   trap 'err $LINENO' ERR
+> @@ -40,7 +49,7 @@ rc=1
+>   mkfs.ext4 /dev/$blockdev
+>   mount /dev/$blockdev $MNT -o dax
+>   fallocate -l 1GiB $MNT/$FILE
+> -./dax-pmd $MNT/$FILE
+> +run_test
+>   umount $MNT
+>   
+>   # convert pmem to put the memmap on the device
+> @@ -52,7 +61,7 @@ eval $(echo $json | sed -e "$json2var")
+>   mkfs.ext4 /dev/$blockdev
+>   mount /dev/$blockdev $MNT -o dax
+>   fallocate -l 1GiB $MNT/$FILE
+> -./dax-pmd $MNT/$FILE
+> +run_test
+>   umount $MNT
+>   
+>   json=$($NDCTL create-namespace -m raw -f -e $dev)
+> @@ -62,7 +71,7 @@ eval $(echo $json | sed -e "$json2var")
+>   mkfs.xfs -f /dev/$blockdev
+>   mount /dev/$blockdev $MNT -o dax
+>   fallocate -l 1GiB $MNT/$FILE
+> -./dax-pmd $MNT/$FILE
+> +run_test
+>   umount $MNT
+>   
+>   # convert pmem to put the memmap on the device
+> @@ -73,7 +82,7 @@ eval $(echo $json | sed -e "$json2var")
+>   mkfs.xfs -f /dev/$blockdev
+>   mount /dev/$blockdev $MNT -o dax
+>   fallocate -l 1GiB $MNT/$FILE
+> -./dax-pmd $MNT/$FILE
+> +run_test
+>   umount $MNT
+>   
+>   # revert namespace to raw mode
+> @@ -81,4 +90,4 @@ json=$($NDCTL create-namespace -m raw -f -e $dev)
+>   eval $(echo $json | sed -e "$json2var")
+>   [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+>   
+> -exit 0
+> +exit $rc
+> diff --git a/test/device-dax.c b/test/device-dax.c
+> index 712c247adfb2..dd92f9a9d2c5 100644
+> --- a/test/device-dax.c
+> +++ b/test/device-dax.c
+> @@ -279,7 +279,7 @@ static int __test_device_dax(unsigned long align, int loglevel,
+>   
+>   		fprintf(stderr, "%s: test dax poison\n",
+>   				ndctl_namespace_get_devname(ndns));
+> -		rc = test_dax_poison(fd, align, NULL, 0, devdax);
+> +		rc = test_dax_poison(test, fd, align, NULL, 0, devdax);
+>   		if (rc) {
+>   			fprintf(stderr, "%s: failed dax poison\n",
+>   					ndctl_namespace_get_devname(ndns));
 >
-> I read it as: this ndctl test only works for upstream kernel 4.19 and above.
->
-> For Linux distributors, such as us, we pick a major upstream release as the
-> base OS, then painstakingly backport desired upstream patches etc.
-> Our latest OS version string will be 4.14.x.y.z for a long while,
-> that means the ndctl test won't work even if we backport the 4.19 nvdimm
-> patches over.
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-You can run:
-
-   make KVER=4.19.0 check
-
-...and it will override the kernel version detection.
-
-> Is it possible to come up with a more accommodating method?
-
-We're trying to scale back our usage of kernel version gates, but if
-it crashes the system we want to protect unsuspecting users.
-
-> One way might be is to 'dd' a block of 0s to the injected block
-> immediately after a successful injection?  For now, doing so leaves the
-> 'badblocks' and the poison bit in place.
-
-I'll notte that this is one of the tests marked in the
-"ENABLE_DESTRUCTIVE" section of test/Makefile.am in the ndctl source.
-Those tests may destroy data or otherwise adversely affect the system.
-They are only meant for developer workstations and you must pass
-"--enable-destructive" to 'configure' when building ndctl. The intent
-is "don't enabled these tests unless you know what you are doing".
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
