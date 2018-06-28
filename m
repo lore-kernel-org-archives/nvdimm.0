@@ -1,7 +1,7 @@
-From: arcelia.mcdonald-z3miRIg2pnO1cxs19T39qQC/G2K4zDHf@public.gmane.org
-Subject: Managed Service Providers (MSPs)
-Date: Wed, 27 Jun 2018 08:38:15 -0700
-Message-ID: <CAHm-C70jYwx_sZS5YnyLBCdGW-98w9bZJeuQFHx5eE6BhOAgiw@mail.gmail.com>
+From: =?utf-8?B?6YK157uP55CG?= <vuedgry-R1cOw3y9In0@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+R77ya5aaC5L2V5omT6YCg5ZCI5qC855qE6L2m6Ze05Li75Lu7?=
+Date: Thu, 28 Jun 2018 23:54:36 +0800
+Message-ID: <94EEA01C163EAE395AADA4E4AC4D67C4@pgqi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -18,17 +18,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-SGksCgoKCkkganVzdCB3YW50ZWQgdG8gY2hlY2sgaWYgeW91IHdvdWxkIGJlIGludGVyZXN0ZWQg
-aW4gYSBsaXN0IG9mIE1hbmFnZWQKU2VydmljZSBQcm92aWRlcnMgKE1TUHMpIGFuZCBNYW5hZ2Vk
-IFNlY3VyaXR5IFNlcnZpY2UgUHJvdmlkZXJzIChNU1NQcyk/CgoKCuKAoiAgICAgICAgIE1hbmFn
-ZWQgU2VydmljZSBQcm92aWRlcnMgKE1TUOKAmXMpIOKAkyAyNSwwMDAgdW5pcXVlIGNvbXBhbmll
-cwoK4oCiICAgICAgICAgTWFuYWdlZCBTZWN1cml0eSBTZXJ2aWNlIFByb3ZpZGVycyAoTVNTUOKA
-mXMpIOKAkyA3LDUyMCB1bmlxdWUKY29tcGFuaWVzCgpJVCBEZWNpc2lvbiBNYWtlcnMg4oCTIDZt
-aWxsaW9uCgpCdXNpbmVzcyBEZWNpc2lvbiBNYWtlcnMg4oCTIDEwIG1pbGxpb24KCktpbmRseSBy
-ZXZpZXcgYW5kIGxldCBtZSBrbm93IGlmIEkgY2FuIHNoYXJlIG1vcmUgaW5mb3JtYXRpb24gb24g
-dGhpcy4KCkkgbG9vayBmb3J3YXJkIHRvIGhlYXJpbmcgZnJvbSB5b3UuCgoKClJlZ2FyZHMsCgpB
-YnJhaGFtIFNvbG9tb24KCk1TUCBMaXN0IFNwZWNpYWxpc3QKCgoKRm9yIE9wdC1PdXQgcmVwbHkg
-d2l0aCDigJxOb3QgSW50ZXJlc3RlZOKAnS4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
-bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
-bnZkaW1tCg==
+bGludXgtbnZkaW1tICAgICANCuWGhSAqIOWuuSogIOingSAgICDpmYQgICUg5Lu2IApfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
+bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
+bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
