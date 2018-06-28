@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot0-x242.google.com (mail-ot0-x242.google.com
+ [IPv6:2607:f8b0:4003:c0f::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 60797210D8527
- for <linux-nvdimm@lists.01.org>; Mon, 18 Jun 2018 05:50:10 -0700 (PDT)
-Date: Mon, 18 Jun 2018 08:50:06 -0400 (EDT)
-From: Mikulas Patocka <mpatocka@redhat.com>
-Subject: [PATCH] x86: optimize memcpy_flushcache
-Message-ID: <alpine.LRH.2.02.1806180846300.22626@file01.intranet.prod.int.rdu2.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 36E7B202E546A
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 13:38:01 -0700 (PDT)
+Received: by mail-ot0-x242.google.com with SMTP id l15-v6so7611710oth.6
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 13:38:01 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <89b98efe-1eb7-87ed-99e4-7d87315318d0@oracle.com>
+References: <152902248546.9927.13473307820258257919.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <89b98efe-1eb7-87ed-99e4-7d87315318d0@oracle.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 28 Jun 2018 13:37:59 -0700
+Message-ID: <CAPcyv4h=T5wg=NKoCcSTDrC96EQ2xg3eEHK3Hj52qEBin2285w@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl, test: Disable poison tests for now
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,93 +26,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mike Snitzer <msnitzer@redhat.com>
-Cc: dm-devel@redhat.com, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Jane Chu <jane.chu@oracle.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Mike
+On Thu, Jun 28, 2018 at 12:28 PM,  <jane.chu@oracle.com> wrote:
+> Hi, Dan,
+>
+> I'm concerned about this check
+>
+> +       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 19, 0)))
+>
+> I read it as: this ndctl test only works for upstream kernel 4.19 and above.
+>
+> For Linux distributors, such as us, we pick a major upstream release as the
+> base OS, then painstakingly backport desired upstream patches etc.
+> Our latest OS version string will be 4.14.x.y.z for a long while,
+> that means the ndctl test won't work even if we backport the 4.19 nvdimm
+> patches over.
 
-Could you please push this patch to the kernel 4.18-rc? Dan Williams said 
-that he will submit it, but he forgot about it.
+You can run:
 
-Without this patch, dm-writecache is suffering 2% penalty because of 
-memcpy_flushcache overhead.
+   make KVER=4.19.0 check
 
-Mikulas
+...and it will override the kernel version detection.
 
+> Is it possible to come up with a more accommodating method?
 
+We're trying to scale back our usage of kernel version gates, but if
+it crashes the system we want to protect unsuspecting users.
 
-From: Mikulas Patocka <mpatocka@redhat.com>
+> One way might be is to 'dd' a block of 0s to the injected block
+> immediately after a successful injection?  For now, doing so leaves the
+> 'badblocks' and the poison bit in place.
 
-I use memcpy_flushcache in my persistent memory driver for metadata
-updates and it turns out that the overhead of memcpy_flushcache causes 2%
-performance degradation compared to "movnti" instruction explicitly coded
-using inline assembler.
-
-This patch recognizes memcpy_flushcache calls with constant short length
-and turns them into inline assembler - so that I don't have to use inline
-assembler in the driver.
-
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
-
----
- arch/x86/include/asm/string_64.h |   20 +++++++++++++++++++-
- arch/x86/lib/usercopy_64.c       |    4 ++--
- 2 files changed, 21 insertions(+), 3 deletions(-)
-
-Index: linux-2.6/arch/x86/include/asm/string_64.h
-===================================================================
---- linux-2.6.orig/arch/x86/include/asm/string_64.h
-+++ linux-2.6/arch/x86/include/asm/string_64.h
-@@ -149,7 +149,25 @@ memcpy_mcsafe(void *dst, const void *src
- 
- #ifdef CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE
- #define __HAVE_ARCH_MEMCPY_FLUSHCACHE 1
--void memcpy_flushcache(void *dst, const void *src, size_t cnt);
-+void __memcpy_flushcache(void *dst, const void *src, size_t cnt);
-+static __always_inline void memcpy_flushcache(void *dst, const void *src, size_t cnt)
-+{
-+	if (__builtin_constant_p(cnt)) {
-+		switch (cnt) {
-+			case 4:
-+				asm ("movntil %1, %0" : "=m"(*(u32 *)dst) : "r"(*(u32 *)src));
-+				return;
-+			case 8:
-+				asm ("movntiq %1, %0" : "=m"(*(u64 *)dst) : "r"(*(u64 *)src));
-+				return;
-+			case 16:
-+				asm ("movntiq %1, %0" : "=m"(*(u64 *)dst) : "r"(*(u64 *)src));
-+				asm ("movntiq %1, %0" : "=m"(*(u64 *)(dst + 8)) : "r"(*(u64 *)(src + 8)));
-+				return;
-+		}
-+	}
-+	__memcpy_flushcache(dst, src, cnt);
-+}
- #endif
- 
- #endif /* __KERNEL__ */
-Index: linux-2.6/arch/x86/lib/usercopy_64.c
-===================================================================
---- linux-2.6.orig/arch/x86/lib/usercopy_64.c
-+++ linux-2.6/arch/x86/lib/usercopy_64.c
-@@ -153,7 +153,7 @@ long __copy_user_flushcache(void *dst, c
- 	return rc;
- }
- 
--void memcpy_flushcache(void *_dst, const void *_src, size_t size)
-+void __memcpy_flushcache(void *_dst, const void *_src, size_t size)
- {
- 	unsigned long dest = (unsigned long) _dst;
- 	unsigned long source = (unsigned long) _src;
-@@ -216,7 +216,7 @@ void memcpy_flushcache(void *_dst, const
- 		clean_cache_range((void *) dest, size);
- 	}
- }
--EXPORT_SYMBOL_GPL(memcpy_flushcache);
-+EXPORT_SYMBOL_GPL(__memcpy_flushcache);
- 
- void memcpy_page_flushcache(char *to, struct page *page, size_t offset,
- 		size_t len)
+I'll notte that this is one of the tests marked in the
+"ENABLE_DESTRUCTIVE" section of test/Makefile.am in the ndctl source.
+Those tests may destroy data or otherwise adversely affect the system.
+They are only meant for developer workstations and you must pass
+"--enable-destructive" to 'configure' when building ndctl. The intent
+is "don't enabled these tests unless you know what you are doing".
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
