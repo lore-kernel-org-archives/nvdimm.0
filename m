@@ -1,16 +1,35 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt0-x244.google.com (mail-qt0-x244.google.com
- [IPv6:2607:f8b0:400d:c0d::244])
+Received: from mail-vk0-x22e.google.com (mail-vk0-x22e.google.com
+ [IPv6:2607:f8b0:400c:c05::22e])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7FC9F21163706
- for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 09:46:03 -0700 (PDT)
-Received: by mail-qt0-x244.google.com with SMTP id s9-v6so20891060qtg.2
- for <linux-nvdimm@lists.01.org>; Mon, 11 Jun 2018 09:46:03 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: [PATCH 0/2] test: add some helper function and cleanup test script
-Date: Mon, 11 Jun 2018 12:45:29 -0400
-Message-Id: <20180611164531.8242-1-msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 54D0B202E53E5
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 22:18:00 -0700 (PDT)
+Received: by mail-vk0-x22e.google.com with SMTP id h22-v6so4638225vke.4
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 22:17:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <25EE894A-E894-4C80-9B5B-A8A2B2763662@lightbitslabs.com>
+References: <CAN=ZobSmQ97gRKFaho7DPvXVD18W4145JfTQ5Ncf80Tw17fkGA@mail.gmail.com>
+ <20171020162227.GA8576@linux.intel.com>
+ <CAN=ZobRsTqFtLiibVDU=yoNPSSgd7S=DaM=p2JTWcBm9x2PjsA@mail.gmail.com>
+ <CAPcyv4ifUJUJFKksk0atmfeMiOJoQRPzYU9Z633i0Cj8pjpD6A@mail.gmail.com>
+ <CAN=ZobTYOgWxPbLcH275EK4PkoniMk+1g1HehxoXLp1bqUN9Bg@mail.gmail.com>
+ <CAA9_cmff4YFQnP+1csz2Z_=dKcQeW5jYFC2QLcN9V4j1FV+zyA@mail.gmail.com>
+ <CAN=ZobSKm8isvTEALkd_-X7Hyjbv6tH-Yy0UGtOTkn2_fKoqhA@mail.gmail.com>
+ <CAA9_cmes_Strpx6jNYDOnxZ0DUENFpWOpL-65jvpv3ztQwB74Q@mail.gmail.com>
+ <CACTTzNa06a4ZM6tkYesqf-19WfcSuJovD-AWKC8-obVp_cTOPQ@mail.gmail.com>
+ <CAN=ZobTrcu9LALChbB2HT1Fw_aAnDLGotU0Uo8uhewf5c3E+UA@mail.gmail.com>
+ <CAPcyv4iyoWkG1MLtJ8cKN=yoav7Wstck5sJdeJhjxGeLPCRn6w@mail.gmail.com>
+ <CAN=ZobRRj2ccifvwvkTPs_MwcbEK8ncYA_ydX8+Ar8gQpYu_oA@mail.gmail.com>
+ <CAN=ZobT3V_cfLGKaLyfrhUthtW6xqE5EJ1=1u3o4RvdM4fOd5w@mail.gmail.com>
+ <CAA9_cmcr+7DhH3mSPRvCtyVK6F31GGmvkq8nEi1sNzchmK70qw@mail.gmail.com>
+ <CAN=ZobQyy3taNhB_sXjeeUdWx0xP1aL3icr5_+ANFmBH+4Ge5A@mail.gmail.com>
+ <CAPcyv4hOqiq8LjHv7Qtt5J1SxJouiwvJVvAS9WgzWbcnoWEeQw@mail.gmail.com>
+ <25EE894A-E894-4C80-9B5B-A8A2B2763662@lightbitslabs.com>
+From: Oren Berman <oren@lightbitslabs.com>
+Date: Thu, 28 Jun 2018 22:17:58 -0700
+Message-ID: <CAN=ZobSM9j+ZEWngsbthScM7y_aFVgdJ1FyaUkHVXzHOApoS3g@mail.gmail.com>
+Subject: Re: Detecting NUMA per pmem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,43 +37,56 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Some test scripts have same function. So, let's cleanup
-to stop the duplication by intoducing 'test/common' file.
-Test scripts includes the common file to use the functions.
-
-Masayoshi Mizuma (2):
-  test: add some helper function for test script
-  test: cleanup test scripts
-
- test/blk-exhaust.sh       | 21 +++------------
- test/btt-check.sh         | 35 +++++++-----------------
- test/btt-errors.sh        | 20 ++++----------
- test/btt-pad-compat.sh    | 52 +++++++++++++----------------------
- test/clear.sh             | 21 +++------------
- test/common               | 57 +++++++++++++++++++++++++++++++++++++++
- test/create.sh            | 21 +++------------
- test/daxdev-errors.sh     | 19 +++----------
- test/firmware-update.sh   | 25 ++++-------------
- test/inject-error.sh      | 31 ++++++---------------
- test/label-compat.sh      | 21 +++------------
- test/multi-dax.sh         | 19 +++----------
- test/pmem-errors.sh       | 20 +++++---------
- test/rescan-partitions.sh | 44 ++++++++----------------------
- test/sector-mode.sh       |  5 +---
- 15 files changed, 146 insertions(+), 265 deletions(-)
- create mode 100644 test/common
-
--- 
-2.17.1
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgQWxsCgpXZSBlbmNvdW50ZXJlZCBhIHN0cmFuZ2UgaXNzdWUgdXNpbmcgcG1lbSBlbXVsYXRp
+b24uCldlIGNvbmZpZ3VyZSBlbXVsYXRlZCBwbWVtIGRldmljZXMgaW4gb3VyIHN5c3RlbSBieSBh
+ZGRpbmcgdGhlc2UgcGFyYW1zIHRvCnRoZSBib290IGNvbW1hbmQ6Cm1lbW1hcD0zMkchMjI0RyBt
+ZW1tYXA9MzJHITQ4MEcgLgoKUE1FTSBkZXZpY2VzIGxvb2sgT0suCgpUaGlzIGlzc3VlIGlzIHNw
+ZWNpZmljIHRvIDQuMTQga2VybmVsIEFORCBjZW50b3MgNy41LCBvdGhlciBjb21iaW5hdGlvbnMK
+Zm9sbG93IGV4YWN0bHkgdGhlIHNhbWUgZmxvdyBidXQgZG9uJ3QgY3Jhc2guCkhhcHBlbnMgd2hl
+biBuZGN0bCBjb252ZXJ0cyBhbiA8ZW11bGF0ZWQ+IC9kZXYvcG1lbTAgdG8gL2Rldi9kYXgwLjAK
+Y29tbWFuZDogbmRjdGwgY3JlYXRlLW5hbWVzcGFjZSAtZiAtZSBuYW1lc3BhY2UwLjAgLS10eXBl
+PXBtZW0gLS1tb2RlPWRheAoKVGhpcyBjcmFzaGVzIHRoZSBrZXJuZWwgaW4gdWRldiB3aGVuIHRy
+eWluZyB0byBmcmVlIHBhZ2UgaW4gZG9fbXVubWFwKCkKc3lzY2FsbC4gQW5kIGhhbmdzLgplY2hv
+IG5hbWVzcGFjZTAuMCA+Ci9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9lODIwX3BtZW0vbmRidXMwL3Jl
+Z2lvbjAvbmFtZXNwYWNlMC4wL2RyaXZlci91bmJpbmQKQ2FsbHRyYWNlKCk6Cm5kY3RsX3VuYmlu
+ZCgpCm5kY3RsX25hbWVzcGFjZV9kaXNhYmxlKCkKbmRjdGxfbmFtZXNwYWNlX2Rpc2FibGVfaW52
+YWxpZGF0ZSgpCm5kY3RsX25hbWVzcGFjZV9kaXNhYmxlX3NhZmUoKQpuYW1lc3BhY2VfZGVzdHJv
+eSgpCm5hbWVzcGFjZV9yZWNvbmZpZygpCmRvX3hhY3Rpb25fbmFtZXNwYWNlKCkKCldoZW4gd2Ug
+dXNlIGZvciBleGFtcGxlIHVidW50dSAxNi4wNCB3aXRoIHRoaXMga2VybmVsIHZlcnNpb24gaXQg
+ZG9lcyBub3QKaGFwcGVuLgpXaGVuIHdlIHVzZSBjZW50b3M3LjUgYW5kIGtlcm5lbCB2ZXJzaW9u
+IDQuOSBpcyBhbHNvIGRvZXMgbm90IGhhcHBlbi4KV2hlbiB3b3JraW5nIHdpdGggYWN0dWFsIE5W
+RElNTXMgdGhpcyBkb2VzIG5vdCBoYXBwZW4KCkRpZCB5b3UgZW5jb3VudGVyIHN1Y2ggYW4gaXNz
+dWU/CldoeSBkb2VzIHRoZSBrZXJuZWwgdGhpbmsgdGhhdCB0aGlzIGFyZWEgaXMgbWFwcGVkIGFu
+ZCB3aG8gbWlnaHQgYmUgbWFwcGluZwppdD8KSWYgbm8gb25lIG1hcHMgaXQgd2h5IGRvZXMgdGhl
+IGtlcm5lbCBoYXMgaW5kaWNhdGlvbiB0aGF0IHRoZXNlIHBhZ2VzIGFyZQptYXBwZWQ/CgpBbnkg
+aGVscCB3b3VsZCBiZSBoaWdobHkgYXBwcmVjaWF0ZWQuClRoYW5rcwpPcmVuIEJlcm1hbgoKCgpP
+biAxMCBKYW51YXJ5IDIwMTggYXQgMDk6NDEsIE9yZW4gQmVybWFuIDxvcmVuQGxpZ2h0Yml0c2xh
+YnMuY29tPiB3cm90ZToKCj4gSGkKPiBUaGFua3MgZm9yIHlvdXIgYW5zd2VyCj4gSWYgd2UgZG8g
+bWVtcmVtYXAgb24gdGhlIHBoeXNpY2FsIGFkZHJlc3MKPiBPZiB0aGUgbnZyYW0gZnJvbSB3aXRo
+aW4gdGhlIGtlcm5lbCB0byBnZXQgYSBuZXcgdmlydHVhbCBhZGRyZXNzIG1hcHBpbmcKPiB3aWxs
+IGl0IGxvY2sgdGhlIG1hcHBpbmc/Cj4gQ2FuIHRoaXMgYmUgYWxzbyBhIHdvcmthcm91bmQ/Cj4g
+T3Jlbgo+Cj4g16DXqdec15cg157XlC1pUGhvbmUg16nXnNeZCj4KPiDigKvXkS0xMCDXkdeZ16DX
+ldezIDIwMTgsINeR16nXoteUIDE4OjM4LCDigI/igI9EYW4gV2lsbGlhbXMg4oCPPGRhbi5qLndp
+bGxpYW1zQGludGVsLmNvbT4KPiDXm9eq15Ev15Q64oCsCj4KPiBPbiBXZWQsIEphbiAxMCwgMjAx
+OCBhdCA3OjIzIEFNLCBPcmVuIEJlcm1hbiA8b3JlbkBsaWdodGJpdHNsYWJzLmNvbT4KPiB3cm90
+ZToKPgo+IE5vdyB0byBhbGwgb2YgdGhlIGZvcnVtCj4KPgo+IEhpIERhbgo+Cj4KPiBUaGFua3Mg
+d2UgYXJlIGdvaW5nIHRvIHRyeSB0aGlzLgo+Cj4KPiBDYW4geW91IGV4cGxhaW4gd2h5IHRoaXMg
+Y2FuIGNhdXNlIHRoaXMgaXNzdWUgLSBpcyB0aGUgTlZESU1NIG1lbW9yeSBzcGFjZQo+Cj4gYWxz
+byBiZWluZyByYW5kb21pemVkPwo+Cj4gSXMgaXQgZG9uZSBkdXJpbmcgcnVudGltZT8KPgo+Cj4K
+PiBZZXMsIGthc2xyIHJhbmRvbWl6ZXMgdGhlIGRpcmVjdCBtYXAuIFdlIGhhdmUgc2VlbiBwcm9i
+bGVtcyB3aXRoIGl0IGluCj4gdGhlIHBhc3QgcmVsYXRpdmUgdG8gc2V0dGluZyB1cCBwbWVtIG1h
+cHBpbmdzLiBXZSBmaXhlZCBvbmUgc3VjaCBidWcKPiB3aXRoIHRoaXMgY29tbWl0Ogo+Cj4gZmM1
+ZjlkNWYxNTFjIHg4Ni9tbTogRml4IGJvb3QgY3Jhc2ggY2F1c2VkIGJ5IGluY29ycmVjdCBsb29w
+IGNvdW50Cj4gY2FsY3VsYXRpb24gaW4gc3luY19nbG9iYWxfcGdkcygpCj4KPiAuLi5idXQgaXQg
+YXBwZWFycyB3ZSBtYXkgaGF2ZSBhbm90aGVyIGJ1ZyBpbiB0aGlzIGFyZWEuCj4KPgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
+bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
+bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
