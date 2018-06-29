@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 056D82096F32B
- for <linux-nvdimm@lists.01.org>; Sat,  2 Jun 2018 22:33:17 -0700 (PDT)
-Subject: [PATCH v2 07/11] x86, memory_failure: Introduce {set,
- clear}_mce_nospec()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 02 Jun 2018 22:23:20 -0700
-Message-ID: <152800340082.17112.1154560126059273408.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152800336321.17112.3300876636370683279.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 0D479211F889C
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 19:31:16 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 33AE1AC0308
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 11:31:08 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [PATCH v9 3/3] ndctl,
+ monitor: add the unit file of systemd for ndctl-monitor service
+Date: Fri, 29 Jun 2018 11:30:50 +0900
+Message-Id: <20180629023050.29217-4-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180629023050.29217-1-qi.fuli@jp.fujitsu.com>
+References: <20180629023050.29217-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,214 +22,112 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Tony Luck <tony.luck@intel.com>, jack@suse.cz, x86@kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de, linux-edac@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently memory_failure() returns zero if the error was handled. On
-that result mce_unmap_kpfn() is called to zap the page out of the kernel
-linear mapping to prevent speculative fetches of potentially poisoned
-memory. However, in the case of dax mapped devmap pages the page may be
-in active permanent use by the device driver, so it cannot be unmapped
-from the kernel.
+This patch adds the systemd unit file for ndctl-monitor service.
+The systemd unit directory can be configured by setting environment
+variable "--with-systemd-unit-dir[=DIR]".
 
-Instead of marking the page not present, marking the page UC should
-be sufficient for preventing poison from being pre-fetched into the
-cache. Convert mce_unmap_pfn() to set_mce_nospec() remapping the page as
-UC, to hide it from speculative accesses.
+A monitor daemon can be started as a system service:
+   # systemctl start ndctl-monitor.service
 
-Given that that persistent memory errors can be cleared by the driver,
-include a facility to restore the page to cacheable operation,
-clear_mce_nospec().
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: <linux-edac@vger.kernel.org>
-Cc: <x86@kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- arch/x86/include/asm/set_memory.h         |   29 ++++++++++++++++++++++
- arch/x86/kernel/cpu/mcheck/mce-internal.h |   15 -----------
- arch/x86/kernel/cpu/mcheck/mce.c          |   38 ++---------------------------
- include/linux/set_memory.h                |   14 +++++++++++
- 4 files changed, 46 insertions(+), 50 deletions(-)
+ autogen.sh                  |  3 ++-
+ configure.ac                | 22 ++++++++++++++++++++++
+ ndctl/Makefile.am           |  4 ++++
+ ndctl/ndctl-monitor.service |  7 +++++++
+ 4 files changed, 35 insertions(+), 1 deletion(-)
+ create mode 100644 ndctl/ndctl-monitor.service
 
-diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
-index bd090367236c..debc1fee1457 100644
---- a/arch/x86/include/asm/set_memory.h
-+++ b/arch/x86/include/asm/set_memory.h
-@@ -88,4 +88,33 @@ extern int kernel_set_to_readonly;
- void set_kernel_text_rw(void);
- void set_kernel_text_ro(void);
+diff --git a/autogen.sh b/autogen.sh
+index 2a52688..21b0e25 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -17,7 +17,8 @@ libdir() {
  
-+#ifdef CONFIG_X86_64
-+/*
-+ * Mark the linear address as UC to disable speculative pre-fetches into
-+ * potentially poisoned memory.
-+ */
-+static inline int set_mce_nospec(unsigned long pfn)
-+{
-+	int rc;
+ args="--prefix=/usr \
+ --sysconfdir=/etc \
+---libdir=$(libdir /usr/lib)"
++--libdir=$(libdir /usr/lib) \
++--with-systemd-unit-dir"
+ 
+ echo
+ echo "----------------------------------------------------------------"
+diff --git a/configure.ac b/configure.ac
+index cf44260..a5ba9a1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -143,6 +143,27 @@ AC_CHECK_FUNCS([ \
+ 	secure_getenv\
+ ])
+ 
++PKG_PROG_PKG_CONFIG
++AC_ARG_WITH([systemd-unit-dir],
++	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
++		[Directory for systemd service files]),
++	[],
++	[with_systemd_unit_dir=yes])
 +
-+	rc = set_memory_uc((unsigned long) __va(PFN_PHYS(pfn)), 1);
-+	if (rc)
-+		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
-+	return rc;
-+}
-+#define set_mce_nospec set_mce_nospec
++if test "x$with_systemd_unit_dir" = "xyes"; then
++	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
++	if test "x$def_systemd_unit_dir" = "x"; then
++		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
++		with_systemd_unit_dir=no
++	else
++		with_systemd_unit_dir="$def_systemd_unit_dir"
++	fi
++fi
 +
-+/* Restore full speculative operation to the pfn. */
-+static inline int clear_mce_nospec(unsigned long pfn)
-+{
-+	return set_memory_wb((unsigned long) __va(PFN_PHYS(pfn)), 1);
-+}
-+#define clear_mce_nospec clear_mce_nospec
-+#else
-+/*
-+ * Few people would run a 32-bit kernel on a machine that supports
-+ * recoverable errors because they have too much memory to boot 32-bit.
-+ */
-+#endif
++AS_IF([test "x$with_systemd_unit_dir" != "xno"],
++	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
++AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
 +
- #endif /* _ASM_X86_SET_MEMORY_H */
-diff --git a/arch/x86/kernel/cpu/mcheck/mce-internal.h b/arch/x86/kernel/cpu/mcheck/mce-internal.h
-index 374d1aa66952..ceb67cd5918f 100644
---- a/arch/x86/kernel/cpu/mcheck/mce-internal.h
-+++ b/arch/x86/kernel/cpu/mcheck/mce-internal.h
-@@ -113,21 +113,6 @@ static inline void mce_register_injector_chain(struct notifier_block *nb)	{ }
- static inline void mce_unregister_injector_chain(struct notifier_block *nb)	{ }
- #endif
+ my_CFLAGS="\
+ -Wall \
+ -Wchar-subscripts \
+@@ -184,6 +205,7 @@ AC_MSG_RESULT([
+         sysconfdir:             ${sysconfdir}
+         libdir:                 ${libdir}
+         includedir:             ${includedir}
++	systemd-unit-dir:	${systemd_unitdir}
  
--#ifndef CONFIG_X86_64
--/*
-- * On 32-bit systems it would be difficult to safely unmap a poison page
-- * from the kernel 1:1 map because there are no non-canonical addresses that
-- * we can use to refer to the address without risking a speculative access.
-- * However, this isn't much of an issue because:
-- * 1) Few unmappable pages are in the 1:1 map. Most are in HIGHMEM which
-- *    are only mapped into the kernel as needed
-- * 2) Few people would run a 32-bit kernel on a machine that supports
-- *    recoverable errors because they have too much memory to boot 32-bit.
-- */
--static inline void mce_unmap_kpfn(unsigned long pfn) {}
--#define mce_unmap_kpfn mce_unmap_kpfn
--#endif
--
- struct mca_config {
- 	bool dont_log_ce;
- 	bool cmci_disabled;
-diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
-index 42cf2880d0ed..a0fbf0a8b7e6 100644
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -42,6 +42,7 @@
- #include <linux/irq_work.h>
- #include <linux/export.h>
- #include <linux/jump_label.h>
-+#include <linux/set_memory.h>
- 
- #include <asm/intel-family.h>
- #include <asm/processor.h>
-@@ -50,7 +51,6 @@
- #include <asm/mce.h>
- #include <asm/msr.h>
- #include <asm/reboot.h>
--#include <asm/set_memory.h>
- 
- #include "mce-internal.h"
- 
-@@ -108,10 +108,6 @@ static struct irq_work mce_irq_work;
- 
- static void (*quirk_no_way_out)(int bank, struct mce *m, struct pt_regs *regs);
- 
--#ifndef mce_unmap_kpfn
--static void mce_unmap_kpfn(unsigned long pfn);
--#endif
--
- /*
-  * CPU/chipset specific EDAC code can register a notifier call here to print
-  * MCE errors in a human-readable form.
-@@ -602,7 +598,7 @@ static int srao_decode_notifier(struct notifier_block *nb, unsigned long val,
- 	if (mce_usable_address(mce) && (mce->severity == MCE_AO_SEVERITY)) {
- 		pfn = mce->addr >> PAGE_SHIFT;
- 		if (!memory_failure(pfn, 0))
--			mce_unmap_kpfn(pfn);
-+			set_mce_nospec(pfn);
- 	}
- 
- 	return NOTIFY_OK;
-@@ -1070,38 +1066,10 @@ static int do_memory_failure(struct mce *m)
- 	if (ret)
- 		pr_err("Memory error not recovered");
- 	else
--		mce_unmap_kpfn(m->addr >> PAGE_SHIFT);
-+		set_mce_nospec(m->addr >> PAGE_SHIFT);
- 	return ret;
- }
- 
--#ifndef mce_unmap_kpfn
--static void mce_unmap_kpfn(unsigned long pfn)
--{
--	unsigned long decoy_addr;
--
--	/*
--	 * Unmap this page from the kernel 1:1 mappings to make sure
--	 * we don't log more errors because of speculative access to
--	 * the page.
--	 * We would like to just call:
--	 *	set_memory_np((unsigned long)pfn_to_kaddr(pfn), 1);
--	 * but doing that would radically increase the odds of a
--	 * speculative access to the poison page because we'd have
--	 * the virtual address of the kernel 1:1 mapping sitting
--	 * around in registers.
--	 * Instead we get tricky.  We create a non-canonical address
--	 * that looks just like the one we want, but has bit 63 flipped.
--	 * This relies on set_memory_np() not checking whether we passed
--	 * a legal address.
--	 */
--
--	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
--
--	if (set_memory_np(decoy_addr, 1))
--		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
--}
--#endif
--
- /*
-  * The actual machine check handler. This only handles real
-  * exceptions when something got corrupted coming in through int 18.
-diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
-index da5178216da5..2a986d282a97 100644
---- a/include/linux/set_memory.h
-+++ b/include/linux/set_memory.h
-@@ -17,6 +17,20 @@ static inline int set_memory_x(unsigned long addr,  int numpages) { return 0; }
- static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
- #endif
- 
-+#ifndef set_mce_nospec
-+static inline int set_mce_nospec(unsigned long pfn)
-+{
-+	return 0;
-+}
-+#endif
+         compiler:               ${CC}
+         cflags:                 ${CFLAGS}
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index ae3d894..9d008d5 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
+ monitor_configdir = /etc/ndctl/
+ monitor_config_DATA = $(monitor_config_file)
+ EXTRA_DIST += $(monitor_config_file)
 +
-+#ifndef clear_mce_nospec
-+static inline int clear_mce_nospec(unsigned long pfn)
-+{
-+	return 0;
-+}
-+#endif
++if ENABLE_SYSTEMD_UNIT_DIR
++systemd_unit_DATA = ndctl-monitor.service
++endif
+diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
+new file mode 100644
+index 0000000..44f9326
+--- /dev/null
++++ b/ndctl/ndctl-monitor.service
+@@ -0,0 +1,7 @@
++[Unit]
++Description=Ndctl Monitor Daemon
 +
- #ifndef CONFIG_ARCH_HAS_MEM_ENCRYPT
- static inline int set_memory_encrypted(unsigned long addr, int numpages)
- {
++[Service]
++Type=forking
++ExecStart=/usr/bin/ndctl monitor --daemon
++ExecStop=/bin/kill ${MAINPID}
+-- 
+2.18.0
+
 
 _______________________________________________
 Linux-nvdimm mailing list
