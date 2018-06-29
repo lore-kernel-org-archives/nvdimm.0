@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BA6822111479E
- for <linux-nvdimm@lists.01.org>; Mon,  4 Jun 2018 16:22:35 -0700 (PDT)
-Subject: [PATCH v3 11/12] mm,
- memory_failure: Teach memory_failure() about dev_pagemap pages
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 04 Jun 2018 16:12:37 -0700
-Message-ID: <152815395775.39010.9355109660470832490.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152815389835.39010.13253559944508110923.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C76B5202E5356
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Jun 2018 17:47:46 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 1B4BAAC015D
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 09:47:37 +0900 (JST)
+Date: Fri, 29 Jun 2018 09:47:31 +0900
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [ndctl PATCH v2] ndctl: Add CONTRIBUTING.md
+In-Reply-To: <20180628194839.18791-1-vishal.l.verma@intel.com>
+References: <20180628194839.18791-1-vishal.l.verma@intel.com>
+Message-Id: <20180629094727.1BE7.E1E9C6FF@jp.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,132 +22,94 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Christoph Hellwig <hch@lst.de>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-ICAgIG1jZTogVW5jb3JyZWN0ZWQgaGFyZHdhcmUgbWVtb3J5IGVycm9yIGluIHVzZXItYWNjZXNz
-IGF0IGFmMzQyMTQyMDAKICAgIHsxfVtIYXJkd2FyZSBFcnJvcl06IEl0IGhhcyBiZWVuIGNvcnJl
-Y3RlZCBieSBoL3cgYW5kIHJlcXVpcmVzIG5vIGZ1cnRoZXIgYWN0aW9uCiAgICBtY2U6IFtIYXJk
-d2FyZSBFcnJvcl06IE1hY2hpbmUgY2hlY2sgZXZlbnRzIGxvZ2dlZAogICAgezF9W0hhcmR3YXJl
-IEVycm9yXTogZXZlbnQgc2V2ZXJpdHk6IGNvcnJlY3RlZAogICAgTWVtb3J5IGZhaWx1cmU6IDB4
-YWYzNDIxNDogcmVzZXJ2ZWQga2VybmVsIHBhZ2Ugc3RpbGwgcmVmZXJlbmNlZCBieSAxIHVzZXJz
-CiAgICBbLi5dCiAgICBNZW1vcnkgZmFpbHVyZTogMHhhZjM0MjE0OiByZWNvdmVyeSBhY3Rpb24g
-Zm9yIHJlc2VydmVkIGtlcm5lbCBwYWdlOiBGYWlsZWQKICAgIG1jZTogTWVtb3J5IGVycm9yIG5v
-dCByZWNvdmVyZWQKCkluIGNvbnRyYXN0IHRvIHR5cGljYWwgbWVtb3J5LCBkZXZfcGFnZW1hcCBw
-YWdlcyBtYXkgYmUgZGF4IG1hcHBlZC4gV2l0aApkYXggdGhlcmUgaXMgbm8gcG9zc2liaWxpdHkg
-dG8gbWFwIGluIGFub3RoZXIgcGFnZSBkeW5hbWljYWxseSBzaW5jZSBkYXgKZXN0YWJsaXNoZXMg
-MToxIHBoeXNpY2FsIGFkZHJlc3MgdG8gZmlsZSBvZmZzZXQgYXNzb2NpYXRpb25zLiBBbHNvCmRl
-dl9wYWdlbWFwIHBhZ2VzIGFzc29jaWF0ZWQgd2l0aCBOVkRJTU0gLyBwZXJzaXN0ZW50IG1lbW9y
-eSBkZXZpY2VzIGNhbgppbnRlcm5hbCByZW1hcC9yZXBhaXIgYWRkcmVzc2VzIHdpdGggcG9pc29u
-LiBXaGlsZSBtZW1vcnlfZmFpbHVyZSgpCmFzc3VtZXMgdGhhdCBpdCBjYW4gZGlzY2FyZCB0eXBp
-Y2FsIHBvaXNvbmVkIHBhZ2VzIGFuZCBrZWVwIHRoZW0KdW5tYXBwZWQgaW5kZWZpbml0ZWx5LCBk
-ZXZfcGFnZW1hcCBwYWdlcyBtYXkgYmUgcmV0dXJuZWQgdG8gc2VydmljZQphZnRlciB0aGUgZXJy
-b3IgaXMgY2xlYXJlZC4KClRlYWNoIG1lbW9yeV9mYWlsdXJlKCkgdG8gZGV0ZWN0IGFuZCBoYW5k
-bGUgTUVNT1JZX0RFVklDRV9IT1NUCmRldl9wYWdlbWFwIHBhZ2VzIHRoYXQgaGF2ZSBwb2lzb24g
-Y29uc3VtZWQgYnkgdXNlcnNwYWNlLiBNYXJrIHRoZQptZW1vcnkgYXMgVUMgaW5zdGVhZCBvZiB1
-bm1hcHBpbmcgaXQgY29tcGxldGVseSB0byBhbGxvdyBvbmdvaW5nIGFjY2Vzcwp2aWEgdGhlIGRl
-dmljZSBkcml2ZXIgKG5kX3BtZW0pLiBMYXRlciwgbmRfcG1lbSB3aWxsIGdyb3cgc3VwcG9ydCBm
-b3IKbWFya2luZyB0aGUgcGFnZSBiYWNrIHRvIFdCIHdoZW4gdGhlIGVycm9yIGlzIGNsZWFyZWQu
-CgpDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KQ2M6IENocmlzdG9waCBIZWxsd2lnIDxoY2hA
-bHN0LmRlPgpDYzogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CkNjOiBNYXR0
-aGV3IFdpbGNveCA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT4KQ2M6IE5hb3lhIEhvcmlndWNoaSA8
-bi1ob3JpZ3VjaGlAYWguanAubmVjLmNvbT4KQ2M6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVy
-QGxpbnV4LmludGVsLmNvbT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
-aWFtc0BpbnRlbC5jb20+Ci0tLQogaW5jbHVkZS9saW51eC9tbS5oICB8ICAgIDEgCiBtbS9tZW1v
-cnktZmFpbHVyZS5jIHwgIDE0NSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysKIDIgZmlsZXMgY2hhbmdlZCwgMTQ2IGluc2VydGlvbnMoKykKCmRpZmYg
-LS1naXQgYS9pbmNsdWRlL2xpbnV4L21tLmggYi9pbmNsdWRlL2xpbnV4L21tLmgKaW5kZXggMWFj
-MWYwNmE0YmU2Li41NjZjOTcyZTAzZTcgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgvbW0uaAor
-KysgYi9pbmNsdWRlL2xpbnV4L21tLmgKQEAgLTI2NjksNiArMjY2OSw3IEBAIGVudW0gbWZfYWN0
-aW9uX3BhZ2VfdHlwZSB7CiAJTUZfTVNHX1RSVU5DQVRFRF9MUlUsCiAJTUZfTVNHX0JVRERZLAog
-CU1GX01TR19CVUREWV8yTkQsCisJTUZfTVNHX0RBWCwKIAlNRl9NU0dfVU5LTk9XTiwKIH07CiAK
-ZGlmZiAtLWdpdCBhL21tL21lbW9yeS1mYWlsdXJlLmMgYi9tbS9tZW1vcnktZmFpbHVyZS5jCmlu
-ZGV4IGI2ZWZiNzhiYTQ5Yi4uZGUwYmM4OTdkNmU3IDEwMDY0NAotLS0gYS9tbS9tZW1vcnktZmFp
-bHVyZS5jCisrKyBiL21tL21lbW9yeS1mYWlsdXJlLmMKQEAgLTU1LDYgKzU1LDcgQEAKICNpbmNs
-dWRlIDxsaW51eC9odWdldGxiLmg+CiAjaW5jbHVkZSA8bGludXgvbWVtb3J5X2hvdHBsdWcuaD4K
-ICNpbmNsdWRlIDxsaW51eC9tbV9pbmxpbmUuaD4KKyNpbmNsdWRlIDxsaW51eC9tZW1yZW1hcC5o
-PgogI2luY2x1ZGUgPGxpbnV4L2tmaWZvLmg+CiAjaW5jbHVkZSA8bGludXgvcmF0ZWxpbWl0Lmg+
-CiAjaW5jbHVkZSAiaW50ZXJuYWwuaCIKQEAgLTUzMSw2ICs1MzIsNyBAQCBzdGF0aWMgY29uc3Qg
-Y2hhciAqIGNvbnN0IGFjdGlvbl9wYWdlX3R5cGVzW10gPSB7CiAJW01GX01TR19UUlVOQ0FURURf
-TFJVXQkJPSAiYWxyZWFkeSB0cnVuY2F0ZWQgTFJVIHBhZ2UiLAogCVtNRl9NU0dfQlVERFldCQkJ
-PSAiZnJlZSBidWRkeSBwYWdlIiwKIAlbTUZfTVNHX0JVRERZXzJORF0JCT0gImZyZWUgYnVkZHkg
-cGFnZSAoMm5kIHRyeSkiLAorCVtNRl9NU0dfREFYXQkJCT0gImRheCBwYWdlIiwKIAlbTUZfTVNH
-X1VOS05PV05dCQk9ICJ1bmtub3duIHBhZ2UiLAogfTsKIApAQCAtMTEzMiw2ICsxMTM0LDE0NCBA
-QCBzdGF0aWMgaW50IG1lbW9yeV9mYWlsdXJlX2h1Z2V0bGIodW5zaWduZWQgbG9uZyBwZm4sIGlu
-dCBmbGFncykKIAlyZXR1cm4gcmVzOwogfQogCitzdGF0aWMgdW5zaWduZWQgbG9uZyBkYXhfbWFw
-cGluZ19zaXplKHN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLAorCQlzdHJ1Y3QgcGFnZSAq
-cGFnZSkKK3sKKwlwZ29mZl90IHBnb2ZmID0gcGFnZV90b19wZ29mZihwYWdlKTsKKwlzdHJ1Y3Qg
-dm1fYXJlYV9zdHJ1Y3QgKnZtYTsKKwl1bnNpZ25lZCBsb25nIHNpemUgPSAwOworCisJaV9tbWFw
-X2xvY2tfcmVhZChtYXBwaW5nKTsKKwl4YV9sb2NrX2lycSgmbWFwcGluZy0+aV9wYWdlcyk7CisJ
-LyogdmFsaWRhdGUgdGhhdCBAcGFnZSBpcyBzdGlsbCBsaW5rZWQgdG8gQG1hcHBpbmcgKi8KKwlp
-ZiAocGFnZS0+bWFwcGluZyAhPSBtYXBwaW5nKSB7CisJCXhhX3VubG9ja19pcnEoJm1hcHBpbmct
-PmlfcGFnZXMpOworCQlpX21tYXBfdW5sb2NrX3JlYWQobWFwcGluZyk7CisJCQlyZXR1cm4gMDsK
-Kwl9CisJdm1hX2ludGVydmFsX3RyZWVfZm9yZWFjaCh2bWEsICZtYXBwaW5nLT5pX21tYXAsIHBn
-b2ZmLCBwZ29mZikgeworCQl1bnNpZ25lZCBsb25nIGFkZHJlc3MgPSB2bWFfYWRkcmVzcyhwYWdl
-LCB2bWEpOworCQlwZ2RfdCAqcGdkOworCQlwNGRfdCAqcDRkOworCQlwdWRfdCAqcHVkOworCQlw
-bWRfdCAqcG1kOworCQlwdGVfdCAqcHRlOworCisJCXBnZCA9IHBnZF9vZmZzZXQodm1hLT52bV9t
-bSwgYWRkcmVzcyk7CisJCWlmICghcGdkX3ByZXNlbnQoKnBnZCkpCisJCQljb250aW51ZTsKKwkJ
-cDRkID0gcDRkX29mZnNldChwZ2QsIGFkZHJlc3MpOworCQlpZiAoIXA0ZF9wcmVzZW50KCpwNGQp
-KQorCQkJY29udGludWU7CisJCXB1ZCA9IHB1ZF9vZmZzZXQocDRkLCBhZGRyZXNzKTsKKwkJaWYg
-KCFwdWRfcHJlc2VudCgqcHVkKSkKKwkJCWNvbnRpbnVlOworCQlpZiAocHVkX2Rldm1hcCgqcHVk
-KSkgeworCQkJc2l6ZSA9IFBVRF9TSVpFOworCQkJYnJlYWs7CisJCX0KKwkJcG1kID0gcG1kX29m
-ZnNldChwdWQsIGFkZHJlc3MpOworCQlpZiAoIXBtZF9wcmVzZW50KCpwbWQpKQorCQkJY29udGlu
-dWU7CisJCWlmIChwbWRfZGV2bWFwKCpwbWQpKSB7CisJCQlzaXplID0gUE1EX1NJWkU7CisJCQli
-cmVhazsKKwkJfQorCQlwdGUgPSBwdGVfb2Zmc2V0X21hcChwbWQsIGFkZHJlc3MpOworCQlpZiAo
-IXB0ZV9wcmVzZW50KCpwdGUpKQorCQkJY29udGludWU7CisJCWlmIChwdGVfZGV2bWFwKCpwdGUp
-KSB7CisJCQlzaXplID0gUEFHRV9TSVpFOworCQkJYnJlYWs7CisJCX0KKwl9CisJeGFfdW5sb2Nr
-X2lycSgmbWFwcGluZy0+aV9wYWdlcyk7CisJaV9tbWFwX3VubG9ja19yZWFkKG1hcHBpbmcpOwor
-CisJcmV0dXJuIHNpemU7Cit9CisKK3N0YXRpYyBpbnQgbWVtb3J5X2ZhaWx1cmVfZGV2X3BhZ2Vt
-YXAodW5zaWduZWQgbG9uZyBwZm4sIGludCBmbGFncywKKwkJc3RydWN0IGRldl9wYWdlbWFwICpw
-Z21hcCkKK3sKKwlzdHJ1Y3QgcGFnZSAqcGFnZSA9IHBmbl90b19wYWdlKHBmbik7CisJY29uc3Qg
-Ym9vbCB1bm1hcF9zdWNjZXNzID0gdHJ1ZTsKKwlzdHJ1Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGlu
-ZzsKKwl1bnNpZ25lZCBsb25nIHNpemU7CisJTElTVF9IRUFEKHRva2lsbCk7CisJaW50IHJjID0g
-LUVCVVNZOworCWxvZmZfdCBzdGFydDsKKworCS8qCisJICogUHJldmVudCB0aGUgaW5vZGUgZnJv
-bSBiZWluZyBmcmVlZCB3aGlsZSB3ZSBhcmUgaW50ZXJyb2dhdGluZworCSAqIHRoZSBhZGRyZXNz
-X3NwYWNlLCB0eXBpY2FsbHkgdGhpcyB3b3VsZCBiZSBoYW5kbGVkIGJ5CisJICogbG9ja19wYWdl
-KCksIGJ1dCBkYXggcGFnZXMgZG8gbm90IHVzZSB0aGUgcGFnZSBsb2NrLgorCSAqLworCXJjdV9y
-ZWFkX2xvY2soKTsKKwltYXBwaW5nID0gcGFnZS0+bWFwcGluZzsKKwlpZiAoIW1hcHBpbmcpIHsK
-KwkJcmN1X3JlYWRfdW5sb2NrKCk7CisJCWdvdG8gb3V0OworCX0KKwlpZiAoIWlncmFiKG1hcHBp
-bmctPmhvc3QpKSB7CisJCW1hcHBpbmcgPSBOVUxMOworCQlyY3VfcmVhZF91bmxvY2soKTsKKwkJ
-Z290byBvdXQ7CisJfQorCXJjdV9yZWFkX3VubG9jaygpOworCisJaWYgKGh3cG9pc29uX2ZpbHRl
-cihwYWdlKSkgeworCQlyYyA9IDA7CisJCWdvdG8gb3V0OworCX0KKworCXN3aXRjaCAocGdtYXAt
-PnR5cGUpIHsKKwljYXNlIE1FTU9SWV9ERVZJQ0VfUFJJVkFURToKKwljYXNlIE1FTU9SWV9ERVZJ
-Q0VfUFVCTElDOgorCQkvKgorCQkgKiBUT0RPOiBIYW5kbGUgSE1NIHBhZ2VzIHdoaWNoIG1heSBu
-ZWVkIGNvb3JkaW5hdGlvbgorCQkgKiB3aXRoIGRldmljZS1zaWRlIG1lbW9yeS4KKwkJICovCisJ
-CWdvdG8gb3V0OworCWRlZmF1bHQ6CisJCWJyZWFrOworCX0KKworCS8qCisJICogSWYgdGhlIHBh
-Z2UgaXMgbm90IG1hcHBlZCBpbiB1c2Vyc3BhY2UgdGhlbiByZXBvcnQgaXQgYXMKKwkgKiB1bmhh
-bmRsZWQuCisJICovCisJc2l6ZSA9IGRheF9tYXBwaW5nX3NpemUobWFwcGluZywgcGFnZSk7CisJ
-aWYgKCFzaXplKSB7CisJCXByX2VycigiTWVtb3J5IGZhaWx1cmU6ICUjbHg6IGZhaWxlZCB0byB1
-bm1hcCBwYWdlXG4iLCBwZm4pOworCQlnb3RvIG91dDsKKwl9CisKKwlTZXRQYWdlSFdQb2lzb24o
-cGFnZSk7CisKKwkvKgorCSAqIFVubGlrZSBTeXN0ZW0tUkFNIHRoZXJlIGlzIG5vIHBvc3NpYmls
-aXR5IHRvIHN3YXAgaW4gYQorCSAqIGRpZmZlcmVudCBwaHlzaWNhbCBwYWdlIGF0IGEgZ2l2ZW4g
-dmlydHVhbCBhZGRyZXNzLCBzbyBhbGwKKwkgKiB1c2Vyc3BhY2UgY29uc3VtcHRpb24gb2YgWk9O
-RV9ERVZJQ0UgbWVtb3J5IG5lY2Vzc2l0YXRlcworCSAqIFNJR0JVUyAoaS5lLiBNRl9NVVNUX0tJ
-TEwpCisJICovCisJZmxhZ3MgfD0gTUZfQUNUSU9OX1JFUVVJUkVEIHwgTUZfTVVTVF9LSUxMOwor
-CWNvbGxlY3RfcHJvY3MobWFwcGluZywgcGFnZSwgJnRva2lsbCwgZmxhZ3MgJiBNRl9BQ1RJT05f
-UkVRVUlSRUQpOworCisJc3RhcnQgPSAocGFnZS0+aW5kZXggPDwgUEFHRV9TSElGVCkgJiB+KHNp
-emUgLSAxKTsKKwl1bm1hcF9tYXBwaW5nX3JhbmdlKHBhZ2UtPm1hcHBpbmcsIHN0YXJ0LCBzdGFy
-dCArIHNpemUsIDApOworCisJa2lsbF9wcm9jcygmdG9raWxsLCBmbGFncyAmIE1GX01VU1RfS0lM
-TCwgIXVubWFwX3N1Y2Nlc3MsIGlsb2cyKHNpemUpLAorCQkJbWFwcGluZywgcGFnZSwgZmxhZ3Mp
-OworCXJjID0gMDsKK291dDoKKwlpZiAobWFwcGluZykKKwkJaXB1dChtYXBwaW5nLT5ob3N0KTsK
-KwlwdXRfZGV2X3BhZ2VtYXAocGdtYXApOworCWFjdGlvbl9yZXN1bHQocGZuLCBNRl9NU0dfREFY
-LCByYyA/IE1GX0ZBSUxFRCA6IE1GX1JFQ09WRVJFRCk7CisJcmV0dXJuIHJjOworfQorCiAvKioK
-ICAqIG1lbW9yeV9mYWlsdXJlIC0gSGFuZGxlIG1lbW9yeSBmYWlsdXJlIG9mIGEgcGFnZS4KICAq
-IEBwZm46IFBhZ2UgTnVtYmVyIG9mIHRoZSBjb3JydXB0ZWQgcGFnZQpAQCAtMTE1NCw2ICsxMjk0
-LDcgQEAgaW50IG1lbW9yeV9mYWlsdXJlKHVuc2lnbmVkIGxvbmcgcGZuLCBpbnQgZmxhZ3MpCiAJ
-c3RydWN0IHBhZ2UgKnA7CiAJc3RydWN0IHBhZ2UgKmhwYWdlOwogCXN0cnVjdCBwYWdlICpvcmln
-X2hlYWQ7CisJc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcDsKIAlpbnQgcmVzOwogCXVuc2lnbmVk
-IGxvbmcgcGFnZV9mbGFnczsKIApAQCAtMTE2Niw2ICsxMzA3LDEwIEBAIGludCBtZW1vcnlfZmFp
-bHVyZSh1bnNpZ25lZCBsb25nIHBmbiwgaW50IGZsYWdzKQogCQlyZXR1cm4gLUVOWElPOwogCX0K
-IAorCXBnbWFwID0gZ2V0X2Rldl9wYWdlbWFwKHBmbiwgTlVMTCk7CisJaWYgKHBnbWFwKQorCQly
-ZXR1cm4gbWVtb3J5X2ZhaWx1cmVfZGV2X3BhZ2VtYXAocGZuLCBmbGFncywgcGdtYXApOworCiAJ
-cCA9IHBmbl90b19wYWdlKHBmbik7CiAJaWYgKFBhZ2VIdWdlKHApKQogCQlyZXR1cm4gbWVtb3J5
-X2ZhaWx1cmVfaHVnZXRsYihwZm4sIGZsYWdzKTsKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
-aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW52ZGltbQo=
+> We were missing a CONTRIBUTING file to help new contributors follow the
+> expected guidelines. Add one that refers to the Linux Kernel for most of
+> these things, such as Coding style, Submitting Patches, and the DCO.
+> 
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  CONTRIBUTING.md | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 48 insertions(+)
+>  create mode 100644 CONTRIBUTING.md
+> 
+> diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+> new file mode 100644
+> index 0000000..811a8c0
+> --- /dev/null
+> +++ b/CONTRIBUTING.md
+> @@ -0,0 +1,48 @@
+> +# Contributing to ndctl
+> +
+> +Thank you for taking the time to contribute to ndctl.
+> +
+> +The following is a set of guidelines that we adhere to, and request that
+> +contributors follow.
+> +
+> +1. The libnvdimm (kernel subsystem) and ndctl developers primarily use
+> +   the [linux-nvdimm](https://lists.01.org/mailman/listinfo/linux-nvdimm)
+> +   mailing list for everything. It is recommended to send patches to
+> +   **```linux-nvdimm@lists.01.org```**
+> +
+> +1. Github [issues](https://github.com/pmem/ndctl/issues) are an acceptable
+> +   way to report a problem, but if you just have a question,
+> +   [email](mailto:linux-nvdimm@lists.01.org) the above list.
+> +
+> +1. We follow the Linux Kernel [Coding Style Guide][cs] as applicable.
+> +
+> +   [cs]: https://www.kernel.org/doc/html/latest/process/coding-style.html
+> +
+> +1. We follow the Linux Kernel [Submitting Patches Guide][sp] as applicable.
+> +
+> +   [sp]: https://www.kernel.org/doc/html/latest/process/submitting-patches.html
+> +
+> +1. We follow the Linux Kernel [DCO][dco] (Developer Certificate of Origin).
+> +   The DCO is an attestation attached to every contribution made by every
+> +   developer. In the commit message of the contribution, the developer simply
+> +   adds a Signed-off-by statement and thereby agrees to the DCO.
+> +
+> +   [dco]: https://developercertificate.org/
+> +
+> +1. Github Pull Requests are acceptable mainly for smaller, more obvious fixups,
+> +   but won't be merged directly, as Github doesn't allow for the kernel style
+> +   flow of patches where a maintainer also signs off on the patches they apply.
+> +   Larger changes may need to be sent to the mailing list so that everyone gets
+> +   an opportunity to review them.
+> +
+> +1. **Misc Best Practices:**
+> +   1. Use a subject prefix of "ndctl PATCH" (or "ndctl PATCH vN" for a new
+> +      revision). This can be automated for a ```git format-patch``` command
+> +      by setting a repo-local git config setting:
+> +         ```git config format.subjectprefix "ndctl PATCH"```
+> +
+> +   1. For commit messages: Describe the change and why it was needed. Use a
+> +      concise subject line, and a blank line between the subject and the body,
+> +      as well as between paragraphs. Use present tense and the imperative mood
+> +      (e.g. "Add support for.." instead of "Added support.." or "Adding
+> +      support"). Word-wrap to 72 columns.
+> -- 
+> 2.14.4
+> 
+
+Thank you for updating!
+Looks good to me.
+
+Reviewed-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+
+---
+Yasunori Goto
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
