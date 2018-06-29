@@ -1,12 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail06.adl6.internode.on.net (ipmail06.adl6.internode.on.net
- [150.101.137.145])
- by ml01.01.org (Postfix) with ESMTP id A172C211F8883
- for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 18:12:34 -0700 (PDT)
-Date: Sat, 30 Jun 2018 11:12:32 +1000
-From: Dave Chinner <david@fromorbit.com>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 015C6202E53F8
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 08:13:01 -0700 (PDT)
+Date: Fri, 29 Jun 2018 09:13:00 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH v2 2/2] ext4: handle layout changes to pinned DAX mappings
-Message-ID: <20180630011232.GP19934@dastard>
+Message-ID: <20180629151300.GA3006@linux.intel.com>
 References: <20180627212252.31032-1-ross.zwisler@linux.intel.com>
  <20180627212252.31032-3-ross.zwisler@linux.intel.com>
  <20180629120223.oaslngsvspnwf4ae@localhost.localdomain>
@@ -25,7 +26,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Lukas Czerner <lczerner@redhat.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Fri, Jun 29, 2018 at 02:02:23PM +0200, Lukas Czerner wrote:
@@ -91,23 +92,26 @@ On Fri, Jun 29, 2018 at 02:02:23PM +0200, Lukas Czerner wrote:
 > Xfs seems to do this before every fallocate operation, but in ext4
 > it does not seem to be needed at least for simply allocating falocate...
 
-The PNFS client may have mapped a hole over the range we are about
-to allocate. Hence it's mapping will be stale, and it needs to remap
-the range.
+I saw the case in ext4_insert_range(), and decided that we didn't need to
+worry about synchronizing with DAX because no blocks were being removed from
+the inode's extent map.  IIUC the truncate_pagecache() call is needed because
+we are unmapping and removing any page cache mappings for the part of the file
+after the insert because those blocks are now at a different offset in the
+inode.  Because at the end of the operation we haven't removed any DAX pages
+from the inode, we have nothing that we need to synchronize.
 
-i.e. any change to the extent list needs to break the lease of any
-client that may have a cached layout on that inode. i.e. it's not
-just extent removal that we are protecting against - we are trying
-to ensure clients using leases to access blocks directly remain
-coherent with the filesystem's extent map. Hence any potential
-change to the extent map requires breaking the lease....
+Hmm, unless this is a failure case we care about fixing?
+ 1) schedule I/O via O_DIRECT to page X
+ 2) fallocate(FALLOC_FL_INSERT_RANGE) to block < X, shifting X to a larger
+    offset
+ 3) O_DIRECT I/O from 1) completes, but ends up writing into the *new* block
+    that resides at X - the I/O from 1) completes
 
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+In this case the user is running I/O and issuing the fallocate at the same
+time, and the sequencing could have worked out that #1 and #2 were reversed,
+giving you the same behavior.  IMO this seems fine and that we shouldn't have
+the DAX synchronization call in ext4_insert_range(), but I'm happy to add it
+if I'm wrong.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
