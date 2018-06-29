@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 015C6202E53F8
- for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 08:13:01 -0700 (PDT)
-Date: Fri, 29 Jun 2018 09:13:00 -0600
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 05FAA203369CB
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 05:02:29 -0700 (PDT)
+Date: Fri, 29 Jun 2018 14:02:23 +0200
+From: Lukas Czerner <lczerner@redhat.com>
 Subject: Re: [PATCH v2 2/2] ext4: handle layout changes to pinned DAX mappings
-Message-ID: <20180629151300.GA3006@linux.intel.com>
+Message-ID: <20180629120223.oaslngsvspnwf4ae@localhost.localdomain>
 References: <20180627212252.31032-1-ross.zwisler@linux.intel.com>
  <20180627212252.31032-3-ross.zwisler@linux.intel.com>
- <20180629120223.oaslngsvspnwf4ae@localhost.localdomain>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20180629120223.oaslngsvspnwf4ae@localhost.localdomain>
+In-Reply-To: <20180627212252.31032-3-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,93 +24,168 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Lukas Czerner <lczerner@redhat.com>
-Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jun 29, 2018 at 02:02:23PM +0200, Lukas Czerner wrote:
-> On Wed, Jun 27, 2018 at 03:22:52PM -0600, Ross Zwisler wrote:
-> > Follow the lead of xfs_break_dax_layouts() and add synchronization between
-> > operations in ext4 which remove blocks from an inode (hole punch, truncate
-> > down, etc.) and pages which are pinned due to DAX DMA operations.
-> > 
-> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> > Reviewed-by: Jan Kara <jack@suse.cz>
-> > ---
-> >  fs/ext4/ext4.h     |  1 +
-> >  fs/ext4/extents.c  | 12 ++++++++++++
-> >  fs/ext4/inode.c    | 46 ++++++++++++++++++++++++++++++++++++++++++++++
-> >  fs/ext4/truncate.h |  4 ++++
-> >  4 files changed, 63 insertions(+)
-> > 
-> > diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-> > index 0b127853c584..34bccd64d83d 100644
-> > --- a/fs/ext4/ext4.h
-> > +++ b/fs/ext4/ext4.h
-> > @@ -2460,6 +2460,7 @@ extern int ext4_get_inode_loc(struct inode *, struct ext4_iloc *);
-> >  extern int ext4_inode_attach_jinode(struct inode *inode);
-> >  extern int ext4_can_truncate(struct inode *inode);
-> >  extern int ext4_truncate(struct inode *);
-> > +extern int ext4_break_layouts(struct inode *);
-> >  extern int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length);
-> >  extern int ext4_truncate_restart_trans(handle_t *, struct inode *, int nblocks);
-> >  extern void ext4_set_inode_flags(struct inode *);
-> > diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
-> > index 0057fe3f248d..a6aef06f455b 100644
-> > --- a/fs/ext4/extents.c
-> > +++ b/fs/ext4/extents.c
-> > @@ -4820,6 +4820,13 @@ static long ext4_zero_range(struct file *file, loff_t offset,
-> >  		 * released from page cache.
-> >  		 */
-> >  		down_write(&EXT4_I(inode)->i_mmap_sem);
-> > +
-> > +		ret = ext4_break_layouts(inode);
-> > +		if (ret) {
-> > +			up_write(&EXT4_I(inode)->i_mmap_sem);
-> > +			goto out_mutex;
-> > +		}
-> > +
-> >  		ret = ext4_update_disksize_before_punch(inode, offset, len);
-> >  		if (ret) {
-> >  			up_write(&EXT4_I(inode)->i_mmap_sem);
-> > @@ -5493,6 +5500,11 @@ int ext4_collapse_range(struct inode *inode, loff_t offset, loff_t len)
-> >  	 * page cache.
-> >  	 */
-> >  	down_write(&EXT4_I(inode)->i_mmap_sem);
-> > +
-> > +	ret = ext4_break_layouts(inode);
-> > +	if (ret)
-> > +		goto out_mmap;
+On Wed, Jun 27, 2018 at 03:22:52PM -0600, Ross Zwisler wrote:
+> Follow the lead of xfs_break_dax_layouts() and add synchronization between
+> operations in ext4 which remove blocks from an inode (hole punch, truncate
+> down, etc.) and pages which are pinned due to DAX DMA operations.
 > 
-> Hi,
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Reviewed-by: Jan Kara <jack@suse.cz>
+> ---
+>  fs/ext4/ext4.h     |  1 +
+>  fs/ext4/extents.c  | 12 ++++++++++++
+>  fs/ext4/inode.c    | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+>  fs/ext4/truncate.h |  4 ++++
+>  4 files changed, 63 insertions(+)
 > 
-> don't we need to do the same for ext4_insert_range() since we're about
-> to truncate_pagecache() as well ?
+> diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+> index 0b127853c584..34bccd64d83d 100644
+> --- a/fs/ext4/ext4.h
+> +++ b/fs/ext4/ext4.h
+> @@ -2460,6 +2460,7 @@ extern int ext4_get_inode_loc(struct inode *, struct ext4_iloc *);
+>  extern int ext4_inode_attach_jinode(struct inode *inode);
+>  extern int ext4_can_truncate(struct inode *inode);
+>  extern int ext4_truncate(struct inode *);
+> +extern int ext4_break_layouts(struct inode *);
+>  extern int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length);
+>  extern int ext4_truncate_restart_trans(handle_t *, struct inode *, int nblocks);
+>  extern void ext4_set_inode_flags(struct inode *);
+> diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+> index 0057fe3f248d..a6aef06f455b 100644
+> --- a/fs/ext4/extents.c
+> +++ b/fs/ext4/extents.c
+> @@ -4820,6 +4820,13 @@ static long ext4_zero_range(struct file *file, loff_t offset,
+>  		 * released from page cache.
+>  		 */
+>  		down_write(&EXT4_I(inode)->i_mmap_sem);
+> +
+> +		ret = ext4_break_layouts(inode);
+> +		if (ret) {
+> +			up_write(&EXT4_I(inode)->i_mmap_sem);
+> +			goto out_mutex;
+> +		}
+> +
+>  		ret = ext4_update_disksize_before_punch(inode, offset, len);
+>  		if (ret) {
+>  			up_write(&EXT4_I(inode)->i_mmap_sem);
+> @@ -5493,6 +5500,11 @@ int ext4_collapse_range(struct inode *inode, loff_t offset, loff_t len)
+>  	 * page cache.
+>  	 */
+>  	down_write(&EXT4_I(inode)->i_mmap_sem);
+> +
+> +	ret = ext4_break_layouts(inode);
+> +	if (ret)
+> +		goto out_mmap;
+
+Hi,
+
+don't we need to do the same for ext4_insert_range() since we're about
+to truncate_pagecache() as well ?
+
+/thinking out loud/
+Xfs seems to do this before every fallocate operation, but in ext4
+it does not seem to be needed at least for simply allocating falocate...
+
+Thanks!
+-Lukas
+
+> +
+>  	/*
+>  	 * Need to round down offset to be aligned with page size boundary
+>  	 * for page size > block size.
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index 2ea07efbe016..fadb8ecacb1e 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -4193,6 +4193,39 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
+>  	return 0;
+>  }
+>  
+> +static void ext4_wait_dax_page(struct ext4_inode_info *ei, bool *did_unlock)
+> +{
+> +	*did_unlock = true;
+> +	up_write(&ei->i_mmap_sem);
+> +	schedule();
+> +	down_write(&ei->i_mmap_sem);
+> +}
+> +
+> +int ext4_break_layouts(struct inode *inode)
+> +{
+> +	struct ext4_inode_info *ei = EXT4_I(inode);
+> +	struct page *page;
+> +	bool retry;
+> +	int error;
+> +
+> +	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
+> +		return -EINVAL;
+> +
+> +	do {
+> +		retry = false;
+> +		page = dax_layout_busy_page(inode->i_mapping);
+> +		if (!page)
+> +			return 0;
+> +
+> +		error = ___wait_var_event(&page->_refcount,
+> +				atomic_read(&page->_refcount) == 1,
+> +				TASK_INTERRUPTIBLE, 0, 0,
+> +				ext4_wait_dax_page(ei, &retry));
+> +	} while (error == 0 && retry);
+> +
+> +	return error;
+> +}
+> +
+>  /*
+>   * ext4_punch_hole: punches a hole in a file by releasing the blocks
+>   * associated with the given offset and length
+> @@ -4266,6 +4299,11 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
+>  	 * page cache.
+>  	 */
+>  	down_write(&EXT4_I(inode)->i_mmap_sem);
+> +
+> +	ret = ext4_break_layouts(inode);
+> +	if (ret)
+> +		goto out_dio;
+> +
+>  	first_block_offset = round_up(offset, sb->s_blocksize);
+>  	last_block_offset = round_down((offset + length), sb->s_blocksize) - 1;
+>  
+> @@ -5554,6 +5592,14 @@ int ext4_setattr(struct dentry *dentry, struct iattr *attr)
+>  				ext4_wait_for_tail_page_commit(inode);
+>  		}
+>  		down_write(&EXT4_I(inode)->i_mmap_sem);
+> +
+> +		rc = ext4_break_layouts(inode);
+> +		if (rc) {
+> +			up_write(&EXT4_I(inode)->i_mmap_sem);
+> +			error = rc;
+> +			goto err_out;
+> +		}
+> +
+>  		/*
+>  		 * Truncate pagecache after we've waited for commit
+>  		 * in data=journal mode to make pages freeable.
+> diff --git a/fs/ext4/truncate.h b/fs/ext4/truncate.h
+> index 0cb13badf473..bcbe3668c1d4 100644
+> --- a/fs/ext4/truncate.h
+> +++ b/fs/ext4/truncate.h
+> @@ -11,6 +11,10 @@
+>   */
+>  static inline void ext4_truncate_failed_write(struct inode *inode)
+>  {
+> +	/*
+> +	 * We don't need to call ext4_break_layouts() because the blocks we
+> +	 * are truncating were never visible to userspace.
+> +	 */
+>  	down_write(&EXT4_I(inode)->i_mmap_sem);
+>  	truncate_inode_pages(inode->i_mapping, inode->i_size);
+>  	ext4_truncate(inode);
+> -- 
+> 2.14.4
 > 
-> /thinking out loud/
-> Xfs seems to do this before every fallocate operation, but in ext4
-> it does not seem to be needed at least for simply allocating falocate...
-
-I saw the case in ext4_insert_range(), and decided that we didn't need to
-worry about synchronizing with DAX because no blocks were being removed from
-the inode's extent map.  IIUC the truncate_pagecache() call is needed because
-we are unmapping and removing any page cache mappings for the part of the file
-after the insert because those blocks are now at a different offset in the
-inode.  Because at the end of the operation we haven't removed any DAX pages
-from the inode, we have nothing that we need to synchronize.
-
-Hmm, unless this is a failure case we care about fixing?
- 1) schedule I/O via O_DIRECT to page X
- 2) fallocate(FALLOC_FL_INSERT_RANGE) to block < X, shifting X to a larger
-    offset
- 3) O_DIRECT I/O from 1) completes, but ends up writing into the *new* block
-    that resides at X - the I/O from 1) completes
-
-In this case the user is running I/O and issuing the fallocate at the same
-time, and the sequencing could have worked out that #1 and #2 were reversed,
-giving you the same behavior.  IMO this seems fine and that we shouldn't have
-the DAX synchronization call in ext4_insert_range(), but I'm happy to add it
-if I'm wrong.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
