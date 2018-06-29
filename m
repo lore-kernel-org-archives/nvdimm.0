@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C575A202E540B
- for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 20:56:24 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 2AFAD211F8886
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 16:39:55 -0700 (PDT)
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [ndctl PATCH v2 2/2] ndctl list: always output array without --human
-Date: Fri, 29 Jun 2018 21:55:52 -0600
-Message-Id: <20180630035552.27049-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180630035552.27049-1-ross.zwisler@linux.intel.com>
-References: <20180630035552.27049-1-ross.zwisler@linux.intel.com>
+Subject: [ndctl PATCH 3/3] ndctl list: always output array without --human
+Date: Fri, 29 Jun 2018 17:39:27 -0600
+Message-Id: <20180629233927.6232-3-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180629233927.6232-1-ross.zwisler@linux.intel.com>
+References: <20180629233927.6232-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -157,30 +157,30 @@ index 2e62c89..8da893c 100644
  	}
  out:
 diff --git a/ndctl/list.c b/ndctl/list.c
-index 030d73f..a06edc9 100644
+index 32f679b..5d173d7 100644
 --- a/ndctl/list.c
 +++ b/ndctl/list.c
-@@ -379,7 +379,7 @@ static int list_display(struct list_filter_arg *lfa)
+@@ -366,7 +366,7 @@ static int list_display(struct list_filter_arg *lfa)
  	struct json_object *jbuses = lfa->jbuses;
  
  	if (jbuses)
 -		util_display_json_array(stdout, jbuses);
-+		util_display_json_array(stdout, jbuses, lfa->flags);
++		util_display_json_array(stdout, jbuses, list_flags);
  	else if ((!!jdimms + !!jregions + !!jnamespaces) > 1) {
  		struct json_object *jplatform = json_object_new_object();
  
-@@ -399,11 +399,11 @@ static int list_display(struct list_filter_arg *lfa)
+@@ -386,11 +386,11 @@ static int list_display(struct list_filter_arg *lfa)
  					JSON_C_TO_STRING_PRETTY));
  		json_object_put(jplatform);
  	} else if (jdimms)
 -		util_display_json_array(stdout, jdimms);
-+		util_display_json_array(stdout, jdimms, lfa->flags);
++		util_display_json_array(stdout, jdimms, list_flags);
  	else if (jregions)
 -		util_display_json_array(stdout, jregions);
-+		util_display_json_array(stdout, jregions, lfa->flags);
++		util_display_json_array(stdout, jregions, list_flags);
  	else if (jnamespaces)
 -		util_display_json_array(stdout, jnamespaces);
-+		util_display_json_array(stdout, jnamespaces, lfa->flags);
++		util_display_json_array(stdout, jnamespaces, list_flags);
  	return 0;
  }
  
