@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DFD1C20336AA1
- for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 20:56:24 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [ndctl PATCH v2 1/2] ndctl: simplify JSON print flag handling
-Date: Fri, 29 Jun 2018 21:55:51 -0600
-Message-Id: <20180630035552.27049-2-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180630035552.27049-1-ross.zwisler@linux.intel.com>
-References: <20180630035552.27049-1-ross.zwisler@linux.intel.com>
+Received: from ipmail06.adl6.internode.on.net (ipmail06.adl6.internode.on.net
+ [150.101.137.145])
+ by ml01.01.org (Postfix) with ESMTP id A172C211F8883
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 18:12:34 -0700 (PDT)
+Date: Sat, 30 Jun 2018 11:12:32 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v2 2/2] ext4: handle layout changes to pinned DAX mappings
+Message-ID: <20180630011232.GP19934@dastard>
+References: <20180627212252.31032-1-ross.zwisler@linux.intel.com>
+ <20180627212252.31032-3-ross.zwisler@linux.intel.com>
+ <20180629120223.oaslngsvspnwf4ae@localhost.localdomain>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180629120223.oaslngsvspnwf4ae@localhost.localdomain>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,174 +20,94 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "Kani, Toshi" <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+To: Lukas Czerner <lczerner@redhat.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-json_object_to_json_string_ext()'s second argument is a flags field which
-we always want to be JSON_C_TO_STRING_PRETTY.  We were going to a lot of
-trouble for this, though.  We had multiple variables set to be this one
-flag and util_display_json_array() took it as an argument, even though it
-never varied.
+On Fri, Jun 29, 2018 at 02:02:23PM +0200, Lukas Czerner wrote:
+> On Wed, Jun 27, 2018 at 03:22:52PM -0600, Ross Zwisler wrote:
+> > Follow the lead of xfs_break_dax_layouts() and add synchronization between
+> > operations in ext4 which remove blocks from an inode (hole punch, truncate
+> > down, etc.) and pages which are pinned due to DAX DMA operations.
+> > 
+> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > Reviewed-by: Jan Kara <jack@suse.cz>
+> > ---
+> >  fs/ext4/ext4.h     |  1 +
+> >  fs/ext4/extents.c  | 12 ++++++++++++
+> >  fs/ext4/inode.c    | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+> >  fs/ext4/truncate.h |  4 ++++
+> >  4 files changed, 63 insertions(+)
+> > 
+> > diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+> > index 0b127853c584..34bccd64d83d 100644
+> > --- a/fs/ext4/ext4.h
+> > +++ b/fs/ext4/ext4.h
+> > @@ -2460,6 +2460,7 @@ extern int ext4_get_inode_loc(struct inode *, struct ext4_iloc *);
+> >  extern int ext4_inode_attach_jinode(struct inode *inode);
+> >  extern int ext4_can_truncate(struct inode *inode);
+> >  extern int ext4_truncate(struct inode *);
+> > +extern int ext4_break_layouts(struct inode *);
+> >  extern int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length);
+> >  extern int ext4_truncate_restart_trans(handle_t *, struct inode *, int nblocks);
+> >  extern void ext4_set_inode_flags(struct inode *);
+> > diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+> > index 0057fe3f248d..a6aef06f455b 100644
+> > --- a/fs/ext4/extents.c
+> > +++ b/fs/ext4/extents.c
+> > @@ -4820,6 +4820,13 @@ static long ext4_zero_range(struct file *file, loff_t offset,
+> >  		 * released from page cache.
+> >  		 */
+> >  		down_write(&EXT4_I(inode)->i_mmap_sem);
+> > +
+> > +		ret = ext4_break_layouts(inode);
+> > +		if (ret) {
+> > +			up_write(&EXT4_I(inode)->i_mmap_sem);
+> > +			goto out_mutex;
+> > +		}
+> > +
+> >  		ret = ext4_update_disksize_before_punch(inode, offset, len);
+> >  		if (ret) {
+> >  			up_write(&EXT4_I(inode)->i_mmap_sem);
+> > @@ -5493,6 +5500,11 @@ int ext4_collapse_range(struct inode *inode, loff_t offset, loff_t len)
+> >  	 * page cache.
+> >  	 */
+> >  	down_write(&EXT4_I(inode)->i_mmap_sem);
+> > +
+> > +	ret = ext4_break_layouts(inode);
+> > +	if (ret)
+> > +		goto out_mmap;
+> 
+> Hi,
+> 
+> don't we need to do the same for ext4_insert_range() since we're about
+> to truncate_pagecache() as well ?
+> 
+> /thinking out loud/
+> Xfs seems to do this before every fallocate operation, but in ext4
+> it does not seem to be needed at least for simply allocating falocate...
 
-Instead, just pass in the necessary flag when calling
-json_object_to_json_string_ext(), removing the local variables and the extra
-argument to util_display_json_array().
+The PNFS client may have mapped a hole over the range we are about
+to allocate. Hence it's mapping will be stale, and it needs to remap
+the range.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
----
- daxctl/list.c        |  5 ++---
- ndctl/bus.c          |  3 +--
- ndctl/dimm.c         |  3 +--
- ndctl/inject-smart.c |  3 +--
- ndctl/list.c         | 11 +++++------
- util/json.c          |  3 ++-
- util/json.h          |  2 +-
- 7 files changed, 13 insertions(+), 17 deletions(-)
+i.e. any change to the extent list needs to break the lease of any
+client that may have a cached layout on that inode. i.e. it's not
+just extent removal that we are protecting against - we are trying
+to ensure clients using leases to access blocks directly remain
+coherent with the filesystem's extent map. Hence any potential
+change to the extent map requires breaking the lease....
 
-diff --git a/daxctl/list.c b/daxctl/list.c
-index 254f0ac..ed9e76c 100644
---- a/daxctl/list.c
-+++ b/daxctl/list.c
-@@ -50,7 +50,6 @@ static struct {
- };
- 
- static int did_fail;
--static int jflag = JSON_C_TO_STRING_PRETTY;
- 
- #define fail(fmt, ...) \
- do { \
-@@ -130,9 +129,9 @@ int cmd_list(int argc, const char **argv, void *ctx)
- 	}
- 
- 	if (jregions)
--		util_display_json_array(stdout, jregions, jflag);
-+		util_display_json_array(stdout, jregions);
- 	else if (jdevs)
--		util_display_json_array(stdout, jdevs, jflag);
-+		util_display_json_array(stdout, jdevs);
- 
- 	if (did_fail)
- 		return -ENOMEM;
-diff --git a/ndctl/bus.c b/ndctl/bus.c
-index fc31d06..b7b7d65 100644
---- a/ndctl/bus.c
-+++ b/ndctl/bus.c
-@@ -88,8 +88,7 @@ static int bus_action(int argc, const char **argv, const char *usage,
- 	}
- 
- 	if (success)
--		util_display_json_array(stdout, jbuses,
--				JSON_C_TO_STRING_PRETTY);
-+		util_display_json_array(stdout, jbuses);
- 	else
- 		json_object_put(jbuses);
- 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 1c16899..6964c5e 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -1081,8 +1081,7 @@ static int dimm_action(int argc, const char **argv, void *ctx,
- 	}
- 
- 	if (actx.jdimms)
--		util_display_json_array(actx.f_out, actx.jdimms,
--				JSON_C_TO_STRING_PRETTY);
-+		util_display_json_array(actx.f_out, actx.jdimms);
- 
- 	if (actx.f_out != stdout)
- 		fclose(actx.f_out);
-diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
-index 60de9fe..2e62c89 100644
---- a/ndctl/inject-smart.c
-+++ b/ndctl/inject-smart.c
-@@ -375,8 +375,7 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
- 		jhealth = util_dimm_health_to_json(dimm);
- 		if (jhealth) {
- 			json_object_object_add(jdimm, "health", jhealth);
--			util_display_json_array(stdout, jdimms,
--				JSON_C_TO_STRING_PRETTY);
-+			util_display_json_array(stdout, jdimms);
- 		}
- 	}
- out:
-diff --git a/ndctl/list.c b/ndctl/list.c
-index 6cf7c39..030d73f 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -56,7 +56,6 @@ static unsigned long listopts_to_flags(void)
- struct util_filter_params param;
- 
- static int did_fail;
--static int jflag = JSON_C_TO_STRING_PRETTY;
- 
- #define fail(fmt, ...) \
- do { \
-@@ -380,7 +379,7 @@ static int list_display(struct list_filter_arg *lfa)
- 	struct json_object *jbuses = lfa->jbuses;
- 
- 	if (jbuses)
--		util_display_json_array(stdout, jbuses, jflag);
-+		util_display_json_array(stdout, jbuses);
- 	else if ((!!jdimms + !!jregions + !!jnamespaces) > 1) {
- 		struct json_object *jplatform = json_object_new_object();
- 
-@@ -397,14 +396,14 @@ static int list_display(struct list_filter_arg *lfa)
- 			json_object_object_add(jplatform, "namespaces",
- 					jnamespaces);
- 		printf("%s\n", json_object_to_json_string_ext(jplatform,
--					jflag));
-+					JSON_C_TO_STRING_PRETTY));
- 		json_object_put(jplatform);
- 	} else if (jdimms)
--		util_display_json_array(stdout, jdimms, jflag);
-+		util_display_json_array(stdout, jdimms);
- 	else if (jregions)
--		util_display_json_array(stdout, jregions, jflag);
-+		util_display_json_array(stdout, jregions);
- 	else if (jnamespaces)
--		util_display_json_array(stdout, jnamespaces, jflag);
-+		util_display_json_array(stdout, jnamespaces);
- 	return 0;
- }
- 
-diff --git a/util/json.c b/util/json.c
-index 94ed948..ff894c7 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -105,9 +105,10 @@ struct json_object *util_json_object_hex(unsigned long long val,
- 	return jobj;
- }
- 
--void util_display_json_array(FILE *f_out, struct json_object *jarray, int jflag)
-+void util_display_json_array(FILE *f_out, struct json_object *jarray)
- {
- 	int len = json_object_array_length(jarray);
-+	int jflag = JSON_C_TO_STRING_PRETTY;
- 
- 	if (json_object_array_length(jarray) > 1)
- 		fprintf(f_out, "%s\n", json_object_to_json_string_ext(jarray, jflag));
-diff --git a/util/json.h b/util/json.h
-index c5d1603..d0167cf 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -26,7 +26,7 @@ enum util_json_flags {
- };
- 
- struct json_object;
--void util_display_json_array(FILE *f_out, struct json_object *jarray, int jflag);
-+void util_display_json_array(FILE *f_out, struct json_object *jarray);
- struct json_object *util_bus_to_json(struct ndctl_bus *bus);
- struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
- 		unsigned long flags);
+Cheers,
+
+Dave.
 -- 
-2.14.4
-
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
