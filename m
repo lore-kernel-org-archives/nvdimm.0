@@ -2,12 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ED866202E53D8
- for <linux-nvdimm@lists.01.org>; Tue, 26 Jun 2018 11:23:06 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [ndctl PATCHv3] ndctl: Use max_available_extent for namespace
-Date: Tue, 26 Jun 2018 12:26:29 -0600
-Message-Id: <20180626182629.7333-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C575A202E540B
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 20:56:24 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [ndctl PATCH v2 2/2] ndctl list: always output array without --human
+Date: Fri, 29 Jun 2018 21:55:52 -0600
+Message-Id: <20180630035552.27049-3-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180630035552.27049-1-ross.zwisler@linux.intel.com>
+References: <20180630035552.27049-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,111 +22,204 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "Kani, Toshi" <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The available_size attribute returns all the unused regions, but a
-namespace has to use contiguous free regions. This patch uses the
-attribute returning the largest capacity that can be created for
-determining if the namespace can be created.
+If "ndctl list" is only printing a single object it currently does not
+print it in an array.  When printing multiple objects, though, an array is
+used.  This simplifies the output for single objects when a human is
+looking at it but it creates complications for parsers like jq.  jq
+wants to know whether it is trying to parse an object or an array of
+objects.
 
-Signed-off-by: Keith Busch <keith.busch@intel.com>
+For example, here's how you print just the mode of a single namespace:
+
+ # ndctl list -n namespace1.0 | jq ".mode"
+ "raw"
+
+This works on a single object.  If you have multiple objects in a JSON
+array you do this:
+
+  # ndctl list | jq -r '(.[]) | .mode'
+  raw
+  raw
+
+If you want to write a generic script that works in both cases you have to
+do something quite complicated like:
+
+  # ndctl list | jq -r '((. | arrays | .[]), . | objects | .mode)'
+  raw
+  raw
+
+Instead of pushing the burden on the user, have ndctl output consistently be
+an array even if there is only one element.  This allows the parsing code
+to be simpler and only worry about one case.
+
+If the user specifies the --human or -u flags we will assume that a person
+is looking at the output and not a script and will continue to output a
+single element which is not part of an array.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
-v2 -> v3:
+ daxctl/list.c        | 11 +++++++----
+ ndctl/bus.c          |  2 +-
+ ndctl/dimm.c         |  2 +-
+ ndctl/inject-smart.c |  2 +-
+ ndctl/list.c         |  8 ++++----
+ util/json.c          |  5 +++--
+ util/json.h          |  3 ++-
+ 7 files changed, 19 insertions(+), 14 deletions(-)
 
-  Added dbg() message to indicate kernel support
-
- ndctl/lib/libndctl.c   | 33 +++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  1 +
- ndctl/libndctl.h       |  2 ++
- ndctl/namespace.c      |  2 +-
- 4 files changed, 37 insertions(+), 1 deletion(-)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 47e005e..78c70d6 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -2025,6 +2025,39 @@ NDCTL_EXPORT unsigned long long ndctl_region_get_available_size(
- 	return strtoull(buf, NULL, 0);
- }
+diff --git a/daxctl/list.c b/daxctl/list.c
+index ed9e76c..58c35fa 100644
+--- a/daxctl/list.c
++++ b/daxctl/list.c
+@@ -83,6 +83,7 @@ int cmd_list(int argc, const char **argv, void *ctx)
+ 	struct json_object *jregions = NULL;
+ 	struct json_object *jdevs = NULL;
+ 	struct daxctl_region *region;
++	unsigned long list_flags;
+ 	int i;
  
-+NDCTL_EXPORT unsigned long long ndctl_region_get_max_available_extent(
-+		struct ndctl_region *region)
-+{
-+	unsigned int nstype = ndctl_region_get_nstype(region);
-+	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-+	char *path = region->region_buf;
-+	int len = region->buf_len;
-+	char buf[SYSFS_ATTR_SIZE];
+         argc = parse_options(argc, argv, options, u, 0);
+@@ -100,6 +101,8 @@ int cmd_list(int argc, const char **argv, void *ctx)
+ 	if (num_list_flags() == 0)
+ 		list.devs = true;
+ 
++	list_flags = listopts_to_flags();
 +
-+	switch (nstype) {
-+	case ND_DEVICE_NAMESPACE_PMEM:
-+	case ND_DEVICE_NAMESPACE_BLK:
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	if (snprintf(path, len,
-+		     "%s/max_available_extent", region->region_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_region_get_devname(region));
-+		return ULLONG_MAX;
-+	}
-+
-+	/* fall back to legacy behavior if max extents is not exported */
-+	if (sysfs_read_attr(ctx, path, buf) < 0) {
-+		dbg(ctx, "max extents attribute not exported on older kernels\n");
-+		return ndctl_region_get_available_size(region);
-+	}
-+
-+	return strtoull(buf, NULL, 0);
-+}
-+
- NDCTL_EXPORT unsigned int ndctl_region_get_range_index(struct ndctl_region *region)
- {
- 	return region->range_index;
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index c1228e5..22fd026 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -123,6 +123,7 @@ global:
- 	ndctl_region_get_mappings;
- 	ndctl_region_get_size;
- 	ndctl_region_get_available_size;
-+	ndctl_region_get_max_available_extent;
- 	ndctl_region_get_type;
- 	ndctl_region_get_namespace_seed;
- 	ndctl_region_get_btt_seed;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index be997ac..624115d 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -338,6 +338,8 @@ unsigned int ndctl_region_get_interleave_ways(struct ndctl_region *region);
- unsigned int ndctl_region_get_mappings(struct ndctl_region *region);
- unsigned long long ndctl_region_get_size(struct ndctl_region *region);
- unsigned long long ndctl_region_get_available_size(struct ndctl_region *region);
-+unsigned long long ndctl_region_get_max_available_extent(
-+		struct ndctl_region *region);
- unsigned int ndctl_region_get_range_index(struct ndctl_region *region);
- unsigned int ndctl_region_get_type(struct ndctl_region *region);
- struct ndctl_namespace *ndctl_region_get_namespace_seed(
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index fe86d82..4a562a2 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -764,7 +764,7 @@ static int namespace_create(struct ndctl_region *region)
- 		return -EAGAIN;
+ 	daxctl_region_foreach(ctx, region) {
+ 		struct json_object *jregion = NULL;
+ 
+@@ -117,7 +120,7 @@ int cmd_list(int argc, const char **argv, void *ctx)
+ 			}
+ 
+ 			jregion = util_daxctl_region_to_json(region,
+-					param.dev, listopts_to_flags());
++					param.dev, list_flags);
+ 			if (!jregion) {
+ 				fail("\n");
+ 				continue;
+@@ -125,13 +128,13 @@ int cmd_list(int argc, const char **argv, void *ctx)
+ 			json_object_array_add(jregions, jregion);
+ 		} else if (list.devs)
+ 			jdevs = util_daxctl_devs_to_list(region, jdevs,
+-					param.dev, listopts_to_flags());
++					param.dev, list_flags);
  	}
  
--	available = ndctl_region_get_available_size(region);
-+	available = ndctl_region_get_max_available_extent(region);
- 	if (!available || p.size > available) {
- 		debug("%s: insufficient capacity size: %llx avail: %llx\n",
- 			devname, p.size, available);
+ 	if (jregions)
+-		util_display_json_array(stdout, jregions);
++		util_display_json_array(stdout, jregions, list_flags);
+ 	else if (jdevs)
+-		util_display_json_array(stdout, jdevs);
++		util_display_json_array(stdout, jdevs, list_flags);
+ 
+ 	if (did_fail)
+ 		return -ENOMEM;
+diff --git a/ndctl/bus.c b/ndctl/bus.c
+index b7b7d65..bcb8c71 100644
+--- a/ndctl/bus.c
++++ b/ndctl/bus.c
+@@ -88,7 +88,7 @@ static int bus_action(int argc, const char **argv, const char *usage,
+ 	}
+ 
+ 	if (success)
+-		util_display_json_array(stdout, jbuses);
++		util_display_json_array(stdout, jbuses, 0);
+ 	else
+ 		json_object_put(jbuses);
+ 
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 6964c5e..97643a3 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -1081,7 +1081,7 @@ static int dimm_action(int argc, const char **argv, void *ctx,
+ 	}
+ 
+ 	if (actx.jdimms)
+-		util_display_json_array(actx.f_out, actx.jdimms);
++		util_display_json_array(actx.f_out, actx.jdimms, 0);
+ 
+ 	if (actx.f_out != stdout)
+ 		fclose(actx.f_out);
+diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
+index 2e62c89..8da893c 100644
+--- a/ndctl/inject-smart.c
++++ b/ndctl/inject-smart.c
+@@ -375,7 +375,7 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
+ 		jhealth = util_dimm_health_to_json(dimm);
+ 		if (jhealth) {
+ 			json_object_object_add(jdimm, "health", jhealth);
+-			util_display_json_array(stdout, jdimms);
++			util_display_json_array(stdout, jdimms, sctx.flags);
+ 		}
+ 	}
+ out:
+diff --git a/ndctl/list.c b/ndctl/list.c
+index 030d73f..a06edc9 100644
+--- a/ndctl/list.c
++++ b/ndctl/list.c
+@@ -379,7 +379,7 @@ static int list_display(struct list_filter_arg *lfa)
+ 	struct json_object *jbuses = lfa->jbuses;
+ 
+ 	if (jbuses)
+-		util_display_json_array(stdout, jbuses);
++		util_display_json_array(stdout, jbuses, lfa->flags);
+ 	else if ((!!jdimms + !!jregions + !!jnamespaces) > 1) {
+ 		struct json_object *jplatform = json_object_new_object();
+ 
+@@ -399,11 +399,11 @@ static int list_display(struct list_filter_arg *lfa)
+ 					JSON_C_TO_STRING_PRETTY));
+ 		json_object_put(jplatform);
+ 	} else if (jdimms)
+-		util_display_json_array(stdout, jdimms);
++		util_display_json_array(stdout, jdimms, lfa->flags);
+ 	else if (jregions)
+-		util_display_json_array(stdout, jregions);
++		util_display_json_array(stdout, jregions, lfa->flags);
+ 	else if (jnamespaces)
+-		util_display_json_array(stdout, jnamespaces);
++		util_display_json_array(stdout, jnamespaces, lfa->flags);
+ 	return 0;
+ }
+ 
+diff --git a/util/json.c b/util/json.c
+index ff894c7..1332458 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -105,12 +105,13 @@ struct json_object *util_json_object_hex(unsigned long long val,
+ 	return jobj;
+ }
+ 
+-void util_display_json_array(FILE *f_out, struct json_object *jarray)
++void util_display_json_array(FILE *f_out, struct json_object *jarray,
++		unsigned long flags)
+ {
+ 	int len = json_object_array_length(jarray);
+ 	int jflag = JSON_C_TO_STRING_PRETTY;
+ 
+-	if (json_object_array_length(jarray) > 1)
++	if (json_object_array_length(jarray) > 1 || !(flags & UTIL_JSON_HUMAN))
+ 		fprintf(f_out, "%s\n", json_object_to_json_string_ext(jarray, jflag));
+ 	else if (len) {
+ 		struct json_object *jobj;
+diff --git a/util/json.h b/util/json.h
+index d0167cf..aa2e976 100644
+--- a/util/json.h
++++ b/util/json.h
+@@ -26,7 +26,8 @@ enum util_json_flags {
+ };
+ 
+ struct json_object;
+-void util_display_json_array(FILE *f_out, struct json_object *jarray);
++void util_display_json_array(FILE *f_out, struct json_object *jarray,
++		unsigned long flags);
+ struct json_object *util_bus_to_json(struct ndctl_bus *bus);
+ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
+ 		unsigned long flags);
 -- 
-2.14.3
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
