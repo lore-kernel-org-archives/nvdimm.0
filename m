@@ -1,20 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk0-x241.google.com (mail-qk0-x241.google.com
- [IPv6:2607:f8b0:400d:c09::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0BAC72116DFBB
- for <linux-nvdimm@lists.01.org>; Tue, 19 Jun 2018 12:30:47 -0700 (PDT)
-Received: by mail-qk0-x241.google.com with SMTP id j80-v6so523986qke.9
- for <linux-nvdimm@lists.01.org>; Tue, 19 Jun 2018 12:30:47 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: [PATCH v2 1/2] nfit,
- test: Add NFIT_TEST_BUS[01] variable and some helper funtions to
- common
-Date: Tue, 19 Jun 2018 15:30:30 -0400
-Message-Id: <20180619193031.17555-2-msys.mizuma@gmail.com>
-In-Reply-To: <20180619193031.17555-1-msys.mizuma@gmail.com>
-References: <20180619193031.17555-1-msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0F1FD202E540B
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Jun 2018 20:56:25 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [ndctl PATCH v2 0/2] always output array without --human
+Date: Fri, 29 Jun 2018 21:55:50 -0600
+Message-Id: <20180630035552.27049-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,85 +20,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "Kani, Toshi" <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+If "ndctl list" is only printing a single object it currently does not
+print it in an array.  When printing multiple objects, though, an array is
+used.  This simplifies the output for single objects when a human is
+looking at it but it creates complications for parsers like jq.  jq
+wants to know whether it is trying to parse an object or an array of
+objects.
 
-Add following global variable and functions to test/common file.
+The first patch in this series is cleanup I noticed while fixing the
+above issue with the second patch.
 
- - NFIT_TEST_BUS[01] (global variable)
-   Buses are created when nfit_test module is loaded.
-
- - NDCTL (global variable)
-   ndctl command path (renamed).
-
- - _cleanup
-   Helper function cleans up nfit_test module.
-
- - json2var
-   Helper function (filter) converts json to var.
-
-Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 ---
- test/common | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/test/common b/test/common
-index 8fafa91..fb4e18e 100644
---- a/test/common
-+++ b/test/common
-@@ -4,17 +4,23 @@
- 
- # Global variables
- 
--# ndctl
-+# NDCTL
- #
- if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
--	export ndctl=../ndctl/ndctl
-+	export NDCTL=../ndctl/ndctl
- elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
--	export ndctl=./ndctl/ndctl
-+	export NDCTL=./ndctl/ndctl
- else
- 	echo "Couldn't find an ndctl binary"
- 	exit 1
- fi
- 
-+# NFIT_TEST_BUS[01]
-+#
-+NFIT_TEST_BUS0=nfit_test.0
-+NFIT_TEST_BUS1=nfit_test.1
-+
-+
- # Functions
- 
- # err
-@@ -58,3 +64,20 @@ check_prereq()
- 		do_skip "missing $1, skipping..."
- 	fi
- }
-+
-+# _cleanup
-+#
-+_cleanup()
-+{
-+	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
-+	$NDCTL disable-region -b $NFIT_TEST_BUS1 all
-+	modprobe -r nfit_test
-+}
-+
-+# json2var
-+# stdin: json
-+#
-+json2var()
-+{
-+	sed -e "s/[{}\",]//g; s/:/=/g"
-+}
+Changes since v1:
+ * Dropped patch 2 that dealt with cleaning up the way flags are handled
+   in ndctl/list.c. (Dan)
+
+ * Added Dan's Ack to patch 1.
+
+Ross Zwisler (2):
+  ndctl: simplify JSON print flag handling
+  ndctl list: always output array without --human
+
+ daxctl/list.c        | 12 +++++++-----
+ ndctl/bus.c          |  3 +--
+ ndctl/dimm.c         |  3 +--
+ ndctl/inject-smart.c |  3 +--
+ ndctl/list.c         | 11 +++++------
+ util/json.c          |  6 ++++--
+ util/json.h          |  3 ++-
+ 7 files changed, 21 insertions(+), 20 deletions(-)
+
 -- 
-2.18.0.rc1
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
