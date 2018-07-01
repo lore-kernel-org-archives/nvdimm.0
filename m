@@ -1,11 +1,11 @@
-From: <amirtasn-ue2ENP7TC7J7ziIH+foANaxOck334EZe@public.gmane.org>
-Subject: I am lonely and I crave love and passion.
-Date: 1 Jul 2018 11:09:58 +0400
-Message-ID: <5B38849A.8700.522BF4@amirtasn.jobs-in-europe.net>
+From: =?utf-8?B?5byg5YWI55Sf?= <exxzr-At4yoac/K7M@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+R77ya5ZCI5Li65LiA5LyZ6K+l5aaC5L2V6aKE6Ziy6aOO6Zmp?=
+Date: Sun, 1 Jul 2018 17:55:02 +0800
+Message-ID: <862DB468702F799D74A6B46A44BCA023@ob.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6159096009131733842=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,31 +18,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============6159096009131733842==
-Content-Type: text/plain; charset="cp-850"
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-Description: Mail message body
-
-inviting to U from your mistress!
-what's your age?
-
-Where do You stay now?
-
-My name is Yana.
-I am unspoilt 38 y.o. chick living in Russia :)
-presently I'm seeking vivid man.
-
-I'm going to reply to You my picture attached,
-write me to merisprincecca-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
---===============6159096009131733842==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6159096009131733842==--
+bGludXgtbnZkaW1tICAgICDop4EgICAg6ZmEICUg5Lu2IApfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
+LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1udmRpbW0K
