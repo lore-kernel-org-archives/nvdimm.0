@@ -1,9 +1,9 @@
-From: <kotgr-w/XAfUw5KHmccKHi3GAeug@public.gmane.org>
-Subject: Good day!
-Date: 1 Jul 2018 19:03:39 -0400
-Message-ID: <8E844FCE874505060CC9F9AF9C9C9FCA@HS9HBEG3J1I>
+From: <wookie-YxaM2a6SwlU@public.gmane.org>
+Subject: Hello!
+Date: Mon, 02 Jul 2018 07:56:49 -0600
+Message-ID: <5B3A2F21.3040609@irc.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3009700729188603931=="
+Content-Type: multipart/mixed; boundary="===============6497377757919094896=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,10 +18,8 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
-
---===============3009700729188603931==
-Content-Type: text/plain;
-	charset="cp-850"
+--===============6497377757919094896==
+Content-Type: text/plain; charset=CP-850; format=flowed
 Content-Transfer-Encoding: quoted-printable
 
 Good day!
@@ -45,7 +43,7 @@ Attention! Accept applications only on this and next week.
 
 Respectively submitted
 Personnel department
---===============3009700729188603931==
+--===============6497377757919094896==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -56,4 +54,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============3009700729188603931==--
+--===============6497377757919094896==--
