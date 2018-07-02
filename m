@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CBDF82098C8D1
- for <linux-nvdimm@lists.01.org>; Tue,  3 Jul 2018 23:42:09 -0700 (PDT)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH 3/3] fs/dax: Assigning NULL to gfn of dax_direct_access if
- useless
-Date: Wed,  4 Jul 2018 14:40:58 +0800
-Message-Id: <20180704064058.1344-3-yehs2007@zoho.com>
-In-Reply-To: <20180704064058.1344-1-yehs2007@zoho.com>
-References: <20180704064058.1344-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 097D9210DA7A5
+ for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 16:40:08 -0700 (PDT)
+Subject: [PATCH 11/11] libnvdimm: adding documentation for nvdimm security
+ support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 02 Jul 2018 16:40:08 -0700
+Message-ID: <153057480817.38125.1881495388634154140.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
+References: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,84 +19,99 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, mawilcox@microsoft.com, chengnt@lenovo.com, jack@suse.com, heiko.carstens@de.ibm.com, linux-kernel@vger.kernel.org, bart.vanassche@wdc.com, viro@zeniv.linux.org.uk, gregkh@linuxfoundation.org, schwidefsky@de.ibm.com, linux-fsdevel@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+Adding theory of operation for the security support that's going into
+libnvdimm.
 
-Some functions within fs/dax don't need to get gfn from direct_access.
-Assigning NULL to gfn of dax_direct_access is more intuitive and simple
-than offering a useless local variable.
-
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/dax.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ Documentation/nvdimm/security |   70 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+ create mode 100644 Documentation/nvdimm/security
 
-diff --git a/fs/dax.c b/fs/dax.c
-index aaec72de..aa75dfd 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -550,7 +550,6 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- {
- 	void *vto, *kaddr;
- 	pgoff_t pgoff;
--	pfn_t pfn;
- 	long rc;
- 	int id;
- 
-@@ -559,7 +558,7 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- 		return rc;
- 
- 	id = dax_read_lock();
--	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
-+	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, NULL);
- 	if (rc < 0) {
- 		dax_read_unlock(id);
- 		return rc;
-@@ -961,7 +960,6 @@ int __dax_zero_page_range(struct block_device *bdev,
- 		pgoff_t pgoff;
- 		long rc, id;
- 		void *kaddr;
--		pfn_t pfn;
- 
- 		rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
- 		if (rc)
-@@ -969,7 +967,7 @@ int __dax_zero_page_range(struct block_device *bdev,
- 
- 		id = dax_read_lock();
- 		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr,
--				&pfn);
-+				NULL);
- 		if (rc < 0) {
- 			dax_read_unlock(id);
- 			return rc;
-@@ -1024,7 +1022,6 @@ int __dax_zero_page_range(struct block_device *bdev,
- 		ssize_t map_len;
- 		pgoff_t pgoff;
- 		void *kaddr;
--		pfn_t pfn;
- 
- 		if (fatal_signal_pending(current)) {
- 			ret = -EINTR;
-@@ -1036,7 +1033,7 @@ int __dax_zero_page_range(struct block_device *bdev,
- 			break;
- 
- 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
--				&kaddr, &pfn);
-+				&kaddr, NULL);
- 		if (map_len < 0) {
- 			ret = map_len;
- 			break;
--- 
-1.8.3.1
-
+diff --git a/Documentation/nvdimm/security b/Documentation/nvdimm/security
+new file mode 100644
+index 000000000000..756205c9aa4c
+--- /dev/null
++++ b/Documentation/nvdimm/security
+@@ -0,0 +1,70 @@
++NVDIMM SECURITY
++===============
++
++1. Introduction
++---------------
++
++With the introduction of Intel DSM v1.7 specification [1], security DSMs are
++introduced. The spec added the following security DSMs: "get security state",
++"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
++"secure erase", and "overwrite". A security_ops data structure has been
++added to struct dimm in order to support the security operations and generic
++APIs are exposed to allow vendor neutral operations.
++
++2. Sysfs Interface
++------------------
++The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
++example:
++/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
++
++The "show" function of that attribute will display the security state for
++that DIMM. The following states are available: disabled, unlocked, locked,
++frozen, and unsupported.
++
++The "store" function takes several commands when the attribute is written to
++in order to support some of the security functionalities:
++update - enable security. Add or update current key.
++disable - disable enabled security and remove key.
++freeze - freeze changing of security states.
++erase - generate new ecryption key for DIMM and crypto-scrambles all existing
++	user data.
++
++3. Key Management
++-----------------
++
++The key is associted to the payload by the DIMM id. For example:
++# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
++8089-a2-1740-00000133
++The DIMM id would be provided along with the key payload (passphrase) to
++the kernel.
++
++The security keys are managed on the basis of a single key per DIMM. The
++key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
++similar to the ATA security specification [2]. A key is initially acquired
++via the request_key() kernel API call and retrieved from userspace. It is up to
++the user to provide an upcall application to retrieve the key in whatever
++fashion meets their security requirements.
++
++The payload provided to the key can be a 32bytes payload or 64bytes payload
++when doing an "update". The payload is viewed as 64 bytes in the following
++format:
++[32 bytes current key data zero padded][32 bytes new key data zero padded]
++However, a 32bytes payload can be provided and will be assumed as the old
++key to be 32 bytes of 0s and the provided 32bytes payload is the new key.
++It is up to the user upcall function how that's presented as the key payload
++to the kernel.
++
++All the other security functions that require a provided key can accept a
++32bytes payload or 64bytes. If the payload is 64bytes, then second 32bytes
++will be ignored and the first 32bytes contains the expected "passphrase".
++
++4. Unlocking
++------------
++When the DIMMs are being enumerated by the kernel, the kernel will attempt to
++retrieve the key from its keyring. If that fails, it will attempt to
++acquire the key from the userspace upcall function. This is the only time
++a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
++until reboot.
++
++[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
++[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
 
 _______________________________________________
 Linux-nvdimm mailing list
