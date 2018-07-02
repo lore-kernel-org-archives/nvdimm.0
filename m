@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5F5C2211F8862
- for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 00:59:57 -0700 (PDT)
-Date: Mon, 2 Jul 2018 09:59:48 +0200
-From: Lukas Czerner <lczerner@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 726EB202E5303
+ for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 00:34:12 -0700 (PDT)
+Date: Mon, 2 Jul 2018 09:34:09 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v2 2/2] ext4: handle layout changes to pinned DAX mappings
-Message-ID: <20180702075948.i4aqjg5rrorwoxqj@localhost.localdomain>
+Message-ID: <20180702073409.2hgbi534nnebfbwm@quack2.suse.cz>
 References: <20180627212252.31032-1-ross.zwisler@linux.intel.com>
  <20180627212252.31032-3-ross.zwisler@linux.intel.com>
  <20180629120223.oaslngsvspnwf4ae@localhost.localdomain>
@@ -27,10 +27,10 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <david@fromorbit.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Lukas Czerner <lczerner@redhat.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jun 29, 2018 at 09:13:00AM -0600, Ross Zwisler wrote:
+On Fri 29-06-18 09:13:00, Ross Zwisler wrote:
 > On Fri, Jun 29, 2018 at 02:02:23PM +0200, Lukas Czerner wrote:
 > > On Wed, Jun 27, 2018 at 03:22:52PM -0600, Ross Zwisler wrote:
 > > > Follow the lead of xfs_break_dax_layouts() and add synchronization between
@@ -115,18 +115,18 @@ On Fri, Jun 29, 2018 at 09:13:00AM -0600, Ross Zwisler wrote:
 > the DAX synchronization call in ext4_insert_range(), but I'm happy to add it
 > if I'm wrong.
 
-Hi,
+I also don't see a way how ext4_insert_range() not calling
+ext4_break_layouts() could lead to corruption. However the whole operation
+with splitting (and possible zeroing out) of extents, truncation of extents
+beyond EOF, etc. is complex enough that I'm not sure I've thought through
+all the corner cases :-) So it at least deserves a comment why
+ext4_break_layouts() is not necessary here (also as a reminder in case we
+change the implementation and it would be suddently needed).
 
-I think you're right, this case might mot matter much. I am just worried
-about unforeseen consequences of changing the layout with dax pages
-mapped. I guess we can also add this later fi we discover anything.
-
-You can add
-
-Reviewed-by: Lukas Czerner <lczerner@redhat.com>
-
-Thanks!
--Lukas
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
