@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail07.adl2.internode.on.net (ipmail07.adl2.internode.on.net
- [150.101.137.131])
- by ml01.01.org (Postfix) with ESMTP id 862FE202E541E
- for <linux-nvdimm@lists.01.org>; Tue,  3 Jul 2018 17:49:28 -0700 (PDT)
-Date: Wed, 4 Jul 2018 10:49:23 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH v3 2/2] ext4: handle layout changes to pinned DAX mappings
-Message-ID: <20180704004923.GT19934@dastard>
-References: <20180627212252.31032-3-ross.zwisler@linux.intel.com>
- <20180702172912.329-1-ross.zwisler@linux.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180702172912.329-1-ross.zwisler@linux.intel.com>
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id A1C25210C4DAB
+ for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 10:29:42 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 2/2] ext4: handle layout changes to pinned DAX mappings
+Date: Mon,  2 Jul 2018 11:29:12 -0600
+Message-Id: <20180702172912.329-1-ross.zwisler@linux.intel.com>
+In-reply-to: <20180627212252.31032-3-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,63 +16,181 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, Jeff Moyer <jmoyer@redhat.com>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jul 02, 2018 at 11:29:12AM -0600, Ross Zwisler wrote:
-> Follow the lead of xfs_break_dax_layouts() and add synchronization between
-> operations in ext4 which remove blocks from an inode (hole punch, truncate
-> down, etc.) and pages which are pinned due to DAX DMA operations.
-> 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Reviewed-by: Jan Kara <jack@suse.cz>
-> Reviewed-by: Lukas Czerner <lczerner@redhat.com>
-> ---
-> 
-> Changes since v2:
->  * Added a comment to ext4_insert_range() explaining why we don't call
->    ext4_break_layouts(). (Jan)
+Follow the lead of xfs_break_dax_layouts() and add synchronization between
+operations in ext4 which remove blocks from an inode (hole punch, truncate
+down, etc.) and pages which are pinned due to DAX DMA operations.
 
-Which I think is wrong and will cause data corruption.
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Lukas Czerner <lczerner@redhat.com>
+---
 
-> @@ -5651,6 +5663,11 @@ int ext4_insert_range(struct inode *inode, loff_t offset, loff_t len)
->  			LLONG_MAX);
->  	if (ret)
->  		goto out_mmap;
-> +	/*
-> +	 * We don't need to call ext4_break_layouts() because we aren't
-> +	 * removing any blocks from the inode.  We are just changing their
-> +	 * offset by inserting a hole.
-> +	 */
+Changes since v2:
+ * Added a comment to ext4_insert_range() explaining why we don't call
+   ext4_break_layouts(). (Jan)
 
-The entire point of these leases is so that a thrid party can
-directly access the blocks underlying the file. That means they are
-keeping their own file offset<->disk block mapping internally, and
-they are assuming that it is valid for as long as they hold the
-lease. If the filesystem modifies the extent map - even something
-like a shift here which changes the offset<->disk block mapping -
-the userspace app now has a stale mapping and so the lease *must be
-broken* to tell it that it's mappings are now stale and it needs to
-refetch them.
+ * Added Lukas's reviewed-by.
 
-If the app doesn't refetch it's mappings after something like a
-shift, it will be reading and writing data from the wrong file
-offset, and that will lead to the app silently corrupting it's data.
-IOWs, layouts need to be broken by any operation that modifies the
-extent map in any way, not just those operations that remove blocks.
+Thanks again to Lukas & Jan for their reviews.
 
-Cheers,
+---
+ fs/ext4/ext4.h     |  1 +
+ fs/ext4/extents.c  | 17 +++++++++++++++++
+ fs/ext4/inode.c    | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ fs/ext4/truncate.h |  4 ++++
+ 4 files changed, 68 insertions(+)
 
-Dave.
-
+diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+index 0b127853c584..34bccd64d83d 100644
+--- a/fs/ext4/ext4.h
++++ b/fs/ext4/ext4.h
+@@ -2460,6 +2460,7 @@ extern int ext4_get_inode_loc(struct inode *, struct ext4_iloc *);
+ extern int ext4_inode_attach_jinode(struct inode *inode);
+ extern int ext4_can_truncate(struct inode *inode);
+ extern int ext4_truncate(struct inode *);
++extern int ext4_break_layouts(struct inode *);
+ extern int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length);
+ extern int ext4_truncate_restart_trans(handle_t *, struct inode *, int nblocks);
+ extern void ext4_set_inode_flags(struct inode *);
+diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+index 0057fe3f248d..2d0f7e942b05 100644
+--- a/fs/ext4/extents.c
++++ b/fs/ext4/extents.c
+@@ -4820,6 +4820,13 @@ static long ext4_zero_range(struct file *file, loff_t offset,
+ 		 * released from page cache.
+ 		 */
+ 		down_write(&EXT4_I(inode)->i_mmap_sem);
++
++		ret = ext4_break_layouts(inode);
++		if (ret) {
++			up_write(&EXT4_I(inode)->i_mmap_sem);
++			goto out_mutex;
++		}
++
+ 		ret = ext4_update_disksize_before_punch(inode, offset, len);
+ 		if (ret) {
+ 			up_write(&EXT4_I(inode)->i_mmap_sem);
+@@ -5493,6 +5500,11 @@ int ext4_collapse_range(struct inode *inode, loff_t offset, loff_t len)
+ 	 * page cache.
+ 	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
++
++	ret = ext4_break_layouts(inode);
++	if (ret)
++		goto out_mmap;
++
+ 	/*
+ 	 * Need to round down offset to be aligned with page size boundary
+ 	 * for page size > block size.
+@@ -5651,6 +5663,11 @@ int ext4_insert_range(struct inode *inode, loff_t offset, loff_t len)
+ 			LLONG_MAX);
+ 	if (ret)
+ 		goto out_mmap;
++	/*
++	 * We don't need to call ext4_break_layouts() because we aren't
++	 * removing any blocks from the inode.  We are just changing their
++	 * offset by inserting a hole.
++	 */
+ 	truncate_pagecache(inode, ioffset);
+ 
+ 	credits = ext4_writepage_trans_blocks(inode);
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 2ea07efbe016..fadb8ecacb1e 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -4193,6 +4193,39 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
+ 	return 0;
+ }
+ 
++static void ext4_wait_dax_page(struct ext4_inode_info *ei, bool *did_unlock)
++{
++	*did_unlock = true;
++	up_write(&ei->i_mmap_sem);
++	schedule();
++	down_write(&ei->i_mmap_sem);
++}
++
++int ext4_break_layouts(struct inode *inode)
++{
++	struct ext4_inode_info *ei = EXT4_I(inode);
++	struct page *page;
++	bool retry;
++	int error;
++
++	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
++		return -EINVAL;
++
++	do {
++		retry = false;
++		page = dax_layout_busy_page(inode->i_mapping);
++		if (!page)
++			return 0;
++
++		error = ___wait_var_event(&page->_refcount,
++				atomic_read(&page->_refcount) == 1,
++				TASK_INTERRUPTIBLE, 0, 0,
++				ext4_wait_dax_page(ei, &retry));
++	} while (error == 0 && retry);
++
++	return error;
++}
++
+ /*
+  * ext4_punch_hole: punches a hole in a file by releasing the blocks
+  * associated with the given offset and length
+@@ -4266,6 +4299,11 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
+ 	 * page cache.
+ 	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
++
++	ret = ext4_break_layouts(inode);
++	if (ret)
++		goto out_dio;
++
+ 	first_block_offset = round_up(offset, sb->s_blocksize);
+ 	last_block_offset = round_down((offset + length), sb->s_blocksize) - 1;
+ 
+@@ -5554,6 +5592,14 @@ int ext4_setattr(struct dentry *dentry, struct iattr *attr)
+ 				ext4_wait_for_tail_page_commit(inode);
+ 		}
+ 		down_write(&EXT4_I(inode)->i_mmap_sem);
++
++		rc = ext4_break_layouts(inode);
++		if (rc) {
++			up_write(&EXT4_I(inode)->i_mmap_sem);
++			error = rc;
++			goto err_out;
++		}
++
+ 		/*
+ 		 * Truncate pagecache after we've waited for commit
+ 		 * in data=journal mode to make pages freeable.
+diff --git a/fs/ext4/truncate.h b/fs/ext4/truncate.h
+index 0cb13badf473..bcbe3668c1d4 100644
+--- a/fs/ext4/truncate.h
++++ b/fs/ext4/truncate.h
+@@ -11,6 +11,10 @@
+  */
+ static inline void ext4_truncate_failed_write(struct inode *inode)
+ {
++	/*
++	 * We don't need to call ext4_break_layouts() because the blocks we
++	 * are truncating were never visible to userspace.
++	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
+ 	truncate_inode_pages(inode->i_mapping, inode->i_size);
+ 	ext4_truncate(inode);
 -- 
-Dave Chinner
-david@fromorbit.com
+2.14.4
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
