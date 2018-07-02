@@ -1,20 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A0036203B99A8
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 07:18:23 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id C5400AC00E6
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 23:18:18 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v10 3/4] ndctl,
- monitor: add the unit file of systemd for ndctl-monitor service
-Date: Mon,  9 Jul 2018 23:17:17 +0900
-Message-Id: <20180709141718.6205-4-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
-References: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6997320359E80
+ for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 16:39:08 -0700 (PDT)
+Subject: [PATCH 00/11] Adding security support for nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 02 Jul 2018 16:39:07 -0700
+Message-ID: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,113 +16,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds the systemd unit file for ndctl-monitor service.
-The systemd unit directory can be configured by setting environment
-variable "--with-systemd-unit-dir[=DIR]".
+The following series implements security support for nvdimm. Mostly adding
+new security DSM support from the Intel NVDIMM DSM spec v1.7, but also
+adding generic support libnvdimm for other vendors. The most important
+security features are unlocking locked nvdimms, and updating/setting security
+passphrase to nvdimms.
 
-A monitor daemon can be started as a system service:
-   # systemctl start ndctl-monitor.service
+Security folks, thanks in advance for taking a look at my key management
+implementation and making sure that I'm doing something sane. Mainly you'll
+want to review patches 2, 4, and 5 as most relevant ones that need scrutiny.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- autogen.sh                  |  3 ++-
- configure.ac                | 22 ++++++++++++++++++++++
- ndctl/Makefile.am           |  4 ++++
- ndctl/ndctl-monitor.service |  7 +++++++
- 4 files changed, 35 insertions(+), 1 deletion(-)
- create mode 100644 ndctl/ndctl-monitor.service
 
-diff --git a/autogen.sh b/autogen.sh
-index 2a52688..21b0e25 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -17,7 +17,8 @@ libdir() {
- 
- args="--prefix=/usr \
- --sysconfdir=/etc \
----libdir=$(libdir /usr/lib)"
-+--libdir=$(libdir /usr/lib) \
-+--with-systemd-unit-dir"
- 
- echo
- echo "----------------------------------------------------------------"
-diff --git a/configure.ac b/configure.ac
-index cf44260..a5ba9a1 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -143,6 +143,27 @@ AC_CHECK_FUNCS([ \
- 	secure_getenv\
- ])
- 
-+PKG_PROG_PKG_CONFIG
-+AC_ARG_WITH([systemd-unit-dir],
-+	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
-+		[Directory for systemd service files]),
-+	[],
-+	[with_systemd_unit_dir=yes])
-+
-+if test "x$with_systemd_unit_dir" = "xyes"; then
-+	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
-+	if test "x$def_systemd_unit_dir" = "x"; then
-+		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
-+		with_systemd_unit_dir=no
-+	else
-+		with_systemd_unit_dir="$def_systemd_unit_dir"
-+	fi
-+fi
-+
-+AS_IF([test "x$with_systemd_unit_dir" != "xno"],
-+	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
-+AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
-+
- my_CFLAGS="\
- -Wall \
- -Wchar-subscripts \
-@@ -184,6 +205,7 @@ AC_MSG_RESULT([
-         sysconfdir:             ${sysconfdir}
-         libdir:                 ${libdir}
-         includedir:             ${includedir}
-+	systemd-unit-dir:	${systemd_unitdir}
- 
-         compiler:               ${CC}
-         cflags:                 ${CFLAGS}
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index ae3d894..9d008d5 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
- monitor_configdir = /etc/ndctl/
- monitor_config_DATA = $(monitor_config_file)
- EXTRA_DIST += $(monitor_config_file)
-+
-+if ENABLE_SYSTEMD_UNIT_DIR
-+systemd_unit_DATA = ndctl-monitor.service
-+endif
-diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
-new file mode 100644
-index 0000000..44f9326
---- /dev/null
-+++ b/ndctl/ndctl-monitor.service
-@@ -0,0 +1,7 @@
-+[Unit]
-+Description=Ndctl Monitor Daemon
-+
-+[Service]
-+Type=forking
-+ExecStart=/usr/bin/ndctl monitor --daemon
-+ExecStop=/bin/kill ${MAINPID}
--- 
-2.18.0
+Dave Jiang (11):
+      nfit: adding support for Intel DSM 1.7 commands
+      libnvdimm: create keyring to store security keys
+      nfit/libnvdimm: store dimm id as a member to struct nvdimm
+      nfit/libnvdimm: add unlock of nvdimm support for Intel DIMMs
+      nfit/libnvdimm: add set passphrase support for Intel nvdimms
+      nfit/libnvdimm: add disable passphrase support to Intel nvdimm.
+      nfit/libnvdimm: add freeze security support to Intel nvdimm
+      nfit/libnvdimm: add support for issue secure erase DSM to Intel nvdimm
+      nfit_test: adding context to dimm_dev for nfit_test
+      nfit_test: adding test support for Intel nvdimm security DSMs
+      libnvdimm: adding documentation for nvdimm security support
 
 
+ Documentation/nvdimm/security    |   70 ++++++++
+ drivers/acpi/nfit/Makefile       |    2 
+ drivers/acpi/nfit/core.c         |   61 +++++--
+ drivers/acpi/nfit/intel.c        |  348 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/intel.h        |  104 +++++++++++
+ drivers/acpi/nfit/nfit.h         |   24 ---
+ drivers/nvdimm/bus.c             |    2 
+ drivers/nvdimm/dimm.c            |   97 +++++++++++
+ drivers/nvdimm/dimm_devs.c       |  332 ++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/nd-core.h         |    4 
+ drivers/nvdimm/nd.h              |    2 
+ include/linux/libnvdimm.h        |   35 ++++
+ tools/testing/nvdimm/Kbuild      |    1 
+ tools/testing/nvdimm/test/nfit.c |  226 +++++++++++++++++++++++--
+ 14 files changed, 1254 insertions(+), 54 deletions(-)
+ create mode 100644 Documentation/nvdimm/security
+ create mode 100644 drivers/acpi/nfit/intel.c
+ create mode 100644 drivers/acpi/nfit/intel.h
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
