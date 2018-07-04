@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 264AC209831D6
- for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:13:23 -0700 (PDT)
-Subject: [PATCH v2 03/14] mm: Teach memmap_init_zone() to initialize
- ZONE_DEVICE pages
+ by ml01.01.org (Postfix) with ESMTPS id 983372096FADE
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 14:50:42 -0700 (PDT)
+Subject: [PATCH v5 04/11] filesystem-dax: Set page->index
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Jul 2018 10:00:37 -0700
-Message-ID: <153176043742.12695.12733023097134464039.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 04 Jul 2018 14:40:44 -0700
+Message-ID: <153074044454.27838.11584443742245442258.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153074042316.27838.17319837331947007626.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153074042316.27838.17319837331947007626.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,66 +18,82 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-nvdimm@lists.01.org, Pavel Tatashin <pasha.tatashin@oracle.com>, Daniel Jordan <daniel.m.jordan@oracle.com>, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: jack@suse.cz, Matthew Wilcox <mawilcox@microsoft.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-UmF0aGVyIHRoYW4gcnVuIGEgbG9vcCBvdmVyIHRoZSBmcmVzaGx5IGluaXRpYWxpemVkIHBhZ2Vz
-IGluCmRldm1fbWVtcmVtYXBfcGFnZXMoKSAqYWZ0ZXIqIGFyY2hfYWRkX21lbW9yeSgpIHJldHVy
-bnMsIHRlYWNoCm1lbW1hcF9pbml0X3pvbmUoKSB0byByZXR1cm4gdGhlIHBhZ2VzIGZ1bGx5IGlu
-aXRpYWxpemVkLiBUaGlzIGlzIGluCnByZXBhcmF0aW9uIGZvciBtdWx0aS10aHJlYWRpbmcgcGFn
-ZSBpbml0aWFsaXphdGlvbiB3b3JrLCBidXQgaXQgYWxzbwpoYXMgc29tZSBzdHJhaWdodCBsaW5l
-IHBlcmZvcm1hbmNlIGJlbmVmaXRzIHRvIG5vdCBpbmN1ciBhbm90aGVyIGxvb3Agb2YKY2FjaGUg
-bWlzc2VzIGFjcm9zcyBhIGxhcmdlICgxMDBzIG9mIEdCcyB0byBUQnMpIGFkZHJlc3MgcmFuZ2Uu
-CgpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KQ2M6IExvZ2Fu
-IEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxq
-Z2xpc3NlQHJlZGhhdC5jb20+CkNjOiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KQ2M6
-IE1pY2hhbCBIb2NrbyA8bWhvY2tvQHN1c2UuY29tPgpDYzogRGFuaWVsIEpvcmRhbiA8ZGFuaWVs
-Lm0uam9yZGFuQG9yYWNsZS5jb20+CkNjOiBQYXZlbCBUYXRhc2hpbiA8cGFzaGEudGF0YXNoaW5A
-b3JhY2xlLmNvbT4KQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+
-ClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgot
-LS0KIGtlcm5lbC9tZW1yZW1hcC5jIHwgICAxNiArLS0tLS0tLS0tLS0tLS0tCiBtbS9wYWdlX2Fs
-bG9jLmMgICB8ICAgMTkgKysrKysrKysrKysrKysrKysrKwogMiBmaWxlcyBjaGFuZ2VkLCAyMCBp
-bnNlcnRpb25zKCspLCAxNSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9rZXJuZWwvbWVtcmVt
-YXAuYyBiL2tlcm5lbC9tZW1yZW1hcC5jCmluZGV4IGI4NjFmZTkwOTkzMi4uODVlNGE3YzU3NmIy
-IDEwMDY0NAotLS0gYS9rZXJuZWwvbWVtcmVtYXAuYworKysgYi9rZXJuZWwvbWVtcmVtYXAuYwpA
-QCAtMTczLDggKzE3Myw4IEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmlj
-ZSAqZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwLAogCXN0cnVjdCB2bWVtX2FsdG1hcCAq
-YWx0bWFwID0gcGdtYXAtPmFsdG1hcF92YWxpZCA/CiAJCQkmcGdtYXAtPmFsdG1hcCA6IE5VTEw7
-CiAJc3RydWN0IHJlc291cmNlICpyZXMgPSAmcGdtYXAtPnJlczsKLQl1bnNpZ25lZCBsb25nIHBm
-biwgcGdvZmYsIG9yZGVyOwogCXBncHJvdF90IHBncHJvdCA9IFBBR0VfS0VSTkVMOworCXVuc2ln
-bmVkIGxvbmcgcGdvZmYsIG9yZGVyOwogCWludCBlcnJvciwgbmlkLCBpc19yYW07CiAKIAlpZiAo
-IXBnbWFwLT5yZWYgfHwgIWtpbGwpCkBAIC0yNTEsMjAgKzI1MSw2IEBAIHZvaWQgKmRldm1fbWVt
-cmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFw
-LAogCWlmIChlcnJvcikKIAkJZ290byBlcnJfYWRkX21lbW9yeTsKIAotCWZvcl9lYWNoX2Rldmlj
-ZV9wZm4ocGZuLCBwZ21hcCkgewotCQlzdHJ1Y3QgcGFnZSAqcGFnZSA9IHBmbl90b19wYWdlKHBm
-bik7Ci0KLQkJLyoKLQkJICogWk9ORV9ERVZJQ0UgcGFnZXMgdW5pb24gLT5scnUgd2l0aCBhIC0+
-cGdtYXAgYmFjawotCQkgKiBwb2ludGVyLiAgSXQgaXMgYSBidWcgaWYgYSBaT05FX0RFVklDRSBw
-YWdlIGlzIGV2ZXIKLQkJICogZnJlZWQgb3IgcGxhY2VkIG9uIGEgZHJpdmVyLXByaXZhdGUgbGlz
-dC4gIFNlZWQgdGhlCi0JCSAqIHN0b3JhZ2Ugd2l0aCBMSVNUX1BPSVNPTiogdmFsdWVzLgotCQkg
-Ki8KLQkJbGlzdF9kZWwoJnBhZ2UtPmxydSk7Ci0JCXBhZ2UtPnBnbWFwID0gcGdtYXA7Ci0JCXBl
-cmNwdV9yZWZfZ2V0KHBnbWFwLT5yZWYpOwotCX0KLQogCXBnbWFwLT5raWxsID0ga2lsbDsKIAll
-cnJvciA9IGRldm1fYWRkX2FjdGlvbl9vcl9yZXNldChkZXYsIGRldm1fbWVtcmVtYXBfcGFnZXNf
-cmVsZWFzZSwKIAkJCXBnbWFwKTsKZGlmZiAtLWdpdCBhL21tL3BhZ2VfYWxsb2MuYyBiL21tL3Bh
-Z2VfYWxsb2MuYwppbmRleCBmODM2ODJlZjAwNmUuLmZiNDVjZmViNGE1MCAxMDA2NDQKLS0tIGEv
-bW0vcGFnZV9hbGxvYy5jCisrKyBiL21tL3BhZ2VfYWxsb2MuYwpAQCAtNTU0OCw2ICs1NTQ4LDI1
-IEBAIHZvaWQgX19tZW1pbml0IG1lbW1hcF9pbml0X3pvbmUodW5zaWduZWQgbG9uZyBzaXplLCBp
-bnQgbmlkLCB1bnNpZ25lZCBsb25nIHpvbmUsCiAJCQlzZXRfcGFnZWJsb2NrX21pZ3JhdGV0eXBl
-KHBhZ2UsIE1JR1JBVEVfTU9WQUJMRSk7CiAJCQljb25kX3Jlc2NoZWQoKTsKIAkJfQorCisJCWlm
-IChpc196b25lX2RldmljZV9wYWdlKHBhZ2UpKSB7CisJCQlpZiAoV0FSTl9PTl9PTkNFKCFwZ21h
-cCkpCisJCQkJY29udGludWU7CisKKwkJCS8qIHNraXAgaW52YWxpZCBkZXZpY2UgcGFnZXMgKi8K
-KwkJCWlmIChhbHRtYXAgJiYgKHBmbiA8IChhbHRtYXAtPmJhc2VfcGZuCisJCQkJCQkrIHZtZW1f
-YWx0bWFwX29mZnNldChhbHRtYXApKSkpCisJCQkJY29udGludWU7CisJCQkvKgorCQkJICogWk9O
-RV9ERVZJQ0UgcGFnZXMgdW5pb24gLT5scnUgd2l0aCBhIC0+cGdtYXAgYmFjaworCQkJICogcG9p
-bnRlci4gIEl0IGlzIGEgYnVnIGlmIGEgWk9ORV9ERVZJQ0UgcGFnZSBpcyBldmVyCisJCQkgKiBm
-cmVlZCBvciBwbGFjZWQgb24gYSBkcml2ZXItcHJpdmF0ZSBsaXN0LiAgU2VlZCB0aGUKKwkJCSAq
-IHN0b3JhZ2Ugd2l0aCBwb2lzb24uCisJCQkgKi8KKwkJCXBhZ2UtPmxydS5wcmV2ID0gTElTVF9Q
-T0lTT04yOworCQkJcGFnZS0+cGdtYXAgPSBwZ21hcDsKKwkJCXBlcmNwdV9yZWZfZ2V0KHBnbWFw
-LT5yZWYpOworCQl9CiAJfQogfQogCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+In support of enabling memory_failure() handling for filesystem-dax
+mappings, set ->index to the pgoff of the page. The rmap implementation
+requires ->index to bound the search through the vma interval tree. The
+index is set and cleared at dax_associate_entry() and
+dax_disassociate_entry() time respectively.
+
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ fs/dax.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 641192808bb6..4de11ed463ce 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -319,18 +319,27 @@ static unsigned long dax_radix_end_pfn(void *entry)
+ 	for (pfn = dax_radix_pfn(entry); \
+ 			pfn < dax_radix_end_pfn(entry); pfn++)
+ 
+-static void dax_associate_entry(void *entry, struct address_space *mapping)
++/*
++ * TODO: for reflink+dax we need a way to associate a single page with
++ * multiple address_space instances at different linear_page_index()
++ * offsets.
++ */
++static void dax_associate_entry(void *entry, struct address_space *mapping,
++		struct vm_area_struct *vma, unsigned long address)
+ {
+-	unsigned long pfn;
++	unsigned long size = dax_entry_size(entry), pfn, index;
++	int i = 0;
+ 
+ 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+ 		return;
+ 
++	index = linear_page_index(vma, address & ~(size - 1));
+ 	for_each_mapped_pfn(entry, pfn) {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+ 		WARN_ON_ONCE(page->mapping);
+ 		page->mapping = mapping;
++		page->index = index + i++;
+ 	}
+ }
+ 
+@@ -348,6 +357,7 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+ 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+ 		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+ 		page->mapping = NULL;
++		page->index = 0;
+ 	}
+ }
+ 
+@@ -701,7 +711,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
+ 	new_entry = dax_radix_locked_entry(pfn, flags);
+ 	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
+ 		dax_disassociate_entry(entry, mapping, false);
+-		dax_associate_entry(new_entry, mapping);
++		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
+ 	}
+ 
+ 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
