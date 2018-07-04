@@ -1,14 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EFA7B2097F544
- for <linux-nvdimm@lists.01.org>; Tue, 17 Jul 2018 19:50:08 -0700 (PDT)
-From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH v7 0/4] resource: Use list_head to link sibling resource
-Date: Wed, 18 Jul 2018 10:49:40 +0800
-Message-Id: <20180718024944.577-1-bhe@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id A5E9C202E544F
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 10:16:10 -0700 (PDT)
+Received: by mail-oi0-x244.google.com with SMTP id n84-v6so11935477oib.9
+ for <linux-nvdimm@lists.01.org>; Wed, 04 Jul 2018 10:16:10 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <16466385fd1.ddcc3b7a51249.6994139134661160061@zoho.com>
+References: <20180704163823.9980-1-yehs2007@zoho.com>
+ <CAPcyv4hgk89NKGhmZ1Z3XsGFzJAn1y+46WJn_61r8rj5bmqv6A@mail.gmail.com>
+ <16466385fd1.ddcc3b7a51249.6994139134661160061@zoho.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 4 Jul 2018 10:16:09 -0700
+Message-ID: <CAPcyv4iDUYMsHzAmuRb1S_fiwCXWEXm90Q=j_fqTeMETwvKFzg@mail.gmail.com>
+Subject: Re: [PATCH v2 0/4] Assigning NULL to gfn of dax_direct_access if
+ useless
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,125 +28,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, robh+dt@kernel.org, dan.j.williams@intel.com, nicolas.pitre@linaro.org, josh@joshtriplett.org, fengguang.wu@intel.com, bp@suse.de, andy.shevchenko@gmail.com
-Cc: brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, ebiederm@xmission.com, devel@linuxdriverproject.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: Huaisheng Ye <yehs2007@zoho.com>
+Cc: Jens Axboe <axboe@kernel.dk>, linux-s390 <linux-s390@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, NingTing Cheng <chengnt@lenovo.com>, Jan Kara <jack@suse.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, colyli <colyli@suse.de>, Bart Van Assche <bart.vanassche@wdc.com>, Al Viro <viro@zeniv.linux.org.uk>, Greg KH <gregkh@linuxfoundation.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patchset is doing:
-1) Move reparent_resources() to kernel/resource.c to clean up duplicated
-   code in arch/microblaze/pci/pci-common.c and
-   arch/powerpc/kernel/pci-common.c .
-2) Replace struct resource's sibling list from singly linked list to
-   list_head. Clearing out those pointer operation within singly linked
-   list for better code readability.
-2) Based on list_head replacement, add a new function
-   walk_system_ram_res_rev() which can does reversed iteration on
-   iomem_resource's siblings.
-3) Change kexec_file loading to search system RAM top down for kernel
-   loadin, using walk_system_ram_res_rev().
+On Wed, Jul 4, 2018 at 9:55 AM, Huaisheng Ye <yehs2007@zoho.com> wrote:
+>
+>
+>
+>
+>  ---- On Thu, 05 Jul 2018 00:48:40 +0800 Dan Williams <dan.j.williams@intel.com> wrote ----
+>  > On Wed, Jul 4, 2018 at 9:38 AM, Huaisheng Ye <yehs2007@zoho.com> wrote:
+>  > > From: Huaisheng Ye <yehs1@lenovo.com>
+>  > >
+>  > > Changes since v1 [1]:
+>  > > * Collect Jan's reviewed-by.
+>  > > * According to Dan's suggestion, update the unit test infrastructure
+>  > >   tools/testing/nvdimm/pmem-dax.c for checking the validity of gfn.
+>  > >
+>  > > [1]: https://lkml.org/lkml/2018/7/4/81
+>  > >
+>  > > ---
+>  > >
+>  > > Some functions within fs/dax don't need to get gfn from direct_access.
+>  >
+>  > Any reason you are calling it 'gfn'? I'm assuming that is a typo and
+>  > it should be 'pfn'.
+>
+> Oh, sorry.
+> I made a mistake, it is a typo. I will correct it right now.
 
-Note:
-This patchset only passed testing on  x86_64 arch with network
-enabling. The thing we need pay attetion to is that a root resource's
-child member need be initialized specifically with LIST_HEAD_INIT() if
-statically defined or INIT_LIST_HEAD() for dynamically definition. Here
-Just like we do for iomem_resource/ioport_resource, or the change in
-get_pci_domain_busn_res().
-
-v6:
-http://lkml.kernel.org/r/20180704041038.8190-1-bhe@redhat.com
-
-v5:
-http://lkml.kernel.org/r/20180612032831.29747-1-bhe@redhat.com
-
-v4:
-http://lkml.kernel.org/r/20180507063224.24229-1-bhe@redhat.com
-
-v3:
-http://lkml.kernel.org/r/20180419001848.3041-1-bhe@redhat.com
-
-v2:
-http://lkml.kernel.org/r/20180408024724.16812-1-bhe@redhat.com
-
-v1:
-http://lkml.kernel.org/r/20180322033722.9279-1-bhe@redhat.com
-
-Changelog:
-v6->v7:
-  Fix code bugs that test robot reported on mips and ia64.
-
-  Add error code description in reparent_resources() according to
-  Andy's comment, and fix minor log typo.
-v5->v6:
-  Fix code style problems in reparent_resources() and use existing
-  error codes, according to Andy's suggestion.
-
-  Fix bugs test robot reported.
-
-v4->v5:
-  Add new patch 0001 to move duplicated reparent_resources() to
-  kernel/resource.c to make it be shared by different ARCH-es.
-
-  Fix several code bugs reported by test robot on ARCH powerpc and
-  microblaze.
-v3->v4:
-  Fix several bugs test robot reported. Rewrite cover letter and patch
-  log according to reviewer's comment.
-
-v2->v3:
-  Rename resource functions first_child() and sibling() to
-  resource_first_chils() and resource_sibling(). Dan suggested this.
-
-  Move resource_first_chils() and resource_sibling() to linux/ioport.h
-  and make them as inline function. Rob suggested this. Accordingly add
-  linux/list.h including in linux/ioport.h, please help review if this
-  bring efficiency degradation or code redundancy.
-
-  The change on struct resource {} bring two pointers of size increase,
-  mention this in git log to make it more specifically, Rob suggested
-  this.
-
-v1->v2:
-  Use list_head instead to link resource siblings. This is suggested by
-  Andrew.
-
-  Rewrite walk_system_ram_res_rev() after list_head is taken to link
-  resouce siblings.
-
-Baoquan He (4):
-  resource: Move reparent_resources() to kernel/resource.c and make it
-    public
-  resource: Use list_head to link sibling resource
-  resource: add walk_system_ram_res_rev()
-  kexec_file: Load kernel at top of system RAM if required
-
- arch/arm/plat-samsung/pm-check.c            |   6 +-
- arch/ia64/sn/kernel/io_init.c               |   2 +-
- arch/microblaze/pci/pci-common.c            |  41 +----
- arch/mips/pci/pci-rc32434.c                 |  12 +-
- arch/powerpc/kernel/pci-common.c            |  39 +---
- arch/sparc/kernel/ioport.c                  |   2 +-
- arch/xtensa/include/asm/pci-bridge.h        |   4 +-
- drivers/eisa/eisa-bus.c                     |   2 +
- drivers/gpu/drm/drm_memory.c                |   3 +-
- drivers/gpu/drm/gma500/gtt.c                |   5 +-
- drivers/hv/vmbus_drv.c                      |  52 +++---
- drivers/input/joystick/iforce/iforce-main.c |   4 +-
- drivers/nvdimm/namespace_devs.c             |   6 +-
- drivers/nvdimm/nd.h                         |   5 +-
- drivers/of/address.c                        |   4 +-
- drivers/parisc/lba_pci.c                    |   4 +-
- drivers/pci/controller/vmd.c                |   8 +-
- drivers/pci/probe.c                         |   2 +
- drivers/pci/setup-bus.c                     |   2 +-
- include/linux/ioport.h                      |  21 ++-
- kernel/kexec_file.c                         |   2 +
- kernel/resource.c                           | 266 ++++++++++++++++++----------
- 22 files changed, 260 insertions(+), 232 deletions(-)
-
--- 
-2.13.6
-
+Don't worry about sending a new version. I'll fix it up when I apply the series.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
