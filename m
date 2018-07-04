@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 75DF62097DD18
- for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:11:23 -0700 (PDT)
-Subject: [PATCH v2 12/14] libnvdimm,
- pmem: Initialize the memmap in the background
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Jul 2018 10:01:25 -0700
-Message-ID: <153176048517.12695.1997102156305453692.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 4100A2097FAB8
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 09:40:51 -0700 (PDT)
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [PATCH v2 4/4] fs/dax: Assign NULL to gfn of dax_direct_access if
+ useless
+Date: Thu,  5 Jul 2018 00:38:23 +0800
+Message-Id: <20180704163823.9980-5-yehs2007@zoho.com>
+In-Reply-To: <20180704163823.9980-1-yehs2007@zoho.com>
+References: <20180704163823.9980-1-yehs2007@zoho.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,150 +18,85 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
+To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
+Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, chengnt@lenovo.com, jack@suse.com, heiko.carstens@de.ibm.com, linux-kernel@vger.kernel.org, willy@infradead.org, colyli@suse.de, bart.vanassche@wdc.com, viro@zeniv.linux.org.uk, gregkh@linuxfoundation.org, schwidefsky@de.ibm.com, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Arrange for the pmem driver to call memmap_sync() when it is asked to
-produce a valid pfn. The infrastructure is housed in the 'nd_pfn'
-device which implies that the async init support only exists for
-platform defined persistent memory, not the legacy / debug memmap=ss!nn
-facility.
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-Another reason to restrict the capability to the 'nd_pfn' device case is
-that nd_pfn devices have sysfs infrastructure to communicate the
-memmap initialization state to userspace.
+Some functions within fs/dax don't need to get gfn from direct_access.
+Assigning NULL to gfn of dax_direct_access is more intuitive and simple
+than offering a useless local variable.
 
-The sysfs publication of memmap init state is saved for a later patch.
-
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/nd.h             |    2 ++
- drivers/nvdimm/pmem.c           |   16 ++++++++++++----
- drivers/nvdimm/pmem.h           |    1 +
- tools/testing/nvdimm/pmem-dax.c |    7 ++++++-
- 4 files changed, 21 insertions(+), 5 deletions(-)
+ fs/dax.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 32e0364b48b9..ee4f76fb0cb5 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -12,6 +12,7 @@
-  */
- #ifndef __ND_H__
- #define __ND_H__
-+#include <linux/memmap_async.h>
- #include <linux/libnvdimm.h>
- #include <linux/badblocks.h>
- #include <linux/blkdev.h>
-@@ -208,6 +209,7 @@ struct nd_pfn {
- 	unsigned long npfns;
- 	enum nd_pfn_mode mode;
- 	struct nd_pfn_sb *pfn_sb;
-+	struct memmap_async_state async;
- 	struct nd_namespace_common *ndns;
- };
- 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index c430536320a5..a1158181adc2 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -22,6 +22,7 @@
- #include <linux/platform_device.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-+#include <linux/memmap_async.h>
- #include <linux/badblocks.h>
- #include <linux/memremap.h>
- #include <linux/vmalloc.h>
-@@ -228,8 +229,13 @@ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 					PFN_PHYS(nr_pages))))
- 		return -EIO;
- 	*kaddr = pmem->virt_addr + offset;
--	if (pfn)
-+	if (pfn) {
-+		struct dev_pagemap *pgmap = &pmem->pgmap;
-+		struct memmap_async_state *async = pgmap->async;
-+
- 		*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
-+		memmap_sync(*pfn, nr_pages, async);
-+	}
- 
- 	/*
- 	 * If badblocks are present, limit known good range to the
-@@ -310,13 +316,15 @@ static void fsdax_pagefree(struct page *page, void *data)
- 	wake_up_var(&page->_refcount);
- }
- 
--static int setup_pagemap_fsdax(struct device *dev, struct dev_pagemap *pgmap)
-+static int setup_pagemap_fsdax(struct device *dev, struct dev_pagemap *pgmap,
-+		struct memmap_async_state *async)
+diff --git a/fs/dax.c b/fs/dax.c
+index aaec72de..aa75dfd 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -550,7 +550,6 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
  {
- 	dev_pagemap_get_ops();
- 	if (devm_add_action_or_reset(dev, pmem_release_pgmap_ops, pgmap))
- 		return -ENOMEM;
- 	pgmap->type = MEMORY_DEVICE_FS_DAX;
- 	pgmap->page_free = fsdax_pagefree;
-+	pgmap->async = async;
+ 	void *vto, *kaddr;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
+ 	long rc;
+ 	int id;
  
- 	return 0;
- }
-@@ -379,7 +387,7 @@ static int pmem_attach_disk(struct device *dev,
- 	pmem->pfn_flags = PFN_DEV;
- 	pmem->pgmap.ref = &q->q_usage_counter;
- 	if (is_nd_pfn(dev)) {
--		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
-+		if (setup_pagemap_fsdax(dev, &pmem->pgmap, &nd_pfn->async))
- 			return -ENOMEM;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap,
- 				pmem_freeze_queue);
-@@ -393,7 +401,7 @@ static int pmem_attach_disk(struct device *dev,
- 	} else if (pmem_should_map_pages(dev)) {
- 		memcpy(&pmem->pgmap.res, &nsio->res, sizeof(pmem->pgmap.res));
- 		pmem->pgmap.altmap_valid = false;
--		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
-+		if (setup_pagemap_fsdax(dev, &pmem->pgmap, NULL))
- 			return -ENOMEM;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap,
- 				pmem_freeze_queue);
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index a64ebc78b5df..93d226ea1006 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -1,6 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef __NVDIMM_PMEM_H__
- #define __NVDIMM_PMEM_H__
-+#include <linux/memmap_async.h>
- #include <linux/badblocks.h>
- #include <linux/types.h>
- #include <linux/pfn_t.h>
-diff --git a/tools/testing/nvdimm/pmem-dax.c b/tools/testing/nvdimm/pmem-dax.c
-index d4cb5281b30e..63151b75615c 100644
---- a/tools/testing/nvdimm/pmem-dax.c
-+++ b/tools/testing/nvdimm/pmem-dax.c
-@@ -42,8 +42,13 @@ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 	}
+@@ -559,7 +558,7 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
+ 		return rc;
  
- 	*kaddr = pmem->virt_addr + offset;
--	if (pfn)
-+	if (pfn) {
-+		struct dev_pagemap *pgmap = &pmem->pgmap;
-+		struct memmap_async_state *async = pgmap->async;
-+
- 		*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
-+		memmap_sync(*pfn, nr_pages, async);
-+	}
+ 	id = dax_read_lock();
+-	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
++	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, NULL);
+ 	if (rc < 0) {
+ 		dax_read_unlock(id);
+ 		return rc;
+@@ -961,7 +960,6 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 		pgoff_t pgoff;
+ 		long rc, id;
+ 		void *kaddr;
+-		pfn_t pfn;
  
- 	/*
- 	 * If badblocks are present, limit known good range to the
+ 		rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
+ 		if (rc)
+@@ -969,7 +967,7 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 
+ 		id = dax_read_lock();
+ 		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr,
+-				&pfn);
++				NULL);
+ 		if (rc < 0) {
+ 			dax_read_unlock(id);
+ 			return rc;
+@@ -1024,7 +1022,6 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 		ssize_t map_len;
+ 		pgoff_t pgoff;
+ 		void *kaddr;
+-		pfn_t pfn;
+ 
+ 		if (fatal_signal_pending(current)) {
+ 			ret = -EINTR;
+@@ -1036,7 +1033,7 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 			break;
+ 
+ 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
+-				&kaddr, &pfn);
++				&kaddr, NULL);
+ 		if (map_len < 0) {
+ 			ret = map_len;
+ 			break;
+-- 
+1.8.3.1
+
 
 _______________________________________________
 Linux-nvdimm mailing list
