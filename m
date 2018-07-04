@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x241.google.com (mail-oi0-x241.google.com
- [IPv6:2607:f8b0:4003:c06::241])
+Received: from mail-oi0-x242.google.com (mail-oi0-x242.google.com
+ [IPv6:2607:f8b0:4003:c06::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 930F520337376
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 08:17:39 -0700 (PDT)
-Received: by mail-oi0-x241.google.com with SMTP id k81-v6so11351573oib.4
- for <linux-nvdimm@lists.01.org>; Wed, 04 Jul 2018 08:17:39 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 170AB207DF2BC
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 08:11:16 -0700 (PDT)
+Received: by mail-oi0-x242.google.com with SMTP id m2-v6so11307670oim.12
+ for <linux-nvdimm@lists.01.org>; Wed, 04 Jul 2018 08:11:16 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180611154146.jc5xt4gyaihq64lm@quack2.suse.cz>
+In-Reply-To: <20180612181542.GB28436@linux.intel.com>
 References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
  <152850187437.38390.2257981090761438811.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20180611154146.jc5xt4gyaihq64lm@quack2.suse.cz>
+ <20180612181542.GB28436@linux.intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 4 Jul 2018 08:17:38 -0700
-Message-ID: <CAPcyv4jRTHNyxfs=8GkjpBp8wxh2jjDoNGipnZ-dswr8nuXh5w@mail.gmail.com>
+Date: Wed, 4 Jul 2018 08:11:14 -0700
+Message-ID: <CAPcyv4i9kK6e6aWVJWyhdW+WKGVuujmBZXyCQvQ7s-JpAdY_9Q@mail.gmail.com>
 Subject: Re: [PATCH v4 10/12] filesystem-dax: Introduce dax_lock_page()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,12 +27,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Christoph Hellwig <hch@lst.de>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 11, 2018 at 8:41 AM, Jan Kara <jack@suse.cz> wrote:
-> On Fri 08-06-18 16:51:14, Dan Williams wrote:
+On Tue, Jun 12, 2018 at 11:15 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Fri, Jun 08, 2018 at 04:51:14PM -0700, Dan Williams wrote:
 >> In preparation for implementing support for memory poison (media error)
 >> handling via dax mappings, implement a lock_page() equivalent. Poison
 >> error handling requires rmap and needs guarantees that the page->mapping
@@ -47,9 +47,11 @@ On Mon, Jun 11, 2018 at 8:41 AM, Jan Kara <jack@suse.cz> wrote:
 >> association under xa_lock().
 >>
 >> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->
-> Some comments below...
->
+>> ---
+>>  fs/dax.c            |   76 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  include/linux/dax.h |   15 ++++++++++
+>>  2 files changed, 91 insertions(+)
+>>
 >> diff --git a/fs/dax.c b/fs/dax.c
 >> index cccf6cad1a7a..b7e71b108fcf 100644
 >> --- a/fs/dax.c
@@ -60,21 +62,88 @@ On Mon, Jun 11, 2018 at 8:41 AM, Jan Kara <jack@suse.cz> wrote:
 >>
 >> +struct page *dax_lock_page(unsigned long pfn)
 >> +{
+>> +     pgoff_t index;
+>> +     struct inode *inode;
+>> +     wait_queue_head_t *wq;
+>> +     void *entry = NULL, **slot;
+>> +     struct address_space *mapping;
+>> +     struct wait_exceptional_entry_queue ewait;
+>> +     struct page *ret = NULL, *page = pfn_to_page(pfn);
+>> +
+>> +     rcu_read_lock();
+>> +     for (;;) {
+>> +             mapping = READ_ONCE(page->mapping);
 >
-> Why do you return struct page here? Any reason behind that?
+> Why the READ_ONCE()?
 
-Unlike lock_page() there is no guarantee that we can lock a mapping
-entry given a pfn. There is a chance that we lose a race and can't
-validate the pfn to take the lock. So returning 'struct page *' was
-there to indicate that we successfully validated the pfn and were able
-to take the lock. I'll rework it to just return bool.
+We're potentially racing inode teardown, so the READ_ONCE() prevents
+the compiler from trying to de-reference page->mapping twice and
+getting inconsistent answers.
 
-> Because struct
-> page exists and can be accessed through pfn_to_page() regardless of result
-> of this function so it looks a bit confusing. Also dax_lock_page() name
-> seems a bit confusing. Maybe dax_lock_pfn_mapping_entry()?
+>
+>> +
+>> +             if (!mapping || !IS_DAX(mapping->host))
+>
+> Might read better using the dax_mapping() helper.
 
-Ok.
+Sure.
+
+>
+> Also, forgive my ignorance, but this implies that dev dax has page->mapping
+> set up and that that inode will have IS_DAX set, right?  This will let us get
+> past this point for device DAX, and we'll bail out at the S_ISCHR() check?
+
+Yes.
+
+>
+>> +                     break;
+>> +
+>> +             /*
+>> +              * In the device-dax case there's no need to lock, a
+>> +              * struct dev_pagemap pin is sufficient to keep the
+>> +              * inode alive.
+>> +              */
+>> +             inode = mapping->host;
+>> +             if (S_ISCHR(inode->i_mode)) {
+>> +                     ret = page;
+>
+> 'ret' isn't actually used for anything in this function, we just
+> unconditionally return 'page'.
+>
+
+Yes, bug.
+
+>> +                     break;
+>> +             }
+>> +
+>> +             xa_lock_irq(&mapping->i_pages);
+>> +             if (mapping != page->mapping) {
+>> +                     xa_unlock_irq(&mapping->i_pages);
+>> +                     continue;
+>> +             }
+>> +             index = page->index;
+>> +
+>> +             init_wait(&ewait.wait);
+>> +             ewait.wait.func = wake_exceptional_entry_func;
+>> +
+>> +             entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
+>> +                             &slot);
+>> +             if (!entry ||
+>
+> So if we do a lookup and there is no entry in the tree, we won't add an empty
+> entry and lock it, we'll just return with no entry in the tree and nothing
+> locked.
+>
+> Then, when we call dax_unlock_page(), we'll eventually hit a WARN_ON_ONCE() in
+> dax_unlock_mapping_entry() when we see entry is 0.  And, in that gap we've got
+> nothing locked so page faults could have happened, etc... (which would mean
+> that instead of WARN_ON_ONCE() for an empty entry, we'd hit it instead for an
+> unlocked entry).
+>
+> Is that okay?  Or do we need to insert a locked empty entry here?
+
+No, the intent was to return NULL and fail the lock, but I messed up
+and unconditionally returned the page.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
