@@ -1,22 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 63A64202E53E2
- for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 00:05:42 -0700 (PDT)
-Received: from g01jpfmpwkw02.exch.g01.fujitsu.local
- (g01jpfmpwkw02.exch.g01.fujitsu.local [10.0.193.56])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 8ED1EAC0084
- for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 16:05:38 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: Question about ndctl unit tests
-Date: Mon, 2 Jul 2018 07:05:36 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223D0B9B35@g01jpexmbkw01>
-References: <0DEDF3B159719A448A49EF0E7B11E32237E966C2@g01jpexmbkw01>
- <CAPcyv4h7c8JU8=-H=ebWkA9Nww+gDOzptve9w42Os15yPC-YsQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4h7c8JU8=-H=ebWkA9Nww+gDOzptve9w42Os15yPC-YsQ@mail.gmail.com>
-Content-Language: en-US
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id C51F2209831E8
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Jul 2018 21:12:22 -0700 (PDT)
+From: Baoquan He <bhe@redhat.com>
+Subject: [PATCH v6 4/4] kexec_file: Load kernel at top of system RAM if
+ required
+Date: Wed,  4 Jul 2018 12:10:38 +0800
+Message-Id: <20180704041038.8190-5-bhe@redhat.com>
+In-Reply-To: <20180704041038.8190-1-bhe@redhat.com>
+References: <20180704041038.8190-1-bhe@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,34 +18,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dan Williams' <dan.j.williams@intel.com>
-Cc: "Mizuma, Masayoshi" <m.mizuma@jp.fujitsu.com>, "Gotou, Yasunori  <y-goto@jp.fujitsu.com>, linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, robh+dt@kernel.org, dan.j.williams@intel.com, nicolas.pitre@linaro.org, josh@joshtriplett.org, fengguang.wu@intel.com, bp@suse.de, andy.shevchenko@gmail.com
+Cc: brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, ebiederm@xmission.com, devel@linuxdriverproject.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gV2lsbGlhbXMgW21haWx0
-bzpkYW4uai53aWxsaWFtc0BpbnRlbC5jb21dDQo+IFNlbnQ6IFN1bmRheSwgSnVseSAxLCAyMDE4
-IDM6MTIgQU0NCj4gVG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVqaXRzdS5j
-b20+DQo+IENjOiBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnOyBWZXJtYSwgVmlzaGFsIEwgPHZp
-c2hhbC5sLnZlcm1hQGludGVsLmNvbT47IE1penVtYSwNCj4gTWFzYXlvc2hpL+awtOmWkyDnkIbk
-u4EgPG0ubWl6dW1hQGpwLmZ1aml0c3UuY29tPjsgR290b3UsIFlhc3Vub3JpL+S6lOWztiDlurfm
-locNCj4gPHktZ290b0BqcC5mdWppdHN1LmNvbT4NCj4gU3ViamVjdDogUmU6IFF1ZXN0aW9uIGFi
-b3V0IG5kY3RsIHVuaXQgdGVzdHMNCj4gDQo+IE9uIFNhdCwgSnVuIDMwLCAyMDE4IGF0IDE6MDcg
-QU0sIFFpLCBGdWxpIDxxaS5mdWxpQGpwLmZ1aml0c3UuY29tPiB3cm90ZToNCj4gPiBIaSwNCj4g
-Pg0KPiA+DQo+ID4NCj4gPiBXaGVuIEkgcmFuIHRoZSB1bml0IHRlc3RzLCBJIGZvdW5kICJsaWJu
-ZGN0bCIgYW5kICJkc20tZmFpbCIgY2Fubm90DQo+ID4gcGFzcyB0aGUgdGVzdC4NCj4gDQo+IFll
-cywgc29ycnksIHdlIHJlY2VudGx5IHJld29ya2VkIHNvbWUgdGVzdHMuIEdyYWIgb3VyIHdvcmst
-aW4tcHJvZ3Jlc3Mga2VybmVsIGJyYW5jaA0KPiBoZXJlOg0KPiANCj4gICAgIGdpdDovL2dpdC5r
-ZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9kamJ3L252ZGltbS5naXQNCj4gbGli
-bnZkaW1tLXBlbmRpbmcNCj4gDQo+IFRoaXMgd2lsbCBtb3ZlIHRvIG52ZGltbS9udmRpbW0uZ2l0
-IGxpYm52ZGltbS1mb3ItbmV4dCBpbiB0aGUgY29taW5nIHdlZWtzIGZvciA0LjE5Lg0KPiANCj4g
-WW91J2xsIGFsc28gd2FudCB0byBncmFiOg0KPiANCj4gICAgIGh0dHBzOi8vcGF0Y2h3b3JrLmtl
-cm5lbC5vcmcvcGF0Y2gvMTA0OTUyOTcvDQo+IA0KPiAuLi5mb3IgdGhlIGVycm9yIGhhbmRsaW5n
-IHRlc3RzLiBUaGlzIHdpbGwgYXBwZWFyIG9uIGdpdGh1Yi5jb20vcG1lbS9uZGN0bCBtYXN0ZXIN
-Cj4gc29vbi4NCg0KT0ssIEkgc2VlLg0KVGhhbmsgeW91IHZlcnkgbXVjaC4NClFpDQpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
-bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
-bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+For kexec_file loading, if kexec_buf.top_down is 'true', the memory which
+is used to load kernel/initrd/purgatory is supposed to be allocated from
+top to down. This is what we have been doing all along in the old kexec
+loading interface and the kexec loading is still default setting in some
+distributions. However, the current kexec_file loading interface doesn't
+do likt this. The function arch_kexec_walk_mem() it calls ignores checking
+kexec_buf.top_down, but calls walk_system_ram_res() directly to go through
+all resources of System RAM from bottom to up, to try to find memory region
+which can contain the specific kexec buffer, then call locate_mem_hole_callback()
+to allocate memory in that found memory region from top to down. This brings
+confusion especially when KASLR is widely supported , users have to make clear
+why kexec/kdump kernel loading position is different between these two
+interfaces in order to exclude unnecessary noises. Hence these two interfaces
+need be unified on behaviour.
+
+Here add checking if kexec_buf.top_down is 'true' in arch_kexec_walk_mem(),
+if yes, call the newly added walk_system_ram_res_rev() to find memory region
+from top to down to load kernel.
+
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: kexec@lists.infradead.org
+---
+ kernel/kexec_file.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kernel/kexec_file.c b/kernel/kexec_file.c
+index c6a3b6851372..75226c1d08ce 100644
+--- a/kernel/kexec_file.c
++++ b/kernel/kexec_file.c
+@@ -518,6 +518,8 @@ int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
+ 					   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
+ 					   crashk_res.start, crashk_res.end,
+ 					   kbuf, func);
++	else if (kbuf->top_down)
++		return walk_system_ram_res_rev(0, ULONG_MAX, kbuf, func);
+ 	else
+ 		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
+ }
+-- 
+2.13.6
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
