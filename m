@@ -1,10 +1,11 @@
-From: <jasper-LtN2Wb/7h5v31zTM6d8ziw@public.gmane.org>
-Subject: Good day!
-Date: 5 Jul 2018 06:10:01 +0600
-Message-ID: <D03E0120E0EF1FC12F1031F1FE0ED03E@BI501CF>
+From: <gktye-DGZqne7NglGgSpxsJD1C4w@public.gmane.org>
+Subject: Hello!
+Date: 4 Jul 2018 15:16:25 -0100
+Message-ID: <003801d413b6$0489b811$b92bb7ac$@cassadyco.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3839645849554003409=="
+Content-Type: multipart/mixed; boundary="===============0867890795445497580=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,7 +20,8 @@ List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
 
---===============3839645849554003409==
+--===============0867890795445497580==
+Content-Language: en
 Content-Type: text/plain;
 	charset="cp-850"
 Content-Transfer-Encoding: quoted-printable
@@ -45,7 +47,7 @@ Attention! Accept applications only on this and next week.
 
 Respectively submitted
 Personnel department
---===============3839645849554003409==
+--===============0867890795445497580==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -56,4 +58,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============3839645849554003409==--
+--===============0867890795445497580==--
