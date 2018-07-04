@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 27474210C1EF8
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 22:34:32 -0700 (PDT)
-Subject: Re: [PATCH 2/3] mm: introduce memory type MEMORY_DEVICE_DEV_DAX
+ by ml01.01.org (Postfix) with ESMTPS id 16DAF210E434D
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 07:50:19 -0700 (PDT)
+Received: by mail-oi0-x244.google.com with SMTP id k81-v6so11194441oib.4
+ for <linux-nvdimm@lists.01.org>; Wed, 04 Jul 2018 07:50:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5c7996b8e6d31541f3185f8e4064ff97582c86f8.1530716899.git.yi.z.zhang@linux.intel.com>
 References: <cover.1530716899.git.yi.z.zhang@linux.intel.com>
  <5c7996b8e6d31541f3185f8e4064ff97582c86f8.1530716899.git.yi.z.zhang@linux.intel.com>
- <CAPcyv4gjFVG7tHv65Z=FsZ9=5wXDxNWawFJqO8MkyMudch4zDw@mail.gmail.com>
-From: zhangyi6 <yi.z.zhang@intel.com>
-Message-ID: <c5fad961-05ea-73da-7fda-f48c910136d9@intel.com>
-Date: Thu, 5 Jul 2018 21:20:35 +0800
-MIME-Version: 1.0
-In-Reply-To: <CAPcyv4gjFVG7tHv65Z=FsZ9=5wXDxNWawFJqO8MkyMudch4zDw@mail.gmail.com>
-Content-Language: en-US
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 4 Jul 2018 07:50:18 -0700
+Message-ID: <CAPcyv4gjFVG7tHv65Z=FsZ9=5wXDxNWawFJqO8MkyMudch4zDw@mail.gmail.com>
+Subject: Re: [PATCH 2/3] mm: introduce memory type MEMORY_DEVICE_DEV_DAX
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,45 +22,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Zhang Yi <yi.z.zhang@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, "Zhang, Yu C" <yu.c.zhang@intel.com>, KVM list <kvm@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, rkrcmar@redhat.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>
+To: Zhang Yi <yi.z.zhang@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>, "Zhang, Yu C" <yu.c.zhang@intel.com>, KVM list <kvm@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, rkrcmar@redhat.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, "Zhang, Yi Z" <yi.z.zhang@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-CgpPbiAyMDE45bm0MDfmnIgwNOaXpSAyMjo1MCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+IE9uIFdl
-ZCwgSnVsIDQsIDIwMTggYXQgODozMCBBTSwgWmhhbmcgWWkgPHlpLnouemhhbmdAbGludXguaW50
-ZWwuY29tPiB3cm90ZToKPj4gQ3VycmVudGx5LCBOVkRJTU0gcGFnZXMgd2lsbCBiZSBtYXJrZWQg
-J1BhZ2VSZXNlcnZlZCcuIEhvd2V2ZXIsIHVubGlrZQo+PiBvdGhlciByZXNlcnZlZCBQRk5zLCBw
-YWdlcyBvbiBOVkRJTU0gc2hhbGwgc3RpbGwgYmVoYXZlIGxpa2Ugbm9ybWFsIG9uZXMKPj4gaW4g
-bWFueSBjYXNlcywgaS5lLiB3aGVuIHVzZWQgYXMgYmFja2VuZCBtZW1vcnkgb2YgS1ZNIGd1ZXN0
-LiBUaGlzIHBhdGNoCj4+IGludHJvZHVjZXMgYSBuZXcgbWVtb3J5IHR5cGUsIE1FTU9SWV9ERVZJ
-Q0VfREVWX0RBWC4gVG9nZXRoZXIgd2l0aCB0aGUKPj4gZXhpc3RpbmcgdHlwZSBNRU1PUllfREVW
-SUNFX0ZTX0RBWCwgd2UgY2FuIGRpZmZlcmVudGlhdGUgdGhlIHBhZ2VzIG9uCj4+IE5WRElNTSB3
-aXRoIHRoZSBub3JtYWwgcmVzZXJ2ZWQgcGFnZXMuCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IFpoYW5n
-IFlpIDx5aS56LnpoYW5nQGxpbnV4LmludGVsLmNvbT4KPj4gU2lnbmVkLW9mZi1ieTogWmhhbmcg
-WXUgPHl1LmMuemhhbmdAbGludXguaW50ZWwuY29tPgo+PiAtLS0KPj4gIGRyaXZlcnMvZGF4L3Bt
-ZW0uYyAgICAgICB8IDEgKwo+PiAgaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oIHwgMSArCj4+ICAy
-IGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKQo+Pgo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9kYXgvcG1lbS5jIGIvZHJpdmVycy9kYXgvcG1lbS5jCj4+IGluZGV4IGZkNDliMjQuLmZiM2Yz
-NjMgMTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvZGF4L3BtZW0uYwo+PiArKysgYi9kcml2ZXJzL2Rh
-eC9wbWVtLmMKPj4gQEAgLTExMSw2ICsxMTEsNyBAQCBzdGF0aWMgaW50IGRheF9wbWVtX3Byb2Jl
-KHN0cnVjdCBkZXZpY2UgKmRldikKPj4gICAgICAgICAgICAgICAgIHJldHVybiByYzsKPj4KPj4g
-ICAgICAgICBkYXhfcG1lbS0+cGdtYXAucmVmID0gJmRheF9wbWVtLT5yZWY7Cj4+ICsgICAgICAg
-ZGF4X3BtZW0tPnBnbWFwLnR5cGUgPSBNRU1PUllfREVWSUNFX0RFVl9EQVg7Cj4+ICAgICAgICAg
-YWRkciA9IGRldm1fbWVtcmVtYXBfcGFnZXMoZGV2LCAmZGF4X3BtZW0tPnBnbWFwKTsKPj4gICAg
-ICAgICBpZiAoSVNfRVJSKGFkZHIpKQo+PiAgICAgICAgICAgICAgICAgcmV0dXJuIFBUUl9FUlIo
-YWRkcik7Cj4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L21lbXJlbWFwLmggYi9pbmNsdWRl
-L2xpbnV4L21lbXJlbWFwLmgKPj4gaW5kZXggNWViZmZmNi4uNDEyN2JmNyAxMDA2NDQKPj4gLS0t
-IGEvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCj4+ICsrKyBiL2luY2x1ZGUvbGludXgvbWVtcmVt
-YXAuaAo+PiBAQCAtNTgsNiArNTgsNyBAQCBlbnVtIG1lbW9yeV90eXBlIHsKPj4gICAgICAgICBN
-RU1PUllfREVWSUNFX1BSSVZBVEUgPSAxLAo+PiAgICAgICAgIE1FTU9SWV9ERVZJQ0VfUFVCTElD
-LAo+PiAgICAgICAgIE1FTU9SWV9ERVZJQ0VfRlNfREFYLAo+PiArICAgICAgIE1FTU9SWV9ERVZJ
-Q0VfREVWX0RBWCwKPiBQbGVhc2UgYWRkIGRvY3VtZW50YXRpb24gZm9yIHRoaXMgbmV3IHR5cGUg
-dG8gdGhlIGNvbW1lbnQgYmxvY2sgYWJvdXQKPiB0aGlzIGRlZmluaXRpb24uClRoYW5rcyBmb3Ig
-eW91ciBjb21tZW50cyBEYW4sIFdpbGwgYWRkIGl0IGluIG5leHQgdmVyc2lvbiwKUmVnYXJkcwpZ
-aS4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Wed, Jul 4, 2018 at 8:30 AM, Zhang Yi <yi.z.zhang@linux.intel.com> wrote:
+> Currently, NVDIMM pages will be marked 'PageReserved'. However, unlike
+> other reserved PFNs, pages on NVDIMM shall still behave like normal ones
+> in many cases, i.e. when used as backend memory of KVM guest. This patch
+> introduces a new memory type, MEMORY_DEVICE_DEV_DAX. Together with the
+> existing type MEMORY_DEVICE_FS_DAX, we can differentiate the pages on
+> NVDIMM with the normal reserved pages.
+>
+> Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+> Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+> ---
+>  drivers/dax/pmem.c       | 1 +
+>  include/linux/memremap.h | 1 +
+>  2 files changed, 2 insertions(+)
+>
+> diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+> index fd49b24..fb3f363 100644
+> --- a/drivers/dax/pmem.c
+> +++ b/drivers/dax/pmem.c
+> @@ -111,6 +111,7 @@ static int dax_pmem_probe(struct device *dev)
+>                 return rc;
+>
+>         dax_pmem->pgmap.ref = &dax_pmem->ref;
+> +       dax_pmem->pgmap.type = MEMORY_DEVICE_DEV_DAX;
+>         addr = devm_memremap_pages(dev, &dax_pmem->pgmap);
+>         if (IS_ERR(addr))
+>                 return PTR_ERR(addr);
+> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+> index 5ebfff6..4127bf7 100644
+> --- a/include/linux/memremap.h
+> +++ b/include/linux/memremap.h
+> @@ -58,6 +58,7 @@ enum memory_type {
+>         MEMORY_DEVICE_PRIVATE = 1,
+>         MEMORY_DEVICE_PUBLIC,
+>         MEMORY_DEVICE_FS_DAX,
+> +       MEMORY_DEVICE_DEV_DAX,
+
+Please add documentation for this new type to the comment block about
+this definition.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
