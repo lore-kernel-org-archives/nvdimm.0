@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0380203BBB80
- for <linux-nvdimm@lists.01.org>; Tue,  3 Jul 2018 21:11:01 -0700 (PDT)
-From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH v6 0/4] resource: Use list_head to link sibling resource
-Date: Wed,  4 Jul 2018 12:10:34 +0800
-Message-Id: <20180704041038.8190-1-bhe@redhat.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id C6138202E5486
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 09:40:40 -0700 (PDT)
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [PATCH v2 3/4] s390/block/dcssblk: check the validity of the pointer
+ pfn
+Date: Thu,  5 Jul 2018 00:38:22 +0800
+Message-Id: <20180704163823.9980-4-yehs2007@zoho.com>
+In-Reply-To: <20180704163823.9980-1-yehs2007@zoho.com>
+References: <20180704163823.9980-1-yehs2007@zoho.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,117 +18,43 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, robh+dt@kernel.org, dan.j.williams@intel.com, nicolas.pitre@linaro.org, josh@joshtriplett.org, fengguang.wu@intel.com, bp@suse.de, andy.shevchenko@gmail.com
-Cc: brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, ebiederm@xmission.com, devel@linuxdriverproject.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
+Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, chengnt@lenovo.com, jack@suse.com, heiko.carstens@de.ibm.com, linux-kernel@vger.kernel.org, willy@infradead.org, colyli@suse.de, bart.vanassche@wdc.com, viro@zeniv.linux.org.uk, gregkh@linuxfoundation.org, schwidefsky@de.ibm.com, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patchset is doing:
-1) Replace struct resource's sibling list from singly linked list to
-list_head. Clearing out those pointer operation within singly linked
-list for better code readability.
-2) Based on list_head replacement, add a new function
-walk_system_ram_res_rev() which can does reversed iteration on
-iomem_resource's siblings.
-3) Change kexec_file loading to search system RAM top down for kernel
-loadin, using walk_system_ram_res_rev().
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-Note:
-This patchset only passed testing on  x86_64 arch with network
-enabling. The thing we need pay attetion to is that a root resource's
-child member need be initialized specifically with LIST_HEAD_INIT() if
-statically defined or INIT_LIST_HEAD() for dynamically definition. Here
-Just like we do for iomem_resource/ioport_resource, or the change in
-get_pci_domain_busn_res().
+direct_access needs to check the validity of pointer pfn for NULL
+assignment. If pfn equals to NULL, it doesn't need to calculate the value.
 
-v5:
-http://lkml.kernel.org/r/20180612032831.29747-1-bhe@redhat.com
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ drivers/s390/block/dcssblk.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-v4:
-http://lkml.kernel.org/r/20180507063224.24229-1-bhe@redhat.com
-
-v3:
-http://lkml.kernel.org/r/20180419001848.3041-1-bhe@redhat.com
-
-v2:
-http://lkml.kernel.org/r/20180408024724.16812-1-bhe@redhat.com
-
-v1:
-http://lkml.kernel.org/r/20180322033722.9279-1-bhe@redhat.com
-
-Changelog:
-v5->v6:
-  Fix code style problems in reparent_resources() and use existing
-  error codes, according to Andy's suggestion.
-
-  Fix bugs test robot reported.
-  
-v4->v5:
-  Add new patch 0001 to move duplicated reparent_resources() to
-  kernel/resource.c to make it be shared by different ARCH-es.
-
-  Fix several code bugs reported by test robot on ARCH powerpc and
-  microblaze.
-v3->v4:
-  Fix several bugs test robot reported. Rewrite cover letter and patch
-  log according to reviewer's comment.
-
-v2->v3:
-  Rename resource functions first_child() and sibling() to
-  resource_first_chils() and resource_sibling(). Dan suggested this.
-
-  Move resource_first_chils() and resource_sibling() to linux/ioport.h
-  and make them as inline function. Rob suggested this. Accordingly add
-  linux/list.h including in linux/ioport.h, please help review if this
-  bring efficiency degradation or code redundancy.
-
-  The change on struct resource {} bring two pointers of size increase,
-  mention this in git log to make it more specifically, Rob suggested
-  this.
-
-v1->v2:
-  Use list_head instead to link resource siblings. This is suggested by
-  Andrew.
-
-  Rewrite walk_system_ram_res_rev() after list_head is taken to link
-  resouce siblings.
-
-
-
-Baoquan He (4):
-  resource: Move reparent_resources() to kernel/resource.c and make it
-    public
-  resource: Use list_head to link sibling resource
-  resource: add walk_system_ram_res_rev()
-  kexec_file: Load kernel at top of system RAM if required
-
- arch/arm/plat-samsung/pm-check.c            |   6 +-
- arch/microblaze/pci/pci-common.c            |  41 +----
- arch/powerpc/kernel/pci-common.c            |  39 +----
- arch/sparc/kernel/ioport.c                  |   2 +-
- arch/xtensa/include/asm/pci-bridge.h        |   4 +-
- drivers/eisa/eisa-bus.c                     |   2 +
- drivers/gpu/drm/drm_memory.c                |   3 +-
- drivers/gpu/drm/gma500/gtt.c                |   5 +-
- drivers/hv/vmbus_drv.c                      |  52 +++---
- drivers/input/joystick/iforce/iforce-main.c |   4 +-
- drivers/nvdimm/namespace_devs.c             |   6 +-
- drivers/nvdimm/nd.h                         |   5 +-
- drivers/of/address.c                        |   4 +-
- drivers/parisc/lba_pci.c                    |   4 +-
- drivers/pci/controller/vmd.c                |   8 +-
- drivers/pci/probe.c                         |   2 +
- drivers/pci/setup-bus.c                     |   2 +-
- include/linux/ioport.h                      |  21 ++-
- kernel/kexec_file.c                         |   2 +
- kernel/resource.c                           | 263 ++++++++++++++++++----------
- 20 files changed, 248 insertions(+), 227 deletions(-)
-
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 0a312e4..5cdfa02 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -916,7 +916,8 @@ static DEVICE_ATTR(save, S_IWUSR | S_IRUSR, dcssblk_save_show,
+ 
+ 	dev_sz = dev_info->end - dev_info->start + 1;
+ 	*kaddr = (void *) dev_info->start + offset;
+-	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
++	if (pfn)
++		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
+ 			PFN_DEV|PFN_SPECIAL);
+ 
+ 	return (dev_sz - offset) / PAGE_SIZE;
 -- 
-2.13.6
+1.8.3.1
+
 
 _______________________________________________
 Linux-nvdimm mailing list
