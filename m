@@ -1,11 +1,9 @@
-From: =?utf-8?B?5oCl5Lu2?= <qh-CXymmsQOvKM@public.gmane.org>
-Subject: =?utf-8?B?bGludXgtbnZkaW1t77ya55uu5qCH566h55CG5LiO57up5pWI?=
- =?utf-8?B?6ICD5qC4L+iLj+W3ni/otLXpmLPnq5ktLTYwODkzNzU4?=
-Date: Wed, 4 Jul 2018 23:48:32 +0800
-Message-ID: <28F638E14B56A5EF171796FBC07096AE@jxco.org>
+From: <jasper-LtN2Wb/7h5v31zTM6d8ziw@public.gmane.org>
+Subject: Good day!
+Date: 5 Jul 2018 06:10:01 +0600
+Message-ID: <D03E0120E0EF1FC12F1031F1FE0ED03E@BI501CF>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============3839645849554003409=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,8 +17,43 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0K6ZmE44CB5Lu2IOOAgeWGhSDjgIHlrrkgDQror7cg
-44CB5oKoIOOAgeafpSDjgIHpmIUgCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+This is a multi-part message in MIME format.
+
+--===============3839645849554003409==
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: quoted-printable
+
+Good day!
+
+We considered your resume to be very attractive and we thought the =
+vacant position in our company could be interesting for you.
+
+Our firm specializes in online services in the matter of business =
+administration.
+We cooperate with different countries and currently we have many clients =
+in yours region.
+Due to this fact, we need to increase the number of our destination =
+representatives' regular staff.
+
+Part-time and full-time employment are both currently important.
+We offer a flat wage from $1500 up to $7000 per month.
+
+If you are interested in our offer, please visit our web page.
+
+Attention! Accept applications only on this and next week.
+
+Respectively submitted
+Personnel department
+--===============3839645849554003409==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============3839645849554003409==--
