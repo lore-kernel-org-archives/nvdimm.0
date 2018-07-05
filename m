@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi0-x242.google.com (mail-oi0-x242.google.com
- [IPv6:2607:f8b0:4003:c06::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 170AB207DF2BC
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 08:11:16 -0700 (PDT)
-Received: by mail-oi0-x242.google.com with SMTP id m2-v6so11307670oim.12
- for <linux-nvdimm@lists.01.org>; Wed, 04 Jul 2018 08:11:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180612181542.GB28436@linux.intel.com>
-References: <152850182079.38390.8280340535691965744.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152850187437.38390.2257981090761438811.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20180612181542.GB28436@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 13CC5210DC1C3
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 23:59:54 -0700 (PDT)
+Subject: [PATCH 10/13] filesystem-dax: Make mount time pfn validation a
+ debug check
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 4 Jul 2018 08:11:14 -0700
-Message-ID: <CAPcyv4i9kK6e6aWVJWyhdW+WKGVuujmBZXyCQvQ7s-JpAdY_9Q@mail.gmail.com>
-Subject: Re: [PATCH v4 10/12] filesystem-dax: Introduce dax_lock_page()
+Date: Wed, 04 Jul 2018 23:49:56 -0700
+Message-ID: <153077339595.40830.16578300356324475234.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153077334130.40830.2714147692560185329.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153077334130.40830.2714147692560185329.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,123 +23,155 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>
+To: akpm@linux-foundation.org
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Jun 12, 2018 at 11:15 AM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> On Fri, Jun 08, 2018 at 04:51:14PM -0700, Dan Williams wrote:
->> In preparation for implementing support for memory poison (media error)
->> handling via dax mappings, implement a lock_page() equivalent. Poison
->> error handling requires rmap and needs guarantees that the page->mapping
->> association is maintained / valid (inode not freed) for the duration of
->> the lookup.
->>
->> In the device-dax case it is sufficient to simply hold a dev_pagemap
->> reference. In the filesystem-dax case we need to use the entry lock.
->>
->> Export the entry lock via dax_lock_page() that uses rcu_read_lock() to
->> protect against the inode being freed, and revalidates the page->mapping
->> association under xa_lock().
->>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  fs/dax.c            |   76 +++++++++++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/dax.h |   15 ++++++++++
->>  2 files changed, 91 insertions(+)
->>
->> diff --git a/fs/dax.c b/fs/dax.c
->> index cccf6cad1a7a..b7e71b108fcf 100644
->> --- a/fs/dax.c
->> +++ b/fs/dax.c
->> @@ -361,6 +361,82 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
->>       }
->>  }
->>
->> +struct page *dax_lock_page(unsigned long pfn)
->> +{
->> +     pgoff_t index;
->> +     struct inode *inode;
->> +     wait_queue_head_t *wq;
->> +     void *entry = NULL, **slot;
->> +     struct address_space *mapping;
->> +     struct wait_exceptional_entry_queue ewait;
->> +     struct page *ret = NULL, *page = pfn_to_page(pfn);
->> +
->> +     rcu_read_lock();
->> +     for (;;) {
->> +             mapping = READ_ONCE(page->mapping);
->
-> Why the READ_ONCE()?
+Do not ask for dax_direct_access() to retrieve a pfn in the
+DAX_DRIVER_DEBUG=n case. This avoids an early call to memmap_sync() in
+the driver.
 
-We're potentially racing inode teardown, so the READ_ONCE() prevents
-the compiler from trying to de-reference page->mapping twice and
-getting inconsistent answers.
+Now that QUEUE_FLAG_DAX usage has been fixed the validation of the pfn
+is only useful for dax driver developers. It is safe to assume that
+pmem, dcssblk, and device-mapper-dax are correct with respect to dax
+operation, so only retrieve the pfn for debug builds when qualifying a
+new dax driver, if one ever arrives.
 
->
->> +
->> +             if (!mapping || !IS_DAX(mapping->host))
->
-> Might read better using the dax_mapping() helper.
+The moves the first consumption of a pfn from ->direct_access() to the
+first dax mapping fault, rather than initial filesystem mount. I.e. more
+time for memmap init to run in the background.
 
-Sure.
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/Kconfig |   10 ++++++++
+ drivers/dax/super.c |   64 ++++++++++++++++++++++++++++++++-------------------
+ 2 files changed, 50 insertions(+), 24 deletions(-)
 
->
-> Also, forgive my ignorance, but this implies that dev dax has page->mapping
-> set up and that that inode will have IS_DAX set, right?  This will let us get
-> past this point for device DAX, and we'll bail out at the S_ISCHR() check?
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index e0700bf4893a..b32f8827b983 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -9,6 +9,16 @@ menuconfig DAX
+ 
+ if DAX
+ 
++config DAX_DRIVER_DEBUG
++	bool "DAX: driver debug"
++	help
++	  Enable validation of the page frame objects returned from a
++	  driver's 'direct_access' operation. This validation is
++	  performed relative to the requirements of the FS_DAX and
++	  FS_DAX_LIMITED configuration options. If you are validating
++	  the implementation of a dax device driver say Y otherwise
++	  say N.
++
+ config DEV_DAX
+ 	tristate "Device DAX: direct access mapping device"
+ 	depends on TRANSPARENT_HUGEPAGE
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 903d9c473749..87b1c55b7c7a 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -72,6 +72,41 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
+ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+ #endif
+ 
++static bool validate_dax_pfn(pfn_t *pfn)
++{
++	bool dax_enabled = false;
++
++	/*
++	 * Unless debugging a new dax driver, or new dax architecture
++	 * support there is no need to check the pfn. Delay the kernel's
++	 * first need for a dax pfn until first userspace dax fault.
++	 */
++	if (!pfn)
++		return true;
++
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(*pfn)) {
++		/*
++		 * An arch that has enabled the pmem api should also
++		 * have its drivers support pfn_t_devmap()
++		 *
++		 * This is a developer warning and should not trigger in
++		 * production. dax_flush() will crash since it depends
++		 * on being able to do (page_address(pfn_to_page())).
++		 */
++		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
++		dax_enabled = true;
++	} else if (pfn_t_devmap(*pfn)) {
++		struct dev_pagemap *pgmap;
++
++		pgmap = get_dev_pagemap(pfn_t_to_pfn(*pfn), NULL);
++		if (pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX)
++			dax_enabled = true;
++		put_dev_pagemap(pgmap);
++	}
++
++	return dax_enabled;
++}
++
+ /**
+  * __bdev_dax_supported() - Check if the device supports dax for filesystem
+  * @bdev: block device to check
+@@ -85,11 +120,10 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ {
+ 	struct dax_device *dax_dev;
+-	bool dax_enabled = false;
++	pfn_t _pfn, *pfn;
+ 	pgoff_t pgoff;
+ 	int err, id;
+ 	void *kaddr;
+-	pfn_t pfn;
+ 	long len;
+ 	char buf[BDEVNAME_SIZE];
+ 
+@@ -113,8 +147,10 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ 		return false;
+ 	}
+ 
++	pfn = IS_ENABLED(DAX_DRIVER_DEBUG) ? &_pfn : NULL;
++
+ 	id = dax_read_lock();
+-	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
++	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, pfn);
+ 	dax_read_unlock(id);
+ 
+ 	put_dax(dax_dev);
+@@ -125,27 +161,7 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ 		return false;
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
+-		/*
+-		 * An arch that has enabled the pmem api should also
+-		 * have its drivers support pfn_t_devmap()
+-		 *
+-		 * This is a developer warning and should not trigger in
+-		 * production. dax_flush() will crash since it depends
+-		 * on being able to do (page_address(pfn_to_page())).
+-		 */
+-		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
+-		dax_enabled = true;
+-	} else if (pfn_t_devmap(pfn)) {
+-		struct dev_pagemap *pgmap;
+-
+-		pgmap = get_dev_pagemap(pfn_t_to_pfn(pfn), NULL);
+-		if (pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX)
+-			dax_enabled = true;
+-		put_dev_pagemap(pgmap);
+-	}
+-
+-	if (!dax_enabled) {
++	if (!validate_dax_pfn(pfn)) {
+ 		pr_debug("%s: error: dax support not enabled\n",
+ 				bdevname(bdev, buf));
+ 		return false;
 
-Yes.
-
->
->> +                     break;
->> +
->> +             /*
->> +              * In the device-dax case there's no need to lock, a
->> +              * struct dev_pagemap pin is sufficient to keep the
->> +              * inode alive.
->> +              */
->> +             inode = mapping->host;
->> +             if (S_ISCHR(inode->i_mode)) {
->> +                     ret = page;
->
-> 'ret' isn't actually used for anything in this function, we just
-> unconditionally return 'page'.
->
-
-Yes, bug.
-
->> +                     break;
->> +             }
->> +
->> +             xa_lock_irq(&mapping->i_pages);
->> +             if (mapping != page->mapping) {
->> +                     xa_unlock_irq(&mapping->i_pages);
->> +                     continue;
->> +             }
->> +             index = page->index;
->> +
->> +             init_wait(&ewait.wait);
->> +             ewait.wait.func = wake_exceptional_entry_func;
->> +
->> +             entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
->> +                             &slot);
->> +             if (!entry ||
->
-> So if we do a lookup and there is no entry in the tree, we won't add an empty
-> entry and lock it, we'll just return with no entry in the tree and nothing
-> locked.
->
-> Then, when we call dax_unlock_page(), we'll eventually hit a WARN_ON_ONCE() in
-> dax_unlock_mapping_entry() when we see entry is 0.  And, in that gap we've got
-> nothing locked so page faults could have happened, etc... (which would mean
-> that instead of WARN_ON_ONCE() for an empty entry, we'd hit it instead for an
-> unlocked entry).
->
-> Is that okay?  Or do we need to insert a locked empty entry here?
-
-No, the intent was to return NULL and fail the lock, but I messed up
-and unconditionally returned the page.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
