@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 51FBA2097DD18
- for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:11:12 -0700 (PDT)
-Subject: [PATCH v2 10/14] filesystem-dax: Do not request a pfn when not
- required
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Jul 2018 10:01:14 -0700
-Message-ID: <153176047420.12695.9821577651771886595.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 02733203369C2
+ for <linux-nvdimm@lists.01.org>; Thu,  5 Jul 2018 13:22:11 -0700 (PDT)
+Subject: [PATCH v2 00/11] Adding security support for nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 05 Jul 2018 13:22:10 -0700
+Message-ID: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,79 +20,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, hch@lst.de
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+The following series implements security support for nvdimm. Mostly adding
+new security DSM support from the Intel NVDIMM DSM spec v1.7, but also
+adding generic support libnvdimm for other vendors. The most important
+security features are unlocking locked nvdimms, and updating/setting security
+passphrase to nvdimms.
 
-Some functions within fs/dax don't need to get pfn from direct_access.
-In support of allowing memmap initialization to run in the background
-elide requests for pfns when not required.
+Security folks, thanks in advance for taking a look at my key management
+implementation and making sure that I'm doing something sane. Mainly you'll
+want to review patches 2, 4, and 5 as most relevant ones that need scrutiny.
 
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+v2:
+- Move inclusion of intel.h to relevant source files and not in nfit.h. (Dan)
+- Moved security ring relevant code to dimm_devs.c. (Dan)
+- Added dimm_id to nfit_mem to avoid recreate per sysfs show call. (Dan)
+- Added routine to return security_ops based on family supplied. (Dan)
+- Added nvdimm_key_data struct to wrap raw passphrase string. (Dan)
+- Allocate firmware package on stack. (Dan)
+- Added missing frozen state detection when retrieving security state.
+
 ---
- fs/dax.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 641192808bb6..28264ff4e343 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -647,7 +647,6 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- {
- 	void *vto, *kaddr;
- 	pgoff_t pgoff;
--	pfn_t pfn;
- 	long rc;
- 	int id;
- 
-@@ -656,7 +655,7 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- 		return rc;
- 
- 	id = dax_read_lock();
--	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
-+	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, NULL);
- 	if (rc < 0) {
- 		dax_read_unlock(id);
- 		return rc;
-@@ -1052,15 +1051,13 @@ int __dax_zero_page_range(struct block_device *bdev,
- 		pgoff_t pgoff;
- 		long rc, id;
- 		void *kaddr;
--		pfn_t pfn;
- 
- 		rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
- 		if (rc)
- 			return rc;
- 
- 		id = dax_read_lock();
--		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr,
--				&pfn);
-+		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
- 		if (rc < 0) {
- 			dax_read_unlock(id);
- 			return rc;
-@@ -1116,7 +1113,6 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		ssize_t map_len;
- 		pgoff_t pgoff;
- 		void *kaddr;
--		pfn_t pfn;
- 
- 		if (fatal_signal_pending(current)) {
- 			ret = -EINTR;
-@@ -1128,7 +1124,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 			break;
- 
- 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
--				&kaddr, &pfn);
-+				&kaddr, NULL);
- 		if (map_len < 0) {
- 			ret = map_len;
- 			break;
+Dave Jiang (11):
+      nfit: adding support for Intel DSM 1.7 commands
+      libnvdimm: create keyring to store security keys
+      nfit/libnvdimm: store dimm id as a member to struct nvdimm
+      nfit/libnvdimm: adding unlock of nvdimm support for Intel DIMMs
+      nfit/libnvdimm: adding set passphrase support for Intel nvdimms
+      nfit/libnvdimm: adding disable passphrase support to Intel nvdimm.
+      nfit/libnvdimm: adding freeze security support to Intel nvdimm
+      nfit/libnvdimm: adding support for issue secure erase DSM to Intel nvdimm
+      nfit_test: adding context to dimm_dev for nfit_test
+      nfit_test: adding test support for Intel nvdimm security DSMs
+      libnvdimm: adding documentation for nvdimm security support
 
+
+ Documentation/nvdimm/security    |   70 ++++++
+ drivers/acpi/nfit/Makefile       |    2 
+ drivers/acpi/nfit/core.c         |   72 +++++-
+ drivers/acpi/nfit/intel.c        |  361 ++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/intel.h        |  104 +++++++++
+ drivers/acpi/nfit/nfit.h         |   24 --
+ drivers/nvdimm/bus.c             |    2 
+ drivers/nvdimm/core.c            |    7 +
+ drivers/nvdimm/dimm.c            |    7 +
+ drivers/nvdimm/dimm_devs.c       |  426 ++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/nd-core.h         |    4 
+ drivers/nvdimm/nd.h              |    2 
+ include/linux/libnvdimm.h        |   41 +++-
+ tools/testing/nvdimm/Kbuild      |    1 
+ tools/testing/nvdimm/test/nfit.c |  227 +++++++++++++++++++-
+ 15 files changed, 1293 insertions(+), 57 deletions(-)
+ create mode 100644 Documentation/nvdimm/security
+ create mode 100644 drivers/acpi/nfit/intel.c
+ create mode 100644 drivers/acpi/nfit/intel.h
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
