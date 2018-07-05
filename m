@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BA669202E5484
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 20:44:00 -0700 (PDT)
-Subject: [PATCH v6] filesystem-dax: Introduce dax_lock_mapping_entry()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 04 Jul 2018 20:33:52 -0700
-Message-ID: <153076161392.9314.16967170107658011515.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153074046078.27838.5465590228767136915.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 33D7D203B8CFF
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 20:31:45 -0700 (PDT)
+Date: Thu, 5 Jul 2018 11:31:08 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v5 07/11] filesystem-dax: Introduce
+ dax_lock_mapping_entry()
+Message-ID: <201807050930.1WGGXKLa%fengguang.wu@intel.com>
 References: <153074046078.27838.5465590228767136915.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+In-Reply-To: <153074046078.27838.5465590228767136915.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,216 +24,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, kbuild-all@01.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for implementing support for memory poison (media error)
-handling via dax mappings, implement a lock_page() equivalent. Poison
-error handling requires rmap and needs guarantees that the page->mapping
-association is maintained / valid (inode not freed) for the duration of
-the lookup.
+Hi Dan,
 
-In the device-dax case it is sufficient to simply hold a dev_pagemap
-reference. In the filesystem-dax case we need to use the entry lock.
+I love your patch! Yet something to improve:
 
-Export the entry lock via dax_lock_mapping_entry() that uses
-rcu_read_lock() to protect against the inode being freed, and
-revalidates the page->mapping association under xa_lock().
+[auto build test ERROR on linus/master]
+[also build test ERROR on v4.18-rc3]
+[cannot apply to next-20180704]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/device-dax-Convert-to-vmf_insert_mixed-and-vm_fault_t/20180705-075150
+config: openrisc-or1ksim_defconfig (attached as .config)
+compiler: or1k-linux-gcc (GCC) 6.0.0 20160327 (experimental)
+reproduce:
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=openrisc 
+
+All error/warnings (new ones prefixed by >>):
+
+   In file included from include/linux/mempolicy.h:11:0,
+                    from init/main.c:56:
+   include/linux/dax.h: In function 'dax_lock_mapping_entry':
+   include/linux/dax.h:128:15: error: 'page' redeclared as different kind of symbol
+     struct page *page = pfn_to_page(pfn);
+                  ^~~~
+   include/linux/dax.h:126:56: note: previous definition of 'page' was here
+    static inline bool dax_lock_mapping_entry(struct page *page)
+                                                           ^~~~
+   In file included from arch/openrisc/include/asm/page.h:98:0,
+                    from arch/openrisc/include/asm/processor.h:23,
+                    from arch/openrisc/include/asm/thread_info.h:26,
+                    from include/linux/thread_info.h:38,
+                    from include/asm-generic/preempt.h:5,
+                    from ./arch/openrisc/include/generated/asm/preempt.h:1,
+                    from include/linux/preempt.h:81,
+                    from include/linux/spinlock.h:51,
+                    from include/linux/seqlock.h:36,
+                    from include/linux/time.h:6,
+                    from include/linux/stat.h:19,
+                    from include/linux/module.h:10,
+                    from init/main.c:16:
+>> include/linux/dax.h:128:34: error: 'pfn' undeclared (first use in this function)
+     struct page *page = pfn_to_page(pfn);
+                                     ^
+   include/asm-generic/memory_model.h:33:41: note: in definition of macro '__pfn_to_page'
+    #define __pfn_to_page(pfn) (mem_map + ((pfn) - ARCH_PFN_OFFSET))
+                                            ^~~
+>> include/linux/dax.h:128:22: note: in expansion of macro 'pfn_to_page'
+     struct page *page = pfn_to_page(pfn);
+                         ^~~~~~~~~~~
+   include/linux/dax.h:128:34: note: each undeclared identifier is reported only once for each function it appears in
+     struct page *page = pfn_to_page(pfn);
+                                     ^
+   include/asm-generic/memory_model.h:33:41: note: in definition of macro '__pfn_to_page'
+    #define __pfn_to_page(pfn) (mem_map + ((pfn) - ARCH_PFN_OFFSET))
+                                            ^~~
+>> include/linux/dax.h:128:22: note: in expansion of macro 'pfn_to_page'
+     struct page *page = pfn_to_page(pfn);
+                         ^~~~~~~~~~~
+   In file included from include/linux/mempolicy.h:11:0,
+                    from init/main.c:56:
+   include/linux/dax.h: In function 'dax_lock_page':
+   include/linux/dax.h:141:1: warning: no return statement in function returning non-void [-Wreturn-type]
+    }
+    ^
+
+vim +/pfn +128 include/linux/dax.h
+
+   124	
+   125	
+   126	static inline bool dax_lock_mapping_entry(struct page *page)
+   127	{
+ > 128		struct page *page = pfn_to_page(pfn);
+   129	
+   130		if (IS_DAX(page->mapping->host))
+   131			return true;
+   132		return false;
+   133	}
+   134	
+
 ---
-Changes since v5, fixup kbuild robot reports.
-
- fs/dax.c            |  109 ++++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/dax.h |   13 ++++++
- 2 files changed, 116 insertions(+), 6 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 4de11ed463ce..57ec272038da 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -226,8 +226,8 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
-  *
-  * Must be called with the i_pages lock held.
-  */
--static void *get_unlocked_mapping_entry(struct address_space *mapping,
--					pgoff_t index, void ***slotp)
-+static void *__get_unlocked_mapping_entry(struct address_space *mapping,
-+		pgoff_t index, void ***slotp, bool (*wait_fn)(void))
- {
- 	void *entry, **slot;
- 	struct wait_exceptional_entry_queue ewait;
-@@ -237,6 +237,8 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
- 	ewait.wait.func = wake_exceptional_entry_func;
- 
- 	for (;;) {
-+		bool revalidate;
-+
- 		entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
- 					  &slot);
- 		if (!entry ||
-@@ -251,14 +253,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
- 		prepare_to_wait_exclusive(wq, &ewait.wait,
- 					  TASK_UNINTERRUPTIBLE);
- 		xa_unlock_irq(&mapping->i_pages);
--		schedule();
-+		revalidate = wait_fn();
- 		finish_wait(wq, &ewait.wait);
- 		xa_lock_irq(&mapping->i_pages);
-+		if (revalidate)
-+			return ERR_PTR(-EAGAIN);
- 	}
- }
- 
--static void dax_unlock_mapping_entry(struct address_space *mapping,
--				     pgoff_t index)
-+static bool entry_wait(void)
-+{
-+	schedule();
-+	/*
-+	 * Never return an ERR_PTR() from
-+	 * __get_unlocked_mapping_entry(), just keep looping.
-+	 */
-+	return false;
-+}
-+
-+static void *get_unlocked_mapping_entry(struct address_space *mapping,
-+		pgoff_t index, void ***slotp)
-+{
-+	return __get_unlocked_mapping_entry(mapping, index, slotp, entry_wait);
-+}
-+
-+static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
- {
- 	void *entry, **slot;
- 
-@@ -277,7 +296,7 @@ static void dax_unlock_mapping_entry(struct address_space *mapping,
- static void put_locked_mapping_entry(struct address_space *mapping,
- 		pgoff_t index)
- {
--	dax_unlock_mapping_entry(mapping, index);
-+	unlock_mapping_entry(mapping, index);
- }
- 
- /*
-@@ -374,6 +393,84 @@ static struct page *dax_busy_page(void *entry)
- 	return NULL;
- }
- 
-+static bool entry_wait_revalidate(void)
-+{
-+	rcu_read_unlock();
-+	schedule();
-+	rcu_read_lock();
-+
-+	/*
-+	 * Tell __get_unlocked_mapping_entry() to take a break, we need
-+	 * to revalidate page->mapping after dropping locks
-+	 */
-+	return true;
-+}
-+
-+bool dax_lock_mapping_entry(struct page *page)
-+{
-+	pgoff_t index;
-+	struct inode *inode;
-+	bool did_lock = false;
-+	void *entry = NULL, **slot;
-+	struct address_space *mapping;
-+
-+	rcu_read_lock();
-+	for (;;) {
-+		mapping = READ_ONCE(page->mapping);
-+
-+		if (!dax_mapping(mapping))
-+			break;
-+
-+		/*
-+		 * In the device-dax case there's no need to lock, a
-+		 * struct dev_pagemap pin is sufficient to keep the
-+		 * inode alive, and we assume we have dev_pagemap pin
-+		 * otherwise we would not have a valid pfn_to_page()
-+		 * translation.
-+		 */
-+		inode = mapping->host;
-+		if (S_ISCHR(inode->i_mode)) {
-+			did_lock = true;
-+			break;
-+		}
-+
-+		xa_lock_irq(&mapping->i_pages);
-+		if (mapping != page->mapping) {
-+			xa_unlock_irq(&mapping->i_pages);
-+			continue;
-+		}
-+		index = page->index;
-+
-+		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
-+				entry_wait_revalidate);
-+		if (!entry) {
-+			xa_unlock_irq(&mapping->i_pages);
-+			break;
-+		} else if (IS_ERR(entry)) {
-+			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
-+			continue;
-+		}
-+		lock_slot(mapping, slot);
-+		did_lock = true;
-+		xa_unlock_irq(&mapping->i_pages);
-+		break;
-+	}
-+	rcu_read_unlock();
-+
-+	return did_lock;
-+}
-+
-+void dax_unlock_mapping_entry(struct page *page)
-+{
-+	struct address_space *mapping = page->mapping;
-+	struct inode *inode = mapping->host;
-+
-+	if (S_ISCHR(inode->i_mode))
-+		return;
-+
-+	unlock_mapping_entry(mapping, page->index);
-+}
-+
- /*
-  * Find radix tree entry at given index. If it points to an exceptional entry,
-  * return it with the radix tree entry locked. If the radix tree doesn't
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index deb0f663252f..450b28db9533 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -88,6 +88,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 		struct block_device *bdev, struct writeback_control *wbc);
- 
- struct page *dax_layout_busy_page(struct address_space *mapping);
-+bool dax_lock_mapping_entry(struct page *page);
-+void dax_unlock_mapping_entry(struct page *page);
- #else
- static inline bool bdev_dax_supported(struct block_device *bdev,
- 		int blocksize)
-@@ -119,6 +121,17 @@ static inline int dax_writeback_mapping_range(struct address_space *mapping,
- {
- 	return -EOPNOTSUPP;
- }
-+
-+static inline bool dax_lock_mapping_entry(struct page *page)
-+{
-+	if (IS_DAX(page->mapping->host))
-+		return true;
-+	return false;
-+}
-+
-+static inline void dax_unlock_mapping_entry(struct page *page)
-+{
-+}
- #endif
- 
- int dax_read_lock(void);
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
