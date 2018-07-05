@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BF0182097F575
- for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 13:48:56 -0700 (PDT)
-Subject: [PATCH v4 05/11] nfit/libnvdimm: add set passphrase support for
- Intel nvdimms
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 12 Jul 2018 13:48:56 -0700
-Message-ID: <153142853603.27297.14939716671780414552.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
-References: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 828E6210C6425
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 23:59:27 -0700 (PDT)
+Subject: [PATCH 05/13] mm: Allow an external agent to wait for memmap
+ initialization
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 04 Jul 2018 23:49:29 -0700
+Message-ID: <153077336917.40830.18168280108339589938.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153077334130.40830.2714147692560185329.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153077334130.40830.2714147692560185329.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,258 +19,223 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for setting and/or updating passphrase on the Intel nvdimms.
-The passphrase is pulled from userspace through the kernel key management.
-We trigger the update via writing "update" to the sysfs attribute
-"security". The state of the security can also be read via the "security"
-attribute. libnvdimm will generically support the key_change API call.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/acpi/nfit/intel.c  |   57 +++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |  110 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/libnvdimm.h  |    5 ++
- 3 files changed, 172 insertions(+)
-
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 9155b8e63f0e..b0a62248467d 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,62 @@
- #include "intel.h"
- #include "nfit.h"
- 
-+static int intel_dimm_security_update_passphrase(
-+		struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
-+		struct nvdimm_key_data *old_data,
-+		struct nvdimm_key_data *new_data)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_set_passphrase cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_SET_PASSPHRASE,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
-+
-+	if (!test_bit(NVDIMM_INTEL_SET_PASSPHRASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	if (old_data)
-+		memcpy(nd_cmd.cmd.old_pass, old_data->data,
-+				ND_INTEL_PASSPHRASE_SIZE);
-+	memcpy(nd_cmd.cmd.new_pass, new_data->data, ND_INTEL_PASSPHRASE_SIZE);
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	return rc;
-+}
-+
- static int intel_dimm_security_unlock(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
- {
-@@ -148,4 +204,5 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
- struct nvdimm_security_ops intel_security_ops = {
- 	.state = intel_dimm_security_state,
- 	.unlock = intel_dimm_security_unlock,
-+	.change_key = intel_dimm_security_update_passphrase,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 5e190120f4aa..2ab846a2114a 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -171,6 +171,75 @@ int nvdimm_security_unlock_dimm(struct device *dev)
- 	return rc;
- }
- 
-+static int nvdimm_security_change_key(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key = NULL, *old_key = NULL;
-+	int rc;
-+	void *old_data, *new_data;
-+
-+	if (!nvdimm->security_ops)
-+		return 0;
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_FROZEN)
-+		return -EBUSY;
-+
-+	/* look for a key from keyring if exists and remove */
-+	old_key = nvdimm_search_key(dev);
-+	if (old_key) {
-+		dev_dbg(dev, "%s: killing old key: %#x\n",
-+				__func__, old_key->serial);
-+		key_invalidate(old_key);
-+		key_put(old_key);
-+		/* need key garbage collection to take effect */
-+		cond_resched();
-+	}
-+
-+	/* request new key from userspace */
-+	key = nvdimm_request_key(dev);
-+	if (!key) {
-+		dev_dbg(dev, "%s: failed to acquire new key\n", __func__);
-+		return -ENXIO;
-+	}
-+
-+	dev_dbg(dev, "%s: new key: %#x\n", __func__, key->serial);
-+
-+	if (key->datalen == NVDIMM_PASSPHRASE_LEN) {
-+		old_data = NULL;
-+		new_data = key->payload.data[0];
-+	} else if (key->datalen == (NVDIMM_PASSPHRASE_LEN * 2)) {
-+		new_data = key->payload.data[0];
-+		old_data = new_data + NVDIMM_PASSPHRASE_LEN;
-+	} else {
-+		key_invalidate(key);
-+		key_put(key);
-+		dev_warn(dev, "Incorrect key payload size for update: %u\n",
-+				key->datalen);
-+		return -EINVAL;
-+	}
-+
-+	down_read(&key->sem);
-+	rc = nvdimm->security_ops->change_key(nvdimm_bus, nvdimm, old_data,
-+			new_data);
-+	if (rc == 0 && key->datalen == (NVDIMM_PASSPHRASE_LEN * 2))
-+		memcpy(old_data, new_data, NVDIMM_PASSPHRASE_LEN);
-+	up_read(&key->sem);
-+
-+	/*
-+	 * If we successfully update, link the new key to our keyring,
-+	 * otherwise, nuke the key.
-+	 */
-+	if (rc == 0)
-+		key_link(nvdimm_cred->thread_keyring, key);
-+	else
-+		key_invalidate(key);
-+
-+	key_put(key);
-+	nvdimm_security_get_state(dev);
-+	return rc;
-+}
-+
- /*
-  * Retrieve bus and dimm handle and return if this bus supports
-  * get_config_data commands
-@@ -528,11 +597,52 @@ static ssize_t available_slots_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(available_slots);
- 
-+static ssize_t security_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	switch (nvdimm->state) {
-+	case NVDIMM_SECURITY_DISABLED:
-+		return sprintf(buf, "disabled\n");
-+	case NVDIMM_SECURITY_UNLOCKED:
-+		return sprintf(buf, "unlocked\n");
-+	case NVDIMM_SECURITY_LOCKED:
-+		return sprintf(buf, "locked\n");
-+	case NVDIMM_SECURITY_FROZEN:
-+		return sprintf(buf, "frozen\n");
-+	case NVDIMM_SECURITY_UNSUPPORTED:
-+	default:
-+		return sprintf(buf, "unsupported\n");
-+	}
-+
-+	return -ENOTTY;
-+}
-+
-+static ssize_t security_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+
-+{
-+	ssize_t rc = -EINVAL;
-+
-+	if (sysfs_streq(buf, "update"))
-+		rc = nvdimm_security_change_key(dev);
-+	else
-+		return -EINVAL;
-+
-+	if (rc == 0)
-+		rc = len;
-+
-+	return rc;
-+}
-+static DEVICE_ATTR_RW(security);
-+
- static struct attribute *nvdimm_attributes[] = {
- 	&dev_attr_state.attr,
- 	&dev_attr_flags.attr,
- 	&dev_attr_commands.attr,
- 	&dev_attr_available_slots.attr,
-+	&dev_attr_security.attr,
- 	NULL,
- };
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 692217f82c6e..7889fea75281 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -162,6 +162,7 @@ enum nvdimm_security_state {
- 	NVDIMM_SECURITY_DISABLED,
- 	NVDIMM_SECURITY_UNLOCKED,
- 	NVDIMM_SECURITY_LOCKED,
-+	NVDIMM_SECURITY_FROZEN,
- 	NVDIMM_SECURITY_UNSUPPORTED,
- };
- 
-@@ -178,6 +179,10 @@ struct nvdimm_security_ops {
- 			enum nvdimm_security_state *state);
- 	int (*unlock)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
-+	int (*change_key)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm,
-+			struct nvdimm_key_data *old_data,
-+			struct nvdimm_key_data *new_data);
- };
- 
- void badrange_init(struct badrange *badrange);
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Tm93IHRoYXQgbWVtbWFwX2luaXRfem9uZSgpIGtub3dzIGhvdyB0byBzcGxpdCB0aGUgaW5pdCB3
+b3JrIGludG8KbXVsdGlwbGUgdGhyZWFkcywgYWxsb3cgdGhlIHRyYWNraW5nIGZvciB0aG9zZSB0
+aHJlYWRzIHRvIGJlIGhhbmRsZWQKdmlhIGEgcGFzc2VkIGluICdzdHJ1Y3QgbWVtbWFwX2FzeW5j
+X3N0YXRlJyBpbnN0YW5jZS4KClRoaXMgaW5mcmFzdHJ1Y3R1cmUgYWxsb3dzIGRldm1fbWVtcmVt
+YXBfcGFnZXMoKSB1c2VycywgbGlrZSB0aGUgcG1lbQpkcml2ZXIsIHRvIHRyYWNrIG1lbW1hcCBp
+bml0aWFsaXphdGlvbiBpbiB0aGUgYmFja2dyb3VkLCBhbmQgdXNlCm1lbW1hcF9zeW5jKCkgd2hl
+biBpdCBwZXJmb3JtcyBhbiBvcGVyYXRpb24gdGhhdCBtYXkgcmVzdWx0IGluIGEKcGZuX3RvX3Bh
+Z2UoKSwgbGlrZSBkYXggbWFwcGluZyBhIHBmbiBpbnRvIHVzZXJzcGFjZS4KClRoZSBhcHByb2Fj
+aCBtaXJyb3JzIHdoYXQgaXMgZG9uZSBmb3IgYmFja2dyb3VuZCBtZW1tYXAgaW5pdGlhbGl6YXRp
+b24KYW5kIGRlZmVycyB3YWl0aW5nIGZvciBpbml0aWFsaXphdGlvbiB0byBjb21wbGV0ZSB1bnRp
+bCB0aGUgZmlyc3QKdXNlcnNwYWNlIGNvbnN1bWVyIGFycml2ZXMuCgpDYzogTWljaGFsIEhvY2tv
+IDxtaG9ja29Ac3VzZS5jb20+CkNjOiBWbGFzdGltaWwgQmFia2EgPHZiYWJrYUBzdXNlLmN6PgpD
+YzogIkrDqXLDtG1lIEdsaXNzZSIgPGpnbGlzc2VAcmVkaGF0LmNvbT4KQ2M6IExvZ2FuIEd1bnRo
+b3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KQ2M6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0
+LmRlPgpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KU2lnbmVk
+LW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ci0tLQogaW5j
+bHVkZS9saW51eC9tZW1tYXBfYXN5bmMuaCB8ICAgMTAgKysrKwogaW5jbHVkZS9saW51eC9tZW1y
+ZW1hcC5oICAgICB8ICAgMjkgKysrKysrKysrKysrCiBrZXJuZWwvbWVtcmVtYXAuYyAgICAgICAg
+ICAgIHwgICA2NSArKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0KIG1tL3BhZ2VfYWxsb2MuYyAg
+ICAgICAgICAgICAgfCAgMTAyICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKyst
+LS0tLQogNCBmaWxlcyBjaGFuZ2VkLCAxNjkgaW5zZXJ0aW9ucygrKSwgMzcgZGVsZXRpb25zKC0p
+CgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9tZW1tYXBfYXN5bmMuaCBiL2luY2x1ZGUvbGlu
+dXgvbWVtbWFwX2FzeW5jLmgKaW5kZXggZDIwMTE2ODFhOTEwLi40NjMzZWNhOTI5MGUgMTAwNjQ0
+Ci0tLSBhL2luY2x1ZGUvbGludXgvbWVtbWFwX2FzeW5jLmgKKysrIGIvaW5jbHVkZS9saW51eC9t
+ZW1tYXBfYXN5bmMuaApAQCAtMyw2ICszLDkgQEAKICNkZWZpbmUgX19MSU5VWF9NRU1NQVBfQVNZ
+TkNfSAogI2luY2x1ZGUgPGxpbnV4L2FzeW5jLmg+CiAjaW5jbHVkZSA8bGludXgvaW9wb3J0Lmg+
+CisjaW5jbHVkZSA8bGludXgvYXN5bmMuaD4KKyNpbmNsdWRlIDxsaW51eC9wZm5fdC5oPgorI2lu
+Y2x1ZGUgPGxpbnV4L3JhZGl4LXRyZWUuaD4KIAogc3RydWN0IGRldl9wYWdlbWFwOwogc3RydWN0
+IHZtZW1fYWx0bWFwOwpAQCAtMzIsMTQgKzM1LDIxIEBAIHN0cnVjdCBtZW1tYXBfaW5pdF9tZW1t
+YXAgewogfTsKIAogc3RydWN0IG1lbW1hcF9pbml0X3BhZ2VzIHsKKwlpbnQgaWQ7CiAJc3RydWN0
+IHJlc291cmNlIHJlczsKKwlhc3luY19jb29raWVfdCBjb29raWU7CiAJc3RydWN0IG1lbW1hcF9p
+bml0X2VudiAqZW52OwogfTsKIAogc3RydWN0IG1lbW1hcF9hc3luY19zdGF0ZSB7CiAJc3RydWN0
+IG1lbW1hcF9pbml0X2VudiBlbnY7CiAJc3RydWN0IG1lbW1hcF9pbml0X21lbW1hcCBtZW1tYXA7
+CisJc3RydWN0IG1lbW1hcF9pbml0X3BhZ2VzIHBhZ2VfaW5pdFtOUl9NRU1NQVBfVEhSRUFEU107
+CisJdW5zaWduZWQgbG9uZyBhY3RpdmVbQklUU19UT19MT05HUyhOUl9NRU1NQVBfVEhSRUFEUyld
+OworCXN0cnVjdCByYWRpeF90cmVlX3Jvb3QgcGZuX3RvX3RocmVhZDsKIH07CiAKIGV4dGVybiBz
+dHJ1Y3QgYXN5bmNfZG9tYWluIG1lbW1hcF9pbml0X2RvbWFpbjsKK2V4dGVybiB2b2lkIG1lbW1h
+cF9zeW5jKHBmbl90IHBmbiwgdW5zaWduZWQgbG9uZyBucl9wYWdlcywKKwkJc3RydWN0IG1lbW1h
+cF9hc3luY19zdGF0ZSAqYXN5bmMpOwogI2VuZGlmIC8qIF9fTElOVVhfTUVNTUFQX0FTWU5DX0gg
+Ki8KZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaCBiL2luY2x1ZGUvbGludXgv
+bWVtcmVtYXAuaAppbmRleCBiZmRjNzM2M2IxM2IuLmEyMzEzZmFkZDY4NiAxMDA2NDQKLS0tIGEv
+aW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCisrKyBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaApA
+QCAtMSw2ICsxLDcgQEAKIC8qIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wICovCiAj
+aWZuZGVmIF9MSU5VWF9NRU1SRU1BUF9IXwogI2RlZmluZSBfTElOVVhfTUVNUkVNQVBfSF8KKyNp
+bmNsdWRlIDxsaW51eC9wZm4uaD4KICNpbmNsdWRlIDxsaW51eC9pb3BvcnQuaD4KICNpbmNsdWRl
+IDxsaW51eC9wZXJjcHUtcmVmY291bnQuaD4KIApAQCAtMTAxLDYgKzEwMiw3IEBAIHR5cGVkZWYg
+aW50ICgqZGV2X3BhZ2VfZmF1bHRfdCkoc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEsCiAJCQkJ
+cG1kX3QgKnBtZHApOwogdHlwZWRlZiB2b2lkICgqZGV2X3BhZ2VfZnJlZV90KShzdHJ1Y3QgcGFn
+ZSAqcGFnZSwgdm9pZCAqZGF0YSk7CiAKK3N0cnVjdCBtZW1tYXBfYXN5bmNfc3RhdGU7CiAvKioK
+ICAqIHN0cnVjdCBkZXZfcGFnZW1hcCAtIG1ldGFkYXRhIGZvciBaT05FX0RFVklDRSBtYXBwaW5n
+cwogICogQHBhZ2VfZmF1bHQ6IGNhbGxiYWNrIHdoZW4gQ1BVIGZhdWx0IG9uIGFuIHVuYWRkcmVz
+c2FibGUgZGV2aWNlIHBhZ2UKQEAgLTExMiw2ICsxMTQsNyBAQCB0eXBlZGVmIHZvaWQgKCpkZXZf
+cGFnZV9mcmVlX3QpKHN0cnVjdCBwYWdlICpwYWdlLCB2b2lkICpkYXRhKTsKICAqIEBkZXY6IGhv
+c3QgZGV2aWNlIG9mIHRoZSBtYXBwaW5nIGZvciBkZWJ1ZwogICogQGRhdGE6IHByaXZhdGUgZGF0
+YSBwb2ludGVyIGZvciBwYWdlX2ZyZWUoKQogICogQHR5cGU6IG1lbW9yeSB0eXBlOiBzZWUgTUVN
+T1JZXyogaW4gbWVtb3J5X2hvdHBsdWcuaAorICogQGFzeW5jOiBhc3luYyBtZW1tYXAgaW5pdCBj
+b250ZXh0CiAgKi8KIHN0cnVjdCBkZXZfcGFnZW1hcCB7CiAJZGV2X3BhZ2VfZmF1bHRfdCBwYWdl
+X2ZhdWx0OwpAQCAtMTI0LDggKzEyNywzNCBAQCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgewogCXN0cnVj
+dCBkZXZpY2UgKmRldjsKIAl2b2lkICpkYXRhOwogCWVudW0gbWVtb3J5X3R5cGUgdHlwZTsKKwlz
+dHJ1Y3QgbWVtbWFwX2FzeW5jX3N0YXRlICphc3luYzsKIH07CiAKK3N0YXRpYyBpbmxpbmUgdW5z
+aWduZWQgbG9uZyBvcmRlcl9hdChzdHJ1Y3QgcmVzb3VyY2UgKnJlcywgdW5zaWduZWQgbG9uZyBw
+Z29mZikKK3sKKwl1bnNpZ25lZCBsb25nIHBoeXNfcGdvZmYgPSBQSFlTX1BGTihyZXMtPnN0YXJ0
+KSArIHBnb2ZmOworCXVuc2lnbmVkIGxvbmcgbnJfcGFnZXMsIG1hc2s7CisKKwlucl9wYWdlcyA9
+IFBIWVNfUEZOKHJlc291cmNlX3NpemUocmVzKSk7CisJaWYgKG5yX3BhZ2VzID09IHBnb2ZmKQor
+CQlyZXR1cm4gVUxPTkdfTUFYOworCisJLyoKKwkgKiBXaGF0IGlzIHRoZSBsYXJnZXN0IGFsaWdu
+ZWQgcG93ZXItb2YtMiByYW5nZSBhdmFpbGFibGUgZnJvbQorCSAqIHRoaXMgcmVzb3VyY2UgcGdv
+ZmYgdG8gdGhlIGVuZCBvZiB0aGUgcmVzb3VyY2UgcmFuZ2UsCisJICogY29uc2lkZXJpbmcgdGhl
+IGFsaWdubWVudCBvZiB0aGUgY3VycmVudCBwZ29mZj8KKwkgKi8KKwltYXNrID0gcGh5c19wZ29m
+ZiB8IHJvdW5kZG93bl9wb3dfb2ZfdHdvKG5yX3BhZ2VzIC0gcGdvZmYpOworCWlmICghbWFzaykK
+KwkJcmV0dXJuIFVMT05HX01BWDsKKworCXJldHVybiBmaW5kX2ZpcnN0X2JpdCgmbWFzaywgQklU
+U19QRVJfTE9ORyk7Cit9CisKKyNkZWZpbmUgZm9yZWFjaF9vcmRlcl9wZ29mZihyZXMsIG9yZGVy
+LCBwZ29mZikgXAorCWZvciAocGdvZmYgPSAwLCBvcmRlciA9IG9yZGVyX2F0KChyZXMpLCBwZ29m
+Zik7IG9yZGVyIDwgVUxPTkdfTUFYOyBcCisJCQlwZ29mZiArPSAxVUwgPDwgb3JkZXIsIG9yZGVy
+ID0gb3JkZXJfYXQoKHJlcyksIHBnb2ZmKSkKKwogI2lmZGVmIENPTkZJR19aT05FX0RFVklDRQog
+dm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZf
+cGFnZW1hcCAqcGdtYXAsCiAJCXZvaWQgKCpraWxsKShzdHJ1Y3QgcGVyY3B1X3JlZiAqKSk7CmRp
+ZmYgLS1naXQgYS9rZXJuZWwvbWVtcmVtYXAuYyBiL2tlcm5lbC9tZW1yZW1hcC5jCmluZGV4IDg1
+ZTRhN2M1NzZiMi4uMTg3MTlhNTk2YmU1IDEwMDY0NAotLS0gYS9rZXJuZWwvbWVtcmVtYXAuYwor
+KysgYi9rZXJuZWwvbWVtcmVtYXAuYwpAQCAtNyw2ICs3LDcgQEAKICNpbmNsdWRlIDxsaW51eC9p
+by5oPgogI2luY2x1ZGUgPGxpbnV4L21tLmg+CiAjaW5jbHVkZSA8bGludXgvbWVtb3J5X2hvdHBs
+dWcuaD4KKyNpbmNsdWRlIDxsaW51eC9tZW1tYXBfYXN5bmMuaD4KICNpbmNsdWRlIDxsaW51eC9z
+d2FwLmg+CiAjaW5jbHVkZSA8bGludXgvc3dhcG9wcy5oPgogI2luY2x1ZGUgPGxpbnV4L3dhaXRf
+Yml0Lmg+CkBAIC0xNiwzMSArMTcsNiBAQCBzdGF0aWMgUkFESVhfVFJFRShwZ21hcF9yYWRpeCwg
+R0ZQX0tFUk5FTCk7CiAjZGVmaW5lIFNFQ1RJT05fTUFTSyB+KCgxVUwgPDwgUEFfU0VDVElPTl9T
+SElGVCkgLSAxKQogI2RlZmluZSBTRUNUSU9OX1NJWkUgKDFVTCA8PCBQQV9TRUNUSU9OX1NISUZU
+KQogCi1zdGF0aWMgdW5zaWduZWQgbG9uZyBvcmRlcl9hdChzdHJ1Y3QgcmVzb3VyY2UgKnJlcywg
+dW5zaWduZWQgbG9uZyBwZ29mZikKLXsKLQl1bnNpZ25lZCBsb25nIHBoeXNfcGdvZmYgPSBQSFlT
+X1BGTihyZXMtPnN0YXJ0KSArIHBnb2ZmOwotCXVuc2lnbmVkIGxvbmcgbnJfcGFnZXMsIG1hc2s7
+Ci0KLQlucl9wYWdlcyA9IFBIWVNfUEZOKHJlc291cmNlX3NpemUocmVzKSk7Ci0JaWYgKG5yX3Bh
+Z2VzID09IHBnb2ZmKQotCQlyZXR1cm4gVUxPTkdfTUFYOwotCi0JLyoKLQkgKiBXaGF0IGlzIHRo
+ZSBsYXJnZXN0IGFsaWduZWQgcG93ZXItb2YtMiByYW5nZSBhdmFpbGFibGUgZnJvbQotCSAqIHRo
+aXMgcmVzb3VyY2UgcGdvZmYgdG8gdGhlIGVuZCBvZiB0aGUgcmVzb3VyY2UgcmFuZ2UsCi0JICog
+Y29uc2lkZXJpbmcgdGhlIGFsaWdubWVudCBvZiB0aGUgY3VycmVudCBwZ29mZj8KLQkgKi8KLQlt
+YXNrID0gcGh5c19wZ29mZiB8IHJvdW5kZG93bl9wb3dfb2ZfdHdvKG5yX3BhZ2VzIC0gcGdvZmYp
+OwotCWlmICghbWFzaykKLQkJcmV0dXJuIFVMT05HX01BWDsKLQotCXJldHVybiBmaW5kX2ZpcnN0
+X2JpdCgmbWFzaywgQklUU19QRVJfTE9ORyk7Ci19Ci0KLSNkZWZpbmUgZm9yZWFjaF9vcmRlcl9w
+Z29mZihyZXMsIG9yZGVyLCBwZ29mZikgXAotCWZvciAocGdvZmYgPSAwLCBvcmRlciA9IG9yZGVy
+X2F0KChyZXMpLCBwZ29mZik7IG9yZGVyIDwgVUxPTkdfTUFYOyBcCi0JCQlwZ29mZiArPSAxVUwg
+PDwgb3JkZXIsIG9yZGVyID0gb3JkZXJfYXQoKHJlcyksIHBnb2ZmKSkKLQogI2lmIElTX0VOQUJM
+RUQoQ09ORklHX0RFVklDRV9QUklWQVRFKQogaW50IGRldmljZV9wcml2YXRlX2VudHJ5X2ZhdWx0
+KHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hLAogCQkgICAgICAgdW5zaWduZWQgbG9uZyBhZGRy
+LApAQCAtMTEzLDE1ICs4OSw0NiBAQCBzdGF0aWMgdW5zaWduZWQgbG9uZyBwZm5fbmV4dCh1bnNp
+Z25lZCBsb25nIHBmbikKICNkZWZpbmUgZm9yX2VhY2hfZGV2aWNlX3BmbihwZm4sIG1hcCkgXAog
+CWZvciAocGZuID0gcGZuX2ZpcnN0KG1hcCk7IHBmbiA8IHBmbl9lbmQobWFwKTsgcGZuID0gcGZu
+X25leHQocGZuKSkKIAorc3RhdGljIHZvaWQga2lsbF9tZW1tYXBfYXN5bmMoc3RydWN0IG1lbW1h
+cF9hc3luY19zdGF0ZSAqYXN5bmMpCit7CisJc3RydWN0IHJhZGl4X3RyZWVfaXRlciBpdGVyOwor
+CXZvaWQgKnNsb3Q7CisJaW50IGk7CisKKwlpZiAoIWFzeW5jKQorCQlyZXR1cm47CisKKwlmb3Ig
+KGkgPSAwOyBpIDwgTlJfTUVNTUFQX1RIUkVBRFM7IGkrKykgeworCQlhc3luY19jb29raWVfdCBj
+b29raWU7CisKKwkJaWYgKCF0ZXN0X2JpdChpLCBhc3luYy0+YWN0aXZlKSkKKwkJCWNvbnRpbnVl
+OworCisJCWNvb2tpZSA9IGFzeW5jLT5wYWdlX2luaXRbaV0uY29va2llOworCQlhc3luY19zeW5j
+aHJvbml6ZV9jb29raWVfZG9tYWluKGNvb2tpZSsxLCAmbWVtbWFwX2luaXRfZG9tYWluKTsKKwl9
+CisJcmFkaXhfdHJlZV9mb3JfZWFjaF9zbG90KHNsb3QsICZhc3luYy0+cGZuX3RvX3RocmVhZCwg
+Jml0ZXIsIDApCisJCXJhZGl4X3RyZWVfZGVsZXRlKCZhc3luYy0+cGZuX3RvX3RocmVhZCwgaXRl
+ci5pbmRleCk7Cit9CisKIHN0YXRpYyB2b2lkIGRldm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSh2
+b2lkICpkYXRhKQogewogCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBkYXRhOwogCXN0cnVj
+dCBkZXZpY2UgKmRldiA9IHBnbWFwLT5kZXY7CiAJc3RydWN0IHJlc291cmNlICpyZXMgPSAmcGdt
+YXAtPnJlczsKIAlyZXNvdXJjZV9zaXplX3QgYWxpZ25fc3RhcnQsIGFsaWduX3NpemU7CisJc3Ry
+dWN0IG1lbW1hcF9hc3luY19zdGF0ZSAqYXN5bmMgPSBwZ21hcC0+YXN5bmM7CiAJdW5zaWduZWQg
+bG9uZyBwZm47CiAKKwkvKgorCSAqIE9uY2UgdGhlIHBnbWFwIGlzIGtpbGxlZCBwZ21hcCBvd25l
+cnMgbXVzdCBkaXNhbGxvdyBuZXcKKwkgKiBkaXJlY3RfYWNjZXNzIC8gcGFnZSBtYXBwaW5nIHJl
+cXVlc3RzLiBJLmUuIG1lbW1hcF9zeW5jKCkKKwkgKiB1c2VycyBtdXN0IG5vdCByYWNlIHRoZSB0
+ZWFyZG93biBvZiB0aGUgYXN5bmMtPnBmbl90b190aHJlYWQKKwkgKiByYWRpeC4KKwkgKi8KIAlw
+Z21hcC0+a2lsbChwZ21hcC0+cmVmKTsKKwlraWxsX21lbW1hcF9hc3luYyhhc3luYyk7CisKIAlm
+b3JfZWFjaF9kZXZpY2VfcGZuKHBmbiwgcGdtYXApCiAJCXB1dF9wYWdlKHBmbl90b19wYWdlKHBm
+bikpOwogCkBAIC0yNDAsNyArMjQ3LDEzIEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3Ry
+dWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwLAogCQlzdHJ1Y3Qgem9u
+ZSAqem9uZTsKIAogCQllcnJvciA9IGFyY2hfYWRkX21lbW9yeShuaWQsIGFsaWduX3N0YXJ0LCBh
+bGlnbl9zaXplLCBhbHRtYXAsCi0JCQkJZmFsc2UsIE5VTEwpOworCQkJCWZhbHNlLCBwZ21hcC0+
+YXN5bmMpOworCQlpZiAoZXJyb3IgPT0gLUVXT1VMREJMT0NLKSB7CisJCQkvKiBmYWxsIGJhY2sg
+dG8gc3luY2hyb25vdXMgKi8KKwkJCXBnbWFwLT5hc3luYyA9IE5VTEw7CisJCQllcnJvciA9IGFy
+Y2hfYWRkX21lbW9yeShuaWQsIGFsaWduX3N0YXJ0LCBhbGlnbl9zaXplLAorCQkJCQlhbHRtYXAs
+IGZhbHNlLCBOVUxMKTsKKwkJfQogCQl6b25lID0gJk5PREVfREFUQShuaWQpLT5ub2RlX3pvbmVz
+W1pPTkVfREVWSUNFXTsKIAkJaWYgKCFlcnJvcikKIAkJCW1vdmVfcGZuX3JhbmdlX3RvX3pvbmUo
+em9uZSwgYWxpZ25fc3RhcnQgPj4gUEFHRV9TSElGVCwKZGlmZiAtLWdpdCBhL21tL3BhZ2VfYWxs
+b2MuYyBiL21tL3BhZ2VfYWxsb2MuYwppbmRleCA2ZDBlZDE3Y2YzMDUuLmQxNDY2ZGQ4MmJjMiAx
+MDA2NDQKLS0tIGEvbW0vcGFnZV9hbGxvYy5jCisrKyBiL21tL3BhZ2VfYWxsb2MuYwpAQCAtNjgs
+NiArNjgsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2Z0cmFjZS5oPgogI2luY2x1ZGUgPGxpbnV4L2xv
+Y2tkZXAuaD4KICNpbmNsdWRlIDxsaW51eC9hc3luYy5oPgorI2luY2x1ZGUgPGxpbnV4L3Bmbl90
+Lmg+CiAjaW5jbHVkZSA8bGludXgvbm1pLmg+CiAKICNpbmNsdWRlIDxhc20vc2VjdGlvbnMuaD4K
+QEAgLTU1MTAsMTIgKzU1MTEsODAgQEAgc3RhdGljIHZvaWQgX19yZWYgbWVtbWFwX2luaXRfYXN5
+bmModm9pZCAqZGF0YSwgYXN5bmNfY29va2llX3QgY29va2llKQogewogCXN0cnVjdCBtZW1tYXBf
+aW5pdF9wYWdlcyAqYXJncyA9IGRhdGE7CiAJc3RydWN0IG1lbW1hcF9pbml0X2VudiAqZW52ID0g
+YXJncy0+ZW52OworCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBlbnYtPnBnbWFwOworCXN0
+cnVjdCBtZW1tYXBfYXN5bmNfc3RhdGUgKmFzeW5jID0gcGdtYXAgPyBwZ21hcC0+YXN5bmMgOiBO
+VUxMOwogCXN0cnVjdCByZXNvdXJjZSAqcmVzID0gJmFyZ3MtPnJlczsKIAl1bnNpZ25lZCBsb25n
+IHBmbjsKIAorCWlmIChhc3luYykKKwkJYXN5bmNfc3luY2hyb25pemVfY29va2llX2RvbWFpbihh
+c3luYy0+bWVtbWFwLmNvb2tpZSsxLAorCQkJCSZtZW1tYXBfaW5pdF9kb21haW4pOworCiAJZm9y
+IChwZm4gPSBQSFlTX1BGTihyZXMtPnN0YXJ0KTsgcGZuIDwgUEhZU19QRk4ocmVzLT5lbmQrMSk7
+IHBmbisrKQogCQltZW1tYXBfaW5pdF9vbmUocGZuLCBlbnYtPnpvbmUsIGVudi0+bmlkLCBlbnYt
+PmNvbnRleHQsCi0JCQkJZW52LT5wZ21hcCk7CisJCQkJcGdtYXApOworCWlmIChhc3luYykKKwkJ
+Y2xlYXJfYml0KGFyZ3MtPmlkLCBhc3luYy0+YWN0aXZlKTsKK30KKwordm9pZCBtZW1tYXBfc3lu
+YyhwZm5fdCBwZm4sIHVuc2lnbmVkIGxvbmcgbnJfcGFnZXMsCisJCXN0cnVjdCBtZW1tYXBfYXN5
+bmNfc3RhdGUgKmFzeW5jKQoreworCXN0cnVjdCBtZW1tYXBfaW5pdF9wYWdlcyAqYXJncywgKnN0
+YXJ0LCAqZW5kOworCXVuc2lnbmVkIGxvbmcgcmF3X3BmbiA9IHBmbl90X3RvX3BmbihwZm4pOwor
+CisJaWYgKCFhc3luYyB8fCAhcGZuX3RfaGFzX3BhZ2UocGZuKQorCQkJfHwgIWJpdG1hcF93ZWln
+aHQoYXN5bmMtPmFjdGl2ZSwgTlJfTUVNTUFQX1RIUkVBRFMpKQorCQlyZXR1cm47CisKKwlzdGFy
+dCA9IHJhZGl4X3RyZWVfbG9va3VwKCZhc3luYy0+cGZuX3RvX3RocmVhZCwgcmF3X3Bmbik7CisJ
+ZW5kID0gcmFkaXhfdHJlZV9sb29rdXAoJmFzeW5jLT5wZm5fdG9fdGhyZWFkLCByYXdfcGZuICsg
+bnJfcGFnZXMgLSAxKTsKKwlpZiAoIXN0YXJ0IHx8ICFlbmQpIHsKKwkJV0FSTl9PTl9PTkNFKDEp
+OworCQlyZXR1cm47CisJfQorCisJZm9yIChhcmdzID0gc3RhcnQ7IGFyZ3MgPD0gZW5kOyBhcmdz
+KyspIHsKKwkJaW50IGlkID0gYXJncyAtICZhc3luYy0+cGFnZV9pbml0WzBdOworCisJCWFzeW5j
+X3N5bmNocm9uaXplX2Nvb2tpZV9kb21haW4oYXJncy0+Y29va2llKzEsCisJCQkJJm1lbW1hcF9p
+bml0X2RvbWFpbik7CisJCXByX2RlYnVnKCIlczogcGZuOiAlI2x4IG5yOiAlbGQgdGhyZWFkOiAl
+ZFxuIiwKKwkJCQlfX2Z1bmNfXywgcmF3X3BmbiwgbnJfcGFnZXMsIGlkKTsKKwl9Cit9CitFWFBP
+UlRfU1lNQk9MX0dQTChtZW1tYXBfc3luYyk7CisKK3N0YXRpYyBib29sIHJ1bl9tZW1tYXBfaW5p
+dChzdHJ1Y3QgbWVtbWFwX2luaXRfcGFnZXMgKnRocmVhZCwKKwkJc3RydWN0IG1lbW1hcF9hc3lu
+Y19zdGF0ZSAqYXN5bmMsIHN0cnVjdCBhc3luY19kb21haW4gKmRvbWFpbikKK3sKKwlzdHJ1Y3Qg
+cmVzb3VyY2UgKnJlcyA9ICZ0aHJlYWQtPnJlczsKKwl1bnNpZ25lZCBsb25nIHBnb2ZmOworCWlu
+dCBvcmRlcjsKKworCWlmICghYXN5bmMpIHsKKwkJYXN5bmNfc2NoZWR1bGVfZG9tYWluKG1lbW1h
+cF9pbml0X2FzeW5jLCB0aHJlYWQsIGRvbWFpbik7CisJCXJldHVybiBmYWxzZTsKKwl9CisKKwl0
+aHJlYWQtPmNvb2tpZSA9IGFzeW5jX3NjaGVkdWxlX2RvbWFpbihtZW1tYXBfaW5pdF9hc3luYywK
+KwkJCXRocmVhZCwgZG9tYWluKTsKKwlzZXRfYml0KHRocmVhZC0+aWQsIGFzeW5jLT5hY3RpdmUp
+OworCWZvcmVhY2hfb3JkZXJfcGdvZmYocmVzLCBvcmRlciwgcGdvZmYpIHsKKwkJaW50IHJjID0g
+X19yYWRpeF90cmVlX2luc2VydCgmYXN5bmMtPnBmbl90b190aHJlYWQsCisJCQkJUEhZU19QRk4o
+cmVzLT5zdGFydCkgKyBwZ29mZiwgb3JkZXIsIHRocmVhZCk7CisJCWlmIChyYykgeworCQkJLyoK
+KwkJCSAqIE1hcmsgYWxsIHRocmVhZHMgaW5hY3RpdmUsIGFuZCBieSByZXR1cm5pbmcKKwkJCSAq
+IGZhbHNlIHdlJ2xsIHN5bmMgYWxsIHRocmVhZHMgYmVmb3JlIHJldHVybmluZworCQkJICogZnJv
+bSBtZW1tYXBfaW5pdF96b25lKCkuCisJCQkgKi8KKwkJCW1lbXNldChhc3luYy0+YWN0aXZlLCAw
+LCBzaXplb2YodW5zaWduZWQgbG9uZykKKwkJCQkJKiBCSVRTX1RPX0xPTkdTKE5SX01FTU1BUF9U
+SFJFQURTKSk7CisJCQlyZXR1cm4gZmFsc2U7CisJCX0KKwl9CisJcmV0dXJuIHRydWU7CiB9CiAK
+IC8qCkBAIC01NTU0LDMzICs1NjIzLDQ0IEBAIHZvaWQgX19tZW1pbml0IG1lbW1hcF9pbml0X3pv
+bmUodW5zaWduZWQgbG9uZyBzaXplLCBpbnQgbmlkLCB1bnNpZ25lZCBsb25nIHpvbmUsCiAJCSAq
+IGZ1bmN0aW9uLiAgVGhleSBkbyBub3QgZXhpc3Qgb24gaG90cGx1Z2dlZCBtZW1vcnkuCiAJCSAq
+LwogCQlBU1lOQ19ET01BSU5fRVhDTFVTSVZFKGxvY2FsKTsKLQkJc3RydWN0IG1lbW1hcF9pbml0
+X3BhZ2VzIGFyZ3NbTlJfTUVNTUFQX1RIUkVBRFNdOwotCQlzdHJ1Y3QgbWVtbWFwX2luaXRfZW52
+IGVudiA9IHsKLQkJCS5uaWQgPSBuaWQsCi0JCQkuem9uZSA9IHpvbmUsCi0JCQkucGdtYXAgPSBw
+Z21hcCwKLQkJCS5jb250ZXh0ID0gY29udGV4dCwKLQkJfTsKKwkJc3RydWN0IG1lbW1hcF9hc3lu
+Y19zdGF0ZSAqYXN5bmMgPSBwZ21hcCA/IHBnbWFwLT5hc3luYyA6IE5VTEw7CisJCXN0cnVjdCBt
+ZW1tYXBfaW5pdF9wYWdlcyBfYXJnc1tOUl9NRU1NQVBfVEhSRUFEU107CisJCXN0cnVjdCBtZW1t
+YXBfaW5pdF9wYWdlcyAqYXJncyA9IGFzeW5jID8gYXN5bmMtPnBhZ2VfaW5pdCA6IF9hcmdzOwor
+CQlzdHJ1Y3QgYXN5bmNfZG9tYWluICpkb21haW47CisJCXN0cnVjdCBtZW1tYXBfaW5pdF9lbnYg
+X2VudjsKKwkJc3RydWN0IG1lbW1hcF9pbml0X2VudiAqZW52ID0gYXN5bmMgPyAmYXN5bmMtPmVu
+diA6ICZfZW52OwogCQl1bnNpZ25lZCBsb25nIHN0ZXAsIHJlbTsKKwkJYm9vbCBzeW5jID0gIWFz
+eW5jOwogCQlpbnQgaTsKIAorCQlkb21haW4gPSBhc3luYyA/ICZtZW1tYXBfaW5pdF9kb21haW4g
+OiAmbG9jYWw7CisJCWVudi0+cGdtYXAgPSBwZ21hcDsKKwkJZW52LT5uaWQgPSBuaWQ7CisJCWVu
+di0+em9uZSA9IHpvbmU7CisJCWVudi0+Y29udGV4dCA9IGNvbnRleHQ7CisKIAkJc2l6ZSA9IGVu
+ZF9wZm4gLSBzdGFydF9wZm47CiAJCXN0ZXAgPSBzaXplIC8gTlJfTUVNTUFQX1RIUkVBRFM7CiAJ
+CXJlbSA9IHNpemUgJSBOUl9NRU1NQVBfVEhSRUFEUzsKKwkJaWYgKGFzeW5jKQorCQkJSU5JVF9S
+QURJWF9UUkVFKCZhc3luYy0+cGZuX3RvX3RocmVhZCwgR0ZQX0tFUk5FTCk7CiAJCWZvciAoaSA9
+IDA7IGkgPCBOUl9NRU1NQVBfVEhSRUFEUzsgaSsrKSB7CiAJCQlzdHJ1Y3QgbWVtbWFwX2luaXRf
+cGFnZXMgKnQgPSAmYXJnc1tpXTsKIAotCQkJdC0+ZW52ID0gJmVudjsKKwkJCXQtPmlkID0gaTsK
+KwkJCXQtPmVudiA9IGVudjsKIAkJCXQtPnJlcy5zdGFydCA9IFBGTl9QSFlTKHN0YXJ0X3Bmbik7
+CiAJCQl0LT5yZXMuZW5kID0gUEZOX1BIWVMoc3RhcnRfcGZuICsgc3RlcCkgLSAxOwogCQkJaWYg
+KGkgPT0gTlJfTUVNTUFQX1RIUkVBRFMtMSkKIAkJCQl0LT5yZXMuZW5kICs9IFBGTl9QSFlTKHJl
+bSk7CiAKLQkJCWFzeW5jX3NjaGVkdWxlX2RvbWFpbihtZW1tYXBfaW5pdF9hc3luYywgdCwgJmxv
+Y2FsKTsKKwkJCWlmICghcnVuX21lbW1hcF9pbml0KHQsIGFzeW5jLCBkb21haW4pKQorCQkJCXN5
+bmMgPSB0cnVlOwogCiAJCQlzdGFydF9wZm4gKz0gc3RlcDsKIAkJfQotCQlhc3luY19zeW5jaHJv
+bml6ZV9mdWxsX2RvbWFpbigmbG9jYWwpOworCQlpZiAoc3luYykKKwkJCWFzeW5jX3N5bmNocm9u
+aXplX2Z1bGxfZG9tYWluKGRvbWFpbik7CiAJCXJldHVybjsKIAl9CiAKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxp
+c3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
