@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E27E121BADAB2
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 01:55:17 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 9DDFAAC01EF
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 17:55:10 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [PATCH] ndctl,
- monitor: fix monitor can be started though no dimm event to monitor
-Date: Thu, 19 Jul 2018 17:54:27 +0900
-Message-Id: <20180719085427.17836-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0FDDB210D93A5
+ for <linux-nvdimm@lists.01.org>; Thu,  5 Jul 2018 13:23:03 -0700 (PDT)
+Subject: [PATCH v2 08/11] nfit/libnvdimm: adding support for issue secure
+ erase DSM to Intel nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 05 Jul 2018 13:22:55 -0700
+Message-ID: <153082217561.61422.7938851123374855956.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+References: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,74 +19,175 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently, the monitor still can be started though there is no dimm event
-to be monitored, which is caused by the typo of uses. In this case,
-no smart event message can be logged.
-This patch is used to fix this bug. When user starts the monitor with
-invalid dimm event in [--dimm-event] option, the monitor will stop and
-output error message.
+Adding support to issue a secure erase DSM to the Intel nvdimm. The
+required passphrase is acquired from userspace through the kernel key
+management. To trigger the action, "erase" is written to the "security"
+sysfs attribute.  libnvdimm will support the erase generic API call.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/monitor.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/acpi/nfit/intel.c  |   55 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   47 ++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h  |    2 ++
+ 3 files changed, 104 insertions(+)
 
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index 8300250..abab45f 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -413,7 +413,7 @@ static int monitor_event(struct ndctl_ctx *ctx,
- 	return 0;
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index ab0ad103f861..118edf93116f 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -17,6 +17,60 @@
+ #include "intel.h"
+ #include "nfit.h"
+ 
++static int intel_dimm_security_erase(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_secure_erase cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_SECURE_ERASE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_SECURE_ERASE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	memcpy(nd_cmd.cmd.passphrase, nkey->data, ND_INTEL_PASSPHRASE_SIZE);
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
++	}
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		rc = -EINVAL;
++		goto out;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++	/* DIMM unlocked, invalidate all CPU caches before we read it */
++	wbinvd();
++
++ out:
++	return rc;
++}
++
+ static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm)
+ {
+@@ -303,4 +357,5 @@ struct nvdimm_security_ops intel_security_ops = {
+ 	.change_key = intel_dimm_security_update_passphrase,
+ 	.disable = intel_dimm_security_disable,
+ 	.freeze_lock = intel_dimm_security_freeze_lock,
++	.erase = intel_dimm_security_erase,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 0dcb5991a82d..521edf6ed330 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -125,6 +125,51 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
  }
  
--static int parse_monitor_event(struct monitor *_monitor)
-+static int parse_monitor_event(struct monitor *_monitor, struct ndctl_ctx *ctx)
++static int nvdimm_security_erase(struct device *dev)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key;
++	void *payload;
++	int rc = 0;
++
++	if (!nvdimm->security_ops)
++		return 0;
++
++	/* lock the device and disallow driver bind */
++	device_lock(dev);
++	/* No driver data means dimm is disabled. Proceed if so. */
++	if (dev_get_drvdata(dev)) {
++		dev_warn(dev, "Unable to secure erase while DIMM active.\n");
++		rc = -EINVAL;
++		goto out;
++	}
++
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
++		goto out;
++
++	key = nvdimm_search_key(dev);
++	if (!key)
++		key = nvdimm_request_key(dev);
++	if (!key) {
++		rc = -ENXIO;
++		goto out;
++	}
++
++	down_read(&key->sem);
++	payload = key->payload.data[0];
++	rc = nvdimm->security_ops->erase(nvdimm_bus, nvdimm, payload);
++	up_read(&key->sem);
++	/* remove key since secure erase kills the passphrase */
++	key_invalidate(key);
++	key_put(key);
++
++ out:
++	device_unlock(dev);
++	nvdimm_security_get_state(dev);
++	return rc;
++}
++
+ static int nvdimm_security_freeze_lock(struct device *dev)
  {
- 	char *dimm_event, *save;
- 	const char *event;
-@@ -432,14 +432,18 @@ static int parse_monitor_event(struct monitor *_monitor)
- 		}
- 		if (strcmp(event, "dimm-spares-remaining") == 0)
- 			_monitor->event_flags |= ND_EVENT_SPARES_REMAINING;
--		if (strcmp(event, "dimm-media-temperature") == 0)
-+		else if (strcmp(event, "dimm-media-temperature") == 0)
- 			_monitor->event_flags |= ND_EVENT_MEDIA_TEMPERATURE;
--		if (strcmp(event, "dimm-controller-temperature") == 0)
-+		else if (strcmp(event, "dimm-controller-temperature") == 0)
- 			_monitor->event_flags |= ND_EVENT_CTRL_TEMPERATURE;
--		if (strcmp(event, "dimm-health-state") == 0)
-+		else if (strcmp(event, "dimm-health-state") == 0)
- 			_monitor->event_flags |= ND_EVENT_HEALTH_STATE;
--		if (strcmp(event, "dimm-unclean-shutdown") == 0)
-+		else if (strcmp(event, "dimm-unclean-shutdown") == 0)
- 			_monitor->event_flags |= ND_EVENT_UNCLEAN_SHUTDOWN;
-+		else {
-+			err(ctx, "no dimm-event named %s\n", event);
-+			return 1;
-+		}
- 	}
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+@@ -690,6 +735,8 @@ static ssize_t security_store(struct device *dev,
+ 		rc = nvdimm_security_disable(dev);
+ 	else if (strcmp(buf, "freeze") == 0 || strcmp(buf, "freeze\n") == 0)
+ 		rc = nvdimm_security_freeze_lock(dev);
++	else if (strcmp(buf, "erase") == 0 || strcmp(buf, "erase\n") == 0)
++		rc = nvdimm_security_erase(dev);
+ 	else
+ 		return -EINVAL;
  
- 	free(dimm_event);
-@@ -620,7 +624,7 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
- 		notice((struct ndctl_ctx *)ctx, "ndctl monitor daemon started\n");
- 	}
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 1836599ed5b8..1ac5acb3c457 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -187,6 +187,8 @@ struct nvdimm_security_ops {
+ 			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
+ 	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm);
++	int (*erase)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
+ };
  
--	if (parse_monitor_event(&monitor))
-+	if (parse_monitor_event(&monitor, (struct ndctl_ctx *)ctx))
- 		goto out;
- 
- 	fctx.filter_bus = filter_bus;
--- 
-2.18.0
-
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
