@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 097D9210DA7A5
- for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 16:40:08 -0700 (PDT)
-Subject: [PATCH 11/11] libnvdimm: adding documentation for nvdimm security
- support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 02 Jul 2018 16:40:08 -0700
-Message-ID: <153057480817.38125.1881495388634154140.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
-References: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BA669202E5484
+ for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 20:44:00 -0700 (PDT)
+Subject: [PATCH v6] filesystem-dax: Introduce dax_lock_mapping_entry()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 04 Jul 2018 20:33:52 -0700
+Message-ID: <153076161392.9314.16967170107658011515.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153074046078.27838.5465590228767136915.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153074046078.27838.5465590228767136915.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,95 +22,215 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding theory of operation for the security support that's going into
-libnvdimm.
+In preparation for implementing support for memory poison (media error)
+handling via dax mappings, implement a lock_page() equivalent. Poison
+error handling requires rmap and needs guarantees that the page->mapping
+association is maintained / valid (inode not freed) for the duration of
+the lookup.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+In the device-dax case it is sufficient to simply hold a dev_pagemap
+reference. In the filesystem-dax case we need to use the entry lock.
+
+Export the entry lock via dax_lock_mapping_entry() that uses
+rcu_read_lock() to protect against the inode being freed, and
+revalidates the page->mapping association under xa_lock().
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/nvdimm/security |   70 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
- create mode 100644 Documentation/nvdimm/security
+Changes since v5, fixup kbuild robot reports.
 
-diff --git a/Documentation/nvdimm/security b/Documentation/nvdimm/security
-new file mode 100644
-index 000000000000..756205c9aa4c
---- /dev/null
-+++ b/Documentation/nvdimm/security
-@@ -0,0 +1,70 @@
-+NVDIMM SECURITY
-+===============
+ fs/dax.c            |  109 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/dax.h |   13 ++++++
+ 2 files changed, 116 insertions(+), 6 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 4de11ed463ce..57ec272038da 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -226,8 +226,8 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
+  *
+  * Must be called with the i_pages lock held.
+  */
+-static void *get_unlocked_mapping_entry(struct address_space *mapping,
+-					pgoff_t index, void ***slotp)
++static void *__get_unlocked_mapping_entry(struct address_space *mapping,
++		pgoff_t index, void ***slotp, bool (*wait_fn)(void))
+ {
+ 	void *entry, **slot;
+ 	struct wait_exceptional_entry_queue ewait;
+@@ -237,6 +237,8 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+ 	ewait.wait.func = wake_exceptional_entry_func;
+ 
+ 	for (;;) {
++		bool revalidate;
 +
-+1. Introduction
-+---------------
+ 		entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
+ 					  &slot);
+ 		if (!entry ||
+@@ -251,14 +253,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+ 		prepare_to_wait_exclusive(wq, &ewait.wait,
+ 					  TASK_UNINTERRUPTIBLE);
+ 		xa_unlock_irq(&mapping->i_pages);
+-		schedule();
++		revalidate = wait_fn();
+ 		finish_wait(wq, &ewait.wait);
+ 		xa_lock_irq(&mapping->i_pages);
++		if (revalidate)
++			return ERR_PTR(-EAGAIN);
+ 	}
+ }
+ 
+-static void dax_unlock_mapping_entry(struct address_space *mapping,
+-				     pgoff_t index)
++static bool entry_wait(void)
++{
++	schedule();
++	/*
++	 * Never return an ERR_PTR() from
++	 * __get_unlocked_mapping_entry(), just keep looping.
++	 */
++	return false;
++}
 +
-+With the introduction of Intel DSM v1.7 specification [1], security DSMs are
-+introduced. The spec added the following security DSMs: "get security state",
-+"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
-+"secure erase", and "overwrite". A security_ops data structure has been
-+added to struct dimm in order to support the security operations and generic
-+APIs are exposed to allow vendor neutral operations.
++static void *get_unlocked_mapping_entry(struct address_space *mapping,
++		pgoff_t index, void ***slotp)
++{
++	return __get_unlocked_mapping_entry(mapping, index, slotp, entry_wait);
++}
 +
-+2. Sysfs Interface
-+------------------
-+The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
-+example:
-+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
++static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
+ {
+ 	void *entry, **slot;
+ 
+@@ -277,7 +296,7 @@ static void dax_unlock_mapping_entry(struct address_space *mapping,
+ static void put_locked_mapping_entry(struct address_space *mapping,
+ 		pgoff_t index)
+ {
+-	dax_unlock_mapping_entry(mapping, index);
++	unlock_mapping_entry(mapping, index);
+ }
+ 
+ /*
+@@ -374,6 +393,84 @@ static struct page *dax_busy_page(void *entry)
+ 	return NULL;
+ }
+ 
++static bool entry_wait_revalidate(void)
++{
++	rcu_read_unlock();
++	schedule();
++	rcu_read_lock();
 +
-+The "show" function of that attribute will display the security state for
-+that DIMM. The following states are available: disabled, unlocked, locked,
-+frozen, and unsupported.
++	/*
++	 * Tell __get_unlocked_mapping_entry() to take a break, we need
++	 * to revalidate page->mapping after dropping locks
++	 */
++	return true;
++}
 +
-+The "store" function takes several commands when the attribute is written to
-+in order to support some of the security functionalities:
-+update - enable security. Add or update current key.
-+disable - disable enabled security and remove key.
-+freeze - freeze changing of security states.
-+erase - generate new ecryption key for DIMM and crypto-scrambles all existing
-+	user data.
++bool dax_lock_mapping_entry(struct page *page)
++{
++	pgoff_t index;
++	struct inode *inode;
++	bool did_lock = false;
++	void *entry = NULL, **slot;
++	struct address_space *mapping;
 +
-+3. Key Management
-+-----------------
++	rcu_read_lock();
++	for (;;) {
++		mapping = READ_ONCE(page->mapping);
 +
-+The key is associted to the payload by the DIMM id. For example:
-+# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
-+8089-a2-1740-00000133
-+The DIMM id would be provided along with the key payload (passphrase) to
-+the kernel.
++		if (!dax_mapping(mapping))
++			break;
 +
-+The security keys are managed on the basis of a single key per DIMM. The
-+key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
-+similar to the ATA security specification [2]. A key is initially acquired
-+via the request_key() kernel API call and retrieved from userspace. It is up to
-+the user to provide an upcall application to retrieve the key in whatever
-+fashion meets their security requirements.
++		/*
++		 * In the device-dax case there's no need to lock, a
++		 * struct dev_pagemap pin is sufficient to keep the
++		 * inode alive, and we assume we have dev_pagemap pin
++		 * otherwise we would not have a valid pfn_to_page()
++		 * translation.
++		 */
++		inode = mapping->host;
++		if (S_ISCHR(inode->i_mode)) {
++			did_lock = true;
++			break;
++		}
 +
-+The payload provided to the key can be a 32bytes payload or 64bytes payload
-+when doing an "update". The payload is viewed as 64 bytes in the following
-+format:
-+[32 bytes current key data zero padded][32 bytes new key data zero padded]
-+However, a 32bytes payload can be provided and will be assumed as the old
-+key to be 32 bytes of 0s and the provided 32bytes payload is the new key.
-+It is up to the user upcall function how that's presented as the key payload
-+to the kernel.
++		xa_lock_irq(&mapping->i_pages);
++		if (mapping != page->mapping) {
++			xa_unlock_irq(&mapping->i_pages);
++			continue;
++		}
++		index = page->index;
 +
-+All the other security functions that require a provided key can accept a
-+32bytes payload or 64bytes. If the payload is 64bytes, then second 32bytes
-+will be ignored and the first 32bytes contains the expected "passphrase".
++		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
++				entry_wait_revalidate);
++		if (!entry) {
++			xa_unlock_irq(&mapping->i_pages);
++			break;
++		} else if (IS_ERR(entry)) {
++			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
++			continue;
++		}
++		lock_slot(mapping, slot);
++		did_lock = true;
++		xa_unlock_irq(&mapping->i_pages);
++		break;
++	}
++	rcu_read_unlock();
 +
-+4. Unlocking
-+------------
-+When the DIMMs are being enumerated by the kernel, the kernel will attempt to
-+retrieve the key from its keyring. If that fails, it will attempt to
-+acquire the key from the userspace upcall function. This is the only time
-+a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
-+until reboot.
++	return did_lock;
++}
 +
-+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
-+[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
++void dax_unlock_mapping_entry(struct page *page)
++{
++	struct address_space *mapping = page->mapping;
++	struct inode *inode = mapping->host;
++
++	if (S_ISCHR(inode->i_mode))
++		return;
++
++	unlock_mapping_entry(mapping, page->index);
++}
++
+ /*
+  * Find radix tree entry at given index. If it points to an exceptional entry,
+  * return it with the radix tree entry locked. If the radix tree doesn't
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index deb0f663252f..450b28db9533 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -88,6 +88,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct block_device *bdev, struct writeback_control *wbc);
+ 
+ struct page *dax_layout_busy_page(struct address_space *mapping);
++bool dax_lock_mapping_entry(struct page *page);
++void dax_unlock_mapping_entry(struct page *page);
+ #else
+ static inline bool bdev_dax_supported(struct block_device *bdev,
+ 		int blocksize)
+@@ -119,6 +121,17 @@ static inline int dax_writeback_mapping_range(struct address_space *mapping,
+ {
+ 	return -EOPNOTSUPP;
+ }
++
++static inline bool dax_lock_mapping_entry(struct page *page)
++{
++	if (IS_DAX(page->mapping->host))
++		return true;
++	return false;
++}
++
++static inline void dax_unlock_mapping_entry(struct page *page)
++{
++}
+ #endif
+ 
+ int dax_read_lock(void);
 
 _______________________________________________
 Linux-nvdimm mailing list
