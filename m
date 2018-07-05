@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9132D21CB74A4
- for <linux-nvdimm@lists.01.org>; Tue, 31 Jul 2018 05:18:56 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 89A99AC00F3
- for <linux-nvdimm@lists.01.org>; Tue, 31 Jul 2018 21:18:50 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH] ndctl,
- inject-smart: add an interface to inject ctrl-temperature
-Date: Tue, 31 Jul 2018 21:18:42 +0900
-Message-Id: <20180731121842.27213-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1E18C210E2DD4
+ for <linux-nvdimm@lists.01.org>; Thu,  5 Jul 2018 13:22:51 -0700 (PDT)
+Subject: [PATCH v2 07/11] nfit/libnvdimm: adding freeze security support to
+ Intel nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 05 Jul 2018 13:22:50 -0700
+Message-ID: <153082216996.61422.16364255181328411057.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+References: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,90 +19,153 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch is used to add an interface to inject controller temperature.
-The ndctl should be supportive of injecting all possible fields.
-Although currently controller temperature injection is not supported
-by NVDIMMs, this interface can return a failure report to users.
+Adding support for freeze security on Intel nvdimm. This locks out any
+changes to security for the DIMM unless a reboot is done. This is triggered
+by writing "freeze" to the "security" sysfs attribute. libnvdimm will
+support the generic freeze_lock API call.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/inject-smart.c   | 1 +
- ndctl/lib/libndctl.sym | 1 +
- ndctl/lib/private.h    | 1 +
- ndctl/lib/smart.c      | 1 +
- ndctl/libndctl.h       | 2 ++
- 5 files changed, 6 insertions(+)
+ drivers/acpi/nfit/intel.c  |   51 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   22 +++++++++++++++++++
+ include/linux/libnvdimm.h  |    2 ++
+ 3 files changed, 75 insertions(+)
 
-diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
-index f5a3a6f..56c39ab 100644
---- a/ndctl/inject-smart.c
-+++ b/ndctl/inject-smart.c
-@@ -392,6 +392,7 @@ static int smart_inject(struct ndctl_dimm *dimm)
- 	int rc = -EOPNOTSUPP;
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index e413e78c0cee..ab0ad103f861 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -17,6 +17,53 @@
+ #include "intel.h"
+ #include "nfit.h"
  
- 	send_inject_val(media_temperature)
-+	send_inject_val(ctrl_temperature)
- 	send_inject_val(spares)
- 	send_inject_bool(fatal)
- 	send_inject_bool(unsafe_shutdown)
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 9b36960..fae24f0 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -375,4 +375,5 @@ global:
- 	ndctl_dimm_get_flags;
- 	ndctl_dimm_get_event_flags;
- 	ndctl_dimm_is_flag_supported;
-+	ndctl_cmd_smart_inject_ctrl_temperature;
- } LIBNDCTL_16;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index a94f894..5ddc682 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -308,6 +308,7 @@ struct ndctl_dimm_ops {
- 	int (*smart_threshold_set_spares)(struct ndctl_cmd *, unsigned int);
- 	struct ndctl_cmd *(*new_smart_inject)(struct ndctl_dimm *);
- 	int (*smart_inject_media_temperature)(struct ndctl_cmd *, bool, unsigned int);
-+	int (*smart_inject_ctrl_temperature)(struct ndctl_cmd *, bool, unsigned int);
- 	int (*smart_inject_spares)(struct ndctl_cmd *, bool, unsigned int);
- 	int (*smart_inject_fatal)(struct ndctl_cmd *, bool);
- 	int (*smart_inject_unsafe_shutdown)(struct ndctl_cmd *, bool);
-diff --git a/ndctl/lib/smart.c b/ndctl/lib/smart.c
-index 7ba46d1..0e180cf 100644
---- a/ndctl/lib/smart.c
-+++ b/ndctl/lib/smart.c
-@@ -146,6 +146,7 @@ NDCTL_EXPORT int ndctl_cmd_##op(struct ndctl_cmd *cmd, bool enable, unsigned int
++static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_freeze_lock cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = 0,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
++	}
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++ out:
++	return rc;
++}
++
+ static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
+ {
+@@ -236,6 +283,9 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
+ 	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
+ 		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
+ 			*state = NVDIMM_SECURITY_LOCKED;
++		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
++				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
++			*state = NVDIMM_SECURITY_FROZEN;
+ 		else
+ 			*state = NVDIMM_SECURITY_UNLOCKED;
+ 	} else
+@@ -252,4 +302,5 @@ struct nvdimm_security_ops intel_security_ops = {
+ 	.unlock = intel_dimm_security_unlock,
+ 	.change_key = intel_dimm_security_update_passphrase,
+ 	.disable = intel_dimm_security_disable,
++	.freeze_lock = intel_dimm_security_freeze_lock,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 9ee8f269b1ce..0dcb5991a82d 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -125,6 +125,26 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
  }
  
- smart_cmd_inject_val(smart_inject_media_temperature)
-+smart_cmd_inject_val(smart_inject_ctrl_temperature)
- smart_cmd_inject_val(smart_inject_spares)
++static int nvdimm_security_freeze_lock(struct device *dev)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	int rc;
++
++	if (!nvdimm->security_ops)
++		return 0;
++
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
++		return 0;
++
++	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
++	if (rc < 0)
++		return rc;
++
++	nvdimm_security_get_state(dev);
++	return 0;
++}
++
+ static int nvdimm_security_disable(struct device *dev)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+@@ -668,6 +688,8 @@ static ssize_t security_store(struct device *dev,
+ 		rc = nvdimm_security_change_key(dev);
+ 	else if (strcmp(buf, "disable") == 0 || strcmp(buf, "disable\n") == 0)
+ 		rc = nvdimm_security_disable(dev);
++	else if (strcmp(buf, "freeze") == 0 || strcmp(buf, "freeze\n") == 0)
++		rc = nvdimm_security_freeze_lock(dev);
+ 	else
+ 		return -EINVAL;
  
- #define smart_cmd_inject(op) \
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 6a6bb0d..e60d80b 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -285,6 +285,8 @@ int ndctl_cmd_smart_threshold_set_spares(struct ndctl_cmd *cmd,
- struct ndctl_cmd *ndctl_dimm_cmd_new_smart_inject(struct ndctl_dimm *dimm);
- int ndctl_cmd_smart_inject_media_temperature(struct ndctl_cmd *cmd, bool enable,
- 		unsigned int mtemp);
-+int ndctl_cmd_smart_inject_ctrl_temperature(struct ndctl_cmd *cmd, bool enable,
-+		unsigned int ctemp);
- int ndctl_cmd_smart_inject_spares(struct ndctl_cmd *cmd, bool enable,
- 		unsigned int spares);
- int ndctl_cmd_smart_inject_fatal(struct ndctl_cmd *cmd, bool enable);
--- 
-2.18.0
-
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 59ad04261f34..1836599ed5b8 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -185,6 +185,8 @@ struct nvdimm_security_ops {
+ 			struct nvdimm_key_data *new_data);
+ 	int (*disable)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
++	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
