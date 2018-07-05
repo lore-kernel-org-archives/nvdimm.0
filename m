@@ -1,20 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A0301209688F3
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 07:18:23 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 5372CAC009C
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 23:18:17 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v10 2/4] ndctl,
- monitor: add main ndctl monitor configuration file
-Date: Mon,  9 Jul 2018 23:17:16 +0900
-Message-Id: <20180709141718.6205-3-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
-References: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4A940210D93A5
+ for <linux-nvdimm@lists.01.org>; Thu,  5 Jul 2018 13:22:45 -0700 (PDT)
+Subject: [PATCH v2 06/11] nfit/libnvdimm: adding disable passphrase support
+ to Intel nvdimm.
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 05 Jul 2018 13:22:44 -0700
+Message-ID: <153082216451.61422.2923876535893157241.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+References: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,238 +19,166 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds the main configuration file(/etc/ndctl/monitor.conf)
-of ndctl monitor. It contains the configuration directives that give
-ndctl monitor instructions. Users can change the configuration by
-editing this file or using [--config-file] option to override this
-file. The changed value will work after restart ndctl monitor service.
+Adding support to disable passphrase (security) for the Intel nvdimm. The
+passphrase used for disabling is pulled from userspace via the kernel
+key management. The action is triggered by writing "disable" to the sysfs
+attribute "security". libnvdimm will support the generic disable API call.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/Makefile.am  |   5 ++
- ndctl/monitor.c    | 115 +++++++++++++++++++++++++++++++++++++++++++++
- ndctl/monitor.conf |  41 ++++++++++++++++
- 3 files changed, 161 insertions(+)
- create mode 100644 ndctl/monitor.conf
+ drivers/acpi/nfit/intel.c  |   52 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   41 +++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h  |    2 ++
+ 3 files changed, 95 insertions(+)
 
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index 7dbf223..ae3d894 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -42,3 +42,8 @@ ndctl_SOURCES += ../test/libndctl.c \
- 		 ../test/multi-pmem.c \
- 		 ../test/core.c
- endif
-+
-+monitor_config_file = monitor.conf
-+monitor_configdir = /etc/ndctl/
-+monitor_config_DATA = $(monitor_config_file)
-+EXTRA_DIST += $(monitor_config_file)
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index 700bd22..83f22af 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -19,6 +19,7 @@
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 82514ff3e644..e413e78c0cee 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -17,6 +17,57 @@
+ #include "intel.h"
+ #include "nfit.h"
  
- static struct monitor {
- 	const char *logfile;
-+	const char *config_file;
- 	const char *dimm_event;
- 	bool daemon;
- 	unsigned int event_flags;
-@@ -429,6 +430,109 @@ dimm_event_all:
- 	return 0;
++static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_disable_passphrase cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	memcpy(nd_cmd.cmd.passphrase, nkey->data, ND_INTEL_PASSPHRASE_SIZE);
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
++	}
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		rc = -EINVAL;
++		goto out;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++ out:
++	return rc;
++}
++
+ static int intel_dimm_security_update_passphrase(
+ 		struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		struct nvdimm_key_data *old_data,
+@@ -200,4 +251,5 @@ struct nvdimm_security_ops intel_security_ops = {
+ 	.state = intel_dimm_security_state,
+ 	.unlock = intel_dimm_security_unlock,
+ 	.change_key = intel_dimm_security_update_passphrase,
++	.disable = intel_dimm_security_disable,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 645979665808..9ee8f269b1ce 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -125,6 +125,45 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
  }
  
-+static void parse_config(const char **arg, char *key, char *val, char *ident)
++static int nvdimm_security_disable(struct device *dev)
 +{
-+	struct strbuf value = STRBUF_INIT;
-+	size_t arg_len = *arg ? strlen(*arg) : 0;
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key;
++	int rc;
++	void *payload;
++	bool cached_key = false;
 +
-+	if (!ident || !key || (strcmp(ident, key) != 0))
-+		return;
++	if (!nvdimm->security_ops)
++		return 0;
 +
-+	if (arg_len) {
-+		strbuf_add(&value, *arg, arg_len);
-+		strbuf_addstr(&value, " ");
-+	}
-+	strbuf_addstr(&value, val);
-+	*arg = strbuf_detach(&value, NULL);
-+}
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
++		return 0;
 +
-+static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
-+		struct util_filter_params *_param)
-+{
-+	FILE *f;
-+	int line = 0;
-+	size_t len = 0;
-+	char *buf, *value, *config_file;
-+	const char *def_config_file = "/etc/ndctl/monitor.conf";
-+
-+	if (_monitor->config_file)
-+		config_file = strdup(_monitor->config_file);
++	key = nvdimm_search_key(dev);
++	if (!key)
++		key = nvdimm_request_key(dev);
 +	else
-+		config_file = strdup(def_config_file);
-+	if (!config_file) {
-+		fail("strdup default config file failed\n");
++		cached_key = true;
++	if (!key)
++		return -ENXIO;
++
++	down_read(&key->sem);
++	payload = key->payload.data[0];
++	rc = nvdimm->security_ops->disable(nvdimm_bus, nvdimm, payload);
++	up_read(&key->sem);
++	if (rc < 0)
 +		goto out;
-+	}
 +
-+	buf = malloc(BUF_SIZE);
-+	if (!buf) {
-+		fail("malloc read config-file buf error\n");
-+		goto out;
-+	}
++	/* If we succeed then remove the key */
++	key_invalidate(key);
 +
-+	f = fopen(config_file, "r");
-+	if (!f) {
-+		fail("config-file: %s cannot be opened\n", config_file);
-+		goto out;
-+	}
-+
-+	while (fgets(buf, BUF_SIZE, f)) {
-+		value = NULL;
-+		line++;
-+
-+		while (isspace(*buf))
-+			buf++;
-+
-+		if (*buf == '#' || *buf == '\0')
-+			continue;
-+
-+		value = strchr(buf, '=');
-+		if (!value) {
-+			fail("config-file syntax error, skip line[%i]\n", line);
-+			continue;
-+		}
-+
-+		value[0] = '\0';
-+		value++;
-+
-+		while (isspace(value[0]))
-+			value++;
-+
-+		len = strlen(buf);
-+		if (len == 0)
-+			continue;
-+		while (isspace(buf[len-1]))
-+			len--;
-+		buf[len] = '\0';
-+
-+		len = strlen(value);
-+		if (len == 0)
-+			continue;
-+		while (isspace(value[len-1]))
-+			len--;
-+		value[len] = '\0';
-+
-+		if (len == 0)
-+			continue;
-+
-+		parse_config(&_param->bus, "bus", value, buf);
-+		parse_config(&_param->dimm, "dimm", value, buf);
-+		parse_config(&_param->region, "region", value, buf);
-+		parse_config(&_param->namespace, "namespace", value, buf);
-+		parse_config(&_monitor->dimm_event, "dimm-event", value, buf);
-+
-+		if (!_monitor->logfile)
-+			parse_config(&_monitor->logfile, "logfile", value, buf);
-+	}
-+	fclose(f);
-+	free(config_file);
-+	return 0;
-+out:
-+	if (config_file)
-+		free(config_file);
-+	return 1;
++ out:
++	key_put(key);
++	nvdimm_security_get_state(dev);
++	return rc;
 +}
 +
- int cmd_monitor(int argc, const char **argv, void *ctx)
+ int nvdimm_security_unlock_dimm(struct device *dev)
  {
- 	const struct option options[] = {
-@@ -441,6 +545,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
- 				"namespace-id", "filter by namespace id"),
- 		OPT_FILENAME('l', "logfile", &monitor.logfile, "file | syslog",
- 				"where to output the monitor's notification"),
-+		OPT_FILENAME('c', "config-file", &monitor.config_file,
-+				"config-file", "override the default config"),
- 		OPT_BOOLEAN('f', "daemon", &monitor.daemon,
- 				"run ndctl monitor as a daemon"),
- 		OPT_STRING('D', "dimm-event", &monitor.dimm_event,
-@@ -470,6 +576,15 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
- 		ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
- 	ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_NOTICE);
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+@@ -627,6 +666,8 @@ static ssize_t security_store(struct device *dev,
  
-+	if (read_config_file((struct ndctl_ctx *)ctx, &monitor, &param))
-+		goto out;
-+
-+	if (monitor.logfile && (strcmp(monitor.logfile, "./syslog") != 0)
-+			&& (strcmp(monitor.logfile, "syslog") != 0)) {
-+		fix_filename(prefix, (const char **)&monitor.logfile);
-+		ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_file);
-+	}
-+
- 	if (monitor.daemon) {
- 		if (daemon(0, 0) != 0) {
- 			err((struct ndctl_ctx *)ctx, "daemon start failed\n");
-diff --git a/ndctl/monitor.conf b/ndctl/monitor.conf
-new file mode 100644
-index 0000000..5c10a8d
---- /dev/null
-+++ b/ndctl/monitor.conf
-@@ -0,0 +1,41 @@
-+# This is the main ndctl monitor configuration file. It contains the
-+# configuration directives that give ndctl monitor instructions.
-+# You can change the configuration of ndctl monitor by editing this
-+# file or using [--config-file=<file>] option to override this one.
-+# The changed value will work after restart ndctl monitor service.
-+
-+# In this file, lines starting with a hash (#) are comments.
-+# The configurations should follow <key> = <value> style.
-+# Multiple space-separated values are allowed, but except the following
-+# characters: : ? / \ % " ' $ & ! * { } [ ] ( ) = < > @
-+
-+# The objects to monitor are filtered via dimm's name by setting key "dimm".
-+# If this value is different from the value of [--dimm=<value>] option,
-+# both of the values will work.
-+# dimm = all
-+
-+# The objects to monitor are filtered via its parent bus by setting key "bus".
-+# If this value is different from the value of [--bus=<value>] option,
-+# both of the values will work.
-+# bus = all
-+
-+# The objects to monitor are filtered via region by setting key "region".
-+# If this value is different from the value of [--region=<value>] option,
-+# both of the values will work.
-+# region = all
-+
-+# The objects to monitor are filtered via namespace by setting key "namespace".
-+# If this value is different from the value of [--namespace=<value>] option,
-+# both of the values will work.
-+# namespace = all
-+
-+# The DIMM events to monitor are filtered via event type by setting key
-+# "dimm-event". If this value is different from the value of
-+# [--dimm-event=<value>] option, both of the values will work.
-+# dimm-event = all
-+
-+# Users can choose to output the notifications to syslog (logfile=syslog)
-+# or to write into a special file (logfile=<file>) by setting key "logfile".
-+# If this value is in conflict with the value of [--logfile=<value>] option,
-+# this value will be ignored.
-+# logfile = /var/log/ndctl/monitor.log
--- 
-2.18.0
-
+ 	if (strcmp(buf, "update") == 0 || strcmp(buf, "update\n") == 0)
+ 		rc = nvdimm_security_change_key(dev);
++	else if (strcmp(buf, "disable") == 0 || strcmp(buf, "disable\n") == 0)
++		rc = nvdimm_security_disable(dev);
+ 	else
+ 		return -EINVAL;
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 7889fea75281..59ad04261f34 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -183,6 +183,8 @@ struct nvdimm_security_ops {
+ 			struct nvdimm *nvdimm,
+ 			struct nvdimm_key_data *old_data,
+ 			struct nvdimm_key_data *new_data);
++	int (*disable)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
