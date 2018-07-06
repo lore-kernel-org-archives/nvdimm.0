@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C12A3202E53F1
- for <linux-nvdimm@lists.01.org>; Fri,  6 Jul 2018 12:59:45 -0700 (PDT)
-Subject: [PATCH v2] acpi, nfit: Fix scrub idle detection
+ by ml01.01.org (Postfix) with ESMTPS id E1D0F203369E6
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Jul 2018 11:30:11 -0700 (PDT)
+Subject: [PATCH] acpi, nfit: Fix scrub idle detection
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 06 Jul 2018 12:49:46 -0700
-Message-ID: <153090648287.26039.5417546341535448853.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 06 Jul 2018 11:20:13 -0700
+Message-ID: <153090121374.28055.14156217568809004334.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -35,20 +35,15 @@ going idle and then hang indefinitely.
 Fixes: bc6ba8085842 ("nfit, address-range-scrub: rework and simplify ARS...")
 Cc: <stable@vger.kernel.org>
 Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Tested-by: Vishal Verma <vishal.l.verma@intel.com>
 Reported-by: Lukasz Dorau <lukasz.dorau@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes in v2:
-* Don't touch ->tmo outside of the workqueue itself, it is a private
-  field for the workqueue to manage. (Vishal)
-
- drivers/acpi/nfit/core.c |   44 +++++++++++++++++++++++++++++++++-----------
+ drivers/acpi/nfit/core.c |   37 ++++++++++++++++++++++++++-----------
  drivers/acpi/nfit/nfit.h |    1 +
- 2 files changed, 34 insertions(+), 11 deletions(-)
+ 2 files changed, 27 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 471402cee1f1..b8040fed2a69 100644
+index 471402cee1f1..cd26484d1cee 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
 @@ -1275,7 +1275,7 @@ static ssize_t scrub_show(struct device *dev,
@@ -60,24 +55,17 @@ index 471402cee1f1..b8040fed2a69 100644
  				&& !acpi_desc->cancel ? "+\n" : "\n");
  		mutex_unlock(&acpi_desc->init_mutex);
  	}
-@@ -2941,6 +2941,32 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
+@@ -2941,6 +2941,25 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
  	return 0;
  }
  
-+static void __sched_ars(struct acpi_nfit_desc *acpi_desc, unsigned int tmo)
++static void sched_ars(struct acpi_nfit_desc *acpi_desc, unsigned int tmo)
 +{
 +	lockdep_assert_held(&acpi_desc->init_mutex);
 +
 +	acpi_desc->scrub_busy = 1;
-+	/* note this should only be set from within the workqueue */
-+	if (tmo)
-+		acpi_desc->scrub_tmo = tmo;
++	acpi_desc->scrub_tmo = tmo;
 +	queue_delayed_work(nfit_wq, &acpi_desc->dwork, tmo * HZ);
-+}
-+
-+static void sched_ars(struct acpi_nfit_desc *acpi_desc)
-+{
-+	__sched_ars(acpi_desc, 0);
 +}
 +
 +static void notify_ars_done(struct acpi_nfit_desc *acpi_desc)
@@ -93,7 +81,7 @@ index 471402cee1f1..b8040fed2a69 100644
  static void acpi_nfit_scrub(struct work_struct *work)
  {
  	struct acpi_nfit_desc *acpi_desc;
-@@ -2951,14 +2977,10 @@ static void acpi_nfit_scrub(struct work_struct *work)
+@@ -2951,14 +2970,10 @@ static void acpi_nfit_scrub(struct work_struct *work)
  	mutex_lock(&acpi_desc->init_mutex);
  	query_rc = acpi_nfit_query_poison(acpi_desc);
  	tmo = __acpi_nfit_scrub(acpi_desc, query_rc);
@@ -106,27 +94,27 @@ index 471402cee1f1..b8040fed2a69 100644
 -			sysfs_notify_dirent(acpi_desc->scrub_count_state);
 -	}
 +	if (tmo)
-+		__sched_ars(acpi_desc, tmo);
++		sched_ars(acpi_desc, tmo);
 +	else
 +		notify_ars_done(acpi_desc);
  	memset(acpi_desc->ars_status, 0, acpi_desc->max_ars);
  	mutex_unlock(&acpi_desc->init_mutex);
  }
-@@ -3039,7 +3061,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+@@ -3039,7 +3054,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
  			break;
  		}
  
 -	queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
-+	sched_ars(acpi_desc);
++	sched_ars(acpi_desc, 0);
  	return 0;
  }
  
-@@ -3241,7 +3263,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
+@@ -3241,7 +3256,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
  		}
  	}
  	if (scheduled) {
 -		queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
-+		sched_ars(acpi_desc);
++		sched_ars(acpi_desc, 0);
  		dev_dbg(dev, "ars_scan triggered\n");
  	}
  	mutex_unlock(&acpi_desc->init_mutex);
