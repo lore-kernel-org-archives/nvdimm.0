@@ -1,11 +1,13 @@
-From: <gktye-DGZqne7NglGgSpxsJD1C4w@public.gmane.org>
-Subject: Hello!
-Date: 4 Jul 2018 15:16:25 -0100
-Message-ID: <003801d413b6$0489b811$b92bb7ac$@cassadyco.com>
+From: markswwagner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: Invitation: FACEBOOK LOTTERY 2018!!! @ Fri 6 Jul 2018 12am - 1am
+ (EDT) (linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org)
+Date: Fri, 06 Jul 2018 03:36:38 +0000
+Message-ID: <00000000000017ef7f05704c5f69@google.com>
+Reply-To: markswwagner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0867890795445497580=="
+Content-Type: text/plain; charset="utf-8"; Format="flowed"; DelSp="yes"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,44 +20,44 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============0867890795445497580==
-Content-Language: en
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
-
-Good day!
-
-We considered your resume to be very attractive and we thought the =
-vacant position in our company could be interesting for you.
-
-Our firm specializes in online services in the matter of business =
-administration.
-We cooperate with different countries and currently we have many clients =
-in yours region.
-Due to this fact, we need to increase the number of our destination =
-representatives' regular staff.
-
-Part-time and full-time employment are both currently important.
-We offer a flat wage from $1500 up to $7000 per month.
-
-If you are interested in our offer, please visit our web page.
-
-Attention! Accept applications only on this and next week.
-
-Respectively submitted
-Personnel department
---===============0867890795445497580==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============0867890795445497580==--
+WW91IGhhdmUgYmVlbiBpbnZpdGVkIHRvIHRoZSBmb2xsb3dpbmcgZXZlbnQuDQoNClRpdGxlOiBG
+QUNFQk9PSyBMT1RURVJZIDIwMTghISENCkZBQ0VCT09LIExPVFRFUlkgMjAxOCEhIQ0KDQpEZWFy
+IEUtbWFpbCBVc2VyLA0KWW91ciBlLW1haWwgSUQgYW5kIE5hbWUgaGFzIGVtZXJnZWQgYXMgYSB3
+aW5uZXIgb2YgJDYwMCwwMDAuMDAgVVNEIChTaXggIA0KaHVuZHJlZCB0aG91c2FuZCBkb2xsYXJz
+IHBsZWFzZSBjb250YWN0IHRoZSBGYWNlYm9vayBBd2FyZCBjbGFpbXMgRmlkdWNpYXJ5ICANCkFn
+ZW50IChBdWRyZXkgTW9vcmUpIG5lYXRseSBmaWxsaW5nIHRoZSB2ZXJpZmljYXRpb24gZGV0YWls
+cyBiZWxvdy4NCg0KRkFDRUJPT0sgQVdBUkQgQ0xBSU1TIEZJRFVDSUFSWSBBR0VOVA0KTXJzIEFV
+RFJFWSBNT09SRQ0KQ29udGFjdCBFbWFpbDogZmIubG90dG8uaW5jLnByb21vLjFAZ21haWwuY29t
+DQoNCg0KS2luZGx5IGZvcndhcmQgeW91ciB2ZXJpZmljYXRpb24gZGV0YWlscyBhcyBzdGF0ZWQg
+YmVsb3cgdG8gdGhlIGZhY2Vib29rICANCkZpZHVjaWFyeSBBZ2VudDsNCjEuIEZ1bGwgTmFtZTou
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4NCjIuIEhvdXNlIEFkZHJlc3M6Li4u
+Li4uLi4uLi4uLi4uLi4uLi4uLg0KMy4gRGlyZWN0IFBob25lIE5vOi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uDQo0LiBDb3VudHJ5Oi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLg0KDQo5LiBUaWNrZXQgTnVtYmVyOiAwMDg2OTU3NTczMzY2NA0KMTAuIFNlcmlhbCBO
+dW1iZXI6IEJURC84MDcwNDQ3NzA2LzA2DQoxMS5MdWNreSBOdW1iZXI6IDEyLTEyLTIzLTM1LTQw
+LTQxKDEyKS4NClBsZWFzZSByZW1lbWJlciB0byBhdHRhY2ggeW91ciB0aWNrZXQgbnVtYmVyLHNl
+cmlhbCBudW1iZXIgYW5kIGx1Y2t5IG51bWJlciAgDQphbHNvLg0KDQpDb25ncmF0dWxhdGlvbnMg
+ZnJvbSB0aGUgU3RhZmZzICYgTWVtYmVycyBvZiB0aGUgRmFjZWJvb2sgaW50ZXJhY3RpdmUgIA0K
+TG90dGVyaWVzIEJvYXJkIENvbW1pc3Npb24uDQpNcnMgQVVEUkVZIE1PT1JFDQpQcm9tb3Rpb24g
+QXdhcmQgTWFuYWdlci4NCkMyMDE4IEZhY2Vib29rIENvcnBvcmF0aW9uLg0KV2hlbjogRnJpIDYg
+SnVsIDIwMTggMTJhbSDigJMgMWFtIEVhc3Rlcm4gVGltZQ0KQ2FsZW5kYXI6IGxpbnV4LW52ZGlt
+bUBsaXN0cy4wMS5vcmcNCldobzoNCiAgICAgKEd1ZXN0IGxpc3QgaGFzIGJlZW4gaGlkZGVuIGF0
+IG9yZ2FuaXNlcidzIHJlcXVlc3QpDQoNCkV2ZW50IGRldGFpbHM6ICANCmh0dHBzOi8vd3d3Lmdv
+b2dsZS5jb20vY2FsZW5kYXIvZXZlbnQ/YWN0aW9uPVZJRVcmZWlkPU56Wm9aR0kzZEdac2EzUXhZ
+MnRwY0RKaWFqRXhNVFpvTUc4Z2JHbHVkWGd0Ym5aa2FXMXRRR3hwYzNSekxqQXhMbTl5WncmdG9r
+PU1qSWpiV0Z5YTNOM2QyRm5ibVZ5UUdkdFlXbHNMbU52YldOaU9UTm1ZalUyTldaaE1XTmpZMlE1
+TVRabVlqRXlZMlkzWkdSa056QTROMkl4TTJSaE5XVSZjdHo9QW1lcmljYSUyRk5ld19Zb3JrJmhs
+PWVuX0dCJmVzPTANCg0KSW52aXRhdGlvbiBmcm9tIEdvb2dsZSBDYWxlbmRhcjogaHR0cHM6Ly93
+d3cuZ29vZ2xlLmNvbS9jYWxlbmRhci8NCg0KWW91IGFyZSByZWNlaXZpbmcgdGhpcyBjb3VydGVz
+eSBlbWFpbCBhdCB0aGUgYWNjb3VudCAgDQpsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnIGJlY2F1
+c2UgeW91IGFyZSBhbiBhdHRlbmRlZSBvZiB0aGlzIGV2ZW50Lg0KDQpUbyBzdG9wIHJlY2Vpdmlu
+ZyBmdXR1cmUgdXBkYXRlcyBmb3IgdGhpcyBldmVudCwgZGVjbGluZSB0aGlzIGV2ZW50LiAgDQpB
+bHRlcm5hdGl2ZWx5LCB5b3UgY2FuIHNpZ24gdXAgZm9yIGEgR29vZ2xlIGFjY291bnQgYXQgIA0K
+aHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS9jYWxlbmRhci8gYW5kIGNvbnRyb2wgeW91ciBub3RpZmlj
+YXRpb24gc2V0dGluZ3MgZm9yICANCnlvdXIgZW50aXJlIGNhbGVuZGFyLg0KDQpGb3J3YXJkaW5n
+IHRoaXMgaW52aXRhdGlvbiBjb3VsZCBhbGxvdyBhbnkgcmVjaXBpZW50IHRvIG1vZGlmeSB5b3Vy
+IFJTVlAgIA0KcmVzcG9uc2UuIExlYXJuIG1vcmUgYXQgIA0KaHR0cHM6Ly9zdXBwb3J0Lmdvb2ds
+ZS5jb20vY2FsZW5kYXIvYW5zd2VyLzM3MTM1I2ZvcndhcmRpbmcNCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
