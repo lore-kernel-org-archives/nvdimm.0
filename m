@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f67.google.com (mail-wr1-f67.google.com
+ [209.85.221.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 96AA0209884A8
- for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:11:28 -0700 (PDT)
-Subject: [PATCH v2 13/14] device-dax: Initialize the memmap in the background
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Jul 2018 10:01:30 -0700
-Message-ID: <153176049055.12695.8641863597388682690.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1C27B20337377
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Jul 2018 23:01:57 -0700 (PDT)
+Received: by mail-wr1-f67.google.com with SMTP id c13-v6so5908262wrt.1
+ for <linux-nvdimm@lists.01.org>; Fri, 06 Jul 2018 23:01:57 -0700 (PDT)
+Date: Sat, 7 Jul 2018 08:01:53 +0200
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: Re: [PATCH v2] mm/sparse.c: fix error path in sparse_add_one_section
+Message-ID: <20180707060153.GA13141@techadventures.net>
+References: <20180706190658.6873-1-ross.zwisler@linux.intel.com>
+ <20180706223358.742-1-ross.zwisler@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180706223358.742-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,160 +27,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>, bhe@redhat.com, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, pasha.tatashin@oracle.com, Linux MM <linux-mm@kvack.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, osalvador@suse.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given that the nd_dax shares device data with nd_pfn devices, arrange
-for the nd_pfn memmap_async_state instance to be registered by the
-devm_memremap_pages() call in the dax-pmem driver. Then, provide the
-generic dev_pagemap instance to the device-dax driver so that it can
-utilize memmap_sync() before dax-mapping pfns.
+On Fri, Jul 06, 2018 at 04:33:58PM -0600, Ross Zwisler wrote:
+> The following commit in -next:
+> 
+> commit 054620849110 ("mm/sparse.c: make sparse_init_one_section void and
+> remove check")
+> 
+> changed how the error handling in sparse_add_one_section() works.
+> 
+> Previously sparse_index_init() could return -EEXIST, and the function would
+> continue on happily.  'ret' would get unconditionally overwritten by the
+> result from sparse_init_one_section() and the error code after the 'out:'
+> label wouldn't be triggered.
+> 
+> With the above referenced commit, though, an -EEXIST error return from
+> sparse_index_init() now takes us through the function and into the error
+> case after 'out:'.  This eventually causes a kernel BUG, probably because
+> we've just freed a memory section that we successfully set up and marked as
+> present:
+> 
+>   BUG: unable to handle kernel paging request at ffffea0005000080
+>   RIP: 0010:memmap_init_zone+0x154/0x1cf
+> 
+>   Call Trace:
+>    move_pfn_range_to_zone+0x168/0x180
+>    devm_memremap_pages+0x29b/0x480
+>    pmem_attach_disk+0x1ae/0x6c0 [nd_pmem]
+>    ? devm_memremap+0x79/0xb0
+>    nd_pmem_probe+0x7e/0xa0 [nd_pmem]
+>    nvdimm_bus_probe+0x6e/0x160 [libnvdimm]
+>    driver_probe_device+0x310/0x480
+>    __device_attach_driver+0x86/0x100
+>    ? __driver_attach+0x110/0x110
+>    bus_for_each_drv+0x6e/0xb0
+>    __device_attach+0xe2/0x160
+>    device_initial_probe+0x13/0x20
+>    bus_probe_device+0xa6/0xc0
+>    device_add+0x41b/0x660
+>    ? lock_acquire+0xa3/0x210
+>    nd_async_device_register+0x12/0x40 [libnvdimm]
+>    async_run_entry_fn+0x3e/0x170
+>    process_one_work+0x230/0x680
+>    worker_thread+0x3f/0x3b0
+>    kthread+0x12f/0x150
+>    ? process_one_work+0x680/0x680
+>    ? kthread_create_worker_on_cpu+0x70/0x70
+>    ret_from_fork+0x3a/0x50
+> 
+> Fix this by clearing 'ret' back to 0 if sparse_index_init() returns
+> -EEXIST.  This restores the previous behavior.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/dax-private.h |    2 ++
- drivers/dax/device-dax.h  |    2 +-
- drivers/dax/device.c      |   16 +++++++++++++++-
- drivers/dax/pmem.c        |    5 ++++-
- 4 files changed, 22 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index b6fc4f04636d..35bda544b334 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -25,6 +25,7 @@
-  * @align: allocation and mapping alignment for child dax devices
-  * @res: physical address range of the region
-  * @pfn_flags: identify whether the pfns are paged back or not
-+ * @pgmap: backing page map for the device address range
-  */
- struct dax_region {
- 	int id;
-@@ -35,6 +36,7 @@ struct dax_region {
- 	unsigned int align;
- 	struct resource res;
- 	unsigned long pfn_flags;
-+	struct dev_pagemap *pgmap;
- };
- 
- /**
-diff --git a/drivers/dax/device-dax.h b/drivers/dax/device-dax.h
-index 688b051750bd..1a2da8072a6e 100644
---- a/drivers/dax/device-dax.h
-+++ b/drivers/dax/device-dax.h
-@@ -19,7 +19,7 @@ struct dax_region;
- void dax_region_put(struct dax_region *dax_region);
- struct dax_region *alloc_dax_region(struct device *parent,
- 		int region_id, struct resource *res, unsigned int align,
--		void *addr, unsigned long flags);
-+		void *addr, struct dev_pagemap *pgmap, unsigned long flags);
- struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
- 		int id, struct resource *res, int count);
- #endif /* __DEVICE_DAX_H__ */
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index de2f8297a210..2802d21a6e26 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -10,6 +10,7 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-  */
-+#include <linux/memmap_async.h>
- #include <linux/pagemap.h>
- #include <linux/module.h>
- #include <linux/device.h>
-@@ -101,7 +102,7 @@ static void dax_region_unregister(void *region)
- 
- struct dax_region *alloc_dax_region(struct device *parent, int region_id,
- 		struct resource *res, unsigned int align, void *addr,
--		unsigned long pfn_flags)
-+		struct dev_pagemap *pgmap, unsigned long pfn_flags)
- {
- 	struct dax_region *dax_region;
- 
-@@ -130,6 +131,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
- 	dax_region->id = region_id;
- 	ida_init(&dax_region->ida);
- 	dax_region->align = align;
-+	dax_region->pgmap = pgmap;
- 	dax_region->dev = parent;
- 	dax_region->base = addr;
- 	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
-@@ -244,6 +246,15 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
- 	return -1;
- }
- 
-+static void dax_pfn_sync(struct dax_region *dax_region, pfn_t pfn,
-+		unsigned long size)
-+{
-+	struct dev_pagemap *pgmap = dax_region->pgmap;
-+	struct memmap_async_state *async = pgmap->async;
-+
-+	memmap_sync(pfn, PHYS_PFN(size), async);
-+}
-+
- static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- {
- 	struct device *dev = &dev_dax->dev;
-@@ -273,6 +284,7 @@ static int __dev_dax_pte_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 	}
- 
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	dax_pfn_sync(dax_region, pfn, PAGE_SIZE);
- 
- 	rc = vm_insert_mixed(vmf->vma, vmf->address, pfn);
- 
-@@ -328,6 +340,7 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 	}
- 
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	dax_pfn_sync(dax_region, pfn, PMD_SIZE);
- 
- 	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
-@@ -379,6 +392,7 @@ static int __dev_dax_pud_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
- 	}
- 
- 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
-+	dax_pfn_sync(dax_region, pfn, PUD_SIZE);
- 
- 	return vmf_insert_pfn_pud(vmf->vma, vmf->address, vmf->pud, pfn,
- 			vmf->flags & FAULT_FLAG_WRITE);
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index 54cba20c8ba6..a05be7a03d02 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #include <linux/percpu-refcount.h>
-+#include <linux/memmap_async.h>
- #include <linux/memremap.h>
- #include <linux/module.h>
- #include <linux/pfn_t.h>
-@@ -110,6 +111,7 @@ static int dax_pmem_probe(struct device *dev)
- 		return rc;
- 
- 	dax_pmem->pgmap.ref = &dax_pmem->ref;
-+	dax_pmem->pgmap.async = &nd_pfn->async;
- 	addr = devm_memremap_pages(dev, &dax_pmem->pgmap, dax_pmem_percpu_kill);
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
-@@ -123,7 +125,8 @@ static int dax_pmem_probe(struct device *dev)
- 		return -EINVAL;
- 
- 	dax_region = alloc_dax_region(dev, region_id, &res,
--			le32_to_cpu(pfn_sb->align), addr, PFN_DEV|PFN_MAP);
-+			le32_to_cpu(pfn_sb->align), addr, &dax_pmem->pgmap,
-+			PFN_DEV|PFN_MAP);
- 	if (!dax_region)
- 		return -ENOMEM;
- 
-
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+-- 
+Oscar Salvador
+SUSE L3
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
