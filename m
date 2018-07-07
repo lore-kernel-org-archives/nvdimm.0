@@ -1,23 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x242.google.com (mail-oi0-x242.google.com
+ [IPv6:2607:f8b0:4003:c06::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9F13620336ABF
- for <linux-nvdimm@lists.01.org>; Sun,  8 Jul 2018 21:59:59 -0700 (PDT)
-Received: from g01jpfmpwkw03.exch.g01.fujitsu.local
- (g01jpfmpwkw03.exch.g01.fujitsu.local [10.0.193.57])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 05A52AC0096
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 13:59:55 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [PATCH v9 1/3] ndctl, monitor: add ndctl monitor
-Date: Mon, 9 Jul 2018 04:59:53 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA75A82@g01jpexmbkw24>
+ by ml01.01.org (Postfix) with ESMTPS id BE3DA20337377
+ for <linux-nvdimm@lists.01.org>; Sat,  7 Jul 2018 13:05:36 -0700 (PDT)
+Received: by mail-oi0-x242.google.com with SMTP id y207-v6so29406688oie.13
+ for <linux-nvdimm@lists.01.org>; Sat, 07 Jul 2018 13:05:36 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180629023050.29217-2-qi.fuli@jp.fujitsu.com>
 References: <20180629023050.29217-1-qi.fuli@jp.fujitsu.com>
  <20180629023050.29217-2-qi.fuli@jp.fujitsu.com>
- <CAPcyv4iJDSutMKeosdrEFikJw=MSGNMgAJP--bO9jwoQ2iaAOQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4iJDSutMKeosdrEFikJw=MSGNMgAJP--bO9jwoQ2iaAOQ@mail.gmail.com>
-Content-Language: en-US
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 7 Jul 2018 13:05:35 -0700
+Message-ID: <CAPcyv4iJDSutMKeosdrEFikJw=MSGNMgAJP--bO9jwoQ2iaAOQ@mail.gmail.com>
+Subject: Re: [PATCH v9 1/3] ndctl, monitor: add ndctl monitor
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,102 +22,110 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dan Williams' <dan.j.williams@intel.com>
+To: QI Fuli <qi.fuli@jp.fujitsu.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gV2lsbGlhbXMgW21haWx0
-bzpkYW4uai53aWxsaWFtc0BpbnRlbC5jb21dDQo+IFNlbnQ6IFN1bmRheSwgSnVseSA4LCAyMDE4
-IDU6MDYgQU0NCj4gVG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVqaXRzdS5j
-b20+DQo+IENjOiBsaW51eC1udmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+DQo+IFN1
-YmplY3Q6IFJlOiBbUEFUQ0ggdjkgMS8zXSBuZGN0bCwgbW9uaXRvcjogYWRkIG5kY3RsIG1vbml0
-b3INCj4gDQo+IE9uIFRodSwgSnVuIDI4LCAyMDE4IGF0IDc6MzAgUE0sIFFJIEZ1bGkgPHFpLmZ1
-bGlAanAuZnVqaXRzdS5jb20+IHdyb3RlOg0KPiA+IE5kY3RsIG1vbml0b3IgaXMgdXNlZCBmb3Ig
-bW9uaXRvcmluZyB0aGUgc21hcnQgZXZlbnRzIG9mIG52ZGltbSBESU1Ncy4NCj4gPiBXaGVuIGEg
-c21hcnQgZXZlbnQgZmlyZXMsIG1vbml0b3Igd2lsbCBvdXRwdXQgdGhlIG5vdGlmaWNhdGlvbnMg
-d2hpY2gNCj4gPiBpbmNsdWRlIGRpbW0gaGVhbHRoIHN0YXR1cyBhbmQgZXZuZXQgaW5mb3JtYXRp
-b25zIHRvIHN5c2xvZyBvciBhDQo+ID4gbG9nZmlsZSBieSBzZXR0aW5nIFstLWxvZ2ZpbGVdIG9w
-dGlvbi4gVGhlIG5vdGlmaWNhdGlvbnMgZm9sbG93IGpzb24NCj4gPiBmb3JtYXQgYW5kIGNhbiBi
-ZSBjb25zdW1lZCBieSBsb2cgY29sbGVjdG9ycyBsaWtlIEZsdWVudGQuDQo+ID4NCj4gPiBUaGUg
-b2JqZWN0cyB0byBtb25pdG9yIGNhbiBiZSBzZWxlY3RlZCBieSBzZXR0aW5nIFstLWRpbW1dIFst
-LXJlZ2lvbl0NCj4gPiBbLS1uYW1lc3BhY2VdIFstLWJ1c10gb3B0aW9ucyBhbmQgdGhlIGV2ZW50
-IHR5cGUgY2FuIGJlIGZpbHRlcmVkIGJ5DQo+ID4gc2V0dGluZyBbLS1kaW1tLWV2ZW50XSBvcHRp
-b24uIFRoZXNlIG9wdGlvbnMgc3VwcG9ydCBtdWx0aXBsZQ0KPiA+IHNwYWNlLXNlcGFyYXRlZCBh
-cmd1bWVudHMuDQo+ID4NCj4gPiBOZGN0bCBtb25pdG9yIGNhbiBiZSBmb3JrZWQgYXMgYSBkYWVt
-b24gYnkgdXNpbmcgWy0tZGFlbW9uXSBvcHRpb24sDQo+ID4gc3VjaCBhczoNCj4gPiAgICAjIG5k
-Y3RsIG1vbml0b3IgLS1kYWVtb24gLS1sb2dmaWxlIC92YXIvbG9nL25kY3RsL21vbml0b3IubG9n
-DQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBRSSBGdWxpIDxxaS5mdWxpQGpwLmZ1aml0c3UuY29t
-Pg0KPiA+IC0tLQ0KPiA+ICBidWlsdGluLmggICAgICAgICAgICAgIHwgICAxICsNCj4gPiAgbmRj
-dGwvTWFrZWZpbGUuYW0gICAgICB8ICAgMyArLQ0KPiA+ICBuZGN0bC9saWIvbGlibmRjdGwuc3lt
-IHwgICAxICsNCj4gPiAgbmRjdGwvbGliL3NtYXJ0LmMgICAgICB8ICAxNyArKw0KPiA+ICBuZGN0
-bC9saWJuZGN0bC5oICAgICAgIHwgICA2ICsNCj4gPiAgbmRjdGwvbW9uaXRvci5jICAgICAgICB8
-IDUzMSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+ICBuZGN0
-bC9uZGN0bC5jICAgICAgICAgIHwgICAxICsNCj4gPiAgdXRpbC9maWx0ZXIuaCAgICAgICAgICB8
-ICAgOSArDQo+ID4gIDggZmlsZXMgY2hhbmdlZCwgNTY4IGluc2VydGlvbnMoKyksIDEgZGVsZXRp
-b24oLSkgIGNyZWF0ZSBtb2RlIDEwMDY0NA0KPiA+IG5kY3RsL21vbml0b3IuYw0KPiA+DQo+ID4g
-ZGlmZiAtLWdpdCBhL2J1aWx0aW4uaCBiL2J1aWx0aW4uaA0KPiA+IGluZGV4IGQzY2M3MjMuLjY3
-NWE2Y2UgMTAwNjQ0DQo+ID4gLS0tIGEvYnVpbHRpbi5oDQo+ID4gKysrIGIvYnVpbHRpbi5oDQo+
-ID4gQEAgLTM5LDYgKzM5LDcgQEAgaW50IGNtZF9pbmplY3RfZXJyb3IoaW50IGFyZ2MsIGNvbnN0
-IGNoYXIgKiphcmd2LA0KPiA+IHZvaWQgKmN0eCk7ICBpbnQgY21kX3dhaXRfc2NydWIoaW50IGFy
-Z2MsIGNvbnN0IGNoYXIgKiphcmd2LCB2b2lkDQo+ID4gKmN0eCk7ICBpbnQgY21kX3N0YXJ0X3Nj
-cnViKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgdm9pZCAqY3R4KTsNCj4gPiBpbnQgY21k
-X2xpc3QoaW50IGFyZ2MsIGNvbnN0IGNoYXIgKiphcmd2LCB2b2lkICpjdHgpOw0KPiA+ICtpbnQg
-Y21kX21vbml0b3IoaW50IGFyZ2MsIGNvbnN0IGNoYXIgKiphcmd2LCB2b2lkICpjdHgpOw0KPiA+
-ICAjaWZkZWYgRU5BQkxFX1RFU1QNCj4gPiAgaW50IGNtZF90ZXN0KGludCBhcmdjLCBjb25zdCBj
-aGFyICoqYXJndiwgdm9pZCAqY3R4KTsgICNlbmRpZiBkaWZmDQo+ID4gLS1naXQgYS9uZGN0bC9N
-YWtlZmlsZS5hbSBiL25kY3RsL01ha2VmaWxlLmFtIGluZGV4IGQyMmEzNzkuLjdkYmYyMjMNCj4g
-PiAxMDA2NDQNCj4gPiAtLS0gYS9uZGN0bC9NYWtlZmlsZS5hbQ0KPiA+ICsrKyBiL25kY3RsL01h
-a2VmaWxlLmFtDQo+ID4gQEAgLTE2LDcgKzE2LDggQEAgbmRjdGxfU09VUkNFUyA9IG5kY3RsLmMg
-XA0KPiA+ICAgICAgICAgICAgICAgICB1dGlsL2pzb24tc21hcnQuYyBcDQo+ID4gICAgICAgICAg
-ICAgICAgIHV0aWwvanNvbi1maXJtd2FyZS5jIFwNCj4gPiAgICAgICAgICAgICAgICAgaW5qZWN0
-LWVycm9yLmMgXA0KPiA+IC0gICAgICAgICAgICAgICBpbmplY3Qtc21hcnQuYw0KPiA+ICsgICAg
-ICAgICAgICAgICBpbmplY3Qtc21hcnQuYyBcDQo+ID4gKyAgICAgICAgICAgICAgIG1vbml0b3Iu
-Yw0KPiA+DQo+ID4gIGlmIEVOQUJMRV9ERVNUUlVDVElWRQ0KPiA+ICBuZGN0bF9TT1VSQ0VTICs9
-IC4uL3Rlc3QvYmxrX25hbWVzcGFjZXMuYyBcIGRpZmYgLS1naXQNCj4gPiBhL25kY3RsL2xpYi9s
-aWJuZGN0bC5zeW0gYi9uZGN0bC9saWIvbGlibmRjdGwuc3ltIGluZGV4DQo+ID4gZTkzOTk5My4u
-ZjY0ZGY1NiAxMDA2NDQNCj4gPiAtLS0gYS9uZGN0bC9saWIvbGlibmRjdGwuc3ltDQo+ID4gKysr
-IGIvbmRjdGwvbGliL2xpYm5kY3RsLnN5bQ0KPiA+IEBAIC0zNjYsNCArMzY2LDUgQEAgZ2xvYmFs
-Og0KPiA+ICAgICAgICAgbmRjdGxfbmFtZXNwYWNlX2luamVjdF9lcnJvcjI7DQo+ID4gICAgICAg
-ICBuZGN0bF9uYW1lc3BhY2VfdW5pbmplY3RfZXJyb3IyOw0KPiA+ICAgICAgICAgbmRjdGxfY21k
-X2Fyc19zdGF0X2dldF9mbGFnX292ZXJmbG93Ow0KPiA+ICsgICAgICAgbmRjdGxfY21kX3NtYXJ0
-X2dldF9ldmVudF9mbGFnczsNCj4gPiAgfSBMSUJORENUTF8xNTsNCj4gPiBkaWZmIC0tZ2l0IGEv
-bmRjdGwvbGliL3NtYXJ0LmMgYi9uZGN0bC9saWIvc21hcnQuYyBpbmRleA0KPiA+IDA0NTUyNTIu
-LjkwYTY1ZDAgMTAwNjQ0DQo+ID4gLS0tIGEvbmRjdGwvbGliL3NtYXJ0LmMNCj4gPiArKysgYi9u
-ZGN0bC9saWIvc21hcnQuYw0KPiA+IEBAIC0xMDEsNiArMTAxLDIzIEBAIE5EQ1RMX0VYUE9SVCB1
-bnNpZ25lZCBpbnQNCj4gPiBuZGN0bF9jbWRfc21hcnRfdGhyZXNob2xkX2dldF90ZW1wZXJhdHVy
-ZSgNCj4gPg0KPiA+ICBzbWFydF9jbWRfb3Aoc21hcnRfdGhyZXNob2xkX2dldF9zdXBwb3J0ZWRf
-YWxhcm1zLCB1bnNpZ25lZCBpbnQsIDApOw0KPiA+DQo+ID4gK05EQ1RMX0VYUE9SVCB1bnNpZ25l
-ZCBpbnQgbmRjdGxfY21kX3NtYXJ0X2dldF9ldmVudF9mbGFncyhzdHJ1Y3QNCj4gPiArbmRjdGxf
-Y21kICpjbWQpDQo+IA0KPiBNeSBleHBlY3RhdGlvbiBmb3IgdGhpcyBuZGN0bF8qX2dldF9ldmVu
-dF9mbGFncygpIGFwaSB3YXMgdG8gaGF2ZSBpdCBiZToNCj4gDQo+ICAgICBuZGN0bF9kaW1tX2dl
-dF9ldmVudF9mbGFncygpDQo+IA0KPiAuLi5hbmQgd2l0aCB0aGF0IGluIHBsYWNlIGdldCByaWQg
-b2YgdGhlICdzdHJ1Y3QgbW9uaXRvcl9kaW1tJyBvYmplY3QuDQo+IFB1c2ggZXZlcnl0aGluZyB0
-byBiZSByZXRyaWV2ZWQgdGhyb3VnaCBhcGkgY2FsbHMgYWdhaW5zdCBhICdzdHJ1Y3QgbmRjdGxf
-ZGltbScgb2JqZWN0Lg0KPiBJbiBvdGhlciB3b3JkcywgdGhlIHVzYWdlIG9mICdzdHJ1Y3QgbmRj
-dGxfY21kJw0KPiBzaG91bGQgYmUgaGlkZGVuIGFuZCBhbGwgbW9uaXRvciBvcGVyYXRpb25zIHNo
-b3VsZCBiZSBkb25lIGluIHRlcm1zIG9mICdzdHJ1Y3QNCj4gbmRjdGxfZGltbScgaGVscGVyIGNh
-bGxzLg0KPiANCkhpIERhbiwNClRoYW5rcyBmb3IgeW91ciBjb21tZW50cy4NCg0KSW4gdGhlIHY5
-IG9mIG1vbml0b3IsIEkgdXNlIHRoZSAnc3RydWN0IG5kY3RsX2NtZCcgb2JqZWN0IGluIHRoZSBm
-b2xsb3dpbmcgcGxhY2VzOg0KCW5kY3RsX2NtZF9zbWFydF9nZXRfZmxhZ3Moc3RydWN0IG5kY3Rs
-X2NtZCAqY21kKQ0KCW5kY3RsX2NtZF9zbWFydF9nZXRfaGVhbHRoKHN0cnVjdCBuZGN0bF9jbWQg
-KmNtZCkNCgluZGN0bF9jbWRfc21hcnRfZ2V0X2V2ZW50X2ZsYWdzKHN0cnVjdCBuZGN0bF9jbWQg
-KmNtZCkNCklzIGl0IHRoYXQgeW91IHdhbnQgdG8gaGlkZSBhbGwgb2YgdGhlICdzdHJ1Y3QgbmRj
-dGxfY21kJyBvYmplY3RzIGFuZCBhZGQgdGhlIGZvbGxvd2luZyAnc3RydWN0IG5kY3RsX2RpbW0n
-IGhlbHBlciBjYWxscz8NCgluZGN0bF9kaW1tX2dldF9mbGFncyhzdHJ1Y3QgbmRjdGxfZGltbSAq
-ZGltbSkNCgluZGN0bF9kaW1tX2dldF9oZWFsdGgoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0pDQoJ
-bmRjdGxfZGltbV9nZXRfZXZlbnRfZmxhZ3Moc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0pDQoNCg0K
-PiBUaGlzIGFsbG93cyBmb3Igb3RoZXIgb2JqZWN0cyBsaWtlIHJlZ2lvbnMgYW5kIG5hbWVzcGFj
-ZSB0byBncm93IGFuIGV2ZW50IGZsYWdzIGFwaQ0KPiBpbiB0aGUgZnV0dXJlOg0KPiANCj4gICAg
-bmRjdGxfbmFtZXNwYWNlX2dldF9ldmVudF9mbGFncygpDQo+ICAgIG5kY3RsX3JlZ2lvbl9nZXRf
-ZXZlbnRfZmxhZ3MoKQ0KPiAgICBuZGN0bF9idXNfZ2V0X2V2ZW50X2ZsYWdzKCkNCj4gDQo+IC4u
-LndoZXJlIHRob3NlIG9iamVjdHMgZG9uJ3QgaGF2ZSBhbnkgcmVsYXRpb25zaGlwIHdpdGggYSAn
-c3RydWN0IG5kY3RsX2NtZCcsIHNvDQo+IG5laXRoZXIgc2hvdWxkIGRpbW0gZXZlbnQgbW9uaXRv
-cmluZywgYXQgbGVhc3Qgbm90IGZvciB0aGUgbGlicmFyeSBhcGkgdGhhdA0KPiBuZGN0bC1tb25p
-dG9yIGlzIHVzaW5nLg0KPiANCg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMu
-MDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1t
-Cg==
+On Thu, Jun 28, 2018 at 7:30 PM, QI Fuli <qi.fuli@jp.fujitsu.com> wrote:
+> Ndctl monitor is used for monitoring the smart events of nvdimm DIMMs.
+> When a smart event fires, monitor will output the notifications which
+> include dimm health status and evnet informations to syslog or a
+> logfile by setting [--logfile] option. The notifications follow json
+> format and can be consumed by log collectors like Fluentd.
+>
+> The objects to monitor can be selected by setting [--dimm] [--region]
+> [--namespace] [--bus] options and the event type can be filtered by
+> setting [--dimm-event] option. These options support multiple
+> space-separated arguments.
+>
+> Ndctl monitor can be forked as a daemon by using [--daemon] option,
+> such as:
+>    # ndctl monitor --daemon --logfile /var/log/ndctl/monitor.log
+>
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  builtin.h              |   1 +
+>  ndctl/Makefile.am      |   3 +-
+>  ndctl/lib/libndctl.sym |   1 +
+>  ndctl/lib/smart.c      |  17 ++
+>  ndctl/libndctl.h       |   6 +
+>  ndctl/monitor.c        | 531 +++++++++++++++++++++++++++++++++++++++++
+>  ndctl/ndctl.c          |   1 +
+>  util/filter.h          |   9 +
+>  8 files changed, 568 insertions(+), 1 deletion(-)
+>  create mode 100644 ndctl/monitor.c
+>
+> diff --git a/builtin.h b/builtin.h
+> index d3cc723..675a6ce 100644
+> --- a/builtin.h
+> +++ b/builtin.h
+> @@ -39,6 +39,7 @@ int cmd_inject_error(int argc, const char **argv, void *ctx);
+>  int cmd_wait_scrub(int argc, const char **argv, void *ctx);
+>  int cmd_start_scrub(int argc, const char **argv, void *ctx);
+>  int cmd_list(int argc, const char **argv, void *ctx);
+> +int cmd_monitor(int argc, const char **argv, void *ctx);
+>  #ifdef ENABLE_TEST
+>  int cmd_test(int argc, const char **argv, void *ctx);
+>  #endif
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index d22a379..7dbf223 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -16,7 +16,8 @@ ndctl_SOURCES = ndctl.c \
+>                 util/json-smart.c \
+>                 util/json-firmware.c \
+>                 inject-error.c \
+> -               inject-smart.c
+> +               inject-smart.c \
+> +               monitor.c
+>
+>  if ENABLE_DESTRUCTIVE
+>  ndctl_SOURCES += ../test/blk_namespaces.c \
+> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+> index e939993..f64df56 100644
+> --- a/ndctl/lib/libndctl.sym
+> +++ b/ndctl/lib/libndctl.sym
+> @@ -366,4 +366,5 @@ global:
+>         ndctl_namespace_inject_error2;
+>         ndctl_namespace_uninject_error2;
+>         ndctl_cmd_ars_stat_get_flag_overflow;
+> +       ndctl_cmd_smart_get_event_flags;
+>  } LIBNDCTL_15;
+> diff --git a/ndctl/lib/smart.c b/ndctl/lib/smart.c
+> index 0455252..90a65d0 100644
+> --- a/ndctl/lib/smart.c
+> +++ b/ndctl/lib/smart.c
+> @@ -101,6 +101,23 @@ NDCTL_EXPORT unsigned int ndctl_cmd_smart_threshold_get_temperature(
+>
+>  smart_cmd_op(smart_threshold_get_supported_alarms, unsigned int, 0);
+>
+> +NDCTL_EXPORT unsigned int ndctl_cmd_smart_get_event_flags(struct ndctl_cmd *cmd)
+
+My expectation for this ndctl_*_get_event_flags() api was to have it be:
+
+    ndctl_dimm_get_event_flags()
+
+...and with that in place get rid of the 'struct monitor_dimm' object.
+Push everything to be retrieved through api calls against a 'struct
+ndctl_dimm' object. In other words, the usage of 'struct ndctl_cmd'
+should be hidden and all monitor operations should be done in terms of
+'struct ndctl_dimm' helper calls.
+
+This allows for other objects like regions and namespace to grow an
+event flags api in the future:
+
+   ndctl_namespace_get_event_flags()
+   ndctl_region_get_event_flags()
+   ndctl_bus_get_event_flags()
+
+...where those objects don't have any relationship with a 'struct
+ndctl_cmd', so neither should dimm event monitoring, at least not for
+the library api that ndctl-monitor is using.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
