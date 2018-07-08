@@ -1,9 +1,10 @@
-From: <akamd-aPmoKo1seE8AvxtiuMwx3w@public.gmane.org>
-Subject: Welcome to our company
-Date: 8 Jul 2018 14:23:35 +0200
-Message-ID: <5D5EE5D3C1E668F7F44F796B4C91E72F@2LJ9QGH8EX>
+From: =?utf-8?B?5pu55Li75Lu7?= <wxcwqoa-gUGuqyf/tG8@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+R77ya5aaC5L2V5p6E5bu65Zu65a6a6LWE5Lqn566h55CG5L2T57O7?=
+Date: Sun, 8 Jul 2018 18:23:15 +0800
+Message-ID: <94A70849AE7F0468FA8797A67730B130@igrb.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1207318618685017942=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,43 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============1207318618685017942==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
-
-Good day!
-
-We considered your resume to be very attractive and we thought the =
-vacant position in our company could be interesting for you.
-
-Our firm specializes in online services in the matter of business =
-administration.
-We cooperate with different countries and currently we have many clients =
-in yours region.
-Due to this fact, we need to increase the number of our destination =
-representatives' regular staff.
-
-Part-time and full-time employment are both currently important.
-We offer a flat wage from $1500 up to $7000 per month.
-
-If you are interested in our offer, please visit our web page.
-
-Attention! Accept applications only on this and next week.
-
-Respectively submitted
-Personnel department
---===============1207318618685017942==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============1207318618685017942==--
+bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0K6ZmEfuS7tn7lhoV+5a65DQogICAgICAgICAgICAg
+6K+3fuaCqH7mn6V+6ZiFIA0KMTg6MjM6MjUKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
+bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+bnZkaW1tCg==
