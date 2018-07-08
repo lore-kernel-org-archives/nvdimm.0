@@ -1,9 +1,9 @@
-From: <mujuthaba-VUhflHrGHhjyG1zEObXtfA@public.gmane.org>
-Subject: Interesting work
-Date: 7 Jul 2018 14:24:30 +0600
-Message-ID: <111890419.201807071442@po.gov.mv>
+From: <akamd-aPmoKo1seE8AvxtiuMwx3w@public.gmane.org>
+Subject: Welcome to our company
+Date: 8 Jul 2018 14:23:35 +0200
+Message-ID: <5D5EE5D3C1E668F7F44F796B4C91E72F@2LJ9QGH8EX>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5739262096252719978=="
+Content-Type: multipart/mixed; boundary="===============1207318618685017942=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,8 +17,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============5739262096252719978==
-Content-Type: text/plain; charset="cp-850"
+This is a multi-part message in MIME format.
+
+--===============1207318618685017942==
+Content-Type: text/plain;
+	charset="cp-850"
 Content-Transfer-Encoding: quoted-printable
 
 Good day!
@@ -42,7 +45,7 @@ Attention! Accept applications only on this and next week.
 
 Respectively submitted
 Personnel department
---===============5739262096252719978==
+--===============1207318618685017942==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -53,4 +56,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============5739262096252719978==--
+--===============1207318618685017942==--
