@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7F6A3209831CF
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 22:00:43 -0700 (PDT)
-Subject: [PATCH v6 09/13] filesystem-dax: Introduce dax_lock_mapping_entry()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 13 Jul 2018 21:50:16 -0700
-Message-ID: <153154381675.34503.4471648812866312162.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 52198202E53F3
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 15:52:55 -0700 (PDT)
+Received: by mail-oi0-x244.google.com with SMTP id s198-v6so39004458oih.11
+ for <linux-nvdimm@lists.01.org>; Mon, 09 Jul 2018 15:52:55 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <153082215300.61422.9908891437665310082.stgit@djiang5-desk3.ch.intel.com>
+References: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+ <153082215300.61422.9908891437665310082.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 9 Jul 2018 15:52:53 -0700
+Message-ID: <CAPcyv4i8mb9vd3=yK67X=FxBV7raQieJC+eNJrp8gOK+sniTtw@mail.gmail.com>
+Subject: Re: [PATCH v2 04/11] nfit/libnvdimm: adding unlock of nvdimm support
+ for Intel DIMMs
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,218 +27,153 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: David Howells <dhowells@redhat.com>, "Schofield, Alison  <alison.schofield@intel.com>, keyrings@vger.kernel.org, Kees Cook" <keescook@chromium.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for implementing support for memory poison (media error)
-handling via dax mappings, implement a lock_page() equivalent. Poison
-error handling requires rmap and needs guarantees that the page->mapping
-association is maintained / valid (inode not freed) for the duration of
-the lookup.
+On Thu, Jul 5, 2018 at 1:22 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Adding support to allow query the security status of the Intel nvdimms and
+> also unlock the dimm via the kernel key management APIs. The passphrase is
+> expected to be pulled from userspace through keyutils. Moving the Intel
+> related bits to its own source file as well.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/acpi/nfit/Makefile |    2 -
+>  drivers/acpi/nfit/core.c   |   11 +++
+>  drivers/acpi/nfit/intel.c  |  146 ++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/nfit/intel.h  |    2 +
+>  drivers/nvdimm/dimm.c      |    7 ++
+>  drivers/nvdimm/dimm_devs.c |  108 ++++++++++++++++++++++++++++++++-
+>  drivers/nvdimm/nd-core.h   |    2 +
+>  drivers/nvdimm/nd.h        |    2 +
+>  include/linux/libnvdimm.h  |   23 +++++++
+>  9 files changed, 299 insertions(+), 4 deletions(-)
+>  create mode 100644 drivers/acpi/nfit/intel.c
+>
+> diff --git a/drivers/acpi/nfit/Makefile b/drivers/acpi/nfit/Makefile
+> index a407e769f103..8287005f9226 100644
+> --- a/drivers/acpi/nfit/Makefile
+> +++ b/drivers/acpi/nfit/Makefile
+> @@ -1,3 +1,3 @@
+>  obj-$(CONFIG_ACPI_NFIT) := nfit.o
+> -nfit-y := core.o
+> +nfit-y := core.o intel.o
 
-In the device-dax case it is sufficient to simply hold a dev_pagemap
-reference. In the filesystem-dax case we need to use the entry lock.
+See below, this needs to be
 
-Export the entry lock via dax_lock_mapping_entry() that uses
-rcu_read_lock() to protect against the inode being freed, and
-revalidates the page->mapping association under xa_lock().
+nfit-$(CONFIG_X86) += intel.o
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c            |  109 ++++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/dax.h |   13 ++++++
- 2 files changed, 116 insertions(+), 6 deletions(-)
+>  nfit-$(CONFIG_X86_MCE) += mce.o
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index d474d53473fe..8304ad6fcea4 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1838,6 +1838,14 @@ static int acpi_nfit_get_dimm_id(struct acpi_nfit_control_region *dcr,
+>                                 be32_to_cpu(dcr->serial_number));
+>  }
+>
+> +static struct nvdimm_security_ops *acpi_nfit_get_security_ops(int family)
+> +{
+> +       if (family == NVDIMM_FAMILY_INTEL)
+> +               return &intel_security_ops;
+> +       else
+> +               return NULL;
+> +}
+> +
+>  static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+>  {
+>         struct nfit_mem *nfit_mem;
+> @@ -1908,7 +1916,8 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+>                 nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
+>                                 acpi_nfit_dimm_attribute_groups,
+>                                 flags, cmd_mask, flush ? flush->hint_count : 0,
+> -                               nfit_mem->flush_wpq, nfit_mem->id);
+> +                               nfit_mem->flush_wpq, nfit_mem->id,
+> +                               acpi_nfit_get_security_ops(nfit_mem->family));
+>                 if (!nvdimm)
+>                         return -ENOMEM;
+>
+> diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+> new file mode 100644
+> index 000000000000..c1140f6901da
+> --- /dev/null
+> +++ b/drivers/acpi/nfit/intel.c
+> @@ -0,0 +1,146 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
+> +/*
+> + * Intel specific NFIT ops
+> + */
+> +#include <linux/libnvdimm.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/ndctl.h>
+> +#include <linux/sysfs.h>
+> +#include <linux/delay.h>
+> +#include <linux/acpi.h>
+> +#include <linux/io.h>
+> +#include <linux/nd.h>
+> +#include <asm/cacheflush.h>
+> +#include <acpi/nfit.h>
+> +#include "intel.h"
+> +#include "nfit.h"
+> +
+> +static int intel_dimm_security_unlock(struct nvdimm_bus *nvdimm_bus,
+> +               struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
+> +{
+> +       struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
+> +       int cmd_rc, rc = 0;
+> +       struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+> +       struct {
+> +               struct nd_cmd_pkg pkg;
+> +               struct nd_intel_unlock_unit cmd;
+> +       } nd_cmd = {
+> +               .pkg = {
+> +                       .nd_command = NVDIMM_INTEL_UNLOCK_UNIT,
+> +                       .nd_family = NVDIMM_FAMILY_INTEL,
+> +                       .nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
+> +                       .nd_size_out = ND_INTEL_STATUS_SIZE,
+> +                       .nd_fw_size = ND_INTEL_STATUS_SIZE,
+> +               },
+> +               .cmd = {
+> +                       .status = 0,
+> +               },
+> +       };
+> +
+> +       if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
+> +               return -ENOTTY;
+> +
+> +       memcpy(nd_cmd.cmd.passphrase, nkey->data, ND_INTEL_PASSPHRASE_SIZE);
+> +       rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
+> +                       sizeof(nd_cmd), &cmd_rc);
+> +       if (rc < 0)
+> +               goto out;
+> +       if (cmd_rc < 0) {
+> +               rc = cmd_rc;
+> +               goto out;
+> +       }
+> +
+> +       switch (nd_cmd.cmd.status) {
+> +       case 0:
+> +               break;
+> +       case ND_INTEL_STATUS_INVALID_PASS:
+> +               rc = -EINVAL;
+> +               goto out;
+> +       case ND_INTEL_STATUS_INVALID_STATE:
+> +       default:
+> +               rc = -ENXIO;
+> +               goto out;
+> +       }
+> +
+> +       /* DIMM unlocked, invalidate all CPU caches before we read it */
+> +       wbinvd();
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 4de11ed463ce..57ec272038da 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -226,8 +226,8 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
-  *
-  * Must be called with the i_pages lock held.
-  */
--static void *get_unlocked_mapping_entry(struct address_space *mapping,
--					pgoff_t index, void ***slotp)
-+static void *__get_unlocked_mapping_entry(struct address_space *mapping,
-+		pgoff_t index, void ***slotp, bool (*wait_fn)(void))
- {
- 	void *entry, **slot;
- 	struct wait_exceptional_entry_queue ewait;
-@@ -237,6 +237,8 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
- 	ewait.wait.func = wake_exceptional_entry_func;
- 
- 	for (;;) {
-+		bool revalidate;
-+
- 		entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
- 					  &slot);
- 		if (!entry ||
-@@ -251,14 +253,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
- 		prepare_to_wait_exclusive(wq, &ewait.wait,
- 					  TASK_UNINTERRUPTIBLE);
- 		xa_unlock_irq(&mapping->i_pages);
--		schedule();
-+		revalidate = wait_fn();
- 		finish_wait(wq, &ewait.wait);
- 		xa_lock_irq(&mapping->i_pages);
-+		if (revalidate)
-+			return ERR_PTR(-EAGAIN);
- 	}
- }
- 
--static void dax_unlock_mapping_entry(struct address_space *mapping,
--				     pgoff_t index)
-+static bool entry_wait(void)
-+{
-+	schedule();
-+	/*
-+	 * Never return an ERR_PTR() from
-+	 * __get_unlocked_mapping_entry(), just keep looping.
-+	 */
-+	return false;
-+}
-+
-+static void *get_unlocked_mapping_entry(struct address_space *mapping,
-+		pgoff_t index, void ***slotp)
-+{
-+	return __get_unlocked_mapping_entry(mapping, index, slotp, entry_wait);
-+}
-+
-+static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
- {
- 	void *entry, **slot;
- 
-@@ -277,7 +296,7 @@ static void dax_unlock_mapping_entry(struct address_space *mapping,
- static void put_locked_mapping_entry(struct address_space *mapping,
- 		pgoff_t index)
- {
--	dax_unlock_mapping_entry(mapping, index);
-+	unlock_mapping_entry(mapping, index);
- }
- 
- /*
-@@ -374,6 +393,84 @@ static struct page *dax_busy_page(void *entry)
- 	return NULL;
- }
- 
-+static bool entry_wait_revalidate(void)
-+{
-+	rcu_read_unlock();
-+	schedule();
-+	rcu_read_lock();
-+
-+	/*
-+	 * Tell __get_unlocked_mapping_entry() to take a break, we need
-+	 * to revalidate page->mapping after dropping locks
-+	 */
-+	return true;
-+}
-+
-+bool dax_lock_mapping_entry(struct page *page)
-+{
-+	pgoff_t index;
-+	struct inode *inode;
-+	bool did_lock = false;
-+	void *entry = NULL, **slot;
-+	struct address_space *mapping;
-+
-+	rcu_read_lock();
-+	for (;;) {
-+		mapping = READ_ONCE(page->mapping);
-+
-+		if (!dax_mapping(mapping))
-+			break;
-+
-+		/*
-+		 * In the device-dax case there's no need to lock, a
-+		 * struct dev_pagemap pin is sufficient to keep the
-+		 * inode alive, and we assume we have dev_pagemap pin
-+		 * otherwise we would not have a valid pfn_to_page()
-+		 * translation.
-+		 */
-+		inode = mapping->host;
-+		if (S_ISCHR(inode->i_mode)) {
-+			did_lock = true;
-+			break;
-+		}
-+
-+		xa_lock_irq(&mapping->i_pages);
-+		if (mapping != page->mapping) {
-+			xa_unlock_irq(&mapping->i_pages);
-+			continue;
-+		}
-+		index = page->index;
-+
-+		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
-+				entry_wait_revalidate);
-+		if (!entry) {
-+			xa_unlock_irq(&mapping->i_pages);
-+			break;
-+		} else if (IS_ERR(entry)) {
-+			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
-+			continue;
-+		}
-+		lock_slot(mapping, slot);
-+		did_lock = true;
-+		xa_unlock_irq(&mapping->i_pages);
-+		break;
-+	}
-+	rcu_read_unlock();
-+
-+	return did_lock;
-+}
-+
-+void dax_unlock_mapping_entry(struct page *page)
-+{
-+	struct address_space *mapping = page->mapping;
-+	struct inode *inode = mapping->host;
-+
-+	if (S_ISCHR(inode->i_mode))
-+		return;
-+
-+	unlock_mapping_entry(mapping, page->index);
-+}
-+
- /*
-  * Find radix tree entry at given index. If it points to an exceptional entry,
-  * return it with the radix tree entry locked. If the radix tree doesn't
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 3855e3800f48..cf8ac51cf0d7 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -88,6 +88,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 		struct block_device *bdev, struct writeback_control *wbc);
- 
- struct page *dax_layout_busy_page(struct address_space *mapping);
-+bool dax_lock_mapping_entry(struct page *page);
-+void dax_unlock_mapping_entry(struct page *page);
- #else
- static inline bool bdev_dax_supported(struct block_device *bdev,
- 		int blocksize)
-@@ -119,6 +121,17 @@ static inline int dax_writeback_mapping_range(struct address_space *mapping,
- {
- 	return -EOPNOTSUPP;
- }
-+
-+static inline bool dax_lock_mapping_entry(struct page *page)
-+{
-+	if (IS_DAX(page->mapping->host))
-+		return true;
-+	return false;
-+}
-+
-+static inline void dax_unlock_mapping_entry(struct page *page)
-+{
-+}
- #endif
- 
- int dax_read_lock(void);
+This needs to be run on all cpus, there's a helper for that
+wbinvd_on_all_cpus().
 
+However that is x86 specific, so this file needs a "depends on X86"
+compilation dependency.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
